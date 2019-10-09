@@ -119,7 +119,6 @@
       <itemPath>../../include/votca/xtp/logger.h</itemPath>
       <itemPath>../../include/votca/xtp/md2qmengine.h</itemPath>
       <itemPath>../../include/votca/xtp/mmregion.h</itemPath>
-      <itemPath>../../include/votca/xtp/multiarray.h</itemPath>
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/optimiser_costfunction.h</itemPath>
@@ -4129,11 +4128,6 @@
       </item>
       <item path="../../include/votca/xtp/mmregion.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/multiarray.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
@@ -5350,11 +5344,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mmregion.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/multiarray.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
