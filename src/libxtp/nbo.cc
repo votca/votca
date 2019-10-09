@@ -23,4 +23,3 @@ namespace votca {
 
 namespace xtp {}  // namespace xtp
 }  // namespace votca
-

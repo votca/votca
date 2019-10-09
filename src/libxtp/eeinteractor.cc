@@ -281,7 +281,6 @@ eeInteractor::E_terms eeInteractor::CalcPolarEnergy_site(
   return val;
 }
 
-
 template <class T, enum Estatic CE>
 double eeInteractor::ApplyStaticField(const T& segment1,
                                       PolarSegment& segment2) const {
