@@ -16,7 +16,7 @@ TOOLS -> CSG -> XTP
 
 Dependencies for core functionality
 
-    apt-get install make cmake git g++ libexpat-dev libfftw3-dev libgsl-dev libboost-all-dev txt2tags libsqlite3-dev octave gnuplot python-numpy libhdf5-dev graphviz pkg-config psmisc libint2-dev libeigen3-dev libxc-dev libceres-dev libgromacs-dev gromacs-openmpi
+    apt-get install make cmake git g++ libexpat-dev libfftw3-dev libboost-all-dev txt2tags gnuplot python-numpy libhdf5-dev graphviz pkg-config psmisc libeigen3-dev libxc-dev libgromacs-dev gromacs-openmpi
 
 Dependencies for Manual
 
@@ -26,7 +26,7 @@ Dependencies for Manual
 
 Dependencies for core functionality
 
-     dnf install make cmake git gcc-c++ expat-devel fftw-devel gsl-devel boost-devel txt2tags sqlite-devel procps-ng octave gnuplot python2-numpy psmisc hdf5-devel lammps libint2-devel eigen3-devel libxc-devel ceres-solver-devel python-numpy gromacs-devel gromacs gromacs-openmpi
+     dnf install make cmake git gcc-c++ expat-devel fftw-devel gsl-devel boost-devel txt2tags procps-ng gnuplot psmisc hdf5-devel lammps eigen3-devel libxc-devel python-numpy gromacs-devel gromacs gromacs-openmpi
 
 Dependencies for Manual
 
