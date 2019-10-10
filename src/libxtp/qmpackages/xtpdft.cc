@@ -32,7 +32,6 @@ using namespace std;
 void XTPDFT::Initialize(tools::Property& options) {
   _xtpdft_options = options;
   _log_file_name = "system_dft.orb";
-  std::string key = "package";
   ParseCommonOptions(options);
 }
 
