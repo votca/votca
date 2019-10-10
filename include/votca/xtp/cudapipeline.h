@@ -24,9 +24,11 @@
 #include <curand.h>
 #include <iostream>
 #include <sstream>
+#include <utility>
 #include <vector>
 #include <votca/xtp/cudamatrix.h>
 #include <votca/xtp/eigen.h>
+
 /*
  * \brief Perform Tensor-matrix multiplications in a GPU
  *
@@ -53,22 +55,18 @@ class CudaPipeline {
   CudaPipeline(const CudaPipeline &) = delete;
   CudaPipeline &operator=(const CudaPipeline &) = delete;
 
-  // Perform a multiplication between a matrix and a tensor
-  void right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &tensor,
-                                const Eigen::MatrixXd &A) const;
-
   // Perform matrix1 * matrix2 * matrix3 multiplication
   Eigen::MatrixXd triple_matrix_mult(const CudaMatrix &A,
                                      const Eigen::MatrixXd &matrix,
                                      const CudaMatrix &C) const;
 
+  // Invoke the ?gemm function of cublas
+  void gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C) const;
+
   const cudaStream_t &get_stream() const { return _stream; };
 
  private:
   void throw_if_not_enough_memory_in_gpu(size_t required) const;
-
-  // Invoke the ?gemm function of cublas
-  void gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C) const;
 
   // The cublas handles allocates hardware resources on the host and device.
   cublasHandle_t _handle;

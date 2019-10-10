@@ -15,7 +15,6 @@
         <mode help="use single short (G0W0) or self-consistent GW (evGW)">evGW</mode>
         <tasks help="tasks to do gw,singlets,triplets or all">gw,singlets,triplets</tasks> 
         <exctotal help="maximum number of BSE states to calculate">25</exctotal>
-	<max_gpu_streams help="maximum number of GPU streams to compute concurrently in the GPU device">32</max_gpu_streams>
 
         <eigensolver help="options for BSE eigenvalue decompostion">
                 <dodavidson help="use davidson solver" >1</dodavidson>

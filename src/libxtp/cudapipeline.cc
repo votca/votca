@@ -50,7 +50,7 @@ void CudaPipeline::throw_if_not_enough_memory_in_gpu(
 
 /*
  * Call the gemm function from cublas, resulting in the multiplication of the
- * two matrices.
+ * two matrices
  */
 void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B,
                         CudaMatrix &C) const {
@@ -64,38 +64,9 @@ void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B,
   if ((A.cols() != B.rows())) {
     throw std::runtime_error("Shape mismatch in Cublas gemm");
   }
-
   cublasDgemm(_handle, CUBLAS_OP_N, CUBLAS_OP_N, A.rows(), B.cols(), A.cols(),
               palpha, A.data(), A.rows(), B.data(), B.rows(), pbeta, C.data(),
               C.rows());
-}
-
-/*
- * \brief Perform a Tensor3D matrix multiplication
- */
-void CudaPipeline::right_matrix_tensor_mult(
-    std::vector<Eigen::MatrixXd> &tensor, const Eigen::MatrixXd &B) const {
-  // First submatrix from the tensor
-  const Eigen::MatrixXd &submatrix = tensor[0];
-
-  // sizes of the matrices to allocated in the device
-  size_t size_A = submatrix.size() * sizeof(double);
-  size_t size_B = B.size() * sizeof(double);
-  size_t size_C = submatrix.rows() * B.cols() * sizeof(double);
-  throw_if_not_enough_memory_in_gpu(size_A + size_B + size_C);
-
-  // Matrix in the Cuda device
-  CudaMatrix matrixA(submatrix.rows(), submatrix.cols());
-  CudaMatrix matrixB{B, _stream};
-  CudaMatrix matrixC(submatrix.rows(), B.cols());
-
-  // Call tensor matrix multiplication
-  for (auto i = 0; i < static_cast<int>(tensor.size()); i++) {
-    matrixA.copy_to_gpu(tensor[i]);
-    gemm(matrixA, matrixB, matrixC);
-    // Copy the result to the host
-    tensor[i] = matrixC;
-  }
 }
 
 /*

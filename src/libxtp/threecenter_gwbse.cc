@@ -43,9 +43,6 @@ void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
       _mtotal, Eigen::MatrixXd::Zero(_ntotal, _basissize));
 }
 
-// Maximum number of simultaneous streams running in the GPU
-void TCMatrix_gwbse::SetGPUStreams(int streams) { _max_gpu_streams = streams; }
-
 /*
  * Modify 3-center matrix elements consistent with use of symmetrized
  * Coulomb interaction using either CUDA or Openmp
@@ -55,20 +52,32 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
   // Try to run the operation in a Nvidia GPU, otherwise is the default Openmp
   // implementation
 #if defined(USE_CUDA)
-  CudaPipeline cudaHandle;
-  try {
-    cudaHandle.right_matrix_tensor_mult(_matrix, matrix);
-  } catch (const std::runtime_error& error) {
-    XTP_LOG_SAVE(logDEBUG, _log)
-        << TimeStamp()
-        << " CUDA Multiplyrightwithauxmatrix failed due to: " << error.what()
-        << " Using default OpenMP implementation!" << flush;
-    this->MultiplyRightWithAuxMatrixOpenMP(matrix);
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp()
+      << " Using CUDA/OpenMP for tensor matrix multiplication: " << flush;
+  // Preallocated memory for all the matrices
+  CudaPipeline cuda_pip;
+  const Eigen::MatrixXd& head = _matrix.front();
+  CudaMatrix cuma_A{head.rows(), head.cols()};
+  CudaMatrix cuma_B{matrix, cuda_pip.get_stream()};
+  CudaMatrix cuma_C{head.rows(), matrix.cols()};
+
+#pragma omp parallel for schedule(dynamic)
+  for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
+    if (OPENMP::getThreadId() == 0) {
+      cuma_A.copy_to_gpu(_matrix[i_occ]);
+      cuda_pip.gemm(cuma_A, cuma_B, cuma_C);
+      _matrix[i_occ] = cuma_C;
+    } else {
+      Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
+      _matrix[i_occ] = temp;
+    }
   }
 #else
   XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << "Call MultiplyRightWithAuxMatrixOpenMP method" << flush;
-  this->MultiplyRightWithAuxMatrixOpenMP(matrix);
+      << TimeStamp()
+      << " Using Default OpenMP for tensor matrix multiplication: " << flush;
+  MultiplyRightWithAuxMatrixOpenMP(matrix);
 #endif
   return;
 }
@@ -110,7 +119,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     // MAXIMUM_GPU_STREAMS, the remaining threads will perform the perform the
     // convolution using the default method.
 #if defined(USE_CUDA)
-    if (OPENMP::getThreadId() < _max_gpu_streams) {
+    if (OPENMP::getThreadId() == 0) {
       FillBlockCUDA(block, symmstorage, cuda_matrices);
     } else {
       FillBlock(block, symmstorage, dft_orbitals);
@@ -253,12 +262,12 @@ void TCMatrix_gwbse::FillBlockCUDA(
     std::vector<Eigen::MatrixXd>& block,
     const std::vector<Eigen::MatrixXd>& symmstorage,
     const std::pair<CudaMatrix, CudaMatrix>& cuda_matrices) {
-  CudaPipeline cudaHandle;
+  CudaPipeline cuda_pip;
   int dim = static_cast<int>(symmstorage.size());
   try {
     for (int k = 0; k < dim; ++k) {
       const Eigen::MatrixXd& matrix = symmstorage[k];
-      Eigen::MatrixXd threec_inMo = cudaHandle.triple_matrix_mult(
+      Eigen::MatrixXd threec_inMo = cuda_pip.triple_matrix_mult(
           cuda_matrices.first, matrix.selfadjointView<Eigen::Lower>(),
           cuda_matrices.second);
       for (int i = 0; i < threec_inMo.cols(); ++i) {
@@ -268,8 +277,6 @@ void TCMatrix_gwbse::FillBlockCUDA(
   } catch (const std::runtime_error& error) {
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " FillBlockCUDA failed due to: " << error.what()
-        << " If there is not enough memory in the Nvidia GPU, try decreasing "
-           "the max_gpu_streams variable"
         << flush;
     throw;
   }
@@ -284,8 +291,8 @@ std::pair<CudaMatrix, CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
       dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
 
   // Smart Pointers to the cuda arrays
-  CudaPipeline cudaHandle;
-  const cudaStream_t& stream = cudaHandle.get_stream();
+  CudaPipeline cuda_pip;
+  const cudaStream_t& stream = cuda_pip.get_stream();
   CudaMatrix matrixA{dftn.transpose(), stream};
   CudaMatrix matrixB{dftm, stream};
 

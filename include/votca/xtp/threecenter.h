@@ -21,7 +21,6 @@
 #ifndef __XTP_THREECENTER__H
 #define __XTP_THREECENTER__H
 
-#include <utility>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/symmetric_matrix.h>
