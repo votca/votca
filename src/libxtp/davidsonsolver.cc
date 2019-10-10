@@ -48,11 +48,20 @@ void DavidsonSolver::checkOptions(int op_size) {
   //. search space exceeding the system size
     if (_max_search_space > op_size) {
       XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " Warning Max search space (" << _max_search_space
+          << TimeStamp() << " == Warning : Max search space (" << _max_search_space
           << ") larger than system size (" << op_size << ")" << flush;
+
       _max_search_space = op_size;
       XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " Max search space set to " << op_size << flush;
+          << TimeStamp() << " == Warning : Max search space set to " << op_size << flush;
+
+      this->_davidson_ortho = ORTHO::QR;
+      XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " == Warning : Orthogonalization set to QR for stabilty " << flush;
+
+      XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " == Warning : If problems appear, try asking for less than "
+        << int(op_size/10) << " eigenvalues" << flush;
     }
 }
 
