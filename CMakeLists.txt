@@ -79,7 +79,7 @@ if(ENABLE_REGRESSION_TESTING)
     # run tests for csg (to test csg) and tools (coverage) as well
     set_tests_properties(${TESTNAME} PROPERTIES LABELS "csg-tutorials;csg;tools;votca;regression")
     set(CSG_MDRUN_STEPS 500)
-    elseif(DIR MATCHES "(methanol/imc_gromacs-remd)($|_)")
+    if(DIR MATCHES "(methanol/imc_gromacs-remd)($|_)")
       set(CSG_MDRUN_STEPS 10000)
     elseif(DIR MATCHES "/imc($|_)")
       set(CSG_MDRUN_STEPS 2500)
