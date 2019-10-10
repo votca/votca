@@ -264,10 +264,17 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
   // _ApB = (_eh_d +_eh_qp + _eh_d2 + 4.0 * _eh_x);
   // _AmB = (_eh_d +_eh_qp - _eh_d2);
 
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
+  std::chrono::duration<double> elapsed_time;
+  start = std::chrono::system_clock::now();
+
   Eigen::MatrixXd ApB = apb.get_full_matrix();
   Eigen::MatrixXd AmB = amb.get_full_matrix();
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Setup singlet hamiltonian " << flush;
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Lapack Diagonalization" << flush;
 
   // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not
   // positive definite
@@ -301,7 +308,14 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
 
   XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Solving for first "
                                << _opt.nmax << " eigenvectors" << flush;
+                               
+  hstart = std::chrono::system_clock::now();                               
   tools::EigenSystem eigensys = tools::linalg_eigenvalues(ApB, _opt.nmax);
+  hend = std::chrono::system_clock::now();
+  elapsed_time = hend - hstart;
+  XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Lapack solve done in "
+                               << elapsed_time.count() << " secs" << flush;
+
   if (eigensys.info() != Eigen::ComputationInfo::Success) {
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Could not solve problem" << flush;
@@ -340,6 +354,13 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
         (0.5 / sqrt_eval * (energies(level) * LmT - AmB) *
          eigensys.eigenvectors().col(level));
   }
+
+  end = std::chrono::system_clock::now();
+  elapsed_time = end - start;
+
+  XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Diagonalization done in "
+                               << elapsed_time.count() << " secs" << flush;
+
   return result;
 }
 

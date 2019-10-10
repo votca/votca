@@ -237,23 +237,6 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz (
 
 }
 
-
-// case TYPE::HAM: {
-
-//   Eigen::EigenSolver<Eigen::MatrixXd> es(proj.T);
-//   rep.lambda = es.eigenvalues().real();
-//   rep.U = es.eigenvectors().real();
-
-//   Eigen::ArrayXi reorder_idx = 
-//     DavidsonSolver::index_window(rep.lambda,size_update,0.0,0.25);
-
-//   rep.lambda = reorder_idx.unaryExpr(rep.lambda);
-
-//   rep.U = DavidsonSolver::extract_eigenvectors(rep.U, reorder_idx);  
-//   rep.U.colwise().normalize();
-//   break;  
-// }
-
 DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace(Eigen::VectorXd &Adiag, 
                                                   int size_initial_guess) const {
   DavidsonSolver::ProjectedSpace proj; 
