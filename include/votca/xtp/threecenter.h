@@ -134,9 +134,10 @@ class TCMatrix_gwbse : public TCMatrix {
   const AOBasis* _dftbasis = nullptr;
   const Eigen::MatrixXd* _dft_orbitals = nullptr;
 
-  void FillBlock(std::vector<Eigen::MatrixXd>& matrix,
-                 const std::vector<Eigen::MatrixXd>& symmstorage,
-                 const Eigen::MatrixXd& dft_orbitals);
+  std::vector<Eigen::MatrixXd> FillBlock(
+      std::vector<Eigen::MatrixXd>& matrix,
+      const std::vector<Eigen::MatrixXd>& symmstorage,
+      const Eigen::MatrixXd& dft_orbitals);
 
   void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
 
@@ -148,9 +149,10 @@ class TCMatrix_gwbse : public TCMatrix {
   std::vector<CudaMatrix> SendDFTMatricesToGPU(
       const Eigen::MatrixXd& dft_orbitals) const;
 
-  void FillBlockCUDA(std::vector<Eigen::MatrixXd>& block,
-                     const std::vector<Eigen::MatrixXd>& symmstorage,
-                     std::vector<CudaMatrix>& cudaMatrices);
+  std::vector<Eigen::MatrixXd> FillBlockCUDA(
+      std::vector<Eigen::MatrixXd>& block,
+      const std::vector<Eigen::MatrixXd>& symmstorage,
+      std::vector<CudaMatrix>& cudaMatrices);
 
 #endif
 };

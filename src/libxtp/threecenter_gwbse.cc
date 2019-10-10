@@ -120,13 +120,13 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     // convolution using the default method.
 #if defined(USE_CUDA)
     if (OPENMP::getThreadId() == 0) {
-      FillBlockCUDA(block, symmstorage, cuda_matrices);
+      block = FillBlockCUDA(block, symmstorage, cuda_matrices);
     } else {
-      FillBlock(block, symmstorage, dft_orbitals);
+      block = FillBlock(block, symmstorage, dft_orbitals);
     }
 #else
     // Otherwise the convolution is performed by Eigen
-    FillBlock(block, symmstorage, dft_orbitals);
+    block = FillBlock(block, symmstorage, dft_orbitals);
 #endif
     // put into correct position
     for (int m_level = 0; m_level < _mtotal; m_level++) {
@@ -204,9 +204,10 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
  *  Convolution of the GW shell with ALL functions with the DFT orbital
  * coefficients
  */
-void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
-                               const std::vector<Eigen::MatrixXd>& symmstorage,
-                               const Eigen::MatrixXd& dft_orbitals) {
+std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlock(
+    std::vector<Eigen::MatrixXd>& block,
+    const std::vector<Eigen::MatrixXd>& symmstorage,
+    const Eigen::MatrixXd& dft_orbitals) {
 
   const Eigen::MatrixXd dftm =
       dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
@@ -222,7 +223,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
       block[i].col(k) = threec_inMo.col(i);
     }
   }
-  return;
+  return block;
 }
 
 /*
@@ -253,7 +254,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
  * The Cuda device knows to which memory address it needs to copy back the
  * result. see: https://docs.nvidia.com/cuda/cublas/index.html#thread-safety2
  */
-void TCMatrix_gwbse::FillBlockCUDA(
+std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlockCUDA(
     std::vector<Eigen::MatrixXd>& block,
     const std::vector<Eigen::MatrixXd>& symmstorage,
     std::vector<CudaMatrix>& cuda_matrices) {
@@ -282,7 +283,7 @@ void TCMatrix_gwbse::FillBlockCUDA(
         << flush;
     throw;
   }
-  return;
+  return block;
 }
 
 std::vector<CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
