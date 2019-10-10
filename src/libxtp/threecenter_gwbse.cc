@@ -296,22 +296,14 @@ std::vector<CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
   CudaPipeline cuda_pip;
   const cudaStream_t& stream = cuda_pip.get_stream();
 
-  CudaMatrix cuma_A{dftn.transpose(), stream};
-  CudaMatrix cuma_C{dftm, stream};
-  CudaMatrix cuma_B{cuma_A.cols(), cuma_C.rows()};
-  CudaMatrix cuma_X{cuma_A.rows(), cuma_B.cols()};
-  CudaMatrix cuma_Y{cuma_A.rows(), cuma_C.cols()};
-
   std::vector<CudaMatrix> cuda_matrices;
-  cuda_matrices.push_back(std::move(cuma_A));
-  cuda_matrices.push_back(std::move(cuma_B));
-  cuda_matrices.push_back(std::move(cuma_C));
-  cuda_matrices.push_back(std::move(cuma_X));
-  cuda_matrices.push_back(std::move(cuma_Y));
+  cuda_matrices.emplace_back(CudaMatrix{dftn.transpose(), stream});
+  cuda_matrices.emplace_back(CudaMatrix{dftn.rows(), dftm.rows()});
+  cuda_matrices.emplace_back(CudaMatrix{dftm, stream});
+  cuda_matrices.emplace_back(CudaMatrix{dftn.cols(), dftm.rows()});
+  cuda_matrices.emplace_back(CudaMatrix{dftn.cols(), dftm.cols()});
 
   return cuda_matrices;
-  // return {std::move(cuma_A), std::move(cuma_B), std::move(cuma_C),
-  //         std::move(cuma_X), std::move(cuma_Y)};
 }
 #endif
 
