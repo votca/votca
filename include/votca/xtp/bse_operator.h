@@ -44,21 +44,7 @@ class BSE_OPERATOR : public MatrixFreeOperator {
                const Eigen::MatrixXd& Hqp)
       : _epsilon_0_inv(Hd_operator), _Mmn(Mmn), _Hqp(Hqp){};
 
-  void configure(BSEOperator_Options opt) {
-    _opt = opt;
-    int bse_vmax = _opt.homo;
-    _bse_cmin = _opt.homo + 1;
-    _bse_vtotal = bse_vmax - _opt.vmin + 1;
-    _bse_ctotal = _opt.cmax - _bse_cmin + 1;
-    _bse_size = _bse_vtotal * _bse_ctotal;
-    this->set_size(_bse_size);
-
-    int threads = OPENMP::getMaxThreads();
-
-    if (cx != 0) {
-      _Hx_cache = std::vector<cache_block>(threads);
-    }
-  }
+  void configure(BSEOperator_Options opt);
 
   Eigen::RowVectorXd row(int index) const;
 
@@ -71,25 +57,13 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   class cache_block {
 
    public:
-    bool hasValue(int index) const {
-      if (index >= _index && index < (_index + _size)) {
-        return true;
-      } else {
-        return false;
-      }
-    }
+    bool hasValue(int index) const;
+
     Eigen::RowVectorXd getValue(int index) {
       return std::move(_values[index - _index]);
     }
 
-    void FillCache(const Eigen::MatrixXd& matrix, int index) {
-      _index = index + 1;
-      _size = matrix.cols() - 1;
-      _values.resize(_size);
-      for (int i = 0; i < _size; i++) {
-        _values[i] = matrix.col(i + 1).transpose();
-      }
-    }
+    void FillCache(const Eigen::MatrixXd& matrix, int index);
 
    private:
     std::vector<Eigen::RowVectorXd> _values;

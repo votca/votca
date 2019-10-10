@@ -143,10 +143,9 @@ Eigen::Matrix<double, N, 1> eeInteractor::VSiteA(
         QQ(4, 4) =
             5 * (7 * r.xx() * r.yy() - (r.xx() + r.yy())) + 1;  // T22s,22s
 
-        QQ.triangularView<Eigen::StrictlyUpper>() =
-            QQ.triangularView<Eigen::StrictlyLower>().transpose();
         const double fac5 = std::pow(fac1, 5);
-        V.segment(4, 5) += fac5 * QQ * siteB.Q().segment<5>(4);
+        V.segment(4, 5) +=
+            fac5 * QQ.selfadjointView<Eigen::Lower>() * siteB.Q().segment<5>(4);
       }
     }
   }

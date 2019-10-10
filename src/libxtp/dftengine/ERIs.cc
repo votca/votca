@@ -59,17 +59,15 @@ Mat_p_Energy ERIs::CalculateERIs(const Eigen::MatrixXd& DMAT) const {
   Eigen::MatrixXd ERIs =
       std::accumulate(ERIS_thread.begin(), ERIS_thread.end(),
                       Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()).eval());
-  ERIs.triangularView<Eigen::StrictlyLower>() =
-      ERIs.triangularView<Eigen::StrictlyUpper>().transpose();
+  ERIs = ERIs.selfadjointView<Eigen::Upper>();
   double energy = CalculateEnergy(DMAT, ERIs);
   return Mat_p_Energy(energy, ERIs);
 }
 
 Mat_p_Energy ERIs::CalculateEXX(const Eigen::MatrixXd& DMAT) const {
 
-  int nthreads = OPENMP::getMaxThreads();
   std::vector<Eigen::MatrixXd> EXX_thread = std::vector<Eigen::MatrixXd>(
-      nthreads, Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()));
+      OPENMP::getMaxThreads(), Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()));
 
 #pragma omp parallel for
   for (int i = 0; i < _threecenter.size(); i++) {
@@ -88,9 +86,9 @@ Mat_p_Energy ERIs::CalculateEXX(const Eigen::MatrixXd& DMAT) const {
 Mat_p_Energy ERIs::CalculateEXX(const Eigen::MatrixXd& occMos,
                                 const Eigen::MatrixXd& DMAT) const {
 
-  int nthreads = OPENMP::getMaxThreads();
   std::vector<Eigen::MatrixXd> EXX_thread = std::vector<Eigen::MatrixXd>(
-      nthreads, Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows()));
+      OPENMP::getMaxThreads(),
+      Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows()));
 
 #pragma omp parallel for
   for (int i = 0; i < _threecenter.size(); i++) {
@@ -152,49 +150,47 @@ Mat_p_Energy ERIs::CalculateERIs_4c_small_molecule(
 
 Mat_p_Energy ERIs::CalculateEXX_4c_small_molecule(
     const Eigen::MatrixXd& DMAT) const {
-  int nthreads = OPENMP::getMaxThreads();
   std::vector<Eigen::MatrixXd> EXX_thread = std::vector<Eigen::MatrixXd>(
-      nthreads, Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()));
+      OPENMP::getMaxThreads(), Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()));
 
   const Eigen::VectorXd& fourc_vector = _fourcenter.get_4c_vector();
 
   int dftBasisSize = DMAT.rows();
   int vectorSize = (dftBasisSize * (dftBasisSize + 1)) / 2;
 #pragma omp parallel for
-  for (int thread = 0; thread < nthreads; ++thread) {
-    for (int i = thread; i < dftBasisSize; i += nthreads) {
-      int sum_i = (i * (i + 1)) / 2;
-      for (int j = i; j < dftBasisSize; j++) {
-        int index_ij = DMAT.cols() * i - sum_i + j;
-        int index_ij_kl_a =
-            vectorSize * index_ij - (index_ij * (index_ij + 1)) / 2;
-        for (int k = 0; k < dftBasisSize; k++) {
-          int sum_k = (k * (k + 1)) / 2;
-          for (int l = k; l < dftBasisSize; l++) {
-            int index_kl = DMAT.cols() * k - sum_k + l;
+  for (int i = 0; i < dftBasisSize; i++) {
+    int thread = OPENMP::getThreadId();
+    int sum_i = (i * (i + 1)) / 2;
+    for (int j = i; j < dftBasisSize; j++) {
+      int index_ij = DMAT.cols() * i - sum_i + j;
+      int index_ij_kl_a =
+          vectorSize * index_ij - (index_ij * (index_ij + 1)) / 2;
+      for (int k = 0; k < dftBasisSize; k++) {
+        int sum_k = (k * (k + 1)) / 2;
+        for (int l = k; l < dftBasisSize; l++) {
+          int index_kl = DMAT.cols() * k - sum_k + l;
 
-            int _index_ij_kl = index_ij_kl_a + index_kl;
-            if (index_ij > index_kl)
-              _index_ij_kl = vectorSize * index_kl -
-                             (index_kl * (index_kl + 1)) / 2 + index_ij;
-            double factorij = 1;
-            if (i == j) {
-              factorij = 0.5;
-            }
-            double factorkl = 1;
-            if (l == k) {
-              factorkl = 0.5;
-            }
-            double factor = factorij * factorkl;
-            EXX_thread[thread](i, l) +=
-                factor * DMAT(j, k) * fourc_vector(_index_ij_kl);
-            EXX_thread[thread](j, l) +=
-                factor * DMAT(i, k) * fourc_vector(_index_ij_kl);
-            EXX_thread[thread](i, k) +=
-                factor * DMAT(j, l) * fourc_vector(_index_ij_kl);
-            EXX_thread[thread](j, k) +=
-                factor * DMAT(i, l) * fourc_vector(_index_ij_kl);
+          int _index_ij_kl = index_ij_kl_a + index_kl;
+          if (index_ij > index_kl)
+            _index_ij_kl = vectorSize * index_kl -
+                           (index_kl * (index_kl + 1)) / 2 + index_ij;
+          double factorij = 1;
+          if (i == j) {
+            factorij = 0.5;
           }
+          double factorkl = 1;
+          if (l == k) {
+            factorkl = 0.5;
+          }
+          double factor = factorij * factorkl;
+          EXX_thread[thread](i, l) +=
+              factor * DMAT(j, k) * fourc_vector(_index_ij_kl);
+          EXX_thread[thread](j, l) +=
+              factor * DMAT(i, k) * fourc_vector(_index_ij_kl);
+          EXX_thread[thread](i, k) +=
+              factor * DMAT(j, l) * fourc_vector(_index_ij_kl);
+          EXX_thread[thread](j, k) +=
+              factor * DMAT(i, l) * fourc_vector(_index_ij_kl);
         }
       }
     }
@@ -305,9 +301,7 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
     { ERIs += ERIs_thread; }
   }
 
-  ERIs.triangularView<Eigen::StrictlyLower>() =
-      ERIs.triangularView<Eigen::StrictlyUpper>().transpose();
-
+  ERIs = ERIs.selfadjointView<Eigen::Upper>();
   double energy = CalculateEnergy(DMAT, ERIs);
   return Mat_p_Energy(energy, ERIs);
 }

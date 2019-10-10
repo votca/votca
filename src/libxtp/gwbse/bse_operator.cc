@@ -24,6 +24,41 @@ namespace votca {
 namespace xtp {
 
 template <int cqp, int cx, int cd, int cd2>
+void BSE_OPERATOR<cqp, cx, cd, cd2>::configure(BSEOperator_Options opt) {
+  _opt = opt;
+  int bse_vmax = _opt.homo;
+  _bse_cmin = _opt.homo + 1;
+  _bse_vtotal = bse_vmax - _opt.vmin + 1;
+  _bse_ctotal = _opt.cmax - _bse_cmin + 1;
+  _bse_size = _bse_vtotal * _bse_ctotal;
+  this->set_size(_bse_size);
+
+  if (cx != 0) {
+    _Hx_cache = std::vector<cache_block>(OPENMP::getMaxThreads());
+  }
+}
+
+template <int cqp, int cx, int cd, int cd2>
+void BSE_OPERATOR<cqp, cx, cd, cd2>::cache_block::FillCache(
+    const Eigen::MatrixXd& matrix, int index) {
+  _index = index + 1;
+  _size = matrix.cols() - 1;
+  _values.resize(_size);
+  for (int i = 0; i < _size; i++) {
+    _values[i] = matrix.col(i + 1).transpose();
+  }
+}
+
+template <int cqp, int cx, int cd, int cd2>
+bool BSE_OPERATOR<cqp, cx, cd, cd2>::cache_block::hasValue(int index) const {
+  if (index >= _index && index < (_index + _size)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+template <int cqp, int cx, int cd, int cd2>
 Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::row(int index) const {
   Eigen::RowVectorXd row = Eigen::RowVectorXd::Zero(_bse_size);
   if (cx != 0) {
