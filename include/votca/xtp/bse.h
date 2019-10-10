@@ -115,10 +115,6 @@ class BSE {
                                         BSE_OPERATOR_AmB&) const;
 
   template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
-  tools::EigenSystem Solve_nonhermitian_Lanczos(BSE_OPERATOR_A& Aop,
-                                           BSE_OPERATOR_B& Bop) const;
-
-  template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
   tools::EigenSystem Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
                                            BSE_OPERATOR_B& Bop) const;
 

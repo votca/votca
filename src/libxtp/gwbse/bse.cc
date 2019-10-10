@@ -24,7 +24,6 @@
 #include <votca/xtp/bse_operator.h>
 #include <votca/xtp/bseoperator_btda.h>
 #include <votca/xtp/davidsonsolver.h>
-#include <votca/xtp/lanczossolver.h>
 #include <votca/xtp/populationanalysis.h>
 #include <votca/xtp/qmfragment.h>
 #include <votca/xtp/rpa.h>
@@ -96,12 +95,6 @@ void BSE::Solve_triplets(Orbitals& orb) const {
   if (_opt.useTDA) {
     orb.BSETriplets() = Solve_triplets_TDA();
   } else {
-    if (_opt.davidson) {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp()
-          << " Davidson solver not implemented for BTDA. Using LAPACK."
-          << flush;
-    }
     orb.BSETriplets() = Solve_triplets_BTDA();
   }
 }
@@ -220,7 +213,6 @@ tools::EigenSystem BSE::Solve_singlets_BTDA() const {
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
     return Solve_nonhermitian_Davidson(A, B);     
-    //return Solve_nonhermitian_Lanczos(A, B); 
   } else {
     SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(Hs_ApB);
@@ -241,7 +233,6 @@ tools::EigenSystem BSE::Solve_triplets_BTDA() const {
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
     return Solve_nonhermitian_Davidson(A, B);
-    //return Solve_nonhermitian_Lanczos(A, B); 
   } else {
     TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(Ht_ApB);
@@ -360,35 +351,6 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
 
   XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Diagonalization done in "
                                << elapsed_time.count() << " secs" << flush;
-
-  return result;
-}
-
-template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
-tools::EigenSystem BSE::Solve_nonhermitian_Lanczos(BSE_OPERATOR_A& Aop,
-                                           BSE_OPERATOR_B& Bop) const {
-
-  std::chrono::time_point<std::chrono::system_clock> start, end;
-  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
-  std::chrono::duration<double> elapsed_time;
-  start = std::chrono::system_clock::now();
-
-  // operator
-  HamiltonianOperator<BSE_OPERATOR_A,BSE_OPERATOR_B> Hop(Aop,Bop);
-  
-  // Lanczos solver  
-  LanczosSolver LS(_log);
-  LS.set_tolerance(_opt.davidson_tolerance);
-  LS.set_iter_max(_opt.davidson_maxiter);
-  LS.solve(Hop, _opt.nmax);
-
-  // results
-  tools::EigenSystem result;
-  result.eigenvalues() = LS.eigenvalues();
-  Eigen::MatrixXd _tmp = LS.eigenvectors();
-
-  result.eigenvectors() = _tmp.topRows(Aop.size());
-  result.eigenvectors2() = _tmp.bottomRows(Aop.size());
 
   return result;
 }

@@ -62,22 +62,6 @@ if(ENABLE_TESTING)
 endif(ENABLE_TESTING)
 
 ########################################################################
-#Include External projects
-########################################################################
-include(ExternalProject)
-
-set(EXTERNAL_INSTALL_LOCATION )
-
-ExternalProject_Add(spectra
-  URL https://github.com/yixuan/spectra/archive/v0.8.1.tar.gz
-  PREFIX  ${CMAKE_BINARY_DIR}/spectra
-  CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
-  )
-
-ExternalProject_Get_Property(spectra source_dir)
-set(SPECTRA_INCLUDE_DIR ${source_dir}/include)
-find_package(SPECTRA REQUIRED)
-########################################################################
 #Find external packages
 ########################################################################
 if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
