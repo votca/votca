@@ -22,7 +22,7 @@ option(BUILD_CSG_MANUAL "Build csg-manual" OFF)
 set(VOTCA_SKIP_FIND_PACKAGE VOTCA_TOOLS VOTCA_CSG)
 
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
-if(ENABLE_TESTING)
+if(ENABLE_TESTING OR ENABLE_REGRESSION_TESTING)
   enable_testing()
 endif()
 
