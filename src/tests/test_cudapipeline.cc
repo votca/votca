@@ -1,3 +1,18 @@
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE CudaPipeline_test
@@ -61,25 +76,6 @@ BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
 
   BOOST_REQUIRE_THROW(cuda_pip.gemm(cuma_A, cuma_B, cuma_C),
                       std::runtime_error);
-}
-
-BOOST_AUTO_TEST_CASE(triple_matrix_multiplication) {
-  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2, 2);
-  Eigen::MatrixXd B = Eigen::MatrixXd::Zero(2, 3);
-  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(3, 2);
-  Eigen::MatrixXd X = Eigen::MatrixXd::Zero(2, 2);
-  A << 1., 2., 3., 4.;
-  B << 5., 6., 7., 8., 9., 10.;
-  C << 9., 10., 11., 12., 13., 14.;
-  X << 804., 876., 1810., 1972.;
-
-  CudaPipeline cuda_handle;
-  const cudaStream_t stream = cuda_handle.get_stream();
-  CudaMatrix matrixA{A, stream};
-  CudaMatrix matrixC{C, stream};
-
-  Eigen::MatrixXd result = cuda_handle.triple_matrix_mult(matrixA, B, matrixC);
-  BOOST_TEST(X.isApprox(result));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

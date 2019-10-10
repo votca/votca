@@ -30,24 +30,6 @@ CudaPipeline::~CudaPipeline() {
   cudaStreamDestroy(_stream);
 }
 
-void CudaPipeline::throw_if_not_enough_memory_in_gpu(
-    size_t requested_memory) const {
-  size_t free, total;
-  checkCuda(cudaMemGetInfo(&free, &total));
-
-  std::ostringstream oss;
-  oss << "There were requested : " << requested_memory
-      << "bytes int the device\n";
-  oss << "Device Free memory (bytes): " << free
-      << "\nDevice total Memory (bytes): " << total << "\n";
-
-  // Raise an error if there is not enough total or free memory in the device
-  if (requested_memory > free) {
-    oss << "There is not enough memory in the Device!\n";
-    throw std::runtime_error(oss.str());
-  }
-}
-
 /*
  * Call the gemm function from cublas, resulting in the multiplication of the
  * two matrices
@@ -67,31 +49,6 @@ void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B,
   cublasDgemm(_handle, CUBLAS_OP_N, CUBLAS_OP_N, A.rows(), B.cols(), A.cols(),
               palpha, A.data(), A.rows(), B.data(), B.rows(), pbeta, C.data(),
               C.rows());
-}
-
-/*
- * \brief performs a CudaMatrix * EigenMatrix * CudaMatrix multiplication
- */
-Eigen::MatrixXd CudaPipeline::triple_matrix_mult(const CudaMatrix &A,
-                                                 const Eigen::MatrixXd &matrix,
-                                                 const CudaMatrix &C) const {
-  // sizes of the matrices to allocated in the device
-  size_t size_B = matrix.size() * sizeof(double);
-  std::size_t size_W = A.rows() * matrix.cols() * sizeof(double);
-  std::size_t size_Z = A.rows() * C.cols() * sizeof(double);
-  throw_if_not_enough_memory_in_gpu(size_B + size_W + size_Z);
-
-  // Intermediate Matrices
-  CudaMatrix B{matrix, _stream};
-  CudaMatrix W{A.rows(), matrix.cols()};
-  CudaMatrix Z{A.rows(), C.cols()};
-  gemm(A, B, W);
-  gemm(W, C, Z);
-
-  // Copy the result Array back to the device
-  Eigen::MatrixXd result = Z;
-
-  return result;
 }
 
 }  // namespace xtp

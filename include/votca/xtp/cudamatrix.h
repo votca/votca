@@ -22,7 +22,9 @@
 
 #include <cublas_v2.h>
 #include <curand.h>
+#include <iostream>
 #include <memory>
+#include <sstream>
 #include <votca/xtp/eigen.h>
 
 /*
@@ -85,10 +87,28 @@ class CudaMatrix {
  private:
   Unique_ptr_to_GPU_data alloc_matrix_in_gpu(size_t size_arr) const {
     double *dmatrix;
+    throw_if_not_enough_memory_in_gpu(size_arr);
     checkCuda(cudaMalloc(&dmatrix, size_arr));
     Unique_ptr_to_GPU_data dev_ptr(dmatrix,
                                    [](double *x) { checkCuda(cudaFree(x)); });
     return dev_ptr;
+  }
+
+  void throw_if_not_enough_memory_in_gpu(size_t requested_memory) const {
+    size_t free, total;
+    checkCuda(cudaMemGetInfo(&free, &total));
+
+    std::ostringstream oss;
+    oss << "There were requested : " << requested_memory
+        << "bytes int the device\n";
+    oss << "Device Free memory (bytes): " << free
+        << "\nDevice total Memory (bytes): " << total << "\n";
+
+    // Raise an error if there is not enough total or free memory in the device
+    if (requested_memory > free) {
+      oss << "There is not enough memory in the Device!\n";
+      throw std::runtime_error(oss.str());
+    }
   }
 
   size_t size_matrix() const { return this->size() * sizeof(double); }

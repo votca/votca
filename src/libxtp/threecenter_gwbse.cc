@@ -97,7 +97,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
 
   // If cuda is enabled the dft orbitals are sent first to the cuda device
 #if defined(USE_CUDA)
-  auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
+  std::vector<CudaMatrix> cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
 #endif
 
   // loop over all shells in the GW basis and get _Mmn for that shell
@@ -252,24 +252,26 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
  *  4. return the result matrix
  * The Cuda device knows to which memory address it needs to copy back the
  * result. see: https://docs.nvidia.com/cuda/cublas/index.html#thread-safety2
- * The amount of memory allocated in the device for this operations is roughly:
- *  `3 * number_of_threads * (basisfunction ^ 2) + 2 * (basisfunction ^ 2)`
- *  Meaning that if 3500 basis occupied around 0.1GB then 32 threads will
- * allocate almost 10GB in the worst case scenario. Typical Nvidia devices
- * have memory in the range between 10 to 48 GBs.
  */
 void TCMatrix_gwbse::FillBlockCUDA(
     std::vector<Eigen::MatrixXd>& block,
     const std::vector<Eigen::MatrixXd>& symmstorage,
-    const std::pair<CudaMatrix, CudaMatrix>& cuda_matrices) {
+    std::vector<CudaMatrix>& cuda_matrices) {
   CudaPipeline cuda_pip;
   int dim = static_cast<int>(symmstorage.size());
   try {
+    const CudaMatrix& cuma_A = cuda_matrices[0];
+    CudaMatrix& cuma_B = cuda_matrices[1];
+    const CudaMatrix& cuma_C = cuda_matrices[2];
+    CudaMatrix& cuma_X = cuda_matrices[3];
+    CudaMatrix& cuma_Y = cuda_matrices[4];
+
     for (int k = 0; k < dim; ++k) {
       const Eigen::MatrixXd& matrix = symmstorage[k];
-      Eigen::MatrixXd threec_inMo = cuda_pip.triple_matrix_mult(
-          cuda_matrices.first, matrix.selfadjointView<Eigen::Lower>(),
-          cuda_matrices.second);
+      cuma_B.copy_to_gpu(matrix.selfadjointView<Eigen::Lower>());
+      cuda_pip.gemm(cuma_A, cuma_B, cuma_X);
+      cuda_pip.gemm(cuma_X, cuma_C, cuma_Y);
+      Eigen::MatrixXd threec_inMo = cuma_Y;
       for (int i = 0; i < threec_inMo.cols(); ++i) {
         block[i].col(k) = threec_inMo.col(i);
       }
@@ -283,7 +285,7 @@ void TCMatrix_gwbse::FillBlockCUDA(
   return;
 }
 
-std::pair<CudaMatrix, CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
+std::vector<CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
     const Eigen::MatrixXd& dft_orbitals) const {
   const Eigen::MatrixXd dftm =
       dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
@@ -293,10 +295,23 @@ std::pair<CudaMatrix, CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
   // Smart Pointers to the cuda arrays
   CudaPipeline cuda_pip;
   const cudaStream_t& stream = cuda_pip.get_stream();
-  CudaMatrix matrixA{dftn.transpose(), stream};
-  CudaMatrix matrixB{dftm, stream};
 
-  return std::make_pair(std::move(matrixA), std::move(matrixB));
+  CudaMatrix cuma_A{dftn.transpose(), stream};
+  CudaMatrix cuma_C{dftm, stream};
+  CudaMatrix cuma_B{cuma_A.cols(), cuma_C.rows()};
+  CudaMatrix cuma_X{cuma_A.rows(), cuma_B.cols()};
+  CudaMatrix cuma_Y{cuma_A.rows(), cuma_C.cols()};
+
+  std::vector<CudaMatrix> cuda_matrices;
+  cuda_matrices.push_back(std::move(cuma_A));
+  cuda_matrices.push_back(std::move(cuma_B));
+  cuda_matrices.push_back(std::move(cuma_C));
+  cuda_matrices.push_back(std::move(cuma_X));
+  cuda_matrices.push_back(std::move(cuma_Y));
+
+  return cuda_matrices;
+  // return {std::move(cuma_A), std::move(cuma_B), std::move(cuma_C),
+  //         std::move(cuma_X), std::move(cuma_Y)};
 }
 #endif
 
