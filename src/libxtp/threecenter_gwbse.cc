@@ -64,6 +64,9 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 
 #pragma omp parallel for schedule(dynamic)
   for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
+    // All the GPU communication happens through a single thread that reuses all
+    // memory allocated in the GPU and it's dynamically load-balanced by OpenMP.
+    // The rest of the threads use the default CPU matrix multiplication
     if (OPENMP::getThreadId() == 0) {
       cuma_A.copy_to_gpu(_matrix[i_occ]);
       cuda_pip.gemm(cuma_A, cuma_B, cuma_C);
@@ -95,38 +98,40 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
   _dftbasis = &dftbasis;
   _dft_orbitals = &dft_orbitals;
 
-  // If cuda is enabled the dft orbitals are sent first to the cuda device
+  // If cuda is enabled the dft orbitals are sent first to the cuda gpu
+  // and memory in the cuda gpu is allocated for the intermediate matrices
 #if defined(USE_CUDA)
-  std::vector<CudaMatrix> cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
+  const std::array<CudaMatrix, 2>& cuda_matrices =
+      SendDFTMatricesToGPU(dft_orbitals);
+  std::array<CudaMatrix, 3> cuda_inter_matrices =
+      CreateIntermediateCudaMatrices(dft_orbitals);
 #endif
 
   // loop over all shells in the GW basis and get _Mmn for that shell
 #pragma omp parallel for schedule(guided)  // private(_block)
   for (int is = 0; is < gwbasis.getNumofShells(); is++) {
     const AOShell& shell = gwbasis.getShell(is);
-    std::vector<Eigen::MatrixXd> block;
-    for (int i = 0; i < _mtotal; i++) {
-      block.push_back(Eigen::MatrixXd::Zero(_ntotal, shell.getNumFunc()));
-    }
+
     // Fill block for this shell (3-center overlap with _dft_basis +
     // multiplication with _dft_orbitals )
     std::vector<Eigen::MatrixXd> symmstorage =
         ComputeSymmStorage(shell, dftbasis, dft_orbitals);
 
-    // If cuda is enable each OpenMP Perform the convolution in the cuda device.
-    // Each thread has its own stream that behaves like a queue containing the
-    // matrix multiplication requests. If there are more threads than
-    // MAXIMUM_GPU_STREAMS, the remaining threads will perform the perform the
-    // convolution using the default method.
+    // If cuda is enable all the GPU communication happens through a single
+    // thread that reuses all memory allocated in the GPU and it's dynamically
+    // load-balanced by OpenMP. The remaining threads will perform the
+    // convolution using the default CPU method.
+    std::vector<Eigen::MatrixXd> block;
 #if defined(USE_CUDA)
     if (OPENMP::getThreadId() == 0) {
-      block = FillBlockCUDA(block, symmstorage, cuda_matrices);
+      block =
+          FillBlockCUDA(symmstorage, cuda_matrices, cuda_inter_matrices, shell);
     } else {
-      block = FillBlock(block, symmstorage, dft_orbitals);
+      block = FillBlock(symmstorage, dft_orbitals, shell);
     }
 #else
     // Otherwise the convolution is performed by Eigen
-    block = FillBlock(block, symmstorage, dft_orbitals);
+    block = FillBlock(symmstorage, dft_orbitals, shell);
 #endif
     // put into correct position
     for (int m_level = 0; m_level < _mtotal; m_level++) {
@@ -205,9 +210,11 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
  * coefficients
  */
 std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlock(
-    std::vector<Eigen::MatrixXd>& block,
     const std::vector<Eigen::MatrixXd>& symmstorage,
-    const Eigen::MatrixXd& dft_orbitals) {
+    const Eigen::MatrixXd& dft_orbitals, const AOShell& shell) const {
+
+  std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
+      _mtotal, Eigen::MatrixXd::Zero(_ntotal, shell.getNumFunc()));
 
   const Eigen::MatrixXd dftm =
       dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
@@ -248,25 +255,31 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
  * in an asynchronous way. It performs the following operations when recieving a
  * request:
  *  1. Check that there is enough space for the arrays
- *  2. Allocate memory for each submatrix
- *  3. copy the submatrix to the allocated space
- *  4. return the result matrix
+ *  2. Allocate memory for each matrix
+ *  3. Copy the matrix to the allocated space
+ *  4. Perform the matrix multiplication
+ *  5. Return the result matrix
  * The Cuda device knows to which memory address it needs to copy back the
  * result. see: https://docs.nvidia.com/cuda/cublas/index.html#thread-safety2
  */
 std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlockCUDA(
-    std::vector<Eigen::MatrixXd>& block,
     const std::vector<Eigen::MatrixXd>& symmstorage,
-    std::vector<CudaMatrix>& cuda_matrices) {
-  CudaPipeline cuda_pip;
-  int dim = static_cast<int>(symmstorage.size());
-  try {
-    const CudaMatrix& cuma_A = cuda_matrices[0];
-    CudaMatrix& cuma_B = cuda_matrices[1];
-    const CudaMatrix& cuma_C = cuda_matrices[2];
-    CudaMatrix& cuma_X = cuda_matrices[3];
-    CudaMatrix& cuma_Y = cuda_matrices[4];
+    const std::array<CudaMatrix, 2>& cuda_matrices,
+    std::array<CudaMatrix, 3>& cuda_inter_matrices,
+    const AOShell& shell) const {
 
+  std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
+      _mtotal, Eigen::MatrixXd::Zero(_ntotal, shell.getNumFunc()));
+
+  try {
+    CudaPipeline cuda_pip;
+    const CudaMatrix& cuma_A = cuda_matrices[0];
+    const CudaMatrix& cuma_C = cuda_matrices[1];
+    CudaMatrix& cuma_B = cuda_inter_matrices[0];
+    CudaMatrix& cuma_X = cuda_inter_matrices[1];
+    CudaMatrix& cuma_Y = cuda_inter_matrices[2];
+
+    int dim = static_cast<int>(symmstorage.size());
     for (int k = 0; k < dim; ++k) {
       const Eigen::MatrixXd& matrix = symmstorage[k];
       cuma_B.copy_to_gpu(matrix.selfadjointView<Eigen::Lower>());
@@ -286,7 +299,7 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlockCUDA(
   return block;
 }
 
-std::vector<CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
+std::array<CudaMatrix, 2> TCMatrix_gwbse::SendDFTMatricesToGPU(
     const Eigen::MatrixXd& dft_orbitals) const {
   const Eigen::MatrixXd dftm =
       dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
@@ -297,15 +310,21 @@ std::vector<CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
   CudaPipeline cuda_pip;
   const cudaStream_t& stream = cuda_pip.get_stream();
 
-  std::vector<CudaMatrix> cuda_matrices;
-  cuda_matrices.emplace_back(CudaMatrix{dftn.transpose(), stream});
-  cuda_matrices.emplace_back(CudaMatrix{dftn.rows(), dftm.rows()});
-  cuda_matrices.emplace_back(CudaMatrix{dftm, stream});
-  cuda_matrices.emplace_back(CudaMatrix{dftn.cols(), dftm.rows()});
-  cuda_matrices.emplace_back(CudaMatrix{dftn.cols(), dftm.cols()});
-
-  return cuda_matrices;
+  return {CudaMatrix{dftn.transpose(), stream}, CudaMatrix{dftm, stream}};
 }
+
+std::array<CudaMatrix, 3> TCMatrix_gwbse::CreateIntermediateCudaMatrices(
+    const Eigen::MatrixXd& dft_orbitals) const {
+
+  long dftnT_rows = _ntotal;
+  long dftnT_cols = dft_orbitals.rows();
+  long dftm_rows = dft_orbitals.rows();
+  long dftm_cols = _nmin;
+
+  return {CudaMatrix{dftnT_cols, dftm_rows}, CudaMatrix{dftnT_rows, dftm_rows},
+          CudaMatrix{dftnT_rows, dftm_cols}};
+}
+
 #endif
 
 }  // namespace xtp
