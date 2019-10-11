@@ -17,6 +17,7 @@
  *
  */
 
+#include <chrono>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/threecenter.h>
@@ -51,6 +52,8 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 
   // Try to run the operation in a Nvidia GPU, otherwise is the default Openmp
   // implementation
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  start = std::chrono::system_clock::now();
 #if defined(USE_CUDA)
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp()
@@ -82,6 +85,9 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
       << " Using Default OpenMP for tensor matrix multiplication: " << flush;
   MultiplyRightWithAuxMatrixOpenMP(matrix);
 #endif
+  end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_time = end - start;
+  std::cout << "MultiplyRightWithAuxMatrix: " << elapsed_time.count() << "\n";
   return;
 }
 
@@ -93,6 +99,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
  */
 void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
                           const Eigen::MatrixXd& dft_orbitals) {
+  std::chrono::time_point<std::chrono::system_clock> start, end;
   // needed for Rebuild())
   _auxbasis = &gwbasis;
   _dftbasis = &dftbasis;
@@ -103,10 +110,11 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
 #if defined(USE_CUDA)
   std::array<CudaMatrix, 2> cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
   std::array<CudaMatrix, 3> cuda_inter_matrices =
-      CreateIntermediateCudaMatrices(dft_orbitals);
+      CreateIntermediateCudaMatrices();
 #endif
 
   // loop over all shells in the GW basis and get _Mmn for that shell
+  start = std::chrono::system_clock::now();
 #pragma omp parallel for schedule(guided)  // private(_block)
   for (int is = 0; is < gwbasis.getNumofShells(); is++) {
     const AOShell& shell = gwbasis.getShell(is);
@@ -123,14 +131,13 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     std::vector<Eigen::MatrixXd> block;
 #if defined(USE_CUDA)
     if (OPENMP::getThreadId() == 0) {
-      block =
-          FillBlockCUDA(symmstorage, cuda_matrices, cuda_inter_matrices, shell);
+      block = FillBlockCUDA(symmstorage, cuda_matrices, cuda_inter_matrices);
     } else {
-      block = FillBlock(symmstorage, dft_orbitals, shell);
+      block = FillBlock(symmstorage, dft_orbitals);
     }
 #else
     // Otherwise the convolution is performed by Eigen
-    block = FillBlock(symmstorage, dft_orbitals, shell);
+    block = FillBlock(symmstorage, dft_orbitals);
 #endif
     // put into correct position
     for (int m_level = 0; m_level < _mtotal; m_level++) {
@@ -138,6 +145,9 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
                              shell.getNumFunc()) = block[m_level];
     }  // m-th DFT orbital
   }    // shells of GW basis set
+  end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_time = end - start;
+  std::cout << "fillblock: " << elapsed_time.count() << "\n";
 
   AOOverlap auxoverlap;
   auxoverlap.Fill(gwbasis);
@@ -146,6 +156,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
   Eigen::MatrixXd inv_sqrt = auxcoulomb.Pseudo_InvSqrt_GWBSE(auxoverlap, 5e-7);
   _removedfunctions = auxcoulomb.Removedfunctions();
   MultiplyRightWithAuxMatrix(inv_sqrt);
+
   return;
 }
 
@@ -157,11 +168,9 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
 std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
     const AOShell& auxshell, const AOBasis& dftbasis,
     const Eigen::MatrixXd& dft_orbitals) const {
-  std::vector<Eigen::MatrixXd> symmstorage;
-  for (int i = 0; i < auxshell.getNumFunc(); ++i) {
-    symmstorage.push_back(
-        Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
-  }
+  std::vector<Eigen::MatrixXd> symmstorage = std::vector<Eigen::MatrixXd>(
+      auxshell.getNumFunc(),
+      Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
   const Eigen::MatrixXd dftm =
       dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
   const Eigen::MatrixXd dftn =
@@ -210,10 +219,10 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
  */
 std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlock(
     const std::vector<Eigen::MatrixXd>& symmstorage,
-    const Eigen::MatrixXd& dft_orbitals, const AOShell& shell) const {
+    const Eigen::MatrixXd& dft_orbitals) const {
 
   std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
-      _mtotal, Eigen::MatrixXd::Zero(_ntotal, shell.getNumFunc()));
+      _mtotal, Eigen::MatrixXd::Zero(_ntotal, symmstorage.size()));
   const Eigen::MatrixXd dftm =
       dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
   const Eigen::MatrixXd dftn =
@@ -263,11 +272,10 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
 std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlockCUDA(
     const std::vector<Eigen::MatrixXd>& symmstorage,
     const std::array<CudaMatrix, 2>& cuda_matrices,
-    std::array<CudaMatrix, 3>& cuda_inter_matrices,
-    const AOShell& shell) const {
+    std::array<CudaMatrix, 3>& cuda_inter_matrices) const {
 
   std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
-      _mtotal, Eigen::MatrixXd::Zero(_ntotal, shell.getNumFunc()));
+      _mtotal, Eigen::MatrixXd::Zero(_ntotal, symmstorage.size()));
 
   try {
     CudaPipeline cuda_pip;
@@ -311,9 +319,9 @@ std::array<CudaMatrix, 2> TCMatrix_gwbse::SendDFTMatricesToGPU(
   return {CudaMatrix{dftn.transpose(), stream}, CudaMatrix{dftm, stream}};
 }
 
-std::array<CudaMatrix, 3> TCMatrix_gwbse::CreateIntermediateCudaMatrices(
-    const Eigen::MatrixXd& dft_orbitals) const {
-  long nrows = dft_orbitals.rows();
+std::array<CudaMatrix, 3> TCMatrix_gwbse::CreateIntermediateCudaMatrices()
+    const {
+  long nrows = _basissize;
   long mcols = _mtotal - _mmin;
   long ncols = _ntotal - _nmin;
 
