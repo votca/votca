@@ -21,19 +21,90 @@
 namespace votca {
 namespace xtp {
 
+static int AOTransform::getCartesianSize(int l) { return 2 * }
+static int AOTransform::getSphericalSize(int l) { return 2 * l + 1; }
+
+Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(int l, double decay,
+                                                    double contraction) {
+  switch (l) {
+    case 0:
+      return contraction * Eigen::MatrixXd::Ones(1, 1);  // s
+    case 1:
+      Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(3, 3);  // p
+      const double factor = 2. * sqrt(decay) * contraction;
+      trafo(2, 0) = factor;  // Y 1,0
+      trafo(1, 1) = factor;  // Y 1,-1
+      trafo(0, 2) = factor;  // Y 1,1
+      return trafo;
+    case 2:  // d
+      Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(6, 5);
+      const double factor = 2. * decay * contraction;
+      const double factor_1 = factor / sqrt(3.);
+      trafo(0, 0) = -factor_1;      // d3z2-r2 (dxx)
+      trafo(3, 0) = -factor_1;      // d3z2-r2 (dyy)  Y 2,0
+      trafo(5, 0) = 2. * factor_1;  // d3z2-r2 (dzz)
+
+      trafo(4, 1) = 2. * factor;  // dyz           Y 2,-1
+
+      trafo(2, 2) = 2. * factor;  // dxz           Y 2,1
+
+      trafo(1, 3) = 2. * factor;  // dxy           Y 2,-2
+
+      trafo(0, 4) = factor;   // dx2-y2 (dxx)   Y 2,2
+      trafo(3, 4) = -factor;  // dx2-y2 (dzz)
+      return trafo;
+    case 3:
+      Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(10, 7);
+      const double factor = 2. * pow(decay, 1.5) * contractions[3];
+      const double factor_1 = factor * 2. / sqrt(15.);
+      const double factor_2 = factor * sqrt(2.) / sqrt(5.);
+      const double factor_3 = factor * sqrt(2.) / sqrt(3.);
+
+      trafo(Cart::xxz, 0) = -3. * factor_1;  // f1 (f??) xxz 13
+      trafo(Cart::yyz, 0) = -3. * factor_1;  // f1 (f??) yyz 15        Y 3,0
+      trafo(Cart::zzz, 0) = 2. * factor_1;   // f1 (f??) zzz 19
+
+      trafo(Cart::xxy, 1) = -factor_2;      // f3 xxy 10
+      trafo(Cart::yyy, 1) = -factor_2;      // f3 yyy 18   Y 3,-1
+      trafo(Cart::yzz, 1) = 4. * factor_2;  // f3 yzz 16
+
+      trafo(Cart::xxx, 2) = -factor_2;      // f2 xxx 17
+      trafo(Cart::xyy, 2) = -factor_2;      // f2 xyy 11   Y 3,1
+      trafo(Cart::xzz, 2) = 4. * factor_2;  // f2 xzz 14
+
+      trafo(Cart::xyz, 3) = 4. * factor;  // f6 xyz 12     Y 3,-2
+
+      trafo(Cart::xxz, 4) = 2. * factor;   // f7 (f??)   xxz   13
+      trafo(Cart::yyz, 4) = -2. * factor;  // f7 (f??)   yyz   15   Y 3,2
+
+      trafo(Cart::xxy, 5) = 3. * factor_3;  // f4 xxy 10
+      trafo(Cart::yyy, 5) = -factor_3;      // f4 yyy 18   Y 3,-3
+
+      trafo(Cart::xxx, 6) = factor_3;        // f5 (f??) xxx 17
+      trafo(Cart::xyy, 6) = -3. * factor_3;  // f5 (f??) xyy 11     Y 3,3
+  }
+}
+
 Eigen::MatrixXd AOTransform::getTrafo(const AOGaussianPrimitive& gaussian) {
-  ///         0    1  2  3    4  5  6  7  8  9   10  11  12  13  14  15  16  17
-  ///         18  19       20    21    22    23    24    25    26    27    28 29
-  ///         30    31    32    33    34 s,   x, y, z,   xy xz yz xx yy zz, xxy
-  ///         xyy xyz xxz xzz yyz yzz xxx yyy zzz,    xxxy, xxxz, xxyy, xxyz,
-  ///         xxzz, xyyy, xyyz, xyzz, xzzz, yyyz, yyzz, yzzz, xxxx, yyyy, zzzz,
+
   const AOShell& shell = gaussian.getShell();
-  const int ntrafo = shell.getNumFunc() + shell.getOffset();
-  const double decay = gaussian.getDecay();
-  const int lmax = gaussian.getContraction().size() - 1;
-  const int n = getBlockSize(lmax);
-  Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(n, ntrafo);
   const Eigen::VectorXd& contractions = gaussian.getContraction();
+
+  if (!shell.isCombined()) {
+    return AOTransform::getPrimitiveShellTrafo(
+        l, decay, gaussian.getContraction()(l).getDecay());
+
+  } else {
+  }
+
+  const int ntrafo = shell.getNumFunc() + shell.getOffset();
+
+  const int cartmin = const int spericalmin = Eigen::MatrixXd trafo =
+      Eigen::MatrixXd::Zero(ncartesian, nspherical);
+
+  for (int l = shell.getLmin(); l <= shell.getLmax(); l++) {
+    trafo.block()
+  }
 
   // s-functions
   trafo(0, 0) = contractions[0];  //  // s  Y 0,0

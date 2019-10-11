@@ -203,6 +203,10 @@ enum Index {
  */
 class AOTransform {
  public:
+  static Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(
+      int l, double decay, double contraction);
+  static int getCartesianSize(int l);
+  static int getSphericalSize(int l);
   static int getBlockSize(int lmax);
   static Eigen::MatrixXd getTrafo(const AOGaussianPrimitive& gaussian);
   static Eigen::VectorXd XIntegrate(int size, double U);
