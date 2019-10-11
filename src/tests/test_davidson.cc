@@ -171,6 +171,7 @@ Eigen::MatrixXd extract_eigenvectors(const Eigen::MatrixXd &V,
 
 class BlockOperator: public MatrixFreeOperator {
  public:
+
   BlockOperator() {};
 
   void attach_matrix(const Eigen::MatrixXd &mat);
@@ -180,7 +181,6 @@ class BlockOperator: public MatrixFreeOperator {
 
  private:
   int _diag;
-  int _alpha;
   Eigen::MatrixXd _mat;
 };
 
