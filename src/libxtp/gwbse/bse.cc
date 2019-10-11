@@ -409,12 +409,21 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   // results
   tools::EigenSystem result;
   result.eigenvalues() = DS.eigenvalues();
-  result.eigenvectors() = DS.eigenvectors().topRows(Aop.size());
-  result.eigenvectors2() = DS.eigenvectors().bottomRows(Aop.size());
+  Eigen::MatrixXd _tmpX = DS.eigenvectors().topRows(Aop.size());
+  Eigen::MatrixXd _tmpY = DS.eigenvectors().bottomRows(Aop.size());
+
+  // // normalization so that eigenvector^2 - eigenvector2^2 = 1
+  Eigen::VectorXd normX = _tmpX.colwise().squaredNorm();
+  Eigen::VectorXd normY = _tmpY.colwise().squaredNorm();
+
+  Eigen::ArrayXd sqinvnorm = (normX - normY).array().inverse().cwiseSqrt();
+  
+  result.eigenvectors() = _tmpX * sqinvnorm.matrix().asDiagonal();
+  result.eigenvectors2() = _tmpY * sqinvnorm.matrix().asDiagonal();
 
   end = std::chrono::system_clock::now();
   elapsed_time = end - start;
-  
+
   XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Diagonalization done in "
                              << elapsed_time.count() << " secs" << flush;
 

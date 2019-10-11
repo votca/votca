@@ -390,27 +390,6 @@ void DavidsonSolver::restart (const DavidsonSolver::RitzEigenPair &rep,
   proj.search_space = size_restart;
 }
 
-// bool DavidsonSolver::checkConvergence(const DavidsonSolver::RitzEigenPair &rep, 
-//     int neigen) {
-
-//   bool converged;
-//   switch (this->_matrix_type){
-//   case TYPE::SYMM: {
-//      converged = (rep.res_norm.head(neigen) < _tol).all();
-//   }
-//   case TYPE::HAM: {
-//     Eigen::ArrayXi idx = index_window(rep.lambda,neigen,0,0);
-//     converged = (idx.unaryExpr(rep.res_norm) < _tol).all();
-//   }
-//   }
-
-//   if (converged) {
-  
-//   }
-
-//   return converged;
-// }
-
 void DavidsonSolver::storeConvergedData(const DavidsonSolver::RitzEigenPair &rep, 
     int neigen, int iiter) {
 
@@ -449,16 +428,10 @@ void DavidsonSolver::storeNotConvergedData(const DavidsonSolver::RitzEigenPair &
 
 void DavidsonSolver::storeEigenPairs(const DavidsonSolver::RitzEigenPair &rep, int neigen) {
   // store the eigenvalues/eigenvectors
-  // Eigen::ArrayXi idx = DavidsonSolver::index_window(rep.lambda,neigen,0,0);
-  // this->_eigenvalues = idx.unaryExpr(rep.lambda);
-  // this->_eigenvectors = extract_eigenvectors(rep.q, idx);
-  // this->_eigenvectors.colwise().normalize();
-  // this->_res = idx.unaryExpr(rep.res_norm);
   this->_eigenvalues = rep.lambda.head(neigen);
   this->_eigenvectors = rep.q.leftCols(neigen);
   this->_eigenvectors.colwise().normalize();
-  this->_res = rep.res_norm.head(neigen);
-  
+  this->_res = rep.res_norm.head(neigen);  
 }
 
 }  // namespace xtp
