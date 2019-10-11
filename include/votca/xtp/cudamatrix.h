@@ -20,7 +20,7 @@
 #ifndef __XTP_CUDA_MATRIX__H
 #define __XTP_CUDA_MATRIX__H
 
-#include <votca_config.h>
+#include <votca/xtp/votca_config.h>
 #ifndef USE_CUDA
 #error Cuda not enabled
 #endif
