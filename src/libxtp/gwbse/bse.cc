@@ -412,6 +412,12 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   result.eigenvectors() = DS.eigenvectors().topRows(Aop.size());
   result.eigenvectors2() = DS.eigenvectors().bottomRows(Aop.size());
 
+  end = std::chrono::system_clock::now();
+  elapsed_time = end - start;
+  
+  XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Diagonalization done in "
+                             << elapsed_time.count() << " secs" << flush;
+
   return result;
 }
 
