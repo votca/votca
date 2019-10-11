@@ -20,6 +20,11 @@
 #ifndef __XTP_CUDA_PIPELINE__H
 #define __XTP_CUDA_PIPELINE__H
 
+#include <votca_config.h>
+#ifndef USE_CUDA
+#error Cuda not enabled
+#endif
+
 #include <cublas_v2.h>
 #include <curand.h>
 #include <vector>
