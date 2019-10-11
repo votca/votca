@@ -19,13 +19,11 @@
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/fourcenter.h>
-#include <votca/xtp/multiarray.h>
 
 namespace votca {
 namespace xtp {
 
 void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
-  tensor4d::extent_gen extents;
   int dftBasisSize = dftbasis.AOBasisSize();
   int vectorSize = (dftBasisSize * (dftBasisSize + 1)) / 2;
 
@@ -58,9 +56,10 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
           int start_2 = shell_2.getStartIndex();
           int NumFunc_2 = shell_2.getNumFunc();
 
-          tensor4d block(extents[range(0, NumFunc_1)][range(0, NumFunc_2)]
-                                [range(0, NumFunc_3)][range(0, NumFunc_4)]);
-          std::fill_n(block.data(), block.num_elements(), 0.0);
+          Eigen::Tensor<double, 4> block(NumFunc_1, NumFunc_2, NumFunc_3,
+                                         NumFunc_4);
+          block.setZero();
+
           bool nonzero =
               FillFourCenterRepBlock(block, shell_1, shell_2, shell_3, shell_4);
 
@@ -84,7 +83,7 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
                     int index_12 = dftBasisSize * ind_1 - sum_ind_1 + ind_2;
                     if (index_34 > index_12) continue;
                     _4c_vector(index_34_12_a + index_12) =
-                        block[i_1][i_2][i_3][i_4];
+                        block(i_1, i_2, i_3, i_4);
 
                   }  // i_2
                 }    // i_1

@@ -30,7 +30,7 @@ Eigen::MatrixXd AOTransform::getTrafo(const AOGaussianPrimitive& gaussian) {
   const AOShell& shell = gaussian.getShell();
   const int ntrafo = shell.getNumFunc() + shell.getOffset();
   const double decay = gaussian.getDecay();
-  const int lmax = shell.getLmax();
+  const int lmax = gaussian.getContraction().size() - 1;
   const int n = getBlockSize(lmax);
   Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(n, ntrafo);
   const Eigen::VectorXd& contractions = gaussian.getContraction();

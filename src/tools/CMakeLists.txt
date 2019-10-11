@@ -19,7 +19,7 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump)
   if(ENABLE_TESTING)
     add_test(integration_${PROG}Help ${PROG} --help)
     # run tests for tools, csg, ctp as well for coverage
-    set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "xtp;tools;csg;ctp;votca")
+    set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "xtp;tools;csg;ctp;votca;integration")
   endif(ENABLE_TESTING)
 endforeach(PROG)
 set(XTP_PROGS "${XTP_PROGS}" PARENT_SCOPE)

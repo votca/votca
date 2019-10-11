@@ -19,7 +19,6 @@
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/multiarray.h>
 #include <votca/xtp/symmetric_matrix.h>
 #include <votca/xtp/threecenter.h>
 
@@ -73,7 +72,7 @@ void TCMatrix_dft::FillBlock(std::vector<Eigen::MatrixXd>& block,
                              int shellindex, const AOBasis& dftbasis,
                              const AOBasis& auxbasis) {
   const AOShell& left_dftshell = dftbasis.getShell(shellindex);
-  tensor3d::extent_gen extents;
+
   int start = left_dftshell.getStartIndex();
   // alpha-loop over the aux basis function
   for (const AOShell& shell_aux : auxbasis) {
@@ -83,9 +82,10 @@ void TCMatrix_dft::FillBlock(std::vector<Eigen::MatrixXd>& block,
 
       const AOShell& shell_col = dftbasis.getShell(is);
       int col_start = shell_col.getStartIndex();
-      tensor3d threec_block(extents[range(0, shell_aux.getNumFunc())][range(
-          0, left_dftshell.getNumFunc())][range(0, shell_col.getNumFunc())]);
-      std::fill_n(threec_block.data(), threec_block.num_elements(), 0.0);
+      Eigen::Tensor<double, 3> threec_block(shell_aux.getNumFunc(),
+                                            left_dftshell.getNumFunc(),
+                                            shell_col.getNumFunc());
+      threec_block.setZero();
 
       bool nonzero = FillThreeCenterRepBlock(threec_block, shell_aux,
                                              left_dftshell, shell_col);
@@ -99,7 +99,7 @@ void TCMatrix_dft::FillBlock(std::vector<Eigen::MatrixXd>& block,
                 break;
               }
               block[left](aux_start + aux, col_start + col) =
-                  threec_block[aux][left][col];
+                  threec_block(aux, left, col);
             }
           }
         }
