@@ -149,7 +149,8 @@ class TCMatrix_gwbse : public TCMatrix {
   std::array<CudaMatrix, 2> SendDFTMatricesToGPU(
       const Eigen::MatrixXd& dft_orbitals) const;
 
-  std::array<CudaMatrix, 3> CreateIntermediateCudaMatrices() const;
+  std::array<CudaMatrix, 3> CreateIntermediateCudaMatrices(
+      long basissize) const;
 
   std::vector<Eigen::MatrixXd> FillBlockCUDA(
       const std::vector<Eigen::MatrixXd>& symmstorage,
