@@ -179,3 +179,7 @@ following docker commands:
 
     docker pull votca/votca
     docker run -it votca/votca /bin/bash
+    
+  ## Linking Error: Undefined reference to 
+ 
+This error can happen due to a multitude of reasons. You may have forgotten to add paths to the `LD_LIBRARY_PATH` or forgotten to import an environment module. In these cases deleting the `CMakeCache.txt` in your `build` folder and rerunning `cmake`  will help. Unfortunately another cause might be ABI incompability between libraries due to different libraries being compiled with different compilers or compiler versions. Click [here](https://github.com/ICRAR/shark/issues/1) for an example. 
