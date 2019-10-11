@@ -21,6 +21,7 @@
 #ifndef __XTP_THREECENTER__H
 #define __XTP_THREECENTER__H
 
+#include <array>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/symmetric_matrix.h>
@@ -136,7 +137,7 @@ class TCMatrix_gwbse : public TCMatrix {
 
   std::vector<Eigen::MatrixXd> FillBlock(
       const std::vector<Eigen::MatrixXd>& symmstorage,
-      const Eigen::MatrixXd& dft_orbitals, const AOShell& shell);
+      const Eigen::MatrixXd& dft_orbitals, const AOShell& shell) const;
 
   void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
 
@@ -145,12 +146,17 @@ class TCMatrix_gwbse : public TCMatrix {
       const Eigen::MatrixXd& dft_orbitals) const;
 
 #if defined(USE_CUDA)
-  std::vector<CudaMatrix> SendDFTMatricesToGPU(
+  std::array<CudaMatrix, 2> SendDFTMatricesToGPU(
+      const Eigen::MatrixXd& dft_orbitals) const;
+
+  std::array<CudaMatrix, 3> CreateIntermediateCudaMatrices(
       const Eigen::MatrixXd& dft_orbitals) const;
 
   std::vector<Eigen::MatrixXd> FillBlockCUDA(
       const std::vector<Eigen::MatrixXd>& symmstorage,
-      std::vector<CudaMatrix>& cudaMatrices, const AOShell& shell);
+      const std::array<CudaMatrix, 2>& cuda_matrices,
+      std::array<CudaMatrix, 3>& cuda_inter_matrices,
+      const AOShell& shell) const;
 
 #endif
 };
