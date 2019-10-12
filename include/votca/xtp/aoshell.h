@@ -85,6 +85,7 @@ class AOShell {
     _mindecay = shell._mindecay;
     _startIndex = shell._startIndex;
     _offset = shell._offset;
+    _cartOffset = shell._cartOffset;
     _pos = shell._pos;
     _atomindex = shell._atomindex;
     _gaussians.reserve(shell._gaussians.size());
@@ -98,6 +99,7 @@ class AOShell {
   int getCartesianNumFunc() const { return _numcartFunc; }
   int getStartIndex() const { return _startIndex; }
   int getOffset() const { return _offset; }
+  int getCartesianOffset() const { return _cartOffset; }
   int getAtomIndex() const { return _atomindex; }
 
   int getLmax() const { return _Lmax; }
@@ -157,6 +159,7 @@ class AOShell {
         _numcartFunc(xtp::NumFuncShell_cartesian(shell.getType())),
         _startIndex(startIndex),
         _offset(shell.getOffset()),
+        _cartOffset(xtp::OffsetFuncShell_cartesian(shell.getType())),
         _pos(atom.getPos()),
         _atomindex(atom.getId()) {
     ;
@@ -173,6 +176,7 @@ class AOShell {
   double _mindecay;
   int _startIndex;
   int _offset;
+  int _cartOffset;
   Eigen::Vector3d _pos;
   int _atomindex;
 

@@ -42,7 +42,7 @@ QMMolecule Methane() {
   return mol;
 }
 
-BOOST_AUTO_TEST_CASE(aomatrices_test) {
+BOOST_AUTO_TEST_CASE(small_l_test) {
 
   ofstream basisfile("3-21G.xml");
   basisfile << "<basis name=\"3-21G\">" << endl;
@@ -116,6 +116,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
       aobasis.getShell(0).getNumFunc(), aobasis.getShell(4).getNumFunc(),
       aobasis.getShell(2).getNumFunc(), aobasis.getShell(1).getNumFunc());
   block.setZero();
+  // S, S,SP,SP
   fcenter.FillFourCenterRepBlock(block, aobasis.getShell(0),
                                  aobasis.getShell(4), aobasis.getShell(2),
                                  aobasis.getShell(1));
@@ -126,13 +127,18 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
       0.0329851, 1.75149e-05, 1.75149e-05, 0.00112254, 1.75149e-05, 0.0329851,
       1.75149e-05, 0.00112254, 1.75149e-05, 1.75149e-05, 0.0329851;
 
+  Eigen::TensorMap<Eigen::Tensor<double, 4> > ref_block(
+      ref.data(), aobasis.getShell(0).getNumFunc(),
+      aobasis.getShell(4).getNumFunc(), aobasis.getShell(2).getNumFunc(),
+      aobasis.getShell(1).getNumFunc());
+
   bool check = mapped_result.isApprox(ref, 0.0001);
   BOOST_CHECK_EQUAL(check, 1);
   if (!check) {
     cout << "ref" << endl;
-    cout << ref.transpose() << endl;
+    cout << ref_block << endl;
     cout << "result" << endl;
-    cout << mapped_result.transpose() << endl;
+    cout << block << endl;
   }
 }
 
