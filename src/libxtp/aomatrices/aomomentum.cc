@@ -84,7 +84,6 @@ void AOMomentum::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
 
   double distsq = diff.squaredNorm();
 
-  std::array<int, 9> n_orbitals = AOTransform::n_orbitals();
   std::array<int, 165> nx = AOTransform::nx();
   std::array<int, 165> ny = AOTransform::ny();
   std::array<int, 165> nz = AOTransform::nz();

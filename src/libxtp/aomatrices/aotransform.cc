@@ -304,7 +304,6 @@ Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(int l, double decay,
 Eigen::MatrixXd AOTransform::getTrafo(const AOGaussianPrimitive& gaussian) {
 
   const AOShell& shell = gaussian.getShell();
-  const Eigen::VectorXd& contractions = gaussian.getContraction();
   if (!shell.isCombined()) {
     return AOTransform::getPrimitiveShellTrafo(
         shell.getLmax(), gaussian.getDecay(),
