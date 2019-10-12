@@ -26,7 +26,7 @@
 namespace votca {
 namespace xtp {
 // clang-format off
-   
+//clang format puts one entry on each line
 enum Cart {
   s,  // s
   x,  y,  z,  // p
@@ -68,15 +68,16 @@ enum Cart {
 class AOTransform {
 
  public:
-  static std::array<int, 6> nx();
-  static std::array<int, 6> ny();
-  static std::array<int, 6> nz();
-  static std::array<int, 6> i_less_x();
-  static std::array<int, 6> i_less_y();
-  static std::array<int, 6> i_less_z();
-  static std::array<int, 6> i_more_x();
-  static std::array<int, 6> i_more_y();
-  static std::array<int, 6> i_more_z();
+  static std::array<int, 9> n_orbitals();
+  static std::array<int, 165> nx();
+  static std::array<int, 165> ny();
+  static std::array<int, 165> nz();
+  static std::array<int, 165> i_less_x();
+  static std::array<int, 165> i_less_y();
+  static std::array<int, 165> i_less_z();
+  static std::array<int, 120> i_more_x();
+  static std::array<int, 120> i_more_y();
+  static std::array<int, 120> i_more_z();
 
   static int getCartesianSize(int l);
   static int getSphericalSize(int l);

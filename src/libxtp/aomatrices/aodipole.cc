@@ -63,28 +63,13 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
   const Eigen::Vector3d diff = pos_row - pos_col;
   double distsq = diff.squaredNorm();
 
-  int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};
-
-  int nx[] = {0, 1, 0, 0, 2, 1, 1, 0, 0, 0, 3, 2, 2, 1, 1, 1, 0, 0,
-              0, 0, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0};
-
-  int ny[] = {0, 0, 1, 0, 0, 1, 0, 2, 1, 0, 0, 1, 0, 2, 1, 0, 3, 2,
-              1, 0, 0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0};
-
-  int nz[] = {0, 0, 0, 1, 0, 0, 1, 0, 1, 2, 0, 0, 1, 0, 1, 2, 0, 1,
-              2, 3, 0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4};
-
-  int i_less_x[] = {0,  0,  0,  0,  1,  2,  3, 0, 0,  0,  4,  5,
-                    6,  7,  8,  9,  0,  0,  0, 0, 10, 11, 12, 13,
-                    14, 15, 16, 17, 18, 19, 0, 0, 0,  0,  0};
-
-  int i_less_y[] = {0,  0, 0,  0,  0,  1, 0,  2,  3,  0,  0, 4,
-                    0,  5, 6,  0,  7,  8, 9,  0,  0,  10, 0, 11,
-                    12, 0, 13, 14, 15, 0, 16, 17, 18, 19, 0};
-
-  int i_less_z[] = {0,  0,  0, 0,  0,  0,  1, 0,  2,  3,  0,  0,
-                    4,  0,  5, 6,  0,  7,  8, 9,  0,  0,  10, 0,
-                    11, 12, 0, 13, 14, 15, 0, 16, 17, 18, 19};
+  std::array<int, 9> n_orbitals = AOTransform::n_orbitals();
+  std::array<int, 165> nx = AOTransform::nx();
+  std::array<int, 165> ny = AOTransform::ny();
+  std::array<int, 165> nz = AOTransform::nz();
+  std::array<int, 165> i_less_x = AOTransform::i_less_x();
+  std::array<int, 165> i_less_y = AOTransform::i_less_y();
+  std::array<int, 165> i_less_z = AOTransform::i_less_z();
 
   // iterate over Gaussians in this shell_row
   for (const auto& gaussian_row : shell_row) {
