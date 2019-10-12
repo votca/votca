@@ -789,7 +789,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
           // Integrals     d - s - p     f - s - p     g - s - p     h - s - p
           // i - s - p     j - s - p     k - s - p
           for (int m = 0; m < lmax_gamma; m++) {
-            for (int i = 4; i < n_orbitals[lmax_alpha_beta]; i++) {
+            for (int i = 4; i < ncombined; i++) {
               R_temp(i, Cart::x, m) =
                   wmc(0) * R_temp(i, 0, m + 1) +
                   nx[i] * rdecay * R_temp(i_less_x[i], 0, m + 1);
@@ -823,7 +823,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
           // Integrals     p - s - d     d - s - d     f - s - d     g - s - d
           // h - s - d     i - s - d     j - s - d     k - s - d
           for (int m = 0; m < lmax_gamma - 1; m++) {
-            for (int i = 1; i < n_orbitals[lmax_alpha_beta]; i++) {
+            for (int i = 1; i < ncombined; i++) {
               double term =
                   rgamma * (R_temp(i, 0, m) - cfak * R_temp(i, 0, m + 1));
               R_temp(i, Cart::xx, m) =
@@ -879,7 +879,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
           // Integrals     p - s - f     d - s - f     f - s - f     g - s - f
           // h - s - f     i - s - f     j - s - f     k - s - f
           for (int m = 0; m < lmax_gamma - 2; m++) {
-            for (int i = 1; i < n_orbitals[lmax_alpha_beta]; i++) {
+            for (int i = 1; i < ncombined; i++) {
               double term_x =
                   2 * rgamma *
                   (R_temp(i, Cart::x, m) - cfak * R_temp(i, Cart::x, m + 1));
@@ -965,7 +965,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
           // Integrals     p - s - g     d - s - g     f - s - g     g - s - g
           // h - s - g     i - s - g     j - s - g     k - s - g
           for (int m = 0; m < lmax_gamma - 3; m++) {
-            for (int i = 1; i < n_orbitals[lmax_alpha_beta]; i++) {
+            for (int i = 1; i < ncombined; i++) {
               double term_xx = rgamma * (R_temp(i, Cart::xx, m) -
                                          cfak * R_temp(i, Cart::xx, m + 1));
               double term_yy = rgamma * (R_temp(i, Cart::yy, m) -
@@ -1075,7 +1075,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
           // Integrals     p - s - h     d - s - h     f - s - h     g - s - h
           // h - s - h     i - s - h     j - s - h     k - s - h
           for (int m = 0; m < lmax_gamma - 4; m++) {
-            for (int i = 1; i < n_orbitals[lmax_alpha_beta]; i++) {
+            for (int i = 1; i < ncombined; i++) {
               double term_xxx = rgamma * (R_temp(i, Cart::xxx, m) -
                                           cfak * R_temp(i, Cart::xxx, m + 1));
               double term_yyy = rgamma * (R_temp(i, Cart::yyy, m) -
@@ -1225,7 +1225,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
           // Integrals     p - s - i     d - s - i     f - s - i     g - s - i
           // h - s - i     i - s - i     j - s - i     k - s - i
           for (int m = 0; m < lmax_gamma - 5; m++) {
-            for (int i = 1; i < n_orbitals[lmax_alpha_beta]; i++) {
+            for (int i = 1; i < ncombined; i++) {
               double term_xxxx = rgamma * (R_temp(i, Cart::xxxx, m) -
                                            cfak * R_temp(i, Cart::xxxx, m + 1));
               double term_xyyy = rgamma * (R_temp(i, Cart::xyyy, m) -
@@ -1343,316 +1343,21 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
         }  // end if (lmax_gamma > 5)
 
-        const Eigen::VectorXd& contractions_gamma =
-            gaussian_gamma.getContraction();
-
-        // s-functions
-        double factor = contractions_gamma[0];
-        for (int i = 0; i < n_orbitals[lmax_alpha_beta]; i++) {
-          R_temp(i, 0, 1) = factor * R_temp(i, 0, 0);  /// Y 0,0
-        }
-
-        if (lmax_gamma > 0) {
-          // p-functions
-          factor = 2. * sqrt(decay_gamma) * contractions_gamma[1];
-          for (int i = 0; i < n_orbitals[lmax_alpha_beta]; i++) {
-            R_temp(i, 1, 1) = factor * R_temp(i, 3, 0);  /// Y 1,0
-            R_temp(i, 2, 1) = factor * R_temp(i, 2, 0);  /// Y 1,-1
-            R_temp(i, 3, 1) = factor * R_temp(i, 1, 0);  /// Y 1,1
-          }
-        }
-
-        if (lmax_gamma > 1) {
-          // d-functions
-          factor = 2.0 * decay_gamma * contractions_gamma[2];
-          double factor_1 = factor / sqrt(3.0);
-          for (int i = 0; i < n_orbitals[lmax_alpha_beta]; i++) {
-            R_temp(i, 4, 1) =
-                factor_1 *
-                (2.0 * R_temp(i, Cart::zz, 0) - R_temp(i, Cart::xx, 0) -
-                 R_temp(i, Cart::yy, 0));  /// d3z2-r2  Y 2,0
-            R_temp(i, 5, 1) =
-                2. * factor * R_temp(i, Cart::yz, 0);  /// dyz  Y 2,-1
-            R_temp(i, 6, 1) =
-                2. * factor * R_temp(i, Cart::xz, 0);  /// dxz  Y 2,1
-            R_temp(i, 7, 1) =
-                2. * factor * R_temp(i, Cart::xy, 0);  /// dxy  Y 2,-2
-            R_temp(i, 8, 1) =
-                factor * (R_temp(i, Cart::xx, 0) -
-                          R_temp(i, Cart::yy, 0));  /// dx2-y2  Y 2,2
-          }
-        }
-
-        if (lmax_gamma > 2) {
-          // f-functions
-          factor = 2.0 * pow(decay_gamma, 1.5) * contractions_gamma[3];
-          double factor_1 = factor * 2. / sqrt(15.);
-          double factor_2 = factor * sqrt(2.) / sqrt(5.);
-          double factor_3 = factor * sqrt(2.) / sqrt(3.);
-          for (int i = 0; i < n_orbitals[lmax_alpha_beta]; i++) {
-            R_temp(i, 9, 1) =
-                factor_1 *
-                (2. * R_temp(i, Cart::zzz, 0) - 3. * R_temp(i, Cart::xxz, 0) -
-                 3. * R_temp(i, Cart::yyz, 0));  /// Y 3,0
-            R_temp(i, 10, 1) = factor_2 * (4. * R_temp(i, Cart::yzz, 0) -
-                                           R_temp(i, Cart::xxy, 0) -
-                                           R_temp(i, Cart::yyy, 0));  /// Y 3,-1
-            R_temp(i, 11, 1) = factor_2 * (4. * R_temp(i, Cart::xzz, 0) -
-                                           R_temp(i, Cart::xxx, 0) -
-                                           R_temp(i, Cart::xyy, 0));  /// Y 3,1
-            R_temp(i, 12, 1) =
-                4. * factor * R_temp(i, Cart::xyz, 0);  /// Y 3,-2
-            R_temp(i, 13, 1) =
-                2. * factor *
-                (R_temp(i, Cart::xxz, 0) - R_temp(i, Cart::yyz, 0));  /// Y 3,2
-            R_temp(i, 14, 1) = factor_3 * (3. * R_temp(i, Cart::xxy, 0) -
-                                           R_temp(i, Cart::yyy, 0));  /// Y 3,-3
-            R_temp(i, 15, 1) =
-                factor_3 * (R_temp(i, Cart::xxx, 0) -
-                            3. * R_temp(i, Cart::xyy, 0));  /// Y 3,3
-          }
-        }
-
-        if (lmax_gamma > 3) {
-          // g-functions
-          factor =
-              2. / sqrt(3.) * decay_gamma * decay_gamma * contractions_gamma[4];
-          double factor_1 = factor / sqrt(35.);
-          double factor_2 = factor * 4. / sqrt(14.);
-          double factor_3 = factor * 2. / sqrt(7.);
-          double factor_4 = factor * 2. * sqrt(2.);
-          for (int i = 0; i < n_orbitals[lmax_alpha_beta]; i++) {
-            R_temp(i, 16, 1) =
-                factor_1 *
-                (3. * (R_temp(i, Cart::xxxx, 0) + R_temp(i, Cart::yyyy, 0)) +
-                 6. * R_temp(i, Cart::xxyy, 0) -
-                 24. * (R_temp(i, Cart::xxzz, 0) + R_temp(i, Cart::yyzz, 0)) +
-                 8. * R_temp(i, Cart::zzzz, 0));  /// Y 4,0
-            R_temp(i, 17, 1) =
-                factor_2 *
-                (-3. * (R_temp(i, Cart::xxyz, 0) + R_temp(i, Cart::yyyz, 0)) +
-                 4. * R_temp(i, Cart::yzzz, 0));  /// Y 4,-1
-            R_temp(i, 18, 1) =
-                factor_2 *
-                (-3. * (R_temp(i, Cart::xxxz, 0) + R_temp(i, Cart::xyyz, 0)) +
-                 4. * R_temp(i, Cart::xzzz, 0));  /// Y 4,1
-            R_temp(i, 19, 1) =
-                2. * factor_3 *
-                (-R_temp(i, Cart::xxxy, 0) - R_temp(i, Cart::xyyy, 0) +
-                 6. * R_temp(i, Cart::xyzz, 0));  /// Y 4,-2
-            R_temp(i, 20, 1) =
-                factor_3 *
-                (-R_temp(i, Cart::xxxx, 0) +
-                 6. * (R_temp(i, Cart::xxzz, 0) - R_temp(i, Cart::yyzz, 0)) +
-                 R_temp(i, Cart::yyyy, 0));  /// Y 4,2
-            R_temp(i, 21, 1) =
-                factor_4 * (3. * R_temp(i, Cart::xxyz, 0) -
-                            R_temp(i, Cart::yyyz, 0));  /// Y 4,-3
-            R_temp(i, 22, 1) =
-                factor_4 * (R_temp(i, Cart::xxxz, 0) -
-                            3. * R_temp(i, Cart::xyyz, 0));  /// Y 4,3
-            R_temp(i, 23, 1) = 4. * factor *
-                               (R_temp(i, Cart::xxxy, 0) -
-                                R_temp(i, Cart::xyyy, 0));  /// Y 4,-4
-            R_temp(i, 24, 1) = factor * (R_temp(i, Cart::xxxx, 0) -
-                                         6. * R_temp(i, Cart::xxyy, 0) +
-                                         R_temp(i, Cart::yyyy, 0));  /// Y 4,4
-          }
-        }
-
-        if (lmax_gamma > 4) {
-          // h-functions
-          factor = (2. / 3.) * pow(decay_gamma, 2.5) * contractions_gamma[5];
-          double factor_1 = factor * 2. / sqrt(105.);
-          double factor_2 = factor * 2. / sqrt(7.);
-          double factor_3 = factor * sqrt(6.) / 3.;
-          double factor_4 = factor * 2. * sqrt(3.);
-          double factor_5 = factor * .2 * sqrt(30.);
-          for (int i = 0; i < n_orbitals[lmax_alpha_beta]; i++) {
-            R_temp(i, 25, 1) =
-                factor_1 *
-                (15. * (R_temp(i, Cart::xxxxz, 0) + R_temp(i, Cart::yyyyz, 0)) +
-                 30. * R_temp(i, Cart::xxyyz, 0) -
-                 40. * (R_temp(i, Cart::xxzzz, 0) + R_temp(i, Cart::yyzzz, 0)) +
-                 8. * R_temp(i, Cart::zzzzz, 0));  /// Y 5,0
-
-            R_temp(i, 26, 1) =
-                factor_2 *
-                (R_temp(i, Cart::xxxxy, 0) + 2. * R_temp(i, Cart::xxyyy, 0) -
-                 12. * (R_temp(i, Cart::xxyzz, 0) + R_temp(i, Cart::yyyzz, 0)) +
-                 R_temp(i, Cart::yyyyy, 0) +
-                 8. * R_temp(i, Cart::yzzzz, 0));  /// Y 5,-1
-
-            R_temp(i, 27, 1) =
-                factor_2 *
-                (R_temp(i, Cart::xxxxx, 0) + 2. * R_temp(i, Cart::xxxyy, 0) -
-                 12. * (R_temp(i, Cart::xxxzz, 0) + R_temp(i, Cart::xyyzz, 0)) +
-                 R_temp(i, Cart::xyyyy, 0) +
-                 8. * R_temp(i, Cart::xzzzz, 0));  /// Y 5,1
-
-            R_temp(i, 28, 1) =
-                8. * factor *
-                (-R_temp(i, Cart::xxxyz, 0) - R_temp(i, Cart::xyyyz, 0) +
-                 2. * R_temp(i, Cart::xyzzz, 0));  /// Y 5,-2
-
-            R_temp(i, 29, 1) =
-                4. * factor *
-                (-R_temp(i, Cart::xxxxz, 0) +
-                 2. * (R_temp(i, Cart::xxzzz, 0) - R_temp(i, Cart::yyzzz, 0)) +
-                 R_temp(i, Cart::yyyyz, 0));  /// Y 5,2
-
-            R_temp(i, 30, 1) =
-                factor_3 *
-                (-3. * R_temp(i, Cart::xxxxy, 0) -
-                 2. * R_temp(i, Cart::xxyyy, 0) +
-                 24. * R_temp(i, Cart::xxyzz, 0) + R_temp(i, Cart::yyyyy, 0) -
-                 8. * R_temp(i, Cart::yyyzz, 0));  /// Y 5,-3
-
-            R_temp(i, 31, 1) =
-                factor_3 *
-                (-R_temp(i, Cart::xxxxx, 0) + 2. * R_temp(i, Cart::xxxyy, 0) +
-                 8. * R_temp(i, Cart::xxxzz, 0) +
-                 3. * R_temp(i, Cart::xyyyy, 0) -
-                 24. * R_temp(i, Cart::xyyzz, 0));  /// Y 5,3
-
-            R_temp(i, 32, 1) = 4. * factor_4 *
-                               (R_temp(i, Cart::xxxyz, 0) -
-                                R_temp(i, Cart::xyyyz, 0));  /// Y 5,-4
-
-            R_temp(i, 33, 1) =
-                factor_4 *
-                (R_temp(i, Cart::xxxxz, 0) - 6. * R_temp(i, Cart::xxyyz, 0) +
-                 R_temp(i, Cart::yyyyz, 0));  /// Y 5,4
-
-            R_temp(i, 34, 1) =
-                factor_5 * (5. * R_temp(i, Cart::xxxxy, 0) -
-                            10. * R_temp(i, Cart::xxyyy, 0) +
-                            R_temp(i, Cart::yyyyy, 0));  /// Y 5,-5
-
-            R_temp(i, 35, 1) =
-                factor_5 *
-                (R_temp(i, Cart::xxxxx, 0) - 10. * R_temp(i, Cart::xxxyy, 0) +
-                 5. * R_temp(i, Cart::xyyyy, 0));  /// Y 5,5
-          }
-        }
-
-        if (lmax_gamma > 5) {
-          // i-functions
-          factor = (2. / 3.) * decay_gamma * decay_gamma * decay_gamma *
-                   contractions_gamma[6];
-          double factor_1 = factor * 2. / sqrt(1155.);
-          double factor_2 = factor * 4. / sqrt(55.);
-          double factor_3 = factor * sqrt(22.) / 11.;
-          double factor_4 = factor * 2. * sqrt(165.) / 55.;
-          double factor_5 = factor * .4 * sqrt(30.);
-          double factor_6 = factor * .2 * sqrt(10.);
-          for (int i = 0; i < n_orbitals[lmax_alpha_beta]; i++) {
-            R_temp(i, 36, 1) =
-                factor_1 *
-                (-5. *
-                     (R_temp(i, Cart::xxxxxx, 0) + R_temp(i, Cart::yyyyyy, 0)) -
-                 15. *
-                     (R_temp(i, Cart::xxxxyy, 0) + R_temp(i, Cart::xxyyyy, 0)) +
-                 90. *
-                     (R_temp(i, Cart::xxxxzz, 0) + R_temp(i, Cart::yyyyzz, 0)) +
-                 180. * R_temp(i, Cart::xxyyzz, 0) -
-                 120. *
-                     (R_temp(i, Cart::xxzzzz, 0) + R_temp(i, Cart::yyzzzz, 0)) +
-                 16. * R_temp(i, Cart::zzzzzz, 0));  /// Y 6,0
-
-            R_temp(i, 37, 1) =
-                factor_2 * (5. * (R_temp(i, Cart::xxxxyz, 0) +
-                                  R_temp(i, Cart::yyyyyz, 0)) +
-                            10. * R_temp(i, Cart::xxyyyz, 0) -
-                            20. * (R_temp(i, Cart::xxyzzz, 0) +
-                                   R_temp(i, Cart::yyyzzz, 0)) +
-                            8. * R_temp(i, Cart::yzzzzz, 0));  /// Y 6,-1
-
-            R_temp(i, 38, 1) =
-                factor_2 * (5. * (R_temp(i, Cart::xxxxxz, 0) +
-                                  R_temp(i, Cart::xyyyyz, 0)) +
-                            10. * R_temp(i, Cart::xxxyyz, 0) -
-                            20. * (R_temp(i, Cart::xxxzzz, 0) +
-                                   R_temp(i, Cart::xyyzzz, 0)) +
-                            8. * R_temp(i, Cart::xzzzzz, 0));  /// Y 6,1
-
-            R_temp(i, 39, 1) =
-                2. * factor_3 *
-                (R_temp(i, Cart::xxxxxy, 0) + 2. * R_temp(i, Cart::xxxyyy, 0) -
-                 16. *
-                     (R_temp(i, Cart::xxxyzz, 0) + R_temp(i, Cart::xyyyzz, 0) -
-                      R_temp(i, Cart::xyzzzz, 0)) +
-                 R_temp(i, Cart::xyyyyy, 0));  /// Y 6,-2
-
-            R_temp(i, 40, 1) =
-                factor_3 *
-                (R_temp(i, Cart::xxxxxy, 0) + R_temp(i, Cart::xxxxyy, 0) -
-                 16. *
-                     (R_temp(i, Cart::xxxxzz, 0) - R_temp(i, Cart::xxzzzz, 0) -
-                      R_temp(i, Cart::yyyyzz, 0) + R_temp(i, Cart::yyzzzz, 0)) -
-                 R_temp(i, Cart::xxyyyy, 0) -
-                 R_temp(i, Cart::yyyyyy, 0));  /// Y 6,2
-
-            R_temp(i, 41, 1) = 2. * factor_3 *
-                               (-9. * R_temp(i, Cart::xxxxyz, 0) -
-                                6. * R_temp(i, Cart::xxyyyz, 0) +
-                                24. * R_temp(i, Cart::xxyzzz, 0) +
-                                3. * R_temp(i, Cart::yyyyyz, 0) -
-                                8. * R_temp(i, Cart::yyyzzz, 0));  /// Y 6,-3
-
-            R_temp(i, 42, 1) = 2. * factor_3 *
-                               (-3. * R_temp(i, Cart::xxxxxz, 0) +
-                                6. * R_temp(i, Cart::xxxyyz, 0) +
-                                8. * R_temp(i, Cart::xxxzzz, 0) +
-                                9. * R_temp(i, Cart::xyyyyz, 0) -
-                                24. * R_temp(i, Cart::xyyzzz, 0));  /// Y 6,3
-
-            R_temp(i, 43, 1) = 4. * factor_4 *
-                               (-R_temp(i, Cart::xxxxxy, 0) +
-                                10. * (R_temp(i, Cart::xxxyzz, 0) -
-                                       R_temp(i, Cart::xyyyzz, 0)) +
-                                R_temp(i, Cart::xyyyyy, 0));  /// Y 6,-4
-
-            R_temp(i, 44, 1) =
-                factor_4 * (-R_temp(i, Cart::xxxxxx, 0) +
-                            5. * (R_temp(i, Cart::xxxxyy, 0) +
-                                  R_temp(i, Cart::xxyyyy, 0)) +
-                            10. * (R_temp(i, Cart::xxxxzz, 0) +
-                                   R_temp(i, Cart::yyyyzz, 0)) -
-                            60. * R_temp(i, Cart::xxyyzz, 0) -
-                            R_temp(i, Cart::yyyyyy, 0));  /// Y 6,4
-
-            R_temp(i, 45, 1) =
-                factor_5 * (5. * R_temp(i, Cart::xxxxyz, 0) -
-                            10. * R_temp(i, Cart::xxyyyz, 0) +
-                            R_temp(i, Cart::yyyyyz, 0));  /// Y 6,-5
-
-            R_temp(i, 46, 1) =
-                factor_5 *
-                (R_temp(i, Cart::xxxxxz, 0) - 10. * R_temp(i, Cart::xxxyyz, 0) +
-                 5. * R_temp(i, Cart::xyyyyz, 0));  /// Y 6,5
-
-            R_temp(i, 47, 1) = 2. * factor_6 *
-                               (3. * R_temp(i, Cart::xxxxxy, 0) -
-                                10. * R_temp(i, Cart::xxxyyy, 0) +
-                                3. * R_temp(i, Cart::xyyyyy, 0));  /// Y 6,-6
-
-            R_temp(i, 48, 1) =
-                factor_6 * (R_temp(i, Cart::xxxxxx, 0) -
-                            15. * (R_temp(i, Cart::xxxxyy, 0) -
-                                   R_temp(i, Cart::xxyyyy, 0)) -
-                            R_temp(i, Cart::yyyyyy, 0));  /// Y 6,6
-          }
-        }
+        // transform gamma to spherical and only cut out the relevant part
+        int gamma_num_cartfunc = shell_gamma->getCartesianNumFunc();
+        Eigen::Map<Eigen::MatrixXd> map_R_temp =
+            Eigen::Map<Eigen::MatrixXd>(R_temp.data(), ncombined, ngamma);
+        Eigen::MatrixXd R_gamma = map_R_temp.rightCols(gamma_num_cartfunc) *
+                                  AOTransform::getTrafo(gaussian_gamma);
 
         // copy into new array for 3D use.
-
         int gamma_num_func = shell_gamma->getNumFunc();
         Eigen::Tensor<double, 3> R(ncombined, nbeta, gamma_num_func);
         R.setZero();
+
         for (int k = 0; k < gamma_num_func; ++k) {
-          for (int i = 0; i < n_orbitals[lmax_alpha_beta]; ++i) {
-            R(i, 0, k) = R_temp(i, k + shell_gamma->getOffset(), 1);
+          for (int i = 0; i < ncombined; ++i) {
+            R(i, 0, k) = R_gamma(i, k);
           }
         }
 
