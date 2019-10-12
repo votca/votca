@@ -1647,19 +1647,19 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
         // copy into new array for 3D use.
 
-        Eigen::Tensor<double, 3> R(ncombined, nbeta, ngamma);
+        int gamma_num_func = shell_gamma->getNumFunc();
+        Eigen::Tensor<double, 3> R(ncombined, nbeta, gamma_num_func);
         R.setZero();
-
-        for (int k = 0; k < (lmax_gamma + 1) * (lmax_gamma + 1); ++k) {
+        for (int k = 0; k < gamma_num_func; ++k) {
           for (int i = 0; i < n_orbitals[lmax_alpha_beta]; ++i) {
-            R(i, 0, k) = R_temp(i, k, 1);
+            R(i, 0, k) = R_temp(i, k + shell_gamma->getOffset(), 1);
           }
         }
 
         if (lmax_beta > 0) {
           // Integrals    s - p - *    p - p - *    d - p - *    f - p - *    g
           // - p - *    h - p - *    i - p - *    j - p - *
-          for (int i = 0; i < (lmax_gamma + 1) * (lmax_gamma + 1); i++) {
+          for (int i = 0; i < gamma_num_func; i++) {
             for (int j = 0; j < n_orbitals[lmax_alpha_beta - 1]; j++) {
               R(j, Cart::x, i) = R(i_more_x[j], 0, i) + amb(0) * R(j, 0, i);
               R(j, Cart::y, i) = R(i_more_y[j], 0, i) + amb(1) * R(j, 0, i);
@@ -1672,7 +1672,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_beta > 1) {
           // Integrals    s - d - *    p - d - *    d - d - *    f - d - *    g
           // - d - *    h - d - *    i - d - *
-          for (int i = 0; i < (lmax_gamma + 1) * (lmax_gamma + 1); i++) {
+          for (int i = 0; i < gamma_num_func; i++) {
             for (int j = 0; j < n_orbitals[lmax_alpha_beta - 2]; j++) {
               R(j, Cart::xx, i) =
                   R(i_more_x[j], Cart::x, i) + amb(0) * R(j, Cart::x, i);
@@ -1694,7 +1694,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_beta > 2) {
           // Integrals    s - f - *    p - f - *    d - f - *    f - f - *    g
           // - f - *    h - f - *
-          for (int i = 0; i < (lmax_gamma + 1) * (lmax_gamma + 1); i++) {
+          for (int i = 0; i < gamma_num_func; i++) {
             for (int j = 0; j < n_orbitals[lmax_alpha_beta - 3]; j++) {
               R(j, Cart::xxx, i) =
                   R(i_more_x[j], Cart::xx, i) + amb(0) * R(j, Cart::xx, i);
@@ -1724,7 +1724,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_beta > 3) {
           // Integrals    s - g - *    p - g - *    d - g - *    f - g - *    g
           // - g - *
-          for (int i = 0; i < (lmax_gamma + 1) * (lmax_gamma + 1); i++) {
+          for (int i = 0; i < gamma_num_func; i++) {
             for (int j = 0; j < n_orbitals[lmax_alpha_beta - 4]; j++) {
               R(j, Cart::xxxx, i) =
                   R(i_more_x[j], Cart::xxx, i) + amb(0) * R(j, Cart::xxx, i);
@@ -1762,7 +1762,6 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         }
 
         // which ones do we want to store
-        int offset_gamma = shell_gamma->getOffset();
         int cartoffset_alpha = shell_alpha->getCartesianOffset();
         int cartoffset_beta = shell_beta->getCartesianOffset();
 
@@ -1777,12 +1776,11 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
           for (int i_beta = 0; i_beta < shell_beta->getNumFunc(); i_beta++) {
             for (int i_gamma = 0; i_gamma < shell_gamma->getNumFunc();
                  i_gamma++) {
-              int i_gamma_off = i_gamma + offset_gamma;
               for (int i_beta_t = 0; i_beta_t < cartnumFunc_beta; i_beta_t++) {
                 for (int i_alpha_t = 0; i_alpha_t < cartnumFunc_alpha;
                      i_alpha_t++) {
                   double coeff = R(i_alpha_t + cartoffset_alpha,
-                                   i_beta_t + cartoffset_beta, i_gamma_off) *
+                                   i_beta_t + cartoffset_beta, i_gamma) *
                                  trafo_alpha(i_alpha_t, i_alpha) *
                                  trafo_beta(i_beta_t, i_beta);
                   if (alphabetaswitch) {

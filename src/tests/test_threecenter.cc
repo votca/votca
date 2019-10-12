@@ -29,6 +29,8 @@ BOOST_AUTO_TEST_SUITE(threecenter_test)
 
 BOOST_AUTO_TEST_CASE(threecenter_dft) {
 
+  OPENMP::setMaxThreads(1);
+
   ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << endl;
   xyzfile << " methane" << endl;
@@ -235,6 +237,7 @@ BOOST_AUTO_TEST_CASE(threecenter_dft) {
 }
 
 BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
+  OPENMP::setMaxThreads(1);
   ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << endl;
   xyzfile << " methane" << endl;
@@ -486,6 +489,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
 }
 
 BOOST_AUTO_TEST_CASE(large_l_test) {
+  OPENMP::setMaxThreads(1);
   std::ofstream xyzfile("C2.xyz");
   xyzfile << " 2" << std::endl;
   xyzfile << " C2" << std::endl;
