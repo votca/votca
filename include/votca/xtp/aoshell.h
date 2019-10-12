@@ -81,6 +81,7 @@ class AOShell {
     _Lmin = shell._Lmin;
     _scale = shell._scale;
     _numFunc = shell._numFunc;
+    _numcartFunc = shell._numcartFunc;
     _mindecay = shell._mindecay;
     _startIndex = shell._startIndex;
     _offset = shell._offset;
@@ -94,6 +95,7 @@ class AOShell {
 
   const std::string& getType() const { return _type; }
   int getNumFunc() const { return _numFunc; }
+  int getCartesianNumFunc() const { return _numcartFunc; }
   int getStartIndex() const { return _startIndex; }
   int getOffset() const { return _offset; }
   int getAtomIndex() const { return _atomindex; }
@@ -105,8 +107,6 @@ class AOShell {
 
   const Eigen::Vector3d& getPos() const { return _pos; }
   double getScale() const { return _scale; }
-
-  int getSize() const { return _gaussians.size(); }
 
   void CalcMinDecay() {
     _mindecay = std::numeric_limits<double>::max();
@@ -149,6 +149,7 @@ class AOShell {
         _Lmin(shell.getLmin()),
         _scale(shell.getScale()),
         _numFunc(shell.getnumofFunc()),
+        _numcartFunc(xtp::NumFuncShell_cartesian(shell.getType())),
         _startIndex(startIndex),
         _offset(shell.getOffset()),
         _pos(atom.getPos()),
@@ -163,6 +164,7 @@ class AOShell {
   double _scale;
   // number of functions in shell
   int _numFunc;
+  int _numcartFunc;
   double _mindecay;
   int _startIndex;
   int _offset;

@@ -202,9 +202,86 @@ enum Index {
 /* contains cartesian to spherical conversion
  */
 class AOTransform {
+ private:
+  enum S { s };
+  enum P { x, y, z };
+  enum D { xx, xy, xz, yy, yz, zz };
+  enum F { xxx, xxy, xxz, xyy, xyz, xzz, yyy, yyz, yzz, zzz };
+  enum G {
+    xxxx,
+    xxxy,
+    xxxz,
+    xxyy,
+    xxyz,
+    xxzz,
+    xyyy,
+    xyyz,
+    xyzz,
+    xzzz,
+    yyyy,
+    yyyz,
+    yyzz,
+    yzzz,
+    zzzz
+  };
+  enum H {
+    xxxxx,
+    xxxxy,
+    xxxxz,
+    xxxyy,
+    xxxyz,
+    xxxzz,
+    xxyyy,
+    xxyyz,
+    xxyzz,
+    xxzzz,
+    xyyyy,
+    xyyyz,
+    xyyzz,
+    xyzzz,
+    xzzzz,
+    yyyyy,
+    yyyyz,
+    yyyzz,
+    yyzzz,
+    yzzzz,
+    zzzzz
+  };
+  enum I {
+    xxxxxx,
+    xxxxxy,
+    xxxxxz,
+    xxxxyy,
+    xxxxyz,
+    xxxxzz,
+    xxxyyy,
+    xxxyyz,
+    xxxyzz,
+    xxxzzz,
+    xxyyyy,
+    xxyyyz,
+    xxyyzz,
+    xxyzzz,
+    xxzzzz,
+    xyyyyy,
+    xyyyyz,
+    xyyyzz,
+    xyyzzz,
+    xyzzzz,
+    xzzzzz,
+    yyyyyy,
+    yyyyyz,
+    yyyyzz,
+    yyyzzz,
+    yyzzzz,
+    yzzzzz,
+    zzzzzz,
+  };
+
+  static Eigen::MatrixXd getPrimitiveShellTrafo(int l, double decay,
+                                                double contraction);
+
  public:
-  static Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(
-      int l, double decay, double contraction);
   static int getCartesianSize(int l);
   static int getSphericalSize(int l);
   static int getBlockSize(int lmax);

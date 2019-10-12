@@ -91,9 +91,9 @@ BOOST_AUTO_TEST_CASE(transform) {
   ref[1] = Eigen::MatrixXd::Zero(3, 3);
   ref[2] = Eigen::MatrixXd::Zero(6, 5);
   ref[3] = Eigen::MatrixXd::Zero(10, 7);
-  ref[4] = Eigen::MatrixXd::Zero(14, 9);
-  ref[5] = Eigen::MatrixXd::Zero(18, 11);
-  ref[6] = Eigen::MatrixXd::Zero(22, 13);
+  ref[4] = Eigen::MatrixXd::Zero(15, 9);
+  ref[5] = Eigen::MatrixXd::Zero(21, 11);
+  ref[6] = Eigen::MatrixXd::Zero(28, 13);
 
   int ref_index = 0;
   for (const AOShell& shell : basis) {
