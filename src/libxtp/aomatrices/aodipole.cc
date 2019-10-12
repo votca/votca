@@ -721,9 +721,12 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
       // cartesian -> spherical
 
       for (int i = 0; i < 3; i++) {
-        Eigen::MatrixXd dip_sph = trafo_row.transpose() * dip[i] * trafo_col;
-        matrix[i] += dip_sph.block(shell_row.getOffset(), shell_col.getOffset(),
-                                   matrix[i].rows(), matrix[i].cols());
+        Eigen::MatrixXd dip_sph =
+            trafo_row.transpose() *
+            dip[i].bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                     shell_col.getCartesianNumFunc()) *
+            trafo_col;
+        matrix[i] += dip_sph;
       }
 
     }  // shell_col Gaussians

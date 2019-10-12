@@ -626,14 +626,14 @@ void AOOverlap::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
       }  // end if (lmax_col > 5)
 
-      // cout << "Done with unnormalized matrix " << endl;
-
-      Eigen::MatrixXd ol_sph = AOTransform::getTrafo(gaussian_row).transpose() *
-                               ol * AOTransform::getTrafo(gaussian_col);
+      Eigen::MatrixXd ol_sph =
+          AOTransform::getTrafo(gaussian_row).transpose() *
+          ol.bottomRightCorner(shell_row.getCartesianNumFunc(),
+                               shell_col.getCartesianNumFunc()) *
+          AOTransform::getTrafo(gaussian_col);
       // save to matrix
 
-      matrix += ol_sph.block(shell_row.getOffset(), shell_col.getOffset(),
-                             matrix.rows(), matrix.cols());
+      matrix += ol_sph;
     }  // shell_col Gaussians
   }    // shell_row Gaussians
 }

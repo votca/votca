@@ -556,10 +556,13 @@ void AOMomentum::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
       Eigen::MatrixXd trafo_col = AOTransform::getTrafo(gaussian_col);
       // cartesian -> spherical
       for (int i = 0; i < 3; i++) {
-        Eigen::MatrixXd mom_sph = trafo_row.transpose() * mom[i] * trafo_col;
+        Eigen::MatrixXd mom_sph =
+            trafo_row.transpose() *
+            mom[i].bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                     shell_col.getCartesianNumFunc()) *
+            trafo_col;
         // save to matrix
-        matrix[i] += mom_sph.block(shell_row.getOffset(), shell_col.getOffset(),
-                                   matrix[i].rows(), matrix[i].cols());
+        matrix[i] += mom_sph;
       }
 
     }  // shell_col Gaussians

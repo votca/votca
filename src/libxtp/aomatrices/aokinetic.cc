@@ -629,12 +629,13 @@ void AOKinetic::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
       // normalization and cartesian -> spherical factors
       Eigen::MatrixXd kin_sph =
-          AOTransform::getTrafo(gaussian_row).transpose() * kin *
+          AOTransform::getTrafo(gaussian_row).transpose() *
+          kin.bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                shell_col.getCartesianNumFunc()) *
           AOTransform::getTrafo(gaussian_col);
       // save to matrix
 
-      matrix += kin_sph.block(shell_row.getOffset(), shell_col.getOffset(),
-                              matrix.rows(), matrix.cols());
+      matrix += kin_sph;
 
     }  // col
   }    // row

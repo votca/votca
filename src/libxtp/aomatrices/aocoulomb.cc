@@ -898,20 +898,17 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
       }  // end if (lmax_col > 5)
 
-      // put cou(i,j,0) into eigen matrix
-      Eigen::MatrixXd coumat = Eigen::MatrixXd::Zero(nrows, ncols);
-      for (int i = 0; i < coumat.rows(); i++) {
-        for (int j = 0; j < coumat.cols(); j++) {
-          coumat(i, j) = cou(i, j, 0);
-        }
-      }
+      // put cou(i,j,0) into eigen map
+      Eigen::Map<Eigen::MatrixXd> coumat =
+          Eigen::Map<Eigen::MatrixXd>(cou.data(), nrows, ncols);
 
-      Eigen::MatrixXd trafo_row = AOTransform::getTrafo(gaussian_row);
-      Eigen::MatrixXd trafo_col = AOTransform::getTrafo(gaussian_col);
-      Eigen::MatrixXd cou_sph = trafo_row.transpose() * coumat * trafo_col;
+      Eigen::MatrixXd cou_sph =
+          AOTransform::getTrafo(gaussian_row).transpose() *
+          coumat.bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                   shell_col.getCartesianNumFunc()) *
+          AOTransform::getTrafo(gaussian_col);
       // save to matrix
-      matrix += cou_sph.block(shell_row.getOffset(), shell_col.getOffset(),
-                              matrix.rows(), matrix.cols());
+      matrix += cou_sph;
 
     }  // shell_col Gaussians
   }    // shell_row Gaussians

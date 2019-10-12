@@ -611,12 +611,8 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
       }  // end if (lmax_col > 3)
 
-      Eigen::MatrixXd multipole = Eigen::MatrixXd::Zero(nrows, ncols);
-      for (int i = 0; i < nrows; i++) {
-        for (int j = 0; j < ncols; j++) {
-          multipole(i, j) = charge * nuc3(i, j, 0);
-        }
-      }
+      Eigen::MatrixXd multipole =
+          charge * Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols);
 
       if (rank > 0) {
         Eigen::Tensor<double, 4> dip4(nrows, ncols, 3, lsum + 1);
@@ -1321,13 +1317,13 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
         }  // end if (lmax_col > 3)
 
-        for (int i = 0; i < nrows; i++) {
-          for (int j = 0; j < ncols; j++) {
-            multipole(i, j) += dipole.x() * dip4(i, j, 0, 0) +
-                               dipole.y() * dip4(i, j, 1, 0) +
-                               dipole.z() * dip4(i, j, 2, 0);
-          }
-        }
+        multipole +=
+            dipole.x() * Eigen::Map<Eigen::MatrixXd>(dip4.data(), nrows, ncols);
+        size_t offset = nrows * ncols * sizeof(double);
+        multipole += dipole.y() * Eigen::Map<Eigen::MatrixXd>(
+                                      dip4.data() + offset, nrows, ncols);
+        multipole += dipole.z() * Eigen::Map<Eigen::MatrixXd>(
+                                      dip4.data() + 2 * offset, nrows, ncols);
 
         if (rank > 1) {
           Eigen::Tensor<double, 4> quad4(nrows, ncols, 5, lsum + 1);
@@ -2076,26 +2072,31 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
           }  // end if (lmax_col > 3)
 
-          for (int i = 0; i < nrows; i++) {
-            for (int j = 0; j < ncols; j++) {
-              multipole(i, j) += quadrupole(0, 1) * quad4(i, j, 0, 0) +
-                                 quadrupole(0, 2) * quad4(i, j, 1, 0) +
-                                 quadrupole(1, 2) * quad4(i, j, 2, 0) +
-                                 .5 * (quadrupole(0, 0) * quad4(i, j, 3, 0) +
-                                       quadrupole(1, 1) * quad4(i, j, 4, 0));
-            }
-          }
+          multipole += quadrupole(0, 1) *
+                       Eigen::Map<Eigen::MatrixXd>(quad4.data(), nrows, ncols);
+          multipole +=
+              quadrupole(0, 2) *
+              Eigen::Map<Eigen::MatrixXd>(quad4.data() + offset, nrows, ncols);
+          multipole +=
+              quadrupole(1, 2) * Eigen::Map<Eigen::MatrixXd>(
+                                     quad4.data() + 2 * offset, nrows, ncols);
+          multipole += 0.5 * quadrupole(0, 0) *
+                       Eigen::Map<Eigen::MatrixXd>(quad4.data() + 3 * offset,
+                                                   nrows, ncols);
+          multipole += 0.5 * quadrupole(1, 1) *
+                       Eigen::Map<Eigen::MatrixXd>(quad4.data() + 4 * offset,
+                                                   nrows, ncols);
         }
       }
 
       Eigen::MatrixXd multipole_sph =
-          AOTransform::getTrafo(gaussian_row).transpose() * multipole *
+          AOTransform::getTrafo(gaussian_row).transpose() *
+          multipole.bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                      shell_col.getCartesianNumFunc()) *
           AOTransform::getTrafo(gaussian_col);
       // save to matrix
 
-      matrix +=
-          multipole_sph.block(shell_row.getOffset(), shell_col.getOffset(),
-                              matrix.rows(), matrix.cols());
+      matrix += multipole_sph;
 
     }  // shell_col Gaussians
   }    // shell_row Gaussians

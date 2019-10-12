@@ -25,268 +25,90 @@
 #include <votca/xtp/eigen.h>
 namespace votca {
 namespace xtp {
-
-namespace Cart {
-enum Index {
+// clang-format off
+   
+enum Cart {
   s,  // s
-  x,
-  y,
-  z,  // p
-  xx,
-  xy,
-  xz,
-  yy,
-  yz,
-  zz,  // d
-  xxx,
-  xxy,
-  xxz,
-  xyy,
-  xyz,
-  xzz,
-  yyy,
-  yyz,
-  yzz,
-  zzz,  // f
-  xxxx,
-  xxxy,
-  xxxz,
-  xxyy,
-  xxyz,
-  xxzz,
-  xyyy,
-  xyyz,
-  xyzz,
-  xzzz,
-  yyyy,
-  yyyz,
-  yyzz,
-  yzzz,
-  zzzz,  // g
-  xxxxx,
-  xxxxy,
-  xxxxz,
-  xxxyy,
-  xxxyz,
-  xxxzz,
-  xxyyy,
-  xxyyz,
-  xxyzz,
-  xxzzz,
-  xyyyy,
-  xyyyz,
-  xyyzz,
-  xyzzz,
-  xzzzz,
-  yyyyy,
-  yyyyz,
-  yyyzz,
-  yyzzz,
-  yzzzz,
-  zzzzz,  // h
+  x,  y,  z,  // p
+  xx,  xy,  xz,  yy,  yz,  zz,  // d
+  xxx,  xxy,  xxz,  xyy,  xyz,  xzz,  yyy,  yyz,  yzz,  zzz,  // f
+  
+  xxxx,  xxxy,  xxxz,  xxyy,  xxyz,  xxzz,  xyyy,  xyyz,  xyzz,  xzzz,  yyyy,
+  yyyz,  yyzz,  yzzz,  zzzz,  // g
+  
+  xxxxx,  xxxxy,  xxxxz,  xxxyy,  xxxyz,  xxxzz,  xxyyy,  xxyyz,  xxyzz,
+  xxzzz,  xyyyy,  xyyyz,  xyyzz,  xyzzz,  xzzzz,  yyyyy,  yyyyz,  yyyzz,
+  yyzzz,  yzzzz,  zzzzz,  // h
 
-  xxxxxx,
-  xxxxxy,
-  xxxxxz,
-  xxxxyy,
-  xxxxyz,
-  xxxxzz,
-  xxxyyy,
-  xxxyyz,
-  xxxyzz,
-  xxxzzz,
-  xxyyyy,
-  xxyyyz,
-  xxyyzz,
-  xxyzzz,  // i
-  xxzzzz,
-  xyyyyy,
-  xyyyyz,
-  xyyyzz,
-  xyyzzz,
-  xyzzzz,
-  xzzzzz,
-  yyyyyy,
-  yyyyyz,
-  yyyyzz,
-  yyyzzz,
-  yyzzzz,
-  yzzzzz,
-  zzzzzz,
+  xxxxxx,  xxxxxy,  xxxxxz,  xxxxyy,  xxxxyz,  xxxxzz,  xxxyyy,  xxxyyz,
+  xxxyzz,  xxxzzz,  xxyyyy,  xxyyyz,  xxyyzz,  xxyzzz,  xxzzzz,  xyyyyy,
+  xyyyyz,  xyyyzz,  xyyzzz,  xyzzzz,  xzzzzz,  yyyyyy,  yyyyyz,  yyyyzz,
+  yyyzzz,  yyzzzz,  yzzzzz,  zzzzzz, //i
+  
+  xxxxxxx,  xxxxxxy,  xxxxxxz,  xxxxxyy,  xxxxxyz,  xxxxxzz,  xxxxyyy,
+  xxxxyyz,  xxxxyzz,  xxxxzzz,  xxxyyyy,  xxxyyyz,  xxxyyzz,  xxxyzzz,
+  xxxzzzz,  xxyyyyy,  xxyyyyz,  xxyyyzz,  xxyyzzz,  xxyzzzz,  xxzzzzz,
+  xyyyyyy,  xyyyyyz,  xyyyyzz,  xyyyzzz,  xyyzzzz,  xyzzzzz,  xzzzzzz,
+  yyyyyyy,  yyyyyyz,  yyyyyzz,  yyyyzzz,  yyyzzzz,  yyzzzzz,  yzzzzzz,
+  zzzzzzz, //j
 
-  xxxxxxx,
-  xxxxxxy,
-  xxxxxxz,
-  xxxxxyy,
-  xxxxxyz,
-  xxxxxzz,
-  xxxxyyy,
-  xxxxyyz,
-  xxxxyzz,
-  xxxxzzz,
-  xxxyyyy,
-  xxxyyyz,  // j
-  xxxyyzz,
-  xxxyzzz,
-  xxxzzzz,
-  xxyyyyy,
-  xxyyyyz,
-  xxyyyzz,
-  xxyyzzz,
-  xxyzzzz,
-  xxzzzzz,
-  xyyyyyy,
-  xyyyyyz,
-  xyyyyzz,
-  xyyyzzz,
-  xyyzzzz,
-  xyzzzzz,
-  xzzzzzz,
-  yyyyyyy,
-  yyyyyyz,
-  yyyyyzz,
-  yyyyzzz,
-  yyyzzzz,
-  yyzzzzz,
-  yzzzzzz,
-  zzzzzzz,
-
-  xxxxxxxx,
-  xxxxxxxy,
-  xxxxxxxz,
-  xxxxxxyy,
-  xxxxxxyz,
-  xxxxxxzz,
-  xxxxxyyy,
-  xxxxxyyz,
-  xxxxxyzz,
-  xxxxxzzz,
-  xxxxyyyy,
-  xxxxyyyz,
-  xxxxyyzz,
-  xxxxyzzz,
-  xxxxzzzz,  // k
-  xxxyyyyy,
-  xxxyyyyz,
-  xxxyyyzz,
-  xxxyyzzz,
-  xxxyzzzz,
-  xxxzzzzz,
-  xxyyyyyy,
-  xxyyyyyz,
-  xxyyyyzz,
-  xxyyyzzz,
-  xxyyzzzz,
-  xxyzzzzz,
-  xxzzzzzz,
-  xyyyyyyy,
-  xyyyyyyz,
-  xyyyyyzz,
-  xyyyyzzz,
-  xyyyzzzz,
-  xyyzzzzz,
-  xyzzzzzz,
-  xzzzzzzz,
-  yyyyyyyy,
-  yyyyyyyz,
-  yyyyyyzz,
-  yyyyyzzz,
-  yyyyzzzz,
-  yyyzzzzz,
-  yyzzzzzz,
-  yzzzzzzz,
-  zzzzzzzz,
+  xxxxxxxx,  xxxxxxxy,  xxxxxxxz,  xxxxxxyy,  xxxxxxyz,  xxxxxxzz,  xxxxxyyy,
+  xxxxxyyz,  xxxxxyzz,  xxxxxzzz,  xxxxyyyy,  xxxxyyyz,  xxxxyyzz,  xxxxyzzz,
+  xxxxzzzz,  xxxyyyyy,  xxxyyyyz,  xxxyyyzz,  xxxyyzzz,  xxxyzzzz,  xxxzzzzz,
+  xxyyyyyy,  xxyyyyyz,  xxyyyyzz,  xxyyyzzz,  xxyyzzzz,  xxyzzzzz,  xxzzzzzz,
+  xyyyyyyy,  xyyyyyyz,  xyyyyyzz,  xyyyyzzz,  xyyyzzzz,  xyyzzzzz,  xyzzzzzz,
+  xzzzzzzz,  yyyyyyyy,  yyyyyyyz,  yyyyyyzz,  yyyyyzzz,  yyyyzzzz,  yyyzzzzz,
+  yyzzzzzz,  yzzzzzzz,  zzzzzzzz, //k
 };
-}
+
+// clang-format on
 
 /* contains cartesian to spherical conversion
  */
 class AOTransform {
- private:
-  enum S { s };
-  enum P { x, y, z };
-  enum D { xx, xy, xz, yy, yz, zz };
-  enum F { xxx, xxy, xxz, xyy, xyz, xzz, yyy, yyz, yzz, zzz };
-  enum G {
-    xxxx,
-    xxxy,
-    xxxz,
-    xxyy,
-    xxyz,
-    xxzz,
-    xyyy,
-    xyyz,
-    xyzz,
-    xzzz,
-    yyyy,
-    yyyz,
-    yyzz,
-    yzzz,
-    zzzz
-  };
-  enum H {
-    xxxxx,
-    xxxxy,
-    xxxxz,
-    xxxyy,
-    xxxyz,
-    xxxzz,
-    xxyyy,
-    xxyyz,
-    xxyzz,
-    xxzzz,
-    xyyyy,
-    xyyyz,
-    xyyzz,
-    xyzzz,
-    xzzzz,
-    yyyyy,
-    yyyyz,
-    yyyzz,
-    yyzzz,
-    yzzzz,
-    zzzzz
-  };
-  enum I {
-    xxxxxx,
-    xxxxxy,
-    xxxxxz,
-    xxxxyy,
-    xxxxyz,
-    xxxxzz,
-    xxxyyy,
-    xxxyyz,
-    xxxyzz,
-    xxxzzz,
-    xxyyyy,
-    xxyyyz,
-    xxyyzz,
-    xxyzzz,
-    xxzzzz,
-    xyyyyy,
-    xyyyyz,
-    xyyyzz,
-    xyyzzz,
-    xyzzzz,
-    xzzzzz,
-    yyyyyy,
-    yyyyyz,
-    yyyyzz,
-    yyyzzz,
-    yyzzzz,
-    yzzzzz,
-    zzzzzz,
-  };
-
-  static Eigen::MatrixXd getPrimitiveShellTrafo(int l, double decay,
-                                                double contraction);
 
  public:
+  static std::array<int, 6> nx();
+  static std::array<int, 6> ny();
+  static std::array<int, 6> nz();
+  static std::array<int, 6> i_less_x();
+  static std::array<int, 6> i_less_y();
+  static std::array<int, 6> i_less_z();
+  static std::array<int, 6> i_more_x();
+  static std::array<int, 6> i_more_y();
+  static std::array<int, 6> i_more_z();
+
   static int getCartesianSize(int l);
   static int getSphericalSize(int l);
   static int getBlockSize(int lmax);
   static Eigen::MatrixXd getTrafo(const AOGaussianPrimitive& gaussian);
   static Eigen::VectorXd XIntegrate(int size, double U);
+
+ private:
+  // clang-format off
+  enum S { s };
+  enum P { x, y, z };
+  enum D { xx, xy, xz, yy, yz, zz };
+  enum F { xxx, xxy, xxz, xyy, xyz, xzz, yyy, yyz, yzz, zzz };
+  enum G {
+    xxxx, xxxy, xxxz, xxyy, xxyz, xxzz, xyyy, xyyz, xyzz, xzzz, yyyy, 
+    yyyz, yyzz, yzzz, zzzz
+  };
+  enum H {
+    xxxxx, xxxxy, xxxxz, xxxyy, xxxyz, xxxzz, xxyyy, xxyyz, xxyzz, xxzzz,
+    xyyyy, xyyyz, xyyzz, xyzzz, xzzzz, yyyyy, yyyyz, yyyzz, yyzzz, yzzzz,
+    zzzzz
+  };
+  enum I {
+    xxxxxx, xxxxxy, xxxxxz, xxxxyy, xxxxyz, xxxxzz, xxxyyy, xxxyyz, xxxyzz,
+    xxxzzz, xxyyyy, xxyyyz, xxyyzz, xxyzzz, xxzzzz, xyyyyy, xyyyyz, xyyyzz,
+    xyyzzz, xyzzzz, xzzzzz, yyyyyy, yyyyyz, yyyyzz, yyyzzz, yyzzzz, yzzzzz,
+    zzzzzz
+  };
+  // clang-format on
+
+  static Eigen::MatrixXd getPrimitiveShellTrafo(int l, double decay,
+                                                double contraction);
 };
 
 }  // namespace xtp
