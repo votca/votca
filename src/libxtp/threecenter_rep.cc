@@ -1761,34 +1761,30 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
           //------------------------------------------------------
         }
 
-        int istart[] = {0,  1,  1,  1,  4,  4,  4,  4,  4,  10, 10, 10, 10,
-                        10, 10, 10, 20, 20, 20, 20, 20, 20, 20, 20, 20};
-        int istop[] = {0,  3,  3,  3,  9,  9,  9,  9,  9,  19, 19, 19, 19,
-                       19, 19, 19, 34, 34, 34, 34, 34, 34, 34, 34, 34};
-
         // which ones do we want to store
-        int offset_beta = shell_beta->getOffset();
-        int offset_alpha = shell_alpha->getOffset();
         int offset_gamma = shell_gamma->getOffset();
+        int cartoffset_alpha = shell_alpha->getCartesianOffset();
+        int cartoffset_beta = shell_beta->getCartesianOffset();
+
+        int cartnumFunc_alpha = shell_alpha->getCartesianNumFunc();
+        int cartnumFunc_beta = shell_beta->getCartesianNumFunc();
 
         const Eigen::MatrixXd trafo_beta = AOTransform::getTrafo(gaussian_beta);
         const Eigen::MatrixXd trafo_alpha =
             AOTransform::getTrafo(gaussian_alpha);
 
         for (int i_alpha = 0; i_alpha < shell_alpha->getNumFunc(); i_alpha++) {
-          int i_alpha_off = i_alpha + offset_alpha;
           for (int i_beta = 0; i_beta < shell_beta->getNumFunc(); i_beta++) {
-            int i_beta_off = i_beta + offset_beta;
             for (int i_gamma = 0; i_gamma < shell_gamma->getNumFunc();
                  i_gamma++) {
               int i_gamma_off = i_gamma + offset_gamma;
-              for (int i_beta_t = istart[i_beta_off];
-                   i_beta_t <= istop[i_beta_off]; i_beta_t++) {
-                for (int i_alpha_t = istart[i_alpha_off];
-                     i_alpha_t <= istop[i_alpha_off]; i_alpha_t++) {
-                  double coeff = R(i_alpha_t, i_beta_t, i_gamma_off) *
-                                 trafo_alpha(i_alpha_t, i_alpha_off) *
-                                 trafo_beta(i_beta_t, i_beta_off);
+              for (int i_beta_t = 0; i_beta_t < cartnumFunc_beta; i_beta_t++) {
+                for (int i_alpha_t = 0; i_alpha_t < cartnumFunc_alpha;
+                     i_alpha_t++) {
+                  double coeff = R(i_alpha_t + cartoffset_alpha,
+                                   i_beta_t + cartoffset_beta, i_gamma_off) *
+                                 trafo_alpha(i_alpha_t, i_alpha) *
+                                 trafo_beta(i_beta_t, i_beta);
                   if (alphabetaswitch) {
                     threec_block(i_gamma, i_beta, i_alpha) += coeff;
                   } else {

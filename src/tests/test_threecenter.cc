@@ -1396,6 +1396,7 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
 
   for (int i = 0; i < 13; i++) {
     bool check = ref[i].isApprox(threec[i].FullMatrix(), 1e-5);
+    BOOST_CHECK_EQUAL(check, true);
     if (!check) {
       cout << "ref " << i << endl;
       cout << ref[i] << endl;
