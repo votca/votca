@@ -17,7 +17,6 @@
  *
  */
 
-#include <chrono>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/threecenter.h>
@@ -52,8 +51,6 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 
   // Try to run the operation in a Nvidia GPU, otherwise is the default Openmp
   // implementation
-  std::chrono::time_point<std::chrono::system_clock> start, end;
-  start = std::chrono::system_clock::now();
 #if defined(USE_CUDA)
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp()
@@ -85,9 +82,6 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
       << " Using Default OpenMP for tensor matrix multiplication: " << flush;
   MultiplyRightWithAuxMatrixOpenMP(matrix);
 #endif
-  end = std::chrono::system_clock::now();
-  std::chrono::duration<double> elapsed_time = end - start;
-  std::cout << "MultiplyRightWithAuxMatrix: " << elapsed_time.count() << "\n";
   return;
 }
 
@@ -99,7 +93,6 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
  */
 void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
                           const Eigen::MatrixXd& dft_orbitals) {
-  std::chrono::time_point<std::chrono::system_clock> start, end;
   // needed for Rebuild())
   _auxbasis = &gwbasis;
   _dftbasis = &dftbasis;
@@ -115,7 +108,6 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
       CreateIntermediateCudaMatrices(dft_orbitals.rows());
 #endif
 
-  start = std::chrono::system_clock::now();
   // loop over all shells in the GW basis and get _Mmn for that shell
 #pragma omp parallel for schedule(guided)  // private(_block)
   for (int is = 0; is < gwbasis.getNumofShells(); is++) {
@@ -148,9 +140,6 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
                              shell.getNumFunc()) = block[m_level];
     }  // m-th DFT orbital
   }    // shells of GW basis set
-  end = std::chrono::system_clock::now();
-  std::chrono::duration<double> elapsed_time = end - start;
-  std::cout << "fillblock: " << elapsed_time.count() << "\n";
   AOOverlap auxoverlap;
   auxoverlap.Fill(gwbasis);
   AOCoulomb auxcoulomb;
