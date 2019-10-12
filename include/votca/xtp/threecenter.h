@@ -147,7 +147,7 @@ class TCMatrix_gwbse : public TCMatrix {
 
 #if defined(USE_CUDA)
   std::array<CudaMatrix, 2> SendDFTMatricesToGPU(
-      const Eigen::MatrixXd& dft_orbitals) const;
+      const Eigen::MatrixXd& dft_orbitals, const CudaPipeline& cuda_pip) const;
 
   std::array<CudaMatrix, 3> CreateIntermediateCudaMatrices(
       long basissize) const;
@@ -155,7 +155,8 @@ class TCMatrix_gwbse : public TCMatrix {
   std::vector<Eigen::MatrixXd> FillBlockCUDA(
       const std::vector<Eigen::MatrixXd>& symmstorage,
       const std::array<CudaMatrix, 2>& cuda_matrices,
-      std::array<CudaMatrix, 3>& cuda_inter_matrices) const;
+      std::array<CudaMatrix, 3>& cuda_inter_matrices,
+      const CudaPipeline& cuda_pip) const;
 
 #endif
 };
