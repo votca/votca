@@ -43,8 +43,7 @@ void AOMatrix::Fill(const AOBasis& aobasis) {
     }
   }
   // Fill whole matrix by copying
-  _aomatrix.template triangularView<Eigen::StrictlyUpper>() =
-      _aomatrix.template triangularView<Eigen::StrictlyLower>().adjoint();
+  _aomatrix = _aomatrix.template selfadjointView<Eigen::Lower>();
   return;
 }
 

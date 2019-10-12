@@ -46,9 +46,7 @@ Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> AOPotential<T>::Fill(
     }
   }
   // Fill whole matrix by copying
-  result.template triangularView<Eigen::StrictlyUpper>() =
-      result.template triangularView<Eigen::StrictlyLower>().adjoint();
-  return result;
+  return result.template selfadjointView<Eigen::Lower>();
 }
 
 template class AOPotential<double>;
