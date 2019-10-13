@@ -74,10 +74,6 @@ void AOMomentum::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
     scd_mom[i_comp] = Eigen::MatrixXd ::Zero(nrows, ncols);
   }
 
-  // initialize local matrix block for unnormalized cartesians of overlap
-  int nrows_ol = AOTransform::getBlockSize(lmax_row + 1);
-  int ncols_ol = AOTransform::getBlockSize(lmax_col + 1);
-
   const Eigen::Vector3d& pos_row = shell_row.getPos();
   const Eigen::Vector3d& pos_col = shell_col.getPos();
   const Eigen::Vector3d diff = pos_row - pos_col;

@@ -105,12 +105,7 @@ class AOShell {
   int getLmax() const { return _Lmax; }
   int getLmin() const { return _Lmin; }
 
-  void increaseLby1() {
-    _Lmax++;
-    _Lmin++;
-  }
-
-  bool isCombined() const { return _type.length() > 1; }
+  bool isCombined() const { return _Lmax != _Lmin; }
 
   const Eigen::Vector3d& getPos() const { return _pos; }
   double getScale() const { return _scale; }

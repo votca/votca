@@ -575,10 +575,6 @@ void AOOverlap::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   int lmax_row = shell_row.getLmax();
   int lmax_col = shell_col.getLmax();
 
-  // set size of internal block for recursion
-  int nrows = AOTransform::getBlockSize(lmax_row);
-  int ncols = AOTransform::getBlockSize(lmax_col);
-
   if (lmax_col > 6 || lmax_row > 6) {
     throw std::runtime_error(
         "Orbitals higher than i are not yet implemented. This should not have "
