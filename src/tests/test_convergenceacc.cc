@@ -191,8 +191,8 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
       -0.00239176, -0.00129742, -0.0301047, 0.0287103, 0.643346, 0.617962,
       0.0095153, -0.656011, -2.00774, -0.0012306, -1.24406;
 
-  Eigen::MatrixXd proj =
-      mo_ref.transpose() * overlap.Matrix() * orb.MOs().eigenvectors();
+  Eigen::MatrixXd proj = mo_ref.leftCols(5).transpose() * overlap.Matrix() *
+                         orb.MOs().eigenvectors().leftCols(5);
   Eigen::VectorXd norms = proj.colwise().norm();
   bool mo_comp = norms.isApproxToConstant(1, 1e-5);
 

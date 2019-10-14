@@ -36,36 +36,34 @@ Eigen::VectorXd Sigma_PPM::CalcCorrelationDiag(
 
   Eigen::VectorXd RPAEnergies = _rpa.getRPAInputEnergies();
   Eigen::VectorXd result = Eigen::VectorXd::Zero(_qptotal);
-  const int levelsum = _Mmn.nsize();  // total number of bands
-  const int gwsize = _Mmn.auxsize();  // size of the GW basis
+  const int levelsum = _Mmn.nsize();   // total number of bands
+  const int auxsize = _Mmn.auxsize();  // size of the GW basis
   const int lumo = _opt.homo + 1;
   const int qpmin_offset = _opt.qpmin - _opt.rpamin;
-  // loop over all GW levels
 #pragma omp parallel for
   for (int gw_level = 0; gw_level < _qptotal; gw_level++) {
     const double qpmin = frequencies(gw_level);
     double sigma_c = 0.0;
-    // loop over all functions in GW basis
-    for (int i_gw = 0; i_gw < gwsize; i_gw++) {
+
+    for (int i_aux = 0; i_aux < auxsize; i_aux++) {
       // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc
       // PPM_construct_parameters
-      if (_ppm.getPpm_weight()(i_gw) < 1.e-9) {
+      if (_ppm.getPpm_weight()(i_aux) < 1.e-9) {
         continue;
       }
 
       const Eigen::VectorXd Mmn2 =
-          _Mmn[gw_level + qpmin_offset].col(i_gw).cwiseAbs2();
-      const double ppm_freq = _ppm.getPpm_freq()(i_gw);
-      const double fac = 0.5 * _ppm.getPpm_weight()(i_gw) * ppm_freq;
+          _Mmn[gw_level + qpmin_offset].col(i_aux).cwiseAbs2();
+      const double ppm_freq = _ppm.getPpm_freq()(i_aux);
+      const double fac = 0.5 * _ppm.getPpm_weight()(i_aux) * ppm_freq;
       Eigen::ArrayXd denom = qpmin - RPAEnergies.array();
-      denom.segment(0, lumo) += _ppm.getPpm_freq()(i_gw);
-      denom.segment(lumo, levelsum - lumo) -= _ppm.getPpm_freq()(i_gw);
+      denom.segment(0, lumo) += ppm_freq;
+      denom.segment(lumo, levelsum - lumo) -= ppm_freq;
       Stabilize(denom);
       sigma_c += fac * (denom.inverse() * Mmn2.array()).sum();
-
-    }  // GW functions
+    }
     result(gw_level) = sigma_c;
-  }  // all bands
+  }
   return result;
 }
 
@@ -86,11 +84,10 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
 #pragma omp parallel
   {
     const int lumo = _opt.homo + 1;
-    const int levelsum = _Mmn.nsize();  // total number of bands
-    const int gwsize = _Mmn.auxsize();  // size of the GW basis
+    const int levelsum = _Mmn.nsize();   // total number of bands
+    const int auxsize = _Mmn.auxsize();  // size of the GW basis
     const Eigen::VectorXd ppm_weight = _ppm.getPpm_weight();
     const Eigen::VectorXd ppm_freqs = _ppm.getPpm_freq();
-    const Eigen::VectorXd fac = 0.25 * ppm_weight.cwiseProduct(ppm_freqs);
     const int qpmin_offset = _opt.qpmin - _opt.rpamin;
     const Eigen::VectorXd rpaenergies_thread = _rpa.getRPAInputEnergies();
 #pragma omp for schedule(dynamic)
@@ -101,24 +98,25 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
         const Eigen::MatrixXd& Mmn2 = _Mmn[gw_level2 + qpmin_offset];
         const double qpmin2 = frequencies(gw_level2);
         double sigma_c = 0;
-        for (int i_gw = 0; i_gw < gwsize; i_gw++) {
+        for (int i_aux = 0; i_aux < auxsize; i_aux++) {
           // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc
           // PPM_construct_parameters
-          if (ppm_weight(i_gw) < 1.e-9) {
+          if (ppm_weight(i_aux) < 1.e-9) {
             continue;
           }
-
+          const double ppm_freq = ppm_freqs(i_aux);
+          const double fac = 0.25 * ppm_weight(i_aux) * ppm_freq;
           const Eigen::VectorXd Mmn1xMmn2 =
-              Mmn1.col(i_gw).cwiseProduct(Mmn2.col(i_gw));
+              Mmn1.col(i_aux).cwiseProduct(Mmn2.col(i_aux));
           Eigen::ArrayXd denom1 = rpaenergies_thread;
-          denom1.segment(0, lumo) -= ppm_freqs(i_gw);
-          denom1.segment(lumo, levelsum - lumo) += ppm_freqs(i_gw);
+          denom1.segment(0, lumo) -= ppm_freq;
+          denom1.segment(lumo, levelsum - lumo) += ppm_freq;
           Eigen::ArrayXd denom2 = (qpmin2 - denom1);
           Stabilize(denom2);
           denom1 = (qpmin1 - denom1);
           Stabilize(denom1);
           sigma_c +=
-              fac(i_gw) *
+              fac *
               ((denom1.inverse() + denom2.inverse()) * Mmn1xMmn2.array()).sum();
         }
         result(gw_level1, gw_level2) = sigma_c;
