@@ -183,3 +183,8 @@ following docker commands:
   ## Linking Error: Undefined reference to 
  
 This error can happen due to a multitude of reasons. You may have forgotten to add paths to the `LD_LIBRARY_PATH` or forgotten to import an environment module. In these cases deleting the `CMakeCache.txt` in your `build` folder and rerunning `cmake`  will help. Unfortunately another cause might be ABI incompability between libraries due to different libraries being compiled with different compilers or compiler versions. Click [here](https://github.com/ICRAR/shark/issues/1) for an example. 
+
+## GCC and MKL : undefined symbol: 
+
+This can happen with some GCC versions. Adding the `-Wl,--no-as-needed` to `CMAKE_EXE_LINKER_FLAGS:STRING=`
+to the `CMakeCache.txt` in the `build` directory can fix this. For more information look [here](https://software.intel.com/en-us/articles/symbol-lookup-error-when-linking-intel-mkl-with-gcc-on-ubuntu)
