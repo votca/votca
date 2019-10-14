@@ -360,13 +360,13 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
 
   // DFT levels of monomers can be reduced to those used in BSE
   XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << "   levels used in BSE of molA: " << bseA_vmin << " to "
-      << bseA_cmax << " total: " << bseA_total << flush;
+      << TimeStamp() << "   levels used for BSE of molA: " << bseA_vmin
+      << " to " << bseA_cmax << " total: " << bseA_total << flush;
   XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << "   levels used in BSE of molB: " << bseB_vmin << " to "
-      << bseB_cmax << " total: " << bseB_total << flush;
+      << TimeStamp() << "   levels used for BSE of molB: " << bseB_vmin
+      << " to " << bseB_cmax << " total: " << bseB_total << flush;
   XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << "   levels used in BSE of dimer AB: " << bseAB_vmin
+      << TimeStamp() << "   levels used for BSE of dimer AB: " << bseAB_vmin
       << " to " << bseAB_cmax << " total: " << bseAB_total << flush;
 
   Eigen::MatrixXd MOsA =

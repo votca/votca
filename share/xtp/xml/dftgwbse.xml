@@ -3,7 +3,7 @@
 <!-- xtp_tools -e exciton options.xml -->
 <dftgwbse help="Electronic Excitations using GW-BSE">
 
-        <dftpackage help="Package for DFT ground state">orca_gwbse.xml</dftpackage>
+        <dftpackage help="Package for DFT ground state">xtpdft.xml</dftpackage>
 
         <mode help="Calculator mode: energy or optimize">energy</mode>
         <reporting help="Package for DFT ground state">noisy</reporting>
@@ -12,9 +12,9 @@
 
         <gwbse_engine>
             <tasks help="guess,input,dft,parse,gwbse">input,dft,parse,gwbse</tasks>
-            <dftlog help="qmpackage log file to parse">system.log</dftlog>
+            <dftlog help="qmpackage log file to parse">system_dft.orb</dftlog>
             <mofile help="qmpackage file with MO coefficients">system.gbw</mofile>
-            <gwbse_options help="xml file with gwbse options">mbgft.xml</gwbse_options>
+            <gwbse_options help="xml file with gwbse options">gwbse.xml</gwbse_options>
             <redirect_logger help="">0</redirect_logger>
         </gwbse_engine>
 

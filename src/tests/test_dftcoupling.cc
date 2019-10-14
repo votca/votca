@@ -193,7 +193,6 @@ BOOST_AUTO_TEST_CASE(coupling) {
   Orbitals AB;
   AB.QMAtoms() = A.QMAtoms();
   AB.QMAtoms().AddContainer(B.QMAtoms());
-  AB.QMAtoms().WriteXYZ("dimerCH4.xyz", "test");
   AB.MOs().eigenvalues().resize(34);
   AB.MOs().eigenvalues() << -10.1341, -10.1337, -0.808607, -0.665103, -0.474928,
       -0.455857, -0.455857, -0.365971, -0.365971, -0.263259, 0.140444, 0.154745,
@@ -403,7 +402,7 @@ BOOST_AUTO_TEST_CASE(coupling) {
       "-0.0988994 0.474187 -0.145716 0.0065847 0.519372 -0.348342 1.2682 "
       "0.00135561 -0.790399 0.710069 0.136107 -0.000729549 1.34459 0.543167 "
       "-0.623166";
-
+  AB.setBasisSetSize(34);
   AB.setDFTbasisName(A.getDFTbasisName());
   AB.MOs().eigenvectors() = ReadMatrixFromString(mos_ref_string);
   AB.setNumberOfAlphaElectrons(10);
