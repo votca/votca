@@ -705,11 +705,11 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   AB.QPdiag().eigenvectors() = ReadMatrixFromString(Hqp_input_string);
 
   coup.Initialize(prop);
+  log.setReportLevel(logDEBUG);
   coup.CalculateCouplings(A, B, AB);
-
   votca::tools::Property output;
   coup.Addoutput(output, A, B);
-  double diag_J_ref = -1.592091e+02;
+  double diag_J_ref = 32.67651;
   double pert_J_ref = 4.434018;
 
   double diag_j =
