@@ -82,16 +82,15 @@ void Orca::WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
     const Element& element = bs.getElement(element_name);
     el_file << elementInfo.getEleFull(element_name) << endl;
     for (const Shell& shell : element) {
-      string type = shell.getType();
-      // check combined shells
-      for (unsigned i = 0; i < type.size(); ++i) {
-        string subtype = string(type, i, 1);
+      for (const char& subtype : shell.getType()) {
         el_file << subtype << " " << shell.getSize() << endl;
         int sh_idx = 0;
         for (const GaussianPrimitive& gaussian : shell) {
           sh_idx++;
-          el_file << " " << sh_idx << " " << indent(gaussian._decay);
-          el_file << " " << indent(gaussian._contraction[FindLmax(subtype)]);
+          el_file << " " << sh_idx << " " << indent(gaussian.decay());
+          el_file << " "
+                  << indent(gaussian.Contractions()[FindLmax(
+                         std::string(1, subtype))]);
           el_file << endl;
         }
       }

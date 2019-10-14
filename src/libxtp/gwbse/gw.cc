@@ -66,15 +66,6 @@ Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> GW::DiagonalizeQPHamiltonian()
   return qpdiag;
 }
 
-Eigen::MatrixXd GW::getGWAResults() const {
-  Eigen::MatrixXd qp_energies_store = Eigen::MatrixXd::Zero(_qptotal, 5);
-  qp_energies_store.col(0) = _dft_energies.segment(_opt.qpmin, _qptotal);
-  qp_energies_store.col(1) = _Sigma_x.diagonal();
-  qp_energies_store.col(2) = _Sigma_c.diagonal();
-  qp_energies_store.col(3) = _vxc.diagonal();
-  qp_energies_store.col(4) = _gwa_energies;
-  return qp_energies_store;
-}
 void GW::PrintGWA_Energies() const {
 
   double shift = CalcHomoLumoShift();

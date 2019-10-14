@@ -556,7 +556,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     }
     if (!_store_gw) {
       orbitalsAB.QPdiag().clear();
-      orbitalsAB.QPpertEnergies().resize(0, 0);
+      orbitalsAB.QPpertEnergies().resize(0);
     }
     orbitalsAB.WriteToCpt(orbFileAB);
   } else {

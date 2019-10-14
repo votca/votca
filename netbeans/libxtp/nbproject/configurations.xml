@@ -325,6 +325,7 @@
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
       <itemPath>../../src/tests/test_eris.cc</itemPath>
       <itemPath>../../src/tests/test_espfit.cc</itemPath>
+      <itemPath>../../src/tests/test_fourcenter.cc</itemPath>
       <itemPath>../../src/tests/test_gaussian.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
       <itemPath>../../src/tests/test_gnode.cc</itemPath>
@@ -354,9 +355,12 @@
       <itemPath>../../src/tests/test_segmentmapper.cc</itemPath>
       <itemPath>../../src/tests/test_sigma_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_sphere_lebedev_rule.cc</itemPath>
+      <itemPath>../../src/tests/test_sphere_lebedev_rule_fine.cc</itemPath>
+      <itemPath>../../src/tests/test_sphere_lebedev_rule_xfine.cc</itemPath>
       <itemPath>../../src/tests/test_statetracker.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
-      <itemPath>../../src/tests/test_threecenter.cc</itemPath>
+      <itemPath>../../src/tests/test_threecenter_dft.cc</itemPath>
+      <itemPath>../../src/tests/test_threecenter_gwbse.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
       <itemPath>../../src/tests/test_trustregion.cc</itemPath>
       <itemPath>../../src/tests/test_vc2index.cc</itemPath>
@@ -4967,6 +4971,8 @@
       </item>
       <item path="../../src/tests/test_espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_fourcenter.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_gaussian.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
@@ -5049,6 +5055,16 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_sphere_lebedev_rule_fine.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_sphere_lebedev_rule_xfine.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_statetracker.cc"
             ex="false"
             tool="1"
@@ -5059,7 +5075,12 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_threecenter.cc"
+      <item path="../../src/tests/test_threecenter_dft.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_threecenter_gwbse.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -6184,6 +6205,8 @@
       </item>
       <item path="../../src/tests/test_espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_fourcenter.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_gaussian.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
@@ -6266,6 +6289,16 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_sphere_lebedev_rule_fine.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_sphere_lebedev_rule_xfine.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_statetracker.cc"
             ex="false"
             tool="1"
@@ -6276,7 +6309,12 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_threecenter.cc"
+      <item path="../../src/tests/test_threecenter_dft.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_threecenter_gwbse.cc"
             ex="false"
             tool="1"
             flavor2="0">
