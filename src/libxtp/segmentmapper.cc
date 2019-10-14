@@ -71,9 +71,9 @@ std::vector<double> SegmentMapper<AtomContainer>::getWeights(
     tools::Tokenizer tok_weights(weights_string, " \t\n");
     tok_weights.ConvertToVector(weights);
   } else {
-    std::cout << " Did not find weights for fragment "
-              << frag.get("name").as<std::string>() << " Using atomic masses"
-              << std::endl;
+    XTP_LOG_SAVE(logDEBUG, _log) << " Did not find weights for fragment "
+                                 << frag.get("name").as<std::string>()
+                                 << " Using atomic masses" << std::flush;
     std::string frags =
         frag.get(_mapatom_xml.at("atoms")).template as<std::string>();
     tools::Tokenizer tok_atoms(frags, " \t\n");
@@ -88,10 +88,10 @@ std::vector<double> SegmentMapper<AtomContainer>::getWeights(
       }
 
       double weight = e.getMass(entries[1]);
-      std::cout << entries[1] << ":" << weight << " ";
+      XTP_LOG_SAVE(logDEBUG, _log) << entries[1] << ":" << weight << " ";
       weights.push_back(weight);
     }
-    std::cout << std::endl;
+    XTP_LOG_SAVE(logDEBUG, _log) << std::endl;
   }
 
   return weights;

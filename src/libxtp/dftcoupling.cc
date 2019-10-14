@@ -180,6 +180,7 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
 
   XTP_LOG(logDEBUG, *_pLog) << "Calculating overlap matrix for basisset: "
                             << orbitalsAB.getDFTbasisName() << flush;
+
   Eigen::MatrixXd overlap =
       CalculateOverlapMatrix(orbitalsAB) * orbitalsAB.MOs().eigenvectors();
 

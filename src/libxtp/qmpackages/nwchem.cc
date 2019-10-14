@@ -800,24 +800,25 @@ void NWChem::WriteBasisset(ofstream& nw_file, const QMMolecule& qmatoms) {
         nw_file << element_name << " "
                 << boost::algorithm::to_lower_copy(shell.getType()) << endl;
         for (const GaussianPrimitive& gaussian : shell) {
-          for (unsigned _icontr = 0; _icontr < gaussian._contraction.size();
+          for (unsigned _icontr = 0; _icontr < gaussian.Contractions().size();
                _icontr++) {
-            if (gaussian._contraction[_icontr] != 0.0) {
-              nw_file << FortranFormat(gaussian._decay) << " "
-                      << FortranFormat(gaussian._contraction[_icontr]) << endl;
+            if (gaussian.Contractions()[_icontr] != 0.0) {
+              nw_file << FortranFormat(gaussian.decay()) << " "
+                      << FortranFormat(gaussian.Contractions()[_icontr])
+                      << endl;
             }
           }
         }
       } else {
-        string type = shell.getType();
-        for (unsigned i = 0; i < type.size(); ++i) {
-          string subtype = string(type, i, 1);
+        for (const char& subtype : shell.getType()) {
           nw_file << element_name << " "
-                  << boost::algorithm::to_lower_copy(subtype) << endl;
+                  << boost::algorithm::to_lower_copy(std::string(1, subtype))
+                  << endl;
 
           for (const GaussianPrimitive& gaussian : shell) {
-            nw_file << FortranFormat(gaussian._decay) << " "
-                    << FortranFormat(gaussian._contraction[FindLmax(subtype)])
+            nw_file << FortranFormat(gaussian.decay()) << " "
+                    << FortranFormat(gaussian.Contractions()[FindLmax(
+                           std::string(1, subtype))])
                     << endl;
           }
         }

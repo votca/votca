@@ -58,7 +58,7 @@ class GW {
 
   void configure(const options& opt);
 
-  Eigen::MatrixXd getGWAResults() const;
+  const Eigen::VectorXd& getGWAResults() const { return _gwa_energies; }
   // Calculates the diagonal elements up to self consistency
   void CalculateGWPerturbation();
 

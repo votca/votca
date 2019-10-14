@@ -55,11 +55,9 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
   for (int m_level = 0; m_level < n_occ; m_level++) {
     const double qp_energy_m = _energies(m_level);
 
-    const Eigen::MatrixXd Mmn_RPA =
-        _Mmn[m_level].block(n_occ, 0, n_unocc, size);
+    const Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
 
-    const Eigen::ArrayXd deltaE =
-        _energies.segment(n_occ, n_unocc).array() - qp_energy_m;
+    const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;
     Eigen::VectorXd denom;
     if (imag) {
       denom = 4 * deltaE / (deltaE.square() + freq2);
@@ -70,9 +68,8 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
       sum += deltEf / (deltEf.square() + eta2);
       denom = 2 * sum;
     }
-    auto temp = Mmn_RPA.transpose() * denom.asDiagonal();
-    Eigen::MatrixXd tempresult = temp * Mmn_RPA;
-    thread_result[OPENMP::getThreadId()] += tempresult;
+    thread_result[OPENMP::getThreadId()] +=
+        Mmn_RPA.transpose() * denom.asDiagonal() * Mmn_RPA;
   }
   Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
   for (const auto& mat : thread_result) {
