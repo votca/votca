@@ -109,7 +109,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
 #endif
 
   // loop over all shells in the GW basis and get _Mmn for that shell
-#pragma omp parallel for schedule(guided)  // private(_block)
+#pragma omp parallel for schedule(dynamic)  // private(_block)
   for (int is = 0; is < gwbasis.getNumofShells(); is++) {
     const AOShell& shell = gwbasis.getShell(is);
 
