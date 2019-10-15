@@ -94,11 +94,11 @@ class DavidsonSolver {
       
       // get the ritz vectors
       switch (this->_matrix_type) {
-        case TYPE::SYMM: {
+        case MATRIX_TYPE::SYMM: {
           rep = getRitz(proj,size_update);
           break;
         }
-        case TYPE::HAM: {
+        case MATRIX_TYPE::HAM: {
           rep = getHarmonicRitz(A,proj,size_update);
         }
       }
@@ -145,8 +145,8 @@ class DavidsonSolver {
   enum ORTHO { GS, QR };
   ORTHO _davidson_ortho = ORTHO::GS;
 
-  enum TYPE { SYMM, HAM };  
-  TYPE _matrix_type = TYPE::SYMM;
+  enum MATRIX_TYPE { SYMM, HAM };
+  MATRIX_TYPE _matrix_type = MATRIX_TYPE::SYMM;
 
   Eigen::VectorXd _eigenvalues;
   Eigen::MatrixXd _eigenvectors;
@@ -198,11 +198,19 @@ class DavidsonSolver {
   RitzEigenPair getHarmonicRitz(const MatrixReplacement &A, const ProjectedSpace &proj,
                                 int size_update) const {
 
+      /* Compute the Harmonic Ritz vector following
+       * Computing Interior Eigenvalues of Large Matrices
+       * Ronald B Morgan
+       * LINEAR ALGEBRA AND ITS APPLICATIONS 154-156:289-309 (1991)
+       * https://cpb-us-w2.wpmucdn.com/sites.baylor.edu/dist/e/71/files/2015/05/InterEvals-1vgdz91.pdf
+       */
+
     RitzEigenPair rep;
     Eigen::MatrixXd B = A * proj.AV;
     B = proj.V.transpose() * B;
 
-    Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T,B,true);
+    bool return_eigenvector = true;
+    Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T,B,return_eigenvector);
     rep.lambda = ges.eigenvalues().real();
     rep.U = ges.eigenvectors().real();
 
@@ -224,9 +232,9 @@ class DavidsonSolver {
 
   int getSizeUpdate(int neigen) const;
 
-  void checkOptions(int op_size);
+  void checkOptions(int operator_size);
 
-  void printOptions(int op_size) const;
+  void printOptions(int operator_size) const;
 
   void printTiming(
       const std::chrono::time_point<std::chrono::system_clock> &start) const;
@@ -243,7 +251,7 @@ class DavidsonSolver {
 
   Eigen::MatrixXd orthogonalize(const Eigen::MatrixXd &V, int nupdate);
   Eigen::MatrixXd qr(const Eigen::MatrixXd &A) const;
-  Eigen::MatrixXd gs(const Eigen::MatrixXd &A, int nstart);
+  Eigen::MatrixXd gramschmidt(const Eigen::MatrixXd &A, int nstart);
 
   Eigen::VectorXd computeCorrectionVector(const Eigen::VectorXd &Adiag,
                                           const Eigen::VectorXd &qj,
@@ -264,8 +272,6 @@ class DavidsonSolver {
     std::vector<bool> &root_converged, int size_update);
 
   void restart (const RitzEigenPair &rep, ProjectedSpace &proj, int size_restart) const;
-
-  // bool checkConvergence(const RitzEigenPair &rep, int neigen);
 
   void storeConvergedData(const RitzEigenPair &rep, int neigen, int iiter);
 

@@ -22,7 +22,6 @@ if(ENABLE_TESTING)
   list(APPEND test_cases test_espfit)
   list(APPEND test_cases test_glink)
   list(APPEND test_cases test_hdf5)
-  
   list(APPEND test_cases test_numericalintegration)
   list(APPEND test_cases test_orbitals)
   list(APPEND test_cases test_polarsite)

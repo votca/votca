@@ -370,14 +370,14 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   BOOST_CHECK_EQUAL(check_spsi_dav2, true);
 
   ////////////////////////////////////////////////////////
-  // BTDA Singlet  lanczos and lapack
+  // BTDA Singlet Davidson and lapack
   ////////////////////////////////////////////////////////
 
   // reference energy
   Eigen::VectorXd se_ref_btda = Eigen::VectorXd::Zero(3);
   se_ref_btda << 0.0887758, 0.0887758, 0.0887758;
 
-  // reference coeffficients
+  // reference coefficients
   Eigen::MatrixXd spsi_ref_btda = Eigen::MatrixXd::Zero(60, 3);
   spsi_ref_btda <<    0.00228773,   -0.0572672,    0.0185901,
                      -0.00606479,    0.0182899,    0.0570883,

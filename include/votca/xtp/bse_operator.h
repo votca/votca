@@ -44,23 +44,6 @@ class BSE_OPERATOR : public MatrixFreeOperator {
                const Eigen::MatrixXd& Hqp)
       : _epsilon_0_inv(Hd_operator), _Mmn(Mmn), _Hqp(Hqp) {};
 
-
-  // void configure(BSEOperator_Options opt) {
-  //   _opt = opt;
-  //   int bse_vmax = _opt.homo;
-  //   _bse_cmin = _opt.homo + 1;
-  //   _bse_vtotal = bse_vmax - _opt.vmin + 1;
-  //   _bse_ctotal = _opt.cmax - _bse_cmin + 1;
-  //   _bse_size = _bse_vtotal * _bse_ctotal;
-  //   this->set_size(_bse_size);
-
-  //   int threads = OPENMP::getMaxThreads();
-    
-  //   if (cx != 0) {
-  //     _Hx_cache = std::vector<cache_block>(threads);
-  //   }
-  // }
-
   void configure(BSEOperator_Options opt);
 
 
@@ -111,7 +94,6 @@ typedef BSE_OPERATOR<1, 0, 1, 1> TripletOperator_BTDA_ApB;
 typedef BSE_OPERATOR<1, 0, 1, -1> Operator_BTDA_AmB;
 
 typedef BSE_OPERATOR<0, 2, 0, 1> SingletOperator_BTDA_B;
-//typedef BSE_OPERATOR<0, 0, 0, 1> TripletOperator_BTDA_B;
 
 typedef BSE_OPERATOR<1, 0, 0, 0> HqpOperator;
 typedef BSE_OPERATOR<0, 1, 0, 0> HxOperator;
