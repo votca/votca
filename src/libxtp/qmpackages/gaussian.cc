@@ -130,8 +130,8 @@ void Gaussian::WriteBasisset(std::ofstream& com_file,
         el_file << shell.getType() << " " << shell.getSize() << " "
                 << FortranFormat(shell.getScale()) << endl;
         for (const GaussianPrimitive& gaussian : shell) {
-          el_file << FortranFormat(gaussian._decay);
-          for (const double& contraction : gaussian._contraction) {
+          el_file << FortranFormat(gaussian.decay());
+          for (const double& contraction : gaussian.Contractions()) {
             if (contraction != 0.0) {
               el_file << " " << FortranFormat(contraction);
             }
@@ -139,16 +139,15 @@ void Gaussian::WriteBasisset(std::ofstream& com_file,
           el_file << endl;
         }
       } else {
-        string type = shell.getType();
-        for (unsigned i = 0; i < type.size(); ++i) {
-          string subtype = string(type, i, 1);
+        for (const char& subtype : shell.getType()) {
           el_file << subtype << " " << shell.getSize() << " "
                   << FortranFormat(shell.getScale()) << endl;
 
           for (const GaussianPrimitive& gaussian : shell) {
-            el_file << FortranFormat(gaussian._decay);
+            el_file << FortranFormat(gaussian.decay());
             el_file << " "
-                    << FortranFormat(gaussian._contraction[FindLmax(subtype)]);
+                    << FortranFormat(gaussian.Contractions()[FindLmax(
+                           std::string(1, subtype))]);
           }
           el_file << endl;
         }
