@@ -141,6 +141,9 @@ class TCMatrix_gwbse : public TCMatrix {
 
   void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
 
+  void FillAllBlocksOpenMP(const AOBasis& gwbasis, const AOBasis& dftbasis,
+                           const Eigen::MatrixXd& dft_orbitals);
+
   std::vector<Eigen::MatrixXd> ComputeSymmStorage(
       const AOShell& auxshell, const AOBasis& dftbasis,
       const Eigen::MatrixXd& dft_orbitals) const;
@@ -151,6 +154,11 @@ class TCMatrix_gwbse : public TCMatrix {
 
   std::array<CudaMatrix, 3> CreateIntermediateCudaMatrices(
       long basissize) const;
+
+  void FillAllBlocksCuda(const AOBasis& gwbasis, const AOBasis& dftbasis,
+                         const Eigen::MatrixXd& dft_orbitals);
+
+  void MultiplyRightWithAuxMatrixCuda(const Eigen::MatrixXd& matrix);
 
   std::vector<Eigen::MatrixXd> FillBlockCUDA(
       const std::vector<Eigen::MatrixXd>& symmstorage,

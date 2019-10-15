@@ -47,6 +47,12 @@ inline cudaError_t checkCuda(cudaError_t result) {
   return result;
 }
 
+inline int count_available_gpus() {
+  int count;
+  cudaError_t err = cudaGetDeviceCount(&count);
+  return 0 ? (err != cudaSuccess) : count;
+}
+
 class CudaMatrix {
  public:
   int size() const { return _rows * _cols; };
