@@ -17,13 +17,12 @@
  *
  */
 
+#include "votca/xtp/bse.h"
+#include "votca/xtp/bse_operator.h"
 #include <boost/format.hpp>
 #include <votca/tools/constants.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/bsecoupling.h>
-
-#include "votca/xtp/bse.h"
-#include "votca/xtp/bse_operator.h"
 
 namespace votca {
 namespace xtp {
@@ -210,6 +209,15 @@ Eigen::MatrixXd BSECoupling::ProjectFrenkelExcitons(
   return result;
 }
 
+int GetSign(double value) {
+  if (value < 0) {
+    return -1;
+  } else if (value > 0) {
+    return 1;
+  }
+  return 0;
+}
+
 void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
                                      const Orbitals& orbitalsB,
                                      const Orbitals& orbitalsAB) {
@@ -360,13 +368,13 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
 
   // DFT levels of monomers can be reduced to those used in BSE
   XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << "   levels used in BSE of molA: " << bseA_vmin << " to "
-      << bseA_cmax << " total: " << bseA_total << flush;
+      << TimeStamp() << "   levels used for BSE of molA: " << bseA_vmin
+      << " to " << bseA_cmax << " total: " << bseA_total << flush;
   XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << "   levels used in BSE of molB: " << bseB_vmin << " to "
-      << bseB_cmax << " total: " << bseB_total << flush;
+      << TimeStamp() << "   levels used for BSE of molB: " << bseB_vmin
+      << " to " << bseB_cmax << " total: " << bseB_total << flush;
   XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << "   levels used in BSE of dimer AB: " << bseAB_vmin
+      << TimeStamp() << "   levels used for BSE of dimer AB: " << bseAB_vmin
       << " to " << bseAB_cmax << " total: " << bseAB_total << flush;
 
   Eigen::MatrixXd MOsA =
@@ -670,7 +678,7 @@ Eigen::MatrixXd BSECoupling::Perturbation(
 
 Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
   int bse_exc = _levA + _levB;
-  int ct = J_dimer.rows() - bse_exc;
+  votca::tools::globals::verbose = true;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(J_dimer);
   if (tools::globals::verbose && J_dimer.rows() < 100) {
     XTP_LOG(logDEBUG, *_pLog)
@@ -692,46 +700,30 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
           << TimeStamp() << "   Calculating coupling between exciton A"
           << stateA + 1 << " and exciton B" << stateB + 1 << flush;
 
-      std::vector<int> index;
-      std::vector<int> signvec;
-      for (int i = 0; i < bse_exc + ct; i++) {
-        if (i == int(stateA) || i == int(stateBd)) {
-          double close = 0.0;
-          int ind = 0;
-          int sign = 0;
-          // row
-          for (int j = 0; j < bse_exc + ct; j++) {
-            bool check = true;
-            // if index i is already in index
-            // should not happen but if one vector was similar to two others.
-            for (unsigned l = 0; l < index.size(); l++) {
-              if (j == index[l]) {
-                check = false;
-                break;
-              }
-            }
-            if (check && std::abs(es.eigenvalues()(i, j)) > close) {
-              ind = j;
-              close = std::abs(es.eigenvalues()(i, j));
-              if (es.eigenvalues()(i, j) >= 0) {
-                sign = 1;
-              } else {
-                sign = -1;
-              }
-            }
-          }
-          index.push_back(ind);
-          signvec.push_back(sign);
-        }
+      std::array<int, 2> indexes;
+      std::array<int, 2> signs;
+
+      // Find the eigenstate state, which in an L2 is closed to A or B
+      // respectively
+      es.eigenvectors().row(stateA).cwiseAbs().maxCoeff(&indexes[0]);
+      es.eigenvectors().row(stateBd).cwiseAbs().maxCoeff(&indexes[1]);
+      if (indexes[0] == indexes[1]) {
+        Eigen::RowVectorXd stateamplitudes =
+            es.eigenvectors().row(stateBd).cwiseAbs();
+        stateamplitudes[indexes[1]] = 0.0;
+        stateamplitudes.maxCoeff(&indexes[1]);
       }
+
+      signs[0] = GetSign(es.eigenvectors()(stateA, indexes[0]));
+      signs[1] = GetSign(es.eigenvectors()(stateBd, indexes[1]));
 
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << "   Order is: [Initial state n->nth eigenvalue]"
           << flush;
       XTP_LOG(logDEBUG, *_pLog) << "    A" << stateA + 1 << ":" << stateA + 1
-                                << "->" << index[0] + 1 << " ";
+                                << "->" << indexes[0] + 1 << " ";
       XTP_LOG(logDEBUG, *_pLog) << "    B" << stateB + 1 << ":" << stateBd + 1
-                                << "->" << index[1] + 1 << " " << flush;
+                                << "->" << indexes[1] + 1 << " " << flush;
 
       // setting up transformation matrix Tmat and diagonal matrix Emat for the
       // eigenvalues;
@@ -740,8 +732,8 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
       // find the eigenvectors which are most similar to the initial states
       // row
       for (int i = 0; i < 2; i++) {
-        int k = index[i];
-        double sign = signvec[i];
+        int k = indexes[i];
+        double sign = signs[i];
         Tmat(0, i) = sign * es.eigenvectors()(stateA, k);
         Tmat(1, i) = sign * es.eigenvectors()(stateBd, k);
         Emat(i, i) = es.eigenvalues()(k);

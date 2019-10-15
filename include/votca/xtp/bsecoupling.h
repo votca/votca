@@ -40,13 +40,6 @@ class BSECoupling : public CouplingBase {
   void Initialize(tools::Property& options);
   std::string Identify() const { return "bsecoupling"; }
 
-  Eigen::MatrixXd getJAB_singletstorage() const {
-    return (_output_perturbation ? JAB_singlet[0] : JAB_singlet[1]);
-  }
-
-  Eigen::MatrixXd getJAB_tripletstorage() const {
-    return (_output_perturbation ? JAB_triplet[0] : JAB_triplet[1]);
-  }
   void Addoutput(tools::Property& type_summary, const Orbitals& orbitalsA,
                  const Orbitals& orbitalsB) const;
 

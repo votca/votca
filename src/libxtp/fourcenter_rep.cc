@@ -126,108 +126,16 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
   int lmax_gamma = shell_gamma->getLmax();
   int lmax_delta = shell_delta->getLmax();
 
-  int n_orbitals[] = {1,  4,  10,  20, 35,
-                      56, 84, 120, 165};  //   n_orbitals[n] = ( (n + 1) * (n +
-                                          //   2) * (n + 3) ) / 6
-
-  int nx[] = {0, 1, 0, 0, 2, 1, 1, 0, 0, 0, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0, 4,
-              3, 3, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 5, 4, 4, 3, 3, 3, 2,
-              2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 6, 5, 5, 4, 4, 4, 3,
-              3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-              7, 6, 6, 5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2,
-              1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 7, 7, 6, 6, 6,
-              5, 5, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2,
-              2, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-  int ny[] = {0, 0, 1, 0, 0, 1, 0, 2, 1, 0, 0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 0,
-              1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0, 0, 1, 0, 2, 1, 0, 3,
-              2, 1, 0, 4, 3, 2, 1, 0, 5, 4, 3, 2, 1, 0, 0, 1, 0, 2, 1, 0, 3,
-              2, 1, 0, 4, 3, 2, 1, 0, 5, 4, 3, 2, 1, 0, 6, 5, 4, 3, 2, 1, 0,
-              0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0, 5, 4, 3, 2, 1, 0,
-              6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0, 0, 1, 0, 2, 1, 0,
-              3, 2, 1, 0, 4, 3, 2, 1, 0, 5, 4, 3, 2, 1, 0, 6, 5, 4, 3, 2, 1,
-              0, 7, 6, 5, 4, 3, 2, 1, 0, 8, 7, 6, 5, 4, 3, 2, 1, 0};
-
-  int nz[] = {0, 0, 0, 1, 0, 0, 1, 0, 1, 2, 0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0,
-              0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 0, 1, 0, 1, 2, 0,
-              1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 0, 0, 1, 0, 1, 2, 0,
-              1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 6,
-              0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5,
-              0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 1, 0, 1, 2,
-              0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5,
-              6, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7, 8};
-
-  int i_less_x[] = {
-      0,   0,   0,   0,   1,   2,   3,   0,   0,   0,   4,   5,   6,   7,   8,
-      9,   0,   0,   0,   0,   10,  11,  12,  13,  14,  15,  16,  17,  18,  19,
-      0,   0,   0,   0,   0,   20,  21,  22,  23,  24,  25,  26,  27,  28,  29,
-      30,  31,  32,  33,  34,  0,   0,   0,   0,   0,   0,   35,  36,  37,  38,
-      39,  40,  41,  42,  43,  44,  45,  46,  47,  48,  49,  50,  51,  52,  53,
-      54,  55,  0,   0,   0,   0,   0,   0,   0,   56,  57,  58,  59,  60,  61,
-      62,  63,  64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,
-      77,  78,  79,  80,  81,  82,  83,  0,   0,   0,   0,   0,   0,   0,   0,
-      84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,  95,  96,  97,  98,
-      99,  100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113,
-      114, 115, 116, 117, 118, 119, 0,   0,   0,   0,   0,   0,   0,   0,   0};
-
-  int i_less_y[] = {
-      0,   0,   0,   0,   0,   1,  0,   2,   3,   0,   0,   4,   0,   5,   6,
-      0,   7,   8,   9,   0,   0,  10,  0,   11,  12,  0,   13,  14,  15,  0,
-      16,  17,  18,  19,  0,   0,  20,  0,   21,  22,  0,   23,  24,  25,  0,
-      26,  27,  28,  29,  0,   30, 31,  32,  33,  34,  0,   0,   35,  0,   36,
-      37,  0,   38,  39,  40,  0,  41,  42,  43,  44,  0,   45,  46,  47,  48,
-      49,  0,   50,  51,  52,  53, 54,  55,  0,   0,   56,  0,   57,  58,  0,
-      59,  60,  61,  0,   62,  63, 64,  65,  0,   66,  67,  68,  69,  70,  0,
-      71,  72,  73,  74,  75,  76, 0,   77,  78,  79,  80,  81,  82,  83,  0,
-      0,   84,  0,   85,  86,  0,  87,  88,  89,  0,   90,  91,  92,  93,  0,
-      94,  95,  96,  97,  98,  0,  99,  100, 101, 102, 103, 104, 0,   105, 106,
-      107, 108, 109, 110, 111, 0,  112, 113, 114, 115, 116, 117, 118, 119, 0};
-
-  int i_less_z[] = {
-      0,   0,   0,   0,   0,   0,   1,  0,   2,   3,   0,   0,   4,   0,   5,
-      6,   0,   7,   8,   9,   0,   0,  10,  0,   11,  12,  0,   13,  14,  15,
-      0,   16,  17,  18,  19,  0,   0,  20,  0,   21,  22,  0,   23,  24,  25,
-      0,   26,  27,  28,  29,  0,   30, 31,  32,  33,  34,  0,   0,   35,  0,
-      36,  37,  0,   38,  39,  40,  0,  41,  42,  43,  44,  0,   45,  46,  47,
-      48,  49,  0,   50,  51,  52,  53, 54,  55,  0,   0,   56,  0,   57,  58,
-      0,   59,  60,  61,  0,   62,  63, 64,  65,  0,   66,  67,  68,  69,  70,
-      0,   71,  72,  73,  74,  75,  76, 0,   77,  78,  79,  80,  81,  82,  83,
-      0,   0,   84,  0,   85,  86,  0,  87,  88,  89,  0,   90,  91,  92,  93,
-      0,   94,  95,  96,  97,  98,  0,  99,  100, 101, 102, 103, 104, 0,   105,
-      106, 107, 108, 109, 110, 111, 0,  112, 113, 114, 115, 116, 117, 118, 119};
-
-  int i_more_x[] = {1,   4,   5,   6,   10,  11,  12,  13,  14,  15,  20,  21,
-                    22,  23,  24,  25,  26,  27,  28,  29,  35,  36,  37,  38,
-                    39,  40,  41,  42,  43,  44,  45,  46,  47,  48,  49,  56,
-                    57,  58,  59,  60,  61,  62,  63,  64,  65,  66,  67,  68,
-                    69,  70,  71,  72,  73,  74,  75,  76,  84,  85,  86,  87,
-                    88,  89,  90,  91,  92,  93,  94,  95,  96,  97,  98,  99,
-                    100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
-                    120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131,
-                    132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143,
-                    144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155};
-
-  int i_more_y[] = {2,   5,   7,   8,   11,  13,  14,  16,  17,  18,  21,  23,
-                    24,  26,  27,  28,  30,  31,  32,  33,  36,  38,  39,  41,
-                    42,  43,  45,  46,  47,  48,  50,  51,  52,  53,  54,  57,
-                    59,  60,  62,  63,  64,  66,  67,  68,  69,  71,  72,  73,
-                    74,  75,  77,  78,  79,  80,  81,  82,  85,  87,  88,  90,
-                    91,  92,  94,  95,  96,  97,  99,  100, 101, 102, 103, 105,
-                    106, 107, 108, 109, 110, 112, 113, 114, 115, 116, 117, 118,
-                    121, 123, 124, 126, 127, 128, 130, 131, 132, 133, 135, 136,
-                    137, 138, 139, 141, 142, 143, 144, 145, 146, 148, 149, 150,
-                    151, 152, 153, 154, 156, 157, 158, 159, 160, 161, 162, 163};
-
-  int i_more_z[] = {3,   6,   8,   9,   12,  14,  15,  17,  18,  19,  22,  24,
-                    25,  27,  28,  29,  31,  32,  33,  34,  37,  39,  40,  42,
-                    43,  44,  46,  47,  48,  49,  51,  52,  53,  54,  55,  58,
-                    60,  61,  63,  64,  65,  67,  68,  69,  70,  72,  73,  74,
-                    75,  76,  78,  79,  80,  81,  82,  83,  86,  88,  89,  91,
-                    92,  93,  95,  96,  97,  98,  100, 101, 102, 103, 104, 106,
-                    107, 108, 109, 110, 111, 113, 114, 115, 116, 117, 118, 119,
-                    122, 124, 125, 127, 128, 129, 131, 132, 133, 134, 136, 137,
-                    138, 139, 140, 142, 143, 144, 145, 146, 147, 149, 150, 151,
-                    152, 153, 154, 155, 157, 158, 159, 160, 161, 162, 163, 164};
+  std::array<int, 9> n_orbitals = AOTransform::n_orbitals();
+  std::array<int, 165> nx = AOTransform::nx();
+  std::array<int, 165> ny = AOTransform::ny();
+  std::array<int, 165> nz = AOTransform::nz();
+  std::array<int, 165> i_less_x = AOTransform::i_less_x();
+  std::array<int, 165> i_less_y = AOTransform::i_less_y();
+  std::array<int, 165> i_less_z = AOTransform::i_less_z();
+  std::array<int, 120> i_more_x = AOTransform::i_more_x();
+  std::array<int, 120> i_more_y = AOTransform::i_more_y();
+  std::array<int, 120> i_more_z = AOTransform::i_more_z();
 
   int nbeta = AOTransform::getBlockSize(lmax_beta);
   int ndelta = AOTransform::getBlockSize(lmax_delta);
@@ -463,7 +371,7 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
             // Integrals     d-s - p-s     f-s - p-s     g-s - p-s     h-s - p-s
             // i-s - p-s     j-s - p-s     k-s - p-s     . . .
             for (int m = 0; m < lmax_gamma_delta; m++) {
-              for (int i = 4; i < n_orbitals[lmax_alpha_beta]; i++) {
+              for (int i = 4; i < ncombined_ab; i++) {
                 R_temp(i, Cart::x, m) =
                     qmc(0) * R_temp(i, 0, m) + wmq(0) * R_temp(i, 0, m + 1) +
                     nx[i] * rdecay * R_temp(i_less_x[i], 0, m + 1);
@@ -506,7 +414,7 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
             // Integrals     p-s - d-s     d-s - d-s     f-s - d-s     g-s - d-s
             // h-s - d-s     i-s - d-s     j-s - d-s     k-s - d-s     . . .
             for (int m = 0; m < lmax_gamma_delta - 1; m++) {
-              for (int i = 1; i < n_orbitals[lmax_alpha_beta]; i++) {
+              for (int i = 1; i < ncombined_ab; i++) {
                 double term =
                     reta * (R_temp(i, 0, m) - cfak * R_temp(i, 0, m + 1));
                 R_temp(i, Cart::xx, m) =
@@ -577,7 +485,7 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
             // Integrals     p-s - f-s     d-s - f-s     f-s - f-s     g-s - f-s
             // h-s - f-s     i-s - f-s     j-s - f-s     k-s - f-s     . . .
             for (int m = 0; m < lmax_gamma_delta - 2; m++) {
-              for (int i = 1; i < n_orbitals[lmax_alpha_beta]; i++) {
+              for (int i = 1; i < ncombined_ab; i++) {
                 double term_x =
                     2 * reta *
                     (R_temp(i, Cart::x, m) - cfak * R_temp(i, Cart::x, m + 1));
@@ -707,7 +615,7 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
             }
 
             for (int m = 0; m < lmax_gamma_delta + 1 - l; m++) {
-              for (int i = 1; i < n_orbitals[lmax_alpha_beta]; i++) {
+              for (int i = 1; i < ncombined_ab; i++) {
                 int nx_i = nx[i];
                 int ny_i = ny[i];
                 int nz_i = nz[i];
@@ -786,8 +694,8 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
           // copy into new array for 3D use.
           Eigen::Tensor<double, 3> R(ncombined_ab, nbeta, ncombined_cd);
           R.setZero();
-          for (int i = 0; i < n_orbitals[lmax_alpha_beta]; ++i) {
-            for (int k = 0; k < n_orbitals[lmax_gamma_delta]; ++k) {
+          for (int k = 0; k < ncombined_cd; ++k) {
+            for (int i = 0; i < ncombined_ab; ++i) {
               R(i, 0, k) = R_temp(i, k, 0);
             }
           }
@@ -799,7 +707,7 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
               int imx_i = i_more_x[i];
               int imy_i = i_more_y[i];
               int imz_i = i_more_z[i];
-              for (int j = 0; j < n_orbitals[lmax_gamma_delta]; j++) {
+              for (int j = 0; j < ncombined_cd; j++) {
                 R(i, Cart::x, j) = R(imx_i, 0, j) + amb(0) * R(i, 0, j);
                 R(i, Cart::y, j) = R(imy_i, 0, j) + amb(1) * R(i, 0, j);
                 R(i, Cart::z, j) = R(imz_i, 0, j) + amb(2) * R(i, 0, j);
@@ -815,7 +723,7 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
               int imx_i = i_more_x[i];
               int imy_i = i_more_y[i];
               int imz_i = i_more_z[i];
-              for (int j = 0; j < n_orbitals[lmax_gamma_delta]; j++) {
+              for (int j = 0; j < ncombined_cd; j++) {
                 R(i, Cart::xx, j) =
                     R(imx_i, Cart::x, j) + amb(0) * R(i, Cart::x, j);
                 R(i, Cart::xy, j) =
@@ -840,7 +748,7 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
               int imx_i = i_more_x[i];
               int imy_i = i_more_y[i];
               int imz_i = i_more_z[i];
-              for (int j = 0; j < n_orbitals[lmax_gamma_delta]; j++) {
+              for (int j = 0; j < ncombined_cd; j++) {
                 R(i, Cart::xxx, j) =
                     R(imx_i, Cart::xx, j) + amb(0) * R(i, Cart::xx, j);
                 R(i, Cart::xxy, j) =
@@ -880,7 +788,7 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
               int imx_i = i_more_x[i];
               int imy_i = i_more_y[i];
               int imz_i = i_more_z[i];
-              for (int j = 0; j < n_orbitals[lmax_gamma_delta]; j++) {
+              for (int j = 0; j < ncombined_cd; j++) {
                 for (int k = 0; k < ncart_2; k++) {
                   R(i, norb_1 + k, j) =
                       R(imx_i, norb_2 + k, j) + amb(0) * R(i, norb_2 + k, j);
@@ -899,19 +807,9 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
           }
           //------------------------------------------------------
 
-          // Transforming alpha and beta functions to sphericals
-
-          int istart[] = {0,  1,  1,  1,  4,  4,  4,  4,  4,  10, 10, 10, 10,
-                          10, 10, 10, 20, 20, 20, 20, 20, 20, 20, 20, 20};
-          int istop[] = {0,  3,  3,  3,  9,  9,  9,  9,  9,  19, 19, 19, 19,
-                         19, 19, 19, 34, 34, 34, 34, 34, 34, 34, 34, 34};
-
-          int offset_alpha = shell_alpha->getOffset();
-          int offset_beta = shell_beta->getOffset();
-
           // prepare transformation matrices
-          int ntrafo_alpha = shell_alpha->getNumFunc() + offset_alpha;
-          int ntrafo_beta = shell_beta->getNumFunc() + offset_beta;
+          int ntrafo_alpha = shell_alpha->getNumFunc();
+          int ntrafo_beta = shell_beta->getNumFunc();
 
           // get transformation matrices
           const Eigen::MatrixXd trafo_alpha =
@@ -921,20 +819,27 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
 
           Eigen::Tensor<double, 4> R4_ab_sph(ntrafo_alpha, ntrafo_beta,
                                              ncombined_cd, ndelta);
+
+          int numfunc_cart_alpha = shell_alpha->getCartesianNumFunc();
+          int numfunc_cart_beta = shell_beta->getCartesianNumFunc();
+          int cartoffset_alpha = shell_alpha->getCartesianOffset();
+          int cartoffset_beta = shell_beta->getCartesianOffset();
           R4_ab_sph.setZero();
 
-          for (int i_beta = 0; i_beta < ntrafo_beta; i_beta++) {
-            for (int i_alpha = 0; i_alpha < ntrafo_alpha; i_alpha++) {
-              for (int j = 0; j < n_orbitals[lmax_gamma_delta]; j++) {
-                for (int i_beta_t = istart[i_beta]; i_beta_t <= istop[i_beta];
-                     i_beta_t++) {
-                  for (int i_alpha_t = istart[i_alpha];
-                       i_alpha_t <= istop[i_alpha]; i_alpha_t++) {
+          for (int j = 0; j < ncombined_cd; j++) {
+            for (int i_beta = 0; i_beta < ntrafo_beta; i_beta++) {
+              for (int i_alpha = 0; i_alpha < ntrafo_alpha; i_alpha++) {
+
+                for (int i_beta_c = 0; i_beta_c < numfunc_cart_beta;
+                     i_beta_c++) {
+                  for (int i_alpha_c = 0; i_alpha_c < numfunc_cart_alpha;
+                       i_alpha_c++) {
 
                     R4_ab_sph(i_alpha, i_beta, j, 0) +=
-                        R(i_alpha_t, i_beta_t, j) *
-                        trafo_alpha(i_alpha_t, i_alpha) *
-                        trafo_beta(i_beta_t, i_beta);
+                        R(i_alpha_c + cartoffset_alpha,
+                          i_beta_c + cartoffset_beta, j) *
+                        trafo_alpha(i_alpha_c, i_alpha) *
+                        trafo_beta(i_beta_c, i_beta);
                   }
                 }
               }
@@ -948,8 +853,8 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
               int imx_i = i_more_x[i];
               int imy_i = i_more_y[i];
               int imz_i = i_more_z[i];
-              for (int j = 0; j < ntrafo_alpha; j++) {
-                for (int k = 0; k < ntrafo_beta; k++) {
+              for (int k = 0; k < ntrafo_beta; k++) {
+                for (int j = 0; j < ntrafo_alpha; j++) {
                   R4_ab_sph(j, k, i, Cart::x) = R4_ab_sph(j, k, imx_i, 0) +
                                                 cmd(0) * R4_ab_sph(j, k, i, 0);
                   R4_ab_sph(j, k, i, Cart::y) = R4_ab_sph(j, k, imy_i, 0) +
@@ -968,8 +873,8 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
               int imx_i = i_more_x[i];
               int imy_i = i_more_y[i];
               int imz_i = i_more_z[i];
-              for (int j = 0; j < ntrafo_alpha; j++) {
-                for (int k = 0; k < ntrafo_beta; k++) {
+              for (int k = 0; k < ntrafo_beta; k++) {
+                for (int j = 0; j < ntrafo_alpha; j++) {
                   R4_ab_sph(j, k, i, Cart::xx) =
                       R4_ab_sph(j, k, imx_i, Cart::x) +
                       cmd(0) * R4_ab_sph(j, k, i, Cart::x);
@@ -1000,8 +905,8 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
               int imx_i = i_more_x[i];
               int imy_i = i_more_y[i];
               int imz_i = i_more_z[i];
-              for (int j = 0; j < ntrafo_alpha; j++) {
-                for (int k = 0; k < ntrafo_beta; k++) {
+              for (int k = 0; k < ntrafo_beta; k++) {
+                for (int j = 0; j < ntrafo_alpha; j++) {
                   R4_ab_sph(j, k, i, Cart::xxx) =
                       R4_ab_sph(j, k, imx_i, Cart::xx) +
                       cmd(0) * R4_ab_sph(j, k, i, Cart::xx);
@@ -1052,8 +957,8 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
               int imx_i = i_more_x[i];
               int imy_i = i_more_y[i];
               int imz_i = i_more_z[i];
-              for (int j = 0; j < ntrafo_alpha; j++) {
-                for (int k = 0; k < ntrafo_beta; k++) {
+              for (int k = 0; k < ntrafo_beta; k++) {
+                for (int j = 0; j < ntrafo_alpha; j++) {
                   for (int m = 0; m < ncart_2; m++) {
                     R4_ab_sph(j, k, i, norb_1 + m) =
                         R4_ab_sph(j, k, imx_i, norb_2 + m) +
@@ -1076,14 +981,9 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
             }
           }
 
-          // Transforming gamma and delta functions to sphericals
-
-          int offset_gamma = shell_gamma->getOffset();
-          int offset_delta = shell_delta->getOffset();
-
           // prepare transformation matrices
-          int ntrafo_gamma = shell_gamma->getNumFunc() + offset_gamma;
-          int ntrafo_delta = shell_delta->getNumFunc() + offset_delta;
+          int ntrafo_gamma = shell_gamma->getNumFunc();
+          int ntrafo_delta = shell_delta->getNumFunc();
 
           const Eigen::MatrixXd trafo_gamma =
               AOTransform::getTrafo(gaussian_gamma);
@@ -1094,18 +994,25 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
                                           ntrafo_gamma, ntrafo_delta);
           R4_sph.setZero();
 
-          for (int j = 0; j < ntrafo_alpha; j++) {
-            for (int k = 0; k < ntrafo_beta; k++) {
-              for (int i_gamma = 0; i_gamma < ntrafo_gamma; i_gamma++) {
-                for (int i_delta = 0; i_delta < ntrafo_delta; i_delta++) {
+          int numfunc_cart_gamma = shell_gamma->getCartesianNumFunc();
+          int numfunc_cart_delta = shell_delta->getCartesianNumFunc();
+          int cartoffset_gamma = shell_gamma->getCartesianOffset();
+          int cartoffset_delta = shell_delta->getCartesianOffset();
 
-                  for (int i_delta_t = istart[i_delta];
-                       i_delta_t <= istop[i_delta]; i_delta_t++) {
-                    for (int i_gamma_t = istart[i_gamma];
-                         i_gamma_t <= istop[i_gamma]; i_gamma_t++) {
+          for (int i_delta = 0; i_delta < ntrafo_delta; i_delta++) {
+            for (int i_gamma = 0; i_gamma < ntrafo_gamma; i_gamma++) {
+
+              for (int k = 0; k < ntrafo_beta; k++) {
+                for (int j = 0; j < ntrafo_alpha; j++) {
+
+                  for (int i_delta_t = 0; i_delta_t < numfunc_cart_delta;
+                       i_delta_t++) {
+                    for (int i_gamma_t = 0; i_gamma_t < numfunc_cart_gamma;
+                         i_gamma_t++) {
 
                       R4_sph(j, k, i_gamma, i_delta) +=
-                          R4_ab_sph(j, k, i_gamma_t, i_delta_t) *
+                          R4_ab_sph(j, k, i_gamma_t + cartoffset_gamma,
+                                    i_delta_t + cartoffset_delta) *
                           trafo_gamma(i_gamma_t, i_gamma) *
                           trafo_delta(i_delta_t, i_delta);
                     }
@@ -1120,31 +1027,30 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
           int NumFunc_gamma = shell_gamma->getNumFunc();
           int NumFunc_delta = shell_delta->getNumFunc();
 
-          for (int i_alpha = 0; i_alpha < NumFunc_alpha; i_alpha++) {
-            for (int i_beta = 0; i_beta < NumFunc_beta; i_beta++) {
-              int a = i_alpha;
-              int b = i_beta;
-              if (alphabetaswitch) {
-                a = i_beta;
-                b = i_alpha;
+          for (int i_delta = 0; i_delta < NumFunc_delta; i_delta++) {
+            for (int i_gamma = 0; i_gamma < NumFunc_gamma; i_gamma++) {
+
+              int c = i_gamma;
+              int d = i_delta;
+              if (gammadeltaswitch) {
+                c = i_delta;
+                d = i_gamma;
               }
 
-              for (int i_gamma = 0; i_gamma < NumFunc_gamma; i_gamma++) {
-                for (int i_delta = 0; i_delta < NumFunc_delta; i_delta++) {
-                  int c = i_gamma;
-                  int d = i_delta;
-                  if (gammadeltaswitch) {
-                    c = i_delta;
-                    d = i_gamma;
+              for (int i_beta = 0; i_beta < NumFunc_beta; i_beta++) {
+                for (int i_alpha = 0; i_alpha < NumFunc_alpha; i_alpha++) {
+                  int a = i_alpha;
+                  int b = i_beta;
+                  if (alphabetaswitch) {
+                    a = i_beta;
+                    b = i_alpha;
                   }
                   if (ab_cd_switch) {
                     block(c, d, a, b) +=
-                        R4_sph(offset_alpha + i_alpha, offset_beta + i_beta,
-                               offset_gamma + i_gamma, offset_delta + i_delta);
+                        R4_sph(i_alpha, i_beta, i_gamma, i_delta);
                   } else {
                     block(a, b, c, d) +=
-                        R4_sph(offset_alpha + i_alpha, offset_beta + i_beta,
-                               offset_gamma + i_gamma, offset_delta + i_delta);
+                        R4_sph(i_alpha, i_beta, i_gamma, i_delta);
                   }
                 }
               }
