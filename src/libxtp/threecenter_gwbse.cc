@@ -87,7 +87,6 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
 #else
   FillAllBlocksOpenMP(gwbasis, dftbasis, dft_orbitals);
 #endif
-
   AOOverlap auxoverlap;
   auxoverlap.Fill(gwbasis);
   AOCoulomb auxcoulomb;
@@ -246,9 +245,10 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixCuda(
 
   CudaPipeline cuda_pip;
   const Eigen::MatrixXd& head = _matrix.front();
-  CudaMatrix cuma_A{head.rows(), head.cols()};
+  const cudaStream_t& stream = cuda_pip.get_stream();
+  CudaMatrix cuma_A{head.rows(), head.cols(), stream};
   CudaMatrix cuma_B{matrix, cuda_pip.get_stream()};
-  CudaMatrix cuma_C{head.rows(), matrix.cols()};
+  CudaMatrix cuma_C{head.rows(), matrix.cols(), stream};
 
 #pragma omp parallel for schedule(dynamic)
   for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
@@ -277,7 +277,7 @@ void TCMatrix_gwbse::FillAllBlocksCuda(const AOBasis& gwbasis,
   std::array<CudaMatrix, 2> cuda_matrices =
       SendDFTMatricesToGPU(dft_orbitals, cuda_pip);
   std::array<CudaMatrix, 3> cuda_inter_matrices =
-      CreateIntermediateCudaMatrices(dft_orbitals.rows());
+      CreateIntermediateCudaMatrices(dft_orbitals.rows(), cuda_pip);
 
   // loop over all shells in the GW basis and get _Mmn for that shell
 #pragma omp parallel for schedule(dynamic)  // private(_block)
@@ -360,12 +360,14 @@ std::array<CudaMatrix, 2> TCMatrix_gwbse::SendDFTMatricesToGPU(
 }
 
 std::array<CudaMatrix, 3> TCMatrix_gwbse::CreateIntermediateCudaMatrices(
-    long basissize) const {
+    long basissize, const CudaPipeline& cuda_pip) const {
   long mcols = _mtotal - _mmin;
   long ncols = _ntotal - _nmin;
 
-  return {CudaMatrix{basissize, basissize}, CudaMatrix{ncols, basissize},
-          CudaMatrix{ncols, mcols}};
+  const cudaStream_t& stream = cuda_pip.get_stream();
+  return {CudaMatrix{basissize, basissize, stream},
+          CudaMatrix{ncols, basissize, stream},
+          CudaMatrix{ncols, mcols, stream}};
 }
 #endif
 

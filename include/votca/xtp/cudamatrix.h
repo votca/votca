@@ -73,9 +73,10 @@ class CudaMatrix {
   }
 
   // Allocate memory in the GPU for a matrix
-  CudaMatrix(long int nrows, long int ncols)
+  CudaMatrix(long int nrows, long int ncols, const cudaStream_t &stream)
       : _rows{static_cast<int>(nrows)}, _cols{static_cast<int>(ncols)} {
     _data = std::move(alloc_matrix_in_gpu(size_matrix()));
+    _stream = stream;
   }
 
   // Convert A Cudamatrix to an EigenMatrix

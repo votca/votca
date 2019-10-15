@@ -51,8 +51,8 @@ BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
   std::vector<Eigen::MatrixXd> tensor{B, C, D};
   std::vector<Eigen::MatrixXd> results(3, Eigen::MatrixXd::Zero(3, 2));
   CudaMatrix cuma_A{A, cuda_pip.get_stream()};
-  CudaMatrix cuma_B{3, 2};
-  CudaMatrix cuma_C{3, 2};
+  CudaMatrix cuma_B{3, 2, cuda_pip.get_stream()};
+  CudaMatrix cuma_C{3, 2, cuda_pip.get_stream()};
 
   for (int i = 0; i < 3; i++) {
     cuma_B.copy_to_gpu(tensor[i]);
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
   CudaPipeline cuda_pip;
   CudaMatrix cuma_A{A, cuda_pip.get_stream()};
   CudaMatrix cuma_B{B, cuda_pip.get_stream()};
-  CudaMatrix cuma_C{2, 5};
+  CudaMatrix cuma_C{2, 5, cuda_pip.get_stream()};
 
   BOOST_REQUIRE_THROW(cuda_pip.gemm(cuma_A, cuma_B, cuma_C),
                       std::runtime_error);

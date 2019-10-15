@@ -153,7 +153,7 @@ class TCMatrix_gwbse : public TCMatrix {
       const Eigen::MatrixXd& dft_orbitals, const CudaPipeline& cuda_pip) const;
 
   std::array<CudaMatrix, 3> CreateIntermediateCudaMatrices(
-      long basissize) const;
+      long basissize, const CudaPipeline& cuda_pip) const;
 
   void FillAllBlocksCuda(const AOBasis& gwbasis, const AOBasis& dftbasis,
                          const Eigen::MatrixXd& dft_orbitals);
