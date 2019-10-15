@@ -73,14 +73,12 @@ class DavidsonSolver {
       size_initial_guess = 2 * neigen;
     }
 
-    int size_update = getSizeUpdate(neigen);
-    std::vector<bool> root_converged = std::vector<bool>(size_update, false);
 
     // get the diagonal of the operator
     this->_Adiag = A.diagonal();
 
     // target the lowest diagonal element
-    ProjectedSpace proj = initProjectedSpace(size_initial_guess);
+    ProjectedSpace proj = initProjectedSpace(neigen, size_initial_guess);
     RitzEigenPair rep;
 
     for (int iiter = 0; iiter < _iter_max; iiter++) {
@@ -95,19 +93,19 @@ class DavidsonSolver {
       // get the ritz vectors
       switch (this->_matrix_type) {
         case MATRIX_TYPE::SYMM: {
-          rep = getRitz(proj,size_update);
+          rep = getRitz(proj);
           break;
         }
         case MATRIX_TYPE::HAM: {
-          rep = getHarmonicRitz(A,proj,size_update);
+          rep = getHarmonicRitz(A,proj);
         }
       }
       
       // etend the subspace
-      int nupdate = extendProjection(rep,proj,root_converged,size_update);
+      int nupdate = extendProjection(rep, proj);
 
       // Print iteration data
-      printIterationData(root_converged, rep.res_norm, neigen, proj.search_space, iiter);
+      printIterationData(rep, proj, neigen, iiter);
 
       // converged
       bool converged = (rep.res_norm.head(neigen) < _tol).all();
@@ -118,7 +116,7 @@ class DavidsonSolver {
         storeConvergedData(rep, neigen, iiter);
         break;
       } else if (last_iter) {
-        storeNotConvergedData(rep,root_converged, neigen);
+        storeNotConvergedData(rep, proj.root_converged, neigen);
         break;
       }
 
@@ -167,6 +165,8 @@ class DavidsonSolver {
     Eigen::MatrixXd AV; // A * V
     Eigen::MatrixXd T; // V.T * A * V
     int search_space; //size of the projection i.e. number of cols in V
+    int size_update; // size update ...
+    std::vector<bool> root_converged; // keep track of which root have onverged
   };
 
   template <typename MatrixReplacement>
@@ -196,8 +196,8 @@ class DavidsonSolver {
   }
 
   template <typename MatrixReplacement>
-  RitzEigenPair getHarmonicRitz(const MatrixReplacement &A, const ProjectedSpace &proj,
-                                int size_update) const {
+  RitzEigenPair getHarmonicRitz(const MatrixReplacement &A, 
+                                const ProjectedSpace &proj ) const {
 
       /* Compute the Harmonic Ritz vector following
        * Computing Interior Eigenvalues of Large Matrices
@@ -229,7 +229,7 @@ class DavidsonSolver {
     return rep;
   }
 
-  RitzEigenPair getRitz(const ProjectedSpace &proj, int size_update) const;
+  RitzEigenPair getRitz(const ProjectedSpace &proj) const;
 
   int getSizeUpdate(int neigen) const;
 
@@ -240,8 +240,8 @@ class DavidsonSolver {
   void printTiming(
       const std::chrono::time_point<std::chrono::system_clock> &start) const;
 
-  void printIterationData(const std::vector<bool> &root_converged,
-    const Eigen::ArrayXd &res, int neigen, int search_space, int iiter) const;
+  void printIterationData(const RitzEigenPair &rep, const ProjectedSpace &proj, 
+    int neigen, int iiter) const;
 
   Eigen::ArrayXi argsort(const Eigen::VectorXd &V) const;
 
@@ -263,10 +263,9 @@ class DavidsonSolver {
                                    const Eigen::VectorXd &x,
                                    double lambda) const;
 
-  ProjectedSpace initProjectedSpace(int size_initial_guess) const;
+  ProjectedSpace initProjectedSpace(int neigen, int size_initial_guess) const;
 
-  int extendProjection(RitzEigenPair &rep, ProjectedSpace &proj, 
-    std::vector<bool> &root_converged, int size_update);
+  int extendProjection(RitzEigenPair &rep, ProjectedSpace &proj);
 
   void restart (const RitzEigenPair &rep, ProjectedSpace &proj, int size_restart) const;
 

@@ -97,8 +97,8 @@ void DavidsonSolver::printOptions(int operator_size) const {
       << TimeStamp() << " Matrix size : " << operator_size << 'x' << operator_size << flush;
 }
 
-void DavidsonSolver::printIterationData(std::vector<bool> const &root_converged,
-  Eigen::ArrayXd const &res_norm, int neigen, int search_space, int iiter) const {
+void DavidsonSolver::printIterationData(const DavidsonSolver::RitzEigenPair &rep, 
+    const DavidsonSolver::ProjectedSpace &proj, int neigen, int iiter) const {
 
   if (iiter == 0) {
     XTP_LOG_SAVE(logDEBUG, _log)
@@ -107,13 +107,13 @@ void DavidsonSolver::printIterationData(std::vector<bool> const &root_converged,
 
   int converged_roots = 0;
   for (int i = 0; i < neigen; i++) {
-  converged_roots += root_converged[i];
+  converged_roots += proj.root_converged[i];
   }
   double percent_converged = 100 * double(converged_roots) / double(neigen);
   XTP_LOG_SAVE(logDEBUG, _log)
     << TimeStamp()
     << format(" %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") % iiter %
-           search_space % res_norm.head(neigen).maxCoeff() %
+           proj.search_space % rep.res_norm.head(neigen).maxCoeff() %
            percent_converged
     << flush;
 }
@@ -229,7 +229,7 @@ Eigen::MatrixXd DavidsonSolver::setupInitialEigenvectors(int size_initial_guess)
 }
 
 DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz (
-    const DavidsonSolver::ProjectedSpace &proj, int size_update) const {
+    const DavidsonSolver::ProjectedSpace &proj) const {
 
   DavidsonSolver::RitzEigenPair rep;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(proj.T);
@@ -244,23 +244,30 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz (
 
 }
 
-DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace( 
+DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace( int neigen,
                                                   int size_initial_guess) const {
   DavidsonSolver::ProjectedSpace proj; 
+
+  // initial vector basis
   proj.V = DavidsonSolver::setupInitialEigenvectors(size_initial_guess);
   proj.search_space = proj.V.cols();
+
+  // update variables
+  proj.size_update = DavidsonSolver::getSizeUpdate(neigen);
+  proj.root_converged = std::vector<bool>(proj.size_update, false);
+
   return proj;
 }
 
 int DavidsonSolver::extendProjection( DavidsonSolver::RitzEigenPair &rep,  
-    DavidsonSolver::ProjectedSpace &proj, std::vector<bool> &root_converged, 
-    int size_update) {
+    DavidsonSolver::ProjectedSpace &proj) {
 
   int nupdate = 0;
-  for (int j = 0; j < size_update; j++) {
+  for (int j = 0; j < proj.size_update; j++) {
+    
     // skip the root that have already converged
     if (this->_matrix_type == MATRIX_TYPE::SYMM) {
-      if (root_converged[j]) {
+      if (proj.root_converged[j]) {
         continue;
       }
     }
@@ -275,7 +282,7 @@ int DavidsonSolver::extendProjection( DavidsonSolver::RitzEigenPair &rep,
     proj.V.rightCols<1>() = w.normalized();
 
     // track converged root
-    root_converged[j] = (rep.res_norm[j] < _tol);
+    proj.root_converged[j] = (rep.res_norm[j] < _tol);
   }
 
   proj.search_space = proj.V.cols();
