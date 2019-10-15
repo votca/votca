@@ -76,11 +76,11 @@ class DavidsonSolver {
     int size_update = getSizeUpdate(neigen);
     std::vector<bool> root_converged = std::vector<bool>(size_update, false);
 
-    // initialize the guess eigenvector
-    Eigen::VectorXd Adiag = A.diagonal();
+    // get the diagonal of the operator
+    this->_Adiag = A.diagonal();
 
     // target the lowest diagonal element
-    ProjectedSpace proj = initProjectedSpace(Adiag, size_initial_guess);
+    ProjectedSpace proj = initProjectedSpace(size_initial_guess);
     RitzEigenPair rep;
 
     for (int iiter = 0; iiter < _iter_max; iiter++) {
@@ -104,7 +104,7 @@ class DavidsonSolver {
       }
       
       // etend the subspace
-      int nupdate = extendProjection(Adiag,rep,proj,root_converged,size_update);
+      int nupdate = extendProjection(rep,proj,root_converged,size_update);
 
       // Print iteration data
       printIterationData(root_converged, rep.res_norm, neigen, proj.search_space, iiter);
@@ -135,6 +135,7 @@ class DavidsonSolver {
   int _num_iter = 0;
   double _tol = 1E-4;
   int _max_search_space = 1000;
+  Eigen::VectorXd _Adiag;
 
   enum CORR { DPR, OLSEN };
   CORR _davidson_correction = CORR::DPR;
@@ -217,7 +218,7 @@ class DavidsonSolver {
     Eigen::ArrayXi idx = DavidsonSolver::argsort(rep.lambda);
     idx = idx.reverse();
     
-    rep.U = DavidsonSolver::extract_eigenvectors(rep.U,idx);  
+    rep.U = DavidsonSolver::extract_vectors(rep.U,idx);  
     rep.U.colwise().normalize();
     rep.lambda = (rep.U.transpose() * proj.T * rep.U).diagonal();
 
@@ -239,36 +240,32 @@ class DavidsonSolver {
   void printTiming(
       const std::chrono::time_point<std::chrono::system_clock> &start) const;
 
-  void printIterationData(std::vector<bool> const &root_converged,
-    Eigen::ArrayXd const &res, int neigen, int search_space, int iiter) const;
+  void printIterationData(const std::vector<bool> &root_converged,
+    const Eigen::ArrayXd &res, int neigen, int search_space, int iiter) const;
 
   Eigen::ArrayXi argsort(const Eigen::VectorXd &V) const;
 
-  Eigen::MatrixXd setupInitialEigenvectors(Eigen::VectorXd &D, int size) const;
+  Eigen::MatrixXd setupInitialEigenvectors(int size) const;
 
-  Eigen::MatrixXd extract_eigenvectors(const Eigen::MatrixXd &V, 
+  Eigen::MatrixXd extract_vectors(const Eigen::MatrixXd &V, 
     const Eigen::ArrayXi &idx) const;
 
   Eigen::MatrixXd orthogonalize(const Eigen::MatrixXd &V, int nupdate);
   Eigen::MatrixXd qr(const Eigen::MatrixXd &A) const;
   Eigen::MatrixXd gramschmidt(const Eigen::MatrixXd &A, int nstart);
 
-  Eigen::VectorXd computeCorrectionVector(const Eigen::VectorXd &Adiag,
-                                          const Eigen::VectorXd &qj,
+  Eigen::VectorXd computeCorrectionVector(const Eigen::VectorXd &qj,
                                           double lambdaj,
                                           const Eigen::VectorXd &Aqj) const;
   Eigen::VectorXd dpr(const Eigen::VectorXd &w,
-                                 const Eigen::VectorXd &A0,
                                  double lambda) const;
   Eigen::VectorXd olsen(const Eigen::VectorXd &r,
                                    const Eigen::VectorXd &x,
-                                   const Eigen::VectorXd &D,
                                    double lambda) const;
 
-  ProjectedSpace initProjectedSpace(Eigen::VectorXd &Adiag, 
-                                    int size_initial_guess) const;
+  ProjectedSpace initProjectedSpace(int size_initial_guess) const;
 
-  int extendProjection(Eigen::VectorXd &Adiag, RitzEigenPair &rep, ProjectedSpace &proj, 
+  int extendProjection(RitzEigenPair &rep, ProjectedSpace &proj, 
     std::vector<bool> &root_converged, int size_update);
 
   void restart (const RitzEigenPair &rep, ProjectedSpace &proj, int size_restart) const;

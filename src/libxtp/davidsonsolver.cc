@@ -201,11 +201,10 @@ Eigen::ArrayXi DavidsonSolver::argsort(const Eigen::VectorXd &V) const {
   return idx;
 }
 
-Eigen::MatrixXd DavidsonSolver::setupInitialEigenvectors(
-    Eigen::VectorXd &d, int size_initial_guess) const {
+Eigen::MatrixXd DavidsonSolver::setupInitialEigenvectors(int size_initial_guess) const {
 
-  Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(d.size(), size_initial_guess);
-  Eigen::ArrayXi idx = DavidsonSolver::argsort(d);
+  Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(_Adiag.size(), size_initial_guess);
+  Eigen::ArrayXi idx = DavidsonSolver::argsort(_Adiag);
 
   switch (this->_matrix_type) {
     case MATRIX_TYPE::SYMM:
@@ -219,7 +218,7 @@ Eigen::MatrixXd DavidsonSolver::setupInitialEigenvectors(
     case MATRIX_TYPE::HAM:
       /* Initialize the guess eigenvector so that they 'target' the lowest
        * positive diagonal elements */
-        int ind0 = d.size()/2;
+        int ind0 = _Adiag.size()/2;
         int shift = size_initial_guess/4;
       for (int j = 0; j < size_initial_guess; j++) {
         guess(idx(ind0+j), j) = 1.0;
@@ -245,17 +244,17 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz (
 
 }
 
-DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace(Eigen::VectorXd &Adiag, 
+DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace( 
                                                   int size_initial_guess) const {
   DavidsonSolver::ProjectedSpace proj; 
-  proj.V = DavidsonSolver::setupInitialEigenvectors(Adiag, size_initial_guess);
+  proj.V = DavidsonSolver::setupInitialEigenvectors(size_initial_guess);
   proj.search_space = proj.V.cols();
   return proj;
 }
 
-int DavidsonSolver::extendProjection(Eigen::VectorXd &Adiag, 
-    DavidsonSolver::RitzEigenPair &rep,  DavidsonSolver::ProjectedSpace &proj, 
-    std::vector<bool> &root_converged, int size_update) {
+int DavidsonSolver::extendProjection( DavidsonSolver::RitzEigenPair &rep,  
+    DavidsonSolver::ProjectedSpace &proj, std::vector<bool> &root_converged, 
+    int size_update) {
 
   int nupdate = 0;
   for (int j = 0; j < size_update; j++) {
@@ -269,7 +268,7 @@ int DavidsonSolver::extendProjection(Eigen::VectorXd &Adiag,
 
     // residue vector
     Eigen::VectorXd w =
-        computeCorrectionVector(Adiag, rep.q.col(j), rep.lambda(j), rep.res.col(j));
+        computeCorrectionVector(rep.q.col(j), rep.lambda(j), rep.res.col(j));
 
     // append the correction vector to the search space
     proj.V.conservativeResize(Eigen::NoChange, proj.V.cols() + 1);
@@ -284,7 +283,7 @@ int DavidsonSolver::extendProjection(Eigen::VectorXd &Adiag,
   return nupdate;
 }
 
-Eigen::MatrixXd DavidsonSolver::extract_eigenvectors(const Eigen::MatrixXd &V, 
+Eigen::MatrixXd DavidsonSolver::extract_vectors(const Eigen::MatrixXd &V, 
                                                      const Eigen::ArrayXi &idx) 
                                                      const {
   Eigen::MatrixXd W = Eigen::MatrixXd::Zero(V.rows(),idx.size());
@@ -294,9 +293,8 @@ Eigen::MatrixXd DavidsonSolver::extract_eigenvectors(const Eigen::MatrixXd &V,
   return W;
 }
 
-Eigen::VectorXd DavidsonSolver::computeCorrectionVector(
-    const Eigen::VectorXd &Adiag, const Eigen::VectorXd &qj, double lambdaj,
-    const Eigen::VectorXd &Aqj) const {
+Eigen::VectorXd DavidsonSolver::computeCorrectionVector( const Eigen::VectorXd &qj, 
+    double lambdaj, const Eigen::VectorXd &Aqj) const {
 
   /* compute correction vector with either DPR or OLSEn CORRECTION
    * For details on the method see :
@@ -308,26 +306,24 @@ Eigen::VectorXd DavidsonSolver::computeCorrectionVector(
 
   switch (this->_davidson_correction) {
     case CORR::DPR:
-      return dpr(Aqj, Adiag, lambdaj);
+      return dpr(Aqj, lambdaj);
 
     case CORR::OLSEN:
-      return olsen(Aqj, qj, Adiag, lambdaj);
+      return olsen(Aqj, qj,lambdaj);
   }
 }
 
 Eigen::VectorXd DavidsonSolver::dpr(const Eigen::VectorXd &r,
-                                               const Eigen::VectorXd &D,
                                                double lambda) const {
   /* \brief Compute the diagonal preconditoned residue : delta = - (D -
    * lambda)^{-1} r
    */
-  Eigen::VectorXd delta = r.array() / (lambda - D.array());
+  Eigen::VectorXd delta = r.array() / (lambda - _Adiag.array());
   return delta;
 }
 
 Eigen::VectorXd DavidsonSolver::olsen(const Eigen::VectorXd &r,
                                        const Eigen::VectorXd &x,
-                                       const Eigen::VectorXd &D,
                                        double lambda) const {
   /* \brief Compute the olsen correction :
 
@@ -336,9 +332,9 @@ Eigen::VectorXd DavidsonSolver::olsen(const Eigen::VectorXd &r,
   */
   int size = r.rows();
   Eigen::VectorXd delta = Eigen::VectorXd::Zero(size);
-  delta = DavidsonSolver::dpr(r, D, lambda);
+  delta = DavidsonSolver::dpr(r, lambda);
   double num = -x.transpose() * delta;
-  double denom = -x.transpose() * dpr(x, D, lambda);
+  double denom = -x.transpose() * dpr(x, lambda);
   double eps = num / denom;
   delta += eps * x;
   return delta;
