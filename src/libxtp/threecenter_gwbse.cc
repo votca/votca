@@ -96,7 +96,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
   MultiplyRightWithAuxMatrix(inv_sqrt);
 
   return;
-}  // namespace xtp
+}
 
 /*
  * Determines the 3-center integrals for a given shell in the GW basis
