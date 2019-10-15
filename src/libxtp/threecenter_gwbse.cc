@@ -80,7 +80,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
   // and memory in the cuda gpu is allocated for the intermediate matrices
 #if defined(USE_CUDA)
   if (count_available_gpus() > 0) {
-    FillAllBlocksOpenMP(gwbasis, dftbasis, dft_orbitals);
+    FillAllBlocksCuda(gwbasis, dftbasis, dft_orbitals);
   } else {
     FillAllBlocksOpenMP(gwbasis, dftbasis, dft_orbitals);
   }
