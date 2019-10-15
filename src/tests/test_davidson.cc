@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix_fail) {
 class TestOperator : public MatrixFreeOperator {
  public:
   TestOperator(){};
-  Eigen::RowVectorXd row(int index) const;
+  Eigen::RowVectorXd OperatorRow(int index) const;
   void set_diag();
   Eigen::VectorXd diag_el;
 
@@ -85,7 +85,7 @@ void TestOperator::set_diag() {
 }
 
 //  get a col of the operator
-Eigen::RowVectorXd TestOperator::row(int index) const {
+Eigen::RowVectorXd TestOperator::OperatorRow(int index) const {
   int lsize = this->size();
   Eigen::RowVectorXd row_out = Eigen::RowVectorXd::Zero(lsize);
   for (int j = 0; j < lsize; j++) {
