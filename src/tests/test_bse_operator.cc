@@ -295,7 +295,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   opt.vmin = 0;
 
   orbitals.setBSEindices(0, 16);
-
+  OPENMP::setMaxThreads(1);
   HqpOperator Hqp_op(epsilon_inv, Mmn, Hqp);
   Hqp_op.configure(opt);
   Eigen::MatrixXd hqp_mat = Hqp_op.get_full_matrix();
