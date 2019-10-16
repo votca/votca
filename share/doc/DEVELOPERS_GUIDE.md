@@ -38,6 +38,12 @@ Issues can be directed created on the appropriate github repo:
 * [xtp](https://github.com/votca/xtp/issues)
 * [votca](https://github.com/votca/votca/issues)
 
+## VOTCA dev-tools
+
+Running clang-format on every commit can be a drag, as can changing the copyright in every header. 
+Building artifacts locally from a Gitlab run is also mutliple steps. Fortunately you will find small 
+scripts in the [dev-tools repo](https://github.com/votca/dev-tools).
+
 ## CPP Resources
 
 A good starting point is to take a look at the cpp standard. Though the code has
