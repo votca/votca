@@ -46,23 +46,27 @@ void DavidsonSolver::printTiming(
 
 void DavidsonSolver::checkOptions(int operator_size) {
   //. search space exceeding the system size
-    if (_max_search_space > operator_size) {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " == Warning : Max search space (" << _max_search_space
-          << ") larger than system size (" << operator_size << ")" << flush;
+  if (_max_search_space > operator_size) {
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " == Warning : Max search space ("
+        << _max_search_space << ") larger than system size (" << operator_size
+        << ")" << flush;
 
-      _max_search_space = operator_size;
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " == Warning : Max search space set to " << operator_size << flush;
+    _max_search_space = operator_size;
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " == Warning : Max search space set to "
+        << operator_size << flush;
 
-      this->_davidson_ortho = ORTHO::QR;
-      XTP_LOG_SAVE(logDEBUG, _log)
-        << TimeStamp() << " == Warning : Orthogonalization set to QR for stabilty " << flush;
+    this->_davidson_ortho = ORTHO::QR;
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp()
+        << " == Warning : Orthogonalization set to QR for stabilty " << flush;
 
-      XTP_LOG_SAVE(logDEBUG, _log)
-        << TimeStamp() << " == Warning : If problems appear, try asking for less than "
-        << int(operator_size/10) << " eigenvalues" << flush;
-    }
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp()
+        << " == Warning : If problems appear, try asking for less than "
+        << int(operator_size / 10) << " eigenvalues" << flush;
+  }
 }
 
 void DavidsonSolver::printOptions(int operator_size) const {
@@ -82,7 +86,7 @@ void DavidsonSolver::printOptions(int operator_size) const {
           << TimeStamp() << " Olsen Correction" << flush;
       break;
   }
-  
+
   switch (this->_davidson_ortho) {
     case ORTHO::GS:
       XTP_LOG_SAVE(logDEBUG, _log)
@@ -94,10 +98,12 @@ void DavidsonSolver::printOptions(int operator_size) const {
       break;
   }
   XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << " Matrix size : " << operator_size << 'x' << operator_size << flush;
+      << TimeStamp() << " Matrix size : " << operator_size << 'x'
+      << operator_size << flush;
 }
 
-void DavidsonSolver::printIterationData(const DavidsonSolver::RitzEigenPair &rep, 
+void DavidsonSolver::printIterationData(
+    const DavidsonSolver::RitzEigenPair &rep,
     const DavidsonSolver::ProjectedSpace &proj, int neigen, int iiter) const {
 
   if (iiter == 0) {
@@ -107,15 +113,15 @@ void DavidsonSolver::printIterationData(const DavidsonSolver::RitzEigenPair &rep
 
   int converged_roots = 0;
   for (int i = 0; i < neigen; i++) {
-  converged_roots += proj.root_converged[i];
+    converged_roots += proj.root_converged[i];
   }
   double percent_converged = 100 * double(converged_roots) / double(neigen);
   XTP_LOG_SAVE(logDEBUG, _log)
-    << TimeStamp()
-    << format(" %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") % iiter %
-           proj.search_space % rep.res_norm.head(neigen).maxCoeff() %
-           percent_converged
-    << flush;
+      << TimeStamp()
+      << format(" %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") % iiter %
+             proj.search_space % rep.res_norm.head(neigen).maxCoeff() %
+             percent_converged
+      << flush;
 }
 
 void DavidsonSolver::set_matrix_type(std::string mt) {
@@ -124,8 +130,7 @@ void DavidsonSolver::set_matrix_type(std::string mt) {
   else if (mt == "SYMM")
     this->_matrix_type = MATRIX_TYPE::SYMM;
   else
-    throw std::runtime_error(
-        mt + " is not a valid Davidson matrix type");
+    throw std::runtime_error(mt + " is not a valid Davidson matrix type");
 }
 
 void DavidsonSolver::set_ortho(std::string method) {
@@ -201,15 +206,17 @@ Eigen::ArrayXi DavidsonSolver::argsort(const Eigen::VectorXd &V) const {
   return idx;
 }
 
-Eigen::MatrixXd DavidsonSolver::setupInitialEigenvectors(int size_initial_guess) const {
+Eigen::MatrixXd DavidsonSolver::setupInitialEigenvectors(
+    int size_initial_guess) const {
 
-  Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(_Adiag.size(), size_initial_guess);
+  Eigen::MatrixXd guess =
+      Eigen::MatrixXd::Zero(_Adiag.size(), size_initial_guess);
   Eigen::ArrayXi idx = DavidsonSolver::argsort(_Adiag);
 
   switch (this->_matrix_type) {
     case MATRIX_TYPE::SYMM:
-      /* \brief Initialize the guess eigenvector so that they 'target' the smallest
-       * diagonal elements */
+      /* \brief Initialize the guess eigenvector so that they 'target' the
+       * smallest diagonal elements */
       for (int j = 0; j < size_initial_guess; j++) {
         guess(idx(j), j) = 1.0;
       }
@@ -218,34 +225,33 @@ Eigen::MatrixXd DavidsonSolver::setupInitialEigenvectors(int size_initial_guess)
     case MATRIX_TYPE::HAM:
       /* Initialize the guess eigenvector so that they 'target' the lowest
        * positive diagonal elements */
-        int ind0 = _Adiag.size()/2;
+      int ind0 = _Adiag.size() / 2;
       for (int j = 0; j < size_initial_guess; j++) {
-        guess(idx(ind0+j), j) = 1.0;
+        guess(idx(ind0 + j), j) = 1.0;
       }
       break;
-    }
+  }
   return guess;
 }
 
-DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz (
+DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz(
     const DavidsonSolver::ProjectedSpace &proj) const {
 
   DavidsonSolver::RitzEigenPair rep;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(proj.T);
   rep.lambda = es.eigenvalues();
   rep.U = es.eigenvectors();
-      
-  rep.q = proj.V * rep.U;  // Ritz vectors 
+
+  rep.q = proj.V * rep.U;                                       // Ritz vectors
   rep.res = proj.AV * rep.U - rep.q * rep.lambda.asDiagonal();  // residues
-  rep.res_norm = rep.res.colwise().norm(); // reisdues norms
+  rep.res_norm = rep.res.colwise().norm();  // reisdues norms
 
   return rep;
-
 }
 
-DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace( int neigen,
-                                                  int size_initial_guess) const {
-  DavidsonSolver::ProjectedSpace proj; 
+DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace(
+    int neigen, int size_initial_guess) const {
+  DavidsonSolver::ProjectedSpace proj;
 
   // initial vector basis
   proj.V = DavidsonSolver::setupInitialEigenvectors(size_initial_guess);
@@ -258,8 +264,8 @@ DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace( int neigen,
   return proj;
 }
 
-int DavidsonSolver::extendProjection( DavidsonSolver::RitzEigenPair &rep,  
-    DavidsonSolver::ProjectedSpace &proj) {
+int DavidsonSolver::extendProjection(DavidsonSolver::RitzEigenPair &rep,
+                                     DavidsonSolver::ProjectedSpace &proj) {
 
   int nupdate = 0;
   for (int j = 0; j < proj.size_update; j++) {
@@ -289,18 +295,18 @@ int DavidsonSolver::extendProjection( DavidsonSolver::RitzEigenPair &rep,
   return nupdate;
 }
 
-Eigen::MatrixXd DavidsonSolver::extract_vectors(const Eigen::MatrixXd &V, 
-                                                     const Eigen::ArrayXi &idx) 
-                                                     const {
-  Eigen::MatrixXd W = Eigen::MatrixXd::Zero(V.rows(),idx.size());
-  for (int i=0; i < idx.size(); i++) {
+Eigen::MatrixXd DavidsonSolver::extract_vectors(
+    const Eigen::MatrixXd &V, const Eigen::ArrayXi &idx) const {
+  Eigen::MatrixXd W = Eigen::MatrixXd::Zero(V.rows(), idx.size());
+  for (int i = 0; i < idx.size(); i++) {
     W.col(i) = V.col(idx(i));
   }
   return W;
 }
 
-Eigen::VectorXd DavidsonSolver::computeCorrectionVector( const Eigen::VectorXd &qj, 
-    double lambdaj, const Eigen::VectorXd &Aqj) const {
+Eigen::VectorXd DavidsonSolver::computeCorrectionVector(
+    const Eigen::VectorXd &qj, double lambdaj,
+    const Eigen::VectorXd &Aqj) const {
 
   /* compute correction vector with either DPR or OLSEn CORRECTION
    * For details on the method see :
@@ -312,13 +318,13 @@ Eigen::VectorXd DavidsonSolver::computeCorrectionVector( const Eigen::VectorXd &
 
   Eigen::VectorXd out_vect;
   switch (this->_davidson_correction) {
-    case CORR::DPR:{
+    case CORR::DPR: {
       out_vect = dpr(Aqj, lambdaj);
       break;
     }
 
-    case CORR::OLSEN:{
-      out_vect = olsen(Aqj, qj,lambdaj);
+    case CORR::OLSEN: {
+      out_vect = olsen(Aqj, qj, lambdaj);
       break;
     }
   }
@@ -326,7 +332,7 @@ Eigen::VectorXd DavidsonSolver::computeCorrectionVector( const Eigen::VectorXd &
 }
 
 Eigen::VectorXd DavidsonSolver::dpr(const Eigen::VectorXd &r,
-                                               double lambda) const {
+                                    double lambda) const {
   /* \brief Compute the diagonal preconditoned residue : delta = - (D -
    * lambda)^{-1} r
    */
@@ -335,8 +341,8 @@ Eigen::VectorXd DavidsonSolver::dpr(const Eigen::VectorXd &r,
 }
 
 Eigen::VectorXd DavidsonSolver::olsen(const Eigen::VectorXd &r,
-                                       const Eigen::VectorXd &x,
-                                       double lambda) const {
+                                      const Eigen::VectorXd &x,
+                                      double lambda) const {
   /* \brief Compute the olsen correction :
 
   \delta = (D-\lambda)^{-1} (-r + \epsilon x)
@@ -352,7 +358,8 @@ Eigen::VectorXd DavidsonSolver::olsen(const Eigen::VectorXd &r,
   return delta;
 }
 
-Eigen::MatrixXd DavidsonSolver::orthogonalize(const Eigen::MatrixXd &V, int nupdate) {
+Eigen::MatrixXd DavidsonSolver::orthogonalize(const Eigen::MatrixXd &V,
+                                              int nupdate) {
 
   Eigen::MatrixXd Vout;
   switch (this->_davidson_ortho) {
@@ -360,7 +367,7 @@ Eigen::MatrixXd DavidsonSolver::orthogonalize(const Eigen::MatrixXd &V, int nupd
       Vout = DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
       break;
     }
-    case ORTHO::QR:{
+    case ORTHO::QR: {
       Vout = DavidsonSolver::qr(V);
       break;
     }
@@ -381,7 +388,7 @@ Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {
 }
 
 Eigen::MatrixXd DavidsonSolver::gramschmidt(const Eigen::MatrixXd &A,
-                                                  int nstart) {
+                                            int nstart) {
   Eigen::MatrixXd Q = A;
   for (int j = nstart; j < A.cols(); ++j) {
     Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
@@ -395,32 +402,32 @@ Eigen::MatrixXd DavidsonSolver::gramschmidt(const Eigen::MatrixXd &A,
   return Q;
 }
 
-void DavidsonSolver::restart (const DavidsonSolver::RitzEigenPair &rep,
-   DavidsonSolver::ProjectedSpace &proj, int size_restart) const {
+void DavidsonSolver::restart(const DavidsonSolver::RitzEigenPair &rep,
+                             DavidsonSolver::ProjectedSpace &proj,
+                             int size_restart) const {
   proj.V = rep.q.leftCols(size_restart);
   proj.V.colwise().normalize();
-  proj.AV = proj.AV * rep.U.leftCols(size_restart);  // corresponds to replacing V with
-                                     // q.leftCols
+  proj.AV = proj.AV * rep.U.leftCols(size_restart);  // corresponds to replacing
+                                                     // V with q.leftCols
   proj.T = proj.V.transpose() * proj.AV;
   proj.search_space = size_restart;
 }
 
-void DavidsonSolver::storeConvergedData(const DavidsonSolver::RitzEigenPair &rep, 
-    int neigen, int iiter) {
+void DavidsonSolver::storeConvergedData(
+    const DavidsonSolver::RitzEigenPair &rep, int neigen, int iiter) {
 
-  DavidsonSolver::storeEigenPairs(rep,neigen);
+  DavidsonSolver::storeEigenPairs(rep, neigen);
   this->_num_iter = iiter;
-  XTP_LOG_SAVE(logDEBUG, _log)
-    << TimeStamp() << " Davidson converged after " 
-    << iiter << " iterations." << flush;
+  XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Davidson converged after "
+                               << iiter << " iterations." << flush;
   _info = Eigen::ComputationInfo::Success;
 }
 
-void DavidsonSolver::storeNotConvergedData(const DavidsonSolver::RitzEigenPair &rep,
-                                          std::vector<bool> &root_converged, 
-                                          int neigen) {
+void DavidsonSolver::storeNotConvergedData(
+    const DavidsonSolver::RitzEigenPair &rep, std::vector<bool> &root_converged,
+    int neigen) {
 
-  DavidsonSolver::storeEigenPairs(rep,neigen);
+  DavidsonSolver::storeEigenPairs(rep, neigen);
   this->_num_iter = _iter_max;
 
   double percent_converged = 0;
@@ -435,18 +442,19 @@ void DavidsonSolver::storeNotConvergedData(const DavidsonSolver::RitzEigenPair &
   }
   percent_converged /= neigen;
   XTP_LOG_SAVE(logDEBUG, _log)
-    << TimeStamp() << "- Warning : Davidson "  << format("%1$5.2f%%") %percent_converged 
-    << " converged after " << _iter_max << " iterations." << flush;
+      << TimeStamp() << "- Warning : Davidson "
+      << format("%1$5.2f%%") % percent_converged << " converged after "
+      << _iter_max << " iterations." << flush;
   _info = Eigen::ComputationInfo::NoConvergence;
-
 }
 
-void DavidsonSolver::storeEigenPairs(const DavidsonSolver::RitzEigenPair &rep, int neigen) {
+void DavidsonSolver::storeEigenPairs(const DavidsonSolver::RitzEigenPair &rep,
+                                     int neigen) {
   // store the eigenvalues/eigenvectors
   this->_eigenvalues = rep.lambda.head(neigen);
   this->_eigenvectors = rep.q.leftCols(neigen);
   this->_eigenvectors.colwise().normalize();
-  this->_res = rep.res_norm.head(neigen);  
+  this->_res = rep.res_norm.head(neigen);
 }
 
 }  // namespace xtp
