@@ -71,7 +71,6 @@ class HamiltonianOperator
 
   Eigen::VectorXd get_diagonal() const {
     Eigen::VectorXd diag = Eigen::VectorXd::Zero(_size);
-    assert(_size % 2 == 0);
     int half = _size / 2;
     diag.head(half) = _A.diagonal();
     diag.tail(half) = -diag.head(half);

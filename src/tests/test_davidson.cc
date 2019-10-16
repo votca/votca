@@ -169,7 +169,7 @@ class BlockOperator : public MatrixFreeOperator {
   BlockOperator(){};
 
   void attach_matrix(const Eigen::MatrixXd &mat);
-  Eigen::RowVectorXd row(int index) const;
+  Eigen::RowVectorXd OperatorRow(int index) const;
   void set_diag(int diag);
   Eigen::VectorXd diag_el;
 
@@ -181,7 +181,7 @@ class BlockOperator : public MatrixFreeOperator {
 void BlockOperator::attach_matrix(const Eigen::MatrixXd &mat) { _mat = mat; }
 
 //  get a col of the operator
-Eigen::RowVectorXd BlockOperator::row(int index) const {
+Eigen::RowVectorXd BlockOperator::OperatorRow(int index) const {
   return _mat.row(index);
 }
 
@@ -211,12 +211,12 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   DS.set_ortho("QR");
   DS.set_matrix_type("HAM");
   DS.solve(Hop, neigen);
+
   auto lambda = DS.eigenvalues().real();
   std::sort(lambda.data(), lambda.data() + lambda.size());
-
   Eigen::MatrixXd H = Hop.get_full_matrix();
-  Eigen::EigenSolver<Eigen::MatrixXd> es(H);
 
+  Eigen::EigenSolver<Eigen::MatrixXd> es(H);
   Eigen::ArrayXi idx = index_eval(es.eigenvalues().real(), neigen);
   Eigen::VectorXd lambda_ref = idx.unaryExpr(es.eigenvalues().real());
 
