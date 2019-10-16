@@ -82,7 +82,7 @@ void DavidsonSolver::printOptions(int operator_size) const {
           << TimeStamp() << " Olsen Correction" << flush;
       break;
   }
-
+  
   switch (this->_davidson_ortho) {
     case ORTHO::GS:
       XTP_LOG_SAVE(logDEBUG, _log)
@@ -219,7 +219,6 @@ Eigen::MatrixXd DavidsonSolver::setupInitialEigenvectors(int size_initial_guess)
       /* Initialize the guess eigenvector so that they 'target' the lowest
        * positive diagonal elements */
         int ind0 = _Adiag.size()/2;
-        int shift = size_initial_guess/4;
       for (int j = 0; j < size_initial_guess; j++) {
         guess(idx(ind0+j), j) = 1.0;
       }
@@ -264,7 +263,7 @@ int DavidsonSolver::extendProjection( DavidsonSolver::RitzEigenPair &rep,
 
   int nupdate = 0;
   for (int j = 0; j < proj.size_update; j++) {
-    
+
     // skip the root that have already converged
     if (this->_matrix_type == MATRIX_TYPE::SYMM) {
       if (proj.root_converged[j]) {
@@ -317,6 +316,9 @@ Eigen::VectorXd DavidsonSolver::computeCorrectionVector( const Eigen::VectorXd &
 
     case CORR::OLSEN:
       return olsen(Aqj, qj,lambdaj);
+
+    default:
+      return dpr(Aqj, lambdaj);
   }
 }
 
@@ -353,6 +355,8 @@ Eigen::MatrixXd DavidsonSolver::orthogonalize(const Eigen::MatrixXd &V, int nupd
     case ORTHO::GS:
       return DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
     case ORTHO::QR:
+      return DavidsonSolver::qr(V);
+    default:
       return DavidsonSolver::qr(V);
   }
 

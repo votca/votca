@@ -73,7 +73,6 @@ class DavidsonSolver {
       size_initial_guess = 2 * neigen;
     }
 
-
     // get the diagonal of the operator
     this->_Adiag = A.diagonal();
 
