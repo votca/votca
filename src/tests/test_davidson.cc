@@ -5,14 +5,13 @@
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 
+#include <votca/xtp/bseoperator_btda.h>
 #include <votca/xtp/davidsonsolver.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/matrixfreeoperator.h>
-#include <votca/xtp/bseoperator_btda.h>
 
 using namespace votca::xtp;
 using namespace std;
-
 
 Eigen::MatrixXd symm_matrix(int N, double eps) {
   Eigen::MatrixXd matrix;
@@ -134,45 +133,40 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
 }
 
-
-
 Eigen::ArrayXi index_eval(Eigen::VectorXd ev, int neigen) {
-  
+
   int nev = ev.rows();
-  int npos = nev/2;
+  int npos = nev / 2;
 
   Eigen::ArrayXi idx = Eigen::ArrayXi::Zero(npos);
   int nstored = 0;
 
   // get only positives
-  for (int i=0; i<nev; i++) {
+  for (int i = 0; i < nev; i++) {
     if (ev(i) > 0) {
       idx(nstored) = i;
-      nstored ++;
+      nstored++;
     }
   }
-  
+
   // sort the epos eigenvalues
   std::sort(idx.data(), idx.data() + idx.size(),
-    [&](int i1, int i2) { return ev[i1] < ev[i2]; });
+            [&](int i1, int i2) { return ev[i1] < ev[i2]; });
   return idx.head(neigen);
 }
 
-
-Eigen::MatrixXd extract_eigenvectors(const Eigen::MatrixXd &V, 
-    const Eigen::ArrayXi &idx) {
-  Eigen::MatrixXd W = Eigen::MatrixXd::Zero(V.rows(),idx.size());
-  for (int i=0; i < idx.size(); i++) {
+Eigen::MatrixXd extract_eigenvectors(const Eigen::MatrixXd &V,
+                                     const Eigen::ArrayXi &idx) {
+  Eigen::MatrixXd W = Eigen::MatrixXd::Zero(V.rows(), idx.size());
+  for (int i = 0; i < idx.size(); i++) {
     W.col(i) = V.col(idx(i));
   }
   return W;
 }
 
-
-class BlockOperator: public MatrixFreeOperator {
+class BlockOperator : public MatrixFreeOperator {
  public:
-
-  BlockOperator() {};
+  BlockOperator(){};
 
   void attach_matrix(const Eigen::MatrixXd &mat);
   Eigen::RowVectorXd row(int index) const;
@@ -184,15 +178,12 @@ class BlockOperator: public MatrixFreeOperator {
   Eigen::MatrixXd _mat;
 };
 
-void BlockOperator::attach_matrix(const Eigen::MatrixXd &mat) {
-  _mat = mat;
-}
+void BlockOperator::attach_matrix(const Eigen::MatrixXd &mat) { _mat = mat; }
 
 //  get a col of the operator
 Eigen::RowVectorXd BlockOperator::row(int index) const {
   return _mat.row(index);
 }
-
 
 BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
 
@@ -203,17 +194,16 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   // Create Operator
   BlockOperator Rop;
   Rop.set_size(size);
-  Eigen::MatrixXd rmat = init_matrix(size,0.01);
+  Eigen::MatrixXd rmat = init_matrix(size, 0.01);
   Rop.attach_matrix(rmat);
-  
 
   BlockOperator Cop;
   Cop.set_size(size);
-  Eigen::MatrixXd cmat = symm_matrix(size,0.01);
+  Eigen::MatrixXd cmat = symm_matrix(size, 0.01);
   Cop.attach_matrix(cmat);
 
-// create Hamiltonian operator
-  HamiltonianOperator<BlockOperator,BlockOperator> Hop(Rop,Cop);
+  // create Hamiltonian operator
+  HamiltonianOperator<BlockOperator, BlockOperator> Hop(Rop, Cop);
 
   DavidsonSolver DS(log);
   DS.set_tolerance("normal");
@@ -222,19 +212,18 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   DS.set_matrix_type("HAM");
   DS.solve(Hop, neigen);
   auto lambda = DS.eigenvalues().real();
-  std::sort(lambda.data(), lambda.data() + lambda.size());  
+  std::sort(lambda.data(), lambda.data() + lambda.size());
 
   Eigen::MatrixXd H = Hop.get_full_matrix();
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
-  
-  Eigen::ArrayXi idx = index_eval(es.eigenvalues().real(),neigen);
+
+  Eigen::ArrayXi idx = index_eval(es.eigenvalues().real(), neigen);
   Eigen::VectorXd lambda_ref = idx.unaryExpr(es.eigenvalues().real());
-  
 
   bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
   if (!check_eigenvalues) {
-    cout << "Davidson not converged after " << DS.num_iterations() 
-      << " iterations" << endl;
+    cout << "Davidson not converged after " << DS.num_iterations()
+         << " iterations" << endl;
     cout << "Reference eigenvalues" << endl;
     cout << lambda_ref.head(neigen) << endl;
     cout << "Davidson eigenvalues" << endl;
@@ -246,11 +235,11 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
 
   Eigen::MatrixXd evect_dav = DS.eigenvectors().real();
   Eigen::MatrixXd evect = es.eigenvectors().real();
-  Eigen::MatrixXd evect_ref = extract_eigenvectors(evect,idx);
+  Eigen::MatrixXd evect_ref = extract_eigenvectors(evect, idx);
 
-  bool check_eigenvectors = evect_ref.cwiseAbs2().isApprox(evect_dav.cwiseAbs2(),0.001);
+  bool check_eigenvectors =
+      evect_ref.cwiseAbs2().isApprox(evect_dav.cwiseAbs2(), 0.001);
   BOOST_CHECK_EQUAL(check_eigenvectors, 1);
-  
 }
 
 BOOST_AUTO_TEST_SUITE_END()

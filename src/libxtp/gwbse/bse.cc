@@ -357,7 +357,7 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
 
 template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
 tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
-                                           BSE_OPERATOR_B& Bop) const {
+                                                    BSE_OPERATOR_B& Bop) const {
 
   std::chrono::time_point<std::chrono::system_clock> start, end;
   std::chrono::time_point<std::chrono::system_clock> hstart, hend;
@@ -365,9 +365,9 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   start = std::chrono::system_clock::now();
 
   // operator
-  HamiltonianOperator<BSE_OPERATOR_A,BSE_OPERATOR_B> Hop(Aop,Bop);
-  
-  // Davidson solver  
+  HamiltonianOperator<BSE_OPERATOR_A, BSE_OPERATOR_B> Hop(Aop, Bop);
+
+  // Davidson solver
   DavidsonSolver DS(_log);
   DS.set_correction(_opt.davidson_correction);
   DS.set_tolerance(_opt.davidson_tolerance);
@@ -383,27 +383,26 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
     DS.solve(Hop, _opt.nmax);
 
   } else {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " Using full matrix method" << flush;
-      // get the full matrix
-      hstart = std::chrono::system_clock::now();
-      Eigen::MatrixXd hfull = Hop.get_full_matrix();
-      hend = std::chrono::system_clock::now();
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Using full matrix method" << flush;
+    // get the full matrix
+    hstart = std::chrono::system_clock::now();
+    Eigen::MatrixXd hfull = Hop.get_full_matrix();
+    hend = std::chrono::system_clock::now();
 
-      elapsed_time = hend - hstart;
+    elapsed_time = hend - hstart;
 
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " Full matrix assembled in " << elapsed_time.count()
-          << " secs" << flush;
+    XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Full matrix assembled in "
+                                 << elapsed_time.count() << " secs" << flush;
 
-      // solve theeigenalue problem
-      hstart = std::chrono::system_clock::now();
-      DS.solve(hfull, _opt.nmax);
-      hend = std::chrono::system_clock::now();
+    // solve theeigenalue problem
+    hstart = std::chrono::system_clock::now();
+    DS.solve(hfull, _opt.nmax);
+    hend = std::chrono::system_clock::now();
 
-      elapsed_time = hend - hstart;
-      XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Davidson solve done in "
-                                   << elapsed_time.count() << " secs" << flush;
+    elapsed_time = hend - hstart;
+    XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Davidson solve done in "
+                                 << elapsed_time.count() << " secs" << flush;
   }
 
   // results
@@ -417,7 +416,7 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   Eigen::VectorXd normY = _tmpY.colwise().squaredNorm();
 
   Eigen::ArrayXd sqinvnorm = (normX - normY).array().inverse().cwiseSqrt();
-  
+
   result.eigenvectors() = _tmpX * sqinvnorm.matrix().asDiagonal();
   result.eigenvectors2() = _tmpY * sqinvnorm.matrix().asDiagonal();
 
@@ -425,7 +424,7 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   elapsed_time = end - start;
 
   XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Diagonalization done in "
-                             << elapsed_time.count() << " secs" << flush;
+                               << elapsed_time.count() << " secs" << flush;
 
   return result;
 }
