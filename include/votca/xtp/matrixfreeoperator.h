@@ -40,9 +40,6 @@ namespace xtp {
 
 class MatrixFreeOperator : public Eigen::EigenBase<MatrixFreeOperator> {
  public:
-  typedef double Scalar;
-  typedef double RealScalar;
-  typedef int StorageIndex;
   enum {
     ColsAtCompileTime = Eigen::Dynamic,
     MaxColsAtCompileTime = Eigen::Dynamic,
