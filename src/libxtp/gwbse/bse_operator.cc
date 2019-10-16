@@ -63,7 +63,6 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::row(int index) const {
   Eigen::RowVectorXd row = Eigen::RowVectorXd::Zero(_bse_size);
   if (cx != 0) {
     row += cx * Hx_row(index);
-    //row += cx * Hd_row(index);
   }
   if (cd != 0) {
     row += cd * Hd_row(index);
@@ -82,7 +81,7 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_row(int index) const {
   int thread_id = OPENMP::getThreadId();
 
   if (_Hx_cache[thread_id].hasValue(index)) {
-    return _Hx_cache[thread_id].getValue(index); 
+    return _Hx_cache[thread_id].getValue(index);
   }
 
   int auxsize = _Mmn.auxsize();

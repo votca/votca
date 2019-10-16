@@ -116,7 +116,7 @@ class BSE {
 
   template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
   tools::EigenSystem Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
-                                           BSE_OPERATOR_B& Bop) const;
+                                                 BSE_OPERATOR_B& Bop) const;
 
   void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
                      int state) const;

@@ -25,13 +25,11 @@ namespace xtp {
 
 class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
  public:
-
   enum {
     ColsAtCompileTime = Eigen::Dynamic,
     MaxColsAtCompileTime = Eigen::Dynamic,
     IsRowMajor = false
   };
-
 
   Index rows() const { return this->_size; }
   Index cols() const { return this->_size; }
@@ -51,10 +49,9 @@ class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
 
   // extract row/col of the operator
   virtual Eigen::RowVectorXd row(int index) const = 0;
-  
- private:
-  int _size;  
 
+ private:
+  int _size;
 };
 }  // namespace xtp
 }  // namespace votca

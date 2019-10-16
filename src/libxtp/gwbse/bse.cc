@@ -201,9 +201,8 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
   return result;
 }
 
-
 tools::EigenSystem BSE::Solve_singlets_BTDA() const {
-  if(_opt.davidson) {
+  if (_opt.davidson) {
     SingletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(A);
 
@@ -212,7 +211,7 @@ tools::EigenSystem BSE::Solve_singlets_BTDA() const {
 
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
-    return Solve_nonhermitian_Davidson(A, B);     
+    return Solve_nonhermitian_Davidson(A, B);
   } else {
     SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(Hs_ApB);
@@ -225,7 +224,7 @@ tools::EigenSystem BSE::Solve_singlets_BTDA() const {
 }
 
 tools::EigenSystem BSE::Solve_triplets_BTDA() const {
-  if (_opt.davidson){
+  if (_opt.davidson) {
     TripletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(A);
     Hd2Operator B(_epsilon_0_inv, _Mmn, _Hqp);
@@ -264,8 +263,8 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
   Eigen::MatrixXd AmB = amb.get_full_matrix();
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Setup singlet hamiltonian " << flush;
-    XTP_LOG_SAVE(logDEBUG, _log)
-        << TimeStamp() << " Lapack Diagonalization" << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << " Lapack Diagonalization" << flush;
 
   // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not
   // positive definite
@@ -299,8 +298,8 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
 
   XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Solving for first "
                                << _opt.nmax << " eigenvectors" << flush;
-                               
-  hstart = std::chrono::system_clock::now();                               
+
+  hstart = std::chrono::system_clock::now();
   tools::EigenSystem eigensys = tools::linalg_eigenvalues(ApB, _opt.nmax);
   hend = std::chrono::system_clock::now();
   elapsed_time = hend - hstart;
