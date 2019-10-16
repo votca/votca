@@ -247,7 +247,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixCuda(
   const Eigen::MatrixXd& head = _matrix.front();
   const cudaStream_t& stream = cuda_pip.get_stream();
   CudaMatrix cuma_A{head.rows(), head.cols(), stream};
-  CudaMatrix cuma_B{matrix, cuda_pip.get_stream()};
+  CudaMatrix cuma_B{matrix, stream};
   CudaMatrix cuma_C{head.rows(), matrix.cols(), stream};
 
 #pragma omp parallel for schedule(dynamic)
