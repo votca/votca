@@ -170,11 +170,12 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free_large) {
   Aop.set_size(size);
 
   Logger log;
+  log.setReportLevel(logDEBUG);
   DavidsonSolver DS(log);
   DS.set_tolerance("normal");
   DS.set_size_update("safe");
   DS.solve(Aop, neigen);
-
+  std::cout << log << std::endl;
   Eigen::MatrixXd A = Aop.get_full_matrix();
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
 
@@ -317,9 +318,9 @@ Eigen::MatrixXd extract_eigenvectors(const Eigen::MatrixXd &V,
   return W;
 }
 
-class BlockOperator : public MatrixFreeOperator {
+class HermitianBlockOperator : public MatrixFreeOperator {
  public:
-  BlockOperator(){};
+  HermitianBlockOperator(){};
 
   void attach_matrix(const Eigen::MatrixXd &mat);
   Eigen::RowVectorXd OperatorRow(int index) const;
@@ -331,10 +332,12 @@ class BlockOperator : public MatrixFreeOperator {
   int _diag;
 };
 
-void BlockOperator::attach_matrix(const Eigen::MatrixXd &mat) { _mat = mat; }
+void HermitianBlockOperator::attach_matrix(const Eigen::MatrixXd &mat) {
+  _mat = mat;
+}
 
 //  get a col of the operator
-Eigen::RowVectorXd BlockOperator::OperatorRow(int index) const {
+Eigen::RowVectorXd HermitianBlockOperator::OperatorRow(int index) const {
   return _mat.row(index);
 }
 
@@ -345,18 +348,19 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   Logger log;
 
   // Create Operator
-  BlockOperator Rop;
+  HermitianBlockOperator Rop;
   Rop.set_size(size);
   Eigen::MatrixXd rmat = init_matrix(size, 0.01);
   Rop.attach_matrix(rmat);
 
-  BlockOperator Cop;
+  HermitianBlockOperator Cop;
   Cop.set_size(size);
   Eigen::MatrixXd cmat = symm_matrix(size, 0.01);
   Cop.attach_matrix(cmat);
 
   // create Hamiltonian operator
-  HamiltonianOperator<BlockOperator, BlockOperator> Hop(Rop, Cop);
+  HamiltonianOperator<HermitianBlockOperator, HermitianBlockOperator> Hop(Rop,
+                                                                          Cop);
 
   DavidsonSolver DS(log);
   DS.set_tolerance("normal");
