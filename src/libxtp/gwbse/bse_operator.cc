@@ -51,12 +51,10 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::OperatorRow(
 }
 
 template <int cqp, int cx, int cd, int cd2>
-
 Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::OperatorBlock(int row,
                                                               int col) const {
   return cx * HxBlock(row, col);
 }
-
 
 template <int cqp, int cx, int cd, int cd2>
 Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::HxBlock(int row,

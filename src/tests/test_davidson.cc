@@ -174,8 +174,8 @@ class BlockOperator : public MatrixFreeOperator {
   Eigen::VectorXd diag_el;
 
  private:
-  int _diag;
   Eigen::MatrixXd _mat;
+  int _diag;
 };
 
 void BlockOperator::attach_matrix(const Eigen::MatrixXd &mat) { _mat = mat; }
