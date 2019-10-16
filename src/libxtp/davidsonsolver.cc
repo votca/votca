@@ -310,16 +310,19 @@ Eigen::VectorXd DavidsonSolver::computeCorrectionVector( const Eigen::VectorXd &
    * Journal of Computational Chemistry Vol 22, No. 13 1574-1589 (2001)
    */
 
+  Eigen::VectorXd out_vect;
   switch (this->_davidson_correction) {
-    case CORR::DPR:
-      return dpr(Aqj, lambdaj);
+    case CORR::DPR:{
+      out_vect = dpr(Aqj, lambdaj);
+      break;
+    }
 
-    case CORR::OLSEN:
-      return olsen(Aqj, qj,lambdaj);
-
-    default:
-      return dpr(Aqj, lambdaj);
+    case CORR::OLSEN:{
+      out_vect = olsen(Aqj, qj,lambdaj);
+      break;
+    }
   }
+  return out_vect;
 }
 
 Eigen::VectorXd DavidsonSolver::dpr(const Eigen::VectorXd &r,
@@ -351,15 +354,18 @@ Eigen::VectorXd DavidsonSolver::olsen(const Eigen::VectorXd &r,
 
 Eigen::MatrixXd DavidsonSolver::orthogonalize(const Eigen::MatrixXd &V, int nupdate) {
 
+  Eigen::MatrixXd Vout;
   switch (this->_davidson_ortho) {
-    case ORTHO::GS:
-      return DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
-    case ORTHO::QR:
-      return DavidsonSolver::qr(V);
-    default:
-      return DavidsonSolver::qr(V);
+    case ORTHO::GS: {
+      Vout = DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
+      break;
+    }
+    case ORTHO::QR:{
+      Vout = DavidsonSolver::qr(V);
+      break;
+    }
   }
-
+  return Vout;
 }
 
 Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {
