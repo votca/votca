@@ -53,6 +53,30 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix) {
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
 }
 
+BOOST_AUTO_TEST_CASE(davidson_full_matrix_large) {
+
+  int size = 400;
+  int neigen = 10;
+  double eps = 0.01;
+  Eigen::MatrixXd A = init_matrix(size, eps);
+  Logger log;
+  DavidsonSolver DS(log);
+  DS.solve(A, neigen);
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
+
+  auto lambda = DS.eigenvalues();
+  auto lambda_ref = es.eigenvalues().head(neigen);
+  bool check_eigenvalues = lambda.isApprox(lambda_ref, 1E-6);
+  if (!check_eigenvalues) {
+    std::cout << "ref" << std::endl;
+    std::cout << es.eigenvalues().head(neigen).transpose() << std::endl;
+    std::cout << "result" << std::endl;
+    std::cout << DS.eigenvalues().transpose() << std::endl;
+  }
+
+  BOOST_CHECK_EQUAL(check_eigenvalues, 1);
+}
+
 BOOST_AUTO_TEST_CASE(davidson_full_matrix_fail) {
 
   int size = 100;
@@ -87,7 +111,7 @@ Eigen::RowVectorXd TestOperator::OperatorRow(int index) const {
   Eigen::RowVectorXd row_out = Eigen::RowVectorXd::Zero(lsize);
   for (int j = 0; j < lsize; j++) {
     if (j == index) {
-      row_out(j) = static_cast<double>(index + 1);
+      row_out(j) = std::sqrt(static_cast<double>(index + 1));
     } else {
       row_out(j) = 0.01 / std::pow(static_cast<double>(j - index), 2);
     }
@@ -109,6 +133,37 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
   DS.set_tolerance("normal");
   DS.set_size_update("safe");
   DS.set_ortho("QR");
+  DS.solve(Aop, neigen);
+
+  Eigen::MatrixXd A = Aop.get_full_matrix();
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
+
+  auto lambda = DS.eigenvalues();
+  auto lambda_ref = es.eigenvalues().head(neigen);
+  bool check_eigenvalues = lambda.isApprox(lambda_ref, 1E-6);
+
+  BOOST_CHECK_EQUAL(check_eigenvalues, 1);
+  if (!check_eigenvalues) {
+    std::cout << "ref" << std::endl;
+    std::cout << es.eigenvalues().head(neigen).transpose() << std::endl;
+    std::cout << "result" << std::endl;
+    std::cout << DS.eigenvalues().transpose() << std::endl;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(davidson_matrix_free_large) {
+
+  int size = 400;
+  int neigen = 10;
+
+  // Create Operator
+  TestOperator Aop;
+  Aop.set_size(size);
+
+  Logger log;
+  DavidsonSolver DS(log);
+  DS.set_tolerance("normal");
+  DS.set_size_update("safe");
   DS.solve(Aop, neigen);
 
   Eigen::MatrixXd A = Aop.get_full_matrix();
@@ -154,7 +209,7 @@ Eigen::MatrixXd BlockOperator::OperatorBlock(int row, int col) const {
   }
   if (blocdisttodiagonal == 0) {
     for (int i = 0; i < blocksize; i++) {
-      block(i, i) = static_cast<double>(row * blocksize + i + 1);
+      block(i, i) = std::sqrt(static_cast<double>(row * blocksize + i + 1));
     }
   }
 
@@ -174,6 +229,36 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free_block) {
   DavidsonSolver DS(log);
   DS.set_tolerance("normal");
   DS.set_ortho("QR");
+  DS.set_size_update("safe");
+
+  Eigen::MatrixXd A = Aop.get_full_matrix();
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
+  DS.solve(Aop, neigen);
+  auto lambda = DS.eigenvalues();
+  auto lambda_ref = es.eigenvalues().head(neigen);
+  bool check_eigenvalues = lambda.isApprox(lambda_ref, 1E-6);
+
+  BOOST_CHECK_EQUAL(check_eigenvalues, 1);
+  if (!check_eigenvalues) {
+    std::cout << "ref" << std::endl;
+    std::cout << es.eigenvalues().head(neigen).transpose() << std::endl;
+    std::cout << "result" << std::endl;
+    std::cout << DS.eigenvalues().transpose() << std::endl;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(davidson_matrix_free_block_large) {
+
+  int size = 400;
+  int neigen = 10;
+
+  // Create Operator
+  BlockOperator Aop;
+  Aop.set_size(size);
+
+  Logger log;
+  DavidsonSolver DS(log);
+  DS.set_tolerance("normal");
   DS.set_size_update("safe");
 
   Eigen::MatrixXd A = Aop.get_full_matrix();
