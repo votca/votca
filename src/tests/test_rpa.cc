@@ -19,6 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
@@ -29,7 +30,8 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(rpa_test)
 
 BOOST_AUTO_TEST_CASE(rpa_calcenergies) {
-  TCMatrix_gwbse Mmn;
+  Logger log;
+  TCMatrix_gwbse Mmn{log};
   Eigen::VectorXd eigenvals;
   RPA rpa(Mmn);
   rpa.configure(4, 0, 9);
@@ -188,7 +190,8 @@ BOOST_AUTO_TEST_CASE(rpa_full) {
       4.15572e-17, -1.84233e-16, 0.0105378, -0.148396, -1.63792e-16,
       -4.6499e-16, 0.351571, 0.00210309;
 
-  TCMatrix_gwbse Mmn;
+  Logger log;
+  TCMatrix_gwbse Mmn{log};
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, eigenvectors);
 

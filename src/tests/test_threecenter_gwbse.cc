@@ -26,7 +26,6 @@ using namespace votca::xtp;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(threecenter_gwbse_test)
-
 BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   OPENMP::setMaxThreads(1);
   std::ofstream xyzfile("molecule.xyz");
@@ -157,7 +156,8 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
       -1.58119, 0.117387, 0.0916104, 0.0440574, -0.0354087, -0.362701,
       -0.512321, 1.39726, 0.374248, -0.793844, -0.035336;
 
-  TCMatrix_gwbse tc;
+  Logger log;
+  TCMatrix_gwbse tc{log};
   tc.Initialize(aobasis.AOBasisSize(), 0, 5, 0, 7);
   tc.Fill(aobasis, aobasis, MOs);
 

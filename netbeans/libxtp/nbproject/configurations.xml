@@ -82,6 +82,8 @@
       <itemPath>../../include/votca/xtp/classicalsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/convergenceacc.h</itemPath>
       <itemPath>../../include/votca/xtp/couplingbase.h</itemPath>
+      <itemPath>../../include/votca/xtp/cudamatrix.h</itemPath>
+      <itemPath>../../include/votca/xtp/cudapipeline.h</itemPath>
       <itemPath>../../include/votca/xtp/davidsonsolver.h</itemPath>
       <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
@@ -209,6 +211,9 @@
         <itemPath>../../src/libxtp/stateapplication.cc</itemPath>
         <itemPath>../../src/libxtp/xtpapplication.cc</itemPath>
       </logicalFolder>
+      <logicalFolder name="f11" displayName="CUDA" projectFiles="true">
+        <itemPath>../../src/libxtp/cudapipeline.cc</itemPath>
+      </logicalFolder>
       <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
         <itemPath>../../src/libxtp/dftengine/ERIs.cc</itemPath>
         <itemPath>../../src/libxtp/dftengine/adiis.cc</itemPath>
@@ -316,6 +321,7 @@
       <itemPath>../../src/tests/test_bse_operator.cc</itemPath>
       <itemPath>../../src/tests/test_bsecoupling.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
+      <itemPath>../../src/tests/test_cudapipeline.cc</itemPath>
       <itemPath>../../src/tests/test_davidson.cc</itemPath>
       <itemPath>../../src/tests/test_dftcoupling.cc</itemPath>
       <itemPath>../../src/tests/test_dftengine.cc</itemPath>
@@ -3989,6 +3995,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/cudamatrix.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/cudapipeline.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/davidsonsolver.h"
             ex="false"
             tool="3"
@@ -4563,6 +4579,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/cudapipeline.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/davidsonsolver.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
@@ -4944,6 +4962,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_cudapipeline.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_davidson.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_dftcoupling.cc"
@@ -5219,6 +5242,16 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/couplingbase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/cudamatrix.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/cudapipeline.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5797,6 +5830,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/cudapipeline.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/davidsonsolver.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
@@ -6174,6 +6209,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_cudapipeline.cc"
             ex="false"
             tool="1"
             flavor2="0">
