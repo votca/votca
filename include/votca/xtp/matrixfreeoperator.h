@@ -28,7 +28,7 @@ class MatrixFreeOperator;
 }  // namespace votca
 namespace Eigen {
 namespace internal {
-// MatrixReplacement looks-like a SparseMatrix, so let's inherits its traits:
+// MatrixReplacement looks-like a Matrix, so let's inherits its traits:
 template <>
 struct traits<votca::xtp::MatrixFreeOperator>
     : public Eigen::internal::traits<Eigen::MatrixXd> {};
@@ -40,9 +40,6 @@ namespace xtp {
 
 class MatrixFreeOperator : public Eigen::EigenBase<MatrixFreeOperator> {
  public:
-  typedef double Scalar;
-  typedef double RealScalar;
-  typedef int StorageIndex;
   enum {
     ColsAtCompileTime = Eigen::Dynamic,
     MaxColsAtCompileTime = Eigen::Dynamic,
