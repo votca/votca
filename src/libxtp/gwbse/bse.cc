@@ -22,6 +22,7 @@
 #include <votca/tools/linalg.h>
 #include <votca/xtp/bse.h>
 #include <votca/xtp/bse_operator.h>
+#include <votca/xtp/bseoperator_btda.h>
 #include <votca/xtp/davidsonsolver.h>
 #include <votca/xtp/populationanalysis.h>
 #include <votca/xtp/qmfragment.h>
@@ -84,12 +85,6 @@ void BSE::Solve_singlets(Orbitals& orb) const {
   if (_opt.useTDA) {
     orb.BSESinglets() = Solve_singlets_TDA();
   } else {
-    if (_opt.davidson) {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp()
-          << " Davidson solver not implemented for BTDA. Using LAPACK."
-          << flush;
-    }
     orb.BSESinglets() = Solve_singlets_BTDA();
   }
   orb.CalcCoupledTransition_Dipoles();
@@ -100,12 +95,6 @@ void BSE::Solve_triplets(Orbitals& orb) const {
   if (_opt.useTDA) {
     orb.BSETriplets() = Solve_triplets_TDA();
   } else {
-    if (_opt.davidson) {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp()
-          << " Davidson solver not implemented for BTDA. Using LAPACK."
-          << flush;
-    }
     orb.BSETriplets() = Solve_triplets_BTDA();
   }
 }
@@ -213,24 +202,45 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
 }
 
 tools::EigenSystem BSE::Solve_singlets_BTDA() const {
-  SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(Hs_ApB);
-  Operator_BTDA_AmB Hs_AmB(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(Hs_AmB);
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
-  return Solve_nonhermitian(Hs_ApB, Hs_AmB);
+  if (_opt.davidson) {
+    SingletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(A);
+
+    SingletOperator_BTDA_B B(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(B);
+
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
+    return Solve_nonhermitian_Davidson(A, B);
+  } else {
+    SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(Hs_ApB);
+    Operator_BTDA_AmB Hs_AmB(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(Hs_AmB);
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
+    return Solve_nonhermitian(Hs_ApB, Hs_AmB);
+  }
 }
 
 tools::EigenSystem BSE::Solve_triplets_BTDA() const {
-  TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(Ht_ApB);
-  Operator_BTDA_AmB Ht_AmB(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(Ht_AmB);
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
-
-  return Solve_nonhermitian(Ht_ApB, Ht_AmB);
+  if (_opt.davidson) {
+    TripletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(A);
+    Hd2Operator B(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(B);
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
+    return Solve_nonhermitian_Davidson(A, B);
+  } else {
+    TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(Ht_ApB);
+    Operator_BTDA_AmB Ht_AmB(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(Ht_AmB);
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
+    return Solve_nonhermitian(Ht_ApB, Ht_AmB);
+  }
 }
 
 template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
@@ -244,10 +254,17 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
   // _ApB = (_eh_d +_eh_qp + _eh_d2 + 4.0 * _eh_x);
   // _AmB = (_eh_d +_eh_qp - _eh_d2);
 
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
+  std::chrono::duration<double> elapsed_time;
+  start = std::chrono::system_clock::now();
+
   Eigen::MatrixXd ApB = apb.get_full_matrix();
   Eigen::MatrixXd AmB = amb.get_full_matrix();
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Setup singlet hamiltonian " << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << " Lapack Diagonalization" << flush;
 
   // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not
   // positive definite
@@ -281,7 +298,14 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
 
   XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Solving for first "
                                << _opt.nmax << " eigenvectors" << flush;
+
+  hstart = std::chrono::system_clock::now();
   tools::EigenSystem eigensys = tools::linalg_eigenvalues(ApB, _opt.nmax);
+  hend = std::chrono::system_clock::now();
+  elapsed_time = hend - hstart;
+  XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Lapack solve done in "
+                               << elapsed_time.count() << " secs" << flush;
+
   if (eigensys.info() != Eigen::ComputationInfo::Success) {
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Could not solve problem" << flush;
@@ -320,6 +344,87 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
         (0.5 / sqrt_eval * (energies(level) * LmT - AmB) *
          eigensys.eigenvectors().col(level));
   }
+
+  end = std::chrono::system_clock::now();
+  elapsed_time = end - start;
+
+  XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Diagonalization done in "
+                               << elapsed_time.count() << " secs" << flush;
+
+  return result;
+}
+
+template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
+tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
+                                                    BSE_OPERATOR_B& Bop) const {
+
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
+  std::chrono::duration<double> elapsed_time;
+  start = std::chrono::system_clock::now();
+
+  // operator
+  HamiltonianOperator<BSE_OPERATOR_A, BSE_OPERATOR_B> Hop(Aop, Bop);
+
+  // Davidson solver
+  DavidsonSolver DS(_log);
+  DS.set_correction(_opt.davidson_correction);
+  DS.set_tolerance(_opt.davidson_tolerance);
+  DS.set_ortho("QR");
+  DS.set_size_update(_opt.davidson_update);
+  DS.set_iter_max(_opt.davidson_maxiter);
+  DS.set_max_search_space(10 * _opt.nmax);
+  DS.set_matrix_type("HAM");
+
+  if (_opt.matrixfree) {
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Using matrix free method" << flush;
+    DS.solve(Hop, _opt.nmax);
+
+  } else {
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Using full matrix method" << flush;
+    // get the full matrix
+    hstart = std::chrono::system_clock::now();
+    Eigen::MatrixXd hfull = Hop.get_full_matrix();
+    hend = std::chrono::system_clock::now();
+
+    elapsed_time = hend - hstart;
+
+    XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Full matrix assembled in "
+                                 << elapsed_time.count() << " secs" << flush;
+
+    // solve theeigenalue problem
+    hstart = std::chrono::system_clock::now();
+    DS.solve(hfull, _opt.nmax);
+    hend = std::chrono::system_clock::now();
+
+    elapsed_time = hend - hstart;
+    XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Davidson solve done in "
+                                 << elapsed_time.count() << " secs" << flush;
+  }
+
+  // results
+  tools::EigenSystem result;
+  result.eigenvalues() = DS.eigenvalues();
+  Eigen::MatrixXd _tmpX = DS.eigenvectors().topRows(Aop.size());
+  Eigen::MatrixXd _tmpY = DS.eigenvectors().bottomRows(Aop.size());
+
+  // // normalization so that eigenvector^2 - eigenvector2^2 = 1
+  Eigen::VectorXd normX = _tmpX.colwise().squaredNorm();
+  Eigen::VectorXd normY = _tmpY.colwise().squaredNorm();
+
+  Eigen::ArrayXd sqinvnorm = (normX - normY).array().inverse().cwiseSqrt();
+
+  result.eigenvectors() = _tmpX * sqinvnorm.matrix().asDiagonal();
+  result.eigenvectors2() = _tmpY * sqinvnorm.matrix().asDiagonal();
+
+  end = std::chrono::system_clock::now();
+  elapsed_time = end - start;
+
+  XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Diagonalization done in "
+                               << elapsed_time.count() << " secs" << flush;
+
   return result;
 }
 

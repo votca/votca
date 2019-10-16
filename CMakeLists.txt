@@ -40,15 +40,11 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-
-
-
 ########################################################################
 # User input options                                                   #
 ########################################################################
 
 find_package(LIBXC REQUIRED)
-
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 
 if (${HDF5_VERSION} GREATER 1.8)
