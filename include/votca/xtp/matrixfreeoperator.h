@@ -23,8 +23,26 @@
 namespace votca {
 namespace xtp {
 
-class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
+class MatrixFreeOperator;
+}
+}  // namespace votca
+namespace Eigen {
+namespace internal {
+// MatrixReplacement looks-like a SparseMatrix, so let's inherits its traits:
+template <>
+struct traits<votca::xtp::MatrixFreeOperator>
+    : public Eigen::internal::traits<Eigen::MatrixXd> {};
+}  // namespace internal
+}  // namespace Eigen
+
+namespace votca {
+namespace xtp {
+
+class MatrixFreeOperator : public Eigen::EigenBase<MatrixFreeOperator> {
  public:
+  typedef double Scalar;
+  typedef double RealScalar;
+  typedef int StorageIndex;
   enum {
     ColsAtCompileTime = Eigen::Dynamic,
     MaxColsAtCompileTime = Eigen::Dynamic,
@@ -70,10 +88,6 @@ class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
 namespace Eigen {
 
 namespace internal {
-
-template <>
-struct traits<votca::xtp::MatrixFreeOperator>
-    : public Eigen::internal::traits<Eigen::MatrixXd> {};
 
 // replacement of the mat*vect operation
 template <typename Vtype>
