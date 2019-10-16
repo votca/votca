@@ -38,11 +38,16 @@ Issues can be directed created on the appropriate github repo:
 * [xtp](https://github.com/votca/xtp/issues)
 * [votca](https://github.com/votca/votca/issues)
 
+## Formatting code
+
+VOTCA uses `clang-format` to format the code, code that is not properly formatted is automatically rejected. The style files can be found in each repo. If you have a version `>7.1` of `clang-format` you can just run `make format` and your code is formatted. For an even more automated version, see [VOTCA dev-tools](#votca-dev-tools)
+
+
 ## VOTCA dev-tools
 
 Running clang-format on every commit can be a drag, as can changing the copyright in every header. 
 Building artifacts locally from a Gitlab run is also mutliple steps. Fortunately you will find small 
-scripts in the [dev-tools repo](https://github.com/votca/dev-tools).
+scripts in the [dev-tools repo](https://github.com/votca/dev-tools), which can automate this. 
 
 ## CPP Resources
 
