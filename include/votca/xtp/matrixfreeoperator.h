@@ -28,7 +28,7 @@ class MatrixFreeOperator;
 }  // namespace votca
 namespace Eigen {
 namespace internal {
-// MatrixReplacement looks-like a SparseMatrix, so let's inherits its traits:
+// MatrixReplacement looks-like a Matrix, so let's inherits its traits:
 template <>
 struct traits<votca::xtp::MatrixFreeOperator>
     : public Eigen::internal::traits<Eigen::MatrixXd> {};
