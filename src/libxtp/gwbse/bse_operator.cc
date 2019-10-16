@@ -32,38 +32,12 @@ void BSE_OPERATOR<cqp, cx, cd, cd2>::configure(BSEOperator_Options opt) {
   _bse_ctotal = _opt.cmax - _bse_cmin + 1;
   _bse_size = _bse_vtotal * _bse_ctotal;
   this->set_size(_bse_size);
-
-  if (cx != 0) {
-    _Hx_cache = std::vector<cache_block>(OPENMP::getMaxThreads());
-  }
 }
 
 template <int cqp, int cx, int cd, int cd2>
-void BSE_OPERATOR<cqp, cx, cd, cd2>::cache_block::FillCache(
-    const Eigen::MatrixXd& matrix, int index) {
-  _index = index + 1;
-  _size = matrix.cols() - 1;
-  _values.resize(_size);
-  for (int i = 0; i < _size; i++) {
-    _values[i] = matrix.col(i + 1).transpose();
-  }
-}
-
-template <int cqp, int cx, int cd, int cd2>
-bool BSE_OPERATOR<cqp, cx, cd, cd2>::cache_block::hasValue(int index) const {
-  if (index >= _index && index < (_index + _size)) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-template <int cqp, int cx, int cd, int cd2>
-Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::row(int index) const {
+Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::OperatorRow(
+    int index) const {
   Eigen::RowVectorXd row = Eigen::RowVectorXd::Zero(_bse_size);
-  if (cx != 0) {
-    row += cx * Hx_row(index);
-  }
   if (cd != 0) {
     row += cd * Hd_row(index);
   }
@@ -77,37 +51,23 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::row(int index) const {
 }
 
 template <int cqp, int cx, int cd, int cd2>
-Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_row(int index) const {
-  int thread_id = OPENMP::getThreadId();
 
-  if (_Hx_cache[thread_id].hasValue(index)) {
-    return _Hx_cache[thread_id].getValue(index);
-  }
+Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::OperatorBlock(int row,
+                                                              int col) const {
+  return cx * HxBlock(row, col);
+}
 
+
+template <int cqp, int cx, int cd, int cd2>
+Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::HxBlock(int row,
+                                                        int col) const {
   int auxsize = _Mmn.auxsize();
-  vc2index vc = vc2index(0, 0, _bse_ctotal);
-
   const int vmin = _opt.vmin - _opt.rpamin;
   const int cmin = _bse_cmin - _opt.rpamin;
-  int v1 = vc.v(index);
-  int c1 = vc.c(index);
-  int cache_size = 50;
-
-  if ((_bse_ctotal - c1) < cache_size) {
-    cache_size = _bse_ctotal - c1;
-  }
-
-  Eigen::MatrixXd H_cache = Eigen::MatrixXd::Zero(_bse_size, cache_size);
-  const Eigen::MatrixXd Mmn1T =
-      _Mmn[v1 + vmin].block(c1 + cmin, 0, cache_size, auxsize).transpose();
-  for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-    const Eigen::MatrixXd& Mmn2 = _Mmn[v2 + vmin];
-    int i2 = vc.I(v2, 0);
-    H_cache.block(i2, 0, _bse_ctotal, cache_size) =
-        Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1T;
-  }
-  _Hx_cache[thread_id].FillCache(H_cache, index);
-  return H_cache.col(0).transpose();
+  int v1 = row + vmin;
+  int v2 = col + vmin;
+  return _Mmn[v1].block(cmin, 0, _bse_ctotal, auxsize) *
+         _Mmn[v2].block(cmin, 0, _bse_ctotal, auxsize).transpose();
 }
 
 template <int cqp, int cx, int cd, int cd2>

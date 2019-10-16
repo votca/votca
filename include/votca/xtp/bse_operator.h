@@ -46,38 +46,25 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 
   void configure(BSEOperator_Options opt);
 
-  Eigen::RowVectorXd row(int index) const;
+  Eigen::RowVectorXd OperatorRow(int index) const;
+
+  bool useBlock() const { return cx != 0; }
+
+  int getBlocksize() const { return _bse_ctotal; }
+
+  Eigen::MatrixXd OperatorBlock(int row, int col) const;
 
  private:
   Eigen::RowVectorXd Hqp_row(int index) const;
-  Eigen::RowVectorXd Hx_row(int index) const;
   Eigen::RowVectorXd Hd_row(int index) const;
   Eigen::RowVectorXd Hd2_row(int index) const;
-
-  class cache_block {
-
-   public:
-    bool hasValue(int index) const;
-
-    Eigen::RowVectorXd getValue(int index) {
-      return std::move(_values[index - _index]);
-    }
-
-    void FillCache(const Eigen::MatrixXd& matrix, int index);
-
-   private:
-    std::vector<Eigen::RowVectorXd> _values;
-    int _index = -1;
-    int _size = -1;
-  };
+  Eigen::MatrixXd HxBlock(int row, int col) const;
 
   BSEOperator_Options _opt;
   int _bse_size;
   int _bse_vtotal;
   int _bse_ctotal;
   int _bse_cmin;
-
-  mutable std::vector<cache_block> _Hx_cache;
 
   const Eigen::VectorXd& _epsilon_0_inv;
   const TCMatrix_gwbse& _Mmn;

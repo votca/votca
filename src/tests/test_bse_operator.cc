@@ -19,6 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <votca/xtp/bse_operator.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
 
 using namespace votca::xtp;
@@ -222,7 +223,8 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   mo_energy << -0.612601, -0.341755, -0.341755, -0.341755, 0.137304, 0.16678,
       0.16678, 0.16678, 0.671592, 0.671592, 0.671592, 0.974255, 1.01205,
       1.01205, 1.01205, 1.64823, 19.4429;
-  TCMatrix_gwbse Mmn;
+  Logger log;
+  TCMatrix_gwbse Mmn{log};
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, MOs);
 
@@ -293,7 +295,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   opt.vmin = 0;
 
   orbitals.setBSEindices(0, 16);
-
+  OPENMP::setMaxThreads(1);
   HqpOperator Hqp_op(epsilon_inv, Mmn, Hqp);
   Hqp_op.configure(opt);
   Eigen::MatrixXd hqp_mat = Hqp_op.get_full_matrix();

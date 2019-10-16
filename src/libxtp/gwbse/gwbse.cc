@@ -556,7 +556,7 @@ bool GWBSE::Evaluate() {
         "You want no GW calculation but the orb file has no QPcoefficients for "
         "BSE");
   }
-  TCMatrix_gwbse Mmn;
+  TCMatrix_gwbse Mmn(*_pLog);
   // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, _gwopt.qpmax,
                  _gwopt.rpamin, _gwopt.rpamax);
