@@ -56,9 +56,10 @@ void TrajForce::BeginEvaluate(Topology *top, Topology *top_atom) {
   _top_force.CopyTopologyData(top);
   _trjreader_force =
       TrjReaderFactory().Create(_op_vm["trj-force"].as<string>());
-  if (_trjreader_force == nullptr)
+  if (_trjreader_force == nullptr) {
     throw runtime_error(string("input format not supported: ") +
                         _op_vm["trj-force"].as<string>());
+  }
   // open the trajectory
   _trjreader_force->Open(_op_vm["trj-force"].as<string>());
   // read in first frame
@@ -66,9 +67,10 @@ void TrajForce::BeginEvaluate(Topology *top, Topology *top_atom) {
 
   // output trajectory file
   _trjwriter = TrjWriterFactory().Create(_op_vm["out"].as<string>());
-  if (_trjwriter == nullptr)
+  if (_trjwriter == nullptr) {
     throw runtime_error(string("output trajectory format not supported: ") +
                         _op_vm["out"].as<string>());
+  }
   bool append = true;
   _trjwriter->Open(_op_vm["out"].as<string>(), append);
 }
@@ -84,10 +86,11 @@ void TrajForce::EndEvaluate() {
 void TrajForce::WriteOutFiles() {}
 
 void TrajForce::EvalConfiguration(Topology *conf, Topology *conf_atom) {
-  if (conf->BeadCount() != _top_force.BeadCount())
+  if (conf->BeadCount() != _top_force.BeadCount()) {
     throw std::runtime_error(
         "number of beads in topology and reference force topology does not "
         "match");
+  }
   for (int i = 0; i < conf->BeadCount(); ++i) {
     // conf->getBead(i)->F() += _scale*_top_force.getBead(i)->getF();
 
@@ -99,10 +102,11 @@ void TrajForce::EvalConfiguration(Topology *conf, Topology *conf_atom) {
         conf->getBead(i)->getF() + _scale * _top_force.getBead(i)->getF();
     Eigen::Vector3d d =
         conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
-    if (d.norm() > 1e-6)
+    if (d.norm() > 1e-6) {
       throw std::runtime_error(
           "One or more bead positions in trajectory and reference force "
           "trajectory differ by more than 1e-6");
+    }
   }
   //  cout << conf->HasForce() << endl;
   //  cout << _top_force.HasForce() << endl;

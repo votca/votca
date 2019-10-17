@@ -134,7 +134,9 @@ class CsgFluctuations : public CsgApplication {
     }
 
     _outfile.open(_outfilename.c_str());
-    if (!_outfile) throw runtime_error("cannot open outfile for output");
+    if (!_outfile) {
+      throw runtime_error("cannot open outfile for output");
+    }
   }
 
   // write out results in EndEvaluate
@@ -189,20 +191,22 @@ void CsgFluctuations::EvalConfiguration(Topology *conf,
 
   /* check how many molecules are in each bin*/
   for (Bead *bead : conf->Beads()) {
-    if (!votca::tools::wildcmp(_filter.c_str(), bead->getName().c_str()))
+    if (!votca::tools::wildcmp(_filter.c_str(), bead->getName().c_str())) {
       continue;
+    }
 
     if (_do_spherical) {
       eR = bead->getPos() - _ref;
       r = eR.norm();
     } else {
       eR = bead->getPos();
-      if (_dim == 0)
+      if (_dim == 0) {
         r = eR.x();
-      else if (_dim == 1)
+      } else if (_dim == 1) {
         r = eR.y();
-      else if (_dim == 2)
+      } else if (_dim == 2) {
         r = eR.z();
+      }
     }
     if (r > _rmin && r < _rmax) {
       rbin = (int)_nbins * (double)((r - _rmin) / (_rmax - _rmin));

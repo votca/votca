@@ -144,21 +144,24 @@ int main(int argc, char **argv) {
   try {
     // Load topology
     reader = TopReaderFactory().Create(vm["top"].as<string>());
-    if (reader == nullptr)
+    if (reader == nullptr) {
       throw std::runtime_error("input format not supported: " +
                                vm["top"].as<string>());
+    }
 
     reader->ReadTopology(vm["top"].as<string>(), top);
 
     // Read the particle types file and save to variable ptypes
     if (vm.count("ptypes")) {
       fl_ptypes.open(vm["ptypes"].as<string>().c_str());
-      if (!fl_ptypes.is_open())
+      if (!fl_ptypes.is_open()) {
         throw std::runtime_error("can't open " + vm["ptypes"].as<string>());
+      }
       // build the list of particle types
-      if (fl_ptypes.eof())
+      if (fl_ptypes.eof()) {
         throw std::runtime_error("file " + vm["ptypes"].as<string>() +
                                  " is empty");
+      }
       while (!fl_ptypes.eof()) {
         // Not very elegant, but makes sure we don't count the same element
         // twice
@@ -177,55 +180,67 @@ int main(int argc, char **argv) {
           flag_found = 0;
           part_type = atoi((*mol)->getBead(i)->getType().c_str());
           for (size_t j = 0; j < ptypes.size(); ++j) {
-            if (part_type == ptypes[j]) flag_found = 1;
+            if (part_type == ptypes[j]) {
+              flag_found = 1;
+            }
           }
-          if (!flag_found) ptypes.push_back(part_type);
+          if (!flag_found) {
+            ptypes.push_back(part_type);
+          }
         }
       }
     }
 
     // Allocate array used to store particle occupancy p_occ
     p_occ = (int **)calloc(ptypes.size(), sizeof(int *));
-    for (size_t i = 0; i < ptypes.size(); ++i)
+    for (size_t i = 0; i < ptypes.size(); ++i) {
       p_occ[i] = (int *)calloc(n_bins, sizeof(int));
+    }
 
     // If we need to shift the center of mass, calculate the number of
     // particles (only the ones that belong to the particle type index
     // ptypes)
+
     if (vm.count("shift_com")) {
       for (mol = top.Molecules().begin(); mol != top.Molecules().end(); ++mol) {
         for (int i = 0; i < (*mol)->BeadCount(); ++i) {
           part_type = atoi((*mol)->getBead(i)->getType().c_str());
-          for (size_t j = 0; j < ptypes.size(); ++j)
-            if (part_type == ptypes[j]) ++n_part;
+          for (size_t j = 0; j < ptypes.size(); ++j) {
+            if (part_type == ptypes[j]) {
+              ++n_part;
+            }
+          }
         }
       }
     }
 
     // Now load trajectory
     trajreader = TrjReaderFactory().Create(vm["trj"].as<string>());
-    if (trajreader == nullptr)
+    if (trajreader == nullptr) {
       throw std::runtime_error("input format not supported: " +
                                vm["trj"].as<string>());
+    }
     trajreader->Open(vm["trj"].as<string>());
 
     // Read the trajectory. Analyze each frame to obtain
     // particle occupancy as a function of coordinate z.
     while (moreframes) {
       // Read frame
-      if (frame_id == 0)
+      if (frame_id == 0) {
         moreframes = trajreader->FirstFrame(top);
-      else
+      } else {
         moreframes = trajreader->NextFrame(top);
+      }
 
       // Was this the last frame we read?
-      if (last_frame == -1)
+      if (last_frame == -1) {
         not_the_last = 1;
-      else {
-        if (frame_id <= last_frame)
+      } else {
+        if (frame_id <= last_frame) {
           not_the_last = 1;
-        else
+        } else {
           not_the_last = 0;
+        }
       }
 
       // Calculate new center of mass position in the direction of 'coordinate'
@@ -261,15 +276,17 @@ int main(int argc, char **argv) {
             part_type = atoi((*mol)->getBead(i)->getType().c_str());
             for (size_t j = 0; j < ptypes.size(); ++j) {
               if (part_type == ptypes[j]) {
-                if (coordinate.compare("x") == 0)
+                if (coordinate.compare("x") == 0) {
                   coord = (*mol)->getBead(i)->getPos().x();
-                else if (coordinate.compare("y") == 0)
+                } else if (coordinate.compare("y") == 0) {
                   coord = (*mol)->getBead(i)->getPos().y();
-                else
+                } else {
                   coord = (*mol)->getBead(i)->getPos().z();
+                }
 
-                if (coord - com > min && coord - com < max)
+                if (coord - com > min && coord - com < max) {
                   ++p_occ[j][(int)floor((coord - com - min) / step)];
+                }
               }
             }
           }
@@ -287,20 +304,23 @@ int main(int argc, char **argv) {
   // Output particle occupancy
   try {
     fl_out.open(vm["out"].as<string>().c_str());
-    if (!fl_out.is_open())
+    if (!fl_out.is_open()) {
       throw std::runtime_error("can't open " + vm["out"].as<string>());
+    }
 
     fl_out << "#z\t" << flush;
-    for (size_t i = 0; i < ptypes.size(); ++i)
+    for (size_t i = 0; i < ptypes.size(); ++i) {
       fl_out << "type " << ptypes[i] << "\t" << flush;
+    }
     fl_out << endl;
     for (int k = 0; k < n_bins; ++k) {
       fl_out << min + k * step << "\t" << flush;
       for (size_t j = 0; j < ptypes.size(); ++j) {
-        if (p_occ[j][k] == 0)
+        if (p_occ[j][k] == 0) {
           fl_out << 0 << "\t" << flush;
-        else
+        } else {
           fl_out << p_occ[j][k] / (1. * analyzed_frames) << "\t" << flush;
+        }
       }
       fl_out << endl;
     }
@@ -309,7 +329,9 @@ int main(int argc, char **argv) {
     cerr << "An error occured!" << endl << error.what() << endl;
   }
 
-  for (size_t i = 0; i < ptypes.size(); ++i) free(p_occ[i]);
+  for (size_t i = 0; i < ptypes.size(); ++i) {
+    free(p_occ[i]);
+  }
   free(p_occ);
 
   cout << "The table was written to " << vm["out"].as<string>() << endl;

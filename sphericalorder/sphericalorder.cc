@@ -91,11 +91,17 @@ class CGOrderParam : public CsgApplication {
     setFilter(filter);
 
     _file_u.open("hist_u.xvg");
-    if (!_file_u) throw runtime_error("cannot open hist_u.xvg for output");
+    if (!_file_u) {
+      throw runtime_error("cannot open hist_u.xvg for output");
+    }
     _file_v.open("hist_v.xvg");
-    if (!_file_v) throw runtime_error("cannot open hist_v.xvg for output");
+    if (!_file_v) {
+      throw runtime_error("cannot open hist_v.xvg for output");
+    }
     _file_w.open("hist_w.xvg");
-    if (!_file_w) throw runtime_error("cannot open hist_w.xvg for output");
+    if (!_file_w) {
+      throw runtime_error("cannot open hist_w.xvg for output");
+    }
 
     _n = 0;
 
@@ -188,10 +194,12 @@ class CGOrderParam : public CsgApplication {
     }
 
     for (Bead *bead : conf->Beads()) {
-      if (!votca::tools::wildcmp(_filter.c_str(), bead->getName().c_str()))
+      if (!votca::tools::wildcmp(_filter.c_str(), bead->getName().c_str())) {
         continue;
-      if (votca::tools::wildcmp(_refmol.c_str(), bead->getName().c_str()))
+      }
+      if (votca::tools::wildcmp(_refmol.c_str(), bead->getName().c_str())) {
         continue;
+      }
 
       eR = bead->getPos() - _ref;
       if ((eR.norm() < _radialcutoff && eR.norm() > _minrad) || _rbins != 1) {
@@ -200,7 +208,9 @@ class CGOrderParam : public CsgApplication {
         if (_rbinw > 0) {
           rb = (int)((eR.norm()) / boxl * (double)_rbins);
         }
-        if (rb >= _rbins) continue;
+        if (rb >= _rbins) {
+          continue;
+        }
 
         eR.normalize();
         u = bead->getU();

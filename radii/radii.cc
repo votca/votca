@@ -61,13 +61,16 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *top_ref) {
   for (Molecule *mol : top->Molecules()) {
     // does the id match if given?
     if (OptionsMap().count("mol")) {
-      if (OptionsMap()["mol"].as<int>() != mol->getId() + 1) continue;
+      if (OptionsMap()["mol"].as<int>() != mol->getId() + 1) {
+        continue;
+      }
     }
     // otherwise does the name pattern match?
     else if (!votca::tools::wildcmp(
                  OptionsMap()["molname"].as<string>().c_str(),
-                 mol->getName().c_str()))
+                 mol->getName().c_str())) {
       continue;  // if not skip this molecule
+    }
 
     // Number of beads in the molecule
     int N = mol->BeadCount();

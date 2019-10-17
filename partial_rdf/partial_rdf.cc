@@ -94,10 +94,13 @@ bool CsgStatApp::EvaluateOptions() {
       OptionsMap()["subvolume_radius"].as<double>());
 
   _rdf_calculator.WriteEvery(_write_every);
-  if (OptionsMap().count("do-blocks")) _rdf_calculator.DoBlocks(true);
+  if (OptionsMap().count("do-blocks")) {
+    _rdf_calculator.DoBlocks(true);
+  }
 
-  if (OptionsMap().count("do-vol-corr"))
+  if (OptionsMap().count("do-vol-corr")) {
     _rdf_calculator.DoVolumeCorrection(true);
+  }
 
   _rdf_calculator.Initialize();
   return true;

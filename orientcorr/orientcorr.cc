@@ -122,8 +122,12 @@ void OrientCorrApp::Initialize() {
 }
 
 NBList *OrientCorrApp::CreateNBSearch() {
-  if (_nbmethod == "simple") return new NBList();
-  if (_nbmethod == "grid") return new NBListGrid();
+  if (_nbmethod == "simple") {
+    return new NBList();
+  }
+  if (_nbmethod == "grid") {
+    return new NBListGrid();
+  }
 
   throw std::runtime_error(
       "unknown neighbor search method, use simple or grid");
@@ -222,7 +226,9 @@ bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
   _cor.Process(dist, P2);
   _count.Process(dist);
 
-  if (b1->getMolecule() == b2->getMolecule()) return false;
+  if (b1->getMolecule() == b2->getMolecule()) {
+    return false;
+  }
 
   // calculate average with excluding intramolecular contributions
   _cor_excl.Process(dist, P2);
