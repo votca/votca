@@ -35,13 +35,15 @@ class VotcaProperty : public Application {
 
  public:
   VotcaProperty();
-  ~VotcaProperty();
+  ~VotcaProperty() override;
 
-  string ProgramName() { return "votca_property"; }
+  string ProgramName() override { return "votca_property"; }
 
-  void HelpText(ostream& out) { out << "Helper for parsing XML files"; }
+  void HelpText(ostream& out) override {
+    out << "Helper for parsing XML files";
+  }
 
-  void Initialize() {
+  void Initialize() override {
 
     format = "XML";
     level = 1;
@@ -51,12 +53,12 @@ class VotcaProperty : public Application {
         "level", po::value<int>(), "output from this level ");
   };
 
-  bool EvaluateOptions() {
+  bool EvaluateOptions() override {
     CheckRequired("file", "Missing XML file");
     return true;
   };
 
-  void Run() {
+  void Run() override {
 
     file = _op_vm["file"].as<string>();
 

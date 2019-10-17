@@ -32,10 +32,12 @@ using namespace votca::tools;
 
 class GraphVisitorTest : public GraphVisitor {
  private:
-  void addEdges_(const Graph&, int) {
+  void addEdges_(const Graph&, int) override {
     throw runtime_error("Undefined method.");
   }
-  Edge getEdge_(const Graph&) { throw runtime_error("Undefined method."); }
+  Edge getEdge_(const Graph&) override {
+    throw runtime_error("Undefined method.");
+  }
 };
 
 BOOST_AUTO_TEST_SUITE(graphvisitor_test)

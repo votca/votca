@@ -56,22 +56,22 @@ class CubicSpline : public Spline {
   //    _boundaries(splineNormal) {}
 
   // destructor
-  ~CubicSpline(){};
+  ~CubicSpline() override{};
 
   // construct an interpolation spline
   // x, y are the the points to construct interpolation, both vectors must be of
   // same size
-  void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y);
+  void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) override;
 
   // fit spline through noisy data
   // x,y are arrays with noisy data, both vectors must be of same size
-  void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y);
+  void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) override;
 
   // Calculate the function value
-  double Calculate(const double &x);
+  double Calculate(const double &x) override;
 
   // Calculate the function derivative
-  double CalculateDerivative(const double &x);
+  double CalculateDerivative(const double &x) override;
 
   // Calculate the function value for a whole array, story it in y
   template <typename vector_type1, typename vector_type2>

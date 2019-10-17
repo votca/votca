@@ -103,7 +103,7 @@ class ParseXML {
     FunctorMember(T *cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
 
     void operator()(const std::string &el,
-                    std::map<std::string, std::string> &attr) {
+                    std::map<std::string, std::string> &attr) override {
       (_cls->*_fkt)(el, attr);
     }
 

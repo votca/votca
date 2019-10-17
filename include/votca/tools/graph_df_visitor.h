@@ -43,12 +43,12 @@ class Graph_DF_Visitor : public GraphVisitor {
 
   /// The core of the breadth first visitor is in how the edges are added
   /// to the queue in this function
-  void addEdges_(const Graph& g, int vertex);
-  Edge getEdge_(const Graph& g);
+  void addEdges_(const Graph& g, int vertex) override;
+  Edge getEdge_(const Graph& g) override;
 
  public:
   Graph_DF_Visitor(){};
-  bool queEmpty() const;
+  bool queEmpty() const override;
 };
 }  // namespace tools
 }  // namespace votca
