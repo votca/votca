@@ -329,7 +329,6 @@ class HermitianBlockOperator : public MatrixFreeOperator {
 
  private:
   Eigen::MatrixXd _mat;
-  int _diag;
 };
 
 void HermitianBlockOperator::attach_matrix(const Eigen::MatrixXd &mat) {
