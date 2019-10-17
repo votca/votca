@@ -34,7 +34,7 @@ class Bead;
 
 class ExclusionList {
  public:
-  ExclusionList() {}
+  ExclusionList() = default;
   ~ExclusionList() { Clear(); }
 
   void Clear(void);

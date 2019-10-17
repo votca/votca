@@ -27,7 +27,7 @@ namespace csg {
 template <typename element_type, typename pair_type>
 class PairList {
  public:
-  PairList() {}
+  PairList() = default;
   virtual ~PairList() { Cleanup(); }
 
   // this method takes ownership of p

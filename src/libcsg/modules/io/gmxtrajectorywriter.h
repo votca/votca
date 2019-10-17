@@ -36,7 +36,7 @@ namespace csg {
 
 class GMXTrajectoryWriter : public TrajectoryWriter {
  public:
-  GMXTrajectoryWriter() {}
+  GMXTrajectoryWriter() = default;
 
   void Open(std::string file, bool bAppend = false) override;
   void Close() override;

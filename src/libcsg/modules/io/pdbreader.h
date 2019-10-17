@@ -38,9 +38,9 @@ namespace csg {
 class PDBReader : public TopologyReader, public TrajectoryReader {
  public:
   /// Constuctor
-  PDBReader() {}
+  PDBReader() = default;
   /// Destructor
-  ~PDBReader() override {}
+  ~PDBReader() override = default;
   /// open a topology file
   bool ReadTopology(std::string file, Topology &top) override;
   /// open a trajectory file

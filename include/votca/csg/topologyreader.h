@@ -27,7 +27,7 @@ namespace csg {
 
 class TopologyReader {
  public:
-  virtual ~TopologyReader() {}
+  virtual ~TopologyReader() = default;
   /// open, read and close topology file
   virtual bool ReadTopology(std::string file, Topology &top) = 0;
 

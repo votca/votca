@@ -27,7 +27,7 @@ class Molecule;
 
 class MoleculeItem {
  public:
-  virtual ~MoleculeItem() {}
+  virtual ~MoleculeItem() = default;
 
   /**
    * Returns the molecule the pointer points at

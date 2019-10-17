@@ -45,7 +45,7 @@ namespace TOOLS = votca::tools;
 */
 class GMXTrajectoryReader : public TrajectoryReader {
  public:
-  GMXTrajectoryReader() {}
+  GMXTrajectoryReader() = default;
 
   /// open a trejectory file
   bool Open(const std::string &file) override;

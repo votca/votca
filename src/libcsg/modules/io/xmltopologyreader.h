@@ -50,7 +50,8 @@ class XMLBead {
   XMLBead(std::string _name, std::string _type, double _mass = 1.0,
           double _q = 0.0)
       : name(_name), type(_type), mass(_mass), q(_q){};
-  XMLBead(){};
+  XMLBead() = default;
+  ;
 
   int pid;
   std::string name;

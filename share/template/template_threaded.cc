@@ -82,7 +82,8 @@ class CsgTestApp : public CsgApplication {
 // derive from CsgApplication::Worker and define your worker
 class RDFWorker : public CsgApplication::Worker {
  public:
-  ~RDFWorker() override{};
+  ~RDFWorker() override = default;
+  ;
   // override EvalConfiguration with your analysis routine
   void EvalConfiguration(Topology *top, Topology *top_ref) override;
   // data belonging to this particular worker

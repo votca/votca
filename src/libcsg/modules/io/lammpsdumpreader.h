@@ -36,8 +36,8 @@ namespace csg {
 */
 class LAMMPSDumpReader : public TrajectoryReader, public TopologyReader {
  public:
-  LAMMPSDumpReader() {}
-  ~LAMMPSDumpReader() override {}
+  LAMMPSDumpReader() = default;
+  ~LAMMPSDumpReader() override = default;
 
   /// open a topology file
   bool ReadTopology(std::string file, Topology &top) override;

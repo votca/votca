@@ -49,7 +49,8 @@ class Map {
 *******************************************************/
 class BeadMap {
  public:
-  virtual ~BeadMap(){};
+  virtual ~BeadMap() = default;
+  ;
   virtual void Apply() = 0;
   virtual void Initialize(Molecule *in, Bead *out, tools::Property *opts_map,
                           tools::Property *opts_bead);
@@ -75,7 +76,7 @@ inline void BeadMap::Initialize(Molecule *in, Bead *out,
 *******************************************************/
 class Map_Sphere : public BeadMap {
  public:
-  Map_Sphere() {}
+  Map_Sphere() = default;
   void Apply() override;
 
   void Initialize(Molecule *in, Bead *out, tools::Property *opts_bead,
@@ -105,7 +106,7 @@ inline void Map_Sphere::AddElem(Bead *in, double weight, double force_weight) {
 *******************************************************/
 class Map_Ellipsoid : public Map_Sphere {
  public:
-  Map_Ellipsoid() {}
+  Map_Ellipsoid() = default;
   void Apply() override;
 
  protected:

@@ -27,7 +27,7 @@ namespace csg {
 template <typename element_type, typename triple_type>
 class TripleList {
  public:
-  TripleList() {}
+  TripleList() = default;
   virtual ~TripleList() { Cleanup(); }
 
   void AddTriple(triple_type *t);

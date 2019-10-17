@@ -26,7 +26,7 @@ NBList_3Body::NBList_3Body() : _do_exclusions(false), _match_function(nullptr) {
   SetMatchFunction(NBList_3Body::match_always);
 }
 
-NBList_3Body::~NBList_3Body() {}
+NBList_3Body::~NBList_3Body() = default;
 
 void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
                             bool do_exclusions) {

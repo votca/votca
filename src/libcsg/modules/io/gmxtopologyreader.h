@@ -33,7 +33,7 @@ namespace csg {
 */
 class GMXTopologyReader : public TopologyReader {
  public:
-  GMXTopologyReader() {}
+  GMXTopologyReader() = default;
 
   /// read a topology file
   bool ReadTopology(std::string file, Topology &top) override;

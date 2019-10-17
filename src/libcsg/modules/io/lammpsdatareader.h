@@ -38,8 +38,8 @@ class Molecule;
 */
 class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
  public:
-  LAMMPSDataReader() {}
-  ~LAMMPSDataReader() override {}
+  LAMMPSDataReader() = default;
+  ~LAMMPSDataReader() override = default;
 
   /// open, read and close topology file
   bool ReadTopology(std::string file, Topology &top) override;

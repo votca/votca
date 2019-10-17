@@ -43,7 +43,7 @@ class BaseBead {
   /**
    * destructor
    */
-  virtual ~BaseBead() {}
+  virtual ~BaseBead() = default;
 
   /// Gets the id of the bead
   int getId() const { return id_.getId(); }

@@ -39,7 +39,7 @@ class Interaction {
  public:
   Interaction() : _index(-1), _group(""), _group_id(-1), _name(""), _mol(-1){};
 
-  virtual ~Interaction() {}
+  virtual ~Interaction() = default;
   virtual double EvaluateVar(const Topology &top) = 0;
 
   std::string getName() const { return _name; }

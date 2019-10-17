@@ -26,7 +26,8 @@ namespace csg {
 class BoundaryCondition {
 
  public:
-  virtual ~BoundaryCondition(){};
+  virtual ~BoundaryCondition() = default;
+  ;
 
   /**
    * set the simulation box

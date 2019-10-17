@@ -48,7 +48,7 @@ class Bead : public BaseBead {
   /**
    * destructor
    */
-  ~Bead() override {}
+  ~Bead() override = default;
 
   /**
    * get the residu number of the bead

@@ -30,7 +30,7 @@ namespace TOOLS = votca::tools;
 template <typename T>
 class FileFormatFactory : public TOOLS::ObjectFactory<std::string, T> {
  public:
-  FileFormatFactory() {}
+  FileFormatFactory() = default;
 
   T *Create(const std::string &file);
 };

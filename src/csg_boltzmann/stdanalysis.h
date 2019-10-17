@@ -27,8 +27,10 @@ namespace csg {
 
 class StdAnalysis : public AnalysisTool {
  public:
-  StdAnalysis(){};
-  ~StdAnalysis() override{};
+  StdAnalysis() = default;
+  ;
+  ~StdAnalysis() override = default;
+  ;
 
   void Register(std::map<std::string, AnalysisTool *> &lib) override;
 

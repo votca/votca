@@ -129,7 +129,8 @@ class CsgREupdate : public CsgApplication {
 
 class CsgREupdateWorker : public CsgApplication::Worker {
  public:
-  ~CsgREupdateWorker() override{};
+  ~CsgREupdateWorker() override = default;
+  ;
 
   Property _options;
   std::vector<Property *> _nonbonded;

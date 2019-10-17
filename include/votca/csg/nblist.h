@@ -110,10 +110,11 @@ class NBList : public PairList<Bead *, BeadPair> {
   /// functions
   class Functor {
    public:
-    Functor() {}
+    Functor() = default;
     virtual bool operator()(Bead *, Bead *, const Eigen::Vector3d &,
                             const double dist) = 0;
-    virtual ~Functor(){};
+    virtual ~Functor() = default;
+    ;
   };
 
   /// Functor for member functions

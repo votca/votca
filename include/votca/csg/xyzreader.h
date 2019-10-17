@@ -38,8 +38,8 @@ namespace csg {
 */
 class XYZReader : public TrajectoryReader, public TopologyReader {
  public:
-  XYZReader() {}
-  ~XYZReader() override {}
+  XYZReader() = default;
+  ~XYZReader() override = default;
 
   /// open a topology file
   bool ReadTopology(std::string file, Topology &top) override;

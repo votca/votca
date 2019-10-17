@@ -136,12 +136,13 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
   /// functions
   class Functor {
    public:
-    Functor() {}
+    Functor() = default;
     virtual bool operator()(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
                             const Eigen::Vector3d &, const Eigen::Vector3d &,
                             const double dist12, const double dist13,
                             const double dist23) = 0;
-    virtual ~Functor(){};
+    virtual ~Functor() = default;
+    ;
   };
 
   /// Functor for member functions

@@ -27,7 +27,7 @@ using namespace std;
 
 namespace po = boost::program_options;
 
-CGEngine::CGEngine() {}
+CGEngine::CGEngine() = default;
 
 CGEngine::~CGEngine() {
   map<string, CGMoleculeDef *>::iterator i;

@@ -33,7 +33,7 @@ namespace csg {
 
 class BeadPair {
  public:
-  BeadPair() {}
+  BeadPair() = default;
   BeadPair(Bead *bead1, Bead *bead2, Eigen::Vector3d r)
       : _pair(std::pair<Bead *, Bead *>(bead1, bead2)),
         _r(r),

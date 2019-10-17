@@ -53,7 +53,7 @@ namespace csg {
 template <class T>
 class BeadStructure {
  public:
-  ~BeadStructure() {}
+  ~BeadStructure() = default;
 
   /**
    * \brief Determine if the bead structure consists of a single connected

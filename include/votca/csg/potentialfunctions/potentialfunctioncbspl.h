@@ -29,7 +29,7 @@ class PotentialFunctionCBSPL : public PotentialFunction {
  public:
   PotentialFunctionCBSPL(const std::string &name_, const int nlam_,
                          const double min_ = 0.0, const double max_ = 10.0);
-  ~PotentialFunctionCBSPL() override {}
+  ~PotentialFunctionCBSPL() override = default;
   // calculate function value for given r
   double CalculateF(const double r) const override;
   // calculate first derivative w.r.t. ith parameter

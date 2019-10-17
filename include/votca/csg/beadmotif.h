@@ -119,7 +119,8 @@ class BeadMotif : public BeadStructure<BaseBead> {
     undefined
   };
 
-  BeadMotif(){};
+  BeadMotif() = default;
+  ;
 
   BeadMotif(const BeadStructure &structure) : BeadStructure(structure){};
 

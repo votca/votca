@@ -36,8 +36,8 @@ namespace csg {
 */
 class GROReader : public TrajectoryReader, public TopologyReader {
  public:
-  GROReader() {}
-  ~GROReader() override {}
+  GROReader() = default;
+  ~GROReader() override = default;
 
   /// open a topology file
   bool ReadTopology(std::string file, Topology &top) override;
