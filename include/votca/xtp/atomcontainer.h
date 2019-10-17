@@ -99,12 +99,24 @@ class AtomContainer {
         std::numeric_limits<double>::min() * Eigen::Vector3d::Ones();
     for (const T& atom : _atomlist) {
       const Eigen::Vector3d& pos = atom.getPos();
-      if (pos.x() < min.x()) min.x() = pos.x();
-      if (pos.x() > max.x()) max.x() = pos.x();
-      if (pos.y() < min.y()) min.y() = pos.y();
-      if (pos.y() > max.y()) max.y() = pos.y();
-      if (pos.z() < min.z()) min.z() = pos.z();
-      if (pos.z() > max.z()) max.z() = pos.z();
+      if (pos.x() < min.x()) {
+        min.x() = pos.x();
+      }
+      if (pos.x() > max.x()) {
+        max.x() = pos.x();
+      }
+      if (pos.y() < min.y()) {
+        min.y() = pos.y();
+      }
+      if (pos.y() > max.y()) {
+        max.y() = pos.y();
+      }
+      if (pos.z() < min.z()) {
+        min.z() = pos.z();
+      }
+      if (pos.z() > max.z()) {
+        max.z() = pos.z();
+      }
     }
     result.first = min;
     result.second = max;

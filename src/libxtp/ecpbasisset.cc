@@ -34,8 +34,9 @@ void ECPBasisSet::Load(const std::string& name) {
   } else {
     // get the path to the shared folders with xml files
     char* votca_share = getenv("VOTCASHARE");
-    if (votca_share == nullptr)
+    if (votca_share == nullptr) {
       throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+    }
     xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/ecps/") +
               name + std::string(".xml");
   }

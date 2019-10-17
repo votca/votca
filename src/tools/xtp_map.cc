@@ -91,7 +91,9 @@ bool XtpMap::EvaluateOptions() {
 void XtpMap::Run() {
 
   std::string name = ProgramName();
-  if (VersionString() != "") name = name + ", version " + VersionString();
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
   XTP::HelpTextHeader(name);
 
   // ++++++++++++++++++++++++++++ //
@@ -289,7 +291,9 @@ void XtpMap::Run() {
 
 void XtpMap::ShowHelpText(std::ostream& out) {
   string name = ProgramName();
-  if (VersionString() != "") name = name + ", version " + VersionString();
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
   XTP::HelpTextHeader(name);
   HelpText(out);
   out << "\n\n" << VisibleOptions() << endl;

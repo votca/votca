@@ -177,7 +177,9 @@ std::vector<int> StateTracker::OscTracker(const Orbitals& orbitals) const {
   Eigen::VectorXd oscs = orbitals.Oscillatorstrengths();
   std::vector<int> indexes;
   for (int i = 0; i < oscs.size(); i++) {
-    if (oscs[i] > _oscthreshold) indexes.push_back(i);
+    if (oscs[i] > _oscthreshold) {
+      indexes.push_back(i);
+    }
   }
   return indexes;
 }

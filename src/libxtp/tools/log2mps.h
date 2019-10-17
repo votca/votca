@@ -64,8 +64,9 @@ void Log2Mps::Initialize(tools::Property &opt) {
   _mpsfile = (opt.exists(key + ".mpsfile"))
                  ? opt.get(key + ".mpsfile").as<std::string>()
                  : "";
-  if (_mpsfile == "")
+  if (_mpsfile == "") {
     _mpsfile = _logfile.substr(0, _logfile.size() - 4) + ".mps";
+  }
 
   std::cout << std::endl
             << "... ... " << _logfile << " => " << _mpsfile << std::flush;

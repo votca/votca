@@ -61,14 +61,18 @@ void Forces::Calculate(const Orbitals& orbitals) {
     }
     Eigen::Vector3d atom_force = Eigen::Vector3d::Zero();
     // Calculate Force on this atom
-    if (_force_method == "forward")
+    if (_force_method == "forward") {
       atom_force = NumForceForward(orbitals, atom_index);
-    if (_force_method == "central")
+    }
+    if (_force_method == "central") {
       atom_force = NumForceCentral(orbitals, atom_index);
+    }
     _forces.row(atom_index) = atom_force.transpose();
   }
   _pLog->setReportLevel(ReportLevel);  //
-  if (_remove_total_force) RemoveTotalForce();
+  if (_remove_total_force) {
+    RemoveTotalForce();
+  }
   return;
 }
 

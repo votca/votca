@@ -69,11 +69,21 @@ bool Energy_costfunction::Converged(const Eigen::VectorXd& delta_parameters,
       std::sqrt(delta_parameters.cwiseAbs2().sum()) / delta_parameters.size();
   convval.MaxStep = delta_parameters.cwiseAbs().maxCoeff(&convval.maxstepindex);
 
-  if (std::abs(convval.deltaE) < _convpara.deltaE) energy_converged = true;
-  if (convval.RMSForce < _convpara.RMSForce) RMSForce_converged = true;
-  if (convval.MaxForce < _convpara.MaxForce) MaxForce_converged = true;
-  if (convval.RMSStep < _convpara.RMSStep) RMSStep_converged = true;
-  if (convval.MaxStep < _convpara.MaxStep) MaxStep_converged = true;
+  if (std::abs(convval.deltaE) < _convpara.deltaE) {
+    energy_converged = true;
+  }
+  if (convval.RMSForce < _convpara.RMSForce) {
+    RMSForce_converged = true;
+  }
+  if (convval.MaxForce < _convpara.MaxForce) {
+    MaxForce_converged = true;
+  }
+  if (convval.RMSStep < _convpara.RMSStep) {
+    RMSStep_converged = true;
+  }
+  if (convval.MaxStep < _convpara.MaxStep) {
+    MaxStep_converged = true;
+  }
   Report(convval);
   if (energy_converged && RMSForce_converged && MaxForce_converged &&
       RMSStep_converged && MaxStep_converged) {

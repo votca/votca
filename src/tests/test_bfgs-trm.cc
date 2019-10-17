@@ -48,10 +48,11 @@ BOOST_AUTO_TEST_CASE(parabola_test) {
 
     bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
                    const Eigen::VectorXd& gradient) override {
-      if (gradient.cwiseAbs().maxCoeff() < 1e-8)
+      if (gradient.cwiseAbs().maxCoeff() < 1e-8) {
         return true;
-      else
+      } else {
         return false;
+      }
     }
 
     int NumParameters() const override { return 5; }
@@ -100,10 +101,11 @@ BOOST_AUTO_TEST_CASE(booth_test) {
 
     bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
                    const Eigen::VectorXd& gradient) override {
-      if (gradient.cwiseAbs().maxCoeff() < 1e-8)
+      if (gradient.cwiseAbs().maxCoeff() < 1e-8) {
         return true;
-      else
+      } else {
         return false;
+      }
     }
 
     int NumParameters() const override { return 2; }

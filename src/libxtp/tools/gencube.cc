@@ -61,8 +61,9 @@ void GenCube::Initialize(tools::Property& options) {
 
   // get the path to the shared folders with xml files
   char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == nullptr)
+  if (votca_share == nullptr) {
     throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+  }
 }
 
 void GenCube::calculateCube() {
@@ -263,7 +264,9 @@ void GenCube::subtractCubes() {
   // first line
   in1 >> natoms;
   bool do_amplitude = false;
-  if (natoms < 0) do_amplitude = true;
+  if (natoms < 0) {
+    do_amplitude = true;
+  }
   in1 >> xstart;
   in1 >> ystart;
   in1 >> zstart;

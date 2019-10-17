@@ -82,7 +82,9 @@ bool XtpParallel::EvaluateOptions() {
           break;
         }
       }
-      if (printerror) cout << "Calculator " << n << " does not exist\n";
+      if (printerror) {
+        cout << "Calculator " << n << " does not exist\n";
+      }
     }
     StopExecution();
     return true;

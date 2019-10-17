@@ -24,13 +24,14 @@ Eigen::MatrixXd symm_matrix(int N, double eps) {
 Eigen::MatrixXd init_matrix(int N, double eps) {
   Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(N, N);
   for (int i = 0; i < N; i++) {
-    for (int j = i; j < N; j++)
+    for (int j = i; j < N; j++) {
       if (i == j) {
         matrix(i, i) = std::sqrt(static_cast<double>(1 + i));
       } else {
         matrix(i, j) = eps / std::pow(static_cast<double>(j - i), 2);
         matrix(j, i) = eps / std::pow(static_cast<double>(j - i), 2);
       }
+    }
   }
   return matrix;
 }

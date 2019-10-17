@@ -57,8 +57,9 @@ BOOST_AUTO_TEST_CASE(add_pair) {
   // sort qmpairs by seg1id and then by seg2id then reindex the pair id
   // according to that.
   qmnb.sortAndReindex([](QMPair* a, QMPair* b) {
-    if (a->Seg1()->getId() != b->Seg1()->getId())
+    if (a->Seg1()->getId() != b->Seg1()->getId()) {
       return a->Seg1()->getId() < b->Seg1()->getId();
+    }
     return a->Seg2()->getId() < b->Seg2()->getId();
   });
 

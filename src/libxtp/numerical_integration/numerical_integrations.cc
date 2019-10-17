@@ -376,8 +376,9 @@ Mat_p_Energy NumericalIntegration::IntegrateVXC(
       Eigen::VectorXd ao = CalcAOValue_and_Grad(ao_grad, box, points[p]);
       const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
       const double weight = weights[p];
-      if (rho * weight < 1.e-20)
+      if (rho * weight < 1.e-20) {
         continue;  // skip the rest, if density is very small
+      }
       const Eigen::Vector3d rho_grad = ao.transpose() * DMAT_symm * ao_grad;
       const double sigma = (rho_grad.transpose() * rho_grad).value();
       const Eigen::VectorXd grad = ao_grad * rho_grad;
@@ -732,7 +733,9 @@ Eigen::VectorXd NumericalIntegration::SSWpartition(
           } else {
             sk = erf1c(mu);
           }
-          if (mu > 0.0) sk = 1.0 - sk;
+          if (mu > 0.0) {
+            sk = 1.0 - sk;
+          }
           p[j] = p[j] * sk;
           p[i] = p[i] * (1.0 - sk);
         }

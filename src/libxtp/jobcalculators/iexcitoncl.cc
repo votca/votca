@@ -162,8 +162,9 @@ void IEXCITON::WriteJobFile(const Topology& top) {
   cout << endl << "... ... Writing job file " << _jobfile << flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
-  if (!ofs.is_open())
+  if (!ofs.is_open()) {
     throw runtime_error("\nERROR: bad file handle: " + _jobfile);
+  }
   const QMNBList& nblist = top.NBList();
   int jobCount = 0;
   if (nblist.size() == 0) {
@@ -270,8 +271,9 @@ void IEXCITON::ReadJobFile(Topology& top) {
       << "Neighborlist size " << top.NBList().size() << flush;
   for (QMPair* pair : top.NBList()) {
 
-    if (records[pair->getId()] == nullptr)
+    if (records[pair->getId()] == nullptr) {
       continue;  // skip pairs which are not in the jobfile
+    }
     double Jeff2 = 0.0;
     double jAB = 0.0;
     if (pair->getType() == QMPair::Excitoncl) {

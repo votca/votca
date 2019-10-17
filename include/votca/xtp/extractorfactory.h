@@ -56,8 +56,9 @@ inline QMCalculator *ExtractorFactory::Create(const std::string &key) {
     QMCalculator *calc = (it->second)();
     // calc->LoadDefaults();
     return calc;
-  } else
+  } else {
     throw std::runtime_error("factory key " + key + " not found.");
+  }
 }
 
 }  // namespace xtp

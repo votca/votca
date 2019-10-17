@@ -33,10 +33,11 @@ Job::Job(const tools::Property &prop) {
   _id = prop.get("id").as<int>();
   _tag = prop.get("tag").as<std::string>();
   _input = prop.get("input");
-  if (prop.exists("status"))
+  if (prop.exists("status")) {
     _status = ConvertStatus(prop.get("status").as<std::string>());
-  else
+  } else {
     _status = AVAILABLE;
+  }
 
   // GENERATED DURING RUNTIME
   if (prop.exists("host")) {
@@ -90,16 +91,17 @@ std::string Job::ConvertStatus(JobStatus status) const {
 
 Job::JobStatus Job::ConvertStatus(std::string status) const {
   JobStatus converted;
-  if (status == "AVAILABLE")
+  if (status == "AVAILABLE") {
     converted = AVAILABLE;
-  else if (status == "ASSIGNED")
+  } else if (status == "ASSIGNED") {
     converted = ASSIGNED;
-  else if (status == "FAILED")
+  } else if (status == "FAILED") {
     converted = FAILED;
-  else if (status == "COMPLETE")
+  } else if (status == "COMPLETE") {
     converted = COMPLETE;
-  else
+  } else {
     throw std::runtime_error("Incomprehensible status: " + status);
+  }
   return converted;
 }
 
@@ -123,13 +125,18 @@ void Job::ToStream(std::ofstream &ofs) const {
   ofs << tab << tab
       << (format("<status>%1$s</status>\n") % ConvertStatus(_status)).str();
 
-  if (_has_host)
+  if (_has_host) {
     ofs << tab << tab << (format("<host>%1$s</host>\n") % _host).str();
-  if (_has_time)
+  }
+  if (_has_time) {
     ofs << tab << tab << (format("<time>%1$s</time>\n") % _time).str();
-  if (_has_output) ofs << iomXML << _output;
-  if (_has_error)
+  }
+  if (_has_output) {
+    ofs << iomXML << _output;
+  }
+  if (_has_error) {
     ofs << tab << tab << (format("<error>%1$s</error>\n") % _error).str();
+  }
   ofs << tab << "</job>\n";
   return;
 }
@@ -205,17 +212,20 @@ void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
   std::vector<Job>::iterator it_int;
   std::vector<Job>::const_iterator it_ext;
 
-  if (to.size() != from.size())
+  if (to.size() != from.size()) {
     throw std::runtime_error("Progress file out of sync (::size), abort.");
+  }
 
   for (it_int = to.begin(), it_ext = from.begin(); it_int != to.end();
        ++it_int, ++it_ext) {
     Job &job_int = *it_int;
     const Job &job_ext = *it_ext;
-    if (job_int.getId() != job_ext.getId())
+    if (job_int.getId() != job_ext.getId()) {
       throw std::runtime_error("Progress file out of sync (::id), abort.");
-    if (job_ext.hasHost() && job_ext.getHost() != thisHost)
+    }
+    if (job_ext.hasHost() && job_ext.getHost() != thisHost) {
       job_int.UpdateFrom(job_ext);
+    }
   }
 
   return;

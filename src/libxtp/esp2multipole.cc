@@ -43,12 +43,13 @@ void Esp2multipole::Initialize(tools::Property& options) {
   _method = options.ifExistsAndinListReturnElseThrowRuntimeError(
       key + ".method", choices);
 
-  if (_method == "mulliken")
+  if (_method == "mulliken") {
     _use_mulliken = true;
-  else if (_method == "loewdin")
+  } else if (_method == "loewdin") {
     _use_lowdin = true;
-  else if (_method == "CHELPG")
+  } else if (_method == "CHELPG") {
     _use_CHELPG = true;
+  }
 
   if (options.exists(key + ".constraints")) {
     if (options.exists(key + ".constraints.regions")) {

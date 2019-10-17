@@ -192,7 +192,9 @@ void Orca::WriteBackgroundCharges() {
   int total_background = 0;
 
   for (const std::unique_ptr<StaticSite>& site : _externalsites) {
-    if (site->getCharge() != 0.0) total_background++;
+    if (site->getCharge() != 0.0) {
+      total_background++;
+    }
     std::vector<MinimalMMCharge> split_multipoles = SplitMultipoles(*site);
     total_background += split_multipoles.size();
   }  // counting only
@@ -204,7 +206,9 @@ void Orca::WriteBackgroundCharges() {
     Eigen::Vector3d pos = site->getPos() * tools::conv::bohr2ang;
     string sitestring =
         boost::str(fmt % site->getCharge() % pos.x() % pos.y() % pos.z());
-    if (site->getCharge() != 0.0) crg_file << sitestring << endl;
+    if (site->getCharge() != 0.0) {
+      crg_file << sitestring << endl;
+    }
     std::vector<MinimalMMCharge> split_multipoles = SplitMultipoles(*site);
     for (const auto& mpoles : split_multipoles) {
       Eigen::Vector3d pos = mpoles._pos * tools::conv::bohr2ang;
@@ -491,7 +495,9 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
   std::string log_file_name_full = _run_dir + "/" + _log_file_name;
   // check if LOG file is complete
-  if (!CheckLogFile()) return false;
+  if (!CheckLogFile()) {
+    return false;
+  }
   std::map<int, double> energies;
   std::map<int, double> occupancy;
 
@@ -716,7 +722,9 @@ bool Orca::CheckLogFile() {
 // Parses the Orca gbw file and stores data in the Orbitals object
 
 bool Orca::ParseMOsFile(Orbitals& orbitals) {
-  if (!CheckLogFile()) return false;
+  if (!CheckLogFile()) {
+    return false;
+  }
   std::vector<double> coefficients;
   int basis_size = orbitals.getBasisSetSize();
   if (basis_size == 0) {

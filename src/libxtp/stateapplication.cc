@@ -56,7 +56,9 @@ bool StateApplication::EvaluateOptions(void) {
 void StateApplication::Run() {
 
   std::string name = ProgramName();
-  if (VersionString() != "") name = name + ", version " + VersionString();
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
   xtp::HelpTextHeader(name);
 
   _options.LoadFromXML(_op_vm["options"].as<std::string>());

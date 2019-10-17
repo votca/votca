@@ -174,8 +174,12 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   double BVS2 = BVS.squaredNorm();
 
   int INULL = 0;
-  if (AVS2 > 0.01) INULL = 2;
-  if (BVS2 > 0.01) INULL++;
+  if (AVS2 > 0.01) {
+    INULL = 2;
+  }
+  if (BVS2 > 0.01) {
+    INULL++;
+  }
 
   Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(nsph_row, nsph_col);
   const int nnonsep = gamma_ecp.rows();
@@ -271,11 +275,17 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
             break;
         }
 
-        if (NMAX1 == 0 && AMAX <= conv) NMAX1 = NN;
-        if (NMAX1 != 0 && AMAX > conv) NMAX1 = 0;
+        if (NMAX1 == 0 && AMAX <= conv) {
+          NMAX1 = NN;
+        }
+        if (NMAX1 != 0 && AMAX > conv) {
+          NMAX1 = 0;
+        }
       }
     }
-    if (NMAX1 == 0 && AMAX > conv) NMAX1 = NMAX;
+    if (NMAX1 == 0 && AMAX > conv) {
+      NMAX1 = NMAX;
+    }
   }
 
   // same story for B
@@ -319,11 +329,17 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
             break;
         }
 
-        if (NMAX2 == 0 && BMAX <= conv) NMAX2 = NN;
-        if (NMAX2 != 0 && BMAX > conv) NMAX2 = 0;
+        if (NMAX2 == 0 && BMAX <= conv) {
+          NMAX2 = NN;
+        }
+        if (NMAX2 != 0 && BMAX > conv) {
+          NMAX2 = 0;
+        }
       }
     }
-    if (NMAX2 == 0 && BMAX > conv) NMAX2 = NMAX;
+    if (NMAX2 == 0 && BMAX > conv) {
+      NMAX2 = NMAX;
+    }
   }
 
   double GAUSS = G1 * G2;

@@ -185,7 +185,9 @@ class CheckpointWriter {
 
     hsize_t dims[2] = {matRows, matCols};  // eigen vectors are n,1 matrices
 
-    if (dims[1] == 0) dims[1] = 1;
+    if (dims[1] == 0) {
+      dims[1] = 1;
+    }
 
     H5::DataSpace dp(2, dims);
     const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();

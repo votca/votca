@@ -104,7 +104,9 @@ bool XtpTools::EvaluateOptions() {
           break;
         }
       }
-      if (printerror) cout << "Tool " << n << " does not exist\n";
+      if (printerror) {
+        cout << "Tool " << n << " does not exist\n";
+      }
     }
     StopExecution();
     return true;
@@ -145,7 +147,9 @@ void XtpTools::Run() {
 
   int nThreads = OptionsMap()["nthreads"].as<int>();
   std::string name = ProgramName();
-  if (VersionString() != "") name = name + ", version " + VersionString();
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
   xtp::HelpTextHeader(name);
   cout << "Initializing tool " << endl;
   BeginEvaluate(nThreads);

@@ -73,10 +73,11 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
         _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
         break;
       case CheckpointAccessLevel::MODIFY:
-        if (!FileExists(_fileName))
+        if (!FileExists(_fileName)) {
           _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
-        else
+        } else {
           _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR, fcpList);
+        }
     }
 
   } catch (H5::Exception&) {

@@ -43,7 +43,9 @@ void XtpApplication::Initialize(void) {
 
 void XtpApplication::ShowHelpText(std::ostream &out) {
   std::string name = ProgramName();
-  if (VersionString() != "") name = name + ", version " + VersionString();
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
   xtp::HelpTextHeader(name);
   HelpText(out);
   out << "\n\n" << VisibleOptions() << std::endl;

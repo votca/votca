@@ -52,19 +52,33 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
 
   // job tasks
   std::string tasks_string = opt.get(key + ".tasks").as<std::string>();
-  if (tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-  if (tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
-  if (tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
-  if (tasks_string.find("dftcoupling") != std::string::npos)
+  if (tasks_string.find("input") != std::string::npos) {
+    _do_dft_input = true;
+  }
+  if (tasks_string.find("dft") != std::string::npos) {
+    _do_dft_run = true;
+  }
+  if (tasks_string.find("parse") != std::string::npos) {
+    _do_dft_parse = true;
+  }
+  if (tasks_string.find("dftcoupling") != std::string::npos) {
     _do_dftcoupling = true;
-  if (tasks_string.find("gw") != std::string::npos) _do_gwbse = true;
-  if (tasks_string.find("bsecoupling") != std::string::npos)
+  }
+  if (tasks_string.find("gw") != std::string::npos) {
+    _do_gwbse = true;
+  }
+  if (tasks_string.find("bsecoupling") != std::string::npos) {
     _do_bsecoupling = true;
+  }
 
   // storage options
   std::string store_string = opt.get(key + ".store").as<std::string>();
-  if (store_string.find("dft") != std::string::npos) _store_dft = true;
-  if (store_string.find("gw") != std::string::npos) _store_gw = true;
+  if (store_string.find("dft") != std::string::npos) {
+    _store_dft = true;
+  }
+  if (store_string.find("gw") != std::string::npos) {
+    _store_gw = true;
+  }
 
   if (_do_dft_input || _do_dft_run || _do_dft_parse) {
     std::string package_xml = opt.get(key + ".dftpackage").as<std::string>();
@@ -576,8 +590,9 @@ void IQM::WriteJobFile(const Topology& top) {
             << "... ... Writing job file " << _jobfile << std::flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
-  if (!ofs.is_open())
+  if (!ofs.is_open()) {
     throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
+  }
 
   const QMNBList& nblist = top.NBList();
 
@@ -723,9 +738,10 @@ void IQM::ReadJobFile(Topology& top) {
     for (tools::Property* segment : segmentprobs) {
       id.push_back(segment->getAttribute<int>("id"));
     }
-    if (id.size() != 2)
+    if (id.size() != 2) {
       throw std::runtime_error(
           "Getting pair ids from jobfile failed, check jobfile.");
+    }
 
     double idA = id[0];
     double idB = id[1];
@@ -750,8 +766,9 @@ void IQM::ReadJobFile(Topology& top) {
 
   for (QMPair* pair : top.NBList()) {
 
-    if (records[pair->getId()] == nullptr)
+    if (records[pair->getId()] == nullptr) {
       continue;  // skip pairs which are not in the jobfile
+    }
 
     const Segment* segmentA = pair->Seg1();
     const Segment* segmentB = pair->Seg2();

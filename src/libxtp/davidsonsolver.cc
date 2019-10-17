@@ -125,55 +125,60 @@ void DavidsonSolver::printIterationData(
 }
 
 void DavidsonSolver::set_matrix_type(std::string mt) {
-  if (mt == "HAM")
+  if (mt == "HAM") {
     this->_matrix_type = MATRIX_TYPE::HAM;
-  else if (mt == "SYMM")
+  } else if (mt == "SYMM") {
     this->_matrix_type = MATRIX_TYPE::SYMM;
-  else
+  } else {
     throw std::runtime_error(mt + " is not a valid Davidson matrix type");
+  }
 }
 
 void DavidsonSolver::set_ortho(std::string method) {
-  if (method == "GS")
+  if (method == "GS") {
     this->_davidson_ortho = ORTHO::GS;
-  else if (method == "QR")
+  } else if (method == "QR") {
     this->_davidson_ortho = ORTHO::QR;
-  else
+  } else {
     throw std::runtime_error(
         method + " is not a valid Davidson orthogonalization method");
+  }
 }
 
 void DavidsonSolver::set_correction(std::string method) {
-  if (method == "DPR")
+  if (method == "DPR") {
     this->_davidson_correction = CORR::DPR;
-  else if (method == "OLSEN")
+  } else if (method == "OLSEN") {
     this->_davidson_correction = CORR::OLSEN;
-  else
+  } else {
     throw std::runtime_error(method +
                              " is not a valid Davidson correction method");
+  }
 }
 
 void DavidsonSolver::set_tolerance(std::string tol) {
-  if (tol == "loose")
+  if (tol == "loose") {
     this->_tol = 1E-3;
-  else if (tol == "normal")
+  } else if (tol == "normal") {
     this->_tol = 1E-4;
-  else if (tol == "strict")
+  } else if (tol == "strict") {
     this->_tol = 1E-5;
-  else
+  } else {
     throw std::runtime_error(tol + " is not a valid Davidson tolerance");
+  }
 }
 
 void DavidsonSolver::set_size_update(std::string update_size) {
 
-  if (update_size == "min")
+  if (update_size == "min") {
     this->_davidson_update = UPDATE::MIN;
-  else if (update_size == "safe")
+  } else if (update_size == "safe") {
     this->_davidson_update = UPDATE::SAFE;
-  else if (update_size == "max")
+  } else if (update_size == "max") {
     this->_davidson_update = UPDATE::MAX;
-  else
+  } else {
     throw std::runtime_error(update_size + " is not a valid Davidson update");
+  }
 }
 
 int DavidsonSolver::getSizeUpdate(int neigen) const {
@@ -183,10 +188,11 @@ int DavidsonSolver::getSizeUpdate(int neigen) const {
       size_update = neigen;
       break;
     case UPDATE::SAFE:
-      if (neigen < 20)
+      if (neigen < 20) {
         size_update = static_cast<int>(1.5 * neigen);
-      else
+      } else {
         size_update = neigen + 10;
+      }
       break;
     case UPDATE::MAX:
       size_update = 2 * neigen;

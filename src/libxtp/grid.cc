@@ -70,8 +70,9 @@ void Grid::setupgrid(const QMMolecule& Atomlist) {
           if (distance2 < (atomcutoff * atomcutoff)) {
             is_valid = false;
             break;
-          } else if (distance2 < (_cutoff * _cutoff))
+          } else if (distance2 < (_cutoff * _cutoff)) {
             is_valid = true;
+          }
         }
         if (is_valid) {
           _gridpoints.push_back(gridpos);

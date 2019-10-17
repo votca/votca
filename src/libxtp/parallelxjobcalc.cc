@@ -55,8 +55,9 @@ bool ParallelXJobCalc<JobContainer>::EvaluateFrame(const Topology &top) {
     CustomizeLogger(*jobOps[id]);
   }
 
-  if (!_maverick)
+  if (!_maverick) {
     std::cout << std::endl;  // REQUIRED FOR PROGRESS BAR IN OBSERVER
+  }
 
   for (unsigned int id = 0; id < _nThreads; id++) {
     jobOps[id]->Start();
@@ -66,10 +67,11 @@ bool ParallelXJobCalc<JobContainer>::EvaluateFrame(const Topology &top) {
     jobOps[id]->WaitDone();
   }
 
-  if (!_maverick)
+  if (!_maverick) {
     for (unsigned int id = 0; id < _nThreads; id++) {
       std::cout << std::endl << (jobOps[id]->getLogger()) << std::flush;
     }
+  }
 
   jobOps.clear();
 

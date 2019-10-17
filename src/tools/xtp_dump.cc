@@ -86,7 +86,9 @@ bool XtpDump::EvaluateOptions() {
         }
       }
 
-      if (printerror) cout << "Extractor " << n << " does not exist\n";
+      if (printerror) {
+        cout << "Extractor " << n << " does not exist\n";
+      }
     }
     StopExecution();
     return true;

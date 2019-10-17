@@ -45,8 +45,9 @@ void EAnalyze::Initialize(tools::Property &opt) {
 
   if (opt.exists(key + ".pattern")) {
     _seg_pattern = opt.get(key + ".pattern").as<std::string>();
-  } else
+  } else {
     _seg_pattern = "*";
+  }
 
   if (opt.exists(key + ".states")) {
     std::string statestrings = opt.get(key + ".states").as<std::string>();
@@ -182,7 +183,9 @@ void EAnalyze::SiteHist(QMStateType state) const {
     std::string filename = "eanalyze.landscape_" + state.ToString() + ".out";
     std::ofstream out;
     out.open(filename);
-    if (!out) throw std::runtime_error("error, cannot open file " + filename);
+    if (!out) {
+      throw std::runtime_error("error, cannot open file " + filename);
+    }
     for (Segment *seg : _seg_shortlist) {
       if (seg->getId() < _first_seg) {
         continue;
@@ -212,7 +215,9 @@ void EAnalyze::PairHist(const Topology &top, QMStateType state) const {
   dE.reserve(2 * nblist.size());
   std::ofstream out;
   out.open(filenamelist);
-  if (!out) throw std::runtime_error("error, cannot open file " + filenamelist);
+  if (!out) {
+    throw std::runtime_error("error, cannot open file " + filenamelist);
+  }
   for (QMPair *pair : nblist) {
     double deltaE = pair->getdE12(state) * tools::conv::hrt2ev;
     dE.push_back(deltaE);
