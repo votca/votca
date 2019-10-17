@@ -28,16 +28,16 @@ namespace xtp {
 class KMCLifetime : public KMCCalculator {
  public:
   KMCLifetime(){};
-  ~KMCLifetime(){};
-  bool WriteToStateFile() const { return false; }
-  std::string Identify() { return "kmclifetime"; }
-  void Initialize(tools::Property& options);
-  bool EvaluateFrame(Topology& top);
+  ~KMCLifetime() override{};
+  bool WriteToStateFile() const override { return false; }
+  std::string Identify() override { return "kmclifetime"; }
+  void Initialize(tools::Property& options) override;
+  bool EvaluateFrame(Topology& top) override;
 
  private:
   void WriteDecayProbability(std::string filename);
 
-  void RunVSSM();
+  void RunVSSM() override;
   void WriteToTraj(fstream& traj, unsigned insertioncount, double simtime,
                    const Chargecarrier& carrier) const;
 

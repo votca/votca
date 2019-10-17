@@ -33,12 +33,12 @@ namespace xtp {
 class Coupling : public QMTool {
  public:
   Coupling(){};
-  ~Coupling(){};
+  ~Coupling() override{};
 
-  std::string Identify() { return "coupling"; }
+  std::string Identify() override { return "coupling"; }
 
-  void Initialize(tools::Property &options);
-  bool Evaluate();
+  void Initialize(tools::Property &options) override;
+  bool Evaluate() override;
 
  private:
   std::string _MOsA, _MOsB, _MOsAB;

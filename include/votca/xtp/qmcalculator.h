@@ -31,13 +31,13 @@ class Topology;
 class QMCalculator : public tools::Calculator {
  public:
   QMCalculator() {}
-  virtual ~QMCalculator() {}
+  ~QMCalculator() override {}
 
-  virtual std::string Identify() = 0;
+  std::string Identify() override = 0;
 
   virtual bool WriteToStateFile() const = 0;
 
-  virtual void Initialize(tools::Property &options) = 0;
+  void Initialize(tools::Property &options) override = 0;
   virtual bool EvaluateFrame(Topology &top) = 0;
 };
 

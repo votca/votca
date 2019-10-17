@@ -27,14 +27,14 @@ namespace xtp {
 class KMCMultiple : public KMCCalculator {
  public:
   KMCMultiple(){};
-  ~KMCMultiple(){};
-  bool WriteToStateFile() const { return false; }
-  std::string Identify() { return "kmcmultiple"; }
-  void Initialize(tools::Property& options);
-  bool EvaluateFrame(Topology& top);
+  ~KMCMultiple() override{};
+  bool WriteToStateFile() const override { return false; }
+  std::string Identify() override { return "kmcmultiple"; }
+  void Initialize(tools::Property& options) override;
+  bool EvaluateFrame(Topology& top) override;
 
  private:
-  void RunVSSM();
+  void RunVSSM() override;
   void PrintChargeVelocity(double simtime) const;
 
   void PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,

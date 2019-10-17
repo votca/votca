@@ -32,12 +32,12 @@ class MapChecker : public QMCalculator {
  public:
   MapChecker(){};
 
-  ~MapChecker(){};
+  ~MapChecker() override{};
 
-  std::string Identify() { return "mapchecker"; }
-  bool WriteToStateFile() const { return false; }
-  void Initialize(tools::Property& opt);
-  bool EvaluateFrame(Topology& top);
+  std::string Identify() override { return "mapchecker"; }
+  bool WriteToStateFile() const override { return false; }
+  void Initialize(tools::Property& opt) override;
+  bool EvaluateFrame(Topology& top) override;
 
  private:
   std::string AddSteptoFilename(const std::string& filename, int step) const;

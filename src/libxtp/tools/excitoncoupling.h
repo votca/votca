@@ -37,10 +37,10 @@ namespace xtp {
 
 class ExcitonCoupling : public QMTool {
  public:
-  std::string Identify() { return "excitoncoupling"; }
+  std::string Identify() override { return "excitoncoupling"; }
 
-  void Initialize(tools::Property& options);
-  bool Evaluate();
+  void Initialize(tools::Property& options) override;
+  bool Evaluate() override;
 
  private:
   std::string _orbA, _orbB, _orbAB;

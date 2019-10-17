@@ -36,23 +36,23 @@ namespace xtp {
 class Orbitals;
 class Gaussian : public QMPackage {
  public:
-  std::string getPackageName() const { return "gaussian"; }
+  std::string getPackageName() const override { return "gaussian"; }
 
-  void Initialize(tools::Property& options);
+  void Initialize(tools::Property& options) override;
 
-  bool WriteInputFile(const Orbitals& orbitals);
+  bool WriteInputFile(const Orbitals& orbitals) override;
 
-  bool Run();
+  bool Run() override;
 
-  void CleanUp();
+  void CleanUp() override;
 
-  bool ParseLogFile(Orbitals& orbitals);
+  bool ParseLogFile(Orbitals& orbitals) override;
 
-  bool ParseMOsFile(Orbitals& orbitals);
+  bool ParseMOsFile(Orbitals& orbitals) override;
 
-  StaticSegment GetCharges() const;
+  StaticSegment GetCharges() const override;
 
-  Eigen::Matrix3d GetPolarizability() const;
+  Eigen::Matrix3d GetPolarizability() const override;
 
  private:
   bool WriteShellScript();
@@ -77,7 +77,7 @@ class Gaussian : public QMPackage {
   void WriteCoordinates(std::ofstream& com_file, const QMMolecule& qmatoms);
   void WriteHeader(std::ofstream& com_file);
 
-  void WriteChargeOption();
+  void WriteChargeOption() override;
 };
 
 }  // namespace xtp

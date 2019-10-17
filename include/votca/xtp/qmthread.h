@@ -41,14 +41,14 @@ class QMThread : public tools::Thread {
  public:
   QMThread() {}
   QMThread(bool maverick) : _maverick(maverick) { ; }
-  virtual ~QMThread(){};
+  ~QMThread() override{};
 
   int getId() const { return _id; }
   void setId(int id) { _id = id; }
   bool isMaverick() const { return _maverick; }
 
   Logger& getLogger() { return _logger; }
-  virtual void Run(void) { ; }
+  void Run(void) override { ; }
 
  protected:
   int _id;

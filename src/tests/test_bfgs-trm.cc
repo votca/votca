@@ -32,28 +32,29 @@ BOOST_AUTO_TEST_SUITE(bfgs_test)
 BOOST_AUTO_TEST_CASE(parabola_test) {
   class parabola : public Optimiser_costfunction {
 
-    double EvaluateCost(const Eigen::VectorXd& parameters) {
+    double EvaluateCost(const Eigen::VectorXd& parameters) override {
       Eigen::VectorXd value = parameters;
       value(0) -= 2;
       double cost = value.cwiseAbs2().sum();
       return cost;
     }
 
-    Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) {
+    Eigen::VectorXd EvaluateGradient(
+        const Eigen::VectorXd& parameters) override {
       Eigen::VectorXd gradient = 2 * parameters;
       gradient(0) -= 4;
       return gradient;
     }
 
     bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
-                   const Eigen::VectorXd& gradient) {
+                   const Eigen::VectorXd& gradient) override {
       if (gradient.cwiseAbs().maxCoeff() < 1e-8)
         return true;
       else
         return false;
     }
 
-    int NumParameters() const { return 5; }
+    int NumParameters() const override { return 5; }
   };
 
   parabola p5;
@@ -79,7 +80,7 @@ BOOST_AUTO_TEST_CASE(parabola_test) {
 BOOST_AUTO_TEST_CASE(booth_test) {
   class booth : public Optimiser_costfunction {
 
-    double EvaluateCost(const Eigen::VectorXd& parameters) {
+    double EvaluateCost(const Eigen::VectorXd& parameters) override {
       double x = parameters[0];
       double y = parameters[1];
 
@@ -87,7 +88,8 @@ BOOST_AUTO_TEST_CASE(booth_test) {
              (2 * x + y - 5) * (2 * x + y - 5);
     }
 
-    Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) {
+    Eigen::VectorXd EvaluateGradient(
+        const Eigen::VectorXd& parameters) override {
       double x = parameters[0];
       double y = parameters[1];
       Eigen::VectorXd gradient = Eigen::VectorXd::Zero(2);
@@ -97,14 +99,14 @@ BOOST_AUTO_TEST_CASE(booth_test) {
     }
 
     bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
-                   const Eigen::VectorXd& gradient) {
+                   const Eigen::VectorXd& gradient) override {
       if (gradient.cwiseAbs().maxCoeff() < 1e-8)
         return true;
       else
         return false;
     }
 
-    int NumParameters() const { return 2; }
+    int NumParameters() const override { return 2; }
   };
 
   booth p2;

@@ -29,10 +29,10 @@ namespace xtp {
 
 class IAnalyze : public QMCalculator {
  public:
-  std::string Identify() { return "ianalyze"; }
-  bool WriteToStateFile() const { return false; }
-  void Initialize(tools::Property &options);
-  bool EvaluateFrame(Topology &top);
+  std::string Identify() override { return "ianalyze"; }
+  bool WriteToStateFile() const override { return false; }
+  void Initialize(tools::Property &options) override;
+  bool EvaluateFrame(Topology &top) override;
   void IHist(Topology &top, QMStateType state);
   void IRdependence(Topology &top, QMStateType state);
 

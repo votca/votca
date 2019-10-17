@@ -30,10 +30,10 @@ namespace xtp {
 
 class DensityAnalysis : public QMTool {
  public:
-  std::string Identify() { return "densityanalysis"; }
+  std::string Identify() override { return "densityanalysis"; }
 
-  void Initialize(tools::Property& options);
-  bool Evaluate();
+  void Initialize(tools::Property& options) override;
+  bool Evaluate() override;
 
  private:
   std::string _orbfile;

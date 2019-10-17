@@ -48,14 +48,14 @@ class Energy_costfunction : public Optimiser_costfunction {
         _orbitals(orbitals),
         _force_engine(force_engine){};
 
-  double EvaluateCost(const Eigen::VectorXd& parameters);
+  double EvaluateCost(const Eigen::VectorXd& parameters) override;
 
-  Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters);
+  Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) override;
 
-  int NumParameters() const { return _orbitals.QMAtoms().size() * 3; };
+  int NumParameters() const override { return _orbitals.QMAtoms().size() * 3; };
 
   bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
-                 const Eigen::VectorXd& gradient);
+                 const Eigen::VectorXd& gradient) override;
 
   void ForcesReport() const { return _force_engine.Report(); }
 

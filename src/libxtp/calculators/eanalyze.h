@@ -37,12 +37,12 @@ class EAnalyze : public QMCalculator {
  public:
   EAnalyze(){};
 
-  ~EAnalyze(){};
-  bool WriteToStateFile() const { return false; }
-  std::string Identify() { return "eanalyze"; }
+  ~EAnalyze() override{};
+  bool WriteToStateFile() const override { return false; }
+  std::string Identify() override { return "eanalyze"; }
 
-  void Initialize(tools::Property &opt);
-  bool EvaluateFrame(Topology &top);
+  void Initialize(tools::Property &opt) override;
+  bool EvaluateFrame(Topology &top) override;
 
  private:
   void SiteHist(QMStateType state) const;

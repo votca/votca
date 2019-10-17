@@ -37,7 +37,7 @@ class Segment : public AtomContainer<Atom> {
   // different.
   Segment(CheckpointReader& r) : AtomContainer<Atom>("", 0) { ReadFromCpt(r); }
 
-  ~Segment(){};
+  ~Segment() override{};
 
   /// Following notation can be observed in:
   /// [1. Victor, R. et al. Microscopic Simulations of Charge Transport in
@@ -91,9 +91,9 @@ class Segment : public AtomContainer<Atom> {
 
   double getApproxSize() const;
 
-  void WriteToCpt(CheckpointWriter& w) const;
+  void WriteToCpt(CheckpointWriter& w) const override;
 
-  void ReadFromCpt(CheckpointReader& r);
+  void ReadFromCpt(CheckpointReader& r) override;
 
   friend std::ostream& operator<<(std::ostream& out, const Segment& container) {
     out << container.getId() << " " << container.getType() << "\n";

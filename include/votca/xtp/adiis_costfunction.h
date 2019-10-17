@@ -33,14 +33,14 @@ class ADIIS_costfunction : public Optimiser_costfunction {
     _DiFj = DiFj;
   }
 
-  double EvaluateCost(const Eigen::VectorXd& parameters) {
+  double EvaluateCost(const Eigen::VectorXd& parameters) override {
     Eigen::VectorXd c = parameters.cwiseAbs2();
     double xnorm = c.sum();
     c /= xnorm;
     return (2 * c.transpose() * _DiF + c.transpose() * _DiFj * c).value();
   }
 
-  Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) {
+  Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) override {
     Eigen::VectorXd c = parameters.cwiseAbs2();
     double xnorm = c.sum();
     c /= xnorm;
@@ -56,10 +56,10 @@ class ADIIS_costfunction : public Optimiser_costfunction {
     return jac.transpose() * dEdc;
   }
 
-  int NumParameters() const { return _DiF.size(); }
+  int NumParameters() const override { return _DiF.size(); }
 
   bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
-                 const Eigen::VectorXd& gradient) {
+                 const Eigen::VectorXd& gradient) override {
     return gradient.cwiseAbs().maxCoeff() < 1.e-7;
   }
 

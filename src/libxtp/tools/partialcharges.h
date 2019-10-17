@@ -32,12 +32,12 @@ namespace xtp {
 class Partialcharges : public QMTool {
  public:
   Partialcharges(){};
-  ~Partialcharges(){};
+  ~Partialcharges() override{};
 
-  std::string Identify() { return "partialcharges"; }
+  std::string Identify() override { return "partialcharges"; }
 
-  void Initialize(tools::Property& options);
-  bool Evaluate();
+  void Initialize(tools::Property& options) override;
+  bool Evaluate() override;
 
  private:
   std::string _orbfile;

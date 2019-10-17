@@ -54,11 +54,11 @@ class ParallelXJobCalc : public JobCalculator {
   typedef typename Job::JobResult Result;
 
   ParallelXJobCalc(){};
-  virtual ~ParallelXJobCalc() { ; };
+  ~ParallelXJobCalc() override { ; };
 
-  std::string Identify() = 0;
+  std::string Identify() override = 0;
 
-  bool EvaluateFrame(const Topology &top);
+  bool EvaluateFrame(const Topology &top) override;
   virtual void CustomizeLogger(QMThread &thread);
   virtual Result EvalJob(const Topology &top, Job &job, QMThread &thread) = 0;
 
@@ -78,9 +78,9 @@ class ParallelXJobCalc : public JobCalculator {
         : _top(top), _master(master), _openmp_threads(openmp_threads) {
       setId(id);
     }  // comes from baseclass so Id cannot be in initializer list
-    ~JobOperator(){};
+    ~JobOperator() override{};
 
-    void Run();
+    void Run() override;
 
    private:
     const Topology &_top;

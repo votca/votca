@@ -37,11 +37,11 @@ namespace xtp {
 
 class BSECoupling : public CouplingBase {
  public:
-  void Initialize(tools::Property& options);
+  void Initialize(tools::Property& options) override;
   std::string Identify() const { return "bsecoupling"; }
 
   void Addoutput(tools::Property& type_summary, const Orbitals& orbitalsA,
-                 const Orbitals& orbitalsB) const;
+                 const Orbitals& orbitalsB) const override;
 
   /**
    * \brief evaluates electronic couplings
@@ -51,7 +51,7 @@ class BSECoupling : public CouplingBase {
    * @param _orbitalsAB molecular orbitals of the dimer AB
    */
   void CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
-                          const Orbitals& orbitalsAB);
+                          const Orbitals& orbitalsAB) override;
 
  private:
   void WriteToProperty(tools::Property& summary, const QMState& stateA,

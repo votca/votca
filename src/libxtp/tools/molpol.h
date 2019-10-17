@@ -33,12 +33,12 @@ class MolPol : public QMTool {
  public:
   MolPol() : _input("", 0){};
 
-  ~MolPol(){};
+  ~MolPol() override{};
 
-  std::string Identify() { return "molpol"; }
+  std::string Identify() override { return "molpol"; }
 
-  void Initialize(tools::Property& options);
-  bool Evaluate();
+  void Initialize(tools::Property& options) override;
+  bool Evaluate() override;
 
  private:
   void PrintPolarisation(const Eigen::Matrix3d& result) const;

@@ -34,20 +34,20 @@ class XtpTools : public xtp::XtpApplication {
  public:
   XtpTools() {}
 
-  ~XtpTools() {}
+  ~XtpTools() override {}
 
-  string ProgramName() { return "xtp_tools"; }
+  string ProgramName() override { return "xtp_tools"; }
 
-  void HelpText(ostream& out) {
+  void HelpText(ostream& out) override {
     out << "Runs excitation/charge transport tools" << endl;
   }
 
   void SetTool(xtp::QMTool* tool) {
     _tool = std::unique_ptr<xtp::QMTool>(tool);
   }
-  void Initialize();
-  bool EvaluateOptions();
-  void Run(void);
+  void Initialize() override;
+  bool EvaluateOptions() override;
+  void Run(void) override;
 
   void BeginEvaluate(int nThreads);
   bool Evaluate();

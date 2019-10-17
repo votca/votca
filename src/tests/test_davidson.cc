@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix_fail) {
 class TestOperator : public MatrixFreeOperator {
  public:
   TestOperator(){};
-  Eigen::RowVectorXd OperatorRow(int index) const;
+  Eigen::RowVectorXd OperatorRow(int index) const override;
 
  private:
 };
@@ -323,7 +323,7 @@ class HermitianBlockOperator : public MatrixFreeOperator {
   HermitianBlockOperator(){};
 
   void attach_matrix(const Eigen::MatrixXd &mat);
-  Eigen::RowVectorXd OperatorRow(int index) const;
+  Eigen::RowVectorXd OperatorRow(int index) const override;
   void set_diag(int diag);
   Eigen::VectorXd diag_el;
 

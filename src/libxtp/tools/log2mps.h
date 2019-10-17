@@ -32,12 +32,12 @@ namespace xtp {
 class Log2Mps : public QMTool {
  public:
   Log2Mps(){};
-  ~Log2Mps(){};
+  ~Log2Mps() override{};
 
-  std::string Identify() { return "log2mps"; }
+  std::string Identify() override { return "log2mps"; }
 
-  void Initialize(tools::Property &options);
-  bool Evaluate();
+  void Initialize(tools::Property &options) override;
+  bool Evaluate() override;
 
  private:
   std::string _package;
