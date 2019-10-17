@@ -179,8 +179,8 @@ int main(int argc, char **argv) {
         for (int i = 0; i < (*mol)->BeadCount(); ++i) {
           flag_found = 0;
           part_type = atoi((*mol)->getBead(i)->getType().c_str());
-          for (size_t j = 0; j < ptypes.size(); ++j) {
-            if (part_type == ptypes[j]) {
+          for (int ptype : ptypes) {
+            if (part_type == ptype) {
               flag_found = 1;
             }
           }
@@ -205,8 +205,8 @@ int main(int argc, char **argv) {
       for (mol = top.Molecules().begin(); mol != top.Molecules().end(); ++mol) {
         for (int i = 0; i < (*mol)->BeadCount(); ++i) {
           part_type = atoi((*mol)->getBead(i)->getType().c_str());
-          for (size_t j = 0; j < ptypes.size(); ++j) {
-            if (part_type == ptypes[j]) {
+          for (int ptype : ptypes) {
+            if (part_type == ptype) {
               ++n_part;
             }
           }
@@ -250,8 +250,8 @@ int main(int argc, char **argv) {
              ++mol) {
           for (int i = 0; i < (*mol)->BeadCount(); ++i) {
             part_type = atoi((*mol)->getBead(i)->getType().c_str());
-            for (size_t j = 0; j < ptypes.size(); ++j) {
-              if (part_type == ptypes[j]) {
+            for (int ptype : ptypes) {
+              if (part_type == ptype) {
                 if (coordinate.compare("x") == 0) {
                   com += (*mol)->getBead(i)->getPos().x();
                 } else if (coordinate.compare("y") == 0) {
@@ -309,8 +309,8 @@ int main(int argc, char **argv) {
     }
 
     fl_out << "#z\t" << flush;
-    for (size_t i = 0; i < ptypes.size(); ++i) {
-      fl_out << "type " << ptypes[i] << "\t" << flush;
+    for (int ptype : ptypes) {
+      fl_out << "type " << ptype << "\t" << flush;
     }
     fl_out << endl;
     for (int k = 0; k < n_bins; ++k) {
