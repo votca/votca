@@ -46,7 +46,7 @@ T *FileFormatFactory<T>::Create(const std::string &file) {
                              "'" +
                              file + "' cannot be read or written");
   }
-  return NULL;
+  return nullptr;
 }
 
 }  // namespace csg

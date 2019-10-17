@@ -36,11 +36,12 @@ namespace csg {
 class CGObserver {
  public:
   /// \brief called before the first frame
-  virtual void BeginCG(Topology *top, Topology *top_atom = 0) = 0;
+  virtual void BeginCG(Topology *top, Topology *top_atom = nullptr) = 0;
   /// \brief called after the last frame
   virtual void EndCG() = 0;
   // \brief called for each frame which is mapped
-  virtual void EvalConfiguration(Topology *top, Topology *top_atom = 0) = 0;
+  virtual void EvalConfiguration(Topology *top,
+                                 Topology *top_atom = nullptr) = 0;
 };
 
 }  // namespace csg

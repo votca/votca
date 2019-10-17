@@ -93,7 +93,7 @@ inline CGMoleculeDef *CGEngine::getMoleculeDef(std::string name) {
   }
 
   iter = _molecule_defs.find(name);
-  if (iter == _molecule_defs.end()) return NULL;
+  if (iter == _molecule_defs.end()) return nullptr;
   return (*iter).second;
 }
 

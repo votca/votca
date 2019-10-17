@@ -85,16 +85,16 @@ inline triple_type *TripleList<element_type, triple_type>::FindTriple(
       std::map<element_type, std::map<element_type, triple_type *>>>::iterator
       iter1;
   iter1 = _triple_map.find(e1);
-  if (iter1 == _triple_map.end()) return NULL;
+  if (iter1 == _triple_map.end()) return nullptr;
 
   typename std::map<element_type,
                     std::map<element_type, triple_type *>>::iterator iter2;
   iter2 = iter1->second.find(e2);
-  if (iter2 == iter1->second.end()) return NULL;
+  if (iter2 == iter1->second.end()) return nullptr;
 
   typename std::map<element_type, triple_type *>::iterator iter3;
   iter3 = iter2->second.find(e3);
-  if (iter3 == iter2->second.end()) return NULL;
+  if (iter3 == iter2->second.end()) return nullptr;
 
   return iter3->second;
 }

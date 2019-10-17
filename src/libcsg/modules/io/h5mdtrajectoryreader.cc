@@ -79,7 +79,7 @@ bool H5MDTrajectoryReader::Open(const string &file) {
   first_frame_ = true;
 
   // Handle errors by internal check up.
-  H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
+  H5Eset_auto2(H5E_DEFAULT, nullptr, nullptr);
 
   return true;
 }
@@ -187,7 +187,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   hid_t fs_atom_position_ = H5Dget_space(ds_atom_position_);
   CheckError(fs_atom_position_, "Unable to open atom position space.");
   hsize_t dims[3];
-  rank_ = H5Sget_simple_extent_dims(fs_atom_position_, dims, NULL);
+  rank_ = H5Sget_simple_extent_dims(fs_atom_position_, dims, nullptr);
   N_particles_ = dims[1];
   vec_components_ = dims[2];
   max_idx_frame_ = dims[0] - 1;
@@ -237,9 +237,9 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   top.setBox(m);
 
   double *positions;
-  double *forces = NULL;
-  double *velocities = NULL;
-  int *ids = NULL;
+  double *forces = nullptr;
+  double *velocities = nullptr;
+  int *ids = nullptr;
 
   try {
     positions = ReadVectorData<double>(ds_atom_position_, H5T_NATIVE_DOUBLE,
@@ -320,8 +320,8 @@ void H5MDTrajectoryReader::ReadBox(hid_t ds, hid_t ds_data_type, int row,
   ch_rows[0] = 1;
   ch_rows[1] = 3;
   hid_t dsp = H5Dget_space(ds);
-  H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
-  hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
+  H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, nullptr, ch_rows, nullptr);
+  hid_t mspace1 = H5Screate_simple(2, ch_rows, nullptr);
   herr_t status =
       H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out.get());
   if (status < 0) {

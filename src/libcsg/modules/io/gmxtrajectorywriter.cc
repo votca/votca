@@ -35,8 +35,8 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
   int N = conf->BeadCount();
   t_trxframe frame;
   rvec *x = new rvec[N];
-  rvec *v = NULL;
-  rvec *f = NULL;
+  rvec *v = nullptr;
+  rvec *f = nullptr;
   Eigen::Matrix3d box = conf->getBox();
 
   frame.natoms = N;
@@ -85,7 +85,7 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
     }
   }
 
-  write_trxframe(_file, &frame, NULL);
+  write_trxframe(_file, &frame, nullptr);
 
   step++;
   delete[] x;

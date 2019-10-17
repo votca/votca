@@ -70,7 +70,7 @@ class CsgREupdate : public CsgApplication {
 
   void Initialize() override;
   bool EvaluateOptions() override;
-  void BeginEvaluate(Topology *top, Topology *top_atom = 0) override;
+  void BeginEvaluate(Topology *top, Topology *top_atom = nullptr) override;
   void LoadOptions(const std::string &file);
 
   void Run() override;

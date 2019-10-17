@@ -75,8 +75,9 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     chunk_rows[1] = N_particles_;
     chunk_rows[2] = vec_components_;
     hid_t dsp = H5Dget_space(ds);
-    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, chunk_rows, NULL);
-    hid_t mspace1 = H5Screate_simple(vec_components_, chunk_rows, NULL);
+    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, nullptr, chunk_rows,
+                        nullptr);
+    hid_t mspace1 = H5Screate_simple(vec_components_, chunk_rows, nullptr);
     T1 *data_out = new T1[N_particles_ * vec_components_];
     herr_t status =
         H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
@@ -97,8 +98,8 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     ch_rows[0] = 1;
     ch_rows[1] = N_particles_;
     hid_t dsp = H5Dget_space(ds);
-    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
-    hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
+    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, nullptr, ch_rows, nullptr);
+    hid_t mspace1 = H5Screate_simple(2, ch_rows, nullptr);
     T1 *data_out = new T1[N_particles_];
     herr_t status =
         H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);

@@ -21,7 +21,7 @@
 namespace votca {
 namespace csg {
 
-NBList::NBList() : _do_exclusions(false), _match_function(0) {
+NBList::NBList() : _do_exclusions(false), _match_function(nullptr) {
   setPairType<BeadPair>();
   SetMatchFunction(NBList::match_always);
 }

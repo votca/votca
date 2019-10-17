@@ -289,7 +289,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
             sl >> line;  // internal dlpoly bond/angle/dihedral function types
                          // are merely skipped (ignored)
             int ids[4];
-            Interaction *ic = NULL;
+            Interaction *ic = nullptr;
             sl >> ids[0];
             sl >> ids[1];
             if (type == "BONDS") {
@@ -342,7 +342,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         InteractionContainer ics = mi->Interactions();
         for (vector<Interaction *>::iterator ic = ics.begin(); ic != ics.end();
              ++ic) {
-          Interaction *ic_replica = NULL;
+          Interaction *ic_replica = nullptr;
           int offset =
               mi_replica->getBead(0)->getId() - mi->getBead(0)->getId();
           if ((*ic)->BeadCount() == 2) {

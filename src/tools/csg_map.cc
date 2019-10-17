@@ -160,7 +160,7 @@ void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {
   string out = OptionsMap()["out"].as<string>();
   cout << "writing coarse-grained trajectory to " << out << endl;
   _writer = TrjWriterFactory().Create(out);
-  if (_writer == NULL)
+  if (_writer == nullptr)
     throw runtime_error("output format not supported: " + out);
 
   _do_hybrid = false;

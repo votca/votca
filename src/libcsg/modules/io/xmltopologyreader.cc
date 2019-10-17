@@ -272,7 +272,7 @@ void XMLTopologyReader::ParseBond(tools::Property &p) {
   vector<string> bead_list = tok.ToVector();
   if (bead_list.size() % 2 == 1)
     throw runtime_error("Wrong number of beads in bond: " + name);
-  Interaction *ic = NULL;
+  Interaction *ic = nullptr;
   typedef pair<MoleculesMap::iterator, MoleculesMap::iterator> MRange;
   int b_index = 0;
   for (vector<string>::iterator it = bead_list.begin();
@@ -309,7 +309,7 @@ void XMLTopologyReader::ParseAngle(tools::Property &p) {
   vector<string> bead_list = tok.ToVector();
   if (bead_list.size() % 3 == 1)
     throw runtime_error("Wrong number of beads in angle: " + name);
-  Interaction *ic = NULL;
+  Interaction *ic = nullptr;
   typedef pair<MoleculesMap::iterator, MoleculesMap::iterator> MRange;
   int b_index = 0;
   for (vector<string>::iterator it = bead_list.begin();
@@ -347,7 +347,7 @@ void XMLTopologyReader::ParseDihedral(tools::Property &p) {
   vector<string> bead_list = tok.ToVector();
   if (bead_list.size() % 4 == 1)
     throw runtime_error("Wrong number of beads in dihedral: " + name);
-  Interaction *ic = NULL;
+  Interaction *ic = nullptr;
   typedef pair<MoleculesMap::iterator, MoleculesMap::iterator> MRange;
   int b_index = 0;
   for (vector<string>::iterator it = bead_list.begin();

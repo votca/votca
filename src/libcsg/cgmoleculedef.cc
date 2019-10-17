@@ -221,7 +221,7 @@ CGMoleculeDef::beaddef_t *CGMoleculeDef::getBeadByName(const string &name) {
   map<string, beaddef_t *>::iterator iter = _beads_by_name.find(name);
   if (iter == _beads_by_name.end()) {
     std::cout << "cannot find: <" << name << "> in " << _name << "\n";
-    return NULL;
+    return nullptr;
   }
   // assert(iter != _beadmap.end());
   // return (*iter).second;
@@ -232,7 +232,7 @@ tools::Property *CGMoleculeDef::getMapByName(const string &name) {
   map<string, tools::Property *>::iterator iter = _maps.find(name);
   if (iter == _maps.end()) {
     std::cout << "cannot find map " << name << "\n";
-    return NULL;
+    return nullptr;
   }
   // assert(iter != _beadmap.end());
   // return (*iter).second;

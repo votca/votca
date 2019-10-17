@@ -68,18 +68,18 @@ class CsgApplication : public tools::Application {
 
   /// \brief called after topology was loaded
 
-  virtual bool EvaluateTopology(Topology *top, Topology *top_ref = 0) {
+  virtual bool EvaluateTopology(Topology *top, Topology *top_ref = nullptr) {
     return true;
   }
 
   void AddObserver(CGObserver *observer);
 
   /// \brief called before the first frame
-  virtual void BeginEvaluate(Topology *top, Topology *top_ref = 0);
+  virtual void BeginEvaluate(Topology *top, Topology *top_ref = nullptr);
   /// \brief called after the last frame
   virtual void EndEvaluate();
   // \brief called for each frame which is mapped
-  virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0);
+  virtual void EvalConfiguration(Topology *top, Topology *top_ref = nullptr);
 
   // thread related stuff follows
 
@@ -103,7 +103,8 @@ class CsgApplication : public tools::Application {
     ~Worker() override;
 
     /// \brief overload with the actual computation
-    virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0) = 0;
+    virtual void EvalConfiguration(Topology *top,
+                                   Topology *top_ref = nullptr) = 0;
 
     /// \brief returns worker id
     int getId() { return _id; }

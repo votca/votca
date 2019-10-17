@@ -151,7 +151,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
     _top_force.CopyTopologyData(top);
     _trjreader_force =
         TrjReaderFactory().Create(_op_vm["trj-force"].as<string>());
-    if (_trjreader_force == NULL)
+    if (_trjreader_force == nullptr)
       throw runtime_error(string("input format not supported: ") +
                           _op_vm["trj-force"].as<string>());
     // open the trajectory

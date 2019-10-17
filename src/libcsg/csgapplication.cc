@@ -187,7 +187,7 @@ void CsgApplication::Run(void) {
   TopologyReader *reader;
   // create reader for atomistic topology
   reader = TopReaderFactory().Create(_op_vm["top"].as<std::string>());
-  if (reader == NULL)
+  if (reader == nullptr)
     throw std::runtime_error(std::string("input format not supported: ") +
                              _op_vm["top"].as<std::string>());
 
@@ -199,7 +199,7 @@ void CsgApplication::Run(void) {
   };
 
   // create the master worker
-  Worker *master = NULL;
+  Worker *master = nullptr;
   if (DoThreaded())
     master = ForkWorker();
   else
@@ -264,7 +264,7 @@ void CsgApplication::Run(void) {
 
     // create reader for trajectory
     _traj_reader = TrjReaderFactory().Create(_op_vm["trj"].as<std::string>());
-    if (_traj_reader == NULL)
+    if (_traj_reader == nullptr)
       throw std::runtime_error(std::string("input format not supported: ") +
                                _op_vm["trj"].as<std::string>());
     // open the trajectory
@@ -412,7 +412,7 @@ void CsgApplication::EvalConfiguration(Topology *top, Topology *top_ref) {
 
 CsgApplication::Worker *CsgApplication::ForkWorker(void) {
   throw std::runtime_error("ForkWorker not implemented in application");
-  return NULL;
+  return nullptr;
 }
 
 void CsgApplication::MergeWorker(CsgApplication::Worker *worker) {

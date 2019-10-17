@@ -55,7 +55,8 @@ class CGForceMatching : public CsgApplication {
   /// \brief called after the last frame
   void EndEvaluate() override;
   /// \brief called for each frame which is mapped
-  void EvalConfiguration(Topology *conf, Topology *conf_atom = 0) override;
+  void EvalConfiguration(Topology *conf,
+                         Topology *conf_atom = nullptr) override;
   /// \brief load options from the input file
   void LoadOptions(const string &file);
 

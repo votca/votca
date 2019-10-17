@@ -50,7 +50,7 @@ void check_option(po::options_description &desc, po::variables_map &vm,
 int main(int argc, char **argv) {
 
   string in_file, out_file, grid, fitgrid, comment, type, boundaries;
-  Spline *spline = NULL;
+  Spline *spline = nullptr;
   Table in, out, der;
   // program options
   po::options_description desc("Allowed options");

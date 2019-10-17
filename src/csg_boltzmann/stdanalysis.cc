@@ -86,7 +86,7 @@ void StdAnalysis::WriteValues(BondedStatistics &bs,
                               std::vector<std::string> &args) {
   std::ofstream out;
 
-  votca::tools::DataCollection<double>::selection *sel = NULL;
+  votca::tools::DataCollection<double>::selection *sel = nullptr;
 
   for (size_t i = 1; i < args.size(); i++)
     sel = bs.BondedValues().select(args[i], sel);
@@ -102,7 +102,7 @@ void StdAnalysis::WriteValues(BondedStatistics &bs,
 void StdAnalysis::WriteAutocorrelation(BondedStatistics &bs,
                                        std::vector<std::string> &args) {
   std::ofstream out;
-  votca::tools::DataCollection<double>::selection *sel = NULL;
+  votca::tools::DataCollection<double>::selection *sel = nullptr;
 
   for (size_t i = 1; i < args.size(); i++)
     sel = bs.BondedValues().select(args[i], sel);
@@ -120,7 +120,7 @@ void StdAnalysis::WriteAutocorrelation(BondedStatistics &bs,
 void StdAnalysis::WriteCorrelations(BondedStatistics &bs,
                                     std::vector<std::string> &args) {
   std::ofstream out;
-  votca::tools::DataCollection<double>::selection *sel = NULL;
+  votca::tools::DataCollection<double>::selection *sel = nullptr;
 
   for (size_t i = 1; i < args.size(); i++)
     sel = bs.BondedValues().select(args[i], sel);
