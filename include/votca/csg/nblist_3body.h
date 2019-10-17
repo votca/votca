@@ -202,7 +202,9 @@ inline void NBList_3Body::SetMatchFunction(
                               const Eigen::Vector3d &, const Eigen::Vector3d &,
                               const double dist12, const double dist13,
                               const double dist23)) {
-  if (_match_function) delete _match_function;
+  if (_match_function) {
+    delete _match_function;
+  }
   _match_function = dynamic_cast<Functor *>(new FunctorMember<T>(object, fkt));
 }
 
@@ -210,7 +212,9 @@ inline void NBList_3Body::SetMatchFunction(bool (*fkt)(
     Bead *, Bead *, Bead *, const Eigen::Vector3d &, const Eigen::Vector3d &,
     const Eigen::Vector3d &, const double dist12, const double dist13,
     const double dist23)) {
-  if (_match_function) delete _match_function;
+  if (_match_function) {
+    delete _match_function;
+  }
   _match_function = dynamic_cast<Functor *>(new FunctorNonMember(fkt));
 }
 

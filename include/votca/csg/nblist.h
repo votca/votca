@@ -165,14 +165,18 @@ inline void NBList::SetMatchFunction(T *object,
                                      bool (T::*fkt)(Bead *, Bead *,
                                                     const Eigen::Vector3d &,
                                                     const double)) {
-  if (_match_function) delete _match_function;
+  if (_match_function) {
+    delete _match_function;
+  }
   _match_function = dynamic_cast<Functor *>(new FunctorMember<T>(object, fkt));
 }
 
 inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *,
                                                  const Eigen::Vector3d &,
                                                  const double)) {
-  if (_match_function) delete _match_function;
+  if (_match_function) {
+    delete _match_function;
+  }
   _match_function = dynamic_cast<Functor *>(new FunctorNonMember(fkt));
 }
 

@@ -78,8 +78,9 @@ inline void PairList<element_type, pair_type>::AddPair(pair_type *p) {
 
 template <typename element_type, typename pair_type>
 inline void PairList<element_type, pair_type>::Cleanup() {
-  for (iterator iter = _pairs.begin(); iter != _pairs.end(); ++iter)
+  for (iterator iter = _pairs.begin(); iter != _pairs.end(); ++iter) {
     delete *iter;
+  }
   _pairs.clear();
   _pair_map.clear();
 }
@@ -90,11 +91,15 @@ inline pair_type *PairList<element_type, pair_type>::FindPair(element_type e1,
   typename std::map<element_type, std::map<element_type, pair_type *>>::iterator
       iter1;
   iter1 = _pair_map.find(e1);
-  if (iter1 == _pair_map.end()) return nullptr;
+  if (iter1 == _pair_map.end()) {
+    return nullptr;
+  }
 
   typename partners::iterator iter2;
   iter2 = iter1->second.find(e2);
-  if (iter2 == iter1->second.end()) return nullptr;
+  if (iter2 == iter1->second.end()) {
+    return nullptr;
+  }
 
   return iter2->second;
 }
@@ -105,11 +110,15 @@ inline const pair_type *PairList<element_type, pair_type>::FindPair(
   typename std::map<element_type,
                     std::map<element_type, pair_type *>>::const_iterator iter1;
   iter1 = _pair_map.find(e1);
-  if (iter1 == _pair_map.end()) return nullptr;
+  if (iter1 == _pair_map.end()) {
+    return nullptr;
+  }
 
   typename partners::const_iterator iter2;
   iter2 = iter1->second.find(e2);
-  if (iter2 == iter1->second.end()) return nullptr;
+  if (iter2 == iter1->second.end()) {
+    return nullptr;
+  }
 
   return iter2->second;
 }
@@ -119,7 +128,9 @@ typename PairList<element_type, pair_type>::partners *
     PairList<element_type, pair_type>::FindPartners(element_type e1) {
   typename std::map<element_type, std::map<element_type, pair_type *>>::iterator
       iter;
-  if ((iter = _pair_map.find(e1)) == _pair_map.end()) return nullptr;
+  if ((iter = _pair_map.find(e1)) == _pair_map.end()) {
+    return nullptr;
+  }
   return &(iter->second);
 }
 

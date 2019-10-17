@@ -49,7 +49,9 @@ void PotentialFunction::setParam(string filename) {
                              boost::lexical_cast<string>(_lam.size()) +
                              " parameters");
   } else {
-    for (unsigned int i = 0; i < _lam.size(); i++) _lam(i) = param.y(i);
+    for (unsigned int i = 0; i < _lam.size(); i++) {
+      _lam(i) = param.y(i);
+    }
   }
 }
 
@@ -59,7 +61,9 @@ void PotentialFunction::SaveParam(const string &filename) {
   param.SetHasYErr(false);
   param.resize(_lam.size());
 
-  for (unsigned int i = 0; i < _lam.size(); i++) param.set(i, i, _lam(i), 'i');
+  for (unsigned int i = 0; i < _lam.size(); i++) {
+    param.set(i, i, _lam(i), 'i');
+  }
 
   param.Save(filename);
 }
@@ -72,8 +76,9 @@ void PotentialFunction::SavePotTab(const string &filename, const double step) {
   double r_init;
   int i;
 
-  for (r_init = _min, i = 0; i < ngrid - 1; r_init += step)
+  for (r_init = _min, i = 0; i < ngrid - 1; r_init += step) {
     pot_tab.set(i++, r_init, CalculateF(r_init), 'i');
+  }
 
   pot_tab.set(i, _cut_off, CalculateF(_cut_off), 'i');
   pot_tab.Save(filename);
@@ -89,8 +94,9 @@ void PotentialFunction::SavePotTab(const string &filename, const double step,
   int i;
   char flag = 'i';
 
-  for (r_init = rmin, i = 0; i < ngrid - 1; r_init += step)
+  for (r_init = rmin, i = 0; i < ngrid - 1; r_init += step) {
     pot_tab.set(i++, r_init, CalculateF(r_init), flag);
+  }
 
   pot_tab.set(i, rcut, CalculateF(rcut), flag);
   pot_tab.Save(filename);

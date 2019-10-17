@@ -56,7 +56,7 @@ void CsgApplication::Initialize() {
     }
   }
 
-  if (DoTrajectory())
+  if (DoTrajectory()) {
     AddProgramOptions("Trajectory options")(
         "trj", boost::program_options::value<std::string>(),
         "  atomistic trajectory file")(
@@ -66,14 +66,16 @@ void CsgApplication::Initialize() {
         "  start with this frame")("nframes",
                                    boost::program_options::value<int>(),
                                    "  process the given number of frames");
+  }
 
-  if (DoThreaded())
+  if (DoThreaded()) {
     /*
      * TODO default value of 1 for nt is not smart
      */
     AddProgramOptions("Threading options")(
         "nt", boost::program_options::value<int>()->default_value(1),
         "  number of threads");
+  }
 }
 
 bool CsgApplication::EvaluateOptions() {
@@ -116,7 +118,9 @@ bool CsgApplication::EvaluateOptions() {
 
 void CsgApplication::ShowHelpText(std::ostream &out) {
   std::string name = ProgramName();
-  if (VersionString() != "") name = name + ", version " + VersionString();
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
 
   HelpTextHeader(name);
   HelpText(out);
@@ -161,12 +165,15 @@ bool CsgApplication::ProcessData(Worker *worker) {
     bool tmpRes = _traj_reader->NextFrame(worker->_top);
     if (!tmpRes) {
       _traj_readerMutex.Unlock();
-      if (SynchronizeThreads())
+      if (SynchronizeThreads()) {
         _threadsMutexesIn[(id + 1) % _nthreads]->Unlock();
+      }
       return false;
     }
   }
-  if (worker->getId() == 0) _is_first_frame = false;
+  if (worker->getId() == 0) {
+    _is_first_frame = false;
+  }
 
   _traj_readerMutex.Unlock();
   if (SynchronizeThreads()) {
@@ -177,8 +184,9 @@ bool CsgApplication::ProcessData(Worker *worker) {
   if (_do_mapping) {
     worker->_map->Apply();
     worker->EvalConfiguration(&worker->_top_cg, &worker->_top);
-  } else
+  } else {
     worker->EvalConfiguration(&worker->_top);
+  }
 
   return true;
 }
@@ -187,9 +195,10 @@ void CsgApplication::Run(void) {
   TopologyReader *reader;
   // create reader for atomistic topology
   reader = TopReaderFactory().Create(_op_vm["top"].as<std::string>());
-  if (reader == nullptr)
+  if (reader == nullptr) {
     throw std::runtime_error(std::string("input format not supported: ") +
                              _op_vm["top"].as<std::string>());
+  }
 
   class DummyWorker : public Worker {
    public:
@@ -200,10 +209,11 @@ void CsgApplication::Run(void) {
 
   // create the master worker
   Worker *master = nullptr;
-  if (DoThreaded())
+  if (DoThreaded()) {
     master = ForkWorker();
-  else
+  } else {
     master = new DummyWorker();
+  }
 
   master->setApplication(this);
   master->setId(0);
@@ -228,7 +238,9 @@ void CsgApplication::Run(void) {
       tools::Tokenizer tok(_op_vm["map-ignore"].as<std::string>(), ";");
       for (std::string str : tok) {
         boost::trim(str);
-        if (str.length() > 0) cg.AddIgnore(str);
+        if (str.length() > 0) {
+          cg.AddIgnore(str);
+        }
       }
     }
 
@@ -238,9 +250,12 @@ void CsgApplication::Run(void) {
               << master->_top_cg.MoleculeCount()
               << " molecules for the coarsegraining" << std::endl;
     master->_map->Apply();
-    if (!EvaluateTopology(&master->_top_cg, &master->_top)) return;
-  } else if (!EvaluateTopology(&master->_top))
+    if (!EvaluateTopology(&master->_top_cg, &master->_top)) {
+      return;
+    }
+  } else if (!EvaluateTopology(&master->_top)) {
     return;
+  }
 
   //////////////////////////////////////////////////
   // Here trajectory parsing starts
@@ -264,9 +279,10 @@ void CsgApplication::Run(void) {
 
     // create reader for trajectory
     _traj_reader = TrjReaderFactory().Create(_op_vm["trj"].as<std::string>());
-    if (_traj_reader == nullptr)
+    if (_traj_reader == nullptr) {
       throw std::runtime_error(std::string("input format not supported: ") +
                                _op_vm["trj"].as<std::string>());
+    }
     // open the trajectory
     _traj_reader->Open(_op_vm["trj"].as<std::string>());
 
@@ -324,8 +340,9 @@ void CsgApplication::Run(void) {
     if (_do_mapping) {
       master->_map->Apply();
       BeginEvaluate(&master->_top_cg, &master->_top);
-    } else
+    } else {
       BeginEvaluate(&master->_top);
+    }
 
     _is_first_frame = true;
     /////////////////////////////////////////////////////////////////////////
@@ -345,8 +362,9 @@ void CsgApplication::Run(void) {
           myMutexOut->Lock();
         }
       }
-      for (size_t thread = 0; thread < _myWorkers.size(); thread++)
+      for (size_t thread = 0; thread < _myWorkers.size(); thread++) {
         _myWorkers[thread]->Start();
+      }
 
       if (SynchronizeThreads()) {
         // unlock first thread and start ordered input/output
@@ -389,7 +407,9 @@ void CsgApplication::Run(void) {
 }
 
 CsgApplication::Worker::~Worker() {
-  if (_map) delete _map;
+  if (_map) {
+    delete _map;
+  }
 }
 
 void CsgApplication::BeginEvaluate(Topology *top, Topology *top_ref) {

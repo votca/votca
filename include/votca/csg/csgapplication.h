@@ -59,10 +59,11 @@ class CsgApplication : public tools::Application {
   /* \brief overload and return false to disable synchronized (while threaded)
    * calculations */
   virtual bool SynchronizeThreads(void) {
-    if (DoThreaded())
+    if (DoThreaded()) {
       return true;
-    else
+    } else {
       return false;
+    }
   }
 
   /// \brief if topology is always needed

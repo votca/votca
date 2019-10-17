@@ -16,6 +16,7 @@
  */
 
 #include <votca/csg/nblistgrid_3body.h>
+#include <votca/csg/topology.h>
 
 namespace votca {
 namespace csg {
@@ -26,9 +27,15 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
                                 BeadList &list3, bool do_exclusions) {
   BeadList::iterator iter;
   _do_exclusions = do_exclusions;
-  if (list1.empty()) return;
-  if (list2.empty()) return;
-  if (list3.empty()) return;
+  if (list1.empty()) {
+    return;
+  }
+  if (list2.empty()) {
+    return;
+  }
+  if (list3.empty()) {
+    return;
+  }
 
   // check if all bead lists "have" the same topology
   assert(list1.getTopology() == list2.getTopology());
@@ -39,16 +46,19 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
   InitializeGrid(top->getBox());
 
   // Add all beads of list1 to _beads1
-  for (iter = list1.begin(); iter != list1.end(); ++iter)
+  for (iter = list1.begin(); iter != list1.end(); ++iter) {
     getCell((*iter)->getPos())._beads1.push_back(*iter);
+  }
 
   // Add all beads of list2 to _beads2
-  for (iter = list2.begin(); iter != list2.end(); ++iter)
+  for (iter = list2.begin(); iter != list2.end(); ++iter) {
     getCell((*iter)->getPos())._beads2.push_back(*iter);
+  }
 
   // Add all beads of list2 to _beads3
-  for (iter = list3.begin(); iter != list3.end(); ++iter)
+  for (iter = list3.begin(); iter != list3.end(); ++iter) {
     getCell((*iter)->getPos())._beads3.push_back(*iter);
+  }
 
   // loop over beads of list 1 again to get the correlations
   for (iter = list1.begin(); iter != list1.end(); ++iter) {
@@ -61,8 +71,12 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
                                 bool do_exclusions) {
   BeadList::iterator iter;
   _do_exclusions = do_exclusions;
-  if (list1.empty()) return;
-  if (list2.empty()) return;
+  if (list1.empty()) {
+    return;
+  }
+  if (list2.empty()) {
+    return;
+  }
 
   // check if both bead lists "have" the same topology
   assert(list1.getTopology() == list2.getTopology());
@@ -71,12 +85,14 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
   InitializeGrid(top->getBox());
 
   // Add all beads of list1 to _beads1
-  for (iter = list1.begin(); iter != list1.end(); ++iter)
+  for (iter = list1.begin(); iter != list1.end(); ++iter) {
     getCell((*iter)->getPos())._beads1.push_back(*iter);
+  }
 
   // Add all beads of list2 to _beads2
-  for (iter = list2.begin(); iter != list2.end(); ++iter)
+  for (iter = list2.begin(); iter != list2.end(); ++iter) {
     getCell((*iter)->getPos())._beads2.push_back(*iter);
+  }
 
   // In this case type2 and type3 are the same
   for (vector<cell_t>::iterator iter = _grid.begin(); iter != _grid.end();
@@ -94,15 +110,18 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
 void NBListGrid_3Body::Generate(BeadList &list, bool do_exclusions) {
   BeadList::iterator iter;
   _do_exclusions = do_exclusions;
-  if (list.empty()) return;
+  if (list.empty()) {
+    return;
+  }
 
   Topology *top = _top = list.getTopology();
 
   InitializeGrid(top->getBox());
 
   // Add all beads of list to all! bead lists of the cell
-  for (iter = list.begin(); iter != list.end(); ++iter)
+  for (iter = list.begin(); iter != list.end(); ++iter) {
     getCell((*iter)->getPos())._beads1.push_back(*iter);
+  }
 
   for (vector<cell_t>::iterator iter = _grid.begin(); iter != _grid.end();
        ++iter) {
@@ -152,29 +171,45 @@ void NBListGrid_3Body::InitializeGrid(const Eigen::Matrix3d &box) {
   a1 = b1 = c1 = -1;
   a2 = b2 = c2 = 1;
 
-  if (_box_Na < 3) a2 = 0;
-  if (_box_Nb < 3) b2 = 0;
-  if (_box_Nc < 3) c2 = 0;
+  if (_box_Na < 3) {
+    a2 = 0;
+  }
+  if (_box_Nb < 3) {
+    b2 = 0;
+  }
+  if (_box_Nc < 3) {
+    c2 = 0;
+  }
 
-  if (_box_Na < 2) a1 = 0;
-  if (_box_Nb < 2) b1 = 0;
-  if (_box_Nc < 2) c1 = 0;
+  if (_box_Na < 2) {
+    a1 = 0;
+  }
+  if (_box_Nb < 2) {
+    b1 = 0;
+  }
+  if (_box_Nc < 2) {
+    c1 = 0;
+  }
 
   // wow, setting up the neighbours is an ugly for construct!
   // loop from N..2*N to avoid if and only use %
-  for (int a = _box_Na; a < 2 * _box_Na; ++a)
-    for (int b = _box_Nb; b < 2 * _box_Nb; ++b)
+  for (int a = _box_Na; a < 2 * _box_Na; ++a) {
+    for (int b = _box_Nb; b < 2 * _box_Nb; ++b) {
       for (int c = _box_Nc; c < 2 * _box_Nc; ++c) {
         cell_t &cell = getCell(a % _box_Na, b % _box_Nb, c % _box_Nc);
-        for (int aa = a + a1; aa <= a + a2; ++aa)
-          for (int bb = b + b1; bb <= b + b2; ++bb)
+        for (int aa = a + a1; aa <= a + a2; ++aa) {
+          for (int bb = b + b1; bb <= b + b2; ++bb) {
             for (int cc = c + c1; cc <= c + c2; ++cc) {
               // test: for 3body algorithm: each cell is a neighbor of its own
               // !!!
               cell._neighbours.push_back(
                   &getCell(aa % _box_Na, bb % _box_Nb, cc % _box_Nc));
             }
+          }
+        }
       }
+    }
+  }
 }
 
 NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const Eigen::Vector3d &r) {
@@ -182,13 +217,19 @@ NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const Eigen::Vector3d &r) {
   int b = (int)floor(r.dot(_norm_b));
   int c = (int)floor(r.dot(_norm_c));
 
-  if (a < 0) a = _box_Na + a % _box_Na;
+  if (a < 0) {
+    a = _box_Na + a % _box_Na;
+  }
   a %= _box_Na;
 
-  if (b < 0) b = _box_Nb + b % _box_Nb;
+  if (b < 0) {
+    b = _box_Nb + b % _box_Nb;
+  }
   b %= _box_Nb;
 
-  if (c < 0) c = _box_Nc + c % _box_Nc;
+  if (c < 0) {
+    c = _box_Nc + c % _box_Nc;
+  }
   c %= _box_Nc;
 
   return getCell(a, b, c);
@@ -210,8 +251,8 @@ void NBListGrid_3Body::TestBead(NBListGrid_3Body::cell_t &cell, Bead *bead) {
         continue;
       }
 
-      // loop again over all neighbors (this now includes the cell itself!) to
-      // iterate over all beads of type3 of the cell and its neighbors
+      // loop again over all neighbors (this now includes the cell itself!)
+      // to iterate over all beads of type3 of the cell and its neighbors
       for (vector<cell_t *>::iterator iterc3 = cell._neighbours.begin();
            iterc3 != cell._neighbours.end(); ++iterc3) {
         for (iter3 = (*(*iterc3))._beads3.begin();
@@ -236,21 +277,24 @@ void NBListGrid_3Body::TestBead(NBListGrid_3Body::cell_t &cell, Bead *bead) {
           double d23 = r23.norm();
 
           // to do: at the moment use only one cutoff value
-          // to do: so far only check the distance between bead 1 (central bead)
-          // and bead2 and bead 3
+          // to do: so far only check the distance between bead 1 (central
+          // bead) and bead2 and bead 3
           if ((d12 < _cutoff) && (d13 < _cutoff)) {
-            /// experimental: at the moment exclude interaction as soon as one
-            /// of the three pairs (1,2) (1,3) (2,3) is excluded!
-            if (_do_exclusions)
+            /// experimental: at the moment exclude interaction as soon as
+            /// one of the three pairs (1,2) (1,3) (2,3) is excluded!
+            if (_do_exclusions) {
               if ((_top->getExclusions().IsExcluded(bead, *iter2)) ||
                   (_top->getExclusions().IsExcluded(bead, *iter3)) ||
                   (_top->getExclusions().IsExcluded(*iter2, *iter3))) {
                 continue;
               }
+            }
             if ((*_match_function)(bead, *iter2, *iter3, r12, r13, r23, d12,
-                                   d13, d23))
-              if (!FindTriple(bead, *iter2, *iter3))
+                                   d13, d23)) {
+              if (!FindTriple(bead, *iter2, *iter3)) {
                 AddTriple(_triple_creator(bead, *iter2, *iter3, r12, r13, r23));
+              }
+            }
           }
         }
       }

@@ -38,7 +38,9 @@ void PDBWriter::WriteHeader(std::string header) {
     _out << "HEADER    ";
   }
   _out << header;
-  if (header.back() != '\n') _out << "\n";
+  if (header.back() != '\n') {
+    _out << "\n";
+  }
 }
 
 void PDBWriter::Close() { _out.close(); }

@@ -58,7 +58,9 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *top_ref) {
   nb.setCutoff(_cut_off);
   nb.Generate(b);
   NBList::iterator i;
-  for (i = nb.begin(); i != nb.end(); ++i) _rdf.Process((*i)->dist());
+  for (i = nb.begin(); i != nb.end(); ++i) {
+    _rdf.Process((*i)->dist());
+  }
 }
 
 void CsgTestApp::Initialize() {

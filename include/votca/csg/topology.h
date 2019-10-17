@@ -33,14 +33,12 @@
 #include "orthorhombicbox.h"
 #include "residue.h"
 #include "triclinicbox.h"
-
 #include <votca/tools/types.h>
 
 namespace votca {
 namespace csg {
 
 class Interaction;
-class ExclusionList;
 
 typedef std::vector<Molecule *> MoleculeContainer;
 typedef std::vector<Bead *> BeadContainer;

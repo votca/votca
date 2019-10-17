@@ -56,9 +56,10 @@ void GmxTopolApp::Initialize(void) {
 }
 
 bool GmxTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
-  if (top->MoleculeCount() > 1)
+  if (top->MoleculeCount() > 1) {
     cout << "WARNING: cannot create topology for topology with"
             "multiple molecules, using only first molecule\n";
+  }
   ofstream fl;
   fl.open((OptionsMap()["out"].as<string>() + ".top").c_str());
   WriteMolecule(fl, *(top->MoleculeByIndex(0)));
@@ -87,7 +88,9 @@ void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg) {
 
   for (iter = ics.begin(); iter != ics.end(); ++iter) {
     ic = *iter;
-    if (ic->getMolecule() != cg.getId()) continue;
+    if (ic->getMolecule() != cg.getId()) {
+      continue;
+    }
     if (nb != ic->BeadCount()) {
       nb = ic->BeadCount();
       switch (nb) {
@@ -107,7 +110,9 @@ void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg) {
           throw runtime_error(err);
       }
     }
-    for (int i = 0; i < nb; ++i) out << ic->getBeadId(i) + 1 << " ";
+    for (int i = 0; i < nb; ++i) {
+      out << ic->getBeadId(i) + 1 << " ";
+    }
     out << "  1  ; ";
     out << to_string(ic->getMolecule() + 1);
     out << ":" + ic->getGroup();

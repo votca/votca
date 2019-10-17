@@ -181,9 +181,10 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
   }
   nummols.push_back(prv_mol_number);
 
-  if (MolecularTypes.size() > 1)
+  if (MolecularTypes.size() > 1) {
     cout << "WARNING: creation of topology for multiple molecular types "
             "is experimental at this stage\n";
+  }
 
   ofstream fl;
   fl.open(fname.c_str());
@@ -254,7 +255,9 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
     Interaction *ic = *iter;
     if (nb != ic->BeadCount()) {
 
-      if (sout.str() != "") out << n_entries << endl << sout.str();
+      if (sout.str() != "") {
+        out << n_entries << endl << sout.str();
+      }
 
       sout.str("");
       n_entries = 0;
@@ -283,14 +286,18 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
     // sout << ic->getInteractionFunc(); // something like that (only for 1:1
     // mapping!)
     sout << " tab ";
-    for (int i = 0; i < nb; ++i) sout << ic->getBeadId(i) + 1 << " ";
+    for (int i = 0; i < nb; ++i) {
+      sout << ic->getBeadId(i) + 1 << " ";
+    }
     sout << "   1.00000  0.00000"
          << " # ";
     sout << to_string(ic->getMolecule() + 1);
     sout << ":" + ic->getGroup();
     sout << ":" + to_string(ic->getIndex() + 1) << endl;
   }
-  if (sout.str() != "") out << n_entries << endl << sout.str();
+  if (sout.str() != "") {
+    out << n_entries << endl << sout.str();
+  }
 }
 
 void DLPTopolApp::WriteMolecularType(ostream &out, Molecule &cg, int nummol) {

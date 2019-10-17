@@ -23,13 +23,11 @@
 #include <sstream>
 #include <string>
 
-namespace TOOLS = votca::tools;
-
 namespace votca {
 namespace csg {
 
 /**
-    \brief base calss for all interactions
+    \brief base class for all interactions
 
     This is the base class for all interactions.
 
@@ -37,7 +35,7 @@ namespace csg {
 */
 class Interaction {
  public:
-  Interaction() : _index(-1), _group(""), _group_id(-1), _name(""), _mol(-1){};
+  Interaction() = default;
 
   virtual ~Interaction() = default;
   virtual double EvaluateVar(const Topology &top) = 0;
@@ -88,11 +86,11 @@ class Interaction {
   }
 
  protected:
-  int _index;
-  std::string _group;
-  int _group_id;
-  std::string _name;
-  int _mol;
+  int _index = -1;
+  std::string _group = "";
+  int _group_id = -1;
+  std::string _name = "";
+  int _mol = -1;
   std::vector<int> _beads;
 
   void RebuildName();
@@ -100,14 +98,22 @@ class Interaction {
 
 inline void Interaction::RebuildName() {
   std::stringstream s;
-  if (_mol != -1) s << "molecule " << _mol;
+  if (_mol != -1) {
+    {
+      s << "molecule " << _mol;
+    }
+  }
   if (!_group.empty()) {
     s << ":" << _group;
     if (_group_id != -1) {
       s << " " << _group_id;
     }
   }
-  if (_index != -1) s << ":index " << _index;
+  if (_index != -1) {
+    {
+      s << ":index " << _index;
+    }
+  }
   _name = s.str();
 }
 

@@ -73,8 +73,12 @@ class CsgMapApp : public CsgApplication {
   void EvalConfiguration(Topology *top, Topology *top_ref) override {
     if (!_do_hybrid) {
       // simply write the topology mapped by csgapplication class
-      if (_do_vel) top->SetHasVel(true);
-      if (_do_force) top->SetHasForce(true);
+      if (_do_vel) {
+        top->SetHasVel(true);
+      }
+      if (_do_force) {
+        top->SetHasForce(true);
+      }
       _writer->Write(top);
     } else {
       // we want to combine atomistic and coarse-grained into one topology
@@ -115,8 +119,12 @@ class CsgMapApp : public CsgApplication {
                                         bi->getType(), bi->getResnr(),
                                         bi->getMass(), bi->getQ());
           bn->setPos(bi->getPos());
-          if (bi->HasVel()) bn->setVel(bi->getVel());
-          if (bi->HasF()) bn->setF(bi->getF());
+          if (bi->HasVel()) {
+            bn->setVel(bi->getVel());
+          }
+          if (bi->HasF()) {
+            bn->setF(bi->getF());
+          }
 
           mi->AddBead(hybtol->Beads()[beadid], (*it_mol)->getBeadName(i));
         }
@@ -133,7 +141,9 @@ class CsgMapApp : public CsgApplication {
                                           bi->getType(), bparent->getResnr(),
                                           bi->getMass(), bi->getQ());
             bn->setPos(bi->getPos());
-            if (bi->HasVel()) bn->setVel(bi->getVel());
+            if (bi->HasVel()) {
+              bn->setVel(bi->getVel());
+            }
             mi->AddBead(bi, bi->getName());
           }
         }
@@ -160,13 +170,15 @@ void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {
   string out = OptionsMap()["out"].as<string>();
   cout << "writing coarse-grained trajectory to " << out << endl;
   _writer = TrjWriterFactory().Create(out);
-  if (_writer == nullptr)
+  if (_writer == nullptr) {
     throw runtime_error("output format not supported: " + out);
+  }
 
   _do_hybrid = false;
   if (OptionsMap().count("hybrid")) {
-    if (!_do_mapping)
+    if (!_do_mapping) {
       throw runtime_error("options hybrid and no-map not compatible");
+    }
     cout << "Doing hybrid mapping..." << endl;
     _do_hybrid = true;
   }

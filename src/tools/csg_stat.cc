@@ -93,7 +93,9 @@ bool CsgStatApp::EvaluateOptions() {
     _imc.BlockLength(0);
   }
 
-  if (OptionsMap().count("do-imc")) _imc.DoImc(true);
+  if (OptionsMap().count("do-imc")) {
+    _imc.DoImc(true);
+  }
 
   _imc.Extension(_extension);
 

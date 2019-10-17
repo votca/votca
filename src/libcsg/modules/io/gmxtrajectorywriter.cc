@@ -44,7 +44,6 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
   frame.time = conf->getTime();
   frame.bStep = true;
   frame.step = conf->getStep();
-  ;
   frame.x = x;
   frame.bLambda = false;
   frame.bAtoms = false;
@@ -54,8 +53,11 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
   frame.bBox = true;
   frame.bV = conf->HasVel();
 
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++) frame.box[j][i] = box(i, j);
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      frame.box[j][i] = box(i, j);
+    }
+  }
 
   for (int i = 0; i < N; ++i) {
     Eigen::Vector3d pos = conf->getBead(i)->getPos();
@@ -89,8 +91,12 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
 
   step++;
   delete[] x;
-  if (frame.bV) delete[] v;
-  if (frame.bF) delete[] f;
+  if (frame.bV) {
+    delete[] v;
+  }
+  if (frame.bF) {
+    delete[] f;
+  }
 }
 
 }  // namespace csg

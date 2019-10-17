@@ -33,7 +33,9 @@ using namespace std;
 vector<string> TrimCommentsFrom_(vector<string> fields) {
   vector<string> tempFields;
   for (const auto &field : fields) {
-    if (field.at(0) == '#') break;
+    if (field.at(0) == '#') {
+      break;
+    }
     tempFields.push_back(field);
   }
   return tempFields;
@@ -68,8 +70,9 @@ bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
   topology_ = true;
   top.Cleanup();
   fl_.open(file.c_str());
-  if (!fl_.is_open())
+  if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open topology file: " + file);
+  }
 
   fname_ = file;
 
@@ -85,8 +88,9 @@ bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
 
 bool LAMMPSDataReader::Open(const string &file) {
   fl_.open(file.c_str());
-  if (!fl_.is_open())
+  if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open trajectory file: " + file);
+  }
   fname_ = file;
   return true;
 }
@@ -304,8 +308,9 @@ void LAMMPSDataReader::ReadNumTypes_(vector<string> fields, string type) {
 
 void LAMMPSDataReader::ReadNumOfAtoms_(vector<string> fields, Topology &top) {
   numberOf_["atoms"] = stoi(fields.at(0));
-  if (!topology_ && numberOf_["atoms"] != top.BeadCount())
+  if (!topology_ && numberOf_["atoms"] != top.BeadCount()) {
     std::runtime_error("Number of beads in topology and trajectory differ");
+  }
 }
 
 void LAMMPSDataReader::ReadNumOfBonds_(vector<string> fields) {
@@ -360,7 +365,9 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
   lammps_format format = determineDataFileFormat_(line);
   bool chargeRead = false;
   bool moleculeRead = false;
-  if (format == style_angle_bond_molecule) moleculeRead = true;
+  if (format == style_angle_bond_molecule) {
+    moleculeRead = true;
+  }
   if (format == style_full) {
     moleculeRead = true;
     chargeRead = true;
@@ -389,8 +396,12 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     sorted_file[atomId] = line;
     getline(fl_, line);
     boost::trim(line);
-    if (atomId < startingIndex) startingIndex = atomId;
-    if (moleculeId < startingIndexMolecule) startingIndexMolecule = moleculeId;
+    if (atomId < startingIndex) {
+      startingIndex = atomId;
+    }
+    if (moleculeId < startingIndexMolecule) {
+      startingIndexMolecule = moleculeId;
+    }
   }
 
   for (int atomIndex = startingIndex;
@@ -409,7 +420,9 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       moleculeId = atomId;
     }
     iss >> atomTypeId;
-    if (chargeRead) iss >> charge;
+    if (chargeRead) {
+      iss >> charge;
+    }
     iss >> x;
     iss >> y;
     iss >> z;

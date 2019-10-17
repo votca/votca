@@ -29,11 +29,12 @@ PotentialFunctionLJG::PotentialFunctionLJG(const string &name_,
 double PotentialFunctionLJG::CalculateF(const double r) const {
 
   // lj 12-6 part + gaussian
-  if (r >= _min && r <= _cut_off)
+  if (r >= _min && r <= _cut_off) {
     return _lam(0) / pow(r, 12) - _lam(1) / pow(r, 6) +
            _lam(2) * exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
-  else
+  } else {
     return 0.0;
+  }
 }
 
 // calculate first derivative w.r.t. ith parameter

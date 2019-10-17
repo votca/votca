@@ -203,9 +203,10 @@ int main(int argc, char **argv) {
           throw std::runtime_error(
               "error in Linalg::linalg_constrained_qrsolve : Not enough data "
               "for fit, please adjust grid (zero row in fit matrix)");
-        } else
+        } else {
           throw std::runtime_error(
               "Unknown error in csg_resample while fitting.");
+        }
       }
     } else {
       // otherwise do interpolation (default = cubic)
@@ -221,9 +222,10 @@ int main(int argc, char **argv) {
           throw std::runtime_error(
               "error in Linalg::linalg_constrained_qrsolve : Not enough data, "
               "please adjust grid (zero row in fit matrix)");
-        } else
+        } else {
           throw std::runtime_error(
               "Unknown error in csg_resample while interpolating.");
+        }
       }
     }
 
@@ -234,23 +236,27 @@ int main(int argc, char **argv) {
     if (vm.count("comment")) {
       out.set_comment(comment);
     }
-    out.y() = out.y();
     out.flags() = std::vector<char>(out.flags().size(), 'o');
 
     der.GenerateGridSpacing(min, max, step);
     der.flags() = std::vector<char>(der.flags().size(), 'o');
 
     int i = 0;
-    for (i = 0; out.x(i) < in.x(0) && i < out.size(); ++i)
+    for (i = 0; out.x(i) < in.x(0) && i < out.size(); ++i) {
       ;
+    }
 
     int j = 0;
     for (; i < out.size(); ++i) {
-      for (; j < in.size(); ++j)
+      for (; j < in.size(); ++j) {
         if (in.x(j) >= out.x(i) ||
-            fabs(in.x(j) - out.x(i)) < 1e-12)  // fix for precison errors
+            fabs(in.x(j) - out.x(i)) < 1e-12) {  // fix for precison errors
           break;
-      if (in.size() == j) break;
+        }
+      }
+      if (in.size() == j) {
+        break;
+      }
       out.flags(i) = in.flags(j);
       der.flags(i) = in.flags(j);
     }
@@ -264,7 +270,9 @@ int main(int argc, char **argv) {
     }
 
     delete spline;
-  } catch (std::exception &error) {
+  }
+
+  catch (std::exception &error) {
     cerr << "an error occurred:\n" << error.what() << endl;
     return -1;
   }

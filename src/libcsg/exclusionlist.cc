@@ -27,8 +27,9 @@ using namespace std;
 void ExclusionList::Clear(void) {
   list<exclusion_t *>::iterator iter;
 
-  for (iter = _exclusions.begin(); iter != _exclusions.end(); ++iter)
+  for (iter = _exclusions.begin(); iter != _exclusions.end(); ++iter) {
     delete *iter;
+  }
   _exclusions.clear();
 }
 
@@ -50,12 +51,17 @@ void ExclusionList::CreateExclusions(Topology *top) {
 
 bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) {
   exclusion_t *excl;
-  if (bead1->getMolecule() != bead2->getMolecule()) return false;
-  if (bead2->getId() < bead1->getId()) swap(bead1, bead2);
+  if (bead1->getMolecule() != bead2->getMolecule()) {
+    return false;
+  }
+  if (bead2->getId() < bead1->getId()) {
+    swap(bead1, bead2);
+  }
   if ((excl = GetExclusions(bead1))) {
     if (find(excl->_exclude.begin(), excl->_exclude.end(), bead2) !=
-        excl->_exclude.end())
+        excl->_exclude.end()) {
       return true;
+    }
   }
   return false;
 }

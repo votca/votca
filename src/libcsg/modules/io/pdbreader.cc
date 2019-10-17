@@ -34,8 +34,9 @@ bool PDBReader::ReadTopology(string file, Topology &top) {
   top.Cleanup();
 
   _fl.open(file);
-  if (!_fl.is_open())
+  if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on open topology file: " + file);
+  }
 
   NextFrame(top);
   _fl.close();
@@ -46,8 +47,9 @@ bool PDBReader::ReadTopology(string file, Topology &top) {
 bool PDBReader::Open(const string &file) {
 
   _fl.open(file);
-  if (!_fl.is_open())
+  if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on open trajectory file: " + file);
+  }
 
   return true;
 }
@@ -272,8 +274,9 @@ bool PDBReader::NextFrame(Topology &top) {
           resName = "UNK";
         }
 
-        if (resnr < 1)
+        if (resnr < 1) {
           throw std::runtime_error("Misformated pdb file, resnr has to be > 0");
+        }
         // TODO: fix the case that resnr is not in ascending order
         if (resnr > top.ResidueCount()) {
           while ((resnr - 1) > top.ResidueCount()) {  // pdb resnr should start
@@ -345,9 +348,10 @@ bool PDBReader::NextFrame(Topology &top) {
     }
   }
 
-  if (!_topology && (bead_count > 0) && bead_count != top.BeadCount())
+  if (!_topology && (bead_count > 0) && bead_count != top.BeadCount()) {
     throw std::runtime_error(
         "number of beads in topology and trajectory differ");
+  }
 
   ////////////////////////////////////////////////////////////////////////////////
   // Sort data and determine atom structure, connect with top (molecules, bonds)

@@ -85,7 +85,9 @@ inline void XYZWriter::Write(T &container, std::string header) {
     if (atomname.size() > 3) {
       atomname = atomname.substr(0, 3);
     }
-    while (atomname.size() < 3) atomname = " " + atomname;
+    while (atomname.size() < 3) {
+      atomname = " " + atomname;
+    }
 
     _out << fmter % atomname % r.x() % r.y() % r.z();
   }

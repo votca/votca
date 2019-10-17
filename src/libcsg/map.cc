@@ -39,13 +39,17 @@ using namespace std;
 
 Map::~Map() {
   vector<BeadMap *>::iterator iter;
-  for (iter = _maps.begin(); iter != _maps.end(); ++iter) delete (*iter);
+  for (iter = _maps.begin(); iter != _maps.end(); ++iter) {
+    delete (*iter);
+  }
   _maps.clear();
 }
 
 void Map::Apply() {
   vector<BeadMap *>::iterator iter;
-  for (iter = _maps.begin(); iter != _maps.end(); ++iter) (*iter)->Apply();
+  for (iter = _maps.begin(); iter != _maps.end(); ++iter) {
+    (*iter)->Apply();
+  }
 }
 
 void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
@@ -66,11 +70,12 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
   tok_weights.ConvertToVector<double>(weights);
 
   // check weather weights and # beads matches
-  if (beads.size() != weights.size())
+  if (beads.size() != weights.size()) {
     throw runtime_error(
         string("number of subbeads in " + opts_bead->get("name").as<string>() +
                " and number of weights in map " +
                opts_map->get("name").as<string>() + " do not match"));
+  }
 
   // normalize the weights
   double norm = 1. / std::accumulate(weights.begin(), weights.end(), 0.);
@@ -108,17 +113,19 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
           "A d coefficient is nonzero while weights is zero in mapping " +
           opts_map->get("name").as<string>());
     }
-    if (weights[i] != 0)
+    if (weights[i] != 0) {
       fweights[i] = d[i] / weights[i];
-    else
+    } else {
       fweights[i] = 0;
+    }
   }
 
   for (size_t i = 0; i < beads.size(); ++i) {
     int iin = in->getBeadByName(beads[i]);
-    if (iin < 0)
+    if (iin < 0) {
       throw std::runtime_error(
           string("mapping error: molecule " + beads[i] + " does not exist"));
+    }
     AddElem(in->getBead(iin), weights[i], fweights[i]);
   }
 }
@@ -179,9 +186,15 @@ void Map_Sphere::Apply() {
     }
   }
   _out->setMass(M);
-  if (bPos) _out->setPos(cg);
-  if (bVel) _out->setVel(vel);
-  if (bF) _out->setF(f);
+  if (bPos) {
+    _out->setPos(cg);
+  }
+  if (bVel) {
+    _out->setVel(vel);
+  }
+  if (bF) {
+    _out->setF(f);
+  }
 }
 
 /// \todo implement this function
@@ -213,9 +226,10 @@ void Map_Ellipsoid::Apply() {
     _out->AddParentBead(bead->getId());
     if (bead->HasPos()) {
       Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
-      if (r.norm() > max_dist)
+      if (r.norm() > max_dist) {
         throw std::runtime_error(
             "coarse-grained bead is bigger than half the box");
+      }
       cg += (*iter)._weight * (r + r0);
       bPos = true;
     }
@@ -237,9 +251,15 @@ void Map_Ellipsoid::Apply() {
     }
   }
 
-  if (bPos) _out->setPos(cg);
-  if (bVel) _out->setVel(vel);
-  if (bF) _out->setF(f);
+  if (bPos) {
+    _out->setPos(cg);
+  }
+  if (bVel) {
+    _out->setVel(vel);
+  }
+  if (bF) {
+    _out->setF(f);
+  }
 
   if (!_matrix[0]._in->HasPos()) {
     _out->setU(Eigen::Vector3d::UnitX());
@@ -252,7 +272,9 @@ void Map_Ellipsoid::Apply() {
   // calculate the tensor of gyration
   c = c / (double)n;
   for (iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
-    if ((*iter)._weight == 0) continue;
+    if ((*iter)._weight == 0) {
+      continue;
+    }
     Bead *bead = iter->_in;
     Eigen::Vector3d v = bead->getPos() - c;
     // v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)

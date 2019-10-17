@@ -18,9 +18,9 @@
 #ifndef _VOTCA_CSG_BEADLIST_H
 #define _VOTCA_CSG_BEADLIST_H
 
-#include "topology.h"
 #include <list>
 #include <string>
+#include <votca/tools/eigen.h>
 
 namespace votca {
 namespace csg {
@@ -31,6 +31,9 @@ namespace csg {
     only the bead type.
 
 */
+
+class Topology;
+class Bead;
 
 class BeadList {
  public:

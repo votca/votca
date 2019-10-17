@@ -52,10 +52,10 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   void Initialize(Topology &top);
 
   /// Reads in the first frame.
-  bool FirstFrame(Topology &conf);  // NOLINT
+  bool FirstFrame(Topology &conf) override;
 
   /// Reads in the next frame.
-  bool NextFrame(Topology &conf);  // NOLINT
+  bool NextFrame(Topology &conf) override;
 
   /// Closes original trajectory file.
   void Close() override;
@@ -84,8 +84,9 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     if (status < 0) {
       throw std::runtime_error("Error ReadVectorData: " +
                                boost::lexical_cast<std::string>(status));
-    } else
+    } else {
       return data_out;
+    }
   }
 
   /// Reads dataset with scalar values.
@@ -134,7 +135,9 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   bool GroupExists(hid_t file_id, std::string path) {
     H5G_stat_t info;
     herr_t status = H5Gget_objinfo(file_id, path.c_str(), 0, &info);
-    if (status < 0) return false;
+    if (status < 0) {
+      return false;
+    }
     return info.type == H5G_GROUP;
   }
 

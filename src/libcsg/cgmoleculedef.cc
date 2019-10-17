@@ -60,7 +60,9 @@ void CGMoleculeDef::Load(string filename) {
 
 void CGMoleculeDef::ParseTopology(tools::Property &options) {
   ParseBeads(options.get("cg_beads"));
-  if (options.exists("cg_bonded")) ParseBonded(options.get("cg_bonded"));
+  if (options.exists("cg_bonded")) {
+    ParseBonded(options.get("cg_bonded"));
+  }
 }
 
 void CGMoleculeDef::ParseBeads(tools::Property &options) {
@@ -72,14 +74,16 @@ void CGMoleculeDef::ParseBeads(tools::Property &options) {
     beaddef->_name = p->get("name").as<string>();
     beaddef->_type = p->get("type").as<string>();
     beaddef->_mapping = p->get("mapping").as<string>();
-    if (p->exists("symmetry"))
+    if (p->exists("symmetry")) {
       beaddef->_symmetry = p->get("symmetry").as<int>();
-    else
+    } else {
       beaddef->_symmetry = 1;
+    }
 
-    if (_beads_by_name.find(beaddef->_name) != _beads_by_name.end())
+    if (_beads_by_name.find(beaddef->_name) != _beads_by_name.end()) {
       throw std::runtime_error(string("bead name ") + beaddef->_name +
                                " not unique in mapping");
+    }
     _beads.push_back(beaddef);
     _beads_by_name[beaddef->_name] = beaddef;
   }
@@ -121,50 +125,55 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
     std::list<int> atoms;
     string iagroup = prop->get("name").as<string>();
 
-    if (had_iagroup[iagroup] == "yes")
+    if (had_iagroup[iagroup] == "yes") {
       throw runtime_error(
           string("double occurence of interactions with name ") + iagroup);
+    }
     had_iagroup[iagroup] = "yes";
 
     tools::Tokenizer tok(prop->get("beads").value(), " \n\t");
     for (tools::Tokenizer::iterator atom = tok.begin(); atom != tok.end();
          ++atom) {
       int i = minfo->getBeadIdByName(*atom);
-      if (i < 0)
+      if (i < 0) {
         throw runtime_error(
             string("error while trying to create bonded interaction, "
                    "bead " +
                    *atom + " not found"));
+      }
 
       atoms.push_back(i);
     }
 
     int NrBeads = 1;
-    if (prop->name() == "bond")
+    if (prop->name() == "bond") {
       NrBeads = 2;
-    else if (prop->name() == "angle")
+    } else if (prop->name() == "angle") {
       NrBeads = 3;
-    else if (prop->name() == "dihedral")
+    } else if (prop->name() == "dihedral") {
       NrBeads = 4;
+    }
 
-    if ((atoms.size() % NrBeads) != 0)
+    if ((atoms.size() % NrBeads) != 0) {
       throw runtime_error("Number of atoms in interaction '" +
                           prop->get("name").as<string>() +
                           "' is not a multiple of " +
                           lexical_cast<string>(NrBeads) + "! Missing beads?");
+    }
 
     int index = 0;
     while (!atoms.empty()) {
       Interaction *ic;
 
-      if (prop->name() == "bond")
+      if (prop->name() == "bond") {
         ic = new IBond(atoms);
-      else if (prop->name() == "angle")
+      } else if (prop->name() == "angle") {
         ic = new IAngle(atoms);
-      else if (prop->name() == "dihedral")
+      } else if (prop->name() == "dihedral") {
         ic = new IDihedral(atoms);
-      else
+      } else {
         throw runtime_error("unknown bonded type in map: " + prop->name());
+      }
 
       ic->setGroup(iagroup);
       ic->setIndex(index);
@@ -189,13 +198,15 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
        ++def) {
 
     int iout = out.getBeadByName((*def)->_name);
-    if (iout < 0)
+    if (iout < 0) {
       throw runtime_error(string("mapping error: reference molecule " +
                                  (*def)->_name + " does not exist"));
+    }
 
     tools::Property *mdef = getMapByName((*def)->_mapping);
-    if (!mdef)
+    if (!mdef) {
       throw runtime_error(string("mapping " + (*def)->_mapping + " not found"));
+    }
 
     /// TODO: change this to factory, do not hardcode!!
     BeadMap *bmap;

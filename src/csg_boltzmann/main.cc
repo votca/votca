@@ -76,9 +76,10 @@ bool CsgBoltzmann::EvaluateOptions() {
 bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref) {
   if (OptionsMap().count("excl")) {
     ExclusionList *ex;
-    if (top_ref->MoleculeCount() > 1)
+    if (top_ref->MoleculeCount() > 1) {
       cout << "WARNING: cannot create exclusion list for topology with"
               "multiple molecules, using only first molecule\n";
+    }
 
     cout << "Writing exclusion list for atomistic molecule "
          << top_ref->MoleculeByIndex(0)->getName()
@@ -147,7 +148,9 @@ ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
 
 void CsgBoltzmann::Run() {
   CsgApplication::Run();
-  if (OptionsMap().count("excl")) return;
+  if (OptionsMap().count("excl")) {
+    return;
+  }
   InteractiveMode();
 }
 
@@ -183,12 +186,16 @@ void CsgBoltzmann::InteractiveMode() {
     votca::tools::Tokenizer tok(line, " \t");
     vector<string> args = tok.ToVector();
 
-    if (args.size() == 0) continue;
+    if (args.size() == 0) {
+      continue;
+    }
 
     string cmd = args.front();
     args.erase(args.begin());
 
-    if (cmd == "q") break;
+    if (cmd == "q") {
+      break;
+    }
 
     std::map<string, AnalysisTool *>::iterator tool;
     if (cmd == "help") {

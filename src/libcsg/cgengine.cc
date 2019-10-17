@@ -31,8 +31,9 @@ CGEngine::CGEngine() = default;
 
 CGEngine::~CGEngine() {
   map<string, CGMoleculeDef *>::iterator i;
-  for (i = _molecule_defs.begin(); i != _molecule_defs.end(); ++i)
+  for (i = _molecule_defs.begin(); i != _molecule_defs.end(); ++i) {
     delete (*i).second;
+  }
   _molecule_defs.clear();
 }
 
@@ -45,7 +46,9 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
   TopologyMap *m = new TopologyMap(&in, &out);
   for (iter = mols.begin(); iter != mols.end(); ++iter) {
     Molecule *mol = *iter;
-    if (IsIgnored(mol->getName())) continue;
+    if (IsIgnored(mol->getName())) {
+      continue;
+    }
     CGMoleculeDef *def = getMoleculeDef(mol->getName());
     if (!def) {
       cout << "--------------------------------------\n"

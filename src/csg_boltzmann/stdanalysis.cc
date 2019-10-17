@@ -36,9 +36,15 @@ void StdAnalysis::Register(std::map<std::string, AnalysisTool *> &lib) {
 
 void StdAnalysis::Command(BondedStatistics &bs, const std::string &cmd,
                           std::vector<std::string> &args) {
-  if (cmd == "vals") WriteValues(bs, args);
-  if (cmd == "cor") WriteCorrelations(bs, args);
-  if (cmd == "autocor") WriteAutocorrelation(bs, args);
+  if (cmd == "vals") {
+    WriteValues(bs, args);
+  }
+  if (cmd == "cor") {
+    WriteCorrelations(bs, args);
+  }
+  if (cmd == "autocor") {
+    WriteAutocorrelation(bs, args);
+  }
   if (cmd == "list") {
     votca::tools::DataCollection<double>::selection *sel =
         bs.BondedValues().select("*");
@@ -88,8 +94,9 @@ void StdAnalysis::WriteValues(BondedStatistics &bs,
 
   votca::tools::DataCollection<double>::selection *sel = nullptr;
 
-  for (size_t i = 1; i < args.size(); i++)
+  for (size_t i = 1; i < args.size(); i++) {
     sel = bs.BondedValues().select(args[i], sel);
+  }
 
   out.open(args[0]);
   out << *sel << std::endl;
@@ -104,8 +111,9 @@ void StdAnalysis::WriteAutocorrelation(BondedStatistics &bs,
   std::ofstream out;
   votca::tools::DataCollection<double>::selection *sel = nullptr;
 
-  for (size_t i = 1; i < args.size(); i++)
+  for (size_t i = 1; i < args.size(); i++) {
     sel = bs.BondedValues().select(args[i], sel);
+  }
 
   votca::tools::CrossCorrelate c;
   c.AutoCorrelate(sel, false);
@@ -122,8 +130,9 @@ void StdAnalysis::WriteCorrelations(BondedStatistics &bs,
   std::ofstream out;
   votca::tools::DataCollection<double>::selection *sel = nullptr;
 
-  for (size_t i = 1; i < args.size(); i++)
+  for (size_t i = 1; i < args.size(); i++) {
     sel = bs.BondedValues().select(args[i], sel);
+  }
 
   votca::tools::Correlate c;
   c.CalcCorrelations(sel);

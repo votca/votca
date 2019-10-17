@@ -36,7 +36,9 @@ class CG_IMC_solve : public votca::tools::Application {
 
   void ShowHelpText(std::ostream &out) override {
     std::string name = ProgramName();
-    if (VersionString() != "") name = name + ", version " + VersionString();
+    if (VersionString() != "") {
+      name = name + ", version " + VersionString();
+    }
 
     votca::csg::HelpTextHeader(name);
     HelpText(out);

@@ -55,14 +55,18 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
   // computed
   _rbreak = Eigen::VectorXd::Zero(nknots);
 
-  for (int i = 0; i < nknots; i++) _rbreak(i) = i * _dr;
+  for (int i = 0; i < nknots; i++) {
+    _rbreak(i) = i * _dr;
+  }
 
   // exclude knots corresponding to r <= _min
   _nexcl = min(int((_min) / _dr), _nbreak - 2) + 1;
 
   // account for finite numerical division of _min/_dr
   // e.g. 0.24/0.02 may result in 11.99999999999999
-  if (_rbreak(_nexcl) == _min) _nexcl++;
+  if (_rbreak(_nexcl) == _min) {
+    _nexcl++;
+  }
 
   // fixing last 4 knots to zeros is reasonable
   _ncutcoeff = 4;
@@ -124,8 +128,9 @@ void PotentialFunctionCBSPL::setParam(string filename) {
   } else {
 
     // force last _ncutcoeff to zero
-    for (unsigned int i = 0; i < _lam.size() - _ncutcoeff; i++)
+    for (unsigned int i = 0; i < _lam.size() - _ncutcoeff; i++) {
       _lam(i) = param.y(i);
+    }
   }
 }
 
@@ -140,10 +145,13 @@ void PotentialFunctionCBSPL::SaveParam(const string &filename) {
   // write extrapolated knots with flag 'o'
   // points close to rmin can also be stastically not reliable
   // so flag 3 more points next to rmin as 'o'
-  for (int i = 0; i < _nexcl + 3; i++) param.set(i, _rbreak(i), _lam(i), 'o');
+  for (int i = 0; i < _nexcl + 3; i++) {
+    param.set(i, _rbreak(i), _lam(i), 'o');
+  }
 
-  for (unsigned int i = _nexcl + 3; i < _lam.size(); i++)
+  for (unsigned int i = _nexcl + 3; i < _lam.size(); i++) {
     param.set(i, _rbreak(i), _lam(i), 'i');
+  }
 
   param.Save(filename);
 }
@@ -185,7 +193,9 @@ void PotentialFunctionCBSPL::extrapolExclParam() {
 
   double a = m;
   double b = -1.0 * m * r0 + u0;
-  for (int i = 0; i < _nexcl; i++) _lam(i) = a * _rbreak(i) + b;
+  for (int i = 0; i < _nexcl; i++) {
+    _lam(i) = a * _rbreak(i) + b;
+  }
 }
 
 void PotentialFunctionCBSPL::setOptParam(const int i, const double val) {
@@ -218,8 +228,9 @@ double PotentialFunctionCBSPL::CalculateF(const double r) const {
     u += ((R.transpose() * _M) * B).value();
     return u;
 
-  } else
+  } else {
     return 0.0;
+  }
 }
 
 // calculate first derivative w.r.t. ith parameter
@@ -251,11 +262,13 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const {
 
       return RM(i_opt - indx);
 
-    } else
+    } else {
       return 0.0;
+    }
 
-  } else
+  } else {
     return 0.0;
+  }
 }
 
 // calculate second derivative w.r.t. ith parameter

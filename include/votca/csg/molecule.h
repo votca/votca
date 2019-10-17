@@ -28,8 +28,6 @@
 namespace votca {
 namespace csg {
 
-namespace TOOLS = votca::tools;
-
 class Interaction;
 
 /**
@@ -108,7 +106,11 @@ class Molecule : public TopologyItem {
 
 inline int Molecule::getBeadIdByName(const std::string &name) {
   int i = getBeadByName(name);
-  if (i < 0) return i;
+  if (i < 0) {
+    {
+      return i;
+    }
+  }
   return _beads[i]->getId();
 }
 
