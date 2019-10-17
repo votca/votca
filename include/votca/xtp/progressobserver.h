@@ -36,11 +36,10 @@ class QMThread;
 template <typename JobContainer>
 class ProgObserver {
 
-  typedef
-      typename std::iterator_traits<typename JobContainer::iterator>::value_type
-          Job;
+  using Job = typename std::iterator_traits<
+      typename JobContainer::iterator>::value_type;
 
-  typedef typename Job::JobResult Result;
+  using Result = typename Job::JobResult;
 
  public:
   void InitCmdLineOpts(const boost::program_options::variables_map &optsMap);
@@ -64,9 +63,9 @@ class ProgObserver {
   std::vector<Job *> _jobsToProc;
   std::vector<Job *> _jobsToSync;
 
-  typedef typename JobContainer::iterator iterator;
+  using iterator = typename JobContainer::iterator;
   iterator _metajit;
-  typedef typename std::vector<Job *>::iterator iterator_vec;
+  using iterator_vec = typename std::vector<Job *>::iterator;
   iterator_vec _nextjit;
   tools::Mutex _lockThread;
   std::unique_ptr<boost::interprocess::file_lock> _flock;

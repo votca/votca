@@ -26,7 +26,7 @@
 namespace votca {
 namespace xtp {
 
-typedef H5::Group CptLoc;
+using CptLoc = H5::Group;
 
 namespace checkpoint_utils {
 

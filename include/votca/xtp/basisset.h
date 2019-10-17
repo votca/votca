@@ -105,7 +105,7 @@ class Element {
 
  public:
   Element(std::string type) : _type(type) { ; }
-  typedef std::vector<Shell>::const_iterator ShellIterator;
+  using ShellIterator = std::vector<Shell>::const_iterator;
   ShellIterator begin() const { return _shells.begin(); }
   ShellIterator end() const { return _shells.end(); }
 

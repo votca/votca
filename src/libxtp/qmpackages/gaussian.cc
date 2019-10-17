@@ -809,7 +809,7 @@ double Gaussian::GetQMEnergy(const std::vector<std::string>& archive) const {
 template <class T>
 void Gaussian::GetCoordinates(T& mol,
                               const std::vector<std::string>& archive) const {
-  typedef typename std::iterator_traits<typename T::iterator>::value_type Atom;
+  using Atom = typename std::iterator_traits<typename T::iterator>::value_type;
   XTP_LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
   bool has_atoms = mol.size() > 0;
   tools::Tokenizer tok(archive[3], "\\");

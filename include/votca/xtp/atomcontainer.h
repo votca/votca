@@ -45,7 +45,7 @@ class AtomContainer {
   virtual ~AtomContainer() = default;
   ;
 
-  typedef typename std::vector<T>::iterator iterator;
+  using iterator = typename std::vector<T>::iterator;
 
   const std::string& getType() const { return _type; }
 

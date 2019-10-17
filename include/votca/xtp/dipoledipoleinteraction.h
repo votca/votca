@@ -41,9 +41,9 @@ class DipoleDipoleInteraction
     : public Eigen::EigenBase<DipoleDipoleInteraction> {
  public:
   // Required typedefs, constants, and method:
-  typedef double Scalar;
-  typedef double RealScalar;
-  typedef int StorageIndex;
+  using Scalar = double;
+  using RealScalar = double;
+  using StorageIndex = int;
   enum {
     ColsAtCompileTime = Eigen::Dynamic,
     MaxColsAtCompileTime = Eigen::Dynamic,

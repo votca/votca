@@ -80,7 +80,7 @@ class ECPElement {
       : _type(type), _lmax(lmax), _ncore(ncore) {
     ;
   }
-  typedef std::vector<ECPShell>::const_iterator ECPShellIterator;
+  using ECPShellIterator = std::vector<ECPShell>::const_iterator;
   ECPShellIterator begin() const { return _shells.begin(); }
   ECPShellIterator end() const { return _shells.end(); }
 

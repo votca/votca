@@ -56,7 +56,8 @@ void QMRegion::Initialize(const tools::Property& prop) {
       _statetracker.setInitialState(_initstate);
       _statetracker.PrintInfo();
     } else {
-      throw std::runtime_error("No filter for excited states specified");
+      throw std::runtime_error(
+          "No statetracker options for excited states found");
     }
   }
 

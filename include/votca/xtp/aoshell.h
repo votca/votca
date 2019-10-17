@@ -129,7 +129,7 @@ class AOShell {
                    const Eigen::Vector3d& grid_pos) const;
 
   // iterator over pairs (decay constant; contraction coefficient)
-  typedef std::vector<AOGaussianPrimitive>::const_iterator GaussianIterator;
+  using GaussianIterator = std::vector<AOGaussianPrimitive>::const_iterator;
   GaussianIterator begin() const { return _gaussians.begin(); }
   GaussianIterator end() const { return _gaussians.end(); }
 

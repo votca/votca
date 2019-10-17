@@ -53,8 +53,8 @@ class Populationanalysis {
                                         const AOBasis& basis) const;
 };
 
-typedef Populationanalysis<false> Mulliken;
-typedef Populationanalysis<true> Lowdin;
+using Mulliken = Populationanalysis<false>;
+using Lowdin = Populationanalysis<true>;
 
 }  // namespace xtp
 }  // namespace votca

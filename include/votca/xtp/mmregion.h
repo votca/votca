@@ -41,7 +41,7 @@ class MMRegion : public Region {
 
   int size() const override { return _segments.size(); }
 
-  typedef typename std::vector<T>::iterator iterator;
+  using iterator = typename std::vector<T>::iterator;
 
   void Initialize(const tools::Property& prop) override = 0;
 

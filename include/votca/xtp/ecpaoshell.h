@@ -83,8 +83,8 @@ class ECPAOShell {
   int getSize() const { return _gaussians.size(); }
 
   // iterator over pairs (decay constant; contraction coefficient)
-  typedef std::vector<ECPAOGaussianPrimitive>::const_iterator
-      ECPGaussianIterator;
+  using ECPGaussianIterator =
+      std::vector<ECPAOGaussianPrimitive>::const_iterator;
   ECPGaussianIterator begin() const { return _gaussians.begin(); }
   ECPGaussianIterator end() const { return _gaussians.end(); }
 

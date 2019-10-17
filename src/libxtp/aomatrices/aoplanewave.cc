@@ -79,7 +79,7 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
       // initialize local matrix block for unnormalized cartesians
       Eigen::MatrixXcd olk = Eigen::MatrixXcd::Zero(nrows, ncols);
 
-      typedef std::complex<double> COMPLEX;  // Define an abbreviation for
+      using COMPLEX = std::complex<double>;  // Define an abbreviation for
                                              // complex numbers
       Eigen::Vector3cd PmA;
       PmA.real() = fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_row;

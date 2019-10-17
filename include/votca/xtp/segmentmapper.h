@@ -44,8 +44,8 @@ class SegmentMapper {
   AtomContainer map(const Segment& seg, const std::string& coordfilename) const;
 
  private:
-  typedef typename std::iterator_traits<
-      typename AtomContainer::iterator>::value_type mapAtom;
+  using mapAtom = typename std::iterator_traits<
+      typename AtomContainer::iterator>::value_type;
 
   typedef std::pair<int, std::string> atom_id;
 
@@ -129,9 +129,9 @@ inline int SegmentMapper<QMMolecule>::getRank(const QMAtom& atom) const {
   return 0;
 }
 
-typedef SegmentMapper<QMMolecule> QMMapper;
-typedef SegmentMapper<StaticSegment> StaticMapper;
-typedef SegmentMapper<PolarSegment> PolarMapper;
+using QMMapper = SegmentMapper<QMMolecule>;
+using StaticMapper = SegmentMapper<StaticSegment>;
+using PolarMapper = SegmentMapper<PolarSegment>;
 }  // namespace xtp
 }  // namespace votca
 

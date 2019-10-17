@@ -654,7 +654,7 @@ void Orca::GetCoordinates(T& mol, string& line, ifstream& input_file) const {
   std::string::size_type coordinates_pos =
       line.find("CARTESIAN COORDINATES (ANGSTROEM)");
 
-  typedef typename std::iterator_traits<typename T::iterator>::value_type Atom;
+  using Atom = typename std::iterator_traits<typename T::iterator>::value_type;
 
   if (coordinates_pos != std::string::npos) {
     XTP_LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
