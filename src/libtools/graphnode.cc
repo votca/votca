@@ -178,16 +178,16 @@ bool GraphNode::operator==(const GraphNode gn) const {
 
 ostream& operator<<(ostream& os, const GraphNode gn) {
   os << "Integer Values" << endl;
-  for (auto it = gn.int_vals_.begin(); it != gn.int_vals_.end(); ++it) {
-    os << it->first << " " << it->second << endl;
+  for (const auto& int_val : gn.int_vals_) {
+    os << int_val.first << " " << int_val.second << endl;
   }
   os << "Double  Values" << endl;
-  for (auto it = gn.double_vals_.begin(); it != gn.double_vals_.end(); ++it) {
-    os << it->first << " " << it->second << endl;
+  for (const auto& double_val : gn.double_vals_) {
+    os << double_val.first << " " << double_val.second << endl;
   }
   os << "String  Values" << endl;
-  for (auto it = gn.str_vals_.begin(); it != gn.str_vals_.end(); ++it) {
-    os << it->first << " " << it->second << endl;
+  for (const auto& str_val : gn.str_vals_) {
+    os << str_val.first << " " << str_val.second << endl;
   }
   return os;
 }
