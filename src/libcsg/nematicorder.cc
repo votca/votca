@@ -30,10 +30,7 @@ void NematicOrder::Process(Topology &top, const string &filter) {
   bool bU, bV, bW;
   bU = bV = bW = false;
 
-  for (BeadContainer::iterator iter = top.Beads().begin();
-       iter != top.Beads().end(); ++iter) {
-
-    Bead *bead = *iter;
+  for (auto bead : top.Beads()) {
 
     if (!tools::wildcmp(filter.c_str(), bead->getName().c_str())) {
       continue;

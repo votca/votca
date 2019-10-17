@@ -351,27 +351,26 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         }
         matoms += mi->BeadCount();
         InteractionContainer ics = mi->Interactions();
-        for (vector<Interaction *>::iterator ic = ics.begin(); ic != ics.end();
-             ++ic) {
+        for (auto &ic : ics) {
           Interaction *ic_replica = nullptr;
           int offset =
               mi_replica->getBead(0)->getId() - mi->getBead(0)->getId();
-          if ((*ic)->BeadCount() == 2) {
-            ic_replica = new IBond((*ic)->getBeadId(0) + offset,
-                                   (*ic)->getBeadId(1) + offset);
-          } else if ((*ic)->BeadCount() == 3) {
-            ic_replica = new IAngle((*ic)->getBeadId(0) + offset,
-                                    (*ic)->getBeadId(1) + offset,
-                                    (*ic)->getBeadId(2) + offset);
-          } else if ((*ic)->BeadCount() == 4) {
+          if (ic->BeadCount() == 2) {
+            ic_replica =
+                new IBond(ic->getBeadId(0) + offset, ic->getBeadId(1) + offset);
+          } else if (ic->BeadCount() == 3) {
+            ic_replica =
+                new IAngle(ic->getBeadId(0) + offset, ic->getBeadId(1) + offset,
+                           ic->getBeadId(2) + offset);
+          } else if (ic->BeadCount() == 4) {
             ic_replica = new IDihedral(
-                (*ic)->getBeadId(0) + offset, (*ic)->getBeadId(1) + offset,
-                (*ic)->getBeadId(2) + offset, (*ic)->getBeadId(3) + offset);
+                ic->getBeadId(0) + offset, ic->getBeadId(1) + offset,
+                ic->getBeadId(2) + offset, ic->getBeadId(3) + offset);
           } else {
             throw std::runtime_error("Error: BeadCount not equal 2, 3 or 4");
           }
-          ic_replica->setGroup((*ic)->getGroup());
-          ic_replica->setIndex((*ic)->getIndex());
+          ic_replica->setGroup(ic->getGroup());
+          ic_replica->setIndex(ic->getIndex());
           ic_replica->setMolecule(mi_replica->getId());
           top.AddBondedInteraction(ic_replica);
           mi_replica->AddInteraction(ic_replica);

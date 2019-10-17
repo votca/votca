@@ -95,9 +95,8 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
   }
 
   // In this case type2 and type3 are the same
-  for (vector<cell_t>::iterator iter = _grid.begin(); iter != _grid.end();
-       ++iter) {
-    (*iter)._beads3 = (*iter)._beads2;
+  for (auto &iter : _grid) {
+    iter._beads3 = iter._beads2;
   }
 
   // loop over beads of list 1 again to get the correlations
@@ -123,10 +122,9 @@ void NBListGrid_3Body::Generate(BeadList &list, bool do_exclusions) {
     getCell((*iter)->getPos())._beads1.push_back(*iter);
   }
 
-  for (vector<cell_t>::iterator iter = _grid.begin(); iter != _grid.end();
-       ++iter) {
-    (*iter)._beads2 = (*iter)._beads1;
-    (*iter)._beads3 = (*iter)._beads1;
+  for (auto &iter : _grid) {
+    iter._beads2 = iter._beads1;
+    iter._beads3 = iter._beads1;
   }
 
   // loop over beads again to get the correlations (as all of the same type
@@ -253,10 +251,9 @@ void NBListGrid_3Body::TestBead(NBListGrid_3Body::cell_t &cell, Bead *bead) {
 
       // loop again over all neighbors (this now includes the cell itself!)
       // to iterate over all beads of type3 of the cell and its neighbors
-      for (vector<cell_t *>::iterator iterc3 = cell._neighbours.begin();
-           iterc3 != cell._neighbours.end(); ++iterc3) {
-        for (iter3 = (*(*iterc3))._beads3.begin();
-             iter3 != (*(*iterc3))._beads3.end(); ++iter3) {
+      for (auto &_neighbour : cell._neighbours) {
+        for (iter3 = (*_neighbour)._beads3.begin();
+             iter3 != (*_neighbour)._beads3.end(); ++iter3) {
 
           // do not include the same beads twice in one triple!
           if (bead == *iter3) {

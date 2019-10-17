@@ -169,9 +169,8 @@ NBListGrid::cell_t &NBListGrid::getCell(const Eigen::Vector3d &r) {
 
 void NBListGrid::TestBead(NBListGrid::cell_t &cell, Bead *bead) {
   TestCell(cell, bead);
-  for (vector<cell_t *>::iterator iter = cell._neighbours.begin();
-       iter != cell._neighbours.end(); ++iter) {
-    TestCell(*(*iter), bead);
+  for (auto &_neighbour : cell._neighbours) {
+    TestCell(*_neighbour, bead);
   }
 }
 

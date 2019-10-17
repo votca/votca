@@ -362,8 +362,8 @@ void CsgApplication::Run(void) {
           myMutexOut->Lock();
         }
       }
-      for (size_t thread = 0; thread < _myWorkers.size(); thread++) {
-        _myWorkers[thread]->Start();
+      for (auto &_myWorker : _myWorkers) {
+        _myWorker->Start();
       }
 
       if (SynchronizeThreads()) {
@@ -373,14 +373,14 @@ void CsgApplication::Run(void) {
       }
       // mutex needed for merging if SynchronizeThreads()==False
       tools::Mutex mergeMutex;
-      for (size_t thread = 0; thread < _myWorkers.size(); thread++) {
-        _myWorkers[thread]->WaitDone();
+      for (auto &_myWorker : _myWorkers) {
+        _myWorker->WaitDone();
         if (!SynchronizeThreads()) {
           mergeMutex.Lock();
-          MergeWorker(_myWorkers[thread]);
+          MergeWorker(_myWorker);
           mergeMutex.Unlock();
         }
-        delete _myWorkers[thread];
+        delete _myWorker;
       }
       for (size_t thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
         delete _threadsMutexesIn[thread];

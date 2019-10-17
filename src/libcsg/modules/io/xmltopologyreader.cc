@@ -59,22 +59,21 @@ void XMLTopologyReader::ParseRoot(tools::Property &property) {
   }
 
   // Iterate over keys at first level.
-  for (tools::Property::iterator it = property.begin(); it != property.end();
-       ++it) {
-    if (it->name() == "h5md_particle_group") {
-      _top->setParticleGroup(it->getAttribute<string>("name"));
-    } else if (it->name() == "molecules") {
+  for (auto &it : property) {
+    if (it.name() == "h5md_particle_group") {
+      _top->setParticleGroup(it.getAttribute<string>("name"));
+    } else if (it.name() == "molecules") {
       _mol_index = 1;
       _bead_index = 0;
-      ParseMolecules(*it);
-    } else if (it->name() == "bonded") {
-      ParseBonded(*it);
-    } else if (it->name() == "box") {
-      ParseBox(*it);
-    } else if (it->name() == "beadtypes") {
-      ParseBeadTypes(*it);
+      ParseMolecules(it);
+    } else if (it.name() == "bonded") {
+      ParseBonded(it);
+    } else if (it.name() == "box") {
+      ParseBox(it);
+    } else if (it.name() == "beadtypes") {
+      ParseBeadTypes(it);
     } else {
-      throw runtime_error("unknown tag: topology." + it->name());
+      throw runtime_error("unknown tag: topology." + it.name());
     }
   }
 }
@@ -88,37 +87,37 @@ void XMLTopologyReader::ParseBox(tools::Property &p) {
 }
 
 void XMLTopologyReader::ParseMolecules(tools::Property &p) {
-  for (tools::Property::iterator it = p.begin(); it != p.end(); ++it) {
-    if (it->name() == "clear") {
+  for (auto &it : p) {
+    if (it.name() == "clear") {
       _top->ClearMoleculeList();
-    } else if (it->name() == "rename") {
-      string molname = it->getAttribute<string>("name");
-      string range = it->getAttribute<string>("range");
+    } else if (it.name() == "rename") {
+      string molname = it.getAttribute<string>("name");
+      string range = it.getAttribute<string>("range");
       _top->RenameMolecules(range, molname);
-    } else if (it->name() == "define" || it->name() == "molecule") {
-      string molname = it->getAttribute<string>("name");
+    } else if (it.name() == "define" || it.name() == "molecule") {
+      string molname = it.getAttribute<string>("name");
       int first = 0;
-      if (it->name() == "define") {
-        first = it->getAttribute<int>("first");
+      if (it.name() == "define") {
+        first = it.getAttribute<int>("first");
       }
-      int nbeads = it->getAttribute<int>("nbeads");
-      int nmols = it->getAttribute<int>("nmols");
-      if (it->name() == "define" && first < 1) {
+      int nbeads = it.getAttribute<int>("nbeads");
+      int nmols = it.getAttribute<int>("nmols");
+      if (it.name() == "define" && first < 1) {
         throw std::runtime_error(
             "Attribute first is suppose to be > 0, but found " +
-            boost::lexical_cast<string>(it->getAttribute<string>("first")));
+            boost::lexical_cast<string>(it.getAttribute<string>("first")));
       }
       if (nbeads < 1) {
         throw std::runtime_error(
             "Attribute nbeads is suppose to be > 0, but found " +
-            boost::lexical_cast<string>(it->getAttribute<string>("nbeads")));
+            boost::lexical_cast<string>(it.getAttribute<string>("nbeads")));
       }
       if (nmols < 1) {
         throw std::runtime_error(
             "Attribute nmols is suppose to be > 0, but found " +
-            boost::lexical_cast<string>(it->getAttribute<string>("nmols")));
+            boost::lexical_cast<string>(it.getAttribute<string>("nmols")));
       }
-      if (it->name() == "define") {
+      if (it.name() == "define") {
         _top->CreateMoleculesByRange(molname, first, nbeads, nmols);
       } else {
         if (_has_base_topology) {
@@ -126,7 +125,7 @@ void XMLTopologyReader::ParseMolecules(tools::Property &p) {
               "The defined list of beads only works for pure xml topology, "
               "without 'base' attribute.");
         }
-        ParseMolecule(*it, molname, nbeads, nmols);
+        ParseMolecule(it, molname, nbeads, nmols);
       }
     }
   }
@@ -136,24 +135,24 @@ void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
                                       int nbeads, int nmols) {
   vector<XMLBead *> xmlBeads;
   vector<int> xmlResidues;
-  for (tools::Property::iterator it = p.begin(); it != p.end(); ++it) {
-    if (it->name() == "bead") {
-      string atname = it->getAttribute<string>("name");
-      string attype = it->getAttribute<string>("type");
+  for (auto &it : p) {
+    if (it.name() == "bead") {
+      string atname = it.getAttribute<string>("name");
+      string attype = it.getAttribute<string>("type");
       double atmass, atq;
       int resid;
       try {
-        atmass = it->getAttribute<double>("mass");
+        atmass = it.getAttribute<double>("mass");
       } catch (runtime_error &) {
         atmass = 1.0;
       }
       try {
-        atq = it->getAttribute<double>("q");
+        atq = it.getAttribute<double>("q");
       } catch (runtime_error &) {
         atq = 0.0;
       }
       try {
-        resid = it->getAttribute<int>("resid");
+        resid = it.getAttribute<int>("resid");
         if (resid <= 0) {
           throw std::invalid_argument(
               "Residue count for beads in topology.molecules.molecule has to "
@@ -179,7 +178,7 @@ void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
       xmlBeads.push_back(xmlBead);
     } else {
       throw std::runtime_error(
-          "Wrong element under topology.molecules.molecule: " + it->name());
+          "Wrong element under topology.molecules.molecule: " + it.name());
     }
   }
   if (xmlResidues.size() != xmlBeads.size()) {
@@ -237,41 +236,40 @@ void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
   }
 
   // clean up
-  for (std::vector<XMLBead *>::iterator itb = xmlBeads.begin();
-       itb != xmlBeads.end(); ++itb) {
-    delete (*itb);
+  for (auto &xmlBead : xmlBeads) {
+    delete xmlBead;
   }
 }
 
 void XMLTopologyReader::ParseBeadTypes(tools::Property &el) {
-  for (tools::Property::iterator it = el.begin(); it != el.end(); ++it) {
-    if (it->name() == "rename") {
-      string name = it->getAttribute<string>("name");
-      string newname = it->getAttribute<string>("newname");
+  for (auto &it : el) {
+    if (it.name() == "rename") {
+      string name = it.getAttribute<string>("name");
+      string newname = it.getAttribute<string>("newname");
       if (name == "" || newname == "") {
         throw runtime_error("invalid rename tag, name or newname are empty.");
       }
       _top->RenameBeadType(name, newname);
-    } else if (it->name() == "mass") {
-      string name = it->getAttribute<string>("name");
-      double value = it->getAttribute<double>("value");
+    } else if (it.name() == "mass") {
+      string name = it.getAttribute<string>("name");
+      double value = it.getAttribute<double>("value");
       _top->SetBeadTypeMass(name, value);
     } else {
-      throw std::runtime_error("Wrong element under beadtypes: " + it->name());
+      throw std::runtime_error("Wrong element under beadtypes: " + it.name());
     }
   }
 }
 
 void XMLTopologyReader::ParseBonded(tools::Property &el) {
-  for (tools::Property::iterator it = el.begin(); it != el.end(); ++it) {
-    if (it->name() == "bond") {
-      ParseBond(*it);
-    } else if (it->name() == "angle") {
-      ParseAngle(*it);
-    } else if (it->name() == "dihedral") {
-      ParseDihedral(*it);
+  for (auto &it : el) {
+    if (it.name() == "bond") {
+      ParseBond(it);
+    } else if (it.name() == "angle") {
+      ParseAngle(it);
+    } else if (it.name() == "dihedral") {
+      ParseDihedral(it);
     } else {
-      throw std::runtime_error("Wrong element under bonded: " + it->name());
+      throw std::runtime_error("Wrong element under bonded: " + it.name());
     }
   }
 }
@@ -399,12 +397,10 @@ void XMLTopologyReader::ParseDihedral(tools::Property &p) {
 
 XMLTopologyReader::~XMLTopologyReader() {
   // Clean _molecules map
-  for (MoleculesMap::iterator it = _molecules.begin(); it != _molecules.end();
-       ++it) {
-    XMLMolecule *xmlMolecule = it->second;
-    for (vector<XMLBead *>::iterator itb = xmlMolecule->beads.begin();
-         itb != xmlMolecule->beads.end(); ++itb) {
-      delete (*itb);
+  for (auto &_molecule : _molecules) {
+    XMLMolecule *xmlMolecule = _molecule.second;
+    for (auto &bead : xmlMolecule->beads) {
+      delete bead;
     }
     xmlMolecule->beads.clear();
     delete xmlMolecule;

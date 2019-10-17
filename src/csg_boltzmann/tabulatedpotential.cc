@@ -348,21 +348,20 @@ void TabulatedPotential::BoltzmannInvert_(vector<double> &data) {
   _min = numeric_limits<double>::max();
   _max = numeric_limits<double>::min();
 
-  for (size_t i = 0; i < data.size(); i++) {
-    _max = max(data[i], _max);
-    if (data[i] > 0) {
-      _min = min(data[i], _min);
+  for (double i : data) {
+    _max = max(i, _max);
+    if (i > 0) {
+      _min = min(i, _min);
     }
   }
   _max = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(_max);
   _min = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(_min) - _max;
 
-  for (size_t i = 0; i < data.size(); i++) {
-    if (data[i] == 0) {
-      data[i] = _min;
+  for (double &i : data) {
+    if (i == 0) {
+      i = _min;
     } else {
-      data[i] =
-          -conv::kB * conv::ev2kj_per_mol * _Temperature * log(data[i]) - _max;
+      i = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(i) - _max;
     }
   }
 }

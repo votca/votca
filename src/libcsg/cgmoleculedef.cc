@@ -194,23 +194,22 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
   }
 
   Map *map = new Map(in, out);
-  for (vector<beaddef_t *>::iterator def = _beads.begin(); def != _beads.end();
-       ++def) {
+  for (auto &_bead : _beads) {
 
-    int iout = out.getBeadByName((*def)->_name);
+    int iout = out.getBeadByName(_bead->_name);
     if (iout < 0) {
       throw runtime_error(string("mapping error: reference molecule " +
-                                 (*def)->_name + " does not exist"));
+                                 _bead->_name + " does not exist"));
     }
 
-    tools::Property *mdef = getMapByName((*def)->_mapping);
+    tools::Property *mdef = getMapByName(_bead->_mapping);
     if (!mdef) {
-      throw runtime_error(string("mapping " + (*def)->_mapping + " not found"));
+      throw runtime_error(string("mapping " + _bead->_mapping + " not found"));
     }
 
     /// TODO: change this to factory, do not hardcode!!
     BeadMap *bmap;
-    switch ((*def)->_symmetry) {
+    switch (_bead->_symmetry) {
       case 1:
         bmap = new Map_Sphere();
         break;
@@ -222,7 +221,7 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
     }
     ////////////////////////////////////////////////////
 
-    bmap->Initialize(&in, out.getBead(iout), ((*def)->_options), mdef);
+    bmap->Initialize(&in, out.getBead(iout), (_bead->_options), mdef);
     map->AddBeadMap(bmap);
   }
   return map;

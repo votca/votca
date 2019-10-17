@@ -146,11 +146,11 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
           0,
           bead_name1.find_first_of("#"));  // skip #index of atom from its name
 
-      for (unsigned int imt = 0; imt < MolecularTypes.size(); imt++) {
+      for (auto &MolecularType : MolecularTypes) {
 
-        for (int ib2 = 0; ib2 < MolecularTypes[imt]->BeadCount(); ib2++) {
+        for (int ib2 = 0; ib2 < MolecularType->BeadCount(); ib2++) {
 
-          string bead_name2 = MolecularTypes[imt]->getBead(ib2)->getType();
+          string bead_name2 = MolecularType->getBead(ib2)->getType();
           bead_name2 = bead_name2.substr(
               0, bead_name2.find_first_of("#"));  // skip #index of atom from
                                                   // its name
@@ -162,9 +162,8 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
           bool is_new_pair = true;
 
-          for (unsigned int ibp = 0; ibp < vdw_pairs.size(); ibp++) {
-            if (ss_bp1.str() == vdw_pairs[ibp] ||
-                ss_bp2.str() == vdw_pairs[ibp]) {
+          for (const auto &vdw_pair : vdw_pairs) {
+            if (ss_bp1.str() == vdw_pair || ss_bp2.str() == vdw_pair) {
               is_new_pair = false;
               break;
             }
@@ -204,8 +203,8 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
     fl << "vdw " << vdw_pairs.size() << endl;
 
-    for (unsigned int ibp = 0; ibp < vdw_pairs.size(); ibp++) {
-      fl << vdw_pairs[ibp] << " tab   1.00000  0.00000\n";
+    for (const auto &vdw_pair : vdw_pairs) {
+      fl << vdw_pair << " tab   1.00000  0.00000\n";
     }
   }
 
