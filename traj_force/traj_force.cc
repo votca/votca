@@ -56,7 +56,7 @@ void TrajForce::BeginEvaluate(Topology *top, Topology *top_atom) {
   _top_force.CopyTopologyData(top);
   _trjreader_force =
       TrjReaderFactory().Create(_op_vm["trj-force"].as<string>());
-  if (_trjreader_force == NULL)
+  if (_trjreader_force == nullptr)
     throw runtime_error(string("input format not supported: ") +
                         _op_vm["trj-force"].as<string>());
   // open the trajectory
@@ -66,7 +66,7 @@ void TrajForce::BeginEvaluate(Topology *top, Topology *top_atom) {
 
   // output trajectory file
   _trjwriter = TrjWriterFactory().Create(_op_vm["out"].as<string>());
-  if (_trjwriter == NULL)
+  if (_trjwriter == nullptr)
     throw runtime_error(string("output trajectory format not supported: ") +
                         _op_vm["out"].as<string>());
   bool append = true;

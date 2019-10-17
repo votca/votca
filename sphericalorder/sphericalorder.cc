@@ -172,7 +172,8 @@ class CGOrderParam : public CsgApplication {
     _file_w.close();
   };
 
-  void EvalConfiguration(Topology *conf, Topology *conf_atom = 0) override {
+  void EvalConfiguration(Topology *conf,
+                         Topology *conf_atom = nullptr) override {
 
     Eigen::Vector3d eR;
     int nu, nv, nw;

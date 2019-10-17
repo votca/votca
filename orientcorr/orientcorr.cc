@@ -126,7 +126,7 @@ NBList *OrientCorrApp::CreateNBSearch() {
 
   throw std::runtime_error(
       "unknown neighbor search method, use simple or grid");
-  return NULL;
+  return nullptr;
 }
 
 // initialize the histograms

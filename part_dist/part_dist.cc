@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
   TopologyReader *reader;
   TrajectoryReader *trajreader;
   int part_type, n_bins, first_frame(0), last_frame(-1), flag_found(0),
-      **p_occ = NULL, n_part(0), frame_id(0), analyzed_frames(0);
+      **p_occ = nullptr, n_part(0), frame_id(0), analyzed_frames(0);
   bool moreframes(1), not_the_last(1);
 
   MoleculeContainer::iterator mol;
@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
   try {
     // Load topology
     reader = TopReaderFactory().Create(vm["top"].as<string>());
-    if (reader == NULL)
+    if (reader == nullptr)
       throw std::runtime_error("input format not supported: " +
                                vm["top"].as<string>());
 
@@ -204,7 +204,7 @@ int main(int argc, char **argv) {
 
     // Now load trajectory
     trajreader = TrjReaderFactory().Create(vm["trj"].as<string>());
-    if (trajreader == NULL)
+    if (trajreader == nullptr)
       throw std::runtime_error("input format not supported: " +
                                vm["trj"].as<string>());
     trajreader->Open(vm["trj"].as<string>());
