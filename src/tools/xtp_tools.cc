@@ -32,22 +32,22 @@ using namespace votca;
 
 class XtpTools : public xtp::XtpApplication {
  public:
-  XtpTools() {}
+  XtpTools() = default;
 
-  ~XtpTools() {}
+  ~XtpTools() override = default;
 
-  string ProgramName() { return "xtp_tools"; }
+  string ProgramName() override { return "xtp_tools"; }
 
-  void HelpText(ostream& out) {
+  void HelpText(ostream& out) override {
     out << "Runs excitation/charge transport tools" << endl;
   }
 
   void SetTool(xtp::QMTool* tool) {
     _tool = std::unique_ptr<xtp::QMTool>(tool);
   }
-  void Initialize();
-  bool EvaluateOptions();
-  void Run(void);
+  void Initialize() override;
+  bool EvaluateOptions() override;
+  void Run(void) override;
 
   void BeginEvaluate(int nThreads);
   bool Evaluate();
@@ -104,7 +104,9 @@ bool XtpTools::EvaluateOptions() {
           break;
         }
       }
-      if (printerror) cout << "Tool " << n << " does not exist\n";
+      if (printerror) {
+        cout << "Tool " << n << " does not exist\n";
+      }
     }
     StopExecution();
     return true;
@@ -145,7 +147,9 @@ void XtpTools::Run() {
 
   int nThreads = OptionsMap()["nthreads"].as<int>();
   std::string name = ProgramName();
-  if (VersionString() != "") name = name + ", version " + VersionString();
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
   xtp::HelpTextHeader(name);
   cout << "Initializing tool " << endl;
   BeginEvaluate(nThreads);

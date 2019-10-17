@@ -56,8 +56,8 @@ class ClassicalSegment : public AtomContainer<T> {
   }
 };
 
-typedef ClassicalSegment<PolarSite> PolarSegment;
-typedef ClassicalSegment<StaticSite> StaticSegment;
+using PolarSegment = ClassicalSegment<PolarSite>;
+using StaticSegment = ClassicalSegment<StaticSite>;
 
 }  // namespace xtp
 }  // namespace votca

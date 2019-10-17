@@ -31,8 +31,9 @@ namespace xtp {
 
 class QMNBList : public csg::PairList<const Segment*, QMPair> {
  public:
-  QMNBList(){};
-  ~QMNBList() { csg::PairList<const Segment*, QMPair>::Cleanup(); }
+  QMNBList() = default;
+  ;
+  ~QMNBList() override { csg::PairList<const Segment*, QMPair>::Cleanup(); }
 
   QMPair& Add(const Segment& seg1, const Segment& seg2,
               const Eigen::Vector3d& r);

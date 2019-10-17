@@ -46,38 +46,39 @@ class QMRegion : public Region {
       : Region(id, log), _workdir(workdir) {
     QMPackageFactory::RegisterAll();
   };
-  ~QMRegion(){};
+  ~QMRegion() override = default;
+  ;
 
-  void Initialize(const tools::Property& prop);
+  void Initialize(const tools::Property& prop) override;
 
-  bool Converged() const;
+  bool Converged() const override;
 
-  void Evaluate(std::vector<std::unique_ptr<Region> >& regions);
+  void Evaluate(std::vector<std::unique_ptr<Region> >& regions) override;
 
-  void WriteToCpt(CheckpointWriter& w) const;
+  void WriteToCpt(CheckpointWriter& w) const override;
 
-  void ReadFromCpt(CheckpointReader& r);
+  void ReadFromCpt(CheckpointReader& r) override;
 
   void ApplyQMFieldToPolarSegments(std::vector<PolarSegment>& segments) const;
 
-  int size() const { return _size; }
+  int size() const override { return _size; }
 
-  void WritePDB(csg::PDBWriter& writer) const;
+  void WritePDB(csg::PDBWriter& writer) const override;
 
-  std::string identify() const { return "qm"; }
+  std::string identify() const override { return "qm"; }
 
   void push_back(const QMMolecule& mol);
 
-  void Reset();
+  void Reset() override;
 
-  double charge() const;
-  double Etotal() const { return _E_hist.back(); }
+  double charge() const override;
+  double Etotal() const override { return _E_hist.back(); }
 
  protected:
-  void AppendResult(tools::Property& prop) const;
-  double InteractwithQMRegion(const QMRegion& region);
-  double InteractwithPolarRegion(const PolarRegion& region);
-  double InteractwithStaticRegion(const StaticRegion& region);
+  void AppendResult(tools::Property& prop) const override;
+  double InteractwithQMRegion(const QMRegion& region) override;
+  double InteractwithPolarRegion(const PolarRegion& region) override;
+  double InteractwithStaticRegion(const StaticRegion& region) override;
 
  private:
   void AddNucleiFields(std::vector<PolarSegment>& segments,

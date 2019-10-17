@@ -39,16 +39,17 @@ namespace xtp {
 
 class QMThread : public tools::Thread {
  public:
-  QMThread() {}
+  QMThread() = default;
   QMThread(bool maverick) : _maverick(maverick) { ; }
-  virtual ~QMThread(){};
+  ~QMThread() override = default;
+  ;
 
   int getId() const { return _id; }
   void setId(int id) { _id = id; }
   bool isMaverick() const { return _maverick; }
 
   Logger& getLogger() { return _logger; }
-  virtual void Run(void) { ; }
+  void Run(void) override { ; }
 
  protected:
   int _id;

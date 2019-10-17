@@ -154,7 +154,7 @@ void KMCLifetime::WriteToTraj(fstream& traj, unsigned insertioncount,
 
 void KMCLifetime::RunVSSM() {
 
-  int realtime_start = time(NULL);
+  int realtime_start = time(nullptr);
   cout << endl
        << "Algorithm: VSSM for Multiple Charges with finite Lifetime" << endl;
   cout << "number of charges: " << _numberofcarriers << endl;
@@ -197,7 +197,7 @@ void KMCLifetime::RunVSSM() {
   std::vector<GNode*> forbiddennodes;
   std::vector<GNode*> forbiddendests;
 
-  time_t now = time(0);
+  time_t now = time(nullptr);
   tm* localtm = localtime(&now);
   cout << "Run started at " << asctime(localtm) << endl;
 
@@ -209,7 +209,7 @@ void KMCLifetime::RunVSSM() {
   int carrieridold = _carriers[0].getId();
 
   while (insertioncount < _insertions) {
-    if ((time(NULL) - realtime_start) > _maxrealtime * 60. * 60.) {
+    if ((time(nullptr) - realtime_start) > _maxrealtime * 60. * 60.) {
       cout << endl
            << "Real time limit of " << _maxrealtime << " hours ("
            << int(_maxrealtime * 60 * 60 + 0.5)
@@ -262,7 +262,7 @@ void KMCLifetime::RunVSSM() {
     while (secondlevel) {
 
       // determine which carrier will escape
-      GNode* newnode = NULL;
+      GNode* newnode = nullptr;
       Chargecarrier* affectedcarrier = ChooseAffectedCarrier(cumulated_rate);
 
       if (CheckForbidden(affectedcarrier->getCurrentNode(), forbiddennodes)) {
@@ -275,7 +275,7 @@ void KMCLifetime::RunVSSM() {
       while (true) {
         // LEVEL 2
 
-        newnode = NULL;
+        newnode = nullptr;
         const GLink& event =
             ChooseHoppingDest(affectedcarrier->getCurrentNode());
 
@@ -376,7 +376,7 @@ bool KMCLifetime::EvaluateFrame(Topology& top) {
   }
   RunVSSM();
 
-  time_t now = time(0);
+  time_t now = time(nullptr);
   tm* localtm = localtime(&now);
   std::cout << "      KMCLIFETIME finished at:" << asctime(localtm)
             << std::endl;

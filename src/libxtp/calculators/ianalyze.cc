@@ -49,10 +49,12 @@ void IAnalyze::Initialize(tools::Property &opt) {
   if (opt.exists(key + ".pairtype")) {
     _do_pairtype = true;
     std::string _store_stdstring = opt.get(key + ".pairtype").as<std::string>();
-    if (_store_stdstring.find("Hopping") != std::string::npos)
+    if (_store_stdstring.find("Hopping") != std::string::npos) {
       _pairtype.push_back(QMPair::Hopping);
-    if (_store_stdstring.find("Excitoncl") != std::string::npos)
+    }
+    if (_store_stdstring.find("Excitoncl") != std::string::npos) {
       _pairtype.push_back(QMPair::Excitoncl);
+    }
     if (!_pairtype.size()) {
       std::cout << std::endl
                 << "... ... No pairtypes recognized will output all pairs. ";
@@ -61,7 +63,9 @@ void IAnalyze::Initialize(tools::Property &opt) {
   }
   if (opt.exists(key + ".resolution_space")) {
     _resolution_space = opt.get(key + ".resolution_space").as<double>();
-    if (_resolution_space != 0.0) _do_IRdependence = true;
+    if (_resolution_space != 0.0) {
+      _do_IRdependence = true;
+    }
   }
 }
 

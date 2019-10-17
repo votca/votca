@@ -101,8 +101,9 @@ void ProgObserver<JobContainer>::ReportJobDone(Job &job, Result &res,
   job.setHost(GenerateHost(thread));
   // PRINT PROGRESS BAR
   _jobsReported += 1;
-  if (!thread.isMaverick())
+  if (!thread.isMaverick()) {
     std::cout << std::endl << thread.getLogger() << std::flush;
+  }
   _lockThread.Unlock();
   return;
 }
@@ -148,15 +149,18 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
 
   int cacheSize = _cacheSize;
   while (int(_jobsToProc.size()) < cacheSize) {
-    if (_metajit == _jobs.end() || _startJobsCount == _maxJobs) break;
+    if (_metajit == _jobs.end() || _startJobsCount == _maxJobs) {
+      break;
+    }
 
     bool startJob = false;
 
     // Start if job available or restart patterns matched
     if ((_metajit->isAvailable()) ||
         (_restartMode && _restart_stats.count(_metajit->getStatusStr())) ||
-        (_restartMode && _restart_hosts.count(_metajit->getHost())))
+        (_restartMode && _restart_hosts.count(_metajit->getHost()))) {
       startJob = true;
+    }
 
     if (startJob) {
       _metajit->Reset();
@@ -209,10 +213,11 @@ void ProgObserver<JobContainer>::InitCmdLineOpts(
 
   // restartPattern = e.g. host(pckr124:1234) stat(FAILED)
   boost::algorithm::replace_all(restartPattern, " ", "");
-  if (restartPattern == "")
+  if (restartPattern == "") {
     _restartMode = false;
-  else
+  } else {
     _restartMode = true;
+  }
 
   std::vector<std::string> split;
   tools::Tokenizer toker(restartPattern, "(,)");
@@ -221,22 +226,24 @@ void ProgObserver<JobContainer>::InitCmdLineOpts(
   std::string category = "";
   for (unsigned int i = 0; i < split.size(); ++i) {
 
-    if (split[i] == "host" || split[i] == "stat")
+    if (split[i] == "host" || split[i] == "stat") {
       category = split[i];
 
-    else if (category == "host")
+    } else if (category == "host") {
       _restart_hosts[split[i]] = true;
-    else if (category == "stat") {
-      if (split[i] == "ASSIGNED" || split[i] == "COMPLETE")
+    } else if (category == "stat") {
+      if (split[i] == "ASSIGNED" || split[i] == "COMPLETE") {
         std::cout << "Restart if status == " << split[i]
                   << "? Not necessarily a good idea." << std::endl;
+      }
       _restart_stats[split[i]] = true;
     }
 
-    else
+    else {
       throw std::runtime_error(
           "Restart pattern ill-defined, format is"
           "[host([HOSTNAME:PID])] [stat([STATUS])]");
+    }
   }
   return;
 }
@@ -269,10 +276,11 @@ void ProgObserver<JobContainer>::InitFromProgFile(std::string progFile,
   WRITE_JOBS(_jobs, progFile + "~");
   XTP_LOG(logINFO, thread.getLogger())
       << "Registered " << _jobs.size() << " jobs." << std::flush;
-  if (_jobs.size() > 0)
+  if (_jobs.size() > 0) {
     _moreJobsAvailable = true;
-  else
+  } else {
     _moreJobsAvailable = false;
+  }
 
   // SUMMARIZE OBSERVER VARIABLES: RESTART PATTERN, CACHE, LOCK FILE
   if (_restartMode && _restart_hosts.size()) {

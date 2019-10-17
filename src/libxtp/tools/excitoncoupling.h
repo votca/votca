@@ -37,10 +37,10 @@ namespace xtp {
 
 class ExcitonCoupling : public QMTool {
  public:
-  std::string Identify() { return "excitoncoupling"; }
+  std::string Identify() override { return "excitoncoupling"; }
 
-  void Initialize(tools::Property& options);
-  bool Evaluate();
+  void Initialize(tools::Property& options) override;
+  bool Evaluate() override;
 
  private:
   std::string _orbA, _orbB, _orbAB;
@@ -82,8 +82,9 @@ void ExcitonCoupling::Initialize(tools::Property& options) {
 
   // get the path to the shared folders with xml files
   char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
+  if (votca_share == nullptr) {
     throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+  }
 }
 
 bool ExcitonCoupling::Evaluate() {

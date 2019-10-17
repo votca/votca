@@ -33,11 +33,12 @@ namespace xtp {
 class QMNBList;
 class KMCCalculator : public QMCalculator {
  public:
-  virtual ~KMCCalculator(){};
+  ~KMCCalculator() override = default;
+  ;
 
-  virtual std::string Identify() = 0;
-  virtual bool WriteToStateFile() const = 0;
-  virtual void Initialize(tools::Property& options) = 0;
+  std::string Identify() override = 0;
+  bool WriteToStateFile() const override = 0;
+  void Initialize(tools::Property& options) override = 0;
 
  protected:
   QMStateType _carriertype;

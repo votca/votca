@@ -24,13 +24,14 @@ Eigen::MatrixXd symm_matrix(int N, double eps) {
 Eigen::MatrixXd init_matrix(int N, double eps) {
   Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(N, N);
   for (int i = 0; i < N; i++) {
-    for (int j = i; j < N; j++)
+    for (int j = i; j < N; j++) {
       if (i == j) {
         matrix(i, i) = std::sqrt(static_cast<double>(1 + i));
       } else {
         matrix(i, j) = eps / std::pow(static_cast<double>(j - i), 2);
         matrix(j, i) = eps / std::pow(static_cast<double>(j - i), 2);
       }
+    }
   }
   return matrix;
 }
@@ -108,8 +109,9 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix_fail) {
 
 class TestOperator : public MatrixFreeOperator {
  public:
-  TestOperator(){};
-  Eigen::RowVectorXd OperatorRow(int index) const;
+  TestOperator() = default;
+  ;
+  Eigen::RowVectorXd OperatorRow(int index) const override;
 
  private:
 };
@@ -194,7 +196,8 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free_large) {
 
 class BlockOperator : public MatrixFreeOperator {
  public:
-  BlockOperator(){};
+  BlockOperator() = default;
+  ;
   Eigen::MatrixXd OperatorBlock(int row, int col) const override;
 
   bool useRow() const override { return false; }
@@ -320,10 +323,11 @@ Eigen::MatrixXd extract_eigenvectors(const Eigen::MatrixXd &V,
 
 class HermitianBlockOperator : public MatrixFreeOperator {
  public:
-  HermitianBlockOperator(){};
+  HermitianBlockOperator() = default;
+  ;
 
   void attach_matrix(const Eigen::MatrixXd &mat);
-  Eigen::RowVectorXd OperatorRow(int index) const;
+  Eigen::RowVectorXd OperatorRow(int index) const override;
   void set_diag(int diag);
   Eigen::VectorXd diag_el;
 

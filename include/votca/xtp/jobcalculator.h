@@ -35,10 +35,10 @@ class Topology;
 
 class JobCalculator : public tools::Calculator {
  public:
-  JobCalculator() {}
-  virtual ~JobCalculator() {}
+  JobCalculator() = default;
+  ~JobCalculator() override = default;
 
-  virtual std::string Identify() = 0;
+  std::string Identify() override = 0;
 
   virtual bool EvaluateFrame(const Topology &top) = 0;
 

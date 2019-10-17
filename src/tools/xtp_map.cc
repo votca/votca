@@ -41,13 +41,15 @@ namespace TOOLS = votca::tools;
 class XtpMap : public TOOLS::Application {
 
  public:
-  string ProgramName() { return "xtp_map"; }
-  void HelpText(ostream& out) { out << "Generates QM|MD topology" << endl; }
-  void ShowHelpText(std::ostream& out);
+  string ProgramName() override { return "xtp_map"; }
+  void HelpText(ostream& out) override {
+    out << "Generates QM|MD topology" << endl;
+  }
+  void ShowHelpText(std::ostream& out) override;
 
-  void Initialize();
-  bool EvaluateOptions();
-  void Run();
+  void Initialize() override;
+  bool EvaluateOptions() override;
+  void Run() override;
 
  protected:
 };
@@ -89,7 +91,9 @@ bool XtpMap::EvaluateOptions() {
 void XtpMap::Run() {
 
   std::string name = ProgramName();
-  if (VersionString() != "") name = name + ", version " + VersionString();
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
   XTP::HelpTextHeader(name);
 
   // ++++++++++++++++++++++++++++ //
@@ -287,7 +291,9 @@ void XtpMap::Run() {
 
 void XtpMap::ShowHelpText(std::ostream& out) {
   string name = ProgramName();
-  if (VersionString() != "") name = name + ", version " + VersionString();
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
   XTP::HelpTextHeader(name);
   HelpText(out);
   out << "\n\n" << VisibleOptions() << endl;

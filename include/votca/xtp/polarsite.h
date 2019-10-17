@@ -44,7 +44,8 @@ class PolarSite : public StaticSite {
   PolarSite(int id, std::string element)
       : PolarSite(id, element, Eigen::Vector3d::Zero()){};
 
-  ~PolarSite(){};
+  ~PolarSite() override = default;
+  ;
 
   void setPolarisation(const Eigen::Matrix3d& pol) override;
 

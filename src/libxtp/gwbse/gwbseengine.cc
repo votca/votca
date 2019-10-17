@@ -42,11 +42,21 @@ void GWBSEEngine::Initialize(tools::Property& options,
 
   std::string tasks_string = options.get(".tasks").as<std::string>();
 
-  if (tasks_string.find("guess") != std::string::npos) _do_guess = true;
-  if (tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-  if (tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
-  if (tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
-  if (tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
+  if (tasks_string.find("guess") != std::string::npos) {
+    _do_guess = true;
+  }
+  if (tasks_string.find("input") != std::string::npos) {
+    _do_dft_input = true;
+  }
+  if (tasks_string.find("dft") != std::string::npos) {
+    _do_dft_run = true;
+  }
+  if (tasks_string.find("parse") != std::string::npos) {
+    _do_dft_parse = true;
+  }
+  if (tasks_string.find("gwbse") != std::string::npos) {
+    _do_gwbse = true;
+  }
 
   // XML option file for GWBSE
   if (_do_gwbse) {
@@ -147,7 +157,9 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     gwbse.Evaluate();
     gwbse.addoutput(output_summary);
   }
-  if (_redirect_logger) WriteLoggerToFile(logger);
+  if (_redirect_logger) {
+    WriteLoggerToFile(logger);
+  }
   return;
 }
 

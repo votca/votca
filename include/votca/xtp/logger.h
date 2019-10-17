@@ -113,7 +113,7 @@ class LogBuffer : public std::stringbuf {
   bool _writePreface = true;
 
  protected:
-  virtual int sync() {
+  int sync() override {
 
     std::ostringstream _message;
 
@@ -177,10 +177,10 @@ class Logger : public std::ostream {
   Logger(TLogLevel ReportLevel)
       : std::ostream(new LogBuffer()), _ReportLevel(ReportLevel) {}
 
-  ~Logger() {
+  ~Logger() override {
     // dynamic_cast<LogBuffer *>( rdbuf())->FlushBuffer();
     delete rdbuf();
-    rdbuf(NULL);
+    rdbuf(nullptr);
   }
 
   Logger &operator()(TLogLevel LogLevel) {
@@ -236,7 +236,8 @@ class TimeStamp {
     return os;
   }
 
-  explicit TimeStamp(){};
+  explicit TimeStamp() = default;
+  ;
 };
 
 }  // namespace xtp

@@ -140,7 +140,9 @@ bool NWChem::WriteGuess(const Orbitals& orbitals) {
     }
     column++;
   }
-  if (column != 1) orb_file << endl;
+  if (column != 1) {
+    orb_file << endl;
+  }
 
   // write coefficients in same format
   for (int i = 0; i < MOs.cols(); ++i) {
@@ -155,7 +157,9 @@ bool NWChem::WriteGuess(const Orbitals& orbitals) {
       column++;
     }
     level++;
-    if (column != 1) orb_file << endl;
+    if (column != 1) {
+      orb_file << endl;
+    }
   }
   orb_file << " 0.0000   0.0000" << endl;
   orb_file.close();
@@ -292,7 +296,7 @@ bool NWChem::Run() {
 
   XTP_LOG(logDEBUG, *_pLog) << "Running NWChem job" << flush;
 
-  if (std::system(NULL)) {
+  if (std::system(nullptr)) {
 
     // NWChem overrides input information, if *.db and *.movecs files are
     // present better trash the old version
@@ -688,7 +692,9 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
   XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
   std::string log_file_name_full = _run_dir + "/" + _log_file_name;
   // check if LOG file is complete
-  if (!CheckLogFile()) return false;
+  if (!CheckLogFile()) {
+    return false;
+  }
 
   // save qmpackage name
   orbitals.setQMpackage(getPackageName());

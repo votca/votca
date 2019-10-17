@@ -71,7 +71,9 @@ bool JobApplication::EvaluateOptions(void) {
 
 void JobApplication::Run() {
   std::string name = ProgramName();
-  if (VersionString() != "") name = name + ", version " + VersionString();
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
   xtp::HelpTextHeader(name);
 
   // EVALUATE OPTIONS

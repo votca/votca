@@ -45,7 +45,8 @@ class AOMatrix3D {
 class AOMomentum : public AOMatrix3D {
  protected:
   void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
-                 const AOShell& shell_row, const AOShell& shell_col) const;
+                 const AOShell& shell_row,
+                 const AOShell& shell_col) const override;
 };
 
 /* derived class for atomic orbital electrical dipole matrices, required for
@@ -58,7 +59,8 @@ class AODipole : public AOMatrix3D {
   }  // definition of a center around which the moment should be calculated
  protected:
   void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
-                 const AOShell& shell_row, const AOShell& shell_col) const;
+                 const AOShell& shell_row,
+                 const AOShell& shell_col) const override;
 
  private:
   Eigen::Vector3d _r = Eigen::Vector3d::Zero();

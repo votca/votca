@@ -252,8 +252,9 @@ void BasisSet::Load(const std::string& name) {
   } else {
     // get the path to the shared folders with xml files
     char* votca_share = getenv("VOTCASHARE");
-    if (votca_share == nullptr)
+    if (votca_share == nullptr) {
       throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+    }
     xmlFile = std::string(getenv("VOTCASHARE")) +
               std::string("/xtp/basis_sets/") + name + std::string(".xml");
   }
@@ -281,21 +282,21 @@ void BasisSet::Load(const std::string& name) {
         for (tools::Property* contrProp : contrProps) {
           std::string contrType = contrProp->getAttribute<std::string>("type");
           double contrFactor = contrProp->getAttribute<double>("factor");
-          if (contrType == "S")
+          if (contrType == "S") {
             contraction[0] = contrFactor;
-          else if (contrType == "P")
+          } else if (contrType == "P") {
             contraction[1] = contrFactor;
-          else if (contrType == "D")
+          } else if (contrType == "D") {
             contraction[2] = contrFactor;
-          else if (contrType == "F")
+          } else if (contrType == "F") {
             contraction[3] = contrFactor;
-          else if (contrType == "G")
+          } else if (contrType == "G") {
             contraction[4] = contrFactor;
-          else if (contrType == "H")
+          } else if (contrType == "H") {
             contraction[5] = contrFactor;
-          else if (contrType == "I")
+          } else if (contrType == "I") {
             contraction[6] = contrFactor;
-          else {
+          } else {
             throw std::runtime_error("LoadBasiset:Contractiontype not known");
           }
         }

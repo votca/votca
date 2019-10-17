@@ -136,15 +136,29 @@ void GWBSE::Initialize(tools::Property& options) {
   }
 
   // check maximum and minimum sizes
-  if (rpamax > num_of_levels) rpamax = num_of_levels - 1;
-  if (qpmax > num_of_levels) qpmax = num_of_levels - 1;
-  if (bse_cmax > num_of_levels) bse_cmax = num_of_levels - 1;
-  if (bse_vmin < 0) bse_vmin = 0;
-  if (qpmin < 0) qpmin = 0;
+  if (rpamax > num_of_levels) {
+    rpamax = num_of_levels - 1;
+  }
+  if (qpmax > num_of_levels) {
+    qpmax = num_of_levels - 1;
+  }
+  if (bse_cmax > num_of_levels) {
+    bse_cmax = num_of_levels - 1;
+  }
+  if (bse_vmin < 0) {
+    bse_vmin = 0;
+  }
+  if (qpmin < 0) {
+    qpmin = 0;
+  }
 
   // some QP - BSE consistency checks are required
-  if (bse_vmin < qpmin) qpmin = bse_vmin;
-  if (bse_cmax > qpmax) qpmax = bse_cmax;
+  if (bse_vmin < qpmin) {
+    qpmin = bse_vmin;
+  }
+  if (bse_cmax > qpmax) {
+    qpmax = bse_cmax;
+  }
 
   _gwopt.homo = homo;
   _gwopt.qpmin = qpmin;
@@ -184,7 +198,9 @@ void GWBSE::Initialize(tools::Property& options) {
 
   _bseopt.nmax = options.ifExistsReturnElseReturnDefault<int>(key + ".exctotal",
                                                               _bseopt.nmax);
-  if (_bseopt.nmax > bse_size || _bseopt.nmax < 0) _bseopt.nmax = bse_size;
+  if (_bseopt.nmax > bse_size || _bseopt.nmax < 0) {
+    _bseopt.nmax = bse_size;
+  }
 
   // eigensolver options
   if (options.exists(key + ".eigensolver")) {
@@ -318,11 +334,15 @@ void GWBSE::Initialize(tools::Property& options) {
     _do_bse_singlets = true;
     _do_bse_triplets = true;
   }
-  if (tasks_string.find("gw") != std::string::npos) _do_gw = true;
-  if (tasks_string.find("singlets") != std::string::npos)
+  if (tasks_string.find("gw") != std::string::npos) {
+    _do_gw = true;
+  }
+  if (tasks_string.find("singlets") != std::string::npos) {
     _do_bse_singlets = true;
-  if (tasks_string.find("triplets") != std::string::npos)
+  }
+  if (tasks_string.find("triplets") != std::string::npos) {
     _do_bse_triplets = true;
+  }
 
   XTP_LOG(logDEBUG, *_pLog) << " Tasks: " << flush;
   if (_do_gw) {

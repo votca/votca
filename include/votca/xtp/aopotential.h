@@ -55,7 +55,8 @@ class AOECP : public AOPotential<double> {
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                 const AOShell& shell_row, const AOShell& shell_col) const;
+                 const AOShell& shell_row,
+                 const AOShell& shell_col) const override;
 
  private:
   Eigen::VectorXd ExpandContractions(const AOGaussianPrimitive& gaussian,
@@ -86,7 +87,8 @@ class AOMultipole : public AOPotential<double> {
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                 const AOShell& shell_row, const AOShell& shell_col) const;
+                 const AOShell& shell_row,
+                 const AOShell& shell_col) const override;
 
  private:
   void setSite(const StaticSite* site) { _site = site; };
@@ -101,7 +103,8 @@ class AOPlanewave : public AOPotential<std::complex<double>> {
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
-                 const AOShell& shell_row, const AOShell& shell_col) const;
+                 const AOShell& shell_row,
+                 const AOShell& shell_col) const override;
 
  private:
   void setkVector(const Eigen::Vector3d& k) { _k = k; };

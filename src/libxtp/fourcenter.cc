@@ -70,7 +70,9 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
               int sum_ind_3 = (ind_3 * (ind_3 + 1)) / 2;
               for (int i_4 = 0; i_4 < NumFunc_4; i_4++) {
                 int ind_4 = start_4 + i_4;
-                if (ind_3 > ind_4) continue;
+                if (ind_3 > ind_4) {
+                  continue;
+                }
                 int index_34 = dftBasisSize * ind_3 - sum_ind_3 + ind_4;
                 int index_34_12_a =
                     vectorSize * index_34 - (index_34 * (index_34 + 1)) / 2;
@@ -79,9 +81,13 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
                   int sum_ind_1 = (ind_1 * (ind_1 + 1)) / 2;
                   for (int i_2 = 0; i_2 < NumFunc_2; i_2++) {
                     int ind_2 = start_2 + i_2;
-                    if (ind_1 > ind_2) continue;
+                    if (ind_1 > ind_2) {
+                      continue;
+                    }
                     int index_12 = dftBasisSize * ind_1 - sum_ind_1 + ind_2;
-                    if (index_34 > index_12) continue;
+                    if (index_34 > index_12) {
+                      continue;
+                    }
                     _4c_vector(index_34_12_a + index_12) =
                         block(i_1, i_2, i_3, i_4);
 

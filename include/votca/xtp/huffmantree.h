@@ -29,9 +29,10 @@ class huffmanTree {
 
  public:
   void makeTree() {
-    if (!events)
+    if (!events) {
       throw std::runtime_error(
           "Error in Huffmantree::makeTree : Pointer to Events not set!");
+    }
 
     // queue of the nodes, sorted by probability
     auto compare = [](huffmanNode<T> *n1, huffmanNode<T> *n2) {
@@ -106,16 +107,18 @@ class huffmanTree {
   }
 
   T *findHoppingDestination(double p) const {
-    if (!treeIsMade)
+    if (!treeIsMade) {
       throw std::runtime_error(
           "Tried to find Hopping Destination without initializing the "
           "Huffmantree first!");
+    }
     const huffmanNode<T> *node = &htree.back();
     while (!node->isOnLastLevel) {
-      if (p > node->probability)
+      if (p > node->probability) {
         node = node->leftChild;
-      else
+      } else {
         node = node->rightChild;
+      }
     }
     return (p > node->probability ? node->leftLeaf : node->rightLeaf);
   }

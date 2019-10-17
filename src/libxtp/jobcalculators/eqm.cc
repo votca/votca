@@ -47,11 +47,21 @@ void EQM::ParseOptionsXML(tools::Property& options) {
   std::string key = "options." + Identify();
   // job tasks
   std::string _tasks_string = options.get(key + ".tasks").as<std::string>();
-  if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-  if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
-  if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
-  if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
-  if (_tasks_string.find("esp") != std::string::npos) _do_esp = true;
+  if (_tasks_string.find("input") != std::string::npos) {
+    _do_dft_input = true;
+  }
+  if (_tasks_string.find("dft") != std::string::npos) {
+    _do_dft_run = true;
+  }
+  if (_tasks_string.find("parse") != std::string::npos) {
+    _do_dft_parse = true;
+  }
+  if (_tasks_string.find("gwbse") != std::string::npos) {
+    _do_gwbse = true;
+  }
+  if (_tasks_string.find("esp") != std::string::npos) {
+    _do_esp = true;
+  }
 
   if (_do_gwbse) {
     std::string gwbse_xml =
@@ -80,8 +90,9 @@ void EQM::WriteJobFile(const Topology& top) {
             << "... ... Writing job file: " << _jobfile << std::flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
-  if (!ofs.is_open())
+  if (!ofs.is_open()) {
     throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
+  }
   ofs << "<jobs>" << std::endl;
   int jobCount = 0;
 

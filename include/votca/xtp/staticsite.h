@@ -66,10 +66,12 @@ class StaticSite {
       : StaticSite(atom.getId(), atom.getElement(), atom.getPos()) {
     setCharge(charge);
   }
-  virtual ~StaticSite(){};
+  virtual ~StaticSite() = default;
+  ;
 
  protected:
-  StaticSite(){};
+  StaticSite() = default;
+  ;
 
  public:
   int getId() const { return _id; }

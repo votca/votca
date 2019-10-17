@@ -30,14 +30,16 @@ namespace xtp {
 
 class DftGwBse : public QMTool {
  public:
-  DftGwBse(){};
+  DftGwBse() = default;
+  ;
 
-  ~DftGwBse(){};
+  ~DftGwBse() override = default;
+  ;
 
-  std::string Identify() { return "dftgwbse"; }
+  std::string Identify() override { return "dftgwbse"; }
 
-  void Initialize(tools::Property &options);
-  bool Evaluate();
+  void Initialize(tools::Property &options) override;
+  bool Evaluate() override;
 
  private:
   std::string _guess_file;

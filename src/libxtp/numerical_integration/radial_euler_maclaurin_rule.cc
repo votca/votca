@@ -216,7 +216,9 @@ double EulerMaclaurinGrid::DetermineCutoff(double alpha, int l, double eps) {
       cutoff += increment;
     } else {
       cutoff -= increment;
-      if (cutoff < 0.0) cutoff = 0.0;
+      if (cutoff < 0.0) {
+        cutoff = 0.0;
+      }
       increment = 0.5 * increment;
       cutoff += increment;
     }

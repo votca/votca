@@ -28,15 +28,15 @@ using namespace votca;
 
 class XtpDump : public xtp::StateApplication {
  public:
-  string ProgramName() { return "xtp_dump"; }
+  string ProgramName() override { return "xtp_dump"; }
 
-  void HelpText(ostream& out) {
+  void HelpText(ostream& out) override {
     out << "Extracts information from the state file" << endl;
   }
   void HelpText(){};
 
-  void Initialize();
-  bool EvaluateOptions();
+  void Initialize() override;
+  bool EvaluateOptions() override;
 
  private:
   // void    PrintDescription(string name, HelpOutputType _help_output_type);
@@ -86,7 +86,9 @@ bool XtpDump::EvaluateOptions() {
         }
       }
 
-      if (printerror) cout << "Extractor " << n << " does not exist\n";
+      if (printerror) {
+        cout << "Extractor " << n << " does not exist\n";
+      }
     }
     StopExecution();
     return true;

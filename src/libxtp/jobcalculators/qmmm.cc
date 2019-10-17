@@ -59,7 +59,9 @@ void QMMM::Initialize(tools::Property& options) {
     }
     bool groundstate_found = false;
     for (const QMState& state : _states) {
-      if (state.Type() == QMStateType::Gstate) groundstate_found = true;
+      if (state.Type() == QMStateType::Gstate) {
+        groundstate_found = true;
+      }
     }
     if (!groundstate_found) {
       _states.push_back(QMState("n"));
@@ -228,8 +230,9 @@ void QMMM::WriteJobFile(const Topology& top) {
 
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
-  if (!ofs.is_open())
+  if (!ofs.is_open()) {
     throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
+  }
 
   ofs << "<jobs>" << std::endl;
   int jobid = 0;

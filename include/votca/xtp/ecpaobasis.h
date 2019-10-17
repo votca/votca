@@ -41,7 +41,7 @@ class ECPAOBasis {
 
   int ECPAOBasisSize() const { return _AOBasisSize; }
 
-  typedef std::vector<ECPAOShell>::const_iterator ECPAOShellIterator;
+  using ECPAOShellIterator = std::vector<ECPAOShell>::const_iterator;
   ECPAOShellIterator begin() const { return _aoshells.begin(); }
   ECPAOShellIterator end() const { return _aoshells.end(); }
 

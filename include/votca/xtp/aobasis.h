@@ -43,7 +43,7 @@ class AOBasis {
 
   int AOBasisSize() const { return _AOBasisSize; }
 
-  typedef std::vector<AOShell>::const_iterator AOShellIterator;
+  using AOShellIterator = std::vector<AOShell>::const_iterator;
   AOShellIterator begin() const { return _aoshells.begin(); }
   AOShellIterator end() const { return _aoshells.end(); }
 

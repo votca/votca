@@ -58,10 +58,12 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
     for (d = order[s]; d < s; d = order[d]) {
       ;
     }
-    if (d == s)
-      while (d = order[d], d != s) v.row(s).swap(v.row(d));
+    if (d == s) {
+      while (d = order[d], d != s) {
+        v.row(s).swap(v.row(d));
+      }
+    }
   }
-
   // NWChem has some strange minus in d-functions
   if (start == "nwchem" || start == "orca") {
     std::vector<int> multiplier = getMultiplierVector(start, target);

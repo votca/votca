@@ -162,8 +162,9 @@ void IEXCITON::WriteJobFile(const Topology& top) {
   cout << endl << "... ... Writing job file " << _jobfile << flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
-  if (!ofs.is_open())
+  if (!ofs.is_open()) {
     throw runtime_error("\nERROR: bad file handle: " + _jobfile);
+  }
   const QMNBList& nblist = top.NBList();
   int jobCount = 0;
   if (nblist.size() == 0) {
@@ -235,7 +236,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
 
   // to skip pairs which are not in the jobfile
   for (unsigned i = 0; i < records.size(); i++) {
-    records[i] = NULL;
+    records[i] = nullptr;
   }
   // loop over all jobs = pair records in the job file
   for (Property* prop : jobProps) {
@@ -249,7 +250,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
       Segment& segB = top.getSegment(idB);
       QMPair* qmp = nblist.FindPair(&segA, &segB);
 
-      if (qmp == NULL) {
+      if (qmp == nullptr) {
         XTP_LOG_SAVE(logINFO, log)
             << "No pair " << idA << ":" << idB
             << " found in the neighbor list. Ignoring" << flush;
@@ -270,8 +271,9 @@ void IEXCITON::ReadJobFile(Topology& top) {
       << "Neighborlist size " << top.NBList().size() << flush;
   for (QMPair* pair : top.NBList()) {
 
-    if (records[pair->getId()] == NULL)
+    if (records[pair->getId()] == nullptr) {
       continue;  // skip pairs which are not in the jobfile
+    }
     double Jeff2 = 0.0;
     double jAB = 0.0;
     if (pair->getType() == QMPair::Excitoncl) {

@@ -30,12 +30,13 @@ namespace xtp {
 class XtpApplication : public votca::tools::Application {
  public:
   XtpApplication();
-  virtual ~XtpApplication(){};
+  ~XtpApplication() override = default;
+  ;
 
-  void Initialize();
-  virtual bool EvaluateOptions() = 0;
-  virtual void Run(void) = 0;
-  void ShowHelpText(std::ostream &out);
+  void Initialize() override;
+  bool EvaluateOptions() override = 0;
+  void Run(void) override = 0;
+  void ShowHelpText(std::ostream &out) override;
 
  protected:
   votca::tools::Property _options;

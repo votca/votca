@@ -185,7 +185,7 @@ void KMCMultiple::PrintChargeVelocity(double simtime) const {
 
 void KMCMultiple::RunVSSM() {
 
-  int realtime_start = time(NULL);
+  int realtime_start = time(nullptr);
   cout << endl << "Algorithm: VSSM for Multiple Charges" << endl;
   cout << "number of carriers: " << _numberofcarriers << endl;
   cout << "number of nodes: " << _nodes.size() << endl;
@@ -290,7 +290,7 @@ void KMCMultiple::RunVSSM() {
   while (((stopontime && simtime < _runtime) ||
           (!stopontime && step < maxsteps))) {
 
-    if ((time(NULL) - realtime_start) > _maxrealtime * 60. * 60.) {
+    if ((time(nullptr) - realtime_start) > _maxrealtime * 60. * 60.) {
       cout << endl
            << "Real time limit of " << _maxrealtime << " hours ("
            << int(_maxrealtime * 60 * 60 + 0.5)
@@ -324,7 +324,7 @@ void KMCMultiple::RunVSSM() {
     while (level1step) {
 
       // determine which electron will escape
-      GNode* newnode = NULL;
+      GNode* newnode = nullptr;
       Chargecarrier* affectedcarrier = ChooseAffectedCarrier(cumulated_rate);
 
       if (CheckForbidden(affectedcarrier->getCurrentNode(), forbiddennodes)) {
@@ -338,7 +338,7 @@ void KMCMultiple::RunVSSM() {
             ChooseHoppingDest(affectedcarrier->getCurrentNode());
         newnode = event.getDestination();
 
-        if (newnode == NULL) {
+        if (newnode == nullptr) {
           AddtoForbiddenlist(affectedcarrier->getCurrentNode(), forbiddennodes);
           break;  // select new escape node (ends level 2 but without setting
                   // level1step to 1)

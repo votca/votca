@@ -37,7 +37,8 @@ class Orbitals;
 
 class QMPackage {
  public:
-  virtual ~QMPackage(){};
+  virtual ~QMPackage() = default;
+  ;
 
   virtual std::string getPackageName() const = 0;
 
@@ -57,11 +58,10 @@ class QMPackage {
   template <class MMRegion>
   void AddRegion(const MMRegion& mmregion) {
 
-    typedef
-        typename std::iterator_traits<typename MMRegion::iterator>::value_type
-            Segmenttype;
-    typedef typename std::iterator_traits<
-        typename Segmenttype::iterator>::value_type Sitetype;
+    using Segmenttype =
+        typename std::iterator_traits<typename MMRegion::iterator>::value_type;
+    using Sitetype = typename std::iterator_traits<
+        typename Segmenttype::iterator>::value_type;
     for (const Segmenttype& segment : mmregion) {
       for (const Sitetype& site : segment) {
         _externalsites.push_back(

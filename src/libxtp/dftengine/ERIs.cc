@@ -129,9 +129,10 @@ Mat_p_Energy ERIs::CalculateERIs_4c_small_molecule(
           int index_kl = dftBasisSize * k - sum_k + l;
 
           int index_ij_kl = index_ij_kl_a + index_kl;
-          if (index_ij > index_kl)
+          if (index_ij > index_kl) {
             index_ij_kl = vectorSize * index_kl -
                           (index_kl * (index_kl + 1)) / 2 + index_ij;
+          }
 
           if (l == k) {
             ERIs(i, j) += DMAT(k, l) * fourc_vector(index_ij_kl);
@@ -171,9 +172,10 @@ Mat_p_Energy ERIs::CalculateEXX_4c_small_molecule(
           int index_kl = DMAT.cols() * k - sum_k + l;
 
           int _index_ij_kl = index_ij_kl_a + index_kl;
-          if (index_ij > index_kl)
+          if (index_ij > index_kl) {
             _index_ij_kl = vectorSize * index_kl -
                            (index_kl * (index_kl + 1)) / 2 + index_ij;
+          }
           double factorij = 1;
           if (i == j) {
             factorij = 0.5;
@@ -234,9 +236,10 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
             int numFunc_2 = shell_2.getNumFunc();
 
             // Pre-screening
-            if (_with_screening &&
-                CheckScreen(_screening_eps, shell_1, shell_2, shell_3, shell_4))
+            if (_with_screening && CheckScreen(_screening_eps, shell_1, shell_2,
+                                               shell_3, shell_4)) {
               continue;
+            }
 
             // Get the current 4c block
             Eigen::Tensor<double, 4> block(numFunc_1, numFunc_2, numFunc_3,
@@ -247,7 +250,9 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
 
             // If there are only zeros, we don't need to put anything in the
             // ERIs matrix
-            if (!nonzero) continue;
+            if (!nonzero) {
+              continue;
+            }
 
             // Begin fill ERIs matrix
 
@@ -255,19 +260,22 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
                                  shell_3, shell_4);
 
             // Symmetry 1 <--> 2
-            if (iShell_1 != iShell_2)
+            if (iShell_1 != iShell_2) {
               FillERIsBlock<false>(ERIs_thread, DMAT, block, shell_2, shell_1,
                                    shell_3, shell_4);
+            }
 
             // Symmetry 3 <--> 4
-            if (iShell_3 != iShell_4)
+            if (iShell_3 != iShell_4) {
               FillERIsBlock<false>(ERIs_thread, DMAT, block, shell_1, shell_2,
                                    shell_4, shell_3);
+            }
 
             // Symmetry 1 <--> 2 and 3 <--> 4
-            if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
+            if (iShell_1 != iShell_2 && iShell_3 != iShell_4) {
               FillERIsBlock<false>(ERIs_thread, DMAT, block, shell_2, shell_1,
                                    shell_4, shell_3);
+            }
 
             // Symmetry (1, 2) <--> (3, 4)
             if (iShell_1 != iShell_3) {
@@ -276,19 +284,22 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
                                   shell_1, shell_2);
 
               // Symmetry 1 <--> 2
-              if (iShell_1 != iShell_2)
+              if (iShell_1 != iShell_2) {
                 FillERIsBlock<true>(ERIs_thread, DMAT, block, shell_3, shell_4,
                                     shell_2, shell_1);
+              }
 
               // Symmetry 3 <--> 4
-              if (iShell_3 != iShell_4)
+              if (iShell_3 != iShell_4) {
                 FillERIsBlock<true>(ERIs_thread, DMAT, block, shell_4, shell_3,
                                     shell_1, shell_2);
+              }
 
               // Symmetry 1 <--> 2 and 3 <--> 4
-              if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
+              if (iShell_1 != iShell_2 && iShell_3 != iShell_4) {
                 FillERIsBlock<true>(ERIs_thread, DMAT, block, shell_4, shell_3,
                                     shell_2, shell_1);
+              }
             }
 
             // End fill ERIs matrix

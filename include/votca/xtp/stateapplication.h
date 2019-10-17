@@ -33,11 +33,12 @@ class StateApplication : public XtpApplication {
  public:
   StateApplication();
 
-  virtual ~StateApplication(){};
+  ~StateApplication() override = default;
+  ;
 
-  void Initialize();
-  bool EvaluateOptions();
-  void Run();
+  void Initialize() override;
+  bool EvaluateOptions() override;
+  void Run() override;
 
   void BeginEvaluate(int nThreads);
   bool EvaluateFrame(Topology& top);

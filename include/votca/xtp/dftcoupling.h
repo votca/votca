@@ -39,12 +39,12 @@ class DFTcoupling : public CouplingBase {
   std::string Identify() const { return "dftcoupling"; }
 
   void CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
-                          const Orbitals& orbitalsAB);
+                          const Orbitals& orbitalsAB) override;
 
-  void Initialize(tools::Property&);
+  void Initialize(tools::Property&) override;
 
   void Addoutput(tools::Property& type_summary, const Orbitals& orbitalsA,
-                 const Orbitals& orbitalsB) const;
+                 const Orbitals& orbitalsB) const override;
 
  private:
   void WriteToProperty(tools::Property& type_summary, const Orbitals& orbitalsA,
