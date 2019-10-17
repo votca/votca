@@ -25,8 +25,8 @@ namespace votca {
 namespace tools {
 
 RangeParser::RangeParser()
-//: _has_begin(false) , _has_end(false)
-{}
+    //: _has_begin(false) , _has_end(false)
+    = default;
 
 void RangeParser::Parse(std::string str) {
   // remove all spaces in string

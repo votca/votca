@@ -48,8 +48,9 @@ class ObjectFactory {
   typedef T abstract_type;
   typedef std::map<key_t, creator_t> assoc_map;
 
-  ObjectFactory() {}
-  ~ObjectFactory(){};
+  ObjectFactory() = default;
+  ~ObjectFactory() = default;
+  ;
 
   /**
    * \brief register an object

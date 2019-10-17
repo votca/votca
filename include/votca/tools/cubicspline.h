@@ -51,12 +51,14 @@ namespace tools {
 class CubicSpline : public Spline {
  public:
   // default constructor
-  CubicSpline(){};
+  CubicSpline() = default;
+  ;
   // CubicSpline() :
   //    _boundaries(splineNormal) {}
 
   // destructor
-  ~CubicSpline() override{};
+  ~CubicSpline() override = default;
+  ;
 
   // construct an interpolation spline
   // x, y are the the points to construct interpolation, both vectors must be of

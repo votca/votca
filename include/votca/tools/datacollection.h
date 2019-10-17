@@ -66,8 +66,8 @@ class DataCollection {
    */
   class selection {
    public:
-    selection() {}
-    ~selection() {}
+    selection() = default;
+    ~selection() = default;
 
     typedef typename std::vector<array *>::iterator iterator;
     size_t size() { return _arrays.size(); }
@@ -90,7 +90,7 @@ class DataCollection {
   };
 
   /// constructor
-  DataCollection() {}
+  DataCollection() = default;
   /// destructor
   ~DataCollection() { clear(); }
 

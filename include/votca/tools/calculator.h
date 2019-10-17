@@ -38,8 +38,8 @@ namespace tools {
  */
 class Calculator {
  public:
-  Calculator() {}
-  virtual ~Calculator() {}
+  Calculator() = default;
+  virtual ~Calculator() = default;
   /**
    * \brief Calculator name
    *

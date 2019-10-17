@@ -31,9 +31,9 @@ void *runwrapper(void *arg) {
   return nullptr;
 }
 
-Thread::Thread() {}
+Thread::Thread() = default;
 
-Thread::~Thread() {}
+Thread::~Thread() = default;
 
 void Thread::Start() {
 

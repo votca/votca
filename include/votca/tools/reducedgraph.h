@@ -78,7 +78,8 @@ class ReducedGraph : public Graph {
   std::set<int> junctions_;
 
  public:
-  ReducedGraph(){};
+  ReducedGraph() = default;
+  ;
 
   ReducedGraph(std::vector<ReducedEdge> reduced_edges);
   ReducedGraph(std::vector<ReducedEdge> reduced_edges,

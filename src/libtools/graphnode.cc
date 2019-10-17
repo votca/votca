@@ -157,13 +157,7 @@ std::string GraphNode::getStr(const string str) {
   return str_vals_[str];
 }
 
-GraphNode& GraphNode::operator=(const GraphNode& gn) {
-  str_id_ = gn.str_id_;
-  int_vals_ = gn.int_vals_;
-  double_vals_ = gn.double_vals_;
-  str_vals_ = gn.str_vals_;
-  return *this;
-}
+GraphNode& GraphNode::operator=(const GraphNode& gn) = default;
 
 bool GraphNode::operator!=(const GraphNode gn) const {
   return (str_id_.compare(gn.str_id_) != 0);

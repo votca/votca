@@ -52,7 +52,8 @@ class Property {
   friend std::ostream &operator<<(std::ostream &out, const Property &p);
 
  public:
-  Property(){};
+  Property() = default;
+  ;
   Property(const std::string &name, const std::string &value,
            const std::string &path)
       : _name(name), _value(value), _path(path) {}

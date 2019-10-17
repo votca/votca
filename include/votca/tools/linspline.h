@@ -34,12 +34,14 @@ namespace tools {
 class LinSpline : public Spline {
  public:
   // default constructor
-  LinSpline(){};
+  LinSpline() = default;
+  ;
   // LinSpline() :
   //    _boundaries(splineNormal) {}
 
   // destructor
-  ~LinSpline() override{};
+  ~LinSpline() override = default;
+  ;
 
   // construct an interpolation spline
   // x, y are the the points to construct interpolation, both vectors must be of

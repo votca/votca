@@ -32,9 +32,11 @@ namespace tools {
 class Correlate {
  public:
   /// constructor
-  Correlate(){};
+  Correlate() = default;
+  ;
   /// destructor
-  ~Correlate(){};
+  ~Correlate() = default;
+  ;
 
   /**
       calculate the correlation of the first row in selection with all the other

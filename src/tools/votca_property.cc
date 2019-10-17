@@ -101,9 +101,9 @@ class VotcaProperty : public Application {
   int level;
 };
 
-VotcaProperty::VotcaProperty(void) {}
+VotcaProperty::VotcaProperty(void) = default;
 
-VotcaProperty::~VotcaProperty(void) {}
+VotcaProperty::~VotcaProperty(void) = default;
 
 int main(int argc, char** argv) {
   VotcaProperty vp;

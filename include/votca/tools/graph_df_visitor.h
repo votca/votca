@@ -47,7 +47,8 @@ class Graph_DF_Visitor : public GraphVisitor {
   Edge getEdge_(const Graph& g) override;
 
  public:
-  Graph_DF_Visitor(){};
+  Graph_DF_Visitor() = default;
+  ;
   bool queEmpty() const override;
 };
 }  // namespace tools

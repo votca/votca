@@ -35,7 +35,7 @@ class Spline {
  public:
   Spline() : _boundaries(splineNormal) {}
 
-  virtual ~Spline() {}
+  virtual ~Spline() = default;
 
   /**
    * \brief Calculate interpolating spline for given (x,y) values. Points on

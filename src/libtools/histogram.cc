@@ -27,7 +27,7 @@ Histogram::Histogram() : _min(0), _max(0) {}
 
 Histogram::Histogram(options_t op) : _min(0), _max(0), _options(op) {}
 
-Histogram::~Histogram() {}
+Histogram::~Histogram() = default;
 
 void Histogram::ProcessData(DataCollection<double>::selection *data) {
   DataCollection<double>::selection::iterator array;

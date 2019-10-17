@@ -43,9 +43,9 @@ namespace tools {
 class ParseXML {
  public:
   /// constructor
-  ParseXML() {}
+  ParseXML() = default;
   /// destructor
-  ~ParseXML() {}
+  ~ParseXML() = default;
 
   /**
    * \brief open an XML file and start parsing it
@@ -88,10 +88,11 @@ class ParseXML {
 
   class Functor {
    public:
-    Functor() {}
+    Functor() = default;
     virtual void operator()(const std::string &,
                             std::map<std::string, std::string> &) = 0;
-    virtual ~Functor(){};
+    virtual ~Functor() = default;
+    ;
   };
 
   template <typename T>

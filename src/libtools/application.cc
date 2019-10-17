@@ -31,7 +31,7 @@ using namespace std;
 Application::Application()
     : _op_desc("Allowed options"), _continue_execution(true) {}
 
-Application::~Application() {}
+Application::~Application() = default;
 
 void Application::ShowHelpText(std::ostream &out) {
   out << "==================================================\n";

@@ -52,7 +52,8 @@ class Graph_BF_Visitor;
 class GraphDistVisitor : public Graph_BF_Visitor {
 
  public:
-  GraphDistVisitor(){};
+  GraphDistVisitor() = default;
+  ;
 
   /// Note the only manipulation to the BF visitor is the need to add a
   /// distance attribute to each of the graph nodes.

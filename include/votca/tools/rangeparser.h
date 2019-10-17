@@ -40,7 +40,7 @@ class RangeParser {
 
  private:
   struct block_t {
-    block_t() {}
+    block_t() = default;
     block_t(const int &begin, const int &end, const int &stride)
         : _begin(begin), _end(end), _stride(stride) {}
 
@@ -49,7 +49,7 @@ class RangeParser {
 
  public:
   struct iterator {
-    iterator() {}
+    iterator() = default;
 
     int operator*() const { return _current; }
 

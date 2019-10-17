@@ -40,12 +40,14 @@ namespace tools {
 class AkimaSpline : public Spline {
  public:
   // default constructor
-  AkimaSpline(){};
+  AkimaSpline() = default;
+  ;
   // AkimaSpline() :
   //    _boundaries(splineNormal) {}
 
   // destructor
-  ~AkimaSpline() override{};
+  ~AkimaSpline() override = default;
+  ;
 
   /**
    * \brief Calculate the slope according to the original Akima paper ("A New
