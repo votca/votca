@@ -36,7 +36,8 @@ using namespace checkpoint_utils;
 
 class CptTable {
  public:
-  CptTable(){};
+  CptTable() = default;
+  ;
   CptTable(const std::string& name, const std::size_t& rowSize,
            const std::size_t& nRows)
       : _name(name),

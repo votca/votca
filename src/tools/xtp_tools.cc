@@ -32,9 +32,9 @@ using namespace votca;
 
 class XtpTools : public xtp::XtpApplication {
  public:
-  XtpTools() {}
+  XtpTools() = default;
 
-  ~XtpTools() override {}
+  ~XtpTools() override = default;
 
   string ProgramName() override { return "xtp_tools"; }
 

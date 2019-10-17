@@ -30,8 +30,8 @@ class Topology;
 
 class QMCalculator : public tools::Calculator {
  public:
-  QMCalculator() {}
-  ~QMCalculator() override {}
+  QMCalculator() = default;
+  ~QMCalculator() override = default;
 
   std::string Identify() override = 0;
 

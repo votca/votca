@@ -35,8 +35,8 @@ class Topology;
 
 class JobCalculator : public tools::Calculator {
  public:
-  JobCalculator() {}
-  ~JobCalculator() override {}
+  JobCalculator() = default;
+  ~JobCalculator() override = default;
 
   std::string Identify() override = 0;
 

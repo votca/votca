@@ -29,8 +29,10 @@ namespace xtp {
 
 class EInternal : public QMCalculator {
  public:
-  EInternal(){};
-  ~EInternal() override{};
+  EInternal() = default;
+  ;
+  ~EInternal() override = default;
+  ;
 
   std::string Identify() override { return "einternal"; }
   bool WriteToStateFile() const override { return true; }

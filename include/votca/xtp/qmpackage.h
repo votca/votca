@@ -37,7 +37,8 @@ class Orbitals;
 
 class QMPackage {
  public:
-  virtual ~QMPackage(){};
+  virtual ~QMPackage() = default;
+  ;
 
   virtual std::string getPackageName() const = 0;
 

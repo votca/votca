@@ -33,7 +33,8 @@ class StateApplication : public XtpApplication {
  public:
   StateApplication();
 
-  ~StateApplication() override{};
+  ~StateApplication() override = default;
+  ;
 
   void Initialize() override;
   bool EvaluateOptions() override;

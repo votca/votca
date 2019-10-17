@@ -236,7 +236,8 @@ class TimeStamp {
     return os;
   }
 
-  explicit TimeStamp(){};
+  explicit TimeStamp() = default;
+  ;
 };
 
 }  // namespace xtp

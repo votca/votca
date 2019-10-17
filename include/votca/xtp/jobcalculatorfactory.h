@@ -31,7 +31,7 @@ namespace xtp {
 class JobCalculatorfactory
     : public tools::ObjectFactory<std::string, JobCalculator> {
  private:
-  JobCalculatorfactory() {}
+  JobCalculatorfactory() = default;
 
  public:
   static void RegisterAll(void);

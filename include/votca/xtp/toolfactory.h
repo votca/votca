@@ -30,7 +30,7 @@ namespace xtp {
 class QMToolFactory : public tools::ObjectFactory<std::string, QMTool> {
 
  private:
-  QMToolFactory() {}
+  QMToolFactory() = default;
 
  public:
   static void RegisterAll(void);

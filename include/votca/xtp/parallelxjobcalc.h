@@ -53,7 +53,8 @@ class ParallelXJobCalc : public JobCalculator {
           Job;
   typedef typename Job::JobResult Result;
 
-  ParallelXJobCalc(){};
+  ParallelXJobCalc() = default;
+  ;
   ~ParallelXJobCalc() override { ; };
 
   std::string Identify() override = 0;
@@ -78,7 +79,8 @@ class ParallelXJobCalc : public JobCalculator {
         : _top(top), _master(master), _openmp_threads(openmp_threads) {
       setId(id);
     }  // comes from baseclass so Id cannot be in initializer list
-    ~JobOperator() override{};
+    ~JobOperator() override = default;
+    ;
 
     void Run() override;
 

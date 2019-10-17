@@ -30,9 +30,11 @@ namespace xtp {
 
 class DftGwBse : public QMTool {
  public:
-  DftGwBse(){};
+  DftGwBse() = default;
+  ;
 
-  ~DftGwBse() override{};
+  ~DftGwBse() override = default;
+  ;
 
   std::string Identify() override { return "dftgwbse"; }
 

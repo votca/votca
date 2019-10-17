@@ -42,7 +42,8 @@ class AtomContainer {
   AtomContainer(std::string type, int id) : _type(type), _id(id){};
 
   AtomContainer(CheckpointReader& r) { this->ReadFromCpt(r); }
-  virtual ~AtomContainer(){};
+  virtual ~AtomContainer() = default;
+  ;
 
   typedef typename std::vector<T>::iterator iterator;
 

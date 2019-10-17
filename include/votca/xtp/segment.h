@@ -37,7 +37,8 @@ class Segment : public AtomContainer<Atom> {
   // different.
   Segment(CheckpointReader& r) : AtomContainer<Atom>("", 0) { ReadFromCpt(r); }
 
-  ~Segment() override{};
+  ~Segment() override = default;
+  ;
 
   /// Following notation can be observed in:
   /// [1. Victor, R. et al. Microscopic Simulations of Charge Transport in

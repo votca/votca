@@ -32,8 +32,10 @@ namespace xtp {
 
 class QMTool : public tools::Calculator {
  public:
-  QMTool(){};
-  ~QMTool() override{};
+  QMTool() = default;
+  ;
+  ~QMTool() override = default;
+  ;
 
   std::string Identify() override = 0;
   void Initialize(tools::Property &options) override = 0;

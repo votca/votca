@@ -46,7 +46,8 @@ class QMRegion : public Region {
       : Region(id, log), _workdir(workdir) {
     QMPackageFactory::RegisterAll();
   };
-  ~QMRegion() override{};
+  ~QMRegion() override = default;
+  ;
 
   void Initialize(const tools::Property& prop) override;
 

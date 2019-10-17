@@ -29,7 +29,7 @@ namespace xtp {
 
 class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage> {
  private:
-  QMPackageFactory() {}
+  QMPackageFactory() = default;
 
  public:
   static void RegisterAll(void);

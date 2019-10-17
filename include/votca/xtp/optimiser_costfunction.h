@@ -28,7 +28,8 @@ namespace xtp {
 
 class Optimiser_costfunction {
  public:
-  virtual ~Optimiser_costfunction(){};
+  virtual ~Optimiser_costfunction() = default;
+  ;
 
   virtual double EvaluateCost(const Eigen::VectorXd& parameters) = 0;
 

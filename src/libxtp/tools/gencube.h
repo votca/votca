@@ -31,9 +31,11 @@ class AOBasis;
 
 class GenCube : public QMTool {
  public:
-  GenCube(){};
+  GenCube() = default;
+  ;
 
-  ~GenCube() override{};
+  ~GenCube() override = default;
+  ;
 
   std::string Identify() override { return "gencube"; }
 

@@ -30,7 +30,8 @@ namespace xtp {
 class XtpApplication : public votca::tools::Application {
  public:
   XtpApplication();
-  ~XtpApplication() override{};
+  ~XtpApplication() override = default;
+  ;
 
   void Initialize() override;
   bool EvaluateOptions() override = 0;

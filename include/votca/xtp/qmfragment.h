@@ -42,7 +42,8 @@ class QMFragment {
  public:
   QMFragment(int id, std::string atoms) : _id(id) { FillAtomIndices(atoms); }
 
-  QMFragment(){};
+  QMFragment() = default;
+  ;
 
   QMFragment(CheckpointReader& r) { ReadFromCpt(r); }
 

@@ -33,9 +33,11 @@ class Orbitals;
 
 class Spectrum : public QMTool {
  public:
-  Spectrum(){};
+  Spectrum() = default;
+  ;
 
-  ~Spectrum() override{};
+  ~Spectrum() override = default;
+  ;
 
   std::string Identify() override { return "spectrum"; }
 

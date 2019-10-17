@@ -27,8 +27,10 @@ namespace xtp {
 
 class KMCLifetime : public KMCCalculator {
  public:
-  KMCLifetime(){};
-  ~KMCLifetime() override{};
+  KMCLifetime() = default;
+  ;
+  ~KMCLifetime() override = default;
+  ;
   bool WriteToStateFile() const override { return false; }
   std::string Identify() override { return "kmclifetime"; }
   void Initialize(tools::Property& options) override;

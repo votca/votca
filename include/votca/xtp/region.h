@@ -43,7 +43,8 @@ class Region {
 
  public:
   Region(int id, Logger& log) : _id(id), _log(log){};
-  virtual ~Region(){};
+  virtual ~Region() = default;
+  ;
 
   virtual void WriteToCpt(CheckpointWriter& w) const = 0;
 

@@ -35,7 +35,8 @@ namespace xtp {
 class JobApplication : public XtpApplication {
  public:
   JobApplication();
-  ~JobApplication() override{};
+  ~JobApplication() override = default;
+  ;
   void Initialize() override;
   bool EvaluateOptions() override;
   void Run() override;

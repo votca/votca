@@ -31,7 +31,7 @@ namespace xtp {
 class ExtractorFactory
     : public tools::ObjectFactory<std::string, QMCalculator> {
  private:
-  ExtractorFactory() {}
+  ExtractorFactory() = default;
 
  public:
   static void RegisterAll(void);

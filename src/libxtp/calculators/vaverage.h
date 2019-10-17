@@ -33,9 +33,11 @@ namespace xtp {
 
 class VAverage : public QMCalculator {
  public:
-  VAverage(){};
+  VAverage() = default;
+  ;
 
-  ~VAverage() override{};
+  ~VAverage() override = default;
+  ;
 
   std::string Identify() override { return "vaverage"; }
   bool WriteToStateFile() const override { return false; }

@@ -37,7 +37,8 @@ class Segment;
  */
 class Topology {
  public:
-  Topology(){};
+  Topology() = default;
+  ;
 
   Topology(const Topology &top);
 
