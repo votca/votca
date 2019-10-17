@@ -20,7 +20,7 @@
 namespace votca {
 namespace tools {
 
-Mutex::Mutex() { pthread_mutex_init(&_mutexVar, NULL); }
+Mutex::Mutex() { pthread_mutex_init(&_mutexVar, nullptr); }
 
 Mutex::~Mutex() { pthread_mutex_destroy(&_mutexVar); }
 

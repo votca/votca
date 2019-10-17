@@ -206,7 +206,7 @@ void Application::PrintDescription(std::ostream &out,
   Property options;
   // loading the documentation xml file from VOTCASHARE
   char *votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
+  if (votca_share == nullptr)
     throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
   string xmlFile = (arg_path / string(getenv("VOTCASHARE")) / help_path /
                     (boost::format("%1%.%2%") % calculator_name % "xml").str())

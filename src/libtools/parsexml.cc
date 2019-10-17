@@ -42,7 +42,7 @@ void end_hndl(void *data, const char *el) {
 }
 
 void ParseXML::Open(const std::string &filename) {
-  XML_Parser parser = XML_ParserCreate(NULL);
+  XML_Parser parser = XML_ParserCreate(nullptr);
   if (!parser)
     throw std::runtime_error("Couldn't allocate memory for xml parser");
 

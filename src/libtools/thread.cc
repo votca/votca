@@ -27,8 +27,8 @@ namespace tools {
 void *runwrapper(void *arg) {
   Thread *thread = (Thread *)(arg);
   thread->Run();
-  pthread_exit(NULL);
-  return NULL;
+  pthread_exit(nullptr);
+  return nullptr;
 }
 
 Thread::Thread() {}

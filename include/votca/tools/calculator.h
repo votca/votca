@@ -112,7 +112,7 @@ inline void Calculator::UpdateWithDefaults(Property &options,
 
   // add default values if specified in VOTCASHARE
   char *votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
+  if (votca_share == nullptr)
     throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
   // load the xml description of the calculator (with defaults and test values)
   std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/") +

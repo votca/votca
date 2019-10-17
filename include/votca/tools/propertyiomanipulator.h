@@ -39,7 +39,7 @@ class PropertyIOManipulator {
 
   explicit PropertyIOManipulator(Type type = XML, int level = 0,
                                  std::string indentation = "",
-                                 ColorSchemeBase *color_scheme = NULL)
+                                 ColorSchemeBase *color_scheme = nullptr)
       : _type(type),
         _level(level),
         _indentation(indentation),

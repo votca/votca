@@ -150,7 +150,7 @@ void Property::LoadFromXML(string filename) {
   if (!fl.is_open())
     throw std::ios_base::failure("Error on open xml file: " + filename);
 
-  XML_Parser parser = XML_ParserCreate(NULL);
+  XML_Parser parser = XML_ParserCreate(nullptr);
   if (!parser)
     throw std::runtime_error("Couldn't allocate memory for xml parser");
 
