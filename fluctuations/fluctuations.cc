@@ -30,8 +30,8 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgFluctuations : public CsgApplication {
-  string ProgramName() { return "fluctuations"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "fluctuations"; }
+  void HelpText(ostream &out) override {
     out << "calculate density fluctuations in subvolumes of the simulation "
            "box.";
     out << "Subolumes can be either cubic slabs in dimensions (x|y|z) or "
@@ -42,7 +42,7 @@ class CsgFluctuations : public CsgApplication {
 
   // some program options are added here
 
-  void Initialize() {
+  void Initialize() override {
     CsgApplication::Initialize();
     // add program option to pick molecule
     AddProgramOptions("Fluctuation options")(
@@ -66,7 +66,7 @@ class CsgFluctuations : public CsgApplication {
             ->default_value("fluctuations.dat"),
         "Output file");
   }
-  bool EvaluateOptions() {
+  bool EvaluateOptions() override {
     CsgApplication::EvaluateOptions();
     CheckRequired("rmax");
     CheckRequired("geometry");
@@ -74,10 +74,10 @@ class CsgFluctuations : public CsgApplication {
   }
 
   // we want to process a trajectory
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return true; }
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return true; }
 
-  void BeginEvaluate(Topology *top, Topology *top_atom) {
+  void BeginEvaluate(Topology *top, Topology *top_atom) override {
     _filter = OptionsMap()["filter"].as<string>();
     _refmol = OptionsMap()["refmol"].as<string>();
     _rmin = OptionsMap()["rmin"].as<double>();
@@ -138,9 +138,9 @@ class CsgFluctuations : public CsgApplication {
   }
 
   // write out results in EndEvaluate
-  void EndEvaluate();
+  void EndEvaluate() override;
   // do calculation in this function
-  void EvalConfiguration(Topology *top, Topology *top_ref);
+  void EvalConfiguration(Topology *top, Topology *top_ref) override;
 
  protected:
   // number of particles in dV

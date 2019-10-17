@@ -27,9 +27,9 @@ using namespace votca::csg;
 
 class OrientCorrApp : public CsgApplication {
 
-  string ProgramName() { return "orientcorr"; }
+  string ProgramName() override { return "orientcorr"; }
 
-  void HelpText(ostream &out) {
+  void HelpText(ostream &out) override {
     out << "Calculates the orientational correlation function\n"
            "    <3/2*u(0)*u(r) - 1/2>\n"
            "for a polymer melt, where u is the vector pointing along a bond "
@@ -42,23 +42,23 @@ class OrientCorrApp : public CsgApplication {
            "excluded.";
   }
 
-  void Initialize();
+  void Initialize() override;
 
-  bool DoTrajectory() { return true; }
+  bool DoTrajectory() override { return true; }
   // do a threaded analyzis, splitting in time domain
-  bool DoThreaded() { return true; }
+  bool DoThreaded() override { return true; }
   // we don't care about the order of the analyzed frames
-  bool SynchronizeThreads() { return false; }
+  bool SynchronizeThreads() override { return false; }
 
   // called before groing through all frames
-  void BeginEvaluate(Topology *top, Topology *top_ref);
+  void BeginEvaluate(Topology *top, Topology *top_ref) override;
   // called after all frames were parsed
-  void EndEvaluate();
+  void EndEvaluate() override;
 
   // creates a worker for a thread
-  CsgApplication::Worker *ForkWorker(void);
+  CsgApplication::Worker *ForkWorker(void) override;
   // merge data of worker into main
-  void MergeWorker(Worker *worker);
+  void MergeWorker(Worker *worker) override;
 
  public:
   // helper class to choose nbsearch algorithm
@@ -79,10 +79,10 @@ string OrientCorrApp::_nbmethod;
 // Earch thread has a worker and analysis data
 class MyWorker : public CsgApplication::Worker {
  public:
-  ~MyWorker(){};
+  ~MyWorker() override{};
 
   // evaluate the current frame
-  void EvalConfiguration(Topology *top, Topology *top_ref);
+  void EvalConfiguration(Topology *top, Topology *top_ref) override;
 
   // callback if neighborsearch finds a pair
   bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,

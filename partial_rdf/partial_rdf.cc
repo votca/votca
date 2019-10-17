@@ -37,23 +37,25 @@ class CsgStatApp : public CsgApplication {
  public:
   CsgStatApp() : _write_every(0) {}
 
-  string ProgramName() { return "csg_partial_rdf"; }
-  void HelpText(ostream &out);
+  string ProgramName() override { return "csg_partial_rdf"; }
+  void HelpText(ostream &out) override;
 
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return true; }
-  bool DoMappingDefault(void) { return false; }
-  bool DoThreaded() { return true; }
-  bool SynchronizeThreads() { return true; }
-  void Initialize();
-  bool EvaluateOptions();
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return true; }
+  bool DoMappingDefault(void) override { return false; }
+  bool DoThreaded() override { return true; }
+  bool SynchronizeThreads() override { return true; }
+  void Initialize() override;
+  bool EvaluateOptions() override;
 
-  void BeginEvaluate(Topology *top, Topology *top_ref);
-  void EndEvaluate();
+  void BeginEvaluate(Topology *top, Topology *top_ref) override;
+  void EndEvaluate() override;
 
-  CsgApplication::Worker *ForkWorker() { return _rdf_calculator.ForkWorker(); }
+  CsgApplication::Worker *ForkWorker() override {
+    return _rdf_calculator.ForkWorker();
+  }
 
-  void MergeWorker(CsgApplication::Worker *worker) {
+  void MergeWorker(CsgApplication::Worker *worker) override {
     _rdf_calculator.MergeWorker(worker);
   }
 

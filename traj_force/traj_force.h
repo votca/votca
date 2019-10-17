@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,23 +33,23 @@ using namespace std;
 
 class TrajForce : public CsgApplication {
  public:
-  string ProgramName() { return "traj_force"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "traj_force"; }
+  void HelpText(ostream &out) override {
     out << "Adds/subtracts forces from given atomistic trajectories";
   }
 
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return false; }
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return false; }
 
-  void Initialize(void);
-  bool EvaluateOptions();
+  void Initialize(void) override;
+  bool EvaluateOptions() override;
 
   /// \brief called before the first frame
-  void BeginEvaluate(Topology *top, Topology *top_atom);
+  void BeginEvaluate(Topology *top, Topology *top_atom) override;
   /// \brief called after the last frame
-  void EndEvaluate();
+  void EndEvaluate() override;
   /// \brief called for each frame which is mapped
-  void EvalConfiguration(Topology *conf, Topology *conf_atom);
+  void EvalConfiguration(Topology *conf, Topology *conf_atom) override;
 
  protected:
   /// \brief Scaling of forces, +1 for addition and -1 for subtraction

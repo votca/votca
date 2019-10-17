@@ -32,15 +32,15 @@ using namespace votca::csg;
 
 class CGOrderParam : public CsgApplication {
  public:
-  string ProgramName() { return "sphericalorder"; }
+  string ProgramName() override { return "sphericalorder"; }
 
-  void HelpText(ostream &out) {
+  void HelpText(ostream &out) override {
 
     out << "!! EXPERIMENTAL !! Calculate spherical order parameter.\n"
            " Needs non-spherical beads in mapping.\n\n";
   }
 
-  void Initialize() {
+  void Initialize() override {
     CsgApplication::Initialize();
     AddProgramOptions()(
         "filter",
@@ -62,16 +62,16 @@ class CGOrderParam : public CsgApplication {
         "Do multiple r_bins multiple histograms");
   }
 
-  bool EvaluateOptions() {
+  bool EvaluateOptions() override {
     CsgApplication::EvaluateOptions();
     // CheckRequired("radialcut");
     return true;
   }
 
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return true; }
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return true; }
 
-  void BeginEvaluate(Topology *top, Topology *top_atom) {
+  void BeginEvaluate(Topology *top, Topology *top_atom) override {
 
     string filter;
 
@@ -140,7 +140,7 @@ class CGOrderParam : public CsgApplication {
     // _hist_u[1][10] =0.0;
   }
 
-  void EndEvaluate() {
+  void EndEvaluate() override {
 
     cout << "Average number of molecules within cutoff " << endl;
     for (int i = 0; i < _rbins; i++) {
@@ -172,7 +172,7 @@ class CGOrderParam : public CsgApplication {
     _file_w.close();
   };
 
-  void EvalConfiguration(Topology *conf, Topology *conf_atom = 0) {
+  void EvalConfiguration(Topology *conf, Topology *conf_atom = 0) override {
 
     Eigen::Vector3d eR;
     int nu, nv, nw;

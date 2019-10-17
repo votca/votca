@@ -24,22 +24,22 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgTestApp : public CsgApplication {
-  string ProgramName() { return "radii"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "radii"; }
+  void HelpText(ostream &out) override {
     out << "calculate gyration- and hydrodynamic radius for a specific "
            "molecule or molecule type";
   }
 
   // some program options are added here
-  void Initialize();
+  void Initialize() override;
 
   // we want to process a trajectory
-  bool DoTrajectory() { return true; }
+  bool DoTrajectory() override { return true; }
 
   // write out results in EndEvaluate
-  void EndEvaluate();
+  void EndEvaluate() override;
   // do calculation in this function
-  void EvalConfiguration(Topology *top, Topology *top_ref);
+  void EvalConfiguration(Topology *top, Topology *top_ref) override;
 
  protected:
   // inverse hydrodynamic radius average
