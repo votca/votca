@@ -35,7 +35,7 @@ RDFCalculator::RDFCalculator()
       _do_vol_corr(false),
       _processed_some_frames(false) {}
 
-RDFCalculator::~RDFCalculator() {}
+RDFCalculator::~RDFCalculator() = default;
 
 // begin the coarse graining process
 // here the data structures are prepared to handle all the data

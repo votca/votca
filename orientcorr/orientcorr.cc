@@ -79,7 +79,8 @@ string OrientCorrApp::_nbmethod;
 // Earch thread has a worker and analysis data
 class MyWorker : public CsgApplication::Worker {
  public:
-  ~MyWorker() override{};
+  ~MyWorker() override = default;
+  ;
 
   // evaluate the current frame
   void EvalConfiguration(Topology *top, Topology *top_ref) override;
