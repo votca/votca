@@ -71,13 +71,16 @@ class Tokenizer {
    * This class appends all words to a vector of strings.
    */
   void ToVector(std::vector<std::string> &v) {
-    for (iterator iter = begin(); iter != end(); ++iter) v.push_back(*iter);
+    for (iterator iter = begin(); iter != end(); ++iter) {
+      v.push_back(*iter);
+    }
   }
 
   std::vector<std::string> ToVector() {
     std::vector<std::string> result;
-    for (iterator iter = begin(); iter != end(); ++iter)
+    for (iterator iter = begin(); iter != end(); ++iter) {
       result.push_back(*iter);
+    }
     return result;
   }
 
@@ -95,8 +98,9 @@ class Tokenizer {
     v.resize(tmp.size());
     typename std::vector<T>::iterator viter = v.begin();
     typename std::vector<std::string>::iterator iter;
-    for (iter = tmp.begin(); iter != tmp.end(); ++iter, ++viter)
+    for (iter = tmp.begin(); iter != tmp.end(); ++iter, ++viter) {
       *viter = boost::lexical_cast<T, std::string>(*iter);
+    }
   }
 
  private:

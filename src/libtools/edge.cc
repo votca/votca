@@ -45,20 +45,28 @@ bool Edge::contains(int ID) const {
 
 bool Edge::operator==(const Edge& ed) const {
   if (this->vertices_.front() == ed.vertices_.front() &&
-      this->vertices_.back() == ed.vertices_.back())
+      this->vertices_.back() == ed.vertices_.back()) {
     return true;
+  }
   if (this->vertices_.back() == ed.vertices_.front() &&
-      this->vertices_.front() == ed.vertices_.back())
+      this->vertices_.front() == ed.vertices_.back()) {
     return true;
+  }
   return false;
 }
 
 bool Edge::operator!=(const Edge& ed) const { return !(*this == ed); }
 
 bool Edge::operator<(const Edge& ed) const {
-  if (this->vertices_.front() < ed.vertices_.front()) return true;
-  if (this->vertices_.front() > ed.vertices_.front()) return false;
-  if (this->vertices_.back() < ed.vertices_.back()) return true;
+  if (this->vertices_.front() < ed.vertices_.front()) {
+    return true;
+  }
+  if (this->vertices_.front() > ed.vertices_.front()) {
+    return false;
+  }
+  if (this->vertices_.back() < ed.vertices_.back()) {
+    return true;
+  }
   return false;
 }
 

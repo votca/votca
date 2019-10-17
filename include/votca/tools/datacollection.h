@@ -144,7 +144,9 @@ template <typename T>
 void DataCollection<T>::clear() {
   {
     typename container::iterator iter;
-    for (iter = _data.begin(); iter != _data.end(); ++iter) delete *iter;
+    for (iter = _data.begin(); iter != _data.end(); ++iter) {
+      delete *iter;
+    }
     _data.clear();
   }
 }
@@ -165,7 +167,9 @@ typename DataCollection<T>::array *DataCollection<T>::ArrayByName(
     std::string name) {
   typename std::map<std::string, array *>::iterator i;
   i = _array_by_name.find(name);
-  if (i == _array_by_name.end()) return nullptr;
+  if (i == _array_by_name.end()) {
+    return nullptr;
+  }
   return (*i).second;
 }
 
@@ -174,13 +178,16 @@ typename DataCollection<T>::selection *DataCollection<T>::select(
     std::string strselection, selection *sel_append) {
 
   typename DataCollection<T>::selection *sel = sel_append;
-  if (!sel_append) sel = new typename DataCollection<T>::selection;
+  if (!sel_append) {
+    sel = new typename DataCollection<T>::selection;
+  }
 
   for (typename std::map<std::string, array *>::iterator i =
            _array_by_name.begin();
        i != _array_by_name.end(); ++i) {
-    if (wildcmp(strselection.c_str(), (*i).second->getName().c_str()))
+    if (wildcmp(strselection.c_str(), (*i).second->getName().c_str())) {
       sel->push_back((*i).second);
+    }
   }
   return sel;
 }

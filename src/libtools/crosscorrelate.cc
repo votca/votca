@@ -55,7 +55,9 @@ void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection* data,
   fftw_execute(ifft);
 
   double d = _corrfunc[0];
-  for (size_t i = 0; i < N; i++) _corrfunc[i] = _corrfunc[i] / d;
+  for (size_t i = 0; i < N; i++) {
+    _corrfunc[i] = _corrfunc[i] / d;
+  }
   fftw_destroy_plan(fft);
   fftw_destroy_plan(ifft);
   fftw_free(tmp);
@@ -198,7 +200,9 @@ void CrossCorrelate::AutoCorr(std::vector<double>& ivec) {
   fftw_execute(ifft);
 
   double d = _corrfunc[0];
-  for (size_t i = 0; i < N; i++) _corrfunc[i] = _corrfunc[i] / d;
+  for (size_t i = 0; i < N; i++) {
+    _corrfunc[i] = _corrfunc[i] / d;
+  }
 
   fftw_destroy_plan(fft);
   fftw_destroy_plan(ifft);

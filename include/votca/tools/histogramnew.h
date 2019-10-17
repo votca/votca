@@ -178,7 +178,9 @@ inline std::ostream &operator<<(std::ostream &out, HistogramNew &h) {
 template <typename iterator_type>
 inline void HistogramNew::ProcessRange(const iterator_type &begin,
                                        const iterator_type &end) {
-  for (iterator_type iter = begin; iter != end; ++iter) Process(*iter);
+  for (iterator_type iter = begin; iter != end; ++iter) {
+    Process(*iter);
+  }
 }
 }  // namespace tools
 }  // namespace votca

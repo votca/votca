@@ -83,9 +83,15 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     bool node2 = false;
 
     for (auto n_pr : iso_gn) {
-      if (n_pr.first == 0) node0 = true;
-      if (n_pr.first == 1) node1 = true;
-      if (n_pr.first == 2) node2 = true;
+      if (n_pr.first == 0) {
+        node0 = true;
+      }
+      if (n_pr.first == 1) {
+        node1 = true;
+      }
+      if (n_pr.first == 2) {
+        node2 = true;
+      }
     }
 
     BOOST_CHECK(node0);
@@ -118,9 +124,15 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     bool node2 = false;
 
     for (auto n_pr : iso_gn) {
-      if (n_pr.first == 0) node0 = true;
-      if (n_pr.first == 1) node1 = true;
-      if (n_pr.first == 2) node2 = true;
+      if (n_pr.first == 0) {
+        node0 = true;
+      }
+      if (n_pr.first == 1) {
+        node1 = true;
+      }
+      if (n_pr.first == 2) {
+        node2 = true;
+      }
     }
 
     BOOST_CHECK(!node0);
@@ -273,10 +285,18 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
   bool ed2_found = false;
   bool ed3_found = false;
   for (auto ed_temp : edges) {
-    if (ed_temp == ed) ed0_found = true;
-    if (ed_temp == ed1) ed1_found = true;
-    if (ed_temp == ed2) ed2_found = true;
-    if (ed_temp == ed3) ed3_found = true;
+    if (ed_temp == ed) {
+      ed0_found = true;
+    }
+    if (ed_temp == ed1) {
+      ed1_found = true;
+    }
+    if (ed_temp == ed2) {
+      ed2_found = true;
+    }
+    if (ed_temp == ed3) {
+      ed3_found = true;
+    }
   }
 
   BOOST_CHECK(ed0_found);
@@ -329,11 +349,21 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
 
   vector<bool> vertices_found(5, false);
   for (auto vertex : vertices) {
-    if (vertex == 0) vertices_found.at(0) = true;
-    if (vertex == 1) vertices_found.at(1) = true;
-    if (vertex == 2) vertices_found.at(2) = true;
-    if (vertex == 3) vertices_found.at(3) = true;
-    if (vertex == 4) vertices_found.at(4) = true;
+    if (vertex == 0) {
+      vertices_found.at(0) = true;
+    }
+    if (vertex == 1) {
+      vertices_found.at(1) = true;
+    }
+    if (vertex == 2) {
+      vertices_found.at(2) = true;
+    }
+    if (vertex == 3) {
+      vertices_found.at(3) = true;
+    }
+    if (vertex == 4) {
+      vertices_found.at(4) = true;
+    }
   }
 
   for (auto found : vertices_found) {
@@ -495,8 +525,12 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   bool neigh2_found1 = false;
   bool neigh2_found2 = false;
   for (auto neigh_pr : neigh2) {
-    if (neigh_pr.second == gn4) neigh2_found1 = true;
-    if (neigh_pr.second == gn3) neigh2_found2 = true;
+    if (neigh_pr.second == gn4) {
+      neigh2_found1 = true;
+    }
+    if (neigh_pr.second == gn3) {
+      neigh2_found2 = true;
+    }
   }
   BOOST_CHECK(neigh2_found1);
   BOOST_CHECK(neigh2_found2);
@@ -507,9 +541,15 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   bool neigh3_found2 = false;
   bool neigh3_found3 = false;
   for (auto neigh_pr : neigh3) {
-    if (neigh_pr.second == gn1) neigh3_found1 = true;
-    if (neigh_pr.second == gn2) neigh3_found2 = true;
-    if (neigh_pr.second == gn) neigh3_found3 = true;
+    if (neigh_pr.second == gn1) {
+      neigh3_found1 = true;
+    }
+    if (neigh_pr.second == gn2) {
+      neigh3_found2 = true;
+    }
+    if (neigh_pr.second == gn) {
+      neigh3_found3 = true;
+    }
   }
   BOOST_CHECK(neigh3_found1);
   BOOST_CHECK(neigh3_found2);

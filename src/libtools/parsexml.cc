@@ -31,7 +31,9 @@ void start_hndl(void *data, const char *el, const char **attr) {
 
   std::map<std::string, std::string> mattr;
 
-  for (int i = 0; attr[i]; i += 2) mattr[attr[i]] = attr[i + 1];
+  for (int i = 0; attr[i]; i += 2) {
+    mattr[attr[i]] = attr[i + 1];
+  }
   std::string sel = el;
   reader->StartElemHndl(sel, mattr);
 }
@@ -43,8 +45,9 @@ void end_hndl(void *data, const char *el) {
 
 void ParseXML::Open(const std::string &filename) {
   XML_Parser parser = XML_ParserCreate(nullptr);
-  if (!parser)
+  if (!parser) {
     throw std::runtime_error("Couldn't allocate memory for xml parser");
+  }
 
   XML_UseParserAsHandlerArg(parser);
   XML_SetElementHandler(parser, start_hndl, end_hndl);
@@ -52,19 +55,21 @@ void ParseXML::Open(const std::string &filename) {
 
   std::ifstream fl;
   fl.open(filename);
-  if (!fl.is_open())
+  if (!fl.is_open()) {
     throw std::ios_base::failure("Error on open xml file: " + filename);
+  }
 
   XML_SetUserData(parser, (void *)this);
   while (!fl.eof()) {
     std::string line;
     getline(fl, line);
     line = line + "\n";
-    if (!XML_Parse(parser, line.c_str(), line.length(), fl.eof()))
+    if (!XML_Parse(parser, line.c_str(), line.length(), fl.eof())) {
       throw std::ios_base::failure(
           filename + ": Parse error in " + filename + " at line " +
           boost::lexical_cast<std::string>(XML_GetCurrentLineNumber(parser)) +
           "\n" + XML_ErrorString(XML_GetErrorCode(parser)));
+    }
   }
   fl.close();
 }

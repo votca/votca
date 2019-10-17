@@ -42,7 +42,9 @@ void Table::resize(int N) {
 void Table::Load(string filename) {
   ifstream in;
   in.open(filename);
-  if (!in) throw runtime_error(string("error, cannot open file ") + filename);
+  if (!in) {
+    throw runtime_error(string("error, cannot open file ") + filename);
+  }
 
   setErrorDetails("file " + filename);
   in >> *this;
@@ -52,7 +54,9 @@ void Table::Load(string filename) {
 void Table::Save(string filename) const {
   ofstream out;
   out.open(filename);
-  if (!out) throw runtime_error(string("error, cannot open file ") + filename);
+  if (!out) {
+    throw runtime_error(string("error, cannot open file ") + filename);
+  }
 
   if (_has_comment) {
     string str = "# " + _comment_line;
@@ -105,7 +109,9 @@ istream &operator>>(istream &in, Table &t) {
     vector<string> tokens = tok.ToVector();
 
     // skip empty lines
-    if (tokens.size() == 0) continue;
+    if (tokens.size() == 0) {
+      continue;
+    }
 
     // if first line is only 1 token, it's the size
     if (tokens.size() == 1) {
@@ -117,7 +123,9 @@ istream &operator>>(istream &in, Table &t) {
     } else if (tokens.size() > 2) {
       char flag = 'i';
       string sflag = tokens.back();
-      if (sflag == "i" || sflag == "o" || sflag == "u") flag = sflag.c_str()[0];
+      if (sflag == "i" || sflag == "o" || sflag == "u") {
+        flag = sflag.c_str()[0];
+      }
       t.push_back(std::stod(tokens[0]), std::stod(tokens[1]), flag);
     } else {
       throw runtime_error("error, wrong table format");
@@ -140,15 +148,18 @@ istream &operator>>(istream &in, Table &t) {
     tok.ToVector(tokens);
 
     // skip empty lines
-    if (tokens.size() == 0) continue;
+    if (tokens.size() == 0) {
+      continue;
+    }
 
     // it's a data line
     if (tokens.size() == 2) {
       t.push_back(std::stod(tokens[0]), std::stod(tokens[1]), 'i');
     } else if (tokens.size() > 2) {
       char flag = 'i';
-      if (tokens[2] == "i" || tokens[2] == "o" || tokens[2] == "u")
+      if (tokens[2] == "i" || tokens[2] == "o" || tokens[2] == "u") {
         flag = tokens[2].c_str()[0];
+      }
       t.push_back(std::stod(tokens[0]), std::stod(tokens[1]), flag);
     } else {
       // otherwise error
@@ -156,7 +167,9 @@ istream &operator>>(istream &in, Table &t) {
     }
     // was size given and did we read N values?
     if (bHasN) {
-      if (--N == 0) break;
+      if (--N == 0) {
+        break;
+      }
     }
   }
 
@@ -167,14 +180,17 @@ void Table::GenerateGridSpacing(double min, double max, double spacing) {
   int n = floor((max - min) / spacing + 1.000000001);
   resize(n);
   int i = 0;
-  for (double x = min; i < n; x += spacing, ++i) _x[i] = x;
+  for (double x = min; i < n; x += spacing, ++i) {
+    _x[i] = x;
+  }
 }
 
 void Table::Smooth(int Nsmooth) {
-  while (Nsmooth-- > 0)
+  while (Nsmooth-- > 0) {
     for (int i = 1; i < size() - 1; ++i) {
       _y[i] = 0.25 * (_y[i - 1] + 2 * _y[i] + _y[i + 1]);
     }
+  }
 }
 }  // namespace tools
 }  // namespace votca

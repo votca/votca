@@ -62,8 +62,12 @@ class VotcaProperty : public Application {
 
     file = _op_vm["file"].as<string>();
 
-    if (_op_vm.count("format")) format = _op_vm["format"].as<string>();
-    if (_op_vm.count("level")) level = _op_vm["level"].as<int>();
+    if (_op_vm.count("format")) {
+      format = _op_vm["format"].as<string>();
+    }
+    if (_op_vm.count("level")) {
+      level = _op_vm["level"].as<int>();
+    }
 
     try {
 

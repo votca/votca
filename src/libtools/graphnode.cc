@@ -52,7 +52,9 @@ string getIntStringId_(const unordered_map<string, int> int_vals) {
   vector<string> keys;
   // Grab integer keys sort alphabetically and store in string_id
   string int_string_id;
-  for (auto it : int_vals) keys.push_back(it.first);
+  for (auto it : int_vals) {
+    keys.push_back(it.first);
+  }
   sort(keys.begin(), keys.end());
   for (auto key : keys) {
     int_string_id.append(key);
@@ -68,7 +70,9 @@ string getDoubleStringId_(const unordered_map<string, double> double_vals) {
   vector<string> keys;
   // Grab double keys sort alphabetically and store in string_id
   string double_string_id;
-  for (auto it : double_vals) keys.push_back(it.first);
+  for (auto it : double_vals) {
+    keys.push_back(it.first);
+  }
   sort(keys.begin(), keys.end());
   for (auto key : keys) {
     double_string_id.append(key);
@@ -84,7 +88,9 @@ string getStrStringId_(const unordered_map<string, string> str_vals) {
   vector<string> keys;
   // Grab string keys sort alphabetically and store in string_id
   string str_string_id;
-  for (auto it : str_vals) keys.push_back(it.first);
+  for (auto it : str_vals) {
+    keys.push_back(it.first);
+  }
   sort(keys.begin(), keys.end());
   for (auto key : keys) {
     str_string_id.append(key);
@@ -134,26 +140,29 @@ void GraphNode::setStr(const unordered_map<string, string> str_vals) {
 }
 
 int GraphNode::getInt(const string str) {
-  if (int_vals_.count(str) == 0)
+  if (int_vals_.count(str) == 0) {
     throw invalid_argument(
         "GraphNode does not "
         "contain value");
+  }
   return int_vals_[str];
 }
 
 double GraphNode::getDouble(const string str) {
-  if (double_vals_.count(str) == 0)
+  if (double_vals_.count(str) == 0) {
     throw invalid_argument(
         "GraphNode does not "
         "contain value");
+  }
   return double_vals_[str];
 }
 
 std::string GraphNode::getStr(const string str) {
-  if (str_vals_.count(str) == 0)
+  if (str_vals_.count(str) == 0) {
     throw invalid_argument(
         "GraphNode does not "
         "contain value");
+  }
   return str_vals_[str];
 }
 

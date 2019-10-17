@@ -25,16 +25,18 @@ namespace tools {
 using namespace std;
 
 void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
-  if (x.size() != y.size())
+  if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in AkimaSpline::Interpolate : sizes of vectors x and y do not "
         "match");
+  }
 
   // Akima splines require at least 4 points
-  if (x.size() < 4)
+  if (x.size() < 4) {
     throw std::invalid_argument(
         "error in AkimaSpline::Interpolate : vectors x and y have to contain "
         "at least 4 points");
+  }
 
   const int N = x.size();
 

@@ -148,7 +148,9 @@ ReducedGraph reduceGraph(Graph graph) {
       // Finally if there are no tips or junctions left we will return a vertex
       // of degree 2 if one exists
       for (const int& vertex : remaining_unexplored) {
-        if (!vertex_explored_[vertex].first) return vertex;
+        if (!vertex_explored_[vertex].first) {
+          return vertex;
+        }
       }
 
       throw runtime_error(

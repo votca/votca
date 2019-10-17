@@ -254,7 +254,9 @@ inline Property &Property::set(const std::string &key,
 inline Property &Property::add(const std::string &key,
                                const std::string &value) {
   std::string path = _path;
-  if (path != "") path = path + ".";
+  if (path != "") {
+    path = path + ".";
+  }
   _properties.push_back(Property(key, value, path + _name));
   _map[key] = _properties.size() - 1;
   return _properties.back();
@@ -272,10 +274,11 @@ inline bool Property::exists(const std::string &key) const {
 // TO DO: write a better function for this!!!!
 template <>
 inline bool Property::as<bool>() const {
-  if (_value == "true" || _value == "TRUE" || _value == "1")
+  if (_value == "true" || _value == "TRUE" || _value == "1") {
     return true;
-  else
+  } else {
     return false;
+  }
 }
 
 template <typename T>
@@ -390,7 +393,9 @@ inline std::vector<double> Property::as<std::vector<double> >() const {
 inline bool Property::hasAttribute(const std::string &attribute) const {
   std::map<std::string, std::string>::const_iterator it;
   it = _attributes.find(attribute);
-  if (it == _attributes.end()) return false;
+  if (it == _attributes.end()) {
+    return false;
+  }
   return true;
 }
 

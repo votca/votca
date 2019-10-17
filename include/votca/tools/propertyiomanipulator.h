@@ -61,13 +61,17 @@ class PropertyIOManipulator {
   const std::string &getIndentation() { return _indentation; }
   void setIndentation(std::string indentation) { _indentation = indentation; }
   const ColorSchemeBase *getColorScheme() {
-    if (!_color_scheme) return &DEFAULT_COLORS;
+    if (!_color_scheme) {
+      return &DEFAULT_COLORS;
+    }
     return _color_scheme;
   }
 
   template <typename T>
   const ColorSchemeBase *setColorScheme() {
-    if (_color_scheme) delete _color_scheme;
+    if (_color_scheme) {
+      delete _color_scheme;
+    }
     _color_scheme = new Color<T>();
     return _color_scheme;
   }

@@ -70,7 +70,9 @@ void Histogram::ProcessData(DataCollection<double>::selection *data) {
                                                           // the sampling point
       if (ii < 0 || ii >= _options._n) {
         if (_options._periodic) {
-          while (ii < 0) ii += _options._n;
+          while (ii < 0) {
+            ii += _options._n;
+          }
           ii = ii % _options._n;
         } else {
           continue;
@@ -102,8 +104,9 @@ void Histogram::ProcessData(DataCollection<double>::selection *data) {
           _pdf[i] = _pdf[i - 1];
         }
 
-      } else
+      } else {
         _pdf[i] /= sa;
+      }
     }
   }
 
@@ -111,7 +114,9 @@ void Histogram::ProcessData(DataCollection<double>::selection *data) {
     _pdf[0] = (_pdf[0] + _pdf[_options._n - 1]);
     _pdf[_options._n - 1] = _pdf[0];
   }
-  if (_options._normalize) Normalize();
+  if (_options._normalize) {
+    Normalize();
+  }
 }
 
 void Histogram::Normalize(void) {

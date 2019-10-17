@@ -103,11 +103,12 @@ inline void ObjectFactory<key_t, T>::Register(const key_t &key) {
 template <typename key_t, typename T>
 inline T *ObjectFactory<key_t, T>::Create(const key_t &key) {
   typename assoc_map::const_iterator it(_objects.find(key));
-  if (it != _objects.end())
+  if (it != _objects.end()) {
     return (it->second)();
-  else
+  } else {
     throw std::runtime_error(
         "factory key " + boost::lexical_cast<std::string>(key) + " not found.");
+  }
 }
 
 template <typename key_t, typename T>
