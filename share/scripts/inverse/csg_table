@@ -101,7 +101,6 @@ convergence_check default convergence_check_default.sh
 
 # table preparation
 resample target resample_target.sh
-dpot crop dpot_crop.pl
 
 # ibi specific stuff
 update ibi update_ibi.sh
@@ -110,7 +109,7 @@ update ibi_pot update_ibi_pot.pl
 
 # imc specific stuff
 update imc update_imc.sh
-imc purify imc_purify.sh
+update imc_single update_imc_single.sh
 
 # optimzer(generic) stuff
 optimizer prepare_state optimizer_prepare_state.sh
