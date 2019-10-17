@@ -180,7 +180,7 @@ class Logger : public std::ostream {
   ~Logger() override {
     // dynamic_cast<LogBuffer *>( rdbuf())->FlushBuffer();
     delete rdbuf();
-    rdbuf(NULL);
+    rdbuf(nullptr);
   }
 
   Logger &operator()(TLogLevel LogLevel) {

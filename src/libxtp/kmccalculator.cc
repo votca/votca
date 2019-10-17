@@ -241,7 +241,7 @@ Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate) {
   if (_carriers.size() == 1) {
     return &_carriers[0];
   }
-  Chargecarrier* carrier = NULL;
+  Chargecarrier* carrier = nullptr;
   double u = 1 - _RandomVariable.rand_uniform();
   for (int i = 0; i < _numberofcarriers; i++) {
     u -= _carriers[i].getCurrentEscapeRate() / cumulated_rate;

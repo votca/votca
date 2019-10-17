@@ -51,7 +51,7 @@ class CptTable {
     _dataset = _loc.openDataSet(_name);
     _dp = _dataset.getSpace();
     hsize_t dims[2];
-    _dp.getSimpleExtentDims(dims, NULL);
+    _dp.getSimpleExtentDims(dims, nullptr);
     _nRows = dims[0];
   }
 

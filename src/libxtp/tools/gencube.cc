@@ -61,7 +61,7 @@ void GenCube::Initialize(tools::Property& options) {
 
   // get the path to the shared folders with xml files
   char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
+  if (votca_share == nullptr)
     throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
 }
 

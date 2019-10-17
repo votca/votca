@@ -74,7 +74,7 @@ inline void CouplingBase::CheckAtomCoordinates(
   bool coordinates_agree = true;
   for (int i = 0; i < atomsAll.size(); i++) {
     const QMAtom& dimer = atomsAll[i];
-    const QMAtom* monomer = NULL;
+    const QMAtom* monomer = nullptr;
 
     if (i < atomsA.size()) {
       monomer = &atomsA[i];

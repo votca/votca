@@ -292,7 +292,7 @@ bool NWChem::Run() {
 
   XTP_LOG(logDEBUG, *_pLog) << "Running NWChem job" << flush;
 
-  if (std::system(NULL)) {
+  if (std::system(nullptr)) {
 
     // NWChem overrides input information, if *.db and *.movecs files are
     // present better trash the old version

@@ -235,7 +235,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
 
   // to skip pairs which are not in the jobfile
   for (unsigned i = 0; i < records.size(); i++) {
-    records[i] = NULL;
+    records[i] = nullptr;
   }
   // loop over all jobs = pair records in the job file
   for (Property* prop : jobProps) {
@@ -249,7 +249,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
       Segment& segB = top.getSegment(idB);
       QMPair* qmp = nblist.FindPair(&segA, &segB);
 
-      if (qmp == NULL) {
+      if (qmp == nullptr) {
         XTP_LOG_SAVE(logINFO, log)
             << "No pair " << idA << ":" << idB
             << " found in the neighbor list. Ignoring" << flush;
@@ -270,7 +270,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
       << "Neighborlist size " << top.NBList().size() << flush;
   for (QMPair* pair : top.NBList()) {
 
-    if (records[pair->getId()] == NULL)
+    if (records[pair->getId()] == nullptr)
       continue;  // skip pairs which are not in the jobfile
     double Jeff2 = 0.0;
     double jAB = 0.0;

@@ -314,7 +314,7 @@ bool Orca::Run() {
 
   XTP_LOG(logDEBUG, *_pLog) << "Running Orca job" << flush;
 
-  if (std::system(NULL)) {
+  if (std::system(nullptr)) {
 
     std::string command = "cd " + _run_dir + "; sh " + _shell_file_name;
     int check = std::system(command.c_str());

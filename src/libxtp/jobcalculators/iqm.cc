@@ -272,8 +272,8 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   Orbitals orbitalsAB;
   // if a pair object is available and is not linked take into account PBC,
   // otherwise write as is
-  if (pair == NULL || segments.size() > 2) {
-    if (pair == NULL) {
+  if (pair == nullptr || segments.size() > 2) {
+    if (pair == nullptr) {
       XTP_LOG_SAVE(logWARNING, pLog)
           << "PBCs are not taken into account when writing the coordinate file!"
           << std::flush;
@@ -700,7 +700,7 @@ void IQM::ReadJobFile(Topology& top) {
   xml.LoadFromXML(_jobfile);
   std::vector<tools::Property*> jobProps = xml.Select("jobs.job");
   std::vector<tools::Property*> records =
-      std::vector<tools::Property*>(nblist.size() + 1, NULL);
+      std::vector<tools::Property*>(nblist.size() + 1, nullptr);
 
   // loop over all jobs = pair records in the job file
   for (tools::Property* job : jobProps) {
@@ -737,7 +737,8 @@ void IQM::ReadJobFile(Topology& top) {
     QMPair* qmp = nblist.FindPair(&segA, &segB);
     // output using logger
 
-    if (qmp == NULL) {  // there is no pair in the neighbor list with this name
+    if (qmp == nullptr) {  // there is no pair in the neighbor list with this
+                           // name
       XTP_LOG_SAVE(logINFO, log)
           << "No pair " << idA << ":" << idB
           << " found in the neighbor list. Ignoring" << std::flush;
@@ -749,7 +750,7 @@ void IQM::ReadJobFile(Topology& top) {
 
   for (QMPair* pair : top.NBList()) {
 
-    if (records[pair->getId()] == NULL)
+    if (records[pair->getId()] == nullptr)
       continue;  // skip pairs which are not in the jobfile
 
     const Segment* segmentA = pair->Seg1();

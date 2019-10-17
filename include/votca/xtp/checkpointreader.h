@@ -161,7 +161,7 @@ class CheckpointReader {
     H5::DataSpace dp = dataset.getSpace();
 
     hsize_t dims[2];
-    dp.getSimpleExtentDims(dims, NULL);  // ndims is always 2 for us
+    dp.getSimpleExtentDims(dims, nullptr);  // ndims is always 2 for us
 
     hsize_t matRows = dims[0];
     hsize_t matCols = dims[1];
@@ -202,7 +202,7 @@ class CheckpointReader {
     const H5::DataType* dataType = InferDataType<T>::get();
 
     hsize_t dims[2];
-    dp.getSimpleExtentDims(dims, NULL);
+    dp.getSimpleExtentDims(dims, nullptr);
 
     v.resize(dims[0]);
     try {
@@ -224,7 +224,7 @@ class CheckpointReader {
     const H5::DataType* dataType = InferDataType<std::string>::get();
 
     hsize_t dims[2];
-    dp.getSimpleExtentDims(dims, NULL);
+    dp.getSimpleExtentDims(dims, nullptr);
 
     std::vector<char*> temp(dims[0]);
     try {

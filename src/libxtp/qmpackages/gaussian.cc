@@ -401,7 +401,7 @@ bool Gaussian::Run() {
   XTP_LOG(logDEBUG, *_pLog) << "GAUSSIAN: running [" << _executable << " "
                             << _input_file_name << "]" << flush;
 
-  if (std::system(NULL)) {
+  if (std::system(nullptr)) {
     // if scratch is provided, run the shell script;
     // otherwise run gaussian directly and rely on global variables
     std::string command;
