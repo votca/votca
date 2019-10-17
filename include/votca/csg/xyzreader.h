@@ -72,9 +72,8 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
   void AddAtom(T &container, std::string name, int id,
                const Eigen::Vector3d &pos) {
     // the typedef returns the type of the objects the container holds
-    typedef
-        typename std::iterator_traits<decltype(container.begin())>::value_type
-            atom;
+    using atom =
+        typename std::iterator_traits<decltype(container.begin())>::value_type;
     Eigen::Vector3d pos2 = pos * tools::conv::ang2bohr;
     container.push_back(atom(id, name, pos2));
   }

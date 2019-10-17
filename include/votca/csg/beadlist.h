@@ -50,7 +50,7 @@ class BeadList {
 
   void push_back(Bead *bead) { _beads.push_back(bead); }
 
-  typedef typename std::vector<Bead *>::iterator iterator;
+  using iterator = typename std::vector<Bead *>::iterator;
 
   iterator begin() { return _beads.begin(); }
   iterator end() { return _beads.end(); }

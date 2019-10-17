@@ -33,8 +33,8 @@ class PairList {
   // this method takes ownership of p
   void AddPair(pair_type *p);
 
-  typedef typename std::vector<pair_type *>::iterator iterator;
-  typedef typename std::vector<pair_type *>::const_iterator const_iterator;
+  using iterator = typename std::vector<pair_type *>::iterator;
+  using const_iterator = typename std::vector<pair_type *>::const_iterator;
   typedef typename std::map<element_type, pair_type *> partners;
 
   iterator begin() { return _pairs.begin(); }
@@ -56,8 +56,8 @@ class PairList {
 
   partners *FindPartners(element_type e1);
 
-  typedef element_type element_t;
-  typedef pair_type pair_t;
+  using element_t = element_type;
+  using pair_t = pair_type;
 
  protected:
   std::vector<pair_type *> _pairs;

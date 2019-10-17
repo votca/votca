@@ -40,10 +40,10 @@ namespace csg {
 
 class Interaction;
 
-typedef std::vector<Molecule *> MoleculeContainer;
-typedef std::vector<Bead *> BeadContainer;
-typedef std::vector<Residue *> ResidueContainer;
-typedef std::vector<Interaction *> InteractionContainer;
+using MoleculeContainer = std::vector<Molecule *>;
+using BeadContainer = std::vector<Bead *>;
+using ResidueContainer = std::vector<Residue *>;
+using InteractionContainer = std::vector<Interaction *>;
 
 /**
  * \brief topology of the whole system

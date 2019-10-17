@@ -53,8 +53,8 @@ class Imc {
  protected:
   tools::Average<double> _avg_vol;
 
-  typedef Eigen::MatrixXd group_matrix;
-  typedef Eigen::Block<group_matrix> pair_matrix;
+  using group_matrix = Eigen::MatrixXd;
+  using pair_matrix = Eigen::Block<group_matrix>;
 
   /// struct to store collected information for interactions
   struct interaction_t {

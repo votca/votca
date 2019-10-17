@@ -136,7 +136,7 @@ class CGForceMatching : public CsgApplication {
   /// \brief list of non-bonded interactions
   std::vector<votca::tools::Property *> _nonbonded;
 
-  typedef vector<SplineInfo *> SplineContainer;
+  using SplineContainer = vector<SplineInfo *>;
   /// \brief vector of SplineInfo * for all interactions
   SplineContainer _splines;
 

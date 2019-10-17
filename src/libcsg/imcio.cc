@@ -29,7 +29,7 @@
 namespace votca {
 namespace csg {
 
-typedef Eigen::MatrixXd group_matrix;
+using group_matrix = Eigen::MatrixXd;
 using namespace std;
 
 void imcio_write_dS(const string &file, const tools::Table &dS,

@@ -32,7 +32,7 @@ class TripleList {
 
   void AddTriple(triple_type *t);
 
-  typedef typename std::vector<triple_type *>::iterator iterator;
+  using iterator = typename std::vector<triple_type *>::iterator;
 
   iterator begin() { return _triples.begin(); }
   iterator end() { return _triples.end(); }
@@ -47,8 +47,8 @@ class TripleList {
 
   triple_type *FindTriple(element_type e1, element_type e2, element_type e3);
 
-  typedef element_type element_t;
-  typedef triple_type triple_t;
+  using element_t = element_type;
+  using triple_t = triple_type;
 
  private:
   std::vector<triple_type *> _triples;

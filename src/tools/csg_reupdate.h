@@ -84,7 +84,7 @@ class CsgREupdate : public CsgApplication {
   Property _options;
   std::vector<Property *> _nonbonded;
 
-  typedef std::vector<PotentialInfo *> PotentialContainer;
+  using PotentialContainer = std::vector<PotentialInfo *>;
   PotentialContainer _potentials;
 
   int _nlamda;
@@ -135,7 +135,7 @@ class CsgREupdateWorker : public CsgApplication::Worker {
   Property _options;
   std::vector<Property *> _nonbonded;
 
-  typedef std::vector<PotentialInfo *> PotentialContainer;
+  using PotentialContainer = std::vector<PotentialInfo *>;
   PotentialContainer _potentials;
 
   int _nlamda;

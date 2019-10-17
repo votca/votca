@@ -53,7 +53,7 @@ class ExclusionList {
   void CreateExclusions(Topology *top);
   exclusion_t *GetExclusions(Bead *bead);
 
-  typedef std::list<exclusion_t *>::iterator iterator;
+  using iterator = std::list<exclusion_t *>::iterator;
 
   iterator begin() { return _exclusions.begin(); }
   iterator end() { return _exclusions.end(); }
