@@ -130,8 +130,8 @@ class IBond : public Interaction {
       beads.pop_front();
     }
   }
-  double EvaluateVar(const Topology &top);
-  Eigen::Vector3d Grad(const Topology &top, int bead);
+  double EvaluateVar(const Topology &top) override;
+  Eigen::Vector3d Grad(const Topology &top, int bead) override;
 
  private:
 };
@@ -156,8 +156,8 @@ class IAngle : public Interaction {
     }
   }
 
-  double EvaluateVar(const Topology &top);
-  Eigen::Vector3d Grad(const Topology &top, int bead);
+  double EvaluateVar(const Topology &top) override;
+  Eigen::Vector3d Grad(const Topology &top, int bead) override;
 
  private:
 };
@@ -183,8 +183,8 @@ class IDihedral : public Interaction {
     }
   }
 
-  double EvaluateVar(const Topology &top);
-  Eigen::Vector3d Grad(const Topology &top, int bead);
+  double EvaluateVar(const Topology &top) override;
+  Eigen::Vector3d Grad(const Topology &top, int bead) override;
 
  private:
 };

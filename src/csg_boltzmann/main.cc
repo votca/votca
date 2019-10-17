@@ -37,20 +37,20 @@ using namespace votca::csg;
 
 class CsgBoltzmann : public CsgApplication {
  public:
-  string ProgramName() { return "csg_boltzmann"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "csg_boltzmann"; }
+  void HelpText(ostream &out) override {
     out << "Performs tasks that are needed for simple boltzmann\n"
            "inversion in an interactive environment.";
   }
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return true; }
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return true; }
 
-  void Initialize();
-  bool EvaluateOptions();
-  void Run();
+  void Initialize() override;
+  bool EvaluateOptions() override;
+  void Run() override;
 
   void InteractiveMode();
-  bool EvaluateTopology(Topology *top, Topology *top_ref);
+  bool EvaluateTopology(Topology *top, Topology *top_ref) override;
 
  protected:
   ExclusionList *CreateExclusionList(Molecule &atomistic, Molecule &cg);

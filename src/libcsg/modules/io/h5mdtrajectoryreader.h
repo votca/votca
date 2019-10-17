@@ -43,10 +43,10 @@ namespace csg {
 class H5MDTrajectoryReader : public TrajectoryReader {
  public:
   H5MDTrajectoryReader();
-  ~H5MDTrajectoryReader();
+  ~H5MDTrajectoryReader() override;
 
   /// Opens original trajectory file.
-  bool Open(const std::string &file);
+  bool Open(const std::string &file) override;
 
   /// Initialize data structures.
   void Initialize(Topology &top);
@@ -58,7 +58,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   bool NextFrame(Topology &conf);  // NOLINT
 
   /// Closes original trajectory file.
-  void Close();
+  void Close() override;
 
  private:
   enum DatasetState { NONE, STATIC, TIMEDEPENDENT };

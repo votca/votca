@@ -28,13 +28,13 @@ namespace csg {
 class StdAnalysis : public AnalysisTool {
  public:
   StdAnalysis(){};
-  ~StdAnalysis(){};
+  ~StdAnalysis() override{};
 
-  void Register(std::map<std::string, AnalysisTool *> &lib);
+  void Register(std::map<std::string, AnalysisTool *> &lib) override;
 
   void Command(BondedStatistics &bs, const std::string &cmd,
-               std::vector<std::string> &args);
-  void Help(const std::string &cmd, std::vector<std::string> &args);
+               std::vector<std::string> &args) override;
+  void Help(const std::string &cmd, std::vector<std::string> &args) override;
 
   void WriteValues(BondedStatistics &bs, std::vector<std::string> &args);
   void WriteCorrelations(BondedStatistics &bs, std::vector<std::string> &args);

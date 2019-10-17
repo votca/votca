@@ -193,7 +193,7 @@ void CsgApplication::Run(void) {
 
   class DummyWorker : public Worker {
    public:
-    void EvalConfiguration(Topology *top, Topology *top_ref) {
+    void EvalConfiguration(Topology *top, Topology *top_ref) override {
       _app->EvalConfiguration(top, top_ref);
     }
   };

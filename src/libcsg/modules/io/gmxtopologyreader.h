@@ -36,7 +36,7 @@ class GMXTopologyReader : public TopologyReader {
   GMXTopologyReader() {}
 
   /// read a topology file
-  bool ReadTopology(std::string file, Topology &top);
+  bool ReadTopology(std::string file, Topology &top) override;
 
  private:
 };

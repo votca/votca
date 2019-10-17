@@ -35,11 +35,11 @@ namespace csg {
 class DLPOLYTrajectoryWriter : public TrajectoryWriter {
  public:
   // open transformed trajectory file
-  void Open(std::string file, bool bAppend = false);
+  void Open(std::string file, bool bAppend = false) override;
   // close transformed trajectory file
-  void Close();
+  void Close() override;
   // write a frame into transformed trajectory file
-  void Write(Topology *conf);
+  void Write(Topology *conf) override;
 
   /// set/get the created configuration or trajectory file name:
   /// <name>.dlpc or <name>.dlph (convention: ".dlpc"="CONFIG_CGV",

@@ -33,8 +33,8 @@ using boost::format;
 
 class DLPTopolApp : public CsgApplication {
  public:
-  string ProgramName() { return "csg_dlptopol"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "csg_dlptopol"; }
+  void HelpText(ostream &out) override {
     out << "Create a dlpoly topology template based on an existing (atomistic) "
            "topology and \n"
         << "a mapping xml-file. The created template file needs to be "
@@ -48,15 +48,15 @@ class DLPTopolApp : public CsgApplication {
            "--no-map\n";
   }
 
-  bool DoMapping(void) { return true; }
+  bool DoMapping(void) override { return true; }
 
-  void Initialize(void);
-  bool EvaluateOptions(void) {
+  void Initialize(void) override;
+  bool EvaluateOptions(void) override {
     CsgApplication::EvaluateOptions();
     CheckRequired("out", "no output topology specified");
     return true;
   }
-  bool EvaluateTopology(Topology *top, Topology *top_ref);
+  bool EvaluateTopology(Topology *top, Topology *top_ref) override;
 
  protected:
   void WriteMoleculeAtoms(ostream &out, Molecule &cg);

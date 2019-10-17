@@ -39,19 +39,19 @@ class Molecule;
 class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
  public:
   LAMMPSDataReader() {}
-  ~LAMMPSDataReader() {}
+  ~LAMMPSDataReader() override {}
 
   /// open, read and close topology file
-  bool ReadTopology(std::string file, Topology &top);
+  bool ReadTopology(std::string file, Topology &top) override;
 
   /// open a trajectory file
-  bool Open(const std::string &file);
+  bool Open(const std::string &file) override;
   /// read in the first frame of trajectory file
-  bool FirstFrame(Topology &top);
+  bool FirstFrame(Topology &top) override;
   /// read in the next frame of trajectory file
-  bool NextFrame(Topology &top);
+  bool NextFrame(Topology &top) override;
   /// close the topology file
-  void Close();
+  void Close() override;
 
  private:
   std::ifstream fl_;

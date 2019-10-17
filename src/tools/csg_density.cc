@@ -24,26 +24,26 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgDensityApp : public CsgApplication {
-  string ProgramName() { return "csg_density"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "csg_density"; }
+  void HelpText(ostream &out) override {
     out << "Calculates the mass density distribution along a box axis or "
            "radial density profile from reference point";
   }
 
   // some program options are added here
-  void Initialize();
+  void Initialize() override;
 
   // we want to process a trajectory
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return true; }
-  bool DoMappingDefault(void) { return false; }
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return true; }
+  bool DoMappingDefault(void) override { return false; }
 
   // write out results in EndEvaluate
-  void EndEvaluate();
-  void BeginEvaluate(Topology *top, Topology *top_atom);
-  void EvalConfiguration(Topology *top, Topology *top_ref);
+  void EndEvaluate() override;
+  void BeginEvaluate(Topology *top, Topology *top_atom) override;
+  void EvalConfiguration(Topology *top, Topology *top_ref) override;
 
-  bool EvaluateOptions() {
+  bool EvaluateOptions() override {
     CsgApplication::EvaluateOptions();
     CheckRequired("out", "no output topology specified");
     CheckRequired("trj", "no trajectory file specified");

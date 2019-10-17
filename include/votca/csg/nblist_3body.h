@@ -41,7 +41,7 @@ namespace csg {
 class NBList_3Body : public TripleList<Bead *, BeadTriple> {
  public:
   NBList_3Body();
-  virtual ~NBList_3Body();
+  ~NBList_3Body() override;
 
   /// Generate the 3body neighbour list based on three bead lists (e.g. bead
   /// types)
@@ -158,7 +158,7 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
     bool operator()(Bead *b1, Bead *b2, Bead *b3, const Eigen::Vector3d &r12,
                     const Eigen::Vector3d &r13, const Eigen::Vector3d &r23,
                     const double dist12, const double dist13,
-                    const double dist23) {
+                    const double dist23) override {
       return (_cls->*_fkt)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
     }
 
@@ -179,7 +179,7 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
     bool operator()(Bead *b1, Bead *b2, Bead *b3, const Eigen::Vector3d &r12,
                     const Eigen::Vector3d &r13, const Eigen::Vector3d &r23,
                     const double dist12, const double dist13,
-                    const double dist23) {
+                    const double dist23) override {
       return (*_fkt)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
     }
 

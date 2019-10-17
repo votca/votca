@@ -76,10 +76,10 @@ inline void BeadMap::Initialize(Molecule *in, Bead *out,
 class Map_Sphere : public BeadMap {
  public:
   Map_Sphere() {}
-  void Apply();
+  void Apply() override;
 
   void Initialize(Molecule *in, Bead *out, tools::Property *opts_bead,
-                  tools::Property *opts_map);
+                  tools::Property *opts_map) override;
 
  protected:
   void AddElem(Bead *in, double weight, double force_weight);
@@ -106,7 +106,7 @@ inline void Map_Sphere::AddElem(Bead *in, double weight, double force_weight) {
 class Map_Ellipsoid : public Map_Sphere {
  public:
   Map_Ellipsoid() {}
-  void Apply();
+  void Apply() override;
 
  protected:
 };

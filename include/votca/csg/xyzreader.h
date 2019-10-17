@@ -39,17 +39,17 @@ namespace csg {
 class XYZReader : public TrajectoryReader, public TopologyReader {
  public:
   XYZReader() {}
-  ~XYZReader() {}
+  ~XYZReader() override {}
 
   /// open a topology file
-  bool ReadTopology(std::string file, Topology &top);
+  bool ReadTopology(std::string file, Topology &top) override;
 
   /// open a trajectory file
-  bool Open(const std::string &file);
+  bool Open(const std::string &file) override;
   /// read in the first frame
-  bool FirstFrame(Topology &top);
+  bool FirstFrame(Topology &top) override;
   /// read in the next frame
-  bool NextFrame(Topology &top);
+  bool NextFrame(Topology &top) override;
 
   template <class T>
   void ReadFile(T &container) {
@@ -58,7 +58,7 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
     }
   }
 
-  void Close();
+  void Close() override;
 
  private:
   template <class T>

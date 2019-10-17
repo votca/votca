@@ -48,13 +48,13 @@ class GMXTrajectoryReader : public TrajectoryReader {
   GMXTrajectoryReader() {}
 
   /// open a trejectory file
-  bool Open(const std::string &file);
+  bool Open(const std::string &file) override;
   /// read in the first frame
-  bool FirstFrame(Topology &top);
+  bool FirstFrame(Topology &top) override;
   /// read in the next frame
-  bool NextFrame(Topology &top);
+  bool NextFrame(Topology &top) override;
 
-  void Close();
+  void Close() override;
 
  private:
   std::string _filename;

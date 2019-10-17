@@ -28,8 +28,8 @@ using namespace votca::csg;
 
 class CsgMapApp : public CsgApplication {
  public:
-  string ProgramName() { return "csg_map"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "csg_map"; }
+  void HelpText(ostream &out) override {
     out << "Convert a reference atomistic trajectory or configuration into a "
            "coarse-grained one \n"
         << "based on a mapping xml-file. The mapping can be applied to either "
@@ -48,10 +48,10 @@ class CsgMapApp : public CsgApplication {
            "convert HISTORY to HISTORY_CGV\n";
   }
 
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return true; }
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return true; }
 
-  void Initialize() {
+  void Initialize() override {
     CsgApplication::Initialize();
     AddProgramOptions()("out", boost::program_options::value<string>(),
                         "  output file for coarse-grained trajectory")(
@@ -62,15 +62,15 @@ class CsgMapApp : public CsgApplication {
         "coarse-grained");
   }
 
-  bool EvaluateOptions() {
+  bool EvaluateOptions() override {
     CsgApplication::EvaluateOptions();
     CheckRequired("trj", "no trajectory file specified");
     CheckRequired("out", "need to specify output trajectory");
     return true;
   }
 
-  void BeginEvaluate(Topology *top, Topology *top_ref);
-  void EvalConfiguration(Topology *top, Topology *top_ref) {
+  void BeginEvaluate(Topology *top, Topology *top_ref) override;
+  void EvalConfiguration(Topology *top, Topology *top_ref) override {
     if (!_do_hybrid) {
       // simply write the topology mapped by csgapplication class
       if (_do_vel) top->SetHasVel(true);
@@ -144,7 +144,7 @@ class CsgMapApp : public CsgApplication {
     }
   }
 
-  void EndEvaluate() {
+  void EndEvaluate() override {
     _writer->Close();
     delete _writer;
   }

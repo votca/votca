@@ -40,16 +40,16 @@ class PDBReader : public TopologyReader, public TrajectoryReader {
   /// Constuctor
   PDBReader() {}
   /// Destructor
-  ~PDBReader() {}
+  ~PDBReader() override {}
   /// open a topology file
-  bool ReadTopology(std::string file, Topology &top);
+  bool ReadTopology(std::string file, Topology &top) override;
   /// open a trajectory file
-  bool Open(const std::string &file);
+  bool Open(const std::string &file) override;
   /// read in the first frame
-  bool FirstFrame(Topology &top);
+  bool FirstFrame(Topology &top) override;
   /// read in the next frame
-  bool NextFrame(Topology &top);
-  void Close();
+  bool NextFrame(Topology &top) override;
+  void Close() override;
 
  private:
   std::ifstream _fl;

@@ -80,8 +80,8 @@ class XMLMolecule {
 class XMLTopologyReader : public TopologyReader {
  public:
   /// read a topology file
-  bool ReadTopology(std::string file, Topology &top);
-  ~XMLTopologyReader();
+  bool ReadTopology(std::string file, Topology &top) override;
+  ~XMLTopologyReader() override;
 
  private:
   typedef boost::unordered_multimap<std::string, XMLMolecule *> MoleculesMap;

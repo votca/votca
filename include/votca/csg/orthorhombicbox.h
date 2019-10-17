@@ -26,10 +26,10 @@ namespace csg {
 class OrthorhombicBox : public BoundaryCondition {
 
  public:
-  Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r_i,
-                                       const Eigen::Vector3d &r_j) const;
+  Eigen::Vector3d BCShortestConnection(
+      const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const override;
 
-  eBoxtype getBoxType() { return typeOrthorhombic; }
+  eBoxtype getBoxType() override { return typeOrthorhombic; }
 
  protected:
 };

@@ -29,27 +29,27 @@ class PotentialFunctionCBSPL : public PotentialFunction {
  public:
   PotentialFunctionCBSPL(const std::string &name_, const int nlam_,
                          const double min_ = 0.0, const double max_ = 10.0);
-  ~PotentialFunctionCBSPL() {}
+  ~PotentialFunctionCBSPL() override {}
   // calculate function value for given r
-  double CalculateF(const double r) const;
+  double CalculateF(const double r) const override;
   // calculate first derivative w.r.t. ith parameter
-  double CalculateDF(const int i, const double r) const;
+  double CalculateDF(const int i, const double r) const override;
   // calculate second derivative w.r.t. ith parameter
-  double CalculateD2F(const int i, const int j, const double r) const;
+  double CalculateD2F(const int i, const int j, const double r) const override;
 
-  int getOptParamSize() const;
+  int getOptParamSize() const override;
 
-  void setParam(std::string filename);
+  void setParam(std::string filename) override;
 
-  void SaveParam(const std::string &filename);
+  void SaveParam(const std::string &filename) override;
 
-  void SavePotTab(const std::string &filename, const double step);
+  void SavePotTab(const std::string &filename, const double step) override;
 
   void SavePotTab(const std::string &filename, const double step,
-                  const double rmin, const double rcut);
-  void setOptParam(const int i, const double val);
+                  const double rmin, const double rcut) override;
+  void setOptParam(const int i, const double val) override;
 
-  double getOptParam(const int i) const;
+  double getOptParam(const int i) const override;
 
   void extrapolExclParam();
 

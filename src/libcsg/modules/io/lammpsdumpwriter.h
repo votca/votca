@@ -27,13 +27,13 @@ namespace csg {
 
 class LAMMPSDumpWriter : public TrajectoryWriter {
  public:
-  void Open(std::string file, bool bAppend = false);
-  void Close();
+  void Open(std::string file, bool bAppend = false) override;
+  void Close() override;
 
   void RegisteredAt(
       tools::ObjectFactory<std::string, TrajectoryWriter> &factory) {}
 
-  void Write(Topology *conf);
+  void Write(Topology *conf) override;
 
  private:
   FILE *_out;

@@ -26,21 +26,21 @@ using boost::format;
 
 class GmxTopolApp : public CsgApplication {
  public:
-  string ProgramName() { return "csg_gmxtopol"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "csg_gmxtopol"; }
+  void HelpText(ostream &out) override {
     out << "Create skeleton for gromacs topology based on atomistic topology\n"
            "and a mapping file. File still needs to be modified by the user.";
   }
 
-  bool DoMapping(void) { return true; }
+  bool DoMapping(void) override { return true; }
 
-  void Initialize(void);
-  bool EvaluateOptions(void) {
+  void Initialize(void) override;
+  bool EvaluateOptions(void) override {
     CsgApplication::EvaluateOptions();
     CheckRequired("out", "no output topology specified");
     return true;
   }
-  bool EvaluateTopology(Topology *top, Topology *top_ref);
+  bool EvaluateTopology(Topology *top, Topology *top_ref) override;
 
  protected:
   void WriteAtoms(ostream &out, Molecule &cg);

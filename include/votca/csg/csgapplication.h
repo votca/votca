@@ -32,14 +32,14 @@ namespace csg {
 class CsgApplication : public tools::Application {
  public:
   CsgApplication(){};
-  virtual ~CsgApplication(){};
+  ~CsgApplication() override{};
 
-  void Initialize();
-  bool EvaluateOptions();
+  void Initialize() override;
+  bool EvaluateOptions() override;
 
-  void Run(void);
+  void Run(void) override;
 
-  void ShowHelpText(std::ostream &out);
+  void ShowHelpText(std::ostream &out) override;
 
   /// \brief overload and return true to enable mapping command line options
 
@@ -100,7 +100,7 @@ class CsgApplication : public tools::Application {
   class Worker : public tools::Thread {
    public:
     Worker(){};
-    ~Worker();
+    ~Worker() override;
 
     /// \brief overload with the actual computation
     virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0) = 0;
@@ -114,7 +114,7 @@ class CsgApplication : public tools::Application {
     TopologyMap *_map = nullptr;
     int _id = -1;
 
-    void Run(void);
+    void Run(void) override;
 
     void setApplication(CsgApplication *app) { _app = app; }
 

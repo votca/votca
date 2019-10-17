@@ -39,7 +39,7 @@ namespace TOOLS = votca::tools;
 class NBList : public PairList<Bead *, BeadPair> {
  public:
   NBList();
-  virtual ~NBList();
+  ~NBList() override;
 
   /// Generate the neighbour list based on two bead lists (e.g. bead types)
   virtual void Generate(BeadList &list1, BeadList &list2,
@@ -126,7 +126,7 @@ class NBList : public PairList<Bead *, BeadPair> {
     FunctorMember(T *cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
 
     bool operator()(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
-                    const double dist) {
+                    const double dist) override {
       return (_cls->*_fkt)(b1, b2, r, dist);
     }
 
@@ -143,7 +143,7 @@ class NBList : public PairList<Bead *, BeadPair> {
     FunctorNonMember(fkt_t fkt) : _fkt(fkt) {}
 
     bool operator()(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
-                    const double dist) {
+                    const double dist) override {
       return (*_fkt)(b1, b2, r, dist);
     }
 

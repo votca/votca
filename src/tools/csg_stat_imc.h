@@ -137,7 +137,7 @@ class Imc {
     double _cur_vol;
 
     /// evaluate current conformation
-    void EvalConfiguration(Topology *top, Topology *top_atom);
+    void EvalConfiguration(Topology *top, Topology *top_atom) override;
     /// process non-bonded interactions for given frame
     void DoNonbonded(Topology *top);
     /// process bonded interactions for given frame

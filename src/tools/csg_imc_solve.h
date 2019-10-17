@@ -29,12 +29,12 @@
 
 class CG_IMC_solve : public votca::tools::Application {
  public:
-  std::string ProgramName() { return "csg_imc_solve"; }
-  void HelpText(std::ostream &out) {
+  std::string ProgramName() override { return "csg_imc_solve"; }
+  void HelpText(std::ostream &out) override {
     out << "Solves the linear system for IMCs";
   }
 
-  void ShowHelpText(std::ostream &out) {
+  void ShowHelpText(std::ostream &out) override {
     std::string name = ProgramName();
     if (VersionString() != "") name = name + ", version " + VersionString();
 
@@ -44,9 +44,9 @@ class CG_IMC_solve : public votca::tools::Application {
     out << "\n\n" << VisibleOptions() << std::endl;
   }
 
-  bool EvaluateOptions();
-  void Initialize();
-  void Run();
+  bool EvaluateOptions() override;
+  void Initialize() override;
+  void Run() override;
 };
 
 #endif /* _VOTCA_CSG_IMC_SOLVE_H */
