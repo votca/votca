@@ -21,9 +21,9 @@
 namespace votca {
 namespace tools {
 
-typedef unsigned char byte_t;
-typedef unsigned short word_t;
-typedef unsigned long dword_t;
+using byte_t = unsigned char;
+using word_t = unsigned short;
+using dword_t = unsigned long;
 
 }  // namespace tools
 }  // namespace votca

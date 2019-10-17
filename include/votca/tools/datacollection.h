@@ -58,8 +58,8 @@ class DataCollection {
     std::string _name;
   };
 
-  typedef std::vector<array *> container;
-  typedef typename std::vector<array *>::iterator iterator;
+  using container = std::vector<array *>;
+  using iterator = typename std::vector<array *>::iterator;
 
   /**
    * \brief class for array selection
@@ -69,7 +69,7 @@ class DataCollection {
     selection() = default;
     ~selection() = default;
 
-    typedef typename std::vector<array *>::iterator iterator;
+    using iterator = typename std::vector<array *>::iterator;
     size_t size() { return _arrays.size(); }
     bool empty() { return _arrays.empty(); }
     array &operator[](size_t i) {

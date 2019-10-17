@@ -98,8 +98,8 @@ class ParseXML {
   template <typename T>
   class FunctorMember : public Functor {
    public:
-    typedef void (T::*fkt_t)(const std::string &,
-                             std::map<std::string, std::string> &);
+    using fkt_t = void (T::*)(const std::string &,
+                              std::map<std::string, std::string> &);
 
     FunctorMember(T *cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
 

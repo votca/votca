@@ -161,8 +161,8 @@ class Property {
   bool HasChildren() const { return !_map.empty(); }
 
   /// iterator to iterate over properties
-  typedef std::vector<Property>::iterator iterator;
-  typedef std::vector<Property>::const_iterator const_iterator;
+  using iterator = std::vector<Property>::iterator;
+  using const_iterator = std::vector<Property>::const_iterator;
   /// \brief iterator to first child property
   iterator begin() { return _properties.begin(); }
   const_iterator begin() const { return _properties.begin(); }

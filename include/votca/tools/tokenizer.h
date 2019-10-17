@@ -34,7 +34,7 @@ namespace tools {
  */
 class Tokenizer {
  public:
-  typedef boost::tokenizer<boost::char_separator<char>>::iterator iterator;
+  using iterator = boost::tokenizer<boost::char_separator<char>>::iterator;
 
   /**
    * \brief startup tokenization

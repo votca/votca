@@ -61,9 +61,8 @@ void Application::ShowManPage(std::ostream &out) {
   out << boost::format(globals::man::description) % ss.str();
   out << boost::format(globals::man::options);
 
-  typedef std::vector<boost::shared_ptr<
-      boost::program_options::option_description> >::const_iterator
-      OptionsIterator;
+  using OptionsIterator = std::vector<boost::shared_ptr<
+      boost::program_options::option_description> >::const_iterator;
   OptionsIterator it = _op_desc.options().begin(),
                   it_end = _op_desc.options().end();
 
@@ -88,9 +87,8 @@ void Application::ShowTEXPage(std::ostream &out) {
   HelpText(ss);
   out << boost::format(globals::tex::description) % ss.str();
 
-  typedef std::vector<boost::shared_ptr<
-      boost::program_options::option_description> >::const_iterator
-      OptionsIterator;
+  using OptionsIterator = std::vector<boost::shared_ptr<
+      boost::program_options::option_description> >::const_iterator;
   OptionsIterator it = _op_desc.options().begin(),
                   it_end = _op_desc.options().end();
   while (it < it_end) {

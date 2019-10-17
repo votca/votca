@@ -42,10 +42,10 @@ namespace tools {
 template <typename key_t, typename T>
 class ObjectFactory {
  private:
-  typedef T *(*creator_t)();
+  using creator_t = T *(*)();
 
  public:
-  typedef T abstract_type;
+  using abstract_type = T;
   typedef std::map<key_t, creator_t> assoc_map;
 
   ObjectFactory() = default;
