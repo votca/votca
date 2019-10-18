@@ -27,9 +27,9 @@ using namespace votca::csg;
 
 class OrientCorrApp : public CsgApplication {
 
-  string ProgramName() { return "orientcorr"; }
+  string ProgramName() override { return "orientcorr"; }
 
-  void HelpText(ostream &out) {
+  void HelpText(ostream &out) override {
     out << "Calculates the orientational correlation function\n"
            "    <3/2*u(0)*u(r) - 1/2>\n"
            "for a polymer melt, where u is the vector pointing along a bond "
@@ -42,23 +42,23 @@ class OrientCorrApp : public CsgApplication {
            "excluded.";
   }
 
-  void Initialize();
+  void Initialize() override;
 
-  bool DoTrajectory() { return true; }
+  bool DoTrajectory() override { return true; }
   // do a threaded analyzis, splitting in time domain
-  bool DoThreaded() { return true; }
+  bool DoThreaded() override { return true; }
   // we don't care about the order of the analyzed frames
-  bool SynchronizeThreads() { return false; }
+  bool SynchronizeThreads() override { return false; }
 
   // called before groing through all frames
-  void BeginEvaluate(Topology *top, Topology *top_ref);
+  void BeginEvaluate(Topology *top, Topology *top_ref) override;
   // called after all frames were parsed
-  void EndEvaluate();
+  void EndEvaluate() override;
 
   // creates a worker for a thread
-  CsgApplication::Worker *ForkWorker(void);
+  CsgApplication::Worker *ForkWorker(void) override;
   // merge data of worker into main
-  void MergeWorker(Worker *worker);
+  void MergeWorker(Worker *worker) override;
 
  public:
   // helper class to choose nbsearch algorithm
@@ -79,10 +79,11 @@ string OrientCorrApp::_nbmethod;
 // Earch thread has a worker and analysis data
 class MyWorker : public CsgApplication::Worker {
  public:
-  ~MyWorker(){};
+  ~MyWorker() override = default;
+  ;
 
   // evaluate the current frame
-  void EvalConfiguration(Topology *top, Topology *top_ref);
+  void EvalConfiguration(Topology *top, Topology *top_ref) override;
 
   // callback if neighborsearch finds a pair
   bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
@@ -121,12 +122,16 @@ void OrientCorrApp::Initialize() {
 }
 
 NBList *OrientCorrApp::CreateNBSearch() {
-  if (_nbmethod == "simple") return new NBList();
-  if (_nbmethod == "grid") return new NBListGrid();
+  if (_nbmethod == "simple") {
+    return new NBList();
+  }
+  if (_nbmethod == "grid") {
+    return new NBListGrid();
+  }
 
   throw std::runtime_error(
       "unknown neighbor search method, use simple or grid");
-  return NULL;
+  return nullptr;
 }
 
 // initialize the histograms
@@ -162,9 +167,7 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
   mapped.setBox(top->getBox());
 
   // loop over all molecules
-  for (MoleculeContainer::iterator iter = top->Molecules().begin();
-       iter != top->Molecules().end(); ++iter) {
-    Molecule *mol_src = *iter;
+  for (auto mol_src : top->Molecules()) {
     // create a molecule in mapped topology
     Molecule *mol = mapped.CreateMolecule(mol_src->getName());
     // loop over beads in molecule
@@ -221,7 +224,9 @@ bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
   _cor.Process(dist, P2);
   _count.Process(dist);
 
-  if (b1->getMolecule() == b2->getMolecule()) return false;
+  if (b1->getMolecule() == b2->getMolecule()) {
+    return false;
+  }
 
   // calculate average with excluding intramolecular contributions
   _cor_excl.Process(dist, P2);

@@ -30,8 +30,8 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgFluctuations : public CsgApplication {
-  string ProgramName() { return "fluctuations"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "fluctuations"; }
+  void HelpText(ostream &out) override {
     out << "calculate density fluctuations in subvolumes of the simulation "
            "box.";
     out << "Subolumes can be either cubic slabs in dimensions (x|y|z) or "
@@ -42,7 +42,7 @@ class CsgFluctuations : public CsgApplication {
 
   // some program options are added here
 
-  void Initialize() {
+  void Initialize() override {
     CsgApplication::Initialize();
     // add program option to pick molecule
     AddProgramOptions("Fluctuation options")(
@@ -66,7 +66,7 @@ class CsgFluctuations : public CsgApplication {
             ->default_value("fluctuations.dat"),
         "Output file");
   }
-  bool EvaluateOptions() {
+  bool EvaluateOptions() override {
     CsgApplication::EvaluateOptions();
     CheckRequired("rmax");
     CheckRequired("geometry");
@@ -74,10 +74,10 @@ class CsgFluctuations : public CsgApplication {
   }
 
   // we want to process a trajectory
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return true; }
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return true; }
 
-  void BeginEvaluate(Topology *top, Topology *top_atom) {
+  void BeginEvaluate(Topology *top, Topology *top_atom) override {
     _filter = OptionsMap()["filter"].as<string>();
     _refmol = OptionsMap()["refmol"].as<string>();
     _rmin = OptionsMap()["rmin"].as<double>();
@@ -134,13 +134,15 @@ class CsgFluctuations : public CsgApplication {
     }
 
     _outfile.open(_outfilename.c_str());
-    if (!_outfile) throw runtime_error("cannot open outfile for output");
+    if (!_outfile) {
+      throw runtime_error("cannot open outfile for output");
+    }
   }
 
   // write out results in EndEvaluate
-  void EndEvaluate();
+  void EndEvaluate() override;
   // do calculation in this function
-  void EvalConfiguration(Topology *top, Topology *top_ref);
+  void EvalConfiguration(Topology *top, Topology *top_ref) override;
 
  protected:
   // number of particles in dV
@@ -169,7 +171,7 @@ int main(int argc, char **argv) {
 }
 
 void CsgFluctuations::EvalConfiguration(Topology *conf,
-                                        Topology *conf_atom = 0) {
+                                        Topology *conf_atom = nullptr) {
   Eigen::Vector3d eR;
   double r = 0;
   int rbin;
@@ -189,20 +191,22 @@ void CsgFluctuations::EvalConfiguration(Topology *conf,
 
   /* check how many molecules are in each bin*/
   for (Bead *bead : conf->Beads()) {
-    if (!votca::tools::wildcmp(_filter.c_str(), bead->getName().c_str()))
+    if (!votca::tools::wildcmp(_filter.c_str(), bead->getName().c_str())) {
       continue;
+    }
 
     if (_do_spherical) {
       eR = bead->getPos() - _ref;
       r = eR.norm();
     } else {
       eR = bead->getPos();
-      if (_dim == 0)
+      if (_dim == 0) {
         r = eR.x();
-      else if (_dim == 1)
+      } else if (_dim == 1) {
         r = eR.y();
-      else if (_dim == 2)
+      } else if (_dim == 2) {
         r = eR.z();
+      }
     }
     if (r > _rmin && r < _rmax) {
       rbin = (int)_nbins * (double)((r - _rmin) / (_rmax - _rmin));

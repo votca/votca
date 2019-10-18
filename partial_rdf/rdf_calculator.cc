@@ -35,7 +35,7 @@ RDFCalculator::RDFCalculator()
       _do_vol_corr(false),
       _processed_some_frames(false) {}
 
-RDFCalculator::~RDFCalculator() {}
+RDFCalculator::~RDFCalculator() = default;
 
 // begin the coarse graining process
 // here the data structures are prepared to handle all the data
@@ -46,9 +46,10 @@ void RDFCalculator::Initialize() {
   std::cout << "# of non-bonded interactions: " << _nonbonded.size()
             << std::endl;
 
-  if (_bonded.size() + _nonbonded.size() == 0)
+  if (_bonded.size() + _nonbonded.size() == 0) {
     throw std::runtime_error(
         "No interactions defined in options xml-file - nothing to be done");
+  }
 
   // initialize non-bonded structures
   for (Property *prop : _nonbonded) {
@@ -82,18 +83,20 @@ void RDFCalculator::BeginEvaluate(Topology *top, Topology *top_atom) {
     allbeads1.Generate(*top, prop->get("type1").value());
     allbeads2.Generate(*top, prop->get("type2").value());
 
-    if (allbeads1.size() == 0)
+    if (allbeads1.size() == 0) {
       throw std::runtime_error("Topology does not have beads of type \"" +
                                prop->get("type1").value() +
                                "\"\n"
                                "This was specified in type1 of interaction \"" +
                                name + "\"");
-    if (allbeads2.size() == 0)
+    }
+    if (allbeads2.size() == 0) {
       throw std::runtime_error("Topology does not have beads of type \"" +
                                prop->get("type2").value() +
                                "\"\n"
                                "This was specified in type2 of interaction \"" +
                                name + "\"");
+    }
     // calculate normalization factor for rdf
 
     /*if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
@@ -150,9 +153,10 @@ void RDFCalculator::EndEvaluate() {
   // clear interactions and groups
   _interactions.clear();
   _groups.clear();
-  if (!_processed_some_frames)
+  if (!_processed_some_frames) {
     throw std::runtime_error(
         "no frames were processed. Please check your input");
+  }
 }
 
 // load options from xml file
@@ -179,11 +183,14 @@ void RDFCalculator::ClearAverages() {
 
   _nframes = 0;
   for (ic_iter = _interactions.begin(); ic_iter != _interactions.end();
-       ++ic_iter)
+       ++ic_iter) {
     ic_iter->second->_average.Clear();
+  }
 
-  for (group_iter = _groups.begin(); group_iter != _groups.end(); ++group_iter)
+  for (group_iter = _groups.begin(); group_iter != _groups.end();
+       ++group_iter) {
     group_iter->second->_corr.setZero();
+  }
 }
 
 class IMCNBSearchHandler {
@@ -205,11 +212,12 @@ class IMCNBSearchHandler {
 
     if (_do_vol_corr) {
       double dr = (b1->Pos() - _boxc).norm();
-      if (dist + dr > _subvol_rad)
+      if (dist + dr > _subvol_rad) {
         // 2.0 is because everything is normalized to 4 PI
         _hist->Process(dist, 2.0 / SurfaceRatio(dist, dr));
-      else
+      } else {
         _hist->Process(dist);
+      }
 
     } else {
       _hist->Process(dist);
@@ -257,18 +265,20 @@ void RDFCalculator::Worker::DoNonbonded(Topology *top) {
 
     if (_rdfcalculator->_options.exists("cg.nbsearch")) {
       if (_rdfcalculator->_options.get("cg.nbsearch").as<std::string>() ==
-          "grid")
+          "grid") {
         gridsearch = true;
-      else if (_rdfcalculator->_options.get("cg.nbsearch").as<std::string>() ==
-               "simple")
+      } else if (_rdfcalculator->_options.get("cg.nbsearch")
+                     .as<std::string>() == "simple") {
         gridsearch = false;
-      else
+      } else {
         throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+      }
     }
-    if (gridsearch)
+    if (gridsearch) {
       nb = new NBListGrid();
-    else
+    } else {
       nb = new NBList();
+    }
 
     nb->setCutoff(i._max + i._step);
 
@@ -281,10 +291,11 @@ void RDFCalculator::Worker::DoNonbonded(Topology *top) {
     nb->SetMatchFunction(&h, &IMCNBSearchHandler::FoundPair);
 
     // is it same types or different types?
-    if (prop->get("type1").value() == prop->get("type2").value())
+    if (prop->get("type1").value() == prop->get("type2").value()) {
       nb->Generate(beads1);
-    else
+    } else {
       nb->Generate(beads1, beads2);
+    }
 
     // store particle number in subvolume for each interaction
     i._avg_beadlist_1_count.Process(_cur_beadlist_1_count);
@@ -406,7 +417,9 @@ void RDFCalculator::MergeWorker(CsgApplication::Worker *worker_) {
       std::string suffix =
           std::string("_") + boost::lexical_cast<std::string>(_nblock);
       WriteDist(suffix);
-      if (_do_blocks) ClearAverages();
+      if (_do_blocks) {
+        ClearAverages();
+      }
     }
   }
 }

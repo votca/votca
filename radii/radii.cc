@@ -24,22 +24,22 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgTestApp : public CsgApplication {
-  string ProgramName() { return "radii"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "radii"; }
+  void HelpText(ostream &out) override {
     out << "calculate gyration- and hydrodynamic radius for a specific "
            "molecule or molecule type";
   }
 
   // some program options are added here
-  void Initialize();
+  void Initialize() override;
 
   // we want to process a trajectory
-  bool DoTrajectory() { return true; }
+  bool DoTrajectory() override { return true; }
 
   // write out results in EndEvaluate
-  void EndEvaluate();
+  void EndEvaluate() override;
   // do calculation in this function
-  void EvalConfiguration(Topology *top, Topology *top_ref);
+  void EvalConfiguration(Topology *top, Topology *top_ref) override;
 
  protected:
   // inverse hydrodynamic radius average
@@ -61,13 +61,16 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *top_ref) {
   for (Molecule *mol : top->Molecules()) {
     // does the id match if given?
     if (OptionsMap().count("mol")) {
-      if (OptionsMap()["mol"].as<int>() != mol->getId() + 1) continue;
+      if (OptionsMap()["mol"].as<int>() != mol->getId() + 1) {
+        continue;
+      }
     }
     // otherwise does the name pattern match?
     else if (!votca::tools::wildcmp(
                  OptionsMap()["molname"].as<string>().c_str(),
-                 mol->getName().c_str()))
+                 mol->getName().c_str())) {
       continue;  // if not skip this molecule
+    }
 
     // Number of beads in the molecule
     int N = mol->BeadCount();
