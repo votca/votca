@@ -14,9 +14,9 @@ and a slack channel:
 
 [Slack](https://votca.slack.com/messages/C7XVBE9EG/?)
 
-At the moment we are also working on a manual:
+We have no manual for the moment but we have a complete tutorial here:
 
-[Manual](http://doc.votca.org/xtp-manual.pdf)
+[Tutorial](https://github.com/votca/xtp-tutorials)
 
 The development of VOTCA is mainly funded by academic research grants. If you
 use this package, please cite the VOTCA papers:
