@@ -257,11 +257,21 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     BOOST_CHECK_EQUAL(edges2.size(), 5);
     vector<bool> found_edges(5, false);
     for (Edge& edge : edges2) {
-      if (edge == ed1) found_edges.at(0) = true;
-      if (edge == ed2) found_edges.at(1) = true;
-      if (edge == ed3) found_edges.at(2) = true;
-      if (edge == ed4) found_edges.at(3) = true;
-      if (edge == ed5) found_edges.at(4) = true;
+      if (edge == ed1) {
+        found_edges.at(0) = true;
+      }
+      if (edge == ed2) {
+        found_edges.at(1) = true;
+      }
+      if (edge == ed3) {
+        found_edges.at(2) = true;
+      }
+      if (edge == ed4) {
+        found_edges.at(3) = true;
+      }
+      if (edge == ed5) {
+        found_edges.at(4) = true;
+      }
     }
 
     for (const bool& found : found_edges) {
@@ -305,10 +315,18 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     vector<bool> found_edge(4, false);
 
     for (const Edge& edge : edges3.at(0)) {
-      if (edge == edges.at(0)) found_edge.at(0) = true;
-      if (edge == edges.at(1)) found_edge.at(1) = true;
-      if (edge == edges.at(2)) found_edge.at(2) = true;
-      if (edge == edges.at(3)) found_edge.at(3) = true;
+      if (edge == edges.at(0)) {
+        found_edge.at(0) = true;
+      }
+      if (edge == edges.at(1)) {
+        found_edge.at(1) = true;
+      }
+      if (edge == edges.at(2)) {
+        found_edge.at(2) = true;
+      }
+      if (edge == edges.at(3)) {
+        found_edge.at(3) = true;
+      }
     }
 
     for (bool found : found_edge) {
@@ -477,7 +495,9 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
 
     int edge_count1_2 = 0;
     for (const Edge& edge_temp : edges2) {
-      if (edge_temp == ed1) ++edge_count1_2;
+      if (edge_temp == ed1) {
+        ++edge_count1_2;
+      }
     }
     BOOST_CHECK_EQUAL(edge_count1_2, 3);
   }
@@ -596,12 +616,24 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     BOOST_CHECK_EQUAL(edges2.size(), 7);
 
     for (Edge& edge : edges2) {
-      if (edge == ed0_1) ++edge_count0_1;
-      if (edge == ed1_2) ++edge_count1_2;
-      if (edge == ed1_6) ++edge_count1_6;
-      if (edge == ed6_8) ++edge_count6_8;
-      if (edge == ed10_12) ++edge_count10_12;
-      if (edge == ed14_14) ++edge_count14_14;
+      if (edge == ed0_1) {
+        ++edge_count0_1;
+      }
+      if (edge == ed1_2) {
+        ++edge_count1_2;
+      }
+      if (edge == ed1_6) {
+        ++edge_count1_6;
+      }
+      if (edge == ed6_8) {
+        ++edge_count6_8;
+      }
+      if (edge == ed10_12) {
+        ++edge_count10_12;
+      }
+      if (edge == ed14_14) {
+        ++edge_count14_14;
+      }
     }
 
     BOOST_CHECK_EQUAL(edge_count0_1, 1);
@@ -659,14 +691,30 @@ BOOST_AUTO_TEST_CASE(explorebranch_test) {
     vector<bool> found_edges(8, false);
     int index = 0;
     for (const Edge& ed : branch_edges) {
-      if (ed == ed3) found_edges.at(index) = true;
-      if (ed == ed4) found_edges.at(index) = true;
-      if (ed == ed5) found_edges.at(index) = true;
-      if (ed == ed6) found_edges.at(index) = true;
-      if (ed == ed7) found_edges.at(index) = true;
-      if (ed == ed8) found_edges.at(index) = true;
-      if (ed == ed9) found_edges.at(index) = true;
-      if (ed == ed10) found_edges.at(index) = true;
+      if (ed == ed3) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed4) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed5) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed6) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed7) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed8) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed9) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed10) {
+        found_edges.at(index) = true;
+      }
       ++index;
     }
 

@@ -138,8 +138,12 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   bool found_ed = false;
   bool found_ed6 = false;
   for (auto ed_temp : temp) {
-    if (ed_temp == ed) found_ed = true;
-    if (ed_temp == ed6) found_ed6 = true;
+    if (ed_temp == ed) {
+      found_ed = true;
+    }
+    if (ed_temp == ed6) {
+      found_ed6 = true;
+    }
   }
   BOOST_CHECK(found_ed);
   BOOST_CHECK(found_ed6);

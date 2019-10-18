@@ -65,7 +65,9 @@ void GraphVisitor::exec(Graph& graph, Edge edge) {
   vector<int> unexp_vert = getUnexploredVertex(edge);
   // If no vertices are return than just ignore it means the same
   // vertex was explored from a different direction
-  if (!unexp_vert.size()) return;
+  if (!unexp_vert.size()) {
+    return;
+  }
   // If two values are returned this is a problem
   if (unexp_vert.size() > 1) {
     throw runtime_error(

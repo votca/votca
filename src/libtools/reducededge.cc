@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -126,9 +126,13 @@ bool ReducedEdge::vertexExistInChain(const int& vertex) const {
 }
 
 bool ReducedEdge::operator==(const ReducedEdge& edge) const {
-  if (edge.vertices_.size() != vertices_.size()) return false;
+  if (edge.vertices_.size() != vertices_.size()) {
+    return false;
+  }
   for (size_t index = 0; index < vertices_.size(); ++index) {
-    if (vertices_.at(index) != edge.vertices_.at(index)) return false;
+    if (vertices_.at(index) != edge.vertices_.at(index)) {
+      return false;
+    }
   }
   return true;
 }
@@ -138,14 +142,26 @@ bool ReducedEdge::operator!=(const ReducedEdge& edge) const {
 }
 
 bool ReducedEdge::operator<(const ReducedEdge& edge) const {
-  if (this->vertices_.front() < edge.vertices_.front()) return true;
-  if (this->vertices_.front() > edge.vertices_.front()) return false;
-  if (this->vertices_.back() < edge.vertices_.back()) return true;
-  if (vertices_.size() < edge.vertices_.size()) return true;
-  for (size_t index = 0; index < vertices_.size(); ++index) {
-    if (vertices_.at(index) > edge.vertices_.at(index)) return false;
+  if (this->vertices_.front() < edge.vertices_.front()) {
+    return true;
   }
-  if (*this == edge) return false;
+  if (this->vertices_.front() > edge.vertices_.front()) {
+    return false;
+  }
+  if (this->vertices_.back() < edge.vertices_.back()) {
+    return true;
+  }
+  if (vertices_.size() < edge.vertices_.size()) {
+    return true;
+  }
+  for (size_t index = 0; index < vertices_.size(); ++index) {
+    if (vertices_.at(index) > edge.vertices_.at(index)) {
+      return false;
+    }
+  }
+  if (*this == edge) {
+    return false;
+  }
   return true;
 }
 

@@ -31,7 +31,7 @@ using namespace std;
 Application::Application()
     : _op_desc("Allowed options"), _continue_execution(true) {}
 
-Application::~Application() {}
+Application::~Application() = default;
 
 void Application::ShowHelpText(std::ostream &out) {
   out << "==================================================\n";
@@ -40,7 +40,9 @@ void Application::ShowHelpText(std::ostream &out) {
 
   out << "please submit bugs to bugs@votca.org\n\n";
   out << ProgramName();
-  if (VersionString() != "") out << ", version " << VersionString();
+  if (VersionString() != "") {
+    out << ", version " << VersionString();
+  }
   out << endl << "votca_tools, version " << ToolsVersionStr() << "\n\n";
 
   HelpText(out);
@@ -59,9 +61,8 @@ void Application::ShowManPage(std::ostream &out) {
   out << boost::format(globals::man::description) % ss.str();
   out << boost::format(globals::man::options);
 
-  typedef std::vector<boost::shared_ptr<
-      boost::program_options::option_description> >::const_iterator
-      OptionsIterator;
+  using OptionsIterator = std::vector<boost::shared_ptr<
+      boost::program_options::option_description> >::const_iterator;
   OptionsIterator it = _op_desc.options().begin(),
                   it_end = _op_desc.options().end();
 
@@ -86,9 +87,8 @@ void Application::ShowTEXPage(std::ostream &out) {
   HelpText(ss);
   out << boost::format(globals::tex::description) % ss.str();
 
-  typedef std::vector<boost::shared_ptr<
-      boost::program_options::option_description> >::const_iterator
-      OptionsIterator;
+  using OptionsIterator = std::vector<boost::shared_ptr<
+      boost::program_options::option_description> >::const_iterator;
   OptionsIterator it = _op_desc.options().begin(),
                   it_end = _op_desc.options().end();
   while (it < it_end) {
@@ -137,10 +137,11 @@ int Application::Exec(int argc, char **argv) {
       return -1;
     }
 
-    if (_continue_execution)
+    if (_continue_execution) {
       Run();
-    else
+    } else {
       cout << "nothing to be done - stopping here\n";
+    }
   } catch (std::exception &error) {
     cerr << "an error occurred:\n" << error.what() << endl;
     return -1;
@@ -151,12 +152,16 @@ int Application::Exec(int argc, char **argv) {
 boost::program_options::options_description_easy_init
     Application::AddProgramOptions(const string &group) {
   // if no group is given, add it to standard options
-  if (group == "") return _op_desc.add_options();
+  if (group == "") {
+    return _op_desc.add_options();
+  }
 
   // does group already exist, if yes, add it there
   std::map<string, boost::program_options::options_description>::iterator iter;
   iter = _op_groups.find(group);
-  if (iter != _op_groups.end()) return iter->second.add_options();
+  if (iter != _op_groups.end()) {
+    return iter->second.add_options();
+  }
 
   // no group with given name was found -> create group
   _op_groups.insert(
@@ -176,7 +181,9 @@ void Application::ParseCommandLine(int argc, char **argv) {
   // add all categories to list of available options
   for (iter = _op_groups.begin(); iter != _op_groups.end(); ++iter) {
     _op_desc.add(iter->second);
-    if (iter->first != "Hidden") _visible_options.add(iter->second);
+    if (iter->first != "Hidden") {
+      _visible_options.add(iter->second);
+    }
   }
 
   // parse the command line
@@ -206,8 +213,9 @@ void Application::PrintDescription(std::ostream &out,
   Property options;
   // loading the documentation xml file from VOTCASHARE
   char *votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
+  if (votca_share == nullptr) {
     throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+  }
   string xmlFile = (arg_path / string(getenv("VOTCASHARE")) / help_path /
                     (boost::format("%1%.%2%") % calculator_name % "xml").str())
                        .string()
@@ -223,8 +231,9 @@ void Application::PrintDescription(std::ostream &out,
     if (atr_it != calculator_options.lastAttribute()) {
       help_string = (*atr_it).second;
     } else {
-      if (tools::globals::verbose)
+      if (tools::globals::verbose) {
         out << _format % calculator_name % "Undocumented";
+      }
       return;
     }
 
@@ -242,8 +251,9 @@ void Application::PrintDescription(std::ostream &out,
     }
 
   } catch (std::exception &) {
-    if (tools::globals::verbose)
+    if (tools::globals::verbose) {
       out << _format % calculator_name % "Undocumented";
+    }
   }
 }
 

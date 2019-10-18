@@ -53,7 +53,9 @@ bool compareChainWithChains_(const vector<int>& chain,
           break;
         }
       }  // Cycle vertices in each chain
-      if (match) return true;
+      if (match) {
+        return true;
+      }
     }  // Chains same size
   }
   return false;

@@ -35,7 +35,7 @@ class Spline {
  public:
   Spline() : _boundaries(splineNormal) {}
 
-  virtual ~Spline() {}
+  virtual ~Spline() = default;
 
   /**
    * \brief Calculate interpolating spline for given (x,y) values. Points on
@@ -173,25 +173,37 @@ class Spline {
 
 template <typename vector_type1, typename vector_type2>
 inline void Spline::Calculate(vector_type1 &x, vector_type2 &y) {
-  for (int i = 0; i < x.size(); ++i) y(i) = Calculate(x(i));
+  for (int i = 0; i < x.size(); ++i) {
+    y(i) = Calculate(x(i));
+  }
 }
 
 template <typename vector_type1, typename vector_type2>
 inline void Spline::CalculateDerivative(vector_type1 &x, vector_type2 &y) {
-  for (int i = 0; i < x.size(); ++i) y(i) = CalculateDerivative(x(i));
+  for (int i = 0; i < x.size(); ++i) {
+    y(i) = CalculateDerivative(x(i));
+  }
 }
 
 inline void Spline::Print(std::ostream &out, double interval) {
-  for (double x = _r[0]; x < _r[_r.size() - 1]; x += interval)
+  for (double x = _r[0]; x < _r[_r.size() - 1]; x += interval) {
     out << x << " " << Calculate(x) << "\n";
+  }
 }
 
 inline int Spline::getInterval(const double &r) {
-  if (r < _r[0]) return 0;
-  if (r > _r[_r.size() - 2]) return _r.size() - 2;
+  if (r < _r[0]) {
+    return 0;
+  }
+  if (r > _r[_r.size() - 2]) {
+    return _r.size() - 2;
+  }
   int i;
-  for (i = 0; i < _r.size(); ++i)
-    if (_r[i] > r) break;
+  for (i = 0; i < _r.size(); ++i) {
+    if (_r[i] > r) {
+      break;
+    }
+  }
   return i - 1;
 }
 

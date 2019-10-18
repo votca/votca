@@ -69,8 +69,12 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   bool v0 = false;
   bool v1 = false;
   for (auto ver : exploredV) {
-    if (ver == 0) v0 = true;
-    if (ver == 1) v1 = true;
+    if (ver == 0) {
+      v0 = true;
+    }
+    if (ver == 1) {
+      v1 = true;
+    }
   }
 
   // Both vertices should have been explored
@@ -139,8 +143,12 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   bool found_ed = false;
   bool found_ed2 = false;
   for (auto temp_ed : temp) {
-    if (temp_ed == ed) found_ed = true;
-    if (temp_ed == ed2) found_ed2 = true;
+    if (temp_ed == ed) {
+      found_ed = true;
+    }
+    if (temp_ed == ed2) {
+      found_ed2 = true;
+    }
   }
   BOOST_CHECK(found_ed);
   BOOST_CHECK(found_ed2);
@@ -159,8 +167,12 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   bool found_ed1 = false;
   bool found_ed3 = false;
   for (auto temp_ed : temp) {
-    if (temp_ed == ed1) found_ed1 = true;
-    if (temp_ed == ed3) found_ed3 = true;
+    if (temp_ed == ed1) {
+      found_ed1 = true;
+    }
+    if (temp_ed == ed3) {
+      found_ed3 = true;
+    }
   }
   BOOST_CHECK(found_ed1);
   BOOST_CHECK(found_ed3);
@@ -177,11 +189,21 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   bool v3 = false;
   bool v4 = false;
   for (auto ver : exploredV) {
-    if (ver == 0) v0 = true;
-    if (ver == 1) v1 = true;
-    if (ver == 2) v2 = true;
-    if (ver == 3) v3 = true;
-    if (ver == 4) v4 = true;
+    if (ver == 0) {
+      v0 = true;
+    }
+    if (ver == 1) {
+      v1 = true;
+    }
+    if (ver == 2) {
+      v2 = true;
+    }
+    if (ver == 3) {
+      v3 = true;
+    }
+    if (ver == 4) {
+      v4 = true;
+    }
   }
 
   // All 5 vertices should have been explored

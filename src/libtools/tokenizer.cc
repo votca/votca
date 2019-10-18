@@ -26,7 +26,7 @@ int wildcmp(const std::string &wild, const std::string &string) {
 
 int wildcmp(const char *wild, const char *string) {
   // Written by Jack Handy - jakkhandy@hotmail.com
-  const char *cp = NULL, *mp = NULL;
+  const char *cp = nullptr, *mp = nullptr;
 
   while ((*string) && (*wild != '*')) {
     if ((*wild != *string) && (*wild != '?')) {

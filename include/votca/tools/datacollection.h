@@ -58,18 +58,18 @@ class DataCollection {
     std::string _name;
   };
 
-  typedef std::vector<array *> container;
-  typedef typename std::vector<array *>::iterator iterator;
+  using container = std::vector<array *>;
+  using iterator = typename std::vector<array *>::iterator;
 
   /**
    * \brief class for array selection
    */
   class selection {
    public:
-    selection() {}
-    ~selection() {}
+    selection() = default;
+    ~selection() = default;
 
-    typedef typename std::vector<array *>::iterator iterator;
+    using iterator = typename std::vector<array *>::iterator;
     size_t size() { return _arrays.size(); }
     bool empty() { return _arrays.empty(); }
     array &operator[](size_t i) {
@@ -90,7 +90,7 @@ class DataCollection {
   };
 
   /// constructor
-  DataCollection() {}
+  DataCollection() = default;
   /// destructor
   ~DataCollection() { clear(); }
 
@@ -144,7 +144,9 @@ template <typename T>
 void DataCollection<T>::clear() {
   {
     typename container::iterator iter;
-    for (iter = _data.begin(); iter != _data.end(); ++iter) delete *iter;
+    for (iter = _data.begin(); iter != _data.end(); ++iter) {
+      delete *iter;
+    }
     _data.clear();
   }
 }
@@ -165,7 +167,9 @@ typename DataCollection<T>::array *DataCollection<T>::ArrayByName(
     std::string name) {
   typename std::map<std::string, array *>::iterator i;
   i = _array_by_name.find(name);
-  if (i == _array_by_name.end()) return nullptr;
+  if (i == _array_by_name.end()) {
+    return nullptr;
+  }
   return (*i).second;
 }
 
@@ -174,13 +178,16 @@ typename DataCollection<T>::selection *DataCollection<T>::select(
     std::string strselection, selection *sel_append) {
 
   typename DataCollection<T>::selection *sel = sel_append;
-  if (!sel_append) sel = new typename DataCollection<T>::selection;
+  if (!sel_append) {
+    sel = new typename DataCollection<T>::selection;
+  }
 
   for (typename std::map<std::string, array *>::iterator i =
            _array_by_name.begin();
        i != _array_by_name.end(); ++i) {
-    if (wildcmp(strselection.c_str(), (*i).second->getName().c_str()))
+    if (wildcmp(strselection.c_str(), (*i).second->getName().c_str())) {
       sel->push_back((*i).second);
+    }
   }
   return sel;
 }

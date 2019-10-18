@@ -42,7 +42,9 @@ std::ostream& operator<<(std::ostream& out,
       written++;
       s << " " << (double)sel[j][i];
     }
-    if (written == 0) return out;
+    if (written == 0) {
+      return out;
+    }
     out << i << s.str() << std::endl;
   }
   return out;

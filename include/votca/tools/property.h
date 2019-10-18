@@ -52,7 +52,8 @@ class Property {
   friend std::ostream &operator<<(std::ostream &out, const Property &p);
 
  public:
-  Property(){};
+  Property() = default;
+  ;
   Property(const std::string &name, const std::string &value,
            const std::string &path)
       : _name(name), _value(value), _path(path) {}
@@ -160,8 +161,8 @@ class Property {
   bool HasChildren() const { return !_map.empty(); }
 
   /// iterator to iterate over properties
-  typedef std::vector<Property>::iterator iterator;
-  typedef std::vector<Property>::const_iterator const_iterator;
+  using iterator = std::vector<Property>::iterator;
+  using const_iterator = std::vector<Property>::const_iterator;
   /// \brief iterator to first child property
   iterator begin() { return _properties.begin(); }
   const_iterator begin() const { return _properties.begin(); }
@@ -253,7 +254,9 @@ inline Property &Property::set(const std::string &key,
 inline Property &Property::add(const std::string &key,
                                const std::string &value) {
   std::string path = _path;
-  if (path != "") path = path + ".";
+  if (path != "") {
+    path = path + ".";
+  }
   _properties.push_back(Property(key, value, path + _name));
   _map[key] = _properties.size() - 1;
   return _properties.back();
@@ -271,10 +274,11 @@ inline bool Property::exists(const std::string &key) const {
 // TO DO: write a better function for this!!!!
 template <>
 inline bool Property::as<bool>() const {
-  if (_value == "true" || _value == "TRUE" || _value == "1")
+  if (_value == "true" || _value == "TRUE" || _value == "1") {
     return true;
-  else
+  } else {
     return false;
+  }
 }
 
 template <typename T>
@@ -389,7 +393,9 @@ inline std::vector<double> Property::as<std::vector<double> >() const {
 inline bool Property::hasAttribute(const std::string &attribute) const {
   std::map<std::string, std::string>::const_iterator it;
   it = _attributes.find(attribute);
-  if (it == _attributes.end()) return false;
+  if (it == _attributes.end()) {
+    return false;
+  }
   return true;
 }
 

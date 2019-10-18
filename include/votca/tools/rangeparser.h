@@ -40,7 +40,7 @@ class RangeParser {
 
  private:
   struct block_t {
-    block_t() {}
+    block_t() = default;
     block_t(const int &begin, const int &end, const int &stride)
         : _begin(begin), _end(end), _stride(stride) {}
 
@@ -49,7 +49,7 @@ class RangeParser {
 
  public:
   struct iterator {
-    iterator() {}
+    iterator() = default;
 
     int operator*() const { return _current; }
 
@@ -94,10 +94,11 @@ inline RangeParser::iterator RangeParser::end() {
 inline RangeParser::iterator::iterator(RangeParser *parent,
                                        std::list<block_t>::iterator block)
     : _parent(parent), _block(block) {
-  if (block != parent->_blocks.end())
+  if (block != parent->_blocks.end()) {
     _current = (*block)._begin;
-  else
+  } else {
     _current = -1;
+  }
 }
 
 inline bool RangeParser::iterator::operator==(const RangeParser::iterator &i) {
@@ -111,13 +112,16 @@ inline bool RangeParser::iterator::operator!=(const RangeParser::iterator &i) {
 inline std::ostream &operator<<(std::ostream &out, const RangeParser &rp) {
   std::list<RangeParser::block_t>::const_iterator iter(rp._blocks.begin());
   for (; iter != rp._blocks.end(); ++iter) {
-    if (iter != rp._blocks.begin()) out << ",";
-    if (iter->_begin == iter->_end)
+    if (iter != rp._blocks.begin()) {
+      out << ",";
+    }
+    if (iter->_begin == iter->_end) {
       out << iter->_begin;
-    else if (iter->_stride == 1)
+    } else if (iter->_stride == 1) {
       out << iter->_begin << ":" << iter->_end;
-    else
+    } else {
       out << iter->_begin << ":" << iter->_stride << ":" << iter->_end;
+    }
   }
   return out;
 }

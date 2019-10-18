@@ -137,15 +137,21 @@ int Graph::getDegree(int vertex) const {
   if (edge_container_.vertexExist(vertex)) {
     return edge_container_.getDegree(vertex);
   }
-  if (nodes_.count(vertex)) return 0;
+  if (nodes_.count(vertex)) {
+    return 0;
+  }
   throw invalid_argument(
       "vertex does not exist within the graph the degree is "
       "not defined.");
 }
 
 bool Graph::vertexExist(int vertex) const {
-  if (edge_container_.vertexExist(vertex)) return true;
-  if (nodes_.count(vertex)) return true;
+  if (edge_container_.vertexExist(vertex)) {
+    return true;
+  }
+  if (nodes_.count(vertex)) {
+    return true;
+  }
   return false;
 }
 

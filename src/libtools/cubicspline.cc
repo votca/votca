@@ -26,15 +26,17 @@ namespace tools {
 using namespace std;
 
 void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
-  if (x.size() != y.size())
+  if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in CubicSpline::Interpolate : sizes of vectors x and y do not "
         "match");
+  }
 
-  if (x.size() < 3)
+  if (x.size() < 3) {
     throw std::invalid_argument(
         "error in CubicSpline::Interpolate : vectors x and y have to contain "
         "at least 3 points");
+  }
 
   const int N = x.size();
 
@@ -79,9 +81,10 @@ void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
 }
 
 void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
-  if (x.size() != y.size())
+  if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in CubicSpline::Fit : sizes of vectors x and y do not match");
+  }
 
   const int N = x.size();
   const int ngrid = _r.size();

@@ -38,8 +38,8 @@ namespace tools {
  */
 class Calculator {
  public:
-  Calculator() {}
-  virtual ~Calculator() {}
+  Calculator() = default;
+  virtual ~Calculator() = default;
   /**
    * \brief Calculator name
    *
@@ -112,8 +112,9 @@ inline void Calculator::UpdateWithDefaults(Property &options,
 
   // add default values if specified in VOTCASHARE
   char *votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
+  if (votca_share == nullptr) {
     throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+  }
   // load the xml description of the calculator (with defaults and test values)
   std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/") +
                         package + std::string("/xml/") + id +
@@ -146,7 +147,9 @@ inline void Calculator::AddDefaults(Property &p, const Property &defaults) {
     Property rootp = *p.begin();
     if (prop.hasAttribute("default")) {
       if (rootp.exists(name)) {
-        if (rootp.HasChildren()) rootp.value() = prop.value();
+        if (rootp.HasChildren()) {
+          rootp.value() = prop.value();
+        }
       } else {
         rootp.add(prop.name(), prop.value());
       }

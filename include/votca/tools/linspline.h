@@ -34,27 +34,29 @@ namespace tools {
 class LinSpline : public Spline {
  public:
   // default constructor
-  LinSpline(){};
+  LinSpline() = default;
+  ;
   // LinSpline() :
   //    _boundaries(splineNormal) {}
 
   // destructor
-  ~LinSpline(){};
+  ~LinSpline() override = default;
+  ;
 
   // construct an interpolation spline
   // x, y are the the points to construct interpolation, both vectors must be of
   // same size
-  void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y);
+  void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) override;
 
   // fit spline through noisy data
   // x,y are arrays with noisy data, both vectors must be of same size
-  void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y);
+  void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) override;
 
   // Calculate the function value
-  double Calculate(const double &x);
+  double Calculate(const double &x) override;
 
   // Calculate the function derivative
-  double CalculateDerivative(const double &x);
+  double CalculateDerivative(const double &x) override;
 
   // Calculate the function value for a whole array, story it in y
   template <typename vector_type1, typename vector_type2>

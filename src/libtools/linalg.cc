@@ -67,8 +67,6 @@ EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, int nmax) {
 
   EigenSystem result;
 #if defined(MKL)
-  double wkopt;
-  double *work;
   double abstol, vl, vu;
 
   MKL_INT lda;

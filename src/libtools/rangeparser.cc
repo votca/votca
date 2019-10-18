@@ -25,8 +25,8 @@ namespace votca {
 namespace tools {
 
 RangeParser::RangeParser()
-//: _has_begin(false) , _has_end(false)
-{}
+    //: _has_begin(false) , _has_end(false)
+    = default;
 
 void RangeParser::Parse(std::string str) {
   // remove all spaces in string
@@ -35,7 +35,9 @@ void RangeParser::Parse(std::string str) {
   str = std::string(str.begin(), it);
 
   Tokenizer tok(str, ",");
-  for (std::string bl : tok) ParseBlock(bl);
+  for (std::string bl : tok) {
+    ParseBlock(bl);
+  }
 }
 
 void RangeParser::ParseBlock(std::string str) {
@@ -52,7 +54,9 @@ void RangeParser::ParseBlock(std::string str) {
 
   block._begin = block._end = std::stoi(toks[0]);
 
-  if (toks.size() == 2) block._end = std::stoi(toks[1]);
+  if (toks.size() == 2) {
+    block._end = std::stoi(toks[1]);
+  }
 
   if (toks.size() == 3) {
     block._stride = std::stoi(toks[1]);
@@ -72,10 +76,11 @@ RangeParser::iterator& RangeParser::iterator::operator++() {
   _current += (*_block)._stride;
   if (_current > (*_block)._end) {
     ++_block;
-    if (_block != _parent->_blocks.end())
+    if (_block != _parent->_blocks.end()) {
       _current = (*_block)._begin;
-    else
+    } else {
       _current = -1;
+    }
   }
   return *this;
 }

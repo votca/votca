@@ -74,8 +74,9 @@ double Elements::getVdWChelpG(string name) {
     this->FillVdWChelpG();
     _filled_VdWChelpG = true;
   }
-  if (_VdWChelpG.count(name) == 0)
+  if (_VdWChelpG.count(name) == 0) {
     throw invalid_argument("Element not found in VdWChelpG map " + name);
+  }
   return _VdWChelpG.at(name);
 }
 
@@ -84,8 +85,9 @@ double Elements::getVdWMK(string name) {
     this->FillVdWMK();
     _filled_VdWMK = true;
   }
-  if (_VdWMK.count(name) == 0)
+  if (_VdWMK.count(name) == 0) {
     throw invalid_argument("Element not found in VdWMP map " + name);
+  }
   return _VdWMK.at(name);
 }
 
@@ -94,8 +96,9 @@ double Elements::getPolarizability(string name) {
     this->FillPolarizability();
     _filled_ElPolarizability = true;
   }
-  if (_ElPolarizability.count(name) == 0)
+  if (_ElPolarizability.count(name) == 0) {
     throw invalid_argument("Element not found in ElPolarizability map " + name);
+  }
   return _ElPolarizability.at(name);
 }
 
@@ -106,9 +109,15 @@ double Elements::getCovRad(string name, string unit) {
     this->FillCovRad();
     _filled_CovRad = true;
   }
-  if (!unit.compare("bohr")) return conv::ang2bohr * _CovRad.find(name)->second;
-  if (!unit.compare("nm")) return conv::ang2nm * _CovRad.find(name)->second;
-  if (!unit.compare("ang")) return _CovRad.find(name)->second;
+  if (!unit.compare("bohr")) {
+    return conv::ang2bohr * _CovRad.find(name)->second;
+  }
+  if (!unit.compare("nm")) {
+    return conv::ang2nm * _CovRad.find(name)->second;
+  }
+  if (!unit.compare("ang")) {
+    return _CovRad.find(name)->second;
+  }
   throw invalid_argument("Must specify appropriate units " + unit +
                          " is not known");
 }
@@ -156,7 +165,9 @@ bool Elements::isEleShort(std::string shortname) {
 
 bool Elements::isMassAssociatedWithElement(double mass, double tolerance) {
   auto closestMatch = findShortNameOfElementClosestInMass_(mass);
-  if (closestMatch.second / _Mass[closestMatch.first] > tolerance) return false;
+  if (closestMatch.second / _Mass[closestMatch.first] > tolerance) {
+    return false;
+  }
   return true;
 }
 

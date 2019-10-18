@@ -78,7 +78,8 @@ class ReducedGraph : public Graph {
   std::set<int> junctions_;
 
  public:
-  ReducedGraph(){};
+  ReducedGraph() = default;
+  ;
 
   ReducedGraph(std::vector<ReducedEdge> reduced_edges);
   ReducedGraph(std::vector<ReducedEdge> reduced_edges,
@@ -132,9 +133,9 @@ class ReducedGraph : public Graph {
    **/
   // std::vector<int> getJunctions() const;
 
-  std::vector<std::pair<int, GraphNode>> getNodes(void) const;
+  std::vector<std::pair<int, GraphNode>> getNodes(void) const override;
 
-  std::vector<int> getVerticesDegree(int degree) const;
+  std::vector<int> getVerticesDegree(int degree) const override;
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph graph);
 };

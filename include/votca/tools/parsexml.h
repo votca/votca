@@ -43,9 +43,9 @@ namespace tools {
 class ParseXML {
  public:
   /// constructor
-  ParseXML() {}
+  ParseXML() = default;
   /// destructor
-  ~ParseXML() {}
+  ~ParseXML() = default;
 
   /**
    * \brief open an XML file and start parsing it
@@ -88,22 +88,23 @@ class ParseXML {
 
   class Functor {
    public:
-    Functor() {}
+    Functor() = default;
     virtual void operator()(const std::string &,
                             std::map<std::string, std::string> &) = 0;
-    virtual ~Functor(){};
+    virtual ~Functor() = default;
+    ;
   };
 
   template <typename T>
   class FunctorMember : public Functor {
    public:
-    typedef void (T::*fkt_t)(const std::string &,
-                             std::map<std::string, std::string> &);
+    using fkt_t = void (T::*)(const std::string &,
+                              std::map<std::string, std::string> &);
 
     FunctorMember(T *cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
 
     void operator()(const std::string &el,
-                    std::map<std::string, std::string> &attr) {
+                    std::map<std::string, std::string> &attr) override {
       (_cls->*_fkt)(el, attr);
     }
 

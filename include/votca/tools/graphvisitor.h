@@ -63,7 +63,8 @@ class GraphVisitor {
   virtual void exploreNode(std::pair<int, GraphNode>& vertex_and_node,
                            Graph& graph, Edge edge = DUMMY_EDGE);
 
-  GraphVisitor(){};
+  GraphVisitor() = default;
+  ;
 
   /// Determine which vertices in the edge, if any, have not been explored
   std::vector<int> getUnexploredVertex(const Edge edge) const;

@@ -25,15 +25,17 @@ namespace tools {
 using namespace std;
 
 void LinSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
-  if (x.size() != y.size())
+  if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in LinSpline::Interpolate : sizes of vectors x and y do not "
         "match");
+  }
 
-  if (x.size() < 2)
+  if (x.size() < 2) {
     throw std::invalid_argument(
         "error in LinSpline::Interpolate : vectors x and y have to contain at "
         "least 2 points");
+  }
 
   const int N = x.size();
 
@@ -62,9 +64,10 @@ void LinSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
 }
 
 void LinSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
-  if (x.size() != y.size())
+  if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in LinSpline::Fit : sizes of vectors x and y do not match");
+  }
 
   const int N = x.size();
   const int ngrid = _r.size();

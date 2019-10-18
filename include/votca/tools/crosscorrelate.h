@@ -35,9 +35,11 @@ namespace tools {
 class CrossCorrelate {
  public:
   /// constructor
-  CrossCorrelate(){};
+  CrossCorrelate() = default;
+  ;
   /// destructor
-  ~CrossCorrelate(){};
+  ~CrossCorrelate() = default;
+  ;
 
   /**
       calculate the cross correlation

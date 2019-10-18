@@ -48,7 +48,7 @@ namespace tools {
 class ReducedEdge : public Edge {
 
  public:
-  ReducedEdge() {}
+  ReducedEdge() = default;
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
   ReducedEdge(std::vector<int> chain);

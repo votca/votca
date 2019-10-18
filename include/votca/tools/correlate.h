@@ -32,9 +32,11 @@ namespace tools {
 class Correlate {
  public:
   /// constructor
-  Correlate(){};
+  Correlate() = default;
+  ;
   /// destructor
-  ~Correlate(){};
+  ~Correlate() = default;
+  ;
 
   /**
       calculate the correlation of the first row in selection with all the other
@@ -50,8 +52,8 @@ class Correlate {
 
 inline std::ostream &operator<<(std::ostream &out, Correlate &c) {
   std::vector<std::pair<std::string, double> > &data = c.getData();
-  for (size_t i = 0; i < data.size(); i++) {
-    out << data[i].second << std::endl;
+  for (auto &i : data) {
+    out << i.second << std::endl;
   }
   return out;
 }

@@ -49,7 +49,8 @@ class GraphNode {
   void initStringId_();
 
  public:
-  GraphNode(){};
+  GraphNode() = default;
+  ;
 
   /// Constructor
   /// Each map corresponds to a different content the graph node can contain.
