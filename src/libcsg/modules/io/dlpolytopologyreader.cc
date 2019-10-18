@@ -49,9 +49,10 @@ string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char *wspace)
   do {
     getline(fs, line);
 
-    if (fs.eof())
+    if (fs.eof()) {
       throw std::runtime_error("Error: unexpected end of dlpoly file '" +
                                _fname + "'");
+    }
 
     i_nws = line.find_first_not_of(wspace);
   } while (line.substr(i_nws, 1) == "#" || line.substr(i_nws, 1) == ";");
@@ -72,19 +73,21 @@ string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char *wspace,
   sl >> line;  // allow user not to bother about the case
   boost::to_upper(line);
 
-  if (line.substr(0, word.size()) != word)
+  if (line.substr(0, word.size()) != word) {
     throw std::runtime_error("Error: unexpected line from dlpoly file '" +
                              _fname + "', expected '" + word + "' but got '" +
                              line + "'");
+  }
 
   sl >> sval;
 
   size_t i_num = sval.find_first_of(
       "0123456789");  // assume integer number straight after the only keyword
 
-  if (i_num > 0)
+  if (i_num > 0) {
     throw std::runtime_error("Error: missing integer number in directive '" +
                              line + "' in topology file '" + _fname + "'");
+  }
 
   ival = boost::lexical_cast<int>(sval);
 
@@ -105,14 +108,17 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
 
   ival = 0;
 
-  if (fields.size() < 2) return false;
+  if (fields.size() < 2) {
+    return false;
+  }
 
   boost::to_upper(fields[0]);
 
-  if (fields[0].substr(0, word.size()) != word)
+  if (fields[0].substr(0, word.size()) != word) {
     throw std::runtime_error("Error: unexpected directive from dlpoly file '" +
                              _fname + "', expected keyword '" + word +
                              "' but got '" + fields[0] + "'");
+  }
 
   size_t i_num = string::npos;
 
@@ -122,7 +128,9 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
     i_num = fields[i++].find_first_of("0123456789");
   } while (i_num > 0 && i < fields.size());
 
-  if (i_num > 0) return false;
+  if (i_num > 0) {
+    return false;
+  }
 
   ival = boost::lexical_cast<int>(fields[i - 1]);
 
@@ -178,9 +186,10 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
     int nmol_types;
 
-    if (!_isKeyInt(line, WhiteSpace, "MOLEC", nmol_types))
+    if (!_isKeyInt(line, WhiteSpace, "MOLEC", nmol_types)) {
       throw std::runtime_error("Error: missing integer number in directive '" +
                                line + "' in topology file '" + _fname + "'");
+    }
 
 #ifdef DEBUG
     cout << "Read from dlpoly file '" << _fname << "' : '" << line << "' - "
@@ -241,7 +250,9 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 #endif
 
         int repeater = 1;
-        if (fields.size() > 1) repeater = boost::lexical_cast<int>(fields[0]);
+        if (fields.size() > 1) {
+          repeater = boost::lexical_cast<int>(fields[0]);
+        }
 
         for (int j = 0; j < repeater; j++) {
 
@@ -289,7 +300,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
             sl >> line;  // internal dlpoly bond/angle/dihedral function types
                          // are merely skipped (ignored)
             int ids[4];
-            Interaction *ic = NULL;
+            Interaction *ic = nullptr;
             sl >> ids[0];
             sl >> ids[1];
             if (type == "BONDS") {
@@ -340,27 +351,26 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         }
         matoms += mi->BeadCount();
         InteractionContainer ics = mi->Interactions();
-        for (vector<Interaction *>::iterator ic = ics.begin(); ic != ics.end();
-             ++ic) {
-          Interaction *ic_replica = NULL;
+        for (auto &ic : ics) {
+          Interaction *ic_replica = nullptr;
           int offset =
               mi_replica->getBead(0)->getId() - mi->getBead(0)->getId();
-          if ((*ic)->BeadCount() == 2) {
-            ic_replica = new IBond((*ic)->getBeadId(0) + offset,
-                                   (*ic)->getBeadId(1) + offset);
-          } else if ((*ic)->BeadCount() == 3) {
-            ic_replica = new IAngle((*ic)->getBeadId(0) + offset,
-                                    (*ic)->getBeadId(1) + offset,
-                                    (*ic)->getBeadId(2) + offset);
-          } else if ((*ic)->BeadCount() == 4) {
+          if (ic->BeadCount() == 2) {
+            ic_replica =
+                new IBond(ic->getBeadId(0) + offset, ic->getBeadId(1) + offset);
+          } else if (ic->BeadCount() == 3) {
+            ic_replica =
+                new IAngle(ic->getBeadId(0) + offset, ic->getBeadId(1) + offset,
+                           ic->getBeadId(2) + offset);
+          } else if (ic->BeadCount() == 4) {
             ic_replica = new IDihedral(
-                (*ic)->getBeadId(0) + offset, (*ic)->getBeadId(1) + offset,
-                (*ic)->getBeadId(2) + offset, (*ic)->getBeadId(3) + offset);
+                ic->getBeadId(0) + offset, ic->getBeadId(1) + offset,
+                ic->getBeadId(2) + offset, ic->getBeadId(3) + offset);
           } else {
             throw std::runtime_error("Error: BeadCount not equal 2, 3 or 4");
           }
-          ic_replica->setGroup((*ic)->getGroup());
-          ic_replica->setIndex((*ic)->getIndex());
+          ic_replica->setGroup(ic->getGroup());
+          ic_replica->setIndex(ic->getIndex());
           ic_replica->setMolecule(mi_replica->getId());
           top.AddBondedInteraction(ic_replica);
           mi_replica->AddInteraction(ic_replica);

@@ -39,23 +39,24 @@ using namespace std;
 
 class CGForceMatching : public CsgApplication {
  public:
-  string ProgramName() { return "csg_fmatch"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "csg_fmatch"; }
+  void HelpText(ostream &out) override {
     out << "Perform force matching (also called multiscale coarse-graining)";
   }
 
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return true; }
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return true; }
 
-  void Initialize(void);
-  bool EvaluateOptions();
+  void Initialize(void) override;
+  bool EvaluateOptions() override;
 
   /// \brief called before the first frame
-  void BeginEvaluate(Topology *top, Topology *top_atom);
+  void BeginEvaluate(Topology *top, Topology *top_atom) override;
   /// \brief called after the last frame
-  void EndEvaluate();
+  void EndEvaluate() override;
   /// \brief called for each frame which is mapped
-  void EvalConfiguration(Topology *conf, Topology *conf_atom = 0);
+  void EvalConfiguration(Topology *conf,
+                         Topology *conf_atom = nullptr) override;
   /// \brief load options from the input file
   void LoadOptions(const string &file);
 
@@ -135,7 +136,7 @@ class CGForceMatching : public CsgApplication {
   /// \brief list of non-bonded interactions
   std::vector<votca::tools::Property *> _nonbonded;
 
-  typedef vector<SplineInfo *> SplineContainer;
+  using SplineContainer = vector<SplineInfo *>;
   /// \brief vector of SplineInfo * for all interactions
   SplineContainer _splines;
 

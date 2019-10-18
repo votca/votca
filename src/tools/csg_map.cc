@@ -28,8 +28,8 @@ using namespace votca::csg;
 
 class CsgMapApp : public CsgApplication {
  public:
-  string ProgramName() { return "csg_map"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "csg_map"; }
+  void HelpText(ostream &out) override {
     out << "Convert a reference atomistic trajectory or configuration into a "
            "coarse-grained one \n"
         << "based on a mapping xml-file. The mapping can be applied to either "
@@ -48,10 +48,10 @@ class CsgMapApp : public CsgApplication {
            "convert HISTORY to HISTORY_CGV\n";
   }
 
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return true; }
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return true; }
 
-  void Initialize() {
+  void Initialize() override {
     CsgApplication::Initialize();
     AddProgramOptions()("out", boost::program_options::value<string>(),
                         "  output file for coarse-grained trajectory")(
@@ -62,19 +62,23 @@ class CsgMapApp : public CsgApplication {
         "coarse-grained");
   }
 
-  bool EvaluateOptions() {
+  bool EvaluateOptions() override {
     CsgApplication::EvaluateOptions();
     CheckRequired("trj", "no trajectory file specified");
     CheckRequired("out", "need to specify output trajectory");
     return true;
   }
 
-  void BeginEvaluate(Topology *top, Topology *top_ref);
-  void EvalConfiguration(Topology *top, Topology *top_ref) {
+  void BeginEvaluate(Topology *top, Topology *top_ref) override;
+  void EvalConfiguration(Topology *top, Topology *top_ref) override {
     if (!_do_hybrid) {
       // simply write the topology mapped by csgapplication class
-      if (_do_vel) top->SetHasVel(true);
-      if (_do_force) top->SetHasForce(true);
+      if (_do_vel) {
+        top->SetHasVel(true);
+      }
+      if (_do_force) {
+        top->SetHasForce(true);
+      }
       _writer->Write(top);
     } else {
       // we want to combine atomistic and coarse-grained into one topology
@@ -115,8 +119,12 @@ class CsgMapApp : public CsgApplication {
                                         bi->getType(), bi->getResnr(),
                                         bi->getMass(), bi->getQ());
           bn->setPos(bi->getPos());
-          if (bi->HasVel()) bn->setVel(bi->getVel());
-          if (bi->HasF()) bn->setF(bi->getF());
+          if (bi->HasVel()) {
+            bn->setVel(bi->getVel());
+          }
+          if (bi->HasF()) {
+            bn->setF(bi->getF());
+          }
 
           mi->AddBead(hybtol->Beads()[beadid], (*it_mol)->getBeadName(i));
         }
@@ -133,7 +141,9 @@ class CsgMapApp : public CsgApplication {
                                           bi->getType(), bparent->getResnr(),
                                           bi->getMass(), bi->getQ());
             bn->setPos(bi->getPos());
-            if (bi->HasVel()) bn->setVel(bi->getVel());
+            if (bi->HasVel()) {
+              bn->setVel(bi->getVel());
+            }
             mi->AddBead(bi, bi->getName());
           }
         }
@@ -144,7 +154,7 @@ class CsgMapApp : public CsgApplication {
     }
   }
 
-  void EndEvaluate() {
+  void EndEvaluate() override {
     _writer->Close();
     delete _writer;
   }
@@ -160,13 +170,15 @@ void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {
   string out = OptionsMap()["out"].as<string>();
   cout << "writing coarse-grained trajectory to " << out << endl;
   _writer = TrjWriterFactory().Create(out);
-  if (_writer == NULL)
+  if (_writer == nullptr) {
     throw runtime_error("output format not supported: " + out);
+  }
 
   _do_hybrid = false;
   if (OptionsMap().count("hybrid")) {
-    if (!_do_mapping)
+    if (!_do_mapping) {
       throw runtime_error("options hybrid and no-map not compatible");
+    }
     cout << "Doing hybrid mapping..." << endl;
     _do_hybrid = true;
   }

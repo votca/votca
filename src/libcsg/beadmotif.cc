@@ -66,12 +66,16 @@ void BeadMotif::CalculateType_() {
 }
 
 bool BeadMotif::isSingle_() {
-  if (BeadCount() == 1) return true;
+  if (BeadCount() == 1) {
+    return true;
+  }
   return false;
 }
 
 bool BeadMotif::isLine_() {
-  if (junctionExist_()) return false;
+  if (junctionExist_()) {
+    return false;
+  }
   // Ensure that the degree of two of the vertices is 1
   // all other vertices must be 2
   int num_vertices_degree_1 = 0;
@@ -87,17 +91,23 @@ bool BeadMotif::isLine_() {
       return false;
     }
   }
-  if (num_vertices_degree_1 != 2) return false;
+  if (num_vertices_degree_1 != 2) {
+    return false;
+  }
   return true;
 }
 
 bool BeadMotif::isLoop_() {
-  if (junctionExist_()) return false;
+  if (junctionExist_()) {
+    return false;
+  }
 
   // Ensure that the degree of every vertex is 2
   vector<int> vertices = graph_.getVertices();
   for (int& vertex : vertices) {
-    if (graph_.getDegree(vertex) != 2) return false;
+    if (graph_.getDegree(vertex) != 2) {
+      return false;
+    }
   }
   return true;
 }
@@ -137,11 +147,15 @@ bool BeadMotif::isLoop_() {
  *  all the edges.
  **/
 bool BeadMotif::isFusedRing_() {
-  if (!junctionExist_()) return false;
+  if (!junctionExist_()) {
+    return false;
+  }
   // Ensure that the degree of every vertex is 2 or greater
   vector<int> vertices = graph_.getVertices();
   for (int& vertex : vertices) {
-    if (graph_.getDegree(vertex) < 2) return false;
+    if (graph_.getDegree(vertex) < 2) {
+      return false;
+    }
   }
   // If exploring from one branch of a junction lets you explore every
   // edge than it is a fused ring.

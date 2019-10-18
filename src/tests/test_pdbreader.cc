@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   string str = "Molecule1.pdb";
   reader = TopReaderFactory().Create(str);
   reader->ReadTopology(str, top);
-  BOOST_CHECK_EQUAL(reader != NULL, true);
+  BOOST_CHECK_EQUAL(reader != nullptr, true);
   BOOST_CHECK_EQUAL(top.BeadCount(), 10);
 
   vector<int> resnr = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1};

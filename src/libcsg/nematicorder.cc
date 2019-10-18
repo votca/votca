@@ -30,14 +30,15 @@ void NematicOrder::Process(Topology &top, const string &filter) {
   bool bU, bV, bW;
   bU = bV = bW = false;
 
-  for (BeadContainer::iterator iter = top.Beads().begin();
-       iter != top.Beads().end(); ++iter) {
+  for (auto bead : top.Beads()) {
 
-    Bead *bead = *iter;
+    if (!tools::wildcmp(filter.c_str(), bead->getName().c_str())) {
+      continue;
+    }
 
-    if (!tools::wildcmp(filter.c_str(), bead->getName().c_str())) continue;
-
-    if (bead->getSymmetry() == 1) continue;
+    if (bead->getSymmetry() == 1) {
+      continue;
+    }
 
     if (bead->HasU()) {
       _mu += bead->getU() * bead->getU().transpose();
@@ -64,9 +65,15 @@ void NematicOrder::Process(Topology &top, const string &filter) {
   _mv = f * _mv;
   _mw = f * _mw;
 
-  if (bU) _nemat_u.computeDirect(_mu);
-  if (bV) _nemat_v.computeDirect(_mv);
-  if (bW) _nemat_w.computeDirect(_mw);
+  if (bU) {
+    _nemat_u.computeDirect(_mu);
+  }
+  if (bV) {
+    _nemat_v.computeDirect(_mv);
+  }
+  if (bW) {
+    _nemat_w.computeDirect(_mw);
+  }
 }
 
 }  // namespace csg

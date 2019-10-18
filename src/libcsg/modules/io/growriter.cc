@@ -49,11 +49,12 @@ void GROWriter::Write(Topology *conf) {
     pr=30;*/
   l = pr + 5;
   vpr = pr + 1;
-  if (v)
+  if (v) {
     sprintf(format, "%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df\n", l, pr,
             l, pr, l, pr, l, vpr, l, vpr, l, vpr);
-  else
+  } else {
     sprintf(format, "%%%d.%df%%%d.%df%%%d.%df\n", l, pr, l, pr, l, pr);
+  }
 
   for (i = 0; i < top->BeadCount(); i++) {
     resnr = top->getBead(i)->getResnr();
@@ -76,7 +77,9 @@ void GROWriter::Write(Topology *conf) {
   // write the boy
   Eigen::Matrix3d box = conf->getBox();
 
-  if (pr < 5) pr = 5;
+  if (pr < 5) {
+    pr = 5;
+  }
   l = pr + 5;
 
   if (box(0, 1) || box(0, 2) || box(1, 0) || box(1, 2) || box(2, 0) ||

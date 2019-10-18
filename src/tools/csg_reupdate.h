@@ -54,37 +54,37 @@ struct PotentialInfo {
 
 class CsgREupdate : public CsgApplication {
  public:
-  std::string ProgramName() { return "csg_reupdate"; }
-  void HelpText(std::ostream &out) {
+  std::string ProgramName() override { return "csg_reupdate"; }
+  void HelpText(std::ostream &out) override {
     out << "computes relative entropy update.";
   }
 
-  bool DoTrajectory() { return true; }
+  bool DoTrajectory() override { return true; }
 
-  bool DoMapping() { return false; }
+  bool DoMapping() override { return false; }
 
-  bool DoThreaded() { return true; }
-  bool SynchronizeThreads() { return false; }
+  bool DoThreaded() override { return true; }
+  bool SynchronizeThreads() override { return false; }
 
-  bool NeedsTopology() { return false; }
+  bool NeedsTopology() override { return false; }
 
-  void Initialize();
-  bool EvaluateOptions();
-  void BeginEvaluate(Topology *top, Topology *top_atom = 0);
+  void Initialize() override;
+  bool EvaluateOptions() override;
+  void BeginEvaluate(Topology *top, Topology *top_atom = nullptr) override;
   void LoadOptions(const std::string &file);
 
-  void Run();
+  void Run() override;
 
-  void EndEvaluate();
-  CsgApplication::Worker *ForkWorker(void);
-  void MergeWorker(Worker *worker);
+  void EndEvaluate() override;
+  CsgApplication::Worker *ForkWorker(void) override;
+  void MergeWorker(Worker *worker) override;
 
  private:
  protected:
   Property _options;
   std::vector<Property *> _nonbonded;
 
-  typedef std::vector<PotentialInfo *> PotentialContainer;
+  using PotentialContainer = std::vector<PotentialInfo *>;
   PotentialContainer _potentials;
 
   int _nlamda;
@@ -129,12 +129,13 @@ class CsgREupdate : public CsgApplication {
 
 class CsgREupdateWorker : public CsgApplication::Worker {
  public:
-  ~CsgREupdateWorker(){};
+  ~CsgREupdateWorker() override = default;
+  ;
 
   Property _options;
   std::vector<Property *> _nonbonded;
 
-  typedef std::vector<PotentialInfo *> PotentialContainer;
+  using PotentialContainer = std::vector<PotentialInfo *>;
   PotentialContainer _potentials;
 
   int _nlamda;
@@ -147,7 +148,7 @@ class CsgREupdateWorker : public CsgApplication::Worker {
   double _beta;
   int _nframes;
 
-  void EvalConfiguration(Topology *conf, Topology *conf_atom);
+  void EvalConfiguration(Topology *conf, Topology *conf_atom) override;
   void EvalBonded(Topology *conf, PotentialInfo *potinfo);
   void EvalNonbonded(Topology *conf, PotentialInfo *potinfo);
 };

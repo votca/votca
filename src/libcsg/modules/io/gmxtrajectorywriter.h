@@ -36,11 +36,11 @@ namespace csg {
 
 class GMXTrajectoryWriter : public TrajectoryWriter {
  public:
-  GMXTrajectoryWriter() {}
+  GMXTrajectoryWriter() = default;
 
-  void Open(std::string file, bool bAppend = false);
-  void Close();
-  void Write(Topology *conf);
+  void Open(std::string file, bool bAppend = false) override;
+  void Close() override;
+  void Write(Topology *conf) override;
 
  private:
   t_trxstatus *_file;

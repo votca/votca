@@ -50,7 +50,8 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
   t_inputrec ir;
   ::matrix gbox;
 
-  (void)read_tpx((char *)file.c_str(), &ir, gbox, &natoms, NULL, NULL, &mtop);
+  (void)read_tpx((char *)file.c_str(), &ir, gbox, &natoms, nullptr, nullptr,
+                 &mtop);
 
   size_t ifirstatom = 0;
 

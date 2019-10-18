@@ -17,11 +17,12 @@
 
 #include <iostream>
 #include <votca/csg/nblist.h>
+#include <votca/csg/topology.h>
 
 namespace votca {
 namespace csg {
 
-NBList::NBList() : _do_exclusions(false), _match_function(0) {
+NBList::NBList() : _do_exclusions(false), _match_function(nullptr) {
   setPairType<BeadPair>();
   SetMatchFunction(NBList::match_always);
 }
@@ -35,8 +36,12 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
   BeadList::iterator iter2;
   _do_exclusions = do_exclusions;
 
-  if (list1.empty()) return;
-  if (list2.empty()) return;
+  if (list1.empty()) {
+    return;
+  }
+  if (list2.empty()) {
+    return;
+  }
 
   assert(list1.getTopology() == list2.getTopology());
   Topology *top = list1.getTopology();
@@ -45,11 +50,16 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
     if (&list1 == &list2) {
       iter2 = iter1;
       ++iter2;
-    } else
+    } else {
       iter2 = list2.begin();
+    }
 
-    if (iter2 == list2.end()) continue;
-    if (*iter1 == *iter2) continue;
+    if (iter2 == list2.end()) {
+      continue;
+    }
+    if (*iter1 == *iter2) {
+      continue;
+    }
 
     for (; iter2 != list2.end(); ++iter2) {
       Eigen::Vector3d u = (*iter1)->getPos();
@@ -58,13 +68,16 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
       Eigen::Vector3d r = top->BCShortestConnection(u, v);
       double d = r.norm();
       if (d < _cutoff) {
-        if (_do_exclusions)
+        if (_do_exclusions) {
           if (top->getExclusions().IsExcluded(*iter1, *iter2)) {
             continue;
           }
-        if ((*_match_function)(*iter1, *iter2, r, d))
-          if (!FindPair(*iter1, *iter2))
+        }
+        if ((*_match_function)(*iter1, *iter2, r, d)) {
+          if (!FindPair(*iter1, *iter2)) {
             AddPair(_pair_creator(*iter1, *iter2, r));
+          }
+        }
       }
     }
   }

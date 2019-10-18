@@ -43,22 +43,22 @@ namespace csg {
 class H5MDTrajectoryReader : public TrajectoryReader {
  public:
   H5MDTrajectoryReader();
-  ~H5MDTrajectoryReader();
+  ~H5MDTrajectoryReader() override;
 
   /// Opens original trajectory file.
-  bool Open(const std::string &file);
+  bool Open(const std::string &file) override;
 
   /// Initialize data structures.
   void Initialize(Topology &top);
 
   /// Reads in the first frame.
-  bool FirstFrame(Topology &conf);  // NOLINT
+  bool FirstFrame(Topology &conf) override;
 
   /// Reads in the next frame.
-  bool NextFrame(Topology &conf);  // NOLINT
+  bool NextFrame(Topology &conf) override;
 
   /// Closes original trajectory file.
-  void Close();
+  void Close() override;
 
  private:
   enum DatasetState { NONE, STATIC, TIMEDEPENDENT };
@@ -75,16 +75,18 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     chunk_rows[1] = N_particles_;
     chunk_rows[2] = vec_components_;
     hid_t dsp = H5Dget_space(ds);
-    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, chunk_rows, NULL);
-    hid_t mspace1 = H5Screate_simple(vec_components_, chunk_rows, NULL);
+    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, nullptr, chunk_rows,
+                        nullptr);
+    hid_t mspace1 = H5Screate_simple(vec_components_, chunk_rows, nullptr);
     T1 *data_out = new T1[N_particles_ * vec_components_];
     herr_t status =
         H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
       throw std::runtime_error("Error ReadVectorData: " +
                                boost::lexical_cast<std::string>(status));
-    } else
+    } else {
       return data_out;
+    }
   }
 
   /// Reads dataset with scalar values.
@@ -97,8 +99,8 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     ch_rows[0] = 1;
     ch_rows[1] = N_particles_;
     hid_t dsp = H5Dget_space(ds);
-    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
-    hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
+    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, nullptr, ch_rows, nullptr);
+    hid_t mspace1 = H5Screate_simple(2, ch_rows, nullptr);
     T1 *data_out = new T1[N_particles_];
     herr_t status =
         H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
@@ -133,7 +135,9 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   bool GroupExists(hid_t file_id, std::string path) {
     H5G_stat_t info;
     herr_t status = H5Gget_objinfo(file_id, path.c_str(), 0, &info);
-    if (status < 0) return false;
+    if (status < 0) {
+      return false;
+    }
     return info.type == H5G_GROUP;
   }
 

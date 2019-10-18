@@ -29,7 +29,7 @@
 namespace votca {
 namespace csg {
 
-typedef Eigen::MatrixXd group_matrix;
+using group_matrix = Eigen::MatrixXd;
 using namespace std;
 
 void imcio_write_dS(const string &file, const tools::Table &dS,
@@ -38,7 +38,9 @@ void imcio_write_dS(const string &file, const tools::Table &dS,
   ofstream out_dS;
   out_dS.open(file);
   out_dS << setprecision(8);
-  if (!out_dS) throw runtime_error(string("error, cannot open file ") + file);
+  if (!out_dS) {
+    throw runtime_error(string("error, cannot open file ") + file);
+  }
 
   if (list == nullptr) {
     for (int i = 0; i < dS.size(); ++i) {
@@ -60,7 +62,9 @@ void imcio_write_matrix(const string &file, const Eigen::MatrixXd &gmc,
   out_A.open(file);
   out_A << setprecision(8);
 
-  if (!out_A) throw runtime_error(string("error, cannot open file ") + file);
+  if (!out_A) {
+    throw runtime_error(string("error, cannot open file ") + file);
+  }
 
   if (list == nullptr) {
     for (int i = 0; i < gmc.rows(); ++i) {
@@ -88,7 +92,9 @@ void imcio_write_index(
   ofstream out_idx;
   out_idx.open(file);
 
-  if (!out_idx) throw runtime_error(string("error, cannot open file ") + file);
+  if (!out_idx) {
+    throw runtime_error(string("error, cannot open file ") + file);
+  }
 
   for (const auto &range : ranges) {
     out_idx << range.first << " " << range.second << endl;
@@ -100,9 +106,10 @@ void imcio_write_index(
 Eigen::MatrixXd imcio_read_matrix(const std::string &filename) {
   std::ifstream intt;
   intt.open(filename);
-  if (!intt)
+  if (!intt) {
     throw std::runtime_error(std::string("error, cannot open file ") +
                              filename);
+  }
 
   std::string line;
   std::vector<double> result;
@@ -134,7 +141,9 @@ std::vector<std::pair<std::string, tools::RangeParser> > imcio_read_index(
     const string &filename) {
   ifstream in;
   in.open(filename);
-  if (!in) throw runtime_error(string("error, cannot open file ") + filename);
+  if (!in) {
+    throw runtime_error(string("error, cannot open file ") + filename);
+  }
 
   std::vector<std::pair<std::string, tools::RangeParser> > indeces;
   string line;

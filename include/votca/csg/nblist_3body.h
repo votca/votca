@@ -41,7 +41,7 @@ namespace csg {
 class NBList_3Body : public TripleList<Bead *, BeadTriple> {
  public:
   NBList_3Body();
-  virtual ~NBList_3Body();
+  ~NBList_3Body() override;
 
   /// Generate the 3body neighbour list based on three bead lists (e.g. bead
   /// types)
@@ -124,10 +124,10 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
         new triple_type(bead1, bead2, bead3, r12, r13, r23));
   }
 
-  typedef BeadTriple *(*triple_creator_t)(Bead *bead1, Bead *bead2, Bead *bead3,
-                                          const Eigen::Vector3d &r12,
-                                          const Eigen::Vector3d &r13,
-                                          const Eigen::Vector3d &r23);
+  using triple_creator_t = BeadTriple *(*)(Bead *, Bead *, Bead *,
+                                           const Eigen::Vector3d &,
+                                           const Eigen::Vector3d &,
+                                           const Eigen::Vector3d &);
   /// the current bead pair creator function
   triple_creator_t _triple_creator;
 
@@ -136,29 +136,29 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
   /// functions
   class Functor {
    public:
-    Functor() {}
+    Functor() = default;
     virtual bool operator()(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
                             const Eigen::Vector3d &, const Eigen::Vector3d &,
                             const double dist12, const double dist13,
                             const double dist23) = 0;
-    virtual ~Functor(){};
+    virtual ~Functor() = default;
+    ;
   };
 
   /// Functor for member functions
   template <typename T>
   class FunctorMember : public Functor {
    public:
-    typedef bool (T::*fkt_t)(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
-                             const Eigen::Vector3d &, const Eigen::Vector3d &,
-                             const double dist12, const double dist13,
-                             const double dist23);
+    using fkt_t = bool (T::*)(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
+                              const Eigen::Vector3d &, const Eigen::Vector3d &,
+                              const double, const double, const double);
 
     FunctorMember(T *cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
 
     bool operator()(Bead *b1, Bead *b2, Bead *b3, const Eigen::Vector3d &r12,
                     const Eigen::Vector3d &r13, const Eigen::Vector3d &r23,
                     const double dist12, const double dist13,
-                    const double dist23) {
+                    const double dist23) override {
       return (_cls->*_fkt)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
     }
 
@@ -170,16 +170,15 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
   /// Functor for non-member functions
   class FunctorNonMember : public Functor {
    public:
-    typedef bool (*fkt_t)(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
-                          const Eigen::Vector3d &, const Eigen::Vector3d &,
-                          const double dist12, const double dist13,
-                          const double dist23);
+    using fkt_t = bool (*)(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
+                           const Eigen::Vector3d &, const Eigen::Vector3d &,
+                           const double, const double, const double);
     FunctorNonMember(fkt_t fkt) : _fkt(fkt) {}
 
     bool operator()(Bead *b1, Bead *b2, Bead *b3, const Eigen::Vector3d &r12,
                     const Eigen::Vector3d &r13, const Eigen::Vector3d &r23,
                     const double dist12, const double dist13,
-                    const double dist23) {
+                    const double dist23) override {
       return (*_fkt)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
     }
 
@@ -201,7 +200,9 @@ inline void NBList_3Body::SetMatchFunction(
                               const Eigen::Vector3d &, const Eigen::Vector3d &,
                               const double dist12, const double dist13,
                               const double dist23)) {
-  if (_match_function) delete _match_function;
+  if (_match_function) {
+    delete _match_function;
+  }
   _match_function = dynamic_cast<Functor *>(new FunctorMember<T>(object, fkt));
 }
 
@@ -209,7 +210,9 @@ inline void NBList_3Body::SetMatchFunction(bool (*fkt)(
     Bead *, Bead *, Bead *, const Eigen::Vector3d &, const Eigen::Vector3d &,
     const Eigen::Vector3d &, const double dist12, const double dist13,
     const double dist23)) {
-  if (_match_function) delete _match_function;
+  if (_match_function) {
+    delete _match_function;
+  }
   _match_function = dynamic_cast<Functor *>(new FunctorNonMember(fkt));
 }
 

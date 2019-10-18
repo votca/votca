@@ -69,9 +69,10 @@ bool DLPOLYTrajectoryReader::Open(const string &file)
   }
 
   _fl.open(_fname.c_str());
-  if (!_fl.is_open())
+  if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on opening dlpoly file '" + _fname +
                                  "'");
+  }
   return true;
 }
 
@@ -118,9 +119,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     tools::Tokenizer tok(line, " \t");
     vector<string> fields = tok.ToVector();
 
-    if (fields.size() < 3)
+    if (fields.size() < 3) {
       throw std::runtime_error("Error: too few directive switches (<3) in '" +
                                _fname + "' header (check its 2-nd line)");
+    }
 
     mavecs = boost::lexical_cast<int>(fields[0]);
     mpbct = boost::lexical_cast<int>(fields[1]);
@@ -147,9 +149,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
          << endl;
 #endif
 
-    if (matoms != conf.BeadCount())
+    if (matoms != conf.BeadCount()) {
       throw std::runtime_error("Number of atoms/beads in '" + _fname +
                                "' header differs from that read with topology");
+    }
 
     if (mpbct == 0) {
       pbc_type = BoundaryCondition::typeOpen;
@@ -212,9 +215,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       tools::Tokenizer tok(line, " \t");
       vector<string> fields = tok.ToVector();
 
-      if (fields.size() < 6)
+      if (fields.size() < 6) {
         throw std::runtime_error(
             "Error: too few directive switches (<6) in 'timestep' record");
+      }
 
       nstep = boost::lexical_cast<int>(fields[1]);
       natoms = boost::lexical_cast<int>(fields[2]);
@@ -231,22 +235,26 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       cout << ", dt = " << fields[5] << ", time = " << stime << endl;
 #endif
 
-      if (natoms != conf.BeadCount())
+      if (natoms != conf.BeadCount()) {
         throw std::runtime_error(
             "Error: N of atoms/beads in '" + _fname +
             "' header differs from that found in topology");
-      if (natoms != matoms)
+      }
+      if (natoms != matoms) {
         throw std::runtime_error(
             "Error: N of atoms/beads in '" + _fname +
             "' header differs from that found in the frame");
-      if (navecs != mavecs)
+      }
+      if (navecs != mavecs) {
         throw std::runtime_error(
             "Error: N of atom vectors (keytrj) in '" + _fname +
             "' header differs from that found in the frame");
-      if (npbct != mpbct)
+      }
+      if (npbct != mpbct) {
         throw std::runtime_error(
             "Error: boundary conditions (imcon) in '" + _fname +
             "' header differs from that found in the frame");
+      }
 
       // total time - calculated as product due to differences between DL_POLY
       // versions in HISTORY formats
@@ -286,10 +294,11 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
            << "' - box vector # " << i + 1 << endl;
 #endif
 
-      if (_fl.eof())
+      if (_fl.eof()) {
         throw std::runtime_error("Error: unexpected EOF in dlpoly file '" +
                                  _fname + "', when reading box vector" +
                                  boost::lexical_cast<string>(i));
+      }
 
       tools::Tokenizer tok(line, " \t");
       vector<double> fields;
@@ -310,19 +319,21 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
              << endl;
 #endif
 
-        if (_fl.eof())
+        if (_fl.eof()) {
           throw std::runtime_error("Error: unexpected EOF in dlpoly file '" +
                                    _fname + "', when reading atom/bead # " +
                                    boost::lexical_cast<string>(i + 1));
+        }
 
         tools::Tokenizer tok(line, " \t");
         vector<string> fields = tok.ToVector();
         int id = boost::lexical_cast<int>(fields[1]);
-        if (i + 1 != id)
+        if (i + 1 != id) {
           throw std::runtime_error(
               "Error: unexpected atom/bead index in dlpoly file '" + _fname +
               "' : expected " + boost::lexical_cast<string>(i + 1) +
               " but got " + boost::lexical_cast<string>(id));
+        }
       }
 
       Bead *b = conf.getBead(i);
@@ -336,12 +347,13 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
              << endl;
 #endif
 
-        if (_fl.eof())
+        if (_fl.eof()) {
           throw std::runtime_error(
               "Error: unexpected EOF in dlpoly file '" + _fname +
               "', when reading atom/bead vector # " +
               boost::lexical_cast<string>(j) + " of atom " +
               boost::lexical_cast<string>(i + 1));
+        }
 
         vector<double> fields;
         tools::Tokenizer tok(line, " \t");

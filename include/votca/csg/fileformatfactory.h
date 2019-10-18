@@ -30,7 +30,7 @@ namespace TOOLS = votca::tools;
 template <typename T>
 class FileFormatFactory : public TOOLS::ObjectFactory<std::string, T> {
  public:
-  FileFormatFactory() {}
+  FileFormatFactory() = default;
 
   T *Create(const std::string &file);
 };
@@ -46,7 +46,7 @@ T *FileFormatFactory<T>::Create(const std::string &file) {
                              "'" +
                              file + "' cannot be read or written");
   }
-  return NULL;
+  return nullptr;
 }
 
 }  // namespace csg

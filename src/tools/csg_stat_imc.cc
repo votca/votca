@@ -36,16 +36,18 @@ using namespace std;
 // here the data structures are prepared to handle all the data
 void Imc::Initialize() {
   // do some output
-  if (_do_imc)
+  if (_do_imc) {
     cout << "begin to calculate inverse monte carlo parameters\n";
-  else
+  } else {
     cout << "begin to calculate distribution functions\n";
+  }
   cout << "# of bonded interactions: " << _bonded.size() << endl;
   cout << "# of non-bonded interactions: " << _nonbonded.size() << endl;
 
-  if (_bonded.size() + _nonbonded.size() == 0)
+  if (_bonded.size() + _nonbonded.size() == 0) {
     throw std::runtime_error(
         "No interactions defined in options xml-file - nothing to be done");
+  }
 
   // initialize non-bonded structures
   for (tools::Property *prop : _nonbonded) {
@@ -60,7 +62,9 @@ void Imc::Initialize() {
   }
 
   // initialize the group structures
-  if (_do_imc) InitializeGroups();
+  if (_do_imc) {
+    InitializeGroups();
+  }
 };
 
 void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
@@ -85,27 +89,30 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
       beads2.Generate(*top, prop->get("type2").value());
       beads3.Generate(*top, prop->get("type3").value());
 
-      if (beads1.size() == 0)
+      if (beads1.size() == 0) {
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
             prop->get("type1").value() +
             "\"\n"
             "This was specified in type1 of interaction \"" +
             name + "\"");
-      if (beads2.size() == 0)
+      }
+      if (beads2.size() == 0) {
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
             prop->get("type2").value() +
             "\"\n"
             "This was specified in type2 of interaction \"" +
             name + "\"");
-      if (beads3.size() == 0)
+      }
+      if (beads3.size() == 0) {
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
             prop->get("type3").value() +
             "\"\n"
             "This was specified in type3 of interaction \"" +
             name + "\"");
+      }
     }
     // 2body
     if (!i._threebody) {
@@ -116,26 +123,29 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
       beads1.Generate(*top, prop->get("type1").value());
       beads2.Generate(*top, prop->get("type2").value());
 
-      if (beads1.size() == 0)
+      if (beads1.size() == 0) {
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
             prop->get("type1").value() +
             "\"\n"
             "This was specified in type1 of interaction \"" +
             name + "\"");
-      if (beads2.size() == 0)
+      }
+      if (beads2.size() == 0) {
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
             prop->get("type2").value() +
             "\"\n"
             "This was specified in type2 of interaction \"" +
             name + "\"");
+      }
 
       // calculate normalization factor for rdf
-      if (prop->get("type1").value() == prop->get("type2").value())
+      if (prop->get("type1").value() == prop->get("type2").value()) {
         i._norm = 1. / (beads1.size() * (beads2.size()) / 2.);
-      else
+      } else {
         i._norm = 1. / (beads1.size() * beads2.size());
+      }
     }
   }
 
@@ -143,11 +153,12 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
     string name = prop->get("name").value();
 
     std::list<Interaction *> list = top->InteractionsInGroup(name);
-    if (list.empty())
+    if (list.empty()) {
       throw std::runtime_error(
           "Bonded interaction '" + name +
           "' defined in options xml-file, but not in topology - check name "
           "definition in the mapping file again");
+    }
   }
 }
 
@@ -155,10 +166,11 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
 Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
   string name = p->get("name").value();
   string group;
-  if (_do_imc)
+  if (_do_imc) {
     group = p->get("inverse.imc.group").value();
-  else
+  } else {
     group = "none";
+  }
 
   int index = _interactions.size();
   auto success = _interactions.insert(std::make_pair(
@@ -199,15 +211,18 @@ void Imc::EndEvaluate() {
     if (_block_length == 0) {
       string suffix = string(".") + _extension;
       WriteDist(suffix);
-      if (_do_imc) WriteIMCData();
+      if (_do_imc) {
+        WriteIMCData();
+      }
     }
   }
   // clear interactions and groups
   _interactions.clear();
   _groups.clear();
-  if (!_processed_some_frames)
+  if (!_processed_some_frames) {
     throw std::runtime_error(
         "no frames were processed. Please check your input");
+  }
 }
 
 // load options from xml file
@@ -269,12 +284,13 @@ void Imc::Worker::DoNonbonded(Topology *top) {
     bool gridsearch = true;
 
     if (_imc->_options.exists("cg.nbsearch")) {
-      if (_imc->_options.get("cg.nbsearch").as<string>() == "grid")
+      if (_imc->_options.get("cg.nbsearch").as<string>() == "grid") {
         gridsearch = true;
-      else if (_imc->_options.get("cg.nbsearch").as<string>() == "simple")
+      } else if (_imc->_options.get("cg.nbsearch").as<string>() == "simple") {
         gridsearch = false;
-      else
+      } else {
         throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+      }
     }
 
     // Preleminary: Quickest way to incorporate 3 body correlations
@@ -290,10 +306,11 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       // generate the neighbour list
       std::unique_ptr<NBList_3Body> nb;
 
-      if (gridsearch)
+      if (gridsearch) {
         nb = std::unique_ptr<NBList_3Body>(new NBListGrid_3Body());
-      else
+      } else {
         nb = std::unique_ptr<NBList_3Body>(new NBList_3Body());
+      }
 
       nb->setCutoff(i._cut);  // implement different cutoffs for different
                               // interactions!
@@ -352,10 +369,11 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       {
         // generate the neighbour list
         std::unique_ptr<NBList> nb;
-        if (gridsearch)
+        if (gridsearch) {
           nb = std::unique_ptr<NBList>(new NBListGrid());
-        else
+        } else {
           nb = std::unique_ptr<NBList>(new NBListGrid());
+        }
 
         nb->setCutoff(i._max + i._step);
 
@@ -364,27 +382,30 @@ void Imc::Worker::DoNonbonded(Topology *top) {
         nb->SetMatchFunction(&h, &IMCNBSearchHandler::FoundPair);
 
         // is it same types or different types?
-        if (prop->get("type1").value() == prop->get("type2").value())
+        if (prop->get("type1").value() == prop->get("type2").value()) {
           nb->Generate(beads1);
-        else
+        } else {
           nb->Generate(beads1, beads2);
+        }
       }
 
       // if one wants to calculate the mean force
       if (i._force) {
         std::unique_ptr<NBList> nb_force;
-        if (gridsearch)
+        if (gridsearch) {
           nb_force = std::unique_ptr<NBList>(new NBListGrid());
-        else
+        } else {
           nb_force = std::unique_ptr<NBList>(new NBListGrid());
+        }
 
         nb_force->setCutoff(i._max + i._step);
 
         // is it same types or different types?
-        if (prop->get("type1").value() == prop->get("type2").value())
+        if (prop->get("type1").value() == prop->get("type2").value()) {
           nb_force->Generate(beads1);
-        else
+        } else {
           nb_force->Generate(beads1, beads2);
+        }
 
         // process all pairs to calculate the projection of the
         // mean force on bead 1 on the pair distance: F1 * r12
@@ -434,7 +455,9 @@ Imc::group_t *Imc::getGroup(const string &name) {
 
 // initialize the groups after interactions are added
 void Imc::InitializeGroups() {
-  if (!_do_imc) return;
+  if (!_do_imc) {
+    return;
+  }
   map<string, group_t *>::iterator group_iter;
 
   // clear all the pairs
@@ -474,7 +497,9 @@ void Imc::InitializeGroups() {
 
 // update the correlation matrix
 void Imc::DoCorrelations(Imc::Worker *worker) {
-  if (!_do_imc) return;
+  if (!_do_imc) {
+    return;
+  }
 
   for (auto &group : _groups) {
     auto &grp = group.second;
@@ -578,7 +603,9 @@ void Imc::WriteDist(const string &suffix) {
  *      - calculate th
  */
 void Imc::WriteIMCData(const string &suffix) {
-  if (!_do_imc) return;
+  if (!_do_imc) {
+    return;
+  }
   // map<string, interaction_t *>::iterator ic_iter;
   map<string, group_t *>::iterator group_iter;
 
@@ -673,7 +700,9 @@ void Imc::CalcDeltaS(interaction_t *interaction,
     for (unsigned int i = 0; i < target.y().size(); ++i) {
       double x1 = target.x()[i] - 0.5 * interaction->_step;
       double x2 = x1 + interaction->_step;
-      if (x1 < 0) x1 = x2 = 0;
+      if (x1 < 0) {
+        x1 = x2 = 0;
+      }
       target.y()[i] = 1. / (_avg_vol.getAvg() * interaction->_norm) *
                       target.y()[i] *
                       (4. / 3. * M_PI * (x2 * x2 * x2 - x1 * x1 * x1));
@@ -681,16 +710,19 @@ void Imc::CalcDeltaS(interaction_t *interaction,
   } else {
     target.y() = (1.0 / interaction->_norm) * target.y();
   }
-  if (target.y().size() != interaction->_average.data().y().size())
+  if (target.y().size() != interaction->_average.data().y().size()) {
     throw std::runtime_error(
         "number of grid points in target does not match the grid");
+  }
 
   dS = interaction->_average.data().y() - target.y();
 }
 
 void Imc::WriteIMCBlock(const string &suffix) {
 
-  if (!_do_imc) return;
+  if (!_do_imc) {
+    return;
+  }
 
   // iterate over all groups
   for (auto &group : _groups) {
@@ -739,8 +771,9 @@ void Imc::WriteIMCBlock(const string &suffix) {
     string name_dS = grp_name + suffix + ".S";
     out_dS.open(name_dS);
     out_dS << setprecision(8);
-    if (!out_dS)
+    if (!out_dS) {
       throw runtime_error(string("error, cannot open file ") + name_dS);
+    }
 
     for (int i = 0; i < dS.size(); ++i) {
       out_dS << r[i] << " " << dS[i] << endl;
@@ -755,8 +788,9 @@ void Imc::WriteIMCBlock(const string &suffix) {
     out_cor.open(name_cor);
     out_cor << setprecision(8);
 
-    if (!out_cor)
+    if (!out_cor) {
       throw runtime_error(string("error, cannot open file ") + name_cor);
+    }
 
     for (int i = 0; i < grp->_corr.rows(); ++i) {
       for (int j = 0; j < grp->_corr.cols(); ++j) {
@@ -815,7 +849,9 @@ void Imc::MergeWorker(CsgApplication::Worker *worker_) {
   }
 
   // update correlation matrices
-  if (_do_imc) DoCorrelations(worker);
+  if (_do_imc) {
+    DoCorrelations(worker);
+  }
 
   if (_block_length != 0) {
     if ((_nframes % _block_length) == 0) {

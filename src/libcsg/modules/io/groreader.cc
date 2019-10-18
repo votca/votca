@@ -32,8 +32,9 @@ bool GROReader::ReadTopology(string file, Topology &top) {
   top.Cleanup();
 
   _fl.open(file);
-  if (!_fl.is_open())
+  if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on open topology file: " + file);
+  }
 
   NextFrame(top);
 
@@ -44,8 +45,9 @@ bool GROReader::ReadTopology(string file, Topology &top) {
 
 bool GROReader::Open(const string &file) {
   _fl.open(file);
-  if (!_fl.is_open())
+  if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on open trajectory file: " + file);
+  }
   return true;
 }
 
@@ -65,9 +67,10 @@ bool GROReader::NextFrame(Topology &top) {
   }
   getline(_fl, tmp);  // number atoms
   int natoms = std::stoi(tmp);
-  if (!_topology && natoms != top.BeadCount())
+  if (!_topology && natoms != top.BeadCount()) {
     throw std::runtime_error(
         "number of beads in topology and trajectory differ");
+  }
 
   for (int i = 0; i < natoms; i++) {
     string line;
@@ -103,8 +106,9 @@ bool GROReader::NextFrame(Topology &top) {
     Bead *b;
     if (_topology) {
       int resnr = boost::lexical_cast<int>(resNum);
-      if (resnr < 1)
+      if (resnr < 1) {
         throw std::runtime_error("Misformated gro file, resnr has to be > 0");
+      }
       // TODO: fix the case that resnr is not in ascending order
       if (resnr > top.ResidueCount()) {
         while ((resnr - 1) > top.ResidueCount()) {  // gro resnr should start
@@ -139,16 +143,19 @@ bool GROReader::NextFrame(Topology &top) {
   }
 
   getline(_fl, tmp);  // read box line
-  if (_fl.eof())
+  if (_fl.eof()) {
     throw std::runtime_error(
         "unexpected end of file in poly file, when boxline");
+  }
   tools::Tokenizer tok(tmp, " ");
   vector<double> fields;
   tok.ConvertToVector<double>(fields);
   Eigen::Matrix3d box;
   if (fields.size() == 3) {
     box = Eigen::Matrix3d::Zero();
-    for (int i = 0; i < 3; i++) box(i, i) = fields[i];
+    for (int i = 0; i < 3; i++) {
+      box(i, i) = fields[i];
+    }
   } else if (fields.size() == 9) {
     box(0, 0) = fields[0];
     box(1, 1) = fields[1];

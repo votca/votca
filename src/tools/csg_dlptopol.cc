@@ -33,8 +33,8 @@ using boost::format;
 
 class DLPTopolApp : public CsgApplication {
  public:
-  string ProgramName() { return "csg_dlptopol"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "csg_dlptopol"; }
+  void HelpText(ostream &out) override {
     out << "Create a dlpoly topology template based on an existing (atomistic) "
            "topology and \n"
         << "a mapping xml-file. The created template file needs to be "
@@ -48,15 +48,15 @@ class DLPTopolApp : public CsgApplication {
            "--no-map\n";
   }
 
-  bool DoMapping(void) { return true; }
+  bool DoMapping(void) override { return true; }
 
-  void Initialize(void);
-  bool EvaluateOptions(void) {
+  void Initialize(void) override;
+  bool EvaluateOptions(void) override {
     CsgApplication::EvaluateOptions();
     CheckRequired("out", "no output topology specified");
     return true;
   }
-  bool EvaluateTopology(Topology *top, Topology *top_ref);
+  bool EvaluateTopology(Topology *top, Topology *top_ref) override;
 
  protected:
   void WriteMoleculeAtoms(ostream &out, Molecule &cg);
@@ -146,11 +146,11 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
           0,
           bead_name1.find_first_of("#"));  // skip #index of atom from its name
 
-      for (unsigned int imt = 0; imt < MolecularTypes.size(); imt++) {
+      for (auto &MolecularType : MolecularTypes) {
 
-        for (int ib2 = 0; ib2 < MolecularTypes[imt]->BeadCount(); ib2++) {
+        for (int ib2 = 0; ib2 < MolecularType->BeadCount(); ib2++) {
 
-          string bead_name2 = MolecularTypes[imt]->getBead(ib2)->getType();
+          string bead_name2 = MolecularType->getBead(ib2)->getType();
           bead_name2 = bead_name2.substr(
               0, bead_name2.find_first_of("#"));  // skip #index of atom from
                                                   // its name
@@ -162,9 +162,8 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
           bool is_new_pair = true;
 
-          for (unsigned int ibp = 0; ibp < vdw_pairs.size(); ibp++) {
-            if (ss_bp1.str() == vdw_pairs[ibp] ||
-                ss_bp2.str() == vdw_pairs[ibp]) {
+          for (const auto &vdw_pair : vdw_pairs) {
+            if (ss_bp1.str() == vdw_pair || ss_bp2.str() == vdw_pair) {
               is_new_pair = false;
               break;
             }
@@ -181,9 +180,10 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
   }
   nummols.push_back(prv_mol_number);
 
-  if (MolecularTypes.size() > 1)
+  if (MolecularTypes.size() > 1) {
     cout << "WARNING: creation of topology for multiple molecular types "
             "is experimental at this stage\n";
+  }
 
   ofstream fl;
   fl.open(fname.c_str());
@@ -203,8 +203,8 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
     fl << "vdw " << vdw_pairs.size() << endl;
 
-    for (unsigned int ibp = 0; ibp < vdw_pairs.size(); ibp++) {
-      fl << vdw_pairs[ibp] << " tab   1.00000  0.00000\n";
+    for (const auto &vdw_pair : vdw_pairs) {
+      fl << vdw_pair << " tab   1.00000  0.00000\n";
     }
   }
 
@@ -254,7 +254,9 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
     Interaction *ic = *iter;
     if (nb != ic->BeadCount()) {
 
-      if (sout.str() != "") out << n_entries << endl << sout.str();
+      if (sout.str() != "") {
+        out << n_entries << endl << sout.str();
+      }
 
       sout.str("");
       n_entries = 0;
@@ -283,14 +285,18 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
     // sout << ic->getInteractionFunc(); // something like that (only for 1:1
     // mapping!)
     sout << " tab ";
-    for (int i = 0; i < nb; ++i) sout << ic->getBeadId(i) + 1 << " ";
+    for (int i = 0; i < nb; ++i) {
+      sout << ic->getBeadId(i) + 1 << " ";
+    }
     sout << "   1.00000  0.00000"
          << " # ";
     sout << to_string(ic->getMolecule() + 1);
     sout << ":" + ic->getGroup();
     sout << ":" + to_string(ic->getIndex() + 1) << endl;
   }
-  if (sout.str() != "") out << n_entries << endl << sout.str();
+  if (sout.str() != "") {
+    out << n_entries << endl << sout.str();
+  }
 }
 
 void DLPTopolApp::WriteMolecularType(ostream &out, Molecule &cg, int nummol) {

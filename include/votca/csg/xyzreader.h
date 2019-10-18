@@ -38,18 +38,18 @@ namespace csg {
 */
 class XYZReader : public TrajectoryReader, public TopologyReader {
  public:
-  XYZReader() {}
-  ~XYZReader() {}
+  XYZReader() = default;
+  ~XYZReader() override = default;
 
   /// open a topology file
-  bool ReadTopology(std::string file, Topology &top);
+  bool ReadTopology(std::string file, Topology &top) override;
 
   /// open a trajectory file
-  bool Open(const std::string &file);
+  bool Open(const std::string &file) override;
   /// read in the first frame
-  bool FirstFrame(Topology &top);
+  bool FirstFrame(Topology &top) override;
   /// read in the next frame
-  bool NextFrame(Topology &top);
+  bool NextFrame(Topology &top) override;
 
   template <class T>
   void ReadFile(T &container) {
@@ -58,7 +58,7 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
     }
   }
 
-  void Close();
+  void Close() override;
 
  private:
   template <class T>
@@ -72,9 +72,8 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
   void AddAtom(T &container, std::string name, int id,
                const Eigen::Vector3d &pos) {
     // the typedef returns the type of the objects the container holds
-    typedef
-        typename std::iterator_traits<decltype(container.begin())>::value_type
-            atom;
+    using atom =
+        typename std::iterator_traits<decltype(container.begin())>::value_type;
     Eigen::Vector3d pos2 = pos * tools::conv::ang2bohr;
     container.push_back(atom(id, name, pos2));
   }

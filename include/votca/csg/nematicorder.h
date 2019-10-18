@@ -26,8 +26,8 @@ namespace csg {
 
 class NematicOrder {
  public:
-  NematicOrder() {}
-  ~NematicOrder() {}
+  NematicOrder() = default;
+  ~NematicOrder() = default;
 
   void Process(Topology &top, const std::string &filter = "*");
 

@@ -39,7 +39,7 @@ class TopologyMap {
   Topology *_in;
   Topology *_out;
 
-  typedef std::vector<Map *> MapContainer;
+  using MapContainer = std::vector<Map *>;
   MapContainer _maps;
 };
 

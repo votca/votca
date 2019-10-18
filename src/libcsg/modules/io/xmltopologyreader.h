@@ -33,8 +33,9 @@ class BondBead {
   BondBead(std::string &line) {
     TOOLS::Tokenizer tok(line, ":");
     std::vector<std::string> tmp_vec = tok.ToVector();
-    if (tmp_vec.size() != 2)
+    if (tmp_vec.size() != 2) {
       throw std::runtime_error("Wrong number of elements in bead: " + line);
+    }
     molname = tmp_vec[0];
     atname = tmp_vec[1];
     molname.erase(molname.find_last_not_of(" \n\r\t") + 1);
@@ -50,7 +51,8 @@ class XMLBead {
   XMLBead(std::string _name, std::string _type, double _mass = 1.0,
           double _q = 0.0)
       : name(_name), type(_type), mass(_mass), q(_q){};
-  XMLBead(){};
+  XMLBead() = default;
+  ;
 
   int pid;
   std::string name;
@@ -80,8 +82,8 @@ class XMLMolecule {
 class XMLTopologyReader : public TopologyReader {
  public:
   /// read a topology file
-  bool ReadTopology(std::string file, Topology &top);
-  ~XMLTopologyReader();
+  bool ReadTopology(std::string file, Topology &top) override;
+  ~XMLTopologyReader() override;
 
  private:
   typedef boost::unordered_multimap<std::string, XMLMolecule *> MoleculesMap;

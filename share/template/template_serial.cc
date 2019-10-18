@@ -27,16 +27,18 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgTestApp : public CsgApplication {
-  string ProgramName() { return "template_nblist"; }
-  void HelpText(ostream &out) { out << "rough template for rdf calculations"; }
+  string ProgramName() override { return "template_nblist"; }
+  void HelpText(ostream &out) override {
+    out << "rough template for rdf calculations";
+  }
 
-  void Initialize();
+  void Initialize() override;
 
-  bool DoTrajectory() { return true; }
+  bool DoTrajectory() override { return true; }
 
-  void BeginEvaluate(Topology *top, Topology *top_ref);
-  void EvalConfiguration(Topology *top, Topology *top_ref);
-  void EndEvaluate();
+  void BeginEvaluate(Topology *top, Topology *top_ref) override;
+  void EvalConfiguration(Topology *top, Topology *top_ref) override;
+  void EndEvaluate() override;
 
  protected:
   votca::tools::HistogramNew _rdf;
@@ -56,7 +58,9 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *top_ref) {
   nb.setCutoff(_cut_off);
   nb.Generate(b);
   NBList::iterator i;
-  for (i = nb.begin(); i != nb.end(); ++i) _rdf.Process((*i)->dist());
+  for (i = nb.begin(); i != nb.end(); ++i) {
+    _rdf.Process((*i)->dist());
+  }
 }
 
 void CsgTestApp::Initialize() {

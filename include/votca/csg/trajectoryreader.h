@@ -32,7 +32,7 @@ namespace csg {
  */
 class TrajectoryReader {
  public:
-  virtual ~TrajectoryReader() {}
+  virtual ~TrajectoryReader() = default;
   /// open a trejectory file
   virtual bool Open(const std::string &file) = 0;
 

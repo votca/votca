@@ -255,9 +255,9 @@ void TabulatedPotential::WritePotential(BondedStatistics &bs,
 bool TabulatedPotential::SetOption_(Histogram::options_t &op,
                                     const vector<string> &args) {
   if (args.size() > 2) {
-    if (args[1] == "n")
+    if (args[1] == "n") {
       op._n = boost::lexical_cast<int>(args[2]);
-    else if (args[1] == "min") {
+    } else if (args[1] == "min") {
       op._min = boost::lexical_cast<double>(args[2]);
     } else if (args[1] == "max") {
       op._max = boost::lexical_cast<double>(args[2]);
@@ -296,13 +296,15 @@ void TabulatedPotential::CalcForce_(vector<double> &U, vector<double> &F,
   size_t n = U.size();
   double f = 0.5 / dx;
   F.resize(n);
-  if (bPeriodic)
+  if (bPeriodic) {
     F[n - 1] = F[0] = -(U[1] - U[n - 2]) * f;
-  else {
+  } else {
     F[0] = -(U[1] - U[0]) * 2 * f;
     F[n - 1] = -(U[n - 1] - U[n - 2]) * 2 * f;
   }
-  for (size_t i = 1; i < n - 1; i++) F[i] = -(U[i + 1] - U[i - 1]) * f;
+  for (size_t i = 1; i < n - 1; i++) {
+    F[i] = -(U[i + 1] - U[i - 1]) * f;
+  }
 }
 
 void TabulatedPotential::Smooth_(vector<double> &data, bool bPeriodic) {
@@ -346,19 +348,21 @@ void TabulatedPotential::BoltzmannInvert_(vector<double> &data) {
   _min = numeric_limits<double>::max();
   _max = numeric_limits<double>::min();
 
-  for (size_t i = 0; i < data.size(); i++) {
-    _max = max(data[i], _max);
-    if (data[i] > 0) _min = min(data[i], _min);
+  for (double i : data) {
+    _max = max(i, _max);
+    if (i > 0) {
+      _min = min(i, _min);
+    }
   }
   _max = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(_max);
   _min = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(_min) - _max;
 
-  for (size_t i = 0; i < data.size(); i++) {
-    if (data[i] == 0)
-      data[i] = _min;
-    else
-      data[i] =
-          -conv::kB * conv::ev2kj_per_mol * _Temperature * log(data[i]) - _max;
+  for (double &i : data) {
+    if (i == 0) {
+      i = _min;
+    } else {
+      i = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(i) - _max;
+    }
   }
 }
 

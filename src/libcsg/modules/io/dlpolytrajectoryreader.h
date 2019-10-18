@@ -37,13 +37,13 @@ namespace csg {
 class DLPOLYTrajectoryReader : public TrajectoryReader {
  public:
   /// open original trajectory file
-  bool Open(const std::string &file);
+  bool Open(const std::string &file) override;
   /// read in the first frame
-  bool FirstFrame(Topology &conf);
+  bool FirstFrame(Topology &conf) override;
   /// read in the next frame
-  bool NextFrame(Topology &conf);
+  bool NextFrame(Topology &conf) override;
   /// close original trajectory file
-  void Close();
+  void Close() override;
 
   /// set/get the original configuration or trajectory file name:
   /// <name>.dlpc/<name>.dlph (convention: ".dlpc"="CONFIG", ".dlph"="HISTORY")

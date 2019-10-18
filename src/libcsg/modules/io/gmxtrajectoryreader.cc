@@ -37,21 +37,26 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
   gmx_output_env_t *oenv;
   output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
   if (!read_first_frame(oenv, &_gmx_status, (char *)_filename.c_str(),
-                        &_gmx_frame, TRX_READ_X | TRX_READ_V | TRX_READ_F))
+                        &_gmx_frame, TRX_READ_X | TRX_READ_V | TRX_READ_F)) {
     throw std::runtime_error(string("cannot open ") + _filename);
+  }
   output_env_done(oenv);
 
   Eigen::Matrix3d m;
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++) m(i, j) = _gmx_frame.box[j][i];
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      m(i, j) = _gmx_frame.box[j][i];
+    }
+  }
   conf.setBox(m);
   conf.setTime(_gmx_frame.time);
   conf.setStep(_gmx_frame.step);
   cout << endl;
 
-  if (_gmx_frame.natoms != (int)conf.Beads().size())
+  if (_gmx_frame.natoms != (int)conf.Beads().size()) {
     throw std::runtime_error(
         "number of beads in trajectory do not match topology");
+  }
 
   // conf.HasPos(true);
   // conf.HasF(_gmx_frame.bF);
@@ -77,12 +82,17 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
 bool GMXTrajectoryReader::NextFrame(Topology &conf) {
   gmx_output_env_t *oenv;
   output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
-  if (!read_next_frame(oenv, _gmx_status, &_gmx_frame)) return false;
+  if (!read_next_frame(oenv, _gmx_status, &_gmx_frame)) {
+    return false;
+  }
   output_env_done(oenv);
 
   Eigen::Matrix3d m;
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++) m(i, j) = _gmx_frame.box[j][i];
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      m(i, j) = _gmx_frame.box[j][i];
+    }
+  }
   conf.setTime(_gmx_frame.time);
   conf.setStep(_gmx_frame.step);
   conf.setBox(m);

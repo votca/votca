@@ -27,9 +27,10 @@ namespace csg {
 class NBListGrid_3Body : public NBList_3Body {
  public:
   void Generate(BeadList &list1, BeadList &list2, BeadList &list3,
-                bool do_exclusions = true);
-  void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
-  void Generate(BeadList &list, bool do_exclusions = true);
+                bool do_exclusions = true) override;
+  void Generate(BeadList &list1, BeadList &list2,
+                bool do_exclusions = true) override;
+  void Generate(BeadList &list, bool do_exclusions = true) override;
 
  protected:
   struct cell_t {

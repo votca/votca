@@ -34,8 +34,9 @@ bool PDBReader::ReadTopology(string file, Topology &top) {
   top.Cleanup();
 
   _fl.open(file);
-  if (!_fl.is_open())
+  if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on open topology file: " + file);
+  }
 
   NextFrame(top);
   _fl.close();
@@ -46,8 +47,9 @@ bool PDBReader::ReadTopology(string file, Topology &top) {
 bool PDBReader::Open(const string &file) {
 
   _fl.open(file);
-  if (!_fl.is_open())
+  if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on open trajectory file: " + file);
+  }
 
   return true;
 }
@@ -173,9 +175,8 @@ bool PDBReader::NextFrame(Topology &top) {
       int at1 = boost::lexical_cast<int>(atm1);
       row.at(0) = at1;
 
-      for (auto bonded_atm = bonded_atms.begin();
-           bonded_atm != bonded_atms.end(); bonded_atm++) {
-        int at2 = boost::lexical_cast<int>(*bonded_atm);
+      for (auto &bonded_atm : bonded_atms) {
+        int at2 = boost::lexical_cast<int>(bonded_atm);
         row.at(1) = at2;
         // Because every bond will be counted twice in a .pdb file
         // we will only add bonds where the id (atm1) is less than the
@@ -272,8 +273,9 @@ bool PDBReader::NextFrame(Topology &top) {
           resName = "UNK";
         }
 
-        if (resnr < 1)
+        if (resnr < 1) {
           throw std::runtime_error("Misformated pdb file, resnr has to be > 0");
+        }
         // TODO: fix the case that resnr is not in ascending order
         if (resnr > top.ResidueCount()) {
           while ((resnr - 1) > top.ResidueCount()) {  // pdb resnr should start
@@ -345,9 +347,10 @@ bool PDBReader::NextFrame(Topology &top) {
     }
   }
 
-  if (!_topology && (bead_count > 0) && bead_count != top.BeadCount())
+  if (!_topology && (bead_count > 0) && bead_count != top.BeadCount()) {
     throw std::runtime_error(
         "number of beads in topology and trajectory differ");
+  }
 
   ////////////////////////////////////////////////////////////////////////////////
   // Sort data and determine atom structure, connect with top (molecules, bonds)
@@ -371,10 +374,10 @@ bool PDBReader::NextFrame(Topology &top) {
     int mol_index = 0;
 
     // Cycle through all bonds
-    for (auto row = bond_pairs.begin(); row != bond_pairs.end(); row++) {
+    for (auto &bond_pair : bond_pairs) {
 
-      int atm_id1 = row->at(0);
-      int atm_id2 = row->at(1);
+      int atm_id1 = bond_pair.at(0);
+      int atm_id2 = bond_pair.at(1);
       // Check to see if either atm referred to in the bond is already
       // attached to a molecule
       auto mol_iter1 = atm_molecule.find(atm_id1);
@@ -424,10 +427,9 @@ bool PDBReader::NextFrame(Topology &top) {
 
         // Now we will proceed to cycle through the atms that were in the now
         // obsolete molecule and make sure they are pointing to the new molecule
-        for (auto atm_temp = molecule_atms[obsolete_mol].begin();
-             atm_temp != molecule_atms[obsolete_mol].end(); atm_temp++) {
+        for (int &atm_temp : molecule_atms[obsolete_mol]) {
 
-          atm_molecule[*atm_temp] = chosen_mol;
+          atm_molecule[atm_temp] = chosen_mol;
         }
 
         // Splicing will remove atoms from the now obsolete molecule and place
@@ -480,22 +482,20 @@ bool PDBReader::NextFrame(Topology &top) {
 
       // Add all the atoms to the appropriate molecule object
       list<int> atm_list = molecule_atms[mol->first];
-      for (auto atm_temp = atm_list.begin(); atm_temp != atm_list.end();
-           atm_temp++) {
+      for (int &atm_temp : atm_list) {
 
         string residuename = "DUM";
-        mi->AddBead(bead_vec.at(*atm_temp - 1), residuename);
+        mi->AddBead(bead_vec.at(atm_temp - 1), residuename);
       }
       ind++;
     }
 
     int bond_indx = 0;
     // Cyle through the bonds and add them to the appropriate molecule
-    for (auto bond_pair = bond_pairs.begin(); bond_pair != bond_pairs.end();
-         bond_pair++) {
+    for (auto &bond_pair : bond_pairs) {
 
-      int atm_id1 = bond_pair->at(0);
-      int atm_id2 = bond_pair->at(1);
+      int atm_id1 = bond_pair.at(0);
+      int atm_id2 = bond_pair.at(1);
       // Should be able to just look at one of the atoms the bond is attached
       // too because the other will also be attached to the same molecule.
       int mol_ind = atm_molecule[atm_id1];

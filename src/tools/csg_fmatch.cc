@@ -49,7 +49,9 @@ bool CGForceMatching::EvaluateOptions() {
   LoadOptions(OptionsMap()["options"].as<string>());
 
   _has_existing_forces = false;
-  if (OptionsMap().count("trj-force")) _has_existing_forces = true;
+  if (OptionsMap().count("trj-force")) {
+    _has_existing_forces = true;
+  }
   return true;
 }
 
@@ -151,9 +153,10 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
     _top_force.CopyTopologyData(top);
     _trjreader_force =
         TrjReaderFactory().Create(_op_vm["trj-force"].as<string>());
-    if (_trjreader_force == NULL)
+    if (_trjreader_force == nullptr) {
       throw runtime_error(string("input format not supported: ") +
                           _op_vm["trj-force"].as<string>());
+    }
     // open the trajectory
     _trjreader_force->Open(_op_vm["trj-force"].as<string>());
     // read in first frame
@@ -376,9 +379,10 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
         "CG Topology has 0 beads, check your mapping file!");
   }
   if (_has_existing_forces) {
-    if (conf->BeadCount() != _top_force.BeadCount())
+    if (conf->BeadCount() != _top_force.BeadCount()) {
       throw std::runtime_error(
           "number of beads in topology and force topology does not match");
+    }
     for (int i = 0; i < conf->BeadCount(); ++i) {
       conf->getBead(i)->F() -= _top_force.getBead(i)->getF();
       Eigen::Vector3d d =
@@ -450,7 +454,9 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
       _b.setZero();
     }
   }
-  if (_has_existing_forces) _trjreader_force->NextFrame(_top_force);
+  if (_has_existing_forces) {
+    _trjreader_force->NextFrame(_top_force);
+  }
 }
 
 void CGForceMatching::FmatchAccumulateData() {
@@ -599,17 +605,19 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
   bool gridsearch = false;
 
   if (_options.exists("cg.nbsearch")) {
-    if (_options.get("cg.nbsearch").as<string>() == "grid")
+    if (_options.get("cg.nbsearch").as<string>() == "grid") {
       gridsearch = true;
-    else if (_options.get("cg.nbsearch").as<string>() == "simple")
+    } else if (_options.get("cg.nbsearch").as<string>() == "simple") {
       gridsearch = false;
-    else
+    } else {
       throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+    }
   }
-  if (gridsearch)
+  if (gridsearch) {
     nb = std::unique_ptr<NBList>(new NBListGrid());
-  else
+  } else {
     nb = std::unique_ptr<NBList>(new NBList());
+  }
 
   nb->setCutoff(
       sinfo->_options->get("fmatch.max").as<double>());  // implement different
@@ -623,10 +631,11 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
   beads2.Generate(*conf, sinfo->type2);
 
   // is it same types or different types?
-  if (sinfo->type1 == sinfo->type2)
+  if (sinfo->type1 == sinfo->type2) {
     nb->Generate(beads1, true);
-  else
+  } else {
     nb->Generate(beads1, beads2, true);
+  }
 
   for (BeadPair *pair : *nb) {
     int iatom = pair->first()->getId();
@@ -677,17 +686,19 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
   bool gridsearch = false;
 
   if (_options.exists("cg.nbsearch")) {
-    if (_options.get("cg.nbsearch").as<string>() == "grid")
+    if (_options.get("cg.nbsearch").as<string>() == "grid") {
       gridsearch = true;
-    else if (_options.get("cg.nbsearch").as<string>() == "simple")
+    } else if (_options.get("cg.nbsearch").as<string>() == "simple") {
       gridsearch = false;
-    else
+    } else {
       throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+    }
   }
-  if (gridsearch)
+  if (gridsearch) {
     nb = std::unique_ptr<NBList_3Body>(new NBListGrid_3Body());
-  else
+  } else {
     nb = std::unique_ptr<NBList_3Body>(new NBList_3Body());
+  }
 
   nb->setCutoff(sinfo->a);  // implement different cutoffs for different
                             // interactions!

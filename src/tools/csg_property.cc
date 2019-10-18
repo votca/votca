@@ -74,8 +74,12 @@ int main(int argc, char **argv) {
     cout << desc << endl;
     return -1;
   }
-  if (vm.count("short")) short_output = true;
-  if (vm.count("with-path")) with_path = true;
+  if (vm.count("short")) {
+    short_output = true;
+  }
+  if (vm.count("with-path")) {
+    with_path = true;
+  }
 
   try {
     Property p;
@@ -86,22 +90,30 @@ int main(int argc, char **argv) {
         Tokenizer tokenizer(filter, "=");
         Tokenizer::iterator tok;
         tok = tokenizer.begin();
-        if (tok == tokenizer.end())
+        if (tok == tokenizer.end()) {
           throw std::invalid_argument("error, specified invalid filter");
+        }
 
         string field = *tok;
         ++tok;
-        if (tok == tokenizer.end())
+        if (tok == tokenizer.end()) {
           throw std::invalid_argument("error, specified invalid filter");
+        }
 
         string value = *tok;
-        if (!wildcmp(value.c_str(), prop->get(field).value().c_str())) continue;
+        if (!wildcmp(value.c_str(), prop->get(field).value().c_str())) {
+          continue;
+        }
       }
 
       Property *p = &(prop->get(print));
 
-      if (!short_output && with_path) cout << p->path() << ".";
-      if (!short_output) cout << p->name() << " = ";
+      if (!short_output && with_path) {
+        cout << p->path() << ".";
+      }
+      if (!short_output) {
+        cout << p->name() << " = ";
+      }
       // if(!p->HasChilds())
       cout << p->value();
       cout << endl;

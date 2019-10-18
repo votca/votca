@@ -28,13 +28,13 @@ namespace csg {
 
 class XYZWriter : public TrajectoryWriter {
  public:
-  void Open(std::string file, bool bAppend = false);
-  void Close();
+  void Open(std::string file, bool bAppend = false) override;
+  void Close() override;
 
   void RegisteredAt(
       tools::ObjectFactory<std::string, TrajectoryWriter> &factory) {}
 
-  void Write(Topology *conf);
+  void Write(Topology *conf) override;
 
   template <class T>
   void Write(T &container, std::string header);
@@ -85,7 +85,9 @@ inline void XYZWriter::Write(T &container, std::string header) {
     if (atomname.size() > 3) {
       atomname = atomname.substr(0, 3);
     }
-    while (atomname.size() < 3) atomname = " " + atomname;
+    while (atomname.size() < 3) {
+      atomname = " " + atomname;
+    }
 
     _out << fmter % atomname % r.x() % r.y() % r.z();
   }

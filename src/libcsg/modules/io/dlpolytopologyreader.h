@@ -35,10 +35,10 @@ namespace csg {
 
 class DLPOLYTopologyReader : public TopologyReader {
  public:
-  DLPOLYTopologyReader() {}
+  DLPOLYTopologyReader() = default;
 
   /// read a topology file
-  bool ReadTopology(std::string file, Topology &top);
+  bool ReadTopology(std::string file, Topology &top) override;
 
   /// set the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
   void setFname(std::string name) {

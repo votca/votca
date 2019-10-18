@@ -109,26 +109,29 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
     beads1.Generate(*top, prop->get("type1").value());
     beads2.Generate(*top, prop->get("type2").value());
 
-    if (beads1.size() == 0)
+    if (beads1.size() == 0) {
       throw std::runtime_error("Topology does not have beads of type \"" +
                                prop->get("type1").value() +
                                "\"\n"
                                "This was specified in type1 of interaction \"" +
                                name + "\"");
-    if (beads2.size() == 0)
+    }
+    if (beads2.size() == 0) {
       throw std::runtime_error("Topology does not have beads of type \"" +
                                prop->get("type2").value() +
                                "\"\n"
                                "This was specified in type2 of interaction \"" +
                                name + "\"");
+    }
 
     // calculate normalization factor for rdf
     double *rdfnorm = new double();
 
-    if (prop->get("type1").value() == prop->get("type2").value())
+    if (prop->get("type1").value() == prop->get("type2").value()) {
       *rdfnorm = (beads1.size() * (beads2.size()) / 2.) / top->BoxVolume();
-    else
+    } else {
       *rdfnorm = (beads1.size() * beads2.size()) / top->BoxVolume();
+    }
 
     _aardfnorms.push_back(rdfnorm);
 
@@ -190,9 +193,9 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
 
 void CsgREupdate::Run() {
 
-  if (!_gentable)
+  if (!_gentable) {
     CsgApplication::Run();
-  else {
+  } else {
 
     // only write potential tables for given parameters
     _nlamda = 0;
@@ -207,7 +210,9 @@ void CsgREupdate::Run() {
         tok.ToVector(vtok);
         vector<string>::iterator vtok_iter =
             find(vtok.begin(), vtok.end(), name);
-        if (vtok_iter == vtok.end()) continue;
+        if (vtok_iter == vtok.end()) {
+          continue;
+        }
       }
 
       PotentialInfo *i = new PotentialInfo(_potentials.size(), false, _nlamda,
@@ -225,8 +230,9 @@ void CsgREupdate::Run() {
 
 void CsgREupdate::EndEvaluate() {
 
-  if (_nframes == 0)
+  if (_nframes == 0) {
     throw std::runtime_error("No frames to process! Please check your input.");
+  }
 
   // formulate _HS dlamda = - _DS
 
@@ -299,10 +305,11 @@ void CsgREupdate::REFormulateLinEq() {
   for (potiter = _potentials.begin(); potiter != _potentials.end(); ++potiter) {
 
     PotentialInfo *potinfo = *potiter;
-    if (potinfo->bonded)
+    if (potinfo->bonded) {
       AAavgBonded(potinfo);
-    else
+    } else {
       AAavgNonbonded(potinfo);
+    }
   }
 }
 
@@ -392,7 +399,9 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
     double n_hist = _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
                     (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
 
-    if (n_hist > 0.0) U += n_hist * potinfo->ucg->CalculateF(r_hist);
+    if (n_hist > 0.0) {
+      U += n_hist * potinfo->ucg->CalculateF(r_hist);
+    }
   }
 
   _UavgAA += U;
@@ -414,8 +423,9 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
       double n_hist = _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
                       (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
 
-      if (n_hist > 0.0)
+      if (n_hist > 0.0) {
         dU_i += n_hist * potinfo->ucg->CalculateDF(lamda_i, r_hist);
+      }
 
     }  // end loop over hist
 
@@ -436,9 +446,10 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
         double n_hist = _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
                         (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
 
-        if (n_hist > 0.0)
+        if (n_hist > 0.0) {
           d2U_ij +=
               n_hist * potinfo->ucg->CalculateD2F(lamda_i, lamda_j, r_hist);
+        }
 
       }  // end loop pair_iter
 
@@ -533,10 +544,11 @@ void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *conf_atom) {
 
     PotentialInfo *potinfo = *potiter;
 
-    if (potinfo->bonded)
+    if (potinfo->bonded) {
       EvalBonded(conf, potinfo);
-    else
+    } else {
       EvalNonbonded(conf, potinfo);
+    }
   }
 
   // update _DS and _HS
@@ -561,43 +573,48 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
   beads1.Generate(*conf, potinfo->type1);
   beads2.Generate(*conf, potinfo->type2);
 
-  if (beads1.size() == 0)
+  if (beads1.size() == 0) {
     throw std::runtime_error("Topology does not have beads of type \"" +
                              potinfo->type1 +
                              "\"\n"
                              "This was specified in type1 of interaction \"" +
                              potinfo->potentialName + "\"");
-  if (beads2.size() == 0)
+  }
+  if (beads2.size() == 0) {
     throw std::runtime_error("Topology does not have beads of type \"" +
                              potinfo->type2 +
                              "\"\n"
                              "This was specified in type2 of interaction \"" +
                              potinfo->potentialName + "\"");
+  }
 
   NBList *nb;
   bool gridsearch = false;
 
   if (_options.exists("cg.nbsearch")) {
 
-    if (_options.get("cg.nbsearch").as<string>() == "grid")
+    if (_options.get("cg.nbsearch").as<string>() == "grid") {
       gridsearch = true;
-    else if (_options.get("cg.nbsearch").as<string>() == "simple")
+    } else if (_options.get("cg.nbsearch").as<string>() == "simple") {
       gridsearch = false;
-    else
+    } else {
       throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+    }
   }
 
-  if (gridsearch)
+  if (gridsearch) {
     nb = new NBListGrid();
-  else
+  } else {
     nb = new NBList();
+  }
 
   nb->setCutoff(potinfo->ucg->getCutOff());
 
-  if (potinfo->type1 == potinfo->type2)  // same beads
+  if (potinfo->type1 == potinfo->type2) {  // same beads
     nb->Generate(beads1, true);
-  else  // different beads
+  } else {  // different beads
     nb->Generate(beads1, beads2, true);
+  }
 
   NBList::iterator pair_iter;
   int pos_start = potinfo->vec_pos;
@@ -608,8 +625,9 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
 
   // compute total energy
   U = 0.0;
-  for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter)
+  for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
     U += potinfo->ucg->CalculateF((*pair_iter)->dist());
+  }
 
   _UavgCG += U;
 
@@ -619,8 +637,9 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
     lamda_i = row - pos_start;
 
     dU_i = 0.0;
-    for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter)
+    for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
       dU_i += potinfo->ucg->CalculateDF(lamda_i, (*pair_iter)->dist());
+    }
 
     _dUFrame(row) = dU_i;
 
@@ -629,9 +648,10 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
       lamda_j = col - pos_start;
       d2U_ij = 0.0;
 
-      for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter)
+      for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
         d2U_ij +=
             potinfo->ucg->CalculateD2F(lamda_i, lamda_j, (*pair_iter)->dist());
+      }
 
       _HS(row, col) += (-1.0 * _beta * d2U_ij);
       _HS(col, row) += (-1.0 * _beta * d2U_ij);
@@ -665,11 +685,11 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
   rcut = _options->get("max").as<double>();
 
   // assign the user selected function form for this potential
-  if (potentialFunction == "lj126")
+  if (potentialFunction == "lj126") {
     ucg = new PotentialFunctionLJ126(potentialName, rmin, rcut);
-  else if (potentialFunction == "ljg")
+  } else if (potentialFunction == "ljg") {
     ucg = new PotentialFunctionLJG(potentialName, rmin, rcut);
-  else if (potentialFunction == "cbspl") {
+  } else if (potentialFunction == "cbspl") {
     // get number of B-splines coefficients which are to be optimized
     int nlam = _options->get("re.cbspl.nknots").as<int>();
 
@@ -703,11 +723,12 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
       }
     }
     ucg = new PotentialFunctionCBSPL(potentialName, nlam, rmin, rcut);
-  } else
+  } else {
     throw std::runtime_error(
         "Function form \"" + potentialFunction + "\" selected for \"" +
         potentialName + "\" is not available yet.\n" +
         "Please specify either \"lj126, ljg, or cbspl\" " + "in options file.");
+  }
   // initialize cg potential with old parameters
   string oldparam_file_name = potentialName + "." + param_in_ext_;
   ucg->setParam(oldparam_file_name);

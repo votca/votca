@@ -28,13 +28,13 @@ namespace csg {
 
 class PDBWriter : public TrajectoryWriter {
  public:
-  void Open(std::string file, bool bAppend = false);
-  void Close();
+  void Open(std::string file, bool bAppend = false) override;
+  void Close() override;
 
   void RegisteredAt(
       tools::ObjectFactory<std::string, TrajectoryWriter> &factory) {}
 
-  void Write(Topology *conf);
+  void Write(Topology *conf) override;
 
   template <class T>
   void WriteContainer(T &container);

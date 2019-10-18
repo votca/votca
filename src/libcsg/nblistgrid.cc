@@ -16,6 +16,7 @@
  */
 
 #include <votca/csg/nblistgrid.h>
+#include <votca/csg/topology.h>
 
 namespace votca {
 namespace csg {
@@ -26,8 +27,12 @@ void NBListGrid::Generate(BeadList &list1, BeadList &list2,
                           bool do_exclusions) {
   BeadList::iterator iter;
   _do_exclusions = do_exclusions;
-  if (list1.empty()) return;
-  if (list2.empty()) return;
+  if (list1.empty()) {
+    return;
+  }
+  if (list2.empty()) {
+    return;
+  }
 
   assert(list1.getTopology() == list2.getTopology());
   Topology *top = _top = list1.getTopology();
@@ -35,8 +40,9 @@ void NBListGrid::Generate(BeadList &list1, BeadList &list2,
   InitializeGrid(top->getBox());
 
   // Add all beads of list1
-  for (iter = list1.begin(); iter != list1.end(); ++iter)
+  for (iter = list1.begin(); iter != list1.end(); ++iter) {
     getCell((*iter)->getPos())._beads.push_back(*iter);
+  }
 
   for (iter = list2.begin(); iter != list2.end(); ++iter) {
     cell_t &cell = getCell((*iter)->getPos());
@@ -47,7 +53,9 @@ void NBListGrid::Generate(BeadList &list1, BeadList &list2,
 void NBListGrid::Generate(BeadList &list, bool do_exclusions) {
   BeadList::iterator iter;
   _do_exclusions = do_exclusions;
-  if (list.empty()) return;
+  if (list.empty()) {
+    return;
+  }
 
   Topology *top = _top = list.getTopology();
 
@@ -93,29 +101,47 @@ void NBListGrid::InitializeGrid(const Eigen::Matrix3d &box) {
   a1 = b1 = c1 = -1;
   a2 = b2 = c2 = 1;
 
-  if (_box_Na < 3) a2 = 0;
-  if (_box_Nb < 3) b2 = 0;
-  if (_box_Nc < 3) c2 = 0;
+  if (_box_Na < 3) {
+    a2 = 0;
+  }
+  if (_box_Nb < 3) {
+    b2 = 0;
+  }
+  if (_box_Nc < 3) {
+    c2 = 0;
+  }
 
-  if (_box_Na < 2) a1 = 0;
-  if (_box_Nb < 2) b1 = 0;
-  if (_box_Nc < 2) c1 = 0;
+  if (_box_Na < 2) {
+    a1 = 0;
+  }
+  if (_box_Nb < 2) {
+    b1 = 0;
+  }
+  if (_box_Nc < 2) {
+    c1 = 0;
+  }
 
   // wow, setting up the neighbours is an ugly for construct!
   // loop from N..2*N to avoid if and only use %
-  for (int a = _box_Na; a < 2 * _box_Na; ++a)
-    for (int b = _box_Nb; b < 2 * _box_Nb; ++b)
+  for (int a = _box_Na; a < 2 * _box_Na; ++a) {
+    for (int b = _box_Nb; b < 2 * _box_Nb; ++b) {
       for (int c = _box_Nc; c < 2 * _box_Nc; ++c) {
         cell_t &cell = getCell(a % _box_Na, b % _box_Nb, c % _box_Nc);
-        for (int aa = a + a1; aa <= a + a2; ++aa)
-          for (int bb = b + b1; bb <= b + b2; ++bb)
+        for (int aa = a + a1; aa <= a + a2; ++aa) {
+          for (int bb = b + b1; bb <= b + b2; ++bb) {
             for (int cc = c + c1; cc <= c + c2; ++cc) {
               cell_t *c = &getCell(aa % _box_Na, bb % _box_Nb, cc % _box_Nc);
-              if (c == &cell) continue;  // ignore self
+              if (c == &cell) {
+                continue;  // ignore self
+              }
               cell._neighbours.push_back(
                   &getCell(aa % _box_Na, bb % _box_Nb, cc % _box_Nc));
             }
+          }
+        }
       }
+    }
+  }
 }
 
 NBListGrid::cell_t &NBListGrid::getCell(const Eigen::Vector3d &r) {
@@ -123,13 +149,19 @@ NBListGrid::cell_t &NBListGrid::getCell(const Eigen::Vector3d &r) {
   int b = (int)floor(r.dot(_norm_b));
   int c = (int)floor(r.dot(_norm_c));
 
-  if (a < 0) a = _box_Na + a % _box_Na;
+  if (a < 0) {
+    a = _box_Na + a % _box_Na;
+  }
   a %= _box_Na;
 
-  if (b < 0) b = _box_Nb + b % _box_Nb;
+  if (b < 0) {
+    b = _box_Nb + b % _box_Nb;
+  }
   b %= _box_Nb;
 
-  if (c < 0) c = _box_Nc + c % _box_Nc;
+  if (c < 0) {
+    c = _box_Nc + c % _box_Nc;
+  }
   c %= _box_Nc;
 
   return getCell(a, b, c);
@@ -137,9 +169,8 @@ NBListGrid::cell_t &NBListGrid::getCell(const Eigen::Vector3d &r) {
 
 void NBListGrid::TestBead(NBListGrid::cell_t &cell, Bead *bead) {
   TestCell(cell, bead);
-  for (vector<cell_t *>::iterator iter = cell._neighbours.begin();
-       iter != cell._neighbours.end(); ++iter) {
-    TestCell(*(*iter), bead);
+  for (auto &_neighbour : cell._neighbours) {
+    TestCell(*_neighbour, bead);
   }
 }
 
@@ -153,12 +184,16 @@ void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead) {
     Eigen::Vector3d r = _top->BCShortestConnection(v, u);
     double d = r.norm();
     if (d < _cutoff) {
-      if (_do_exclusions)
+      if (_do_exclusions) {
         if (_top->getExclusions().IsExcluded((*iter), bead)) {
           continue;
         }
-      if ((*_match_function)(*iter, bead, r, d))
-        if (!FindPair(*iter, bead)) AddPair(_pair_creator(*iter, bead, r));
+      }
+      if ((*_match_function)(*iter, bead, r, d)) {
+        if (!FindPair(*iter, bead)) {
+          AddPair(_pair_creator(*iter, bead, r));
+        }
+      }
     }
   }
 }

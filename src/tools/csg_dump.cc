@@ -22,21 +22,21 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgDumpApp : public CsgApplication {
-  string ProgramName() { return "csg_dump"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "csg_dump"; }
+  void HelpText(ostream &out) override {
     out << "Print atoms that are read from topology file to help"
            " debugging atom naming.";
   }
-  void Initialize() {
+  void Initialize() override {
     CsgApplication::Initialize();
     AddProgramOptions("Specific options")(
         "excl", "  display exclusion list instead of molecule list");
   }
 
-  bool EvaluateTopology(Topology *top, Topology *top_ref);
+  bool EvaluateTopology(Topology *top, Topology *top_ref) override;
 
-  bool DoMapping() { return true; }
-  bool DoMappingDefault(void) { return false; }
+  bool DoMapping() override { return true; }
+  bool DoMappingDefault(void) override { return false; }
 };
 
 int main(int argc, char **argv) {

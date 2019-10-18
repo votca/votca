@@ -17,16 +17,17 @@
 
 #include <iostream>
 #include <votca/csg/nblist_3body.h>
+#include <votca/csg/topology.h>
 
 namespace votca {
 namespace csg {
 
-NBList_3Body::NBList_3Body() : _do_exclusions(false), _match_function(0) {
+NBList_3Body::NBList_3Body() : _do_exclusions(false), _match_function(nullptr) {
   setTripleType<BeadTriple>();
   SetMatchFunction(NBList_3Body::match_always);
 }
 
-NBList_3Body::~NBList_3Body() {}
+NBList_3Body::~NBList_3Body() = default;
 
 void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
                             bool do_exclusions) {
@@ -35,9 +36,15 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
   BeadList::iterator iter3;
   _do_exclusions = do_exclusions;
 
-  if (list1.empty()) return;
-  if (list2.empty()) return;
-  if (list3.empty()) return;
+  if (list1.empty()) {
+    return;
+  }
+  if (list2.empty()) {
+    return;
+  }
+  if (list3.empty()) {
+    return;
+  }
 
   // check if all bead lists "have" the same topology
   assert(list1.getTopology() == list2.getTopology());
@@ -98,16 +105,19 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
         if ((d12 < _cutoff) && (d13 < _cutoff)) {
           /// experimental: at the moment exclude interaction as soon as one of
           /// the three pairs (1,2) (1,3) (2,3) is excluded!
-          if (_do_exclusions)
+          if (_do_exclusions) {
             if ((top->getExclusions().IsExcluded(*iter1, *iter2)) ||
                 (top->getExclusions().IsExcluded(*iter1, *iter3)) ||
                 (top->getExclusions().IsExcluded(*iter2, *iter3))) {
               continue;
             }
+          }
           if ((*_match_function)(*iter1, *iter2, *iter3, r12, r13, r23, d12,
-                                 d13, d23))
-            if (!FindTriple(*iter1, *iter2, *iter3))
+                                 d13, d23)) {
+            if (!FindTriple(*iter1, *iter2, *iter3)) {
               AddTriple(_triple_creator(*iter1, *iter2, *iter3, r12, r13, r23));
+            }
+          }
         }
       }
     }

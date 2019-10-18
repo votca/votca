@@ -36,20 +36,20 @@ namespace csg {
 */
 class LAMMPSDumpReader : public TrajectoryReader, public TopologyReader {
  public:
-  LAMMPSDumpReader() {}
-  ~LAMMPSDumpReader() {}
+  LAMMPSDumpReader() = default;
+  ~LAMMPSDumpReader() override = default;
 
   /// open a topology file
-  bool ReadTopology(std::string file, Topology &top);
+  bool ReadTopology(std::string file, Topology &top) override;
 
   /// open a trejectory file
-  bool Open(const std::string &file);
+  bool Open(const std::string &file) override;
   /// read in the first frame
-  bool FirstFrame(Topology &top);
+  bool FirstFrame(Topology &top) override;
   /// read in the next frame
-  bool NextFrame(Topology &top);
+  bool NextFrame(Topology &top) override;
 
-  void Close();
+  void Close() override;
 
  private:
   void ReadTimestep(Topology &top, std::string itemline);

@@ -25,7 +25,7 @@ class Topology;
 
 class TopologyItem {
  public:
-  virtual ~TopologyItem() {}
+  virtual ~TopologyItem() = default;
   Topology *getParent() const { return _parent; }
 
  protected:

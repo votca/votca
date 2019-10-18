@@ -25,7 +25,7 @@ namespace votca {
 namespace csg {
 class PotentialFunction {
  public:
-  virtual ~PotentialFunction() {}
+  virtual ~PotentialFunction() = default;
   // read parameters from the input file
   virtual void setParam(std::string filename);
   // save parameters to the file

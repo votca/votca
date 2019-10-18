@@ -28,10 +28,11 @@ PotentialFunctionLJ126::PotentialFunctionLJ126(const string &name_,
 
 double PotentialFunctionLJ126::CalculateF(const double r) const {
 
-  if (r >= _min && r <= _cut_off)
+  if (r >= _min && r <= _cut_off) {
     return _lam(0) / pow(r, 12) - _lam(1) / pow(r, 6);
-  else
+  } else {
     return 0.0;
+  }
 }
 
 // calculate first derivative w.r.t. ith parameter

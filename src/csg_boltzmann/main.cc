@@ -37,20 +37,20 @@ using namespace votca::csg;
 
 class CsgBoltzmann : public CsgApplication {
  public:
-  string ProgramName() { return "csg_boltzmann"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "csg_boltzmann"; }
+  void HelpText(ostream &out) override {
     out << "Performs tasks that are needed for simple boltzmann\n"
            "inversion in an interactive environment.";
   }
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return true; }
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return true; }
 
-  void Initialize();
-  bool EvaluateOptions();
-  void Run();
+  void Initialize() override;
+  bool EvaluateOptions() override;
+  void Run() override;
 
   void InteractiveMode();
-  bool EvaluateTopology(Topology *top, Topology *top_ref);
+  bool EvaluateTopology(Topology *top, Topology *top_ref) override;
 
  protected:
   ExclusionList *CreateExclusionList(Molecule &atomistic, Molecule &cg);
@@ -76,9 +76,10 @@ bool CsgBoltzmann::EvaluateOptions() {
 bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref) {
   if (OptionsMap().count("excl")) {
     ExclusionList *ex;
-    if (top_ref->MoleculeCount() > 1)
+    if (top_ref->MoleculeCount() > 1) {
       cout << "WARNING: cannot create exclusion list for topology with"
               "multiple molecules, using only first molecule\n";
+    }
 
     cout << "Writing exclusion list for atomistic molecule "
          << top_ref->MoleculeByIndex(0)->getName()
@@ -147,7 +148,9 @@ ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
 
 void CsgBoltzmann::Run() {
   CsgApplication::Run();
-  if (OptionsMap().count("excl")) return;
+  if (OptionsMap().count("excl")) {
+    return;
+  }
   InteractiveMode();
 }
 
@@ -183,12 +186,16 @@ void CsgBoltzmann::InteractiveMode() {
     votca::tools::Tokenizer tok(line, " \t");
     vector<string> args = tok.ToVector();
 
-    if (args.size() == 0) continue;
+    if (args.size() == 0) {
+      continue;
+    }
 
     string cmd = args.front();
     args.erase(args.begin());
 
-    if (cmd == "q") break;
+    if (cmd == "q") {
+      break;
+    }
 
     std::map<string, AnalysisTool *>::iterator tool;
     if (cmd == "help") {

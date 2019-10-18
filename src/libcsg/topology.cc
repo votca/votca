@@ -38,7 +38,9 @@ bool is_digits(const std::string &str) {
 
 Topology::~Topology() {
   Cleanup();
-  if (_bc) delete (_bc);
+  if (_bc) {
+    delete (_bc);
+  }
   _bc = nullptr;
 }
 
@@ -46,29 +48,39 @@ void Topology::Cleanup() {
   // cleanup beads
   {
     BeadContainer::iterator i;
-    for (i = _beads.begin(); i < _beads.end(); ++i) delete *i;
+    for (i = _beads.begin(); i < _beads.end(); ++i) {
+      delete *i;
+    }
     _beads.clear();
   }
   // cleanup molecules
   {
     MoleculeContainer::iterator i;
-    for (i = _molecules.begin(); i < _molecules.end(); ++i) delete *i;
+    for (i = _molecules.begin(); i < _molecules.end(); ++i) {
+      delete *i;
+    }
     _molecules.clear();
   }
   // cleanup residues
   {
     ResidueContainer::iterator i;
-    for (i = _residues.begin(); i < _residues.end(); ++i) delete (*i);
+    for (i = _residues.begin(); i < _residues.end(); ++i) {
+      delete (*i);
+    }
     _residues.clear();
   }
   // cleanup interactions
   {
     InteractionContainer::iterator i;
-    for (i = _interactions.begin(); i < _interactions.end(); ++i) delete (*i);
+    for (i = _interactions.begin(); i < _interactions.end(); ++i) {
+      delete (*i);
+    }
     _interactions.clear();
   }
   // cleanup _bc object
-  if (_bc) delete (_bc);
+  if (_bc) {
+    delete (_bc);
+  }
   _bc = new OpenBox();
 }
 
@@ -82,7 +94,9 @@ void Topology::CreateMoleculesByRange(string name, int first, int nbeads,
   BeadContainer::iterator bead;
   for (bead = _beads.begin(); bead != _beads.end(); ++bead) {
     // xml numbering starts with 1
-    if (--first > 0) continue;
+    if (--first > 0) {
+      continue;
+    }
     // This is not 100% correct, but let's assume for now that the resnr do
     // increase
     if (beadcount == 0) {
@@ -94,7 +108,9 @@ void Topology::CreateMoleculesByRange(string name, int first, int nbeads,
           << (*bead)->getName();
     mol->AddBead((*bead), bname.str());
     if (++beadcount == nbeads) {
-      if (--nmolecules <= 0) break;
+      if (--nmolecules <= 0) {
+        break;
+      }
       mol = CreateMolecule(name);
       beadcount = 0;
     }
@@ -207,9 +223,10 @@ void Topology::RenameMolecules(string range, string name) {
   tools::RangeParser rp;
   rp.Parse(range);
   for (unsigned i : rp) {
-    if (i > _molecules.size())
+    if (i > _molecules.size()) {
       throw runtime_error(
           string("RenameMolecules: num molecules smaller than"));
+    }
     getMolecule(i - 1)->setName(name);
   }
 }
@@ -239,12 +256,13 @@ void Topology::CheckMoleculeNaming(void) {
   for (Molecule *mol : _molecules) {
     map<string, int>::iterator entry = nbeads.find(mol->getName());
     if (entry != nbeads.end()) {
-      if (entry->second != mol->BeadCount())
+      if (entry->second != mol->BeadCount()) {
         throw runtime_error(
             "There are molecules which have the same name but different number "
             "of bead "
             "please check the section manual topology handling in the votca "
             "manual");
+      }
       continue;
     }
     nbeads[mol->getName()] = mol->BeadCount();
@@ -254,9 +272,9 @@ void Topology::CheckMoleculeNaming(void) {
 void Topology::AddBondedInteraction(Interaction *ic) {
   map<string, int>::iterator iter;
   iter = _interaction_groups.find(ic->getGroup());
-  if (iter != _interaction_groups.end())
+  if (iter != _interaction_groups.end()) {
     ic->setGroupId((*iter).second);
-  else {
+  } else {
     int i = _interaction_groups.size();
     _interaction_groups[ic->getGroup()] = i;
     ic->setGroupId(i);
@@ -268,7 +286,9 @@ void Topology::AddBondedInteraction(Interaction *ic) {
 std::list<Interaction *> Topology::InteractionsInGroup(const string &group) {
   map<string, list<Interaction *>>::iterator iter =
       _interactions_by_group.find(group);
-  if (iter == _interactions_by_group.end()) return list<Interaction *>();
+  if (iter == _interactions_by_group.end()) {
+    return list<Interaction *>();
+  }
   return iter->second;
 }
 

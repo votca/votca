@@ -104,14 +104,15 @@ namespace csg {
 class TabulatedPotential : public AnalysisTool {
  public:
   TabulatedPotential();
-  ~TabulatedPotential(){};
+  ~TabulatedPotential() override = default;
+  ;
 
-  void Register(std::map<std::string, AnalysisTool *> &lib);
+  void Register(std::map<std::string, AnalysisTool *> &lib) override;
 
   void Command(BondedStatistics &bs, const std::string &cmd,
-               std::vector<std::string> &args);
+               std::vector<std::string> &args) override;
 
-  void Help(const std::string &cmd, std::vector<std::string> &args);
+  void Help(const std::string &cmd, std::vector<std::string> &args) override;
 
   void WriteHistogram(BondedStatistics &bs, std::vector<std::string> &args);
   void WritePotential(BondedStatistics &bs, std::vector<std::string> &args);

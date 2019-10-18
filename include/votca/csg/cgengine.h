@@ -93,14 +93,17 @@ inline CGMoleculeDef *CGEngine::getMoleculeDef(std::string name) {
   }
 
   iter = _molecule_defs.find(name);
-  if (iter == _molecule_defs.end()) return NULL;
+  if (iter == _molecule_defs.end()) {
+    return nullptr;
+  }
   return (*iter).second;
 }
 
 inline bool CGEngine::IsIgnored(std::string ident) {
-  for (std::list<std::string>::iterator iter = _ignores.begin();
-       iter != _ignores.end(); ++iter) {
-    if (tools::wildcmp(iter->c_str(), ident.c_str())) return true;
+  for (auto &_ignore : _ignores) {
+    if (tools::wildcmp(_ignore.c_str(), ident.c_str())) {
+      return true;
+    }
   }
   return false;
 }

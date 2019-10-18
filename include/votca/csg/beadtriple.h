@@ -33,7 +33,7 @@ namespace csg {
 
 class BeadTriple : public std::tuple<Bead *, Bead *, Bead *> {
  public:
-  BeadTriple() {}
+  BeadTriple() = default;
   BeadTriple(Bead *bead1, Bead *bead2, Bead *bead3, Eigen::Vector3d r12,
              Eigen::Vector3d r13, Eigen::Vector3d r23)
       : std::tuple<Bead *, Bead *, Bead *>(bead1, bead2, bead3),
@@ -44,7 +44,7 @@ class BeadTriple : public std::tuple<Bead *, Bead *, Bead *> {
         _dist13(r13.norm()),
         _dist23(r23.norm()) {}
 
-  virtual ~BeadTriple() {}
+  virtual ~BeadTriple() = default;
 
   /// \brief return the beads
   const Bead *bead1() { return std::get<0>(*this); }

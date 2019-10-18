@@ -24,26 +24,26 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgDensityApp : public CsgApplication {
-  string ProgramName() { return "csg_density"; }
-  void HelpText(ostream &out) {
+  string ProgramName() override { return "csg_density"; }
+  void HelpText(ostream &out) override {
     out << "Calculates the mass density distribution along a box axis or "
            "radial density profile from reference point";
   }
 
   // some program options are added here
-  void Initialize();
+  void Initialize() override;
 
   // we want to process a trajectory
-  bool DoTrajectory() { return true; }
-  bool DoMapping() { return true; }
-  bool DoMappingDefault(void) { return false; }
+  bool DoTrajectory() override { return true; }
+  bool DoMapping() override { return true; }
+  bool DoMappingDefault(void) override { return false; }
 
   // write out results in EndEvaluate
-  void EndEvaluate();
-  void BeginEvaluate(Topology *top, Topology *top_atom);
-  void EvalConfiguration(Topology *top, Topology *top_ref);
+  void EndEvaluate() override;
+  void BeginEvaluate(Topology *top, Topology *top_atom) override;
+  void EvalConfiguration(Topology *top, Topology *top_ref) override;
 
-  bool EvaluateOptions() {
+  bool EvaluateOptions() override {
     CsgApplication::EvaluateOptions();
     CheckRequired("out", "no output topology specified");
     CheckRequired("trj", "no trajectory file specified");
@@ -103,7 +103,9 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
     throw std::runtime_error("unknown axis type");
   }
 
-  if (OptionsMap().count("rmax")) _rmax = OptionsMap()["rmax"].as<double>();
+  if (OptionsMap().count("rmax")) {
+    _rmax = OptionsMap()["rmax"].as<double>();
+  }
 
   if (OptionsMap().count("block-length")) {
     _block_length = OptionsMap()["block-length"].as<int>();
@@ -112,11 +114,14 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
   }
 
   if (_axisname == "r") {
-    if (!OptionsMap().count("ref")) _ref = a / 2 + b / 2 + c / 2;
+    if (!OptionsMap().count("ref")) {
+      _ref = a / 2 + b / 2 + c / 2;
+    }
     cout << "Using referece point: " << _ref << endl;
-  } else if (OptionsMap().count("ref"))
+  } else if (OptionsMap().count("ref")) {
     throw std::runtime_error(
         "reference center can only be used in case of spherical density");
+  }
 
   _nbin = (int)floor(_rmax / _step);
   _dist.Initialize(0, _rmax, _nbin);
@@ -134,13 +139,15 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref) {
   for (MoleculeContainer::iterator imol = top->Molecules().begin();
        imol != top->Molecules().end(); ++imol) {
     Molecule *mol = *imol;
-    if (!votca::tools::wildcmp(_molname.c_str(), mol->getName().c_str()))
+    if (!votca::tools::wildcmp(_molname.c_str(), mol->getName().c_str())) {
       continue;
+    }
     int N = mol->BeadCount();
     for (int i = 0; i < N; i++) {
       Bead *b = mol->getBead(i);
-      if (!votca::tools::wildcmp(_filter.c_str(), b->getName().c_str()))
+      if (!votca::tools::wildcmp(_filter.c_str(), b->getName().c_str())) {
         continue;
+      }
       double r;
       if (_axisname == "r") {
         r = (top->BCShortestConnection(_ref, b->getPos()).norm());
@@ -156,7 +163,9 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref) {
     }
   }
   _frames++;
-  if (!did_something) throw std::runtime_error("No molecule in selection");
+  if (!did_something) {
+    throw std::runtime_error("No molecule in selection");
+  }
   if (_block_length != 0) {
     if ((_nframes % _block_length) == 0) {
       _nblock++;
@@ -198,8 +207,9 @@ std::istream &operator>>(std::istream &in, Vector3d &v) {
       votca::tools::Tokenizer tok(str, ",");
       std::vector<double> d;
       tok.ConvertToVector(d);
-      if (d.size() != 3)
+      if (d.size() != 3) {
         throw std::runtime_error("error, invalid number of entries in vector");
+      }
       v.x() = d[0];
       v.y() = d[1];
       v.z() = d[2];
@@ -215,7 +225,9 @@ std::istream &operator>>(std::istream &in, Vector3d &v) {
 }  // namespace Eigen
 
 void CsgDensityApp::EndEvaluate() {
-  if (_block_length == 0) WriteDensity(_frames);
+  if (_block_length == 0) {
+    WriteDensity(_frames);
+  }
 }
 
 // add our user program options

@@ -35,8 +35,8 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
   int N = conf->BeadCount();
   t_trxframe frame;
   rvec *x = new rvec[N];
-  rvec *v = NULL;
-  rvec *f = NULL;
+  rvec *v = nullptr;
+  rvec *f = nullptr;
   Eigen::Matrix3d box = conf->getBox();
 
   frame.natoms = N;
@@ -44,7 +44,6 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
   frame.time = conf->getTime();
   frame.bStep = true;
   frame.step = conf->getStep();
-  ;
   frame.x = x;
   frame.bLambda = false;
   frame.bAtoms = false;
@@ -54,8 +53,11 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
   frame.bBox = true;
   frame.bV = conf->HasVel();
 
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++) frame.box[j][i] = box(i, j);
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      frame.box[j][i] = box(i, j);
+    }
+  }
 
   for (int i = 0; i < N; ++i) {
     Eigen::Vector3d pos = conf->getBead(i)->getPos();
@@ -85,12 +87,16 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
     }
   }
 
-  write_trxframe(_file, &frame, NULL);
+  write_trxframe(_file, &frame, nullptr);
 
   step++;
   delete[] x;
-  if (frame.bV) delete[] v;
-  if (frame.bF) delete[] f;
+  if (frame.bV) {
+    delete[] v;
+  }
+  if (frame.bF) {
+    delete[] f;
+  }
 }
 
 }  // namespace csg

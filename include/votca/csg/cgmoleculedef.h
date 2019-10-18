@@ -43,7 +43,7 @@ namespace csg {
 */
 class CGMoleculeDef {
  public:
-  CGMoleculeDef() {}
+  CGMoleculeDef() = default;
   ~CGMoleculeDef();
 
   Molecule *CreateMolecule(Topology &top);

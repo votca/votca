@@ -30,9 +30,10 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
 // NOTE: allowed file naming - <name>.dlpc or <name>.dlph (convention:
 // ".dlpc"="CONFIG_CGV", ".dlph"="HISTORY_CGV")
 {
-  if (bAppend)
+  if (bAppend) {
     throw std::runtime_error(
         "Error: appending to dlpoly files not implemented");
+  }
 
   boost::filesystem::path filepath(file.c_str());
   string out_name = "HISTORY_CGV";
@@ -67,9 +68,10 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
   }
 
   _fl.open(_fname.c_str());
-  if (!_fl.is_open())
+  if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on creating dlpoly file '" + _fname +
                                  "'");
+  }
 }
 
 void DLPOLYTrajectoryWriter::Close() { _fl.close(); }
@@ -88,8 +90,12 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
     mavecs = 1;
   }
 
-  if (conf->getBoxType() == BoundaryCondition::typeOrthorhombic) mpbct = 2;
-  if (conf->getBoxType() == BoundaryCondition::typeTriclinic) mpbct = 3;
+  if (conf->getBoxType() == BoundaryCondition::typeOrthorhombic) {
+    mpbct = 2;
+  }
+  if (conf->getBoxType() == BoundaryCondition::typeTriclinic) {
+    mpbct = 3;
+  }
 
   if (_isConfig) {
 
@@ -97,9 +103,10 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
     _fl << setw(10) << mavecs << setw(10) << mpbct << setw(10)
         << conf->BeadCount() << setw(20) << energy << endl;
     Eigen::Matrix3d m = conf->getBox();
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++) {
       _fl << fixed << setprecision(10) << setw(20) << m(i, 0) * scale
           << setw(20) << m(i, 1) * scale << setw(20) << m(i, 2) * scale << endl;
+    }
 
   } else {
 
@@ -117,9 +124,10 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
         << endl;
 
     Eigen::Matrix3d m = conf->getBox();
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++) {
       _fl << setprecision(12) << setw(20) << m(i, 0) * scale << setw(20)
           << m(i, 1) * scale << setw(20) << m(i, 2) * scale << endl;
+    }
   }
 
   for (int i = 0; i < conf->BeadCount(); i++) {
@@ -149,10 +157,11 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
         << bead->getPos().z() * scale << endl;
 
     if (mavecs > 0) {
-      if (!bead->HasVel())
+      if (!bead->HasVel()) {
         throw std::ios_base::failure(
             "Error: dlpoly frame is supposed to contain velocities, but bead "
             "does not have v-data");
+      }
 
       // nm -> Angs
       _fl << setprecision(12) << setw(20) << bead->getVel().x() * scale
@@ -161,10 +170,11 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
           << bead->getVel().z() * scale << endl;
 
       if (mavecs > 1) {
-        if (!bead->HasF())
+        if (!bead->HasF()) {
           throw std::ios_base::failure(
               "Error: dlpoly frame is supposed to contain forces, but bead "
               "does not have f-data");
+        }
 
         // nm -> Angs
         _fl << setprecision(12) << setw(20) << bead->getF().x() * scale

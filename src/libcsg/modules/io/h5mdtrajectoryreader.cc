@@ -79,7 +79,7 @@ bool H5MDTrajectoryReader::Open(const string &file) {
   first_frame_ = true;
 
   // Handle errors by internal check up.
-  H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
+  H5Eset_auto2(H5E_DEFAULT, nullptr, nullptr);
 
   return true;
 }
@@ -93,10 +93,11 @@ void H5MDTrajectoryReader::Close() {
 
 void H5MDTrajectoryReader::Initialize(Topology &top) {
   string particle_group_name_ = top.getParticleGroup();
-  if (particle_group_name_.compare("unassigned") == 0)
+  if (particle_group_name_.compare("unassigned") == 0) {
     throw ios_base::failure(
         "Missing particle group in topology. Please set `h5md_particle_group` "
         "tag with `name` attribute set to the particle group.");
+  }
   string position_group_name = particle_group_name_ + "/position";
   atom_position_group_ =
       H5Gopen(particle_group_, position_group_name.c_str(), H5P_DEFAULT);
@@ -187,7 +188,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   hid_t fs_atom_position_ = H5Dget_space(ds_atom_position_);
   CheckError(fs_atom_position_, "Unable to open atom position space.");
   hsize_t dims[3];
-  rank_ = H5Sget_simple_extent_dims(fs_atom_position_, dims, NULL);
+  rank_ = H5Sget_simple_extent_dims(fs_atom_position_, dims, nullptr);
   N_particles_ = dims[1];
   vec_components_ = dims[2];
   max_idx_frame_ = dims[0] - 1;
@@ -218,7 +219,9 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const
 bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   // Reads the position row.
   idx_frame_++;
-  if (idx_frame_ > max_idx_frame_) return false;
+  if (idx_frame_ > max_idx_frame_) {
+    return false;
+  }
 
   cout << '\r' << "Reading frame: " << idx_frame_ << "\n";
   cout.flush();
@@ -237,9 +240,9 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   top.setBox(m);
 
   double *positions;
-  double *forces = NULL;
-  double *velocities = NULL;
-  int *ids = NULL;
+  double *forces = nullptr;
+  double *velocities = nullptr;
+  int *ids = nullptr;
 
   try {
     positions = ReadVectorData<double>(ds_atom_position_, H5T_NATIVE_DOUBLE,
@@ -272,17 +275,19 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
     // Set atom id, or it is an index of a row in dataset or from id dataset.
     int atom_id = at_idx;
     if (has_id_group_ != H5MDTrajectoryReader::NONE) {
-      if (ids[at_idx] == -1)  // ignore values where id == -1
+      if (ids[at_idx] == -1) {  // ignore values where id == -1
         continue;
+      }
       atom_id = ids[at_idx];
     }
 
     // Topology has to be defined in the xml file or in other
     // topology files. The h5md only stores the trajectory data.
     Bead *b = top.getBead(atom_id);
-    if (b == nullptr)
+    if (b == nullptr) {
       throw runtime_error("Bead not found: " +
                           boost::lexical_cast<string>(atom_id));
+    }
 
     b->setPos(Eigen::Vector3d(x, y, z));
     if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
@@ -304,9 +309,15 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
 
   // Clean up pointers.
   delete[] positions;
-  if (has_force_ == H5MDTrajectoryReader::TIMEDEPENDENT) delete[] forces;
-  if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT) delete[] velocities;
-  if (has_id_group_ == H5MDTrajectoryReader::TIMEDEPENDENT) delete[] ids;
+  if (has_force_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
+    delete[] forces;
+  }
+  if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
+    delete[] velocities;
+  }
+  if (has_id_group_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
+    delete[] ids;
+  }
 
   return true;
 }
@@ -320,8 +331,8 @@ void H5MDTrajectoryReader::ReadBox(hid_t ds, hid_t ds_data_type, int row,
   ch_rows[0] = 1;
   ch_rows[1] = 3;
   hid_t dsp = H5Dget_space(ds);
-  H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
-  hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
+  H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, nullptr, ch_rows, nullptr);
+  hid_t mspace1 = H5Screate_simple(2, ch_rows, nullptr);
   herr_t status =
       H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out.get());
   if (status < 0) {

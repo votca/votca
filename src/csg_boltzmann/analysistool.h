@@ -34,8 +34,8 @@ namespace csg {
 
 class AnalysisTool {
  public:
-  AnalysisTool() {}
-  virtual ~AnalysisTool() {}
+  AnalysisTool() = default;
+  virtual ~AnalysisTool() = default;
 
   virtual void Register(std::map<std::string, AnalysisTool *> &lib) {}
   virtual void Command(BondedStatistics &bs, const std::string &cmd,

@@ -30,13 +30,14 @@ class PotentialFunctionLJ126 : public PotentialFunction {
  public:
   PotentialFunctionLJ126(const std::string &name_, const double min_ = 0.0,
                          const double max_ = 10.0);
-  ~PotentialFunctionLJ126(){};
+  ~PotentialFunctionLJ126() override = default;
+  ;
   // calculate function value for given r
-  double CalculateF(const double r) const;
+  double CalculateF(const double r) const override;
   // calculate first derivative w.r.t. ith parameter
-  double CalculateDF(const int i, const double r) const;
+  double CalculateDF(const int i, const double r) const override;
   // calculate second derivative w.r.t. ith parameter
-  double CalculateD2F(const int i, const int j, const double r) const;
+  double CalculateD2F(const int i, const int j, const double r) const override;
 };
 }  // namespace csg
 }  // namespace votca

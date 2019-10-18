@@ -37,15 +37,15 @@ using namespace votca::csg;
 
 class CsgTestApp : public CsgApplication {
 
-  string ProgramName() { return "template_threaded_rdf"; }
+  string ProgramName() override { return "template_threaded_rdf"; }
 
-  void HelpText(ostream &out) {
+  void HelpText(ostream &out) override {
     out << "template for threaded rdf calculations";
   }
 
-  void Initialize();
+  void Initialize() override;
 
-  bool DoTrajectory() { return true; }
+  bool DoTrajectory() override { return true; }
 
   // explicitly turn on threaded mode by overriding DoThreaded() and returning
   // true note that threads will be started and merged in an ordered way by
@@ -57,21 +57,21 @@ class CsgTestApp : public CsgApplication {
   // where an rdf-like value is calculated, ordered reading/writing is not
   // neccessary. however, leave it untouched to prevent future mistakes
 
-  bool DoThreaded() { return true; }
+  bool DoThreaded() override { return true; }
   // are you sure? really?
   // bool SynchronizeThreads() {
   //      return false;
   //  }
 
-  void BeginEvaluate(Topology *top, Topology *top_ref);
-  void EndEvaluate();
+  void BeginEvaluate(Topology *top, Topology *top_ref) override;
+  void EndEvaluate() override;
 
   // ForkWorker is the function you need to override and initialize your workers
-  CsgApplication::Worker *ForkWorker(void);
+  CsgApplication::Worker *ForkWorker(void) override;
 
   // MergeWorker needs you to define how to merge different workers and their
   // data
-  void MergeWorker(Worker *worker);
+  void MergeWorker(Worker *worker) override;
 
  protected:
   // data belonging to the main class CsgTestApp
@@ -82,9 +82,10 @@ class CsgTestApp : public CsgApplication {
 // derive from CsgApplication::Worker and define your worker
 class RDFWorker : public CsgApplication::Worker {
  public:
-  ~RDFWorker(){};
+  ~RDFWorker() override = default;
+  ;
   // override EvalConfiguration with your analysis routine
-  void EvalConfiguration(Topology *top, Topology *top_ref);
+  void EvalConfiguration(Topology *top, Topology *top_ref) override;
   // data belonging to this particular worker
   votca::tools::HistogramNew _rdf;
   double _cut_off;

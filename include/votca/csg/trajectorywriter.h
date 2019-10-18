@@ -29,8 +29,8 @@ namespace csg {
 
 class TrajectoryWriter {
  public:
-  TrajectoryWriter() {}
-  virtual ~TrajectoryWriter() {}
+  TrajectoryWriter() = default;
+  virtual ~TrajectoryWriter() = default;
 
   virtual void Open(std::string file, bool bAppend = false) {}
   virtual void Close(){};

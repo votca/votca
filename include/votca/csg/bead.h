@@ -48,7 +48,7 @@ class Bead : public BaseBead {
   /**
    * destructor
    */
-  virtual ~Bead() {}
+  ~Bead() override = default;
 
   /**
    * get the residu number of the bead
@@ -274,10 +274,6 @@ class Bead : public BaseBead {
  protected:
   std::vector<int> parent_beads_;
 
-  // TODO: this is so far a pointer. this should change! each bead should have
-  // own options.
-  // Property *options_;
-
   tools::byte_t symmetry_;
   double charge_;
 
@@ -291,7 +287,7 @@ class Bead : public BaseBead {
   bool bW_;
   bool bead_force_set_;
 
-  /// constructur
+  /// constructor
   Bead(Topology *owner, int id, std::string type, tools::byte_t symmetry,
        std::string name, int resnr, double m, double q)
       : symmetry_(symmetry), charge_(q), residue_number_(resnr) {
@@ -307,8 +303,6 @@ class Bead : public BaseBead {
     bW_ = false;
     bead_force_set_ = false;
   }
-
-  // void *_userdata;
 
   friend class Topology;
   friend class Molecule;

@@ -31,15 +31,17 @@ namespace csg {
 
 class CsgApplication : public tools::Application {
  public:
-  CsgApplication(){};
-  virtual ~CsgApplication(){};
+  CsgApplication() = default;
+  ;
+  ~CsgApplication() override = default;
+  ;
 
-  void Initialize();
-  bool EvaluateOptions();
+  void Initialize() override;
+  bool EvaluateOptions() override;
 
-  void Run(void);
+  void Run(void) override;
 
-  void ShowHelpText(std::ostream &out);
+  void ShowHelpText(std::ostream &out) override;
 
   /// \brief overload and return true to enable mapping command line options
 
@@ -57,10 +59,11 @@ class CsgApplication : public tools::Application {
   /* \brief overload and return false to disable synchronized (while threaded)
    * calculations */
   virtual bool SynchronizeThreads(void) {
-    if (DoThreaded())
+    if (DoThreaded()) {
       return true;
-    else
+    } else {
       return false;
+    }
   }
 
   /// \brief if topology is always needed
@@ -68,18 +71,18 @@ class CsgApplication : public tools::Application {
 
   /// \brief called after topology was loaded
 
-  virtual bool EvaluateTopology(Topology *top, Topology *top_ref = 0) {
+  virtual bool EvaluateTopology(Topology *top, Topology *top_ref = nullptr) {
     return true;
   }
 
   void AddObserver(CGObserver *observer);
 
   /// \brief called before the first frame
-  virtual void BeginEvaluate(Topology *top, Topology *top_ref = 0);
+  virtual void BeginEvaluate(Topology *top, Topology *top_ref = nullptr);
   /// \brief called after the last frame
   virtual void EndEvaluate();
   // \brief called for each frame which is mapped
-  virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0);
+  virtual void EvalConfiguration(Topology *top, Topology *top_ref = nullptr);
 
   // thread related stuff follows
 
@@ -99,11 +102,13 @@ class CsgApplication : public tools::Application {
    */
   class Worker : public tools::Thread {
    public:
-    Worker(){};
-    ~Worker();
+    Worker() = default;
+    ;
+    ~Worker() override;
 
     /// \brief overload with the actual computation
-    virtual void EvalConfiguration(Topology *top, Topology *top_ref = 0) = 0;
+    virtual void EvalConfiguration(Topology *top,
+                                   Topology *top_ref = nullptr) = 0;
 
     /// \brief returns worker id
     int getId() { return _id; }
@@ -114,7 +119,7 @@ class CsgApplication : public tools::Application {
     TopologyMap *_map = nullptr;
     int _id = -1;
 
-    void Run(void);
+    void Run(void) override;
 
     void setApplication(CsgApplication *app) { _app = app; }
 
