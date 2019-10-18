@@ -8,7 +8,7 @@ Installation instructions and developer information can be found
 
 For other questions, we provide an email list:
 
-[google group](https://groups.google.com/forum/?hl=de#!forum/votca-xtp)
+[google group](https://groups.google.com/forum/#!forum/votca)
 
 and a slack channel:
 
