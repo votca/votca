@@ -37,8 +37,8 @@ class Table {
   void clear();
 
   void GenerateGridSpacing(double min, double max, double spacing);
-  void resize(int N);
-  int size() const { return _x.size(); }
+  void resize(long int N);
+  long int size() const { return _x.size(); }
 
   double &x(int i) { return _x[i]; }
   double &y(int i) { return _y[i]; }
@@ -154,7 +154,7 @@ inline std::ostream &operator<<(std::ostream &out, const Table &t) {
 }
 // TODO: modify this function to be able to treat _has_yerr == true
 inline void Table::push_back(double x, double y, char flags) {
-  int n = size();
+  long int n = size();
   resize(n + 1);
   _x[n] = x;
   _y[n] = y;

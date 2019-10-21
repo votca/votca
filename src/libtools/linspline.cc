@@ -37,7 +37,7 @@ void LinSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
         "least 2 points");
   }
 
-  const int N = x.size();
+  const long int N = x.size();
 
   // adjust the grid
   _r.resize(N);
@@ -69,8 +69,8 @@ void LinSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
         "error in LinSpline::Fit : sizes of vectors x and y do not match");
   }
 
-  const int N = x.size();
-  const int ngrid = _r.size();
+  const long int N = x.size();
+  const long int ngrid = _r.size();
 
   // construct the equation
   // A*u = b
@@ -81,7 +81,7 @@ void LinSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   // therefore b=y and u=vector of all unknown y(i)
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N, ngrid);
-  int interval;
+  long int interval;
 
   // construct matrix A
   for (int i = 0; i < N; i++) {

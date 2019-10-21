@@ -53,7 +53,6 @@ class Property {
 
  public:
   Property() = default;
-  ;
   Property(const std::string &name, const std::string &value,
            const std::string &path)
       : _name(name), _value(value), _path(path) {}
@@ -233,7 +232,7 @@ class Property {
   static int getIOindex() { return IOindex; };
 
  private:
-  std::map<std::string, int> _map;
+  std::map<std::string, long int> _map;
   std::map<std::string, std::string> _attributes;
   std::vector<Property> _properties;
 

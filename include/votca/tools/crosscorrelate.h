@@ -36,10 +36,8 @@ class CrossCorrelate {
  public:
   /// constructor
   CrossCorrelate() = default;
-  ;
   /// destructor
   ~CrossCorrelate() = default;
-  ;
 
   /**
       calculate the cross correlation
@@ -51,8 +49,7 @@ class CrossCorrelate {
       calculate the auto correlation
 
    */
-  void AutoCorrelate(DataCollection<double>::selection* data,
-                     bool average = false);
+  void AutoCorrelate(DataCollection<double>::selection* data);
 
   // Calculates only the Fourier trafo
   void FFTOnly(std::vector<double>& ivec);

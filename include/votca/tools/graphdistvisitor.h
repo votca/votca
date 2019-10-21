@@ -53,12 +53,11 @@ class GraphDistVisitor : public Graph_BF_Visitor {
 
  public:
   GraphDistVisitor() = default;
-  ;
 
   /// Note the only manipulation to the BF visitor is the need to add a
   /// distance attribute to each of the graph nodes.
   void exploreNode(std::pair<int, GraphNode>& p_gn, Graph& g,
-                   Edge ed = DUMMY_EDGE) override;
+                   Edge ed = DUMMY_EDGE);
 };
 }  // namespace tools
 }  // namespace votca

@@ -38,7 +38,7 @@ void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
         "at least 3 points");
   }
 
-  const int N = x.size();
+  const long int N = x.size();
 
   // copy the grid points into f
   _r = x;
@@ -86,8 +86,8 @@ void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
         "error in CubicSpline::Fit : sizes of vectors x and y do not match");
   }
 
-  const int N = x.size();
-  const int ngrid = _r.size();
+  const long int N = x.size();
+  const long int ngrid = _r.size();
 
   // construct the equation
   // A*u = b

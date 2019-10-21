@@ -43,7 +43,6 @@ class EdgeContainer {
  public:
   /// Constructors can take no arguments a single Edge or a vector of edges
   EdgeContainer() = default;
-  ;
   EdgeContainer(Edge edge);
   EdgeContainer(std::vector<Edge> edges);
 

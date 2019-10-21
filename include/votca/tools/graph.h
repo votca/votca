@@ -59,7 +59,6 @@ class Graph {
  public:
   Graph() : id_(""){};
   virtual ~Graph() = default;
-  ;
   /// Constructor
   /// @param edgs - vector of edges where each edge is composed of two
   /// ints (vertex ids) describing a link between the vertices

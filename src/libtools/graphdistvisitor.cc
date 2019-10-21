@@ -51,7 +51,7 @@ void GraphDistVisitor::exploreNode(pair<int, GraphNode>& p_gn, Graph& g,
     }
   }
   // Ensure the graph node is set to explored
-  GraphVisitor::exploreNode(p_gn, g);
+  GraphVisitor::exploreNode(p_gn);
 }
 }  // namespace tools
 }  // namespace votca

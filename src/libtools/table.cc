@@ -30,7 +30,7 @@ namespace tools {
 using namespace boost;
 using namespace std;
 
-void Table::resize(int N) {
+void Table::resize(long int N) {
   _x.conservativeResize(N);
   _y.conservativeResize(N);
   _flags.resize(N);
