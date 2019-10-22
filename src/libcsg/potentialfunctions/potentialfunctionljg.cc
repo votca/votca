@@ -86,6 +86,8 @@ double PotentialFunctionLJG::CalculateD2F(const int i, const int j,
           case 4:
             return 2.0 * _lam(3) * (r - _lam(4)) *
                    exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+          default:
+            return 0.0;
         }
       case 3:
         switch (j) {
@@ -103,6 +105,8 @@ double PotentialFunctionLJG::CalculateD2F(const int i, const int j,
             return 2.0 * _lam(2) * (r - _lam(4)) *
                    (1.0 - _lam(3) * pow((r - _lam(4)), 2)) *
                    exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+          default:
+            return 0.0;
         }
       case 4:
         switch (j) {

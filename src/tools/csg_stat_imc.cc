@@ -65,7 +65,7 @@ void Imc::Initialize() {
   if (_do_imc) {
     InitializeGroups();
   }
-};
+}
 
 void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
   // we didn't process any frames so far

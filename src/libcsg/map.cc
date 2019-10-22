@@ -85,8 +85,8 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
   // get the d vector if exists or initialize same as weights
   vector<double> d;
   if (_opts_map->exists("d")) {
-    Tokenizer tok_weights(_opts_map->get("d").value(), " \n\t");
-    tok_weights.ConvertToVector(d);
+    Tokenizer tok_weights2(_opts_map->get("d").value(), " \n\t");
+    tok_weights2.ConvertToVector(d);
     // normalize d coefficients
     norm = 1. / std::accumulate(d.begin(), d.end(), 0.);
     transform(d.begin(), d.end(), d.begin(),

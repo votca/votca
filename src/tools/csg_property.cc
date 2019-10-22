@@ -106,16 +106,16 @@ int main(int argc, char **argv) {
         }
       }
 
-      Property *p = &(prop->get(print));
+      Property *p2 = &(prop->get(print));
 
       if (!short_output && with_path) {
-        cout << p->path() << ".";
+        cout << p2->path() << ".";
       }
       if (!short_output) {
-        cout << p->name() << " = ";
+        cout << p2->name() << " = ";
       }
-      // if(!p->HasChilds())
-      cout << p->value();
+      // if(!p2->HasChilds())
+      cout << p2->value();
       cout << endl;
     }
   } catch (std::exception &error) {

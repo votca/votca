@@ -120,7 +120,6 @@ class BeadMotif : public BeadStructure<BaseBead> {
   };
 
   BeadMotif() = default;
-  ;
 
   BeadMotif(const BeadStructure &structure) : BeadStructure(structure){};
 

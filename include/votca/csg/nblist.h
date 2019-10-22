@@ -113,7 +113,6 @@ class NBList : public PairList<Bead *, BeadPair> {
     virtual bool operator()(Bead *, Bead *, const Eigen::Vector3d &,
                             const double dist) = 0;
     virtual ~Functor() = default;
-    ;
   };
 
   /// Functor for member functions

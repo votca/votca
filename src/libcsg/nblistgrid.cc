@@ -130,8 +130,8 @@ void NBListGrid::InitializeGrid(const Eigen::Matrix3d &box) {
         for (int aa = a + a1; aa <= a + a2; ++aa) {
           for (int bb = b + b1; bb <= b + b2; ++bb) {
             for (int cc = c + c1; cc <= c + c2; ++cc) {
-              cell_t *c = &getCell(aa % _box_Na, bb % _box_Nb, cc % _box_Nc);
-              if (c == &cell) {
+              cell_t *cell2 = &getCell(aa % _box_Na, bb % _box_Nb, cc % _box_Nc);
+              if (cell2 == &cell) {
                 continue;  // ignore self
               }
               cell._neighbours.push_back(

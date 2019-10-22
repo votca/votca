@@ -194,7 +194,7 @@ void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {
   }
 
   _writer->Open(out);
-};
+}
 
 int main(int argc, char **argv) {
   CsgMapApp app;

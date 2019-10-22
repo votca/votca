@@ -31,7 +31,6 @@ class PotentialFunctionLJ126 : public PotentialFunction {
   PotentialFunctionLJ126(const std::string &name_, const double min_ = 0.0,
                          const double max_ = 10.0);
   ~PotentialFunctionLJ126() override = default;
-  ;
   // calculate function value for given r
   double CalculateF(const double r) const override;
   // calculate first derivative w.r.t. ith parameter

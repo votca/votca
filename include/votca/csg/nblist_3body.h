@@ -142,7 +142,6 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
                             const double dist12, const double dist13,
                             const double dist23) = 0;
     virtual ~Functor() = default;
-    ;
   };
 
   /// Functor for member functions

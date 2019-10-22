@@ -32,9 +32,7 @@ namespace csg {
 class CsgApplication : public tools::Application {
  public:
   CsgApplication() = default;
-  ;
   ~CsgApplication() override = default;
-  ;
 
   void Initialize() override;
   bool EvaluateOptions() override;
@@ -103,7 +101,6 @@ class CsgApplication : public tools::Application {
   class Worker : public tools::Thread {
    public:
     Worker() = default;
-    ;
     ~Worker() override;
 
     /// \brief overload with the actual computation
