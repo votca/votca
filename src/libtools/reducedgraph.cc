@@ -360,7 +360,7 @@ vector<vector<Edge>> ReducedGraph::expandEdge(const Edge& edge) const {
 }
 
 vector<pair<int, GraphNode>> ReducedGraph::getNodes() const {
-  vector<int> vertices = edge_container_.getVertices();
+  vector<long int> vertices = edge_container_.getVertices();
   vector<pair<int, GraphNode>> nodes;
   for (const int vertex : vertices) {
     pair<int, GraphNode> id_and_node(vertex, nodes_.at(vertex));
@@ -377,10 +377,10 @@ vector<pair<int, GraphNode>> ReducedGraph::getNodes() const {
   return nodes;
 }
 
-vector<int> ReducedGraph::getVerticesDegree(int degree) const {
+vector<long int> ReducedGraph::getVerticesDegree(long int degree) const {
   if (degree == 0) {
     set<int> all_connected_vertices = getAllConnectedVertices_(expanded_edges_);
-    vector<int> vertices;
+    vector<long int> vertices;
     for (const pair<int, GraphNode> id_and_node : nodes_) {
       if (all_connected_vertices.count(id_and_node.first) == false) {
         vertices.push_back(id_and_node.first);

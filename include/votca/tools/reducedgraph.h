@@ -134,7 +134,7 @@ class ReducedGraph : public Graph {
 
   std::vector<std::pair<int, GraphNode>> getNodes(void) const override;
 
-  std::vector<int> getVerticesDegree(int degree) const override;
+  std::vector<long int> getVerticesDegree(long int degree) const override;
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph graph);
 };

@@ -29,7 +29,7 @@ namespace tools {
 
 class GraphNode;
 
-bool nodeForEveryVertex_(vector<int> vertices,
+bool nodeForEveryVertex_(vector<long int> vertices,
                          unordered_map<long int, GraphNode> nodes) {
   for (const int vertex : vertices) {
     if (nodes.count(vertex) == 0) {
@@ -41,7 +41,7 @@ bool nodeForEveryVertex_(vector<int> vertices,
 
 Graph::Graph(vector<Edge> edges, unordered_map<long int, GraphNode> nodes) {
   edge_container_ = EdgeContainer(edges);
-  vector<int> vertices = edge_container_.getVertices();
+  vector<long int> vertices = edge_container_.getVertices();
   assert(nodeForEveryVertex_(vertices, nodes) &&
          "A node must exist for every vertex.");
   nodes_ = nodes;
@@ -61,7 +61,7 @@ bool Graph::operator==(const Graph& graph) const { return !(*(this) != graph); }
 
 vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void) const {
   vector<pair<int, GraphNode>> isolated_nodes;
-  vector<int> vertices_degree_0 = edge_container_.getVerticesDegree(0);
+  vector<long int> vertices_degree_0 = edge_container_.getVerticesDegree(0);
 
   for (const int vertex : vertices_degree_0) {
     pair<int, GraphNode> id_and_node{vertex, nodes_.at(vertex)};
@@ -107,7 +107,7 @@ vector<int> Graph::getJunctions() const {
   vector<int> junctions;
   int max_degree = edge_container_.getMaxDegree();
   for (int degree = 3; degree <= max_degree; ++degree) {
-    vector<int> vertices = edge_container_.getVerticesDegree(degree);
+    vector<long int> vertices = edge_container_.getVerticesDegree(degree);
     junctions.insert(junctions.end(), vertices.begin(), vertices.end());
   }
   return junctions;
@@ -155,11 +155,11 @@ bool Graph::vertexExist(int vertex) const {
   return false;
 }
 
-vector<int> Graph::getVerticesDegree(int degree) const {
+vector<long int> Graph::getVerticesDegree(long int degree) const {
   return edge_container_.getVerticesDegree(degree);
 }
 
-vector<int> Graph::getVertices() const { return edge_container_.getVertices(); }
+vector<long int> Graph::getVertices() const { return edge_container_.getVertices(); }
 
 ostream& operator<<(ostream& os, const Graph graph) {
   os << "Graph" << endl;

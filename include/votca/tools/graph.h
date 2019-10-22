@@ -110,7 +110,7 @@ class Graph {
   }
 
   /// Returns all the vertices in the graph
-  std::vector<int> getVertices() const;
+  std::vector<long int> getVertices() const;
 
   /**
    * \brief Finds the max degree of a vertex in the graph.
@@ -125,7 +125,7 @@ class Graph {
   int getDegree(int vertex) const;
 
   /// Returns all the vertices with degree specified by `degree`
-  virtual std::vector<int> getVerticesDegree(int degree) const;
+  virtual std::vector<long int> getVerticesDegree(long int degree) const;
 
   /// Determines if a vertex exists within the graph
   bool vertexExist(int vertex) const;

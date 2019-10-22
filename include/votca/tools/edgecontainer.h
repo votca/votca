@@ -49,7 +49,7 @@ class EdgeContainer {
   /// Get the value of the max degree
   long int getMaxDegree() const;
   /// Contains vector of all vertices with degree
-  std::vector<long int> getVerticesDegree(int degree) const;
+  std::vector<long int> getVerticesDegree(long int degree) const;
   /// Determine the degree of the vertex/number of edges attached
   long int getDegree(const long int vertex) const;
   /// Determine if a vertex with the specified degree exists
@@ -66,7 +66,7 @@ class EdgeContainer {
   /// Get all the edges in vector form
   std::vector<Edge> getEdges() const;
   /// Get all the vertices in vector form
-  std::vector<int> getVertices() const;
+  std::vector<long int> getVertices() const;
   /// Get the vertices neighboring vert
   std::vector<int> getNeighVertices(int vertex) const;
   /// Get the edges neighboring vert

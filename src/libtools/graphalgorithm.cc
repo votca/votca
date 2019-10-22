@@ -160,7 +160,7 @@ ReducedGraph reduceGraph(Graph graph) {
   };  // Class ExplorationRecord
 
   unordered_map<int, pair<bool, int>> unexplored_vertices;
-  vector<int> vertices = graph.getVertices();
+  vector<long int> vertices = graph.getVertices();
   for (const int& vertex : vertices) {
     unexplored_vertices[vertex] =
         pair<bool, int>(false, graph.getDegree(vertex));
@@ -238,7 +238,7 @@ ReducedGraph reduceGraph(Graph graph) {
 
 vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
 
-  const std::vector<int>& vertices = graph.getVertices();
+  const std::vector<long int>& vertices = graph.getVertices();
   // bool vector to see if vertex is already part of graph
   std::vector<bool> vertex_analysed = std::vector<bool>(vertices.size(), false);
 

@@ -67,7 +67,7 @@ long int EdgeContainer::getDegree(const long int vertex) const {
   return degree_count;
 }
 
-vector<long int> EdgeContainer::getVerticesDegree(int degree) const {
+vector<long int> EdgeContainer::getVerticesDegree(long int degree) const {
   vector<long int> vertices;
   for (const auto& vertex_and_neigh_and_count : adj_list_) {
     long int degree_count = getDegree(vertex_and_neigh_and_count.first);
@@ -133,9 +133,9 @@ void EdgeContainer::addVertex(long int vertex) {
   adj_list_[vertex] = empty_temp;
 }
 
-vector<int> EdgeContainer::getVertices() const {
-  vector<int> vertices;
-  for (const pair<const int, unordered_map<int, int>>&
+vector<long int> EdgeContainer::getVertices() const {
+  vector<long int> vertices;
+  for (const pair<const long int, unordered_map<int, int>>&
            vertex_and_neigh_and_count : adj_list_) {
     vertices.push_back(vertex_and_neigh_and_count.first);
   }
