@@ -141,7 +141,7 @@ class Spline {
    * \param step "h"
    * \return number of grid values in the interval
    */
-  int GenerateGrid(double min, double max, double h);
+  long int GenerateGrid(double min, double max, double h);
 
   /**
    * \brief Get the grid array x

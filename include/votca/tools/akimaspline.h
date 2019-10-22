@@ -63,7 +63,7 @@ class AkimaSpline : public Spline {
 
   // fit spline through noisy data
   // x,y are arrays with noisy data, both vectors must be of same size
-  void Fit(Eigen::VectorXd, Eigen::VectorXd);
+  void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) override;
 
   // Calculate the function value
   double Calculate(const double &x) override;

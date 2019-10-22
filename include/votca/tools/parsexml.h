@@ -92,7 +92,6 @@ class ParseXML {
     virtual void operator()(const std::string &,
                             std::map<std::string, std::string> &) = 0;
     virtual ~Functor() = default;
-    ;
   };
 
   template <typename T>

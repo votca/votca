@@ -43,7 +43,7 @@ using namespace std;
 void moveVertexWithSmallestValueToEnds_(vector<int>& vertices) {
   vertices.pop_back();
   vector<int>::iterator starting_iterator = next(vertices.begin());
-  int min_vertex_index =
+  long int min_vertex_index =
       min_element(starting_iterator, vertices.end()) - vertices.begin();
   if (vertices.front() > vertices.at(min_vertex_index)) {
     rotate(vertices.begin(), vertices.begin() + min_vertex_index,

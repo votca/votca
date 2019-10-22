@@ -22,7 +22,7 @@ namespace tools {
 
 using namespace std;
 
-int Spline::GenerateGrid(double min, double max, double h) {
+long int Spline::GenerateGrid(double min, double max, double h) {
   int vec_size = (int)((max - min) / h + 1.00000001);
   _r.resize(vec_size);
   int i;

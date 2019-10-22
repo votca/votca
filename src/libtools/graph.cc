@@ -39,7 +39,7 @@ bool nodeForEveryVertex_(vector<int> vertices,
   return true;
 }
 
-Graph::Graph(vector<Edge> edges, unordered_map<int, GraphNode> nodes) {
+Graph::Graph(vector<Edge> edges, unordered_map<long int, GraphNode> nodes) {
   edge_container_ = EdgeContainer(edges);
   vector<int> vertices = edge_container_.getVertices();
   assert(nodeForEveryVertex_(vertices, nodes) &&

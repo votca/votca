@@ -177,9 +177,9 @@ istream &operator>>(istream &in, Table &t) {
 }
 
 void Table::GenerateGridSpacing(double min, double max, double spacing) {
-  int n = floor((max - min) / spacing + 1.000000001);
+  long int n = (long int)floor((max - min) / spacing + 1.000000001);
   resize(n);
-  int i = 0;
+  long int i = 0;
   for (double x = min; i < n; x += spacing, ++i) {
     _x[i] = x;
   }

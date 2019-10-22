@@ -218,7 +218,7 @@ bool reorderAndStoreChainIfDoesNotExist_(
     if (((chain_index + index) % chain.size()) == 0) {
       ++chain_index;
     }
-    int new_chain_index = (chain_index + index) % chain.size();
+    long int new_chain_index = (chain_index + index) % chain.size();
     new_chain.push_back(chain.at(new_chain_index));
   }
   // Ensure that the new_chain is sorted so after the first vertex they are

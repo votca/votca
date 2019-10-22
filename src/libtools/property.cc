@@ -48,7 +48,7 @@ const Property &Property::get(const string &key) const {
   }
 
   const Property *p;
-  map<string, int>::const_iterator iter;
+  map<string, long int>::const_iterator iter;
   if (*n == "") {
     p = this;
   } else {
@@ -177,7 +177,10 @@ void Property::LoadFromXML(string filename) {
     string line;
     getline(fl, line);
     line = line + "\n";
-    if (!XML_Parse(parser, line.c_str(), line.length(), fl.eof())) {
+    if( line.length() > std::numeric_limits<int>::max()) {
+      throw std::runtime_error("Property::LoadFromXML: line is too long");
+    }
+    if (!XML_Parse(parser, line.c_str(), (int)line.length(), fl.eof())) {
       throw std::ios_base::failure(
           filename + ": Parse error at line " +
           boost::lexical_cast<string>(XML_GetCurrentLineNumber(parser)) + "\n" +
@@ -466,6 +469,7 @@ std::ostream &operator<<(std::ostream &out, const Property &p) {
     switch (type) {
       default:
         PrintNodeTXT(out, p, level);
+	break;
       case PropertyIOManipulator::XML:
         PrintNodeXML(out, p, pm);
         break;
@@ -482,6 +486,6 @@ std::ostream &operator<<(std::ostream &out, const Property &p) {
   }
 
   return out;
-};
+}
 }  // namespace tools
 }  // namespace votca

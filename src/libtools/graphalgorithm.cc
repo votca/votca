@@ -70,7 +70,7 @@ std::set<Edge> exploreBranch(Graph g, int starting_vertex, const Edge& edge) {
   Graph_BF_Visitor gv_breadth_first;
   GraphNode gn;
   pair<int, GraphNode> pr_gn(starting_vertex, gn);
-  gv_breadth_first.exploreNode(pr_gn);
+  gv_breadth_first.exploreNode(pr_gn, g);
   gv_breadth_first.setStartingVertex(edge.getOtherEndPoint(starting_vertex));
   gv_breadth_first.initialize(g);
 

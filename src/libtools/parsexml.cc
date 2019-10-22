@@ -64,7 +64,10 @@ void ParseXML::Open(const std::string &filename) {
     std::string line;
     getline(fl, line);
     line = line + "\n";
-    if (!XML_Parse(parser, line.c_str(), line.length(), fl.eof())) {
+    if( line.length() > std::numeric_limits<int>::max()) {
+      throw std::runtime_error("ParseXML::Open: line is too long");
+    }
+    if (!XML_Parse(parser, line.c_str(), (int)line.length(), fl.eof())) {
       throw std::ios_base::failure(
           filename + ": Parse error in " + filename + " at line " +
           boost::lexical_cast<std::string>(XML_GetCurrentLineNumber(parser)) +
