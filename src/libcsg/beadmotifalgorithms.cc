@@ -309,10 +309,10 @@ void MotifDeconstructor_::deconstructComplexSingleStructures(
 
     calculateEdgesToRemove_(full_graph, remove_edges);
 
-    vector<int> all_vertices = full_graph.getVertices();
+    vector<long int> all_vertices = full_graph.getVertices();
 
     BeadStructure<BaseBead> new_beadstructure;
-    for (int& vertex : all_vertices) {
+    for (long int& vertex : all_vertices) {
       new_beadstructure.AddBead(id_and_bead_motif.second.getBead(vertex));
     }
 

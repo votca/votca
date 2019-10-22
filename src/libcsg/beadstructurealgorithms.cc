@@ -34,7 +34,7 @@ vector<BeadStructure<BaseBead>> breakIntoStructures(
         decoupleIsolatedSubGraphs(beadstructure.getGraph());
     for (Graph &sub_graph : sub_graphs) {
       vector<Edge> sub_graph_edges = sub_graph.getEdges();
-      vector<int> sub_graph_vertices = sub_graph.getVertices();
+      vector<long int> sub_graph_vertices = sub_graph.getVertices();
 
       BeadStructure<BaseBead> beadstructure_temp;
       for (const int &vertex : sub_graph_vertices) {

@@ -124,7 +124,7 @@ class BeadStructure {
   TOOLS::Graph graph_;
   std::set<TOOLS::Edge> connections_;
   std::unordered_map<int, T *> beads_;
-  std::unordered_map<int, TOOLS::GraphNode> graphnodes_;
+  std::unordered_map<long int, TOOLS::GraphNode> graphnodes_;
 };
 
 /**********************
@@ -228,7 +228,7 @@ bool BeadStructure<T>::isSingleStructure() {
 
   InitializeGraph_();
   if (single_structureUpToDate_ == false) {
-    std::vector<int> vertices = graph_.getVertices();
+    std::vector<long int> vertices = graph_.getVertices();
     if (vertices.size() == 0) {
       single_structure_ = false;
       return single_structure_;

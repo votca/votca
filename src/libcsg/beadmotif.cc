@@ -80,9 +80,9 @@ bool BeadMotif::isLine_() {
   // all other vertices must be 2
   int num_vertices_degree_1 = 0;
 
-  vector<int> vertices = reduced_graph_.getVertices();
-  for (int& vertex : vertices) {
-    int degree = reduced_graph_.getDegree(vertex);
+  vector<long int> vertices = reduced_graph_.getVertices();
+  for (long int& vertex : vertices) {
+    long int degree = reduced_graph_.getDegree(vertex);
     if (degree == 1) {
       ++num_vertices_degree_1;
     } else if (degree == 0) {
@@ -103,8 +103,8 @@ bool BeadMotif::isLoop_() {
   }
 
   // Ensure that the degree of every vertex is 2
-  vector<int> vertices = graph_.getVertices();
-  for (int& vertex : vertices) {
+  vector<long int> vertices = graph_.getVertices();
+  for (long int& vertex : vertices) {
     if (graph_.getDegree(vertex) != 2) {
       return false;
     }
@@ -151,8 +151,8 @@ bool BeadMotif::isFusedRing_() {
     return false;
   }
   // Ensure that the degree of every vertex is 2 or greater
-  vector<int> vertices = graph_.getVertices();
-  for (int& vertex : vertices) {
+  vector<long int> vertices = graph_.getVertices();
+  for (long int& vertex : vertices) {
     if (graph_.getDegree(vertex) < 2) {
       return false;
     }
