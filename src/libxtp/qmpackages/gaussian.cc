@@ -221,9 +221,9 @@ void Gaussian::WriteBackgroundCharges(std::ofstream& com_file) {
 
     std::vector<MinimalMMCharge> split_multipoles = SplitMultipoles(*site);
     for (const auto& mpoles : split_multipoles) {
-      Eigen::Vector3d pos = mpoles._pos * tools::conv::bohr2ang;
+      Eigen::Vector3d pos2 = mpoles._pos * tools::conv::bohr2ang;
       string multipole =
-          boost::str(fmt % pos.x() % pos.y() % pos.z() % mpoles._q);
+          boost::str(fmt % pos2.x() % pos2.y() % pos2.z() % mpoles._q);
       com_file << multipole << endl;
     }
   }

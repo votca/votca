@@ -98,7 +98,6 @@ class LogBuffer : public std::stringbuf {
  private:
   // Log Level (WARNING, INFO, etc)
   TLogLevel _LogLevel = TLogLevel::logDEBUG;
-  ;
 
   // temporary buffer to store messages
   std::ostringstream _stringStream;
@@ -237,7 +236,6 @@ class TimeStamp {
   }
 
   explicit TimeStamp() = default;
-  ;
 };
 
 }  // namespace xtp

@@ -479,7 +479,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << "  Done with exciton couplings" << flush;
   return;
-};
+}
 
 Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
                                               Eigen::MatrixXd& CTStates) const {

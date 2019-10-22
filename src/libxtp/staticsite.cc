@@ -89,7 +89,7 @@ std::string StaticSite::writePolarisation() const {
     ;
   }
   return (boost::format("     P %1$+1.7f\n") % default_pol).str();
-};
+}
 
 std::string StaticSite::WriteMpsLine(string unit) const {
   double conv_pos = 1.;

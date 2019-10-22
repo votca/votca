@@ -292,4 +292,4 @@ void IEXCITON::ReadJobFile(Topology& top) {
 }
 
 }  // namespace xtp
-};  // namespace votca
+}  // namespace votca

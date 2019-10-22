@@ -39,9 +39,9 @@ PolarSite::PolarSite(int id, std::string element, Eigen::Vector3d pos)
     ;
   }
   setPolarisation(default_pol * Eigen::Matrix3d::Identity());
-};
+}
 
-PolarSite::PolarSite(data& d) { ReadData(d); };
+PolarSite::PolarSite(data& d) { ReadData(d); }
 
 Eigen::Vector3d PolarSite::getDipole() const {
   Eigen::Vector3d dipole = _Q.segment<3>(1);

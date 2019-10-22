@@ -32,7 +32,6 @@ namespace xtp {
 class QMNBList : public csg::PairList<const Segment*, QMPair> {
  public:
   QMNBList() = default;
-  ;
   ~QMNBList() override { csg::PairList<const Segment*, QMPair>::Cleanup(); }
 
   QMPair& Add(const Segment& seg1, const Segment& seg2,

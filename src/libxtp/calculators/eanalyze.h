@@ -36,10 +36,8 @@ namespace xtp {
 class EAnalyze : public QMCalculator {
  public:
   EAnalyze() = default;
-  ;
 
   ~EAnalyze() override = default;
-  ;
   bool WriteToStateFile() const override { return false; }
   std::string Identify() override { return "eanalyze"; }
 

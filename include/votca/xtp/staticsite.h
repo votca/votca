@@ -67,11 +67,9 @@ class StaticSite {
     setCharge(charge);
   }
   virtual ~StaticSite() = default;
-  ;
 
  protected:
   StaticSite() = default;
-  ;
 
  public:
   int getId() const { return _id; }

@@ -857,4 +857,4 @@ void IQM::ReadJobFile(Topology& top) {
   return;
 }
 }  // namespace xtp
-};  // namespace votca
+}  // namespace votca

@@ -43,7 +43,6 @@ class AtomContainer {
 
   AtomContainer(CheckpointReader& r) { this->ReadFromCpt(r); }
   virtual ~AtomContainer() = default;
-  ;
 
   using iterator = typename std::vector<T>::iterator;
 

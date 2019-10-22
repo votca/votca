@@ -49,7 +49,6 @@ void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
   AOBasis basis;
   basis.Fill(bs, Atomlist);
   AnalyzeGeometry(Atomlist);
-  std::vector<Eigen::MatrixXd> DMAT;
 
   // setup numerical integration grid
   NumericalIntegration numway;

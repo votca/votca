@@ -201,7 +201,7 @@ tools::EigenSystem DFTEngine::ModelPotentialGuess(const Mat_p_Energy& H0,
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
   } else {
-    Mat_p_Energy e_vxc = _gridIntegration.IntegrateVXC(Dmat);
+    Mat_p_Energy e_vxc_loc = _gridIntegration.IntegrateVXC(Dmat);
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Filled DFT Vxc matrix " << flush;
   }

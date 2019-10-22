@@ -658,4 +658,4 @@ bool GWBSE::Evaluate() {
   return true;
 }
 }  // namespace xtp
-};  // namespace votca
+}  // namespace votca

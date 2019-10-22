@@ -76,8 +76,8 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
   // invalidated
   for (const auto& atom_index : shellindex_per_atom) {
     std::vector<const ECPAOShell*> temp;
-    for (int index : atom_index) {
-      temp.push_back(&_aoshells[index]);
+    for (int lindex : atom_index) {
+      temp.push_back(&_aoshells[lindex]);
     }
     _shells_perAtom.push_back(temp);
   }

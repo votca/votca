@@ -56,12 +56,12 @@ Mat_p_Energy ERIs::CalculateERIs(const Eigen::MatrixXd& DMAT) const {
     threecenter.AddtoEigenUpperMatrix(m, factor);
   }
 
-  Eigen::MatrixXd ERIs =
+  Eigen::MatrixXd ERIs2 =
       std::accumulate(ERIS_thread.begin(), ERIS_thread.end(),
                       Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()).eval());
-  ERIs = ERIs.selfadjointView<Eigen::Upper>();
-  double energy = CalculateEnergy(DMAT, ERIs);
-  return Mat_p_Energy(energy, ERIs);
+  ERIs2 = ERIs2.selfadjointView<Eigen::Upper>();
+  double energy = CalculateEnergy(DMAT, ERIs2);
+  return Mat_p_Energy(energy, ERIs2);
 }
 
 Mat_p_Energy ERIs::CalculateEXX(const Eigen::MatrixXd& DMAT) const {
@@ -110,7 +110,7 @@ Mat_p_Energy ERIs::CalculateEXX(const Eigen::MatrixXd& occMos,
 Mat_p_Energy ERIs::CalculateERIs_4c_small_molecule(
     const Eigen::MatrixXd& DMAT) const {
 
-  Eigen::MatrixXd ERIs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
+  Eigen::MatrixXd ERIs2 = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
   const Eigen::VectorXd& fourc_vector = _fourcenter.get_4c_vector();
 
@@ -135,18 +135,18 @@ Mat_p_Energy ERIs::CalculateERIs_4c_small_molecule(
           }
 
           if (l == k) {
-            ERIs(i, j) += DMAT(k, l) * fourc_vector(index_ij_kl);
+            ERIs2(i, j) += DMAT(k, l) * fourc_vector(index_ij_kl);
           } else {
-            ERIs(i, j) += 2. * DMAT(k, l) * fourc_vector(index_ij_kl);
+            ERIs2(i, j) += 2. * DMAT(k, l) * fourc_vector(index_ij_kl);
           }
         }
       }
-      ERIs(j, i) = ERIs(i, j);
+      ERIs2(j, i) = ERIs2(i, j);
     }
   }
 
-  double energy = CalculateEnergy(DMAT, ERIs);
-  return Mat_p_Energy(energy, ERIs);
+  double energy = CalculateEnergy(DMAT, ERIs2);
+  return Mat_p_Energy(energy, ERIs2);
 }
 
 Mat_p_Energy ERIs::CalculateEXX_4c_small_molecule(
@@ -213,7 +213,7 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
   int numShells = dftbasis.getNumofShells();
 
   // Initialize ERIs matrix
-  Eigen::MatrixXd ERIs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
+  Eigen::MatrixXd ERIs2 = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
 #pragma omp parallel
   {  // Begin omp parallel
@@ -309,12 +309,12 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
     }        // End loop over shell 3
 
 #pragma omp critical
-    { ERIs += ERIs_thread; }
+    { ERIs2 += ERIs_thread; }
   }
 
-  ERIs = ERIs.selfadjointView<Eigen::Upper>();
-  double energy = CalculateEnergy(DMAT, ERIs);
-  return Mat_p_Energy(energy, ERIs);
+  ERIs2 = ERIs2.selfadjointView<Eigen::Upper>();
+  double energy = CalculateEnergy(DMAT, ERIs2);
+  return Mat_p_Energy(energy, ERIs2);
 }
 
 template <bool transposed_block>

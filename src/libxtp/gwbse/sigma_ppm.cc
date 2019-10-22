@@ -128,4 +128,4 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
 }
 
 }  // namespace xtp
-};  // namespace votca
+}  // namespace votca

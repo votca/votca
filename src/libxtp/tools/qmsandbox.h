@@ -35,9 +35,7 @@ namespace xtp {
 class QMSandbox : public QMTool {
  public:
   QMSandbox() = default;
-  ;
   ~QMSandbox() override = default;
-  ;
 
   std::string Identify() override { return "qmsandbox"; }
 

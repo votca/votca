@@ -57,4 +57,4 @@ void PPM::PPM_construct_parameters(const RPA& rpa) {
 }
 
 }  // namespace xtp
-};  // namespace votca
+}  // namespace votca

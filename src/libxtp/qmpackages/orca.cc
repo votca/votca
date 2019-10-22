@@ -211,9 +211,9 @@ void Orca::WriteBackgroundCharges() {
     }
     std::vector<MinimalMMCharge> split_multipoles = SplitMultipoles(*site);
     for (const auto& mpoles : split_multipoles) {
-      Eigen::Vector3d pos = mpoles._pos * tools::conv::bohr2ang;
+      Eigen::Vector3d pos2 = mpoles._pos * tools::conv::bohr2ang;
       string multipole =
-          boost::str(fmt % mpoles._q % pos.x() % pos.y() % pos.z());
+          boost::str(fmt % mpoles._q % pos2.x() % pos2.y() % pos2.z());
       crg_file << multipole << endl;
     }
   }
