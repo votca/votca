@@ -41,10 +41,10 @@ class GraphNode;
  * a vertex along an edge. The vertices appear in the chain in the same order
  * as they exist in a graph.
  **/
-bool compareChainWithChains_(const vector<int>& chain,
-                             const vector<vector<int>>& chains) {
+bool compareChainWithChains_(const vector<long int>& chain,
+                             const vector<vector<long int>>& chains) {
   bool match = false;
-  for (const vector<int>& chain2 : chains) {
+  for (const vector<long int>& chain2 : chains) {
     if (chain2.size() == chain.size()) {
       match = true;
       for (size_t index = 0; index < chain.size(); ++index) {
@@ -102,7 +102,7 @@ set<int> getVertexJunctions_(const vector<ReducedEdge>& reduced_edges) {
       ++index;
       increment = 2;
     }
-    vector<int> chain = reduced_edge.getChain();
+    vector<long int> chain = reduced_edge.getChain();
     for (; index < chain.size(); ++index) {
       if (vertex_count.count(chain.at(index))) {
         vertex_count[chain.at(index)] += increment;
@@ -150,7 +150,7 @@ set<int> getVertexJunctions_(const vector<ReducedEdge>& reduced_edges) {
  **/
 void addEdgeIfNotLoop_(
     vector<Edge>& edges, const ReducedEdge reduced_edge,
-    unordered_map<Edge, vector<vector<int>>>& expanded_edges) {
+    unordered_map<Edge, vector<vector<long int>>>& expanded_edges) {
 
   Edge edge(reduced_edge.getEndPoint1(), reduced_edge.getEndPoint2());
   if (expanded_edges.count(edge)) {
@@ -189,7 +189,7 @@ void addEdgeIfNotLoop_(
  *
  * @param[in,out] - vector of integers containing the chain
  **/
-void orderChainAfterInitialVertex_(vector<int>& chain) {
+void orderChainAfterInitialVertex_(vector<long int>& chain) {
   size_t ignore_first_and_last_vertex = 2;
   size_t total_number_to_parse =
       (chain.size() - ignore_first_and_last_vertex) / 2;
@@ -208,12 +208,12 @@ void orderChainAfterInitialVertex_(vector<int>& chain) {
 
 bool reorderAndStoreChainIfDoesNotExist_(
     vector<Edge>& edges,
-    unordered_map<Edge, vector<vector<int>>>& expanded_edges, vector<int> chain,
+    unordered_map<Edge, vector<vector<long int>>>& expanded_edges, vector<long int> chain,
     int vertex, size_t& chain_index) {
 
   Edge edge(vertex, vertex);
   edges.push_back(edge);
-  vector<int> new_chain;
+  vector<long int> new_chain;
   for (size_t index = 0; index < chain.size(); ++index) {
     if (((chain_index + index) % chain.size()) == 0) {
       ++chain_index;
@@ -235,20 +235,20 @@ bool reorderAndStoreChainIfDoesNotExist_(
 set<long int> getAllVertices_(const std::vector<ReducedEdge>& reduced_edges) {
   set<long int> vertices;
   for (const ReducedEdge& reduced_edge : reduced_edges) {
-    vector<int> chain = reduced_edge.getChain();
-    for (const int vertex : chain) {
+    vector<long int> chain = reduced_edge.getChain();
+    for (const long int vertex : chain) {
       vertices.insert(vertex);
     }
   }
   return vertices;
 }
 
-set<int> getAllConnectedVertices_(
-    const unordered_map<Edge, vector<vector<int>>>& expanded_edges) {
-  set<int> all_vertices;
+set<long int> getAllConnectedVertices_(
+    const unordered_map<Edge, vector<vector<long int>>>& expanded_edges) {
+  set<long int> all_vertices;
 
   for (const auto& edge_and_chains : expanded_edges) {
-    for (vector<int> chain : edge_and_chains.second) {
+    for (vector<long int> chain : edge_and_chains.second) {
       all_vertices.insert(chain.begin(), chain.end());
     }
   }
@@ -269,7 +269,7 @@ void ReducedGraph::init_(vector<ReducedEdge> reduced_edges,
 
     if (reduced_edge.loop() &&
         junctions_.count(reduced_edge.getEndPoint1()) == 0) {
-      vector<int> chain = reduced_edge.getChain();
+      vector<long int> chain = reduced_edge.getChain();
       size_t chain_index = 0;
       bool edge_added = false;
       for (int vertex : chain) {
@@ -334,7 +334,7 @@ ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges,
 
 Graph ReducedGraph::expandGraph() const {
   vector<Edge> all_expanded_edges;
-  for (const pair<Edge, vector<vector<int>>> edge_and_vertices :
+  for (const pair<Edge, vector<vector<long int>>> edge_and_vertices :
        expanded_edges_) {
     vector<vector<Edge>> edges_local = expandEdge(edge_and_vertices.first);
     for (vector<Edge>& edges : edges_local) {
@@ -347,8 +347,8 @@ Graph ReducedGraph::expandGraph() const {
 
 vector<vector<Edge>> ReducedGraph::expandEdge(const Edge& edge) const {
   vector<vector<Edge>> all_edges;
-  vector<vector<int>> chains = expanded_edges_.at(edge);
-  for (vector<int> vertices : chains) {
+  vector<vector<long int>> chains = expanded_edges_.at(edge);
+  for (vector<long int> vertices : chains) {
     vector<Edge> edges;
     for (size_t index = 0; index < (vertices.size() - 1); ++index) {
       Edge edge_temp(vertices.at(index), vertices.at(index + 1));
@@ -367,7 +367,7 @@ vector<pair<int, GraphNode>> ReducedGraph::getNodes() const {
     nodes.push_back(id_and_node);
   }
 
-  set<int> all_connected_vertices = getAllConnectedVertices_(expanded_edges_);
+  set<long int> all_connected_vertices = getAllConnectedVertices_(expanded_edges_);
   // Grab the nodes that are not attached to any edges
   for (pair<int, GraphNode> id_and_node : nodes_) {
     if (!all_connected_vertices.count(id_and_node.first)) {
@@ -379,7 +379,7 @@ vector<pair<int, GraphNode>> ReducedGraph::getNodes() const {
 
 vector<long int> ReducedGraph::getVerticesDegree(long int degree) const {
   if (degree == 0) {
-    set<int> all_connected_vertices = getAllConnectedVertices_(expanded_edges_);
+    set<long int> all_connected_vertices = getAllConnectedVertices_(expanded_edges_);
     vector<long int> vertices;
     for (const pair<int, GraphNode> id_and_node : nodes_) {
       if (all_connected_vertices.count(id_and_node.first) == false) {
@@ -404,9 +404,9 @@ ostream& operator<<(ostream& os, const ReducedGraph graph) {
   os << endl;
   os << "Expanded Edge Chains" << endl;
 
-  for (const pair<const Edge, vector<vector<int>>>& edge_and_chains :
+  for (const pair<const Edge, vector<vector<long int>>>& edge_and_chains :
        graph.expanded_edges_) {
-    for (const vector<int>& chain : edge_and_chains.second) {
+    for (const vector<long int>& chain : edge_and_chains.second) {
       for (const int vertex : chain) {
         os << vertex << " ";
       }

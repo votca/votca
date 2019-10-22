@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     /// Here gn is a single node as is thus isolated
     vector<ReducedEdge> vec_ed;
     GraphNode gn;
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
 
     ReducedGraph g(vec_ed, m_gn);
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn1;
     GraphNode gn2;
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn1;
     GraphNode gn2;
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     //         4
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<int>{0, 1, 2});
+    ReducedEdge ed(std::vector<long int>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -229,8 +229,8 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     vector<ReducedEdge> vec_ed;
     ReducedEdge ed(0, 1);
     ReducedEdge ed2(1, 2);
-    ReducedEdge ed3(vector<int>{2, 3, 4, 5, 6});
-    ReducedEdge ed4(vector<int>{1, 7, 4, 2});
+    ReducedEdge ed3(vector<long int>{2, 3, 4, 5, 6});
+    ReducedEdge ed4(vector<long int>{1, 7, 4, 2});
 
     vec_ed.push_back(ed);
     vec_ed.push_back(ed2);
@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     GraphNode gn6(int_vals6, double_vals, str_vals);
     GraphNode gn7(int_vals7, double_vals, str_vals);
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -306,7 +306,7 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   //         4
 
   vector<ReducedEdge> vec_ed;
-  ReducedEdge ed(std::vector<int>{0, 1, 2});
+  ReducedEdge ed(std::vector<long int>{0, 1, 2});
   ReducedEdge ed2(2, 3);
   ReducedEdge ed3(2, 4);
 
@@ -320,7 +320,7 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<int, GraphNode> m_gn;
+  unordered_map<long int, GraphNode> m_gn;
   m_gn[0] = gn;
   m_gn[1] = gn1;
   m_gn[2] = gn2;
@@ -328,7 +328,7 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   m_gn[4] = gn4;
 
   ReducedGraph g(vec_ed, m_gn);
-  vector<int> vertices = g.getVertices();
+  vector<long int> vertices = g.getVertices();
   for (auto vertex : vertices) {
     cout << vertex << endl;
   }
@@ -402,7 +402,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     //         4
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<int>{0, 1, 2});
+    ReducedEdge ed(std::vector<long int>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -416,7 +416,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -448,7 +448,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     //         |
     //         4
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<int>{0, 1, 2});
+    ReducedEdge ed(std::vector<long int>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -463,7 +463,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
     /// Only difference is here where we have rearanged the nodes
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[4] = gn;
     m_gn[1] = gn1;
     m_gn[3] = gn2;
@@ -497,7 +497,7 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   //         |
   //         4
   vector<ReducedEdge> vec_ed;
-  ReducedEdge ed(std::vector<int>{0, 1, 2});
+  ReducedEdge ed(std::vector<long int>{0, 1, 2});
   ReducedEdge ed2(2, 3);
   ReducedEdge ed3(2, 4);
 
@@ -511,7 +511,7 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<int, GraphNode> m_gn;
+  unordered_map<long int, GraphNode> m_gn;
   /// Here the graph nodes are assigne to different vertices
   m_gn[0] = gn4;
   m_gn[1] = gn1;
@@ -563,10 +563,10 @@ BOOST_AUTO_TEST_CASE(expandedge_test) {
   //     |       |
   //     6 - 7 - 8
   //
-  ReducedEdge ed0(vector<int>{0, 1});
-  ReducedEdge ed1(vector<int>{1, 2, 3});
-  ReducedEdge ed2(vector<int>{3, 4, 5});
-  ReducedEdge ed3(vector<int>{1, 6, 7, 8, 3});
+  ReducedEdge ed0(vector<long int>{0, 1});
+  ReducedEdge ed1(vector<long int>{1, 2, 3});
+  ReducedEdge ed2(vector<long int>{3, 4, 5});
+  ReducedEdge ed3(vector<long int>{1, 6, 7, 8, 3});
 
   vector<ReducedEdge> vec_ed{ed0, ed1, ed2, ed3};
 
@@ -685,10 +685,10 @@ BOOST_AUTO_TEST_CASE(getdegree_test) {
   //     |       |
   //     6 - 7 - 8
   //
-  ReducedEdge ed0(vector<int>{0, 1});
-  ReducedEdge ed1(vector<int>{1, 2, 3});
-  ReducedEdge ed2(vector<int>{3, 4, 5});
-  ReducedEdge ed3(vector<int>{1, 6, 7, 8, 3});
+  ReducedEdge ed0(vector<long int>{0, 1});
+  ReducedEdge ed1(vector<long int>{1, 2, 3});
+  ReducedEdge ed2(vector<long int>{3, 4, 5});
+  ReducedEdge ed3(vector<long int>{1, 6, 7, 8, 3});
   ReducedEdge ed4(3, 9);
 
   vector<ReducedEdge> vec_ed{ed0, ed1, ed2, ed3, ed4};
@@ -744,7 +744,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
     unordered_map<string, string> str_vals;
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<int>{0, 1, 2});
+    ReducedEdge ed(std::vector<long int>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -758,7 +758,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     /// Here the graph nodes are assigne to different vertices
     m_gn[4] = gn;
     m_gn[1] = gn1;

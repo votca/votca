@@ -38,14 +38,14 @@ namespace tools {
  */
 class Edge {
  protected:
-  std::vector<int> vertices_;
+  std::vector<long int> vertices_;
 
  public:
   Edge() = default;
   virtual ~Edge() = default;
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
-  Edge(int ID1, int ID2);
+  Edge(long int ID1, long int ID2);
   /// Given one of the integers in the edge the other will be output
   int getOtherEndPoint(int ver) const;
   /// grab the smaller integer

@@ -50,7 +50,6 @@ class ObjectFactory {
 
   ObjectFactory() = default;
   ~ObjectFactory() = default;
-  ;
 
   /**
    * \brief register an object

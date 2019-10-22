@@ -40,9 +40,9 @@ using namespace std;
  * Notice that the order is preserved, because it is assumed that the chain
  * makes a loop.
  **/
-void moveVertexWithSmallestValueToEnds_(vector<int>& vertices) {
+void moveVertexWithSmallestValueToEnds_(vector<long int>& vertices) {
   vertices.pop_back();
-  vector<int>::iterator starting_iterator = next(vertices.begin());
+  vector<long int>::iterator starting_iterator = next(vertices.begin());
   long int min_vertex_index =
       min_element(starting_iterator, vertices.end()) - vertices.begin();
   if (vertices.front() > vertices.at(min_vertex_index)) {
@@ -80,7 +80,7 @@ void moveVertexWithSmallestValueToEnds_(vector<int>& vertices) {
  * In this case th 6 is smaller than the 9 so the order will be reversed.
  *
  **/
-bool verticesShouldBeReversed_(vector<int>& vertices) {
+bool verticesShouldBeReversed_(vector<long int>& vertices) {
   size_t length = vertices.size();
   size_t max_index = length / 2;
   for (size_t index = 0; index < max_index; ++index) {
@@ -93,7 +93,7 @@ bool verticesShouldBeReversed_(vector<int>& vertices) {
   return false;
 }
 
-ReducedEdge::ReducedEdge(vector<int> vertices) {
+ReducedEdge::ReducedEdge(vector<long int> vertices) {
   assert(vertices.size() >= 2 &&
          "Edge vertices must consist of at least two vertices.");
   // Smallest value always placed at the front of the vector
@@ -120,7 +120,7 @@ vector<Edge> ReducedEdge::expand() const {
 }
 
 bool ReducedEdge::vertexExistInChain(const int& vertex) const {
-  vector<int>::const_iterator vertex_iterator =
+  vector<long int>::const_iterator vertex_iterator =
       find(vertices_.begin(), vertices_.end(), vertex);
   return vertex_iterator != vertices_.end();
 }

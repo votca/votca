@@ -179,12 +179,12 @@ std::string findStructureId(Graph& graph) {
   // Determine the highest degree in the graph
   int maxD = graph.getMaxDegree();
   // Get the vertices with this degree
-  std::vector<int> vertices = graph.getVerticesDegree(maxD);
+  std::vector<long int> vertices = graph.getVerticesDegree(maxD);
 
   // Get the nodes and determine which node has the greatest stringID
   // When compared using compare function
   std::string str_id = "";
-  std::vector<int> graph_node_ids;
+  std::vector<long int> graph_node_ids;
   for (const int& vertex : vertices) {
     GraphNode graph_node = graph.getNode(vertex);
     int comp_int = str_id.compare(graph_node.getStringId());

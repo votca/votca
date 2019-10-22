@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     /// Here gn is a single node as is thus isolated
     vector<Edge> vec_ed;
     GraphNode gn;
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
 
     Graph g(vec_ed, m_gn);
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn1;
     GraphNode gn2;
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn1;
     GraphNode gn2;
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn1;
     GraphNode gn2;
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn2;
     GraphNode gn3;
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -224,7 +224,7 @@ BOOST_AUTO_TEST_CASE(junctions_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<int, GraphNode> m_gn;
+  unordered_map<long int, GraphNode> m_gn;
   m_gn[0] = gn;
   m_gn[1] = gn1;
   m_gn[2] = gn2;
@@ -270,7 +270,7 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<int, GraphNode> m_gn;
+  unordered_map<long int, GraphNode> m_gn;
   m_gn[0] = gn;
   m_gn[1] = gn1;
   m_gn[2] = gn2;
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<int, GraphNode> m_gn;
+  unordered_map<long int, GraphNode> m_gn;
   m_gn[0] = gn;
   m_gn[1] = gn1;
   m_gn[2] = gn2;
@@ -404,7 +404,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -454,7 +454,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
     /// Only difference is here where we have rearanged the nodes
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     m_gn[4] = gn;
     m_gn[1] = gn1;
     m_gn[3] = gn2;
@@ -505,7 +505,7 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<int, GraphNode> m_gn;
+  unordered_map<long int, GraphNode> m_gn;
   /// Here the graph nodes are assigne to different vertices
   m_gn[0] = gn4;
   m_gn[1] = gn1;
@@ -602,7 +602,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<long int, GraphNode> m_gn;
     /// Here the graph nodes are assigne to different vertices
     m_gn[4] = gn;
     m_gn[1] = gn1;

@@ -168,7 +168,7 @@ ReducedGraph reduceGraph(Graph graph) {
 
   ExplorationRecord exploration_record(unexplored_vertices);
 
-  vector<vector<int>> chains;
+  vector<vector<long int>> chains;
 
   while (exploration_record.unexploredVerticesExist()) {
     Graph_DF_Visitor graph_visitor;
@@ -177,7 +177,7 @@ ReducedGraph reduceGraph(Graph graph) {
     graph_visitor.setStartingVertex(starting_vertex);
     graph_visitor.initialize(graph);
 
-    vector<int> chain{starting_vertex};
+    vector<long int> chain{starting_vertex};
     int old_vertex = starting_vertex;
     bool new_chain = false;
     while (!graph_visitor.queEmpty()) {
@@ -195,7 +195,7 @@ ReducedGraph reduceGraph(Graph graph) {
           new_chain = false;
         }
       }
-      int new_vertex = edge.getOtherEndPoint(old_vertex);
+      long int new_vertex = edge.getOtherEndPoint(old_vertex);
       if (unexplored_vertex.size() == 0) {
         chain.push_back(new_vertex);
         chains.push_back(chain);
@@ -223,7 +223,7 @@ ReducedGraph reduceGraph(Graph graph) {
     }
   }
   vector<ReducedEdge> reduced_edges;
-  for (vector<int> chain : chains) {
+  for (vector<long int> chain : chains) {
     ReducedEdge reduced_edge(chain);
     reduced_edges.push_back(reduced_edge);
   }

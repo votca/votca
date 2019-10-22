@@ -69,7 +69,7 @@ class ReducedGraph : public Graph {
    * Would be stored in the parent graph datastructure, the rest of the
    * vertices are stored as a vector in the expanded_edges_ object
    **/
-  std::unordered_map<Edge, std::vector<std::vector<int>>> expanded_edges_;
+  std::unordered_map<Edge, std::vector<std::vector<long int>>> expanded_edges_;
 
   void init_(std::vector<ReducedEdge> reduced_edges,
              std::unordered_map<long int, GraphNode> nodes);
