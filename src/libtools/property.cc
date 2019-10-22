@@ -177,7 +177,7 @@ void Property::LoadFromXML(string filename) {
     string line;
     getline(fl, line);
     line = line + "\n";
-    if( line.length() > std::numeric_limits<int>::max()) {
+    if( line.length() > (size_t)std::numeric_limits<int>::max()) {
       throw std::runtime_error("Property::LoadFromXML: line is too long");
     }
     if (!XML_Parse(parser, line.c_str(), (int)line.length(), fl.eof())) {

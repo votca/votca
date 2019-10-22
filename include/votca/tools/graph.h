@@ -46,7 +46,7 @@ class Graph {
   /// @param int - is the index of the graph nodes / vertex ids
   /// @param GraphNode - this is the node object at each vertex and contains
   /// all the informatino that is relevant to that object
-  std::unordered_map<int, GraphNode> nodes_;
+  std::unordered_map<long int, GraphNode> nodes_;
 
   /// This is the id of the graph to graphs that contain the same content
   /// are considered equal

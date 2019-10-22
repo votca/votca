@@ -268,7 +268,7 @@ vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
     }
 
     set<Edge> sub_graph_edges;
-    unordered_map<int, GraphNode> sub_graph_nodes;
+    unordered_map<int long, GraphNode> sub_graph_nodes;
     for (int vertex : sub_graph_explored_vertices) {
 
       for (const Edge& sub_graph_edge : graph.getNeighEdges(vertex)) {

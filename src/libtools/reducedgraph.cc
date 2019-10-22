@@ -232,8 +232,8 @@ bool reorderAndStoreChainIfDoesNotExist_(
   return false;
 }
 
-set<int> getAllVertices_(const std::vector<ReducedEdge>& reduced_edges) {
-  set<int> vertices;
+set<long int> getAllVertices_(const std::vector<ReducedEdge>& reduced_edges) {
+  set<long int> vertices;
   for (const ReducedEdge& reduced_edge : reduced_edges) {
     vector<int> chain = reduced_edge.getChain();
     for (const int vertex : chain) {
@@ -259,7 +259,7 @@ set<int> getAllConnectedVertices_(
  ******************************************************************************/
 
 void ReducedGraph::init_(vector<ReducedEdge> reduced_edges,
-                         unordered_map<int, GraphNode> nodes) {
+                         unordered_map<long int, GraphNode> nodes) {
   vector<Edge> edges;
   nodes_ = nodes;
 
@@ -299,9 +299,9 @@ void ReducedGraph::init_(vector<ReducedEdge> reduced_edges,
 
 ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges) {
 
-  set<int> vertices = getAllVertices_(reduced_edges);
-  unordered_map<int, GraphNode> nodes;
-  for (const int vertex : vertices) {
+  set<long int> vertices = getAllVertices_(reduced_edges);
+  unordered_map<long int, GraphNode> nodes;
+  for (const long int vertex : vertices) {
     GraphNode gn;
     nodes[vertex] = gn;
   }
@@ -309,15 +309,15 @@ ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges) {
 }
 
 ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges,
-                           unordered_map<int, GraphNode> nodes) {
+                           unordered_map<long int, GraphNode> nodes) {
 
-  set<int> vertices = getAllVertices_(reduced_edges);
+  set<long int> vertices = getAllVertices_(reduced_edges);
   if (nodes.size() < vertices.size()) {
     throw invalid_argument(
         "The number of nodes passed into a reduced graph "
         "must be greater or equivalent to the number of vertices");
   }
-  for (const int vertex : vertices) {
+  for (const long int vertex : vertices) {
     if (nodes.count(vertex) == 0) {
       throw invalid_argument("A vertex is missing its corresponding node.");
     }
@@ -325,7 +325,7 @@ ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges,
   init_(reduced_edges, nodes);
 
   // Add all the nodes that are isolated
-  for (pair<const int, GraphNode>& id_and_node : nodes) {
+  for (pair<const long int, GraphNode>& id_and_node : nodes) {
     if (vertices.count(id_and_node.first) == 0) {
       edge_container_.addVertex(id_and_node.first);
     }

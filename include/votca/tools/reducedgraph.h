@@ -72,7 +72,7 @@ class ReducedGraph : public Graph {
   std::unordered_map<Edge, std::vector<std::vector<int>>> expanded_edges_;
 
   void init_(std::vector<ReducedEdge> reduced_edges,
-             std::unordered_map<int, GraphNode> nodes);
+             std::unordered_map<long int, GraphNode> nodes);
 
   // Junctions must be stored internally
   std::set<int> junctions_;
@@ -82,7 +82,7 @@ class ReducedGraph : public Graph {
 
   ReducedGraph(std::vector<ReducedEdge> reduced_edges);
   ReducedGraph(std::vector<ReducedEdge> reduced_edges,
-               std::unordered_map<int, GraphNode> nodes);
+               std::unordered_map<long int, GraphNode> nodes);
 
   /**
    * \brief Allows one to return all edges connecting two vertices of the

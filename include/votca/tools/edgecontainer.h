@@ -38,7 +38,7 @@ namespace tools {
 class EdgeContainer {
  protected:
   /// The vertex, the neighboring vertices and the number of edges
-  std::unordered_map<int, std::unordered_map<int, int>> adj_list_;
+  std::unordered_map<long int, std::unordered_map<int, int>> adj_list_;
 
  public:
   /// Constructors can take no arguments a single Edge or a vector of edges
@@ -47,11 +47,11 @@ class EdgeContainer {
   EdgeContainer(std::vector<Edge> edges);
 
   /// Get the value of the max degree
-  int getMaxDegree() const;
+  long int getMaxDegree() const;
   /// Contains vector of all vertices with degree
-  std::vector<int> getVerticesDegree(int degree) const;
+  std::vector<long int> getVerticesDegree(int degree) const;
   /// Determine the degree of the vertex/number of edges attached
-  int getDegree(const int vertex) const;
+  long int getDegree(const long int vertex) const;
   /// Determine if a vertex with the specified degree exists
   bool vertexExistWithDegree(int degree) const;
 
@@ -62,7 +62,7 @@ class EdgeContainer {
   /// Add an edge to the container
   void addEdge(Edge edge);
   /// Add a lone vertex
-  void addVertex(int vertex);
+  void addVertex(long int vertex);
   /// Get all the edges in vector form
   std::vector<Edge> getEdges() const;
   /// Get all the vertices in vector form

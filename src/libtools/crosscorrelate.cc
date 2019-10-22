@@ -35,7 +35,7 @@ void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection* data) {
       "FFTW -recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = (*data)[0].size();
-  if( N > std::numeric_limits<int>::max()) {
+  if( N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::AutoCorrelate: size is too big");
   }
 
@@ -74,7 +74,7 @@ void CrossCorrelate::AutoFourier(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
-  if( N > std::numeric_limits<int>::max()) {
+  if( N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::AutoFourier: size is too big");
   }
   _corrfunc.resize(N);
@@ -110,7 +110,7 @@ void CrossCorrelate::FFTOnly(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
-  if( N > std::numeric_limits<int>::max()) {
+  if( N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::FFTOnly: size is too big");
   }
   _corrfunc.resize(N);
@@ -140,7 +140,7 @@ void CrossCorrelate::DCTOnly(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
-  if( N > std::numeric_limits<int>::max()) {
+  if( N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::DCTOnly: size is too big");
   }
   _corrfunc.resize(N);
@@ -165,7 +165,7 @@ void CrossCorrelate::AutoCosine(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
-  if( N > std::numeric_limits<int>::max()) {
+  if( N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::AutoCosine: size is too big");
   }
   _corrfunc.resize(N);
@@ -195,7 +195,7 @@ void CrossCorrelate::AutoCorr(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
-  if( N > std::numeric_limits<int>::max()) {
+  if( N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::AutoCorr: size is too big");
   }
   _corrfunc.resize(N);
