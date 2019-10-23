@@ -322,7 +322,7 @@ bool NWChem::Run() {
       ascii_mo_file_name =
           tools::filesystem::GetFileBase(_mo_file_name) + ".mos";
       command2 = "cd " + _run_dir + "; mov2asc 10000 " + _mo_file_name + " " +
-                ascii_mo_file_name + "> convert.log";
+                 ascii_mo_file_name + "> convert.log";
       int i = std::system(command2.c_str());
       if (i == 0) {
         XTP_LOG(logDEBUG, *_pLog)

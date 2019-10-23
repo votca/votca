@@ -465,16 +465,19 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
               double(nz[i]) * cfak * olk(i_less_z[i], Cart::xxxx);
           olk(i, Cart::xxxyy) =
               PmB(1) * olk(i, Cart::xxxy) +
-              double(ny[i]) * cfak * olk(i_less_y[i], Cart::xxxy) + term_xxx_loc;
+              double(ny[i]) * cfak * olk(i_less_y[i], Cart::xxxy) +
+              term_xxx_loc;
           olk(i, Cart::xxxyz) =
               PmB(1) * olk(i, Cart::xxxz) +
               double(ny[i]) * cfak * olk(i_less_y[i], Cart::xxxz);
           olk(i, Cart::xxxzz) =
               PmB(2) * olk(i, Cart::xxxz) +
-              double(nz[i]) * cfak * olk(i_less_z[i], Cart::xxxz) + term_xxx_loc;
+              double(nz[i]) * cfak * olk(i_less_z[i], Cart::xxxz) +
+              term_xxx_loc;
           olk(i, Cart::xxyyy) =
               PmB(0) * olk(i, Cart::xyyy) +
-              double(nx[i]) * cfak * olk(i_less_x[i], Cart::xyyy) + term_yyy_loc;
+              double(nx[i]) * cfak * olk(i_less_x[i], Cart::xyyy) +
+              term_yyy_loc;
           olk(i, Cart::xxyyz) =
               PmB(2) * olk(i, Cart::xxyy) +
               double(nz[i]) * cfak * olk(i_less_z[i], Cart::xxyy);
@@ -483,7 +486,8 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
               double(ny[i]) * cfak * olk(i_less_y[i], Cart::xxzz);
           olk(i, Cart::xxzzz) =
               PmB(0) * olk(i, Cart::xzzz) +
-              double(nx[i]) * cfak * olk(i_less_x[i], Cart::xzzz) + term_zzz_loc;
+              double(nx[i]) * cfak * olk(i_less_x[i], Cart::xzzz) +
+              term_zzz_loc;
           olk(i, Cart::xyyyy) =
               PmB(0) * olk(i, Cart::yyyy) +
               double(nx[i]) * cfak * olk(i_less_x[i], Cart::yyyy);
@@ -508,10 +512,12 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
               double(nz[i]) * cfak * olk(i_less_z[i], Cart::yyyy);
           olk(i, Cart::yyyzz) =
               PmB(2) * olk(i, Cart::yyyz) +
-              double(nz[i]) * cfak * olk(i_less_z[i], Cart::yyyz) + term_yyy_loc;
+              double(nz[i]) * cfak * olk(i_less_z[i], Cart::yyyz) +
+              term_yyy_loc;
           olk(i, Cart::yyzzz) =
               PmB(1) * olk(i, Cart::yzzz) +
-              double(ny[i]) * cfak * olk(i_less_y[i], Cart::yzzz) + term_zzz_loc;
+              double(ny[i]) * cfak * olk(i_less_y[i], Cart::yzzz) +
+              term_zzz_loc;
           olk(i, Cart::yzzzz) =
               PmB(1) * olk(i, Cart::zzzz) +
               double(ny[i]) * cfak * olk(i_less_y[i], Cart::zzzz);
@@ -586,13 +592,15 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
               double(nz[i]) * cfak * olk(i_less_z[i], Cart::xxxxx);
           olk(i, Cart::xxxxyy) =
               PmB(1) * olk(i, Cart::xxxxy) +
-              double(ny[i]) * cfak * olk(i_less_y[i], Cart::xxxxy) + term_xxxx_loc;
+              double(ny[i]) * cfak * olk(i_less_y[i], Cart::xxxxy) +
+              term_xxxx_loc;
           olk(i, Cart::xxxxyz) =
               PmB(1) * olk(i, Cart::xxxxz) +
               double(ny[i]) * cfak * olk(i_less_y[i], Cart::xxxxz);
           olk(i, Cart::xxxxzz) =
               PmB(2) * olk(i, Cart::xxxxz) +
-              double(nz[i]) * cfak * olk(i_less_z[i], Cart::xxxxz) + term_xxxx_loc;
+              double(nz[i]) * cfak * olk(i_less_z[i], Cart::xxxxz) +
+              term_xxxx_loc;
           olk(i, Cart::xxxyyy) =
               PmB(0) * olk(i, Cart::xxyyy) +
               double(nx[i]) * cfak * olk(i_less_x[i], Cart::xxyyy) +
@@ -609,19 +617,22 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
               2.0 * term_xzzz_loc;
           olk(i, Cart::xxyyyy) =
               PmB(0) * olk(i, Cart::xyyyy) +
-              double(nx[i]) * cfak * olk(i_less_x[i], Cart::xyyyy) + term_yyyy_loc;
+              double(nx[i]) * cfak * olk(i_less_x[i], Cart::xyyyy) +
+              term_yyyy_loc;
           olk(i, Cart::xxyyyz) =
               PmB(2) * olk(i, Cart::xxyyy) +
               double(nz[i]) * cfak * olk(i_less_z[i], Cart::xxyyy);
           olk(i, Cart::xxyyzz) =
               PmB(0) * olk(i, Cart::xyyzz) +
-              double(nx[i]) * cfak * olk(i_less_x[i], Cart::xyyzz) + term_yyzz_loc;
+              double(nx[i]) * cfak * olk(i_less_x[i], Cart::xyyzz) +
+              term_yyzz_loc;
           olk(i, Cart::xxyzzz) =
               PmB(1) * olk(i, Cart::xxzzz) +
               double(ny[i]) * cfak * olk(i_less_y[i], Cart::xxzzz);
           olk(i, Cart::xxzzzz) =
               PmB(0) * olk(i, Cart::xzzzz) +
-              double(nx[i]) * cfak * olk(i_less_x[i], Cart::xzzzz) + term_zzzz_loc;
+              double(nx[i]) * cfak * olk(i_less_x[i], Cart::xzzzz) +
+              term_zzzz_loc;
           olk(i, Cart::xyyyyy) =
               PmB(0) * olk(i, Cart::yyyyy) +
               double(nx[i]) * cfak * olk(i_less_x[i], Cart::yyyyy);
@@ -649,14 +660,16 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
               double(nz[i]) * cfak * olk(i_less_z[i], Cart::yyyyy);
           olk(i, Cart::yyyyzz) =
               PmB(2) * olk(i, Cart::yyyyz) +
-              double(nz[i]) * cfak * olk(i_less_z[i], Cart::yyyyz) + term_yyyy_loc;
+              double(nz[i]) * cfak * olk(i_less_z[i], Cart::yyyyz) +
+              term_yyyy_loc;
           olk(i, Cart::yyyzzz) =
               PmB(1) * olk(i, Cart::yyzzz) +
               double(ny[i]) * cfak * olk(i_less_y[i], Cart::yyzzz) +
               2.0 * term_yzzz_loc;
           olk(i, Cart::yyzzzz) =
               PmB(1) * olk(i, Cart::yzzzz) +
-              double(ny[i]) * cfak * olk(i_less_y[i], Cart::yzzzz) + term_zzzz_loc;
+              double(ny[i]) * cfak * olk(i_less_y[i], Cart::yzzzz) +
+              term_zzzz_loc;
           olk(i, Cart::yzzzzz) =
               PmB(1) * olk(i, Cart::zzzzz) +
               double(ny[i]) * cfak * olk(i_less_y[i], Cart::zzzzz);

@@ -56,7 +56,7 @@ std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l) {
 bool FileExists(const std::string& fileName) { return bfs::exists(fileName); }
 
 CheckpointFile::CheckpointFile(std::string fN)
-    : CheckpointFile(fN, CheckpointAccessLevel::MODIFY){}
+    : CheckpointFile(fN, CheckpointAccessLevel::MODIFY) {}
 
 CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
     : _fileName(fN), _accessLevel(access) {
