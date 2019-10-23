@@ -142,7 +142,7 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
 
       // calculate normalization factor for rdf
       if (prop->get("type1").value() == prop->get("type2").value()) {
-        i._norm = 1. / (double)(beads1.size() * beads2.size()) / 2.;
+        i._norm = 2. / (double)(beads1.size() * beads2.size());
       } else {
         i._norm = 1. / (double)(beads1.size() * beads2.size());
       }
