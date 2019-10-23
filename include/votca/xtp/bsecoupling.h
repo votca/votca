@@ -95,8 +95,8 @@ class BSECoupling : public CouplingBase {
   bool _doTriplets = false;
   bool _doSinglets = false;
   bool _output_perturbation = true;
-  int _levA = std::numeric_limits<int>::max();
-  int _levB = std::numeric_limits<int>::max();
+  long int _levA = std::numeric_limits<long int>::max();
+  long int _levB = std::numeric_limits<long int>::max();
   int _occA = 5;
   int _unoccA = 5;
   int _occB = 5;

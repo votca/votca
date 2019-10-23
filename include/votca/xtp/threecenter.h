@@ -63,7 +63,7 @@ class TCMatrix_dft : public TCMatrix {
  public:
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis);
 
-  int size() const { return _matrix.size(); }
+  long int size() const { return _matrix.size(); }
 
   Symmetric_Matrix& operator[](int i) { return _matrix[i]; }
 

@@ -44,7 +44,7 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
   }
 
   // get reordering vector _start -> target
-  std::vector<int> order = getReorderVector(start, target);
+  std::vector<long int> order = getReorderVector(start, target);
 
   // Sanity check
   if (v.rows() != int(order.size())) {
@@ -54,7 +54,7 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
   }
 
   // actual swapping of coefficients
-  for (int s = 1, d; s < int(order.size()); ++s) {
+  for (long int s = 1, d; s < (long int)order.size(); ++s) {
     for (d = order[s]; d < s; d = order[d]) {
       ;
     }
@@ -200,9 +200,9 @@ void AOBasis::addMultiplierShell(const std::string& start,
   return;
 }
 
-std::vector<int> AOBasis::getReorderVector(const std::string& start,
+std::vector<long int> AOBasis::getReorderVector(const std::string& start,
                                            const std::string& target) const {
-  std::vector<int> neworder;
+  std::vector<long int> neworder;
   neworder.reserve(_AOBasisSize);
   std::string s;
   std::string t;
@@ -223,9 +223,9 @@ std::vector<int> AOBasis::getReorderVector(const std::string& start,
   return neworder;
 }
 
-std::vector<int> AOBasis::invertOrder(const std::vector<int>& order) const {
+std::vector<long int> AOBasis::invertOrder(const std::vector<long int>& order) const {
 
-  std::vector<int> neworder = std::vector<int>(order.size());
+  std::vector<long int> neworder = std::vector<long int>(order.size());
   for (unsigned i = 0; i < order.size(); i++) {
     neworder[order[i]] = int(i);
   }
@@ -235,13 +235,13 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order) const {
 void AOBasis::addReorderShell(const std::string& start,
                               const std::string& target,
                               const std::string& shell_type,
-                              std::vector<int>& order) const {
+                              std::vector<long int>& order) const {
   // Reordering is given by email from gaussian, orca output MOs, and
   // http://www.nwchem-sw.org/index.php/Release66:Basis for nwchem
 
   // current length of vector
 
-  int cur_pos = order.size() - 1;
+  long int cur_pos = order.size() - 1;
 
   if (target == "xtp") {
     // single type shells defined here

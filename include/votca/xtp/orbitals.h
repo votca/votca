@@ -107,7 +107,7 @@ class Orbitals {
   // determine (pseudo-)degeneracy of a DFT molecular orbital
   std::vector<int> CheckDegeneracy(int level, double energy_difference) const;
 
-  int NumberofStates(QMStateType type) const {
+  long int NumberofStates(QMStateType type) const {
     switch (type.Type()) {
       case QMStateType::Singlet:
         return _BSE_singlet.eigenvalues().size();

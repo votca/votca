@@ -182,7 +182,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   }
 
   Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(nsph_row, nsph_col);
-  const int nnonsep = gamma_ecp.rows();
+  const long int nnonsep = gamma_ecp.rows();
   int nmax;
   if (INULL == 0) {
     nmax = 2 * lmin;

@@ -50,7 +50,7 @@ class ECPShell {
 
   int getOffset() const { return OffsetFuncShell(_type); }
 
-  int getSize() const { return _gaussians.size(); }
+  long int getSize() const { return _gaussians.size(); }
 
   std::vector<ECPGaussianPrimitive>::const_iterator begin() const {
     return _gaussians.begin();
@@ -95,7 +95,7 @@ class ECPElement {
     return _shells.back();
   }
 
-  int NumOfShells() const { return _shells.size(); }
+  long int NumOfShells() const { return _shells.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const ECPElement& element);
 

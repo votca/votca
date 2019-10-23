@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(index_test) {
   std::vector<int> indexv;
   std::vector<int> indexc;
 
-  for (int v2 = 0; v < vtotal; v2++) {
+  for (int v2 = 0; v2 < vtotal; v2++) {
     for (int c2 = 0; c2 < ctotal; c2++) {
       indexv.push_back(vmin + v2);
       indexc.push_back(cmin + c2);

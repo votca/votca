@@ -76,7 +76,7 @@ class Shell {
 
   double getScale() const { return _scale; }
 
-  int getSize() const { return _gaussians.size(); }
+  long int getSize() const { return _gaussians.size(); }
 
   std::vector<GaussianPrimitive>::const_iterator begin() const {
     return _gaussians.begin();
@@ -116,7 +116,7 @@ class Element {
     return _shells.back();
   }
 
-  int NumOfShells() const { return _shells.size(); }
+  long int NumOfShells() const { return _shells.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const Element& element);
 
