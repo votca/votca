@@ -38,15 +38,15 @@ class Residue : public TopologyItem {
   const std::string &getName();
 
   /// get the name of the residue
-  const int &getId() const { return _id; }
+  const long int &getId() const { return _id; }
 
  private:
-  int _id;
+  long int _id;
   std::string _name;
 
  private:
   /// constructor
-  Residue(Topology *parent, int id, const std::string &name)
+  Residue(Topology *parent, long int id, const std::string &name)
       : TopologyItem(parent), _id(id), _name(name) {}
   friend class Topology;
 };

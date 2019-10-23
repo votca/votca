@@ -75,7 +75,7 @@ void CGMoleculeDef::ParseBeads(tools::Property &options) {
     beaddef->_type = p->get("type").as<string>();
     beaddef->_mapping = p->get("mapping").as<string>();
     if (p->exists("symmetry")) {
-      beaddef->_symmetry = p->get("symmetry").as<int>();
+      beaddef->_symmetry = p->get("symmetry").as<votca::tools::byte_t>();
     } else {
       beaddef->_symmetry = 1;
     }
@@ -122,7 +122,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   map<string, string> had_iagroup;
 
   for (tools::Property *prop : _bonded) {
-    std::list<int> atoms;
+    std::list<long int> atoms;
     string iagroup = prop->get("name").as<string>();
 
     if (had_iagroup[iagroup] == "yes") {
@@ -134,7 +134,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
     tools::Tokenizer tok(prop->get("beads").value(), " \n\t");
     for (tools::Tokenizer::iterator atom = tok.begin(); atom != tok.end();
          ++atom) {
-      int i = minfo->getBeadIdByName(*atom);
+      long int i = minfo->getBeadIdByName(*atom);
       if (i < 0) {
         throw runtime_error(
             string("error while trying to create bonded interaction, "
@@ -196,7 +196,7 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
   Map *map = new Map(in, out);
   for (auto &_bead : _beads) {
 
-    int iout = out.getBeadByName(_bead->_name);
+    long int iout = out.getBeadByName(_bead->_name);
     if (iout < 0) {
       throw runtime_error(string("mapping error: reference molecule " +
                                  _bead->_name + " does not exist"));

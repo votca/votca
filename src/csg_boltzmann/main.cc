@@ -116,7 +116,7 @@ ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
   // remove exclusions from inside a mapped bead
   Topology *at_top = atomistic.getParent();
   for (int i = 0; i < cg.BeadCount(); ++i) {
-    const vector<int> &parent_beads = cg.getBead(i)->ParentBeads();
+    const vector<long int> &parent_beads = cg.getBead(i)->ParentBeads();
     list<Bead *> excl_list;
 
     for (const int &parent_bead_id : parent_beads) {
@@ -128,14 +128,14 @@ ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
   // remove exclusion which come from atomistic topology and hence bonds and
   // angles
   Topology *cg_top = cg.getParent();
-  for (int i = 0; i < cg.BeadCount() - 1; ++i) {
-    for (int j = i + 1; j < cg.BeadCount(); ++j) {
+  for (long int i = 0; i < cg.BeadCount() - 1; ++i) {
+    for (long int j = i + 1; j < cg.BeadCount(); ++j) {
       if (cg_top->getExclusions().IsExcluded(cg.getBead(i), cg.getBead(j))) {
-        const vector<int> &parent_beads_w = cg.getBead(i)->ParentBeads();
-        const vector<int> &parent_beads_v = cg.getBead(j)->ParentBeads();
+        const vector<long int> &parent_beads_w = cg.getBead(i)->ParentBeads();
+        const vector<long int> &parent_beads_v = cg.getBead(j)->ParentBeads();
 
-        for (const int parent_bead_id_w : parent_beads_w) {
-          for (const int parent_bead_id_v : parent_beads_v) {
+        for (const long int parent_bead_id_w : parent_beads_w) {
+          for (const long int parent_bead_id_v : parent_beads_v) {
             ex->RemoveExclusion(at_top->getBead(parent_bead_id_w),
                                 at_top->getBead(parent_bead_id_v));
           }

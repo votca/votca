@@ -121,7 +121,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
   }
 
   for (size_t i = 0; i < beads.size(); ++i) {
-    int iin = in->getBeadByName(beads[i]);
+    long int iin = in->getBeadByName(beads[i]);
     if (iin < 0) {
       throw std::runtime_error(
           string("mapping error: molecule " + beads[i] + " does not exist"));
@@ -142,7 +142,7 @@ void Map_Sphere::Apply() {
   double max_dist = 0.5 * top->ShortestBoxSize();
   Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
   string name0;
-  int id0 = 0;
+  long int id0 = 0;
   if (_matrix.size() > 0) {
     if (_matrix.front()._in->HasPos()) {
       r0 = _matrix.front()._in->getPos();

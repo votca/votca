@@ -42,7 +42,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
    * extrapolated from first statistically significant knot values near rmin
    */
 
-  int nknots;
+  long int nknots;
 
   nknots = _lam.size();
 
@@ -60,7 +60,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
   }
 
   // exclude knots corresponding to r <= _min
-  _nexcl = min(int((_min) / _dr), _nbreak - 2) + 1;
+  _nexcl = min((long int)(_min / _dr), _nbreak - 2) + 1;
 
   // account for finite numerical division of _min/_dr
   // e.g. 0.24/0.02 may result in 11.99999999999999
@@ -106,9 +106,9 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
   _M /= 6.0;
 }
 
-int PotentialFunctionCBSPL::getOptParamSize() const {
+long int PotentialFunctionCBSPL::getOptParamSize() const {
 
-  return int(_lam.size()) - _nexcl - _ncutcoeff;
+  return _lam.size() - _nexcl - _ncutcoeff;
 }
 
 void PotentialFunctionCBSPL::setParam(string filename) {
@@ -149,7 +149,7 @@ void PotentialFunctionCBSPL::SaveParam(const string &filename) {
     param.set(i, _rbreak(i), _lam(i), 'o');
   }
 
-  for (unsigned int i = _nexcl + 3; i < _lam.size(); i++) {
+  for (long int i = _nexcl + 3; i < _lam.size(); i++) {
     param.set(i, _rbreak(i), _lam(i), 'i');
   }
 
@@ -213,7 +213,7 @@ double PotentialFunctionCBSPL::CalculateF(const double r) const {
   if (r <= _cut_off) {
 
     double u = 0.0;
-    int indx = min(int(r / _dr), _nbreak - 2);
+    long int indx = min((long int)(r / _dr), _nbreak - 2);
     ;
     double rk = indx * _dr;
     ;
@@ -240,11 +240,11 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const {
 
   if (r <= _cut_off) {
 
-    unsigned int i_opt = i + _nexcl;
-    unsigned int indx;
+    long int i_opt = i + _nexcl;
+    long int indx;
     double rk;
 
-    indx = min(int((r) / _dr), _nbreak - 2);
+    indx = min((long int)(r / _dr), _nbreak - 2);
     rk = indx * _dr;
 
     if (i_opt >= indx && i_opt <= indx + 3) {

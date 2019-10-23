@@ -37,7 +37,7 @@ vector<BeadStructure<BaseBead>> breakIntoStructures(
       vector<long int> sub_graph_vertices = sub_graph.getVertices();
 
       BeadStructure<BaseBead> beadstructure_temp;
-      for (const int &vertex : sub_graph_vertices) {
+      for (const long int &vertex : sub_graph_vertices) {
         beadstructure_temp.AddBead(beadstructure.getBead(vertex));
       }
       for (const Edge &edge : sub_graph_edges) {

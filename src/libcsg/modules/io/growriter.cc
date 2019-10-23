@@ -36,7 +36,7 @@ void GROWriter::Write(Topology *conf) {
   Topology *top = conf;
 
   fprintf(_out, "%s\n", "what a nice title");
-  fprintf(_out, "%5d\n", top->BeadCount());
+  fprintf(_out, "%5ld\n", top->BeadCount());
 
   bool v = top->HasVel();
   int pr = 3;  // precision of writeout, given by the spec

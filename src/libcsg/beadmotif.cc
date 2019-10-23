@@ -161,7 +161,7 @@ bool BeadMotif::isFusedRing_() {
   // edge than it is a fused ring.
   junctionExist_();
 
-  for (int junction : junctions_) {
+  for (long int junction : junctions_) {
     vector<Edge> edges = reduced_graph_.getNeighEdges(junction);
     set<Edge> all_edges_explored =
         exploreBranch(reduced_graph_, junction, edges.at(0));
@@ -202,7 +202,7 @@ void BeadMotif::AddBead(BaseBead* bead) {
   type_up_to_date_ = false;
 }
 
-void BeadMotif::ConnectBeads(int bead1_id, int bead2_id) {
+void BeadMotif::ConnectBeads(long int bead1_id, long int bead2_id) {
   BeadStructure<BaseBead>::ConnectBeads(bead1_id, bead2_id);
   junctionsUpToDate_ = false;
   type_up_to_date_ = false;

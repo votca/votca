@@ -42,7 +42,7 @@ class Interaction;
 class Molecule : public TopologyItem {
  public:
   /// get the molecule ID
-  int getId() const { return _id; }
+  long int getId() const { return _id; }
 
   /// get the name of the molecule
   const std::string &getName() const { return _name; }
@@ -53,17 +53,17 @@ class Molecule : public TopologyItem {
   /// Add a bead to the molecule
   void AddBead(Bead *bead, const std::string &name);
   /// get the id of a bead in the molecule
-  Bead *getBead(int bead) { return _beads[bead]; }
-  int getBeadId(int bead) { return _beads[bead]->getId(); }
-  int getBeadIdByName(const std::string &name);
+  Bead *getBead(long int bead) { return _beads[bead]; }
+  long int getBeadId(int bead) { return _beads[bead]->getId(); }
+  long int getBeadIdByName(const std::string &name);
 
   /// get the number of beads in the molecule
-  int BeadCount() const { return _beads.size(); }
+  long int BeadCount() const { return _beads.size(); }
 
   const std::vector<Bead *> &Beads() const { return _beads; }
   std::vector<Bead *> &Beads() { return _beads; }
   /// find a bead by it's name
-  int getBeadByName(const std::string &name);
+  long int getBeadByName(const std::string &name);
   std::string getBeadName(int bead) { return _bead_names[bead]; }
 
   /// Add an interaction to the molecule
@@ -83,11 +83,11 @@ class Molecule : public TopologyItem {
 
  private:
   // maps a name to a bead id
-  std::map<std::string, int> _beadmap;
+  std::map<std::string, long int> _beadmap;
   std::vector<Interaction *> _interactions;
 
   // id of the molecules
-  int _id;
+  long int _id;
 
   // name of the molecule
   std::string _name;
@@ -98,14 +98,14 @@ class Molecule : public TopologyItem {
   void *_userdata;
 
   /// constructor
-  Molecule(Topology *parent, int id, std::string name)
+  Molecule(Topology *parent, long int id, std::string name)
       : TopologyItem(parent), _id(id), _name(name) {}
 
   friend class Topology;
 };
 
-inline int Molecule::getBeadIdByName(const std::string &name) {
-  int i = getBeadByName(name);
+inline long int Molecule::getBeadIdByName(const std::string &name) {
+  long int i = getBeadByName(name);
   if (i < 0) {
     {
       return i;

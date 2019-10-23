@@ -59,9 +59,9 @@ class PotentialFunction {
   // return ith parameter among those to be optimized
   virtual double getOptParam(const int i) const { return getParam(i); }
   // return size of parameters
-  int getParamSize() const { return _lam.size(); }
+  long int getParamSize() const { return _lam.size(); }
   // return size of parameters to be optimized
-  virtual int getOptParamSize() const { return getParamSize(); }
+  virtual long int getOptParamSize() const { return getParamSize(); }
   // return cut-off value
   double getCutOff() const { return _cut_off; }
   double getMinDist() const { return _min; }

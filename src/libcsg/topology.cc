@@ -85,11 +85,11 @@ void Topology::Cleanup() {
 }
 
 /// \todo implement checking, only used in xml topology reader
-void Topology::CreateMoleculesByRange(string name, int first, int nbeads,
-                                      int nmolecules) {
+void Topology::CreateMoleculesByRange(string name, long int first, long int nbeads,
+                                      long int nmolecules) {
   Molecule *mol = CreateMolecule(name);
-  int beadcount = 0;
-  int res_offset = 0;
+  long int beadcount = 0;
+  long int res_offset = 0;
 
   BeadContainer::iterator bead;
   for (bead = _beads.begin(); bead != _beads.end(); ++bead) {
@@ -214,7 +214,7 @@ void Topology::CopyTopologyData(Topology *top) {
   }
 }
 
-int Topology::getBeadTypeId(string type) const {
+long int Topology::getBeadTypeId(string type) const {
   assert(beadtypes_.count(type));
   return beadtypes_.at(type);
 }
@@ -270,7 +270,7 @@ void Topology::CheckMoleculeNaming(void) {
 }
 
 void Topology::AddBondedInteraction(Interaction *ic) {
-  map<string, int>::iterator iter;
+  map<string, long int>::iterator iter;
   iter = _interaction_groups.find(ic->getGroup());
   if (iter != _interaction_groups.end()) {
     ic->setGroupId((*iter).second);
@@ -325,7 +325,7 @@ Eigen::Vector3d Topology::BCShortestConnection(
   return _bc->BCShortestConnection(r_i, r_j);
 }
 
-Eigen::Vector3d Topology::getDist(int bead1, int bead2) const {
+Eigen::Vector3d Topology::getDist(long int bead1, long int bead2) const {
   return BCShortestConnection(getBead(bead1)->getPos(),
                               getBead(bead2)->getPos());
 }

@@ -81,7 +81,7 @@ class BeadStructure {
   /**
    * \brief Get the bead with the specified id
    **/
-  T *getBead(int id);
+  T *getBead(long int id);
 
   /**
    * \brief Create a connection between two beads in the structure
@@ -89,7 +89,7 @@ class BeadStructure {
    * A bead cannot be connected to itself. It also may not be connected to a
    * bead that has not yet been added to the structure.
    **/
-  void ConnectBeads(int bead1_id, int bead2_id);
+  void ConnectBeads(long int bead1_id, long int bead2_id);
 
   /**
    * \brief Return a vector of all the beads neighboring the index
@@ -109,7 +109,7 @@ class BeadStructure {
    **/
   bool isStructureEquivalent(BeadStructure<T> &beadstructure);
 
-  bool BeadExist(int bead_id) const { return beads_.count(bead_id); }
+  bool BeadExist(long int bead_id) const { return beads_.count(bead_id); }
 
  protected:
   void InitializeGraph_();
@@ -123,7 +123,7 @@ class BeadStructure {
   std::string structure_id_ = "";
   TOOLS::Graph graph_;
   std::set<TOOLS::Edge> connections_;
-  std::unordered_map<int, T *> beads_;
+  std::unordered_map<long int, T *> beads_;
   std::unordered_map<long int, TOOLS::GraphNode> graphnodes_;
 };
 
@@ -139,7 +139,7 @@ void BeadStructure<T>::InitializeGraph_() {
       connections_vector.push_back(edge);
     }
 
-    for (std::pair<const int, T *> &id_bead_ptr_pair : beads_) {
+    for (std::pair<const long int, T *> &id_bead_ptr_pair : beads_) {
       graphnodes_[id_bead_ptr_pair.first] =
           BaseBeadToGraphNode_(id_bead_ptr_pair.second);
     }
@@ -198,7 +198,7 @@ void BeadStructure<T>::AddBead(T *bead) {
 }
 
 template <class T>
-void BeadStructure<T>::ConnectBeads(int bead1_id, int bead2_id) {
+void BeadStructure<T>::ConnectBeads(long int bead1_id, long int bead2_id) {
   if (!(beads_.count(bead1_id)) || !(beads_.count(bead2_id))) {
     std::string err =
         "Cannot connect beads in bead structure that do not exist";
@@ -270,16 +270,16 @@ std::vector<T *> BeadStructure<T>::getNeighBeads(int index) {
   if (!graphUpToDate) {
     InitializeGraph_();
   }
-  std::vector<int> neighbor_ids = graph_.getNeighVertices(index);
+  std::vector<long int> neighbor_ids = graph_.getNeighVertices(index);
   std::vector<T *> neighbeads;
-  for (int &node_id : neighbor_ids) {
+  for (long int &node_id : neighbor_ids) {
     neighbeads.push_back(beads_[node_id]);
   }
   return neighbeads;
 }
 
 template <class T>
-T *BeadStructure<T>::getBead(int index) {
+T *BeadStructure<T>::getBead(long int index) {
   assert(beads_.count(index));
   return beads_[index];
 }

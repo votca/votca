@@ -57,7 +57,7 @@ static int motif_index = 0;
  * \brief Determines which edges are connected to the junction and stored them
  * in the remove_edges map.
  **/
-void removeAllEdgesConnectedToVertex_(int junction, Graph& full_graph,
+void removeAllEdgesConnectedToVertex_(long int junction, Graph& full_graph,
                                       unordered_map<Edge, bool>& remove_edges) {
 
   vector<Edge> neigh_edges = full_graph.getNeighEdges(junction);
@@ -72,7 +72,7 @@ void removeAllEdgesConnectedToVertex_(int junction, Graph& full_graph,
  * be expanded and then it can be explored.
  **/
 int determineEdgesOfBranchesWithSingleConnectionToJunction_(
-    int junction, ReducedGraph& reduced_graph,
+    long int junction, ReducedGraph& reduced_graph,
     unordered_map<Edge, bool>& remove_edges,
     unordered_map<int, vector<Edge>>
         contracted_branch_edges_connected_to_junction) {
@@ -120,9 +120,9 @@ void calculateEdgesToRemove_(Graph& full_graph,
 
   ReducedGraph reduced_graph = reduceGraph(full_graph);
 
-  vector<int> junctions = reduced_graph.getJunctions();
+  vector<long int> junctions = reduced_graph.getJunctions();
 
-  for (int& junction : junctions) {
+  for (long int& junction : junctions) {
     vector<Edge> neighboring_edges = reduced_graph.getNeighEdges(junction);
     unordered_map<Edge, bool> contracted_edge_explored;
     for (Edge& edge : neighboring_edges) {
@@ -344,8 +344,8 @@ void MotifDeconstructor_::determineMotifConnections_(
   list<Edge>::iterator edge_iterator = bead_edges_removed_.begin();
   while (edge_iterator != bead_edges_removed_.end()) {
     assert(edge_iterator->loop() == false);
-    int bead_id1 = edge_iterator->getEndPoint1();
-    int bead_id2 = edge_iterator->getEndPoint2();
+    long int bead_id1 = edge_iterator->getEndPoint1();
+    long int bead_id2 = edge_iterator->getEndPoint2();
     // Cycle the motifs
     list<IdMotif>::iterator motif_bead1_iterator;
     for (motif_bead1_iterator = motifs_simple_.begin();

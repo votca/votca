@@ -37,7 +37,7 @@ class PotentialFunctionCBSPL : public PotentialFunction {
   // calculate second derivative w.r.t. ith parameter
   double CalculateD2F(const int i, const int j, const double r) const override;
 
-  int getOptParamSize() const override;
+  long int getOptParamSize() const override;
 
   void setParam(std::string filename) override;
 
@@ -57,12 +57,12 @@ class PotentialFunctionCBSPL : public PotentialFunction {
   // exclude these many first coefficients from optimization
   // since the region relevant to these coefficients is not sampled
   // the value of _nexcl is determined from rmin
-  int _nexcl;
+  long int _nexcl;
   // fix these many coeff near the cut-off to zero to ensure
   // zero potential and force values near cut-off
   int _ncutcoeff;
 
-  int _nbreak;
+  long int _nbreak;
   double _dr;
   Eigen::VectorXd _rbreak;
 

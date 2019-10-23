@@ -38,11 +38,11 @@ void ExclusionList::CreateExclusions(Topology *top) {
   InteractionContainer::iterator ia;
 
   for (ia = ic.begin(); ia != ic.end(); ++ia) {
-    int beads_in_int = (*ia)->BeadCount();
+    long int beads_in_int = (*ia)->BeadCount();
     list<Bead *> l;
 
-    for (int ibead = 0; ibead < beads_in_int; ibead++) {
-      int ii = (*ia)->getBeadId(ibead);
+    for (long int ibead = 0; ibead < beads_in_int; ibead++) {
+      long int ii = (*ia)->getBeadId(ibead);
       l.push_back(top->getBead(ii));
     }
     ExcludeList(l);
