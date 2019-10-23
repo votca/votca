@@ -56,7 +56,7 @@ void RDFCalculator::Initialize() {
     interaction_t *i = AddInteraction(prop);
     i->_is_bonded = false;
   }
-};
+}
 
 void RDFCalculator::BeginEvaluate(Topology *top, Topology *top_atom) {
   Eigen::Matrix3d box = top->getBox();

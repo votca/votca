@@ -80,7 +80,6 @@ string OrientCorrApp::_nbmethod;
 class MyWorker : public CsgApplication::Worker {
  public:
   ~MyWorker() override = default;
-  ;
 
   // evaluate the current frame
   void EvalConfiguration(Topology *top, Topology *top_ref) override;
