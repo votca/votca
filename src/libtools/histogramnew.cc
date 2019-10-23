@@ -22,7 +22,7 @@ using namespace std;
 namespace votca {
 namespace tools {
 
-void HistogramNew::Initialize_(double min, double max) {
+void HistogramNew::Initialize_() {
   if (_periodic) {
     _step = (_max - _min) / (_nbins);
   } else {
@@ -46,7 +46,7 @@ void HistogramNew::Initialize(double min, double max, int nbins) {
   _min = min;
   _max = max;
   _nbins = nbins;
-  Initialize_(min, max);
+  Initialize_();
 }
 
 void HistogramNew::Process(const double &v, double scale) {

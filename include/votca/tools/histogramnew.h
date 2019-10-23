@@ -161,7 +161,7 @@ class HistogramNew {
   void setPeriodic(bool periodic) { _periodic = periodic; }
 
  private:
-  void Initialize_(double min, double max);
+  void Initialize_();
   double _min = 0;
   double _max = 0;
   double _step = 0;

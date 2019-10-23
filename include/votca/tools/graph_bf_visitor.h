@@ -45,7 +45,7 @@ class Graph_BF_Visitor : public GraphVisitor {
   /// The core of the breadth first visitor is in how the edges are added
   /// to the queue in this function
   void addEdges_(const Graph& graph, long int vertex) override;
-  Edge getEdge_(const Graph& graph) override;
+  Edge getEdge_() override;
 
  public:
   Graph_BF_Visitor() = default;

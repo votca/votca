@@ -29,7 +29,7 @@ namespace tools {
 
 bool Graph_DF_Visitor::queEmpty() const { return edge_list_.empty(); }
 
-Edge Graph_DF_Visitor::getEdge_(const Graph& g) {
+Edge Graph_DF_Visitor::getEdge_() {
   Edge ed = edge_list_.back();
   edge_list_.pop_back();
   return ed;

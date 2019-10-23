@@ -57,7 +57,7 @@ class GraphVisitor {
 
   /// What is done to an individual graph node as it is explored
   virtual void addEdges_(const Graph& graph, long int vertex) = 0;
-  virtual Edge getEdge_(const Graph& graph) = 0;
+  virtual Edge getEdge_() = 0;
   /// Edge(0,0) is a dummy value
  public:
   virtual void exploreNode(std::pair<long int, GraphNode>& vertex_and_node,

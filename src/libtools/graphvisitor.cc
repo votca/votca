@@ -34,7 +34,7 @@ class GraphNode;
 bool GraphVisitor::queEmpty() const { return true; }
 
 void GraphVisitor::exploreNode(pair<long int, GraphNode>& vertex_and_node,
-                               Graph& graph, Edge edge) {
+                               __attribute__((unused)) Graph& graph, __attribute__((unused)) Edge edge) {
   explored_.insert(vertex_and_node.first);
 }
 
@@ -85,7 +85,7 @@ Edge GraphVisitor::nextEdge(Graph graph) {
 
   // Get the edge and at the same time remove it from whatever queue it is in
 
-  Edge edge = getEdge_(graph);
+  Edge edge = getEdge_();
   vector<long int> unexplored_vertices = getUnexploredVertex(edge);
   // Do not add neighboring edges if they belong to a vertex that has already
   // been explored because they will have already been added
