@@ -90,7 +90,7 @@ istream &operator>>(istream &in, Table &t) {
   size_t N = 0;
   bool bHasN = false;
   string line;
-  int line_number = 0;
+  long int line_number = 0;
   t.clear();
 
   // read till the first data line
@@ -115,7 +115,7 @@ istream &operator>>(istream &in, Table &t) {
 
     // if first line is only 1 token, it's the size
     if (tokens.size() == 1) {
-      N = lexical_cast<int>(tokens[0], conversion_error);
+      N = lexical_cast<long int>(tokens[0], conversion_error);
       bHasN = true;
     } else if (tokens.size() == 2) {
       // it's the first data line with 2 or 3 entries
@@ -185,9 +185,9 @@ void Table::GenerateGridSpacing(double min, double max, double spacing) {
   }
 }
 
-void Table::Smooth(int Nsmooth) {
+void Table::Smooth(long int Nsmooth) {
   while (Nsmooth-- > 0) {
-    for (int i = 1; i < size() - 1; ++i) {
+    for (long int i = 1; i < size() - 1; ++i) {
       _y[i] = 0.25 * (_y[i - 1] + 2 * _y[i] + _y[i + 1]);
     }
   }
