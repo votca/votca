@@ -219,7 +219,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 #endif
 
       // read molecule
-      int *id_map= new int[natoms];
+      int *id_map = new int[natoms];
       for (int i = 0; i < natoms;) {  // i is altered in repeater loop
         stringstream sl(_NextKeyline(fl, WhiteSpace));
 
@@ -376,7 +376,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
           mi_replica->AddInteraction(ic_replica);
         }
       }
-      delete [] id_map;
+      delete[] id_map;
     }
     top.RebuildExclusions();
   }

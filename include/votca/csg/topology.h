@@ -77,7 +77,8 @@ class Topology {
    * The function creates a new bead and adds it to the list of beads.
    */
   virtual Bead *CreateBead(tools::byte_t symmetry, std::string name,
-                           std::string type, long int resnr, double m, double q);
+                           std::string type, long int resnr, double m,
+                           double q);
 
   /**
    * \brief Creates a new molecule

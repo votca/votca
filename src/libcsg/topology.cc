@@ -85,8 +85,8 @@ void Topology::Cleanup() {
 }
 
 /// \todo implement checking, only used in xml topology reader
-void Topology::CreateMoleculesByRange(string name, long int first, long int nbeads,
-                                      long int nmolecules) {
+void Topology::CreateMoleculesByRange(string name, long int first,
+                                      long int nbeads, long int nmolecules) {
   Molecule *mol = CreateMolecule(name);
   long int beadcount = 0;
   long int res_offset = 0;
