@@ -71,7 +71,12 @@ elif [[ $ENV -eq 5 ]]; then
   add_to_docker_opts COVERAGE=yes
   [[ $CXX = clang++ ]] && export SKIP=yes #clang coverage is too slow for travis, plus we have gcc's coverage, so not much more insights
 elif [[ $ENV -eq 6 ]]; then
-  export SKIP=yes
+  # clang-tidy build
+  [[ $CXX = g++ ]] && export SKIP=yes # only clang builds matter
+  add_to_docker_opts TESTING=OFF
+  add_to_docker_opts CMAKE_BUILD_TYPE=Debug
+  add_to_docker_opts CLANG_TIDY=ON
+  add_to_docker_opts CLANG_FORMAT=yes # to check for changes with git diff
 elif [[ $ENV -eq 7 ]]; then
   export SKIP=yes
 elif [[ $ENV -eq 8 ]]; then
