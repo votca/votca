@@ -192,8 +192,8 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
   cout << "done\n";
 
   // the neighbor search only finds pairs, add self-self correlation parts here
-  _cor.Process(0.0f, mapped.BeadCount());
-  _count.Process(0.0f, mapped.BeadCount());
+  _cor.Process(0.0f, (double)mapped.BeadCount());
+  _count.Process(0.0f, (double)mapped.BeadCount());
 
   // search for all beads
   BeadList b;

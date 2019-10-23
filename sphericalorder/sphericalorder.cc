@@ -119,7 +119,7 @@ class CGOrderParam : public CsgApplication {
 
     boxl = a.norm() / 2;
     if (_rbinw > 0) {
-      _rbins = boxl / _rbinw + 1;
+      _rbins = (int)(boxl / _rbinw) + 1;
       cout << "radial bins " << _rbins << endl;
     } else {
       _rbins = 1;

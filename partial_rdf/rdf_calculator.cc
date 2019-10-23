@@ -250,8 +250,8 @@ void RDFCalculator::Worker::DoNonbonded(Topology *top) {
                                         _rdfcalculator->_boxc,
                                         _rdfcalculator->_subvol_rad);
 
-    _cur_beadlist_1_count = beads1.size();
-    _cur_beadlist_2_count = beads2.size();
+    _cur_beadlist_1_count = (double)beads1.size();
+    _cur_beadlist_2_count = (double)beads2.size();
 
     // same types, so put factor 1/2 because of already counted interactions
     if (prop->get("type1").value() == prop->get("type2").value()) {

@@ -209,7 +209,7 @@ void CsgFluctuations::EvalConfiguration(Topology *conf,
       }
     }
     if (r > _rmin && r < _rmax) {
-      rbin = (int)_nbins * (double)((r - _rmin) / (_rmax - _rmin));
+      rbin = _nbins * (int)((r - _rmin) / (_rmax - _rmin));
       N[rbin]++;
     }
   }
