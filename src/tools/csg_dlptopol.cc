@@ -248,7 +248,7 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
   stringstream sout;
 
   int n_entries = 0;
-  int nb = -1;
+  long int nb = -1;
 
   for (iter = ics.begin(); iter != ics.end(); ++iter) {
     Interaction *ic = *iter;

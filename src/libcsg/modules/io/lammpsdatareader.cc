@@ -446,7 +446,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       } else {
         mol = molecules_[moleculeId];
       }
-      int symmetry = 1;  // spherical
+      votca::tools::byte_t symmetry = 1;  // spherical
 
       double mass = stod(data_["Masses"].at(atomTypeId).at(1));
 

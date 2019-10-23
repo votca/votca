@@ -155,7 +155,7 @@ void Topology::Add(Topology *top) {
   ResidueContainer::iterator res;
   MoleculeContainer::iterator mol;
 
-  int res0 = ResidueCount();
+  long int res0 = ResidueCount();
 
   for (bead = top->_beads.begin(); bead != top->_beads.end(); ++bead) {
     Bead *bi = *bead;
@@ -208,7 +208,7 @@ void Topology::CopyTopologyData(Topology *top) {
        ++it_mol) {
     Molecule *mi = CreateMolecule((*it_mol)->getName());
     for (int i = 0; i < (*it_mol)->BeadCount(); i++) {
-      int beadid = (*it_mol)->getBead(i)->getId();
+      long int beadid = (*it_mol)->getBead(i)->getId();
       mi->AddBead(_beads[beadid], (*it_mol)->getBeadName(i));
     }
   }
@@ -251,10 +251,10 @@ void Topology::SetBeadTypeMass(string name, double value) {
 }
 
 void Topology::CheckMoleculeNaming(void) {
-  map<string, int> nbeads;
+  map<string, long int> nbeads;
 
   for (Molecule *mol : _molecules) {
-    map<string, int>::iterator entry = nbeads.find(mol->getName());
+    map<string, long int>::iterator entry = nbeads.find(mol->getName());
     if (entry != nbeads.end()) {
       if (entry->second != mol->BeadCount()) {
         throw runtime_error(
@@ -275,7 +275,7 @@ void Topology::AddBondedInteraction(Interaction *ic) {
   if (iter != _interaction_groups.end()) {
     ic->setGroupId((*iter).second);
   } else {
-    int i = _interaction_groups.size();
+    long int i = _interaction_groups.size();
     _interaction_groups[ic->getGroup()] = i;
     ic->setGroupId(i);
   }

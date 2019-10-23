@@ -79,7 +79,7 @@ void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg) {
 }
 
 void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg) {
-  int nb = -1;
+  long int nb = -1;
 
   Interaction *ic;
   vector<Interaction *>::iterator iter;

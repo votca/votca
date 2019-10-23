@@ -38,9 +38,9 @@ class PotentialFunction {
   // set all parameters
   void setParam(const Eigen::VectorXd &param) { _lam = param; }
   // set ith parameter
-  void setParam(const int i, const double val) { _lam(i) = val; }
+  void setParam(const long int i, const double val) { _lam(i) = val; }
   // set ith parameter among those to be optimized
-  virtual void setOptParam(const int i, const double val) { setParam(i, val); }
+  virtual void setOptParam(const long int i, const double val) { setParam(i, val); }
   // set minimum r value to avoid large values
   void setMinDist(const double min) { _min = min; }
   // set cut-off value
@@ -48,16 +48,16 @@ class PotentialFunction {
   // calculate function
   virtual double CalculateF(const double r) const = 0;
   // calculate first derivative w.r.t. ith parameter
-  virtual double CalculateDF(const int i, const double r) const = 0;
+  virtual double CalculateDF(const long int i, const double r) const = 0;
   // calculate second derivative w.r.t. ith parameter
-  virtual double CalculateD2F(const int i, const int j,
+  virtual double CalculateD2F(const long int i, const long int j,
                               const double r) const = 0;
   // return parameter
   Eigen::VectorXd &Params() { return _lam; }
   // return ith parameter
-  double getParam(const int i) const { return _lam(i); }
+  double getParam(const long int i) const { return _lam(i); }
   // return ith parameter among those to be optimized
-  virtual double getOptParam(const int i) const { return getParam(i); }
+  virtual double getOptParam(const long int i) const { return getParam(i); }
   // return size of parameters
   long int getParamSize() const { return _lam.size(); }
   // return size of parameters to be optimized

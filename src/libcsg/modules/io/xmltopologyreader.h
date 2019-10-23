@@ -53,7 +53,7 @@ class XMLBead {
       : name(_name), type(_type), mass(_mass), q(_q){};
   XMLBead() = default;
 
-  int pid;
+  long int pid;
   std::string name;
   std::string type;
   double mass;
@@ -65,7 +65,7 @@ class XMLMolecule {
   XMLMolecule(std::string _name, int _nmols) : name(_name), nmols(_nmols) {}
   std::string name;
   int nmols;
-  int pid;
+  long int pid;
   std::vector<XMLBead *> beads;
   std::map<std::string, XMLBead *> name2beads;
   Molecule *mi;

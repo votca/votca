@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(triplelist_add_triple) {
   string bead_type_name = "CG";
   top.RegisterBeadType(bead_type_name);
 
-  int symmetry = 1;
+  votca::tools::byte_t symmetry = 1;
   string name = "dummy1";
   int resnr = 0;
   double mass = 1.0;

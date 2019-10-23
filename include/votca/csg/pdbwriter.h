@@ -61,13 +61,13 @@ class PDBWriter : public TrajectoryWriter {
   int getId(Atom &atom) {
     return atom.getId();
   }
-  int getId(Bead *bead) { return bead->getId(); }
+  long int getId(Bead *bead) { return bead->getId(); }
 
   template <class T, class Atom>
   int getResId(T &container, Atom &atom) {
     return container.getId();
   }
-  int getResId(Topology &conf, Bead *bead) { return bead->getResnr() + 1; }
+  long int getResId(Topology &conf, Bead *bead) { return bead->getResnr() + 1; }
 
   template <class Atom>
   void writeSymmetry(Atom &atom) {

@@ -198,12 +198,12 @@ void PotentialFunctionCBSPL::extrapolExclParam() {
   }
 }
 
-void PotentialFunctionCBSPL::setOptParam(const int i, const double val) {
+void PotentialFunctionCBSPL::setOptParam(const long int i, const double val) {
 
   _lam(i + _nexcl) = val;
 }
 
-double PotentialFunctionCBSPL::getOptParam(const int i) const {
+double PotentialFunctionCBSPL::getOptParam(const long int i) const {
 
   return _lam(i + _nexcl);
 }
@@ -214,9 +214,7 @@ double PotentialFunctionCBSPL::CalculateF(const double r) const {
 
     double u = 0.0;
     long int indx = min((long int)(r / _dr), _nbreak - 2);
-    ;
-    double rk = indx * _dr;
-    ;
+    double rk = (double)indx * _dr;
     double t = (r - rk) / _dr;
 
     Eigen::VectorXd R = Eigen::VectorXd::Zero(4);
@@ -234,7 +232,7 @@ double PotentialFunctionCBSPL::CalculateF(const double r) const {
 }
 
 // calculate first derivative w.r.t. ith parameter
-double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const {
+double PotentialFunctionCBSPL::CalculateDF(const long int i, const double r) const {
 
   // since first _nexcl parameters are not optimized for stability reasons
 
@@ -245,7 +243,7 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const {
     double rk;
 
     indx = min((long int)(r / _dr), _nbreak - 2);
-    rk = indx * _dr;
+    rk = (double)indx * _dr;
 
     if (i_opt >= indx && i_opt <= indx + 3) {
 
@@ -272,7 +270,7 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const {
 }
 
 // calculate second derivative w.r.t. ith parameter
-double PotentialFunctionCBSPL::CalculateD2F(const int i, const int j,
+double PotentialFunctionCBSPL::CalculateD2F(const long int i, const long int j,
                                             const double r) const {
 
   return 0.0;

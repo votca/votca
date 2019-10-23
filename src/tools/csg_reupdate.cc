@@ -95,7 +95,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
   for (Property *prop : _nonbonded) {
 
     string name = prop->get("name").value();
-    int id = _potentials.size();
+    long int id = _potentials.size();
 
     PotentialInfo *i =
         new PotentialInfo(id, false, _nlamda, _param_in_ext, prop, _gentable);
@@ -128,9 +128,9 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
     double *rdfnorm = new double();
 
     if (prop->get("type1").value() == prop->get("type2").value()) {
-      *rdfnorm = (beads1.size() * (beads2.size()) / 2.) / top->BoxVolume();
+      *rdfnorm = (double)(beads1.size() * beads2.size()) / 2. / top->BoxVolume();
     } else {
-      *rdfnorm = (beads1.size() * beads2.size()) / top->BoxVolume();
+      *rdfnorm = (double)(beads1.size() * beads2.size()) / top->BoxVolume();
     }
 
     _aardfnorms.push_back(rdfnorm);
@@ -161,12 +161,12 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
   PotentialContainer::iterator potiter;
   for (potiter = _potentials.begin(); potiter != _potentials.end(); ++potiter) {
 
-    int pos_start = (*potiter)->vec_pos;
-    int pos_max = pos_start + (*potiter)->ucg->getOptParamSize();
+    long int pos_start = (*potiter)->vec_pos;
+    long int pos_max = pos_start + (*potiter)->ucg->getOptParamSize();
 
-    for (int row = pos_start; row < pos_max; row++) {
+    for (long int row = pos_start; row < pos_max; row++) {
 
-      int lamda_i = row - pos_start;
+      long int lamda_i = row - pos_start;
       _lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
 
     }  // end row loop
@@ -362,12 +362,12 @@ void CsgREupdate::REUpdateLamda() {
   PotentialContainer::iterator potiter;
   for (potiter = _potentials.begin(); potiter != _potentials.end(); ++potiter) {
 
-    int pos_start = (*potiter)->vec_pos;
-    int pos_max = pos_start + (*potiter)->ucg->getOptParamSize();
+    long int pos_start = (*potiter)->vec_pos;
+    long int pos_max = pos_start + (*potiter)->ucg->getOptParamSize();
 
-    for (int row = pos_start; row < pos_max; row++) {
+    for (long int row = pos_start; row < pos_max; row++) {
 
-      int lamda_i = row - pos_start;
+      long int lamda_i = row - pos_start;
       (*potiter)->ucg->setOptParam(lamda_i, _lamda(row));
 
     }  // end row loop
@@ -378,12 +378,12 @@ void CsgREupdate::REUpdateLamda() {
 // do non bonded potential AA ensemble avg energy computations
 void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
 
-  int pos_start = potinfo->vec_pos;
-  int pos_max = pos_start + potinfo->ucg->getOptParamSize();
-  int lamda_i, lamda_j;
+  long int pos_start = potinfo->vec_pos;
+  long int pos_max = pos_start + potinfo->ucg->getOptParamSize();
+  long int lamda_i, lamda_j;
   double dU_i, d2U_ij;
   double U;
-  int indx = potinfo->potentialIndex;
+  long int indx = potinfo->potentialIndex;
 
   // compute avg AA energy
   U = 0.0;
@@ -407,7 +407,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
   _UavgAA += U;
 
   // computing dU/dlamda and d2U/dlamda_i dlamda_j
-  for (int row = pos_start; row < pos_max; row++) {
+  for (long int row = pos_start; row < pos_max; row++) {
 
     // ith parameter of this potential
     lamda_i = row - pos_start;
@@ -431,7 +431,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
 
     _DS(row) += (_beta * dU_i);
 
-    for (int col = row; col < pos_max; col++) {
+    for (long int col = row; col < pos_max; col++) {
 
       lamda_j = col - pos_start;
 
@@ -490,12 +490,12 @@ CsgApplication::Worker *CsgREupdate::ForkWorker() {
   for (potiter = worker->_potentials.begin();
        potiter != worker->_potentials.end(); ++potiter) {
 
-    int pos_start = (*potiter)->vec_pos;
-    int pos_max = pos_start + (*potiter)->ucg->getOptParamSize();
+    long int pos_start = (*potiter)->vec_pos;
+    long int pos_max = pos_start + (*potiter)->ucg->getOptParamSize();
 
-    for (int row = pos_start; row < pos_max; row++) {
+    for (long int row = pos_start; row < pos_max; row++) {
 
-      int lamda_i = row - pos_start;
+      long int lamda_i = row - pos_start;
       worker->_lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
 
     }  // end row loop
@@ -617,9 +617,9 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
   }
 
   NBList::iterator pair_iter;
-  int pos_start = potinfo->vec_pos;
-  int pos_max = pos_start + potinfo->ucg->getOptParamSize();
-  int lamda_i, lamda_j;
+  long int pos_start = potinfo->vec_pos;
+  long int pos_max = pos_start + potinfo->ucg->getOptParamSize();
+  long int lamda_i, lamda_j;
   double dU_i, d2U_ij;
   double U;
 
@@ -632,7 +632,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
   _UavgCG += U;
 
   // computing dU/dlamda and d2U/dlamda_i dlamda_j
-  for (int row = pos_start; row < pos_max; row++) {
+  for (long int row = pos_start; row < pos_max; row++) {
 
     lamda_i = row - pos_start;
 
@@ -643,7 +643,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
 
     _dUFrame(row) = dU_i;
 
-    for (int col = row; col < pos_max; col++) {
+    for (long int col = row; col < pos_max; col++) {
 
       lamda_j = col - pos_start;
       d2U_ij = 0.0;
@@ -667,7 +667,7 @@ void CsgREupdateWorker::EvalBonded(Topology *conf, PotentialInfo *potinfo) {
   // coming soon!
 }
 
-PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
+PotentialInfo::PotentialInfo(long int index, bool bonded_, long int vec_pos_,
                              string &param_in_ext_, Property *options,
                              bool gentable) {
 
@@ -706,7 +706,7 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
         // an unphysical non-zero RDF value may occur,
         // so it would be better to estimate Rmin loop
         // through RDF values from Rcut to zero instead of zero to Rcut.
-        for (int i = dist.size() - 2; i > 0; i--) {
+        for (long int i = dist.size() - 2; i > 0; i--) {
           if (dist.y(i) < 1.0e-4) {
             new_min = dist.x(i + 1);
             break;

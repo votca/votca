@@ -108,7 +108,7 @@ class CsgMapApp : public CsgApplication {
         Molecule *mi = hybtol->CreateMolecule((*it_mol)->getName());
         for (int i = 0; i < (*it_mol)->BeadCount(); i++) {
           // copy atomistic beads of molecule
-          int beadid = (*it_mol)->getBead(i)->getId();
+          long int beadid = (*it_mol)->getBead(i)->getId();
 
           Bead *bi = (*it_mol)->getBead(i);
           if (!hybtol->BeadTypeExist(bi->getType())) {

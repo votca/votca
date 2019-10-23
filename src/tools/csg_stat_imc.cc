@@ -142,9 +142,9 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
 
       // calculate normalization factor for rdf
       if (prop->get("type1").value() == prop->get("type2").value()) {
-        i._norm = 1. / (beads1.size() * (beads2.size()) / 2.);
+        i._norm = 1. / (double)(beads1.size() * beads2.size()) / 2.;
       } else {
-        i._norm = 1. / (beads1.size() * beads2.size());
+        i._norm = 1. / (double)(beads1.size() * beads2.size());
       }
     }
   }
@@ -172,7 +172,7 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
     group = "none";
   }
 
-  int index = _interactions.size();
+  long int index = _interactions.size();
   auto success = _interactions.insert(std::make_pair(
       name, std::unique_ptr<interaction_t>(new interaction_t())));
   interaction_t *i = success.first->second.get();
@@ -615,7 +615,7 @@ void Imc::WriteIMCData(const string &suffix) {
     string grp_name = group.first;
 
     // number of total bins for all interactions in group is matrix dimension
-    int n = grp->_corr.rows();
+    long int n = grp->_corr.rows();
 
     // build full set of equations + copy some data to make
     // code better to read
@@ -731,7 +731,7 @@ void Imc::WriteIMCBlock(const string &suffix) {
     list<interaction_t *>::iterator iter;
 
     // number of total bins for all interactions in group is matrix dimension
-    int n = grp->_corr.rows();
+    long int n = grp->_corr.rows();
 
     // build full set of equations + copy some data to make code better to read
     group_matrix gmc(grp->_corr);

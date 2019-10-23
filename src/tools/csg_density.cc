@@ -142,8 +142,8 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref) {
     if (!votca::tools::wildcmp(_molname.c_str(), mol->getName().c_str())) {
       continue;
     }
-    int N = mol->BeadCount();
-    for (int i = 0; i < N; i++) {
+    long int N = mol->BeadCount();
+    for (long int i = 0; i < N; i++) {
       Bead *b = mol->getBead(i);
       if (!votca::tools::wildcmp(_filter.c_str(), b->getName().c_str())) {
         continue;

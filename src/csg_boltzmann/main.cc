@@ -119,7 +119,7 @@ ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
     const vector<long int> &parent_beads = cg.getBead(i)->ParentBeads();
     list<Bead *> excl_list;
 
-    for (const int &parent_bead_id : parent_beads) {
+    for (const long int &parent_bead_id : parent_beads) {
       excl_list.push_back(at_top->getBead(parent_bead_id));
     }
     ex->Remove(excl_list);

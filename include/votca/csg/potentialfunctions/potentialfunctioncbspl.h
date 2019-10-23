@@ -33,9 +33,9 @@ class PotentialFunctionCBSPL : public PotentialFunction {
   // calculate function value for given r
   double CalculateF(const double r) const override;
   // calculate first derivative w.r.t. ith parameter
-  double CalculateDF(const int i, const double r) const override;
+  double CalculateDF(const long int i, const double r) const override;
   // calculate second derivative w.r.t. ith parameter
-  double CalculateD2F(const int i, const int j, const double r) const override;
+  double CalculateD2F(const long int i, const long int j, const double r) const override;
 
   long int getOptParamSize() const override;
 
@@ -47,9 +47,9 @@ class PotentialFunctionCBSPL : public PotentialFunction {
 
   void SavePotTab(const std::string &filename, const double step,
                   const double rmin, const double rcut) override;
-  void setOptParam(const int i, const double val) override;
+  void setOptParam(const long int i, const double val) override;
 
-  double getOptParam(const int i) const override;
+  double getOptParam(const long int i) const override;
 
   void extrapolExclParam();
 

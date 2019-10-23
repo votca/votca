@@ -32,7 +32,8 @@ void GROWriter::Close() { fclose(_out); }
 
 void GROWriter::Write(Topology *conf) {
   char format[100];
-  int i, resnr, l, vpr;
+  int i, l, vpr;
+  long int resnr;
   Topology *top = conf;
 
   fprintf(_out, "%s\n", "what a nice title");
@@ -61,7 +62,7 @@ void GROWriter::Write(Topology *conf) {
     string resname = top->getResidue(resnr)->getName();
     string atomname = top->getBead(i)->getName();
 
-    fprintf(_out, "%5d%-5.5s%5.5s%5d", (resnr + 1) % 100000, resname.c_str(),
+    fprintf(_out, "%5ld%-5.5s%5.5s%5d", (resnr + 1) % 100000, resname.c_str(),
             atomname.c_str(), (i + 1) % 100000);
     /* next fprintf uses built format string */
     Eigen::Vector3d r = conf->getBead(i)->getPos();
