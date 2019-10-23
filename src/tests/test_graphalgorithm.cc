@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE(decouple_isolated_subgraphs_test) {
   vector<Edge> edges{ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9};
 
   unordered_map<long int, GraphNode> nodes;
-  for (int index = 1; index < 12; ++index) {
+  for (long int index = 1; index < 12; ++index) {
     GraphNode gn;
     nodes[index] = gn;
   }
@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(decouple_isolated_subgraphs_test) {
 
   BOOST_CHECK_EQUAL(sub_graphs.size(), 3);
 
-  unordered_map<int, bool> vertices_sub_graph1;
+  unordered_map<long int, bool> vertices_sub_graph1;
   vertices_sub_graph1[1] = false;
   vertices_sub_graph1[2] = false;
   vertices_sub_graph1[3] = false;
@@ -159,29 +159,29 @@ BOOST_AUTO_TEST_CASE(decouple_isolated_subgraphs_test) {
   vertices_sub_graph1[6] = false;
   vertices_sub_graph1[7] = false;
 
-  unordered_map<int, bool> vertices_sub_graph2;
+  unordered_map<long int, bool> vertices_sub_graph2;
   vertices_sub_graph2[8] = false;
   vertices_sub_graph2[9] = false;
   vertices_sub_graph2[10] = false;
-  unordered_map<int, bool> vertices_sub_graph3;
+  unordered_map<long int, bool> vertices_sub_graph3;
   vertices_sub_graph3[11] = false;
 
   for (const Graph& sub_graph : sub_graphs) {
     const vector<long int> vertices = sub_graph.getVertices();
     if (vertices_sub_graph1.count(vertices.at(0))) {
-      for (const int& vertex : vertices) {
+      for (const long int& vertex : vertices) {
         if (vertices_sub_graph1.count(vertex)) {
           vertices_sub_graph1.at(vertex) = true;
         }
       }
     } else if (vertices_sub_graph2.count(vertices.at(0))) {
-      for (const int& vertex : vertices) {
+      for (const long int& vertex : vertices) {
         if (vertices_sub_graph2.count(vertex)) {
           vertices_sub_graph2.at(vertex) = true;
         }
       }
     } else if (vertices_sub_graph3.count(vertices.at(0))) {
-      for (const int& vertex : vertices) {
+      for (const long int& vertex : vertices) {
         if (vertices_sub_graph3.count(vertex)) {
           vertices_sub_graph3.at(vertex) = true;
         }
@@ -190,17 +190,17 @@ BOOST_AUTO_TEST_CASE(decouple_isolated_subgraphs_test) {
   }
 
   BOOST_CHECK_EQUAL(vertices_sub_graph1.size(), 7);
-  for (const pair<int, bool>& found : vertices_sub_graph1) {
+  for (const pair<long int, bool>& found : vertices_sub_graph1) {
     BOOST_CHECK(found.second);
   }
 
   BOOST_CHECK_EQUAL(vertices_sub_graph2.size(), 3);
-  for (const pair<int, bool>& found : vertices_sub_graph2) {
+  for (const pair<long int, bool>& found : vertices_sub_graph2) {
     BOOST_CHECK(found.second);
   }
 
   BOOST_CHECK_EQUAL(vertices_sub_graph3.size(), 1);
-  for (const pair<int, bool>& found : vertices_sub_graph3) {
+  for (const pair<long int, bool>& found : vertices_sub_graph3) {
     BOOST_CHECK(found.second);
   }
 }
@@ -405,11 +405,11 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     Graph graph(edges, nodes);
     ReducedGraph reduced_graph = reduceGraph(graph);
 
-    vector<int> junctions = reduced_graph.getJunctions();
+    vector<long int> junctions = reduced_graph.getJunctions();
     BOOST_CHECK_EQUAL(junctions.size(), 2);
     bool found_junction_3 = false;
     bool found_junction_7 = false;
-    for (int junction : junctions) {
+    for (long int junction : junctions) {
       if (junction == 3) {
         found_junction_3 = true;
       } else if (junction == 7) {
@@ -461,7 +461,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     vector<Edge> edges{ed1, ed2, ed3, ed4, ed5, ed6};
 
     unordered_map<long int, GraphNode> nodes;
-    for (int index = 0; index < 18; ++index) {
+    for (long int index = 0; index < 18; ++index) {
       GraphNode gn;
       nodes[index] = gn;
     }
@@ -469,11 +469,11 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     Graph g(edges, nodes);
     ReducedGraph reduced_g = reduceGraph(g);
 
-    vector<int> junctions = reduced_g.getJunctions();
+    vector<long int> junctions = reduced_g.getJunctions();
     BOOST_CHECK_EQUAL(junctions.size(), 2);
     bool found_junction_1 = false;
     bool found_junction_2 = false;
-    for (int junction : junctions) {
+    for (long int junction : junctions) {
       if (junction == 1) {
         found_junction_1 = true;
       } else if (junction == 2) {
@@ -493,7 +493,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     vector<Edge> edges2 = reduced_g.getEdges();
     BOOST_CHECK_EQUAL(edges2.size(), 3);
 
-    int edge_count1_2 = 0;
+    long int edge_count1_2 = 0;
     for (const Edge& edge_temp : edges2) {
       if (edge_temp == ed1) {
         ++edge_count1_2;
@@ -551,12 +551,12 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     Graph g(edges, nodes);
     ReducedGraph reduced_g = reduceGraph(g);
 
-    vector<int> junctions = reduced_g.getJunctions();
+    vector<long int> junctions = reduced_g.getJunctions();
     BOOST_CHECK_EQUAL(junctions.size(), 2);
 
     bool found_junction_1 = false;
     bool found_junction_6 = false;
-    for (int junction : junctions) {
+    for (long int junction : junctions) {
       if (junction == 1) {
         found_junction_1 = true;
       } else if (junction == 6) {

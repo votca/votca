@@ -89,7 +89,7 @@ bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor);
  * @param[in] - the edge indicating which branch is to be explored
  * @return - set of edges in the branch that were explored
  **/
-std::set<Edge> exploreBranch(Graph g, int starting_vertex, const Edge& edge);
+std::set<Edge> exploreBranch(Graph g, long int starting_vertex, const Edge& edge);
 
 /**
  * \brief Will take a graph and reduce it, by removing all vertices with degree
@@ -177,7 +177,7 @@ template <typename GV>
 std::string findStructureId(Graph& graph) {
 
   // Determine the highest degree in the graph
-  int maxD = graph.getMaxDegree();
+  long int maxD = graph.getMaxDegree();
   // Get the vertices with this degree
   std::vector<long int> vertices = graph.getVerticesDegree(maxD);
 
@@ -185,7 +185,7 @@ std::string findStructureId(Graph& graph) {
   // When compared using compare function
   std::string str_id = "";
   std::vector<long int> graph_node_ids;
-  for (const int& vertex : vertices) {
+  for (const long int& vertex : vertices) {
     GraphNode graph_node = graph.getNode(vertex);
     int comp_int = str_id.compare(graph_node.getStringId());
     if (comp_int > 0) {
@@ -206,7 +206,7 @@ std::string findStructureId(Graph& graph) {
   std::string chosenId = "";
   Graph graph_chosen = graph;
 
-  for (const int& vertex : graph_node_ids) {
+  for (const long int& vertex : graph_node_ids) {
     GV graph_visitor;
     graph_visitor.setStartingVertex(vertex);
     Graph graph_temp = graph;

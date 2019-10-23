@@ -53,11 +53,11 @@ long int EdgeContainer::getDegree(const long int vertex) const {
   if (!adj_list_.count(vertex)) {
     throw invalid_argument("vertex is not defined");
   }
-  int degree_count = 0;
+  long int degree_count = 0;
   if (adj_list_.at(vertex).size() == 0) {
     return degree_count;
   }
-  for (const pair<int, int>& neighbor_and_count : adj_list_.at(vertex)) {
+  for (const pair<long int, long int>& neighbor_and_count : adj_list_.at(vertex)) {
     if (neighbor_and_count.first == vertex) {
       degree_count += neighbor_and_count.second * 2;
     } else {
@@ -78,7 +78,7 @@ vector<long int> EdgeContainer::getVerticesDegree(long int degree) const {
   return vertices;
 }
 
-bool EdgeContainer::vertexExistWithDegree(int degree) const {
+bool EdgeContainer::vertexExistWithDegree(long int degree) const {
   for (const auto& vertex_and_neigh_and_count : adj_list_) {
     long int degree_count = getDegree(vertex_and_neigh_and_count.first);
     if (degree_count == degree) {
@@ -102,14 +102,14 @@ bool EdgeContainer::edgeExist(const Edge& edge) const {
   return false;
 }
 
-bool EdgeContainer::vertexExist(const int vertex) const {
+bool EdgeContainer::vertexExist(const long int vertex) const {
   return adj_list_.count(vertex);
 }
 
 void EdgeContainer::addEdge(Edge edge) {
 
-  int point1 = edge.getEndPoint1();
-  int point2 = edge.getEndPoint2();
+  long int point1 = edge.getEndPoint1();
+  long int point2 = edge.getEndPoint2();
   if (adj_list_[point1].count(point2)) {
     ++adj_list_[point1][point2];
   } else {
@@ -129,34 +129,34 @@ void EdgeContainer::addEdge(Edge edge) {
 
 void EdgeContainer::addVertex(long int vertex) {
   assert(adj_list_.count(vertex) == 0 && "Cannot add vertex already exists");
-  unordered_map<int, int> empty_temp;
+  unordered_map<long int, long int> empty_temp;
   adj_list_[vertex] = empty_temp;
 }
 
 vector<long int> EdgeContainer::getVertices() const {
   vector<long int> vertices;
-  for (const pair<const long int, unordered_map<int, int>>&
+  for (const pair<const long int, unordered_map<int long, int long>>&
            vertex_and_neigh_and_count : adj_list_) {
     vertices.push_back(vertex_and_neigh_and_count.first);
   }
   return vertices;
 }
 
-vector<int> EdgeContainer::getNeighVertices(int vertex) const {
-  vector<int> neigh_verts;
+vector<long int> EdgeContainer::getNeighVertices(long int vertex) const {
+  vector<long int> neigh_verts;
   if (adj_list_.count(vertex)) {
-    for (const pair<int, int>& neigh_and_count : adj_list_.at(vertex)) {
+    for (const pair<long int, long int>& neigh_and_count : adj_list_.at(vertex)) {
       neigh_verts.push_back(neigh_and_count.first);
     }
   }
   return neigh_verts;
 }
 
-vector<Edge> EdgeContainer::getNeighEdges(int vertex) const {
+vector<Edge> EdgeContainer::getNeighEdges(long int vertex) const {
   vector<Edge> neigh_edges;
   if (adj_list_.count(vertex)) {
-    for (const pair<int, int>& neigh_and_count : adj_list_.at(vertex)) {
-      for (int count = 0;
+    for (const pair<long int, long int>& neigh_and_count : adj_list_.at(vertex)) {
+      for (long int count = 0;
            count < adj_list_.at(vertex).at(neigh_and_count.first); ++count) {
         neigh_edges.push_back(Edge(vertex, neigh_and_count.first));
       }
@@ -168,7 +168,7 @@ vector<Edge> EdgeContainer::getNeighEdges(int vertex) const {
 vector<Edge> EdgeContainer::getEdges() const {
   unordered_map<Edge, long int> extra_edge_count;
   for (const auto& vertex_and_neigh_and_count : adj_list_) {
-    for (const pair<int, int>& neigh_and_count :
+    for (const pair<long int, long int>& neigh_and_count :
          vertex_and_neigh_and_count.second) {
       extra_edge_count[Edge(vertex_and_neigh_and_count.first,
                             neigh_and_count.first)] = neigh_and_count.second;
@@ -176,7 +176,7 @@ vector<Edge> EdgeContainer::getEdges() const {
   }
   vector<Edge> edges;
   for (pair<const Edge, long int>& edge_count : extra_edge_count) {
-    for (int count = 0; count < edge_count.second; ++count) {
+    for (long int count = 0; count < edge_count.second; ++count) {
       edges.push_back(edge_count.first);
     }
   }

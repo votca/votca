@@ -32,7 +32,7 @@ using namespace votca::tools;
 
 class GraphVisitorTest : public GraphVisitor {
  private:
-  void addEdges_(const Graph&, int) override {
+  void addEdges_(const Graph&, long int) override {
     throw runtime_error("Undefined method.");
   }
   Edge getEdge_(const Graph&) override {

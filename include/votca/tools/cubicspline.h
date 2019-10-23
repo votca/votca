@@ -194,7 +194,7 @@ template <typename matrix_type>
 inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, int offset1,
                                         int offset2, double scale1,
                                         double scale2) {
-  int spi = getInterval(x);
+  long int spi = getInterval(x);
   M(offset1, offset2 + spi) += Aprime(x) * scale1;
   M(offset1, offset2 + spi + 1) += Bprime(x) * scale1;
   M(offset1, offset2 + spi + _r.size()) += Cprime(x) * scale1;
