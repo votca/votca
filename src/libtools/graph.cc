@@ -74,7 +74,8 @@ vector<pair<long int, GraphNode>> Graph::getNeighNodes(long int vertex) const {
   vector<long int> neigh_vertices = edge_container_.getNeighVertices(vertex);
   vector<pair<long int, GraphNode>> neigh_ids_and_nodes;
   for (const long int& neigh_vert : neigh_vertices) {
-    auto id_and_node = pair<long int, GraphNode>(neigh_vert, nodes_.at(neigh_vert));
+    auto id_and_node =
+        pair<long int, GraphNode>(neigh_vert, nodes_.at(neigh_vert));
     neigh_ids_and_nodes.push_back(id_and_node);
   }
   return neigh_ids_and_nodes;
@@ -159,7 +160,9 @@ vector<long int> Graph::getVerticesDegree(long int degree) const {
   return edge_container_.getVerticesDegree(degree);
 }
 
-vector<long int> Graph::getVertices() const { return edge_container_.getVertices(); }
+vector<long int> Graph::getVertices() const {
+  return edge_container_.getVertices();
+}
 
 ostream& operator<<(ostream& os, const Graph graph) {
   os << "Graph" << endl;

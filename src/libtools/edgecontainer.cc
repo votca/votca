@@ -57,7 +57,8 @@ long int EdgeContainer::getDegree(const long int vertex) const {
   if (adj_list_.at(vertex).size() == 0) {
     return degree_count;
   }
-  for (const pair<long int, long int>& neighbor_and_count : adj_list_.at(vertex)) {
+  for (const pair<long int, long int>& neighbor_and_count :
+       adj_list_.at(vertex)) {
     if (neighbor_and_count.first == vertex) {
       degree_count += neighbor_and_count.second * 2;
     } else {
@@ -145,7 +146,8 @@ vector<long int> EdgeContainer::getVertices() const {
 vector<long int> EdgeContainer::getNeighVertices(long int vertex) const {
   vector<long int> neigh_verts;
   if (adj_list_.count(vertex)) {
-    for (const pair<long int, long int>& neigh_and_count : adj_list_.at(vertex)) {
+    for (const pair<long int, long int>& neigh_and_count :
+         adj_list_.at(vertex)) {
       neigh_verts.push_back(neigh_and_count.first);
     }
   }
@@ -155,7 +157,8 @@ vector<long int> EdgeContainer::getNeighVertices(long int vertex) const {
 vector<Edge> EdgeContainer::getNeighEdges(long int vertex) const {
   vector<Edge> neigh_edges;
   if (adj_list_.count(vertex)) {
-    for (const pair<long int, long int>& neigh_and_count : adj_list_.at(vertex)) {
+    for (const pair<long int, long int>& neigh_and_count :
+         adj_list_.at(vertex)) {
       for (long int count = 0;
            count < adj_list_.at(vertex).at(neigh_and_count.first); ++count) {
         neigh_edges.push_back(Edge(vertex, neigh_and_count.first));

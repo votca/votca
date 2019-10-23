@@ -64,7 +64,7 @@ void ParseXML::Open(const std::string &filename) {
     std::string line;
     getline(fl, line);
     line = line + "\n";
-    if( line.length() > (size_t)std::numeric_limits<int>::max()) {
+    if (line.length() > (size_t)std::numeric_limits<int>::max()) {
       throw std::runtime_error("ParseXML::Open: line is too long");
     }
     if (!XML_Parse(parser, line.c_str(), (int)line.length(), fl.eof())) {

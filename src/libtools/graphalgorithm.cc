@@ -43,7 +43,8 @@ bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor) {
          graph.getIsolatedNodes().size() == 0;
 }
 
-std::set<Edge> exploreBranch(Graph g, long int starting_vertex, const Edge& edge) {
+std::set<Edge> exploreBranch(Graph g, long int starting_vertex,
+                             const Edge& edge) {
   // Check if the starting vertex is in the graph
   if (!g.vertexExist(starting_vertex)) {
     throw invalid_argument(
@@ -113,7 +114,8 @@ ReducedGraph reduceGraph(Graph graph) {
     size_t unexplored_vertex_count_;
 
    public:
-    ExplorationRecord(unordered_map<long int, std::pair<bool, long int>> vertex_explored)
+    ExplorationRecord(
+        unordered_map<long int, std::pair<bool, long int>> vertex_explored)
         : vertex_explored_(vertex_explored),
           unexplored_vertex_count_(vertex_explored.size()){};
 
@@ -127,7 +129,8 @@ ReducedGraph reduceGraph(Graph graph) {
     long int getUnexploredVertex() {
 
       vector<long int> remaining_unexplored;
-      for (const pair<long int, pair<bool, long int>>& vertex_record : vertex_explored_) {
+      for (const pair<long int, pair<bool, long int>>& vertex_record :
+           vertex_explored_) {
         bool vertex_explored = vertex_record.second.first;
         if (!vertex_explored) {
           long int degree = vertex_record.second.second;
@@ -182,7 +185,8 @@ ReducedGraph reduceGraph(Graph graph) {
     bool new_chain = false;
     while (!graph_visitor.queEmpty()) {
       Edge edge = graph_visitor.nextEdge(graph);
-      vector<long int> unexplored_vertex = graph_visitor.getUnexploredVertex(edge);
+      vector<long int> unexplored_vertex =
+          graph_visitor.getUnexploredVertex(edge);
 
       if (new_chain) {
         if (unexplored_vertex.size() == 0) {

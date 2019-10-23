@@ -89,7 +89,8 @@ bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor);
  * @param[in] - the edge indicating which branch is to be explored
  * @return - set of edges in the branch that were explored
  **/
-std::set<Edge> exploreBranch(Graph g, long int starting_vertex, const Edge& edge);
+std::set<Edge> exploreBranch(Graph g, long int starting_vertex,
+                             const Edge& edge);
 
 /**
  * \brief Will take a graph and reduce it, by removing all vertices with degree

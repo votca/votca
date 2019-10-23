@@ -35,7 +35,7 @@ void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection* data) {
       "FFTW -recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = (*data)[0].size();
-  if( N > (size_t)std::numeric_limits<int>::max()) {
+  if (N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::AutoCorrelate: size is too big");
   }
 
@@ -74,7 +74,7 @@ void CrossCorrelate::AutoFourier(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
-  if( N > (size_t)std::numeric_limits<int>::max()) {
+  if (N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::AutoFourier: size is too big");
   }
   _corrfunc.resize(N);
@@ -110,7 +110,7 @@ void CrossCorrelate::FFTOnly(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
-  if( N > (size_t)std::numeric_limits<int>::max()) {
+  if (N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::FFTOnly: size is too big");
   }
   _corrfunc.resize(N);
@@ -140,7 +140,7 @@ void CrossCorrelate::DCTOnly(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
-  if( N > (size_t)std::numeric_limits<int>::max()) {
+  if (N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::DCTOnly: size is too big");
   }
   _corrfunc.resize(N);
@@ -150,7 +150,8 @@ void CrossCorrelate::DCTOnly(std::vector<double>& ivec) {
   fftw_plan fft;
 
   // do real to real discrete cosine trafo
-  fft = fftw_plan_r2r_1d((int)N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
+  fft =
+      fftw_plan_r2r_1d((int)N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
   fftw_execute(fft);
   fftw_destroy_plan(fft);
   _corrfunc = tmp;
@@ -165,7 +166,7 @@ void CrossCorrelate::AutoCosine(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
-  if( N > (size_t)std::numeric_limits<int>::max()) {
+  if (N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::AutoCosine: size is too big");
   }
   _corrfunc.resize(N);
@@ -174,7 +175,8 @@ void CrossCorrelate::AutoCosine(std::vector<double>& ivec) {
   fftw_plan fft;
 
   // do real to real discrete cosine trafo
-  fft = fftw_plan_r2r_1d((int)N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
+  fft =
+      fftw_plan_r2r_1d((int)N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
   fftw_execute(fft);
   fftw_destroy_plan(fft);
   // compute autocorrelation
@@ -195,7 +197,7 @@ void CrossCorrelate::AutoCorr(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
-  if( N > (size_t)std::numeric_limits<int>::max()) {
+  if (N > (size_t)std::numeric_limits<int>::max()) {
     throw std::runtime_error("CrossCorrelate::AutoCorr: size is too big");
   }
   _corrfunc.resize(N);

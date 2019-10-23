@@ -97,7 +97,8 @@ template <>
 class hash<votca::tools::Edge> {
  public:
   size_t operator()(const votca::tools::Edge& ed) const {
-    return hash<long int>()(ed.getEndPoint1()) ^ hash<long int>()(ed.getEndPoint2());
+    return hash<long int>()(ed.getEndPoint1()) ^
+           hash<long int>()(ed.getEndPoint2());
   }
 };
 }  // namespace std

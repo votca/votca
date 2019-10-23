@@ -208,8 +208,8 @@ void orderChainAfterInitialVertex_(vector<long int>& chain) {
 
 bool reorderAndStoreChainIfDoesNotExist_(
     vector<Edge>& edges,
-    unordered_map<Edge, vector<vector<long int>>>& expanded_edges, vector<long int> chain,
-    long int vertex, size_t& chain_index) {
+    unordered_map<Edge, vector<vector<long int>>>& expanded_edges,
+    vector<long int> chain, long int vertex, size_t& chain_index) {
 
   Edge edge(vertex, vertex);
   edges.push_back(edge);
@@ -367,7 +367,8 @@ vector<pair<long int, GraphNode>> ReducedGraph::getNodes() const {
     nodes.push_back(id_and_node);
   }
 
-  set<long int> all_connected_vertices = getAllConnectedVertices_(expanded_edges_);
+  set<long int> all_connected_vertices =
+      getAllConnectedVertices_(expanded_edges_);
   // Grab the nodes that are not attached to any edges
   for (pair<long int, GraphNode> id_and_node : nodes_) {
     if (!all_connected_vertices.count(id_and_node.first)) {
@@ -379,7 +380,8 @@ vector<pair<long int, GraphNode>> ReducedGraph::getNodes() const {
 
 vector<long int> ReducedGraph::getVerticesDegree(long int degree) const {
   if (degree == 0) {
-    set<long int> all_connected_vertices = getAllConnectedVertices_(expanded_edges_);
+    set<long int> all_connected_vertices =
+        getAllConnectedVertices_(expanded_edges_);
     vector<long int> vertices;
     for (const pair<long int, GraphNode> id_and_node : nodes_) {
       if (all_connected_vertices.count(id_and_node.first) == false) {

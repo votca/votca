@@ -77,7 +77,8 @@ class Graph {
 
   /// Returns a vector of the vertices and their graph nodes that are directly
   /// connected to the vertex 'vert'
-  std::vector<std::pair<long int, GraphNode>> getNeighNodes(long int vertex) const;
+  std::vector<std::pair<long int, GraphNode>> getNeighNodes(
+      long int vertex) const;
 
   /// set the Node associated with vertex 'vert'
   void setNode(long int vertex, GraphNode& graph_node);

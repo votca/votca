@@ -76,7 +76,7 @@ void GraphVisitor::exec(Graph& graph, Edge edge) {
   }
 
   pair<long int, GraphNode> vertex_and_node(unexp_vert.at(0),
-                                       graph.getNode(unexp_vert.at(0)));
+                                            graph.getNode(unexp_vert.at(0)));
 
   exploreNode(vertex_and_node, graph, edge);
 }
