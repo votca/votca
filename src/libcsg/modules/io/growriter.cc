@@ -33,7 +33,6 @@ void GROWriter::Close() { fclose(_out); }
 void GROWriter::Write(Topology *conf) {
   char format[100];
   int i, l, vpr;
-  long int resnr;
   Topology *top = conf;
 
   fprintf(_out, "%s\n", "what a nice title");
@@ -58,7 +57,7 @@ void GROWriter::Write(Topology *conf) {
   }
 
   for (i = 0; i < top->BeadCount(); i++) {
-    resnr = top->getBead(i)->getResnr();
+    long int resnr = top->getBead(i)->getResnr();
     string resname = top->getResidue(resnr)->getName();
     string atomname = top->getBead(i)->getName();
 

@@ -620,7 +620,6 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
   NBList::iterator pair_iter;
   long int pos_start = potinfo->vec_pos;
   long int pos_max = pos_start + potinfo->ucg->getOptParamSize();
-  long int lamda_i, lamda_j;
   double dU_i, d2U_ij;
   double U;
 
@@ -635,7 +634,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
   // computing dU/dlamda and d2U/dlamda_i dlamda_j
   for (long int row = pos_start; row < pos_max; row++) {
 
-    lamda_i = row - pos_start;
+    long int lamda_i = row - pos_start;
 
     dU_i = 0.0;
     for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
@@ -646,7 +645,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
 
     for (long int col = row; col < pos_max; col++) {
 
-      lamda_j = col - pos_start;
+      long int lamda_j = col - pos_start;
       d2U_ij = 0.0;
 
       for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
