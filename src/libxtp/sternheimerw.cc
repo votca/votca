@@ -60,7 +60,7 @@ void SternheimerW::initializePade(int size) {
   _pade.initialize(size);
 }
 
-Eigen::MatrixXd SternheimerW::OverlapMatrix() {
+Eigen::MatrixXd SternheimerW::OverlapMatrix() const{
 
   AOBasis basis = _orbitals.SetupDftBasis();
   AOOverlap overlap;
@@ -68,12 +68,12 @@ Eigen::MatrixXd SternheimerW::OverlapMatrix() {
   return overlap.Matrix();
 }
 
-Eigen::MatrixXd SternheimerW::DensityMatrix() {
+Eigen::MatrixXd SternheimerW::DensityMatrix() const{
 
   return _orbitals.DensityMatrixGroundState();
 }
 
-Eigen::MatrixXd SternheimerW::Hamiltonian() {
+Eigen::MatrixXd SternheimerW::Hamiltonian() const{
 
   const Eigen::MatrixXd& mo_coefficients = _orbitals.MOCoefficients();
   const Eigen::MatrixXd& mo_energies = _orbitals.MOEnergies().asDiagonal();
@@ -83,7 +83,7 @@ Eigen::MatrixXd SternheimerW::Hamiltonian() {
 
   return H;
 }
-Eigen::MatrixXcd SternheimerW::CoulombMatrix(Eigen::Vector3d gridpoint) {
+Eigen::MatrixXcd SternheimerW::CoulombMatrix(Eigen::Vector3d gridpoint) const{
 
   AOBasis basis = _orbitals.SetupDftBasis();
   AOESP aoesp;
@@ -92,11 +92,11 @@ Eigen::MatrixXcd SternheimerW::CoulombMatrix(Eigen::Vector3d gridpoint) {
   return aoesp.Matrix();
 }
 
-Eigen::MatrixXcd SternheimerW::SternheimerLHS(Eigen::MatrixXcd hamiltonian,
-                                              Eigen::MatrixXcd overlap,
+Eigen::MatrixXcd SternheimerW::SternheimerLHS(const Eigen::MatrixXcd& hamiltonian,
+                                              const Eigen::MatrixXcd& overlap,
                                               double eps,
                                               std::complex<double> omega,
-                                              bool pm) {
+                                              bool pm) const{
 
   Eigen::MatrixXcd S;
   // distinguish between +w and -w
@@ -108,10 +108,10 @@ Eigen::MatrixXcd SternheimerW::SternheimerLHS(Eigen::MatrixXcd hamiltonian,
   return (hamiltonian - S);
 }
 
-Eigen::VectorXcd SternheimerW::SternheimerRHS(Eigen::MatrixXcd overlap,
-                                              Eigen::MatrixXcd density,
-                                              Eigen::MatrixXcd pertubation,
-                                              Eigen::VectorXcd coeff) {
+Eigen::VectorXcd SternheimerW::SternheimerRHS(const Eigen::MatrixXcd& overlap,
+                                              const Eigen::MatrixXcd& density,
+                                              const Eigen::MatrixXcd& pertubation,
+                                              const Eigen::VectorXcd& coeff) const{
 
   Eigen::MatrixXcd I =
       Eigen::MatrixXcd::Identity(overlap.rows(), overlap.cols());
@@ -125,16 +125,16 @@ Eigen::VectorXcd SternheimerW::SternheimerRHS(Eigen::MatrixXcd overlap,
   return M;
 }
 
-Eigen::VectorXcd SternheimerW::SternheimerSolve(Eigen::MatrixXcd& LHS,
-                                                Eigen::VectorXcd& RHS) {
+Eigen::VectorXcd SternheimerW::SternheimerSolve(const Eigen::MatrixXcd& LHS,
+                                                const Eigen::VectorXcd& RHS){
 
   // Eigen::VectorXcd x=_multishift.CBiCG(LHS, RHS);
 
-  return _multishift.CBiCG(LHS, RHS);
+  return LHS.colPivHouseholderQr().solve(RHS);;
 }
 
 std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOSOP(
-    std::vector<std::complex<double>> w, Eigen::Vector3d r) {
+    std::vector<std::complex<double>> w, Eigen::Vector3d r) const{
 
   Eigen::MatrixXcd V = CoulombMatrix(r);
 
@@ -147,10 +147,12 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOSOP(
   Eigen::MatrixXcd LHS_P;
   Eigen::MatrixXcd LHS_M;
 
-  Eigen::MatrixXcd RHS = Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
+  Eigen::VectorXcd RHS;// = Eigen::Xcd::Zero(_basis_size, _basis_size);
 
   std::vector<Eigen::MatrixXcd> delta_n;
 
+  Multishift::MultiShiftResult result;
+  
   for (int v = 0; v < _num_occ_lvls; v++) {
 
     RHS = SternheimerRHS(_S, _p, V, _mo_coefficients.col(v));
@@ -165,11 +167,12 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOSOP(
         H_new = _H + alpha * _S * _p.transpose();
         LHS_P = SternheimerLHS(H_new, _S, _mo_energies(v), w.at(i), true);
         // std::cout<<"Sternheimer Setup Complete"<<v<<std::endl;
-        delta_c_p.at(i).col(v) = _multishift.CBiCG(LHS_P, RHS);
+        result = _multishift.CBiCG(LHS_P, RHS);
+        delta_c_p.at(i).col(v) = result._x;
       } else {
         LHS_P = SternheimerLHS(_H, _S, _mo_energies(v), w.at(i), true);
 
-        delta_c_p.at(i).col(v) = _multishift.DoMultishift(LHS_P, RHS, w.at(i));
+        delta_c_p.at(i).col(v) = _multishift.DoMultishift(LHS_P, RHS, w.at(i), result);
       }
     }
     for (int i = 0; i < w.size(); i++) {
@@ -181,11 +184,12 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOSOP(
       if (i == 0) {
         H_new = _H + alpha * _S * _p.transpose();
         LHS_M = SternheimerLHS(H_new, _S, _mo_energies(v), w.at(i), false);
-        delta_c_m.at(i).col(v) = _multishift.CBiCG(LHS_M, RHS);
-      } else {
+        result = _multishift.CBiCG(LHS_M, RHS);
+        delta_c_m.at(i).col(v) = result._x;
+      }else {
         LHS_M = SternheimerLHS(_H, _S, _mo_energies(v), w.at(i), false);
 
-        delta_c_m.at(i).col(v) = _multishift.DoMultishift(LHS_M, RHS, w.at(i));
+        delta_c_m.at(i).col(v) = _multishift.DoMultishift(LHS_M, RHS, w.at(i), result);
       }
     }
   }

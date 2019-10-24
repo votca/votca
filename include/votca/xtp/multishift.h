@@ -29,25 +29,30 @@ namespace votca {
 namespace xtp {
 class Multishift {
  public:
-  Multishift(){};
-
+ 
+  struct MultiShiftResult{
+      std::vector<std::complex<double>> _a;
+      std::vector<std::complex<double>> _b;
+      std::vector<Eigen::VectorXcd> _r;
+      Eigen::VectorXcd _x;
+      bool converged=true;    
+  };
+  
   void setBasisSize(double basis_size);
 
-  Eigen::VectorXcd CBiCG(Eigen::MatrixXcd A, Eigen::VectorXcd b);
+  Multishift::MultiShiftResult CBiCG(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b)const;
 
-  Eigen::VectorXcd DoMultishift(Eigen::MatrixXcd A, Eigen::VectorXcd b,
-                                std::complex<double> w);
+  Eigen::VectorXcd DoMultishift(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b,
+                                std::complex<double> w, MultiShiftResult input) const;
 
   void testMultishift();
 
  private:
+     
+  
+     
   int _basis_size;
 
-  std::vector<std::complex<double>> _a;
-
-  std::vector<std::complex<double>> _b;
-
-  std::vector<Eigen::VectorXcd> _r;
 };
 }  // namespace xtp
 }  // namespace votca

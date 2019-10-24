@@ -41,10 +41,6 @@ class SternheimerW {
 
   void Setup();
 
-  // Calculates the dielectric matrix via the non selfconsistent Sternheimer
-  // equation for frequency w
-  Eigen::MatrixXcd CalculateDielectricMatrix(std::complex<double> w);
-
   // Calculates the screened coulomb interaction matrix from the dielectric
   // matrix at frequency w
   std::vector<Eigen::MatrixXcd> ScreenedCoulombOS(std::complex<double> w);
@@ -52,10 +48,6 @@ class SternheimerW {
 
   std::vector<Eigen::MatrixXcd> DeltaNOS(std::complex<double> w,
                                          std::string gridtype);
-
-  // Eigen::MatrixXcd DeltaNOS(std::complex<double> w, Eigen::Vector3d
-  // gridpoint, Eigen::MatrixXd H, Eigen::MatrixXd S, Eigen::MatrixXd p,
-  // Eigen::MatrixXcd deltaVH);
 
   Eigen::MatrixXcd TestDeltaN(std::complex<double> w, int number,
                               std::string gridtype);
@@ -81,13 +73,13 @@ class SternheimerW {
 
   Multishift _multishift;
 
-  int _num_occ_lvls;
+  int _num_occ_lvls;// = _orbitals.getNumberOfAlphaElectrons();
 
   int _basis_size;
 
   Eigen::MatrixXcd _H;
 
-  Eigen::MatrixXcd _S;
+  Eigen::MatrixXcd _S;// = OverlapMatrix();
 
   Eigen::MatrixXcd _p;
 
@@ -95,30 +87,30 @@ class SternheimerW {
   Eigen::VectorXd _mo_energies;
 
   // returns the overlap matrix for all occupied states
-  Eigen::MatrixXd OverlapMatrix();
+  Eigen::MatrixXd OverlapMatrix() const;
   // returns the density matrix for all occupied states
-  Eigen::MatrixXd DensityMatrix();
+  Eigen::MatrixXd DensityMatrix() const;
   // returns the hamiltonian matrix for all occupied states
-  Eigen::MatrixXd Hamiltonian();
+  Eigen::MatrixXd Hamiltonian() const;
   // Calculates coulomb matrix
-  Eigen::MatrixXcd CoulombMatrix(Eigen::Vector3d gridpoint);
+  Eigen::MatrixXcd CoulombMatrix(Eigen::Vector3d gridpoint) const;
   // returns the expansion of the (screened) Coulomb interaction operator
   Eigen::MatrixXcd CalculateDeltaVExpansion(Eigen::MatrixXcd deltaV);
   // sets up the left hand side of the sternheimer equation
-  Eigen::MatrixXcd SternheimerLHS(Eigen::MatrixXcd hamiltonian,
-                                  Eigen::MatrixXcd overlap, double eps,
-                                  std::complex<double> w, bool pm);
+  Eigen::MatrixXcd SternheimerLHS(const Eigen::MatrixXcd& hamiltonian,
+                                  const Eigen::MatrixXcd& overlap, double eps,
+                                  std::complex<double> w, bool pm) const;
   // sets up the right hand side of the sternheimer equation
-  Eigen::VectorXcd SternheimerRHS(Eigen::MatrixXcd overlap,
-                                  Eigen::MatrixXcd density,
-                                  Eigen::MatrixXcd pertubation,
-                                  Eigen::VectorXcd coeff);
+  Eigen::VectorXcd SternheimerRHS(const Eigen::MatrixXcd& overlap,
+                                  const Eigen::MatrixXcd& density,
+                                  const Eigen::MatrixXcd& pertubation,
+                                  const Eigen::VectorXcd& coeff) const;
   // solves the sternheimer equation via the Biconjugate gradient method
-  Eigen::VectorXcd SternheimerSolve(Eigen::MatrixXcd& LHS,
-                                    Eigen::VectorXcd& RHS);
+  Eigen::VectorXcd SternheimerSolve(const Eigen::MatrixXcd& LHS,
+                                    const Eigen::VectorXcd& RHS);
 
   std::vector<Eigen::MatrixXcd> DeltaNOSOP(std::vector<std::complex<double>> w,
-                                           Eigen::Vector3d r);
+                                           Eigen::Vector3d r)const;
 };
 }  // namespace xtp
 }  // namespace votca
