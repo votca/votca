@@ -20,45 +20,44 @@
 #ifndef PADEAPPROX_H
 #define PADEAPPROX_H
 
-#include <votca/tools/property.h>
 #include <fstream>
+#include <votca/tools/property.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/logger.h>
 
-namespace votca{
-namespace xtp{
-class PadeApprox{
-public:
-    PadeApprox(){};
-    
-    Eigen::MatrixXcd evaluate(std::complex<double> w);
-    
-    void addPoint(std::complex<double> w, Eigen::MatrixXcd val);
-    
-    void initialize(int basis_size);
-    
-    void clear();
-    
-    void test();
+namespace votca {
+namespace xtp {
+class PadeApprox {
+ public:
+  PadeApprox(){};
 
-private:
+  Eigen::MatrixXcd evaluate(std::complex<double> w);
 
-    std::vector<Eigen::MatrixXcd> _imval;
-    
-    std::vector<std::complex<double>> _imgrid;
-    
-    std::vector<Eigen::MatrixXcd> _coeff;
-    
-    int _basis_size;
-    
-    int _rejected_points=0;
-    
-    Eigen::MatrixXcd RecursivePolynom(int indx, int p);
-    
-    Eigen::MatrixXcd RecursiveA(std::complex<double> w, int n);
-    
-    Eigen::MatrixXcd RecursiveB(std::complex<double> w, int n);
+  void addPoint(std::complex<double> w, Eigen::MatrixXcd val);
+
+  void initialize(int basis_size);
+
+  void clear();
+
+  void test();
+
+ private:
+  std::vector<Eigen::MatrixXcd> _imval;
+
+  std::vector<std::complex<double>> _imgrid;
+
+  std::vector<Eigen::MatrixXcd> _coeff;
+
+  int _basis_size;
+
+  int _rejected_points = 0;
+
+  Eigen::MatrixXcd RecursivePolynom(int indx, int p);
+
+  Eigen::MatrixXcd RecursiveA(std::complex<double> w, int n);
+
+  Eigen::MatrixXcd RecursiveB(std::complex<double> w, int n);
 };
-}
-}
+}  // namespace xtp
+}  // namespace votca
 #endif

@@ -47,7 +47,7 @@ class NumericalIntegration {
                  const AOBasis& basis);
 
   double getExactExchange(const std::string& functional) const;
-  std::vector<std::pair<double,const Eigen::Vector3d*> > getGridpoints() const;
+  std::vector<std::pair<double, const Eigen::Vector3d*> > getGridpoints() const;
   std::vector<double> getWeightedDensities() const;
   int getGridSize() const { return _totalgridsize; }
   int getBoxesSize() const { return _grid_boxes.size(); }

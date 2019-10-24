@@ -96,7 +96,7 @@ class Orbitals {
   bool hasMOEnergies() const {
     return (_mo_energies.size() > 0) ? true : false;
   }
-  //returns DFT energies
+  // returns DFT energies
   const Eigen::VectorXd &MOEnergies() const { return _mo_energies; }
 
   Eigen::VectorXd &MOEnergies() { return _mo_energies; }
