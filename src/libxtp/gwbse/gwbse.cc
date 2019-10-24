@@ -26,7 +26,7 @@
 #include <votca/xtp/logger.h>
 #include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/sternheimer.h>
+#include <votca/xtp/sternheimerw.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -326,6 +326,7 @@ void GWBSE::Initialize(tools::Property& options) {
     _do_bse_triplets = true;
   }
   if (tasks_string.find("gw") != std::string::npos) _do_gw = true;
+  if (tasks_string.find("sternheimer") != std::string::npos) _do_Sternheimer = true;
   if (tasks_string.find("singlets") != std::string::npos)
     _do_bse_singlets = true;
   if (tasks_string.find("triplets") != std::string::npos)
@@ -546,8 +547,34 @@ bool GWBSE::Evaluate() {
       << TimeStamp() << " DFT data was created by " << dft_package << flush;
 
   if(_do_Sternheimer){
-      Sternheimer sternheimer(_orbitals,*_pLog);
-      sternheimer.evaluate();
+      SternheimerW sternheimer(_orbitals,*_pLog);
+      std::vector<std::complex<double>> w_g;
+      std::vector<std::complex<double>> w;
+      
+      std::complex<double> d(1,0);
+      std::complex<double> i(0,1);
+      for(int n=1;n<5;n++){
+          w_g.push_back(n*d+5*i);
+      }
+      for(int n=0;n<5;n++){
+          w.push_back(n*d);
+      }
+      
+      
+      std::cout<<std::endl<<"Started Sternheimer"<<std::endl;
+  
+      sternheimer.Setup();
+      
+      std::vector<Eigen::MatrixXcd> polar=sternheimer.Polarisability(w_g,w, "xcoarse");
+
+      for(int i=0;i<w.size();i++){
+          std::cout<<"Polar at w= "<<w.at(i)<<std::endl;
+          std::cout<<polar.at(i)<<std::endl;
+      }
+      
+      std::cout<<std::endl<<"Finished Sternheimer"<<std::endl;
+      
+      
       
       
   }else{

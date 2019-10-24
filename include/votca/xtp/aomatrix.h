@@ -291,7 +291,7 @@ class AOESP : public AOMatrix<double> {
                  const AOShell& shell_row, const AOShell& shell_col) const;
 
  private:
-  Eigen::Vector3d _r;
+  Eigen::Vector3d _r=Eigen::Vector3d::Zero();
   Eigen::MatrixXd _nuclearpotential;
   Eigen::MatrixXd _externalpotential;
 };

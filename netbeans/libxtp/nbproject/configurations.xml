@@ -113,10 +113,12 @@
       <itemPath>../../include/votca/xtp/md2qmengine.h</itemPath>
       <itemPath>../../include/votca/xtp/mmregion.h</itemPath>
       <itemPath>../../include/votca/xtp/multiarray.h</itemPath>
+      <itemPath>../../include/votca/xtp/multishift.h</itemPath>
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/optimiser_costfunction.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
+      <itemPath>../../include/votca/xtp/padeapprox.h</itemPath>
       <itemPath>../../include/votca/xtp/paircalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/parallelxjobcalc.h</itemPath>
       <itemPath>../../include/votca/xtp/polarregion.h</itemPath>
@@ -149,6 +151,8 @@
       <itemPath>../../include/votca/xtp/statesaver.h</itemPath>
       <itemPath>../../include/votca/xtp/staticregion.h</itemPath>
       <itemPath>../../include/votca/xtp/staticsite.h</itemPath>
+      <itemPath>../../include/votca/xtp/sternheimer.h</itemPath>
+      <itemPath>../../include/votca/xtp/sternheimerw.h</itemPath>
       <itemPath>../../include/votca/xtp/symmetric_matrix.h</itemPath>
       <itemPath>../../include/votca/xtp/threecenter.h</itemPath>
       <itemPath>../../include/votca/xtp/toolfactory.h</itemPath>
@@ -235,6 +239,8 @@
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/sigma_base.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/sigma_ppm.cc</itemPath>
+        <itemPath>../../include/sternheimer.cc</itemPath>
+        <itemPath>../../src/libxtp/sternheimerw.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
         <itemPath>../../src/libxtp/gridbox.cc</itemPath>
@@ -267,8 +273,10 @@
       <itemPath>../../src/libxtp/job.cc</itemPath>
       <itemPath>../../src/libxtp/matrixfreeoperator.cc</itemPath>
       <itemPath>../../src/libxtp/md2qmengine.cc</itemPath>
+      <itemPath>../../src/libxtp/multishift.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
+      <itemPath>../../src/libxtp/padeapprox.cc</itemPath>
       <itemPath>../../src/libxtp/parallelxjobcalc.cc</itemPath>
       <itemPath>../../src/libxtp/polarsite.cc</itemPath>
       <itemPath>../../src/libxtp/progressobserver.cc</itemPath>
@@ -284,6 +292,7 @@
       <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaver.cc</itemPath>
       <itemPath>../../src/libxtp/staticsite.cc</itemPath>
+      <itemPath>../../src/libxtp/sternheimer.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
       <itemPath>../../src/libxtp/topology.cc</itemPath>
       <itemPath>../../src/libxtp/trustregion.cc</itemPath>
@@ -3861,6 +3870,8 @@
           <output>../../src/libxtp/libxtp.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/sternheimer.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
@@ -4070,6 +4081,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/multishift.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
@@ -4083,6 +4099,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/padeapprox.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/paircalculator.h"
             ex="false"
@@ -4204,6 +4225,16 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/staticsite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/sternheimer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/sternheimerw.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -4655,6 +4686,8 @@
       </item>
       <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/multishift.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
@@ -4673,6 +4706,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/padeapprox.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/parallelxjobcalc.cc"
             ex="false"
@@ -4762,6 +4797,10 @@
       <item path="../../src/libxtp/statesaver.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/staticsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/sternheimer.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/sternheimerw.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/symmetric_matrix.cc"
             ex="false"
@@ -4997,6 +5036,8 @@
         <archiverTool>
         </archiverTool>
       </compileType>
+      <item path="../../include/sternheimer.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
@@ -5206,6 +5247,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/multishift.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
@@ -5219,6 +5265,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/padeapprox.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/paircalculator.h"
             ex="false"
@@ -5340,6 +5391,16 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/staticsite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/sternheimer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/sternheimerw.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5791,6 +5852,8 @@
       </item>
       <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/multishift.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
@@ -5809,6 +5872,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/padeapprox.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/parallelxjobcalc.cc"
             ex="false"
@@ -5898,6 +5963,10 @@
       <item path="../../src/libxtp/statesaver.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/staticsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/sternheimer.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/sternheimerw.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/symmetric_matrix.cc"
             ex="false"

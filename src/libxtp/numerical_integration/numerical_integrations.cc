@@ -495,14 +495,15 @@ Gyrationtensor NumericalIntegration::IntegrateGyrationTensor(
   return gyro;
 }
 
-std::vector<const Eigen::Vector3d*> NumericalIntegration::getGridpoints()
+std::vector<std::pair<double,const Eigen::Vector3d*> > NumericalIntegration::getGridpoints()
     const {
-  std::vector<const Eigen::Vector3d*> gridpoints;
+  std::vector<std::pair<double,const Eigen::Vector3d*>> gridpoints;
   gridpoints.reserve(this->getGridSize());
   for (unsigned i = 0; i < _grid_boxes.size(); i++) {
     const std::vector<Eigen::Vector3d>& points = _grid_boxes[i].getGridPoints();
+    const std::vector<double> weights=_grid_boxes[i].getGridWeights();
     for (unsigned j = 0; j < points.size(); j++) {
-      gridpoints.push_back(&points[j]);
+      gridpoints.push_back(std::pair<double,const Eigen::Vector3d*>(weights[j],&points[j]));
     }
   }
   return gridpoints;
