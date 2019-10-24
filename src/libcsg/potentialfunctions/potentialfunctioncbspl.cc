@@ -232,7 +232,8 @@ double PotentialFunctionCBSPL::CalculateF(const double r) const {
 }
 
 // calculate first derivative w.r.t. ith parameter
-double PotentialFunctionCBSPL::CalculateDF(const long int i, const double r) const {
+double PotentialFunctionCBSPL::CalculateDF(const long int i,
+                                           const double r) const {
 
   // since first _nexcl parameters are not optimized for stability reasons
 

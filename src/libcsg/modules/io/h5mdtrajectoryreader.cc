@@ -190,7 +190,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   hsize_t dims[3];
   rank_ = H5Sget_simple_extent_dims(fs_atom_position_, dims, nullptr);
   N_particles_ = dims[1];
-  vec_components_ =(int) dims[2];
+  vec_components_ = (int)dims[2];
   max_idx_frame_ = dims[0] - 1;
 
   // TODO: reads mass, charge and particle type.

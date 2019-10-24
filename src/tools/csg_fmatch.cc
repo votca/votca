@@ -164,7 +164,8 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
   }
 }
 
-CGForceMatching::SplineInfo::SplineInfo(long int index, bool bonded_, long int matr_pos_,
+CGForceMatching::SplineInfo::SplineInfo(long int index, bool bonded_,
+                                        long int matr_pos_,
                                         votca::tools::Property *options) {
   // initialize standard data
   splineIndex = index;
@@ -568,8 +569,8 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
 
   for (Interaction *inter : interList) {
 
-    long int beads_in_int = inter->BeadCount();  // 2 for bonds, 3 for angles, 4 for
-                                            // dihedrals
+    long int beads_in_int = inter->BeadCount();  // 2 for bonds, 3 for angles, 4
+                                                 // for dihedrals
 
     votca::tools::CubicSpline &SP = sinfo->Spline;
 

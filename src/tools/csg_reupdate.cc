@@ -128,7 +128,8 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
     double *rdfnorm = new double();
 
     if (prop->get("type1").value() == prop->get("type2").value()) {
-      *rdfnorm = (double)(beads1.size() * beads2.size()) / 2. / top->BoxVolume();
+      *rdfnorm =
+          (double)(beads1.size() * beads2.size()) / 2. / top->BoxVolume();
     } else {
       *rdfnorm = (double)(beads1.size() * beads2.size()) / top->BoxVolume();
     }

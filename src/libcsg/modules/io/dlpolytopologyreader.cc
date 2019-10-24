@@ -219,7 +219,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 #endif
 
       // read molecule
-      unique_ptr<long int[]> id_map = unique_ptr<long int[]>{new long int[natoms]};
+      unique_ptr<long int[]> id_map =
+          unique_ptr<long int[]>{new long int[natoms]};
       for (int i = 0; i < natoms;) {  // i is altered in repeater loop
         stringstream sl(_NextKeyline(fl, WhiteSpace));
 

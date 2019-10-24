@@ -40,7 +40,9 @@ class PotentialFunction {
   // set ith parameter
   void setParam(const long int i, const double val) { _lam(i) = val; }
   // set ith parameter among those to be optimized
-  virtual void setOptParam(const long int i, const double val) { setParam(i, val); }
+  virtual void setOptParam(const long int i, const double val) {
+    setParam(i, val);
+  }
   // set minimum r value to avoid large values
   void setMinDist(const double min) { _min = min; }
   // set cut-off value

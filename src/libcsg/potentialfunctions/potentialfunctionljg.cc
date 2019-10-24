@@ -38,7 +38,8 @@ double PotentialFunctionLJG::CalculateF(const double r) const {
 }
 
 // calculate first derivative w.r.t. ith parameter
-double PotentialFunctionLJG::CalculateDF(const long int i, const double r) const {
+double PotentialFunctionLJG::CalculateDF(const long int i,
+                                         const double r) const {
 
   if (r >= _min && r <= _cut_off) {
 
