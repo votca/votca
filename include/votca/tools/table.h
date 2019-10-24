@@ -52,13 +52,14 @@ class Table {
     _x[i] = x;
     _y[i] = y;
   }
-  void set(const long int &i, const double &x, const double &y, const char &flags) {
+  void set(const long int &i, const double &x, const double &y,
+           const char &flags) {
     _x[i] = x;
     _y[i] = y;
     _flags[i] = flags;
   }
-  void set(const long int &i, const double &x, const double &y, const char &flags,
-           const double &yerr) {
+  void set(const long int &i, const double &x, const double &y,
+           const char &flags, const double &yerr) {
     _x[i] = x;
     _y[i] = y;
     _flags[i] = flags;

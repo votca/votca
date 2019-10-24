@@ -150,7 +150,8 @@ void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   }
 }
 
-void AkimaSpline::Fit(__attribute__((unused)) Eigen::VectorXd &x, __attribute__((unused)) Eigen::VectorXd &y) {
+void AkimaSpline::Fit(__attribute__((unused)) Eigen::VectorXd &x,
+                      __attribute__((unused)) Eigen::VectorXd &y) {
   throw std::runtime_error("Akima fit not implemented.");
 }
 

@@ -35,9 +35,7 @@ class GraphVisitorTest : public GraphVisitor {
   void addEdges_(const Graph&, long int) override {
     throw runtime_error("Undefined method.");
   }
-  Edge getEdge_() override {
-    throw runtime_error("Undefined method.");
-  }
+  Edge getEdge_() override { throw runtime_error("Undefined method."); }
 };
 
 BOOST_AUTO_TEST_SUITE(graphvisitor_test)

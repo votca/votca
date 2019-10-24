@@ -34,7 +34,8 @@ class GraphNode;
 bool GraphVisitor::queEmpty() const { return true; }
 
 void GraphVisitor::exploreNode(pair<long int, GraphNode>& vertex_and_node,
-                               __attribute__((unused)) Graph& graph, __attribute__((unused)) Edge edge) {
+                               __attribute__((unused)) Graph& graph,
+                               __attribute__((unused)) Edge edge) {
   explored_.insert(vertex_and_node.first);
 }
 

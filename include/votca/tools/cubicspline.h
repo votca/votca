@@ -98,8 +98,8 @@ class CubicSpline : public Spline {
    * one entry in that fitting matrix.
    */
   template <typename matrix_type>
-  void AddToFitMatrix(matrix_type &A, double x, long int offset1, long int offset2 = 0,
-                      double scale = 1);
+  void AddToFitMatrix(matrix_type &A, double x, long int offset1,
+                      long int offset2 = 0, double scale = 1);
 
   /**
    * \brief Add a point (one entry) to fitting matrix
@@ -112,8 +112,8 @@ class CubicSpline : public Spline {
    * one entry in that fitting matrix.
    */
   template <typename matrix_type>
-  void AddToFitMatrix(matrix_type &A, double x, int long offset1, int long offset2,
-                      double scale1, double scale2);
+  void AddToFitMatrix(matrix_type &A, double x, int long offset1,
+                      int long offset2, double scale1, double scale2);
 
   /**
    * \brief Add a vector of points to fitting matrix
@@ -132,7 +132,8 @@ class CubicSpline : public Spline {
    * \param offsets
    */
   template <typename matrix_type>
-  void AddBCSumZeroToFitMatrix(matrix_type &A, long int offset1, long int offset2 = 0);
+  void AddBCSumZeroToFitMatrix(matrix_type &A, long int offset1,
+                               long int offset2 = 0);
 
   /**
    * \brief Add boundary conditions to fitting matrix
@@ -180,8 +181,9 @@ inline double CubicSpline::CalculateDerivative(const double &r) {
 }
 
 template <typename matrix_type>
-inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, long int offset1,
-                                        long int offset2, double scale) {
+inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x,
+                                        long int offset1, long int offset2,
+                                        double scale) {
   long int spi = getInterval(x);
   M(offset1, offset2 + spi) += A(x) * scale;
   M(offset1, offset2 + spi + 1) += B(x) * scale;
@@ -191,9 +193,9 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, long int offse
 
 // for adding f'(x)*scale1 + f(x)*scale2 as needed for threebody interactions
 template <typename matrix_type>
-inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, long int offset1,
-                                        long int offset2, double scale1,
-                                        double scale2) {
+inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x,
+                                        long int offset1, long int offset2,
+                                        double scale1, double scale2) {
   long int spi = getInterval(x);
   M(offset1, offset2 + spi) += Aprime(x) * scale1;
   M(offset1, offset2 + spi + 1) += Bprime(x) * scale1;
@@ -219,7 +221,8 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, vector_type &x,
 }
 
 template <typename matrix_type>
-inline void CubicSpline::AddBCSumZeroToFitMatrix(matrix_type &M, long int offset1,
+inline void CubicSpline::AddBCSumZeroToFitMatrix(matrix_type &M,
+                                                 long int offset1,
                                                  long int offset2) {
   for (int i = 0; i < _r.size(); ++i) {
     M(offset1, offset2 + i) = 1;
