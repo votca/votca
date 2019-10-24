@@ -386,10 +386,9 @@ Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {
   int nrows = A.rows();
   int ncols = A.cols();
   ncols = std::min(nrows, ncols);
-
+  Eigen::MatrixXd I = Eigen::MatrixXd::Identity(nrows, ncols);
   Eigen::HouseholderQR<Eigen::MatrixXd> qr(A);
-  Eigen::MatrixXd result = qr.householderQ();
-  result.conservativeResize(nrows, ncols);
+  Eigen::MatrixXd result = qr.householderQ() * I;
   return result;
 }
 
