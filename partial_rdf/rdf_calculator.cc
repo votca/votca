@@ -31,6 +31,7 @@ namespace csg {
 RDFCalculator::RDFCalculator()
     : _write_every(0),
       _do_blocks(false),
+      _nblock(0),
       _subvol_rad(0),
       _do_vol_corr(false),
       _processed_some_frames(false) {}
