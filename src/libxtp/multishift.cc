@@ -18,14 +18,6 @@
  */
 
 #include <complex>
-#include <eigen3/Eigen/src/Core/Block.h>
-#include <eigen3/Eigen/src/Core/Matrix.h>
-#include <eigen3/Eigen/src/Core/PlainObjectBase.h>
-#include <eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h>
-#include <eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/ConjugateGradient.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/IterativeSolverBase.h>
 #include <fstream>
 #include <math.h>
 #include <votca/tools/property.h>
@@ -107,16 +99,13 @@ Eigen::VectorXcd Multishift::DoMultishift(Eigen::MatrixXcd A,
 
   Eigen::VectorXcd x = Eigen::VectorXcd::Zero(_basis_size);
 
-  std::complex<double> a = 1;
   std::complex<double> beta;
 
   std::complex<double> pi = 1;
+  std::complex<double> a;
   std::complex<double> pi_p = (1 + w * _a.at(0)) * 1;
 
   std::complex<double> pi_temp;
-
-  double res = 1;
-  double tol = 0.000000001;
 
   int i = 0;
 
@@ -131,7 +120,6 @@ Eigen::VectorXcd Multishift::DoMultishift(Eigen::MatrixXcd A,
 
     p = r + beta * p;
     p_t = r_t + std::conj(beta) * p_t;
-    res = r.norm() / 2 + r_t.norm() / 2;
 
     i++;
 

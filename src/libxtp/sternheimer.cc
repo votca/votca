@@ -17,14 +17,6 @@
  *
  */
 
-#include <eigen3/Eigen/src/Core/Block.h>
-#include <eigen3/Eigen/src/Core/Matrix.h>
-#include <eigen3/Eigen/src/Core/PlainObjectBase.h>
-#include <eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h>
-#include <eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/ConjugateGradient.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/IterativeSolverBase.h>
 #include <fstream>
 #include <math.h>
 #include <votca/tools/property.h>

@@ -18,14 +18,6 @@
  */
 
 #include <ctime>
-#include <eigen3/Eigen/src/Core/Block.h>
-#include <eigen3/Eigen/src/Core/Matrix.h>
-#include <eigen3/Eigen/src/Core/PlainObjectBase.h>
-#include <eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h>
-#include <eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/ConjugateGradient.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/IterativeSolverBase.h>
 #include <fstream>
 #include <math.h>
 #include <votca/tools/property.h>
@@ -151,16 +143,13 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOSOP(
   std::vector<Eigen::MatrixXcd> delta_c_p;
   std::vector<Eigen::MatrixXcd> delta_c_m;
 
-  Eigen::MatrixXcd H_new = Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
-
-  Eigen::MatrixXcd LHS_P = Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
-  Eigen::MatrixXcd LHS_M = Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
+  Eigen::MatrixXcd H_new;
+  Eigen::MatrixXcd LHS_P;
+  Eigen::MatrixXcd LHS_M;
 
   Eigen::MatrixXcd RHS = Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
 
   std::vector<Eigen::MatrixXcd> delta_n;
-
-  // std::cout<<"Delta N setup complete"<<std::endl;
 
   for (int v = 0; v < _num_occ_lvls; v++) {
 
@@ -244,7 +233,7 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOS(std::complex<double> w,
   const Eigen::MatrixXd H = Hamiltonian();
   const Eigen::MatrixXd S = OverlapMatrix();
   const Eigen::MatrixXd p = DensityMatrix();
-  Eigen::MatrixXcd V = Eigen::MatrixXcd::Zero(basis_size, basis_size);
+  Eigen::MatrixXcd V;
 
   const Eigen::MatrixXd& mo_coefficients = _orbitals.MOCoefficients();
   const Eigen::VectorXd& mo_energies = _orbitals.MOEnergies();
@@ -257,13 +246,13 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOS(std::complex<double> w,
   // Setting up container for LHS and RHS of the system
   std::vector<Eigen::MatrixXcd> LHS_P;
   std::vector<Eigen::MatrixXcd> LHS_M;
-  Eigen::VectorXcd RHS = Eigen::VectorXcd::Zero(basis_size);
+  Eigen::VectorXcd RHS;
 
   // H_new is used if omega=0 to shift the eigenvalues away from 0
-  Eigen::MatrixXcd H_new = Eigen::MatrixXcd::Zero(basis_size, basis_size);
+  Eigen::MatrixXcd H_new;
   double alpha = 2 * (mo_energies(num_occ_lvls) - mo_energies(2));
 
-  double pi = tools::conv::Pi;
+  //double pi = tools::conv::Pi;
   // Initilazing solution vector and container for solution
 
   std::vector<Eigen::MatrixXcd> result;
@@ -340,9 +329,8 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
 
   std::vector<Eigen::MatrixXcd> delta_n;
 
-  double r_x = 0;
-  double rp_x = 0;
-  Eigen::Vector3d gridcont = Eigen::Vector3d::Zero();
+  double r_x;
+  Eigen::Vector3d gridcont;
 
   AOBasis basis = _orbitals.SetupDftBasis();
   AODipole dipole;

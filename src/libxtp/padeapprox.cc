@@ -17,14 +17,6 @@
  *
  */
 
-#include <eigen3/Eigen/src/Core/Block.h>
-#include <eigen3/Eigen/src/Core/Matrix.h>
-#include <eigen3/Eigen/src/Core/PlainObjectBase.h>
-#include <eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h>
-#include <eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/ConjugateGradient.h>
-#include <eigen3/Eigen/src/IterativeLinearSolvers/IterativeSolverBase.h>
 #include <fstream>
 #include <math.h>
 #include <votca/tools/property.h>
@@ -63,12 +55,12 @@ void PadeApprox::addPoint(std::complex<double> w, Eigen::MatrixXcd val) {
 
 Eigen::MatrixXcd PadeApprox::RecursivePolynom(int indx, int p) {
 
-  Eigen::MatrixXcd temp = Eigen::MatrixXcd(_basis_size, _basis_size);
+  //Eigen::MatrixXcd temp = Eigen::MatrixXcd(_basis_size, _basis_size);
 
   if (p == 1) {
     return _imval.at(indx);
   } else {
-    temp = RecursivePolynom(indx, p - 1);
+    Eigen::MatrixXcd temp = RecursivePolynom(indx, p - 1);
 
     Eigen::MatrixXcd u = RecursivePolynom(p - 2, p - 1) - temp;
     Eigen::MatrixXcd l = temp * (_imgrid.at(indx) - _imgrid.at(p - 2));
