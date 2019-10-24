@@ -200,8 +200,8 @@ void AOBasis::addMultiplierShell(const std::string& start,
   return;
 }
 
-std::vector<long int> AOBasis::getReorderVector(const std::string& start,
-                                           const std::string& target) const {
+std::vector<long int> AOBasis::getReorderVector(
+    const std::string& start, const std::string& target) const {
   std::vector<long int> neworder;
   neworder.reserve(_AOBasisSize);
   std::string s;
@@ -223,7 +223,8 @@ std::vector<long int> AOBasis::getReorderVector(const std::string& start,
   return neworder;
 }
 
-std::vector<long int> AOBasis::invertOrder(const std::vector<long int>& order) const {
+std::vector<long int> AOBasis::invertOrder(
+    const std::vector<long int>& order) const {
 
   std::vector<long int> neworder = std::vector<long int>(order.size());
   for (unsigned i = 0; i < order.size(); i++) {

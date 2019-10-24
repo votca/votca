@@ -64,7 +64,7 @@ class AOBasis {
   std::vector<long int> invertOrder(const std::vector<long int>& order) const;
 
   std::vector<long int> getReorderVector(const std::string& start,
-                                    const std::string& target) const;
+                                         const std::string& target) const;
 
   void addReorderShell(const std::string& start, const std::string& target,
                        const std::string& shell,
