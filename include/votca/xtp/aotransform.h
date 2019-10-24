@@ -23,6 +23,10 @@
 
 #include <votca/xtp/aoshell.h>
 #include <votca/xtp/eigen.h>
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+#endif
 namespace votca {
 namespace xtp {
 // clang-format off
@@ -114,5 +118,9 @@ class AOTransform {
 
 }  // namespace xtp
 }  // namespace votca
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 #endif  // VOTCA_XTP_AOTRANSFORM_H
