@@ -256,7 +256,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       if ((NN % 2) == 0) {
         int ii = NN + 2 * lmax;
 
-        switch (lmax) {
+        switch (lmax_ecp) {
           case 0:
             AMAX = AF * XI(0, ii);
             break;
@@ -310,7 +310,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       if ((NN % 2) == 0) {
         int ii = NN + 2 * lmax;
 
-        switch (lmax) {
+        switch (lmax_ecp) {
           case 0:
             BMAX = BF * XI(0, ii);
             break;
