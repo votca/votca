@@ -115,7 +115,7 @@ ReducedGraph reduceGraph(Graph graph) {
 
    public:
     ExplorationRecord(
-        unordered_map<long int, std::pair<bool, long int>> vertex_explored)
+        const unordered_map<long int, std::pair<bool, long int>> vertex_explored)
         : vertex_explored_(vertex_explored),
           unexplored_vertex_count_(vertex_explored.size()){};
 

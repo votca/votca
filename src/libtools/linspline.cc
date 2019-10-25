@@ -81,11 +81,10 @@ void LinSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   // therefore b=y and u=vector of all unknown y(i)
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N, ngrid);
-  long int interval;
 
   // construct matrix A
   for (int i = 0; i < N; i++) {
-    interval = getInterval(x(i));
+    long int interval = getInterval(x(i));
     A(i, interval) =
         1 - (x(i) - _r(interval)) / (_r(interval + 1) - _r(interval));
     A(i, interval + 1) =
