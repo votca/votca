@@ -28,16 +28,15 @@ namespace csg {
 // with c12,c6 parameters
 class PotentialFunctionLJ126 : public PotentialFunction {
  public:
-  PotentialFunctionLJ126(const std::string &name_, const double min_ = 0.0,
-                         const double max_ = 10.0);
+  PotentialFunctionLJ126(const std::string &name, double min = 0.0,
+                         double max = 10.0);
   ~PotentialFunctionLJ126() override = default;
   // calculate function value for given r
-  double CalculateF(const double r) const override;
+  double CalculateF(double r) const override;
   // calculate first derivative w.r.t. ith parameter
-  double CalculateDF(const long int i, const double r) const override;
+  double CalculateDF(long int i, double r) const override;
   // calculate second derivative w.r.t. ith parameter
-  double CalculateD2F(const long int i, const long int j,
-                      const double r) const override;
+  double CalculateD2F(long int i, long int j, double r) const override;
 };
 }  // namespace csg
 }  // namespace votca

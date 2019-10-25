@@ -88,7 +88,7 @@ void CsgREupdate::LoadOptions(const string &file) {
   _nonbonded = _options.Select("cg.non-bonded");
 }
 
-void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
+void CsgREupdate::BeginEvaluate(Topology *top, Topology *) {
 
   // initializing non-bonded interactions
   _nlamda = 0;
@@ -463,7 +463,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
 }
 
 // do bonded potential AA ensemble avg energy computations
-void CsgREupdate::AAavgBonded(PotentialInfo *potinfo) {}
+void CsgREupdate::AAavgBonded(PotentialInfo *) {}
 
 CsgApplication::Worker *CsgREupdate::ForkWorker() {
 
@@ -524,7 +524,7 @@ void CsgREupdate::MergeWorker(Worker *worker) {
   _HS += myCsgREupdateWorker->_HS;
 }
 
-void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *conf_atom) {
+void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *) {
 
   /* as per Relative Entropy Ref.  J. Chem. Phys. 134, 094112, 2011
    * for each CG we need to compute dU/dlamda and d2U/dlamda_i dlamda_j
@@ -540,8 +540,8 @@ void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *conf_atom) {
 
   _dUFrame.setZero();
 
-  PotentialContainer::iterator potiter;
-  for (potiter = _potentials.begin(); potiter != _potentials.end(); ++potiter) {
+  for (PotentialContainer::iterator potiter = _potentials.begin();
+       potiter != _potentials.end(); ++potiter) {
 
     PotentialInfo *potinfo = *potiter;
 
@@ -663,9 +663,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
 }
 
 // do bonded potential related update stuff for the current frame in evalconfig
-void CsgREupdateWorker::EvalBonded(Topology *conf, PotentialInfo *potinfo) {
-  // coming soon!
-}
+void CsgREupdateWorker::EvalBonded(Topology *, PotentialInfo *) {}
 
 PotentialInfo::PotentialInfo(long int index, bool bonded_, long int vec_pos_,
                              string &param_in_ext_, Property *options,

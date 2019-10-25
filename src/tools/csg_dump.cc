@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   return app.Exec(argc, argv);
 }
 
-bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref) {
+bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *) {
   if (!OptionsMap().count("excl")) {
     cout << "Boundary Condition: ";
     if (top->getBoxType() == BoundaryCondition::typeAuto) {

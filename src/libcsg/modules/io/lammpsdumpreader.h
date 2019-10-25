@@ -52,9 +52,9 @@ class LAMMPSDumpReader : public TrajectoryReader, public TopologyReader {
   void Close() override;
 
  private:
-  void ReadTimestep(Topology &top, std::string itemline);
-  void ReadBox(Topology &top, std::string itemline);
-  void ReadNumAtoms(Topology &top, std::string itemline);
+  void ReadTimestep(Topology &top);
+  void ReadBox(Topology &top);
+  void ReadNumAtoms(Topology &top);
   void ReadAtoms(Topology &top, std::string itemline);
 
   std::ifstream _fl;

@@ -31,9 +31,6 @@ class XYZWriter : public TrajectoryWriter {
   void Open(std::string file, bool bAppend = false) override;
   void Close() override;
 
-  void RegisteredAt(
-      tools::ObjectFactory<std::string, TrajectoryWriter> &factory) {}
-
   void Write(Topology *conf) override;
 
   template <class T>

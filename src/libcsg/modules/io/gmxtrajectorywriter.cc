@@ -23,8 +23,7 @@ namespace csg {
 
 using namespace std;
 
-void GMXTrajectoryWriter::Open(string file, bool bAppend) {
-  // char c[1] = bAppend ? "a" : "w";
+void GMXTrajectoryWriter::Open(string file, bool) {
   _file = open_trx((char *)file.c_str(), "w");
 }
 

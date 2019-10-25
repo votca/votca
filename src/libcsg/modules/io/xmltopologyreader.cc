@@ -125,14 +125,14 @@ void XMLTopologyReader::ParseMolecules(tools::Property &p) {
               "The defined list of beads only works for pure xml topology, "
               "without 'base' attribute.");
         }
-        ParseMolecule(it, molname, nbeads, nmols);
+        ParseMolecule(it, molname, nmols);
       }
     }
   }
 }
 
 void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
-                                      int nbeads, int nmols) {
+                                      int nmols) {
   vector<XMLBead *> xmlBeads;
   vector<int> xmlResidues;
   for (auto &it : p) {

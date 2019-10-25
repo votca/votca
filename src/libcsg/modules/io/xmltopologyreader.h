@@ -94,8 +94,7 @@ class XMLTopologyReader : public TopologyReader {
   void ParseBeadTypes(tools::Property &el);
   void ParseBonded(tools::Property &el);
   void ParseBox(tools::Property &p);
-  void ParseMolecule(tools::Property &p, std::string molname, int nbeads,
-                     int nmols);
+  void ParseMolecule(tools::Property &p, std::string molname, int nmols);
   void ParseBond(tools::Property &p);
   void ParseAngle(tools::Property &p);
   void ParseDihedral(tools::Property &p);

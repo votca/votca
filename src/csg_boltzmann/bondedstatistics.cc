@@ -22,19 +22,18 @@ using namespace votca::tools;
 namespace votca {
 namespace csg {
 
-void BondedStatistics::BeginCG(Topology *top, Topology *top_atom) {
+void BondedStatistics::BeginCG(Topology *top, Topology *) {
   InteractionContainer &ic = top->BondedInteractions();
-  InteractionContainer::iterator ia;
 
   _bonded_values.clear();
-  for (ia = ic.begin(); ia != ic.end(); ++ia) {
+  for (InteractionContainer::iterator ia = ic.begin(); ia != ic.end(); ++ia) {
     _bonded_values.CreateArray((*ia)->getName());
   }
 }
 
 void BondedStatistics::EndCG() {}
 
-void BondedStatistics::EvalConfiguration(Topology *conf, Topology *conv_atom) {
+void BondedStatistics::EvalConfiguration(Topology *conf, Topology *) {
   InteractionContainer &ic = conf->BondedInteractions();
   InteractionContainer::iterator ia;
 

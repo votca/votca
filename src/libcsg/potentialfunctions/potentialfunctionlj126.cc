@@ -21,9 +21,8 @@ using namespace std;
 
 namespace votca {
 namespace csg {
-PotentialFunctionLJ126::PotentialFunctionLJ126(const string &name_,
-                                               const double min_,
-                                               const double max_)
+PotentialFunctionLJ126::PotentialFunctionLJ126(const string &name_, double min_,
+                                               double max_)
     : PotentialFunction(name_, 2, min_, max_) {}
 
 double PotentialFunctionLJ126::CalculateF(const double r) const {
@@ -36,8 +35,7 @@ double PotentialFunctionLJ126::CalculateF(const double r) const {
 }
 
 // calculate first derivative w.r.t. ith parameter
-double PotentialFunctionLJ126::CalculateDF(const long int i,
-                                           const double r) const {
+double PotentialFunctionLJ126::CalculateDF(long int i, double r) const {
 
   if (r >= _min && r <= _cut_off) {
 
@@ -52,8 +50,7 @@ double PotentialFunctionLJ126::CalculateDF(const long int i,
 }
 
 // calculate second derivative w.r.t. ith and jth parameters
-double PotentialFunctionLJ126::CalculateD2F(const long int i, const long int j,
-                                            const double r) const {
+double PotentialFunctionLJ126::CalculateD2F(long int, long int, double) const {
 
   return 0.0;
 }

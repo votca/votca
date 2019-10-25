@@ -55,7 +55,7 @@ void GmxTopolApp::Initialize(void) {
       "output topology (will create .top and in future also .itp)");
 }
 
-bool GmxTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
+bool GmxTopolApp::EvaluateTopology(Topology *top, Topology *) {
   if (top->MoleculeCount() > 1) {
     cout << "WARNING: cannot create topology for topology with"
             "multiple molecules, using only first molecule\n";

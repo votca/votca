@@ -56,7 +56,7 @@ void StdAnalysis::Command(BondedStatistics &bs, const std::string &cmd,
   }
 }
 
-void StdAnalysis::Help(const std::string &cmd, std::vector<std::string> &args) {
+void StdAnalysis::Help(const std::string &cmd, std::vector<std::string> &) {
   if (cmd == "vals") {
     std::cout
         << "vals <file> <selection>\n"

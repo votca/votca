@@ -69,7 +69,7 @@ class CsgApplication : public tools::Application {
 
   /// \brief called after topology was loaded
 
-  virtual bool EvaluateTopology(Topology *top, Topology *top_ref = nullptr) {
+  virtual bool EvaluateTopology(Topology *, Topology * = nullptr) {
     return true;
   }
 

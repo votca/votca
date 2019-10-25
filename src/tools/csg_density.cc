@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
   return app.Exec(argc, argv);
 }
 
-void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
+void CsgDensityApp::BeginEvaluate(Topology *top, Topology *) {
 
   Eigen::Matrix3d box = top->getBox();
   Eigen::Vector3d a = box.col(0);
@@ -133,7 +133,7 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
   _nblock = 0;
 }
 
-void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref) {
+void CsgDensityApp::EvalConfiguration(Topology *top, Topology *) {
   // loop over all molecules
   bool did_something = false;
   for (MoleculeContainer::iterator imol = top->Molecules().begin();

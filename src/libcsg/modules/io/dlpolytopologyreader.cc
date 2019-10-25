@@ -163,7 +163,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
     _fname = file;
   }
 
-  fl.open(_fname.c_str());
+  fl.open(_fname);
 
   if (!fl.is_open()) {
     throw std::runtime_error("Error on opening dlpoly file '" + _fname + "'");
@@ -219,8 +219,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 #endif
 
       // read molecule
-      unique_ptr<long int[]> id_map =
-          unique_ptr<long int[]>{new long int[natoms]};
+      std::vector<int> id_map(natoms);
       for (int i = 0; i < natoms;) {  // i is altered in repeater loop
         stringstream sl(_NextKeyline(fl, WhiteSpace));
 

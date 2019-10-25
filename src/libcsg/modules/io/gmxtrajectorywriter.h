@@ -38,7 +38,7 @@ class GMXTrajectoryWriter : public TrajectoryWriter {
  public:
   GMXTrajectoryWriter() = default;
 
-  void Open(std::string file, bool bAppend = false) override;
+  void Open(std::string file, bool = false) override;
   void Close() override;
   void Write(Topology *conf) override;
 

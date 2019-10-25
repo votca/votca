@@ -78,8 +78,8 @@ class NBList : public PairList<Bead *, BeadPair> {
                                     const double dist));
 
   /// standard match function
-  static bool match_always(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
-                           const double dist) {
+  static bool match_always(Bead *, Bead *, const Eigen::Vector3d &,
+                           const double) {
     return true;
   }
 

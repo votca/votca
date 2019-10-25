@@ -67,7 +67,7 @@ class PotentialFunctionCBSPL : public PotentialFunction {
   double _dr;
   Eigen::VectorXd _rbreak;
 
-  Eigen::MatrixXd _M;
+  Eigen::Matrix4d _M;
 };
 }  // namespace csg
 }  // namespace votca

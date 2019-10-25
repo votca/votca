@@ -435,7 +435,7 @@ CsgApplication::Worker *CsgApplication::ForkWorker(void) {
   return nullptr;
 }
 
-void CsgApplication::MergeWorker(CsgApplication::Worker *worker) {
+void CsgApplication::MergeWorker(CsgApplication::Worker *) {
   throw std::runtime_error("MergeWorker not implemented in application");
 }
 

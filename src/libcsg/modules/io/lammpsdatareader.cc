@@ -121,7 +121,7 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
     } else if (fields.size() == 2) {
       MatchTwoFieldLabels_(fields, top);
     } else if (fields.size() == 3) {
-      MatchThreeFieldLabels_(fields, top);
+      MatchThreeFieldLabels_(fields);
     } else if (fields.size() == 4) {
       MatchFourFieldLabels_(fields, top);
     } else if (fields.size() != 0) {
@@ -212,8 +212,7 @@ bool LAMMPSDataReader::MatchTwoFieldLabels_(vector<string> fields,
   return true;
 }
 
-bool LAMMPSDataReader::MatchThreeFieldLabels_(vector<string> fields,
-                                              Topology &top) {
+bool LAMMPSDataReader::MatchThreeFieldLabels_(vector<string> fields) {
   string label = fields.at(1) + " " + fields.at(2);
   if (label == "atom types") {
     ReadNumTypes_(fields, "atom");

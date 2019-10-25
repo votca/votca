@@ -37,10 +37,10 @@ class AnalysisTool {
   AnalysisTool() = default;
   virtual ~AnalysisTool() = default;
 
-  virtual void Register(std::map<std::string, AnalysisTool *> &lib) {}
+  virtual void Register(std::map<std::string, AnalysisTool *> &lib) = 0;
   virtual void Command(BondedStatistics &bs, const std::string &cmd,
-                       std::vector<std::string> &args){};
-  virtual void Help(const std::string &cmd, std::vector<std::string> &args){};
+                       std::vector<std::string> &args) = 0;
+  virtual void Help(const std::string &cmd, std::vector<std::string> &args) = 0;
 };
 
 }  // namespace csg

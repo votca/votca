@@ -67,7 +67,7 @@ void Imc::Initialize() {
   }
 }
 
-void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
+void Imc::BeginEvaluate(Topology *top, Topology *) {
   // we didn't process any frames so far
   _nframes = 0;
   _nblock = 0;
@@ -233,7 +233,7 @@ void Imc::LoadOptions(const string &file) {
 }
 
 // evaluate current conformation
-void Imc::Worker::EvalConfiguration(Topology *top, Topology *top_atom) {
+void Imc::Worker::EvalConfiguration(Topology *top, Topology *) {
 
   _cur_vol = top->BoxVolume();
   // process non-bonded interactions
@@ -263,8 +263,7 @@ class IMCNBSearchHandler {
 
   votca::tools::HistogramNew &_hist;
 
-  bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
-                 const double dist) {
+  bool FoundPair(Bead *, Bead *, const Eigen::Vector3d &, const double dist) {
     _hist.Process(dist);
     return false;
   }

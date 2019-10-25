@@ -55,7 +55,7 @@ bool CGForceMatching::EvaluateOptions() {
   return true;
 }
 
-void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
+void CGForceMatching::BeginEvaluate(Topology *top, Topology *) {
   // set counters to zero value:
   _nblocks = 0;
   _line_cntr = _col_cntr = 0;
@@ -374,7 +374,7 @@ void CGForceMatching::WriteOutFiles() {
   }
 }
 
-void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
+void CGForceMatching::EvalConfiguration(Topology *conf, Topology *) {
   if (conf->BeadCount() == 0) {
     throw std::runtime_error(
         "CG Topology has 0 beads, check your mapping file!");

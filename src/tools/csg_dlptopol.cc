@@ -75,7 +75,7 @@ void DLPTopolApp::Initialize(void) {
                       "  output topology in dlpoly format");
 }
 
-bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
+bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
   // check the file names from options
 
   string fname = OptionsMap()["top"].as<string>();
@@ -106,7 +106,6 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
   MoleculeContainer &mols = top->Molecules();
   MoleculeContainer MolecularTypes;
-  MoleculeContainer::iterator iter;
 
   int prv_mol_number = 1;
   string prv_mol_name;
@@ -116,7 +115,8 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
   // find all unique molecular types
 
-  for (iter = mols.begin(); iter != mols.end(); ++iter) {
+  for (MoleculeContainer::iterator iter = mols.begin(); iter != mols.end();
+       ++iter) {
     Molecule *mol = *iter;
 
     // molecules are ignored during the mapping stage

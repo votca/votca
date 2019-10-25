@@ -51,14 +51,13 @@ int main(int argc, char **argv) {
   return app.Exec(argc, argv);
 }
 
-void CsgTestApp::EvalConfiguration(Topology *top, Topology *top_ref) {
+void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
   BeadList b;
   b.Generate(*top, "*");
   NBListGrid nb;
   nb.setCutoff(_cut_off);
   nb.Generate(b);
-  NBList::iterator i;
-  for (i = nb.begin(); i != nb.end(); ++i) {
+  for (NBList::iterator i = nb.begin(); i != nb.end(); ++i) {
     _rdf.Process((*i)->dist());
   }
 }
@@ -70,7 +69,7 @@ void CsgTestApp::Initialize() {
       "the cutoff");
 }
 
-void CsgTestApp::BeginEvaluate(Topology *top, Topology *top_ref) {
+void CsgTestApp::BeginEvaluate(Topology *, Topology *) {
   _cut_off = OptionsMap()["c"].as<double>();
   _rdf.Initialize(0, _cut_off, 50);
 }

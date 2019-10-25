@@ -166,7 +166,7 @@ class CsgMapApp : public CsgApplication {
   bool _do_force;
 };
 
-void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {
+void CsgMapApp::BeginEvaluate(Topology *, Topology *) {
   string out = OptionsMap()["out"].as<string>();
   cout << "writing coarse-grained trajectory to " << out << endl;
   _writer = TrjWriterFactory().Create(out);
