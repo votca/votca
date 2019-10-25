@@ -3,16 +3,16 @@
 [![Build Status](https://travis-ci.org/votca/csgapps.svg?branch=master)](https://travis-ci.org/votca/csgapps)
 [![pipeline status](https://gitlab.com/votca/csgapps/badges/master/pipeline.svg)](https://gitlab.com/votca/csgapps/commits/master)
 
-This repository contains some small analysis programs which are written based on the votca_csg framework
+This repository contains some small analysis programs which are written based on the votca csg framework
 
 # Programs
 
-*   __radii__: calculate gyration radius + hydrodynamic radius of a molecule or a set of molecules
-*   __sphericalorder__: calculates a spherical order parameter i.e. the distribution of e_r\*u where e_r is the unit vector from a reference molecule to the solvent molecules and u is the principle axis of inertia of the solvent molecule
-*   __fluctuations__: calculate the number density fluctuations in subvolumes. Subvolumes are either cubic slabs along one of the sim box axis or speherical subvolumes around a solute
-*   __orientcorr__: calculates the distance dependent orientational correlation function of a polymer melt
-*   __part_dist__: outputs the time-averaged number of particles, listed by particle types (was a part of csg before)
-*   __partial_rdf__: calculates the rdf in a spherical subvolume
-*   __traj_force__: add/subtracts reference forces from a given trajectory and stores in a new trajectory
+*   _radii_: calculate gyration radius + hydrodynamic radius of a molecule or a set of molecules
+*   _sphericalorder_: calculates a spherical order parameter i.e. the distribution of e\_r\*u where e\_r is the unit vector from a reference molecule to the solvent molecules and u is the principle axis of inertia of the solvent molecule
+*   _fluctuations_: calculate the number density fluctuations in subvolumes. Subvolumes are either cubic slabs along one of the sim box axis or speherical subvolumes around a solute
+*   _orientcorr_: calculates the distance dependent orientational correlation function of a polymer melt
+*   _part_dist_: outputs the time-averaged number of particles, listed by particle types (was a part of csg before)
+*   _partial\_rdf_: calculates the rdf in a spherical subvolume
+*   _traj\_force_: add/subtracts reference forces from a given trajectory and stores in a new trajectory
 
 To add your own program just create a new folder and put your *.cc files in there
