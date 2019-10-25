@@ -84,24 +84,24 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
   InitializeGrid(top->getBox());
 
   // Add all beads of list1 to _beads1
-  for (BeadList::iterator iter = list1.begin(); iter != list1.end(); ++iter) {
-    getCell((*iter)->getPos())._beads1.push_back(*iter);
+  for (auto &bead : list1) {
+    getCell(bead->getPos())._beads1.push_back(bead);
   }
 
   // Add all beads of list2 to _beads2
-  for (BeadList::iterator iter = list2.begin(); iter != list2.end(); ++iter) {
-    getCell((*iter)->getPos())._beads2.push_back(*iter);
+  for (auto &bead : list2) {
+    getCell(bead->getPos())._beads2.push_back(bead);
   }
 
   // In this case type2 and type3 are the same
-  for (auto &iter : _grid) {
-    iter._beads3 = iter._beads2;
+  for (auto &cell : _grid) {
+    cell._beads3 = cell._beads2;
   }
 
   // loop over beads of list 1 again to get the correlations
-  for (BeadList::iterator iter = list1.begin(); iter != list1.end(); ++iter) {
-    cell_t &cell = getCell((*iter)->getPos());
-    TestBead(cell, *iter);
+  for (auto &bead : list1) {
+    cell_t &cell = getCell(bead->getPos());
+    TestBead(cell, bead);
   }
 }
 
@@ -116,20 +116,20 @@ void NBListGrid_3Body::Generate(BeadList &list, bool do_exclusions) {
   InitializeGrid(top->getBox());
 
   // Add all beads of list to all! bead lists of the cell
-  for (BeadList::iterator iter = list.begin(); iter != list.end(); ++iter) {
-    getCell((*iter)->getPos())._beads1.push_back(*iter);
+  for (auto &iter : list) {
+    getCell(iter->getPos())._beads1.push_back(iter);
   }
 
-  for (auto &iter : _grid) {
-    iter._beads2 = iter._beads1;
-    iter._beads3 = iter._beads1;
+  for (auto &cell : _grid) {
+    cell._beads2 = cell._beads1;
+    cell._beads3 = cell._beads1;
   }
 
   // loop over beads again to get the correlations (as all of the same type
   // here)
-  for (BeadList::iterator iter = list.begin(); iter != list.end(); ++iter) {
-    cell_t &cell = getCell((*iter)->getPos());
-    TestBead(cell, *iter);
+  for (auto &bead : list) {
+    cell_t &cell = getCell(bead->getPos());
+    TestBead(cell, bead);
   }
 }
 

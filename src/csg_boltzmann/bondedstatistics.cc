@@ -26,8 +26,8 @@ void BondedStatistics::BeginCG(Topology *top, Topology *) {
   InteractionContainer &ic = top->BondedInteractions();
 
   _bonded_values.clear();
-  for (InteractionContainer::iterator ia = ic.begin(); ia != ic.end(); ++ia) {
-    _bonded_values.CreateArray((*ia)->getName());
+  for (auto &interaction : ic) {
+    _bonded_values.CreateArray(interaction->getName());
   }
 }
 

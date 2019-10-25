@@ -57,8 +57,8 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
   NBListGrid nb;
   nb.setCutoff(_cut_off);
   nb.Generate(b);
-  for (NBList::iterator i = nb.begin(); i != nb.end(); ++i) {
-    _rdf.Process((*i)->dist());
+  for (auto &pair : nb) {
+    _rdf.Process(pair->dist());
   }
 }
 

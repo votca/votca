@@ -115,10 +115,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
 
   // find all unique molecular types
 
-  for (MoleculeContainer::iterator iter = mols.begin(); iter != mols.end();
-       ++iter) {
-    Molecule *mol = *iter;
-
+  for (Molecule *mol : mols) {
     // molecules are ignored during the mapping stage
     // i.e. the ignored ones do not enter the CG topology (*top) - ?
     // if( IsIgnored(mol->getName()) ) continue;

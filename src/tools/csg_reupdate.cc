@@ -540,10 +540,7 @@ void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *) {
 
   _dUFrame.setZero();
 
-  for (PotentialContainer::iterator potiter = _potentials.begin();
-       potiter != _potentials.end(); ++potiter) {
-
-    PotentialInfo *potinfo = *potiter;
+  for (PotentialInfo *potinfo : _potentials) {
 
     if (potinfo->bonded) {
       EvalBonded(conf, potinfo);
