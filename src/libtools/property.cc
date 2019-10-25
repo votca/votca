@@ -139,7 +139,7 @@ static void start_hndl(void *data, const char *el, const char **attr) {
   property_stack->push(&np);
 }
 
-static void end_hndl(void *data, const char *el) {
+static void end_hndl(void *data, const char *) {
   stack<Property *> *property_stack =
       (stack<Property *> *)XML_GetUserData((XML_Parser *)data);
   property_stack->pop();

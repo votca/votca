@@ -75,7 +75,7 @@ EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, int nmax) {
   MKL_INT il, iu, m, ldz;
 
   int n = A.rows();
-  MKL_INT ifail[n];
+  std::vector<MKL_INT> ifail(n);
   lda = n;
   ldz = nmax;
 
@@ -97,7 +97,7 @@ EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, int nmax) {
 
   // call LAPACK via C interface
   info = LAPACKE_dsyevx(LAPACK_COL_MAJOR, 'V', 'I', 'U', n, pA, lda, vl, vu, il,
-                        iu, abstol, &m, pE, pV, n, ifail);
+                        iu, abstol, &m, pE, pV, n, ifail.data());
   if (info == 0) {
     result.info() = Eigen::Success;
   } else if (info < 0) {

@@ -77,8 +77,8 @@ void ParseXML::Open(const std::string &filename) {
   fl.close();
 }
 
-void ParseXML::ParseIgnore(const std::string &el,
-                           std::map<std::string, std::string> &attr) {
+void ParseXML::ParseIgnore(const std::string &,
+                           std::map<std::string, std::string> &) {
   NextHandler(this, &ParseXML::ParseIgnore);
 }
 
@@ -87,7 +87,7 @@ void ParseXML::StartElemHndl(const std::string &el,
   (*_handler)(el, attr);
 }
 
-void ParseXML::EndElemHndl(const std::string &el) {
+void ParseXML::EndElemHndl(const std::string &) {
   delete _handler;
   _stack_handler.pop();
   _handler = _stack_handler.top();
