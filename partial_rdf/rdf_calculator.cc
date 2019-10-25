@@ -62,9 +62,6 @@ void RDFCalculator::Initialize() {
 
 void RDFCalculator::BeginEvaluate(Topology *top, Topology *) {
   Eigen::Matrix3d box = top->getBox();
-  Eigen::Vector3d a = box.col(0);
-  Eigen::Vector3d b = box.col(1);
-  Eigen::Vector3d c = box.col(2);
   _boxc = box.rowwise().sum() / 2.0;
 
   std::cout << "Using center of box: " << _boxc << std::endl;
