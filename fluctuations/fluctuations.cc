@@ -16,13 +16,9 @@
  */
 
 #include <boost/program_options.hpp>
-#include <fstream>
-#include <iostream>
-#include <math.h>
-#include <stdlib.h>
 #include <votca/csg/cgengine.h>
 #include <votca/csg/csgapplication.h>
-#include <votca/tools/average.h>
+#include <votca/tools/histogramnew.h>
 #include <votca/tools/tokenizer.h>
 
 using namespace std;
@@ -101,13 +97,11 @@ class CsgFluctuations : public CsgApplication {
       cout << "Doing slabs along  z-axis" << endl;
       _dim = 2;
     } else {
-      cout << "Unrecognized geometry option. (sphere|x|y|z)" << endl;
-      exit(0);
+      throw std::runtime_error("Unrecognized geometry option. (sphere|x|y|z)");
     }
 
     _N_avg = Eigen::VectorXd::Zero(_nbins);
     _N_sq_avg = Eigen::VectorXd::Zero(_nbins);
-    N = Eigen::VectorXi::Zero(_nbins);
 
     if (_do_spherical) {
       cout << "Calculating fluctions for " << _rmin << "<r<" << _rmax;
@@ -127,7 +121,7 @@ class CsgFluctuations : public CsgApplication {
 
     _outfile.open(_outfilename);
     if (!_outfile) {
-      throw runtime_error("cannot open outfile for output");
+      throw runtime_error("cannot open" + _outfilename + " for output");
     }
   }
 
@@ -142,7 +136,6 @@ class CsgFluctuations : public CsgApplication {
   Eigen::VectorXd _N_avg;
   // sqare
   Eigen::VectorXd _N_sq_avg;
-  Eigen::VectorXi N;
   string _filter;
   string _refmol;
   double _rmax;
@@ -163,9 +156,6 @@ int main(int argc, char **argv) {
 }
 
 void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
-  Eigen::Vector3d eR;
-  double r = 0;
-  int rbin;
 
   if (_refmol != "") {
     for (Bead *bead : conf->Beads()) {
@@ -176,19 +166,20 @@ void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
     }
   }
 
-  N.setZero();
+  votca::tools::HistogramNew hist;
+  hist.Initialize(_rmin, _rmax, _nbins);
 
   /* check how many molecules are in each bin*/
   for (Bead *bead : conf->Beads()) {
     if (!votca::tools::wildcmp(_filter.c_str(), bead->getName().c_str())) {
       continue;
     }
-
+    double r = 0;
     if (_do_spherical) {
-      eR = bead->getPos() - _ref;
+      Eigen::Vector3d eR = bead->getPos() - _ref;
       r = eR.norm();
     } else {
-      eR = bead->getPos();
+      Eigen::Vector3d eR = bead->getPos();
       if (_dim == 0) {
         r = eR.x();
       } else if (_dim == 1) {
@@ -197,15 +188,12 @@ void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
         r = eR.z();
       }
     }
-    if (r > _rmin && r < _rmax) {
-      rbin = _nbins * (int)((r - _rmin) / (_rmax - _rmin));
-      N[rbin]++;
-    }
+    hist.Process(r);
   }
 
   /* update averages*/
-  _N_avg += N.cast<double>();
-  _N_sq_avg += N.cwiseAbs2().cast<double>();
+  _N_avg += hist.data().y();
+  _N_sq_avg += hist.data().y().cwiseAbs2();
 
   _nframes++;
 }
