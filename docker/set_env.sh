@@ -73,6 +73,7 @@ elif [[ $ENV -eq 5 ]]; then
 elif [[ $ENV -eq 6 ]]; then
   # clang-tidy build
   [[ $CXX = g++ ]] && export SKIP=yes # only clang builds matter
+  export SKIP=yes # takes too long, do on gitlab instead
   add_to_docker_opts TESTING=OFF
   add_to_docker_opts CMAKE_BUILD_TYPE=Debug
   add_to_docker_opts CLANG_TIDY=ON
