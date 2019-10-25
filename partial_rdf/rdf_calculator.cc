@@ -172,15 +172,12 @@ void RDFCalculator::Worker::EvalConfiguration(Topology *top, Topology *) {
 void RDFCalculator::ClearAverages() {
 
   _nframes = 0;
-  for (std::map<std::string, interaction_t *>::iterator ic_iter =
-           _interactions.begin();
-       ic_iter != _interactions.end(); ++ic_iter) {
-    ic_iter->second->_average.Clear();
+  for (auto &_interaction : _interactions) {
+    _interaction.second->_average.Clear();
   }
 
-  for (std::map<std::string, group_t *>::iterator group_iter = _groups.begin();
-       group_iter != _groups.end(); ++group_iter) {
-    group_iter->second->_corr.setZero();
+  for (auto &_group : _groups) {
+    _group.second->_corr.setZero();
   }
 }
 
@@ -306,9 +303,7 @@ void RDFCalculator::Worker::DoBonded(Topology *top) {
     // now fill with new data
     std::list<Interaction *> list = top->InteractionsInGroup(name);
 
-    for (std::list<Interaction *>::iterator ic_iter = list.begin();
-         ic_iter != list.end(); ++ic_iter) {
-      Interaction *ic = *ic_iter;
+    for (auto ic : list) {
       double v = ic->EvaluateVar(*top);
       _current_hists[i._index].Process(v);
     }
@@ -329,26 +324,27 @@ RDFCalculator::group_t *RDFCalculator::getGroup(const std::string &name) {
 void RDFCalculator::WriteDist(const std::string &suffix) {
 
   // for all interactions
-  for (std::map<std::string, interaction_t *>::iterator iter =
-           _interactions.begin();
-       iter != _interactions.end(); ++iter) {
+  for (auto &_interaction : _interactions) {
     // calculate the rdf
-    Table &t = iter->second->_average.data();
+    Table &t = _interaction.second->_average.data();
     Table dist(t);
 
-    iter->second->_norm /= (iter->second->_avg_beadlist_1_count.getAvg() *
-                            iter->second->_avg_beadlist_2_count.getAvg());
-    dist.y() = _avg_vol.getAvg() * iter->second->_norm *
+    _interaction.second->_norm /=
+        (_interaction.second->_avg_beadlist_1_count.getAvg() *
+         _interaction.second->_avg_beadlist_2_count.getAvg());
+    dist.y() = _avg_vol.getAvg() * _interaction.second->_norm *
                dist.y().cwiseQuotient(dist.x().cwiseAbs2());
 
-    dist.Save((iter->first) + suffix + ".dist.new");
-    std::cout << "written " << (iter->first) + suffix + ".dist.new\n";
+    dist.Save((_interaction.first) + suffix + ".dist.new");
+    std::cout << "written " << (_interaction.first) + suffix + ".dist.new\n";
 
-    std::cout << "Avg. number of particles in subvol for " << (iter->first)
+    std::cout << "Avg. number of particles in subvol for "
+              << (_interaction.first) << std::endl;
+    std::cout << "beadlist 1: "
+              << _interaction.second->_avg_beadlist_1_count.getAvg()
               << std::endl;
-    std::cout << "beadlist 1: " << iter->second->_avg_beadlist_1_count.getAvg()
-              << std::endl;
-    std::cout << "beadlist 2: " << iter->second->_avg_beadlist_2_count.getAvg()
+    std::cout << "beadlist 2: "
+              << _interaction.second->_avg_beadlist_2_count.getAvg()
               << std::endl;
   }
 
@@ -363,10 +359,8 @@ CsgApplication::Worker *RDFCalculator::ForkWorker() {
   worker->_current_hists.resize(_interactions.size());
   worker->_rdfcalculator = this;
 
-  for (std::map<std::string, interaction_t *>::iterator ic_iter =
-           _interactions.begin();
-       ic_iter != _interactions.end(); ++ic_iter) {
-    interaction_t *i = ic_iter->second;
+  for (auto &_interaction : _interactions) {
+    interaction_t *i = _interaction.second;
     worker->_current_hists[i->_index].Initialize(
         i->_average.getMin(), i->_average.getMax(), i->_average.getNBins());
   }
@@ -383,10 +377,8 @@ void RDFCalculator::MergeWorker(CsgApplication::Worker *worker_) {
 
   _avg_vol.Process(worker->_cur_vol);
 
-  for (std::map<std::string, interaction_t *>::iterator ic_iter =
-           _interactions.begin();
-       ic_iter != _interactions.end(); ++ic_iter) {
-    interaction_t *i = ic_iter->second;
+  for (auto &_interaction : _interactions) {
+    interaction_t *i = _interaction.second;
     i->_average.data().y() =
         (((double)_nframes - 1.0) * i->_average.data().y() +
          worker->_current_hists[i->_index].data().y()) /
