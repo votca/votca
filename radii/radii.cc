@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
   return app.Exec(argc, argv);
 }
 
-void CsgTestApp::EvalConfiguration(Topology *top, Topology *top_ref) {
+void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
   // loop over all molecules
   for (Molecule *mol : top->Molecules()) {
     // does the id match if given?

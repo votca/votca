@@ -25,7 +25,6 @@
 #include <votca/tools/average.h>
 #include <votca/tools/tokenizer.h>
 
-// using namespace votca::tools;
 using namespace std;
 using namespace votca::csg;
 
@@ -77,7 +76,7 @@ class CsgFluctuations : public CsgApplication {
   bool DoTrajectory() override { return true; }
   bool DoMapping() override { return true; }
 
-  void BeginEvaluate(Topology *top, Topology *top_atom) override {
+  void BeginEvaluate(Topology *top, Topology *) override {
     _filter = OptionsMap()["filter"].as<string>();
     _refmol = OptionsMap()["refmol"].as<string>();
     _rmin = OptionsMap()["rmin"].as<double>();
@@ -106,13 +105,9 @@ class CsgFluctuations : public CsgApplication {
       exit(0);
     }
 
-    _N_avg = new double[_nbins];
-    _N_sq_avg = new double[_nbins];
-    N = new int[_nbins];
-    for (int i = 0; i < _nbins; i++) {
-      _N_avg[i] = 0;
-      _N_sq_avg[i] = 0;
-    }
+    _N_avg = Eigen::VectorXd::Zero(_nbins);
+    _N_sq_avg = Eigen::VectorXd::Zero(_nbins);
+    N = Eigen::VectorXi::Zero(_nbins);
 
     if (_do_spherical) {
       cout << "Calculating fluctions for " << _rmin << "<r<" << _rmax;
@@ -125,15 +120,12 @@ class CsgFluctuations : public CsgApplication {
 
     if (_refmol == "" && _do_spherical) {
       Eigen::Matrix3d box = top->getBox();
-      Eigen::Vector3d a = box.col(0);
-      Eigen::Vector3d b = box.col(1);
-      Eigen::Vector3d c = box.col(2);
-      _ref = (a + b + c) / 2;
+      _ref = box.rowwise().sum() / 2;
 
-      cout << "Refernce is center of box " << _ref << endl;
+      cout << "Reference is center of box " << _ref << endl;
     }
 
-    _outfile.open(_outfilename.c_str());
+    _outfile.open(_outfilename);
     if (!_outfile) {
       throw runtime_error("cannot open outfile for output");
     }
@@ -147,10 +139,10 @@ class CsgFluctuations : public CsgApplication {
  protected:
   // number of particles in dV
   int _nbins;
-  double *_N_avg;
+  Eigen::VectorXd _N_avg;
   // sqare
-  double *_N_sq_avg;
-  int *N;
+  Eigen::VectorXd _N_sq_avg;
+  Eigen::VectorXi N;
   string _filter;
   string _refmol;
   double _rmax;
@@ -170,8 +162,7 @@ int main(int argc, char **argv) {
   return app.Exec(argc, argv);
 }
 
-void CsgFluctuations::EvalConfiguration(Topology *conf,
-                                        Topology *conf_atom = nullptr) {
+void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
   Eigen::Vector3d eR;
   double r = 0;
   int rbin;
@@ -185,9 +176,7 @@ void CsgFluctuations::EvalConfiguration(Topology *conf,
     }
   }
 
-  for (int i = 0; i < _nbins; i++) {
-    N[i] = 0;
-  }
+  N.setZero();
 
   /* check how many molecules are in each bin*/
   for (Bead *bead : conf->Beads()) {
@@ -215,10 +204,8 @@ void CsgFluctuations::EvalConfiguration(Topology *conf,
   }
 
   /* update averages*/
-  for (int i = 0; i < _nbins; i++) {
-    _N_avg[i] += N[i];
-    _N_sq_avg[i] += N[i] * N[i];
-  }
+  _N_avg += N.cast<double>();
+  _N_sq_avg += N.cwiseAbs2().cast<double>();
 
   _nframes++;
 }

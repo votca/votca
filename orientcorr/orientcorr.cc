@@ -134,7 +134,7 @@ NBList *OrientCorrApp::CreateNBSearch() {
 }
 
 // initialize the histograms
-void OrientCorrApp::BeginEvaluate(Topology *top, Topology *top_ref) {
+void OrientCorrApp::BeginEvaluate(Topology *, Topology *) {
   _cor.Initialize(0, _cut_off, _nbins);
   _count.Initialize(0, _cut_off, _nbins);
   _cor_excl.Initialize(0, _cut_off, _nbins);
@@ -154,7 +154,7 @@ CsgApplication::Worker *OrientCorrApp::ForkWorker() {
 }
 
 // evaluates a frame
-void MyWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
+void MyWorker::EvalConfiguration(Topology *top, Topology *) {
 
   // first genearate a mapped topology
   // the beads are sitting on the bonds and have an orientation which
@@ -214,7 +214,7 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
 
 // process a pair, since return value is falsed, pairs are not cached which
 // saves a lot of memory for the big systems
-bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
+bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &,
                          const double dist) {
   double tmp = b1->getV().dot(b2->getV());
   double P2 = 3. / 2. * tmp * tmp - 0.5;
