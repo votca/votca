@@ -126,13 +126,13 @@ class PolarSite : public StaticSite {
     double d_z_ind;
   };
   // do not move up has to be below data definition
-  PolarSite(data& d);
+  PolarSite(const data& d);
 
   double DipoleChange() const;
 
   void SetupCptTable(CptTable& table) const override;
   void WriteData(data& d) const;
-  void ReadData(data& d);
+  void ReadData(const data& d);
 
   std::string identify() const override { return "polarsite"; }
 

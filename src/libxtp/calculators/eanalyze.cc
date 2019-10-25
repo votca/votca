@@ -307,8 +307,8 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
   for (int bin = 0; bin < BIN; ++bin) {
     double corr = 0.0;
     double dcorr2 = 0.0;
-    for (unsigned i = 0; i < histCs[bin].size(); ++i) {
-      corr += histCs[bin][i] / VAR;
+    for (double entry : histCs[bin]) {
+      corr += entry / VAR;
     }
     corr = corr / histCs[bin].size();
     for (unsigned i = 0; i < histCs[bin].size(); ++i) {

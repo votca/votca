@@ -166,7 +166,7 @@ void StaticSite::WriteData(data& d) const {
   d.Q22s = _Q[8];
 }
 
-void StaticSite::ReadData(data& d) {
+void StaticSite::ReadData(const data& d) {
   _id = d.id;
   _element = std::string(d.element);
   free(d.element);

@@ -70,6 +70,8 @@ inline int getThreadId() {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma gcc diagnostic push
+#pragma gcc diagnostic ignored "-Wunused-parameter"
 
 inline void setMaxThreads(int threads) {
 
@@ -80,6 +82,7 @@ inline void setMaxThreads(int threads) {
 #endif
 }
 #pragma clang diagnostic pop
+#pragma gcc diagnostic pop
 }  // namespace OPENMP
 }  // namespace xtp
 }  // namespace votca

@@ -138,9 +138,9 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
 #pragma omp parallel for
   for (int i = 0; i < atomlist.size(); i++) {
     for (int j = i; j < atomlist.size(); j++) {
-      for (unsigned k = 0; k < gridpoints.size(); k++) {
-        double dist_i = (atomlist[i].getPos() - gridpoints[k]).norm();
-        double dist_j = (atomlist[j].getPos() - gridpoints[k]).norm();
+      for (const auto& gridpoint : gridpoints) {
+        double dist_i = (atomlist[i].getPos() - gridpoint).norm();
+        double dist_j = (atomlist[j].getPos() - gridpoint).norm();
 
         Amat(i, j) += 1.0 / dist_i / dist_j;
       }

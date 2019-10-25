@@ -47,18 +47,18 @@ double NumericalIntegration::getExactExchange(
 
   double exactexchange = 0.0;
   Vxc_Functionals map;
-  std::vector<std::string> strs;
+  tools::Tokenizer tok(functional, " ");
+  std::vector<std::string> functional_names = tok.ToVector();
 
-  boost::split(strs, functional, boost::is_any_of(" "));
-  if (strs.size() > 2) {
+  if (functional_names.size() > 2) {
     throw std::runtime_error("Too many functional names");
-  } else if (strs.size() < 1) {
+  } else if (functional_names.size() < 1) {
     throw std::runtime_error("Specify at least one functional");
   }
 
-  for (unsigned i = 0; i < strs.size(); i++) {
+  for (const std::string& functional_name : functional_names) {
 
-    int func_id = map.getID(strs[i]);
+    int func_id = map.getID(functional_name);
     if (func_id < 0) {
       exactexchange = 0.0;
       break;
@@ -66,7 +66,7 @@ double NumericalIntegration::getExactExchange(
     xc_func_type func;
     if (xc_func_init(&func, func_id, XC_UNPOLARIZED) != 0) {
       throw std::runtime_error(
-          (boost::format("Functional %s not found\n") % strs[i]).str());
+          (boost::format("Functional %s not found\n") % functional_name).str());
     }
     if (exactexchange > 0 && func.cam_alpha > 0) {
       throw std::runtime_error(
@@ -196,7 +196,8 @@ Eigen::Vector3d NumericalIntegration::IntegrateField(
 }
 
 void NumericalIntegration::SortGridpointsintoBlocks(
-    std::vector<std::vector<GridContainers::Cartesian_gridpoint> >& grid) {
+    const std::vector<std::vector<GridContainers::Cartesian_gridpoint> >&
+        grid) {
   const double boxsize = 1;  // 1 bohr
 
   Eigen::Vector3d min =
@@ -204,9 +205,9 @@ void NumericalIntegration::SortGridpointsintoBlocks(
   Eigen::Vector3d max =
       Eigen::Vector3d::Ones() * std::numeric_limits<double>::min();
 
-  for (unsigned i = 0; i < grid.size(); i++) {
-    for (unsigned j = 0; j < grid[i].size(); j++) {
-      const Eigen::Vector3d& pos = grid[i][j].grid_pos;
+  for (const auto& atom_grid : grid) {
+    for (const auto& gridpoint : atom_grid) {
+      const Eigen::Vector3d& pos = gridpoint.grid_pos;
       if (pos[0] > max[0]) {
         max[0] = pos[0];
       } else if (pos[0] < min[0]) {
@@ -232,17 +233,18 @@ void NumericalIntegration::SortGridpointsintoBlocks(
                                   std::ceil(numberofboxes[2]));
 
   std::vector<std::vector<
-      std::vector<std::vector<GridContainers::Cartesian_gridpoint*> > > >
+      std::vector<std::vector<const GridContainers::Cartesian_gridpoint*> > > >
       boxes;
   // creating temparray
   for (unsigned i = 0; i < unsigned(roundednumofbox[0]); i++) {
     std::vector<
-        std::vector<std::vector<GridContainers::Cartesian_gridpoint*> > >
+        std::vector<std::vector<const GridContainers::Cartesian_gridpoint*> > >
         boxes_yz;
     for (unsigned j = 0; j < unsigned(roundednumofbox[1]); j++) {
-      std::vector<std::vector<GridContainers::Cartesian_gridpoint*> > boxes_z;
+      std::vector<std::vector<const GridContainers::Cartesian_gridpoint*> >
+          boxes_z;
       for (unsigned k = 0; k < unsigned(roundednumofbox[2]); k++) {
-        std::vector<GridContainers::Cartesian_gridpoint*> box;
+        std::vector<const GridContainers::Cartesian_gridpoint*> box;
         box.reserve(100);
         boxes_z.push_back(box);
       }
@@ -251,8 +253,8 @@ void NumericalIntegration::SortGridpointsintoBlocks(
     boxes.push_back(boxes_yz);
   }
 
-  for (auto& atomgrid : grid) {
-    for (auto& gridpoint : atomgrid) {
+  for (const auto& atomgrid : grid) {
+    for (const auto& gridpoint : atomgrid) {
       Eigen::Vector3d pos = gridpoint.grid_pos - min;
       Eigen::Vector3d index = pos / boxsize;
       int i_x = int(index[0]);
@@ -355,9 +357,8 @@ Mat_p_Energy NumericalIntegration::IntegrateVXC(
 
 #pragma omp parallel for schedule(guided)
   for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
-
-    double EXC_box = 0.0;
     const GridBox& box = _grid_boxes[i];
+    double EXC_box = 0.0;
     const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
     const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
     double cutoff = 1.e-40 / density_matrix.rows() / density_matrix.rows();
@@ -409,8 +410,8 @@ double NumericalIntegration::IntegrateDensity(
 
 #pragma omp parallel for schedule(guided)
   for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
-    double N_box = 0.0;
     GridBox& box = _grid_boxes[i];
+    double N_box = 0.0;
     const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();
@@ -454,10 +455,10 @@ Gyrationtensor NumericalIntegration::IntegrateGyrationTensor(
 
 #pragma omp parallel for schedule(guided)
   for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
+    GridBox& box = _grid_boxes[i];
     double N_box = 0.0;
     Eigen::Vector3d centroid_box = Eigen::Vector3d::Zero();
     Eigen::Matrix3d gyration_box = Eigen::Matrix3d::Zero();
-    GridBox& box = _grid_boxes[i];
     const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();

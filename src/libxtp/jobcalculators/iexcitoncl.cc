@@ -235,8 +235,8 @@ void IEXCITON::ReadJobFile(Topology& top) {
   records.resize(number_of_pairs + 1);
 
   // to skip pairs which are not in the jobfile
-  for (unsigned i = 0; i < records.size(); i++) {
-    records[i] = nullptr;
+  for (auto& record : records) {
+    record = nullptr;
   }
   // loop over all jobs = pair records in the job file
   for (Property* prop : jobProps) {

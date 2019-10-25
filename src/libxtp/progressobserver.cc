@@ -219,24 +219,23 @@ void ProgObserver<JobContainer>::InitCmdLineOpts(
     _restartMode = true;
   }
 
-  std::vector<std::string> split;
   tools::Tokenizer toker(restartPattern, "(,)");
-  toker.ToVector(split);
+  std::vector<std::string> patterns = toker.ToVector();
 
   std::string category = "";
-  for (unsigned int i = 0; i < split.size(); ++i) {
+  for (const std::string &pattern : patterns) {
 
-    if (split[i] == "host" || split[i] == "stat") {
-      category = split[i];
+    if (pattern == "host" || pattern == "stat") {
+      category = pattern;
 
     } else if (category == "host") {
-      _restart_hosts[split[i]] = true;
+      _restart_hosts[pattern] = true;
     } else if (category == "stat") {
-      if (split[i] == "ASSIGNED" || split[i] == "COMPLETE") {
-        std::cout << "Restart if status == " << split[i]
+      if (pattern == "ASSIGNED" || pattern == "COMPLETE") {
+        std::cout << "Restart if status == " << pattern
                   << "? Not necessarily a good idea." << std::endl;
       }
-      _restart_stats[split[i]] = true;
+      _restart_stats[pattern] = true;
     }
 
     else {

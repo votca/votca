@@ -98,7 +98,7 @@ void QMPair::WriteData(data& d) const {
   d.jeff2t = _Jeff2.getValue(QMStateType::Triplet);
 }
 
-void QMPair::ReadData(data& d, const std::vector<Segment>& segments) {
+void QMPair::ReadData(const data& d, const std::vector<Segment>& segments) {
   _id = d.id;
   _R[0] = d.RX;
   _R[1] = d.RY;

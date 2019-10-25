@@ -79,7 +79,8 @@ class NumericalIntegration {
   double erf1c(double x) const;
 
   void SortGridpointsintoBlocks(
-      std::vector<std::vector<GridContainers::Cartesian_gridpoint> >& grid);
+      const std::vector<std::vector<GridContainers::Cartesian_gridpoint> >&
+          grid);
 
   Eigen::MatrixXd CalcInverseAtomDist(const QMMolecule& atoms) const;
   int UpdateOrder(LebedevGrid& sphericalgridofElement, int maxorder,
