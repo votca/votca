@@ -376,7 +376,6 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
 
   long int pos_start = potinfo->vec_pos;
   long int pos_max = pos_start + potinfo->ucg->getOptParamSize();
-  long int lamda_i, lamda_j;
   double dU_i, d2U_ij;
   double U;
   long int indx = potinfo->potentialIndex;
@@ -407,7 +406,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
   for (long int row = pos_start; row < pos_max; row++) {
 
     // ith parameter of this potential
-    lamda_i = row - pos_start;
+    long int lamda_i = row - pos_start;
 
     // compute dU/dlamda and add to _DS
     dU_i = 0.0;
@@ -431,7 +430,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
 
     for (long int col = row; col < pos_max; col++) {
 
-      lamda_j = col - pos_start;
+      long int lamda_j = col - pos_start;
 
       // compute d2U/dlamda_i dlamda_j and add to _HS
       d2U_ij = 0.0;
