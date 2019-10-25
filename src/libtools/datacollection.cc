@@ -34,13 +34,13 @@ std::ostream& operator<<(std::ostream& out,
     s.str("");
     s.setf(std::ios::scientific);
     int written = 0;
-    for (size_t j = 0; j < sel.size(); j++) {
-      if (i >= sel[j].size()) {
+    for (auto& array : sel) {
+      if (i >= array->size()) {
         s << " -";
         continue;
       }
       written++;
-      s << " " << (double)sel[j][i];
+      s << " " << (*array)[i];
     }
     if (written == 0) {
       return out;
