@@ -86,8 +86,8 @@ void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,
   coupling_summary.setAttribute("j_diag", (format("%1$1.6e") % JAB_diag).str());
 }
 
-void BSECoupling::Addoutput(Property& type_summary, const Orbitals& orbitalsA,
-                            const Orbitals& orbitalsB) const {
+void BSECoupling::Addoutput(Property& type_summary, const Orbitals&,
+                            const Orbitals&) const {
   tools::Property& bsecoupling = type_summary.add(Identify(), "");
   string algorithm = "j_diag";
   if (_output_perturbation) {

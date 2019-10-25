@@ -22,6 +22,14 @@
 namespace votca {
 namespace xtp {
 
+Eigen::RowVectorXd MatrixFreeOperator::OperatorRow(int) const {
+  return Eigen::RowVectorXd::Zero(0);
+}
+
+Eigen::MatrixXd MatrixFreeOperator::OperatorBlock(int, int) const {
+  return Eigen::MatrixXd::Zero(0, 0);
+}
+
 Eigen::VectorXd MatrixFreeOperator::diagonal() const {
   Eigen::VectorXd D = Eigen::VectorXd::Zero(_size);
   if (useRow()) {

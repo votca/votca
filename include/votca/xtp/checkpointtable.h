@@ -57,18 +57,18 @@ class CptTable {
 
   template <typename U>
   typename std::enable_if<std::is_fundamental<U>::value>::type addCol(
-      const U& item, const std::string& name, const size_t& offset) {
+      const U&, const std::string& name, const size_t& offset) {
     _rowStructure.insertMember(name, offset, *InferDataType<U>::get());
   }
 
-  void addCol(const std::string& item, const std::string& name,
+  void addCol(const std::string&, const std::string& name,
               const size_t& offset) {
 
     _rowStructure.insertMember(name, offset,
                                *InferDataType<std::string>::get());
   }
 
-  void addCol(const char* item, const std::string& name, const size_t& offset) {
+  void addCol(const char*, const std::string& name, const size_t& offset) {
 
     H5::DataType fixedWidth(H5T_STRING, MaxStringSize);
 

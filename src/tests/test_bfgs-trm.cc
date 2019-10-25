@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(parabola_test) {
       return gradient;
     }
 
-    bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
+    bool Converged(const Eigen::VectorXd&, double,
                    const Eigen::VectorXd& gradient) override {
       if (gradient.cwiseAbs().maxCoeff() < 1e-8) {
         return true;
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(booth_test) {
       return gradient;
     }
 
-    bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
+    bool Converged(const Eigen::VectorXd&, double,
                    const Eigen::VectorXd& gradient) override {
       if (gradient.cwiseAbs().maxCoeff() < 1e-8) {
         return true;

@@ -35,27 +35,21 @@ class StaticRegion : public MMRegion<StaticSegment> {
 
   std::string identify() const override { return "static"; }
 
-  void Initialize(const tools::Property& prop) override { return; }
+  void Initialize(const tools::Property&) override { return; }
 
   bool Converged() const override { return true; }
 
   double Etotal() const override { return 0.0; }
 
-  void Evaluate(std::vector<std::unique_ptr<Region> >& regions) override {
-    return;
-  }
+  void Evaluate(std::vector<std::unique_ptr<Region> >&) override { return; }
   void Reset() override { return; };
 
  protected:
   void ResetRegion() { return; }
-  void AppendResult(tools::Property& prop) const override { return; }
-  double InteractwithQMRegion(const QMRegion& region) override { return 0.0; }
-  double InteractwithPolarRegion(const PolarRegion& region) override {
-    return 0.0;
-  }
-  double InteractwithStaticRegion(const StaticRegion& region) override {
-    return 0.0;
-  }
+  void AppendResult(tools::Property&) const override { return; }
+  double InteractwithQMRegion(const QMRegion&) override { return 0.0; }
+  double InteractwithPolarRegion(const PolarRegion&) override { return 0.0; }
+  double InteractwithStaticRegion(const StaticRegion&) override { return 0.0; }
 
  private:
 };

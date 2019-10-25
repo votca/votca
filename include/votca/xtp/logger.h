@@ -177,13 +177,11 @@ class Logger : public std::ostream {
       : std::ostream(new LogBuffer()), _ReportLevel(ReportLevel) {}
 
   ~Logger() override {
-    // dynamic_cast<LogBuffer *>( rdbuf())->FlushBuffer();
     delete rdbuf();
     rdbuf(nullptr);
   }
 
   Logger &operator()(TLogLevel LogLevel) {
-    // rdbuf()->pubsync();
     dynamic_cast<LogBuffer *>(rdbuf())->setLogLevel(LogLevel);
     return *this;
   }
@@ -225,7 +223,7 @@ class Logger : public std::ostream {
  */
 class TimeStamp {
  public:
-  friend std::ostream &operator<<(std::ostream &os, const TimeStamp &ts) {
+  friend std::ostream &operator<<(std::ostream &os, const TimeStamp &) {
     std::time_t now_time =
         std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     std::tm *timeinfo = std::localtime(&now_time);

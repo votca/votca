@@ -68,13 +68,9 @@ class MatrixFreeOperator : public Eigen::EigenBase<MatrixFreeOperator> {
   virtual int getBlocksize() const { return 0; }
 
   // extract row/col of the operator
-  virtual Eigen::RowVectorXd OperatorRow(int index) const {
-    return Eigen::RowVectorXd::Zero(0);
-  }
+  virtual Eigen::RowVectorXd OperatorRow(int index) const;
 
-  virtual Eigen::MatrixXd OperatorBlock(int row, int col) const {
-    return Eigen::MatrixXd::Zero(0, 0);
-  }
+  virtual Eigen::MatrixXd OperatorBlock(int row, int col) const;
 
  private:
   int _size;

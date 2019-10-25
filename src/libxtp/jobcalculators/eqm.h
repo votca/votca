@@ -47,7 +47,7 @@ class EQM : public ParallelXJobCalc<std::vector<Job> > {
 
   void CleanUp() { ; }
   void WriteJobFile(const Topology &top) override;
-  void ReadJobFile(Topology &top) override { return; }
+  void ReadJobFile(Topology &) override { return; }
 
  private:
   void WriteLoggerToFile(const std::string &logfile, Logger &logger);

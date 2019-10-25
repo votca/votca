@@ -113,7 +113,7 @@ class StaticSite {
 
   void WriteData(data& d) const;
   void ReadData(data& d);
-  virtual void setPolarisation(const Eigen::Matrix3d& pol) { return; }
+  virtual void setPolarisation(const Eigen::Matrix3d&) { return; }
 
   virtual std::string identify() const { return "staticsite"; }
 
