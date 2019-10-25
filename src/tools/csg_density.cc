@@ -136,9 +136,7 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *) {
 void CsgDensityApp::EvalConfiguration(Topology *top, Topology *) {
   // loop over all molecules
   bool did_something = false;
-  for (MoleculeContainer::iterator imol = top->Molecules().begin();
-       imol != top->Molecules().end(); ++imol) {
-    Molecule *mol = *imol;
+  for (Molecule *mol : top->Molecules()) {
     if (!votca::tools::wildcmp(_molname.c_str(), mol->getName().c_str())) {
       continue;
     }

@@ -23,6 +23,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <votca/csg/nblistgrid.h>
+#include <votca/tools/constants.h>
 #include <votca/tools/linalg.h>
 /*
  *
@@ -159,16 +160,15 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *) {
   _lamda.resize(_nlamda);
 
   // need to store initial guess of parameters in _lamda
-  PotentialContainer::iterator potiter;
-  for (potiter = _potentials.begin(); potiter != _potentials.end(); ++potiter) {
+  for (auto &_potential : _potentials) {
 
-    long int pos_start = (*potiter)->vec_pos;
-    long int pos_max = pos_start + (*potiter)->ucg->getOptParamSize();
+    long int pos_start = _potential->vec_pos;
+    long int pos_max = pos_start + _potential->ucg->getOptParamSize();
 
     for (long int row = pos_start; row < pos_max; row++) {
 
       long int lamda_i = row - pos_start;
-      _lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
+      _lamda(row) = _potential->ucg->getOptParam(lamda_i);
 
     }  // end row loop
 
@@ -207,8 +207,7 @@ void CsgREupdate::Run() {
       if (OptionsMap().count("interaction")) {
 
         Tokenizer tok(_op_vm["interaction"].as<string>(), ";");
-        vector<string> vtok;
-        tok.ToVector(vtok);
+        vector<string> vtok = tok.ToVector();
         vector<string>::iterator vtok_iter =
             find(vtok.begin(), vtok.end(), name);
         if (vtok_iter == vtok.end()) {
@@ -254,21 +253,20 @@ void CsgREupdate::WriteOutFiles() {
   cout << "Writing CG parameters and potential(s)\n";
   string file_name;
 
-  PotentialContainer::iterator potiter;
-  for (potiter = _potentials.begin(); potiter != _potentials.end(); ++potiter) {
-    file_name = (*potiter)->potentialName;
+  for (auto &_potential : _potentials) {
+    file_name = _potential->potentialName;
     file_name = file_name + "." + _pot_out_ext;
     cout << "Writing file: " << file_name << endl;
-    (*potiter)->ucg->SavePotTab(file_name,
-                                (*potiter)->_options->get("step").as<double>(),
-                                (*potiter)->_options->get("min").as<double>(),
-                                (*potiter)->_options->get("max").as<double>());
+    _potential->ucg->SavePotTab(file_name,
+                                _potential->_options->get("step").as<double>(),
+                                _potential->_options->get("min").as<double>(),
+                                _potential->_options->get("max").as<double>());
     // for gentable with no RE update no need to write-out parameters
     if (!_gentable) {
-      file_name = (*potiter)->potentialName;
+      file_name = _potential->potentialName;
       file_name = file_name + "." + _param_out_ext;
       cout << "Writing file: " << file_name << endl;
-      (*potiter)->ucg->SaveParam(file_name);
+      _potential->ucg->SaveParam(file_name);
     }
   }
 }
@@ -302,10 +300,8 @@ void CsgREupdate::REFormulateLinEq() {
   /* adding 1st term (i.e. aa ensemble avg) of eq. 51 to _DS
    * and of eq. 52 to _DH
    */
-  PotentialContainer::iterator potiter;
-  for (potiter = _potentials.begin(); potiter != _potentials.end(); ++potiter) {
+  for (auto potinfo : _potentials) {
 
-    PotentialInfo *potinfo = *potiter;
     if (potinfo->bonded) {
       AAavgBonded(potinfo);
     } else {
@@ -360,16 +356,15 @@ void CsgREupdate::REUpdateLamda() {
   _lamda = _lamda + _relax * dlamda;
 
   // now update parameters of individual cg potentials
-  PotentialContainer::iterator potiter;
-  for (potiter = _potentials.begin(); potiter != _potentials.end(); ++potiter) {
+  for (auto &_potential : _potentials) {
 
-    long int pos_start = (*potiter)->vec_pos;
-    long int pos_max = pos_start + (*potiter)->ucg->getOptParamSize();
+    long int pos_start = _potential->vec_pos;
+    long int pos_max = pos_start + _potential->ucg->getOptParamSize();
 
     for (long int row = pos_start; row < pos_max; row++) {
 
       long int lamda_i = row - pos_start;
-      (*potiter)->ucg->setOptParam(lamda_i, _lamda(row));
+      _potential->ucg->setOptParam(lamda_i, _lamda(row));
 
     }  // end row loop
 
@@ -397,8 +392,9 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
     double r_hist = _aardfs[indx]->x(bin);
     double r1 = r_hist - 0.5 * step;
     double r2 = r1 + step;
-    double n_hist = _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
-                    (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
+    double n_hist =
+        _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
+        (4. / 3. * votca::tools::conv::Pi * (r2 * r2 * r2 - r1 * r1 * r1));
 
     if (n_hist > 0.0) {
       U += n_hist * potinfo->ucg->CalculateF(r_hist);
@@ -421,8 +417,9 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
       double r_hist = _aardfs[indx]->x(bin);
       double r1 = r_hist - 0.5 * step;
       double r2 = r1 + step;
-      double n_hist = _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
-                      (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
+      double n_hist =
+          _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
+          (4. / 3. * votca::tools::conv::Pi * (r2 * r2 * r2 - r1 * r1 * r1));
 
       if (n_hist > 0.0) {
         dU_i += n_hist * potinfo->ucg->CalculateDF(lamda_i, r_hist);
@@ -444,8 +441,9 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
         double r_hist = _aardfs[indx]->x(bin);
         double r1 = r_hist - 0.5 * step;
         double r2 = r1 + step;
-        double n_hist = _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
-                        (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
+        double n_hist =
+            _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
+            (4. / 3. * votca::tools::conv::Pi * (r2 * r2 * r2 - r1 * r1 * r1));
 
         if (n_hist > 0.0) {
           d2U_ij +=
@@ -487,17 +485,15 @@ CsgApplication::Worker *CsgREupdate::ForkWorker() {
   worker->_lamda.resize(worker->_nlamda);
 
   // need to store initial guess of parameters in _lamda
-  PotentialContainer::iterator potiter;
-  for (potiter = worker->_potentials.begin();
-       potiter != worker->_potentials.end(); ++potiter) {
+  for (PotentialInfo *pot : worker->_potentials) {
 
-    long int pos_start = (*potiter)->vec_pos;
-    long int pos_max = pos_start + (*potiter)->ucg->getOptParamSize();
+    long int pos_start = pot->vec_pos;
+    long int pos_max = pos_start + pot->ucg->getOptParamSize();
 
     for (long int row = pos_start; row < pos_max; row++) {
 
       long int lamda_i = row - pos_start;
-      worker->_lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
+      worker->_lamda(row) = pot->ucg->getOptParam(lamda_i);
 
     }  // end row loop
 
@@ -548,17 +544,9 @@ void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *) {
       EvalNonbonded(conf, potinfo);
     }
   }
-
   // update _DS and _HS
-  for (int row = 0; row < _nlamda; row++) {
-
-    _DS(row) += (-1.0 * _beta * _dUFrame(row));
-
-    for (int col = row; col < _nlamda; col++) {
-      _HS(row, col) += (_beta * _beta * _dUFrame(row) * _dUFrame(col));
-      _HS(col, row) += (_beta * _beta * _dUFrame(row) * _dUFrame(col));
-    }
-  }
+  _DS -= _beta * _dUFrame;
+  _HS += _beta * _beta * _dUFrame * _dUFrame.transpose();
 
   _nframes++;
 }
@@ -586,7 +574,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
                              potinfo->potentialName + "\"");
   }
 
-  NBList *nb;
+  std::unique_ptr<NBList> nb;
   bool gridsearch = false;
 
   if (_options.exists("cg.nbsearch")) {
@@ -601,9 +589,9 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
   }
 
   if (gridsearch) {
-    nb = new NBListGrid();
+    nb = std::make_unique<NBList>(NBListGrid());
   } else {
-    nb = new NBList();
+    nb = std::make_unique<NBList>(NBList());
   }
 
   nb->setCutoff(potinfo->ucg->getCutOff());
@@ -614,7 +602,6 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
     nb->Generate(beads1, beads2, true);
   }
 
-  NBList::iterator pair_iter;
   long int pos_start = potinfo->vec_pos;
   long int pos_max = pos_start + potinfo->ucg->getOptParamSize();
   double dU_i, d2U_ij;
@@ -622,8 +609,8 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
 
   // compute total energy
   U = 0.0;
-  for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-    U += potinfo->ucg->CalculateF((*pair_iter)->dist());
+  for (auto &pair_iter : *nb) {
+    U += potinfo->ucg->CalculateF(pair_iter->dist());
   }
 
   _UavgCG += U;
@@ -634,8 +621,8 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
     long int lamda_i = row - pos_start;
 
     dU_i = 0.0;
-    for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-      dU_i += potinfo->ucg->CalculateDF(lamda_i, (*pair_iter)->dist());
+    for (auto &pair_iter : *nb) {
+      dU_i += potinfo->ucg->CalculateDF(lamda_i, pair_iter->dist());
     }
 
     _dUFrame(row) = dU_i;
@@ -645,9 +632,9 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
       long int lamda_j = col - pos_start;
       d2U_ij = 0.0;
 
-      for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
+      for (auto &pair_iter : *nb) {
         d2U_ij +=
-            potinfo->ucg->CalculateD2F(lamda_i, lamda_j, (*pair_iter)->dist());
+            potinfo->ucg->CalculateD2F(lamda_i, lamda_j, pair_iter->dist());
       }
 
       _HS(row, col) += (-1.0 * _beta * d2U_ij);
@@ -655,8 +642,6 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
     }  // end loop col
 
   }  // end loop row
-
-  delete nb;
 }
 
 // do bonded potential related update stuff for the current frame in evalconfig

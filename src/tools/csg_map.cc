@@ -82,42 +82,36 @@ class CsgMapApp : public CsgApplication {
       _writer->Write(top);
     } else {
       // we want to combine atomistic and coarse-grained into one topology
-      Topology *hybtol = new Topology();
+      Topology hybtol;
 
-      ResidueContainer::iterator it_res;
-      MoleculeContainer::iterator it_mol;
-
-      hybtol->setBox(top->getBox());
-      hybtol->setTime(top->getTime());
-      hybtol->setStep(top->getStep());
+      hybtol.setBox(top->getBox());
+      hybtol.setTime(top->getTime());
+      hybtol.setStep(top->getStep());
 
       // copy all residues from both
-      for (it_res = top_ref->Residues().begin();
-           it_res != top_ref->Residues().end(); ++it_res) {
-        hybtol->CreateResidue((*it_res)->getName());
+      for (auto &residue : top_ref->Residues()) {
+        hybtol.CreateResidue(residue->getName());
       }
-      for (it_res = top->Residues().begin(); it_res != top->Residues().end();
-           ++it_res) {
-        hybtol->CreateResidue((*it_res)->getName());
+      for (auto &residue : top->Residues()) {
+        hybtol.CreateResidue(residue->getName());
       }
 
       // copy all molecules and beads
 
-      for (it_mol = top_ref->Molecules().begin();
-           it_mol != top_ref->Molecules().end(); ++it_mol) {
-        Molecule *mi = hybtol->CreateMolecule((*it_mol)->getName());
-        for (int i = 0; i < (*it_mol)->BeadCount(); i++) {
+      for (auto &molecule : top_ref->Molecules()) {
+        Molecule *mi = hybtol.CreateMolecule(molecule->getName());
+        for (int i = 0; i < molecule->BeadCount(); i++) {
           // copy atomistic beads of molecule
-          long int beadid = (*it_mol)->getBead(i)->getId();
+          long int beadid = molecule->getBead(i)->getId();
 
-          Bead *bi = (*it_mol)->getBead(i);
-          if (!hybtol->BeadTypeExist(bi->getType())) {
-            hybtol->RegisterBeadType(bi->getType());
+          Bead *bi = molecule->getBead(i);
+          if (!hybtol.BeadTypeExist(bi->getType())) {
+            hybtol.RegisterBeadType(bi->getType());
           }
 
-          Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(),
-                                        bi->getType(), bi->getResnr(),
-                                        bi->getMass(), bi->getQ());
+          Bead *bn =
+              hybtol.CreateBead(bi->getSymmetry(), bi->getName(), bi->getType(),
+                                bi->getResnr(), bi->getMass(), bi->getQ());
           bn->setPos(bi->getPos());
           if (bi->HasVel()) {
             bn->setVel(bi->getVel());
@@ -126,7 +120,7 @@ class CsgMapApp : public CsgApplication {
             bn->setF(bi->getF());
           }
 
-          mi->AddBead(hybtol->Beads()[beadid], (*it_mol)->getBeadName(i));
+          mi->AddBead(hybtol.Beads()[beadid], molecule->getBeadName(i));
         }
 
         if (mi->getId() < top->MoleculeCount()) {
@@ -136,10 +130,10 @@ class CsgMapApp : public CsgApplication {
             Bead *bi = cgmol->getBead(i);
             // todo: this is a bit dirty as a cg bead will always have the resid
             // of its first parent
-            Bead *bparent = (*it_mol)->getBead(0);
-            Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(),
-                                          bi->getType(), bparent->getResnr(),
-                                          bi->getMass(), bi->getQ());
+            Bead *bparent = molecule->getBead(0);
+            Bead *bn = hybtol.CreateBead(bi->getSymmetry(), bi->getName(),
+                                         bi->getType(), bparent->getResnr(),
+                                         bi->getMass(), bi->getQ());
             bn->setPos(bi->getPos());
             if (bi->HasVel()) {
               bn->setVel(bi->getVel());
@@ -148,9 +142,9 @@ class CsgMapApp : public CsgApplication {
           }
         }
       }
-      hybtol->setBox(top_ref->getBox());
+      hybtol.setBox(top_ref->getBox());
 
-      _writer->Write(hybtol);
+      _writer->Write(&hybtol);
     }
   }
 

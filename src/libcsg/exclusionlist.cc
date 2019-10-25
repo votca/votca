@@ -25,24 +25,22 @@ namespace csg {
 using namespace std;
 
 void ExclusionList::Clear(void) {
-  list<exclusion_t *>::iterator iter;
 
-  for (iter = _exclusions.begin(); iter != _exclusions.end(); ++iter) {
-    delete *iter;
+  for (auto &_exclusion : _exclusions) {
+    delete _exclusion;
   }
   _exclusions.clear();
 }
 
 void ExclusionList::CreateExclusions(Topology *top) {
   InteractionContainer &ic = top->BondedInteractions();
-  InteractionContainer::iterator ia;
 
-  for (ia = ic.begin(); ia != ic.end(); ++ia) {
-    long int beads_in_int = (*ia)->BeadCount();
+  for (auto &ia : ic) {
+    long int beads_in_int = ia->BeadCount();
     list<Bead *> l;
 
     for (long int ibead = 0; ibead < beads_in_int; ibead++) {
-      long int ii = (*ia)->getBeadId(ibead);
+      long int ii = ia->getBeadId(ibead);
       l.push_back(top->getBead(ii));
     }
     ExcludeList(l);
@@ -78,12 +76,11 @@ bool compareAtomIdBeadList(const Bead *a, const Bead *b) {
 std::ostream &operator<<(std::ostream &out, ExclusionList &exl) {
   exl._exclusions.sort(compareAtomIdiExclusionList);
 
-  list<ExclusionList::exclusion_t *>::iterator ex;
-  for (ex = exl._exclusions.begin(); ex != exl._exclusions.end(); ++ex) {
-    (*ex)->_exclude.sort(compareAtomIdBeadList);
-    list<Bead *>::iterator i;
-    out << (int)((*ex)->_atom->getId()) + 1;
-    for (i = (*ex)->_exclude.begin(); i != (*ex)->_exclude.end(); ++i) {
+  for (auto &_exclusion : exl._exclusions) {
+    _exclusion->_exclude.sort(compareAtomIdBeadList);
+    out << (int)(_exclusion->_atom->getId()) + 1;
+    for (list<Bead *>::iterator i = _exclusion->_exclude.begin();
+         i != _exclusion->_exclude.end(); ++i) {
       out << " " << ((*i)->getId() + 1);
     }
     out << endl;

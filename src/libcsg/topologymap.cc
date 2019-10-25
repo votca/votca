@@ -21,23 +21,20 @@ namespace votca {
 namespace csg {
 
 TopologyMap::~TopologyMap() {
-  MapContainer::iterator i;
 
-  for (i = _maps.begin(); i != _maps.end(); ++i) {
-    delete *i;
+  for (auto& _map : _maps) {
+    delete _map;
   }
   _maps.clear();
 }
 
 void TopologyMap::Apply() {
-  MapContainer::iterator iter;
-
   _out->setStep(_in->getStep());
   _out->setTime(_in->getTime());
   _out->setBox(_in->getBox());
 
-  for (iter = _maps.begin(); iter != _maps.end(); ++iter) {
-    (*iter)->Apply();
+  for (auto& _map : _maps) {
+    _map->Apply();
   }
 }
 

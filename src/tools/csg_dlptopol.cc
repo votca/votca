@@ -239,16 +239,13 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg) {
 }
 
 void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
-  InteractionContainer ics = cg.Interactions();
-  vector<Interaction *>::iterator iter;
 
   stringstream sout;
 
   int n_entries = 0;
   long int nb = -1;
 
-  for (iter = ics.begin(); iter != ics.end(); ++iter) {
-    Interaction *ic = *iter;
+  for (Interaction *ic : cg.Interactions()) {
     if (nb != ic->BeadCount()) {
 
       if (sout.str() != "") {

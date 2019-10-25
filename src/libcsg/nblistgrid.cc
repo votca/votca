@@ -25,7 +25,7 @@ using namespace std;
 
 void NBListGrid::Generate(BeadList &list1, BeadList &list2,
                           bool do_exclusions) {
-  BeadList::iterator iter;
+
   _do_exclusions = do_exclusions;
   if (list1.empty()) {
     return;
@@ -40,18 +40,17 @@ void NBListGrid::Generate(BeadList &list1, BeadList &list2,
   InitializeGrid(top->getBox());
 
   // Add all beads of list1
-  for (iter = list1.begin(); iter != list1.end(); ++iter) {
-    getCell((*iter)->getPos())._beads.push_back(*iter);
+  for (auto &iter : list1) {
+    getCell(iter->getPos())._beads.push_back(iter);
   }
 
-  for (iter = list2.begin(); iter != list2.end(); ++iter) {
-    cell_t &cell = getCell((*iter)->getPos());
-    TestBead(cell, *iter);
+  for (auto &iter : list2) {
+    cell_t &cell = getCell(iter->getPos());
+    TestBead(cell, iter);
   }
 }
 
 void NBListGrid::Generate(BeadList &list, bool do_exclusions) {
-  BeadList::iterator iter;
   _do_exclusions = do_exclusions;
   if (list.empty()) {
     return;
@@ -61,10 +60,10 @@ void NBListGrid::Generate(BeadList &list, bool do_exclusions) {
 
   InitializeGrid(top->getBox());
 
-  for (iter = list.begin(); iter != list.end(); ++iter) {
-    cell_t &cell = getCell((*iter)->getPos());
-    TestBead(cell, *iter);
-    getCell((*iter)->getPos())._beads.push_back(*iter);
+  for (auto &iter : list) {
+    cell_t &cell = getCell(iter->getPos());
+    TestBead(cell, iter);
+    getCell(iter->getPos())._beads.push_back(iter);
   }
 }
 void NBListGrid::InitializeGrid(const Eigen::Matrix3d &box) {
@@ -170,29 +169,28 @@ NBListGrid::cell_t &NBListGrid::getCell(const Eigen::Vector3d &r) {
 
 void NBListGrid::TestBead(NBListGrid::cell_t &cell, Bead *bead) {
   TestCell(cell, bead);
-  for (auto &_neighbour : cell._neighbours) {
-    TestCell(*_neighbour, bead);
+  for (auto &neighbour : cell._neighbours) {
+    TestCell(*neighbour, bead);
   }
 }
 
 void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead) {
-  BeadList::iterator iter;
   Eigen::Vector3d u = bead->getPos();
 
-  for (iter = cell._beads.begin(); iter != cell._beads.end(); ++iter) {
+  for (auto &_bead : cell._beads) {
 
-    Eigen::Vector3d v = (*iter)->getPos();
+    Eigen::Vector3d v = _bead->getPos();
     Eigen::Vector3d r = _top->BCShortestConnection(v, u);
     double d = r.norm();
     if (d < _cutoff) {
       if (_do_exclusions) {
-        if (_top->getExclusions().IsExcluded((*iter), bead)) {
+        if (_top->getExclusions().IsExcluded(_bead, bead)) {
           continue;
         }
       }
-      if ((*_match_function)(*iter, bead, r, d)) {
-        if (!FindPair(*iter, bead)) {
-          AddPair(_pair_creator(*iter, bead, r));
+      if ((*_match_function)(_bead, bead, r, d)) {
+        if (!FindPair(_bead, bead)) {
+          AddPair(_pair_creator(_bead, bead, r));
         }
       }
     }

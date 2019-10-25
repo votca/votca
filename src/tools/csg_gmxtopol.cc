@@ -81,13 +81,7 @@ void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg) {
 void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg) {
   long int nb = -1;
 
-  Interaction *ic;
-  vector<Interaction *>::iterator iter;
-
-  InteractionContainer &ics = cg.getParent()->BondedInteractions();
-
-  for (iter = ics.begin(); iter != ics.end(); ++iter) {
-    ic = *iter;
+  for (Interaction *ic : cg.getParent()->BondedInteractions()) {
     if (ic->getMolecule() != cg.getId()) {
       continue;
     }

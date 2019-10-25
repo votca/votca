@@ -25,7 +25,7 @@ using namespace std;
 
 void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
                                 BeadList &list3, bool do_exclusions) {
-  BeadList::iterator iter;
+
   _do_exclusions = do_exclusions;
   if (list1.empty()) {
     return;
@@ -46,24 +46,24 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
   InitializeGrid(top->getBox());
 
   // Add all beads of list1 to _beads1
-  for (iter = list1.begin(); iter != list1.end(); ++iter) {
-    getCell((*iter)->getPos())._beads1.push_back(*iter);
+  for (auto &iter : list1) {
+    getCell(iter->getPos())._beads1.push_back(iter);
   }
 
   // Add all beads of list2 to _beads2
-  for (iter = list2.begin(); iter != list2.end(); ++iter) {
-    getCell((*iter)->getPos())._beads2.push_back(*iter);
+  for (auto &iter : list2) {
+    getCell(iter->getPos())._beads2.push_back(iter);
   }
 
   // Add all beads of list2 to _beads3
-  for (iter = list3.begin(); iter != list3.end(); ++iter) {
-    getCell((*iter)->getPos())._beads3.push_back(*iter);
+  for (auto &iter : list3) {
+    getCell(iter->getPos())._beads3.push_back(iter);
   }
 
   // loop over beads of list 1 again to get the correlations
-  for (iter = list1.begin(); iter != list1.end(); ++iter) {
-    cell_t &cell = getCell((*iter)->getPos());
-    TestBead(cell, *iter);
+  for (auto &iter : list1) {
+    cell_t &cell = getCell(iter->getPos());
+    TestBead(cell, iter);
   }
 }
 
