@@ -68,21 +68,15 @@ inline int getThreadId() {
   return thread_id;
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#pragma gcc diagnostic push
-#pragma gcc diagnostic ignored "-Wunused-parameter"
-
-inline void setMaxThreads(int threads) {
-
 #ifdef _OPENMP
+inline void setMaxThreads(int threads) {
   if (threads > 0) {
     omp_set_num_threads(threads);
   }
-#endif
 }
-#pragma clang diagnostic pop
-#pragma gcc diagnostic pop
+#else
+inline void setMaxThreads(int) {}
+#endif
 }  // namespace OPENMP
 }  // namespace xtp
 }  // namespace votca
