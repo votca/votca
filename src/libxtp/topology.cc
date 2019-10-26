@@ -58,7 +58,7 @@ Topology &Topology::operator=(const Topology &top) {
 }
 
 Segment &Topology::AddSegment(std::string segment_name) {
-  int segment_id = _segments.size();
+  long int segment_id = _segments.size();
   _segments.push_back(Segment(segment_name, segment_id));
   return _segments.back();
 }
@@ -196,7 +196,7 @@ void Topology::ReadFromCpt(CheckpointReader &r) {
   setBox(box);
   CheckpointReader v = r.openChild("segments");
   _segments.clear();
-  int count = v.getNumDataSets();
+  long int count = v.getNumDataSets();
   _segments.reserve(count);
   for (int i = 0; i < count; i++) {
     CheckpointReader w = v.openChild("segment" + std::to_string(i));

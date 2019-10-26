@@ -87,7 +87,7 @@ class QMPackage {
 
   void setLog(Logger* pLog) { _pLog = pLog; }
 
-  void setCharge(double charge) {
+  void setCharge(int charge) {
     _charge = charge;
     _spin = std::abs(charge) + 1;
   }
