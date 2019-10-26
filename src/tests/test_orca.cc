@@ -24,7 +24,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(orca_test)
 
-BOOST_AUTO_TEST_CASE(polar) {
+BOOST_AUTO_TEST_CASE(polar_test) {
   std::ofstream polar("polar_orca.log");
   polar << "" << std::endl;
   polar << "                                 *****************" << std::endl;

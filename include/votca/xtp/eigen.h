@@ -39,8 +39,8 @@ class Mat_p_Energy {
   Mat_p_Energy(double e, Eigen::MatrixXd&& mat)
       : _energy(e), _matrix(std::move(mat)){};
 
-  int rows() const { return _matrix.rows(); }
-  int cols() const { return _matrix.cols(); }
+  long int rows() const { return _matrix.rows(); }
+  long int cols() const { return _matrix.cols(); }
   Eigen::MatrixXd& matrix() { return _matrix; }
   double& energy() { return _energy; }
   const Eigen::MatrixXd& matrix() const { return _matrix; }
@@ -68,13 +68,15 @@ inline int getThreadId() {
   return thread_id;
 }
 
-inline void setMaxThreads(int threads) {
 #ifdef _OPENMP
+inline void setMaxThreads(int threads) {
   if (threads > 0) {
     omp_set_num_threads(threads);
   }
-#endif
 }
+#else
+inline void setMaxThreads(int) {}
+#endif
 }  // namespace OPENMP
 }  // namespace xtp
 }  // namespace votca

@@ -98,7 +98,7 @@ void ProgObserver<JobContainer>::ReportJobDone(Job &job, Result &res,
   // RESULTS, TIME, HOST
   job.UpdateFromResult(res);
   job.setTime(GenerateTime());
-  job.setHost(GenerateHost(thread));
+  job.setHost(GenerateHost());
   // PRINT PROGRESS BAR
   _jobsReported += 1;
   if (!thread.isMaverick()) {
@@ -109,7 +109,7 @@ void ProgObserver<JobContainer>::ReportJobDone(Job &job, Result &res,
 }
 
 template <typename JobContainer>
-std::string ProgObserver<JobContainer>::GenerateHost(QMThread &thread) {
+std::string ProgObserver<JobContainer>::GenerateHost() {
   char host[128];
   (void)gethostname(host, sizeof host);
   pid_t pid = getpid();
@@ -135,7 +135,7 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Update internal structures from job file" << std::flush;
   JobContainer jobs_ext = LOAD_JOBS(progFile);
-  UPDATE_JOBS(jobs_ext, _jobs, GenerateHost(thread));
+  UPDATE_JOBS(jobs_ext, _jobs, GenerateHost());
 
   // GENERATE BACK-UP FOR SHARED XML
   XTP_LOG(logDEBUG, thread.getLogger())
@@ -165,7 +165,7 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
     if (startJob) {
       _metajit->Reset();
       _metajit->setStatus("ASSIGNED");
-      _metajit->setHost(GenerateHost(thread));
+      _metajit->setHost(GenerateHost());
       _metajit->setTime(GenerateTime());
       _jobsToProc.push_back(&*_metajit);
       _startJobsCount += 1;
@@ -219,24 +219,23 @@ void ProgObserver<JobContainer>::InitCmdLineOpts(
     _restartMode = true;
   }
 
-  std::vector<std::string> split;
   tools::Tokenizer toker(restartPattern, "(,)");
-  toker.ToVector(split);
+  std::vector<std::string> patterns = toker.ToVector();
 
   std::string category = "";
-  for (unsigned int i = 0; i < split.size(); ++i) {
+  for (const std::string &pattern : patterns) {
 
-    if (split[i] == "host" || split[i] == "stat") {
-      category = split[i];
+    if (pattern == "host" || pattern == "stat") {
+      category = pattern;
 
     } else if (category == "host") {
-      _restart_hosts[split[i]] = true;
+      _restart_hosts[pattern] = true;
     } else if (category == "stat") {
-      if (split[i] == "ASSIGNED" || split[i] == "COMPLETE") {
-        std::cout << "Restart if status == " << split[i]
+      if (pattern == "ASSIGNED" || pattern == "COMPLETE") {
+        std::cout << "Restart if status == " << pattern
                   << "? Not necessarily a good idea." << std::endl;
       }
-      _restart_stats[split[i]] = true;
+      _restart_stats[pattern] = true;
     }
 
     else {

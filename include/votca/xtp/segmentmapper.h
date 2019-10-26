@@ -125,7 +125,7 @@ inline void SegmentMapper<QMMolecule>::FillMap() {
 }
 
 template <>
-inline int SegmentMapper<QMMolecule>::getRank(const QMAtom& atom) const {
+inline int SegmentMapper<QMMolecule>::getRank(const QMAtom&) const {
   return 0;
 }
 

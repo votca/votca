@@ -80,7 +80,7 @@ class ECPAOShell {
   bool isNonLocal() const { return (_L < _Lmax_element); }
   const Eigen::Vector3d& getPos() const { return _pos; }
 
-  int getSize() const { return _gaussians.size(); }
+  long int getSize() const { return _gaussians.size(); }
 
   // iterator over pairs (decay constant; contraction coefficient)
   using ECPGaussianIterator =

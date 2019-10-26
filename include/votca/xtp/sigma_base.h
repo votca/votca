@@ -33,7 +33,6 @@ class Sigma_base {
   Sigma_base(TCMatrix_gwbse& Mmn, const RPA& rpa) : _Mmn(Mmn), _rpa(rpa){};
 
   virtual ~Sigma_base() = default;
-  ;
 
   struct options {
     int homo;

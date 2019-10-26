@@ -203,7 +203,7 @@ void QMRegion::Reset() {
   _qmpackage->setCharge(charge);
   return;
 }
-double QMRegion::InteractwithQMRegion(const QMRegion& region) {
+double QMRegion::InteractwithQMRegion(const QMRegion&) {
   throw std::runtime_error(
       "QMRegion-QMRegion interaction is not implemented yet.");
   return 0.0;

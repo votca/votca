@@ -34,7 +34,6 @@ class MolPol : public QMTool {
   MolPol() : _input("", 0){};
 
   ~MolPol() override = default;
-  ;
 
   std::string Identify() override { return "molpol"; }
 

@@ -37,7 +37,6 @@ enum Estatic : bool {
 class eeInteractor {
  public:
   explicit eeInteractor() = default;
-  ;
   explicit eeInteractor(double expdamping) : _expdamping(expdamping){};
 
   Eigen::Matrix3d FillTholeInteraction(const PolarSite& site1,

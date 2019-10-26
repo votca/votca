@@ -43,7 +43,6 @@ class AtomContainer {
 
   AtomContainer(CheckpointReader& r) { this->ReadFromCpt(r); }
   virtual ~AtomContainer() = default;
-  ;
 
   using iterator = typename std::vector<T>::iterator;
 
@@ -53,7 +52,7 @@ class AtomContainer {
 
   int getId() const { return _id; }
 
-  int size() const { return _atomlist.size(); }
+  long int size() const { return _atomlist.size(); }
 
   void push_back(const T& atom) {
     _atomlist.push_back(atom);

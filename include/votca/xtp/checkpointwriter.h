@@ -246,8 +246,8 @@ class CheckpointWriter {
 
     std::vector<const char*> c_str_copy;
     c_str_copy.reserve(v.size());
-    for (unsigned i = 0; i < v.size(); i++) {
-      c_str_copy.push_back(v[i].c_str());
+    for (const std::string& s : v) {
+      c_str_copy.push_back(s.c_str());
     }
     const H5::DataType* dataType = InferDataType<std::string>::get();
     H5::DataSet dataset;

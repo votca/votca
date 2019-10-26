@@ -619,4 +619,4 @@ BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
 }
 
 }  // namespace xtp
-};  // namespace votca
+}  // namespace votca

@@ -81,7 +81,7 @@ class QMPair {
   QMPair(int id, const Segment* seg1, const Segment* seg2,
          const Eigen::Vector3d& delta_R);
 
-  QMPair(data& d, const std::vector<Segment>& segments) {
+  QMPair(const data& d, const std::vector<Segment>& segments) {
     ReadData(d, segments);
   }
 
@@ -130,7 +130,7 @@ class QMPair {
   void SetupCptTable(CptTable& table) const;
   void WriteData(data& d) const;
 
-  void ReadData(data& d, const std::vector<Segment>& segments);
+  void ReadData(const data& d, const std::vector<Segment>& segments);
 
  private:
   int _id = -1;

@@ -25,7 +25,7 @@ namespace xtp {
 template <class AtomContainer>
 SegmentMapper<AtomContainer>::SegmentMapper(Logger& log) : _log(log) {
   FillMap();
-};
+}
 
 template <class AtomContainer>
 AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,

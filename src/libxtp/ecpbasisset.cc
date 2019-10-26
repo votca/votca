@@ -78,7 +78,7 @@ ECPElement& ECPBasisSet::addElement(std::string elementType, int lmax,
   std::shared_ptr<ECPElement> element(new ECPElement(elementType, lmax, ncore));
   _elements[elementType] = element;
   return *element;
-};
+}
 
 const ECPElement& ECPBasisSet::getElement(std::string element_type) const {
   std::map<std::string, std::shared_ptr<ECPElement> >::const_iterator itm =

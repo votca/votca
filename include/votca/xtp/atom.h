@@ -47,8 +47,6 @@ class Atom {
 
   Atom(int atom_id, std::string element, Eigen::Vector3d pos);
 
-  Atom(CptTable table, const std::size_t& idx) { ReadFromCpt(table, idx); }
-
   Atom(data& d) { ReadData(d); }
 
   static std::string GetElementFromString(const std::string& MDName);
@@ -81,11 +79,7 @@ class Atom {
 
   void WriteData(data& d) const;
 
-  void WriteToCpt(CptTable& table, const std::size_t& idx) const;
-
-  void ReadData(data& d);
-
-  void ReadFromCpt(CptTable table, const std::size_t& idx);
+  void ReadData(const data& d);
 
  private:
   int _id = -1;

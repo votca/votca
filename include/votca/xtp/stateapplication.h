@@ -34,7 +34,6 @@ class StateApplication : public XtpApplication {
   StateApplication();
 
   ~StateApplication() override = default;
-  ;
 
   void Initialize() override;
   bool EvaluateOptions() override;

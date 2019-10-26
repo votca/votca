@@ -28,7 +28,7 @@ namespace xtp {
 
 class AOMatrix {
  public:
-  int Dimension() { return _aomatrix.rows(); }
+  long int Dimension() { return _aomatrix.rows(); }
   const Eigen::MatrixXd& Matrix() const { return _aomatrix; }
   void Fill(const AOBasis& aobasis);
 

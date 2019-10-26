@@ -60,18 +60,16 @@ class StaticSite {
   StaticSite(int id, std::string element)
       : StaticSite(id, element, Eigen::Vector3d::Zero()){};
 
-  StaticSite(data& d) { ReadData(d); }
+  StaticSite(const data& d) { ReadData(d); }
 
   StaticSite(const QMAtom& atom, double charge)
       : StaticSite(atom.getId(), atom.getElement(), atom.getPos()) {
     setCharge(charge);
   }
   virtual ~StaticSite() = default;
-  ;
 
  protected:
   StaticSite() = default;
-  ;
 
  public:
   int getId() const { return _id; }
@@ -114,8 +112,8 @@ class StaticSite {
   virtual void SetupCptTable(CptTable& table) const;
 
   void WriteData(data& d) const;
-  void ReadData(data& d);
-  virtual void setPolarisation(const Eigen::Matrix3d& pol) { return; }
+  void ReadData(const data& d);
+  virtual void setPolarisation(const Eigen::Matrix3d&) { return; }
 
   virtual std::string identify() const { return "staticsite"; }
 

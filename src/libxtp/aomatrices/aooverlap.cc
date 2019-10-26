@@ -228,19 +228,19 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
 
     // Integrals     p - d     d - d     f - d     g - d     h - d     i - d
     for (int i = 1; i < n_orbitals[lmax_row]; i++) {
-      double term = fak * ol(i, 0);
+      double term_loc = fak * ol(i, 0);
       ol(i, Cart::xx) = PmB(0) * ol(i, Cart::x) +
-                        nx[i] * fak * ol(i_less_x[i], Cart::x) + term;
+                        nx[i] * fak * ol(i_less_x[i], Cart::x) + term_loc;
       ol(i, Cart::xy) =
           PmB(0) * ol(i, Cart::y) + nx[i] * fak * ol(i_less_x[i], Cart::y);
       ol(i, Cart::xz) =
           PmB(0) * ol(i, Cart::z) + nx[i] * fak * ol(i_less_x[i], Cart::z);
       ol(i, Cart::yy) = PmB(1) * ol(i, Cart::y) +
-                        ny[i] * fak * ol(i_less_y[i], Cart::y) + term;
+                        ny[i] * fak * ol(i_less_y[i], Cart::y) + term_loc;
       ol(i, Cart::yz) =
           PmB(1) * ol(i, Cart::z) + ny[i] * fak * ol(i_less_y[i], Cart::z);
       ol(i, Cart::zz) = PmB(2) * ol(i, Cart::z) +
-                        nz[i] * fak * ol(i_less_z[i], Cart::z) + term;
+                        nz[i] * fak * ol(i_less_z[i], Cart::z) + term_loc;
     }
     //------------------------------------------------------
 
@@ -316,22 +316,24 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
 
     // Integrals     p - g     d - g     f - g     g - g     h - g     i - g
     for (int i = 1; i < n_orbitals[lmax_row]; i++) {
-      double term_xx = fak * ol(i, Cart::xx);
-      double term_yy = fak * ol(i, Cart::yy);
-      double term_zz = fak * ol(i, Cart::zz);
+      double term_xx_loc = fak * ol(i, Cart::xx);
+      double term_yy_loc = fak * ol(i, Cart::yy);
+      double term_zz_loc = fak * ol(i, Cart::zz);
       ol(i, Cart::xxxx) = PmB(0) * ol(i, Cart::xxx) +
                           nx[i] * fak * ol(i_less_x[i], Cart::xxx) +
-                          3 * term_xx;
+                          3 * term_xx_loc;
       ol(i, Cart::xxxy) =
           PmB(1) * ol(i, Cart::xxx) + ny[i] * fak * ol(i_less_y[i], Cart::xxx);
       ol(i, Cart::xxxz) =
           PmB(2) * ol(i, Cart::xxx) + nz[i] * fak * ol(i_less_z[i], Cart::xxx);
       ol(i, Cart::xxyy) = PmB(0) * ol(i, Cart::xyy) +
-                          nx[i] * fak * ol(i_less_x[i], Cart::xyy) + term_yy;
+                          nx[i] * fak * ol(i_less_x[i], Cart::xyy) +
+                          term_yy_loc;
       ol(i, Cart::xxyz) =
           PmB(1) * ol(i, Cart::xxz) + ny[i] * fak * ol(i_less_y[i], Cart::xxz);
       ol(i, Cart::xxzz) = PmB(0) * ol(i, Cart::xzz) +
-                          nx[i] * fak * ol(i_less_x[i], Cart::xzz) + term_zz;
+                          nx[i] * fak * ol(i_less_x[i], Cart::xzz) +
+                          term_zz_loc;
       ol(i, Cart::xyyy) =
           PmB(0) * ol(i, Cart::yyy) + nx[i] * fak * ol(i_less_x[i], Cart::yyy);
       ol(i, Cart::xyyz) =
@@ -342,16 +344,17 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
           PmB(0) * ol(i, Cart::zzz) + nx[i] * fak * ol(i_less_x[i], Cart::zzz);
       ol(i, Cart::yyyy) = PmB(1) * ol(i, Cart::yyy) +
                           ny[i] * fak * ol(i_less_y[i], Cart::yyy) +
-                          3 * term_yy;
+                          3 * term_yy_loc;
       ol(i, Cart::yyyz) =
           PmB(2) * ol(i, Cart::yyy) + nz[i] * fak * ol(i_less_z[i], Cart::yyy);
       ol(i, Cart::yyzz) = PmB(1) * ol(i, Cart::yzz) +
-                          ny[i] * fak * ol(i_less_y[i], Cart::yzz) + term_zz;
+                          ny[i] * fak * ol(i_less_y[i], Cart::yzz) +
+                          term_zz_loc;
       ol(i, Cart::yzzz) =
           PmB(1) * ol(i, Cart::zzz) + ny[i] * fak * ol(i_less_y[i], Cart::zzz);
       ol(i, Cart::zzzz) = PmB(2) * ol(i, Cart::zzz) +
                           nz[i] * fak * ol(i_less_z[i], Cart::zzz) +
-                          3 * term_zz;
+                          3 * term_zz_loc;
     }
     //------------------------------------------------------
 
@@ -388,30 +391,34 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
 
     // Integrals     p - h     d - h     f - h     g - h     h - h     i - h
     for (int i = 1; i < n_orbitals[lmax_row]; i++) {
-      double term_xxx = fak * ol(i, Cart::xxx);
-      double term_yyy = fak * ol(i, Cart::yyy);
-      double term_zzz = fak * ol(i, Cart::zzz);
+      double term_xxx_loc = fak * ol(i, Cart::xxx);
+      double term_yyy_loc = fak * ol(i, Cart::yyy);
+      double term_zzz_loc = fak * ol(i, Cart::zzz);
       ol(i, Cart::xxxxx) = PmB(0) * ol(i, Cart::xxxx) +
                            nx[i] * fak * ol(i_less_x[i], Cart::xxxx) +
-                           4 * term_xxx;
+                           4 * term_xxx_loc;
       ol(i, Cart::xxxxy) = PmB(1) * ol(i, Cart::xxxx) +
                            ny[i] * fak * ol(i_less_y[i], Cart::xxxx);
       ol(i, Cart::xxxxz) = PmB(2) * ol(i, Cart::xxxx) +
                            nz[i] * fak * ol(i_less_z[i], Cart::xxxx);
       ol(i, Cart::xxxyy) = PmB(1) * ol(i, Cart::xxxy) +
-                           ny[i] * fak * ol(i_less_y[i], Cart::xxxy) + term_xxx;
+                           ny[i] * fak * ol(i_less_y[i], Cart::xxxy) +
+                           term_xxx_loc;
       ol(i, Cart::xxxyz) = PmB(1) * ol(i, Cart::xxxz) +
                            ny[i] * fak * ol(i_less_y[i], Cart::xxxz);
       ol(i, Cart::xxxzz) = PmB(2) * ol(i, Cart::xxxz) +
-                           nz[i] * fak * ol(i_less_z[i], Cart::xxxz) + term_xxx;
+                           nz[i] * fak * ol(i_less_z[i], Cart::xxxz) +
+                           term_xxx_loc;
       ol(i, Cart::xxyyy) = PmB(0) * ol(i, Cart::xyyy) +
-                           nx[i] * fak * ol(i_less_x[i], Cart::xyyy) + term_yyy;
+                           nx[i] * fak * ol(i_less_x[i], Cart::xyyy) +
+                           term_yyy_loc;
       ol(i, Cart::xxyyz) = PmB(2) * ol(i, Cart::xxyy) +
                            nz[i] * fak * ol(i_less_z[i], Cart::xxyy);
       ol(i, Cart::xxyzz) = PmB(1) * ol(i, Cart::xxzz) +
                            ny[i] * fak * ol(i_less_y[i], Cart::xxzz);
       ol(i, Cart::xxzzz) = PmB(0) * ol(i, Cart::xzzz) +
-                           nx[i] * fak * ol(i_less_x[i], Cart::xzzz) + term_zzz;
+                           nx[i] * fak * ol(i_less_x[i], Cart::xzzz) +
+                           term_zzz_loc;
       ol(i, Cart::xyyyy) = PmB(0) * ol(i, Cart::yyyy) +
                            nx[i] * fak * ol(i_less_x[i], Cart::yyyy);
       ol(i, Cart::xyyyz) = PmB(0) * ol(i, Cart::yyyz) +
@@ -424,18 +431,20 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
                            nx[i] * fak * ol(i_less_x[i], Cart::zzzz);
       ol(i, Cart::yyyyy) = PmB(1) * ol(i, Cart::yyyy) +
                            ny[i] * fak * ol(i_less_y[i], Cart::yyyy) +
-                           4 * term_yyy;
+                           4 * term_yyy_loc;
       ol(i, Cart::yyyyz) = PmB(2) * ol(i, Cart::yyyy) +
                            nz[i] * fak * ol(i_less_z[i], Cart::yyyy);
       ol(i, Cart::yyyzz) = PmB(2) * ol(i, Cart::yyyz) +
-                           nz[i] * fak * ol(i_less_z[i], Cart::yyyz) + term_yyy;
+                           nz[i] * fak * ol(i_less_z[i], Cart::yyyz) +
+                           term_yyy_loc;
       ol(i, Cart::yyzzz) = PmB(1) * ol(i, Cart::yzzz) +
-                           ny[i] * fak * ol(i_less_y[i], Cart::yzzz) + term_zzz;
+                           ny[i] * fak * ol(i_less_y[i], Cart::yzzz) +
+                           term_zzz_loc;
       ol(i, Cart::yzzzz) = PmB(1) * ol(i, Cart::zzzz) +
                            ny[i] * fak * ol(i_less_y[i], Cart::zzzz);
       ol(i, Cart::zzzzz) = PmB(2) * ol(i, Cart::zzzz) +
                            nz[i] * fak * ol(i_less_z[i], Cart::zzzz) +
-                           4 * term_zzz;
+                           4 * term_zzz_loc;
     }
     //------------------------------------------------------
 
@@ -483,51 +492,51 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
 
     // Integrals     p - i     d - i     f - i     g - i     h - i     i - i
     for (int i = 1; i < n_orbitals[lmax_row]; i++) {
-      double term_xxxx = fak * ol(i, Cart::xxxx);
-      double term_xyyy = fak * ol(i, Cart::xyyy);
-      double term_xzzz = fak * ol(i, Cart::xzzz);
-      double term_yyyy = fak * ol(i, Cart::yyyy);
-      double term_yyzz = fak * ol(i, Cart::yyzz);
-      double term_yzzz = fak * ol(i, Cart::yzzz);
-      double term_zzzz = fak * ol(i, Cart::zzzz);
+      double term_xxxx_loc = fak * ol(i, Cart::xxxx);
+      double term_xyyy_loc = fak * ol(i, Cart::xyyy);
+      double term_xzzz_loc = fak * ol(i, Cart::xzzz);
+      double term_yyyy_loc = fak * ol(i, Cart::yyyy);
+      double term_yyzz_loc = fak * ol(i, Cart::yyzz);
+      double term_yzzz_loc = fak * ol(i, Cart::yzzz);
+      double term_zzzz_loc = fak * ol(i, Cart::zzzz);
       ol(i, Cart::xxxxxx) = PmB(0) * ol(i, Cart::xxxxx) +
                             nx[i] * fak * ol(i_less_x[i], Cart::xxxxx) +
-                            5 * term_xxxx;
+                            5 * term_xxxx_loc;
       ol(i, Cart::xxxxxy) = PmB(1) * ol(i, Cart::xxxxx) +
                             ny[i] * fak * ol(i_less_y[i], Cart::xxxxx);
       ol(i, Cart::xxxxxz) = PmB(2) * ol(i, Cart::xxxxx) +
                             nz[i] * fak * ol(i_less_z[i], Cart::xxxxx);
       ol(i, Cart::xxxxyy) = PmB(1) * ol(i, Cart::xxxxy) +
                             ny[i] * fak * ol(i_less_y[i], Cart::xxxxy) +
-                            term_xxxx;
+                            term_xxxx_loc;
       ol(i, Cart::xxxxyz) = PmB(1) * ol(i, Cart::xxxxz) +
                             ny[i] * fak * ol(i_less_y[i], Cart::xxxxz);
       ol(i, Cart::xxxxzz) = PmB(2) * ol(i, Cart::xxxxz) +
                             nz[i] * fak * ol(i_less_z[i], Cart::xxxxz) +
-                            term_xxxx;
+                            term_xxxx_loc;
       ol(i, Cart::xxxyyy) = PmB(0) * ol(i, Cart::xxyyy) +
                             nx[i] * fak * ol(i_less_x[i], Cart::xxyyy) +
-                            2 * term_xyyy;
+                            2 * term_xyyy_loc;
       ol(i, Cart::xxxyyz) = PmB(2) * ol(i, Cart::xxxyy) +
                             nz[i] * fak * ol(i_less_z[i], Cart::xxxyy);
       ol(i, Cart::xxxyzz) = PmB(1) * ol(i, Cart::xxxzz) +
                             ny[i] * fak * ol(i_less_y[i], Cart::xxxzz);
       ol(i, Cart::xxxzzz) = PmB(0) * ol(i, Cart::xxzzz) +
                             nx[i] * fak * ol(i_less_x[i], Cart::xxzzz) +
-                            2 * term_xzzz;
+                            2 * term_xzzz_loc;
       ol(i, Cart::xxyyyy) = PmB(0) * ol(i, Cart::xyyyy) +
                             nx[i] * fak * ol(i_less_x[i], Cart::xyyyy) +
-                            term_yyyy;
+                            term_yyyy_loc;
       ol(i, Cart::xxyyyz) = PmB(2) * ol(i, Cart::xxyyy) +
                             nz[i] * fak * ol(i_less_z[i], Cart::xxyyy);
       ol(i, Cart::xxyyzz) = PmB(0) * ol(i, Cart::xyyzz) +
                             nx[i] * fak * ol(i_less_x[i], Cart::xyyzz) +
-                            term_yyzz;
+                            term_yyzz_loc;
       ol(i, Cart::xxyzzz) = PmB(1) * ol(i, Cart::xxzzz) +
                             ny[i] * fak * ol(i_less_y[i], Cart::xxzzz);
       ol(i, Cart::xxzzzz) = PmB(0) * ol(i, Cart::xzzzz) +
                             nx[i] * fak * ol(i_less_x[i], Cart::xzzzz) +
-                            term_zzzz;
+                            term_zzzz_loc;
       ol(i, Cart::xyyyyy) = PmB(0) * ol(i, Cart::yyyyy) +
                             nx[i] * fak * ol(i_less_x[i], Cart::yyyyy);
       ol(i, Cart::xyyyyz) = PmB(0) * ol(i, Cart::yyyyz) +
@@ -542,23 +551,23 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
                             nx[i] * fak * ol(i_less_x[i], Cart::zzzzz);
       ol(i, Cart::yyyyyy) = PmB(1) * ol(i, Cart::yyyyy) +
                             ny[i] * fak * ol(i_less_y[i], Cart::yyyyy) +
-                            5 * term_yyyy;
+                            5 * term_yyyy_loc;
       ol(i, Cart::yyyyyz) = PmB(2) * ol(i, Cart::yyyyy) +
                             nz[i] * fak * ol(i_less_z[i], Cart::yyyyy);
       ol(i, Cart::yyyyzz) = PmB(2) * ol(i, Cart::yyyyz) +
                             nz[i] * fak * ol(i_less_z[i], Cart::yyyyz) +
-                            term_yyyy;
+                            term_yyyy_loc;
       ol(i, Cart::yyyzzz) = PmB(1) * ol(i, Cart::yyzzz) +
                             ny[i] * fak * ol(i_less_y[i], Cart::yyzzz) +
-                            2 * term_yzzz;
+                            2 * term_yzzz_loc;
       ol(i, Cart::yyzzzz) = PmB(1) * ol(i, Cart::yzzzz) +
                             ny[i] * fak * ol(i_less_y[i], Cart::yzzzz) +
-                            term_zzzz;
+                            term_zzzz_loc;
       ol(i, Cart::yzzzzz) = PmB(1) * ol(i, Cart::zzzzz) +
                             ny[i] * fak * ol(i_less_y[i], Cart::zzzzz);
       ol(i, Cart::zzzzzz) = PmB(2) * ol(i, Cart::zzzzz) +
                             nz[i] * fak * ol(i_less_z[i], Cart::zzzzz) +
-                            5 * term_zzzz;
+                            5 * term_zzzz_loc;
     }
     //------------------------------------------------------
 

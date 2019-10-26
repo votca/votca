@@ -47,9 +47,8 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
   while (intt.good()) {
 
     std::getline(intt, line);
-    std::vector<std::string> split;
     tools::Tokenizer toker(line, " \t");
-    toker.ToVector(split);
+    std::vector<std::string> split = toker.ToVector();
 
     if (!split.size() || split[0] == "!" || split[0].substr(0, 1) == "!") {
       continue;
@@ -114,8 +113,8 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
     // Multipole lines
     else {
       // stay in bohr
-      for (unsigned i = 0; i < split.size(); i++) {
-        double qXYZ = boost::lexical_cast<double>(split[i]);
+      for (const std::string& entry : split) {
+        double qXYZ = boost::lexical_cast<double>(entry);
         if (multipoles.size() < readinmultipoles) {
           throw std::runtime_error("ReadMpsFile: File" + filename +
                                    "is not properly formatted");

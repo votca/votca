@@ -49,4 +49,4 @@ Eigen::MatrixXd Sigma_base::CalcExchange() const {
 }
 
 }  // namespace xtp
-};  // namespace votca
+}  // namespace votca

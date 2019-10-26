@@ -27,9 +27,7 @@ namespace xtp {
 class KMCMultiple : public KMCCalculator {
  public:
   KMCMultiple() = default;
-  ;
   ~KMCMultiple() override = default;
-  ;
   bool WriteToStateFile() const override { return false; }
   std::string Identify() override { return "kmcmultiple"; }
   void Initialize(tools::Property& options) override;

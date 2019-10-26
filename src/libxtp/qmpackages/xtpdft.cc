@@ -80,7 +80,7 @@ void XTPDFT::CleanUp() {
 /**
  * Dummy, because XTPDFT adds info to orbitals directly
  */
-bool XTPDFT::ParseMOsFile(Orbitals& orbitals) { return true; }
+bool XTPDFT::ParseMOsFile(Orbitals&) { return true; }
 
 bool XTPDFT::ParseLogFile(Orbitals& orbitals) {
   try {

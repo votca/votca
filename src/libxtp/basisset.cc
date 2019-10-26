@@ -314,7 +314,7 @@ Element& BasisSet::addElement(std::string elementType) {
     throw std::runtime_error("Inserting element into basisset failed!");
   }
   return e.first->second;
-};
+}
 
 const Element& BasisSet::getElement(std::string element_type) const {
   std::map<std::string, Element>::const_iterator itm =

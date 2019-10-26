@@ -25,7 +25,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(gaussian_test)
 
-BOOST_AUTO_TEST_CASE(polar) {
+BOOST_AUTO_TEST_CASE(polar_test) {
   std::ofstream polar("polar_gaussian.log");
   polar << " Set GAUSS_MDEF to \"2gb\"." << std::endl;
   polar << "          MDV=     134217728 using IRadAn=       1." << std::endl;

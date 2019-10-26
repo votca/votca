@@ -33,9 +33,7 @@ namespace xtp {
 class Coupling : public QMTool {
  public:
   Coupling() = default;
-  ;
   ~Coupling() override = default;
-  ;
 
   std::string Identify() override { return "coupling"; }
 

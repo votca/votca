@@ -182,7 +182,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   }
 
   Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(nsph_row, nsph_col);
-  const int nnonsep = gamma_ecp.rows();
+  const long int nnonsep = gamma_ecp.rows();
   int nmax;
   if (INULL == 0) {
     nmax = 2 * lmin;
@@ -831,7 +831,6 @@ Eigen::VectorXd AOECP::CalcNorms(double decay, int size) const {
 
   double Norm_S = pow(2.0 * decay / PI, 0.75);
   double Norm_P = 0.0;
-  double Norm_D = 0.0;
   Norms(0) = Norm_S;  //  Y 00
 
   if (size > 1) {
@@ -868,6 +867,7 @@ Eigen::VectorXd AOECP::CalcNorms(double decay, int size) const {
 
   if (size > 16) {
     double SQ7 = sqrt(7.);
+    double Norm_D = 0.0;
     double Norm_G = 4.00 * decay * Norm_D;
     double Norm_G_1 = .5 * Norm_G / (SQ2 * SQ3 * SQ7);
     double Norm_G_m2 = .5 * Norm_G / (SQ3 * SQ7);

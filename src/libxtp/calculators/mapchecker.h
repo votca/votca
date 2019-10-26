@@ -31,10 +31,8 @@ namespace xtp {
 class MapChecker : public QMCalculator {
  public:
   MapChecker() = default;
-  ;
 
   ~MapChecker() override = default;
-  ;
 
   std::string Identify() override { return "mapchecker"; }
   bool WriteToStateFile() const override { return false; }

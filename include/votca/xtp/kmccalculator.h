@@ -34,7 +34,6 @@ class QMNBList;
 class KMCCalculator : public QMCalculator {
  public:
   ~KMCCalculator() override = default;
-  ;
 
   std::string Identify() override = 0;
   bool WriteToStateFile() const override = 0;

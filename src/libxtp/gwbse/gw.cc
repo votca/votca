@@ -249,4 +249,4 @@ void GW::CalculateHQP() {
 }
 
 }  // namespace xtp
-};  // namespace votca
+}  // namespace votca

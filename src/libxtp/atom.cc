@@ -100,7 +100,7 @@ void Atom::WriteData(data& d) const {
   d.resnr = _resnr;
 }
 
-void Atom::ReadData(data& d) {
+void Atom::ReadData(const data& d) {
   _id = d.id;
   _element = std::string(d.element);
   free(d.element);

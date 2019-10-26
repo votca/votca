@@ -114,7 +114,7 @@ double DFTcoupling::getCouplingElement(int levelA, int levelB,
     std::vector<int> list_levelsA =
         orbitalsA.CheckDegeneracy(levelA, _degeneracy);
     std::vector<int> list_levelsB =
-        orbitalsA.CheckDegeneracy(levelB, _degeneracy);
+        orbitalsB.CheckDegeneracy(levelB, _degeneracy);
 
     double JAB_sq = 0;
 

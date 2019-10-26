@@ -51,7 +51,7 @@ class ProgObserver {
   void LockProgFile(QMThread &thread);
   void ReleaseProgFile(QMThread &thread);
 
-  std::string GenerateHost(QMThread &thread);
+  std::string GenerateHost();
   std::string GenerateTime();
 
  private:

@@ -180,11 +180,11 @@ void EAnalyze::SiteHist(QMStateType state) const {
 
   // Write "seg x y z energy" with atomic {x,y,z}
   if (_doenergy_landscape) {
-    std::string filename = "eanalyze.landscape_" + state.ToString() + ".out";
+    std::string filename2 = "eanalyze.landscape_" + state.ToString() + ".out";
     std::ofstream out;
-    out.open(filename);
+    out.open(filename2);
     if (!out) {
-      throw std::runtime_error("error, cannot open file " + filename);
+      throw std::runtime_error("error, cannot open file " + filename2);
     }
     for (Segment *seg : _seg_shortlist) {
       if (seg->getId() < _first_seg) {
@@ -307,8 +307,8 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
   for (int bin = 0; bin < BIN; ++bin) {
     double corr = 0.0;
     double dcorr2 = 0.0;
-    for (unsigned i = 0; i < histCs[bin].size(); ++i) {
-      corr += histCs[bin][i] / VAR;
+    for (double entry : histCs[bin]) {
+      corr += entry / VAR;
     }
     corr = corr / histCs[bin].size();
     for (unsigned i = 0; i < histCs[bin].size(); ++i) {

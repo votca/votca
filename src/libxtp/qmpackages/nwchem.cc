@@ -76,9 +76,9 @@ int NWChem::WriteBackgroundCharges(ofstream& nw_file) {
     }
     std::vector<MinimalMMCharge> split_multipoles = SplitMultipoles(*site);
     for (const auto& mpoles : split_multipoles) {
-      Eigen::Vector3d pos = mpoles._pos * tools::conv::bohr2ang;
+      Eigen::Vector3d pos2 = mpoles._pos * tools::conv::bohr2ang;
       string multipole =
-          boost::str(fmt % pos.x() % pos.y() % pos.z() % mpoles._q);
+          boost::str(fmt % pos2.x() % pos2.y() % pos2.z() % mpoles._q);
       nw_file << multipole << endl;
       numberofcharges++;
     }
@@ -318,12 +318,12 @@ bool NWChem::Run() {
       XTP_LOG(logDEBUG, *_pLog) << "Finished NWChem job" << flush;
       /* maybe we DO need to convert from fortran binary to ASCII first to avoid
     compiler-dependent issues */
-      std::string command;
+      std::string command2;
       ascii_mo_file_name =
           tools::filesystem::GetFileBase(_mo_file_name) + ".mos";
-      command = "cd " + _run_dir + "; mov2asc 10000 " + _mo_file_name + " " +
-                ascii_mo_file_name + "> convert.log";
-      int i = std::system(command.c_str());
+      command2 = "cd " + _run_dir + "; mov2asc 10000 " + _mo_file_name + " " +
+                 ascii_mo_file_name + "> convert.log";
+      int i = std::system(command2.c_str());
       if (i == 0) {
         XTP_LOG(logDEBUG, *_pLog)
             << "Converted MO file from binary to ascii" << flush;
@@ -477,17 +477,17 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
 
   // Now, the same for the coefficients
   double coef;
-  for (unsigned imo = 0; imo < levels; imo++) {
+  for (unsigned imo2 = 0; imo2 < levels; imo2++) {
     for (int i = 0; i < n_lines; i++) {
       for (int j = 0; j < 3; j++) {
         input_file >> coef;
-        coefficients[imo].push_back(coef);
+        coefficients[imo2].push_back(coef);
       }
     }
     if (n_rest != 0) {
       for (int i = 0; i < n_rest; i++) {
         input_file >> coef;
-        coefficients[imo].push_back(coef);
+        coefficients[imo2].push_back(coef);
       }
     }
   }

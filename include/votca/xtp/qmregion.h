@@ -47,7 +47,6 @@ class QMRegion : public Region {
     QMPackageFactory::RegisterAll();
   };
   ~QMRegion() override = default;
-  ;
 
   void Initialize(const tools::Property& prop) override;
 

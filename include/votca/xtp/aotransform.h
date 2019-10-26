@@ -23,10 +23,12 @@
 
 #include <votca/xtp/aoshell.h>
 #include <votca/xtp/eigen.h>
+
 namespace votca {
 namespace xtp {
 // clang-format off
 //clang format puts one entry on each line
+namespace Cart{
 enum Cart {
   s,  // s
   x,  y,  z,  // p
@@ -60,11 +62,13 @@ enum Cart {
   xzzzzzzz,  yyyyyyyy,  yyyyyyyz,  yyyyyyzz,  yyyyyzzz,  yyyyzzzz,  yyyzzzzz,
   yyzzzzzz,  yzzzzzzz,  zzzzzzzz, //k
 };
+}
 
 // clang-format on
 
 /* contains cartesian to spherical conversion
  */
+
 class AOTransform {
 
  public:

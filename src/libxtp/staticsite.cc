@@ -89,7 +89,7 @@ std::string StaticSite::writePolarisation() const {
     ;
   }
   return (boost::format("     P %1$+1.7f\n") % default_pol).str();
-};
+}
 
 std::string StaticSite::WriteMpsLine(string unit) const {
   double conv_pos = 1.;
@@ -166,7 +166,7 @@ void StaticSite::WriteData(data& d) const {
   d.Q22s = _Q[8];
 }
 
-void StaticSite::ReadData(data& d) {
+void StaticSite::ReadData(const data& d) {
   _id = d.id;
   _element = std::string(d.element);
   free(d.element);

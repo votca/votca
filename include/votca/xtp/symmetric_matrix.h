@@ -40,7 +40,7 @@ class Symmetric_Matrix {
 
   Symmetric_Matrix(const Eigen::MatrixXd& full);
 
-  int size() const { return dimension; }
+  size_t size() const { return dimension; }
 
   double TraceofProd(const Symmetric_Matrix& a) const;
 

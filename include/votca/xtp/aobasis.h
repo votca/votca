@@ -51,7 +51,7 @@ class AOBasis {
 
   const std::vector<const AOShell*> getShellsofAtom(int AtomId) const;
 
-  int getNumofShells() const { return _aoshells.size(); }
+  long int getNumofShells() const { return _aoshells.size(); }
 
   const std::vector<int>& getFuncPerAtom() const { return _FuncperAtom; }
 
@@ -61,14 +61,14 @@ class AOBasis {
   void MultiplyMOs(Eigen::MatrixXd& v,
                    const std::vector<int>& multiplier) const;
 
-  std::vector<int> invertOrder(const std::vector<int>& order) const;
+  std::vector<long int> invertOrder(const std::vector<long int>& order) const;
 
-  std::vector<int> getReorderVector(const std::string& start,
-                                    const std::string& target) const;
+  std::vector<long int> getReorderVector(const std::string& start,
+                                         const std::string& target) const;
 
   void addReorderShell(const std::string& start, const std::string& target,
                        const std::string& shell,
-                       std::vector<int>& neworder) const;
+                       std::vector<long int>& neworder) const;
 
   std::vector<int> getMultiplierVector(const std::string& start,
                                        const std::string& target) const;

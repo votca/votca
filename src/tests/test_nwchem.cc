@@ -24,7 +24,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(nwchem_test)
 
-BOOST_AUTO_TEST_CASE(polar) {
+BOOST_AUTO_TEST_CASE(polar_test) {
   std::ofstream polar("polar_nwchem.log");
   polar << " argument  1 = system.nw" << std::endl;
   polar << "                                         " << std::endl;
@@ -1134,7 +1134,7 @@ BOOST_AUTO_TEST_CASE(getcharges) {
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
 }
-BOOST_AUTO_TEST_CASE(opt) {
+BOOST_AUTO_TEST_CASE(opt_test) {
   std::ofstream opt("opt_nwchem.log");
   opt << " argument  1 = system.nw" << std::endl;
   opt << "                                         " << std::endl;

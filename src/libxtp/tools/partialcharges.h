@@ -32,9 +32,7 @@ namespace xtp {
 class Partialcharges : public QMTool {
  public:
   Partialcharges() = default;
-  ;
   ~Partialcharges() override = default;
-  ;
 
   std::string Identify() override { return "partialcharges"; }
 

@@ -48,7 +48,7 @@ class QMAtom {
 
   QMAtom(int index, std::string element, Eigen::Vector3d pos);
 
-  QMAtom(data& d);
+  QMAtom(const data& d);
 
   const Eigen::Vector3d& getPos() const { return _pos; }
 
@@ -77,15 +77,15 @@ class QMAtom {
   int _index;
   std::string _element;
   Eigen::Vector3d _pos;  // Bohr
-  int _nuccharge = 0;    // nuc charge is set in aobasis fill and ecpfill
-  int _ecpcharge = 0;
+  int _nuccharge = 0;
+  int _ecpcharge = 0;  // ecp charge is set in ecpaobasis.fill
 
  public:
   void SetupCptTable(CptTable& table) const;
 
   void WriteData(data& d) const;
 
-  void ReadData(data& d);
+  void ReadData(const data& d);
 };
 }  // namespace xtp
 }  // namespace votca

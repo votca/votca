@@ -27,7 +27,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(aotransform_test)
 
-BOOST_AUTO_TEST_CASE(transform) {
+BOOST_AUTO_TEST_CASE(transform_test) {
   QMAtom a(0, "C", Eigen::Vector3d::Zero());
   QMMolecule mol("zero", 0);
   mol.push_back(a);

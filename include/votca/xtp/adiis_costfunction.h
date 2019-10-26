@@ -58,7 +58,7 @@ class ADIIS_costfunction : public Optimiser_costfunction {
 
   int NumParameters() const override { return _DiF.size(); }
 
-  bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
+  bool Converged(const Eigen::VectorXd&, double,
                  const Eigen::VectorXd& gradient) override {
     return gradient.cwiseAbs().maxCoeff() < 1.e-7;
   }
