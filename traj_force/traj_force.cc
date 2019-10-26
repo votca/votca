@@ -52,7 +52,7 @@ bool TrajForce::EvaluateOptions() {
   return true;
 }
 
-void TrajForce::BeginEvaluate(Topology *top, Topology *top_atom) {
+void TrajForce::BeginEvaluate(Topology *top, Topology *) {
   _top_force.CopyTopologyData(top);
   _trjreader_force =
       TrjReaderFactory().Create(_op_vm["trj-force"].as<string>());
@@ -85,14 +85,13 @@ void TrajForce::EndEvaluate() {
 
 void TrajForce::WriteOutFiles() {}
 
-void TrajForce::EvalConfiguration(Topology *conf, Topology *conf_atom) {
+void TrajForce::EvalConfiguration(Topology *conf, Topology *) {
   if (conf->BeadCount() != _top_force.BeadCount()) {
     throw std::runtime_error(
         "number of beads in topology and reference force topology does not "
         "match");
   }
   for (int i = 0; i < conf->BeadCount(); ++i) {
-    // conf->getBead(i)->F() += _scale*_top_force.getBead(i)->getF();
 
     // \todo check why "conf" HasForce() is false
     // Since "conf" topology Force is set to false
@@ -108,8 +107,7 @@ void TrajForce::EvalConfiguration(Topology *conf, Topology *conf_atom) {
           "trajectory differ by more than 1e-6");
     }
   }
-  //  cout << conf->HasForce() << endl;
-  //  cout << _top_force.HasForce() << endl;
+
   _trjwriter->Write(&_top_force);
   _trjreader_force->NextFrame(_top_force);
 }

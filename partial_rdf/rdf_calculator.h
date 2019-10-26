@@ -79,7 +79,7 @@ class RDFCalculator {
 
   /// struct to store collected information for interactions
   struct interaction_t {
-    int _index;
+    long int _index;
     Property *_p;
     HistogramNew _average;
     double _min, _max, _step;

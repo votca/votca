@@ -71,7 +71,7 @@ class CGOrderParam : public CsgApplication {
   bool DoTrajectory() override { return true; }
   bool DoMapping() override { return true; }
 
-  void BeginEvaluate(Topology *top, Topology *top_atom) override {
+  void BeginEvaluate(Topology *top, Topology *) override {
 
     string filter;
 
@@ -107,19 +107,17 @@ class CGOrderParam : public CsgApplication {
 
     Eigen::Matrix3d box = top->getBox();
     Eigen::Vector3d a = box.col(0);
-    Eigen::Vector3d b = box.col(1);
-    Eigen::Vector3d c = box.col(2);
 
     if (_refmol == "") {
 
-      _ref = (a + b + c) / 2;
+      _ref = box.rowwise().sum() / 2;
 
       cout << "Refernce is center of box " << _ref << endl;
     }
 
     boxl = a.norm() / 2;
     if (_rbinw > 0) {
-      _rbins = boxl / _rbinw + 1;
+      _rbins = (int)(boxl / _rbinw) + 1;
       cout << "radial bins " << _rbins << endl;
     } else {
       _rbins = 1;
@@ -141,9 +139,6 @@ class CGOrderParam : public CsgApplication {
     for (int i = 0; i < _rbins; i++) {
       _nmol[i] = 0;
     }
-
-    // cout << "Test" << endl;
-    // _hist_u[1][10] =0.0;
   }
 
   void EndEvaluate() override {
@@ -178,8 +173,7 @@ class CGOrderParam : public CsgApplication {
     _file_w.close();
   };
 
-  void EvalConfiguration(Topology *conf,
-                         Topology *conf_atom = nullptr) override {
+  void EvalConfiguration(Topology *conf, Topology * = nullptr) override {
 
     Eigen::Vector3d eR;
     int nu, nv, nw;

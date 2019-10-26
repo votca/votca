@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
   return app.Exec(argc, argv);
 }
 
-void CsgTestApp::EvalConfiguration(Topology *top, Topology *top_ref) {
+void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
   // loop over all molecules
   for (Molecule *mol : top->Molecules()) {
     // does the id match if given?
@@ -73,7 +73,7 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *top_ref) {
     }
 
     // Number of beads in the molecule
-    int N = mol->BeadCount();
+    long int N = mol->BeadCount();
 
     // sqared tensor of gyration for current snapshot
     double r_gyr_sq = 0;
