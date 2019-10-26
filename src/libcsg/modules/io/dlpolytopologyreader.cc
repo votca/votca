@@ -219,7 +219,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 #endif
 
       // read molecule
-      std::vector<int> id_map(natoms);
+      std::vector<long int> id_map(natoms);
       for (int i = 0; i < natoms;) {  // i is altered in repeater loop
         stringstream sl(_NextKeyline(fl, WhiteSpace));
 
