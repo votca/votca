@@ -39,7 +39,7 @@ namespace xtp {
 template <class T>
 class AtomContainer {
  public:
-  AtomContainer(std::string type, long int id) : _type(type), _id(id){};
+  AtomContainer(std::string type, int id) : _type(type), _id(id){};
 
   AtomContainer(CheckpointReader& r) { this->ReadFromCpt(r); }
   virtual ~AtomContainer() = default;
@@ -50,7 +50,7 @@ class AtomContainer {
 
   void setType(std::string type) { _type = type; }
 
-  long int getId() const { return _id; }
+  int getId() const { return _id; }
 
   long size() const { return _atomlist.size(); }
 
@@ -197,7 +197,7 @@ class AtomContainer {
  protected:
   std::vector<T> _atomlist;
   std::string _type;
-  long int _id;
+  int _id;
 
  private:
   Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
