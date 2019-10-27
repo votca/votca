@@ -7,7 +7,7 @@ stages:
     max: 2
   variables:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
-    CXXFLAGS: "-Wall -Werror"
+    CXXFLAGS: "-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror"
   stage: build
   artifacts:
     paths:
