@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     //         4
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<long int>{0, 1, 2});
+    ReducedEdge ed(std::vector<long>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -229,8 +229,8 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     vector<ReducedEdge> vec_ed;
     ReducedEdge ed(0, 1);
     ReducedEdge ed2(1, 2);
-    ReducedEdge ed3(vector<long int>{2, 3, 4, 5, 6});
-    ReducedEdge ed4(vector<long int>{1, 7, 4, 2});
+    ReducedEdge ed3(vector<long>{2, 3, 4, 5, 6});
+    ReducedEdge ed4(vector<long>{1, 7, 4, 2});
 
     vec_ed.push_back(ed);
     vec_ed.push_back(ed2);
@@ -306,7 +306,7 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   //         4
 
   vector<ReducedEdge> vec_ed;
-  ReducedEdge ed(std::vector<long int>{0, 1, 2});
+  ReducedEdge ed(std::vector<long>{0, 1, 2});
   ReducedEdge ed2(2, 3);
   ReducedEdge ed3(2, 4);
 
@@ -328,7 +328,7 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   m_gn[4] = gn4;
 
   ReducedGraph g(vec_ed, m_gn);
-  vector<long int> vertices = g.getVertices();
+  vector<long> vertices = g.getVertices();
   for (auto vertex : vertices) {
     cout << vertex << endl;
   }
@@ -402,7 +402,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     //         4
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<long int>{0, 1, 2});
+    ReducedEdge ed(std::vector<long>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -448,7 +448,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     //         |
     //         4
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<long int>{0, 1, 2});
+    ReducedEdge ed(std::vector<long>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -497,7 +497,7 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   //         |
   //         4
   vector<ReducedEdge> vec_ed;
-  ReducedEdge ed(std::vector<long int>{0, 1, 2});
+  ReducedEdge ed(std::vector<long>{0, 1, 2});
   ReducedEdge ed2(2, 3);
   ReducedEdge ed3(2, 4);
 
@@ -563,10 +563,10 @@ BOOST_AUTO_TEST_CASE(expandedge_test) {
   //     |       |
   //     6 - 7 - 8
   //
-  ReducedEdge ed0(vector<long int>{0, 1});
-  ReducedEdge ed1(vector<long int>{1, 2, 3});
-  ReducedEdge ed2(vector<long int>{3, 4, 5});
-  ReducedEdge ed3(vector<long int>{1, 6, 7, 8, 3});
+  ReducedEdge ed0(vector<long>{0, 1});
+  ReducedEdge ed1(vector<long>{1, 2, 3});
+  ReducedEdge ed2(vector<long>{3, 4, 5});
+  ReducedEdge ed3(vector<long>{1, 6, 7, 8, 3});
 
   vector<ReducedEdge> vec_ed{ed0, ed1, ed2, ed3};
 
@@ -685,10 +685,10 @@ BOOST_AUTO_TEST_CASE(getdegree_test) {
   //     |       |
   //     6 - 7 - 8
   //
-  ReducedEdge ed0(vector<long int>{0, 1});
-  ReducedEdge ed1(vector<long int>{1, 2, 3});
-  ReducedEdge ed2(vector<long int>{3, 4, 5});
-  ReducedEdge ed3(vector<long int>{1, 6, 7, 8, 3});
+  ReducedEdge ed0(vector<long>{0, 1});
+  ReducedEdge ed1(vector<long>{1, 2, 3});
+  ReducedEdge ed2(vector<long>{3, 4, 5});
+  ReducedEdge ed3(vector<long>{1, 6, 7, 8, 3});
   ReducedEdge ed4(3, 9);
 
   vector<ReducedEdge> vec_ed{ed0, ed1, ed2, ed3, ed4};
@@ -744,7 +744,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
     unordered_map<string, string> str_vals;
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<long int>{0, 1, 2});
+    ReducedEdge ed(std::vector<long>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 

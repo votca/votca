@@ -29,9 +29,9 @@ namespace tools {
 
 class GraphNode;
 
-bool nodeForEveryVertex_(vector<long int> vertices,
+bool nodeForEveryVertex_(vector<long> vertices,
                          unordered_map<long int, GraphNode> nodes) {
-  for (const long int vertex : vertices) {
+  for (const long vertex : vertices) {
     if (nodes.count(vertex) == 0) {
       return false;
     }
@@ -41,7 +41,7 @@ bool nodeForEveryVertex_(vector<long int> vertices,
 
 Graph::Graph(vector<Edge> edges, unordered_map<long int, GraphNode> nodes) {
   edge_container_ = EdgeContainer(edges);
-  vector<long int> vertices = edge_container_.getVertices();
+  vector<long> vertices = edge_container_.getVertices();
   assert(nodeForEveryVertex_(vertices, nodes) &&
          "A node must exist for every vertex.");
   nodes_ = nodes;
@@ -61,17 +61,17 @@ bool Graph::operator==(const Graph& graph) const { return !(*(this) != graph); }
 
 vector<pair<long int, GraphNode>> Graph::getIsolatedNodes(void) const {
   vector<pair<long int, GraphNode>> isolated_nodes;
-  vector<long int> vertices_degree_0 = edge_container_.getVerticesDegree(0);
+  vector<long> vertices_degree_0 = edge_container_.getVerticesDegree(0);
 
-  for (const long int vertex : vertices_degree_0) {
+  for (const long vertex : vertices_degree_0) {
     pair<long int, GraphNode> id_and_node{vertex, nodes_.at(vertex)};
     isolated_nodes.push_back(id_and_node);
   }
   return isolated_nodes;
 }
 
-vector<pair<long int, GraphNode>> Graph::getNeighNodes(long int vertex) const {
-  vector<long int> neigh_vertices = edge_container_.getNeighVertices(vertex);
+vector<pair<long int, GraphNode>> Graph::getNeighNodes(long vertex) const {
+  vector<long> neigh_vertices = edge_container_.getNeighVertices(vertex);
   vector<pair<long int, GraphNode>> neigh_ids_and_nodes;
   for (const long int& neigh_vert : neigh_vertices) {
     auto id_and_node =
@@ -81,7 +81,7 @@ vector<pair<long int, GraphNode>> Graph::getNeighNodes(long int vertex) const {
   return neigh_ids_and_nodes;
 }
 
-void Graph::setNode(long int vertex, GraphNode& graph_node) {
+void Graph::setNode(long vertex, GraphNode& graph_node) {
   assert(nodes_.count(vertex) && "Can only set a node that already exists");
   nodes_[vertex] = graph_node;
   calcId_();
@@ -91,7 +91,7 @@ void Graph::setNode(std::pair<long int, GraphNode>& id_and_node) {
   setNode(id_and_node.first, id_and_node.second);
 }
 
-GraphNode Graph::getNode(const long int vertex) const {
+GraphNode Graph::getNode(const long vertex) const {
   assert(nodes_.count(vertex));
   return nodes_.at(vertex);
 }
@@ -104,11 +104,11 @@ vector<pair<long int, GraphNode>> Graph::getNodes(void) const {
   return vec_nodes;
 }
 
-vector<long int> Graph::getJunctions() const {
-  vector<long int> junctions;
-  long int max_degree = edge_container_.getMaxDegree();
-  for (long int degree = 3; degree <= max_degree; ++degree) {
-    vector<long int> vertices = edge_container_.getVerticesDegree(degree);
+vector<long> Graph::getJunctions() const {
+  vector<long> junctions;
+  long max_degree = edge_container_.getMaxDegree();
+  for (long degree = 3; degree <= max_degree; ++degree) {
+    vector<long> vertices = edge_container_.getVerticesDegree(degree);
     junctions.insert(junctions.end(), vertices.begin(), vertices.end());
   }
   return junctions;
@@ -134,7 +134,7 @@ void Graph::calcId_() {
   return;
 }
 
-long int Graph::getDegree(long int vertex) const {
+long Graph::getDegree(long vertex) const {
   if (edge_container_.vertexExist(vertex)) {
     return edge_container_.getDegree(vertex);
   }
@@ -146,7 +146,7 @@ long int Graph::getDegree(long int vertex) const {
       "not defined.");
 }
 
-bool Graph::vertexExist(long int vertex) const {
+bool Graph::vertexExist(long vertex) const {
   if (edge_container_.vertexExist(vertex)) {
     return true;
   }
@@ -156,11 +156,11 @@ bool Graph::vertexExist(long int vertex) const {
   return false;
 }
 
-vector<long int> Graph::getVerticesDegree(long int degree) const {
+vector<long> Graph::getVerticesDegree(long degree) const {
   return edge_container_.getVerticesDegree(degree);
 }
 
-vector<long int> Graph::getVertices() const {
+vector<long> Graph::getVertices() const {
   return edge_container_.getVertices();
 }
 

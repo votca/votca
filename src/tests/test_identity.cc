@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_SUITE(identity_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) {
   Identity<int> id;
-  Identity<long int> id2(232);
+  Identity<long> id2(232);
 }
 
 BOOST_AUTO_TEST_CASE(simple_test) {

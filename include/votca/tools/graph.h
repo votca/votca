@@ -77,25 +77,24 @@ class Graph {
 
   /// Returns a vector of the vertices and their graph nodes that are directly
   /// connected to the vertex 'vert'
-  std::vector<std::pair<long int, GraphNode>> getNeighNodes(
-      long int vertex) const;
+  std::vector<std::pair<long int, GraphNode>> getNeighNodes(long vertex) const;
 
   /// set the Node associated with vertex 'vert'
-  void setNode(long int vertex, GraphNode& graph_node);
+  void setNode(long vertex, GraphNode& graph_node);
   void setNode(std::pair<long int, GraphNode>& id_and_node);
 
   /// Gets all vertices with degree of 3 or greater
-  std::vector<long int> getJunctions() const;
+  std::vector<long> getJunctions() const;
 
   /// Return a copy of the graph node at vertex 'vert'
-  GraphNode getNode(const long int vertex) const;
+  GraphNode getNode(const long vertex) const;
 
   /// Return all the vertices and their graph nodes that are within the graph
   virtual std::vector<std::pair<long int, GraphNode>> getNodes() const;
 
   /// Returns all the vertices of the graph connected to vertex `vert` through
   /// an edge.
-  std::vector<long int> getNeighVertices(long int vertex) const {
+  std::vector<long> getNeighVertices(long vertex) const {
     return edge_container_.getNeighVertices(vertex);
   }
 
@@ -106,12 +105,12 @@ class Graph {
   virtual std::vector<Edge> getEdges() { return edge_container_.getEdges(); }
 
   /// Returns all the edges in the graph connected to vertex `vertex`
-  std::vector<Edge> getNeighEdges(long int vertex) const {
+  std::vector<Edge> getNeighEdges(long vertex) const {
     return edge_container_.getNeighEdges(vertex);
   }
 
   /// Returns all the vertices in the graph
-  std::vector<long int> getVertices() const;
+  std::vector<long> getVertices() const;
 
   /**
    * \brief Finds the max degree of a vertex in the graph.
@@ -120,16 +119,16 @@ class Graph {
    * connected to it. It will count the number of edges this corresponds to the
    * maximum degree of the graph.
    **/
-  long int getMaxDegree() const { return edge_container_.getMaxDegree(); }
+  long getMaxDegree() const { return edge_container_.getMaxDegree(); }
 
   /// Calcualtes the degree, or number of edges connected to vertex `vertex`
-  long int getDegree(long int vertex) const;
+  long getDegree(long vertex) const;
 
   /// Returns all the vertices with degree specified by `degree`
-  virtual std::vector<long int> getVerticesDegree(long int degree) const;
+  virtual std::vector<long> getVerticesDegree(long degree) const;
 
   /// Determines if a vertex exists within the graph
-  bool vertexExist(long int vertex) const;
+  bool vertexExist(long vertex) const;
 
   /// Determines if an edge is stored in the graph
   virtual bool edgeExist(const Edge& edge) const {

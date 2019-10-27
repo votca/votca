@@ -260,7 +260,7 @@ BOOST_AUTO_TEST_CASE(getmaxdegree) {
   edCo.addEdge(ed2);
   edCo.addEdge(ed3);
 
-  long int maxD = edCo.getMaxDegree();
+  long maxD = edCo.getMaxDegree();
   BOOST_CHECK_EQUAL(maxD, 3);
 
   edCo.addEdge(ed);

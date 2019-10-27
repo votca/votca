@@ -30,7 +30,7 @@ bool Elements::isElement(std::string name) {
   return isEleShort(name) || isEleFull(name);
 }
 
-double Elements::getNucCrg(std::string name) {
+int Elements::getNucCrg(std::string name) {
   if (!this->_filled_NucCrg) {
     this->FillNucCrg();
     _filled_NucCrg = true;

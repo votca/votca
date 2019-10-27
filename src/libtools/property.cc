@@ -48,7 +48,7 @@ const Property &Property::get(const string &key) const {
   }
 
   const Property *p;
-  map<string, long int>::const_iterator iter;
+  map<string, long>::const_iterator iter;
   if (*n == "") {
     p = this;
   } else {

@@ -34,7 +34,7 @@ namespace tools {
 void GraphDistVisitor::exploreNode(pair<long int, GraphNode>& p_gn, Graph& g,
                                    Edge ed) {
   // Determine if the node has already been explored
-  long int vertex = p_gn.first;
+  long vertex = p_gn.first;
   if (vertex == startingVertex_) {
     p_gn.second.int_vals_["Dist"] = 0;
     p_gn.second.initStringId_();
@@ -43,7 +43,7 @@ void GraphDistVisitor::exploreNode(pair<long int, GraphNode>& p_gn, Graph& g,
   } else {
     // Node has not been explored
     if (explored_.count(vertex) == 0) {
-      long int prev_vertex = ed.getOtherEndPoint(vertex);
+      long prev_vertex = ed.getOtherEndPoint(vertex);
       GraphNode gn_prev = g.getNode(prev_vertex);
       p_gn.second.int_vals_["Dist"] = gn_prev.int_vals_["Dist"] + 1;
       p_gn.second.initStringId_();

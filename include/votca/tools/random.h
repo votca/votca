@@ -28,16 +28,16 @@ class Random {
   // draws a random double from [0,1)
   double rand_uniform() { return _distribution(_mt); }
   // sets maxint for a uniform integer distribution [0,maxint]
-  void setMaxInt(int maxint) {
-    _int_distribution = std::uniform_int_distribution<int>{0, maxint};
+  void setMaxInt(long maxint) {
+    _int_distribution = std::uniform_int_distribution<long>{0, maxint};
   }
   // draws from a uniform integer distribution [0,maxint]
-  int rand_uniform_int() { return _int_distribution(_mt); }
+  long rand_uniform_int() { return _int_distribution(_mt); }
 
  private:
   std::mt19937 _mt;
   std::uniform_real_distribution<double> _distribution{0.0, 1.0};
-  std::uniform_int_distribution<int> _int_distribution;
+  std::uniform_int_distribution<long> _int_distribution;
 };
 
 }  // namespace tools

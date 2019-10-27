@@ -89,14 +89,14 @@ class AkimaSpline : public Spline {
 };
 
 inline double AkimaSpline::Calculate(const double &r) {
-  long int interval = getInterval(r);
+  long interval = getInterval(r);
   double z = r - _r[interval];
   return p0(interval) + p1(interval) * z + p2(interval) * z * z +
          p3(interval) * z * z * z;
 }
 
 inline double AkimaSpline::CalculateDerivative(const double &r) {
-  long int interval = getInterval(r);
+  long interval = getInterval(r);
   double z = r - _r[interval];
   return +p1(interval) + 2.0 * p2(interval) * z + 3.0 * p3(interval) * z * z;
 }

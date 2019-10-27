@@ -34,8 +34,8 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
     }
   }
 
-  const long int NoVariables = x.size();
-  const long int NoConstrains =
+  const long NoVariables = x.size();
+  const long NoConstrains =
       constr.rows();  // number of constraints is number of rows of constr
 
   Eigen::HouseholderQR<Eigen::MatrixXd> QR(constr.transpose());
@@ -55,7 +55,7 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
 
   // Next two steps assemble vector from y (which is zero-vector) and z
   Eigen::VectorXd result = Eigen::VectorXd::Zero(NoVariables);
-  for (long int i = NoConstrains; i < NoVariables; i++) {
+  for (long i = NoConstrains; i < NoVariables; i++) {
     result[i] = z(i - NoConstrains);
   }
   // To get the final answer this vector should be multiplied by matrix Q

@@ -38,8 +38,8 @@ void GraphVisitor::exploreNode(pair<long int, GraphNode>& vertex_and_node,
   explored_.insert(vertex_and_node.first);
 }
 
-vector<long int> GraphVisitor::getUnexploredVertex(const Edge edge) const {
-  vector<long int> unexp_vert;
+vector<long> GraphVisitor::getUnexploredVertex(const Edge edge) const {
+  vector<long> unexp_vert;
   if (explored_.count(edge.getEndPoint1()) == 0) {
     unexp_vert.push_back(edge.getEndPoint1());
   }
@@ -49,7 +49,7 @@ vector<long int> GraphVisitor::getUnexploredVertex(const Edge edge) const {
   return unexp_vert;
 }
 
-bool GraphVisitor::vertexExplored(const long int vertex) const {
+bool GraphVisitor::vertexExplored(const long vertex) const {
   return explored_.count(vertex) == 1;
 }
 
@@ -62,7 +62,7 @@ void GraphVisitor::initialize(Graph& graph) {
 }
 
 void GraphVisitor::exec(Graph& graph, Edge edge) {
-  vector<long int> unexp_vert = getUnexploredVertex(edge);
+  vector<long> unexp_vert = getUnexploredVertex(edge);
   // If no vertices are return than just ignore it means the same
   // vertex was explored from a different direction
   if (!unexp_vert.size()) {
@@ -86,7 +86,7 @@ Edge GraphVisitor::nextEdge(Graph graph) {
   // Get the edge and at the same time remove it from whatever queue it is in
 
   Edge edge = getEdge_();
-  vector<long int> unexplored_vertices = getUnexploredVertex(edge);
+  vector<long> unexplored_vertices = getUnexploredVertex(edge);
   // Do not add neighboring edges if they belong to a vertex that has already
   // been explored because they will have already been added
   if (unexplored_vertices.size()) {
@@ -95,7 +95,7 @@ Edge GraphVisitor::nextEdge(Graph graph) {
   return edge;
 }
 
-set<long int> GraphVisitor::getExploredVertices() const { return explored_; }
+set<long> GraphVisitor::getExploredVertices() const { return explored_; }
 
 }  // namespace tools
 }  // namespace votca

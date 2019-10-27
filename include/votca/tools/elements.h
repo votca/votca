@@ -73,7 +73,7 @@ class Elements {
   double getVdWMK(std::string name);
 
   /// Return the Nuclear charges of each atom. H - 1, He - 2, Na - 3 etc...
-  double getNucCrg(std::string name);
+  int getNucCrg(std::string name);
 
   /// Similar to the Nuclear charges but returns in integer form represents
   /// the id of the atom in the periodic table, the id starts at 1
@@ -131,7 +131,7 @@ class Elements {
 
   std::map<std::string, double> _VdWChelpG;
   std::map<std::string, double> _VdWMK;
-  std::map<std::string, double> _NucCrg;
+  std::map<std::string, int> _NucCrg;
   std::map<std::string, double> _CovRad;
   std::map<std::string, double> _Mass;
   std::map<std::string, int> _EleNum;

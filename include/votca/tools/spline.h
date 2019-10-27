@@ -132,7 +132,7 @@ class Spline {
    * \param value r
    * \return interval index
    */
-  inline long int getInterval(const double &r);
+  inline long getInterval(const double &r);
 
   /**
    * \brief Generate the grid for fitting from "min" to "max" in steps of "h"
@@ -141,7 +141,7 @@ class Spline {
    * \param step "h"
    * \return number of grid values in the interval
    */
-  long int GenerateGrid(double min, double max, double h);
+  long GenerateGrid(double min, double max, double h);
 
   /**
    * \brief Get the grid array x
@@ -191,7 +191,7 @@ inline void Spline::Print(std::ostream &out, double interval) {
   }
 }
 
-inline long int Spline::getInterval(const double &r) {
+inline long Spline::getInterval(const double &r) {
   if (r < _r[0]) {
     return 0;
   }

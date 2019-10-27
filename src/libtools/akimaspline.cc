@@ -38,7 +38,7 @@ void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
         "at least 4 points");
   }
 
-  const long int N = x.size();
+  const long N = x.size();
 
   // copy the grid points into f
   _r = x;

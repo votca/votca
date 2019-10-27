@@ -33,7 +33,7 @@ void Histogram::ProcessData(DataCollection<double>::selection *data) {
   DataCollection<double>::selection::iterator array;
   DataCollection<double>::array::iterator iter;
   int ii;
-  long int ndata = 0;
+  long ndata = 0;
 
   _pdf.assign(_options._n, 0);
 

@@ -69,13 +69,13 @@ class ReducedGraph : public Graph {
    * Would be stored in the parent graph datastructure, the rest of the
    * vertices are stored as a vector in the expanded_edges_ object
    **/
-  std::unordered_map<Edge, std::vector<std::vector<long int>>> expanded_edges_;
+  std::unordered_map<Edge, std::vector<std::vector<long>>> expanded_edges_;
 
   void init_(std::vector<ReducedEdge> reduced_edges,
              std::unordered_map<long int, GraphNode> nodes);
 
   // Junctions must be stored internally
-  std::set<long int> junctions_;
+  std::set<long> junctions_;
 
  public:
   ReducedGraph() = default;
@@ -130,11 +130,11 @@ class ReducedGraph : public Graph {
    *
    * Thus 1 is the only junction that exists in the reduced graph
    **/
-  // std::vector<long int> getJunctions() const;
+  // std::vector<long> getJunctions() const;
 
   std::vector<std::pair<long int, GraphNode>> getNodes(void) const override;
 
-  std::vector<long int> getVerticesDegree(long int degree) const override;
+  std::vector<long> getVerticesDegree(long degree) const override;
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph graph);
 };

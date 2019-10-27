@@ -232,7 +232,7 @@ class Property {
   static int getIOindex() { return IOindex; };
 
  private:
-  std::map<std::string, long int> _map;
+  std::map<std::string, long> _map;
   std::map<std::string, std::string> _attributes;
   std::vector<Property> _properties;
 

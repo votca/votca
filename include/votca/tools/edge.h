@@ -38,20 +38,20 @@ namespace tools {
  */
 class Edge {
  protected:
-  std::vector<long int> vertices_;
+  std::vector<long> vertices_;
 
  public:
   Edge() = default;
   virtual ~Edge() = default;
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
-  Edge(long int ID1, long int ID2);
+  Edge(long ID1, long ID2);
   /// Given one of the integers in the edge the other will be output
-  long int getOtherEndPoint(long int ver) const;
+  long getOtherEndPoint(long ver) const;
   /// grab the smaller integer
-  long int getEndPoint1() const { return vertices_.front(); }
+  long getEndPoint1() const { return vertices_.front(); }
   /// grab the larger integer
-  long int getEndPoint2() const { return vertices_.back(); }
+  long getEndPoint2() const { return vertices_.back(); }
 
   /**
    * \brief Checks to see if an edge loops back on itself.
@@ -62,7 +62,7 @@ class Edge {
   bool loop() const { return vertices_.front() == vertices_.back(); }
 
   /// Determine if the edge contains the int ID
-  bool contains(long int ID) const;
+  bool contains(long ID) const;
   /// Checks if Edges are equivalent
   virtual bool operator==(const Edge& ed) const;
   /// Checks if Edges are not equivalent
@@ -86,8 +86,8 @@ class Edge {
 };
 
 // Value used as a dummy object
-const Edge DUMMY_EDGE(std::numeric_limits<long int>::max(),
-                      std::numeric_limits<long int>::max());
+const Edge DUMMY_EDGE(std::numeric_limits<long>::max(),
+                      std::numeric_limits<long>::max());
 }  // namespace tools
 }  // namespace votca
 
@@ -97,8 +97,7 @@ template <>
 class hash<votca::tools::Edge> {
  public:
   size_t operator()(const votca::tools::Edge& ed) const {
-    return hash<long int>()(ed.getEndPoint1()) ^
-           hash<long int>()(ed.getEndPoint2());
+    return hash<long>()(ed.getEndPoint1()) ^ hash<long>()(ed.getEndPoint2());
   }
 };
 }  // namespace std
