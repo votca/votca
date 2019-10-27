@@ -275,7 +275,7 @@ void Elements::FillMass() {
   _Mass["Po"] = 209;
   _Mass["At"] = 210;
   _Mass["Rn"] = 222;
-};
+}
 
 void Elements::FillVdWChelpG() {
   // VdW radii in Angstrom as used in CHELPG paper [Journal of Computational
@@ -299,7 +299,7 @@ void Elements::FillVdWChelpG() {
   _VdWChelpG["Cl"] = 2.0;
   _VdWChelpG["Ar"] = 2.0;
   _VdWChelpG["Ag"] = 1.7;
-};
+}
 
 void Elements::FillNucCrg() {
   // Nuclear Charges
@@ -375,7 +375,7 @@ void Elements::FillNucCrg() {
   _NucCrg["Po"] = 84.00;
   _NucCrg["At"] = 85.00;
   _NucCrg["Rn"] = 86.00;
-};
+}
 
 void Elements::FillCovRad() {
   // Covalent Radii, used by BulkESP to break system into molecules
@@ -453,7 +453,7 @@ void Elements::FillCovRad() {
   _CovRad["Po"] = 1.40;
   _CovRad["At"] = 1.50;
   _CovRad["Rn"] = 1.50;
-};
+}
 
 void Elements::FillEleNum() {
   // Nuclear Charges
@@ -528,7 +528,7 @@ void Elements::FillEleNum() {
   _EleNum["Po"] = 84;
   _EleNum["At"] = 85;
   _EleNum["Rn"] = 86;
-};
+}
 
 void Elements::FillEleName() {
   // Nuclear Charges
@@ -604,7 +604,7 @@ void Elements::FillEleName() {
   _EleName[84] = "Po";
   _EleName[85] = "At";
   _EleName[86] = "Rn";
-};
+}
 
 void Elements::FillEleShort() {
   // VdW radii in Angstrom as used in MK Gaussian
@@ -679,7 +679,7 @@ void Elements::FillEleShort() {
   _EleShort["PLONIUM"] = "Po";
   _EleShort["ASTATINE"] = "At";
   _EleShort["RADON"] = "Rn";
-};
+}
 
 void Elements::FillEleFull() {
   // VdW radii in Angstrom as used in MK Gaussian
@@ -754,7 +754,7 @@ void Elements::FillEleFull() {
   _EleFull["Po"] = "POLONIUM";
   _EleFull["At"] = "ASTATINE";
   _EleFull["Rn"] = "RADON";
-};
+}
 
 void Elements::FillVdWMK() {
   // VdW radii in Angstrom as used in MK Gaussian
@@ -776,7 +776,7 @@ void Elements::FillVdWMK() {
   _VdWMK["S"] = 1.75;
   _VdWMK["Cl"] = 1.7;
   _VdWMK["Ag"] = 2.0;
-};
+}
 
 void Elements::FillPolarizability() {
   _ElPolarizability["H"] = 0.496e-3;
@@ -791,4 +791,4 @@ void Elements::FillPolarizability() {
       5.80e-3;  //[1]P. Fuentealba, “The static dipole polarizability of
                 // aluminium atom: discrepancy between theory and experiment,”
                 // Chemical physics letters, vol. 397, no. 4, pp. 459–461, 2004.
-};
+}

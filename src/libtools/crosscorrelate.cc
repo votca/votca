@@ -28,14 +28,17 @@ namespace tools {
 /**
     \todo clean implementation!!!
 */
-void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection* data,
-                                   bool average) {
+void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection* data) {
 #ifdef NOFFTW
   throw std::runtime_error(
       "CrossCorrelate::AutoCorrelate is not compiled-in due to disabling of "
       "FFTW -recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = (*data)[0].size();
+  if (N > (size_t)std::numeric_limits<int>::max()) {
+    throw std::runtime_error("CrossCorrelate::AutoCorrelate: size is too big");
+  }
+
   _corrfunc.resize(N);
 
   fftw_complex* tmp;
@@ -43,8 +46,8 @@ void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection* data,
 
   tmp = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * (N / 2 + 1));
 
-  fft = fftw_plan_dft_r2c_1d(N, &(*data)[0][0], tmp, FFTW_ESTIMATE);
-  ifft = fftw_plan_dft_c2r_1d(N, tmp, &_corrfunc[0], FFTW_ESTIMATE);
+  fft = fftw_plan_dft_r2c_1d((int)N, &(*data)[0][0], tmp, FFTW_ESTIMATE);
+  ifft = fftw_plan_dft_c2r_1d((int)N, tmp, &_corrfunc[0], FFTW_ESTIMATE);
   fftw_execute(fft);
 
   tmp[0][0] = tmp[0][1] = 0;
@@ -71,6 +74,9 @@ void CrossCorrelate::AutoFourier(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
+  if (N > (size_t)std::numeric_limits<int>::max()) {
+    throw std::runtime_error("CrossCorrelate::AutoFourier: size is too big");
+  }
   _corrfunc.resize(N);
 
   fftw_complex* tmp;
@@ -78,7 +84,7 @@ void CrossCorrelate::AutoFourier(std::vector<double>& ivec) {
 
   tmp = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * (N / 2 + 1));
 
-  fft = fftw_plan_dft_r2c_1d(N, &ivec[0], tmp, FFTW_ESTIMATE);
+  fft = fftw_plan_dft_r2c_1d((int)N, &ivec[0], tmp, FFTW_ESTIMATE);
   fftw_execute(fft);
 
   tmp[0][0] = tmp[0][1] = 0;
@@ -104,6 +110,9 @@ void CrossCorrelate::FFTOnly(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
+  if (N > (size_t)std::numeric_limits<int>::max()) {
+    throw std::runtime_error("CrossCorrelate::FFTOnly: size is too big");
+  }
   _corrfunc.resize(N);
 
   fftw_complex* tmp;
@@ -111,7 +120,7 @@ void CrossCorrelate::FFTOnly(std::vector<double>& ivec) {
 
   tmp = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * (N / 2 + 1));
 
-  fft = fftw_plan_dft_r2c_1d(N, &ivec[0], tmp, FFTW_ESTIMATE);
+  fft = fftw_plan_dft_r2c_1d((int)N, &ivec[0], tmp, FFTW_ESTIMATE);
   fftw_execute(fft);
 
   // copy the real component of temp to the _corrfunc vector
@@ -131,6 +140,9 @@ void CrossCorrelate::DCTOnly(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
+  if (N > (size_t)std::numeric_limits<int>::max()) {
+    throw std::runtime_error("CrossCorrelate::DCTOnly: size is too big");
+  }
   _corrfunc.resize(N);
 
   std::vector<double> tmp(N);
@@ -138,7 +150,8 @@ void CrossCorrelate::DCTOnly(std::vector<double>& ivec) {
   fftw_plan fft;
 
   // do real to real discrete cosine trafo
-  fft = fftw_plan_r2r_1d(N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
+  fft =
+      fftw_plan_r2r_1d((int)N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
   fftw_execute(fft);
   fftw_destroy_plan(fft);
   _corrfunc = tmp;
@@ -153,13 +166,17 @@ void CrossCorrelate::AutoCosine(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
+  if (N > (size_t)std::numeric_limits<int>::max()) {
+    throw std::runtime_error("CrossCorrelate::AutoCosine: size is too big");
+  }
   _corrfunc.resize(N);
 
   std::vector<double> tmp(N);
   fftw_plan fft;
 
   // do real to real discrete cosine trafo
-  fft = fftw_plan_r2r_1d(N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
+  fft =
+      fftw_plan_r2r_1d((int)N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
   fftw_execute(fft);
   fftw_destroy_plan(fft);
   // compute autocorrelation
@@ -180,6 +197,9 @@ void CrossCorrelate::AutoCorr(std::vector<double>& ivec) {
       "-recompile Votca Tools with FFTW3 support ");
 #else
   size_t N = ivec.size();
+  if (N > (size_t)std::numeric_limits<int>::max()) {
+    throw std::runtime_error("CrossCorrelate::AutoCorr: size is too big");
+  }
   _corrfunc.resize(N);
 
   fftw_complex* tmp;
@@ -187,8 +207,8 @@ void CrossCorrelate::AutoCorr(std::vector<double>& ivec) {
 
   tmp = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * (N / 2 + 1));
 
-  fft = fftw_plan_dft_r2c_1d(N, &ivec[0], tmp, FFTW_ESTIMATE);
-  ifft = fftw_plan_dft_c2r_1d(N, tmp, &_corrfunc[0], FFTW_ESTIMATE);
+  fft = fftw_plan_dft_r2c_1d((int)N, &ivec[0], tmp, FFTW_ESTIMATE);
+  ifft = fftw_plan_dft_c2r_1d((int)N, tmp, &_corrfunc[0], FFTW_ESTIMATE);
   fftw_execute(fft);
 
   tmp[0][0] = tmp[0][1] = 0;

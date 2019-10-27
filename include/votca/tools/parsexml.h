@@ -71,20 +71,19 @@ class ParseXML {
                                   std::map<std::string, std::string> &));
 
   /**
-   * \brief Ignore the content of this elements and all of its childs
+   * \brief Ignore the content of this elements and all of its children
    */
   void IgnoreChilds();
 
  private:
   // virtual void ParseRoot(const string &el, map<string, string> &attr);
-  void ParseIgnore(const std::string &el,
-                   std::map<std::string, std::string> &attr);
+  void ParseIgnore(const std::string &, std::map<std::string, std::string> &);
 
   /// end element callback for xml parser
   void StartElemHndl(const std::string &el,
                      std::map<std::string, std::string> &attr);
   /// end element callback for xml parser
-  void EndElemHndl(const std::string &el);
+  void EndElemHndl(const std::string &);
 
   class Functor {
    public:
@@ -92,7 +91,6 @@ class ParseXML {
     virtual void operator()(const std::string &,
                             std::map<std::string, std::string> &) = 0;
     virtual ~Functor() = default;
-    ;
   };
 
   template <typename T>

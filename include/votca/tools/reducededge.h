@@ -51,13 +51,13 @@ class ReducedEdge : public Edge {
   ReducedEdge() = default;
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
-  ReducedEdge(std::vector<int> chain);
+  ReducedEdge(std::vector<long int> chain);
 
-  ReducedEdge(int vertex1, int vertex2)
-      : ReducedEdge(std::vector<int>{vertex1, vertex2}){};
+  ReducedEdge(long int vertex1, long int vertex2)
+      : ReducedEdge(std::vector<long int>{vertex1, vertex2}){};
 
   /// Returns a vector of vertices that constitute the edge
-  std::vector<int> getChain() const { return vertices_; }
+  std::vector<long int> getChain() const { return vertices_; }
 
   /**
    * \brief Provided a vertex this method will determine if it exists within the

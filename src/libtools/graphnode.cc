@@ -166,8 +166,6 @@ std::string GraphNode::getStr(const string str) {
   return str_vals_[str];
 }
 
-GraphNode& GraphNode::operator=(const GraphNode& gn) = default;
-
 bool GraphNode::operator!=(const GraphNode gn) const {
   return (str_id_.compare(gn.str_id_) != 0);
 }

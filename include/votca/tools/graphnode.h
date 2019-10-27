@@ -50,7 +50,6 @@ class GraphNode {
 
  public:
   GraphNode() = default;
-  ;
 
   /// Constructor
   /// Each map corresponds to a different content the graph node can contain.
@@ -70,8 +69,6 @@ class GraphNode {
 
   /// Get the string id unique to the contents of the graph node
   std::string getStringId() const { return str_id_; }
-
-  GraphNode& operator=(const GraphNode& gn);
 
   bool operator==(const GraphNode gn) const;
   bool operator!=(const GraphNode gn) const;

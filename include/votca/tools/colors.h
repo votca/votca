@@ -59,7 +59,7 @@ static const char BoldMagenta[] = {0x1b, '[', '1', ';', '3', '5', 'm', 0};
 static const char BoldCyan[] = {0x1b, '[', '1', ';', '3', '6', 'm', 0};
 static const char BoldWhite[] = {0x1b, '[', '1', ';', '3', '7', 'm', 0};
 
-};  // namespace Colors
+}  // namespace Colors
 
 class ColorScheme {
  public:
@@ -86,7 +86,6 @@ class ColorSchemeBase {
   virtual const char *Cyan() const = 0;
   virtual const char *White() const = 0;
   virtual ~ColorSchemeBase() = default;
-  ;
 };
 
 template <typename TColorScheme>

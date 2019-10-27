@@ -29,7 +29,7 @@ namespace tools {
 
 bool Graph_BF_Visitor::queEmpty() const { return edge_que_.empty(); }
 
-Edge Graph_BF_Visitor::getEdge_(const Graph& graph) {
+Edge Graph_BF_Visitor::getEdge_() {
   Edge oldest_edge = edge_que_.at(0).front();
   edge_que_.at(0).pop();
   if (edge_que_.at(0).size() == 0) {
@@ -39,7 +39,7 @@ Edge Graph_BF_Visitor::getEdge_(const Graph& graph) {
 }
 
 // Add edges to be explored
-void Graph_BF_Visitor::addEdges_(const Graph& graph, int vertex) {
+void Graph_BF_Visitor::addEdges_(const Graph& graph, long int vertex) {
 
   vector<Edge> newest_edges = graph.getNeighEdges(vertex);
 
@@ -47,7 +47,7 @@ void Graph_BF_Visitor::addEdges_(const Graph& graph, int vertex) {
   if (edge_que_.empty()) {
     queue<Edge> first_edge_queue;
     for (const Edge edge : newest_edges) {
-      int neigh_vert = edge.getOtherEndPoint(vertex);
+      long int neigh_vert = edge.getOtherEndPoint(vertex);
       if (explored_.count(neigh_vert) == 0) {
         first_edge_queue.push(edge);
       }
@@ -60,7 +60,7 @@ void Graph_BF_Visitor::addEdges_(const Graph& graph, int vertex) {
     if (edge_que_.size() == 1) {
       queue<Edge> new_edge_queue;
       for (const Edge edge : newest_edges) {
-        int neigh_vert = edge.getOtherEndPoint(vertex);
+        long int neigh_vert = edge.getOtherEndPoint(vertex);
         if (explored_.count(neigh_vert) == 0) {
           new_edge_queue.push(edge);
         }
@@ -70,7 +70,7 @@ void Graph_BF_Visitor::addEdges_(const Graph& graph, int vertex) {
       }
     } else {
       for (const Edge edge : newest_edges) {
-        int neigh_vert = edge.getOtherEndPoint(vertex);
+        long int neigh_vert = edge.getOtherEndPoint(vertex);
         if (explored_.count(neigh_vert) == 0) {
           edge_que_.at(1).push(edge);
         }

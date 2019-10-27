@@ -33,10 +33,8 @@ class Correlate {
  public:
   /// constructor
   Correlate() = default;
-  ;
   /// destructor
   ~Correlate() = default;
-  ;
 
   /**
       calculate the correlation of the first row in selection with all the other

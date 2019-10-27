@@ -52,13 +52,11 @@ class CubicSpline : public Spline {
  public:
   // default constructor
   CubicSpline() = default;
-  ;
   // CubicSpline() :
   //    _boundaries(splineNormal) {}
 
   // destructor
   ~CubicSpline() override = default;
-  ;
 
   // construct an interpolation spline
   // x, y are the the points to construct interpolation, both vectors must be of
@@ -100,8 +98,8 @@ class CubicSpline : public Spline {
    * one entry in that fitting matrix.
    */
   template <typename matrix_type>
-  void AddToFitMatrix(matrix_type &A, double x, int offset1, int offset2 = 0,
-                      double scale = 1);
+  void AddToFitMatrix(matrix_type &A, double x, long int offset1,
+                      long int offset2 = 0, double scale = 1);
 
   /**
    * \brief Add a point (one entry) to fitting matrix
@@ -114,8 +112,8 @@ class CubicSpline : public Spline {
    * one entry in that fitting matrix.
    */
   template <typename matrix_type>
-  void AddToFitMatrix(matrix_type &A, double x, int offset1, int offset2,
-                      double scale1, double scale2);
+  void AddToFitMatrix(matrix_type &A, double x, int long offset1,
+                      int long offset2, double scale1, double scale2);
 
   /**
    * \brief Add a vector of points to fitting matrix
@@ -125,8 +123,8 @@ class CubicSpline : public Spline {
    * Same as previous function, but vector-valued and with scale=1.0
    */
   template <typename matrix_type, typename vector_type>
-  void AddToFitMatrix(matrix_type &M, vector_type &x, int offset1,
-                      int offset2 = 0);
+  void AddToFitMatrix(matrix_type &M, vector_type &x, long int offset1,
+                      long int offset2 = 0);
 
   /**
    * \brief Add boundary condition of sum_i f_i =0 to fitting matrix
@@ -134,7 +132,8 @@ class CubicSpline : public Spline {
    * \param offsets
    */
   template <typename matrix_type>
-  void AddBCSumZeroToFitMatrix(matrix_type &A, int offset1, int offset2 = 0);
+  void AddBCSumZeroToFitMatrix(matrix_type &A, long int offset1,
+                               long int offset2 = 0);
 
   /**
    * \brief Add boundary conditions to fitting matrix
@@ -142,7 +141,7 @@ class CubicSpline : public Spline {
    * \param offsets
    */
   template <typename matrix_type>
-  void AddBCToFitMatrix(matrix_type &A, int offset1, int offset2 = 0);
+  void AddBCToFitMatrix(matrix_type &A, long int offset1, long int offset2 = 0);
 
  protected:
   // A spline can be written in the form
@@ -159,32 +158,33 @@ class CubicSpline : public Spline {
   double Dprime(const double &r);
 
   // tabulated derivatives at grid points. Second argument: 0 - left, 1 - right
-  double A_prime_l(int i);
-  double A_prime_r(int i);
-  double B_prime_l(int i);
-  double B_prime_r(int i);
-  double C_prime_l(int i);
-  double C_prime_r(int i);
-  double D_prime_l(int i);
-  double D_prime_r(int i);
+  double A_prime_l(long int i);
+  double A_prime_r(long int i);
+  double B_prime_l(long int i);
+  double B_prime_r(long int i);
+  double C_prime_l(long int i);
+  double C_prime_r(long int i);
+  double D_prime_l(long int i);
+  double D_prime_r(long int i);
 };
 
 inline double CubicSpline::Calculate(const double &r) {
-  int interval = getInterval(r);
+  long int interval = getInterval(r);
   return A(r) * _f[interval] + B(r) * _f[interval + 1] + C(r) * _f2[interval] +
          D(r) * _f2[interval + 1];
 }
 
 inline double CubicSpline::CalculateDerivative(const double &r) {
-  int interval = getInterval(r);
+  long int interval = getInterval(r);
   return Aprime(r) * _f[interval] + Bprime(r) * _f[interval + 1] +
          Cprime(r) * _f2[interval] + Dprime(r) * _f2[interval + 1];
 }
 
 template <typename matrix_type>
-inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, int offset1,
-                                        int offset2, double scale) {
-  int spi = getInterval(x);
+inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x,
+                                        long int offset1, long int offset2,
+                                        double scale) {
+  long int spi = getInterval(x);
   M(offset1, offset2 + spi) += A(x) * scale;
   M(offset1, offset2 + spi + 1) += B(x) * scale;
   M(offset1, offset2 + spi + _r.size()) += C(x) * scale;
@@ -193,10 +193,10 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, int offset1,
 
 // for adding f'(x)*scale1 + f(x)*scale2 as needed for threebody interactions
 template <typename matrix_type>
-inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, int offset1,
-                                        int offset2, double scale1,
-                                        double scale2) {
-  int spi = getInterval(x);
+inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x,
+                                        long int offset1, long int offset2,
+                                        double scale1, double scale2) {
+  long int spi = getInterval(x);
   M(offset1, offset2 + spi) += Aprime(x) * scale1;
   M(offset1, offset2 + spi + 1) += Bprime(x) * scale1;
   M(offset1, offset2 + spi + _r.size()) += Cprime(x) * scale1;
@@ -210,9 +210,9 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, int offset1,
 
 template <typename matrix_type, typename vector_type>
 inline void CubicSpline::AddToFitMatrix(matrix_type &M, vector_type &x,
-                                        int offset1, int offset2) {
+                                        long int offset1, long int offset2) {
   for (int i = 0; i < x.size(); ++i) {
-    int spi = getInterval(x(i));
+    long int spi = getInterval(x(i));
     M(offset1 + i, offset2 + spi) = A(x(i));
     M(offset1 + i, offset2 + spi + 1) = B(x(i));
     M(offset1 + i, offset2 + spi + _r.size()) = C(x(i));
@@ -221,8 +221,9 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, vector_type &x,
 }
 
 template <typename matrix_type>
-inline void CubicSpline::AddBCSumZeroToFitMatrix(matrix_type &M, int offset1,
-                                                 int offset2) {
+inline void CubicSpline::AddBCSumZeroToFitMatrix(matrix_type &M,
+                                                 long int offset1,
+                                                 long int offset2) {
   for (int i = 0; i < _r.size(); ++i) {
     M(offset1, offset2 + i) = 1;
     M(offset1, offset2 + _r.size() + i) = 0;
@@ -230,8 +231,8 @@ inline void CubicSpline::AddBCSumZeroToFitMatrix(matrix_type &M, int offset1,
 }
 
 template <typename matrix_type>
-inline void CubicSpline::AddBCToFitMatrix(matrix_type &M, int offset1,
-                                          int offset2) {
+inline void CubicSpline::AddBCToFitMatrix(matrix_type &M, long int offset1,
+                                          long int offset2) {
   for (int i = 0; i < _r.size() - 2; ++i) {
     M(offset1 + i + 1, offset2 + i) = A_prime_l(i);
     M(offset1 + i + 1, offset2 + i + 1) = B_prime_l(i) - A_prime_r(i);
@@ -336,35 +337,35 @@ inline int CubicSpline::getInterval(double &r)
 }
  **/
 
-inline double CubicSpline::A_prime_l(int i) {
+inline double CubicSpline::A_prime_l(long int i) {
   return -1.0 / (_r[i + 1] - _r[i]);
 }
 
-inline double CubicSpline::B_prime_l(int i) {
+inline double CubicSpline::B_prime_l(long int i) {
   return 1.0 / (_r[i + 1] - _r[i]);
 }
 
-inline double CubicSpline::C_prime_l(int i) {
+inline double CubicSpline::C_prime_l(long int i) {
   return (1.0 / 6.0) * (_r[i + 1] - _r[i]);
 }
 
-inline double CubicSpline::D_prime_l(int i) {
+inline double CubicSpline::D_prime_l(long int i) {
   return (1.0 / 3.0) * (_r[i + 1] - _r[i]);
 }
 
-inline double CubicSpline::A_prime_r(int i) {
+inline double CubicSpline::A_prime_r(long int i) {
   return -1.0 / (_r[i + 2] - _r[i + 1]);
 }
 
-inline double CubicSpline::B_prime_r(int i) {
+inline double CubicSpline::B_prime_r(long int i) {
   return 1.0 / (_r[i + 2] - _r[i + 1]);
 }
 
-inline double CubicSpline::C_prime_r(int i) {
+inline double CubicSpline::C_prime_r(long int i) {
   return -(1.0 / 3.0) * (_r[i + 2] - _r[i + 1]);
 }
 
-inline double CubicSpline::D_prime_r(int i) {
+inline double CubicSpline::D_prime_r(long int i) {
   return -(1.0 / 6.0) * (_r[i + 2] - _r[i + 1]);
 }
 

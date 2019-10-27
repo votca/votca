@@ -38,7 +38,7 @@ void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
         "at least 4 points");
   }
 
-  const int N = x.size();
+  const long int N = x.size();
 
   // copy the grid points into f
   _r = x;
@@ -150,7 +150,7 @@ void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   }
 }
 
-void AkimaSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
+void AkimaSpline::Fit(Eigen::VectorXd &, Eigen::VectorXd &) {
   throw std::runtime_error("Akima fit not implemented.");
 }
 

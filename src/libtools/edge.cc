@@ -27,11 +27,11 @@ namespace tools {
 
 using namespace std;
 
-Edge::Edge(int ID1, int ID2) {
-  vertices_ = vector<int>{min({ID1, ID2}), max({ID1, ID2})};
+Edge::Edge(long int ID1, long int ID2) {
+  vertices_ = vector<long int>{min({ID1, ID2}), max({ID1, ID2})};
 }
 
-int Edge::getOtherEndPoint(int ver) const {
+long int Edge::getOtherEndPoint(long int ver) const {
   if (ver == vertices_.front()) {
     return vertices_.back();
   } else {
@@ -39,7 +39,7 @@ int Edge::getOtherEndPoint(int ver) const {
   }
 }
 
-bool Edge::contains(int ID) const {
+bool Edge::contains(long int ID) const {
   return (vertices_.front() == ID || vertices_.back() == ID);
 }
 

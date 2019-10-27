@@ -34,8 +34,8 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
     }
   }
 
-  const int NoVariables = x.size();
-  const int NoConstrains =
+  const long int NoVariables = x.size();
+  const long int NoConstrains =
       constr.rows();  // number of constraints is number of rows of constr
 
   Eigen::HouseholderQR<Eigen::MatrixXd> QR(constr.transpose());
@@ -55,7 +55,7 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
 
   // Next two steps assemble vector from y (which is zero-vector) and z
   Eigen::VectorXd result = Eigen::VectorXd::Zero(NoVariables);
-  for (int i = NoConstrains; i < NoVariables; i++) {
+  for (long int i = NoConstrains; i < NoVariables; i++) {
     result[i] = z(i - NoConstrains);
   }
   // To get the final answer this vector should be multiplied by matrix Q
@@ -75,7 +75,7 @@ EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, int nmax) {
   MKL_INT il, iu, m, ldz;
 
   int n = A.rows();
-  MKL_INT ifail[n];
+  std::vector<MKL_INT> ifail(n);
   lda = n;
   ldz = nmax;
 
@@ -97,7 +97,7 @@ EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, int nmax) {
 
   // call LAPACK via C interface
   info = LAPACKE_dsyevx(LAPACK_COL_MAJOR, 'V', 'I', 'U', n, pA, lda, vl, vu, il,
-                        iu, abstol, &m, pE, pV, n, ifail);
+                        iu, abstol, &m, pE, pV, n, ifail.data());
   if (info == 0) {
     result.info() = Eigen::Success;
   } else if (info < 0) {

@@ -35,13 +35,11 @@ class LinSpline : public Spline {
  public:
   // default constructor
   LinSpline() = default;
-  ;
   // LinSpline() :
   //    _boundaries(splineNormal) {}
 
   // destructor
   ~LinSpline() override = default;
-  ;
 
   // construct an interpolation spline
   // x, y are the the points to construct interpolation, both vectors must be of
@@ -73,12 +71,12 @@ class LinSpline : public Spline {
 };
 
 inline double LinSpline::Calculate(const double &r) {
-  int interval = getInterval(r);
+  long int interval = getInterval(r);
   return a(interval) * r + b(interval);
 }
 
 inline double LinSpline::CalculateDerivative(const double &r) {
-  int interval = getInterval(r);
+  long int interval = getInterval(r);
   return a(interval);
 }
 
