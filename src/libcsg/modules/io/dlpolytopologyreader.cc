@@ -217,8 +217,6 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
       cout << "Read from dlpoly file '" << _fname << "' : '" << line << "' - "
            << natoms << endl;
 #endif
-
-      // read molecule
       std::vector<long> id_map(natoms);
       for (int i = 0; i < natoms;) {  // i is altered in repeater loop
         stringstream sl(_NextKeyline(fl, WhiteSpace));
