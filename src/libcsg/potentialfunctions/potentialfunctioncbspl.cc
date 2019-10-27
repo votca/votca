@@ -126,7 +126,7 @@ void PotentialFunctionCBSPL::setParam(string filename) {
   } else {
 
     // force last _ncutcoeff to zero
-    for (unsigned int i = 0; i < _lam.size() - _ncutcoeff; i++) {
+    for (unsigned i = 0; i < _lam.size() - _ncutcoeff; i++) {
       _lam(i) = param.y(i);
     }
   }

@@ -549,7 +549,7 @@ void Imc::WriteDist(const string &suffix) {
       if (!interaction->_threebody) {
         // force normalization
         // normalize by number of pairs found at a specific distance
-        for (unsigned int i = 0; i < force.y().size(); ++i) {
+        for (unsigned i = 0; i < force.y().size(); ++i) {
           // check if any number of pairs has been found at this distance, then
           // normalize
           if (dist.y()[i] != 0) {
@@ -563,7 +563,7 @@ void Imc::WriteDist(const string &suffix) {
 
         // normalization is calculated using exact shell volume (difference of
         // spheres)
-        for (unsigned int i = 0; i < dist.y().size(); ++i) {
+        for (unsigned i = 0; i < dist.y().size(); ++i) {
           double x1 = dist.x()[i] - 0.5 * interaction->_step;
           double x2 = x1 + interaction->_step;
           if (x1 < 0) {
@@ -696,7 +696,7 @@ void Imc::CalcDeltaS(interaction_t *interaction,
   target.Load(name + ".dist.tgt");
 
   if (!interaction->_is_bonded) {
-    for (unsigned int i = 0; i < target.y().size(); ++i) {
+    for (unsigned i = 0; i < target.y().size(); ++i) {
       double x1 = target.x()[i] - 0.5 * interaction->_step;
       double x2 = x1 + interaction->_step;
       if (x1 < 0) {

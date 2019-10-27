@@ -190,7 +190,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
   fl << "units kJ\n";
   fl << "molecular types " << MolecularTypes.size() << endl;
 
-  for (unsigned int i = 0; i < MolecularTypes.size(); i++) {
+  for (unsigned i = 0; i < MolecularTypes.size(); i++) {
     WriteMolecularType(fl, *(MolecularTypes[i]), nummols[i + 1]);
   }
 

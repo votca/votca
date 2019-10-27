@@ -122,7 +122,7 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
 
   size_t i_num = string::npos;
 
-  unsigned int i = 1;
+  unsigned i = 1;
   do {  // find integer number in the field with the lowest index (closest to
         // the keyword)
     i_num = fields[i++].find_first_of("0123456789");
