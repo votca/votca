@@ -114,7 +114,7 @@ Eigen::MatrixXd imcio_read_matrix(const std::string &filename) {
   std::string line;
   std::vector<double> result;
   int numrows = 0;
-  unsigned numcols = 0;
+  size_t numcols = 0;
   while (getline(intt, line)) {
     if (line[0] == '#') {
       continue;

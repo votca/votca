@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(test_bead_constructor) {
   Topology top;
 
   string bead_type_name = "C1";
-  int symmetry = 1;
+  votca::tools::byte_t symmetry = 1;
   string name = "dummy";
   int resnr = 0;
   double mass = 1.21;
@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(test_bead_getters) {
 
   string bead_type_name = "C1";
 
-  int symmetry = 1;
+  votca::tools::byte_t symmetry = 1;
   string name = "dummy";
   int resnr = 0;
   double mass = 1.21;
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
 
   string bead_type_name = "C1";
 
-  int symmetry = 1;
+  votca::tools::byte_t symmetry = 1;
   string name = "dummy";
   int resnr = 0;
   double mass = 1.21;

@@ -58,7 +58,7 @@ class Imc {
 
   /// struct to store collected information for interactions
   struct interaction_t {
-    int _index;
+    long int _index;
     tools::Property *_p;
     tools::HistogramNew _average;
     tools::HistogramNew _average_force;

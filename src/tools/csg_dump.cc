@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   return app.Exec(argc, argv);
 }
 
-bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref) {
+bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *) {
   if (!OptionsMap().count("excl")) {
     cout << "Boundary Condition: ";
     if (top->getBoxType() == BoundaryCondition::typeAuto) {
@@ -76,18 +76,17 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref) {
     }
 
     cout << "\nList of molecules:\n";
-    MoleculeContainer::iterator mol;
-    for (mol = top->Molecules().begin(); mol != top->Molecules().end(); ++mol) {
-      cout << "molecule: " << (*mol)->getId() + 1 << " " << (*mol)->getName()
-           << " beads: " << (*mol)->BeadCount() << endl;
-      for (int i = 0; i < (*mol)->BeadCount(); ++i) {
-        int resnr = (*mol)->getBead(i)->getResnr();
+    for (Molecule *mol : top->Molecules()) {
+      cout << "molecule: " << mol->getId() + 1 << " " << mol->getName()
+           << " beads: " << mol->BeadCount() << endl;
+      for (int i = 0; i < mol->BeadCount(); ++i) {
+        long int resnr = mol->getBead(i)->getResnr();
 
-        cout << (*mol)->getBeadId(i) << " Name " << (*mol)->getBeadName(i)
-             << " Type " << (*mol)->getBead(i)->getType() << " Mass "
-             << (*mol)->getBead(i)->getMass() << " Resnr " << resnr
-             << " Resname " << top->getResidue(resnr)->getName() << " Charge "
-             << (*mol)->getBead(i)->getQ() << endl;
+        cout << mol->getBeadId(i) << " Name " << mol->getBeadName(i) << " Type "
+             << mol->getBead(i)->getType() << " Mass "
+             << mol->getBead(i)->getMass() << " Resnr " << resnr << " Resname "
+             << top->getResidue(resnr)->getName() << " Charge "
+             << mol->getBead(i)->getQ() << endl;
       }
     }
   } else {

@@ -71,11 +71,11 @@ bool LAMMPSDumpReader::NextFrame(Topology &top) {
       throw std::ios_base::failure("unexpected line in lammps file:\n" + line);
     }
     if (line.substr(6, 8) == "TIMESTEP") {
-      ReadTimestep(top, line);
+      ReadTimestep(top);
     } else if (line.substr(6, 15) == "NUMBER OF ATOMS") {
-      ReadNumAtoms(top, line);
+      ReadNumAtoms(top);
     } else if (line.substr(6, 10) == "BOX BOUNDS") {
-      ReadBox(top, line);
+      ReadBox(top);
     } else if (line.substr(6, 5) == "ATOMS") {
       ReadAtoms(top, line);
       break;
@@ -96,7 +96,7 @@ bool LAMMPSDumpReader::NextFrame(Topology &top) {
   ;
 }
 
-void LAMMPSDumpReader::ReadTimestep(Topology &top, string itemline) {
+void LAMMPSDumpReader::ReadTimestep(Topology &top) {
   string s;
   getline(_fl, s);
   boost::algorithm::trim(s);
@@ -104,7 +104,7 @@ void LAMMPSDumpReader::ReadTimestep(Topology &top, string itemline) {
   cout << "Reading frame, timestep " << top.getStep() << endl;
 }
 
-void LAMMPSDumpReader::ReadBox(Topology &top, string itemline) {
+void LAMMPSDumpReader::ReadBox(Topology &top) {
   string s;
 
   Eigen::Matrix3d m = Eigen::Matrix3d::Zero();
@@ -124,7 +124,7 @@ void LAMMPSDumpReader::ReadBox(Topology &top, string itemline) {
   top.setBox(m * tools::conv::ang2nm);
 }
 
-void LAMMPSDumpReader::ReadNumAtoms(Topology &top, string itemline) {
+void LAMMPSDumpReader::ReadNumAtoms(Topology &top) {
   string s;
   getline(_fl, s);
   boost::algorithm::trim(s);

@@ -105,7 +105,6 @@ class TabulatedPotential : public AnalysisTool {
  public:
   TabulatedPotential();
   ~TabulatedPotential() override = default;
-  ;
 
   void Register(std::map<std::string, AnalysisTool *> &lib) override;
 

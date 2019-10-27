@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(test_beadtriple_constructor) {
 
   string bead_type_name = "CG";
 
-  int symmetry = 1;
+  votca::tools::byte_t symmetry = 1;
   string name = "dummy1";
   int resnr = 0;
   double mass = 1.0;

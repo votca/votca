@@ -216,4 +216,4 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   BOOST_CHECK_EQUAL(structure2_count, 2);
 }
 
-BOOST_AUTO_TEST_SUITE_END();
+BOOST_AUTO_TEST_SUITE_END()

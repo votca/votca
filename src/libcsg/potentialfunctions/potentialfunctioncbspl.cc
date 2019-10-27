@@ -26,11 +26,9 @@ using namespace votca::tools;
 namespace votca {
 namespace csg {
 
-PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
-                                               const int nlam_,
-                                               const double min_,
-                                               const double max_)
-    : PotentialFunction(name_, nlam_, min_, max_) {
+PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, int nlam,
+                                               double min, double max)
+    : PotentialFunction(name, nlam, min, max) {
 
   /* Here nlam_ is the total number of coeff values that are to be optimized
    * To ensure that potential and force go to zero smoothly near cut-off,
@@ -42,7 +40,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
    * extrapolated from first statistically significant knot values near rmin
    */
 
-  int nknots;
+  long int nknots;
 
   nknots = _lam.size();
 
@@ -60,7 +58,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
   }
 
   // exclude knots corresponding to r <= _min
-  _nexcl = min(int((_min) / _dr), _nbreak - 2) + 1;
+  _nexcl = std::min((long int)(_min / _dr), _nbreak - 2) + 1;
 
   // account for finite numerical division of _min/_dr
   // e.g. 0.24/0.02 may result in 11.99999999999999
@@ -86,7 +84,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
         "3. Use more knot values.\n");
   }
 
-  _M = Eigen::MatrixXd::Zero(4, 4);
+  _M = Eigen::Matrix4d::Zero();
   _M(0, 0) = 1.0;
   _M(0, 1) = 4.0;
   _M(0, 2) = 1.0;
@@ -106,9 +104,9 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
   _M /= 6.0;
 }
 
-int PotentialFunctionCBSPL::getOptParamSize() const {
+long int PotentialFunctionCBSPL::getOptParamSize() const {
 
-  return int(_lam.size()) - _nexcl - _ncutcoeff;
+  return _lam.size() - _nexcl - _ncutcoeff;
 }
 
 void PotentialFunctionCBSPL::setParam(string filename) {
@@ -149,22 +147,20 @@ void PotentialFunctionCBSPL::SaveParam(const string &filename) {
     param.set(i, _rbreak(i), _lam(i), 'o');
   }
 
-  for (unsigned int i = _nexcl + 3; i < _lam.size(); i++) {
+  for (long int i = _nexcl + 3; i < _lam.size(); i++) {
     param.set(i, _rbreak(i), _lam(i), 'i');
   }
 
   param.Save(filename);
 }
 
-void PotentialFunctionCBSPL::SavePotTab(const string &filename,
-                                        const double step, const double rmin,
-                                        const double rcut) {
+void PotentialFunctionCBSPL::SavePotTab(const string &filename, double step,
+                                        double rmin, double rcut) {
   extrapolExclParam();
   PotentialFunction::SavePotTab(filename, step, rmin, rcut);
 }
 
-void PotentialFunctionCBSPL::SavePotTab(const string &filename,
-                                        const double step) {
+void PotentialFunctionCBSPL::SavePotTab(const string &filename, double step) {
   extrapolExclParam();
   PotentialFunction::SavePotTab(filename, step);
 }
@@ -198,33 +194,31 @@ void PotentialFunctionCBSPL::extrapolExclParam() {
   }
 }
 
-void PotentialFunctionCBSPL::setOptParam(const int i, const double val) {
+void PotentialFunctionCBSPL::setOptParam(long int i, double val) {
 
   _lam(i + _nexcl) = val;
 }
 
-double PotentialFunctionCBSPL::getOptParam(const int i) const {
+double PotentialFunctionCBSPL::getOptParam(long int i) const {
 
   return _lam(i + _nexcl);
 }
 
-double PotentialFunctionCBSPL::CalculateF(const double r) const {
+double PotentialFunctionCBSPL::CalculateF(double r) const {
 
   if (r <= _cut_off) {
 
     double u = 0.0;
-    int indx = min(int(r / _dr), _nbreak - 2);
-    ;
-    double rk = indx * _dr;
-    ;
+    long int indx = min((long int)(r / _dr), _nbreak - 2);
+    double rk = (double)indx * _dr;
     double t = (r - rk) / _dr;
 
-    Eigen::VectorXd R = Eigen::VectorXd::Zero(4);
+    Eigen::Vector4d R = Eigen::Vector4d::Zero();
     R(0) = 1.0;
     R(1) = t;
     R(2) = t * t;
     R(3) = t * t * t;
-    Eigen::VectorXd B = _lam.segment(indx, 4);
+    Eigen::Vector4d B = _lam.segment<4>(indx);
     u += ((R.transpose() * _M) * B).value();
     return u;
 
@@ -234,22 +228,22 @@ double PotentialFunctionCBSPL::CalculateF(const double r) const {
 }
 
 // calculate first derivative w.r.t. ith parameter
-double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const {
+double PotentialFunctionCBSPL::CalculateDF(long int i, double r) const {
 
   // since first _nexcl parameters are not optimized for stability reasons
 
   if (r <= _cut_off) {
 
-    unsigned int i_opt = i + _nexcl;
-    unsigned int indx;
+    long int i_opt = i + _nexcl;
+    long int indx;
     double rk;
 
-    indx = min(int((r) / _dr), _nbreak - 2);
-    rk = indx * _dr;
+    indx = min((long int)(r / _dr), _nbreak - 2);
+    rk = (double)indx * _dr;
 
     if (i_opt >= indx && i_opt <= indx + 3) {
 
-      Eigen::VectorXd R = Eigen::VectorXd::Zero(4);
+      Eigen::Vector4d R = Eigen::Vector4d::Zero();
 
       double t = (r - rk) / _dr;
 
@@ -258,7 +252,7 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const {
       R(2) = t * t;
       R(3) = t * t * t;
 
-      Eigen::VectorXd RM = R.transpose() * _M;
+      Eigen::Vector4d RM = R.transpose() * _M;
 
       return RM(i_opt - indx);
 
@@ -272,8 +266,7 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const {
 }
 
 // calculate second derivative w.r.t. ith parameter
-double PotentialFunctionCBSPL::CalculateD2F(const int i, const int j,
-                                            const double r) const {
+double PotentialFunctionCBSPL::CalculateD2F(long int, long int, double) const {
 
   return 0.0;
 }

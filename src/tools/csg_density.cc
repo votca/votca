@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
   return app.Exec(argc, argv);
 }
 
-void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
+void CsgDensityApp::BeginEvaluate(Topology *top, Topology *) {
 
   Eigen::Matrix3d box = top->getBox();
   Eigen::Vector3d a = box.col(0);
@@ -133,17 +133,15 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
   _nblock = 0;
 }
 
-void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref) {
+void CsgDensityApp::EvalConfiguration(Topology *top, Topology *) {
   // loop over all molecules
   bool did_something = false;
-  for (MoleculeContainer::iterator imol = top->Molecules().begin();
-       imol != top->Molecules().end(); ++imol) {
-    Molecule *mol = *imol;
+  for (Molecule *mol : top->Molecules()) {
     if (!votca::tools::wildcmp(_molname.c_str(), mol->getName().c_str())) {
       continue;
     }
-    int N = mol->BeadCount();
-    for (int i = 0; i < N; i++) {
+    long int N = mol->BeadCount();
+    for (long int i = 0; i < N; i++) {
       Bead *b = mol->getBead(i);
       if (!votca::tools::wildcmp(_filter.c_str(), b->getName().c_str())) {
         continue;

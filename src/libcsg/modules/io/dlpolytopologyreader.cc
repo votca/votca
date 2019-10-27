@@ -61,7 +61,7 @@ string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char *wspace)
 }
 
 string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char *wspace,
-                                         const string &word, int &ival)
+                                         const string &word, long int &ival)
 // function to read the next line containing only a given keyword and an integer
 // value after it (only skipping comments!) NOTE: this function must only be
 // called when the next directive line has to contain the given keyword and an
@@ -140,8 +140,8 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
   const char *WhiteSpace = " \t";
 
-  int matoms = 0;
-  int natoms = 0;
+  long int matoms = 0;
+  long int natoms = 0;
 
   std::ifstream fl;
   boost::filesystem::path filepath(file.c_str());
@@ -163,7 +163,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
     _fname = file;
   }
 
-  fl.open(_fname.c_str());
+  fl.open(_fname);
 
   if (!fl.is_open()) {
     throw std::runtime_error("Error on opening dlpoly file '" + _fname + "'");
@@ -203,7 +203,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
       mol_name = _NextKeyline(fl, WhiteSpace);
       Molecule *mi = top.CreateMolecule(mol_name);
 
-      int nreplica = 1;
+      long int nreplica = 1;
       line = _NextKeyInt(fl, WhiteSpace, "NUMMOL", nreplica);
 
 #ifdef DEBUG
@@ -219,7 +219,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 #endif
 
       // read molecule
-      int id_map[natoms];
+      std::vector<long int> id_map(natoms);
       for (int i = 0; i < natoms;) {  // i is altered in repeater loop
         stringstream sl(_NextKeyline(fl, WhiteSpace));
 
@@ -353,7 +353,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         InteractionContainer ics = mi->Interactions();
         for (auto &ic : ics) {
           Interaction *ic_replica = nullptr;
-          int offset =
+          long int offset =
               mi_replica->getBead(0)->getId() - mi->getBead(0)->getId();
           if (ic->BeadCount() == 2) {
             ic_replica =

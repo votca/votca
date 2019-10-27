@@ -27,7 +27,6 @@ class BoundaryCondition {
 
  public:
   virtual ~BoundaryCondition() = default;
-  ;
 
   /**
    * set the simulation box

@@ -24,8 +24,7 @@ namespace csg {
 
 using namespace std;
 
-int BeadList::Generate(Topology &top, const string &select) {
-  BeadContainer::iterator iter;
+long int BeadList::Generate(Topology &top, const string &select) {
   _topology = &top;
   bool selectByName = false;
   string pSelect;  // parsed selection string
@@ -38,23 +37,24 @@ int BeadList::Generate(Topology &top, const string &select) {
     pSelect = select;
   }
 
-  for (iter = top.Beads().begin(); iter != top.Beads().end(); ++iter) {
+  for (auto &iter : top.Beads()) {
     if (!selectByName) {
-      if (tools::wildcmp(pSelect.c_str(), (*iter)->getType().c_str())) {
-        _beads.push_back(*iter);
+      if (tools::wildcmp(pSelect.c_str(), iter->getType().c_str())) {
+        _beads.push_back(iter);
       }
     } else {
-      if (tools::wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
-        _beads.push_back(*iter);
+      if (tools::wildcmp(pSelect.c_str(), iter->getName().c_str())) {
+        _beads.push_back(iter);
       }
     }
   }
   return size();
 }
 
-int BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
-                                           Eigen::Vector3d ref, double radius) {
-  BeadContainer::iterator iter;
+long int BeadList::GenerateInSphericalSubvolume(Topology &top,
+                                                const string &select,
+                                                Eigen::Vector3d ref,
+                                                double radius) {
   _topology = &top;
   bool selectByName = false;
   string pSelect;  // parsed selection string
@@ -67,18 +67,17 @@ int BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
     pSelect = select;
   }
 
-  for (iter = top.Beads().begin(); iter != top.Beads().end(); ++iter) {
-    if (_topology->BCShortestConnection(ref, (*iter)->getPos()).norm() >
-        radius) {
+  for (auto &iter : top.Beads()) {
+    if (_topology->BCShortestConnection(ref, iter->getPos()).norm() > radius) {
       continue;
     }
     if (!selectByName) {
-      if (tools::wildcmp(pSelect.c_str(), (*iter)->getType().c_str())) {
-        _beads.push_back(*iter);
+      if (tools::wildcmp(pSelect.c_str(), iter->getType().c_str())) {
+        _beads.push_back(iter);
       }
     } else {
-      if (tools::wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
-        _beads.push_back(*iter);
+      if (tools::wildcmp(pSelect.c_str(), iter->getName().c_str())) {
+        _beads.push_back(iter);
       }
     }
   }

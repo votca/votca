@@ -66,7 +66,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
 
     string molname = *(mol->name);
 
-    int res_offset = top.ResidueCount();
+    long int res_offset = top.ResidueCount();
 
     t_atoms *atoms = &(mol->atoms);
 

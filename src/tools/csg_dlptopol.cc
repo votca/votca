@@ -75,7 +75,7 @@ void DLPTopolApp::Initialize(void) {
                       "  output topology in dlpoly format");
 }
 
-bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
+bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
   // check the file names from options
 
   string fname = OptionsMap()["top"].as<string>();
@@ -106,7 +106,6 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
   MoleculeContainer &mols = top->Molecules();
   MoleculeContainer MolecularTypes;
-  MoleculeContainer::iterator iter;
 
   int prv_mol_number = 1;
   string prv_mol_name;
@@ -116,9 +115,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
   // find all unique molecular types
 
-  for (iter = mols.begin(); iter != mols.end(); ++iter) {
-    Molecule *mol = *iter;
-
+  for (Molecule *mol : mols) {
     // molecules are ignored during the mapping stage
     // i.e. the ignored ones do not enter the CG topology (*top) - ?
     // if( IsIgnored(mol->getName()) ) continue;
@@ -242,16 +239,13 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg) {
 }
 
 void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
-  InteractionContainer ics = cg.Interactions();
-  vector<Interaction *>::iterator iter;
 
   stringstream sout;
 
   int n_entries = 0;
-  int nb = -1;
+  long int nb = -1;
 
-  for (iter = ics.begin(); iter != ics.end(); ++iter) {
-    Interaction *ic = *iter;
+  for (Interaction *ic : cg.Interactions()) {
     if (nb != ic->BeadCount()) {
 
       if (sout.str() != "") {

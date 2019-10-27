@@ -22,11 +22,11 @@ using namespace std;
 namespace votca {
 namespace csg {
 
-PotentialFunctionLJG::PotentialFunctionLJG(const string &name_,
-                                           const double min_, const double max_)
-    : PotentialFunction(name_, 5, min_, max_) {}
+PotentialFunctionLJG::PotentialFunctionLJG(const string &name, double min,
+                                           double max)
+    : PotentialFunction(name, 5, min, max) {}
 
-double PotentialFunctionLJG::CalculateF(const double r) const {
+double PotentialFunctionLJG::CalculateF(double r) const {
 
   // lj 12-6 part + gaussian
   if (r >= _min && r <= _cut_off) {
@@ -38,7 +38,7 @@ double PotentialFunctionLJG::CalculateF(const double r) const {
 }
 
 // calculate first derivative w.r.t. ith parameter
-double PotentialFunctionLJG::CalculateDF(const int i, const double r) const {
+double PotentialFunctionLJG::CalculateDF(long int i, double r) const {
 
   if (r >= _min && r <= _cut_off) {
 
@@ -61,8 +61,8 @@ double PotentialFunctionLJG::CalculateDF(const int i, const double r) const {
 }
 
 // calculate second derivative w.r.t. ith parameter
-double PotentialFunctionLJG::CalculateD2F(const int i, const int j,
-                                          const double r) const {
+double PotentialFunctionLJG::CalculateD2F(long int i, long int j,
+                                          double r) const {
 
   if (r >= _min && r <= _cut_off) {
 
@@ -86,6 +86,8 @@ double PotentialFunctionLJG::CalculateD2F(const int i, const int j,
           case 4:
             return 2.0 * _lam(3) * (r - _lam(4)) *
                    exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+          default:
+            return 0.0;
         }
       case 3:
         switch (j) {
@@ -103,6 +105,8 @@ double PotentialFunctionLJG::CalculateD2F(const int i, const int j,
             return 2.0 * _lam(2) * (r - _lam(4)) *
                    (1.0 - _lam(3) * pow((r - _lam(4)), 2)) *
                    exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+          default:
+            return 0.0;
         }
       case 4:
         switch (j) {

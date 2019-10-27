@@ -38,13 +38,14 @@ class Bead;
 class BeadList {
  public:
   /// \brief Select all beads of type <select>
-  int Generate(Topology &top, const std::string &select);
+  long int Generate(Topology &top, const std::string &select);
   /// \brief Select all beads of type <select> withn a radius <radius> of
   /// reference vector <ref>
-  int GenerateInSphericalSubvolume(Topology &top, const std::string &select,
-                                   Eigen::Vector3d ref, double radius);
+  long int GenerateInSphericalSubvolume(Topology &top,
+                                        const std::string &select,
+                                        Eigen::Vector3d ref, double radius);
 
-  int size() const { return _beads.size(); }
+  long int size() const { return _beads.size(); }
 
   bool empty() const { return _beads.empty(); }
 

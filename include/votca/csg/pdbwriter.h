@@ -31,9 +31,6 @@ class PDBWriter : public TrajectoryWriter {
   void Open(std::string file, bool bAppend = false) override;
   void Close() override;
 
-  void RegisteredAt(
-      tools::ObjectFactory<std::string, TrajectoryWriter> &factory) {}
-
   void Write(Topology *conf) override;
 
   template <class T>
@@ -52,7 +49,7 @@ class PDBWriter : public TrajectoryWriter {
   std::string getName(Bead *bead) { return bead->getName(); }
 
   template <class T, class Atom>
-  std::string getResname(T &container, Atom &atom) {
+  std::string getResname(T &container, Atom &) {
     return container.getType();
   }
   std::string getResname(Topology &conf, Bead *bead);
@@ -61,16 +58,16 @@ class PDBWriter : public TrajectoryWriter {
   int getId(Atom &atom) {
     return atom.getId();
   }
-  int getId(Bead *bead) { return bead->getId(); }
+  long int getId(Bead *bead) { return bead->getId(); }
 
   template <class T, class Atom>
-  int getResId(T &container, Atom &atom) {
+  int getResId(T &container, Atom &) {
     return container.getId();
   }
-  int getResId(Topology &conf, Bead *bead) { return bead->getResnr() + 1; }
+  long int getResId(Topology &, Bead *bead) { return bead->getResnr() + 1; }
 
   template <class Atom>
-  void writeSymmetry(Atom &atom) {
+  void writeSymmetry(Atom &) {
     return;
   }
   void writeSymmetry(Bead *bead);

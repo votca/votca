@@ -75,7 +75,7 @@ void CGMoleculeDef::ParseBeads(tools::Property &options) {
     beaddef->_type = p->get("type").as<string>();
     beaddef->_mapping = p->get("mapping").as<string>();
     if (p->exists("symmetry")) {
-      beaddef->_symmetry = p->get("symmetry").as<int>();
+      beaddef->_symmetry = p->get("symmetry").as<votca::tools::byte_t>();
     } else {
       beaddef->_symmetry = 1;
     }
@@ -105,16 +105,15 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   Molecule *minfo = top.CreateMolecule(_name);
 
   // create the atoms
-  vector<beaddef_t *>::iterator iter;
-  for (iter = _beads.begin(); iter != _beads.end(); ++iter) {
+  for (auto &_bead : _beads) {
     Bead *bead;
 
-    string type = (*iter)->_type;
+    string type = _bead->_type;
     if (!top.BeadTypeExist(type)) {
       top.RegisterBeadType(type);
     }
-    bead = top.CreateBead((*iter)->_symmetry, (*iter)->_name, type,
-                          res->getId(), 0, 0);
+    bead = top.CreateBead(_bead->_symmetry, _bead->_name, type, res->getId(), 0,
+                          0);
     minfo->AddBead(bead, bead->getName());
   }
 
@@ -122,7 +121,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   map<string, string> had_iagroup;
 
   for (tools::Property *prop : _bonded) {
-    std::list<int> atoms;
+    std::list<long int> atoms;
     string iagroup = prop->get("name").as<string>();
 
     if (had_iagroup[iagroup] == "yes") {
@@ -134,7 +133,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
     tools::Tokenizer tok(prop->get("beads").value(), " \n\t");
     for (tools::Tokenizer::iterator atom = tok.begin(); atom != tok.end();
          ++atom) {
-      int i = minfo->getBeadIdByName(*atom);
+      long int i = minfo->getBeadIdByName(*atom);
       if (i < 0) {
         throw runtime_error(
             string("error while trying to create bonded interaction, "
@@ -194,22 +193,22 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
   }
 
   Map *map = new Map(in, out);
-  for (auto &_bead : _beads) {
+  for (auto &bead : _beads) {
 
-    int iout = out.getBeadByName(_bead->_name);
+    long int iout = out.getBeadByName(bead->_name);
     if (iout < 0) {
       throw runtime_error(string("mapping error: reference molecule " +
-                                 _bead->_name + " does not exist"));
+                                 bead->_name + " does not exist"));
     }
 
-    tools::Property *mdef = getMapByName(_bead->_mapping);
+    tools::Property *mdef = getMapByName(bead->_mapping);
     if (!mdef) {
-      throw runtime_error(string("mapping " + _bead->_mapping + " not found"));
+      throw runtime_error(string("mapping " + bead->_mapping + " not found"));
     }
 
     /// TODO: change this to factory, do not hardcode!!
     BeadMap *bmap;
-    switch (_bead->_symmetry) {
+    switch (bead->_symmetry) {
       case 1:
         bmap = new Map_Sphere();
         break;
@@ -221,7 +220,7 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
     }
     ////////////////////////////////////////////////////
 
-    bmap->Initialize(&in, out.getBead(iout), (_bead->_options), mdef);
+    bmap->Initialize(&in, out.getBead(iout), (bead->_options), mdef);
     map->AddBeadMap(bmap);
   }
   return map;
@@ -244,8 +243,6 @@ tools::Property *CGMoleculeDef::getMapByName(const string &name) {
     std::cout << "cannot find map " << name << "\n";
     return nullptr;
   }
-  // assert(iter != _beadmap.end());
-  // return (*iter).second;
   return (*iter).second;
 }
 

@@ -125,14 +125,14 @@ void XMLTopologyReader::ParseMolecules(tools::Property &p) {
               "The defined list of beads only works for pure xml topology, "
               "without 'base' attribute.");
         }
-        ParseMolecule(it, molname, nbeads, nmols);
+        ParseMolecule(it, molname, nmols);
       }
     }
   }
 }
 
 void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
-                                      int nbeads, int nmols) {
+                                      int nmols) {
   vector<XMLBead *> xmlBeads;
   vector<int> xmlResidues;
   for (auto &it : p) {
@@ -187,7 +187,7 @@ void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
         "identical");
   }
   // Create molecule in topology. Replicate data.
-  int resnr = _top->ResidueCount();
+  long int resnr = _top->ResidueCount();
   if (!xmlResidues.empty()) {
     if (xmlResidues.front() != resnr + 1 && xmlResidues.front() != -1) {
       throw std::runtime_error(

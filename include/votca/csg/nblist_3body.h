@@ -95,11 +95,9 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
       const double dist23));
 
   /// standard match function
-  static bool match_always(Bead *b1, Bead *b2, Bead *b3,
-                           const Eigen::Vector3d &r12,
-                           const Eigen::Vector3d &r13,
-                           const Eigen::Vector3d &r23, const double dist12,
-                           const double dist13, const double dist23) {
+  static bool match_always(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
+                           const Eigen::Vector3d &, const Eigen::Vector3d &,
+                           const double, const double, const double) {
     return true;
   }
 
@@ -142,7 +140,6 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
                             const double dist12, const double dist13,
                             const double dist23) = 0;
     virtual ~Functor() = default;
-    ;
   };
 
   /// Functor for member functions

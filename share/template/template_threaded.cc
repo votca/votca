@@ -83,9 +83,8 @@ class CsgTestApp : public CsgApplication {
 class RDFWorker : public CsgApplication::Worker {
  public:
   ~RDFWorker() override = default;
-  ;
   // override EvalConfiguration with your analysis routine
-  void EvalConfiguration(Topology *top, Topology *top_ref) override;
+  void EvalConfiguration(Topology *, Topology *) override;
   // data belonging to this particular worker
   votca::tools::HistogramNew _rdf;
   double _cut_off;
@@ -104,7 +103,7 @@ void CsgTestApp::Initialize() {
       "the cutoff");
 }
 
-void CsgTestApp::BeginEvaluate(Topology *top, Topology *top_ref) {
+void CsgTestApp::BeginEvaluate(Topology *, Topology *) {
   _cut_off = OptionsMap()["c"].as<double>();
   _rdf.Initialize(0, _cut_off, 50);
 }
@@ -124,15 +123,14 @@ CsgApplication::Worker *CsgTestApp::ForkWorker() {
 
 // EvalConfiguration does the actual calculation
 // you won't see any explicit threaded stuff here
-void RDFWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
+void RDFWorker::EvalConfiguration(Topology *top, Topology *) {
   BeadList b;
   b.Generate(*top, "*");
   NBListGrid nb;
   nb.setCutoff(_cut_off);
   nb.Generate(b);
-  NBList::iterator i;
-  for (i = nb.begin(); i != nb.end(); ++i) {
-    _rdf.Process((*i)->dist());
+  for (auto &pair : nb) {
+    _rdf.Process(pair->dist());
   }
 }
 

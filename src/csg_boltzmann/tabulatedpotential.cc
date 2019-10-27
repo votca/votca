@@ -309,7 +309,7 @@ void TabulatedPotential::CalcForce_(vector<double> &U, vector<double> &F,
 
 void TabulatedPotential::Smooth_(vector<double> &data, bool bPeriodic) {
   double old[3];
-  int n = data.size();
+  long int n = data.size();
   if (bPeriodic) {
     old[0] = data[n - 3];
     old[1] = data[n - 2];

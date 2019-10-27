@@ -38,17 +38,16 @@ using namespace tools;
 using namespace std;
 
 Map::~Map() {
-  vector<BeadMap *>::iterator iter;
-  for (iter = _maps.begin(); iter != _maps.end(); ++iter) {
-    delete (*iter);
+
+  for (auto &_map : _maps) {
+    delete _map;
   }
   _maps.clear();
 }
 
 void Map::Apply() {
-  vector<BeadMap *>::iterator iter;
-  for (iter = _maps.begin(); iter != _maps.end(); ++iter) {
-    (*iter)->Apply();
+  for (auto &_map : _maps) {
+    _map->Apply();
   }
 }
 
@@ -85,8 +84,8 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
   // get the d vector if exists or initialize same as weights
   vector<double> d;
   if (_opts_map->exists("d")) {
-    Tokenizer tok_weights(_opts_map->get("d").value(), " \n\t");
-    tok_weights.ConvertToVector(d);
+    Tokenizer tok_weights2(_opts_map->get("d").value(), " \n\t");
+    tok_weights2.ConvertToVector(d);
     // normalize d coefficients
     norm = 1. / std::accumulate(d.begin(), d.end(), 0.);
     transform(d.begin(), d.end(), d.begin(),
@@ -121,7 +120,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
   }
 
   for (size_t i = 0; i < beads.size(); ++i) {
-    int iin = in->getBeadByName(beads[i]);
+    long int iin = in->getBeadByName(beads[i]);
     if (iin < 0) {
       throw std::runtime_error(
           string("mapping error: molecule " + beads[i] + " does not exist"));
@@ -131,7 +130,6 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
 }
 
 void Map_Sphere::Apply() {
-  vector<element_t>::iterator iter;
 
   bool bPos, bVel, bF;
   bPos = bVel = bF = false;
@@ -142,7 +140,7 @@ void Map_Sphere::Apply() {
   double max_dist = 0.5 * top->ShortestBoxSize();
   Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
   string name0;
-  int id0 = 0;
+  long int id0 = 0;
   if (_matrix.size() > 0) {
     if (_matrix.front()._in->HasPos()) {
       r0 = _matrix.front()._in->getPos();
@@ -156,8 +154,8 @@ void Map_Sphere::Apply() {
   Eigen::Vector3d f = Eigen::Vector3d::Zero();
   Eigen::Vector3d vel = Eigen::Vector3d::Zero();
 
-  for (iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
-    Bead *bead = iter->_in;
+  for (auto &iter : _matrix) {
+    Bead *bead = iter._in;
     _out->AddParentBead(bead->getId());
     M += bead->getMass();
     if (bead->HasPos()) {
@@ -173,15 +171,15 @@ void Map_Sphere::Apply() {
             boost::lexical_cast<string>(bead->getMolecule()->getId() + 1) +
             ")");
       }
-      cg += (*iter)._weight * (r + r0);
+      cg += iter._weight * (r + r0);
       bPos = true;
     }
     if (bead->HasVel()) {
-      vel += (*iter)._weight * bead->getVel();
+      vel += iter._weight * bead->getVel();
       bVel = true;
     }
     if (bead->HasF()) {
-      f += (*iter)._force_weight * bead->getF();
+      f += iter._force_weight * bead->getF();
       bF = true;
     }
   }
@@ -199,7 +197,6 @@ void Map_Sphere::Apply() {
 
 /// \todo implement this function
 void Map_Ellipsoid::Apply() {
-  vector<element_t>::iterator iter;
 
   bool bPos, bVel, bF;
   bPos = bVel = bF = false;
@@ -221,8 +218,8 @@ void Map_Ellipsoid::Apply() {
   int n;
   n = 0;
   _out->ClearParentBeads();
-  for (iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
-    Bead *bead = iter->_in;
+  for (auto &iter : _matrix) {
+    Bead *bead = iter._in;
     _out->AddParentBead(bead->getId());
     if (bead->HasPos()) {
       Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
@@ -230,22 +227,22 @@ void Map_Ellipsoid::Apply() {
         throw std::runtime_error(
             "coarse-grained bead is bigger than half the box");
       }
-      cg += (*iter)._weight * (r + r0);
+      cg += iter._weight * (r + r0);
       bPos = true;
     }
     if (bead->HasVel() == true) {
-      vel += (*iter)._weight * bead->getVel();
+      vel += iter._weight * bead->getVel();
       bVel = true;
     }
     if (bead->HasF()) {
       /// \todo fix me, right calculation should be F_i = m_cg / sum(w_i) *
       /// sum(w_i/m_i*F_i)
       // f += (*iter)._weight * _in->getBeadF((*iter)._in);
-      f += (*iter)._force_weight * bead->getF();
+      f += iter._force_weight * bead->getF();
       bF = true;
     }
 
-    if ((*iter)._weight > 0 && bead->HasPos()) {
+    if (iter._weight > 0 && bead->HasPos()) {
       c += bead->getPos();
       n++;
     }
@@ -271,11 +268,11 @@ void Map_Ellipsoid::Apply() {
   Eigen::Matrix3d m = Eigen::Matrix3d::Zero();
   // calculate the tensor of gyration
   c = c / (double)n;
-  for (iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
-    if ((*iter)._weight == 0) {
+  for (auto &iter : _matrix) {
+    if (iter._weight == 0) {
       continue;
     }
-    Bead *bead = iter->_in;
+    Bead *bead = iter._in;
     Eigen::Vector3d v = bead->getPos() - c;
     // v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
     //    + vec(0.5, -1, 0) * (drand48()-0.5)

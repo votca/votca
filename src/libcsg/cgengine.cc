@@ -30,9 +30,8 @@ namespace po = boost::program_options;
 CGEngine::CGEngine() = default;
 
 CGEngine::~CGEngine() {
-  map<string, CGMoleculeDef *>::iterator i;
-  for (i = _molecule_defs.begin(); i != _molecule_defs.end(); ++i) {
-    delete (*i).second;
+  for (auto &_molecule_def : _molecule_defs) {
+    delete _molecule_def.second;
   }
   _molecule_defs.clear();
 }
@@ -42,10 +41,8 @@ CGEngine::~CGEngine() {
 */
 TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
   MoleculeContainer &mols = in.Molecules();
-  MoleculeContainer::iterator iter;
   TopologyMap *m = new TopologyMap(&in, &out);
-  for (iter = mols.begin(); iter != mols.end(); ++iter) {
-    Molecule *mol = *iter;
+  for (auto mol : mols) {
     if (IsIgnored(mol->getName())) {
       continue;
     }
@@ -72,9 +69,9 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
 
 void CGEngine::LoadMoleculeType(string filename) {
   tools::Tokenizer tok(filename, ";");
-  tools::Tokenizer::iterator iter;
 
-  for (iter = tok.begin(); iter != tok.end(); ++iter) {
+  for (tools::Tokenizer::iterator iter = tok.begin(); iter != tok.end();
+       ++iter) {
     CGMoleculeDef *def = new CGMoleculeDef();
     string file = *iter;
     boost::trim(file);

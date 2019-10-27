@@ -32,11 +32,11 @@ void GROWriter::Close() { fclose(_out); }
 
 void GROWriter::Write(Topology *conf) {
   char format[100];
-  int i, resnr, l, vpr;
+  int i, l, vpr;
   Topology *top = conf;
 
   fprintf(_out, "%s\n", "what a nice title");
-  fprintf(_out, "%5d\n", top->BeadCount());
+  fprintf(_out, "%5ld\n", top->BeadCount());
 
   bool v = top->HasVel();
   int pr = 3;  // precision of writeout, given by the spec
@@ -57,11 +57,11 @@ void GROWriter::Write(Topology *conf) {
   }
 
   for (i = 0; i < top->BeadCount(); i++) {
-    resnr = top->getBead(i)->getResnr();
+    long int resnr = top->getBead(i)->getResnr();
     string resname = top->getResidue(resnr)->getName();
     string atomname = top->getBead(i)->getName();
 
-    fprintf(_out, "%5d%-5.5s%5.5s%5d", (resnr + 1) % 100000, resname.c_str(),
+    fprintf(_out, "%5ld%-5.5s%5.5s%5d", (resnr + 1) % 100000, resname.c_str(),
             atomname.c_str(), (i + 1) % 100000);
     /* next fprintf uses built format string */
     Eigen::Vector3d r = conf->getBead(i)->getPos();

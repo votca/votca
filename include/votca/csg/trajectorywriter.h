@@ -32,10 +32,10 @@ class TrajectoryWriter {
   TrajectoryWriter() = default;
   virtual ~TrajectoryWriter() = default;
 
-  virtual void Open(std::string file, bool bAppend = false) {}
+  virtual void Open(std::string, bool = false) {}
   virtual void Close(){};
 
-  virtual void Write(Topology *top) {}
+  virtual void Write(Topology *) {}
 
   static void RegisterPlugins(void);
 };

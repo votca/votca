@@ -373,14 +373,14 @@ void CsgApplication::Run(void) {
       }
       // mutex needed for merging if SynchronizeThreads()==False
       tools::Mutex mergeMutex;
-      for (auto &_myWorker : _myWorkers) {
-        _myWorker->WaitDone();
+      for (auto &myWorker : _myWorkers) {
+        myWorker->WaitDone();
         if (!SynchronizeThreads()) {
           mergeMutex.Lock();
-          MergeWorker(_myWorker);
+          MergeWorker(myWorker);
           mergeMutex.Unlock();
         }
-        delete _myWorker;
+        delete myWorker;
       }
       for (size_t thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
         delete _threadsMutexesIn[thread];
@@ -435,7 +435,7 @@ CsgApplication::Worker *CsgApplication::ForkWorker(void) {
   return nullptr;
 }
 
-void CsgApplication::MergeWorker(CsgApplication::Worker *worker) {
+void CsgApplication::MergeWorker(CsgApplication::Worker *) {
   throw std::runtime_error("MergeWorker not implemented in application");
 }
 

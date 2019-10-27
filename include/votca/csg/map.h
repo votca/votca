@@ -50,7 +50,6 @@ class Map {
 class BeadMap {
  public:
   virtual ~BeadMap() = default;
-  ;
   virtual void Apply() = 0;
   virtual void Initialize(Molecule *in, Bead *out, tools::Property *opts_map,
                           tools::Property *opts_bead);
