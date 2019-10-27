@@ -29,7 +29,7 @@ namespace xtp {
 
 class DIIS {
  public:
-  void Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix);
+  void Update(long maxerrorindex, const Eigen::MatrixXd& errormatrix);
   Eigen::VectorXd CalcCoeff();
 
   void setHistLength(int length) { _histlength = length; }

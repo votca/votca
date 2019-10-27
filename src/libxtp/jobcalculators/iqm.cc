@@ -216,7 +216,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   mapper.LoadMappingFile(_mapfile);
 
   // get the information about the job executed by the thread
-  int job_ID = job.getId();
+  long job_ID = job.getId();
   tools::Property job_input = job.getInput();
   std::vector<tools::Property*> segment_list = job_input.Select("segment");
   int ID_A = segment_list.front()->getAttribute<int>("id");
@@ -701,12 +701,12 @@ QMState IQM::GetElementFromMap(const std::map<std::string, QMState>& elementmap,
 void IQM::ReadJobFile(Topology& top) {
   // gets the neighborlist from the topology
   QMNBList& nblist = top.NBList();
-  int number_of_pairs = nblist.size();
-  int dft_h = 0;
-  int dft_e = 0;
-  int bse_s = 0;
-  int bse_t = 0;
-  int incomplete_jobs = 0;
+  long number_of_pairs = nblist.size();
+  long dft_h = 0;
+  long dft_e = 0;
+  long bse_s = 0;
+  long bse_t = 0;
+  long incomplete_jobs = 0;
   Logger log;
   log.setReportLevel(logINFO);
 
@@ -743,8 +743,8 @@ void IQM::ReadJobFile(Topology& top) {
           "Getting pair ids from jobfile failed, check jobfile.");
     }
 
-    double idA = id[0];
-    double idB = id[1];
+    int idA = id[0];
+    int idB = id[1];
 
     // segments which correspond to these ids
     Segment& segA = top.getSegment(idA);

@@ -94,18 +94,18 @@ void KMCCalculator::LoadGraph(Topology& top) {
     _nodes[pair->Seg2()->getId()].AddEventfromQmPair(*pair, _nodes,
                                                      rates.rate21);
   }
-  _RandomVariable.setMaxInt(_nodes.size());
+  _RandomVariable.setMaxInt(long(_nodes.size()));
   cout << "    Rates for " << _nodes.size() << " sites are computed." << endl;
   WriteRatestoFile(_ratefile, nblist);
 
-  unsigned events = 0;
-  unsigned max = std::numeric_limits<unsigned>::min();
-  unsigned min = std::numeric_limits<unsigned>::max();
+  long events = 0;
+  long max = std::numeric_limits<long>::min();
+  long min = std::numeric_limits<long>::max();
   double minlength = std::numeric_limits<double>::max();
   double maxlength = 0;
   for (const auto& node : _nodes) {
 
-    unsigned size = node.Events().size();
+    long size = long(node.Events().size());
     for (const auto& event : node.Events()) {
       if (event.isDecayEvent()) {
         continue;
@@ -130,7 +130,7 @@ void KMCCalculator::LoadGraph(Topology& top) {
   double avg = double(events) / double(_nodes.size());
   double deviation = 0.0;
   for (const auto& node : _nodes) {
-    double size = node.Events().size();
+    double size = double(node.Events().size());
     deviation += (size - avg) * (size - avg);
   }
   deviation = std::sqrt(deviation / double(_nodes.size()));
@@ -211,7 +211,7 @@ void KMCCalculator::RandomlyCreateCharges() {
 }
 
 void KMCCalculator::RandomlyAssignCarriertoSite(Chargecarrier& Charge) {
-  int nodeId_guess = -1;
+  long nodeId_guess = -1;
   do {
     nodeId_guess = _RandomVariable.rand_uniform_int();
   } while (_nodes[nodeId_guess].isOccupied() ||

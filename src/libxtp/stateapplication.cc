@@ -38,9 +38,9 @@ void StateApplication::Initialize(void) {
 
   AddProgramOptions()("file,f", propt::value<std::string>(),
                       "  hdf5 state file, *.hdf5");
-  AddProgramOptions()("first-frame,i", propt::value<int>()->default_value(0),
+  AddProgramOptions()("first-frame,i", propt::value<long>()->default_value(0),
                       "  start from this frame");
-  AddProgramOptions()("nframes,n", propt::value<int>()->default_value(1),
+  AddProgramOptions()("nframes,n", propt::value<long>()->default_value(1),
                       "  number of frames to process");
   AddProgramOptions()("nthreads,t", propt::value<int>()->default_value(1),
                       "  number of threads to create");
@@ -63,14 +63,14 @@ void StateApplication::Run() {
 
   _options.LoadFromXML(_op_vm["options"].as<std::string>());
   int nThreads = OptionsMap()["nthreads"].as<int>();
-  int nframes = OptionsMap()["nframes"].as<int>();
-  int fframe = OptionsMap()["first-frame"].as<int>();
+  long nframes = OptionsMap()["nframes"].as<long>();
+  long fframe = OptionsMap()["first-frame"].as<long>();
   bool save = OptionsMap()["save"].as<bool>();
 
   // STATESAVER & PROGRESS OBSERVER
   std::string statefile = OptionsMap()["file"].as<std::string>();
   StateSaver statsav(statefile);
-  std::vector<int> frames = statsav.getFrames();
+  std::vector<long> frames = statsav.getFrames();
   if (frames.empty()) {
     throw std::runtime_error("Statefile " + statefile + " not found.");
   }
@@ -78,24 +78,24 @@ void StateApplication::Run() {
   std::cout << "Initializing calculator" << std::endl;
   BeginEvaluate(nThreads);
   std::cout << frames.size() << " frames in statefile, Ids are: ";
-  for (int frame : frames) {
+  for (long frame : frames) {
     std::cout << frame << " ";
   }
   std::cout << std::endl;
-  if (fframe < int(frames.size())) {
+  if (fframe < long(frames.size())) {
     std::cout << "Starting at frame " << frames[fframe] << std::endl;
   } else {
     std::cout << "First frame:" << fframe
-              << " is larger than number of frames:" << int(frames.size())
+              << " is larger than number of frames:" << long(frames.size())
               << std::endl;
     return;
   }
 
-  if ((fframe + nframes) > int(frames.size())) {
-    nframes = frames.size() - fframe;
+  if ((fframe + nframes) > long(frames.size())) {
+    nframes = long(frames.size()) - fframe;
   }
 
-  for (int i = fframe; i < nframes; i++) {
+  for (long i = fframe; i < nframes; i++) {
     std::cout << "Evaluating frame " << frames[i] << std::endl;
     Topology top = statsav.ReadFrame(frames[i]);
     EvaluateFrame(top);

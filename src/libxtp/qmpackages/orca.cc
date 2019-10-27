@@ -189,7 +189,7 @@ void Orca::WriteBackgroundCharges() {
   std::ofstream crg_file;
   std::string _crg_file_name_full = _run_dir + "/background.crg";
   crg_file.open(_crg_file_name_full);
-  int total_background = 0;
+  long total_background = 0;
 
   for (const std::unique_ptr<StaticSite>& site : _externalsites) {
     if (site->getCharge() != 0.0) {
@@ -411,14 +411,14 @@ StaticSegment Orca::GetCharges() const {
       XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
       getline(input_file, line);
       std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
-      int nfields = row.size();
+      int nfields = int(row.size());
       bool hasAtoms = result.size() > 0;
       while (nfields == 4) {
-        int atom_id = boost::lexical_cast<int>(row.at(0));
+        long atom_id = boost::lexical_cast<long>(row.at(0));
         std::string atom_type = row.at(1);
         double atom_charge = boost::lexical_cast<double>(row.at(3));
         row = GetLineAndSplit(input_file, "\t ");
-        nfields = row.size();
+        nfields = int(row.size());
         if (hasAtoms) {
           StaticSite& temp = result.at(atom_id);
           if (temp.getElement() != atom_type) {
@@ -664,15 +664,15 @@ void Orca::GetCoordinates(T& mol, string& line, ifstream& input_file) const {
     // now starts the data in format
     // _id type Qnuc x y z
     vector<string> row = GetLineAndSplit(input_file, "\t ");
-    int nfields = row.size();
-    int atom_id = 0;
+    int nfields = int(row.size());
+    long atom_id = 0;
     while (nfields == 4) {
       string atom_type = row.at(0);
       double x = boost::lexical_cast<double>(row.at(1));
       double y = boost::lexical_cast<double>(row.at(2));
       double z = boost::lexical_cast<double>(row.at(3));
       row = GetLineAndSplit(input_file, "\t ");
-      nfields = row.size();
+      nfields = int(row.size());
       Eigen::Vector3d pos(x, y, z);
       pos *= tools::conv::ang2bohr;
       if (has_QMAtoms == false) {
@@ -747,7 +747,7 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
     infile.close();
     return false;
   }
-  long int offset = *((long int*)buffer.data());
+  long offset = *((long int*)buffer.data());
 
   infile.seekg(offset, ios::beg);
   infile.read(buffer.data(), 4);

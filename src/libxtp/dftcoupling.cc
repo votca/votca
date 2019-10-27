@@ -126,7 +126,8 @@ double DFTcoupling::getCouplingElement(int levelA, int levelB,
         JAB_sq += JAB_one_level * JAB_one_level;
       }
     }
-    return std::sqrt(JAB_sq / (list_levelsA.size() * list_levelsB.size())) *
+    return std::sqrt(JAB_sq /
+                     double(list_levelsA.size() * list_levelsB.size())) *
            tools::conv::hrt2ev;
   } else {
     int indexA = levelA - Range_orbA.first;

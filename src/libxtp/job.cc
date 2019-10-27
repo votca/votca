@@ -30,7 +30,7 @@ using boost::format;
 Job::Job(const tools::Property &prop) {
 
   // DEFINED BY USER
-  _id = prop.get("id").as<int>();
+  _id = prop.get("id").as<long>();
   _tag = prop.get("tag").as<std::string>();
   _input = prop.get("input");
   if (prop.exists("status")) {
@@ -58,7 +58,7 @@ Job::Job(const tools::Property &prop) {
   }
 }
 
-Job::Job(int id, const std::string &tag, const tools::Property &input,
+Job::Job(long id, const std::string &tag, const tools::Property &input,
          JobStatus status) {
 
   _id = id;

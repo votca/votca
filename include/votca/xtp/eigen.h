@@ -25,6 +25,7 @@
 #include <votca/xtp/votca_config.h>
 typedef Eigen::Matrix<double, 9, 1> Vector9d;
 typedef Eigen::Matrix<double, 9, 9> Matrix9d;
+typedef Eigen::Array<long, Eigen::Dynamic, 1> ArrayXl;
 
 namespace votca {
 namespace xtp {
@@ -32,15 +33,15 @@ namespace xtp {
 // Stores matrix and energy together
 class Mat_p_Energy {
  public:
-  Mat_p_Energy(int rows, int cols)
+  Mat_p_Energy(long rows, long cols)
       : _energy(0.0), _matrix(Eigen::MatrixXd::Zero(rows, cols)){};
   Mat_p_Energy(double e, const Eigen::MatrixXd& mat)
       : _energy(e), _matrix(mat){};
   Mat_p_Energy(double e, Eigen::MatrixXd&& mat)
       : _energy(e), _matrix(std::move(mat)){};
 
-  long int rows() const { return _matrix.rows(); }
-  long int cols() const { return _matrix.cols(); }
+  long rows() const { return _matrix.rows(); }
+  long cols() const { return _matrix.cols(); }
   Eigen::MatrixXd& matrix() { return _matrix; }
   double& energy() { return _energy; }
   const Eigen::MatrixXd& matrix() const { return _matrix; }

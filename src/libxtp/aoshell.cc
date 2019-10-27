@@ -433,7 +433,7 @@ std::ostream& operator<<(std::ostream& out, const AOShell& shell) {
   for (const auto& gaussian : shell) {
     out << " Gaussian Decay: " << gaussian.getDecay();
     out << " Contractions:";
-    for (int i = 0; i < gaussian.getContraction().size(); i++) {
+    for (long i = 0; i < gaussian.getContraction().size(); i++) {
       out << " " << gaussian.getContraction()[i];
     }
     out << "\n";

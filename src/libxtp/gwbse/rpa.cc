@@ -29,7 +29,7 @@ void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
                                  int qpmin) {
   int rpatotal = _rpamax - _rpamin + 1;
   _energies = dftenergies.segment(_rpamin, rpatotal);
-  int gwsize = gwaenergies.size();
+  int gwsize = int(gwaenergies.size());
   int lumo = _homo + 1;
 
   int qpmax = qpmin + gwsize - 1;

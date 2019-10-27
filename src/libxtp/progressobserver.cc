@@ -75,12 +75,12 @@ typename ProgObserver<JobContainer>::Job *
   }
 
   if (!thread.isMaverick() && jobToProc != nullptr) {
-    int idx = jobToProc->getId();
-    int frac = (_jobs.size() >= 10) ? 10 : _jobs.size();
-    int rounded = int(double(_jobs.size()) / frac) * frac;
-    int tenth = rounded / frac;
+    long idx = jobToProc->getId();
+    long frac = (_jobs.size() >= 10) ? 10 : _jobs.size();
+    long rounded = long(double(_jobs.size()) / double(frac)) * frac;
+    long tenth = rounded / frac;
     if (idx % tenth == 0) {
-      double percent = double(idx) / rounded * 100 + 0.5;
+      double percent = double(idx) / double(rounded) * 100 + 0.5;
       std::cout << (format("=> [%1$2.0f%%] ") % percent).str() << std::flush;
     }
   }

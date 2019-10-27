@@ -48,8 +48,8 @@ class NumericalIntegration {
   double getExactExchange(const std::string& functional) const;
   std::vector<const Eigen::Vector3d*> getGridpoints() const;
   std::vector<double> getWeightedDensities() const;
-  int getGridSize() const { return _totalgridsize; }
-  int getBoxesSize() const { return _grid_boxes.size(); }
+  long getGridSize() const { return _totalgridsize; }
+  long getBoxesSize() const { return long(_grid_boxes.size()); }
 
   void setXCfunctional(const std::string& functional);
   double IntegrateDensity(const Eigen::MatrixXd& density_matrix);
@@ -89,20 +89,20 @@ class NumericalIntegration {
   GridContainers::Cartesian_gridpoint CreateCartesianGridpoint(
       const Eigen::Vector3d& atomA_pos,
       GridContainers::radial_grid& radial_grid,
-      GridContainers::spherical_grid& spherical_grid, int i_rad,
-      int i_sph) const;
+      GridContainers::spherical_grid& spherical_grid, long i_rad,
+      long i_sph) const;
 
   Eigen::VectorXd SSWpartition(const Eigen::VectorXd& rq_i,
                                const Eigen::MatrixXd& Rij) const;
   void SSWpartitionAtom(
       const QMMolecule& atoms,
-      std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, int i_atom,
+      std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, long i_atom,
       const Eigen::MatrixXd& Rij) const;
   Eigen::MatrixXd CalcDistanceAtomsGridpoints(
       const QMMolecule& atoms,
       std::vector<GridContainers::Cartesian_gridpoint>& atomgrid) const;
 
-  int _totalgridsize;
+  long _totalgridsize;
   std::vector<GridBox> _grid_boxes;
   int xfunc_id;
   bool _density_set = false;

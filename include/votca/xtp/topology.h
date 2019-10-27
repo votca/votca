@@ -69,8 +69,8 @@ class Topology {
 
   // Trajectory meta data: step number, time, frame (= Db ID)
 
-  int getStep() const { return _step; }
-  void setStep(int step) { _step = step; }
+  long getStep() const { return _step; }
+  void setStep(long step) { _step = step; }
   double getTime() const { return _time; }
   void setTime(double time) { _time = time; }
 
@@ -92,7 +92,7 @@ class Topology {
   QMNBList _nblist;
 
   double _time;
-  int _step;
+  long _step;
 
   csg::BoundaryCondition::eBoxtype AutoDetectBoxType(
       const Eigen::Matrix3d &box);

@@ -80,7 +80,7 @@ template <bool T>
 Eigen::VectorXd Populationanalysis<T>::CalcNucChargeperAtom(
     const QMMolecule& mol) const {
   Eigen::VectorXd result = Eigen::VectorXd::Zero(mol.size());
-  for (int i = 0; i < mol.size(); i++) {
+  for (long i = 0; i < mol.size(); i++) {
     result(i) = mol[i].getNuccharge();
   }
   return result;
@@ -97,11 +97,12 @@ Eigen::VectorXd Populationanalysis<T>::CalcElecChargeperAtom(
   } else {
     prodmat = dmat * overlap.Matrix();
   }
-  int noofatoms = basis.getFuncPerAtom().size();
+  std::vector<int> funcperatom = basis.getFuncPerAtom();
+  long noofatoms = long(funcperatom.size());
   Eigen::VectorXd charges = Eigen::VectorXd::Zero(noofatoms);
   int start = 0;
-  for (int i = 0; i < charges.size(); ++i) {
-    int nofunc = basis.getFuncPerAtom()[i];
+  for (long i = 0; i < charges.size(); ++i) {
+    int nofunc = funcperatom[i];
     charges(i) = prodmat.diagonal().segment(start, nofunc).sum();
     start += nofunc;
   }

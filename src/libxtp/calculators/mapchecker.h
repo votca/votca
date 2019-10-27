@@ -40,7 +40,7 @@ class MapChecker : public QMCalculator {
   bool EvaluateFrame(Topology& top) override;
 
  private:
-  std::string AddSteptoFilename(const std::string& filename, int step) const;
+  std::string AddSteptoFilename(const std::string& filename, long step) const;
   std::string AddStatetoFilename(const std::string& filename,
                                  QMState state) const;
 
@@ -154,7 +154,7 @@ bool MapChecker::EvaluateFrame(Topology& top) {
 }
 
 std::string MapChecker::AddSteptoFilename(const std::string& filename,
-                                          int step) const {
+                                          long step) const {
   std::string base = tools::filesystem::GetFileBase(filename);
   std::string fileending = tools::filesystem::GetFileExtension(filename);
   std::string filename_comp =

@@ -79,7 +79,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
       // element,  position,  rank limit convert to bohr
       std::string name = split[0];
       Eigen::Vector3d pos;
-      int id = this->_atomlist.size();
+      long id = long(this->_atomlist.size());
       pos[0] = boost::lexical_cast<double>(split[1]);
       pos[1] = boost::lexical_cast<double>(split[2]);
       pos[2] = boost::lexical_cast<double>(split[3]);

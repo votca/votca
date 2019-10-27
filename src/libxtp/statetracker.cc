@@ -256,8 +256,8 @@ std::vector<int> StateTracker::OverlapTracker(const Orbitals& orbitals) const {
   }
 
   Eigen::VectorXd Overlap = CalculateOverlap(orbitals);
-  int validelements = Overlap.size();
-  for (int i = 0; i < Overlap.size(); i++) {
+  int validelements = int(Overlap.size());
+  for (int i = 0; i < int(Overlap.size()); i++) {
     if (Overlap(i) < _overlapthreshold) {
       validelements--;
     }

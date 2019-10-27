@@ -83,7 +83,7 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
   Logger& pLog = opThread.getLogger();
 
   // get the information about the job executed by the thread
-  int job_ID = job.getId();
+  long job_ID = job.getId();
   Property job_input = job.getInput();
   vector<Property*> segment_list = job_input.Select("segment");
   int ID_A = segment_list.front()->getAttribute<int>("id");
@@ -166,7 +166,7 @@ void IEXCITON::WriteJobFile(const Topology& top) {
     throw runtime_error("\nERROR: bad file handle: " + _jobfile);
   }
   const QMNBList& nblist = top.NBList();
-  int jobCount = 0;
+  long jobCount = 0;
   if (nblist.size() == 0) {
     cout << endl << "... ... No pairs in neighbor list, skip." << flush;
     return;
@@ -181,7 +181,7 @@ void IEXCITON::WriteJobFile(const Topology& top) {
       string name1 = pair->Seg1()->getType();
       int id2 = pair->Seg2()->getId();
       string name2 = pair->Seg2()->getType();
-      int id = jobCount;
+      long id = jobCount;
       QMState state1 = GetElementFromMap(name1);
       QMState state2 = GetElementFromMap(name2);
 
@@ -224,8 +224,8 @@ void IEXCITON::ReadJobFile(Topology& top) {
   vector<Property*> records;
   // gets the neighborlist from the topology
   QMNBList& nblist = top.NBList();
-  int number_of_pairs = nblist.size();
-  int current_pairs = 0;
+  long number_of_pairs = nblist.size();
+  long current_pairs = 0;
   Logger log;
   log.setReportLevel(logINFO);
 

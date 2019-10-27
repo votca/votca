@@ -44,11 +44,11 @@ class GridBox {
 
   const std::vector<GridboxRange>& getAOranges() const { return aoranges; }
 
-  unsigned size() const { return grid_pos.size(); }
+  long size() const { return long(grid_pos.size()); }
 
-  unsigned Shellsize() const { return significant_shells.size(); }
+  long Shellsize() const { return long(significant_shells.size()); }
 
-  unsigned Matrixsize() const { return matrix_size; }
+  long Matrixsize() const { return matrix_size; }
 
   void addGridBox(const GridBox& box) {
     const std::vector<Eigen::Vector3d>& p = box.getGridPoints();
@@ -99,7 +99,7 @@ class GridBox {
   }
 
  private:
-  unsigned matrix_size = 0;
+  long matrix_size = 0;
   std::vector<GridboxRange> aoranges;
   std::vector<GridboxRange> ranges;
   std::vector<GridboxRange> inv_ranges;

@@ -36,7 +36,7 @@ class StaticSite {
 
  public:
   struct data {
-    int id;
+    long id;
     char* element;
     double posX;
     double posY;
@@ -54,10 +54,10 @@ class StaticSite {
     double Q22c;
     double Q22s;
   };
-  StaticSite(int id, std::string element, Eigen::Vector3d pos)
+  StaticSite(long id, std::string element, Eigen::Vector3d pos)
       : _id(id), _element(element), _pos(pos){};
 
-  StaticSite(int id, std::string element)
+  StaticSite(long id, std::string element)
       : StaticSite(id, element, Eigen::Vector3d::Zero()){};
 
   StaticSite(const data& d) { ReadData(d); }
@@ -72,7 +72,7 @@ class StaticSite {
   StaticSite() = default;
 
  public:
-  int getId() const { return _id; }
+  long getId() const { return _id; }
   int getRank() const { return _rank; }
   const std::string& getElement() const { return _element; }
   const Eigen::Vector3d& getPos() const { return _pos; }
@@ -126,7 +126,7 @@ class StaticSite {
  protected:
   virtual std::string writePolarisation() const;
 
-  int _id = -1;
+  long _id = -1;
   std::string _element = "";
   Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
   int _rank = 0;

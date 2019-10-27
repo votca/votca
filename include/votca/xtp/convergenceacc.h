@@ -113,7 +113,7 @@ class ConvergenceAcc {
   std::vector<double> _totE;
 
   int _nocclevels;
-  int _maxerrorindex = 0;
+  long _maxerrorindex = 0;
   double _maxerror = 0.0;
   ADIIS _adiis;
   DIIS _diis;

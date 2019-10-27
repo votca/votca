@@ -70,8 +70,10 @@
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
       <itemPath>../../include/votca/xtp/bfgs-trm.h</itemPath>
       <itemPath>../../include/votca/xtp/bse.h</itemPath>
+      <itemPath>../../include/votca/xtp/bse_operator.h</itemPath>
       <itemPath>../../include/votca/xtp/bse_population.h</itemPath>
       <itemPath>../../include/votca/xtp/bsecoupling.h</itemPath>
+      <itemPath>../../include/votca/xtp/bseoperator_btda.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/chargecarrier.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpoint.h</itemPath>
@@ -107,6 +109,7 @@
       <itemPath>../../include/votca/xtp/grid.h</itemPath>
       <itemPath>../../include/votca/xtp/grid_containers.h</itemPath>
       <itemPath>../../include/votca/xtp/gridbox.h</itemPath>
+      <itemPath>../../include/votca/xtp/gw.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbseengine.h</itemPath>
       <itemPath>../../include/votca/xtp/gyration.h</itemPath>
@@ -119,6 +122,7 @@
       <itemPath>../../include/votca/xtp/jobtopology.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/logger.h</itemPath>
+      <itemPath>../../include/votca/xtp/matrixfreeoperator.h</itemPath>
       <itemPath>../../include/votca/xtp/md2qmengine.h</itemPath>
       <itemPath>../../include/votca/xtp/mmregion.h</itemPath>
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
@@ -151,6 +155,8 @@
       <itemPath>../../include/votca/xtp/segid.h</itemPath>
       <itemPath>../../include/votca/xtp/segment.h</itemPath>
       <itemPath>../../include/votca/xtp/segmentmapper.h</itemPath>
+      <itemPath>../../include/votca/xtp/sigma_base.h</itemPath>
+      <itemPath>../../include/votca/xtp/sigma_ppm.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/stateapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaver.h</itemPath>
@@ -3935,12 +3941,22 @@
       </item>
       <item path="../../include/votca/xtp/bse.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/bse_operator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/bse_population.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/bsecoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/bseoperator_btda.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -4096,6 +4112,8 @@
       </item>
       <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/gw.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbseengine.h"
@@ -4140,6 +4158,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/matrixfreeoperator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/md2qmengine.h"
             ex="false"
@@ -4252,6 +4275,16 @@
       <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/segmentmapper.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/sigma_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/sigma_ppm.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5186,12 +5219,22 @@
       </item>
       <item path="../../include/votca/xtp/bse.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/bse_operator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/bse_population.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/bsecoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/bseoperator_btda.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5347,6 +5390,8 @@
       </item>
       <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/gw.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbseengine.h"
@@ -5391,6 +5436,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/matrixfreeoperator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/md2qmengine.h"
             ex="false"
@@ -5503,6 +5553,16 @@
       <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/segmentmapper.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/sigma_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/sigma_ppm.h"
             ex="false"
             tool="3"
             flavor2="0">

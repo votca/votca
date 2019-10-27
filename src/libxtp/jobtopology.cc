@@ -248,7 +248,7 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
         processed_segments[seg_id.Id()] = true;
       }
     }
-    explicitly_named_segs_per_region.push_back(seg_ids.size());
+    explicitly_named_segs_per_region.push_back(int(seg_ids.size()));
 
     if (region_def->exists("cutoff")) {
       double cutoff = tools::conv::nm2bohr *

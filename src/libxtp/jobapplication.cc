@@ -36,9 +36,9 @@ void JobApplication::Initialize(void) {
 
   AddProgramOptions()("file,f", propt::value<std::string>(),
                       "  hdf5 state file, *.hdf5");
-  AddProgramOptions()("first-frame,i", propt::value<int>()->default_value(0),
+  AddProgramOptions()("first-frame,i", propt::value<long>()->default_value(0),
                       "  start from this frame");
-  AddProgramOptions()("nframes,n", propt::value<int>()->default_value(1),
+  AddProgramOptions()("nframes,n", propt::value<long>()->default_value(1),
                       "  number of frames to process");
   AddProgramOptions()("nthreads,t", propt::value<int>()->default_value(1),
                       "  number of threads to create");
@@ -47,12 +47,12 @@ void JobApplication::Initialize(void) {
   AddProgramOptions()("restart,r",
                       propt::value<std::string>()->default_value(""),
                       "  restart pattern: 'host(pc1:234) stat(FAILED)'");
-  AddProgramOptions()("cache,c", propt::value<int>()->default_value(8),
+  AddProgramOptions()("cache,c", propt::value<long>()->default_value(8),
                       "  assigns jobs in blocks of this size");
   AddProgramOptions()("jobs,j",
                       propt::value<std::string>()->default_value("run"),
                       "  task(s) to perform: write, run, read");
-  AddProgramOptions()("maxjobs,m", propt::value<int>()->default_value(-1),
+  AddProgramOptions()("maxjobs,m", propt::value<long>()->default_value(-1),
                       "  maximum number of jobs to process (-1 = inf)");
 }
 
@@ -78,8 +78,8 @@ void JobApplication::Run() {
 
   // EVALUATE OPTIONS
   int nThreads = OptionsMap()["nthreads"].as<int>();
-  int nframes = OptionsMap()["nframes"].as<int>();
-  int fframe = OptionsMap()["first-frame"].as<int>();
+  long nframes = OptionsMap()["nframes"].as<long>();
+  long fframe = OptionsMap()["first-frame"].as<long>();
   bool save = OptionsMap()["save"].as<bool>();
 
   // STATESAVER & PROGRESS OBSERVER
@@ -94,27 +94,27 @@ void JobApplication::Run() {
 
   StateSaver statsav(statefile);
 
-  std::vector<int> frames = statsav.getFrames();
+  std::vector<long> frames = statsav.getFrames();
 
   std::cout << frames.size() << " frames in statefile, Ids are: ";
-  for (int frame : frames) {
+  for (long frame : frames) {
     std::cout << frame << " ";
   }
   std::cout << std::endl;
-  if (fframe < int(frames.size())) {
+  if (fframe < long(frames.size())) {
     std::cout << "Starting at frame " << frames[fframe] << std::endl;
   } else {
     std::cout << "First frame:" << fframe
-              << " is larger than number of frames:" << int(frames.size())
+              << " is larger than number of frames:" << long(frames.size())
               << std::endl;
     return;
   }
 
-  if ((fframe + nframes) > int(frames.size())) {
-    nframes = frames.size() - fframe;
+  if ((fframe + nframes) > long(frames.size())) {
+    nframes = long(frames.size()) - fframe;
   }
 
-  for (int i = fframe; i < nframes; i++) {
+  for (long i = fframe; i < nframes; i++) {
     std::cout << "Evaluating frame " << frames[i] << std::endl;
     Topology top = statsav.ReadFrame(frames[i]);
     EvaluateFrame(top);

@@ -28,19 +28,19 @@ namespace xtp {
 Eigen::VectorXd ADIIS::CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
                                  const std::vector<Eigen::MatrixXd>& mathist) {
   success = true;
-  int size = dmathist.size();
+  long size = dmathist.size();
 
   const Eigen::MatrixXd& dmat = dmathist.back();
   const Eigen::MatrixXd& H = mathist.back();
   Eigen::VectorXd DiF = Eigen::VectorXd::Zero(size);
   Eigen::MatrixXd DiFj = Eigen::MatrixXd::Zero(size, size);
 
-  for (int i = 0; i < size; i++) {
+  for (long i = 0; i < size; i++) {
     DiF(i) = ((dmathist[i]) - dmat).cwiseProduct(H).sum();
   }
 
-  for (int i = 0; i < size; i++) {
-    for (int j = 0; j < size; j++) {
+  for (long i = 0; i < size; i++) {
+    for (long j = 0; j < size; j++) {
       DiFj(i, j) = ((dmathist[i]) - dmat).cwiseProduct((mathist[j]) - H).sum();
     }
   }
@@ -50,7 +50,7 @@ Eigen::VectorXd ADIIS::CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
   optimizer.setNumofIterations(1000);
   optimizer.setTrustRadius(0.01);
   // Starting point: equal weights on all matrices
-  Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / size);
+  Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / double(size));
   optimizer.Optimize(coeffs);
   success = optimizer.Success();
   coeffs = optimizer.getParameters().cwiseAbs2();

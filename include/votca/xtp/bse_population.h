@@ -37,7 +37,7 @@ struct BSE_Population {
   Eigen::VectorXd E;
   double Gs = 0;
 
-  void Initialize(int size) {
+  void Initialize(long size) {
     H = Eigen::VectorXd::Zero(size);
     E = Eigen::VectorXd::Zero(size);
     Gs = 0;
@@ -63,7 +63,7 @@ struct BSE_Population {
     Eigen::VectorXd diff = pop.H - pop.E;
     out << "GroundstateCharge:" << pop.Gs << "\n";
     out << "Index hole electron dQ Qeff\n";
-    for (int i = 0; i < pop.H.size(); ++i) {
+    for (long i = 0; i < pop.H.size(); ++i) {
       out << i << " " << pop.H(i) << " " << pop.E(i) << " " << diff(i) << " "
           << diff(i) + pop.Gs << "\n";
     }

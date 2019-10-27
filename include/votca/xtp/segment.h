@@ -59,7 +59,7 @@ class Segment : public AtomContainer<Atom> {
     _U_xN_xX.setValue(dU, state);
   }
 
-  const Atom* getAtom(int id) const;
+  const Atom* getAtom(long id) const;
 
   double getU_xX_nN(QMStateType state) const {
     return _U_xX_nN.getValue(state);
@@ -85,7 +85,7 @@ class Segment : public AtomContainer<Atom> {
     _site_eng.setValue(energy, state);
   }
 
-  void AddMoleculeId(int id) { _molecule_ids.push_back(id); }
+  void AddMoleculeId(long id) { _molecule_ids.push_back(int(id)); }
 
   const std::vector<int>& getMoleculeIds() const { return _molecule_ids; }
 

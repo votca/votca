@@ -63,10 +63,11 @@ bool Energy_costfunction::Converged(const Eigen::VectorXd& delta_parameters,
   bool MaxStep_converged = false;
   Energy_costfunction::conv_paras convval;
   convval.deltaE = delta_cost;
-  convval.RMSForce = std::sqrt(gradient.cwiseAbs2().sum()) / gradient.size();
+  convval.RMSForce =
+      std::sqrt(gradient.cwiseAbs2().sum()) / double(gradient.size());
   convval.MaxForce = gradient.cwiseAbs().maxCoeff(&convval.maxforceindex);
-  convval.RMSStep =
-      std::sqrt(delta_parameters.cwiseAbs2().sum()) / delta_parameters.size();
+  convval.RMSStep = std::sqrt(delta_parameters.cwiseAbs2().sum()) /
+                    double(delta_parameters.size());
   convval.MaxStep = delta_parameters.cwiseAbs().maxCoeff(&convval.maxstepindex);
 
   if (std::abs(convval.deltaE) < _convpara.deltaE) {

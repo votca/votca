@@ -44,7 +44,7 @@ template <class T>
 void MMRegion<T>::WriteToCpt(CheckpointWriter& w) const {
   w(_id, "id");
   w(identify(), "type");
-  int size = _segments.size();
+  int size = int(_segments.size());
   w(size, "size");
   CheckpointWriter ww = w.openChild("segments");
   for (const auto& seg : _segments) {

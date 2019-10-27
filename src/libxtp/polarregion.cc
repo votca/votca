@@ -80,7 +80,7 @@ double PolarRegion::StaticInteraction() {
     }
   }
 
-  return e / 2.0;
+  return 0.5 * e;
 }
 
 eeInteractor::E_terms PolarRegion::PolarEnergy() const {
@@ -154,7 +154,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   XTP_LOG_SAVE(logINFO, _log)
       << TimeStamp() << " Calculated static interaction in region "
       << std::flush;
-  int dof_polarisation = 0;
+  long dof_polarisation = 0;
   for (const PolarSegment& seg : _segments) {
     dof_polarisation += seg.size() * 3;
   }
@@ -167,14 +167,14 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 
   if (!_E_hist.filled()) {
     eeInteractor interactor(_exp_damp);
-    int index = 0;
+    long index = 0;
     for (PolarSegment& seg : _segments) {
       initial_induced_dipoles.segment(index, 3 * seg.size()) =
           interactor.Cholesky_IntraSegment(seg);
       index += 3 * seg.size();
     }
   } else {
-    int index = 0;
+    long index = 0;
     for (PolarSegment& seg : _segments) {
       for (const PolarSite& site : seg) {
         initial_induced_dipoles.segment<3>(index) = site.Induced_Dipole();
@@ -183,7 +183,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     }
   }
   Eigen::VectorXd b = Eigen::VectorXd::Zero(dof_polarisation);
-  int index = 0;
+  long index = 0;
   for (PolarSegment& seg : _segments) {
     for (const PolarSite& site : seg) {
       const Eigen::Vector3d V = site.V() + site.V_noE();

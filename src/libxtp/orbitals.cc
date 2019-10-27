@@ -312,12 +312,12 @@ std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_AR(
 
 Eigen::VectorXd Orbitals::Oscillatorstrengths() const {
 
-  int size = _transition_dipoles.size();
+  long size = long(_transition_dipoles.size());
   if (size > _BSE_singlet.eigenvalues().size()) {
     size = _BSE_singlet.eigenvalues().size();
   }
   Eigen::VectorXd oscs = Eigen::VectorXd::Zero(size);
-  for (int i = 0; i < size; ++i) {
+  for (long i = 0; i < size; ++i) {
     oscs(i) = _transition_dipoles[i].squaredNorm() * 2.0 / 3.0 *
               (_BSE_singlet.eigenvalues()(i));
   }
@@ -406,11 +406,11 @@ std::array<Eigen::MatrixXd, 3> Orbitals::CalcFreeTransition_Dipoles() const {
 void Orbitals::CalcCoupledTransition_Dipoles() {
   std::array<Eigen::MatrixXd, 3> interlevel_dipoles =
       CalcFreeTransition_Dipoles();
-  int numofstates = _BSE_singlet.eigenvalues().size();
+  long numofstates = _BSE_singlet.eigenvalues().size();
   _transition_dipoles.resize(0);
   _transition_dipoles.reserve(numofstates);
   const double sqrt2 = sqrt(2.0);
-  for (int i_exc = 0; i_exc < numofstates; i_exc++) {
+  for (long i_exc = 0; i_exc < numofstates; i_exc++) {
 
     Eigen::VectorXd coeffs = _BSE_singlet.eigenvectors().col(i_exc);
     if (!_useTDA) {
@@ -432,11 +432,11 @@ void Orbitals::CalcCoupledTransition_Dipoles() {
 void Orbitals::OrderMOsbyEnergy() {
   std::vector<int> sort_index = SortEnergies();
   tools::EigenSystem MO_copy = _mos;
-  int size = _mos.eigenvalues().size();
-  for (int i = 0; i < size; ++i) {
+  long size = _mos.eigenvalues().size();
+  for (long i = 0; i < size; ++i) {
     _mos.eigenvalues()(i) = MO_copy.eigenvalues()(sort_index[i]);
   }
-  for (int i = 0; i < size; ++i) {
+  for (long i = 0; i < size; ++i) {
     _mos.eigenvectors().col(i) = MO_copy.eigenvectors().col(sort_index[i]);
   }
 }

@@ -37,7 +37,7 @@ class QMAtom {
 
  public:
   struct data {
-    int index;
+    long index;
     char* element;
     double x;
     double y;
@@ -46,7 +46,7 @@ class QMAtom {
     int ecpcharge;
   };
 
-  QMAtom(int index, std::string element, Eigen::Vector3d pos);
+  QMAtom(long index, std::string element, Eigen::Vector3d pos);
 
   QMAtom(const data& d);
 
@@ -60,7 +60,7 @@ class QMAtom {
 
   const std::string& getElement() const { return _element; }
 
-  int getId() const { return _index; }
+  long getId() const { return _index; }
 
   int getNuccharge() const { return _nuccharge - _ecpcharge; }
 
@@ -74,7 +74,7 @@ class QMAtom {
   }
 
  private:
-  int _index;
+  long _index;
   std::string _element;
   Eigen::Vector3d _pos;  // Bohr
   int _nuccharge = 0;

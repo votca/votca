@@ -46,19 +46,19 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 
   void configure(BSEOperator_Options opt);
 
-  Eigen::RowVectorXd OperatorRow(int index) const override;
+  Eigen::RowVectorXd OperatorRow(long index) const override;
 
   bool useBlock() const override { return cx != 0; }
 
-  int getBlocksize() const override { return _bse_ctotal; }
+  long getBlocksize() const override { return long(_bse_ctotal); }
 
-  Eigen::MatrixXd OperatorBlock(int row, int col) const override;
+  Eigen::MatrixXd OperatorBlock(long row, long col) const override;
 
  private:
-  Eigen::RowVectorXd Hqp_row(int index) const;
-  Eigen::RowVectorXd Hd_row(int index) const;
-  Eigen::RowVectorXd Hd2_row(int index) const;
-  Eigen::MatrixXd HxBlock(int row, int col) const;
+  Eigen::RowVectorXd Hqp_row(long index) const;
+  Eigen::RowVectorXd Hd_row(long index) const;
+  Eigen::RowVectorXd Hd2_row(long index) const;
+  Eigen::MatrixXd HxBlock(long row, long col) const;
 
   BSEOperator_Options _opt;
   int _bse_size;

@@ -74,7 +74,7 @@ void Neighborlist::Initialize(tools::Property& options) {
 int Neighborlist::DetClassicalPairs(Topology& top) {
   int classical_pairs = 0;
 #pragma omp parallel for
-  for (int i = 0; i < top.NBList().size(); i++) {
+  for (long i = 0; i < top.NBList().size(); i++) {
     const Segment* seg1 = top.NBList()[i]->Seg1();
     const Segment* seg2 = top.NBList()[i]->Seg2();
     if (top.GetShortestDist(*seg1, *seg2) > _excitonqmCutoff) {

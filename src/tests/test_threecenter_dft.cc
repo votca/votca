@@ -31,15 +31,15 @@ Eigen::MatrixXd ReadMatrixFromString(const std::string& matrix) {
   votca::tools::Tokenizer lines(matrix, "\n");
 
   std::vector<double> entries;
-  int cols = 0;
-  int rows = 0;
+  long cols = 0;
+  long rows = 0;
   for (auto line : lines) {
     if (line[0] == '#') {
       continue;
     }
     votca::tools::Tokenizer entries_tok(line, " ");
     std::vector<std::string> temp = entries_tok.ToVector();
-    cols = temp.size();
+    cols = long(temp.size());
     rows++;
     for (const auto& s : temp) {
       entries.push_back(std::stod(s));

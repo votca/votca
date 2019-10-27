@@ -60,22 +60,22 @@ class QMFragment {
 
   T& value() { return _value; }
 
-  int size() const { return _atomindices.size(); }
+  long size() const { return long(_atomindices.size()); }
 
-  const std::vector<int>& getIndices() const { return _atomindices; }
+  const std::vector<long>& getIndices() const { return _atomindices; }
 
   double ExtractFromVector(const Eigen::VectorXd& atomentries) const {
     double result = 0;
-    for (int index : _atomindices) {
+    for (long index : _atomindices) {
       result += atomentries(index);
     }
     return result;
   }
 
-  typename std::vector<int>::const_iterator begin() const {
+  typename std::vector<long>::const_iterator begin() const {
     return _atomindices.begin();
   }
-  typename std::vector<int>::const_iterator end() const {
+  typename std::vector<long>::const_iterator end() const {
     return _atomindices.end();
   }
 
@@ -83,7 +83,7 @@ class QMFragment {
                                   const QMFragment& fragment) {
     out << "Fragment id:" << fragment._id << "\n";
     out << "AtomIndices[" << fragment.size() << "]:";
-    for (int id : fragment._atomindices) {
+    for (long id : fragment._atomindices) {
       out << id << " ";
     }
     out << "\nValue:" << fragment._value;
@@ -114,19 +114,19 @@ class QMFragment {
     const std::string delimiter = "...";
     for (std::string s : results) {
       if (s.find(delimiter) != std::string::npos) {
-        int start = std::stoi(s.substr(0, s.find(delimiter)));
-        int stop =
-            std::stoi(s.erase(0, s.find(delimiter) + delimiter.length()));
-        for (int i = start; i <= stop; i++) {
+        long start = std::stol(s.substr(0, s.find(delimiter)));
+        long stop =
+            std::stol(s.erase(0, s.find(delimiter) + delimiter.length()));
+        for (long i = start; i <= stop; i++) {
           _atomindices.push_back(i);
         }
       } else {
-        _atomindices.push_back(std::stoi(s));
+        _atomindices.push_back(std::stol(s));
       }
     }
   }
 
-  std::vector<int> _atomindices;
+  std::vector<long> _atomindices;
   int _id = -1;
   T _value;
 };

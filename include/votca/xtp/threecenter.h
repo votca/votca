@@ -63,7 +63,7 @@ class TCMatrix_dft : public TCMatrix {
  public:
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis);
 
-  long int size() const { return _matrix.size(); }
+  int size() const { return int(_matrix.size()); }
 
   Symmetric_Matrix& operator[](int i) { return _matrix[i]; }
 
@@ -86,7 +86,7 @@ class TCMatrix_gwbse : public TCMatrix {
   // returns one level as a reference
   Eigen::MatrixXd& operator[](int i) { return _matrix[i]; }
   // returns auxbasissize
-  int auxsize() const { return _basissize; }
+  int auxsize() const { return _auxbasissize; }
 
   int get_mmin() const { return _mmin; }
 
@@ -101,8 +101,6 @@ class TCMatrix_gwbse : public TCMatrix {
   int nsize() const { return _ntotal; }
 
   void Initialize(int basissize, int mmin, int mmax, int nmin, int nmax);
-
-  void SetGPUStreams(int streams);
 
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
             const Eigen::MatrixXd& dft_orbitals);
@@ -126,10 +124,7 @@ class TCMatrix_gwbse : public TCMatrix {
   int _nmax;
   int _ntotal;
   int _mtotal;
-  int _basissize;
-
-  // Nvidia GPU control parameters
-  int _max_gpu_streams;
+  int _auxbasissize;
 
   const AOBasis* _auxbasis = nullptr;
   const AOBasis* _dftbasis = nullptr;
@@ -153,7 +148,7 @@ class TCMatrix_gwbse : public TCMatrix {
       const Eigen::MatrixXd& dft_orbitals, const CudaPipeline& cuda_pip) const;
 
   std::array<CudaMatrix, 3> CreateIntermediateCudaMatrices(
-      long basissize, const CudaPipeline& cuda_pip) const;
+      int basissize, const CudaPipeline& cuda_pip) const;
 
   void FillAllBlocksCuda(const AOBasis& gwbasis, const AOBasis& dftbasis,
                          const Eigen::MatrixXd& dft_orbitals);

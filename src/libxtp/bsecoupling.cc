@@ -245,8 +245,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   int bseA_ctotal = bseA_cmax - bseA_cmin + 1;
   int bseA_total = bseA_vtotal + bseA_ctotal;
   int bseA_size = bseA_vtotal * bseA_ctotal;
-  long int bseA_singlet_exc = orbitalsA.BSESinglets().eigenvectors().cols();
-  long int bseA_triplet_exc = orbitalsA.BSETriplets().eigenvectors().cols();
+  long bseA_singlet_exc = orbitalsA.BSESinglets().eigenvectors().cols();
+  long bseA_triplet_exc = orbitalsA.BSETriplets().eigenvectors().cols();
 
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << "   molecule A has " << bseA_singlet_exc
@@ -264,8 +264,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   int bseB_ctotal = bseB_cmax - bseB_cmin + 1;
   int bseB_total = bseB_vtotal + bseB_ctotal;
   int bseB_size = bseB_vtotal * bseB_ctotal;
-  long int bseB_singlet_exc = orbitalsB.BSESinglets().eigenvectors().cols();
-  long int bseB_triplet_exc = orbitalsB.BSETriplets().eigenvectors().cols();
+  long bseB_singlet_exc = orbitalsB.BSESinglets().eigenvectors().cols();
+  long bseB_triplet_exc = orbitalsB.BSETriplets().eigenvectors().cols();
 
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << "   molecule B has " << bseB_singlet_exc
@@ -483,7 +483,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
 
 Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
                                               Eigen::MatrixXd& CTStates) const {
-  long int ct = CTStates.cols();
+  long ct = CTStates.cols();
 
   if (ct > 0) {
     XTP_LOG(logDEBUG, *_pLog)
@@ -505,9 +505,9 @@ Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
           << " norm is only " << minnorm << flush;
     }
   }
-  long int bse_exc = _levA + _levB;
+  long bse_exc = _levA + _levB;
 
-  long int bseAB_size = CTStates.rows();
+  long bseAB_size = CTStates.rows();
   Eigen::MatrixXd projection(bseAB_size, bse_exc + ct);
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " merging projections into one vector  " << flush;
@@ -609,8 +609,8 @@ std::array<Eigen::MatrixXd, 2> BSECoupling::ProjectExcitons(
 
 Eigen::MatrixXd BSECoupling::Perturbation(
     const Eigen::MatrixXd& J_dimer) const {
-  long int bse_exc = _levA + _levB;
-  long int ct = J_dimer.rows() - bse_exc;
+  long bse_exc = _levA + _levB;
+  long ct = J_dimer.rows() - bse_exc;
   Eigen::MatrixXd J_result = J_dimer;
   if (ct > 0) {
     Eigen::MatrixXd transformation =
@@ -645,14 +645,14 @@ Eigen::MatrixXd BSECoupling::Perturbation(
   for (int stateA = 0; stateA < _levA; stateA++) {
     double Ea = J_result(stateA, stateA);
     for (int stateB = 0; stateB < _levB; stateB++) {
-      long int stateBd = stateB + _levA;
+      long stateBd = stateB + _levA;
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << "   Calculating coupling between exciton A"
           << stateA + 1 << " and exciton B" << stateB + 1 << flush;
       double J = J_result(stateA, stateBd);
 
       double Eb = J_result(stateBd, stateBd);
-      for (long int k = bse_exc; k < (bse_exc + ct); k++) {
+      for (long k = bse_exc; k < (bse_exc + ct); k++) {
         double Eab = J_result(k, k);
         if (std::abs(Eab - Ea) < 0.001) {
           XTP_LOG(logDEBUG, *_pLog)
@@ -677,7 +677,7 @@ Eigen::MatrixXd BSECoupling::Perturbation(
 }
 
 Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
-  long int bse_exc = _levA + _levB;
+  long bse_exc = _levA + _levB;
   votca::tools::globals::verbose = true;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(J_dimer);
   if (tools::globals::verbose && J_dimer.rows() < 100) {
@@ -695,7 +695,7 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
   for (int stateA = 0; stateA < _levA; stateA++) {
     for (int stateB = 0; stateB < _levB; stateB++) {
 
-      long int stateBd = stateB + _levA;
+      long stateBd = stateB + _levA;
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << "   Calculating coupling between exciton A"
           << stateA + 1 << " and exciton B" << stateB + 1 << flush;

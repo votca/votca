@@ -51,7 +51,7 @@ class TrustRegion {
 
     // Calculates \phi and \phi/\phi'
     std::pair<double, double> Evaluate(double lambda) {
-      long int size = _factor.size() - _startindex;
+      long size = _factor.size() - _startindex;
       Eigen::ArrayXd quotient =
           (_hessian.eigenvalues().array() + lambda).tail(size);
       const double p2 = (_factor.array().tail(size) / (quotient.pow(2))).sum();

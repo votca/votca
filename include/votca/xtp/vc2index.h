@@ -34,18 +34,20 @@ class vc2index {
 
  public:
   vc2index(int vmin, int cmin, int ctotal)
-      : _vmin(vmin), _cmin(cmin), _ctotal(ctotal){};
+      : _vmin(long(vmin)), _cmin(long(cmin)), _ctotal(long(ctotal)){};
 
-  inline int I(int v, int c) const { return _ctotal * (v - _vmin) + c - _cmin; }
+  inline long I(int v, int c) const {
+    return _ctotal * (v - _vmin) + (c - _cmin);
+  }
 
-  inline int v(int index) const { return index / _ctotal + _vmin; }
+  inline int v(long index) const { return int(index / _ctotal + _vmin); }
 
-  inline int c(int index) const { return index % _ctotal + _cmin; }
+  inline int c(long index) const { return int(index % _ctotal + _cmin); }
 
  private:
-  int _vmin;
-  int _cmin;
-  int _ctotal;
+  long _vmin;
+  long _cmin;
+  long _ctotal;
 };
 }  // namespace xtp
 }  // namespace votca

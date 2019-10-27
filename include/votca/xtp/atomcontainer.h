@@ -52,7 +52,7 @@ class AtomContainer {
 
   int getId() const { return _id; }
 
-  long int size() const { return _atomlist.size(); }
+  long size() const { return _atomlist.size(); }
 
   void push_back(const T& atom) {
     _atomlist.push_back(atom);
@@ -70,11 +70,11 @@ class AtomContainer {
     calcPos();
   }
 
-  const T& at(int index) const { return _atomlist.at(index); }
-  T& at(int index) { return _atomlist.at(index); }
+  const T& at(long index) const { return _atomlist.at(index); }
+  T& at(long index) { return _atomlist.at(index); }
 
-  const T& operator[](int index) const { return _atomlist[index]; }
-  T& operator[](int index) { return _atomlist[index]; }
+  const T& operator[](long index) const { return _atomlist[index]; }
+  T& operator[](long index) { return _atomlist[index]; }
 
   typename std::vector<T>::iterator begin() { return _atomlist.begin(); }
   typename std::vector<T>::iterator end() { return _atomlist.end(); }

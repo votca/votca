@@ -35,7 +35,7 @@ class Job {
   enum JobStatus { AVAILABLE, ASSIGNED, FAILED, COMPLETE };
 
   Job(const tools::Property &prop);
-  Job(int id, const std::string &tag, const tools::Property &input,
+  Job(long id, const std::string &tag, const tools::Property &input,
       JobStatus stat);
 
   std::string ConvertStatus(JobStatus) const;
@@ -79,7 +79,7 @@ class Job {
   void UpdateFrom(const Job &ext);
   void UpdateFromResult(const JobResult &res);
 
-  int getId() const { return _id; }
+  long getId() const { return _id; }
   std::string getTag() const { return _tag; }
   tools::Property &getInput() { return _input; }
   const tools::Property &getInput() const { return _input; }
@@ -131,7 +131,7 @@ class Job {
 
  private:
   // Defined by user
-  int _id;
+  long _id;
   std::string _tag;
   JobStatus _status;
   int _attemptsCount = 0;

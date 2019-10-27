@@ -273,8 +273,8 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
       << TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
   Eigen::LLT<Eigen::Ref<Eigen::MatrixXd> > L(AmB);
 
-  for (int i = 0; i < AmB.rows(); ++i) {
-    for (int j = i + 1; j < AmB.cols(); ++j) {
+  for (long i = 0; i < AmB.rows(); ++i) {
+    for (long j = i + 1; j < AmB.cols(); ++j) {
       AmB(i, j) = 0;
     }
   }
@@ -330,7 +330,7 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
   //                               1/sqrt(eps_l)L ] R_l
   // determine inverse of L^T
   Eigen::MatrixXd LmT = AmB.inverse().transpose();
-  int dim = LmT.rows();
+  long dim = LmT.rows();
   result.eigenvectors().resize(dim, _opt.nmax);  // resonant part (_X_evec)
   result.eigenvectors2().resize(dim,
                                 _opt.nmax);  // anti-resonant part (_Y_evec)

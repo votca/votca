@@ -63,7 +63,8 @@ void KMCMultiple::PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor,
   if (absolute_field == 0) {
     unsigned long diffusionsteps = step / _diffusionresolution;
     Eigen::Matrix3d result =
-        avgdiffusiontensor / (diffusionsteps * 2 * simtime * _numberofcarriers);
+        avgdiffusiontensor /
+        (double(diffusionsteps) * 2.0 * simtime * _numberofcarriers);
     cout << endl
          << "Step: " << step
          << " Diffusion tensor averaged over all carriers (nm^2/s):" << endl
@@ -139,8 +140,8 @@ void KMCMultiple::WriteToEnergyFile(std::fstream& tfile, double simtime,
 void KMCMultiple::PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
                                   double simtime, unsigned long step) const {
   unsigned long diffusionsteps = step / _diffusionresolution;
-  Eigen::Matrix3d result =
-      avgdiffusiontensor / (diffusionsteps * 2 * simtime * _numberofcarriers);
+  Eigen::Matrix3d result = avgdiffusiontensor / (double(diffusionsteps) * 2.0 *
+                                                 simtime * _numberofcarriers);
 
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(result);
@@ -185,15 +186,15 @@ void KMCMultiple::PrintChargeVelocity(double simtime) const {
 
 void KMCMultiple::RunVSSM() {
 
-  int realtime_start = time(nullptr);
+  long realtime_start = time(nullptr);
   cout << endl << "Algorithm: VSSM for Multiple Charges" << endl;
   cout << "number of carriers: " << _numberofcarriers << endl;
   cout << "number of nodes: " << _nodes.size() << endl;
 
   bool checkifoutput = (_outputtime != 0);
   double nexttrajoutput = 0;
-  unsigned long maxsteps = _runtime;
-  unsigned long outputstep = _outputtime;
+  unsigned long maxsteps = boost::numeric_cast<unsigned long>(_runtime);
+  unsigned long outputstep = boost::numeric_cast<unsigned long>(_outputtime);
   bool stopontime = false;
 
   if (_runtime > 100) {
@@ -290,7 +291,7 @@ void KMCMultiple::RunVSSM() {
   while (((stopontime && simtime < _runtime) ||
           (!stopontime && step < maxsteps))) {
 
-    if ((time(nullptr) - realtime_start) > _maxrealtime * 60. * 60.) {
+    if ((time(nullptr) - realtime_start) > long(_maxrealtime * 60. * 60.)) {
       cout << endl
            << "Real time limit of " << _maxrealtime << " hours ("
            << int(_maxrealtime * 60 * 60 + 0.5)

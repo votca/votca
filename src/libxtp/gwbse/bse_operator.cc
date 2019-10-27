@@ -36,7 +36,7 @@ void BSE_OPERATOR<cqp, cx, cd, cd2>::configure(BSEOperator_Options opt) {
 
 template <int cqp, int cx, int cd, int cd2>
 Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::OperatorRow(
-    int index) const {
+    long index) const {
   Eigen::RowVectorXd row = Eigen::RowVectorXd::Zero(_bse_size);
   if (cd != 0) {
     row += cd * Hd_row(index);
@@ -51,25 +51,25 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::OperatorRow(
 }
 
 template <int cqp, int cx, int cd, int cd2>
-Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::OperatorBlock(int row,
-                                                              int col) const {
+Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::OperatorBlock(long row,
+                                                              long col) const {
   return cx * HxBlock(row, col);
 }
 
 template <int cqp, int cx, int cd, int cd2>
-Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::HxBlock(int row,
-                                                        int col) const {
+Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::HxBlock(long row,
+                                                        long col) const {
   int auxsize = _Mmn.auxsize();
   const int vmin = _opt.vmin - _opt.rpamin;
   const int cmin = _bse_cmin - _opt.rpamin;
-  int v1 = row + vmin;
-  int v2 = col + vmin;
+  int v1 = int(row) + vmin;
+  int v2 = int(col) + vmin;
   return _Mmn[v1].block(cmin, 0, _bse_ctotal, auxsize) *
          _Mmn[v2].block(cmin, 0, _bse_ctotal, auxsize).transpose();
 }
 
 template <int cqp, int cx, int cd, int cd2>
-Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd_row(int index) const {
+Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd_row(long index) const {
   int auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, _bse_ctotal);
 
@@ -89,7 +89,7 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd_row(int index) const {
 }
 
 template <int cqp, int cx, int cd, int cd2>
-Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(int index) const {
+Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(long index) const {
   vc2index vc = vc2index(0, 0, _bse_ctotal);
   int v1 = vc.v(index);
   int c1 = vc.c(index);
@@ -104,7 +104,7 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(int index) const {
 }
 
 template <int cqp, int cx, int cd, int cd2>
-Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd2_row(int index) const {
+Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd2_row(long index) const {
 
   int auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, _bse_ctotal);

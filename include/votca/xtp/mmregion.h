@@ -39,7 +39,7 @@ class MMRegion : public Region {
 
   void ReadFromCpt(CheckpointReader& r) override;
 
-  int size() const override { return _segments.size(); }
+  int size() const override { return int(_segments.size()); }
 
   using iterator = typename std::vector<T>::iterator;
 

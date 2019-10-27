@@ -107,7 +107,7 @@ class CheckpointReader {
     }
   }
 
-  long int getNumDataSets() const { return _loc.getNumObjs(); }
+  long getNumDataSets() const { return _loc.getNumObjs(); }
 
   CptLoc getLoc() { return _loc; }
 

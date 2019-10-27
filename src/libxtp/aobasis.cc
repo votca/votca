@@ -44,7 +44,7 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
   }
 
   // get reordering vector _start -> target
-  std::vector<long int> order = getReorderVector(start, target);
+  std::vector<int> order = getReorderVector(start, target);
 
   // Sanity check
   if (v.rows() != int(order.size())) {
@@ -54,7 +54,7 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
   }
 
   // actual swapping of coefficients
-  for (long int s = 1, d; s < (long int)order.size(); ++s) {
+  for (int s = 1, d; s < (int)order.size(); ++s) {
     for (d = order[s]; d < s; d = order[d]) {
       ;
     }
@@ -82,9 +82,7 @@ void AOBasis::MultiplyMOs(Eigen::MatrixXd& v,
     throw std::runtime_error("Abort!");
   }
   for (int i_basis = 0; i_basis < v.cols(); i_basis++) {
-    for (int i_orbital = 0; i_orbital < v.rows(); i_orbital++) {
-      v(i_basis, i_orbital) = multiplier[i_basis] * v(i_basis, i_orbital);
-    }
+    v.row(i_basis) = multiplier[i_basis] * v.row(i_basis);
   }
   return;
 }
@@ -200,9 +198,9 @@ void AOBasis::addMultiplierShell(const std::string& start,
   return;
 }
 
-std::vector<long int> AOBasis::getReorderVector(
-    const std::string& start, const std::string& target) const {
-  std::vector<long int> neworder;
+std::vector<int> AOBasis::getReorderVector(const std::string& start,
+                                           const std::string& target) const {
+  std::vector<int> neworder;
   neworder.reserve(_AOBasisSize);
   std::string s;
   std::string t;
@@ -223,10 +221,9 @@ std::vector<long int> AOBasis::getReorderVector(
   return neworder;
 }
 
-std::vector<long int> AOBasis::invertOrder(
-    const std::vector<long int>& order) const {
+std::vector<int> AOBasis::invertOrder(const std::vector<int>& order) const {
 
-  std::vector<long int> neworder = std::vector<long int>(order.size());
+  std::vector<int> neworder = std::vector<int>(order.size());
   for (unsigned i = 0; i < order.size(); i++) {
     neworder[order[i]] = int(i);
   }
@@ -236,13 +233,13 @@ std::vector<long int> AOBasis::invertOrder(
 void AOBasis::addReorderShell(const std::string& start,
                               const std::string& target,
                               const std::string& shell_type,
-                              std::vector<long int>& order) const {
+                              std::vector<int>& order) const {
   // Reordering is given by email from gaussian, orca output MOs, and
   // http://www.nwchem-sw.org/index.php/Release66:Basis for nwchem
 
   // current length of vector
 
-  long int cur_pos = order.size() - 1;
+  int cur_pos = int(order.size()) - 1;
 
   if (target == "xtp") {
     // single type shells defined here
@@ -360,7 +357,7 @@ void AOBasis::addReorderShell(const std::string& start,
   return;
 }
 
-const std::vector<const AOShell*> AOBasis::getShellsofAtom(int AtomId) const {
+const std::vector<const AOShell*> AOBasis::getShellsofAtom(long AtomId) const {
   std::vector<const AOShell*> result;
   for (const auto& aoshell : _aoshells) {
     if (aoshell.getAtomIndex() == AtomId) {

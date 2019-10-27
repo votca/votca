@@ -36,11 +36,11 @@ void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
   _mmin = mmin;
   _mmax = mmax;
   _mtotal = mmax - mmin + 1;
-  _basissize = basissize;
+  _auxbasissize = basissize;
 
   // vector has mtotal elements
   _matrix = std::vector<Eigen::MatrixXd>(
-      _mtotal, Eigen::MatrixXd::Zero(_ntotal, _basissize));
+      _mtotal, Eigen::MatrixXd::Zero(_ntotal, _auxbasissize));
 }
 
 /*
@@ -166,12 +166,12 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlock(
   const Eigen::MatrixXd dftn =
       dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
 
-  int dim = static_cast<int>(symmstorage.size());
-  for (auto k = 0; k < dim; ++k) {
+  long dim = static_cast<long>(symmstorage.size());
+  for (long k = 0; k < dim; ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
         dftn.transpose() * matrix.selfadjointView<Eigen::Lower>() * dftm;
-    for (int i = 0; i < threec_inMo.cols(); ++i) {
+    for (long i = 0; i < threec_inMo.cols(); ++i) {
       block[i].col(k) = threec_inMo.col(i);
     }
   }
@@ -326,14 +326,14 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlockCUDA(
     CudaMatrix& cuma_X = cuda_inter_matrices[1];
     CudaMatrix& cuma_Y = cuda_inter_matrices[2];
 
-    int dim = static_cast<int>(symmstorage.size());
-    for (int k = 0; k < dim; ++k) {
+    long dim = static_cast<long>(symmstorage.size());
+    for (long k = 0; k < dim; ++k) {
       const Eigen::MatrixXd& matrix = symmstorage[k];
       cuma_B.copy_to_gpu(matrix.selfadjointView<Eigen::Lower>());
       cuda_pip.gemm(cuma_A, cuma_B, cuma_X);
       cuda_pip.gemm(cuma_X, cuma_C, cuma_Y);
       Eigen::MatrixXd threec_inMo = cuma_Y;
-      for (int i = 0; i < threec_inMo.cols(); ++i) {
+      for (long i = 0; i < threec_inMo.cols(); ++i) {
         block[i].col(k) = threec_inMo.col(i);
       }
     }
@@ -360,9 +360,9 @@ std::array<CudaMatrix, 2> TCMatrix_gwbse::SendDFTMatricesToGPU(
 }
 
 std::array<CudaMatrix, 3> TCMatrix_gwbse::CreateIntermediateCudaMatrices(
-    long basissize, const CudaPipeline& cuda_pip) const {
-  long mcols = _mtotal - _mmin;
-  long ncols = _ntotal - _nmin;
+    int basissize, const CudaPipeline& cuda_pip) const {
+  int mcols = _mtotal - _mmin;
+  int ncols = _ntotal - _nmin;
 
   const cudaStream_t& stream = cuda_pip.get_stream();
   return {CudaMatrix{basissize, basissize, stream},

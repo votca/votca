@@ -100,7 +100,7 @@ class AOShell {
   int getStartIndex() const { return _startIndex; }
   int getOffset() const { return _offset; }
   int getCartesianOffset() const { return _cartOffset; }
-  int getAtomIndex() const { return _atomindex; }
+  long getAtomIndex() const { return _atomindex; }
 
   int getLmax() const { return _Lmax; }
   int getLmin() const { return _Lmin; }
@@ -173,7 +173,7 @@ class AOShell {
   int _offset;
   int _cartOffset;
   Eigen::Vector3d _pos;
-  int _atomindex;
+  long _atomindex;
 
   // vector of pairs of decay constants and contraction coefficients
   std::vector<AOGaussianPrimitive> _gaussians;

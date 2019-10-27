@@ -65,7 +65,7 @@ class JobTopology {
 
   std::vector<std::unique_ptr<Region> >& Regions() { return _regions; }
 
-  int size() const { return _regions.size(); }
+  int size() const { return int(_regions.size()); }
 
   std::vector<std::unique_ptr<Region> >::const_iterator begin() const {
     return _regions.begin();

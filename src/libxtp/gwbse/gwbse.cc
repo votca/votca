@@ -494,7 +494,7 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
       << TimeStamp() << " Set hybrid exchange factor: " << _orbitals.getScaHFX()
       << flush;
   int qptotal = _gwopt.qpmax - _gwopt.qpmin + 1;
-  int basissize = _orbitals.MOs().eigenvectors().rows();
+  int basissize = int(_orbitals.MOs().eigenvectors().rows());
   Eigen::MatrixXd mos =
       _orbitals.MOs().eigenvectors().block(0, _gwopt.qpmin, basissize, qptotal);
 

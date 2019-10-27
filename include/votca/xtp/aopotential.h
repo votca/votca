@@ -34,7 +34,7 @@ class QMMolecule;
 template <class T>
 class AOPotential {
  public:
-  long int Dimension() { return _aopotential.rows(); }
+  long Dimension() { return _aopotential.rows(); }
   const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& Matrix() const {
     return _aopotential;
   }

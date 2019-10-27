@@ -51,7 +51,7 @@ void KMCLifetime::Initialize(tools::Property& options) {
         subkey + ".outputfile", "energy.tab");
     _alpha =
         options.ifExistsReturnElseReturnDefault<double>(subkey + ".alpha", 0.3);
-    _outputsteps = options.ifExistsReturnElseReturnDefault<double>(
+    _outputsteps = options.ifExistsReturnElseReturnDefault<unsigned>(
         subkey + ".outputsteps", 100);
 
   } else {
@@ -154,7 +154,7 @@ void KMCLifetime::WriteToTraj(fstream& traj, unsigned insertioncount,
 
 void KMCLifetime::RunVSSM() {
 
-  int realtime_start = time(nullptr);
+  long realtime_start = time(nullptr);
   cout << endl
        << "Algorithm: VSSM for Multiple Charges with finite Lifetime" << endl;
   cout << "number of charges: " << _numberofcarriers << endl;
@@ -209,10 +209,10 @@ void KMCLifetime::RunVSSM() {
   int carrieridold = _carriers[0].getId();
 
   while (insertioncount < _insertions) {
-    if ((time(nullptr) - realtime_start) > _maxrealtime * 60. * 60.) {
+    if ((time(nullptr) - realtime_start) > long(_maxrealtime * 60. * 60.)) {
       cout << endl
            << "Real time limit of " << _maxrealtime << " hours ("
-           << int(_maxrealtime * 60 * 60 + 0.5)
+           << long(_maxrealtime * 60 * 60 + 0.5)
            << " seconds) has been reached. Stopping here." << endl
            << endl;
       break;

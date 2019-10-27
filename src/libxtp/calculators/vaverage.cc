@@ -124,7 +124,7 @@ bool VAverage::EvaluateFrame(Topology& top) {
   for (const QMPair* pair : top.NBList()) {
     int id1 = pair->Seg1()->getId();
     int id2 = pair->Seg1()->getId();
-    int pairid = pair->getId();
+    long pairid = pair->getId();
     double p1 = occ[id1];
     double p2 = occ[id2];
     double w12 = rates[pairid].rate12;

@@ -22,7 +22,7 @@
 namespace votca {
 namespace xtp {
 
-Atom::Atom(int resnr, std::string md_atom_name, int atom_id,
+Atom::Atom(long resnr, std::string md_atom_name, long atom_id,
            Eigen::Vector3d pos, std::string type)
     : _id(atom_id), _name(md_atom_name), _resnr(resnr), _pos(pos) {
 
@@ -60,7 +60,7 @@ Atom::Atom(int resnr, std::string md_atom_name, int atom_id,
   }
 }
 
-Atom::Atom(int atom_id, std::string element, Eigen::Vector3d pos)
+Atom::Atom(long atom_id, std::string element, Eigen::Vector3d pos)
     : Atom(-1, element, atom_id, pos, element) {}
 
 std::string Atom::GetElementFromString(const std::string& MDName) {

@@ -514,13 +514,13 @@ void Gaussian::CleanUp() {
  * Reads in the MO coefficients from a GAUSSIAN fort.7 file
  */
 bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
-  std::map<int, std::vector<double> > coefficients;
-  std::map<int, double> energies;
+  std::map<long, std::vector<double> > coefficients;
+  std::map<long, double> energies;
 
   std::string line;
   unsigned levels = 0;
   unsigned level = 0;
-  unsigned basis_size = 0;
+  int basis_size = 0;
 
   std::string orb_file_name_full = _mo_file_name;
   if (_run_dir != "") {
@@ -575,11 +575,11 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
 
   // some sanity checks
   XTP_LOG(logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
-  std::map<int, std::vector<double> >::iterator iter = coefficients.begin();
-  basis_size = iter->second.size();
+  std::map<long, std::vector<double> >::iterator iter = coefficients.begin();
+  basis_size = int(iter->second.size());
 
-  for (iter = coefficients.begin()++; iter != coefficients.end(); iter++) {
-    if (iter->second.size() != basis_size) {
+  for (const auto& row : coefficients) {
+    if (int(row.second.size()) != basis_size) {
       XTP_LOG(logERROR, *_pLog)
           << "Error reading " << _mo_file_name
           << ". Basis set size change from level to level." << flush;
@@ -595,15 +595,15 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
   // copying energies to the orbitals object
   Eigen::VectorXd& mo_energies = orbitals.MOs().eigenvalues();
   mo_energies.resize(levels);
-  for (int i = 0; i < mo_energies.size(); i++) {
+  for (long i = 0; i < mo_energies.size(); i++) {
     mo_energies[i] = energies[i + 1];
   }
 
   // copying mo coefficients to the orbitals object
   Eigen::MatrixXd& mo_coefficients = orbitals.MOs().eigenvectors();
   mo_coefficients.resize(levels, basis_size);
-  for (int i = 0; i < mo_coefficients.rows(); i++) {
-    for (int j = 0; j < mo_coefficients.cols(); j++) {
+  for (long i = 0; i < mo_coefficients.rows(); i++) {
+    for (long j = 0; j < mo_coefficients.cols(); j++) {
       mo_coefficients(j, i) = coefficients[i + 1][j];
     }
   }
@@ -689,14 +689,14 @@ StaticSegment Gaussian::GetCharges() const {
       getline(input_file, line);
 
       std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
-      int nfields = row.size();
+      int nfields = int(row.size());
 
       while (nfields == 3) {
-        int atom_id = boost::lexical_cast<int>(row.at(0)) - 1;
+        long atom_id = boost::lexical_cast<long>(row.at(0)) - 1;
         std::string atom_type = row.at(1);
         double atom_charge = boost::lexical_cast<double>(row.at(2));
         row = GetLineAndSplit(input_file, "\t ");
-        nfields = row.size();
+        nfields = int(row.size());
 
         StaticSite temp =
             StaticSite(atom_id, atom_type, Eigen::Vector3d::Zero());
@@ -818,7 +818,7 @@ void Gaussian::GetCoordinates(T& mol,
     tools::Tokenizer tok2(atom_block[i + 1], ",");
     std::vector<std::string> atom = tok2.ToVector();
     std::string atom_type = atom[0];
-    int endindex = atom.size() - 1;
+    int endindex = int(atom.size()) - 1;
     double x = boost::lexical_cast<double>(atom[endindex - 2]);
     double y = boost::lexical_cast<double>(atom[endindex - 1]);
     double z = boost::lexical_cast<double>(atom[endindex]);
@@ -934,11 +934,11 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
         std::vector<std::string> energies = tok.ToVector();
 
         if (stringList.front().find("virt.") != std::string::npos) {
-          unoccupied_levels += energies.size();
+          unoccupied_levels += int(energies.size());
           energies.clear();
         }
         if (stringList.front().find("occ.") != std::string::npos) {
-          occupied_levels += energies.size();
+          occupied_levels += int(energies.size());
           energies.clear();
         }
         getline(input_file, line);

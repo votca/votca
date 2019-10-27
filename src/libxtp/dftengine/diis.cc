@@ -22,7 +22,7 @@
 namespace votca {
 namespace xtp {
 
-void DIIS::Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix) {
+void DIIS::Update(long maxerrorindex, const Eigen::MatrixXd& errormatrix) {
 
   if (int(_errormatrixhist.size()) == _histlength) {
     _errormatrixhist.erase(_errormatrixhist.begin() + maxerrorindex);
@@ -48,7 +48,7 @@ void DIIS::Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix) {
 
 Eigen::VectorXd DIIS::CalcCoeff() {
   success = true;
-  const int size = _errormatrixhist.size();
+  const int size = int(_errormatrixhist.size());
 
   // C2-DIIS
   Eigen::MatrixXd B = Eigen::MatrixXd::Zero(size, size);

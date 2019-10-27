@@ -34,30 +34,30 @@ namespace xtp {
 class Atom {
  public:
   struct data {
-    int id;
+    long id;
     char* element;
     char* name;
     double x;
     double y;
     double z;
-    int resnr;
+    long resnr;
   };
-  Atom(int resnr, std::string md_atom_name, int atom_id, Eigen::Vector3d pos,
+  Atom(long resnr, std::string md_atom_name, long atom_id, Eigen::Vector3d pos,
        std::string element);
 
-  Atom(int atom_id, std::string element, Eigen::Vector3d pos);
+  Atom(long atom_id, std::string element, Eigen::Vector3d pos);
 
   Atom(data& d) { ReadData(d); }
 
   static std::string GetElementFromString(const std::string& MDName);
 
-  int getId() const { return _id; }
+  long getId() const { return _id; }
   const std::string& getName() const { return _name; }
   std::string getElement() const { return _element; }
 
-  int getResnr() const { return _resnr; }
+  long getResnr() const { return _resnr; }
 
-  void setResnr(int resnr) { _resnr = resnr; }
+  void setResnr(long resnr) { _resnr = resnr; }
   void Translate(const Eigen::Vector3d& shift) { _pos = _pos + shift; }
 
   void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
@@ -82,11 +82,11 @@ class Atom {
   void ReadData(const data& d);
 
  private:
-  int _id = -1;
+  long _id = -1;
   std::string _name = "";
 
   std::string _element = "";
-  int _resnr = -1;
+  long _resnr = -1;
   Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
 };
 

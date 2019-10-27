@@ -73,7 +73,7 @@ class CudaMatrix {
   }
 
   // Allocate memory in the GPU for a matrix
-  CudaMatrix(long int nrows, long int ncols, const cudaStream_t &stream)
+  CudaMatrix(long nrows, long ncols, const cudaStream_t &stream)
       : _rows{static_cast<int>(nrows)}, _cols{static_cast<int>(ncols)} {
     _data = alloc_matrix_in_gpu(size_matrix());
     _stream = stream;

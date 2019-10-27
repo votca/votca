@@ -114,21 +114,21 @@ Mat_p_Energy ERIs::CalculateERIs_4c_small_molecule(
 
   const Eigen::VectorXd& fourc_vector = _fourcenter.get_4c_vector();
 
-  int dftBasisSize = DMAT.rows();
-  int vectorSize = (dftBasisSize * (dftBasisSize + 1)) / 2;
+  long dftBasisSize = DMAT.rows();
+  long vectorSize = (dftBasisSize * (dftBasisSize + 1)) / 2;
 #pragma omp parallel for
-  for (int i = 0; i < dftBasisSize; i++) {
-    int sum_i = (i * (i + 1)) / 2;
-    for (int j = i; j < dftBasisSize; j++) {
-      int index_ij = dftBasisSize * i - sum_i + j;
-      int index_ij_kl_a =
+  for (long i = 0; i < dftBasisSize; i++) {
+    long sum_i = (i * (i + 1)) / 2;
+    for (long j = i; j < dftBasisSize; j++) {
+      long index_ij = dftBasisSize * i - sum_i + j;
+      long index_ij_kl_a =
           vectorSize * index_ij - (index_ij * (index_ij + 1)) / 2;
-      for (int k = 0; k < dftBasisSize; k++) {
-        int sum_k = (k * (k + 1)) / 2;
-        for (int l = k; l < dftBasisSize; l++) {
-          int index_kl = dftBasisSize * k - sum_k + l;
+      for (long k = 0; k < dftBasisSize; k++) {
+        long sum_k = (k * (k + 1)) / 2;
+        for (long l = k; l < dftBasisSize; l++) {
+          long index_kl = dftBasisSize * k - sum_k + l;
 
-          int index_ij_kl = index_ij_kl_a + index_kl;
+          long index_ij_kl = index_ij_kl_a + index_kl;
           if (index_ij > index_kl) {
             index_ij_kl = vectorSize * index_kl -
                           (index_kl * (index_kl + 1)) / 2 + index_ij;
@@ -156,22 +156,22 @@ Mat_p_Energy ERIs::CalculateEXX_4c_small_molecule(
 
   const Eigen::VectorXd& fourc_vector = _fourcenter.get_4c_vector();
 
-  int dftBasisSize = DMAT.rows();
-  int vectorSize = (dftBasisSize * (dftBasisSize + 1)) / 2;
+  long dftBasisSize = DMAT.rows();
+  long vectorSize = (dftBasisSize * (dftBasisSize + 1)) / 2;
 #pragma omp parallel for
-  for (int i = 0; i < dftBasisSize; i++) {
-    int thread = OPENMP::getThreadId();
-    int sum_i = (i * (i + 1)) / 2;
-    for (int j = i; j < dftBasisSize; j++) {
-      int index_ij = DMAT.cols() * i - sum_i + j;
-      int index_ij_kl_a =
+  for (long i = 0; i < dftBasisSize; i++) {
+    long thread = OPENMP::getThreadId();
+    long sum_i = (i * (i + 1)) / 2;
+    for (long j = i; j < dftBasisSize; j++) {
+      long index_ij = DMAT.cols() * i - sum_i + j;
+      long index_ij_kl_a =
           vectorSize * index_ij - (index_ij * (index_ij + 1)) / 2;
-      for (int k = 0; k < dftBasisSize; k++) {
-        int sum_k = (k * (k + 1)) / 2;
-        for (int l = k; l < dftBasisSize; l++) {
-          int index_kl = DMAT.cols() * k - sum_k + l;
+      for (long k = 0; k < dftBasisSize; k++) {
+        long sum_k = (k * (k + 1)) / 2;
+        for (long l = k; l < dftBasisSize; l++) {
+          long index_kl = DMAT.cols() * k - sum_k + l;
 
-          int _index_ij_kl = index_ij_kl_a + index_kl;
+          long _index_ij_kl = index_ij_kl_a + index_kl;
           if (index_ij > index_kl) {
             _index_ij_kl = vectorSize * index_kl -
                            (index_kl * (index_kl + 1)) / 2 + index_ij;
@@ -210,7 +210,7 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
                                            const Eigen::MatrixXd& DMAT) const {
 
   // Number of shells
-  int numShells = dftbasis.getNumofShells();
+  long numShells = dftbasis.getNumofShells();
 
   // Initialize ERIs matrix
   Eigen::MatrixXd ERIs2 = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
@@ -222,18 +222,18 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
         Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
 #pragma omp for
-    for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
+    for (long iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
       const AOShell& shell_3 = dftbasis.getShell(iShell_3);
-      int numFunc_3 = shell_3.getNumFunc();
-      for (int iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
+      long numFunc_3 = shell_3.getNumFunc();
+      for (long iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
         const AOShell& shell_4 = dftbasis.getShell(iShell_4);
-        int numFunc_4 = shell_4.getNumFunc();
-        for (int iShell_1 = iShell_3; iShell_1 < numShells; iShell_1++) {
+        long numFunc_4 = shell_4.getNumFunc();
+        for (long iShell_1 = iShell_3; iShell_1 < numShells; iShell_1++) {
           const AOShell& shell_1 = dftbasis.getShell(iShell_1);
-          int numFunc_1 = shell_1.getNumFunc();
-          for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
+          long numFunc_1 = shell_1.getNumFunc();
+          for (long iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
             const AOShell& shell_2 = dftbasis.getShell(iShell_2);
-            int numFunc_2 = shell_2.getNumFunc();
+            long numFunc_2 = shell_2.getNumFunc();
 
             // Pre-screening
             if (_with_screening && CheckScreen(_screening_eps, shell_1, shell_2,
@@ -364,18 +364,18 @@ void ERIs::FillERIsBlock(Eigen::MatrixXd& ERIsCur, const Eigen::MatrixXd& DMAT,
 
 void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
   // Number of shells
-  int numShells = dftbasis.getNumofShells();
+  long numShells = dftbasis.getNumofShells();
   // Total number of functions
   int dftBasisSize = dftbasis.AOBasisSize();
 
   _diagonals = Eigen::MatrixXd::Zero(dftBasisSize, dftBasisSize);
 
-  for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
+  for (long iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
     const AOShell& shell_1 = dftbasis.getShell(iShell_1);
-    int numFunc_1 = shell_1.getNumFunc();
-    for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
+    long numFunc_1 = shell_1.getNumFunc();
+    for (long iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
       const AOShell& shell_2 = dftbasis.getShell(iShell_2);
-      int numFunc_2 = shell_2.getNumFunc();
+      long numFunc_2 = shell_2.getNumFunc();
 
       // Get the current 4c block
       Eigen::Tensor<double, 4> block(numFunc_1, numFunc_2, numFunc_1,
@@ -388,10 +388,10 @@ void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
         continue;
       }
 
-      for (int iFunc_1 = 0; iFunc_1 < shell_1.getNumFunc(); iFunc_1++) {
-        int ind_1 = shell_1.getStartIndex() + iFunc_1;
-        for (int iFunc_2 = 0; iFunc_2 < shell_2.getNumFunc(); iFunc_2++) {
-          int ind_2 = shell_2.getStartIndex() + iFunc_2;
+      for (long iFunc_1 = 0; iFunc_1 < shell_1.getNumFunc(); iFunc_1++) {
+        long ind_1 = shell_1.getStartIndex() + iFunc_1;
+        for (long iFunc_2 = 0; iFunc_2 < shell_2.getNumFunc(); iFunc_2++) {
+          long ind_2 = shell_2.getStartIndex() + iFunc_2;
 
           // Symmetry
           if (ind_1 > ind_2) {
@@ -418,20 +418,20 @@ bool ERIs::CheckScreen(double eps, const AOShell& shell_1,
 
   const double eps2 = eps * eps;
 
-  for (int iFunc_3 = 0; iFunc_3 < shell_3.getNumFunc(); iFunc_3++) {
-    int ind_3 = shell_3.getStartIndex() + iFunc_3;
-    for (int iFunc_4 = 0; iFunc_4 < shell_4.getNumFunc(); iFunc_4++) {
-      int ind_4 = shell_4.getStartIndex() + iFunc_4;
+  for (long iFunc_3 = 0; iFunc_3 < shell_3.getNumFunc(); iFunc_3++) {
+    long ind_3 = shell_3.getStartIndex() + iFunc_3;
+    for (long iFunc_4 = 0; iFunc_4 < shell_4.getNumFunc(); iFunc_4++) {
+      long ind_4 = shell_4.getStartIndex() + iFunc_4;
 
       // Symmetry
       if (ind_3 > ind_4) {
         continue;
       }
 
-      for (int iFunc_1 = 0; iFunc_1 < shell_1.getNumFunc(); iFunc_1++) {
-        int ind_1 = shell_1.getStartIndex() + iFunc_1;
-        for (int iFunc_2 = 0; iFunc_2 < shell_2.getNumFunc(); iFunc_2++) {
-          int ind_2 = shell_2.getStartIndex() + iFunc_2;
+      for (long iFunc_1 = 0; iFunc_1 < shell_1.getNumFunc(); iFunc_1++) {
+        long ind_1 = shell_1.getStartIndex() + iFunc_1;
+        for (long iFunc_2 = 0; iFunc_2 < shell_2.getNumFunc(); iFunc_2++) {
+          long ind_2 = shell_2.getStartIndex() + iFunc_2;
 
           // Symmetry
           if (ind_1 > ind_2) {

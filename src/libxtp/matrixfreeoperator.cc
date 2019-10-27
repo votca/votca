@@ -22,11 +22,11 @@
 namespace votca {
 namespace xtp {
 
-Eigen::RowVectorXd MatrixFreeOperator::OperatorRow(int) const {
+Eigen::RowVectorXd MatrixFreeOperator::OperatorRow(long) const {
   return Eigen::RowVectorXd::Zero(0);
 }
 
-Eigen::MatrixXd MatrixFreeOperator::OperatorBlock(int, int) const {
+Eigen::MatrixXd MatrixFreeOperator::OperatorBlock(long, long) const {
   return Eigen::MatrixXd::Zero(0, 0);
 }
 
@@ -34,22 +34,22 @@ Eigen::VectorXd MatrixFreeOperator::diagonal() const {
   Eigen::VectorXd D = Eigen::VectorXd::Zero(_size);
   if (useRow()) {
 #pragma omp parallel for schedule(guided)
-    for (int i = 0; i < _size; i++) {
+    for (long i = 0; i < _size; i++) {
       Eigen::RowVectorXd row_data = this->OperatorRow(i);
       D(i) = row_data(i);
     }
   }
 
   if (useBlock()) {
-    int blocksize = getBlocksize();
+    long blocksize = getBlocksize();
     if (size() % blocksize != 0) {
       throw std::runtime_error("blocksize is not a multiple of matrix size");
     }
-    int blocks = size() / blocksize;
+    long blocks = size() / blocksize;
 
 // this is inefficient if blocks<num_ofthreads
 #pragma omp parallel for schedule(guided)
-    for (int i = 0; i < blocks; i++) {
+    for (long i = 0; i < blocks; i++) {
       Eigen::MatrixXd block = OperatorBlock(i, i);
       D.segment(i * blocksize, blocksize) += block.diagonal();
     }
@@ -63,22 +63,22 @@ Eigen::MatrixXd MatrixFreeOperator::get_full_matrix() const {
   Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size, _size);
   if (useRow()) {
 #pragma omp parallel for schedule(guided)
-    for (int i = 0; i < _size; i++) {
+    for (long i = 0; i < _size; i++) {
       matrix.row(i) = this->OperatorRow(i);
     }
   }
 
   if (useBlock()) {
-    int blocksize = getBlocksize();
+    long blocksize = getBlocksize();
     if (size() % blocksize != 0) {
       throw std::runtime_error("blocksize is not a multiple of matrix size");
     }
-    int blocks = size() / blocksize;
+    long blocks = size() / blocksize;
 
 // this is inefficient if blocks<num_ofthreads
 #pragma omp parallel for schedule(guided)
-    for (int i_row = 0; i_row < blocks; i_row++) {
-      for (int i_col = 0; i_col < blocks; i_col++) {
+    for (long i_row = 0; i_row < blocks; i_row++) {
+      for (long i_col = 0; i_col < blocks; i_col++) {
         matrix.block(i_row * blocksize, i_col * blocksize, blocksize,
                      blocksize) += OperatorBlock(i_row, i_col);
       }
@@ -89,10 +89,10 @@ Eigen::MatrixXd MatrixFreeOperator::get_full_matrix() const {
 }
 
 // get the size
-int MatrixFreeOperator::size() const { return this->_size; }
+long MatrixFreeOperator::size() const { return this->_size; }
 
 // set the size
-void MatrixFreeOperator::set_size(int size) { this->_size = size; }
+void MatrixFreeOperator::set_size(long size) { this->_size = size; }
 
 }  // namespace xtp
 }  // namespace votca

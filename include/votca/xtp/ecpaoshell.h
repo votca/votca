@@ -72,7 +72,7 @@ class ECPAOShell {
   int getNumFunc() const { return _numFunc; }
   int getStartIndex() const { return _startIndex; }
   int getOffset() const { return _offset; }
-  int getAtomIndex() const { return _atomindex; }
+  long getAtomIndex() const { return _atomindex; }
 
   int getL() const { return _L; }
   int getLmaxElement() const { return _Lmax_element; }
@@ -80,7 +80,7 @@ class ECPAOShell {
   bool isNonLocal() const { return (_L < _Lmax_element); }
   const Eigen::Vector3d& getPos() const { return _pos; }
 
-  long int getSize() const { return _gaussians.size(); }
+  long getSize() const { return _gaussians.size(); }
 
   // iterator over pairs (decay constant; contraction coefficient)
   using ECPGaussianIterator =
@@ -104,7 +104,7 @@ class ECPAOShell {
   int _startIndex;
   int _offset;
   Eigen::Vector3d _pos;
-  int _atomindex;
+  long _atomindex;
   int _Lmax_element;  // Lmax of the Element not the shell
 
   // vector of pairs of decay constants and contraction coefficients

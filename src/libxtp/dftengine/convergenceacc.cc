@@ -247,7 +247,7 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
   }
   int numofelec = _opt.numberofelectrons;
   for (const std::vector<int>& deglevel : degeneracies) {
-    int numofpossibleelectrons = 2 * deglevel.size();
+    int numofpossibleelectrons = 2 * int(deglevel.size());
     if (numofpossibleelectrons <= numofelec) {
       for (int i : deglevel) {
         occupation(i) = 2;
