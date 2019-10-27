@@ -34,7 +34,7 @@ void KMCLifetime::Initialize(tools::Property& options) {
 
   std::string key = "options." + Identify();
   ParseCommonOptions(options);
-  _insertions = options.ifExistsReturnElseThrowRuntimeError<unsigned int>(
+  _insertions = options.ifExistsReturnElseThrowRuntimeError<unsigned>(
       key + ".numberofinsertions");
 
   _lifetimefile = options.ifExistsReturnElseThrowRuntimeError<string>(

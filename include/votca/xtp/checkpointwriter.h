@@ -58,7 +58,7 @@ class CheckpointWriter {
   }
 
   // Use this overload if T is a fundamental type
-  // int, double, unsigned int, etc, but not bool
+  // int, double, unsigned, etc, but not bool
   template <typename T>
   typename std::enable_if<std::is_fundamental<T>::value &&
                           !std::is_same<T, bool>::value>::type

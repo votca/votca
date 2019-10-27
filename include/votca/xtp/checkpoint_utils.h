@@ -62,7 +62,7 @@ struct InferDataType<long> {
 };
 
 template <>
-struct InferDataType<unsigned int> {
+struct InferDataType<unsigned> {
   static const H5::DataType* get(void) { return &H5::PredType::NATIVE_UINT; }
 };
 

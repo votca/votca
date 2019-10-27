@@ -47,7 +47,7 @@ class KMCLifetime : public KMCCalculator {
   std::string _energy_outputfile;
   double _alpha;
   unsigned _outputsteps;
-  unsigned int _insertions;
+  unsigned _insertions;
   std::string _lifetimefile;
 };
 
