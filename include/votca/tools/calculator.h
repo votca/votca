@@ -75,7 +75,7 @@ class Calculator {
    * @param nThreads number of threads running this calculator
    *
    */
-  void setnThreads(unsigned int nThreads) {
+  void setnThreads(unsigned nThreads) {
     _nThreads = nThreads;
     _maverick = (_nThreads == 1) ? true : false;
   }
@@ -95,7 +95,7 @@ class Calculator {
   void UpdateWithDefaults(Property &options, std::string package = "tools");
 
  protected:
-  unsigned int _nThreads;
+  unsigned _nThreads;
   bool _maverick;
 
   void AddDefaults(Property &p, const Property &defaults);

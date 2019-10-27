@@ -365,11 +365,10 @@ inline Eigen::Vector3d Property::as<Eigen::Vector3d>() const {
 }
 
 template <>
-inline std::vector<unsigned int> Property::as<std::vector<unsigned int> >()
-    const {
-  std::vector<unsigned int> tmp;
+inline std::vector<unsigned> Property::as<std::vector<unsigned> >() const {
+  std::vector<unsigned> tmp;
   Tokenizer tok(as<std::string>(), " ,");
-  tok.ConvertToVector<unsigned int>(tmp);
+  tok.ConvertToVector<unsigned>(tmp);
   return tmp;
 }
 
