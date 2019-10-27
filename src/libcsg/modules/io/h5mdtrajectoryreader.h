@@ -170,10 +170,10 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   // Current frame indicator.
   int idx_frame_;
-  long int max_idx_frame_;
+  long max_idx_frame_;
 
   // Number of particles. This is static among time.
-  long int N_particles_;
+  long N_particles_;
   //
   int vec_components_;
 

@@ -55,16 +55,16 @@ class PDBWriter : public TrajectoryWriter {
   std::string getResname(Topology &conf, Bead *bead);
 
   template <class Atom>
-  int getId(Atom &atom) {
+  long getId(Atom &atom) {
     return atom.getId();
   }
-  long int getId(Bead *bead) { return bead->getId(); }
+  long getId(Bead *bead) { return bead->getId(); }
 
   template <class T, class Atom>
-  int getResId(T &container, Atom &) {
+  long getResId(T &container, Atom &) {
     return container.getId();
   }
-  long int getResId(Topology &, Bead *bead) { return bead->getResnr() + 1; }
+  long getResId(Topology &, Bead *bead) { return bead->getResnr() + 1; }
 
   template <class Atom>
   void writeSymmetry(Atom &) {

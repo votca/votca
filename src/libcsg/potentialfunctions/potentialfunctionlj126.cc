@@ -35,7 +35,7 @@ double PotentialFunctionLJ126::CalculateF(const double r) const {
 }
 
 // calculate first derivative w.r.t. ith parameter
-double PotentialFunctionLJ126::CalculateDF(long int i, double r) const {
+double PotentialFunctionLJ126::CalculateDF(long i, double r) const {
 
   if (r >= _min && r <= _cut_off) {
 

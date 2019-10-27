@@ -502,8 +502,8 @@ bool PDBReader::NextFrame(Topology &top) {
       Molecule *mi = mol_map[mol_ind];
       // Grab the id of the bead associated with the atom
       // It may be the case that the atom id's and bead id's are different
-      long int bead_id1 = bead_vec.at(atm_id1 - 1)->getId();
-      long int bead_id2 = bead_vec.at(atm_id2 - 1)->getId();
+      long bead_id1 = bead_vec.at(atm_id1 - 1)->getId();
+      long bead_id2 = bead_vec.at(atm_id2 - 1)->getId();
       Interaction *ic = new IBond(bead_id1, bead_id2);
       ic->setGroup("BONDS");
       ic->setIndex(bond_indx);

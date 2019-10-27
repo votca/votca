@@ -268,7 +268,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   // Process atoms.
   for (int at_idx = 0; at_idx < N_particles_; at_idx++) {
     double x, y, z;
-    long int array_index = at_idx * vec_components_;
+    long array_index = at_idx * vec_components_;
     x = positions[array_index];
     y = positions[array_index + 1];
     z = positions[array_index + 2];

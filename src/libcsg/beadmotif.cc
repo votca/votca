@@ -80,9 +80,9 @@ bool BeadMotif::isLine_() {
   // all other vertices must be 2
   int num_vertices_degree_1 = 0;
 
-  vector<long int> vertices = reduced_graph_.getVertices();
+  vector<long> vertices = reduced_graph_.getVertices();
   for (long int& vertex : vertices) {
-    long int degree = reduced_graph_.getDegree(vertex);
+    long degree = reduced_graph_.getDegree(vertex);
     if (degree == 1) {
       ++num_vertices_degree_1;
     } else if (degree == 0) {
@@ -103,7 +103,7 @@ bool BeadMotif::isLoop_() {
   }
 
   // Ensure that the degree of every vertex is 2
-  vector<long int> vertices = graph_.getVertices();
+  vector<long> vertices = graph_.getVertices();
   for (long int& vertex : vertices) {
     if (graph_.getDegree(vertex) != 2) {
       return false;
@@ -151,7 +151,7 @@ bool BeadMotif::isFusedRing_() {
     return false;
   }
   // Ensure that the degree of every vertex is 2 or greater
-  vector<long int> vertices = graph_.getVertices();
+  vector<long> vertices = graph_.getVertices();
   for (long int& vertex : vertices) {
     if (graph_.getDegree(vertex) < 2) {
       return false;
@@ -161,7 +161,7 @@ bool BeadMotif::isFusedRing_() {
   // edge than it is a fused ring.
   junctionExist_();
 
-  for (long int junction : junctions_) {
+  for (long junction : junctions_) {
     vector<Edge> edges = reduced_graph_.getNeighEdges(junction);
     set<Edge> all_edges_explored =
         exploreBranch(reduced_graph_, junction, edges.at(0));
@@ -202,7 +202,7 @@ void BeadMotif::AddBead(BaseBead* bead) {
   type_up_to_date_ = false;
 }
 
-void BeadMotif::ConnectBeads(long int bead1_id, long int bead2_id) {
+void BeadMotif::ConnectBeads(long bead1_id, long bead2_id) {
   BeadStructure<BaseBead>::ConnectBeads(bead1_id, bead2_id);
   junctionsUpToDate_ = false;
   type_up_to_date_ = false;

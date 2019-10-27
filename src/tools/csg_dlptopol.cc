@@ -243,7 +243,7 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
   stringstream sout;
 
   int n_entries = 0;
-  long int nb = -1;
+  long nb = -1;
 
   for (Interaction *ic : cg.Interactions()) {
     if (nb != ic->BeadCount()) {

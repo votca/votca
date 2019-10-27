@@ -102,7 +102,7 @@ class CsgMapApp : public CsgApplication {
         Molecule *mi = hybtol.CreateMolecule(molecule->getName());
         for (int i = 0; i < molecule->BeadCount(); i++) {
           // copy atomistic beads of molecule
-          long int beadid = molecule->getBead(i)->getId();
+          long beadid = molecule->getBead(i)->getId();
 
           Bead *bi = molecule->getBead(i);
           if (!hybtol.BeadTypeExist(bi->getType())) {

@@ -33,14 +33,14 @@ using namespace votca::tools;
 
 struct PotentialInfo {
 
-  PotentialInfo(long int index, bool bonded_, long int vec_pos_,
+  PotentialInfo(long index, bool bonded_, long vec_pos_,
                 std::string &param_in_ext_, Property *options,
                 bool gentable = false);
 
-  long int potentialIndex;
+  long potentialIndex;
   bool bonded;
   PotentialFunction *ucg;
-  long int vec_pos;
+  long vec_pos;
   std::pair<int, int> beadTypes;
 
   std::string potentialName;
@@ -87,7 +87,7 @@ class CsgREupdate : public CsgApplication {
   using PotentialContainer = std::vector<PotentialInfo *>;
   PotentialContainer _potentials;
 
-  long int _nlamda;
+  long _nlamda;
   Eigen::VectorXd _lamda;
   // _HS is a symmetric matrix
   Eigen::MatrixXd _HS;
@@ -137,7 +137,7 @@ class CsgREupdateWorker : public CsgApplication::Worker {
   using PotentialContainer = std::vector<PotentialInfo *>;
   PotentialContainer _potentials;
 
-  long int _nlamda;
+  long _nlamda;
   Eigen::VectorXd _lamda;
   Eigen::MatrixXd _HS;
   Eigen::VectorXd _DS;

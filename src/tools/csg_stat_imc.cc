@@ -172,7 +172,7 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
     group = "none";
   }
 
-  long int index = _interactions.size();
+  long index = _interactions.size();
   auto success = _interactions.insert(std::make_pair(
       name, std::unique_ptr<interaction_t>(new interaction_t())));
   interaction_t *i = success.first->second.get();
@@ -614,7 +614,7 @@ void Imc::WriteIMCData(const string &suffix) {
     string grp_name = group.first;
 
     // number of total bins for all interactions in group is matrix dimension
-    long int n = grp->_corr.rows();
+    long n = grp->_corr.rows();
 
     // build full set of equations + copy some data to make
     // code better to read
@@ -730,7 +730,7 @@ void Imc::WriteIMCBlock(const string &suffix) {
     list<interaction_t *>::iterator iter;
 
     // number of total bins for all interactions in group is matrix dimension
-    long int n = grp->_corr.rows();
+    long n = grp->_corr.rows();
 
     // build full set of equations + copy some data to make code better to read
     group_matrix gmc(grp->_corr);

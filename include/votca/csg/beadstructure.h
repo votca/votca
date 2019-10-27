@@ -81,7 +81,7 @@ class BeadStructure {
   /**
    * \brief Get the bead with the specified id
    **/
-  T *getBead(long int id);
+  T *getBead(long id);
 
   /**
    * \brief Create a connection between two beads in the structure
@@ -89,7 +89,7 @@ class BeadStructure {
    * A bead cannot be connected to itself. It also may not be connected to a
    * bead that has not yet been added to the structure.
    **/
-  void ConnectBeads(long int bead1_id, long int bead2_id);
+  void ConnectBeads(long bead1_id, long bead2_id);
 
   /**
    * \brief Return a vector of all the beads neighboring the index
@@ -109,7 +109,7 @@ class BeadStructure {
    **/
   bool isStructureEquivalent(BeadStructure<T> &beadstructure);
 
-  bool BeadExist(long int bead_id) const { return beads_.count(bead_id); }
+  bool BeadExist(long bead_id) const { return beads_.count(bead_id); }
 
  protected:
   void InitializeGraph_();
@@ -198,7 +198,7 @@ void BeadStructure<T>::AddBead(T *bead) {
 }
 
 template <class T>
-void BeadStructure<T>::ConnectBeads(long int bead1_id, long int bead2_id) {
+void BeadStructure<T>::ConnectBeads(long bead1_id, long bead2_id) {
   if (!(beads_.count(bead1_id)) || !(beads_.count(bead2_id))) {
     std::string err =
         "Cannot connect beads in bead structure that do not exist";
@@ -228,7 +228,7 @@ bool BeadStructure<T>::isSingleStructure() {
 
   InitializeGraph_();
   if (single_structureUpToDate_ == false) {
-    std::vector<long int> vertices = graph_.getVertices();
+    std::vector<long> vertices = graph_.getVertices();
     if (vertices.size() == 0) {
       single_structure_ = false;
       return single_structure_;
@@ -270,16 +270,16 @@ std::vector<T *> BeadStructure<T>::getNeighBeads(int index) {
   if (!graphUpToDate) {
     InitializeGraph_();
   }
-  std::vector<long int> neighbor_ids = graph_.getNeighVertices(index);
+  std::vector<long> neighbor_ids = graph_.getNeighVertices(index);
   std::vector<T *> neighbeads;
-  for (long int &node_id : neighbor_ids) {
+  for (long &node_id : neighbor_ids) {
     neighbeads.push_back(beads_[node_id]);
   }
   return neighbeads;
 }
 
 template <class T>
-T *BeadStructure<T>::getBead(long int index) {
+T *BeadStructure<T>::getBead(long index) {
   assert(beads_.count(index));
   return beads_[index];
 }

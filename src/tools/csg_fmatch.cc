@@ -164,8 +164,8 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *) {
   }
 }
 
-CGForceMatching::SplineInfo::SplineInfo(long int index, bool bonded_,
-                                        long int matr_pos_,
+CGForceMatching::SplineInfo::SplineInfo(long index, bool bonded_,
+                                        long matr_pos_,
                                         votca::tools::Property *options) {
   // initialize standard data
   splineIndex = index;
@@ -483,8 +483,8 @@ void CGForceMatching::FmatchAccumulateData() {
   }
 
   for (SplineInfo *sinfo : _splines) {
-    long int mp = sinfo->matr_pos;
-    long int ngp = sinfo->num_gridpoints;
+    long mp = sinfo->matr_pos;
+    long ngp = sinfo->num_gridpoints;
 
     // _x contains results for all splines. Here we cut the results for one
     // spline
@@ -536,8 +536,8 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix) {
   // For constrained least squares - for Eigen::Matrix3d _B_constr
 
   Matrix.setZero();
-  long int line_tmp = 0;
-  long int col_tmp = 0;
+  long line_tmp = 0;
+  long col_tmp = 0;
 
   for (SplineInfo *sinfo : _splines) {
 
@@ -550,7 +550,7 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix) {
       line_tmp += 1;
     }
     // update counters
-    long int sfnum = sinfo->num_splinefun;
+    long sfnum = sinfo->num_splinefun;
     line_tmp += sfnum + 1;
     col_tmp += 2 * (sfnum + 1);
   }
@@ -569,18 +569,18 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
 
   for (Interaction *inter : interList) {
 
-    long int beads_in_int = inter->BeadCount();  // 2 for bonds, 3 for angles, 4
-                                                 // for dihedrals
+    long beads_in_int = inter->BeadCount();  // 2 for bonds, 3 for angles, 4
+                                             // for dihedrals
 
     votca::tools::CubicSpline &SP = sinfo->Spline;
 
-    long int mpos = sinfo->matr_pos;
+    long mpos = sinfo->matr_pos;
 
     double var = inter->EvaluateVar(*conf);  // value of bond, angle,
                                              // or dihedral
 
     for (int loop = 0; loop < beads_in_int; loop++) {
-      long int ii = inter->getBeadId(loop);
+      long ii = inter->getBeadId(loop);
       Eigen::Vector3d gradient = inter->Grad(*conf, loop);
 
       SP.AddToFitMatrix(_A, var,
@@ -639,15 +639,15 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
   }
 
   for (BeadPair *pair : *nb) {
-    long int iatom = pair->first()->getId();
-    long int jatom = pair->second()->getId();
+    long iatom = pair->first()->getId();
+    long jatom = pair->second()->getId();
     double var = pair->dist();
     Eigen::Vector3d gradient = pair->r();
     gradient.normalize();
 
     votca::tools::CubicSpline &SP = sinfo->Spline;
 
-    long int mpos = sinfo->matr_pos;
+    long mpos = sinfo->matr_pos;
 
     // add iatom
     SP.AddToFitMatrix(_A, var,
@@ -745,9 +745,9 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
   }
 
   for (BeadTriple *triple : *nb) {
-    long int iatom = triple->bead1()->getId();
-    long int jatom = triple->bead2()->getId();
-    long int katom = triple->bead3()->getId();
+    long iatom = triple->bead1()->getId();
+    long jatom = triple->bead2()->getId();
+    long katom = triple->bead3()->getId();
     double distij = triple->dist12();
     double distik = triple->dist13();
     Eigen::Vector3d rij = triple->r12();
@@ -761,7 +761,7 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
 
     votca::tools::CubicSpline &SP = sinfo->Spline;
 
-    long int mpos = sinfo->matr_pos;
+    long mpos = sinfo->matr_pos;
 
     double var =
         std::acos(rij.dot(rik) / sqrt(rij.squaredNorm() * rik.squaredNorm()));

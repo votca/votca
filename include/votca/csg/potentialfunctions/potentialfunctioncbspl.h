@@ -33,12 +33,12 @@ class PotentialFunctionCBSPL : public PotentialFunction {
   // calculate function value for given r
   double CalculateF(const double r) const override;
   // calculate first derivative w.r.t. ith parameter
-  double CalculateDF(const long int i, const double r) const override;
+  double CalculateDF(const long i, const double r) const override;
   // calculate second derivative w.r.t. ith parameter
-  double CalculateD2F(const long int i, const long int j,
+  double CalculateD2F(const long i, const long j,
                       const double r) const override;
 
-  long int getOptParamSize() const override;
+  long getOptParamSize() const override;
 
   void setParam(std::string filename) override;
 
@@ -48,9 +48,9 @@ class PotentialFunctionCBSPL : public PotentialFunction {
 
   void SavePotTab(const std::string &filename, const double step,
                   const double rmin, const double rcut) override;
-  void setOptParam(const long int i, const double val) override;
+  void setOptParam(const long i, const double val) override;
 
-  double getOptParam(const long int i) const override;
+  double getOptParam(const long i) const override;
 
   void extrapolExclParam();
 
@@ -58,12 +58,12 @@ class PotentialFunctionCBSPL : public PotentialFunction {
   // exclude these many first coefficients from optimization
   // since the region relevant to these coefficients is not sampled
   // the value of _nexcl is determined from rmin
-  long int _nexcl;
+  long _nexcl;
   // fix these many coeff near the cut-off to zero to ensure
   // zero potential and force values near cut-off
   int _ncutcoeff;
 
-  long int _nbreak;
+  long _nbreak;
   double _dr;
   Eigen::VectorXd _rbreak;
 

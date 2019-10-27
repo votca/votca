@@ -62,13 +62,11 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
 
  private:
   template <class T>
-  int getContainerSize(T &container) {
+  long getContainerSize(T &container) {
     return container.size();
   }
 
-  long int getContainerSize(Topology &container) {
-    return container.BeadCount();
-  }
+  long getContainerSize(Topology &container) { return container.BeadCount(); }
 
   template <bool topology, class T>
   void AddAtom(T &container, std::string name, int id,

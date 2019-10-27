@@ -40,7 +40,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, int nlam,
    * extrapolated from first statistically significant knot values near rmin
    */
 
-  long int nknots;
+  long nknots;
 
   nknots = _lam.size();
 
@@ -104,7 +104,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, int nlam,
   _M /= 6.0;
 }
 
-long int PotentialFunctionCBSPL::getOptParamSize() const {
+long PotentialFunctionCBSPL::getOptParamSize() const {
 
   return _lam.size() - _nexcl - _ncutcoeff;
 }
@@ -147,7 +147,7 @@ void PotentialFunctionCBSPL::SaveParam(const string &filename) {
     param.set(i, _rbreak(i), _lam(i), 'o');
   }
 
-  for (long int i = _nexcl + 3; i < _lam.size(); i++) {
+  for (long i = _nexcl + 3; i < _lam.size(); i++) {
     param.set(i, _rbreak(i), _lam(i), 'i');
   }
 
@@ -194,12 +194,12 @@ void PotentialFunctionCBSPL::extrapolExclParam() {
   }
 }
 
-void PotentialFunctionCBSPL::setOptParam(long int i, double val) {
+void PotentialFunctionCBSPL::setOptParam(long i, double val) {
 
   _lam(i + _nexcl) = val;
 }
 
-double PotentialFunctionCBSPL::getOptParam(long int i) const {
+double PotentialFunctionCBSPL::getOptParam(long i) const {
 
   return _lam(i + _nexcl);
 }
@@ -209,7 +209,7 @@ double PotentialFunctionCBSPL::CalculateF(double r) const {
   if (r <= _cut_off) {
 
     double u = 0.0;
-    long int indx = min((long int)(r / _dr), _nbreak - 2);
+    long indx = min((long int)(r / _dr), _nbreak - 2);
     double rk = (double)indx * _dr;
     double t = (r - rk) / _dr;
 
@@ -228,14 +228,14 @@ double PotentialFunctionCBSPL::CalculateF(double r) const {
 }
 
 // calculate first derivative w.r.t. ith parameter
-double PotentialFunctionCBSPL::CalculateDF(long int i, double r) const {
+double PotentialFunctionCBSPL::CalculateDF(long i, double r) const {
 
   // since first _nexcl parameters are not optimized for stability reasons
 
   if (r <= _cut_off) {
 
-    long int i_opt = i + _nexcl;
-    long int indx;
+    long i_opt = i + _nexcl;
+    long indx;
     double rk;
 
     indx = min((long int)(r / _dr), _nbreak - 2);

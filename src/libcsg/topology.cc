@@ -85,11 +85,11 @@ void Topology::Cleanup() {
 }
 
 /// \todo implement checking, only used in xml topology reader
-void Topology::CreateMoleculesByRange(string name, long int first,
-                                      long int nbeads, long int nmolecules) {
+void Topology::CreateMoleculesByRange(string name, long first, long nbeads,
+                                      long nmolecules) {
   Molecule *mol = CreateMolecule(name);
-  long int beadcount = 0;
-  long int res_offset = 0;
+  long beadcount = 0;
+  long res_offset = 0;
 
   for (auto &_bead : _beads) {
     // xml numbering starts with 1
@@ -147,7 +147,7 @@ void Topology::CreateOneBigMolecule(string name) {
 
 void Topology::Add(Topology *top) {
 
-  long int res0 = ResidueCount();
+  long res0 = ResidueCount();
 
   for (auto bi : top->_beads) {
     string type = bi->getType();
@@ -193,13 +193,13 @@ void Topology::CopyTopologyData(Topology *top) {
   for (auto &_molecule : top->_molecules) {
     Molecule *mi = CreateMolecule(_molecule->getName());
     for (int i = 0; i < _molecule->BeadCount(); i++) {
-      long int beadid = _molecule->getBead(i)->getId();
+      long beadid = _molecule->getBead(i)->getId();
       mi->AddBead(_beads[beadid], _molecule->getBeadName(i));
     }
   }
 }
 
-long int Topology::getBeadTypeId(string type) const {
+long Topology::getBeadTypeId(string type) const {
   assert(beadtypes_.count(type));
   return beadtypes_.at(type);
 }
@@ -236,10 +236,10 @@ void Topology::SetBeadTypeMass(string name, double value) {
 }
 
 void Topology::CheckMoleculeNaming(void) {
-  map<string, long int> nbeads;
+  map<string, long> nbeads;
 
   for (Molecule *mol : _molecules) {
-    map<string, long int>::iterator entry = nbeads.find(mol->getName());
+    map<string, long>::iterator entry = nbeads.find(mol->getName());
     if (entry != nbeads.end()) {
       if (entry->second != mol->BeadCount()) {
         throw runtime_error(
@@ -255,12 +255,12 @@ void Topology::CheckMoleculeNaming(void) {
 }
 
 void Topology::AddBondedInteraction(Interaction *ic) {
-  map<string, long int>::iterator iter;
+  map<string, long>::iterator iter;
   iter = _interaction_groups.find(ic->getGroup());
   if (iter != _interaction_groups.end()) {
     ic->setGroupId((*iter).second);
   } else {
-    long int i = _interaction_groups.size();
+    long i = _interaction_groups.size();
     _interaction_groups[ic->getGroup()] = i;
     ic->setGroupId(i);
   }
@@ -310,7 +310,7 @@ Eigen::Vector3d Topology::BCShortestConnection(
   return _bc->BCShortestConnection(r_i, r_j);
 }
 
-Eigen::Vector3d Topology::getDist(long int bead1, long int bead2) const {
+Eigen::Vector3d Topology::getDist(long bead1, long bead2) const {
   return BCShortestConnection(getBead(bead1)->getPos(),
                               getBead(bead2)->getPos());
 }

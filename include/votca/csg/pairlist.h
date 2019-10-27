@@ -46,7 +46,7 @@ class PairList {
   pair_type *back() { return _pairs.back(); }
   bool empty() const { return _pairs.empty(); }
 
-  int size() const { return _pairs.size(); }
+  long size() const { return long(_pairs.size()); }
 
   void Cleanup();
 

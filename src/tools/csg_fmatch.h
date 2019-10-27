@@ -65,16 +65,16 @@ class CGForceMatching : public CsgApplication {
   /// parameters
   struct SplineInfo {
     /// \brief constructor
-    SplineInfo(long int index, bool bonded_, long int matr_pos_,
+    SplineInfo(long index, bool bonded_, long matr_pos_,
                votca::tools::Property *options);
     /// \brief number of spline functions
-    long int num_splinefun;
+    long num_splinefun;
     /// \brief number of spline grid points
-    long int num_gridpoints;
+    long num_gridpoints;
     /// \brief number of grid points for output
     int num_outgrid;
     /// \brief interaction index
-    long int splineIndex;
+    long splineIndex;
     /// \brief true for bonded interactions, false for non-bonded
     bool bonded;
     /// \brief true if tabulated forces are periodic (e.g. for dihedral
@@ -90,7 +90,7 @@ class CGForceMatching : public CsgApplication {
     votca::tools::CubicSpline Spline;
     /// \brief position in the _A matrix (first coloumn which is occupied with
     /// this particular spline)
-    long int matr_pos;
+    long matr_pos;
     /// \brief dx for output. Calculated in the code
     double dx_out;
     /// \brief only for non-bonded interactions (seems like it is not used?)
@@ -156,7 +156,7 @@ class CGForceMatching : public CsgApplication {
   /// \brief Counter for trajectory frames
   int _frame_counter;
   /// \brief Number of CG beads
-  long int _nbeads;
+  long _nbeads;
 
   /// \brief accuracy for evaluating the difference in bead positions
   double _dist;
@@ -166,14 +166,14 @@ class CGForceMatching : public CsgApplication {
   bool _constr_least_sq;
   /// \brief used in EvalConf to distinguish constrained and simple least
   /// squares
-  long int _least_sq_offset;
+  long _least_sq_offset;
   /// \brief Number of frames used in one block for block averaging
   int _nframes;
   /// \brief Current number of blocks
   int _nblocks;
 
   /// \brief Counters for lines and columns in _B_constr
-  long int _line_cntr, _col_cntr;
+  long _line_cntr, _col_cntr;
 
   bool _has_existing_forces;
 

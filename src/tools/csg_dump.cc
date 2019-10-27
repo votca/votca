@@ -80,7 +80,7 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *) {
       cout << "molecule: " << mol->getId() + 1 << " " << mol->getName()
            << " beads: " << mol->BeadCount() << endl;
       for (int i = 0; i < mol->BeadCount(); ++i) {
-        long int resnr = mol->getBead(i)->getResnr();
+        long resnr = mol->getBead(i)->getResnr();
 
         cout << mol->getBeadId(i) << " Name " << mol->getBeadName(i) << " Type "
              << mol->getBead(i)->getType() << " Mass "

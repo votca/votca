@@ -187,7 +187,7 @@ void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
         "identical");
   }
   // Create molecule in topology. Replicate data.
-  long int resnr = _top->ResidueCount();
+  long resnr = _top->ResidueCount();
   if (!xmlResidues.empty()) {
     if (xmlResidues.front() != resnr + 1 && xmlResidues.front() != -1) {
       throw std::runtime_error(

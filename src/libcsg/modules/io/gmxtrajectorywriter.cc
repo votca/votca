@@ -31,7 +31,7 @@ void GMXTrajectoryWriter::Close() { close_trx(_file); }
 
 void GMXTrajectoryWriter::Write(Topology *conf) {
   static int step = 0;
-  long int N = conf->BeadCount();
+  long N = conf->BeadCount();
   t_trxframe frame;
   rvec *x = new rvec[N];
   rvec *v = nullptr;

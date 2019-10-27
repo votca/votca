@@ -121,7 +121,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   map<string, string> had_iagroup;
 
   for (tools::Property *prop : _bonded) {
-    std::list<long int> atoms;
+    std::list<long> atoms;
     string iagroup = prop->get("name").as<string>();
 
     if (had_iagroup[iagroup] == "yes") {
@@ -133,7 +133,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
     tools::Tokenizer tok(prop->get("beads").value(), " \n\t");
     for (tools::Tokenizer::iterator atom = tok.begin(); atom != tok.end();
          ++atom) {
-      long int i = minfo->getBeadIdByName(*atom);
+      long i = minfo->getBeadIdByName(*atom);
       if (i < 0) {
         throw runtime_error(
             string("error while trying to create bonded interaction, "
@@ -195,7 +195,7 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
   Map *map = new Map(in, out);
   for (auto &bead : _beads) {
 
-    long int iout = out.getBeadByName(bead->_name);
+    long iout = out.getBeadByName(bead->_name);
     if (iout < 0) {
       throw runtime_error(string("mapping error: reference molecule " +
                                  bead->_name + " does not exist"));

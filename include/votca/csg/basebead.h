@@ -46,10 +46,10 @@ class BaseBead {
   virtual ~BaseBead() = default;
 
   /// Gets the id of the bead
-  long int getId() const { return id_.getId(); }
+  long getId() const { return id_.getId(); }
 
   /// Sets the id of the bead
-  void setId(long int id) { id_.setId(id); }
+  void setId(long id) { id_.setId(id); }
 
   /// Gets the name of the bead
   std::string getName() const { return name_.getName(); }
@@ -127,7 +127,7 @@ class BaseBead {
   TopologyItem topology_item_;
   MoleculeItem molecule_item_;
 
-  TOOLS::Identity<long int> id_;
+  TOOLS::Identity<long> id_;
   TOOLS::Name name_;
   TOOLS::Name type_;
 
