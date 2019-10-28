@@ -73,7 +73,7 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
     }
 
     // Number of beads in the molecule
-    long int N = mol->BeadCount();
+    long N = mol->BeadCount();
 
     // sqared tensor of gyration for current snapshot
     double r_gyr_sq = 0;
