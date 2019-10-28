@@ -23,6 +23,7 @@
 
 using namespace votca::tools;
 using namespace votca::xtp;
+using namespace votca;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(segment_test)
@@ -48,7 +49,7 @@ BOOST_AUTO_TEST_CASE(getElementtest) {
 
   BOOST_CHECK_EQUAL(unique_ele.size(), unique_ele_ref.size());
 
-  for (Index i = 0; i < unique_ele.size(); i++) {
+  for (Index i = 0; i < (Index)unique_ele.size(); i++) {
     BOOST_CHECK_EQUAL(unique_ele[i], unique_ele_ref[i]);
   }
 }

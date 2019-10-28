@@ -20,6 +20,8 @@
 #include <iostream>
 #include <votca/xtp/eigen.h>
 
+using namespace votca;
+
 BOOST_AUTO_TEST_SUITE(eigen_test)
 
 BOOST_AUTO_TEST_CASE(symmetric_test) {

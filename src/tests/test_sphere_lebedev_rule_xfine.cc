@@ -21,6 +21,7 @@
 #include <fstream>
 #include <votca/xtp/sphere_lebedev_rule.h>
 using namespace votca::xtp;
+using namespace votca;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(sphere_lebedev_rule_test_xfine)

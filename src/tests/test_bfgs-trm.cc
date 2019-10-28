@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(adiis_test) {
   optimizer.setTrustRadius(0.01);
   optimizer.setLog(&log);
   // Starting point: equal weights on all matrices
-  Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / size);
+  Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / (double)size);
   optimizer.Optimize(coeffs);
   bool success = optimizer.Success();
   coeffs = optimizer.getParameters().cwiseAbs2();

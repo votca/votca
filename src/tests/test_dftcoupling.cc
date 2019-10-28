@@ -20,6 +20,7 @@
 #include <votca/xtp/dftcoupling.h>
 
 using namespace votca::xtp;
+using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(dftcoupling_test)
 
@@ -422,13 +423,13 @@ BOOST_AUTO_TEST_CASE(coupling) {
   votca::tools::Property output;
   dftcoup.Addoutput(output, A, B);
 
-  std::map<int, std::map<int, double> > hole_ref;
+  std::map<Index, std::map<Index, double> > hole_ref;
 
   hole_ref[3][3] = -1.031779;
   hole_ref[3][4] = -8.652046;
   hole_ref[4][3] = 3.806175;
   hole_ref[4][4] = -5.745457;
-  std::map<int, std::map<int, double> > electron_ref;
+  std::map<Index, std::map<Index, double> > electron_ref;
   electron_ref[5][5] = 3.080669;
   electron_ref[5][6] = 2.445706;
   electron_ref[6][5] = -1.622705;

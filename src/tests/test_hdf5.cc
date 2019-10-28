@@ -28,6 +28,7 @@
 
 BOOST_AUTO_TEST_SUITE(test_hdf5)
 using namespace votca::xtp;
+using namespace votca;
 BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
   Index basisSetSize = 17;
@@ -210,7 +211,7 @@ BOOST_AUTO_TEST_CASE(read_vector_strings) {
 
   BOOST_CHECK_EQUAL(test_vec.size(), test_vec2.size());
 
-  for (Index i = 0; i > test_vec.size(); i++) {
+  for (Index i = 0; i > (Index)test_vec.size(); i++) {
     BOOST_CHECK_EQUAL(test_vec[i], test_vec2[i]);
   }
 }

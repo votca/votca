@@ -23,6 +23,7 @@
 #include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;
+using namespace votca;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(espfit_test)
@@ -163,7 +164,7 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   }
   BOOST_CHECK_EQUAL(check_esp_num, 1);
 
-  std::vector<std::pair<int, Index> > pairconstraint;
+  std::vector<std::pair<Index, Index> > pairconstraint;
   std::pair<int, Index> p1;
   p1.first = 1;
   p1.second = 2;

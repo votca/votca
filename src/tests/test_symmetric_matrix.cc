@@ -21,6 +21,7 @@
 #include <votca/xtp/symmetric_matrix.h>
 
 using namespace votca::xtp;
+using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(symmetric_matrix_test)
 

@@ -20,6 +20,7 @@
 #include <votca/xtp/classicalsegment.h>
 
 using namespace votca::xtp;
+using namespace votca;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(polarsegment_test)

@@ -23,6 +23,7 @@
 #include <votca/xtp/orbitals.h>
 
 using namespace votca::xtp;
+using namespace votca;
 using std::endl;
 BOOST_AUTO_TEST_SUITE(orbitals_test)
 BOOST_AUTO_TEST_CASE(readxyztest) {

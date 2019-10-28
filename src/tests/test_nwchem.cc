@@ -20,6 +20,7 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/qmpackagefactory.h>
 using namespace votca::xtp;
+using namespace votca;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(nwchem_test)

@@ -25,6 +25,7 @@
 #include <votca/xtp/threecenter.h>
 
 using namespace votca::xtp;
+using namespace votca;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(rpa_test)

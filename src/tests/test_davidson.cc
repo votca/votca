@@ -11,6 +11,7 @@
 #include <votca/xtp/matrixfreeoperator.h>
 
 using namespace votca::xtp;
+using namespace votca;
 using namespace std;
 
 Eigen::MatrixXd symm_matrix(Index N, double eps) {
@@ -299,7 +300,7 @@ Eigen::ArrayXi index_eval(Eigen::VectorXd ev, Index neigen) {
   // get only positives
   for (Index i = 0; i < nev; i++) {
     if (ev(i) > 0) {
-      idx(nstored) = Index(i);
+      idx(nstored) = int(i);
       nstored++;
     }
   }

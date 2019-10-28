@@ -20,6 +20,7 @@
 #include <votca/xtp/bsecoupling.h>
 
 using namespace votca::xtp;
+using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(bsecoupling_test)
 

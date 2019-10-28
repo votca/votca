@@ -22,6 +22,7 @@
 #include <votca/xtp/segmentmapper.h>
 
 using namespace votca::xtp;
+using namespace votca;
 BOOST_AUTO_TEST_SUITE(segmentmapper_test)
 
 BOOST_AUTO_TEST_CASE(mapping_test) {
