@@ -43,11 +43,11 @@ namespace csg {
  * Locally Global Variables
  ******************************************************************************/
 
-typedef pair<int, BeadMotif> IdMotif;
+typedef std::pair<Index, BeadMotif> IdMotif;
 
-const int unassigned_id = -1;
+const Index unassigned_id = -1;
 
-static int motif_index = 0;
+static Index motif_index = 0;
 
 /******************************************************************************
  * Internal Private Functions
@@ -57,7 +57,7 @@ static int motif_index = 0;
  * \brief Determines which edges are connected to the junction and stored them
  * in the remove_edges map.
  **/
-void removeAllEdgesConnectedToVertex_(long junction, Graph& full_graph,
+void removeAllEdgesConnectedToVertex_(Index junction, Graph& full_graph,
                                       unordered_map<Edge, bool>& remove_edges) {
 
   vector<Edge> neigh_edges = full_graph.getNeighEdges(junction);
@@ -71,15 +71,15 @@ void removeAllEdgesConnectedToVertex_(long junction, Graph& full_graph,
  * starting with a contracted edge from the reduced graph. So it must first
  * be expanded and then it can be explored.
  **/
-int determineEdgesOfBranchesWithSingleConnectionToJunction_(
-    long junction, ReducedGraph& reduced_graph,
+Index determineEdgesOfBranchesWithSingleConnectionToJunction_(
+    Index junction, ReducedGraph& reduced_graph,
     unordered_map<Edge, bool>& remove_edges,
-    unordered_map<int, vector<Edge>>
+    unordered_map<Index, vector<Edge>>
         contracted_branch_edges_connected_to_junction) {
 
-  int number_branches_with_more_than_one_bond = 0;
+  Index number_branches_with_more_than_one_bond = 0;
   // Cycle the branches
-  for (pair<int, vector<Edge>> branch_and_contracted_edges :
+  for (pair<Index, vector<Edge>> branch_and_contracted_edges :
        contracted_branch_edges_connected_to_junction) {
     bool edge_is_single_connection_to_junction = false;
     if (branch_and_contracted_edges.second.size() == 1) {
@@ -120,17 +120,17 @@ void calculateEdgesToRemove_(Graph& full_graph,
 
   ReducedGraph reduced_graph = reduceGraph(full_graph);
 
-  vector<long> junctions = reduced_graph.getJunctions();
+  vector<Index> junctions = reduced_graph.getJunctions();
 
-  for (long int& junction : junctions) {
+  for (Index& junction : junctions) {
     vector<Edge> neighboring_edges = reduced_graph.getNeighEdges(junction);
     unordered_map<Edge, bool> contracted_edge_explored;
     for (Edge& edge : neighboring_edges) {
       contracted_edge_explored[edge] = false;
     }
 
-    int branch_index = 0;
-    unordered_map<int, vector<Edge>>
+    Index branch_index = 0;
+    unordered_map<Index, vector<Edge>>
         contracted_branch_edges_connected_to_junction;
     for (Edge& branch_starting_edge : neighboring_edges) {
       if (contracted_edge_explored[branch_starting_edge] == false) {
@@ -158,7 +158,7 @@ void calculateEdgesToRemove_(Graph& full_graph,
       // branch We can use the full graph to decouple the edges we can begin by
       // snipping branches with only a single edge connecting them to starting
       // nodes.
-      int number_branches_with_more_than_one_bond =
+      Index number_branches_with_more_than_one_bond =
           determineEdgesOfBranchesWithSingleConnectionToJunction_(
               junction, reduced_graph, remove_edges,
               contracted_branch_edges_connected_to_junction);
@@ -170,7 +170,7 @@ void calculateEdgesToRemove_(Graph& full_graph,
         removeAllEdgesConnectedToVertex_(junction, full_graph, remove_edges);
       }
     }
-  }  // for(int & junction : junctions)
+  }  // for(Index & junction : junctions)
 }
 
 /******************************************************************************
@@ -256,7 +256,7 @@ class MotifDeconstructor_ {
   bool ConnectionsCompleted() const { return bead_edges_removed_.size() == 0; }
 
   /// Returns a map of all the simple motifs with their ids
-  unordered_map<int, BeadMotif> getSimpleMotifs();
+  unordered_map<Index, BeadMotif> getSimpleMotifs();
 
  private:
   list<IdMotif> motifs_simple_;
@@ -269,8 +269,8 @@ class MotifDeconstructor_ {
   void determineMotifConnections_(BeadMotifConnector& connector);
 };
 
-unordered_map<int, BeadMotif> MotifDeconstructor_::getSimpleMotifs() {
-  unordered_map<int, BeadMotif> simple_motifs;
+unordered_map<Index, BeadMotif> MotifDeconstructor_::getSimpleMotifs() {
+  unordered_map<Index, BeadMotif> simple_motifs;
   for (IdMotif& id_and_motif : motifs_simple_) {
     simple_motifs.insert(id_and_motif);
   }
@@ -309,10 +309,10 @@ void MotifDeconstructor_::deconstructComplexSingleStructures(
 
     calculateEdgesToRemove_(full_graph, remove_edges);
 
-    vector<long> all_vertices = full_graph.getVertices();
+    vector<Index> all_vertices = full_graph.getVertices();
 
     BeadStructure<BaseBead> new_beadstructure;
-    for (long int& vertex : all_vertices) {
+    for (Index& vertex : all_vertices) {
       new_beadstructure.AddBead(id_and_bead_motif.second.getBead(vertex));
     }
 
@@ -344,8 +344,8 @@ void MotifDeconstructor_::determineMotifConnections_(
   list<Edge>::iterator edge_iterator = bead_edges_removed_.begin();
   while (edge_iterator != bead_edges_removed_.end()) {
     assert(edge_iterator->loop() == false);
-    long bead_id1 = edge_iterator->getEndPoint1();
-    long bead_id2 = edge_iterator->getEndPoint2();
+    Index bead_id1 = edge_iterator->getEndPoint1();
+    Index bead_id2 = edge_iterator->getEndPoint2();
     // Cycle the motifs
     list<IdMotif>::iterator motif_bead1_iterator;
     for (motif_bead1_iterator = motifs_simple_.begin();
@@ -383,12 +383,12 @@ void MotifDeconstructor_::sortMotifsAndAssignIdsToSimpleMotifs_(
   list<BeadMotif>::iterator bead_motif_iter = bead_motifs.begin();
   while (bead_motif_iter != bead_motifs.end()) {
 
-    int new_motif_id = unassigned_id;
+    Index new_motif_id = unassigned_id;
     if (bead_motif_iter->isMotifSimple()) {
       new_motif_id = motif_index;
       ++motif_index;
     }
-    pair<int, BeadMotif> id_and_motif(new_motif_id, move(*bead_motif_iter));
+    pair<Index, BeadMotif> id_and_motif(new_motif_id, move(*bead_motif_iter));
     AddMotif(id_and_motif);
     bead_motif_iter = bead_motifs.erase(bead_motif_iter);
   }
@@ -398,7 +398,7 @@ void MotifDeconstructor_::sortMotifsAndAssignIdsToSimpleMotifs_(
  * Public Functions
  ******************************************************************************/
 
-pair<unordered_map<int, BeadMotif>, BeadMotifConnector> breakIntoSimpleMotifs(
+pair<unordered_map<Index, BeadMotif>, BeadMotifConnector> breakIntoSimpleMotifs(
     BeadMotif bead_motif) {
 
   MotifDeconstructor_ motif_manipulator;
@@ -411,11 +411,11 @@ pair<unordered_map<int, BeadMotif>, BeadMotifConnector> breakIntoSimpleMotifs(
   } while (motif_manipulator.CountComplexMotifs());
 
   assert(motif_manipulator.ConnectionsCompleted());
-  unordered_map<int, BeadMotif> motifs_simple_map =
+  unordered_map<Index, BeadMotif> motifs_simple_map =
       motif_manipulator.getSimpleMotifs();
   auto simple_motifs_and_connector =
-      pair<unordered_map<int, BeadMotif>, BeadMotifConnector>(motifs_simple_map,
-                                                              connector);
+      pair<unordered_map<Index, BeadMotif>, BeadMotifConnector>(
+          motifs_simple_map, connector);
   return simple_motifs_and_connector;
 }
 

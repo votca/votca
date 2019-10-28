@@ -56,11 +56,11 @@ class DLPOLYTopologyReader : public TopologyReader {
   /// function to read the next line containing only a given keyword and an
   /// integer value after it (only skipping comments!)
   std::string _NextKeyInt(std::ifstream &fs, const char *wsp,
-                          const std::string &word, long &ival);
+                          const std::string &word, Index &ival);
   /// function to check if the given (last read) directive line starts with a
   /// given keyword and has an integer value at the end
   bool _isKeyInt(const std::string &line, const char *wsp,
-                 const std::string &word, int &ival);
+                 const std::string &word, Index &ival);
 };
 
 }  // namespace csg

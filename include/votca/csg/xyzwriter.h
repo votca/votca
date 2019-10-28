@@ -38,7 +38,7 @@ class XYZWriter : public TrajectoryWriter {
 
  private:
   template <class T>
-  long getSize(T &container) {
+  Index getSize(T &container) {
     return getIterable(container).size();
   }
 

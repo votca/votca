@@ -76,8 +76,8 @@ class Topology {
    *
    * The function creates a new bead and adds it to the list of beads.
    */
-  virtual Bead *CreateBead(tools::byte_t symmetry, std::string name,
-                           std::string type, long resnr, double m, double q);
+  virtual Bead *CreateBead(Index symmetry, std::string name, std::string type,
+                           Index resnr, double m, double q);
 
   /**
    * \brief Creates a new molecule
@@ -99,13 +99,13 @@ class Topology {
    * @return created residue
    */
   virtual Residue *CreateResidue(std::string name);
-  virtual Residue *CreateResidue(std::string name, long id);
+  virtual Residue *CreateResidue(std::string name, Index id);
 
   /**
    * \brief Create molecules based on the residue.
    *
    * This function scans the topology and creates molecules based on the resiude
-   * id. All beads with the same resid are put int one molecule.
+   * id. All beads with the same resid are put Index one molecule.
    */
   void CreateMoleculesByResidue();
 
@@ -124,33 +124,33 @@ class Topology {
    * \param[in] nbeads number of beads per molecule
    * \param[in] nmolecules number of molecules
    */
-  void CreateMoleculesByRange(std::string name, long first, long nbeads,
-                              long nmolecules);
+  void CreateMoleculesByRange(std::string name, Index first, Index nbeads,
+                              Index nmolecules);
 
   /**
    * \brief number of molecules in the system
    * @return number of molecule in topology
    */
-  long MoleculeCount() const { return _molecules.size(); }
+  Index MoleculeCount() const { return _molecules.size(); }
 
   /**
    * number of beads in the system
    * @return number of beads in the system
    */
-  long BeadCount() const { return _beads.size(); }
+  Index BeadCount() const { return _beads.size(); }
 
   /**
    * number of residues in the system
    * \return number of residues
    */
-  long ResidueCount() const { return _residues.size(); }
+  Index ResidueCount() const { return _residues.size(); }
 
   /**
    * get molecule by index
    * @param index molecule number
    * @return pointer to molecule
    */
-  Molecule *MoleculeByIndex(long index);
+  Molecule *MoleculeByIndex(Index index);
 
   /**
    * access containter with all beads
@@ -200,19 +200,19 @@ class Topology {
    * type
    *
    * @param[in] string name of the type
-   * @return int the id of the type
+   * @return Index the id of the type
    **/
-  long getBeadTypeId(std::string type) const;
+  Index getBeadTypeId(std::string type) const;
 
   /**
    * \brief Returns a pointer to the bead with index i
    *
-   * @param[in] int i is the id of the bead
+   * @param[in] Index i is the id of the bead
    * @return Bead * is a pointer to the bead
    **/
-  Bead *getBead(const long i) const { return _beads[i]; }
-  Residue *getResidue(const long i) const { return _residues[i]; }
-  Molecule *getMolecule(const long i) const { return _molecules[i]; }
+  Bead *getBead(const Index i) const { return _beads[i]; }
+  Residue *getResidue(const Index i) const { return _residues[i]; }
+  Molecule *getMolecule(const Index i) const { return _molecules[i]; }
 
   /**
    * delete all molecule information
@@ -305,13 +305,13 @@ class Topology {
    * set the step number of current frame
    * \param s step number
    */
-  void setStep(long s) { _step = s; };
+  void setStep(Index s) { _step = s; };
 
   /**
    * get the step number of current frame
    * \return step number
    */
-  long getStep() const { return _step; };
+  Index getStep() const { return _step; };
 
   /**
    * Sets the particle group. (For the H5MD file format)
@@ -336,7 +336,7 @@ class Topology {
    * calculates the smallest distance between two beads with correct treatment
    * of pbc
    */
-  Eigen::Vector3d getDist(long bead1, long bead2) const;
+  Eigen::Vector3d getDist(Index bead1, Index bead2) const;
 
   /**
    * \brief calculate shortest vector connecting two points
@@ -393,7 +393,7 @@ class Topology {
       const Eigen::Matrix3d &box) const;
 
   /// bead types in the topology
-  std::unordered_map<std::string, long> beadtypes_;
+  std::unordered_map<std::string, Index> beadtypes_;
 
   /// beads in the topology
   BeadContainer _beads;
@@ -409,12 +409,12 @@ class Topology {
 
   ExclusionList _exclusions;
 
-  std::map<std::string, long> _interaction_groups;
+  std::map<std::string, Index> _interaction_groups;
 
   std::map<std::string, std::list<Interaction *> > _interactions_by_group;
 
   double _time = 0.0;
-  long _step = 0;
+  Index _step = 0;
   bool _has_vel = false;
   bool _has_force = false;
 
@@ -422,8 +422,8 @@ class Topology {
   std::string _particle_group = "unassigned";
 };
 
-inline Bead *Topology::CreateBead(tools::byte_t symmetry, std::string name,
-                                  std::string type, long resnr, double m,
+inline Bead *Topology::CreateBead(Index symmetry, std::string name,
+                                  std::string type, Index resnr, double m,
                                   double q) {
 
   Bead *b = new Bead(this, _beads.size(), type, symmetry, name, resnr, m, q);
@@ -437,7 +437,7 @@ inline Molecule *Topology::CreateMolecule(std::string name) {
   return mol;
 }
 
-inline Residue *Topology::CreateResidue(std::string name, long id) {
+inline Residue *Topology::CreateResidue(std::string name, Index id) {
   Residue *res = new Residue(this, id, name);
   _residues.push_back(res);
   return res;
@@ -449,7 +449,7 @@ inline Residue *Topology::CreateResidue(std::string name) {
   return res;
 }
 
-inline Molecule *Topology::MoleculeByIndex(long index) {
+inline Molecule *Topology::MoleculeByIndex(Index index) {
   return _molecules[index];
 }
 

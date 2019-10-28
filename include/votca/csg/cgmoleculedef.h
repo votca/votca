@@ -60,7 +60,7 @@ class CGMoleculeDef {
   struct beaddef_t {
     std::string _name;
     std::string _type;
-    tools::byte_t _symmetry;
+    Index _symmetry;
     std::string _mapping;
     std::vector<std::string> _subbeads;
     tools::Property *_options;

@@ -36,11 +36,11 @@ void ExclusionList::CreateExclusions(Topology *top) {
   InteractionContainer &ic = top->BondedInteractions();
 
   for (auto &ia : ic) {
-    long beads_in_int = ia->BeadCount();
+    Index beads_in_int = ia->BeadCount();
     list<Bead *> l;
 
-    for (long ibead = 0; ibead < beads_in_int; ibead++) {
-      long ii = ia->getBeadId(ibead);
+    for (Index ibead = 0; ibead < beads_in_int; ibead++) {
+      Index ii = ia->getBeadId(ibead);
       l.push_back(top->getBead(ii));
     }
     ExcludeList(l);
@@ -78,7 +78,7 @@ std::ostream &operator<<(std::ostream &out, ExclusionList &exl) {
 
   for (auto &_exclusion : exl._exclusions) {
     _exclusion->_exclude.sort(compareAtomIdBeadList);
-    out << (int)(_exclusion->_atom->getId()) + 1;
+    out << (Index)(_exclusion->_atom->getId()) + 1;
     for (list<Bead *>::iterator i = _exclusion->_exclude.begin();
          i != _exclusion->_exclude.end(); ++i) {
       out << " " << ((*i)->getId() + 1);

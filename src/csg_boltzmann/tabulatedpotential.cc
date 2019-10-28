@@ -55,9 +55,9 @@ void TabulatedPotential::Command(BondedStatistics &bs, const string &cmd,
       if (!SetOption_(_tab_options, args)) {
         if (args.size() > 2) {
           if (args[1] == "smooth_pdf") {
-            _tab_smooth1 = boost::lexical_cast<int>(args[2]);
+            _tab_smooth1 = boost::lexical_cast<Index>(args[2]);
           } else if (args[1] == "smooth_pot") {
-            _tab_smooth2 = boost::lexical_cast<int>(args[2]);
+            _tab_smooth2 = boost::lexical_cast<Index>(args[2]);
           } else if (args[1] == "T") {
             _Temperature = boost::lexical_cast<double>(args[2]);
           } else {
@@ -190,8 +190,8 @@ void TabulatedPotential::Help(const string &cmd, vector<string> &args) {
 
 double TabulatedPotential::getTemperature() const { return _Temperature; }
 
-pair<int, int> TabulatedPotential::getSmoothIterations() const {
-  return pair<int, int>(_tab_smooth1, _tab_smooth2);
+pair<int, Index> TabulatedPotential::getSmoothIterations() const {
+  return pair<int, Index>(_tab_smooth1, _tab_smooth2);
 }
 
 void TabulatedPotential::WriteHistogram(BondedStatistics &bs,
@@ -227,11 +227,11 @@ void TabulatedPotential::WritePotential(BondedStatistics &bs,
   Histogram h(_tab_options);
 
   h.ProcessData(sel);
-  for (int i = 0; i < _tab_smooth1; ++i) {
+  for (Index i = 0; i < _tab_smooth1; ++i) {
     Smooth_(h.getPdf(), _tab_options._periodic);
   }
   BoltzmannInvert_(h.getPdf());
-  for (int i = 0; i < _tab_smooth2; ++i) {
+  for (Index i = 0; i < _tab_smooth2; ++i) {
     Smooth_(h.getPdf(), _tab_options._periodic);
   }
   out.open(args[0].c_str());
@@ -239,7 +239,7 @@ void TabulatedPotential::WritePotential(BondedStatistics &bs,
   vector<double> F;
   assert(h.getInterval() > 0 && "Interval for pdf histogram is 0");
   CalcForce_(h.getPdf(), F, h.getInterval(), _tab_options._periodic);
-  for (int i = 0; i < h.getN(); i++) {
+  for (Index i = 0; i < h.getN(); i++) {
     out << h.getMin() + h.getInterval() * ((double)i) << " " << h.getPdf()[i]
         << " " << F[i] << endl;
   }
@@ -256,7 +256,7 @@ bool TabulatedPotential::SetOption_(Histogram::options_t &op,
                                     const vector<string> &args) {
   if (args.size() > 2) {
     if (args[1] == "n") {
-      op._n = boost::lexical_cast<int>(args[2]);
+      op._n = boost::lexical_cast<Index>(args[2]);
     } else if (args[1] == "min") {
       op._min = boost::lexical_cast<double>(args[2]);
     } else if (args[1] == "max") {
@@ -309,7 +309,7 @@ void TabulatedPotential::CalcForce_(vector<double> &U, vector<double> &F,
 
 void TabulatedPotential::Smooth_(vector<double> &data, bool bPeriodic) {
   double old[3];
-  long n = data.size();
+  Index n = data.size();
   if (bPeriodic) {
     old[0] = data[n - 3];
     old[1] = data[n - 2];

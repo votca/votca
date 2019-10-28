@@ -53,7 +53,7 @@ class XMLBead {
       : name(_name), type(_type), mass(_mass), q(_q){};
   XMLBead() = default;
 
-  long pid;
+  Index pid;
   std::string name;
   std::string type;
   double mass;
@@ -62,10 +62,10 @@ class XMLBead {
 
 class XMLMolecule {
  public:
-  XMLMolecule(std::string _name, int _nmols) : name(_name), nmols(_nmols) {}
+  XMLMolecule(std::string _name, Index _nmols) : name(_name), nmols(_nmols) {}
   std::string name;
-  int nmols;
-  long pid;
+  Index nmols;
+  Index pid;
   std::vector<XMLBead *> beads;
   std::map<std::string, XMLBead *> name2beads;
   Molecule *mi;
@@ -94,7 +94,7 @@ class XMLTopologyReader : public TopologyReader {
   void ParseBeadTypes(tools::Property &el);
   void ParseBonded(tools::Property &el);
   void ParseBox(tools::Property &p);
-  void ParseMolecule(tools::Property &p, std::string molname, int nmols);
+  void ParseMolecule(tools::Property &p, std::string molname, Index nmols);
   void ParseBond(tools::Property &p);
   void ParseAngle(tools::Property &p);
   void ParseDihedral(tools::Property &p);
@@ -102,8 +102,8 @@ class XMLTopologyReader : public TopologyReader {
  private:
   Topology *_top;
   MoleculesMap _molecules;
-  int _mol_index;
-  int _bead_index;
+  Index _mol_index;
+  Index _bead_index;
 
   bool _has_base_topology;
 };

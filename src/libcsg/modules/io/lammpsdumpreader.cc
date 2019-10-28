@@ -100,7 +100,7 @@ void LAMMPSDumpReader::ReadTimestep(Topology &top) {
   string s;
   getline(_fl, s);
   boost::algorithm::trim(s);
-  top.setStep(boost::lexical_cast<int>(s));
+  top.setStep(boost::lexical_cast<Index>(s));
   cout << "Reading frame, timestep " << top.getStep() << endl;
 }
 
@@ -109,7 +109,7 @@ void LAMMPSDumpReader::ReadBox(Topology &top) {
 
   Eigen::Matrix3d m = Eigen::Matrix3d::Zero();
 
-  for (int i = 0; i < 3; ++i) {
+  for (Index i = 0; i < 3; ++i) {
     getline(_fl, s);
     boost::algorithm::trim(s);
 
@@ -128,7 +128,7 @@ void LAMMPSDumpReader::ReadNumAtoms(Topology &top) {
   string s;
   getline(_fl, s);
   boost::algorithm::trim(s);
-  _natoms = boost::lexical_cast<int>(s);
+  _natoms = boost::lexical_cast<Index>(s);
   if (!_topology && _natoms != top.BeadCount()) {
     std::runtime_error("number of beads in topology and trajectory differ");
   }
@@ -140,7 +140,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
     if (!top.BeadTypeExist("no")) {
       top.RegisterBeadType("no");
     }
-    for (int i = 0; i < _natoms; ++i) {
+    for (Index i = 0; i < _natoms; ++i) {
       (void)top.CreateBead(1, "no", "no", 0, 0, 0);
     }
   }
@@ -148,14 +148,14 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
   bool pos = false;
   bool force = false;
   bool vel = false;
-  int id = -1;
+  Index id = -1;
 
   vector<string> fields;
 
   {
     tools::Tokenizer tok(itemline.substr(12), " ");
     tok.ToVector(fields);
-    int j = 0;
+    Index j = 0;
     for (tools::Tokenizer::iterator i = tok.begin(); i != tok.end(); ++i, ++j) {
       if (*i == "x" || *i == "y" || *i == "z") {
         pos = true;
@@ -177,7 +177,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
         "error, id not found in any column of the atoms section");
   }
 
-  for (int i = 0; i < _natoms; ++i) {
+  for (Index i = 0; i < _natoms; ++i) {
     string s;
     getline(_fl, s);
     boost::algorithm::trim(s);
@@ -192,7 +192,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
     tools::Tokenizer::iterator itok = tok.begin();
     vector<string> fields2 = tok.ToVector();
     // internal numbering begins with 0
-    int atom_id = boost::lexical_cast<int>(fields2[id]);
+    Index atom_id = boost::lexical_cast<Index>(fields2[id]);
     if (atom_id > _natoms) {
       throw std::runtime_error(
           "Error: found atom with id " + boost::lexical_cast<string>(atom_id) +

@@ -21,6 +21,7 @@
 #include <list>
 #include <string>
 #include <votca/tools/eigen.h>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace csg {
@@ -38,13 +39,13 @@ class Bead;
 class BeadList {
  public:
   /// \brief Select all beads of type <select>
-  long Generate(Topology &top, const std::string &select);
+  Index Generate(Topology &top, const std::string &select);
   /// \brief Select all beads of type <select> withn a radius <radius> of
   /// reference vector <ref>
-  long GenerateInSphericalSubvolume(Topology &top, const std::string &select,
-                                    Eigen::Vector3d ref, double radius);
+  Index GenerateInSphericalSubvolume(Topology &top, const std::string &select,
+                                     Eigen::Vector3d ref, double radius);
 
-  long size() const { return _beads.size(); }
+  Index size() const { return _beads.size(); }
 
   bool empty() const { return _beads.empty(); }
 

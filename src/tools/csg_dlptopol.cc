@@ -62,7 +62,7 @@ class DLPTopolApp : public CsgApplication {
   void WriteMoleculeAtoms(ostream &out, Molecule &cg);
   void WriteMoleculeInteractions(ostream &out, Molecule &cg);
   void WriteVDWInteractions(ostream &out, Molecule &cg);
-  void WriteMolecularType(ostream &out, Molecule &cg, int nummol);
+  void WriteMolecularType(ostream &out, Molecule &cg, votca::Index nummol);
 };
 
 void DLPTopolApp::Initialize(void) {
@@ -107,9 +107,9 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
   MoleculeContainer &mols = top->Molecules();
   MoleculeContainer MolecularTypes;
 
-  int prv_mol_number = 1;
+  votca::Index prv_mol_number = 1;
   string prv_mol_name;
-  vector<int> nummols;
+  vector<votca::Index> nummols;
 
   vector<string> vdw_pairs;
 
@@ -137,7 +137,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
 
     // collect unique bead pairs over all molecular types found
 
-    for (int ib1 = 0; ib1 < mol->BeadCount(); ib1++) {
+    for (votca::Index ib1 = 0; ib1 < mol->BeadCount(); ib1++) {
       string bead_name1 = mol->getBead(ib1)->getType();
       bead_name1 = bead_name1.substr(
           0,
@@ -145,7 +145,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
 
       for (auto &MolecularType : MolecularTypes) {
 
-        for (int ib2 = 0; ib2 < MolecularType->BeadCount(); ib2++) {
+        for (votca::Index ib2 = 0; ib2 < MolecularType->BeadCount(); ib2++) {
 
           string bead_name2 = MolecularType->getBead(ib2)->getType();
           bead_name2 = bead_name2.substr(
@@ -190,7 +190,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
   fl << "units kJ\n";
   fl << "molecular types " << MolecularTypes.size() << endl;
 
-  for (unsigned i = 0; i < MolecularTypes.size(); i++) {
+  for (votca::Index i = 0; i < votca::Index(MolecularTypes.size()); i++) {
     WriteMolecularType(fl, *(MolecularTypes[i]), nummols[i + 1]);
   }
 
@@ -219,7 +219,7 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg) {
   out << "atoms " << cg.BeadCount() << endl;
   out << "# name  mass  charge  nrept  ifrozen (optional: ngroup, index, "
          "name/type, type/residue, index/res-ID) \n";
-  for (int i = 0; i < cg.BeadCount(); ++i) {
+  for (votca::Index i = 0; i < cg.BeadCount(); ++i) {
     Bead *b = cg.getBead(i);
 
     string bname = b->getName();
@@ -242,8 +242,8 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
 
   stringstream sout;
 
-  int n_entries = 0;
-  long nb = -1;
+  votca::Index n_entries = 0;
+  votca::Index nb = -1;
 
   for (Interaction *ic : cg.Interactions()) {
     if (nb != ic->BeadCount()) {
@@ -279,7 +279,7 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
     // sout << ic->getInteractionFunc(); // something like that (only for 1:1
     // mapping!)
     sout << " tab ";
-    for (int i = 0; i < nb; ++i) {
+    for (votca::Index i = 0; i < nb; ++i) {
       sout << ic->getBeadId(i) + 1 << " ";
     }
     sout << "   1.00000  0.00000"
@@ -293,7 +293,8 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
   }
 }
 
-void DLPTopolApp::WriteMolecularType(ostream &out, Molecule &cg, int nummol) {
+void DLPTopolApp::WriteMolecularType(ostream &out, Molecule &cg,
+                                     votca::Index nummol) {
   out << cg.getName() << endl;
   out << "nummols " << nummol << endl;
 

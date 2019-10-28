@@ -166,8 +166,8 @@ int main(int argc, char **argv) {
       Eigen::VectorXd y_copy;
       if (!vm.count("nocut")) {
         // determine vector size
-        int minindex = -1, maxindex = -1;
-        for (int i = 0; i < in.x().size(); i++) {
+        votca::Index minindex = -1, maxindex = -1;
+        for (votca::Index i = 0; i < in.x().size(); i++) {
           if (in.x(i) < sp_min) {
             minindex = i;
           }
@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
         minindex++;
         x_copy = Eigen::VectorXd::Zero(maxindex - minindex + 1);
         y_copy = Eigen::VectorXd::Zero(maxindex - minindex + 1);
-        for (int i = minindex; i <= maxindex; i++) {
+        for (votca::Index i = minindex; i <= maxindex; i++) {
           x_copy(i - minindex) = in.x(i);
           y_copy(i - minindex) = in.y(i);
         }
@@ -241,12 +241,12 @@ int main(int argc, char **argv) {
     der.GenerateGridSpacing(min, max, step);
     der.flags() = std::vector<char>(der.flags().size(), 'o');
 
-    int i = 0;
+    votca::Index i = 0;
     for (i = 0; out.x(i) < in.x(0) && i < out.size(); ++i) {
       ;
     }
 
-    int j = 0;
+    votca::Index j = 0;
     for (; i < out.size(); ++i) {
       for (; j < in.size(); ++j) {
         if (in.x(j) >= out.x(i) ||

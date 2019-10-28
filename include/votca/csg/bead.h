@@ -54,7 +54,7 @@ class Bead : public BaseBead {
    * get the residu number of the bead
    * \return residue id
    */
-  const long &getResnr() const { return residue_number_; }
+  const Index &getResnr() const { return residue_number_; }
 
   /**
    * get the charge of the bead
@@ -78,7 +78,7 @@ class Bead : public BaseBead {
    *
    * \return bead symmetry
    */
-  tools::byte_t getSymmetry() const { return symmetry_; }
+  Index getSymmetry() const { return symmetry_; }
 
   /**
    * set the velocity of the bead
@@ -257,7 +257,7 @@ class Bead : public BaseBead {
    * If it is a mapped beads, returns te bead id the cg bead was created from
    * \return vector of bead ids of reference atoms
    */
-  const std::vector<long> &ParentBeads() { return parent_beads_; };
+  const std::vector<Index> &ParentBeads() { return parent_beads_; };
 
   /**
    * \brief Clears out all parent beads
@@ -267,17 +267,17 @@ class Bead : public BaseBead {
   /**
    * \brief Adds the id of a parent bead
    **/
-  void AddParentBead(long parent_bead_id) {
+  void AddParentBead(Index parent_bead_id) {
     parent_beads_.push_back(parent_bead_id);
   }
 
  protected:
-  std::vector<long> parent_beads_;
+  std::vector<Index> parent_beads_;
 
-  tools::byte_t symmetry_;
+  Index symmetry_;
   double charge_;
 
-  long residue_number_;
+  Index residue_number_;
 
   Eigen::Vector3d velocity_, bead_force_, u_, v_, w_;
 
@@ -288,8 +288,8 @@ class Bead : public BaseBead {
   bool bead_force_set_;
 
   /// constructor
-  Bead(Topology *owner, long id, std::string type, tools::byte_t symmetry,
-       std::string name, long resnr, double m, double q)
+  Bead(Topology *owner, Index id, std::string type, Index symmetry,
+       std::string name, Index resnr, double m, double q)
       : symmetry_(symmetry), charge_(q), residue_number_(resnr) {
     topology_item_._parent = owner;
     setId(id);

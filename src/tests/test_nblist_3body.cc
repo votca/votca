@@ -55,9 +55,9 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
   string bead_type_name = "CG";
   top.RegisterBeadType(bead_type_name);
 
-  votca::tools::byte_t symmetry = 1;
+  votca::votca::Index symmetry = 1;
   string name = "dummy1";
-  int resnr = 0;
+  votca::Index resnr = 0;
   double mass = 1.0;
   double charge = -1.0;
   Bead *b;

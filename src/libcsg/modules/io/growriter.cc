@@ -32,36 +32,34 @@ void GROWriter::Close() { fclose(_out); }
 
 void GROWriter::Write(Topology *conf) {
   char format[100];
-  int i, l, vpr;
+  Index i, l, vpr;
   Topology *top = conf;
 
   fprintf(_out, "%s\n", "what a nice title");
   fprintf(_out, "%5ld\n", top->BeadCount());
 
   bool v = top->HasVel();
-  int pr = 3;  // precision of writeout, given by the spec
+  Index pr = 3;  // precision of writeout, given by the spec
 
   /* build format string for printing,
      something like "%8.3f" for x and "%8.4f" for v */
-  /*if (pr<0)
-    pr=0;
-  if (pr>30)
-    pr=30;*/
+
   l = pr + 5;
   vpr = pr + 1;
   if (v) {
-    sprintf(format, "%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df\n", l, pr,
-            l, pr, l, pr, l, vpr, l, vpr, l, vpr);
+    sprintf(format,
+            "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf\n", l,
+            pr, l, pr, l, pr, l, vpr, l, vpr, l, vpr);
   } else {
-    sprintf(format, "%%%d.%df%%%d.%df%%%d.%df\n", l, pr, l, pr, l, pr);
+    sprintf(format, "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf\n", l, pr, l, pr, l, pr);
   }
 
   for (i = 0; i < top->BeadCount(); i++) {
-    long resnr = top->getBead(i)->getResnr();
+    Index resnr = top->getBead(i)->getResnr();
     string resname = top->getResidue(resnr)->getName();
     string atomname = top->getBead(i)->getName();
 
-    fprintf(_out, "%5ld%-5.5s%5.5s%5d", (resnr + 1) % 100000, resname.c_str(),
+    fprintf(_out, "%5ld%-5.5s%5.5s%5ld", (resnr + 1) % 100000, resname.c_str(),
             atomname.c_str(), (i + 1) % 100000);
     /* next fprintf uses built format string */
     Eigen::Vector3d r = conf->getBead(i)->getPos();
@@ -74,7 +72,7 @@ void GROWriter::Write(Topology *conf) {
     }
   }
 
-  // write the boy
+  // write the box
   Eigen::Matrix3d box = conf->getBox();
 
   if (pr < 5) {
@@ -85,13 +83,13 @@ void GROWriter::Write(Topology *conf) {
   if (box(0, 1) || box(0, 2) || box(1, 0) || box(1, 2) || box(2, 0) ||
       box(2, 1)) {
     sprintf(format,
-            "%%%d.%df%%%d.%df%%%d.%df"
-            "%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df\n",
+            "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf"
+            "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf\n",
             l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr);
     fprintf(_out, format, box(0, 0), box(1, 1), box(2, 2), box(1, 0), box(2, 0),
             box(0, 1), box(2, 1), box(0, 2), box(1, 2));
   } else {
-    sprintf(format, "%%%d.%df%%%d.%df%%%d.%df\n", l, pr, l, pr, l, pr);
+    sprintf(format, "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf\n", l, pr, l, pr, l, pr);
     fprintf(_out, format, box(0, 0), box(1, 1), box(2, 2));
   }
   fflush(_out);

@@ -20,6 +20,7 @@
 
 #include <map>
 #include <vector>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace csg {
@@ -46,7 +47,7 @@ class PairList {
   pair_type *back() { return _pairs.back(); }
   bool empty() const { return _pairs.empty(); }
 
-  long size() const { return long(_pairs.size()); }
+  Index size() const { return Index(_pairs.size()); }
 
   void Cleanup();
 
@@ -78,8 +79,8 @@ inline void PairList<element_type, pair_type>::AddPair(pair_type *p) {
 
 template <typename element_type, typename pair_type>
 inline void PairList<element_type, pair_type>::Cleanup() {
-  for (iterator iter = _pairs.begin(); iter != _pairs.end(); ++iter) {
-    delete *iter;
+  for (auto &pair : _pairs) {
+    delete pair;
   }
   _pairs.clear();
   _pair_map.clear();

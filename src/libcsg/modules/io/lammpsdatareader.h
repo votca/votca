@@ -60,29 +60,29 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
 
   std::map<std::string, std::vector<std::vector<std::string>>> data_;
 
-  // int - atom type starting index of 0
+  // Index - atom type starting index of 0
   // .at(0) - element symbol or bead
   // .at(1) - atom name may be the same as the element symbol or bead depending
   //          on if there is more than one atom type for a given element
-  std::map<int, std::string> atomtypes_;
+  std::map<Index, std::string> atomtypes_;
 
   // String is the type .e.g. "atom","bond" etc
-  // int is the number of different types
-  std::map<std::string, int> numberOfDifferentTypes_;
+  // Index is the number of different types
+  std::map<std::string, Index> numberOfDifferentTypes_;
 
   // String is the type .e.g. "atom", "bond" etc
-  // int is the number of them
-  std::map<std::string, int> numberOf_;
+  // Index is the number of them
+  std::map<std::string, Index> numberOf_;
 
-  // First int is the molecule id
-  // Second int is the molecule ptr
-  std::map<int, Molecule *> molecules_;
+  // First Index is the molecule id
+  // Second Index is the molecule ptr
+  std::map<Index, Molecule *> molecules_;
 
-  // First int is the atom id second the molecule id
-  std::map<int, int> atomIdToMoleculeId_;
+  // First Index is the atom id second the molecule id
+  std::map<Index, Index> atomIdToMoleculeId_;
 
-  // First int is the atom id second the atom index
-  std::map<int, int> atomIdToIndex_;
+  // First Index is the atom id second the atom index
+  std::map<Index, Index> atomIdToIndex_;
 
   bool MatchOneFieldLabel_(std::vector<std::string> fields, Topology &top);
   bool MatchTwoFieldLabels_(std::vector<std::string> fields, Topology &top);

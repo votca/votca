@@ -88,13 +88,13 @@ bool DLPOLYTrajectoryReader::FirstFrame(Topology &conf) {
 bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   static bool hasVs = false;
   static bool hasFs = false;
-  static int mavecs =
+  static Index mavecs =
       0;  // number of 3d vectors per atom = keytrj in DL_POLY manuals
-  static int mpbct = 0;   // cell PBC type = imcon in DL_POLY manuals
-  static int matoms = 0;  // number of atoms/beads in a frame
+  static Index mpbct = 0;   // cell PBC type = imcon in DL_POLY manuals
+  static Index matoms = 0;  // number of atoms/beads in a frame
   const double scale = tools::conv::ang2nm;
 
-  static int nerrt = 0;
+  static Index nerrt = 0;
 
   string line;
 
@@ -124,9 +124,9 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
                                _fname + "' header (check its 2-nd line)");
     }
 
-    mavecs = boost::lexical_cast<int>(fields[0]);
-    mpbct = boost::lexical_cast<int>(fields[1]);
-    matoms = boost::lexical_cast<int>(fields[2]);
+    mavecs = boost::lexical_cast<Index>(fields[0]);
+    mpbct = boost::lexical_cast<Index>(fields[1]);
+    matoms = boost::lexical_cast<Index>(fields[2]);
 
     hasVs = (mavecs > 0);  // 1 or 2 => in DL_POLY frame velocity vector follows
                            // coords for each atom/bead
@@ -189,10 +189,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
   if (!_fl.eof()) {
     double dtime, stime;
-    int nstep;
-    int natoms;
-    int navecs;
-    int npbct;
+    Index nstep;
+    Index natoms;
+    Index navecs;
+    Index npbct;
 
     if (_isConfig) {
       // use the above read specs from the header, and skip the data missing in
@@ -220,10 +220,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
             "Error: too few directive switches (<6) in 'timestep' record");
       }
 
-      nstep = boost::lexical_cast<int>(fields[1]);
-      natoms = boost::lexical_cast<int>(fields[2]);
-      navecs = boost::lexical_cast<int>(fields[3]);
-      npbct = boost::lexical_cast<int>(fields[4]);
+      nstep = boost::lexical_cast<Index>(fields[1]);
+      natoms = boost::lexical_cast<Index>(fields[2]);
+      navecs = boost::lexical_cast<Index>(fields[3]);
+      npbct = boost::lexical_cast<Index>(fields[4]);
       dtime =
           stod(fields[5]);  // normally it is the 5-th column in 'timestep' line
       stime = stod(fields[fields.size() - 1]);  // normally it is the last
@@ -258,7 +258,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
       // total time - calculated as product due to differences between DL_POLY
       // versions in HISTORY formats
-      conf.setTime(nstep * dtime);
+      conf.setTime(double(nstep) * dtime);
       conf.setStep(nstep);
 
       if (std::abs(stime - conf.getTime()) > 1.e-8) {
@@ -266,8 +266,6 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
         if (nerrt < 11) {
           cout << "Check: nstep = " << nstep << ", dt = " << dtime
                << ", time = " << stime << " (correct?)" << endl;
-          // cout << "Check: nstep = " << nstep << ", dt = " << dtime << ", time
-          // = " << conf.getTime() << " (correct?)" << endl;
         } else if (nerrt == 11) {
           cout << "Check: timestep - more than 10 mismatches in total time "
                   "found..."
@@ -285,7 +283,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     }
 
     Eigen::Matrix3d box = Eigen::Matrix3d::Zero();
-    for (int i = 0; i < 3; i++) {  // read 3 box/cell lines
+    for (Index i = 0; i < 3; i++) {  // read 3 box/cell lines
 
       getline(_fl, line);
 
@@ -309,7 +307,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
     conf.setBox(box, pbc_type);
 
-    for (int i = 0; i < natoms; i++) {
+    for (Index i = 0; i < natoms; i++) {
 
       {
         getline(_fl, line);  // atom header line
@@ -327,7 +325,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
         tools::Tokenizer tok(line, " \t");
         vector<string> fields = tok.ToVector();
-        int id = boost::lexical_cast<int>(fields[1]);
+        Index id = boost::lexical_cast<Index>(fields[1]);
         if (i + 1 != id) {
           throw std::runtime_error(
               "Error: unexpected atom/bead index in dlpoly file '" + _fname +
@@ -338,7 +336,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
       Bead *b = conf.getBead(i);
       Eigen::Matrix3d atom_vecs = Eigen::Matrix3d::Zero();
-      for (int j = 0; j < min(navecs, 2) + 1; j++) {
+      for (Index j = 0; j < std::min(navecs, Index(2)) + 1; j++) {
 
         getline(_fl, line);  // read atom positions
 

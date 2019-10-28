@@ -27,18 +27,18 @@ namespace csg {
 
 class PotentialFunctionCBSPL : public PotentialFunction {
  public:
-  PotentialFunctionCBSPL(const std::string &name_, const int nlam_,
-                         const double min_ = 0.0, const double max_ = 10.0);
+  PotentialFunctionCBSPL(const std::string &name, const Index nlam,
+                         const double min = 0.0, const double max = 10.0);
   ~PotentialFunctionCBSPL() override = default;
   // calculate function value for given r
   double CalculateF(const double r) const override;
   // calculate first derivative w.r.t. ith parameter
-  double CalculateDF(const long i, const double r) const override;
+  double CalculateDF(const Index i, const double r) const override;
   // calculate second derivative w.r.t. ith parameter
-  double CalculateD2F(const long i, const long j,
+  double CalculateD2F(const Index i, const Index j,
                       const double r) const override;
 
-  long getOptParamSize() const override;
+  Index getOptParamSize() const override;
 
   void setParam(std::string filename) override;
 
@@ -48,9 +48,9 @@ class PotentialFunctionCBSPL : public PotentialFunction {
 
   void SavePotTab(const std::string &filename, const double step,
                   const double rmin, const double rcut) override;
-  void setOptParam(const long i, const double val) override;
+  void setOptParam(const Index i, const double val) override;
 
-  double getOptParam(const long i) const override;
+  double getOptParam(const Index i) const override;
 
   void extrapolExclParam();
 
@@ -58,12 +58,12 @@ class PotentialFunctionCBSPL : public PotentialFunction {
   // exclude these many first coefficients from optimization
   // since the region relevant to these coefficients is not sampled
   // the value of _nexcl is determined from rmin
-  long _nexcl;
+  Index _nexcl;
   // fix these many coeff near the cut-off to zero to ensure
   // zero potential and force values near cut-off
-  int _ncutcoeff;
+  Index _ncutcoeff;
 
-  long _nbreak;
+  Index _nbreak;
   double _dr;
   Eigen::VectorXd _rbreak;
 

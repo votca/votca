@@ -30,7 +30,7 @@ using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
-Eigen::VectorXd getColumnFromFile(string file_name, int column) {
+Eigen::VectorXd getColumnFromFile(string file_name, votca::Index column) {
   vector<double> data;
   ifstream file;
   file.open(file_name);
@@ -39,7 +39,7 @@ Eigen::VectorXd getColumnFromFile(string file_name, int column) {
     while (getline(file, line)) {
       string word;
       istringstream ss(line);
-      for (int i = 0; i < column; ++i) {
+      for (votca::Index i = 0; i < column; ++i) {
         ss >> word;
       }
       data.push_back(stod(word));
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     top.setBox(box);
 
     // Create three beads
-    byte_t symmetry = 1;
+    votca::Index symmetry = 1;
 
     string bead_type_name = "H2";
     top.RegisterBeadType(bead_type_name);
@@ -94,8 +94,8 @@ BOOST_AUTO_TEST_CASE(test_command) {
     // are placed on a regular grid so the table properties can be compared
     // consistently
 
-    int number_of_H2 = 0;
-    int residue_number = 0;
+    votca::Index number_of_H2 = 0;
+    votca::Index residue_number = 0;
     for (double x = 2.0; x < (box(0, 0) - 2.0); x += 4.0) {
       for (double y = 2.0; y < (box(1, 1) - 2.0); y += 3.0) {
         for (double z = 2.0; z < (box(2, 2) - 2.0); z += 4.0) {
@@ -114,8 +114,8 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
     cout << "Number of H2 " << number_of_H2 << endl;
     // Every molecule interacts with every other molecule
-    for (int index = 0; index < number_of_H2; ++index) {
-      for (int index2 = index + 1; index2 < number_of_H2; ++index2) {
+    for (votca::Index index = 0; index < number_of_H2; ++index) {
+      for (votca::Index index2 = index + 1; index2 < number_of_H2; ++index2) {
         auto bond = new IBond(index, index2);
         bond->setGroup(interaction_group + to_string(index) + "_" +
                        to_string(index2));

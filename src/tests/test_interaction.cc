@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(bond_test) {
   Topology top;
   double mass = 1.0;
   double charge = 1.0;
-  int resid = 1;
+  Index resid = 1;
   Bead* bead1 = top.CreateBead(0, "a1", "C", resid, mass, charge);
   Eigen::Vector3d pos1(1, 0, 0);
   bead1->setPos(pos1);
@@ -145,7 +145,7 @@ BOOST_AUTO_TEST_CASE(angle_test) {
   Topology top;
   double mass = 1.0;
   double charge = 1.0;
-  int resid = 1;
+  Index resid = 1;
   Bead* bead1 = top.CreateBead(0, "a1", "C", resid, mass, charge);
   Eigen::Vector3d pos1(1, 0, 0);
   bead1->setPos(pos1);
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(dihedral_test) {
   Topology top;
   double mass = 1.0;
   double charge = 1.0;
-  int resid = 1;
+  Index resid = 1;
   Bead* bead1 = top.CreateBead(0, "a1", "C", resid, mass, charge);
   Eigen::Vector3d pos1(1, 0, 0);
   bead1->setPos(pos1);

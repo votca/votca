@@ -70,7 +70,7 @@ bool GmxTopolApp::EvaluateTopology(Topology *top, Topology *) {
 void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg) {
   out << "[atoms]\n";
   out << "; nr type resnr residue atom cgnr charge mass\n";
-  for (int i = 0; i < cg.BeadCount(); ++i) {
+  for (votca::Index i = 0; i < cg.BeadCount(); ++i) {
     Bead *b = cg.getBead(i);
     out << format("%d %s 1 RES %s %d %f %f\n") % (i + 1) % b->getType() %
                b->getName() % (i + 1) % b->getQ() % b->getMass();
@@ -79,7 +79,7 @@ void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg) {
 }
 
 void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg) {
-  long nb = -1;
+  votca::Index nb = -1;
 
   for (Interaction *ic : cg.getParent()->BondedInteractions()) {
     if (ic->getMolecule() != cg.getId()) {
@@ -104,7 +104,7 @@ void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg) {
           throw runtime_error(err);
       }
     }
-    for (int i = 0; i < nb; ++i) {
+    for (votca::Index i = 0; i < nb; ++i) {
       out << ic->getBeadId(i) + 1 << " ";
     }
     out << "  1  ; ";

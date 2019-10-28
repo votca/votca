@@ -35,6 +35,7 @@
       <itemPath>../../include/votca/csg/basebead.h</itemPath>
       <itemPath>../../include/votca/csg/bead.h</itemPath>
       <itemPath>../../include/votca/csg/beadlist.h</itemPath>
+      <itemPath>../../include/votca/csg/beadmotif.h</itemPath>
       <itemPath>../../include/votca/csg/beadpair.h</itemPath>
       <itemPath>../../include/votca/csg/beadstructure.h</itemPath>
       <itemPath>../../include/votca/csg/beadtriple.h</itemPath>
@@ -128,6 +129,8 @@
         <itemPath>../../include/votca/csg/potentialfunctions/potentialfunctionljg.h</itemPath>
       </logicalFolder>
       <itemPath>../../src/libcsg/beadlist.cc</itemPath>
+      <itemPath>../../src/libcsg/beadmotif.cc</itemPath>
+      <itemPath>../../src/libcsg/beadmotifalgorithms.cc</itemPath>
       <itemPath>../../src/libcsg/boundarycondition.cc</itemPath>
       <itemPath>../../src/libcsg/cgengine.cc</itemPath>
       <itemPath>../../src/libcsg/cgmoleculedef.cc</itemPath>
@@ -163,8 +166,6 @@
       <itemPath>../../src/tests/test_beadtriple.cc</itemPath>
       <itemPath>../../src/tests/test_bondedstatistics.cc</itemPath>
       <itemPath>../../src/tests/test_csg_topology.cc</itemPath>
-      <itemPath>../../../tools/src/tests/test_elements.cc</itemPath>
-      <itemPath>../../../tools/src/tests/test_filesystem.cc</itemPath>
       <itemPath>../../src/tests/test_interaction.cc</itemPath>
       <itemPath>../../src/tests/test_lammpsdatareader.cc</itemPath>
       <itemPath>../../src/tests/test_lammpsdumpreaderwriter.cc</itemPath>
@@ -205,21 +206,16 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../tools/src/tests/test_elements.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../../tools/src/tests/test_filesystem.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadmotif.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -421,6 +417,13 @@
             flavor2="0">
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotif.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifalgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"
@@ -792,21 +795,16 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../tools/src/tests/test_elements.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../../tools/src/tests/test_filesystem.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadmotif.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1008,6 +1006,13 @@
             flavor2="0">
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotif.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifalgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"
@@ -1380,21 +1385,16 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../tools/src/tests/test_elements.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../../tools/src/tests/test_filesystem.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadmotif.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1596,6 +1596,13 @@
             flavor2="0">
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotif.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifalgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"

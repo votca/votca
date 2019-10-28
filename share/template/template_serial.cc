@@ -45,7 +45,7 @@ class CsgTestApp : public CsgApplication {
   double _cut_off;
 };
 
-int main(int argc, char **argv) {
+int main(Index argc, char **argv) {
   CsgTestApp app;
 
   return app.Exec(argc, argv);

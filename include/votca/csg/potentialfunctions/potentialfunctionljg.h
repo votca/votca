@@ -31,9 +31,9 @@ class PotentialFunctionLJG : public PotentialFunction {
   // calculate function value for given r
   double CalculateF(double r) const override;
   // calculate first derivative w.r.t. ith parameter
-  double CalculateDF(long i, double r) const override;
+  double CalculateDF(Index i, double r) const override;
   // calculate second derivative w.r.t. ith parameter
-  double CalculateD2F(long i, long j, double r) const override;
+  double CalculateD2F(Index i, Index j, double r) const override;
 };
 }  // namespace csg
 }  // namespace votca

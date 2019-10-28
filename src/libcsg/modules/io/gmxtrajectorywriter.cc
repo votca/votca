@@ -30,8 +30,8 @@ void GMXTrajectoryWriter::Open(string file, bool) {
 void GMXTrajectoryWriter::Close() { close_trx(_file); }
 
 void GMXTrajectoryWriter::Write(Topology *conf) {
-  static int step = 0;
-  long N = conf->BeadCount();
+  static Index step = 0;
+  Index N = conf->BeadCount();
   t_trxframe frame;
   rvec *x = new rvec[N];
   rvec *v = nullptr;
@@ -52,13 +52,13 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
   frame.bBox = true;
   frame.bV = conf->HasVel();
 
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
+  for (Index i = 0; i < 3; i++) {
+    for (Index j = 0; j < 3; j++) {
       frame.box[j][i] = box(i, j);
     }
   }
 
-  for (int i = 0; i < N; ++i) {
+  for (Index i = 0; i < N; ++i) {
     Eigen::Vector3d pos = conf->getBead(i)->getPos();
     x[i][0] = pos.x();
     x[i][1] = pos.y();
@@ -67,7 +67,7 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
 
   if (frame.bV) {
     v = new rvec[N];
-    for (int i = 0; i < N; ++i) {
+    for (Index i = 0; i < N; ++i) {
       frame.v = v;
       Eigen::Vector3d vel = conf->getBead(i)->getVel();
       v[i][0] = vel.x();
@@ -77,7 +77,7 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
   }
   if (frame.bF) {
     f = new rvec[N];
-    for (int i = 0; i < N; ++i) {
+    for (Index i = 0; i < N; ++i) {
       frame.f = f;
       Eigen::Vector3d force = conf->getBead(i)->getF();
       f[i][0] = force.x();

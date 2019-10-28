@@ -85,7 +85,7 @@ bool PDBReader::NextFrame(Topology &top) {
   // Two column vector for storing all bonds
   // 1 - id of first atom
   // 2 - id of second atom
-  vector<vector<int>> bond_pairs;
+  vector<vector<Index>> bond_pairs;
   // Store pointers to every bead
   // WARNING we are assuming in the bead_Eigen::Vector3d that the indices of the
   // beads
@@ -95,7 +95,7 @@ bool PDBReader::NextFrame(Topology &top) {
   ////////////////////////////////////////////////////////////////////////////////
   // Read in information from .pdb file
   ////////////////////////////////////////////////////////////////////////////////
-  int bead_count = 0;
+  Index bead_count = 0;
   while (std::getline(_fl, line)) {
     if (tools::wildcmp("CRYST1*", line.c_str())) {
       string a, b, c, alpha, beta, gamma;
@@ -142,7 +142,7 @@ bool PDBReader::NextFrame(Topology &top) {
       vector<string> bonded_atms;
       string atm1;
       // Keep track of the number of bonds
-      int num_bonds = 0;
+      Index num_bonds = 0;
       try {
         // If the CONECT keyword is found then there must be at least
         // two atom identifiers, more than that is optional.
@@ -170,13 +170,13 @@ bool PDBReader::NextFrame(Topology &top) {
                                  line);
       }
 
-      vector<int> row(2);
+      vector<Index> row(2);
       boost::algorithm::trim(atm1);
-      int at1 = boost::lexical_cast<int>(atm1);
+      Index at1 = boost::lexical_cast<Index>(atm1);
       row.at(0) = at1;
 
       for (auto &bonded_atm : bonded_atms) {
-        int at2 = boost::lexical_cast<int>(bonded_atm);
+        Index at2 = boost::lexical_cast<Index>(bonded_atm);
         row.at(1) = at2;
         // Because every bond will be counted twice in a .pdb file
         // we will only add bonds where the id (atm1) is less than the
@@ -200,7 +200,7 @@ bool PDBReader::NextFrame(Topology &top) {
 
         // str       ,  "ATOM", "HETATM"
         // string recType    (line,( 1-1),6);
-        // int       , Atom serial number
+        // Index       , Atom serial number
         // atNum    =    string(line,( 7-1),6);
         // str       , Atom name
         atName = string(line, (13 - 1), 4);
@@ -210,7 +210,7 @@ bool PDBReader::NextFrame(Topology &top) {
         resName = string(line, (18 - 1), 3);
         // char      , Chain identifier
         // string chainID    (line,(22-1),1);
-        // int       , Residue sequence number
+        // Index       , Residue sequence number
         resNum = string(line, (23 - 1), 4);
         // char      , Code for insertion of res
         // string atICode    (line,(27-1),1);
@@ -258,9 +258,9 @@ bool PDBReader::NextFrame(Topology &top) {
       Bead *b;
       // Only read the CONECT keyword if the topology is set too true
       if (_topology) {
-        int resnr;
+        Index resnr;
         try {
-          resnr = boost::lexical_cast<int>(resNum);
+          resnr = boost::lexical_cast<Index>(resNum);
         } catch (bad_lexical_cast &) {
           throw std::runtime_error(
               "Cannot convert resNum='" + resNum +
@@ -325,7 +325,7 @@ bool PDBReader::NextFrame(Topology &top) {
         // ellipsoidal)
         // 2 - name of the bead     (string)
         // 3 - bead type            (BeadType *)
-        // 4 - residue number       (int)
+        // 4 - residue number       (Index)
         // 5 - mass                 (double)
         // 6 - charge               (double)
         //
@@ -362,22 +362,22 @@ bool PDBReader::NextFrame(Topology &top) {
     // Now we need to add the bond pairs
     // WARNING We are assuming the atom ids are contiguous with no gaps
 
-    // First int  - is the index of the atom
-    // Second int - is the index of the molecule
-    map<int, int> atm_molecule;
+    // First Index  - is the index of the atom
+    // Second Index - is the index of the molecule
+    map<Index, Index> atm_molecule;
 
-    // First int  - is the index of the molecule
-    // list<int>  - is a list of the atoms in the molecule
-    unordered_map<int, list<int>> molecule_atms;
+    // First Index  - is the index of the molecule
+    // list<Index>  - is a list of the atoms in the molecule
+    unordered_map<Index, list<Index>> molecule_atms;
 
     // Keep track of the number of molecules we have created through an index
-    int mol_index = 0;
+    Index mol_index = 0;
 
     // Cycle through all bonds
     for (auto &bond_pair : bond_pairs) {
 
-      int atm_id1 = bond_pair.at(0);
-      int atm_id2 = bond_pair.at(1);
+      Index atm_id1 = bond_pair.at(0);
+      Index atm_id2 = bond_pair.at(1);
       // Check to see if either atm referred to in the bond is already
       // attached to a molecule
       auto mol_iter1 = atm_molecule.find(atm_id1);
@@ -386,7 +386,7 @@ bool PDBReader::NextFrame(Topology &top) {
       // This means neither atom is attached to a molecule
       if (mol_iter1 == atm_molecule.end() && mol_iter2 == atm_molecule.end()) {
         // We are going to create a new row for a new molecule
-        list<int> atms_in_mol;
+        list<Index> atms_in_mol;
         atms_in_mol.push_back(atm_id1);
         atms_in_mol.push_back(atm_id2);
         molecule_atms[mol_index] = atms_in_mol;
@@ -414,8 +414,8 @@ bool PDBReader::NextFrame(Topology &top) {
         // This means both atm1 and atm2 are attached to a molecule
         // But if they are already attached to the same molecule there is
         // nothing else to be done.
-        int chosen_mol;
-        int obsolete_mol;
+        Index chosen_mol;
+        Index obsolete_mol;
         // We will merge the atms to the molecule with the smallest index
         if (mol_iter1->second < mol_iter2->second) {
           chosen_mol = mol_iter1->second;
@@ -427,7 +427,7 @@ bool PDBReader::NextFrame(Topology &top) {
 
         // Now we will proceed to cycle through the atms that were in the now
         // obsolete molecule and make sure they are pointing to the new molecule
-        for (int &atm_temp : molecule_atms[obsolete_mol]) {
+        for (Index &atm_temp : molecule_atms[obsolete_mol]) {
 
           atm_molecule[atm_temp] = chosen_mol;
         }
@@ -443,7 +443,7 @@ bool PDBReader::NextFrame(Topology &top) {
     }
 #ifndef NDEBUG
     cerr << "Consistency check for pdbreader" << endl;
-    int i = 0;
+    Index i = 0;
     for (auto lis = molecule_atms.begin(); lis != molecule_atms.end(); lis++) {
       cerr << "Molecule " << i << endl;
       cerr << "Atoms: ";
@@ -461,17 +461,17 @@ bool PDBReader::NextFrame(Topology &top) {
     // 2 Add the bond interactions
 
     // Molecule map
-    // First int - is the index of the molecule
+    // First Index - is the index of the molecule
     // Molecule* - is a pointer to the Molecule object
-    map<int, Molecule *> mol_map;
+    map<Index, Molecule *> mol_map;
 
     // Used to reindex the molecules so that they start at 0 and progress
     // with out gaps in their ids.
-    // First int  - is the index of the old molecule
-    // Second int - is the new index
-    map<int, int> mol_reInd_map;
+    // First Index  - is the index of the old molecule
+    // Second Index - is the new index
+    map<Index, Index> mol_reInd_map;
 
-    int ind = 0;
+    Index ind = 0;
     for (auto mol = molecule_atms.begin(); mol != molecule_atms.end(); mol++) {
 
       string mol_name = "PDB Molecule " + boost::lexical_cast<string>(ind);
@@ -481,8 +481,8 @@ bool PDBReader::NextFrame(Topology &top) {
       mol_reInd_map[mol->first] = ind;
 
       // Add all the atoms to the appropriate molecule object
-      list<int> atm_list = molecule_atms[mol->first];
-      for (int &atm_temp : atm_list) {
+      list<Index> atm_list = molecule_atms[mol->first];
+      for (Index &atm_temp : atm_list) {
 
         string residuename = "DUM";
         mi->AddBead(bead_vec.at(atm_temp - 1), residuename);
@@ -490,20 +490,20 @@ bool PDBReader::NextFrame(Topology &top) {
       ind++;
     }
 
-    int bond_indx = 0;
+    Index bond_indx = 0;
     // Cyle through the bonds and add them to the appropriate molecule
     for (auto &bond_pair : bond_pairs) {
 
-      int atm_id1 = bond_pair.at(0);
-      int atm_id2 = bond_pair.at(1);
+      Index atm_id1 = bond_pair.at(0);
+      Index atm_id2 = bond_pair.at(1);
       // Should be able to just look at one of the atoms the bond is attached
       // too because the other will also be attached to the same molecule.
-      int mol_ind = atm_molecule[atm_id1];
+      Index mol_ind = atm_molecule[atm_id1];
       Molecule *mi = mol_map[mol_ind];
       // Grab the id of the bead associated with the atom
       // It may be the case that the atom id's and bead id's are different
-      long bead_id1 = bead_vec.at(atm_id1 - 1)->getId();
-      long bead_id2 = bead_vec.at(atm_id2 - 1)->getId();
+      Index bead_id1 = bead_vec.at(atm_id1 - 1)->getId();
+      Index bead_id2 = bead_vec.at(atm_id2 - 1)->getId();
       Interaction *ic = new IBond(bead_id1, bead_id2);
       ic->setGroup("BONDS");
       ic->setIndex(bond_indx);

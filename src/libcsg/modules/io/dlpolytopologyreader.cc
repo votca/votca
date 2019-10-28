@@ -61,7 +61,7 @@ string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char *wspace)
 }
 
 string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char *wspace,
-                                         const string &word, long &ival)
+                                         const string &word, Index &ival)
 // function to read the next line containing only a given keyword and an integer
 // value after it (only skipping comments!) NOTE: this function must only be
 // called when the next directive line has to contain the given keyword and an
@@ -89,13 +89,13 @@ string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char *wspace,
                              line + "' in topology file '" + _fname + "'");
   }
 
-  ival = boost::lexical_cast<int>(sval);
+  ival = boost::lexical_cast<Index>(sval);
 
   return sl.str();
 }
 
 bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
-                                     const string &word, int &ival)
+                                     const string &word, Index &ival)
 // function to check if the given (last read) directive line starts with a given
 // keyword and has an integer value at the end NOTE: comments are allowed beyond
 // the integer (anything after the first integer is ignored)
@@ -122,17 +122,17 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
 
   size_t i_num = string::npos;
 
-  unsigned i = 1;
+  Index i = 1;
   do {  // find integer number in the field with the lowest index (closest to
         // the keyword)
     i_num = fields[i++].find_first_of("0123456789");
-  } while (i_num > 0 && i < fields.size());
+  } while (i_num > 0 && i < Index(fields.size()));
 
   if (i_num > 0) {
     return false;
   }
 
-  ival = boost::lexical_cast<int>(fields[i - 1]);
+  ival = boost::lexical_cast<Index>(fields[i - 1]);
 
   return true;
 }
@@ -140,8 +140,8 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
   const char *WhiteSpace = " \t";
 
-  long matoms = 0;
-  long natoms = 0;
+  Index matoms = 0;
+  Index natoms = 0;
 
   std::ifstream fl;
   boost::filesystem::path filepath(file.c_str());
@@ -184,7 +184,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
       boost::to_upper(line);
     }
 
-    int nmol_types;
+    Index nmol_types;
 
     if (!_isKeyInt(line, WhiteSpace, "MOLEC", nmol_types)) {
       throw std::runtime_error("Error: missing integer number in directive '" +
@@ -198,12 +198,12 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
     string mol_name;
 
-    for (int nmol_type = 0; nmol_type < nmol_types; nmol_type++) {
+    for (Index nmol_type = 0; nmol_type < nmol_types; nmol_type++) {
 
       mol_name = _NextKeyline(fl, WhiteSpace);
       Molecule *mi = top.CreateMolecule(mol_name);
 
-      long nreplica = 1;
+      Index nreplica = 1;
       line = _NextKeyInt(fl, WhiteSpace, "NUMMOL", nreplica);
 
 #ifdef DEBUG
@@ -217,8 +217,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
       cout << "Read from dlpoly file '" << _fname << "' : '" << line << "' - "
            << natoms << endl;
 #endif
-      std::vector<long> id_map(natoms);
-      for (int i = 0; i < natoms;) {  // i is altered in repeater loop
+      std::vector<Index> id_map(natoms);
+      for (Index i = 0; i < natoms;) {  // i is altered in repeater loop
         stringstream sl(_NextKeyline(fl, WhiteSpace));
 
 #ifdef DEBUG
@@ -247,12 +247,12 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
              << endl;
 #endif
 
-        int repeater = 1;
+        Index repeater = 1;
         if (fields.size() > 1) {
-          repeater = boost::lexical_cast<int>(fields[0]);
+          repeater = boost::lexical_cast<Index>(fields[0]);
         }
 
-        for (int j = 0; j < repeater; j++) {
+        for (Index j = 0; j < repeater; j++) {
 
           string beadname = beadtype + "#" + boost::lexical_cast<string>(i + 1);
           Bead *bead =
@@ -286,9 +286,9 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         line = line.substr(0, 6);
         if ((line == "BONDS") || (line == "ANGLES") || (line == "DIHEDR")) {
           string type = line;
-          int count;
+          Index count;
           nl >> count;
-          for (int i = 0; i < count; i++) {
+          for (Index i = 0; i < count; i++) {
 
             stringstream sl(_NextKeyline(fl, WhiteSpace));
 #ifdef DEBUG
@@ -297,7 +297,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 #endif
             sl >> line;  // internal dlpoly bond/angle/dihedral function types
                          // are merely skipped (ignored)
-            int ids[4];
+            Index ids[4];
             Interaction *ic = nullptr;
             sl >> ids[0];
             sl >> ids[1];
@@ -337,9 +337,9 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 #endif
 
       // replicate molecule
-      for (int replica = 1; replica < nreplica; replica++) {
+      for (Index replica = 1; replica < nreplica; replica++) {
         Molecule *mi_replica = top.CreateMolecule(mol_name);
-        for (int i = 0; i < mi->BeadCount(); i++) {
+        for (Index i = 0; i < mi->BeadCount(); i++) {
           Bead *bead = mi->getBead(i);
           string type = bead->getType();
           Bead *bead_replica =
@@ -351,7 +351,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         InteractionContainer ics = mi->Interactions();
         for (auto &ic : ics) {
           Interaction *ic_replica = nullptr;
-          long offset =
+          Index offset =
               mi_replica->getBead(0)->getId() - mi->getBead(0)->getId();
           if (ic->BeadCount() == 2) {
             ic_replica =

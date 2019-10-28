@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(triplelist_add_triple) {
 
   votca::tools::byte_t symmetry = 1;
   string name = "dummy1";
-  int resnr = 0;
+  Index resnr = 0;
   double mass = 1.0;
   double charge = -1.0;
 

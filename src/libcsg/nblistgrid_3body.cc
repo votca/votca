@@ -152,9 +152,9 @@ void NBListGrid_3Body::InitializeGrid(const Eigen::Matrix3d &box) {
   double lc = _box_c.dot(_norm_c);
 
   // calculate grid size, each grid has to be at least size of cut-off
-  _box_Na = max((int)(fabs(la / _cutoff)), 1);
-  _box_Nb = max((int)(fabs(lb / _cutoff)), 1);
-  _box_Nc = max((int)(fabs(lc / _cutoff)), 1);
+  _box_Na = Index(std::max(std::abs(la / _cutoff), 1.0));
+  _box_Nb = Index(std::max(std::abs(lb / _cutoff), 1.0));
+  _box_Nc = Index(std::max(std::abs(lc / _cutoff), 1.0));
 
   _norm_a = _norm_a / la * (double)_box_Na;
   _norm_b = _norm_b / lb * (double)_box_Nb;
@@ -162,7 +162,7 @@ void NBListGrid_3Body::InitializeGrid(const Eigen::Matrix3d &box) {
 
   _grid.resize(_box_Na * _box_Nb * _box_Nc);
 
-  int a1, a2, b1, b2, c1, c2;
+  Index a1, a2, b1, b2, c1, c2;
 
   a1 = b1 = c1 = -1;
   a2 = b2 = c2 = 1;
@@ -189,13 +189,13 @@ void NBListGrid_3Body::InitializeGrid(const Eigen::Matrix3d &box) {
 
   // wow, setting up the neighbours is an ugly for construct!
   // loop from N..2*N to avoid if and only use %
-  for (int a = _box_Na; a < 2 * _box_Na; ++a) {
-    for (int b = _box_Nb; b < 2 * _box_Nb; ++b) {
-      for (int c = _box_Nc; c < 2 * _box_Nc; ++c) {
+  for (Index a = _box_Na; a < 2 * _box_Na; ++a) {
+    for (Index b = _box_Nb; b < 2 * _box_Nb; ++b) {
+      for (Index c = _box_Nc; c < 2 * _box_Nc; ++c) {
         cell_t &cell = getCell(a % _box_Na, b % _box_Nb, c % _box_Nc);
-        for (int aa = a + a1; aa <= a + a2; ++aa) {
-          for (int bb = b + b1; bb <= b + b2; ++bb) {
-            for (int cc = c + c1; cc <= c + c2; ++cc) {
+        for (Index aa = a + a1; aa <= a + a2; ++aa) {
+          for (Index bb = b + b1; bb <= b + b2; ++bb) {
+            for (Index cc = c + c1; cc <= c + c2; ++cc) {
               // test: for 3body algorithm: each cell is a neighbor of its own
               // !!!
               cell._neighbours.push_back(
@@ -209,9 +209,9 @@ void NBListGrid_3Body::InitializeGrid(const Eigen::Matrix3d &box) {
 }
 
 NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const Eigen::Vector3d &r) {
-  int a = (int)floor(r.dot(_norm_a));
-  int b = (int)floor(r.dot(_norm_b));
-  int c = (int)floor(r.dot(_norm_c));
+  Index a = (Index)floor(r.dot(_norm_a));
+  Index b = (Index)floor(r.dot(_norm_b));
+  Index c = (Index)floor(r.dot(_norm_c));
 
   if (a < 0) {
     a = _box_Na + a % _box_Na;

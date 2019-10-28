@@ -26,7 +26,7 @@ using namespace votca::tools;
 namespace votca {
 namespace csg {
 
-PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, int nlam,
+PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, Index nlam,
                                                double min, double max)
     : PotentialFunction(name, nlam, min, max) {
 
@@ -40,7 +40,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, int nlam,
    * extrapolated from first statistically significant knot values near rmin
    */
 
-  long nknots;
+  Index nknots;
 
   nknots = _lam.size();
 
@@ -53,12 +53,12 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, int nlam,
   // computed
   _rbreak = Eigen::VectorXd::Zero(nknots);
 
-  for (int i = 0; i < nknots; i++) {
-    _rbreak(i) = i * _dr;
+  for (Index i = 0; i < nknots; i++) {
+    _rbreak(i) = double(i) * _dr;
   }
 
   // exclude knots corresponding to r <= _min
-  _nexcl = std::min((long int)(_min / _dr), _nbreak - 2) + 1;
+  _nexcl = std::min((Index)(_min / _dr), _nbreak - 2) + 1;
 
   // account for finite numerical division of _min/_dr
   // e.g. 0.24/0.02 may result in 11.99999999999999
@@ -70,7 +70,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, int nlam,
   _ncutcoeff = 4;
 
   // check if we have enough parameters to optimize
-  if ((int(_lam.size()) - _nexcl - _ncutcoeff) < 1) {
+  if ((Index(_lam.size()) - _nexcl - _ncutcoeff) < 1) {
     throw std::runtime_error(
         "In potential " + _name +
         ": no parameters to optimize!\n"
@@ -79,7 +79,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, int nlam,
         "This issue can be resolved by one or combination of following steps:\n"
         "1. Make sure you are using large-enough cut-off for this CG "
         "potential.\n"
-        "2. Make sure the CG-MD runs are sufficiently long and CG-MD RDF are "
+        "2. Make sure the CG-MD runs are sufficiently Index and CG-MD RDF are "
         "statistically reliable.\n"
         "3. Use more knot values.\n");
   }
@@ -104,7 +104,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, int nlam,
   _M /= 6.0;
 }
 
-long PotentialFunctionCBSPL::getOptParamSize() const {
+Index PotentialFunctionCBSPL::getOptParamSize() const {
 
   return _lam.size() - _nexcl - _ncutcoeff;
 }
@@ -124,11 +124,9 @@ void PotentialFunctionCBSPL::setParam(string filename) {
                              boost::lexical_cast<string>(_lam.size()) +
                              " parameters");
   } else {
-
     // force last _ncutcoeff to zero
-    for (unsigned i = 0; i < _lam.size() - _ncutcoeff; i++) {
-      _lam(i) = param.y(i);
-    }
+    Index nonzero = _lam.size() - _ncutcoeff;
+    _lam.head(nonzero) = param.y().head(nonzero);
   }
 }
 
@@ -143,11 +141,11 @@ void PotentialFunctionCBSPL::SaveParam(const string &filename) {
   // write extrapolated knots with flag 'o'
   // points close to rmin can also be stastically not reliable
   // so flag 3 more points next to rmin as 'o'
-  for (int i = 0; i < _nexcl + 3; i++) {
+  for (Index i = 0; i < _nexcl + 3; i++) {
     param.set(i, _rbreak(i), _lam(i), 'o');
   }
 
-  for (long i = _nexcl + 3; i < _lam.size(); i++) {
+  for (Index i = _nexcl + 3; i < _lam.size(); i++) {
     param.set(i, _rbreak(i), _lam(i), 'i');
   }
 
@@ -189,17 +187,17 @@ void PotentialFunctionCBSPL::extrapolExclParam() {
 
   double a = m;
   double b = -1.0 * m * r0 + u0;
-  for (int i = 0; i < _nexcl; i++) {
+  for (Index i = 0; i < _nexcl; i++) {
     _lam(i) = a * _rbreak(i) + b;
   }
 }
 
-void PotentialFunctionCBSPL::setOptParam(long i, double val) {
+void PotentialFunctionCBSPL::setOptParam(Index i, double val) {
 
   _lam(i + _nexcl) = val;
 }
 
-double PotentialFunctionCBSPL::getOptParam(long i) const {
+double PotentialFunctionCBSPL::getOptParam(Index i) const {
 
   return _lam(i + _nexcl);
 }
@@ -209,7 +207,7 @@ double PotentialFunctionCBSPL::CalculateF(double r) const {
   if (r <= _cut_off) {
 
     double u = 0.0;
-    long indx = min((long int)(r / _dr), _nbreak - 2);
+    Index indx = std::min((Index)(r / _dr), _nbreak - 2);
     double rk = (double)indx * _dr;
     double t = (r - rk) / _dr;
 
@@ -228,17 +226,17 @@ double PotentialFunctionCBSPL::CalculateF(double r) const {
 }
 
 // calculate first derivative w.r.t. ith parameter
-double PotentialFunctionCBSPL::CalculateDF(long i, double r) const {
+double PotentialFunctionCBSPL::CalculateDF(Index i, double r) const {
 
   // since first _nexcl parameters are not optimized for stability reasons
 
   if (r <= _cut_off) {
 
-    long i_opt = i + _nexcl;
-    long indx;
+    Index i_opt = i + _nexcl;
+    Index indx;
     double rk;
 
-    indx = min((long int)(r / _dr), _nbreak - 2);
+    indx = std::min((Index)(r / _dr), _nbreak - 2);
     rk = (double)indx * _dr;
 
     if (i_opt >= indx && i_opt <= indx + 3) {
@@ -266,7 +264,7 @@ double PotentialFunctionCBSPL::CalculateDF(long i, double r) const {
 }
 
 // calculate second derivative w.r.t. ith parameter
-double PotentialFunctionCBSPL::CalculateD2F(long int, long int, double) const {
+double PotentialFunctionCBSPL::CalculateD2F(Index, Index, double) const {
 
   return 0.0;
 }

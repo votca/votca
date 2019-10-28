@@ -79,12 +79,12 @@ BOOST_AUTO_TEST_CASE(test_evalconfiguration_begin) {
     top.setBox(box);
 
     // Create three beads
-    byte_t symmetry = 1;
+    votca::Index symmetry = 1;
 
     string bead_type_name = "type1";
     top.RegisterBeadType(bead_type_name);
 
-    int residue_number = 1;
+    votca::Index residue_number = 1;
     double mass = 1.1;
     double charge = 0.3;
 

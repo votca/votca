@@ -46,7 +46,7 @@ class Imc {
   /// end coarse graining a trajectory
   void EndEvaluate();
 
-  void BlockLength(int length) { _block_length = length; }
+  void BlockLength(votca::Index length) { _block_length = length; }
   void DoImc(bool do_imc) { _do_imc = do_imc; }
   void Extension(std::string ext) { _extension = ext; }
 
@@ -58,7 +58,7 @@ class Imc {
 
   /// struct to store collected information for interactions
   struct interaction_t {
-    long _index;
+    votca::Index _index;
     tools::Property *_p;
     tools::HistogramNew _average;
     tools::HistogramNew _average_force;
@@ -74,10 +74,10 @@ class Imc {
   struct pair_t {
     interaction_t *_i1;
     interaction_t *_i2;
-    int _offset_i, _offset_j;
+    votca::Index _offset_i, _offset_j;
     pair_matrix _corr;
-    pair_t(interaction_t *i1, interaction_t *i2, int offset_i, int offset_j,
-           const pair_matrix &corr);
+    pair_t(interaction_t *i1, interaction_t *i2, votca::Index offset_i,
+           votca::Index offset_j, const pair_matrix &corr);
   };
 
   /// struct to store collected information for groups (e.g. crosscorrelations)
@@ -90,7 +90,7 @@ class Imc {
   /// the options parsed from cg definition file
   tools::Property _options;
   // length of the block to write out and averages are clear after every write
-  int _block_length = 0;
+  votca::Index _block_length = 0;
   // calculate the inverse monte carlos parameters (cross correlations)
   bool _do_imc = false;
 
@@ -98,8 +98,8 @@ class Imc {
   std::string _extension;
 
   // number of frames we processed
-  int _nframes;
-  int _nblock;
+  votca::Index _nframes;
+  votca::Index _nblock;
 
   /// list of bonded interactions
   std::vector<tools::Property *> _bonded;
@@ -154,7 +154,8 @@ class Imc {
 };
 
 inline Imc::pair_t::pair_t(Imc::interaction_t *i1, Imc::interaction_t *i2,
-                           int offset_i, int offset_j, const pair_matrix &corr)
+                           votca::Index offset_i, votca::Index offset_j,
+                           const pair_matrix &corr)
     : _i1(i1), _i2(i2), _offset_i(offset_i), _offset_j(offset_j), _corr(corr) {}
 
 }  // namespace csg

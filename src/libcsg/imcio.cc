@@ -33,7 +33,7 @@ using group_matrix = Eigen::MatrixXd;
 using namespace std;
 
 void imcio_write_dS(const string &file, const tools::Table &dS,
-                    const std::list<int> *list) {
+                    const std::list<Index> *list) {
   // write the dS
   ofstream out_dS;
   out_dS.open(file);
@@ -43,11 +43,11 @@ void imcio_write_dS(const string &file, const tools::Table &dS,
   }
 
   if (list == nullptr) {
-    for (int i = 0; i < dS.size(); ++i) {
+    for (Index i = 0; i < dS.size(); ++i) {
       out_dS << dS.x(i) << " " << dS.y(i) << endl;
     }
   } else {
-    for (int i : *list) {
+    for (Index i : *list) {
       out_dS << dS.x(i) << " " << dS.y(i) << endl;
     }
   }
@@ -57,7 +57,7 @@ void imcio_write_dS(const string &file, const tools::Table &dS,
 }
 
 void imcio_write_matrix(const string &file, const Eigen::MatrixXd &gmc,
-                        const std::list<int> *list) {
+                        const std::list<Index> *list) {
   ofstream out_A;
   out_A.open(file);
   out_A << setprecision(8);
@@ -67,15 +67,15 @@ void imcio_write_matrix(const string &file, const Eigen::MatrixXd &gmc,
   }
 
   if (list == nullptr) {
-    for (int i = 0; i < gmc.rows(); ++i) {
-      for (int j = 0; j < gmc.cols(); ++j) {
+    for (Index i = 0; i < gmc.rows(); ++i) {
+      for (Index j = 0; j < gmc.cols(); ++j) {
         out_A << gmc(i, j) << " ";
       }
       out_A << endl;
     }
   } else {
-    for (int i : *list) {
-      for (int j : *list) {
+    for (Index i : *list) {
+      for (Index j : *list) {
         out_A << gmc(i, j) << " ";
       }
       out_A << endl;
@@ -113,7 +113,7 @@ Eigen::MatrixXd imcio_read_matrix(const std::string &filename) {
 
   std::string line;
   std::vector<double> result;
-  int numrows = 0;
+  Index numrows = 0;
   size_t numcols = 0;
   while (getline(intt, line)) {
     if (line[0] == '#') {

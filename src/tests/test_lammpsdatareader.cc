@@ -39,7 +39,7 @@ using namespace votca::tools;
 BOOST_AUTO_TEST_SUITE(lammpsdatareaderwriter_test)
 
 // used for rounding doubles so we can compare them
-double round_(double v, int p);
+double round_(double v, Index p);
 
 // Check if file exists
 bool fexists_(const string filename);
@@ -87,10 +87,10 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   BOOST_CHECK_EQUAL(mol->BeadCount(), 100);
 
   auto interaction_cont = top.BondedInteractions();
-  int numBondInter = 99;
-  int numAngleInter = 98;
-  int numDihedralInter = 97;
-  int totalInter = numBondInter + numAngleInter + numDihedralInter;
+  Index numBondInter = 99;
+  Index numAngleInter = 98;
+  Index numDihedralInter = 97;
+  Index totalInter = numBondInter + numAngleInter + numDihedralInter;
   BOOST_CHECK_EQUAL(interaction_cont.size(), totalInter);
 }
 
@@ -155,10 +155,10 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   BOOST_CHECK_EQUAL(mol->BeadCount(), 100);
 
   auto interaction_cont = top.BondedInteractions();
-  int numBondInter = 99;
-  int numAngleInter = 98;
-  int numDihedralInter = 97;
-  int totalInter = numBondInter + numAngleInter + numDihedralInter;
+  Index numBondInter = 99;
+  Index numAngleInter = 98;
+  Index numDihedralInter = 97;
+  Index totalInter = numBondInter + numAngleInter + numDihedralInter;
   BOOST_CHECK_EQUAL(interaction_cont.size(), totalInter);
 }
 /*****************************************************************************

@@ -66,15 +66,15 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
 
     string molname = *(mol->name);
 
-    long res_offset = top.ResidueCount();
+    Index res_offset = top.ResidueCount();
 
     t_atoms *atoms = &(mol->atoms);
 
-    for (int i = 0; i < atoms->nres; i++) {
+    for (Index i = 0; i < atoms->nres; i++) {
       top.CreateResidue(*(atoms->resinfo[i].name));
     }
 
-    for (int imol = 0; imol < mtop.molblock[iblock].nmol; ++imol) {
+    for (Index imol = 0; imol < mtop.molblock[iblock].nmol; ++imol) {
       Molecule *mi = top.CreateMolecule(molname);
 
 #if GROMACS_VERSION >= 20190000
@@ -106,7 +106,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
         t_blocka *excl = &(mol->excls);
         // insert exclusions
         list<Bead *> excl_list;
-        for (int k = excl->index[iatom]; k < excl->index[iatom + 1]; k++) {
+        for (Index k = excl->index[iatom]; k < excl->index[iatom + 1]; k++) {
           excl_list.push_back(top.getBead(excl->a[k] + ifirstatom));
         }
         top.InsertExclusion(top.getBead(iatom + ifirstatom), excl_list);
@@ -116,8 +116,8 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
   }
 
   Eigen::Matrix3d m;
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
+  for (Index i = 0; i < 3; i++) {
+    for (Index j = 0; j < 3; j++) {
       m(i, j) = gbox[j][i];
     }
   }

@@ -28,9 +28,9 @@ namespace votca {
 namespace csg {
 
 void imcio_write_dS(const std::string &file, const tools::Table &dS,
-                    const std::list<int> *list = nullptr);
+                    const std::list<Index> *list = nullptr);
 void imcio_write_matrix(const std::string &file, const Eigen::MatrixXd &gmc,
-                        const std::list<int> *list = nullptr);
+                        const std::list<Index> *list = nullptr);
 void imcio_write_index(
     const std::string &file,
     const std::vector<std::pair<std::string, tools::RangeParser> > &ranges);

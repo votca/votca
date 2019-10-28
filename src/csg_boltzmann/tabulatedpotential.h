@@ -134,7 +134,7 @@ class TabulatedPotential : public AnalysisTool {
    * \return pair of integers containing the number of smoothing
    * iteratiosn before and after boltzmann inversion.
    **/
-  std::pair<int, int> getSmoothIterations() const;
+  std::pair<int, Index> getSmoothIterations() const;
 
  private:
   bool SetOption_(TOOLS::Histogram::options_t &op,
@@ -163,10 +163,10 @@ class TabulatedPotential : public AnalysisTool {
 
   /// How many times the data is smoothed before the histogram is
   /// boltzmann inverted.
-  int _tab_smooth1;
+  Index _tab_smooth1;
   /// How many times the data is smoothed after the histogram is boltzmann
   /// inverted.
-  int _tab_smooth2;
+  Index _tab_smooth2;
   /// Temperature in units of Kelvin
   double _Temperature;
 };

@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
       {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}};
 
   Elements elements;
-  int residue_num = 1;
+  Index residue_num = 1;
   double charge = 0.0;
   byte_t symmetry = 1;
 
@@ -305,7 +305,7 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
       {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}};
 
   Elements elements;
-  int residue_num = 1;
+  Index residue_num = 1;
   double charge = 0.0;
   byte_t symmetry = 1;
 

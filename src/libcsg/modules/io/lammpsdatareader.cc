@@ -139,7 +139,7 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
 
 void LAMMPSDataReader::RenameMolecule(Molecule &mol) const {
   if (mol.getName() == "UNKNOWN") {
-    std::map<std::string, int> molname_map;
+    std::map<std::string, Index> molname_map;
     for (const Bead *atom : mol.Beads()) {
       std::string atomname = atom->getName();
       std::string element = atomname.substr(0, 1);
@@ -247,7 +247,7 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
     throw runtime_error(err);
   }
 
-  int index = 0;
+  Index index = 0;
   tools::Elements elements;
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
@@ -270,7 +270,7 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
   Eigen::Matrix3d m = Eigen::Matrix3d::Zero();
   m(0, 0) = stod(fields.at(1)) - stod(fields.at(0));
 
-  for (int i = 1; i < 3; ++i) {
+  for (Index i = 1; i < 3; ++i) {
     string line;
     getline(fl_, line);
     tools::Tokenizer tok(line, " ");
@@ -372,9 +372,9 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     chargeRead = true;
   }
 
-  map<int, string> sorted_file;
-  int startingIndex;
-  int startingIndexMolecule = 0;
+  map<Index, string> sorted_file;
+  Index startingIndex;
+  Index startingIndexMolecule = 0;
   istringstream issfirst(line);
   issfirst >> startingIndex;
   if (moleculeRead) {
@@ -384,8 +384,8 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
   getline(fl_, line);
   boost::trim(line);
 
-  int atomId = 0;
-  int moleculeId = 0;
+  Index atomId = 0;
+  Index moleculeId = 0;
   while (!line.empty()) {
     istringstream iss(line);
     iss >> atomId;
@@ -403,11 +403,11 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     }
   }
 
-  for (int atomIndex = startingIndex;
+  for (Index atomIndex = startingIndex;
        static_cast<size_t>(atomIndex - startingIndex) < sorted_file.size();
        ++atomIndex) {
 
-    int atomTypeId;
+    Index atomTypeId;
     double charge = 0;
     double x, y, z;
 
@@ -445,11 +445,11 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       } else {
         mol = molecules_[moleculeId];
       }
-      votca::tools::byte_t symmetry = 1;  // spherical
+      Index symmetry = 1;  // spherical
 
       double mass = stod(data_["Masses"].at(atomTypeId).at(1));
 
-      if (int(data_.at("Masses").size()) <= atomTypeId) {
+      if (Index(data_.at("Masses").size()) <= atomTypeId) {
         string err =
             "The atom block contains an atom of type " + to_string(atomTypeId) +
             " however, the masses are only specified for atoms up to type " +
@@ -457,7 +457,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
         throw runtime_error(err);
       }
 
-      int residue_index = moleculeId;
+      Index residue_index = moleculeId;
       if (residue_index >= top.ResidueCount()) {
         while ((residue_index - 1) >= top.ResidueCount()) {
           top.CreateResidue("DUM");
@@ -508,11 +508,11 @@ void LAMMPSDataReader::ReadBonds_(Topology &top) {
   getline(fl_, line);
   boost::trim(line);
 
-  int bondId;
-  int bondTypeId;
-  int atom1Id, atom2Id;
+  Index bondId;
+  Index bondTypeId;
+  Index atom1Id, atom2Id;
 
-  int bond_count = 0;
+  Index bond_count = 0;
   while (!line.empty()) {
 
     if (topology_) {
@@ -527,8 +527,8 @@ void LAMMPSDataReader::ReadBonds_(Topology &top) {
       --bondTypeId;
       --bondId;
 
-      int atom1Index = atomIdToIndex_[atom1Id];
-      int atom2Index = atomIdToIndex_[atom2Id];
+      Index atom1Index = atomIdToIndex_[atom1Id];
+      Index atom2Index = atomIdToIndex_[atom2Id];
 
       Interaction *ic = new IBond(atom1Index, atom2Index);
       ic->setGroup("BONDS");
@@ -562,11 +562,11 @@ void LAMMPSDataReader::ReadAngles_(Topology &top) {
   getline(fl_, line);
   boost::trim(line);
 
-  int angleId;
-  int angleTypeId;
-  int atom1Id, atom2Id, atom3Id;
+  Index angleId;
+  Index angleTypeId;
+  Index atom1Id, atom2Id, atom3Id;
 
-  int angle_count = 0;
+  Index angle_count = 0;
 
   while (!line.empty()) {
 
@@ -584,9 +584,9 @@ void LAMMPSDataReader::ReadAngles_(Topology &top) {
       --atom3Id;
       --angleTypeId;
 
-      int atom1Index = atomIdToIndex_[atom1Id];
-      int atom2Index = atomIdToIndex_[atom2Id];
-      int atom3Index = atomIdToIndex_[atom3Id];
+      Index atom1Index = atomIdToIndex_[atom1Id];
+      Index atom2Index = atomIdToIndex_[atom2Id];
+      Index atom3Index = atomIdToIndex_[atom3Id];
 
       Interaction *ic = new IAngle(atom1Index, atom2Index, atom3Index);
       ic->setGroup("ANGLES");
@@ -630,11 +630,11 @@ void LAMMPSDataReader::ReadDihedrals_(Topology &top) {
   getline(fl_, line);
   boost::trim(line);
 
-  int dihedralId;
-  int dihedralTypeId;
-  int atom1Id, atom2Id, atom3Id, atom4Id;
+  Index dihedralId;
+  Index dihedralTypeId;
+  Index atom1Id, atom2Id, atom3Id, atom4Id;
 
-  int dihedral_count = 0;
+  Index dihedral_count = 0;
   while (!line.empty()) {
 
     if (topology_) {
@@ -653,10 +653,10 @@ void LAMMPSDataReader::ReadDihedrals_(Topology &top) {
       --atom4Id;
       --dihedralTypeId;
 
-      int atom1Index = atomIdToIndex_[atom1Id];
-      int atom2Index = atomIdToIndex_[atom2Id];
-      int atom3Index = atomIdToIndex_[atom3Id];
-      int atom4Index = atomIdToIndex_[atom4Id];
+      Index atom1Index = atomIdToIndex_[atom1Id];
+      Index atom2Index = atomIdToIndex_[atom2Id];
+      Index atom3Index = atomIdToIndex_[atom3Id];
+      Index atom4Index = atomIdToIndex_[atom4Id];
 
       Interaction *ic =
           new IDihedral(atom1Index, atom2Index, atom3Index, atom4Index);

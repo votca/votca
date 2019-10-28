@@ -55,18 +55,18 @@ class CsgDensityApp : public CsgApplication {
   votca::tools::HistogramNew _dist;
   string _dens_type;
   double _rmax;
-  int _nbin;
+  votca::Index _nbin;
   double _scale;
   double _step;
-  int _frames;
-  int _nblock;
-  int _block_length;
+  votca::Index _frames;
+  votca::Index _nblock;
+  votca::Index _block_length;
   Eigen::Vector3d _ref;
   Eigen::Vector3d _axis;
   string _axisname;
   string _molname;
   double _area;
-  void WriteDensity(int nframes, const string &suffix = "");
+  void WriteDensity(votca::Index nframes, const string &suffix = "");
 };
 
 int main(int argc, char **argv) {
@@ -108,7 +108,7 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *) {
   }
 
   if (OptionsMap().count("block-length")) {
-    _block_length = OptionsMap()["block-length"].as<int>();
+    _block_length = OptionsMap()["block-length"].as<votca::Index>();
   } else {
     _block_length = 0;
   }
@@ -123,7 +123,7 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *) {
         "reference center can only be used in case of spherical density");
   }
 
-  _nbin = (int)floor(_rmax / _step);
+  _nbin = (votca::Index)floor(_rmax / _step);
   _dist.Initialize(0, _rmax, _nbin);
 
   cout << "rmax: " << _rmax << endl;
@@ -140,8 +140,8 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *) {
     if (!votca::tools::wildcmp(_molname.c_str(), mol->getName().c_str())) {
       continue;
     }
-    long N = mol->BeadCount();
-    for (long i = 0; i < N; i++) {
+    votca::Index N = mol->BeadCount();
+    for (votca::Index i = 0; i < N; i++) {
       Bead *b = mol->getBead(i);
       if (!votca::tools::wildcmp(_filter.c_str(), b->getName().c_str())) {
         continue;
@@ -175,11 +175,11 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *) {
 }
 
 // output everything when processing frames is done
-void CsgDensityApp::WriteDensity(int nframes, const string &suffix) {
+void CsgDensityApp::WriteDensity(votca::Index nframes, const string &suffix) {
   if (_axisname == "r") {
     _dist.data().y() =
         _scale /
-        (nframes * _rmax / (double)_nbin * 4 * votca::tools::conv::Pi) *
+        (double(nframes) * _rmax / (double)_nbin * 4 * votca::tools::conv::Pi) *
         _dist.data().y().cwiseQuotient(_dist.data().x().cwiseAbs2());
 
   } else {
@@ -242,7 +242,7 @@ void CsgDensityApp::Initialize() {
       "step",
       boost::program_options::value<double>(&_step)->default_value(0.01),
       "spacing of density")("block-length",
-                            boost::program_options::value<int>(),
+                            boost::program_options::value<votca::Index>(),
                             "  write blocks of this length, the averages are "
                             "cleared after every write")(
       "out", boost::program_options::value<string>(&_out), "Output file")(

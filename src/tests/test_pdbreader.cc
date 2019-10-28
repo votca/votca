@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   BOOST_CHECK_EQUAL(reader != nullptr, true);
   BOOST_CHECK_EQUAL(top.BeadCount(), 10);
 
-  vector<int> resnr = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
+  vector<Index> resnr = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
   vector<string> bd_name = {"C", "H", "H", "H", "H", "C", "H", "H", "H", "H"};
   vector<double> x = {-0.5249, -0.6202, -0.539,  -0.4682, -0.4724,
                       -0.2248, -0.1518, -0.3153, -0.2442, -0.1880};
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
                       -0.000, 0.0051,  0.0467, -0.1024, 0.0507};
   Bead *bd;
   Eigen::Vector3d v;
-  for (int i = 0; i < 10; i++) {
+  for (Index i = 0; i < 10; i++) {
     bd = top.getBead(i);
     BOOST_CHECK_EQUAL(bd->getId(), i);
     BOOST_CHECK_EQUAL(bd->getResnr(), resnr.at(i));

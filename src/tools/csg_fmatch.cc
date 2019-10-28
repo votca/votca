@@ -72,7 +72,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *) {
   }
 
   // read _nframes from input file
-  _nframes = _options.get("cg.fmatch.frames_per_block").as<int>();
+  _nframes = _options.get("cg.fmatch.frames_per_block").as<votca::Index>();
   // read _constr_least_sq from input file
   _constr_least_sq = _options.get("cg.fmatch.constrainedLS").as<bool>();
 
@@ -164,8 +164,8 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *) {
   }
 }
 
-CGForceMatching::SplineInfo::SplineInfo(long index, bool bonded_,
-                                        long matr_pos_,
+CGForceMatching::SplineInfo::SplineInfo(votca::Index index, bool bonded_,
+                                        votca::Index matr_pos_,
                                         votca::tools::Property *options) {
   // initialize standard data
   splineIndex = index;
@@ -183,7 +183,7 @@ CGForceMatching::SplineInfo::SplineInfo(long index, bool bonded_,
   gamma = 0.12;  //(0.12 nm = 1.2 Ang)
 
   // get non-bonded information
-  if (!bonded) {
+  if (!bonded_) {
     // check if option threebody exists
     if (options->exists("threebody")) {
       threebody = options->get("threebody").as<bool>();
@@ -210,7 +210,7 @@ CGForceMatching::SplineInfo::SplineInfo(long index, bool bonded_,
       type2 = options->get("type2").value();
     }
   }
-  if (bonded) {
+  if (bonded_) {
     // check if option periodic exists
     if (options->exists("fmatch.periodic")) {
       periodic = options->get("fmatch.periodic").as<bool>();
@@ -239,7 +239,7 @@ CGForceMatching::SplineInfo::SplineInfo(long index, bool bonded_,
   // initialize grid for block averaging
   dx_out = options->get("fmatch.out_step").as<double>();
   // number of output grid points
-  num_outgrid = 1 + (int)((grid_max - grid_min) / dx_out);
+  num_outgrid = 1 + (votca::Index)((grid_max - grid_min) / dx_out);
   result = Eigen::VectorXd::Zero(num_outgrid);
   error = Eigen::VectorXd::Zero(num_outgrid);
   resSum = Eigen::VectorXd::Zero(num_outgrid);
@@ -336,7 +336,7 @@ void CGForceMatching::WriteOutFiles() {
     // first output point = first grid point
     double out_x = spline->Spline.getGridPoint(0);
     // loop over output grid
-    for (int i = 0; i < spline->num_outgrid; i++) {
+    for (votca::Index i = 0; i < spline->num_outgrid; i++) {
 
       // If not threebody the result is (-1) the force
       if (!(spline->threebody)) {
@@ -384,7 +384,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *) {
       throw std::runtime_error(
           "number of beads in topology and force topology does not match");
     }
-    for (int i = 0; i < conf->BeadCount(); ++i) {
+    for (votca::Index i = 0; i < conf->BeadCount(); ++i) {
       conf->getBead(i)->F() -= _top_force.getBead(i)->getF();
       Eigen::Vector3d d =
           conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
@@ -412,7 +412,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *) {
   // loop for the forces vector:
   // hack, change the Has functions..
   if (conf->getBead(0)->HasF()) {
-    for (int iatom = 0; iatom < _nbeads; ++iatom) {
+    for (votca::Index iatom = 0; iatom < _nbeads; ++iatom) {
       const Eigen::Vector3d &Force = conf->getBead(iatom)->getF();
       _b(_least_sq_offset + 3 * _nbeads * _frame_counter + iatom) = Force.x();
       _b(_least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom) =
@@ -483,12 +483,12 @@ void CGForceMatching::FmatchAccumulateData() {
   }
 
   for (SplineInfo *sinfo : _splines) {
-    long mp = sinfo->matr_pos;
-    long ngp = sinfo->num_gridpoints;
+    votca::Index mp = sinfo->matr_pos;
+    votca::Index ngp = sinfo->num_gridpoints;
 
     // _x contains results for all splines. Here we cut the results for one
     // spline
-    for (int i = 0; i < ngp; i++) {
+    for (votca::Index i = 0; i < ngp; i++) {
       sinfo->block_res_f[i] = _x[i + mp];
       sinfo->block_res_f2[i] = _x[i + mp + ngp];
     }
@@ -499,10 +499,10 @@ void CGForceMatching::FmatchAccumulateData() {
     double out_x = sinfo->Spline.getGridPoint(0);
 
     // point in the middle of the output grid for printing debug information
-    int grid_point_debug = sinfo->num_outgrid / 2;
+    votca::Index grid_point_debug = sinfo->num_outgrid / 2;
 
     // loop over output grid
-    for (int i = 0; i < sinfo->num_outgrid; i++) {
+    for (votca::Index i = 0; i < sinfo->num_outgrid; i++) {
       // update resSum (add result of a particular block)
       sinfo->resSum[i] += sinfo->Spline.Calculate(out_x);
       // update resSum2 (add result of a particular block)
@@ -536,8 +536,8 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix) {
   // For constrained least squares - for Eigen::Matrix3d _B_constr
 
   Matrix.setZero();
-  long line_tmp = 0;
-  long col_tmp = 0;
+  votca::Index line_tmp = 0;
+  votca::Index col_tmp = 0;
 
   for (SplineInfo *sinfo : _splines) {
 
@@ -550,7 +550,7 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix) {
       line_tmp += 1;
     }
     // update counters
-    long sfnum = sinfo->num_splinefun;
+    votca::Index sfnum = sinfo->num_splinefun;
     line_tmp += sfnum + 1;
     col_tmp += 2 * (sfnum + 1);
   }
@@ -569,18 +569,18 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
 
   for (Interaction *inter : interList) {
 
-    long beads_in_int = inter->BeadCount();  // 2 for bonds, 3 for angles, 4
-                                             // for dihedrals
+    votca::Index beads_in_int = inter->BeadCount();  // 2 for bonds, 3 for
+                                                     // angles, 4 for dihedrals
 
     votca::tools::CubicSpline &SP = sinfo->Spline;
 
-    long mpos = sinfo->matr_pos;
+    votca::Index mpos = sinfo->matr_pos;
 
     double var = inter->EvaluateVar(*conf);  // value of bond, angle,
                                              // or dihedral
 
-    for (int loop = 0; loop < beads_in_int; loop++) {
-      long ii = inter->getBeadId(loop);
+    for (votca::Index loop = 0; loop < beads_in_int; loop++) {
+      votca::Index ii = inter->getBeadId(loop);
       Eigen::Vector3d gradient = inter->Grad(*conf, loop);
 
       SP.AddToFitMatrix(_A, var,
@@ -639,15 +639,15 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
   }
 
   for (BeadPair *pair : *nb) {
-    long iatom = pair->first()->getId();
-    long jatom = pair->second()->getId();
+    votca::Index iatom = pair->first()->getId();
+    votca::Index jatom = pair->second()->getId();
     double var = pair->dist();
     Eigen::Vector3d gradient = pair->r();
     gradient.normalize();
 
     votca::tools::CubicSpline &SP = sinfo->Spline;
 
-    long mpos = sinfo->matr_pos;
+    votca::Index mpos = sinfo->matr_pos;
 
     // add iatom
     SP.AddToFitMatrix(_A, var,
@@ -745,9 +745,9 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
   }
 
   for (BeadTriple *triple : *nb) {
-    long iatom = triple->bead1()->getId();
-    long jatom = triple->bead2()->getId();
-    long katom = triple->bead3()->getId();
+    votca::Index iatom = triple->bead1()->getId();
+    votca::Index jatom = triple->bead2()->getId();
+    votca::Index katom = triple->bead3()->getId();
     double distij = triple->dist12();
     double distik = triple->dist13();
     Eigen::Vector3d rij = triple->r12();
@@ -761,7 +761,7 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
 
     votca::tools::CubicSpline &SP = sinfo->Spline;
 
-    long mpos = sinfo->matr_pos;
+    votca::Index mpos = sinfo->matr_pos;
 
     double var =
         std::acos(rij.dot(rik) / sqrt(rij.squaredNorm() * rik.squaredNorm()));
