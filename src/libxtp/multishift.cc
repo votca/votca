@@ -28,39 +28,38 @@
 namespace votca {
 namespace xtp {
 
-void Multishift::setBasisSize(double basis_size) {
-  this->_basis_size = basis_size;
+void Multishift::setMatrixSize(int size) {
+  this->_matrix_size = size;
 }
 
-Multishift::MultiShiftResult Multishift::CBiCG(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b) const{
+Multishift::MultiShiftResult Multishift::ComplexBiCG(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b) const{
 
   MultiShiftResult result;
 
-  result._r.push_back(b);
-  Eigen::VectorXcd r_t = result._r.at(0).conjugate();
-  Eigen::VectorXcd p = result._r.at(0);
+  result._residue.push_back(b);
+  Eigen::VectorXcd r_t = result._residue[0].conjugate();
+  Eigen::VectorXcd p = result._residue[0];
   Eigen::VectorXcd p_t = r_t;
 
-  Eigen::VectorXcd x = Eigen::VectorXcd::Zero(_basis_size);
-
+  Eigen::VectorXcd x = Eigen::VectorXcd::Zero(_matrix_size);
+ 
   double res = 1;
-  double tol = 0.0000001;
-
+  double tol = 1e-7;
+ 
   int i = 0;
 
   int max_iter = 10000;
 
   while (res > tol) {
-
-    result._a.push_back(r_t.dot(result._r.at(i)) / p_t.dot(A * p));
-    x = x + result._a.at(i) * p;
-    result._r.push_back(result._r.at(i) - result._a.at(i) * A * p);
-    r_t = r_t - std::conj(result._a.at(i)) * A.adjoint() * p_t;
-    result._b.push_back(-1 * (A.adjoint() * p_t).dot(result._r.at(i + 1)) / p_t.dot(A * p));
-    p = result._r.at(i + 1) + result._b.at(i) * p;
-    p_t = r_t + std::conj(result._b.at(i)) * p_t;
-    // res=(A*x-b).norm();
-    res = result._r.at(i).squaredNorm();
+    
+    result._step_length_a.push_back(r_t.dot(result._residue[i]) / p_t.dot(A * p));
+    x = x + result._step_length_a[i] * p;
+    result._residue.push_back(result._residue[i] - result._step_length_a[i] * A * p);
+    r_t = r_t - std::conj(result._step_length_a[i]) * A.adjoint() * p_t;
+    result._step_length_b.push_back(-1 * (A.adjoint() * p_t).dot(result._residue[i + 1]) / p_t.dot(A * p));
+    p = result._residue[i + 1] + result._step_length_b[i] * p;
+    p_t = r_t + std::conj(result._step_length_b[i]) * p_t;
+    res = result._residue[i].squaredNorm();
     i++;
     if (i == max_iter) {
       
@@ -78,100 +77,48 @@ Eigen::VectorXcd Multishift::DoMultishift(const Eigen::MatrixXcd& A,
                                           std::complex<double> w,
                                           MultiShiftResult input) const{
 
-  if (input._r.empty()) {
+  if (input._residue.empty()) {
     // std::cout<<"Using HouseholderQR"<<std::endl;
     Eigen::MatrixXcd LHS =
-        A + w * Eigen::MatrixXcd::Identity(_basis_size, _basis_size);
+        A + w * Eigen::MatrixXcd::Identity(_matrix_size, _matrix_size);
     return LHS.colPivHouseholderQr().solve(b);
   }
 
-  Eigen::MatrixXcd I;
-  I.setIdentity(_basis_size, _basis_size);
+  Eigen::MatrixXcd I = Eigen::MatrixXcd::Identity(_matrix_size, _matrix_size);
 
-  Eigen::VectorXcd r = b;
-  Eigen::VectorXcd r_t = r.conjugate();
-  Eigen::VectorXcd p = r;
-  Eigen::VectorXcd p_t = r_t;
+  Eigen::VectorXcd residue = b;
+  Eigen::VectorXcd residue_t = residue.conjugate();
+  Eigen::VectorXcd direction = residue;
+  Eigen::VectorXcd direction_t = residue_t;
 
-  Eigen::VectorXcd x = Eigen::VectorXcd::Zero(_basis_size);
+  Eigen::VectorXcd x = Eigen::VectorXcd::Zero(_matrix_size);
 
   std::complex<double> beta;
 
   std::complex<double> pi = 1;
-  std::complex<double> a;
-  std::complex<double> pi_p = (1 + w * input._a.at(0)) * 1;
+  std::complex<double> stepsize;
+  std::complex<double> pi_p = (1 + w * input._step_length_a[0]) * 1;
 
   std::complex<double> pi_temp;
 
-  int i = 0;
+  for(int i = 0;i < input._step_length_a.size();i++) {
 
-  while (i < input._a.size()) {
+    stepsize = (pi / pi_p) * input._step_length_a[i];
+    x = x + stepsize * direction;
+    residue = input._residue[i+ 1] / pi_p;
+    residue_t = residue_t - std::conj(input._step_length_a[i]) * (A + w * I).adjoint() * direction_t;
 
-    a = (pi / pi_p) * input._a.at(i);
-    x = x + a * p;
-    r = input._r.at(i + 1) / pi_p;
-    r_t = r_t - std::conj(input._a.at(i)) * (A + w * I).adjoint() * p_t;
+    beta = (pi / pi_p) * (pi / pi_p) * input._step_length_b[i];
 
-    beta = (pi / pi_p) * (pi / pi_p) * input._b.at(i);
+    direction = residue + beta * direction;
+    direction_t = residue_t + std::conj(beta) * direction_t;
 
-    p = r + beta * p;
-    p_t = r_t + std::conj(beta) * p_t;
-
-    i++;
-
-    if (i >= input._a.size()) {
-      break;
-    }
     pi_temp = pi_p;
-    pi_p = (1 + w * input._a.at(i)) * pi_p +
-           input._a.at(i) * input._b.at(i - 1) / input._a.at(i - 1) * (pi_p - pi);
+    pi_p = (1 + w * input._step_length_a[i+1]) * pi_p +
+           input._step_length_a[i+1] * input._step_length_b[i+1- 1] / input._step_length_a[i+1- 1] * (pi_p - pi);
     pi = pi_temp;
   }
   return x;
 }
-
-void Multishift::testMultishift() {
-
-  Eigen::MatrixXcd A = Eigen::MatrixXcd::Random(_basis_size, _basis_size);
-  
-  MultiShiftResult result;
-  
-  Eigen::MatrixXcd I;
-
-  I.setIdentity(_basis_size, _basis_size);
-
-  std::cout << "A=" << std::endl << A << std::endl;
-
-  Eigen::VectorXcd b = Eigen::VectorXcd::Random(_basis_size);
-
-  std::cout << "b=" << std::endl << b << std::endl;
-
-  result = CBiCG(A, b);
-
-  std::cout << "x=" << std::endl << result._x << std::endl;
-
-  Eigen::VectorXcd res = (A)*result._x - b;
-
-  std::cout << "res=" << std::endl << res << std::endl;
-
-  if (res.norm() < 0.001) {
-    std::cout << "cBiCG Test successful" << std::endl;
-  }
-
-  std::complex<double> w(1, 0);
-
-  Eigen::VectorXcd x_w = DoMultishift(A, b, w, result);
-
-  std::cout << "x_w=" << std::endl << x_w << std::endl;
-
-  Eigen::VectorXcd res_w = (A + w * I) * x_w - b;
-
-  std::cout << "res_w=" << std::endl << res_w << std::endl;
-
-  if (res_w.norm() < 0.001) {
-    std::cout << "Multishift Test successful" << std::endl;
-  }
-}
-
 }  // namespace xtp
 }  // namespace votca

@@ -17,10 +17,9 @@
 // */
 
 #pragma once
-#ifndef STERNHEIMERW_H
-#define STERNHEIMERW_H
+#ifndef VOTCA_XTP_STERNHEIMERW_H
+#define VOTCA_XTP_STERNHEIMERW_H
 
-#include <eigen3/Eigen/src/Core/Matrix.h>
 #include <fstream>
 #include <votca/tools/property.h>
 #include <votca/xtp/aobasis.h>
@@ -39,7 +38,7 @@ class SternheimerW {
   SternheimerW(Orbitals& orbitals, Logger& log)
       : _orbitals(orbitals), _log(log){};
 
-  void Setup();
+  void Initialize();
 
   // Calculates the screened coulomb interaction matrix from the dielectric
   // matrix at frequency w
@@ -49,20 +48,13 @@ class SternheimerW {
   std::vector<Eigen::MatrixXcd> DeltaNOS(std::complex<double> w,
                                          std::string gridtype);
 
-  Eigen::MatrixXcd TestDeltaN(std::complex<double> w, int number,
-                              std::string gridtype);
-
   std::vector<Eigen::MatrixXcd> Polarisability(
-      std::vector<std::complex<double>> grid_w,
-      std::vector<std::complex<double>> w, std::string gridtype);
+      const std::vector<std::complex<double>>& grid_w,
+      const std::vector<std::complex<double>>& w, std::string gridtype);
 
-  void initializeMultishift(int basis_size);
+  void initializeMultishift(int size);
 
-  void initializePade(int basis_size);
-
-  void testPade();
-
-  bool evaluate();
+  void initializePade(int size);
 
  private:
   Logger& _log;
@@ -73,15 +65,15 @@ class SternheimerW {
 
   Multishift _multishift;
 
-  int _num_occ_lvls;// = _orbitals.getNumberOfAlphaElectrons();
+  int _num_occ_lvls;
 
   int _basis_size;
 
-  Eigen::MatrixXcd _H;
+  Eigen::MatrixXcd _Hamiltonian_Matrix;
 
-  Eigen::MatrixXcd _S;// = OverlapMatrix();
+  Eigen::MatrixXcd _overlap_Matrix;
 
-  Eigen::MatrixXcd _p;
+  Eigen::MatrixXcd _density_Matrix;
 
   Eigen::MatrixXd _mo_coefficients;
   Eigen::VectorXd _mo_energies;
@@ -109,9 +101,9 @@ class SternheimerW {
   Eigen::VectorXcd SternheimerSolve(const Eigen::MatrixXcd& LHS,
                                     const Eigen::VectorXcd& RHS);
 
-  std::vector<Eigen::MatrixXcd> DeltaNOSOP(std::vector<std::complex<double>> w,
+  std::vector<Eigen::MatrixXcd> DeltaNOneShot(std::vector<std::complex<double>> w,
                                            Eigen::Vector3d r)const;
 };
 }  // namespace xtp
 }  // namespace votca
-#endif /* STERNHEIMER_H */
+#endif //VOTCA_VOTCA-XTP_

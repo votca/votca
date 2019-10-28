@@ -563,7 +563,7 @@ bool GWBSE::Evaluate() {
       
       std::cout<<std::endl<<"Started Sternheimer"<<std::endl;
   
-      sternheimer.Setup();
+      sternheimer.Initialize();
       
       std::vector<Eigen::MatrixXcd> polar=sternheimer.Polarisability(w_g,w, "xcoarse");
 

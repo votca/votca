@@ -343,7 +343,7 @@
       <itemPath>../../src/tests/test_sigma_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_sphere_lebedev_rule.cc</itemPath>
       <itemPath>../../src/tests/test_statefilter.cc</itemPath>
-      <itemPath>../../src/tests/test_sternheimer.cc</itemPath>
+      <itemPath>../../src/tests/test_sternheimerw.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
@@ -4992,7 +4992,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_sternheimer.cc"
+      <item path="../../src/tests/test_sternheimerw.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -6162,7 +6162,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_sternheimer.cc"
+      <item path="../../src/tests/test_sternheimerw.cc"
             ex="false"
             tool="1"
             flavor2="0">

@@ -15,19 +15,19 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE sternheimer_test
+#define BOOST_TEST_MODULE sternheimerw_test
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <fstream>
-#include <votca/xtp/sternheimer.h>
+#include <votca/xtp/sternheimerw.h>
 #include <eigen3/Eigen/src/Core/Matrix.h>
 #include <votca/xtp/orbitals.h>
 using namespace votca::xtp;
 using namespace std; 
 
-BOOST_AUTO_TEST_SUITE(sternheimer_test)
+BOOST_AUTO_TEST_SUITE(sternheimerw_test)
 
-BOOST_AUTO_TEST_CASE(sternheimer_screened_coulomb) {
+BOOST_AUTO_TEST_CASE(sternheimerw_polar) {
     //:q
     cout<<"start test"<<endl;
     
@@ -171,7 +171,8 @@ BOOST_AUTO_TEST_CASE(sternheimer_screened_coulomb) {
       -0.512321, 1.39726, 0.374248, -0.793844, -0.035336;
     
     //Setting up MO energies
-    Eigen::VectorXd mo_energy = Eigen::VectorXd::Zero(17);
+    Eigen::VectorXd& mo_energy = orbitals.MOEnergies();
+    mo_energy = Eigen::VectorXd::Zero(17);
     mo_energy << -0.612601, -0.341755, -0.341755, -0.341755, 0.137304, 0.16678,
       0.16678, 0.16678, 0.671592, 0.671592, 0.671592, 0.974255, 1.01205,
       1.01205, 1.01205, 1.64823, 19.4429;
@@ -229,62 +230,64 @@ BOOST_AUTO_TEST_CASE(sternheimer_screened_coulomb) {
     vxc = MOs.transpose() * vxc * MOs;
     
     
-//    cout<<orbitals.MOEnergies()<<endl;
-//    cout<<orbitals.hasMOEnergies()<<endl;
-    //Performing Sternheimer calculation of the screened Coulomb interaction
-    Sternheimer sternheimer = Sternheimer(orbitals, log);
-//    
-//
-////    
-////    cout << "Coulomb" << endl;
-////    
-////    cout << sternheimer.CalculateCoulombMatrix(orbitals) << endl;
-//  
-//    Eigen::MatrixXd screened_Coulomb_OS=sternheimer.CalculateScreenedCoulombOS(orbitals, 100);
-//    
-//    cout << "Screened Coulomb Matrix one shot" << endl;
-//    
-//    cout << screened_Coulomb_OS << endl;
-//    
-//    
-//    Eigen::MatrixXd screened_Coulomb_SC=sternheimer.CalculateScreenedCoulombSC(orbitals, 0);
-//    
-//    cout << "Screened Coulomb Matrix self-consistent" << endl;
-//    
-//    cout << screened_Coulomb_SC << endl;
-//    
-//    
-//    Eigen::MatrixXcd greens_function=sternheimer.CalculateGreensfunction(orbitals, 0.0, 0.0001);
-//    
-//    cout << "Greens function" << endl;
-//    
-//    cout << greens_function << endl;
-//    
-//    Eigen::VectorXd grid=Eigen::VectorXd::LinSpaced(10000, -100, 100);
-//    //Eigen::VectorXd grid=mo_energy;
-//    Eigen::MatrixXcd self_ener=sternheimer.CalculateSelfEnergy(orbitals, 0.0, 0.0001, grid);
-//    
-//    cout << "Self energy" << endl;
-//
-//    cout << self_ener << endl;
+    SternheimerW sternheimer = SternheimerW(orbitals, log);
+
+    std::vector<std::complex<double>> w_g;
+    std::vector<std::complex<double>> w;
+      
+    std::complex<double> d(1,0);
+    std::complex<double> i(0,1);
+    for(int n=1;n<5;n++){
+        w_g.push_back(n*d+5*i);
+    }
+    for(int n=0;n<5;n++){
+        w.push_back(n*d);
+    }
+      
+      
+    std::cout<<std::endl<<"Started Sternheimer"<<std::endl;
+  
+    sternheimer.Initialize();
+    
+    std::vector<Eigen::MatrixXcd> polar=sternheimer.Polarisability(w_g,w, "xcoarse");
+
+    for(int i=0;i<w.size();i++){
+        std::cout<<"Polar at w= "<<w.at(i)<<std::endl;
+        std::cout<<polar.at(i)<<std::endl;
+    }
+    Eigen::Matrix3cd polar1 = Eigen::Matrix3cd::Zero();
+    polar1 << std::complex<double>(-242.7,-1.42212e-11), std::complex<double>(-0.00762263,-0.000588962), std::complex<double>(-0.00354416,-0.000464052),
+    std::complex<double>(-0.00762263,0.000588962), std::complex<double>(-242.693,-2.13349e-11), std::complex<double>(0.000867493,-0.000142456),
+    std::complex<double>(-0.00354416,0.000464052),  std::complex<double>(0.000867493,0.000142456), std::complex<double>(-242.69,-1.01156e-11);
+
+    Eigen::Matrix3cd polar3 = Eigen::Matrix3cd::Zero();
+    polar3 << std::complex<double>(-118.752,-5.27428e-12), std::complex<double>(-0.00245909,-0.0014254), std::complex<double>(-0.000956917,-0.00127581),
+    std::complex<double>(-0.00245909,0.0014254), std::complex<double>(-118.748,-9.59389e-12), std::complex<double>(0.000456679,-0.00069252),
+    std::complex<double>(-0.000956917,0.00127581), std::complex<double>(0.000456679,0.00069252), std::complex<double>(-118.748,-7.39539e-12);
+
+    std::cout<<"Polar at w= "<<w.at(1)<<std::endl;
+    std::cout<<polar.at(1)<<std::endl;
+
+    std::cout<<std::endl<<polar1<<std::endl;
+    
+    std::cout<<"diff="<<std::endl<<polar1-polar.at(1)<<std::endl;
+    
+    bool test1 = polar1.isApprox(polar.at(1), 1e-4);
+    bool test2 = polar3.isApprox(polar.at(3), 1e-4);
+  
+    BOOST_CHECK_EQUAL(test1, true);
+    BOOST_CHECK_EQUAL(test2, true);
     
     
+    
+    std::cout<<std::endl<<"Finished Sternheimer"<<std::endl;
+    
+    
+    
+        
     bool test = true;
     
     BOOST_CHECK_EQUAL(test, true);
-    
-    //Eigen::MatrixXd screenedCoulomb = sternheimer.CalculateScreenedCoulomb(orbitals, 0.0);
-
-    //Setting up reference
-    //Eigen::MatrixXd screenedCoulombRef = Eigen::MatrixXd::Zero(17, 17);
-    
-    
-    //bool check_screened_coulomb = screenedCoulombRef.isApprox(screenedCoulomb, 1e-5);
-    //cout << "Screened Coulomb interaction" << endl;
-    //cout << screenedCoulomb << endl;
-    
-    
-    
     
     cout<<log;
 }

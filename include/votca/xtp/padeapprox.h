@@ -16,9 +16,17 @@
 // * limitations under the License.
 // */
 
+///*
+//* Implementation of the Pade approximation for matrix valued functions,
+//* according to the algorithm proposed in the paper "Solving the Eliashberg 
+//* equations by means of n-point Pade Approximation" by H.J. Vidberg and J.W. 
+//* Serene (1997).
+//*/
+
+
 #pragma once
-#ifndef PADEAPPROX_H
-#define PADEAPPROX_H
+#ifndef VOTCA_XTP_PADEAPPROX_H
+#define VOTCA_XTP_PADEAPPROX_H
 
 #include <fstream>
 #include <votca/tools/property.h>
@@ -31,20 +39,18 @@ class PadeApprox {
  public:
   PadeApprox(){};
 
-  Eigen::MatrixXcd evaluate(std::complex<double> w);
+  Eigen::MatrixXcd evaluatePoint(std::complex<double> frequency);
 
-  void addPoint(std::complex<double> w, Eigen::MatrixXcd val);
+  void addPoint(std::complex<double> frequency, Eigen::MatrixXcd value);
 
   void initialize(int basis_size);
 
   void clear();
 
-  void test();
-
  private:
-  std::vector<Eigen::MatrixXcd> _imval;
+  std::vector<Eigen::MatrixXcd> _value;
 
-  std::vector<std::complex<double>> _imgrid;
+  std::vector<std::complex<double>> _grid;
 
   std::vector<Eigen::MatrixXcd> _coeff;
 
@@ -52,11 +58,11 @@ class PadeApprox {
 
   int _rejected_points = 0;
 
-  Eigen::MatrixXcd RecursivePolynom(int indx, int p);
+  Eigen::MatrixXcd RecursivePolynom(int indx, int degree);
 
-  Eigen::MatrixXcd RecursiveA(std::complex<double> w, int n);
+  Eigen::MatrixXcd RecursiveA(std::complex<double> frequency, int index);
 
-  Eigen::MatrixXcd RecursiveB(std::complex<double> w, int n);
+  Eigen::MatrixXcd RecursiveB(std::complex<double> frequency, int index);
 };
 }  // namespace xtp
 }  // namespace votca

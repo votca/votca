@@ -17,8 +17,8 @@
 // */
 
 #pragma once
-#ifndef MULTISHIFT_H
-#define MULTISHIFT_H
+#ifndef VOTCA_XTP_MULTISHIFT_H
+#define VOTCA_XTP_MULTISHIFT_H
 
 #include <fstream>
 #include <votca/tools/property.h>
@@ -31,29 +31,25 @@ class Multishift {
  public:
  
   struct MultiShiftResult{
-      std::vector<std::complex<double>> _a;
-      std::vector<std::complex<double>> _b;
-      std::vector<Eigen::VectorXcd> _r;
+      std::vector<std::complex<double>> _step_length_a;
+      std::vector<std::complex<double>> _step_length_b;
+      std::vector<Eigen::VectorXcd> _residue;
       Eigen::VectorXcd _x;
       bool converged=true;    
   };
   
-  void setBasisSize(double basis_size);
+  void setMatrixSize(int size);
 
-  Multishift::MultiShiftResult CBiCG(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b)const;
+  Multishift::MultiShiftResult ComplexBiCG(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b)const;
 
   Eigen::VectorXcd DoMultishift(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b,
                                 std::complex<double> w, MultiShiftResult input) const;
 
-  void testMultishift();
-
  private:
-     
-  
-     
-  int _basis_size;
+   
+  int _matrix_size;
 
 };
 }  // namespace xtp
 }  // namespace votca
-#endif
+#endif //VOTCA_VOTCA-XTP_MULTISHIFT_H
