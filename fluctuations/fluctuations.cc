@@ -206,11 +206,11 @@ void CsgFluctuations::EndEvaluate() {
   _outfile << "# radius number_fluct avg_number" << endl;
 
   for (votca::Index i = 0; i < _nbins; i++) {
-    _N_avg[i] /= _nframes;
-    _N_sq_avg[i] /= _nframes;
+    _N_avg[i] /= (double)_nframes;
+    _N_sq_avg[i] /= (double)_nframes;
   }
   for (votca::Index i = 0; i < _nbins; i++) {
-    _outfile << _rmin + i * (_rmax - _rmin) / _nbins << " ";
+    _outfile << _rmin + (double)i * (_rmax - _rmin) / (double)_nbins << " ";
     _outfile << (_N_sq_avg[i] - _N_avg[i] * _N_avg[i]) / _N_avg[i]
              << " ";  // fluctuation
     _outfile << _N_avg[i] << endl;

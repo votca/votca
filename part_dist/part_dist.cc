@@ -261,7 +261,7 @@ int main(int argc, char **argv) {
             }
           }
         }
-        com /= n_part;
+        com /= (double)n_part;
       }
 
       // Analyze frame
@@ -313,12 +313,12 @@ int main(int argc, char **argv) {
     }
     fl_out << endl;
     for (votca::Index k = 0; k < n_bins; ++k) {
-      fl_out << min + k * step << "\t" << flush;
+      fl_out << min + (double)k * step << "\t" << flush;
       for (votca::Index j = 0; j < votca::Index(ptypes.size()); ++j) {
         if (p_occ(j, k) == 0) {
           fl_out << 0 << "\t" << flush;
         } else {
-          fl_out << p_occ(j, k) / (1. * analyzed_frames) << "\t" << flush;
+          fl_out << p_occ(j, k) / (1. * (double)analyzed_frames) << "\t" << flush;
         }
       }
       fl_out << endl;

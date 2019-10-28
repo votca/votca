@@ -136,10 +136,10 @@ class CGOrderParam : public CsgApplication {
 
     cout << "Average number of molecules within cutoff " << endl;
     for (votca::Index i = 0; i < _rbins; i++) {
-      cout << i * _rbinw << " " << (double)_nmol[i] / _n << endl;
+      cout << (double)i * _rbinw << " " << (double)_nmol[i] / (double)_n << endl;
     }
 
-    double exp_value = (double)1 / _nbin;
+    double exp_value = 1.0 / (double)_nbin;
     double orderparam = 0;
 
     for (votca::Index n = 0; n < _nbin; n++) {
@@ -148,14 +148,14 @@ class CGOrderParam : public CsgApplication {
       _hist_v(0, n) /= (double)_nmol[0];
       _hist_w(0, n) /= (double)_nmol[0];
 
-      _file_u << (double)n * 2 / (_nbin)-1 << " " << _hist_u(0, n) << endl;
-      _file_v << (double)n * 2 / (_nbin)-1 << " " << _hist_v(0, n) << endl;
-      _file_w << (double)n * 2 / (_nbin)-1 << " " << _hist_w(0, n) << endl;
+      _file_u << (double)n * 2 / double(_nbin-1) << " " << _hist_u(0, n) << endl;
+      _file_v << (double)n * 2 / double(_nbin-1) << " " << _hist_v(0, n) << endl;
+      _file_w << (double)n * 2 / double(_nbin-1) << " " << _hist_w(0, n) << endl;
 
       orderparam += (_hist_u(0, n) - exp_value) * (_hist_u(0, n) - exp_value);
     }
 
-    orderparam = sqrt(orderparam / _nbin);
+    orderparam = sqrt(orderparam / (double)_nbin);
 
     cout << "Orderparam " << _radialcutoff << " " << orderparam << endl;
 
@@ -205,9 +205,9 @@ class CGOrderParam : public CsgApplication {
         v.normalize();
         w.normalize();
 
-        nu = (votca::Index)(((eR.dot(u) + 1) / 2) * _nbin);
-        nv = (votca::Index)(((eR.dot(v) + 1) / 2) * _nbin);
-        nw = (votca::Index)(((eR.dot(w) + 1) / 2) * _nbin);
+        nu = (votca::Index)((eR.dot(u) + 1) / 2) * _nbin;
+        nv = (votca::Index)((eR.dot(v) + 1) / 2) * _nbin;
+        nw = (votca::Index)((eR.dot(w) + 1) / 2) * _nbin;
 
         _hist_u(rb, nu) += 1;
         _hist_v(rb, nv) += 1;
