@@ -105,17 +105,34 @@
       <itemPath>../../src/libtools/version_nb.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="f2" displayName="Tests" projectFiles="true">
+      <itemPath>../../src/tests/test_constants.cc</itemPath>
       <itemPath>../../src/tests/test_cubicspline.cc</itemPath>
+      <itemPath>../../src/tests/test_datacollection.cc</itemPath>
       <itemPath>../../src/tests/test_edge_base.cc</itemPath>
       <itemPath>../../src/tests/test_edgecontainer.cc</itemPath>
       <itemPath>../../src/tests/test_elements.cc</itemPath>
+      <itemPath>../../src/tests/test_filesystem.cc</itemPath>
       <itemPath>../../src/tests/test_floatingpointcomparison.cc</itemPath>
+      <itemPath>../../src/tests/test_graph_base.cc</itemPath>
+      <itemPath>../../src/tests/test_graph_bf_visitor.cc</itemPath>
+      <itemPath>../../src/tests/test_graph_df_visitor.cc</itemPath>
+      <itemPath>../../src/tests/test_graphalgorithm.cc</itemPath>
+      <itemPath>../../src/tests/test_graphdistvisitor.cc</itemPath>
       <itemPath>../../src/tests/test_graphnode.cc</itemPath>
+      <itemPath>../../src/tests/test_graphvisitor.cc</itemPath>
+      <itemPath>../../src/tests/test_histogramnew.cc</itemPath>
       <itemPath>../../src/tests/test_identity.cc</itemPath>
       <itemPath>../../src/tests/test_linalg.cc</itemPath>
       <itemPath>../../src/tests/test_name.cc</itemPath>
       <itemPath>../../src/tests/test_property.cc</itemPath>
       <itemPath>../../src/tests/test_random.cc</itemPath>
+      <itemPath>../../src/tests/test_reducededge.cc</itemPath>
+      <itemPath>../../src/tests/test_reducedgraph.cc</itemPath>
+      <itemPath>../../src/tests/test_structureparameters.cc</itemPath>
+      <itemPath>../../src/tests/test_table.cc</itemPath>
+      <itemPath>../../src/tests/test_thread.cc</itemPath>
+      <itemPath>../../src/tests/test_tokenizer.cc</itemPath>
+      <itemPath>../../src/tests/test_unitconverter.cc</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -478,7 +495,14 @@
       </item>
       <item path="../../src/libtools/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_cubicspline.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_datacollection.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -492,12 +516,46 @@
       </item>
       <item path="../../src/tests/test_elements.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_filesystem.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_floatingpointcomparison.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_graph_base.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graph_bf_visitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graph_df_visitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graphalgorithm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graphdistvisitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_graphnode.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graphvisitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_histogramnew.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_identity.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -508,6 +566,32 @@
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_random.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_reducededge.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_reducedgraph.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_structureparameters.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_table.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_thread.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_tokenizer.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_unitconverter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tools/votca_property.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -856,7 +940,14 @@
       </item>
       <item path="../../src/libtools/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_cubicspline.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_datacollection.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -870,12 +961,46 @@
       </item>
       <item path="../../src/tests/test_elements.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_filesystem.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_floatingpointcomparison.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_graph_base.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graph_bf_visitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graph_df_visitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graphalgorithm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graphdistvisitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_graphnode.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graphvisitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_histogramnew.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_identity.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -886,6 +1011,32 @@
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_random.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_reducededge.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_reducedgraph.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_structureparameters.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_table.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_thread.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_tokenizer.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_unitconverter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tools/votca_property.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1234,7 +1385,14 @@
       </item>
       <item path="../../src/libtools/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_cubicspline.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_datacollection.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1248,12 +1406,46 @@
       </item>
       <item path="../../src/tests/test_elements.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_filesystem.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_floatingpointcomparison.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_graph_base.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graph_bf_visitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graph_df_visitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graphalgorithm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graphdistvisitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_graphnode.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_graphvisitor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_histogramnew.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_identity.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1264,6 +1456,32 @@
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_random.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_reducededge.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_reducedgraph.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_structureparameters.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_table.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_thread.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_tokenizer.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_unitconverter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tools/votca_property.cc" ex="false" tool="1" flavor2="0">
       </item>

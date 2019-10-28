@@ -28,14 +28,6 @@
 using namespace std;
 using namespace votca::tools;
 
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
-
 BOOST_AUTO_TEST_SUITE(reducedgraph_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) { ReducedGraph g; }
@@ -53,7 +45,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     /// Here gn is a single node as is thus isolated
     vector<ReducedEdge> vec_ed;
     GraphNode gn;
-    unordered_map<long int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
 
     ReducedGraph g(vec_ed, m_gn);
@@ -71,7 +63,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn1;
     GraphNode gn2;
 
-    unordered_map<long int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -112,7 +104,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn1;
     GraphNode gn2;
 
-    unordered_map<long int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -144,11 +136,11 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
 BOOST_AUTO_TEST_CASE(get_edges_test) {
 
   {
-    unordered_map<string, int> int_vals0 = {{"a", 0}};
-    unordered_map<string, int> int_vals1 = {{"b", 1}};
-    unordered_map<string, int> int_vals2 = {{"c", 2}};
-    unordered_map<string, int> int_vals3 = {{"d", 3}};
-    unordered_map<string, int> int_vals4 = {{"e", 4}};
+    unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+    unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+    unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+    unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+    unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
     unordered_map<string, double> double_vals;
     unordered_map<string, string> str_vals;
@@ -158,7 +150,7 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     //         4
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<long>{0, 1, 2});
+    ReducedEdge ed(std::vector<votca::Index>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -172,7 +164,7 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    unordered_map<long int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -203,14 +195,14 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
   }
 
   {
-    unordered_map<string, int> int_vals0 = {{"a", 0}};
-    unordered_map<string, int> int_vals1 = {{"b", 1}};
-    unordered_map<string, int> int_vals2 = {{"c", 2}};
-    unordered_map<string, int> int_vals3 = {{"d", 3}};
-    unordered_map<string, int> int_vals4 = {{"e", 4}};
-    unordered_map<string, int> int_vals5 = {{"f", 5}};
-    unordered_map<string, int> int_vals6 = {{"g", 6}};
-    unordered_map<string, int> int_vals7 = {{"h", 7}};
+    unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+    unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+    unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+    unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+    unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
+    unordered_map<string, votca::Index> int_vals5 = {{"f", 5}};
+    unordered_map<string, votca::Index> int_vals6 = {{"g", 6}};
+    unordered_map<string, votca::Index> int_vals7 = {{"h", 7}};
 
     unordered_map<string, double> double_vals;
     unordered_map<string, string> str_vals;
@@ -229,8 +221,8 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     vector<ReducedEdge> vec_ed;
     ReducedEdge ed(0, 1);
     ReducedEdge ed2(1, 2);
-    ReducedEdge ed3(vector<long>{2, 3, 4, 5, 6});
-    ReducedEdge ed4(vector<long>{1, 7, 4, 2});
+    ReducedEdge ed3(vector<votca::Index>{2, 3, 4, 5, 6});
+    ReducedEdge ed4(vector<votca::Index>{1, 7, 4, 2});
 
     vec_ed.push_back(ed);
     vec_ed.push_back(ed2);
@@ -246,7 +238,7 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     GraphNode gn6(int_vals6, double_vals, str_vals);
     GraphNode gn7(int_vals7, double_vals, str_vals);
 
-    unordered_map<long int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -264,9 +256,9 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     //  0 - 1 - 2 - 6
     //      | _ |
     //
-    int ed0_1count = 0;
-    int ed1_2count = 0;
-    int ed2_6count = 0;
+    votca::Index ed0_1count = 0;
+    votca::Index ed1_2count = 0;
+    votca::Index ed2_6count = 0;
 
     Edge ed0_1(0, 1);
     Edge ed1_2(1, 2);
@@ -292,11 +284,11 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
 
 BOOST_AUTO_TEST_CASE(get_vertices_test) {
 
-  unordered_map<string, int> int_vals0 = {{"a", 0}};
-  unordered_map<string, int> int_vals1 = {{"b", 1}};
-  unordered_map<string, int> int_vals2 = {{"c", 2}};
-  unordered_map<string, int> int_vals3 = {{"d", 3}};
-  unordered_map<string, int> int_vals4 = {{"e", 4}};
+  unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+  unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+  unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+  unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+  unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
   unordered_map<string, double> double_vals;
   unordered_map<string, string> str_vals;
@@ -306,7 +298,7 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   //         4
 
   vector<ReducedEdge> vec_ed;
-  ReducedEdge ed(std::vector<long>{0, 1, 2});
+  ReducedEdge ed(std::vector<votca::Index>{0, 1, 2});
   ReducedEdge ed2(2, 3);
   ReducedEdge ed3(2, 4);
 
@@ -320,7 +312,7 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<long int, GraphNode> m_gn;
+  unordered_map<votca::Index, GraphNode> m_gn;
   m_gn[0] = gn;
   m_gn[1] = gn1;
   m_gn[2] = gn2;
@@ -328,7 +320,7 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   m_gn[4] = gn4;
 
   ReducedGraph g(vec_ed, m_gn);
-  vector<long> vertices = g.getVertices();
+  vector<votca::Index> vertices = g.getVertices();
   for (auto vertex : vertices) {
     cout << vertex << endl;
   }
@@ -388,11 +380,11 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
 BOOST_AUTO_TEST_CASE(compare_test) {
   {
 
-    unordered_map<string, int> int_vals0 = {{"a", 0}};
-    unordered_map<string, int> int_vals1 = {{"b", 1}};
-    unordered_map<string, int> int_vals2 = {{"c", 2}};
-    unordered_map<string, int> int_vals3 = {{"d", 3}};
-    unordered_map<string, int> int_vals4 = {{"e", 4}};
+    unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+    unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+    unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+    unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+    unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
     unordered_map<string, double> double_vals;
     unordered_map<string, string> str_vals;
@@ -402,7 +394,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     //         4
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<long>{0, 1, 2});
+    ReducedEdge ed(std::vector<votca::Index>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -416,7 +408,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    unordered_map<long int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -435,11 +427,11 @@ BOOST_AUTO_TEST_CASE(compare_test) {
   }
 
   {
-    unordered_map<string, int> int_vals0 = {{"a", 0}};
-    unordered_map<string, int> int_vals1 = {{"b", 1}};
-    unordered_map<string, int> int_vals2 = {{"c", 2}};
-    unordered_map<string, int> int_vals3 = {{"d", 3}};
-    unordered_map<string, int> int_vals4 = {{"e", 4}};
+    unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+    unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+    unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+    unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+    unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
     unordered_map<string, double> double_vals;
     unordered_map<string, string> str_vals;
@@ -448,7 +440,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     //         |
     //         4
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<long>{0, 1, 2});
+    ReducedEdge ed(std::vector<votca::Index>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -463,7 +455,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
     /// Only difference is here where we have rearanged the nodes
-    unordered_map<long int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[4] = gn;
     m_gn[1] = gn1;
     m_gn[3] = gn2;
@@ -483,11 +475,11 @@ BOOST_AUTO_TEST_CASE(compare_test) {
 }
 
 BOOST_AUTO_TEST_CASE(neighbornode_test) {
-  unordered_map<string, int> int_vals0 = {{"a", 0}};
-  unordered_map<string, int> int_vals1 = {{"b", 1}};
-  unordered_map<string, int> int_vals2 = {{"c", 2}};
-  unordered_map<string, int> int_vals3 = {{"d", 3}};
-  unordered_map<string, int> int_vals4 = {{"e", 4}};
+  unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+  unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+  unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+  unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+  unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
   unordered_map<string, double> double_vals;
 
@@ -497,7 +489,7 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   //         |
   //         4
   vector<ReducedEdge> vec_ed;
-  ReducedEdge ed(std::vector<long>{0, 1, 2});
+  ReducedEdge ed(std::vector<votca::Index>{0, 1, 2});
   ReducedEdge ed2(2, 3);
   ReducedEdge ed3(2, 4);
 
@@ -511,7 +503,7 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<long int, GraphNode> m_gn;
+  unordered_map<votca::Index, GraphNode> m_gn;
   /// Here the graph nodes are assigne to different vertices
   m_gn[0] = gn4;
   m_gn[1] = gn1;
@@ -563,10 +555,10 @@ BOOST_AUTO_TEST_CASE(expandedge_test) {
   //     |       |
   //     6 - 7 - 8
   //
-  ReducedEdge ed0(vector<long>{0, 1});
-  ReducedEdge ed1(vector<long>{1, 2, 3});
-  ReducedEdge ed2(vector<long>{3, 4, 5});
-  ReducedEdge ed3(vector<long>{1, 6, 7, 8, 3});
+  ReducedEdge ed0(vector<votca::Index>{0, 1});
+  ReducedEdge ed1(vector<votca::Index>{1, 2, 3});
+  ReducedEdge ed2(vector<votca::Index>{3, 4, 5});
+  ReducedEdge ed3(vector<votca::Index>{1, 6, 7, 8, 3});
 
   vector<ReducedEdge> vec_ed{ed0, ed1, ed2, ed3};
 
@@ -685,10 +677,10 @@ BOOST_AUTO_TEST_CASE(getdegree_test) {
   //     |       |
   //     6 - 7 - 8
   //
-  ReducedEdge ed0(vector<long>{0, 1});
-  ReducedEdge ed1(vector<long>{1, 2, 3});
-  ReducedEdge ed2(vector<long>{3, 4, 5});
-  ReducedEdge ed3(vector<long>{1, 6, 7, 8, 3});
+  ReducedEdge ed0(vector<votca::Index>{0, 1});
+  ReducedEdge ed1(vector<votca::Index>{1, 2, 3});
+  ReducedEdge ed2(vector<votca::Index>{3, 4, 5});
+  ReducedEdge ed3(vector<votca::Index>{1, 6, 7, 8, 3});
   ReducedEdge ed4(3, 9);
 
   vector<ReducedEdge> vec_ed{ed0, ed1, ed2, ed3, ed4};
@@ -703,7 +695,7 @@ BOOST_AUTO_TEST_CASE(getdegree_test) {
   BOOST_CHECK_EQUAL(g.getDegree(5), 1);
   BOOST_CHECK_EQUAL(g.getDegree(9), 1);
 
-  int degree = 0;
+  votca::Index degree = 0;
   auto vertices_w_degree = g.getVerticesDegree(degree);
   BOOST_CHECK_EQUAL(vertices_w_degree.size(), 0);
 
@@ -733,18 +725,18 @@ BOOST_AUTO_TEST_CASE(getdegree_test) {
  */
 BOOST_AUTO_TEST_CASE(id_test) {
   {
-    unordered_map<string, int> int_vals0 = {{"a", 0}};
-    unordered_map<string, int> int_vals1 = {{"b", 1}};
-    unordered_map<string, int> int_vals2 = {{"c", 2}};
-    unordered_map<string, int> int_vals3 = {{"d", 3}};
-    unordered_map<string, int> int_vals4 = {{"e", 4}};
+    unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+    unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+    unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+    unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+    unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
     unordered_map<string, double> double_vals;
 
     unordered_map<string, string> str_vals;
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<long>{0, 1, 2});
+    ReducedEdge ed(std::vector<votca::Index>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -758,7 +750,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    unordered_map<long int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     /// Here the graph nodes are assigne to different vertices
     m_gn[4] = gn;
     m_gn[1] = gn1;

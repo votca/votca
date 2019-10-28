@@ -131,8 +131,8 @@ BOOST_AUTO_TEST_CASE(getedges_test) {
   // Should be able to add an edge more than once
   edCo.addEdge(ed);
   vec_ed = edCo.getEdges();
-  int ed_count = 0;
-  int ed2_count = 0;
+  votca::Index ed_count = 0;
+  votca::Index ed2_count = 0;
   for (auto e1 : vec_ed) {
     if (e1 == ed) {
       ++ed_count;
@@ -234,8 +234,8 @@ BOOST_AUTO_TEST_CASE(getneighedges) {
   vec_edgs = edCo.getNeighEdges(2);
   BOOST_CHECK_EQUAL(vec_edgs.size(), 3);
 
-  int edge_count = 0;
-  int edge_count2 = 0;
+  votca::Index edge_count = 0;
+  votca::Index edge_count2 = 0;
   for (auto e1 : vec_edgs) {
     if (e1 == ed) {
       ++edge_count;
@@ -260,7 +260,7 @@ BOOST_AUTO_TEST_CASE(getmaxdegree) {
   edCo.addEdge(ed2);
   edCo.addEdge(ed3);
 
-  long maxD = edCo.getMaxDegree();
+  votca::Index maxD = edCo.getMaxDegree();
   BOOST_CHECK_EQUAL(maxD, 3);
 
   edCo.addEdge(ed);

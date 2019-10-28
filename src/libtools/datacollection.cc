@@ -33,7 +33,7 @@ std::ostream& operator<<(std::ostream& out,
     s.clear();
     s.str("");
     s.setf(std::ios::scientific);
-    int written = 0;
+    Index written = 0;
     for (auto& array : sel) {
       if (i >= array->size()) {
         s << " -";

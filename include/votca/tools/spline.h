@@ -19,6 +19,7 @@
 #define __VOTCA_TOOLS_SPLINE_H
 
 #include <votca/tools/eigen.h>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
@@ -83,7 +84,7 @@ class Spline {
    * \brief Set the boundary type of the spline
    * \param boundary of type int
    */
-  void setBCInt(int bc) {
+  void setBCInt(Index bc) {
     switch (bc) {
       case 0:
         _boundaries = splineNormal;
@@ -102,7 +103,7 @@ class Spline {
    * \param index of grid point
    * \return grid value
    */
-  inline double getGridPoint(const int &i);
+  inline double getGridPoint(const Index &i);
 
   /**
    * \brief Calculate spline function values for given x values on the spline
@@ -132,7 +133,7 @@ class Spline {
    * \param value r
    * \return interval index
    */
-  inline long getInterval(const double &r);
+  inline Index getInterval(const double &r);
 
   /**
    * \brief Generate the grid for fitting from "min" to "max" in steps of "h"
@@ -141,7 +142,7 @@ class Spline {
    * \param step "h"
    * \return number of grid values in the interval
    */
-  long GenerateGrid(double min, double max, double h);
+  Index GenerateGrid(double min, double max, double h);
 
   /**
    * \brief Get the grid array x
@@ -173,14 +174,14 @@ class Spline {
 
 template <typename vector_type1, typename vector_type2>
 inline void Spline::Calculate(vector_type1 &x, vector_type2 &y) {
-  for (int i = 0; i < x.size(); ++i) {
+  for (Index i = 0; i < x.size(); ++i) {
     y(i) = Calculate(x(i));
   }
 }
 
 template <typename vector_type1, typename vector_type2>
 inline void Spline::CalculateDerivative(vector_type1 &x, vector_type2 &y) {
-  for (int i = 0; i < x.size(); ++i) {
+  for (Index i = 0; i < x.size(); ++i) {
     y(i) = CalculateDerivative(x(i));
   }
 }
@@ -191,14 +192,14 @@ inline void Spline::Print(std::ostream &out, double interval) {
   }
 }
 
-inline long Spline::getInterval(const double &r) {
+inline Index Spline::getInterval(const double &r) {
   if (r < _r[0]) {
     return 0;
   }
   if (r > _r[_r.size() - 2]) {
     return _r.size() - 2;
   }
-  int i;
+  Index i;
   for (i = 0; i < _r.size(); ++i) {
     if (_r[i] > r) {
       break;
@@ -207,7 +208,7 @@ inline long Spline::getInterval(const double &r) {
   return i - 1;
 }
 
-inline double Spline::getGridPoint(const int &i) {
+inline double Spline::getGridPoint(const Index &i) {
   if (i >= _r.size()) {
     return 0;
   }

@@ -38,7 +38,7 @@ namespace votca {
 namespace tools {
 using namespace std;
 // ostream modifier defines the output format, level, indentation
-const int Property::IOindex = std::ios_base::xalloc();
+const Index Property::IOindex = std::ios_base::xalloc();
 
 const Property &Property::get(const string &key) const {
   Tokenizer tok(key, ".");
@@ -48,7 +48,7 @@ const Property &Property::get(const string &key) const {
   }
 
   const Property *p;
-  map<string, long>::const_iterator iter;
+  map<string, Index>::const_iterator iter;
   if (*n == "") {
     p = this;
   } else {
@@ -132,7 +132,7 @@ static void start_hndl(void *data, const char *el, const char **attr) {
   Property *cur = property_stack->top();
   Property &np = cur->add(el, "");
 
-  for (int i = 0; attr[i]; i += 2) {
+  for (Index i = 0; attr[i]; i += 2) {
     np.setAttribute(attr[i], attr[i + 1]);
   }
 
@@ -191,8 +191,8 @@ void Property::LoadFromXML(string filename) {
   XML_ParserFree(parser);
 }
 
-void PrintNodeTXT(std::ostream &out, const Property &p, const int start_level,
-                  int level = 0, string prefix = "", string offset = "") {
+void PrintNodeTXT(std::ostream &out, const Property &p, const Index start_level,
+                  Index level = 0, string prefix = "", string offset = "") {
   if ((p.value() != "") || p.HasChildren()) {
     if (level >= start_level) {
       if ((p.value()).find_first_not_of("\t\n ") != std::string::npos) {
@@ -216,7 +216,7 @@ void PrintNodeTXT(std::ostream &out, const Property &p, const int start_level,
 }
 
 void PrintNodeXML(std::ostream &out, const Property &p,
-                  PropertyIOManipulator *piom, int level = 0,
+                  PropertyIOManipulator *piom, Index level = 0,
                   string offset = "") {
   Property::const_AttributeIterator ia;
   bool linebreak = true;
@@ -225,7 +225,7 @@ void PrintNodeXML(std::ostream &out, const Property &p,
   const ColorSchemeBase *color = &DEFAULT_COLORS;
 
   string indent("");
-  int start_level(0);
+  Index start_level(0);
 
   if (piom) {
     start_level = piom->getLevel();
@@ -293,10 +293,10 @@ void PrintNodeXML(std::ostream &out, const Property &p,
 }
 
 void PrintNodeTEX(std::ostream &out, const Property &p,
-                  PropertyIOManipulator *piom, int level = 0,
+                  PropertyIOManipulator *piom, Index level = 0,
                   string prefix = "") {
 
-  int start_level = 0;
+  Index start_level = 0;
   if (piom) {
     start_level = piom->getLevel();
   }
@@ -348,8 +348,9 @@ void PrintNodeTEX(std::ostream &out, const Property &p,
       string body_format(
           " \\hspace{%1%pt}\\hypertarget{%2%}{%3%} & %4% & %5% & %6% \\\\\n");
 
-      out << boost::format(body_format) % int((level - start_level - 1) * 10) %
-                 prefix % tex_name % defaults % unit % help;
+      out << boost::format(body_format) %
+                 Index((level - start_level - 1) * 10) % prefix % tex_name %
+                 defaults % unit % help;
     }
   }
 
@@ -376,7 +377,7 @@ void PrintNodeTEX(std::ostream &out, const Property &p,
 }
 
 void PrintNodeHLP(std::ostream &out, const Property &p,
-                  const int start_level = 0, int level = 0,
+                  const Index start_level = 0, Index level = 0,
                   const string &prefix = "", const string &offset = "") {
 
   using ColorRGB = Color<csRGB>;  // use the RGB palette
@@ -385,7 +386,7 @@ void PrintNodeHLP(std::ostream &out, const Property &p,
                string(RGB.Green()) + "%|40t|%3%%|55t|" + string(RGB.Reset()) +
                "%4%\n";
 
-  int leveloffset = level;
+  Index leveloffset = level;
   string help("");
   // if this is the head node, print the header
   if (level == start_level) {
@@ -449,10 +450,10 @@ std::ostream &operator<<(std::ostream &out, const Property &p) {
   if (sentry) {
     // get the property format object attached to the stream
     PropertyIOManipulator *pm =
-        (PropertyIOManipulator *)out.pword(Property::getIOindex());
+        (PropertyIOManipulator *)out.pword(int(Property::getIOindex()));
 
     string indentation("");
-    int level = 0;
+    Index level = 0;
 
     PropertyIOManipulator::Type type = PropertyIOManipulator::XML;
     if (pm) {

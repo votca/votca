@@ -28,11 +28,11 @@ BOOST_AUTO_TEST_SUITE(cubicspline_test)
 
 BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
 
-  int size = 80;
+  votca::Index size = 80;
   Eigen::VectorXd x = Eigen::VectorXd::Zero(size);
   Eigen::VectorXd y = Eigen::VectorXd::Zero(size);
-  for (int i = 0; i < size; ++i) {
-    x(i) = 0.25 * i;
+  for (votca::Index i = 0; i < size; ++i) {
+    x(i) = 0.25 * double(i);
     y(i) = std::sin(x(i));
   }
   CubicSpline cspline;

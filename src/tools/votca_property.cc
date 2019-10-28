@@ -19,8 +19,6 @@
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
-
-#include <list>
 #include <votca/tools/application.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
@@ -50,7 +48,7 @@ class VotcaProperty : public Application {
 
     AddProgramOptions()("file", po::value<string>(), "xml file to parse")(
         "format", po::value<string>(), "output format [XML TXT TEX]")(
-        "level", po::value<int>(), "output from this level ");
+        "level", po::value<votca::Index>(), "output from this level ");
   };
 
   bool EvaluateOptions() override {
@@ -66,25 +64,20 @@ class VotcaProperty : public Application {
       format = _op_vm["format"].as<string>();
     }
     if (_op_vm.count("level")) {
-      level = _op_vm["level"].as<int>();
+      level = _op_vm["level"].as<votca::Index>();
     }
 
     try {
 
       Property p;
-
       map<string, PropertyIOManipulator*> _mformat;
-      map<string, PropertyIOManipulator*>::iterator it;
-
       _mformat["XML"] = &XML;
       _mformat["TXT"] = &TXT;
       _mformat["TEX"] = &TEX;
       _mformat["HLP"] = &HLP;
-
       p.LoadFromXML(file);
 
-      it = _mformat.find(format);
-      if (it != _mformat.end()) {
+      if (_mformat.find(format) != _mformat.end()) {
         PropertyIOManipulator* piom = _mformat.find(format)->second;
         piom->setLevel(level);
         piom->setIndentation("");
@@ -102,7 +95,7 @@ class VotcaProperty : public Application {
  private:
   string file;
   string format;
-  int level;
+  votca::Index level;
 };
 
 VotcaProperty::VotcaProperty(void) = default;

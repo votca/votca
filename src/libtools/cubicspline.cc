@@ -38,7 +38,7 @@ void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
         "at least 3 points");
   }
 
-  const long N = x.size();
+  const Index N = x.size();
 
   // copy the grid points into f
   _r = x;
@@ -48,7 +48,7 @@ void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   // not calculate the f''
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N, N);
 
-  for (int i = 0; i < N - 2; ++i) {
+  for (Index i = 0; i < N - 2; ++i) {
     _f2(i + 1) =
         -(A_prime_l(i) * _f(i) + (B_prime_l(i) - A_prime_r(i)) * _f(i + 1) -
           B_prime_r(i) * _f(i + 2));
@@ -86,8 +86,8 @@ void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
         "error in CubicSpline::Fit : sizes of vectors x and y do not match");
   }
 
-  const long N = x.size();
-  const long ngrid = _r.size();
+  const Index N = x.size();
+  const Index ngrid = _r.size();
 
   // construct the equation
   // A*u = b
@@ -109,7 +109,7 @@ void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   linalg_constrained_qrsolve(sol, A, y, B);
 
   // check vector "sol" for nan's
-  for (int i = 0; i < 2 * ngrid; i++) {
+  for (Index i = 0; i < 2 * ngrid; i++) {
     if ((std::isinf(sol(i))) || (std::isnan(sol(i)))) {
       throw std::runtime_error(
           "error in CubicSpline::Fit : value nan occurred due to wrong fitgrid "

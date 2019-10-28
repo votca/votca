@@ -23,6 +23,7 @@
 #include <map>
 #include <sstream>
 #include <vector>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
@@ -70,10 +71,10 @@ class DataCollection {
     ~selection() = default;
 
     using iterator = typename std::vector<array *>::iterator;
-    size_t size() { return _arrays.size(); }
+    Index size() { return Index(_arrays.size()); }
     bool empty() { return _arrays.empty(); }
-    array &operator[](size_t i) {
-      assert(i < _arrays.size());
+    array &operator[](Index i) {
+      assert(i < Index(_arrays.size()));
       return *(_arrays[i]);
     }
 
@@ -101,10 +102,10 @@ class DataCollection {
   /**
    *  \ brief returns the number of arrays
    */
-  size_t size() { return _data.size(); }
+  Index size() { return Index(_data.size()); }
   bool empty() { return _data.empty(); }
-  array &operator[](int i) {
-    assert(static_cast<size_t>(i) < _data.size());
+  array &operator[](Index i) {
+    assert(i < Index(_data.size()));
     return *(_data[i]);
   }
   iterator begin() { return _data.begin(); }
@@ -142,13 +143,11 @@ class DataCollection {
 
 template <typename T>
 void DataCollection<T>::clear() {
-  {
-    typename container::iterator iter;
-    for (iter = _data.begin(); iter != _data.end(); ++iter) {
-      delete *iter;
-    }
-    _data.clear();
+
+  for (auto &d : _data) {
+    delete d;
   }
+  _data.clear();
 }
 
 template <typename T>
@@ -182,11 +181,9 @@ typename DataCollection<T>::selection *DataCollection<T>::select(
     sel = new typename DataCollection<T>::selection;
   }
 
-  for (typename std::map<std::string, array *>::iterator i =
-           _array_by_name.begin();
-       i != _array_by_name.end(); ++i) {
-    if (wildcmp(strselection.c_str(), (*i).second->getName().c_str())) {
-      sel->push_back((*i).second);
+  for (auto &pair : _array_by_name) {
+    if (wildcmp(strselection.c_str(), pair.second->getName().c_str())) {
+      sel->push_back(pair.second);
     }
   }
   return sel;

@@ -111,6 +111,7 @@ class Tokenizer {
 // Matches a string against a wildcard string such as &quot;*.*&quot; or
 // &quot;bl?h.*&quot; etc. This is good for file globbing or to match hostmasks.
 int wildcmp(const char *wild, const char *string);
+int wildcmp(const std::string &wild, const std::string &string);
 
 }  // namespace tools
 }  // namespace votca

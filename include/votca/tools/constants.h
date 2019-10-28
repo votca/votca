@@ -20,7 +20,7 @@
 
 #include <boost/math/constants/constants.hpp>
 #include <cmath>
-
+#include <votca/tools/types.h>
 namespace votca {
 namespace tools {
 
@@ -70,10 +70,10 @@ const std::string unassigned_residue_type = "unassigned";
 const std::string unassigned_molecule_type = "unassigned";
 
 /// Used to indicate a valid residue id has not been assigned
-const int unassigned_residue_id = -1;
+const Index unassigned_residue_id = -1;
 
 /// Used to indicate a valid molecule id has not been assigned
-const int unassigned_molecule_id = -1;
+const Index unassigned_molecule_id = -1;
 
 }  // namespace topology_constants
 }  // namespace tools

@@ -32,7 +32,7 @@ using namespace votca::tools;
 
 class GraphVisitorTest : public GraphVisitor {
  private:
-  void addEdges_(const Graph&, long int) override {
+  void addEdges_(const Graph&, votca::Index) override {
     throw runtime_error("Undefined method.");
   }
   Edge getEdge_() override { throw runtime_error("Undefined method."); }
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   GraphNode gn1;
   GraphNode gn2;
 
-  unordered_map<long int, GraphNode> nodes;
+  unordered_map<votca::Index, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
 

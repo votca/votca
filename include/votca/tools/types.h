@@ -19,15 +19,9 @@
 #define _VOTCA_TOOLS_TYPES_H
 
 namespace votca {
-namespace tools {
-
-using byte_t = unsigned char;
-using word_t = unsigned short;
-using dword_t = unsigned long;
 
 using Index = long int;
 
-}  // namespace tools
 }  // namespace votca
 
 #endif /* _types_H */

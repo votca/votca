@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <stdio.h>
 #include <votca/tools/parsexml.h>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
@@ -31,7 +32,7 @@ void start_hndl(void *data, const char *el, const char **attr) {
 
   std::map<std::string, std::string> mattr;
 
-  for (int i = 0; attr[i]; i += 2) {
+  for (Index i = 0; attr[i]; i += 2) {
     mattr[attr[i]] = attr[i + 1];
   }
   std::string sel = el;

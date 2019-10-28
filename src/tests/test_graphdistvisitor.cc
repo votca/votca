@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   GraphNode gn1;
   GraphNode gn2;
 
-  unordered_map<long int, GraphNode> nodes;
+  unordered_map<votca::Index, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
 
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   gdv.exec(g, ed1);
   BOOST_CHECK(gdv.queEmpty());
   GraphNode gn3 = g.getNode(0);
-  int dist = gn3.getInt("Dist");
+  votca::Index dist = gn3.getInt("Dist");
   BOOST_CHECK_EQUAL(dist, 0);
   GraphNode gn4 = g.getNode(1);
   dist = gn4.getInt("Dist");
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   GraphNode gn6;
   GraphNode gn7;
 
-  unordered_map<long int, GraphNode> nodes;
+  unordered_map<votca::Index, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
   nodes[2] = gn3;
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   // node which by default is node 0.
 
   GraphNode gn8 = g.getNode(0);
-  int dist = gn8.getInt("Dist");
+  votca::Index dist = gn8.getInt("Dist");
   BOOST_CHECK_EQUAL(dist, 0);
 
   gn8 = g.getNode(1);

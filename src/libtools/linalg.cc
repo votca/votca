@@ -27,15 +27,15 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
   // check matrix for zero column
 
   bool nonzero_found = false;
-  for (int j = 0; j < A.cols(); j++) {
+  for (Index j = 0; j < A.cols(); j++) {
     nonzero_found = A.col(j).isApproxToConstant(0.0, 1e-9);
     if (nonzero_found) {
       throw std::runtime_error("constrained_qrsolve_zero_column_in_matrix");
     }
   }
 
-  const long NoVariables = x.size();
-  const long NoConstrains =
+  const Index NoVariables = x.size();
+  const Index NoConstrains =
       constr.rows();  // number of constraints is number of rows of constr
 
   Eigen::HouseholderQR<Eigen::MatrixXd> QR(constr.transpose());
@@ -55,7 +55,7 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
 
   // Next two steps assemble vector from y (which is zero-vector) and z
   Eigen::VectorXd result = Eigen::VectorXd::Zero(NoVariables);
-  for (long i = NoConstrains; i < NoVariables; i++) {
+  for (Index i = NoConstrains; i < NoVariables; i++) {
     result[i] = z(i - NoConstrains);
   }
   // To get the final answer this vector should be multiplied by matrix Q
@@ -63,33 +63,30 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
   return;
 }
 
-EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, int nmax) {
+EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, Index nmax) {
 
   EigenSystem result;
 #if defined(MKL)
-  double abstol, vl, vu;
 
-  MKL_INT lda;
   MKL_INT info;
-  MKL_INT lwork;
-  MKL_INT il, iu, m, ldz;
+  MKL_INT m;
 
-  int n = A.rows();
+  Index n = A.rows();
   std::vector<MKL_INT> ifail(n);
-  lda = n;
-  ldz = nmax;
+  MKL_INT lda = n;
+  MKL_INT ldz = nmax;
 
   // make sure that containers for eigenvalues and eigenvectors are of correct
   // size
   result.eigenvalues().resize(nmax);
   result.eigenvectors().resize(n, nmax);
 
-  lwork = -1;
-  il = 1;
-  iu = nmax;
-  abstol = 0.0;  // use default
-  vl = 0.0;
-  vu = 0.0;
+  MKL_INT lwork = -1;
+  MKL_INT il = 1;
+  MKL_INT iu = nmax;
+  double abstol = 0.0;  // use default
+  double vl = 0.0;
+  double vu = 0.0;
   // make a pointer to the EIGEN matrix so that LAPACK understands it
   double *pA = A.data();
   double *pV = result.eigenvectors().data();

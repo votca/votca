@@ -43,10 +43,10 @@ class Graph {
   EdgeContainer edge_container_;
 
   /// Parameter description
-  /// @param int - is the index of the graph nodes / vertex ids
+  /// @param Index - is the index of the graph nodes / vertex ids
   /// @param GraphNode - this is the node object at each vertex and contains
   /// all the informatino that is relevant to that object
-  std::unordered_map<long int, GraphNode> nodes_;
+  std::unordered_map<Index, GraphNode> nodes_;
 
   /// This is the id of the graph to graphs that contain the same content
   /// are considered equal
@@ -61,10 +61,10 @@ class Graph {
   virtual ~Graph() = default;
   /// Constructor
   /// @param edgs - vector of edges where each edge is composed of two
-  /// ints (vertex ids) describing a link between the vertices
+  /// s (vertex ids) describing a link between the vertices
   /// @param nodes - unordered_map where the key is the vertex id and the
   /// target is the graph node
-  Graph(std::vector<Edge> edgs, std::unordered_map<long int, GraphNode> nodes);
+  Graph(std::vector<Edge> edgs, std::unordered_map<Index, GraphNode> nodes);
 
   /// Equivalence and non equivalence operators work by determine if the
   /// contents of each graph node in each of the graphs are the same.
@@ -73,28 +73,28 @@ class Graph {
 
   /// Find all the vertices that are isolated (not connected to any other
   /// vertex) and return them in a vector with their corresponding graph node.
-  std::vector<std::pair<long int, GraphNode>> getIsolatedNodes(void) const;
+  std::vector<std::pair<Index, GraphNode>> getIsolatedNodes(void) const;
 
   /// Returns a vector of the vertices and their graph nodes that are directly
   /// connected to the vertex 'vert'
-  std::vector<std::pair<long int, GraphNode>> getNeighNodes(long vertex) const;
+  std::vector<std::pair<Index, GraphNode>> getNeighNodes(Index vertex) const;
 
   /// set the Node associated with vertex 'vert'
-  void setNode(long vertex, GraphNode& graph_node);
-  void setNode(std::pair<long int, GraphNode>& id_and_node);
+  void setNode(Index vertex, GraphNode& graph_node);
+  void setNode(std::pair<Index, GraphNode>& id_and_node);
 
   /// Gets all vertices with degree of 3 or greater
-  std::vector<long> getJunctions() const;
+  std::vector<Index> getJunctions() const;
 
   /// Return a copy of the graph node at vertex 'vert'
-  GraphNode getNode(const long vertex) const;
+  GraphNode getNode(const Index vertex) const;
 
   /// Return all the vertices and their graph nodes that are within the graph
-  virtual std::vector<std::pair<long int, GraphNode>> getNodes() const;
+  virtual std::vector<std::pair<Index, GraphNode>> getNodes() const;
 
   /// Returns all the vertices of the graph connected to vertex `vert` through
   /// an edge.
-  std::vector<long> getNeighVertices(long vertex) const {
+  std::vector<Index> getNeighVertices(Index vertex) const {
     return edge_container_.getNeighVertices(vertex);
   }
 
@@ -105,12 +105,12 @@ class Graph {
   virtual std::vector<Edge> getEdges() { return edge_container_.getEdges(); }
 
   /// Returns all the edges in the graph connected to vertex `vertex`
-  std::vector<Edge> getNeighEdges(long vertex) const {
+  std::vector<Edge> getNeighEdges(Index vertex) const {
     return edge_container_.getNeighEdges(vertex);
   }
 
   /// Returns all the vertices in the graph
-  std::vector<long> getVertices() const;
+  std::vector<Index> getVertices() const;
 
   /**
    * \brief Finds the max degree of a vertex in the graph.
@@ -119,16 +119,16 @@ class Graph {
    * connected to it. It will count the number of edges this corresponds to the
    * maximum degree of the graph.
    **/
-  long getMaxDegree() const { return edge_container_.getMaxDegree(); }
+  Index getMaxDegree() const { return edge_container_.getMaxDegree(); }
 
   /// Calcualtes the degree, or number of edges connected to vertex `vertex`
-  long getDegree(long vertex) const;
+  Index getDegree(Index vertex) const;
 
   /// Returns all the vertices with degree specified by `degree`
-  virtual std::vector<long> getVerticesDegree(long degree) const;
+  virtual std::vector<Index> getVerticesDegree(Index degree) const;
 
   /// Determines if a vertex exists within the graph
-  bool vertexExist(long vertex) const;
+  bool vertexExist(Index vertex) const;
 
   /// Determines if an edge is stored in the graph
   virtual bool edgeExist(const Edge& edge) const {
@@ -145,21 +145,21 @@ class Graph {
 };
 
 /**
- * \brief Compare function pair<long int,GraphNode> object
+ * \brief Compare function pair<Index ,GraphNode> object
  *
  * This function is meant to be used with the stl sort algorithm. It will sort
  * a vector of pairs containing the vertex ids and the graphnodes. Only the
  * contetns of the graph node object are used to determine precidence e.g.
  *
- * pair<long int,GraphNode> pr_grn1{ 1, gn };
- * pair<long int,GraphNode> pr_grn2{ 2, gn2 };
+ * pair<Index ,GraphNode> pr_grn1{ 1, gn };
+ * pair<Index ,GraphNode> pr_grn2{ 2, gn2 };
  *
- * vector<pair<long int,GraphNode> > vec_pr_gn = { pr_grn1, pr_grn2 , ... etc };
+ * vector<pair<Index ,GraphNode> > vec_pr_gn = { pr_grn1, pr_grn2 , ... etc };
  *
  * sort(vec_pr_gn.begin(),vec_pr_gn.end(),cmpVertNodePair);
  */
-bool cmpVertNodePair(const std::pair<long int, GraphNode>& id_and_node1,
-                     const std::pair<long int, GraphNode>& id_and_node2);
+bool cmpVertNodePair(const std::pair<Index, GraphNode>& id_and_node1,
+                     const std::pair<Index, GraphNode>& id_and_node2);
 }  // namespace tools
 }  // namespace votca
 #endif  // _VOTCA_TOOLS_GRAPH_H

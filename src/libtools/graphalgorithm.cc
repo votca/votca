@@ -43,7 +43,7 @@ bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor) {
          graph.getIsolatedNodes().size() == 0;
 }
 
-std::set<Edge> exploreBranch(Graph g, long starting_vertex, const Edge& edge) {
+std::set<Edge> exploreBranch(Graph g, Index starting_vertex, const Edge& edge) {
   // Check if the starting vertex is in the graph
   if (!g.vertexExist(starting_vertex)) {
     throw invalid_argument(
@@ -69,7 +69,7 @@ std::set<Edge> exploreBranch(Graph g, long starting_vertex, const Edge& edge) {
   }
   Graph_BF_Visitor gv_breadth_first;
   GraphNode gn;
-  pair<long int, GraphNode> pr_gn(starting_vertex, gn);
+  pair<Index, GraphNode> pr_gn(starting_vertex, gn);
   gv_breadth_first.exploreNode(pr_gn, g);
   gv_breadth_first.setStartingVertex(edge.getOtherEndPoint(starting_vertex));
   gv_breadth_first.initialize(g);
@@ -83,7 +83,7 @@ std::set<Edge> exploreBranch(Graph g, long starting_vertex, const Edge& edge) {
 
   vector<Edge> neigh_edges = g.getNeighEdges(starting_vertex);
   for (Edge& ed : neigh_edges) {
-    long neigh_vertex = ed.getOtherEndPoint(starting_vertex);
+    Index neigh_vertex = ed.getOtherEndPoint(starting_vertex);
     if (neigh_vertex != starting_vertex) {
       if (gv_breadth_first.vertexExplored(neigh_vertex)) {
         branch_edges.insert(ed);
@@ -109,30 +109,30 @@ ReducedGraph reduceGraph(Graph graph) {
    **/
   class ExplorationRecord {
    private:
-    unordered_map<long int, std::pair<bool, long>> vertex_explored_;
+    unordered_map<Index, std::pair<bool, Index>> vertex_explored_;
     size_t unexplored_vertex_count_;
 
    public:
     explicit ExplorationRecord(
-        const unordered_map<long int, std::pair<bool, long>>& vertex_explored)
+        const unordered_map<Index, std::pair<bool, Index>>& vertex_explored)
         : vertex_explored_(vertex_explored),
           unexplored_vertex_count_(vertex_explored.size()){};
 
-    void explore(long vertex) {
+    void explore(Index vertex) {
       vertex_explored_[vertex].first = true;
       --unexplored_vertex_count_;
     }
 
     bool unexploredVerticesExist() { return unexplored_vertex_count_ > 0; }
 
-    long getUnexploredVertex() {
+    Index getUnexploredVertex() {
 
-      vector<long> remaining_unexplored;
-      for (const pair<long int, pair<bool, long>>& vertex_record :
+      vector<Index> remaining_unexplored;
+      for (const pair<Index, pair<bool, Index>>& vertex_record :
            vertex_explored_) {
         bool vertex_explored = vertex_record.second.first;
         if (!vertex_explored) {
-          long degree = vertex_record.second.second;
+          Index degree = vertex_record.second.second;
           if (degree > 2) {
             return vertex_record.first;
           }
@@ -141,7 +141,7 @@ ReducedGraph reduceGraph(Graph graph) {
       }
 
       // Search tips next
-      for (const long int& vertex : remaining_unexplored) {
+      for (const Index& vertex : remaining_unexplored) {
         if (vertex_explored_[vertex].second == 1) {
           return vertex;
         }
@@ -149,7 +149,7 @@ ReducedGraph reduceGraph(Graph graph) {
 
       // Finally if there are no tips or junctions left we will return a vertex
       // of degree 2 if one exists
-      for (const long int& vertex : remaining_unexplored) {
+      for (const Index& vertex : remaining_unexplored) {
         if (!vertex_explored_[vertex].first) {
           return vertex;
         }
@@ -161,30 +161,30 @@ ReducedGraph reduceGraph(Graph graph) {
     }
   };  // Class ExplorationRecord
 
-  unordered_map<long int, pair<bool, long>> unexplored_vertices;
-  vector<long> vertices = graph.getVertices();
-  for (const long int& vertex : vertices) {
+  unordered_map<Index, pair<bool, Index>> unexplored_vertices;
+  vector<Index> vertices = graph.getVertices();
+  for (const Index& vertex : vertices) {
     unexplored_vertices[vertex] =
-        pair<bool, long>(false, graph.getDegree(vertex));
+        pair<bool, Index>(false, graph.getDegree(vertex));
   }
 
   ExplorationRecord exploration_record(unexplored_vertices);
 
-  vector<vector<long>> chains;
+  vector<vector<Index>> chains;
 
   while (exploration_record.unexploredVerticesExist()) {
     Graph_DF_Visitor graph_visitor;
-    long starting_vertex = exploration_record.getUnexploredVertex();
+    Index starting_vertex = exploration_record.getUnexploredVertex();
     exploration_record.explore(starting_vertex);
     graph_visitor.setStartingVertex(starting_vertex);
     graph_visitor.initialize(graph);
 
-    vector<long> chain{starting_vertex};
-    long old_vertex = starting_vertex;
+    vector<Index> chain{starting_vertex};
+    Index old_vertex = starting_vertex;
     bool new_chain = false;
     while (!graph_visitor.queEmpty()) {
       Edge edge = graph_visitor.nextEdge(graph);
-      vector<long> unexplored_vertex = graph_visitor.getUnexploredVertex(edge);
+      vector<Index> unexplored_vertex = graph_visitor.getUnexploredVertex(edge);
 
       if (new_chain) {
         if (unexplored_vertex.size() == 0) {
@@ -197,7 +197,7 @@ ReducedGraph reduceGraph(Graph graph) {
           new_chain = false;
         }
       }
-      long new_vertex = edge.getOtherEndPoint(old_vertex);
+      Index new_vertex = edge.getOtherEndPoint(old_vertex);
       if (unexplored_vertex.size() == 0) {
         chain.push_back(new_vertex);
         chains.push_back(chain);
@@ -225,7 +225,7 @@ ReducedGraph reduceGraph(Graph graph) {
     }
   }
   vector<ReducedEdge> reduced_edges;
-  for (vector<long> chain : chains) {
+  for (vector<Index> chain : chains) {
     ReducedEdge reduced_edge(chain);
     reduced_edges.push_back(reduced_edge);
   }
@@ -240,13 +240,13 @@ ReducedGraph reduceGraph(Graph graph) {
 
 vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
 
-  const std::vector<long>& vertices = graph.getVertices();
+  const std::vector<Index>& vertices = graph.getVertices();
   // bool vector to see if vertex is already part of graph
   std::vector<bool> vertex_analysed = std::vector<bool>(vertices.size(), false);
 
   std::vector<Graph> subGraphs;
-  unsigned i = 0;
-  while (i < vertices.size()) {
+  Index i = 0;
+  while (i < Index(vertices.size())) {
     if (vertex_analysed[i]) {
       i++;
       continue;
@@ -254,11 +254,11 @@ vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
     Graph_BF_Visitor graph_visitor_breadth_first;
     graph_visitor_breadth_first.setStartingVertex(vertices[i]);
     exploreGraph(graph, graph_visitor_breadth_first);
-    set<long> sub_graph_explored_vertices =
+    set<Index> sub_graph_explored_vertices =
         graph_visitor_breadth_first.getExploredVertices();
 
-    for (long vertex : sub_graph_explored_vertices) {
-      for (unsigned j = 0; j < vertices.size(); j++) {
+    for (Index vertex : sub_graph_explored_vertices) {
+      for (Index j = 0; j < Index(vertices.size()); j++) {
         if (vertex_analysed[j]) {
           continue;
         }
@@ -270,8 +270,8 @@ vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
     }
 
     set<Edge> sub_graph_edges;
-    unordered_map<int long, GraphNode> sub_graph_nodes;
-    for (long vertex : sub_graph_explored_vertices) {
+    unordered_map<Index, GraphNode> sub_graph_nodes;
+    for (Index vertex : sub_graph_explored_vertices) {
 
       for (const Edge& sub_graph_edge : graph.getNeighEdges(vertex)) {
         sub_graph_edges.insert(sub_graph_edge);

@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <votca/tools/eigen.h>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
@@ -37,27 +38,28 @@ class Table {
   void clear();
 
   void GenerateGridSpacing(double min, double max, double spacing);
-  void resize(long N);
-  long size() const { return _x.size(); }
+  void resize(Index N);
+  Index size() const { return _x.size(); }
 
-  double &x(long i) { return _x[i]; }
-  double &y(long i) { return _y[i]; }
+  double &x(Index i) { return _x[i]; }
+  double &y(Index i) { return _y[i]; }
 
-  const double &x(long i) const { return _x[i]; }
-  const double &y(long i) const { return _y[i]; }
-  char &flags(long i) { return _flags[i]; }
-  double &yerr(long i) { return _yerr[i]; }
+  const double &x(Index i) const { return _x[i]; }
+  const double &y(Index i) const { return _y[i]; }
+  char &flags(Index i) { return _flags[i]; }
+  double &yerr(Index i) { return _yerr[i]; }
 
-  void set(const long &i, const double &x, const double &y) {
+  void set(const Index &i, const double &x, const double &y) {
     _x[i] = x;
     _y[i] = y;
   }
-  void set(const long &i, const double &x, const double &y, const char &flags) {
+  void set(const Index &i, const double &x, const double &y,
+           const char &flags) {
     _x[i] = x;
     _y[i] = y;
     _flags[i] = flags;
   }
-  void set(const long &i, const double &x, const double &y, const char &flags,
+  void set(const Index &i, const double &x, const double &y, const char &flags,
            const double &yerr) {
     _x[i] = x;
     _y[i] = y;
@@ -73,7 +75,7 @@ class Table {
   void Load(std::string filename);
   void Save(std::string filename) const;
 
-  void Smooth(long Nsmooth);
+  void Smooth(Index Nsmooth);
 
   bool GetHasYErr() { return _has_yerr; }
   void SetHasYErr(bool has_yerr) { _has_yerr = has_yerr; }
@@ -131,7 +133,7 @@ inline std::ostream &operator<<(std::ostream &out, const Table &t) {
   out.precision(10);
 
   if (t._has_yerr) {
-    for (long i = 0; i < t._x.size(); ++i) {
+    for (Index i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i] << " " << t._yerr[i];
       if (t._flags[i] == '\0' || t._flags[i] == ' ') {
         out << "\n";
@@ -140,7 +142,7 @@ inline std::ostream &operator<<(std::ostream &out, const Table &t) {
       }
     }
   } else {
-    for (long i = 0; i < t._x.size(); ++i) {
+    for (Index i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i];
       if (t._flags[i] == '\0' || t._flags[i] == ' ') {
         out << "\n";
@@ -154,7 +156,7 @@ inline std::ostream &operator<<(std::ostream &out, const Table &t) {
 }
 // TODO: modify this function to be able to treat _has_yerr == true
 inline void Table::push_back(double x, double y, char flags) {
-  long n = size();
+  Index n = size();
   resize(n + 1);
   _x[n] = x;
   _y[n] = y;

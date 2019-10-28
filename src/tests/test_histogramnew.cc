@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(step_test) {
   double max_v = 9;
   hn.Initialize(min_v, max_v, 8);
   double step = hn.getStep();
-  int value = static_cast<int>(step);
+  votca::Index value = static_cast<votca::Index>(step);
   BOOST_CHECK_EQUAL(value * 10, 10);
 }
 
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(nbins_test) {
   double min_v = 1.0;
   double max_v = 9.0;
   hn.Initialize(min_v, max_v, 8);
-  int bins = hn.getNBins();
+  votca::Index bins = hn.getNBins();
   BOOST_CHECK_EQUAL(bins * 10, 80);
 }
 
@@ -67,30 +67,30 @@ BOOST_AUTO_TEST_CASE(Process_test) {
   }
   hn.ProcessRange(data.begin(), data.end());
   hn.Process(4.5);
-  BOOST_CHECK_EQUAL(static_cast<int>(hn.getStep() * 10), 10);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(hn.getStep() * 10), 10);
   auto dat = hn.data();
   // Range -0.5 - 0.5
-  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(0)), 1);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(dat.y(0)), 1);
   // Range 0.5 - 1.5
-  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(1)), 1);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(dat.y(1)), 1);
   // Range 1.5 - 2.5
-  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(2)), 1);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(dat.y(2)), 1);
   // Range 2.5 - 3.5
-  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(3)), 1);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(dat.y(3)), 1);
   // Range 3.5 - 4.5
-  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(4)), 1);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(dat.y(4)), 1);
   // Range 4.5 - 5.5
-  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(5)), 2);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(dat.y(5)), 2);
   // Range 5.5 - 6.5
-  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(6)), 1);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(dat.y(6)), 1);
   // Range 6.5 - 7.5
-  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(7)), 1);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(dat.y(7)), 1);
   // Range 7.5 - 8.5
-  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(8)), 1);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(dat.y(8)), 1);
   // Range 8.5 - 9.5
-  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(9)), 1);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(dat.y(9)), 1);
   // Range 9.5 - 10.5
-  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(10)), 0);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(dat.y(10)), 0);
 }
 
 BOOST_AUTO_TEST_CASE(minmax_test) {
@@ -104,8 +104,8 @@ BOOST_AUTO_TEST_CASE(minmax_test) {
   }
   hn.ProcessRange(data.begin(), data.end());
   hn.Process(4.5);
-  BOOST_CHECK_EQUAL(static_cast<int>(hn.getMinBinVal()), 0);
-  BOOST_CHECK_EQUAL(static_cast<int>(hn.getMaxBinVal()), 2);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(hn.getMinBinVal()), 0);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(hn.getMaxBinVal()), 2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

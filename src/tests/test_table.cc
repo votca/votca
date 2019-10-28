@@ -70,15 +70,17 @@ BOOST_AUTO_TEST_CASE(xy_test) {
 
   auto x_v = tb.x();
   auto y_v = tb.y();
-  for (int i = 0; i < 10; ++i) {
-    int x = i;
-    int y = 2 * x;
-    BOOST_CHECK_EQUAL(static_cast<int>(x_v(i)), static_cast<int>(tb.x(i)));
-    BOOST_CHECK_EQUAL(static_cast<int>(y_v(i)), static_cast<int>(tb.y(i)));
-    BOOST_CHECK_EQUAL(x, static_cast<int>(tb.x(i)));
-    BOOST_CHECK_EQUAL(y, static_cast<int>(tb.y(i)));
-    BOOST_CHECK_EQUAL(x, static_cast<int>(x_v(i)));
-    BOOST_CHECK_EQUAL(y, static_cast<int>(y_v(i)));
+  for (votca::Index i = 0; i < 10; ++i) {
+    votca::Index x = i;
+    votca::Index y = 2 * x;
+    BOOST_CHECK_EQUAL(static_cast<votca::Index>(x_v(i)),
+                      static_cast<votca::Index>(tb.x(i)));
+    BOOST_CHECK_EQUAL(static_cast<votca::Index>(y_v(i)),
+                      static_cast<votca::Index>(tb.y(i)));
+    BOOST_CHECK_EQUAL(x, static_cast<votca::Index>(tb.x(i)));
+    BOOST_CHECK_EQUAL(y, static_cast<votca::Index>(tb.y(i)));
+    BOOST_CHECK_EQUAL(x, static_cast<votca::Index>(x_v(i)));
+    BOOST_CHECK_EQUAL(y, static_cast<votca::Index>(y_v(i)));
   }
 }
 
@@ -89,10 +91,10 @@ BOOST_AUTO_TEST_CASE(getMinMax_test) {
     tb.push_back(x, y);
   }
 
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMinX()), 0);
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMaxX()), 9);
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMinY()), 0);
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMaxY()), 18);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMinX()), 0);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMaxX()), 9);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMinY()), 0);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMaxY()), 18);
 }
 
 BOOST_AUTO_TEST_CASE(generate_grid_spacing_test) {
@@ -103,8 +105,8 @@ BOOST_AUTO_TEST_CASE(generate_grid_spacing_test) {
   tb.GenerateGridSpacing(min_v, max_v, 0.2);
 
   BOOST_CHECK_EQUAL(tb.size(), 5);
-  BOOST_CHECK_EQUAL(static_cast<int>(round(tb.getMinX() * 10)), 12);
-  BOOST_CHECK_EQUAL(static_cast<int>(round(tb.getMaxX() * 10)), 20);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(round(tb.getMinX() * 10)), 12);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(round(tb.getMaxX() * 10)), 20);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
