@@ -16,7 +16,6 @@
  */
 
 #include "traj_force.h"
-#include <boost/numeric/ublas/vector.hpp>
 #include <fstream>
 #include <iostream>
 #include <math.h>
@@ -26,7 +25,7 @@
 #include <votca/tools/linalg.h>
 #include <votca/tools/table.h>
 
-int main(Index argc, char **argv) {
+int main(int argc, char **argv) {
   TrajForce app;
   return app.Exec(argc, argv);
 }
@@ -91,7 +90,7 @@ void TrajForce::EvalConfiguration(Topology *conf, Topology *) {
         "number of beads in topology and reference force topology does not "
         "match");
   }
-  for (Index i = 0; i < conf->BeadCount(); ++i) {
+  for (votca::Index i = 0; i < conf->BeadCount(); ++i) {
 
     // \todo check why "conf" HasForce() is false
     // Since "conf" topology Force is set to false
