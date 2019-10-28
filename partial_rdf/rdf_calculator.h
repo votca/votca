@@ -58,7 +58,7 @@ class RDFCalculator {
   /// end coarse graining a trajectory
   void EndEvaluate();
 
-  void WriteEvery(int write_every) { _write_every = write_every; }
+  void WriteEvery(Index write_every) { _write_every = write_every; }
   void DoBlocks(bool do_blocks) { _do_blocks = do_blocks; }
   void DoVolumeCorrection(bool do_vol_corr) { _do_vol_corr = do_vol_corr; }
   void SetSubvolRadius(double r) { _subvol_rad = r; }
@@ -79,7 +79,7 @@ class RDFCalculator {
 
   /// struct to store collected information for interactions
   struct interaction_t {
-    long _index;
+    Index _index;
     Property *_p;
     HistogramNew _average;
     double _min, _max, _step;
@@ -93,9 +93,9 @@ class RDFCalculator {
   struct pair_t {
     interaction_t *_i1;
     interaction_t *_i2;
-    int _offset_i, _offset_j;
+    Index _offset_i, _offset_j;
     pair_matrix _corr;
-    pair_t(interaction_t *i1, interaction_t *i2, int offset_i, int offset_j,
+    pair_t(interaction_t *i1, interaction_t *i2, Index offset_i, Index offset_j,
            const pair_matrix &corr);
   };
 
@@ -109,13 +109,13 @@ class RDFCalculator {
   /// the options parsed from cg definition file
   Property _options;
   // we want to write out every so many frames
-  int _write_every;
+  Index _write_every;
   // we want do do block averaging -> clear averagings every write out
   bool _do_blocks;
 
   // number of frames we processed
-  int _nframes;
-  int _nblock;
+  Index _nframes;
+  Index _nblock;
   double _subvol_rad;
   Eigen::Vector3d _boxc;  // center of box
   bool _do_vol_corr;
@@ -168,7 +168,7 @@ class RDFCalculator {
 
 inline RDFCalculator::pair_t::pair_t(RDFCalculator::interaction_t *i1,
                                      RDFCalculator::interaction_t *i2,
-                                     int offset_i, int offset_j,
+                                     Index offset_i, Index offset_j,
                                      const pair_matrix &corr)
     : _i1(i1), _i2(i2), _offset_i(offset_i), _offset_j(offset_j), _corr(corr) {}
 

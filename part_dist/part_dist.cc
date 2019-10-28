@@ -53,17 +53,17 @@ void check_option(po::options_description &desc, po::variables_map &vm,
   }
 }
 
-int main(int argc, char **argv) {
+int main(Index argc, char **argv) {
   string top_file, trj_file, ptypes_file, out_file, grid, comment, string_tmp,
       coordinate = "z";
   double min, max, step, coord, com(0.);
-  vector<int> ptypes;
+  vector<Index> ptypes;
   ifstream fl_ptypes;
   ofstream fl_out;
   Topology top;
   TopologyReader *reader;
   TrajectoryReader *trajreader;
-  int part_type, n_bins, first_frame(0), last_frame(-1), flag_found(0),
+  Index part_type, n_bins, first_frame(0), last_frame(-1), flag_found(0),
       **p_occ = nullptr, n_part(0), frame_id(0), analyzed_frames(0);
   bool moreframes(1), not_the_last(1);
 
@@ -88,9 +88,9 @@ int main(int argc, char **argv) {
       "particle types to include in the analysis\n"
       " arg: file - particle types separated by space"
       "\n default: all particle types")("first_frame",
-                                        po::value<int>(&first_frame),
+                                        po::value<Index>(&first_frame),
                                         "first frame considered for analysis")(
-      "last_frame", po::value<int>(&last_frame),
+      "last_frame", po::value<Index>(&last_frame),
       "last frame considered for analysis")(
       "coord", po::value<string>(&coordinate),
       "coordinate analyzed ('x', 'y', or 'z' (default))")(
@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
   step = std::stod(toks[1]);
   max = std::stod(toks[2]);
   // Calculate number of bins
-  n_bins = (int)((max - min) / (1. * step) + 1);
+  n_bins = (Index)((max - min) / (1. * step) + 1);
 
   try {
     // Load topology
@@ -176,10 +176,10 @@ int main(int argc, char **argv) {
     } else {
       // Include all particle types
       for (mol = top.Molecules().begin(); mol != top.Molecules().end(); ++mol) {
-        for (int i = 0; i < (*mol)->BeadCount(); ++i) {
+        for (Index i = 0; i < (*mol)->BeadCount(); ++i) {
           flag_found = 0;
           part_type = atoi((*mol)->getBead(i)->getType().c_str());
-          for (int ptype : ptypes) {
+          for (Index ptype : ptypes) {
             if (part_type == ptype) {
               flag_found = 1;
             }
@@ -192,9 +192,9 @@ int main(int argc, char **argv) {
     }
 
     // Allocate array used to store particle occupancy p_occ
-    p_occ = (int **)calloc(ptypes.size(), sizeof(int *));
+    p_occ = (Index **)calloc(ptypes.size(), sizeof(Index *));
     for (size_t i = 0; i < ptypes.size(); ++i) {
-      p_occ[i] = (int *)calloc(n_bins, sizeof(int));
+      p_occ[i] = (Index *)calloc(n_bins, sizeof(Index));
     }
 
     // If we need to shift the center of mass, calculate the number of
@@ -203,9 +203,9 @@ int main(int argc, char **argv) {
 
     if (vm.count("shift_com")) {
       for (mol = top.Molecules().begin(); mol != top.Molecules().end(); ++mol) {
-        for (int i = 0; i < (*mol)->BeadCount(); ++i) {
+        for (Index i = 0; i < (*mol)->BeadCount(); ++i) {
           part_type = atoi((*mol)->getBead(i)->getType().c_str());
-          for (int ptype : ptypes) {
+          for (Index ptype : ptypes) {
             if (part_type == ptype) {
               ++n_part;
             }
@@ -248,9 +248,9 @@ int main(int argc, char **argv) {
       if (vm.count("shift_com")) {
         for (mol = top.Molecules().begin(); mol != top.Molecules().end();
              ++mol) {
-          for (int i = 0; i < (*mol)->BeadCount(); ++i) {
+          for (Index i = 0; i < (*mol)->BeadCount(); ++i) {
             part_type = atoi((*mol)->getBead(i)->getType().c_str());
-            for (int ptype : ptypes) {
+            for (Index ptype : ptypes) {
               if (part_type == ptype) {
                 if (coordinate.compare("x") == 0) {
                   com += (*mol)->getBead(i)->getPos().x();
@@ -272,7 +272,7 @@ int main(int argc, char **argv) {
         // Loop over each atom property
         for (mol = top.Molecules().begin(); mol != top.Molecules().end();
              ++mol) {
-          for (int i = 0; i < (*mol)->BeadCount(); ++i) {
+          for (Index i = 0; i < (*mol)->BeadCount(); ++i) {
             part_type = atoi((*mol)->getBead(i)->getType().c_str());
             for (size_t j = 0; j < ptypes.size(); ++j) {
               if (part_type == ptypes[j]) {
@@ -285,7 +285,7 @@ int main(int argc, char **argv) {
                 }
 
                 if (coord - com > min && coord - com < max) {
-                  ++p_occ[j][(int)floor((coord - com - min) / step)];
+                  ++p_occ[j][(Index)floor((coord - com - min) / step)];
                 }
               }
             }
@@ -309,11 +309,11 @@ int main(int argc, char **argv) {
     }
 
     fl_out << "#z\t" << flush;
-    for (int ptype : ptypes) {
+    for (Index ptype : ptypes) {
       fl_out << "type " << ptype << "\t" << flush;
     }
     fl_out << endl;
-    for (int k = 0; k < n_bins; ++k) {
+    for (Index k = 0; k < n_bins; ++k) {
       fl_out << min + k * step << "\t" << flush;
       for (size_t j = 0; j < ptypes.size(); ++j) {
         if (p_occ[j][k] == 0) {

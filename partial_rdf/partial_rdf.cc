@@ -61,7 +61,7 @@ class CsgStatApp : public CsgApplication {
 
  public:
   RDFCalculator _rdf_calculator;
-  int _write_every;
+  Index _write_every;
 };
 
 void CsgStatApp::HelpText(ostream &out) {
@@ -76,7 +76,7 @@ void CsgStatApp::Initialize() {
       "subvolume_radius", boost::program_options::value<double>(),
       "Rdf calc. in spherical subvolume of this radius (from center of box)")(
       "do-vol-corr", "Correct for subvolume truncation in rdf")(
-      "write-every", boost::program_options::value<int>(&_write_every),
+      "write-every", boost::program_options::value<Index>(&_write_every),
       " (UNIMPLEMENTED) write after every block of this length, "
       "if --blocking   is set, the averages are cleared after every output")(
       "do-blocks", "  write output for blocking analysis");
@@ -112,7 +112,7 @@ void CsgStatApp::BeginEvaluate(Topology *top, Topology *top_ref) {
 
 void CsgStatApp::EndEvaluate() { _rdf_calculator.EndEvaluate(); }
 
-int main(int argc, char **argv) {
+int main(Index argc, char **argv) {
   CsgStatApp app;
   app.Exec(argc, argv);
 }

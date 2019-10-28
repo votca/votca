@@ -117,7 +117,7 @@ class CGOrderParam : public CsgApplication {
 
     boxl = a.norm() / 2;
     if (_rbinw > 0) {
-      _rbins = (int)(boxl / _rbinw) + 1;
+      _rbins = (Index)(boxl / _rbinw) + 1;
       cout << "radial bins " << _rbins << endl;
     } else {
       _rbins = 1;
@@ -129,14 +129,14 @@ class CGOrderParam : public CsgApplication {
     _hist_u = new double *[_rbins];
     _hist_v = new double *[_rbins];
     _hist_w = new double *[_rbins];
-    for (int i = 0; i < _rbins; i++) {
+    for (Index i = 0; i < _rbins; i++) {
       _hist_u[i] = new double[_nbin];
       _hist_v[i] = new double[_nbin];
       _hist_w[i] = new double[_nbin];
     }
 
     _nmol = new int[_rbins];
-    for (int i = 0; i < _rbins; i++) {
+    for (Index i = 0; i < _rbins; i++) {
       _nmol[i] = 0;
     }
   }
@@ -144,14 +144,14 @@ class CGOrderParam : public CsgApplication {
   void EndEvaluate() override {
 
     cout << "Average number of molecules within cutoff " << endl;
-    for (int i = 0; i < _rbins; i++) {
+    for (Index i = 0; i < _rbins; i++) {
       cout << i * _rbinw << " " << (double)_nmol[i] / _n << endl;
     }
 
     double exp_value = (double)1 / _nbin;
     double orderparam = 0;
 
-    for (int n = 0; n < _nbin; n++) {
+    for (Index n = 0; n < _nbin; n++) {
       _hist_u[0][n] /= (double)_nmol[0];  // normalize to numberframes and avg.
                                           // number of molecules
       _hist_v[0][n] /= (double)_nmol[0];
@@ -176,7 +176,7 @@ class CGOrderParam : public CsgApplication {
   void EvalConfiguration(Topology *conf, Topology * = nullptr) override {
 
     Eigen::Vector3d eR;
-    int nu, nv, nw;
+    Index nu, nv, nw;
     Eigen::Vector3d u, v, w;
 
     if (_refmol != "") {
@@ -198,9 +198,9 @@ class CGOrderParam : public CsgApplication {
       eR = bead->getPos() - _ref;
       if ((eR.norm() < _radialcutoff && eR.norm() > _minrad) || _rbins != 1) {
         // cout << eR << endl;
-        int rb = 0;
+        Index rb = 0;
         if (_rbinw > 0) {
-          rb = (int)((eR.norm()) / boxl * (double)_rbins);
+          rb = (Index)((eR.norm()) / boxl * (double)_rbins);
         }
         if (rb >= _rbins) {
           continue;
@@ -214,9 +214,9 @@ class CGOrderParam : public CsgApplication {
         v.normalize();
         w.normalize();
 
-        nu = (int)(((eR.dot(u) + 1) / 2) * _nbin);
-        nv = (int)(((eR.dot(v) + 1) / 2) * _nbin);
-        nw = (int)(((eR.dot(w) + 1) / 2) * _nbin);
+        nu = (Index)(((eR.dot(u) + 1) / 2) * _nbin);
+        nv = (Index)(((eR.dot(v) + 1) / 2) * _nbin);
+        nw = (Index)(((eR.dot(w) + 1) / 2) * _nbin);
 
         _hist_u[rb][nu] += 1;
         _hist_v[rb][nv] += 1;
@@ -235,7 +235,7 @@ class CGOrderParam : public CsgApplication {
  protected:
   ofstream _file;
   string _filename;
-  int _n;
+  Index _n;
   Eigen::Vector3d _ref;
   ofstream _file_u;
   ofstream _file_v;
@@ -243,11 +243,11 @@ class CGOrderParam : public CsgApplication {
   double **_hist_u;
   double **_hist_v;
   double **_hist_w;
-  int _nbin;
-  int *_nmol;
+  Index _nbin;
+  Index *_nmol;
   double _radialcutoff;
   double _minrad;
-  int _rbins;
+  Index _rbins;
   double _rbinw;
   double boxl;
 
@@ -255,7 +255,7 @@ class CGOrderParam : public CsgApplication {
   string _refmol;
 };
 
-int main(int argc, char **argv) {
+int main(Index argc, char **argv) {
   CGOrderParam app;
   return app.Exec(argc, argv);
 }

@@ -71,7 +71,7 @@ class OrientCorrApp : public CsgApplication {
   votca::tools::HistogramNew _count_excl;
   static string _nbmethod;
   double _cut_off;
-  int _nbins;
+  Index _nbins;
 };
 
 string OrientCorrApp::_nbmethod;
@@ -99,7 +99,7 @@ class MyWorker : public CsgApplication::Worker {
   double _cut_off;
 };
 
-int main(int argc, char **argv) {
+int main(Index argc, char **argv) {
   OrientCorrApp app;
   return app.Exec(argc, argv);
 }
@@ -113,7 +113,7 @@ void OrientCorrApp::Initialize() {
       "cutoff,c",
       boost::program_options::value<double>(&_cut_off)->default_value(1.0),
       "cutoff for the neighbor search")(
-      "nbins", boost::program_options::value<int>(&_nbins)->default_value(40),
+      "nbins", boost::program_options::value<Index>(&_nbins)->default_value(40),
       "number of bins for the grid")(
       "nbmethod",
       boost::program_options::value<string>(&_nbmethod)->default_value("grid"),
@@ -170,7 +170,7 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
     // create a molecule in mapped topology
     Molecule *mol = mapped.CreateMolecule(mol_src->getName());
     // loop over beads in molecule
-    for (int i = 0; i < mol_src->BeadCount() - 1; ++i) {
+    for (Index i = 0; i < mol_src->BeadCount() - 1; ++i) {
       // create a bead in mapped topology
       string bead_type = "A";
       if (mapped.BeadTypeExist(bead_type) == false) {
