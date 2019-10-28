@@ -28,7 +28,7 @@ Eigen::Matrix<double, N, 1> eeInteractor::VSiteA(
 
   const Eigen::Vector3d& posA = siteA.getPos();
   const Eigen::Vector3d& posB = siteB.getPos();
-  int rankB = siteB.getRank();
+  Index rankB = siteB.getRank();
   Eigen::Vector3d a =
       posB - posA;  // Vector of the distance between polar sites
   const double R = a.norm();
@@ -341,8 +341,8 @@ template double eeInteractor::CalcStaticEnergy(const PolarSegment& seg1,
 template <class S>
 double eeInteractor::CalcStaticEnergy_IntraSegment(const S& seg) const {
   double e = 0;
-  for (int i = 0; i < seg.size(); i++) {
-    for (int j = 0; j < i; j++) {
+  for (Index i = 0; i < seg.size(); i++) {
+    for (Index j = 0; j < i; j++) {
       e += CalcStaticEnergy_site(seg[i], seg[j]);
     }
   }
@@ -373,8 +373,8 @@ template eeInteractor::E_terms eeInteractor::CalcPolarEnergy(
 double eeInteractor::CalcPolarEnergy_IntraSegment(
     const PolarSegment& seg) const {
   double e = 0;
-  for (int i = 0; i < seg.size(); i++) {
-    for (int j = 0; j < i; j++) {
+  for (Index i = 0; i < seg.size(); i++) {
+    for (Index j = 0; j < i; j++) {
       e += seg[i].Induced_Dipole().transpose() *
            VThole(seg[i], seg[j], seg[j].Induced_Dipole());
     }
@@ -384,20 +384,20 @@ double eeInteractor::CalcPolarEnergy_IntraSegment(
 
 Eigen::VectorXd eeInteractor::Cholesky_IntraSegment(
     const PolarSegment& seg) const {
-  long size = 3 * seg.size();
+  Index size = 3 * seg.size();
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(size, size);
-  for (long i = 1; i < seg.size(); i++) {
-    for (long j = 0; j < i; j++) {
+  for (Index i = 1; i < seg.size(); i++) {
+    for (Index j = 0; j < i; j++) {
       A.block<3, 3>(3 * i, 3 * j) = FillTholeInteraction(seg[i], seg[j]);
     }
   }
 
-  for (long i = 0; i < seg.size(); i++) {
+  for (Index i = 0; i < seg.size(); i++) {
     A.block<3, 3>(3 * i, 3 * i) = seg[i].getPInv();
   }
   Eigen::VectorXd b = Eigen::VectorXd(size);
-  for (long i = 0; i < seg.size(); i++) {
+  for (Index i = 0; i < seg.size(); i++) {
     const Eigen::Vector3d V = seg[i].V() + seg[i].V_noE();
     b.segment<3>(3 * i) = -V;
   }

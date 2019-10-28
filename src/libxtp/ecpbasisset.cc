@@ -47,8 +47,8 @@ void ECPBasisSet::Load(const std::string& name) {
 
   for (tools::Property* elementProp : elementProps) {
     std::string elementName = elementProp->getAttribute<std::string>("name");
-    int lmax = elementProp->getAttribute<int>("lmax");
-    int ncore = elementProp->getAttribute<int>("ncore");
+    Index lmax = elementProp->getAttribute<Index>("lmax");
+    Index ncore = elementProp->getAttribute<Index>("ncore");
 
     ECPElement& element = addElement(elementName, lmax, ncore);
 
@@ -62,7 +62,7 @@ void ECPBasisSet::Load(const std::string& name) {
       ECPShell& shell = element.addShell(shellType);
       std::vector<tools::Property*> constProps = shellProp->Select("constant");
       for (tools::Property* constProp : constProps) {
-        int power = constProp->getAttribute<int>("power");
+        Index power = constProp->getAttribute<Index>("power");
         double decay = constProp->getAttribute<double>("decay");
         double contraction = constProp->getAttribute<double>("contraction");
         shell.addGaussian(power, decay, contraction);
@@ -73,8 +73,8 @@ void ECPBasisSet::Load(const std::string& name) {
 }
 
 // adding an Element to a Pseudopotential Library
-ECPElement& ECPBasisSet::addElement(std::string elementType, int lmax,
-                                    int ncore) {
+ECPElement& ECPBasisSet::addElement(std::string elementType, Index lmax,
+                                    Index ncore) {
   std::shared_ptr<ECPElement> element(new ECPElement(elementType, lmax, ncore));
   _elements[elementType] = element;
   return *element;
@@ -121,7 +121,7 @@ std::ostream& operator<<(std::ostream& out, const ECPBasisSet& basis) {
 }
 
 // adds a Gaussian of a pseudopotential
-ECPGaussianPrimitive& ECPShell::addGaussian(int power, double decay,
+ECPGaussianPrimitive& ECPShell::addGaussian(Index power, double decay,
                                             double contraction) {
   _gaussians.push_back(ECPGaussianPrimitive(power, decay, contraction));
   return _gaussians.back();

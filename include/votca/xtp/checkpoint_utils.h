@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace xtp {
@@ -57,7 +58,7 @@ struct InferDataType<int> {
 };
 
 template <>
-struct InferDataType<long> {
+struct InferDataType<Index> {
   static const H5::DataType* get(void) { return &H5::PredType::NATIVE_LONG; }
 };
 

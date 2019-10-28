@@ -27,14 +27,14 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                           const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
-  const int lmax_row = shell_row.getLmax();
-  const int lmax_col = shell_col.getLmax();
+  const Index lmax_row = shell_row.getLmax();
+  const Index lmax_col = shell_col.getLmax();
 
   // set size of internal block for recursion
-  int nrows = AOTransform::getBlockSize(lmax_row);
-  int ncols = AOTransform::getBlockSize(lmax_col);
-  const int mmax = lmax_row + lmax_col;
-  const int nextra = mmax + 1;
+  Index nrows = AOTransform::getBlockSize(lmax_row);
+  Index ncols = AOTransform::getBlockSize(lmax_col);
+  const Index mmax = lmax_row + lmax_col;
+  const Index nextra = mmax + 1;
 
   // get shell positions
   const Eigen::Vector3d& pos_row = shell_row.getPos();
@@ -88,13 +88,13 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       const Eigen::VectorXd FmT = AOTransform::XIntegrate(nextra, T);
 
       // get initial data from FmT -> s-s element
-      for (int i = 0; i != nextra; ++i) {
+      for (Index i = 0; i != nextra; ++i) {
         cou(0, 0, i) = fak * FmT[i];
       }
 
       // Integrals     p - s
       if (lmax_row > 0) {
-        for (int m = 0; m < mmax; m++) {
+        for (Index m = 0; m < mmax; m++) {
           cou(Cart::x, 0, m) = wmp(0) * cou(0, 0, m + 1);
           cou(Cart::y, 0, m) = wmp(1) * cou(0, 0, m + 1);
           cou(Cart::z, 0, m) = wmp(2) * cou(0, 0, m + 1);
@@ -104,7 +104,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
       // Integrals     d - s
       if (lmax_row > 1) {
-        for (int m = 0; m < mmax - 1; m++) {
+        for (Index m = 0; m < mmax - 1; m++) {
           double term =
               rdecay_row * (cou(0, 0, m) - fac_c_ac * cou(0, 0, m + 1));
           cou(Cart::xx, 0, m) = wmp(0) * cou(Cart::x, 0, m + 1) + term;
@@ -119,7 +119,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
       // Integrals     f - s
       if (lmax_row > 2) {
-        for (int m = 0; m < mmax - 2; m++) {
+        for (Index m = 0; m < mmax - 2; m++) {
           cou(Cart::xxx, 0, m) =
               wmp(0) * cou(Cart::xx, 0, m + 1) +
               2 * rdecay_row *
@@ -145,7 +145,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
       // Integrals     g - s
       if (lmax_row > 3) {
-        for (int m = 0; m < mmax - 3; m++) {
+        for (Index m = 0; m < mmax - 3; m++) {
           double term_xx = rdecay_row * (cou(Cart::xx, 0, m) -
                                          fac_c_ac * cou(Cart::xx, 0, m + 1));
           double term_yy = rdecay_row * (cou(Cart::yy, 0, m) -
@@ -176,7 +176,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
       // Integrals     h - s
       if (lmax_row > 4) {
-        for (int m = 0; m < mmax - 4; m++) {
+        for (Index m = 0; m < mmax - 4; m++) {
           double term_xxx = rdecay_row * (cou(Cart::xxx, 0, m) -
                                           fac_c_ac * cou(Cart::xxx, 0, m + 1));
           double term_yyy = rdecay_row * (cou(Cart::yyy, 0, m) -
@@ -219,7 +219,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
       // Integrals     i - s
       if (lmax_row > 5) {
-        for (int m = 0; m < mmax - 5; m++) {
+        for (Index m = 0; m < mmax - 5; m++) {
           double term_xxxx =
               rdecay_row *
               (cou(Cart::xxxx, 0, m) - fac_c_ac * cou(Cart::xxxx, 0, m + 1));
@@ -289,7 +289,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       if (lmax_col > 0) {
 
         // Integrals     s - p
-        for (int m = 0; m < lmax_col; m++) {
+        for (Index m = 0; m < lmax_col; m++) {
           cou(0, Cart::x, m) = wmq(0) * cou(0, 0, m + 1);
           cou(0, Cart::y, m) = wmq(1) * cou(0, 0, m + 1);
           cou(0, Cart::z, m) = wmq(2) * cou(0, 0, m + 1);
@@ -298,9 +298,9 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
         // Integrals     p - p
         if (lmax_row > 0) {
-          for (int m = 0; m < lmax_col; m++) {
+          for (Index m = 0; m < lmax_col; m++) {
             double term = r_decay * cou(0, 0, m + 1);
-            for (int i = 1; i < 4; i++) {
+            for (Index i = 1; i < 4; i++) {
               cou(i, Cart::x, m) = wmq(0) * cou(i, 0, m + 1) + nx[i] * term;
               cou(i, Cart::y, m) = wmq(1) * cou(i, 0, m + 1) + ny[i] * term;
               cou(i, Cart::z, m) = wmq(2) * cou(i, 0, m + 1) + nz[i] * term;
@@ -310,9 +310,9 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
 
         // Integrals     d - p     f - p     g - p     h - p     i - p
-        for (int i_row = 2; i_row < lmax_row + 1; i_row++) {
-          for (int m = 0; m < lmax_col; m++) {
-            for (int i = 4; i < n_orbitals[lmax_row]; i++) {
+        for (Index i_row = 2; i_row < lmax_row + 1; i_row++) {
+          for (Index m = 0; m < lmax_col; m++) {
+            for (Index i = 4; i < n_orbitals[lmax_row]; i++) {
               cou(i, Cart::x, m) = wmq(0) * cou(i, 0, m + 1) +
                                    nx[i] * r_decay * cou(i_less_x[i], 0, m + 1);
               cou(i, Cart::y, m) = wmq(1) * cou(i, 0, m + 1) +
@@ -329,7 +329,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       if (lmax_col > 1) {
 
         // Integrals     s - d
-        for (int m = 0; m < lmax_col - 1; m++) {
+        for (Index m = 0; m < lmax_col - 1; m++) {
           double term =
               rdecay_col * (cou(0, 0, m) - fac_a_ac * cou(0, 0, m + 1));
           cou(0, Cart::xx, m) = wmq(0) * cou(0, Cart::x, m + 1) + term;
@@ -342,8 +342,8 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - d     d - d     f - d     g - d     h - d     i - d
-        for (int m = 0; m < lmax_col - 1; m++) {
-          for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index m = 0; m < lmax_col - 1; m++) {
+          for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
             double term =
                 rdecay_col * (cou(i, 0, m) - fac_a_ac * cou(i, 0, m + 1));
             cou(i, Cart::xx, m) =
@@ -373,7 +373,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       if (lmax_col > 2) {
 
         // Integrals     s - f
-        for (int m = 0; m < lmax_col - 2; m++) {
+        for (Index m = 0; m < lmax_col - 2; m++) {
           cou(0, Cart::xxx, m) =
               wmq(0) * cou(0, Cart::xx, m + 1) +
               2 * rdecay_col *
@@ -397,8 +397,8 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - f     d - f     f - f     g - f     h - f     i - f
-        for (int m = 0; m < lmax_col - 2; m++) {
-          for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index m = 0; m < lmax_col - 2; m++) {
+          for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
             double term_x =
                 2 * rdecay_col *
                 (cou(i, Cart::x, m) - fac_a_ac * cou(i, Cart::x, m + 1));
@@ -447,7 +447,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       if (lmax_col > 3) {
 
         // Integrals     s - g
-        for (int m = 0; m < lmax_col - 3; m++) {
+        for (Index m = 0; m < lmax_col - 3; m++) {
           double term_xx = rdecay_col * (cou(0, Cart::xx, m) -
                                          fac_a_ac * cou(0, Cart::xx, m + 1));
           double term_yy = rdecay_col * (cou(0, Cart::yy, m) -
@@ -476,8 +476,8 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - g     d - g     f - g     g - g     h - g     i - g
-        for (int m = 0; m < lmax_col - 3; m++) {
-          for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index m = 0; m < lmax_col - 3; m++) {
+          for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
             double term_xx = rdecay_col * (cou(i, Cart::xx, m) -
                                            fac_a_ac * cou(i, Cart::xx, m + 1));
             double term_yy = rdecay_col * (cou(i, Cart::yy, m) -
@@ -541,7 +541,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       if (lmax_col > 4) {
 
         // Integrals     s - h
-        for (int m = 0; m < lmax_col - 4; m++) {
+        for (Index m = 0; m < lmax_col - 4; m++) {
           double term_xxx = rdecay_col * (cou(0, Cart::xxx, m) -
                                           fac_a_ac * cou(0, Cart::xxx, m + 1));
           double term_yyy = rdecay_col * (cou(0, Cart::yyy, m) -
@@ -582,8 +582,8 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - h     d - h     f - h     g - h     h - h     i - h
-        for (int m = 0; m < lmax_col - 4; m++) {
-          for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index m = 0; m < lmax_col - 4; m++) {
+          for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
             double term_xxx =
                 rdecay_col *
                 (cou(i, Cart::xxx, m) - fac_a_ac * cou(i, Cart::xxx, m + 1));
@@ -674,7 +674,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       if (lmax_col > 5) {
 
         // Integrals     s - i
-        for (int m = 0; m < lmax_col - 5; m++) {
+        for (Index m = 0; m < lmax_col - 5; m++) {
           double term_xxxx =
               rdecay_col *
               (cou(0, Cart::xxxx, m) - fac_a_ac * cou(0, Cart::xxxx, m + 1));
@@ -741,8 +741,8 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - i     d - i     f - i     g - i     h - i     i - i
-        for (int m = 0; m < lmax_col - 5; m++) {
-          for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index m = 0; m < lmax_col - 5; m++) {
+          for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
             double term_xxxx =
                 rdecay_col *
                 (cou(i, Cart::xxxx, m) - fac_a_ac * cou(i, Cart::xxxx, m + 1));
@@ -893,7 +893,7 @@ Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt_GWBSE(const AOOverlap& auxoverlap,
   removedfunctions = 0;
   Eigen::VectorXd diagonal_overlap =
       Eigen::VectorXd::Zero(eo.eigenvalues().size());
-  for (unsigned i = 0; i < diagonal_overlap.size(); ++i) {
+  for (Index i = 0; i < diagonal_overlap.size(); ++i) {
     if (eo.eigenvalues()(i) < etol) {
       removedfunctions++;
     } else {
@@ -907,7 +907,7 @@ Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt_GWBSE(const AOOverlap& auxoverlap,
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho);
   Eigen::VectorXd diagonal = Eigen::VectorXd::Zero(es.eigenvalues().size());
 
-  for (unsigned i = 0; i < diagonal.size(); ++i) {
+  for (Index i = 0; i < diagonal.size(); ++i) {
     if (es.eigenvalues()(i) < etol) {
       removedfunctions++;
     } else {
@@ -925,7 +925,7 @@ Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt(double etol) {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_aomatrix);
   Eigen::VectorXd diagonal = Eigen::VectorXd::Zero(es.eigenvalues().size());
   removedfunctions = 0;
-  for (unsigned i = 0; i < diagonal.size(); ++i) {
+  for (Index i = 0; i < diagonal.size(); ++i) {
     if (es.eigenvalues()(i) < etol) {
       removedfunctions++;
     } else {

@@ -26,33 +26,33 @@ namespace xtp {
 
 void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
                                  const Eigen::VectorXd& gwaenergies,
-                                 int qpmin) {
-  int rpatotal = _rpamax - _rpamin + 1;
+                                 Index qpmin) {
+  Index rpatotal = _rpamax - _rpamin + 1;
   _energies = dftenergies.segment(_rpamin, rpatotal);
-  int gwsize = int(gwaenergies.size());
-  int lumo = _homo + 1;
+  Index gwsize = Index(gwaenergies.size());
+  Index lumo = _homo + 1;
 
-  int qpmax = qpmin + gwsize - 1;
+  Index qpmax = qpmin + gwsize - 1;
   _energies.segment(qpmin - _rpamin, gwsize) = gwaenergies;
   double DFTgap = dftenergies(lumo) - dftenergies(_homo);
   double QPgap = gwaenergies(lumo - qpmin) - gwaenergies(_homo - qpmin);
   double shift = QPgap - DFTgap;
-  int levelaboveqpmax = _rpamax - qpmax;
+  Index levelaboveqpmax = _rpamax - qpmax;
   _energies.segment(qpmax + 1 - _rpamin, levelaboveqpmax).array() += shift;
 }
 
 template <bool imag>
 Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
-  const int size = _Mmn.auxsize();
+  const Index size = _Mmn.auxsize();
   std::vector<Eigen::MatrixXd> thread_result = std::vector<Eigen::MatrixXd>(
       OPENMP::getMaxThreads(), Eigen::MatrixXd::Zero(size, size));
-  const int lumo = _homo + 1;
-  const int n_occ = lumo - _rpamin;
-  const int n_unocc = _rpamax - lumo + 1;
+  const Index lumo = _homo + 1;
+  const Index n_occ = lumo - _rpamin;
+  const Index n_unocc = _rpamax - lumo + 1;
   const double freq2 = frequency * frequency;
   const double eta2 = _eta * _eta;
 #pragma omp parallel for
-  for (int m_level = 0; m_level < n_occ; m_level++) {
+  for (Index m_level = 0; m_level < n_occ; m_level++) {
     const double qp_energy_m = _energies(m_level);
 
     const Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);

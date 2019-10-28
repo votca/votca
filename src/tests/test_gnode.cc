@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(chosen_id_test) {
   QMStateType electron = QMStateType::Electron;
 
   vector<GNode> dests;
-  for (int i = 0; i < 6; i++) {
+  for (Index i = 0; i < 6; i++) {
     Segment seg("one", i);
     dests.push_back(GNode(seg, electron, true));
   }
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(count_test) {
   QMStateType electron = QMStateType::Electron;
 
   vector<GNode> dests;
-  for (int i = 0; i < 11; i++) {
+  for (Index i = 0; i < 11; i++) {
     Segment seg("one", i);
     dests.push_back(GNode(seg, electron, true));
   }
@@ -99,11 +99,11 @@ BOOST_AUTO_TEST_CASE(count_test) {
 
   g.InitEscapeRate();
   g.MakeHuffTree();
-  vector<int> count(11, 0);
+  vector<Index> count(11, 0);
   double d = 0;
   while (d < 1) {
     GLink* L = g.findHoppingDestination(d);
-    int ind = L->getDestination()->getId();
+    Index ind = L->getDestination()->getId();
     count[ind]++;
     d += 0.000001;
   }

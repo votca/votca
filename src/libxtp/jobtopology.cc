@@ -32,7 +32,7 @@ void JobTopology::SortRegionsDefbyId(
     std::vector<tools::Property*>& regions_def) const {
   std::sort(regions_def.begin(), regions_def.end(),
             [](const tools::Property* A, const tools::Property* B) {
-              return (A->get("id").as<int>()) < (B->get("id").as<int>());
+              return (A->get("id").as<Index>()) < (B->get("id").as<Index>());
             });
 }
 
@@ -45,7 +45,7 @@ void JobTopology::ModifyOptionsByJobFile(
 
   std::string tag = "jobfile";
   for (tools::Property* prop : regions_def) {
-    int id = prop->get("id").as<int>();
+    Index id = prop->get("id").as<Index>();
     std::vector<std::string> paths = FindReplacePathsInOptions(*prop, tag);
     if (!paths.empty()) {
       XTP_LOG_SAVE(logINFO, _log) << " Region " << std::to_string(id)
@@ -60,7 +60,7 @@ void JobTopology::ModifyOptionsByJobFile(
       bool found_region_in_jobfile = false;
       const tools::Property* job_prop = nullptr;
       for (const tools::Property* prop_job : regions_def_job) {
-        int id2 = prop_job->get("id").as<int>();
+        Index id2 = prop_job->get("id").as<Index>();
         if (id2 == id) {
           job_prop = prop_job;
           found_region_in_jobfile = true;
@@ -148,7 +148,7 @@ void JobTopology::CreateRegions(
   Eigen::Vector3d center = top.getSegment(region_seg_ids[0][0].Id()).getPos();
 
   for (const tools::Property* region_def : regions_def) {
-    int id = region_def->ifExistsReturnElseThrowRuntimeError<int>("id");
+    Index id = region_def->ifExistsReturnElseThrowRuntimeError<Index>("id");
     const std::vector<SegId>& seg_ids = region_seg_ids[id];
     std::string type =
         region_def->ifExistsReturnElseThrowRuntimeError<std::string>("type");
@@ -222,7 +222,7 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
     const std::vector<tools::Property*>& regions_def,
     const Topology& top) const {
 
-  std::vector<int> explicitly_named_segs_per_region;
+  std::vector<Index> explicitly_named_segs_per_region;
   std::vector<std::vector<SegId> > segids_per_region;
   std::vector<bool> processed_segments =
       std::vector<bool>(top.Segments().size(), false);
@@ -242,7 +242,7 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
         seg_ids.push_back(SegId(seg_id_string));
       }
       for (const SegId& seg_id : seg_ids) {
-        if (seg_id.Id() > int(top.Segments().size() - 1)) {
+        if (seg_id.Id() > Index(top.Segments().size() - 1)) {
           throw std::runtime_error("Segment id is not in topology");
         }
         processed_segments[seg_id.Id()] = true;
@@ -268,13 +268,13 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
       }
       std::vector<SegId> center = seg_ids;
       if (region_def->exists("cutoff.region")) {
-        int id = region_def->get("cutoff.region").as<int>();
+        Index id = region_def->get("cutoff.region").as<Index>();
         bool only_explicit = region_def->ifExistsReturnElseReturnDefault<bool>(
             "cutoff.relative_to_explicit_segs", false);
-        if (id < int(segids_per_region.size())) {
+        if (id < Index(segids_per_region.size())) {
           center = segids_per_region[id];
           if (only_explicit) {
-            int no_of_segs = explicitly_named_segs_per_region[id];
+            Index no_of_segs = explicitly_named_segs_per_region[id];
             if (no_of_segs == 0) {
               throw std::runtime_error("Region with id '" + std::to_string(id) +
                                        "' does not have");
@@ -316,13 +316,13 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
 
 void JobTopology::CheckEnumerationOfRegions(
     const std::vector<tools::Property*>& regions_def) const {
-  std::vector<int> reg_ids;
+  std::vector<Index> reg_ids;
   for (const tools::Property* region_def : regions_def) {
     reg_ids.push_back(
-        region_def->ifExistsReturnElseThrowRuntimeError<int>("id"));
+        region_def->ifExistsReturnElseThrowRuntimeError<Index>("id"));
   }
 
-  std::vector<int> v(reg_ids.size());
+  std::vector<Index> v(reg_ids.size());
   std::iota(v.begin(), v.end(), 0);
   if (!std::is_permutation(reg_ids.begin(), reg_ids.end(), v.begin())) {
     throw std::runtime_error(

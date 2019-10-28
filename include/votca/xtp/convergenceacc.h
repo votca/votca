@@ -37,13 +37,13 @@ class ConvergenceAcc {
     KSmode mode = KSmode::closed;
     bool usediis = true;
     bool noisy = false;
-    int histlength = 10;
+    Index histlength = 10;
     bool maxout = false;
     double adiis_start = 2;
     double diis_start = 0.01;
     double levelshift = 0.25;
     double levelshiftend = 0.8;
-    int numberofelectrons;
+    Index numberofelectrons;
     double mixingparameter = 0.7;
     double Econverged = 1e-7;
     double error_converged = 1e-7;
@@ -112,8 +112,8 @@ class ConvergenceAcc {
   std::vector<Eigen::MatrixXd> _dmatHist;
   std::vector<double> _totE;
 
-  int _nocclevels;
-  long _maxerrorindex = 0;
+  Index _nocclevels;
+  Index _maxerrorindex = 0;
   double _maxerror = 0.0;
   ADIIS _adiis;
   DIIS _diis;

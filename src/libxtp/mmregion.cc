@@ -44,7 +44,7 @@ template <class T>
 void MMRegion<T>::WriteToCpt(CheckpointWriter& w) const {
   w(_id, "id");
   w(identify(), "type");
-  int size = int(_segments.size());
+  Index size = Index(_segments.size());
   w(size, "size");
   CheckpointWriter ww = w.openChild("segments");
   for (const auto& seg : _segments) {
@@ -56,13 +56,13 @@ void MMRegion<T>::WriteToCpt(CheckpointWriter& w) const {
 template <class T>
 void MMRegion<T>::ReadFromCpt(CheckpointReader& r) {
   r(_id, "id");
-  int size;
+  Index size;
   r(size, "size");
   _segments.clear();
   _segments.reserve(size);
   T dummy("dummy", 0);
   CheckpointReader rr = r.openChild("segments");
-  for (int i = 0; i < size; i++) {
+  for (Index i = 0; i < size; i++) {
     CheckpointReader rrr =
         rr.openChild(dummy.identify() + "_" + std::to_string(i));
     _segments.push_back(T(rrr));

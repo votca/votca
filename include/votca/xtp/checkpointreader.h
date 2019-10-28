@@ -69,7 +69,7 @@ class CheckpointReader {
   }
 
   void operator()(bool& v, const std::string& name) const {
-    int temp = int(v);
+    Index temp = Index(v);
     try {
       ReadScalar(_loc, temp, name);
     } catch (H5::Exception&) {
@@ -107,7 +107,7 @@ class CheckpointReader {
     }
   }
 
-  long getNumDataSets() const { return _loc.getNumObjs(); }
+  Index getNumDataSets() const { return _loc.getNumObjs(); }
 
   CptLoc getLoc() { return _loc; }
 
@@ -249,7 +249,7 @@ class CheckpointReader {
     ReadData(parent, sys.eigenvalues(), "eigenvalues");
     ReadData(parent, sys.eigenvectors(), "eigenvectors");
     ReadData(parent, sys.eigenvectors2(), "eigenvectors2");
-    int info;
+    Index info;
     ReadScalar(parent, info, "info");
     sys.info() = static_cast<Eigen::ComputationInfo>(info);
   }

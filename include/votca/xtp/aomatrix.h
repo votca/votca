@@ -28,7 +28,7 @@ namespace xtp {
 
 class AOMatrix {
  public:
-  long Dimension() { return _aomatrix.rows(); }
+  Index Dimension() { return _aomatrix.rows(); }
   const Eigen::MatrixXd& Matrix() const { return _aomatrix; }
   void Fill(const AOBasis& aobasis);
 
@@ -51,7 +51,7 @@ class AOKinetic : public AOMatrix {
 class AOOverlap : public AOMatrix {
  public:
   Eigen::MatrixXd FillShell(const AOShell& shell) const;
-  int Removedfunctions() const { return removedfunctions; }
+  Index Removedfunctions() const { return removedfunctions; }
   double SmallestEigenValue() const { return smallestEigenvalue; }
 
   Eigen::MatrixXd Pseudo_InvSqrt(double etol);
@@ -59,7 +59,7 @@ class AOOverlap : public AOMatrix {
 
   Eigen::MatrixXd Primitive_Overlap(const AOGaussianPrimitive& g_row,
                                     const AOGaussianPrimitive& g_col,
-                                    int l_offset = 0) const;
+                                    Index l_offset = 0) const;
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
@@ -67,7 +67,7 @@ class AOOverlap : public AOMatrix {
                  const AOShell& shell_col) const override;
 
  private:
-  int removedfunctions;
+  Index removedfunctions;
   double smallestEigenvalue;
 };
 
@@ -77,7 +77,7 @@ class AOCoulomb : public AOMatrix {
   Eigen::MatrixXd Pseudo_InvSqrt_GWBSE(const AOOverlap& auxoverlap,
                                        double etol);
   Eigen::MatrixXd Pseudo_InvSqrt(double etol);
-  int Removedfunctions() const { return removedfunctions; }
+  Index Removedfunctions() const { return removedfunctions; }
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
@@ -85,7 +85,7 @@ class AOCoulomb : public AOMatrix {
                  const AOShell& shell_col) const override;
 
  private:
-  int removedfunctions;
+  Index removedfunctions;
 };
 
 }  // namespace xtp

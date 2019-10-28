@@ -47,11 +47,11 @@ class SegId {
     TestStringForQMState(results[1]);
   }
 
-  SegId(int id, std::string geometry) : _id(id) {
+  SegId(Index id, std::string geometry) : _id(id) {
     TestStringForQMState(geometry);
   }
 
-  int Id() const { return _id; }
+  Index Id() const { return _id; }
   bool hasFile() const { return _hasfilename; }
   std::string FileName() const { return _filename; }
   QMState getQMState() const { return _state; }
@@ -74,7 +74,7 @@ class SegId {
     }
   }
   bool _hasfilename = false;
-  int _id;
+  Index _id;
   std::string _filename = "";
   QMState _state;
 };

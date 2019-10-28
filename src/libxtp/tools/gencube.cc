@@ -44,9 +44,9 @@ void GenCube::Initialize(tools::Property& options) {
   _padding = options.get(key + ".padding").as<double>();
 
   // steps
-  _xsteps = options.get(key + ".xsteps").as<int>();
-  _ysteps = options.get(key + ".ysteps").as<int>();
-  _zsteps = options.get(key + ".zsteps").as<int>();
+  _xsteps = options.get(key + ".xsteps").as<Index>();
+  _ysteps = options.get(key + ".ysteps").as<Index>();
+  _zsteps = options.get(key + ".zsteps").as<Index>();
 
   std::string statestring = options.get(key + ".state").as<string>();
   _state.FromString(statestring);
@@ -133,14 +133,14 @@ void GenCube::calculateCube() {
     double y = atom.getPos().y();
     double z = atom.getPos().z();
     string element = atom.getElement();
-    int atnum = elements.getEleNum(element);
-    double crg = atom.getNuccharge();
-    out << boost::format("%1$d %2$f %3$f %4$f %5$f\n") % atnum % crg % x % y %
+    Index atnum = elements.getEleNum(element);
+    Index crg = atom.getNuccharge();
+    out << boost::format("%1$d %2$d %3$f %4$f %5$f\n") % atnum % crg % x % y %
                z;
   }
 
   if (do_amplitude) {
-    out << boost::format("  1 %1$d \n") % (_state.Index() + 1);
+    out << boost::format("  1 %1$d \n") % (_state.StateIdx() + 1);
   }
 
   // load DFT basis set (element-wise information) from xml file
@@ -164,14 +164,14 @@ void GenCube::calculateCube() {
   } else {
     mat = orbitals.DensityMatrixFull(_state);
   }
-  int amplitudeindex = 0;
+  Index amplitudeindex = 0;
   if (do_amplitude) {
     if (_state.Type() == QMStateType::DQPstate) {
       mat = orbitals.CalculateQParticleAORepresentation();
-      amplitudeindex = _state.Index() - orbitals.getGWAmin();
+      amplitudeindex = _state.StateIdx() - orbitals.getGWAmin();
     } else {
       mat = orbitals.MOs().eigenvectors();
-      amplitudeindex = _state.Index();
+      amplitudeindex = _state.StateIdx();
     }
   }
 
@@ -180,12 +180,12 @@ void GenCube::calculateCube() {
 
   boost::progress_display progress(_xsteps);
   // eval density at cube grid points
-  for (int ix = 0; ix <= _xsteps; ix++) {
+  for (Index ix = 0; ix <= _xsteps; ix++) {
     double x = xstart + double(ix) * xincr;
-    for (int iy = 0; iy <= _ysteps; iy++) {
+    for (Index iy = 0; iy <= _ysteps; iy++) {
       double y = ystart + double(iy) * yincr;
-      int Nrecord = 0;
-      for (int iz = 0; iz <= _zsteps; iz++) {
+      Index Nrecord = 0;
+      for (Index iz = 0; iz <= _zsteps; iz++) {
         double z = zstart + double(iz) * zincr;
         Nrecord++;
         Eigen::Vector3d pos(x, y, z);
@@ -257,7 +257,7 @@ void GenCube::subtractCubes() {
   getline(in2, s);
 
   // read rest from header
-  int natoms;
+  Index natoms;
   double xstart;
   double ystart;
   double zstart;
@@ -271,7 +271,7 @@ void GenCube::subtractCubes() {
   in1 >> ystart;
   in1 >> zstart;
   // check from second file
-  int tempint;
+  Index tempint;
   double tempdouble;
   in2 >> tempint;
   if (tempint != natoms) {
@@ -348,12 +348,12 @@ void GenCube::subtractCubes() {
 
   // atom information
 
-  for (int iatom = 0; iatom < std::abs(natoms); iatom++) {
+  for (Index iatom = 0; iatom < std::abs(natoms); iatom++) {
     // get center coordinates in Bohr
     double x;
     double y;
     double z;
-    int atnum;
+    Index atnum;
     double crg;
 
     // get from first cube
@@ -389,8 +389,8 @@ void GenCube::subtractCubes() {
   }
 
   if (do_amplitude) {
-    int ntotal;
-    int nis;
+    Index ntotal;
+    Index nis;
     in1 >> ntotal;
     in1 >> nis;
 
@@ -407,10 +407,10 @@ void GenCube::subtractCubes() {
   // now read data
   double val1;
   double val2;
-  for (int ix = 0; ix < _xsteps; ix++) {
-    for (int iy = 0; iy < _ysteps; iy++) {
-      int Nrecord = 0;
-      for (int iz = 0; iz < _zsteps; iz++) {
+  for (Index ix = 0; ix < _xsteps; ix++) {
+    for (Index iy = 0; iy < _ysteps; iy++) {
+      Index Nrecord = 0;
+      for (Index iz = 0; iz < _zsteps; iz++) {
         Nrecord++;
         in1 >> val1;
         in2 >> val2;

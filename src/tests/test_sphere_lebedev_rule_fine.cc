@@ -766,7 +766,7 @@ BOOST_AUTO_TEST_CASE(fine_test) {
   bool Getheta = Ge_theta_ref.isApprox(Gegrid.theta, 0.001);
   if (!Gephi || !Getheta) {
     std::cout << "phi_ref : Phi_comp | theta_ref : theta_comp" << std::endl;
-    for (int i = 0; i < Ge_phi_ref.size(); i++) {
+    for (Index i = 0; i < Ge_phi_ref.size(); i++) {
       std::cout << Gegrid.phi[i] << ":" << Ge_phi_ref[i] << " | "
                 << Gegrid.theta[i] << ":" << Ge_theta_ref[i] << std::endl;
     }

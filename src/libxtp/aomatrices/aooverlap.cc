@@ -25,7 +25,7 @@ namespace xtp {
 
 Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
                                              const AOGaussianPrimitive& g_col,
-                                             int l_offset) const {
+                                             Index l_offset) const {
   std::array<int, 9> n_orbitals = AOTransform::n_orbitals();
   std::array<int, 165> nx = AOTransform::nx();
   std::array<int, 165> ny = AOTransform::ny();
@@ -36,8 +36,8 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
 
   const AOShell& shell_row = g_row.getShell();
   const AOShell& shell_col = g_col.getShell();
-  int lmax_row = shell_row.getLmax() + l_offset;
-  int lmax_col = shell_col.getLmax() + l_offset;
+  Index lmax_row = shell_row.getLmax() + l_offset;
+  Index lmax_col = shell_col.getLmax() + l_offset;
 
   const double decay_row = g_row.getDecay();
   const double decay_col = g_col.getDecay();
@@ -55,8 +55,8 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
   double exparg = fak2 * decay_row * decay_col * distsq;
 
   // set size of internal block for recursion
-  int nrows = AOTransform::getBlockSize(lmax_row);
-  int ncols = AOTransform::getBlockSize(lmax_col);
+  Index nrows = AOTransform::getBlockSize(lmax_row);
+  Index ncols = AOTransform::getBlockSize(lmax_col);
 
   Eigen::MatrixXd ol = Eigen::MatrixXd(nrows, ncols);
 
@@ -205,7 +205,7 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
     //------------------------------------------------------
 
     // Integrals     p - p     d - p     f - p     g - p     h - p     i - p
-    for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+    for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
       ol(i, Cart::x) = PmB(0) * ol(i, 0) + nx[i] * fak * ol(i_less_x[i], 0);
       ol(i, Cart::y) = PmB(1) * ol(i, 0) + ny[i] * fak * ol(i_less_y[i], 0);
       ol(i, Cart::z) = PmB(2) * ol(i, 0) + nz[i] * fak * ol(i_less_z[i], 0);
@@ -227,7 +227,7 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
     //------------------------------------------------------
 
     // Integrals     p - d     d - d     f - d     g - d     h - d     i - d
-    for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+    for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
       double term_loc = fak * ol(i, 0);
       ol(i, Cart::xx) = PmB(0) * ol(i, Cart::x) +
                         nx[i] * fak * ol(i_less_x[i], Cart::x) + term_loc;
@@ -262,7 +262,7 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
     //------------------------------------------------------
 
     // Integrals     p - f     d - f     f - f     g - f     h - f     i - f
-    for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+    for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
       double term_x = 2 * fak * ol(i, Cart::x);
       double term_y = 2 * fak * ol(i, Cart::y);
       double term_z = 2 * fak * ol(i, Cart::z);
@@ -315,7 +315,7 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
     //------------------------------------------------------
 
     // Integrals     p - g     d - g     f - g     g - g     h - g     i - g
-    for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+    for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
       double term_xx_loc = fak * ol(i, Cart::xx);
       double term_yy_loc = fak * ol(i, Cart::yy);
       double term_zz_loc = fak * ol(i, Cart::zz);
@@ -390,7 +390,7 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
     //------------------------------------------------------
 
     // Integrals     p - h     d - h     f - h     g - h     h - h     i - h
-    for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+    for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
       double term_xxx_loc = fak * ol(i, Cart::xxx);
       double term_yyy_loc = fak * ol(i, Cart::yyy);
       double term_zzz_loc = fak * ol(i, Cart::zzz);
@@ -491,7 +491,7 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
     //------------------------------------------------------
 
     // Integrals     p - i     d - i     f - i     g - i     h - i     i - i
-    for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+    for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
       double term_xxxx_loc = fak * ol(i, Cart::xxxx);
       double term_xyyy_loc = fak * ol(i, Cart::xyyy);
       double term_xzzz_loc = fak * ol(i, Cart::xzzz);
@@ -581,8 +581,8 @@ void AOOverlap::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                           const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
-  int lmax_row = shell_row.getLmax();
-  int lmax_col = shell_col.getLmax();
+  Index lmax_row = shell_row.getLmax();
+  Index lmax_col = shell_col.getLmax();
 
   if (lmax_col > 6 || lmax_row > 6) {
     throw std::runtime_error(
@@ -647,7 +647,7 @@ Eigen::MatrixXd AOOverlap::Pseudo_InvSqrt(double etol) {
   smallestEigenvalue = es.eigenvalues()(0);
   Eigen::VectorXd diagonal = Eigen::VectorXd::Zero(es.eigenvalues().size());
   removedfunctions = 0;
-  for (unsigned i = 0; i < diagonal.size(); ++i) {
+  for (Index i = 0; i < diagonal.size(); ++i) {
     if (es.eigenvalues()(i) < etol) {
       removedfunctions++;
     } else {

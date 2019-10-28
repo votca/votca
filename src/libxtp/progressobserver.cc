@@ -75,10 +75,10 @@ typename ProgObserver<JobContainer>::Job *
   }
 
   if (!thread.isMaverick() && jobToProc != nullptr) {
-    long idx = jobToProc->getId();
-    long frac = (_jobs.size() >= 10) ? 10 : _jobs.size();
-    long rounded = long(double(_jobs.size()) / double(frac)) * frac;
-    long tenth = rounded / frac;
+    Index idx = jobToProc->getId();
+    Index frac = (_jobs.size() >= 10) ? 10 : _jobs.size();
+    Index rounded = Index(double(_jobs.size()) / double(frac)) * frac;
+    Index tenth = rounded / frac;
     if (idx % tenth == 0) {
       double percent = double(idx) / double(rounded) * 100 + 0.5;
       std::cout << (format("=> [%1$2.0f%%] ") % percent).str() << std::flush;
@@ -147,7 +147,7 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
       << "Assign jobs from stack" << std::flush;
   _jobsToProc.clear();
 
-  int cacheSize = _cacheSize;
+  Index cacheSize = _cacheSize;
   while (int(_jobsToProc.size()) < cacheSize) {
     if (_metajit == _jobs.end() || _startJobsCount == _maxJobs) {
       break;
@@ -207,8 +207,8 @@ void ProgObserver<JobContainer>::InitCmdLineOpts(
     const boost::program_options::variables_map &optsMap) {
 
   _lockFile = optsMap["file"].as<std::string>();
-  _cacheSize = optsMap["cache"].as<int>();
-  _maxJobs = optsMap["maxjobs"].as<int>();
+  _cacheSize = optsMap["cache"].as<Index>();
+  _maxJobs = optsMap["maxjobs"].as<Index>();
   std::string restartPattern = optsMap["restart"].as<std::string>();
 
   // restartPattern = e.g. host(pckr124:1234) stat(FAILED)

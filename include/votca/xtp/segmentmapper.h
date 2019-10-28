@@ -53,12 +53,12 @@ class SegmentMapper {
     std::vector<double> _weights;
     std::vector<atom_id> _mapatom_ids;
     std::vector<atom_id> _mdatom_ids;
-    std::vector<long> _map_local_frame;
+    std::vector<Index> _map_local_frame;
   };
 
   struct Seginfo {
-    std::pair<long, long> minmax;
-    std::vector<long> mdatoms;
+    std::pair<long, Index> minmax;
+    std::vector<Index> mdatoms;
     std::vector<FragInfo> fragments;
     bool map2md;
     std::string segname;
@@ -69,8 +69,8 @@ class SegmentMapper {
   std::map<std::string, std::string> _mapatom_xml;
   std::map<std::string, Seginfo> _segment_info;
 
-  long FindVectorIndexFromAtomId(
-      long atomid, const std::vector<mapAtom*>& fragment_mapatoms) const;
+  Index FindVectorIndexFromAtomId(
+      Index atomid, const std::vector<mapAtom*>& fragment_mapatoms) const;
 
   void ParseFragment(Seginfo& seginfo, const tools::Property& frag);
 
@@ -86,14 +86,14 @@ class SegmentMapper {
                       const std::vector<const Atom*>& fragment_mdatoms) const;
 
   Logger& _log;
-  std::pair<long, long> CalcAtomIdRange(const Segment& seg) const;
-  std::pair<long, long> CalcAtomIdRange(const std::vector<long>& seg) const;
+  std::pair<long, Index> CalcAtomIdRange(const Segment& seg) const;
+  std::pair<long, Index> CalcAtomIdRange(const std::vector<Index>& seg) const;
 
   atom_id StringToMapIndex(const std::string& map_string) const;
 
   atom_id StringToMDIndex(const std::string& md_string) const;
 
-  int getRank(const mapAtom& atom) const { return atom.getRank(); }
+  Index getRank(const mapAtom& atom) const { return atom.getRank(); }
 
   std::vector<double> getWeights(const tools::Property& frag) const;
 
@@ -125,7 +125,7 @@ inline void SegmentMapper<QMMolecule>::FillMap() {
 }
 
 template <>
-inline int SegmentMapper<QMMolecule>::getRank(const QMAtom&) const {
+inline Index SegmentMapper<QMMolecule>::getRank(const QMAtom&) const {
   return 0;
 }
 

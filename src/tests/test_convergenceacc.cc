@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
   Eigen::MatrixXd H = kinetic.Matrix() + esp.Matrix();
   ConvergenceAcc d;
   Orbitals orb;
-  int occlevels = 5;
+  Index occlevels = 5;
   Logger log;
   ConvergenceAcc::options opt;
   opt.mode = ConvergenceAcc::KSmode::closed;
@@ -207,7 +207,7 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
     std::cout << proj << std::endl;
   }
 
-  for (unsigned i = occlevels; i < 17; i++) {
+  for (Index i = occlevels; i < 17; i++) {
     orb.MOs().eigenvalues()(i) += opt.levelshift;
   }
 

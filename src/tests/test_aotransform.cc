@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE(transform_test) {
       0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000,
       0.000000, 0.000000, 0.000000, 0.000000, 0.000000;
 
-  int ref_index = 0;
+  Index ref_index = 0;
   for (const AOShell& shell : basis) {
     for (const AOGaussianPrimitive& gauss : shell) {
       Eigen::MatrixXd transform = AOTransform::getTrafo(gauss);

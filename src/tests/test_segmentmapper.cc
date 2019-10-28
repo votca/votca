@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(mapping_test) {
 
   QMMolecule qmmol = mapper.map(seg, "molecule.xyz");
   std::vector<std::string> name_ref = {"C", "H", "H", "H", "H"};
-  std::vector<int> id_ref = {0, 1, 2, 3, 4};
+  std::vector<Index> id_ref = {0, 1, 2, 3, 4};
   std::vector<Eigen::Vector3d> pos_ref;
   Eigen::Vector3d pos1 = {-0.026627, -0.0672429, 8.10559e-19};
   pos_ref.push_back(pos1);
@@ -163,7 +163,7 @@ BOOST_AUTO_TEST_CASE(mapping_test) {
     std::cout << "qmmolref" << std::endl;
     std::cout << ref << std::endl;
   }
-  for (int i = 0; i < qmmol.size(); i++) {
+  for (Index i = 0; i < qmmol.size(); i++) {
     BOOST_CHECK_EQUAL(qmmol[i].getElement(), name_ref[i]);
     bool pos_equal = qmmol[i].getPos().isApprox(pos_ref[i], 1e-5);
     if (!pos_equal) {
@@ -294,7 +294,7 @@ BOOST_AUTO_TEST_CASE(mapping_to_md_test) {
 
   QMMolecule qmmol = mapper.map(seg, "molecule.xyz");
   std::vector<std::string> name_ref = {"C", "H", "H", "H", "H"};
-  std::vector<int> id_ref = {0, 1, 2, 3, 4};
+  std::vector<Index> id_ref = {0, 1, 2, 3, 4};
   std::vector<Eigen::Vector3d> pos_ref;
   Eigen::Vector3d pos1 = {0, 0, 0};
   pos_ref.push_back(pos1);
@@ -316,7 +316,7 @@ BOOST_AUTO_TEST_CASE(mapping_to_md_test) {
     std::cout << "qmmolref" << std::endl;
     std::cout << ref << std::endl;
   }
-  for (int i = 0; i < qmmol.size(); i++) {
+  for (Index i = 0; i < qmmol.size(); i++) {
     BOOST_CHECK_EQUAL(qmmol[i].getElement(), name_ref[i]);
     bool pos_equal = qmmol[i].getPos().isApprox(pos_ref[i], 1e-5);
     if (!pos_equal) {
@@ -442,7 +442,7 @@ BOOST_AUTO_TEST_CASE(mapping_test_no_weights) {
 
   QMMolecule qmmol = mapper.map(seg, "molecule.xyz");
   std::vector<std::string> name_ref = {"C", "H", "H", "H", "H"};
-  std::vector<int> id_ref = {0, 1, 2, 3, 4};
+  std::vector<Index> id_ref = {0, 1, 2, 3, 4};
   std::vector<Eigen::Vector3d> pos_ref;
   Eigen::Vector3d pos1 = {1.0 - 0.0267876, 1.0 - 0.0676484, 1};
   pos_ref.push_back(pos1);
@@ -464,7 +464,7 @@ BOOST_AUTO_TEST_CASE(mapping_test_no_weights) {
     std::cout << "qmmolref" << std::endl;
     std::cout << ref << std::endl;
   }
-  for (int i = 0; i < qmmol.size(); i++) {
+  for (Index i = 0; i < qmmol.size(); i++) {
     BOOST_CHECK_EQUAL(qmmol[i].getElement(), name_ref[i]);
     bool pos_equal = qmmol[i].getPos().isApprox(pos_ref[i], 1e-5);
     if (!pos_equal) {

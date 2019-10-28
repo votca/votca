@@ -39,7 +39,7 @@ class StateApplication : public XtpApplication {
   bool EvaluateOptions() override;
   void Run() override;
 
-  void BeginEvaluate(int nThreads);
+  void BeginEvaluate(Index nThreads);
   bool EvaluateFrame(Topology& top);
 
   void SetCalculator(QMCalculator* calculator);

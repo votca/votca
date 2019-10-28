@@ -54,7 +54,7 @@ class ERIs {
   Mat_p_Energy CalculateERIs_4c_direct(const AOBasis& dftbasis,
                                        const Eigen::MatrixXd& DMAT) const;
 
-  int Removedfunctions() const { return _threecenter.Removedfunctions(); }
+  Index Removedfunctions() const { return _threecenter.Removedfunctions(); }
 
  private:
   bool _with_screening = false;

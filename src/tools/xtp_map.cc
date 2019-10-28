@@ -69,11 +69,13 @@ void XtpMap::Initialize() {
                       "  definition of segments and fragments");
   AddProgramOptions()("makesegments,m", "  write out a skeleton segments file");
   AddProgramOptions()("file,f", propt::value<string>(), "  state file");
-  AddProgramOptions()("first-frame,i", propt::value<long>()->default_value(0),
+  AddProgramOptions()("first-frame,i",
+                      propt::value<votca::Index>()->default_value(0),
                       "  start from this frame");
   AddProgramOptions()("begin,b", propt::value<double>()->default_value(0.0),
                       "  start time in simulation");
-  AddProgramOptions()("nframes,n", propt::value<long>()->default_value(1),
+  AddProgramOptions()("nframes,n",
+                      propt::value<votca::Index>()->default_value(1),
                       "  number of frames to process");
 }
 
@@ -153,7 +155,7 @@ void XtpMap::Run() {
 
     std::map<std::string, const CSG::Molecule*> firstmolecule;
 
-    std::map<std::string, long> molecule_names;
+    std::map<std::string, votca::Index> molecule_names;
     for (const CSG::Molecule* mol : mdtopol.Molecules()) {
       if (!molecule_names.count(mol->getName())) {
         firstmolecule[mol->getName()] = mol;
@@ -229,8 +231,8 @@ void XtpMap::Run() {
   }
   XTP::Md2QmEngine md2qm(mapfile);
 
-  long firstFrame = _op_vm["first-frame"].as<long>();
-  long nFrames = _op_vm["nframes"].as<long>();
+  votca::Index firstFrame = _op_vm["first-frame"].as<votca::Index>();
+  votca::Index nFrames = _op_vm["nframes"].as<votca::Index>();
   bool beginAt = false;
   double time = _op_vm["begin"].as<double>();
   double startTime = mdtopol.getTime();
@@ -241,8 +243,8 @@ void XtpMap::Run() {
 
   // Extract first frame specified
   bool hasFrame;
-  long frames_found = 0;
-  long firstframecounter = firstFrame;
+  votca::Index frames_found = 0;
+  votca::Index firstframecounter = firstFrame;
   for (hasFrame = true; hasFrame == true;
        hasFrame = trjread->NextFrame(mdtopol)) {
     frames_found++;
@@ -276,9 +278,9 @@ void XtpMap::Run() {
   }
 
   XTP::StateSaver statsav(statefile);
-  long laststep =
+  votca::Index laststep =
       -1;  // for some formats no step is given out so we check if the step
-  for (long saved = 0; hasFrame && saved < nFrames;
+  for (votca::Index saved = 0; hasFrame && saved < nFrames;
        hasFrame = trjread->NextFrame(mdtopol), saved++) {
     if (mdtopol.getStep() == laststep) {
       mdtopol.setStep(laststep + 1);

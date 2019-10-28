@@ -36,16 +36,16 @@ void DFTcoupling::Initialize(tools::Property& options) {
   _degeneracy = options.ifExistsReturnElseReturnDefault<bool>(
       key + "degeneracy", _degeneracy);
   _degeneracy *= tools::conv::ev2hrt;
-  _numberofstatesA = options.ifExistsReturnElseReturnDefault<int>(
+  _numberofstatesA = options.ifExistsReturnElseReturnDefault<Index>(
       key + "levA", _numberofstatesA);
-  _numberofstatesB = options.ifExistsReturnElseReturnDefault<int>(
+  _numberofstatesB = options.ifExistsReturnElseReturnDefault<Index>(
       key + "levB", _numberofstatesB);
 }
 
 void DFTcoupling::WriteToProperty(tools::Property& type_summary,
                                   const Orbitals& orbitalsA,
-                                  const Orbitals& orbitalsB, int a,
-                                  int b) const {
+                                  const Orbitals& orbitalsB, Index a,
+                                  Index b) const {
   double J = getCouplingElement(a, b, orbitalsA, orbitalsB);
   tools::Property& coupling = type_summary.add("coupling", "");
   coupling.setAttribute("levelA", a);
@@ -61,16 +61,16 @@ void DFTcoupling::Addoutput(tools::Property& type_summary,
   dftcoupling.setAttribute("homoB", orbitalsB.getHomo());
   tools::Property& hole_summary = dftcoupling.add("hole", "");
   // hole hole
-  for (int a = Range_orbA.first; a <= orbitalsA.getHomo(); ++a) {
-    for (int b = Range_orbB.first; b <= orbitalsB.getHomo(); ++b) {
+  for (Index a = Range_orbA.first; a <= orbitalsA.getHomo(); ++a) {
+    for (Index b = Range_orbB.first; b <= orbitalsB.getHomo(); ++b) {
       WriteToProperty(hole_summary, orbitalsA, orbitalsB, a, b);
     }
   }
   tools::Property& electron_summary = dftcoupling.add("electron", "");
   // electron-electron
-  for (int a = orbitalsA.getLumo();
+  for (Index a = orbitalsA.getLumo();
        a <= Range_orbA.first + Range_orbA.second - 1; ++a) {
-    for (int b = orbitalsB.getLumo();
+    for (Index b = orbitalsB.getLumo();
          b <= Range_orbB.first + Range_orbB.second - 1; ++b) {
       WriteToProperty(electron_summary, orbitalsA, orbitalsB, a, b);
     }
@@ -78,8 +78,8 @@ void DFTcoupling::Addoutput(tools::Property& type_summary,
   return;
 }
 
-std::pair<int, int> DFTcoupling::DetermineRangeOfStates(
-    const Orbitals& orbital, int numberofstates) const {
+std::pair<int, Index> DFTcoupling::DetermineRangeOfStates(
+    const Orbitals& orbital, Index numberofstates) const {
   const Eigen::VectorXd& MOEnergies = orbital.MOs().eigenvalues();
   if (std::abs(MOEnergies(orbital.getHomo()) - MOEnergies(orbital.getLumo())) <
       _degeneracy) {
@@ -89,39 +89,39 @@ std::pair<int, int> DFTcoupling::DetermineRangeOfStates(
         "degenerate");
   }
 
-  int minimal = orbital.getHomo() - numberofstates + 1;
-  int maximal = orbital.getLumo() + numberofstates - 1;
+  Index minimal = orbital.getHomo() - numberofstates + 1;
+  Index maximal = orbital.getLumo() + numberofstates - 1;
 
-  std::vector<int> deg_min = orbital.CheckDegeneracy(minimal, _degeneracy);
+  std::vector<Index> deg_min = orbital.CheckDegeneracy(minimal, _degeneracy);
   minimal = *std::min_element(deg_min.begin(), deg_min.end());
 
-  std::vector<int> deg_max = orbital.CheckDegeneracy(maximal, _degeneracy);
+  std::vector<Index> deg_max = orbital.CheckDegeneracy(maximal, _degeneracy);
   maximal = *std::max_element(deg_max.begin(), deg_max.end());
 
-  std::pair<int, int> result;
+  std::pair<Index, Index> result;
   result.first = minimal;                 // start
   result.second = maximal - minimal + 1;  // size
 
   return result;
 }
 
-double DFTcoupling::getCouplingElement(int levelA, int levelB,
+double DFTcoupling::getCouplingElement(Index levelA, Index levelB,
                                        const Orbitals& orbitalsA,
                                        const Orbitals& orbitalsB) const {
 
-  int levelsA = Range_orbA.second;
+  Index levelsA = Range_orbA.second;
   if (_degeneracy != 0) {
-    std::vector<int> list_levelsA =
+    std::vector<Index> list_levelsA =
         orbitalsA.CheckDegeneracy(levelA, _degeneracy);
-    std::vector<int> list_levelsB =
+    std::vector<Index> list_levelsB =
         orbitalsB.CheckDegeneracy(levelB, _degeneracy);
 
     double JAB_sq = 0;
 
-    for (int iA : list_levelsA) {
-      int indexA = iA - Range_orbA.first;
-      for (int iB : list_levelsB) {
-        int indexB = iB - Range_orbB.first + levelsA;
+    for (Index iA : list_levelsA) {
+      Index indexA = iA - Range_orbA.first;
+      for (Index iB : list_levelsB) {
+        Index indexB = iB - Range_orbB.first + levelsA;
         double JAB_one_level = JAB(indexA, indexB);
         JAB_sq += JAB_one_level * JAB_one_level;
       }
@@ -130,8 +130,8 @@ double DFTcoupling::getCouplingElement(int levelA, int levelB,
                      double(list_levelsA.size() * list_levelsB.size())) *
            tools::conv::hrt2ev;
   } else {
-    int indexA = levelA - Range_orbA.first;
-    int indexB = levelB - Range_orbB.first + levelsA;
+    Index indexA = levelA - Range_orbA.first;
+    Index indexB = levelB - Range_orbB.first + levelsA;
     return JAB(indexA, indexB) * tools::conv::hrt2ev;
   }
 }
@@ -151,8 +151,8 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
 
   // constructing the direct product orbA x orbB
-  int basisA = orbitalsA.getBasisSetSize();
-  int basisB = orbitalsB.getBasisSetSize();
+  Index basisA = orbitalsA.getBasisSetSize();
+  Index basisB = orbitalsB.getBasisSetSize();
 
   if ((basisA == 0) || (basisB == 0)) {
     throw std::runtime_error("Basis set size is not stored in monomers");
@@ -161,8 +161,8 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   Range_orbA = DetermineRangeOfStates(orbitalsA, _numberofstatesA);
   Range_orbB = DetermineRangeOfStates(orbitalsB, _numberofstatesB);
 
-  int levelsA = Range_orbA.second;
-  int levelsB = Range_orbB.second;
+  Index levelsA = Range_orbA.second;
+  Index levelsB = Range_orbB.second;
 
   XTP_LOG(logDEBUG, *_pLog)
       << "Levels:Basis A[" << levelsA << ":" << basisA << "]"

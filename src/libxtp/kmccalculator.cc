@@ -32,9 +32,9 @@ namespace xtp {
 
 void KMCCalculator::ParseCommonOptions(tools::Property& options) {
   std::string key = "options." + Identify();
-  _seed = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".seed");
+  _seed = options.ifExistsReturnElseThrowRuntimeError<Index>(key + ".seed");
 
-  _numberofcarriers = options.ifExistsReturnElseThrowRuntimeError<int>(
+  _numberofcarriers = options.ifExistsReturnElseThrowRuntimeError<Index>(
       key + ".numberofcarriers");
   _injection_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".injectionpattern");
@@ -98,14 +98,14 @@ void KMCCalculator::LoadGraph(Topology& top) {
   cout << "    Rates for " << _nodes.size() << " sites are computed." << endl;
   WriteRatestoFile(_ratefile, nblist);
 
-  long events = 0;
-  long max = std::numeric_limits<long>::min();
-  long min = std::numeric_limits<long>::max();
+  Index events = 0;
+  Index max = std::numeric_limits<Index>::min();
+  Index min = std::numeric_limits<Index>::max();
   double minlength = std::numeric_limits<double>::max();
   double maxlength = 0;
   for (const auto& node : _nodes) {
 
-    long size = long(node.Events().size());
+    Index size = Index(node.Events().size());
     for (const auto& event : node.Events()) {
       if (event.isDecayEvent()) {
         continue;
@@ -144,7 +144,8 @@ void KMCCalculator::LoadGraph(Topology& top) {
        << endl;
   double conv = std::pow(tools::conv::bohr2nm, 3);
   cout << "spatial carrier density: "
-       << _numberofcarriers / (top.BoxVolume() * conv) << " nm^-3" << endl;
+       << double(_numberofcarriers) / (top.BoxVolume() * conv) << " nm^-3"
+       << endl;
 
   for (auto& node : _nodes) {
     node.InitEscapeRate();
@@ -199,7 +200,7 @@ bool KMCCalculator::CheckSurrounded(
 void KMCCalculator::RandomlyCreateCharges() {
 
   cout << "looking for injectable nodes..." << endl;
-  for (int i = 0; i < _numberofcarriers; i++) {
+  for (Index i = 0; i < _numberofcarriers; i++) {
     Chargecarrier newCharge(i);
     RandomlyAssignCarriertoSite(newCharge);
 
@@ -211,7 +212,7 @@ void KMCCalculator::RandomlyCreateCharges() {
 }
 
 void KMCCalculator::RandomlyAssignCarriertoSite(Chargecarrier& Charge) {
-  long nodeId_guess = -1;
+  Index nodeId_guess = -1;
   do {
     nodeId_guess = _RandomVariable.rand_uniform_int();
   } while (_nodes[nodeId_guess].isOccupied() ||
@@ -243,7 +244,7 @@ Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate) {
   }
   Chargecarrier* carrier = nullptr;
   double u = 1 - _RandomVariable.rand_uniform();
-  for (int i = 0; i < _numberofcarriers; i++) {
+  for (Index i = 0; i < _numberofcarriers; i++) {
     u -= _carriers[i].getCurrentEscapeRate() / cumulated_rate;
     if (u <= 0 || i == _numberofcarriers - 1) {
       carrier = &_carriers[i];

@@ -37,16 +37,16 @@ class QMAtom {
 
  public:
   struct data {
-    long index;
+    Index index;
     char* element;
     double x;
     double y;
     double z;
-    int nuccharge;
-    int ecpcharge;
+    Index nuccharge;
+    Index ecpcharge;
   };
 
-  QMAtom(long index, std::string element, Eigen::Vector3d pos);
+  QMAtom(Index index, std::string element, Eigen::Vector3d pos);
 
   QMAtom(const data& d);
 
@@ -60,9 +60,9 @@ class QMAtom {
 
   const std::string& getElement() const { return _element; }
 
-  long getId() const { return _index; }
+  Index getId() const { return _index; }
 
-  int getNuccharge() const { return _nuccharge - _ecpcharge; }
+  Index getNuccharge() const { return _nuccharge - _ecpcharge; }
 
   std::string identify() const { return "qmatom"; }
 
@@ -74,11 +74,11 @@ class QMAtom {
   }
 
  private:
-  long _index;
+  Index _index;
   std::string _element;
   Eigen::Vector3d _pos;  // Bohr
-  int _nuccharge = 0;
-  int _ecpcharge = 0;  // ecp charge is set in ecpaobasis.fill
+  Index _nuccharge = 0;
+  Index _ecpcharge = 0;  // ecp charge is set in ecpaobasis.fill
 
  public:
   void SetupCptTable(CptTable& table) const;

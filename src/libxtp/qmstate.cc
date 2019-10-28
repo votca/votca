@@ -116,7 +116,7 @@ void QMStateType::FromString(const std::string& statetypestring) {
 }
 
 std::string QMState::ToLongString() const {
-  int index = _index;
+  Index index = _index;
   if (_type == QMStateType::Singlet || _type == QMStateType::Triplet) {
     index++;
   } else if (_type == QMStateType::Gstate || _type == QMStateType::Electron ||
@@ -132,7 +132,7 @@ std::string QMState::ToLongString() const {
 }
 
 std::string QMState::ToString() const {
-  int index = _index;
+  Index index = _index;
   if (_type == QMStateType::Singlet || _type == QMStateType::Triplet) {
     index++;
   } else if (_type == QMStateType::Gstate || _type == QMStateType::Electron ||
@@ -146,7 +146,7 @@ std::string QMState::ToString() const {
   return result;
 }
 
-int QMState::DetermineIndex(const std::string& statestring) {
+Index QMState::DetermineIndex(const std::string& statestring) {
 
   std::smatch search;
   std::regex reg("[0-9]+");
@@ -165,7 +165,7 @@ int QMState::DetermineIndex(const std::string& statestring) {
                              statestring);
   }
 
-  int index = boost::lexical_cast<int>(search.str(0));
+  Index index = boost::lexical_cast<Index>(search.str(0));
   if (_type.isExciton() || _type == QMStateType::Electron ||
       _type == QMStateType::Hole) {
     index--;

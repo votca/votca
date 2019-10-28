@@ -101,7 +101,7 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
           << std::flush;
       H_guess = H;
     } else {
-      for (int i = 0; i < coeffs.size(); i++) {
+      for (Index i = 0; i < coeffs.size(); i++) {
         if (std::abs(coeffs(i)) < 1e-8) {
           continue;
         }
@@ -183,7 +183,7 @@ void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H,
     return;
   }
   Eigen::VectorXd virt = Eigen::VectorXd::Zero(H.rows());
-  for (int i = _nocclevels; i < H.rows(); i++) {
+  for (Index i = _nocclevels; i < H.rows(); i++) {
     virt(i) = _opt.levelshift;
   }
 
@@ -234,28 +234,28 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
   }
 
   Eigen::VectorXd occupation = Eigen::VectorXd::Zero(MOs.eigenvalues().size());
-  std::vector<std::vector<int> > degeneracies;
+  std::vector<std::vector<Index> > degeneracies;
   double buffer = 1e-4;
-  degeneracies.push_back(std::vector<int>{0});
-  for (int i = 1; i < occupation.size(); i++) {
+  degeneracies.push_back(std::vector<Index>{0});
+  for (Index i = 1; i < occupation.size(); i++) {
     if (MOs.eigenvalues()(i) <
         MOs.eigenvalues()(degeneracies[degeneracies.size() - 1][0]) + buffer) {
       degeneracies[degeneracies.size() - 1].push_back(i);
     } else {
-      degeneracies.push_back(std::vector<int>{i});
+      degeneracies.push_back(std::vector<Index>{i});
     }
   }
-  int numofelec = _opt.numberofelectrons;
-  for (const std::vector<int>& deglevel : degeneracies) {
-    int numofpossibleelectrons = 2 * int(deglevel.size());
+  Index numofelec = _opt.numberofelectrons;
+  for (const std::vector<Index>& deglevel : degeneracies) {
+    Index numofpossibleelectrons = 2 * Index(deglevel.size());
     if (numofpossibleelectrons <= numofelec) {
-      for (int i : deglevel) {
+      for (Index i : deglevel) {
         occupation(i) = 2;
       }
       numofelec -= numofpossibleelectrons;
     } else if (numofpossibleelectrons > numofelec) {
       double occ = double(numofelec) / double(deglevel.size());
-      for (int i : deglevel) {
+      for (Index i : deglevel) {
         occupation(i) = occ;
       }
       break;

@@ -30,16 +30,16 @@ BOOST_AUTO_TEST_SUITE(test_hdf5)
 using namespace votca::xtp;
 BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
-  int basisSetSize = 17;
-  int occupiedLevels = 4;
-  int unoccupiedLevels = 13;
-  int numElectrons = 12;
+  Index basisSetSize = 17;
+  Index occupiedLevels = 4;
+  Index unoccupiedLevels = 13;
+  Index numElectrons = 12;
 
   Eigen::VectorXd moeTest = Eigen::VectorXd::Random(17);
   Eigen::MatrixXd mocTest = Eigen::MatrixXd::Random(17, 17);
 
   QMMolecule atoms = QMMolecule(" ", 0);
-  for (int i = 0; i < 10; ++i) {
+  for (Index i = 0; i < 10; ++i) {
     atoms.push_back(QMAtom(0, "O", Eigen::Vector3d::Random()));
     atoms.push_back(QMAtom(25, "O", Eigen::Vector3d::Random()));
     atoms.push_back(QMAtom(32, "O", Eigen::Vector3d::Random()));
@@ -55,11 +55,11 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   std::string dftBasis = "AWESOME basis*,, 2/.8";
   std::string auxBasis = "cos(theta) = pretty okay basis";
 
-  int rpaMin = '?';
-  int rpaMax = 1e3;
+  Index rpaMin = '?';
+  Index rpaMax = 1e3;
 
-  int bseVmin = -6019386;
-  int bseCmax = 42;
+  Index bseVmin = -6019386;
+  Index bseCmax = 42;
 
   double scaHfx = 3.14159;
 
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
   BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atoms.size());
 
-  for (int i = 0; i < atoms.size(); ++i) {
+  for (Index i = 0; i < atoms.size(); ++i) {
     const auto& atomRead = orbRead.QMAtoms()[i];
     const auto& atomTest = atoms[i];
     BOOST_CHECK_EQUAL(atomRead.getId(), atomTest.getId());
@@ -210,7 +210,7 @@ BOOST_AUTO_TEST_CASE(read_vector_strings) {
 
   BOOST_CHECK_EQUAL(test_vec.size(), test_vec2.size());
 
-  for (unsigned i = 0; i > test_vec.size(); i++) {
+  for (Index i = 0; i > test_vec.size(); i++) {
     BOOST_CHECK_EQUAL(test_vec[i], test_vec2[i]);
   }
 }
@@ -220,7 +220,7 @@ BOOST_AUTO_TEST_CASE(staticsegment) {
   CheckpointFile cpf("xtp_staticsegment.hdf5");
   CheckpointWriter w = cpf.getWriter();
   StaticSegment seg = StaticSegment("test", 0);
-  for (int i = 0; i < 10; ++i) {
+  for (Index i = 0; i < 10; ++i) {
     seg.push_back(StaticSite(0, "O", Eigen::Vector3d::Random()));
     seg.push_back(StaticSite(25, "O", Eigen::Vector3d::Random()));
     seg.push_back(StaticSite(32, "O", Eigen::Vector3d::Random()));
@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE(staticsegment) {
   StaticSegment seg2 = StaticSegment(r);
 
   BOOST_REQUIRE_EQUAL(seg2.size(), seg.size());
-  for (int i = 0; i < seg.size(); ++i) {
+  for (Index i = 0; i < seg.size(); ++i) {
     const auto& atomRead = seg2[i];
     const auto& atomTest = seg[i];
     BOOST_CHECK_EQUAL(atomRead.getId(), atomTest.getId());

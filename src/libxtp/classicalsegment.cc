@@ -36,10 +36,10 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
   intt.open(filename);
   double unit_conversion = tools::conv::ang2bohr;
 
-  int readinmultipoles = 0;
-  int numberofmultipoles = 0;
+  Index readinmultipoles = 0;
+  Index numberofmultipoles = 0;
   Vector9d multipoles = Vector9d::Zero();
-  int rank = 0;
+  Index rank = 0;
 
   if (!intt.is_open()) {
     throw std::runtime_error("File:" + filename + " could not be opened");
@@ -79,11 +79,11 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
       // element,  position,  rank limit convert to bohr
       std::string name = split[0];
       Eigen::Vector3d pos;
-      long id = long(this->_atomlist.size());
+      Index id = Index(this->_atomlist.size());
       pos[0] = boost::lexical_cast<double>(split[1]);
       pos[1] = boost::lexical_cast<double>(split[2]);
       pos[2] = boost::lexical_cast<double>(split[3]);
-      rank = boost::lexical_cast<int>(split[5]);
+      rank = boost::lexical_cast<Index>(split[5]);
       numberofmultipoles = (rank + 1) * (rank + 1);
       multipoles = Vector9d::Zero();
       pos *= unit_conversion;

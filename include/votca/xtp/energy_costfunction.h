@@ -37,8 +37,8 @@ class Energy_costfunction : public Optimiser_costfunction {
     double MaxForce;
     double RMSStep;
     double MaxStep;
-    int maxforceindex = 0;
-    int maxstepindex = 0;
+    Index maxforceindex = 0;
+    Index maxstepindex = 0;
   };
 
   Energy_costfunction(GWBSEEngine& gwbse_engine, StateTracker& tracker,
@@ -52,8 +52,8 @@ class Energy_costfunction : public Optimiser_costfunction {
 
   Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) override;
 
-  int NumParameters() const override {
-    return int(_orbitals.QMAtoms().size() * 3);
+  Index NumParameters() const override {
+    return Index(_orbitals.QMAtoms().size() * 3);
   };
 
   bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
@@ -80,7 +80,7 @@ class Energy_costfunction : public Optimiser_costfunction {
   StateTracker& _tracker;
   Orbitals& _orbitals;
   Forces& _force_engine;
-  int _iteration = 0;
+  Index _iteration = 0;
   double _energy;
 
   conv_paras _convpara;

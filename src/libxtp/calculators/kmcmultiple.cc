@@ -64,7 +64,7 @@ void KMCMultiple::PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor,
     unsigned long diffusionsteps = step / _diffusionresolution;
     Eigen::Matrix3d result =
         avgdiffusiontensor /
-        (double(diffusionsteps) * 2.0 * simtime * _numberofcarriers);
+        (double(diffusionsteps) * 2.0 * simtime * double(_numberofcarriers));
     cout << endl
          << "Step: " << step
          << " Diffusion tensor averaged over all carriers (nm^2/s):" << endl
@@ -74,7 +74,7 @@ void KMCMultiple::PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor,
     double bohr2Hrts_to_nm2Vs =
         tools::conv::bohr2nm * tools::conv::bohr2nm / tools::conv::hrt2ev;
     cout << endl << "Mobilities (nm^2/Vs): " << endl;
-    for (int i = 0; i < _numberofcarriers; i++) {
+    for (Index i = 0; i < _numberofcarriers; i++) {
       Eigen::Vector3d velocity = _carriers[i].get_dRtravelled() / simtime;
       double mobility =
           velocity.dot(_field) / (absolute_field * absolute_field);
@@ -83,7 +83,7 @@ void KMCMultiple::PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor,
       average_mobility +=
           velocity.dot(_field) / (absolute_field * absolute_field);
     }
-    average_mobility /= _numberofcarriers;
+    average_mobility /= double(_numberofcarriers);
     cout << std::scientific
          << "  Overall average mobility in field direction <mu>="
          << average_mobility * bohr2Hrts_to_nm2Vs << " nm^2/Vs  " << endl;
@@ -95,7 +95,7 @@ void KMCMultiple::WriteToTrajectory(std::fstream& traj,
                                     double simtime, unsigned long step) const {
   traj << simtime << "\t";
   traj << step << "\t";
-  for (int i = 0; i < _numberofcarriers; i++) {
+  for (Index i = 0; i < _numberofcarriers; i++) {
     Eigen::Vector3d pos = startposition[i] + _carriers[i].get_dRtravelled();
     traj << pos.x() * tools::conv::bohr2nm << "\t";
     traj << pos.y() * tools::conv::bohr2nm << "\t";
@@ -121,8 +121,8 @@ void KMCMultiple::WriteToEnergyFile(std::fstream& tfile, double simtime,
       dr_travelled_current += carrier.get_dRtravelled();
       currentenergy += carrier.getCurrentEnergy();
     }
-    dr_travelled_current /= _numberofcarriers;
-    currentenergy /= _numberofcarriers;
+    dr_travelled_current /= double(_numberofcarriers);
+    currentenergy /= double(_numberofcarriers);
     avgvelocity_current = dr_travelled_current / simtime;
     currentmobility =
         avgvelocity_current.dot(_field) / (absolute_field * absolute_field);
@@ -140,14 +140,15 @@ void KMCMultiple::WriteToEnergyFile(std::fstream& tfile, double simtime,
 void KMCMultiple::PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
                                   double simtime, unsigned long step) const {
   unsigned long diffusionsteps = step / _diffusionresolution;
-  Eigen::Matrix3d result = avgdiffusiontensor / (double(diffusionsteps) * 2.0 *
-                                                 simtime * _numberofcarriers);
+  Eigen::Matrix3d result =
+      avgdiffusiontensor /
+      (double(diffusionsteps) * 2.0 * simtime * double(_numberofcarriers));
 
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(result);
   double bohr2_nm2 = tools::conv::bohr2nm * tools::conv::bohr2nm;
   cout << endl << "Eigenvalues: " << endl << endl;
-  for (int i = 0; i < 3; i++) {
+  for (Index i = 0; i < 3; i++) {
     cout << "Eigenvalue: " << es.eigenvalues()(i) * bohr2_nm2 << endl
          << "Eigenvector: ";
     cout << es.eigenvectors().col(i).x() << "   ";
@@ -170,14 +171,14 @@ void KMCMultiple::PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
 
 void KMCMultiple::PrintChargeVelocity(double simtime) const {
   Eigen::Vector3d avg_dr_travelled = Eigen::Vector3d::Zero();
-  for (int i = 0; i < _numberofcarriers; i++) {
+  for (Index i = 0; i < _numberofcarriers; i++) {
     cout << std::scientific << "    carrier " << i + 1 << ": "
          << _carriers[i].get_dRtravelled().transpose() / simtime *
                 tools::conv::bohr2nm
          << endl;
     avg_dr_travelled += _carriers[i].get_dRtravelled();
   }
-  avg_dr_travelled /= _numberofcarriers;
+  avg_dr_travelled /= double(_numberofcarriers);
 
   Eigen::Vector3d avgvelocity = avg_dr_travelled / simtime;
   cout << std::scientific << "  Overall average velocity (nm/s): "
@@ -186,7 +187,7 @@ void KMCMultiple::PrintChargeVelocity(double simtime) const {
 
 void KMCMultiple::RunVSSM() {
 
-  long realtime_start = time(nullptr);
+  Index realtime_start = time(nullptr);
   cout << endl << "Algorithm: VSSM for Multiple Charges" << endl;
   cout << "number of carriers: " << _numberofcarriers << endl;
   cout << "number of nodes: " << _nodes.size() << endl;
@@ -225,7 +226,7 @@ void KMCMultiple::RunVSSM() {
         "both input parameters.");
   }
 
-  if (_numberofcarriers > int(_nodes.size())) {
+  if (_numberofcarriers > Index(_nodes.size())) {
     throw runtime_error(
         "ERROR in kmcmultiple: specified number of carriers is greater than "
         "the "
@@ -241,7 +242,7 @@ void KMCMultiple::RunVSSM() {
     traj.open(_trajectoryfile, std::fstream::out);
 
     traj << "time[s]\tsteps\t";
-    for (int i = 0; i < _numberofcarriers; i++) {
+    for (Index i = 0; i < _numberofcarriers; i++) {
       traj << "carrier" << i + 1 << "_x\t";
       traj << "carrier" << i + 1 << "_y\t";
       traj << "carrier" << i + 1 << "_z";
@@ -263,13 +264,13 @@ void KMCMultiple::RunVSSM() {
   RandomlyCreateCharges();
   vector<Eigen::Vector3d> startposition(_numberofcarriers,
                                         Eigen::Vector3d::Zero());
-  for (int i = 0; i < _numberofcarriers; i++) {
+  for (Index i = 0; i < _numberofcarriers; i++) {
     startposition[i] = _carriers[i].getCurrentPosition();
   }
 
   traj << 0 << "\t";
   traj << 0 << "\t";
-  for (int i = 0; i < _numberofcarriers; i++) {
+  for (Index i = 0; i < _numberofcarriers; i++) {
     traj << startposition[i].x() * tools::conv::bohr2nm << "\t";
     traj << startposition[i].y() * tools::conv::bohr2nm << "\t";
     traj << startposition[i].z() * tools::conv::bohr2nm;
@@ -291,10 +292,10 @@ void KMCMultiple::RunVSSM() {
   while (((stopontime && simtime < _runtime) ||
           (!stopontime && step < maxsteps))) {
 
-    if ((time(nullptr) - realtime_start) > long(_maxrealtime * 60. * 60.)) {
+    if ((time(nullptr) - realtime_start) > Index(_maxrealtime * 60. * 60.)) {
       cout << endl
            << "Real time limit of " << _maxrealtime << " hours ("
-           << int(_maxrealtime * 60 * 60 + 0.5)
+           << Index(_maxrealtime * 60 * 60 + 0.5)
            << " seconds) has been reached. Stopping here." << endl
            << endl;
       break;
@@ -415,7 +416,7 @@ void KMCMultiple::RunVSSM() {
   PrintChargeVelocity(simtime);
 
   cout << endl << "Distances travelled (nm): " << endl;
-  for (int i = 0; i < _numberofcarriers; i++) {
+  for (Index i = 0; i < _numberofcarriers; i++) {
     cout << std::scientific << "    carrier " << i + 1 << ": "
          << _carriers[i].get_dRtravelled().transpose() * tools::conv::bohr2nm
          << endl;
@@ -437,9 +438,8 @@ bool KMCMultiple::EvaluateFrame(Topology& top) {
   if (tools::globals::verbose) {
     cout << endl << "Initialising random number generator" << endl;
   }
-  srand(_seed);  // srand expects any integer in order to initialise the random
-                 // number generator
-  _RandomVariable.init(rand());
+
+  _RandomVariable.init(_seed);
 
   LoadGraph(top);
   RunVSSM();

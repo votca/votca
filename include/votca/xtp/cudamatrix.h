@@ -47,22 +47,22 @@ inline cudaError_t checkCuda(cudaError_t result) {
   return result;
 }
 
-inline int count_available_gpus() {
-  int count;
+inline Index count_available_gpus() {
+  Index count;
   cudaError_t err = cudaGetDeviceCount(&count);
   return 0 ? (err != cudaSuccess) : count;
 }
 
 class CudaMatrix {
  public:
-  int size() const { return _rows * _cols; };
-  int rows() const { return _rows; };
-  int cols() const { return _cols; };
+  Index size() const { return _rows * _cols; };
+  Index rows() const { return _rows; };
+  Index cols() const { return _cols; };
   double *data() const { return _data.get(); };
 
   CudaMatrix(const Eigen::MatrixXd &matrix, const cudaStream_t &stream)
-      : _rows{static_cast<int>(matrix.rows())},
-        _cols{static_cast<int>(matrix.cols())} {
+      : _rows{static_cast<Index>(matrix.rows())},
+        _cols{static_cast<Index>(matrix.cols())} {
     _data = alloc_matrix_in_gpu(size_matrix());
     _stream = stream;
     cudaError_t err = cudaMemcpyAsync(_data.get(), matrix.data(), size_matrix(),
@@ -73,8 +73,8 @@ class CudaMatrix {
   }
 
   // Allocate memory in the GPU for a matrix
-  CudaMatrix(long nrows, long ncols, const cudaStream_t &stream)
-      : _rows{static_cast<int>(nrows)}, _cols{static_cast<int>(ncols)} {
+  CudaMatrix(Index nrows, Index ncols, const cudaStream_t &stream)
+      : _rows{static_cast<Index>(nrows)}, _cols{static_cast<Index>(ncols)} {
     _data = alloc_matrix_in_gpu(size_matrix());
     _stream = stream;
   }
@@ -88,7 +88,7 @@ class CudaMatrix {
   };
 
   void copy_to_gpu(const Eigen::MatrixXd &A) {
-    size_t size_A = static_cast<int>(A.size()) * sizeof(double);
+    size_t size_A = static_cast<Index>(A.size()) * sizeof(double);
     checkCuda(cudaMemcpyAsync(this->data(), A.data(), size_A,
                               cudaMemcpyHostToDevice, _stream));
   }
@@ -112,7 +112,7 @@ class CudaMatrix {
 
     std::ostringstream oss;
     oss << "There were requested : " << requested_memory
-        << "bytes int the device\n";
+        << "bytes Index the device\n";
     oss << "Device Free memory (bytes): " << free
         << "\nDevice total Memory (bytes): " << total << "\n";
 
@@ -129,8 +129,8 @@ class CudaMatrix {
   Unique_ptr_to_GPU_data _data{nullptr,
                                [](double *x) { checkCuda(cudaFree(x)); }};
   cudaStream_t _stream = nullptr;
-  int _rows;
-  int _cols;
+  Index _rows;
+  Index _cols;
 };
 
 }  // namespace xtp

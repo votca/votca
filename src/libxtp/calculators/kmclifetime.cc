@@ -34,7 +34,7 @@ void KMCLifetime::Initialize(tools::Property& options) {
 
   std::string key = "options." + Identify();
   ParseCommonOptions(options);
-  _insertions = options.ifExistsReturnElseThrowRuntimeError<unsigned>(
+  _insertions = options.ifExistsReturnElseThrowRuntimeError<unsigned long>(
       key + ".numberofinsertions");
 
   _lifetimefile = options.ifExistsReturnElseThrowRuntimeError<string>(
@@ -51,7 +51,7 @@ void KMCLifetime::Initialize(tools::Property& options) {
         subkey + ".outputfile", "energy.tab");
     _alpha =
         options.ifExistsReturnElseReturnDefault<double>(subkey + ".alpha", 0.3);
-    _outputsteps = options.ifExistsReturnElseReturnDefault<unsigned>(
+    _outputsteps = options.ifExistsReturnElseReturnDefault<unsigned long>(
         subkey + ".outputsteps", 100);
 
   } else {
@@ -111,7 +111,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
   }
 
   for (tools::Property* prop : jobProps) {
-    int site_id = prop->getAttribute<int>("id");
+    Index site_id = prop->getAttribute<Index>("id");
     double lifetime = boost::lexical_cast<double>(prop->value());
     bool check = false;
     for (auto& node : _nodes) {
@@ -139,7 +139,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
   return;
 }
 
-void KMCLifetime::WriteToTraj(fstream& traj, unsigned insertioncount,
+void KMCLifetime::WriteToTraj(fstream& traj, unsigned long insertioncount,
                               double simtime,
                               const Chargecarrier& affectedcarrier) const {
   const Eigen::Vector3d& dr_travelled = affectedcarrier.get_dRtravelled();
@@ -154,13 +154,13 @@ void KMCLifetime::WriteToTraj(fstream& traj, unsigned insertioncount,
 
 void KMCLifetime::RunVSSM() {
 
-  long realtime_start = time(nullptr);
+  Index realtime_start = time(nullptr);
   cout << endl
        << "Algorithm: VSSM for Multiple Charges with finite Lifetime" << endl;
   cout << "number of charges: " << _numberofcarriers << endl;
   cout << "number of nodes: " << _nodes.size() << endl;
 
-  if (_numberofcarriers > int(_nodes.size())) {
+  if (_numberofcarriers > Index(_nodes.size())) {
     throw runtime_error(
         "ERROR in kmclifetime: specified number of charges is greater than the "
         "number of nodes. This conflicts with single occupation.");
@@ -190,7 +190,7 @@ void KMCLifetime::RunVSSM() {
 
   RandomlyCreateCharges();
 
-  unsigned insertioncount = 0;
+  unsigned long insertioncount = 0;
   unsigned long step = 0;
   double simtime = 0.0;
 
@@ -206,13 +206,13 @@ void KMCLifetime::RunVSSM() {
   Eigen::Vector3d difflength_squared = Eigen::Vector3d::Zero();
 
   double avgenergy = _carriers[0].getCurrentEnergy();
-  int carrieridold = _carriers[0].getId();
+  Index carrieridold = _carriers[0].getId();
 
   while (insertioncount < _insertions) {
-    if ((time(nullptr) - realtime_start) > long(_maxrealtime * 60. * 60.)) {
+    if ((time(nullptr) - realtime_start) > Index(_maxrealtime * 60. * 60.)) {
       cout << endl
            << "Real time limit of " << _maxrealtime << " hours ("
-           << long(_maxrealtime * 60 * 60 + 0.5)
+           << Index(_maxrealtime * 60 * 60 + 0.5)
            << " seconds) has been reached. Stopping here." << endl
            << endl;
       break;
@@ -289,7 +289,7 @@ void KMCLifetime::RunVSSM() {
           if (tools::globals::verbose &&
               (_insertions < 1500 ||
                insertioncount % (_insertions / 1000) == 0 ||
-               insertioncount < 0.001 * _insertions)) {
+               double(insertioncount) < 0.001 * double(_insertions))) {
             std::cout << "\rInsertion " << insertioncount + 1 << " of "
                       << _insertions;
             std::cout << std::flush;
@@ -338,13 +338,13 @@ void KMCLifetime::RunVSSM() {
   cout << endl;
   cout << "Total runtime:\t\t\t\t\t" << simtime << " s" << endl;
   cout << "Total KMC steps:\t\t\t\t" << step << endl;
-  cout << "Average lifetime:\t\t\t\t" << avlifetime / insertioncount << " s"
-       << endl;
+  cout << "Average lifetime:\t\t\t\t" << avlifetime / double(insertioncount)
+       << " s" << endl;
   cout << "Mean freepath\t l=<|r_x-r_o|> :\t\t"
-       << (meanfreepath * tools::conv::bohr2nm / insertioncount) << " nm"
-       << endl;
+       << (meanfreepath * tools::conv::bohr2nm / double(insertioncount))
+       << " nm" << endl;
   cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"
-       << std::sqrt(difflength_squared.norm() / insertioncount) *
+       << std::sqrt(difflength_squared.norm() / double(insertioncount)) *
               tools::conv::bohr2nm
        << " nm" << endl;
   cout << endl;
@@ -365,9 +365,7 @@ bool KMCLifetime::EvaluateFrame(Topology& top) {
   if (tools::globals::verbose) {
     cout << endl << "Initialising random number generator" << endl;
   }
-  std::srand(_seed);  // srand expects any integer in order to initialise the
-                      // random number generator
-  _RandomVariable.init(rand());
+  _RandomVariable.init(_seed);
   LoadGraph(top);
   ReadLifetimeFile(_lifetimefile);
 

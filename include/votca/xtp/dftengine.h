@@ -124,8 +124,8 @@ class DFTEngine {
   std::string _initial_guess;
 
   // Convergence
-  int _numofelectrons = 0;
-  int _max_iter = 100;
+  Index _numofelectrons = 0;
+  Index _max_iter = 100;
   ConvergenceAcc::options _conv_opt;
   // DIIS variables
   ConvergenceAcc _conv_accelerator;

@@ -57,7 +57,7 @@ class MolPol : public QMTool {
   tools::Property _polar_options;
 
   double _tolerance_pol = 1e-4;
-  int _max_iter = 1000;
+  Index _max_iter = 1000;
 };
 
 }  // namespace xtp

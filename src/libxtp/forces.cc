@@ -47,14 +47,14 @@ void Forces::Initialize(tools::Property& options) {
 
 void Forces::Calculate(const Orbitals& orbitals) {
 
-  long natoms = orbitals.QMAtoms().size();
+  Index natoms = orbitals.QMAtoms().size();
   _forces = Eigen::MatrixX3d::Zero(natoms, 3);
 
   TLogLevel ReportLevel = _pLog->getReportLevel();  // backup report level
   if (!tools::globals::verbose) {
     _pLog->setReportLevel(logERROR);  // go silent for force calculations
   }
-  for (long atom_index = 0; atom_index < natoms; atom_index++) {
+  for (Index atom_index = 0; atom_index < natoms; atom_index++) {
     if (tools::globals::verbose) {
       XTP_LOG(logINFO, *_pLog)
           << "FORCES--DEBUG working on atom " << atom_index << flush;
@@ -91,7 +91,7 @@ void Forces::Report() const {
   XTP_LOG(logINFO, *_pLog) << (boost::format(" Atom\t x\t  y\t  z ")).str()
                            << flush;
 
-  for (unsigned i = 0; i < _forces.rows(); i++) {
+  for (Index i = 0; i < _forces.rows(); i++) {
     XTP_LOG(logINFO, *_pLog)
         << (boost::format("%1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f") % i %
             _forces(i, 0) % _forces(i, 1) % _forces(i, 2))
@@ -101,13 +101,13 @@ void Forces::Report() const {
   return;
 }
 
-Eigen::Vector3d Forces::NumForceForward(Orbitals orbitals, long atom_index) {
+Eigen::Vector3d Forces::NumForceForward(Orbitals orbitals, Index atom_index) {
   Eigen::Vector3d force = Eigen::Vector3d::Zero();
   // get this atoms's current coordinates
   double energy_center =
       orbitals.getTotalStateEnergy(_tracker.CalcState(orbitals));
   const Eigen::Vector3d current_pos = orbitals.QMAtoms()[atom_index].getPos();
-  for (long i_cart = 0; i_cart < 3; i_cart++) {
+  for (Index i_cart = 0; i_cart < 3; i_cart++) {
     Eigen::Vector3d displacement_vec = Eigen::Vector3d::Zero();
     displacement_vec[i_cart] = _displacement;
     // update the coordinate
@@ -123,10 +123,10 @@ Eigen::Vector3d Forces::NumForceForward(Orbitals orbitals, long atom_index) {
   return force;
 }
 
-Eigen::Vector3d Forces::NumForceCentral(Orbitals orbitals, long atom_index) {
+Eigen::Vector3d Forces::NumForceCentral(Orbitals orbitals, Index atom_index) {
   Eigen::Vector3d force = Eigen::Vector3d::Zero();
   const Eigen::Vector3d current_pos = orbitals.QMAtoms()[atom_index].getPos();
-  for (int i_cart = 0; i_cart < 3; i_cart++) {
+  for (Index i_cart = 0; i_cart < 3; i_cart++) {
     if (tools::globals::verbose) {
       XTP_LOG(logINFO, *_pLog)
           << "FORCES--DEBUG           Cartesian component " << i_cart << flush;
@@ -156,7 +156,7 @@ Eigen::Vector3d Forces::NumForceCentral(Orbitals orbitals, long atom_index) {
 void Forces::RemoveTotalForce() {
   Eigen::Vector3d avgtotal_force =
       _forces.colwise().sum() / double(_forces.rows());
-  for (long i_atom = 0; i_atom < _forces.rows(); i_atom++) {
+  for (Index i_atom = 0; i_atom < _forces.rows(); i_atom++) {
     _forces.row(i_atom) -= avgtotal_force;
   }
   return;

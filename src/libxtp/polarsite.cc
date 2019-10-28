@@ -28,7 +28,7 @@ using namespace std;
 namespace votca {
 namespace xtp {
 
-PolarSite::PolarSite(long id, std::string element, Eigen::Vector3d pos)
+PolarSite::PolarSite(Index id, std::string element, Eigen::Vector3d pos)
     : StaticSite(id, element, pos) {
   tools::Elements e;
   double default_pol = std::pow(tools::conv::ang2bohr, 3);

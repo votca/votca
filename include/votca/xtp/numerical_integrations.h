@@ -48,8 +48,8 @@ class NumericalIntegration {
   double getExactExchange(const std::string& functional) const;
   std::vector<const Eigen::Vector3d*> getGridpoints() const;
   std::vector<double> getWeightedDensities() const;
-  long getGridSize() const { return _totalgridsize; }
-  long getBoxesSize() const { return long(_grid_boxes.size()); }
+  Index getGridSize() const { return _totalgridsize; }
+  Index getBoxesSize() const { return Index(_grid_boxes.size()); }
 
   void setXCfunctional(const std::string& functional);
   double IntegrateDensity(const Eigen::MatrixXd& density_matrix);
@@ -83,26 +83,26 @@ class NumericalIntegration {
           grid);
 
   Eigen::MatrixXd CalcInverseAtomDist(const QMMolecule& atoms) const;
-  int UpdateOrder(LebedevGrid& sphericalgridofElement, int maxorder,
-                  std::vector<double>& PruningIntervals, double r) const;
+  Index UpdateOrder(LebedevGrid& sphericalgridofElement, Index maxorder,
+                    std::vector<double>& PruningIntervals, double r) const;
 
   GridContainers::Cartesian_gridpoint CreateCartesianGridpoint(
       const Eigen::Vector3d& atomA_pos,
       GridContainers::radial_grid& radial_grid,
-      GridContainers::spherical_grid& spherical_grid, long i_rad,
-      long i_sph) const;
+      GridContainers::spherical_grid& spherical_grid, Index i_rad,
+      Index i_sph) const;
 
   Eigen::VectorXd SSWpartition(const Eigen::VectorXd& rq_i,
                                const Eigen::MatrixXd& Rij) const;
   void SSWpartitionAtom(
       const QMMolecule& atoms,
-      std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, long i_atom,
+      std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, Index i_atom,
       const Eigen::MatrixXd& Rij) const;
   Eigen::MatrixXd CalcDistanceAtomsGridpoints(
       const QMMolecule& atoms,
       std::vector<GridContainers::Cartesian_gridpoint>& atomgrid) const;
 
-  long _totalgridsize;
+  Index _totalgridsize;
   std::vector<GridBox> _grid_boxes;
   int xfunc_id;
   bool _density_set = false;

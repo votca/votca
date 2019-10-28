@@ -35,10 +35,10 @@ class Sigma_base {
   virtual ~Sigma_base() = default;
 
   struct options {
-    int homo;
-    int qpmin;
-    int qpmax;
-    int rpamin;
+    Index homo;
+    Index qpmin;
+    Index qpmax;
+    Index rpamin;
   };
 
   void configure(options opt) {
@@ -63,7 +63,7 @@ class Sigma_base {
   TCMatrix_gwbse& _Mmn;
   const RPA& _rpa;
 
-  int _qptotal;
+  Index _qptotal;
 };
 }  // namespace xtp
 }  // namespace votca

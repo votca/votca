@@ -41,7 +41,7 @@ class StaticRegion;
 
 class PolarRegion : public MMRegion<PolarSegment> {
  public:
-  PolarRegion(int id, Logger& log) : MMRegion<PolarSegment>(id, log) {}
+  PolarRegion(Index id, Logger& log) : MMRegion<PolarSegment>(id, log) {}
 
   std::string identify() const override { return "polar"; }
 
@@ -76,7 +76,7 @@ class PolarRegion : public MMRegion<PolarSegment> {
   hist<Energy_terms> _E_hist;
   double _deltaE = 1e-5;
   double _deltaD = 1e-5;
-  int _max_iter = 100;
+  Index _max_iter = 100;
   double _exp_damp = 0.39;
 };
 

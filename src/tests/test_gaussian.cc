@@ -786,7 +786,7 @@ BOOST_AUTO_TEST_CASE(read_withexternal) {
   BOOST_CHECK_CLOSE(orb.getScaHFX(), 0.25, 1e-5);
 
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
-  for (int i = 0; i < seg.size(); i++) {
+  for (Index i = 0; i < seg.size(); i++) {
     bool check_pos = ref[i].getPos().isApprox(seg[i].getPos(), 1e-5);
     BOOST_CHECK_EQUAL(check_pos, true);
     if (!check_pos) {
@@ -1421,7 +1421,7 @@ BOOST_AUTO_TEST_CASE(getcharges) {
   ref.push_back(s5);
 
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
-  for (int i = 0; i < seg.size(); i++) {
+  for (Index i = 0; i < seg.size(); i++) {
     BOOST_CHECK_EQUAL(ref[i].Q().isApprox(seg[i].Q(), 1e-5), true);
     bool check_pos = ref[i].getPos().isApprox(seg[i].getPos(), 1e-5);
     BOOST_CHECK_EQUAL(check_pos, true);
@@ -1542,7 +1542,7 @@ BOOST_AUTO_TEST_CASE(read_optgeometry) {
   ref.push_back(s4);
   ref.push_back(s5);
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
-  for (int i = 0; i < seg.size(); i++) {
+  for (Index i = 0; i < seg.size(); i++) {
     BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }

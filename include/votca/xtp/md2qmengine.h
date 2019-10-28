@@ -37,8 +37,8 @@ class Md2QmEngine {
   bool SameValueForMultipleEntries(const std::vector<tools::Property*>& props,
                                    std::string tag) const;
 
-  long DetermineAtomNumOffset(const csg::Molecule* mol,
-                              const std::vector<long>& atom_ids_map) const;
+  Index DetermineAtomNumOffset(const csg::Molecule* mol,
+                               const std::vector<Index>& atom_ids_map) const;
 
   void MakeSegmentsWholePBC(Topology& top) const;
   bool CheckMolWhole(const Topology& top, const Segment& mol) const;

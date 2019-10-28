@@ -21,10 +21,10 @@
 namespace votca {
 namespace xtp {
 
-int AOTransform::getCartesianSize(int l) { return (l + 1) * (l + 2) / 2; }
-int AOTransform::getSphericalSize(int l) { return 2 * l + 1; }
+Index AOTransform::getCartesianSize(Index l) { return (l + 1) * (l + 2) / 2; }
+Index AOTransform::getSphericalSize(Index l) { return 2 * l + 1; }
 
-Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(int l, double decay,
+Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
                                                     double contraction) {
   switch (l) {
     case 0: {
@@ -313,11 +313,11 @@ Eigen::MatrixXd AOTransform::getTrafo(const AOGaussianPrimitive& gaussian) {
   Eigen::MatrixXd trafo =
       Eigen::MatrixXd::Zero(shell.getCartesianNumFunc(), shell.getNumFunc());
 
-  int rowoffset = 0;
-  int coloffset = 0;
-  for (int l = shell.getLmin(); l <= shell.getLmax(); l++) {
-    int cart_size = AOTransform::getCartesianSize(l);
-    int spherical_size = AOTransform::getSphericalSize(l);
+  Index rowoffset = 0;
+  Index coloffset = 0;
+  for (Index l = shell.getLmin(); l <= shell.getLmax(); l++) {
+    Index cart_size = AOTransform::getCartesianSize(l);
+    Index spherical_size = AOTransform::getSphericalSize(l);
     trafo.block(rowoffset, coloffset, cart_size, spherical_size) =
         AOTransform::getPrimitiveShellTrafo(l, gaussian.getDecay(),
                                             gaussian.getContraction()(l));
@@ -327,9 +327,9 @@ Eigen::MatrixXd AOTransform::getTrafo(const AOGaussianPrimitive& gaussian) {
   return trafo;
 }
 
-Eigen::VectorXd AOTransform::XIntegrate(int size, double U) {
+Eigen::VectorXd AOTransform::XIntegrate(Index size, double U) {
   Eigen::VectorXd FmU = Eigen::VectorXd::Zero(size);
-  const int mm = size - 1;
+  const Index mm = size - 1;
   const double pi = boost::math::constants::pi<double>();
   if (mm < 0) {
     throw std::runtime_error("mm is: " + std::to_string(mm) +
@@ -346,14 +346,15 @@ Eigen::VectorXd AOTransform::XIntegrate(int size, double U) {
     FmU[0] = 0.50 * std::sqrt(pi / U) * std::erf(std::sqrt(U));
 
     const double expU = std::exp(-U);
-    for (unsigned m = 1; m < FmU.size(); m++) {
-      FmU[m] = (2.0 * m - 1) * FmU[m - 1] / (2.0 * U) - expU / (2.0 * U);
+    for (Index m = 1; m < FmU.size(); m++) {
+      FmU[m] =
+          (2.0 * double(m) - 1) * FmU[m - 1] / (2.0 * U) - expU / (2.0 * U);
     }
   }
 
   else if (U < 1e-10) {
-    for (unsigned m = 0; m < FmU.size(); m++) {
-      FmU[m] = 1.0 / (2.0 * m + 1.0) - U / (2.0 * m + 3.0);
+    for (Index m = 0; m < FmU.size(); m++) {
+      FmU[m] = 1.0 / (2.0 * double(m) + 1.0) - U / (2.0 * double(m) + 3.0);
     }
   }
 
@@ -361,22 +362,23 @@ Eigen::VectorXd AOTransform::XIntegrate(int size, double U) {
     // backward iteration
     double fm = 0.0;
     const double expU = std::exp(-U);
-    for (int m = 60; m >= mm; m--) {
-      fm = (2.0 * U) / (2.0 * m + 1.0) * (fm + expU / (2.0 * U));
+    for (Index m = 60; m >= mm; m--) {
+      fm = (2.0 * U) / (2.0 * double(m) + 1.0) * (fm + expU / (2.0 * U));
     }
     FmU[mm] = fm;
-    for (int m = mm - 1; m >= 0; m--) {
-      FmU[m] = (2.0 * U) / (2.0 * m + 1.0) * (FmU[m + 1] + expU / (2.0 * U));
+    for (Index m = mm - 1; m >= 0; m--) {
+      FmU[m] =
+          (2.0 * U) / (2.0 * double(m) + 1.0) * (FmU[m + 1] + expU / (2.0 * U));
     }
   }
 
   return FmU;
 }
 
-int AOTransform::getBlockSize(int lmax) {
+Index AOTransform::getBlockSize(Index lmax) {
   // Each cartesian shells has (l+1)(l+2)/2 elements
   // Sum of all shells up to _lmax leads to blocksize=1+11/6 l+l^2+1/6 l^3
-  int blocksize = 6 + 11 * lmax + 6 * lmax * lmax + lmax * lmax * lmax;
+  Index blocksize = 6 + 11 * lmax + 6 * lmax * lmax + lmax * lmax * lmax;
   blocksize /= 6;
   return blocksize;
 }

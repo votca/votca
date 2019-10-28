@@ -139,7 +139,7 @@ void IAnalyze::IHist(Topology &top, QMStateType state) {
   double sq_sum = std::inner_product(J2s.begin(), J2s.end(), J2s.begin(), 0.0);
   double STD = std::sqrt(sq_sum / double(J2s.size()) - AVG * AVG);
   // Prepare bins
-  int BIN = int((MAX - MIN) / _resolution_logJ2 + 0.5) + 1;
+  Index BIN = Index((MAX - MIN) / _resolution_logJ2 + 0.5) + 1;
 
   tools::HistogramNew hist;
   hist.Initialize(MIN, MAX, BIN);
@@ -182,16 +182,16 @@ void IAnalyze::IRdependence(Topology &top, QMStateType state) {
   double MINR = *std::min_element(distances.begin(), distances.end());
 
   // Prepare R bins
-  int pointsR = int((MAXR - MINR) / _resolution_space);
+  Index pointsR = Index((MAXR - MINR) / _resolution_space);
   std::vector<std::vector<double> > rJ2;
   rJ2.resize(pointsR);
 
   // Loop over distance
-  for (int i = 0; i < pointsR; ++i) {
-    double thisMINR = MINR + i * _resolution_space;
-    double thisMAXR = MINR + (i + 1) * _resolution_space;
+  for (Index i = 0; i < pointsR; ++i) {
+    double thisMINR = MINR + double(i) * _resolution_space;
+    double thisMAXR = MINR + double(i + 1) * _resolution_space;
     // now count Js that lie within this R range
-    for (unsigned j = 0; j < J2s.size(); ++j) {
+    for (Index j = 0; j < Index(J2s.size()); ++j) {
       if (thisMINR < distances[j] && distances[j] < thisMAXR) {
         rJ2[i].push_back(J2s[j]);
       }
@@ -203,11 +203,11 @@ void IAnalyze::IRdependence(Topology &top, QMStateType state) {
   tab.resize(pointsR);
 
   // make plot values
-  for (unsigned i = 0; i < rJ2.size(); i++) {
+  for (Index i = 0; i < Index(rJ2.size()); i++) {
     const std::vector<double> &vec = rJ2[i];
     double sum = std::accumulate(vec.begin(), vec.end(), 0.0);
     double AVG = sum / double(vec.size());
-    double thisR = MINR + (i + 0.5) * _resolution_space;
+    double thisR = MINR + (double(i) + 0.5) * _resolution_space;
     double sq_sum =
         std::inner_product(vec.begin(), vec.end(), vec.begin(), 0.0);
     double STD = std::sqrt(sq_sum / double(vec.size()) - AVG * AVG);

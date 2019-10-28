@@ -795,7 +795,7 @@ BOOST_AUTO_TEST_CASE(osc_strength) {
   dipoles_ref.push_back(Eigen::Vector3d(-0.13408, 0.0969472, 0.0261392));
   dipoles_ref.push_back(Eigen::Vector3d(0.0586073, 0.121606, -0.0606862));
 
-  for (int i = 0; i < 3; i++) {
+  for (Index i = 0; i < 3; i++) {
     bool check = dipoles[i].isApprox(dipoles_ref[i], 1e-5);
     BOOST_CHECK_EQUAL(check, true);
     if (!check) {

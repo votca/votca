@@ -64,7 +64,7 @@ class GWBSE {
 
  private:
   Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
-  int CountCoreLevels();
+  Index CountCoreLevels();
   Logger* _pLog;
   Orbitals& _orbitals;
 

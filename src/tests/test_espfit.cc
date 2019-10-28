@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   esp.setUseSVD(1e-8);
   StaticSegment result = esp.Fit2Density(orbitals, gs, "xcoarse");
   Eigen::VectorXd pcharges = Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
-  int index = 0;
+  Index index = 0;
   for (const auto& site : result) {
     pcharges(index) = site.getCharge();
     index++;
@@ -163,8 +163,8 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   }
   BOOST_CHECK_EQUAL(check_esp_num, 1);
 
-  std::vector<std::pair<int, int> > pairconstraint;
-  std::pair<int, int> p1;
+  std::vector<std::pair<int, Index> > pairconstraint;
+  std::pair<int, Index> p1;
   p1.first = 1;
   p1.second = 2;
   pairconstraint.push_back(p1);

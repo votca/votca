@@ -49,7 +49,7 @@ class XtpTools : public xtp::XtpApplication {
   bool EvaluateOptions() override;
   void Run(void) override;
 
-  void BeginEvaluate(int nThreads);
+  void BeginEvaluate(Index nThreads);
   bool Evaluate();
 
  private:
@@ -71,7 +71,7 @@ void XtpTools::Initialize() {
   AddProgramOptions("Tools")("description,d", propt::value<string>(),
                              "Short description of a tool");
   // Options-related
-  AddProgramOptions()("nthreads,t", propt::value<int>()->default_value(1),
+  AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
                       "  number of threads to create");
 }
 
@@ -145,7 +145,7 @@ void XtpTools::Run() {
   string optionsFile = _op_vm["options"].as<string>();
   _options.LoadFromXML(optionsFile);
 
-  int nThreads = OptionsMap()["nthreads"].as<int>();
+  Index nThreads = OptionsMap()["nthreads"].as<Index>();
   std::string name = ProgramName();
   if (VersionString() != "") {
     name = name + ", version " + VersionString();
@@ -159,7 +159,7 @@ void XtpTools::Run() {
   Evaluate();
 }
 
-void XtpTools::BeginEvaluate(int nThreads = 1) {
+void XtpTools::BeginEvaluate(Index nThreads = 1) {
   cout << "... " << _tool->Identify() << " " << flush;
   _tool->setnThreads(nThreads);
   _tool->Initialize(_options);

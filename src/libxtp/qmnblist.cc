@@ -29,14 +29,14 @@ QMPair& QMNBList::Add(const Segment& seg1, const Segment& seg2,
                       const Eigen::Vector3d& r) {
   assert(this->FindPair(&seg1, &seg2) == nullptr &&
          "Critical bug: pair already exists");
-  long id = this->size();
+  Index id = this->size();
   QMPair* pair = new QMPair(id, &seg1, &seg2, r);
   this->AddPair(pair);
   return *pair;
 }
 
 void QMNBList::WriteToCpt(CheckpointWriter& w) const {
-  long size = this->size();
+  Index size = this->size();
   w(size, "size");
   if (size == 0) {
     return;
@@ -47,7 +47,7 @@ void QMNBList::WriteToCpt(CheckpointWriter& w) const {
   std::vector<QMPair::data> dataVec(size);
 
   CptTable table = w.openTable("pairs", pair, size);
-  for (long i = 0; i < size; i++) {
+  for (Index i = 0; i < size; i++) {
     (_pairs[i]->WriteData(dataVec[i]));
   }
   table.write(dataVec);
@@ -59,7 +59,7 @@ void QMNBList::WriteToCpt(CheckpointWriter& w) const {
 void QMNBList::ReadFromCpt(CheckpointReader& r,
                            const std::vector<Segment>& segments) {
   Cleanup();
-  long size = 0;
+  Index size = 0;
   r(size, "size");
   if (size == 0) {
     return;

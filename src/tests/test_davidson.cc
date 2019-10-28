@@ -13,7 +13,7 @@
 using namespace votca::xtp;
 using namespace std;
 
-Eigen::MatrixXd symm_matrix(long N, double eps) {
+Eigen::MatrixXd symm_matrix(Index N, double eps) {
   Eigen::MatrixXd matrix;
   matrix = eps * Eigen::MatrixXd::Random(N, N);
   Eigen::MatrixXd tmat = matrix.transpose();
@@ -21,10 +21,10 @@ Eigen::MatrixXd symm_matrix(long N, double eps) {
   return matrix;
 }
 
-Eigen::MatrixXd init_matrix(long N, double eps) {
+Eigen::MatrixXd init_matrix(Index N, double eps) {
   Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(N, N);
-  for (long i = 0; i < N; i++) {
-    for (long j = i; j < N; j++) {
+  for (Index i = 0; i < N; i++) {
+    for (Index j = i; j < N; j++) {
       if (i == j) {
         matrix(i, i) = std::sqrt(static_cast<double>(1 + i));
       } else {
@@ -40,8 +40,8 @@ BOOST_AUTO_TEST_SUITE(davidson_test)
 
 BOOST_AUTO_TEST_CASE(davidson_full_matrix) {
 
-  long size = 100;
-  long neigen = 10;
+  Index size = 100;
+  Index neigen = 10;
   double eps = 0.01;
   Eigen::MatrixXd A = init_matrix(size, eps);
   Logger log;
@@ -65,8 +65,8 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix) {
 
 BOOST_AUTO_TEST_CASE(davidson_full_matrix_large) {
 
-  long size = 400;
-  long neigen = 10;
+  Index size = 400;
+  Index neigen = 10;
   double eps = 0.01;
   Eigen::MatrixXd A = init_matrix(size, eps);
   Logger log;
@@ -89,8 +89,8 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix_large) {
 
 BOOST_AUTO_TEST_CASE(davidson_full_matrix_fail) {
 
-  long size = 100;
-  long neigen = 10;
+  Index size = 100;
+  Index neigen = 10;
   double eps = 0.01;
   Eigen::MatrixXd A = init_matrix(size, eps);
 
@@ -110,16 +110,16 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix_fail) {
 class TestOperator : public MatrixFreeOperator {
  public:
   TestOperator() = default;
-  Eigen::RowVectorXd OperatorRow(long index) const override;
+  Eigen::RowVectorXd OperatorRow(Index index) const override;
 
  private:
 };
 
 //  get a col of the operator
-Eigen::RowVectorXd TestOperator::OperatorRow(long index) const {
-  long lsize = this->size();
+Eigen::RowVectorXd TestOperator::OperatorRow(Index index) const {
+  Index lsize = this->size();
   Eigen::RowVectorXd row_out = Eigen::RowVectorXd::Zero(lsize);
-  for (long j = 0; j < lsize; j++) {
+  for (Index j = 0; j < lsize; j++) {
     if (j == index) {
       row_out(j) = std::sqrt(static_cast<double>(index + 1));
     } else {
@@ -131,8 +131,8 @@ Eigen::RowVectorXd TestOperator::OperatorRow(long index) const {
 
 BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
 
-  long size = 100;
-  long neigen = 10;
+  Index size = 100;
+  Index neigen = 10;
 
   // Create Operator
   TestOperator Aop;
@@ -163,8 +163,8 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
 
 BOOST_AUTO_TEST_CASE(davidson_matrix_free_large) {
 
-  long size = 400;
-  long neigen = 10;
+  Index size = 400;
+  Index neigen = 10;
 
   // Create Operator
   TestOperator Aop;
@@ -196,22 +196,22 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free_large) {
 class BlockOperator : public MatrixFreeOperator {
  public:
   BlockOperator() = default;
-  Eigen::MatrixXd OperatorBlock(long row, long col) const override;
+  Eigen::MatrixXd OperatorBlock(Index row, Index col) const override;
 
   bool useRow() const override { return false; }
   bool useBlock() const override { return true; }
-  long getBlocksize() const override { return size() / 10; }
+  Index getBlocksize() const override { return size() / 10; }
 
  private:
 };
 
 //  get a block of the operator
-Eigen::MatrixXd BlockOperator::OperatorBlock(long row, long col) const {
-  long blocksize = getBlocksize();
+Eigen::MatrixXd BlockOperator::OperatorBlock(Index row, Index col) const {
+  Index blocksize = getBlocksize();
   Eigen::MatrixXd block = Eigen::MatrixXd::Zero(blocksize, blocksize);
-  long blocdisttodiagonal = std::abs(row - col) * blocksize;
-  for (long i_col = 0; i_col < blocksize; i_col++) {
-    for (long i_row = 0; i_row < blocksize; i_row++) {
+  Index blocdisttodiagonal = std::abs(row - col) * blocksize;
+  for (Index i_col = 0; i_col < blocksize; i_col++) {
+    for (Index i_row = 0; i_row < blocksize; i_row++) {
       block(i_row, i_col) =
           0.01 / std::pow(static_cast<double>(std::abs(i_row - i_col) +
                                               blocdisttodiagonal),
@@ -219,7 +219,7 @@ Eigen::MatrixXd BlockOperator::OperatorBlock(long row, long col) const {
     }
   }
   if (blocdisttodiagonal == 0) {
-    for (long i = 0; i < blocksize; i++) {
+    for (Index i = 0; i < blocksize; i++) {
       block(i, i) = std::sqrt(static_cast<double>(row * blocksize + i + 1));
     }
   }
@@ -229,8 +229,8 @@ Eigen::MatrixXd BlockOperator::OperatorBlock(long row, long col) const {
 
 BOOST_AUTO_TEST_CASE(davidson_matrix_free_block) {
 
-  long size = 100;
-  long neigen = 10;
+  Index size = 100;
+  Index neigen = 10;
 
   // Create Operator
   BlockOperator Aop;
@@ -260,8 +260,8 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free_block) {
 
 BOOST_AUTO_TEST_CASE(davidson_matrix_free_block_large) {
 
-  long size = 400;
-  long neigen = 10;
+  Index size = 400;
+  Index neigen = 10;
 
   // Create Operator
   BlockOperator Aop;
@@ -288,32 +288,32 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free_block_large) {
   }
 }
 
-Eigen::ArrayXi index_eval(Eigen::VectorXd ev, long neigen) {
+Eigen::ArrayXi index_eval(Eigen::VectorXd ev, Index neigen) {
 
-  long nev = ev.rows();
-  long npos = nev / 2;
+  Index nev = ev.rows();
+  Index npos = nev / 2;
 
   Eigen::ArrayXi idx = Eigen::ArrayXi::Zero(npos);
-  long nstored = 0;
+  Index nstored = 0;
 
   // get only positives
-  for (long i = 0; i < nev; i++) {
+  for (Index i = 0; i < nev; i++) {
     if (ev(i) > 0) {
-      idx(nstored) = int(i);
+      idx(nstored) = Index(i);
       nstored++;
     }
   }
 
   // sort the epos eigenvalues
   std::sort(idx.data(), idx.data() + idx.size(),
-            [&](int i1, int i2) { return ev[i1] < ev[i2]; });
+            [&](Index i1, Index i2) { return ev[i1] < ev[i2]; });
   return idx.head(neigen);
 }
 
 Eigen::MatrixXd extract_eigenvectors(const Eigen::MatrixXd &V,
                                      const Eigen::ArrayXi &idx) {
   Eigen::MatrixXd W = Eigen::MatrixXd::Zero(V.rows(), idx.size());
-  for (long i = 0; i < idx.size(); i++) {
+  for (Index i = 0; i < idx.size(); i++) {
     W.col(i) = V.col(idx(i));
   }
   return W;
@@ -324,8 +324,8 @@ class HermitianBlockOperator : public MatrixFreeOperator {
   HermitianBlockOperator() = default;
 
   void attach_matrix(const Eigen::MatrixXd &mat);
-  Eigen::RowVectorXd OperatorRow(long index) const override;
-  void set_diag(long diag);
+  Eigen::RowVectorXd OperatorRow(Index index) const override;
+  void set_diag(Index diag);
   Eigen::VectorXd diag_el;
 
  private:
@@ -337,14 +337,14 @@ void HermitianBlockOperator::attach_matrix(const Eigen::MatrixXd &mat) {
 }
 
 //  get a col of the operator
-Eigen::RowVectorXd HermitianBlockOperator::OperatorRow(long index) const {
+Eigen::RowVectorXd HermitianBlockOperator::OperatorRow(Index index) const {
   return _mat.row(index);
 }
 
 BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
 
-  long size = 60;
-  long neigen = 5;
+  Index size = 60;
+  Index neigen = 5;
   Logger log;
 
   // Create Operator

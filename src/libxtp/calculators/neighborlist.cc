@@ -71,10 +71,10 @@ void Neighborlist::Initialize(tools::Property& options) {
   }
 }
 
-int Neighborlist::DetClassicalPairs(Topology& top) {
-  int classical_pairs = 0;
+Index Neighborlist::DetClassicalPairs(Topology& top) {
+  Index classical_pairs = 0;
 #pragma omp parallel for
-  for (long i = 0; i < top.NBList().size(); i++) {
+  for (Index i = 0; i < top.NBList().size(); i++) {
     const Segment* seg1 = top.NBList()[i]->Seg1();
     const Segment* seg2 = top.NBList()[i]->Seg2();
     if (top.GetShortestDist(*seg1, *seg2) > _excitonqmCutoff) {
@@ -135,14 +135,14 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   // cache approx sizes
   std::vector<double> approxsize = std::vector<double>(segs.size(), 0.0);
 #pragma omp parallel for
-  for (unsigned i = 0; i < segs.size(); i++) {
+  for (Index i = 0; i < Index(segs.size()); i++) {
     approxsize[i] = segs[i]->getApproxSize();
   }
 #pragma omp parallel for schedule(guided)
-  for (unsigned i = 0; i < segs.size(); i++) {
+  for (Index i = 0; i < Index(segs.size()); i++) {
     Segment* seg1 = segs[i];
     double cutoff = _constantCutoff;
-    for (unsigned j = i + 1; j < segs.size(); j++) {
+    for (Index j = i + 1; j < Index(segs.size()); j++) {
       Segment* seg2 = segs[j];
       if (!_useConstantCutoff) {
         try {
@@ -203,7 +203,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   if (_useExcitonCutoff) {
     std::cout << std::endl
               << " ... ... Determining classical pairs " << std::endl;
-    int classical_pairs = DetClassicalPairs(top);
+    Index classical_pairs = DetClassicalPairs(top);
     std::cout << " ... ... Found " << classical_pairs << " classical pairs "
               << std::endl;
   }

@@ -47,8 +47,8 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
         key + ".scratch");
   }
 
-  _charge = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".charge");
-  _spin = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".spin");
+  _charge = options.ifExistsReturnElseThrowRuntimeError<Index>(key + ".charge");
+  _spin = options.ifExistsReturnElseThrowRuntimeError<Index>(key + ".spin");
   _cleanup =
       options.ifExistsReturnElseReturnDefault(key + ".cleanup", _cleanup);
   _dpl_spacing = options.ifExistsReturnElseReturnDefault(
@@ -129,7 +129,7 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
     es.computeDirect(components);
     double a2 = 2 * _dpl_spacing;
-    for (int i = 0; i < 3; i++) {
+    for (Index i = 0; i < 3; i++) {
       double q = es.eigenvalues()[i] / (a2 * a2);
       const Eigen::Vector3d vec1 =
           aps.getPos() + 0.5 * a2 * es.eigenvectors().col(i);

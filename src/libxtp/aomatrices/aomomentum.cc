@@ -50,8 +50,8 @@ void AOMomentum::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
    */
 
   // shell info, only lmax tells how far to go
-  int lmax_row = shell_row.getLmax();
-  int lmax_col = shell_col.getLmax();
+  Index lmax_row = shell_row.getLmax();
+  Index lmax_col = shell_col.getLmax();
 
   if (lmax_col > 4) {
     throw std::runtime_error(
@@ -60,17 +60,17 @@ void AOMomentum::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
   }
 
   // set size of internal block for recursion
-  int nrows = AOTransform::getBlockSize(lmax_row);
-  int ncols = AOTransform::getBlockSize(lmax_col);
+  Index nrows = AOTransform::getBlockSize(lmax_row);
+  Index ncols = AOTransform::getBlockSize(lmax_col);
 
   // initialize local matrix block for unnormalized cartesians
   std::array<Eigen::MatrixXd, 3> mom;
-  for (int i_comp = 0; i_comp < 3; i_comp++) {
+  for (Index i_comp = 0; i_comp < 3; i_comp++) {
     mom[i_comp] = Eigen::MatrixXd ::Zero(nrows, ncols);
   }
 
   std::array<Eigen::MatrixXd, 6> scd_mom;
-  for (int i_comp = 0; i_comp < 6; i_comp++) {
+  for (Index i_comp = 0; i_comp < 6; i_comp++) {
     scd_mom[i_comp] = Eigen::MatrixXd ::Zero(nrows, ncols);
   }
 
@@ -108,13 +108,13 @@ void AOMomentum::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
       }
 
       AOOverlap overlap;
-      int L_offset = 1;
+      Index L_offset = 1;
       Eigen::MatrixXd ol =
           overlap.Primitive_Overlap(gaussian_row, gaussian_col, L_offset);
 
       double alpha2 = 2.0 * decay_row;
       double beta2 = 2.0 * decay_col;
-      for (int i = 0; i < ncols; i++) {
+      for (Index i = 0; i < ncols; i++) {
 
         int nx_i = nx[i];
         int ny_i = ny[i];
@@ -126,7 +126,7 @@ void AOMomentum::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
         int imy_i = i_more_y[i];
         int imz_i = i_more_z[i];
 
-        for (int j = 0; j < nrows; j++) {
+        for (Index j = 0; j < nrows; j++) {
 
           mom[0](j, i) = nx_i * ol(j, ilx_i) - beta2 * ol(j, imx_i);
           mom[1](j, i) = ny_i * ol(j, ily_i) - beta2 * ol(j, imy_i);
@@ -174,7 +174,7 @@ void AOMomentum::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
       Eigen::MatrixXd trafo_row = AOTransform::getTrafo(gaussian_row);
       Eigen::MatrixXd trafo_col = AOTransform::getTrafo(gaussian_col);
       // cartesian -> spherical
-      for (int i = 0; i < 3; i++) {
+      for (Index i = 0; i < 3; i++) {
         Eigen::MatrixXd mom_sph =
             trafo_row.transpose() *
             mom[i].bottomRightCorner(shell_row.getCartesianNumFunc(),

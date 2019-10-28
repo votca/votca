@@ -94,18 +94,18 @@ void EQM::WriteJobFile(const Topology& top) {
     throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
   }
   ofs << "<jobs>" << std::endl;
-  int jobCount = 0;
+  Index jobCount = 0;
 
   const std::vector<Segment>& segments = top.Segments();
   for (const Segment& segment : segments) {
-    int id = segment.getId();
+    Index id = segment.getId();
     std::string tag = "";
     tools::Property Input;
     tools::Property& pInput = Input.add("input", "");
     tools::Property& pSegment =
         pInput.add("segment", (format("%1$s") % segment.getId()).str());
     pSegment.setAttribute<std::string>("type", segment.getType());
-    pSegment.setAttribute<int>("id", segment.getId());
+    pSegment.setAttribute<Index>("id", segment.getId());
     Job job(id, tag, Input, Job::AVAILABLE);
     job.ToStream(ofs);
     jobCount++;
@@ -140,7 +140,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   Job::JobResult jres = Job::JobResult();
   tools::Property _job_input = job.getInput();
   std::vector<tools::Property*> lSegments = _job_input.Select("segment");
-  int segId = lSegments.front()->getAttribute<int>("id");
+  Index segId = lSegments.front()->getAttribute<Index>("id");
   std::string segType = lSegments.front()->getAttribute<std::string>("type");
   std::string qmgeo_state = "n";
   if (lSegments.front()->exists("qm_geometry")) {

@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(getElementtest) {
 
   BOOST_CHECK_EQUAL(unique_ele.size(), unique_ele_ref.size());
 
-  for (unsigned i = 0; i < unique_ele.size(); i++) {
+  for (Index i = 0; i < unique_ele.size(); i++) {
     BOOST_CHECK_EQUAL(unique_ele[i], unique_ele_ref[i]);
   }
 }
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(writehdf5) {
   CheckpointFile f("segment_test.hdf5");
   CheckpointReader r = f.getReader();
   Segment seg2(r);
-  for (int i = 0; i < seg2.size(); i++) {
+  for (Index i = 0; i < seg2.size(); i++) {
     const Atom& a1 = seg[i];
     const Atom& a2 = seg2[i];
     BOOST_CHECK_EQUAL(a1.getName(), a2.getName());

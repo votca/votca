@@ -36,16 +36,16 @@ Eigen::VectorXd Sigma_PPM::CalcCorrelationDiag(
 
   Eigen::VectorXd RPAEnergies = _rpa.getRPAInputEnergies();
   Eigen::VectorXd result = Eigen::VectorXd::Zero(_qptotal);
-  const int levelsum = _Mmn.nsize();   // total number of bands
-  const int auxsize = _Mmn.auxsize();  // size of the GW basis
-  const int lumo = _opt.homo + 1;
-  const int qpmin_offset = _opt.qpmin - _opt.rpamin;
+  const Index levelsum = _Mmn.nsize();   // total number of bands
+  const Index auxsize = _Mmn.auxsize();  // size of the GW basis
+  const Index lumo = _opt.homo + 1;
+  const Index qpmin_offset = _opt.qpmin - _opt.rpamin;
 #pragma omp parallel for
-  for (int gw_level = 0; gw_level < _qptotal; gw_level++) {
+  for (Index gw_level = 0; gw_level < _qptotal; gw_level++) {
     const double qpmin = frequencies(gw_level);
     double sigma_c = 0.0;
 
-    for (int i_aux = 0; i_aux < auxsize; i_aux++) {
+    for (Index i_aux = 0; i_aux < auxsize; i_aux++) {
       // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc
       // PPM_construct_parameters
       if (_ppm.getPpm_weight()(i_aux) < 1.e-9) {
@@ -69,7 +69,7 @@ Eigen::VectorXd Sigma_PPM::CalcCorrelationDiag(
 
 void Sigma_PPM::Stabilize(Eigen::ArrayXd& denom) const {
   const double fourpi = 4 * boost::math::constants::pi<double>();
-  for (int i = 0; i < denom.size(); ++i) {
+  for (Index i = 0; i < denom.size(); ++i) {
     if (std::abs(denom[i]) < 0.25) {
       denom[i] = denom[i] / (0.5 * (1.0 - std::cos(fourpi * denom[i])));
     }
@@ -83,22 +83,22 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
 
 #pragma omp parallel
   {
-    const int lumo = _opt.homo + 1;
-    const int levelsum = _Mmn.nsize();   // total number of bands
-    const int auxsize = _Mmn.auxsize();  // size of the GW basis
+    const Index lumo = _opt.homo + 1;
+    const Index levelsum = _Mmn.nsize();   // total number of bands
+    const Index auxsize = _Mmn.auxsize();  // size of the GW basis
     const Eigen::VectorXd ppm_weight = _ppm.getPpm_weight();
     const Eigen::VectorXd ppm_freqs = _ppm.getPpm_freq();
-    const int qpmin_offset = _opt.qpmin - _opt.rpamin;
+    const Index qpmin_offset = _opt.qpmin - _opt.rpamin;
     const Eigen::VectorXd rpaenergies_thread = _rpa.getRPAInputEnergies();
 #pragma omp for schedule(dynamic)
-    for (int gw_level1 = 0; gw_level1 < _qptotal; gw_level1++) {
+    for (Index gw_level1 = 0; gw_level1 < _qptotal; gw_level1++) {
       const Eigen::MatrixXd& Mmn1 = _Mmn[gw_level1 + qpmin_offset];
       const double qpmin1 = frequencies(gw_level1);
-      for (int gw_level2 = gw_level1 + 1; gw_level2 < _qptotal; gw_level2++) {
+      for (Index gw_level2 = gw_level1 + 1; gw_level2 < _qptotal; gw_level2++) {
         const Eigen::MatrixXd& Mmn2 = _Mmn[gw_level2 + qpmin_offset];
         const double qpmin2 = frequencies(gw_level2);
         double sigma_c = 0;
-        for (int i_aux = 0; i_aux < auxsize; i_aux++) {
+        for (Index i_aux = 0; i_aux < auxsize; i_aux++) {
           // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc
           // PPM_construct_parameters
           if (ppm_weight(i_aux) < 1.e-9) {

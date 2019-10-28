@@ -26,10 +26,10 @@ namespace xtp {
 void AOShell::normalizeContraction() {
   AOOverlap overlap;
   Eigen::MatrixXd block = overlap.FillShell(*this);
-  std::vector<int> numsubshells = NumFuncSubShell(_type);
-  int contraction_index = FindLmin(_type);
-  int aoindex = 0;
-  for (int& numsubshell : numsubshells) {
+  std::vector<Index> numsubshells = NumFuncSubShell(_type);
+  Index contraction_index = FindLmin(_type);
+  Index aoindex = 0;
+  for (Index& numsubshell : numsubshells) {
     double norm = std::sqrt(block(aoindex, aoindex));
     for (auto& gaussian : _gaussians) {
       gaussian._contraction[contraction_index] /= norm;
@@ -61,8 +61,8 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
         gaussian.getPowfactor() * std::exp(-alpha * distsq);
     const Eigen::Vector3d second_term = -2.0 * alpha * center;
     // split combined shells
-    int i_func = -1;
-    int i_act;
+    Index i_func = -1;
+    Index i_act;
     for (const char& single_shell : _type) {
       // single type shells
       if (single_shell == 'S') {
@@ -327,7 +327,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
     double expofactor = gaussian.getPowfactor() * exp(-alpha * distsq);
 
     // split combined shells
-    int i_func = -1;
+    Index i_func = -1;
 
     for (const char& single_shell : _type) {
       // single type shells
@@ -433,7 +433,7 @@ std::ostream& operator<<(std::ostream& out, const AOShell& shell) {
   for (const auto& gaussian : shell) {
     out << " Gaussian Decay: " << gaussian.getDecay();
     out << " Contractions:";
-    for (long i = 0; i < gaussian.getContraction().size(); i++) {
+    for (Index i = 0; i < gaussian.getContraction().size(); i++) {
       out << " " << gaussian.getContraction()[i];
     }
     out << "\n";

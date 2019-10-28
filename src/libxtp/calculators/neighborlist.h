@@ -40,7 +40,7 @@ class Neighborlist : public QMCalculator {
   bool EvaluateFrame(Topology& top) override;
 
  private:
-  int DetClassicalPairs(Topology& top);
+  Index DetClassicalPairs(Topology& top);
 
   std::vector<std::string> _included_segments;
   std::map<std::string, std::map<std::string, double> > _cutoffs;

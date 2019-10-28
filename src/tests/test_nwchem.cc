@@ -685,7 +685,7 @@ BOOST_AUTO_TEST_CASE(ext_charges) {
   BOOST_CHECK_CLOSE(orb.getScaHFX(), 0.25, 1e-5);
 
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
-  for (int i = 0; i < seg.size(); i++) {
+  for (Index i = 0; i < seg.size(); i++) {
     bool coord_check = ref[i].getPos().isApprox(seg[i].getPos(), 1e-4);
     BOOST_CHECK_EQUAL(coord_check, true);
     if (!coord_check) {
@@ -1121,7 +1121,7 @@ BOOST_AUTO_TEST_CASE(getcharges) {
   ref.push_back(s5);
 
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
-  for (int i = 0; i < seg.size(); i++) {
+  for (Index i = 0; i < seg.size(); i++) {
     BOOST_CHECK_EQUAL(ref[i].Q().isApprox(seg[i].Q(), 1e-5), true);
     bool check_pos = ref[i].getPos().isApprox(seg[i].getPos(), 1e-5);
     BOOST_CHECK_EQUAL(check_pos, true);
@@ -1560,7 +1560,7 @@ BOOST_AUTO_TEST_CASE(opt_test) {
   ref.push_back(s4);
   ref.push_back(s5);
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
-  for (int i = 0; i < seg.size(); i++) {
+  for (Index i = 0; i < seg.size(); i++) {
     bool coord_check = ref[i].getPos().isApprox(seg[i].getPos(), 1e-5);
     BOOST_CHECK_EQUAL(coord_check, true);
     if (!coord_check) {

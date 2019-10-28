@@ -44,7 +44,7 @@ class Grid {
 
   Eigen::VectorXd &getGridValues() { return _gridvalues; }
   const Eigen::VectorXd &getGridValues() const { return _gridvalues; }
-  long size() { return long(_gridpoints.size()); }
+  Index size() { return Index(_gridpoints.size()); }
 
   void printGridtoxyzfile(std::string filename);
 

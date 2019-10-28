@@ -24,8 +24,8 @@ namespace xtp {
 
 void GridBox::AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,
                              const Eigen::MatrixXd& smallmatrix) const {
-  for (unsigned i = 0; i < ranges.size(); i++) {
-    for (unsigned j = 0; j < ranges.size(); j++) {
+  for (Index i = 0; i < Index(ranges.size()); i++) {
+    for (Index j = 0; j < Index(ranges.size()); j++) {
       bigmatrix.block(ranges[i].start, ranges[j].start, ranges[i].size,
                       ranges[j].size) +=
           smallmatrix.block(inv_ranges[i].start, inv_ranges[j].start,
@@ -38,8 +38,8 @@ void GridBox::AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,
 Eigen::MatrixXd GridBox::ReadFromBigMatrix(
     const Eigen::MatrixXd& bigmatrix) const {
   Eigen::MatrixXd matrix = Eigen::MatrixXd(matrix_size, matrix_size);
-  for (unsigned i = 0; i < ranges.size(); i++) {
-    for (unsigned j = 0; j < ranges.size(); j++) {
+  for (Index i = 0; i < Index(ranges.size()); i++) {
+    for (Index j = 0; j < Index(ranges.size()); j++) {
       matrix.block(inv_ranges[i].start, inv_ranges[j].start, inv_ranges[i].size,
                    inv_ranges[j].size) =
           bigmatrix.block(ranges[i].start, ranges[j].start, ranges[i].size,
@@ -50,12 +50,12 @@ Eigen::MatrixXd GridBox::ReadFromBigMatrix(
 }
 
 void GridBox::PrepareForIntegration() {
-  unsigned index = 0;
+  Index index = 0;
   aoranges = std::vector<GridboxRange>(0);
   ranges = std::vector<GridboxRange>(0);
   inv_ranges = std::vector<GridboxRange>(0);
-  std::vector<unsigned> start;
-  std::vector<unsigned> end;
+  std::vector<Index> start;
+  std::vector<Index> end;
 
   for (const auto shell : significant_shells) {
     GridboxRange temp;
@@ -66,13 +66,13 @@ void GridBox::PrepareForIntegration() {
     start.push_back(shell->getStartIndex());
     end.push_back(shell->getStartIndex() + shell->getNumFunc());
   }
-  std::vector<unsigned> startindex;
-  std::vector<unsigned> endindex;
+  std::vector<Index> startindex;
+  std::vector<Index> endindex;
 
   if (start.size() > 1) {
     startindex.push_back(start[0]);
 
-    for (unsigned i = 0; i < start.size() - 1; ++i) {
+    for (Index i = 0; i < Index(start.size()) - 1; ++i) {
 
       if (end[i] != start[i + 1]) {
         startindex.push_back(start[i + 1]);
@@ -84,9 +84,9 @@ void GridBox::PrepareForIntegration() {
     startindex = start;
     endindex = end;
   }
-  unsigned shellstart = 0;
-  for (unsigned i = 0; i < startindex.size(); ++i) {
-    unsigned size = endindex[i] - startindex[i];
+  Index shellstart = 0;
+  for (Index i = 0; i < Index(startindex.size()); ++i) {
+    Index size = endindex[i] - startindex[i];
     GridboxRange temp;
     temp.size = size;
     temp.start = startindex[i];

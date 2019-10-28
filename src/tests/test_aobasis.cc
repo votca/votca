@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
 
   const AOShell& shell = aobasis.getShell(0);
   std::vector<double> ref_results = {0.1831079647, 0.9155398233};
-  int i = 0;
+  Index i = 0;
   bool check_norm = true;
   for (const AOGaussianPrimitive& gaussian : shell) {
     if (std::abs(ref_results[i] - gaussian.getContraction()[2]) > 1e-7) {

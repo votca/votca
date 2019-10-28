@@ -75,7 +75,7 @@ class CheckpointWriter {
   }
 
   void operator()(const bool& v, const std::string& name) const {
-    int temp = static_cast<int>(v);
+    Index temp = static_cast<Index>(v);
     try {
       WriteScalar(_loc, temp, name);
     } catch (H5::Exception&) {
@@ -291,7 +291,7 @@ class CheckpointWriter {
     WriteData(parent, sys.eigenvalues(), "eigenvalues");
     WriteData(parent, sys.eigenvectors(), "eigenvectors");
     WriteData(parent, sys.eigenvectors2(), "eigenvectors2");
-    WriteScalar(parent, int(sys.info()), "info");
+    WriteScalar(parent, Index(sys.info()), "info");
   }
 
   template <typename T1, typename T2>

@@ -59,7 +59,7 @@ class Orca : public QMPackage {
 
  private:
   std::string indent(const double& number);
-  std::string getLName(int lnum);
+  std::string getLName(Index lnum);
 
   void WriteBasisset(const QMMolecule& qmatoms, std::string& _bs_name,
                      std::string& el_file_name);

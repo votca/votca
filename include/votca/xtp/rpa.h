@@ -31,7 +31,7 @@ class RPA {
  public:
   RPA(const TCMatrix_gwbse& Mmn) : _Mmn(Mmn){};
 
-  void configure(int homo, int rpamin, int rpamax) {
+  void configure(Index homo, Index rpamin, Index rpamax) {
     _homo = homo;
     _rpamin = rpamin;
     _rpamax = rpamax;
@@ -55,12 +55,12 @@ class RPA {
   // RPA energies have three parts, lower than qpmin: dftenergies,between qpmin
   // and qpmax:gwa_energies,above:dftenergies+homo-lumo shift
   void UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
-                              const Eigen::VectorXd& gwaenergies, int qpmin);
+                              const Eigen::VectorXd& gwaenergies, Index qpmin);
 
  private:
-  int _homo;  // HOMO index with respect to dft energies
-  int _rpamin;
-  int _rpamax;
+  Index _homo;  // HOMO index with respect to dft energies
+  Index _rpamin;
+  Index _rpamax;
   const double _eta = 0.0001;
 
   Eigen::VectorXd _energies;

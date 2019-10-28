@@ -213,7 +213,7 @@ BOOST_AUTO_TEST_CASE(osc) {
     tracker.Initialize(prop.get("statetracker"));
     QMState newstate = tracker.CalcState(orb);
     BOOST_CHECK_EQUAL(newstate.Type().ToString(), "s");
-    BOOST_CHECK_EQUAL(newstate.Index(), 1);
+    BOOST_CHECK_EQUAL(newstate.StateIdx(), 1);
   }
 
   {
@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE(osc) {
     tracker.Initialize(prop.get("statetracker"));
     QMState newstate = tracker.CalcState(orb);
     BOOST_CHECK_EQUAL(newstate.Type().ToString(), "s");
-    BOOST_CHECK_EQUAL(newstate.Index(), 0);
+    BOOST_CHECK_EQUAL(newstate.StateIdx(), 0);
   }
 }
 

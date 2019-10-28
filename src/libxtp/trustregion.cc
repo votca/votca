@@ -41,10 +41,10 @@ Eigen::VectorXd TrustRegion::CalculateStep(const Eigen::VectorXd& gradient,
   double lambda = 0;
   // hard case
   if (std::abs(factor[0]) < 1e-18) {
-    std::vector<int> index;
+    std::vector<Index> index;
     Eigen::VectorXd diag = Eigen::VectorXd::Zero(factor.size());
     // construct pseudo inverse
-    for (int i = 0; i < factor.size(); i++) {
+    for (Index i = 0; i < factor.size(); i++) {
       double entry = es.eigenvalues()(i) - es.eigenvalues()(0);
       if (std::abs(entry) < 1e-14) {
         index.push_back(i);
@@ -63,7 +63,7 @@ Eigen::VectorXd TrustRegion::CalculateStep(const Eigen::VectorXd& gradient,
     }
   }
   // sort out all the factors for the small eigenvalues,
-  int start_index = 0;
+  Index start_index = 0;
   for (; start_index < factor.size(); start_index++) {
     if (factor[start_index] < 1e-18) {
       continue;
@@ -81,7 +81,7 @@ Eigen::VectorXd TrustRegion::CalculateStep(const Eigen::VectorXd& gradient,
   lambda =
       -es.eigenvalues()(start_index) + std::sqrt(factor(start_index)) / delta;
   TrustRegionFunction TRF = TrustRegionFunction(factor, es, delta, start_index);
-  for (int iter = 0; iter < 100; iter++) {
+  for (Index iter = 0; iter < 100; iter++) {
     std::pair<double, double> result = TRF.Evaluate(lambda);
     double func_value = result.first;
     double update = result.second;
@@ -95,7 +95,7 @@ Eigen::VectorXd TrustRegion::CalculateStep(const Eigen::VectorXd& gradient,
   // this is effectively the solution of (H+I\lambda)*\Delta p=-g with \lambda
   // adjusted so that ||p||=delta
   Eigen::VectorXd new_delta_pos = Eigen::VectorXd::Zero(gradient.size());
-  for (int i = start_index; i < gradient.size(); i++) {
+  for (Index i = start_index; i < gradient.size(); i++) {
     new_delta_pos -= es.eigenvectors().col(i) *
                      (es.eigenvectors().col(i).transpose() * gradient) /
                      (es.eigenvalues()(i) + lambda);

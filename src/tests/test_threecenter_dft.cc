@@ -31,15 +31,15 @@ Eigen::MatrixXd ReadMatrixFromString(const std::string& matrix) {
   votca::tools::Tokenizer lines(matrix, "\n");
 
   std::vector<double> entries;
-  long cols = 0;
-  long rows = 0;
+  Index cols = 0;
+  Index rows = 0;
   for (auto line : lines) {
     if (line[0] == '#') {
       continue;
     }
     votca::tools::Tokenizer entries_tok(line, " ");
     std::vector<std::string> temp = entries_tok.ToVector();
-    cols = long(temp.size());
+    cols = Index(temp.size());
     rows++;
     for (const auto& s : temp) {
       entries.push_back(std::stod(s));
@@ -610,11 +610,11 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
       "1.4209e-18 -6.65368e-07 0.00117692";
 
   std::array<int, 4> indeces = {0, 1, 3, 12};
-  for (int i = 0; i < 4; i++) {
+  for (Index i = 0; i < 4; i++) {
     ref[i] = ReadMatrixFromString(ref_string[i]);
   }
 
-  for (int i = 0; i < 4; i++) {
+  for (Index i = 0; i < 4; i++) {
     bool check = ref[i].isApprox(threec[indeces[i]].FullMatrix(), 1e-5);
     BOOST_CHECK_EQUAL(check, true);
     if (!check) {

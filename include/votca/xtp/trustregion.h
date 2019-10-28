@@ -41,7 +41,7 @@ class TrustRegion {
     TrustRegionFunction(
         const Eigen::VectorXd& factor,
         const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& hessian,
-        double trust_radius, int startindex)
+        double trust_radius, Index startindex)
         : _factor(factor),
           _hessian(hessian),
           _trust_radius(trust_radius),
@@ -51,7 +51,7 @@ class TrustRegion {
 
     // Calculates \phi and \phi/\phi'
     std::pair<double, double> Evaluate(double lambda) {
-      long size = _factor.size() - _startindex;
+      Index size = _factor.size() - _startindex;
       Eigen::ArrayXd quotient =
           (_hessian.eigenvalues().array() + lambda).tail(size);
       const double p2 = (_factor.array().tail(size) / (quotient.pow(2))).sum();
@@ -67,7 +67,7 @@ class TrustRegion {
     const Eigen::VectorXd& _factor;
     const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& _hessian;
     double _trust_radius;
-    int _startindex;
+    Index _startindex;
   };
 };
 

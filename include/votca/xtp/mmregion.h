@@ -34,12 +34,12 @@ class StaticRegion;
 template <class T>
 class MMRegion : public Region {
  public:
-  MMRegion(int id, Logger& log) : Region(id, log){};
+  MMRegion(Index id, Logger& log) : Region(id, log){};
   void WriteToCpt(CheckpointWriter& w) const override;
 
   void ReadFromCpt(CheckpointReader& r) override;
 
-  int size() const override { return int(_segments.size()); }
+  Index size() const override { return Index(_segments.size()); }
 
   using iterator = typename std::vector<T>::iterator;
 
@@ -51,8 +51,8 @@ class MMRegion : public Region {
 
   std::string identify() const override = 0;
 
-  const T& operator[](int index) const { return _segments[index]; }
-  T& operator[](int index) { return _segments[index]; }
+  const T& operator[](Index index) const { return _segments[index]; }
+  T& operator[](Index index) { return _segments[index]; }
 
   typename std::vector<T>::iterator begin() { return _segments.begin(); }
   typename std::vector<T>::iterator end() { return _segments.end(); }

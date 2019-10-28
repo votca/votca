@@ -71,7 +71,7 @@ class HamiltonianOperator
 
   Eigen::VectorXd get_diagonal() const {
     Eigen::VectorXd diag = Eigen::VectorXd::Zero(_size);
-    long half = _size / 2;
+    Index half = _size / 2;
     diag.head(half) = _A.diagonal();
     diag.tail(half) = -diag.head(half);
     return diag;
@@ -82,7 +82,7 @@ class HamiltonianOperator
   // get the full matrix if we have to
   Eigen::MatrixXd get_full_matrix() const {
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size, _size);
-    long half = _size / 2;
+    Index half = _size / 2;
     matrix.topLeftCorner(half, half) = _A.get_full_matrix();
     matrix.topRightCorner(half, half) = _B.get_full_matrix();
     matrix.bottomLeftCorner(half, half) = -matrix.topRightCorner(half, half);
@@ -94,7 +94,7 @@ class HamiltonianOperator
   const MatrixReplacementB& _B;
 
  private:
-  long _size;
+  Index _size;
   Eigen::VectorXd _diag;
 };
 }  // namespace xtp
@@ -131,7 +131,7 @@ struct generic_product_impl<
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
 
-    long half = op.rows() / 2;
+    Index half = op.rows() / 2;
     dst.head(half) = op._A * v.head(half) + op._B * v.tail(half);
     dst.tail(half) = -(op._B * v.head(half) + op._A * v.tail(half));
   }
@@ -165,7 +165,7 @@ struct generic_product_impl<
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
 
-    long half = op.rows() / 2;
+    Index half = op.rows() / 2;
     dst.topRows(half) = op._A * m.topRows(half) + op._B * m.bottomRows(half);
     dst.bottomRows(half) =
         -(op._B * m.topRows(half) + (op._A * m.bottomRows(half)));

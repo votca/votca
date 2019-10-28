@@ -74,11 +74,15 @@ void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,
   double JAB_pert = 0;
   double JAB_diag = 0;
   if (stateA.Type() == QMStateType::Singlet) {
-    JAB_pert = getSingletCouplingElement(stateA.Index(), stateB.Index(), 0);
-    JAB_diag = getSingletCouplingElement(stateA.Index(), stateB.Index(), 1);
+    JAB_pert =
+        getSingletCouplingElement(stateA.StateIdx(), stateB.StateIdx(), 0);
+    JAB_diag =
+        getSingletCouplingElement(stateA.StateIdx(), stateB.StateIdx(), 1);
   } else if (stateA.Type() == QMStateType::Triplet) {
-    JAB_pert = getTripletCouplingElement(stateA.Index(), stateB.Index(), 0);
-    JAB_diag = getTripletCouplingElement(stateA.Index(), stateB.Index(), 1);
+    JAB_pert =
+        getTripletCouplingElement(stateA.StateIdx(), stateB.StateIdx(), 0);
+    JAB_diag =
+        getTripletCouplingElement(stateA.StateIdx(), stateB.StateIdx(), 1);
   }
   coupling_summary.setAttribute("stateA", stateA.ToString());
   coupling_summary.setAttribute("stateB", stateB.ToString());
@@ -97,9 +101,9 @@ void BSECoupling::Addoutput(Property& type_summary, const Orbitals&,
     QMStateType singlet = QMStateType(QMStateType::Singlet);
     Property& singlet_summary = bsecoupling.add(singlet.ToLongString(), "");
     singlet_summary.setAttribute("algorithm", algorithm);
-    for (int stateA = 0; stateA < _levA; ++stateA) {
+    for (Index stateA = 0; stateA < _levA; ++stateA) {
       QMState qmstateA = QMState(singlet, stateA, false);
-      for (int stateB = 0; stateB < _levB; ++stateB) {
+      for (Index stateB = 0; stateB < _levB; ++stateB) {
         QMState qmstateB = QMState(singlet, stateB, false);
         WriteToProperty(singlet_summary, qmstateA, qmstateB);
       }
@@ -110,9 +114,9 @@ void BSECoupling::Addoutput(Property& type_summary, const Orbitals&,
     QMStateType triplet = QMStateType(QMStateType::Triplet);
     Property& triplet_summary = bsecoupling.add(triplet.ToLongString(), "");
     triplet_summary.setAttribute("algorithm", algorithm);
-    for (int stateA = 0; stateA < _levA; ++stateA) {
+    for (Index stateA = 0; stateA < _levA; ++stateA) {
       QMState qmstateA = QMState(triplet, stateA, false);
-      for (int stateB = 0; stateB < _levB; ++stateB) {
+      for (Index stateB = 0; stateB < _levB; ++stateB) {
         QMState qmstateB = QMState(triplet, stateB, false);
         WriteToProperty(triplet_summary, qmstateA, qmstateB);
       }
@@ -120,27 +124,28 @@ void BSECoupling::Addoutput(Property& type_summary, const Orbitals&,
   }
 }
 
-double BSECoupling::getSingletCouplingElement(int levelA, int levelB,
-                                              int methodindex) const {
+double BSECoupling::getSingletCouplingElement(Index levelA, Index levelB,
+                                              Index methodindex) const {
   return JAB_singlet[methodindex](levelA, levelB + _levA) *
          votca::tools::conv::hrt2ev;
 }
 
-double BSECoupling::getTripletCouplingElement(int levelA, int levelB,
-                                              int methodindex) const {
+double BSECoupling::getTripletCouplingElement(Index levelA, Index levelB,
+                                              Index methodindex) const {
   return JAB_triplet[methodindex](levelA, levelB + _levA) *
          votca::tools::conv::hrt2ev;
 }
 
-Eigen::MatrixXd BSECoupling::SetupCTStates(int bseA_vtotal, int bseB_vtotal,
-                                           int bseAB_vtotal, int bseAB_ctotal,
+Eigen::MatrixXd BSECoupling::SetupCTStates(Index bseA_vtotal, Index bseB_vtotal,
+                                           Index bseAB_vtotal,
+                                           Index bseAB_ctotal,
                                            const Eigen::MatrixXd& A_AB,
                                            const Eigen::MatrixXd& B_AB) const {
 
-  int noAB = _occA * _unoccB;
-  int noBA = _unoccA * _occB;
-  int bseAB_total = bseAB_vtotal + bseAB_ctotal;
-  int bseAB_size = bseAB_vtotal * bseAB_ctotal;
+  Index noAB = _occA * _unoccB;
+  Index noBA = _unoccA * _occB;
+  Index bseAB_total = bseAB_vtotal + bseAB_ctotal;
+  Index bseAB_size = bseAB_vtotal * bseAB_ctotal;
   Eigen::MatrixXd CTstates = Eigen::MatrixXd::Zero(bseAB_size, noAB + noBA);
 
   auto A_occ = A_AB.block(0, bseA_vtotal - _occA, bseAB_total, _occA);
@@ -158,9 +163,9 @@ Eigen::MatrixXd BSECoupling::SetupCTStates(int bseA_vtotal, int bseB_vtotal,
 
   // Number of A+B- states
 #pragma omp parallel for
-  for (int a_occ = 0; a_occ < _occA; a_occ++) {
-    for (int b_unocc = 0; b_unocc < _unoccB; b_unocc++) {
-      int index = a_occ * _unoccB + b_unocc;
+  for (Index a_occ = 0; a_occ < _occA; a_occ++) {
+    for (Index b_unocc = 0; b_unocc < _unoccB; b_unocc++) {
+      Index index = a_occ * _unoccB + b_unocc;
       Eigen::MatrixXd Coeff =
           B_unocc_unocc.col(b_unocc) * A_occ_occ.col(a_occ).transpose();
       CTstates.col(index) =
@@ -174,9 +179,9 @@ Eigen::MatrixXd BSECoupling::SetupCTStates(int bseA_vtotal, int bseB_vtotal,
   const Eigen::MatrixXd B_occ_occ = B_occ.topRows(bseAB_vtotal);
 
 #pragma omp parallel for
-  for (int b_occ = 0; b_occ < _occB; b_occ++) {
-    for (int a_unocc = 0; a_unocc < _unoccA; a_unocc++) {
-      int index = b_occ * _unoccA + a_unocc + noAB;
+  for (Index b_occ = 0; b_occ < _occB; b_occ++) {
+    for (Index a_unocc = 0; a_unocc < _unoccA; a_unocc++) {
+      Index index = b_occ * _unoccA + a_unocc + noAB;
       Eigen::MatrixXd Coeff =
           A_unocc_unocc.col(a_unocc) * B_occ_occ.col(b_occ).transpose();
       CTstates.col(index) =
@@ -190,16 +195,16 @@ Eigen::MatrixXd BSECoupling::SetupCTStates(int bseA_vtotal, int bseB_vtotal,
 
 Eigen::MatrixXd BSECoupling::ProjectFrenkelExcitons(
     const Eigen::MatrixXd& BSE_Coeffs, const Eigen::MatrixXd& X_AB,
-    int bseX_vtotal, int bseX_ctotal, int bseAB_vtotal,
-    int bseAB_ctotal) const {
-  int bseAB_size = bseAB_vtotal * bseAB_ctotal;
+    Index bseX_vtotal, Index bseX_ctotal, Index bseAB_vtotal,
+    Index bseAB_ctotal) const {
+  Index bseAB_size = bseAB_vtotal * bseAB_ctotal;
   auto X_occ = X_AB.leftCols(bseX_vtotal);
   auto X_unocc = X_AB.rightCols(bseX_ctotal);
   const Eigen::MatrixXd X_occ_occ = X_occ.topRows(bseAB_vtotal);
   const Eigen::MatrixXd X_unocc_unocc = X_unocc.bottomRows(bseAB_ctotal);
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(bseAB_size, BSE_Coeffs.cols());
   // no pragma here because often we will only have one Coeff
-  for (int i = 0; i < BSE_Coeffs.cols(); i++) {
+  for (Index i = 0; i < BSE_Coeffs.cols(); i++) {
     Eigen::VectorXd coeff = BSE_Coeffs.col(i);
     Eigen::Map<Eigen::MatrixXd> coeffmatrix =
         Eigen::Map<Eigen::MatrixXd>(coeff.data(), bseX_ctotal, bseX_vtotal);
@@ -230,23 +235,23 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
 
   // constructing the direct product orbA x orbB
-  int basisB = orbitalsB.getBasisSetSize();
-  int basisA = orbitalsA.getBasisSetSize();
+  Index basisB = orbitalsB.getBasisSetSize();
+  Index basisA = orbitalsA.getBasisSetSize();
   if ((basisA == 0) || (basisB == 0)) {
     throw std::runtime_error("Basis set size is not stored in monomers");
   }
 
   // get exciton information of molecule A
-  int bseA_cmax = orbitalsA.getBSEcmax();
-  int bseA_cmin = orbitalsA.getBSEcmin();
-  int bseA_vmax = orbitalsA.getBSEvmax();
-  int bseA_vmin = orbitalsA.getBSEvmin();
-  int bseA_vtotal = bseA_vmax - bseA_vmin + 1;
-  int bseA_ctotal = bseA_cmax - bseA_cmin + 1;
-  int bseA_total = bseA_vtotal + bseA_ctotal;
-  int bseA_size = bseA_vtotal * bseA_ctotal;
-  long bseA_singlet_exc = orbitalsA.BSESinglets().eigenvectors().cols();
-  long bseA_triplet_exc = orbitalsA.BSETriplets().eigenvectors().cols();
+  Index bseA_cmax = orbitalsA.getBSEcmax();
+  Index bseA_cmin = orbitalsA.getBSEcmin();
+  Index bseA_vmax = orbitalsA.getBSEvmax();
+  Index bseA_vmin = orbitalsA.getBSEvmin();
+  Index bseA_vtotal = bseA_vmax - bseA_vmin + 1;
+  Index bseA_ctotal = bseA_cmax - bseA_cmin + 1;
+  Index bseA_total = bseA_vtotal + bseA_ctotal;
+  Index bseA_size = bseA_vtotal * bseA_ctotal;
+  Index bseA_singlet_exc = orbitalsA.BSESinglets().eigenvectors().cols();
+  Index bseA_triplet_exc = orbitalsA.BSETriplets().eigenvectors().cols();
 
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << "   molecule A has " << bseA_singlet_exc
@@ -256,16 +261,16 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
       << " triplet excitons with dimension " << bseA_size << flush;
 
   // get exciton information of molecule B
-  int bseB_cmax = orbitalsB.getBSEcmax();
-  int bseB_cmin = orbitalsB.getBSEcmin();
-  int bseB_vmax = orbitalsB.getBSEvmax();
-  int bseB_vmin = orbitalsB.getBSEvmin();
-  int bseB_vtotal = bseB_vmax - bseB_vmin + 1;
-  int bseB_ctotal = bseB_cmax - bseB_cmin + 1;
-  int bseB_total = bseB_vtotal + bseB_ctotal;
-  int bseB_size = bseB_vtotal * bseB_ctotal;
-  long bseB_singlet_exc = orbitalsB.BSESinglets().eigenvectors().cols();
-  long bseB_triplet_exc = orbitalsB.BSETriplets().eigenvectors().cols();
+  Index bseB_cmax = orbitalsB.getBSEcmax();
+  Index bseB_cmin = orbitalsB.getBSEcmin();
+  Index bseB_vmax = orbitalsB.getBSEvmax();
+  Index bseB_vmin = orbitalsB.getBSEvmin();
+  Index bseB_vtotal = bseB_vmax - bseB_vmin + 1;
+  Index bseB_ctotal = bseB_cmax - bseB_cmin + 1;
+  Index bseB_total = bseB_vtotal + bseB_ctotal;
+  Index bseB_size = bseB_vtotal * bseB_ctotal;
+  Index bseB_singlet_exc = orbitalsB.BSESinglets().eigenvectors().cols();
+  Index bseB_triplet_exc = orbitalsB.BSETriplets().eigenvectors().cols();
 
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << "   molecule B has " << bseB_singlet_exc
@@ -356,15 +361,15 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   }
 
   // get exciton information of pair AB
-  int bseAB_cmax = orbitalsAB.getBSEcmax();
-  int bseAB_cmin = orbitalsAB.getBSEcmin();
-  int bseAB_vmax = orbitalsAB.getBSEvmax();
-  int bseAB_vmin = orbitalsAB.getBSEvmin();
-  int basisAB = orbitalsAB.getBasisSetSize();
-  int bseAB_vtotal = bseAB_vmax - bseAB_vmin + 1;
-  int bseAB_ctotal = bseAB_cmax - bseAB_cmin + 1;
-  int bseAB_total = bseAB_vtotal + bseAB_ctotal;
-  int bseAB_size = bseAB_vtotal * bseAB_ctotal;
+  Index bseAB_cmax = orbitalsAB.getBSEcmax();
+  Index bseAB_cmin = orbitalsAB.getBSEcmin();
+  Index bseAB_vmax = orbitalsAB.getBSEvmax();
+  Index bseAB_vmin = orbitalsAB.getBSEvmin();
+  Index basisAB = orbitalsAB.getBasisSetSize();
+  Index bseAB_vtotal = bseAB_vmax - bseAB_vmin + 1;
+  Index bseAB_ctotal = bseAB_cmax - bseAB_cmin + 1;
+  Index bseAB_total = bseAB_vtotal + bseAB_ctotal;
+  Index bseAB_size = bseAB_vtotal * bseAB_ctotal;
 
   // DFT levels of monomers can be reduced to those used in BSE
   XTP_LOG(logDEBUG, *_pLog)
@@ -483,7 +488,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
 
 Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
                                               Eigen::MatrixXd& CTStates) const {
-  long ct = CTStates.cols();
+  Index ct = CTStates.cols();
 
   if (ct > 0) {
     XTP_LOG(logDEBUG, *_pLog)
@@ -494,10 +499,10 @@ Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
 
     // normalize
     Eigen::VectorXd norm = CTStates.colwise().norm();
-    for (int i = 0; i < CTStates.cols(); i++) {
+    for (Index i = 0; i < CTStates.cols(); i++) {
       CTStates.col(i) /= norm(i);
     }
-    int minstateindex = 0;
+    Index minstateindex = 0;
     double minnorm = norm.minCoeff(&minstateindex);
     if (minnorm < 0.95) {
       XTP_LOG(logDEBUG, *_pLog)
@@ -505,9 +510,9 @@ Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
           << " norm is only " << minnorm << flush;
     }
   }
-  long bse_exc = _levA + _levB;
+  Index bse_exc = _levA + _levB;
 
-  long bseAB_size = CTStates.rows();
+  Index bseAB_size = CTStates.rows();
   Eigen::MatrixXd projection(bseAB_size, bse_exc + ct);
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " merging projections into one vector  " << flush;
@@ -609,8 +614,8 @@ std::array<Eigen::MatrixXd, 2> BSECoupling::ProjectExcitons(
 
 Eigen::MatrixXd BSECoupling::Perturbation(
     const Eigen::MatrixXd& J_dimer) const {
-  long bse_exc = _levA + _levB;
-  long ct = J_dimer.rows() - bse_exc;
+  Index bse_exc = _levA + _levB;
+  Index ct = J_dimer.rows() - bse_exc;
   Eigen::MatrixXd J_result = J_dimer;
   if (ct > 0) {
     Eigen::MatrixXd transformation =
@@ -642,17 +647,17 @@ Eigen::MatrixXd BSECoupling::Perturbation(
   }
 
   Eigen::MatrixXd Jmatrix = Eigen::MatrixXd::Zero(bse_exc, bse_exc);
-  for (int stateA = 0; stateA < _levA; stateA++) {
+  for (Index stateA = 0; stateA < _levA; stateA++) {
     double Ea = J_result(stateA, stateA);
-    for (int stateB = 0; stateB < _levB; stateB++) {
-      long stateBd = stateB + _levA;
+    for (Index stateB = 0; stateB < _levB; stateB++) {
+      Index stateBd = stateB + _levA;
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << "   Calculating coupling between exciton A"
           << stateA + 1 << " and exciton B" << stateB + 1 << flush;
       double J = J_result(stateA, stateBd);
 
       double Eb = J_result(stateBd, stateBd);
-      for (long k = bse_exc; k < (bse_exc + ct); k++) {
+      for (Index k = bse_exc; k < (bse_exc + ct); k++) {
         double Eab = J_result(k, k);
         if (std::abs(Eab - Ea) < 0.001) {
           XTP_LOG(logDEBUG, *_pLog)
@@ -677,7 +682,7 @@ Eigen::MatrixXd BSECoupling::Perturbation(
 }
 
 Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
-  long bse_exc = _levA + _levB;
+  Index bse_exc = _levA + _levB;
   votca::tools::globals::verbose = true;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(J_dimer);
   if (tools::globals::verbose && J_dimer.rows() < 100) {
@@ -692,10 +697,10 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
   }
   Eigen::MatrixXd Jmat = Eigen::MatrixXd::Zero(bse_exc, bse_exc);
   // Calculate projection on subspace for every pair of excitons separately
-  for (int stateA = 0; stateA < _levA; stateA++) {
-    for (int stateB = 0; stateB < _levB; stateB++) {
+  for (Index stateA = 0; stateA < _levA; stateA++) {
+    for (Index stateB = 0; stateB < _levB; stateB++) {
 
-      long stateBd = stateB + _levA;
+      Index stateBd = stateB + _levA;
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << "   Calculating coupling between exciton A"
           << stateA + 1 << " and exciton B" << stateB + 1 << flush;
@@ -731,8 +736,8 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
       Eigen::Matrix2d Tmat = Eigen::Matrix2d::Zero();
       // find the eigenvectors which are most similar to the initial states
       // row
-      for (int i = 0; i < 2; i++) {
-        int k = indexes[i];
+      for (Index i = 0; i < 2; i++) {
+        Index k = indexes[i];
         double sign = signs[i];
         Tmat(0, i) = sign * es.eigenvectors()(stateA, k);
         Tmat(1, i) = sign * es.eigenvectors()(stateBd, k);

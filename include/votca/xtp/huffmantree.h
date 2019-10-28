@@ -54,7 +54,7 @@ class huffmanTree {
         comp2);
     sum_of_values = 0.0;
 
-    int firstEmptyFieldIndex = 0;
+    Index firstEmptyFieldIndex = 0;
     for (T &e : *events) {
       eventQueue.push(&e);
       sum_of_values += e.getValue();

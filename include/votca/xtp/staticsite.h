@@ -36,13 +36,13 @@ class StaticSite {
 
  public:
   struct data {
-    long id;
+    Index id;
     char* element;
     double posX;
     double posY;
     double posZ;
 
-    int rank;
+    Index rank;
 
     double Q00;
     double Q11c;
@@ -54,10 +54,10 @@ class StaticSite {
     double Q22c;
     double Q22s;
   };
-  StaticSite(long id, std::string element, Eigen::Vector3d pos)
+  StaticSite(Index id, std::string element, Eigen::Vector3d pos)
       : _id(id), _element(element), _pos(pos){};
 
-  StaticSite(long id, std::string element)
+  StaticSite(Index id, std::string element)
       : StaticSite(id, element, Eigen::Vector3d::Zero()){};
 
   StaticSite(const data& d) { ReadData(d); }
@@ -72,12 +72,12 @@ class StaticSite {
   StaticSite() = default;
 
  public:
-  long getId() const { return _id; }
-  int getRank() const { return _rank; }
+  Index getId() const { return _id; }
+  Index getRank() const { return _rank; }
   const std::string& getElement() const { return _element; }
   const Eigen::Vector3d& getPos() const { return _pos; }
 
-  void setMultipole(const Vector9d& multipole, int rank) {
+  void setMultipole(const Vector9d& multipole, Index rank) {
     _Q = multipole;
     _rank = rank;
   }
@@ -126,10 +126,10 @@ class StaticSite {
  protected:
   virtual std::string writePolarisation() const;
 
-  long _id = -1;
+  Index _id = -1;
   std::string _element = "";
   Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
-  int _rank = 0;
+  Index _rank = 0;
 
   Vector9d _Q = Vector9d::Zero();  // Q00,Q11c,Q11s,Q10,Q20,Q21c,Q21s,Q22c,Q22s
 };

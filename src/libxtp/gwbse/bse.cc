@@ -55,7 +55,7 @@ void BSE::SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies) {
   _Mmn.MultiplyRightWithAuxMatrix(es.eigenvectors());
 
   _epsilon_0_inv = Eigen::VectorXd::Zero(es.eigenvalues().size());
-  for (int i = 0; i < es.eigenvalues().size(); ++i) {
+  for (Index i = 0; i < es.eigenvalues().size(); ++i) {
     if (es.eigenvalues()(i) > 1e-8) {
       _epsilon_0_inv(i) = 1 / es.eigenvalues()(i);
     }
@@ -273,8 +273,8 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
       << TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
   Eigen::LLT<Eigen::Ref<Eigen::MatrixXd> > L(AmB);
 
-  for (long i = 0; i < AmB.rows(); ++i) {
-    for (long j = i + 1; j < AmB.cols(); ++j) {
+  for (Index i = 0; i < AmB.rows(); ++i) {
+    for (Index j = i + 1; j < AmB.cols(); ++j) {
       AmB(i, j) = 0;
     }
   }
@@ -330,11 +330,11 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
   //                               1/sqrt(eps_l)L ] R_l
   // determine inverse of L^T
   Eigen::MatrixXd LmT = AmB.inverse().transpose();
-  long dim = LmT.rows();
+  Index dim = LmT.rows();
   result.eigenvectors().resize(dim, _opt.nmax);  // resonant part (_X_evec)
   result.eigenvectors2().resize(dim,
                                 _opt.nmax);  // anti-resonant part (_Y_evec)
-  for (int level = 0; level < _opt.nmax; level++) {
+  for (Index level = 0; level < _opt.nmax; level++) {
     double sqrt_eval = std::sqrt(energies(level));
     // get l-th reduced EV
     result.eigenvectors().col(level) =
@@ -429,7 +429,7 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
 }
 
 void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
-                        int state) const {
+                        Index state) const {
   for (const QMFragment<BSE_Population>& frag : frags) {
     double dq = frag.value().H[state] + frag.value().E[state];
     double qeff = dq + frag.value().Gs;
@@ -446,7 +446,7 @@ void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
 
 void BSE::PrintWeights(const Eigen::VectorXd& weights) const {
   vc2index vc = vc2index(_opt.vmin, _bse_cmin, _bse_ctotal);
-  for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
+  for (Index i_bse = 0; i_bse < _bse_size; ++i_bse) {
     double weight = weights(i_bse);
     if (weight > _opt.min_print_weight) {
       XTP_LOG_SAVE(logINFO, _log)
@@ -479,7 +479,7 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
   double hrt2ev = tools::conv::hrt2ev;
   XTP_LOG_SAVE(logINFO, _log)
       << "  ====== singlet energies (eV) ====== " << flush;
-  for (int i = 0; i < _opt.nmax; ++i) {
+  for (Index i = 0; i < _opt.nmax; ++i) {
     Eigen::VectorXd weights =
         orb.BSESinglets().eigenvectors().col(i).cwiseAbs2();
     if (!orb.getTDAApprox()) {
@@ -539,7 +539,7 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
   const Eigen::VectorXd& energies = orb.BSETriplets().eigenvalues();
   XTP_LOG_SAVE(logINFO, _log)
       << "  ====== triplet energies (eV) ====== " << flush;
-  for (int i = 0; i < _opt.nmax; ++i) {
+  for (Index i = 0; i < _opt.nmax; ++i) {
     Eigen::VectorXd weights =
         orb.BSETriplets().eigenvectors().col(i).cwiseAbs2();
     if (!orb.getTDAApprox()) {

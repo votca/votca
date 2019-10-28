@@ -58,7 +58,7 @@ Topology &Topology::operator=(const Topology &top) {
 }
 
 Segment &Topology::AddSegment(std::string segment_name) {
-  int segment_id = int(_segments.size());
+  Index segment_id = Index(_segments.size());
   _segments.push_back(Segment(segment_name, segment_id));
   return _segments.back();
 }
@@ -143,16 +143,16 @@ double Topology::GetShortestDist(const Segment &seg1,
 
 std::vector<const Segment *> Topology::FindAllSegmentsOnMolecule(
     const Segment &seg1, const Segment &seg2) const {
-  const std::vector<int> &ids1 = seg1.getMoleculeIds();
-  const std::vector<int> &ids2 = seg2.getMoleculeIds();
-  std::vector<int> common_elements;
+  const std::vector<Index> &ids1 = seg1.getMoleculeIds();
+  const std::vector<Index> &ids2 = seg2.getMoleculeIds();
+  std::vector<Index> common_elements;
   std::set_intersection(ids1.begin(), ids1.end(), ids2.begin(), ids2.end(),
                         std::back_inserter(common_elements));
   std::vector<const Segment *> results;
   if (common_elements.empty() || common_elements.size() > 1) {
     return results;
   }
-  int molid = common_elements[0];
+  Index molid = common_elements[0];
 
   for (const Segment &seg : _segments) {
     if (std::find(seg.getMoleculeIds().begin(), seg.getMoleculeIds().end(),
@@ -196,9 +196,9 @@ void Topology::ReadFromCpt(CheckpointReader &r) {
   setBox(box);
   CheckpointReader v = r.openChild("segments");
   _segments.clear();
-  long count = v.getNumDataSets();
+  Index count = v.getNumDataSets();
   _segments.reserve(count);
-  for (int i = 0; i < count; i++) {
+  for (Index i = 0; i < count; i++) {
     CheckpointReader w = v.openChild("segment" + std::to_string(i));
     _segments.push_back(Segment(w));
   }

@@ -39,13 +39,13 @@ class ECPAOBasis {
   // returns element names for which no ecp was found
   std::vector<std::string> Fill(const ECPBasisSet& bs, QMMolecule& atoms);
 
-  int ECPAOBasisSize() const { return _AOBasisSize; }
+  Index ECPAOBasisSize() const { return _AOBasisSize; }
 
   using ECPAOShellIterator = std::vector<ECPAOShell>::const_iterator;
   ECPAOShellIterator begin() const { return _aoshells.begin(); }
   ECPAOShellIterator end() const { return _aoshells.end(); }
 
-  const ECPAOShell& getShell(int idx) const { return _aoshells[idx]; }
+  const ECPAOShell& getShell(Index idx) const { return _aoshells[idx]; }
 
   const ECPAOShell& back() const { return _aoshells.back(); }
 
@@ -55,12 +55,12 @@ class ECPAOBasis {
 
  private:
   ECPAOShell& addShell(const ECPShell& shell, const QMAtom& atom,
-                       int startIndex, int Lmax);
+                       Index startIndex, Index Lmax);
 
   std::vector<ECPAOShell> _aoshells;
 
   std::vector<std::vector<const ECPAOShell*> > _shells_perAtom;
-  int _AOBasisSize;
+  Index _AOBasisSize;
 };
 
 }  // namespace xtp

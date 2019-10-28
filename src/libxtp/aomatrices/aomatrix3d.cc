@@ -23,21 +23,21 @@ namespace votca {
 namespace xtp {
 
 void AOMatrix3D::Fill(const AOBasis& aobasis) {
-  for (int i = 0; i < 3; i++) {
+  for (Index i = 0; i < 3; i++) {
     _aomatrix[i] =
         Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   }
   // loop row
 #pragma omp parallel for
-  for (int row = 0; row < aobasis.getNumofShells(); row++) {
+  for (Index row = 0; row < aobasis.getNumofShells(); row++) {
     const AOShell& shell_row = aobasis.getShell(row);
-    int row_start = shell_row.getStartIndex();
+    Index row_start = shell_row.getStartIndex();
     // loop column
     for (const AOShell& shell_col : aobasis) {
       // figure out the submatrix
-      int col_start = shell_col.getStartIndex();
+      Index col_start = shell_col.getStartIndex();
       std::vector<Eigen::Block<Eigen::MatrixXd> > submatrix;
-      for (int i = 0; i < 3; i++) {
+      for (Index i = 0; i < 3; i++) {
         Eigen::Block<Eigen::MatrixXd> block =
             _aomatrix[i].block(row_start, col_start, shell_row.getNumFunc(),
                                shell_col.getNumFunc());

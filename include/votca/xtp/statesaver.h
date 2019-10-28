@@ -34,12 +34,12 @@ class StateSaver {
 
   void WriteFrame(const Topology &top);
 
-  Topology ReadFrame(long frameid) const;
+  Topology ReadFrame(Index frameid) const;
 
-  std::vector<long> getFrames() const;
+  std::vector<Index> getFrames() const;
 
  private:
-  bool TopStepisinFrames(long frameid) const;
+  bool TopStepisinFrames(Index frameid) const;
 
   std::string _hdf5file;
 };

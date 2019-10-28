@@ -30,7 +30,7 @@ class AOMatrix3D {
  public:
   const std::array<Eigen::MatrixXd, 3>& Matrix() const { return _aomatrix; }
   void Fill(const AOBasis& aobasis);
-  long Dimension() { return _aomatrix[0].rows(); }
+  Index Dimension() { return _aomatrix[0].rows(); }
 
  protected:
   std::array<Eigen::MatrixXd, 3> _aomatrix;

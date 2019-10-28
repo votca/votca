@@ -87,7 +87,7 @@ bool EInternal::EvaluateFrame(Topology &top) {
 
   ParseEnergies();
 
-  int count = 0;
+  Index count = 0;
   for (Segment &seg : top.Segments()) {
 
     std::string segName = seg.getType();

@@ -32,8 +32,8 @@ Eigen::VectorXd AOECP::ExpandContractions(const AOGaussianPrimitive& gaussian,
                                           const AOShell& shell) const {
   const Eigen::VectorXd& contractions_row = gaussian.getContraction();
   Eigen::VectorXd result = Eigen::VectorXd::Zero(shell.getNumFunc());
-  for (int L = shell.getLmin(); L <= shell.getLmax(); L++) {
-    for (int M = L * L; M < (L + 1) * (L + 1); M++) {
+  for (Index L = shell.getLmin(); L <= shell.getLmax(); L++) {
+    for (Index M = L * L; M < (L + 1) * (L + 1); M++) {
       result[M - shell.getOffset()] = contractions_row[L];
     }
   }
@@ -106,9 +106,10 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
           if (!shell_ecp->isNonLocal()) {
             continue;
           }
-          int index = 0;
+          Index index = 0;
           for (const auto& gaussian_ecp : *shell_ecp) {
-            powermatrix(index, shell_ecp->getL()) = gaussian_ecp.getPower();
+            powermatrix(index, shell_ecp->getL()) =
+                int(gaussian_ecp.getPower());
             decaymatrix(index, shell_ecp->getL()) = gaussian_ecp.getDecay();
             coefmatrix(index, shell_ecp->getL()) =
                 gaussian_ecp.getContraction();
@@ -132,8 +133,9 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 }
 
 Eigen::MatrixXd AOECP::calcVNLmatrix(
-    int lmax_ecp, const Eigen::Vector3d& posC, const AOGaussianPrimitive& g_row,
-    const AOGaussianPrimitive& g_col, const Eigen::Matrix<int, 4, 5>& power_ecp,
+    Index lmax_ecp, const Eigen::Vector3d& posC,
+    const AOGaussianPrimitive& g_row, const AOGaussianPrimitive& g_col,
+    const Eigen::Matrix<int, 4, 5>& power_ecp,
     const Eigen::Matrix<double, 4, 5>& gamma_ecp,
     const Eigen::Matrix<double, 4, 5>& pref_ecp) const {
 
@@ -149,7 +151,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
    */
 
   const double conv = 1.e-9;  // 1.e-8
-  const int NMAX = 41;
+  const Index NMAX = 41;
   const double PI = boost::math::constants::pi<double>();
   double SQPI = sqrt(PI);
   double SQ2 = sqrt(2.);
@@ -161,19 +163,19 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   double beta = g_col.getDecay();
   const Eigen::Vector3d& posA = g_row.getShell().getPos();
   const Eigen::Vector3d& posB = g_col.getShell().getPos();
-  int lmax_row = g_row.getShell().getLmax();
-  int lmax_col = g_col.getShell().getLmax();
-  int lmin = std::min({lmax_row, lmax_col, lmax_ecp});
-  int lmax = std::max({lmax_row, lmax_col, lmax_ecp});
-  int nsph_row = (lmax_row + 1) * (lmax_row + 1);
-  int nsph_col = (lmax_col + 1) * (lmax_col + 1);
+  Index lmax_row = g_row.getShell().getLmax();
+  Index lmax_col = g_col.getShell().getLmax();
+  Index lmin = std::min({lmax_row, lmax_col, lmax_ecp});
+  Index lmax = std::max({lmax_row, lmax_col, lmax_ecp});
+  Index nsph_row = (lmax_row + 1) * (lmax_row + 1);
+  Index nsph_col = (lmax_col + 1) * (lmax_col + 1);
 
   Eigen::Vector3d AVS = posA - posC;
   Eigen::Vector3d BVS = posB - posC;
   double AVS2 = AVS.squaredNorm();
   double BVS2 = BVS.squaredNorm();
 
-  int INULL = 0;
+  Index INULL = 0;
   if (AVS2 > 0.01) {
     INULL = 2;
   }
@@ -182,8 +184,8 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   }
 
   Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(nsph_row, nsph_col);
-  const long nnonsep = gamma_ecp.rows();
-  int nmax;
+  const Index nnonsep = gamma_ecp.rows();
+  Index nmax;
   if (INULL == 0) {
     nmax = 2 * lmin;
   } else if (INULL == 3) {
@@ -197,7 +199,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   double f_even_r1 = .5;
   double f_even_r2 = .25 * SQPI;
 
-  for (int N = 0; N <= nmax; N++) {
+  for (Index N = 0; N <= nmax; N++) {
 
     if ((N % 2) == 0) {  // N even,   XI(L, odd N) never needed
 
@@ -211,10 +213,10 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       double DFAK_r1 = .5 * double(N + 2);
       double DFAK_r2 = .5 * double(N + 3);
 
-      for (int L = 0; L <= lmax_ecp; L++) {
+      for (Index L = 0; L <= lmax_ecp; L++) {
 
-        for (int I = 0; I < nnonsep; I++) {
-          int power = power_ecp(I, L);
+        for (Index I = 0; I < nnonsep; I++) {
+          Index power = power_ecp(I, L);
           double DLI = (alpha + beta + gamma_ecp(I, L));
           if (power == 2) {
             XI(L, N) += f_even_r2 * pref_ecp(I, L) /
@@ -237,7 +239,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   // some limit determinations
   double G1 = 1.;
   double AVSSQ = 0.;
-  int NMAX1 = 0;
+  Index NMAX1 = 0;
   if (AVS2 > 0.01) {
 
     G1 = std::exp(-alpha * AVS2);
@@ -246,15 +248,15 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
     double fak = 2.0 * alpha * AVSSQ;
     double Pow = 1.;
     double factorialNN = 1;
-    for (int NN = 0; NN <= NMAX; NN++) {
+    for (Index NN = 0; NN <= NMAX; NN++) {
 
       if (NN != 0) {
         Pow = Pow * fak;
-        factorialNN = factorialNN * NN;
+        factorialNN = factorialNN * double(NN);
       }
       double AF = G1 * Pow / factorialNN;
       if ((NN % 2) == 0) {
-        int ii = NN + 2 * lmax;
+        Index ii = NN + 2 * lmax;
 
         switch (lmax_ecp) {
           case 0:
@@ -291,7 +293,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   // same story for B
   double G2 = 1.;
   double BVSSQ = 0.;
-  int NMAX2 = 0;
+  Index NMAX2 = 0;
   if (BVS2 > 0.01) {
 
     G2 = std::exp(-beta * BVS2);
@@ -300,15 +302,15 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
     double fak = 2.0 * beta * BVSSQ;
     double Pow = 1.;
     double factorialNN = 1;
-    for (int NN = 0; NN <= NMAX; NN++) {
+    for (Index NN = 0; NN <= NMAX; NN++) {
 
       if (NN != 0) {
         Pow = Pow * fak;
-        factorialNN = factorialNN * NN;
+        factorialNN = factorialNN * double(NN);
       }
       double BF = G2 * Pow / factorialNN;
       if ((NN % 2) == 0) {
-        int ii = NN + 2 * lmax;
+        Index ii = NN + 2 * lmax;
 
         switch (lmax_ecp) {
           case 0:
@@ -350,8 +352,8 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
   if (INULL != 0) {
 
-    int lmin_dft_ecp = 0;
-    int lmax_dft_ecp = 0;
+    Index lmin_dft_ecp = 0;
+    Index lmax_dft_ecp = 0;
     if (INULL == 2) {
       lmin_dft_ecp = std::min(lmax_row, lmax_ecp);
       lmax_dft_ecp = std::max(lmax_row, lmax_ecp);
@@ -359,15 +361,15 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       lmin_dft_ecp = std::min(lmax_col, lmax_ecp);
       lmax_dft_ecp = std::max(lmax_col, lmax_ecp);
     } else if (INULL == 3) {
-      int lmax_dft = std::max(lmax_row, lmax_col);
+      Index lmax_dft = std::max(lmax_row, lmax_col);
       lmin_dft_ecp = std::min(lmax_dft, lmax_ecp);
       lmax_dft_ecp = std::max(lmax_dft, lmax_ecp);
     }
 
-    for (int i4 = 0; i4 <= NMAX; i4++) {
+    for (Index i4 = 0; i4 <= NMAX; i4++) {
       /********** ORIGINAL CKOEF SUBROUTINE *************************/
-      int NU = i4 % 2;
-      int NG = (i4 + 1) % 2;
+      Index NU = i4 % 2;
+      Index NG = (i4 + 1) % 2;
       double FN1 = double(i4 + 1);
       double FN2 = double(i4 + 2);
       double FN3 = double(i4 + 3);
@@ -378,18 +380,18 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       double FN8 = double(i4 + 8);
 
       COEF(0, 0, 4, i4) =
-          NG / FN1;  //  M0                      Mn is a modified spherical
-                     //  Bessel function of the first kind
+          double(NG) / FN1;  //  M0                      Mn is a modified
+                             //  spherical Bessel function of the first kind
 
       if (lmax_dft_ecp > 0) {
 
-        double COEFF = NU / FN2 * SQ3;  //  SQ(3) * M1
+        double COEFF = double(NU) / FN2 * SQ3;  //  SQ(3) * M1
         COEF(0, 1, 4, i4) = COEFF;
         COEF(1, 0, 4, i4) = COEFF;
 
         if (lmin_dft_ecp > 0) {
-          COEF(1, 1, 4, i4) = NG * 3.0 / FN3;                //  M0 + 2 * M2
-          COEFF = 3.0 / 2.0 * NG * (1.0 / FN1 - 1.0 / FN3);  //  M0 - M2
+          COEF(1, 1, 4, i4) = double(NG) * 3.0 / FN3;  //  M0 + 2 * M2
+          COEFF = 3.0 / 2.0 * double(NG) * (1.0 / FN1 - 1.0 / FN3);  //  M0 - M2
           COEF(1, 1, 3, i4) = COEFF;
           COEF(1, 1, 5, i4) = COEFF;
         }
@@ -397,17 +399,18 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
       if (lmax_dft_ecp > 1) {
 
-        double COEFF = NG / 2.0 * SQ5 * (3.0 / FN3 - 1.0 / FN1);  //  SQ(5) * M2
+        double COEFF =
+            double(NG) / 2.0 * SQ5 * (3.0 / FN3 - 1.0 / FN1);  //  SQ(5) * M2
         COEF(0, 2, 4, i4) = COEFF;
         COEF(2, 0, 4, i4) = COEFF;
 
         if (lmin_dft_ecp > 0) {
           COEFF =
-              SQ3 * SQ5 / 2.0 * NU *
+              SQ3 * SQ5 / 2.0 * double(NG) *
               (3.0 / FN4 - 1.0 / FN2);  //  ( SQ(15)/5 ) * ( 2 * M1 + 3 * M3 )
           COEF(1, 2, 4, i4) = COEFF;
           COEF(2, 1, 4, i4) = COEFF;
-          COEFF = 3. * SQ5 / 2.0 * NU *
+          COEFF = 3. * SQ5 / 2.0 * double(NU) *
                   (1.0 / FN2 - 1.0 / FN4);  //  ( (3*SQ(5))/5 ) * ( M1 - M3 )
           COEF(1, 2, 3, i4) = COEFF;
           COEF(1, 2, 5, i4) = COEFF;
@@ -417,15 +420,15 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
         if (lmin_dft_ecp > 1) {
           COEF(2, 2, 4, i4) =
-              5.0 / 4.0 * NG *
+              5.0 / 4.0 * double(NG) *
               (9.0 / FN5 - 6.0 / FN3 + 1.0 / FN1);  //  (1/7) * ( 7 * M0 + 10 *
                                                     //  M2 + 18 * M4 )
-          COEFF =
-              NG * 15.0 / 2.0 * (1.0 / FN3 - 1.0 / FN5);  //  (1/7) * ( 7 * M0 +
-                                                          //  5 * M2 - 12 * M4 )
+          COEFF = double(NG) * 15.0 / 2.0 *
+                  (1.0 / FN3 - 1.0 / FN5);  //  (1/7) * ( 7 * M0 +
+                                            //  5 * M2 - 12 * M4 )
           COEF(2, 2, 3, i4) = COEFF;
           COEF(2, 2, 5, i4) = COEFF;
-          COEFF = 15.0 / 8.0 * NG *
+          COEFF = 15.0 / 8.0 * double(NG) *
                   (1.0 / FN1 - 2.0 / FN3 + 1.0 / FN5);  //  (1/7) * ( 7 * M0 -
                                                         //  10 * M2 + 3 * M4 )
           COEF(2, 2, 2, i4) = COEFF;
@@ -435,16 +438,17 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
       if (lmax_dft_ecp > 2) {
 
-        double COEFF = NU * .5 * SQ7 * (5. / FN4 - 3. / FN2);  //  SQ(7) * M3
+        double COEFF =
+            double(NU) * .5 * SQ7 * (5. / FN4 - 3. / FN2);  //  SQ(7) * M3
         COEF(0, 3, 4, i4) = COEFF;
         COEF(3, 0, 4, i4) = COEFF;
 
         if (lmin_dft_ecp > 0) {
-          COEFF = NG * .5 * SQ3 * SQ7 *
+          COEFF = double(NG) * .5 * SQ3 * SQ7 *
                   (5. / FN5 - 3. / FN3);  //  ( SQ(21)/7 ) * ( 3 * M2 + 4 * M4 )
           COEF(1, 3, 4, i4) = COEFF;
           COEF(3, 1, 4, i4) = COEFF;
-          COEFF = NG * .375 * SQ2 * SQ7 *
+          COEFF = double(NG) * .375 * SQ2 * SQ7 *
                   (-5. / FN5 + 6. / FN3 - 1. / FN1);  //  ( (3*SQ(14))/7 ) * (
                                                       //  M2 - M4 )
           COEF(1, 3, 3, i4) = COEFF;
@@ -455,20 +459,20 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
         if (lmin_dft_ecp > 1) {
           COEFF =
-              NU * .25 * SQ5 * SQ7 *
+              double(NU) * .25 * SQ5 * SQ7 *
               (15. / FN6 - 14. / FN4 + 3. / FN2);  //  ( SQ(35)/105 ) * ( 27 *
                                                    //  M1 + 28 * M3 + 50 * M5 )
           COEF(2, 3, 4, i4) = COEFF;
           COEF(3, 2, 4, i4) = COEFF;
           COEFF =
-              NU * .375 * SQ2 * SQ5 * SQ7 *
+              double(NU) * .375 * SQ2 * SQ5 * SQ7 *
               (-5. / FN6 + 6. / FN4 - 1. / FN2);  //  ( SQ(70)/105 ) * ( 18 * M1
                                                   //  + 7 * M3 - 25 * M5 )
           COEF(2, 3, 3, i4) = COEFF;
           COEF(2, 3, 5, i4) = COEFF;
           COEF(3, 2, 3, i4) = COEFF;
           COEF(3, 2, 5, i4) = COEFF;
-          COEFF = NU * 1.875 * SQ7 *
+          COEFF = double(NU) * 1.875 * SQ7 *
                   (1. / FN6 - 2. / FN4 + 1. / FN2);  //  ( SQ(7)/21 ) * ( 9 * M1
                                                      //  - 14 * M3 + 5 * M5 )
           COEF(2, 3, 2, i4) = COEFF;
@@ -479,22 +483,22 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
         if (lmin_dft_ecp > 2) {
           COEF(3, 3, 4, i4) =
-              NG * 1.75 *
+              double(NG) * 1.75 *
               (50. / FN7 - 30. / FN5 + 9. / FN3);  //  (1/33) * ( 33 * M0 + 44 *
                                                    //  M2 + 54 * M4 + 100 * M6 )
           COEFF =
-              NG * 1.3125 *
+              double(NG) * 1.3125 *
               (-25. / FN7 + 35. / FN5 - 11. / FN3 +
                1. / FN1);  //  (1/11) * ( 11 * M0 + 11 * M2 + 3 * M4 - 25 * M6 )
           COEF(3, 3, 3, i4) = COEFF;
           COEF(3, 3, 5, i4) = COEFF;
-          COEFF = NG * 105 * .125 *
+          COEFF = double(NG) * 105 * .125 *
                   (1. / FN7 - 2. / FN5 + 1. / FN3);  //  (1/11) * ( 11 * M0 - 21
                                                      //  * M4 + 10 * M6 )
           COEF(3, 3, 2, i4) = COEFF;
           COEF(3, 3, 6, i4) = COEFF;
           COEFF =
-              NG * 35 * .0625 *
+              double(NG) * 35 * .0625 *
               (-1. / FN7 + 3. / FN5 - 3. / FN3 +
                1. / FN1);  //  (1/33) * ( 33 * M0 - 55 * M2 + 27 * M4 - 5 * M6 )
           COEF(3, 3, 1, i4) = COEFF;
@@ -505,17 +509,17 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       if (lmax_dft_ecp > 3) {
 
         double COEFF =
-            NG * .375 * (35. / FN5 - 30. / FN3 + 3. / FN1);  //  3 * M4
+            double(NG) * .375 * (35. / FN5 - 30. / FN3 + 3. / FN1);  //  3 * M4
         COEF(0, 4, 4, i4) = COEFF;
         COEF(4, 0, 4, i4) = COEFF;
 
         if (lmin_dft_ecp > 0) {
-          COEFF = NU * .375 * SQ3 *
+          COEFF = double(NU) * .375 * SQ3 *
                   (35. / FN6 - 30. / FN4 + 3. / FN2);  //  ( SQ(3)/3 ) * ( 4 *
                                                        //  M3 + 5 * M5 )
           COEF(1, 4, 4, i4) = COEFF;
           COEF(4, 1, 4, i4) = COEFF;
-          COEFF = NU * .375 * SQ2 * SQ3 * SQ5 *
+          COEFF = double(NU) * .375 * SQ2 * SQ3 * SQ5 *
                   (-7. / FN6 + 10. / FN4 - 3. / FN2);  //  ( SQ(30)/3 ) * ( M3 -
                                                        //  M5 )
           COEF(1, 4, 3, i4) = COEFF;
@@ -525,14 +529,14 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
         }
 
         if (lmin_dft_ecp > 1) {
-          COEFF = NG * .1875 * SQ5 *
+          COEFF = double(NG) * .1875 * SQ5 *
                   (105. / FN7 - 125. / FN5 + 39. / FN3 -
                    3. / FN1);  //  ( (3*SQ(5))/77 ) * ( 22 * M2 + 20 * M4 + 35 *
                                //  M6 )
           COEF(2, 4, 4, i4) = COEFF;
           COEF(4, 2, 4, i4) = COEFF;
           COEFF =
-              NG * 1.875 * SQ2 * SQ3 *
+              double(NG) * 1.875 * SQ2 * SQ3 *
               (-7. / FN7 + 10. / FN5 - 3. / FN3);  //  ( (5*SQ(6))/77 ) * ( 11 *
                                                    //  M2 + 3 * M4 - 14 * M6 )
           COEF(2, 4, 3, i4) = COEFF;
@@ -540,7 +544,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
           COEF(4, 2, 3, i4) = COEFF;
           COEF(4, 2, 5, i4) = COEFF;
           COEFF =
-              NG * .9375 * SQ3 *
+              double(NG) * .9375 * SQ3 *
               (7. / FN7 - 15. / FN5 + 9. / FN3 -
                1. / FN1);  //  ( (5*SQ(3))/77 ) * ( 11 * M2 - 18 * M4 + 7 * M6 )
           COEF(2, 4, 2, i4) = COEFF;
@@ -550,13 +554,13 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
         }
 
         if (lmin_dft_ecp > 2) {
-          COEFF = NU * .1875 * SQ7 *
+          COEFF = double(NU) * .1875 * SQ7 *
                   (175. / FN8 - 255. / FN6 + 105. / FN4 -
                    9. / FN2);  //  ( SQ(7)/1001 ) * ( 572 * M1 + 546 * M3 + 660
                                //  * M5 + 1225 * M7)
           COEF(3, 4, 4, i4) = COEFF;
           COEF(4, 3, 4, i4) = COEFF;
-          COEFF = NU * 1.875 * SQ3 * SQ5 * SQ7 *
+          COEFF = double(NU) * 1.875 * SQ3 * SQ5 * SQ7 *
                   (-35. / FN8 + 57. / FN6 - 25. / FN4 +
                    3. / FN2);  //  ( SQ(105))/1001 ) * ( 143 * M1 + 91 * M3 + 11
                                //  * M5 - 245 * M7)
@@ -564,7 +568,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
           COEF(3, 4, 5, i4) = COEFF;
           COEF(4, 3, 3, i4) = COEFF;
           COEF(4, 3, 5, i4) = COEFF;
-          COEFF = NU * .9375 * SQ3 * SQ7 *
+          COEFF = double(NU) * .9375 * SQ3 * SQ7 *
                   (7. / FN8 - 15. / FN6 + 9. / FN4 -
                    1. / FN2);  //  ( SQ(21))/1001 ) * ( 286 * M1 - 91 * M3 - 440
                                //  * M5 + 245 * M7)
@@ -572,7 +576,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
           COEF(3, 4, 6, i4) = COEFF;
           COEF(4, 3, 2, i4) = COEFF;
           COEF(4, 3, 6, i4) = COEFF;
-          COEFF = NU * 6.5625 *
+          COEFF = double(NU) * 6.5625 *
                   (-1. / FN8 + 3. / FN6 - 3. / FN4 +
                    1. / FN2);  //  ( 1/143 ) * ( 143 * M1 - 273 * M3 + 165 * M5
                                //  - 35 * M7)
@@ -605,11 +609,11 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
     case 0:  //  AVSSQ <= 0.1 && BVSSQ <= 0.1
     {
 
-      for (int i = 0; i < nsph_row; i++) {
-        for (int j = 0; j < nsph_col; j++) {
-          for (int L = 0; L <= lmin; L++) {
+      for (Index i = 0; i < nsph_row; i++) {
+        for (Index j = 0; j < nsph_col; j++) {
+          for (Index L = 0; L <= lmin; L++) {
             double XI_L = XI(L, L + L);
-            for (int M = 4 - L; M <= 4 + L; M++) {
+            for (Index M = 4 - L; M <= 4 + L; M++) {
               matrix(i, j) += BLMA(i, L, M) * BLMB(j, L, M) * XI_L;
             }
           }
@@ -622,21 +626,21 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
     {
 
       Eigen::TensorFixedSize<double, Eigen::Sizes<5, 5, 9>> SUMCI3;
-      for (int L = 0; L <= lmax_ecp; L++) {
-        for (int L2 = 0; L2 <= lmax_col; L2++) {
-          int range_M2 = std::min(L2, L);
-          for (int M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+      for (Index L = 0; L <= lmax_ecp; L++) {
+        for (Index L2 = 0; L2 <= lmax_col; L2++) {
+          Index range_M2 = std::min(L2, L);
+          for (Index M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
             double VAR2 = 0.0;
             double fak = 2.0 * beta * BVSSQ;
             double pow = 1;
             double factorialNN = 1;
 
-            for (int NN = 0; NN <= NMAX2; NN++) {
+            for (Index NN = 0; NN <= NMAX2; NN++) {
 
               if (NN != 0) {
                 pow = pow * fak;
-                factorialNN = factorialNN * NN;
+                factorialNN = factorialNN * double(NN);
               }
 
               double XDUM = COEF(L, L2, M2, NN) * pow / factorialNN;
@@ -649,15 +653,15 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
         }    // end L2
       }      // end L
 
-      for (int i = 0; i < nsph_row; i++) {
-        for (int j = 0; j < nsph_col; j++) {
+      for (Index i = 0; i < nsph_row; i++) {
+        for (Index j = 0; j < nsph_col; j++) {
 
-          for (int L = 0; L <= std::min(lmax_row, lmax_ecp); L++) {
-            for (int L2 = 0; L2 <= lmax_col; L2++) {
-              int range_M2 = std::min(L2, L);
-              for (int M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+          for (Index L = 0; L <= std::min(lmax_row, lmax_ecp); L++) {
+            for (Index L2 = 0; L2 <= lmax_col; L2++) {
+              Index range_M2 = std::min(L2, L);
+              for (Index M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
-                for (int M1 = 4 - L; M1 <= 4 + L; M1++) {
+                for (Index M1 = 4 - L; M1 <= 4 + L; M1++) {
                   matrix(i, j) += BLMA(i, L, M1) * BLMB(j, L2, M2) *
                                   SUMCI3(L, L2, M2) * CB(L, M1, M2);
                 }
@@ -674,21 +678,21 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
     {
 
       Eigen::TensorFixedSize<double, Eigen::Sizes<5, 5, 9>> SUMCI3;
-      for (int L = 0; L <= lmax_ecp; L++) {
-        for (int L1 = 0; L1 <= lmax_row; L1++) {
-          int range_M1 = std::min(L1, L);
-          for (int M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+      for (Index L = 0; L <= lmax_ecp; L++) {
+        for (Index L1 = 0; L1 <= lmax_row; L1++) {
+          Index range_M1 = std::min(L1, L);
+          for (Index M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
 
             double VAR1 = 0.0;
             double fak = 2.0 * alpha * AVSSQ;
             double pow = 1;
             double factorialN = 1;
 
-            for (int N = 0; N <= NMAX1; N++) {
+            for (Index N = 0; N <= NMAX1; N++) {
 
               if (N != 0) {
                 pow = pow * fak;
-                factorialN = factorialN * N;
+                factorialN = factorialN * double(N);
               }
 
               double XDUM = COEF(L, L1, M1, N) * pow / factorialN;
@@ -701,15 +705,15 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
         }    // end L1
       }      // end L
 
-      for (int i = 0; i < nsph_row; i++) {
-        for (int j = 0; j < nsph_col; j++) {
+      for (Index i = 0; i < nsph_row; i++) {
+        for (Index j = 0; j < nsph_col; j++) {
 
-          for (int L = 0; L <= std::min(lmax_col, lmax_ecp); L++) {
-            for (int L1 = 0; L1 <= lmax_row; L1++) {
-              int range_M1 = std::min(L1, L);
-              for (int M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+          for (Index L = 0; L <= std::min(lmax_col, lmax_ecp); L++) {
+            for (Index L1 = 0; L1 <= lmax_row; L1++) {
+              Index range_M1 = std::min(L1, L);
+              for (Index M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
 
-                for (int M2 = 4 - L; M2 <= 4 + L; M2++) {
+                for (Index M2 = 4 - L; M2 <= 4 + L; M2++) {
                   matrix(i, j) += BLMA(i, L1, M1) * BLMB(j, L, M2) *
                                   SUMCI3(L, L1, M1) * CA(L, M2, M1);
                 }
@@ -725,12 +729,12 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
     case 3: {
       Eigen::TensorFixedSize<double, Eigen::Sizes<5, 9, 9>> CC;
       CC.setZero();
-      for (int L = 0; L <= lmax_ecp; L++) {
-        int range_M1 = std::min(lmax_row, int(L));
-        int range_M2 = std::min(lmax_col, int(L));
-        for (int M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
-          for (int M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
-            for (int M = 4 - L; M <= 4 + L; M++) {
+      for (Index L = 0; L <= lmax_ecp; L++) {
+        Index range_M1 = std::min(lmax_row, Index(L));
+        Index range_M2 = std::min(lmax_col, Index(L));
+        for (Index M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+          for (Index M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+            for (Index M = 4 - L; M <= 4 + L; M++) {
               CC(L, M1, M2) += CA(L, M, M1) * CB(L, M, M2);
             }
           }
@@ -740,23 +744,23 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       Eigen::TensorFixedSize<double, Eigen::Sizes<5, 5, 5, 9, 9>> SUMCI;
       SUMCI.setZero();
 
-      for (int L = 0; L <= lmax_ecp; L++) {
-        for (int L1 = 0; L1 <= lmax_row; L1++) {
-          int range_M1 = std::min(L1, L);
-          for (int L2 = 0; L2 <= lmax_col; L2++) {
-            int range_M2 = std::min(L2, L);
-            for (int M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
-              for (int M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+      for (Index L = 0; L <= lmax_ecp; L++) {
+        for (Index L1 = 0; L1 <= lmax_row; L1++) {
+          Index range_M1 = std::min(L1, L);
+          for (Index L2 = 0; L2 <= lmax_col; L2++) {
+            Index range_M2 = std::min(L2, L);
+            for (Index M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+              for (Index M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
                 double fak1 = 2.0 * alpha * AVSSQ;
                 double pow1 = 1;
                 double factorialN = 1;
 
-                for (int N = 0; N <= NMAX1; N++) {
+                for (Index N = 0; N <= NMAX1; N++) {
 
                   if (N != 0) {
                     pow1 = pow1 * fak1;
-                    factorialN = factorialN * N;
+                    factorialN = factorialN * double(N);
                   }
 
                   double VAR1 = COEF(L, L1, M1, N) * pow1 / factorialN;
@@ -765,11 +769,11 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
                   double pow2 = 1;
                   double factorialNN = 1;
 
-                  for (int NN = 0; NN <= NMAX2; NN++) {
+                  for (Index NN = 0; NN <= NMAX2; NN++) {
 
                     if (NN != 0) {
                       pow2 = pow2 * fak2;
-                      factorialNN = factorialNN * NN;
+                      factorialNN = factorialNN * double(NN);
                     }
                     double XDUM = COEF(L, L2, M2, NN) * pow2 / factorialNN;
                     VAR2 += XDUM * XI(L, N + NN + L1 + L2);
@@ -784,16 +788,16 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
         }        // end L1
       }          // end L
 
-      for (int i = 0; i < nsph_row; i++) {
-        for (int j = 0; j < nsph_col; j++) {
+      for (Index i = 0; i < nsph_row; i++) {
+        for (Index j = 0; j < nsph_col; j++) {
 
-          for (int L = 0; L <= lmax_ecp; L++) {
-            for (int L1 = 0; L1 <= lmax_row; L1++) {
-              int range_M1 = std::min(L1, L);
-              for (int L2 = 0; L2 <= lmax_col; L2++) {
-                int range_M2 = std::min(L2, L);
-                for (int M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
-                  for (int M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+          for (Index L = 0; L <= lmax_ecp; L++) {
+            for (Index L1 = 0; L1 <= lmax_row; L1++) {
+              Index range_M1 = std::min(L1, L);
+              for (Index L2 = 0; L2 <= lmax_col; L2++) {
+                Index range_M2 = std::min(L2, L);
+                for (Index M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+                  for (Index M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
                     matrix(i, j) += BLMA(i, L1, M1) * BLMB(j, L2, M2) *
                                     SUMCI(L, L1, L2, M1, M2) * CC(L, M1, M2);
@@ -816,15 +820,15 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   Eigen::VectorXd NormA = CalcNorms(alpha, nsph_row);
   Eigen::VectorXd NormB = CalcNorms(beta, nsph_col);
 
-  for (int i = 0; i < nsph_row; i++) {
-    for (int j = 0; j < nsph_col; j++) {
+  for (Index i = 0; i < nsph_row; i++) {
+    for (Index j = 0; j < nsph_col; j++) {
       matrix(i, j) = matrix(i, j) * GAUSS * NormA(i) * NormB(j);
     }
   }
   return matrix;
 }
 
-Eigen::VectorXd AOECP::CalcNorms(double decay, int size) const {
+Eigen::VectorXd AOECP::CalcNorms(double decay, Index size) const {
   Eigen::VectorXd Norms = Eigen::VectorXd(size);
   const double PI = boost::math::constants::pi<double>();
   double SQ2, SQ3, SQ5;
@@ -886,13 +890,13 @@ Eigen::VectorXd AOECP::CalcNorms(double decay, int size) const {
   return Norms;
 }
 
-void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
-                      Eigen::Tensor<double, 3>& BLC,
+void AOECP::getBLMCOF(Index lmax_ecp, Index lmax_dft,
+                      const Eigen::Vector3d& pos, Eigen::Tensor<double, 3>& BLC,
                       Eigen::Tensor<double, 3>& C) const {
 
-  int nsph = (lmax_dft + 1) * (lmax_dft + 1);
-  int lmax_dft_ecp = std::max(lmax_dft, lmax_ecp);
-  int lmin_dft_ecp = std::min(lmax_dft, lmax_ecp);
+  Index nsph = (lmax_dft + 1) * (lmax_dft + 1);
+  Index lmax_dft_ecp = std::max(lmax_dft, lmax_ecp);
+  Index lmin_dft_ecp = std::min(lmax_dft, lmax_ecp);
 
   BLC = Eigen::Tensor<double, 3>(nsph, 5, 9);
   BLC.setZero();
@@ -1675,10 +1679,10 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
       }
     }
 
-    for (int I = 0; I < nsph; I++) {
-      for (int L = 0; L <= lmax_dft; L++) {
-        for (int M = 4 - L; M <= 4 + L; M++) {
-          for (int M1 = 4 - L; M1 <= 4 + L; M1++) {
+    for (Index I = 0; I < nsph; I++) {
+      for (Index L = 0; L <= lmax_dft; L++) {
+        for (Index M = 4 - L; M <= 4 + L; M++) {
+          for (Index M1 = 4 - L; M1 <= 4 + L; M1++) {
             BLC(I, L, M) += BLM(I, L, M1) * C(L, M1, M);
           }
         }
@@ -1687,15 +1691,15 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
 
   } else {
 
-    for (int L = 0; L <= lmax_dft_ecp; L++) {
-      for (int M = 4 - L; M <= 4 + L; M++) {
+    for (Index L = 0; L <= lmax_dft_ecp; L++) {
+      for (Index M = 4 - L; M <= 4 + L; M++) {
         C(L, M, M) = 1.;
       }
     }
 
-    for (int I = 0; I < nsph; I++) {
-      for (int L = 0; L <= lmax_dft; L++) {
-        for (int M = 4 - L; M <= 4 + L; M++) {
+    for (Index I = 0; I < nsph; I++) {
+      for (Index L = 0; L <= lmax_dft; L++) {
+        for (Index M = 4 - L; M <= 4 + L; M++) {
           BLC(I, L, M) = BLM(I, L, M);
         }
       }

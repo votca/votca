@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(atompop) {
   StaticSegment result = low.CalcChargeperAtom(orb, s);
 
   Eigen::VectorXd charge = Eigen::VectorXd::Zero(result.size());
-  for (int i = 0; i < result.size(); i++) {
+  for (Index i = 0; i < result.size(); i++) {
     charge(i) = result[i].getCharge();
   }
 
@@ -181,7 +181,7 @@ BOOST_AUTO_TEST_CASE(atompop) {
   Mulliken mul;
   StaticSegment result2 = mul.CalcChargeperAtom(orb2, s);
   Eigen::VectorXd charge2 = Eigen::VectorXd::Zero(result2.size());
-  for (int i = 0; i < result2.size(); i++) {
+  for (Index i = 0; i < result2.size(); i++) {
     charge2(i) = result2[i].getCharge();
   }
 

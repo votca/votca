@@ -41,47 +41,47 @@ class AOBasis {
 
   void Fill(const BasisSet& bs, const QMMolecule& atoms);
 
-  int AOBasisSize() const { return _AOBasisSize; }
+  Index AOBasisSize() const { return _AOBasisSize; }
 
   using AOShellIterator = std::vector<AOShell>::const_iterator;
   AOShellIterator begin() const { return _aoshells.begin(); }
   AOShellIterator end() const { return _aoshells.end(); }
 
-  const AOShell& getShell(long idx) const { return _aoshells[idx]; }
+  const AOShell& getShell(Index idx) const { return _aoshells[idx]; }
 
-  const std::vector<const AOShell*> getShellsofAtom(long AtomId) const;
+  const std::vector<const AOShell*> getShellsofAtom(Index AtomId) const;
 
-  int getNumofShells() const { return int(_aoshells.size()); }
+  Index getNumofShells() const { return Index(_aoshells.size()); }
 
-  const std::vector<int>& getFuncPerAtom() const { return _FuncperAtom; }
+  const std::vector<Index>& getFuncPerAtom() const { return _FuncperAtom; }
 
  private:
-  AOShell& addShell(const Shell& shell, const QMAtom& atom, int startIndex);
+  AOShell& addShell(const Shell& shell, const QMAtom& atom, Index startIndex);
 
   void MultiplyMOs(Eigen::MatrixXd& v,
-                   const std::vector<int>& multiplier) const;
+                   const std::vector<Index>& multiplier) const;
 
-  std::vector<int> invertOrder(const std::vector<int>& order) const;
+  std::vector<Index> invertOrder(const std::vector<Index>& order) const;
 
-  std::vector<int> getReorderVector(const std::string& start,
-                                    const std::string& target) const;
+  std::vector<Index> getReorderVector(const std::string& start,
+                                      const std::string& target) const;
 
   void addReorderShell(const std::string& start, const std::string& target,
                        const std::string& shell,
-                       std::vector<int>& neworder) const;
+                       std::vector<Index>& neworder) const;
 
-  std::vector<int> getMultiplierVector(const std::string& start,
-                                       const std::string& target) const;
+  std::vector<Index> getMultiplierVector(const std::string& start,
+                                         const std::string& target) const;
 
   void addMultiplierShell(const std::string& start, const std::string& target,
                           const std::string& shell,
-                          std::vector<int>& multiplier) const;
+                          std::vector<Index>& multiplier) const;
 
   std::vector<AOShell> _aoshells;
 
-  std::vector<int> _FuncperAtom;
+  std::vector<Index> _FuncperAtom;
 
-  int _AOBasisSize;
+  Index _AOBasisSize;
 };
 
 }  // namespace xtp

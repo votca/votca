@@ -27,15 +27,15 @@ Eigen::MatrixXd ReadMatrixFromString(const std::string& matrix) {
   votca::tools::Tokenizer lines(matrix, "\n");
 
   std::vector<double> entries;
-  long cols = 0;
-  int rows = 0;
+  Index cols = 0;
+  Index rows = 0;
   for (auto line : lines) {
     if (line[0] == '#') {
       continue;
     }
     votca::tools::Tokenizer entries_tok(line, " ");
     std::vector<std::string> temp = entries_tok.ToVector();
-    cols = long(temp.size());
+    cols = Index(temp.size());
     rows++;
     for (const auto& s : temp) {
       entries.push_back(std::stod(s));
@@ -436,15 +436,15 @@ BOOST_AUTO_TEST_CASE(coupling) {
 
   auto holedata = output.Select("hole.coupling");
   for (auto h : holedata) {
-    int levA = h->getAttribute<int>("levelA");
-    int levB = h->getAttribute<int>("levelB");
+    Index levA = h->getAttribute<Index>("levelA");
+    Index levB = h->getAttribute<Index>("levelB");
     double j = h->getAttribute<double>("j");
     BOOST_CHECK_CLOSE(j, hole_ref[levA][levB], 1e-5);
   }
   auto electrondata = output.Select("electron.coupling");
   for (auto h : holedata) {
-    int levA = h->getAttribute<int>("levelA");
-    int levB = h->getAttribute<int>("levelB");
+    Index levA = h->getAttribute<Index>("levelA");
+    Index levB = h->getAttribute<Index>("levelB");
     double j = h->getAttribute<double>("j");
     BOOST_CHECK_CLOSE(j, electron_ref[levA][levB], 1e-5);
   }

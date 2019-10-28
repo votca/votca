@@ -39,7 +39,7 @@ void BFGSTRM::Optimize(const Eigen::VectorXd& initialparameters) {
   double delta_cost = 0;
   for (_iteration = 1; _iteration <= _max_iteration; _iteration++) {
     bool step_accepted = false;
-    for (int i = 0; i < 100; i++) {
+    for (Index i = 0; i < 100; i++) {
       TrustRegion subproblem;
       delta_p_trial =
           subproblem.CalculateStep(gradient, _hessian, _trust_radius);

@@ -48,10 +48,10 @@ class AOBasis;
 class TCMatrix {
 
  public:
-  int Removedfunctions() const { return _removedfunctions; }
+  Index Removedfunctions() const { return _removedfunctions; }
 
  protected:
-  int _removedfunctions = 0;
+  Index _removedfunctions = 0;
   Eigen::MatrixXd _inv_sqrt;
 
   bool FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
@@ -63,16 +63,16 @@ class TCMatrix_dft : public TCMatrix {
  public:
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis);
 
-  int size() const { return int(_matrix.size()); }
+  Index size() const { return Index(_matrix.size()); }
 
-  Symmetric_Matrix& operator[](int i) { return _matrix[i]; }
+  Symmetric_Matrix& operator[](Index i) { return _matrix[i]; }
 
-  const Symmetric_Matrix& operator[](int i) const { return _matrix[i]; }
+  const Symmetric_Matrix& operator[](Index i) const { return _matrix[i]; }
 
  private:
   std::vector<Symmetric_Matrix> _matrix;
 
-  void FillBlock(std::vector<Eigen::MatrixXd>& block, int shellindex,
+  void FillBlock(std::vector<Eigen::MatrixXd>& block, Index shellindex,
                  const AOBasis& dftbasis, const AOBasis& auxbasis);
 };
 
@@ -81,26 +81,27 @@ class TCMatrix_gwbse : public TCMatrix {
   TCMatrix_gwbse(Logger& log) : _log{log} {};
 
   // returns one level as a constant reference
-  const Eigen::MatrixXd& operator[](int i) const { return _matrix[i]; }
+  const Eigen::MatrixXd& operator[](Index i) const { return _matrix[i]; }
 
   // returns one level as a reference
-  Eigen::MatrixXd& operator[](int i) { return _matrix[i]; }
+  Eigen::MatrixXd& operator[](Index i) { return _matrix[i]; }
   // returns auxbasissize
-  int auxsize() const { return _auxbasissize; }
+  Index auxsize() const { return _auxbasissize; }
 
-  int get_mmin() const { return _mmin; }
+  Index get_mmin() const { return _mmin; }
 
-  int get_mmax() const { return _mmax; }
+  Index get_mmax() const { return _mmax; }
 
-  int get_nmin() const { return _nmin; }
+  Index get_nmin() const { return _nmin; }
 
-  int get_nmax() const { return _nmax; }
+  Index get_nmax() const { return _nmax; }
 
-  int msize() const { return _mtotal; }
+  Index msize() const { return _mtotal; }
 
-  int nsize() const { return _ntotal; }
+  Index nsize() const { return _ntotal; }
 
-  void Initialize(int basissize, int mmin, int mmax, int nmin, int nmax);
+  void Initialize(Index basissize, Index mmin, Index mmax, Index nmin,
+                  Index nmax);
 
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
             const Eigen::MatrixXd& dft_orbitals);
@@ -118,13 +119,13 @@ class TCMatrix_gwbse : public TCMatrix {
   Logger& _log;
 
   // band summation indices
-  int _mmin;
-  int _mmax;
-  int _nmin;
-  int _nmax;
-  int _ntotal;
-  int _mtotal;
-  int _auxbasissize;
+  Index _mmin;
+  Index _mmax;
+  Index _nmin;
+  Index _nmax;
+  Index _ntotal;
+  Index _mtotal;
+  Index _auxbasissize;
 
   const AOBasis* _auxbasis = nullptr;
   const AOBasis* _dftbasis = nullptr;
@@ -148,7 +149,7 @@ class TCMatrix_gwbse : public TCMatrix {
       const Eigen::MatrixXd& dft_orbitals, const CudaPipeline& cuda_pip) const;
 
   std::array<CudaMatrix, 3> CreateIntermediateCudaMatrices(
-      int basissize, const CudaPipeline& cuda_pip) const;
+      Index basissize, const CudaPipeline& cuda_pip) const;
 
   void FillAllBlocksCuda(const AOBasis& gwbasis, const AOBasis& dftbasis,
                          const Eigen::MatrixXd& dft_orbitals);

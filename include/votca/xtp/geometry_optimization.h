@@ -59,7 +59,7 @@ class GeometryOptimization {
   Orbitals& _orbitals;
 
   Energy_costfunction::conv_paras _conv;
-  int _max_iteration;
+  Index _max_iteration;
   double _trust_radius;
 
   tools::Property _statetracker_options;

@@ -84,7 +84,7 @@ void Orca::WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
     for (const Shell& shell : element) {
       for (const char& subtype : shell.getType()) {
         el_file << subtype << " " << shell.getSize() << endl;
-        int sh_idx = 0;
+        Index sh_idx = 0;
         for (const GaussianPrimitive& gaussian : shell) {
           sh_idx++;
           el_file << " " << sh_idx << " " << indent(gaussian.decay());
@@ -152,12 +152,12 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
              << " " << getLName(element.getLmax()) << endl;
     // For Orca the order doesn't matter but let's write it in ascending order
     // write remaining shells in ascending order s,p,d...
-    for (int i = 0; i <= element.getLmax(); i++) {
+    for (Index i = 0; i <= element.getLmax(); i++) {
       for (const ECPShell& shell : element) {
         if (shell.getL() == i) {
           // shell type, number primitives, scale factor
           inp_file << shell.getType() << " " << shell.getSize() << endl;
-          int sh_idx = 0;
+          Index sh_idx = 0;
           for (const ECPGaussianPrimitive& gaussian : shell) {
             sh_idx++;
             inp_file << sh_idx << " " << gaussian._decay << " "
@@ -189,7 +189,7 @@ void Orca::WriteBackgroundCharges() {
   std::ofstream crg_file;
   std::string _crg_file_name_full = _run_dir + "/background.crg";
   crg_file.open(_crg_file_name_full);
-  long total_background = 0;
+  Index total_background = 0;
 
   for (const std::unique_ptr<StaticSite>& site : _externalsites) {
     if (site->getCharge() != 0.0) {
@@ -236,7 +236,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   inp_file.open(inp_file_name_full);
   // header
   inp_file << "* xyz  " << _charge << " " << _spin << endl;
-  int threads = OPENMP::getMaxThreads();
+  Index threads = OPENMP::getMaxThreads();
   const QMMolecule& qmatoms = orbitals.QMAtoms();
   // put coordinates
   WriteCoordinates(inp_file, qmatoms);
@@ -321,7 +321,7 @@ bool Orca::Run() {
   if (std::system(nullptr)) {
 
     std::string command = "cd " + _run_dir + "; sh " + _shell_file_name;
-    int check = std::system(command.c_str());
+    Index check = std::system(command.c_str());
     if (check == -1) {
       XTP_LOG(logERROR, *_pLog)
           << _input_file_name << " failed to start" << flush;
@@ -411,14 +411,14 @@ StaticSegment Orca::GetCharges() const {
       XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
       getline(input_file, line);
       std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
-      int nfields = int(row.size());
+      Index nfields = Index(row.size());
       bool hasAtoms = result.size() > 0;
       while (nfields == 4) {
-        long atom_id = boost::lexical_cast<long>(row.at(0));
+        Index atom_id = boost::lexical_cast<Index>(row.at(0));
         std::string atom_type = row.at(1);
         double atom_charge = boost::lexical_cast<double>(row.at(3));
         row = GetLineAndSplit(input_file, "\t ");
-        nfields = int(row.size());
+        nfields = Index(row.size());
         if (hasAtoms) {
           StaticSite& temp = result.at(atom_id);
           if (temp.getElement() != atom_type) {
@@ -462,7 +462,7 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
             "Could not find cartesian polarisation tensor");
       }
 
-      for (int i = 0; i < 3; i++) {
+      for (Index i = 0; i < 3; i++) {
         getline(input_file, line);
         tools::Tokenizer tok2(line, " ");
         std::vector<std::string> values = tok2.ToVector();
@@ -498,12 +498,12 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   if (!CheckLogFile()) {
     return false;
   }
-  std::map<int, double> energies;
-  std::map<int, double> occupancy;
+  std::map<Index, double> energies;
+  std::map<Index, double> occupancy;
 
   std::string line;
-  int levels = 0;
-  int number_of_electrons = 0;
+  Index levels = 0;
+  Index number_of_electrons = 0;
   std::vector<std::string> results;
 
   std::ifstream input_file(log_file_name_full);
@@ -558,7 +558,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
       std::string dim =
           results[4];  // The 4th element of results vector is the Basis Dim
       boost::trim(dim);
-      levels = boost::lexical_cast<int>(dim);
+      levels = boost::lexical_cast<Index>(dim);
       XTP_LOG(logDEBUG, *_pLog) << "Basis Dimension: " << levels << flush;
       XTP_LOG(logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
     }
@@ -574,11 +574,11 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
         XTP_LOG(logDEBUG, *_pLog)
             << "Warning: Orbital Energies not found in log file" << flush;
       }
-      for (int i = 0; i < levels; i++) {
+      for (Index i = 0; i < levels; i++) {
         results = GetLineAndSplit(input_file, " ");
         std::string no = results[0];
         boost::trim(no);
-        int levelnumber = boost::lexical_cast<int>(no);
+        Index levelnumber = boost::lexical_cast<Index>(no);
         if (levelnumber != i) {
           XTP_LOG(logDEBUG, *_pLog) << "Have a look at the orbital energies "
                                        "something weird is going on"
@@ -624,8 +624,8 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
   XTP_LOG(logDEBUG, *_pLog)
       << "Alpha electrons: " << number_of_electrons << flush;
-  int occupied_levels = number_of_electrons;
-  int unoccupied_levels = levels - occupied_levels;
+  Index occupied_levels = number_of_electrons;
+  Index unoccupied_levels = levels - occupied_levels;
   XTP_LOG(logDEBUG, *_pLog) << "Occupied levels: " << occupied_levels << flush;
   XTP_LOG(logDEBUG, *_pLog)
       << "Unoccupied levels: " << unoccupied_levels << flush;
@@ -641,7 +641,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   // copying energies to a vector
   orbitals.MOs().eigenvalues().resize(levels);
   //_level = 1;
-  for (int i = 0; i < levels; i++) {
+  for (Index i = 0; i < levels; i++) {
     orbitals.MOs().eigenvalues()[i] = energies[i];
   }
 
@@ -664,15 +664,15 @@ void Orca::GetCoordinates(T& mol, string& line, ifstream& input_file) const {
     // now starts the data in format
     // _id type Qnuc x y z
     vector<string> row = GetLineAndSplit(input_file, "\t ");
-    int nfields = int(row.size());
-    long atom_id = 0;
+    Index nfields = Index(row.size());
+    Index atom_id = 0;
     while (nfields == 4) {
       string atom_type = row.at(0);
       double x = boost::lexical_cast<double>(row.at(1));
       double y = boost::lexical_cast<double>(row.at(2));
       double z = boost::lexical_cast<double>(row.at(3));
       row = GetLineAndSplit(input_file, "\t ");
-      nfields = int(row.size());
+      nfields = Index(row.size());
       Eigen::Vector3d pos(x, y, z);
       pos *= tools::conv::ang2bohr;
       if (has_QMAtoms == false) {
@@ -726,7 +726,7 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
     return false;
   }
   std::vector<double> coefficients;
-  int basis_size = orbitals.getBasisSetSize();
+  Index basis_size = orbitals.getBasisSetSize();
   if (basis_size == 0) {
     throw runtime_error(
         "Basis size not set, calculator does not parse log file first");
@@ -747,7 +747,7 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
     infile.close();
     return false;
   }
-  long offset = *((long int*)buffer.data());
+  Index offset = *((Index*)buffer.data());
 
   infile.seekg(offset, ios::beg);
   infile.read(buffer.data(), 4);
@@ -766,8 +766,8 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   infile.seekg(offset + 8, ios::beg);
   XTP_LOG(logDEBUG, *_pLog) << "Number of operators: " << op_read
                             << " Basis dimension: " << dim_read << flush;
-  int n = op_read * dim_read * dim_read;
-  for (int i = 0; i < n; i++) {
+  Index n = op_read * dim_read * dim_read;
+  for (Index i = 0; i < n; i++) {
     infile.read(buffer.data(), 8);
     if (!infile) {
       infile.close();
@@ -780,8 +780,8 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   infile.close();
   // i -> MO, j -> AO
   orbitals.MOs().eigenvectors().resize(basis_size, basis_size);
-  for (int i = 0; i < basis_size; i++) {
-    for (int j = 0; j < basis_size; j++) {
+  for (Index i = 0; i < basis_size; i++) {
+    for (Index j = 0; j < basis_size; j++) {
       orbitals.MOs().eigenvectors()(j, i) = coefficients[j * basis_size + i];
     }
   }
@@ -790,7 +790,7 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   return true;
 }
 
-std::string Orca::getLName(int lnum) {
+std::string Orca::getLName(Index lnum) {
   if (lnum == 0) {
     return "S";
   } else if (lnum == 1) {

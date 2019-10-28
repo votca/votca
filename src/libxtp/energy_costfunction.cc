@@ -138,7 +138,7 @@ std::string Energy_costfunction::Converged(double val, double limit) {
 
 void Energy_costfunction::Vector2QMAtoms(const Eigen::VectorXd& pos,
                                          QMMolecule& atoms) {
-  for (int i = 0; i < atoms.size(); i++) {
+  for (Index i = 0; i < atoms.size(); i++) {
     Eigen::Vector3d pos_displaced;
     pos_displaced << pos(3 * i), pos(3 * i + 1), pos(3 * i + 2);
     atoms[i].setPos(pos_displaced);
@@ -148,7 +148,7 @@ void Energy_costfunction::Vector2QMAtoms(const Eigen::VectorXd& pos,
 Eigen::VectorXd Energy_costfunction::QMAtoms2Vector(QMMolecule& atoms) {
   Eigen::VectorXd result = Eigen::VectorXd::Zero(3 * atoms.size());
 
-  for (int i = 0; i < atoms.size(); i++) {
+  for (Index i = 0; i < atoms.size(); i++) {
     result(3 * i) = atoms[i].getPos().x();
     result(3 * i + 1) = atoms[i].getPos().y();
     result(3 * i + 2) = atoms[i].getPos().z();
@@ -159,9 +159,9 @@ Eigen::VectorXd Energy_costfunction::QMAtoms2Vector(QMMolecule& atoms) {
 Eigen::VectorXd Energy_costfunction::Write3XMatrixToVector(
     const Eigen::MatrixX3d& matrix) {
   Eigen::VectorXd vec = Eigen::VectorXd::Zero(matrix.rows() * matrix.cols());
-  for (int i_cart = 0; i_cart < 3; i_cart++) {
-    for (int i_atom = 0; i_atom < matrix.rows(); i_atom++) {
-      int idx = 3 * i_atom + i_cart;
+  for (Index i_cart = 0; i_cart < 3; i_cart++) {
+    for (Index i_atom = 0; i_atom < matrix.rows(); i_atom++) {
+      Index idx = 3 * i_atom + i_cart;
       vec(idx) = matrix(i_atom, i_cart);
     }
   }

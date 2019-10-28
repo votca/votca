@@ -102,10 +102,10 @@ class DipoleDipoleInteraction
 
   // this is not a fast method
   const double& operator()(const Index i, const Index j) const {
-    long seg1id = long(i / 3);
-    long xyz1 = long(i % 3);
-    long seg2id = long(j / 3);
-    long xyz2 = long(j % 3);
+    Index seg1id = Index(i / 3);
+    Index xyz1 = Index(i % 3);
+    Index seg2id = Index(j / 3);
+    Index xyz2 = Index(j % 3);
 
     if (seg1id == seg2id) {
       return _sites[seg1id]->getPInv()(xyz1, xyz2);
@@ -116,11 +116,11 @@ class DipoleDipoleInteraction
     }
   };
 
-  Eigen::Vector3d Block(long i, const Eigen::VectorXd& v) const {
+  Eigen::Vector3d Block(Index i, const Eigen::VectorXd& v) const {
     Eigen::Vector3d result = Eigen::Vector3d::Zero();
     const PolarSite& site1 = *_sites[i];
-    const long segment_size = long(_sites.size());
-    for (long j = 0; j < segment_size; j++) {
+    const Index segment_size = Index(_sites.size());
+    for (Index j = 0; j < segment_size; j++) {
       const Eigen::Vector3d v_small = v.segment<3>(3 * j);
 
       if (i == j) {
@@ -136,7 +136,7 @@ class DipoleDipoleInteraction
  private:
   const eeInteractor& _interactor;
   std::vector<const PolarSite*> _sites;
-  long _size;
+  Index _size;
 };
 }  // namespace xtp
 }  // namespace votca
@@ -164,10 +164,10 @@ struct generic_product_impl<votca::xtp::DipoleDipoleInteraction, Vtype,
     // alpha must be 1 here
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-    long sites = op.rows() / 3;
+    Index sites = op.rows() / 3;
 // make the mat vect product
 #pragma omp parallel for
-    for (long i = 0; i < sites; i++) {
+    for (Index i = 0; i < sites; i++) {
       const Eigen::Vector3d result = op.Block(i, v);
       dst.segment(3 * i, 3) = result;
     }

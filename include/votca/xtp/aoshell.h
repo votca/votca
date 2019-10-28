@@ -95,15 +95,15 @@ class AOShell {
   }
 
   const std::string& getType() const { return _type; }
-  int getNumFunc() const { return _numFunc; }
-  int getCartesianNumFunc() const { return _numcartFunc; }
-  int getStartIndex() const { return _startIndex; }
-  int getOffset() const { return _offset; }
-  int getCartesianOffset() const { return _cartOffset; }
-  long getAtomIndex() const { return _atomindex; }
+  Index getNumFunc() const { return _numFunc; }
+  Index getCartesianNumFunc() const { return _numcartFunc; }
+  Index getStartIndex() const { return _startIndex; }
+  Index getOffset() const { return _offset; }
+  Index getCartesianOffset() const { return _cartOffset; }
+  Index getAtomIndex() const { return _atomindex; }
 
-  int getLmax() const { return _Lmax; }
-  int getLmin() const { return _Lmin; }
+  Index getLmax() const { return _Lmax; }
+  Index getLmin() const { return _Lmin; }
 
   bool isCombined() const { return _Lmax != _Lmin; }
 
@@ -145,7 +145,7 @@ class AOShell {
 
  private:
   // only class aobasis can construct shells
-  AOShell(const Shell& shell, const QMAtom& atom, int startIndex)
+  AOShell(const Shell& shell, const QMAtom& atom, Index startIndex)
       : _type(shell.getType()),
         _Lmax(shell.getLmax()),
         _Lmin(shell.getLmin()),
@@ -161,19 +161,19 @@ class AOShell {
   }
 
   std::string _type;
-  int _Lmax;
-  int _Lmin;
+  Index _Lmax;
+  Index _Lmin;
   // scaling factor
   double _scale;
   // number of functions in shell
-  int _numFunc;
-  int _numcartFunc;
+  Index _numFunc;
+  Index _numcartFunc;
   double _mindecay;
-  int _startIndex;
-  int _offset;
-  int _cartOffset;
+  Index _startIndex;
+  Index _offset;
+  Index _cartOffset;
   Eigen::Vector3d _pos;
-  long _atomindex;
+  Index _atomindex;
 
   // vector of pairs of decay constants and contraction coefficients
   std::vector<AOGaussianPrimitive> _gaussians;

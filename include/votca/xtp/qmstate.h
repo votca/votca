@@ -25,6 +25,7 @@
 
 #include "checkpointreader.h"
 #include "checkpointwriter.h"
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace xtp {
@@ -126,11 +127,11 @@ class QMStateCarrierStorage {
 class QMState {
 
  public:
-  QMState(const QMStateType::statetype& type, int index, bool transition)
+  QMState(const QMStateType::statetype& type, Index index, bool transition)
       : _type(QMStateType(type)), _index(index), _transition(transition) {
     ;
   }
-  QMState(const QMStateType& type, int index, bool transition)
+  QMState(const QMStateType& type, Index index, bool transition)
       : _type(type), _index(index), _transition(transition) {
     ;
   }
@@ -145,22 +146,22 @@ class QMState {
   const QMStateType& Type() const { return _type; }
 
   bool isTransition() const { return _transition; }
-  int Index() const { return _index; }
+  Index StateIdx() const { return _index; }
 
   bool operator==(const QMState& rhs) const {
-    return (_type == rhs.Type() && _index == rhs.Index());
+    return (_type == rhs.Type() && _index == rhs.StateIdx());
   }
 
   bool operator!=(const QMState& rhs) const {
-    return (_type != rhs.Type() || _index != rhs.Index());
+    return (_type != rhs.Type() || _index != rhs.StateIdx());
   }
 
  private:
-  int DetermineIndex(const std::string& statestring);
+  Index DetermineIndex(const std::string& statestring);
   QMStateType DetermineType(const std::string& statestring);
   QMStateType _type;
 
-  int _index;
+  Index _index;
 
   bool _transition;
 };
