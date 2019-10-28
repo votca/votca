@@ -445,7 +445,6 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       } else {
         mol = molecules_[moleculeId];
       }
-      Index symmetry = 1;  // spherical
 
       double mass = stod(data_["Masses"].at(atomTypeId).at(1));
 
@@ -477,7 +476,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
         top.RegisterBeadType(bead_type_name);
       }
 
-      b = top.CreateBead(symmetry, bead_type_name, bead_type_name,
+      b = top.CreateBead(Bead::spherical, bead_type_name, bead_type_name,
                          residue_index, mass, charge);
 
       mol->AddBead(b, bead_type_name);

@@ -321,8 +321,7 @@ bool PDBReader::NextFrame(Topology &top) {
         }
 
         // CreateBead takes 6 parameters in the following order
-        // 1 - symmetry of the bead (1-indicates sphere, 3-indicates
-        // ellipsoidal)
+        // 1 - symmetry of the bead
         // 2 - name of the bead     (string)
         // 3 - bead type            (BeadType *)
         // 4 - residue number       (Index)
@@ -330,7 +329,7 @@ bool PDBReader::NextFrame(Topology &top) {
         // 6 - charge               (double)
         //
         // res -1 as internal number starts with 0
-        b = top.CreateBead(1, atName, atName, resnr - 1,
+        b = top.CreateBead(Bead::spherical, atName, atName, resnr - 1,
                            elements.getMass(elem_sym), ch);
       } else {
         b = top.getBead(bead_count - 1);

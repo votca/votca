@@ -76,8 +76,8 @@ class Topology {
    *
    * The function creates a new bead and adds it to the list of beads.
    */
-  virtual Bead *CreateBead(Index symmetry, std::string name, std::string type,
-                           Index resnr, double m, double q);
+  virtual Bead *CreateBead(Bead::Symmetry symmetry, std::string name,
+                           std::string type, Index resnr, double m, double q);
 
   /**
    * \brief Creates a new molecule
@@ -422,7 +422,7 @@ class Topology {
   std::string _particle_group = "unassigned";
 };
 
-inline Bead *Topology::CreateBead(Index symmetry, std::string name,
+inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
                                   std::string type, Index resnr, double m,
                                   double q) {
 

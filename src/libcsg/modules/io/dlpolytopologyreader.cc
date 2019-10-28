@@ -255,8 +255,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         for (Index j = 0; j < repeater; j++) {
 
           string beadname = beadtype + "#" + boost::lexical_cast<string>(i + 1);
-          Bead *bead =
-              top.CreateBead(1, beadname, beadtype, res->getId(), mass, charge);
+          Bead *bead = top.CreateBead(Bead::spherical, beadname, beadtype,
+                                      res->getId(), mass, charge);
 
           stringstream nm;
           nm << bead->getResnr() + 1 << ":"
@@ -343,8 +343,8 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
           Bead *bead = mi->getBead(i);
           string type = bead->getType();
           Bead *bead_replica =
-              top.CreateBead(1, bead->getName(), type, res->getId(),
-                             bead->getMass(), bead->getQ());
+              top.CreateBead(Bead::spherical, bead->getName(), type,
+                             res->getId(), bead->getMass(), bead->getQ());
           mi_replica->AddBead(bead_replica, bead->getName());
         }
         matoms += mi->BeadCount();

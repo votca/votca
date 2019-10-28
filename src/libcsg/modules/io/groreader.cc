@@ -128,7 +128,7 @@ bool GROReader::NextFrame(Topology &top) {
       }
 
       // res -1 as internal number starts with 0
-      b = top.CreateBead(1, atName, atName, resnr - 1, 1., 0.);
+      b = top.CreateBead(Bead::spherical, atName, atName, resnr - 1, 1., 0.);
     } else {
       b = top.getBead(i);
     }

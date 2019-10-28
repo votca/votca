@@ -78,7 +78,8 @@ class Bead : public BaseBead {
    *
    * \return bead symmetry
    */
-  Index getSymmetry() const { return symmetry_; }
+  enum Symmetry { spherical = 1, ellipsoidal = 3 };
+  Symmetry getSymmetry() const { return symmetry_; }
 
   /**
    * set the velocity of the bead
@@ -274,7 +275,7 @@ class Bead : public BaseBead {
  protected:
   std::vector<Index> parent_beads_;
 
-  Index symmetry_;
+  Symmetry symmetry_;
   double charge_;
 
   Index residue_number_;
@@ -288,7 +289,7 @@ class Bead : public BaseBead {
   bool bead_force_set_;
 
   /// constructor
-  Bead(Topology *owner, Index id, std::string type, Index symmetry,
+  Bead(Topology *owner, Index id, std::string type, Symmetry symmetry,
        std::string name, Index resnr, double m, double q)
       : symmetry_(symmetry), charge_(q), residue_number_(resnr) {
     topology_item_._parent = owner;

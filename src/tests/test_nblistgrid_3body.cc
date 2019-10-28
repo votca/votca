@@ -54,13 +54,13 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
 
   string bead_type_name = "CG";
   top.RegisterBeadType(bead_type_name);
-  votca::Index symmetry = 1;
   string name = "dummy1";
   votca::Index resnr = 0;
   double mass = 1.0;
   double charge = -1.0;
   Bead *b;
-  b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
+  b = top.CreateBead(Bead::spherical, name, bead_type_name, resnr, mass,
+                     charge);
   pos[0] = 0.0;
   pos[1] = 0.0;
   pos[2] = 0.0;
@@ -68,12 +68,12 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
   mol->AddBead(b, bead_type_name);
   b->setMolecule(mol);
 
-  symmetry = 1;
   name = "dummy2";
   resnr = 0;
   mass = 2.0;
   charge = -2.0;
-  b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
+  b = top.CreateBead(Bead::spherical, name, bead_type_name, resnr, mass,
+                     charge);
   mol->AddBead(b, bead_type_name);
   b->setMolecule(mol);
   pos[0] = 1.0;
@@ -81,12 +81,12 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
   pos[2] = 0.0;
   b->setPos(pos);
 
-  symmetry = 1;
   name = "dummy3";
   resnr = 0;
   mass = 3.0;
   charge = -3.0;
-  b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
+  b = top.CreateBead(Bead::spherical, name, bead_type_name, resnr, mass,
+                     charge);
   mol->AddBead(b, bead_type_name);
   b->setMolecule(mol);
   pos[0] = 1.0;

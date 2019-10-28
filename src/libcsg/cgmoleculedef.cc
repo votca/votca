@@ -75,9 +75,18 @@ void CGMoleculeDef::ParseBeads(tools::Property &options) {
     beaddef->_type = p->get("type").as<string>();
     beaddef->_mapping = p->get("mapping").as<string>();
     if (p->exists("symmetry")) {
-      beaddef->_symmetry = p->get("symmetry").as<votca::Index>();
+      Index sym = p->get("symmetry").as<Index>();
+      if (sym == 1) {
+        beaddef->_symmetry = Bead::spherical;
+      } else if (sym == 3) {
+        beaddef->_symmetry = Bead::ellipsoidal;
+      } else {
+        throw std::runtime_error(
+            "Only beads with spherical(1) or ellipsoidal(3) symmetry "
+            "implemented.");
+      }
     } else {
-      beaddef->_symmetry = 1;
+      beaddef->_symmetry = Bead::spherical;
     }
 
     if (_beads_by_name.find(beaddef->_name) != _beads_by_name.end()) {
@@ -105,15 +114,14 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   Molecule *minfo = top.CreateMolecule(_name);
 
   // create the atoms
-  for (auto &_bead : _beads) {
-    Bead *bead;
+  for (auto &bead_def : _beads) {
 
-    string type = _bead->_type;
+    string type = bead_def->_type;
     if (!top.BeadTypeExist(type)) {
       top.RegisterBeadType(type);
     }
-    bead = top.CreateBead(_bead->_symmetry, _bead->_name, type, res->getId(), 0,
-                          0);
+    Bead *bead = top.CreateBead(bead_def->_symmetry, bead_def->_name, type,
+                                res->getId(), 0, 0);
     minfo->AddBead(bead, bead->getName());
   }
 

@@ -141,7 +141,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
       top.RegisterBeadType("no");
     }
     for (Index i = 0; i < _natoms; ++i) {
-      (void)top.CreateBead(1, "no", "no", 0, 0, 0);
+      (void)top.CreateBead(Bead::spherical, "no", "no", 0, 0, 0);
     }
   }
 

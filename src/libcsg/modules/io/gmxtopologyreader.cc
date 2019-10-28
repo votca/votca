@@ -90,8 +90,9 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
         if (!top.BeadTypeExist(bead_type)) {
           top.RegisterBeadType(bead_type);
         }
-        Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), bead_type,
-                                    a->resind + res_offset, a->m, a->q);
+        Bead *bead =
+            top.CreateBead(Bead::spherical, *(atoms->atomname[iatom]),
+                           bead_type, a->resind + res_offset, a->m, a->q);
 
         stringstream nm;
         nm << bead->getResnr() + 1 - res_offset << ":"

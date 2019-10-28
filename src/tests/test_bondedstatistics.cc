@@ -78,9 +78,6 @@ BOOST_AUTO_TEST_CASE(test_evalconfiguration_begin) {
     Eigen::Matrix3d box = 10 * Eigen::Matrix3d::Identity();
     top.setBox(box);
 
-    // Create three beads
-    votca::Index symmetry = 1;
-
     string bead_type_name = "type1";
     top.RegisterBeadType(bead_type_name);
 
@@ -91,21 +88,21 @@ BOOST_AUTO_TEST_CASE(test_evalconfiguration_begin) {
     // Create 3 beads
     string bead_name = "bead_test";
     Eigen::Vector3d pos_bead1(5.0, 3.0, 5.0);
-    auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
+    auto bead_ptr = top.CreateBead(Bead::spherical, bead_name, bead_type_name,
                                    residue_number, mass, charge);
     bead_ptr->setId(0);
     bead_ptr->setPos(pos_bead1);
 
     string bead_name2 = "bead_test2";
     Eigen::Vector3d pos_bead2(5.0, 4.0, 5.0);
-    auto bead_ptr2 = top.CreateBead(symmetry, bead_name2, bead_type_name,
+    auto bead_ptr2 = top.CreateBead(Bead::spherical, bead_name2, bead_type_name,
                                     residue_number, mass, charge);
     bead_ptr2->setId(1);
     bead_ptr2->setPos(pos_bead2);
 
     string bead_name3 = "bead_test3";
     Eigen::Vector3d pos_bead3(5.0, 6.0, 5.0);
-    auto bead_ptr3 = top.CreateBead(symmetry, bead_name3, bead_type_name,
+    auto bead_ptr3 = top.CreateBead(Bead::spherical, bead_name3, bead_type_name,
                                     residue_number, mass, charge);
     bead_ptr3->setId(2);
     bead_ptr3->setPos(pos_bead3);

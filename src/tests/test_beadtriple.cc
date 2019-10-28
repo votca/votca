@@ -38,29 +38,26 @@ BOOST_AUTO_TEST_CASE(test_beadtriple_constructor) {
 
   string bead_type_name = "CG";
 
-  votca::Index symmetry = 1;
   string name = "dummy1";
   votca::Index resnr = 0;
   double mass = 1.0;
   double charge = -1.0;
 
-  top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
+  top.CreateBead(Bead::spherical, name, bead_type_name, resnr, mass, charge);
 
-  symmetry = 1;
   name = "dummy2";
   resnr = 0;
   mass = 1.0;
   charge = -1.0;
 
-  top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
+  top.CreateBead(Bead::spherical, name, bead_type_name, resnr, mass, charge);
 
-  symmetry = 1;
   name = "dummy3";
   resnr = 0;
   mass = 1.0;
   charge = -1.0;
 
-  top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
+  top.CreateBead(Bead::spherical, name, bead_type_name, resnr, mass, charge);
 
   Eigen::Vector3d dist12(0.1, 0.2, 0.3);
   Eigen::Vector3d dist13(0.2, 0.4, 0.3);

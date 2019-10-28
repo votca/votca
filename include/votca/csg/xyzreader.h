@@ -84,7 +84,8 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
     Bead *b;
     Eigen::Vector3d posnm = pos * tools::conv::ang2nm;
     if (topology) {
-      b = container.CreateBead(1, name + boost::lexical_cast<std::string>(id),
+      b = container.CreateBead(Bead::spherical,
+                               name + boost::lexical_cast<std::string>(id),
                                name, 0, 0, 0);
     } else {
       b = container.getBead(id);
