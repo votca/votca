@@ -31,8 +31,8 @@ BOOST_AUTO_TEST_CASE(symmetric_test) {
   Eigen::MatrixXd sym = notsym + notsym.transpose();
 
   bool symmetry = true;
-  for (Index i = 0; i < sym.rows(); ++i) {
-    for (Index j = 0; j <= i; ++j) {
+  for (votca::Index i = 0; i < sym.rows(); ++i) {
+    for (votca::Index j = 0; j <= i; ++j) {
       if (std::abs(sym(i, j) - sym(j, i)) > 1e-9) {
         symmetry = false;
         break;

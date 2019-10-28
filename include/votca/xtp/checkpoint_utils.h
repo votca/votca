@@ -58,7 +58,7 @@ struct InferDataType<int> {
 };
 
 template <>
-struct InferDataType<Index> {
+struct InferDataType<long int> {
   static const H5::DataType* get(void) { return &H5::PredType::NATIVE_LONG; }
 };
 

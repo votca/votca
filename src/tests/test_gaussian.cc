@@ -22,7 +22,6 @@
 #include <votca/xtp/qmpackagefactory.h>
 using namespace votca::xtp;
 using namespace votca;
-using namespace std;
 
 BOOST_AUTO_TEST_SUITE(gaussian_test)
 
@@ -787,7 +786,7 @@ BOOST_AUTO_TEST_CASE(read_withexternal) {
   BOOST_CHECK_CLOSE(orb.getScaHFX(), 0.25, 1e-5);
 
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
-  for (Index i = 0; i < seg.size(); i++) {
+  for (Index i = 0; i < Index(seg.size()); i++) {
     bool check_pos = ref[i].getPos().isApprox(seg[i].getPos(), 1e-5);
     BOOST_CHECK_EQUAL(check_pos, true);
     if (!check_pos) {
@@ -802,64 +801,64 @@ BOOST_AUTO_TEST_CASE(read_withexternal) {
       -40.2974256 - (-0.0529177209);  // HF - Self energy ext charges
   BOOST_CHECK_CLOSE(orb.getDFTTotalEnergy(), ref_tot, 1e-5);
   std::ofstream basisfile("3-21G_small.xml");
-  basisfile << "<basis name=\"3-21G\">" << endl;
-  basisfile << "  <element name=\"H\">" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"5.447178e+00\">" << endl;
+  basisfile << "<basis name=\"3-21G\">" << std::endl;
+  basisfile << "  <element name=\"H\">" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"5.447178e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"1.562850e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"8.245470e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"8.245470e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"9.046910e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"1.831920e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"1.831920e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "  </element>" << endl;
-  basisfile << "  <element name=\"C\">" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"1.722560e+02\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "  </element>" << std::endl;
+  basisfile << "  <element name=\"C\">" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"1.722560e+02\">" << std::endl;
   basisfile << "        <contractions factor=\"6.176690e-02\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"2.591090e+01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"2.591090e+01\">" << std::endl;
   basisfile << "        <contractions factor=\"3.587940e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"5.533350e+00\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"5.533350e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"7.007130e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
-  basisfile << "      <constant decay=\"3.664980e+00\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
+  basisfile << "      <constant decay=\"3.664980e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"-3.958970e-01\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"2.364600e-01\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"7.705450e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"7.705450e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.215840e+00\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"8.606190e-01\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
-  basisfile << "      <constant decay=\"1.958570e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
+  basisfile << "      <constant decay=\"1.958570e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "  </element>" << endl;
-  basisfile << "</basis>" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "  </element>" << std::endl;
+  basisfile << "</basis>" << std::endl;
   basisfile.close();
 
   std::ofstream fort("gaussian_ext_mos.fort");
@@ -1422,7 +1421,7 @@ BOOST_AUTO_TEST_CASE(getcharges) {
   ref.push_back(s5);
 
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
-  for (Index i = 0; i < seg.size(); i++) {
+  for (Index i = 0; i < Index(seg.size()); i++) {
     BOOST_CHECK_EQUAL(ref[i].Q().isApprox(seg[i].Q(), 1e-5), true);
     bool check_pos = ref[i].getPos().isApprox(seg[i].getPos(), 1e-5);
     BOOST_CHECK_EQUAL(check_pos, true);

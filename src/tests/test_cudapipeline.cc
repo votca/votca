@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
   CudaMatrix cuma_B{3, 2, cuda_pip.get_stream()};
   CudaMatrix cuma_C{3, 2, cuda_pip.get_stream()};
 
-  for (Index i = 0; i < 3; i++) {
+  for (votca::Index i = 0; i < 3; i++) {
     cuma_B.copy_to_gpu(tensor[i]);
     cuda_pip.gemm(cuma_B, cuma_A, cuma_C);
     results[i] = cuma_C;

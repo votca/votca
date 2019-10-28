@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(rpa_calcenergies) {
   dftenergies << -0.5, -0.4, -0.3, -0.2, -0.2, -0.1, 0, 0.1, 0.2, 0.3;
   Eigen::VectorXd gwenergies = Eigen::VectorXd::Zero(7);
   gwenergies << -0.15, -0.05, 0.05, 0.15, 0.45, 0.55, 0.65;
-  Index qpmin = 1;
+  votca::Index qpmin = 1;
   rpa.UpdateRPAInputEnergies(dftenergies, gwenergies, qpmin);
   Eigen::VectorXd rpaenergies = rpa.getRPAInputEnergies();
   Eigen::VectorXd rpaenergies_ref = Eigen::VectorXd::Zero(10);

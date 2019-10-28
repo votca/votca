@@ -22,7 +22,6 @@
 #include <votca/xtp/sphere_lebedev_rule.h>
 using namespace votca::xtp;
 using namespace votca;
-using namespace std;
 
 BOOST_AUTO_TEST_SUITE(sphere_lebedev_rule_test)
 
@@ -47,14 +46,14 @@ Eigen::VectorXd ReadVectorFromString(const std::string& matrix) {
 
 BOOST_AUTO_TEST_CASE(medium_test) {
 
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " C            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " C            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
   xyzfile.close();
 
   QMMolecule mol("noname", 0);
@@ -282,14 +281,14 @@ BOOST_AUTO_TEST_CASE(medium_test) {
 
 BOOST_AUTO_TEST_CASE(fine_test) {
 
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " Ge            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " Ge            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
   xyzfile.close();
 
   QMMolecule mol("noname", 0);
@@ -1022,10 +1021,10 @@ BOOST_AUTO_TEST_CASE(fine_test) {
 }
 BOOST_AUTO_TEST_CASE(element_not_implemented) {
 
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 1" << endl;
-  xyzfile << " mercury" << endl;
-  xyzfile << " Hg            .000000     .000000     .000000" << endl;
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " 1" << std::endl;
+  xyzfile << " mercury" << std::endl;
+  xyzfile << " Hg            .000000     .000000     .000000" << std::endl;
   xyzfile.close();
 
   QMMolecule mol("noname", 0);
@@ -1039,14 +1038,14 @@ BOOST_AUTO_TEST_CASE(element_not_implemented) {
 
 BOOST_AUTO_TEST_CASE(xfine_test) {
 
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " Ge            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " Ge            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
   xyzfile.close();
 
   QMMolecule mol("noname", 0);

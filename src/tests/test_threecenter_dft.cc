@@ -24,7 +24,6 @@
 
 using namespace votca::xtp;
 using namespace votca;
-using namespace std;
 
 BOOST_AUTO_TEST_SUITE(threecenter_dft_test)
 
@@ -54,75 +53,75 @@ BOOST_AUTO_TEST_CASE(small_basis) {
 
   OPENMP::setMaxThreads(1);
 
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " C            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " C            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
   xyzfile.close();
 
-  ofstream basisfile("3-21G.xml");
-  basisfile << "<basis name=\"3-21G\">" << endl;
-  basisfile << "  <element name=\"H\">" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"5.447178e+00\">" << endl;
+  std::ofstream basisfile("3-21G.xml");
+  basisfile << "<basis name=\"3-21G\">" << std::endl;
+  basisfile << "  <element name=\"H\">" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"5.447178e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"1.562850e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"8.245470e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"8.245470e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"9.046910e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"1.831920e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"1.831920e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "  </element>" << endl;
-  basisfile << "  <element name=\"C\">" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"1.722560e+02\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "  </element>" << std::endl;
+  basisfile << "  <element name=\"C\">" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"1.722560e+02\">" << std::endl;
   basisfile << "        <contractions factor=\"6.176690e-02\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"2.591090e+01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"2.591090e+01\">" << std::endl;
   basisfile << "        <contractions factor=\"3.587940e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"5.533350e+00\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"5.533350e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"7.007130e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
-  basisfile << "      <constant decay=\"3.664980e+00\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
+  basisfile << "      <constant decay=\"3.664980e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"-3.958970e-01\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"2.364600e-01\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"7.705450e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"7.705450e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.215840e+00\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"8.606190e-01\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
-  basisfile << "      <constant decay=\"1.958570e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
+  basisfile << "      <constant decay=\"1.958570e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "  </element>" << endl;
-  basisfile << "</basis>" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "  </element>" << std::endl;
+  basisfile << "</basis>" << std::endl;
   basisfile.close();
 
   QMMolecule mol(" ", 0);
@@ -245,18 +244,18 @@ BOOST_AUTO_TEST_CASE(small_basis) {
 
   bool check_three1 = Ref0.isApprox(threec[0].FullMatrix(), 0.00001);
   if (!check_three1) {
-    cout << "Res0" << endl;
-    cout << threec[0].FullMatrix() << endl;
-    cout << "0_ref" << endl;
-    cout << Ref0 << endl;
+    std::cout << "Res0" << std::endl;
+    std::cout << threec[0].FullMatrix() << std::endl;
+    std::cout << "0_ref" << std::endl;
+    std::cout << Ref0 << std::endl;
   }
   BOOST_CHECK_EQUAL(check_three1, true);
   bool check_three2 = Ref4.isApprox(threec[4].FullMatrix(), 0.00001);
   if (!check_three2) {
-    cout << "Res4" << endl;
-    cout << threec[4].FullMatrix() << endl;
-    cout << "4_ref" << endl;
-    cout << Ref4 << endl;
+    std::cout << "Res4" << std::endl;
+    std::cout << threec[4].FullMatrix() << std::endl;
+    std::cout << "4_ref" << std::endl;
+    std::cout << Ref4 << std::endl;
   }
   BOOST_CHECK_EQUAL(check_three2, true);
 }
@@ -273,29 +272,29 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   QMMolecule mol("C", 0);
   mol.LoadFromFile("C2.xyz");
 
-  ofstream basisfile("G.xml");
-  basisfile << "<basis name=\"G\">" << endl;
-  basisfile << "  <element name=\"C\">" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"G\">" << endl;
-  basisfile << "      <constant decay=\"5.447178e+00\">" << endl;
+  std::ofstream basisfile("G.xml");
+  basisfile << "<basis name=\"G\">" << std::endl;
+  basisfile << "  <element name=\"C\">" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"G\">" << std::endl;
+  basisfile << "      <constant decay=\"5.447178e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"1.562850e-01\" type=\"G\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "  </element>" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "  </element>" << std::endl;
   basisfile << "</basis>" << std::endl;
   basisfile.close();
 
-  ofstream auxbasisfile("I.xml");
-  auxbasisfile << "<basis name=\"I\">" << endl;
-  auxbasisfile << "  <element name=\"C\">" << endl;
-  auxbasisfile << "    <shell scale=\"1.0\" type=\"I\">" << endl;
-  auxbasisfile << "      <constant decay=\"5.447178e+00\">" << endl;
+  std::ofstream auxbasisfile("I.xml");
+  auxbasisfile << "<basis name=\"I\">" << std::endl;
+  auxbasisfile << "  <element name=\"C\">" << std::endl;
+  auxbasisfile << "    <shell scale=\"1.0\" type=\"I\">" << std::endl;
+  auxbasisfile << "      <constant decay=\"5.447178e+00\">" << std::endl;
   auxbasisfile << "        <contractions factor=\"1.562850e-01\" type=\"I\"/>"
-               << endl;
-  auxbasisfile << "      </constant>" << endl;
-  auxbasisfile << "    </shell>" << endl;
-  auxbasisfile << "  </element>" << endl;
+               << std::endl;
+  auxbasisfile << "      </constant>" << std::endl;
+  auxbasisfile << "    </shell>" << std::endl;
+  auxbasisfile << "  </element>" << std::endl;
   auxbasisfile << "</basis>" << std::endl;
   auxbasisfile.close();
 
@@ -619,10 +618,10 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
     bool check = ref[i].isApprox(threec[indeces[i]].FullMatrix(), 1e-5);
     BOOST_CHECK_EQUAL(check, true);
     if (!check) {
-      cout << "ref " << indeces[i] << endl;
-      cout << ref[i] << endl;
-      cout << "result " << indeces[i] << endl;
-      cout << threec[indeces[i]].FullMatrix() << endl;
+      std::cout << "ref " << indeces[i] << std::endl;
+      std::cout << ref[i] << std::endl;
+      std::cout << "result " << indeces[i] << std::endl;
+      std::cout << threec[indeces[i]].FullMatrix() << std::endl;
     }
   }
 }

@@ -50,11 +50,11 @@ BOOST_AUTO_TEST_CASE(index_test) {
     }
   }
 
-  for (Index j = 0; j < (Index)indexv.size(); j++) {
+  for (Index j = 0; j < Index(indexv.size()); j++) {
     BOOST_CHECK_EQUAL(indexv[j], vc.v(j));
   }
 
-  for (Index j = 0; j < (Index)indexc.size(); j++) {
+  for (Index j = 0; j < Index(indexc.size()); j++) {
     BOOST_CHECK_EQUAL(indexc[j], vc.c(j));
   }
 }

@@ -12,7 +12,6 @@
 
 using namespace votca::xtp;
 using namespace votca;
-using namespace std;
 
 Eigen::MatrixXd symm_matrix(Index N, double eps) {
   Eigen::MatrixXd matrix;
@@ -380,14 +379,14 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
 
   bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
   if (!check_eigenvalues) {
-    cout << "Davidson not converged after " << DS.num_iterations()
-         << " iterations" << endl;
-    cout << "Reference eigenvalues" << endl;
-    cout << lambda_ref.head(neigen) << endl;
-    cout << "Davidson eigenvalues" << endl;
-    cout << lambda << endl;
-    cout << "Residue norms" << endl;
-    cout << DS.residues() << endl;
+    std::cout << "Davidson not converged after " << DS.num_iterations()
+              << " iterations" << std::endl;
+    std::cout << "Reference eigenvalues" << std::endl;
+    std::cout << lambda_ref.head(neigen) << std::endl;
+    std::cout << "Davidson eigenvalues" << std::endl;
+    std::cout << lambda << std::endl;
+    std::cout << "Residue norms" << std::endl;
+    std::cout << DS.residues() << std::endl;
   }
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
 

@@ -691,7 +691,7 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   ref.push_back(s4);
   ref.push_back(s5);
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
-  for (Index i = 0; i < seg.size(); i++) {
+  for (votca::Index i = 0; i < votca::Index(seg.size()); i++) {
     BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
@@ -759,7 +759,7 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   orca->setMOsFileName("orca_ext_mos.gbw");
   std::fstream gbwfile("orca_ext_mos.gbw", std::ios::out | std::ios::binary);
 
-  Index system_gbw[] = {
+  unsigned char system_gbw[] = {
       0x28, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x01, 0x01, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x60, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x1e, 0x22, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -7177,7 +7177,7 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  Index system_gbw_len = 76998;
+  votca::Index system_gbw_len = 76998;
 
   gbwfile.write((char*)&system_gbw[0], system_gbw_len * sizeof(char));
   orca->ParseMOsFile(orb);
@@ -7628,7 +7628,7 @@ BOOST_AUTO_TEST_CASE(charges_test) {
   ref.push_back(s5);
 
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
-  for (Index i = 0; i < seg.size(); i++) {
+  for (votca::Index i = 0; i < votca::Index(seg.size()); i++) {
     BOOST_CHECK_EQUAL(ref[i].Q().isApprox(seg[i].Q(), 1e-5), true);
     BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
@@ -8510,7 +8510,7 @@ BOOST_AUTO_TEST_CASE(opt_test) {
   ref.push_back(s4);
   ref.push_back(s5);
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
-  for (Index i = 0; i < seg.size(); i++) {
+  for (votca::Index i = 0; i < votca::Index(seg.size()); i++) {
     BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }

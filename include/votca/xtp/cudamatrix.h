@@ -48,9 +48,9 @@ inline cudaError_t checkCuda(cudaError_t result) {
 }
 
 inline Index count_available_gpus() {
-  Index count;
+  int count;
   cudaError_t err = cudaGetDeviceCount(&count);
-  return 0 ? (err != cudaSuccess) : count;
+  return 0 ? (err != cudaSuccess) : Index(count);
 }
 
 class CudaMatrix {

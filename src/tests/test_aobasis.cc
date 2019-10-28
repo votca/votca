@@ -25,7 +25,6 @@
 
 using namespace votca::xtp;
 using namespace votca;
-using namespace std;
 
 BOOST_AUTO_TEST_SUITE(aobasis_test)
 
@@ -85,81 +84,81 @@ BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
 
 BOOST_AUTO_TEST_CASE(ReorderMos_test) {
 
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " C            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " C            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
   xyzfile.close();
 
-  ofstream basisfile("3-21G.xml");
-  basisfile << "<basis name=\"3-21G\">" << endl;
-  basisfile << "  <element name=\"H\">" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"5.447178e+00\">" << endl;
+  std::ofstream basisfile("3-21G.xml");
+  basisfile << "<basis name=\"3-21G\">" << std::endl;
+  basisfile << "  <element name=\"H\">" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"5.447178e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"1.562850e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"8.245470e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"8.245470e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"9.046910e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"1.831920e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"1.831920e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "  </element>" << endl;
-  basisfile << "  <element name=\"C\">" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"1.722560e+02\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "  </element>" << std::endl;
+  basisfile << "  <element name=\"C\">" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"1.722560e+02\">" << std::endl;
   basisfile << "        <contractions factor=\"6.176690e-02\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"2.591090e+01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"2.591090e+01\">" << std::endl;
   basisfile << "        <contractions factor=\"3.587940e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"5.533350e+00\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"5.533350e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"7.007130e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
-  basisfile << "      <constant decay=\"3.664980e+00\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
+  basisfile << "      <constant decay=\"3.664980e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"-3.958970e-01\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"2.364600e-01\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"7.705450e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"7.705450e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.215840e+00\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"8.606190e-01\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
-  basisfile << "      <constant decay=\"1.958570e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
+  basisfile << "      <constant decay=\"1.958570e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
   basisfile << "    <shell scale=\"1.0\" type=\"D\">" << std::endl;
   basisfile << "      <constant decay=\"1.570000e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"2.000000e-01\" type=\"D\"/>"
             << std::endl;
   basisfile << "      </constant>" << std::endl;
   basisfile << "    </shell> " << std::endl;
-  basisfile << "  </element>" << endl;
-  basisfile << "</basis>" << endl;
+  basisfile << "  </element>" << std::endl;
+  basisfile << "</basis>" << std::endl;
   basisfile.close();
 
   Orbitals orbitals;

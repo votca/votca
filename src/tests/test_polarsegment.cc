@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(add_atom_test) {
   Eigen::Vector3d pos = Eigen::Vector3d::Ones();
   PolarSite site = PolarSite(0, "C", pos);
   Eigen::VectorXd poles = Vector9d::Ones(9);
-  Index rank = 2;
+  votca::Index rank = 2;
   site.setMultipole(poles, rank);
   seg.push_back(site);
 
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(readwritehdf) {
   CheckpointReader rr = ff.getReader();
   PolarSegment seg2(rr);
   BOOST_CHECK_EQUAL(seg.size(), seg2.size());
-  for (Index i = 0; i < seg.size(); i++) {
+  for (votca::Index i = 0; i < seg.size(); i++) {
     BOOST_CHECK_EQUAL(seg2[i].Q().isApprox(seg[i].Q(), 1e-5), true);
     BOOST_CHECK_EQUAL(seg2[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(seg2[i].getElement(), seg[i].getElement());
@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE(readwritemps) {
   PolarSegment seg2("seg2", 1);
   seg2.LoadFromFile("test.mps");
   BOOST_CHECK_EQUAL(seg.size(), seg2.size());
-  for (Index i = 0; i < seg.size(); i++) {
+  for (votca::Index i = 0; i < seg.size(); i++) {
     BOOST_CHECK_EQUAL(seg2[i].Q().isApprox(seg[i].Q(), 1e-5), true);
     BOOST_CHECK_EQUAL(seg2[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(seg2[i].getElement(), seg[i].getElement());
