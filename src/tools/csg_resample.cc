@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
     }
 
     out.GenerateGridSpacing(min, max, step);
-    spline->Calculate(out.x(), out.y());
+    out.y() = spline->Calculate(out.x());
 
     // store a comment line
     if (vm.count("comment")) {
@@ -264,7 +264,7 @@ int main(int argc, char **argv) {
     out.Save(out_file);
 
     if (vm.count("derivative")) {
-      spline->CalculateDerivative(der.x(), der.y());
+      der.y() = spline->CalculateDerivative(der.x());
 
       der.Save(vm["derivative"].as<string>());
     }
