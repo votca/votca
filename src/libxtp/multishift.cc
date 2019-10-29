@@ -44,11 +44,11 @@ Multishift::MultiShiftResult Multishift::ComplexBiCG(const Eigen::MatrixXcd& A, 
   Eigen::VectorXcd x = Eigen::VectorXcd::Zero(_matrix_size);
  
   double res = 1;
-  double tol = 1e-7;
+  double tol = 1e-18;
  
   int i = 0;
 
-  int max_iter = 10000;
+  int max_iter = 1000000;
 
   while (res > tol) {
     
@@ -64,7 +64,9 @@ Multishift::MultiShiftResult Multishift::ComplexBiCG(const Eigen::MatrixXcd& A, 
     if (i == max_iter) {
       
       result.converged=false;
-
+      
+      std::cout<<"cBiCG failed"<<std::endl;
+      
       x = A.colPivHouseholderQr().solve(b);
     }
   }
@@ -118,6 +120,7 @@ Eigen::VectorXcd Multishift::DoMultishift(const Eigen::MatrixXcd& A,
            input._step_length_a[i+1] * input._step_length_b[i+1- 1] / input._step_length_a[i+1- 1] * (pi_p - pi);
     pi = pi_temp;
   }
+  
   return x;
 }
 }  // namespace xtp

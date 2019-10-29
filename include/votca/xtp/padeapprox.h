@@ -57,6 +57,8 @@ class PadeApprox {
   int _basis_size;
 
   int _rejected_points = 0;
+  
+  Eigen::MatrixXcd _polynom_contain;
 
   Eigen::MatrixXcd RecursivePolynom(int indx, int degree);
 

@@ -256,15 +256,15 @@ BOOST_AUTO_TEST_CASE(sternheimerw_polar) {
         std::cout<<polar.at(i)<<std::endl;
     }
     Eigen::Matrix3cd polar1 = Eigen::Matrix3cd::Zero();
-    polar1 << std::complex<double>(-242.7,-1.42212e-11), std::complex<double>(-0.00762263,-0.000588962), std::complex<double>(-0.00354416,-0.000464052),
-    std::complex<double>(-0.00762263,0.000588962), std::complex<double>(-242.693,-2.13349e-11), std::complex<double>(0.000867493,-0.000142456),
-    std::complex<double>(-0.00354416,0.000464052),  std::complex<double>(0.000867493,0.000142456), std::complex<double>(-242.69,-1.01156e-11);
+    polar1 << std::complex<double>(2513.29,3.50459e-09), std::complex<double>(0.11608,0.022679), std::complex<double>(-1.12877,1.42558),
+    std::complex<double>(0.11608,-0.022679), std::complex<double>(2513.31,1.16054e-08), std::complex<double> (0.198583,-0.126805),
+    std::complex<double>(-1.12877,-1.42558),  std::complex<double>(0.198583,0.126805), std::complex<double>(2513.29,7.85936e-09);
 
     Eigen::Matrix3cd polar3 = Eigen::Matrix3cd::Zero();
-    polar3 << std::complex<double>(-118.752,-5.27428e-12), std::complex<double>(-0.00245909,-0.0014254), std::complex<double>(-0.000956917,-0.00127581),
-    std::complex<double>(-0.00245909,0.0014254), std::complex<double>(-118.748,-9.59389e-12), std::complex<double>(0.000456679,-0.00069252),
-    std::complex<double>(-0.000956917,0.00127581), std::complex<double>(0.000456679,0.00069252), std::complex<double>(-118.748,-7.39539e-12);
-
+    polar3 << std::complex<double>(142.515,1.26011e-11), std::complex<double>(0.000548321,0.000266195), std::complex<double>(-0.00748852,0.00538178),
+    std::complex<double>(0.000548321,-0.000266195), std::complex<double>(142.515,5.65901e-11), std::complex<double>(0.00115862,-0.00034274),
+    std::complex<double>(-0.00748852,-0.00538178), std::complex<double>(0.00115862,0.00034274), std::complex<double> (142.515,4.39584e-11);
+ 
     std::cout<<"Polar at w= "<<w.at(1)<<std::endl;
     std::cout<<polar.at(1)<<std::endl;
 

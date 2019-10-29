@@ -62,7 +62,7 @@ Eigen::MatrixXcd PadeApprox::RecursivePolynom(int indx, int degree) {
   } else {
     Eigen::MatrixXcd temp = RecursivePolynom(indx, degree - 1);
 
-    Eigen::MatrixXcd u = RecursivePolynom(degree - 2, degree - 1) - temp;
+    Eigen::MatrixXcd u = _coeff[degree-2] - temp;
     Eigen::MatrixXcd l = temp * (_grid.at(indx) - _grid.at(degree - 2));
     return u * (l.inverse());
   }

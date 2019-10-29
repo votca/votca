@@ -72,6 +72,8 @@ class SternheimerW {
   Eigen::MatrixXcd _Hamiltonian_Matrix;
 
   Eigen::MatrixXcd _overlap_Matrix;
+  
+  Eigen::MatrixXcd _inverse_overlap;
 
   Eigen::MatrixXcd _density_Matrix;
 
@@ -90,7 +92,7 @@ class SternheimerW {
   Eigen::MatrixXcd CalculateDeltaVExpansion(Eigen::MatrixXcd deltaV);
   // sets up the left hand side of the sternheimer equation
   Eigen::MatrixXcd SternheimerLHS(const Eigen::MatrixXcd& hamiltonian,
-                                  const Eigen::MatrixXcd& overlap, double eps,
+                                  const Eigen::MatrixXcd& inverse_overlap, double eps,
                                   std::complex<double> w, bool pm) const;
   // sets up the right hand side of the sternheimer equation
   Eigen::VectorXcd SternheimerRHS(const Eigen::MatrixXcd& overlap,

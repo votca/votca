@@ -43,6 +43,7 @@ void SternheimerW::Initialize() {
   this->_overlap_Matrix = OverlapMatrix();
   this->_mo_coefficients = _orbitals.MOCoefficients();
   this->_mo_energies = _orbitals.MOEnergies();
+  this->_inverse_overlap = _overlap_Matrix.inverse();
 }
 
 void SternheimerW::initializeMultishift(int size) { 
@@ -85,7 +86,7 @@ Eigen::MatrixXcd SternheimerW::CoulombMatrix(Eigen::Vector3d gridpoint) const{
 }
 
 Eigen::MatrixXcd SternheimerW::SternheimerLHS(const Eigen::MatrixXcd& hamiltonian,
-                                              const Eigen::MatrixXcd& overlap,
+                                              const Eigen::MatrixXcd& inverse_overlap,
                                               double eps,
                                               std::complex<double> omega,
                                               bool pm) const{
@@ -95,20 +96,20 @@ Eigen::MatrixXcd SternheimerW::SternheimerLHS(const Eigen::MatrixXcd& hamiltonia
   if (pm != true) {
     temp = (eps - omega);
   }
-  return (hamiltonian - temp*overlap);
+  return (inverse_overlap*hamiltonian - temp*Eigen::MatrixXcd::Identity(_basis_size,_basis_size));
 }
 
-Eigen::VectorXcd SternheimerW::SternheimerRHS(const Eigen::MatrixXcd& overlap,
+Eigen::VectorXcd SternheimerW::SternheimerRHS(const Eigen::MatrixXcd& inverse_overlap,
                                               const Eigen::MatrixXcd& density,
                                               const Eigen::MatrixXcd& pertubation,
                                               const Eigen::VectorXcd& coeff) const{
 
-  return -1*(Eigen::MatrixXcd::Identity(overlap.rows(), overlap.cols())-overlap*density)*pertubation*coeff;
+  return -1*(inverse_overlap-density)*pertubation*coeff;
 }
 
 Eigen::VectorXcd SternheimerW::SternheimerSolve(const Eigen::MatrixXcd& LHS,
                                                 const Eigen::VectorXcd& RHS){
-  return LHS.colPivHouseholderQr().solve(RHS);;
+  return LHS.colPivHouseholderQr().solve(RHS);
 }
 
 std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOneShot(
@@ -133,7 +134,7 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOneShot(
   
   for (int v = 0; v < _num_occ_lvls; v++) {
 
-    RHS = SternheimerRHS(_overlap_Matrix, _density_Matrix, V, _mo_coefficients.col(v));
+    RHS = SternheimerRHS(_inverse_overlap, _density_Matrix, V, _mo_coefficients.col(v));
     
     for (int i = 0; i < w.size(); i++) {
 
@@ -143,14 +144,18 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOneShot(
 
       if (i == 0) {
         //H_new = _H + alpha * _S * _p.transpose();
-        LHS_P = SternheimerLHS(_Hamiltonian_Matrix, _overlap_Matrix, _mo_energies(v), w[i], true);
+        LHS_P = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w[i], true);
         // std::cout<<"Sternheimer Setup Complete"<<v<<std::endl;
-        result = _multishift.ComplexBiCG(LHS_P, RHS);
-        solution_p[i].col(v) = result._x;
+        //result = _multishift.ComplexBiCG(LHS_P, RHS);
+        solution_p[i].col(v)=LHS_P.colPivHouseholderQr().solve(RHS);
+        //solution_p[i].col(v) = result._x;
       } else {
-        LHS_P = SternheimerLHS(_Hamiltonian_Matrix, _overlap_Matrix, _mo_energies(v), w[i], true);
-
-        solution_p[i].col(v) = _multishift.DoMultishift(LHS_P, RHS, w[i], result);
+        LHS_P = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w[i], true);
+        solution_p[i].col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
+        //solution_p[i].col(v) = _multishift.DoMultishift(LHS_P,RHS,w[i],result);
+//        if(((LHS_P+w[i]*Eigen::MatrixXcd::Identity(_basis_size,_basis_size))*solution_p[i].col(v)-RHS).norm()>1e-13){
+//            std::cout<<"res_p="<<(LHS_P+w[i]*Eigen::MatrixXcd::Identity(_basis_size,_basis_size))*solution_p[i].col(v)-RHS<<std::endl;
+//        }
       }
     }
     for (int i = 0; i < w.size(); i++) {
@@ -161,13 +166,18 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOneShot(
 
       if (i == 0) {
         //H_new = _H + alpha * _S * _p.transpose();
-        LHS_M = SternheimerLHS(_Hamiltonian_Matrix, _overlap_Matrix, _mo_energies(v), w[i], false);
-        result = _multishift.ComplexBiCG(LHS_M, RHS);
-        solution_m[i].col(v) = result._x;
+        LHS_M = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w[i], false);
+        //result = _multishift.ComplexBiCG(LHS_M, RHS);
+        solution_m[i].col(v)=LHS_M.colPivHouseholderQr().solve(RHS);
+        //solution_m[i].col(v) = result._x;
       }else {
-        LHS_M = SternheimerLHS(_Hamiltonian_Matrix, _overlap_Matrix, _mo_energies(v), w[i], false);
-
-        solution_m[i].col(v) = _multishift.DoMultishift(LHS_M, RHS, w[i], result);
+        //LHS_M = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w[i], false);
+        
+        solution_m[i].col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
+        //solution_m[i].col(v) = _multishift.DoMultishift(LHS_M,RHS,-w[i],result);
+        //if(((LHS_M+w[i]*Eigen::MatrixXcd::Identity(_basis_size,_basis_size))*solution_m[i].col(v)-RHS).norm()>1e-13){
+        //    std::cout<<"res_m="<<(LHS_M-w[i]*Eigen::MatrixXcd::Identity(_basis_size,_basis_size))*solution_m[i].col(v)-RHS<<std::endl;
+        //}
       }
     }
   }
@@ -176,18 +186,9 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOneShot(
 
     delta_n.push_back(Eigen::MatrixXcd::Zero(_basis_size, _basis_size));
 
-    for (int v = 0; v < _basis_size; v++) {
-
-      for (int i = 0; i < _basis_size; i++) {
-
-        for (int j = 0; j < _basis_size; j++) {
-
-          delta_n[m](i, j) +=
-              2 * _mo_coefficients(i, v) * solution_p[m](j, v) +
-              2 * _mo_coefficients(i, v) * solution_m[m](j, v);
-        }
-      }
-    }
+    delta_n[m] +=
+    2 * _mo_coefficients * solution_p[m].transpose() +
+    2 * _mo_coefficients * solution_m[m].transpose();
   }
   return delta_n;
 }
@@ -204,7 +205,7 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOS(std::complex<double> w,
   std::vector<std::pair<double, const Eigen::Vector3d*>> gridpoints =
       numint.getGridpoints();
 
-  std::cout << "gridsize= " << numint.getGridSize() << std::endl;
+  std::cout << std::endl<< "gridsize= " << numint.getGridSize() << std::endl;
   // Setting up constants
   const int& num_occ_lvls = _orbitals.getNumberOfAlphaElectrons();
   const int& basis_size = _orbitals.getBasisSetSize();
@@ -305,24 +306,24 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
 
   std::cout << "gridsize= " << numint.getGridSize() << std::endl;
 
-  std::vector<Eigen::MatrixXcd> Polar;
-  std::vector<Eigen::MatrixXcd> Polar_pade;
-
-  std::vector<Eigen::MatrixXcd> delta_n;
-
-  double r_x;
-  Eigen::Vector3d gridcont;
-
   AOBasis basis = _orbitals.SetupDftBasis();
   AODipole dipole;
   dipole.Fill(basis);
 
   std::cout << "Dipole integral complete" << std::endl;
+  
+  std::vector<Eigen::MatrixXcd> Polar_pade;
+  std::vector<Eigen::MatrixXcd> delta_n;
 
+  double r_x;
+  Eigen::Vector3d gridcont;
+
+  std::vector<Eigen::MatrixXcd> Polar;
   for(const std::complex<double> w: grid_w){
       Polar.push_back(Eigen::MatrixXcd::Zero(3, 3));
   }
   
+  int index=0;
   for (const std::pair<double, const Eigen::Vector3d*> point: grid) {  
     delta_n = DeltaNOneShot(grid_w, *point.second);
     gridcont = *point.second;
@@ -334,6 +335,10 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
         }
       }
     }
+    if(index%100==0){
+        std::cout<<"Iteration="<<index<<std::endl;
+    }
+    index++;
     delta_n.clear();
   }
   for (int o = 0; o < grid_w.size(); o++) {
@@ -344,14 +349,19 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
       }
     }
   }
-  
+  for(int i=0;i<grid_w.size();i++){
+      std::cout<<"Polar at "<<grid_w[i]<<" ="<<std::endl<<Polar[i]<<std::endl;
+  }
   
   for (int i = 0; i < Polar.size(); i++) {
     _pade.addPoint(grid_w[i], Polar[i]);
+    std::cout<<"Added Point number "<<w[i]<<std::endl;
     _pade.addPoint(conj(grid_w[i]), Polar[i].adjoint());
+    std::cout<<"Added Point number "<<w[i]<<std::endl;
   }
 
   for (std::complex<double> w:w) {
+    std::cout<<"Calculated Point number"<<w<<std::endl;
     Polar_pade.push_back(_pade.evaluatePoint(w));
   }
   return Polar_pade;

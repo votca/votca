@@ -547,21 +547,24 @@ bool GWBSE::Evaluate() {
       << TimeStamp() << " DFT data was created by " << dft_package << flush;
 
   if(_do_Sternheimer){
+      
+      XTP_LOG(logDEBUG, *_pLog)<<TimeStamp()<<" Started Sternheimer "<<flush;
+      
       SternheimerW sternheimer(_orbitals,*_pLog);
       std::vector<std::complex<double>> w_g;
       std::vector<std::complex<double>> w;
       
       std::complex<double> d(1,0);
       std::complex<double> i(0,1);
-      for(int n=1;n<5;n++){
-          w_g.push_back(n*d+5*i);
+      for(int n=1;n<50;n++){
+          w_g.push_back(n*d/5+3*i);
       }
-      for(int n=0;n<5;n++){
-          w.push_back(n*d);
+      for(int n=1;n<50;n++){
+          w.push_back(n*d/5);
       }
       
+      XTP_LOG(logDEBUG, *_pLog)<<TimeStamp()<<" Initialised Grid "<<flush;
       
-      std::cout<<std::endl<<"Started Sternheimer"<<std::endl;
   
       sternheimer.Initialize();
       
