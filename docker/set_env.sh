@@ -110,7 +110,7 @@ else
   die "Unknown environment"
 fi
 
-add_to_docker_opts CXXFLAGS="${CXXFLAGS} -Wall -Wextra -Wpedantic -Wshadow -Wconversion ${WERROR:+-Werror}"
+add_to_docker_opts CXXFLAGS="${CXXFLAGS} -Wall -Wextra -Wpedantic -Wshadow ${WERROR:+-Werror}"
 add_to_docker_opts TRAVIS_OS_NAME="${DISTRO:-fedora}"
 
 export docker_opts
