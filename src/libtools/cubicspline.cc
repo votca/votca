@@ -25,7 +25,8 @@ namespace tools {
 
 using namespace std;
 
-void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
+void CubicSpline::Interpolate(const Eigen::VectorXd &x,
+                              const Eigen::VectorXd &y) {
   if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in CubicSpline::Interpolate : sizes of vectors x and y do not "
@@ -43,13 +44,12 @@ void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   // copy the grid points into f
   _r = x;
   _f = y;
-  _f2 = Eigen::VectorXd::Zero(N);
+  Eigen::VectorXd temp = Eigen::VectorXd::Zero(N);
 
-  // not calculate the f''
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N, N);
 
   for (int i = 0; i < N - 2; ++i) {
-    _f2(i + 1) =
+    temp(i + 1) =
         -(A_prime_l(i) * _f(i) + (B_prime_l(i) - A_prime_r(i)) * _f(i + 1) -
           B_prime_r(i) * _f(i + 2));
 
@@ -77,10 +77,10 @@ void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   }
 
   Eigen::HouseholderQR<Eigen::MatrixXd> QR(A);
-  _f2 = QR.solve(_f2);
+  _f2 = QR.solve(temp);
 }
 
-void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
+void CubicSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
   if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in CubicSpline::Fit : sizes of vectors x and y do not match");
@@ -105,8 +105,7 @@ void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   // construct the matrix to fit the points and the vector b
   AddToFitMatrix(A, x, 0);
   // now do a constrained qr solve
-  Eigen::VectorXd sol = Eigen::VectorXd::Zero(2 * ngrid);
-  linalg_constrained_qrsolve(sol, A, y, B);
+  Eigen::VectorXd sol = linalg_constrained_qrsolve(A, y, B);
 
   // check vector "sol" for nan's
   for (int i = 0; i < 2 * ngrid; i++) {
