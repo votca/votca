@@ -136,7 +136,8 @@ class CGOrderParam : public CsgApplication {
 
     cout << "Average number of molecules within cutoff " << endl;
     for (votca::Index i = 0; i < _rbins; i++) {
-      cout << (double)i * _rbinw << " " << (double)_nmol[i] / (double)_n << endl;
+      cout << (double)i * _rbinw << " " << (double)_nmol[i] / (double)_n
+           << endl;
     }
 
     double exp_value = 1.0 / (double)_nbin;
@@ -148,9 +149,12 @@ class CGOrderParam : public CsgApplication {
       _hist_v(0, n) /= (double)_nmol[0];
       _hist_w(0, n) /= (double)_nmol[0];
 
-      _file_u << (double)n * 2 / double(_nbin-1) << " " << _hist_u(0, n) << endl;
-      _file_v << (double)n * 2 / double(_nbin-1) << " " << _hist_v(0, n) << endl;
-      _file_w << (double)n * 2 / double(_nbin-1) << " " << _hist_w(0, n) << endl;
+      _file_u << (double)n * 2 / double(_nbin - 1) << " " << _hist_u(0, n)
+              << endl;
+      _file_v << (double)n * 2 / double(_nbin - 1) << " " << _hist_v(0, n)
+              << endl;
+      _file_w << (double)n * 2 / double(_nbin - 1) << " " << _hist_w(0, n)
+              << endl;
 
       orderparam += (_hist_u(0, n) - exp_value) * (_hist_u(0, n) - exp_value);
     }

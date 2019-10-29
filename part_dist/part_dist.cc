@@ -318,7 +318,8 @@ int main(int argc, char **argv) {
         if (p_occ(j, k) == 0) {
           fl_out << 0 << "\t" << flush;
         } else {
-          fl_out << p_occ(j, k) / (1. * (double)analyzed_frames) << "\t" << flush;
+          fl_out << p_occ(j, k) / (1. * (double)analyzed_frames) << "\t"
+                 << flush;
         }
       }
       fl_out << endl;
