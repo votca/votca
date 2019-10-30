@@ -176,7 +176,8 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
       if (mapped.BeadTypeExist(bead_type) == false) {
         mapped.RegisterBeadType(bead_type);
       }
-      Bead *b = mapped.CreateBead(3, "A", bead_type, 1, 0.0, 0.0);
+      Bead *b =
+          mapped.CreateBead(Bead::ellipsoidal, "A", bead_type, 1, 0.0, 0.0);
       Eigen::Vector3d p1 = mol_src->getBead(i)->getPos();
       Eigen::Vector3d p2 = mol_src->getBead(i + 1)->getPos();
       // position is in middle of bond
