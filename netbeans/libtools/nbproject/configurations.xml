@@ -105,6 +105,7 @@
       <itemPath>../../src/libtools/version_nb.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="f2" displayName="Tests" projectFiles="true">
+      <itemPath>../../src/tests/test_akimaspline.cc</itemPath>
       <itemPath>../../src/tests/test_constants.cc</itemPath>
       <itemPath>../../src/tests/test_cubicspline.cc</itemPath>
       <itemPath>../../src/tests/test_datacollection.cc</itemPath>
@@ -123,6 +124,7 @@
       <itemPath>../../src/tests/test_histogramnew.cc</itemPath>
       <itemPath>../../src/tests/test_identity.cc</itemPath>
       <itemPath>../../src/tests/test_linalg.cc</itemPath>
+      <itemPath>../../src/tests/test_linspline.cc</itemPath>
       <itemPath>../../src/tests/test_name.cc</itemPath>
       <itemPath>../../src/tests/test_property.cc</itemPath>
       <itemPath>../../src/tests/test_random.cc</itemPath>
@@ -497,6 +499,13 @@
       </item>
       <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_akimaspline.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_cubicspline.cc"
             ex="false"
             tool="1"
@@ -560,6 +569,8 @@
       <item path="../../src/tests/test_identity.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -940,6 +951,11 @@
       </item>
       <item path="../../src/libtools/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_akimaspline.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_cubicspline.cc"
@@ -1005,6 +1021,8 @@
       <item path="../../src/tests/test_identity.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1385,6 +1403,11 @@
       </item>
       <item path="../../src/libtools/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_akimaspline.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_cubicspline.cc"
@@ -1450,6 +1473,8 @@
       <item path="../../src/tests/test_identity.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>

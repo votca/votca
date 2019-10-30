@@ -44,7 +44,8 @@ class Spline {
    * to be interpolated \param y values of data to be interpolated both vectors
    * must be of same size
    */
-  virtual void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) = 0;
+  virtual void Interpolate(const Eigen::VectorXd &x,
+                           const Eigen::VectorXd &y) = 0;
 
   /**
    * \brief Fit spline through noisy (x,y) values. Points on resulting fitted
@@ -52,20 +53,20 @@ class Spline {
    * fitted \param y values of data to be fitted both vectors must be of same
    * size
    */
-  virtual void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) = 0;
+  virtual void Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) = 0;
 
   /**
    * \brief Calculate spline function value for a given x value on the spline
    * created by Interpolate() or Fit() \param x data value \return y value
    */
-  virtual double Calculate(const double &x) = 0;
+  virtual double Calculate(double x) = 0;
 
   /**
    * \brief Calculate y value for a given x value on the derivative of the
    * spline created by function Interpolate or Fit \param x data value \return y
    * value of derivative
    */
-  virtual double CalculateDerivative(const double &x) = 0;
+  virtual double CalculateDerivative(double x) = 0;
 
   /// enum for type of boundary condition
   enum eBoundary {
@@ -103,37 +104,35 @@ class Spline {
    * \param index of grid point
    * \return grid value
    */
-  inline double getGridPoint(const Index &i);
+  double getGridPoint(int i);
 
   /**
    * \brief Calculate spline function values for given x values on the spline
    * created by Interpolate() or Fit() \param vector of x data values \return
    * vector of y value
    */
-  template <typename vector_type1, typename vector_type2>
-  inline void Calculate(vector_type1 &x, vector_type2 &y);
+  Eigen::VectorXd Calculate(const Eigen::VectorXd &x);
 
   /**
    * \brief Calculate y values for given x values on the derivative of the
    * spline created by function Interpolate or Fit \param vector of x data
    * values \return vector of y value
    */
-  template <typename vector_type1, typename vector_type2>
-  inline void CalculateDerivative(vector_type1 &x, vector_type2 &y);
+  Eigen::VectorXd CalculateDerivative(const Eigen::VectorXd &x);
 
   /**
    * \brief Print spline values (using Calculate()) on output "out" on the
    * entire grid in steps of "interval" \param reference "out" to output \param
    * steps of size "interval"
    */
-  inline void Print(std::ostream &out, double interval);
+  void Print(std::ostream &out, double interval);
 
   /**
    * \brief Determine the index of the interval containing value r
    * \param value r
    * \return interval index
    */
-  inline Index getInterval(const double &r);
+  long int getInterval(double r);
 
   /**
    * \brief Generate the grid for fitting from "min" to "max" in steps of "h"
@@ -149,18 +148,20 @@ class Spline {
    * \return pointer to the corresponding array
    */
   Eigen::VectorXd &getX() { return _r; }
-
+  const Eigen::VectorXd &getX() const { return _r; }
   /**
    * \brief Get the spline data _f
    * \return pointer to the corresponding array
    */
   Eigen::VectorXd &getSplineF() { return _f; }
+  const Eigen::VectorXd &getSplineF() const { return _f; }
 
   /**
    * \brief Get second derivatives (cubic splines)
    * \return pointer to the corresponding array
    */
   Eigen::VectorXd &getSplineF2() { return _f2; }
+  const Eigen::VectorXd &getSplineF2() const { return _f; }
 
  protected:
   eBoundary _boundaries;
@@ -171,49 +172,6 @@ class Spline {
   // second derivatives of grid points
   Eigen::VectorXd _f2;
 };
-
-template <typename vector_type1, typename vector_type2>
-inline void Spline::Calculate(vector_type1 &x, vector_type2 &y) {
-  for (Index i = 0; i < Index(x.size()); ++i) {
-    y(i) = Calculate(x(i));
-  }
-}
-
-template <typename vector_type1, typename vector_type2>
-inline void Spline::CalculateDerivative(vector_type1 &x, vector_type2 &y) {
-  for (Index i = 0; i < Index(x.size()); ++i) {
-    y(i) = CalculateDerivative(x(i));
-  }
-}
-
-inline void Spline::Print(std::ostream &out, double interval) {
-  for (double x = _r[0]; x < _r[_r.size() - 1]; x += interval) {
-    out << x << " " << Calculate(x) << "\n";
-  }
-}
-
-inline Index Spline::getInterval(const double &r) {
-  if (r < _r[0]) {
-    return 0;
-  }
-  if (r > _r[_r.size() - 2]) {
-    return _r.size() - 2;
-  }
-  Index i;
-  for (i = 0; i < _r.size(); ++i) {
-    if (_r[i] > r) {
-      break;
-    }
-  }
-  return i - 1;
-}
-
-inline double Spline::getGridPoint(const Index &i) {
-  if (i >= _r.size()) {
-    return 0;
-  }
-  return _r[i];
-}
 
 }  // namespace tools
 }  // namespace votca

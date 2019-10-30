@@ -24,7 +24,8 @@ namespace tools {
 
 using namespace std;
 
-void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
+void AkimaSpline::Interpolate(const Eigen::VectorXd &x,
+                              const Eigen::VectorXd &y) {
   if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in AkimaSpline::Interpolate : sizes of vectors x and y do not "
@@ -150,7 +151,7 @@ void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   }
 }
 
-void AkimaSpline::Fit(Eigen::VectorXd &, Eigen::VectorXd &) {
+void AkimaSpline::Fit(const Eigen::VectorXd &, const Eigen::VectorXd &) {
   throw std::runtime_error("Akima fit not implemented.");
 }
 

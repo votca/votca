@@ -61,29 +61,23 @@ class CubicSpline : public Spline {
   // construct an interpolation spline
   // x, y are the the points to construct interpolation, both vectors must be of
   // same size
-  void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) override;
+  void Interpolate(const Eigen::VectorXd &x, const Eigen::VectorXd &y) override;
 
   // fit spline through noisy data
   // x,y are arrays with noisy data, both vectors must be of same size
-  void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) override;
+  void Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) override;
 
   // Calculate the function value
-  double Calculate(const double &x) override;
+  double Calculate(double x) override;
 
   // Calculate the function derivative
-  double CalculateDerivative(const double &x) override;
+  double CalculateDerivative(double x) override;
 
-  // Calculate the function value for a whole array, story it in y
-  template <typename vector_type1, typename vector_type2>
-  void Calculate(vector_type1 &x, vector_type2 &y);
-
-  // Calculate the derivative value for a whole array, story it in y
-  template <typename vector_type1, typename vector_type2>
-  void CalculateDerivative(vector_type1 &x, vector_type2 &y);
+  using Spline::Calculate;
+  using Spline::CalculateDerivative;
 
   // set spline parameters to values that were externally computed
-  template <typename vector_type>
-  void setSplineData(vector_type &f, vector_type &f2) {
+  void setSplineData(const Eigen::VectorXd &f, const Eigen::VectorXd &f2) {
     _f = f;
     _f2 = f2;
   }
@@ -168,13 +162,13 @@ class CubicSpline : public Spline {
   double D_prime_r(Index i);
 };
 
-inline double CubicSpline::Calculate(const double &r) {
+inline double CubicSpline::Calculate(double r) {
   Index interval = getInterval(r);
   return A(r) * _f[interval] + B(r) * _f[interval + 1] + C(r) * _f2[interval] +
          D(r) * _f2[interval + 1];
 }
 
-inline double CubicSpline::CalculateDerivative(const double &r) {
+inline double CubicSpline::CalculateDerivative(double r) {
   Index interval = getInterval(r);
   return Aprime(r) * _f[interval] + Bprime(r) * _f[interval + 1] +
          Cprime(r) * _f2[interval] + Dprime(r) * _f2[interval + 1];
@@ -295,45 +289,35 @@ inline double CubicSpline::Bprime(const double &r) {
 }
 
 inline double CubicSpline::C(const double &r) {
-  double xxi, h;
-  xxi = r - _r[getInterval(r)];
-  h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
 
   return (0.5 * xxi * xxi - (1.0 / 6.0) * xxi * xxi * xxi / h -
           (1.0 / 3.0) * xxi * h);
 }
 
 inline double CubicSpline::Cprime(const double &r) {
-  double xxi, h;
-  xxi = r - _r[getInterval(r)];
-  h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
 
   return (xxi - 0.5 * xxi * xxi / h - h / 3);
 }
 
 inline double CubicSpline::D(const double &r) {
-  double xxi, h;
-  xxi = r - _r[getInterval(r)];
-  h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
 
   return ((1.0 / 6.0) * xxi * xxi * xxi / h - (1.0 / 6.0) * xxi * h);
 }
 
 inline double CubicSpline::Dprime(const double &r) {
-  double xxi, h;
-  xxi = r - _r[getInterval(r)];
-  h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
 
   return (0.5 * xxi * xxi / h - (1.0 / 6.0) * h);
 }
-
-/**
-inline Index CubicSpline::getInterval(double &r)
-{
-    if (r < _r[0] || r > _r[_r.size() - 1]) return -1;
-    return Index( (r - _r[0]) / (_r[_r.size()-1] - _r[0]) * (_r.size() - 1) );
-}
- **/
 
 inline double CubicSpline::A_prime_l(Index i) {
   return -1.0 / (_r[i + 1] - _r[i]);

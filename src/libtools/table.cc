@@ -185,7 +185,11 @@ void Table::GenerateGridSpacing(double min, double max, double spacing) {
 void Table::Smooth(Index Nsmooth) {
 
   Index n_2 = size() - 2;
-  while (Nsmooth-- > 0) {
+  if (n_2 < 0) {
+    throw std::runtime_error(
+        "Smoothing only works for arrays of size 3 and larger");
+  }
+  for (Index i = 0; i < Nsmooth; i++) {
     _y.segment(1, n_2) =
         0.25 * (_y.head(n_2) + 2 * _y.segment(1, n_2) + _y.tail(n_2));
   }

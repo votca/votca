@@ -21,9 +21,9 @@
 namespace votca {
 namespace tools {
 
-void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
-                                const Eigen::VectorXd &b,
-                                const Eigen::MatrixXd &constr) {
+Eigen::VectorXd linalg_constrained_qrsolve(const Eigen::MatrixXd &A,
+                                           const Eigen::VectorXd &b,
+                                           const Eigen::MatrixXd &constr) {
   // check matrix for zero column
 
   bool nonzero_found = false;
@@ -34,20 +34,19 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
     }
   }
 
-  const Index NoVariables = x.size();
+  const long int NoVariables = A.cols();
   const Index NoConstrains =
       constr.rows();  // number of constraints is number of rows of constr
+  const long int deg_of_freedom = NoVariables - NoConstrains;
 
   Eigen::HouseholderQR<Eigen::MatrixXd> QR(constr.transpose());
-  Eigen::MatrixXd Q = QR.householderQ();
 
   // Calculate A * Q and store the result in A
-  A = A * Q;
-  // A = [A1 A2], so A2 is just a block of A
+  auto A_new = A * QR.householderQ();
+  // A_new = [A1 A2], so A2 is just a block of A
   // [A1 A2] has N rows. A1 has ysize columns
   // A2 has 2*ngrid-ysize columns
-  Eigen::MatrixXd A2 =
-      A.block(0, NoConstrains, A.rows(), NoVariables - NoConstrains);
+  Eigen::MatrixXd A2 = A_new.rightCols(deg_of_freedom);
   // now perform QR-decomposition of A2 to solve the least-squares problem A2 *
   // z = b A2 has N rows and (2*ngrid-ysize) columns ->
   Eigen::HouseholderQR<Eigen::MatrixXd> QR2(A2);
@@ -55,12 +54,9 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
 
   // Next two steps assemble vector from y (which is zero-vector) and z
   Eigen::VectorXd result = Eigen::VectorXd::Zero(NoVariables);
-  for (Index i = NoConstrains; i < NoVariables; i++) {
-    result[i] = z(i - NoConstrains);
-  }
+  result.tail(deg_of_freedom) = z;
   // To get the final answer this vector should be multiplied by matrix Q
-  x = Q * result;
-  return;
+  return QR.householderQ() * result;
 }
 
 EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, Index nmax) {
@@ -71,7 +67,6 @@ EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, Index nmax) {
   Index n = A.rows();
   std::vector<MKL_INT> ifail(n);
   MKL_INT lda = n;
-
   // make sure that containers for eigenvalues and eigenvectors are of correct
   // size
   result.eigenvalues().resize(nmax);
