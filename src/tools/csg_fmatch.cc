@@ -463,14 +463,14 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *) {
 void CGForceMatching::FmatchAccumulateData() {
   if (_constr_least_sq) {  // Constrained Least Squares
     // Solving linear equations system
-    votca::tools::linalg_constrained_qrsolve(_x, _A, _b, _B_constr);
+    _x = votca::tools::linalg_constrained_qrsolve(_A, _b, _B_constr);
   } else {  // Simple Least Squares
 
     Eigen::HouseholderQR<Eigen::MatrixXd> dec(_A);
     _x = dec.solve(_b);
     Eigen::VectorXd residual = _b - _A * _x;
     // calculate FM residual - quality of FM
-    // FM residual is initially calculated in (kJ/(mol*nm))^2
+    // FM residual is calculated in (kJ/(mol*nm))^2
     double fm_resid = residual.cwiseAbs2().sum();
 
     fm_resid /= (double)(3 * _nbeads * _frame_counter);
@@ -492,7 +492,7 @@ void CGForceMatching::FmatchAccumulateData() {
       sinfo->block_res_f[i] = _x[i + mp];
       sinfo->block_res_f2[i] = _x[i + mp + ngp];
     }
-    // result cutted before is assigned to the corresponding spline
+    // result cut before is assigned to the corresponding spline
     sinfo->Spline.setSplineData(sinfo->block_res_f, sinfo->block_res_f2);
 
     // first output point = first grid point
