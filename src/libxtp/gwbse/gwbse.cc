@@ -550,17 +550,19 @@ bool GWBSE::Evaluate() {
       
       XTP_LOG(logDEBUG, *_pLog)<<TimeStamp()<<" Started Sternheimer "<<flush;
       
+      const double hrt2ev=votca::tools::conv::hrt2ev;
+      
       SternheimerW sternheimer(_orbitals,*_pLog);
       std::vector<std::complex<double>> w_g;
       std::vector<std::complex<double>> w;
       
       std::complex<double> d(1,0);
       std::complex<double> i(0,1);
-      for(int n=1;n<50;n++){
-          w_g.push_back(n*d/5+3*i);
+      for(int n=0;n<50;n++){
+          w_g.push_back((n*hrt2ev/5+3*hrt2ev*i));
       }
-      for(int n=1;n<50;n++){
-          w.push_back(n*d/5);
+      for(int n=0;n<20;n++){
+          w.push_back((n*d/2)*hrt2ev);
       }
       
       XTP_LOG(logDEBUG, *_pLog)<<TimeStamp()<<" Initialised Grid "<<flush;

@@ -53,53 +53,70 @@ void PadeApprox::addPoint(std::complex<double> frequency, Eigen::MatrixXcd value
   }
 }
 
-Eigen::MatrixXcd PadeApprox::RecursivePolynom(int indx, int degree) {
+Eigen::Matrix3cd PadeApprox::RecursivePolynom(int indx, int degree) {
 
   //Eigen::MatrixXcd temp = Eigen::MatrixXcd(_basis_size, _basis_size);
 
   if (degree == 1) {
     return _value.at(indx);
   } else {
-    Eigen::MatrixXcd temp = RecursivePolynom(indx, degree - 1);
+    Eigen::Matrix3cd temp = RecursivePolynom(indx, degree - 1);
 
-    Eigen::MatrixXcd u = _coeff[degree-2] - temp;
-    Eigen::MatrixXcd l = temp * (_grid.at(indx) - _grid.at(degree - 2));
+    Eigen::Matrix3cd u = _coeff[degree-2] - temp;
+    Eigen::Matrix3cd l = temp * (_grid.at(indx) - _grid.at(degree - 2));
     return u * (l.inverse());
   }
 }
 
-Eigen::MatrixXcd PadeApprox::RecursiveA(std::complex<double> frequency, int index) {
+Eigen::Matrix3cd PadeApprox::RecursiveA(std::complex<double> frequency, int index) {
 
-  if (index == 0) {
-    return Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
+    if(_temp_container_A.size()>index){
+        return _temp_container_A[index];
+    }
+    else if (index == 0) {
+        _temp_container_A.push_back(Eigen::Matrix3cd::Zero());
+    return Eigen::Matrix3cd::Zero();
   } else if (index == 1) {
+        _temp_container_A.push_back(_coeff.at(0));
     return _coeff.at(0);
   } else {
-    Eigen::MatrixXcd A = RecursiveA(frequency, index - 1) + (frequency - _grid.at(index - 2)) *
+    Eigen::Matrix3cd A= (frequency - _grid.at(index - 2)) *
                                                     _coeff.at(index - 1) *
-                                                    RecursiveA(frequency, index - 2);
+                                                    RecursiveA(frequency, index - 2) + RecursiveA(frequency, index - 1);
+    _temp_container_A.push_back(A);
     return A;
   }
 }
 
-Eigen::MatrixXcd PadeApprox::RecursiveB(std::complex<double> frequency, int index) {
+Eigen::Matrix3cd PadeApprox::RecursiveB(std::complex<double> frequency, int index) {
 
-  if (index == 0) {
-    return Eigen::MatrixXcd::Identity(_basis_size, _basis_size);
+  if(_temp_container_B.size()>index){
+        return _temp_container_B[index];
+  }
+  else if (index == 0) {
+      _temp_container_B.push_back(Eigen::Matrix3cd::Identity());
+    return Eigen::Matrix3cd::Identity();
   } else if (index == 1) {
-    return Eigen::MatrixXcd::Identity(_basis_size, _basis_size);
+      _temp_container_B.push_back(Eigen::Matrix3cd::Identity());
+    return Eigen::Matrix3cd::Identity();
   } else {
-    Eigen::MatrixXcd B = RecursiveB(frequency, index - 1) + (frequency - _grid.at(index - 2)) *
+    Eigen::Matrix3cd B= (frequency - _grid.at(index - 2)) *
                                                     _coeff.at(index - 1) *
-                                                    RecursiveB(frequency, index - 2);
+                                                    RecursiveB(frequency, index - 2) + RecursiveB(frequency, index - 1);
+    _temp_container_B.push_back(B);
     return B;
   }
 }
 
 void PadeApprox::initialize(int basis_size) { this->_basis_size = basis_size; }
 
-Eigen::MatrixXcd PadeApprox::evaluatePoint(std::complex<double> frequency) {
-
+Eigen::Matrix3cd PadeApprox::evaluatePoint(std::complex<double> frequency) {
+    _temp_container_A.clear();
+    _temp_container_B.clear();
+    _temp_container_A.push_back(Eigen::Matrix3cd::Zero());
+    _temp_container_A.push_back(_coeff.at(0));
+    _temp_container_B.push_back(Eigen::Matrix3cd::Identity());
+    _temp_container_B.push_back(Eigen::Matrix3cd::Identity());
   return RecursiveB(frequency, _grid.size()).inverse() *
          RecursiveA(frequency, _grid.size());
 }

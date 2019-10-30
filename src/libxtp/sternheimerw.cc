@@ -335,7 +335,7 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
         }
       }
     }
-    if(index%100==0){
+    if(index%1000==0){
         std::cout<<"Iteration="<<index<<std::endl;
     }
     index++;
@@ -349,15 +349,10 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
       }
     }
   }
-  for(int i=0;i<grid_w.size();i++){
-      std::cout<<"Polar at "<<grid_w[i]<<" ="<<std::endl<<Polar[i]<<std::endl;
-  }
   
   for (int i = 0; i < Polar.size(); i++) {
     _pade.addPoint(grid_w[i], Polar[i]);
-    std::cout<<"Added Point number "<<w[i]<<std::endl;
     _pade.addPoint(conj(grid_w[i]), Polar[i].adjoint());
-    std::cout<<"Added Point number "<<w[i]<<std::endl;
   }
 
   for (std::complex<double> w:w) {

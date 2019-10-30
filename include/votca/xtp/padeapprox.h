@@ -39,7 +39,7 @@ class PadeApprox {
  public:
   PadeApprox(){};
 
-  Eigen::MatrixXcd evaluatePoint(std::complex<double> frequency);
+  Eigen::Matrix3cd evaluatePoint(std::complex<double> frequency);
 
   void addPoint(std::complex<double> frequency, Eigen::MatrixXcd value);
 
@@ -48,23 +48,24 @@ class PadeApprox {
   void clear();
 
  private:
-  std::vector<Eigen::MatrixXcd> _value;
+  std::vector<Eigen::Matrix3cd> _value;
 
   std::vector<std::complex<double>> _grid;
 
-  std::vector<Eigen::MatrixXcd> _coeff;
+  std::vector<Eigen::Matrix3cd> _coeff;
 
+  std::vector<Eigen::Matrix3cd> _temp_container_A;
+  std::vector<Eigen::Matrix3cd> _temp_container_B;
+  
   int _basis_size;
 
   int _rejected_points = 0;
   
-  Eigen::MatrixXcd _polynom_contain;
+  Eigen::Matrix3cd RecursivePolynom(int indx, int degree);
 
-  Eigen::MatrixXcd RecursivePolynom(int indx, int degree);
+  Eigen::Matrix3cd RecursiveA(std::complex<double> frequency, int index);
 
-  Eigen::MatrixXcd RecursiveA(std::complex<double> frequency, int index);
-
-  Eigen::MatrixXcd RecursiveB(std::complex<double> frequency, int index);
+  Eigen::Matrix3cd RecursiveB(std::complex<double> frequency, int index);
 };
 }  // namespace xtp
 }  // namespace votca
