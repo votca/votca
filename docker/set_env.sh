@@ -111,6 +111,7 @@ else
 fi
 
 add_to_docker_opts CXXFLAGS="${CXXFLAGS} -Wall -Wextra -Wpedantic -Wshadow -Wconversion ${WERROR:+-Werror}"
+[[ $CXX = g++ ]] || CXXFLAGS="${CXXFLAGS} -Wno-sign-conversion"
 add_to_docker_opts TRAVIS_OS_NAME="${DISTRO:-fedora}"
 
 export docker_opts
