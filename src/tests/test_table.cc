@@ -120,8 +120,8 @@ BOOST_AUTO_TEST_CASE(smoothing_test) {
   tb.y() = tb.x().array().sinh();
   tb.Smooth(2);
   Eigen::VectorXd refy = Eigen::VectorXd::Zero(9);
-  refy << 1.50946, 1.70621, 1.91563, 2.14274, 2.39083, 2.66271, 2.96119,
-      3.28637, 3.62686;
+  refy << 1.50946, 1.70621, 1.91527, 2.14055, 2.38962, 2.65963, 2.95959,
+       3.28268, 3.62686;
 
   bool equal = tb.y().isApprox(refy, 1e-5);
 
