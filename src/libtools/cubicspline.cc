@@ -120,5 +120,94 @@ void CubicSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
   _f2 = sol.segment(ngrid, ngrid);
 }
 
+double CubicSpline::Calculate(double r) {
+  long int interval = getInterval(r);
+  return A(r) * _f[interval] + B(r) * _f[interval + 1] + C(r) * _f2[interval] +
+         D(r) * _f2[interval + 1];
+}
+
+double CubicSpline::CalculateDerivative(double r) {
+  long int interval = getInterval(r);
+  return Aprime(r) * _f[interval] + Bprime(r) * _f[interval + 1] +
+         Cprime(r) * _f2[interval] + Dprime(r) * _f2[interval + 1];
+}
+
+double CubicSpline::A(const double &r) {
+  return (1.0 - (r - _r[getInterval(r)]) /
+                    (_r[getInterval(r) + 1] - _r[getInterval(r)]));
+}
+
+double CubicSpline::Aprime(const double &r) {
+  return -1.0 / (_r[getInterval(r) + 1] - _r[getInterval(r)]);
+}
+
+double CubicSpline::B(const double &r) {
+  return (r - _r[getInterval(r)]) /
+         (_r[getInterval(r) + 1] - _r[getInterval(r)]);
+}
+
+double CubicSpline::Bprime(const double &r) {
+  return 1.0 / (_r[getInterval(r) + 1] - _r[getInterval(r)]);
+}
+
+double CubicSpline::C(const double &r) {
+
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+
+  return (0.5 * xxi * xxi - (1.0 / 6.0) * xxi * xxi * xxi / h -
+          (1.0 / 3.0) * xxi * h);
+}
+
+double CubicSpline::Cprime(const double &r) {
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+
+  return (xxi - 0.5 * xxi * xxi / h - h / 3);
+}
+
+double CubicSpline::D(const double &r) {
+
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+
+  return ((1.0 / 6.0) * xxi * xxi * xxi / h - (1.0 / 6.0) * xxi * h);
+}
+
+double CubicSpline::Dprime(const double &r) {
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+
+  return (0.5 * xxi * xxi / h - (1.0 / 6.0) * h);
+}
+
+double CubicSpline::A_prime_l(long int i) { return -1.0 / (_r[i + 1] - _r[i]); }
+
+double CubicSpline::B_prime_l(long int i) { return 1.0 / (_r[i + 1] - _r[i]); }
+
+double CubicSpline::C_prime_l(long int i) {
+  return (1.0 / 6.0) * (_r[i + 1] - _r[i]);
+}
+
+double CubicSpline::D_prime_l(long int i) {
+  return (1.0 / 3.0) * (_r[i + 1] - _r[i]);
+}
+
+double CubicSpline::A_prime_r(long int i) {
+  return -1.0 / (_r[i + 2] - _r[i + 1]);
+}
+
+double CubicSpline::B_prime_r(long int i) {
+  return 1.0 / (_r[i + 2] - _r[i + 1]);
+}
+
+double CubicSpline::C_prime_r(long int i) {
+  return -(1.0 / 3.0) * (_r[i + 2] - _r[i + 1]);
+}
+
+double CubicSpline::D_prime_r(long int i) {
+  return -(1.0 / 6.0) * (_r[i + 2] - _r[i + 1]);
+}
+
 }  // namespace tools
 }  // namespace votca

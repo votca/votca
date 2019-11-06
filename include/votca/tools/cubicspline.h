@@ -137,7 +137,11 @@ class CubicSpline : public Spline {
   template <typename matrix_type>
   void AddBCToFitMatrix(matrix_type &A, long int offset1, long int offset2 = 0);
 
- protected:
+ private:
+  // y values of grid points
+  Eigen::VectorXd _f;
+  // second derivatives of grid points
+  Eigen::VectorXd _f2;
   // A spline can be written in the form
   // S_i(x) =   A(x,x_i,x_i+1)*f_i     + B(x,x_i,x_i+1)*f''_i
   //          + C(x,x_i,x_i+1)*f_{i+1} + D(x,x_i,x_i+1)*f''_{i+1}
@@ -161,18 +165,6 @@ class CubicSpline : public Spline {
   double D_prime_l(long int i);
   double D_prime_r(long int i);
 };
-
-inline double CubicSpline::Calculate(double r) {
-  long int interval = getInterval(r);
-  return A(r) * _f[interval] + B(r) * _f[interval + 1] + C(r) * _f2[interval] +
-         D(r) * _f2[interval + 1];
-}
-
-inline double CubicSpline::CalculateDerivative(double r) {
-  long int interval = getInterval(r);
-  return Aprime(r) * _f[interval] + Bprime(r) * _f[interval + 1] +
-         Cprime(r) * _f2[interval] + Dprime(r) * _f2[interval + 1];
-}
 
 template <typename matrix_type>
 inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x,
@@ -270,87 +262,6 @@ inline void CubicSpline::AddBCToFitMatrix(matrix_type &M, long int offset1,
       M(offset1 + _r.size() - 1, offset2 + 2 * _r.size() - 1) = -1;
       break;
   }
-}
-
-inline double CubicSpline::A(const double &r) {
-  return (1.0 - (r - _r[getInterval(r)]) /
-                    (_r[getInterval(r) + 1] - _r[getInterval(r)]));
-}
-
-inline double CubicSpline::Aprime(const double &r) {
-  return -1.0 / (_r[getInterval(r) + 1] - _r[getInterval(r)]);
-}
-
-inline double CubicSpline::B(const double &r) {
-  return (r - _r[getInterval(r)]) /
-         (_r[getInterval(r) + 1] - _r[getInterval(r)]);
-}
-
-inline double CubicSpline::Bprime(const double &r) {
-  return 1.0 / (_r[getInterval(r) + 1] - _r[getInterval(r)]);
-}
-
-inline double CubicSpline::C(const double &r) {
-
-  double xxi = r - _r[getInterval(r)];
-  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
-
-  return (0.5 * xxi * xxi - (1.0 / 6.0) * xxi * xxi * xxi / h -
-          (1.0 / 3.0) * xxi * h);
-}
-
-inline double CubicSpline::Cprime(const double &r) {
-  double xxi = r - _r[getInterval(r)];
-  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
-
-  return (xxi - 0.5 * xxi * xxi / h - h / 3);
-}
-
-inline double CubicSpline::D(const double &r) {
-
-  double xxi = r - _r[getInterval(r)];
-  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
-
-  return ((1.0 / 6.0) * xxi * xxi * xxi / h - (1.0 / 6.0) * xxi * h);
-}
-
-inline double CubicSpline::Dprime(const double &r) {
-  double xxi = r - _r[getInterval(r)];
-  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
-
-  return (0.5 * xxi * xxi / h - (1.0 / 6.0) * h);
-}
-
-inline double CubicSpline::A_prime_l(long int i) {
-  return -1.0 / (_r[i + 1] - _r[i]);
-}
-
-inline double CubicSpline::B_prime_l(long int i) {
-  return 1.0 / (_r[i + 1] - _r[i]);
-}
-
-inline double CubicSpline::C_prime_l(long int i) {
-  return (1.0 / 6.0) * (_r[i + 1] - _r[i]);
-}
-
-inline double CubicSpline::D_prime_l(long int i) {
-  return (1.0 / 3.0) * (_r[i + 1] - _r[i]);
-}
-
-inline double CubicSpline::A_prime_r(long int i) {
-  return -1.0 / (_r[i + 2] - _r[i + 1]);
-}
-
-inline double CubicSpline::B_prime_r(long int i) {
-  return 1.0 / (_r[i + 2] - _r[i + 1]);
-}
-
-inline double CubicSpline::C_prime_r(long int i) {
-  return -(1.0 / 3.0) * (_r[i + 2] - _r[i + 1]);
-}
-
-inline double CubicSpline::D_prime_r(long int i) {
-  return -(1.0 / 6.0) * (_r[i + 2] - _r[i + 1]);
 }
 
 }  // namespace tools

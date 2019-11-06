@@ -150,26 +150,22 @@ class Spline {
   const Eigen::VectorXd &getX() const { return _r; }
   /**
    * \brief Get the spline data _f
-   * \return pointer to the corresponding array
+   * \return reference to the corresponding array
    */
-  Eigen::VectorXd &getSplineF() { return _f; }
-  const Eigen::VectorXd &getSplineF() const { return _f; }
+  // Eigen::VectorXd &getSplineF() { return _f; }
+  // const Eigen::VectorXd &getSplineF() const { return _f; }
 
   /**
    * \brief Get second derivatives (cubic splines)
-   * \return pointer to the corresponding array
+   * \return reference to the corresponding array
    */
-  Eigen::VectorXd &getSplineF2() { return _f2; }
-  const Eigen::VectorXd &getSplineF2() const { return _f; }
+  // Eigen::VectorXd &getSplineF2() { return _f2; }
+  // const Eigen::VectorXd &getSplineF2() const { return _f; }
 
  protected:
   eBoundary _boundaries;
   // the grid points
   Eigen::VectorXd _r;
-  // y values of grid points
-  Eigen::VectorXd _f;
-  // second derivatives of grid points
-  Eigen::VectorXd _f2;
 };
 
 }  // namespace tools
