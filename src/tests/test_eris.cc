@@ -551,6 +551,7 @@ BOOST_AUTO_TEST_CASE(threecenter) {
       -0.694388, 0.694388, -0.694388, 2.8457, -1.13659, 1.13659, -1.13659,
       0.513107, 1.44563, 0.513107, 1.44563, 0.513107, 1.44563, 2.41047, 3.3442;
   bool compare_eris = eris_ref.isApprox(eri.matrix(), 1e-5);
+  bool compare_eris2 = eris_ref.isApprox(eris.ContractRightIndecesWithMatrix(dmat), 1e-5);
   if (!compare_eris) {
     std::cout << "result eris" << std::endl;
     std::cout << eri.matrix() << std::endl;
@@ -558,6 +559,7 @@ BOOST_AUTO_TEST_CASE(threecenter) {
     std::cout << eris_ref << std::endl;
   }
   BOOST_CHECK_EQUAL(compare_eris, true);
+  BOOST_CHECK_EQUAL(compare_eris2, true);
 }
 
 BOOST_AUTO_TEST_CASE(fourcenter_direct) {

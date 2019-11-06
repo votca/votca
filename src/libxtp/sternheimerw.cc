@@ -118,7 +118,7 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOneShot(
   Eigen::MatrixXcd V = CoulombMatrix(r);
   
   double alpha = 2 * (_mo_energies(_num_occ_lvls) - _mo_energies(2));
- 
+
   std::vector<Eigen::MatrixXcd> solution_p;
   std::vector<Eigen::MatrixXcd> solution_m;
 
@@ -127,8 +127,6 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOneShot(
   Eigen::MatrixXcd LHS_M;
 
   Eigen::VectorXcd RHS;// = Eigen::Xcd::Zero(_basis_size, _basis_size);
-
-  std::vector<Eigen::MatrixXcd> delta_n;
 
   Multishift::MultiShiftResult result;
   
@@ -182,6 +180,7 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOneShot(
     }
   }
 
+  std::vector<Eigen::MatrixXcd> delta_n;
   for (int m = 0; m < w.size(); m++) {
 
     delta_n.push_back(Eigen::MatrixXcd::Zero(_basis_size, _basis_size));
@@ -300,7 +299,6 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
   NumericalIntegration numint;
   numint.GridSetup(gridtype, _orbitals.QMAtoms(),
                    dftbasis);  // For now use medium grid
-  const int& basis_size = _orbitals.getBasisSetSize();
   std::vector<std::pair<double, const Eigen::Vector3d*>> grid =
       numint.getGridpoints();
 
@@ -312,12 +310,6 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
 
   std::cout << "Dipole integral complete" << std::endl;
   
-  std::vector<Eigen::MatrixXcd> Polar_pade;
-  std::vector<Eigen::MatrixXcd> delta_n;
-
-  double r_x;
-  Eigen::Vector3d gridcont;
-
   std::vector<Eigen::MatrixXcd> Polar;
   for(const std::complex<double> w: grid_w){
       Polar.push_back(Eigen::MatrixXcd::Zero(3, 3));
@@ -325,11 +317,11 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
   
   int index=0;
   for (const std::pair<double, const Eigen::Vector3d*> point: grid) {  
-    delta_n = DeltaNOneShot(grid_w, *point.second);
-    gridcont = *point.second;
+    std::vector<Eigen::MatrixXcd> delta_n = DeltaNOneShot(grid_w, *point.second);
+    Eigen::Vector3d gridcont = *point.second;
     for (int o = 0; o < grid_w.size(); o++) {
       for (int i = 0; i < 3; i++) {
-        r_x = gridcont(i);
+        double r_x = gridcont(i);
         for (int j = i; j < 3; j++) {
             Polar[o](i, j)+=point.first*r_x*(delta_n[o].cwiseProduct(dipole.Matrix()[j])).sum();
         }
@@ -343,7 +335,6 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
   }
   for (int o = 0; o < grid_w.size(); o++) {
     for (int i = 0; i < 3; i++) {
-      r_x = gridcont(i);
       for (int j = i+1; j < 3; j++) {
         Polar[o](j, i)=conj(Polar[o](i, j));
       }
@@ -355,12 +346,49 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
     _pade.addPoint(conj(grid_w[i]), Polar[i].adjoint());
   }
 
+  std::vector<Eigen::MatrixXcd> Polar_pade;
   for (std::complex<double> w:w) {
     std::cout<<"Calculated Point number"<<w<<std::endl;
     Polar_pade.push_back(_pade.evaluatePoint(w));
   }
   return Polar_pade;
 }
+  std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNSelfConsistent(std::vector<std::complex<double>>& frequency, Eigen::Vector3d& r) const{
+      
+      
+      std::vector<Eigen::MatrixXcd> delta_V;
+      
+      std::vector<Eigen::MatrixXcd> solution_p;
+      std::vector<Eigen::MatrixXcd> solution_m;
+      std::vector<Eigen::MatrixXcd> delta_n;
+      
+      int max_iter=1e4;
+      double tol=1e-9;
+      for(int n=1;n<max_iter;n++){
+          for (int i = 0; i< frequency.size(); i++) {
+            delta_V.push_back(CoulombMatrix(r));
+            solution_p.push_back(Eigen::MatrixXcd::Zero(_basis_size, _basis_size));
+            solution_m.push_back(Eigen::MatrixXcd::Zero(_basis_size, _basis_size));
+            for (int v = 0; v < _num_occ_lvls; v++){
+                Eigen::MatrixXcd RHS = SternheimerRHS(_inverse_overlap, _density_Matrix, delta_V[i], _mo_coefficients.col(v));
+                Eigen::MatrixXcd LHS_P = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), frequency[i], true);
+                Eigen::MatrixXcd LHS_M = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), frequency[i], false);
+                solution_p[i].col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
+                solution_m[i].col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
+            }
+            delta_n.push_back(Eigen::MatrixXcd::Zero(_basis_size, _basis_size));
 
+            delta_n[i] +=
+            2 * _mo_coefficients * solution_p[i].transpose() +
+            2 * _mo_coefficients * solution_m[i].transpose();
+            delta_V[i] += delta_n[i]*_overlap_Matrix*CoulombMatrix(r);
+            if((delta_n[i]*_overlap_Matrix*CoulombMatrix(r)).norm()<tol){
+                
+                return delta_n;
+                
+            }
+          }
+      }         
+  }
 }  // namespace xtp
 }  // namespace votca

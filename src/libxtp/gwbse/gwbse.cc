@@ -27,6 +27,8 @@
 #include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/sternheimerw.h>
+#include <votca/xtp/sternheimer.h>
+
 
 using boost::format;
 using namespace boost::filesystem;
@@ -552,7 +554,7 @@ bool GWBSE::Evaluate() {
       
       const double hrt2ev=votca::tools::conv::hrt2ev;
       
-      SternheimerW sternheimer(_orbitals,*_pLog);
+      Sternheimer sternheimer(_orbitals,*_pLog);
       std::vector<std::complex<double>> w_g;
       std::vector<std::complex<double>> w;
       
@@ -570,7 +572,7 @@ bool GWBSE::Evaluate() {
   
       sternheimer.Initialize();
       
-      std::vector<Eigen::MatrixXcd> polar=sternheimer.Polarisability(w_g,w, "xcoarse");
+      std::vector<Eigen::MatrixXcd> polar=sternheimer.Polarisability(w_g,w);
 
       for(int i=0;i<w.size();i++){
           std::cout<<"Polar at w= "<<w.at(i)<<std::endl;

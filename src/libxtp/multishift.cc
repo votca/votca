@@ -44,7 +44,7 @@ Multishift::MultiShiftResult Multishift::ComplexBiCG(const Eigen::MatrixXcd& A, 
   Eigen::VectorXcd x = Eigen::VectorXcd::Zero(_matrix_size);
  
   double res = 1;
-  double tol = 1e-18;
+  double tol = 1e-30;
  
   int i = 0;
 
@@ -61,7 +61,7 @@ Multishift::MultiShiftResult Multishift::ComplexBiCG(const Eigen::MatrixXcd& A, 
     p_t = r_t + std::conj(result._step_length_b[i]) * p_t;
     res = result._residue[i].squaredNorm();
     i++;
-    if (i == max_iter) {
+    if (i == max_iter-1) {
       
       result.converged=false;
       

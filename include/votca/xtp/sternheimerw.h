@@ -28,6 +28,7 @@
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/padeapprox.h>
+#include <eigen3/Eigen/src/Core/Matrix.h>
 
 namespace votca {
 namespace xtp {
@@ -40,11 +41,6 @@ class SternheimerW {
 
   void Initialize();
 
-  // Calculates the screened coulomb interaction matrix from the dielectric
-  // matrix at frequency w
-  std::vector<Eigen::MatrixXcd> ScreenedCoulombOS(std::complex<double> w);
-  Eigen::MatrixXcd CalculateScreenedCoulombSC(std::complex<double> w);
-
   std::vector<Eigen::MatrixXcd> DeltaNOS(std::complex<double> w,
                                          std::string gridtype);
 
@@ -52,10 +48,7 @@ class SternheimerW {
       const std::vector<std::complex<double>>& grid_w,
       const std::vector<std::complex<double>>& w, std::string gridtype);
 
-  void initializeMultishift(int size);
-
-  void initializePade(int size);
-
+  
  private:
   Logger& _log;
 
@@ -80,6 +73,10 @@ class SternheimerW {
   Eigen::MatrixXd _mo_coefficients;
   Eigen::VectorXd _mo_energies;
 
+  void initializeMultishift(int size);
+
+  void initializePade(int size);
+  
   // returns the overlap matrix for all occupied states
   Eigen::MatrixXd OverlapMatrix() const;
   // returns the density matrix for all occupied states
@@ -105,6 +102,9 @@ class SternheimerW {
 
   std::vector<Eigen::MatrixXcd> DeltaNOneShot(std::vector<std::complex<double>> w,
                                            Eigen::Vector3d r)const;
+  
+  std::vector<Eigen::MatrixXcd> DeltaNSelfConsistent(std::vector<std::complex<double>>& frequency, Eigen::Vector3d& r) const;
+  
 };
 }  // namespace xtp
 }  // namespace votca

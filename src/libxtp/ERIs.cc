@@ -63,6 +63,25 @@ Mat_p_Energy ERIs::CalculateERIs(const Eigen::MatrixXd& DMAT) const {
   return Mat_p_Energy(energy, ERIs);
 }
 
+Eigen::MatrixXcd ERIs::ContractRightIndecesWithMatrix(const Eigen::MatrixXcd& mat) const {
+  int nthreads = OPENMP::getMaxThreads();
+  std::vector<Eigen::MatrixXd> ERIS_thread = std::vector<Eigen::MatrixXd>(
+      nthreads, Eigen::MatrixXd::Zero(mat.rows(), mat.cols()));
+#pragma omp parallel for
+  for (int i = 0; i < _threecenter.size(); i++) {
+    const Symmetric_Matrix& threecenter = _threecenter[i];
+    // Trace over prod::DMAT,I(l)=componentwise product over
+    const std::complex<double> factor = (threecenter.FullMatrix().cwiseProduct(mat)).sum();
+    threecenter.AddtoEigenMatrix(ERIS_thread[OPENMP::getThreadId()], factor);
+  }
+
+  Eigen::MatrixXcd ERIs =
+      std::accumulate(ERIS_thread.begin(), ERIS_thread.end(),
+                      Eigen::MatrixXcd::Zero(mat.rows(), mat.cols()).eval());
+  return ERIs;
+}
+
+
 Mat_p_Energy ERIs::CalculateEXX(const Eigen::MatrixXd& DMAT) const {
 
   int nthreads = OPENMP::getMaxThreads();
