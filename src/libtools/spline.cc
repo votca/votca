@@ -25,8 +25,6 @@ using namespace std;
 Index Spline::GenerateGrid(double min, double max, double h) {
   Index vec_size = (Index)((max - min) / h + 1.00000001);
   _r = Eigen::VectorXd::LinSpaced(vec_size, min, max);
-  _f.resize(_r.size());
-  _f2.resize(_r.size());
   return _r.size();
 }
 
