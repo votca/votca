@@ -655,16 +655,14 @@ add_to_csgshare() { #added an directory to the csg internal search directories
       if [[ $end = "yes" ]]; then
         export CSGSHARE="${CSGSHARE}${CSGSHARE:+:}$dir"
         export PERL5LIB="${PERL5LIB}${PERL5LIB:+:}$dir"
-        export PYTHONPATH="${PYTHONPATH}${PYTHONPATH:+:}$dir"
       else
         export CSGSHARE="$dir${CSGSHARE:+:}$CSGSHARE"
         export PERL5LIB="$dir${PERL5LIB:+:}$PERL5LIB"
-        export PYTHONPATH="$dir${PYTHONPATH:+:}$PYTHONPATH"
       fi
     done
     IFS="$old_IFS"
   done
-  check_path_variable CSGSHARE PERL5LIB PYTHONPATH
+  check_path_variable CSGSHARE PERL5LIB
 }
 export -f add_to_csgshare
 
