@@ -34,7 +34,7 @@ namespace tools {
 
 class Spline {
  public:
-  Spline() : _boundaries(splineNormal) {}
+  Spline() = default;
 
   virtual ~Spline() = default;
 
@@ -132,7 +132,7 @@ class Spline {
    * \param value r
    * \return interval index
    */
-  long int getInterval(double r);
+  Index getInterval(double r);
 
   /**
    * \brief Generate the grid for fitting from "min" to "max" in steps of "h"
@@ -164,7 +164,7 @@ class Spline {
   // const Eigen::VectorXd &getSplineF2() const { return _f; }
 
  protected:
-  eBoundary _boundaries;
+  eBoundary _boundaries = eBoundary::splineNormal;
   // the grid points
   Eigen::VectorXd _r;
 };

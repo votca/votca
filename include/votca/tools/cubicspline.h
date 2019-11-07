@@ -52,8 +52,6 @@ class CubicSpline : public Spline {
  public:
   // default constructor
   CubicSpline() = default;
-  // CubicSpline() :
-  //    _boundaries(splineNormal) {}
 
   // destructor
   ~CubicSpline() override = default;
@@ -145,15 +143,15 @@ class CubicSpline : public Spline {
   // A spline can be written in the form
   // S_i(x) =   A(x,x_i,x_i+1)*f_i     + B(x,x_i,x_i+1)*f''_i
   //          + C(x,x_i,x_i+1)*f_{i+1} + D(x,x_i,x_i+1)*f''_{i+1}
-  double A(const double &r);
-  double B(const double &r);
-  double C(const double &r);
-  double D(const double &r);
+  double A(double r);
+  double B(double r);
+  double C(double r);
+  double D(double r);
 
-  double Aprime(const double &r);
-  double Bprime(const double &r);
-  double Cprime(const double &r);
-  double Dprime(const double &r);
+  double Aprime(double r);
+  double Bprime(double r);
+  double Cprime(double r);
+  double Dprime(double r);
 
   // tabulated derivatives at grid points. Second argument: 0 - left, 1 - right
   double A_prime_l(Index i);
@@ -187,10 +185,7 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, Index offset1,
   M(offset1, offset2 + spi + _r.size()) += Cprime(x) * scale1;
   M(offset1, offset2 + spi + _r.size() + 1) += Dprime(x) * scale1;
 
-  M(offset1, offset2 + spi) += A(x) * scale2;
-  M(offset1, offset2 + spi + 1) += B(x) * scale2;
-  M(offset1, offset2 + spi + _r.size()) += C(x) * scale2;
-  M(offset1, offset2 + spi + _r.size() + 1) += D(x) * scale2;
+  AddToFitMatrix(M, x, offset1, offset2, scale2);
 }
 
 template <typename matrix_type, typename vector_type>
@@ -227,7 +222,6 @@ inline void CubicSpline::AddBCToFitMatrix(matrix_type &M, Index offset1,
         D_prime_l(i) - C_prime_r(i);
     M(offset1 + i + 1, offset2 + _r.size() + i + 2) = -D_prime_r(i);
   }
-  // currently only natural boundary conditions:
   switch (_boundaries) {
     case splineNormal:
       M(offset1, offset2 + _r.size()) = 1;
@@ -252,7 +246,6 @@ inline void CubicSpline::AddBCToFitMatrix(matrix_type &M, Index offset1,
       M(offset1 + _r.size() - 1, offset2 + 2 * _r.size() - 1) =
           D_prime_l(_r.size() - 2);
       break;
-
     case splinePeriodic:
       M(offset1, offset2) = 1;
       M(offset1, offset2 + _r.size() - 1) = -1;
