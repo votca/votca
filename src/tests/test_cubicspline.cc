@@ -38,6 +38,16 @@ BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
   CubicSpline cspline;
   cspline.setBCInt(0);
   cspline.GenerateGrid(0.4, 0.6, 0.1);
+  Eigen::VectorXd gridpoints_ref = Eigen::VectorXd::Zero(3);
+  gridpoints_ref << 0.4, 0.5, 0.6;
+  bool grid_check = cspline.getX().isApprox(gridpoints_ref, 1e-5);
+  BOOST_CHECK_EQUAL(grid_check, true);
+  if (!grid_check) {
+    std::cout << "result value" << std::endl;
+    std::cout << cspline.getX().transpose() << std::endl;
+    std::cout << "ref value" << std::endl;
+    std::cout << gridpoints_ref.transpose() << std::endl;
+  }
   cspline.Fit(x, y);
 
   Eigen::VectorXd rs = Eigen::VectorXd::Zero(10);

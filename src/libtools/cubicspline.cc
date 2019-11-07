@@ -104,6 +104,8 @@ void CubicSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
   AddBCToFitMatrix(B, 0);
   // construct the matrix to fit the points and the vector b
   AddToFitMatrix(A, x, 0);
+  std::cout << A << std::endl;
+  std::cout << B << std::endl;
   // now do a constrained qr solve
   Eigen::VectorXd sol = linalg_constrained_qrsolve(A, y, B);
 

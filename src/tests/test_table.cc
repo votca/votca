@@ -105,8 +105,8 @@ BOOST_AUTO_TEST_CASE(generate_grid_spacing_test) {
   tb.GenerateGridSpacing(min_v, max_v, 0.2);
 
   BOOST_CHECK_EQUAL(tb.size(), 5);
-  BOOST_CHECK_EQUAL(static_cast<votca::Index>(round(tb.getMinX() * 10)), 12);
-  BOOST_CHECK_EQUAL(static_cast<votca::Index>(round(tb.getMaxX() * 10)), 20);
+  BOOST_CHECK_CLOSE(tb.getMinX(), 1.2, 1e-5);
+  BOOST_CHECK_CLOSE(tb.getMaxX(), 2.0, 1e-5);
 }
 
 BOOST_AUTO_TEST_CASE(smoothing_test) {
@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(smoothing_test) {
   tb.Smooth(2);
   Eigen::VectorXd refy = Eigen::VectorXd::Zero(9);
   refy << 1.50946, 1.70621, 1.91527, 2.14055, 2.38962, 2.65963, 2.95959,
-       3.28268, 3.62686;
+      3.28268, 3.62686;
 
   bool equal = tb.y().isApprox(refy, 1e-5);
 
