@@ -26,6 +26,22 @@ using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(cubicspline_test)
 
+BOOST_AUTO_TEST_CASE(spline_grid) {
+  CubicSpline cspline;
+  cspline.setBCInt(0);
+  cspline.GenerateGrid(0, 9, 2);
+  Eigen::VectorXd values_ref = Eigen::VectorXd::Zero(5);
+  values_ref << 0, 2, 4, 6, 9;
+  bool equal_val = values_ref.isApprox(cspline.getX(), 1e-5);
+
+  if (!equal_val) {
+    std::cout << "result value" << std::endl;
+    std::cout << cspline.getX().transpose() << std::endl;
+    std::cout << "ref value" << std::endl;
+    std::cout << values_ref.transpose() << std::endl;
+  }
+}
+
 BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
 
   votca::Index size = 80;
