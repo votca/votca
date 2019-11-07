@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(spline_grid) {
   Eigen::VectorXd values_ref = Eigen::VectorXd::Zero(5);
   values_ref << 0, 2, 4, 6, 9;
   bool equal_val = values_ref.isApprox(cspline.getX(), 1e-5);
-
+  BOOST_CHECK_EQUAL(equal_val, true);
   if (!equal_val) {
     std::cout << "result value" << std::endl;
     std::cout << cspline.getX().transpose() << std::endl;
