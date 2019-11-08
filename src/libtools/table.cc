@@ -177,7 +177,7 @@ istream &operator>>(istream &in, Table &t) {
 }
 
 void Table::GenerateGridSpacing(double min, double max, double spacing) {
-  Index n = (Index)floor((max - min) / spacing + 1.000000001);
+  Index n = Index(std::ceil((max - min) / spacing)) + 1;
   resize(n);
   _x = Eigen::VectorXd::LinSpaced(n, min, max);
 }
