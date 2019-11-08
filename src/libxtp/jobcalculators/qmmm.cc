@@ -87,6 +87,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   boost::filesystem::create_directories(workdir);
   Job::JobResult jres = Job::JobResult();
   Logger& pLog = Thread.getLogger();
+
   JobTopology jobtop = JobTopology(job, pLog, workdir);
   jobtop.BuildRegions(top, _regions_def);
 
