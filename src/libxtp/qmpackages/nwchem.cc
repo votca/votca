@@ -688,8 +688,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
   std::string line;
   std::vector<std::string> results;
 
-  Index basis_set_size = 0;
-
   XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
   std::string log_file_name_full = _run_dir + "/" + _log_file_name;
   // check if LOG file is complete
@@ -719,7 +717,7 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
       results = tok.ToVector();
       std::string bf = results.back();
       boost::trim(bf);
-      basis_set_size = boost::lexical_cast<Index>(bf);
+      Index basis_set_size = boost::lexical_cast<Index>(bf);
       orbitals.setBasisSetSize(basis_set_size);
       XTP_LOG(logDEBUG, *_pLog)
           << "Basis functions: " << basis_set_size << flush;
