@@ -287,6 +287,7 @@ Release GCC GMX2020:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_gmx2020"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Release Clang GMX2020:
@@ -295,6 +296,7 @@ Release Clang GMX2020:
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_gmx2020"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Release GCC GMX2020D:
@@ -303,6 +305,7 @@ Release GCC GMX2020D:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_gmx2020_d"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Release Clang GMX2020D:
@@ -311,6 +314,7 @@ Release Clang GMX2020D:
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_gmx2020_d"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Release GCC GMX9999:
