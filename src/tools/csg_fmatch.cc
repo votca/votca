@@ -488,10 +488,10 @@ void CGForceMatching::FmatchAccumulateData() {
 
     // _x contains results for all splines. Here we cut the results for one
     // spline
-    for (votca::Index i = 0; i < ngp; i++) {
-      sinfo->block_res_f[i] = _x[i + mp];
-      sinfo->block_res_f2[i] = _x[i + mp + ngp];
-    }
+
+    sinfo->block_res_f = _x.segment(mp, ngp);
+    sinfo->block_res_f2 = _x.segment(mp + ngp, ngp);
+
     // result cut before is assigned to the corresponding spline
     sinfo->Spline.setSplineData(sinfo->block_res_f, sinfo->block_res_f2);
 
