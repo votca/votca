@@ -69,7 +69,6 @@ None Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: ""
-    EXTRA_CXXFLAGS: "-
   extends: .build
 
 Debug Clang:
