@@ -192,5 +192,41 @@ void Table::Smooth(long int Nsmooth) {
     }
   }
 }
+
+std::ostream &operator<<(std::ostream &out, const Table &t) {
+  // TODO: use a smarter precision guess, XXX.YYYYY=8, so 10 should be enough
+  out.precision(10);
+
+  if (t._has_yerr) {
+    for (long int i = 0; i < t._x.size(); ++i) {
+      out << t._x[i] << " " << t._y[i] << " " << t._yerr[i];
+      if (t._flags[i] == '\0' || t._flags[i] == ' ') {
+        out << "\n";
+      } else {
+        out << " " << t._flags[i] << "\n";
+      }
+    }
+  } else {
+    for (long int i = 0; i < t._x.size(); ++i) {
+      out << t._x[i] << " " << t._y[i];
+      if (t._flags[i] == '\0' || t._flags[i] == ' ') {
+        out << "\n";
+      } else {
+        out << " " << t._flags[i] << "\n";
+      }
+    }
+  }
+  out << std::flush;
+  return out;
+}
+
+// TODO: modify this function to be able to treat _has_yerr == true
+void Table::push_back(double x, double y, char flags) {
+  long int n = size();
+  resize(n + 1);
+  _x[n] = x;
+  _y[n] = y;
+  _flags[n] = flags;
+}
 }  // namespace tools
 }  // namespace votca

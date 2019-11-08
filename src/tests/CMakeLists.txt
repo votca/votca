@@ -29,6 +29,8 @@ foreach(PROG
     test_thread
     test_tokenizer
     test_random
+    test_akimaspline
+    test_linspline
     test_unitconverter)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)

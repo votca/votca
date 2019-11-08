@@ -25,16 +25,16 @@ namespace tools {
 
 /**
  * \brief solves A*x=b under the constraint B*x = 0
- * @param x storage for x
+ * @return x
  * @param A matrix for linear equation system
  * @param b inhomogenity
  * @param constr constrained condition
  *
  * This function implements the qrsolver under constraints
  */
-void linalg_constrained_qrsolve(Eigen::VectorXd& x, Eigen::MatrixXd& A,
-                                const Eigen::VectorXd& b,
-                                const Eigen::MatrixXd& constr);
+Eigen::VectorXd linalg_constrained_qrsolve(const Eigen::MatrixXd& A,
+                                           const Eigen::VectorXd& b,
+                                           const Eigen::MatrixXd& constr);
 
 /**
  * \brief solves A*V=E*V for the first n eigenvalues

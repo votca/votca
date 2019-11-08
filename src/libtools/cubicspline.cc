@@ -25,7 +25,8 @@ namespace tools {
 
 using namespace std;
 
-void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
+void CubicSpline::Interpolate(const Eigen::VectorXd &x,
+                              const Eigen::VectorXd &y) {
   if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in CubicSpline::Interpolate : sizes of vectors x and y do not "
@@ -43,13 +44,12 @@ void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   // copy the grid points into f
   _r = x;
   _f = y;
-  _f2 = Eigen::VectorXd::Zero(N);
+  Eigen::VectorXd temp = Eigen::VectorXd::Zero(N);
 
-  // not calculate the f''
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N, N);
 
   for (int i = 0; i < N - 2; ++i) {
-    _f2(i + 1) =
+    temp(i + 1) =
         -(A_prime_l(i) * _f(i) + (B_prime_l(i) - A_prime_r(i)) * _f(i + 1) -
           B_prime_r(i) * _f(i + 2));
 
@@ -77,10 +77,10 @@ void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   }
 
   Eigen::HouseholderQR<Eigen::MatrixXd> QR(A);
-  _f2 = QR.solve(_f2);
+  _f2 = QR.solve(temp);
 }
 
-void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
+void CubicSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
   if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in CubicSpline::Fit : sizes of vectors x and y do not match");
@@ -105,8 +105,7 @@ void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   // construct the matrix to fit the points and the vector b
   AddToFitMatrix(A, x, 0);
   // now do a constrained qr solve
-  Eigen::VectorXd sol = Eigen::VectorXd::Zero(2 * ngrid);
-  linalg_constrained_qrsolve(sol, A, y, B);
+  Eigen::VectorXd sol = linalg_constrained_qrsolve(A, y, B);
 
   // check vector "sol" for nan's
   for (int i = 0; i < 2 * ngrid; i++) {
@@ -119,6 +118,95 @@ void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
 
   _f = sol.segment(0, ngrid);
   _f2 = sol.segment(ngrid, ngrid);
+}
+
+double CubicSpline::Calculate(double r) {
+  long int interval = getInterval(r);
+  return A(r) * _f[interval] + B(r) * _f[interval + 1] + C(r) * _f2[interval] +
+         D(r) * _f2[interval + 1];
+}
+
+double CubicSpline::CalculateDerivative(double r) {
+  long int interval = getInterval(r);
+  return Aprime(r) * _f[interval] + Bprime(r) * _f[interval + 1] +
+         Cprime(r) * _f2[interval] + Dprime(r) * _f2[interval + 1];
+}
+
+double CubicSpline::A(const double &r) {
+  return (1.0 - (r - _r[getInterval(r)]) /
+                    (_r[getInterval(r) + 1] - _r[getInterval(r)]));
+}
+
+double CubicSpline::Aprime(const double &r) {
+  return -1.0 / (_r[getInterval(r) + 1] - _r[getInterval(r)]);
+}
+
+double CubicSpline::B(const double &r) {
+  return (r - _r[getInterval(r)]) /
+         (_r[getInterval(r) + 1] - _r[getInterval(r)]);
+}
+
+double CubicSpline::Bprime(const double &r) {
+  return 1.0 / (_r[getInterval(r) + 1] - _r[getInterval(r)]);
+}
+
+double CubicSpline::C(const double &r) {
+
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+
+  return (0.5 * xxi * xxi - (1.0 / 6.0) * xxi * xxi * xxi / h -
+          (1.0 / 3.0) * xxi * h);
+}
+
+double CubicSpline::Cprime(const double &r) {
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+
+  return (xxi - 0.5 * xxi * xxi / h - h / 3);
+}
+
+double CubicSpline::D(const double &r) {
+
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+
+  return ((1.0 / 6.0) * xxi * xxi * xxi / h - (1.0 / 6.0) * xxi * h);
+}
+
+double CubicSpline::Dprime(const double &r) {
+  double xxi = r - _r[getInterval(r)];
+  double h = _r[getInterval(r) + 1] - _r[getInterval(r)];
+
+  return (0.5 * xxi * xxi / h - (1.0 / 6.0) * h);
+}
+
+double CubicSpline::A_prime_l(long int i) { return -1.0 / (_r[i + 1] - _r[i]); }
+
+double CubicSpline::B_prime_l(long int i) { return 1.0 / (_r[i + 1] - _r[i]); }
+
+double CubicSpline::C_prime_l(long int i) {
+  return (1.0 / 6.0) * (_r[i + 1] - _r[i]);
+}
+
+double CubicSpline::D_prime_l(long int i) {
+  return (1.0 / 3.0) * (_r[i + 1] - _r[i]);
+}
+
+double CubicSpline::A_prime_r(long int i) {
+  return -1.0 / (_r[i + 2] - _r[i + 1]);
+}
+
+double CubicSpline::B_prime_r(long int i) {
+  return 1.0 / (_r[i + 2] - _r[i + 1]);
+}
+
+double CubicSpline::C_prime_r(long int i) {
+  return -(1.0 / 3.0) * (_r[i + 2] - _r[i + 1]);
+}
+
+double CubicSpline::D_prime_r(long int i) {
+  return -(1.0 / 6.0) * (_r[i + 2] - _r[i + 1]);
 }
 
 }  // namespace tools

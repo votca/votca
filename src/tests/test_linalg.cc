@@ -28,7 +28,6 @@ BOOST_AUTO_TEST_SUITE(linalg_test)
 
 BOOST_AUTO_TEST_CASE(linalg_constrained_qrsolve_test) {
 
-  Eigen::VectorXd x = Eigen::VectorXd::Zero(3);
   Eigen::VectorXd b = Eigen::VectorXd::Zero(3);
   b(0) = 11;
   b(1) = -3;
@@ -45,7 +44,7 @@ BOOST_AUTO_TEST_CASE(linalg_constrained_qrsolve_test) {
   Eigen::MatrixXd B = Eigen::MatrixXd::Zero(1, 3);
   B(0, 1) = -1;
   B(0, 2) = 3;
-  linalg_constrained_qrsolve(x, A, b, B);
+  Eigen::VectorXd x = linalg_constrained_qrsolve(A, b, B);
   Eigen::VectorXd x_ref = Eigen::VectorXd::Zero(3);
   x_ref(0) = 3;
   x_ref(1) = 6;

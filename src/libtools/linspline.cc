@@ -24,7 +24,8 @@ namespace tools {
 
 using namespace std;
 
-void LinSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
+void LinSpline::Interpolate(const Eigen::VectorXd &x,
+                            const Eigen::VectorXd &y) {
   if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in LinSpline::Interpolate : sizes of vectors x and y do not "
@@ -63,7 +64,7 @@ void LinSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   }
 }
 
-void LinSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
+void LinSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
   if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in LinSpline::Fit : sizes of vectors x and y do not match");

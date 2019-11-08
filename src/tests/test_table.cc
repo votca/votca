@@ -107,4 +107,29 @@ BOOST_AUTO_TEST_CASE(generate_grid_spacing_test) {
   BOOST_CHECK_EQUAL(static_cast<int>(round(tb.getMaxX() * 10)), 20);
 }
 
+BOOST_AUTO_TEST_CASE(smoothing_test) {
+  Table tb;
+  double min_v = 1.2;
+  double max_v = 2.0;
+
+  tb.GenerateGridSpacing(min_v, max_v, 0.1);
+
+  BOOST_CHECK_EQUAL(tb.size(), 9);
+  tb.y() = tb.x().array().sinh();
+  tb.Smooth(2);
+  Eigen::VectorXd refy = Eigen::VectorXd::Zero(9);
+  refy << 1.50946, 1.70621, 1.91563, 2.14274, 2.39083, 2.66271, 2.96119,
+      3.28637, 3.62686;
+
+  bool equal = tb.y().isApprox(refy, 1e-5);
+
+  if (!equal) {
+    std::cout << "result value" << std::endl;
+    std::cout << tb.y().transpose() << std::endl;
+    std::cout << "ref value" << std::endl;
+    std::cout << refy.transpose() << std::endl;
+  }
+  BOOST_CHECK_EQUAL(equal, true);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
