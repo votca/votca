@@ -640,7 +640,7 @@ void IQM::WriteJobFile(const Topology& top) {
 double IQM::GetDFTCouplingFromProp(tools::Property& dftprop, Index stateA,
                                    Index stateB) {
   double J = 0;
-  double found = false;
+  bool found = false;
   for (tools::Property* state : dftprop.Select("coupling")) {
     Index state1 = state->getAttribute<Index>("levelA");
     Index state2 = state->getAttribute<Index>("levelB");
@@ -662,7 +662,7 @@ double IQM::GetBSECouplingFromProp(tools::Property& bseprop,
                                    const QMState& stateB) {
   double J = 0;
   std::string algorithm = bseprop.getAttribute<std::string>("algorithm");
-  double found = false;
+  bool found = false;
   for (tools::Property* state : bseprop.Select("coupling")) {
     QMState state1;
     state1.FromString(state->getAttribute<std::string>("stateA"));

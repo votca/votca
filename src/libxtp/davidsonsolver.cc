@@ -251,7 +251,7 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz(
 
   rep.q = proj.V * rep.U;                                       // Ritz vectors
   rep.res = proj.AV * rep.U - rep.q * rep.lambda.asDiagonal();  // residues
-  rep.res_norm = rep.res.colwise().norm();  // reisdues norms
+  rep.res_norm = rep.res.colwise().norm();  // residues norms
 
   return rep;
 }
@@ -389,8 +389,7 @@ Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {
   ncols = std::min(nrows, ncols);
   Eigen::MatrixXd I = Eigen::MatrixXd::Identity(nrows, ncols);
   Eigen::HouseholderQR<Eigen::MatrixXd> qr(A);
-  Eigen::MatrixXd result = qr.householderQ() * I;
-  return result;
+  return qr.householderQ() * I;
 }
 
 Eigen::MatrixXd DavidsonSolver::gramschmidt(const Eigen::MatrixXd &A,

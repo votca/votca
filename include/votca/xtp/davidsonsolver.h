@@ -172,7 +172,7 @@ class DavidsonSolver {
                         Index iiter) const {
 
     if (iiter == 0 || _davidson_ortho == ORTHO::QR) {
-      /* if we use QR we ned to recompute the entire projection
+      /* if we use QR we need to recompute the entire projection
       since QR will modify original subspace*/
       proj.AV = A * proj.V;
       proj.T = proj.V.transpose() * proj.AV;
