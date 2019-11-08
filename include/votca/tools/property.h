@@ -258,7 +258,7 @@ inline Property &Property::add(const std::string &key,
     path = path + ".";
   }
   _properties.push_back(Property(key, value, path + _name));
-  _map[key] = _properties.size() - 1;
+  _map[key] = Index(_properties.size()) - 1;
   return _properties.back();
 }
 
