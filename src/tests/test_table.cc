@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(generate_grid_spacing_test_low) {
 
   tb.GenerateGridSpacing(min_v, max_v, 0.3);
 
-  BOOST_CHECK_EQUAL(tb.size(), 4);
+  BOOST_CHECK_EQUAL(tb.size(), 3);
   BOOST_CHECK_CLOSE(tb.getMinX(), 1.2, 1e-5);
   BOOST_CHECK_CLOSE(tb.getMaxX(), 2.0, 1e-5);
 }
@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(generate_grid_spacing_test_high) {
 
   tb.GenerateGridSpacing(min_v, max_v, 0.15);
 
-  BOOST_CHECK_EQUAL(tb.size(), 7);
+  BOOST_CHECK_EQUAL(tb.size(), 6);
   BOOST_CHECK_CLOSE(tb.getMinX(), 1.2, 1e-5);
   BOOST_CHECK_CLOSE(tb.getMaxX(), 2.0, 1e-5);
 }

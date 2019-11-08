@@ -30,8 +30,9 @@ BOOST_AUTO_TEST_CASE(spline_grid_high) {
   CubicSpline cspline;
   cspline.setBCInt(0);
   cspline.GenerateGrid(0, 9, 2);
-  Eigen::VectorXd values_ref = Eigen::VectorXd::Zero(6);
-  values_ref << 0, 1.8, 3.6, 5.4, 7.2, 9;
+  Eigen::VectorXd values_ref = Eigen::VectorXd::Zero(5);
+  values_ref << 0, 2, 4, 6, 9;
+
   bool equal_val = values_ref.isApprox(cspline.getX(), 1e-5);
   BOOST_CHECK_EQUAL(equal_val, true);
   if (!equal_val) {
@@ -46,8 +47,9 @@ BOOST_AUTO_TEST_CASE(spline_grid_low) {
   CubicSpline cspline;
   cspline.setBCInt(0);
   cspline.GenerateGrid(0, 7, 2);
-  Eigen::VectorXd values_ref = Eigen::VectorXd::Zero(5);
-  values_ref << 0, 1.75, 3.5, 5.25, 7;
+  Eigen::VectorXd values_ref = Eigen::VectorXd::Zero(4);
+  values_ref << 0, 2, 4, 7;
+
   bool equal_val = values_ref.isApprox(cspline.getX(), 1e-5);
   BOOST_CHECK_EQUAL(equal_val, true);
   if (!equal_val) {

@@ -177,9 +177,16 @@ istream &operator>>(istream &in, Table &t) {
 }
 
 void Table::GenerateGridSpacing(double min, double max, double spacing) {
-  Index n = Index(std::ceil((max - min) / spacing)) + 1;
-  resize(n);
-  _x = Eigen::VectorXd::LinSpaced(n, min, max);
+  Index vec_size = (Index)((max - min) / spacing + 1.00000001);
+  resize(vec_size);
+  int i;
+
+  double r_init;
+
+  for (r_init = min, i = 0; i < vec_size - 1; r_init += spacing) {
+    _x[i++] = r_init;
+  }
+  _x[i] = max;
 }
 
 void Table::Smooth(Index Nsmooth) {
