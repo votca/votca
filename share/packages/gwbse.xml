@@ -15,7 +15,8 @@
         <mode help="use single short (G0W0) or self-consistent GW (evGW)">evGW</mode>
         <tasks help="tasks to do gw,singlets,triplets or all">gw,singlets,triplets</tasks> 
         <exctotal help="maximum number of BSE states to calculate">25</exctotal>
-
+        <useTDA help="use TDA for BSE default `false`">1</useTDA>
+        <ignore_corelevles help="exclude core MO level from calculation on RPA,GW or BSE level, default=no">no</ignore_corelevels>
         <eigensolver help="options for BSE eigenvalue decompostion">
                 <dodavidson help="use davidson solver" >1</dodavidson>
                 <davidson_correction help="DPR or OHLSEN" >DPR</davidson_correction>
