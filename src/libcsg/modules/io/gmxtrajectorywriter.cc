@@ -16,14 +16,17 @@
  */
 
 #include "gmxtrajectorywriter.h"
+#include <gromacs/fileio/trxio.h>
+#include <gromacs/trajectory/trajectoryframe.h>
 #include <string>
+// this one is needed because of bool is defined in one of the headers included
+// by gmx
+#undef bool
 
 namespace votca {
 namespace csg {
 
-using namespace std;
-
-void GMXTrajectoryWriter::Open(string file, bool) {
+void GMXTrajectoryWriter::Open(std::string file, bool) {
   _file = open_trx((char *)file.c_str(), "w");
 }
 
@@ -40,7 +43,7 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
 
   frame.natoms = (int)N;
   frame.bTime = true;
-  frame.time = conf->getTime();
+  frame.time = real(conf->getTime());
   frame.bStep = true;
   frame.step = conf->getStep();
   frame.x = x;
@@ -54,15 +57,15 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
 
   for (Index i = 0; i < 3; i++) {
     for (Index j = 0; j < 3; j++) {
-      frame.box[j][i] = box(i, j);
+      frame.box[j][i] = real(box(i, j));
     }
   }
 
   for (Index i = 0; i < N; ++i) {
     Eigen::Vector3d pos = conf->getBead(i)->getPos();
-    x[i][0] = pos.x();
-    x[i][1] = pos.y();
-    x[i][2] = pos.z();
+    x[i][0] = real(pos.x());
+    x[i][1] = real(pos.y());
+    x[i][2] = real(pos.z());
   }
 
   if (frame.bV) {
@@ -70,9 +73,9 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
     for (Index i = 0; i < N; ++i) {
       frame.v = v;
       Eigen::Vector3d vel = conf->getBead(i)->getVel();
-      v[i][0] = vel.x();
-      v[i][1] = vel.y();
-      v[i][2] = vel.z();
+      v[i][0] = real(vel.x());
+      v[i][1] = real(vel.y());
+      v[i][2] = real(vel.z());
     }
   }
   if (frame.bF) {
@@ -80,9 +83,9 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
     for (Index i = 0; i < N; ++i) {
       frame.f = f;
       Eigen::Vector3d force = conf->getBead(i)->getF();
-      f[i][0] = force.x();
-      f[i][1] = force.y();
-      f[i][2] = force.z();
+      f[i][0] = real(force.x());
+      f[i][1] = real(force.y());
+      f[i][2] = real(force.z());
     }
   }
 

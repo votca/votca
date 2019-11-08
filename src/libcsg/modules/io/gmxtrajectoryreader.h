@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _gmxtrajectoryreader_H
-#define _gmxtrajectoryreader_H
+#ifndef _VOTCA_CSG_GMXTRAJECTORYREADER_H
+#define _VOTCA_CSG_GMXTRAJECTORYREADER_H
 
 #ifndef HAVE_NO_CONFIG
 #include <votca_config.h>
@@ -35,7 +35,6 @@
 namespace votca {
 namespace csg {
 
-namespace TOOLS = votca::tools;
 /**
     \brief class for reading gromacs trajectory files
 
@@ -43,6 +42,7 @@ namespace TOOLS = votca::tools;
    trajectory reading function of gromacs
 
 */
+
 class GMXTrajectoryReader : public TrajectoryReader {
  public:
   GMXTrajectoryReader() = default;
@@ -68,4 +68,4 @@ class GMXTrajectoryReader : public TrajectoryReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _gmxtrajectoryreader_H */
+#endif /* _VOTCA_CSG_GMXTRAJECTORYREADER_H */

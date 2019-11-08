@@ -80,8 +80,10 @@ void GROWriter::Write(Topology *conf) {
   }
   l = pr + 5;
 
-  if (box(0, 1) || box(0, 2) || box(1, 0) || box(1, 2) || box(2, 0) ||
-      box(2, 1)) {
+  Eigen::Matrix3d box_offdiag = box;
+  box_offdiag.diagonal().array() = 0.0;
+
+  if (box_offdiag.isApproxToConstant(0, 1e-9)) {
     sprintf(format,
             "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf"
             "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf\n",

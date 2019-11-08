@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _GMXTRAJECTORYWRITER_H
-#define _GMXTRAJECTORYWRITER_H
+#ifndef _VOTCA_CSG_GMXTRAJECTORYWRITER_H
+#define _VOTCA_CSG_GMXTRAJECTORYWRITER_H
 
 #ifndef HAVE_NO_CONFIG
 #include <votca_config.h>
@@ -25,12 +25,7 @@
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
 
-#include <gromacs/fileio/trxio.h>
-#include <gromacs/trajectory/trajectoryframe.h>
-// this one is needed because of bool is defined in one of the headers included
-// by gmx
-#undef bool
-
+struct t_trxstatus;
 namespace votca {
 namespace csg {
 
@@ -49,4 +44,4 @@ class GMXTrajectoryWriter : public TrajectoryWriter {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _GMXTRAJECTORYWRITER_H */
+#endif /* _VOTCA_CSG_GMXTRAJECTORYWRITER_H */

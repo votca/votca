@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _gmxtopologyreader_H
-#define _gmxtopologyreader_H
+#ifndef _VOTCA_CSG_GMXTOPOLOGYREADER_H
+#define _VOTCA_CSG_GMXTOPOLOGYREADER_H
 
 #include <string>
 #include <votca/csg/topologyreader.h>
@@ -44,4 +44,4 @@ class GMXTopologyReader : public TopologyReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _gmxtopologyreader_H */
+#endif /* _VOTCA_CSG_GMXTOPOLOGYREADER_H */
