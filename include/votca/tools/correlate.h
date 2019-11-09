@@ -40,18 +40,18 @@ class Correlate {
       calculate the correlation of the first row in selection with all the other
 
    */
-  void CalcCorrelations(DataCollection<double>::selection *data);
+  void CalcCorrelations(DataCollection<double>::selection &data);
 
-  std::vector<std::pair<std::string, double> > &getData() { return _corr; }
+  std::vector<double> &getData() { return _corr; }
 
  private:
-  std::vector<std::pair<std::string, double> > _corr;
+  std::vector<double> _corr;
 };
 
 inline std::ostream &operator<<(std::ostream &out, Correlate &c) {
-  std::vector<std::pair<std::string, double> > &data = c.getData();
+  std::vector<double> &data = c.getData();
   for (auto &i : data) {
-    out << i.second << std::endl;
+    out << i << std::endl;
   }
   return out;
 }
