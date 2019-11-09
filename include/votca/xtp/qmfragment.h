@@ -40,7 +40,7 @@ namespace xtp {
 template <class T>
 class QMFragment {
  public:
-  QMFragment(int id, std::string atoms) : _id(id) { FillAtomIndices(atoms); }
+  QMFragment(Index id, std::string atoms) : _id(id) { FillAtomIndices(atoms); }
 
   QMFragment() = default;
 
@@ -52,30 +52,30 @@ class QMFragment {
     _atomindices = frag.getIndices();
   }
 
-  void setId(int id) { _id = id; }
-  int getId() const { return _id; }
+  void setId(Index id) { _id = id; }
+  Index getId() const { return _id; }
   void FillFromString(std::string atoms) { FillAtomIndices(atoms); }
 
   const T& value() const { return _value; }
 
   T& value() { return _value; }
 
-  int size() const { return _atomindices.size(); }
+  Index size() const { return Index(_atomindices.size()); }
 
-  const std::vector<int>& getIndices() const { return _atomindices; }
+  const std::vector<Index>& getIndices() const { return _atomindices; }
 
   double ExtractFromVector(const Eigen::VectorXd& atomentries) const {
     double result = 0;
-    for (int index : _atomindices) {
+    for (Index index : _atomindices) {
       result += atomentries(index);
     }
     return result;
   }
 
-  typename std::vector<int>::const_iterator begin() const {
+  typename std::vector<Index>::const_iterator begin() const {
     return _atomindices.begin();
   }
-  typename std::vector<int>::const_iterator end() const {
+  typename std::vector<Index>::const_iterator end() const {
     return _atomindices.end();
   }
 
@@ -83,7 +83,7 @@ class QMFragment {
                                   const QMFragment& fragment) {
     out << "Fragment id:" << fragment._id << "\n";
     out << "AtomIndices[" << fragment.size() << "]:";
-    for (int id : fragment._atomindices) {
+    for (Index id : fragment._atomindices) {
       out << id << " ";
     }
     out << "\nValue:" << fragment._value;
@@ -114,20 +114,20 @@ class QMFragment {
     const std::string delimiter = "...";
     for (std::string s : results) {
       if (s.find(delimiter) != std::string::npos) {
-        int start = std::stoi(s.substr(0, s.find(delimiter)));
-        int stop =
-            std::stoi(s.erase(0, s.find(delimiter) + delimiter.length()));
-        for (int i = start; i <= stop; i++) {
+        Index start = std::stol(s.substr(0, s.find(delimiter)));
+        Index stop =
+            std::stol(s.erase(0, s.find(delimiter) + delimiter.length()));
+        for (Index i = start; i <= stop; i++) {
           _atomindices.push_back(i);
         }
       } else {
-        _atomindices.push_back(std::stoi(s));
+        _atomindices.push_back(std::stol(s));
       }
     }
   }
 
-  std::vector<int> _atomindices;
-  int _id = -1;
+  std::vector<Index> _atomindices;
+  Index _id = -1;
   T _value;
 };
 

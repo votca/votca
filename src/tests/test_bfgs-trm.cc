@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(parabola_test) {
       }
     }
 
-    int NumParameters() const override { return 5; }
+    Index NumParameters() const override { return 5; }
   };
 
   parabola p5;
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(booth_test) {
       }
     }
 
-    int NumParameters() const override { return 2; }
+    Index NumParameters() const override { return 2; }
   };
 
   booth p2;
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(booth_test) {
 }
 
 BOOST_AUTO_TEST_CASE(adiis_test) {
-  int size = 5;
+  Index size = 5;
 
   Eigen::VectorXd DiF = Eigen::VectorXd::Zero(size);
   DiF << 0.679243, 0.562675, 0.39399, -0.0258519, 0;
@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(adiis_test) {
   optimizer.setTrustRadius(0.01);
   optimizer.setLog(&log);
   // Starting point: equal weights on all matrices
-  Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / size);
+  Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / (double)size);
   optimizer.Optimize(coeffs);
   bool success = optimizer.Success();
   coeffs = optimizer.getParameters().cwiseAbs2();

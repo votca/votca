@@ -20,6 +20,7 @@
 #include <votca/xtp/dftcoupling.h>
 
 using namespace votca::xtp;
+using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(dftcoupling_test)
 
@@ -27,15 +28,15 @@ Eigen::MatrixXd ReadMatrixFromString(const std::string& matrix) {
   votca::tools::Tokenizer lines(matrix, "\n");
 
   std::vector<double> entries;
-  int cols = 0;
-  int rows = 0;
+  Index cols = 0;
+  Index rows = 0;
   for (auto line : lines) {
     if (line[0] == '#') {
       continue;
     }
     votca::tools::Tokenizer entries_tok(line, " ");
     std::vector<std::string> temp = entries_tok.ToVector();
-    cols = temp.size();
+    cols = Index(temp.size());
     rows++;
     for (const auto& s : temp) {
       entries.push_back(std::stod(s));
@@ -422,13 +423,13 @@ BOOST_AUTO_TEST_CASE(coupling) {
   votca::tools::Property output;
   dftcoup.Addoutput(output, A, B);
 
-  std::map<int, std::map<int, double> > hole_ref;
+  std::map<Index, std::map<Index, double> > hole_ref;
 
   hole_ref[3][3] = -1.031779;
   hole_ref[3][4] = -8.652046;
   hole_ref[4][3] = 3.806175;
   hole_ref[4][4] = -5.745457;
-  std::map<int, std::map<int, double> > electron_ref;
+  std::map<Index, std::map<Index, double> > electron_ref;
   electron_ref[5][5] = 3.080669;
   electron_ref[5][6] = 2.445706;
   electron_ref[6][5] = -1.622705;
@@ -436,15 +437,15 @@ BOOST_AUTO_TEST_CASE(coupling) {
 
   auto holedata = output.Select("hole.coupling");
   for (auto h : holedata) {
-    int levA = h->getAttribute<int>("levelA");
-    int levB = h->getAttribute<int>("levelB");
+    Index levA = h->getAttribute<Index>("levelA");
+    Index levB = h->getAttribute<Index>("levelB");
     double j = h->getAttribute<double>("j");
     BOOST_CHECK_CLOSE(j, hole_ref[levA][levB], 1e-5);
   }
   auto electrondata = output.Select("electron.coupling");
   for (auto h : holedata) {
-    int levA = h->getAttribute<int>("levelA");
-    int levB = h->getAttribute<int>("levelB");
+    Index levA = h->getAttribute<Index>("levelA");
+    Index levB = h->getAttribute<Index>("levelB");
     double j = h->getAttribute<double>("j");
     BOOST_CHECK_CLOSE(j, electron_ref[levA][levB], 1e-5);
   }

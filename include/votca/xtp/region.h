@@ -42,7 +42,7 @@ class StaticRegion;
 class Region {
 
  public:
-  Region(int id, Logger& log) : _id(id), _log(log){};
+  Region(Index id, Logger& log) : _id(id), _log(log){};
   virtual ~Region() = default;
 
   virtual void WriteToCpt(CheckpointWriter& w) const = 0;
@@ -55,7 +55,7 @@ class Region {
 
   virtual void Evaluate(std::vector<std::unique_ptr<Region> >& regions) = 0;
 
-  virtual int size() const = 0;
+  virtual Index size() const = 0;
 
   virtual std::string identify() const = 0;
 
@@ -71,7 +71,7 @@ class Region {
 
   void AddResults(tools::Property& prop) const;
 
-  int getId() const { return _id; }
+  Index getId() const { return _id; }
 
   virtual double Etotal() const = 0;
 
@@ -91,7 +91,7 @@ class Region {
   virtual double InteractwithPolarRegion(const PolarRegion& region) = 0;
   virtual double InteractwithStaticRegion(const StaticRegion& region) = 0;
 
-  int _id = -1;
+  Index _id = -1;
   Logger& _log;
 };
 

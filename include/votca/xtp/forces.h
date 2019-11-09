@@ -46,8 +46,8 @@ class Forces {
   void Report() const;
 
  private:
-  Eigen::Vector3d NumForceForward(Orbitals orbitals, int atom_index);
-  Eigen::Vector3d NumForceCentral(Orbitals orbitals, int atom_index);
+  Eigen::Vector3d NumForceForward(Orbitals orbitals, Index atom_index);
+  Eigen::Vector3d NumForceCentral(Orbitals orbitals, Index atom_index);
   void RemoveTotalForce();
 
   double _displacement;

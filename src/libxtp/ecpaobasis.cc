@@ -25,7 +25,7 @@ namespace votca {
 namespace xtp {
 
 ECPAOShell& ECPAOBasis::addShell(const ECPShell& shell, const QMAtom& atom,
-                                 int startIndex, int Lmax) {
+                                 Index startIndex, Index Lmax) {
   _aoshells.push_back(ECPAOShell(shell, atom, startIndex, Lmax));
   return _aoshells.back();
 }
@@ -35,15 +35,15 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
   _AOBasisSize = 0;
   _aoshells.clear();
   _shells_perAtom.clear();
-  std::vector<std::vector<int>> shellindex_per_atom;
+  std::vector<std::vector<Index>> shellindex_per_atom;
 
   std::vector<std::string> non_ecp_elements;
-  int index = 0;
+  Index index = 0;
   for (QMAtom& atom : atoms) {
     std::string name = atom.getElement();
 
     bool element_exists = true;
-    std::vector<int> shellindex;
+    std::vector<Index> shellindex;
 
     try {
       bs.getElement(name);
@@ -58,7 +58,7 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
     if (element_exists) {
       const ECPElement& element = bs.getElement(name);
       atom._ecpcharge = element.getNcore();
-      int lmax = element.getLmax();
+      Index lmax = element.getLmax();
       for (const ECPShell& shell : element) {
         ECPAOShell& aoshell = addShell(shell, atom, _AOBasisSize, lmax);
         shellindex.push_back(index);
@@ -76,7 +76,7 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
   // invalidated
   for (const auto& atom_index : shellindex_per_atom) {
     std::vector<const ECPAOShell*> temp;
-    for (int lindex : atom_index) {
+    for (Index lindex : atom_index) {
       temp.push_back(&_aoshells[lindex]);
     }
     _shells_perAtom.push_back(temp);

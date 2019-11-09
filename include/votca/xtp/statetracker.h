@@ -52,20 +52,20 @@ class StateTracker {
   void ReadFromCpt(CheckpointReader& r);
 
  private:
-  std::vector<int> OscTracker(const Orbitals& orbitals) const;
-  std::vector<int> LocTracker(const Orbitals& orbitals) const;
-  std::vector<int> DeltaQTracker(const Orbitals& orbitals) const;
-  std::vector<int> OverlapTracker(const Orbitals& orbitals) const;
+  std::vector<Index> OscTracker(const Orbitals& orbitals) const;
+  std::vector<Index> LocTracker(const Orbitals& orbitals) const;
+  std::vector<Index> DeltaQTracker(const Orbitals& orbitals) const;
+  std::vector<Index> OverlapTracker(const Orbitals& orbitals) const;
 
   Eigen::VectorXd CalculateOverlap(const Orbitals& orbitals) const;
 
   void UpdateLastCoeff(const Orbitals& orbitals);
   Eigen::MatrixXd CalcOrthoCoeffs(const Orbitals& orbitals) const;
 
-  std::vector<int> CollapseResults(
-      std::vector<std::vector<int> >& results) const;
-  std::vector<int> ComparePairofVectors(std::vector<int>& vec1,
-                                        std::vector<int>& vec2) const;
+  std::vector<Index> CollapseResults(
+      std::vector<std::vector<Index> >& results) const;
+  std::vector<Index> ComparePairofVectors(std::vector<Index>& vec1,
+                                          std::vector<Index>& vec2) const;
 
   Logger* _log;
 

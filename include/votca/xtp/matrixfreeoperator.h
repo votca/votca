@@ -59,21 +59,21 @@ class MatrixFreeOperator : public Eigen::EigenBase<MatrixFreeOperator> {
   // convenience function
   Eigen::MatrixXd get_full_matrix() const;
   Eigen::VectorXd diagonal() const;
-  int size() const;
-  void set_size(int size);
+  Index size() const;
+  void set_size(Index size);
 
   virtual bool useRow() const { return true; }
   virtual bool useBlock() const { return false; }
 
-  virtual int getBlocksize() const { return 0; }
+  virtual Index getBlocksize() const { return 0; }
 
   // extract row/col of the operator
-  virtual Eigen::RowVectorXd OperatorRow(int index) const;
+  virtual Eigen::RowVectorXd OperatorRow(Index index) const;
 
-  virtual Eigen::MatrixXd OperatorBlock(int row, int col) const;
+  virtual Eigen::MatrixXd OperatorBlock(Index row, Index col) const;
 
  private:
-  int _size;
+  Index _size;
 };
 }  // namespace xtp
 }  // namespace votca
@@ -103,22 +103,22 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Vtype, DenseShape,
     if (op.useRow()) {
 // make the mat vect product
 #pragma omp parallel for schedule(guided)
-      for (int i = 0; i < op.rows(); i++) {
+      for (Index i = 0; i < op.rows(); i++) {
         dst(i) = op.OperatorRow(i) * v;
       }
     }
 
     if (op.useBlock()) {
-      int blocksize = op.getBlocksize();
+      Index blocksize = op.getBlocksize();
       if (op.size() % blocksize != 0) {
         throw std::runtime_error("blocksize is not a multiple of matrix size");
       }
-      int blocks = op.size() / blocksize;
+      Index blocks = op.size() / blocksize;
 
 // this is inefficient if blocks<num_ofthreads
 #pragma omp parallel for schedule(guided)
-      for (int i_row = 0; i_row < blocks; i_row++) {
-        for (int i_col = 0; i_col < blocks; i_col++) {
+      for (Index i_row = 0; i_row < blocks; i_row++) {
+        for (Index i_col = 0; i_col < blocks; i_col++) {
           dst.segment(i_row * blocksize, blocksize) +=
               op.OperatorBlock(i_row, i_col) *
               v.segment(i_col * blocksize, blocksize);
@@ -150,26 +150,26 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
     // make the mat mat product
     if (op.useRow()) {
 #pragma omp parallel for
-      for (int i = 0; i < op.rows(); i++) {
+      for (Index i = 0; i < op.rows(); i++) {
         const Eigen::RowVectorXd row = op.OperatorRow(i) * m;
         dst.row(i) = row;
       }
     }
 
     if (op.useBlock()) {
-      int blocksize = op.getBlocksize();
+      Index blocksize = op.getBlocksize();
       if (op.size() % blocksize != 0) {
         throw std::runtime_error("blocksize is not a multiple of matrix size");
       }
-      int blocks = op.size() / blocksize;
+      Index blocks = op.size() / blocksize;
       // this uses the fact that all our matrices are symmetric, i.e we can
       // reuse half the blocks
       std::vector<Eigen::MatrixXd> thread_wiseresult(
           votca::xtp::OPENMP::getMaxThreads(),
           Eigen::MatrixXd::Zero(dst.rows(), dst.cols()));
 #pragma omp parallel for schedule(guided)
-      for (int i_row = 0; i_row < blocks; i_row++) {
-        for (int i_col = i_row; i_col < blocks; i_col++) {
+      for (Index i_row = 0; i_row < blocks; i_row++) {
+        for (Index i_col = i_row; i_col < blocks; i_col++) {
           Eigen::MatrixXd blockmat = op.OperatorBlock(i_row, i_col);
           thread_wiseresult[votca::xtp::OPENMP::getThreadId()].block(
               i_row * blocksize, 0, blocksize, dst.cols()) +=

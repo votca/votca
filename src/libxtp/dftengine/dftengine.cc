@@ -104,7 +104,7 @@ void DFTEngine::Initialize(Property& options) {
         key + ".convergence.energy", _conv_opt.Econverged);
     _conv_opt.error_converged = options.ifExistsReturnElseReturnDefault<double>(
         key + ".convergence.error", _conv_opt.error_converged);
-    _max_iter = options.ifExistsReturnElseReturnDefault<int>(
+    _max_iter = options.ifExistsReturnElseReturnDefault<Index>(
         key + ".convergence.max_iterations", 100);
 
     if (options.exists(key + ".convergence.method")) {
@@ -130,7 +130,7 @@ void DFTEngine::Initialize(Property& options) {
         key + ".convergence.levelshift_end", _conv_opt.levelshiftend);
     _conv_opt.maxout = options.ifExistsReturnElseReturnDefault<bool>(
         key + ".convergence.DIIS_maxout", _conv_opt.maxout);
-    _conv_opt.histlength = options.ifExistsReturnElseReturnDefault<int>(
+    _conv_opt.histlength = options.ifExistsReturnElseReturnDefault<Index>(
         key + ".convergence.DIIS_length", _conv_opt.histlength);
     _conv_opt.diis_start = options.ifExistsReturnElseReturnDefault<double>(
         key + ".convergence.DIIS_start", _conv_opt.diis_start);
@@ -144,8 +144,8 @@ void DFTEngine::Initialize(Property& options) {
 void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies) {
   XTP_LOG(logDEBUG, *_pLog) << "  Orbital energies: " << flush;
   XTP_LOG(logDEBUG, *_pLog) << "  index occupation energy(Hartree) " << flush;
-  for (int i = 0; i < MOEnergies.size(); i++) {
-    int occupancy = 0;
+  for (Index i = 0; i < MOEnergies.size(); i++) {
+    Index occupancy = 0;
     if (i < _numofelectrons / 2) {
       occupancy = 2;
     }
@@ -253,7 +253,7 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
                                "----------------------------"
                             << flush;
 
-  for (int this_iter = 0; this_iter < _max_iter; this_iter++) {
+  for (Index this_iter = 0; this_iter < _max_iter; this_iter++) {
     XTP_LOG(logDEBUG, *_pLog) << flush;
     XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration " << this_iter + 1
                               << " of " << _max_iter << flush;
@@ -482,9 +482,9 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   }
   gridIntegration.GridSetup(_grid_name, atom, dftbasis);
   gridIntegration.setXCfunctional(_xc_functional_name);
-  int numofelectrons = uniqueAtom.getNuccharge();
-  int alpha_e = 0;
-  int beta_e = 0;
+  Index numofelectrons = uniqueAtom.getNuccharge();
+  Index alpha_e = 0;
+  Index beta_e = 0;
 
   if ((numofelectrons % 2) != 0) {
     alpha_e = numofelectrons / 2 + numofelectrons % 2;
@@ -546,8 +546,8 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   tools::EigenSystem MOs_beta = Convergence_beta.SolveFockmatrix(H0);
   Eigen::MatrixXd dftAOdmat_beta = Convergence_beta.DensityMatrix(MOs_beta);
 
-  int maxiter = 80;
-  for (int this_iter = 0; this_iter < maxiter; this_iter++) {
+  Index maxiter = 80;
+  for (Index this_iter = 0; this_iter < maxiter; this_iter++) {
     Mat_p_Energy ERIs = ERIs_atom.CalculateERIs_4c_small_molecule(
         dftAOdmat_alpha + dftAOdmat_beta);
     double E_two_alpha = ERIs.matrix().cwiseProduct(dftAOdmat_alpha).sum();
@@ -657,9 +657,9 @@ Eigen::MatrixXd DFTEngine::AtomicGuess(const QMMolecule& mol) const {
 
   Eigen::MatrixXd guess =
       Eigen::MatrixXd::Zero(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
-  int start = 0;
+  Index start = 0;
   for (const QMAtom& atom : mol) {
-    int index = 0;
+    Index index = 0;
     for (; index < uniqueelements.size(); index++) {
       if (atom.getElement() == uniqueelements[index].getElement()) {
         break;
@@ -841,12 +841,12 @@ void DFTEngine::Prepare(QMMolecule& mol) {
 double DFTEngine::NuclearRepulsion(const QMMolecule& mol) const {
   double E_nucnuc = 0.0;
 
-  for (int i = 0; i < mol.size(); i++) {
+  for (Index i = 0; i < mol.size(); i++) {
     const Eigen::Vector3d& r1 = mol[i].getPos();
-    double charge1 = mol[i].getNuccharge();
-    for (int j = 0; j < i; j++) {
+    double charge1 = double(mol[i].getNuccharge());
+    for (Index j = 0; j < i; j++) {
       const Eigen::Vector3d& r2 = mol[j].getPos();
-      double charge2 = mol[j].getNuccharge();
+      double charge2 = double(mol[j].getNuccharge());
       E_nucnuc += charge1 * charge2 / (r1 - r2).norm();
     }
   }
@@ -880,16 +880,16 @@ string DFTEngine::ReturnSmallGrid(const string& largegrid) {
 Eigen::MatrixXd DFTEngine::SphericalAverageShells(
     const Eigen::MatrixXd& dmat, const AOBasis& dftbasis) const {
   Eigen::MatrixXd avdmat = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
-  int start = 0.0;
-  std::vector<int> starts;
-  std::vector<int> ends;
+  Index start = 0.0;
+  std::vector<Index> starts;
+  std::vector<Index> ends;
   for (const AOShell& shell : dftbasis) {
-    int end = shell.getNumFunc() + start;
+    Index end = shell.getNumFunc() + start;
 
     if (shell.isCombined()) {
-      std::vector<int> temp = NumFuncSubShell(shell.getType());
-      int numfunc = start;
-      for (int& SubshellFunc : temp) {
+      std::vector<Index> temp = NumFuncSubShell(shell.getType());
+      Index numfunc = start;
+      for (Index& SubshellFunc : temp) {
         starts.push_back(numfunc);
         numfunc += SubshellFunc;
         ends.push_back(numfunc);
@@ -900,18 +900,18 @@ Eigen::MatrixXd DFTEngine::SphericalAverageShells(
     }
     start = end;
   }
-  for (unsigned k = 0; k < starts.size(); k++) {
-    int s1 = starts[k];
-    int e1 = ends[k];
-    int len1 = e1 - s1;
-    for (unsigned l = 0; l < starts.size(); l++) {
-      int s2 = starts[l];
-      int e2 = ends[l];
-      int len2 = e2 - s2;
+  for (Index k = 0; k < Index(starts.size()); k++) {
+    Index s1 = starts[k];
+    Index e1 = ends[k];
+    Index len1 = e1 - s1;
+    for (Index l = 0; l < Index(starts.size()); l++) {
+      Index s2 = starts[l];
+      Index e2 = ends[l];
+      Index len2 = e2 - s2;
       double diag = 0.0;
       double offdiag = 0.0;
-      for (int i = 0; i < len1; ++i) {
-        for (int j = 0; j < len2; ++j) {
+      for (Index i = 0; i < len1; ++i) {
+        for (Index j = 0; j < len2; ++j) {
           if (i == j) {
             diag += dmat(s1 + i, s2 + j);
           } else {
@@ -927,8 +927,8 @@ Eigen::MatrixXd DFTEngine::SphericalAverageShells(
         diag = avg;
         offdiag = avg;
       }
-      for (int i = 0; i < len1; ++i) {
-        for (int j = 0; j < len2; ++j) {
+      for (Index i = 0; i < len1; ++i) {
+        for (Index j = 0; j < len2; ++j) {
           if (i == j) {
             avdmat(s1 + i, s2 + j) = diag;
           } else {
@@ -952,7 +952,7 @@ double DFTEngine::ExternalRepulsion(
   double E_ext = 0;
   eeInteractor interactor;
   for (const QMAtom& atom : mol) {
-    StaticSite nucleus = StaticSite(atom, atom.getNuccharge());
+    StaticSite nucleus = StaticSite(atom, double(atom.getNuccharge()));
     for (const std::unique_ptr<StaticSite>& site : *_externalsites) {
       interactor.CalcStaticEnergy_site(*site, nucleus);
     }
@@ -998,10 +998,11 @@ Mat_p_Energy DFTEngine::IntegrateExternalDensity(
   double nuc_energy = 0.0;
   for (const QMAtom& atom : mol) {
     nuc_energy +=
-        numint.IntegratePotential(atom.getPos()) * atom.getNuccharge();
+        numint.IntegratePotential(atom.getPos()) * double(atom.getNuccharge());
     for (const QMAtom& extatom : extdensity.QMAtoms()) {
       const double dist = (atom.getPos() - extatom.getPos()).norm();
-      nuc_energy += atom.getNuccharge() * extatom.getNuccharge() / dist;
+      nuc_energy +=
+          double(atom.getNuccharge()) * double(extatom.getNuccharge()) / dist;
     }
   }
   XTP_LOG(logDEBUG, *_pLog)

@@ -74,7 +74,7 @@ StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Calculating ESP at CHELPG grid points" << flush;
 #pragma omp parallel for
-  for (unsigned i = 0; i < grid.size(); i++) {
+  for (Index i = 0; i < grid.size(); i++) {
     grid.getGridValues()(i) =
         numway.IntegratePotential(grid.getGridPositions()[i]);
   }
@@ -84,11 +84,11 @@ StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
   double netcharge = 0.0;
   if (!state.isTransition()) {
     EvalNuclearPotential(orbitals.QMAtoms(), grid);
-    double Znuc = 0.0;
+    Index Znuc = 0;
     for (const QMAtom& atom : orbitals.QMAtoms()) {
       Znuc += atom.getNuccharge();
     }
-    netcharge = Znuc - N;
+    netcharge = double(Znuc) - N;
   }
   netcharge = std::round(netcharge);
   XTP_LOG_SAVE(logDEBUG, _log)
@@ -105,12 +105,12 @@ void Espfit::EvalNuclearPotential(const QMMolecule& atoms, Grid& grid) {
       << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points"
       << flush;
 
-  for (unsigned i = 0; i < gridpoints.size(); i++) {
-    for (int j = 0; j < atoms.size(); j++) {
+  for (Index i = 0; i < Index(gridpoints.size()); i++) {
+    for (Index j = 0; j < atoms.size(); j++) {
       const Eigen::Vector3d& posatom = atoms[j].getPos();
-      double Znuc = atoms[j].getNuccharge();
+      Index Znuc = atoms[j].getNuccharge();
       double dist_j = (gridpoints[i] - posatom).norm();
-      gridvalues(i) += Znuc / dist_j;
+      gridvalues(i) += double(Znuc) / dist_j;
     }
   }
   return;
@@ -119,9 +119,9 @@ void Espfit::EvalNuclearPotential(const QMMolecule& atoms, Grid& grid) {
 StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
                                         const Grid& grid, double netcharge) {
   const QMMolecule& atomlist = orbitals.QMAtoms();
-  const int NoOfConstraints =
-      1 + _regionconstraint.size() + _pairconstraint.size();
-  const int matrixSize = atomlist.size() + NoOfConstraints;
+  const Index NoOfConstraints =
+      1 + Index(_regionconstraint.size()) + Index(_pairconstraint.size());
+  const Index matrixSize = atomlist.size() + NoOfConstraints;
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Setting up Matrices for fitting of size "
       << matrixSize << " x " << matrixSize << flush;
@@ -136,8 +136,8 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
   Eigen::VectorXd Bvec = Eigen::VectorXd::Zero(matrixSize);
 // setting up _Amat
 #pragma omp parallel for
-  for (int i = 0; i < atomlist.size(); i++) {
-    for (int j = i; j < atomlist.size(); j++) {
+  for (Index i = 0; i < atomlist.size(); i++) {
+    for (Index j = i; j < atomlist.size(); j++) {
       for (const auto& gridpoint : gridpoints) {
         double dist_i = (atomlist[i].getPos() - gridpoint).norm();
         double dist_j = (atomlist[j].getPos() - gridpoint).norm();
@@ -150,14 +150,14 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
 
   // setting up Bvec
 #pragma omp parallel for
-  for (int i = 0; i < atomlist.size(); i++) {
-    for (unsigned k = 0; k < gridpoints.size(); k++) {
-      double dist_i = (atomlist[i].getPos() - gridpoints[k]).norm();
-      Bvec(i) += potential(k) / dist_i;
+  for (Index i = 0; i < atomlist.size(); i++) {
+    for (Index j = 0; j < Index(gridpoints.size()); j++) {
+      double dist_i = (atomlist[i].getPos() - gridpoints[j]).norm();
+      Bvec(i) += potential(j) / dist_i;
     }
   }
   // Total charge constraint
-  for (int i = 0; i < atomlist.size() + 1; i++) {
+  for (Index i = 0; i < atomlist.size() + 1; i++) {
     Amat(i, atomlist.size()) = 1.0;
     Amat(atomlist.size(), i) = 1.0;
   }
@@ -165,8 +165,8 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
   Bvec(atomlist.size()) = netcharge;  // netcharge!!!!
 
   // Pairconstraint
-  for (unsigned i = 0; i < _pairconstraint.size(); i++) {
-    const std::pair<int, int>& pair = _pairconstraint[i];
+  for (Index i = 0; i < Index(_pairconstraint.size()); i++) {
+    const std::pair<Index, Index>& pair = _pairconstraint[i];
     Amat(pair.first, atomlist.size() + 1 + i) = 1.0;
     Amat(atomlist.size() + 1 + i, pair.first) = 1.0;
     Amat(pair.second, atomlist.size() + 1 + i) = -1.0;
@@ -174,9 +174,9 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
   }
 
   // Regionconstraint
-  for (unsigned i = 0; i < _regionconstraint.size(); i++) {
+  for (Index i = 0; i < Index(_regionconstraint.size()); i++) {
     const QMFragment<double>& reg = _regionconstraint[i];
-    for (int index : reg) {
+    for (Index index : reg) {
       Amat(index, atomlist.size() + i + 1 + _pairconstraint.size()) = 1.0;
       Amat(atomlist.size() + i + 1 + _pairconstraint.size(), index) = 1.0;
     }
@@ -214,13 +214,13 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
 
   XTP_LOG_SAVE(logDEBUG, _log)
       << " Sum of fitted charges: " << charges.sum() << flush;
-  for (int i = 0; i < atomlist.size(); i++) {
+  for (Index i = 0; i < atomlist.size(); i++) {
     seg.push_back(StaticSite(atomlist[i], charges(i)));
   }
   // get RMSE
   double rmse = 0.0;
   double totalPotSq = 0.0;
-  for (unsigned k = 0; k < gridpoints.size(); k++) {
+  for (Index k = 0; k < Index(gridpoints.size()); k++) {
     double temp = 0.0;
     for (const StaticSite& atom : seg) {
       double dist = (gridpoints[k] - atom.getPos()).norm();
@@ -230,9 +230,10 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
     totalPotSq += potential(k) * potential(k);
   }
   XTP_LOG_SAVE(logDEBUG, _log)
-      << " RMSE of fit:  " << sqrt(rmse / gridpoints.size()) << flush;
+      << " RMSE of fit:  " << std::sqrt(rmse / double(gridpoints.size()))
+      << flush;
   XTP_LOG_SAVE(logDEBUG, _log)
-      << " RRMSE of fit: " << sqrt(rmse / totalPotSq) << flush;
+      << " RRMSE of fit: " << std::sqrt(rmse / totalPotSq) << flush;
 
   return seg;
 }

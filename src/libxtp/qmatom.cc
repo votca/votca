@@ -22,7 +22,7 @@
 namespace votca {
 namespace xtp {
 
-QMAtom::QMAtom(int index, std::string element, Eigen::Vector3d pos)
+QMAtom::QMAtom(Index index, std::string element, Eigen::Vector3d pos)
     : _index(index), _element(element), _pos(pos) {
   tools::Elements elements;
   _nuccharge = elements.getNucCrg(_element);

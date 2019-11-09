@@ -52,18 +52,18 @@ BOOST_AUTO_TEST_CASE(QMState_test) {
   QMState state;
   state.FromString("S1");
   BOOST_CHECK_EQUAL(state.Type() == QMStateType::Singlet, true);
-  BOOST_CHECK_EQUAL(state.Index(), 0);
+  BOOST_CHECK_EQUAL(state.StateIdx(), 0);
 
   QMState state2;
   state.FromString("N");
-  BOOST_CHECK_EQUAL(state.Index(), -1);
+  BOOST_CHECK_EQUAL(state.StateIdx(), -1);
 
   QMState state3;
   state3.FromString("n2s12");
   BOOST_CHECK_EQUAL(state3.isTransition(), true);
 
   BOOST_CHECK_EQUAL(state3.Type() == QMStateType::Singlet, true);
-  BOOST_CHECK_EQUAL(state3.Index(), 11);
+  BOOST_CHECK_EQUAL(state3.StateIdx(), 11);
 
   QMState state4;
   state4.FromString("n2s16");
@@ -79,16 +79,16 @@ BOOST_AUTO_TEST_CASE(QMState_test) {
 
   QMState hole;
   hole.FromString("h1");
-  BOOST_CHECK_EQUAL(hole.Index(), 0);
+  BOOST_CHECK_EQUAL(hole.StateIdx(), 0);
   QMState hole2;
   hole2.FromString("h");
-  BOOST_CHECK_EQUAL(hole2.Index(), 0);
+  BOOST_CHECK_EQUAL(hole2.StateIdx(), 0);
   QMState electron;
   electron.FromString("e1");
-  BOOST_CHECK_EQUAL(electron.Index(), 0);
+  BOOST_CHECK_EQUAL(electron.StateIdx(), 0);
   QMState electron2;
   electron2.FromString("e");
-  BOOST_CHECK_EQUAL(electron2.Index(), 0);
+  BOOST_CHECK_EQUAL(electron2.StateIdx(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

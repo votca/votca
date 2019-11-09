@@ -40,8 +40,8 @@ class QMNBList : public csg::PairList<const Segment*, QMPair> {
   template <class Compare>
   void sortAndReindex(Compare comp);
 
-  const QMPair* operator[](int index) const { return _pairs[index]; }
-  QMPair* operator[](int index) { return _pairs[index]; }
+  const QMPair* operator[](Index index) const { return _pairs[index]; }
+  QMPair* operator[](Index index) { return _pairs[index]; }
 
   void WriteToCpt(CheckpointWriter& w) const;
 
@@ -54,7 +54,7 @@ template <class Compare>
 inline void QMNBList::sortAndReindex(Compare comp) {
   std::sort(_pairs.begin(), _pairs.end(), comp);
 
-  for (unsigned i = 0; i < _pairs.size(); i++) {
+  for (Index i = 0; i < Index(_pairs.size()); i++) {
     _pairs[i]->setId(i);
   }
 }

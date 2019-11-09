@@ -57,22 +57,22 @@ class BSECoupling : public CouplingBase {
   void WriteToProperty(tools::Property& summary, const QMState& stateA,
                        const QMState& stateB) const;
 
-  double getSingletCouplingElement(int levelA, int levelB,
-                                   int methodindex) const;
+  double getSingletCouplingElement(Index levelA, Index levelB,
+                                   Index methodindex) const;
 
-  double getTripletCouplingElement(int levelA, int levelB,
-                                   int methodindex) const;
+  double getTripletCouplingElement(Index levelA, Index levelB,
+                                   Index methodindex) const;
 
-  Eigen::MatrixXd SetupCTStates(int bseA_vtotal, int bseB_vtotal,
-                                int bseAB_vtotal, int bseAB_ctotal,
+  Eigen::MatrixXd SetupCTStates(Index bseA_vtotal, Index bseB_vtotal,
+                                Index bseAB_vtotal, Index bseAB_ctotal,
                                 const Eigen::MatrixXd& A_AB,
                                 const Eigen::MatrixXd& B_AB) const;
 
   Eigen::MatrixXd ProjectFrenkelExcitons(const Eigen::MatrixXd& BSE_Coeffs,
                                          const Eigen::MatrixXd& X_AB,
-                                         int bseX_vtotal, int bseX_ctotal,
-                                         int bseAB_vtotal,
-                                         int bseAB_ctotal) const;
+                                         Index bseX_vtotal, Index bseX_ctotal,
+                                         Index bseAB_vtotal,
+                                         Index bseAB_ctotal) const;
 
   template <class BSE_OPERATOR>
   std::array<Eigen::MatrixXd, 2> ProjectExcitons(Eigen::MatrixXd& FE_AB,
@@ -95,12 +95,12 @@ class BSECoupling : public CouplingBase {
   bool _doTriplets = false;
   bool _doSinglets = false;
   bool _output_perturbation = true;
-  long int _levA = std::numeric_limits<long int>::max();
-  long int _levB = std::numeric_limits<long int>::max();
-  int _occA = 5;
-  int _unoccA = 5;
-  int _occB = 5;
-  int _unoccB = 5;
+  Index _levA = std::numeric_limits<Index>::max();
+  Index _levB = std::numeric_limits<Index>::max();
+  Index _occA = 5;
+  Index _unoccA = 5;
+  Index _occB = 5;
+  Index _unoccB = 5;
 };
 
 }  // namespace xtp

@@ -166,9 +166,9 @@ class LogBuffer : public std::stringbuf {
  */
 class Logger : public std::ostream {
 
-  friend std::ostream &operator<<(std::ostream &out, Logger &logger) {
-    out << logger.Messages();
-    return out;
+  friend std::ostream &operator<<(std::ostream &log_out, Logger &logger) {
+    log_out << logger.Messages();
+    return log_out;
   }
 
  public:

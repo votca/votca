@@ -157,12 +157,12 @@ void EAnalyze::SiteHist(QMStateType state) const {
   double MAX = *std::max_element(Es.begin(), Es.end());
   double MIN = *std::min_element(Es.begin(), Es.end());
   double sum = std::accumulate(Es.begin(), Es.end(), 0.0);
-  double AVG = sum / Es.size();
+  double AVG = sum / double(Es.size());
   double sq_sum = std::inner_product(Es.begin(), Es.end(), Es.begin(), 0.0);
-  double STD = std::sqrt(sq_sum / Es.size() - AVG * AVG);
+  double STD = std::sqrt(sq_sum / double(Es.size()) - AVG * AVG);
 
   // Prepare bins
-  int BIN = int((MAX - MIN) / _resolution_sites + 0.5) + 1;
+  Index BIN = Index((MAX - MIN) / _resolution_sites + 0.5) + 1;
 
   tools::HistogramNew hist;
   hist.Initialize(MIN, MAX, BIN);
@@ -230,10 +230,10 @@ void EAnalyze::PairHist(const Topology &top, QMStateType state) const {
   double MAX = *std::max_element(dE.begin(), dE.end());
   double MIN = *std::min_element(dE.begin(), dE.end());
   double sum = std::accumulate(dE.begin(), dE.end(), 0.0);
-  double AVG = sum / dE.size();
+  double AVG = sum / double(dE.size());
   double sq_sum = std::inner_product(dE.begin(), dE.end(), dE.begin(), 0.0);
-  double STD = std::sqrt(sq_sum / dE.size() - AVG * AVG);
-  int BIN = int((MAX - MIN) / _resolution_pairs + 0.5) + 1;
+  double STD = std::sqrt(sq_sum / double(dE.size()) - AVG * AVG);
+  Index BIN = Index((MAX - MIN) / _resolution_pairs + 0.5) + 1;
 
   std::string filename2 = "eanalyze.pairhist_" + state.ToString() + ".out";
   tools::HistogramNew hist;
@@ -259,19 +259,20 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
   }
 
   double sum = std::accumulate(Es.begin(), Es.end(), 0.0);
-  double AVG = sum / Es.size();
+  double AVG = sum / double(Es.size());
   double sq_sum = std::inner_product(Es.begin(), Es.end(), Es.begin(), 0.0);
-  double VAR = sq_sum / Es.size() - AVG * AVG;
+  double VAR = sq_sum / double(Es.size()) - AVG * AVG;
   double STD = std::sqrt(VAR);
 
   // Collect inter-site distances, correlation product
   tools::Table tabcorr;
-  int length = _seg_shortlist.size() * (_seg_shortlist.size() - 1) / 2;
+  Index length =
+      Index(_seg_shortlist.size()) * Index(_seg_shortlist.size() - 1) / 2;
   tabcorr.resize(length);
-  int index = 0;
-  for (unsigned i = 0; i < _seg_shortlist.size(); i++) {
+  Index index = 0;
+  for (Index i = 0; i < Index(_seg_shortlist.size()); i++) {
     const Segment &segi = *_seg_shortlist[i];
-    for (unsigned j = i + 1; j < _seg_shortlist.size(); j++) {
+    for (Index j = i + 1; j < Index(_seg_shortlist.size()); j++) {
       const Segment &segj = *_seg_shortlist[j];
       double R = 0;
       if (_atomdistances) {
@@ -291,12 +292,12 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
   double MAX = tabcorr.x().maxCoeff();
 
   // Prepare bins
-  int BIN = int((MAX - MIN) / _resolution_space + 0.5) + 1;
+  Index BIN = Index((MAX - MIN) / _resolution_space + 0.5) + 1;
   std::vector<std::vector<double> > histCs;
   histCs.resize(BIN);
 
-  for (int i = 0; i < tabcorr.size(); ++i) {
-    int bin = int((tabcorr.x()[i] - MIN) / _resolution_space + 0.5);
+  for (Index i = 0; i < tabcorr.size(); ++i) {
+    Index bin = Index((tabcorr.x()[i] - MIN) / _resolution_space + 0.5);
     histCs[bin].push_back(tabcorr.y()[i]);
   }
 
@@ -304,20 +305,21 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
   histC.SetHasYErr(true);
   // Calculate spatial correlation
   histC.resize(BIN);
-  for (int bin = 0; bin < BIN; ++bin) {
+  for (Index bin = 0; bin < BIN; ++bin) {
     double corr = 0.0;
     double dcorr2 = 0.0;
     for (double entry : histCs[bin]) {
       corr += entry / VAR;
     }
-    corr = corr / histCs[bin].size();
-    for (unsigned i = 0; i < histCs[bin].size(); ++i) {
-      dcorr2 += (histCs[bin][i] / VAR / histCs[bin].size() - corr) *
-                (histCs[bin][i] / VAR / histCs[bin].size() - corr);
+    corr = corr / double(histCs[bin].size());
+    for (Index i = 0; i < Index(histCs[bin].size()); ++i) {
+      dcorr2 += (histCs[bin][i] / VAR / double(histCs[bin].size()) - corr) *
+                (histCs[bin][i] / VAR / double(histCs[bin].size()) - corr);
     }
     // error on mean value
-    dcorr2 = dcorr2 / histCs[bin].size() / (histCs[bin].size() - 1);
-    double R = MIN + bin * _resolution_space;
+    dcorr2 =
+        dcorr2 / double(histCs[bin].size()) / double(histCs[bin].size() - 1);
+    double R = MIN + double(bin) * _resolution_space;
     histC.set(bin, R, corr, ' ', std::sqrt(dcorr2));
   }
 

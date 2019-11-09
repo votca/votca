@@ -100,8 +100,8 @@ void MolPol::Initialize(tools::Property& options) {
   _tolerance_pol = options.ifExistsReturnElseReturnDefault<double>(
       key + ".tolerance", _tolerance_pol);
 
-  _max_iter = options.ifExistsReturnElseReturnDefault<int>(key + ".iterations",
-                                                           _max_iter);
+  _max_iter = options.ifExistsReturnElseReturnDefault<Index>(
+      key + ".iterations", _max_iter);
 }
 
 Eigen::Vector3d MolPol::Polarize(const PolarSegment& input,
@@ -176,7 +176,7 @@ bool MolPol::Evaluate() {
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(_polarisation_target, Eigen::EigenvaluesOnly);
   const double pol_volume_target = std::pow(es.eigenvalues().prod(), 1.0 / 3.0);
-  for (int iter = 0; iter < _max_iter; iter++) {
+  for (Index iter = 0; iter < _max_iter; iter++) {
 
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es2;
     Eigen::Matrix3d pol = CalcClassicalPol(polar);
@@ -206,7 +206,7 @@ bool MolPol::Evaluate() {
       PrintPolarisation(pol);
     }
 
-    for (int i = 0; i < polar.size(); i++) {
+    for (Index i = 0; i < polar.size(); i++) {
       PolarSite& site = polar[i];
       Eigen::Matrix3d local_pol = site.getPolarisation();
       site.setPolarisation(local_pol * std::pow(1 + scale * _weights[i], 2));

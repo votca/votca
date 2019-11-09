@@ -63,7 +63,7 @@ class NWChem : public QMPackage {
   void WriteECP(std::ofstream& nw_file, const QMMolecule& qmatoms);
 
   std::string FortranFormat(const double& number);
-  int WriteBackgroundCharges(std::ofstream& nw_file);
+  Index WriteBackgroundCharges(std::ofstream& nw_file);
   void WriteChargeOption() override;
 };
 

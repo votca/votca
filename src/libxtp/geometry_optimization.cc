@@ -52,7 +52,7 @@ void GeometryOptimization::Initialize(tools::Property& options) {
   _trust_radius *= tools::conv::ang2bohr;  // initial trust radius in a.u.
 
   _max_iteration =
-      options.ifExistsReturnElseReturnDefault<unsigned>(".maxiter", 50);
+      options.ifExistsReturnElseReturnDefault<Index>(".maxiter", 50);
 
   _trajfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".trajectory_file", "optimisation.trj");
@@ -161,7 +161,7 @@ void GeometryOptimization::Report(const BFGSTRM& bfgstrm, const Forces& forces,
   XTP_LOG_SAVE(logINFO, pLog)
       << (boost::format(" Atom\t x\t  y\t  z ")).str() << std::flush;
   const Eigen::VectorXd& atomvec = bfgstrm.getParameters();
-  for (unsigned i = 0; i < atomvec.size(); i += 3) {
+  for (Index i = 0; i < atomvec.size(); i += 3) {
     XTP_LOG_SAVE(logINFO, pLog)
         << (boost::format("%1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f") % (i / 3) %
             (atomvec(i) * votca::tools::conv::bohr2ang) %

@@ -56,8 +56,8 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
  private:
   double GetBSECouplingFromProp(tools::Property& bseprop, const QMState& stateA,
                                 const QMState& stateB);
-  double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA,
-                                int stateB);
+  double GetDFTCouplingFromProp(tools::Property& dftprop, Index stateA,
+                                Index stateB);
   void SetJobToFailed(Job::JobResult& jres, Logger& pLog,
                       const std::string& errormessage);
   void WriteLoggerToFile(const std::string& logfile, Logger& logger);

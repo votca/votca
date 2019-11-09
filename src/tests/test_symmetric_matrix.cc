@@ -21,11 +21,12 @@
 #include <votca/xtp/symmetric_matrix.h>
 
 using namespace votca::xtp;
+using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(symmetric_matrix_test)
 
 BOOST_AUTO_TEST_CASE(Constructor_test) {
-  int dim = 3;
+  Index dim = 3;
   Eigen::MatrixXd test = Eigen::MatrixXd::Random(dim, dim);
   Eigen::MatrixXd trans = test.transpose();
   test += trans;
@@ -46,7 +47,7 @@ BOOST_AUTO_TEST_CASE(Constructor_test) {
 
 BOOST_AUTO_TEST_CASE(Add_test) {
 
-  int dim = 3;
+  Index dim = 3;
   Eigen::MatrixXd test = Eigen::MatrixXd::Random(dim, dim);
   Eigen::MatrixXd trans = test.transpose();
   test += trans;
@@ -70,7 +71,7 @@ BOOST_AUTO_TEST_CASE(Add_test) {
 
 BOOST_AUTO_TEST_CASE(AddUpper_test) {
 
-  int dim = 3;
+  Index dim = 3;
   Eigen::MatrixXd test = Eigen::MatrixXd::Random(dim, dim);
   Eigen::MatrixXd trans = test.transpose();
   test += trans;
@@ -99,7 +100,7 @@ BOOST_AUTO_TEST_CASE(AddUpper_test) {
 
 BOOST_AUTO_TEST_CASE(FullMatrix_test) {
 
-  int dim = 3;
+  Index dim = 3;
   Eigen::MatrixXd test = Eigen::MatrixXd::Random(dim, dim);
   Eigen::MatrixXd trans = test.transpose();
   test += trans;
@@ -112,7 +113,7 @@ BOOST_AUTO_TEST_CASE(FullMatrix_test) {
 
 BOOST_AUTO_TEST_CASE(UpperMatrix_test) {
 
-  int dim = 3;
+  Index dim = 3;
   Eigen::MatrixXd test = Eigen::MatrixXd::Random(dim, dim);
   Eigen::MatrixXd trans = test.transpose();
   test += trans;
@@ -131,7 +132,7 @@ BOOST_AUTO_TEST_CASE(UpperMatrix_test) {
 
 BOOST_AUTO_TEST_CASE(TraceofProd_test) {
 
-  int dim = 3;
+  Index dim = 3;
   Eigen::MatrixXd test = Eigen::MatrixXd::Random(dim, dim);
   Eigen::MatrixXd trans = test.transpose();
   test += trans;

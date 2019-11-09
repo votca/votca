@@ -37,7 +37,7 @@ StaticSegment Populationanalysis<T>::CalcChargeperAtom(
 
   StaticSegment seg =
       StaticSegment(orbitals.QMAtoms().getType(), orbitals.QMAtoms().getId());
-  for (int i = 0; i < orbitals.QMAtoms().size(); ++i) {
+  for (Index i = 0; i < orbitals.QMAtoms().size(); ++i) {
     seg.push_back(StaticSite(orbitals.QMAtoms()[i], charges(i)));
   }
   return seg;
@@ -58,12 +58,12 @@ void Populationanalysis<T>::CalcChargeperFragment(
   Eigen::MatrixXd dmatgs = orbitals.DensityMatrixGroundState();
   Eigen::VectorXd gscharges =
       nuccharges - CalcElecChargeperAtom(dmatgs, overlap, basis);
-  int numofstates = orbitals.NumberofStates(type);
+  Index numofstates = orbitals.NumberofStates(type);
   for (auto& frag : frags) {
     frag.value().Initialize(numofstates);
     frag.value().Gs = frag.ExtractFromVector(gscharges);
   }
-  for (int i_state = 0; i_state < numofstates; i_state++) {
+  for (Index i_state = 0; i_state < numofstates; i_state++) {
     QMState state(type, i_state, false);
     std::array<Eigen::MatrixXd, 2> dmat_ex =
         orbitals.DensityMatrixExcitedState(state);
@@ -80,8 +80,8 @@ template <bool T>
 Eigen::VectorXd Populationanalysis<T>::CalcNucChargeperAtom(
     const QMMolecule& mol) const {
   Eigen::VectorXd result = Eigen::VectorXd::Zero(mol.size());
-  for (int i = 0; i < mol.size(); i++) {
-    result(i) = mol[i].getNuccharge();
+  for (Index i = 0; i < mol.size(); i++) {
+    result(i) = double(mol[i].getNuccharge());
   }
   return result;
 }
@@ -97,11 +97,12 @@ Eigen::VectorXd Populationanalysis<T>::CalcElecChargeperAtom(
   } else {
     prodmat = dmat * overlap.Matrix();
   }
-  int noofatoms = basis.getFuncPerAtom().size();
+  std::vector<Index> funcperatom = basis.getFuncPerAtom();
+  Index noofatoms = Index(funcperatom.size());
   Eigen::VectorXd charges = Eigen::VectorXd::Zero(noofatoms);
-  int start = 0;
-  for (int i = 0; i < charges.size(); ++i) {
-    int nofunc = basis.getFuncPerAtom()[i];
+  Index start = 0;
+  for (Index i = 0; i < charges.size(); ++i) {
+    Index nofunc = funcperatom[i];
     charges(i) = prodmat.diagonal().segment(start, nofunc).sum();
     start += nofunc;
   }

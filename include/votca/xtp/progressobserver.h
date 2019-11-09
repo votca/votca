@@ -57,7 +57,7 @@ class ProgObserver {
  private:
   std::string _lockFile = "";
   std::string _progFile = "";
-  int _cacheSize = -1;
+  Index _cacheSize = -1;
   JobContainer _jobs;
 
   std::vector<Job *> _jobsToProc;
@@ -73,11 +73,11 @@ class ProgObserver {
   std::map<std::string, bool> _restart_hosts;
   std::map<std::string, bool> _restart_stats;
   bool _restartMode = false;
-  int _jobsReported = 0;
+  Index _jobsReported = 0;
 
   bool _moreJobsAvailable = false;
-  int _startJobsCount = 0;
-  int _maxJobs = 0;
+  Index _startJobsCount = 0;
+  Index _maxJobs = 0;
 };
 
 }  // namespace xtp

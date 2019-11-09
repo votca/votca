@@ -431,7 +431,7 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
 
   AODipole dip;
   dip.Fill(dftbasis);
-  int dftbasissize = 18;
+  Index dftbasissize = 18;
 
   Eigen::MatrixXd dip0_ref = Eigen::MatrixXd::Zero(dftbasissize, dftbasissize);
 

@@ -28,11 +28,11 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
                             const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
-  int lmax_row = shell_row.getLmax();
-  int lmax_col = shell_col.getLmax();
+  Index lmax_row = shell_row.getLmax();
+  Index lmax_col = shell_col.getLmax();
   // set size of internal block for recursion
-  int nrows = AOTransform::getBlockSize(lmax_row);
-  int ncols = AOTransform::getBlockSize(lmax_col);
+  Index nrows = AOTransform::getBlockSize(lmax_row);
+  Index ncols = AOTransform::getBlockSize(lmax_col);
   if (lmax_col > 6 || lmax_row > 6) {
     throw std::runtime_error(
         "Orbitals higher than i are not yet implemented. This should not have "
@@ -237,7 +237,7 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
 
         // Integrals     p - W - p     d - W - p     f - W - p     g - W - p h -
         // W - p     i - W - p
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
           // COMPLEX cnx(nx[i] * fak, 0.0);
           olk(i, Cart::x) =
               PmB(0) * olk(i, 0) + double(nx[i]) * cfak * olk(i_less_x[i], 0);
@@ -265,7 +265,7 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
 
         // Integrals     p - W - d     d - W - d     f - W - d     g - W - d h -
         // W - d     i - W - d
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
           COMPLEX term_loc = cfak * olk(i, 0);
           olk(i, Cart::xx) = PmB(0) * olk(i, Cart::x) +
                              double(nx[i]) * cfak * olk(i_less_x[i], Cart::x) +
@@ -306,7 +306,7 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - f     d - f     f - f     g - f     h - f     i - f
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
           COMPLEX term_x = 2.0 * cfak * olk(i, Cart::x);
           COMPLEX term_y = 2.0 * cfak * olk(i, Cart::y);
           COMPLEX term_z = 2.0 * cfak * olk(i, Cart::z);
@@ -362,7 +362,7 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - g     d - g     f - g     g - g     h - g     i - g
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
           COMPLEX term_xx_loc = cfak * olk(i, Cart::xx);
           COMPLEX term_yy_loc = cfak * olk(i, Cart::yy);
           COMPLEX term_zz_loc = cfak * olk(i, Cart::zz);
@@ -449,7 +449,7 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - h     d - h     f - h     g - h     h - h     i - h
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
           COMPLEX term_xxx_loc = cfak * olk(i, Cart::xxx);
           COMPLEX term_yyy_loc = cfak * olk(i, Cart::yyy);
           COMPLEX term_zzz_loc = cfak * olk(i, Cart::zzz);
@@ -572,7 +572,7 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
 
         // Integrals     p - W - i     d - W - i     f - W - i     g - W -i h -
         // W - i     i - W - i
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
           COMPLEX term_xxxx_loc = cfak * olk(i, Cart::xxxx);
           COMPLEX term_xyyy_loc = cfak * olk(i, Cart::xyyy);
           COMPLEX term_xzzz_loc = cfak * olk(i, Cart::xzzz);

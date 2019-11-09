@@ -87,6 +87,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   boost::filesystem::create_directories(workdir);
   Job::JobResult jres = Job::JobResult();
   Logger& pLog = Thread.getLogger();
+
   JobTopology jobtop = JobTopology(job, pLog, workdir);
   jobtop.BuildRegions(top, _regions_def);
 
@@ -97,7 +98,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     jobtop.WriteToPdb(workdir + "/" + pdb_filename);
   }
 
-  int no_static_regions = 0;
+  Index no_static_regions = 0;
   for (std::unique_ptr<Region>& region : jobtop) {
     no_static_regions += region->Converged();
   }
@@ -111,7 +112,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     no_top_scf = true;
     _max_iterations = 1;
   }
-  int iteration = 0;
+  Index iteration = 0;
   for (; iteration < _max_iterations; iteration++) {
 
     XTP_LOG_SAVE(logINFO, pLog)
@@ -235,7 +236,7 @@ void QMMM::WriteJobFile(const Topology& top) {
   }
 
   ofs << "<jobs>" << std::endl;
-  int jobid = 0;
+  Index jobid = 0;
   for (const Segment& seg : top.Segments()) {
     for (const QMState& state : _states) {
 
@@ -272,7 +273,7 @@ void QMMM::ReadJobFile(Topology& top) {
         "h</states></write_parse> to your options.");
   }
 
-  int incomplete_jobs = 0;
+  Index incomplete_jobs = 0;
 
   Eigen::Matrix<double, Eigen::Dynamic, 5> energies =
       Eigen::Matrix<double, Eigen::Dynamic, 5>::Zero(top.Segments().size(), 5);
@@ -284,7 +285,7 @@ void QMMM::ReadJobFile(Topology& top) {
   std::vector<tools::Property*> jobProps = xml.Select("jobs.job");
   for (tools::Property* job : jobProps) {
 
-    int jobid = job->get("id").as<int>();
+    Index jobid = job->get("id").as<Index>();
     if (!job->exists("status")) {
       throw std::runtime_error(
           "Jobfile is malformed. <status> tag missing for job " +
@@ -299,8 +300,8 @@ void QMMM::ReadJobFile(Topology& top) {
     std::string marker = job->get("input.site_energies").as<std::string>();
     tools::Tokenizer tok(marker, ":");
     std::vector<std::string> split = tok.ToVector();
-    int segid = std::stoi(split[0]);
-    if (segid < 0 || segid >= int(top.Segments().size())) {
+    Index segid = std::stoi(split[0]);
+    if (segid < 0 || segid >= Index(top.Segments().size())) {
       throw std::runtime_error("JobSegment id" + std::to_string(segid) +
                                " is not in topology for job " +
                                std::to_string(jobid));
@@ -326,7 +327,7 @@ void QMMM::ReadJobFile(Topology& top) {
 
   Eigen::Matrix<int, 1, 5> found_states = found.colwise().sum();
   std::cout << std::endl;
-  for (int i = 0; i < 5; i++) {
+  for (Index i = 0; i < 5; i++) {
     if (found_states(i) > 0) {
       QMStateType type(static_cast<QMStateType::statetype>(i));
       std::cout << "Found " << found_states(i) << " states of type "
@@ -338,8 +339,8 @@ void QMMM::ReadJobFile(Topology& top) {
   }
 
   for (Segment& seg : top.Segments()) {
-    int segid = seg.getId();
-    for (int i = 0; i < 4; i++) {
+    Index segid = seg.getId();
+    for (Index i = 0; i < 4; i++) {
       QMStateType type(static_cast<QMStateType::statetype>(i));
       if (found(segid, i) && found(segid, 4)) {
         double energy = energies(segid, i) - energies(segid, 4);

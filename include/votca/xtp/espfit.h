@@ -27,9 +27,6 @@
 /**
  * \brief Takes a list of atoms, and the corresponding density matrix and puts
  * out a table of partial charges
- *
- *
- *
  */
 
 namespace votca {
@@ -51,7 +48,7 @@ class Espfit {
     _conditionnumber = conditionnumber;
   }
 
-  void setPairConstraint(std::vector<std::pair<int, int> > pairconstraint) {
+  void setPairConstraint(std::vector<std::pair<Index, Index> > pairconstraint) {
     _pairconstraint = pairconstraint;
   }
 
@@ -67,10 +64,11 @@ class Espfit {
   bool _do_svd = true;
   double _conditionnumber = 1e-8;
 
-  std::vector<std::pair<int, int> > _pairconstraint;  //  pairconstraint[i] is
-                                                      //  all the atomindices
-                                                      //  which have the same
-                                                      //  charge
+  std::vector<std::pair<Index, Index> > _pairconstraint;  //  pairconstraint[i]
+                                                          //  is all the
+                                                          //  atomindices which
+                                                          //  have the same
+                                                          //  charge
 
   std::vector<QMFragment<double> > _regionconstraint;
 

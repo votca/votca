@@ -68,8 +68,8 @@ class KMCCalculator : public QMCalculator {
   tools::Random _RandomVariable;
   std::string _injection_name;
   std::string _injectionmethod;
-  int _seed;
-  int _numberofcarriers;
+  Index _seed;
+  Index _numberofcarriers;
   Eigen::Vector3d _field = Eigen::Vector3d::Zero();
   double _maxrealtime;
   std::string _trajectoryfile = "trajectory.csv";

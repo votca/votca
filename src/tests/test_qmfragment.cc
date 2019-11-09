@@ -20,24 +20,25 @@
 #include <iostream>
 #include <votca/xtp/qmfragment.h>
 
-using namespace std;
+using namespace votca;
 using namespace votca::xtp;
+using namespace votca;
 BOOST_AUTO_TEST_SUITE(qmfragment_test)
 
 BOOST_AUTO_TEST_CASE(stringprocessing) {
   std::string index = "1 2 3 5...9";
   QMFragment<double> frag(0, index);
-  std::vector<int> ref = {1, 2, 3, 5, 6, 7, 8, 9};
+  std::vector<Index> ref = {1, 2, 3, 5, 6, 7, 8, 9};
 
   bool checked = (frag.getIndices() == ref);
   if (!checked) {
     std::cout << "result" << std::endl;
-    for (int e : frag.getIndices()) {
+    for (Index e : frag.getIndices()) {
       std::cout << e;
     }
     std::cout << std::endl;
     std::cout << "ref" << std::endl;
-    for (int e : ref) {
+    for (Index e : ref) {
       std::cout << e;
     }
   }
@@ -60,7 +61,7 @@ BOOST_AUTO_TEST_CASE(readinandwritinghdf5) {
   QMFragment<double> frag2(r);
   BOOST_CHECK_EQUAL(frag2.getId(), frag.getId());
   BOOST_CHECK_CLOSE(frag.value(), frag2.value(), 1e-5);
-  for (int i = 0; i < frag.size(); i++) {
+  for (Index i = 0; i < Index(frag.size()); i++) {
     BOOST_CHECK_EQUAL(frag.getIndices()[i], frag2.getIndices()[i]);
   }
 }

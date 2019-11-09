@@ -35,7 +35,7 @@ class Optimiser_costfunction {
   virtual Eigen::VectorXd EvaluateGradient(
       const Eigen::VectorXd& parameters) = 0;
 
-  virtual int NumParameters() const = 0;
+  virtual Index NumParameters() const = 0;
 
   virtual bool Converged(const Eigen::VectorXd& delta_parameters,
                          double delta_cost,

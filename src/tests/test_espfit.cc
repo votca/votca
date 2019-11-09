@@ -23,7 +23,7 @@
 #include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;
-using namespace std;
+using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(espfit_test)
 
@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   esp.setUseSVD(1e-8);
   StaticSegment result = esp.Fit2Density(orbitals, gs, "xcoarse");
   Eigen::VectorXd pcharges = Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
-  int index = 0;
+  Index index = 0;
   for (const auto& site : result) {
     pcharges(index) = site.getCharge();
     index++;
@@ -156,15 +156,15 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
 
   bool check_esp_num = p_ref.isApprox(pcharges, 0.01);
   if (!check_esp_num) {
-    cout << "ref" << endl;
-    cout << p_ref << endl;
-    cout << "calc" << endl;
-    cout << pcharges << endl;
+    std::cout << "ref" << std::endl;
+    std::cout << p_ref << std::endl;
+    std::cout << "calc" << std::endl;
+    std::cout << pcharges << std::endl;
   }
   BOOST_CHECK_EQUAL(check_esp_num, 1);
 
-  std::vector<std::pair<int, int> > pairconstraint;
-  std::pair<int, int> p1;
+  std::vector<std::pair<Index, Index> > pairconstraint;
+  std::pair<Index, Index> p1;
   p1.first = 1;
   p1.second = 2;
   pairconstraint.push_back(p1);

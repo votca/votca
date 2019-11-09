@@ -40,7 +40,7 @@ class GNode {
   bool isInjectable() const { return _injectable; }
   bool canDecay() const { return _hasdecay; }
   const Eigen::Vector3d& getPos() const { return _position; }
-  int getId() const { return _id; }
+  Index getId() const { return _id; }
   void UpdateOccupationTime(double deltat) { _occupationtime += deltat; }
 
   const std::vector<GLink>& Events() const { return _events; }
@@ -58,7 +58,7 @@ class GNode {
   void AddEvent(GNode* seg2, const Eigen::Vector3d& dr, double rate);
 
  private:
-  int _id = 0;
+  Index _id = 0;
   bool _occupied = false;
   double _occupationtime = 0.0;
   double _escape_rate = 0.0;
@@ -70,8 +70,8 @@ class GNode {
 
   huffmanTree<GLink> hTree;
 
-  void organizeProbabilities(int id, double add);
-  void moveProbabilities(int id);
+  void organizeProbabilities(Index id, double add);
+  void moveProbabilities(Index id);
 };
 
 }  // namespace xtp

@@ -103,10 +103,10 @@ void StateTracker::PrintInfo() const {
   }
 }
 
-std::vector<int> StateTracker::ComparePairofVectors(
-    std::vector<int>& vec1, std::vector<int>& vec2) const {
-  std::vector<int> result(std::min(vec1, vec2));
-  std::vector<int>::iterator it;
+std::vector<Index> StateTracker::ComparePairofVectors(
+    std::vector<Index>& vec1, std::vector<Index>& vec2) const {
+  std::vector<Index> result(std::min(vec1, vec2));
+  std::vector<Index>::iterator it;
   std::sort(vec1.begin(), vec1.end());
   std::sort(vec2.begin(), vec2.end());
   it = std::set_intersection(vec1.begin(), vec1.end(), vec2.begin(), vec2.end(),
@@ -115,13 +115,13 @@ std::vector<int> StateTracker::ComparePairofVectors(
   return result;
 }
 
-std::vector<int> StateTracker::CollapseResults(
-    std::vector<std::vector<int> >& results) const {
+std::vector<Index> StateTracker::CollapseResults(
+    std::vector<std::vector<Index> >& results) const {
   if (results.size() == 1) {
     return results[0];
   } else {
-    std::vector<int> result = results[0];
-    for (unsigned i = 1; i < results.size(); i++) {
+    std::vector<Index> result = results[0];
+    for (Index i = 1; i < Index(results.size()); i++) {
       result = ComparePairofVectors(result, results[i]);
     }
     return result;
@@ -136,7 +136,7 @@ QMState StateTracker::CalcState(const Orbitals& orbitals) const {
     return _statehist[0];
   }
 
-  std::vector<std::vector<int> > results;
+  std::vector<std::vector<Index> > results;
   if (_use_osctracker) {
     results.push_back(OscTracker(orbitals));
   }
@@ -150,7 +150,7 @@ QMState StateTracker::CalcState(const Orbitals& orbitals) const {
     results.push_back(DeltaQTracker(orbitals));
   }
 
-  std::vector<int> result = CollapseResults(results);
+  std::vector<Index> result = CollapseResults(results);
   QMState state;
   if (result.size() < 1) {
     state = _statehist.back();
@@ -173,10 +173,10 @@ QMState StateTracker::CalcStateAndUpdate(const Orbitals& orbitals) {
   return result;
 }
 
-std::vector<int> StateTracker::OscTracker(const Orbitals& orbitals) const {
+std::vector<Index> StateTracker::OscTracker(const Orbitals& orbitals) const {
   Eigen::VectorXd oscs = orbitals.Oscillatorstrengths();
-  std::vector<int> indexes;
-  for (int i = 0; i < oscs.size(); i++) {
+  std::vector<Index> indexes;
+  for (Index i = 0; i < oscs.size(); i++) {
     if (oscs[i] > _oscthreshold) {
       indexes.push_back(i);
     }
@@ -184,8 +184,8 @@ std::vector<int> StateTracker::OscTracker(const Orbitals& orbitals) const {
   return indexes;
 }
 
-std::vector<int> StateTracker::LocTracker(const Orbitals& orbitals) const {
-  std::vector<int> indexes;
+std::vector<Index> StateTracker::LocTracker(const Orbitals& orbitals) const {
+  std::vector<Index> indexes;
   Lowdin low;
   QMFragment<BSE_Population> frag;
   frag.copy_withoutvalue(_fragment_loc);
@@ -193,7 +193,7 @@ std::vector<int> StateTracker::LocTracker(const Orbitals& orbitals) const {
   low.CalcChargeperFragment(loc, orbitals, _statehist[0].Type());
   const Eigen::VectorXd& popE = loc[0].value().E;
   const Eigen::VectorXd& popH = loc[0].value().H;
-  for (int i = 0; i < popE.size(); i++) {
+  for (Index i = 0; i < popE.size(); i++) {
     if (popE[i] > _fragment_loc.value() && popH[i] > _fragment_loc.value()) {
       indexes.push_back(i);
     }
@@ -201,8 +201,8 @@ std::vector<int> StateTracker::LocTracker(const Orbitals& orbitals) const {
   return indexes;
 }
 
-std::vector<int> StateTracker::DeltaQTracker(const Orbitals& orbitals) const {
-  std::vector<int> indexes;
+std::vector<Index> StateTracker::DeltaQTracker(const Orbitals& orbitals) const {
+  std::vector<Index> indexes;
   Lowdin low;
   QMFragment<BSE_Population> frag;
   frag.copy_withoutvalue(_fragment_dQ);
@@ -210,7 +210,7 @@ std::vector<int> StateTracker::DeltaQTracker(const Orbitals& orbitals) const {
   low.CalcChargeperFragment(loc, orbitals, _statehist[0].Type());
   Eigen::VectorXd dq = (loc[0].value().H - loc[0].value().E).cwiseAbs();
 
-  for (int i = 0; i < dq.size(); i++) {
+  for (Index i = 0; i < dq.size(); i++) {
     if (dq[i] > _fragment_dQ.value()) {
       indexes.push_back(i);
     }
@@ -241,40 +241,41 @@ Eigen::MatrixXd StateTracker::CalcOrthoCoeffs(const Orbitals& orbitals) const {
 
 void StateTracker::UpdateLastCoeff(const Orbitals& orbitals) {
   Eigen::MatrixXd ortho_coeffs = CalcOrthoCoeffs(orbitals);
-  int offset = 0;
+  Index offset = 0;
   if (_statehist[0].Type() == QMStateType::DQPstate) {
     offset = orbitals.getGWAmin();
   }
-  _laststatecoeff = ortho_coeffs.col(_statehist.back().Index() - offset);
+  _laststatecoeff = ortho_coeffs.col(_statehist.back().StateIdx() - offset);
 }
 
-std::vector<int> StateTracker::OverlapTracker(const Orbitals& orbitals) const {
-  std::vector<int> indexes;
+std::vector<Index> StateTracker::OverlapTracker(
+    const Orbitals& orbitals) const {
+  std::vector<Index> indexes;
   if (_statehist.size() <= 1) {
-    indexes = std::vector<int>{_statehist[0].Index()};
+    indexes = std::vector<Index>{_statehist[0].StateIdx()};
     return indexes;
   }
 
   Eigen::VectorXd Overlap = CalculateOverlap(orbitals);
-  int validelements = Overlap.size();
-  for (int i = 0; i < Overlap.size(); i++) {
+  Index validelements = Index(Overlap.size());
+  for (Index i = 0; i < Index(Overlap.size()); i++) {
     if (Overlap(i) < _overlapthreshold) {
       validelements--;
     }
   }
 
-  std::vector<int> index = std::vector<int>(Overlap.size());
+  std::vector<Index> index = std::vector<Index>(Overlap.size());
   std::iota(index.begin(), index.end(), 0);
-  std::stable_sort(index.begin(), index.end(), [&Overlap](int i1, int i2) {
+  std::stable_sort(index.begin(), index.end(), [&Overlap](Index i1, Index i2) {
     return Overlap[i1] > Overlap[i2];
   });
 
-  int offset = 0;
+  Index offset = 0;
   if (_statehist[0].Type().isGWState()) {
     offset = orbitals.getGWAmin();
   }
 
-  for (int i : index) {
+  for (Index i : index) {
     if (int(indexes.size()) == validelements) {
       break;
     }

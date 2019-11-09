@@ -29,7 +29,7 @@
 namespace votca {
 namespace xtp {
 struct BSE_Population;
-template <int cqp, int cx, int cd, int cd2>
+template <Index cqp, Index cx, Index cd, Index cd2>
 class BSE_OPERATOR;
 typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
 typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
@@ -44,20 +44,20 @@ class BSE {
 
   struct options {
     bool useTDA = true;
-    int homo;
-    int rpamin;
-    int rpamax;
-    int qpmin;
-    int vmin;
-    int cmax;
-    int nmax = 5;             // number of eigenvectors to calculate
+    Index homo;
+    Index rpamin;
+    Index rpamax;
+    Index qpmin;
+    Index vmin;
+    Index cmax;
+    Index nmax = 5;           // number of eigenvectors to calculate
     bool davidson = true;     // use davidson to diagonalize the matrix
     bool matrixfree = false;  // use matrix free method
     std::string davidson_correction = "DPR";
     std::string davidson_ortho = "GS";
     std::string davidson_tolerance = "normal";
     std::string davidson_update = "safe";
-    int davidson_maxiter = 50;
+    Index davidson_maxiter = 50;
     double min_print_weight =
         0.5;  // minimium contribution for state to print it
   };
@@ -85,11 +85,11 @@ class BSE {
   };
 
   Logger& _log;
-  int _bse_vmax;
-  int _bse_cmin;
-  int _bse_size;
-  int _bse_vtotal;
-  int _bse_ctotal;
+  Index _bse_vmax;
+  Index _bse_cmin;
+  Index _bse_size;
+  Index _bse_vtotal;
+  Index _bse_ctotal;
 
   Eigen::VectorXd _epsilon_0_inv;
 
@@ -119,8 +119,8 @@ class BSE {
                                                  BSE_OPERATOR_B& Bop) const;
 
   void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
-                     int state) const;
-  void printWeights(int i_bse, double weight) const;
+                     Index state) const;
+  void printWeights(Index i_bse, double weight) const;
   void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies);
 
   Interaction Analyze_eh_interaction(const QMStateType& type,

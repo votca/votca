@@ -28,12 +28,12 @@ namespace xtp {
 
 class ECPGaussianPrimitive {
  public:
-  ECPGaussianPrimitive(int power, double decay, double contraction)
+  ECPGaussianPrimitive(Index power, double decay, double contraction)
       : _power(power), _decay(decay), _contraction(contraction) {
     ;
   }
 
-  int _power;
+  Index _power;
   double _decay;
   double _contraction;
 };
@@ -44,13 +44,13 @@ class ECPShell {
   ECPShell(std::string type) : _type(type) { ; }
   const std::string& getType() const { return _type; }
 
-  int getL() const { return FindLmax(_type); }
+  Index getL() const { return FindLmax(_type); }
 
-  int getnumofFunc() const { return NumFuncShell(_type); };
+  Index getnumofFunc() const { return NumFuncShell(_type); };
 
-  int getOffset() const { return OffsetFuncShell(_type); }
+  Index getOffset() const { return OffsetFuncShell(_type); }
 
-  long int getSize() const { return _gaussians.size(); }
+  Index getSize() const { return _gaussians.size(); }
 
   std::vector<ECPGaussianPrimitive>::const_iterator begin() const {
     return _gaussians.begin();
@@ -60,7 +60,7 @@ class ECPShell {
   }
 
   // adds a Gaussian of a pseudopotential
-  ECPGaussianPrimitive& addGaussian(int power, double decay,
+  ECPGaussianPrimitive& addGaussian(Index power, double decay,
                                     double contraction);
 
   friend std::ostream& operator<<(std::ostream& out, const ECPShell& shell);
@@ -76,7 +76,7 @@ class ECPShell {
  */
 class ECPElement {
  public:
-  ECPElement(std::string type, int lmax, int ncore)
+  ECPElement(std::string type, Index lmax, Index ncore)
       : _type(type), _lmax(lmax), _ncore(ncore) {
     ;
   }
@@ -86,25 +86,25 @@ class ECPElement {
 
   const std::string& getType() const { return _type; }
 
-  int getLmax() const { return _lmax; }
+  Index getLmax() const { return _lmax; }
 
-  int getNcore() const { return _ncore; }
+  Index getNcore() const { return _ncore; }
 
   ECPShell& addShell(const std::string& shellType) {
     _shells.push_back(ECPShell(shellType));
     return _shells.back();
   }
 
-  long int NumOfShells() const { return _shells.size(); }
+  Index NumOfShells() const { return _shells.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const ECPElement& element);
 
  private:
   std::string _type;
   //  applies to the highest angular momentum lmax
-  int _lmax;
+  Index _lmax;
   // replaces ncore electrons
-  int _ncore;
+  Index _ncore;
 
   std::vector<ECPShell> _shells;
 };
@@ -116,7 +116,7 @@ class ECPBasisSet {
  public:
   void Load(const std::string& name);
 
-  ECPElement& addElement(std::string elementType, int lmax, int ncore);
+  ECPElement& addElement(std::string elementType, Index lmax, Index ncore);
 
   const ECPElement& getElement(std::string element_type) const;
 

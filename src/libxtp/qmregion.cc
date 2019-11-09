@@ -156,19 +156,19 @@ void QMRegion::push_back(const QMMolecule& mol) {
 double QMRegion::charge() const {
   double charge = 0.0;
   if (!_do_gwbse) {
-    double nuccharge = 0.0;
+    Index nuccharge = 0;
     for (const QMAtom& a : _orb.QMAtoms()) {
       nuccharge += a.getNuccharge();
     }
 
-    double electrons = _orb.getNumberOfAlphaElectrons() * 2;
-    charge = nuccharge - electrons;
+    Index electrons = _orb.getNumberOfAlphaElectrons() * 2;
+    charge = double(nuccharge - electrons);
   } else {
     QMState state = _statetracker.InitialState();
     if (state.Type().isExciton()) {
       charge = 0.0;
     } else if (state.Type().isSingleParticleState()) {
-      if (state.Index() <= _orb.getHomo()) {
+      if (state.StateIdx() <= _orb.getHomo()) {
         charge = +1.0;
       } else {
         charge = -1.0;
@@ -194,7 +194,7 @@ void QMRegion::Reset() {
       std::unique_ptr<QMPackage>(QMPackages().Create(dft_package_name));
   _qmpackage->setLog(&_log);
   _qmpackage->Initialize(_dftoptions);
-  int charge = 0;
+  Index charge = 0;
   if (_initstate.Type() == QMStateType::Electron) {
     charge = -1;
   } else if (_initstate.Type() == QMStateType::Hole) {
@@ -225,7 +225,7 @@ void QMRegion::AddNucleiFields(std::vector<PolarSegment>& segments,
                                const StaticSegment& seg) const {
   eeInteractor e;
 #pragma omp parallel for
-  for (int i = 0; i < int(segments.size()); ++i) {
+  for (Index i = 0; i < Index(segments.size()); ++i) {
     e.ApplyStaticField<StaticSegment, Estatic::noE_V>(seg, segments[i]);
   }
 }
@@ -257,7 +257,7 @@ void QMRegion::ApplyQMFieldToPolarSegments(
         << std::flush;
   }
 #pragma omp parallel for
-  for (int i = 0; i < int(segments.size()); ++i) {
+  for (Index i = 0; i < Index(segments.size()); ++i) {
     PolarSegment& seg = segments[i];
     for (PolarSite& site : seg) {
       site.V_noE() += numint.IntegrateField(site.getPos());
@@ -266,7 +266,7 @@ void QMRegion::ApplyQMFieldToPolarSegments(
 
   StaticSegment seg(_orb.QMAtoms().getType(), _orb.QMAtoms().getId());
   for (const QMAtom& atom : _orb.QMAtoms()) {
-    seg.push_back(StaticSite(atom, atom.getNuccharge()));
+    seg.push_back(StaticSite(atom, double(atom.getNuccharge())));
   }
   AddNucleiFields(segments, seg);
 }

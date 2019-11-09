@@ -41,20 +41,20 @@ class EulerMaclaurinGrid {
  private:
   struct min_exp {
     double alpha;
-    int l;
+    Index l;
     double range;
   };
 
   std::map<std::string, min_exp> _element_ranges;
-  std::map<std::string, int> _pruning_set;
+  std::map<std::string, Index> _pruning_set;
 
   std::map<std::string, double> _BraggSlaterRadii;
 
-  int getGridParameters(const std::string& element, const std::string& type);
+  Index getGridParameters(const std::string& element, const std::string& type);
 
-  double DetermineCutoff(double alpha, int l, double eps);
-  double CalcResidual(double alpha, int l, double cutoff);
-  double RadialIntegral(double alpha, int l, double cutoff);
+  double DetermineCutoff(double alpha, Index l, double eps);
+  double CalcResidual(double alpha, Index l, double cutoff);
+  double RadialIntegral(double alpha, Index l, double cutoff);
 
   void CalculateRadialCutoffs(const AOBasis& aobasis, const QMMolecule& atoms,
                               const std::string& gridtype);
@@ -67,11 +67,11 @@ class EulerMaclaurinGrid {
   GridContainers::radial_grid CalculateRadialGridforAtom(
       const std::string& type, const std::pair<std::string, min_exp>& element);
 
-  std::map<std::string, int> MediumGrid;
-  std::map<std::string, int> CoarseGrid;
-  std::map<std::string, int> XcoarseGrid;
-  std::map<std::string, int> FineGrid;
-  std::map<std::string, int> XfineGrid;
+  std::map<std::string, Index> MediumGrid;
+  std::map<std::string, Index> CoarseGrid;
+  std::map<std::string, Index> XcoarseGrid;
+  std::map<std::string, Index> FineGrid;
+  std::map<std::string, Index> XfineGrid;
   std::map<std::string, double> Accuracy;
 
   inline void FillGrids() {

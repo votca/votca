@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace xtp {
@@ -57,14 +58,33 @@ struct InferDataType<int> {
 };
 
 template <>
-struct InferDataType<unsigned int> {
+struct InferDataType<long int> {
+  static const H5::DataType* get(void) { return &H5::PredType::NATIVE_LONG; }
+};
+
+template <>
+struct InferDataType<unsigned> {
   static const H5::DataType* get(void) { return &H5::PredType::NATIVE_UINT; }
 };
 
 template <>
 struct InferDataType<std::string> {
   static const H5::DataType* get(void) {
+
+#if (defined(__GNUC__) && defined(__clang__))
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
+#elif (defined(__GNUC__) && !defined(__INTEL_COMPILER))
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
     static const H5::StrType strtype(H5T_C_S1, H5T_VARIABLE);
+#if (defined(__GNUC__) && defined(__clang__))
+#pragma clang diagnostic pop
+#elif (defined(__GNUC__) && !defined(__INTEL_COMPILER))
+#pragma GCC diagnostic pop
+#endif
+
     return &strtype;
   }
 };

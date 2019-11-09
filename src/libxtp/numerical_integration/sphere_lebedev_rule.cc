@@ -38,19 +38,19 @@ std::map<std::string, GridContainers::spherical_grid>
 
 GridContainers::spherical_grid LebedevGrid::CalculateUnitSphereGrid(
     const std::string &element, const std::string &type) const {
-  int order = Type2MaxOrder(element, type);
+  Index order = Type2MaxOrder(element, type);
   return CalculateUnitSphereGrid(order);
 }
 
 GridContainers::spherical_grid LebedevGrid::CalculateUnitSphereGrid(
-    int order) const {
+    Index order) const {
   const double fourpi = 4 * tools::conv::Pi;
   GridContainers::spherical_grid result;
   result.phi = Eigen::VectorXd::Zero(order);
   result.theta = Eigen::VectorXd::Zero(order);
   result.weight = Eigen::VectorXd::Zero(order);
   Eigen::Matrix4Xd xyzw = ld_by_order(order);
-  for (int i = 0; i < order; i++) {
+  for (Index i = 0; i < order; i++) {
     Eigen::Vector3d xyz = xyzw.col(i).head<3>();
     Eigen::Vector2d spherical = this->Cartesian2SphericalAngle(xyz);
     result.phi[i] = spherical[0];
@@ -60,8 +60,8 @@ GridContainers::spherical_grid LebedevGrid::CalculateUnitSphereGrid(
   return result;
 }
 
-int LebedevGrid::Type2MaxOrder(const std::map<std::string, int> &map,
-                               const std::string &element) const {
+Index LebedevGrid::Type2MaxOrder(const std::map<std::string, Index> &map,
+                                 const std::string &element) const {
   if (map.count(element)) {
     return map.at(element);
   } else {
@@ -71,8 +71,8 @@ int LebedevGrid::Type2MaxOrder(const std::map<std::string, int> &map,
   return -1;
 }
 
-int LebedevGrid::Type2MaxOrder(const std::string &element,
-                               const std::string &type) const {
+Index LebedevGrid::Type2MaxOrder(const std::string &element,
+                                 const std::string &type) const {
 
   if (type == "medium") {
     return Type2MaxOrder(MediumOrder, element);
@@ -91,7 +91,7 @@ int LebedevGrid::Type2MaxOrder(const std::string &element,
 
 //****************************************************************************80
 
-int LebedevGrid::available_table(int rule) const
+Index LebedevGrid::available_table(Index rule) const
 
 //****************************************************************************80
 //
@@ -117,20 +117,20 @@ int LebedevGrid::available_table(int rule) const
 //
 //  Parameters:
 //
-//    Input, int RULE, the index of the rule, between 1 and 65.
+//    Input, Index RULE, the index of the rule, between 1 and 65.
 //
-//    Output, int AVAILABLE_TABLE, the availability of the rule.
+//    Output, Index AVAILABLE_TABLE, the availability of the rule.
 //    * -1, there is no such rule;
 //    *  0, there is such a rule, but it is not available in this library.
 //    *  1, the rule is available in this library.
 //
 {
-  int rule_max = 65;
-  int table[65] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1,
-                   0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
-                   1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
-                   0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1};
-  int value;
+  Index rule_max = 65;
+  Index table[65] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1,
+                     0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
+                     1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
+                     0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1};
+  Index value;
 
   if (rule < 1) {
     value = -1;
@@ -144,8 +144,8 @@ int LebedevGrid::available_table(int rule) const
 }
 //****************************************************************************80
 
-int LebedevGrid::gen_oh(int code, double a, double b, double v, double *x,
-                        double *y, double *z, double *w) const
+Index LebedevGrid::gen_oh(Index code, double a, double b, double v, double *x,
+                          double *y, double *z, double *w) const
 
 //****************************************************************************80
 //
@@ -190,9 +190,9 @@ int LebedevGrid::gen_oh(int code, double a, double b, double v, double *x,
 //
 //  Parameters:
 //
-//    Input, int CODE, selects the symmetry group.
+//    Input, Index CODE, selects the symmetry group.
 //
-//    Input/output, int &NUM, the number of points.  This is incremented
+//    Input/output, Index &NUM, the number of points.  This is incremented
 //    upon output by the number of points generated on this call.
 //
 //    Input, double A, B, information that may be needed to
@@ -203,11 +203,11 @@ int LebedevGrid::gen_oh(int code, double a, double b, double v, double *x,
 //    Output, double X[*], Y[*], Z[*], W[*], the coordinates
 //    and weights of the symmetric points generated on this call.
 //
-//    Output, int GEN_OH, the number of points generated on this call.
+//    Output, Index GEN_OH, the number of points generated on this call.
 //
 {
   double c;
-  int num;
+  Index num;
 
   if (code == 1) {
     a = 1.0;
@@ -723,7 +723,7 @@ int LebedevGrid::gen_oh(int code, double a, double b, double v, double *x,
 }
 //****************************************************************************80
 
-Eigen::Matrix4Xd LebedevGrid::ld_by_order(int order) const
+Eigen::Matrix4Xd LebedevGrid::ld_by_order(Index order) const
 //  Purpose:
 //
 //    LD_BY_ORDER returns a Lebedev angular grid given its order.
@@ -892,7 +892,7 @@ void LebedevGrid::ld0006(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -935,7 +935,7 @@ void LebedevGrid::ld0014(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -981,7 +981,7 @@ void LebedevGrid::ld0026(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1029,7 +1029,7 @@ void LebedevGrid::ld0038(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1078,7 +1078,7 @@ void LebedevGrid::ld0050(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1129,7 +1129,7 @@ void LebedevGrid::ld0074(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1183,7 +1183,7 @@ void LebedevGrid::ld0086(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1238,7 +1238,7 @@ void LebedevGrid::ld0110(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1296,7 +1296,7 @@ void LebedevGrid::ld0146(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1357,7 +1357,7 @@ void LebedevGrid::ld0170(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1421,7 +1421,7 @@ void LebedevGrid::ld0194(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1488,7 +1488,7 @@ void LebedevGrid::ld0230(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1559,7 +1559,7 @@ void LebedevGrid::ld0266(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1633,7 +1633,7 @@ void LebedevGrid::ld0302(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1711,7 +1711,7 @@ void LebedevGrid::ld0350(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1793,7 +1793,7 @@ void LebedevGrid::ld0434(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1884,7 +1884,7 @@ void LebedevGrid::ld0590(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -1990,7 +1990,7 @@ void LebedevGrid::ld0770(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -2113,7 +2113,7 @@ void LebedevGrid::ld0974(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -2255,7 +2255,7 @@ void LebedevGrid::ld1202(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -2418,7 +2418,7 @@ void LebedevGrid::ld1454(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -2604,7 +2604,7 @@ void LebedevGrid::ld1730(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -2815,7 +2815,7 @@ void LebedevGrid::ld2030(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -3053,7 +3053,7 @@ void LebedevGrid::ld2354(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -3320,7 +3320,7 @@ void LebedevGrid::ld2702(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -3618,7 +3618,7 @@ void LebedevGrid::ld3074(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -3949,7 +3949,7 @@ void LebedevGrid::ld3470(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -4316,7 +4316,7 @@ void LebedevGrid::ld3890(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -4719,7 +4719,7 @@ void LebedevGrid::ld4334(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -5161,7 +5161,7 @@ void LebedevGrid::ld4802(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -5644,7 +5644,7 @@ void LebedevGrid::ld5294(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -6170,7 +6170,7 @@ void LebedevGrid::ld5810(double *x, double *y, double *z, double *w) const
 {
   double a = 0.0;
   double b = 0.0;
-  int n;
+  Index n;
   double v;
 
   n = 0;
@@ -6709,7 +6709,7 @@ void LebedevGrid::ld5810(double *x, double *y, double *z, double *w) const
 }
 //****************************************************************************80
 
-int LebedevGrid::order_table(int rule) const
+Index LebedevGrid::order_table(Index rule) const
 
 //****************************************************************************80
 //
@@ -6735,20 +6735,20 @@ int LebedevGrid::order_table(int rule) const
 //
 //  Parameters:
 //
-//    Input, int RULE, the index of the rule, between 1 and 65.
+//    Input, Index RULE, the index of the rule, between 1 and 65.
 //
-//    Output, int ORDER_TABLE, the order of the rule.
+//    Output, Index ORDER_TABLE, the order of the rule.
 //
 {
-  int rule_max = 65;
-  int table[65] = {6,    14,   26,   38,   50,   74,   86,   110,  146,  170,
-                   194,  230,  266,  302,  350,  386,  434,  482,  530,  590,
-                   650,  698,  770,  830,  890,  974,  1046, 1118, 1202, 1274,
-                   1358, 1454, 1538, 1622, 1730, 1814, 1910, 2030, 2126, 2222,
-                   2354, 2450, 2558, 2702, 2810, 2930, 3074, 3182, 3314, 3470,
-                   3590, 3722, 3890, 4010, 4154, 4334, 4466, 4610, 4802, 4934,
-                   5090, 5294, 5438, 5606, 5810};
-  int value;
+  Index rule_max = 65;
+  Index table[65] = {6,    14,   26,   38,   50,   74,   86,   110,  146,  170,
+                     194,  230,  266,  302,  350,  386,  434,  482,  530,  590,
+                     650,  698,  770,  830,  890,  974,  1046, 1118, 1202, 1274,
+                     1358, 1454, 1538, 1622, 1730, 1814, 1910, 2030, 2126, 2222,
+                     2354, 2450, 2558, 2702, 2810, 2930, 3074, 3182, 3314, 3470,
+                     3590, 3722, 3890, 4010, 4154, 4334, 4466, 4610, 4802, 4934,
+                     5090, 5294, 5438, 5606, 5810};
+  Index value;
 
   if (rule < 1) {
     throw std::runtime_error("ORDER_TABLE - Fatal error!\n RULE < 1.\n");
@@ -6763,7 +6763,7 @@ int LebedevGrid::order_table(int rule) const
 }
 //****************************************************************************80
 
-int LebedevGrid::precision_table(int rule) const
+Index LebedevGrid::precision_table(Index rule) const
 
 //****************************************************************************80
 //
@@ -6789,19 +6789,19 @@ int LebedevGrid::precision_table(int rule) const
 //
 //  Parameters:
 //
-//    Input, int RULE, the index of the rule, between 1 and 65.
+//    Input, Index RULE, the index of the rule, between 1 and 65.
 //
-//    Output, int PRECISION_TABLE, the precision of the rule.
+//    Output, Index PRECISION_TABLE, the precision of the rule.
 //
 {
-  int rule_max = 65;
-  int table[65] = {3,   5,   7,   9,   11,  13,  15,  17,  19,  21,  23,
-                   25,  27,  29,  31,  33,  35,  37,  39,  41,  43,  45,
-                   47,  49,  51,  53,  55,  57,  59,  61,  63,  65,  67,
-                   69,  71,  73,  75,  77,  79,  81,  83,  85,  87,  89,
-                   91,  93,  95,  97,  99,  101, 103, 105, 107, 109, 111,
-                   113, 115, 117, 119, 121, 123, 125, 127, 129, 131};
-  int value;
+  Index rule_max = 65;
+  Index table[65] = {3,   5,   7,   9,   11,  13,  15,  17,  19,  21,  23,
+                     25,  27,  29,  31,  33,  35,  37,  39,  41,  43,  45,
+                     47,  49,  51,  53,  55,  57,  59,  61,  63,  65,  67,
+                     69,  71,  73,  75,  77,  79,  81,  83,  85,  87,  89,
+                     91,  93,  95,  97,  99,  101, 103, 105, 107, 109, 111,
+                     113, 115, 117, 119, 121, 123, 125, 127, 129, 131};
+  Index value;
 
   if (rule < 1) {
     throw std::runtime_error("PRECISION_TABLE - Fatal error!\n RULE < 1.\n");

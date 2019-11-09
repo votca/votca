@@ -59,10 +59,11 @@ class Esp2multipole {
   double _conditionnumber;
 
   Logger& _log;
-  std::vector<std::pair<int, int> > _pairconstraint;  //  pairconstraint[i] is
-                                                      //  all the atomindices
-                                                      //  which have the same
-                                                      //  charge
+  std::vector<std::pair<Index, Index> > _pairconstraint;  //  pairconstraint[i]
+                                                          //  is all the
+                                                          //  atomindices which
+                                                          //  have the same
+                                                          //  charge
   std::vector<QMFragment<double> > _regionconstraint;
 };
 

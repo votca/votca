@@ -20,6 +20,7 @@
 #include <votca/xtp/bsecoupling.h>
 
 using namespace votca::xtp;
+using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(bsecoupling_test)
 
@@ -27,15 +28,15 @@ Eigen::MatrixXd ReadMatrixFromString(const std::string& matrix) {
   votca::tools::Tokenizer lines(matrix, "\n");
 
   std::vector<double> entries;
-  int cols = 0;
-  int rows = 0;
+  Index cols = 0;
+  Index rows = 0;
   for (auto line : lines) {
     if (line[0] == '#') {
       continue;
     }
     votca::tools::Tokenizer entries_tok(line, " ");
     std::vector<std::string> temp = entries_tok.ToVector();
-    cols = temp.size();
+    cols = Index(temp.size());
     rows++;
     for (const auto& s : temp) {
       entries.push_back(std::stod(s));

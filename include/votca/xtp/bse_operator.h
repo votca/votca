@@ -29,14 +29,14 @@ namespace votca {
 namespace xtp {
 
 struct BSEOperator_Options {
-  int homo;
-  int rpamin;
-  int qpmin;
-  int vmin;
-  int cmax;
+  Index homo;
+  Index rpamin;
+  Index qpmin;
+  Index vmin;
+  Index cmax;
 };
 
-template <int cqp, int cx, int cd, int cd2>
+template <Index cqp, Index cx, Index cd, Index cd2>
 class BSE_OPERATOR : public MatrixFreeOperator {
 
  public:
@@ -46,25 +46,25 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 
   void configure(BSEOperator_Options opt);
 
-  Eigen::RowVectorXd OperatorRow(int index) const override;
+  Eigen::RowVectorXd OperatorRow(Index index) const override;
 
   bool useBlock() const override { return cx != 0; }
 
-  int getBlocksize() const override { return _bse_ctotal; }
+  Index getBlocksize() const override { return Index(_bse_ctotal); }
 
-  Eigen::MatrixXd OperatorBlock(int row, int col) const override;
+  Eigen::MatrixXd OperatorBlock(Index row, Index col) const override;
 
  private:
-  Eigen::RowVectorXd Hqp_row(int index) const;
-  Eigen::RowVectorXd Hd_row(int index) const;
-  Eigen::RowVectorXd Hd2_row(int index) const;
-  Eigen::MatrixXd HxBlock(int row, int col) const;
+  Eigen::RowVectorXd Hqp_row(Index index) const;
+  Eigen::RowVectorXd Hd_row(Index index) const;
+  Eigen::RowVectorXd Hd2_row(Index index) const;
+  Eigen::MatrixXd HxBlock(Index row, Index col) const;
 
   BSEOperator_Options _opt;
-  int _bse_size;
-  int _bse_vtotal;
-  int _bse_ctotal;
-  int _bse_cmin;
+  Index _bse_size;
+  Index _bse_vtotal;
+  Index _bse_ctotal;
+  Index _bse_cmin;
 
   const Eigen::VectorXd& _epsilon_0_inv;
   const TCMatrix_gwbse& _Mmn;

@@ -52,11 +52,11 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
   // shell info, only lmax tells how far to go
 
-  int lmax_1 = shell_1.getLmax();
-  int lmax_2 = shell_2.getLmax();
-  int lmax_3 = shell_3.getLmax();
+  Index lmax_1 = shell_1.getLmax();
+  Index lmax_2 = shell_2.getLmax();
+  Index lmax_3 = shell_3.getLmax();
 
-  int mmax = lmax_1 + lmax_2 + lmax_3;
+  Index mmax = lmax_1 + lmax_2 + lmax_3;
 
   // set size of internal block for recursion
 
@@ -78,13 +78,13 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
   const Eigen::Vector3d& pos_beta = shell_beta->getPos();
   const Eigen::Vector3d& pos_gamma = shell_gamma->getPos();
 
-  int lmax_alpha = shell_alpha->getLmax();
-  int lmax_beta = shell_beta->getLmax();
-  int lmax_gamma = shell_gamma->getLmax();
+  Index lmax_alpha = shell_alpha->getLmax();
+  Index lmax_beta = shell_beta->getLmax();
+  Index lmax_gamma = shell_gamma->getLmax();
 
-  int ngamma = AOTransform::getBlockSize(lmax_gamma);
-  int nbeta = AOTransform::getBlockSize(lmax_beta);
-  int ncombined = AOTransform::getBlockSize(lmax_alpha + lmax_beta);
+  Index ngamma = AOTransform::getBlockSize(lmax_gamma);
+  Index nbeta = AOTransform::getBlockSize(lmax_beta);
+  Index ncombined = AOTransform::getBlockSize(lmax_alpha + lmax_beta);
 
   std::array<int, 9> n_orbitals = AOTransform::n_orbitals();
   std::array<int, 165> nx = AOTransform::nx();
@@ -142,22 +142,22 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         const Eigen::Vector3d wmc = W - pos_gamma;
 
         Eigen::Tensor<double, 3> R_temp(ncombined, ngamma,
-                                        std::max(2, mmax + 1));
+                                        std::max(2l, mmax + 1));
         R_temp.setZero();
 
         const Eigen::VectorXd FmT = AOTransform::XIntegrate(mmax + 1, U);
 
         // ss integrals
 
-        for (int i = 0; i < mmax + 1; i++) {
+        for (Index i = 0; i < mmax + 1; i++) {
           R_temp(0, 0, i) = sss * FmT[i];
         }
 
-        int lmax_alpha_beta = lmax_alpha + lmax_beta;
+        Index lmax_alpha_beta = lmax_alpha + lmax_beta;
 
         // Integral  p - s - s
         if (lmax_alpha_beta > 0) {
-          for (int m = 0; m < mmax; m++) {
+          for (Index m = 0; m < mmax; m++) {
             R_temp(Cart::x, 0, m) =
                 pma(0) * R_temp(0, 0, m) + wmp(0) * R_temp(0, 0, m + 1);
             R_temp(Cart::y, 0, m) =
@@ -170,7 +170,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
         // Integral  d - s - s
         if (lmax_alpha_beta > 1) {
-          for (int m = 0; m < mmax - 1; m++) {
+          for (Index m = 0; m < mmax - 1; m++) {
             double term =
                 rzeta * (R_temp(0, 0, m) - gfak * R_temp(0, 0, m + 1));
             R_temp(Cart::xx, 0, m) = pma(0) * R_temp(Cart::x, 0, m) +
@@ -191,7 +191,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
         // Integral  f - s - s
         if (lmax_alpha_beta > 2) {
-          for (int m = 0; m < mmax - 2; m++) {
+          for (Index m = 0; m < mmax - 2; m++) {
             R_temp(Cart::xxx, 0, m) =
                 pma(0) * R_temp(Cart::xx, 0, m) +
                 wmp(0) * R_temp(Cart::xx, 0, m + 1) +
@@ -227,7 +227,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
         // Integral  g - s - s
         if (lmax_alpha_beta > 3) {
-          for (int m = 0; m < mmax - 3; m++) {
+          for (Index m = 0; m < mmax - 3; m++) {
             double term_xx = rzeta * (R_temp(Cart::xx, 0, m) -
                                       gfak * R_temp(Cart::xx, 0, m + 1));
             double term_yy = rzeta * (R_temp(Cart::yy, 0, m) -
@@ -276,7 +276,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
         // Integral  h - s - s
         if (lmax_alpha_beta > 4) {
-          for (int m = 0; m < mmax - 4; m++) {
+          for (Index m = 0; m < mmax - 4; m++) {
             double term_xxx = rzeta * (R_temp(Cart::xxx, 0, m) -
                                        gfak * R_temp(Cart::xxx, 0, m + 1));
             double term_yyy = rzeta * (R_temp(Cart::yyy, 0, m) -
@@ -340,7 +340,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
         // Integral  i - s - s
         if (lmax_alpha_beta > 5) {
-          for (int m = 0; m < mmax - 5; m++) {
+          for (Index m = 0; m < mmax - 5; m++) {
             double term_xxxx = rzeta * (R_temp(Cart::xxxx, 0, m) -
                                         gfak * R_temp(Cart::xxxx, 0, m + 1));
             double term_xyyy = rzeta * (R_temp(Cart::xyyy, 0, m) -
@@ -430,7 +430,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
         // Integral  j - s - s
         if (lmax_alpha_beta > 6) {
-          for (int m = 0; m < mmax - 6; m++) {
+          for (Index m = 0; m < mmax - 6; m++) {
             double term_xxxxx = rzeta * (R_temp(Cart::xxxxx, 0, m) -
                                          gfak * R_temp(Cart::xxxxx, 0, m + 1));
             double term_xxxxy = rzeta * (R_temp(Cart::xxxxy, 0, m) -
@@ -569,7 +569,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
         // Integral  k - s - s
         if (lmax_alpha_beta > 7) {
-          for (int m = 0; m < mmax - 7; m++) {
+          for (Index m = 0; m < mmax - 7; m++) {
             double term_xxxxxx =
                 rzeta * (R_temp(Cart::xxxxxx, 0, m) -
                          gfak * R_temp(Cart::xxxxxx, 0, m + 1));
@@ -763,7 +763,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_gamma > 0) {
 
           // Integral  s - s - p
-          for (int m = 0; m < lmax_gamma; m++) {
+          for (Index m = 0; m < lmax_gamma; m++) {
             R_temp(0, Cart::x, m) = wmc(0) * R_temp(0, 0, m + 1);
             R_temp(0, Cart::y, m) = wmc(1) * R_temp(0, 0, m + 1);
             R_temp(0, Cart::z, m) = wmc(2) * R_temp(0, 0, m + 1);
@@ -772,9 +772,9 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
           // Integral  p - s - p
           if (lmax_alpha_beta > 0) {
-            for (int m = 0; m < lmax_gamma; m++) {
+            for (Index m = 0; m < lmax_gamma; m++) {
               double term = rdecay * R_temp(0, 0, m + 1);
-              for (int i = 1; i < 4; i++) {
+              for (Index i = 1; i < 4; i++) {
                 R_temp(i, Cart::x, m) =
                     wmc(0) * R_temp(i, 0, m + 1) + nx[i] * term;
                 R_temp(i, Cart::y, m) =
@@ -788,8 +788,8 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
           // Integrals     d - s - p     f - s - p     g - s - p     h - s - p
           // i - s - p     j - s - p     k - s - p
-          for (int m = 0; m < lmax_gamma; m++) {
-            for (int i = 4; i < ncombined; i++) {
+          for (Index m = 0; m < lmax_gamma; m++) {
+            for (Index i = 4; i < ncombined; i++) {
               R_temp(i, Cart::x, m) =
                   wmc(0) * R_temp(i, 0, m + 1) +
                   nx[i] * rdecay * R_temp(i_less_x[i], 0, m + 1);
@@ -808,7 +808,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_gamma > 1) {
 
           // Integral  s - s - d
-          for (int m = 0; m < lmax_gamma - 1; m++) {
+          for (Index m = 0; m < lmax_gamma - 1; m++) {
             double term =
                 rgamma * (R_temp(0, 0, m) - cfak * R_temp(0, 0, m + 1));
             R_temp(0, Cart::xx, m) = wmc(0) * R_temp(0, Cart::x, m + 1) + term;
@@ -822,8 +822,8 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
           // Integrals     p - s - d     d - s - d     f - s - d     g - s - d
           // h - s - d     i - s - d     j - s - d     k - s - d
-          for (int m = 0; m < lmax_gamma - 1; m++) {
-            for (int i = 1; i < ncombined; i++) {
+          for (Index m = 0; m < lmax_gamma - 1; m++) {
+            for (Index i = 1; i < ncombined; i++) {
               double term =
                   rgamma * (R_temp(i, 0, m) - cfak * R_temp(i, 0, m + 1));
               R_temp(i, Cart::xx, m) =
@@ -853,7 +853,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_gamma > 2) {
 
           // Integral  s - s - f
-          for (int m = 0; m < lmax_gamma - 2; m++) {
+          for (Index m = 0; m < lmax_gamma - 2; m++) {
             R_temp(0, Cart::xxx, m) =
                 wmc(0) * R_temp(0, Cart::xx, m + 1) +
                 2 * rgamma *
@@ -878,8 +878,8 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
           // Integrals     p - s - f     d - s - f     f - s - f     g - s - f
           // h - s - f     i - s - f     j - s - f     k - s - f
-          for (int m = 0; m < lmax_gamma - 2; m++) {
-            for (int i = 1; i < ncombined; i++) {
+          for (Index m = 0; m < lmax_gamma - 2; m++) {
+            for (Index i = 1; i < ncombined; i++) {
               double term_x =
                   2 * rgamma *
                   (R_temp(i, Cart::x, m) - cfak * R_temp(i, Cart::x, m + 1));
@@ -931,7 +931,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_gamma > 3) {
 
           // Integral  s - s - g
-          for (int m = 0; m < lmax_gamma - 3; m++) {
+          for (Index m = 0; m < lmax_gamma - 3; m++) {
             double term_xx = rgamma * (R_temp(0, Cart::xx, m) -
                                        cfak * R_temp(0, Cart::xx, m + 1));
             double term_yy = rgamma * (R_temp(0, Cart::yy, m) -
@@ -964,8 +964,8 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
           // Integrals     p - s - g     d - s - g     f - s - g     g - s - g
           // h - s - g     i - s - g     j - s - g     k - s - g
-          for (int m = 0; m < lmax_gamma - 3; m++) {
-            for (int i = 1; i < ncombined; i++) {
+          for (Index m = 0; m < lmax_gamma - 3; m++) {
+            for (Index i = 1; i < ncombined; i++) {
               double term_xx = rgamma * (R_temp(i, Cart::xx, m) -
                                          cfak * R_temp(i, Cart::xx, m + 1));
               double term_yy = rgamma * (R_temp(i, Cart::yy, m) -
@@ -1032,7 +1032,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_gamma > 4) {
 
           // Integral  s - s - h
-          for (int m = 0; m < lmax_gamma - 4; m++) {
+          for (Index m = 0; m < lmax_gamma - 4; m++) {
             double term_xxx = rgamma * (R_temp(0, Cart::xxx, m) -
                                         cfak * R_temp(0, Cart::xxx, m + 1));
             double term_yyy = rgamma * (R_temp(0, Cart::yyy, m) -
@@ -1074,8 +1074,8 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
           // Integrals     p - s - h     d - s - h     f - s - h     g - s - h
           // h - s - h     i - s - h     j - s - h     k - s - h
-          for (int m = 0; m < lmax_gamma - 4; m++) {
-            for (int i = 1; i < ncombined; i++) {
+          for (Index m = 0; m < lmax_gamma - 4; m++) {
+            for (Index i = 1; i < ncombined; i++) {
               double term_xxx = rgamma * (R_temp(i, Cart::xxx, m) -
                                           cfak * R_temp(i, Cart::xxx, m + 1));
               double term_yyy = rgamma * (R_temp(i, Cart::yyy, m) -
@@ -1163,7 +1163,7 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_gamma > 5) {
 
           // Integral  s - s - i
-          for (int m = 0; m < lmax_gamma - 5; m++) {
+          for (Index m = 0; m < lmax_gamma - 5; m++) {
             double term_xxxx = rgamma * (R_temp(0, Cart::xxxx, m) -
                                          cfak * R_temp(0, Cart::xxxx, m + 1));
             double term_xyyy = rgamma * (R_temp(0, Cart::xyyy, m) -
@@ -1224,8 +1224,8 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
 
           // Integrals     p - s - i     d - s - i     f - s - i     g - s - i
           // h - s - i     i - s - i     j - s - i     k - s - i
-          for (int m = 0; m < lmax_gamma - 5; m++) {
-            for (int i = 1; i < ncombined; i++) {
+          for (Index m = 0; m < lmax_gamma - 5; m++) {
+            for (Index i = 1; i < ncombined; i++) {
               double term_xxxx = rgamma * (R_temp(i, Cart::xxxx, m) -
                                            cfak * R_temp(i, Cart::xxxx, m + 1));
               double term_xyyy = rgamma * (R_temp(i, Cart::xyyy, m) -
@@ -1344,19 +1344,19 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         }  // end if (lmax_gamma > 5)
 
         // transform gamma to spherical and only cut out the relevant part
-        int gamma_num_cartfunc = shell_gamma->getCartesianNumFunc();
+        Index gamma_num_cartfunc = shell_gamma->getCartesianNumFunc();
         Eigen::Map<Eigen::MatrixXd> map_R_temp =
             Eigen::Map<Eigen::MatrixXd>(R_temp.data(), ncombined, ngamma);
         Eigen::MatrixXd R_gamma = map_R_temp.rightCols(gamma_num_cartfunc) *
                                   AOTransform::getTrafo(gaussian_gamma);
 
         // copy into new array for 3D use.
-        int gamma_num_func = shell_gamma->getNumFunc();
+        Index gamma_num_func = shell_gamma->getNumFunc();
         Eigen::Tensor<double, 3> R(ncombined, nbeta, gamma_num_func);
         R.setZero();
 
-        for (int k = 0; k < gamma_num_func; ++k) {
-          for (int i = 0; i < ncombined; ++i) {
+        for (Index k = 0; k < gamma_num_func; ++k) {
+          for (Index i = 0; i < ncombined; ++i) {
             R(i, 0, k) = R_gamma(i, k);
           }
         }
@@ -1364,8 +1364,8 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_beta > 0) {
           // Integrals    s - p - *    p - p - *    d - p - *    f - p - *    g
           // - p - *    h - p - *    i - p - *    j - p - *
-          for (int i = 0; i < gamma_num_func; i++) {
-            for (int j = 0; j < n_orbitals[lmax_alpha_beta - 1]; j++) {
+          for (Index i = 0; i < gamma_num_func; i++) {
+            for (Index j = 0; j < n_orbitals[lmax_alpha_beta - 1]; j++) {
               R(j, Cart::x, i) = R(i_more_x[j], 0, i) + amb(0) * R(j, 0, i);
               R(j, Cart::y, i) = R(i_more_y[j], 0, i) + amb(1) * R(j, 0, i);
               R(j, Cart::z, i) = R(i_more_z[j], 0, i) + amb(2) * R(j, 0, i);
@@ -1377,8 +1377,8 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_beta > 1) {
           // Integrals    s - d - *    p - d - *    d - d - *    f - d - *    g
           // - d - *    h - d - *    i - d - *
-          for (int i = 0; i < gamma_num_func; i++) {
-            for (int j = 0; j < n_orbitals[lmax_alpha_beta - 2]; j++) {
+          for (Index i = 0; i < gamma_num_func; i++) {
+            for (Index j = 0; j < n_orbitals[lmax_alpha_beta - 2]; j++) {
               R(j, Cart::xx, i) =
                   R(i_more_x[j], Cart::x, i) + amb(0) * R(j, Cart::x, i);
               R(j, Cart::xy, i) =
@@ -1399,8 +1399,8 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_beta > 2) {
           // Integrals    s - f - *    p - f - *    d - f - *    f - f - *    g
           // - f - *    h - f - *
-          for (int i = 0; i < gamma_num_func; i++) {
-            for (int j = 0; j < n_orbitals[lmax_alpha_beta - 3]; j++) {
+          for (Index i = 0; i < gamma_num_func; i++) {
+            for (Index j = 0; j < n_orbitals[lmax_alpha_beta - 3]; j++) {
               R(j, Cart::xxx, i) =
                   R(i_more_x[j], Cart::xx, i) + amb(0) * R(j, Cart::xx, i);
               R(j, Cart::xxy, i) =
@@ -1429,8 +1429,8 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         if (lmax_beta > 3) {
           // Integrals    s - g - *    p - g - *    d - g - *    f - g - *    g
           // - g - *
-          for (int i = 0; i < gamma_num_func; i++) {
-            for (int j = 0; j < n_orbitals[lmax_alpha_beta - 4]; j++) {
+          for (Index i = 0; i < gamma_num_func; i++) {
+            for (Index j = 0; j < n_orbitals[lmax_alpha_beta - 4]; j++) {
               R(j, Cart::xxxx, i) =
                   R(i_more_x[j], Cart::xxx, i) + amb(0) * R(j, Cart::xxx, i);
               R(j, Cart::xxxy, i) =
@@ -1467,22 +1467,24 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         }
 
         // which ones do we want to store
-        int cartoffset_alpha = shell_alpha->getCartesianOffset();
-        int cartoffset_beta = shell_beta->getCartesianOffset();
+        Index cartoffset_alpha = shell_alpha->getCartesianOffset();
+        Index cartoffset_beta = shell_beta->getCartesianOffset();
 
-        int cartnumFunc_alpha = shell_alpha->getCartesianNumFunc();
-        int cartnumFunc_beta = shell_beta->getCartesianNumFunc();
+        Index cartnumFunc_alpha = shell_alpha->getCartesianNumFunc();
+        Index cartnumFunc_beta = shell_beta->getCartesianNumFunc();
 
         const Eigen::MatrixXd trafo_beta = AOTransform::getTrafo(gaussian_beta);
         const Eigen::MatrixXd trafo_alpha =
             AOTransform::getTrafo(gaussian_alpha);
 
-        for (int i_alpha = 0; i_alpha < shell_alpha->getNumFunc(); i_alpha++) {
-          for (int i_beta = 0; i_beta < shell_beta->getNumFunc(); i_beta++) {
-            for (int i_gamma = 0; i_gamma < shell_gamma->getNumFunc();
+        for (Index i_alpha = 0; i_alpha < shell_alpha->getNumFunc();
+             i_alpha++) {
+          for (Index i_beta = 0; i_beta < shell_beta->getNumFunc(); i_beta++) {
+            for (Index i_gamma = 0; i_gamma < shell_gamma->getNumFunc();
                  i_gamma++) {
-              for (int i_beta_t = 0; i_beta_t < cartnumFunc_beta; i_beta_t++) {
-                for (int i_alpha_t = 0; i_alpha_t < cartnumFunc_alpha;
+              for (Index i_beta_t = 0; i_beta_t < cartnumFunc_beta;
+                   i_beta_t++) {
+                for (Index i_alpha_t = 0; i_alpha_t < cartnumFunc_alpha;
                      i_alpha_t++) {
                   double coeff = R(i_alpha_t + cartoffset_alpha,
                                    i_beta_t + cartoffset_beta, i_gamma) *

@@ -45,20 +45,22 @@ class Orbitals {
 
   bool hasBasisSetSize() const { return (_basis_set_size > 0) ? true : false; }
 
-  int getBasisSetSize() const { return _basis_set_size; }
+  Index getBasisSetSize() const { return _basis_set_size; }
 
-  void setBasisSetSize(int basis_set_size) { _basis_set_size = basis_set_size; }
+  void setBasisSetSize(Index basis_set_size) {
+    _basis_set_size = basis_set_size;
+  }
 
-  int getLumo() const { return _occupied_levels; }
+  Index getLumo() const { return _occupied_levels; }
 
-  int getHomo() const { return _occupied_levels - 1; }
+  Index getHomo() const { return _occupied_levels - 1; }
   // access to DFT number of levels, new, tested
 
   bool hasNumberOfLevels() const {
     return ((_occupied_levels > 0) ? true : false);
   }
 
-  void setNumberOfOccupiedLevels(int occupied_levels) {
+  void setNumberOfOccupiedLevels(Index occupied_levels) {
     _occupied_levels = occupied_levels;
   }
 
@@ -68,9 +70,9 @@ class Orbitals {
     return (_number_alpha_electrons > 0) ? true : false;
   }
 
-  int getNumberOfAlphaElectrons() const { return _number_alpha_electrons; };
+  Index getNumberOfAlphaElectrons() const { return _number_alpha_electrons; };
 
-  void setNumberOfAlphaElectrons(int electrons) {
+  void setNumberOfAlphaElectrons(Index electrons) {
     _number_alpha_electrons = electrons;
   }
 
@@ -95,7 +97,7 @@ class Orbitals {
   tools::EigenSystem &MOs() { return _mos; }
 
   // access to DFT molecular orbital energy of a specific level
-  double getMOEnergy(int level) const {
+  double getMOEnergy(Index level) const {
     if (level < _mos.eigenvalues().size()) {
       return _mos.eigenvalues()[level];
     } else {
@@ -105,24 +107,25 @@ class Orbitals {
   }
 
   // determine (pseudo-)degeneracy of a DFT molecular orbital
-  std::vector<int> CheckDegeneracy(int level, double energy_difference) const;
+  std::vector<Index> CheckDegeneracy(Index level,
+                                     double energy_difference) const;
 
-  long int NumberofStates(QMStateType type) const {
+  Index NumberofStates(QMStateType type) const {
     switch (type.Type()) {
       case QMStateType::Singlet:
-        return _BSE_singlet.eigenvalues().size();
+        return Index(_BSE_singlet.eigenvalues().size());
         break;
       case QMStateType::Triplet:
-        return _BSE_triplet.eigenvalues().size();
+        return Index(_BSE_triplet.eigenvalues().size());
         break;
       case QMStateType::KSstate:
-        return _mos.eigenvalues().size();
+        return Index(_mos.eigenvalues().size());
         break;
       case QMStateType::PQPstate:
-        return _QPpert_energies.rows();
+        return Index(_QPpert_energies.size());
         break;
       case QMStateType::DQPstate:
-        return _QPdiag.eigenvalues().size();
+        return Index(_QPdiag.eigenvalues().size());
         break;
       default:
         return 1;
@@ -175,27 +178,27 @@ class Orbitals {
 
   bool hasGWAindices() const { return (_qpmax > 0) ? true : false; }
 
-  void setGWindices(int qpmin, int qpmax) {
+  void setGWindices(Index qpmin, Index qpmax) {
     _qpmin = qpmin;
     _qpmax = qpmax;
   }
 
-  int getGWAmin() const { return _qpmin; }
+  Index getGWAmin() const { return _qpmin; }
 
-  int getGWAmax() const { return _qpmax; }
+  Index getGWAmax() const { return _qpmax; }
 
   // access to list of indices used in RPA
 
   bool hasRPAindices() const { return (_rpamax > 0) ? true : false; }
 
-  void setRPAindices(int rpamin, int rpamax) {
+  void setRPAindices(Index rpamin, Index rpamax) {
     _rpamin = rpamin;
     _rpamax = rpamax;
   }
 
-  int getRPAmin() const { return _rpamin; }
+  Index getRPAmin() const { return _rpamin; }
 
-  int getRPAmax() const { return _rpamax; }
+  Index getRPAmax() const { return _rpamax; }
 
   // access to list of indices used in BSE
 
@@ -204,7 +207,7 @@ class Orbitals {
 
   bool hasBSEindices() const { return (_bse_cmax > 0) ? true : false; }
 
-  void setBSEindices(int vmin, int cmax) {
+  void setBSEindices(Index vmin, Index cmax) {
     _bse_vmin = vmin;
     _bse_vmax = getHomo();
     _bse_cmin = getLumo();
@@ -215,13 +218,13 @@ class Orbitals {
     return;
   }
 
-  int getBSEvmin() const { return _bse_vmin; }
+  Index getBSEvmin() const { return _bse_vmin; }
 
-  int getBSEvmax() const { return _bse_vmax; }
+  Index getBSEvmax() const { return _bse_vmax; }
 
-  int getBSEcmin() const { return _bse_cmin; }
+  Index getBSEcmin() const { return _bse_cmin; }
 
-  int getBSEcmax() const { return _bse_cmax; }
+  Index getBSEcmax() const { return _bse_cmax; }
 
   double getScaHFX() const { return _ScaHFX; }
 
@@ -307,7 +310,7 @@ class Orbitals {
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
   // returns indeces of a re-sorted vector of energies from lowest to highest
-  std::vector<int> SortEnergies();
+  std::vector<Index> SortEnergies();
 
   template <bool dftbasis>
   AOBasis SetupBasis() const {
@@ -333,9 +336,9 @@ class Orbitals {
   Eigen::MatrixXd CalcAuxMat_cc(const Eigen::VectorXd &coeffs) const;
   Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd &coeffs) const;
 
-  int _basis_set_size;
-  int _occupied_levels;
-  int _number_alpha_electrons;
+  Index _basis_set_size;
+  Index _occupied_levels;
+  Index _number_alpha_electrons;
   std::string _ECP = "";
   bool _useTDA;
 
@@ -346,19 +349,19 @@ class Orbitals {
   double _qm_energy = 0;
 
   // new variables for GW-BSE storage
-  int _rpamin = 0;
-  int _rpamax = 0;
+  Index _rpamin = 0;
+  Index _rpamax = 0;
 
-  int _qpmin = 0;
-  int _qpmax = 0;
+  Index _qpmin = 0;
+  Index _qpmax = 0;
 
-  int _bse_vmin = 0;
-  int _bse_vmax = 0;
-  int _bse_cmin = 0;
-  int _bse_cmax = 0;
-  int _bse_size = 0;
-  int _bse_vtotal = 0;
-  int _bse_ctotal = 0;
+  Index _bse_vmin = 0;
+  Index _bse_vmax = 0;
+  Index _bse_cmin = 0;
+  Index _bse_cmax = 0;
+  Index _bse_size = 0;
+  Index _bse_vtotal = 0;
+  Index _bse_ctotal = 0;
 
   double _ScaHFX = 0;
 

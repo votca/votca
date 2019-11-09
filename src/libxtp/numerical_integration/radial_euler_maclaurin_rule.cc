@@ -32,7 +32,7 @@ std::vector<double> EulerMaclaurinGrid::CalculatePruningIntervals(
   // get Bragg-Slater Radius for this element
   double BSradius = _BraggSlaterRadii.at(element);
   // row type of element
-  int RowType = _pruning_set.at(element);
+  Index RowType = _pruning_set.at(element);
 
   if (RowType == 1) {
     r.push_back(0.25 * BSradius);
@@ -70,13 +70,13 @@ void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis& aobasis,
       min_exp this_atom;
       double range_max = std::numeric_limits<double>::min();
       double decaymin = std::numeric_limits<double>::max();
-      int lvalue = std::numeric_limits<int>::min();
+      Index lvalue = std::numeric_limits<Index>::min();
       const std::vector<const AOShell*> shells =
           aobasis.getShellsofAtom(atom.getId());
       // and loop over all shells to figure out minimum decay constant and
       // angular momentum of this function
       for (const AOShell* shell : shells) {
-        int lmax = shell->getLmax();
+        Index lmax = shell->getLmax();
         if (shell->getMinDecay() < decaymin) {
           decaymin = shell->getMinDecay();
           lvalue = lmax;
@@ -101,31 +101,31 @@ void EulerMaclaurinGrid::RefineElementRangeMap(const AOBasis& aobasis,
   overlap.Fill(aobasis);
 
   // get collapsed index list
-  std::vector<int> idxstart;
-  const std::vector<int>& idxsize = aobasis.getFuncPerAtom();
-  int start = 0;
-  for (int size : idxsize) {
+  std::vector<Index> idxstart;
+  const std::vector<Index>& idxsize = aobasis.getFuncPerAtom();
+  Index start = 0;
+  for (Index size : idxsize) {
     idxstart.push_back(start);
     start += size;
   }
   // refining by going through all atom combinations
-  for (int i = 0; i < atoms.size(); ++i) {
+  for (Index i = 0; i < atoms.size(); ++i) {
     const QMAtom& atom_a = atoms[i];
-    int a_start = idxstart[i];
-    int a_size = idxsize[i];
+    Index a_start = idxstart[i];
+    Index a_size = idxsize[i];
     double range_max = std::numeric_limits<double>::min();
     // get preset values for this atom type
     double alpha_a = _element_ranges.at(atom_a.getElement()).alpha;
-    int l_a = _element_ranges.at(atom_a.getElement()).l;
+    Index l_a = _element_ranges.at(atom_a.getElement()).l;
     const Eigen::Vector3d& pos_a = atom_a.getPos();
     // Cannot iterate only over j<i because it is not symmetric due to shift_2g
-    for (int j = 0; j < atoms.size(); ++j) {
+    for (Index j = 0; j < atoms.size(); ++j) {
       if (i == j) {
         continue;
       }
       const QMAtom& atom_b = atoms[j];
-      int b_start = idxstart[j];
-      int b_size = idxsize[j];
+      Index b_start = idxstart[j];
+      Index b_size = idxsize[j];
       const Eigen::Vector3d& pos_b = atom_b.getPos();
       // find overlap block of these two atoms
       Eigen::MatrixXd overlapblock =
@@ -180,7 +180,7 @@ std::map<std::string, GridContainers::radial_grid>
 GridContainers::radial_grid EulerMaclaurinGrid::CalculateRadialGridforAtom(
     const std::string& type, const std::pair<std::string, min_exp>& element) {
   GridContainers::radial_grid result;
-  int np = getGridParameters(element.first, type);
+  Index np = getGridParameters(element.first, type);
   double cutoff = element.second.range;
   result.radius = Eigen::VectorXd::Zero(np);
   result.weight = Eigen::VectorXd::Zero(np);
@@ -189,7 +189,7 @@ GridContainers::radial_grid EulerMaclaurinGrid::CalculateRadialGridforAtom(
       (log(1.0 - std::pow((1.0 + double(np)) / (2.0 + double(np)), 3)));
   double factor = 3.0 / (1.0 + double(np));
 
-  for (int i = 0; i < np; i++) {
+  for (Index i = 0; i < np; i++) {
     double q = double(i + 1) / (double(np) + 1.0);
     double r = -alpha * std::log(1.0 - std::pow(q, 3));
     double w = factor * alpha * r * r / (1.0 - std::pow(q, 3)) * std::pow(q, 2);
@@ -199,7 +199,7 @@ GridContainers::radial_grid EulerMaclaurinGrid::CalculateRadialGridforAtom(
   return result;
 }
 
-double EulerMaclaurinGrid::DetermineCutoff(double alpha, int l, double eps) {
+double EulerMaclaurinGrid::DetermineCutoff(double alpha, Index l, double eps) {
   // determine norm of function
   /* For a function f(r) = r^k*exp(-alpha*r^2) determine
      the radial distance r such that the fraction of the
@@ -226,14 +226,15 @@ double EulerMaclaurinGrid::DetermineCutoff(double alpha, int l, double eps) {
   return cutoff;
 }
 
-double EulerMaclaurinGrid::CalcResidual(double alpha, int l, double cutoff) {
+double EulerMaclaurinGrid::CalcResidual(double alpha, Index l, double cutoff) {
   return RadialIntegral(alpha, l + 2, cutoff) /
          RadialIntegral(alpha, l + 2, 0.0);
 }
 
-double EulerMaclaurinGrid::RadialIntegral(double alpha, int l, double cutoff) {
+double EulerMaclaurinGrid::RadialIntegral(double alpha, Index l,
+                                          double cutoff) {
   const double pi = boost::math::constants::pi<double>();
-  int ilo = l % 2;
+  Index ilo = l % 2;
   double value = 0.0;
   double valexp;
   if (ilo == 0) {
@@ -252,14 +253,15 @@ double EulerMaclaurinGrid::RadialIntegral(double alpha, int l, double cutoff) {
     valexp = exp(-exponent);
     value = valexp / 2.0 / alpha;
   }
-  for (int i = ilo + 2; i <= l; i += 2) {
-    value = ((i - 1) * value + std::pow(cutoff, i - 1) * valexp) / 2.0 / alpha;
+  for (Index i = ilo + 2; i <= l; i += 2) {
+    value = (double(i - 1) * value + std::pow(cutoff, i - 1) * valexp) / 2.0 /
+            alpha;
   }
   return value;
 }
 
-int EulerMaclaurinGrid::getGridParameters(const std::string& element,
-                                          const std::string& type) {
+Index EulerMaclaurinGrid::getGridParameters(const std::string& element,
+                                            const std::string& type) {
   if (type == "medium") {
     return MediumGrid.at(element);
   } else if (type == "coarse") {

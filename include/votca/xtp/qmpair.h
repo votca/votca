@@ -48,9 +48,9 @@ class QMPair {
   }
 
   struct data {
-    int id;
-    int Seg1Id;
-    int Seg2Id;
+    Index id;
+    Index Seg1Id;
+    Index Seg2Id;
     double RX;
     double RY;
     double RZ;
@@ -78,15 +78,15 @@ class QMPair {
     }
   }
 
-  QMPair(int id, const Segment* seg1, const Segment* seg2,
+  QMPair(Index id, const Segment* seg1, const Segment* seg2,
          const Eigen::Vector3d& delta_R);
 
   QMPair(const data& d, const std::vector<Segment>& segments) {
     ReadData(d, segments);
   }
 
-  int getId() const { return _id; }
-  void setId(int id) { _id = id; }
+  Index getId() const { return _id; }
+  void setId(Index id) { _id = id; }
 
   const Eigen::Vector3d& R() const { return _R; }
   double Dist() const { return _R.norm(); }
@@ -133,7 +133,7 @@ class QMPair {
   void ReadData(const data& d, const std::vector<Segment>& segments);
 
  private:
-  int _id = -1;
+  Index _id = -1;
   std::pair<const Segment*, const Segment*> _segments;
 
   Eigen::Vector3d _R = Eigen::Vector3d::Zero();

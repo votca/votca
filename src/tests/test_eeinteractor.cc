@@ -22,6 +22,7 @@
 #include <votca/xtp/dipoledipoleinteraction.h>
 #include <votca/xtp/eeinteractor.h>
 using namespace votca::xtp;
+using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(eeinteractor_test)
 
@@ -292,7 +293,7 @@ BOOST_AUTO_TEST_CASE(static_case_quadrupoles_dipoles_orientation) {
 BOOST_AUTO_TEST_CASE(static_case_full_tensor_1) {
   eeInteractor interactor;
   Eigen::Matrix<double, 9, 9> result;
-  for (int i = 0; i < 9; i++) {
+  for (Index i = 0; i < 9; i++) {
     Vector9d mpoles1 = Vector9d::Zero();
     mpoles1(i) = 1.0;
     StaticSegment seg1("one", 1);
@@ -300,7 +301,7 @@ BOOST_AUTO_TEST_CASE(static_case_full_tensor_1) {
     one.setPos(Eigen::Vector3d::Zero());
     one.setMultipole(mpoles1, 2);
     seg1.push_back(one);
-    for (int j = 0; j < 9; j++) {
+    for (Index j = 0; j < 9; j++) {
       Vector9d mpoles2 = Vector9d::Zero();
       mpoles2(j) = 1.0;
       StaticSegment seg2("two", 2);
@@ -341,7 +342,7 @@ BOOST_AUTO_TEST_CASE(static_case_full_tensor_1) {
 BOOST_AUTO_TEST_CASE(static_case_full_tensor_2) {
   eeInteractor interactor;
   Eigen::Matrix<double, 9, 9> result;
-  for (int i = 0; i < 9; i++) {
+  for (Index i = 0; i < 9; i++) {
     Vector9d mpoles1 = Vector9d::Zero();
     mpoles1(i) = 1.0;
     StaticSegment seg1("one", 1);
@@ -349,7 +350,7 @@ BOOST_AUTO_TEST_CASE(static_case_full_tensor_2) {
     one.setPos(Eigen::Vector3d::Zero());
     one.setMultipole(mpoles1, 2);
     seg1.push_back(one);
-    for (int j = 0; j < 9; j++) {
+    for (Index j = 0; j < 9; j++) {
       Vector9d mpoles2 = Vector9d::Zero();
       mpoles2(j) = 1.0;
       StaticSegment seg2("two", 2);
@@ -435,7 +436,7 @@ BOOST_AUTO_TEST_CASE(polar_case_monopole) {
 
   std::vector<PolarSegment> segments = {seg1, seg2};
   Eigen::VectorXd b = Eigen::VectorXd::Zero(6);
-  int index = 0;
+  Index index = 0;
   for (PolarSegment& seg : segments) {
     for (const PolarSite& site : seg) {
       const Eigen::Vector3d V = site.V() + site.V_noE();

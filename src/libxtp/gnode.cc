@@ -48,7 +48,7 @@ void GNode::MakeHuffTree() {
 
 void GNode::AddEventfromQmPair(const QMPair& pair, std::vector<GNode>& nodes,
                                double rate) {
-  int destination = 0;
+  Index destination = 0;
   Eigen::Vector3d dr = Eigen::Vector3d::Zero();
   if (_id == pair.Seg1()->getId()) {
     destination = pair.Seg2()->getId();

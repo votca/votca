@@ -61,8 +61,8 @@ class EAnalyze : public QMCalculator {
   bool _skip_pairs = false;
 
   bool _doenergy_landscape;
-  int _first_seg;
-  int _last_seg;
+  Index _first_seg;
+  Index _last_seg;
 
   std::string _seg_pattern;
   std::vector<Segment *> _seg_shortlist;

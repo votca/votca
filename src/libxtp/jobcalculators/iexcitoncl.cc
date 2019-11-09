@@ -83,13 +83,13 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
   Logger& pLog = opThread.getLogger();
 
   // get the information about the job executed by the thread
-  int job_ID = job.getId();
+  Index job_ID = job.getId();
   Property job_input = job.getInput();
   vector<Property*> segment_list = job_input.Select("segment");
-  int ID_A = segment_list.front()->getAttribute<int>("id");
+  Index ID_A = segment_list.front()->getAttribute<Index>("id");
   string type_A = segment_list.front()->getAttribute<string>("type");
   string mps_fileA = segment_list.front()->getAttribute<string>("mps_file");
-  int ID_B = segment_list.back()->getAttribute<int>("id");
+  Index ID_B = segment_list.back()->getAttribute<Index>("id");
   string type_B = segment_list.back()->getAttribute<string>("type");
   string mps_fileB = segment_list.back()->getAttribute<string>("mps_file");
 
@@ -166,7 +166,7 @@ void IEXCITON::WriteJobFile(const Topology& top) {
     throw runtime_error("\nERROR: bad file handle: " + _jobfile);
   }
   const QMNBList& nblist = top.NBList();
-  int jobCount = 0;
+  Index jobCount = 0;
   if (nblist.size() == 0) {
     cout << endl << "... ... No pairs in neighbor list, skip." << flush;
     return;
@@ -177,11 +177,11 @@ void IEXCITON::WriteJobFile(const Topology& top) {
 
   for (const QMPair* pair : nblist) {
     if (pair->getType() == QMPair::PairType::Excitoncl) {
-      int id1 = pair->Seg1()->getId();
+      Index id1 = pair->Seg1()->getId();
       string name1 = pair->Seg1()->getType();
-      int id2 = pair->Seg2()->getId();
+      Index id2 = pair->Seg2()->getId();
       string name2 = pair->Seg2()->getType();
-      int id = jobCount;
+      Index id = jobCount;
       QMState state1 = GetElementFromMap(name1);
       QMState state2 = GetElementFromMap(name2);
 
@@ -197,12 +197,12 @@ void IEXCITON::WriteJobFile(const Topology& top) {
       Property& pSegment1 =
           pInput.add("segment", boost::lexical_cast<string>(id1));
       pSegment1.setAttribute<string>("type", name1);
-      pSegment1.setAttribute<int>("id", id1);
+      pSegment1.setAttribute<Index>("id", id1);
       pSegment1.setAttribute<string>("mps_file", mps_file1);
       Property& pSegment2 =
           pInput.add("segment", boost::lexical_cast<string>(id2));
       pSegment2.setAttribute<string>("type", name2);
-      pSegment2.setAttribute<int>("id", id2);
+      pSegment2.setAttribute<Index>("id", id2);
       pSegment2.setAttribute<string>("mps_file", mps_file2);
 
       Job job(id, tag, Input, Job::AVAILABLE);
@@ -224,8 +224,8 @@ void IEXCITON::ReadJobFile(Topology& top) {
   vector<Property*> records;
   // gets the neighborlist from the topology
   QMNBList& nblist = top.NBList();
-  int number_of_pairs = nblist.size();
-  int current_pairs = 0;
+  Index number_of_pairs = nblist.size();
+  Index current_pairs = 0;
   Logger log;
   log.setReportLevel(logINFO);
 
@@ -244,8 +244,8 @@ void IEXCITON::ReadJobFile(Topology& top) {
     if (prop->exists("output") && prop->exists("output.pair")) {
       current_pairs++;
       Property& poutput = prop->get("output.pair");
-      int idA = poutput.getAttribute<int>("idA");
-      int idB = poutput.getAttribute<int>("idB");
+      Index idA = poutput.getAttribute<Index>("idA");
+      Index idB = poutput.getAttribute<Index>("idB");
       Segment& segA = top.getSegment(idA);
       Segment& segB = top.getSegment(idB);
       QMPair* qmp = nblist.FindPair(&segA, &segB);

@@ -33,8 +33,8 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
    */
 
   // shell info, only lmax tells how far to go
-  int lmax_row = shell_row.getLmax();
-  int lmax_col = shell_col.getLmax();
+  Index lmax_row = shell_row.getLmax();
+  Index lmax_col = shell_col.getLmax();
 
   if (std::max(lmax_col, lmax_row) > 4) {
     throw std::runtime_error(
@@ -43,12 +43,12 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
   }
 
   // set size of internal block for recursion
-  int nrows = AOTransform::getBlockSize(lmax_row);
-  int ncols = AOTransform::getBlockSize(lmax_col);
+  Index nrows = AOTransform::getBlockSize(lmax_row);
+  Index ncols = AOTransform::getBlockSize(lmax_col);
 
   // initialize local matrix block for unnormalized cartesians
   std::array<Eigen::MatrixXd, 3> dip;
-  for (int i_comp = 0; i_comp < 3; i_comp++) {
+  for (Index i_comp = 0; i_comp < 3; i_comp++) {
     dip[i_comp] = Eigen::MatrixXd::Zero(nrows, ncols);
   }
 
@@ -94,13 +94,13 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
           overlap.Primitive_Overlap(gaussian_row, gaussian_col);
 
       // s-s dipole moment integrals
-      for (int i_comp = 0; i_comp < 3; i_comp++) {
+      for (Index i_comp = 0; i_comp < 3; i_comp++) {
         dip[i_comp](0, 0) = pmc[i_comp] * ol(0, 0);
       }
 
       // Integrals     p - s
       if (lmax_row > 0) {
-        for (int k = 0; k < 3; k++) {
+        for (Index k = 0; k < 3; k++) {
           dip[k](Cart::x, 0) =
               PmA(0) * dip[k](0, 0) + (k == 0) * fak * ol(0, 0);
           dip[k](Cart::y, 0) =
@@ -113,7 +113,7 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
 
       // Integrals     d - s
       if (lmax_row > 1) {
-        for (int k = 0; k < 3; k++) {
+        for (Index k = 0; k < 3; k++) {
           double term = fak * dip[k](0, 0);
           dip[k](Cart::xx, 0) = PmA(0) * dip[k](Cart::x, 0) +
                                 (k == 0) * fak * ol(Cart::x, 0) + term;
@@ -133,7 +133,7 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
 
       // Integrals     f - s
       if (lmax_row > 2) {
-        for (int k = 0; k < 3; k++) {
+        for (Index k = 0; k < 3; k++) {
           dip[k](Cart::xxx, 0) = PmA(0) * dip[k](Cart::xx, 0) +
                                  (k == 0) * fak * ol(Cart::xx, 0) +
                                  2 * fak * dip[k](Cart::x, 0);
@@ -163,7 +163,7 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
 
       // Integrals     g - s
       if (lmax_row > 3) {
-        for (int k = 0; k < 3; k++) {
+        for (Index k = 0; k < 3; k++) {
           double term_xx = fak * dip[k](Cart::xx, 0);
           double term_yy = fak * dip[k](Cart::yy, 0);
           double term_zz = fak * dip[k](Cart::zz, 0);
@@ -207,7 +207,7 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
       if (lmax_col > 0) {
 
         // Integrals     s - p
-        for (int k = 0; k < 3; k++) {
+        for (Index k = 0; k < 3; k++) {
           dip[k](0, Cart::x) =
               PmB(0) * dip[k](0, 0) + (k == 0) * fak * ol(0, 0);
           dip[k](0, Cart::y) =
@@ -218,8 +218,8 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
         //------------------------------------------------------
 
         // Integrals     p - p     d - p     f - p     g - p
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
-          for (int k = 0; k < 3; k++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
+          for (Index k = 0; k < 3; k++) {
             dip[k](i, Cart::x) = PmB(0) * dip[k](i, 0) +
                                  (k == 0) * fak * ol(i, 0) +
                                  nx[i] * fak * dip[k](i_less_x[i], 0);
@@ -238,7 +238,7 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
       if (lmax_col > 1) {
 
         // Integrals     s - d
-        for (int k = 0; k < 3; k++) {
+        for (Index k = 0; k < 3; k++) {
           double term = fak * dip[k](0, 0);
           dip[k](0, Cart::xx) = PmB(0) * dip[k](0, Cart::x) +
                                 (k == 0) * fak * ol(0, Cart::x) + term;
@@ -256,8 +256,8 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
         //------------------------------------------------------
 
         // Integrals     p - d     d - d     f - d     g - d
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
-          for (int k = 0; k < 3; k++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
+          for (Index k = 0; k < 3; k++) {
             double term = fak * dip[k](i, 0);
             dip[k](i, Cart::xx) =
                 PmB(0) * dip[k](i, Cart::x) + (k == 0) * fak * ol(i, Cart::x) +
@@ -286,7 +286,7 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
       if (lmax_col > 2) {
 
         // Integrals     s - f
-        for (int k = 0; k < 3; k++) {
+        for (Index k = 0; k < 3; k++) {
           dip[k](0, Cart::xxx) = PmB(0) * dip[k](0, Cart::xx) +
                                  (k == 0) * fak * ol(0, Cart::xx) +
                                  2 * fak * dip[k](0, Cart::x);
@@ -314,8 +314,8 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
         //------------------------------------------------------
 
         // Integrals     p - f     d - f     f - f     g - f
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
-          for (int k = 0; k < 3; k++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
+          for (Index k = 0; k < 3; k++) {
             double term_x = 2 * fak * dip[k](i, Cart::x);
             double term_y = 2 * fak * dip[k](i, Cart::y);
             double term_z = 2 * fak * dip[k](i, Cart::z);
@@ -361,7 +361,7 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
       if (lmax_col > 3) {
 
         // Integrals     s - g
-        for (int k = 0; k < 3; k++) {
+        for (Index k = 0; k < 3; k++) {
           double term_xx = fak * dip[k](0, Cart::xx);
           double term_yy = fak * dip[k](0, Cart::yy);
           double term_zz = fak * dip[k](0, Cart::zz);
@@ -402,8 +402,8 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
         //------------------------------------------------------
 
         // Integrals     p - g     d - g     f - g     g - g
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
-          for (int k = 0; k < 3; k++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
+          for (Index k = 0; k < 3; k++) {
             double term_xx = fak * dip[k](i, Cart::xx);
             double term_yy = fak * dip[k](i, Cart::yy);
             double term_zz = fak * dip[k](i, Cart::zz);
@@ -478,7 +478,7 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
 
       // cartesian -> spherical
 
-      for (int i = 0; i < 3; i++) {
+      for (Index i = 0; i < 3; i++) {
         Eigen::MatrixXd dip_sph =
             trafo_row.transpose() *
             dip[i].bottomRightCorner(shell_row.getCartesianNumFunc(),

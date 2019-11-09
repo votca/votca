@@ -84,7 +84,7 @@ class hist {
  private:
   void ReadMetric(T&, std::string tag, CheckpointReader& r);
   void WriteMetric(const T&, std::string tag, CheckpointWriter& w) const;
-  int _filled = 0;
+  Index _filled = 0;
   T _metric;
   T _metric_old;
 };

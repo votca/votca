@@ -40,12 +40,12 @@ class ECPAOGaussianPrimitive {
         _contraction(gaussian._contraction) {
     ;
   }
-  int getPower() const { return _power; }
+  Index getPower() const { return _power; }
   double getDecay() const { return _decay; }
   double getContraction() const { return _contraction; }
 
  private:
-  int _power = 0;
+  Index _power = 0;
   double _decay = 0.0;
   double _contraction = 0.0;
 };
@@ -55,8 +55,8 @@ class ECPAOGaussianPrimitive {
  */
 class ECPAOShell {
  public:
-  ECPAOShell(const ECPShell& shell, const QMAtom& atom, int startIndex,
-             int Lmax)
+  ECPAOShell(const ECPShell& shell, const QMAtom& atom, Index startIndex,
+             Index Lmax)
       : _type(shell.getType()),
         _L(shell.getL()),
         _numFunc(shell.getnumofFunc()),
@@ -69,18 +69,18 @@ class ECPAOShell {
   }
 
   const std::string& getType() const { return _type; }
-  int getNumFunc() const { return _numFunc; }
-  int getStartIndex() const { return _startIndex; }
-  int getOffset() const { return _offset; }
-  int getAtomIndex() const { return _atomindex; }
+  Index getNumFunc() const { return _numFunc; }
+  Index getStartIndex() const { return _startIndex; }
+  Index getOffset() const { return _offset; }
+  Index getAtomIndex() const { return _atomindex; }
 
-  int getL() const { return _L; }
-  int getLmaxElement() const { return _Lmax_element; }
+  Index getL() const { return _L; }
+  Index getLmaxElement() const { return _Lmax_element; }
   // Local part is with L=Lmax
   bool isNonLocal() const { return (_L < _Lmax_element); }
   const Eigen::Vector3d& getPos() const { return _pos; }
 
-  long int getSize() const { return _gaussians.size(); }
+  Index getSize() const { return _gaussians.size(); }
 
   // iterator over pairs (decay constant; contraction coefficient)
   using ECPGaussianIterator =
@@ -98,14 +98,14 @@ class ECPAOShell {
 
  private:
   std::string _type;
-  int _L;
+  Index _L;
   // number of functions in shell
-  int _numFunc;
-  int _startIndex;
-  int _offset;
+  Index _numFunc;
+  Index _startIndex;
+  Index _offset;
   Eigen::Vector3d _pos;
-  int _atomindex;
-  int _Lmax_element;  // Lmax of the Element not the shell
+  Index _atomindex;
+  Index _Lmax_element;  // Lmax of the Element not the shell
 
   // vector of pairs of decay constants and contraction coefficients
   std::vector<ECPAOGaussianPrimitive> _gaussians;

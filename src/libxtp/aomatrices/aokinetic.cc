@@ -28,8 +28,8 @@ void AOKinetic::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                           const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
-  int lmax_row = shell_row.getLmax();
-  int lmax_col = shell_col.getLmax();
+  Index lmax_row = shell_row.getLmax();
+  Index lmax_col = shell_col.getLmax();
 
   if (lmax_col > 4 || lmax_row > 4) {
     throw std::runtime_error(
@@ -38,8 +38,8 @@ void AOKinetic::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   }
 
   // set size of internal block for recursion
-  int nrows = AOTransform::getBlockSize(lmax_row);
-  int ncols = AOTransform::getBlockSize(lmax_col);
+  Index nrows = AOTransform::getBlockSize(lmax_row);
+  Index ncols = AOTransform::getBlockSize(lmax_col);
 
   // get shell positions
   const Eigen::Vector3d& pos_row = shell_row.getPos();
@@ -185,7 +185,7 @@ void AOKinetic::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - p     d - p     f - p     g - p
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
           kin(i, Cart::x) = xi2 * ol(i, Cart::x) + PmB(0) * kin(i, 0) +
                             nx[i] * fak * kin(i_less_x[i], 0);
           kin(i, Cart::y) = xi2 * ol(i, Cart::y) + PmB(1) * kin(i, 0) +
@@ -213,7 +213,7 @@ void AOKinetic::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - d     d - d     f - d     g - d
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
           double term_loc = fak * kin(i, 0) - fak_b * ol(i, 0);
           kin(i, Cart::xx) = xi2 * ol(i, Cart::xx) + PmB(0) * kin(i, Cart::x) +
                              nx[i] * fak * kin(i_less_x[i], Cart::x) + term_loc;
@@ -255,7 +255,7 @@ void AOKinetic::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - f     d - f     f - f     g - f
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
           double term_x = 2 * (fak * kin(i, Cart::x) - fak_b * ol(i, Cart::x));
           double term_y = 2 * (fak * kin(i, Cart::y) - fak_b * ol(i, Cart::y));
           double term_z = 2 * (fak * kin(i, Cart::z) - fak_b * ol(i, Cart::z));
@@ -333,7 +333,7 @@ void AOKinetic::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
 
         // Integrals     p - g     d - g     f - g     g - g
-        for (int i = 1; i < n_orbitals[lmax_row]; i++) {
+        for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
           double term_xx_loc = fak * kin(i, Cart::xx) - fak_b * ol(i, Cart::xx);
           double term_yy_loc = fak * kin(i, Cart::yy) - fak_b * ol(i, Cart::yy);
           double term_zz_loc = fak * kin(i, Cart::zz) - fak_b * ol(i, Cart::zz);

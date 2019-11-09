@@ -29,12 +29,12 @@ void AOMatrix::Fill(const AOBasis& aobasis) {
   // AOMatrix is symmetric, restrict explicit calculation of lower triangular
   // matrix
 #pragma omp parallel for schedule(guided)
-  for (int col = 0; col < aobasis.getNumofShells(); col++) {
+  for (Index col = 0; col < aobasis.getNumofShells(); col++) {
     const AOShell& shell_col = aobasis.getShell(col);
-    int col_start = shell_col.getStartIndex();
-    for (int row = col; row < aobasis.getNumofShells(); row++) {
+    Index col_start = shell_col.getStartIndex();
+    for (Index row = col; row < aobasis.getNumofShells(); row++) {
       const AOShell& shell_row = aobasis.getShell(row);
-      int row_start = shell_row.getStartIndex();
+      Index row_start = shell_row.getStartIndex();
       // figure out the submatrix
       Eigen::Block<Eigen::MatrixXd> block = _aomatrix.block(
           row_start, col_start, shell_row.getNumFunc(), shell_col.getNumFunc());

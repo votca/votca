@@ -26,8 +26,8 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
-void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
-                                int nmax) {
+void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
+                                Index nmin, Index nmax) {
 
   // here as storage indices starting from zero
   _nmin = nmin;
@@ -36,11 +36,11 @@ void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
   _mmin = mmin;
   _mmax = mmax;
   _mtotal = mmax - mmin + 1;
-  _basissize = basissize;
+  _auxbasissize = basissize;
 
   // vector has mtotal elements
   _matrix = std::vector<Eigen::MatrixXd>(
-      _mtotal, Eigen::MatrixXd::Zero(_ntotal, _basissize));
+      _mtotal, Eigen::MatrixXd::Zero(_ntotal, _auxbasissize));
 }
 
 /*
@@ -114,15 +114,15 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
   const Eigen::MatrixXd dftn =
       dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
   // alpha-loop over the "left" DFT basis function
-  for (int row = 0; row < dftbasis.getNumofShells(); row++) {
+  for (Index row = 0; row < dftbasis.getNumofShells(); row++) {
 
     const AOShell& shell_row = dftbasis.getShell(row);
-    const int row_start = shell_row.getStartIndex();
+    const Index row_start = shell_row.getStartIndex();
     // ThreecMatrix is symmetric, restrict explicit calculation to triangular
     // matrix
-    for (int col = 0; col <= row; col++) {
+    for (Index col = 0; col <= row; col++) {
       const AOShell& shell_col = dftbasis.getShell(col);
-      const int col_start = shell_col.getStartIndex();
+      const Index col_start = shell_col.getStartIndex();
 
       Eigen::Tensor<double, 3> threec_block(auxshell.getNumFunc(),
                                             shell_row.getNumFunc(),
@@ -132,9 +132,9 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
       bool nonzero =
           FillThreeCenterRepBlock(threec_block, auxshell, shell_row, shell_col);
       if (nonzero) {
-        for (int aux_c = 0; aux_c < auxshell.getNumFunc(); aux_c++) {
-          for (int row_c = 0; row_c < shell_row.getNumFunc(); row_c++) {
-            for (int col_c = 0; col_c < shell_col.getNumFunc(); col_c++) {
+        for (Index aux_c = 0; aux_c < auxshell.getNumFunc(); aux_c++) {
+          for (Index row_c = 0; row_c < shell_row.getNumFunc(); row_c++) {
+            for (Index col_c = 0; col_c < shell_col.getNumFunc(); col_c++) {
               // symmetry
               if ((col_start + col_c) > (row_start + row_c)) {
                 break;
@@ -166,12 +166,12 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlock(
   const Eigen::MatrixXd dftn =
       dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
 
-  int dim = static_cast<int>(symmstorage.size());
-  for (auto k = 0; k < dim; ++k) {
+  Index dim = static_cast<Index>(symmstorage.size());
+  for (Index k = 0; k < dim; ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
         dftn.transpose() * matrix.selfadjointView<Eigen::Lower>() * dftm;
-    for (int i = 0; i < threec_inMo.cols(); ++i) {
+    for (Index i = 0; i < threec_inMo.cols(); ++i) {
       block[i].col(k) = threec_inMo.col(i);
     }
   }
@@ -188,7 +188,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
       << TimeStamp()
       << " Using Default OpenMP for tensor matrix multiplication: " << flush;
 #pragma omp parallel for
-  for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
+  for (Index i_occ = 0; i_occ < _mtotal; i_occ++) {
     Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
     _matrix[i_occ] = temp;
   }
@@ -199,7 +199,7 @@ void TCMatrix_gwbse::FillAllBlocksOpenMP(const AOBasis& gwbasis,
                                          const AOBasis& dftbasis,
                                          const Eigen::MatrixXd& dft_orbitals) {
 #pragma omp parallel for schedule(guided)  // private(_block)
-  for (int is = 0; is < gwbasis.getNumofShells(); is++) {
+  for (Index is = 0; is < gwbasis.getNumofShells(); is++) {
     const AOShell& shell = gwbasis.getShell(is);
 
     // Fill block for this shell (3-center overlap with _dft_basis +
@@ -210,7 +210,7 @@ void TCMatrix_gwbse::FillAllBlocksOpenMP(const AOBasis& gwbasis,
     std::vector<Eigen::MatrixXd> block = FillBlock(symmstorage, dft_orbitals);
 
     // put into correct position
-    for (int m_level = 0; m_level < _mtotal; m_level++) {
+    for (Index m_level = 0; m_level < _mtotal; m_level++) {
       _matrix[m_level].block(0, shell.getStartIndex(), _ntotal,
                              shell.getNumFunc()) = block[m_level];
     }  // m-th DFT orbital
@@ -251,7 +251,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixCuda(
   CudaMatrix cuma_C{head.rows(), matrix.cols(), stream};
 
 #pragma omp parallel for schedule(dynamic)
-  for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
+  for (Index i_occ = 0; i_occ < _mtotal; i_occ++) {
     // All the GPU communication happens through a single thread that reuses all
     // memory allocated in the GPU and it's dynamically load-balanced by OpenMP.
     // The rest of the threads use the default CPU matrix multiplication
@@ -281,7 +281,7 @@ void TCMatrix_gwbse::FillAllBlocksCuda(const AOBasis& gwbasis,
 
   // loop over all shells in the GW basis and get _Mmn for that shell
 #pragma omp parallel for schedule(dynamic)  // private(_block)
-  for (int is = 0; is < gwbasis.getNumofShells(); is++) {
+  for (Index is = 0; is < gwbasis.getNumofShells(); is++) {
     const AOShell& shell = gwbasis.getShell(is);
 
     // Fill block for this shell (3-center overlap with _dft_basis +
@@ -303,7 +303,7 @@ void TCMatrix_gwbse::FillAllBlocksCuda(const AOBasis& gwbasis,
     // // Otherwise the convolution is performed by Eigen
     // block = FillBlock(symmstorage, dft_orbitals);
     // put into correct position
-    for (int m_level = 0; m_level < _mtotal; m_level++) {
+    for (Index m_level = 0; m_level < _mtotal; m_level++) {
       _matrix[m_level].block(0, shell.getStartIndex(), _ntotal,
                              shell.getNumFunc()) = block[m_level];
     }  // m-th DFT orbital
@@ -326,14 +326,14 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlockCUDA(
     CudaMatrix& cuma_X = cuda_inter_matrices[1];
     CudaMatrix& cuma_Y = cuda_inter_matrices[2];
 
-    int dim = static_cast<int>(symmstorage.size());
-    for (int k = 0; k < dim; ++k) {
+    Index dim = static_cast<Index>(symmstorage.size());
+    for (Index k = 0; k < dim; ++k) {
       const Eigen::MatrixXd& matrix = symmstorage[k];
       cuma_B.copy_to_gpu(matrix.selfadjointView<Eigen::Lower>());
       cuda_pip.gemm(cuma_A, cuma_B, cuma_X);
       cuda_pip.gemm(cuma_X, cuma_C, cuma_Y);
       Eigen::MatrixXd threec_inMo = cuma_Y;
-      for (int i = 0; i < threec_inMo.cols(); ++i) {
+      for (Index i = 0; i < threec_inMo.cols(); ++i) {
         block[i].col(k) = threec_inMo.col(i);
       }
     }
@@ -360,9 +360,9 @@ std::array<CudaMatrix, 2> TCMatrix_gwbse::SendDFTMatricesToGPU(
 }
 
 std::array<CudaMatrix, 3> TCMatrix_gwbse::CreateIntermediateCudaMatrices(
-    long basissize, const CudaPipeline& cuda_pip) const {
-  long mcols = _mtotal - _mmin;
-  long ncols = _ntotal - _nmin;
+    Index basissize, const CudaPipeline& cuda_pip) const {
+  Index mcols = _mtotal - _mmin;
+  Index ncols = _ntotal - _nmin;
 
   const cudaStream_t& stream = cuda_pip.get_stream();
   return {CudaMatrix{basissize, basissize, stream},

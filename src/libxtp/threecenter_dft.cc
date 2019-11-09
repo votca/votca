@@ -32,7 +32,7 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
   _inv_sqrt = auxAOcoulomb.Pseudo_InvSqrt(1e-8);
   _removedfunctions = auxAOcoulomb.Removedfunctions();
 
-  for (int i = 0; i < auxbasis.AOBasisSize(); i++) {
+  for (Index i = 0; i < auxbasis.AOBasisSize(); i++) {
     try {
       _matrix.push_back(Symmetric_Matrix(dftbasis.AOBasisSize()));
     } catch (std::bad_alloc&) {
@@ -41,19 +41,19 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
     }
   }
 #pragma omp parallel for schedule(dynamic)
-  for (int is = dftbasis.getNumofShells() - 1; is >= 0; is--) {
+  for (Index is = dftbasis.getNumofShells() - 1; is >= 0; is--) {
     const AOShell& dftshell = dftbasis.getShell(is);
     std::vector<Eigen::MatrixXd> block;
-    for (int i = 0; i < dftshell.getNumFunc(); i++) {
-      int size = dftshell.getStartIndex() + i + 1;
+    for (Index i = 0; i < dftshell.getNumFunc(); i++) {
+      Index size = dftshell.getStartIndex() + i + 1;
       block.push_back(Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), size));
     }
     FillBlock(block, is, dftbasis, auxbasis);
-    int offset = dftshell.getStartIndex();
-    for (unsigned i = 0; i < block.size(); ++i) {
+    Index offset = dftshell.getStartIndex();
+    for (Index i = 0; i < Index(block.size()); ++i) {
       Eigen::MatrixXd temp = _inv_sqrt * block[i];
-      for (int mu = 0; mu < temp.rows(); ++mu) {
-        for (int j = 0; j < temp.cols(); ++j) {
+      for (Index mu = 0; mu < temp.rows(); ++mu) {
+        for (Index j = 0; j < temp.cols(); ++j) {
           _matrix[mu](i + offset, j) = temp(mu, j);
         }
       }
@@ -69,19 +69,19 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
  */
 
 void TCMatrix_dft::FillBlock(std::vector<Eigen::MatrixXd>& block,
-                             int shellindex, const AOBasis& dftbasis,
+                             Index shellindex, const AOBasis& dftbasis,
                              const AOBasis& auxbasis) {
   const AOShell& left_dftshell = dftbasis.getShell(shellindex);
 
-  int start = left_dftshell.getStartIndex();
+  Index start = left_dftshell.getStartIndex();
   // alpha-loop over the aux basis function
   for (const AOShell& shell_aux : auxbasis) {
-    int aux_start = shell_aux.getStartIndex();
+    Index aux_start = shell_aux.getStartIndex();
 
-    for (int is = 0; is <= shellindex; is++) {
+    for (Index is = 0; is <= shellindex; is++) {
 
       const AOShell& shell_col = dftbasis.getShell(is);
-      int col_start = shell_col.getStartIndex();
+      Index col_start = shell_col.getStartIndex();
       Eigen::Tensor<double, 3> threec_block(shell_aux.getNumFunc(),
                                             left_dftshell.getNumFunc(),
                                             shell_col.getNumFunc());
@@ -91,9 +91,9 @@ void TCMatrix_dft::FillBlock(std::vector<Eigen::MatrixXd>& block,
                                              left_dftshell, shell_col);
       if (nonzero) {
 
-        for (int left = 0; left < left_dftshell.getNumFunc(); left++) {
-          for (int aux = 0; aux < shell_aux.getNumFunc(); aux++) {
-            for (int col = 0; col < shell_col.getNumFunc(); col++) {
+        for (Index left = 0; left < left_dftshell.getNumFunc(); left++) {
+          for (Index aux = 0; aux < shell_aux.getNumFunc(); aux++) {
+            for (Index col = 0; col < shell_col.getNumFunc(); col++) {
               // symmetry
               if ((col_start + col) > (start + left)) {
                 break;

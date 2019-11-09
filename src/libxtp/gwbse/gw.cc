@@ -29,7 +29,7 @@ void GW::configure(const options& opt) {
   _qptotal = _opt.qpmax - _opt.qpmin + 1;
   _rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
   if (_opt.sigma_integration == "ppm") {
-    _sigma = std::unique_ptr<Sigma_base>(new Sigma_PPM(_Mmn, _rpa));
+    _sigma = std::make_unique<Sigma_PPM>(Sigma_PPM(_Mmn, _rpa));
   }
   Sigma_base::options sigma_opt;
   sigma_opt.homo = _opt.homo;
@@ -79,7 +79,7 @@ void GW::PrintGWA_Energies() const {
       << (boost::format("   DeltaHLGap = %1$+1.6f Hartree") % shift).str()
       << std::flush;
 
-  for (int i = 0; i < _qptotal; i++) {
+  for (Index i = 0; i < _qptotal; i++) {
     std::string level = "  Level";
     if ((i + _opt.qpmin) == _opt.homo) {
       level = "  HOMO ";
@@ -108,7 +108,7 @@ void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
               "====== "))
              .str()
       << std::flush;
-  for (int i = 0; i < _qptotal; i++) {
+  for (Index i = 0; i < _qptotal; i++) {
     std::string level = "  Level";
     if ((i + _opt.qpmin) == _opt.homo) {
       level = "  HOMO ";
@@ -138,7 +138,7 @@ Eigen::VectorXd GW::ScissorShift_DFTlevel(
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                    double epsilon) const {
-  int state = 0;
+  Index state = 0;
   bool energies_converged = true;
   double diff_max = (e1 - e2).cwiseAbs().maxCoeff(&state);
   if (diff_max > epsilon) {
@@ -152,7 +152,7 @@ bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
 }
 
 Eigen::VectorXd GW::CalculateExcitationFreq(Eigen::VectorXd frequencies) {
-  for (int i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
+  for (Index i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
 
     _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies);
     _gwa_energies = CalcDiagonalEnergies();
@@ -197,7 +197,7 @@ void GW::CalculateGWPerturbation() {
   _rpa.setRPAInputEnergies(rpa_energies);
   Eigen::VectorXd frequencies =
       dft_shifted_energies.segment(_opt.qpmin, _qptotal);
-  for (int i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
+  for (Index i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
 
     if (i_gw % _opt.reset_3c == 0 && i_gw != 0) {
       _Mmn.Rebuild();

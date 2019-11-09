@@ -22,7 +22,7 @@
 namespace votca {
 namespace xtp {
 
-void DIIS::Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix) {
+void DIIS::Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix) {
 
   if (int(_errormatrixhist.size()) == _histlength) {
     _errormatrixhist.erase(_errormatrixhist.begin() + maxerrorindex);
@@ -35,7 +35,7 @@ void DIIS::Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix) {
   _errormatrixhist.push_back(errormatrix);
 
   std::vector<double> Bijs;
-  for (int i = 0; i < int(_errormatrixhist.size()) - 1; i++) {
+  for (Index i = 0; i < Index(_errormatrixhist.size()) - 1; i++) {
     double value =
         errormatrix.cwiseProduct((_errormatrixhist[i]).transpose()).sum();
     Bijs.push_back(value);
@@ -48,13 +48,13 @@ void DIIS::Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix) {
 
 Eigen::VectorXd DIIS::CalcCoeff() {
   success = true;
-  const int size = _errormatrixhist.size();
+  const Index size = Index(_errormatrixhist.size());
 
   // C2-DIIS
   Eigen::MatrixXd B = Eigen::MatrixXd::Zero(size, size);
 
-  for (int i = 0; i < B.rows(); i++) {
-    for (int j = 0; j <= i; j++) {
+  for (Index i = 0; i < B.rows(); i++) {
+    for (Index j = 0; j <= i; j++) {
       B(i, j) = _Diis_Bs[i][j];
       if (i != j) {
         B(j, i) = B(i, j);
@@ -64,7 +64,7 @@ Eigen::VectorXd DIIS::CalcCoeff() {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(B);
   Eigen::MatrixXd eigenvectors = Eigen::MatrixXd::Zero(size, size);
 
-  for (int i = 0; i < es.eigenvectors().cols(); i++) {
+  for (Index i = 0; i < es.eigenvectors().cols(); i++) {
     double norm = es.eigenvectors().col(i).sum();
     eigenvectors.col(i) = es.eigenvectors().col(i) / norm;
   }
@@ -74,9 +74,9 @@ Eigen::VectorXd DIIS::CalcCoeff() {
       (eigenvectors.transpose() * B * eigenvectors).diagonal().cwiseAbs();
 
   double MaxWeight = 10.0;
-  int mincoeff = 0;
+  Index mincoeff = 0;
   success = false;
-  for (int i = 0; i < errors.size(); i++) {
+  for (Index i = 0; i < errors.size(); i++) {
     errors.minCoeff(&mincoeff);
     if (std::abs(eigenvectors.col(mincoeff).maxCoeff()) > MaxWeight) {
       errors[mincoeff] = std::numeric_limits<double>::max();

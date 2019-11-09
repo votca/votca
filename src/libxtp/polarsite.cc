@@ -28,14 +28,14 @@ using namespace std;
 namespace votca {
 namespace xtp {
 
-PolarSite::PolarSite(int id, std::string element, Eigen::Vector3d pos)
+PolarSite::PolarSite(Index id, std::string element, Eigen::Vector3d pos)
     : StaticSite(id, element, pos) {
   tools::Elements e;
   double default_pol = std::pow(tools::conv::ang2bohr, 3);
   try {
     default_pol =
         e.getPolarizability(element) * std::pow(tools::conv::nm2bohr, 3);
-  } catch (const std::invalid_argument&) {
+  } catch (const std::runtime_error&) {
     ;
   }
   setPolarisation(default_pol * Eigen::Matrix3d::Identity());

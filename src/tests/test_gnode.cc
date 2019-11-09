@@ -25,16 +25,17 @@
 #include <votca/xtp/glink.h>
 #include <votca/xtp/gnode.h>
 
-using namespace std;
+using namespace votca;
 using namespace votca::xtp;
+using namespace votca;
 BOOST_AUTO_TEST_SUITE(gnode_test)
 
 BOOST_AUTO_TEST_CASE(chosen_id_test) {
 
   QMStateType electron = QMStateType::Electron;
 
-  vector<GNode> dests;
-  for (int i = 0; i < 6; i++) {
+  std::vector<GNode> dests;
+  for (Index i = 0; i < 6; i++) {
     Segment seg("one", i);
     dests.push_back(GNode(seg, electron, true));
   }
@@ -48,18 +49,6 @@ BOOST_AUTO_TEST_CASE(chosen_id_test) {
   g.AddEvent(&dests[5], Eigen::Vector3d::Zero(), 25);
   g.InitEscapeRate();
   g.MakeHuffTree();
-  std::cout << g.findHoppingDestination(0.55)->getDestination()->getId()
-            << std::endl;
-  std::cout << g.findHoppingDestination(0.85)->getDestination()->getId()
-            << std::endl;
-  std::cout << g.findHoppingDestination(0.25)->getDestination()->getId()
-            << std::endl;
-  std::cout << g.findHoppingDestination(0.15)->getDestination()->getId()
-            << std::endl;
-  std::cout << g.findHoppingDestination(0.35)->getDestination()->getId()
-            << std::endl;
-  std::cout << g.findHoppingDestination(0.65)->getDestination()->getId()
-            << std::endl;
   BOOST_CHECK_EQUAL(g.findHoppingDestination(0.55)->getDestination()->getId(),
                     0);
   BOOST_CHECK_EQUAL(g.findHoppingDestination(0.85)->getDestination()->getId(),
@@ -77,8 +66,8 @@ BOOST_AUTO_TEST_CASE(chosen_id_test) {
 BOOST_AUTO_TEST_CASE(count_test) {
   QMStateType electron = QMStateType::Electron;
 
-  vector<GNode> dests;
-  for (int i = 0; i < 11; i++) {
+  std::vector<GNode> dests;
+  for (Index i = 0; i < 11; i++) {
     Segment seg("one", i);
     dests.push_back(GNode(seg, electron, true));
   }
@@ -99,11 +88,11 @@ BOOST_AUTO_TEST_CASE(count_test) {
 
   g.InitEscapeRate();
   g.MakeHuffTree();
-  vector<int> count(11, 0);
+  std::vector<Index> count(11, 0);
   double d = 0;
   while (d < 1) {
     GLink* L = g.findHoppingDestination(d);
-    int ind = L->getDestination()->getId();
+    Index ind = L->getDestination()->getId();
     count[ind]++;
     d += 0.000001;
   }

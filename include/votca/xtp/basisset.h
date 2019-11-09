@@ -26,23 +26,24 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace xtp {
 // shell type (S, P, D))
 
-int FindLmax(const std::string& type);
+Index FindLmax(const std::string& type);
 
-int FindLmin(const std::string& type);
+Index FindLmin(const std::string& type);
 
-int OffsetFuncShell(const std::string& shell_type);
+Index OffsetFuncShell(const std::string& shell_type);
 
-int NumFuncShell(const std::string& shell_type);
-int NumFuncShell_cartesian(const std::string& shell_type);
+Index NumFuncShell(const std::string& shell_type);
+Index NumFuncShell_cartesian(const std::string& shell_type);
 
-int OffsetFuncShell_cartesian(const std::string& shell_type);
+Index OffsetFuncShell_cartesian(const std::string& shell_type);
 
-std::vector<int> NumFuncSubShell(const std::string& shell_type);
+std::vector<Index> NumFuncSubShell(const std::string& shell_type);
 
 // Gaussian function: contraction*exp(-decay*r^2)
 class GaussianPrimitive {
@@ -66,17 +67,17 @@ class Shell {
 
   bool isCombined() const { return (_type.length() > 1); }
 
-  int getLmax() const { return FindLmax(_type); }
+  Index getLmax() const { return FindLmax(_type); }
 
-  int getLmin() const { return FindLmin(_type); }
+  Index getLmin() const { return FindLmin(_type); }
 
-  int getnumofFunc() const { return NumFuncShell(_type); };
+  Index getnumofFunc() const { return NumFuncShell(_type); };
 
-  int getOffset() const { return OffsetFuncShell(_type); }
+  Index getOffset() const { return OffsetFuncShell(_type); }
 
   double getScale() const { return _scale; }
 
-  long int getSize() const { return _gaussians.size(); }
+  Index getSize() const { return _gaussians.size(); }
 
   std::vector<GaussianPrimitive>::const_iterator begin() const {
     return _gaussians.begin();
@@ -116,7 +117,7 @@ class Element {
     return _shells.back();
   }
 
-  long int NumOfShells() const { return _shells.size(); }
+  Index NumOfShells() const { return _shells.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const Element& element);
 

@@ -40,20 +40,20 @@ class GW {
         _rpa(Mmn){};
 
   struct options {
-    int homo;
-    int qpmin;
-    int qpmax;
-    int rpamin;
-    int rpamax;
+    Index homo;
+    Index qpmin;
+    Index qpmax;
+    Index rpamin;
+    Index rpamax;
     double g_sc_limit = 1e-5;  // default 1e-5
-    int g_sc_max_iterations = 50;
+    Index g_sc_max_iterations = 50;
     double gw_sc_limit = 1e-5;
-    int gw_sc_max_iterations = 50;
+    Index gw_sc_max_iterations = 50;
     double shift = 0;
     double ScaHFX = 0.0;
     std::string sigma_integration = "ppm";
-    int reset_3c = 5;  // how often the 3c integrals in iterate should be
-                       // rebuild
+    Index reset_3c = 5;  // how often the 3c integrals in iterate should be
+                         // rebuild
   };
 
   void configure(const options& opt);
@@ -72,7 +72,7 @@ class GW {
       const;
 
  private:
-  int _qptotal;
+  Index _qptotal;
 
   Eigen::VectorXd _gwa_energies;
 

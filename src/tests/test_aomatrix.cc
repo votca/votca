@@ -707,8 +707,8 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   AOOverlap overlap;
   overlap.Fill(auxbasis);
 
-  int auxbasissize = 26;
-  int dftbasissize = 18;
+  Index auxbasissize = 26;
+  Index dftbasissize = 18;
   Eigen::MatrixXd overlap_ref =
       Eigen::MatrixXd::Zero(auxbasissize, auxbasissize);
   overlap_ref << 1, 0, 0, 0, 0.00980207, 0, 0, 0, 4.12241e-16, 0, 0, 0,

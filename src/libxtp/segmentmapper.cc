@@ -49,7 +49,7 @@ Eigen::Vector3d SegmentMapper<AtomContainer>::CalcWeightedPos(
     const std::vector<double>& weights, const T& atoms) const {
   Eigen::Vector3d map_pos = Eigen::Vector3d::Zero();
   double map_weight = 0.0;
-  for (unsigned i = 0; i < atoms.size(); i++) {
+  for (Index i = 0; i < Index(atoms.size()); i++) {
     map_pos += atoms[i]->getPos() * weights[i];
     map_weight += weights[i];
   }
@@ -127,9 +127,9 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
   }
 
   FragInfo mapfragment;
-  std::vector<int> mapatom_ids;
+  std::vector<Index> mapatom_ids;
 
-  for (unsigned i = 0; i < map_atoms.size(); i++) {
+  for (Index i = 0; i < Index(map_atoms.size()); i++) {
     const std::string& map_string = map_atoms[i];
     const std::string& md_string = md_atoms[i];
     const double& weight = weights[i];
@@ -154,7 +154,7 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
   }
 
   tools::Tokenizer tok_frame(getFrame(frag), " \t\n");
-  std::vector<int> frame;
+  std::vector<Index> frame;
   tok_frame.ConvertToVector(frame);
   if (frame.size() > 3) {
     throw std::runtime_error(
@@ -166,7 +166,7 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
                              " fragment " + frag.get("name").as<std::string>() +
                              " specified");
   }
-  for (int atomid : frame) {
+  for (Index atomid : frame) {
     if (std::find(mapatom_ids.begin(), mapatom_ids.end(), atomid) ==
         mapatom_ids.end()) {
       throw std::runtime_error("Atom " + std::to_string(atomid) +
@@ -208,7 +208,7 @@ void SegmentMapper<AtomContainer>::LoadMappingFile(const std::string& mapfile) {
         ParseFragment(seginfo, *frag);
       }
 
-      int map_atom_min_id =
+      Index map_atom_min_id =
           std::min_element(seginfo.mapatoms.begin(), seginfo.mapatoms.end(),
                            [](const atom_id& a, const atom_id& b) {
                              return a.first < b.first;
@@ -229,7 +229,7 @@ void SegmentMapper<AtomContainer>::LoadMappingFile(const std::string& mapfile) {
 }
 
 template <class AtomContainer>
-std::pair<int, std::string> SegmentMapper<AtomContainer>::StringToMapIndex(
+std::pair<long, std::string> SegmentMapper<AtomContainer>::StringToMapIndex(
     const std::string& map_string) const {
   tools::Tokenizer tok(map_string, ":");
   std::vector<std::string> result = tok.ToVector();
@@ -237,10 +237,10 @@ std::pair<int, std::string> SegmentMapper<AtomContainer>::StringToMapIndex(
     throw std::runtime_error("Entry " + map_string +
                              " is not properly formatted.");
   }
-  return std::pair<int, std::string>(std::stoi(result[0]), result[1]);
+  return std::pair<long, std::string>(std::stoi(result[0]), result[1]);
 }
 template <class AtomContainer>
-std::pair<int, std::string> SegmentMapper<AtomContainer>::StringToMDIndex(
+std::pair<long, std::string> SegmentMapper<AtomContainer>::StringToMDIndex(
     const std::string& md_string) const {
   tools::Tokenizer tok(md_string, ":");
   std::vector<std::string> result = tok.ToVector();
@@ -248,45 +248,45 @@ std::pair<int, std::string> SegmentMapper<AtomContainer>::StringToMDIndex(
     throw std::runtime_error("Entry " + md_string +
                              " is not properly formatted.");
   }
-  int atomid = 0;
+  Index atomid = 0;
   try {
     atomid = std::stoi(result[2]);
   } catch (std::invalid_argument&) {
     throw std::runtime_error("Atom entry " + md_string +
                              " is not well formatted");
   }
-  return std::pair<int, std::string>(atomid, result[1]);
+  return std::pair<long, std::string>(atomid, result[1]);
 }
 
 template <class AtomContainer>
-std::pair<int, int> SegmentMapper<AtomContainer>::CalcAtomIdRange(
-    const std::vector<int>& seg) const {
-  int max_res_id = *std::max_element(seg.begin(), seg.end());
-  int min_res_id = *std::min_element(seg.begin(), seg.end());
-  return std::pair<int, int>(min_res_id, max_res_id);
+std::pair<long, Index> SegmentMapper<AtomContainer>::CalcAtomIdRange(
+    const std::vector<Index>& seg) const {
+  Index max_res_id = *std::max_element(seg.begin(), seg.end());
+  Index min_res_id = *std::min_element(seg.begin(), seg.end());
+  return std::pair<long, Index>(min_res_id, max_res_id);
 }
 template <class AtomContainer>
-std::pair<int, int> SegmentMapper<AtomContainer>::CalcAtomIdRange(
+std::pair<long, Index> SegmentMapper<AtomContainer>::CalcAtomIdRange(
     const Segment& seg) const {
-  int max_res_id = std::max_element(seg.begin(), seg.end(),
-                                    [](const Atom& a, const Atom& b) {
-                                      return a.getId() < b.getId();
-                                    })
-                       ->getId();
+  Index max_res_id = std::max_element(seg.begin(), seg.end(),
+                                      [](const Atom& a, const Atom& b) {
+                                        return a.getId() < b.getId();
+                                      })
+                         ->getId();
 
-  int min_res_id = std::min_element(seg.begin(), seg.end(),
-                                    [](const Atom& a, const Atom& b) {
-                                      return a.getId() < b.getId();
-                                    })
-                       ->getId();
-  return std::pair<int, int>(min_res_id, max_res_id);
+  Index min_res_id = std::min_element(seg.begin(), seg.end(),
+                                      [](const Atom& a, const Atom& b) {
+                                        return a.getId() < b.getId();
+                                      })
+                         ->getId();
+  return std::pair<long, Index>(min_res_id, max_res_id);
 }
 
 template <class AtomContainer>
 void SegmentMapper<AtomContainer>::PlaceMapAtomonMD(
     const std::vector<mapAtom*>& fragment_mapatoms,
     const std::vector<const Atom*>& fragment_mdatoms) const {
-  for (unsigned i = 0; i < fragment_mapatoms.size(); i++) {
+  for (Index i = 0; i < Index(fragment_mapatoms.size()); i++) {
     const Atom* a = fragment_mdatoms[i];
     mapAtom* b = fragment_mapatoms[i];
     b->setPos(a->getPos());
@@ -294,10 +294,10 @@ void SegmentMapper<AtomContainer>::PlaceMapAtomonMD(
 }
 
 template <class AtomContainer>
-int SegmentMapper<AtomContainer>::FindVectorIndexFromAtomId(
-    int atomid, const std::vector<mapAtom*>& fragment_mapatoms) const {
-  unsigned i = 0;
-  for (; i < fragment_mapatoms.size(); i++) {
+long SegmentMapper<AtomContainer>::FindVectorIndexFromAtomId(
+    Index atomid, const std::vector<mapAtom*>& fragment_mapatoms) const {
+  Index i = 0;
+  for (; i < Index(fragment_mapatoms.size()); i++) {
     if (fragment_mapatoms[i]->getId() == atomid) {
       break;
     }
@@ -310,13 +310,13 @@ void SegmentMapper<AtomContainer>::MapMapAtomonMD(
     const std::vector<const Atom*>& fragment_mdatoms) const {
   std::vector<Eigen::Vector3d> local_map_frame;
   std::vector<Eigen::Vector3d> local_md_frame;
-  for (int id : frag._map_local_frame) {
-    int i = FindVectorIndexFromAtomId(id, fragment_mapatoms);
+  for (Index id : frag._map_local_frame) {
+    Index i = FindVectorIndexFromAtomId(id, fragment_mapatoms);
     local_map_frame.push_back(fragment_mapatoms[i]->getPos());
     local_md_frame.push_back(fragment_mdatoms[i]->getPos());
   }
 
-  int symmetry = frag._map_local_frame.size();
+  Index symmetry = frag._map_local_frame.size();
   Eigen::Vector3d map_com = CalcWeightedPos(frag._weights, fragment_mapatoms);
   Eigen::Vector3d md_com = CalcWeightedPos(frag._weights, fragment_mdatoms);
 
@@ -415,7 +415,7 @@ AtomContainer SegmentMapper<AtomContainer>::map(
         "Could not find a Segment of name: " + seg.getType() + " in mapfile.");
   }
   Seginfo seginfo = _segment_info.at(seg.getType());
-  if (int(seginfo.mdatoms.size()) != seg.size()) {
+  if (long(seginfo.mdatoms.size()) != seg.size()) {
     throw std::runtime_error(
         "Segment '" + seg.getType() +
         "' does not contain the same number of atoms as mapping file: " +
@@ -423,8 +423,8 @@ AtomContainer SegmentMapper<AtomContainer>::map(
         std::to_string(seg.size()));
   }
 
-  std::pair<int, int> minmax_map = seginfo.minmax;
-  std::pair<int, int> minmax = CalcAtomIdRange(seg);
+  std::pair<long, Index> minmax_map = seginfo.minmax;
+  std::pair<long, Index> minmax = CalcAtomIdRange(seg);
 
   if ((minmax_map.first - minmax_map.second) !=
       (minmax.first - minmax.second)) {
@@ -437,12 +437,12 @@ AtomContainer SegmentMapper<AtomContainer>::map(
                              std::to_string(minmax_map.second) + "]");
   }
 
-  int atomidoffset = minmax.first - minmax_map.first;
+  Index atomidoffset = minmax.first - minmax_map.first;
 
   AtomContainer Result(seg.getType(), seg.getId());
   Result.LoadFromFile(coordfilename);
 
-  if (int(seginfo.mapatoms.size()) != Result.size()) {
+  if (long(seginfo.mapatoms.size()) != Result.size()) {
     throw std::runtime_error(
         _mapatom_xml.at("tag") + "Segment '" + seg.getType() +
         "' does not contain the same number of atoms as mapping file: " +

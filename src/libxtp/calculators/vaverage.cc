@@ -41,7 +41,7 @@ std::vector<double> VAverage::ReadOccfile(std::string filename) const {
     throw std::runtime_error("File:" + filename + " could not be opened");
   }
   std::string line;
-  int id = 0;
+  Index id = 0;
   while (intt.good()) {
 
     std::getline(intt, line);
@@ -55,7 +55,7 @@ std::vector<double> VAverage::ReadOccfile(std::string filename) const {
       throw std::runtime_error("Row should only contain id and occupation");
     }
 
-    int id_readin = std::stoi(split[0]);
+    Index id_readin = std::stoi(split[0]);
     if (id_readin != id) {
       throw std::runtime_error("Ids should be sorted and start at zero.");
     }
@@ -73,7 +73,7 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
   if (!intt.is_open()) {
     throw std::runtime_error("File:" + filename + " could not be opened");
   }
-  int id = 0;
+  Index id = 0;
   std::string line;
   while (intt.good()) {
 
@@ -89,7 +89,7 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
           "Row should only contain pairid,segid1,segid2 ,rate12,rate21");
     }
 
-    int id_readin = std::stoi(split[0]);
+    Index id_readin = std::stoi(split[0]);
     if (id_readin != id) {
       throw std::runtime_error("Ids should be sorted and start at zero.");
     }
@@ -114,7 +114,7 @@ bool VAverage::EvaluateFrame(Topology& top) {
   }
   std::cout << "Reading in rates from " << _ratefile << std::endl;
   std::vector<Rate_Engine::PairRates> rates = ReadRatefile(_ratefile);
-  if (top.NBList().size() != int(rates.size())) {
+  if (top.NBList().size() != Index(rates.size())) {
     throw std::runtime_error(
         "Number of pairs in file is" + std::to_string(rates.size()) +
         " Topology has size:" + std::to_string(top.NBList().size()));
@@ -122,9 +122,9 @@ bool VAverage::EvaluateFrame(Topology& top) {
   std::vector<Eigen::Vector3d> velocities =
       std::vector<Eigen::Vector3d>(occ.size(), Eigen::Vector3d::Zero());
   for (const QMPair* pair : top.NBList()) {
-    int id1 = pair->Seg1()->getId();
-    int id2 = pair->Seg1()->getId();
-    int pairid = pair->getId();
+    Index id1 = pair->Seg1()->getId();
+    Index id2 = pair->Seg1()->getId();
+    Index pairid = pair->getId();
     double p1 = occ[id1];
     double p2 = occ[id2];
     double w12 = rates[pairid].rate12;

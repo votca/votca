@@ -46,8 +46,8 @@ class ADIIS_costfunction : public Optimiser_costfunction {
     c /= xnorm;
     Eigen::VectorXd dEdc = 2.0 * _DiF + _DiFj * c + _DiFj.transpose() * c;
     Eigen::MatrixXd jac = Eigen::MatrixXd::Zero(c.size(), c.size());
-    for (int i = 0; i < jac.rows(); i++) {
-      for (int j = 0; j < jac.cols(); j++) {
+    for (Index i = 0; i < jac.rows(); i++) {
+      for (Index j = 0; j < jac.cols(); j++) {
         jac(i, j) = -c(i) * 2.0 * parameters(j) / xnorm;
       }
       // Extra term on diagonal
@@ -56,7 +56,7 @@ class ADIIS_costfunction : public Optimiser_costfunction {
     return jac.transpose() * dEdc;
   }
 
-  int NumParameters() const override { return _DiF.size(); }
+  Index NumParameters() const override { return Index(_DiF.size()); }
 
   bool Converged(const Eigen::VectorXd&, double,
                  const Eigen::VectorXd& gradient) override {

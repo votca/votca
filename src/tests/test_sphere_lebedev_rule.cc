@@ -21,7 +21,7 @@
 #include <fstream>
 #include <votca/xtp/sphere_lebedev_rule.h>
 using namespace votca::xtp;
-using namespace std;
+using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(sphere_lebedev_rule_test)
 
@@ -46,14 +46,14 @@ Eigen::VectorXd ReadVectorFromString(const std::string& matrix) {
 
 BOOST_AUTO_TEST_CASE(medium_test) {
 
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " C            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " C            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
   xyzfile.close();
 
   QMMolecule mol("noname", 0);
@@ -260,7 +260,7 @@ BOOST_AUTO_TEST_CASE(medium_test) {
   bool Ctheta = C_theta_ref.isApprox(Cgrid.theta, 0.001);
   if (!Cphi || !Ctheta) {
     std::cout << "phi_ref : Phi_comp | theta_ref : theta_comp" << std::endl;
-    for (int i = 0; i < C_phi_ref.size(); i++) {
+    for (Index i = 0; i < C_phi_ref.size(); i++) {
       std::cout << Cgrid.phi[i] << ":" << C_phi_ref[i] << " | "
                 << Cgrid.theta[i] << ":" << C_theta_ref[i] << std::endl;
     }
@@ -281,14 +281,14 @@ BOOST_AUTO_TEST_CASE(medium_test) {
 
 BOOST_AUTO_TEST_CASE(fine_test) {
 
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " Ge            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " Ge            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
   xyzfile.close();
 
   QMMolecule mol("noname", 0);
@@ -1001,7 +1001,7 @@ BOOST_AUTO_TEST_CASE(fine_test) {
   bool Getheta = Ge_theta_ref.isApprox(Gegrid.theta, 0.001);
   if (!Gephi || !Getheta) {
     std::cout << "phi_ref : Phi_comp | theta_ref : theta_comp" << std::endl;
-    for (int i = 0; i < Ge_phi_ref.size(); i++) {
+    for (Index i = 0; i < Ge_phi_ref.size(); i++) {
       std::cout << Gegrid.phi[i] << ":" << Ge_phi_ref[i] << " | "
                 << Gegrid.theta[i] << ":" << Ge_theta_ref[i] << std::endl;
     }
@@ -1021,10 +1021,10 @@ BOOST_AUTO_TEST_CASE(fine_test) {
 }
 BOOST_AUTO_TEST_CASE(element_not_implemented) {
 
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 1" << endl;
-  xyzfile << " mercury" << endl;
-  xyzfile << " Hg            .000000     .000000     .000000" << endl;
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " 1" << std::endl;
+  xyzfile << " mercury" << std::endl;
+  xyzfile << " Hg            .000000     .000000     .000000" << std::endl;
   xyzfile.close();
 
   QMMolecule mol("noname", 0);
@@ -1038,14 +1038,14 @@ BOOST_AUTO_TEST_CASE(element_not_implemented) {
 
 BOOST_AUTO_TEST_CASE(xfine_test) {
 
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " Ge            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " Ge            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
   xyzfile.close();
 
   QMMolecule mol("noname", 0);
@@ -2229,7 +2229,7 @@ BOOST_AUTO_TEST_CASE(xfine_test) {
   bool Getheta = Ge_theta_ref.isApprox(Gegrid.theta, 0.001);
   if (!Gephi || !Getheta) {
     std::cout << "phi_ref : Phi_comp | theta_ref : theta_comp" << std::endl;
-    for (int i = 0; i < Ge_phi_ref.size(); i++) {
+    for (Index i = 0; i < Ge_phi_ref.size(); i++) {
       std::cout << Gegrid.phi[i] << ":" << Ge_phi_ref[i] << " | "
                 << Gegrid.theta[i] << ":" << Ge_theta_ref[i] << std::endl;
     }

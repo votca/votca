@@ -627,7 +627,7 @@ BOOST_AUTO_TEST_CASE(aomultipole_comparison) {
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
     es.computeDirect(components);
     double a = 2 * 0.01;
-    for (int i = 0; i < 3; i++) {
+    for (Index i = 0; i < 3; i++) {
       double q = es.eigenvalues()[i] / (a * a);
       const Eigen::Vector3d vec1 =
           seg2[0].getPos() + 0.5 * a * es.eigenvectors().col(i);
@@ -688,7 +688,7 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   AOBasis dftbasis;
   dftbasis.Fill(basisset, mol);
 
-  int dftbasissize = 18;
+  Index dftbasissize = 18;
 
   ofstream mpsfile2("polarsite_all.mps");
   mpsfile2 << "! One Site" << endl;

@@ -55,9 +55,9 @@ class GenCube : public QMTool {
   bool _dostateonly;
 
   double _padding;
-  int _xsteps;
-  int _ysteps;
-  int _zsteps;
+  Index _xsteps;
+  Index _ysteps;
+  Index _zsteps;
   QMState _state;
   std::string _mode;
   Logger _log;

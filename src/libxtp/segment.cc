@@ -29,7 +29,7 @@ double Segment::getApproxSize() const {
   return (minmax.first - minmax.second).norm();
 }
 
-const Atom* Segment::getAtom(int id) const {
+const Atom* Segment::getAtom(Index id) const {
 
   for (const Atom& atom : *this) {
     if (atom.getId() == id) {

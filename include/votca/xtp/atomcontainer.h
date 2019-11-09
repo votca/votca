@@ -39,7 +39,7 @@ namespace xtp {
 template <class T>
 class AtomContainer {
  public:
-  AtomContainer(std::string type, int id) : _type(type), _id(id){};
+  AtomContainer(std::string type, Index id) : _type(type), _id(id){};
 
   AtomContainer(CheckpointReader& r) { this->ReadFromCpt(r); }
   virtual ~AtomContainer() = default;
@@ -50,9 +50,9 @@ class AtomContainer {
 
   void setType(std::string type) { _type = type; }
 
-  int getId() const { return _id; }
+  Index getId() const { return _id; }
 
-  long int size() const { return _atomlist.size(); }
+  Index size() const { return _atomlist.size(); }
 
   void push_back(const T& atom) {
     _atomlist.push_back(atom);
@@ -70,11 +70,11 @@ class AtomContainer {
     calcPos();
   }
 
-  const T& at(int index) const { return _atomlist.at(index); }
-  T& at(int index) { return _atomlist.at(index); }
+  const T& at(Index index) const { return _atomlist.at(index); }
+  T& at(Index index) { return _atomlist.at(index); }
 
-  const T& operator[](int index) const { return _atomlist[index]; }
-  T& operator[](int index) { return _atomlist[index]; }
+  const T& operator[](Index index) const { return _atomlist[index]; }
+  T& operator[](Index index) { return _atomlist[index]; }
 
   typename std::vector<T>::iterator begin() { return _atomlist.begin(); }
   typename std::vector<T>::iterator end() { return _atomlist.end(); }
@@ -164,7 +164,7 @@ class AtomContainer {
   virtual void ReadFromCpt(CheckpointReader& r) {
     r(_type, "type");
     r(_id, "id");
-    int size = 0;
+    Index size = 0;
     r(size, "size");
     if (size == 0) {
       return;
@@ -197,7 +197,7 @@ class AtomContainer {
  protected:
   std::vector<T> _atomlist;
   std::string _type;
-  int _id;
+  Index _id;
 
  private:
   Eigen::Vector3d _pos = Eigen::Vector3d::Zero();

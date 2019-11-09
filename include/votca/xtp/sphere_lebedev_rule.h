@@ -41,18 +41,19 @@ class LebedevGrid {
       const QMMolecule &atoms, const std::string &type) const;
   GridContainers::spherical_grid CalculateUnitSphereGrid(
       const std::string &element, const std::string &type) const;
-  GridContainers::spherical_grid CalculateUnitSphereGrid(int order) const;
+  GridContainers::spherical_grid CalculateUnitSphereGrid(Index order) const;
 
-  int Type2MaxOrder(const std::string &element, const std::string &type) const;
+  Index Type2MaxOrder(const std::string &element,
+                      const std::string &type) const;
 
-  int getIndexFromOrder(int order) const {
+  Index getIndexFromOrder(Index order) const {
     if (Order2Index.count(order)) {
       return Order2Index.at(order);
     } else {
       throw std::runtime_error("No Index for Order " + std::to_string(order));
     }
   }
-  int getOrderFromIndex(int index) const {
+  Index getOrderFromIndex(Index index) const {
     if (Index2Order.count(index)) {
       return Index2Order.at(index);
     } else {
@@ -61,13 +62,13 @@ class LebedevGrid {
   }
 
  private:
-  int Type2MaxOrder(const std::map<std::string, int> &map,
-                    const std::string &element) const;
+  Index Type2MaxOrder(const std::map<std::string, Index> &map,
+                      const std::string &element) const;
 
-  int available_table(int rule) const;
-  int gen_oh(int code, double a, double b, double v, double *x, double *y,
-             double *z, double *w) const;
-  Eigen::Matrix4Xd ld_by_order(int order) const;
+  Index available_table(Index rule) const;
+  Index gen_oh(Index code, double a, double b, double v, double *x, double *y,
+               double *z, double *w) const;
+  Eigen::Matrix4Xd ld_by_order(Index order) const;
   void ld0006(double *x, double *y, double *z, double *w) const;
   void ld0014(double *x, double *y, double *z, double *w) const;
   void ld0026(double *x, double *y, double *z, double *w) const;
@@ -100,18 +101,18 @@ class LebedevGrid {
   void ld4802(double *x, double *y, double *z, double *w) const;
   void ld5294(double *x, double *y, double *z, double *w) const;
   void ld5810(double *x, double *y, double *z, double *w) const;
-  int precision_table(int rule) const;
-  int order_table(int rule) const;
+  Index precision_table(Index rule) const;
+  Index order_table(Index rule) const;
   Eigen::Vector2d Cartesian2SphericalAngle(
       const Eigen::Vector3d &r) const;  // phi=Vector[0] theta=Vector[1]
 
-  std::map<std::string, int> MediumOrder;
-  std::map<std::string, int> CoarseOrder;
-  std::map<std::string, int> XcoarseOrder;
-  std::map<std::string, int> FineOrder;
-  std::map<std::string, int> XfineOrder;
-  std::map<int, int> Order2Index;
-  std::map<int, int> Index2Order;
+  std::map<std::string, Index> MediumOrder;
+  std::map<std::string, Index> CoarseOrder;
+  std::map<std::string, Index> XcoarseOrder;
+  std::map<std::string, Index> FineOrder;
+  std::map<std::string, Index> XfineOrder;
+  std::map<Index, Index> Order2Index;
+  std::map<Index, Index> Index2Order;
 
   void FillOrder2Index();
 

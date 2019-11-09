@@ -43,8 +43,8 @@ class DavidsonSolver {
  public:
   DavidsonSolver(Logger &log);
 
-  void set_iter_max(int N) { this->_iter_max = N; }
-  void set_max_search_space(int N) { this->_max_search_space = N; }
+  void set_iter_max(Index N) { this->_iter_max = N; }
+  void set_max_search_space(Index N) { this->_max_search_space = N; }
   void set_tolerance(std::string tol);
   void set_correction(std::string method);
   void set_ortho(std::string method);
@@ -55,15 +55,15 @@ class DavidsonSolver {
   Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
   Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
   Eigen::MatrixXd residues() const { return this->_res; }
-  int num_iterations() const { return this->_num_iter; }
+  Index num_iterations() const { return this->_num_iter; }
 
   template <typename MatrixReplacement>
-  void solve(const MatrixReplacement &A, int neigen,
-             int size_initial_guess = 0) {
+  void solve(const MatrixReplacement &A, Index neigen,
+             Index size_initial_guess = 0) {
 
     std::chrono::time_point<std::chrono::system_clock> start =
         std::chrono::system_clock::now();
-    int op_size = A.rows();
+    Index op_size = A.rows();
 
     checkOptions(op_size);
     printOptions(op_size);
@@ -80,7 +80,7 @@ class DavidsonSolver {
     ProjectedSpace proj = initProjectedSpace(neigen, size_initial_guess);
     RitzEigenPair rep;
 
-    for (int iiter = 0; iiter < _iter_max; iiter++) {
+    for (Index iiter = 0; iiter < _iter_max; iiter++) {
 
       // restart or update the projection
       if (proj.search_space > _max_search_space) {
@@ -101,7 +101,7 @@ class DavidsonSolver {
       }
 
       // etend the subspace
-      int nupdate = extendProjection(rep, proj);
+      Index nupdate = extendProjection(rep, proj);
 
       // Print iteration data
       printIterationData(rep, proj, neigen, iiter);
@@ -127,10 +127,10 @@ class DavidsonSolver {
 
  private:
   Logger &_log;
-  int _iter_max = 50;
-  int _num_iter = 0;
+  Index _iter_max = 50;
+  Index _num_iter = 0;
   double _tol = 1E-4;
-  int _max_search_space = 1000;
+  Index _max_search_space = 1000;
   Eigen::VectorXd _Adiag;
 
   enum CORR { DPR, OLSEN };
@@ -162,17 +162,17 @@ class DavidsonSolver {
     Eigen::MatrixXd V;   // basis of vectors
     Eigen::MatrixXd AV;  // A * V
     Eigen::MatrixXd T;   // V.T * A * V
-    int search_space;    // size of the projection i.e. number of cols in V
-    int size_update;     // size update ...
+    Index search_space;  // size of the projection i.e. number of cols in V
+    Index size_update;   // size update ...
     std::vector<bool> root_converged;  // keep track of which root have onverged
   };
 
   template <typename MatrixReplacement>
   void updateProjection(const MatrixReplacement &A, ProjectedSpace &proj,
-                        int iiter) const {
+                        Index iiter) const {
 
     if (iiter == 0 || _davidson_ortho == ORTHO::QR) {
-      /* if we use QR we ned to recompute the entire projection
+      /* if we use QR we need to recompute the entire projection
       since QR will modify original subspace*/
       proj.AV = A * proj.V;
       proj.T = proj.V.transpose() * proj.AV;
@@ -180,10 +180,10 @@ class DavidsonSolver {
     } else if (_davidson_ortho == ORTHO::GS) {
       /* if we use a GS ortho we do not have to recompute
       the entire projection as GS doesn't change the original subspace*/
-      int size = proj.V.rows();
-      int old_dim = proj.T.cols();
-      int new_dim = proj.V.cols();
-      int nvec = new_dim - old_dim;
+      Index size = proj.V.rows();
+      Index old_dim = proj.T.cols();
+      Index new_dim = proj.V.cols();
+      Index nvec = new_dim - old_dim;
       proj.AV.conservativeResize(Eigen::NoChange, new_dim);
       proj.AV.block(0, old_dim, size, nvec) =
           A * proj.V.block(0, old_dim, size, nvec);
@@ -217,7 +217,7 @@ class DavidsonSolver {
     rep.lambda = ges.eigenvalues().real();
     rep.U = ges.eigenvectors().real();
 
-    Eigen::ArrayXi idx = DavidsonSolver::argsort(rep.lambda);
+    ArrayXl idx = DavidsonSolver::argsort(rep.lambda);
     idx = idx.reverse();
 
     rep.U = DavidsonSolver::extract_vectors(rep.U, idx);
@@ -233,28 +233,28 @@ class DavidsonSolver {
 
   RitzEigenPair getRitz(const ProjectedSpace &proj) const;
 
-  int getSizeUpdate(int neigen) const;
+  Index getSizeUpdate(Index neigen) const;
 
-  void checkOptions(int operator_size);
+  void checkOptions(Index operator_size);
 
-  void printOptions(int operator_size) const;
+  void printOptions(Index operator_size) const;
 
   void printTiming(
       const std::chrono::time_point<std::chrono::system_clock> &start) const;
 
   void printIterationData(const RitzEigenPair &rep, const ProjectedSpace &proj,
-                          int neigen, int iiter) const;
+                          Index neigen, Index iiter) const;
 
-  Eigen::ArrayXi argsort(const Eigen::VectorXd &V) const;
+  ArrayXl argsort(const Eigen::VectorXd &V) const;
 
-  Eigen::MatrixXd setupInitialEigenvectors(int size) const;
+  Eigen::MatrixXd setupInitialEigenvectors(Index size) const;
 
   Eigen::MatrixXd extract_vectors(const Eigen::MatrixXd &V,
-                                  const Eigen::ArrayXi &idx) const;
+                                  const ArrayXl &idx) const;
 
-  Eigen::MatrixXd orthogonalize(const Eigen::MatrixXd &V, int nupdate);
+  Eigen::MatrixXd orthogonalize(const Eigen::MatrixXd &V, Index nupdate);
   Eigen::MatrixXd qr(const Eigen::MatrixXd &A) const;
-  Eigen::MatrixXd gramschmidt(const Eigen::MatrixXd &A, int nstart);
+  Eigen::MatrixXd gramschmidt(const Eigen::MatrixXd &A, Index nstart);
 
   Eigen::VectorXd computeCorrectionVector(const Eigen::VectorXd &qj,
                                           double lambdaj,
@@ -263,19 +263,20 @@ class DavidsonSolver {
   Eigen::VectorXd olsen(const Eigen::VectorXd &r, const Eigen::VectorXd &x,
                         double lambda) const;
 
-  ProjectedSpace initProjectedSpace(int neigen, int size_initial_guess) const;
+  ProjectedSpace initProjectedSpace(Index neigen,
+                                    Index size_initial_guess) const;
 
-  int extendProjection(RitzEigenPair &rep, ProjectedSpace &proj);
+  Index extendProjection(RitzEigenPair &rep, ProjectedSpace &proj);
 
   void restart(const RitzEigenPair &rep, ProjectedSpace &proj,
-               int size_restart) const;
+               Index size_restart) const;
 
-  void storeConvergedData(const RitzEigenPair &rep, int neigen, int iiter);
+  void storeConvergedData(const RitzEigenPair &rep, Index neigen, Index iiter);
 
   void storeNotConvergedData(const RitzEigenPair &rep,
-                             std::vector<bool> &root_converged, int neigen);
+                             std::vector<bool> &root_converged, Index neigen);
 
-  void storeEigenPairs(const RitzEigenPair &rep, int neigen);
+  void storeEigenPairs(const RitzEigenPair &rep, Index neigen);
 };
 
 }  // namespace xtp

@@ -27,7 +27,7 @@
 namespace votca {
 namespace xtp {
 
-QMPair::QMPair(int id, const Segment* seg1, const Segment* seg2,
+QMPair::QMPair(Index id, const Segment* seg1, const Segment* seg2,
                const Eigen::Vector3d& delta_R)
     : _id(id), _R(delta_R) {
   _segments.first = seg1;
