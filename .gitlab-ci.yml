@@ -7,7 +7,7 @@ stages:
     max: 2
   variables:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
-    CXXFLAGS: "-Wall -Werror"
+    CXXFLAGS: "-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror"
     DISTRO: "latest"
   image: votca/buildenv:${DISTRO}
   stage: build
@@ -34,6 +34,7 @@ stages:
       fi
     - mkdir -p build
     - pushd build
+    - if [[ $CXX = clang++ ]]; then export CXXFLAGS="$CXXFLAGS -Wno-sign-conversion"; fi
     - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_OWN_GROMACS=${BUILD_GROMACS} -DENABLE_REGRESSION_TESTING=${REGRESSION_TESTING:-ON}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
@@ -327,7 +328,7 @@ Release GCC OWN GMX:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_nogmx"
-    CXXFLAGS: "-Wall"
+    CXXFLAGS: "-Wall -Wextra -Wpedantic -Wshadow -Wconversion"
     BUILD_GROMACS: "yes"
   extends: .build
 
