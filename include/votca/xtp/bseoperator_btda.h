@@ -130,10 +130,23 @@ struct generic_product_impl<
     // alpha must be 1 here
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-
+    /**Instead of doing the
+    (A   B)*(v1)
+    (-B -A) (v2)
+     multiplication explicitly for each block
+     we reshape v into (v1,v2)
+     and multiply A*(v1,v2)
+     and then sort the contributions into the resulting vector
+     we do the same for B
+     * **/
+    Map<const MatrixX2d> vmat(v.data(), v.size() / 2, 2);
     Index half = op.rows() / 2;
-    dst.head(half) = op._A * v.head(half) + op._B * v.tail(half);
-    dst.tail(half) = -(op._B * v.head(half) + op._A * v.tail(half));
+    MatrixX2d temp = op._A * vmat;
+    dst.head(half) = temp.col(0);
+    dst.tail(half) = -temp.col(1);
+    temp = op._B * vmat;
+    dst.head(half) += temp.col(1);
+    dst.tail(half) -= temp.col(0);
   }
 };
 
@@ -166,9 +179,23 @@ struct generic_product_impl<
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
 
     Index half = op.rows() / 2;
-    dst.topRows(half) = op._A * m.topRows(half) + op._B * m.bottomRows(half);
-    dst.bottomRows(half) =
-        -(op._B * m.topRows(half) + (op._A * m.bottomRows(half)));
+    /**Instead of doing the
+    (A   B)*(M1)
+    (-B -A) (M2)
+     multiplication explicitly for each block
+     we reshape M into (M1,M2)
+     and multiply A*(M1,M2)
+     and then sort the contributions into the resulting vector
+     we do the same for B
+     * **/
+    Map<const MatrixXd> m_reshaped(m.data(), m.rows() / 2, m.cols() * 2);
+    MatrixXd temp = op._A * m_reshaped;
+    Map<MatrixXd> temp_unshaped(temp.data(), m.rows(), m.cols());
+    dst.topRows(half) = temp_unshaped.topRows(half);
+    dst.bottomRows(half) = -temp_unshaped.bottomRows(half);
+    temp = op._B * m_reshaped;
+    dst.topRows(half) += temp_unshaped.bottomRows(half);
+    dst.bottomRows(half) -= temp_unshaped.topRows(half);
   }
 };
 }  // namespace internal
