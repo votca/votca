@@ -28,7 +28,6 @@
 #endif
 
 #ifndef NOFFTW
-#include <fftw3.h>
 #define EIGEN_FFTW_DEFAULT
 #endif
 
