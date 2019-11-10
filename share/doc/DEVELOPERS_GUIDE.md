@@ -497,3 +497,8 @@ VOTCA tried as much as possible to standarize units across both CSG and XTP. Ext
 ## Indexing in VOTCA
 
 All indeces in VOTCA start at `0`. This is useful, because C++ arrays start at index 0.
+
+Apart from special cases all indeces and integers in votca should be `votca::Index` which is a typedef for `long int`. 
+`.size()` methods of std::containers return an `unsigned long int` and should be cast to `votca::Index`.
+i.e:
+`votca::Index(vector.size())`
