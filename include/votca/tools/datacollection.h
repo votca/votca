@@ -33,15 +33,7 @@ namespace tools {
  * tags
  *
  * This class is a Container of arrays. The arrays can be accessed by
- * specifying a name, or whole groups of arrays can be selected using select an
- * regular expressions. Regular expressions are not fully implemented at the
- * moment. Instead, selections are performed using wildcard compare.
- *
- * Be aware that you might specify as typename if you define a container, array
- * or iterator! There is currently no support for user created groups, but will
- * follow later.
- *
- * This class is relatively outdated and only used in csg_boltzmann!
+ * specifying a name or wildcard.
  *
  **/
 template <typename T>
@@ -53,14 +45,14 @@ class DataCollection {
   class array : public std::vector<T> {
    public:
     array(std::string name) { _name = name; }
-    const std::string &getName() { return _name; }
+    const std::string &getName() const { return _name; }
 
    private:
     std::string _name;
   };
 
-  using container = std::vector<array *>;
   using iterator = typename std::vector<array *>::iterator;
+  using const_iterator = typename std::vector<array *>::const_iterator;
 
   /**
    * \brief class for array selection
@@ -70,10 +62,14 @@ class DataCollection {
     selection() = default;
     ~selection() = default;
 
-    using iterator = typename std::vector<array *>::iterator;
-    Index size() { return Index(_arrays.size()); }
-    bool empty() { return _arrays.empty(); }
+    Index size() const { return Index(_arrays.size()); }
+    bool empty() const { return _arrays.empty(); }
     array &operator[](Index i) {
+      assert(i < Index(_arrays.size()));
+      return *(_arrays[i]);
+    }
+
+    const array &operator[](Index i) const {
       assert(i < Index(_arrays.size()));
       return *(_arrays[i]);
     }
@@ -85,6 +81,8 @@ class DataCollection {
 
     iterator begin() { return _arrays.begin(); }
     iterator end() { return _arrays.end(); }
+    const_iterator begin() const { return _arrays.begin(); }
+    const_iterator end() const { return _arrays.end(); }
 
    private:
     std::vector<array *> _arrays;
@@ -102,14 +100,16 @@ class DataCollection {
   /**
    *  \ brief returns the number of arrays
    */
-  Index size() { return Index(_data.size()); }
-  bool empty() { return _data.empty(); }
+  Index size() const { return Index(_data.size()); }
+  bool empty() const { return _data.empty(); }
   array &operator[](Index i) {
     assert(i < Index(_data.size()));
     return *(_data[i]);
   }
   iterator begin() { return _data.begin(); }
   iterator end() { return _data.end(); }
+  const_iterator begin() const { return _data.begin(); }
+  const_iterator end() const { return _data.end(); }
 
   /**
    * \brief create a new array
@@ -119,7 +119,8 @@ class DataCollection {
   /**
    * \brief access the data container
    */
-  container &Data() { return _data; }
+  std::vector<array *> &Data() { return _data; }
+  const std::vector<array *> &Data() const { return _data; }
 
   /**
    * \brief access an array by name
@@ -136,7 +137,7 @@ class DataCollection {
   selection *select(std::string strselection, selection *sel_append = nullptr);
 
  private:
-  container _data;
+  std::vector<array *> _data;
 
   std::map<std::string, array *> _array_by_name;
 };
@@ -164,8 +165,8 @@ typename DataCollection<T>::array *DataCollection<T>::CreateArray(
 template <typename T>
 typename DataCollection<T>::array *DataCollection<T>::ArrayByName(
     std::string name) {
-  typename std::map<std::string, array *>::iterator i;
-  i = _array_by_name.find(name);
+  typename std::map<std::string, array *>::iterator i =
+      _array_by_name.find(name);
   if (i == _array_by_name.end()) {
     return nullptr;
   }
@@ -190,7 +191,7 @@ typename DataCollection<T>::selection *DataCollection<T>::select(
 }
 
 std::ostream &operator<<(std::ostream &out,
-                         DataCollection<double>::selection &sel);
+                         const DataCollection<double>::selection &sel);
 }  // namespace tools
 }  // namespace votca
 

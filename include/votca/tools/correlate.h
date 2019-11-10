@@ -31,9 +31,7 @@ namespace tools {
 */
 class Correlate {
  public:
-  /// constructor
   Correlate() = default;
-  /// destructor
   ~Correlate() = default;
 
   /**
@@ -43,14 +41,14 @@ class Correlate {
   void CalcCorrelations(DataCollection<double>::selection &data);
 
   std::vector<double> &getData() { return _corr; }
+  const std::vector<double> &getData() const { return _corr; }
 
  private:
   std::vector<double> _corr;
 };
 
-inline std::ostream &operator<<(std::ostream &out, Correlate &c) {
-  std::vector<double> &data = c.getData();
-  for (auto &i : data) {
+inline std::ostream &operator<<(std::ostream &out, const Correlate &c) {
+  for (double i : c.getData()) {
     out << i << std::endl;
   }
   return out;

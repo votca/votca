@@ -27,6 +27,11 @@
 #define EIGEN_USE_MKL_ALL
 #endif
 
+#ifndef NOFFTW
+#include <fftw3.h>
+#define EIGEN_FFTW_DEFAULT
+#endif
+
 //! Macro to detect strictly gcc.
 //! \details __GNUC__ and __GNUG__ were intended to indicate the GNU compilers.
 //! However, they're also defined by Clang/LLVM and Intel compilers to indicate

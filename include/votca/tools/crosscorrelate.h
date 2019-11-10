@@ -29,10 +29,6 @@ namespace tools {
 
 /**
     \brief class to calculate cross correlations and autocorrelations
-
-    This class is relatively outdated and only used in csg_boltzmann!
-
-    \todo implementation
 */
 class CrossCorrelate {
  public:
@@ -42,14 +38,14 @@ class CrossCorrelate {
   void AutoCorrelate(DataCollection<double>::selection& data);
 
   std::vector<double>& getData() { return _corrfunc; }
+  const std::vector<double>& getData() const { return _corrfunc; }
 
  private:
   std::vector<double> _corrfunc;
 };
 
-inline std::ostream& operator<<(std::ostream& out, CrossCorrelate& c) {
-  std::vector<double>& data = c.getData();
-  for (Index i = 0; i < Index(data.size()); i++) {
+inline std::ostream& operator<<(std::ostream& out, const CrossCorrelate& c) {
+  for (Index i = 0; i < Index(c.getData().size()); i++) {
     out << i << " " << c.getData()[i] << std::endl;
   }
   return out;
