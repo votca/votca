@@ -75,10 +75,10 @@ void CG_IMC_solve::Run() {
   Eigen::VectorXd inv_diag = Eigen::VectorXd::Zero(es.eigenvalues().size());
   double etol = 1e-12;
 
-  int numerics_unstable = 0;
+  votca::Index numerics_unstable = 0;
   // Constructing pseudoinverse if not stable
   // https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse
-  for (int i = 0; i < es.eigenvalues().size(); i++) {
+  for (votca::Index i = 0; i < es.eigenvalues().size(); i++) {
     if (std::abs(es.eigenvalues()[i] + reg) < etol) {
       numerics_unstable++;
     } else {
@@ -106,7 +106,7 @@ void CG_IMC_solve::Run() {
       votca::csg::imcio_read_index(idxfile);
   for (std::pair<std::string, votca::tools::RangeParser>& range : ranges) {
     votca::tools::Table tbl;
-    for (int r : range.second) {
+    for (votca::Index r : range.second) {
       tbl.push_back(x.x(r - 1), x.y(r - 1), 'i');
     }
     tbl.Save(range.first + ".dpot.imc");

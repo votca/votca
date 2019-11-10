@@ -36,7 +36,7 @@ void LAMMPSDumpWriter::Write(Topology *conf) {
   Topology *top = conf;
   Eigen::Matrix3d box = conf->getBox();
   fprintf(_out, "ITEM: TIMESTEP\n%ld\n", top->getStep());
-  fprintf(_out, "ITEM: NUMBER OF ATOMS\n%i\n", (int)top->Beads().size());
+  fprintf(_out, "ITEM: NUMBER OF ATOMS\n%li\n", (Index)top->Beads().size());
   fprintf(_out, "ITEM: BOX BOUNDS pp pp pp\n");
   fprintf(_out, "0 %f\n0 %f\n0 %f\n", box(0, 0) * conv::nm2ang,
           box(1, 1) * conv::nm2ang, box(2, 2) * conv::nm2ang);
@@ -56,7 +56,7 @@ void LAMMPSDumpWriter::Write(Topology *conf) {
        iter != conf->Beads().end(); ++iter) {
     Bead *bi = *iter;
 
-    long int type_id = conf->getBeadTypeId(bi->getType());
+    Index type_id = conf->getBeadTypeId(bi->getType());
 
     fprintf(_out, "%ld %li", bi->getId() + 1, type_id);
     fprintf(_out, " %f %f %f", bi->getPos().x() * conv::nm2ang,

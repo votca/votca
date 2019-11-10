@@ -116,7 +116,7 @@ void StdAnalysis::WriteAutocorrelation(BondedStatistics &bs,
   }
 
   votca::tools::CrossCorrelate c;
-  c.AutoCorrelate(sel);
+  c.AutoCorrelate(*sel);
   out.open(args[0]);
   out << c << std::endl;
   out.close();
@@ -135,7 +135,7 @@ void StdAnalysis::WriteCorrelations(BondedStatistics &bs,
   }
 
   votca::tools::Correlate c;
-  c.CalcCorrelations(sel);
+  c.CalcCorrelations(*sel);
   out.open(args[0]);
   out << c << std::endl;
   out.close();

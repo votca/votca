@@ -65,16 +65,16 @@ class CGForceMatching : public CsgApplication {
   /// parameters
   struct SplineInfo {
     /// \brief constructor
-    SplineInfo(long int index, bool bonded_, long int matr_pos_,
+    SplineInfo(votca::Index index, bool bonded, votca::Index matr_pos,
                votca::tools::Property *options);
     /// \brief number of spline functions
-    long int num_splinefun;
+    votca::Index num_splinefun;
     /// \brief number of spline grid points
-    long int num_gridpoints;
+    votca::Index num_gridpoints;
     /// \brief number of grid points for output
-    int num_outgrid;
+    votca::Index num_outgrid;
     /// \brief interaction index
-    long int splineIndex;
+    votca::Index splineIndex;
     /// \brief true for bonded interactions, false for non-bonded
     bool bonded;
     /// \brief true if tabulated forces are periodic (e.g. for dihedral
@@ -90,11 +90,11 @@ class CGForceMatching : public CsgApplication {
     votca::tools::CubicSpline Spline;
     /// \brief position in the _A matrix (first coloumn which is occupied with
     /// this particular spline)
-    long int matr_pos;
+    votca::Index matr_pos;
     /// \brief dx for output. Calculated in the code
     double dx_out;
     /// \brief only for non-bonded interactions (seems like it is not used?)
-    pair<int, int> beadTypes;
+    pair<votca::Index, votca::Index> beadTypes;
 
     /// \brief Result of 1 block calculation for f
     Eigen::VectorXd block_res_f;
@@ -154,9 +154,9 @@ class CGForceMatching : public CsgApplication {
   Eigen::MatrixXd _B_constr;
 
   /// \brief Counter for trajectory frames
-  int _frame_counter;
+  votca::Index _frame_counter;
   /// \brief Number of CG beads
-  long int _nbeads;
+  votca::Index _nbeads;
 
   /// \brief accuracy for evaluating the difference in bead positions
   double _dist;
@@ -166,14 +166,14 @@ class CGForceMatching : public CsgApplication {
   bool _constr_least_sq;
   /// \brief used in EvalConf to distinguish constrained and simple least
   /// squares
-  long int _least_sq_offset;
+  votca::Index _least_sq_offset;
   /// \brief Number of frames used in one block for block averaging
-  int _nframes;
+  votca::Index _nframes;
   /// \brief Current number of blocks
-  int _nblocks;
+  votca::Index _nblocks;
 
   /// \brief Counters for lines and columns in _B_constr
-  long int _line_cntr, _col_cntr;
+  votca::Index _line_cntr, _col_cntr;
 
   bool _has_existing_forces;
 

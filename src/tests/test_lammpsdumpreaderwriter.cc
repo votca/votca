@@ -186,18 +186,17 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
       {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}};
 
   Elements elements;
-  int residue_num = 1;
+  votca::Index residue_num = 1;
   double charge = 0.0;
-  byte_t symmetry = 1;
 
-  for (size_t ind = 0; ind < atom_types.size(); ++ind) {
+  for (votca::Index ind = 0; ind < votca::Index(atom_types.size()); ++ind) {
     string atom_type = atom_types.at(ind);
     if (!top.BeadTypeExist(atom_type)) {
       top.RegisterBeadType(atom_type);
     }
-    Bead *b =
-        top.CreateBead(symmetry, atom_types.at(ind), atom_type, residue_num,
-                       elements.getMass(atom_types.at(ind)), charge);
+    Bead *b = top.CreateBead(Bead::spherical, atom_types.at(ind), atom_type,
+                             residue_num, elements.getMass(atom_types.at(ind)),
+                             charge);
 
     Eigen::Vector3d xyz(atom_xyz.at(ind).at(0) * conv::ang2nm,
                         atom_xyz.at(ind).at(1) * conv::ang2nm,
@@ -223,7 +222,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   reader->FirstFrame(top);
   reader->Close();
 
-  for (size_t ind = 0; ind < atom_types.size(); ++ind) {
+  for (votca::Index ind = 0; ind < votca::Index(atom_types.size()); ++ind) {
     Bead *b = top.getBead(ind);
     BOOST_CHECK_CLOSE(b->Pos().x(), atom_xyz_file.at(ind).at(0) * conv::ang2nm,
                       0.01);
@@ -305,19 +304,18 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
       {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}};
 
   Elements elements;
-  int residue_num = 1;
+  votca::Index residue_num = 1;
   double charge = 0.0;
-  byte_t symmetry = 1;
 
-  for (size_t ind = 0; ind < atom_types.size(); ++ind) {
+  for (votca::Index ind = 0; ind < votca::Index(atom_types.size()); ++ind) {
 
     string atom_type = atom_types.at(ind);
     if (!top.BeadTypeExist(atom_type)) {
       top.RegisterBeadType(atom_type);
     }
-    Bead *b =
-        top.CreateBead(symmetry, atom_types.at(ind), atom_type, residue_num,
-                       elements.getMass(atom_types.at(ind)), charge);
+    Bead *b = top.CreateBead(Bead::spherical, atom_types.at(ind), atom_type,
+                             residue_num, elements.getMass(atom_types.at(ind)),
+                             charge);
 
     Eigen::Vector3d xyz(atom_xyz.at(ind).at(0) * conv::ang2nm,
                         atom_xyz.at(ind).at(1) * conv::ang2nm,
@@ -359,7 +357,7 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
   reader->FirstFrame(top);
   reader->Close();
 
-  for (size_t ind = 0; ind < atom_types.size(); ++ind) {
+  for (votca::Index ind = 0; ind < votca::Index(atom_types.size()); ++ind) {
     Bead *b = top.getBead(ind);
     BOOST_CHECK_CLOSE(b->Pos().x(), atom_xyz.at(ind).at(0) * conv::ang2nm,
                       0.01);

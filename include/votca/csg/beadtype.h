@@ -32,15 +32,15 @@ namespace csg {
   */
 class BeadType : public TopologyItem {
  public:
-  const int &getId() const { return _id; }
+  const Index &getId() const { return _id; }
   const std::string &getName() const { return _name; }
   void setName(const std::string &name) { _name = name; }
 
  private:
-  int _id;
+  Index _id;
   std::string _name;
 
-  BeadType(Topology *parent, int id, const std::string &name)
+  BeadType(Topology *parent, Index id, const std::string &name)
       : TopologyItem(parent), _id(id), _name(name) {}
   friend class Topology;
 };

@@ -26,7 +26,7 @@ using namespace votca::tools;
 namespace votca {
 namespace csg {
 
-PotentialFunction::PotentialFunction(const string &name, int nlam, double min,
+PotentialFunction::PotentialFunction(const string &name, Index nlam, double min,
                                      double max) {
 
   _name = name;
@@ -49,7 +49,7 @@ void PotentialFunction::setParam(string filename) {
                              boost::lexical_cast<string>(_lam.size()) +
                              " parameters");
   } else {
-    for (unsigned int i = 0; i < _lam.size(); i++) {
+    for (Index i = 0; i < _lam.size(); i++) {
       _lam(i) = param.y(i);
     }
   }
@@ -61,20 +61,20 @@ void PotentialFunction::SaveParam(const string &filename) {
   param.SetHasYErr(false);
   param.resize(_lam.size());
 
-  for (unsigned int i = 0; i < _lam.size(); i++) {
-    param.set(i, i, _lam(i), 'i');
+  for (Index i = 0; i < _lam.size(); i++) {
+    param.set(i, double(i), _lam(i), 'i');
   }
 
   param.Save(filename);
 }
 
 void PotentialFunction::SavePotTab(const string &filename, double step) {
-  int ngrid = (int)((_cut_off - _min) / step + 1.00000001);
+  Index ngrid = (Index)((_cut_off - _min) / step + 1.00000001);
   Table pot_tab;
   pot_tab.SetHasYErr(false);
   pot_tab.resize(ngrid);
   double r_init;
-  int i;
+  Index i;
 
   for (r_init = _min, i = 0; i < ngrid - 1; r_init += step) {
     pot_tab.set(i++, r_init, CalculateF(r_init), 'i');
@@ -86,12 +86,12 @@ void PotentialFunction::SavePotTab(const string &filename, double step) {
 
 void PotentialFunction::SavePotTab(const string &filename, double step,
                                    double rmin, double rcut) {
-  int ngrid = (int)((rcut - rmin) / step + 1.00000001);
+  Index ngrid = (Index)((rcut - rmin) / step + 1.00000001);
   Table pot_tab;
   pot_tab.SetHasYErr(false);
   pot_tab.resize(ngrid);
   double r_init;
-  int i;
+  Index i;
   char flag = 'i';
 
   for (r_init = rmin, i = 0; i < ngrid - 1; r_init += step) {

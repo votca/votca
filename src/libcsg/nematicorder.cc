@@ -26,7 +26,7 @@ void NematicOrder::Process(Topology &top, const string &filter) {
   _mu = Eigen::Matrix3d::Zero();
   _mv = Eigen::Matrix3d::Zero();
   _mw = Eigen::Matrix3d::Zero();
-  int N = 0;
+  Index N = 0;
   bool bU, bV, bW;
   bU = bV = bW = false;
 

@@ -75,9 +75,18 @@ void CGMoleculeDef::ParseBeads(tools::Property &options) {
     beaddef->_type = p->get("type").as<string>();
     beaddef->_mapping = p->get("mapping").as<string>();
     if (p->exists("symmetry")) {
-      beaddef->_symmetry = p->get("symmetry").as<votca::tools::byte_t>();
+      Index sym = p->get("symmetry").as<Index>();
+      if (sym == 1) {
+        beaddef->_symmetry = Bead::spherical;
+      } else if (sym == 3) {
+        beaddef->_symmetry = Bead::ellipsoidal;
+      } else {
+        throw std::runtime_error(
+            "Only beads with spherical(1) or ellipsoidal(3) symmetry "
+            "implemented.");
+      }
     } else {
-      beaddef->_symmetry = 1;
+      beaddef->_symmetry = Bead::spherical;
     }
 
     if (_beads_by_name.find(beaddef->_name) != _beads_by_name.end()) {
@@ -105,15 +114,14 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   Molecule *minfo = top.CreateMolecule(_name);
 
   // create the atoms
-  for (auto &_bead : _beads) {
-    Bead *bead;
+  for (auto &bead_def : _beads) {
 
-    string type = _bead->_type;
+    string type = bead_def->_type;
     if (!top.BeadTypeExist(type)) {
       top.RegisterBeadType(type);
     }
-    bead = top.CreateBead(_bead->_symmetry, _bead->_name, type, res->getId(), 0,
-                          0);
+    Bead *bead = top.CreateBead(bead_def->_symmetry, bead_def->_name, type,
+                                res->getId(), 0, 0);
     minfo->AddBead(bead, bead->getName());
   }
 
@@ -121,7 +129,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   map<string, string> had_iagroup;
 
   for (tools::Property *prop : _bonded) {
-    std::list<long int> atoms;
+    std::list<Index> atoms;
     string iagroup = prop->get("name").as<string>();
 
     if (had_iagroup[iagroup] == "yes") {
@@ -131,20 +139,19 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
     had_iagroup[iagroup] = "yes";
 
     tools::Tokenizer tok(prop->get("beads").value(), " \n\t");
-    for (tools::Tokenizer::iterator atom = tok.begin(); atom != tok.end();
-         ++atom) {
-      long int i = minfo->getBeadIdByName(*atom);
+    for (auto &atom : tok) {
+      Index i = minfo->getBeadIdByName(atom);
       if (i < 0) {
         throw runtime_error(
             string("error while trying to create bonded interaction, "
                    "bead " +
-                   *atom + " not found"));
+                   atom + " not found"));
       }
 
       atoms.push_back(i);
     }
 
-    int NrBeads = 1;
+    Index NrBeads = 1;
     if (prop->name() == "bond") {
       NrBeads = 2;
     } else if (prop->name() == "angle") {
@@ -160,7 +167,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
                           lexical_cast<string>(NrBeads) + "! Missing beads?");
     }
 
-    int index = 0;
+    Index index = 0;
     while (!atoms.empty()) {
       Interaction *ic;
 
@@ -186,7 +193,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
 }
 
 Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
-  if ((unsigned int)out.BeadCount() != _beads.size()) {
+  if (out.BeadCount() != Index(_beads.size())) {
     throw runtime_error(
         "number of beads for cg molecule and mapping definition do "
         "not match, check your molecule naming.");
@@ -195,7 +202,7 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
   Map *map = new Map(in, out);
   for (auto &bead : _beads) {
 
-    long int iout = out.getBeadByName(bead->_name);
+    Index iout = out.getBeadByName(bead->_name);
     if (iout < 0) {
       throw runtime_error(string("mapping error: reference molecule " +
                                  bead->_name + " does not exist"));

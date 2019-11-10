@@ -50,7 +50,7 @@ void check_option(po::options_description &desc, po::variables_map &vm,
 int main(int argc, char **argv) {
 
   string in_file, out_file, grid, fitgrid, comment, type, boundaries;
-  Spline *spline = nullptr;
+
   Table in, out, der;
   // program options
   po::options_description desc("Allowed options");
@@ -120,16 +120,16 @@ int main(int argc, char **argv) {
     }
 
     in.Load(in_file);
-
+    std::unique_ptr<Spline> spline;
     if (vm.count("type")) {
       if (type == "cubic") {
-        spline = new CubicSpline();
+        spline = std::make_unique<CubicSpline>(CubicSpline());
       } else if (type == "akima") {
-        spline = new AkimaSpline();
+        spline = std::make_unique<AkimaSpline>(AkimaSpline());
       } else if (type == "linear") {
-        spline = new LinSpline();
+        spline = std::make_unique<LinSpline>(LinSpline());
       } else {
-        throw std::runtime_error("unknown type");
+        throw std::runtime_error("unknown spline type:" + type);
       }
     }
     spline->setBC(Spline::splineNormal);
@@ -166,8 +166,8 @@ int main(int argc, char **argv) {
       Eigen::VectorXd y_copy;
       if (!vm.count("nocut")) {
         // determine vector size
-        int minindex = -1, maxindex = -1;
-        for (int i = 0; i < in.x().size(); i++) {
+        votca::Index minindex = -1, maxindex = -1;
+        for (votca::Index i = 0; i < in.x().size(); i++) {
           if (in.x(i) < sp_min) {
             minindex = i;
           }
@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
         minindex++;
         x_copy = Eigen::VectorXd::Zero(maxindex - minindex + 1);
         y_copy = Eigen::VectorXd::Zero(maxindex - minindex + 1);
-        for (int i = minindex; i <= maxindex; i++) {
+        for (votca::Index i = minindex; i <= maxindex; i++) {
           x_copy(i - minindex) = in.x(i);
           y_copy(i - minindex) = in.y(i);
         }
@@ -241,16 +241,16 @@ int main(int argc, char **argv) {
     der.GenerateGridSpacing(min, max, step);
     der.flags() = std::vector<char>(der.flags().size(), 'o');
 
-    int i = 0;
+    votca::Index i = 0;
     for (i = 0; out.x(i) < in.x(0) && i < out.size(); ++i) {
       ;
     }
 
-    int j = 0;
+    votca::Index j = 0;
     for (; i < out.size(); ++i) {
       for (; j < in.size(); ++j) {
         if (in.x(j) >= out.x(i) ||
-            fabs(in.x(j) - out.x(i)) < 1e-12) {  // fix for precison errors
+            std::abs(in.x(j) - out.x(i)) < 1e-12) {  // fix for precision errors
           break;
         }
       }
@@ -269,10 +269,7 @@ int main(int argc, char **argv) {
       der.Save(vm["derivative"].as<string>());
     }
 
-    delete spline;
-  }
-
-  catch (std::exception &error) {
+  } catch (std::exception &error) {
     cerr << "an error occurred:\n" << error.what() << endl;
     return -1;
   }

@@ -96,12 +96,12 @@ void XMLTopologyReader::ParseMolecules(tools::Property &p) {
       _top->RenameMolecules(range, molname);
     } else if (it.name() == "define" || it.name() == "molecule") {
       string molname = it.getAttribute<string>("name");
-      int first = 0;
+      Index first = 0;
       if (it.name() == "define") {
-        first = it.getAttribute<int>("first");
+        first = it.getAttribute<Index>("first");
       }
-      int nbeads = it.getAttribute<int>("nbeads");
-      int nmols = it.getAttribute<int>("nmols");
+      Index nbeads = it.getAttribute<Index>("nbeads");
+      Index nmols = it.getAttribute<Index>("nmols");
       if (it.name() == "define" && first < 1) {
         throw std::runtime_error(
             "Attribute first is suppose to be > 0, but found " +
@@ -132,15 +132,15 @@ void XMLTopologyReader::ParseMolecules(tools::Property &p) {
 }
 
 void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
-                                      int nmols) {
+                                      Index nmols) {
   vector<XMLBead *> xmlBeads;
-  vector<int> xmlResidues;
+  vector<Index> xmlResidues;
   for (auto &it : p) {
     if (it.name() == "bead") {
       string atname = it.getAttribute<string>("name");
       string attype = it.getAttribute<string>("type");
       double atmass, atq;
-      int resid;
+      Index resid;
       try {
         atmass = it.getAttribute<double>("mass");
       } catch (runtime_error &) {
@@ -152,7 +152,7 @@ void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
         atq = 0.0;
       }
       try {
-        resid = it.getAttribute<int>("resid");
+        resid = it.getAttribute<Index>("resid");
         if (resid <= 0) {
           throw std::invalid_argument(
               "Residue count for beads in topology.molecules.molecule has to "
@@ -187,7 +187,7 @@ void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
         "identical");
   }
   // Create molecule in topology. Replicate data.
-  long int resnr = _top->ResidueCount();
+  Index resnr = _top->ResidueCount();
   if (!xmlResidues.empty()) {
     if (xmlResidues.front() != resnr + 1 && xmlResidues.front() != -1) {
       throw std::runtime_error(
@@ -195,13 +195,13 @@ void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
           "greater than the number of residues already in the topology");
     }
   }
-  for (int mn = 0; mn < nmols; mn++) {
+  for (Index mn = 0; mn < nmols; mn++) {
     Molecule *mi = _top->CreateMolecule(molname);
     XMLMolecule *xmlMolecule = new XMLMolecule(molname, nmols);
     xmlMolecule->pid = mi->getId();
     xmlMolecule->mi = mi;
     _molecules.insert(make_pair(molname, xmlMolecule));
-    vector<int>::iterator resit = xmlResidues.begin();
+    vector<Index>::iterator resit = xmlResidues.begin();
     for (vector<XMLBead *>::iterator itb = xmlBeads.begin();
          itb != xmlBeads.end(); ++itb, ++resit) {
       stringstream bname;
@@ -218,7 +218,8 @@ void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
       if (!_top->BeadTypeExist(b.type)) {
         _top->RegisterBeadType(b.type);
       }
-      Bead *bead = _top->CreateBead(1, b.name, b.type, resnr, b.mass, b.q);
+      Bead *bead =
+          _top->CreateBead(Bead::spherical, b.name, b.type, resnr, b.mass, b.q);
       bname << _mol_index << ":" << molname << ":" << b.name;
       mi->AddBead(bead, bname.str());
 
@@ -284,7 +285,7 @@ void XMLTopologyReader::ParseBond(tools::Property &p) {
   }
   Interaction *ic = nullptr;
   typedef pair<MoleculesMap::iterator, MoleculesMap::iterator> MRange;
-  int b_index = 0;
+  Index b_index = 0;
   for (vector<string>::iterator it = bead_list.begin();
        it != bead_list.end();) {
     BondBead b1(*(it++));
@@ -322,7 +323,7 @@ void XMLTopologyReader::ParseAngle(tools::Property &p) {
   }
   Interaction *ic = nullptr;
   typedef pair<MoleculesMap::iterator, MoleculesMap::iterator> MRange;
-  int b_index = 0;
+  Index b_index = 0;
   for (vector<string>::iterator it = bead_list.begin();
        it != bead_list.end();) {
     BondBead b1(*(it++));
@@ -361,7 +362,7 @@ void XMLTopologyReader::ParseDihedral(tools::Property &p) {
   }
   Interaction *ic = nullptr;
   typedef pair<MoleculesMap::iterator, MoleculesMap::iterator> MRange;
-  int b_index = 0;
+  Index b_index = 0;
   for (vector<string>::iterator it = bead_list.begin();
        it != bead_list.end();) {
     BondBead b1(*(it++));

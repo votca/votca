@@ -69,24 +69,22 @@ BOOST_AUTO_TEST_CASE(create_bead_type) {
  **/
 BOOST_AUTO_TEST_CASE(create_bead) {
   Topology top;
-  // 1 - for spherical bead
-  byte_t symmetry = 1;
   string bead_name = "bead_test";
 
   string bead_type_name = "type1";
   top.RegisterBeadType(bead_type_name);
 
-  int residue_number = 1;
+  votca::Index residue_number = 1;
   double mass = 1.1;
   double charge = 0.3;
 
-  auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
+  auto bead_ptr = top.CreateBead(Bead::spherical, bead_name, bead_type_name,
                                  residue_number, mass, charge);
 
   BOOST_CHECK_CLOSE(bead_ptr->getQ(), 0.3, 1e-5);
   BOOST_CHECK_CLOSE(bead_ptr->getMass(), 1.1, 1e-5);
   BOOST_CHECK_EQUAL(bead_ptr->getResnr(), residue_number);
-  BOOST_CHECK_EQUAL(bead_ptr->getSymmetry(), symmetry);
+  BOOST_CHECK_EQUAL(bead_ptr->getSymmetry(), Bead::spherical);
   BOOST_CHECK(bead_ptr->getName() == bead_name);
 
   string bead_type2 = bead_ptr->getType();
@@ -103,29 +101,27 @@ BOOST_AUTO_TEST_CASE(create_bead) {
  **/
 BOOST_AUTO_TEST_CASE(add_bonded_interation_test) {
   Topology top;
-  // 1 - for spherical bead
-  byte_t symmetry = 1;
 
   string bead_type_name = "type1";
   top.RegisterBeadType(bead_type_name);
 
-  int residue_number = 1;
+  votca::Index residue_number = 1;
   double mass = 1.1;
   double charge = 0.3;
 
   // Create 3 beads
   string bead_name = "bead_test";
-  auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
+  auto bead_ptr = top.CreateBead(Bead::spherical, bead_name, bead_type_name,
                                  residue_number, mass, charge);
   bead_ptr->setId(0);
 
   string bead_name2 = "bead_test2";
-  auto bead_ptr2 = top.CreateBead(symmetry, bead_name2, bead_type_name,
+  auto bead_ptr2 = top.CreateBead(Bead::spherical, bead_name2, bead_type_name,
                                   residue_number, mass, charge);
   bead_ptr2->setId(1);
 
   string bead_name3 = "bead_test3";
-  auto bead_ptr3 = top.CreateBead(symmetry, bead_name3, bead_type_name,
+  auto bead_ptr3 = top.CreateBead(Bead::spherical, bead_name3, bead_type_name,
                                   residue_number, mass, charge);
   bead_ptr3->setId(2);
 

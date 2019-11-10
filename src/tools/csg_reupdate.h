@@ -33,15 +33,15 @@ using namespace votca::tools;
 
 struct PotentialInfo {
 
-  PotentialInfo(long int index, bool bonded_, long int vec_pos_,
+  PotentialInfo(votca::Index index, bool bonded_, votca::Index vec_pos_,
                 std::string &param_in_ext_, Property *options,
                 bool gentable = false);
 
-  long int potentialIndex;
+  votca::Index potentialIndex;
   bool bonded;
   PotentialFunction *ucg;
-  long int vec_pos;
-  std::pair<int, int> beadTypes;
+  votca::Index vec_pos;
+  std::pair<votca::Index, votca::Index> beadTypes;
 
   std::string potentialName;
   std::string potentialFunction;
@@ -87,7 +87,7 @@ class CsgREupdate : public CsgApplication {
   using PotentialContainer = std::vector<PotentialInfo *>;
   PotentialContainer _potentials;
 
-  long int _nlamda;
+  votca::Index _nlamda;
   Eigen::VectorXd _lamda;
   // _HS is a symmetric matrix
   Eigen::MatrixXd _HS;
@@ -99,7 +99,7 @@ class CsgREupdate : public CsgApplication {
   double _UavgCG;
   double _beta;
   double _relax;
-  int _nframes;
+  votca::Index _nframes;
 
   bool _gentable;
   bool _dosteep;
@@ -137,7 +137,7 @@ class CsgREupdateWorker : public CsgApplication::Worker {
   using PotentialContainer = std::vector<PotentialInfo *>;
   PotentialContainer _potentials;
 
-  long int _nlamda;
+  votca::Index _nlamda;
   Eigen::VectorXd _lamda;
   Eigen::MatrixXd _HS;
   Eigen::VectorXd _DS;
@@ -145,7 +145,7 @@ class CsgREupdateWorker : public CsgApplication::Worker {
 
   double _UavgCG;
   double _beta;
-  int _nframes;
+  votca::Index _nframes;
 
   void EvalConfiguration(Topology *conf, Topology *conf_atom) override;
   void EvalBonded(Topology *conf, PotentialInfo *potinfo);

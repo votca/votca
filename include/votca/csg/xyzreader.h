@@ -62,16 +62,14 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
 
  private:
   template <class T>
-  int getContainerSize(T &container) {
+  Index getContainerSize(T &container) {
     return container.size();
   }
 
-  long int getContainerSize(Topology &container) {
-    return container.BeadCount();
-  }
+  Index getContainerSize(Topology &container) { return container.BeadCount(); }
 
   template <bool topology, class T>
-  void AddAtom(T &container, std::string name, int id,
+  void AddAtom(T &container, std::string name, Index id,
                const Eigen::Vector3d &pos) {
     // the typedef returns the type of the objects the container holds
     using atom =
@@ -81,12 +79,13 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
   }
 
   template <bool topology, class T>
-  void AddAtom(Topology &container, std::string name, int id,
+  void AddAtom(Topology &container, std::string name, Index id,
                const Eigen::Vector3d &pos) {
     Bead *b;
     Eigen::Vector3d posnm = pos * tools::conv::ang2nm;
     if (topology) {
-      b = container.CreateBead(1, name + boost::lexical_cast<std::string>(id),
+      b = container.CreateBead(Bead::spherical,
+                               name + boost::lexical_cast<std::string>(id),
                                name, 0, 0, 0);
     } else {
       b = container.getBead(id);
@@ -99,7 +98,7 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
 
   std::ifstream _fl;
   std::string _file;
-  int _line;
+  Index _line;
 };
 
 template <bool topology, class T>
@@ -116,7 +115,7 @@ inline bool XYZReader::ReadFrame(T &container) {
           "First line of xyz file should contain number "
           "of atoms/beads, nothing else.");
     }
-    int natoms = boost::lexical_cast<int>(line1[0]);
+    Index natoms = boost::lexical_cast<Index>(line1[0]);
     if (!topology && natoms != getContainerSize(container)) {
       throw std::runtime_error(
           "number of beads in topology and trajectory differ");
@@ -125,7 +124,7 @@ inline bool XYZReader::ReadFrame(T &container) {
     getline(_fl, line);
     ++_line;
     // read atoms
-    for (int i = 0; i < natoms; ++i) {
+    for (Index i = 0; i < natoms; ++i) {
       getline(_fl, line);
       ++_line;
       if (_fl.eof()) {

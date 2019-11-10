@@ -42,7 +42,7 @@ class NBListGrid_3Body : public NBList_3Body {
 
   Eigen::Vector3d _box_a, _box_b, _box_c;
   Eigen::Vector3d _norm_a, _norm_b, _norm_c;
-  int _box_Na, _box_Nb, _box_Nc;
+  Index _box_Na, _box_Nb, _box_Nc;
 
   std::vector<cell_t> _grid;
   Topology *_top;
@@ -50,14 +50,14 @@ class NBListGrid_3Body : public NBList_3Body {
   void InitializeGrid(const Eigen::Matrix3d &box);
 
   cell_t &getCell(const Eigen::Vector3d &r);
-  cell_t &getCell(const int &a, const int &b, const int &c);
+  cell_t &getCell(const Index &a, const Index &b, const Index &c);
 
   void TestBead(cell_t &cell, Bead *bead);
 };
 
-inline NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const int &a,
-                                                           const int &b,
-                                                           const int &c) {
+inline NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const Index &a,
+                                                           const Index &b,
+                                                           const Index &c) {
   return _grid[a + _box_Na * b + _box_Na * _box_Nb * c];
 }
 

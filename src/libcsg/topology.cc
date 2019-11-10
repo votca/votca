@@ -85,11 +85,11 @@ void Topology::Cleanup() {
 }
 
 /// \todo implement checking, only used in xml topology reader
-void Topology::CreateMoleculesByRange(string name, long int first,
-                                      long int nbeads, long int nmolecules) {
+void Topology::CreateMoleculesByRange(string name, Index first, Index nbeads,
+                                      Index nmolecules) {
   Molecule *mol = CreateMolecule(name);
-  long int beadcount = 0;
-  long int res_offset = 0;
+  Index beadcount = 0;
+  Index res_offset = 0;
 
   for (auto &_bead : _beads) {
     // xml numbering starts with 1
@@ -147,7 +147,7 @@ void Topology::CreateOneBigMolecule(string name) {
 
 void Topology::Add(Topology *top) {
 
-  long int res0 = ResidueCount();
+  Index res0 = ResidueCount();
 
   for (auto bi : top->_beads) {
     string type = bi->getType();
@@ -162,7 +162,7 @@ void Topology::Add(Topology *top) {
   // \todo beadnames in molecules!!
   for (auto &_molecule : top->_molecules) {
     Molecule *mi = CreateMolecule(_molecule->getName());
-    for (int i = 0; i < mi->BeadCount(); i++) {
+    for (Index i = 0; i < mi->BeadCount(); i++) {
       mi->AddBead(mi->getBead(i), "invalid");
     }
   }
@@ -192,14 +192,14 @@ void Topology::CopyTopologyData(Topology *top) {
   // copy all molecules
   for (auto &_molecule : top->_molecules) {
     Molecule *mi = CreateMolecule(_molecule->getName());
-    for (int i = 0; i < _molecule->BeadCount(); i++) {
-      long int beadid = _molecule->getBead(i)->getId();
+    for (Index i = 0; i < _molecule->BeadCount(); i++) {
+      Index beadid = _molecule->getBead(i)->getId();
       mi->AddBead(_beads[beadid], _molecule->getBeadName(i));
     }
   }
 }
 
-long int Topology::getBeadTypeId(string type) const {
+long Topology::getBeadTypeId(string type) const {
   assert(beadtypes_.count(type));
   return beadtypes_.at(type);
 }
@@ -207,8 +207,8 @@ long int Topology::getBeadTypeId(string type) const {
 void Topology::RenameMolecules(string range, string name) {
   tools::RangeParser rp;
   rp.Parse(range);
-  for (unsigned i : rp) {
-    if (i > _molecules.size()) {
+  for (Index i : rp) {
+    if (i > Index(_molecules.size())) {
       throw runtime_error(
           string("RenameMolecules: num molecules smaller than"));
     }
@@ -236,10 +236,10 @@ void Topology::SetBeadTypeMass(string name, double value) {
 }
 
 void Topology::CheckMoleculeNaming(void) {
-  map<string, long int> nbeads;
+  map<string, Index> nbeads;
 
   for (Molecule *mol : _molecules) {
-    map<string, long int>::iterator entry = nbeads.find(mol->getName());
+    map<string, Index>::iterator entry = nbeads.find(mol->getName());
     if (entry != nbeads.end()) {
       if (entry->second != mol->BeadCount()) {
         throw runtime_error(
@@ -255,12 +255,12 @@ void Topology::CheckMoleculeNaming(void) {
 }
 
 void Topology::AddBondedInteraction(Interaction *ic) {
-  map<string, long int>::iterator iter;
+  map<string, Index>::iterator iter;
   iter = _interaction_groups.find(ic->getGroup());
   if (iter != _interaction_groups.end()) {
     ic->setGroupId((*iter).second);
   } else {
-    long int i = _interaction_groups.size();
+    Index i = _interaction_groups.size();
     _interaction_groups[ic->getGroup()] = i;
     ic->setGroupId(i);
   }
@@ -282,16 +282,16 @@ bool Topology::BeadTypeExist(string type) const {
 }
 
 void Topology::RegisterBeadType(string type) {
-  unordered_set<int> ids;
-  for (pair<const string, int> type_and_id : beadtypes_) {
+  unordered_set<Index> ids;
+  for (pair<const string, Index> type_and_id : beadtypes_) {
     ids.insert(type_and_id.second);
   }
 
-  int id = 0;
+  Index id = 0;
   // If the type is also a number use it as the id as well provided it is not
   // already taken
   if (is_digits(type)) {
-    id = boost::lexical_cast<int>(type);
+    id = boost::lexical_cast<Index>(type);
     assert(!ids.count(id) &&
            "The type passed in is a number and has already"
            " been registered. It is likely that you are passing in numbers as "
@@ -310,7 +310,7 @@ Eigen::Vector3d Topology::BCShortestConnection(
   return _bc->BCShortestConnection(r_i, r_j);
 }
 
-Eigen::Vector3d Topology::getDist(long int bead1, long int bead2) const {
+Eigen::Vector3d Topology::getDist(Index bead1, Index bead2) const {
   return BCShortestConnection(getBead(bead1)->getPos(),
                               getBead(bead2)->getPos());
 }

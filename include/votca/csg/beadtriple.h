@@ -24,10 +24,7 @@ namespace votca {
 namespace csg {
 
 /**
-   \brief A particle pair
-
-   This class defines a particle pair. The future plan is, that the Pair class
-   can be overloaded and Particle list creates these inherited pairs.
+   \brief A triplet of tree Beads
 
  */
 
