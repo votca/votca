@@ -126,7 +126,7 @@ RDFCalculator::interaction_t *RDFCalculator::AddInteraction(Property *p) {
   i->_p = p;
 
   // initialize the current and average histogram
-  int n = (int)((i->_max - i->_min) / i->_step + 1.000000001);
+  Index n = (Index)((i->_max - i->_min) / i->_step + 1.000000001);
 
   i->_average.Initialize(i->_min, i->_max + i->_step, n);
 

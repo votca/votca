@@ -71,7 +71,7 @@ class OrientCorrApp : public CsgApplication {
   votca::tools::HistogramNew _count_excl;
   static string _nbmethod;
   double _cut_off;
-  int _nbins;
+  votca::Index _nbins;
 };
 
 string OrientCorrApp::_nbmethod;
@@ -113,7 +113,8 @@ void OrientCorrApp::Initialize() {
       "cutoff,c",
       boost::program_options::value<double>(&_cut_off)->default_value(1.0),
       "cutoff for the neighbor search")(
-      "nbins", boost::program_options::value<int>(&_nbins)->default_value(40),
+      "nbins",
+      boost::program_options::value<votca::Index>(&_nbins)->default_value(40),
       "number of bins for the grid")(
       "nbmethod",
       boost::program_options::value<string>(&_nbmethod)->default_value("grid"),
@@ -170,13 +171,14 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
     // create a molecule in mapped topology
     Molecule *mol = mapped.CreateMolecule(mol_src->getName());
     // loop over beads in molecule
-    for (int i = 0; i < mol_src->BeadCount() - 1; ++i) {
+    for (votca::Index i = 0; i < mol_src->BeadCount() - 1; ++i) {
       // create a bead in mapped topology
       string bead_type = "A";
       if (mapped.BeadTypeExist(bead_type) == false) {
         mapped.RegisterBeadType(bead_type);
       }
-      Bead *b = mapped.CreateBead(3, "A", bead_type, 1, 0.0, 0.0);
+      Bead *b =
+          mapped.CreateBead(Bead::ellipsoidal, "A", bead_type, 1, 0.0, 0.0);
       Eigen::Vector3d p1 = mol_src->getBead(i)->getPos();
       Eigen::Vector3d p2 = mol_src->getBead(i + 1)->getPos();
       // position is in middle of bond
@@ -200,7 +202,8 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
   b.Generate(mapped, "*");
 
   // create/initialize neighborsearch
-  NBList *nb = OrientCorrApp::CreateNBSearch();
+  std::unique_ptr<NBList> nb =
+      std::unique_ptr<NBList>(OrientCorrApp::CreateNBSearch());
   nb->setCutoff(_cut_off);
 
   // set callback for each pair found
@@ -208,8 +211,6 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
 
   // execute the search
   nb->Generate(b);
-
-  delete nb;
 }
 
 // process a pair, since return value is falsed, pairs are not cached which
@@ -236,14 +237,11 @@ bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &,
 
 // merge analysed data of a worker into main applications
 void OrientCorrApp::MergeWorker(Worker *worker) {
-  MyWorker *myWorker;
-  myWorker = dynamic_cast<MyWorker *>(worker);
-  _cor.data().y() = _cor.data().y() + myWorker->_cor.data().y();
-  _count.data().y() = _count.data().y() + myWorker->_count.data().y();
-
-  _cor_excl.data().y() = _cor_excl.data().y() + myWorker->_cor_excl.data().y();
-  _count_excl.data().y() =
-      _count_excl.data().y() + myWorker->_count_excl.data().y();
+  MyWorker *myWorker = dynamic_cast<MyWorker *>(worker);
+  _cor.data().y() += myWorker->_cor.data().y();
+  _count.data().y() += myWorker->_count.data().y();
+  _cor_excl.data().y() += myWorker->_cor_excl.data().y();
+  _count_excl.data().y() += myWorker->_count_excl.data().y();
 }
 
 // write out the data

@@ -54,20 +54,12 @@ void check_option(po::options_description &desc, po::variables_map &vm,
 }
 
 int main(int argc, char **argv) {
-  string top_file, trj_file, ptypes_file, out_file, grid, comment, string_tmp,
+  string top_file, trj_file, ptypes_file, out_file, grid, comment,
       coordinate = "z";
-  double min, max, step, coord, com(0.);
-  vector<int> ptypes;
-  ifstream fl_ptypes;
-  ofstream fl_out;
-  Topology top;
-  TopologyReader *reader;
-  TrajectoryReader *trajreader;
-  int part_type, n_bins, first_frame(0), last_frame(-1), flag_found(0),
-      **p_occ = nullptr, n_part(0), frame_id(0), analyzed_frames(0);
-  bool moreframes(1), not_the_last(1);
+  double min, max, step, coord;
 
-  MoleculeContainer::iterator mol;
+  votca::Index first_frame(0), last_frame(-1);
+
   // Load topology+trajectory formats
   TopologyReader::RegisterPlugins();
   TrajectoryReader::RegisterPlugins();
@@ -88,9 +80,9 @@ int main(int argc, char **argv) {
       "particle types to include in the analysis\n"
       " arg: file - particle types separated by space"
       "\n default: all particle types")("first_frame",
-                                        po::value<int>(&first_frame),
+                                        po::value<votca::Index>(&first_frame),
                                         "first frame considered for analysis")(
-      "last_frame", po::value<int>(&last_frame),
+      "last_frame", po::value<votca::Index>(&last_frame),
       "last frame considered for analysis")(
       "coord", po::value<string>(&coordinate),
       "coordinate analyzed ('x', 'y', or 'z' (default))")(
@@ -139,11 +131,16 @@ int main(int argc, char **argv) {
   step = std::stod(toks[1]);
   max = std::stod(toks[2]);
   // Calculate number of bins
-  n_bins = (int)((max - min) / (1. * step) + 1);
-
+  votca::Index n_bins = (votca::Index)((max - min) / (1. * step) + 1);
+  vector<votca::Index> ptypes;
+  Topology top;
+  Eigen::MatrixXi p_occ;
+  votca::Index analyzed_frames(0);
   try {
+
     // Load topology
-    reader = TopReaderFactory().Create(vm["top"].as<string>());
+    std::unique_ptr<TopologyReader> reader = std::unique_ptr<TopologyReader>(
+        TopReaderFactory().Create(vm["top"].as<string>()));
     if (reader == nullptr) {
       throw std::runtime_error("input format not supported: " +
                                vm["top"].as<string>());
@@ -153,6 +150,7 @@ int main(int argc, char **argv) {
 
     // Read the particle types file and save to variable ptypes
     if (vm.count("ptypes")) {
+      ifstream fl_ptypes;
       fl_ptypes.open(vm["ptypes"].as<string>().c_str());
       if (!fl_ptypes.is_open()) {
         throw std::runtime_error("can't open " + vm["ptypes"].as<string>());
@@ -165,23 +163,23 @@ int main(int argc, char **argv) {
       while (!fl_ptypes.eof()) {
         // Not very elegant, but makes sure we don't count the same element
         // twice
-        string_tmp = "__";
+        std::string string_tmp = "__";
         fl_ptypes >> string_tmp;
         if (string_tmp != "" && string_tmp != "__") {
-          ptypes.push_back(atoi(string_tmp.c_str()));
+          ptypes.push_back(std::stol(string_tmp));
         }
       }
       fl_ptypes.close();
 
     } else {
       // Include all particle types
-      for (mol = top.Molecules().begin(); mol != top.Molecules().end(); ++mol) {
-        for (int i = 0; i < (*mol)->BeadCount(); ++i) {
-          flag_found = 0;
-          part_type = atoi((*mol)->getBead(i)->getType().c_str());
-          for (int ptype : ptypes) {
+      for (auto &mol : top.Molecules()) {
+        for (votca::Index i = 0; i < mol->BeadCount(); ++i) {
+          bool flag_found = false;
+          votca::Index part_type = std::stol(mol->getBead(i)->getType());
+          for (votca::Index ptype : ptypes) {
             if (part_type == ptype) {
-              flag_found = 1;
+              flag_found = true;
             }
           }
           if (!flag_found) {
@@ -191,21 +189,17 @@ int main(int argc, char **argv) {
       }
     }
 
-    // Allocate array used to store particle occupancy p_occ
-    p_occ = (int **)calloc(ptypes.size(), sizeof(int *));
-    for (size_t i = 0; i < ptypes.size(); ++i) {
-      p_occ[i] = (int *)calloc(n_bins, sizeof(int));
-    }
+    p_occ = Eigen::MatrixXi::Zero(ptypes.size(), ptypes.size());
 
     // If we need to shift the center of mass, calculate the number of
     // particles (only the ones that belong to the particle type index
     // ptypes)
-
+    votca::Index n_part = 0;
     if (vm.count("shift_com")) {
-      for (mol = top.Molecules().begin(); mol != top.Molecules().end(); ++mol) {
-        for (int i = 0; i < (*mol)->BeadCount(); ++i) {
-          part_type = atoi((*mol)->getBead(i)->getType().c_str());
-          for (int ptype : ptypes) {
+      for (auto &mol : top.Molecules()) {
+        for (votca::Index i = 0; i < mol->BeadCount(); ++i) {
+          votca::Index part_type = std::stol(mol->getBead(i)->getType());
+          for (votca::Index ptype : ptypes) {
             if (part_type == ptype) {
               ++n_part;
             }
@@ -215,7 +209,9 @@ int main(int argc, char **argv) {
     }
 
     // Now load trajectory
-    trajreader = TrjReaderFactory().Create(vm["trj"].as<string>());
+    std::unique_ptr<TrajectoryReader> trajreader =
+        std::unique_ptr<TrajectoryReader>(
+            TrjReaderFactory().Create(vm["trj"].as<string>()));
     if (trajreader == nullptr) {
       throw std::runtime_error("input format not supported: " +
                                vm["trj"].as<string>());
@@ -224,8 +220,11 @@ int main(int argc, char **argv) {
 
     // Read the trajectory. Analyze each frame to obtain
     // particle occupancy as a function of coordinate z.
+    bool moreframes = true;
+    bool not_the_last = true;
     while (moreframes) {
       // Read frame
+      votca::Index frame_id = 0;
       if (frame_id == 0) {
         moreframes = trajreader->FirstFrame(top);
       } else {
@@ -244,48 +243,47 @@ int main(int argc, char **argv) {
       }
 
       // Calculate new center of mass position in the direction of 'coordinate'
-      com = 0.;
+      double com = 0.;
       if (vm.count("shift_com")) {
-        for (mol = top.Molecules().begin(); mol != top.Molecules().end();
-             ++mol) {
-          for (int i = 0; i < (*mol)->BeadCount(); ++i) {
-            part_type = atoi((*mol)->getBead(i)->getType().c_str());
-            for (int ptype : ptypes) {
+        for (auto &mol : top.Molecules()) {
+          for (votca::Index i = 0; i < mol->BeadCount(); ++i) {
+            votca::Index part_type = std::stol(mol->getBead(i)->getType());
+            for (votca::Index ptype : ptypes) {
               if (part_type == ptype) {
                 if (coordinate.compare("x") == 0) {
-                  com += (*mol)->getBead(i)->getPos().x();
+                  com += mol->getBead(i)->getPos().x();
                 } else if (coordinate.compare("y") == 0) {
-                  com += (*mol)->getBead(i)->getPos().y();
+                  com += mol->getBead(i)->getPos().y();
                 } else {
-                  com += (*mol)->getBead(i)->getPos().z();
+                  com += mol->getBead(i)->getPos().z();
                 }
               }
             }
           }
         }
-        com /= n_part;
+        com /= (double)n_part;
       }
 
       // Analyze frame
       if (moreframes && frame_id >= first_frame && not_the_last) {
         ++analyzed_frames;
         // Loop over each atom property
-        for (mol = top.Molecules().begin(); mol != top.Molecules().end();
-             ++mol) {
-          for (int i = 0; i < (*mol)->BeadCount(); ++i) {
-            part_type = atoi((*mol)->getBead(i)->getType().c_str());
-            for (size_t j = 0; j < ptypes.size(); ++j) {
+        for (auto &mol : top.Molecules()) {
+          for (votca::Index i = 0; i < mol->BeadCount(); ++i) {
+            votca::Index part_type = std::stol(mol->getBead(i)->getType());
+            for (votca::Index j = 0; j < votca::Index(ptypes.size()); ++j) {
               if (part_type == ptypes[j]) {
                 if (coordinate.compare("x") == 0) {
-                  coord = (*mol)->getBead(i)->getPos().x();
+                  coord = mol->getBead(i)->getPos().x();
                 } else if (coordinate.compare("y") == 0) {
-                  coord = (*mol)->getBead(i)->getPos().y();
+                  coord = mol->getBead(i)->getPos().y();
                 } else {
-                  coord = (*mol)->getBead(i)->getPos().z();
+                  coord = mol->getBead(i)->getPos().z();
                 }
 
                 if (coord - com > min && coord - com < max) {
-                  ++p_occ[j][(int)floor((coord - com - min) / step)];
+                  p_occ(j,
+                        (votca::Index)std::floor((coord - com - min) / step))++;
                 }
               }
             }
@@ -303,23 +301,25 @@ int main(int argc, char **argv) {
 
   // Output particle occupancy
   try {
-    fl_out.open(vm["out"].as<string>().c_str());
+    ofstream fl_out;
+    fl_out.open(vm["out"].as<string>());
     if (!fl_out.is_open()) {
       throw std::runtime_error("can't open " + vm["out"].as<string>());
     }
 
     fl_out << "#z\t" << flush;
-    for (int ptype : ptypes) {
+    for (votca::Index ptype : ptypes) {
       fl_out << "type " << ptype << "\t" << flush;
     }
     fl_out << endl;
-    for (int k = 0; k < n_bins; ++k) {
-      fl_out << min + k * step << "\t" << flush;
-      for (size_t j = 0; j < ptypes.size(); ++j) {
-        if (p_occ[j][k] == 0) {
+    for (votca::Index k = 0; k < n_bins; ++k) {
+      fl_out << min + (double)k * step << "\t" << flush;
+      for (votca::Index j = 0; j < votca::Index(ptypes.size()); ++j) {
+        if (p_occ(j, k) == 0) {
           fl_out << 0 << "\t" << flush;
         } else {
-          fl_out << p_occ[j][k] / (1. * analyzed_frames) << "\t" << flush;
+          fl_out << p_occ(j, k) / (1. * (double)analyzed_frames) << "\t"
+                 << flush;
         }
       }
       fl_out << endl;
@@ -328,12 +328,6 @@ int main(int argc, char **argv) {
   } catch (std::exception &error) {
     cerr << "An error occured!" << endl << error.what() << endl;
   }
-
-  for (size_t i = 0; i < ptypes.size(); ++i) {
-    free(p_occ[i]);
-  }
-  free(p_occ);
-
   cout << "The table was written to " << vm["out"].as<string>() << endl;
 
   return 0;

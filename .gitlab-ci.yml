@@ -7,7 +7,7 @@ stages:
     max: 2
   variables:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
-    CXXFLAGS: "-Wall -Werror"
+    CXXFLAGS: "-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror"
     DISTRO: "latest"
   image: votca/buildenv:${DISTRO}
   stage: build
@@ -36,6 +36,7 @@ stages:
     - git -C ${CI_PROJECT_NAME} checkout -f ${CI_COMMIT_SHA}
     - mkdir -p build
     - pushd build
+    - if [[ $CXX = clang++ ]]; then export CXXFLAGS="$CXXFLAGS -Wno-sign-conversion"; fi
     - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
@@ -121,7 +122,7 @@ Release Clang Ubuntu:
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "ubuntu"
   extends: .build
- 
+
 Debug GCC Rawhide:
   variables:
     CC: "gcc"

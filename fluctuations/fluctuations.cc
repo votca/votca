@@ -52,7 +52,9 @@ class CsgFluctuations : public CsgApplication {
         "refmol",
         boost::program_options::value<string>(&_refmol)->default_value(""),
         "Reference molecule")(
-        "nbin", boost::program_options::value<int>(&_nbins)->default_value(100),
+        "nbin",
+        boost::program_options::value<votca::Index>(&_nbins)->default_value(
+            100),
         "Number of bins")(
         "geometry", boost::program_options::value<string>(),
         "(sphere|x|y|z) Take radial or x, y, z slabs from rmin to rmax")(
@@ -77,7 +79,7 @@ class CsgFluctuations : public CsgApplication {
     _refmol = OptionsMap()["refmol"].as<string>();
     _rmin = OptionsMap()["rmin"].as<double>();
     _rmax = OptionsMap()["rmax"].as<double>();
-    _nbins = OptionsMap()["nbin"].as<int>();
+    _nbins = OptionsMap()["nbin"].as<votca::Index>();
     _outfilename = OptionsMap()["outfile"].as<string>();
     _geometryinput = OptionsMap()["geometry"].as<string>();
     _nframes = 0;
@@ -132,7 +134,7 @@ class CsgFluctuations : public CsgApplication {
 
  protected:
   // number of particles in dV
-  int _nbins;
+  votca::Index _nbins;
   Eigen::VectorXd _N_avg;
   // sqare
   Eigen::VectorXd _N_sq_avg;
@@ -141,12 +143,12 @@ class CsgFluctuations : public CsgApplication {
   double _rmax;
   double _rmin;
   Eigen::Vector3d _ref;
-  int _nframes;
+  votca::Index _nframes;
   string _outfilename;
   ofstream _outfile;
   string _geometryinput;
   bool _do_spherical;
-  int _dim;
+  votca::Index _dim;
 };
 
 int main(int argc, char **argv) {
@@ -203,12 +205,12 @@ void CsgFluctuations::EndEvaluate() {
   cout << "Writing results to " << _outfilename << endl;
   _outfile << "# radius number_fluct avg_number" << endl;
 
-  for (int i = 0; i < _nbins; i++) {
-    _N_avg[i] /= _nframes;
-    _N_sq_avg[i] /= _nframes;
+  for (votca::Index i = 0; i < _nbins; i++) {
+    _N_avg[i] /= (double)_nframes;
+    _N_sq_avg[i] /= (double)_nframes;
   }
-  for (int i = 0; i < _nbins; i++) {
-    _outfile << _rmin + i * (_rmax - _rmin) / _nbins << " ";
+  for (votca::Index i = 0; i < _nbins; i++) {
+    _outfile << _rmin + (double)i * (_rmax - _rmin) / (double)_nbins << " ";
     _outfile << (_N_sq_avg[i] - _N_avg[i] * _N_avg[i]) / _N_avg[i]
              << " ";  // fluctuation
     _outfile << _N_avg[i] << endl;
