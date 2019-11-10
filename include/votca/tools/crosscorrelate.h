@@ -21,12 +21,14 @@
 #include "datacollection.h"
 #include <iostream>
 #include <vector>
+#include <votca/tools/eigen.h>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
 
 /**
-    \brief class to calculate cross correlkations and autocorrelations
+    \brief class to calculate cross correlations and autocorrelations
 
     This class is relatively outdated and only used in csg_boltzmann!
 
@@ -47,7 +49,7 @@ class CrossCorrelate {
 
 inline std::ostream& operator<<(std::ostream& out, CrossCorrelate& c) {
   std::vector<double>& data = c.getData();
-  for (size_t i = 0; i < data.size(); i++) {
+  for (Index i = 0; i < Index(data.size()); i++) {
     out << i << " " << c.getData()[i] << std::endl;
   }
   return out;

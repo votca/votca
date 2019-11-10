@@ -107,6 +107,8 @@
     <logicalFolder name="f2" displayName="Tests" projectFiles="true">
       <itemPath>../../src/tests/test_akimaspline.cc</itemPath>
       <itemPath>../../src/tests/test_constants.cc</itemPath>
+      <itemPath>../../src/tests/test_correlate.cc</itemPath>
+      <itemPath>../../src/tests/test_crosscorrelate.cc</itemPath>
       <itemPath>../../src/tests/test_cubicspline.cc</itemPath>
       <itemPath>../../src/tests/test_datacollection.cc</itemPath>
       <itemPath>../../src/tests/test_edge_base.cc</itemPath>
@@ -497,14 +499,19 @@
       </item>
       <item path="../../src/libtools/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/tests/test_akimaspline.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
       <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_correlate.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_crosscorrelate.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_cubicspline.cc"
             ex="false"
@@ -958,6 +965,13 @@
       </item>
       <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_correlate.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_crosscorrelate.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_cubicspline.cc"
             ex="false"
             tool="1"
@@ -1409,6 +1423,13 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_correlate.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_crosscorrelate.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_cubicspline.cc"
             ex="false"
