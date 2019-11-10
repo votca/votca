@@ -23,10 +23,8 @@ namespace votca {
 namespace csg {
 
 void BondedStatistics::BeginCG(Topology *top, Topology *) {
-  InteractionContainer &ic = top->BondedInteractions();
-
   _bonded_values.clear();
-  for (auto &interaction : ic) {
+  for (auto &interaction : top->BondedInteractions()) {
     _bonded_values.CreateArray(interaction->getName());
   }
 }
@@ -37,7 +35,7 @@ void BondedStatistics::EvalConfiguration(Topology *conf, Topology *) {
   InteractionContainer &ic = conf->BondedInteractions();
   InteractionContainer::iterator ia;
 
-  DataCollection<double>::container::iterator is;
+  DataCollection<double>::iterator is;
   for (ia = ic.begin(), is = _bonded_values.begin(); ia != ic.end();
        ++ia, ++is) {
     (*is)->push_back((*ia)->EvaluateVar(*conf));
