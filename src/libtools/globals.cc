@@ -24,7 +24,7 @@ bool globals::verbose = false;
 std::string globals::url = "http://www.votca.org";
 std::string globals::email = "devs@votca.org";
 
-#if defined(MKL)
+#ifdef MKL_FOUND
 bool globals::VOTCA_MKL = true;
 #else
 bool globals::VOTCA_MKL = false;

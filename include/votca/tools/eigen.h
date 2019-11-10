@@ -22,12 +22,12 @@
 
 #include <votca/tools/votca_config.h>
 
-#if defined(MKL)
+#ifdef MKL_FOUND
 #include <mkl.h>
 #define EIGEN_USE_MKL_ALL
 #endif
 
-#ifndef NOFFTW
+#ifdef FFTW3_FOUND
 #define EIGEN_FFTW_DEFAULT
 #endif
 

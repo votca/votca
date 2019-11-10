@@ -62,7 +62,7 @@ Eigen::VectorXd linalg_constrained_qrsolve(const Eigen::MatrixXd &A,
 EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, Index nmax) {
 
   EigenSystem result;
-#if defined(MKL)
+#ifdef MKL_FOUND
 
   Index n = A.rows();
   std::vector<MKL_INT> ifail(n);
