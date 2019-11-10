@@ -73,11 +73,11 @@ class Elements {
   double getVdWMK(std::string name);
 
   /// Return the Nuclear charges of each atom. H - 1, He - 2, Na - 3 etc...
-  double getNucCrg(std::string name);
+  Index getNucCrg(std::string name);
 
   /// Similar to the Nuclear charges but returns in integer form represents
   /// the id of the atom in the periodic table, the id starts at 1
-  int getEleNum(std::string name);
+  Index getEleNum(std::string name);
 
   /// Returns the mass of each atom in a.u.
   double getMass(std::string name);
@@ -93,7 +93,7 @@ class Elements {
 
   /// Provided the element number returns the symbol for the element name
   /// (1) = "H", (2) = "He", ...
-  std::string getEleName(int elenum);
+  std::string getEleName(Index elenum);
 
   /// Provided the full element name returns the element symbol
   /// "Hydrogen" = "H", "HELIUM" = "He",...
@@ -131,11 +131,11 @@ class Elements {
 
   std::map<std::string, double> _VdWChelpG;
   std::map<std::string, double> _VdWMK;
-  std::map<std::string, double> _NucCrg;
+  std::map<std::string, Index> _NucCrg;
   std::map<std::string, double> _CovRad;
   std::map<std::string, double> _Mass;
-  std::map<std::string, int> _EleNum;
-  std::map<int, std::string> _EleName;
+  std::map<std::string, Index> _EleNum;
+  std::map<Index, std::string> _EleName;
 
   std::map<std::string, double> _ElPolarizability;
 

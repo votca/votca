@@ -75,7 +75,7 @@ class Calculator {
    * @param nThreads number of threads running this calculator
    *
    */
-  void setnThreads(unsigned int nThreads) {
+  void setnThreads(Index nThreads) {
     _nThreads = nThreads;
     _maverick = (_nThreads == 1) ? true : false;
   }
@@ -95,7 +95,7 @@ class Calculator {
   void UpdateWithDefaults(Property &options, std::string package = "tools");
 
  protected:
-  unsigned int _nThreads;
+  Index _nThreads;
   bool _maverick;
 
   void AddDefaults(Property &p, const Property &defaults);
@@ -129,7 +129,7 @@ inline void Calculator::UpdateWithDefaults(Property &options,
 
   // output calculator options
   std::string indent("          ");
-  int level = 1;
+  Index level = 1;
   votca::tools::PropertyIOManipulator IndentedText(PropertyIOManipulator::TXT,
                                                    level, indent);
   if (tools::globals::verbose) {

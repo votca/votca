@@ -23,23 +23,24 @@
 #include <exception>
 #include <memory>
 #include <vector>
+#include <votca/tools/types.h>
 
 using namespace std;
 using namespace votca::tools;
 
 class ThreadTest : public Thread {
  private:
-  long factorial_;
-  long sum_;
+  votca::Index factorial_;
+  votca::Index sum_;
 
  public:
-  long getFactorial() const { return sum_; }
-  void setFactorial(long factorial) { factorial_ = factorial; }
+  votca::Index getFactorial() const { return sum_; }
+  void setFactorial(votca::Index factorial) { factorial_ = factorial; }
 
  protected:
   void Run(void) override {
     sum_ = 1;
-    for (long val = 2; val <= factorial_; ++val) {
+    for (votca::Index val = 2; val <= factorial_; ++val) {
       sum_ *= val;
     }
   }
@@ -62,23 +63,23 @@ BOOST_AUTO_TEST_CASE(multiple_start_to_finish_test) {
 
   vector<shared_ptr<ThreadTest>> threads;
 
-  int numberThreads = 6;
+  votca::Index numberThreads = 6;
 
   // Placing threads in a vector and initializing them
-  for (int count = 0; count < numberThreads; ++count) {
-    int factorial_value = count + 1;
+  for (votca::Index count = 0; count < numberThreads; ++count) {
+    votca::Index factorial_value = count + 1;
     auto threadtest = make_shared<ThreadTest>();
     threadtest->setFactorial(factorial_value);
     threads.push_back(threadtest);
   }
 
   // Running the threads
-  for (int count = 0; count < numberThreads; ++count) {
+  for (votca::Index count = 0; count < numberThreads; ++count) {
     threads.at(count)->Start();
   }
 
   // Wait until each of the threads is done
-  for (int count = (numberThreads - 1); count >= 0; --count) {
+  for (votca::Index count = (numberThreads - 1); count >= 0; --count) {
     threads.at(count)->WaitDone();
   }
 

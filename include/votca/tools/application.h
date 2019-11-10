@@ -140,7 +140,7 @@ class Application {
    *
    * @param calculator_name name of a calculator
    * @param help_path path in VOTCASHARE were xml file with help is stored
-   * @param helptype long or short (with options) help
+   * @param helptype Index or short (with options) help
    */
   void PrintDescription(std::ostream &out, const std::string &calculator_name,
                         const std::string help_path, HelpType helptype);

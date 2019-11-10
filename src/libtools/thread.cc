@@ -18,6 +18,7 @@
 #include "../../include/votca/tools/thread.h"
 #include "../../include/votca/tools/lexical_cast.h"
 #include <stdexcept>
+#include <votca/tools/types.h>
 
 using namespace std;
 
@@ -51,7 +52,7 @@ void Thread::Start() {
   pthread_attr_setdetachstate(&_attr, PTHREAD_CREATE_JOINABLE);
   _finished = false;
 
-  int rc =
+  Index rc =
       pthread_create(&_thread, &_attr, runwrapper, static_cast<void *>(this));
   if (rc) {
     throw std::runtime_error("ERROR; return code from pthread_create() is " +
@@ -61,7 +62,7 @@ void Thread::Start() {
 
 void Thread::WaitDone() {
   void *status;
-  int rc = pthread_join(_thread, &status);
+  Index rc = pthread_join(_thread, &status);
   if (rc) {
     throw std::runtime_error("ERROR; return code from pthread_join() is " +
                              boost::lexical_cast<std::string>(rc));

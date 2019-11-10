@@ -19,6 +19,7 @@
 #define __VOTCA_TOOLS_SPLINE_H
 
 #include <votca/tools/eigen.h>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
@@ -33,7 +34,7 @@ namespace tools {
 
 class Spline {
  public:
-  Spline() : _boundaries(splineNormal) {}
+  Spline() = default;
 
   virtual ~Spline() = default;
 
@@ -84,7 +85,7 @@ class Spline {
    * \brief Set the boundary type of the spline
    * \param boundary of type int
    */
-  void setBCInt(int bc) {
+  void setBCInt(Index bc) {
     switch (bc) {
       case 0:
         _boundaries = splineNormal;
@@ -131,7 +132,7 @@ class Spline {
    * \param value r
    * \return interval index
    */
-  long int getInterval(double r);
+  Index getInterval(double r);
 
   /**
    * \brief Generate the grid for fitting from "min" to "max" in steps of "h"
@@ -140,7 +141,7 @@ class Spline {
    * \param step "h"
    * \return number of grid values in the interval
    */
-  long int GenerateGrid(double min, double max, double h);
+  Index GenerateGrid(double min, double max, double h);
 
   /**
    * \brief Get the grid array x
@@ -163,7 +164,7 @@ class Spline {
   // const Eigen::VectorXd &getSplineF2() const { return _f; }
 
  protected:
-  eBoundary _boundaries;
+  eBoundary _boundaries = eBoundary::splineNormal;
   // the grid points
   Eigen::VectorXd _r;
 };

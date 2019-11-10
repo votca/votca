@@ -65,12 +65,12 @@ class LinSpline : public Spline {
 };
 
 inline double LinSpline::Calculate(double r) {
-  long int interval = getInterval(r);
+  Index interval = getInterval(r);
   return a(interval) * r + b(interval);
 }
 
 inline double LinSpline::CalculateDerivative(double r) {
-  long int interval = getInterval(r);
+  Index interval = getInterval(r);
   return a(interval);
 }
 

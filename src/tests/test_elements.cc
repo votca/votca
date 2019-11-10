@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(constructors_test) { Elements ele; }
 BOOST_AUTO_TEST_CASE(accessors_test) {
   Elements ele;
   BOOST_CHECK_EQUAL(ele.getVdWChelpG("H"), 1.45);
-  BOOST_CHECK_THROW(ele.getVdWChelpG("Blah"), invalid_argument);
+  BOOST_CHECK_THROW(ele.getVdWChelpG("Blah"), runtime_error);
 
   BOOST_CHECK_EQUAL(ele.getMass("K"), 39.098);
   BOOST_CHECK_EQUAL(ele.getEleNum("Li"), 3);
@@ -44,13 +44,13 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK_EQUAL(ele.getEleShort("MAGNESIUM"), "Mg");
   BOOST_CHECK_EQUAL(ele.getEleFull("Ge"), "GERMANIUM");
   BOOST_CHECK_EQUAL(ele.getVdWMK("F"), 1.35);
-  BOOST_CHECK_THROW(ele.getVdWMK("Pb"), invalid_argument);
+  BOOST_CHECK_THROW(ele.getVdWMK("Pb"), runtime_error);
   BOOST_CHECK_CLOSE(ele.getCovRad("Cl", "ang"), 1.02, 1e-3);
   BOOST_CHECK_CLOSE(ele.getCovRad("Cl", "nm"), 0.102, 1e-3);
-  BOOST_CHECK_THROW(ele.getCovRad("Cl", "Blah"), invalid_argument);
+  BOOST_CHECK_THROW(ele.getCovRad("Cl", "Blah"), runtime_error);
 
   BOOST_CHECK_EQUAL(ele.getPolarizability("F"), 0.440e-3);
-  BOOST_CHECK_THROW(ele.getPolarizability("Pb"), invalid_argument);
+  BOOST_CHECK_THROW(ele.getPolarizability("Pb"), runtime_error);
 
   BOOST_CHECK(ele.isMassAssociatedWithElement(12.01, 0.01));
   BOOST_CHECK(!ele.isMassAssociatedWithElement(12.51, 0.01));

@@ -37,7 +37,7 @@ namespace tools {
  *      HistogramNew hn;
  *      double min_value = 0.0;
  *      double max_value = 5.0;
- *      int number_bins  = 6;
+ *      Index number_bins  = 6;
  *      hn.Initialize(min_value, max_value, number_bins);
  *
  *  This would produce a histogram with bins centered at the positions shown.
@@ -80,7 +80,7 @@ class HistogramNew {
    * @param max upper bound of interval
    * @param nbins number of bins
    */
-  void Initialize(double min, double max, int nbins);
+  void Initialize(double min, double max, Index nbins);
 
   /**
    * \brief process a data point
@@ -112,7 +112,7 @@ class HistogramNew {
    * \brief Get number of grid points
    * \return number of grid poitns
    */
-  int getNBins() const { return _nbins; }
+  Index getNBins() const { return _nbins; }
 
   /**
    * \brief Get the count of the bin with the fewest counts
@@ -130,7 +130,7 @@ class HistogramNew {
    * @param[in] bin - pass in the index of the bin
    * \return pair with upper and lower bounds of the interval of the bin
    */
-  std::pair<double, double> getInterval(int bin) const;
+  std::pair<double, double> getInterval(Index bin) const;
 
   /**
    * \brief get the grid of histogram
@@ -166,7 +166,7 @@ class HistogramNew {
   double _max = 0;
   double _step = 0;
   bool _periodic = false;
-  int _nbins = 100;
+  Index _nbins = 100;
   Table _data;
 };
 

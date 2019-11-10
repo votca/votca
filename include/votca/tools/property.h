@@ -29,6 +29,7 @@
 #include <stdexcept>
 #include <stdlib.h>
 #include <string>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
@@ -137,7 +138,7 @@ class Property {
    * \brief return value as type
    *
    * returns the value after type conversion, e.g.
-   * p.as<int>() returns an integer
+   * p.as<Index>() returns an integer
    */
   template <typename T>
   T as() const;
@@ -169,13 +170,13 @@ class Property {
   iterator end() { return _properties.end(); }
   const_iterator end() const { return _properties.end(); }
   /// \brief number of child properties
-  std::vector<Property>::size_type size() const { return _properties.size(); }
+  Index size() const { return Index(_properties.size()); }
 
   /**
    * \brief return attribute as type
    *
    * returns an attribute after type conversion, e.g.
-   * p.getAttribute<int>() returns an integer
+   * p.getAttribute<Index>() returns an integer
    */
   template <typename T>
   T getAttribute(const std::string &attribute) const;
@@ -219,7 +220,7 @@ class Property {
    * \brief return attribute as type
    *
    * returns an attribute after type conversion, e.g.
-   * p.getAttribute<int>() returns an integer
+   * p.getAttribute<Index>() returns an integer
    */
   template <typename T>
   T getAttribute(AttributeIterator it);
@@ -229,10 +230,10 @@ class Property {
 
   void LoadFromXML(std::string filename);
 
-  static int getIOindex() { return IOindex; };
+  static Index getIOindex() { return IOindex; };
 
  private:
-  std::map<std::string, long int> _map;
+  std::map<std::string, Index> _map;
   std::map<std::string, std::string> _attributes;
   std::vector<Property> _properties;
 
@@ -240,7 +241,7 @@ class Property {
   std::string _value = "";
   std::string _path = "";
 
-  static const int IOindex;
+  static const Index IOindex;
 };
 
 inline Property &Property::set(const std::string &key,
@@ -257,7 +258,7 @@ inline Property &Property::add(const std::string &key,
     path = path + ".";
   }
   _properties.push_back(Property(key, value, path + _name));
-  _map[key] = _properties.size() - 1;
+  _map[key] = Index(_properties.size()) - 1;
   return _properties.back();
 }
 
@@ -319,7 +320,7 @@ inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(
       possibleReturns.end()) {
     std::stringstream s;
     s << "Allowed options are: ";
-    for (unsigned i = 0; i < possibleReturns.size(); ++i) {
+    for (Index i = 0; i < Index(possibleReturns.size()); ++i) {
       s << possibleReturns[i] << " ";
     }
     s << std::endl;
@@ -341,12 +342,7 @@ inline Eigen::VectorXd Property::as<Eigen::VectorXd>() const {
   std::vector<double> tmp;
   Tokenizer tok(as<std::string>(), " ,");
   tok.ConvertToVector<double>(tmp);
-  Eigen::VectorXd result;
-  result.resize(tmp.size());
-  for (int i = 0; i < result.size(); i++) {
-    result(i) = tmp[i];
-  }
-  return result;
+  return Eigen::Map<Eigen::VectorXd>(tmp.data(), tmp.size());
 }
 
 template <>
@@ -355,7 +351,7 @@ inline Eigen::Vector3d Property::as<Eigen::Vector3d>() const {
   Tokenizer tok(as<std::string>(), " ,");
   tok.ConvertToVector<double>(tmp);
   Eigen::Vector3d result;
-  if (int(tmp.size()) != result.size()) {
+  if (Index(tmp.size()) != result.size()) {
     throw std::runtime_error("Vector has " +
                              boost::lexical_cast<std::string>(tmp.size()) +
                              " instead of three entries");
@@ -365,19 +361,10 @@ inline Eigen::Vector3d Property::as<Eigen::Vector3d>() const {
 }
 
 template <>
-inline std::vector<unsigned int> Property::as<std::vector<unsigned int> >()
-    const {
-  std::vector<unsigned int> tmp;
+inline std::vector<Index> Property::as<std::vector<Index> >() const {
+  std::vector<Index> tmp;
   Tokenizer tok(as<std::string>(), " ,");
-  tok.ConvertToVector<unsigned int>(tmp);
-  return tmp;
-}
-
-template <>
-inline std::vector<int> Property::as<std::vector<int> >() const {
-  std::vector<int> tmp;
-  Tokenizer tok(as<std::string>(), " ,\n\t");
-  tok.ConvertToVector<int>(tmp);
+  tok.ConvertToVector<Index>(tmp);
   return tmp;
 }
 

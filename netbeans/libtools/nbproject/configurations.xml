@@ -497,6 +497,8 @@
       </item>
       <item path="../../src/libtools/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_constants.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_akimaspline.cc"
             ex="false"
             tool="1"

@@ -53,14 +53,14 @@ class Histogram {
   /// return the maximum value
   double getMax() const { return _max; }
   /// return the number of grid points
-  double getN() const { return _options._n; }
+  Index getN() const { return _options._n; }
   std::vector<double> &getPdf() { return _pdf; }
   double getInterval() const { return _interval; }
 
   void Normalize(void);
 
   struct options_t {
-    int _n;
+    Index _n;
     bool _auto_interval;
     bool _extend_interval;
     double _min, _max;
@@ -89,7 +89,7 @@ class Histogram {
 };
 
 inline std::ostream &operator<<(std::ostream &out, Histogram &h) {
-  for (int i = 0; i < h.getN(); i++) {
+  for (Index i = 0; i < h.getN(); i++) {
     out << h.getMin() + h.getInterval() * ((double)i + 0.0) << " "
         << h.getPdf()[i] << std::endl;
   }

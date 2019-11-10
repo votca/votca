@@ -30,7 +30,7 @@ namespace tools {
 using namespace boost;
 using namespace std;
 
-void Table::resize(long int N) {
+void Table::resize(Index N) {
   _x.conservativeResize(N);
   _y.conservativeResize(N);
   _flags.resize(N);
@@ -90,7 +90,7 @@ istream &operator>>(istream &in, Table &t) {
   size_t N = 0;
   bool bHasN = false;
   string line;
-  long int line_number = 0;
+  Index line_number = 0;
   t.clear();
 
   // read till the first data line
@@ -115,7 +115,7 @@ istream &operator>>(istream &in, Table &t) {
 
     // if first line is only 1 token, it's the size
     if (tokens.size() == 1) {
-      N = lexical_cast<long int>(tokens[0], conversion_error);
+      N = lexical_cast<Index>(tokens[0], conversion_error);
       bHasN = true;
     } else if (tokens.size() == 2) {
       // it's the first data line with 2 or 3 entries
@@ -177,19 +177,28 @@ istream &operator>>(istream &in, Table &t) {
 }
 
 void Table::GenerateGridSpacing(double min, double max, double spacing) {
-  long int n = (long int)floor((max - min) / spacing + 1.000000001);
-  resize(n);
-  long int i = 0;
-  for (double x = min; i < n; x += spacing, ++i) {
-    _x[i] = x;
+  Index vec_size = (Index)((max - min) / spacing + 1.00000001);
+  resize(vec_size);
+  int i;
+
+  double r_init;
+
+  for (r_init = min, i = 0; i < vec_size - 1; r_init += spacing) {
+    _x[i++] = r_init;
   }
+  _x[i] = max;
 }
 
-void Table::Smooth(long int Nsmooth) {
-  while (Nsmooth-- > 0) {
-    for (long int i = 1; i < size() - 1; ++i) {
-      _y[i] = 0.25 * (_y[i - 1] + 2 * _y[i] + _y[i + 1]);
-    }
+void Table::Smooth(Index Nsmooth) {
+
+  Index n_2 = size() - 2;
+  if (n_2 < 0) {
+    throw std::runtime_error(
+        "Smoothing only works for arrays of size 3 and larger");
+  }
+  for (Index i = 0; i < Nsmooth; i++) {
+    _y.segment(1, n_2) =
+        0.25 * (_y.head(n_2) + 2 * _y.segment(1, n_2) + _y.tail(n_2));
   }
 }
 

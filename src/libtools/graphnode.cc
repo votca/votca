@@ -38,17 +38,17 @@ using namespace boost;
 ///////////////////////////////////////////////////////////
 /// Converts a double into a string with max number of significant
 /// figures indicated by sf
-string sig_fig_(double val, int sf) {
-  return ([val](int number_of_sig_figs) -> string {
+string sig_fig_(double val, Index sf) {
+  return ([val](Index number_of_sig_figs) -> string {
     stringstream lStream;
-    lStream << setprecision(number_of_sig_figs) << val;
+    lStream << setprecision(int(number_of_sig_figs)) << val;
     return lStream.str();
   })(sf);
 }
 
 /// Turns the map of ints into a string that is sorted alphabetically
 /// by the keys
-string getIntStringId_(const unordered_map<string, int> int_vals) {
+string getIntStringId_(const unordered_map<string, Index> int_vals) {
   vector<string> keys;
   // Grab integer keys sort alphabetically and store in string_id
   string int_string_id;
@@ -115,7 +115,7 @@ void GraphNode::initStringId_() {
 ///////////////////////////////////////////////////////////
 // Public Functions
 ///////////////////////////////////////////////////////////
-GraphNode::GraphNode(const unordered_map<string, int> int_vals,
+GraphNode::GraphNode(const unordered_map<string, Index> int_vals,
                      const unordered_map<string, double> double_vals,
                      const unordered_map<string, string> str_vals) {
   int_vals_ = int_vals;
@@ -124,7 +124,7 @@ GraphNode::GraphNode(const unordered_map<string, int> int_vals,
   initStringId_();
 }
 
-void GraphNode::setInt(const unordered_map<string, int> int_vals) {
+void GraphNode::setInt(const unordered_map<string, Index> int_vals) {
   int_vals_ = int_vals;
   initStringId_();
 }
@@ -139,7 +139,7 @@ void GraphNode::setStr(const unordered_map<string, string> str_vals) {
   initStringId_();
 }
 
-int GraphNode::getInt(const string str) {
+Index GraphNode::getInt(const string str) {
   if (int_vals_.count(str) == 0) {
     throw invalid_argument(
         "GraphNode does not "

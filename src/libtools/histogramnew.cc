@@ -24,9 +24,9 @@ namespace tools {
 
 void HistogramNew::Initialize_() {
   if (_periodic) {
-    _step = (_max - _min) / (_nbins);
+    _step = (_max - _min) / double(_nbins);
   } else {
-    _step = (_max - _min) / (_nbins - 1.0);
+    _step = (_max - _min) / (double(_nbins) - 1.0);
   }
 
   if (_nbins == 1) {
@@ -34,7 +34,7 @@ void HistogramNew::Initialize_() {
   }
   _data.resize(_nbins);
   double v = _min;
-  for (int i = 0; i < _nbins; v += _step, ++i) {
+  for (Index i = 0; i < _nbins; v += _step, ++i) {
     _data.x(i) = v;
   }
   _data.y() = Eigen::VectorXd::Zero(_nbins);
@@ -42,7 +42,7 @@ void HistogramNew::Initialize_() {
   _data.flags() = std::vector<char>(_nbins, 'i');
 }
 
-void HistogramNew::Initialize(double min, double max, int nbins) {
+void HistogramNew::Initialize(double min, double max, Index nbins) {
   _min = min;
   _max = max;
   _nbins = nbins;
@@ -51,7 +51,7 @@ void HistogramNew::Initialize(double min, double max, int nbins) {
 
 void HistogramNew::Process(const double &v, double scale) {
 
-  int i = (int)floor((v - _min) / _step + 0.5);
+  Index i = (Index)floor((v - _min) / _step + 0.5);
   if (i < 0 || i >= _nbins) {
     if (_periodic) {
       if (i < 0) {
@@ -70,7 +70,7 @@ double HistogramNew::getMinBinVal() const { return _data.getMinY(); }
 
 double HistogramNew::getMaxBinVal() const { return _data.getMaxY(); }
 
-pair<double, double> HistogramNew::getInterval(int bin) const {
+pair<double, double> HistogramNew::getInterval(Index bin) const {
   pair<double, double> bounds;
   double value = static_cast<double>(bin);
   bounds.first = value * _step + _min;
