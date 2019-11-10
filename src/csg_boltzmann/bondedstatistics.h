@@ -21,8 +21,6 @@
 #include <votca/csg/cgobserver.h>
 #include <votca/tools/datacollection.h>
 
-namespace TOOLS = votca::tools;
-
 namespace votca {
 namespace csg {
 /**
@@ -42,10 +40,10 @@ class BondedStatistics : public votca::csg::CGObserver {
   void EvalConfiguration(Topology *conf,
                          Topology *conf_atom = nullptr) override;
 
-  TOOLS::DataCollection<double> &BondedValues() { return _bonded_values; }
+  tools::DataCollection<double> &BondedValues() { return _bonded_values; }
 
  protected:
-  TOOLS::DataCollection<double> _bonded_values;
+  tools::DataCollection<double> _bonded_values;
 };
 }  // namespace csg
 }  // namespace votca
