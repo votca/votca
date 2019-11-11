@@ -397,6 +397,11 @@ Eigen::MatrixXd DavidsonSolver::gramschmidt(const Eigen::MatrixXd &A,
   Eigen::MatrixXd Q = A;
   for (Index j = nstart; j < A.cols(); ++j) {
     Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
+
+    Q.col(j).normalize();
+    // two is enough GS
+    // http://stoppels.blog/posts/orthogonalization-performance
+    Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * Q.col(j));
     if (Q.col(j).norm() <= 1E-12 * A.col(j).norm()) {
       _info = Eigen::ComputationInfo::NumericalIssue;
       throw std::runtime_error(

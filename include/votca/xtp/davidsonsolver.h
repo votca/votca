@@ -100,7 +100,7 @@ class DavidsonSolver {
         }
       }
 
-      // etend the subspace
+      // extend the subspace
       Index nupdate = extendProjection(rep, proj);
 
       // Print iteration data

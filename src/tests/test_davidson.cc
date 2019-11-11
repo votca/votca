@@ -46,7 +46,6 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix) {
   Eigen::MatrixXd A = init_matrix(size, eps);
   Logger log;
   DavidsonSolver DS(log);
-  DS.set_ortho("QR");
   DS.solve(A, neigen);
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
 
@@ -142,7 +141,6 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
   DavidsonSolver DS(log);
   DS.set_tolerance("normal");
   DS.set_size_update("safe");
-  DS.set_ortho("QR");
   DS.solve(Aop, neigen);
 
   Eigen::MatrixXd A = Aop.get_full_matrix();
@@ -364,7 +362,6 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   DavidsonSolver DS(log);
   DS.set_tolerance("normal");
   DS.set_size_update("max");
-  DS.set_ortho("QR");
   DS.set_matrix_type("HAM");
   DS.solve(Hop, neigen);
 
