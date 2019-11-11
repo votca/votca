@@ -171,7 +171,6 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free_large) {
   Aop.set_size(size);
 
   Logger log;
-  log.setReportLevel(logDEBUG);
   DavidsonSolver DS(log);
   DS.set_tolerance("normal");
   DS.set_size_update("safe");
