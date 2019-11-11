@@ -87,16 +87,16 @@ class DavidsonSolver {
         restart(rep, proj, size_initial_guess);
       } else {
         updateProjection(A, proj, iiter);
-      }
 
-      // get the ritz vectors
-      switch (this->_matrix_type) {
-        case MATRIX_TYPE::SYMM: {
-          rep = getRitz(proj);
-          break;
-        }
-        case MATRIX_TYPE::HAM: {
-          rep = getHarmonicRitz(A, proj);
+        // get the ritz vectors
+        switch (this->_matrix_type) {
+          case MATRIX_TYPE::SYMM: {
+            rep = getRitz(proj);
+            break;
+          }
+          case MATRIX_TYPE::HAM: {
+            rep = getHarmonicRitz(A, proj);
+          }
         }
       }
 
