@@ -151,14 +151,14 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
   // Should return type fused ring
 
   vector<BaseBead> fused_ring;
-  for (int index = 0; index < 6; ++index) {
-    int id = index + 13;
+  for (votca::Index index = 0; index < 6; ++index) {
+    votca::Index id = index + 13;
     TestBead temp;
     temp.setName("Carbon");
     temp.setId(id);
     fused_ring.push_back(temp);
   }
-  for (int index = 0; index < 6; ++index) {
+  for (votca::Index index = 0; index < 6; ++index) {
     beadstructure1.AddBead(&fused_ring.at(index));
   }
 
@@ -261,15 +261,15 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs) {
       breakIntoMotifs<list<BeadMotif>>(beadstructure1);
 
   // Single structure breaking it into simple motifs should lead to 5 singles
-  pair<unordered_map<int, BeadMotif>, BeadMotifConnector>
+  pair<unordered_map<votca::Index, BeadMotif>, BeadMotifConnector>
       simple_motifs_and_connector = breakIntoSimpleMotifs(*bead_motifs.begin());
 
-  unordered_map<int, BeadMotif> simple_motifs =
+  unordered_map<votca::Index, BeadMotif> simple_motifs =
       simple_motifs_and_connector.first;
   BOOST_CHECK_EQUAL(simple_motifs.size(), 5);
 
-  int single_type_count = 0;
-  for (pair<const int, BeadMotif> &id_and_motif : simple_motifs) {
+  votca::Index single_type_count = 0;
+  for (pair<const votca::Index, BeadMotif> &id_and_motif : simple_motifs) {
     if (id_and_motif.second.getType() == BeadMotif::MotifType::single_bead) {
       ++single_type_count;
     }
@@ -366,17 +366,17 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs2) {
   BOOST_CHECK_EQUAL(bead_motifs.size(), 1);
   // Single structure breaking it into simple motifs should lead to 2 structures
   // one of type line and the other of type loop
-  pair<unordered_map<int, BeadMotif>, BeadMotifConnector>
+  pair<unordered_map<votca::Index, BeadMotif>, BeadMotifConnector>
       simple_motifs_and_connector = breakIntoSimpleMotifs(*bead_motifs.begin());
 
-  unordered_map<int, BeadMotif> simple_motifs =
+  unordered_map<votca::Index, BeadMotif> simple_motifs =
       simple_motifs_and_connector.first;
 
   BOOST_CHECK_EQUAL(simple_motifs.size(), 2);
 
-  int line_type_count = 0;
-  int loop_type_count = 0;
-  for (pair<const int, BeadMotif> &id_and_motif : simple_motifs) {
+  votca::Index line_type_count = 0;
+  votca::Index loop_type_count = 0;
+  for (pair<const votca::Index, BeadMotif> &id_and_motif : simple_motifs) {
     if (id_and_motif.second.getType() == BeadMotif::MotifType::line) {
       ++line_type_count;
     }
@@ -507,19 +507,19 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs3) {
   BOOST_CHECK_EQUAL(bead_motifs.size(), 1);
   // Single structure breaking it into simple motifs should lead to 2 structures
   // one of type line and the other of type loop
-  pair<unordered_map<int, BeadMotif>, BeadMotifConnector>
+  pair<unordered_map<votca::Index, BeadMotif>, BeadMotifConnector>
       simple_motifs_and_connector = breakIntoSimpleMotifs(*bead_motifs.begin());
 
-  unordered_map<int, BeadMotif> simple_motifs =
+  unordered_map<votca::Index, BeadMotif> simple_motifs =
       simple_motifs_and_connector.first;
 
   BOOST_CHECK_EQUAL(simple_motifs.size(), 4);
 
   // Should have found two loops a single and a line
-  int line_count = 0;
-  int single_count = 0;
-  int loop_count = 0;
-  for (pair<const int, BeadMotif> &id_and_motif : simple_motifs) {
+  votca::Index line_count = 0;
+  votca::Index single_count = 0;
+  votca::Index loop_count = 0;
+  for (pair<const votca::Index, BeadMotif> &id_and_motif : simple_motifs) {
     if (id_and_motif.second.getType() == BeadMotif::MotifType::single_bead) {
       ++single_count;
     } else if (id_and_motif.second.getType() == BeadMotif::MotifType::line) {

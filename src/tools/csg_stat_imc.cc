@@ -172,7 +172,7 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
     group = "none";
   }
 
-  long int index = _interactions.size();
+  votca::Index index = Index(_interactions.size());
   auto success = _interactions.insert(std::make_pair(
       name, std::unique_ptr<interaction_t>(new interaction_t())));
   interaction_t *i = success.first->second.get();
@@ -195,7 +195,8 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
   i->_cut = p->ifExistsReturnElseReturnDefault<double>("cut", 0.37);
 
   // initialize the current and average histogram
-  int n = static_cast<int>((i->_max - i->_min) / i->_step + 1.000000001);
+  votca::Index n =
+      static_cast<votca::Index>((i->_max - i->_min) / i->_step + 1.000000001);
 
   i->_average.Initialize(i->_min, i->_max, n);
   if (i->_force) {
@@ -468,9 +469,10 @@ void Imc::InitializeGroups() {
 
     auto &interactions = grp->_interactions;
     // count number of bins needed in matrix
-    int n = std::accumulate(
-        interactions.begin(), interactions.end(), 0,
-        [](int j, interaction_t *i) { return j + i->_average.getNBins(); });
+    votca::Index n = std::accumulate(interactions.begin(), interactions.end(),
+                                     0, [](votca::Index j, interaction_t *i) {
+                                       return j + i->_average.getNBins();
+                                     });
 
     // handy access to matrix
     group_matrix &M = grp->_corr;
@@ -480,10 +482,10 @@ void Imc::InitializeGroups() {
 
     // now create references to the sub matrices
     // iterate over all possible cominations of pairs
-    for (int i = 0; i < int(interactions.size()); i++) {
-      int n1 = interactions[i]->_average.getNBins();
-      for (int j = i; j < int(interactions.size()); j++) {
-        int n2 = interactions[j]->_average.getNBins();
+    for (votca::Index i = 0; i < votca::Index(interactions.size()); i++) {
+      votca::Index n1 = interactions[i]->_average.getNBins();
+      for (votca::Index j = i; j < votca::Index(interactions.size()); j++) {
+        votca::Index n2 = interactions[j]->_average.getNBins();
         // create matrix proxy with sub-matrix
         pair_matrix corr = M.block(i, j, n1, n2);
         // add the pair
@@ -549,7 +551,7 @@ void Imc::WriteDist(const string &suffix) {
       if (!interaction->_threebody) {
         // force normalization
         // normalize by number of pairs found at a specific distance
-        for (unsigned int i = 0; i < force.y().size(); ++i) {
+        for (votca::Index i = 0; i < force.y().size(); ++i) {
           // check if any number of pairs has been found at this distance, then
           // normalize
           if (dist.y()[i] != 0) {
@@ -563,7 +565,7 @@ void Imc::WriteDist(const string &suffix) {
 
         // normalization is calculated using exact shell volume (difference of
         // spheres)
-        for (unsigned int i = 0; i < dist.y().size(); ++i) {
+        for (votca::Index i = 0; i < dist.y().size(); ++i) {
           double x1 = dist.x()[i] - 0.5 * interaction->_step;
           double x2 = x1 + interaction->_step;
           if (x1 < 0) {
@@ -614,7 +616,7 @@ void Imc::WriteIMCData(const string &suffix) {
     string grp_name = group.first;
 
     // number of total bins for all interactions in group is matrix dimension
-    long int n = grp->_corr.rows();
+    votca::Index n = grp->_corr.rows();
 
     // build full set of equations + copy some data to make
     // code better to read
@@ -629,7 +631,7 @@ void Imc::WriteIMCData(const string &suffix) {
 
     // copy all averages+r of group to one vector
     n = 0;
-    int begin = 1;
+    votca::Index begin = 1;
     for (interaction_t *ic : grp->_interactions) {
 
       // sub vector for dS
@@ -648,7 +650,7 @@ void Imc::WriteIMCData(const string &suffix) {
 
       // save size
       votca::tools::RangeParser rp;
-      int end = begin + ic->_average.getNBins() - 1;
+      votca::Index end = begin + ic->_average.getNBins() - 1;
       rp.Add(begin, end);
       ranges.push_back(std::pair<std::string, votca::tools::RangeParser>(
           ic->_p->get("name").as<string>(), rp));
@@ -670,10 +672,10 @@ void Imc::WriteIMCData(const string &suffix) {
       // make reference to <S_j>
       Eigen::VectorXd &b = i2->_average.data().y();
 
-      int i = pair._offset_i;
-      int j = pair._offset_j;
-      int n1 = i1->_average.getNBins();
-      int n2 = i2->_average.getNBins();
+      votca::Index i = pair._offset_i;
+      votca::Index j = pair._offset_j;
+      votca::Index n1 = i1->_average.getNBins();
+      votca::Index n2 = i2->_average.getNBins();
 
       pair_matrix M = gmc.block(i, j, n1, n2);
       M = -(M - a * b.transpose());
@@ -696,7 +698,7 @@ void Imc::CalcDeltaS(interaction_t *interaction,
   target.Load(name + ".dist.tgt");
 
   if (!interaction->_is_bonded) {
-    for (unsigned int i = 0; i < target.y().size(); ++i) {
+    for (votca::Index i = 0; i < target.y().size(); ++i) {
       double x1 = target.x()[i] - 0.5 * interaction->_step;
       double x2 = x1 + interaction->_step;
       if (x1 < 0) {
@@ -730,7 +732,7 @@ void Imc::WriteIMCBlock(const string &suffix) {
     list<interaction_t *>::iterator iter;
 
     // number of total bins for all interactions in group is matrix dimension
-    long int n = grp->_corr.rows();
+    votca::Index n = grp->_corr.rows();
 
     // build full set of equations + copy some data to make code better to read
     group_matrix gmc(grp->_corr);
@@ -738,8 +740,8 @@ void Imc::WriteIMCBlock(const string &suffix) {
     Eigen::VectorXd r(n);
     // the next two variables are to later extract the individual parts
     // from the whole data after solving equations
-    vector<int> sizes;     // sizes of the individual interactions
-    vector<string> names;  // names of the interactions
+    vector<votca::Index> sizes;  // sizes of the individual interactions
+    vector<string> names;        // names of the interactions
 
     // copy all averages+r of group to one vector
     n = 0;
@@ -774,7 +776,7 @@ void Imc::WriteIMCBlock(const string &suffix) {
       throw runtime_error(string("error, cannot open file ") + name_dS);
     }
 
-    for (int i = 0; i < dS.size(); ++i) {
+    for (votca::Index i = 0; i < dS.size(); ++i) {
       out_dS << r[i] << " " << dS[i] << endl;
     }
 
@@ -791,8 +793,8 @@ void Imc::WriteIMCBlock(const string &suffix) {
       throw runtime_error(string("error, cannot open file ") + name_cor);
     }
 
-    for (int i = 0; i < grp->_corr.rows(); ++i) {
-      for (int j = 0; j < grp->_corr.cols(); ++j) {
+    for (votca::Index i = 0; i < grp->_corr.rows(); ++i) {
+      for (votca::Index j = 0; j < grp->_corr.cols(); ++j) {
         out_cor << grp->_corr(i, j) << " ";
       }
       out_cor << endl;

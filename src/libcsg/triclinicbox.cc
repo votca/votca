@@ -32,15 +32,10 @@ namespace csg {
  */
 Eigen::Vector3d TriclinicBox::BCShortestConnection(
     const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const {
-  Eigen::Vector3d r_tp, r_dp, r_sp, r_ij;
-  Eigen::Vector3d a = _box.col(0);
-  Eigen::Vector3d b = _box.col(1);
-  Eigen::Vector3d c = _box.col(2);
-  r_tp = r_j - r_i;
-  r_dp = r_tp - c * round(r_tp.z() / c.z());
-  r_sp = r_dp - b * round(r_dp.y() / b.y());
-  r_ij = r_sp - a * round(r_sp.x() / a.x());
-  return r_ij;
+  Eigen::Vector3d r_tp = r_j - r_i;
+  Eigen::Vector3d r_dp = r_tp - _box.col(2) * std::round(r_tp.z() / _box(2, 2));
+  Eigen::Vector3d r_sp = r_dp - _box.col(1) * std::round(r_dp.y() / _box(1, 1));
+  return r_sp - _box.col(0) * std::round(r_sp.x() / _box(0, 0));
 }
 
 }  // namespace csg

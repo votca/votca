@@ -77,11 +77,11 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
 void DLPOLYTrajectoryWriter::Close() { _fl.close(); }
 
 void DLPOLYTrajectoryWriter::Write(Topology *conf) {
-  static int nstep = 1;
+  static Index nstep = 1;
   static double dstep = 0.0;
   const double scale = 10.0;  // nm -> A factor
-  int mavecs = 0;
-  int mpbct = 0;
+  Index mavecs = 0;
+  Index mpbct = 0;
   double energy = 0.0;
 
   if (conf->HasForce() && conf->HasVel()) {
@@ -103,7 +103,7 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
     _fl << setw(10) << mavecs << setw(10) << mpbct << setw(10)
         << conf->BeadCount() << setw(20) << energy << endl;
     Eigen::Matrix3d m = conf->getBox();
-    for (int i = 0; i < 3; i++) {
+    for (Index i = 0; i < 3; i++) {
       _fl << fixed << setprecision(10) << setw(20) << m(i, 0) * scale
           << setw(20) << m(i, 1) * scale << setw(20) << m(i, 2) * scale << endl;
     }
@@ -124,13 +124,13 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
         << endl;
 
     Eigen::Matrix3d m = conf->getBox();
-    for (int i = 0; i < 3; i++) {
+    for (Index i = 0; i < 3; i++) {
       _fl << setprecision(12) << setw(20) << m(i, 0) * scale << setw(20)
           << m(i, 1) * scale << setw(20) << m(i, 2) * scale << endl;
     }
   }
 
-  for (int i = 0; i < conf->BeadCount(); i++) {
+  for (Index i = 0; i < conf->BeadCount(); i++) {
     Bead *bead = conf->getBead(i);
 
     // AB: DL_POLY needs bead TYPE, not name!

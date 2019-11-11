@@ -36,13 +36,12 @@ BOOST_AUTO_TEST_CASE(test_bead_constructor) {
   Topology top;
 
   string bead_type_name = "C1";
-  votca::tools::byte_t symmetry = 1;
   string name = "dummy";
-  int resnr = 0;
+  votca::Index resnr = 0;
   double mass = 1.21;
   double charge = -0.87;
 
-  top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
+  top.CreateBead(Bead::spherical, name, bead_type_name, resnr, mass, charge);
 }
 
 BOOST_AUTO_TEST_CASE(test_bead_getters) {
@@ -50,21 +49,20 @@ BOOST_AUTO_TEST_CASE(test_bead_getters) {
   Topology top;
 
   string bead_type_name = "C1";
-
-  votca::tools::byte_t symmetry = 1;
   string name = "dummy";
-  int resnr = 0;
+  votca::Index resnr = 0;
   double mass = 1.21;
   double charge = -0.87;
 
-  Bead *b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
+  Bead *b = top.CreateBead(Bead::spherical, name, bead_type_name, resnr, mass,
+                           charge);
 
   BOOST_CHECK_CLOSE(b->getMass(), mass, 1e-5);
   BOOST_CHECK_CLOSE(b->getQ(), charge, 1e-5);
   BOOST_CHECK_EQUAL(b->getId(), 0);
   BOOST_CHECK_EQUAL(b->getName(), name);
   BOOST_CHECK_EQUAL(b->getResnr(), resnr);
-  BOOST_CHECK_EQUAL(b->getSymmetry(), symmetry);
+  BOOST_CHECK_EQUAL(b->getSymmetry(), Bead::spherical);
 }
 
 BOOST_AUTO_TEST_CASE(test_bead_setters) {
@@ -73,13 +71,13 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
 
   string bead_type_name = "C1";
 
-  votca::tools::byte_t symmetry = 1;
   string name = "dummy";
-  int resnr = 0;
+  votca::Index resnr = 0;
   double mass = 1.21;
   double charge = -0.87;
 
-  Bead *b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
+  Bead *b = top.CreateBead(Bead::spherical, name, bead_type_name, resnr, mass,
+                           charge);
 
   double newMass = 9.4;
   double newCharge = 2.6;

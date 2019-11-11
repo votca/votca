@@ -77,7 +77,7 @@ T breakIntoMotifs(BeadStructure<BaseBead> &beadstructure) {
  * separate structures 1 of type 'loop' and the other of type line.
  **/
 
-std::pair<std::unordered_map<int, BeadMotif>, BeadMotifConnector>
+std::pair<std::unordered_map<Index, BeadMotif>, BeadMotifConnector>
     breakIntoSimpleMotifs(BeadMotif beadmotif);
 
 }  // namespace csg

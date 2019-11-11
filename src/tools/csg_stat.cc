@@ -51,7 +51,7 @@ class CsgStatApp : public CsgApplication {
 
  public:
   Imc _imc;
-  int _block_length;
+  votca::Index _block_length;
   string _extension;
 };
 
@@ -72,7 +72,7 @@ void CsgStatApp::Initialize() {
                                         boost::program_options::value<string>(),
                                         "  options file for coarse graining")(
       "do-imc", "  write out additional Inverse Monte Carlo data")(
-      "block-length", boost::program_options::value<int>(),
+      "block-length", boost::program_options::value<votca::Index>(),
       "  write blocks of this length, the averages are cleared after every "
       "write")("ext",
                boost::program_options::value<string>(&_extension)
@@ -88,7 +88,7 @@ bool CsgStatApp::EvaluateOptions() {
   _imc.LoadOptions(OptionsMap()["options"].as<string>());
 
   if (OptionsMap().count("block-length")) {
-    _imc.BlockLength(OptionsMap()["block-length"].as<int>());
+    _imc.BlockLength(OptionsMap()["block-length"].as<votca::Index>());
   } else {
     _imc.BlockLength(0);
   }

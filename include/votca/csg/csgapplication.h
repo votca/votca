@@ -108,19 +108,19 @@ class CsgApplication : public tools::Application {
                                    Topology *top_ref = nullptr) = 0;
 
     /// \brief returns worker id
-    int getId() { return _id; }
+    Index getId() { return _id; }
 
    protected:
     CsgApplication *_app = nullptr;
     Topology _top, _top_cg;
     TopologyMap *_map = nullptr;
-    int _id = -1;
+    Index _id = -1;
 
     void Run(void) override;
 
     void setApplication(CsgApplication *app) { _app = app; }
 
-    void setId(int id) { _id = id; }
+    void setId(Index id) { _id = id; }
 
     friend class CsgApplication;
   };
@@ -151,9 +151,9 @@ class CsgApplication : public tools::Application {
   std::list<CGObserver *> _observers;
   bool _do_mapping;
   std::vector<Worker *> _myWorkers;
-  int _nframes;
+  Index _nframes;
   bool _is_first_frame;
-  int _nthreads;
+  Index _nthreads;
   tools::Mutex _nframesMutex;
   tools::Mutex _traj_readerMutex;
 

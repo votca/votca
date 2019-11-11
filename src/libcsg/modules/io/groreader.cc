@@ -66,13 +66,13 @@ bool GROReader::NextFrame(Topology &top) {
     return !_fl.eof();
   }
   getline(_fl, tmp);  // number atoms
-  int natoms = std::stoi(tmp);
+  Index natoms = std::stoi(tmp);
   if (!_topology && natoms != top.BeadCount()) {
     throw std::runtime_error(
         "number of beads in topology and trajectory differ");
   }
 
-  for (int i = 0; i < natoms; i++) {
+  for (Index i = 0; i < natoms; i++) {
     string line;
     getline(_fl, line);
     string resNum, resName, atName, x, y, z;
@@ -105,7 +105,7 @@ bool GROReader::NextFrame(Topology &top) {
 
     Bead *b;
     if (_topology) {
-      int resnr = boost::lexical_cast<int>(resNum);
+      Index resnr = boost::lexical_cast<Index>(resNum);
       if (resnr < 1) {
         throw std::runtime_error("Misformated gro file, resnr has to be > 0");
       }
@@ -128,7 +128,7 @@ bool GROReader::NextFrame(Topology &top) {
       }
 
       // res -1 as internal number starts with 0
-      b = top.CreateBead(1, atName, atName, resnr - 1, 1., 0.);
+      b = top.CreateBead(Bead::spherical, atName, atName, resnr - 1, 1., 0.);
     } else {
       b = top.getBead(i);
     }
@@ -153,7 +153,7 @@ bool GROReader::NextFrame(Topology &top) {
   Eigen::Matrix3d box;
   if (fields.size() == 3) {
     box = Eigen::Matrix3d::Zero();
-    for (int i = 0; i < 3; i++) {
+    for (Index i = 0; i < 3; i++) {
       box(i, i) = fields[i];
     }
   } else if (fields.size() == 9) {

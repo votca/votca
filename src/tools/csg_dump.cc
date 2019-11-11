@@ -61,8 +61,8 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *) {
     if (top->getBoxType() != BoundaryCondition::typeOpen) {
       cout << " Box matix:";
       Eigen::Matrix3d box = top->getBox();
-      for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
+      for (votca::Index i = 0; i < 3; i++) {
+        for (votca::Index j = 0; j < 3; j++) {
           cout << " " << box(i, j);
         }
         cout << endl << "           ";
@@ -70,7 +70,7 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *) {
     }
 
     cout << "\nList of residues:\n";
-    for (int i = 0; i < top->ResidueCount(); i++) {
+    for (votca::Index i = 0; i < top->ResidueCount(); i++) {
       cout << i << " name: " << top->getResidue(i)->getName()
            << " id: " << top->getResidue(i)->getId() << endl;
     }
@@ -79,8 +79,8 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *) {
     for (Molecule *mol : top->Molecules()) {
       cout << "molecule: " << mol->getId() + 1 << " " << mol->getName()
            << " beads: " << mol->BeadCount() << endl;
-      for (int i = 0; i < mol->BeadCount(); ++i) {
-        long int resnr = mol->getBead(i)->getResnr();
+      for (votca::Index i = 0; i < mol->BeadCount(); ++i) {
+        votca::Index resnr = mol->getBead(i)->getResnr();
 
         cout << mol->getBeadId(i) << " Name " << mol->getBeadName(i) << " Type "
              << mol->getBead(i)->getType() << " Mass "

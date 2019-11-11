@@ -24,7 +24,7 @@ namespace csg {
 
 using namespace std;
 
-long int BeadList::Generate(Topology &top, const string &select) {
+long BeadList::Generate(Topology &top, const string &select) {
   _topology = &top;
   bool selectByName = false;
   string pSelect;  // parsed selection string
@@ -51,10 +51,9 @@ long int BeadList::Generate(Topology &top, const string &select) {
   return size();
 }
 
-long int BeadList::GenerateInSphericalSubvolume(Topology &top,
-                                                const string &select,
-                                                Eigen::Vector3d ref,
-                                                double radius) {
+long BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
+                                            Eigen::Vector3d ref,
+                                            double radius) {
   _topology = &top;
   bool selectByName = false;
   string pSelect;  // parsed selection string

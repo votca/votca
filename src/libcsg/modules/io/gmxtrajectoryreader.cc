@@ -24,9 +24,7 @@
 namespace votca {
 namespace csg {
 
-using namespace std;
-
-bool GMXTrajectoryReader::Open(const string &file) {
+bool GMXTrajectoryReader::Open(const std::string &file) {
   _filename = file;
   return true;
 }
@@ -38,22 +36,22 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
   output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
   if (!read_first_frame(oenv, &_gmx_status, (char *)_filename.c_str(),
                         &_gmx_frame, TRX_READ_X | TRX_READ_V | TRX_READ_F)) {
-    throw std::runtime_error(string("cannot open ") + _filename);
+    throw std::runtime_error(std::string("cannot open ") + _filename);
   }
   output_env_done(oenv);
 
   Eigen::Matrix3d m;
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
+  for (Index i = 0; i < 3; i++) {
+    for (Index j = 0; j < 3; j++) {
       m(i, j) = _gmx_frame.box[j][i];
     }
   }
   conf.setBox(m);
   conf.setTime(_gmx_frame.time);
   conf.setStep(_gmx_frame.step);
-  cout << endl;
+  std::cout << std::endl;
 
-  if (_gmx_frame.natoms != (int)conf.Beads().size()) {
+  if (_gmx_frame.natoms != (Index)conf.Beads().size()) {
     throw std::runtime_error(
         "number of beads in trajectory do not match topology");
   }
@@ -61,7 +59,7 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
   // conf.HasPos(true);
   // conf.HasF(_gmx_frame.bF);
 
-  for (int i = 0; i < _gmx_frame.natoms; i++) {
+  for (Index i = 0; i < _gmx_frame.natoms; i++) {
     Eigen::Vector3d r = {_gmx_frame.x[i][XX], _gmx_frame.x[i][YY],
                          _gmx_frame.x[i][ZZ]};
     conf.getBead(i)->setPos(r);
@@ -88,8 +86,8 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf) {
   output_env_done(oenv);
 
   Eigen::Matrix3d m;
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
+  for (Index i = 0; i < 3; i++) {
+    for (Index j = 0; j < 3; j++) {
       m(i, j) = _gmx_frame.box[j][i];
     }
   }
@@ -99,7 +97,7 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf) {
 
   // conf.HasF(_gmx_frame.bF);
 
-  for (int i = 0; i < _gmx_frame.natoms; i++) {
+  for (Index i = 0; i < _gmx_frame.natoms; i++) {
     Eigen::Vector3d r = {_gmx_frame.x[i][XX], _gmx_frame.x[i][YY],
                          _gmx_frame.x[i][ZZ]};
     conf.getBead(i)->setPos(r);

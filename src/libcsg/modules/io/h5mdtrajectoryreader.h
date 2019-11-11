@@ -65,9 +65,9 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   /// Reads dataset that contains vectors.
   template <typename T1>
-  T1 *ReadVectorData(hid_t ds, hid_t ds_data_type, int row) {
+  T1 *ReadVectorData(hid_t ds, hid_t ds_data_type, Index row) {
     hsize_t offset[3];
-    offset[0] = row;
+    offset[0] = hsize_t(row);
     offset[1] = 0;
     offset[2] = 0;
     hsize_t chunk_rows[3];
@@ -91,7 +91,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   /// Reads dataset with scalar values.
   template <typename T1>
-  T1 *ReadScalarData(hid_t ds, hid_t ds_data_type, int row) {
+  T1 *ReadScalarData(hid_t ds, hid_t ds_data_type, Index row) {
     hsize_t offset[2];
     offset[0] = row;
     offset[1] = 0;
@@ -122,7 +122,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     }
   }
 
-  void ReadBox(hid_t ds, hid_t ds_data_type, int row,
+  void ReadBox(hid_t ds, hid_t ds_data_type, Index row,
                std::unique_ptr<double[]> &data_out);
 
   void CheckError(hid_t hid, std::string error_message) {
@@ -155,7 +155,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   hid_t atom_id_group_;
   hid_t edges_group_;
 
-  int rank_;
+  Index rank_;
 
   std::string fname_;
   bool first_frame_;
@@ -169,11 +169,11 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   bool file_opened_;
 
   // Current frame indicator.
-  int idx_frame_;
-  long int max_idx_frame_;
+  Index idx_frame_;
+  Index max_idx_frame_;
 
   // Number of particles. This is static among time.
-  long int N_particles_;
+  Index N_particles_;
   //
   int vec_components_;
 

@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   methane_found = false;
   water_found = false;
   bool structure3_found = false;
-  int structure2_count = 0;
+  votca::Index structure2_count = 0;
   for (auto structure : structures) {
     if (structure.isStructureEquivalent(beadstructure_methane)) {
       methane_found = true;

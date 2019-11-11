@@ -42,7 +42,7 @@ class Interaction;
 class Molecule : public TopologyItem {
  public:
   /// get the molecule ID
-  long int getId() const { return _id; }
+  Index getId() const { return _id; }
 
   /// get the name of the molecule
   const std::string &getName() const { return _name; }
@@ -53,18 +53,18 @@ class Molecule : public TopologyItem {
   /// Add a bead to the molecule
   void AddBead(Bead *bead, const std::string &name);
   /// get the id of a bead in the molecule
-  Bead *getBead(long int bead) { return _beads[bead]; }
-  long int getBeadId(int bead) { return _beads[bead]->getId(); }
-  long int getBeadIdByName(const std::string &name);
+  Bead *getBead(Index bead) { return _beads[bead]; }
+  Index getBeadId(Index bead) { return _beads[bead]->getId(); }
+  Index getBeadIdByName(const std::string &name);
 
   /// get the number of beads in the molecule
-  long int BeadCount() const { return _beads.size(); }
+  Index BeadCount() const { return _beads.size(); }
 
   const std::vector<Bead *> &Beads() const { return _beads; }
   std::vector<Bead *> &Beads() { return _beads; }
   /// find a bead by it's name
-  long int getBeadByName(const std::string &name);
-  std::string getBeadName(int bead) { return _bead_names[bead]; }
+  Index getBeadByName(const std::string &name);
+  std::string getBeadName(Index bead) { return _bead_names[bead]; }
 
   /// Add an interaction to the molecule
   void AddInteraction(Interaction *ic) { _interactions.push_back(ic); }
@@ -83,11 +83,11 @@ class Molecule : public TopologyItem {
 
  private:
   // maps a name to a bead id
-  std::map<std::string, long int> _beadmap;
+  std::map<std::string, Index> _beadmap;
   std::vector<Interaction *> _interactions;
 
   // id of the molecules
-  long int _id;
+  Index _id;
 
   // name of the molecule
   std::string _name;
@@ -98,14 +98,14 @@ class Molecule : public TopologyItem {
   void *_userdata;
 
   /// constructor
-  Molecule(Topology *parent, long int id, std::string name)
+  Molecule(Topology *parent, Index id, std::string name)
       : TopologyItem(parent), _id(id), _name(name) {}
 
   friend class Topology;
 };
 
-inline long int Molecule::getBeadIdByName(const std::string &name) {
-  long int i = getBeadByName(name);
+inline Index Molecule::getBeadIdByName(const std::string &name) {
+  Index i = getBeadByName(name);
   if (i < 0) {
     {
       return i;

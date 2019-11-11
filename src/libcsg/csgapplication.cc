@@ -62,9 +62,9 @@ void CsgApplication::Initialize() {
         "  atomistic trajectory file")(
         "begin", boost::program_options::value<double>()->default_value(0.0),
         "  skip frames before this time (only works for Gromacs files)")(
-        "first-frame", boost::program_options::value<int>()->default_value(0),
+        "first-frame", boost::program_options::value<Index>()->default_value(0),
         "  start with this frame")("nframes",
-                                   boost::program_options::value<int>(),
+                                   boost::program_options::value<Index>(),
                                    "  process the given number of frames");
   }
 
@@ -73,7 +73,7 @@ void CsgApplication::Initialize() {
      * TODO default value of 1 for nt is not smart
      */
     AddProgramOptions("Threading options")(
-        "nt", boost::program_options::value<int>()->default_value(1),
+        "nt", boost::program_options::value<Index>()->default_value(1),
         "  number of threads");
   }
 }
@@ -106,7 +106,7 @@ bool CsgApplication::EvaluateOptions() {
 
   /* check threading options */
   if (DoThreaded()) {
-    _nthreads = _op_vm["nt"].as<int>();
+    _nthreads = _op_vm["nt"].as<Index>();
     /* TODO
      * does the number of threads make sense?
      * which criteria should be used? smaller than system's cores?
@@ -131,7 +131,7 @@ void CsgApplication::ShowHelpText(std::ostream &out) {
 void CsgApplication::Worker::Run() {
   while (_app->ProcessData(this)) {
     if (_app->SynchronizeThreads()) {
-      int id = getId();
+      Index id = getId();
       _app->_threadsMutexesOut[id]->Lock();
       _app->MergeWorker(this);
       _app->_threadsMutexesOut[(id + 1) % _app->_nthreads]->Unlock();
@@ -141,7 +141,7 @@ void CsgApplication::Worker::Run() {
 
 bool CsgApplication::ProcessData(Worker *worker) {
 
-  int id;
+  Index id;
   id = worker->getId();
 
   if (SynchronizeThreads()) {
@@ -262,7 +262,7 @@ void CsgApplication::Run(void) {
   //////////////////////////////////////////////////
   if (DoTrajectory() && _op_vm.count("trj")) {
     double begin = 0;
-    int first_frame;
+    Index first_frame;
     bool has_begin = false;
 
     if (_op_vm.count("begin")) {
@@ -272,10 +272,10 @@ void CsgApplication::Run(void) {
 
     _nframes = -1;
     if (_op_vm.count("nframes")) {
-      _nframes = _op_vm["nframes"].as<int>();
+      _nframes = _op_vm["nframes"].as<Index>();
     }
 
-    first_frame = _op_vm["first-frame"].as<int>();
+    first_frame = _op_vm["first-frame"].as<Index>();
 
     // create reader for trajectory
     _traj_reader = TrjReaderFactory().Create(_op_vm["trj"].as<std::string>());
@@ -289,7 +289,7 @@ void CsgApplication::Run(void) {
     //////////////////////////////////////////////////
     // Create all the workers
     /////////////////verbose/////////////////////////////////
-    for (int thread = 1; thread < _nthreads && DoThreaded(); thread++) {
+    for (Index thread = 1; thread < _nthreads && DoThreaded(); thread++) {
       Worker *myWorker = ForkWorker();
       myWorker->setApplication(this);
       myWorker->setId(thread);

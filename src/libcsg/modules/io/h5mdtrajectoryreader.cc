@@ -56,7 +56,7 @@ bool H5MDTrajectoryReader::Open(const string &file) {
 
   hid_t at_version = H5Aopen(g_h5md, "version", H5P_DEFAULT);
   CheckError(at_version, "Unable to read version attribute.");
-  int version[2];
+  Index version[2];
   H5Aread(at_version, H5Aget_type(at_version), &version);
   if (version[0] != 1 || (version[0] == 1 && version[1] > 1)) {
     cout << "Found H5MD version: " << version[0] << "." << version[1] << endl;
@@ -115,7 +115,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   CheckError(g_box, "Unable to open " + box_gr_name + " group");
   hid_t at_box_dimension = H5Aopen(g_box, "dimension", H5P_DEFAULT);
   CheckError(at_box_dimension, "Unable to open dimension attribute.");
-  int dimension;
+  Index dimension;
   H5Aread(at_box_dimension, H5Aget_type(at_box_dimension), &dimension);
   if (dimension != 3) {
     throw ios_base::failure("Wrong dimension " +
@@ -242,7 +242,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   double *positions;
   double *forces = nullptr;
   double *velocities = nullptr;
-  int *ids = nullptr;
+  Index *ids = nullptr;
 
   try {
     positions = ReadVectorData<double>(ds_atom_position_, H5T_NATIVE_DOUBLE,
@@ -262,18 +262,18 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   }
 
   if (has_id_group_ != H5MDTrajectoryReader::NONE) {
-    ids = ReadScalarData<int>(ds_atom_id_, H5T_NATIVE_INT, idx_frame_);
+    ids = ReadScalarData<Index>(ds_atom_id_, H5T_NATIVE_INT, idx_frame_);
   }
 
   // Process atoms.
-  for (int at_idx = 0; at_idx < N_particles_; at_idx++) {
+  for (Index at_idx = 0; at_idx < N_particles_; at_idx++) {
     double x, y, z;
-    long int array_index = at_idx * vec_components_;
+    Index array_index = at_idx * vec_components_;
     x = positions[array_index];
     y = positions[array_index + 1];
     z = positions[array_index + 2];
     // Set atom id, or it is an index of a row in dataset or from id dataset.
-    int atom_id = at_idx;
+    Index atom_id = at_idx;
     if (has_id_group_ != H5MDTrajectoryReader::NONE) {
       if (ids[at_idx] == -1) {  // ignore values where id == -1
         continue;
@@ -322,7 +322,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   return true;
 }
 
-void H5MDTrajectoryReader::ReadBox(hid_t ds, hid_t ds_data_type, int row,
+void H5MDTrajectoryReader::ReadBox(hid_t ds, hid_t ds_data_type, Index row,
                                    unique_ptr<double[]> &data_out) {
   hsize_t offset[2];
   offset[0] = row;

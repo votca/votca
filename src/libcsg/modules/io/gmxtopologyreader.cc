@@ -35,12 +35,10 @@
 // by gmx
 #undef bool
 
-using namespace std;
-
 namespace votca {
 namespace csg {
 
-bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
+bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
   gmx_mtop_t mtop;
 
   int natoms;
@@ -64,17 +62,17 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
   for (size_t iblock = 0; iblock < nmolblock; ++iblock) {
     gmx_moltype_t *mol = &(mtop.moltype[mtop.molblock[iblock].type]);
 
-    string molname = *(mol->name);
+    std::string molname = *(mol->name);
 
-    long int res_offset = top.ResidueCount();
+    Index res_offset = top.ResidueCount();
 
     t_atoms *atoms = &(mol->atoms);
 
-    for (int i = 0; i < atoms->nres; i++) {
+    for (Index i = 0; i < atoms->nres; i++) {
       top.CreateResidue(*(atoms->resinfo[i].name));
     }
 
-    for (int imol = 0; imol < mtop.molblock[iblock].nmol; ++imol) {
+    for (Index imol = 0; imol < mtop.molblock[iblock].nmol; ++imol) {
       Molecule *mi = top.CreateMolecule(molname);
 
 #if GROMACS_VERSION >= 20190000
@@ -86,14 +84,15 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
       for (size_t iatom = 0; iatom < natoms_mol; iatom++) {
         t_atom *a = &(atoms->atom[iatom]);
 
-        string bead_type = *(atoms->atomtype[iatom]);
+        std::string bead_type = *(atoms->atomtype[iatom]);
         if (!top.BeadTypeExist(bead_type)) {
           top.RegisterBeadType(bead_type);
         }
-        Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), bead_type,
-                                    a->resind + res_offset, a->m, a->q);
+        Bead *bead =
+            top.CreateBead(Bead::spherical, *(atoms->atomname[iatom]),
+                           bead_type, a->resind + res_offset, a->m, a->q);
 
-        stringstream nm;
+        std::stringstream nm;
         nm << bead->getResnr() + 1 - res_offset << ":"
            << top.getResidue(bead->getResnr())->getName() << ":"
            << bead->getName();
@@ -105,8 +104,8 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
         // read exclusions
         t_blocka *excl = &(mol->excls);
         // insert exclusions
-        list<Bead *> excl_list;
-        for (int k = excl->index[iatom]; k < excl->index[iatom + 1]; k++) {
+        std::list<Bead *> excl_list;
+        for (Index k = excl->index[iatom]; k < excl->index[iatom + 1]; k++) {
           excl_list.push_back(top.getBead(excl->a[k] + ifirstatom));
         }
         top.InsertExclusion(top.getBead(iatom + ifirstatom), excl_list);
@@ -116,8 +115,8 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
   }
 
   Eigen::Matrix3d m;
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
+  for (Index i = 0; i < 3; i++) {
+    for (Index j = 0; j < 3; j++) {
       m(i, j) = gbox[j][i];
     }
   }
