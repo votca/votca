@@ -32,6 +32,7 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
   string str1 = "blah,ya";
   string separators = ",";
   Tokenizer tok(str1, separators.c_str());
+  Tokenizer tok2(str1, separators);
 }
 
 BOOST_AUTO_TEST_CASE(wildcmp_test) {
@@ -61,6 +62,36 @@ BOOST_AUTO_TEST_CASE(wildcmp_test) {
 
   string potential_match3 = "file1.txt";
   out = wildcmp(wildcard4.c_str(), potential_match3.c_str());
+  BOOST_CHECK_EQUAL(out, 1);
+}
+
+BOOST_AUTO_TEST_CASE(wildcmp_test2) {
+  string wildcard = "";
+  string potential_match = "";
+
+  auto out = wildcmp(wildcard, potential_match);
+  BOOST_CHECK_EQUAL(out, 1);
+
+  string wildcard2 = "file";
+  out = wildcmp(wildcard2, potential_match);
+  BOOST_CHECK_EQUAL(out, 0);
+
+  string potential_match2 = "file2";
+  out = wildcmp(wildcard, potential_match2);
+  BOOST_CHECK_EQUAL(out, 0);
+  out = wildcmp(wildcard2, potential_match2);
+  BOOST_CHECK_EQUAL(out, 0);
+
+  string wildcard3 = "file*";
+  out = wildcmp(wildcard3, potential_match2);
+  BOOST_CHECK_EQUAL(out, 1);
+
+  string wildcard4 = "file*.txt";
+  out = wildcmp(wildcard4, potential_match2);
+  BOOST_CHECK_EQUAL(out, 0);
+
+  string potential_match3 = "file1.txt";
+  out = wildcmp(wildcard4, potential_match3);
   BOOST_CHECK_EQUAL(out, 1);
 }
 
