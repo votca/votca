@@ -22,7 +22,7 @@ namespace votca {
 namespace tools {
 
 std::ostream& operator<<(std::ostream& out,
-                         DataCollection<double>::selection& sel) {
+                         const DataCollection<double>::selection& sel) {
   if (sel.empty()) {
     out << "-- empty selection --" << std::endl;
     return out;

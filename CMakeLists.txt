@@ -65,22 +65,11 @@ add_custom_target(manpages ALL)
 ########################################################################
 set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
 find_package(MKL)
-if (MKL_FOUND)
-  set (MKL TRUE )
-else()
-  set (MKL FALSE )
-endif()
 
 find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
-option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)
-if (WITH_FFTW)
-  find_package(FFTW3 REQUIRED)
-else(WITH_FFTW)
-  #used in votca_config.h
-  set(NOFFTW TRUE)
-endif(WITH_FFTW)
+find_package(FFTW3)
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

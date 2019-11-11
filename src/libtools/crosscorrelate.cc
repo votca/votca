@@ -16,60 +16,23 @@
  */
 
 #include <votca/tools/crosscorrelate.h>
-#include <votca/tools/votca_config.h>
-
-#ifndef NOFFTW
-#include <fftw3.h>
-#endif
 
 namespace votca {
 namespace tools {
 
-/**
-    \todo clean implementation!!!
-*/
-
-#ifdef NOFFTW
-void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection&) {
-
-  throw std::runtime_error(
-      "CrossCorrelate::AutoCorrelate is not compiled-in due to disabling of "
-      "FFTW -recompile Votca Tools with FFTW3 support ");
-}
-#else
 void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection& data) {
-  size_t N = data[0].size();
-  if (N > (size_t)std::numeric_limits<int>::max()) {
-    throw std::runtime_error("CrossCorrelate::AutoCorrelate: size is too big");
-  }
+  Index N = data[0].size();
+  Eigen::Map<Eigen::VectorXd> input(data[0].data(), N);
+  Eigen::FFT<double> fft;
+  Eigen::VectorXcd frequency = fft.fwd(input);
+  Eigen::VectorXcd magnitude = frequency.cwiseAbs2();
 
   _corrfunc.resize(N);
-
-  fftw_complex* tmp;
-  fftw_plan fft, ifft;
-
-  tmp = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * (N / 2 + 1));
-
-  fft = fftw_plan_dft_r2c_1d((int)N, &data[0][0], tmp, FFTW_ESTIMATE);
-  ifft = fftw_plan_dft_c2r_1d((int)N, tmp, &_corrfunc[0], FFTW_ESTIMATE);
-  fftw_execute(fft);
-
-  tmp[0][0] = tmp[0][1] = 0;
-  for (size_t i = 1; i < N / 2 + 1; i++) {
-    tmp[i][0] = tmp[i][0] * tmp[i][0] + tmp[i][1] * tmp[i][1];
-    tmp[i][1] = 0;
-  }
-  fftw_execute(ifft);
-
-  double d = _corrfunc[0];
-  for (size_t i = 0; i < N; i++) {
-    _corrfunc[i] = _corrfunc[i] / d;
-  }
-  fftw_destroy_plan(fft);
-  fftw_destroy_plan(ifft);
-  fftw_free(tmp);
+  Eigen::Map<Eigen::VectorXd> corr_map(_corrfunc.data(), N);
+  corr_map = fft.inv(magnitude);
+  double d = corr_map(0);
+  corr_map.array() /= d;
 }
-#endif
 
 }  // namespace tools
 }  // namespace votca
