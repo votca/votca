@@ -366,7 +366,7 @@ Release GCC OWN GMX:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_nogmx"
-    CXXFLAGS: "-Wall -Wextra -Wpedantic -Wshadow -Wconversion"
+    CXXFLAGS: ""
     BUILD_GROMACS: "yes"
   extends: .build
 
