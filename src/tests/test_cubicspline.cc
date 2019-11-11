@@ -26,14 +26,32 @@ using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(cubicspline_test)
 
-BOOST_AUTO_TEST_CASE(spline_grid) {
+BOOST_AUTO_TEST_CASE(spline_grid_high) {
   CubicSpline cspline;
   cspline.setBCInt(0);
   cspline.GenerateGrid(0, 9, 2);
   Eigen::VectorXd values_ref = Eigen::VectorXd::Zero(5);
   values_ref << 0, 2, 4, 6, 9;
-  bool equal_val = values_ref.isApprox(cspline.getX(), 1e-5);
 
+  bool equal_val = values_ref.isApprox(cspline.getX(), 1e-5);
+  BOOST_CHECK_EQUAL(equal_val, true);
+  if (!equal_val) {
+    std::cout << "result value" << std::endl;
+    std::cout << cspline.getX().transpose() << std::endl;
+    std::cout << "ref value" << std::endl;
+    std::cout << values_ref.transpose() << std::endl;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(spline_grid_low) {
+  CubicSpline cspline;
+  cspline.setBCInt(0);
+  cspline.GenerateGrid(0, 7, 2);
+  Eigen::VectorXd values_ref = Eigen::VectorXd::Zero(4);
+  values_ref << 0, 2, 4, 7;
+
+  bool equal_val = values_ref.isApprox(cspline.getX(), 1e-5);
+  BOOST_CHECK_EQUAL(equal_val, true);
   if (!equal_val) {
     std::cout << "result value" << std::endl;
     std::cout << cspline.getX().transpose() << std::endl;
@@ -44,16 +62,26 @@ BOOST_AUTO_TEST_CASE(spline_grid) {
 
 BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
 
-  int size = 80;
+  votca::Index size = 80;
   Eigen::VectorXd x = Eigen::VectorXd::Zero(size);
   Eigen::VectorXd y = Eigen::VectorXd::Zero(size);
-  for (int i = 0; i < size; ++i) {
-    x(i) = 0.25 * i;
+  for (votca::Index i = 0; i < size; ++i) {
+    x(i) = 0.25 * double(i);
     y(i) = std::sin(x(i));
   }
   CubicSpline cspline;
   cspline.setBCInt(0);
   cspline.GenerateGrid(0.4, 0.6, 0.1);
+  Eigen::VectorXd gridpoints_ref = Eigen::VectorXd::Zero(3);
+  gridpoints_ref << 0.4, 0.5, 0.6;
+  bool grid_check = cspline.getX().isApprox(gridpoints_ref, 1e-5);
+  BOOST_CHECK_EQUAL(grid_check, true);
+  if (!grid_check) {
+    std::cout << "result value" << std::endl;
+    std::cout << cspline.getX().transpose() << std::endl;
+    std::cout << "ref value" << std::endl;
+    std::cout << gridpoints_ref.transpose() << std::endl;
+  }
   cspline.Fit(x, y);
 
   Eigen::VectorXd rs = Eigen::VectorXd::Zero(10);

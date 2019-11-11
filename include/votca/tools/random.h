@@ -19,25 +19,26 @@
 #define _VOTCA_TOOLS_RANDOM_H_
 
 #include <random>
+#include <votca/tools/types.h>
 namespace votca {
 namespace tools {
 
 class Random {
  public:
-  void init(int seed) { _mt = std::mt19937(seed); }
+  void init(Index seed) { _mt = std::mt19937(seed); }
   // draws a random double from [0,1)
   double rand_uniform() { return _distribution(_mt); }
   // sets maxint for a uniform integer distribution [0,maxint]
-  void setMaxInt(int maxint) {
-    _int_distribution = std::uniform_int_distribution<int>{0, maxint};
+  void setMaxInt(Index maxint) {
+    _int_distribution = std::uniform_int_distribution<Index>{0, maxint};
   }
   // draws from a uniform integer distribution [0,maxint]
-  int rand_uniform_int() { return _int_distribution(_mt); }
+  Index rand_uniform_int() { return _int_distribution(_mt); }
 
  private:
   std::mt19937 _mt;
   std::uniform_real_distribution<double> _distribution{0.0, 1.0};
-  std::uniform_int_distribution<int> _int_distribution;
+  std::uniform_int_distribution<Index> _int_distribution;
 };
 
 }  // namespace tools

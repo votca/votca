@@ -39,7 +39,7 @@ void AkimaSpline::Interpolate(const Eigen::VectorXd &x,
         "at least 4 points");
   }
 
-  const long int N = x.size();
+  const Index N = x.size();
 
   // copy the grid points into f
   _r = x;
@@ -129,7 +129,7 @@ void AkimaSpline::Interpolate(const Eigen::VectorXd &x,
   }
 
   // calculate t's for all inner points [2,N-3]
-  for (int i = 2; i < N - 2; i++) {
+  for (Index i = 2; i < N - 2; i++) {
     m1 = (y(i - 1) - y(i - 2)) / (x(i - 1) - x(i - 2));
     m2 = (y(i) - y(i - 1)) / (x(i) - x(i - 1));
     m3 = (y(i + 1) - y(i)) / (x(i + 1) - x(i));
@@ -140,7 +140,7 @@ void AkimaSpline::Interpolate(const Eigen::VectorXd &x,
   // calculate p0,p1,p2,p3 for all intervals 0..(N-2), where interval
   // [x(i),x(i+1)] shall have number i (this means that the last interval
   // has number N-2)
-  for (int i = 0; i < N - 1; i++) {
+  for (Index i = 0; i < N - 1; i++) {
     p0(i) = y(i);
     p1(i) = t(i);
     p2(i) =

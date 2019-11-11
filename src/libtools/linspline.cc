@@ -38,7 +38,7 @@ void LinSpline::Interpolate(const Eigen::VectorXd &x,
         "least 2 points");
   }
 
-  const long int N = x.size();
+  const Index N = x.size();
 
   // adjust the grid
   _r.resize(N);
@@ -58,7 +58,7 @@ void LinSpline::Interpolate(const Eigen::VectorXd &x,
   // calculate a,b for all intervals 0..(N-2), where interval
   // [x(i),x(i+1)] shall have number i (this means that the last interval
   // has number N-2)
-  for (int i = 0; i < N - 1; i++) {
+  for (Index i = 0; i < N - 1; i++) {
     a(i) = (y(i + 1) - y(i)) / (x(i + 1) - x(i));
     b(i) = y(i) - a(i) * x(i);
   }
@@ -70,8 +70,8 @@ void LinSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
         "error in LinSpline::Fit : sizes of vectors x and y do not match");
   }
 
-  const long int N = x.size();
-  const long int ngrid = _r.size();
+  const Index N = x.size();
+  const Index ngrid = _r.size();
 
   // construct the equation
   // A*u = b
@@ -84,8 +84,8 @@ void LinSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N, ngrid);
 
   // construct matrix A
-  for (int i = 0; i < N; i++) {
-    long int interval = getInterval(x(i));
+  for (Index i = 0; i < N; i++) {
+    Index interval = getInterval(x(i));
     A(i, interval) =
         1 - (x(i) - _r(interval)) / (_r(interval + 1) - _r(interval));
     A(i, interval + 1) =
@@ -101,7 +101,7 @@ void LinSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
   // get a(i) and b(i) for piecewise splines out of solution vector "sol"
   a = Eigen::VectorXd::Zero(ngrid - 1);
   b = Eigen::VectorXd::Zero(ngrid - 1);
-  for (int i = 0; i < ngrid - 1; i++) {
+  for (Index i = 0; i < ngrid - 1; i++) {
     a(i) = (sol(i + 1) - sol(i)) / (_r(i + 1) - _r(i));
     b(i) = -a(i) * _r(i) + sol(i);
   }

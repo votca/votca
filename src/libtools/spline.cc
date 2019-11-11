@@ -22,8 +22,8 @@ namespace tools {
 
 using namespace std;
 
-long int Spline::GenerateGrid(double min, double max, double h) {
-  int vec_size = (int)((max - min) / h + 1.00000001);
+Index Spline::GenerateGrid(double min, double max, double h) {
+  Index vec_size = (Index)((max - min) / h + 1.00000001);
   _r.resize(vec_size);
   int i;
 
@@ -38,7 +38,7 @@ long int Spline::GenerateGrid(double min, double max, double h) {
 
 Eigen::VectorXd Spline::Calculate(const Eigen::VectorXd &x) {
   Eigen::VectorXd y(x.size());
-  for (long int i = 0; i < x.size(); ++i) {
+  for (Index i = 0; i < x.size(); ++i) {
     y(i) = Calculate(x(i));
   }
   return y;
@@ -46,7 +46,7 @@ Eigen::VectorXd Spline::Calculate(const Eigen::VectorXd &x) {
 
 Eigen::VectorXd Spline::CalculateDerivative(const Eigen::VectorXd &x) {
   Eigen::VectorXd y(x.size());
-  for (long int i = 0; i < x.size(); ++i) {
+  for (Index i = 0; i < x.size(); ++i) {
     y(i) = CalculateDerivative(x(i));
   }
   return y;
@@ -58,14 +58,14 @@ void Spline::Print(std::ostream &out, double interval) {
   }
 }
 
-long int Spline::getInterval(double r) {
+Index Spline::getInterval(double r) {
   if (r < _r[0]) {
     return 0;
   }
   if (r > _r[_r.size() - 2]) {
     return _r.size() - 2;
   }
-  long int i;
+  Index i;
   for (i = 0; i < _r.size(); ++i) {
     if (_r[i] > r) {
       break;

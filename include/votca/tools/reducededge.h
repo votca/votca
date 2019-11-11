@@ -51,13 +51,13 @@ class ReducedEdge : public Edge {
   ReducedEdge() = default;
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
-  ReducedEdge(std::vector<long int> chain);
+  ReducedEdge(std::vector<Index> chain);
 
-  ReducedEdge(long int vertex1, long int vertex2)
-      : ReducedEdge(std::vector<long int>{vertex1, vertex2}){};
+  ReducedEdge(Index vertex1, Index vertex2)
+      : ReducedEdge(std::vector<Index>{vertex1, vertex2}){};
 
   /// Returns a vector of vertices that constitute the edge
-  std::vector<long int> getChain() const { return vertices_; }
+  std::vector<Index> getChain() const { return vertices_; }
 
   /**
    * \brief Provided a vertex this method will determine if it exists within the
@@ -70,7 +70,7 @@ class ReducedEdge : public Edge {
    * Calling the method with vertex 3 will return true as the vertex exists
    * within the chain stored by the reduced edge.
    *
-   * \param[in] int potential vertex stored in the reduced edge
+   * \param[in] Index potential vertex stored in the reduced edge
    * \return bool true if it is in the chain false otherwise
    **/
   bool vertexExistInChain(const int& vertex) const;
@@ -115,8 +115,8 @@ class ReducedEdge : public Edge {
    *
    * In the case that the two edges have the same endpoints:
    *
-   * Edge ed4(vector<int>{ 1, 5, 4});
-   * Edge ed5(vector<int>{ 1, 2, 3, 4});
+   * Edge ed4(vector<Index>{ 1, 5, 4});
+   * Edge ed5(vector<Index>{ 1, 2, 3, 4});
    *
    * The shorter of the two edges is considered smaller
    * assert(ed4<ed5); // will return true
@@ -125,7 +125,7 @@ class ReducedEdge : public Edge {
    * the first vertex in the chain that is lower in value will be considered
    * smaller.
    *
-   * Edge ed6(vector<int>{ 1, 2, 5, 4});
+   * Edge ed6(vector<Index>{ 1, 2, 5, 4});
    * assert(ed5<ed6); // will return true;
    **/
 

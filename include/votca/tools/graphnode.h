@@ -21,6 +21,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <votca/tools/types.h>
 
 #ifndef _VOTCA_TOOLS_GRAPHNODE_H
 #define _VOTCA_TOOLS_GRAPHNODE_H
@@ -43,7 +44,7 @@ class GraphDistVisitor;
 class GraphNode {
  private:
   std::string str_id_{""};
-  std::unordered_map<std::string, int> int_vals_;
+  std::unordered_map<std::string, Index> int_vals_;
   std::unordered_map<std::string, double> double_vals_;
   std::unordered_map<std::string, std::string> str_vals_;
   void initStringId_();
@@ -53,17 +54,17 @@ class GraphNode {
 
   /// Constructor
   /// Each map corresponds to a different content the graph node can contain.
-  GraphNode(const std::unordered_map<std::string, int> int_vals,
+  GraphNode(const std::unordered_map<std::string, Index> int_vals,
             const std::unordered_map<std::string, double> double_vals,
             const std::unordered_map<std::string, std::string> str_vals);
 
   /// Basic setters
-  void setInt(const std::unordered_map<std::string, int> int_vals);
+  void setInt(const std::unordered_map<std::string, Index> int_vals);
   void setDouble(const std::unordered_map<std::string, double> double_vals);
   void setStr(const std::unordered_map<std::string, std::string> str_vals);
 
   /// Basic getters
-  int getInt(const std::string str);
+  Index getInt(const std::string str);
   double getDouble(const std::string str);
   std::string getStr(const std::string str);
 

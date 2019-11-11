@@ -61,17 +61,12 @@ void Application::ShowManPage(std::ostream &out) {
   out << boost::format(globals::man::description) % ss.str();
   out << boost::format(globals::man::options);
 
-  using OptionsIterator = std::vector<boost::shared_ptr<
-      boost::program_options::option_description> >::const_iterator;
-  OptionsIterator it = _op_desc.options().begin(),
-                  it_end = _op_desc.options().end();
-
-  while (it < it_end) {
-    string format_name = (*it)->format_name() + " " + (*it)->format_parameter();
+  for (const auto &option : _op_desc.options()) {
+    string format_name =
+        option->format_name() + " " + option->format_parameter();
     boost::replace_all(format_name, "-", "\\-");
     out << boost::format(globals::man::option) % format_name %
-               (*it)->description();
-    ++it;
+               option->description();
   }
 
   out << boost::format(globals::man::authors) % globals::email;
@@ -87,16 +82,12 @@ void Application::ShowTEXPage(std::ostream &out) {
   HelpText(ss);
   out << boost::format(globals::tex::description) % ss.str();
 
-  using OptionsIterator = std::vector<boost::shared_ptr<
-      boost::program_options::option_description> >::const_iterator;
-  OptionsIterator it = _op_desc.options().begin(),
-                  it_end = _op_desc.options().end();
-  while (it < it_end) {
-    string format_name = (*it)->format_name() + " " + (*it)->format_parameter();
+  for (const auto &option : _op_desc.options()) {
+    string format_name =
+        option->format_name() + " " + option->format_parameter();
     boost::replace_all(format_name, "-", "{-}");
     os << boost::format(globals::tex::option) % format_name %
-              (*it)->description();
-    ++it;
+              option->description();
   }
   out << boost::format(globals::tex::options) % os.str();
 }

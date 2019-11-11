@@ -31,37 +31,37 @@ BOOST_AUTO_TEST_SUITE(random2_test)
 
 BOOST_AUTO_TEST_CASE(random_int_test) {
   Random random;
-  int seed = 1;
+  votca::Index seed = 1;
   random.init(seed);
   random.setMaxInt(50);
-  std::vector<int> results;
-  int number = 1e5;
+  std::vector<votca::Index> results;
+  votca::Index number = 1e5;
   results.reserve(number);
-  for (int i = 0; i < number; i++) {
+  for (votca::Index i = 0; i < number; i++) {
     results.push_back(random.rand_uniform_int());
   }
 
   // average should be close to 25
   double average = std::accumulate(results.begin(), results.end(), 0);
-  average /= number;
+  average /= double(number);
 
   BOOST_CHECK_CLOSE(average, 25, 1.0);
 }
 
 BOOST_AUTO_TEST_CASE(random_double_test) {
   Random random;
-  int seed = 1;
+  votca::Index seed = 1;
   random.init(seed);
   std::vector<double> results;
-  int number = 1e5;
+  votca::Index number = 1e5;
   results.reserve(number);
-  for (int i = 0; i < number; i++) {
+  for (votca::Index i = 0; i < number; i++) {
     results.push_back(random.rand_uniform());
   }
 
   // average should be close to 0.5
   double average = std::accumulate(results.begin(), results.end(), 0.0);
-  average /= number;
+  average /= double(number);
 
   BOOST_CHECK_CLOSE(average, 0.5, 1.0);
 }

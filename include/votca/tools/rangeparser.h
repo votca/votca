@@ -21,6 +21,7 @@
 #include <list>
 #include <ostream>
 #include <string>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
@@ -36,22 +37,22 @@ class RangeParser {
 
   void Parse(std::string range);
 
-  void Add(int begin, int end, int stride = 1);
+  void Add(Index begin, Index end, Index stride = 1);
 
  private:
   struct block_t {
     block_t() = default;
-    block_t(const int &begin, const int &end, const int &stride)
+    block_t(const Index &begin, const Index &end, const Index &stride)
         : _begin(begin), _end(end), _stride(stride) {}
 
-    int _begin, _end, _stride;
+    Index _begin, _end, _stride;
   };
 
  public:
   struct iterator {
     iterator() = default;
 
-    int operator*() const { return _current; }
+    Index operator*() const { return _current; }
 
     RangeParser::iterator &operator++();
 
@@ -63,7 +64,7 @@ class RangeParser {
 
     iterator(RangeParser *, std::list<block_t>::iterator);
     std::list<block_t>::iterator _block;
-    int _current;
+    Index _current;
 
     friend class RangeParser;
   };
@@ -79,7 +80,7 @@ class RangeParser {
   friend std::ostream &operator<<(std::ostream &out, const RangeParser &rp);
 };
 
-inline void RangeParser::Add(int begin, int end, int stride) {
+inline void RangeParser::Add(Index begin, Index end, Index stride) {
   _blocks.push_back(block_t(begin, end, stride));
 }
 

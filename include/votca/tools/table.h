@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <votca/tools/eigen.h>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
@@ -37,29 +38,29 @@ class Table {
   void clear();
 
   void GenerateGridSpacing(double min, double max, double spacing);
-  void resize(long int N);
-  long int size() const { return _x.size(); }
+  void resize(Index N);
+  Index size() const { return _x.size(); }
 
-  double &x(long int i) { return _x[i]; }
-  double &y(long int i) { return _y[i]; }
+  double &x(Index i) { return _x[i]; }
+  double &y(Index i) { return _y[i]; }
 
-  const double &x(long int i) const { return _x[i]; }
-  const double &y(long int i) const { return _y[i]; }
-  char &flags(long int i) { return _flags[i]; }
-  double &yerr(long int i) { return _yerr[i]; }
+  const double &x(Index i) const { return _x[i]; }
+  const double &y(Index i) const { return _y[i]; }
+  char &flags(Index i) { return _flags[i]; }
+  double &yerr(Index i) { return _yerr[i]; }
 
-  void set(const long int &i, const double &x, const double &y) {
+  void set(const Index &i, const double &x, const double &y) {
     _x[i] = x;
     _y[i] = y;
   }
-  void set(const long int &i, const double &x, const double &y,
+  void set(const Index &i, const double &x, const double &y,
            const char &flags) {
     _x[i] = x;
     _y[i] = y;
     _flags[i] = flags;
   }
-  void set(const long int &i, const double &x, const double &y,
-           const char &flags, const double &yerr) {
+  void set(const Index &i, const double &x, const double &y, const char &flags,
+           const double &yerr) {
     _x[i] = x;
     _y[i] = y;
     _flags[i] = flags;
@@ -74,7 +75,7 @@ class Table {
   void Load(std::string filename);
   void Save(std::string filename) const;
 
-  void Smooth(long int Nsmooth);
+  void Smooth(Index Nsmooth);
 
   bool GetHasYErr() { return _has_yerr; }
   void SetHasYErr(bool has_yerr) { _has_yerr = has_yerr; }

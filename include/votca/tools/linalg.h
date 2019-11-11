@@ -19,6 +19,7 @@
 #define __VOTCA_TOOLS_LINALG_H
 #include <votca/tools/eigen.h>
 #include <votca/tools/eigensystem.h>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
@@ -44,7 +45,7 @@ Eigen::VectorXd linalg_constrained_qrsolve(const Eigen::MatrixXd& A,
  * This function is only useful if MKL is used, wraps
  * LAPACKE_dsyevx
  */
-EigenSystem linalg_eigenvalues(Eigen::MatrixXd& A, int nmax);
+EigenSystem linalg_eigenvalues(Eigen::MatrixXd& A, Index nmax);
 
 }  // namespace tools
 }  // namespace votca

@@ -33,7 +33,7 @@ if(TARGET MKL::MKL)
     get_target_property(MKL_${_TGT}_IMPORTED_LOCATION MKL::${_TGT} IMPORTED_LOCATION)
   endforeach()
 endif()
-if(FFTW3_FOUND)
+if(TARGET FFTW3::FFTW3)
   target_link_libraries(votca_tools PRIVATE FFTW3::FFTW3)
 endif()
 install(TARGETS votca_tools EXPORT VOTCA_TOOLS_Targets

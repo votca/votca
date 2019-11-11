@@ -20,6 +20,7 @@
 #include <boost/test/unit_test.hpp>
 #include <exception>
 #include <votca/tools/identity.h>
+#include <votca/tools/types.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -27,13 +28,13 @@ using namespace votca::tools;
 BOOST_AUTO_TEST_SUITE(identity_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) {
-  Identity<int> id;
-  Identity<long int> id2(232);
+  Identity<votca::Index> id;
+  Identity<votca::Index> id2(232);
 }
 
 BOOST_AUTO_TEST_CASE(simple_test) {
-  Identity<int> id;
-  Identity<int> id2(32);
+  Identity<votca::Index> id;
+  Identity<votca::Index> id2(32);
   BOOST_CHECK_EQUAL(id2.getId(), 32);
   id2.setId(34);
   BOOST_CHECK_EQUAL(id2.getId(), 34);

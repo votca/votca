@@ -38,8 +38,7 @@ namespace tools {
 class EdgeContainer {
  protected:
   /// The vertex, the neighboring vertices and the number of edges
-  std::unordered_map<long int, std::unordered_map<long int, long int>>
-      adj_list_;
+  std::unordered_map<Index, std::unordered_map<Index, Index>> adj_list_;
 
  public:
   /// Constructors can take no arguments a single Edge or a vector of edges
@@ -48,30 +47,30 @@ class EdgeContainer {
   EdgeContainer(std::vector<Edge> edges);
 
   /// Get the value of the max degree
-  long int getMaxDegree() const;
+  Index getMaxDegree() const;
   /// Contains vector of all vertices with degree
-  std::vector<long int> getVerticesDegree(long int degree) const;
+  std::vector<Index> getVerticesDegree(Index degree) const;
   /// Determine the degree of the vertex/number of edges attached
-  long int getDegree(const long int vertex) const;
+  Index getDegree(const Index vertex) const;
   /// Determine if a vertex with the specified degree exists
-  bool vertexExistWithDegree(long int degree) const;
+  bool vertexExistWithDegree(Index degree) const;
 
   /// Check if the edge exists returns true or false
   bool edgeExist(const Edge& edge) const;
   /// Check if the vertex exists returns true or false
-  bool vertexExist(long int vertex) const;
+  bool vertexExist(Index vertex) const;
   /// Add an edge to the container
   void addEdge(Edge edge);
   /// Add a lone vertex
-  void addVertex(long int vertex);
+  void addVertex(Index vertex);
   /// Get all the edges in vector form
   std::vector<Edge> getEdges() const;
   /// Get all the vertices in vector form
-  std::vector<long int> getVertices() const;
+  std::vector<Index> getVertices() const;
   /// Get the vertices neighboring vert
-  std::vector<long int> getNeighVertices(long int vertex) const;
+  std::vector<Index> getNeighVertices(Index vertex) const;
   /// Get the edges neighboring vert
-  std::vector<Edge> getNeighEdges(long int vertex) const;
+  std::vector<Edge> getNeighEdges(Index vertex) const;
   /// Print output of object
   friend std::ostream& operator<<(std::ostream& os,
                                   const EdgeContainer edge_container);

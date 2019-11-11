@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(linalg_constrained_qrsolve_test) {
 
 BOOST_AUTO_TEST_CASE(linalg_mkl_test) {
 
-  int nmax = 10;
+  votca::Index nmax = 10;
 
   Eigen::MatrixXd H = Eigen::MatrixXd::Zero(17, 17);
   H << 13.2967782, -1.99797328, 0, 0, 0, -0.26575698, 0, 0, 0, -0.0909339466,

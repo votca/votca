@@ -21,60 +21,31 @@
 #include "datacollection.h"
 #include <iostream>
 #include <vector>
+#include <votca/tools/eigen.h>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
 
 /**
-    \brief class to calculate cross correlkations and autocorrelations
-
-    This class is relatively outdated and only used in csg_boltzmann!
-
-    \todo implementation
+    \brief class to calculate cross correlations and autocorrelations
 */
 class CrossCorrelate {
  public:
-  /// constructor
   CrossCorrelate() = default;
-  /// destructor
   ~CrossCorrelate() = default;
 
-  /**
-      calculate the cross correlation
-   */
-  // void CrossCorrelate(DataCollection<double>::selection *data1,
-  //    DataCollection<double>::selection *data2, bool average = false);
-
-  /**
-      calculate the auto correlation
-
-   */
-  void AutoCorrelate(DataCollection<double>::selection* data);
-
-  // Calculates only the Fourier trafo
-  void FFTOnly(std::vector<double>& ivec);
-
-  // Calculates only the Discrete Cosine trafo
-  void DCTOnly(std::vector<double>& ivec);
-
-  // Calculates Fourier trafo and then auto correlation
-  void AutoFourier(std::vector<double>& ivec);
-
-  // Calculates Discrete Cosine trafo and then auto correlation
-  void AutoCosine(std::vector<double>& ivec);
-
-  // Calculates auto correlation via two Fourier trafos
-  void AutoCorr(std::vector<double>& ivec);
+  void AutoCorrelate(DataCollection<double>::selection& data);
 
   std::vector<double>& getData() { return _corrfunc; }
+  const std::vector<double>& getData() const { return _corrfunc; }
 
  private:
   std::vector<double> _corrfunc;
 };
 
-inline std::ostream& operator<<(std::ostream& out, CrossCorrelate& c) {
-  std::vector<double>& data = c.getData();
-  for (size_t i = 0; i < data.size(); i++) {
+inline std::ostream& operator<<(std::ostream& out, const CrossCorrelate& c) {
+  for (Index i = 0; i < Index(c.getData().size()); i++) {
     out << i << " " << c.getData()[i] << std::endl;
   }
   return out;

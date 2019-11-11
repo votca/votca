@@ -70,15 +70,17 @@ BOOST_AUTO_TEST_CASE(xy_test) {
 
   auto x_v = tb.x();
   auto y_v = tb.y();
-  for (int i = 0; i < 10; ++i) {
-    int x = i;
-    int y = 2 * x;
-    BOOST_CHECK_EQUAL(static_cast<int>(x_v(i)), static_cast<int>(tb.x(i)));
-    BOOST_CHECK_EQUAL(static_cast<int>(y_v(i)), static_cast<int>(tb.y(i)));
-    BOOST_CHECK_EQUAL(x, static_cast<int>(tb.x(i)));
-    BOOST_CHECK_EQUAL(y, static_cast<int>(tb.y(i)));
-    BOOST_CHECK_EQUAL(x, static_cast<int>(x_v(i)));
-    BOOST_CHECK_EQUAL(y, static_cast<int>(y_v(i)));
+  for (votca::Index i = 0; i < 10; ++i) {
+    votca::Index x = i;
+    votca::Index y = 2 * x;
+    BOOST_CHECK_EQUAL(static_cast<votca::Index>(x_v(i)),
+                      static_cast<votca::Index>(tb.x(i)));
+    BOOST_CHECK_EQUAL(static_cast<votca::Index>(y_v(i)),
+                      static_cast<votca::Index>(tb.y(i)));
+    BOOST_CHECK_EQUAL(x, static_cast<votca::Index>(tb.x(i)));
+    BOOST_CHECK_EQUAL(y, static_cast<votca::Index>(tb.y(i)));
+    BOOST_CHECK_EQUAL(x, static_cast<votca::Index>(x_v(i)));
+    BOOST_CHECK_EQUAL(y, static_cast<votca::Index>(y_v(i)));
   }
 }
 
@@ -89,10 +91,10 @@ BOOST_AUTO_TEST_CASE(getMinMax_test) {
     tb.push_back(x, y);
   }
 
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMinX()), 0);
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMaxX()), 9);
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMinY()), 0);
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMaxY()), 18);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMinX()), 0);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMaxX()), 9);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMinY()), 0);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMaxY()), 18);
 }
 
 BOOST_AUTO_TEST_CASE(generate_grid_spacing_test) {
@@ -103,8 +105,32 @@ BOOST_AUTO_TEST_CASE(generate_grid_spacing_test) {
   tb.GenerateGridSpacing(min_v, max_v, 0.2);
 
   BOOST_CHECK_EQUAL(tb.size(), 5);
-  BOOST_CHECK_EQUAL(static_cast<int>(round(tb.getMinX() * 10)), 12);
-  BOOST_CHECK_EQUAL(static_cast<int>(round(tb.getMaxX() * 10)), 20);
+  BOOST_CHECK_CLOSE(tb.getMinX(), 1.2, 1e-5);
+  BOOST_CHECK_CLOSE(tb.getMaxX(), 2.0, 1e-5);
+}
+
+BOOST_AUTO_TEST_CASE(generate_grid_spacing_test_low) {
+  Table tb;
+  double min_v = 1.2;
+  double max_v = 2.0;
+
+  tb.GenerateGridSpacing(min_v, max_v, 0.3);
+
+  BOOST_CHECK_EQUAL(tb.size(), 3);
+  BOOST_CHECK_CLOSE(tb.getMinX(), 1.2, 1e-5);
+  BOOST_CHECK_CLOSE(tb.getMaxX(), 2.0, 1e-5);
+}
+
+BOOST_AUTO_TEST_CASE(generate_grid_spacing_test_high) {
+  Table tb;
+  double min_v = 1.2;
+  double max_v = 2.0;
+
+  tb.GenerateGridSpacing(min_v, max_v, 0.15);
+
+  BOOST_CHECK_EQUAL(tb.size(), 6);
+  BOOST_CHECK_CLOSE(tb.getMinX(), 1.2, 1e-5);
+  BOOST_CHECK_CLOSE(tb.getMaxX(), 2.0, 1e-5);
 }
 
 BOOST_AUTO_TEST_CASE(smoothing_test) {
@@ -118,8 +144,8 @@ BOOST_AUTO_TEST_CASE(smoothing_test) {
   tb.y() = tb.x().array().sinh();
   tb.Smooth(2);
   Eigen::VectorXd refy = Eigen::VectorXd::Zero(9);
-  refy << 1.50946, 1.70621, 1.91563, 2.14274, 2.39083, 2.66271, 2.96119,
-      3.28637, 3.62686;
+  refy << 1.50946, 1.70621, 1.91527, 2.14055, 2.38962, 2.65963, 2.95959,
+      3.28268, 3.62686;
 
   bool equal = tb.y().isApprox(refy, 1e-5);
 
