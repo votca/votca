@@ -67,7 +67,7 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
     _fname = file;
   }
 
-  _fl.open(_fname.c_str());
+  _fl.open(_fname);
   if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on creating dlpoly file '" + _fname +
                                  "'");

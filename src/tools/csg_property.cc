@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
         }
 
         string value = *tok;
-        if (!wildcmp(value.c_str(), prop->get(field).value().c_str())) {
+        if (!wildcmp(value, prop->get(field).value())) {
           continue;
         }
       }

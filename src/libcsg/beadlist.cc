@@ -39,11 +39,11 @@ long BeadList::Generate(Topology &top, const string &select) {
 
   for (auto &iter : top.Beads()) {
     if (!selectByName) {
-      if (tools::wildcmp(pSelect.c_str(), iter->getType().c_str())) {
+      if (tools::wildcmp(pSelect, iter->getType())) {
         _beads.push_back(iter);
       }
     } else {
-      if (tools::wildcmp(pSelect.c_str(), iter->getName().c_str())) {
+      if (tools::wildcmp(pSelect, iter->getName())) {
         _beads.push_back(iter);
       }
     }
@@ -71,11 +71,11 @@ long BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
       continue;
     }
     if (!selectByName) {
-      if (tools::wildcmp(pSelect.c_str(), iter->getType().c_str())) {
+      if (tools::wildcmp(pSelect, iter->getType())) {
         _beads.push_back(iter);
       }
     } else {
-      if (tools::wildcmp(pSelect.c_str(), iter->getName().c_str())) {
+      if (tools::wildcmp(pSelect, iter->getName())) {
         _beads.push_back(iter);
       }
     }
