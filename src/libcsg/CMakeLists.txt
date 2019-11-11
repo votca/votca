@@ -6,7 +6,6 @@ file(GLOB IO_SOURCES modules/io/*.cc)
 list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${H5MD_SOURCES})
 
 file(GLOB VOTCA_SOURCES *.cc potentialfunctions/*.cc)
-list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
 add_library(votca_csg ${VOTCA_SOURCES} ${IO_SOURCES})
 if (TARGET GMX::libgromacs)
