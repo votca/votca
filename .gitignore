@@ -36,7 +36,7 @@ src/tools/csg_reupdate
 src/tools/csg_dlptopol
 share/scripts/inverse/*.pyc
 __pycache__/
-
+netbeans
 src/libcsg/gitversion.h
 src/libcsg/votca_config.h
 
