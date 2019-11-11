@@ -1,7 +1,6 @@
 find_package(EXPAT REQUIRED)
 
 file(GLOB VOTCA_SOURCES *.cc)
-file(GLOB NOT_VOTCA_SOURCES version_nb.cc)
 file(GLOB_RECURSE VOTCA_SQL_SOURCES database.cc statement.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES} ${VOTCA_SQL_SOURCES})
 
