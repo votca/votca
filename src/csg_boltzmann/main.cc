@@ -89,7 +89,7 @@ bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref) {
     ex = CreateExclusionList(*top_ref->MoleculeByIndex(0),
                              *top->MoleculeByIndex(0));
     std::ofstream fl;
-    fl.open(OptionsMap()["excl"].as<string>().c_str());
+    fl.open(OptionsMap()["excl"].as<string>());
     fl << "# atomistic: " << top_ref->MoleculeByIndex(0)->getName()
        << " cg: " << top_ref->MoleculeByIndex(0)->getName()
        << " cgmap: " << OptionsMap()["cg"].as<string>() << endl;

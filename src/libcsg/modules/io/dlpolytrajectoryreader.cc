@@ -68,7 +68,7 @@ bool DLPOLYTrajectoryReader::Open(const string &file)
     _fname = file;
   }
 
-  _fl.open(_fname.c_str());
+  _fl.open(_fname);
   if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on opening dlpoly file '" + _fname +
                                  "'");

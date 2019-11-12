@@ -69,7 +69,7 @@ bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
 
   topology_ = true;
   top.Cleanup();
-  fl_.open(file.c_str());
+  fl_.open(file);
   if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open topology file: " + file);
   }
@@ -87,7 +87,7 @@ bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
 }
 
 bool LAMMPSDataReader::Open(const string &file) {
-  fl_.open(file.c_str());
+  fl_.open(file);
   if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open trajectory file: " + file);
   }
