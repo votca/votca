@@ -220,7 +220,7 @@ void Topology::RenameBeadType(string name, string newname) {
 
   for (Bead *bead : _beads) {
     string type = bead->getType();
-    if (tools::wildcmp(name.c_str(), type.c_str())) {
+    if (tools::wildcmp(name, type)) {
       bead->setType(newname);
     }
   }
@@ -229,7 +229,7 @@ void Topology::RenameBeadType(string name, string newname) {
 void Topology::SetBeadTypeMass(string name, double value) {
   for (Bead *bead : _beads) {
     string type = bead->getType();
-    if (tools::wildcmp(name.c_str(), type.c_str())) {
+    if (tools::wildcmp(name, type)) {
       bead->setMass(value);
     }
   }

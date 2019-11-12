@@ -204,7 +204,7 @@ void TabulatedPotential::WriteHistogram(BondedStatistics &bs,
   }
   Histogram h(_hist_options);
   h.ProcessData(sel);
-  out.open(args[0].c_str());
+  out.open(args[0]);
   out << h;
   out.close();
   cout << "histogram created using " << sel->size() << " data-rows, written to "
@@ -234,7 +234,7 @@ void TabulatedPotential::WritePotential(BondedStatistics &bs,
   for (Index i = 0; i < _tab_smooth2; ++i) {
     Smooth_(h.getPdf(), _tab_options._periodic);
   }
-  out.open(args[0].c_str());
+  out.open(args[0]);
 
   vector<double> F;
   assert(h.getInterval() > 0 && "Interval for pdf histogram is 0");
