@@ -236,7 +236,6 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free_block) {
   Logger log;
   DavidsonSolver DS(log);
   DS.set_tolerance("normal");
-  DS.set_ortho("QR");
   DS.set_size_update("safe");
 
   Eigen::MatrixXd A = Aop.get_full_matrix();
@@ -364,7 +363,65 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   DS.set_size_update("max");
   DS.set_matrix_type("HAM");
   DS.solve(Hop, neigen);
+  auto lambda = DS.eigenvalues().real();
+  std::sort(lambda.data(), lambda.data() + lambda.size());
+  Eigen::MatrixXd H = Hop.get_full_matrix();
 
+  Eigen::EigenSolver<Eigen::MatrixXd> es(H);
+  Eigen::ArrayXi idx = index_eval(es.eigenvalues().real(), neigen);
+  Eigen::VectorXd lambda_ref = idx.unaryExpr(es.eigenvalues().real());
+
+  bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
+  if (!check_eigenvalues) {
+    std::cout << "Davidson not converged after " << DS.num_iterations()
+              << " iterations" << std::endl;
+    std::cout << "Reference eigenvalues" << std::endl;
+    std::cout << lambda_ref.head(neigen) << std::endl;
+    std::cout << "Davidson eigenvalues" << std::endl;
+    std::cout << lambda << std::endl;
+    std::cout << "Residue norms" << std::endl;
+    std::cout << DS.residues() << std::endl;
+  }
+  BOOST_CHECK_EQUAL(check_eigenvalues, 1);
+
+  Eigen::MatrixXd evect_dav = DS.eigenvectors().real();
+  Eigen::MatrixXd evect = es.eigenvectors().real();
+  Eigen::MatrixXd evect_ref = extract_eigenvectors(evect, idx);
+
+  bool check_eigenvectors =
+      evect_ref.cwiseAbs2().isApprox(evect_dav.cwiseAbs2(), 0.001);
+  BOOST_CHECK_EQUAL(check_eigenvectors, 1);
+}
+
+BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free_large) {
+
+  Index size = 120;
+  Index neigen = 5;
+  Logger log;
+  // log.setReportLevel(TLogLevel::logDEBUG);
+
+  // Create Operator
+  HermitianBlockOperator Rop;
+  Rop.set_size(size);
+  Eigen::MatrixXd rmat = init_matrix(size, 0.01);
+  Rop.attach_matrix(rmat);
+
+  HermitianBlockOperator Cop;
+  Cop.set_size(size);
+  Eigen::MatrixXd cmat = symm_matrix(size, 0.01);
+  Cop.attach_matrix(cmat);
+
+  // create Hamiltonian operator
+  HamiltonianOperator<HermitianBlockOperator, HermitianBlockOperator> Hop(Rop,
+                                                                          Cop);
+
+  DavidsonSolver DS(log);
+  DS.set_tolerance("normal");
+  DS.set_size_update("safe");
+  DS.set_max_search_space(50);
+  DS.set_matrix_type("HAM");
+  DS.solve(Hop, neigen);
+  std::cout << log;
   auto lambda = DS.eigenvalues().real();
   std::sort(lambda.data(), lambda.data() + lambda.size());
   Eigen::MatrixXd H = Hop.get_full_matrix();
