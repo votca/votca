@@ -4,7 +4,7 @@ add_custom_target(gitversion-xtp COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CM
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 file(GLOB_RECURSE VOTCA_SOURCES *.cc *.cpp)
-file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc cudapipeline.cc cudamatrix.cc)
+file(GLOB_RECURSE NOT_VOTCA_SOURCES cudapipeline.cc cudamatrix.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
 add_library(votca_xtp  ${VOTCA_SOURCES})
