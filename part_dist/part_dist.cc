@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     // Read the particle types file and save to variable ptypes
     if (vm.count("ptypes")) {
       ifstream fl_ptypes;
-      fl_ptypes.open(vm["ptypes"].as<string>().c_str());
+      fl_ptypes.open(vm["ptypes"].as<string>());
       if (!fl_ptypes.is_open()) {
         throw std::runtime_error("can't open " + vm["ptypes"].as<string>());
       }

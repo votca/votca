@@ -161,7 +161,7 @@ void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
 
   if (_refmol != "") {
     for (Bead *bead : conf->Beads()) {
-      if (votca::tools::wildcmp(_refmol.c_str(), bead->getName().c_str())) {
+      if (votca::tools::wildcmp(_refmol, bead->getName())) {
         _ref = bead->getPos();
         cout << " Solute pos " << _ref << endl;
       }
@@ -173,7 +173,7 @@ void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
 
   /* check how many molecules are in each bin*/
   for (Bead *bead : conf->Beads()) {
-    if (!votca::tools::wildcmp(_filter.c_str(), bead->getName().c_str())) {
+    if (!votca::tools::wildcmp(_filter, bead->getName())) {
       continue;
     }
     double r = 0;

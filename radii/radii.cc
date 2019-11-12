@@ -66,9 +66,8 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
       }
     }
     // otherwise does the name pattern match?
-    else if (!votca::tools::wildcmp(
-                 OptionsMap()["molname"].as<string>().c_str(),
-                 mol->getName().c_str())) {
+    else if (!votca::tools::wildcmp(OptionsMap()["molname"].as<string>(),
+                                    mol->getName())) {
       continue;  // if not skip this molecule
     }
 
