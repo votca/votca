@@ -370,7 +370,7 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   DavidsonSolver DS(_log);
   DS.set_correction(_opt.davidson_correction);
   DS.set_tolerance(_opt.davidson_tolerance);
-  DS.set_ortho("QR");
+  DS.set_ortho(_opt.davidson_ortho);
   DS.set_size_update(_opt.davidson_update);
   DS.set_iter_max(_opt.davidson_maxiter);
   DS.set_max_search_space(10 * _opt.nmax);
