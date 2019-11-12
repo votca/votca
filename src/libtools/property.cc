@@ -94,7 +94,7 @@ std::vector<const Property *> Property::Select(const string &filter) const {
     std::vector<const Property *> childs;
     for (const Property *p : selection) {
       for (const Property &s : p->_properties) {
-        if (wildcmp(n.c_str(), s.name().c_str())) {
+        if (wildcmp(n, s.name())) {
           childs.push_back(&s);
         }
       }
