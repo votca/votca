@@ -83,7 +83,7 @@ bool EAnalyze::EvaluateFrame(Topology &top) {
   // Short-list segments according to pattern
   for (Segment &seg : top.Segments()) {
     std::string seg_name = seg.getType();
-    if (votca::tools::wildcmp(_seg_pattern.c_str(), seg_name.c_str())) {
+    if (votca::tools::wildcmp(_seg_pattern, seg_name)) {
       _seg_shortlist.push_back(&seg);
     }
   }
