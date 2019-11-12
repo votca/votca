@@ -30,6 +30,7 @@
 #include <gromacs/mdtypes/inputrec.h>
 #include <gromacs/topology/atoms.h>
 #include <gromacs/topology/topology.h>
+#include <gromacs/version.h>
 
 // this one is needed because of bool is defined in one of the headers included
 // by gmx
@@ -53,7 +54,7 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
 
   size_t ifirstatom = 0;
 
-#if GROMACS_VERSION >= 20190000
+#if GMX_VERSION >= 20190000
   size_t nmolblock = mtop.molblock.size();
 #else
   size_t nmolblock = mtop.nmolblock;
@@ -75,7 +76,7 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
     for (Index imol = 0; imol < mtop.molblock[iblock].nmol; ++imol) {
       Molecule *mi = top.CreateMolecule(molname);
 
-#if GROMACS_VERSION >= 20190000
+#if GMX_VERSION >= 20190000
       size_t natoms_mol = mtop.moltype[mtop.molblock[iblock].type].atoms.nr;
 #else
       size_t natoms_mol = mtop.molblock[iblock].natoms_mol;
