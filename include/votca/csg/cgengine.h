@@ -101,7 +101,7 @@ inline CGMoleculeDef *CGEngine::getMoleculeDef(std::string name) {
 
 inline bool CGEngine::IsIgnored(std::string ident) {
   for (auto &_ignore : _ignores) {
-    if (tools::wildcmp(_ignore.c_str(), ident.c_str())) {
+    if (tools::wildcmp(_ignore, ident)) {
       return true;
     }
   }

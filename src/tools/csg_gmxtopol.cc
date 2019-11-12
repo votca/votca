@@ -61,7 +61,7 @@ bool GmxTopolApp::EvaluateTopology(Topology *top, Topology *) {
             "multiple molecules, using only first molecule\n";
   }
   ofstream fl;
-  fl.open((OptionsMap()["out"].as<string>() + ".top").c_str());
+  fl.open((OptionsMap()["out"].as<string>() + ".top"));
   WriteMolecule(fl, *(top->MoleculeByIndex(0)));
   fl.close();
   return true;

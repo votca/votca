@@ -32,7 +32,7 @@ void NematicOrder::Process(Topology &top, const string &filter) {
 
   for (auto bead : top.Beads()) {
 
-    if (!tools::wildcmp(filter.c_str(), bead->getName().c_str())) {
+    if (!tools::wildcmp(filter, bead->getName())) {
       continue;
     }
 

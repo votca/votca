@@ -183,7 +183,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
   }
 
   ofstream fl;
-  fl.open(fname.c_str());
+  fl.open(fname);
 
   fl << "From VOTCA with love"
      << " # check/amend this file if needed!\n";
