@@ -37,7 +37,7 @@ class GW {
         _Mmn(Mmn),
         _vxc(vxc),
         _dft_energies(dft_energies),
-        _rpa(Mmn){};
+        _rpa(log, Mmn){};
 
   struct options {
     Index homo;

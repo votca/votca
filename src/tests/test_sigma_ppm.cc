@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, MOs);
 
-  RPA rpa(Mmn);
+  RPA rpa(log, Mmn);
   rpa.configure(4, 0, 16);
   rpa.setRPAInputEnergies(mo_energy);
 

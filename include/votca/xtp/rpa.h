@@ -20,7 +20,9 @@
 #pragma once
 #ifndef _VOTCA_XTP_RPA_H
 #define _VOTCA_XTP_RPA_H
+#include "votca/xtp/logger.h"
 #include <vector>
+#include <votca/tools/eigensystem.h>
 #include <votca/xtp/eigen.h>
 
 namespace votca {
@@ -29,7 +31,7 @@ class TCMatrix_gwbse;
 
 class RPA {
  public:
-  RPA(const TCMatrix_gwbse& Mmn) : _Mmn(Mmn){};
+  RPA(Logger& log, const TCMatrix_gwbse& Mmn) : _log(log), _Mmn(Mmn){};
 
   void configure(Index homo, Index rpamin, Index rpamax) {
     _homo = homo;
@@ -69,6 +71,8 @@ class RPA {
 
   template <bool imag>
   Eigen::MatrixXd calculate_epsilon(double frequency) const;
+  
+  Logger& _log;
 };
 }  // namespace xtp
 }  // namespace votca
