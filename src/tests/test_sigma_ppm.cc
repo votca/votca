@@ -182,6 +182,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   opt.qpmin = 0;
   opt.qpmax = 16;
   opt.rpamin = 0;
+  opt.rpamax = 16;
   sigma.configure(opt);
 
   Eigen::MatrixXd x = sigma.CalcExchange();
