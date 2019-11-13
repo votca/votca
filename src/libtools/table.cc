@@ -124,7 +124,7 @@ istream &operator>>(istream &in, Table &t) {
       char flag = 'i';
       string sflag = tokens.back();
       if (sflag == "i" || sflag == "o" || sflag == "u") {
-        flag = sflag.c_str()[0];
+        flag = sflag[0];
       }
       t.push_back(std::stod(tokens[0]), std::stod(tokens[1]), flag);
     } else {
@@ -158,7 +158,7 @@ istream &operator>>(istream &in, Table &t) {
     } else if (tokens.size() > 2) {
       char flag = 'i';
       if (tokens[2] == "i" || tokens[2] == "o" || tokens[2] == "u") {
-        flag = tokens[2].c_str()[0];
+        flag = tokens[2][0];
       }
       t.push_back(std::stod(tokens[0]), std::stod(tokens[1]), flag);
     } else {
