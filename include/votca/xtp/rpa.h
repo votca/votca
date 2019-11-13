@@ -59,6 +59,13 @@ class RPA {
   void UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
                               const Eigen::VectorXd& gwaenergies, Index qpmin);
 
+  struct rpa_eigensolution {
+    Eigen::VectorXd _omega;  // Eigenvalues
+    Eigen::MatrixXd _XpY;    // Eigenvector components (X + Y)
+  };
+  
+  rpa_eigensolution Diagonalize_H2p() const;
+
  private:
   Index _homo;  // HOMO index with respect to dft energies
   Index _rpamin;
@@ -73,7 +80,12 @@ class RPA {
   Eigen::MatrixXd calculate_epsilon(double frequency) const;
   
   Logger& _log;
+
+  Eigen::VectorXd Calculate_H2p_AmB() const;
+  Eigen::MatrixXd Calculate_H2p_ApB() const;
+  tools::EigenSystem Diagonalize_H2p_C(const Eigen::MatrixXd& C) const;
 };
+
 }  // namespace xtp
 }  // namespace votca
 
