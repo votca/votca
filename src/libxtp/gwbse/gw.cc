@@ -162,7 +162,7 @@ void GW::CalculateGWPerturbation() {
     _sigma->PrepareScreening();
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
-    if (false) { // TODO: If a grid is specified in the options
+    if (_opt.qp_grid_steps > 0) {
       frequencies = SolveQP_Grid(frequencies);
       XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Solved QP equation on a grid" << std::flush;
@@ -172,10 +172,18 @@ void GW::CalculateGWPerturbation() {
       XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Solved QP equation self-consistently" << std::flush;
     }
-    // TODO: If no G iterations, we still need to calculate sigma_c diagonal!
+    // Below, we update the gwa energies. In the master branch, the gwa energies equal the
+    // pre-mixing values of gwa energies. Since the mixing parameter alpha is always set to 0,
+    // this results in no difference w.r.t. the master branch.
+    _gwa_energies = frequencies;
+    // TODO: Below, we update the sigma_c diagonals using the latest gwa energies. This is not done
+    // in the master branch and sigma_c will therefore be different! However, if the GW iteration
+    // converged, this difference will be within the convergence criterion. Is this okay?
+    //_Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(_gwa_energies);
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Calculated correlation contribution" << std::flush;
     Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
     _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
-
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " GW_Iteration:" << i_gw
         << " Shift[Hrt]:" << CalcHomoLumoShift() << std::flush;
@@ -204,22 +212,21 @@ void GW::CalculateGWPerturbation() {
   PrintGWA_Energies();
 }
 
-Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) {
+Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
   return frequencies; // TODO
 }
 
-Eigen::VectorXd GW::SolveQP_SelfConsistent(Eigen::VectorXd frequencies) {
+Eigen::VectorXd GW::SolveQP_SelfConsistent(Eigen::VectorXd frequencies) { // TODO: Make const
+  Eigen::VectorXd frequencies_prev; // TODO: Move declaration into loop
   for (Index i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
-
-    _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies); // TODO: Duplicate computation if no grid pre-computation is performed
-    _gwa_energies = IterateQP_FixedPoint();
-
+    frequencies_prev = frequencies;
+    frequencies = IterateQP_FixedPoint(frequencies);
     if (tools::globals::verbose) {
       XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " G_Iteration:" << i_freq
           << " Shift[Hrt]:" << CalcHomoLumoShift() << std::flush;
     }
-    if (Converged(_gwa_energies, frequencies, _opt.g_sc_limit)) {
+    if (Converged(frequencies, frequencies_prev, _opt.g_sc_limit)) {
       XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Converged after " << i_freq + 1
           << " G iterations." << std::flush;
@@ -232,15 +239,17 @@ Eigen::VectorXd GW::SolveQP_SelfConsistent(Eigen::VectorXd frequencies) {
       break;
     } else {
       double alpha = 0.0;
-      frequencies = (1 - alpha) * _gwa_energies + alpha * frequencies;
+      frequencies = (1 - alpha) * frequencies + alpha * frequencies_prev;
     }
   }
+  // TODO: Remove the following line. This is just to simulate the master branch's behaviour.
+  _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies_prev);
   return frequencies;
 }
 
-Eigen::VectorXd GW::IterateQP_FixedPoint() const {
-  return _Sigma_x.diagonal() + _Sigma_c.diagonal() - _vxc.diagonal() +
-         _dft_energies.segment(_opt.qpmin, _qptotal);
+Eigen::VectorXd GW::IterateQP_FixedPoint(Eigen::VectorXd frequencies) const {
+  return _Sigma_x.diagonal() + _sigma->CalcCorrelationDiag(frequencies)
+         - _vxc.diagonal() + _dft_energies.segment(_opt.qpmin, _qptotal);
 }
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
