@@ -46,10 +46,10 @@ void GW::configure(const options& opt) {
   _Sigma_c = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
 }
 
-double GW::CalcHomoLumoShift() const {
+double GW::CalcHomoLumoShift(Eigen::VectorXd frequencies) const {
   double DFTgap = _dft_energies(_opt.homo + 1) - _dft_energies(_opt.homo);
-  double QPgap = _gwa_energies(_opt.homo + 1 - _opt.qpmin) -
-                 _gwa_energies(_opt.homo - _opt.qpmin);
+  double QPgap = frequencies(_opt.homo + 1 - _opt.qpmin) -
+                 frequencies(_opt.homo - _opt.qpmin);
   return QPgap - DFTgap;
 }
 
@@ -68,7 +68,7 @@ Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> GW::DiagonalizeQPHamiltonian()
 
 void GW::PrintGWA_Energies() const {
 
-  double shift = CalcHomoLumoShift();
+  double shift = CalcHomoLumoShift(_gwa_energies);
 
   XTP_LOG_SAVE(logINFO, _log)
       << (boost::format(
@@ -180,7 +180,7 @@ void GW::CalculateGWPerturbation() {
     _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " GW_Iteration:" << i_gw
-        << " Shift[Hrt]:" << CalcHomoLumoShift() << std::flush;
+        << " Shift[Hrt]:" << CalcHomoLumoShift(_gwa_energies) << std::flush;
     if (Converged(_rpa.getRPAInputEnergies(), rpa_energies_old,
                   _opt.gw_sc_limit)) {
       XTP_LOG_SAVE(logDEBUG, _log)
@@ -217,7 +217,7 @@ Eigen::VectorXd GW::SolveQP_SelfConsistent(Eigen::VectorXd frequencies) const {
     if (tools::globals::verbose) {
       XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " G_Iteration:" << i_freq
-          << " Shift[Hrt]:" << CalcHomoLumoShift() << std::flush;
+          << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;
     }
     if (Converged(frequencies, frequencies_prev, _opt.g_sc_limit)) {
       XTP_LOG_SAVE(logDEBUG, _log)

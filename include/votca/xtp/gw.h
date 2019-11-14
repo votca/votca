@@ -92,7 +92,7 @@ class GW {
 
   RPA _rpa;
 
-  double CalcHomoLumoShift() const;
+  double CalcHomoLumoShift(Eigen::VectorXd frequencies) const;
   Eigen::VectorXd ScissorShift_DFTlevel(
       const Eigen::VectorXd& dft_energies) const;
   void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const;
