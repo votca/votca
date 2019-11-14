@@ -18,6 +18,7 @@
  */
 
 #include "votca/xtp/rpa.h"
+#include "votca/xtp/sigma_exact.h"
 #include "votca/xtp/sigma_ppm.h"
 #include <votca/xtp/gw.h>
 
@@ -28,7 +29,9 @@ void GW::configure(const options& opt) {
   _opt = opt;
   _qptotal = _opt.qpmax - _opt.qpmin + 1;
   _rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
-  if (_opt.sigma_integration == "ppm") {
+  if (_opt.sigma_integration == "exact") {
+    _sigma = std::make_unique<Sigma_Exact>(Sigma_Exact(_Mmn, _rpa));
+  } else if (_opt.sigma_integration == "ppm") {
     _sigma = std::make_unique<Sigma_PPM>(Sigma_PPM(_Mmn, _rpa));
   }
   Sigma_base::options sigma_opt;
@@ -37,6 +40,7 @@ void GW::configure(const options& opt) {
   sigma_opt.qpmin = _opt.qpmin;
   sigma_opt.rpamin = _opt.rpamin;
   sigma_opt.rpamax = _opt.rpamax;
+  sigma_opt.eta = _opt.eta;
   _sigma->configure(sigma_opt);
   _Sigma_x = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
   _Sigma_c = Eigen::MatrixXd::Zero(_qptotal, _qptotal);

@@ -40,7 +40,7 @@ class Sigma_base {
     Index qpmax = 0;
     Index rpamin = 0;
     Index rpamax = 0;
-    double eta = 0.001;
+    double eta = 1e-3;
   };
 
   void configure(options opt) {

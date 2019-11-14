@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_SIGMA_SPECTRAL_H
-#define _VOTCA_XTP_SIGMA_SPECTRAL_H
+#ifndef _VOTCA_XTP_SIGMA_EXACT_H
+#define _VOTCA_XTP_SIGMA_EXACT_H
 
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/sigma_base.h>
@@ -52,4 +52,4 @@ class Sigma_Exact : public Sigma_base {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_SIGMA_SPECTRAL_H */
+#endif /* _VOTCA_XTP_SIGMA_EXACT_H */

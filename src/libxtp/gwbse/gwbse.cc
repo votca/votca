@@ -375,6 +375,21 @@ void GWBSE::Initialize(tools::Property& options) {
       index++;
     }
   }
+
+  _gwopt.sigma_integration = options.ifExistsReturnElseReturnDefault<std::string>(
+    key + ".sigma_integrator", _gwopt.sigma_integration);
+  XTP_LOG(logDEBUG, *_pLog)
+    << " Sigma Integration: " << _gwopt.sigma_integration << flush;
+  
+  _gwopt.eta = options.ifExistsReturnElseReturnDefault<double>(
+    key + ".eta", _gwopt.eta);
+  
+  if (_gwopt.sigma_integration == "exact") {
+    XTP_LOG(logDEBUG, *_pLog)
+      << " RPA size: " << (homo + 1 - rpamin) * (rpamax - homo) << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+      << " eta: " << _gwopt.eta << flush;
+  }
   return;
 }
 
