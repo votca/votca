@@ -104,7 +104,16 @@ int main(int argc, char **argv) {
         }
       }
 
-      for (Property *p2 : prop->Select(print)) {
+      std::vector<Property *> printvalues;
+
+      // Select returns empty on "." thus we have to handle that case explicitly
+      if (print == ".") {
+        printvalues.push_back(&(prop->get(print)));
+      } else {
+        printvalues = prop->Select(print);
+      }
+
+      for (Property *p2 : printvalues) {
 
         if (!short_output && with_path) {
           cout << p2->path() << ".";
