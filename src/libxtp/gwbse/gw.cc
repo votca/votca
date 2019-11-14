@@ -53,11 +53,6 @@ double GW::CalcHomoLumoShift() const {
   return QPgap - DFTgap;
 }
 
-Eigen::VectorXd GW::CalcDiagonalEnergies() const {
-  return _Sigma_x.diagonal() + _Sigma_c.diagonal() - _vxc.diagonal() +
-         _dft_energies.segment(_opt.qpmin, _qptotal);
-}
-
 Eigen::MatrixXd GW::getHQP() const {
   return _Sigma_x + _Sigma_c - _vxc +
          Eigen::MatrixXd(
@@ -141,51 +136,6 @@ Eigen::VectorXd GW::ScissorShift_DFTlevel(
   return shifted_energies;
 }
 
-bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
-                   double epsilon) const {
-  Index state = 0;
-  bool energies_converged = true;
-  double diff_max = (e1 - e2).cwiseAbs().maxCoeff(&state);
-  if (diff_max > epsilon) {
-    energies_converged = false;
-  }
-  if (tools::globals::verbose) {
-    XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " E_diff max=" << diff_max
-                                 << " StateNo:" << state << std::flush;
-  }
-  return energies_converged;
-}
-
-Eigen::VectorXd GW::CalculateExcitationFreq(Eigen::VectorXd frequencies) {
-  for (Index i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
-
-    _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies);
-    _gwa_energies = CalcDiagonalEnergies();
-
-    if (tools::globals::verbose) {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " G_Iteration:" << i_freq
-          << " Shift[Hrt]:" << CalcHomoLumoShift() << std::flush;
-    }
-    if (Converged(_gwa_energies, frequencies, _opt.g_sc_limit)) {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " Converged after " << i_freq + 1
-          << " G iterations." << std::flush;
-      break;
-    } else if (i_freq == _opt.g_sc_max_iterations - 1 &&
-               _opt.g_sc_max_iterations > 1) {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " G-self-consistency cycle not converged after "
-          << _opt.g_sc_max_iterations << " iterations." << std::flush;
-      break;
-    } else {
-      double alpha = 0.0;
-      frequencies = (1 - alpha) * _gwa_energies + alpha * frequencies;
-    }
-  }
-  return frequencies;
-}
-
 void GW::CalculateGWPerturbation() {
 
   _Sigma_x = (1 - _opt.ScaHFX) * _sigma->CalcExchange();
@@ -244,6 +194,56 @@ void GW::CalculateGWPerturbation() {
   }
 
   PrintGWA_Energies();
+}
+
+Eigen::VectorXd GW::CalculateExcitationFreq(Eigen::VectorXd frequencies) {
+  for (Index i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
+
+    _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies);
+    _gwa_energies = CalcDiagonalEnergies();
+
+    if (tools::globals::verbose) {
+      XTP_LOG_SAVE(logDEBUG, _log)
+          << TimeStamp() << " G_Iteration:" << i_freq
+          << " Shift[Hrt]:" << CalcHomoLumoShift() << std::flush;
+    }
+    if (Converged(_gwa_energies, frequencies, _opt.g_sc_limit)) {
+      XTP_LOG_SAVE(logDEBUG, _log)
+          << TimeStamp() << " Converged after " << i_freq + 1
+          << " G iterations." << std::flush;
+      break;
+    } else if (i_freq == _opt.g_sc_max_iterations - 1 &&
+               _opt.g_sc_max_iterations > 1) {
+      XTP_LOG_SAVE(logDEBUG, _log)
+          << TimeStamp() << " G-self-consistency cycle not converged after "
+          << _opt.g_sc_max_iterations << " iterations." << std::flush;
+      break;
+    } else {
+      double alpha = 0.0;
+      frequencies = (1 - alpha) * _gwa_energies + alpha * frequencies;
+    }
+  }
+  return frequencies;
+}
+
+Eigen::VectorXd GW::CalcDiagonalEnergies() const {
+  return _Sigma_x.diagonal() + _Sigma_c.diagonal() - _vxc.diagonal() +
+         _dft_energies.segment(_opt.qpmin, _qptotal);
+}
+
+bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
+                   double epsilon) const {
+  Index state = 0;
+  bool energies_converged = true;
+  double diff_max = (e1 - e2).cwiseAbs().maxCoeff(&state);
+  if (diff_max > epsilon) {
+    energies_converged = false;
+  }
+  if (tools::globals::verbose) {
+    XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " E_diff max=" << diff_max
+                                 << " StateNo:" << state << std::flush;
+  }
+  return energies_converged;
 }
 
 void GW::CalculateHQP() {

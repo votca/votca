@@ -90,12 +90,13 @@ class GW {
 
   RPA _rpa;
 
-  Eigen::VectorXd CalculateExcitationFreq(Eigen::VectorXd frequencies);
   double CalcHomoLumoShift() const;
   Eigen::VectorXd ScissorShift_DFTlevel(
       const Eigen::VectorXd& dft_energies) const;
   void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const;
   void PrintGWA_Energies() const;
+  
+  Eigen::VectorXd CalculateExcitationFreq(Eigen::VectorXd frequencies);
   Eigen::VectorXd CalcDiagonalEnergies() const;
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
