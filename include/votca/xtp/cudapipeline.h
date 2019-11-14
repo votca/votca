@@ -25,11 +25,7 @@
 #error Cuda not enabled
 #endif
 
-#include <cublas_v2.h>
-#include <curand.h>
-#include <vector>
 #include <votca/xtp/cudamatrix.h>
-#include <votca/xtp/eigen.h>
 
 /*
  * \brief Perform Tensor-matrix multiplications in a GPU
