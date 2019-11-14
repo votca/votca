@@ -96,8 +96,9 @@ class GW {
   void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const;
   void PrintGWA_Energies() const;
   
-  Eigen::VectorXd CalculateExcitationFreq(Eigen::VectorXd frequencies);
-  Eigen::VectorXd CalcDiagonalEnergies() const;
+  Eigen::VectorXd SolveQP_Grid(Eigen::VectorXd frequencies);
+  Eigen::VectorXd SolveQP_SelfConsistent(Eigen::VectorXd frequencies);
+  Eigen::VectorXd IterateQP_FixedPoint() const;
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
 };

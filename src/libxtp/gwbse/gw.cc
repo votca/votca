@@ -140,12 +140,12 @@ void GW::CalculateGWPerturbation() {
 
   _Sigma_x = (1 - _opt.ScaHFX) * _sigma->CalcExchange();
   XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << " Calculated Hartree exchange contribution  "
+      << TimeStamp() << " Calculated Hartree exchange contribution"
       << std::flush;
-  // dft energies has size aobasissize
-  // rpaenergies has siye rpatotal so has Mmn
-  // gwaenergies/frequencies has qpmin,qpmax
-  // homo index is relative to dftenergies
+  // dftenergies has size aobasissize
+  // rpaenergies/Mmn have size rpatotal
+  // gwaenergies/frequencies have size qptotal
+  // homo index is relative to dft_energies
   Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
   Eigen::VectorXd rpa_energies =
       dft_shifted_energies.segment(_opt.rpamin, _opt.rpamax - _opt.rpamin + 1);
@@ -161,10 +161,18 @@ void GW::CalculateGWPerturbation() {
     }
     _sigma->PrepareScreening();
     XTP_LOG_SAVE(logDEBUG, _log)
-        << TimeStamp() << " Calculated screening via RPA  " << std::flush;
-    frequencies = CalculateExcitationFreq(frequencies);
-    XTP_LOG_SAVE(logDEBUG, _log)
-        << TimeStamp() << " Calculated diagonal part of Sigma  " << std::flush;
+        << TimeStamp() << " Calculated screening via RPA" << std::flush;
+    if (false) { // TODO: If a grid is specified in the options
+      frequencies = SolveQP_Grid(frequencies);
+      XTP_LOG_SAVE(logDEBUG, _log)
+          << TimeStamp() << " Solved QP equation on a grid" << std::flush;
+    }
+    if (_opt.g_sc_max_iterations > 0) {
+      frequencies = SolveQP_SelfConsistent(frequencies);
+      XTP_LOG_SAVE(logDEBUG, _log)
+          << TimeStamp() << " Solved QP equation self-consistently" << std::flush;
+    }
+    // TODO: If no G iterations, we still need to calculate sigma_c diagonal!
     Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
     _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
 
@@ -196,11 +204,15 @@ void GW::CalculateGWPerturbation() {
   PrintGWA_Energies();
 }
 
-Eigen::VectorXd GW::CalculateExcitationFreq(Eigen::VectorXd frequencies) {
+Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) {
+  return frequencies; // TODO
+}
+
+Eigen::VectorXd GW::SolveQP_SelfConsistent(Eigen::VectorXd frequencies) {
   for (Index i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
 
-    _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies);
-    _gwa_energies = CalcDiagonalEnergies();
+    _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies); // TODO: Duplicate computation if no grid pre-computation is performed
+    _gwa_energies = IterateQP_FixedPoint();
 
     if (tools::globals::verbose) {
       XTP_LOG_SAVE(logDEBUG, _log)
@@ -226,7 +238,7 @@ Eigen::VectorXd GW::CalculateExcitationFreq(Eigen::VectorXd frequencies) {
   return frequencies;
 }
 
-Eigen::VectorXd GW::CalcDiagonalEnergies() const {
+Eigen::VectorXd GW::IterateQP_FixedPoint() const {
   return _Sigma_x.diagonal() + _Sigma_c.diagonal() - _vxc.diagonal() +
          _dft_energies.segment(_opt.qpmin, _qptotal);
 }
