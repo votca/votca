@@ -197,5 +197,23 @@ if(ENABLE_TESTING)
     add_test(NAME integration_Compare_csg_dump_output COMMAND ${CMAKE_COMMAND} -E compare_files csg_dump.out ${REFPATH}/csg_dump.out WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_csg_dump_output PROPERTIES DEPENDS integration_Run_csg_dump)
     set_tests_properties(integration_Compare_csg_dump_output PROPERTIES LABELS "csg;tools;votca;integration")
+
+    set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_property)
+    set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/csg_property)
+    file(MAKE_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Run_csg_property
+      COMMAND ${BASH} -c "$<TARGET_FILE:csg_property> --file ${REFPATH}/csg_defaults.xml --print . --short --path cg.inverse.gromacs.DESC > csg_property.out"
+      WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_csg_property PROPERTIES LABELS "csg;tools;votca;integration")
+    add_test(NAME integration_Compare_csg_property_output COMMAND ${CMAKE_COMMAND} -E compare_files csg_property.out ${REFPATH}/csg_property.out WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_csg_property_output PROPERTIES DEPENDS integration_Run_csg_property)
+    set_tests_properties(integration_Compare_csg_property_output PROPERTIES LABELS "csg;tools;votca;integration")
+    add_test(NAME integration_Run_csg_property2
+      COMMAND ${BASH} -c "$<TARGET_FILE:csg_property> --file ${REFPATH}/csg_defaults.xml --print . --path cg.inverse.gromacs.DESC > csg_property.out2"
+      WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_csg_property2 PROPERTIES LABELS "csg;tools;votca;integration")
+    add_test(NAME integration_Compare_csg_property_output2 COMMAND ${CMAKE_COMMAND} -E compare_files csg_property.out2 ${REFPATH}/csg_property.out2 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_csg_property_output2 PROPERTIES DEPENDS integration_Run_csg_property2)
+    set_tests_properties(integration_Compare_csg_property_output2 PROPERTIES LABELS "csg;tools;votca;integration")
   endif(BASH)
 endif()
