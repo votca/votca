@@ -215,5 +215,20 @@ if(ENABLE_TESTING)
     add_test(NAME integration_Compare_csg_property_output2 COMMAND ${CMAKE_COMMAND} -E compare_files csg_property.out2 ${REFPATH}/csg_property.out2 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_csg_property_output2 PROPERTIES DEPENDS integration_Run_csg_property2)
     set_tests_properties(integration_Compare_csg_property_output2 PROPERTIES LABELS "csg;tools;votca;integration")
+    add_test(NAME integration_Run_csg_property3
+      COMMAND ${BASH} -c "$<TARGET_FILE:csg_property> --file ${REFPATH}/test.xml --path A.B.C --print . > csg_property.out3"
+      WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_csg_property3 PROPERTIES LABELS "csg;tools;votca;integration")
+    add_test(NAME integration_Compare_csg_property_output3 COMMAND ${CMAKE_COMMAND} -E compare_files csg_property.out ${REFPATH}/csg_property.out3 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_csg_property_output3 PROPERTIES DEPENDS integration_Run_csg_property3)
+    set_tests_properties(integration_Compare_csg_property_output3 PROPERTIES LABELS "csg;tools;votca;integration")
+    add_test(NAME integration_Run_csg_property4
+      COMMAND ${BASH} -c "$<TARGET_FILE:csg_property> --file ${REFPATH}/test.xml -path A.B --print C > csg_property.out4"
+      WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_csg_property4 PROPERTIES LABELS "csg;tools;votca;integration")
+    add_test(NAME integration_Compare_csg_property_output4 COMMAND ${CMAKE_COMMAND} -E compare_files csg_property.out2 ${REFPATH}/csg_property.out4 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_csg_property_output4 PROPERTIES DEPENDS integration_Run_csg_property4)
+    set_tests_properties(integration_Compare_csg_property_output4 PROPERTIES LABELS "csg;tools;votca;integration")
+
   endif(BASH)
 endif()
