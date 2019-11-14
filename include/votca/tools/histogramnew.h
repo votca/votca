@@ -153,6 +153,7 @@ class HistogramNew {
    * \return table object with bins in x and values in y
    */
   Table &data() { return _data; }
+  const Table &data() const { return _data; }
 
   /**
    * \brief set whether interval is periodic

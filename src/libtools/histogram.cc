@@ -23,9 +23,9 @@
 namespace votca {
 namespace tools {
 
-Histogram::Histogram() : _min(0), _max(0) {}
+Histogram::Histogram() = default;
 
-Histogram::Histogram(options_t op) : _min(0), _max(0), _options(op) {}
+Histogram::Histogram(options_t op) : _options(op) {}
 
 Histogram::~Histogram() = default;
 
