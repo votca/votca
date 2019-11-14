@@ -40,18 +40,16 @@ int main(int argc, char **argv) {
 
   // Declare the supported options.
   po::options_description desc("Allowed options");
-  desc.add_options()("help", "produce this help message")
-      //("values", po::value<string>(&filter)->default_value(""),
-      //    "list option values that match given criteria")
-      ("path", po::value<string>(&path)->default_value(""),
-       "list option values that match given criteria")(
-          "filter", po::value<string>(&filter)->default_value(""),
-          "list option values that match given criteria")(
-          "print", po::value<string>(&print)->default_value("."),
-          "list option values that match given criteria")(
-          "file", po::value<string>(&file), "xml file to parse")(
-          "short", "short version of output")("with-path",
-                                              "include path of node in output");
+  desc.add_options()("help", "produce this help message")(
+      "path", po::value<string>(&path)->default_value(""),
+      "path to part of the xml file to print")(
+      "filter", po::value<string>(&filter)->default_value(""),
+      "list option values that match given criteria")(
+      "print", po::value<string>(&print)->default_value("."),
+      "specifies which children or root to print")(
+      "file", po::value<string>(&file), "xml file to parse")(
+      "short", "short version of output")("with-path",
+                                          "include path of node in output");
 
   // now read in the command line
   po::variables_map vm;
@@ -106,17 +104,17 @@ int main(int argc, char **argv) {
         }
       }
 
-      Property *p2 = &(prop->get(print));
+      for (Property *p2 : prop->Select(print)) {
 
-      if (!short_output && with_path) {
-        cout << p2->path() << ".";
+        if (!short_output && with_path) {
+          cout << p2->path() << ".";
+        }
+        if (!short_output) {
+          cout << p2->name() << " = ";
+        }
+        cout << p2->value();
+        cout << endl;
       }
-      if (!short_output) {
-        cout << p2->name() << " = ";
-      }
-      // if(!p2->HasChilds())
-      cout << p2->value();
-      cout << endl;
     }
   } catch (std::exception &error) {
     cerr << "Warning from parsing xml file '" << file << "':\n"
