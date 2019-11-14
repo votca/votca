@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(tokenizer_test) {
   Tokenizer tok(str1, separators);
   std::vector<std::string> result = tok.ToVector();
   BOOST_CHECK_EQUAL(result[0], "blah");
-  BOOST_CHECK_EQUAL(result[1], "blah");
+  BOOST_CHECK_EQUAL(result[1], "ya");
 
   string str2 = "";
   Tokenizer tok2(str2, separators);
