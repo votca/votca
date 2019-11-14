@@ -46,9 +46,9 @@ void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B,
   if ((A.cols() != B.rows())) {
     throw std::runtime_error("Shape mismatch in Cublas gemm");
   }
-  cublasDgemm(_handle, CUBLAS_OP_N, CUBLAS_OP_N, A.rows(), B.cols(), A.cols(),
-              palpha, A.data(), A.rows(), B.data(), B.rows(), pbeta, C.data(),
-              C.rows());
+  cublasDgemm(_handle, CUBLAS_OP_N, CUBLAS_OP_N, int(A.rows()), int(B.cols()),
+              int(A.cols()), palpha, A.data(), int(A.rows()), B.data(),
+              int(B.rows()), pbeta, C.data(), int(C.rows()));
 }
 
 }  // namespace xtp
