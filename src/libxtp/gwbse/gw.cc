@@ -173,9 +173,6 @@ void GW::CalculateGWPerturbation() {
           << TimeStamp() << " Solved QP equation self-consistently" << std::flush;
     }
     _gwa_energies = frequencies;
-    // TODO: Below, we update the sigma_c diagonals using the latest gwa energies. This is not done
-    // in the master branch and sigma_c will therefore be different! However, if the GW iteration
-    // converged, this difference will be within the convergence criterion. Is this okay?
     _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(_gwa_energies);
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Calculated correlation diagonal" << std::flush;
