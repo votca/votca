@@ -390,6 +390,17 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(logDEBUG, *_pLog)
       << " eta: " << _gwopt.eta << flush;
   }
+
+  _gwopt.qp_grid_range = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".qp_grid_range", _gwopt.qp_grid_range);
+  _gwopt.qp_grid_steps = options.ifExistsReturnElseReturnDefault<int>(
+      key + ".qp_grid_steps", _gwopt.qp_grid_steps);
+  if (_gwopt.qp_grid_steps > 0) {
+    XTP_LOG(logDEBUG, *_pLog)
+        << " QP grid range: " << _gwopt.qp_grid_range << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+        << " QP grid steps: " << _gwopt.qp_grid_steps << flush;
+  }
   return;
 }
 
