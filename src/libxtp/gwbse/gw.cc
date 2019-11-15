@@ -216,8 +216,7 @@ Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
   grid_opt.steps = _opt.qp_grid_steps;
   grid_opt.range = _opt.qp_grid_range;
   grid.configure(grid_opt);
-  Eigen::VectorXd temp = grid.Evaluate(frequencies);
-  return frequencies;
+  return grid.Evaluate(frequencies);
 }
 
 Eigen::VectorXd GW::SolveQP_SelfConsistent(Eigen::VectorXd frequencies) const {
