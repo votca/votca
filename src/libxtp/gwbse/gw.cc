@@ -17,7 +17,6 @@
  *
  */
 
-#include "votca/xtp/qpgrid.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_exact.h"
 #include "votca/xtp/sigma_ppm.h"
@@ -177,7 +176,7 @@ void GW::CalculateGWPerturbation() {
     if (_opt.qp_grid_steps > 0) {
       frequencies = SolveQP_Grid(frequencies);
       XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " Solved QP equation on a grid" << std::flush;
+          << TimeStamp() << " Solved QP equation on QP grid" << std::flush;
     }
     if (_opt.g_sc_max_iterations > 0) {
       frequencies = SolveQP_SelfConsistent(frequencies);
