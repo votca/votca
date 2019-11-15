@@ -92,20 +92,8 @@ class DavidsonSolver {
 
       } else {
         updateProjection(A, proj);
-
-        // get the ritz vectors
-        switch (this->_matrix_type) {
-          case MATRIX_TYPE::SYMM: {
-            rep = getRitz(proj);
-            break;
-          }
-          case MATRIX_TYPE::HAM: {
-            rep = getHarmonicRitz(A, proj);
-          }
-        }
-
-        Index nupdate = extendProjection(rep, proj);
-        proj.V = orthogonalize(proj.V, nupdate);
+        rep = getGuessVectors(A, proj);
+        extendProjection(rep, proj);
       }
 
       printIterationData(rep, proj, neigen);
@@ -198,6 +186,21 @@ class DavidsonSolver {
   }
 
   template <typename MatrixReplacement>
+  RitzEigenPair getGuessVectors(const MatrixReplacement &A,
+                                const ProjectedSpace &proj) const {
+    // get the ritz vectors
+    switch (this->_matrix_type) {
+      case MATRIX_TYPE::SYMM: {
+        return getRitz(proj);
+      }
+      case MATRIX_TYPE::HAM: {
+        return getHarmonicRitz(A, proj);
+      }
+    }
+    return RitzEigenPair();
+  }
+
+  template <typename MatrixReplacement>
   RitzEigenPair getHarmonicRitz(const MatrixReplacement &A,
                                 const ProjectedSpace &proj) const {
 
@@ -265,7 +268,7 @@ class DavidsonSolver {
   ProjectedSpace initProjectedSpace(Index neigen,
                                     Index size_initial_guess) const;
 
-  Index extendProjection(const RitzEigenPair &rep, ProjectedSpace &proj);
+  void extendProjection(const RitzEigenPair &rep, ProjectedSpace &proj);
 
   void restart(const RitzEigenPair &rep, ProjectedSpace &proj,
                Index size_restart) const;

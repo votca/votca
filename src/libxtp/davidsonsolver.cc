@@ -275,8 +275,8 @@ DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace(
   return proj;
 }
 
-Index DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
-                                       DavidsonSolver::ProjectedSpace &proj) {
+void DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
+                                      DavidsonSolver::ProjectedSpace &proj) {
 
   Index nupdate = 0;
   for (Index j = 0; j < proj.size_update; j++) {
@@ -300,7 +300,7 @@ Index DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
     proj.root_converged[j] = (rep.res_norm()[j] < _tol);
   }
 
-  return nupdate;
+  proj.V = orthogonalize(proj.V, nupdate);
 }
 
 Eigen::MatrixXd DavidsonSolver::extract_vectors(const Eigen::MatrixXd &V,
