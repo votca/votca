@@ -109,7 +109,7 @@ class Property {
    * @return list of pointers to property objects
    *
    * returns a list of properties that match the key criteria including
-   * wildcards "*" and "?". Example: "base.item*.value"
+   * wildcard "*". Example: "base.item*.value"
    */
   std::vector<Property *> Select(const std::string &filter);
   std::vector<const Property *> Select(const std::string &filter) const;

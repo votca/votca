@@ -35,6 +35,27 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
   Tokenizer tok2(str1, separators);
 }
 
+BOOST_AUTO_TEST_CASE(tokenizer_test) {
+  string str1 = "blah,ya";
+  string separators = ",";
+  Tokenizer tok(str1, separators);
+  std::vector<std::string> result = tok.ToVector();
+  BOOST_CHECK_EQUAL(result[0], "blah");
+  BOOST_CHECK_EQUAL(result[1], "ya");
+
+  string str2 = "";
+  Tokenizer tok2(str2, separators);
+  BOOST_CHECK_EQUAL(tok2.begin() == tok2.end(), true);
+  std::vector<std::string> result2 = tok2.ToVector();
+  BOOST_CHECK_EQUAL(result2.size(), 0);
+
+  string str3 = "hello";
+  Tokenizer tok3(str3, separators);
+  BOOST_CHECK_EQUAL(tok3.begin() == tok3.end(), false);
+  std::vector<std::string> result3 = tok3.ToVector();
+  BOOST_CHECK_EQUAL(result3[0], "hello");
+}
+
 BOOST_AUTO_TEST_CASE(wildcmp_test) {
   string wildcard = "";
   string potential_match = "";
