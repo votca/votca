@@ -17,6 +17,7 @@
  *
  */
 
+#include "votca/xtp/qpgrid.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_exact.h"
 #include "votca/xtp/sigma_ppm.h"
@@ -207,7 +208,16 @@ void GW::CalculateGWPerturbation() {
 }
 
 Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
-  return frequencies; // TODO
+  QPGrid grid(_log, *_sigma, _vxc.diagonal(), _dft_energies, _Sigma_x.diagonal());
+  QPGrid::options grid_opt;
+  grid_opt.homo = _opt.homo;
+  grid_opt.qpmin = _opt.qpmin;
+  grid_opt.qpmax = _opt.qpmax;
+  grid_opt.steps = _opt.qp_grid_steps;
+  grid_opt.range = _opt.qp_grid_range;
+  grid.configure(grid_opt);
+  Eigen::VectorXd temp = grid.Evaluate(frequencies);
+  return frequencies;
 }
 
 Eigen::VectorXd GW::SolveQP_SelfConsistent(Eigen::VectorXd frequencies) const {
