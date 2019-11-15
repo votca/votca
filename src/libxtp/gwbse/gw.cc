@@ -45,6 +45,17 @@ void GW::configure(const options& opt) {
   _sigma->configure(sigma_opt);
   _Sigma_x = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
   _Sigma_c = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
+  if (_opt.qp_grid_steps > 0) {
+    QPGrid grid(_log, *_sigma, _vxc, _dft_energies, _Sigma_x);
+    QPGrid::options grid_opt;
+    grid_opt.homo = _opt.homo;
+    grid_opt.qpmin = _opt.qpmin;
+    grid_opt.qpmax = _opt.qpmax;
+    grid_opt.steps = _opt.qp_grid_steps;
+    grid_opt.range = _opt.qp_grid_range;
+    grid.configure(grid_opt);
+    _qpgrid = std::make_unique<QPGrid>(grid);
+  }
 }
 
 double GW::CalcHomoLumoShift(Eigen::VectorXd frequencies) const {
@@ -208,15 +219,7 @@ void GW::CalculateGWPerturbation() {
 }
 
 Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
-  QPGrid grid(_log, *_sigma, _vxc.diagonal(), _dft_energies, _Sigma_x.diagonal());
-  QPGrid::options grid_opt;
-  grid_opt.homo = _opt.homo;
-  grid_opt.qpmin = _opt.qpmin;
-  grid_opt.qpmax = _opt.qpmax;
-  grid_opt.steps = _opt.qp_grid_steps;
-  grid_opt.range = _opt.qp_grid_range;
-  grid.configure(grid_opt);
-  return grid.Evaluate(frequencies);
+  return _qpgrid->Evaluate(frequencies);
 }
 
 Eigen::VectorXd GW::SolveQP_SelfConsistent(Eigen::VectorXd frequencies) const {

@@ -32,14 +32,14 @@ class QPGrid {
  public:
   QPGrid(Logger& log,
          Sigma_base& sigma,
-         const Eigen::MatrixXd& vxc_diag,
+         const Eigen::MatrixXd& vxc,
          const Eigen::VectorXd& dft_energies,
-         const Eigen::VectorXd& sigma_x_diag)
+         const Eigen::MatrixXd& sigma_x)
       : _log(log),
         _sigma(sigma),
-        _vxc_diag(vxc_diag),
+        _vxc(vxc),
         _dft_energies(dft_energies),
-        _sigma_x_diag(sigma_x_diag) {}
+        _sigma_x(sigma_x) {}
 
   struct options {
     Index homo = 0;
@@ -68,9 +68,9 @@ class QPGrid {
   double _delta = 0.0; // Step size
   Sigma_base& _sigma;
 
-  const Eigen::VectorXd& _vxc_diag;
+  const Eigen::MatrixXd& _vxc;
   const Eigen::VectorXd& _dft_energies;
-  const Eigen::VectorXd& _sigma_x_diag;
+  const Eigen::MatrixXd& _sigma_x;
 
 };
 
