@@ -505,6 +505,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   BOOST_CHECK_EQUAL(check_spsi_btda_AR, true);
 
   // Davidson matrix free
+
   opt.matrixfree = 1;
   opt.davidson = 1;
   opt.nmax = 3;
