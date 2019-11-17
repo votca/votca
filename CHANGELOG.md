@@ -1,5 +1,9 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/xtp/commits/master).
 
+## Version 1.5.1 (released XX.11.19)
+ * remove exit() calls in the library 
+ * fix build on CentOs7
+
 ## Version 1.5 _SuperVictor_ (released 31.01.19)
  * enable gitlab CI
 
