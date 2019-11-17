@@ -110,10 +110,22 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   Eigen::Vector3d v;
   for (votca::Index i = 0; i < 10; i++) {
     bd = top.getBead(i);
+<<<<<<< HEAD
+    BOOST_CHECK_EQUAL(bd->getId(),i);
+    BOOST_CHECK_EQUAL(bd->getResnr(),resnr.at(i));
+    BOOST_CHECK_EQUAL(bd->getName(),bd_name.at(i));
+  //BOOST_CHECK_EQUAL(bd->getM(),ele.getMass(bd->getName()));
+||||||| merged common ancestors
+    BOOST_CHECK_EQUAL(bd->getId(),i);
+    BOOST_CHECK_EQUAL(bd->getResnr(),resnr.at(i));
+    BOOST_CHECK_EQUAL(bd->getName(),bd_name.at(i));
+  //BOOST_CHECK_EQUAL(bd->getMass(),ele.getMass(bd->getName()));
+=======
     BOOST_CHECK_EQUAL(bd->getId(), i);
     BOOST_CHECK_EQUAL(bd->getResnr(), resnr.at(i));
     BOOST_CHECK_EQUAL(bd->getName(), bd_name.at(i));
     // BOOST_CHECK_EQUAL(bd->getMass(),ele.getMass(bd->getName()));
+>>>>>>> dd97ff3601c415706cd7468983f379105fd550cb
     v = bd->getPos();
     BOOST_CHECK_CLOSE(bd->getQ(), 0, 1e-5);
     BOOST_CHECK_CLOSE(v.x(), x.at(i), 1e-5);

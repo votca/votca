@@ -364,8 +364,8 @@
     <average>
       <steps>1
         <DESC>number of steps to be used for average computation. For relative
-        entropy method, these many last iteration steps are used to compute average
-        CG potentials or parameters or both.</DESC>
+          entropy method, these many last iteration steps are used to compute average
+          CG potentials or parameters or both.</DESC>
       </steps>
     </average>
     <initial_configuration>maindir
@@ -386,6 +386,42 @@
     <method>
       <DESC>method to be performed: ibi/imc/ft/optimizer</DESC>
     </method>
+    <ihnc>
+      <DESC>general options for the ihnc scheme</DESC>
+      <initial_guess>hnc
+        <DESC>Method for the initial potential guess</DESC>
+      </initial_guess>
+      <density>
+        <DESC>Number density</DESC>
+      </density>
+      <cut_off>
+        <DESC>Cut-off used in MD. Potential will be set to zero beyond this point.</DESC>
+      </cut_off>
+    </ihnc>
+    <hncgn>
+      <DESC>general options for the hncgn scheme</DESC>
+      <initial_guess>hnc
+        <DESC>Method for the initial potential guess</DESC>
+      </initial_guess>
+      <density>
+        <DESC>Number density</DESC>
+      </density>
+      <cut_off>
+        <DESC>Cut-off used in MD. Potential will be set to zero beyond this point.</DESC>
+      </cut_off>
+      <pressure_constraint>none
+        <DESC>Apply pressure constraint.</DESC>
+      </pressure_constraint>
+      <extrap_near_core>power
+        <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
+      </extrap_near_core>
+      <fix_near_cut_off>full-deriv
+        <DESC>Method for fixing discontinuity at end of potential. Valid values are: full-deriv (default), none</DESC>
+      </fix_near_cut_off>
+      <verbose>True
+        <DESC>Print some info and dump compressed numpy arrays. Valid values are: True (default), False</DESC>
+      </verbose>
+    </hncgn>
     <optimizer>
       <cma>
         <DESC>general options for the cma optimizer</DESC>
@@ -425,8 +461,8 @@
   <bonded>
     <DESC>Interaction specific option for bonded interactions, see the cg.non-bonded section for all options</DESC>
     <dlpoly><header>
-      <DESC>Header of the interaction in dlpoly TABBND or TABANG file. The header should be a unique set of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
-    </header>
+        <DESC>Header of the interaction in dlpoly TABBND or TABANG file. The header should be a unique set of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
+      </header>
     </dlpoly>
     <name>
       <DESC>Name of the bonded interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
@@ -438,8 +474,8 @@
   <non-bonded>
     <DESC>Interaction specific option for non-bonded interactions</DESC>
     <dlpoly><header>
-      <DESC>Header of the interaction in dlpoly TABLE file. The header should be a unique pair of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
-    </header>
+        <DESC>Header of the interaction in dlpoly TABLE file. The header should be a unique pair of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
+      </header>
     </dlpoly>
     <name>
       <DESC>Name of the interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
@@ -714,7 +750,7 @@
         <density>
           <DESC>Contains all options for the density calculation of the optimizer</DESC>
           <axis>x
-          <DESC>Axis along which the density is calculated</DESC>
+            <DESC>Axis along which the density is calculated</DESC>
           </axis>
           <min>
             <DESC>Lower bound of interval in which density calculation is performed.</DESC>
@@ -725,9 +761,9 @@
           <step>
             <DESC>Step size of interval in which density calculation is performed.</DESC>
           </step>
-               <scale>1.0
-                 <DESC>Scaling factor for density</DESC>
-               </scale>
+          <scale>1.0
+            <DESC>Scaling factor for density</DESC>
+          </scale>
           <molname>*
             <DESC>The molname of this interaction</DESC>
           </molname>
