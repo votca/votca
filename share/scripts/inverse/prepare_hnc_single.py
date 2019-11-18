@@ -59,7 +59,7 @@ def calc_pot_hnc_core(r, rdf_current_g, kBT, density, dump_steps=False):
     c_hat = h_hat / (1 + rho * h_hat)
 
     # y
-    y = 1 + rho * fourier(omega, h_hat * c_hat, r)
+    y = h - fourier(omega, c_hat, r)
 
     # zero order U (similar IBI)
     np.seterr(divide='ignore', invalid='ignore')
