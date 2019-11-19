@@ -24,7 +24,7 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(TXT2TAGS REQUIRED)
 
-foreach(prog csg_property dvipdf inkscape votca_property)
+foreach(prog csg_property dvips ps2pdf inkscape votca_property)
   string(TOUPPER "${prog}" PROG)
   if(TARGET ${prog})
     set(${PROG} $<TARGET_FILE:${prog}>)
@@ -82,7 +82,8 @@ add_latex_document(xtp-manual.tex
 )
 
 add_custom_command(OUTPUT xtp-manual.pdf
-  COMMAND ${DVIPDF} xtp-manual.dvi xtp-manual.pdf
+  COMMAND ${DVIPS} xtp-manual.dvi
+  COMMAND ${PS2PDF} xtp-manual.ps xtp-manual.pdf
   DEPENDS xtp-manual_dvi
 )
 add_custom_target(xtp-manual_pdf ALL DEPENDS xtp-manual.pdf)
