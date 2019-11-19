@@ -26,7 +26,7 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(TXT2TAGS REQUIRED)
 
-foreach(prog csg_call csg_property dvipdf)
+foreach(prog csg_call csg_property dvips ps2pdf)
   string(TOUPPER "${prog}" PROG)
   if(TARGET ${prog})
     set(${PROG} $<TARGET_FILE:${prog}>)
@@ -92,7 +92,8 @@ add_latex_document(manual.tex
 )
 
 add_custom_command(OUTPUT manual.pdf
-  COMMAND ${DVIPDF} manual.dvi manual.pdf
+  COMMAND ${DVIPS} manual.dvi
+  COMMAND ${PS2PDF} manual.ps manual.pdf
   DEPENDS csg-manual_dvi
 )
 add_custom_target(csg-manual_pdf ALL DEPENDS manual.pdf)
