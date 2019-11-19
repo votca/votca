@@ -2,7 +2,7 @@ For more detailed information about the changes see the history of the [reposito
 
 ## Version 1.5.1 (released XX.11.19)
  * switch votca_compare to python3
- * more clear error message for pdbreader
+ * more clear error message for xmlreader
  * fix build on CentOs7
 
 
