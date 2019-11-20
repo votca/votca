@@ -15,7 +15,7 @@
 #limitations under the License.
 #
 
-from optparse import OptionParser import sys from re import match import pickle
+from optparse import OptionParser import sys import re import pickle
 
     try : import numpy except:
     exit("Could not import numpy modules used by cma")
@@ -33,10 +33,10 @@ class state:
     def read(self, filename):
         statefile = open(filename)
         for line in statefile:
-            m = match("^#State = \s*(\S*)", line)
+            m = re.match("^#State = \s*(\S*)", line)
             if m:
                 self.state = m.group(1)
-            elif match("^#", line):
+            elif re.match("^#", line):
                 self.comments += line
             else:
                 if len(line.strip()) == 0:
@@ -50,7 +50,7 @@ class state:
                              ") contains a non-numerical value")
                 self.parameters.append(array[0:-1])
                 self.solutions.append(array[-1])
-                if self.state != "Initialization" and not match("^(complete|try)$", li[-1]):
+                if self.state != "Initialization" and not re.match("^(complete|try)$", li[-1]):
                     sys.exit(
                         "We can only handle parameter sets flagged with Complete or Try and we found '"+li[-1]+"'")
         statefile.close()

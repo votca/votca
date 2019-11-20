@@ -45,7 +45,7 @@ if str(conf1.readline()).strip() != str(conf2.readline()).strip():
 conf1 = conf1.readlines()
 conf2 = conf2.readlines()
 #loop through files
-for i,(c1,c2) in enumerate(zip(conf1,conf2)):
+for i, (c1, c2) in enumerate(zip(conf1, conf2)):
     vals1 = c1.split()
     vals2 = c2.split()
 # 6 cols expected
