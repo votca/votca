@@ -39,33 +39,33 @@ class PadeApprox {
  public:
   PadeApprox(){};
 
-  Eigen::Matrix3cd evaluatePoint(std::complex<double> frequency);
+  Eigen::Matrix3d evaluatePoint(std::complex<double> frequency);
 
-  void addPoint(std::complex<double> frequency, Eigen::Matrix3cd value);
+  void addPoint(std::complex<double> frequency, Eigen::Matrix3d value);
 
   void initialize(int basis_size);
 
   void clear();
 
  private:
-  std::vector<Eigen::Matrix3cd> _value;
+  std::vector<Eigen::Matrix3d> _value;
 
   std::vector<std::complex<double>> _grid;
 
-  std::vector<Eigen::Matrix3cd> _coeff;
+  std::vector<Eigen::Matrix3d> _coeff;
 
-  std::vector<std::vector<Eigen::Matrix3cd>> _temp_container_g;
+  std::vector<std::vector<Eigen::Matrix3d>> _temp_container_g;
   
-  std::vector<Eigen::Matrix3cd> _temp_container_A;
-  std::vector<Eigen::Matrix3cd> _temp_container_B;
+  std::vector<Eigen::Matrix3d> _temp_container_A;
+  std::vector<Eigen::Matrix3d> _temp_container_B;
 
   int _rejected_points = 0;
   
-  Eigen::Matrix3cd RecursivePolynom(int indx, int degree);
+  Eigen::Matrix3d RecursivePolynom(int indx, int degree);
 
-  Eigen::Matrix3cd RecursiveA(std::complex<double> frequency, int index);
+  Eigen::Matrix3d RecursiveA(std::complex<double> frequency, int index);
 
-  Eigen::Matrix3cd RecursiveB(std::complex<double> frequency, int index);
+  Eigen::Matrix3d RecursiveB(std::complex<double> frequency, int index);
 };
 }  // namespace xtp
 }  // namespace votca

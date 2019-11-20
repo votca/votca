@@ -342,8 +342,8 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
   }
   
   for (int i = 0; i < Polar.size(); i++) {
-    _pade.addPoint(grid_w[i], Polar[i]);
-    _pade.addPoint(conj(grid_w[i]), Polar[i].adjoint());
+    _pade.addPoint(grid_w[i], Polar[i].real());
+    _pade.addPoint(conj(grid_w[i]), Polar[i].real());
   }
 
   std::vector<Eigen::MatrixXcd> Polar_pade;
