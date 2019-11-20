@@ -109,12 +109,12 @@ BOOST_AUTO_TEST_CASE(threecenter_dft) {
   TCMatrix_dft threec;
   threec.Fill(aobasis, aobasis);
 
-  Eigen::MatrixXd Res0 =
-      Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+  Eigen::MatrixXcd Res0 =
+      Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   threec[0].AddtoEigenMatrix(Res0);
 
-  Eigen::MatrixXd Res4 =
-      Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+  Eigen::MatrixXcd Res4 =
+      Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   threec[4].AddtoEigenMatrix(Res4);
 
   Eigen::MatrixXd Ref0 =

@@ -41,7 +41,7 @@ class PadeApprox {
 
   Eigen::Matrix3cd evaluatePoint(std::complex<double> frequency);
 
-  void addPoint(std::complex<double> frequency, Eigen::MatrixXcd value);
+  void addPoint(std::complex<double> frequency, Eigen::Matrix3cd value);
 
   void initialize(int basis_size);
 

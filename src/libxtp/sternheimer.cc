@@ -28,6 +28,7 @@
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/sternheimer.h>
 #include <eigen3/Eigen/src/Core/Matrix.h>
+#include <eigen3/Eigen/src/Core/util/Constants.h>
 
 #include "votca/xtp/ERIs.h"
 
@@ -51,6 +52,7 @@ void Sternheimer::initializeMultishift(int size) {
 }
 void Sternheimer::initializePade(int size) {
   _pade.initialize(size);
+  _pade.clear();
 }
 
 Eigen::MatrixXcd Sternheimer::OverlapMatrix() {
@@ -91,14 +93,33 @@ Eigen::MatrixXcd Sternheimer::SternheimerLHS(const Eigen::MatrixXcd& hamiltonian
   if (pm != true) {
     temp = (eps - omega);
   }
-  return (inverse_overlap*hamiltonian - temp*Eigen::MatrixXcd::Identity(_basis_size,_basis_size));
+  Eigen::MatrixXcd LHS=(inverse_overlap*hamiltonian - temp*Eigen::MatrixXcd::Identity(_basis_size,_basis_size));
+//  for(int i=0; i<LHS.cols(); i++){
+//    for(int j=0; j<LHS.rows(); j++){
+//        if(abs(LHS(i,j))<=1e-6){
+//            LHS(i,j)=0.0;   
+//        }
+//    }
+//  }
+  return LHS;
 }
 
 Eigen::VectorXcd Sternheimer::SternheimerRHS(const Eigen::MatrixXcd& inverse_overlap,
                                              const Eigen::MatrixXcd& density,
                                              const Eigen::MatrixXcd& pertubation,
                                              const Eigen::VectorXcd& coeff) const{
-  return -1*(inverse_overlap-density)*pertubation*coeff;
+  
+//    std::cout<<"inv overlap"<<std::endl<<inverse_overlap<<std::endl;
+//    std::cout<<"density"<<std::endl<<density<<std::endl;
+//    std::cout<<"pertubation"<<std::endl<<pertubation<<std::endl;
+//    std::cout<<"coeff"<<std::endl<<coeff<<std::endl;
+    Eigen::VectorXcd RHS=-1*(inverse_overlap-density)*pertubation*coeff;
+//    for(int i=0; i<RHS.size(); i++){
+//        if(abs(RHS(i))<=1e-6){
+//            RHS(i)=0.0;   
+//        }
+//    }
+    return RHS;
 }
 
 std::vector<Eigen::MatrixXcd> Sternheimer::DeltaNOneShot(
@@ -180,88 +201,134 @@ std::vector<Eigen::MatrixXcd> Sternheimer::DeltaNOneShot(
 
 Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(std::complex<double> w,
                                                                 const Eigen::MatrixXd& initGuess) const{
-    Eigen::MatrixXcd solution_p;
-    Eigen::MatrixXcd solution_m;
     
-    Eigen::MatrixXd pertubation;
-    Eigen::MatrixXcd delta_n;
+    Eigen::MatrixXcd solution_p=Eigen::MatrixXcd::Zero(_basis_size,_basis_size);
+    Eigen::MatrixXcd solution_m=Eigen::MatrixXcd::Zero(_basis_size,_basis_size);
+    
+    Eigen::MatrixXcd pertubation=-1*initGuess;
+    Eigen::MatrixXcd delta_n_old;
+    Eigen::MatrixXcd delta_n_new=Eigen::MatrixXcd::Zero(_basis_size,_basis_size);
     AOBasis dftbasis = _orbitals.SetupDftBasis();
     ERIs eris;
     eris.Initialize(dftbasis, dftbasis);
     
+    double alpha = 2 * (_mo_energies(_num_occ_lvls) - _mo_energies(2));
+    
     for(int n = 0; n<100; n++){
         for (int v = 0; v < _num_occ_lvls; v++) {
-
               Eigen::MatrixXcd RHS = SternheimerRHS(_inverse_overlap, _density_Matrix, pertubation, _mo_coefficients.col(v));
-              if (w == 0.0) {
-                //H_new = _H + alpha * _S * _p.transpose();
+              if(v==0){
+                //std::cout<<"RHS for v "<<v<<" = "<<std::endl<<RHS<<std::endl;
+              }
+              if (real(w) < 1) {
+                Eigen::MatrixXcd H_new = _Hamiltonian_Matrix + alpha * _overlap_Matrix * _density_Matrix.transpose();
                 Eigen::MatrixXcd LHS_P = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, true);
+                
                 solution_p.col(v)=LHS_P.colPivHouseholderQr().solve(RHS);
+                //Eigen::JacobiSVD<Eigen::MatrixXcd> svd(LHS_P, Eigen::ComputeThinU | Eigen::ComputeThinV);
+                //std::cout << "Condition number + for v= "<< v <<" : "<<svd.singularValues()(0)/svd.singularValues()(svd.singularValues().size()-1) << std::endl;
+                //solution_p.col(v)=svd.solve(RHS);
+                
+//                if((LHS_P*solution_p.col(v)-RHS).norm() > 1e-6){
+//                    std::cout<<"warning solver failed+"<< (LHS_P*solution_p.col(v)-RHS).norm() <<std::endl;
+//                    std::cout<<"LHS="<< LHS_P<<std::endl;
+//                    std::cout<<"RHS="<< RHS<<std::endl;
+//                    std::cout<<"x="<< solution_p.col(v)<<std::endl;
+//                    throw std::exception();
+//                }
               } else {
-                Eigen::MatrixXcd LHS_P = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, true);
-                solution_p.col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
+                  Eigen::MatrixXcd LHS_P = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, true);
+                  solution_p.col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
                 }
 
-              if (w == 0.0) {
-                //H_new = _H + alpha * _S * _p.transpose();
+              if (real(w) < 1) {
+                Eigen::MatrixXcd H_new = _Hamiltonian_Matrix + alpha * _overlap_Matrix * _density_Matrix.transpose();
                 Eigen::MatrixXcd LHS_M = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, false);
                 solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
+                //Eigen::JacobiSVD<Eigen::MatrixXcd> svd(LHS_M, Eigen::ComputeThinU | Eigen::ComputeThinV);
+                //std::cout << "Condition number  for v= "<< v <<" : "<<svd.singularValues()(0)/svd.singularValues()(svd.singularValues().size()-1) << std::endl;
+                //solution_p.col(v)=svd.solve(RHS);
+//                if((LHS_M*solution_m.col(v)-RHS).norm() > 1e-6){
+//                    std::cout<<"warning solver failed-"<< (LHS_M*solution_m.col(v)-RHS).norm() <<std::endl;
+//                    std::cout<<"LHS="<< LHS_M<<std::endl;
+//                    std::cout<<"RHS="<< RHS<<std::endl;
+//                    std::cout<<"x="<< solution_m.col(v)<<std::endl;
+//                    throw std::exception();
+//                }
               }else {
                 Eigen::MatrixXcd LHS_M = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, false);
                 solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
               }
             }
-            delta_n =
+            delta_n_old=delta_n_new;
+            delta_n_new =
             2 * _mo_coefficients * solution_p.transpose() +
             2 * _mo_coefficients * solution_m.transpose();
-
-            Eigen::MatrixXd update=eris.ContractRightIndecesWithMatrix(delta_n);
-            if(update.norm(),1e-5){
-                std::cout<<"Converged at interation n="<<n<<std::endl;
-                return delta_n;
+            
+//            for(int i=0; i<delta_n_new.cols(); i++){
+//                for(int j=0; j<delta_n_new.rows(); j++){
+//                    if(abs(delta_n_new(i,j))<=1e-6){
+//                        delta_n_new(i,j)=0.0;   
+//                    }
+//                }
+//            }
+            //std::cout<<"delta n = "<<delta_n_new.squaredNorm()<<std::endl;
+            
+            //std::cout<<"pertubation "<<pertubation<<std::endl;
+            pertubation=-1*initGuess+eris.ContractRightIndecesWithMatrix(delta_n_new);
+            
+//            for(int i=0; i<pertubation.cols(); i++){
+//                for(int j=0; j<pertubation.rows(); j++){
+//                    if(abs(pertubation(i,j))<=1e-6){
+//                        pertubation(i,j)=0.0;   
+//                    }
+//                }
+//            }
+            //std::cout<<"diff = "<<(delta_n_new-delta_n_old).squaredNorm()<<std::endl;
+            if((delta_n_new-delta_n_old).squaredNorm() < 1e-6){
+                //std::cout<<"Converged at interation n="<<n<<std::endl;
+                return delta_n_new;
             }
-                pertubation=initGuess+update;
-            }
-        std::cout<<"Not Converged"<<std::endl;
-        return delta_n;    
+        }
+        std::cout<<"Not Converged, diff = "<<(delta_n_new-delta_n_old).squaredNorm()<<std::endl;
+        throw std::exception();
+        return delta_n_new;    
     }
 
 std::vector<Eigen::MatrixXcd> Sternheimer::Polarisability(
     const std::vector<std::complex<double>>& grid_w,
     const std::vector<std::complex<double>>& w) {
-
+    
   initializePade(3);
 
   AOBasis basis = _orbitals.SetupDftBasis();
   AODipole dipole;
   dipole.Fill(basis);
 
-  std::cout << "Dipole integral complete" << std::endl;
-  
-  std::vector<Eigen::MatrixXcd> Polar;
-  
+  //std::cout << "Dipole integral complete" << std::endl;
+ 
   for(int n=0; n<grid_w.size(); n++){
-      Polar.push_back(Eigen::MatrixXcd::Zero(3, 3));
+      Eigen::MatrixXcd Polar=Eigen::MatrixXcd::Zero(3, 3);
       for (int i = 0; i < 3; i++) {
         Eigen::MatrixXcd delta_n = DeltaNSelfConsistent(grid_w[n], dipole.Matrix()[i]);
         for (int j = i; j < 3; j++) {
-          Polar[n](i, j)+=(delta_n.cwiseProduct(dipole.Matrix()[j])).sum();
+          Polar(i, j)=-(delta_n.cwiseProduct(dipole.Matrix()[j])).sum();
         }
       }    
-      for (int i = 0; i < 3; i++) {
+      for (int i = 2; i < 3; i++) {
         for (int j = i+1; j < 3; j++) {
-          Polar[n](j, i)=conj(Polar[n](i, j));
+          Polar(j, i)=conj(Polar(i, j));
        }
-    }
+      }
   
-      _pade.addPoint(grid_w[n], Polar[n]);
-      _pade.addPoint(conj(grid_w[n]), Polar[n].adjoint());
-      std::cout<<"Done with w="<<w[n]<<std::endl;
+      _pade.addPoint(grid_w[n], Polar);
+      _pade.addPoint(conj(grid_w[n]), Polar.adjoint());
+      std::cout<<"Done with w="<<grid_w[n]<<std::endl;
+      //break;
     }
   std::vector<Eigen::MatrixXcd> Polar_pade;
   
   for (std::complex<double> w:w){
-    std::cout<<"Calculated Point number"<<w<<std::endl;
     Polar_pade.push_back(_pade.evaluatePoint(w));
   }
   return Polar_pade;

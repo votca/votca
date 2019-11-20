@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(Constructor_test) {
   test += trans;
   Symmetric_Matrix sym = Symmetric_Matrix(test);
 
-  Eigen::MatrixXd back = Eigen::MatrixXd::Zero(dim, dim);
+  Eigen::MatrixXcd back = Eigen::MatrixXcd::Zero(dim, dim);
 
   sym.AddtoEigenMatrix(back);
 
@@ -52,9 +52,9 @@ BOOST_AUTO_TEST_CASE(Add_test) {
   test += trans;
   Symmetric_Matrix sym = Symmetric_Matrix(test);
 
-  Eigen::MatrixXd rand = Eigen::MatrixXd::Random(dim, dim);
+  Eigen::MatrixXcd rand = Eigen::MatrixXcd::Random(dim, dim);
 
-  Eigen::MatrixXd result = rand + 2 * test;
+  Eigen::MatrixXcd result = rand + 2 * test;
 
   sym.AddtoEigenMatrix(rand, 2.0);
 

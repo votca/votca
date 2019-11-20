@@ -34,9 +34,11 @@ void PadeApprox::clear() {
   _grid.clear();
 
   _coeff.clear();
+  
+  _rejected_points=0;
 }
 
-void PadeApprox::addPoint(std::complex<double> frequency, Eigen::MatrixXcd value) {
+void PadeApprox::addPoint(std::complex<double> frequency, Eigen::Matrix3cd value) {
 
   this->_grid.push_back(frequency);
   this->_value.push_back(value);
@@ -56,14 +58,32 @@ void PadeApprox::addPoint(std::complex<double> frequency, Eigen::MatrixXcd value
 Eigen::Matrix3cd PadeApprox::RecursivePolynom(int indx, int degree) {
 
   //Eigen::MatrixXcd temp = Eigen::MatrixXcd(_basis_size, _basis_size);
-
+  
+    //std::cout<<"called g with degree "<<degree<<" and index "<<indx <<std::endl;
+    
   if (degree == 1) {
+    //std::cout<<"g_"<<degree<<"("<<_grid.at(indx)<<")="<<_value.at(indx)(0,0)<<std::endl;
     return _value.at(indx);
   } else {
     Eigen::Matrix3cd temp = RecursivePolynom(indx, degree - 1);
-
-    Eigen::Matrix3cd u = _coeff[degree-2] - temp;
+    Eigen::Matrix3cd u;
+    if(indx==degree-1){
+        //std::cout<<"Used old coefficient for g with "<<degree-1<<" and index "<<indx-1<<std::endl;
+        //std::cout<<"Coeff = "<<_coeff[indx-1](0,0)<<std::endl;
+        u = _coeff[indx-1] - temp;
+        //u = RecursivePolynom(indx-1, degree-1) - temp;
+    } else{
+        u = RecursivePolynom(degree-2, degree-1) - temp;
+    }
+    
+    //std::cout<<"u="<<u(0,0)<<std::endl;
+    
     Eigen::Matrix3cd l = temp * (_grid.at(indx) - _grid.at(degree - 2));
+    
+    //std::cout<<"l="<<l(0,0)<<std::endl;
+    //std::cout<<"u= "<<u<<std::endl;
+    //std::cout<<"l= "<<l<<std::endl;
+    std::cout<<"l inverse check "<<std::endl<<l.inverse()*l<<std::endl<<std::endl;
     return u * (l.inverse());
   }
 }
@@ -73,14 +93,8 @@ Eigen::Matrix3cd PadeApprox::RecursiveA(std::complex<double> frequency, int inde
     if(_temp_container_A.size()>index){
         return _temp_container_A[index];
     }
-    else if (index == 0) {
-        _temp_container_A.push_back(Eigen::Matrix3cd::Zero());
-    return Eigen::Matrix3cd::Zero();
-  } else if (index == 1) {
-        _temp_container_A.push_back(_coeff.at(0));
-    return _coeff.at(0);
-  } else {
-    Eigen::Matrix3cd A= (frequency - _grid.at(index - 2)) *
+    else {
+      Eigen::Matrix3cd A= (frequency - _grid.at(index - 2)) *
                                                     _coeff.at(index - 1) *
                                                     RecursiveA(frequency, index - 2) + RecursiveA(frequency, index - 1);
     _temp_container_A.push_back(A);
@@ -93,13 +107,7 @@ Eigen::Matrix3cd PadeApprox::RecursiveB(std::complex<double> frequency, int inde
   if(_temp_container_B.size()>index){
         return _temp_container_B[index];
   }
-  else if (index == 0) {
-      _temp_container_B.push_back(Eigen::Matrix3cd::Identity());
-    return Eigen::Matrix3cd::Identity();
-  } else if (index == 1) {
-      _temp_container_B.push_back(Eigen::Matrix3cd::Identity());
-    return Eigen::Matrix3cd::Identity();
-  } else {
+  else {
     Eigen::Matrix3cd B= (frequency - _grid.at(index - 2)) *
                                                     _coeff.at(index - 1) *
                                                     RecursiveB(frequency, index - 2) + RecursiveB(frequency, index - 1);

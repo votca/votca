@@ -65,8 +65,8 @@ Mat_p_Energy ERIs::CalculateERIs(const Eigen::MatrixXd& DMAT) const {
 
 Eigen::MatrixXcd ERIs::ContractRightIndecesWithMatrix(const Eigen::MatrixXcd& mat) const {
   int nthreads = OPENMP::getMaxThreads();
-  std::vector<Eigen::MatrixXd> ERIS_thread = std::vector<Eigen::MatrixXd>(
-      nthreads, Eigen::MatrixXd::Zero(mat.rows(), mat.cols()));
+  std::vector<Eigen::MatrixXcd> ERIS_thread = std::vector<Eigen::MatrixXcd>(
+      nthreads, Eigen::MatrixXcd::Zero(mat.rows(), mat.cols()));
 #pragma omp parallel for
   for (int i = 0; i < _threecenter.size(); i++) {
     const Symmetric_Matrix& threecenter = _threecenter[i];

@@ -44,7 +44,7 @@ class Symmetric_Matrix {
 
   double TraceofProd(const Symmetric_Matrix& a) const;
 
-  void AddtoEigenMatrix(Eigen::MatrixXd& full, double factor = 1.0) const;
+  void AddtoEigenMatrix(Eigen::MatrixXcd& full, std::complex<double> factor = 1.0) const;
 
   void AddtoEigenUpperMatrix(
       Eigen::SelfAdjointView<Eigen::MatrixXd, Eigen::Upper>& upper,
