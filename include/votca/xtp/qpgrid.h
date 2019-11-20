@@ -51,12 +51,6 @@ class QPGrid {
 
   void configure(options opt) {
     _opt = opt;
-    _qptotal = opt.qpmax - opt.qpmin + 1;
-    _steps = opt.steps;
-    _range = opt.range;
-    _delta = 2.0 * _range / (_steps - 1);
-    _freq = Eigen::MatrixXd::Zero(_steps, _qptotal);
-    _sigm = Eigen::MatrixXd::Zero(_steps, _qptotal);
   }
 
   Eigen::VectorXd Evaluate(const Eigen::VectorXd frequencies);
@@ -70,26 +64,12 @@ class QPGrid {
   };
 
   Logger& _log;
-  options _opt;
-  Index _qptotal = 0;
-  Index _steps = 0; // Number of grid points
-  double _range = 0.0; // Distance left/right from the origin
-  double _delta = 0.0; // Step size
   Sigma_base& _sigma;
+  options _opt;
 
   const Eigen::MatrixXd& _vxc;
   const Eigen::VectorXd& _dft_energies;
   const Eigen::MatrixXd& _sigma_x;
-
-  Eigen::MatrixXd _freq;
-  Eigen::MatrixXd _sigm;
-  std::vector<QPGrid::qproot> _roots;
-
-  void SetupGrid(const Eigen::VectorXd frequencies);
-  void FindRoots();
-  Eigen::VectorXd CalculateQP_Energies(const Eigen::VectorXd frequencies) const;
-  void PrintOptions() const;
-  void PrintRoots() const;
 
 };
 
