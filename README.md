@@ -2,7 +2,10 @@
 [![Build Status](https://travis-ci.org/votca/votca.svg?branch=master)](https://travis-ci.org/votca/votca)
 [![pipeline status](https://gitlab.com/votca/votca/badges/master/pipeline.svg)](https://gitlab.com/votca/votca/commits/master)
 
-This is VOTCA's next generation build system.
+This is VOTCA's next generation build system. It allows you to easily install: 
+
+- VOTCA-CSG, a library which provides tools to develop coarse-grained potentials from atomistic simulation data
+- VOTCA-XTP, a library designed to determine electronic properties of organic materials from atomistic MD-trajectories.
 
 Usage:
 
