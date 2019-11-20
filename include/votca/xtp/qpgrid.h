@@ -56,13 +56,6 @@ class QPGrid {
   Eigen::VectorXd Evaluate(const Eigen::VectorXd frequencies);
 
  private:
-  struct qproot {
-    Index i_qp;
-    Index i_node;
-    double value;
-    double score;
-  };
-
   Logger& _log;
   Sigma_base& _sigma;
   options _opt;
