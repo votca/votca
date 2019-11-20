@@ -37,10 +37,6 @@ initstep imc initialize_step_generic.sh
 initstep optimizer initialize_step_optimizer.sh
 initstep re initialize_step_re.sh
 
-#this is just to warn users from old versions
-prepare ibm prepare_ibm.sh
-update ibm update_ibm.sh
-
 # the update step
 
 # add up the potential
