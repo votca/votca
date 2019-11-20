@@ -188,11 +188,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   }
 
   if (!_fl.eof()) {
-    double dtime, stime;
+    double dtime;
     Index nstep;
     Index natoms;
     Index navecs;
-    Index npbct;
 
     if (_isConfig) {
       // use the above read specs from the header, and skip the data missing in
@@ -200,7 +199,6 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
       natoms = matoms;
       navecs = mavecs;
-      npbct = mpbct;
 
       conf.SetHasVel(hasVs);
       conf.SetHasForce(hasFs);
@@ -223,11 +221,12 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       nstep = boost::lexical_cast<Index>(fields[1]);
       natoms = boost::lexical_cast<Index>(fields[2]);
       navecs = boost::lexical_cast<Index>(fields[3]);
-      npbct = boost::lexical_cast<Index>(fields[4]);
+      Index npbct = boost::lexical_cast<Index>(fields[4]);
       dtime =
           stod(fields[5]);  // normally it is the 5-th column in 'timestep' line
-      stime = stod(fields[fields.size() - 1]);  // normally it is the last
-                                                // column in 'timestep' line
+      double stime =
+          stod(fields[fields.size() - 1]);  // normally it is the last
+                                            // column in 'timestep' line
 
 #ifdef DEBUG
       cout << "Read from dlpoly file '" << _fname << "' : natoms = " << natoms

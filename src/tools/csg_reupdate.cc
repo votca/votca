@@ -603,11 +603,9 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
 
   votca::Index pos_start = potinfo->vec_pos;
   votca::Index pos_max = pos_start + potinfo->ucg->getOptParamSize();
-  double dU_i, d2U_ij;
-  double U;
 
   // compute total energy
-  U = 0.0;
+  double U = 0.0;
   for (auto &pair_iter : *nb) {
     U += potinfo->ucg->CalculateF(pair_iter->dist());
   }
@@ -619,7 +617,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
 
     votca::Index lamda_i = row - pos_start;
 
-    dU_i = 0.0;
+    double dU_i = 0.0;
     for (auto &pair_iter : *nb) {
       dU_i += potinfo->ucg->CalculateDF(lamda_i, pair_iter->dist());
     }
@@ -629,15 +627,15 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
     for (votca::Index col = row; col < pos_max; col++) {
 
       votca::Index lamda_j = col - pos_start;
-      d2U_ij = 0.0;
+      double d2U_ij = 0.0;
 
       for (auto &pair_iter : *nb) {
         d2U_ij +=
             potinfo->ucg->CalculateD2F(lamda_i, lamda_j, pair_iter->dist());
       }
 
-      _HS(row, col) += (-1.0 * _beta * d2U_ij);
-      _HS(col, row) += (-1.0 * _beta * d2U_ij);
+      _HS(row, col) -= _beta * d2U_ij;
+      _HS(col, row) -= _beta * d2U_ij;
     }  // end loop col
 
   }  // end loop row
@@ -674,7 +672,7 @@ PotentialInfo::PotentialInfo(votca::Index index, bool bonded_,
 
     if (!gentable) {
       // determine minimum for B-spline from CG-MD rdf
-      double new_min = 0.0;
+
       Table dist;
       string filename = potentialName + ".dist.new";
 
@@ -685,6 +683,7 @@ PotentialInfo::PotentialInfo(votca::Index index, bool bonded_,
         // an unphysical non-zero RDF value may occur,
         // so it would be better to estimate Rmin loop
         // through RDF values from Rcut to zero instead of zero to Rcut.
+        double new_min = 0.0;
         for (votca::Index i = dist.size() - 2; i > 0; i--) {
           if (dist.y(i) < 1.0e-4) {
             new_min = dist.x(i + 1);
