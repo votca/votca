@@ -56,7 +56,7 @@ class GW {
     std::string sigma_integration = "ppm";
     Index reset_3c = 5;  // how often the 3c integrals in iterate should be
                          // rebuild
-    double qp_grid_range = 0.0;  // Left, right distance from grid origin
+    double qp_grid_range = 1.0;  // Left, right distance from grid origin
     Index qp_grid_steps = 0;  // Number of grid points
   };
 
