@@ -299,7 +299,7 @@ std::vector<Eigen::MatrixXcd> Sternheimer::Polarisability(
     const std::vector<std::complex<double>>& grid_w,
     const std::vector<std::complex<double>>& w) {
     
-  initializePade(3);
+  initializePade(grid_w.size());
 
   AOBasis basis = _orbitals.SetupDftBasis();
   AODipole dipole;

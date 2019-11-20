@@ -54,10 +54,10 @@ class PadeApprox {
 
   std::vector<Eigen::Matrix3cd> _coeff;
 
+  std::vector<std::vector<Eigen::Matrix3cd>> _temp_container_g;
+  
   std::vector<Eigen::Matrix3cd> _temp_container_A;
   std::vector<Eigen::Matrix3cd> _temp_container_B;
-  
-  int _basis_size;
 
   int _rejected_points = 0;
   

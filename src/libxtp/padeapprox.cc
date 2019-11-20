@@ -56,15 +56,13 @@ void PadeApprox::addPoint(std::complex<double> frequency, Eigen::Matrix3cd value
 }
 
 Eigen::Matrix3cd PadeApprox::RecursivePolynom(int indx, int degree) {
-
-  //Eigen::MatrixXcd temp = Eigen::MatrixXcd(_basis_size, _basis_size);
-  
-    //std::cout<<"called g with degree "<<degree<<" and index "<<indx <<std::endl;
     
   if (degree == 1) {
     //std::cout<<"g_"<<degree<<"("<<_grid.at(indx)<<")="<<_value.at(indx)(0,0)<<std::endl;
     return _value.at(indx);
-  } else {
+  } else if(real(this->_temp_container_g[indx][degree-1](0,0))!=0){
+      return this->_temp_container_g[indx][degree-1];
+  }else{
     Eigen::Matrix3cd temp = RecursivePolynom(indx, degree - 1);
     Eigen::Matrix3cd u;
     if(indx==degree-1){
@@ -82,9 +80,10 @@ Eigen::Matrix3cd PadeApprox::RecursivePolynom(int indx, int degree) {
     
     //std::cout<<"l="<<l(0,0)<<std::endl;
     //std::cout<<"u= "<<u<<std::endl;
-    //std::cout<<"l= "<<l<<std::endl;
-    std::cout<<"l inverse check "<<std::endl<<l.inverse()*l<<std::endl<<std::endl;
-    return u * (l.inverse());
+    std::cout<<"l inverse check "<<std::endl<<l*l.inverse()<<std::endl<<std::endl;
+    Eigen::Matrix3cd result=u * (l.inverse());
+    _temp_container_g[indx][degree-1]=result;
+    return result;
   }
 }
 
@@ -116,7 +115,12 @@ Eigen::Matrix3cd PadeApprox::RecursiveB(std::complex<double> frequency, int inde
   }
 }
 
-void PadeApprox::initialize(int basis_size) { this->_basis_size = basis_size; }
+void PadeApprox::initialize(int num_points) { 
+    this->_temp_container_g.resize(num_points);
+    for (int i = 0; i < num_points; i++){
+        _temp_container_g[i].resize(num_points);
+    }
+}
 
 Eigen::Matrix3cd PadeApprox::evaluatePoint(std::complex<double> frequency) {
     _temp_container_A.clear();
