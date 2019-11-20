@@ -93,12 +93,9 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
 
   Eigen::MatrixXd C = AmB.cwiseSqrt().asDiagonal() * ApB * AmB.cwiseSqrt().asDiagonal();
   tools::EigenSystem result = Diagonalize_H2p_C(C);
-  
-  // Omega has to have correct size otherwise MKL does not rescale for Sqrt
-  Eigen::VectorXd omega;
-  omega = Eigen::VectorXd::Zero(rpasize);
-  omega = result.eigenvalues().cwiseSqrt();
-  
+
+  Eigen::VectorXd omega = result.eigenvalues().cwiseSqrt();
+
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Lowest neutral excitation energy (eV): "
       << tools::conv::hrt2ev * omega.minCoeff() << std::flush;
