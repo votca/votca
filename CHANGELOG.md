@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
-## Version 1.5.1 (released XX.11.19)
+## Version 1.5.1 (released 20.11.19)
  * bug fixes for gcc-5
  * some bugfixes for the lammps reader
  * support dynamics box size in h5md
