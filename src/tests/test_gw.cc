@@ -507,9 +507,8 @@ BOOST_AUTO_TEST_CASE(gw_full_QP_grid) {
   opt.qpmin = 0;
   opt.rpamax = 16;
   opt.rpamin = 0;
-  opt.g_sc_max_iterations = 0;
   opt.gw_sc_max_iterations = 1;
-  opt.qp_grid_steps = 201;
+  opt.qp_solver = "grid";
   GW gw(log, Mmn, vxc, mo_eigenvalues);
   gw.configure(opt);
 

@@ -173,12 +173,11 @@ void GW::CalculateGWPerturbation() {
     _sigma->PrepareScreening();
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
-    if (_opt.qp_grid_steps > 0) {
+    if (_opt.qp_solver == "grid") {
       frequencies = SolveQP_Grid(frequencies);
       XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Solved QP equation on QP grid" << std::flush;
-    }
-    if (_opt.g_sc_max_iterations > 0) {
+    } else if (_opt.qp_solver == "fixedpoint") {
       frequencies = SolveQP_SelfConsistent(frequencies);
       XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Solved QP equation self-consistently" << std::flush;
