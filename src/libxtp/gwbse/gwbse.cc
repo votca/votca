@@ -393,7 +393,7 @@ void GWBSE::Initialize(tools::Property& options) {
 
   _gwopt.qp_grid_range = options.ifExistsReturnElseReturnDefault<double>(
       key + ".qp_grid_range", _gwopt.qp_grid_range);
-  _gwopt.qp_grid_steps = options.ifExistsReturnElseReturnDefault<int>(
+  _gwopt.qp_grid_steps = options.ifExistsReturnElseReturnDefault<Index>(
       key + ".qp_grid_steps", _gwopt.qp_grid_steps);
   if (_gwopt.qp_grid_steps > 0) {
     XTP_LOG(logDEBUG, *_pLog)
