@@ -675,7 +675,7 @@ PotentialInfo::PotentialInfo(votca::Index index, bool bonded_,
 
       Table dist;
       string filename = potentialName + ".dist.new";
-      bla try {
+      try {
         dist.Load(filename);
         // for( Index i = 0; i < dist.size(); i++)
         // In the highly repulsive core (<0.1 nm) at some locations
