@@ -42,7 +42,7 @@ void JobApplication::Initialize(void) {
                       "  number of frames to process");
   AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
                       "  number of threads to create");
-  AddProgramOptions()("ompthreads,omp", propt::value<Index>()->default_value(1),
+  AddProgramOptions()("ompthreads,p", propt::value<Index>()->default_value(1),
                       "  number of openmp threads to create in each thread");
   AddProgramOptions()("save,s", propt::value<bool>()->default_value(true),
                       "  whether or not to save changes to state file");
