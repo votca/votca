@@ -97,6 +97,8 @@ int Application::Exec(int argc, char **argv) {
     //_continue_execution = true;
     AddProgramOptions()("help,h", "  display this help and exit");
     AddProgramOptions()("verbose,v", "  be loud and noisy");
+    AddProgramOptions()("veryverbose,v1", "  be very loud and noisy");
+    AddProgramOptions()("veryveryverbose,v2", "  be very very loud and noisy");
     AddProgramOptions("Hidden")("man", "  output man-formatted manual pages");
     AddProgramOptions("Hidden")("tex", "  output tex-formatted manual pages");
 
@@ -106,7 +108,13 @@ int Application::Exec(int argc, char **argv) {
                      argv);  // initialize general parameters & read input file
 
     if (_op_vm.count("verbose")) {
-      globals::verbose = true;
+      Log::current_level = Log::warning;
+    }
+    if (_op_vm.count("veryverbose")) {
+      Log::current_level = Log::info;
+    }
+    if (_op_vm.count("veryveryverbose")) {
+      Log::current_level = Log::debug;
     }
 
     if (_op_vm.count("man")) {
@@ -222,7 +230,7 @@ void Application::PrintDescription(std::ostream &out,
     if (atr_it != calculator_options.lastAttribute()) {
       help_string = (*atr_it).second;
     } else {
-      if (tools::globals::verbose) {
+      if (Log::current_level > 0) {
         out << _format % calculator_name % "Undocumented";
       }
       return;
@@ -242,7 +250,7 @@ void Application::PrintDescription(std::ostream &out,
     }
 
   } catch (std::exception &) {
-    if (tools::globals::verbose) {
+    if (Log::current_level > 0) {
       out << _format % calculator_name % "Undocumented";
     }
   }

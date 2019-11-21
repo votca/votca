@@ -32,7 +32,7 @@ namespace tools {
  *
  * Calculators are grouped in CalculatorFactories and are run by Threads
  * or Applications. Every calculator has a description (an XML file) installed
- * in VOTCASHARE which is used to compile HELP and run TESTSUITE.
+ * in VOTCASHARE which is used to compile HELP.
  * This XML file also contains default values.
  *
  */
@@ -120,9 +120,9 @@ inline void Calculator::UpdateWithDefaults(Property &options,
                         package + std::string("/xml/") + id +
                         std::string(".xml");
 
-  Property defaults, defaults_all;
+  Property defaults_all;
   defaults_all.LoadFromXML(xmlFile);
-  defaults = defaults_all.get("options." + id);
+  Property defaults = defaults_all.get("options." + id);
 
   // if a value not given or a tag not present, provide default values
   AddDefaults(options_id, defaults);
