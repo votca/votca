@@ -74,12 +74,11 @@ class RPA {
 
   Eigen::VectorXd _energies;
 
+  Logger& _log;
   const TCMatrix_gwbse& _Mmn;
 
   template <bool imag>
   Eigen::MatrixXd calculate_epsilon(double frequency) const;
-  
-  Logger& _log;
 
   Eigen::VectorXd Calculate_H2p_AmB() const;
   Eigen::MatrixXd Calculate_H2p_ApB() const;
