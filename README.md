@@ -3,6 +3,8 @@
 [![Build Status](https://travis-ci.org/votca/csg.svg?branch=master)](https://travis-ci.org/votca/csg)
 [![pipeline status](https://gitlab.com/votca/csg/badges/master/pipeline.svg)](https://gitlab.com/votca/csg/commits/master)
 
+VOTCA-CSG is a collection of tools, which help you to develop coarse grained interaction potential from atomistic reference simulations using force-matching, boltzmann inversion and others. 
+
 Further information on VOTCA can be found at <http://www.votca.org>
 
 The development of VOTCA is mainly funded by academic research grants. If you
