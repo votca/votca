@@ -188,7 +188,6 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   }
 
   if (!_fl.eof()) {
-    double dtime;
     Index nstep;
     Index natoms;
     Index navecs;
@@ -222,7 +221,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       natoms = boost::lexical_cast<Index>(fields[2]);
       navecs = boost::lexical_cast<Index>(fields[3]);
       Index npbct = boost::lexical_cast<Index>(fields[4]);
-      dtime =
+      double dtime =
           stod(fields[5]);  // normally it is the 5-th column in 'timestep' line
       double stime =
           stod(fields[fields.size() - 1]);  // normally it is the last
