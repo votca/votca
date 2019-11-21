@@ -6,7 +6,6 @@
 
 <job_file help="name of jobfile to which jobs are written">eqm.jobs</job_file>
 <map_file help="xml file with segment definition">system.xml</map_file>
-<openmp_threads help="internal parallelization for each job">1</openmp_threads>
 <gwbse_options help="xml file with options for gwbse calculations">OPTIONFILES/gwbse_egwbse_molecule.xml</gwbse_options>
 <dftpackage help="xml file with options for dft calculations">OPTIONFILES/gaussian_egwbse_molecule.xml</dftpackage>
 <esp_options help="xml file with options for CHELPG calculations">OPTIONFILES/esp2multipole.xml</esp_options>

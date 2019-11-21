@@ -42,6 +42,8 @@ void JobApplication::Initialize(void) {
                       "  number of frames to process");
   AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
                       "  number of threads to create");
+  AddProgramOptions()("ompthreads,omp", propt::value<Index>()->default_value(1),
+                      "  number of openmp threads to create in each thread");
   AddProgramOptions()("save,s", propt::value<bool>()->default_value(true),
                       "  whether or not to save changes to state file");
   AddProgramOptions()("restart,r",
@@ -78,6 +80,7 @@ void JobApplication::Run() {
 
   // EVALUATE OPTIONS
   Index nThreads = OptionsMap()["nthreads"].as<Index>();
+  Index ompThreads = OptionsMap()["ompthreads"].as<Index>();
   Index nframes = OptionsMap()["nframes"].as<Index>();
   Index fframe = OptionsMap()["first-frame"].as<Index>();
   bool save = OptionsMap()["save"].as<bool>();
@@ -90,7 +93,7 @@ void JobApplication::Run() {
 
   // INITIALIZE & RUN CALCULATORS
   std::cout << "Initializing calculator " << std::endl;
-  BeginEvaluate(nThreads, progObs);
+  BeginEvaluate(nThreads, ompThreads, progObs);
 
   StateSaver statsav(statefile);
 
@@ -130,12 +133,13 @@ void JobApplication::SetCalculator(JobCalculator* calculator) {
   _calculator = std::unique_ptr<JobCalculator>(calculator);
 }
 
-void JobApplication::BeginEvaluate(Index nThreads,
-                                   ProgObserver<std::vector<Job>>& obs) {
+void JobApplication::BeginEvaluate(Index nThreads, Index ompThreads,
+                                   ProgObserver<std::vector<Job>>& jobs) {
 
   std::cout << "... " << _calculator->Identify() << " ";
   _calculator->setnThreads(nThreads);
-  _calculator->setProgObserver(&obs);
+  _calculator->setOpenMPThreads(ompThreads);
+  _calculator->setProgObserver(&jobs);
   _calculator->Initialize(_options);
   std::cout << std::endl;
 }

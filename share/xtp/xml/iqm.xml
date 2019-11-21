@@ -1,11 +1,11 @@
 <options>
 
-<iqm help="QM calculator for pairs" section="sec:iqm">
-		<job_file help="name of jobfile to which jobs are written">iqm.jobs</job_file>
-                <map_file help="xml file with segment definition">system.xml</map_file>
-                <openmp_threads help="internal parallelization for each job">1</openmp_threads>
-		<tasks  help="tasks to perform during calculation >input,dft,parse,dftcoupling,gwbse,bsecoupling">input,dft,parse,dftcoupling,gwbse,bsecoupling</tasks>
-		<store help="store gw/dft results in hdf5 file, can require a lot of disk space in large systems"></store>
+    <iqm help="QM calculator for pairs" section="sec:iqm">
+        <job_file help="name of jobfile to which jobs are written">iqm.jobs</job_file>
+        <map_file help="xml file with segment definition">system.xml</map_file>
+
+        <tasks help="tasks to perform during calculation >input,dft,parse,dftcoupling,gwbse,bsecoupling">input,dft,parse,dftcoupling,gwbse,bsecoupling</tasks>
+        <store help="store gw/dft results in hdf5 file, can require a lot of disk space in large systems"></store>
         <gwbse_options help="xml file with options for gwbse calculations"></gwbse_options>
         <bsecoupling_options help="xml file with options for gwbse calculations">bsecoupling.xml</bsecoupling_options>
         <dftcoupling_options>
@@ -13,14 +13,14 @@
             <levA help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule A">1</levA>
             <levB help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule B">1</levB>
         </dftcoupling_options>
-        <dftpackage  help="xml file with options for dft calculations">gaussian_pair_bse.xml</dftpackage>
+        <dftpackage help="xml file with options for dft calculations">gaussian_pair_bse.xml</dftpackage>
         <readjobfile help="which states to read into the jobfile for each segment type">
             <singlet>DCV5T:s1, C60:s2</singlet>
             <triplet>DCV5T:t2, C60:t1</triplet>
             <electron>DCV5T:e1, C60:e1</electron>
             <hole>DCV5T:h1, C60:h1</hole>
         </readjobfile>
-</iqm>
+    </iqm>
 
 
 
