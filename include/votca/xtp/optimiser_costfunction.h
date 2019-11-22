@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,30 +17,31 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_OPTIMISER_COSTFUNCTION_H
 #define VOTCA_XTP_OPTIMISER_COSTFUNCTION_H
 
 #include <votca/xtp/eigen.h>
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-        class Optimiser_costfunction {
-        public:
+class Optimiser_costfunction {
+ public:
+  virtual ~Optimiser_costfunction() = default;
 
-            virtual ~Optimiser_costfunction() {
-            };
+  virtual double EvaluateCost(const Eigen::VectorXd& parameters) = 0;
 
-            virtual double EvaluateCost(const Eigen::VectorXd& parameters)= 0;
-            
-            virtual Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters)= 0;
+  virtual Eigen::VectorXd EvaluateGradient(
+      const Eigen::VectorXd& parameters) = 0;
 
-            virtual int NumParameters() const = 0;
+  virtual Index NumParameters() const = 0;
 
-            virtual bool Converged(const Eigen::VectorXd& delta_parameters,
-                    double delta_cost, const Eigen::VectorXd& gradient) = 0;
-        };
+  virtual bool Converged(const Eigen::VectorXd& delta_parameters,
+                         double delta_cost,
+                         const Eigen::VectorXd& gradient) = 0;
+};
 
-    }
-}
-#endif // VOTCA_XTP_OPTIMISER_COSTFUNCTION_H
+}  // namespace xtp
+}  // namespace votca
+#endif  // VOTCA_XTP_OPTIMISER_COSTFUNCTION_H

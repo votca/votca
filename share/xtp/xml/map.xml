@@ -57,7 +57,7 @@
 
 <item>
 <name>topology.molecules.molecule.segments.segment.fragments.fragment.mdatoms</name>
-<desc>List of all atoms belonging to the rigid fragment in the format residue number:residue name:atom name.</desc>
+<desc>List of all atoms belonging to the rigid fragment in the format residue number:atom name:atom number</desc>
 </item>  
 
 <item>

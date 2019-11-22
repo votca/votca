@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,50 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * author: Kordt
  */
 
+#pragma once
 #ifndef __VOTCA_KMC_MULTIPLE_H
-#define	__VOTCA_KMC_MULTIPLE_H
+#define __VOTCA_KMC_MULTIPLE_H
 
-
-
-#include <votca/tools/tokenizer.h>
+#include <fstream>
 #include <votca/xtp/kmccalculator.h>
+namespace votca {
+namespace xtp {
 
-#include <votca/tools/constants.h>
-namespace votca { namespace xtp {
+class KMCMultiple : public KMCCalculator {
+ public:
+  KMCMultiple() = default;
+  ~KMCMultiple() override = default;
+  bool WriteToStateFile() const override { return false; }
+  std::string Identify() override { return "kmcmultiple"; }
+  void Initialize(tools::Property& options) override;
+  bool EvaluateFrame(Topology& top) override;
 
-  
-   
+ private:
+  void RunVSSM() override;
+  void PrintChargeVelocity(double simtime) const;
 
+  void PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
+                       double simtime, unsigned long step) const;
 
-class KMCMultiple : public KMCCalculator 
-{
-public:
-    KMCMultiple() {};
-   ~KMCMultiple() {};
-   std::string Identify() { return "kmcmultiple"; }
-    void Initialize(tools::Property *options);
-    bool EvaluateFrame(Topology *top);
+  void WriteToEnergyFile(std::fstream& tfile, double simtime,
+                         unsigned long step) const;
 
+  void WriteToTrajectory(std::fstream& traj,
+                         std::vector<Eigen::Vector3d>& startposition,
+                         double simtime, unsigned long step) const;
 
+  void PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor, double simtime,
+                      unsigned long step) const;
 
-private:
-            
-            void  RunVSSM(Topology *top);
-            double _runtime;
-            double _outputtime;
-            std::string _trajectoryfile;
-            std::string _timefile;
-            double _maxrealtime;
-            int _intermediateoutput_frequency;
-           
+  double _runtime;
+  double _outputtime;
+  std::string _timefile = "";
+  Index _intermediateoutput_frequency = 10000;
+  unsigned long _diffusionresolution = 1000;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-
-}}
-
-
-#endif	/* __VOTCA_KMC_MULTIPLE_H */
+#endif /* __VOTCA_KMC_MULTIPLE_H */

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,144 +16,135 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For earlier commit history see ctp commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#pragma once
 #ifndef VOTCA_XTP_QMPAIR_H
 #define VOTCA_XTP_QMPAIR_H
 
 #include <vector>
-#include <votca/tools/vec.h>
-#include <utility>
+#include <votca/xtp/eigen.h>
 #include <votca/xtp/segment.h>
 
-namespace votca { namespace xtp {
+#include "qmstate.h"
 
-class Topology;
+namespace votca {
+namespace xtp {
 
-class QMPair : public std::pair< Segment*, Segment* >
-{
-public:
-    
-    enum PairType{ 
-        Hopping,
-        Excitoncl  
-    };
+class QMPair {
+ public:
+  enum PairType { Hopping = 0, Excitoncl = 1 };
 
-    QMPair() :  _R(0,0,0),
-                _ghost(NULL), 
-                _top(NULL),
-                _id(-1),   
-                _hasGhost(false),
-                _rate12_e(0),
-                _rate21_e(0),
-                _rate12_h(0),
-                _rate21_h(0),
-                _has_e(false),
-                _has_h(false),
-                _lambdaO_e(0),
-                _lambdaO_h(0),
-                _Jeff2_e(0),
-                _Jeff2_h(0),
-                _rate12_s(0),
-                _rate21_s(0),
-                _rate12_t(0),
-                _rate21_t(0),
-                _has_s(false),
-                _has_t(false),
-                _lambdaO_s(0),
-                _lambdaO_t(0),   
-                _Jeff2_s(0),
-                _Jeff2_t(0),
-                _pair_type(Hopping) { };
-    QMPair(int id, Segment *seg1, Segment *seg2);
-   ~QMPair();
+  static std::string get_name(PairType type) {
+    switch (type) {
+      case Hopping:
+        return "Hopping";
+      case Excitoncl:
+        return "Excitoncl";
+        // no default case to trigger compiler error
+    }
+    return "";
+  }
 
+  struct data {
+    Index id;
+    Index Seg1Id;
+    Index Seg2Id;
+    double RX;
+    double RY;
+    double RZ;
 
-   int       getId() const{ return _id; }
-   void      setId(int id) { _id=id; }
-   Topology *getTopology() const{ return _top; }
-   void      setTopology(Topology *top) { _top = top; }
-   const tools::vec      &R() const{ return _R; }
-   double    Dist() const{ return tools::abs(_R); }
-   tools::vec  getPos() const{ return 0.5*(first->getPos() + second->getPos()); }
+    char* pair_type;
 
-   void     setIsPathCarrier(bool yesno, int carrier);
-   bool     isPathCarrier(int carrier)const;
+    double lambda0e;
+    double lambda0h;
+    double lambda0s;
+    double lambda0t;
 
-   void     setLambdaO(double lO, int carrier);
-   double   getLambdaO(int carrier)const;
-   
-   double   getReorg12(int state) const{ return first->getU_nC_nN(state) + second->getU_cN_cC(state); } // 1->2
-   double   getReorg21(int state) const{ return first->getU_cN_cC(state) + second->getU_nC_nN(state); } // 2->1
-  
-   double   getReorg12_x(int state) const{ return first->getU_nX_nN(state) + second->getU_xN_xX(state); } // 1->2
-   double   getReorg21_x(int state) const{ return first->getU_xN_xX(state) + second->getU_nX_nN(state); } // 1->2
+    double jeff2e;
+    double jeff2h;
+    double jeff2s;
+    double jeff2t;
+  };
 
-   void     setRate12(double rate, int state);
-   void     setRate21(double rate, int state);
-   double   getRate12(int state)const;
-   double   getRate21(int state)const;
-   
-   double   getJeff2(int state) const;
-   void     setJeff2(double Jeff2, int state);
-  
+  static PairType get_Enum(std::string type) {
+    if (type == "Hopping") {
+      return PairType::Hopping;
+    } else if (type == "Excitoncl") {
+      return PairType::Excitoncl;
+    } else {
+      throw std::runtime_error("get_Enum input is invalid");
+    }
+  }
 
-   double   getdE12(int state) { return second->getSiteEnergy(state)
-                                       -first->getSiteEnergy(state); }
+  QMPair(Index id, const Segment* seg1, const Segment* seg2,
+         const Eigen::Vector3d& delta_R);
 
-   Segment* Seg1PbCopy() { return first; }
-   Segment* Seg2PbCopy();
-   Segment* Seg1() const{ return first; }
-   Segment* Seg2() const{ return second; }
+  QMPair(const data& d, const std::vector<Segment>& segments) {
+    ReadData(d, segments);
+  }
 
-   bool     HasGhost() { return _hasGhost; }
+  Index getId() const { return _id; }
+  void setId(Index id) { _id = id; }
 
-   // superexchange pairs have a list of bridging segments
-   void     setType( PairType pair_type ) { _pair_type = pair_type; }
-   void     setType( int pair_type ) { _pair_type = (PairType) pair_type; }
-   const PairType &getType()const{return _pair_type;}
+  const Eigen::Vector3d& R() const { return _R; }
+  double Dist() const { return _R.norm(); }
 
-protected:
+  void setLambdaO(double lO, QMStateType state) {
+    _lambda0.setValue(lO, state);
+  }
+  double getLambdaO(QMStateType state) const {
+    return _lambda0.getValue(state);
+  }
 
-    votca::tools::vec         _R;
+  double getReorg12(QMStateType state) const {
+    return _segments.first->getU_nX_nN(state) +
+           _segments.second->getU_xN_xX(state);
+  }  // 1->2
+  double getReorg21(QMStateType state) const {
+    return _segments.first->getU_xN_xX(state) +
+           _segments.second->getU_nX_nN(state);
+  }  // 2->1
 
-    Segment    *_ghost;
-    Topology   *_top;
-    int         _id;
-    bool        _hasGhost;
-    
-    double _rate12_e;    // from ::Rates        output    DEFAULT 0
-    double _rate21_e;    // from ::Rates        output    DEFAULT 0
-    double _rate12_h;
-    double _rate21_h;
-    bool _has_e;       // from ::Rates        input     DEFAULT 0
-    bool _has_h;
-    double _lambdaO_e;   // from ::EOutersphere output    DEFAULT 0
-    double _lambdaO_h;
-    
-    double          _Jeff2_e;
-    double          _Jeff2_h;
-    //excition part s:singlet t:triplet
-    // state +2: singlet
-    //state +3:triplet
-    
-    
-    double _rate12_s;   
-    double _rate21_s; 
-    double _rate12_t;
-    double _rate21_t;
-    bool _has_s;       
-    bool _has_t;
-    double _lambdaO_s;   
-    double _lambdaO_t; 
-    double          _Jeff2_s;
-    double          _Jeff2_t;
+  double getJeff2(QMStateType state) const { return _Jeff2.getValue(state); }
+  void setJeff2(double Jeff2, QMStateType state) {
+    _Jeff2.setValue(Jeff2, state);
+  }
 
-    PairType _pair_type;
-    
+  double getdE12(QMStateType state) const {
+    return _segments.first->getSiteEnergy(state) -
+           _segments.second->getSiteEnergy(state);
+  }
+
+  Segment Seg2PbCopy() const;
+  const Segment* Seg1() const { return _segments.first; }
+  const Segment* Seg2() const { return _segments.second; }
+
+  const Segment* first() { return _segments.first; }
+  const Segment* second() { return _segments.second; }
+
+  void setType(PairType pair_type) { _pair_type = pair_type; }
+  const PairType& getType() const { return _pair_type; }
+
+  void SetupCptTable(CptTable& table) const;
+  void WriteData(data& d) const;
+
+  void ReadData(const data& d, const std::vector<Segment>& segments);
+
+ private:
+  Index _id = -1;
+  std::pair<const Segment*, const Segment*> _segments;
+
+  Eigen::Vector3d _R = Eigen::Vector3d::Zero();
+
+  PairType _pair_type = PairType::Hopping;
+
+  QMStateCarrierStorage<double> _lambda0;
+  QMStateCarrierStorage<double> _Jeff2;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-
-#endif // VOTCA_XTP_QMPAIR_H
+#endif  // VOTCA_XTP_QMPAIR_H

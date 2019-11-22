@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,80 +17,83 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_BFGSTRM_H
 #define VOTCA_XTP_BFGSTRM_H
 
-#include <votca/xtp/optimiser_costfunction.h>
-#include <votca/xtp/logger.h>
 #include <functional>
 #include <vector>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/optimiser_costfunction.h>
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-       
-        class BFGSTRM {
-        public:
+class BFGSTRM {
+ public:
+  BFGSTRM(Optimiser_costfunction& costfunction)
+      : _costfunction(costfunction), _logging(false) {
+    _hessian = Eigen::MatrixXd::Identity(costfunction.NumParameters(),
+                                         costfunction.NumParameters());
+  }
 
-            BFGSTRM(Optimiser_costfunction& costfunction):_costfunction(costfunction),_logging(false){
-            _hessian=Eigen::MatrixXd::Identity(costfunction.NumParameters(),costfunction.NumParameters());}
+  void setLog(Logger* pLog) {
+    _logging = true;
+    _pLog = pLog;
+  }
 
-            void setLog(Logger* pLog) {
-                _logging=true;
-                _pLog = pLog;
-            }
-            
-            void setTrustRadius(double trust_radius){_trust_radius=trust_radius;}
-            
-            double getTrustRadius()const{return _trust_radius;}
-            
-            void setCallbacks(const std::vector<std::function<void()> >& callbacks){_callbacks=callbacks;}
-            
-            void setNumofIterations(int iterations){_max_iteration=iterations;}
+  void setTrustRadius(double trust_radius) { _trust_radius = trust_radius; }
 
-            void Optimize(const Eigen::VectorXd& initialparameters);
-            
-            bool Success()const{return _success;}
-            std::string getErrorMessage()const{return _errormessage;}
-            
-            double getCost()const{return _cost;}
-            
-            int getIteration()const{return _iteration;}
-            
-            const Eigen::VectorXd getParameters()const{return _parameters;}
-            
-            void setInitialHessian(const Eigen::MatrixXd& hessian){_hessian=hessian;}
-            
+  double getTrustRadius() const { return _trust_radius; }
 
-        private:
+  void setCallbacks(const std::vector<std::function<void()> >& callbacks) {
+    _callbacks = callbacks;
+  }
 
-            Optimiser_costfunction& _costfunction;
-        
-            void UpdateHessian(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& delta_gradient);
-            double QuadraticEnergy(const Eigen::VectorXd& gradient, const Eigen::VectorXd& delta_pos)const;
-            bool AcceptRejectStep(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& gradient,double energy_delta);
-            
-            std::string _errormessage;
-            bool _success=true;
-            bool _logging;
-            int _iteration=0;
-            
-            std::vector<std::function<void()> > _callbacks;
+  void setNumofIterations(Index iterations) { _max_iteration = iterations; }
 
-            Eigen::MatrixXd _hessian;
-            Eigen::VectorXd _parameters;
-            
-            double _cost=std::numeric_limits<double>::max();
+  void Optimize(const Eigen::VectorXd& initialparameters);
 
-            double _trust_radius=0.1;
+  bool Success() const { return _success; }
+  std::string getErrorMessage() const { return _errormessage; }
 
-            int _max_iteration=200;
+  double getCost() const { return _cost; }
 
-            Logger *_pLog;
+  Index getIteration() const { return _iteration; }
 
+  const Eigen::VectorXd getParameters() const { return _parameters; }
 
-        };
+  void setInitialHessian(const Eigen::MatrixXd& hessian) { _hessian = hessian; }
 
-    }
-}
-#endif // VOTCA_XTP_BFGSTRM_H
+ private:
+  Optimiser_costfunction& _costfunction;
+
+  void UpdateHessian(const Eigen::VectorXd& delta_pos,
+                     const Eigen::VectorXd& delta_gradient);
+  double QuadraticEnergy(const Eigen::VectorXd& gradient,
+                         const Eigen::VectorXd& delta_pos) const;
+  bool AcceptRejectStep(const Eigen::VectorXd& delta_pos,
+                        const Eigen::VectorXd& gradient, double energy_delta);
+
+  std::string _errormessage;
+  bool _success = true;
+  bool _logging;
+  Index _iteration = 0;
+
+  std::vector<std::function<void()> > _callbacks;
+
+  Eigen::MatrixXd _hessian;
+  Eigen::VectorXd _parameters;
+
+  double _cost = std::numeric_limits<double>::max();
+
+  double _trust_radius = 0.1;
+
+  Index _max_iteration = 200;
+
+  Logger* _pLog;
+};
+
+}  // namespace xtp
+}  // namespace votca
+#endif  // VOTCA_XTP_BFGSTRM_H

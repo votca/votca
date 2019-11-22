@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,29 +17,70 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_EIGEN_H
-#define	VOTCA_XTP_EIGEN_H
-#include <votca/tools/eigen.h>
-#include <votca/xtp/votca_config.h>
-#if (GWBSE_DOUBLE)
-#define real_gwbse double
-#else
-#define real_gwbse float
-#endif
+#define VOTCA_XTP_EIGEN_H
 
+#include <votca/tools/eigen.h>
+#include <votca/tools/types.h>
+#include <votca/xtp/votca_config.h>
+typedef Eigen::Matrix<double, 9, 1> Vector9d;
+typedef Eigen::Matrix<double, 9, 9> Matrix9d;
+typedef Eigen::Array<votca::Index, Eigen::Dynamic, 1> ArrayXl;
 
 namespace votca {
-    namespace xtp {
-      
- typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, Eigen::Dynamic> MatrixXfd;
- typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, 1> VectorXfd;
+namespace xtp {
 
+// Stores matrix and energy together
+class Mat_p_Energy {
+ public:
+  Mat_p_Energy(Index rows, Index cols)
+      : _energy(0.0), _matrix(Eigen::MatrixXd::Zero(rows, cols)){};
+  Mat_p_Energy(double e, const Eigen::MatrixXd& mat)
+      : _energy(e), _matrix(mat){};
+  Mat_p_Energy(double e, Eigen::MatrixXd&& mat)
+      : _energy(e), _matrix(std::move(mat)){};
 
-    }}
+  Index rows() const { return _matrix.rows(); }
+  Index cols() const { return _matrix.cols(); }
+  Eigen::MatrixXd& matrix() { return _matrix; }
+  double& energy() { return _energy; }
+  const Eigen::MatrixXd& matrix() const { return _matrix; }
+  double energy() const { return _energy; }
 
+ private:
+  double _energy;
+  Eigen::MatrixXd _matrix;
+};
 
+namespace OPENMP {
+inline Index getMaxThreads() {
+  Index nthreads = 1;
+#ifdef _OPENMP
+  nthreads = Index(omp_get_max_threads());
+#endif
+  return nthreads;
+}
 
+inline Index getThreadId() {
+  Index thread_id = 0;
+#ifdef _OPENMP
+  thread_id = Index(omp_get_thread_num());
+#endif
+  return thread_id;
+}
 
+#ifdef _OPENMP
+inline void setMaxThreads(Index threads) {
+  if (threads > 0) {
+    omp_set_num_threads(int(threads));
+  }
+}
+#else
+inline void setMaxThreads(Index) {}
+#endif
+}  // namespace OPENMP
+}  // namespace xtp
+}  // namespace votca
 
-#endif	// VOTCA_XTP_EIGEN_H 
-
+#endif  // VOTCA_XTP_EIGEN_H

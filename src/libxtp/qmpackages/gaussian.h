@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,16 +17,14 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_XTP_GAUSSIAN_H
-#define	__VOTCA_XTP_GAUSSIAN_H
+#define __VOTCA_XTP_GAUSSIAN_H
 
 #include <votca/xtp/qmpackage.h>
 
-#include <string>
-
-
-
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 /**
     \brief Wrapper for the Gaussian program
 
@@ -34,56 +32,55 @@ namespace votca { namespace xtp {
     and extracts information from its log and io files
 
 */
-class Gaussian : public QMPackage
-{
-public:
 
-   std::string getPackageName() const{ return "gaussian"; }
+class Orbitals;
+class Gaussian : public QMPackage {
+ public:
+  std::string getPackageName() const override { return "gaussian"; }
 
-   void Initialize( tools::Property &options );
+  void Initialize(tools::Property& options) override;
 
-   bool WriteInputFile(const Orbitals& orbitals);
+  bool WriteInputFile(const Orbitals& orbitals) override;
 
-   bool Run();
+  bool Run() override;
 
-   void CleanUp();
+  void CleanUp() override;
 
-   bool ParseLogFile( Orbitals& orbitals );
+  bool ParseLogFile(Orbitals& orbitals) override;
 
-   bool ParseOrbitalsFile( Orbitals& orbitals );
-   
-   std::string getScratchDir( ) { return _scratch_dir; }
+  bool ParseMOsFile(Orbitals& orbitals) override;
 
-private:
-    
-    bool WriteShellScript();
+  StaticSegment GetCharges() const override;
 
-    bool CheckLogFile();
-    
-    std::string                              _shell_file_name;
-    std::string                              _chk_file_name;
-    std::string                              _scratch_dir;
-    std::string                              _input_vxc_file_name;
-    std::string                              _cleanup;
-    std::string                              _vdWfooter;
+  Eigen::Matrix3d GetPolarizability() const override;
 
-    bool ReadESPCharges(Orbitals& orbitals, std::string& line, std::ifstream& input_file);
-    
-    std::string FortranFormat(double number);
+ private:
+  bool WriteShellScript();
 
-    void WriteBasisset(std::ofstream& com_file, const QMMolecule& qmatoms);
-    void WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms);
-    void WriteBackgroundCharges(std::ofstream& com_file);
-    void WriteGuess(const Orbitals& orbitals_guess, std::ofstream& com_file);
-    void WriteVXCRunInputFile();
-    void WriteCoordinates(std::ofstream& com_file, const QMMolecule& qmatoms);
-    void WriteHeader(std::ofstream& com_file);
+  bool CheckLogFile() const;
 
-    void WriteChargeOption();
-    
+  std::string _vdWfooter = "";
+
+  std::string FortranFormat(double number);
+  void GetArchive(std::vector<std::string>& archive, std::string& line,
+                  std::ifstream& input_file) const;
+
+  template <class T>
+  void GetCoordinates(T& mol, const std::vector<std::string>& archive) const;
+
+  double GetQMEnergy(const std::vector<std::string>& archive) const;
+
+  void WriteBasisset(std::ofstream& com_file, const QMMolecule& qmatoms);
+  void WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms);
+  void WriteBackgroundCharges(std::ofstream& com_file);
+  void WriteGuess(const Orbitals& orbitals_guess, std::ofstream& com_file);
+  void WriteCoordinates(std::ofstream& com_file, const QMMolecule& qmatoms);
+  void WriteHeader(std::ofstream& com_file);
+
+  void WriteChargeOption() override;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-}}
-
-#endif	/* __VOTCA_XTP_GAUSSAIN_H */
+#endif /* __VOTCA_XTP_GAUSSAIN_H */

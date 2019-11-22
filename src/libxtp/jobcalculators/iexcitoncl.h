@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,53 +17,47 @@
  *
  */
 
+#pragma once
 #ifndef _CALC_COUPLING_EXCL_H
 #define _CALC_COUPLING_EXCL_H
 
 #include <votca/tools/property.h>
 
-#include <votca/xtp/parallelxjobcalc.h>
-#include <sys/stat.h>
 #include <boost/filesystem.hpp>
+#include <sys/stat.h>
+#include <votca/xtp/parallelxjobcalc.h>
 #include <votca/xtp/qmstate.h>
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-        /**
-         * \brief Evaluates Transition Charge distributions classically
-         *
-         * Evaluates the electrostatic classical coupling between molecules in 
-         * their excited states.
-         * Callname: iexcitoncl
-         */
+/**
+ * \brief Evaluates Transition Charge distributions classically
+ *
+ * Evaluates the electrostatic classical coupling between molecules in
+ * their excited states.
+ * Callname: iexcitoncl
+ */
 
-        class IEXCITON : public ParallelXJobCalc< std::vector<Job*>, Job*, Job::JobResult > {
-        public:
+class IEXCITON : public ParallelXJobCalc<std::vector<Job> > {
+ public:
+  void Initialize(tools::Property &options) override;
 
-            void Initialize(tools::Property *options);
+  std::string Identify() override { return "iexcitoncl"; }
 
-            std::string Identify() {
-                return "iexcitoncl";
-            }
+  Job::JobResult EvalJob(const Topology &top, Job &job,
+                         QMThread &Thread) override;
 
-            Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
+  void WriteJobFile(const Topology &top) override;
+  void ReadJobFile(Topology &top) override;
 
-            void WriteJobFile(Topology *top);
-            void ReadJobFile(Topology *top);
+ private:
+  QMState GetElementFromMap(const std::string &elementname) const;
+  std::map<std::string, QMState> FillParseMaps(const std::string &Mapstring);
+  double _cutoff;
+  std::map<std::string, QMState> _statemap;
+};
 
-        private:
-            QMState GetElementFromMap(const std::string& elementname )const;
-            std::map<std::string, QMState> FillParseMaps(const std::string& Mapstring);
-            double _cutoff;
-            std::map<std::string,QMState> _statemap;
-            std::string _emp_file;
-            std::string _xml_file;
-            void PreProcess(Topology *top);
-            
-
-        };
-
-    }
-}
+}  // namespace xtp
+}  // namespace votca
 #endif /* _CALC_INTEGRALS_DFT_H */

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,169 +16,104 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#pragma once
 #ifndef VOTCA_XTP_SEGMENT_H
-#define	VOTCA_XTP_SEGMENT_H
+#define VOTCA_XTP_SEGMENT_H
 
 #include <map>
 #include <vector>
 
-#include <votca/tools/vec.h>
+#include "atom.h"
+#include "atomcontainer.h"
+#include "qmstate.h"
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
+class Segment : public AtomContainer<Atom> {
+ public:
+  Segment(std::string name, Index id) : AtomContainer<Atom>(name, id){};
+  // cannot use standard AtomContainer constructor because ReadFromCpt is
+  // different.
+  Segment(CheckpointReader& r) : AtomContainer<Atom>("", 0) { ReadFromCpt(r); }
 
-class Atom;
-class Fragment;
-class SegmentType;
-class Topology;
-class Molecule;  
+  ~Segment() override = default;
 
-class Segment
-{
-public:
+  /// Following notation can be observed in:
+  /// [1. Victor, R. et al. Microscopic Simulations of Charge Transport in
+  /// Disordered Organic Semiconductors. J. Chem. Theory Comput. 7, 3335–3345
+  /// (2011).] Labeling of the following methods follows the following
+  /// semantics: U - Energy n - neutral geometry N - neutral state x - excited
+  /// geometry X - excited state
 
-    Segment(int id, std::string name);
-    Segment(Segment *stencil);
-   ~Segment();
+  /// UxX - UnN
+  void setU_xX_nN(double dU, QMStateType state) {
+    _U_xX_nN.setValue(dU, state);
+  }
+  /// UnX - UnN
+  void setU_nX_nN(double dU, QMStateType state) {
+    _U_nX_nN.setValue(dU, state);
+  }
+  /// UxN - UxX
+  void setU_xN_xX(double dU, QMStateType state) {
+    _U_xN_xX.setValue(dU, state);
+  }
 
-    int       getId() const{ return _id; }
-    const std::string& getName() const{ return _name; }
+  const Atom* getAtom(Index id) const;
 
-    const tools::vec       &getPos() const { return _CoM; }
-    void             setPos(tools::vec pos) { _CoM = pos; }
-    // This gets the center of mass from the MD positions of the atoms
-    void             calcPos();
-    void             TranslateBy(const tools::vec &shift);
-    
-    void            calcApproxSize();
-    double          getApproxSize()const{return _approxsize;}
+  double getU_xX_nN(QMStateType state) const {
+    return _U_xX_nN.getValue(state);
+  }
 
-    void             setHasState(bool yesno, int state);
-    bool             hasState(int state)const;
+  double getU_nX_nN(QMStateType state) const {
+    return _U_nX_nN.getValue(state);
+  }
 
-    double           getOcc(int e_h_s_t)const;
-    void             setOcc(double occ, int e_h_s_t);
+  double getU_xN_xX(QMStateType state) const {
+    return _U_xN_xX.getValue(state);
+  }
 
-    // state: -1 electron +1 hole +2 singlet +3 triplet
-  
-    /// Following notation can be observed in: 
-    /// [1. Victor, R. et al. Microscopic Simulations of Charge Transport in Disordered Organic Semiconductors. J. Chem. Theory Comput. 7, 3335–3345 (2011).] 
-    /// Labeling of the following methods follows the following semantics:
-    /// U - Energy 
-    /// n - neutral geometry
-    /// N - neutral state
-    /// c - charged geometry
-    /// C - charged state
-    /// x - excited geometry
-    /// X - excited state
+  double getSiteEnergy(QMStateType state) const {
+    return _site_eng.getValue(state) + _U_xX_nN.getValue(state);
+  }
 
-    /// UcC - UnN
-    void             setU_cC_nN(double dU, int state);
-    /// UnN - UnN
-    void             setU_nC_nN(double dU, int state);
-    /// UcN - UcC
-    void             setU_cN_cC(double dU, int state);
-    /// UxX - UnN
-    void             setU_xX_nN(double dU, int state);
-    /// UnX - UnN
-    void             setU_nX_nN(double dU, int state);
-    /// UxN - UxX
-    void             setU_xN_xX(double dU, int state);
-    double    getU_cC_nN(int state)const;
-    double    getU_nC_nN(int state)const;
-    double    getU_cN_cC(int state)const;
-    double    getU_xX_nN(int state)const;
-    double    getU_nX_nN(int state)const;
-    double    getU_xN_xX(int state)const;
-    double    getSiteEnergy(int state)const;
+  double getEMpoles(QMStateType state) const {
+    return _site_eng.getValue(state);
+  }
 
-    double           getEMpoles(int state)const;
-    void             setEMpoles(int state, double energy);
-    bool             hasChrgState(int state) const{ return _hasChrgState[state+1]; }
-    void             setChrgStates(std::vector<bool> yesno) { _hasChrgState = yesno;}
+  void setEMpoles(QMStateType state, double energy) {
+    _site_eng.setValue(energy, state);
+  }
 
-    inline void      setTopology(Topology *container) { _top = container; }
-    Topology        *getTopology() { return _top; }
-    inline void      setMolecule(Molecule *container) { _mol = container; }
-    Molecule        *getMolecule() { return _mol; }
-    inline void      setType(SegmentType *type) { _typ = type; }
-    SegmentType     *getType() { return _typ; }
+  void AddMoleculeId(Index id) { _molecule_ids.push_back(int(id)); }
 
-    void             AddFragment( Fragment* fragment );
-    void             AddAtom( Atom* atom );
-    std::vector< Fragment* > &Fragments() { return _fragments; }
-    std::vector < Atom* >    &Atoms() { return _atoms; }
+  const std::vector<Index>& getMoleculeIds() const { return _molecule_ids; }
 
+  double getApproxSize() const;
 
-    void Rigidify();
+  void WriteToCpt(CheckpointWriter& w) const override;
 
-private:
+  void ReadFromCpt(CheckpointReader& r) override;
 
-    int         _id;
-    std::string      _name;
-    SegmentType *_typ;
-    Topology    *_top;
-    Molecule    *_mol;
+  friend std::ostream& operator<<(std::ostream& out, const Segment& container) {
+    out << container.getId() << " " << container.getType() << "\n";
+    for (const Atom& atom : container) {
+      out << atom;
+    }
+    out << std::endl;
+    return out;
+  }
 
-    std::vector < Fragment* >    _fragments;
-    std::vector < Atom* >        _atoms;
+ private:
+  std::vector<Index> _molecule_ids = std::vector<Index>(0);
 
-    tools::vec         _CoM;
-    double   _approxsize;
-
-
-    double _U_cC_nN_e;   // from ::EInternal     input     DEFAULT 0
-    double _U_cC_nN_h;
-
-    double _U_nC_nN_e;   // from ::EInternal     input     DEFAULT 0
-    double _U_nC_nN_h;
-
-    double _U_cN_cC_e;   // from ::EInternal     input     DEFAULT 0
-    double _U_cN_cC_h;
-
-    //double _ePolar_e;    // from ::EMultipole    output    DEFAULT 0
-    //double _ePolar_h;
-
-    double _occ_e;       // from ::KMC           output    DEFAULT 0
-    double _occ_h;
-
-    bool   _has_e;       // from ::EInternal     input     DEFAULT 0
-    bool   _has_h;
-    
-    
-    bool   _occ_s;      //state 3 = triplet
-    bool   _occ_t;      // t:triplet s:singlet
-    bool   _has_s;      // state 2 =. singlet
-    
-    
-    bool   _has_t;      //Exciton Properties               DEFAULT 0
-   
-   
-    
-    double _U_xX_nN_s;
-    double _U_xX_nN_t;
-    
-    double _U_nX_nN_s;   
-    double _U_nX_nN_t;
-
-    double _U_xN_xX_s;   
-    double _U_xN_xX_t;
-    
-    std::vector< double > _eMpoles;
-    //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
-    //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
-    //   +2(=> s)   e.static + pol. energy E(+2) - E(0)
-    //   +3(=> t)   e.static + pol. energy E(+3) - E(0)
-    std::vector<bool> _hasChrgState;
-
-    std::map<int, tools::vec> _intCoords;
-    // qmid => position
-    
-
+  QMStateCarrierStorage<double> _U_xX_nN;
+  QMStateCarrierStorage<double> _U_nX_nN;
+  QMStateCarrierStorage<double> _U_xN_xX;
+  QMStateCarrierStorage<double> _site_eng;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif	// VOTCA_XTP_SEGMENT_H 
-
+#endif  // VOTCA_XTP_SEGMENT_H

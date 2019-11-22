@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,187 +16,81 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For earlier commit history see ctp commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#pragma once
 #ifndef VOTCA_XTP_ATOM_H
 #define VOTCA_XTP_ATOM_H
 
-#include <string>
-#include <map>
-#include <votca/tools/vec.h>
-#include <votca/tools/matrix.h>
 #include <exception>
 #include <map>
+#include <string>
+#include <votca/xtp/checkpointreader.h>
+#include <votca/xtp/checkpointwriter.h>
 
 namespace votca {
 namespace xtp {
-
-class Topology;
-class Molecule;
-class Segment;
-class Fragment;
-
-/**
-    \brief information about an atom
-
-    The Atom class stores atom id, name, type, mass, charge, residue number
-
-*/
 class Atom {
  public:
-  Atom(Molecule *owner, std::string residue_name, int resnr,
-       std::string md_atom_name, int md_atom_id, bool hasQMPart, int qm_atom_id,
-       tools::vec qmPos, std::string element, double weight)
-      : _id(md_atom_id),
-        _name(md_atom_name),
-        _mol(owner),
-        _resnr(resnr),
-        _resname(residue_name),
-        _weight(weight),
-        _bPos(false),
-        _hasQM(hasQMPart),
-        _qmId(qm_atom_id),
-        _qmPos(qmPos),
-        _element(element) {}
+  struct data {
+    Index id;
+    char* element;
+    char* name;
+    double x;
+    double y;
+    double z;
+    Index resnr;
+  };
+  Atom(Index resnr, std::string md_atom_name, Index atom_id,
+       Eigen::Vector3d pos, std::string element);
 
-  Atom(int atom_id, std::string atom_name)
-      : _id(atom_id), _name(atom_name), _hasQM(false), _qmId(-1) {}
+  Atom(Index atom_id, std::string element, Eigen::Vector3d pos);
 
-  // TODO This should be replaced from a constructor to an overloaded = operator
-  Atom(Atom *stencil)
-      : _id(stencil->getId()),
-        _name(stencil->getName() + "_ghost"),
-        _top(NULL),
-        _mol(NULL),
-        _resnr(stencil->getResnr()),
-        _resname(stencil->getResname()),
-        _weight(stencil->getWeight()),
-        _pos(stencil->getPos()),
-        _bPos(true),
-        _hasQM(stencil->HasQMPart()),
-        _qmId(stencil->getQMId()),
-        _qmPos(stencil->getQMPos()),
-        _element(stencil->getElement()) {}
+  Atom(data& d) { ReadData(d); }
 
-  Atom() {};
-  ~Atom() { _Q.clear(); }
+  static std::string GetElementFromString(const std::string& MDName);
 
-  const int &getId() const { return _id; }
-  const std::string &getName() const { return _name; }
-  const std::string &getType() const { return _type; }
-  const int &getResnr() const { return _resnr; }
+  Index getId() const { return _id; }
+  const std::string& getName() const { return _name; }
+  std::string getElement() const { return _element; }
 
-  inline void setTopology(Topology *container) { _top = container; }
-  inline void setMolecule(Molecule *container) { _mol = container; }
-  inline void setSegment(Segment *container) { _seg = container; }
-  inline void setFragment(Fragment *container) { _frag = container; }
+  Index getResnr() const { return _resnr; }
 
-  Topology *getTopology() { return _top; }
-  Molecule *getMolecule() { return _mol; }
-  Segment *getSegment() { return _seg; }
-  Fragment *getFragment() { return _frag; }
+  void setResnr(Index resnr) { _resnr = resnr; }
+  void Translate(const Eigen::Vector3d& shift) { _pos = _pos + shift; }
 
-  inline void setResnr(const int &resnr) { _resnr = resnr; }
-  inline void setResname(const std::string &resname) { _resname = resname; }
-  inline void setWeight(const double &weight) { _weight = weight; }
-  inline void setQMPart(const int &qmid, tools::vec qmPos);
-  inline void setQMPos(const tools::vec &qmPos) { _qmPos = qmPos; }
-  inline void setElement(const std::string &element) { _element = element; }
-  inline void TranslateBy(const tools::vec &shift) {
-    _pos = _pos + shift;
+  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
+
+  const Eigen::Vector3d& getPos() const { return _pos; }
+  void setPos(const Eigen::Vector3d& r) { _pos = r; }
+
+  std::string identify() const { return "atom"; }
+
+  friend std::ostream& operator<<(std::ostream& out, const Atom& atom) {
+    out << atom.getId() << " " << atom.getName() << " " << atom.getElement()
+        << " " << atom.getResnr();
+    out << " " << atom.getPos().x() << "," << atom.getPos().y() << ","
+        << atom.getPos().z() << "\n";
+    return out;
   }
 
-  inline const int &getResnr() { return _resnr; }
-  inline const std::string &getResname() { return _resname; }
-  inline const double &getWeight() { return _weight; }
-  inline const int &getQMId() { return _qmId; }
-  inline const tools::vec &getQMPos() { return _qmPos; }
-  inline const std::string &getElement() { return _element; }
+  void SetupCptTable(CptTable& table) const;
 
-  inline const double &getQ(int state) { return _Q.at(state); }
-  inline const double &getQ() { return _q->second; }
-  inline void setQ(std::map<int, double> Q) { _Q = Q; }
-  void chrg(int state) { _q = _Q.find(state); }
+  void WriteData(data& d) const;
 
-  inline void setPTensor(tools::matrix &ptensor) { _ptensor = ptensor; }
-  const tools::matrix &getPTensor() { return _ptensor; }
+  void ReadData(const data& d);
 
-  /**
-   * get the position of the atom
-   * \return atom position
-   */
-  const tools::vec &getPos() const;
-  /**
-   * set the position of the atom
-   * \param r atom position
-   */
-  void setPos(const tools::vec &r);
-  /**
-   * direct access (read/write) to the position of the atom
-   * \return reference to position
-   */
-  tools::vec &Pos() { return _pos; }
-  /** does this configuration store positions? */
-  bool HasPos() { return _bPos; }
-  /** dose the bead store a position */
-  void HasPos(bool b);
+ private:
+  Index _id = -1;
+  std::string _name = "";
 
-  bool HasQMPart() { return _hasQM; }
-  /**
-   * molecule the bead belongs to
-   * \return Molecule object
-   */
-
- protected:
-  int _id;
-  std::string _name;
-
-  Topology *_top;
-  Molecule *_mol;
-  Segment *_seg;
-  Fragment *_frag;
-
-  std::string _type;
-  int _resnr;
-  std::string _resname;
-  double _weight;
-  tools::vec _pos;
-  bool _bPos;
-
-  bool _hasQM;
-  int _qmId;
-  tools::vec _qmPos;
-  std::string _element;
-
-  // charge state of segment => partial charge
-  std::map<int, double> _Q;
-  std::map<int, double>::iterator _q;
-  tools::matrix _ptensor;
+  std::string _element = "";
+  Index _resnr = -1;
+  Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
 };
 
-inline void Atom::setPos(const tools::vec &r) {
-  _bPos = true;
-  _pos = r;
-}
+}  // namespace xtp
+}  // namespace votca
 
-inline const tools::vec &Atom::getPos() const {
-  if (!_bPos) throw std::runtime_error("Position has not yet been set");
-  return _pos;
-}
-
-inline void Atom::HasPos(bool b) { _bPos = b; }
-
-inline void Atom::setQMPart(const int &qmid, tools::vec qmPos) {
-  if (qmid > -1) {
-    _hasQM = true;
-    _qmId = qmid;
-    _qmPos = qmPos;
-  } else {
-    _hasQM = false;
-    _qmId = -1;
-  }
-}
-}
-}
-
-#endif // VOTCA_XTP_ATOM_H 
+#endif  // VOTCA_XTP_ATOM_H

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,22 +17,21 @@
  *
  */
 
-
-#include <votca/xtp/qmpackagefactory.h>
 #include "qmpackages/gaussian.h"
 #include "qmpackages/nwchem.h"
 #include "qmpackages/orca.h"
+#include <votca/xtp/qmpackagefactory.h>
 
 #include "qmpackages/xtpdft.h"
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-void QMPackageFactory::RegisterAll(void)
-{
-        QMPackages().Register<Gaussian>         ("gaussian");
-        QMPackages().Register<NWChem>           ("nwchem");
-        QMPackages().Register<Orca>             ("orca");
-        QMPackages().Register<XTPDFT>           ("xtp");
-
+void QMPackageFactory::RegisterAll(void) {
+  QMPackages().Register<Gaussian>("gaussian");
+  QMPackages().Register<NWChem>("nwchem");
+  QMPackages().Register<Orca>("orca");
+  QMPackages().Register<XTPDFT>("xtp");
 }
-}}
+}  // namespace xtp
+}  // namespace votca

@@ -6,13 +6,12 @@
 	    <outputtime help="Time difference between outputs into the trajectory file. Set to 0 if you wish to have no trajectory written out." unit="seconds" default="1E-8">1E-8</outputtime>
 	    <trajectoryfile help="Name of the trajectory file" unit="" default="trajectory.csv">trajectory.csv</trajectoryfile>
 	    <seed help="Integer to initialise the random number generator" unit="integer" default="123">123</seed>
-	    <injectionpattern help="Name pattern that specifies on which sites injection is possible. Before injecting on a site it is checked whether the column 'name' in the table 'segments' of the state file matches this pattern. Use the wildcard '*' to inject on any site." unit="" default="*">*</injectionpattern>
+	    <injectionpattern help="Name pattern that specifies on which sites injection is possible. Use the wildcard '*' to inject on any site." unit="" default="*">*</injectionpattern>
 	    <injectionmethod help="Options: random/equilibrated. random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" unit="" default="random">random</injectionmethod>
-	    <numberofcharges help="Number of electrons/holes in the simulation box" unit="integer" default="1">1</numberofcharges>
+	    <numberofcarriers help="Number of electrons/holes in the simulation box" unit="integer" default="1">1</numberofcarriers>
 	    <field help="external electric field" unit="V/m" default="0">0 0 1e6</field>
 	    <carriertype help="Options: electron/hole/singlet/triplet. Specifies the carrier type of the transport under consideration." unit="" default="electron">electron</carriertype>
-	    <temperature help="Temperature in Kelvin. Will only be relevant if rates are calculated by KMC and not taken from the state file." unit="Kelvin" default="300">300</temperature>
-	    <rates help="Options: statefile/calculate. statefile: use the rates for charge transfer specified in the state file; calculate: use transfer integrals, site energies and reorganisation energies specified in the state file as well as temperature and electric field specified here to calculate rates before starting the KMC simulation. In case of explicit Coulomb interaction this option is set to 'calculate' automatically. If you use rates from the state file make sure that the electric field specified here matches the one that was used for calculating the rates in the state file." unit="" default="statefile">statefile</rates>
+	    <temperature help="Temperature in Kelvin." unit="Kelvin" default="300">300</temperature>
     </kmcmultiple>
 
 </options>
