@@ -67,6 +67,15 @@ Release Clang Ubuntu:
     DISTRO: "ubuntu"
   extends: .build
 
+Debug GCC Rawhide:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+  allow_failure: true
+
 Release GCC Module:
   variables:
     CC: "gcc"
