@@ -4,11 +4,11 @@ rules.ninja
 build.ninja
 .ninja_*
 build
+netbeans
 src/libtools/votca_config.h
 src/libtools/gitversion.h
 .project
 .cproject
-libvotca*.pc
 libvotca*.so
 libvotca*.so.*
 libvotca*.a

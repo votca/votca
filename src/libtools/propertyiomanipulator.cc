@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@
 
 #include <votca/tools/propertyiomanipulator.h>
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
 
 PropertyIOManipulator XML(PropertyIOManipulator::XML);
 PropertyIOManipulator TXT(PropertyIOManipulator::TXT);
 PropertyIOManipulator TEX(PropertyIOManipulator::TEX);
 PropertyIOManipulator HLP(PropertyIOManipulator::HLP);
 
-}}
+}  // namespace tools
+}  // namespace votca

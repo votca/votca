@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   GraphNode gn1;
   GraphNode gn2;
 
-  unordered_map<int, GraphNode> nodes;
+  unordered_map<votca::Index, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
 
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   gdv.exec(g, ed1);
   BOOST_CHECK(gdv.queEmpty());
   GraphNode gn3 = g.getNode(0);
-  int dist = gn3.getInt("Dist");
+  votca::Index dist = gn3.getInt("Dist");
   BOOST_CHECK_EQUAL(dist, 0);
   GraphNode gn4 = g.getNode(1);
   dist = gn4.getInt("Dist");
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   GraphNode gn6;
   GraphNode gn7;
 
-  unordered_map<int, GraphNode> nodes;
+  unordered_map<votca::Index, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
   nodes[2] = gn3;
@@ -125,9 +125,28 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   gdv.initialize(g);
   BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
   // No exception should be thrown at this point
+
+  // First two edges that should be explored are edges ed and ed6
+  vector<Edge> temp;
   Edge ed7 = gdv.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed, ed7);
+  temp.push_back(ed7);
   gdv.exec(g, ed7);
+  ed7 = gdv.nextEdge(g);
+  gdv.exec(g, ed7);
+  temp.push_back(ed7);
+
+  bool found_ed = false;
+  bool found_ed6 = false;
+  for (auto ed_temp : temp) {
+    if (ed_temp == ed) {
+      found_ed = true;
+    }
+    if (ed_temp == ed6) {
+      found_ed6 = true;
+    }
+  }
+  BOOST_CHECK(found_ed);
+  BOOST_CHECK(found_ed6);
 
   // Explore the whole graph
   while (!gdv.queEmpty()) {
@@ -140,7 +159,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   // node which by default is node 0.
 
   GraphNode gn8 = g.getNode(0);
-  int dist = gn8.getInt("Dist");
+  votca::Index dist = gn8.getInt("Dist");
   BOOST_CHECK_EQUAL(dist, 0);
 
   gn8 = g.getNode(1);

@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,18 @@
 #ifndef __VOTCA_TOOLS_VOTCA_CONFIG_H
 #define __VOTCA_TOOLS_VOTCA_CONFIG_H
 
-/* Compile without fftw and disable CrossCorrelate class */
-#cmakedefine NOFFTW
-
 /* OpenMP */
-
 #if defined(_OPENMP)
-   #include <omp.h>
+#include <omp.h>
 #endif
 
 /* Linear algebra packages */
-#cmakedefine MKL
+#cmakedefine MKL_FOUND
 
+/* FFT library */
+#cmakedefine FFTW3_FOUND
 
 /* Version number of package */
 #define TOOLS_VERSION "@PROJECT_VERSION@"
 
-#endif // __VOTCA_TOOLS_VOTCA_CONFIG_H
+#endif  // __VOTCA_TOOLS_VOTCA_CONFIG_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
  */
 
 #include <expat.h>
-#include <stdio.h>
-#include <string.h>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <stack>
 #include <stdexcept>
+#include <stdio.h>
+#include <string.h>
 #include <string>
 
 #include <votca/tools/colors.h>
@@ -30,69 +30,98 @@
 #include <votca/tools/propertyiomanipulator.h>
 #include <votca/tools/tokenizer.h>
 
-#include <unistd.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <unistd.h>
 
 namespace votca {
 namespace tools {
 using namespace std;
 // ostream modifier defines the output format, level, indentation
-const int Property::IOindex = std::ios_base::xalloc();
+const Index Property::IOindex = std::ios_base::xalloc();
 
-Property &Property::get(const string &key) {
+const Property &Property::get(const string &key) const {
   Tokenizer tok(key, ".");
-  Tokenizer::iterator n;
+  Tokenizer::iterator n = tok.begin();
+  if (n == tok.end()) {
+    return *this;
+  }
 
-  n = tok.begin();
-  if (n == tok.end()) return *this;
-
-  Property *p;
-  map<string, Property *>::iterator iter;
+  const Property *p;
+  map<string, Index>::const_iterator iter;
   if (*n == "") {
     p = this;
   } else {
     iter = _map.find(*n);
-
-    if (iter == _map.end()) throw runtime_error("property not found: " + key);
-
-    p = (((*iter).second));
+    if (iter == _map.end()) {
+      throw std::runtime_error("property not found: " + key);
+    }
+    p = &_properties[((*iter).second)];
   }
   ++n;
   try {
     for (; n != tok.end(); ++n) {
       p = &p->get(*n);
     }
-  } catch (string err) {  // catch here to get full key in exception
-    throw runtime_error("property not found: " + key);
+  } catch (std::runtime_error &) {  // catch here to get full key in
+                                    // exception
+    throw std::runtime_error("property not found: " + key);
   }
 
   return *p;
 }
 
-std::list<Property *> Property::Select(const string &filter) {
+Property &Property::get(const string &key) {
+  return const_cast<Property &>(static_cast<const Property &>(*this).get(key));
+}
+
+Property &Property::getOradd(const std::string &key) {
+  if (exists(key)) {
+    return get(key);
+  } else {
+    return add(key, "");
+  }
+}
+
+std::vector<const Property *> Property::Select(const string &filter) const {
   Tokenizer tok(filter, ".");
-
-  std::list<Property *> selection;
-
-  if (tok.begin() == tok.end()) return selection;
-
+  std::vector<const Property *> selection;
+  if (tok.begin() == tok.end()) {
+    return selection;
+  }
   selection.push_back(this);
-
-  for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
-    std::list<Property *> childs;
-    for (std::list<Property *>::iterator p = selection.begin();
-         p != selection.end(); ++p) {
-      for (list<Property>::iterator iter = (*p)->_properties.begin();
-           iter != (*p)->_properties.end(); ++iter) {
-        if (wildcmp((*n).c_str(), (*iter).name().c_str())) {
-          childs.push_back(&(*iter));
+  for (const auto &n : tok) {
+    std::vector<const Property *> childs;
+    for (const Property *p : selection) {
+      for (const Property &s : p->_properties) {
+        if (wildcmp(n, s.name())) {
+          childs.push_back(&s);
         }
       }
     }
     selection = childs;
   }
+  return selection;
+}
 
+std::vector<Property *> Property::Select(const string &filter) {
+  Tokenizer tok(filter, ".");
+  std::vector<Property *> selection;
+  if (tok.begin() == tok.end()) {
+    return selection;
+  }
+  selection.push_back(this);
+  for (const auto &n : tok) {
+    std::vector<Property *> childs;
+    for (Property *p : selection) {
+      for (Property &s : p->_properties) {
+        if (wildcmp(n, s.name())) {
+          childs.push_back(&s);
+        }
+      }
+    }
+    selection = childs;
+  }
   return selection;
 }
 
@@ -103,12 +132,14 @@ static void start_hndl(void *data, const char *el, const char **attr) {
   Property *cur = property_stack->top();
   Property &np = cur->add(el, "");
 
-  for (int i = 0; attr[i]; i += 2) np.setAttribute(attr[i], attr[i + 1]);
+  for (Index i = 0; attr[i]; i += 2) {
+    np.setAttribute(attr[i], attr[i + 1]);
+  }
 
   property_stack->push(&np);
 }
 
-static void end_hndl(void *data, const char *el) {
+static void end_hndl(void *data, const char *) {
   stack<Property *> *property_stack =
       (stack<Property *> *)XML_GetUserData((XML_Parser *)data);
   property_stack->pop();
@@ -122,74 +153,79 @@ void char_hndl(void *data, const char *txt, int txtlen) {
   cur->value().append(txt, txtlen);
 }
 
-bool load_property_from_xml(Property &p, string filename) {
+void Property::LoadFromXML(string filename) {
   ifstream fl;
-  fl.open(filename.c_str());
-  if (!fl.is_open())
+  fl.open(filename);
+  if (!fl.is_open()) {
     throw std::ios_base::failure("Error on open xml file: " + filename);
-  
-  XML_Parser parser = XML_ParserCreate(NULL);
-  if (!parser)
+  }
+
+  XML_Parser parser = XML_ParserCreate(nullptr);
+  if (!parser) {
     throw std::runtime_error("Couldn't allocate memory for xml parser");
+  }
 
   XML_UseParserAsHandlerArg(parser);
   XML_SetElementHandler(parser, start_hndl, end_hndl);
   XML_SetCharacterDataHandler(parser, char_hndl);
 
   stack<Property *> pstack;
-  pstack.push(&p);
+  pstack.push(this);
 
   XML_SetUserData(parser, (void *)&pstack);
   while (!fl.eof()) {
     string line;
     getline(fl, line);
     line = line + "\n";
-    if (!XML_Parse(parser, line.c_str(), line.length(), fl.eof()))
+    if (line.length() > (size_t)std::numeric_limits<int>::max()) {
+      throw std::runtime_error("Property::LoadFromXML: line is too long");
+    }
+    if (!XML_Parse(parser, line.c_str(), (int)line.length(), fl.eof())) {
       throw std::ios_base::failure(
           filename + ": Parse error at line " +
           boost::lexical_cast<string>(XML_GetCurrentLineNumber(parser)) + "\n" +
           XML_ErrorString(XML_GetErrorCode(parser)));
+    }
   }
   fl.close();
   XML_ParserFree(parser);
-  return true;
 }
 
-void PrintNodeTXT(std::ostream &out, Property &p, const int start_level,
-                  int level = 0, string prefix = "", string offset = "") {
-  if ((p.value() != "") || p.HasChilds()) {
+void PrintNodeTXT(std::ostream &out, const Property &p, const Index start_level,
+                  Index level = 0, string prefix = "", string offset = "") {
+  if ((p.value() != "") || p.HasChildren()) {
     if (level >= start_level) {
-      if ((p.value()).find_first_not_of("\t\n ") != std::string::npos)
+      if ((p.value()).find_first_not_of("\t\n ") != std::string::npos) {
         out << offset << prefix << " = " << p.value() << endl;
+      }
     } else {
       prefix = "";
     }
   }
 
-  for (Property &prop : p) {
+  for (const Property &prop : p) {
+    level++;
     if (prefix == "") {
-      level++;
       PrintNodeTXT(out, prop, start_level, level, prefix + prop.name(), offset);
-      level--;
     } else {
-      level++;
       PrintNodeTXT(out, prop, start_level, level, prefix + "." + prop.name(),
                    offset);
-      level--;
     }
+    level--;
   }
 }
 
-void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom,
-                  int level = 0, string offset = "") {
-  Property::AttributeIterator ia;
+void PrintNodeXML(std::ostream &out, const Property &p,
+                  PropertyIOManipulator *piom, Index level = 0,
+                  string offset = "") {
+  Property::const_AttributeIterator ia;
   bool linebreak = true;
   bool has_value = false;
 
   const ColorSchemeBase *color = &DEFAULT_COLORS;
 
   string indent("");
-  int start_level(0);
+  Index start_level(0);
 
   if (piom) {
     start_level = piom->getLevel();
@@ -214,7 +250,7 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom,
     }
     // print node value if it is not empty
     has_value = ((p.value()).find_first_not_of("\t\n ") != std::string::npos);
-    if (has_value || p.HasChilds()) {
+    if (has_value || p.HasChildren()) {
       out << ">";
     } else {
       out << "/>" << std::endl;
@@ -225,16 +261,24 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom,
     }
 
     // check if we need the end of the line or not
-    if (!has_value && p.HasChilds()) out << std::endl;
-    if (!has_value && !p.HasChilds()) linebreak = false;
+    if (!has_value && p.HasChildren()) {
+      out << std::endl;
+    }
+    if (!has_value && !p.HasChildren()) {
+      linebreak = false;
+    }
   }
 
   // continue iteratively through the rest of the nodes
-  for (Property &prop : p) {
+  for (const Property &prop : p) {
     level++;
-    if (level > start_level) offset += "\t";
+    if (level > start_level) {
+      offset += "\t";
+    }
     PrintNodeXML(out, prop, piom, level, offset);
-    if (level > start_level) offset.resize(offset.size() - 1);
+    if (level > start_level) {
+      offset.resize(offset.size() - 1);
+    }
     level--;
   }
 
@@ -248,163 +292,174 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom,
   }
 }
 
-void PrintNodeTEX(std::ostream &out, Property &p, PropertyIOManipulator *piom,
-                  int level = 0, string prefix = "") {
-  list<Property>::iterator iter;
-  string head_name;
-  string _label("");    // reference of the xml file in the manual
-  string _section("");  // reference of the description section in the manual
-  string _help("");
-  string _default("");  // default value if supplied
-  string _unit("");     // unit, if supplied
+void PrintNodeTEX(std::ostream &out, const Property &p,
+                  PropertyIOManipulator *piom, Index level = 0,
+                  string prefix = "") {
 
-  int start_level(0);
-
+  Index start_level = 0;
   if (piom) {
     start_level = piom->getLevel();
   }
 
-  string header_format(
-      "\\subsection{%1%}\n"
-      "\\label{%2%}\n%3%\n"
-      "\\rowcolors{1}{invisiblegray}{white}\n"
-      "{\\small\n "
-      "\\begin{longtable}{m{3cm}|m{2cm}|m{1cm}|m{8cm}}\n"
-      " option & default & unit & description\\\\\n\\hline\n");
-
-  string footer_format(
-      "\\end{longtable}\n}\n"
-      "\\noindent Return to the description of \\slink{%1%}{\\texttt{%2%}}.\n");
-
-  string body_format(
-      " \\hspace{%1%pt}\\hypertarget{%2%}{%3%} & %4% & %5% & %6% \\\\\n");
-
+  string head_name;
+  string section("");  // reference of the description section in the manual
+  string help("");
   // if this is the head node, print the header
   if (level == start_level) {
+
+    string header_format(
+        "\\subsection{%1%}\n"
+        "\\label{%2%}\n%3%\n"
+        "\\rowcolors{1}{invisiblegray}{white}\n"
+        "{\\small\n "
+        "\\begin{longtable}{m{3cm}|m{2cm}|m{1cm}|m{8cm}}\n"
+        " option & default & unit & description\\\\\n\\hline\n");
+
     head_name = p.name();
-    _label = "calc:" + head_name;
-    if (p.hasAttribute("section")) _section = p.getAttribute<string>("section");
-    if (p.hasAttribute("help")) _help = p.getAttribute<string>("help");
-    out << boost::format(header_format) % head_name % _label % _help;
+    string label =
+        "calc:" + head_name;  // reference of the xml file in the manual
+    if (p.hasAttribute("section")) {
+      section = p.getAttribute<string>("section");
+    }
+    if (p.hasAttribute("help")) {
+      help = p.getAttribute<string>("help");
+    }
+    out << boost::format(header_format) % head_name % label % help;
     prefix = p.name();
   }
 
   if (level > start_level) {
     // if this node has children or a value or is not the first, start recursive
     // printing
-    if ((p.value() != "" || p.HasChilds()) && level > -1) {
-      string _tex_name = boost::replace_all_copy(p.name(), "_", "\\_");
+    if ((p.value() != "" || p.HasChildren()) && level > -1) {
+      string tex_name = boost::replace_all_copy(p.name(), "_", "\\_");
+      string defaults("");  // default value if supplied
+      if (p.hasAttribute("default")) {
+        defaults = p.getAttribute<string>("default");
+      }
+      string unit("");  // unit, if supplied
+      if (p.hasAttribute("unit")) {
+        unit = p.getAttribute<string>("unit");
+      }
+      if (p.hasAttribute("help")) {
+        help = p.getAttribute<string>("help");
+      }
 
-      if (p.hasAttribute("default"))
-        _default = p.getAttribute<string>("default");
-      if (p.hasAttribute("unit")) _unit = p.getAttribute<string>("unit");
-      if (p.hasAttribute("help")) _help = p.getAttribute<string>("help");
+      string body_format(
+          " \\hspace{%1%pt}\\hypertarget{%2%}{%3%} & %4% & %5% & %6% \\\\\n");
 
-      out << boost::format(body_format) % int((level - start_level - 1) * 10) %
-                 prefix % _tex_name % _default % _unit % _help;
+      out << boost::format(body_format) %
+                 Index((level - start_level - 1) * 10) % prefix % tex_name %
+                 defaults % unit % help;
     }
   }
 
   // continue iteratively through the rest of the nodes
-  for (iter = p.begin(); iter != p.end(); ++iter) {
+  for (const Property &pp : p) {
+    level++;
     if (prefix == "") {
-      level++;
-      PrintNodeTEX(out, (*iter), piom, level, prefix);
-      level--;
+      PrintNodeTEX(out, pp, piom, level, prefix);
     } else {
-      level++;
-      PrintNodeTEX(out, (*iter), piom, level, prefix);
-      level--;
+      PrintNodeTEX(out, pp, piom, level, prefix);
     }
+    level--;
   }
 
   // if this is the head node, print the footer
-  if (level == start_level)
-    out << boost::format(footer_format) % _section % head_name;
+  if (level == start_level) {
+    string footer_format(
+        "\\end{longtable}\n}\n"
+        "\\noindent Return to the description of "
+        "\\slink{%1%}{\\texttt{%2%}}.\n");
+
+    out << boost::format(footer_format) % section % head_name;
+  }
 }
 
-void PrintNodeHLP(std::ostream &out, Property &p, const int start_level = 0,
-                  int level = 0, string prefix = "", string offset = "") {
-  list<Property>::iterator iter;
-  string head_name;
-  string _help("");
-  string _unit("");
-  string _default("");
-  string _name("");
+void PrintNodeHLP(std::ostream &out, const Property &p,
+                  const Index start_level = 0, Index level = 0,
+                  const string &prefix = "", const string &offset = "") {
 
-  typedef Color<csRGB> ColorRGB;  // use the RGB palette
+  using ColorRGB = Color<csRGB>;  // use the RGB palette
   ColorRGB RGB;                   // Instance of an RGB palette
   string fmt = "t|%1%%|15t|" + string(RGB.Blue()) + "%2%" +
                string(RGB.Green()) + "%|40t|%3%%|55t|" + string(RGB.Reset()) +
                "%4%\n";
 
-  int _offset = level;
-
+  Index leveloffset = level;
+  string help("");
   // if this is the head node, print the header
   if (level == start_level) {
-    head_name = string(RGB.Magenta()) + p.name();
+    string head_name = string(RGB.Magenta()) + p.name();
     if (p.hasAttribute("help")) {
-      if (p.hasAttribute("help"))
-        _help = string(RGB.Red()) + p.getAttribute<string>("help");
+      if (p.hasAttribute("help")) {
+        help = string(RGB.Red()) + p.getAttribute<string>("help");
+      }
       out << boost::format(" %1%: %|18t| %2%" + string(RGB.Reset()) + "\n") %
-                 head_name % _help;
+                 head_name % help;
     }
-    _offset = 0;
+    leveloffset = 0;
     out << boost::format("%|3" + fmt) % "OPTION" % "DEFAULT" % "UNIT" %
                "DESCRIPTION";
   }
 
   if (level > start_level) {
-    string ofmt;
-    ofmt = "%|" + boost::lexical_cast<string>(_offset) + fmt;
-    // cout << ofmt << " " << fmt << endl;
-    if (p.hasAttribute("unit")) _unit = p.getAttribute<string>("unit");
-    if (p.hasAttribute("default")) _default = p.getAttribute<string>("default");
-    if (p.hasAttribute("help")) _help = p.getAttribute<string>("help");
-    if (!_unit.empty()) _unit = "[" + _unit + "]";
-    if (!_default.empty()) _default = "(" + _default + ")";
+    string ofmt = "%|" + boost::lexical_cast<string>(leveloffset) + fmt;
+    string unit("");
+    if (p.hasAttribute("unit")) {
+      unit = p.getAttribute<string>("unit");
+    }
+    string defaults("");
+    if (p.hasAttribute("default")) {
+      defaults = p.getAttribute<string>("default");
+    }
+    if (p.hasAttribute("help")) {
+      help = p.getAttribute<string>("help");
+    }
+    if (!unit.empty()) {
+      unit = "[" + unit + "]";
+    }
+    if (!defaults.empty()) {
+      defaults = "(" + defaults + ")";
+    }
 
-    _name = p.name();
+    string name = p.name();
 
-    out << boost::format(ofmt) % _name % _default % _unit % _help;
+    out << boost::format(ofmt) % name % defaults % unit % help;
   }
 
-  for (iter = p.begin(); iter != p.end(); ++iter) {
+  for (const Property pp : p) {
+    level++;
     if (prefix == "") {
-      _offset = level + 2;
-      level++;
-      PrintNodeHLP(out, (*iter), start_level, level, (*iter).name(), offset);
-      _offset = level - 2;
-      level--;
+      PrintNodeHLP(out, pp, start_level, level, pp.name(), offset);
     } else {
-      _offset = level + 2;
-      level++;
-      PrintNodeHLP(out, (*iter), start_level, level,
-                   prefix + "." + (*iter).name(), offset);
-      _offset = level - 2;
-      level--;
+      PrintNodeHLP(out, pp, start_level, level, prefix + "." + pp.name(),
+                   offset);
     }
+    level--;
   }
 }
 
-std::ostream &operator<<(std::ostream &out, Property &p) {
-  if (!out.good()) return out;
+std::ostream &operator<<(std::ostream &out, const Property &p) {
+  if (!out.good()) {
+    return out;
+  }
 
   std::ostream::sentry sentry(out);
 
   if (sentry) {
     // get the property format object attached to the stream
     PropertyIOManipulator *pm =
-        (PropertyIOManipulator *)out.pword(Property::getIOindex());
+        (PropertyIOManipulator *)out.pword(int(Property::getIOindex()));
 
-    string _indentation("");
-    int _level = 0;
+    string indentation("");
+    Index level = 0;
 
-    PropertyIOManipulator::Type _type = PropertyIOManipulator::XML;
+    PropertyIOManipulator::Type type = PropertyIOManipulator::XML;
     if (pm) {
-      _indentation = pm->getIndentation();
-      _level = pm->getLevel();
-      _type = pm->getType();
+      indentation = pm->getIndentation();
+      level = pm->getLevel();
+      type = pm->getType();
       // check if we > or >> to a file and remove color codes
       // if ( out.tellp() != -1 )  - not suitable for pipes
       if (!isatty(STDOUT_FILENO) || !isatty(STDERR_FILENO)) {
@@ -412,25 +467,26 @@ std::ostream &operator<<(std::ostream &out, Property &p) {
       }
     }
 
-    switch (_type) {
+    switch (type) {
       default:
-        PrintNodeTXT(out, p, _level);
+        PrintNodeTXT(out, p, level);
+        break;
       case PropertyIOManipulator::XML:
         PrintNodeXML(out, p, pm);
         break;
       case PropertyIOManipulator::TXT:
-        PrintNodeTXT(out, p, _level, 0, "", _indentation);
+        PrintNodeTXT(out, p, level, 0, "", indentation);
         break;
       case PropertyIOManipulator::TEX:
         PrintNodeTEX(out, p, pm);
         break;
       case PropertyIOManipulator::HLP:
-        PrintNodeHLP(out, p, _level, 0, "", _indentation);
+        PrintNodeHLP(out, p, level, 0, "", indentation);
         break;
     }
   }
 
   return out;
-};
 }
-}
+}  // namespace tools
+}  // namespace votca

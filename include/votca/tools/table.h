@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@
 #ifndef VOTCA_TOOLS_TABLE_H
 #define VOTCA_TOOLS_TABLE_H
 
-#include <votca/tools/eigen.h>
-#include <vector>
 #include <string>
+#include <vector>
+#include <votca/tools/eigen.h>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
@@ -34,28 +35,31 @@ namespace tools {
  */
 class Table {
  public:
-
   void clear();
 
   void GenerateGridSpacing(double min, double max, double spacing);
-  void resize(int N);
-   int size() const { return _x.size(); }
+  void resize(Index N);
+  Index size() const { return _x.size(); }
 
-  double &x(int i) { return _x[i]; }
-  double &y(int i) { return _y[i]; }
-  char &flags(int i) { return _flags[i]; }
-  double &yerr(int i) { return _yerr[i]; }
+  double &x(Index i) { return _x[i]; }
+  double &y(Index i) { return _y[i]; }
 
-  void set(const int &i, const double &x, const double &y) {
+  const double &x(Index i) const { return _x[i]; }
+  const double &y(Index i) const { return _y[i]; }
+  char &flags(Index i) { return _flags[i]; }
+  double &yerr(Index i) { return _yerr[i]; }
+
+  void set(const Index &i, const double &x, const double &y) {
     _x[i] = x;
     _y[i] = y;
   }
-  void set(const int &i, const double &x, const double &y, const char &flags) {
+  void set(const Index &i, const double &x, const double &y,
+           const char &flags) {
     _x[i] = x;
     _y[i] = y;
     _flags[i] = flags;
   }
-  void set(const int &i, const double &x, const double &y, const char &flags,
+  void set(const Index &i, const double &x, const double &y, const char &flags,
            const double &yerr) {
     _x[i] = x;
     _y[i] = y;
@@ -71,7 +75,7 @@ class Table {
   void Load(std::string filename);
   void Save(std::string filename) const;
 
-  void Smooth(int Nsmooth);
+  void Smooth(Index Nsmooth);
 
   bool GetHasYErr() { return _has_yerr; }
   void SetHasYErr(bool has_yerr) { _has_yerr = has_yerr; }
@@ -113,50 +117,17 @@ class Table {
   Eigen::VectorXd _y;
   std::vector<char> _flags;
   Eigen::VectorXd _yerr;
-  std::string _error_details="";
+  std::string _error_details = "";
 
-  bool _has_yerr=false;
-  bool _has_comment=false;
+  bool _has_yerr = false;
+  bool _has_comment = false;
 
   friend std::ostream &operator<<(std::ostream &out, const Table &v);
-  friend std::istream &operator>>(std::istream &in , Table &t);
+  friend std::istream &operator>>(std::istream &in, Table &t);
 
   std::string _comment_line;
 };
 
-inline std::ostream &operator<<(std::ostream &out, const Table &t) {
-  // TODO: use a smarter precision guess, XXX.YYYYY=8, so 10 should be enough
-  out.precision(10);
-  
-  if (t._has_yerr) {
-    for (int i = 0; i < t._x.size(); ++i) {
-      out << t._x[i] << " " << t._y[i] << " " << t._yerr[i];
-      if(t._flags[i]!=' '){
-        out  << " "<< t._flags[i] << std::endl;
-      }else{
-        out<<std::endl;  
-      }
-    }
-  } else {
-    for (int i = 0; i < t._x.size(); ++i) {
-      out << t._x[i] << " " << t._y[i];
-       if(t._flags[i]!=' '){
-        out  << " "<< t._flags[i] << std::endl;
-      }else{
-        out<<std::endl;  
-      }
-    }
-  }
-  return out;
-}
-// TODO: modify this function to be able to treat _has_yerr == true
-inline void Table::push_back(double x, double y, char flags) {
-  int n = size();
-  resize(n + 1);
-  _x[n] = x;
-  _y[n] = y;
-  _flags[n] = flags;
-}
-}
-}
+}  // namespace tools
+}  // namespace votca
 #endif  // VOTCA_TOOLS_TABLE_H

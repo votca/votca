@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  *
  */
 
-
 #ifndef __VOTCA_TOOLS_LEXICAL_CAST_H
-#define	__VOTCA_TOOLS_LEXICAL_CAST_H
+#define __VOTCA_TOOLS_LEXICAL_CAST_H
 
 #include <boost/lexical_cast.hpp>
 #include <stdexcept>
 #include <string>
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
 
 /**
  * Wrapper for boost::lexical_cast with improved error messages
@@ -31,17 +31,16 @@ namespace votca { namespace tools {
  * @param error additional error text
  * @return converted value
  */
-template<typename Target, typename Source>
-inline Target lexical_cast(const Source &arg, const std::string &error)
-{
-    try {
-        return boost::lexical_cast<Target,Source>(arg);
-    } catch(std::exception &err) {
-        throw std::runtime_error("invaid type: " + error);
-    }
+template <typename Target, typename Source>
+inline Target lexical_cast(const Source &arg, const std::string &error) {
+  try {
+    return boost::lexical_cast<Target, Source>(arg);
+  } catch (std::exception &) {
+    throw std::runtime_error("invaid type: " + error);
+  }
 }
 
-}}
+}  // namespace tools
+}  // namespace votca
 
-#endif	/* LEXICAL_CAST_H */
-
+#endif /* LEXICAL_CAST_H */

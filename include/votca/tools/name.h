@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,8 +20,8 @@
 #ifndef _VOTCA_TOOLS_NAME_H
 #define _VOTCA_TOOLS_NAME_H
 
+#include <cassert>
 #include <string>
-#include <stdexcept>
 
 namespace votca {
 namespace tools {
@@ -40,18 +40,18 @@ class Name {
   bool name_set_{false};
 
  public:
-  Name() {};
-  Name(const std::string name) : name_(name), name_set_(true) {};
+  Name() = default;
+  Name(const std::string name) : name_(name), name_set_(true){};
   void setName(const std::string &name) {
     name_ = name;
     name_set_ = true;
   }
   const std::string &getName() const {
-    if(!name_set_) throw std::runtime_error("Name not set");
+    assert(name_set_ && "No name has been set, cannot get name.");
     return name_;
   }
 };
-}
-}
+}  // namespace tools
+}  // namespace votca
 
 #endif  // _VOTCA_TOOLS_NAME_H

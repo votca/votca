@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,9 @@
  *
  */
 
-#include <iostream>
-#include <list>
-#include <vector>
 #include <algorithm>
-
+#include <iostream>
+#include <vector>
 #include <votca/tools/edge.h>
 
 namespace votca {
@@ -29,53 +27,61 @@ namespace tools {
 
 using namespace std;
 
-Edge::Edge(int ID1, int ID2) {
-  vertices = minmax({ID1,ID2});
+Edge::Edge(Index ID1, Index ID2) {
+  vertices_ = vector<Index>{min({ID1, ID2}), max({ID1, ID2})};
 }
 
-int Edge::getOtherV(int ver) const {
-  if (ver == vertices.first) {
-    return vertices.second;
+long Edge::getOtherEndPoint(Index ver) const {
+  if (ver == vertices_.front()) {
+    return vertices_.back();
   } else {
-    return vertices.first;
+    return vertices_.front();
   }
 }
 
-bool Edge::contains(int ID) const {
-  return (vertices.first == ID || vertices.second == ID);
+bool Edge::contains(Index ID) const {
+  return (vertices_.front() == ID || vertices_.back() == ID);
 }
 
-bool Edge::operator==(const Edge ed) const {
-  if (this->vertices.first == ed.vertices.first &&
-      this->vertices.second == ed.vertices.second)
+bool Edge::operator==(const Edge& ed) const {
+  if (this->vertices_.front() == ed.vertices_.front() &&
+      this->vertices_.back() == ed.vertices_.back()) {
     return true;
-  if (this->vertices.second == ed.vertices.first &&
-      this->vertices.first == ed.vertices.second)
+  }
+  if (this->vertices_.back() == ed.vertices_.front() &&
+      this->vertices_.front() == ed.vertices_.back()) {
     return true;
+  }
   return false;
 }
 
-bool Edge::operator!=(const Edge ed) const { return !(*this == ed); }
+bool Edge::operator!=(const Edge& ed) const { return !(*this == ed); }
 
-bool Edge::operator<(const Edge ed) const {
-  if (this->vertices.first < ed.vertices.first) return true;
-  if (this->vertices.first > ed.vertices.first) return false;
-  if (this->vertices.second < ed.vertices.second) return true;
+bool Edge::operator<(const Edge& ed) const {
+  if (this->vertices_.front() < ed.vertices_.front()) {
+    return true;
+  }
+  if (this->vertices_.front() > ed.vertices_.front()) {
+    return false;
+  }
+  if (this->vertices_.back() < ed.vertices_.back()) {
+    return true;
+  }
   return false;
 }
 
-bool Edge::operator<=(const Edge ed) const {
+bool Edge::operator<=(const Edge& ed) const {
   return (*this < ed || *this == ed);
 }
 
-bool Edge::operator>(const Edge ed) const { return !(*this <= ed); }
+bool Edge::operator>(const Edge& ed) const { return !(*this <= ed); }
 
-bool Edge::operator>=(const Edge ed) const { return !(*this < ed); }
+bool Edge::operator>=(const Edge& ed) const { return !(*this < ed); }
 
-ostream& operator<<(ostream& os, const Edge ed) {
+ostream& operator<<(ostream& os, const Edge& ed) {
   os << "Vertices" << endl;
-  os << ed.vertices.first << " " << ed.vertices.second << endl;
+  os << ed.vertices_.front() << " " << ed.vertices_.back() << endl;
   return os;
 }
-}
-}
+}  // namespace tools
+}  // namespace votca

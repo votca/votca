@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,74 +15,55 @@
  *
  */
 
-
 #ifndef __VOTCA_TOOLS_GLOBALS_H
-#define	__VOTCA_TOOLS_GLOBALS_H
+#define __VOTCA_TOOLS_GLOBALS_H
 
 #include <string>
 #include <votca/tools/votca_config.h>
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
 
 /**
     \brief class to store global variables
 
-    This class is used to access global variables 
+    This class is used to access global variables
 */
 
-struct globals
-{
- 	/// be loud and noisy
-        static bool verbose;      
-        /// web of the package
-        static std::string url;
-        /// email address of the developers
-        static std::string email;
-        
-        /// If Eigen is overloaded with MKL
-        static bool VOTCA_MKL;
-        
-        /// man pages format strings
-        struct man {
-                static std::string option;
-                static std::string header;
-                static std::string name;
-                static std::string authors;
-                static std::string copyright;
-                static std::string synopsis;
-                static std::string description;
-                static std::string options;        
-        };
+struct globals {
+  /// be loud and noisy
+  static bool verbose;
+  /// web of the package
+  static std::string url;
+  /// email address of the developers
+  static std::string email;
 
-        /// TEX pages format strings
-        struct tex {
-                static std::string section;
-                static std::string label;
-                static std::string description;
-                static std::string options;
-                static std::string option;        
-        };
-        
-        // constants 
-        struct constants {
-            static const double pi;
-            static const double kB; // eV/K
-            static const double hbar; // eV*s
-        };
-        
-        
-        // conversion factors
-        struct conversion {
-            static const double Bohr2nm;
-            static const double nm2Bohr;
-            static const double Ang2Bohr; 
-            static const double Ryd2eV;
-            static const double Hrt2eV;
-            static const double int2eV; //ewald internal to eV conversion
-        };
+  /// If Eigen is overloaded with MKL
+  static bool VOTCA_MKL;
+
+  /// man pages format strings
+  struct man {
+    static std::string option;
+    static std::string header;
+    static std::string name;
+    static std::string authors;
+    static std::string copyright;
+    static std::string synopsis;
+    static std::string description;
+    static std::string options;
+  };
+
+  /// TEX pages format strings
+  struct tex {
+    static std::string section;
+    static std::string label;
+    static std::string description;
+    static std::string options;
+    static std::string option;
+  };
 };
 
-}}
+}  // namespace tools
+}  // namespace votca
 
-#endif	/* __VOTCA_TOOLS_GLOBALS_H */
-
+#endif /* __VOTCA_TOOLS_GLOBALS_H */
