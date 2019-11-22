@@ -4,8 +4,8 @@
 
 This is VOTCA's next generation build system for CSG and XTP. It allows you to easily install: 
 
-- VOTCA-CSG, a library which provides tools to develop coarse-grained potentials from atomistic simulation data
-- VOTCA-XTP, a library designed to determine electronic properties of organic materials from atomistic MD-trajectories.
+-   VOTCA-CSG, a library which provides tools to develop coarse-grained potentials from atomistic simulation data
+-   VOTCA-XTP, a library designed to determine electronic properties of organic materials from atomistic MD-trajectories.
 
 Usage:
 
