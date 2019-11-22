@@ -33,7 +33,7 @@ class TriclinicBox : public BoundaryCondition {
     return std::unique_ptr<BoundaryCondition>(new TriclinicBox(*this));
   }
 
-  eBoxtype getBoxType() override { return typeTriclinic; }
+  eBoxtype getBoxType() const override { return typeTriclinic; }
 
  protected:
 };
