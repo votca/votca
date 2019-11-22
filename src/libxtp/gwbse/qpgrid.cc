@@ -25,9 +25,9 @@ namespace votca {
 namespace xtp {
 
 Eigen::VectorXd QPGrid::Evaluate(const Eigen::VectorXd frequencies) {
-  const Eigen::VectorXd sigx_min_vxc = _sigma_x.diagonal() - _vxc.diagonal();
   const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
-  const double delta = (2.0 * _opt.range) / (_opt.steps - 1.0);
+  const Eigen::VectorXd c = _dft_energies.segment(_opt.qpmin, qptotal) + _sigma_x.diagonal() - _vxc.diagonal();
+  const double delta = (2.0 * _opt.range) / (_opt.steps - 1);
   Eigen::MatrixXd sigmc_mat = Eigen::MatrixXd::Zero(qptotal, _opt.steps);
   for (Index i_node = 0; i_node < _opt.steps; ++i_node) {
     sigmc_mat.col(i_node) = _sigma.CalcCorrelationDiag(frequencies.array() - _opt.range + i_node * delta);
@@ -37,7 +37,7 @@ Eigen::VectorXd QPGrid::Evaluate(const Eigen::VectorXd frequencies) {
     const double freq_cur = frequencies[level];
     Eigen::VectorXd grid_freq = freq_cur + Eigen::VectorXd::LinSpaced(_opt.steps, -_opt.range, _opt.range).array();
     Eigen::VectorXd grid_sigc = sigmc_mat.row(level);
-    Eigen::VectorXd grid_targ = grid_sigc.array() + sigx_min_vxc[level] + _dft_energies[_opt.qpmin + level] - freq_cur;
+    Eigen::VectorXd grid_targ = grid_sigc.array() + c[level] - grid_freq.array();
     double root_best = 0.0;
     double weight_best = -1.0;
     for (Index i_node = 0; i_node < _opt.steps - 1; ++i_node) {
