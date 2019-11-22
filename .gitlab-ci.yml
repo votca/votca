@@ -36,7 +36,8 @@ stages:
     - git -C ${CI_PROJECT_NAME} checkout -f ${CI_COMMIT_SHA}
     - mkdir -p build
     - pushd build
-    - cmake .. -DENABLE_TESTING=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DENABLE_REGRESSION_TESTING=${REGRESSION_TESTING:-ON}
+    - cmake .. -DENABLE_TESTING=ON
+      -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_OWN_GROMACS=${BUILD_GROMACS} -DENABLE_REGRESSION_TESTING=${REGRESSION_TESTING:-ON}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
     - make -O -k -j${j} -l${j} VERBOSE=1
     - make test CTEST_OUTPUT_ON_FAILURE=1
@@ -223,42 +224,15 @@ Release Clang GMX2019D:
     DISTRO: "fedora_gmx2019_d"
   extends: .build
 
-Release GCC GMX9999:
+# don't run no gmx 2020-9999 builds as there are no tabulated interactions
+
+Release GCC OWN GMX:
   variables:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx9999"
-    REGRESSION_TESTING: "OFF"
+    DISTRO: "fedora_nogmx"
+    CXXFLAGS: ""
+    BUILD_GROMACS: "yes"
   extends: .build
-  allow_failure: true
 
-Release Clang GMX9999:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx9999"
-    REGRESSION_TESTING: "OFF"
-  extends: .build
-  allow_failure: true
-
-Release GCC GMX9999D:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx9999_d"
-    REGRESSION_TESTING: "OFF"
-  extends: .build
-  allow_failure: true
-
-Release Clang GMX9999D:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx9999_d"
-    REGRESSION_TESTING: "OFF"
-  extends: .build
-  allow_failure: true

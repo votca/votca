@@ -132,10 +132,6 @@
     <iterations_max>300</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>imc</method>
-    <imc>
-      <!-- solver to solve linear equation system, can be octave or matlab -->
-      <solver>octave</solver>
-    </imc>
     <!-- directory for user scripts -->
     <scriptpath>$PWD</scriptpath>
     <!-- write log to this file -->

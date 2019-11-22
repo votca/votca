@@ -80,9 +80,5 @@
     <!-- write restart step to this file -->
     <restart_file>restart_points.log</restart_file>
     <!-- imc specific stuff -->
-    <imc>
-      <!-- solver to solve linear equation system, can be octave or matlab -->
-      <solver>numpy</solver>
-    </imc>
   </inverse>
 </cg>

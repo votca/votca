@@ -4,8 +4,8 @@
     <!-- name of the interaction -->
     <name>CG-CG</name>
     <!-- types involved in this interaction -->
-    <type1>1</type1>
-    <type2>1</type2>
+    <type1>Bead1</type1>
+    <type2>Bead1</type2>
     <!-- dimension + grid spacing of tables for calculations -->
     <min>0.0</min>
     <max>0.9</max>
@@ -41,18 +41,22 @@
       </post_add_options>
       <lammps>
         <!-- name of the table for lammps run -->
-	<table>CG_CG.pot</table>
-	<table_begin>0.20</table_begin>
-	<table_bins>0.002</table_bins>
+        <table>CG_CG.pot</table>
+        <!-- nm to angstrom -->
+        <scale>10</scale>
+        <!-- kJ/mol to kcal/mol -->
+        <y_scale>0.239006</y_scale>
+        <table_begin>0.20</table_begin>
+        <table_bins>0.002</table_bins>
       </lammps>
     </inverse>
   </non-bonded>
   
   <!-- general options for inverse script -->
   <inverse>
-    <!-- 300*0.00831451 gromacs units -->
+    <!-- votca units 300*0.00831451 kJ/mol -->
     <kBT>2.49435</kBT>
-    <!-- use gromacs as simulation program -->
+    <!-- use lammps as simulation program -->
     <program>lammps</program>
     <!-- lammps specific options -->
     <lammps>
