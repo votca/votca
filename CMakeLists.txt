@@ -28,7 +28,7 @@ find_package(TXT2TAGS REQUIRED)
 find_package(VOTCA_CSG NO_MODULE REQUIRED)
 message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
 
-foreach(prog dvipdf)
+foreach(prog dvips ps2pdf)
   string(TOUPPER "${prog}" PROG)
   find_program(${PROG} ${prog})
   find_package_handle_standard_args(${PROG} REQUIRED_VARS ${PROG})
@@ -85,7 +85,8 @@ add_latex_document(manual.tex
 )
 
 add_custom_command(OUTPUT manual.pdf
-  COMMAND ${DVIPDF} manual.dvi manual.pdf
+  COMMAND ${DVIPS} manual.dvi
+  COMMAND ${PS2PDF} manual.ps manual.pdf
   DEPENDS csg-manual_dvi
 )
 add_custom_target(csg-manual_pdf ALL DEPENDS manual.pdf)
