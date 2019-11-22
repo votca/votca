@@ -3,6 +3,12 @@ For more detailed information about the changes see the history of the
 
 ## Version 1.6-dev
 
+## Version 1.5.1 (released 20.11.19)
+ * bug fixes for gcc-5
+ * some bugfixes for the lammps reader
+ * support dynamics box size in h5md
+ * fix build on CentOs7
+
 ## Version 1.5 _SuperVictor_ (released 31.01.19)
 
 * enable gitlab CI
