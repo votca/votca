@@ -28,20 +28,20 @@ using namespace std;
 namespace votca {
 namespace xtp {
 
-PolarSite::PolarSite(int id, std::string element, Eigen::Vector3d pos)
+PolarSite::PolarSite(Index id, std::string element, Eigen::Vector3d pos)
     : StaticSite(id, element, pos) {
   tools::Elements e;
   double default_pol = std::pow(tools::conv::ang2bohr, 3);
   try {
     default_pol =
         e.getPolarizability(element) * std::pow(tools::conv::nm2bohr, 3);
-  } catch (const std::invalid_argument&) {
+  } catch (const std::runtime_error&) {
     ;
   }
   setPolarisation(default_pol * Eigen::Matrix3d::Identity());
-};
+}
 
-PolarSite::PolarSite(data& d) { ReadData(d); };
+PolarSite::PolarSite(const data& d) { ReadData(d); }
 
 Eigen::Vector3d PolarSite::getDipole() const {
   Eigen::Vector3d dipole = _Q.segment<3>(1);
@@ -146,7 +146,7 @@ void PolarSite::WriteData(data& d) const {
   d.d_z_ind = _induced_dipole.z();
 }
 
-void PolarSite::ReadData(data& d) {
+void PolarSite::ReadData(const data& d) {
   _id = d.id;
   _element = std::string(d.element);
   free(d.element);

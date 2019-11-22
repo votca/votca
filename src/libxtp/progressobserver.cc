@@ -75,12 +75,12 @@ typename ProgObserver<JobContainer>::Job *
   }
 
   if (!thread.isMaverick() && jobToProc != nullptr) {
-    int idx = jobToProc->getId();
-    int frac = (_jobs.size() >= 10) ? 10 : _jobs.size();
-    int rounded = int(double(_jobs.size()) / frac) * frac;
-    int tenth = rounded / frac;
+    Index idx = jobToProc->getId();
+    Index frac = (_jobs.size() >= 10) ? 10 : _jobs.size();
+    Index rounded = Index(double(_jobs.size()) / double(frac)) * frac;
+    Index tenth = rounded / frac;
     if (idx % tenth == 0) {
-      double percent = double(idx) / rounded * 100 + 0.5;
+      double percent = double(idx) / double(rounded) * 100 + 0.5;
       std::cout << (format("=> [%1$2.0f%%] ") % percent).str() << std::flush;
     }
   }
@@ -98,17 +98,18 @@ void ProgObserver<JobContainer>::ReportJobDone(Job &job, Result &res,
   // RESULTS, TIME, HOST
   job.UpdateFromResult(res);
   job.setTime(GenerateTime());
-  job.setHost(GenerateHost(thread));
+  job.setHost(GenerateHost());
   // PRINT PROGRESS BAR
   _jobsReported += 1;
-  if (!thread.isMaverick())
+  if (!thread.isMaverick()) {
     std::cout << std::endl << thread.getLogger() << std::flush;
+  }
   _lockThread.Unlock();
   return;
 }
 
 template <typename JobContainer>
-std::string ProgObserver<JobContainer>::GenerateHost(QMThread &thread) {
+std::string ProgObserver<JobContainer>::GenerateHost() {
   char host[128];
   (void)gethostname(host, sizeof host);
   pid_t pid = getpid();
@@ -129,44 +130,42 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
 
   std::string progFile = _progFile;
   std::string progBackFile = _progFile + "~";
-  std::string tabFile = progFile;
-  boost::algorithm::replace_last(tabFile, ".xml", ".tab");
-  if (tabFile == progFile) tabFile += ".tab";
-  std::string tabBackFile = tabFile + "~";
 
   // LOAD EXTERNAL JOBS FROM SHARED XML & UPDATE INTERNAL JOBS
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Update internal structures from job file" << std::flush;
   JobContainer jobs_ext = LOAD_JOBS(progFile);
-  UPDATE_JOBS(jobs_ext, _jobs, GenerateHost(thread));
+  UPDATE_JOBS(jobs_ext, _jobs, GenerateHost());
 
   // GENERATE BACK-UP FOR SHARED XML
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Create job-file back-up" << std::flush;
-  WRITE_JOBS(_jobs, progBackFile, "xml");
-  WRITE_JOBS(_jobs, tabBackFile, "tab");
+  WRITE_JOBS(_jobs, progBackFile);
 
   // ASSIGN NEW JOBS IF AVAILABLE
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Assign jobs from stack" << std::flush;
   _jobsToProc.clear();
 
-  int cacheSize = _cacheSize;
+  Index cacheSize = _cacheSize;
   while (int(_jobsToProc.size()) < cacheSize) {
-    if (_metajit == _jobs.end() || _startJobsCount == _maxJobs) break;
+    if (_metajit == _jobs.end() || _startJobsCount == _maxJobs) {
+      break;
+    }
 
     bool startJob = false;
 
     // Start if job available or restart patterns matched
     if ((_metajit->isAvailable()) ||
         (_restartMode && _restart_stats.count(_metajit->getStatusStr())) ||
-        (_restartMode && _restart_hosts.count(_metajit->getHost())))
+        (_restartMode && _restart_hosts.count(_metajit->getHost()))) {
       startJob = true;
+    }
 
     if (startJob) {
       _metajit->Reset();
       _metajit->setStatus("ASSIGNED");
-      _metajit->setHost(GenerateHost(thread));
+      _metajit->setHost(GenerateHost());
       _metajit->setTime(GenerateTime());
       _jobsToProc.push_back(&*_metajit);
       _startJobsCount += 1;
@@ -176,8 +175,7 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
   }
 
   // UPDATE PROGRESS STATUS FILE
-  WRITE_JOBS(_jobs, progFile, "xml");
-  WRITE_JOBS(_jobs, tabFile, "tab");
+  WRITE_JOBS(_jobs, progFile);
 
   // RELEASE PROGRESS STATUS FILE
   this->ReleaseProgFile(thread);
@@ -209,40 +207,42 @@ void ProgObserver<JobContainer>::InitCmdLineOpts(
     const boost::program_options::variables_map &optsMap) {
 
   _lockFile = optsMap["file"].as<std::string>();
-  _cacheSize = optsMap["cache"].as<int>();
-  _maxJobs = optsMap["maxjobs"].as<int>();
+  _cacheSize = optsMap["cache"].as<Index>();
+  _maxJobs = optsMap["maxjobs"].as<Index>();
   std::string restartPattern = optsMap["restart"].as<std::string>();
 
   // restartPattern = e.g. host(pckr124:1234) stat(FAILED)
   boost::algorithm::replace_all(restartPattern, " ", "");
-  if (restartPattern == "")
+  if (restartPattern == "") {
     _restartMode = false;
-  else
+  } else {
     _restartMode = true;
+  }
 
-  std::vector<std::string> split;
   tools::Tokenizer toker(restartPattern, "(,)");
-  toker.ToVector(split);
+  std::vector<std::string> patterns = toker.ToVector();
 
   std::string category = "";
-  for (unsigned int i = 0; i < split.size(); ++i) {
+  for (const std::string &pattern : patterns) {
 
-    if (split[i] == "host" || split[i] == "stat")
-      category = split[i];
+    if (pattern == "host" || pattern == "stat") {
+      category = pattern;
 
-    else if (category == "host")
-      _restart_hosts[split[i]] = true;
-    else if (category == "stat") {
-      if (split[i] == "ASSIGNED" || split[i] == "COMPLETE")
-        std::cout << "Restart if status == " << split[i]
+    } else if (category == "host") {
+      _restart_hosts[pattern] = true;
+    } else if (category == "stat") {
+      if (pattern == "ASSIGNED" || pattern == "COMPLETE") {
+        std::cout << "Restart if status == " << pattern
                   << "? Not necessarily a good idea." << std::endl;
-      _restart_stats[split[i]] = true;
+      }
+      _restart_stats[pattern] = true;
     }
 
-    else
+    else {
       throw std::runtime_error(
           "Restart pattern ill-defined, format is"
           "[host([HOSTNAME:PID])] [stat([STATUS])]");
+    }
   }
   return;
 }
@@ -272,13 +272,14 @@ void ProgObserver<JobContainer>::InitFromProgFile(std::string progFile,
   // ... Load new, set availability bool
   _jobs = LOAD_JOBS(progFile);
   _metajit = _jobs.begin();
-  WRITE_JOBS(_jobs, progFile + "~", "xml");
+  WRITE_JOBS(_jobs, progFile + "~");
   XTP_LOG(logINFO, thread.getLogger())
       << "Registered " << _jobs.size() << " jobs." << std::flush;
-  if (_jobs.size() > 0)
+  if (_jobs.size() > 0) {
     _moreJobsAvailable = true;
-  else
+  } else {
     _moreJobsAvailable = false;
+  }
 
   // SUMMARIZE OBSERVER VARIABLES: RESTART PATTERN, CACHE, LOCK FILE
   if (_restartMode && _restart_hosts.size()) {

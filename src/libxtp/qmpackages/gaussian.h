@@ -23,8 +23,6 @@
 
 #include <votca/xtp/qmpackage.h>
 
-#include <string>
-
 namespace votca {
 namespace xtp {
 /**
@@ -34,33 +32,43 @@ namespace xtp {
     and extracts information from its log and io files
 
 */
+
+class Orbitals;
 class Gaussian : public QMPackage {
  public:
-  std::string getPackageName() const { return "gaussian"; }
+  std::string getPackageName() const override { return "gaussian"; }
 
-  void Initialize(tools::Property& options);
+  void Initialize(tools::Property& options) override;
 
-  bool WriteInputFile(const Orbitals& orbitals);
+  bool WriteInputFile(const Orbitals& orbitals) override;
 
-  bool Run();
+  bool Run() override;
 
-  void CleanUp();
+  void CleanUp() override;
 
-  bool ParseLogFile(Orbitals& orbitals);
+  bool ParseLogFile(Orbitals& orbitals) override;
 
-  bool ParseMOsFile(Orbitals& orbitals);
+  bool ParseMOsFile(Orbitals& orbitals) override;
+
+  StaticSegment GetCharges() const override;
+
+  Eigen::Matrix3d GetPolarizability() const override;
 
  private:
   bool WriteShellScript();
 
-  bool CheckLogFile();
+  bool CheckLogFile() const;
 
   std::string _vdWfooter = "";
 
-  bool ReadESPCharges(Orbitals& orbitals, std::string& line,
-                      std::ifstream& input_file);
-
   std::string FortranFormat(double number);
+  void GetArchive(std::vector<std::string>& archive, std::string& line,
+                  std::ifstream& input_file) const;
+
+  template <class T>
+  void GetCoordinates(T& mol, const std::vector<std::string>& archive) const;
+
+  double GetQMEnergy(const std::vector<std::string>& archive) const;
 
   void WriteBasisset(std::ofstream& com_file, const QMMolecule& qmatoms);
   void WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms);
@@ -69,7 +77,7 @@ class Gaussian : public QMPackage {
   void WriteCoordinates(std::ofstream& com_file, const QMMolecule& qmatoms);
   void WriteHeader(std::ofstream& com_file);
 
-  void WriteChargeOption();
+  void WriteChargeOption() override;
 };
 
 }  // namespace xtp

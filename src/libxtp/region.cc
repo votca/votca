@@ -29,12 +29,12 @@ std::vector<double> Region::ApplyInfluenceOfOtherRegions(
     std::vector<std::unique_ptr<Region> >& regions) {
   std::vector<double> energies = std::vector<double>(regions.size(), 0.0);
   for (std::unique_ptr<Region>& reg : regions) {
-    int id = reg->getId();
+    Index id = reg->getId();
     if (id == this->getId()) {
       continue;
     }
 
-    QMRegion QMdummy(0, _log);
+    QMRegion QMdummy(0, _log, "");
     StaticRegion Staticdummy(0, _log);
     PolarRegion Polardummy(0, _log);
     XTP_LOG_SAVE(logINFO, _log)

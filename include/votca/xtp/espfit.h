@@ -21,20 +21,20 @@
 #ifndef VOTCA_XTP_ESPFIT_H
 #define VOTCA_XTP_ESPFIT_H
 
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/grid.h>
-#include <votca/xtp/orbitals.h>
+#include <votca/xtp/classicalsegment.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/qmfragment.h>
 /**
  * \brief Takes a list of atoms, and the corresponding density matrix and puts
  * out a table of partial charges
- *
- *
- *
  */
 
 namespace votca {
 namespace xtp {
+class Orbitals;
+class Grid;
+class QMState;
+class QMMolecule;
 
 class Espfit {
  public:
@@ -48,36 +48,35 @@ class Espfit {
     _conditionnumber = conditionnumber;
   }
 
-  void setPairConstraint(std::vector<std::pair<int, int> > pairconstraint) {
+  void setPairConstraint(std::vector<std::pair<Index, Index> > pairconstraint) {
     _pairconstraint = pairconstraint;
   }
 
   void setRegionConstraint(std::vector<QMFragment<double> > regionconstraint) {
     _regionconstraint = regionconstraint;
   }
-  // on grid very fast
-  void Fit2Density(Orbitals& orbitals, const QMState& state,
-                   std::string gridsize);
-  // not so fast
-  void Fit2Density_analytic(Orbitals& orbitals, const QMState& state);
+
+  StaticSegment Fit2Density(const Orbitals& orbitals, const QMState& state,
+                            std::string gridsize);
 
  private:
   Logger& _log;
   bool _do_svd = true;
   double _conditionnumber = 1e-8;
 
-  std::vector<std::pair<int, int> > _pairconstraint;  //  pairconstraint[i] is
-                                                      //  all the atomindices
-                                                      //  which have the same
-                                                      //  charge
+  std::vector<std::pair<Index, Index> > _pairconstraint;  //  pairconstraint[i]
+                                                          //  is all the
+                                                          //  atomindices which
+                                                          //  have the same
+                                                          //  charge
 
   std::vector<QMFragment<double> > _regionconstraint;
 
   void EvalNuclearPotential(const QMMolecule& atoms, Grid& grid);
 
   // Fits partial charges to Potential on a grid, constrains net charge
-  void FitPartialCharges(Orbitals& orbitals, const Grid& grid,
-                         double netcharge);
+  StaticSegment FitPartialCharges(const Orbitals& orbitals, const Grid& grid,
+                                  double netcharge);
 };
 }  // namespace xtp
 }  // namespace votca

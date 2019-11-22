@@ -40,13 +40,14 @@ namespace xtp {
 
 class EQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  std::string Identify() { return "eqm"; }
-  void Initialize(tools::Property &options);
-  Job::JobResult EvalJob(Topology &top, Job &job, QMThread &thread);
+  std::string Identify() override { return "eqm"; }
+  void Initialize(tools::Property &options) override;
+  Job::JobResult EvalJob(const Topology &top, Job &job,
+                         QMThread &thread) override;
 
   void CleanUp() { ; }
-  void WriteJobFile(Topology &top);
-  void ReadJobFile(Topology &top) { return; }
+  void WriteJobFile(const Topology &top) override;
+  void ReadJobFile(Topology &) override { return; }
 
  private:
   void WriteLoggerToFile(const std::string &logfile, Logger &logger);
@@ -55,12 +56,9 @@ class EQM : public ParallelXJobCalc<std::vector<Job> > {
                       const std::string &errormessage);
   void ParseOptionsXML(tools::Property &options);
 
-  std::string _package;
   tools::Property _package_options;
   tools::Property _gwbse_options;
   tools::Property _esp_options;
-
-  std::string _mapfile;
 
   // what to do
   bool _do_dft_input;

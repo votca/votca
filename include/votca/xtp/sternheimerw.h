@@ -23,17 +23,14 @@
 #include <fstream>
 #include <votca/tools/property.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/xtp/eigen.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/padeapprox.h>
-#include <eigen3/Eigen/src/Core/Matrix.h>
-
+ 
 namespace votca {
 namespace xtp {
-class Orbitals;
-class AOBasis;
+
 class SternheimerW {
  public:
   SternheimerW(Orbitals& orbitals, Logger& log)

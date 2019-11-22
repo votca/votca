@@ -56,7 +56,7 @@ std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l) {
 bool FileExists(const std::string& fileName) { return bfs::exists(fileName); }
 
 CheckpointFile::CheckpointFile(std::string fN)
-    : CheckpointFile(fN, CheckpointAccessLevel::MODIFY){};
+    : CheckpointFile(fN, CheckpointAccessLevel::MODIFY) {}
 
 CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
     : _fileName(fN), _accessLevel(access) {
@@ -73,24 +73,25 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
         _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
         break;
       case CheckpointAccessLevel::MODIFY:
-        if (!FileExists(_fileName))
+        if (!FileExists(_fileName)) {
           _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
-        else
+        } else {
           _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR, fcpList);
+        }
     }
 
-  } catch (H5::Exception& error) {
+  } catch (H5::Exception&) {
     std::stringstream message;
     message << "Could not access file " << _fileName;
     message << " with permission to " << _accessLevel << "." << std::endl;
 
     throw std::runtime_error(message.str());
   }
-};
+}
 
-std::string CheckpointFile::getFileName() { return _fileName; };
+std::string CheckpointFile::getFileName() { return _fileName; }
 
-H5::H5File CheckpointFile::getHandle() { return _fileHandle; };
+H5::H5File CheckpointFile::getHandle() { return _fileHandle; }
 
 CheckpointWriter CheckpointFile::getWriter(const std::string _path) {
   if (_accessLevel == CheckpointAccessLevel::READ) {
@@ -99,10 +100,10 @@ CheckpointWriter CheckpointFile::getWriter(const std::string _path) {
 
   try {
     return CheckpointWriter(_fileHandle.createGroup(_path), _path);
-  } catch (H5::Exception& error) {
+  } catch (H5::Exception&) {
     try {
       return CheckpointWriter(_fileHandle.openGroup(_path), _path);
-    } catch (H5::Exception& error) {
+    } catch (H5::Exception&) {
       std::stringstream message;
       message << "Could not create or open " << _fileName << ":" << _path
               << std::endl;
@@ -110,22 +111,22 @@ CheckpointWriter CheckpointFile::getWriter(const std::string _path) {
       throw std::runtime_error(message.str());
     }
   }
-};
+}
 
-CheckpointWriter CheckpointFile::getWriter() { return getWriter("/"); };
+CheckpointWriter CheckpointFile::getWriter() { return getWriter("/"); }
 
 CheckpointReader CheckpointFile::getReader(const std::string _path) {
   try {
     return CheckpointReader(_fileHandle.openGroup(_path), _path);
-  } catch (H5::Exception& error) {
+  } catch (H5::Exception&) {
     std::stringstream message;
     message << "Could not open " << _fileName << ":" << _path << std::endl;
 
     throw std::runtime_error(message.str());
   }
-};
+}
 
-CheckpointReader CheckpointFile::getReader() { return getReader("/"); };
+CheckpointReader CheckpointFile::getReader() { return getReader("/"); }
 
 }  // namespace xtp
 }  // namespace votca

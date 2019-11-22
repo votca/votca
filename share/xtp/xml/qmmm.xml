@@ -1,37 +1,46 @@
 <options>
     <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
-        <print_regions_pdb>true</print_regions_pdb>
-        <max_iterations>50</max_iterations>
-        <regions>
-            <mapfile>map.xml</mapfile>
-            <region>
-                <id>0</id>
-                <type>gwbse</type>
-                <options_dft />
-                <options_gwbse />
-                <filter />
-                <segments>0:n 1:n 2:n 3</segments>
+        <print_regions_pdb help="print the geometry of the regions to a pdb file">true</print_regions_pdb>
+        <max_iterations help="max iterations for qmmm scf loop">50</max_iterations>
+        <openmp_threads help="internal parallelization for each job">1</openmp_threads>
+        <map_file help="xml file with segment definition">system.xml</map_file>
+        <job_file help="name of jobfile to which jobs are written">qmmm_jobs.xml</job_file>
+        <write_parse>
+            <states help="states to write jobs for and which to parse from jobfile">n s1 t1</states>
+        </write_parse>
+        
+        <regions  help="definition of regions in qmmm setup. First region can be a QM region. In each region all options can be also read from a jobfile by the keyword 'jobfile'">
+            <region help="definition of a region">
+                <id help="id of a region has to start from 0">0</id>
+                <type help="type of region qm/static/polar">qm</type>
+                <options_dft help="xml file with options for dft calculations">xtpdft.xml</options_dft>
+                <options_gwbse help="xml file with options for gwbse calculations">gwbse.xml</options_gwbse>
+                <statetracker help="filter to identify excited states from some characteristic and not the energy">
+                    <oscillator_strength>0.5</oscillator_strength>
+                </statetracker>
+                <state help="qmstate to calculate i.e. n or s1">jobfile</state>
+                <segments help="which segments to include in this region and which geometry they have">jobfile</segments>
             </region>
             <region>
                 <id>1</id>
-                <type>dft</type>
-                <options_dft />
-                <segments>jobfile</segments>
-            </region>
-            <region>
-                <id>2</id>
                 <type>polar</type>
-                <options_polar>polar.xml</options_polar>
-                <cutoff>
-                    <geometry>n</geometry>
-                    <radius>3</radius>
-                    <region>0</region>
+                <options_polar help="xml file with options for classical polarized calculations">polar.xml</options_polar>
+                <cutoff help="cutoff to define segments via distance to some segment in the same region or another region">
+                    <relative_to_explicit_segs help="if distance should only be calculated to explicitly stated segments in the region or all which are also in the cutoff">true</relative_to_explicit_segs>
+                    <geometry help="geometry that should be used for these segments">n</geometry>
+                    <radius help="maximum distance to reference to be in region" unit="nm">1</radius>
+                    <region help="region to calculate distance to. Delete if you want to calculate distance to segments in this region" >0</region>
                 </cutoff>
             </region>
             <region>
-                <id>3</id>
+                <id>2</id>
                 <type>static</type>
-                <cutoff>5</cutoff>
+                <cutoff>
+                    <relative_to_explicit_segs>true</relative_to_explicit_segs>
+                    <geometry>n</geometry>
+                    <radius>1.4</radius>
+                    <region>0</region>
+                </cutoff>
             </region>
         </regions>
     </qmmm>

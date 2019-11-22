@@ -33,19 +33,19 @@ class StateApplication : public XtpApplication {
  public:
   StateApplication();
 
-  ~StateApplication(){};
+  ~StateApplication() override = default;
 
-  void Initialize();
-  bool EvaluateOptions();
-  void Run();
+  void Initialize() override;
+  bool EvaluateOptions() override;
+  void Run() override;
 
-  void BeginEvaluate(int nThreads);
+  void BeginEvaluate(Index nThreads);
   bool EvaluateFrame(Topology& top);
 
-  void AddCalculator(QMCalculator* calculator);
+  void SetCalculator(QMCalculator* calculator);
 
  protected:
-  std::vector<std::unique_ptr<QMCalculator> > _calculators;
+  std::unique_ptr<QMCalculator> _calculator;
 };
 
 }  // namespace xtp

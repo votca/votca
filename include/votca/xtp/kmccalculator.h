@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * author: Kordt
  */
 
 #pragma once
@@ -21,7 +20,7 @@
 #define VOTCA_XTP_CALCULATOR_H
 
 #include <votca/tools/globals.h>
-#include <votca/tools/random2.h>
+#include <votca/tools/random.h>
 #include <votca/tools/tokenizer.h>
 #include <votca/xtp/chargecarrier.h>
 #include <votca/xtp/qmstate.h>
@@ -34,10 +33,11 @@ namespace xtp {
 class QMNBList;
 class KMCCalculator : public QMCalculator {
  public:
-  virtual ~KMCCalculator(){};
+  ~KMCCalculator() override = default;
 
-  virtual std::string Identify() = 0;
-  virtual void Initialize(tools::Property& options) = 0;
+  std::string Identify() override = 0;
+  bool WriteToStateFile() const override = 0;
+  void Initialize(tools::Property& options) override = 0;
 
  protected:
   QMStateType _carriertype;
@@ -64,17 +64,17 @@ class KMCCalculator : public QMCalculator {
   void RandomlyAssignCarriertoSite(Chargecarrier& Charge);
   std::vector<GNode> _nodes;
   std::vector<Chargecarrier> _carriers;
-  tools::Random2 _RandomVariable;
 
+  tools::Random _RandomVariable;
   std::string _injection_name;
   std::string _injectionmethod;
-  int _seed;
-  int _numberofcharges;
+  Index _seed;
+  Index _numberofcarriers;
   Eigen::Vector3d _field = Eigen::Vector3d::Zero();
   double _maxrealtime;
-  std::string _trajectoryfile;
-  std::string _ratefile;
-  std::string _occfile;
+  std::string _trajectoryfile = "trajectory.csv";
+  std::string _ratefile = "rates.dat";
+  std::string _occfile = "occupation.dat";
 
   double _temperature;
 };

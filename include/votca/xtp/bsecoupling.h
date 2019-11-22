@@ -37,62 +37,70 @@ namespace xtp {
 
 class BSECoupling : public CouplingBase {
  public:
-  void Initialize(tools::Property& options);
-  std::string Identify() { return "bsecoupling"; }
+  void Initialize(tools::Property& options) override;
+  std::string Identify() const { return "bsecoupling"; }
 
-  Eigen::MatrixXd getJAB_singletstorage() {
-    return (_output_perturbation ? JAB_singlet[0] : JAB_singlet[1]);
-  }
-
-  Eigen::MatrixXd getJAB_tripletstorage() {
-    return (_output_perturbation ? JAB_triplet[0] : JAB_triplet[1]);
-  }
   void Addoutput(tools::Property& type_summary, const Orbitals& orbitalsA,
-                 const Orbitals& orbitalsB);
+                 const Orbitals& orbitalsB) const override;
 
+  /**
+   * \brief evaluates electronic couplings
+   *
+   * @param _orbitalsA molecular orbitals of molecule A
+   * @param _orbitalsB molecular orbitals of molecule B
+   * @param _orbitalsAB molecular orbitals of the dimer AB
+   */
   void CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
-                          Orbitals& orbitalsAB);
+                          const Orbitals& orbitalsAB) override;
 
  private:
-  void WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
-                       tools::Property& summary, const QMState& stateA,
-                       const QMState& stateB);
+  void WriteToProperty(tools::Property& summary, const QMState& stateA,
+                       const QMState& stateB) const;
 
-  double getSingletCouplingElement(int levelA, int levelB, int methodindex);
+  double getSingletCouplingElement(Index levelA, Index levelB,
+                                   Index methodindex) const;
 
-  double getTripletCouplingElement(int levelA, int levelB, int methodindex);
+  double getTripletCouplingElement(Index levelA, Index levelB,
+                                   Index methodindex) const;
+
+  Eigen::MatrixXd SetupCTStates(Index bseA_vtotal, Index bseB_vtotal,
+                                Index bseAB_vtotal, Index bseAB_ctotal,
+                                const Eigen::MatrixXd& A_AB,
+                                const Eigen::MatrixXd& B_AB) const;
+
+  Eigen::MatrixXd ProjectFrenkelExcitons(const Eigen::MatrixXd& BSE_Coeffs,
+                                         const Eigen::MatrixXd& X_AB,
+                                         Index bseX_vtotal, Index bseX_ctotal,
+                                         Index bseAB_vtotal,
+                                         Index bseAB_ctotal) const;
 
   template <class BSE_OPERATOR>
-  std::vector<Eigen::MatrixXd> ProjectExcitons(const Eigen::MatrixXd& bseA_T,
-                                               const Eigen::MatrixXd& bseB_T,
-                                               BSE_OPERATOR H);
+  std::array<Eigen::MatrixXd, 2> ProjectExcitons(Eigen::MatrixXd& FE_AB,
+                                                 Eigen::MatrixXd& CTStates,
+                                                 BSE_OPERATOR H) const;
+  template <class BSE_OPERATOR>
+  Eigen::MatrixXd CalcJ_dimer(BSE_OPERATOR& H,
+                              Eigen::MatrixXd& projection) const;
 
-  Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& J_dimer);
+  Eigen::MatrixXd OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
+                                   Eigen::MatrixXd& CTStates) const;
 
-  Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& J_dimer);
+  Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& J_dimer) const;
 
-  std::vector<Eigen::MatrixXd> JAB_singlet;
-  std::vector<Eigen::MatrixXd> JAB_triplet;
+  Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& J_dimer) const;
 
-  bool _doTriplets;
-  bool _doSinglets;
-  bool _output_perturbation;
-  int _levA;
-  int _levB;
-  int _occA;
-  int _unoccA;
-  int _occB;
-  int _unoccB;
-  int _openmp_threads;
+  std::array<Eigen::MatrixXd, 2> JAB_singlet;
+  std::array<Eigen::MatrixXd, 2> JAB_triplet;
 
-  int _bse_exc;
-
-  int _ct;
-
-  Eigen::MatrixXd ctAB;
-  Eigen::MatrixXd ctBA;
-  Eigen::MatrixXd _kap;
-  Eigen::MatrixXd _kbp;
+  bool _doTriplets = false;
+  bool _doSinglets = false;
+  bool _output_perturbation = true;
+  Index _levA = std::numeric_limits<Index>::max();
+  Index _levB = std::numeric_limits<Index>::max();
+  Index _occA = 5;
+  Index _unoccA = 5;
+  Index _occB = 5;
+  Index _unoccB = 5;
 };
 
 }  // namespace xtp

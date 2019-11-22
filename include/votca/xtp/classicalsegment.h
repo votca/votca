@@ -30,7 +30,7 @@ namespace xtp {
 template <class T>
 class ClassicalSegment : public AtomContainer<T> {
  public:
-  ClassicalSegment(std::string name, int id) : AtomContainer<T>(name, id){};
+  ClassicalSegment(std::string name, Index id) : AtomContainer<T>(name, id){};
 
   ClassicalSegment(CheckpointReader& r) : AtomContainer<T>(r){};
 
@@ -47,7 +47,7 @@ class ClassicalSegment : public AtomContainer<T> {
   friend std::ostream& operator<<(std::ostream& out,
                                   const ClassicalSegment<T>& container) {
     out << container.getId() << " " << container.identify() << " "
-        << container.getName() << "\n";
+        << container.getType() << "\n";
     for (const T& atom : container) {
       out << atom;
     }
@@ -56,8 +56,8 @@ class ClassicalSegment : public AtomContainer<T> {
   }
 };
 
-typedef ClassicalSegment<PolarSite> PolarSegment;
-typedef ClassicalSegment<StaticSite> StaticSegment;
+using PolarSegment = ClassicalSegment<PolarSite>;
+using StaticSegment = ClassicalSegment<StaticSite>;
 
 }  // namespace xtp
 }  // namespace votca

@@ -32,11 +32,11 @@ namespace xtp {
 
 class QMTool : public tools::Calculator {
  public:
-  QMTool(){};
-  virtual ~QMTool(){};
+  QMTool() = default;
+  ~QMTool() override = default;
 
-  virtual std::string Identify() = 0;
-  virtual void Initialize(tools::Property &options) = 0;
+  std::string Identify() override = 0;
+  void Initialize(tools::Property &options) override = 0;
   virtual bool Evaluate() = 0;
 };
 

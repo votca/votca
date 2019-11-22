@@ -41,7 +41,7 @@ void PPM::PPM_construct_parameters(const RPA& rpa) {
   // determine PPM frequencies
   _ppm_freq.resize(es.eigenvalues().size());
 #pragma omp parallel for
-  for (int i = 0; i < es.eigenvalues().size(); i++) {
+  for (Index i = 0; i < es.eigenvalues().size(); i++) {
     if (_ppm_weight(i) < 1.e-5) {
       _ppm_weight(i) = 0.0;
       _ppm_freq(i) = 0.5;  // Hartree
@@ -57,4 +57,4 @@ void PPM::PPM_construct_parameters(const RPA& rpa) {
 }
 
 }  // namespace xtp
-};  // namespace votca
+}  // namespace votca

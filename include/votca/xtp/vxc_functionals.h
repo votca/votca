@@ -37,8 +37,8 @@ class Vxc_Functionals {
  public:
   Vxc_Functionals() { FillMaps(); };
 
-  const int &getID(std::string name) const {
-    if (_stringtoID.count(name) == 0) {
+  int getID(std::string name) const {
+    if (!_stringtoID.count(name)) {
       throw std::runtime_error("Functional " + name + " not supported");
     }
     return _stringtoID.at(name);

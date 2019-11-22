@@ -23,9 +23,9 @@
 #ifndef VOTCA_XTP_JOBCALCULATOR_H
 #define VOTCA_XTP_JOBCALCULATOR_H
 
+#include <votca/tools/calculator.h>
 #include <votca/xtp/job.h>
 #include <votca/xtp/progressobserver.h>
-#include <votca/xtp/qmcalculator.h>
 #include <votca/xtp/topology.h>
 
 namespace votca {
@@ -33,16 +33,16 @@ namespace xtp {
 
 class Topology;
 
-class JobCalculator : public QMCalculator {
+class JobCalculator : public tools::Calculator {
  public:
-  JobCalculator() {}
-  virtual ~JobCalculator() {}
+  JobCalculator() = default;
+  ~JobCalculator() override = default;
 
-  virtual std::string Identify() = 0;
+  std::string Identify() override = 0;
 
-  virtual bool EvaluateFrame(Topology &top) = 0;
+  virtual bool EvaluateFrame(const Topology &top) = 0;
 
-  virtual void WriteJobFile(Topology &top) = 0;
+  virtual void WriteJobFile(const Topology &top) = 0;
   virtual void ReadJobFile(Topology &top) = 0;
 
   void setProgObserver(ProgObserver<std::vector<Job> > *obs) { _progObs = obs; }

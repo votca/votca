@@ -36,10 +36,10 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
   intt.open(filename);
   double unit_conversion = tools::conv::ang2bohr;
 
-  int readinmultipoles = 0;
-  int numberofmultipoles = 0;
+  Index readinmultipoles = 0;
+  Index numberofmultipoles = 0;
   Vector9d multipoles = Vector9d::Zero();
-  int rank = 0;
+  Index rank = 0;
 
   if (!intt.is_open()) {
     throw std::runtime_error("File:" + filename + " could not be opened");
@@ -47,9 +47,8 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
   while (intt.good()) {
 
     std::getline(intt, line);
-    std::vector<std::string> split;
     tools::Tokenizer toker(line, " \t");
-    toker.ToVector(split);
+    std::vector<std::string> split = toker.ToVector();
 
     if (!split.size() || split[0] == "!" || split[0].substr(0, 1) == "!") {
       continue;
@@ -80,11 +79,11 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
       // element,  position,  rank limit convert to bohr
       std::string name = split[0];
       Eigen::Vector3d pos;
-      int id = this->_atomlist.size();
+      Index id = Index(this->_atomlist.size());
       pos[0] = boost::lexical_cast<double>(split[1]);
       pos[1] = boost::lexical_cast<double>(split[2]);
       pos[2] = boost::lexical_cast<double>(split[3]);
-      rank = boost::lexical_cast<int>(split[5]);
+      rank = boost::lexical_cast<Index>(split[5]);
       numberofmultipoles = (rank + 1) * (rank + 1);
       multipoles = Vector9d::Zero();
       pos *= unit_conversion;
@@ -93,10 +92,8 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
     // 'P', dipole polarizability
     else if (split[0] == "P") {
       Eigen::Matrix3d p1;
-      // Angstroem to bohr
-      double pxx = 0.0;
       if (split.size() == 7) {
-        pxx = boost::lexical_cast<double>(split[1]);
+        double pxx = boost::lexical_cast<double>(split[1]);
         double pxy = boost::lexical_cast<double>(split[2]);
         double pxz = boost::lexical_cast<double>(split[3]);
         double pyy = boost::lexical_cast<double>(split[4]);
@@ -104,9 +101,8 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
         double pzz = boost::lexical_cast<double>(split[6]);
         p1 << pxx, pxy, pxz, pxy, pyy, pyz, pxz, pyz, pzz;
       } else if (split.size() == 2) {
-        pxx = boost::lexical_cast<double>(split[1]);
+        double pxx = boost::lexical_cast<double>(split[1]);
         p1 = pxx * Eigen::Matrix3d::Identity();
-        ;
       } else {
         throw std::runtime_error("Invalid line in " + filename + ": " + line);
       }
@@ -117,8 +113,8 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
     // Multipole lines
     else {
       // stay in bohr
-      for (unsigned i = 0; i < split.size(); i++) {
-        double qXYZ = boost::lexical_cast<double>(split[i]);
+      for (const std::string& entry : split) {
+        double qXYZ = boost::lexical_cast<double>(entry);
         if (multipoles.size() < readinmultipoles) {
           throw std::runtime_error("ReadMpsFile: File" + filename +
                                    "is not properly formatted");
@@ -138,6 +134,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
       }
     }
   }
+  this->calcPos();
 }
 
 template <class T>

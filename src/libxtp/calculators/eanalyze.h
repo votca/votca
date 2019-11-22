@@ -35,19 +35,20 @@ namespace xtp {
 
 class EAnalyze : public QMCalculator {
  public:
-  EAnalyze(){};
+  EAnalyze() = default;
 
-  ~EAnalyze(){};
+  ~EAnalyze() override = default;
+  bool WriteToStateFile() const override { return false; }
+  std::string Identify() override { return "eanalyze"; }
 
-  std::string Identify() { return "eanalyze"; }
-
-  void Initialize(tools::Property &opt);
-  bool EvaluateFrame(Topology &top);
-  void SiteHist(Topology &top, QMStateType state);
-  void PairHist(Topology &top, QMStateType state);
-  void SiteCorr(Topology &top, QMStateType state);
+  void Initialize(tools::Property &opt) override;
+  bool EvaluateFrame(Topology &top) override;
 
  private:
+  void SiteHist(QMStateType state) const;
+  void PairHist(const Topology &top, QMStateType state) const;
+  void SiteCorr(const Topology &top, QMStateType state) const;
+
   double _resolution_pairs;
   double _resolution_sites;
   double _resolution_space;
@@ -60,8 +61,8 @@ class EAnalyze : public QMCalculator {
   bool _skip_pairs = false;
 
   bool _doenergy_landscape;
-  int _first_seg;
-  int _last_seg;
+  Index _first_seg;
+  Index _last_seg;
 
   std::string _seg_pattern;
   std::vector<Segment *> _seg_shortlist;

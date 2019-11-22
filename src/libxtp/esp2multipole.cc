@@ -43,33 +43,27 @@ void Esp2multipole::Initialize(tools::Property& options) {
   _method = options.ifExistsAndinListReturnElseThrowRuntimeError(
       key + ".method", choices);
 
-  if (_method == "mulliken")
+  if (_method == "mulliken") {
     _use_mulliken = true;
-  else if (_method == "loewdin")
+  } else if (_method == "loewdin") {
     _use_lowdin = true;
-  else if (_method == "CHELPG")
+  } else if (_method == "CHELPG") {
     _use_CHELPG = true;
-
-  if (_use_CHELPG) {
-    _integrationmethod = options.ifExistsReturnElseReturnDefault<std::string>(
-        key + ".integrationmethod", "numeric");
-  }
-  if (!(_integrationmethod == "numeric" || _integrationmethod == "analytic")) {
-    std::runtime_error(
-        "Method not recognized. Only numeric and analytic available");
   }
 
   if (options.exists(key + ".constraints")) {
     if (options.exists(key + ".constraints.regions")) {
       std::vector<tools::Property*> prop_region =
           options.Select(key + ".constraints.regions.region");
+      Index index = 0;
       for (tools::Property* prop : prop_region) {
         std::string indices = prop->get("indices").as<std::string>();
-        QMFragment<double> reg = QMFragment<double>("Constraint", 0, indices);
+        QMFragment<double> reg = QMFragment<double>(index, indices);
+        index++;
         reg.value() = prop->get("charge").as<double>();
         _regionconstraint.push_back(reg);
-        XTP_LOG(logDEBUG, _log) << "Fit constrained by Region" << flush;
-        XTP_LOG(logDEBUG, _log) << reg;
+        XTP_LOG_SAVE(logDEBUG, _log) << "Fit constrained by Region" << flush;
+        XTP_LOG_SAVE(logDEBUG, _log) << reg;
       }
     }
     if (options.exists(key + ".constraints.pairs")) {
@@ -78,22 +72,21 @@ void Esp2multipole::Initialize(tools::Property& options) {
       for (tools::Property* prop : prop_pair) {
         std::string pairstring = prop->as<std::string>();
         tools::Tokenizer tok(pairstring, "\n\t ,");
-        std::vector<int> pairvec;
-        tok.ConvertToVector<int>(pairvec);
-        std::pair<int, int> pair;
+        std::vector<Index> pairvec;
+        tok.ConvertToVector<Index>(pairvec);
+        std::pair<Index, Index> pair;
         pair.first = pairvec[0];
         pair.second = pairvec[1];
         _pairconstraint.push_back(pair);
-        XTP_LOG(logDEBUG, _log) << "Charge " << pair.first << " " << pair.second
-                                << " constrained to be equal." << flush;
+        XTP_LOG_SAVE(logDEBUG, _log)
+            << "Charges " << pair.first << " " << pair.second
+            << " constrained to be equal." << flush;
       }
     }
   }
 
   _gridsize = options.ifExistsReturnElseReturnDefault<std::string>(
       key + ".gridsize", "medium");
-  _openmp_threads =
-      options.ifExistsReturnElseReturnDefault<int>(key + ".openmp", 1);
 
   if (options.exists(key + ".svd")) {
     _do_svd = options.get(key + ".svd.do_svd").as<bool>();
@@ -103,50 +96,36 @@ void Esp2multipole::Initialize(tools::Property& options) {
   return;
 }
 
-void Esp2multipole::WritetoFile(std::string output_file,
-                                const Orbitals& orbitals) {
+void Esp2multipole::PrintDipoles(const Orbitals& orbitals,
+                                 const StaticSegment& seg) const {
+  Eigen::Vector3d classical_dip = seg.CalcDipole();
 
-  std::string data_format = boost::filesystem::extension(output_file);
-  if (!(data_format == ".mps")) {
-    throw std::runtime_error(
-        "Outputfile format not recognized. Export only to .mps");
-  }
-  std::string tag = "TOOL:" + Identify() + "_" + _state.ToString();
-
-  orbitals.Multipoles().WriteMPS(output_file, tag);
-  return;
-}
-
-void Esp2multipole::PrintDipoles(Orbitals& orbitals) {
-  Eigen::Vector3d classical_dip = orbitals.Multipoles().CalcDipole();
-
-  XTP_LOG(logDEBUG, _log)
+  XTP_LOG_SAVE(logDEBUG, _log)
       << "El Dipole from fitted charges [e*bohr]:\n\t\t"
       << boost::format(
              " dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f") %
-             classical_dip[0] % classical_dip[1] % classical_dip[2] %
+             classical_dip.x() % classical_dip.y() % classical_dip.z() %
              classical_dip.squaredNorm()
       << flush;
   Eigen::Vector3d qm_dip = orbitals.CalcElDipole(_state);
-  XTP_LOG(logDEBUG, _log)
+  XTP_LOG_SAVE(logDEBUG, _log)
       << "El Dipole from exact qm density [e*bohr]:\n\t\t"
       << boost::format(
              " dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f") %
-             qm_dip[0] % qm_dip[1] % qm_dip[2] % qm_dip.squaredNorm()
+             qm_dip.x() % qm_dip.y() % qm_dip.z() % qm_dip.squaredNorm()
       << flush;
 }
 
-void Esp2multipole::Extractingcharges(Orbitals& orbitals) {
-  OPENMP::setMaxThreads(_openmp_threads);
-  XTP_LOG(logDEBUG, _log) << "===== Running on " << OPENMP::getMaxThreads()
-                          << " threads ===== " << flush;
-
+StaticSegment Esp2multipole::Extractingcharges(const Orbitals& orbitals) const {
+  XTP_LOG_SAVE(logDEBUG, _log) << "===== Running on " << OPENMP::getMaxThreads()
+                               << " threads ===== " << flush;
+  StaticSegment result("result", 0);
   if (_use_mulliken) {
     Mulliken mulliken;
-    mulliken.CalcChargeperAtom(orbitals, _state);
+    result = mulliken.CalcChargeperAtom(orbitals, _state);
   } else if (_use_lowdin) {
     Lowdin lowdin;
-    lowdin.CalcChargeperAtom(orbitals, _state);
+    result = lowdin.CalcChargeperAtom(orbitals, _state);
   } else if (_use_CHELPG) {
     Espfit esp = Espfit(_log);
     if (_pairconstraint.size() > 0) {
@@ -159,14 +138,11 @@ void Esp2multipole::Extractingcharges(Orbitals& orbitals) {
     if (_do_svd) {
       esp.setUseSVD(_conditionnumber);
     }
-    if (_integrationmethod == "numeric") {
-      esp.Fit2Density(orbitals, _state, _gridsize);
-    } else if (_integrationmethod == "analytic") {
-      esp.Fit2Density_analytic(orbitals, _state);
-    }
+    result = esp.Fit2Density(orbitals, _state, _gridsize);
   }
 
-  PrintDipoles(orbitals);
+  PrintDipoles(orbitals, result);
+  return result;
 }
 
 }  // namespace xtp

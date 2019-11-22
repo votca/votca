@@ -44,9 +44,9 @@ void GenCube::Initialize(tools::Property& options) {
   _padding = options.get(key + ".padding").as<double>();
 
   // steps
-  _xsteps = options.get(key + ".xsteps").as<int>();
-  _ysteps = options.get(key + ".ysteps").as<int>();
-  _zsteps = options.get(key + ".zsteps").as<int>();
+  _xsteps = options.get(key + ".xsteps").as<Index>();
+  _ysteps = options.get(key + ".ysteps").as<Index>();
+  _zsteps = options.get(key + ".zsteps").as<Index>();
 
   std::string statestring = options.get(key + ".state").as<string>();
   _state.FromString(statestring);
@@ -61,17 +61,18 @@ void GenCube::Initialize(tools::Property& options) {
 
   // get the path to the shared folders with xml files
   char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
+  if (votca_share == nullptr) {
     throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+  }
 }
 
 void GenCube::calculateCube() {
 
-  XTP_LOG(logDEBUG, _log) << "Reading serialized QM data from " << _orbfile
-                          << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Reading serialized QM data from " << _orbfile << flush;
 
   Orbitals orbitals;
-  XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+  XTP_LOG_SAVE(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
   orbitals.ReadFromCpt(_orbfile);
 
   const QMMolecule& atoms = orbitals.QMAtoms();
@@ -95,17 +96,13 @@ void GenCube::calculateCube() {
   if (!out.is_open()) {
     throw std::runtime_error("Bad file handle: " + _output_file);
   }
+  bool do_amplitude = (_state.Type().isSingleParticleState());
 
   // write cube header
   if (_state.isTransition()) {
     out << boost::format("Transition state: %1$s \n") % _state.ToString();
-  }
-
-  bool do_amplitude = (_state.Type().isSingleParticleState());
-
-  if (do_amplitude) {
-    out << boost::format("%1$s with energy %2$f eV \n") %
-               _state.ToLongString() %
+  } else if (do_amplitude) {
+    out << boost::format("%1$s with energy %2$f eV \n") % _state.ToString() %
                (orbitals.getExcitedStateEnergy(_state) * tools::conv::hrt2ev);
   } else {
     if (_dostateonly) {
@@ -114,7 +111,7 @@ void GenCube::calculateCube() {
                  _state.ToString();
     } else {
       out << boost::format("Total electron density of %1$s state\n") %
-                 _state.ToLongString();
+                 _state.ToString();
     }
   }
 
@@ -136,59 +133,59 @@ void GenCube::calculateCube() {
     double y = atom.getPos().y();
     double z = atom.getPos().z();
     string element = atom.getElement();
-    int atnum = elements.getEleNum(element);
-    double crg = atom.getNuccharge();
-    out << boost::format("%1$d %2$f %3$f %4$f %5$f\n") % atnum % crg % x % y %
+    Index atnum = elements.getEleNum(element);
+    Index crg = atom.getNuccharge();
+    out << boost::format("%1$d %2$d %3$f %4$f %5$f\n") % atnum % crg % x % y %
                z;
   }
 
   if (do_amplitude) {
-    out << boost::format("  1 %1$d \n") % (_state.Index() + 1);
+    out << boost::format("  1 %1$d \n") % (_state.StateIdx() + 1);
   }
 
   // load DFT basis set (element-wise information) from xml file
   BasisSet dftbs;
-  dftbs.LoadBasisSet(orbitals.getDFTbasisName());
-  XTP_LOG(logDEBUG, _log) << " Loaded DFT Basis Set "
-                          << orbitals.getDFTbasisName() << flush;
+  dftbs.Load(orbitals.getDFTbasisName());
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Loaded DFT Basis Set " << orbitals.getDFTbasisName() << flush;
 
   // fill DFT AO basis by going through all atoms
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbs, orbitals.QMAtoms());
+  dftbasis.Fill(dftbs, orbitals.QMAtoms());
 
   Eigen::MatrixXd mat =
       Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());
   if (_dostateonly) {
     if (_state.Type().isExciton()) {
-      std::vector<Eigen::MatrixXd> DMAT =
+      std::array<Eigen::MatrixXd, 2> DMAT =
           orbitals.DensityMatrixExcitedState(_state);
       mat = DMAT[1] - DMAT[0];
     }
   } else {
     mat = orbitals.DensityMatrixFull(_state);
   }
-  int amplitudeindex = 0;
+  Index amplitudeindex = 0;
   if (do_amplitude) {
     if (_state.Type() == QMStateType::DQPstate) {
       mat = orbitals.CalculateQParticleAORepresentation();
-      amplitudeindex = _state.Index() - orbitals.getGWAmin();
+      amplitudeindex = _state.StateIdx() - orbitals.getGWAmin();
     } else {
-      mat = orbitals.MOCoefficients();
-      amplitudeindex = _state.Index();
+      mat = orbitals.MOs().eigenvectors();
+      amplitudeindex = _state.StateIdx();
     }
   }
 
-  XTP_LOG(logDEBUG, _log) << " Calculating cube data ... \n" << flush;
+  XTP_LOG_SAVE(logDEBUG, _log) << " Calculating cube data ... \n" << flush;
   _log.setPreface(logDEBUG, "... ...");
 
   boost::progress_display progress(_xsteps);
   // eval density at cube grid points
-  for (int ix = 0; ix <= _xsteps; ix++) {
+  for (Index ix = 0; ix <= _xsteps; ix++) {
     double x = xstart + double(ix) * xincr;
-    for (int iy = 0; iy <= _ysteps; iy++) {
+    for (Index iy = 0; iy <= _ysteps; iy++) {
       double y = ystart + double(iy) * yincr;
-      int Nrecord = 0;
-      for (int iz = 0; iz <= _zsteps; iz++) {
+      Index Nrecord = 0;
+      for (Index iz = 0; iz <= _zsteps; iz++) {
         double z = zstart + double(iz) * zincr;
         Nrecord++;
         Eigen::Vector3d pos(x, y, z);
@@ -211,7 +208,8 @@ void GenCube::calculateCube() {
   }  // x-component
 
   out.close();
-  XTP_LOG(logDEBUG, _log) << "Wrote cube data to " << _output_file << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Wrote cube data to " << _output_file << flush;
   return;
 }
 
@@ -239,10 +237,12 @@ void GenCube::subtractCubes() {
 
   // open infiles for reading
   ifstream in1;
-  XTP_LOG(logDEBUG, _log) << " Reading first cube from " << _infile1 << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Reading first cube from " << _infile1 << flush;
   in1.open(_infile1, ios::in);
   ifstream in2;
-  XTP_LOG(logDEBUG, _log) << " Reading second cube from " << _infile2 << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Reading second cube from " << _infile2 << flush;
   in2.open(_infile2, ios::in);
   string s;
 
@@ -257,19 +257,21 @@ void GenCube::subtractCubes() {
   getline(in2, s);
 
   // read rest from header
-  int natoms;
+  Index natoms;
   double xstart;
   double ystart;
   double zstart;
   // first line
   in1 >> natoms;
   bool do_amplitude = false;
-  if (natoms < 0) do_amplitude = true;
+  if (natoms < 0) {
+    do_amplitude = true;
+  }
   in1 >> xstart;
   in1 >> ystart;
   in1 >> zstart;
   // check from second file
-  int tempint;
+  Index tempint;
   double tempdouble;
   in2 >> tempint;
   if (tempint != natoms) {
@@ -346,12 +348,12 @@ void GenCube::subtractCubes() {
 
   // atom information
 
-  for (int iatom = 0; iatom < std::abs(natoms); iatom++) {
+  for (Index iatom = 0; iatom < std::abs(natoms); iatom++) {
     // get center coordinates in Bohr
     double x;
     double y;
     double z;
-    int atnum;
+    Index atnum;
     double crg;
 
     // get from first cube
@@ -387,8 +389,8 @@ void GenCube::subtractCubes() {
   }
 
   if (do_amplitude) {
-    int ntotal;
-    int nis;
+    Index ntotal;
+    Index nis;
     in1 >> ntotal;
     in1 >> nis;
 
@@ -405,10 +407,10 @@ void GenCube::subtractCubes() {
   // now read data
   double val1;
   double val2;
-  for (int ix = 0; ix < _xsteps; ix++) {
-    for (int iy = 0; iy < _ysteps; iy++) {
-      int Nrecord = 0;
-      for (int iz = 0; iz < _zsteps; iz++) {
+  for (Index ix = 0; ix < _xsteps; ix++) {
+    for (Index iy = 0; iy < _ysteps; iy++) {
+      Index Nrecord = 0;
+      for (Index iz = 0; iz < _zsteps; iz++) {
         Nrecord++;
         in1 >> val1;
         in2 >> val2;
@@ -423,12 +425,12 @@ void GenCube::subtractCubes() {
   }
 
   out.close();
-  XTP_LOG(logDEBUG, _log) << "Wrote subtracted cube data to " << _output_file
-                          << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Wrote subtracted cube data to " << _output_file << flush;
 }
 
 bool GenCube::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 

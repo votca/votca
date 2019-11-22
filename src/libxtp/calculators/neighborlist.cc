@@ -71,10 +71,10 @@ void Neighborlist::Initialize(tools::Property& options) {
   }
 }
 
-int Neighborlist::DetClassicalPairs(Topology& top) {
-  int classical_pairs = 0;
+Index Neighborlist::DetClassicalPairs(Topology& top) {
+  Index classical_pairs = 0;
 #pragma omp parallel for
-  for (int i = 0; i < top.NBList().size(); i++) {
+  for (Index i = 0; i < top.NBList().size(); i++) {
     const Segment* seg1 = top.NBList()[i]->Seg1();
     const Segment* seg2 = top.NBList()[i]->Seg2();
     if (top.GetShortestDist(*seg1, *seg2) > _excitonqmCutoff) {
@@ -102,7 +102,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   for (Segment& seg : top.Segments()) {
     if (_useConstantCutoff ||
         std::find(_included_segments.begin(), _included_segments.end(),
-                  seg.getName()) != _included_segments.end()) {
+                  seg.getType()) != _included_segments.end()) {
       segs.push_back(&seg);
       seg.getApproxSize();
     }
@@ -132,18 +132,23 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   top.NBList().Cleanup();
 
   boost::progress_display progress(segs.size());
-
+  // cache approx sizes
+  std::vector<double> approxsize = std::vector<double>(segs.size(), 0.0);
+#pragma omp parallel for
+  for (Index i = 0; i < Index(segs.size()); i++) {
+    approxsize[i] = segs[i]->getApproxSize();
+  }
 #pragma omp parallel for schedule(guided)
-  for (unsigned i = 0; i < segs.size(); i++) {
+  for (Index i = 0; i < Index(segs.size()); i++) {
     Segment* seg1 = segs[i];
     double cutoff = _constantCutoff;
-    for (unsigned j = i + 1; j < segs.size(); j++) {
+    for (Index j = i + 1; j < Index(segs.size()); j++) {
       Segment* seg2 = segs[j];
       if (!_useConstantCutoff) {
         try {
-          cutoff = _cutoffs.at(seg1->getName()).at(seg2->getName());
-        } catch (const std::exception& out_of_range) {
-          std::string pairstring = seg1->getName() + "/" + seg2->getName();
+          cutoff = _cutoffs.at(seg1->getType()).at(seg2->getType());
+        } catch (const std::exception&) {
+          std::string pairstring = seg1->getType() + "/" + seg2->getType();
           if (std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) ==
               skippedpairs.end()) {
 #pragma omp critical
@@ -164,11 +169,11 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
       Eigen::Vector3d segdistance =
           top.PbShortestConnect(seg1->getPos(), seg2->getPos());
       double segdistance2 = segdistance.squaredNorm();
-      double outside = cutoff + seg1->getApproxSize() + seg2->getApproxSize();
+      double outside = cutoff + approxsize[i] + approxsize[j];
 
       if (segdistance2 < cutoff2) {
 #pragma omp critical
-        { top.NBList().Add(seg1, seg2, segdistance); }
+        { top.NBList().Add(*seg1, *seg2, segdistance); }
 
       } else if (segdistance2 > (outside * outside)) {
         continue;
@@ -176,7 +181,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
         double R = top.GetShortestDist(*seg1, *seg2);
         if ((R * R) < cutoff2) {
 #pragma omp critical
-          { top.NBList().Add(seg1, seg2, segdistance); }
+          { top.NBList().Add(*seg1, *seg2, segdistance); }
         }
       }
     } /* exit loop seg2 */
@@ -198,7 +203,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   if (_useExcitonCutoff) {
     std::cout << std::endl
               << " ... ... Determining classical pairs " << std::endl;
-    int classical_pairs = DetClassicalPairs(top);
+    Index classical_pairs = DetClassicalPairs(top);
     std::cout << " ... ... Found " << classical_pairs << " classical pairs "
               << std::endl;
   }
@@ -206,8 +211,9 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   // sort qmpairs by seg1id and then by seg2id then reindex the pair id
   // according to that.
   top.NBList().sortAndReindex([](QMPair* a, QMPair* b) {
-    if (a->Seg1()->getId() != b->Seg1()->getId())
+    if (a->Seg1()->getId() != b->Seg1()->getId()) {
       return a->Seg1()->getId() < b->Seg1()->getId();
+    }
     return a->Seg2()->getId() < b->Seg2()->getId();
   });
 

@@ -27,28 +27,23 @@
 namespace votca {
 namespace xtp {
 
-QMPair::QMPair(int id, const Segment* seg1, const Segment* seg2,
+QMPair::QMPair(Index id, const Segment* seg1, const Segment* seg2,
                const Eigen::Vector3d& delta_R)
     : _id(id), _R(delta_R) {
   _segments.first = seg1;
   _segments.second = seg2;
 }
 
-const Segment* QMPair::Seg2PbCopy() {
+Segment QMPair::Seg2PbCopy() const {
   const Eigen::Vector3d& r1 = _segments.first->getPos();
   const Eigen::Vector3d& r2 = _segments.second->getPos();
-
+  Segment seg2pbc = Segment(*(_segments.second));
   // Check whether pair formed across periodic boundary
-  if (_ghost == nullptr && (r2 - r1 - _R).norm() > 1e-8) {
-    _ghost = std::unique_ptr<Segment>(new Segment(*(_segments.second)));
-    _ghost->Translate(r1 - r2 + _R);
+  if ((r2 - r1 - _R).norm() > 1e-8) {
+    seg2pbc.Translate(r1 - r2 + _R);
   }
 
-  if (_ghost != nullptr) {
-    return _ghost.get();
-  } else {
-    return _segments.second;
-  }
+  return seg2pbc;
 }
 
 void QMPair::SetupCptTable(CptTable& table) const {
@@ -103,7 +98,7 @@ void QMPair::WriteData(data& d) const {
   d.jeff2t = _Jeff2.getValue(QMStateType::Triplet);
 }
 
-void QMPair::ReadData(data& d, const std::vector<Segment>& segments) {
+void QMPair::ReadData(const data& d, const std::vector<Segment>& segments) {
   _id = d.id;
   _R[0] = d.RX;
   _R[1] = d.RY;

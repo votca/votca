@@ -21,7 +21,8 @@
 #include <fstream>
 #include <math.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/aobasis.h>
+#include <votca/xtp/aopotential.h>
+#include <votca/xtp/aomatrix3d.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/multishift.h>
@@ -41,8 +42,8 @@ void SternheimerW::Initialize() {
   this->_Hamiltonian_Matrix = Hamiltonian();
   this->_density_Matrix = _orbitals.DensityMatrixGroundState();
   this->_overlap_Matrix = OverlapMatrix();
-  this->_mo_coefficients = _orbitals.MOCoefficients();
-  this->_mo_energies = _orbitals.MOEnergies();
+  this->_mo_coefficients = _orbitals.MOs().eigenvectors();
+  this->_mo_energies = _orbitals.MOs().eigenvalues();
   this->_inverse_overlap = _overlap_Matrix.inverse();
 }
 
@@ -68,8 +69,8 @@ Eigen::MatrixXd SternheimerW::DensityMatrix() const{
 
 Eigen::MatrixXd SternheimerW::Hamiltonian() const{
 
-  const Eigen::MatrixXd& mo_coefficients = _orbitals.MOCoefficients();
-  const Eigen::MatrixXd& mo_energies = _orbitals.MOEnergies().asDiagonal();
+  const Eigen::MatrixXd& mo_coefficients =_orbitals.MOs().eigenvectors();
+  const Eigen::MatrixXd& mo_energies = _orbitals.MOs().eigenvalues();
   const Eigen::MatrixXd overlap = OverlapMatrix();
   Eigen::MatrixXd H = overlap * mo_coefficients * mo_energies *
                       mo_coefficients.transpose() * overlap;
@@ -79,9 +80,8 @@ Eigen::MatrixXd SternheimerW::Hamiltonian() const{
 Eigen::MatrixXcd SternheimerW::CoulombMatrix(Eigen::Vector3d gridpoint) const{
 
   AOBasis basis = _orbitals.SetupDftBasis();
-  AOESP aoesp;
-  aoesp.setPosition(gridpoint);
-  aoesp.Fill(basis);
+  AOMultipole aoesp;
+  aoesp.FillPotential(basis,gridpoint);
   return aoesp.Matrix();
 }
 
@@ -216,8 +216,8 @@ std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNOS(std::complex<double> w,
   const Eigen::MatrixXd p = DensityMatrix();
   Eigen::MatrixXcd V;
 
-  const Eigen::MatrixXd& mo_coefficients = _orbitals.MOCoefficients();
-  const Eigen::VectorXd& mo_energies = _orbitals.MOEnergies();
+  const Eigen::MatrixXd& mo_coefficients =  _orbitals.MOs().eigenvectors();
+  const Eigen::VectorXd& mo_energies = _orbitals.MOs().eigenvalues();
 
   // Setting up container for solutions in each gridpoint
 

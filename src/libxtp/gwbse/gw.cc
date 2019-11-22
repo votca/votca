@@ -29,7 +29,7 @@ void GW::configure(const options& opt) {
   _qptotal = _opt.qpmax - _opt.qpmin + 1;
   _rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
   if (_opt.sigma_integration == "ppm") {
-    _sigma = std::unique_ptr<Sigma_base>(new Sigma_PPM(_Mmn, _rpa));
+    _sigma = std::make_unique<Sigma_PPM>(Sigma_PPM(_Mmn, _rpa));
   }
   Sigma_base::options sigma_opt;
   sigma_opt.homo = _opt.homo;
@@ -66,29 +66,20 @@ Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> GW::DiagonalizeQPHamiltonian()
   return qpdiag;
 }
 
-Eigen::MatrixXd GW::getGWAResults() const {
-  Eigen::MatrixXd qp_energies_store = Eigen::MatrixXd::Zero(_qptotal, 5);
-  qp_energies_store.col(0) = _dft_energies.segment(_opt.qpmin, _qptotal);
-  qp_energies_store.col(1) = _Sigma_x.diagonal();
-  qp_energies_store.col(2) = _Sigma_c.diagonal();
-  qp_energies_store.col(3) = _vxc.diagonal();
-  qp_energies_store.col(4) = _gwa_energies;
-  return qp_energies_store;
-}
 void GW::PrintGWA_Energies() const {
 
   double shift = CalcHomoLumoShift();
 
-  XTP_LOG(logINFO, _log)
+  XTP_LOG_SAVE(logINFO, _log)
       << (boost::format(
               "  ====== Perturbative quasiparticle energies (Hartree) ====== "))
              .str()
       << std::flush;
-  XTP_LOG(logINFO, _log)
+  XTP_LOG_SAVE(logINFO, _log)
       << (boost::format("   DeltaHLGap = %1$+1.6f Hartree") % shift).str()
       << std::flush;
 
-  for (int i = 0; i < _qptotal; i++) {
+  for (Index i = 0; i < _qptotal; i++) {
     std::string level = "  Level";
     if ((i + _opt.qpmin) == _opt.homo) {
       level = "  HOMO ";
@@ -96,7 +87,7 @@ void GW::PrintGWA_Energies() const {
       level = "  LUMO ";
     }
 
-    XTP_LOG(logINFO, _log)
+    XTP_LOG_SAVE(logINFO, _log)
         << level
         << (boost::format(" = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
                           "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
@@ -109,22 +100,22 @@ void GW::PrintGWA_Energies() const {
 }
 
 void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
-  XTP_LOG(logDEBUG, _log) << TimeStamp() << " Full quasiparticle Hamiltonian  "
-                          << std::flush;
-  XTP_LOG(logINFO, _log)
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << " Full quasiparticle Hamiltonian  " << std::flush;
+  XTP_LOG_SAVE(logINFO, _log)
       << (boost::format(
               "  ====== Diagonalized quasiparticle energies (Hartree) "
               "====== "))
              .str()
       << std::flush;
-  for (int i = 0; i < _qptotal; i++) {
+  for (Index i = 0; i < _qptotal; i++) {
     std::string level = "  Level";
     if ((i + _opt.qpmin) == _opt.homo) {
       level = "  HOMO ";
     } else if ((i + _opt.qpmin) == _opt.homo + 1) {
       level = "  LUMO ";
     }
-    XTP_LOG(logINFO, _log)
+    XTP_LOG_SAVE(logINFO, _log)
         << level
         << (boost::format(" = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
             (i + _opt.qpmin) % _gwa_energies(i) % qp_diag_energies(i))
@@ -136,9 +127,9 @@ void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
 
 Eigen::VectorXd GW::ScissorShift_DFTlevel(
     const Eigen::VectorXd& dft_energies) const {
-  XTP_LOG(logDEBUG, _log) << TimeStamp()
-                          << " Scissor shifting DFT energies by: " << _opt.shift
-                          << " Hrt" << std::flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << " Scissor shifting DFT energies by: " << _opt.shift
+      << " Hrt" << std::flush;
   Eigen::VectorXd shifted_energies = dft_energies;
   shifted_energies.segment(_opt.homo + 1, dft_energies.size() - _opt.homo - 1)
       .array() += _opt.shift;
@@ -147,37 +138,38 @@ Eigen::VectorXd GW::ScissorShift_DFTlevel(
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                    double epsilon) const {
-  int state = 0;
+  Index state = 0;
   bool energies_converged = true;
   double diff_max = (e1 - e2).cwiseAbs().maxCoeff(&state);
   if (diff_max > epsilon) {
     energies_converged = false;
   }
   if (tools::globals::verbose) {
-    XTP_LOG(logDEBUG, _log) << TimeStamp() << " E_diff max=" << diff_max
-                            << " StateNo:" << state << std::flush;
+    XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " E_diff max=" << diff_max
+                                 << " StateNo:" << state << std::flush;
   }
   return energies_converged;
 }
 
 Eigen::VectorXd GW::CalculateExcitationFreq(Eigen::VectorXd frequencies) {
-  for (int i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
+  for (Index i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
 
     _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies);
     _gwa_energies = CalcDiagonalEnergies();
 
     if (tools::globals::verbose) {
-      XTP_LOG(logDEBUG, _log)
+      XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " G_Iteration:" << i_freq
           << " Shift[Hrt]:" << CalcHomoLumoShift() << std::flush;
     }
     if (Converged(_gwa_energies, frequencies, _opt.g_sc_limit)) {
-      XTP_LOG(logDEBUG, _log) << TimeStamp() << " Converged after "
-                              << i_freq + 1 << " G iterations." << std::flush;
+      XTP_LOG_SAVE(logDEBUG, _log)
+          << TimeStamp() << " Converged after " << i_freq + 1
+          << " G iterations." << std::flush;
       break;
     } else if (i_freq == _opt.g_sc_max_iterations - 1 &&
                _opt.g_sc_max_iterations > 1) {
-      XTP_LOG(logDEBUG, _log)
+      XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " G-self-consistency cycle not converged after "
           << _opt.g_sc_max_iterations << " iterations." << std::flush;
       break;
@@ -192,9 +184,9 @@ Eigen::VectorXd GW::CalculateExcitationFreq(Eigen::VectorXd frequencies) {
 void GW::CalculateGWPerturbation() {
 
   _Sigma_x = (1 - _opt.ScaHFX) * _sigma->CalcExchange();
-  XTP_LOG(logDEBUG, _log) << TimeStamp()
-                          << " Calculated Hartree exchange contribution  "
-                          << std::flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << " Calculated Hartree exchange contribution  "
+      << std::flush;
   // dft energies has size aobasissize
   // rpaenergies has siye rpatotal so has Mmn
   // gwaenergies/frequencies has qpmin,qpmax
@@ -205,37 +197,38 @@ void GW::CalculateGWPerturbation() {
   _rpa.setRPAInputEnergies(rpa_energies);
   Eigen::VectorXd frequencies =
       dft_shifted_energies.segment(_opt.qpmin, _qptotal);
-  for (int i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
+  for (Index i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
 
     if (i_gw % _opt.reset_3c == 0 && i_gw != 0) {
       _Mmn.Rebuild();
-      XTP_LOG(logDEBUG, _log)
+      XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Rebuilding 3c integrals" << std::flush;
     }
     _sigma->PrepareScreening();
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Calculated screening via RPA  " << std::flush;
     frequencies = CalculateExcitationFreq(frequencies);
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Calculated diagonal part of Sigma  " << std::flush;
     Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
     _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
 
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " GW_Iteration:" << i_gw
         << " Shift[Hrt]:" << CalcHomoLumoShift() << std::flush;
     if (Converged(_rpa.getRPAInputEnergies(), rpa_energies_old,
                   _opt.gw_sc_limit)) {
-      XTP_LOG(logDEBUG, _log) << TimeStamp() << " Converged after " << i_gw + 1
-                              << " GW iterations." << std::flush;
+      XTP_LOG_SAVE(logDEBUG, _log)
+          << TimeStamp() << " Converged after " << i_gw + 1 << " GW iterations."
+          << std::flush;
       break;
     } else if (i_gw == _opt.gw_sc_max_iterations - 1 &&
                _opt.gw_sc_max_iterations > 1) {
-      XTP_LOG(logDEBUG, _log)
+      XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp()
           << " WARNING! GW-self-consistency cycle not converged after "
           << _opt.gw_sc_max_iterations << " iterations." << std::flush;
-      XTP_LOG(logDEBUG, _log)
+      XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << "      Run continues. Inspect results carefully!"
           << std::flush;
       break;
@@ -256,4 +249,4 @@ void GW::CalculateHQP() {
 }
 
 }  // namespace xtp
-};  // namespace votca
+}  // namespace votca

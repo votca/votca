@@ -50,7 +50,7 @@ class BFGSTRM {
     _callbacks = callbacks;
   }
 
-  void setNumofIterations(int iterations) { _max_iteration = iterations; }
+  void setNumofIterations(Index iterations) { _max_iteration = iterations; }
 
   void Optimize(const Eigen::VectorXd& initialparameters);
 
@@ -59,7 +59,7 @@ class BFGSTRM {
 
   double getCost() const { return _cost; }
 
-  int getIteration() const { return _iteration; }
+  Index getIteration() const { return _iteration; }
 
   const Eigen::VectorXd getParameters() const { return _parameters; }
 
@@ -78,7 +78,7 @@ class BFGSTRM {
   std::string _errormessage;
   bool _success = true;
   bool _logging;
-  int _iteration = 0;
+  Index _iteration = 0;
 
   std::vector<std::function<void()> > _callbacks;
 
@@ -89,7 +89,7 @@ class BFGSTRM {
 
   double _trust_radius = 0.1;
 
-  int _max_iteration = 200;
+  Index _max_iteration = 200;
 
   Logger* _pLog;
 };

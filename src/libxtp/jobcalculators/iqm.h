@@ -46,21 +46,22 @@ namespace xtp {
 
 class IQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  void Initialize(tools::Property& options);
-  std::string Identify() { return "iqm"; }
-  Job::JobResult EvalJob(Topology& top, Job& job, QMThread& Thread);
-  void WriteJobFile(Topology& top);
-  void ReadJobFile(Topology& top);
+  void Initialize(tools::Property& options) override;
+  std::string Identify() override { return "iqm"; }
+  Job::JobResult EvalJob(const Topology& top, Job& job,
+                         QMThread& Thread) override;
+  void WriteJobFile(const Topology& top) override;
+  void ReadJobFile(Topology& top) override;
 
  private:
   double GetBSECouplingFromProp(tools::Property& bseprop, const QMState& stateA,
                                 const QMState& stateB);
-  double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA,
-                                int stateB);
+  double GetDFTCouplingFromProp(tools::Property& dftprop, Index stateA,
+                                Index stateB);
   void SetJobToFailed(Job::JobResult& jres, Logger& pLog,
                       const std::string& errormessage);
   void WriteLoggerToFile(const std::string& logfile, Logger& logger);
-  void addLinkers(std::vector<const Segment*>& segments, Topology& top);
+  void addLinkers(std::vector<const Segment*>& segments, const Topology& top);
   bool isLinker(const std::string& name);
   void ParseOptionsXML(tools::Property& opt);
   std::map<std::string, QMState> FillParseMaps(const std::string& Mapstring);
@@ -68,13 +69,10 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
   QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,
                             const std::string& elementname) const;
 
-  std::string _package;
   tools::Property _dftpackage_options;
   tools::Property _gwbse_options;
   tools::Property _bsecoupling_options;
   tools::Property _dftcoupling_options;
-
-  std::string _mapfile;
 
   // what to do
   bool _do_dft_input = false;
@@ -88,8 +86,6 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
 
   // what to write in the storage
   bool _store_dft = false;
-  bool _store_singlets = false;
-  bool _store_triplets = false;
   bool _store_gw = false;
 
   // parsing options

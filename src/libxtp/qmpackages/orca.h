@@ -23,8 +23,6 @@
 
 #include <votca/xtp/qmpackage.h>
 
-#include <string>
-
 namespace votca {
 namespace xtp {
 /**
@@ -34,29 +32,34 @@ namespace xtp {
     and extracts information from its log and io files
 
 */
+class Orbitals;
 class Orca : public QMPackage {
  public:
-  std::string getPackageName() const { return "orca"; }
+  std::string getPackageName() const override { return "orca"; }
 
-  void Initialize(tools::Property& options);
+  void Initialize(tools::Property& options) override;
 
-  bool WriteInputFile(const Orbitals& orbitals);
+  bool WriteInputFile(const Orbitals& orbitals) override;
 
   bool WriteShellScript();
 
-  bool Run();
+  bool Run() override;
 
-  void CleanUp();
+  void CleanUp() override;
 
   bool CheckLogFile();
 
-  bool ParseLogFile(Orbitals& orbitals);
+  bool ParseLogFile(Orbitals& orbitals) override;
 
-  bool ParseMOsFile(Orbitals& orbitals);
+  bool ParseMOsFile(Orbitals& orbitals) override;
+
+  StaticSegment GetCharges() const override;
+
+  Eigen::Matrix3d GetPolarizability() const override;
 
  private:
   std::string indent(const double& number);
-  std::string getLName(int lnum);
+  std::string getLName(Index lnum);
 
   void WriteBasisset(const QMMolecule& qmatoms, std::string& _bs_name,
                      std::string& el_file_name);
@@ -64,7 +67,10 @@ class Orca : public QMPackage {
   void WriteECP(std::ofstream& com_file, const QMMolecule&);
   void WriteBackgroundCharges();
 
-  void WriteChargeOption();
+  void WriteChargeOption() override;
+  template <class T>
+  void GetCoordinates(T& mol, std::string& line,
+                      std::ifstream& input_file) const;
 };
 
 }  // namespace xtp

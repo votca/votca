@@ -33,14 +33,14 @@ namespace xtp {
  */
 class Symmetric_Matrix {
  public:
-  Symmetric_Matrix(size_t dim) {
+  Symmetric_Matrix(Index dim) {
     dimension = dim;
     data.resize((dim + 1) * dim / 2);
   }
 
   Symmetric_Matrix(const Eigen::MatrixXd& full);
 
-  int size() const { return dimension; }
+  Index size() const { return dimension; }
 
   double TraceofProd(const Symmetric_Matrix& a) const;
 
@@ -55,21 +55,19 @@ class Symmetric_Matrix {
   // to zero
   Eigen::MatrixXd UpperMatrix() const;
 
-  double& operator()(const size_t i, const size_t j) {
-    return data[Index(i, j)];
-  };
+  double& operator()(Index i, Index j) { return data[index(i, j)]; };
 
-  const double& operator()(const size_t i, const size_t j) const {
-    return data[Index(i, j)];
+  const double& operator()(Index i, Index j) const {
+    return data[index(i, j)];
   };
 
   friend std::ostream& operator<<(std::ostream& out, const Symmetric_Matrix& a);
 
  private:
-  size_t Index(const size_t i, const size_t j) const;
+  Index index(Index i, Index j) const;
 
   std::vector<double> data;
-  size_t dimension;
+  Index dimension;
 };
 
 }  // namespace xtp

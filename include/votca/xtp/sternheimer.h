@@ -25,26 +25,30 @@
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/logger.h>
+#include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
 
 namespace votca {
 namespace xtp {
-class Orbitals;
-class AOBasis;
+
 class Sternheimer {
  public:
   Sternheimer(Orbitals& orbitals, Logger& log)
       : _orbitals(orbitals), _log(log){};
 
-  //Calculates and saves all matrices needed to perform Sternheimer calculations from DFT
+  // Calculates and saves all matrices needed to perform Sternheimer
+  // calculations from DFT
   void Initialize();
-  
-  //Calculates the Polarizability Tensor for given frequency grid according to Paper
-  //https://journals.aps.org/prb/pdf/10.1103/PhysRevB.89.085129
-  std::vector<Eigen::Matrix3cd> Polarisability(
-      double omega_start, double omega_end, int steps, double imaginary_shift, int resolution_output) const;
-  //Prints the isotropic average of the polarizability tensor
-  void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar, std::vector<std::complex<double>>& grid) const;
+
+  // Calculates the Polarizability Tensor for given frequency grid according to
+  // Paper https://journals.aps.org/prb/pdf/10.1103/PhysRevB.89.085129
+  std::vector<Eigen::Matrix3cd> Polarisability(double omega_start,
+                                               double omega_end, int steps,
+                                               double imaginary_shift,
+                                               int resolution_output) const;
+  // Prints the isotropic average of the polarizability tensor
+  void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar,
+                             std::vector<std::complex<double>>& grid) const;
 
  private:
   Logger& _log;
@@ -60,7 +64,7 @@ class Sternheimer {
   Eigen::MatrixXcd _Hamiltonian_Matrix;
 
   Eigen::MatrixXcd _overlap_Matrix;
-  
+
   Eigen::MatrixXcd _inverse_overlap;
 
   Eigen::MatrixXcd _density_Matrix;
@@ -68,10 +72,10 @@ class Sternheimer {
   Eigen::MatrixXd _mo_coefficients;
   Eigen::VectorXd _mo_energies;
 
-  //Sets up the Multishift solver for linear systems of given size
+  // Sets up the Multishift solver for linear systems of given size
   void initializeMultishift(int size);
 
-  //Sets up the N-Point Pade approximation
+  // Sets up the N-Point Pade approximation
   void initializePade(int size);
   // returns the overlap matrix for all occupied states
   Eigen::MatrixXcd OverlapMatrix();
@@ -81,18 +85,19 @@ class Sternheimer {
   Eigen::MatrixXcd Hamiltonian();
   // Calculates coulomb matrix
   Eigen::MatrixXcd CoulombMatrix();
-  
-  //Bulids the frequency grid for the polarizability calculations
-  //Input values in eV
-  std::vector<std::complex<double>> BuildGrid(double omega_start, double omega_end, int steps, double imaginary_shift) const;
-  
-  //Computes the Dipole Integral
-  std::vector<Eigen::MatrixXcd> DipoleIntegral(); 
+
+  // Bulids the frequency grid for the polarizability calculations
+  // Input values in eV
+  std::vector<std::complex<double>> BuildGrid(double omega_start,
+                                              double omega_end, int steps,
+                                              double imaginary_shift) const;
+
+  // Computes the Dipole Integral
+  std::vector<Eigen::MatrixXcd> DipoleIntegral();
   // sets up the left hand side of the sternheimer equation
   Eigen::MatrixXcd SternheimerLHS(const Eigen::MatrixXcd& hamiltonian,
                                   const Eigen::MatrixXcd& inverse_overlap,
-                                  double eps,
-                                  std::complex<double> omega,
+                                  double eps, std::complex<double> omega,
                                   bool pm) const;
   // sets up the right hand side of the sternheimer equation
   Eigen::VectorXcd SternheimerRHS(const Eigen::MatrixXcd& inverse_overlap,
@@ -100,11 +105,13 @@ class Sternheimer {
                                   const Eigen::MatrixXcd& pertubation,
                                   const Eigen::VectorXcd& coeff) const;
   // Calculates the response of the electron density using one shot Sternheimer
-  std::vector<Eigen::MatrixXcd> DeltaNOneShot(std::vector<std::complex<double>> w,
-                                               const Eigen::MatrixXd& pertubation)const;
-  //Calculates the response of the electron density using self consistent Sternheimer
+  std::vector<Eigen::MatrixXcd> DeltaNOneShot(
+      std::vector<std::complex<double>> w,
+      const Eigen::MatrixXd& pertubation) const;
+  // Calculates the response of the electron density using self consistent
+  // Sternheimer
   Eigen::MatrixXcd DeltaNSelfConsistent(std::complex<double> w,
-                                               const Eigen::MatrixXd& initGuess)const;
+                                        const Eigen::MatrixXd& initGuess) const;
 };
 }  // namespace xtp
 }  // namespace votca

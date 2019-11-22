@@ -19,103 +19,104 @@
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aopotential.h>
 #include <votca/xtp/convergenceacc.h>
 #include <votca/xtp/orbitals.h>
 using namespace votca::xtp;
-using namespace std;
+using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(convergenceacc_test)
 
 BOOST_AUTO_TEST_CASE(levelshift_test) {
 
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " C            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " C            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
   xyzfile.close();
 
-  ofstream basisfile("3-21G.xml");
-  basisfile << "<basis name=\"3-21G\">" << endl;
-  basisfile << "  <element name=\"H\">" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"5.447178e+00\">" << endl;
+  std::ofstream basisfile("3-21G.xml");
+  basisfile << "<basis name=\"3-21G\">" << std::endl;
+  basisfile << "  <element name=\"H\">" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"5.447178e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"1.562850e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"8.245470e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"8.245470e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"9.046910e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"1.831920e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"1.831920e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "  </element>" << endl;
-  basisfile << "  <element name=\"C\">" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"1.722560e+02\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "  </element>" << std::endl;
+  basisfile << "  <element name=\"C\">" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
+  basisfile << "      <constant decay=\"1.722560e+02\">" << std::endl;
   basisfile << "        <contractions factor=\"6.176690e-02\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"2.591090e+01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"2.591090e+01\">" << std::endl;
   basisfile << "        <contractions factor=\"3.587940e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"5.533350e+00\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"5.533350e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"7.007130e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
-  basisfile << "      <constant decay=\"3.664980e+00\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
+  basisfile << "      <constant decay=\"3.664980e+00\">" << std::endl;
   basisfile << "        <contractions factor=\"-3.958970e-01\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"2.364600e-01\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"7.705450e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"7.705450e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.215840e+00\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"8.606190e-01\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
-  basisfile << "      <constant decay=\"1.958570e-01\">" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
+  basisfile << "      <constant decay=\"1.958570e-01\">" << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << endl;
+            << std::endl;
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "  </element>" << endl;
-  basisfile << "</basis>" << endl;
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "  </element>" << std::endl;
+  basisfile << "</basis>" << std::endl;
   basisfile.close();
 
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
   AOOverlap overlap;
   overlap.Fill(aobasis);
 
   AOKinetic kinetic;
   kinetic.Fill(aobasis);
-  AOESP esp;
-  esp.Fillnucpotential(aobasis, orbitals.QMAtoms());
-  Eigen::MatrixXd H = kinetic.Matrix() + esp.getNuclearpotential();
+  AOMultipole esp;
+  esp.FillPotential(aobasis, orbitals.QMAtoms());
+  Eigen::MatrixXd H = kinetic.Matrix() + esp.Matrix();
   ConvergenceAcc d;
   Orbitals orb;
-  int occlevels = 5;
+  Index occlevels = 5;
   Logger log;
   ConvergenceAcc::options opt;
   opt.mode = ConvergenceAcc::KSmode::closed;
@@ -125,20 +126,21 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
   d.setLogger(&log);
   d.Configure(opt);
   d.setOverlap(overlap, 1e-8);
-  d.SolveFockmatrix(orb.MOEnergies(), orb.MOCoefficients(), H);
+  orb.MOs() = d.SolveFockmatrix(H);
 
   Eigen::VectorXd mo_eng_ref = Eigen::VectorXd::Zero(17);
   mo_eng_ref << -19.8117, -6.22408, -6.14094, -6.14094, -6.14094, -3.72889,
       -3.72889, -3.72889, -3.64731, -3.09048, -3.09048, -3.09048, -2.63214,
       -2.08206, -2.08206, -2.08206, -2.03268;
 
-  bool eng_comp = mo_eng_ref.isApprox(orb.MOEnergies(), 1e-5);
+  bool eng_comp = mo_eng_ref.isApprox(orb.MOs().eigenvalues(), 1e-5);
   if (!eng_comp) {
     std::cout << "result energies" << std::endl;
-    std::cout << orb.MOEnergies() << std::endl;
+    std::cout << orb.MOs().eigenvalues() << std::endl;
     std::cout << "ref energies" << std::endl;
     std::cout << mo_eng_ref << std::endl;
   }
+
   Eigen::MatrixXd mo_ref = Eigen::MatrixXd::Zero(17, 17);
   mo_ref << -0.996559, -0.223082, 4.81443e-15, 2.21045e-15, -6.16146e-17,
       -3.16966e-16, 5.46703e-18, -1.09681e-15, -0.0301914, 6.45993e-16,
@@ -188,24 +190,32 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
       -0.00928842, -0.0414346, -0.0475955, -0.0734994, 0.0269257, 0.000682583,
       -0.00239176, -0.00129742, -0.0301047, 0.0287103, 0.643346, 0.617962,
       0.0095153, -0.656011, -2.00774, -0.0012306, -1.24406;
-  bool mo_comp = mo_ref.isApprox(orb.MOCoefficients(), 1e-5);
+
+  Eigen::MatrixXd proj = mo_ref.leftCols(5).transpose() * overlap.Matrix() *
+                         orb.MOs().eigenvectors().leftCols(5);
+  Eigen::VectorXd norms = proj.colwise().norm();
+  bool mo_comp = norms.isApproxToConstant(1, 1e-5);
+
   if (!mo_comp) {
     std::cout << "result mos" << std::endl;
-    std::cout << orb.MOCoefficients() << std::endl;
+    std::cout << orb.MOs().eigenvectors() << std::endl;
     std::cout << "ref mos" << std::endl;
     std::cout << mo_ref << std::endl;
+    std::cout << "norms" << std::endl;
+    std::cout << norms << std::endl;
+    std::cout << "proj" << std::endl;
+    std::cout << proj << std::endl;
   }
 
-  for (unsigned i = occlevels; i < 17; i++) {
-    orb.MOEnergies()(i) += opt.levelshift;
+  for (Index i = occlevels; i < 17; i++) {
+    orb.MOs().eigenvalues()(i) += opt.levelshift;
   }
-  Eigen::VectorXd MOEnergies;
-  Eigen::MatrixXd MOCoeffs;
 
-  d.Levelshift(H);
-  d.SolveFockmatrix(MOEnergies, MOCoeffs, H);
+  d.Levelshift(H, orb.MOs().eigenvectors());
+  votca::tools::EigenSystem result = d.SolveFockmatrix(H);
 
-  bool check_level = MOEnergies.isApprox(orb.MOEnergies(), 0.00001);
+  bool check_level =
+      result.eigenvalues().isApprox(orb.MOs().eigenvalues(), 0.00001);
   BOOST_CHECK_EQUAL(check_level, 1);
 }
 

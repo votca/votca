@@ -21,11 +21,11 @@
 #ifndef __VOTCA_XTP_XTPDFT_H
 #define __VOTCA_XTP_XTPDFT_H
 
+#include <string>
 #include <votca/xtp/dftengine.h>
+#include <votca/xtp/orbitals.h>
 #include <votca/xtp/polarsite.h>
 #include <votca/xtp/qmpackage.h>
-
-#include <string>
 
 namespace votca {
 namespace xtp {
@@ -35,26 +35,37 @@ namespace xtp {
 
 
  */
+
 class XTPDFT : public QMPackage {
  public:
-  std::string getPackageName() const { return "xtp"; }
+  std::string getPackageName() const override { return "xtp"; }
 
-  void Initialize(tools::Property& options);
+  void Initialize(tools::Property& options) override;
 
-  bool WriteInputFile(const Orbitals& orbitals);
+  bool WriteInputFile(const Orbitals& orbitals) override;
 
-  bool Run();
+  bool Run() override;
 
-  void CleanUp();
+  void CleanUp() override;
 
   bool CheckLogFile();
 
-  bool ParseLogFile(Orbitals& orbitals);
+  bool ParseLogFile(Orbitals& orbitals) override;
 
-  bool ParseMOsFile(Orbitals& orbitals);
+  bool ParseMOsFile(Orbitals& orbitals) override;
+
+  StaticSegment GetCharges() const override {
+    throw std::runtime_error(
+        "If you want partial charges just run the 'partialcharges' calculator");
+  }
+
+  Eigen::Matrix3d GetPolarizability() const override {
+    throw std::runtime_error(
+        "GetPolarizability() is not implemented for xtpdft");
+  }
 
  private:
-  void WriteChargeOption() { return; }
+  void WriteChargeOption() override { return; }
   tools::Property _xtpdft_options;
 
   Orbitals _orbitals;

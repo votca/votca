@@ -23,8 +23,6 @@
 
 #include <votca/xtp/qmpackage.h>
 
-#include <string>
-
 namespace votca {
 namespace xtp {
 /**
@@ -34,24 +32,30 @@ namespace xtp {
     and extracts information from its log and io files
 
 */
+class Orbitals;
 class NWChem : public QMPackage {
  public:
-  std::string getPackageName() const { return "nwchem"; }
+  std::string getPackageName() const override { return "nwchem"; }
 
-  void Initialize(tools::Property& options);
+  void Initialize(tools::Property& options) override;
 
-  bool WriteInputFile(const Orbitals& orbitals);
+  bool WriteInputFile(const Orbitals& orbitals) override;
 
-  bool Run();
+  bool Run() override;
 
-  void CleanUp();
+  void CleanUp() override;
 
-  bool ParseLogFile(Orbitals& orbitals);
+  bool ParseLogFile(Orbitals& orbitals) override;
 
-  bool ParseMOsFile(Orbitals& orbitals);
+  bool ParseMOsFile(Orbitals& orbitals) override;
+
+  StaticSegment GetCharges() const override;
+
+  Eigen::Matrix3d GetPolarizability() const override;
 
  private:
-  bool CheckLogFile();
+  std::string ascii_mo_file_name;
+  bool CheckLogFile() const;
   bool WriteShellScript();
   bool WriteGuess(const Orbitals& orbitals);
 
@@ -59,8 +63,8 @@ class NWChem : public QMPackage {
   void WriteECP(std::ofstream& nw_file, const QMMolecule& qmatoms);
 
   std::string FortranFormat(const double& number);
-  int WriteBackgroundCharges(std::ofstream& nw_file);
-  void WriteChargeOption();
+  Index WriteBackgroundCharges(std::ofstream& nw_file);
+  void WriteChargeOption() override;
 };
 
 }  // namespace xtp

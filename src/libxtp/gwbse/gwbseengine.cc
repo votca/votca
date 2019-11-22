@@ -40,19 +40,28 @@ void GWBSEEngine::Initialize(tools::Property& options,
   _archive_file = archive_filename;
   std::string key = Identify();
 
-  // get the tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();
 
-  if (tasks_string.find("guess") != std::string::npos) _do_guess = true;
-  if (tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-  if (tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
-  if (tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
-  if (tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
+  if (tasks_string.find("guess") != std::string::npos) {
+    _do_guess = true;
+  }
+  if (tasks_string.find("input") != std::string::npos) {
+    _do_dft_input = true;
+  }
+  if (tasks_string.find("dft") != std::string::npos) {
+    _do_dft_run = true;
+  }
+  if (tasks_string.find("parse") != std::string::npos) {
+    _do_dft_parse = true;
+  }
+  if (tasks_string.find("gwbse") != std::string::npos) {
+    _do_gwbse = true;
+  }
 
   // XML option file for GWBSE
   if (_do_gwbse) {
     std::string _gwbse_xml = options.get(".gwbse_options").as<std::string>();
-    load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
+    _gwbse_options.LoadFromXML(_gwbse_xml);
   }
   // DFT log and MO file names
   _MO_file = options.get(".mofile").as<std::string>();
@@ -148,7 +157,9 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     gwbse.Evaluate();
     gwbse.addoutput(output_summary);
   }
-  if (_redirect_logger) WriteLoggerToFile(logger);
+  if (_redirect_logger) {
+    WriteLoggerToFile(logger);
+  }
   return;
 }
 

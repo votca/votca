@@ -37,7 +37,7 @@ class Segment;
  */
 class Topology {
  public:
-  Topology(){};
+  Topology() = default;
 
   Topology(const Topology &top);
 
@@ -49,8 +49,8 @@ class Topology {
 
   Segment &AddSegment(std::string segment_name);
 
-  Segment &getSegment(int id) { return _segments[id]; }
-  const Segment &getSegment(int id) const { return _segments[id]; }
+  Segment &getSegment(Index id) { return _segments[id]; }
+  const Segment &getSegment(Index id) const { return _segments[id]; }
 
   std::vector<Segment> &Segments() { return _segments; }
   const std::vector<Segment> &Segments() const { return _segments; }
@@ -69,8 +69,8 @@ class Topology {
 
   // Trajectory meta data: step number, time, frame (= Db ID)
 
-  int getStep() const { return _step; }
-  void setStep(int step) { _step = step; }
+  Index getStep() const { return _step; }
+  void setStep(Index step) { _step = step; }
   double getTime() const { return _time; }
   void setTime(double time) { _time = time; }
 
@@ -92,7 +92,7 @@ class Topology {
   QMNBList _nblist;
 
   double _time;
-  int _step;
+  Index _step;
 
   csg::BoundaryCondition::eBoxtype AutoDetectBoxType(
       const Eigen::Matrix3d &box);

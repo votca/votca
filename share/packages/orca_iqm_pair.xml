@@ -1,18 +1,13 @@
 <package>
-  <name>orca</name>
-  <executable>/opt/orca-4.0.1/orca</executable>
-  <checkpoint></checkpoint>
-  <scratch>temp</scratch>
-  <charge>0</charge>
-  <spin>1</spin>
-  <threads>1</threads>
-  <memory></memory>
-  <basisset>OPTIONFILES/def2-TZVP.xml</basisset>
-  <auxbasisset></auxbasisset>
-  <writebasisset>true</writebasisset>
-  <writepseudopotentials>false</writepseudopotentials>
-  <outputVxc>0</outputVxc>
-  <options>
+  <name help="name of dft package">orca</name>
+  <executable help="executable command for package">/opt/orca-4.0.1/orca</executable>
+  <scratch help="directory to use for temp files of package">temp</scratch>
+  <charge help="charge of system">0</charge>
+  <spin help="multiplicity of qm configuration">1</spin>
+  <memory help="maximum memory code should use"></memory>
+  <basisset  help="basiset to use">OPTIONFILES/def2-TZVP.xml</basisset>
+  <auxbasisset help="auxiliary to use, Delete if you do not want to use RI approximation"></auxbasisset>
+  <options help="additional options that should be written to input file">
 ! DFT PBE NoFinalGrid
 
 %scf
@@ -27,5 +22,5 @@ Print [P_Mulliken] 0
 Print [P_Loewdin] 0
 end
   </options>
-  <cleanup></cleanup>
+  <cleanup help="files to delete identified by fileending"></cleanup>
   </package>

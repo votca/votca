@@ -9,7 +9,7 @@
 #include <votca/xtp/eigen.h>
 
 using namespace votca::xtp;
-using namespace std;
+using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(dipoledipoleinteraction_test)
 
@@ -35,8 +35,8 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
   PolarSegment seg_ref("ref", 100);
   seg_ref.push_back(zero);
   seg_ref.push_back(one);
-  for (int i = 1; i < seg_ref.size(); i++) {
-    for (int j = 0; j < i; j++) {
+  for (Index i = 1; i < seg_ref.size(); i++) {
+    for (Index j = 0; j < i; j++) {
       ref.block<3, 3>(3 * i, 3 * j) =
           interactor.FillTholeInteraction(seg_ref[i], seg_ref[j]);
       ref.block<3, 3>(3 * j, 3 * i) =
@@ -44,14 +44,15 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
     }
   }
 
-  for (int i = 0; i < seg_ref.size(); i++) {
+  for (Index i = 0; i < seg_ref.size(); i++) {
     ref.block<3, 3>(3 * i, 3 * i) = seg_ref[i].getPInv();
   }
   // building matrix via (i,j) operator
   Eigen::MatrixXd elementwise = Eigen::MatrixXd::Zero(6, 6);
-  for (int i = 0; i < 6; i++) {
-    for (int j = 0; j < 6; j++) {
-      elementwise(i, j) = dipdip(i, j);
+  for (Index i = 0; i < 6; i++) {
+    for (Index j = 0; j < 6; j++) {
+      double value = dipdip(i, j);  // do not remove gcc debug needs this
+      elementwise(i, j) = value;
     }
   }
   bool op_check = elementwise.isApprox(ref, 1e-6);
@@ -66,7 +67,7 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
   // building matrix via matrix vector product
   Eigen::MatrixXd gemv = Eigen::MatrixXd::Zero(6, 6);
   Eigen::MatrixXd ident = Eigen::MatrixXd::Identity(6, 6);
-  for (int i = 0; i < 6; i++) {
+  for (Index i = 0; i < 6; i++) {
     gemv.col(i) = dipdip * ident.col(i);
   }
   bool gemv_check = gemv.isApprox(ref, 1e-6);
@@ -79,7 +80,7 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
   }
   // building matrix via iterator product
   Eigen::MatrixXd iterator = Eigen::MatrixXd::Zero(6, 6);
-  for (int k = 0; k < dipdip.outerSize(); ++k) {
+  for (Index k = 0; k < dipdip.outerSize(); ++k) {
     for (DipoleDipoleInteraction::InnerIterator it(dipdip, k); it; ++it) {
       iterator(it.row(), k) = it.value();
     }

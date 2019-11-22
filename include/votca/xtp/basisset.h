@@ -26,67 +26,58 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace xtp {
 // shell type (S, P, D))
 
-int FindLmax(const std::string& type);
+Index FindLmax(const std::string& type);
 
-int FindLmin(const std::string& type);
+Index FindLmin(const std::string& type);
 
-int OffsetFuncShell(const std::string& shell_type);
+Index OffsetFuncShell(const std::string& shell_type);
 
-int NumFuncShell(const std::string& shell_type);
-int NumFuncShell_cartesian(const std::string& shell_type);
+Index NumFuncShell(const std::string& shell_type);
+Index NumFuncShell_cartesian(const std::string& shell_type);
 
-int OffsetFuncShell_cartesian(const std::string& shell_type);
+Index OffsetFuncShell_cartesian(const std::string& shell_type);
 
-std::vector<int> NumFuncSubShell(const std::string& shell_type);
-
-class Shell;
-class Element;
-class BasisSet;
+std::vector<Index> NumFuncSubShell(const std::string& shell_type);
 
 // Gaussian function: contraction*exp(-decay*r^2)
 class GaussianPrimitive {
-  friend class Shell;
-
  public:
-  int _power;  // used in pseudopotenials only
-  double _decay;
-  std::vector<double> _contraction;
+  GaussianPrimitive(double decay, std::vector<double> contraction)
+      : _decay(decay), _contraction(contraction) {}
+  const std::vector<double>& Contractions() const { return _contraction; }
+
+  double decay() const { return _decay; }
 
  private:
-  // private constructor, only a shell can create a primitive
-  GaussianPrimitive(double decay, std::vector<double> contraction)
-      : _decay(decay), _contraction(contraction) {
-    ;
-  }
-
-  GaussianPrimitive(int power, double decay, std::vector<double> contraction)
-      : _power(power), _decay(decay), _contraction(contraction) {
-    ;
-  }
+  double _decay;
+  std::vector<double> _contraction;
 };
 
 class Shell {
-  friend class Element;
 
  public:
+  Shell(std::string type, double scale) : _type(type), _scale(scale) { ; }
   const std::string& getType() const { return _type; }
 
   bool isCombined() const { return (_type.length() > 1); }
 
-  int getLmax() const { return FindLmax(_type); }
+  Index getLmax() const { return FindLmax(_type); }
 
-  int getnumofFunc() const { return NumFuncShell(_type); };
+  Index getLmin() const { return FindLmin(_type); }
 
-  int getOffset() const { return OffsetFuncShell(_type); }
+  Index getnumofFunc() const { return NumFuncShell(_type); };
+
+  Index getOffset() const { return OffsetFuncShell(_type); }
 
   double getScale() const { return _scale; }
 
-  int getSize() const { return _gaussians.size(); }
+  Index getSize() const { return _gaussians.size(); }
 
   std::vector<GaussianPrimitive>::const_iterator begin() const {
     return _gaussians.begin();
@@ -97,17 +88,9 @@ class Shell {
 
   // adds a Gaussian
   GaussianPrimitive& addGaussian(double decay, std::vector<double> contraction);
-
-  // adds a Gaussian of a pseudopotential
-  GaussianPrimitive& addGaussian(int power, double decay,
-                                 std::vector<double> contraction);
-
   friend std::ostream& operator<<(std::ostream& out, const Shell& shell);
 
  private:
-  // only class Element can construct shells
-  Shell(std::string type, double scale) : _type(type), _scale(scale) { ; }
-
   std::string _type;
   // scaling factor
   double _scale;
@@ -120,47 +103,26 @@ class Shell {
  * A collection of shells associated with a specific element
  */
 class Element {
-  friend class BasisSet;
 
  public:
-  typedef std::vector<Shell>::const_iterator ShellIterator;
+  Element(std::string type) : _type(type) { ; }
+  using ShellIterator = std::vector<Shell>::const_iterator;
   ShellIterator begin() const { return _shells.begin(); }
   ShellIterator end() const { return _shells.end(); }
 
   const std::string& getType() const { return _type; }
-
-  int getLmax() const { return _lmax; }
-
-  int getNcore() const { return _ncore; }
 
   Shell& addShell(const std::string& shellType, double shellScale) {
     _shells.push_back(Shell(shellType, shellScale));
     return _shells.back();
   }
 
-  int NumOfShells() const { return _shells.size(); }
+  Index NumOfShells() const { return _shells.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const Element& element);
 
  private:
-  // only class BasisSet can create Elements
-  Element(std::string type) : _type(type) { ; }
-
-  // used for the pseudopotential
-  Element(std::string type, int lmax, int ncore)
-      : _type(type), _lmax(lmax), _ncore(ncore) {
-    ;
-  }
-
-  // only class BasisSet can destruct Elements
-
   std::string _type;
-  // lmax is used in the pseudopotentials only (applies to the highest angular
-  // momentum lmax)
-  int _lmax;
-  // ncore is used in the pseudopotentials only (replaces ncore electrons))
-  int _ncore;
-
   std::vector<Shell> _shells;
 };
 
@@ -169,37 +131,26 @@ class Element {
  */
 class BasisSet {
  public:
-  void LoadBasisSet(const std::string& name);
-
-  void LoadPseudopotentialSet(const std::string& name);
-
-  Element& addElement(std::string elementType);
-
-  // used for pseudopotentials only
-  Element& addElement(std::string elementType, int lmax, int ncore);
+  void Load(const std::string& name);
 
   const Element& getElement(std::string element_type) const;
 
-  std::map<std::string, std::shared_ptr<Element> >::iterator begin() {
-    return _elements.begin();
-  }
-  std::map<std::string, std::shared_ptr<Element> >::iterator end() {
-    return _elements.end();
-  }
+  std::map<std::string, Element>::iterator begin() { return _elements.begin(); }
+  std::map<std::string, Element>::iterator end() { return _elements.end(); }
 
-  std::map<std::string, std::shared_ptr<Element> >::const_iterator begin()
-      const {
+  std::map<std::string, Element>::const_iterator begin() const {
     return _elements.begin();
   }
-  std::map<std::string, std::shared_ptr<Element> >::const_iterator end() const {
+  std::map<std::string, Element>::const_iterator end() const {
     return _elements.end();
   }
 
   friend std::ostream& operator<<(std::ostream& out, const BasisSet& basis);
 
  private:
+  Element& addElement(std::string elementType);
   std::string _name;
-  std::map<std::string, std::shared_ptr<Element> > _elements;
+  std::map<std::string, Element> _elements;
 };
 
 }  // namespace xtp

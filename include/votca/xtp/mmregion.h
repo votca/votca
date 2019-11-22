@@ -34,25 +34,25 @@ class StaticRegion;
 template <class T>
 class MMRegion : public Region {
  public:
-  MMRegion(int id, Logger& log) : Region(id, log){};
-  void WriteToCpt(CheckpointWriter& w) const;
+  MMRegion(Index id, Logger& log) : Region(id, log){};
+  void WriteToCpt(CheckpointWriter& w) const override;
 
-  void ReadFromCpt(CheckpointReader& r);
+  void ReadFromCpt(CheckpointReader& r) override;
 
-  int size() const { return _segments.size(); }
+  Index size() const override { return Index(_segments.size()); }
 
-  typedef typename std::vector<T>::iterator iterator;
+  using iterator = typename std::vector<T>::iterator;
 
-  virtual void Initialize(const tools::Property& prop) = 0;
+  void Initialize(const tools::Property& prop) override = 0;
 
-  virtual bool Converged() const = 0;
+  bool Converged() const override = 0;
 
-  virtual void Evaluate(std::vector<std::unique_ptr<Region> >& regions) = 0;
+  void Evaluate(std::vector<std::unique_ptr<Region> >& regions) override = 0;
 
-  virtual std::string identify() const = 0;
+  std::string identify() const override = 0;
 
-  const T& operator[](int index) const { return _segments[index]; }
-  T& operator[](int index) { return _segments[index]; }
+  const T& operator[](Index index) const { return _segments[index]; }
+  T& operator[](Index index) { return _segments[index]; }
 
   typename std::vector<T>::iterator begin() { return _segments.begin(); }
   typename std::vector<T>::iterator end() { return _segments.end(); }
@@ -64,21 +64,21 @@ class MMRegion : public Region {
     return _segments.end();
   }
 
-  virtual double Etotal() const = 0;
+  double Etotal() const override = 0;
 
-  virtual void Reset() = 0;
+  void Reset() override = 0;
 
-  double charge() const;
+  double charge() const override;
 
-  void WritePDB(csg::PDBWriter& writer) const;
+  void WritePDB(csg::PDBWriter& writer) const override;
 
   void push_back(const T& seg) { _segments.push_back(seg); }
 
  protected:
-  virtual void AppendResult(tools::Property& prop) const = 0;
-  virtual double InteractwithQMRegion(const QMRegion& region) = 0;
-  virtual double InteractwithPolarRegion(const PolarRegion& region) = 0;
-  virtual double InteractwithStaticRegion(const StaticRegion& region) = 0;
+  void AppendResult(tools::Property& prop) const override = 0;
+  double InteractwithQMRegion(const QMRegion& region) override = 0;
+  double InteractwithPolarRegion(const PolarRegion& region) override = 0;
+  double InteractwithStaticRegion(const StaticRegion& region) override = 0;
 
   std::vector<T> _segments;
 };

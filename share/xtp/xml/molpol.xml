@@ -4,7 +4,9 @@
         <mpsinput help="Input file .mps format">CH4_n.mps</mpsinput>
         <mpsoutput help="Output file .mps format">CH4_n_polar.mps</mpsoutput>
         <options_polar help="Options for the electrostatic interaction">polar.xml</options_polar>
-        <target help="Target polarisability to reproduce " units="nm^3">2.3191 0.0 0.0 2.3199 0.0 2.3204</target>
+        <qmpackage  help="DFT package polarisation calculation was run with"></qmpackage>
+        <logfile help="logfile of DFTpackage to read Target polarisability from"></logfile>
+        <target help="Target polarisability to reproduce " unit="nm^3">2.3191 0.0 0.0 2.3199 0.0 2.3204</target>
         <tolerance help="convergence tolerance">1e-4</tolerance>
         <weights help="Limit scaling of individual atoms, scaling weights are in the same order as the input">1 1 1 1 1</weights>
     </molpol>

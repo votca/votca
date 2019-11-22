@@ -36,11 +36,10 @@ class QMThread;
 template <typename JobContainer>
 class ProgObserver {
 
-  typedef
-      typename std::iterator_traits<typename JobContainer::iterator>::value_type
-          Job;
+  using Job = typename std::iterator_traits<
+      typename JobContainer::iterator>::value_type;
 
-  typedef typename Job::JobResult Result;
+  using Result = typename Job::JobResult;
 
  public:
   void InitCmdLineOpts(const boost::program_options::variables_map &optsMap);
@@ -52,21 +51,21 @@ class ProgObserver {
   void LockProgFile(QMThread &thread);
   void ReleaseProgFile(QMThread &thread);
 
-  std::string GenerateHost(QMThread &thread);
+  std::string GenerateHost();
   std::string GenerateTime();
 
  private:
   std::string _lockFile = "";
   std::string _progFile = "";
-  int _cacheSize = -1;
+  Index _cacheSize = -1;
   JobContainer _jobs;
 
   std::vector<Job *> _jobsToProc;
   std::vector<Job *> _jobsToSync;
 
-  typedef typename JobContainer::iterator iterator;
+  using iterator = typename JobContainer::iterator;
   iterator _metajit;
-  typedef typename std::vector<Job *>::iterator iterator_vec;
+  using iterator_vec = typename std::vector<Job *>::iterator;
   iterator_vec _nextjit;
   tools::Mutex _lockThread;
   std::unique_ptr<boost::interprocess::file_lock> _flock;
@@ -74,11 +73,11 @@ class ProgObserver {
   std::map<std::string, bool> _restart_hosts;
   std::map<std::string, bool> _restart_stats;
   bool _restartMode = false;
-  int _jobsReported = 0;
+  Index _jobsReported = 0;
 
   bool _moreJobsAvailable = false;
-  int _startJobsCount = 0;
-  int _maxJobs = 0;
+  Index _startJobsCount = 0;
+  Index _maxJobs = 0;
 };
 
 }  // namespace xtp

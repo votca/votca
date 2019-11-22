@@ -28,15 +28,15 @@ using namespace votca;
 
 class XtpDump : public xtp::StateApplication {
  public:
-  string ProgramName() { return "xtp_dump"; }
+  string ProgramName() override { return "xtp_dump"; }
 
-  void HelpText(ostream& out) {
+  void HelpText(ostream& out) override {
     out << "Extracts information from the state file" << endl;
   }
   void HelpText(){};
 
-  void Initialize();
-  bool EvaluateOptions();
+  void Initialize() override;
+  bool EvaluateOptions() override;
 
  private:
   // void    PrintDescription(string name, HelpOutputType _help_output_type);
@@ -78,7 +78,7 @@ bool XtpDump::EvaluateOptions() {
       bool printerror = true;
 
       for (const auto& extract : xtp::Extractors().getObjects()) {
-        if (n.compare(extract.first.c_str()) == 0) {
+        if (n.compare(extract.first) == 0) {
           PrintDescription(std::cout, extract.first, "xtp/xml",
                            Application::HelpLong);
           printerror = false;
@@ -86,7 +86,9 @@ bool XtpDump::EvaluateOptions() {
         }
       }
 
-      if (printerror) cout << "Extractor " << n << " does not exist\n";
+      if (printerror) {
+        cout << "Extractor " << n << " does not exist\n";
+      }
     }
     StopExecution();
     return true;
@@ -100,10 +102,9 @@ bool XtpDump::EvaluateOptions() {
 
     bool found_calc = false;
     for (const auto& extract : xtp::Extractors().getObjects()) {
-      if (n.compare(extract.first.c_str()) == 0) {
+      if (n.compare(extract.first) == 0) {
         cout << " This is a XTP app" << endl;
-        xtp::StateApplication::AddCalculator(
-            xtp::Extractors().Create(n.c_str()));
+        xtp::StateApplication::SetCalculator(xtp::Extractors().Create(n));
         found_calc = true;
       }
     }

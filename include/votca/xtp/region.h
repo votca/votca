@@ -42,8 +42,8 @@ class StaticRegion;
 class Region {
 
  public:
-  Region(int id, Logger& log) : _id(id), _log(log){};
-  virtual ~Region(){};
+  Region(Index id, Logger& log) : _id(id), _log(log){};
+  virtual ~Region() = default;
 
   virtual void WriteToCpt(CheckpointWriter& w) const = 0;
 
@@ -55,7 +55,7 @@ class Region {
 
   virtual void Evaluate(std::vector<std::unique_ptr<Region> >& regions) = 0;
 
-  virtual int size() const = 0;
+  virtual Index size() const = 0;
 
   virtual std::string identify() const = 0;
 
@@ -71,7 +71,7 @@ class Region {
 
   void AddResults(tools::Property& prop) const;
 
-  int getId() const { return _id; }
+  Index getId() const { return _id; }
 
   virtual double Etotal() const = 0;
 
@@ -82,39 +82,6 @@ class Region {
   }
 
  protected:
-  template <class T>
-  class hist {
-   public:
-    T getDiff() const {
-      if (_filled > 1) {
-        return _metric - _metric_old;
-      } else if (_filled == 1) {
-        return _metric;
-      } else {
-        throw std::runtime_error("hist is not filled yet");
-      }
-    }
-
-    const T& back() const { return _metric; }
-    void push_back(const T& metric) {
-      _metric_old = std::move(_metric);
-      _metric = metric;
-      _filled++;
-    }
-    void push_back(T&& metric) {
-      _metric_old = std::move(_metric);
-      _metric = std::move(metric);
-      _filled++;
-    }
-
-    bool filled() const { return _filled > 0; }
-
-   private:
-    int _filled = 0;
-    T _metric;
-    T _metric_old;
-  };
-
   bool _info = true;
   std::string _errormsg = "";
   std::vector<double> ApplyInfluenceOfOtherRegions(
@@ -124,7 +91,7 @@ class Region {
   virtual double InteractwithPolarRegion(const PolarRegion& region) = 0;
   virtual double InteractwithStaticRegion(const StaticRegion& region) = 0;
 
-  int _id = -1;
+  Index _id = -1;
   Logger& _log;
 };
 

@@ -21,10 +21,9 @@
 #ifndef _VOTCA_XTP_CONVERGENCEACC__H
 #define _VOTCA_XTP_CONVERGENCEACC__H
 
-#include <memory>
+#include <votca/tools/linalg.h>
 #include <votca/xtp/adiis.h>
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/basisset.h>
 #include <votca/xtp/diis.h>
 #include <votca/xtp/logger.h>
 namespace votca {
@@ -38,13 +37,13 @@ class ConvergenceAcc {
     KSmode mode = KSmode::closed;
     bool usediis = true;
     bool noisy = false;
-    int histlength = 10;
+    Index histlength = 10;
     bool maxout = false;
     double adiis_start = 2;
     double diis_start = 0.01;
     double levelshift = 0.25;
     double levelshiftend = 0.8;
-    int numberofelectrons;
+    Index numberofelectrons;
     double mixingparameter = 0.7;
     double Econverged = 1e-7;
     double error_converged = 1e-7;
@@ -88,14 +87,11 @@ class ConvergenceAcc {
   bool getUseMixing() const { return _usedmixing; }
 
   Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat, Eigen::MatrixXd& H,
-                          Eigen::VectorXd& MOenergies, Eigen::MatrixXd& MOs,
-                          double totE);
-  void SolveFockmatrix(Eigen::VectorXd& MOenergies, Eigen::MatrixXd& MOs,
-                       const Eigen::MatrixXd& H);
-  void Levelshift(Eigen::MatrixXd& H) const;
+                          tools::EigenSystem& MOs, double totE);
+  tools::EigenSystem SolveFockmatrix(const Eigen::MatrixXd& H) const;
+  void Levelshift(Eigen::MatrixXd& H, const Eigen::MatrixXd& MOs_old) const;
 
-  Eigen::MatrixXd DensityMatrix(const Eigen::MatrixXd& MOs,
-                                const Eigen::VectorXd& MOEnergies) const;
+  Eigen::MatrixXd DensityMatrix(const tools::EigenSystem& MOs) const;
 
  private:
   options _opt;
@@ -104,7 +100,7 @@ class ConvergenceAcc {
   Eigen::MatrixXd DensityMatrixGroundState_unres(
       const Eigen::MatrixXd& MOs) const;
   Eigen::MatrixXd DensityMatrixGroundState_frac(
-      const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies) const;
+      const tools::EigenSystem& MOs) const;
 
   bool _usedmixing = true;
   double _diiserror = std::numeric_limits<double>::max();
@@ -112,14 +108,12 @@ class ConvergenceAcc {
   const AOOverlap* _S;
 
   Eigen::MatrixXd Sminusahalf;
-  Eigen::MatrixXd Sonehalf;
-  Eigen::MatrixXd MOsinv;
   std::vector<Eigen::MatrixXd> _mathist;
   std::vector<Eigen::MatrixXd> _dmatHist;
   std::vector<double> _totE;
 
-  int _nocclevels;
-  int _maxerrorindex = 0;
+  Index _nocclevels;
+  Index _maxerrorindex = 0;
   double _maxerror = 0.0;
   ADIIS _adiis;
   DIIS _diis;

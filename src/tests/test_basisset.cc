@@ -397,7 +397,7 @@ BOOST_AUTO_TEST_CASE(Contraction_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("CO.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("contracted.xml");
+  basis.Load("contracted.xml");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

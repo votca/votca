@@ -40,11 +40,11 @@ class PolarSite : public StaticSite {
   void WriteData(StaticSite::data& d) const = delete;
   void ReadData(StaticSite::data& d) = delete;
 
-  PolarSite(int id, std::string element, Eigen::Vector3d pos);
-  PolarSite(int id, std::string element)
+  PolarSite(Index id, std::string element, Eigen::Vector3d pos);
+  PolarSite(Index id, std::string element)
       : PolarSite(id, element, Eigen::Vector3d::Zero()){};
 
-  ~PolarSite(){};
+  ~PolarSite() override = default;
 
   void setPolarisation(const Eigen::Matrix3d& pol) override;
 
@@ -88,13 +88,13 @@ class PolarSite : public StaticSite {
   }
 
   struct data {
-    int id;
+    Index id;
     char* element;
     double posX;
     double posY;
     double posZ;
 
-    int rank;
+    Index rank;
 
     double Q00;
     double Q11c;
@@ -126,13 +126,13 @@ class PolarSite : public StaticSite {
     double d_z_ind;
   };
   // do not move up has to be below data definition
-  PolarSite(data& d);
+  PolarSite(const data& d);
 
   double DipoleChange() const;
 
   void SetupCptTable(CptTable& table) const override;
   void WriteData(data& d) const;
-  void ReadData(data& d);
+  void ReadData(const data& d);
 
   std::string identify() const override { return "polarsite"; }
 

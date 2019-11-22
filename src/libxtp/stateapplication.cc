@@ -38,11 +38,11 @@ void StateApplication::Initialize(void) {
 
   AddProgramOptions()("file,f", propt::value<std::string>(),
                       "  hdf5 state file, *.hdf5");
-  AddProgramOptions()("first-frame,i", propt::value<int>()->default_value(0),
+  AddProgramOptions()("first-frame,i", propt::value<Index>()->default_value(0),
                       "  start from this frame");
-  AddProgramOptions()("nframes,n", propt::value<int>()->default_value(1),
+  AddProgramOptions()("nframes,n", propt::value<Index>()->default_value(1),
                       "  number of frames to process");
-  AddProgramOptions()("nthreads,t", propt::value<int>()->default_value(1),
+  AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
                       "  number of threads to create");
   AddProgramOptions()("save,s", propt::value<bool>()->default_value(true),
                       "  whether or not to save changes to state file");
@@ -56,44 +56,50 @@ bool StateApplication::EvaluateOptions(void) {
 void StateApplication::Run() {
 
   std::string name = ProgramName();
-  if (VersionString() != "") name = name + ", version " + VersionString();
-  HelpTextHeader(name);
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
+  xtp::HelpTextHeader(name);
 
-  int nThreads = OptionsMap()["nthreads"].as<int>();
-  int nframes = OptionsMap()["nframes"].as<int>();
-  int fframe = OptionsMap()["first-frame"].as<int>();
+  _options.LoadFromXML(_op_vm["options"].as<std::string>());
+  Index nThreads = OptionsMap()["nthreads"].as<Index>();
+  Index nframes = OptionsMap()["nframes"].as<Index>();
+  Index fframe = OptionsMap()["first-frame"].as<Index>();
   bool save = OptionsMap()["save"].as<bool>();
 
   // STATESAVER & PROGRESS OBSERVER
   std::string statefile = OptionsMap()["file"].as<std::string>();
   StateSaver statsav(statefile);
-  std::vector<int> frames = statsav.getFrames();
+  std::vector<Index> frames = statsav.getFrames();
+  if (frames.empty()) {
+    throw std::runtime_error("Statefile " + statefile + " not found.");
+  }
   // INITIALIZE & RUN CALCULATORS
-  std::cout << "Initializing calculators " << std::endl;
+  std::cout << "Initializing calculator" << std::endl;
   BeginEvaluate(nThreads);
   std::cout << frames.size() << " frames in statefile, Ids are: ";
-  for (int frame : frames) {
+  for (Index frame : frames) {
     std::cout << frame << " ";
   }
   std::cout << std::endl;
-  if (fframe < int(frames.size())) {
+  if (fframe < Index(frames.size())) {
     std::cout << "Starting at frame " << frames[fframe] << std::endl;
   } else {
     std::cout << "First frame:" << fframe
-              << " is larger than number of frames:" << int(frames.size())
+              << " is larger than number of frames:" << Index(frames.size())
               << std::endl;
     return;
   }
 
-  if ((fframe + nframes) > int(frames.size())) {
-    nframes = frames.size() - fframe;
+  if ((fframe + nframes) > Index(frames.size())) {
+    nframes = Index(frames.size()) - fframe;
   }
 
-  for (int i = fframe; i < nframes; i++) {
-    std::cout << "Evaluating frame " << i << std::endl;
-    Topology top = statsav.ReadFrame(i);
+  for (Index i = fframe; i < nframes; i++) {
+    std::cout << "Evaluating frame " << frames[i] << std::endl;
+    Topology top = statsav.ReadFrame(frames[i]);
     EvaluateFrame(top);
-    if (save) {
+    if (save && _calculator->WriteToStateFile()) {
       statsav.WriteFrame(top);
     } else {
       std::cout << "Changes have not been written to state file." << std::endl;
@@ -101,25 +107,21 @@ void StateApplication::Run() {
   }
 }
 
-void StateApplication::AddCalculator(QMCalculator* calculator) {
-  _calculators.push_back(std::unique_ptr<QMCalculator>(calculator));
+void StateApplication::SetCalculator(QMCalculator* calculator) {
+  _calculator = std::unique_ptr<QMCalculator>(calculator);
 }
 
-void StateApplication::BeginEvaluate(int nThreads = 1) {
-  for (std::unique_ptr<QMCalculator>& calculator : _calculators) {
-    std::cout << "... " << calculator->Identify() << " ";
-    calculator->setnThreads(nThreads);
-    calculator->Initialize(_options);
-    std::cout << std::endl;
-  }
+void StateApplication::BeginEvaluate(Index nThreads = 1) {
+  std::cout << "... " << _calculator->Identify() << " ";
+  _calculator->setnThreads(nThreads);
+  _calculator->Initialize(_options);
+  std::cout << std::endl;
 }
 
 bool StateApplication::EvaluateFrame(Topology& top) {
-  for (std::unique_ptr<QMCalculator>& calculator : _calculators) {
-    std::cout << "... " << calculator->Identify() << " " << std::flush;
-    calculator->EvaluateFrame(top);
-    std::cout << std::endl;
-  }
+  std::cout << "... " << _calculator->Identify() << " " << std::flush;
+  _calculator->EvaluateFrame(top);
+  std::cout << std::endl;
   return true;
 }
 

@@ -21,79 +21,67 @@
 #ifndef VOTCA_XTP_AOBASIS_H
 #define VOTCA_XTP_AOBASIS_H
 
-#include <boost/math/constants/constants.hpp>
 #include <votca/xtp/aoshell.h>
-#include <votca/xtp/basisset.h>
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/qmmolecule.h>
 
 namespace votca {
 namespace xtp {
+class QMMolecule;
+class BasisSet;
 
 /**
  * \brief Container to hold Basisfunctions for all atoms
  *
- * It is constructed from a vector of QMAtoms and a BasisSet.
+ * It is constructed from a QMMolecule and a BasisSet.
  */
 class AOBasis {
  public:
   void ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
-                  const std::string& target);
+                  const std::string& target) const;
 
-  void ReorderMatrix(Eigen::MatrixXd& v, const std::string& start,
-                     const std::string& target);
+  void Fill(const BasisSet& bs, const QMMolecule& atoms);
 
-  void AOBasisFill(const BasisSet& bs, const QMMolecule& atoms);
+  Index AOBasisSize() const { return _AOBasisSize; }
 
-  // returns element names for which no ecp was found
-  std::vector<std::string> ECPFill(const BasisSet& bs, QMMolecule& atoms);
-
-  int AOBasisSize() const { return _AOBasisSize; }
-
-  typedef std::vector<AOShell>::const_iterator AOShellIterator;
+  using AOShellIterator = std::vector<AOShell>::const_iterator;
   AOShellIterator begin() const { return _aoshells.begin(); }
   AOShellIterator end() const { return _aoshells.end(); }
 
-  const AOShell& getShell(int idx) const { return _aoshells[idx]; }
+  const AOShell& getShell(Index idx) const { return _aoshells[idx]; }
 
-  const std::vector<const AOShell*> getShellsofAtom(int AtomId) const;
+  const std::vector<const AOShell*> getShellsofAtom(Index AtomId) const;
 
-  int getNumofShells() const { return _aoshells.size(); }
+  Index getNumofShells() const { return Index(_aoshells.size()); }
 
-  int getFuncOfAtom(int AtomIndex) const { return _FuncperAtom[AtomIndex]; }
-
-  const std::vector<int>& getFuncPerAtom() const { return _FuncperAtom; }
-
-  const AOShell& back() const { return _aoshells.back(); }
+  const std::vector<Index>& getFuncPerAtom() const { return _FuncperAtom; }
 
  private:
-  AOShell& addShell(const Shell& shell, const QMAtom& atom, int startIndex);
+  AOShell& addShell(const Shell& shell, const QMAtom& atom, Index startIndex);
 
-  AOShell& addECPShell(const Shell& shell, const QMAtom& atom, int startIndex,
-                       bool nonlocal);
+  void MultiplyMOs(Eigen::MatrixXd& v,
+                   const std::vector<Index>& multiplier) const;
 
-  void MultiplyMOs(Eigen::MatrixXd& v, std::vector<int> const& multiplier);
+  std::vector<Index> invertOrder(const std::vector<Index>& order) const;
 
-  std::vector<int> invertOrder(const std::vector<int>& order);
-
-  std::vector<int> getReorderVector(const std::string& start,
-                                    const std::string& target);
+  std::vector<Index> getReorderVector(const std::string& start,
+                                      const std::string& target) const;
 
   void addReorderShell(const std::string& start, const std::string& target,
-                       const std::string& shell, std::vector<int>& neworder);
+                       const std::string& shell,
+                       std::vector<Index>& neworder) const;
 
-  std::vector<int> getMultiplierVector(const std::string& start,
-                                       const std::string& target);
+  std::vector<Index> getMultiplierVector(const std::string& start,
+                                         const std::string& target) const;
 
   void addMultiplierShell(const std::string& start, const std::string& target,
                           const std::string& shell,
-                          std::vector<int>& multiplier);
+                          std::vector<Index>& multiplier) const;
 
   std::vector<AOShell> _aoshells;
 
-  std::vector<int> _FuncperAtom;
+  std::vector<Index> _FuncperAtom;
 
-  int _AOBasisSize;
+  Index _AOBasisSize;
 };
 
 }  // namespace xtp

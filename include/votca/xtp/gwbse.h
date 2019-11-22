@@ -25,6 +25,7 @@
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/gw.h>
 #include <votca/xtp/logger.h>
+#include <votca/xtp/qmfragment.h>
 
 #include "bse.h"
 
@@ -63,7 +64,7 @@ class GWBSE {
 
  private:
   Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
-  int CountCoreLevels();
+  Index CountCoreLevels();
   Logger* _pLog;
   Orbitals& _orbitals;
 
@@ -73,15 +74,9 @@ class GWBSE {
   bool _do_bse_singlets = false;
   bool _do_bse_triplets = false;
 
-  // storage tasks
-  bool _store_bse_singlets = false;
-  bool _store_bse_triplets = false;
-
   // options for own Vxc calculation
   std::string _functional;
   std::string _grid;
-
-  int _openmp_threads;
 
   GW::options _gwopt;
   BSE::options _bseopt;
@@ -90,8 +85,7 @@ class GWBSE {
   std::string _auxbasis_name;
   std::string _dftbasis_name;
 
-  std::vector<QMFragment<BSE_Population> > _triplets;
-  std::vector<QMFragment<BSE_Population> > _singlets;
+  std::vector<QMFragment<BSE_Population> > _fragments;
 };
 }  // namespace xtp
 }  // namespace votca

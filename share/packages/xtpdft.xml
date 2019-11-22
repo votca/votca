@@ -1,25 +1,24 @@
 <package>
-<spin>1</spin>
-<name>xtp</name>
-<charge>0</charge>
-  <threads>0</threads>
+<spin help="multiplicity of qm configuration">1</spin>
+<name help="name of dft package">xtp</name>
+<charge help="charge of system">0</charge>
 <convergence>
-    <energy>1e-7</energy>
-    <method>DIIS</method>
-    <DIIS_start>0.002</DIIS_start>
-    <ADIIS_start>0.8</ADIIS_start>
-    <DIIS_length>20</DIIS_length>
-    <levelshift>0.0</levelshift>
-    <levelshift_end>0.2</levelshift_end>
+    <energy help="DeltaE at which calculation is converged" unit="hartree">1e-7</energy>
+    <method help="Main method to use for convergence accelertation DIIS or mixing">DIIS</method>
+    <DIIS_start help="DIIS error at which DIIS takes over">0.002</DIIS_start>
+    <ADIIS_start help="DIIS error at which ADIIS takes over">0.8</ADIIS_start>
+    <DIIS_length help="old hamiltonians to keep in history">20</DIIS_length>
+    <levelshift help="levelshift to apply to hamiltonian " unit="hartree">0.0</levelshift>
+    <levelshift_end help="DIIS error at levelshifting is disabled">0.2</levelshift_end>
 </convergence>
-<initial_guess>atom</initial_guess>
-<dftbasis>ubecppol</dftbasis>
-<ecp>ecp</ecp>
-<auxbasis>aux-ubecppol</auxbasis>  
-<integration_grid>medium</integration_grid>
-<integration_grid_small>0</integration_grid_small>
-<xc_functional>XC_HYB_GGA_XC_PBEH</xc_functional>
-<max_iterations>200</max_iterations>
-<read_guess>0</read_guess>
-<cleanup></cleanup>
+<initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities)">atom</initial_guess>
+<basisset help="basiset to use">ubecppol</basisset>
+<ecp help="Pseudo potential to use, Delete if you do not want to use ecps">ecp</ecp>
+<auxbasisset help="auxiliary to use, Delete if you do not want to use RI approximation">aux-ubecppol</auxbasisset>  
+<integration_grid help="grid quality xcoarse,coarse,medium,fine,xfine">medium</integration_grid>
+<integration_grid_small help="use a smaller grid for start of calculation">0</integration_grid_small>
+<xc_functional help="functional name(s) according to LIBXC">XC_HYB_GGA_XC_PBEH</xc_functional>
+<max_iterations help="max iterations to use">200</max_iterations>
+<read_guess help="try to read guess from orbitals file">0</read_guess>
+<cleanup help="files to delete identified by fileending"></cleanup>
 </package>

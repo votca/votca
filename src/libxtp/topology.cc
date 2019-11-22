@@ -26,9 +26,6 @@
 #include <votca/csg/pdbwriter.h>
 #include <votca/tools/globals.h>
 
-using namespace std;
-using namespace votca::tools;
-
 namespace votca {
 namespace xtp {
 
@@ -37,9 +34,9 @@ Topology::Topology(const Topology &top) {
   _time = top._time;
   _step = top._step;
   this->setBox(top.getBox());
-  for (const QMPair *pair : top._nblist) {
-    const Segment *seg1 = &_segments[pair->Seg1()->getId()];
-    const Segment *seg2 = &_segments[pair->Seg2()->getId()];
+  for (const QMPair *pair : top.NBList()) {
+    const Segment &seg1 = _segments[pair->Seg1()->getId()];
+    const Segment &seg2 = _segments[pair->Seg2()->getId()];
     _nblist.Add(seg1, seg2, pair->R());
   }
 }
@@ -51,17 +48,17 @@ Topology &Topology::operator=(const Topology &top) {
     _step = top._step;
     this->setBox(top.getBox());
     _nblist.Cleanup();
-    for (const QMPair *pair : top._nblist) {
-      const Segment *seg1 = &_segments[pair->Seg1()->getId()];
-      const Segment *seg2 = &_segments[pair->Seg2()->getId()];
+    for (const QMPair *pair : top.NBList()) {
+      const Segment &seg1 = _segments[pair->Seg1()->getId()];
+      const Segment &seg2 = _segments[pair->Seg2()->getId()];
       _nblist.Add(seg1, seg2, pair->R());
     }
   }
   return *this;
 }
 
-Segment &Topology::AddSegment(string segment_name) {
-  int segment_id = _segments.size();
+Segment &Topology::AddSegment(std::string segment_name) {
+  Index segment_id = Index(_segments.size());
   _segments.push_back(Segment(segment_name, segment_id));
   return _segments.back();
 }
@@ -79,7 +76,7 @@ void Topology::setBox(const Eigen::Matrix3d &box,
 
   if (_bc != nullptr) {
     if (votca::tools::globals::verbose) {
-      cout << "Removing periodic box. Creating new... " << endl;
+      std::cout << "Removing periodic box. Creating new... " << std::endl;
     }
   }
   _bc.reset(nullptr);
@@ -106,9 +103,9 @@ csg::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(
   // or to TriclinicBox otherwise
 
   if (box.isApproxToConstant(0)) {
-    cout << "WARNING: No box vectors specified in trajectory."
-            "Using open-box boundary conditions. "
-         << endl;
+    std::cout << "WARNING: No box vectors specified in trajectory."
+                 "Using open-box boundary conditions. "
+              << std::endl;
     return csg::BoundaryCondition::typeOpen;
   }
 
@@ -146,16 +143,16 @@ double Topology::GetShortestDist(const Segment &seg1,
 
 std::vector<const Segment *> Topology::FindAllSegmentsOnMolecule(
     const Segment &seg1, const Segment &seg2) const {
-  const std::vector<int> &ids1 = seg1.getMoleculeIds();
-  const std::vector<int> &ids2 = seg2.getMoleculeIds();
-  std::vector<int> common_elements;
+  const std::vector<Index> &ids1 = seg1.getMoleculeIds();
+  const std::vector<Index> &ids2 = seg2.getMoleculeIds();
+  std::vector<Index> common_elements;
   std::set_intersection(ids1.begin(), ids1.end(), ids2.begin(), ids2.end(),
                         std::back_inserter(common_elements));
   std::vector<const Segment *> results;
   if (common_elements.empty() || common_elements.size() > 1) {
     return results;
   }
-  int molid = common_elements[0];
+  Index molid = common_elements[0];
 
   for (const Segment &seg : _segments) {
     if (std::find(seg.getMoleculeIds().begin(), seg.getMoleculeIds().end(),
@@ -199,9 +196,9 @@ void Topology::ReadFromCpt(CheckpointReader &r) {
   setBox(box);
   CheckpointReader v = r.openChild("segments");
   _segments.clear();
-  int count = v.getNumDataSets();
+  Index count = v.getNumDataSets();
   _segments.reserve(count);
-  for (int i = 0; i < count; i++) {
+  for (Index i = 0; i < count; i++) {
     CheckpointReader w = v.openChild("segment" + std::to_string(i));
     _segments.push_back(Segment(w));
   }

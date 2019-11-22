@@ -39,42 +39,42 @@ namespace xtp {
 template <class T>
 class AtomContainer {
  public:
-  AtomContainer(std::string name, int id) : _name(name), _id(id){};
+  AtomContainer(std::string type, Index id) : _type(type), _id(id){};
 
   AtomContainer(CheckpointReader& r) { this->ReadFromCpt(r); }
-  virtual ~AtomContainer(){};
+  virtual ~AtomContainer() = default;
 
-  typedef typename std::vector<T>::iterator iterator;
+  using iterator = typename std::vector<T>::iterator;
 
-  const std::string& getName() const { return _name; }
+  const std::string& getType() const { return _type; }
 
-  void setName(std::string name) { _name = name; }
+  void setType(std::string type) { _type = type; }
 
-  int getId() const { return _id; }
+  Index getId() const { return _id; }
 
-  int size() const { return _atomlist.size(); }
+  Index size() const { return _atomlist.size(); }
 
   void push_back(const T& atom) {
     _atomlist.push_back(atom);
-    _position_valid = false;
+    calcPos();
   }
   void push_back(T&& atom) {
     _atomlist.push_back(atom);
-    _position_valid = false;
+    calcPos();
   }
 
   void AddContainer(const AtomContainer<T>& container) {
-    _name += "_" + container._name;
+    _type += "_" + container._type;
     _atomlist.insert(_atomlist.end(), container._atomlist.begin(),
                      container._atomlist.end());
-    _position_valid = false;
+    calcPos();
   }
 
-  const T& at(int index) const { return _atomlist.at(index); }
-  T& at(int index) { return _atomlist.at(index); }
+  const T& at(Index index) const { return _atomlist.at(index); }
+  T& at(Index index) { return _atomlist.at(index); }
 
-  const T& operator[](int index) const { return _atomlist[index]; }
-  T& operator[](int index) { return _atomlist[index]; }
+  const T& operator[](Index index) const { return _atomlist[index]; }
+  T& operator[](Index index) { return _atomlist[index]; }
 
   typename std::vector<T>::iterator begin() { return _atomlist.begin(); }
   typename std::vector<T>::iterator end() { return _atomlist.end(); }
@@ -86,12 +86,7 @@ class AtomContainer {
     return _atomlist.end();
   }
 
-  const Eigen::Vector3d& getPos() const {
-    if (!_position_valid) {
-      calcPos();
-    }
-    return _pos;
-  }
+  const Eigen::Vector3d& getPos() const { return _pos; }
 
   // calculates the lowest and highest point in the cube, sorrounding the
   // molecule
@@ -103,12 +98,24 @@ class AtomContainer {
         std::numeric_limits<double>::min() * Eigen::Vector3d::Ones();
     for (const T& atom : _atomlist) {
       const Eigen::Vector3d& pos = atom.getPos();
-      if (pos.x() < min.x()) min.x() = pos.x();
-      if (pos.x() > max.x()) max.x() = pos.x();
-      if (pos.y() < min.y()) min.y() = pos.y();
-      if (pos.y() > max.y()) max.y() = pos.y();
-      if (pos.z() < min.z()) min.z() = pos.z();
-      if (pos.z() > max.z()) max.z() = pos.z();
+      if (pos.x() < min.x()) {
+        min.x() = pos.x();
+      }
+      if (pos.x() > max.x()) {
+        max.x() = pos.x();
+      }
+      if (pos.y() < min.y()) {
+        min.y() = pos.y();
+      }
+      if (pos.y() > max.y()) {
+        max.y() = pos.y();
+      }
+      if (pos.z() < min.z()) {
+        min.z() = pos.z();
+      }
+      if (pos.z() > max.z()) {
+        max.z() = pos.z();
+      }
     }
     result.first = min;
     result.second = max;
@@ -130,7 +137,7 @@ class AtomContainer {
     for (T& atom : _atomlist) {
       atom.Translate(shift);
     }
-    calcPos();
+    _pos += shift;
   }
 
   void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos) {
@@ -141,13 +148,12 @@ class AtomContainer {
   }
 
   virtual void WriteToCpt(CheckpointWriter& w) const {
-    w(_name, "name");
+    w(_type, "type");
     w(_id, "id");
     w(int(_atomlist.size()), "size");
     T element(0, "H", Eigen::Vector3d::Zero());
-    bool compact = true;
-    CptTable table = w.openTable(element.identify() + "s", element,
-                                 _atomlist.size(), compact);
+    CptTable table =
+        w.openTable(element.identify() + "s", element, _atomlist.size());
     std::vector<typename T::data> dataVec(_atomlist.size());
     for (std::size_t i = 0; i < _atomlist.size(); ++i) {
       _atomlist[i].WriteData(dataVec[i]);
@@ -156,48 +162,45 @@ class AtomContainer {
     table.write(dataVec);
   }
   virtual void ReadFromCpt(CheckpointReader& r) {
-    r(_name, "name");
+    r(_type, "type");
     r(_id, "id");
-    int size = 0;
+    Index size = 0;
     r(size, "size");
     if (size == 0) {
       return;
     }
     T element(0, "H", Eigen::Vector3d::Zero());  // dummy element to get
                                                  // .identify for type
-    CptTable table = r.openTable(element.identify() + "s", _atomlist[0]);
+    CptTable table = r.openTable(element.identify() + "s", element);
     _atomlist.clear();
     _atomlist.reserve(table.numRows());
     std::vector<typename T::data> dataVec(table.numRows());
     table.read(dataVec);
     for (std::size_t i = 0; i < table.numRows(); ++i) {
-      _atomlist.emplace_back(T(dataVec[i]));
+      _atomlist.push_back(T(dataVec[i]));
     }
+    calcPos();
   }
 
- protected:
-  std::vector<T> _atomlist;
-  std::string _name;
-  int _id;
-
-  bool PosIsValid() const { return _position_valid; }
-
- private:
-  mutable bool _position_valid = false;
-  mutable Eigen::Vector3d _pos;
-
-  void calcPos() const {
+  void calcPos() {
     tools::Elements element;
-    _pos = Eigen::Vector3d::Zero();
+    Eigen::Vector3d pos = Eigen::Vector3d::Zero();
     double totalmass = 0.0;
     for (const T& atom : _atomlist) {
       double mass = element.getMass(atom.getElement());
       totalmass += mass;
-      _pos += mass * atom.getPos();
+      pos += mass * atom.getPos();
     }
-    _pos /= totalmass;
-    _position_valid = true;
+    _pos = pos / totalmass;
   }
+
+ protected:
+  std::vector<T> _atomlist;
+  std::string _type;
+  Index _id;
+
+ private:
+  Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
 };
 }  // namespace xtp
 }  // namespace votca

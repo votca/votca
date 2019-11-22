@@ -28,6 +28,7 @@
 #include <votca/tools/constants.h>
 #include <votca/xtp/bsecoupling.h>
 #include <votca/xtp/classicalsegment.h>
+#include <votca/xtp/eeinteractor.h>
 
 #include <votca/xtp/qmpackagefactory.h>
 
@@ -36,10 +37,10 @@ namespace xtp {
 
 class ExcitonCoupling : public QMTool {
  public:
-  std::string Identify() { return "excitoncoupling"; }
+  std::string Identify() override { return "excitoncoupling"; }
 
-  void Initialize(tools::Property& options);
-  bool Evaluate();
+  void Initialize(tools::Property& options) override;
+  bool Evaluate() override;
 
  private:
   std::string _orbA, _orbB, _orbAB;
@@ -65,9 +66,9 @@ void ExcitonCoupling::Initialize(tools::Property& options) {
 
   if (!_classical) {
 
-    std::string _coupling_xml =
+    std::string coupling_xml =
         options.get(key + ".bsecoupling_options").as<std::string>();
-    load_property_from_xml(_coupling_options, _coupling_xml.c_str());
+    _coupling_options.LoadFromXML(coupling_xml);
 
     _orbA = options.get(key + ".orbitalsA").as<std::string>();
     _orbB = options.get(key + ".orbitalsB").as<std::string>();
@@ -81,12 +82,13 @@ void ExcitonCoupling::Initialize(tools::Property& options) {
 
   // get the path to the shared folders with xml files
   char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
+  if (votca_share == nullptr) {
     throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+  }
 }
 
 bool ExcitonCoupling::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 
@@ -101,15 +103,15 @@ bool ExcitonCoupling::Evaluate() {
     Orbitals orbitalsA, orbitalsB, orbitalsAB;
     // load the QM data from serialized orbitals objects
 
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << " Loading QM data for molecule A from " << _orbA << std::flush;
     orbitalsA.ReadFromCpt(_orbA);
 
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << " Loading QM data for molecule B from " << _orbB << std::flush;
     orbitalsB.ReadFromCpt(_orbB);
 
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << " Loading QM data for dimer AB from " << _orbAB << std::flush;
     orbitalsAB.ReadFromCpt(_orbAB);
 
@@ -127,15 +129,15 @@ bool ExcitonCoupling::Evaluate() {
   }
 
   else if (_classical) {
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << "Calculating electronic coupling using classical transition charges."
         << _orbB << std::flush;
     PolarSegment seg1 = PolarSegment("A", 0);
     PolarSegment seg2 = PolarSegment("B", 1);
     seg1.LoadFromFile(_mpsA);
     seg2.LoadFromFile(_mpsB);
-
-    double J = 0;
+    eeInteractor ee;
+    double J = ee.CalcStaticEnergy(seg1, seg2);
 
     tools::Property& pair_summary = job_output.add("pair", "");
     pair_summary.setAttribute("idA", 1);
@@ -148,7 +150,7 @@ bool ExcitonCoupling::Evaluate() {
 
   tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
 
-  std::ofstream ofs(_output_file.c_str(), std::ofstream::out);
+  std::ofstream ofs(_output_file, std::ofstream::out);
   ofs << job_output;
   ofs.close();
   return true;

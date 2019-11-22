@@ -28,24 +28,24 @@ namespace xtp {
 
 class Chargecarrier {
  public:
-  Chargecarrier(int id)
+  Chargecarrier(Index id)
       : _id(id),
         lifetime(0.0),
         steps(0),
         _dr_travelled(Eigen::Vector3d::Zero()),
-        node(NULL){};
-  bool hasNode() { return (node != NULL); }
+        node(nullptr){};
+  bool hasNode() { return (node != nullptr); }
   void updateLifetime(double dt) { lifetime += dt; }
   void updateOccupationtime(double dt) { node->UpdateOccupationTime(dt); }
-  void updateSteps(unsigned t) { steps += t; }
+  void updateSteps(Index t) { steps += t; }
   void resetCarrier() {
     lifetime = 0;
     steps = 0;
     _dr_travelled = Eigen::Vector3d::Zero();
   }
   double getLifetime() const { return lifetime; }
-  unsigned getSteps() const { return steps; }
-  int getCurrentNodeId() const { return node->getId(); }
+  Index getSteps() const { return steps; }
+  Index getCurrentNodeId() const { return node->getId(); }
   double getCurrentEnergy() const { return node->getSitenergy(); }
   const Eigen::Vector3d& getCurrentPosition() const { return node->getPos(); }
   double getCurrentEscapeRate() const { return node->getEscapeRate(); }
@@ -66,13 +66,13 @@ class Chargecarrier {
 
   const Eigen::Vector3d& get_dRtravelled() const { return _dr_travelled; }
 
-  int getId() const { return _id; }
-  void setId(int id) { _id = id; }
+  Index getId() const { return _id; }
+  void setId(Index id) { _id = id; }
 
  private:
-  int _id;
+  Index _id;
   double lifetime;
-  unsigned steps;
+  Index steps;
   Eigen::Vector3d _dr_travelled;
   GNode* node;
 };

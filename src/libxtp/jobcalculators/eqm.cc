@@ -37,71 +37,77 @@ void EQM::Initialize(tools::Property& options) {
   _do_dft_parse = false;
   _do_gwbse = false;
   _do_esp = false;
-
+  ParseCommonOptions(options);
   ParseOptionsXML(options);
   QMPackageFactory::RegisterAll();
 }
 
 void EQM::ParseOptionsXML(tools::Property& options) {
 
-  _maverick = (_nThreads == 1) ? true : false;
   std::string key = "options." + Identify();
   // job tasks
   std::string _tasks_string = options.get(key + ".tasks").as<std::string>();
-  if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-  if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
-  if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
-  if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
-  if (_tasks_string.find("esp") != std::string::npos) _do_esp = true;
+  if (_tasks_string.find("input") != std::string::npos) {
+    _do_dft_input = true;
+  }
+  if (_tasks_string.find("dft") != std::string::npos) {
+    _do_dft_run = true;
+  }
+  if (_tasks_string.find("parse") != std::string::npos) {
+    _do_dft_parse = true;
+  }
+  if (_tasks_string.find("gwbse") != std::string::npos) {
+    _do_gwbse = true;
+  }
+  if (_tasks_string.find("esp") != std::string::npos) {
+    _do_esp = true;
+  }
 
-  key = "options." + Identify();
+  if (_do_gwbse) {
+    std::string gwbse_xml =
+        options.get(key + ".gwbse_options").as<std::string>();
+    _gwbse_options.LoadFromXML(gwbse_xml);
+  }
 
-  // options for gwbse
-  key = "options." + Identify();
-  std::string _gwbse_xml =
-      options.get(key + ".gwbse_options").as<std::string>();
-  load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
-
-  // options for dft package
-  std::string _package_xml = options.get(key + ".dftpackage").as<std::string>();
-  load_property_from_xml(_package_options, _package_xml.c_str());
-  key = "package";
-  _package = _package_options.get(key + ".name").as<std::string>();
+  if (_do_dft_input || _do_dft_run || _do_dft_parse) {
+    // options for dft package
+    std::string package_xml =
+        options.get(key + ".dftpackage").as<std::string>();
+    _package_options.LoadFromXML(package_xml);
+  }
 
   // options for esp/partialcharges
   if (_do_esp) {
     key = "options." + Identify();
     std::string _esp_xml = options.get(key + ".esp_options").as<std::string>();
-    load_property_from_xml(_esp_options, _esp_xml.c_str());
+    _esp_options.LoadFromXML(_esp_xml);
   }
-  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".job_file");
-  _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".map_file");
 }
 
-void EQM::WriteJobFile(Topology& top) {
+void EQM::WriteJobFile(const Topology& top) {
 
-  std::cout << std::endl << "... ... Writing job file: " << std::flush;
+  std::cout << std::endl
+            << "... ... Writing job file: " << _jobfile << std::flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
-  if (!ofs.is_open())
+  if (!ofs.is_open()) {
     throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
+  }
   ofs << "<jobs>" << std::endl;
-  int jobCount = 0;
+  Index jobCount = 0;
 
   const std::vector<Segment>& segments = top.Segments();
   for (const Segment& segment : segments) {
-    int id = segment.getId();
+    Index id = segment.getId();
     std::string tag = "";
     tools::Property Input;
     tools::Property& pInput = Input.add("input", "");
     tools::Property& pSegment =
         pInput.add("segment", (format("%1$s") % segment.getId()).str());
-    pSegment.setAttribute<std::string>("type", segment.getName());
-    pSegment.setAttribute<int>("id", segment.getId());
+    pSegment.setAttribute<std::string>("type", segment.getType());
+    pSegment.setAttribute<Index>("id", segment.getId());
     Job job(id, tag, Input, Job::AVAILABLE);
-    job.ToStream(ofs, "xml");
+    job.ToStream(ofs);
     jobCount++;
   }
 
@@ -128,13 +134,13 @@ void EQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
   ofs << logger << std::endl;
   ofs.close();
 }
-Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
 
+Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   Orbitals orbitals;
   Job::JobResult jres = Job::JobResult();
   tools::Property _job_input = job.getInput();
   std::vector<tools::Property*> lSegments = _job_input.Select("segment");
-  int segId = lSegments.front()->getAttribute<int>("id");
+  Index segId = lSegments.front()->getAttribute<Index>("id");
   std::string segType = lSegments.front()->getAttribute<std::string>("type");
   std::string qmgeo_state = "n";
   if (lSegments.front()->exists("qm_geometry")) {
@@ -142,7 +148,7 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   }
 
   QMState state(qmgeo_state);
-  Segment& seg = top.getSegment(segId);
+  const Segment& seg = top.getSegment(segId);
 
   Logger& pLog = opThread.getLogger();
   QMMapper mapper(pLog);
@@ -159,14 +165,15 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   std::string orb_file =
       (format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
   std::string mol_dir = (format("%1%%2%%3%") % "molecule" % "_" % segId).str();
-  std::string package_append = _package + "_" + Identify();
+  std::string package_append = "workdir_" + Identify();
   std::string work_dir =
-      (arg_path / eqm_work_dir / package_append / frame_dir / mol_dir).c_str();
+      (arg_path / eqm_work_dir / package_append / frame_dir / mol_dir)
+          .generic_string();
 
   tools::Property job_summary;
   tools::Property& output_summary = job_summary.add("output", "");
   tools::Property& segment_summary = output_summary.add("segment", "");
-  std::string segName = seg.getName();
+  std::string segName = seg.getType();
   segId = seg.getId();
   segment_summary.setAttribute("id", segId);
   segment_summary.setAttribute("type", segName);
@@ -178,9 +185,11 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(logERROR, (format("\nDFT ERR ...")).str());
     dft_logger.setPreface(logWARNING, (format("\nDFT WAR ...")).str());
     dft_logger.setPreface(logDEBUG, (format("\nDFT DBG ...")).str());
-
+    std::string dft_key = "package";
+    std::string package =
+        _package_options.get(dft_key + ".name").as<std::string>();
     std::unique_ptr<QMPackage> qmpackage =
-        std::unique_ptr<QMPackage>(QMPackages().Create(_package));
+        std::unique_ptr<QMPackage>(QMPackages().Create(package));
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(work_dir);
     qmpackage->Initialize(_package_options);
@@ -256,21 +265,20 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   if (_do_esp) {
     XTP_LOG_SAVE(logDEBUG, pLog) << "Running ESPFIT" << std::flush;
     try {
-      std::string mps_file = "";
       Esp2multipole esp2multipole = Esp2multipole(pLog);
       esp2multipole.Initialize(_esp_options);
       std::string ESPDIR =
           "MP_FILES/" + frame_dir + "/" + esp2multipole.GetStateString();
-      esp2multipole.Extractingcharges(orbitals);
-      mps_file = (format("%1%_%2%_%3%.mps") % segType % segId %
-                  esp2multipole.GetStateString())
-                     .str();
+      StaticSegment seg2 = esp2multipole.Extractingcharges(orbitals);
+      std::string mps_file = (format("%1%_%2%_%3%.mps") % segType % segId %
+                              esp2multipole.GetStateString())
+                                 .str();
       boost::filesystem::create_directories(ESPDIR);
-      esp2multipole.WritetoFile(ESPDIR + "/" + mps_file, orbitals);
+      seg2.WriteMPS(ESPDIR + "/" + mps_file,
+                    "Generated by eqm:" + esp2multipole.GetStateString());
       XTP_LOG_SAVE(logDEBUG, pLog)
-          << "Written charges to " << (ESPDIR + "/" + mps_file).c_str()
-          << std::flush;
-      segment_summary.add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
+          << "Written charges to " << (ESPDIR + "/" + mps_file) << std::flush;
+      segment_summary.add("partialcharges", (ESPDIR + "/" + mps_file));
     } catch (std::runtime_error& error) {
       std::string errormessage(error.what());
       SetJobToFailed(jres, pLog, "ESPFIT:" + errormessage);
@@ -295,4 +303,4 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   return jres;
 }
 }  // namespace xtp
-};  // namespace votca
+}  // namespace votca

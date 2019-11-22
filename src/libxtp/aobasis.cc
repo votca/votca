@@ -17,60 +17,56 @@
  *
  */
 #include "votca/xtp/aobasis.h"
-#include "votca/xtp/aomatrix.h"
-#include "votca/xtp/qmatom.h"
-#include <votca/tools/constants.h>
+#include <vector>
+#include <votca/xtp/basisset.h>
+#include <votca/xtp/qmmolecule.h>
 
 namespace votca {
 namespace xtp {
 
 AOShell& AOBasis::addShell(const Shell& shell, const QMAtom& atom,
-                           int startIndex) {
+                           Index startIndex) {
   _aoshells.push_back(AOShell(shell, atom, startIndex));
   return _aoshells.back();
 }
 
-AOShell& AOBasis::addECPShell(const Shell& shell, const QMAtom& atom,
-                              int startIndex, bool nonlocal) {
-  _aoshells.push_back(AOShell(shell, atom, startIndex, nonlocal));
-  return _aoshells.back();
-}
-
 void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
-                         const std::string& target) {
+                         const std::string& target) const {
 
   if (start == target) {
     return;
   }
 
   if (target == "orca" || target == "nwchem") {
-    std::vector<int> multiplier = getMultiplierVector(target, start);
+    std::vector<Index> multiplier = getMultiplierVector(target, start);
     // and reorder rows of _orbitals->_mo_coefficients() accordingly
     MultiplyMOs(v, multiplier);
   }
 
   // get reordering vector _start -> target
-  std::vector<int> order = getReorderVector(start, target);
+  std::vector<Index> order = getReorderVector(start, target);
 
   // Sanity check
-  if (v.rows() != int(order.size())) {
-    std::cerr << "Size mismatch in ReorderMOs" << v.rows() << ":"
-              << order.size() << std::endl;
-    throw std::runtime_error("Abort!");
+  if (v.rows() != Index(order.size())) {
+    throw std::runtime_error("Size mismatch in ReorderMOs " +
+                             std::to_string(v.rows()) + ":" +
+                             std::to_string(order.size()));
   }
 
   // actual swapping of coefficients
-  for (int s = 1, d; s < int(order.size()); ++s) {
+  for (Index s = 1, d; s < (Index)order.size(); ++s) {
     for (d = order[s]; d < s; d = order[d]) {
       ;
     }
-    if (d == s)
-      while (d = order[d], d != s) v.row(s).swap(v.row(d));
+    if (d == s) {
+      while (d = order[d], d != s) {
+        v.row(s).swap(v.row(d));
+      }
+    }
   }
-
   // NWChem has some strange minus in d-functions
   if (start == "nwchem" || start == "orca") {
-    std::vector<int> multiplier = getMultiplierVector(start, target);
+    std::vector<Index> multiplier = getMultiplierVector(start, target);
     // and reorder rows of _orbitals->_mo_coefficients() accordingly
     MultiplyMOs(v, multiplier);
   }
@@ -78,33 +74,28 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
 }
 
 void AOBasis::MultiplyMOs(Eigen::MatrixXd& v,
-                          std::vector<int> const& multiplier) {
+                          const std::vector<Index>& multiplier) const {
   // Sanity check
-  if (v.cols() != int(multiplier.size())) {
+  if (v.cols() != Index(multiplier.size())) {
     std::cerr << "Size mismatch in MultiplyMOs" << v.cols() << ":"
               << multiplier.size() << std::endl;
     throw std::runtime_error("Abort!");
   }
-  for (int i_basis = 0; i_basis < v.cols(); i_basis++) {
-    for (int i_orbital = 0; i_orbital < v.rows(); i_orbital++) {
-      v(i_basis, i_orbital) = multiplier[i_basis] * v(i_basis, i_orbital);
-    }
+  for (Index i_basis = 0; i_basis < v.cols(); i_basis++) {
+    v.row(i_basis) = multiplier[i_basis] * v.row(i_basis);
   }
   return;
 }
 
-std::vector<int> AOBasis::getMultiplierVector(const std::string& start,
-                                              const std::string& target) {
-  std::vector<int> multiplier;
+std::vector<Index> AOBasis::getMultiplierVector(
+    const std::string& start, const std::string& target) const {
+  std::vector<Index> multiplier;
   multiplier.reserve(_AOBasisSize);
-  std::string s;
-  std::string t;
+  std::string s = start;
+  std::string t = target;
   if (start == "xtp") {
     s = target;
     t = start;
-  } else {
-    s = start;
-    t = target;
   }
   // go through basisset
   for (const AOShell& shell : (*this)) {
@@ -116,13 +107,10 @@ std::vector<int> AOBasis::getMultiplierVector(const std::string& start,
 void AOBasis::addMultiplierShell(const std::string& start,
                                  const std::string& target,
                                  const std::string& shell_type,
-                                 std::vector<int>& multiplier) {
+                                 std::vector<Index>& multiplier) const {
   // multipliers were all found using code, hard to establish
 
   if (target == "xtp") {
-    // current length of vector
-    // int _cur_pos = multiplier.size() - 1;
-
     // single type shells defined here
     if (shell_type.length() == 1) {
       if (shell_type == "S") {
@@ -196,8 +184,7 @@ void AOBasis::addMultiplierShell(const std::string& start,
       }
     } else {
       // for combined shells, iterate over all contributions
-      //_nbf = 0;
-      for (unsigned i = 0; i < shell_type.length(); ++i) {
+      for (Index i = 0; i < Index(shell_type.length()); ++i) {
         std::string local_shell = std::string(shell_type, i, 1);
         addMultiplierShell(start, target, local_shell, multiplier);
       }
@@ -211,9 +198,9 @@ void AOBasis::addMultiplierShell(const std::string& start,
   return;
 }
 
-std::vector<int> AOBasis::getReorderVector(const std::string& start,
-                                           const std::string& target) {
-  std::vector<int> neworder;
+std::vector<Index> AOBasis::getReorderVector(const std::string& start,
+                                             const std::string& target) const {
+  std::vector<Index> neworder;
   neworder.reserve(_AOBasisSize);
   std::string s;
   std::string t;
@@ -234,11 +221,11 @@ std::vector<int> AOBasis::getReorderVector(const std::string& start,
   return neworder;
 }
 
-std::vector<int> AOBasis::invertOrder(const std::vector<int>& order) {
+std::vector<Index> AOBasis::invertOrder(const std::vector<Index>& order) const {
 
-  std::vector<int> neworder = std::vector<int>(order.size());
-  for (unsigned i = 0; i < order.size(); i++) {
-    neworder[order[i]] = int(i);
+  std::vector<Index> neworder = std::vector<Index>(order.size());
+  for (Index i = 0; i < Index(order.size()); i++) {
+    neworder[order[i]] = Index(i);
   }
   return neworder;
 }
@@ -246,13 +233,13 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order) {
 void AOBasis::addReorderShell(const std::string& start,
                               const std::string& target,
                               const std::string& shell_type,
-                              std::vector<int>& order) {
+                              std::vector<Index>& order) const {
   // Reordering is given by email from gaussian, orca output MOs, and
   // http://www.nwchem-sw.org/index.php/Release66:Basis for nwchem
 
   // current length of vector
 
-  int cur_pos = order.size() - 1;
+  Index cur_pos = Index(order.size()) - 1;
 
   if (target == "xtp") {
     // single type shells defined here
@@ -270,11 +257,6 @@ void AOBasis::addReorderShell(const std::string& start,
           order.push_back(cur_pos + 2);
         } else if (start == "gaussian" || start == "nwchem") {
           // nwchem gaussian x,y,z Y1,1 Y1,-1 Y1,0
-          order.push_back(cur_pos + 3);
-          order.push_back(cur_pos + 2);
-          order.push_back(cur_pos + 1);
-        } else if (start == "votca") {  // for usage with old orb files
-          // old votca x,y,z Y1,1 Y1,-1 Y1,0
           order.push_back(cur_pos + 3);
           order.push_back(cur_pos + 2);
           order.push_back(cur_pos + 1);
@@ -302,12 +284,6 @@ void AOBasis::addReorderShell(const std::string& start,
           order.push_back(cur_pos + 2);
           order.push_back(cur_pos + 1);
           order.push_back(cur_pos + 3);
-          order.push_back(cur_pos + 5);
-        } else if (start == "votca") {  // for usage with old orb files
-          order.push_back(cur_pos + 3);
-          order.push_back(cur_pos + 2);
-          order.push_back(cur_pos + 4);
-          order.push_back(cur_pos + 1);
           order.push_back(cur_pos + 5);
         } else {
           std::cerr << "Tried to reorder d-functions from package " << start
@@ -367,7 +343,7 @@ void AOBasis::addReorderShell(const std::string& start,
     } else {
       // for combined shells, iterate over all contributions
       //_nbf = 0;
-      for (unsigned i = 0; i < shell_type.length(); ++i) {
+      for (Index i = 0; i < Index(shell_type.length()); ++i) {
         std::string local_shell = std::string(shell_type, i, 1);
         this->addReorderShell(start, target, local_shell, order);
       }
@@ -381,7 +357,7 @@ void AOBasis::addReorderShell(const std::string& start,
   return;
 }
 
-const std::vector<const AOShell*> AOBasis::getShellsofAtom(int AtomId) const {
+const std::vector<const AOShell*> AOBasis::getShellsofAtom(Index AtomId) const {
   std::vector<const AOShell*> result;
   for (const auto& aoshell : _aoshells) {
     if (aoshell.getAtomIndex() == AtomId) {
@@ -391,16 +367,17 @@ const std::vector<const AOShell*> AOBasis::getShellsofAtom(int AtomId) const {
   return result;
 }
 
-void AOBasis::AOBasisFill(const BasisSet& bs, const QMMolecule& atoms) {
+void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
   _AOBasisSize = 0;
-  _FuncperAtom = std::vector<int>(0);
+  _aoshells.clear();
+  _FuncperAtom.clear();
   // loop over atoms
   for (const QMAtom& atom : atoms) {
-    int atomfunc = 0;
+    Index atomfunc = 0;
     const std::string& name = atom.getElement();
     const Element& element = bs.getElement(name);
     for (const Shell& shell : element) {
-      int numfuncshell = NumFuncShell(shell.getType());
+      Index numfuncshell = NumFuncShell(shell.getType());
       AOShell& aoshell = addShell(shell, atom, _AOBasisSize);
       _AOBasisSize += numfuncshell;
       atomfunc += numfuncshell;
@@ -413,56 +390,6 @@ void AOBasis::AOBasisFill(const BasisSet& bs, const QMMolecule& atoms) {
     _FuncperAtom.push_back(atomfunc);
   }
   return;
-}
-
-std::vector<std::string> AOBasis::ECPFill(const BasisSet& bs,
-                                          QMMolecule& atoms) {
-  _FuncperAtom = std::vector<int>(0);
-  _AOBasisSize = 0;
-
-  std::vector<std::string> non_ecp_elements;
-  for (QMAtom& atom : atoms) {
-    std::string name = atom.getElement();
-    int atomfunc = 0;
-    bool element_exists = true;
-
-    try {
-      bs.getElement(name);
-    } catch (std::runtime_error& error) {
-      _FuncperAtom.push_back(0);
-      element_exists = false;
-      if (std::find(non_ecp_elements.begin(), non_ecp_elements.end(), name) !=
-          non_ecp_elements.end()) {
-        non_ecp_elements.push_back(name);
-      }
-    }
-
-    if (element_exists) {
-      const Element& element = bs.getElement(name);
-      atom._ecpcharge = element.getNcore();
-      int lmax = element.getLmax();
-      for (const Shell& shell : element) {
-        if (shell.getType().size() > 1) {
-          throw std::runtime_error(
-              "In ecps no combined shells e.g. SP are allowed");
-        }
-        // Local part is with L=Lmax
-        bool nonlocal = false;
-        if (shell.getLmax() < lmax) {
-          nonlocal = true;
-        }
-        AOShell& aoshell = addECPShell(shell, atom, _AOBasisSize, nonlocal);
-        _AOBasisSize += NumFuncShell(shell.getType());
-        atomfunc += NumFuncShell(shell.getType());
-        for (const GaussianPrimitive& gaussian : shell) {
-          aoshell.addGaussian(gaussian);
-        }
-        aoshell.CalcMinDecay();
-      }
-      _FuncperAtom.push_back(atomfunc);
-    }
-  }
-  return non_ecp_elements;
 }
 
 }  // namespace xtp

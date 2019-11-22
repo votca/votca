@@ -22,7 +22,7 @@
 #include <votca/xtp/energy_costfunction.h>
 #include <votca/xtp/forces.h>
 #include <votca/xtp/geometry_optimization.h>
-#include <votca/xtp/statefilter.h>
+#include <votca/xtp/statetracker.h>
 
 namespace votca {
 namespace xtp {
@@ -52,7 +52,7 @@ void GeometryOptimization::Initialize(tools::Property& options) {
   _trust_radius *= tools::conv::ang2bohr;  // initial trust radius in a.u.
 
   _max_iteration =
-      options.ifExistsReturnElseReturnDefault<unsigned>(".maxiter", 50);
+      options.ifExistsReturnElseReturnDefault<Index>(".maxiter", 50);
 
   _trajfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".trajectory_file", "optimisation.trj");
@@ -67,8 +67,8 @@ void GeometryOptimization::Initialize(tools::Property& options) {
   } else {
     throw std::runtime_error("No forces options provided");
   }
-  if (options.exists(".filter")) {
-    _filter_options = options.get(".filter");
+  if (options.exists(".statetracker")) {
+    _statetracker_options = options.get(".statetracker");
   } else {
     throw std::runtime_error("No filter options set");
   }
@@ -81,14 +81,14 @@ void GeometryOptimization::Evaluate() {
       << "Requested geometry optimization of excited state "
       << _opt_state.ToString() << std::flush;
 
-  Statefilter filter;
-  filter.Initialize(_filter_options);
-  filter.setInitialState(_opt_state);
-  filter.setLogger(_pLog);
-  filter.PrintInfo();
+  StateTracker tracker;
+  tracker.Initialize(_statetracker_options);
+  tracker.setInitialState(_opt_state);
+  tracker.setLogger(_pLog);
+  tracker.PrintInfo();
 
   // get a force object
-  Forces force_engine(_gwbse_engine, filter);
+  Forces force_engine(_gwbse_engine, tracker);
   force_engine.Initialize(_force_options);
   force_engine.setLog(_pLog);
   XTP_LOG(logINFO, *_pLog)
@@ -123,7 +123,7 @@ void GeometryOptimization::Evaluate() {
       << std::flush;
 
   Energy_costfunction e_cost =
-      Energy_costfunction(_gwbse_engine, filter, _orbitals, force_engine);
+      Energy_costfunction(_gwbse_engine, tracker, _orbitals, force_engine);
   e_cost.setConvergenceParameters(_conv);
   e_cost.setLog(_pLog);
   // get the optimizer
@@ -161,7 +161,7 @@ void GeometryOptimization::Report(const BFGSTRM& bfgstrm, const Forces& forces,
   XTP_LOG_SAVE(logINFO, pLog)
       << (boost::format(" Atom\t x\t  y\t  z ")).str() << std::flush;
   const Eigen::VectorXd& atomvec = bfgstrm.getParameters();
-  for (unsigned i = 0; i < atomvec.size(); i += 3) {
+  for (Index i = 0; i < atomvec.size(); i += 3) {
     XTP_LOG_SAVE(logINFO, pLog)
         << (boost::format("%1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f") % (i / 3) %
             (atomvec(i) * votca::tools::conv::bohr2ang) %
@@ -189,9 +189,9 @@ void GeometryOptimization::WriteTrajectory(const std::string& filename,
                                            const BFGSTRM& bfgstrm) {
   std::ofstream ofs;
   if (bfgstrm.getIteration() == 0) {
-    ofs.open(filename.c_str(), std::ofstream::out);
+    ofs.open(filename, std::ofstream::out);
   } else {
-    ofs.open(filename.c_str(), std::ofstream::app);
+    ofs.open(filename, std::ofstream::app);
   }
   if (!ofs.is_open()) {
     throw std::runtime_error("Bad file handle: " + filename);

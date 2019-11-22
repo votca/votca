@@ -79,6 +79,18 @@ void StaticSite::Translate(const Eigen::VectorXd& shift) {
   return;
 }
 
+std::string StaticSite::writePolarisation() const {
+  tools::Elements e;
+  double default_pol = std::pow(tools::conv::ang2bohr, 3);
+  try {
+    default_pol =
+        e.getPolarizability(_element) * std::pow(tools::conv::nm2bohr, 3);
+  } catch (const std::invalid_argument&) {
+    ;
+  }
+  return (boost::format("     P %1$+1.7f\n") % default_pol).str();
+}
+
 std::string StaticSite::WriteMpsLine(string unit) const {
   double conv_pos = 1.;
   if (unit == "angstrom") {
@@ -121,7 +133,6 @@ void StaticSite::SetupCptTable(CptTable& table) const {
   table.addCol(_pos[1], "posY", HOFFSET(data, posY));
   table.addCol(_pos[2], "posZ", HOFFSET(data, posZ));
 
-  // same type as rank
   table.addCol(_rank, "rank", HOFFSET(data, rank));
 
   table.addCol(_Q[0], "Q00", HOFFSET(data, Q00));
@@ -155,7 +166,7 @@ void StaticSite::WriteData(data& d) const {
   d.Q22s = _Q[8];
 }
 
-void StaticSite::ReadData(data& d) {
+void StaticSite::ReadData(const data& d) {
   _id = d.id;
   _element = std::string(d.element);
   free(d.element);

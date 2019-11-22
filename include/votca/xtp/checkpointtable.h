@@ -36,7 +36,7 @@ using namespace checkpoint_utils;
 
 class CptTable {
  public:
-  CptTable(){};
+  CptTable() = default;
   CptTable(const std::string& name, const std::size_t& rowSize,
            const std::size_t& nRows)
       : _name(name),
@@ -51,24 +51,24 @@ class CptTable {
     _dataset = _loc.openDataSet(_name);
     _dp = _dataset.getSpace();
     hsize_t dims[2];
-    _dp.getSimpleExtentDims(dims, NULL);
+    _dp.getSimpleExtentDims(dims, nullptr);
     _nRows = dims[0];
   }
 
   template <typename U>
   typename std::enable_if<std::is_fundamental<U>::value>::type addCol(
-      const U& item, const std::string& name, const size_t& offset) {
+      const U&, const std::string& name, const size_t& offset) {
     _rowStructure.insertMember(name, offset, *InferDataType<U>::get());
   }
 
-  void addCol(const std::string& item, const std::string& name,
+  void addCol(const std::string&, const std::string& name,
               const size_t& offset) {
 
     _rowStructure.insertMember(name, offset,
                                *InferDataType<std::string>::get());
   }
 
-  void addCol(const char* item, const std::string& name, const size_t& offset) {
+  void addCol(const char*, const std::string& name, const size_t& offset) {
 
     H5::DataType fixedWidth(H5T_STRING, MaxStringSize);
 
@@ -96,7 +96,14 @@ class CptTable {
       _props.setLayout(H5D_layout_t::H5D_COMPACT);
     }
 
-    _dataset = _loc.createDataSet(_name.c_str(), _rowStructure, _dp, _props);
+    try {
+      _dataset = _loc.createDataSet(_name.c_str(), _rowStructure, _dp, _props);
+    } catch (H5::Exception&) {
+      std::stringstream message;
+      message << "Could not write " << _name << " from " << _loc.getFileName();
+      throw std::runtime_error(message.str());
+    }
+
     _inited = true;
   }
 
@@ -125,7 +132,13 @@ class CptTable {
 
     _dp.selectHyperslab(H5S_SELECT_SET, fCount, fStart);
     mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart);
-    _dataset.write(buffer, _rowStructure, mspace, _dp);
+    try {
+      _dataset.write(buffer, _rowStructure, mspace, _dp);
+    } catch (H5::Exception&) {
+      std::stringstream message;
+      message << "Could not write " << _name << " from " << _loc.getFileName();
+      throw std::runtime_error(message.str());
+    }
   }
 
   void writeToRow(void* buffer, const std::size_t idx) {
@@ -162,7 +175,13 @@ class CptTable {
 
     _dp.selectHyperslab(H5S_SELECT_SET, fCount, fStart);
     mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart);
-    _dataset.read(buffer, _rowStructure, mspace, _dp);
+    try {
+      _dataset.read(buffer, _rowStructure, mspace, _dp);
+    } catch (H5::Exception&) {
+      std::stringstream message;
+      message << "Could not read " << _name << " from " << _loc.getFileName();
+      throw std::runtime_error(message.str());
+    }
   }
 
   void readFromRow(void* buffer, const std::size_t& idx) {

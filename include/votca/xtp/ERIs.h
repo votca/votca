@@ -55,7 +55,7 @@ class ERIs {
   Mat_p_Energy CalculateERIs_4c_direct(const AOBasis& dftbasis,
                                        const Eigen::MatrixXd& DMAT) const;
 
-  int Removedfunctions() const { return _threecenter.Removedfunctions(); }
+  Index Removedfunctions() const { return _threecenter.Removedfunctions(); }
 
  private:
   bool _with_screening = false;
@@ -75,9 +75,9 @@ class ERIs {
                          const Eigen::MatrixXd& matrix_operator) const;
   template <bool transposed_block>
   void FillERIsBlock(Eigen::MatrixXd& ERIsCur, const Eigen::MatrixXd& DMAT,
-                     const tensor4d& block, const AOShell& shell_1,
-                     const AOShell& shell_2, const AOShell& shell_3,
-                     const AOShell& shell_4) const;
+                     const Eigen::Tensor<double, 4>& block,
+                     const AOShell& shell_1, const AOShell& shell_2,
+                     const AOShell& shell_3, const AOShell& shell_4) const;
 };
 
 }  // namespace xtp

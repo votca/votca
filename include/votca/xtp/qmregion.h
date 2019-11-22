@@ -24,10 +24,9 @@
 #include <votca/xtp/region.h>
 
 #include "orbitals.h"
-#include "statefilter.h"
-#include <votca/xtp/qmpackage.h>
+#include "statetracker.h"
+#include <votca/xtp/hist.h>
 #include <votca/xtp/qmpackagefactory.h>
-
 /**
  * \brief defines a qm region and runs dft and gwbse calculations
  *
@@ -43,49 +42,52 @@ class StaticRegion;
 class QMRegion : public Region {
 
  public:
-  QMRegion(int id, Logger& log) : Region(id, log) {
+  QMRegion(Index id, Logger& log, std::string workdir)
+      : Region(id, log), _workdir(workdir) {
     QMPackageFactory::RegisterAll();
   };
-  ~QMRegion(){};
+  ~QMRegion() override = default;
 
-  void Initialize(const tools::Property& prop);
+  void Initialize(const tools::Property& prop) override;
 
-  bool Converged() const;
+  bool Converged() const override;
 
-  void Evaluate(std::vector<std::unique_ptr<Region> >& regions);
+  void Evaluate(std::vector<std::unique_ptr<Region> >& regions) override;
 
-  void WriteToCpt(CheckpointWriter& w) const;
+  void WriteToCpt(CheckpointWriter& w) const override;
 
-  void ReadFromCpt(CheckpointReader& r);
+  void ReadFromCpt(CheckpointReader& r) override;
 
   void ApplyQMFieldToPolarSegments(std::vector<PolarSegment>& segments) const;
 
-  int size() const { return _size; }
+  Index size() const override { return _size; }
 
-  void WritePDB(csg::PDBWriter& writer) const;
+  void WritePDB(csg::PDBWriter& writer) const override;
 
-  std::string identify() const { return "qmregion"; }
+  std::string identify() const override { return "qm"; }
 
   void push_back(const QMMolecule& mol);
 
-  void Reset();
+  void Reset() override;
 
-  double charge() const;
-  double Etotal() const { return _E_hist.back(); }
+  double charge() const override;
+  double Etotal() const override { return _E_hist.back(); }
 
  protected:
-  void AppendResult(tools::Property& prop) const;
-  double InteractwithQMRegion(const QMRegion& region);
-  double InteractwithPolarRegion(const PolarRegion& region);
-  double InteractwithStaticRegion(const StaticRegion& region);
+  void AppendResult(tools::Property& prop) const override;
+  double InteractwithQMRegion(const QMRegion& region) override;
+  double InteractwithPolarRegion(const PolarRegion& region) override;
+  double InteractwithStaticRegion(const StaticRegion& region) override;
 
  private:
   void AddNucleiFields(std::vector<PolarSegment>& segments,
                        const StaticSegment& seg) const;
 
-  int _size = 0;
+  Index _size = 0;
   Orbitals _orb;
 
+  QMState _initstate;
+  std::string _workdir = "";
   std::unique_ptr<QMPackage> _qmpackage = nullptr;
 
   std::string _grid_accuracy_for_ext_interaction = "medium";
@@ -94,15 +96,15 @@ class QMRegion : public Region {
   hist<Eigen::MatrixXd> _Dmat_hist;
 
   // convergence options
-  double _DeltaD = 1e-5;
-  double _DeltaE = 1e-5;
+  double _DeltaD = 5e-5;
+  double _DeltaE = 5e-5;
 
   bool _do_gwbse = false;
 
   tools::Property _dftoptions;
   tools::Property _gwbseoptions;
 
-  Statefilter _filter;
+  StateTracker _statetracker;
 };
 
 }  // namespace xtp

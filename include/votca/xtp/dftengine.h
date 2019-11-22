@@ -21,13 +21,13 @@
 #ifndef VOTCA_XTP_DFTENGINE_H
 #define VOTCA_XTP_DFTENGINE_H
 
-#include <boost/filesystem.hpp>
+#include <votca/tools/property.h>
 #include <votca/xtp/ERIs.h>
-#include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/convergenceacc.h>
+#include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/numerical_integrations.h>
-#include <votca/xtp/topology.h>
+#include <votca/xtp/staticsite.h>
 
 namespace votca {
 namespace xtp {
@@ -43,8 +43,6 @@ class Orbitals;
 
 class DFTEngine {
  public:
-  DFTEngine(Orbitals& orbitals) : _orbitals(orbitals){};
-
   void Initialize(tools::Property& options);
 
   void setLogger(Logger* pLog) { _pLog = pLog; }
@@ -55,43 +53,45 @@ class DFTEngine {
     _addexternalsites = true;
   }
 
-  bool Evaluate();
-
-  void Prepare();
+  bool Evaluate(Orbitals& orb);
 
   std::string getDFTBasisName() const { return _dftbasis_name; };
 
  private:
+  void Prepare(QMMolecule& mol);
+
   Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs) const;
   void PrintMOs(const Eigen::VectorXd& MOEnergies);
-  void CalcElDipole() const;
+  void CalcElDipole(const Orbitals& orb) const;
   Mat_p_Energy CalculateERIs(const Eigen::MatrixXd& DMAT) const;
   Mat_p_Energy CalcEXXs(const Eigen::MatrixXd& MOs,
                         const Eigen::MatrixXd& DMAT) const;
-  void ConfigOrbfile();
+  void ConfigOrbfile(Orbitals& orb);
   void SetupInvariantMatrices();
 
-  Mat_p_Energy SetupH0() const;
+  Mat_p_Energy SetupH0(const QMMolecule& mol) const;
   Mat_p_Energy IntegrateExternalMultipoles(
+      const QMMolecule& mol,
       const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
-  Mat_p_Energy IntegrateExternalDensity(const Orbitals& extdensity) const;
+  Mat_p_Energy IntegrateExternalDensity(const QMMolecule& mol,
+                                        const Orbitals& extdensity) const;
 
-  Eigen::MatrixXd AtomicGuess() const;
+  tools::EigenSystem IndependentElectronGuess(const Mat_p_Energy& H0) const;
+  tools::EigenSystem ModelPotentialGuess(const Mat_p_Energy& H0,
+                                         const QMMolecule& mol) const;
+
+  Eigen::MatrixXd AtomicGuess(const QMMolecule& mol) const;
   std::string ReturnSmallGrid(const std::string& largegrid);
 
   Eigen::MatrixXd RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) const;
 
-  double NuclearRepulsion() const;
+  double NuclearRepulsion(const QMMolecule& mol) const;
   double ExternalRepulsion(
+      const QMMolecule& mol,
       const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
   Eigen::MatrixXd SphericalAverageShells(const Eigen::MatrixXd& dmat,
                                          const AOBasis& dftbasis) const;
   Logger* _pLog;
-
-  int _openmp_threads;
-
-  // atoms
-  Orbitals& _orbitals;
 
   // basis sets
   std::string _auxbasis_name;
@@ -99,7 +99,7 @@ class DFTEngine {
   std::string _ecp_name;
   AOBasis _dftbasis;
   AOBasis _auxbasis;
-  AOBasis _ecp;
+  ECPAOBasis _ecp;
 
   bool _with_ecp;
   bool _with_RI;
@@ -124,8 +124,8 @@ class DFTEngine {
   std::string _initial_guess;
 
   // Convergence
-  int _numofelectrons = 0;
-  int _max_iter = 100;
+  Index _numofelectrons = 0;
+  Index _max_iter = 100;
   ConvergenceAcc::options _conv_opt;
   // DIIS variables
   ConvergenceAcc _conv_accelerator;

@@ -19,6 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/ppm.h>
 #include <votca/xtp/rpa.h>
@@ -106,10 +107,10 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
 
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   Eigen::MatrixXd MOs = Eigen::MatrixXd::Zero(17, 17);
   MOs << -0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169,
@@ -165,7 +166,8 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   mo_energy << -0.612601, -0.341755, -0.341755, -0.341755, 0.137304, 0.16678,
       0.16678, 0.16678, 0.671592, 0.671592, 0.671592, 0.974255, 1.01205,
       1.01205, 1.01205, 1.64823, 19.4429;
-  TCMatrix_gwbse Mmn;
+  Logger log;
+  TCMatrix_gwbse Mmn{log};
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, MOs);
 

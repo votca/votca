@@ -22,13 +22,14 @@
 #define VOTCA_XTP_QM_PACKAGE_H
 
 #include "votca/xtp/aobasis.h"
-#include <boost/format.hpp>
 #include <votca/tools/property.h>
+#include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
 #include <votca/xtp/staticsite.h>
 namespace votca {
 namespace xtp {
+
+class Orbitals;
 
 // ========================================================================== //
 // QMPackage base class for wrappers of ORCA, GAUSSIAN, NWCHEM etc //
@@ -36,7 +37,7 @@ namespace xtp {
 
 class QMPackage {
  public:
-  virtual ~QMPackage(){};
+  virtual ~QMPackage() = default;
 
   virtual std::string getPackageName() const = 0;
 
@@ -56,11 +57,10 @@ class QMPackage {
   template <class MMRegion>
   void AddRegion(const MMRegion& mmregion) {
 
-    typedef
-        typename std::iterator_traits<typename MMRegion::iterator>::value_type
-            Segmenttype;
-    typedef typename std::iterator_traits<
-        typename Segmenttype::iterator>::value_type Sitetype;
+    using Segmenttype =
+        typename std::iterator_traits<typename MMRegion::iterator>::value_type;
+    using Sitetype = typename std::iterator_traits<
+        typename Segmenttype::iterator>::value_type;
     for (const Segmenttype& segment : mmregion) {
       for (const Sitetype& site : segment) {
         _externalsites.push_back(
@@ -87,9 +87,16 @@ class QMPackage {
 
   void setLog(Logger* pLog) { _pLog = pLog; }
 
+  void setCharge(Index charge) {
+    _charge = charge;
+    _spin = std::abs(charge) + 1;
+  }
+
   bool GuessRequested() const { return _write_guess; }
 
-  void setGetCharges(bool do_get_charges) { _get_charges = do_get_charges; }
+  virtual StaticSegment GetCharges() const = 0;
+
+  virtual Eigen::Matrix3d GetPolarizability() const = 0;
 
  protected:
   struct MinimalMMCharge {
@@ -101,17 +108,16 @@ class QMPackage {
   void ParseCommonOptions(tools::Property& options);
 
   virtual void WriteChargeOption() = 0;
-  std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site);
-  void ReorderOutput(Orbitals& orbitals);
+  std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
+  void ReorderOutput(Orbitals& orbitals) const;
   Eigen::MatrixXd ReorderMOsBack(const Orbitals& orbitals) const;
   bool isLinker(std::string name, std::vector<std::string> linker_names);
 
   std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,
-                                           const std::string separators);
+                                           const std::string separators) const;
 
-  int _charge;
-  int _spin;  // 2S+1
-  int _threads;
+  Index _charge;
+  Index _spin;  // 2S+1
   std::string _memory;
   std::string _options;
 
@@ -127,7 +133,6 @@ class QMPackage {
   std::string _ecp_name;
 
   std::string _shell_file_name;
-  std::string _chk_file_name;
   std::string _scratch_dir;
   bool _is_optimization = false;
 

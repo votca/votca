@@ -32,28 +32,30 @@ BOOST_AUTO_TEST_SUITE(bfgs_test)
 BOOST_AUTO_TEST_CASE(parabola_test) {
   class parabola : public Optimiser_costfunction {
 
-    double EvaluateCost(const Eigen::VectorXd& parameters) {
+    double EvaluateCost(const Eigen::VectorXd& parameters) override {
       Eigen::VectorXd value = parameters;
       value(0) -= 2;
       double cost = value.cwiseAbs2().sum();
       return cost;
     }
 
-    Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) {
+    Eigen::VectorXd EvaluateGradient(
+        const Eigen::VectorXd& parameters) override {
       Eigen::VectorXd gradient = 2 * parameters;
       gradient(0) -= 4;
       return gradient;
     }
 
-    bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
-                   const Eigen::VectorXd& gradient) {
-      if (gradient.cwiseAbs().maxCoeff() < 1e-8)
+    bool Converged(const Eigen::VectorXd&, double,
+                   const Eigen::VectorXd& gradient) override {
+      if (gradient.cwiseAbs().maxCoeff() < 1e-8) {
         return true;
-      else
+      } else {
         return false;
+      }
     }
 
-    int NumParameters() const { return 5; }
+    Index NumParameters() const override { return 5; }
   };
 
   parabola p5;
@@ -79,7 +81,7 @@ BOOST_AUTO_TEST_CASE(parabola_test) {
 BOOST_AUTO_TEST_CASE(booth_test) {
   class booth : public Optimiser_costfunction {
 
-    double EvaluateCost(const Eigen::VectorXd& parameters) {
+    double EvaluateCost(const Eigen::VectorXd& parameters) override {
       double x = parameters[0];
       double y = parameters[1];
 
@@ -87,7 +89,8 @@ BOOST_AUTO_TEST_CASE(booth_test) {
              (2 * x + y - 5) * (2 * x + y - 5);
     }
 
-    Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) {
+    Eigen::VectorXd EvaluateGradient(
+        const Eigen::VectorXd& parameters) override {
       double x = parameters[0];
       double y = parameters[1];
       Eigen::VectorXd gradient = Eigen::VectorXd::Zero(2);
@@ -96,15 +99,16 @@ BOOST_AUTO_TEST_CASE(booth_test) {
       return gradient;
     }
 
-    bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
-                   const Eigen::VectorXd& gradient) {
-      if (gradient.cwiseAbs().maxCoeff() < 1e-8)
+    bool Converged(const Eigen::VectorXd&, double,
+                   const Eigen::VectorXd& gradient) override {
+      if (gradient.cwiseAbs().maxCoeff() < 1e-8) {
         return true;
-      else
+      } else {
         return false;
+      }
     }
 
-    int NumParameters() const { return 2; }
+    Index NumParameters() const override { return 2; }
   };
 
   booth p2;
@@ -128,7 +132,7 @@ BOOST_AUTO_TEST_CASE(booth_test) {
 }
 
 BOOST_AUTO_TEST_CASE(adiis_test) {
-  int size = 5;
+  Index size = 5;
 
   Eigen::VectorXd DiF = Eigen::VectorXd::Zero(size);
   DiF << 0.679243, 0.562675, 0.39399, -0.0258519, 0;
@@ -145,7 +149,7 @@ BOOST_AUTO_TEST_CASE(adiis_test) {
   optimizer.setTrustRadius(0.01);
   optimizer.setLog(&log);
   // Starting point: equal weights on all matrices
-  Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / size);
+  Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / (double)size);
   optimizer.Optimize(coeffs);
   bool success = optimizer.Success();
   coeffs = optimizer.getParameters().cwiseAbs2();

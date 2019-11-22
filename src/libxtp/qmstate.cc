@@ -116,7 +116,7 @@ void QMStateType::FromString(const std::string& statetypestring) {
 }
 
 std::string QMState::ToLongString() const {
-  int index = _index;
+  Index index = _index;
   if (_type == QMStateType::Singlet || _type == QMStateType::Triplet) {
     index++;
   } else if (_type == QMStateType::Gstate || _type == QMStateType::Electron ||
@@ -132,7 +132,7 @@ std::string QMState::ToLongString() const {
 }
 
 std::string QMState::ToString() const {
-  int index = _index;
+  Index index = _index;
   if (_type == QMStateType::Singlet || _type == QMStateType::Triplet) {
     index++;
   } else if (_type == QMStateType::Gstate || _type == QMStateType::Electron ||
@@ -141,18 +141,23 @@ std::string QMState::ToString() const {
   }
   std::string result = _type.ToString() + (boost::format("%i") % index).str();
   if (_transition) {
-    result = "N2" + result;
+    result = "n2" + result;
   }
   return result;
 }
 
-int QMState::DetermineIndex(const std::string& statestring) {
+Index QMState::DetermineIndex(const std::string& statestring) {
 
   std::smatch search;
   std::regex reg("[0-9]+");
 
   bool found_integer = std::regex_search(statestring, search, reg);
   if (!found_integer) {
+
+    if (_type == QMStateType::Hole || _type == QMStateType::Electron) {
+      return 0;
+    }
+
     throw std::runtime_error("Found no index in string: " + statestring);
   }
   if (search.size() > 1) {
@@ -160,7 +165,7 @@ int QMState::DetermineIndex(const std::string& statestring) {
                              statestring);
   }
 
-  int index = boost::lexical_cast<int>(search.str(0));
+  Index index = boost::lexical_cast<Index>(search.str(0));
   if (_type.isExciton() || _type == QMStateType::Electron ||
       _type == QMStateType::Hole) {
     index--;
@@ -206,11 +211,10 @@ void QMState::FromString(const std::string& statestring) {
   if (_type != QMStateType::Singlet && _transition == true) {
     throw std::runtime_error("Transition states only exist for singlets.");
   }
-  if (_type != QMStateType::Gstate && _type != QMStateType::Electron &&
-      _type != QMStateType::Hole) {
-    _index = DetermineIndex(rest);
-  } else {
+  if (_type == QMStateType::Gstate) {
     _index = -1;
+  } else {
+    _index = DetermineIndex(rest);
   }
 }
 

@@ -70,9 +70,9 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
   QMMolecule mol = QMMolecule("", 0);
   mol.LoadFromFile("Al.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("largeshell.xml");
+  basis.Load("largeshell.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, mol);
+  aobasis.Fill(basis, mol);
 
   const AOShell& shell = aobasis.getShell(0);
 

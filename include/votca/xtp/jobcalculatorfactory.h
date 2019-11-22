@@ -31,7 +31,7 @@ namespace xtp {
 class JobCalculatorfactory
     : public tools::ObjectFactory<std::string, JobCalculator> {
  private:
-  JobCalculatorfactory() {}
+  JobCalculatorfactory() = default;
 
  public:
   static void RegisterAll(void);
@@ -56,8 +56,9 @@ inline JobCalculator *JobCalculatorfactory::Create(const std::string &key) {
     JobCalculator *calc = (it->second)();
     calc->LoadDefaults();
     return calc;
-  } else
+  } else {
     throw std::runtime_error("factory key " + key + " not found.");
+  }
 }
 
 }  // namespace xtp

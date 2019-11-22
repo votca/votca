@@ -31,13 +31,13 @@ namespace xtp {
 
 class Log2Mps : public QMTool {
  public:
-  Log2Mps(){};
-  ~Log2Mps(){};
+  Log2Mps() = default;
+  ~Log2Mps() override = default;
 
-  std::string Identify() { return "log2mps"; }
+  std::string Identify() override { return "log2mps"; }
 
-  void Initialize(tools::Property &options);
-  bool Evaluate();
+  void Initialize(tools::Property &options) override;
+  bool Evaluate() override;
 
  private:
   std::string _package;
@@ -62,8 +62,9 @@ void Log2Mps::Initialize(tools::Property &opt) {
   _mpsfile = (opt.exists(key + ".mpsfile"))
                  ? opt.get(key + ".mpsfile").as<std::string>()
                  : "";
-  if (_mpsfile == "")
+  if (_mpsfile == "") {
     _mpsfile = _logfile.substr(0, _logfile.size() - 4) + ".mps";
+  }
 
   std::cout << std::endl
             << "... ... " << _logfile << " => " << _mpsfile << std::flush;
@@ -84,21 +85,15 @@ bool Log2Mps::Evaluate() {
 
   std::unique_ptr<QMPackage> qmpack =
       std::unique_ptr<QMPackage>(QMPackages().Create(_package));
-  qmpack->setGetCharges(true);
   qmpack->setLog(&log);
   qmpack->setRunDir(".");
   qmpack->setLogFileName(_logfile);
 
   // Create orbitals, fill with life & extract QM atoms
-  Orbitals orbs;
-  bool cdx = qmpack->ParseLogFile(orbs);
-  if (!cdx) {
-    throw std::runtime_error("\nERROR Parsing " + _logfile + "failed.");
-  }
 
-  const StaticSegment &atoms = orbs.Multipoles();
+  StaticSegment atoms = qmpack->GetCharges();
+
   // Sanity checks, total charge
-  double Q = atoms.CalcTotalQ();
 
   if (atoms.size() < 1) {
     std::cout << "\nERROR No charges extracted from " << _logfile
@@ -106,6 +101,8 @@ bool Log2Mps::Evaluate() {
               << std::flush;
     throw std::runtime_error("(see above, input or parsing error)");
   }
+
+  double Q = atoms.CalcTotalQ();
   XTP_LOG_SAVE(logINFO, log)
       << atoms.size() << " QM atoms, total charge Q = " << Q << std::flush;
 

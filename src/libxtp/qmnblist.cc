@@ -16,31 +16,27 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit
-/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #include <iostream>
 #include <votca/xtp/qmnblist.h>
 
 #include "votca/xtp/checkpointwriter.h"
 
-using namespace std;
-
 namespace votca {
 namespace xtp {
 
-QMPair& QMNBList::Add(const Segment* seg1, const Segment* seg2,
+QMPair& QMNBList::Add(const Segment& seg1, const Segment& seg2,
                       const Eigen::Vector3d& r) {
-  assert(this->FindPair(seg1, seg2) != NULL &&
+  assert(this->FindPair(&seg1, &seg2) == nullptr &&
          "Critical bug: pair already exists");
-  int id = this->size();
-  QMPair* pair = new QMPair(id, seg1, seg2, r);
+  Index id = this->size();
+  QMPair* pair = new QMPair(id, &seg1, &seg2, r);
   this->AddPair(pair);
   return *pair;
 }
 
 void QMNBList::WriteToCpt(CheckpointWriter& w) const {
-  int size = this->size();
+  Index size = this->size();
   w(size, "size");
   if (size == 0) {
     return;
@@ -51,7 +47,7 @@ void QMNBList::WriteToCpt(CheckpointWriter& w) const {
   std::vector<QMPair::data> dataVec(size);
 
   CptTable table = w.openTable("pairs", pair, size);
-  for (int i = 0; i < size; i++) {
+  for (Index i = 0; i < size; i++) {
     (_pairs[i]->WriteData(dataVec[i]));
   }
   table.write(dataVec);
@@ -63,7 +59,7 @@ void QMNBList::WriteToCpt(CheckpointWriter& w) const {
 void QMNBList::ReadFromCpt(CheckpointReader& r,
                            const std::vector<Segment>& segments) {
   Cleanup();
-  int size = 0;
+  Index size = 0;
   r(size, "size");
   if (size == 0) {
     return;
@@ -73,8 +69,8 @@ void QMNBList::ReadFromCpt(CheckpointReader& r,
   std::vector<QMPair::data> dataVec(table.numRows());
   table.read(dataVec);
 
-  for (std::size_t i = 0; i < dataVec.size(); ++i) {
-    this->AddPair(new QMPair(dataVec[i], segments));
+  for (const QMPair::data& data : dataVec) {
+    this->AddPair(new QMPair(data, segments));
   }
 }
 

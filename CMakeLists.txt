@@ -40,15 +40,11 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-
-
-
 ########################################################################
 # User input options                                                   #
 ########################################################################
 
 find_package(LIBXC REQUIRED)
-
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 
 if (${HDF5_VERSION} GREATER 1.8)
@@ -59,6 +55,7 @@ endif()
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 include(GNUInstallDirs)
 
+option(USE_CUDA "Use a Nvidia GPU to speed up computations" OFF)
 
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
 if(ENABLE_TESTING)
@@ -86,6 +83,11 @@ find_package(VOTCA_TOOLS REQUIRED NO_MODULE)
 message(STATUS "Found VOTCA_TOOLS: ${VOTCA_TOOLS_DIR}")
 find_package(VOTCA_CSG REQUIRED NO_MODULE)
 message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
+
+if(USE_CUDA)
+  find_package(CUDA REQUIRED)
+endif(USE_CUDA)
+
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
@@ -129,7 +131,3 @@ add_subdirectory(scripts)
 add_subdirectory(src)
 add_subdirectory(share)
 
-option(BUILD_XTP_MANUAL "Build xtp-manual" OFF)
-if(BUILD_XTP_MANUAL)
-  add_subdirectory(manual)
-endif()

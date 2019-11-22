@@ -31,41 +31,33 @@
 
 namespace votca {
 namespace xtp {
-typedef std::pair<int, std::string> MD_atom_id;
-/**
-    \brief information about an atom
-
-    The Atom class stores atom id, name, type,residue number
-
-*/
 class Atom {
  public:
   struct data {
-    int id;
+    Index id;
     char* element;
     char* name;
     double x;
     double y;
     double z;
-    int resnr;
+    Index resnr;
   };
-  Atom(int resnr, std::string md_atom_name, int atom_id, Eigen::Vector3d pos);
+  Atom(Index resnr, std::string md_atom_name, Index atom_id,
+       Eigen::Vector3d pos, std::string element);
 
-  Atom(int atom_id, std::string md_atom_name, Eigen::Vector3d pos);
-
-  Atom(CptTable table, const std::size_t& idx) { ReadFromCpt(table, idx); }
+  Atom(Index atom_id, std::string element, Eigen::Vector3d pos);
 
   Atom(data& d) { ReadData(d); }
 
-  static std::string GetElementFromMDName(const std::string& MDName);
+  static std::string GetElementFromString(const std::string& MDName);
 
-  int getId() const { return _id; }
+  Index getId() const { return _id; }
   const std::string& getName() const { return _name; }
   std::string getElement() const { return _element; }
 
-  int getResnr() const { return _resnr; }
+  Index getResnr() const { return _resnr; }
 
-  void setResnr(int resnr) { _resnr = resnr; }
+  void setResnr(Index resnr) { _resnr = resnr; }
   void Translate(const Eigen::Vector3d& shift) { _pos = _pos + shift; }
 
   void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
@@ -87,18 +79,14 @@ class Atom {
 
   void WriteData(data& d) const;
 
-  void WriteToCpt(CptTable& table, const std::size_t& idx) const;
-
-  void ReadData(data& d);
-
-  void ReadFromCpt(CptTable table, const std::size_t& idx);
+  void ReadData(const data& d);
 
  private:
-  int _id = -1;
+  Index _id = -1;
   std::string _name = "";
 
   std::string _element = "";
-  int _resnr = -1;
+  Index _resnr = -1;
   Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
 };
 

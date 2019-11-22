@@ -29,15 +29,16 @@ namespace xtp {
 
 class QMMolecule : public AtomContainer<QMAtom> {
  public:
-  QMMolecule(std::string name, int id) : AtomContainer<QMAtom>(name, id){};
+  QMMolecule(std::string name, Index id) : AtomContainer<QMAtom>(name, id){};
 
+  QMMolecule(CheckpointReader& r) : AtomContainer<QMAtom>(r){};
   void LoadFromFile(std::string filename);
 
   void WriteXYZ(std::string filename, std::string header) const;
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const QMMolecule& container) {
-    out << container.getId() << " " << container.getName() << "\n";
+    out << container.getId() << " " << container.getType() << "\n";
     for (const QMAtom& atom : container) {
       out << atom;
     }

@@ -29,16 +29,16 @@ namespace xtp {
 
 class DIIS {
  public:
-  void Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix);
+  void Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix);
   Eigen::VectorXd CalcCoeff();
 
-  void setHistLength(int length) { _histlength = length; }
+  void setHistLength(Index length) { _histlength = length; }
 
   bool Info() { return success; }
 
  private:
   bool success = true;
-  int _histlength;
+  Index _histlength;
   std::vector<std::vector<double> > _Diis_Bs;
   std::vector<Eigen::MatrixXd> _errormatrixhist;
 };

@@ -28,7 +28,7 @@ namespace xtp {
 void Grid::printGridtoxyzfile(std::string filename) {
   // unit is Angstrom in xyz file
   std::ofstream points;
-  points.open(filename.c_str(), std::ofstream::out);
+  points.open(filename, std::ofstream::out);
   points << _gridpoints.size() << std::endl;
   points << std::endl;
   for (const auto& point : _gridpoints) {
@@ -48,18 +48,18 @@ void Grid::setupgrid(const QMMolecule& Atomlist) {
   Eigen::Array3d min = extension.first.array();
   Eigen::Array3d max = extension.second.array();
   Eigen::Array3d doublesteps = (max - min + 2 * _padding) / _gridspacing;
-  Eigen::Array3i steps = (doublesteps.ceil()).cast<int>();
+  Eigen::Array<votca::Index, 3, 1> steps = (doublesteps.ceil()).cast<Index>();
 
   // needed to symmetrize grid around molecule
   Eigen::Array3d padding =
       (doublesteps - steps.cast<double>()) * _gridspacing * 0.5 + _padding;
   Eigen::Array3d minpos = min - padding;
-  for (int i = 0; i <= steps.x(); i++) {
-    double x = minpos.x() + i * _gridspacing;
-    for (int j = 0; j <= steps.y(); j++) {
-      double y = minpos.y() + j * _gridspacing;
-      for (int k = 0; k <= steps.z(); k++) {
-        double z = minpos.z() + k * _gridspacing;
+  for (Index i = 0; i <= steps.x(); i++) {
+    double x = minpos.x() + double(i) * _gridspacing;
+    for (Index j = 0; j <= steps.y(); j++) {
+      double y = minpos.y() + double(j) * _gridspacing;
+      for (Index k = 0; k <= steps.z(); k++) {
+        double z = minpos.z() + double(k) * _gridspacing;
         bool is_valid = false;
         Eigen::Vector3d gridpos(x, y, z);
         for (const QMAtom& atom : Atomlist) {
@@ -70,8 +70,9 @@ void Grid::setupgrid(const QMMolecule& Atomlist) {
           if (distance2 < (atomcutoff * atomcutoff)) {
             is_valid = false;
             break;
-          } else if (distance2 < (_cutoff * _cutoff))
+          } else if (distance2 < (_cutoff * _cutoff)) {
             is_valid = true;
+          }
         }
         if (is_valid) {
           _gridpoints.push_back(gridpos);

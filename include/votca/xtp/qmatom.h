@@ -33,22 +33,22 @@ namespace xtp {
  *    Stores atom type, coordinates, charge
  */
 class QMAtom {
-  friend class AOBasis;
+  friend class ECPAOBasis;
 
  public:
   struct data {
-    int index;
+    Index index;
     char* element;
     double x;
     double y;
     double z;
-    int nuccharge;
-    int ecpcharge;
+    Index nuccharge;
+    Index ecpcharge;
   };
 
-  QMAtom(int index, std::string element, Eigen::Vector3d pos);
+  QMAtom(Index index, std::string element, Eigen::Vector3d pos);
 
-  QMAtom(data& d);
+  QMAtom(const data& d);
 
   const Eigen::Vector3d& getPos() const { return _pos; }
 
@@ -60,9 +60,9 @@ class QMAtom {
 
   const std::string& getElement() const { return _element; }
 
-  int getId() const { return _index; }
+  Index getId() const { return _index; }
 
-  int getNuccharge() const { return _nuccharge - _ecpcharge; }
+  Index getNuccharge() const { return _nuccharge - _ecpcharge; }
 
   std::string identify() const { return "qmatom"; }
 
@@ -74,18 +74,18 @@ class QMAtom {
   }
 
  private:
-  int _index;
+  Index _index;
   std::string _element;
   Eigen::Vector3d _pos;  // Bohr
-  int _nuccharge = 0;    // nuc charge is set in aobasis fill and ecpfill
-  int _ecpcharge = 0;
+  Index _nuccharge = 0;
+  Index _ecpcharge = 0;  // ecp charge is set in ecpaobasis.fill
 
  public:
   void SetupCptTable(CptTable& table) const;
 
   void WriteData(data& d) const;
 
-  void ReadData(data& d);
+  void ReadData(const data& d);
 };
 }  // namespace xtp
 }  // namespace votca

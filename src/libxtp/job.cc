@@ -30,13 +30,14 @@ using boost::format;
 Job::Job(const tools::Property &prop) {
 
   // DEFINED BY USER
-  _id = prop.get("id").as<int>();
+  _id = prop.get("id").as<Index>();
   _tag = prop.get("tag").as<std::string>();
   _input = prop.get("input");
-  if (prop.exists("status"))
+  if (prop.exists("status")) {
     _status = ConvertStatus(prop.get("status").as<std::string>());
-  else
+  } else {
     _status = AVAILABLE;
+  }
 
   // GENERATED DURING RUNTIME
   if (prop.exists("host")) {
@@ -57,16 +58,8 @@ Job::Job(const tools::Property &prop) {
   }
 }
 
-Job::Job(int id, std::string &tag, std::string &inputstr, std::string status) {
-
-  _id = id;
-  _tag = tag;
-  tools::Property input("input", inputstr, "");
-  _input = input;
-  _status = ConvertStatus(status);
-}
-
-Job::Job(int id, std::string &tag, tools::Property &input, JobStatus status) {
+Job::Job(Index id, const std::string &tag, const tools::Property &input,
+         JobStatus status) {
 
   _id = id;
   _tag = tag;
@@ -98,16 +91,17 @@ std::string Job::ConvertStatus(JobStatus status) const {
 
 Job::JobStatus Job::ConvertStatus(std::string status) const {
   JobStatus converted;
-  if (status == "AVAILABLE")
+  if (status == "AVAILABLE") {
     converted = AVAILABLE;
-  else if (status == "ASSIGNED")
+  } else if (status == "ASSIGNED") {
     converted = ASSIGNED;
-  else if (status == "FAILED")
+  } else if (status == "FAILED") {
     converted = FAILED;
-  else if (status == "COMPLETE")
+  } else if (status == "COMPLETE") {
     converted = COMPLETE;
-  else
+  } else {
     throw std::runtime_error("Incomprehensible status: " + status);
+  }
   return converted;
 }
 
@@ -119,50 +113,31 @@ void Job::Reset() {
   return;
 }
 
-void Job::ToStream(std::ofstream &ofs, std::string fileformat) const {
+void Job::ToStream(std::ofstream &ofs) const {
 
   tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 0,
                                       "\t\t");
+  std::string tab = "\t";
+  ofs << tab << "<job>\n";
+  ofs << tab << tab << (format("<id>%1$d</id>\n") % _id).str();
+  ofs << tab << tab << (format("<tag>%1$s</tag>\n") % _tag).str();
+  ofs << iomXML << _input;
+  ofs << tab << tab
+      << (format("<status>%1$s</status>\n") % ConvertStatus(_status)).str();
 
-  if (fileformat == "xml") {
-    std::string tab = "\t";
-
-    ofs << tab << "<job>\n";
-    ofs << tab << tab << (format("<id>%1$d</id>\n") % _id).str();
-    ofs << tab << tab << (format("<tag>%1$s</tag>\n") % _tag).str();
-    ofs << iomXML << _input;
-    ofs << tab << tab
-        << (format("<status>%1$s</status>\n") % ConvertStatus(_status)).str();
-
-    if (_has_host)
-      ofs << tab << tab << (format("<host>%1$s</host>\n") % _host).str();
-    if (_has_time)
-      ofs << tab << tab << (format("<time>%1$s</time>\n") % _time).str();
-    if (_has_output) ofs << iomXML << _output;
-    if (_has_error)
-      ofs << tab << tab << (format("<error>%1$s</error>\n") % _error).str();
-    ofs << tab << "</job>\n";
-  } else if (fileformat == "tab") {
-    std::string time = _time;
-    if (!_has_time) time = "__:__";
-    std::string host = _host;
-    if (!_has_host) host = "__:__";
-    std::string status = ConvertStatus(_status);
-
-    std::stringstream input;
-    std::stringstream output;
-
-    input << iomXML << _input;
-    output << iomXML << _output;
-    ofs << (format("%4$10s %5$20s %6$10s %1$5d %2$10s %3$30s %7$s %8$s\n") %
-            _id % _tag % input.str() % status % host % time % _error %
-            output.str())
-               .str();
-  } else {
-    throw std::runtime_error("Writing job, fileformat '" + fileformat +
-                             "' not recognized.");
+  if (_has_host) {
+    ofs << tab << tab << (format("<host>%1$s</host>\n") % _host).str();
   }
-
+  if (_has_time) {
+    ofs << tab << tab << (format("<time>%1$s</time>\n") % _time).str();
+  }
+  if (_has_output) {
+    ofs << iomXML << _output;
+  }
+  if (_has_error) {
+    ofs << tab << tab << (format("<error>%1$s</error>\n") % _error).str();
+  }
+  ofs << tab << "</job>\n";
   return;
 }
 
@@ -204,7 +179,7 @@ void Job::UpdateFromResult(const JobResult &res) {
 std::vector<Job> LOAD_JOBS(const std::string &job_file) {
 
   tools::Property xml;
-  load_property_from_xml(xml, job_file);
+  xml.LoadFromXML(job_file);
 
   std::vector<tools::Property *> jobProps = xml.Select("jobs.job");
   std::vector<Job> jobs;
@@ -216,19 +191,17 @@ std::vector<Job> LOAD_JOBS(const std::string &job_file) {
   return jobs;
 }
 
-void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
-                std::string fileformat) {
+void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file) {
   std::ofstream ofs;
-  ofs.open(job_file.c_str(), std::ofstream::out);
+  ofs.open(job_file, std::ofstream::out);
   if (!ofs.is_open()) {
     throw std::runtime_error("Bad file handle: " + job_file);
   }
-  if (fileformat == "xml") ofs << "<jobs>" << std::endl;
+  ofs << "<jobs>" << std::endl;
   for (auto &job : jobs) {
-    if (fileformat == "tab" && !job.isComplete()) continue;
-    job.ToStream(ofs, fileformat);
+    job.ToStream(ofs);
   }
-  if (fileformat == "xml") ofs << "</jobs>" << std::endl;
+  ofs << "</jobs>" << std::endl;
 
   ofs.close();
   return;
@@ -239,17 +212,20 @@ void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
   std::vector<Job>::iterator it_int;
   std::vector<Job>::const_iterator it_ext;
 
-  if (to.size() != from.size())
+  if (to.size() != from.size()) {
     throw std::runtime_error("Progress file out of sync (::size), abort.");
+  }
 
   for (it_int = to.begin(), it_ext = from.begin(); it_int != to.end();
        ++it_int, ++it_ext) {
     Job &job_int = *it_int;
     const Job &job_ext = *it_ext;
-    if (job_int.getId() != job_ext.getId())
+    if (job_int.getId() != job_ext.getId()) {
       throw std::runtime_error("Progress file out of sync (::id), abort.");
-    if (job_ext.hasHost() && job_ext.getHost() != thisHost)
+    }
+    if (job_ext.hasHost() && job_ext.getHost() != thisHost) {
       job_int.UpdateFrom(job_ext);
+    }
   }
 
   return;

@@ -36,13 +36,13 @@ class StaticSite {
 
  public:
   struct data {
-    int id;
+    Index id;
     char* element;
     double posX;
     double posY;
     double posZ;
 
-    int rank;
+    Index rank;
 
     double Q00;
     double Q11c;
@@ -54,35 +54,38 @@ class StaticSite {
     double Q22c;
     double Q22s;
   };
-  StaticSite(int id, std::string element, Eigen::Vector3d pos)
+  StaticSite(Index id, std::string element, Eigen::Vector3d pos)
       : _id(id), _element(element), _pos(pos){};
 
-  StaticSite(int id, std::string element)
+  StaticSite(Index id, std::string element)
       : StaticSite(id, element, Eigen::Vector3d::Zero()){};
 
-  StaticSite(data& d) { ReadData(d); }
+  StaticSite(const data& d) { ReadData(d); }
 
   StaticSite(const QMAtom& atom, double charge)
       : StaticSite(atom.getId(), atom.getElement(), atom.getPos()) {
     setCharge(charge);
   }
-  virtual ~StaticSite(){};
+  virtual ~StaticSite() = default;
 
  protected:
-  StaticSite(){};
+  StaticSite() = default;
 
  public:
-  int getId() const { return _id; }
-  int getRank() const { return _rank; }
+  Index getId() const { return _id; }
+  Index getRank() const { return _rank; }
   const std::string& getElement() const { return _element; }
   const Eigen::Vector3d& getPos() const { return _pos; }
 
-  void setMultipole(const Vector9d& multipole, int rank) {
+  void setMultipole(const Vector9d& multipole, Index rank) {
     _Q = multipole;
     _rank = rank;
   }
-
-  void setCharge(double q) { _Q(0) = q; }
+  // sets rank to 0 as well
+  void setCharge(double q) {
+    _Q(0) = q;
+    _rank = 0;
+  }
 
   void setPos(const Eigen::Vector3d& position) { _pos = position; }
 
@@ -91,7 +94,6 @@ class StaticSite {
   virtual void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos);
 
   // MULTIPOLES DEFINITION
-
   double getCharge() const { return _Q(0); }
   const Vector9d& Q() const {
     return _Q;
@@ -110,8 +112,8 @@ class StaticSite {
   virtual void SetupCptTable(CptTable& table) const;
 
   void WriteData(data& d) const;
-  void ReadData(data& d);
-  virtual void setPolarisation(const Eigen::Matrix3d& pol) { return; }
+  void ReadData(const data& d);
+  virtual void setPolarisation(const Eigen::Matrix3d&) { return; }
 
   virtual std::string identify() const { return "staticsite"; }
 
@@ -122,12 +124,12 @@ class StaticSite {
   }
 
  protected:
-  virtual std::string writePolarisation() const { return "P 0.0 0.0 0.0"; };
+  virtual std::string writePolarisation() const;
 
-  int _id = -1;
+  Index _id = -1;
   std::string _element = "";
   Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
-  int _rank = 0;
+  Index _rank = 0;
 
   Vector9d _Q = Vector9d::Zero();  // Q00,Q11c,Q11s,Q10,Q20,Q21c,Q21s,Q22c,Q22s
 };

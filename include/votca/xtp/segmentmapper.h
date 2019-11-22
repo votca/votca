@@ -44,33 +44,33 @@ class SegmentMapper {
   AtomContainer map(const Segment& seg, const std::string& coordfilename) const;
 
  private:
-  typedef typename std::iterator_traits<
-      typename AtomContainer::iterator>::value_type mapAtom;
+  using mapAtom = typename std::iterator_traits<
+      typename AtomContainer::iterator>::value_type;
 
-  typedef std::pair<int, std::string> mapsite_id;
+  typedef std::pair<long, std::string> atom_id;
 
   struct FragInfo {
     std::vector<double> _weights;
-    std::vector<mapsite_id> _mapatom_ids;
-    std::vector<MD_atom_id> _mdatom_ids;
-    std::vector<int> _map_local_frame;
+    std::vector<atom_id> _mapatom_ids;
+    std::vector<atom_id> _mdatom_ids;
+    std::vector<Index> _map_local_frame;
   };
 
   struct Seginfo {
-    std::pair<int, int> minmax;
-    std::vector<MD_atom_id> mdatoms;
+    std::pair<long, Index> minmax;
+    std::vector<Index> mdatoms;
     std::vector<FragInfo> fragments;
     bool map2md;
     std::string segname;
     std::vector<double> weights;
-    std::vector<mapsite_id> mapatoms;
+    std::vector<atom_id> mapatoms;
     std::map<std::string, std::string> coordfiles;
   };
   std::map<std::string, std::string> _mapatom_xml;
   std::map<std::string, Seginfo> _segment_info;
 
-  int FindVectorIndexFromAtomId(
-      int atomid, const std::vector<mapAtom*>& fragment_mapatoms) const;
+  Index FindVectorIndexFromAtomId(
+      Index atomid, const std::vector<mapAtom*>& fragment_mapatoms) const;
 
   void ParseFragment(Seginfo& seginfo, const tools::Property& frag);
 
@@ -86,22 +86,16 @@ class SegmentMapper {
                       const std::vector<const Atom*>& fragment_mdatoms) const;
 
   Logger& _log;
-  std::pair<int, int> CalcResidueRange(const Segment& seg) const;
-  std::pair<int, int> CalcResidueRange(
-      const std::vector<MD_atom_id>& seg) const;
+  std::pair<long, Index> CalcAtomIdRange(const Segment& seg) const;
+  std::pair<long, Index> CalcAtomIdRange(const std::vector<Index>& seg) const;
 
-  mapsite_id StringToMapIndex(const std::string& map_string) const;
+  atom_id StringToMapIndex(const std::string& map_string) const;
 
-  MD_atom_id StringToMDIndex(const std::string& md_string) const;
+  atom_id StringToMDIndex(const std::string& md_string) const;
 
-  int getRank(const mapAtom& atom) const { return atom.getRank(); }
+  Index getRank(const mapAtom& atom) const { return atom.getRank(); }
 
-  std::string getWeights(const tools::Property& frag) const {
-    if (frag.exists(_mapatom_xml.at("weights"))) {
-      return frag.get(_mapatom_xml.at("weights")).template as<std::string>();
-    }
-    return frag.get("weights").template as<std::string>();
-  }
+  std::vector<double> getWeights(const tools::Property& frag) const;
 
   std::string getFrame(const tools::Property& frag) const {
     if (frag.exists(_mapatom_xml.at("frame"))) {
@@ -131,13 +125,13 @@ inline void SegmentMapper<QMMolecule>::FillMap() {
 }
 
 template <>
-inline int SegmentMapper<QMMolecule>::getRank(const QMAtom& atom) const {
+inline Index SegmentMapper<QMMolecule>::getRank(const QMAtom&) const {
   return 0;
 }
 
-typedef SegmentMapper<QMMolecule> QMMapper;
-typedef SegmentMapper<StaticSegment> StaticMapper;
-typedef SegmentMapper<PolarSegment> PolarMapper;
+using QMMapper = SegmentMapper<QMMolecule>;
+using StaticMapper = SegmentMapper<StaticSegment>;
+using PolarMapper = SegmentMapper<PolarSegment>;
 }  // namespace xtp
 }  // namespace votca
 
