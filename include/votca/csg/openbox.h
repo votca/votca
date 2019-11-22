@@ -29,7 +29,7 @@ class OpenBox : public BoundaryCondition {
   Eigen::Vector3d BCShortestConnection(
       const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const override;
 
-  eBoxtype getBoxType() override { return typeOpen; }
+  eBoxtype getBoxType() const override { return typeOpen; }
 };
 
 }  // namespace csg
