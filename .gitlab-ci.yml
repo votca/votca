@@ -7,7 +7,7 @@ stages:
     max: 2
   variables:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
-    CXXFLAGS: "-Wall -Werror"
+    CXXFLAGS: "-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror"
     DISTRO: "latest"
   image: votca/buildenv:${DISTRO}
   stage: build
@@ -36,12 +36,15 @@ stages:
     - git -C ${CI_PROJECT_NAME} checkout -f ${CI_COMMIT_SHA}
     - mkdir -p build
     - pushd build
-    - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    - if [[ $CXX = clang++ ]]; then export CXXFLAGS="$CXXFLAGS -Wno-sign-conversion"; fi
+    - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON
+      -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
     - make -O -k -j${j} -l${j} VERBOSE=1
     - make test CTEST_OUTPUT_ON_FAILURE=1
     - test -z "${MODULE_BUILD}" && make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
     - sudo make install
+    - if [[ ${CLANG_FORMAT} ]]; then make format && git -C ${CI_PROJECT_DIR}/votca/${CI_PROJECT_NAME} diff --exit-code; fi
     - ccache -s
 
 Debug GCC:
@@ -50,6 +53,7 @@ Debug GCC:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
+    CLANG_FORMAT: "yes"
   extends: .build
 
 None GCC:
@@ -118,6 +122,42 @@ Release Clang Ubuntu:
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "ubuntu"
   extends: .build
+
+Debug GCC Rawhide:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+  allow_failure: true
+
+Debug Clang Rawhide:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+  allow_failure: true
+
+Release GCC Rawhide:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+  allow_failure: true
+
+Release Clang Rawhide:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+  allow_failure: true
 
 Release GCC Module:
   variables:
