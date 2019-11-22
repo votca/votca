@@ -15,8 +15,8 @@
  *
  */
 #pragma once
-#ifndef _VOTCA_CSG_TRICLINICBOX_H
-#define _VOTCA_CSG_TRICLINICBOX_H
+#ifndef VOTCA_CSG_TRICLINICBOX_H
+#define VOTCA_CSG_TRICLINICBOX_H
 
 #include "boundarycondition.h"
 
@@ -41,4 +41,4 @@ class TriclinicBox : public BoundaryCondition {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_TRICLINICBOX_H */
+#endif  // VOTCA_CSG_TRICLINICBOX_H
