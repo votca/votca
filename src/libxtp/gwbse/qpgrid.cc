@@ -27,15 +27,15 @@ namespace xtp {
 Eigen::VectorXd QPGrid::Evaluate(const Eigen::VectorXd frequencies) {
   const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
   const Eigen::VectorXd c = _dft_energies.segment(_opt.qpmin, qptotal) + _sigma_x.diagonal() - _vxc.diagonal();
-  const double delta = (2.0 * _opt.range) / (_opt.steps - 1);
+  Eigen::VectorXd linSpaced = Eigen::VectorXd::LinSpaced(_opt.steps, -_opt.range, _opt.range);
   Eigen::MatrixXd sigmc_mat = Eigen::MatrixXd::Zero(qptotal, _opt.steps);
   for (Index i_node = 0; i_node < _opt.steps; ++i_node) {
-    sigmc_mat.col(i_node) = _sigma.CalcCorrelationDiag(frequencies.array() - _opt.range + i_node * delta);
+    sigmc_mat.col(i_node) = _sigma.CalcCorrelationDiag(frequencies.array() + linSpaced[i_node]);
   }
   Eigen::VectorXd roots = frequencies;
   for (Index level = 0; level < qptotal; ++level) {
     const double freq_cur = frequencies[level];
-    Eigen::VectorXd grid_freq = freq_cur + Eigen::VectorXd::LinSpaced(_opt.steps, -_opt.range, _opt.range).array();
+    Eigen::VectorXd grid_freq = freq_cur + linSpaced.array();
     Eigen::VectorXd grid_sigc = sigmc_mat.row(level);
     Eigen::VectorXd grid_targ = grid_sigc.array() + c[level] - grid_freq.array();
     double root_best = 0.0;
