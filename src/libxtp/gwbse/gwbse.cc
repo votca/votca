@@ -557,65 +557,42 @@ bool GWBSE::Evaluate() {
       Sternheimer sternheimer(_orbitals,*_pLog);
       
       
-      std::complex<double> d(1,0);
-      std::complex<double> i(0,1);
-      std::vector<Eigen::MatrixXcd> polar;
-      std::vector<Eigen::MatrixXcd> polar_merged;
-      std::vector<std::complex<double>> w_global;
-      for(int j=0;j<21;j++){
-          std::cout<<"started loop "<<j<<std::endl;
-          std::vector<std::complex<double>> w_g;
-          std::vector<std::complex<double>> w;
-          std::vector<Eigen::MatrixXcd> polar_temp;
-          for(int n=0;n<6;n++){
-              w_g.push_back(0.6*j*ev2hrt+n*ev2hrt/5+0.7*i);
-              
-              //w_g.push_back((ev2hrt/10+0.7*i-0.05*n*i));
-              //w_g.push_back(10/(n*d)+i*3);
-          }
-          for(int n=0;n<6;n++){
-              w.push_back((0.6*j+n*d/5)*ev2hrt);
-              w_global.push_back((0.6*j+n*d/5)*ev2hrt);
-          }
+//      std::complex<double> d(1,0);
+//      std::complex<double> i(0,1);
+        std::vector<Eigen::Matrix3cd> polar;
+//      std::vector<std::complex<double>> w_g;
+      //std::vector<std::complex<double>> w;
+//      for(int n=0;n<300;n++){
+//          w_g.push_back(n*d/10*ev2hrt+0.8*i);
+//
+//          //w_g.push_back((ev2hrt/10+0.7*i-0.05*n*i));
+//          //w_g.push_back(10/(n*d)+i*3);
+//      }
+//      for(int n=0;n<3000;n++){
+//          w.push_back((n*d/100)*ev2hrt);
+//      }
 
-          //XTP_LOG(logDEBUG, *_pLog)<<TimeStamp()<<" Initialised Grid "<<flush;
+      //XTP_LOG(logDEBUG, *_pLog)<<TimeStamp()<<" Initialised Grid "<<flush;
 
-          sternheimer.Initialize();
+      sternheimer.Initialize();
 
-          polar_temp=sternheimer.Polarisability(w_g,w);
-          
-//          for(int t=0;t<w_g.size();t++){
-//              polar_temp.push_back(Eigen::Matrix3cd::Identity());
-//          }
-          
-          for(int m=0; m<polar_temp.size(); m++){
-              polar.push_back(polar_temp[m]);
-          }
-      }
-      for(int i=0; i<(polar.size()/2-6)/3-1; i++){
-          if(i==0){
-              polar_merged.push_back(polar[i]);
-              polar_merged.push_back(polar[i+1]);
-              polar_merged.push_back(polar[i+2]);
-          }else if(i==1){
-              polar_merged.push_back((polar[i+2]+polar[i+2+3])/2);
-              polar_merged.push_back((polar[i+3]+polar[i+3+3])/2);
-              polar_merged.push_back((polar[i+4]+polar[i+4+3])/2);
-          }else{
-              polar_merged.push_back((polar[i+2+(i-1)*5]+(polar[i+2+(i-1)*5+3]))/2);
-              polar_merged.push_back((polar[i+3+(i-1)*5]+(polar[i+3+(i-1)*5+3]))/2);
-              polar_merged.push_back((polar[i+4+(i-1)*5]+(polar[i+4+(i-1)*5+3]))/2);
-          }
-      }
+      polar=sternheimer.Polarisability(0,30,300,3000,0.8);
+
+//      for(int i=0;i<polar.size();i++){
+//          std::cout<<polar[i]<<std::endl;
+//      }
       
-      
-      for(int i=0;i<polar.size();i++){      
-        std::cout<<real(w_global.at(i))*votca::tools::conv::hrt2ev<<" "<<(std::abs(real((polar.at(i)(2,2))))+std::abs(real(polar.at(i)(1,1)))+std::abs(real(polar.at(i)(0,0))))/3<<std::endl;
-      }
+//      for(int i=0;i<polar.size();i++){      
+//        std::cout<<real(w.at(i))*votca::tools::conv::hrt2ev<<" "<<(std::abs(real((polar.at(i)(2,2))))+std::abs(real(polar.at(i)(1,1)))+std::abs(real(polar.at(i)(0,0))))/3<<std::endl;
+//      }
       std::cout<<std::endl;
-      for(int i=0;i<polar.size();i++){      
-        std::cout<<real(w_global.at(i))*votca::tools::conv::hrt2ev<<" "<<std::abs(real((polar.at(i)(2,2)))+real(polar.at(i)(1,1))+real(polar.at(i)(0,0)))/3<<std::endl;
-      }
+//      for(int i=0;i<polar.size();i++){      
+//        std::cout<<real(w.at(i))*votca::tools::conv::hrt2ev<<" "<<abs(real((polar.at(i)(2,2)))+real(polar.at(i)(1,1))+real(polar.at(i)(0,0)))/3<<std::endl;
+//      }
+      std::cout<<std::endl;
+//      for(int i=0;i<polar.size();i++){      
+//        std::cout<<real(w.at(i))*votca::tools::conv::hrt2ev<<" "<<real((polar.at(i)(2,2)))+real(polar.at(i)(1,1))+real(polar.at(i)(0,0))/3<<std::endl;
+//      }
       
       std::cout<<std::endl<<"Finished Sternheimer"<<std::endl;
       

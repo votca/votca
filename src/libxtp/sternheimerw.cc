@@ -292,7 +292,7 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
     const std::vector<std::complex<double>>& grid_w,
     const std::vector<std::complex<double>>& w, std::string gridtype) {
 
-  initializePade(3);
+  //initializePade(3);
   initializeMultishift(_orbitals.getBasisSetSize());
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
@@ -342,16 +342,16 @@ std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
   }
   
   for (int i = 0; i < Polar.size(); i++) {
-    _pade.addPoint(grid_w[i], Polar[i].real());
-    _pade.addPoint(conj(grid_w[i]), Polar[i].real());
+    //_pade.addPoint(grid_w[i], Polar[i].real());
+    //_pade.addPoint(conj(grid_w[i]), Polar[i].real());
   }
 
-  std::vector<Eigen::MatrixXcd> Polar_pade;
+  //std::vector<Eigen::MatrixXcd> Polar_pade;
   for (std::complex<double> w:w) {
     std::cout<<"Calculated Point number"<<w<<std::endl;
-    Polar_pade.push_back(_pade.evaluatePoint(w));
+    //Polar_pade.push_back(_pade.evaluatePoint(w));
   }
-  return Polar_pade;
+  return Polar;
 }
   std::vector<Eigen::MatrixXcd> SternheimerW::DeltaNSelfConsistent(std::vector<std::complex<double>>& frequency, Eigen::Vector3d& r) const{
       

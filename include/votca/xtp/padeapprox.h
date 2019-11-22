@@ -39,33 +39,38 @@ class PadeApprox {
  public:
   PadeApprox(){};
 
-  Eigen::Matrix3d evaluatePoint(std::complex<double> frequency);
+  std::complex<double> evaluatePoint(std::complex<double> frequency);
 
-  void addPoint(std::complex<double> frequency, Eigen::Matrix3d value);
+  void addPoint(std::complex<double> frequency, std::complex<double> value);
 
-  void initialize(int basis_size);
+  void initialize(int num_points);
 
   void clear();
+  
+  void printInfo();
 
  private:
-  std::vector<Eigen::Matrix3d> _value;
+     
+  int _num_points;
+     
+  std::vector<std::complex<double>> _value;
 
   std::vector<std::complex<double>> _grid;
 
-  std::vector<Eigen::Matrix3d> _coeff;
+  std::vector<std::complex<double>> _coeff;
 
-  std::vector<std::vector<Eigen::Matrix3d>> _temp_container_g;
+  std::vector<std::vector<std::complex<double>>> _temp_container_g;
   
-  std::vector<Eigen::Matrix3d> _temp_container_A;
-  std::vector<Eigen::Matrix3d> _temp_container_B;
+  std::vector<std::complex<double>> _temp_container_A;
+  std::vector<std::complex<double>> _temp_container_B;
 
   int _rejected_points = 0;
   
-  Eigen::Matrix3d RecursivePolynom(int indx, int degree);
+  std::complex<double> RecursivePolynom(int indx, int degree);
 
-  Eigen::Matrix3d RecursiveA(std::complex<double> frequency, int index);
+  std::complex<double> RecursiveA(std::complex<double> frequency, int index);
 
-  Eigen::Matrix3d RecursiveB(std::complex<double> frequency, int index);
+  std::complex<double> RecursiveB(std::complex<double> frequency, int index);
 };
 }  // namespace xtp
 }  // namespace votca

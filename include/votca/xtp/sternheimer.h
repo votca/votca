@@ -41,16 +41,14 @@ class Sternheimer {
   
   void Initialize();
   
-  std::vector<Eigen::MatrixXcd> Polarisability(
-      const std::vector<std::complex<double>>& grid_w,
-      const std::vector<std::complex<double>>& w);
+  std::vector<Eigen::Matrix3cd> Polarisability(
+      double omega_start, double omega_end, int steps, int imaginary_shift, int resolution_output);
+  void printIsotropicAverage(std::vector<Eigen::Matrix3cd> polar, std::vector<std::complex<double>> grid);
 
  private:
   Logger& _log;
 
   Orbitals& _orbitals;
-
-  PadeApprox _pade;
 
   Multishift _multishift;
 
@@ -80,6 +78,9 @@ class Sternheimer {
   Eigen::MatrixXcd Hamiltonian();
   // Calculates coulomb matrix
   Eigen::MatrixXcd CoulombMatrix();
+  
+  std::vector<std::complex<double>> BuildGrid(double omega_start, double omega_end, int steps, int imaginary_shift);
+  
   
   std::vector<Eigen::MatrixXcd> DipoleIntegral(); 
   // sets up the left hand side of the sternheimer equation
