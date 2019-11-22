@@ -59,7 +59,6 @@ void PadeApprox::printInfo() {
 
 void PadeApprox::addPoint(std::complex<double> frequency, std::complex<double> value) {
 
-  //std::cout<<" started Added Point at "<< frequency<<std::endl;
   this->_grid.push_back(frequency);
   this->_value.push_back(value);
   this->_coeff.push_back(RecursivePolynom(_grid.size() - 1, _grid.size()));
@@ -76,24 +75,17 @@ void PadeApprox::addPoint(std::complex<double> frequency, std::complex<double> v
     }
     _rejected_points++;
   }
-  //std::cout<<"Added Point at "<< frequency<<std::endl;
 }
 
 std::complex<double> PadeApprox::RecursivePolynom(int indx, int degree) {
-    
-    //std::cout<<"g_indx_degree "<< indx<<" "<<degree<<std::endl;
-    
+       
   if (degree == 1) {
-    //std::cout<<"g_"<<degree<<"("<<_grid.at(indx)<<")="<<_value.at(indx)(0,0)<<std::endl;
     return _value.at(indx);
   }else if(real(this->_temp_container_g[indx][degree-1])!=0){
       return this->_temp_container_g[indx][degree-1];
   }else{
     std::complex<double> temp = RecursivePolynom(indx, degree - 1);
     std::complex<double> u = RecursivePolynom(degree-2, degree-1) - temp;
-    
-    //std::cout<<"u="<<u(0,0)<<std::endl;
-    
     std::complex<double> l = temp * (_grid.at(indx) - _grid.at(degree - 2));
     
     std::complex<double> result=u/l;

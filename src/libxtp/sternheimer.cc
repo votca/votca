@@ -79,7 +79,7 @@ Eigen::MatrixXcd Sternheimer::CoulombMatrix() {
   return coulomb.Matrix();
 }
 
-std::vector<std::complex<double>> Sternheimer::BuildGrid(double omega_start, double omega_end, int steps, int imaginary_shift){
+std::vector<std::complex<double>> Sternheimer::BuildGrid(double omega_start, double omega_end, int steps, double imaginary_shift) const{
     
     std::vector<std::complex<double>> grid;
     
@@ -87,9 +87,9 @@ std::vector<std::complex<double>> Sternheimer::BuildGrid(double omega_start, dou
     const double ev2hrt=1/votca::tools::conv::hrt2ev;
     std::complex<double> d(1,0);
     std::complex<double> i(0,1);
-    
-    for(int n=0;n<=steps;n++){
         
+    for(int n=0;n<=steps;n++){
+        //Converts from input eV to Hartree
         grid.push_back(omega_start*ev2hrt+n*stepsize*ev2hrt+imaginary_shift*i);
         
     }
@@ -121,7 +121,7 @@ Eigen::VectorXcd Sternheimer::SternheimerRHS(const Eigen::MatrixXcd& inverse_ove
 }
 
 std::vector<Eigen::MatrixXcd> Sternheimer::DeltaNOneShot(
-    std::vector<std::complex<double>> w,const Eigen::MatrixXd& pertubation) const{
+    std::vector<std::complex<double>> w, const Eigen::MatrixXd& pertubation) const{
   
   double alpha = 2 * (_mo_energies(_num_occ_lvls) - _mo_energies(2));
 
@@ -147,7 +147,6 @@ std::vector<Eigen::MatrixXcd> Sternheimer::DeltaNOneShot(
       }
 
       if (i == 0) {
-        //H_new = _H + alpha * _S * _p.transpose();
         LHS_P = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w[i], true);
         solution_p[i].col(v)=LHS_P.colPivHouseholderQr().solve(RHS);
       } else {
@@ -162,19 +161,12 @@ std::vector<Eigen::MatrixXcd> Sternheimer::DeltaNOneShot(
       }
 
       if (i == 0) {
-        //H_new = _H + alpha * _S * _p.transpose();
         LHS_M = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w[i], false);
-        //result = _multishift.ComplexBiCG(LHS_M, RHS);
         solution_m[i].col(v)=LHS_M.colPivHouseholderQr().solve(RHS);
-        //solution_m[i].col(v) = result._x;
       }else {
         LHS_M = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w[i], false);
         
         solution_m[i].col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
-        //solution_m[i].col(v) = _multishift.DoMultishift(LHS_M,RHS,-w[i],result);
-        //if(((LHS_M+w[i]*Eigen::MatrixXcd::Identity(_basis_size,_basis_size))*solution_m[i].col(v)-RHS).norm()>1e-13){
-        //    std::cout<<"res_m="<<(LHS_M-w[i]*Eigen::MatrixXcd::Identity(_basis_size,_basis_size))*solution_m[i].col(v)-RHS<<std::endl;
-        //}
       }
     }
   }
@@ -245,22 +237,22 @@ Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(std::complex<double> w,
     }
 
 std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
-    double omega_start, double omega_end, int steps, int imaginary_shift, int resolution_output) {
+    double omega_start, double omega_end, int steps, double imaginary_shift, int resolution_output) const{
     
   std::vector<std::complex<double>> grid_w = BuildGrid(omega_start, omega_end, steps, imaginary_shift); 
   std::vector<std::complex<double>> w = BuildGrid(omega_start, omega_end, resolution_output, imaginary_shift); 
   
   PadeApprox pade_1;
-  PadeApprox pade_2;
-  PadeApprox pade_3;
+  //PadeApprox pade_2;
+  //PadeApprox pade_3;
   PadeApprox pade_4;
-  PadeApprox pade_5;
+  //PadeApprox pade_5;
   PadeApprox pade_6;
   pade_1.initialize(2*grid_w.size());
-  pade_2.initialize(grid_w.size());
-  pade_3.initialize(grid_w.size());
+ // pade_2.initialize(2*grid_w.size());
+  //pade_3.initialize(2*grid_w.size());
   pade_4.initialize(2*grid_w.size());
-  pade_5.initialize(grid_w.size());
+  //pade_5.initialize(2*grid_w.size());
   pade_6.initialize(2*grid_w.size());
   
   AOBasis basis = _orbitals.SetupDftBasis();
@@ -283,22 +275,21 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
             pade_1.addPoint(grid_w[n], Polar(0,0));
             pade_1.addPoint(conj(grid_w[n]), conj(Polar(0,0)));
             
-            pade_2.addPoint(grid_w[n], Polar(0,1));
-            pade_2.addPoint(conj(grid_w[n]), conj(Polar(0,1)));
+            //pade_2.addPoint(grid_w[n], Polar(0,1));
+            //pade_2.addPoint(conj(grid_w[n]), conj(Polar(0,1)));
         
-            pade_3.addPoint(grid_w[n], Polar(0,2));
-            pade_3.addPoint(conj(grid_w[n]), conj(Polar(0,2)));
+            //pade_3.addPoint(grid_w[n], Polar(0,2));
+            //pade_3.addPoint(conj(grid_w[n]), conj(Polar(0,2)));
         
             pade_4.addPoint(grid_w[n], Polar(1,1));
             pade_4.addPoint(conj(grid_w[n]), conj(Polar(1,1)));
                     
-            pade_5.addPoint(grid_w[n], Polar(1,2));
-            pade_5.addPoint(conj(grid_w[n]), conj(Polar(1,2)));
+            //pade_5.addPoint(grid_w[n], Polar(1,2));
+            //pade_5.addPoint(conj(grid_w[n]), conj(Polar(1,2)));
         
             pade_6.addPoint(grid_w[n], Polar(2,2));
             pade_6.addPoint(conj(grid_w[n]), conj(Polar(2,2)));
             
-            std::cout<<"Done with 3,3"<<std::endl;
       std::cout<<"Done with w="<<grid_w[n]<<std::endl;
     }
   std::vector<Eigen::Matrix3cd> Polar_pade;
@@ -306,23 +297,22 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
   for (std::complex<double> w:w){
     Polar_pade.push_back(Eigen::Matrix3cd::Zero());
     Polar_pade[Polar_pade.size()-1](0,0)=pade_1.evaluatePoint(w);
-    Polar_pade[Polar_pade.size()-1](0,1)=pade_2.evaluatePoint(w);
-    Polar_pade[Polar_pade.size()-1](0,2)=pade_3.evaluatePoint(w);
-    Polar_pade[Polar_pade.size()-1](1,0)=Polar_pade[Polar_pade.size()-1](0,1);
+    //Polar_pade[Polar_pade.size()-1](0,1)=pade_2.evaluatePoint(w);
+    //Polar_pade[Polar_pade.size()-1](0,2)=pade_3.evaluatePoint(w);
+    //Polar_pade[Polar_pade.size()-1](1,0)=Polar_pade[Polar_pade.size()-1](0,1);
     Polar_pade[Polar_pade.size()-1](1,1)=pade_4.evaluatePoint(w);
-    Polar_pade[Polar_pade.size()-1](1,2)=pade_5.evaluatePoint(w);
-    Polar_pade[Polar_pade.size()-1](2,0)=Polar_pade[Polar_pade.size()-1](0,2);
-    Polar_pade[Polar_pade.size()-1](2,1)=Polar_pade[Polar_pade.size()-1](1,2);
+    //Polar_pade[Polar_pade.size()-1](1,2)=pade_5.evaluatePoint(w);
+    //Polar_pade[Polar_pade.size()-1](2,0)=Polar_pade[Polar_pade.size()-1](0,2);
+    //Polar_pade[Polar_pade.size()-1](2,1)=Polar_pade[Polar_pade.size()-1](1,2);
     Polar_pade[Polar_pade.size()-1](2,2)=pade_6.evaluatePoint(w);
   }
   printIsotropicAverage(Polar_pade, w);
   return Polar_pade;
 }
-void Sternheimer::printIsotropicAverage(std::vector<Eigen::Matrix3cd> polar,  std::vector<std::complex<double>> grid){
+void Sternheimer::printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar,  std::vector<std::complex<double>>& grid) const{
     for(int i=0;i<polar.size();i++){      
         std::cout<<real(grid.at(i))*votca::tools::conv::hrt2ev<<" "<<real((polar.at(i)(2,2)))+real(polar.at(i)(1,1))+real(polar.at(i)(0,0))/3<<std::endl;
     }
 }
 }  // namespace xtp
 }  // namespace votca
-

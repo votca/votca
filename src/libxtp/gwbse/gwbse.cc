@@ -576,7 +576,7 @@ bool GWBSE::Evaluate() {
 
       sternheimer.Initialize();
 
-      polar=sternheimer.Polarisability(0,30,300,3000,0.8);
+      polar=sternheimer.Polarisability(0,30,600,0.8,3000);
 
 //      for(int i=0;i<polar.size();i++){
 //          std::cout<<polar[i]<<std::endl;

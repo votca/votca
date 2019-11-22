@@ -36,14 +36,15 @@ class Sternheimer {
   Sternheimer(Orbitals& orbitals, Logger& log)
       : _orbitals(orbitals), _log(log){};
 
-  // Calculates the dielectric matrix via the non selfconsistent Sternheimer
-  // equation for frequency w
-  
+  //Calculates and saves all matrices needed to perform Sternheimer calculations from DFT
   void Initialize();
   
+  //Calculates the Polarizability Tensor for given frequency grid according to Paper
+  //https://journals.aps.org/prb/pdf/10.1103/PhysRevB.89.085129
   std::vector<Eigen::Matrix3cd> Polarisability(
-      double omega_start, double omega_end, int steps, int imaginary_shift, int resolution_output);
-  void printIsotropicAverage(std::vector<Eigen::Matrix3cd> polar, std::vector<std::complex<double>> grid);
+      double omega_start, double omega_end, int steps, double imaginary_shift, int resolution_output) const;
+  //Prints the isotropic average of the polarizability tensor
+  void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar, std::vector<std::complex<double>>& grid) const;
 
  private:
   Logger& _log;
@@ -67,8 +68,10 @@ class Sternheimer {
   Eigen::MatrixXd _mo_coefficients;
   Eigen::VectorXd _mo_energies;
 
+  //Sets up the Multishift solver for linear systems of given size
   void initializeMultishift(int size);
 
+  //Sets up the N-Point Pade approximation
   void initializePade(int size);
   // returns the overlap matrix for all occupied states
   Eigen::MatrixXcd OverlapMatrix();
@@ -79,9 +82,11 @@ class Sternheimer {
   // Calculates coulomb matrix
   Eigen::MatrixXcd CoulombMatrix();
   
-  std::vector<std::complex<double>> BuildGrid(double omega_start, double omega_end, int steps, int imaginary_shift);
+  //Bulids the frequency grid for the polarizability calculations
+  //Input values in eV
+  std::vector<std::complex<double>> BuildGrid(double omega_start, double omega_end, int steps, double imaginary_shift) const;
   
-  
+  //Computes the Dipole Integral
   std::vector<Eigen::MatrixXcd> DipoleIntegral(); 
   // sets up the left hand side of the sternheimer equation
   Eigen::MatrixXcd SternheimerLHS(const Eigen::MatrixXcd& hamiltonian,
@@ -94,13 +99,12 @@ class Sternheimer {
                                   const Eigen::MatrixXcd& density,
                                   const Eigen::MatrixXcd& pertubation,
                                   const Eigen::VectorXcd& coeff) const;
-  // Calculates the pertubation of the electron density using the non
-  // self-consistent one shot approach
+  // Calculates the response of the electron density using one shot Sternheimer
   std::vector<Eigen::MatrixXcd> DeltaNOneShot(std::vector<std::complex<double>> w,
                                                const Eigen::MatrixXd& pertubation)const;
+  //Calculates the response of the electron density using self consistent Sternheimer
   Eigen::MatrixXcd DeltaNSelfConsistent(std::complex<double> w,
                                                const Eigen::MatrixXd& initGuess)const;
-  // Pade Appoximation on complex grid
 };
 }  // namespace xtp
 }  // namespace votca

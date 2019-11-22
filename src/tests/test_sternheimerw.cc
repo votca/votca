@@ -277,14 +277,9 @@ BOOST_AUTO_TEST_CASE(sternheimerw_polar) {
   
     BOOST_CHECK_EQUAL(test1, true);
     BOOST_CHECK_EQUAL(test2, true);
-    
-    
-    
+
     std::cout<<std::endl<<"Finished Sternheimer"<<std::endl;
-    
-    
-    
-        
+   
     bool test = true;
     
     BOOST_CHECK_EQUAL(test, true);
