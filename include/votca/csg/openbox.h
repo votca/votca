@@ -29,6 +29,10 @@ class OpenBox : public BoundaryCondition {
   Eigen::Vector3d BCShortestConnection(
       const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const override;
 
+  virtual std::unique_ptr<BoundaryCondition> Clone() const override {
+    return std::unique_ptr<BoundaryCondition>(new OpenBox(*this));
+  }
+
   eBoxtype getBoxType() const override { return typeOpen; }
 };
 
