@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,66 +19,69 @@
 #include <votca/csg/topology.h>
 #include <votca/tools/tokenizer.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
-int BeadList::Generate(Topology &top, const string &select)
-{
-    BeadContainer::iterator iter;
-    _topology = &top;
-    bool selectByName=false;
-    string pSelect; //parsed selection string
+using namespace std;
 
-    if (select.substr(0, 5)=="name:"){
-        //select according to bead name instead of type
-        pSelect=select.substr(5);
-        selectByName=true;
-    }else{
-        pSelect=select;
-    }
-    
-    for(iter=top.Beads().begin(); iter!=top.Beads().end();++iter) {
-      if (!selectByName){
-        if(wildcmp(pSelect.c_str(), (*iter)->getBeadTypeName().c_str())) {
-          push_back(*iter);
-        }
-      }else{
-        if(wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
-          push_back(*iter);
-        }
+long BeadList::Generate(Topology &top, const string &select) {
+  _topology = &top;
+  bool selectByName = false;
+  string pSelect;  // parsed selection string
+
+  if (select.substr(0, 5) == "name:") {
+    // select according to bead name instead of type
+    pSelect = select.substr(5);
+    selectByName = true;
+  } else {
+    pSelect = select;
+  }
+
+  for (auto &iter : top.Beads()) {
+    if (!selectByName) {
+      if (tools::wildcmp(pSelect, iter->getType())) {
+        _beads.push_back(iter);
+      }
+    } else {
+      if (tools::wildcmp(pSelect, iter->getName())) {
+        _beads.push_back(iter);
       }
     }
-    return size();
+  }
+  return size();
 }
 
+long BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
+                                            Eigen::Vector3d ref,
+                                            double radius) {
+  _topology = &top;
+  bool selectByName = false;
+  string pSelect;  // parsed selection string
 
-int BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select, vec ref, double radius)
-{
-    BeadContainer::iterator iter;
-    _topology = &top;
-    bool selectByName=false;
-    string pSelect; //parsed selection string
+  if (select.substr(0, 5) == "name:") {
+    // select according to bead name instead of type
+    pSelect = select.substr(5);
+    selectByName = true;
+  } else {
+    pSelect = select;
+  }
 
-    if (select.substr(0, 5)=="name:"){
-        //select according to bead name instead of type
-        pSelect=select.substr(5);
-        selectByName=true;
-    }else{
-        pSelect=select;
+  for (auto &iter : top.Beads()) {
+    if (_topology->BCShortestConnection(ref, iter->getPos()).norm() > radius) {
+      continue;
     }
-
-    for(iter=top.Beads().begin(); iter!=top.Beads().end();++iter) {
-        if (abs(_topology->BCShortestConnection(ref, (*iter)->getPos())) > radius) continue;
-        if (!selectByName){
-          if(wildcmp(pSelect.c_str(), (*iter)->getBeadTypeName().c_str())) {
-            push_back(*iter);
-          }
-        }else{
-            if(wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
-                push_back(*iter);
-            }
-        }
+    if (!selectByName) {
+      if (tools::wildcmp(pSelect, iter->getType())) {
+        _beads.push_back(iter);
+      }
+    } else {
+      if (tools::wildcmp(pSelect, iter->getName())) {
+        _beads.push_back(iter);
+      }
     }
-    return size();
+  }
+  return size();
 }
 
-}}
+}  // namespace csg
+}  // namespace votca

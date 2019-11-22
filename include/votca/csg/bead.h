@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,19 @@
 #ifndef _VOTCA_CSG_BEAD_H
 #define _VOTCA_CSG_BEAD_H
 
-#include "basebead.h"
 #include <assert.h>
+#include <cassert>
 #include <string>
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
-#include <votca/tools/vec.h>
+
+#include "basebead.h"
 
 namespace votca {
 namespace csg {
 
-class BeadType;
 class Topology;
 class Molecule;
-
-using namespace votca::tools;
-
-using namespace std;
 
 /**
  * \brief information about a bead
@@ -48,47 +44,29 @@ using namespace std;
  * \todo make sure bead belongs to topology
  **/
 class Bead : public BaseBead {
-public:
+ public:
   /**
    * destructor
    */
-  virtual ~Bead() {}
+  ~Bead() override = default;
 
   /**
    * get the residu number of the bead
    * \return residue id
    */
-  const int &getResnr() const { return _resnr; }
-
-  /**
-   * get the mass of the bead
-   * \return bead mass
-   */
-  const double &getM() const {
-    std::cerr << "WARNING getM is depricated use getMass" << std::endl;
-    return getMass();
-  }
-
-  /**
-   * set the mass of the bead
-   * \param m bead mass
-   */
-  void setM(const double &m) {
-    std::cerr << "WARNING setM is depricated use setMass" << std::endl;
-    setMass(m);
-  }
+  const Index &getResnr() const { return residue_number_; }
 
   /**
    * get the charge of the bead
    * \return - base bead charge
    */
-  virtual const double &getQ() const { return _q; }
+  virtual const double &getQ() const { return charge_; }
 
   /**
    * set the charge of the base bead
    * \param[in] - base bead position
    */
-  virtual void setQ(const double &q) { _q = q; }
+  virtual void setQ(const double &q) { charge_ = q; }
 
   /**
    * \brief get the symmetry of the bead
@@ -100,19 +78,20 @@ public:
    *
    * \return bead symmetry
    */
-  byte_t getSymmetry() const { return _symmetry; }
+  enum Symmetry { spherical = 1, ellipsoidal = 3 };
+  Symmetry getSymmetry() const { return symmetry_; }
 
   /**
    * set the velocity of the bead
    * @param r bead velocity
    */
-  void setVel(const vec &r);
+  void setVel(const Eigen::Vector3d &r);
 
   /**
    * get the velocity of the bead
    * \return bead velocity
    */
-  const vec &getVel() const;
+  const Eigen::Vector3d &getVel() const;
 
   /**
    * \brief set first orientation (normal vector) vector of bead
@@ -121,7 +100,7 @@ public:
    *
    * @param u bead orientation u
    */
-  void setU(const vec &u);
+  void setU(const Eigen::Vector3d &u);
 
   /**
    * \brief get first orientation (normal vector) vector of bead
@@ -138,7 +117,7 @@ public:
    *
    * \return bead orientation u
    */
-  const vec &getU() const;
+  const Eigen::Vector3d &getU() const;
 
   /**
    * \brief set second orientation vector of bead
@@ -147,7 +126,7 @@ public:
    *
    * @param v bead orientation v
    */
-  void setV(const vec &v);
+  void setV(const Eigen::Vector3d &v);
 
   /**
    * \brief get second orientation vector of bead
@@ -160,7 +139,7 @@ public:
    *
    * \return bead orientation u
    */
-  const vec &getV() const;
+  const Eigen::Vector3d &getV() const;
 
   /**
    * \brief set third orientation vector of bead
@@ -169,7 +148,7 @@ public:
    *
    * @param w bead orientation w
    */
-  void setW(const vec &w);
+  void setW(const Eigen::Vector3d &w);
 
   /**
    * \brief get third orientation vector of bead
@@ -181,58 +160,59 @@ public:
    *
    * \return bead orientation w
    */
-  const vec &getW() const;
+  const Eigen::Vector3d &getW() const;
 
   /**
    * direct access (read/write) to the velocity of the bead
    * \return reference to velocity
    */
-  vec &Vel() {
-    assert(_bVel);
-    return _vel;
+  Eigen::Vector3d &Vel() {
+    assert(bead_velocity_set_ &&
+           "Cannot access velocity, it has not been set.");
+    return velocity_;
   }
 
   /**
    * direct access (read/write) to orientation u of the bead
    * \return reference to u
    */
-  vec &U() {
-    assert(_bU);
-    return _u;
+  Eigen::Vector3d &U() {
+    assert(bU_ && "Cannot access bead orientation u, has not been set.");
+    return u_;
   }
 
   /**
    * direct access (read/write) to the orientation v of the bead
    * \return reference to v
    */
-  vec &V() {
-    assert(_bV);
-    return _v;
+  Eigen::Vector3d &V() {
+    assert(bV_ && "Cannot access bead orientation v, has not been set.");
+    return v_;
   }
 
   /**
    * direct access (read/write) to the orientation w of the bead
    * \return reference to w
    */
-  vec &W() {
-    assert(_bW);
-    return _w;
+  Eigen::Vector3d &W() {
+    assert(bW_ && "Cannot access bead orientation w, has not been set.");
+    return w_;
   }
 
   /**
    * direct access (read/write) to the force of the bead
    * \return reference to force
    */
-  vec &F() {
-    assert(_bF);
-    return _f;
+  Eigen::Vector3d &F() {
+    assert(bead_force_set_ && "Cannot access bead force, has not been set.");
+    return bead_force_;
   }
 
   /**
    * set force acting on bead
-   * @param F force
+   * @param bead_force force
    */
-  void setF(const vec &F);
+  void setF(const Eigen::Vector3d &bead_force);
 
   /**
    * \brief get the force acting on the bead
@@ -242,22 +222,22 @@ public:
    *
    * \return force on bead
    */
-  const vec &getF() const;
+  const Eigen::Vector3d &getF() const;
 
   /** does this configuration store velocities? */
-  bool HasVel() { return _bVel; }
+  bool HasVel() { return bead_velocity_set_; }
 
   /** does this configuration store forces? */
-  bool HasF() { return _bF; }
+  bool HasF() { return bead_force_set_; }
 
   /** does this configuration store u-orientations? */
-  bool HasU() { return _bU; }
+  bool HasU() { return bU_; }
 
   /** does this configuration store v-orientations? */
-  bool HasV() { return _bV; }
+  bool HasV() { return bV_; }
 
   /** does this configuration store w-orientations? */
-  bool HasW() { return _bW; }
+  bool HasW() { return bW_; }
 
   /** dos the bead store a velocity */
   void HasVel(bool b);
@@ -278,149 +258,118 @@ public:
    * If it is a mapped beads, returns te bead id the cg bead was created from
    * \return vector of bead ids of reference atoms
    */
-  vector<int> &ParentBeads() { return _parent_beads; };
+  const std::vector<Index> &ParentBeads() { return parent_beads_; };
 
   /**
-   * \brief Function to add arbitrary user data to bead
-   *
-   * The user can attach pointers to own created objects to beads. Currently
-   * the user has to take care about deletion of the objects at the end.
-   *
-   * \todo change this to shared_pointer
-   *
-   * \param userdata userdata
-   */
-  template <typename T> void setUserData(T *userdata) {
-    _userdata = (void *)userdata;
+   * \brief Clears out all parent beads
+   **/
+  void ClearParentBeads() { parent_beads_.clear(); }
+
+  /**
+   * \brief Adds the id of a parent bead
+   **/
+  void AddParentBead(Index parent_bead_id) {
+    parent_beads_.push_back(parent_bead_id);
   }
 
-  /**
-   * get userdata attached to bead
-   * @return pointer to userdata
-   */
-  template <typename T> T *getUserData() { return (T *)_userdata; }
+ protected:
+  std::vector<Index> parent_beads_;
 
-  /**
-   * \brief Additional options of bead
-   *
-   * The options object stores additional options which can be attached to
-   * the bead. For mapped beads, it contains all the values which were specified
-   * in the xml mapping file. This allows to at user defined options to the xml
-   * which are automatically read in on creation of the coare-grained bead.
-   *
-   * \return Property object containing options
-   */
-  Property &Options() { return *_options; }
+  Symmetry symmetry_;
+  double charge_;
 
-  /**
-   * update pointer to options object of bead
-   * \param options pointer to options object of bead
-   */
-  void setOptions(Property &options) { _options = &options; }
+  Index residue_number_;
 
-protected:
-  vector<int> _parent_beads;
+  Eigen::Vector3d velocity_, bead_force_, u_, v_, w_;
 
-  // TODO: this is so far a pointer. this should change! each bead should have
-  // own options.
-  Property *_options;
+  bool bead_velocity_set_;
+  bool bU_;
+  bool bV_;
+  bool bW_;
+  bool bead_force_set_;
 
-  byte_t _symmetry;
-  double _q;
-
-  int _resnr;
-
-  vec _vel, _f, _u, _v, _w;
-
-  bool _bVel;
-  bool _bU;
-  bool _bV;
-  bool _bW;
-  bool _bF;
-
-  /// constructur
-  Bead(Topology *owner, int id, std::weak_ptr<BeadType> type, byte_t symmetry, string name,
-       int resnr, double m, double q)
-      : _symmetry(symmetry), _q(q), _resnr(resnr) {
-    _parent = owner;
+  /// constructor
+  Bead(Topology *owner, Index id, std::string type, Symmetry symmetry,
+       std::string name, Index resnr, double m, double q)
+      : symmetry_(symmetry), charge_(q), residue_number_(resnr) {
+    topology_item_._parent = owner;
     setId(id);
     setType(type);
     setName(name);
     setMass(m);
-    _bPos = false;
-    _bVel = false;
-    _bU = false;
-    _bV = false;
-    _bW = false;
-    _bF = false;
+    bead_position_set_ = false;
+    bead_velocity_set_ = false;
+    bU_ = false;
+    bV_ = false;
+    bW_ = false;
+    bead_force_set_ = false;
   }
-
-  void *_userdata;
 
   friend class Topology;
   friend class Molecule;
 };
 
-inline void Bead::setVel(const vec &r) {
-  _bVel = true;
-  _vel = r;
+inline void Bead::setVel(const Eigen::Vector3d &r) {
+  bead_velocity_set_ = true;
+  velocity_ = r;
 }
 
-inline const vec &Bead::getVel() const {
-  assert(_bVel);
-  return _vel;
+inline const Eigen::Vector3d &Bead::getVel() const {
+  assert(bead_velocity_set_ &&
+         "Cannot access bead velocity, has not been set.");
+  return velocity_;
 }
 
-inline void Bead::setU(const vec &u) {
-  _bU = true;
-  _u = u;
+inline void Bead::setU(const Eigen::Vector3d &u) {
+  bU_ = true;
+  u_ = u;
 }
 
-inline const vec &Bead::getU() const {
-  assert(_bU);
-  return _u;
+inline const Eigen::Vector3d &Bead::getU() const {
+  assert(bU_ && "Cannot access bead orientation u, has not been set.");
+  return u_;
 }
 
-inline void Bead::setV(const vec &v) {
-  _bV = true;
-  _v = v;
+inline void Bead::setV(const Eigen::Vector3d &v) {
+  bV_ = true;
+  v_ = v;
 }
 
-inline const vec &Bead::getV() const {
-  assert(_bV);
-  return _v;
+inline const Eigen::Vector3d &Bead::getV() const {
+  assert(bV_);
+  return v_;
 }
 
-inline void Bead::setW(const vec &w) {
-  _bW = true;
-  _w = w;
+inline void Bead::setW(const Eigen::Vector3d &w) {
+  bW_ = true;
+  w_ = w;
 }
 
-inline const vec &Bead::getW() const {
-  assert(_bW);
-  return _w;
+inline const Eigen::Vector3d &Bead::getW() const {
+  assert(bW_ && "Cannot access bead orientation w, has not been set.");
+  return w_;
 }
 
-inline void Bead::setF(const vec &F) {
-  _bF = true;
-  _f = F;
+inline void Bead::setF(const Eigen::Vector3d &bead_force) {
+  bead_force_set_ = true;
+  bead_force_ = bead_force;
 }
 
-inline const vec &Bead::getF() const {
-  assert(_bF);
-  return _f;
+inline const Eigen::Vector3d &Bead::getF() const {
+  assert(bead_force_set_ && "Cannot access bead force, has not been set.");
+  return bead_force_;
 }
 
-inline void Bead::HasVel(bool b) { _bVel = b; }
+inline void Bead::HasVel(bool b) { bead_velocity_set_ = b; }
 
-inline void Bead::HasF(bool b) { _bF = b; }
+inline void Bead::HasF(bool b) { bead_force_set_ = b; }
 
-inline void Bead::HasU(bool b) { _bU = b; }
+inline void Bead::HasU(bool b) { bU_ = b; }
 
-inline void Bead::HasV(bool b) { _bV = b; }
+inline void Bead::HasV(bool b) { bV_ = b; }
 
-inline void Bead::HasW(bool b) { _bW = b; }
-}
-}
+inline void Bead::HasW(bool b) { bW_ = b; }
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_BEAD_H
+#endif  // _VOTCA_CSG_BEAD_H

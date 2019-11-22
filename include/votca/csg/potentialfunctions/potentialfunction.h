@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,75 +16,65 @@
  */
 
 #ifndef POTENTIALFUNCTION_H
-#define	POTENTIALFUNCTION_H
+#define POTENTIALFUNCTION_H
 
-#include <votca/tools/table.h>
-#include <boost/lexical_cast.hpp>
-#include <cstdlib>
-#include <math.h>
-#include <iostream>
-#include <fstream>
-#include <stdio.h>
-#include <sstream>
+#include <Eigen/Dense>
+#include <string>
+#include <votca/tools/types.h>
 
-using namespace std;
-using namespace votca::tools;
-
+namespace votca {
+namespace csg {
 class PotentialFunction {
-public:
+ public:
+  virtual ~PotentialFunction() = default;
+  // read parameters from the input file
+  virtual void setParam(std::string filename);
+  // save parameters to the file
+  virtual void SaveParam(const std::string &filename);
+  // write potential table
+  virtual void SavePotTab(const std::string &filename, double step);
+  // write potential table for specified interval
+  virtual void SavePotTab(const std::string &filename, double step, double rmin,
+                          double rcut);
+  // set all parameters
+  void setParam(const Eigen::VectorXd &param) { _lam = param; }
+  // set ith parameter
+  void setParam(Index i, double val) { _lam(i) = val; }
+  // set ith parameter among those to be optimized
+  virtual void setOptParam(Index i, double val) { setParam(i, val); }
+  // set minimum r value to avoid large values
+  void setMinDist(double min) { _min = min; }
+  // set cut-off value
+  void setCutOffDist(double cutoff) { _cut_off = cutoff; }
+  // calculate function
+  virtual double CalculateF(double r) const = 0;
+  // calculate first derivative w.r.t. ith parameter
+  virtual double CalculateDF(Index i, double r) const = 0;
+  // calculate second derivative w.r.t. ith parameter
+  virtual double CalculateD2F(Index i, Index j, double r) const = 0;
+  // return parameter
+  Eigen::VectorXd &Params() { return _lam; }
+  // return ith parameter
+  double getParam(Index i) const { return _lam(i); }
+  // return ith parameter among those to be optimized
+  virtual double getOptParam(Index i) const { return getParam(i); }
+  // return size of parameters
+  Index getParamSize() const { return _lam.size(); }
+  // return size of parameters to be optimized
+  virtual Index getOptParamSize() const { return getParamSize(); }
+  // return cut-off value
+  double getCutOff() const { return _cut_off; }
+  double getMinDist() const { return _min; }
 
-    virtual ~PotentialFunction() {}
-    // read parameters from the input file
-    virtual void setParam(string filename);
-    // save parameters to the file
-    virtual void SaveParam(const string& filename);
-    // write potential table
-    virtual void SavePotTab(const string& filename, const double step);
-    // write potential table for specified interval
-    virtual void SavePotTab(const string& filename, const double step,
-			    const double rmin, const double rcut);
-    // set all parameters
-    void setParam(const Eigen::VectorXd& param){ _lam = param; }
-    // set ith parameter
-    void setParam(const int i, const double val) { _lam(i) = val; }
-    // set ith parameter among those to be optimized
-    virtual void setOptParam(const int i, const double val) {
-        setParam(i,val);
-    }
-    // set minimum r value to avoid large values
-    void setMinDist(const double min) { _min = min; }
-    // set cut-off value
-    void setCutOffDist(const double cutoff) { _cut_off = cutoff; }
-    // calculate function
-    virtual double CalculateF (const double r) const = 0;
-    // calculate first derivative w.r.t. ith parameter
-    virtual double CalculateDF(const int i, const double r) const = 0;
-    // calculate second derivative w.r.t. ith parameter
-    virtual double CalculateD2F(const int i, const int j, const double r) const = 0;
-    // return parameter
-    Eigen::VectorXd& Params() { return _lam; }
-    // return ith parameter
-    double getParam(const int i) const { return _lam(i); }
-    // return ith parameter among those to be optimized
-    virtual double getOptParam(const int i) const {
-        return getParam(i);
-    }
-    // return size of parameters
-    int getParamSize() const { return _lam.size(); }
-    // return size of parameters to be optimized
-    virtual int getOptParamSize() const { return getParamSize();}
-    // return cut-off value
-    double getCutOff() const { return _cut_off; }
-    double getMinDist() const { return _min; }
+ protected:
+  PotentialFunction(const std::string &name, Index nlam, double min,
+                    double max);
 
-protected:
-
-    PotentialFunction(const string& name_,const int nlam_,const double min_,const double max_);
-
-    string _name;
-    Eigen::VectorXd _lam;
-    double _cut_off;
-    double _min;
+  std::string _name;
+  Eigen::VectorXd _lam;
+  double _cut_off;
+  double _min;
 };
-
+}  // namespace csg
+}  // namespace votca
 #endif

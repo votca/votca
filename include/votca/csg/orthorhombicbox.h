@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,25 @@
  */
 
 #ifndef _VOTCA_CSG_ORTHORHOMBICBOX_H
-#define	_VOTCA_CSG_ORTHORHOMBICBOX_H
+#define _VOTCA_CSG_ORTHORHOMBICBOX_H
 
 #include "boundarycondition.h"
 
-namespace votca { namespace csg {
-using namespace std;
-using namespace votca::tools;
+namespace votca {
+namespace csg {
 
 class OrthorhombicBox : public BoundaryCondition {
 
-public:
-    vec BCShortestConnection(const vec &r_i, const vec &r_j) const;
+ public:
+  Eigen::Vector3d BCShortestConnection(
+      const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const override;
 
-    eBoxtype getBoxType() {
-        return typeOrthorhombic;
-    }
+  eBoxtype getBoxType() override { return typeOrthorhombic; }
 
-protected:
+ protected:
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _VOTCA_CSG_ORTHORHOMBICBOX_H */
-
+#endif /* _VOTCA_CSG_ORTHORHOMBICBOX_H */

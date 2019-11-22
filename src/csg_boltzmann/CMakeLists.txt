@@ -1,7 +1,17 @@
-file(GLOB CSG_BO_SOURCES *.cc)
-add_executable(csg_boltzmann ${CSG_BO_SOURCES})
-target_link_libraries(csg_boltzmann votca_csg)
-install(TARGETS csg_boltzmann RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+file(GLOB CSG_BO_LIB_SOURCES *.cc)
+file(GLOB CSG_BO_MAIN_SOURCES main.cc)
+list(REMOVE_ITEM CSG_BO_LIB_SOURCES ${CSG_BO_MAIN_SOURCES})
+
+# for >=cmake-3.12: replace STATIC by OBJECT
+add_library(votca_csg_boltzmann STATIC ${CSG_BO_LIB_SOURCES})
+target_link_libraries(votca_csg_boltzmann votca_csg)
+
+add_executable(csg_boltzmann ${CSG_BO_MAIN_SOURCES})
+target_link_libraries(csg_boltzmann votca_csg_boltzmann votca_csg)
+install(TARGETS csg_boltzmann EXPORT VOTCA_CSG_Targets RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+set_property(TARGET votca_csg APPEND PROPERTY BINARIES "csg_boltzmann")
+add_executable(VOTCA::csg_boltzmann ALIAS csg_boltzmann)
+
 if (TXT2TAGS_FOUND AND BASH)
   add_custom_command(OUTPUT csg_boltzmann.man 
     COMMAND ${CMAKE_CURRENT_BINARY_DIR}/csg_boltzmann --help > csg_boltzmann.help DEPENDS csg_boltzmann

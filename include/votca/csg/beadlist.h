@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,15 @@
  */
 
 #ifndef _VOTCA_CSG_BEADLIST_H
-#define	_VOTCA_CSG_BEADLIST_H
+#define _VOTCA_CSG_BEADLIST_H
 
-#include <string>
 #include <list>
-#include "topology.h"
+#include <string>
+#include <votca/tools/eigen.h>
+#include <votca/tools/types.h>
 
-namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
-
+namespace votca {
+namespace csg {
 /**
     \brief Generate lists of beads
 
@@ -35,26 +33,37 @@ using namespace std;
 
 */
 
-class BeadList
-    : public list<Bead *>
-{
-public:
-    BeadList() {};
-    ~BeadList() {}
-    
-    /// \brief Select all beads of type <select>
-    int Generate(Topology &top, const string &select);
-     /// \brief Select all beads of type <select> withn a radius <radius> of reference vector <ref>
-    int GenerateInSphericalSubvolume(Topology &top, const string &select,  vec ref, double radius);
-    
-    Topology *getTopology() {return _topology; }
-    
-private:
-    Topology *_topology;
-    
+class Topology;
+class Bead;
+
+class BeadList {
+ public:
+  /// \brief Select all beads of type <select>
+  Index Generate(Topology &top, const std::string &select);
+  /// \brief Select all beads of type <select> withn a radius <radius> of
+  /// reference vector <ref>
+  Index GenerateInSphericalSubvolume(Topology &top, const std::string &select,
+                                     Eigen::Vector3d ref, double radius);
+
+  Index size() const { return _beads.size(); }
+
+  bool empty() const { return _beads.empty(); }
+
+  void push_back(Bead *bead) { _beads.push_back(bead); }
+
+  using iterator = typename std::vector<Bead *>::iterator;
+
+  iterator begin() { return _beads.begin(); }
+  iterator end() { return _beads.end(); }
+
+  Topology *getTopology() { return _topology; }
+
+ private:
+  std::vector<Bead *> _beads;
+  Topology *_topology;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _VOTCA_CSG_BEADLIST_H */
-
+#endif /* _VOTCA_CSG_BEADLIST_H */

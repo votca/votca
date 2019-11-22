@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  *
  */
 
-#include <vector>
-#include <sstream>
-#include <unordered_map>
-#include <boost/lexical_cast.hpp>
+#include "pdbreader.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/convenience.hpp>
+#include <boost/lexical_cast.hpp>
+#include <sstream>
+#include <unordered_map>
+#include <vector>
 #include <votca/tools/getline.h>
-#include "pdbreader.h"
 
 namespace votca {
 namespace csg {
@@ -33,9 +33,10 @@ bool PDBReader::ReadTopology(string file, Topology &top) {
   _topology = true;
   top.Cleanup();
 
-  _fl.open(file.c_str());
-  if (!_fl.is_open())
+  _fl.open(file);
+  if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on open topology file: " + file);
+  }
 
   NextFrame(top);
   _fl.close();
@@ -45,11 +46,10 @@ bool PDBReader::ReadTopology(string file, Topology &top) {
 
 bool PDBReader::Open(const string &file) {
 
-  boost::filesystem::path filepath(file.c_str());
-
-  _fl.open(file.c_str());
-  if (!_fl.is_open())
+  _fl.open(file);
+  if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on open trajectory file: " + file);
+  }
 
   return true;
 }
@@ -62,22 +62,42 @@ bool PDBReader::FirstFrame(Topology &top) {
 }
 
 bool PDBReader::NextFrame(Topology &top) {
+
+  cout << "The VOTCA pdb reader attempts to follow the official format: "
+       << endl;
+  cout << "http://www.wwpdb.org/documentation/file-format" << endl;
+  cout << endl;
+  cout << "NOTE the element symbol is important for associating a mass with "
+       << endl;
+  cout << "each atom, if no element symbol is specified the atom name will be"
+       << endl;
+  cout << "used and assumed to be an element symbol." << endl;
+  cout << "The pdb file format does not support pseudo atoms such as a CH3 "
+       << endl;
+  cout << "and thus VOTCA cannot read such atoms in when using a .pdb file."
+       << endl;
+  cout << "If you need to use pseudo atoms consider using a different file "
+       << endl;
+  cout << "format such as the lammps data format." << endl;
+
   string line;
+  tools::Elements elements;
   // Two column vector for storing all bonds
   // 1 - id of first atom
   // 2 - id of second atom
-  vector<vector<int>> bond_pairs;
+  vector<vector<Index>> bond_pairs;
   // Store pointers to every bead
-  // WARNING we are assuming in the bead_vec that the indices of the beads
+  // WARNING we are assuming in the bead_Eigen::Vector3d that the indices of the
+  // beads
   //         correspond to the order in which they are read in. As in the first
   //         bead read in will be at index 0, etc...
   vector<Bead *> bead_vec;
   ////////////////////////////////////////////////////////////////////////////////
   // Read in information from .pdb file
   ////////////////////////////////////////////////////////////////////////////////
-  int bead_count = 0;
+  Index bead_count = 0;
   while (std::getline(_fl, line)) {
-    if (wildcmp("CRYST1*", line.c_str())) {
+    if (tools::wildcmp("CRYST1*", line)) {
       string a, b, c, alpha, beta, gamma;
       try {
         // 1 -  6       Record name    "CRYST1"
@@ -95,8 +115,7 @@ bool PDBReader::NextFrame(Topology &top) {
         // 48 - 54       Real(7.2)     gamma (degrees)
         // 56 - 66       LString       Space group
         // 67 - 70       Integer       Z value
-      }
-      catch (std::out_of_range &err) {
+      } catch (std::out_of_range &) {
         throw std::runtime_error("Misformated pdb file in CRYST1 line");
       }
       boost::algorithm::trim(a);
@@ -105,23 +124,24 @@ bool PDBReader::NextFrame(Topology &top) {
       boost::algorithm::trim(alpha);
       boost::algorithm::trim(beta);
       boost::algorithm::trim(gamma);
-      if ((!wildcmp("90*", alpha.c_str())) ||
-          (!wildcmp("90*", alpha.c_str())) ||
-          (!wildcmp("90*", alpha.c_str()))) {
+      if ((!tools::wildcmp("90*", alpha)) || (!tools::wildcmp("90*", beta)) ||
+          (!tools::wildcmp("90*", gamma))) {
         throw std::runtime_error(
             "Non cubical box in pdb file not implemented, yet!");
       }
       double aa = stod(a) / 10.0;
       double bb = stod(b) / 10.0;
       double cc = stod(c) / 10.0;
-      top.setBox(matrix(vec(aa, 0, 0), vec(0, bb, 0), vec(0, 0, cc)));
+      Eigen::Matrix3d box = Eigen::Matrix3d::Zero();
+      box.diagonal() = Eigen::Vector3d(aa, bb, cc);
+      top.setBox(box);
     }
     // Only read the CONECT keyword if the topology is set too true
-    if (_topology && wildcmp("CONECT*", line.c_str())) {
+    if (_topology && tools::wildcmp("CONECT*", line)) {
       vector<string> bonded_atms;
       string atm1;
       // Keep track of the number of bonds
-      int num_bonds = 0;
+      Index num_bonds = 0;
       try {
         // If the CONECT keyword is found then there must be at least
         // two atom identifiers, more than that is optional.
@@ -144,20 +164,18 @@ bool PDBReader::NextFrame(Topology &top) {
           num_bonds++;
           ss >> temp_atm;
         }
-      }
-      catch (std::out_of_range &err) {
+      } catch (std::out_of_range &) {
         throw std::runtime_error("Misformated pdb file in CONECT line\n" +
                                  line);
       }
 
-      vector<int> row(2);
+      vector<Index> row(2);
       boost::algorithm::trim(atm1);
-      int at1 = boost::lexical_cast<int>(atm1);
+      Index at1 = boost::lexical_cast<Index>(atm1);
       row.at(0) = at1;
 
-      for (auto bonded_atm = bonded_atms.begin();
-           bonded_atm != bonded_atms.end(); bonded_atm++) {
-        int at2 = boost::lexical_cast<int>(*bonded_atm);
+      for (auto &bonded_atm : bonded_atms) {
+        Index at2 = boost::lexical_cast<Index>(bonded_atm);
         row.at(1) = at2;
         // Because every bond will be counted twice in a .pdb file
         // we will only add bonds where the id (atm1) is less than the
@@ -168,11 +186,11 @@ bool PDBReader::NextFrame(Topology &top) {
       }
     }
 
-    if (wildcmp("ATOM*", line.c_str()) || wildcmp("HETATM*", line.c_str())) {
+    if (tools::wildcmp("ATOM*", line) || tools::wildcmp("HETATM*", line)) {
 
       // according to PDB format
       string x, y, z, resNum, resName, atName;
-      string charge;
+      string charge, elem_sym;
       // string atNum;
       try {
         /* Some pdb don't include all this, read only what we really need*/
@@ -180,7 +198,7 @@ bool PDBReader::NextFrame(Topology &top) {
 
         // str       ,  "ATOM", "HETATM"
         // string recType    (line,( 1-1),6);
-        // int       , Atom serial number
+        // Index       , Atom serial number
         // atNum    =    string(line,( 7-1),6);
         // str       , Atom name
         atName = string(line, (13 - 1), 4);
@@ -190,7 +208,7 @@ bool PDBReader::NextFrame(Topology &top) {
         resName = string(line, (18 - 1), 3);
         // char      , Chain identifier
         // string chainID    (line,(22-1),1);
-        // int       , Residue sequence number
+        // Index       , Residue sequence number
         resNum = string(line, (23 - 1), 4);
         // char      , Code for insertion of res
         // string atICode    (line,(27-1),1);
@@ -207,20 +225,20 @@ bool PDBReader::NextFrame(Topology &top) {
         // str       , Segment identifier
         // string segID      (line,(73-1),4);
         // str       , Element symbol
-        // elem_sym =  string(line,(77-1),2);
+        elem_sym = string(line, (77 - 1), 2);
         // str       , Charge on the atom
         charge = string(line, (79 - 1), 2);
-      }
-      catch (std::out_of_range &err) {
+      } catch (std::out_of_range &) {
         string err_msg = "Misformated pdb file in atom line # " +
                          boost::lexical_cast<string>(bead_count) +
                          "\n the correct pdb file format requires 80 "
-                         "characters in width. Furthermore, " +
+                         "characters in width (spaces matter). Furthermore, " +
                          "\n to read the topology in from a .pdb file the "
                          "following attributes must be " +
                          "\n specified:                                        "
                          "                        " +
                          "\n Atom Name, Residue Name, Residue Number, x, y, z, "
+                         "element symbol"
                          "charge (optional)     \n";
         throw std::runtime_error(err_msg);
       }
@@ -230,6 +248,7 @@ bool PDBReader::NextFrame(Topology &top) {
       boost::algorithm::trim(x);
       boost::algorithm::trim(y);
       boost::algorithm::trim(z);
+      boost::algorithm::trim(elem_sym);
       boost::algorithm::trim(charge);
 
       bead_count++;
@@ -237,17 +256,24 @@ bool PDBReader::NextFrame(Topology &top) {
       Bead *b;
       // Only read the CONECT keyword if the topology is set too true
       if (_topology) {
-        int resnr;
+        Index resnr;
         try {
-          resnr = boost::lexical_cast<int>(resNum);
-        }
-        catch (bad_lexical_cast &) {
+          resnr = boost::lexical_cast<Index>(resNum);
+        } catch (bad_lexical_cast &) {
           throw std::runtime_error(
               "Cannot convert resNum='" + resNum +
               "' to int, that usallly means: misformated pdb file");
         }
-        if (resnr < 1)
+
+        if (resName == "") {
+          cout << "WARNING no resname specified, assigning name to: UNK"
+               << endl;
+          resName = "UNK";
+        }
+
+        if (resnr < 1) {
           throw std::runtime_error("Misformated pdb file, resnr has to be > 0");
+        }
         // TODO: fix the case that resnr is not in ascending order
         if (resnr > top.ResidueCount()) {
           while ((resnr - 1) > top.ResidueCount()) {  // pdb resnr should start
@@ -255,40 +281,60 @@ bool PDBReader::NextFrame(Topology &top) {
                                                       // sloppy files
 
             // create dummy residue, hopefully it will never show
-            top.CreateResidue("DUMMY");  
-            cout << "Warning: residue numbers not continous, create DUMMY "
-                    "residue with nr " << top.ResidueCount() << endl;
+
+            top.CreateResidue(resName);
+            cout << "Warning: residue numbers not continuous, create dummy "
+                    "residue with residue number "
+                 << top.ResidueCount() << endl;
           }
           top.CreateResidue(resName);
         }
         // This is not correct, but still better than no type at all!
-        auto type = top.GetOrCreateBeadType(atName);
+        if (!top.BeadTypeExist(atName)) {
+          top.RegisterBeadType(atName);
+        }
 
         // Determine if the charge has been provided in the .pdb file or if we
         // will be assuming it is 0
         double ch = 0;
         if (charge != "") {
           ch = stod(charge);
+        } else {
+          cout << "WARNING no charge was specified for " << endl;
+          cout << line << endl;
+          cout << "Assuming a charge of 0" << endl;
         }
+
+        if (elem_sym == "") {
+          cout << "WARNING no element was specified, assuming atom name is "
+               << endl;
+          cout << "an element symbol: " << atName << endl;
+          if (elements.isElement(atName)) {
+            elem_sym = atName;
+          } else {
+            throw std::runtime_error(
+                "Atom name is not an element symbol, so substitution fails, "
+                "the element is needed in order to resolve the mass.");
+          }
+        }
+
         // CreateBead takes 6 parameters in the following order
-        // 1 - symmetry of the bead (1-indicates sphere, 3-indicates
-        // ellipsoidal)
+        // 1 - symmetry of the bead
         // 2 - name of the bead     (string)
         // 3 - bead type            (BeadType *)
-        // 4 - residue number       (int)
+        // 4 - residue number       (Index)
         // 5 - mass                 (double)
         // 6 - charge               (double)
         //
         // res -1 as internal number starts with 0
-        b = top.CreateBead(1, atName, type, resnr - 1, this->getMass(atName),
-                           ch);
+        b = top.CreateBead(Bead::spherical, atName, atName, resnr - 1,
+                           elements.getMass(elem_sym), ch);
       } else {
         b = top.getBead(bead_count - 1);
       }
       // convert to nm from A
-      b->setPos(vec(stod(x) / 10.0,
-                    stod(y) / 10.0,
-                    stod(z) / 10.0));
+      b->setPos(
+          Eigen::Vector3d(stod(x) / 10.0, stod(y) / 10.0, stod(z) / 10.0));
 
       bead_vec.push_back(b);
     }
@@ -298,9 +344,10 @@ bool PDBReader::NextFrame(Topology &top) {
     }
   }
 
-  if (!_topology && (bead_count > 0) && bead_count != top.BeadCount())
+  if (!_topology && (bead_count > 0) && bead_count != top.BeadCount()) {
     throw std::runtime_error(
         "number of beads in topology and trajectory differ");
+  }
 
   ////////////////////////////////////////////////////////////////////////////////
   // Sort data and determine atom structure, connect with top (molecules, bonds)
@@ -312,22 +359,22 @@ bool PDBReader::NextFrame(Topology &top) {
     // Now we need to add the bond pairs
     // WARNING We are assuming the atom ids are contiguous with no gaps
 
-    // First int  - is the index of the atom
-    // Second int - is the index of the molecule
-    map<int, int> atm_molecule;
+    // First Index  - is the index of the atom
+    // Second Index - is the index of the molecule
+    map<Index, Index> atm_molecule;
 
-    // First int  - is the index of the molecule
-    // list<int>  - is a list of the atoms in the molecule
-    unordered_map<int, list<int>> molecule_atms;
+    // First Index  - is the index of the molecule
+    // list<Index>  - is a list of the atoms in the molecule
+    unordered_map<Index, list<Index>> molecule_atms;
 
     // Keep track of the number of molecules we have created through an index
-    int mol_index = 0;
+    Index mol_index = 0;
 
     // Cycle through all bonds
-    for (auto row = bond_pairs.begin(); row != bond_pairs.end(); row++) {
+    for (auto &bond_pair : bond_pairs) {
 
-      int atm_id1 = row->at(0);
-      int atm_id2 = row->at(1);
+      Index atm_id1 = bond_pair.at(0);
+      Index atm_id2 = bond_pair.at(1);
       // Check to see if either atm referred to in the bond is already
       // attached to a molecule
       auto mol_iter1 = atm_molecule.find(atm_id1);
@@ -336,7 +383,7 @@ bool PDBReader::NextFrame(Topology &top) {
       // This means neither atom is attached to a molecule
       if (mol_iter1 == atm_molecule.end() && mol_iter2 == atm_molecule.end()) {
         // We are going to create a new row for a new molecule
-        list<int> atms_in_mol;
+        list<Index> atms_in_mol;
         atms_in_mol.push_back(atm_id1);
         atms_in_mol.push_back(atm_id2);
         molecule_atms[mol_index] = atms_in_mol;
@@ -364,8 +411,8 @@ bool PDBReader::NextFrame(Topology &top) {
         // This means both atm1 and atm2 are attached to a molecule
         // But if they are already attached to the same molecule there is
         // nothing else to be done.
-        int chosen_mol;
-        int obsolete_mol;
+        Index chosen_mol;
+        Index obsolete_mol;
         // We will merge the atms to the molecule with the smallest index
         if (mol_iter1->second < mol_iter2->second) {
           chosen_mol = mol_iter1->second;
@@ -377,10 +424,9 @@ bool PDBReader::NextFrame(Topology &top) {
 
         // Now we will proceed to cycle through the atms that were in the now
         // obsolete molecule and make sure they are pointing to the new molecule
-        for (auto atm_temp = molecule_atms[obsolete_mol].begin();
-             atm_temp != molecule_atms[obsolete_mol].end(); atm_temp++) {
+        for (Index &atm_temp : molecule_atms[obsolete_mol]) {
 
-          atm_molecule[*atm_temp] = chosen_mol;
+          atm_molecule[atm_temp] = chosen_mol;
         }
 
         // Splicing will remove atoms from the now obsolete molecule and place
@@ -394,7 +440,7 @@ bool PDBReader::NextFrame(Topology &top) {
     }
 #ifndef NDEBUG
     cerr << "Consistency check for pdbreader" << endl;
-    int i = 0;
+    Index i = 0;
     for (auto lis = molecule_atms.begin(); lis != molecule_atms.end(); lis++) {
       cerr << "Molecule " << i << endl;
       cerr << "Atoms: ";
@@ -412,17 +458,17 @@ bool PDBReader::NextFrame(Topology &top) {
     // 2 Add the bond interactions
 
     // Molecule map
-    // First int - is the index of the molecule
+    // First Index - is the index of the molecule
     // Molecule* - is a pointer to the Molecule object
-    map<int, Molecule *> mol_map;
+    map<Index, Molecule *> mol_map;
 
     // Used to reindex the molecules so that they start at 0 and progress
     // with out gaps in their ids.
-    // First int  - is the index of the old molecule
-    // Second int - is the new index
-    map<int, int> mol_reInd_map;
+    // First Index  - is the index of the old molecule
+    // Second Index - is the new index
+    map<Index, Index> mol_reInd_map;
 
-    int ind = 0;
+    Index ind = 0;
     for (auto mol = molecule_atms.begin(); mol != molecule_atms.end(); mol++) {
 
       string mol_name = "PDB Molecule " + boost::lexical_cast<string>(ind);
@@ -432,31 +478,29 @@ bool PDBReader::NextFrame(Topology &top) {
       mol_reInd_map[mol->first] = ind;
 
       // Add all the atoms to the appropriate molecule object
-      list<int> atm_list = molecule_atms[mol->first];
-      for (auto atm_temp = atm_list.begin(); atm_temp != atm_list.end();
-           atm_temp++) {
+      list<Index> atm_list = molecule_atms[mol->first];
+      for (Index &atm_temp : atm_list) {
 
         string residuename = "DUM";
-        mi->AddBead(bead_vec.at(*atm_temp - 1), residuename);
+        mi->AddBead(bead_vec.at(atm_temp - 1), residuename);
       }
       ind++;
     }
 
-    int bond_indx = 0;
+    Index bond_indx = 0;
     // Cyle through the bonds and add them to the appropriate molecule
-    for (auto bond_pair = bond_pairs.begin(); bond_pair != bond_pairs.end();
-         bond_pair++) {
+    for (auto &bond_pair : bond_pairs) {
 
-      int atm_id1 = bond_pair->at(0);
-      int atm_id2 = bond_pair->at(1);
+      Index atm_id1 = bond_pair.at(0);
+      Index atm_id2 = bond_pair.at(1);
       // Should be able to just look at one of the atoms the bond is attached
       // too because the other will also be attached to the same molecule.
-      int mol_ind = atm_molecule[atm_id1];
+      Index mol_ind = atm_molecule[atm_id1];
       Molecule *mi = mol_map[mol_ind];
       // Grab the id of the bead associated with the atom
       // It may be the case that the atom id's and bead id's are different
-      int bead_id1 = bead_vec.at(atm_id1 - 1)->getId();
-      int bead_id2 = bead_vec.at(atm_id2 - 1)->getId();
+      Index bead_id1 = bead_vec.at(atm_id1 - 1)->getId();
+      Index bead_id2 = bead_vec.at(atm_id2 - 1)->getId();
       Interaction *ic = new IBond(bead_id1, bead_id2);
       ic->setGroup("BONDS");
       ic->setIndex(bond_indx);
@@ -472,5 +516,5 @@ bool PDBReader::NextFrame(Topology &top) {
 
   return !_fl.eof();
 }
-}
-}
+}  // namespace csg
+}  // namespace votca

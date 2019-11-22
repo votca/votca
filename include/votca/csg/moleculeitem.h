@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@ namespace csg {
 class Molecule;
 
 class MoleculeItem {
-public:
-  virtual ~MoleculeItem() {}
+ public:
+  virtual ~MoleculeItem() = default;
 
   /**
    * Returns the molecule the pointer points at
    */
-  Molecule *getMolecule() {
+  Molecule *getMolecule() const {
     assert(_mol != nullptr);
     return _mol;
   }
@@ -42,12 +42,14 @@ public:
    */
   void setMolecule(Molecule *mol) { _mol = mol; }
 
-protected:
+ protected:
   MoleculeItem(Molecule *mol) : _mol(mol) {}
 
   Molecule *_mol = nullptr;
-};
-}
-}
 
-#endif // _VOTCA_CSG_MOLECULEITEM_H
+  friend class BaseBead;
+};
+}  // namespace csg
+}  // namespace votca
+
+#endif  // _VOTCA_CSG_MOLECULEITEM_H

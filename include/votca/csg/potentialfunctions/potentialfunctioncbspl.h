@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,59 +16,59 @@
  */
 
 #ifndef POTENTIALFUNCTIONCBSPL_H
-#define	POTENTIALFUNCTIONCBSPL_H
+#define POTENTIALFUNCTIONCBSPL_H
 
-#include <votca/tools/table.h>
-#include <math.h>
 #include "potentialfunction.h"
+#include <math.h>
+#include <votca/tools/table.h>
 
-using namespace std;
-using namespace votca::tools;
+namespace votca {
+namespace csg {
 
 class PotentialFunctionCBSPL : public PotentialFunction {
  public:
-  PotentialFunctionCBSPL(const string& name_,const int nlam_,
-                         const double min_=0.0, const double max_=10.0);
-  ~PotentialFunctionCBSPL(){}
+  PotentialFunctionCBSPL(const std::string &name, const Index nlam,
+                         const double min = 0.0, const double max = 10.0);
+  ~PotentialFunctionCBSPL() override = default;
   // calculate function value for given r
-  double CalculateF (const double r) const;
+  double CalculateF(const double r) const override;
   // calculate first derivative w.r.t. ith parameter
-  double CalculateDF(const int i, const double r) const;
+  double CalculateDF(const Index i, const double r) const override;
   // calculate second derivative w.r.t. ith parameter
-  double CalculateD2F(const int i, const int j, const double r) const;
+  double CalculateD2F(const Index i, const Index j,
+                      const double r) const override;
 
-  int getOptParamSize() const ;
+  Index getOptParamSize() const override;
 
-  void setParam(string filename);
+  void setParam(std::string filename) override;
 
-  void SaveParam(const string& filename);
+  void SaveParam(const std::string &filename) override;
 
-  void SavePotTab(const string& filename, const double step);
+  void SavePotTab(const std::string &filename, const double step) override;
 
-  void SavePotTab(const string& filename, const double step, const double rmin, const double rcut);
-  void setOptParam(const int i, const double val);
+  void SavePotTab(const std::string &filename, const double step,
+                  const double rmin, const double rcut) override;
+  void setOptParam(const Index i, const double val) override;
 
-  double getOptParam(const int i) const;
+  double getOptParam(const Index i) const override;
 
   void extrapolExclParam();
 
  protected:
-
   // exclude these many first coefficients from optimization
   // since the region relevant to these coefficients is not sampled
   // the value of _nexcl is determined from rmin
-  int _nexcl;
+  Index _nexcl;
   // fix these many coeff near the cut-off to zero to ensure
   // zero potential and force values near cut-off
-  int _ncutcoeff;
+  Index _ncutcoeff;
 
-  int _nbreak;
+  Index _nbreak;
   double _dr;
   Eigen::VectorXd _rbreak;
 
-  Eigen::MatrixXd _M;
-
-
+  Eigen::Matrix4d _M;
 };
-
+}  // namespace csg
+}  // namespace votca
 #endif
