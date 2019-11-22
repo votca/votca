@@ -67,6 +67,9 @@ message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
 find_package(VOTCA_TOOLS NO_MODULE REQUIRED)
 message(STATUS "Found VOTCA_TOOLS: ${VOTCA_TOOLS_DIR}")
+if(DEFINED VOTCA_TOOLS_VERSION AND NOT VOTCA_TOOLS_VERSION STREQUAL PROJECT_VERSION)
+  mmessage(FATAL_ERROR "Incompatible VOTCA Tools version found (needed ${PROJECT_VERSION}, found ${VOTCA_TOOLS_VERSION})")
+endif()
 
 option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functionality!" ON)
 if (WITH_GMX)
