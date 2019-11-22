@@ -26,6 +26,9 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(TXT2TAGS REQUIRED)
 find_package(VOTCA_CSG NO_MODULE REQUIRED)
+if(DEFINED VOTCA_CSG_VERSION AND NOT VOTCA_CSG_VERSION STREQUAL PROJECT_VERSION)
+  message(FATAL_ERROR "Incompatible VOTCA CSG version found (needed ${PROJECT_VERSION}, found ${VOTCA_CSG_VERSION})")
+endif()
 message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
 
 foreach(prog dvips ps2pdf)
