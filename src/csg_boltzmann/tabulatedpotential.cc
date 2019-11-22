@@ -309,7 +309,7 @@ void TabulatedPotential::CalcForce_(vector<double> &U, vector<double> &F,
 
 void TabulatedPotential::Smooth_(vector<double> &data, bool bPeriodic) {
   double old[3];
-  Index n = data.size();
+  Index n = Index(data.size());
   if (bPeriodic) {
     old[0] = data[n - 3];
     old[1] = data[n - 2];
@@ -317,21 +317,18 @@ void TabulatedPotential::Smooth_(vector<double> &data, bool bPeriodic) {
     old[0] = data[0];
     old[1] = data[0];
   }
-  size_t i;
-  for (i = 0; i < data.size() - 2; i++) {
+  Index i;
+  for (i = 0; i < Index(data.size()) - 2; i++) {
     old[2] = data[i];
     data[i] =
         (old[0] + 2. * old[1] + 3. * data[i] + 2. * data[i + 1] + data[i + 2]) /
         9.;
     old[0] = old[1];
     old[1] = old[2];
-    ;
   }
   if (bPeriodic) {
     data[i] =
         (old[0] + 2. * old[1] + 3. * data[i] + 2. * data[i + 1] + data[0]) / 9.;
-    old[0] = old[1];
-    old[1] = data[i];
     data[n - 1] = data[0];
   } else {
     data[i] = (old[0] + 2. * old[1] + 3. * data[i] + 3. * data[i + 1]) / 9.;
@@ -343,25 +340,24 @@ void TabulatedPotential::Smooth_(vector<double> &data, bool bPeriodic) {
 }
 
 void TabulatedPotential::BoltzmannInvert_(vector<double> &data) {
-  double _min, _max;
 
-  _min = numeric_limits<double>::max();
-  _max = numeric_limits<double>::min();
+  double min = std::numeric_limits<double>::max();
+  double max = std::numeric_limits<double>::min();
 
   for (double i : data) {
-    _max = max(i, _max);
+    max = std::max(i, max);
     if (i > 0) {
-      _min = min(i, _min);
+      min = std::min(i, min);
     }
   }
-  _max = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(_max);
-  _min = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(_min) - _max;
+  max = -conv::kB * conv::ev2kj_per_mol * _Temperature * std::log(max);
+  min = -conv::kB * conv::ev2kj_per_mol * _Temperature * std::log(min) - max;
 
   for (double &i : data) {
     if (i == 0) {
-      i = _min;
+      i = min;
     } else {
-      i = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(i) - _max;
+      i = -conv::kB * conv::ev2kj_per_mol * _Temperature * std::log(i) - max;
     }
   }
 }

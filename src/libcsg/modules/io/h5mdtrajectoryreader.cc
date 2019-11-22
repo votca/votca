@@ -58,7 +58,7 @@ bool H5MDTrajectoryReader::Open(const string &file) {
   CheckError(at_version, "Unable to read version attribute.");
   Index version[2];
   H5Aread(at_version, H5Aget_type(at_version), &version);
-  if (version[0] != 1 || (version[0] == 1 && version[1] > 1)) {
+  if (version[0] != 1 || version[1] > 1) {
     cout << "Found H5MD version: " << version[0] << "." << version[1] << endl;
     throw ios_base::failure("Wrong version of H5MD file.");
   }
