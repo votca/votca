@@ -29,7 +29,7 @@ class OrthorhombicBox : public BoundaryCondition {
   Eigen::Vector3d BCShortestConnection(
       const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const override;
 
-  eBoxtype getBoxType() override { return typeOrthorhombic; }
+  eBoxtype getBoxType() const override { return typeOrthorhombic; }
 
  protected:
 };
