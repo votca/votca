@@ -15,8 +15,8 @@
  *
  */
 #pragma once
-#ifndef _VOTCA_CSG_ORTHORHOMBICBOX_H
-#define _VOTCA_CSG_ORTHORHOMBICBOX_H
+#ifndef VOTCA_CSG_ORTHORHOMBICBOX_H
+#define VOTCA_CSG_ORTHORHOMBICBOX_H
 
 #include "boundarycondition.h"
 
@@ -37,4 +37,4 @@ class OrthorhombicBox : public BoundaryCondition {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_ORTHORHOMBICBOX_H */
+#endif  // VOTCA_CSG_ORTHORHOMBICBOX_H
