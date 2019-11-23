@@ -20,7 +20,6 @@
 
 #include <assert.h>
 #include <memory>
-#include <votca/csg/moleculeitem.h>
 #include <votca/csg/topologyitem.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/eigen.h>
@@ -58,15 +57,21 @@ class BaseBead {
   /// Sets the name of the bead
   void setName(std::string name) { return name_.setName(name); }
 
-  /// Sets the molecule the bead is attached too
-  // void setMolecule(Molecule *molecule) {
-  // molecule_item_.setMolecule(molecule); }
+  /**
+   * @brief assign the bead to a molecule with the provided id
+   *
+   * @param molecule_id
+   */
   void setMoleculeId(const int &molecule_id) noexcept {
     molecule_id_ = molecule_id;
   }
 
-  /// Gets the molecule pointer the bead is attached too
-  // Molecule *getMolecule() const { return molecule_item_.getMolecule(); }
+  /**
+   * @brief Get the id of the molecule the bead is a part of, if the molecule
+   * id has not been set return topology_constants::unassigned_molecule_id
+   *
+   * @return
+   */
   int getMoleculeId() const noexcept { return molecule_id_; }
 
   /// Gets the topology pointer the bead is attached too
