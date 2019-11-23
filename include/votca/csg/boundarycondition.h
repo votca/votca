@@ -54,19 +54,19 @@ class BoundaryCondition {
    * set the simulation box
    * \param box triclinic box matrix
    */
-  void setBox(const Eigen::Matrix3d &box) { _box = box; };
+  void setBox(const Eigen::Matrix3d &box) noexcept { _box = box; };
 
   /**
    * get the simulation box
    * \return triclinic box matrix
    */
-  const Eigen::Matrix3d &getBox() const { return _box; };
+  const Eigen::Matrix3d &getBox() const noexcept { return _box; };
 
   /**
    * get the volume of the box
    * \return box volume as double
    */
-  virtual double BoxVolume() const;
+  virtual double BoxVolume() const noexcept;
 
   /**
    * get shortest connection vector between r_i and r_j with respect to the
@@ -76,7 +76,7 @@ class BoundaryCondition {
       const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const = 0;
 
   enum eBoxtype { typeAuto = 0, typeTriclinic, typeOrthorhombic, typeOpen };
-  virtual eBoxtype getBoxType() const = 0;
+  virtual eBoxtype getBoxType() const noexcept = 0;
 
  protected:
   Eigen::Matrix3d _box;

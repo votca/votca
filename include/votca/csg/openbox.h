@@ -27,13 +27,14 @@ class OpenBox : public BoundaryCondition {
 
  public:
   Eigen::Vector3d BCShortestConnection(
-      const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const override;
+      const Eigen::Vector3d &r_i,
+      const Eigen::Vector3d &r_j) const override final;
 
-  virtual std::unique_ptr<BoundaryCondition> Clone() const override {
+  virtual std::unique_ptr<BoundaryCondition> Clone() const override final {
     return std::unique_ptr<BoundaryCondition>(new OpenBox(*this));
   }
 
-  eBoxtype getBoxType() const override { return typeOpen; }
+  eBoxtype getBoxType() const noexcept override final { return typeOpen; }
 };
 
 }  // namespace csg

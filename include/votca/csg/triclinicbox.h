@@ -27,13 +27,14 @@ class TriclinicBox : public BoundaryCondition {
 
  public:
   Eigen::Vector3d BCShortestConnection(
-      const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const override;
+      const Eigen::Vector3d &r_i,
+      const Eigen::Vector3d &r_j) const override final;
 
-  virtual std::unique_ptr<BoundaryCondition> Clone() const override {
+  virtual std::unique_ptr<BoundaryCondition> Clone() const override final {
     return std::unique_ptr<BoundaryCondition>(new TriclinicBox(*this));
   }
 
-  eBoxtype getBoxType() const override { return typeTriclinic; }
+  eBoxtype getBoxType() const noexcept override final { return typeTriclinic; }
 
  protected:
 };
