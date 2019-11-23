@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_BASEBEAD_H
-#define _VOTCA_CSG_BASEBEAD_H
+#ifndef VOTCA_CSG_BASEBEAD_H
+#define VOTCA_CSG_BASEBEAD_H
 
 #include <assert.h>
 #include <memory>
@@ -151,4 +151,4 @@ inline const Eigen::Vector3d &BaseBead::getPos() const {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_BASEBEAD_H
+#endif  // VOTCA_CSG_BASEBEAD_H
