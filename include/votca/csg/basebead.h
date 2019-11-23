@@ -22,6 +22,7 @@
 #include <memory>
 #include <votca/csg/moleculeitem.h>
 #include <votca/csg/topologyitem.h>
+#include <votca/tools/constants.h>
 #include <votca/tools/eigen.h>
 #include <votca/tools/identity.h>
 #include <votca/tools/name.h>
