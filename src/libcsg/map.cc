@@ -168,8 +168,7 @@ void Map_Sphere::Apply() {
             ", " + bead->getName() + " (id " +
             boost::lexical_cast<string>(bead->getId() + 1) + ")" +
             +" , molecule " +
-            boost::lexical_cast<string>(bead->getMolecule()->getId() + 1) +
-            ")");
+            boost::lexical_cast<string>(bead->getMoleculeId() + 1) + ")");
       }
       cg += iter._weight * (r + r0);
       bPos = true;
