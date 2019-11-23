@@ -24,7 +24,6 @@
 #include <votca/csg/topologyitem.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/eigen.h>
-#include <votca/tools/identity.h>
 #include <votca/tools/name.h>
 #include <votca/tools/types.h>
 namespace TOOLS = votca::tools;
@@ -48,10 +47,10 @@ class BaseBead {
   virtual ~BaseBead() = default;
 
   /// Gets the id of the bead
-  Index getId() const { return id_.getId(); }
+  int getId() const noexcept { return id_; }
 
   /// Sets the id of the bead
-  void setId(Index id) { id_.setId(id); }
+  void setId(const int &id) noexcept { id_ = id; }
 
   /// Gets the name of the bead
   std::string getName() const { return name_.getName(); }
@@ -129,7 +128,7 @@ class BaseBead {
   TopologyItem topology_item_;
   MoleculeItem molecule_item_;
 
-  TOOLS::Identity<Index> id_;
+  int id_ = tools::topology_constants::unassigned_residue_id;
   TOOLS::Name name_;
   TOOLS::Name type_;
 
