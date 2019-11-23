@@ -46,7 +46,7 @@ class BaseBead {
   virtual ~BaseBead() = default;
 
   /// Gets the id of the bead
-  int getId() const noexcept { return id_; }
+  Index getId() const noexcept { return id_; }
 
   /// Sets the id of the bead
   void setId(const Index &id) noexcept { id_ = id; }
@@ -72,7 +72,7 @@ class BaseBead {
    *
    * @return
    */
-  int getMoleculeId() const noexcept { return molecule_id_; }
+  Index getMoleculeId() const noexcept { return molecule_id_; }
 
   /// Gets the topology pointer the bead is attached too
   Topology *getParent() const { return topology_item_.getParent(); }
