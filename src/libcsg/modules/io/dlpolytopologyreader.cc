@@ -138,12 +138,9 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
 }
 
 bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
-  const char *WhiteSpace = " \t";
 
-  Index matoms = 0;
   Index natoms = 0;
 
-  std::ifstream fl;
   boost::filesystem::path filepath(file.c_str());
 
   string line;
@@ -162,14 +159,14 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
   } else {
     _fname = file;
   }
-
+  std::ifstream fl;
   fl.open(_fname);
 
   if (!fl.is_open()) {
     throw std::runtime_error("Error on opening dlpoly file '" + _fname + "'");
   } else {
-
-    line = _NextKeyline(fl, WhiteSpace);  // read title line and skip it
+    const char *WhiteSpace = " \t";
+    _NextKeyline(fl, WhiteSpace);         // read title line and skip it
     line = _NextKeyline(fl, WhiteSpace);  // read next directive line
     boost::to_upper(line);
 
@@ -269,7 +266,6 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
           cout << "Atom identification in maps '" << nm.str() << "'" << endl;
 #endif
         }
-        matoms += repeater;
       }
 
       while (line != "FINISH") {
@@ -347,7 +343,6 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
                              res->getId(), bead->getMass(), bead->getQ());
           mi_replica->AddBead(bead_replica, bead->getName());
         }
-        matoms += mi->BeadCount();
         InteractionContainer ics = mi->Interactions();
         for (auto &ic : ics) {
           Interaction *ic_replica = nullptr;

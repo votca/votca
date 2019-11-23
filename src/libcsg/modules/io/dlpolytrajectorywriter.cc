@@ -78,11 +78,9 @@ void DLPOLYTrajectoryWriter::Close() { _fl.close(); }
 
 void DLPOLYTrajectoryWriter::Write(Topology *conf) {
   static Index nstep = 1;
-  static double dstep = 0.0;
   const double scale = 10.0;  // nm -> A factor
   Index mavecs = 0;
   Index mpbct = 0;
-  double energy = 0.0;
 
   if (conf->HasForce() && conf->HasVel()) {
     mavecs = 2;
@@ -98,7 +96,7 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
   }
 
   if (_isConfig) {
-
+    double energy = 0.0;
     _fl << "From VOTCA with love" << endl;
     _fl << setw(10) << mavecs << setw(10) << mpbct << setw(10)
         << conf->BeadCount() << setw(20) << energy << endl;
@@ -109,7 +107,7 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
     }
 
   } else {
-
+    static double dstep = 0.0;
     if (nstep == 1) {
       _fl << "From VOTCA with love" << endl;
       _fl << setw(10) << mavecs << setw(10) << mpbct << setw(10)
