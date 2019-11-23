@@ -68,10 +68,7 @@ BOOST_AUTO_TEST_CASE(test_basebead_getters_setters) {
   BOOST_CHECK_EQUAL(xyz3.isApprox(xyz_ref, 1e-5), true);
 
   Topology top;
-  auto mol = top.CreateMolecule("Molecule1");
-  basebead.setMolecule(mol);
-  auto mol2 = basebead.getMolecule();
-  bool molecules_equal = mol2->getName() == "Molecule1";
-  BOOST_CHECK(molecules_equal);
+  basebead.setMoleculeId(0);
+  BOOST_CHECK_EQUAL(basebead.getMoleculeId(), 0);
 }
 BOOST_AUTO_TEST_SUITE_END()
