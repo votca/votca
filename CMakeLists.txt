@@ -37,6 +37,9 @@ endif(ENABLE_TESTING)
 #Find external packages
 ########################################################################
 find_package(VOTCA_CSG REQUIRED NO_MODULE)
+if(DEFINED VOTCA_CSG_VERSION AND NOT VOTCA_CSG_VERSION STREQUAL PROJECT_VERSION)
+  message(FATAL_ERROR "Incompatible VOTCA CSG version found (needed ${PROJECT_VERSION}, found ${VOTCA_CSG_VERSION})")
+endif()
 message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
 
 file(GLOB_RECURSE FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} */*.cc)
