@@ -59,10 +59,15 @@ class BaseBead {
   void setName(std::string name) { return name_.setName(name); }
 
   /// Sets the molecule the bead is attached too
-  void setMolecule(Molecule *molecule) { molecule_item_.setMolecule(molecule); }
+  // void setMolecule(Molecule *molecule) {
+  // molecule_item_.setMolecule(molecule); }
+  void setMoleculeId(const int &molecule_id) noexcept {
+    molecule_id_ = molecule_id;
+  }
 
   /// Gets the molecule pointer the bead is attached too
-  Molecule *getMolecule() const { return molecule_item_.getMolecule(); }
+  // Molecule *getMolecule() const { return molecule_item_.getMolecule(); }
+  int getMoleculeId() const noexcept { return molecule_id_; }
 
   /// Gets the topology pointer the bead is attached too
   Topology *getParent() const { return topology_item_.getParent(); }
@@ -129,17 +134,13 @@ class BaseBead {
   }
 
  protected:
-  BaseBead()
-      : topology_item_(nullptr),
-        molecule_item_(nullptr),
-        mass_(0.0),
-        bead_position_set_(false){};
+  BaseBead() : topology_item_(nullptr), mass_(0.0), bead_position_set_(false){};
 
   TopologyItem topology_item_;
-  MoleculeItem molecule_item_;
 
   std::string type_ = tools::topology_constants::unassigned_bead_type;
   int id_ = tools::topology_constants::unassigned_residue_id;
+  int molecule_id_ = tools::topology_constants::unassigned_molecule_id;
   std::string element_symbol_ = tools::topology_constants::unassigned_element;
   TOOLS::Name name_;
 
