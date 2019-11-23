@@ -21,7 +21,7 @@
 namespace votca {
 namespace csg {
 
-double BoundaryCondition::BoxVolume() const {
+double BoundaryCondition::BoxVolume() const noexcept {
   return std::abs(_box.determinant());
 }
 
