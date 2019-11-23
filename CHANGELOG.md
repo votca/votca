@@ -2,6 +2,11 @@ For more detailed information about the changes see the history of the [reposito
 
 ## Version 1.6-dev
 
+## Version 1.5.1 (released 20.11.19)
+ * switch votca_compare to python3
+ * more clear error message for xmlreader
+ * fix build on CentOs7
+
 ## Version 1.5 _SuperVictor_ (released 31.01.19)
 
 * enable gitlab CI
