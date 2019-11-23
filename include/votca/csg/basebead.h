@@ -49,7 +49,7 @@ class BaseBead {
   int getId() const noexcept { return id_; }
 
   /// Sets the id of the bead
-  void setId(const int &id) noexcept { id_ = id; }
+  void setId(const Index &id) noexcept { id_ = id; }
 
   /// Gets the name of the bead
   std::string getName() const { return name_.getName(); }
@@ -62,7 +62,7 @@ class BaseBead {
    *
    * @param molecule_id
    */
-  void setMoleculeId(const int &molecule_id) noexcept {
+  void setMoleculeId(const Index &molecule_id) noexcept {
     molecule_id_ = molecule_id;
   }
 
@@ -144,8 +144,8 @@ class BaseBead {
   TopologyItem topology_item_;
 
   std::string type_ = tools::topology_constants::unassigned_bead_type;
-  int id_ = tools::topology_constants::unassigned_residue_id;
-  int molecule_id_ = tools::topology_constants::unassigned_molecule_id;
+  Index id_ = tools::topology_constants::unassigned_residue_id;
+  Index molecule_id_ = tools::topology_constants::unassigned_molecule_id;
   std::string element_symbol_ = tools::topology_constants::unassigned_element;
   TOOLS::Name name_;
 
