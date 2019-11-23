@@ -71,25 +71,33 @@ class BaseBead {
    * get the bead type
    * \return const string
    */
-  virtual const std::string getType() const { return type_.getName(); }
+  virtual const std::string getType() const noexcept { return type_; }
 
   /**
    * set the bead type
    * \param bead type object
    */
-  virtual void setType(std::string type) { type_.setName(type); }
+  virtual void setType(const std::string &type) noexcept { type_ = type; }
+
+  /**
+   * @brief Returns the element type of the bead
+   *
+   * @return either the element symbol i.e. "Si" for silcon or unassigned if it
+   * has not been specified.
+   */
+  std::string getElement() const noexcept { return element_symbol_; }
 
   /**
    * get the mass of the base bead
    * \return - base bead mass
    */
-  virtual const double &getMass() const { return mass_; }
+  virtual const double &getMass() const noexcept { return mass_; }
 
   /**
    * set the mass of the base bead
    * \param - base bead mass
    */
-  virtual void setMass(const double &m) { mass_ = m; }
+  virtual void setMass(const double &m) noexcept { mass_ = m; }
 
   /**
    * set the position of the base bead
@@ -113,10 +121,12 @@ class BaseBead {
   }
 
   /** does this configuration store positions? */
-  bool HasPos() const { return bead_position_set_; }
+  bool HasPos() const noexcept { return bead_position_set_; }
 
   /** set has position to true */
-  void HasPos(bool true_or_false) { bead_position_set_ = true_or_false; }
+  void HasPos(const bool &true_or_false) noexcept {
+    bead_position_set_ = true_or_false;
+  }
 
  protected:
   BaseBead()
@@ -128,9 +138,10 @@ class BaseBead {
   TopologyItem topology_item_;
   MoleculeItem molecule_item_;
 
+  std::string type_ = tools::topology_constants::unassigned_bead_type;
   int id_ = tools::topology_constants::unassigned_residue_id;
+  std::string element_symbol_ = tools::topology_constants::unassigned_element;
   TOOLS::Name name_;
-  TOOLS::Name type_;
 
   double mass_;
   Eigen::Vector3d bead_position_;
