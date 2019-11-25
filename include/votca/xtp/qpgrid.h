@@ -30,10 +30,9 @@ namespace xtp {
 class QPGrid {
 
  public:
-  QPGrid(Logger& log, Sigma_base& sigma, const Eigen::MatrixXd& vxc,
+  QPGrid(Sigma_base& sigma, const Eigen::MatrixXd& vxc,
          const Eigen::VectorXd& dft_energies, const Eigen::MatrixXd& sigma_x)
-      : _log(log),
-        _sigma(sigma),
+      : _sigma(sigma),
         _vxc(vxc),
         _dft_energies(dft_energies),
         _sigma_x(sigma_x) {}
@@ -51,7 +50,6 @@ class QPGrid {
   Eigen::VectorXd Evaluate(const Eigen::VectorXd frequencies);
 
  private:
-  Logger& _log;
   Sigma_base& _sigma;
   options _opt;
 
