@@ -309,7 +309,7 @@ BOOST_AUTO_TEST_CASE(gw_full) {
       5.64772e-08, -1.02739e-07, -6.95192e-08, -0.0288861, 2.35482e-07,
       -4.40575e-08, 2.5365e-07, 1.96983;
 
-  bool check_offdiag = offdiag_ref.isApprox(offdiag, 1e-5);
+  bool check_offdiag = offdiag_ref.isApprox(offdiag, 1e-4);
   if (!check_offdiag) {
     cout << "GW energies" << endl;
     cout << offdiag << endl;
@@ -535,7 +535,7 @@ BOOST_AUTO_TEST_CASE(gw_full_QP_grid) {
   diag_ref << -11.4075, -1.01044, -0.620144, -0.620145, -0.620146, 0.261182,
       0.348342, 0.348343, 0.348342, 0.920827, 0.920827, 0.920827, 1.18002,
       1.27324, 1.27324, 1.27324, 1.96983;
-  bool check_diag = diag_ref.isApprox(diag, 1e-5);
+  bool check_diag = diag_ref.isApprox(diag, 1e-4);
   if (!check_diag) {
     cout << "GW energies" << endl;
     cout << diag << endl;
@@ -603,7 +603,7 @@ BOOST_AUTO_TEST_CASE(gw_full_QP_grid) {
       -2.23886e-08, 7.28278e-09, 5.6492e-08, -1.02736e-07, -6.95072e-08,
       -0.028889, 2.35443e-07, -4.40393e-08, 2.53589e-07, 1.96983;
 
-  bool check_offdiag = offdiag_ref.isApprox(offdiag, 1e-5);
+  bool check_offdiag = offdiag_ref.isApprox(offdiag, 1e-4);
   if (!check_offdiag) {
     cout << "GW energies" << endl;
     cout << offdiag << endl;
