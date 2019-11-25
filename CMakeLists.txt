@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.12)
-cmake_policy(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
+cmake_policy(VERSION 3.10)
 project(QDMEwald)
 
 option(QDMEwald_USE_CUDA "Using CUDA backend for GPU support" OFF)
@@ -153,7 +153,7 @@ add_custom_target(
 add_dependencies(Kokkos_flags Kokkos_build)
 add_dependencies(${QDMEwald_EXE_NAME} Kokkos_build)
 add_dependencies(${QDMEwald_EXE_NAME} Kokkos_flags)
-add_dependencies(${QDMEwald_EXE_NAME} Cabana_build)
+#add_dependencies(${QDMEwald_EXE_NAME} Cabana_build)
 
 #execute_process(COMMAND "grep -i \"cflags:\" ${KOKKOS_INSTALL_PREFIX}/lib/pkgconfig/kokkos.pc | cut -c 9-" OUTPUT_VARIABLE KOKKOS_CFLAGS)
 
