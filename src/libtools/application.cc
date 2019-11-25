@@ -96,9 +96,9 @@ int Application::Exec(int argc, char **argv) {
   try {
     //_continue_execution = true;
     AddProgramOptions()("help,h", "  display this help and exit");
-    AddProgramOptions()("verbose,v", "  be loud and noisy");
-    AddProgramOptions()("veryverbose,v1", "  be very loud and noisy");
-    AddProgramOptions()("veryveryverbose,v2", "  be very very loud and noisy");
+    AddProgramOptions()("verbose", "  be loud and noisy");
+    AddProgramOptions()("verbose1", "  be very loud and noisy");
+    AddProgramOptions()("verbose2,v", "  be extremly loud and noisy");
     AddProgramOptions("Hidden")("man", "  output man-formatted manual pages");
     AddProgramOptions("Hidden")("tex", "  output tex-formatted manual pages");
 
@@ -110,10 +110,12 @@ int Application::Exec(int argc, char **argv) {
     if (_op_vm.count("verbose")) {
       Log::current_level = Log::warning;
     }
-    if (_op_vm.count("veryverbose")) {
+
+    if (_op_vm.count("verbose1")) {
       Log::current_level = Log::info;
     }
-    if (_op_vm.count("veryveryverbose")) {
+
+    if (_op_vm.count("verbose2")) {
       Log::current_level = Log::debug;
     }
 
@@ -172,16 +174,14 @@ boost::program_options::options_description_easy_init
 void Application::ParseCommandLine(int argc, char **argv) {
   namespace po = boost::program_options;
 
-  std::map<string, boost::program_options::options_description>::iterator iter;
-
   // default options should be added to visible (the rest is handled via a map))
   _visible_options.add(_op_desc);
 
   // add all categories to list of available options
-  for (iter = _op_groups.begin(); iter != _op_groups.end(); ++iter) {
-    _op_desc.add(iter->second);
-    if (iter->first != "Hidden") {
-      _visible_options.add(iter->second);
+  for (const auto &pair : _op_groups) {
+    _op_desc.add(pair.second);
+    if (pair.first != "Hidden") {
+      _visible_options.add(pair.second);
     }
   }
 

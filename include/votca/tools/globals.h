@@ -28,6 +28,8 @@ struct Log {
   enum Level { error = 0, warning = 1, info = 2, debug = 3 };
 
   static Level current_level;
+
+  static bool verbose() { return current_level > Level::error; }
 };
 namespace tools {
 
