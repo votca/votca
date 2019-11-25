@@ -61,7 +61,7 @@ class DFTEngine {
   void Prepare(QMMolecule& mol);
 
   Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs) const;
-  void PrintMOs(const Eigen::VectorXd& MOEnergies);
+  void PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level);
   void CalcElDipole(const Orbitals& orb) const;
   Mat_p_Energy CalculateERIs(const Eigen::MatrixXd& DMAT) const;
   Mat_p_Energy CalcEXXs(const Eigen::MatrixXd& MOs,

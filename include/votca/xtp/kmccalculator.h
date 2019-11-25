@@ -23,6 +23,7 @@
 #include <votca/tools/random.h>
 #include <votca/tools/tokenizer.h>
 #include <votca/xtp/chargecarrier.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/qmstate.h>
 
 #include <votca/xtp/gnode.h>
@@ -75,6 +76,8 @@ class KMCCalculator : public QMCalculator {
   std::string _trajectoryfile = "trajectory.csv";
   std::string _ratefile = "rates.dat";
   std::string _occfile = "occupation.dat";
+
+  Logger _log;
 
   double _temperature;
 };

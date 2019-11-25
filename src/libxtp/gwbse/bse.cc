@@ -103,7 +103,7 @@ tools::EigenSystem BSE::Solve_singlets_TDA() const {
 
   SingletOperator_TDA Hs(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Hs);
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG_SAVE(Log::error, _log)
       << TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
   return solve_hermitian(Hs);
 }
@@ -433,7 +433,7 @@ void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
   for (const QMFragment<BSE_Population>& frag : frags) {
     double dq = frag.value().H[state] + frag.value().E[state];
     double qeff = dq + frag.value().Gs;
-    XTP_LOG_SAVE(logINFO, _log)
+    XTP_LOG_SAVE(Log::error, _log)
         << format(
                "           Fragment %1$4d%% -- hole: %2$5.1f%%  electron: "
                "%3$5.1f%%  dQ: %4$+5.2f  Qeff: %5$+5.2f") %
@@ -449,7 +449,7 @@ void BSE::PrintWeights(const Eigen::VectorXd& weights) const {
   for (Index i_bse = 0; i_bse < _bse_size; ++i_bse) {
     double weight = weights(i_bse);
     if (weight > _opt.min_print_weight) {
-      XTP_LOG_SAVE(logINFO, _log)
+      XTP_LOG_SAVE(Log::error, _log)
           << format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") %
                  (_opt.homo - vc.v(i_bse)) % (vc.c(i_bse) - _opt.homo - 1) %
                  (100.0 * weight)
@@ -466,9 +466,9 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
   QMStateType singlet = QMStateType(QMStateType::Singlet);
 
   Eigen::VectorXd oscs = orb.Oscillatorstrengths();
-  if (tools::globals::verbose) {
-    act = Analyze_eh_interaction(singlet, orb);
-  }
+
+  act = Analyze_eh_interaction(singlet, orb);
+
   if (fragments.size() > 0) {
     Lowdin low;
     low.CalcChargeperFragment(fragments, orb, singlet);
@@ -477,7 +477,7 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
   const Eigen::VectorXd& energies = orb.BSESinglets().eigenvalues();
 
   double hrt2ev = tools::conv::hrt2ev;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG_SAVE(Log::error, _log)
       << "  ====== singlet energies (eV) ====== " << flush;
   for (Index i = 0; i < _opt.nmax; ++i) {
     Eigen::VectorXd weights =
@@ -487,26 +487,19 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
     }
 
     double osc = oscs[i];
-    if (tools::globals::verbose) {
-      XTP_LOG_SAVE(logINFO, _log)
-          << format(
-                 "  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> "
-                 "= %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") %
-                 (i + 1) % (hrt2ev * energies(i)) %
-                 (1240.0 / (hrt2ev * energies(i))) %
-                 (hrt2ev * act.qp_contrib(i)) %
-                 (hrt2ev * act.exchange_contrib(i)) %
-                 (hrt2ev * act.direct_contrib(i))
-          << flush;
-    } else {
-      XTP_LOG_SAVE(logINFO, _log)
-          << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm") %
-                 (i + 1) % (hrt2ev * energies(i)) %
-                 (1240.0 / (hrt2ev * energies(i)))
-          << flush;
-    }
+    XTP_LOG_SAVE(Log::error, _log)
+        << format(
+               "  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> "
+               "= %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") %
+               (i + 1) % (hrt2ev * energies(i)) %
+               (1240.0 / (hrt2ev * energies(i))) %
+               (hrt2ev * act.qp_contrib(i)) %
+               (hrt2ev * act.exchange_contrib(i)) %
+               (hrt2ev * act.direct_contrib(i))
+        << flush;
+
     const Eigen::Vector3d& trdip = orb.TransitionDipoles()[i];
-    XTP_LOG_SAVE(logINFO, _log)
+    XTP_LOG_SAVE(Log::error, _log)
         << format(
                "           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = "
                "%2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %
@@ -518,7 +511,7 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
       printFragInfo(fragments, i);
     }
 
-    XTP_LOG_SAVE(logINFO, _log) << flush;
+    XTP_LOG_SAVE(Log::error, _log) << flush;
   }
   return;
 }
@@ -528,16 +521,15 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
 
   Interaction act;
   QMStateType triplet = QMStateType(QMStateType::Triplet);
-  if (tools::globals::verbose) {
-    act = Analyze_eh_interaction(triplet, orb);
-  }
+  act = Analyze_eh_interaction(triplet, orb);
+
   if (fragments.size() > 0) {
     Lowdin low;
     low.CalcChargeperFragment(fragments, orb, triplet);
   }
 
   const Eigen::VectorXd& energies = orb.BSETriplets().eigenvalues();
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG_SAVE(Log::error, _log)
       << "  ====== triplet energies (eV) ====== " << flush;
   for (Index i = 0; i < _opt.nmax; ++i) {
     Eigen::VectorXd weights =
@@ -545,29 +537,22 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
     if (!orb.getTDAApprox()) {
       weights -= orb.BSETriplets().eigenvectors2().col(i).cwiseAbs2();
     }
-    if (tools::globals::verbose) {
-      XTP_LOG_SAVE(logINFO, _log)
-          << format(
-                 "  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> "
-                 "= %4$+1.4f <K_d> = %5$+1.4f") %
-                 (i + 1) % (tools::conv::hrt2ev * energies(i)) %
-                 (1240.0 / (tools::conv::hrt2ev * energies(i))) %
-                 (tools::conv::hrt2ev * act.qp_contrib(i)) %
-                 (tools::conv::hrt2ev * act.direct_contrib(i))
-          << flush;
-    } else {
-      XTP_LOG_SAVE(logINFO, _log)
-          << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm") %
-                 (i + 1) % (tools::conv::hrt2ev * energies(i)) %
-                 (1240.0 / (tools::conv::hrt2ev * energies(i)))
-          << flush;
-    }
+
+    XTP_LOG_SAVE(Log::error, _log)
+        << format(
+               "  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> "
+               "= %4$+1.4f <K_d> = %5$+1.4f") %
+               (i + 1) % (tools::conv::hrt2ev * energies(i)) %
+               (1240.0 / (tools::conv::hrt2ev * energies(i))) %
+               (tools::conv::hrt2ev * act.qp_contrib(i)) %
+               (tools::conv::hrt2ev * act.direct_contrib(i))
+        << flush;
 
     PrintWeights(weights);
     if (fragments.size() > 0) {
       printFragInfo(fragments, i);
     }
-    XTP_LOG_SAVE(logINFO, _log) << format("   ") << flush;
+    XTP_LOG_SAVE(Log::error, _log) << format("   ") << flush;
   }
 
   return;

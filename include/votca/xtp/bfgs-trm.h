@@ -31,16 +31,12 @@ namespace xtp {
 
 class BFGSTRM {
  public:
-  BFGSTRM(Optimiser_costfunction& costfunction)
-      : _costfunction(costfunction), _logging(false) {
+  BFGSTRM(Optimiser_costfunction& costfunction) : _costfunction(costfunction) {
     _hessian = Eigen::MatrixXd::Identity(costfunction.NumParameters(),
                                          costfunction.NumParameters());
   }
 
-  void setLog(Logger* pLog) {
-    _logging = true;
-    _pLog = pLog;
-  }
+  void setLog(Logger* pLog) { _pLog = pLog; }
 
   void setTrustRadius(double trust_radius) { _trust_radius = trust_radius; }
 
@@ -77,7 +73,6 @@ class BFGSTRM {
 
   std::string _errormessage;
   bool _success = true;
-  bool _logging;
   Index _iteration = 0;
 
   std::vector<std::function<void()> > _callbacks;

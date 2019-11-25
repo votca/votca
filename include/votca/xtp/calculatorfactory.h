@@ -54,7 +54,6 @@ inline QMCalculator *Calculatorfactory::Create(const std::string &key) {
   assoc_map::const_iterator it(getObjects().find(key));
   if (it != getObjects().end()) {
     QMCalculator *calc = (it->second)();
-    calc->LoadDefaults();
     return calc;
   } else {
     throw std::runtime_error("factory key " + key + " not found.");
