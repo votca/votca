@@ -1,2 +1,4 @@
 cmake_laptop.sh
 _build
+/build
+.vscode/
