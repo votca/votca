@@ -2,7 +2,6 @@
     <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
         <print_regions_pdb help="print the geometry of the regions to a pdb file">true</print_regions_pdb>
         <max_iterations help="max iterations for qmmm scf loop">50</max_iterations>
-        <openmp_threads help="internal parallelization for each job">1</openmp_threads>
         <map_file help="xml file with segment definition">system.xml</map_file>
         <job_file help="name of jobfile to which jobs are written">qmmm_jobs.xml</job_file>
         <write_parse>
