@@ -240,7 +240,7 @@ BOOST_AUTO_TEST_CASE(gw_full) {
   diag_ref << -10.189, -1.01045, -0.620145, -0.620146, -0.620148, 0.261183,
       0.348342, 0.348343, 0.348342, 0.920829, 0.920829, 0.920829, 1.18002,
       1.27325, 1.27325, 1.27325, 1.96983;
-  bool check_diag = diag_ref.isApprox(diag, 1e-5);
+  bool check_diag = diag_ref.isApprox(diag, 1e-4);
   if (!check_diag) {
     cout << "GW energies" << endl;
     cout << diag << endl;
