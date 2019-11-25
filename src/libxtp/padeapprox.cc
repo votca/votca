@@ -140,7 +140,14 @@ std::complex<double> PadeApprox::evaluatePoint(std::complex<double> frequency) {
     _temp_container_A.push_back(_coeff.at(0));
     _temp_container_B.push_back(1);
     _temp_container_B.push_back(1);
-  return RecursiveA(frequency, _grid.size())/RecursiveB(frequency, _grid.size());
+    std::complex<double> B=RecursiveB(frequency, _grid.size());
+    std::complex<double> A=RecursiveA(frequency, _grid.size());
+    if(abs(B)<1E-9){
+
+      std::cout<<"Denominator small: "<<B<<" numerator = "<<A<<std::endl;
+
+    }
+  return A/B;
 }
 
 }  // namespace xtp

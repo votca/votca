@@ -564,45 +564,13 @@ bool GWBSE::Evaluate() {
 
     Sternheimer sternheimer(_orbitals, *_pLog);
 
-    //      std::complex<double> d(1,0);
-    //      std::complex<double> i(0,1);
     std::vector<Eigen::Matrix3cd> polar;
-    //      std::vector<std::complex<double>> w_g;
-    // std::vector<std::complex<double>> w;
-    //      for(int n=0;n<300;n++){
-    //          w_g.push_back(n*d/10*ev2hrt+0.8*i);
-    //
-    //          //w_g.push_back((ev2hrt/10+0.7*i-0.05*n*i));
-    //          //w_g.push_back(10/(n*d)+i*3);
-    //      }
-    //      for(int n=0;n<3000;n++){
-    //          w.push_back((n*d/100)*ev2hrt);
-    //      }
 
     // XTP_LOG(logDEBUG, *_pLog)<<TimeStamp()<<" Initialised Grid "<<flush;
 
     sternheimer.Initialize();
 
-    polar = sternheimer.Polarisability(0, 30, 600, 0.8, 3000);
-
-    //      for(int i=0;i<polar.size();i++){
-    //          std::cout<<polar[i]<<std::endl;
-    //      }
-
-    //      for(int i=0;i<polar.size();i++){
-    //        std::cout<<real(w.at(i))*votca::tools::conv::hrt2ev<<"
-    //        "<<(std::abs(real((polar.at(i)(2,2))))+std::abs(real(polar.at(i)(1,1)))+std::abs(real(polar.at(i)(0,0))))/3<<std::endl;
-    //      }
-    std::cout << std::endl;
-    //      for(int i=0;i<polar.size();i++){
-    //        std::cout<<real(w.at(i))*votca::tools::conv::hrt2ev<<"
-    //        "<<abs(real((polar.at(i)(2,2)))+real(polar.at(i)(1,1))+real(polar.at(i)(0,0)))/3<<std::endl;
-    //      }
-    std::cout << std::endl;
-    //      for(int i=0;i<polar.size();i++){
-    //        std::cout<<real(w.at(i))*votca::tools::conv::hrt2ev<<"
-    //        "<<real((polar.at(i)(2,2)))+real(polar.at(i)(1,1))+real(polar.at(i)(0,0))/3<<std::endl;
-    //      }
+    polar = sternheimer.Polarisability(0, 1, 200, 5, 1000);
 
     std::cout << std::endl << "Finished Sternheimer" << std::endl;
 

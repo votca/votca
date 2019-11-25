@@ -315,6 +315,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
 
     std::cout << "Done with w=" << grid_w[n] << std::endl;
   }
+  pade_4.printInfo();
   std::vector<Eigen::Matrix3cd> Polar_pade;
 
   for (std::complex<double> w : w) {
