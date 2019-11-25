@@ -63,7 +63,7 @@ class RPA {
     Eigen::VectorXd _omega;  // Eigenvalues
     Eigen::MatrixXd _XpY;    // Eigenvector components (X + Y)
   };
-  
+
   rpa_eigensolution Diagonalize_H2p() const;
 
  private:

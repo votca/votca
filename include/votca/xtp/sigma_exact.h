@@ -47,7 +47,8 @@ class Sigma_Exact : public Sigma_base {
   std::vector<Eigen::MatrixXd> _residues;  // Residues
 
   std::vector<Eigen::MatrixXd> CalcResidues() const;
-  double CalcSigmaC(const Eigen::VectorXd& res_mn, double eigenvalue, double freq) const;
+  double CalcSigmaC(const Eigen::VectorXd& res_mn, double eigenvalue,
+                    double freq) const;
 };
 }  // namespace xtp
 }  // namespace votca

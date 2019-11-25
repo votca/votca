@@ -26,28 +26,33 @@ namespace xtp {
 
 Eigen::VectorXd QPGrid::Evaluate(const Eigen::VectorXd frequencies) {
   const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
-  const Eigen::VectorXd c = _dft_energies.segment(_opt.qpmin, qptotal) + _sigma_x.diagonal() - _vxc.diagonal();
-  Eigen::VectorXd linSpaced = Eigen::VectorXd::LinSpaced(_opt.steps, -_opt.range, _opt.range);
+  const Eigen::VectorXd c = _dft_energies.segment(_opt.qpmin, qptotal) +
+                            _sigma_x.diagonal() - _vxc.diagonal();
+  Eigen::VectorXd linSpaced =
+      Eigen::VectorXd::LinSpaced(_opt.steps, -_opt.range, _opt.range);
   Eigen::MatrixXd sigmc_mat = Eigen::MatrixXd::Zero(qptotal, _opt.steps);
   for (Index i_node = 0; i_node < _opt.steps; ++i_node) {
-    sigmc_mat.col(i_node) = _sigma.CalcCorrelationDiag(frequencies.array() + linSpaced[i_node]);
+    sigmc_mat.col(i_node) =
+        _sigma.CalcCorrelationDiag(frequencies.array() + linSpaced[i_node]);
   }
   Eigen::VectorXd roots = frequencies;
   for (Index level = 0; level < qptotal; ++level) {
     const double freq_cur = frequencies[level];
     Eigen::VectorXd grid_freq = freq_cur + linSpaced.array();
     Eigen::VectorXd grid_sigc = sigmc_mat.row(level);
-    Eigen::VectorXd grid_targ = grid_sigc.array() + c[level] - grid_freq.array();
+    Eigen::VectorXd grid_targ =
+        grid_sigc.array() + c[level] - grid_freq.array();
     double root_best = 0.0;
     double weight_best = -1.0;
     for (Index i_node = 0; i_node < _opt.steps - 1; ++i_node) {
-      if (grid_targ[i_node] * grid_targ[i_node + 1] < 0.0) { // Sign change
+      if (grid_targ[i_node] * grid_targ[i_node + 1] < 0.0) {  // Sign change
         double dsigc_dw = (grid_sigc[i_node + 1] - grid_sigc[i_node]) /
                           (grid_freq[i_node + 1] - grid_freq[i_node]);
         double dtarg_dw = (grid_targ[i_node + 1] - grid_targ[i_node]) /
                           (grid_freq[i_node + 1] - grid_freq[i_node]);
-        double root = grid_freq[i_node] - grid_targ[i_node] / dtarg_dw; // Fixed-point estimate
-        double weight = 1.0 / (1.0 - dsigc_dw); // Pole weight Z in (0, 1)
+        double root = grid_freq[i_node] -
+                      grid_targ[i_node] / dtarg_dw;  // Fixed-point estimate
+        double weight = 1.0 / (1.0 - dsigc_dw);      // Pole weight Z in (0, 1)
         if (weight >= 1e-5 && weight > weight_best) {
           root_best = root;
           weight_best = weight;

@@ -180,7 +180,8 @@ void GW::CalculateGWPerturbation() {
     } else if (_opt.qp_solver == "fixedpoint") {
       frequencies = SolveQP_SelfConsistent(frequencies);
       XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " Solved QP equation self-consistently" << std::flush;
+          << TimeStamp() << " Solved QP equation self-consistently"
+          << std::flush;
     }
     _gwa_energies = frequencies;
     _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(_gwa_energies);
@@ -249,8 +250,8 @@ Eigen::VectorXd GW::SolveQP_SelfConsistent(Eigen::VectorXd frequencies) const {
 }
 
 Eigen::VectorXd GW::IterateQP_FixedPoint(Eigen::VectorXd frequencies) const {
-  return _Sigma_x.diagonal() + _sigma->CalcCorrelationDiag(frequencies)
-         - _vxc.diagonal() + _dft_energies.segment(_opt.qpmin, _qptotal);
+  return _Sigma_x.diagonal() + _sigma->CalcCorrelationDiag(frequencies) -
+         _vxc.diagonal() + _dft_energies.segment(_opt.qpmin, _qptotal);
 }
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,

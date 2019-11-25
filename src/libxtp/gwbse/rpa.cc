@@ -91,7 +91,8 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   Eigen::VectorXd AmB = Calculate_H2p_AmB();
   Eigen::MatrixXd ApB = Calculate_H2p_ApB();
 
-  Eigen::MatrixXd C = AmB.cwiseSqrt().asDiagonal() * ApB * AmB.cwiseSqrt().asDiagonal();
+  Eigen::MatrixXd C =
+      AmB.cwiseSqrt().asDiagonal() * ApB * AmB.cwiseSqrt().asDiagonal();
   tools::EigenSystem result = Diagonalize_H2p_C(C);
 
   Eigen::VectorXd omega = result.eigenvalues().cwiseSqrt();
@@ -104,13 +105,14 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   Eigen::VectorXd AmB_sqrt = AmB.cwiseSqrt();
   Eigen::VectorXd Omega_sqrt_inv = omega.cwiseSqrt().cwiseInverse();
   for (int s = 0; s < rpasize; s++) {
-    XpY.col(s) = Omega_sqrt_inv(s) * AmB_sqrt.cwiseProduct(result.eigenvectors().col(s));
+    XpY.col(s) =
+        Omega_sqrt_inv(s) * AmB_sqrt.cwiseProduct(result.eigenvectors().col(s));
   }
-  
+
   RPA::rpa_eigensolution sol;
   sol._omega = omega;
   sol._XpY = XpY;
-  
+
   return sol;
 }
 
@@ -155,13 +157,16 @@ Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
 
 tools::EigenSystem RPA::Diagonalize_H2p_C(const Eigen::MatrixXd& C) const {
   XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << " Diagonalizing two-particle Hamiltonian " << std::flush;
+      << TimeStamp() << " Diagonalizing two-particle Hamiltonian "
+      << std::flush;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(C);  // Uses lower triangle
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Diagonalization done " << std::flush;
   double minCoeff = es.eigenvalues().minCoeff();
   if (minCoeff <= 0.0) {
-    XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Detected non-positive eigenvalue: " << minCoeff << std::flush;
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Detected non-positive eigenvalue: " << minCoeff
+        << std::flush;
     throw std::runtime_error("Detected non-positive eigenvalue.");
   }
   tools::EigenSystem result;

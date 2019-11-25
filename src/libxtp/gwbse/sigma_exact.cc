@@ -33,7 +33,7 @@ void Sigma_Exact::PrepareScreening() {
 
 Eigen::VectorXd Sigma_Exact::CalcCorrelationDiag(
     const Eigen::VectorXd& frequencies) const {
-  const Index rpasize = _rpa_solution._omega.size(); // TODO: Rename
+  const Index rpasize = _rpa_solution._omega.size();  // TODO: Rename
   Eigen::VectorXd result = Eigen::VectorXd::Zero(_qptotal);
 #pragma omp parallel for
   for (Index m = 0; m < _qptotal; m++) {
@@ -91,8 +91,8 @@ std::vector<Eigen::MatrixXd> Sigma_Exact::CalcResidues() const {
     for (Index v = 0; v < n_occ; v++) {  // Sum over v
       const Eigen::MatrixXd fc =
           _Mmn[v].block(n_occ, 0, n_unocc, auxsize) * Mmn_mT;  // Sum over chi
-      res += fc.transpose() *
-          _rpa_solution._XpY.block(vc.I(v, 0), 0, n_unocc, rpasize);  // Sum over c
+      res += fc.transpose() * _rpa_solution._XpY.block(vc.I(v, 0), 0, n_unocc,
+                                                       rpasize);  // Sum over c
     }
     residues[m] = res;
   }

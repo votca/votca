@@ -22,8 +22,8 @@
 #define _VOTCA_XTP_GW_H
 
 #include "votca/xtp/logger.h"
-#include <votca/xtp/orbitals.h>
 #include "votca/xtp/qpgrid.h"
+#include <votca/xtp/orbitals.h>
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/sigma_base.h>
 #include <votca/xtp/threecenter.h>
@@ -58,7 +58,7 @@ class GW {
                          // rebuild
     std::string qp_solver = "fixedpoint";
     double qp_grid_range = 1.0;  // Left, right distance from grid origin
-    Index qp_grid_steps = 201;  // Number of grid points
+    Index qp_grid_steps = 201;   // Number of grid points
   };
 
   void configure(const options& opt);
@@ -100,7 +100,7 @@ class GW {
       const Eigen::VectorXd& dft_energies) const;
   void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const;
   void PrintGWA_Energies() const;
-  
+
   Eigen::VectorXd SolveQP_Grid(Eigen::VectorXd frequencies) const;
   Eigen::VectorXd SolveQP_SelfConsistent(Eigen::VectorXd frequencies) const;
   Eigen::VectorXd IterateQP_FixedPoint(Eigen::VectorXd frequencies) const;
