@@ -54,6 +54,11 @@ class GW {
     std::string sigma_integration = "ppm";
     Index reset_3c = 5;  // how often the 3c integrals in iterate should be
                          // rebuild
+    double omegain = 0.0; //eV
+    double omegafin = 30; //eV
+    double step = 0.;
+    double imshift = 0;
+    double resolution = 0;
   };
 
   void configure(const options& opt);

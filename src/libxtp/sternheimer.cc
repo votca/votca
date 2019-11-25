@@ -53,11 +53,11 @@ Eigen::MatrixXcd Sternheimer::OverlapMatrix() {
   AOBasis basis = _orbitals.SetupDftBasis();
   AOOverlap overlap;
   overlap.Fill(basis);
-  return overlap.Matrix();
+  return overlap.Matrix().cast < std::complex<double>>();
 }
 
 Eigen::MatrixXcd Sternheimer::DensityMatrix() {
-  return _orbitals.DensityMatrixGroundState();
+  return _orbitals.DensityMatrixGroundState().cast < std::complex<double>>();
 }
 
 Eigen::MatrixXcd Sternheimer::Hamiltonian() {
@@ -280,7 +280,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
   AOBasis basis = _orbitals.SetupDftBasis();
   AODipole dipole;
   dipole.Fill(basis);
-
+#pragma omp parallel for
   for (int n = 0; n < grid_w.size(); n++) {
     Eigen::MatrixXcd Polar = Eigen::MatrixXcd::Zero(3, 3);
     for (int i = 0; i < 3; i++) {
