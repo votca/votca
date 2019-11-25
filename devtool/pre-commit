@@ -16,7 +16,7 @@
 
 commit_hash=$(git log -1 | grep commit | awk '{print $2}')
 
-list_of_changed_header_and_source_files=$(git diff --diff-filter=d --cached --name-only $commit_hash | grep '\(\.cc\|\.h\)$')
+list_of_changed_header_and_source_files=$(git diff --diff-filter=d --cached --name-only $commit_hash | grep '\(\.cpp\|\.hpp\)$')
 year=$(date +"%Y")
 for file in ${list_of_changed_header_and_source_files[@]}
 do
