@@ -210,6 +210,26 @@ void GWBSE::Initialize(tools::Property& options) {
     _bseopt.nmax = bse_size;
   }
 
+//sternheimer option
+if (options.exists(key+".sternheimer")){
+  XTP_LOG(logDEBUG, *_pLog) << " Running Sternheimer" << flush;
+_gwopt.omegain = options.ifExistsReturnElseReturnDefault<double>(
+	key + ".sternheimer.omegain",_gwopt.omegain);
+_gwopt.omegafin = options.ifExistsReturnElseReturnDefault<double>(
+	key + ".sternheimer.omegafin",_gwopt.omegafin);
+_gwopt.step = options.ifExistsReturnElseReturnDefault<Index>(
+	key + ".sternheimer.step",_gwopt.step);
+_gwopt.imshift = options.ifExistsReturnElseReturnDefault<double>(
+	key + ".sternheimer.imshift",_gwopt.imshift);
+_gwopt.resolution = options.ifExistsReturnElseReturnDefault<Index>(
+	key + ".sternheimer.resolution",_gwopt.resolution);
+  XTP_LOG(logDEBUG, *_pLog) << " Omega initial: " << _gwopt.omegain << flush;
+  XTP_LOG(logDEBUG, *_pLog) << " Omega final: " << _gwopt.omegafin << flush;
+  XTP_LOG(logDEBUG, *_pLog) << " Step: " << _gwopt.step << flush;
+  XTP_LOG(logDEBUG, *_pLog) << " Imaginary shift: " << _gwopt.imshift << flush;
+  XTP_LOG(logDEBUG, *_pLog) << " Resolution: " << _gwopt.resolution << flush;
+}
+
   // eigensolver options
   if (options.exists(key + ".eigensolver")) {
     _bseopt.davidson = options.ifExistsReturnElseReturnDefault<bool>(
@@ -335,6 +355,8 @@ void GWBSE::Initialize(tools::Property& options) {
 
   _do_Sternheimer = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".sternheimer", _do_Sternheimer);
+
+
 
   // possible tasks
   std::string tasks_string =
@@ -569,9 +591,8 @@ bool GWBSE::Evaluate() {
     // XTP_LOG(logDEBUG, *_pLog)<<TimeStamp()<<" Initialised Grid "<<flush;
 
     sternheimer.Initialize();
-
-    polar = sternheimer.Polarisability(0, 1, 200, 5, 1000);
-
+    polar = sternheimer.Polarisability(_gwopt.omegain,_gwopt.omegafin,_gwopt.step, _gwopt.imshift, _gwopt.resolution);
+    
     std::cout << std::endl << "Finished Sternheimer" << std::endl;
 
   } else {
