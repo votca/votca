@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# This commit hook will automatically update the files that have been staged for
+# a commit. It will update the copy right date to indicate the correct year. It
+# will also apply git-format to the files that are being staged. 
+#
+# To use it, it must be placed in the .gith/hooks folder of whatever repository
+# is being used. It must also be made executable. 
+#
+# Assuming I am going to be using repo votca/csg
+#
+# cp pre-commit votca/csg/.git/hooks/pre-commit
+# chmod 777 votca/csg/.git/hooks/pre-commit
+#
+# Then you should be good to go
+
+commit_hash=$(git log -1 | grep commit | awk '{print $2}')
+
+list_of_changed_header_and_source_files=$(git diff --diff-filter=d --cached --name-only $commit_hash | grep '\(\.cc\|\.h\)$')
+year=$(date +"%Y")
+for file in ${list_of_changed_header_and_source_files[@]}
+do
+  echo "Applying clang style formatting to file "$file
+  clang-format -i -style=file $file
+  git add $file
+done
+
+
