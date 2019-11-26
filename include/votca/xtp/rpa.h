@@ -22,7 +22,6 @@
 #define _VOTCA_XTP_RPA_H
 #include "votca/xtp/logger.h"
 #include <vector>
-#include <votca/tools/eigensystem.h>
 #include <votca/xtp/eigen.h>
 
 namespace votca {
@@ -82,7 +81,7 @@ class RPA {
 
   Eigen::VectorXd Calculate_H2p_AmB() const;
   Eigen::MatrixXd Calculate_H2p_ApB() const;
-  tools::EigenSystem Diagonalize_H2p_C(const Eigen::MatrixXd& C) const;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Diagonalize_H2p_C(const Eigen::MatrixXd& C) const;
 };
 
 }  // namespace xtp

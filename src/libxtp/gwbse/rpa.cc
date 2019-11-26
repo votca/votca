@@ -93,9 +93,10 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
 
   Eigen::MatrixXd C =
       AmB.cwiseSqrt().asDiagonal() * ApB * AmB.cwiseSqrt().asDiagonal();
-  tools::EigenSystem result = Diagonalize_H2p_C(C);
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
+      Diagonalize_H2p_C(C);
 
-  Eigen::VectorXd omega = result.eigenvalues().cwiseSqrt();
+  Eigen::VectorXd omega = es.eigenvalues().cwiseSqrt();
 
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Lowest neutral excitation energy (eV): "
@@ -106,7 +107,7 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   Eigen::VectorXd Omega_sqrt_inv = omega.cwiseSqrt().cwiseInverse();
   for (int s = 0; s < rpasize; s++) {
     XpY.col(s) =
-        Omega_sqrt_inv(s) * AmB_sqrt.cwiseProduct(result.eigenvectors().col(s));
+        Omega_sqrt_inv(s) * AmB_sqrt.cwiseProduct(es.eigenvectors().col(s));
   }
 
   RPA::rpa_eigensolution sol;
@@ -155,7 +156,7 @@ Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
   return ApB;
 }
 
-tools::EigenSystem RPA::Diagonalize_H2p_C(const Eigen::MatrixXd& C) const {
+Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> RPA::Diagonalize_H2p_C(const Eigen::MatrixXd& C) const {
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Diagonalizing two-particle Hamiltonian "
       << std::flush;
@@ -169,10 +170,7 @@ tools::EigenSystem RPA::Diagonalize_H2p_C(const Eigen::MatrixXd& C) const {
         << std::flush;
     throw std::runtime_error("Detected non-positive eigenvalue.");
   }
-  tools::EigenSystem result;
-  result.eigenvalues() = es.eigenvalues();
-  result.eigenvectors() = es.eigenvectors();
-  return result;
+  return es;
 }
 
 }  // namespace xtp
