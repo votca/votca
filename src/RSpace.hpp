@@ -1,5 +1,5 @@
-#ifndef KSPACE_CLASS_INCLUDED
-#define KSPACE_CLASS_INCLUDED
+#ifndef RSPACE_CLASS_INCLUDED
+#define RSPACE_CLASS_INCLUDED
 
 #include <vector>
 
@@ -24,14 +24,17 @@ class RSpace {
    * Constructor for the class
    *
    * @param alpha     Ewald sum splitting parameter
-   * @param k_max     floating point cut-off radius for the r-space
+   * @param r_max     floating point cut-off radius for the r-space
    *                  part
    */
-  RSpace(T alpha, T k_max) : init(alpha, k_max) {}
+  RSpace(T alpha, T r_max) { init_params(alpha, r_max); }
   /*
    *
    * Initialization of the internal parameters
    *
+   * @param alpha     Ewald sum splitting parameter
+   * @param r_max     floating point cut-off radius for the r-space
+   *                  part
    */
   void init_params(T, T);
   /**
@@ -41,12 +44,11 @@ class RSpace {
    * corresponding getters after the computation
    *
    */
-  void compute(int, );
+  void compute();
 
  private:
-  T alpha;        ///< splitting parameter of the Ewald sum
-  T k_max;        ///< floating-point version of the r-space cutoff
-  int k_max_int;  ///< integer version of the r-space cutoff
+  T alpha;  ///< splitting parameter of the Ewald sum
+  T r_max;  ///< floating-point version of the r-space cutoff
 
   T pot_energy;        ///< potential energy computed for the r-space part
   std::vector<T> f;    ///< forces computed for the r-space part
@@ -58,10 +60,9 @@ class RSpace {
 };
 
 template <class T>
-void RSpace::init_params(T _alpha, T _k_max) {
+void RSpace<T>::init_params(T _alpha, T _r_max) {
   alpha = _alpha;
-  k_max = _k_max;
-  k_max_int = std::ceil(k_max);
+  r_max = _r_max;
 }
 
 #endif

@@ -55,6 +55,7 @@ if (QDMEwald_USE_CUDA)
                           -DKOKKOS_ENABLE_OPENMP:BOOL=ON
                           -DKOKKOS_ENABLE_CUDA:BOOL=ON
                           -DKOKKOS_ENABLE_CUDA_LAMBDA:BOOL=ON
+                          -DKOKKOS_ENABLE_PROFILING:BOOL=OFF
                           -DCMAKE_CXX_COMPILER=${CMAKE_BINARY_DIR}/${KOKKOS_INSTALL_DIR}/bin/nvcc_wrapper
                           -DCMAKE_INSTALL_PREFIX=${KOKKOS_INSTALL_PREFIX}
     )
@@ -68,6 +69,7 @@ else (QDMEwald_USE_CUDA)
         CONFIGURE_COMMAND cmake <SOURCE_DIR> -DKOKKOS_ARCH=${KOKKOS_ARCH} 
                                              -DKOKKOS_ENABLE_SERIAL:BOOL=ON 
                                              -DKOKKOS_ENABLE_OPENMP:BOOL=ON
+                                             -DKOKKOS_ENABLE_PROFILING:BOOL=OFF
                                              -DCMAKE_INSTALL_PREFIX=${KOKKOS_INSTALL_PREFIX}
     )
 endif (QDMEwald_USE_CUDA)
