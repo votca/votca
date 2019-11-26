@@ -39,7 +39,7 @@ WORKDIR /home/votca/votca
 RUN mkdir build
 WORKDIR build
 RUN ccache -z
-RUN cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
+RUN cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
   -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr \
   -DENABLE_TESTING=${TESTING} -DBUILD_CSG_MANUAL=ON \
   ${COVERAGE:+-DENABLE_COVERAGE_BUILD=ON} -DBUILD_OWN_GROMACS=${BUILD_GROMACS} \
@@ -48,10 +48,10 @@ RUN cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
   -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca -DVOTCA_TEST_OPTS="${TESTOPTS}"} \
   ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DWITH_GMX=OFF -DBUILD_XTP=OFF} \
   ..
-RUN make -j2 VERBOSE=1
+RUN cmake --build . -- -j2
 RUN ccache -s
 RUN if [ ${DOXYGEN} ]; then \
-      make doxygen; \
+      cmake --build . --target doxygen; \
       if [ ${DOXYGEN_COVERAGE} ]; then \
         python -m coverxygen --xml-dir share/doc/xml/ --src-dir .. --output doxygen.coverage.info; \
         codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) \
@@ -60,9 +60,9 @@ RUN if [ ${DOXYGEN} ]; then \
         rm -f doxygen.coverage.info; \
       fi; \
     fi
-RUN if [ ${TESTING} = ON ]; then make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"; fi
+RUN if [ ${TESTING} = ON ]; then ctest --output-on-failure ${TESTOPTS}; fi
 RUN if [ ! ${MODULE_BUILD} ]; then \
-      make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install; \
+      DESTDIR=${PWD}/install cmake --build . --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install; \
     fi
 RUN if [ ${COVERAGE} ]; then \
   if [ ${CC} = clang ]; then \
@@ -76,7 +76,7 @@ RUN if [ ${COVERAGE} ]; then \
   fi; \
 fi
 RUN if [[ ${CLANG_FORMAT} && ${TRAVIS_BRANCH} != next ]]; then \
-      make format && \
+      cmake --build . --target format && \
       git -C ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) diff --submodule=diff --exit-code; \
     fi
-RUN sudo make install
+RUN sudo cmake --build . --target install

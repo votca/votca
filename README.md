@@ -16,8 +16,8 @@ Usage:
     mkdir build
     cd build
     cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
-    make -j<number of cores>
-    make install
+    cmake --build . -- -j<number of cores>
+    cmake --build . --target install
 
 Using this code via docker:
 
@@ -40,5 +40,5 @@ If you want to install CTP
     mkdir build
     cd build
     cmake -DBUILD_CTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
-    make -j<number of cores>
-    make install
+    cmake --build . -- -j<number of cores>
+    cmake --build . --target install
