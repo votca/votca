@@ -55,6 +55,9 @@ if(ENABLE_WARNING_FLAGS)
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-conversion")
   endif()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck")
+  endif()  
 endif()
 
 ########################################################################
