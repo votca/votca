@@ -51,7 +51,7 @@ void GW::configure(const options& opt) {
     grid_opt.qpmin = _opt.qpmin;
     grid_opt.qpmax = _opt.qpmax;
     grid_opt.steps = _opt.qp_grid_steps;
-    grid_opt.range = _opt.qp_grid_range;
+    grid_opt.spacing = _opt.qp_grid_spacing;
     grid.configure(grid_opt);
     _qpgrid = std::make_unique<QPGrid>(grid);
   }

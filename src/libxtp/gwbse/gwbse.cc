@@ -391,16 +391,16 @@ void GWBSE::Initialize(tools::Property& options) {
 
   _gwopt.qp_solver = options.ifExistsReturnElseReturnDefault<std::string>(
       key + ".qp_solver", _gwopt.qp_solver);
-  _gwopt.qp_grid_range = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".qp_grid_range", _gwopt.qp_grid_range);
   _gwopt.qp_grid_steps = options.ifExistsReturnElseReturnDefault<Index>(
       key + ".qp_grid_steps", _gwopt.qp_grid_steps);
+  _gwopt.qp_grid_spacing = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".qp_grid_spacing", _gwopt.qp_grid_spacing);
   XTP_LOG(logDEBUG, *_pLog) << " QP solver: " << _gwopt.qp_solver << flush;
   if (_gwopt.qp_solver == "grid") {
     XTP_LOG(logDEBUG, *_pLog)
-        << " QP grid range: " << _gwopt.qp_grid_range << flush;
-    XTP_LOG(logDEBUG, *_pLog)
         << " QP grid steps: " << _gwopt.qp_grid_steps << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+        << " QP grid spacing: " << _gwopt.qp_grid_spacing << flush;
   }
 
   return;

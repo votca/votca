@@ -42,7 +42,7 @@ class QPGrid {
     Index qpmin = 0;
     Index qpmax = 0;
     Index steps = 201;
-    double range = 1.0;
+    double spacing = 0.01;
   };
 
   void configure(options opt) { _opt = opt; }

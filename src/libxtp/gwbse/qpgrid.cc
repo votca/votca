@@ -28,8 +28,9 @@ Eigen::VectorXd QPGrid::Evaluate(const Eigen::VectorXd frequencies) {
   const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
   const Eigen::VectorXd c = _dft_energies.segment(_opt.qpmin, qptotal) +
                             _sigma_x.diagonal() - _vxc.diagonal();
+  double range = _opt.spacing * (double)(_opt.steps - 1) / 2.0;
   Eigen::VectorXd linSpaced =
-      Eigen::VectorXd::LinSpaced(_opt.steps, -_opt.range, _opt.range);
+      Eigen::VectorXd::LinSpaced(_opt.steps, -range, range);
   Eigen::MatrixXd sigmc_mat = Eigen::MatrixXd::Zero(qptotal, _opt.steps);
   for (Index i_node = 0; i_node < _opt.steps; ++i_node) {
     sigmc_mat.col(i_node) =
