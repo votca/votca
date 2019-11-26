@@ -134,6 +134,13 @@ class ReducedEdge : public Edge {
   bool operator<=(const ReducedEdge& edge) const;
   bool operator>=(const ReducedEdge& edge) const;
 
+  using Edge::operator!=;
+  using Edge::operator==;
+  using Edge::operator<;
+  using Edge::operator>;
+  using Edge::operator<=;
+  using Edge::operator>=;
+
   /// Print the contents of the edge
   friend std::ostream& operator<<(std::ostream& os, const ReducedEdge& edge);
 };
