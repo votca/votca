@@ -108,8 +108,8 @@ template <class T>
 void KSpace<T>::init_params(const T _alpha, const T _k_max) {
   alpha = _alpha;
   gamma = -0.25 / (alpha * alpha);
-  k_max_int = (int)_k_max;
-  k_sq_int = (int)std::floor(sqrt(_k_max));
+  k_sq_int = (int)_k_max;
+  k_max_int = (int)std::floor(sqrt(_k_max));
 }
 
 /*
@@ -132,12 +132,11 @@ void KSpace<T>::compute_ak(const T l) {
 
   ak = Kokkos::View<T*>("AK coefficients", k_sq_int);
 
-  Kokkos::parallel_for(
-      k_sq_int, KOKKOS_LAMBDA(const int k) {
-        T rksq = (T)k * rcl * rcl;
-        T eksq = std::pow(expf, (T)k);
-        ak(k) = eksq / rksq;
-      });
+  Kokkos::parallel_for(k_sq_int, KOKKOS_LAMBDA(const int k) {
+    T rksq = (T)k * rcl * rcl;
+    T eksq = std::pow(expf, (T)k);
+    ak(k) = eksq / rksq;
+  });
 }
 
 /*
@@ -162,43 +161,40 @@ void KSpace<T>::compute_exponentials(Kokkos::View<T * [3]> xyz, const T l) {
   int offset = k_max_int;
 
   // initialize the first factors (k == 0)
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        for (int d = 0; d < 3; ++d) {
-          cos_fac(n, 0 + offset, d) = 1.0;
-          sin_fac(n, 0 + offset, d) = 0.0;
-        }
-      });
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    for (int d = 0; d < 3; ++d) {
+      cos_fac(n, 0 + offset, d) = 1.0;
+      sin_fac(n, 0 + offset, d) = 0.0;
+    }
+  });
 
   // transformed length
   T rcl = 2.0 * M_PI / l;
 
   // compute the exponential factors (k == 1 / k == -1)
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        for (int d = 0; d < 3; ++d) {
-          cos_fac(n, 1 + offset, d) = std::cos(rcl * xyz(3 * n, d));
-          sin_fac(n, 1 + offset, d) = std::sin(rcl * xyz(3 * n, d));
-          cos_fac(n, -1 + offset, d) = cos_fac(n, 1 + offset, d);
-          sin_fac(n, -1 + offset, d) = -sin_fac(n, 1 + offset, d);
-        }
-      });
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    for (int d = 0; d < 3; ++d) {
+      cos_fac(n, 1 + offset, d) = std::cos(rcl * xyz(3 * n, d));
+      sin_fac(n, 1 + offset, d) = std::sin(rcl * xyz(3 * n, d));
+      cos_fac(n, -1 + offset, d) = cos_fac(n, 1 + offset, d);
+      sin_fac(n, -1 + offset, d) = -sin_fac(n, 1 + offset, d);
+    }
+  });
 
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        for (int k = 2; k <= k_max_int; ++k) {
-          for (int d = 0; d < 3; ++d) {
-            cos_fac(n, k + offset, d) =
-                cos_fac(n, k - 1 + offset, d) * cos_fac(n, 1 + offset, d) -
-                sin_fac(n, k - 1 + offset, d) * sin_fac(n, 1 + offset, d);
-            sin_fac(n, k + offset, d) =
-                sin_fac(n, k - 1 + offset, d) * cos_fac(n, 1 + offset, d) -
-                cos_fac(n, k - 1 + offset, d) * sin_fac(n, 1 + offset, d);
-            cos_fac(n, -k + offset, d) = cos_fac(n, k + offset, d);
-            sin_fac(n, -k + offset, d) = -sin_fac(n, k + offset, d);
-          }
-        }
-      });
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    for (int k = 2; k <= k_max_int; ++k) {
+      for (int d = 0; d < 3; ++d) {
+        cos_fac(n, k + offset, d) =
+            cos_fac(n, k - 1 + offset, d) * cos_fac(n, 1 + offset, d) -
+            sin_fac(n, k - 1 + offset, d) * sin_fac(n, 1 + offset, d);
+        sin_fac(n, k + offset, d) =
+            sin_fac(n, k - 1 + offset, d) * cos_fac(n, 1 + offset, d) -
+            cos_fac(n, k - 1 + offset, d) * sin_fac(n, 1 + offset, d);
+        cos_fac(n, -k + offset, d) = cos_fac(n, k + offset, d);
+        sin_fac(n, -k + offset, d) = -sin_fac(n, k + offset, d);
+      }
+    }
+  });
 }
 
 /**
@@ -228,23 +224,47 @@ void KSpace<T>::compute(const T _l, const std::vector<T>& _xyz,
   Kokkos::View<T * [3]> d("dipole moments", N);
   Kokkos::View<T * [3][3]> Q("quadrupole moments", N);
 
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        q(n) = _q.at(n);
-        for (int i = 0; i < 3; ++i) {
-          xyz(n, i) = _xyz.at(3 * n + i);
-          d(n, i) = _d.at(3 * n + i);
-          for (int j = 0; j < 3; ++j) {
-            Q(n, i, j) = _Q.at(9 * n + 3 * i + j);
-          }
-        }
-      });
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    q(n) = _q.at(n);
+    for (int i = 0; i < 3; ++i) {
+      xyz(n, i) = _xyz.at(3 * n + i);
+      d(n, i) = _d.at(3 * n + i);
+      for (int j = 0; j < 3; ++j) {
+        Q(n, i, j) = _Q.at(9 * n + 3 * i + j);
+      }
+    }
+  });
 
   // compute exponential factors
   compute_exponentials(xyz, _l);
 
   // compute AK coefficients
   compute_ak(_l);
+
+  // transformed length
+  T rcl = 2.0 * M_PI / _l;
+
+  // loop over the k-images to compute the necessary
+  // parameters (energy, virial, torque, forces)
+  int miny = 0;
+  int minz = 0;
+  double rx, ry, rz;
+  for (int ix = 0; ix <= k_max_int; ++ix) {
+    rx = rcl * (T)ix;
+    for (int iy = miny; iy <= k_max_int; ++iy) {
+      ry = rcl * (T)iy;
+      for (int iz = minz; iz <= k_max_int; ++iz) {
+        rz = rcl * (T)iz;
+        // -1 to conform to C++ style array indexing
+        // opposed to original Fortran indexing
+        int kk = ix * ix + iy * iy + iz * iz - 1;
+        if (kk > k_sq_int) continue;
+        // compute exp (ikr) and the corresponding scalar and vector
+        // products for the different multipoles
+        // compute_multipole_coeffs(ix, iy, iz);
+      }
+    }
+  }
 }
 
 #endif
