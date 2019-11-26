@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_SUITE(kspace_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) {
   KSpace<double> a;
-  a.init_params(0.3, 0.7);
+  a.init_params(0.3, 0.7, 1.2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

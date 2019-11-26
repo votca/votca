@@ -6,9 +6,9 @@ int main() {
   Kokkos::initialize();
   {
     // testing the initialization with different data types
-    QDMEwald<double> qdme_d(1.0, 1.0, 1.0);
-    QDMEwald<float> qdme_f(1.0f, 1.0f, 1.0f);
-    QDMEwald<long double> qdme_ld(1.0l, 1.0l, 1.0l);
+    QDMEwald<double> qdme_d(1.0, 1.0, 1.0, 1.0);
+    QDMEwald<float> qdme_f(1.0f, 1.0f, 1.0f, 1.0f);
+    QDMEwald<long double> qdme_ld(1.0l, 1.0l, 1.0l, 1.0l);
 
     // testing system size
     double l = 1.00;
@@ -34,7 +34,7 @@ int main() {
         0.4,  0.0,  -0.2, 0.4,  -0.4, 0.2,  0.1,  0.1,  -0.3, 0.5,  -0.1, -0.1,
         0.3,  -0.5, 0.3,  0.2,  0.0,  -0.2, 0.4,  -0.2, 0.0,  0.2,  -0.4, 0.4};
 
-    qdme_d.compute(l, xyz, q, d, Q);
+    qdme_d.compute(xyz, q, d, Q);
   }
   Kokkos::finalize();
 }

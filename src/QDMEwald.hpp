@@ -22,21 +22,21 @@ class QDMEwald {
    *                  part
    * @param r_max     floating point cut-off radius for the r-space
    *                  part
+   * @param l         system size (cubic system)
    */
-  QDMEwald(T alpha, T k_max, T r_max)
-      : kspace(KSpace<T>(alpha, k_max)), rspace(RSpace<T>(alpha, r_max)) {}
+  QDMEwald(T alpha, T k_max, T r_max, T l)
+      : kspace(KSpace<T>(alpha, k_max, l)), rspace(RSpace<T>(alpha, r_max)) {}
 
   /**
    *
    * Computation of the Ewald sum for quadrupoles, dipoles and monopoles
    *
-   * @param l         system size (cubic system)
    * @param xyz       particle positions
    * @param q         particle charges
    * @param d         particle dipole moments
    * @param Q         particle quadrupole moments
    */
-  void compute(const T, const std::vector<T>&, const std::vector<T>&,
+  void compute(const std::vector<T>&, const std::vector<T>&,
                const std::vector<T>&, const std::vector<T>&);
 
  private:
@@ -48,17 +48,15 @@ class QDMEwald {
  *
  * Computation of the Ewald sum for quadrupoles, dipoles and monopoles
  *
- * @param l         system size (cubic system)
  * @param xyz       particle positions
  * @param q         particle charges
  * @param d         particle dipole moments
  * @param Q         particle quadrupole moments
  */
 template <class T>
-void QDMEwald<T>::compute(const T l, const std::vector<T>& xyz,
-                          const std::vector<T>& q, const std::vector<T>& d,
-                          const std::vector<T>& Q) {
+void QDMEwald<T>::compute(const std::vector<T>& xyz, const std::vector<T>& q,
+                          const std::vector<T>& d, const std::vector<T>& Q) {
   // compute k-space contribution
-  kspace.compute(l, xyz, q, d, Q);
+  kspace.compute(xyz, q, d, Q);
 }
 #endif
