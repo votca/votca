@@ -2,5 +2,8 @@ cmake_laptop.sh
 _build
 /build
 .vscode/
-../src/KSpace.hpp.orig
-../src/KSpace_*
+src/KSpace.hpp.orig
+src/KSpace_BACKUP_9350.hpp
+src/KSpace_BASE_9350.hpp
+src/KSpace_LOCAL_9350.hpp
+src/KSpace_REMOTE_9350.hpp
