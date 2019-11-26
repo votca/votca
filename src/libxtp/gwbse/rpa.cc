@@ -99,23 +99,22 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
       Diagonalize_H2p_C(C);
 
-  Eigen::VectorXd omega = es.eigenvalues().cwiseSqrt();
+  RPA::rpa_eigensolution sol;
+
+  sol.omega = es.eigenvalues().cwiseSqrt();
 
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Lowest neutral excitation energy (eV): "
-      << tools::conv::hrt2ev * omega.minCoeff() << std::flush;
+      << tools::conv::hrt2ev * sol.omega.minCoeff() << std::flush;
 
-  Eigen::MatrixXd XpY = Eigen::MatrixXd(rpasize, rpasize);
+  sol.XpY = Eigen::MatrixXd(rpasize, rpasize);
+  
   Eigen::VectorXd AmB_sqrt = AmB.cwiseSqrt();
-  Eigen::VectorXd Omega_sqrt_inv = omega.cwiseSqrt().cwiseInverse();
+  Eigen::VectorXd Omega_sqrt_inv = sol.omega.cwiseSqrt().cwiseInverse();
   for (int s = 0; s < rpasize; s++) {
-    XpY.col(s) =
+    sol.XpY.col(s) =
         Omega_sqrt_inv(s) * AmB_sqrt.cwiseProduct(es.eigenvectors().col(s));
   }
-
-  RPA::rpa_eigensolution sol;
-  sol._omega = omega;
-  sol._XpY = XpY;
 
   return sol;
 }

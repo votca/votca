@@ -198,16 +198,16 @@ BOOST_AUTO_TEST_CASE(rpa_h2p) {
 
   RPA::rpa_eigensolution sol = rpa.Diagonalize_H2p();
 
-  bool check_rpa_eigenvalues = rpa_omega_ref.isApprox(sol._omega, 0.0001);
+  bool check_rpa_eigenvalues = rpa_omega_ref.isApprox(sol.omega, 0.0001);
   if (!check_rpa_eigenvalues) {
     cout << "rpa_omega" << endl;
-    cout << sol._omega << endl;
+    cout << sol.omega << endl;
     cout << "rpa_omega_ref" << endl;
     cout << rpa_omega_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_rpa_eigenvalues, 1);
 
-  Eigen::VectorXd rpa_XpY_diag = sol._XpY.diagonal();
+  Eigen::VectorXd rpa_XpY_diag = sol.XpY.diagonal();
 
   bool check_rpa_XpY_diag = rpa_XpY_diag_ref.isApprox(rpa_XpY_diag, 0.0001);
   if (!check_rpa_XpY_diag) {

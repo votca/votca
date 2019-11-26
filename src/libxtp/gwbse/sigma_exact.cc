@@ -33,7 +33,7 @@ void Sigma_Exact::PrepareScreening() {
 
 Eigen::VectorXd Sigma_Exact::CalcCorrelationDiag(
     const Eigen::VectorXd& frequencies) const {
-  const Index rpasize = _rpa_solution._omega.size();  // TODO: Rename
+  const Index rpasize = _rpa_solution.omega.size();  // TODO: Rename
   Eigen::VectorXd result = Eigen::VectorXd::Zero(_qptotal);
 #pragma omp parallel for
   for (Index m = 0; m < _qptotal; m++) {
@@ -41,7 +41,7 @@ Eigen::VectorXd Sigma_Exact::CalcCorrelationDiag(
     const Eigen::MatrixXd& res_m = _residues[m];
     for (Index s = 0; s < rpasize; s++) {
       const Eigen::VectorXd res_mm = res_m.col(s).cwiseAbs2();
-      double eigenvalue = _rpa_solution._omega(s);
+      double eigenvalue = _rpa_solution.omega(s);
       sigmc += CalcSigmaC(res_mm, eigenvalue, frequencies(m));
     }
     // Multiply with factor 2.0 to sum over both (identical) spin states
@@ -52,7 +52,7 @@ Eigen::VectorXd Sigma_Exact::CalcCorrelationDiag(
 
 Eigen::MatrixXd Sigma_Exact::CalcCorrelationOffDiag(
     const Eigen::VectorXd& frequencies) const {
-  const Index rpasize = _rpa_solution._omega.size();
+  const Index rpasize = _rpa_solution.omega.size();
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
 #pragma omp parallel for
   for (Index m = 0; m < _qptotal; m++) {
@@ -62,7 +62,7 @@ Eigen::MatrixXd Sigma_Exact::CalcCorrelationOffDiag(
       const Eigen::MatrixXd& res_n = _residues[n];
       for (Index s = 0; s < rpasize; s++) {
         Eigen::VectorXd res_mn = res_m.col(s).cwiseProduct(res_n.col(s));
-        double eigenvalue = _rpa_solution._omega(s);
+        double eigenvalue = _rpa_solution.omega(s);
         double sigmc_m = CalcSigmaC(res_mn, eigenvalue, frequencies(m));
         double sigmc_n = CalcSigmaC(res_mn, eigenvalue, frequencies(n));
         sigmc += sigmc_m + sigmc_n;
@@ -91,7 +91,7 @@ std::vector<Eigen::MatrixXd> Sigma_Exact::CalcResidues() const {
     for (Index v = 0; v < n_occ; v++) {  // Sum over v
       const Eigen::MatrixXd fc =
           _Mmn[v].block(n_occ, 0, n_unocc, auxsize) * Mmn_mT;  // Sum over chi
-      res += fc.transpose() * _rpa_solution._XpY.block(vc.I(v, 0), 0, n_unocc,
+      res += fc.transpose() * _rpa_solution.XpY.block(vc.I(v, 0), 0, n_unocc,
                                                        rpasize);  // Sum over c
     }
     residues[m] = res;
