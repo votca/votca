@@ -110,8 +110,8 @@ template <class T> void KSpace<T>::init_params( const T _alpha, const T _k_max )
 {
     alpha = _alpha;
     gamma = -0.25 / ( alpha * alpha );
-    k_max_int = (int)_k_max;
-    k_sq_int = (int)std::floor(sqrt(_k_max));
+    k_sq_int = (int)_k_max;
+    k_max_int = (int)std::floor(sqrt(_k_max));
 }
 
 /*
@@ -277,6 +277,34 @@ template <class T> void KSpace<T>::compute(
 
     // compute AK coefficients
     compute_ak(_l);
+
+    // transformed length
+    T rcl = 2.0 * M_PI / _l;
+
+    // loop over the k-images to compute the necessary
+    // parameters (energy, virial, torque, forces)
+    int miny = 0;
+    int minz = 0;
+    double rx, ry, rz;
+    for (int ix = 0; ix <= k_max_int; ++ix)
+    {
+        rx = rcl * (T)ix;
+        for (int iy = miny; iy <= k_max_int; ++iy)
+        {
+            ry = rcl * (T)iy;
+            for (int iz = minz; iz <= k_max_int; ++iz)
+            {
+                rz = rcl * (T)iz;
+                // -1 to conform to C++ style array indexing
+                // opposed to original Fortran indexing
+                int kk = ix * ix + iy * iy + iz * iz - 1;                     
+                if (kk > k_sq_int) continue;
+                // compute exp (ikr) and the corresponding scalar and vector
+                // products for the different multipoles
+                // compute_multipole_coeffs(ix, iy, iz);
+            }
+        }
+    }
 }
 
 #endif
