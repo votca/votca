@@ -91,8 +91,11 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   Eigen::VectorXd AmB = Calculate_H2p_AmB();
   Eigen::MatrixXd ApB = Calculate_H2p_ApB();
 
-  Eigen::MatrixXd C =
-      AmB.cwiseSqrt().asDiagonal() * ApB * AmB.cwiseSqrt().asDiagonal();
+  // C = AmB^1/2 * ApB * AmB^1/2
+  Eigen::MatrixXd& C = ApB;
+  C.applyOnTheLeft(AmB.cwiseSqrt().asDiagonal());
+  C.applyOnTheRight(AmB.cwiseSqrt().asDiagonal());
+
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
       Diagonalize_H2p_C(C);
 
