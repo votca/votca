@@ -175,3 +175,9 @@ if (QDMEwald_EWALD_RONLY)
 endif (QDMEwald_EWALD_RONLY)
 
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${QDMEwald_CXXFLAGS}" )
+
+if(ENABLE_TESTING)
+  enable_testing()
+  include(FindPackageHandleStandardArgs) 
+  add_subdirectory(tests)
+endif(ENABLE_TESTING)
