@@ -385,7 +385,8 @@ void GWBSE::Initialize(tools::Property& options) {
       options.ifExistsReturnElseReturnDefault<double>(key + ".eta", _gwopt.eta);
   if (_gwopt.sigma_integration == "exact") {
     XTP_LOG(logDEBUG, *_pLog)
-        << " RPA size: " << (homo + 1 - rpamin) * (rpamax - homo) << flush;
+        << " RPA Hamiltonian size: " << (homo + 1 - rpamin) * (rpamax - homo)
+        << flush;
     XTP_LOG(logDEBUG, *_pLog) << " eta: " << _gwopt.eta << flush;
   }
 
