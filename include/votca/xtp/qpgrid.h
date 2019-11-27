@@ -30,12 +30,7 @@ namespace xtp {
 class QPGrid {
 
  public:
-  QPGrid(Sigma_base& sigma, const Eigen::MatrixXd& vxc,
-         const Eigen::VectorXd& dft_energies, const Eigen::MatrixXd& sigma_x)
-      : _sigma(sigma),
-        _vxc(vxc),
-        _dft_energies(dft_energies),
-        _sigma_x(sigma_x) {}
+  QPGrid(Sigma_base& sigma) : _sigma(sigma) {}
 
   struct options {
     Index homo = 0;
@@ -47,15 +42,16 @@ class QPGrid {
 
   void configure(options opt) { _opt = opt; }
 
+  void setQPOffset(const Eigen::VectorXd& qpOffset) {
+    _qpOffset = qpOffset;
+  }
+
   Eigen::VectorXd Evaluate(const Eigen::VectorXd frequencies);
 
  private:
   Sigma_base& _sigma;
   options _opt;
-
-  const Eigen::MatrixXd& _vxc;
-  const Eigen::VectorXd& _dft_energies;
-  const Eigen::MatrixXd& _sigma_x;
+  Eigen::VectorXd _qpOffset;
 };
 
 }  // namespace xtp

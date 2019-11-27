@@ -45,7 +45,7 @@ void GW::configure(const options& opt) {
   _Sigma_x = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
   _Sigma_c = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
   if (_opt.qp_solver == "grid") {
-    QPGrid grid(*_sigma, _vxc, _dft_energies, _Sigma_x);
+    QPGrid grid(*_sigma);
     QPGrid::options grid_opt;
     grid_opt.homo = _opt.homo;
     grid_opt.qpmin = _opt.qpmin;
@@ -218,6 +218,7 @@ void GW::CalculateGWPerturbation() {
 }
 
 Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
+  _qpgrid->setQPOffset(_dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() - _vxc.diagonal());
   return _qpgrid->Evaluate(frequencies);
 }
 
