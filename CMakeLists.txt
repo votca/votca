@@ -43,6 +43,27 @@ if(ENABLE_RPATH_INJECT)
   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
 endif(ENABLE_RPATH_INJECT)
 
+option(ENABLE_WARNING_FLAGS "Inject more warning flags" ON)
+if(ENABLE_WARNING_FLAGS)
+  include(CheckCXXCompilerFlag)
+  foreach(_FLAG -Wall -Wextra -Wpedantic -Wshadow -Wconversion) 
+    check_cxx_compiler_flag("${_FLAG}" COMPILER_SUPPORTS${_FLAG})
+    if(COMPILER_SUPPORTS${_FLAG})
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_FLAG}")
+    endif()
+  endforeach()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-conversion")
+  endif()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck")
+  endif()
+  option(ENABLE_WERROR "Inject -Werror" OFF)
+  if(ENABLE_WERROR)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+  endif()
+endif()
+
 ########################################################################
 #Find external packages
 ########################################################################

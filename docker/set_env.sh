@@ -27,7 +27,6 @@ if [[ $ENV -eq 1 ]]; then
   # only run csg-tutorials regressions tests for csg, tools, csg-tutorials and votca
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools|csg-tutorials|votca) && ${TRAVIS_BUILD_STAGE_NAME} != "Deploy" ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
-  export WERROR=yes
   add_to_docker_opts DOXYGEN=yes
   [[ ${TRAVIS_BUILD_STAGE_NAME} != "Deploy" ]] && add_to_docker_opts DOXYGEN_COVERAGE=yes
 elif [[ $ENV -eq 2 ]]; then
@@ -37,13 +36,11 @@ elif [[ $ENV -eq 2 ]]; then
   # only run csg-tutorials regressions tests for csg, tools, csg-tutorials and votca
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools|csg-tutorials|votca) ]] && add_to_docker_opts REGRESSION_TESTING=ON || export SKIP=yes
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
-  export WERROR=yes
 elif [[ $ENV -eq 3 ]]; then
   # Debug build (no time problem as no tests are run)
   add_to_docker_opts TESTING=OFF
   add_to_docker_opts CMAKE_BUILD_TYPE=Debug
   add_to_docker_opts CLANG_FORMAT=yes
-  export WERROR=yes
 elif [[ $ENV -eq 4 ]]; then
   # Coverage build on Ubuntu, Fedora has issues, see #67
   # Build with no cmake_build_type and coverage on, first half of the tests
@@ -110,8 +107,6 @@ else
   die "Unknown environment"
 fi
 
-CXXFLAGS="${CXXFLAGS} -Wall -Wextra -Wpedantic -Wshadow -Wconversion ${WERROR:+-Werror}"
-[[ $CXX = g++ ]] || CXXFLAGS="${CXXFLAGS} -Wno-sign-conversion"
 add_to_docker_opts CXXFLAGS="${CXXFLAGS}"
 add_to_docker_opts TRAVIS_OS_NAME="${DISTRO:-fedora}"
 
