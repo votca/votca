@@ -29,6 +29,16 @@ namespace xtp {
 
 class QPGrid {
 
+  // This class solves the QP equation for the variable QP energy E_QP:
+  //   \Sigma_c(E_QP) = E_QP - E_intercept.
+  // Here, E_intercept denotes the intercept of the line function on the
+  // right-hand-side of the equation:
+  //   E_intercept = E_KS + \Sigma_x - v_xc,
+  // with
+  //   E_KS the Kohn-Sham energy,
+  //   \Sigma_x the exchange part of the self-energy,
+  //   v_xc the exchange-correlation potential.
+
  public:
   QPGrid(Sigma_base& sigma) : _sigma(sigma) {}
 
@@ -36,14 +46,14 @@ class QPGrid {
     Index homo = 0;
     Index qpmin = 0;
     Index qpmax = 0;
-    Index steps = 201;
-    double spacing = 0.01;
+    Index steps = 201;  // Number of grid points
+    double spacing = 0.01;  // Spacing of grid points in Ha
   };
 
   void configure(options opt) { _opt = opt; }
 
-  void setQPOffset(const Eigen::VectorXd& qpOffset) {
-    _qpOffset = qpOffset;
+  void setEnergyIntercept(const Eigen::VectorXd& intercept) {
+    _energy_intercept = intercept;
   }
 
   Eigen::VectorXd Evaluate(const Eigen::VectorXd frequencies);
@@ -51,7 +61,7 @@ class QPGrid {
  private:
   Sigma_base& _sigma;
   options _opt;
-  Eigen::VectorXd _qpOffset;
+  Eigen::VectorXd _energy_intercept;
 };
 
 }  // namespace xtp

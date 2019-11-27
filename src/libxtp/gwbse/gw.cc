@@ -218,7 +218,7 @@ void GW::CalculateGWPerturbation() {
 }
 
 Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
-  _qpgrid->setQPOffset(_dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() - _vxc.diagonal());
+  _qpgrid->setEnergyIntercept(_dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() - _vxc.diagonal());
   return _qpgrid->Evaluate(frequencies);
 }
 

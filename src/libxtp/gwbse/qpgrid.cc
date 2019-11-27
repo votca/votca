@@ -34,7 +34,7 @@ Eigen::VectorXd QPGrid::Evaluate(const Eigen::VectorXd frequencies) {
   for (Index level = 0; level < qptotal; ++level) {
     Eigen::VectorXd freq_cur = frequencies[level] + offset.array();
     Eigen::VectorXd sigc_cur = sigc_mat.row(level);
-    Eigen::VectorXd targ_cur = sigc_cur.array() + _qpOffset[level] - freq_cur.array();
+    Eigen::VectorXd targ_cur = sigc_cur.array() + _energy_intercept[level] - freq_cur.array();
     double root_opt = 0.0;
     double pole_weight_max = -1.0;
     for (Index i_node = 0; i_node < _opt.steps - 1; ++i_node) {
