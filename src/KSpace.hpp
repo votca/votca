@@ -59,6 +59,46 @@ class KSpace {
   void compute(const std::vector<T>&, const std::vector<T>&,
                const std::vector<T>&, const std::vector<T>&);
 
+  /**
+   *
+   * Getter for the k-space contribution to forces
+   *
+   * @return std::vector for type T containing the forces
+   */
+  std::vector<T> get_forces();
+
+  /**
+   *
+   * Getter for the k-space contribution to torque
+   *
+   * @return std::vector for type T containing the torque
+   */
+  std::vector<T> get_torque();
+
+  /**
+   *
+   * Getter for the k-space contribution to energy
+   *
+   * @return type T containing the energy
+   */
+  T get_energy();
+
+  /**
+   *
+   * Getter for the k-space contribution to forces
+   *
+   * @return type T containing the virial
+   */
+  T get_virial();
+
+  /**
+   *
+   * Getter for the k-space k-value coefficients
+   *
+   * @return std::vector of type T containing the virial
+   */
+  std::vector<T> get_ak();
+
  private:
   T alpha;        ///< splitting parameter of the Ewald sum
   T gamma;        ///< transformed splitting parameter of the Ewald sum
@@ -74,7 +114,7 @@ class KSpace {
   Kokkos::View<T * [3]> tqe;        ///< torque computed for the k-space part
   Kokkos::View<T * [15]> vec_comp;  ///< vector components for the computation
                                     ///< of forces
-  Kokkos::View<T[6]> vec_sums;      ///< vector summation for the computation of
+  Kokkos::View<T[6]> vec_sum;       ///< vector summation for the computation of
                                     ///< pot. energy
 
   bool is_monopole;    ///< compute the monopole contributions
@@ -129,6 +169,28 @@ class KSpace {
    *
    */
   void compute_vector_sums();
+
+  /**
+   *
+   * Computation of the k-space contribution to the forces for the current
+   * k-value
+   *
+   * @param x     x coordinate of the k-cell
+   * @param y     y coordinate of the k-cell
+   * @param z     z coordinate of the k-cell
+   */
+  void compute_forces(const int, const int, const int);
+
+  /**
+   *
+   * Computation of the k-space contribution to the torque for the current
+   * k-value
+   *
+   * @param x     x coordinate of the k-cell
+   * @param y     y coordinate of the k-cell
+   * @param z     z coordinate of the k-cell
+   */
+  void compute_torque(const int, const int, const int);
 };
 
 /*
@@ -246,6 +308,7 @@ void KSpace<T>::compute_vector_components(const int x, const int y, const int z,
   size_t N = q.extent(0);
 
   // create vector component view
+  // vec_comp:
   // [ CKR SKR DK[x] DK[y] DK[z] QK[x] QK[y] QK[z] CKC CKS DKC DKS QKC QKS ]
   // [  0   1   2     3     4      5     6     7    8   9   10  11  12  13 ]
   vec_comp = Kokkos::View<T * [15]>("vector components", N);
@@ -255,10 +318,10 @@ void KSpace<T>::compute_vector_components(const int x, const int y, const int z,
   T rz = rcl * (T)z;
 
   Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
-    T cxy = cos_fac(n, x, 1) * cos_fac(n, y, 2) -
-            sin_fac(n, x, 1) * sin_fac(n, y, 2);
-    T sxy = sin_fac(n, x, 1) * cos_fac(n, y, 2) -
-            sin_fac(n, y, 2) * cos_fac(n, x, 1);
+    T cxy = cos_fac(n, x + offset, 1) * cos_fac(n, y + offset, 2) -
+            sin_fac(n, x + offset, 1) * sin_fac(n, y + offset, 2);
+    T sxy = sin_fac(n, x + offset, 1) * cos_fac(n, y + offset, 2) -
+            sin_fac(n, y + offset, 2) * cos_fac(n, x + offset, 1);
     // scalar product dipole moment and k-vector
     T dk = rx * d(n, 0) + ry * d(n, 1) + rz * d(n, 2);
     // tensor product quadrupole moment and k-vector
@@ -266,9 +329,11 @@ void KSpace<T>::compute_vector_components(const int x, const int y, const int z,
            ry * (rx * q(n, 1) + ry * q(n, 4) + rz * q(n, 7)) +
            rz * (rx * q(n, 2) + ry * q(n, 5) + rz * q(n, 8));
     // cosine based vector component (monopole)
-    vec_comp(n, 0) = cxy * cos_fac(n, z, 3) - sxy * sin_fac(n, z, 3);
+    vec_comp(n, 0) =
+        cxy * cos_fac(n, z + offset, 3) - sxy * sin_fac(n, z + offset, 3);
     // sine based vector component (monopole)
-    vec_comp(n, 1) = sxy * cos_fac(n, z, 3) + cxy * sin_fac(n, z, 3);
+    vec_comp(n, 1) =
+        sxy * cos_fac(n, z + offset, 3) + cxy * sin_fac(n, z + offset, 3);
     // vector component(s) (dipole)
     vec_comp(n, 2) = rz * d(n, 1) - ry * d(n, 2);
     vec_comp(n, 3) = rx * d(n, 2) - ry * d(n, 0);
@@ -302,7 +367,69 @@ void KSpace<T>::compute_vector_components(const int x, const int y, const int z,
  *
  */
 template <class T>
-void KSpace<T>::compute_vector_sums() {}
+void KSpace<T>::compute_vector_sums() {
+  // compute sums of vector components, where necessary
+  // vec_sum:
+  // [ CKC CKS DKC DKS QKC QKS ]
+  // [  0   1   2   3   4   5  ]
+  int N = f.extent(0);
+  vec_sum = Kokkos::View<T[6]>("vector component sums");
+
+  for (int i = 0; i < 6; ++i) {
+    T reduc;
+    Kokkos::parallel_reduce(
+        N, KOKKOS_LAMBDA(const int n, T& val) { val += vec_comp(n, 8 + i); },
+        reduc);
+    vec_sum(i) = reduc;
+  }
+}
+
+/**
+ *
+ * Computation of the k-space contribution to the forces for the current k-value
+ *
+ * @param kk     length of the k-vector
+ */
+template <class T>
+void KSpace<T>::compute_forces(const int x, const int y, const int z) {
+  T rx = rcl * (T)x;
+  T ry = rcl * (T)y;
+  T rz = rcl * (T)z;
+  int kk = x * x + y * y + z * z - 1;
+  int N = f.extent(0);
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    T qforce = ak(kk) * ((vec_comp(n, 9) + vec_comp(n, 10) - vec_comp(n, 13)) *
+                             (vec_sum(0) - vec_sum(3) - vec_sum(5)) -
+                         (vec_comp(n, 8) - vec_comp(n, 11) - vec_comp(n, 12)) *
+                             (vec_sum(1) + vec_sum(2) - vec_sum(4)));
+    f(n, 0) += rx * qforce;
+    f(n, 1) += ry * qforce;
+    f(n, 2) += rz * qforce;
+  });
+}
+
+/**
+ *
+ * Computation of the k-space contribution to the torque for the current k-value
+ *
+ * @param kk     length of the k-vector
+ */
+template <class T>
+void KSpace<T>::compute_torque(const int x, const int y, const int z) {
+  int kk = x * x + y * y + z * z - 1;
+  int N = tqe.extent(0);
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    T qtqe1 =
+        ak(kk) * (vec_comp(n, 1) * (vec_sum(0) - vec_sum(3) - vec_sum(4)) -
+                  vec_comp(n, 0) * (vec_sum(1) - vec_sum(2) - vec_sum(5)));
+    T qtqe2 = 2.0 * ak(kk) *
+              (vec_comp(n, 0) * (vec_sum(0) - vec_sum(3) - vec_sum(4)) -
+               vec_comp(n, 1) * (vec_sum(1) - vec_sum(2) - vec_sum(5)));
+
+    for (int d = 0; d < 3; ++d)
+      tqe(n, d) += qtqe1 * vec_comp(n, 2 + d) + qtqe2 * vec_comp(n, 5 + d);
+  });
+}
 
 /**
  *
@@ -340,6 +467,10 @@ void KSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
     }
   });
 
+  // create Kokkos views of sufficient size to store the factors
+  f = Kokkos::View<T * [3]>("k-space force contribution", N);
+  tqe = Kokkos::View<T * [3]>("k-space torque contribution", N);
+
   // compute exponential factors
   compute_exponentials(xyz);
 
@@ -350,7 +481,18 @@ void KSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
   // parameters (energy, virial, torque, forces)
   int miny = 0;
   int minz = 0;
-  double rx, ry, rz;
+
+  // set contributions to potential energy, virial, forces and torque to zero
+  pot_energy = 0.0;
+  virial = 0.0;
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    for (int i = 0; i < 3; ++i) {
+      f(n, i) = 0.0;
+      tqe(n, i) = 0.0;
+    }
+  });
+
+  T rx, ry, rz;
   for (int ix = 0; ix <= k_max_int; ++ix) {
     rx = rcl * (T)ix;
     for (int iy = miny; iy <= k_max_int; ++iy) {
@@ -365,9 +507,113 @@ void KSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
         // products for the different multipoles
         compute_vector_components(ix, iy, iz, q, d, Q);
         compute_vector_sums();
+        // add potential energy
+        pot_energy +=
+            ak(kk) * ((vec_sum(1) + vec_sum(2) - vec_sum(5) * vec_sum(1) +
+                       vec_sum(2) - vec_sum(5)) +
+                      (vec_sum(0) - vec_sum(3) - vec_sum(4) * vec_sum(0) -
+                       vec_sum(3) - vec_sum(4)));
+        virial += ak(kk) *
+                  (vec_sum(0) * vec_sum(0) + vec_sum(1) * vec_sum(1) +
+                   4.0 * (vec_sum(1) * vec_sum(2) - vec_sum(0) * vec_sum(3)) +
+                   3.0 * (vec_sum(2) * vec_sum(2) + vec_sum(3) * vec_sum(3)) +
+                   6.0 * (vec_sum(1) * vec_sum(5) + vec_sum(0) * vec_sum(4)) +
+                   8.0 * (vec_sum(3) * vec_sum(4) + vec_sum(2) * vec_sum(5)) +
+                   5.0 * (vec_sum(5) * vec_sum(5) + vec_sum(4) * vec_sum(4)));
+        // compute forces and torque contributions
+        compute_forces(ix, iy, iz);
+        compute_torque(ix, iy, iz);
       }
+      minz = -k_max_int;
+    }
+    miny = -k_max_int;
+  }
+}
+
+/**
+ *
+ * Getter for the k-space contribution to forces
+ *
+ * @return std::vector for type T containing the forces
+ */
+template <class T>
+std::vector<T> KSpace<T>::get_forces() {
+  // get number of particles
+  int N = f.extent(0);
+
+  std::vector<T> k_forces(3 * N);
+
+  for (int n = 0; n < N; ++n) {
+    for (int d = 0; d < 3; ++d) {
+      k_forces.at(3 * n + d) = f(n, d);
     }
   }
+
+  return k_forces;
+}
+
+/**
+ *
+ * Getter for the k-space contribution to torque
+ *
+ * @return std::vector for type T containing the torque
+ */
+template <class T>
+std::vector<T> KSpace<T>::get_torque() {
+  // get number of particles
+  int N = tqe.extent(0);
+
+  std::vector<T> k_torque(3 * N);
+
+  for (int n = 0; n < N; ++n) {
+    for (int d = 0; d < 3; ++d) {
+      k_torque.at(3 * n + d) = tqe(n, d);
+    }
+  }
+
+  return k_torque;
+}
+
+/**
+ *
+ * Getter for the k-space contribution to energy
+ *
+ * @return type T containing the energy
+ */
+template <class T>
+T KSpace<T>::get_energy() {
+  return pot_energy;
+}
+
+/**
+ *
+ * Getter for the k-space contribution to forces
+ *
+ * @return type T containing the virial
+ */
+template <class T>
+T KSpace<T>::get_virial() {
+  return virial;
+}
+
+/**
+ *
+ * Getter for the k-space k-value coefficients
+ *
+ * @return std::vector of type T containing the virial
+ */
+template <class T>
+std::vector<T> KSpace<T>::get_ak() {
+  // get number of particles
+  int nk = ak.extent(0);
+
+  std::vector<T> k_ak(nk);
+
+  for (int k = 0; k < nk; ++k) {
+    k_ak.at(k) = ak(k);
+  }
+
+  return k_ak;
 }
 
 #endif
