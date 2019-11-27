@@ -24,7 +24,7 @@ namespace xtp {
 
 Eigen::VectorXd QPGrid::Evaluate(const Eigen::VectorXd frequencies) {
   const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
-  double range = _opt.spacing * (double)(_opt.steps - 1) / 2.0;
+  const double range = _opt.spacing * (double)(_opt.steps - 1) / 2.0;
   Eigen::VectorXd offset = Eigen::VectorXd::LinSpaced(_opt.steps, -range, range);
   Eigen::MatrixXd sigc_mat = Eigen::MatrixXd::Zero(qptotal, _opt.steps);
   for (Index i_node = 0; i_node < _opt.steps; ++i_node) {
