@@ -22,17 +22,17 @@
 namespace votca {
 namespace xtp {
 
-Eigen::VectorXd QPGrid::Evaluate(const Eigen::VectorXd frequencies) {
+Eigen::VectorXd QPGrid::Evaluate(const Eigen::VectorXd& gwa_energies) {
   const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
   const double range = _opt.spacing * (double)(_opt.steps - 1) / 2.0;
   Eigen::VectorXd offset = Eigen::VectorXd::LinSpaced(_opt.steps, -range, range);
   Eigen::MatrixXd sigc_mat = Eigen::MatrixXd::Zero(qptotal, _opt.steps);
   for (Index i_node = 0; i_node < _opt.steps; ++i_node) {
-    sigc_mat.col(i_node) = _sigma.CalcCorrelationDiag(frequencies.array() + offset[i_node]);
+    sigc_mat.col(i_node) = _sigma.CalcCorrelationDiag(gwa_energies.array() + offset[i_node]);
   }
-  Eigen::VectorXd roots = frequencies;
+  Eigen::VectorXd roots = gwa_energies;
   for (Index level = 0; level < qptotal; ++level) {
-    Eigen::VectorXd freq_cur = frequencies[level] + offset.array();
+    Eigen::VectorXd freq_cur = gwa_energies[level] + offset.array();
     Eigen::VectorXd sigc_cur = sigc_mat.row(level);
     Eigen::VectorXd targ_cur = sigc_cur.array() + _energy_intercept[level] - freq_cur.array();
     double root_opt = 0.0;
@@ -56,6 +56,10 @@ Eigen::VectorXd QPGrid::Evaluate(const Eigen::VectorXd frequencies) {
     }
   }
   return roots;
+}
+
+bool QPGrid::FindQPEnergy(const Eigen::VectorXd& freq, const Eigen::VectorXd& sigc, double& qp_energy) const {
+  return false;
 }
 
 }  // namespace xtp

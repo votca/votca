@@ -29,8 +29,8 @@ namespace xtp {
 
 class QPGrid {
 
-  // This class solves the QP equation for the variable QP energy E_QP:
-  //   \Sigma_c(E_QP) = E_QP - E_intercept.
+  // This class solves the QP equation for the variable QP energy \omega:
+  //   \Sigma_c(\omega) = \omega - E_intercept.
   // Here, E_intercept denotes the intercept of the line function on the
   // right-hand-side of the equation:
   //   E_intercept = E_KS + \Sigma_x - v_xc,
@@ -38,6 +38,10 @@ class QPGrid {
   //   E_KS the Kohn-Sham energy,
   //   \Sigma_x the exchange part of the self-energy,
   //   v_xc the exchange-correlation potential.
+  //
+  // The QP energy is defined as the solution \omega* for which the pole weight
+  // Z is maximized. Here, we assume that the pole with the highest pole weight
+  // corresponds to the coherent part of the spectral function A(/omega).
 
  public:
   QPGrid(Sigma_base& sigma) : _sigma(sigma) {}
@@ -56,12 +60,18 @@ class QPGrid {
     _energy_intercept = intercept;
   }
 
-  Eigen::VectorXd Evaluate(const Eigen::VectorXd frequencies);
+  Eigen::VectorXd Evaluate(const Eigen::VectorXd& gwa_energies);
 
  private:
   Sigma_base& _sigma;
   options _opt;
   Eigen::VectorXd _energy_intercept;
+
+  // 'FindQPEnergy' finds the best estimate of the QP energy 'qp_energy' on the
+  // grid with grid points 'freq'. The self-energy correlation values evaluated
+  // at the grid points are contained by 'sigc'. Returns 'true' if a solution
+  // to the QP equation was found and 'false' otherwise.
+  bool FindQPEnergy(const Eigen::VectorXd& freq, const Eigen::VectorXd& sigc, double& qp_energy) const;
 };
 
 }  // namespace xtp
