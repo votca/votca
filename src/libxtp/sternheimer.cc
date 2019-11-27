@@ -200,7 +200,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(
   Eigen::MatrixXcd pertubation = -e_field * initGuess;
   Eigen::MatrixXcd delta_n_old;
   Eigen::MatrixXcd delta_n_new =
-      Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
+  Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   ERIs eris;
   eris.Initialize(dftbasis, dftbasis);
@@ -262,7 +262,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
   std::vector<std::complex<double>> grid_w =
       BuildGrid(omega_start, omega_end, steps, imaginary_shift);
   std::vector<std::complex<double>> w =
-      BuildGrid(omega_start, omega_end, resolution_output, imaginary_shift);
+      BuildGrid(omega_start, omega_end, resolution_output, 0.0);
 
   PadeApprox pade_1;
   // PadeApprox pade_2;
@@ -280,7 +280,8 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
   AOBasis basis = _orbitals.SetupDftBasis();
   AODipole dipole;
   dipole.Fill(basis);
-#pragma omp parallel for
+
+  #pragma omp parallel for
   for (int n = 0; n < grid_w.size(); n++) {
     Eigen::MatrixXcd Polar = Eigen::MatrixXcd::Zero(3, 3);
     for (int i = 0; i < 3; i++) {
@@ -315,7 +316,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
 
     std::cout << "Done with w=" << grid_w[n] << std::endl;
   }
-  pade_4.printInfo();
+  //pade_4.printInfo();
   std::vector<Eigen::Matrix3cd> Polar_pade;
 
   for (std::complex<double> w : w) {
@@ -329,6 +330,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
     // Polar_pade[Polar_pade.size()-1](2,0)=Polar_pade[Polar_pade.size()-1](0,2);
     // Polar_pade[Polar_pade.size()-1](2,1)=Polar_pade[Polar_pade.size()-1](1,2);
     Polar_pade[Polar_pade.size() - 1](2, 2) = pade_6.evaluatePoint(w);
+    //pade_1.printAB();
   }
   printIsotropicAverage(Polar_pade, w);
   return Polar_pade;

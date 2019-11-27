@@ -49,6 +49,8 @@ class PadeApprox {
   
   void printInfo();
 
+  void printAB();
+
  private:
      
   int _num_points;
