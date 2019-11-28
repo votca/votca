@@ -5,6 +5,8 @@
 #include "Kokkos_Core.hpp"
 #include <cmath>
 
+namespace kokkos_linalg_3d {
+
 template <class T, class Vector1, class Vector2>
 Kokkos::View<T[3]> cross(const Vector1& x, const Vector2& y) {
   Kokkos::View<T[3]> result("crossproduct");
@@ -59,5 +61,6 @@ T trace(const Matrix& A) {
   static_assert(A.extend(0) == 9, "Only 3x3 matrices allowed");
   return A(0) + A(4) + A(8);
 }
+}  // namespace kokkos_linalg_3d
 
 #endif

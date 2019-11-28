@@ -68,9 +68,6 @@ class RSpace {
   bool is_monopole;    ///< compute the monopole contributions
   bool is_dipole;      ///< compute the dipole contributions
   bool is_quadrupole;  ///< compute the quadrupole contribution
-
-  template <class Vector>
-  Kokkos::View<T[3]> cross(const Vector& x, const Vector& y) const;
 };
 
 template <class T>
@@ -143,43 +140,44 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
           auto Qi = Kokkos::subview(Q, i, Kokkos::ALL());
           auto Qj = Kokkos::subview(Q, j, Kokkos::ALL());
 
-          Kokkos::View<T[3]> dixdj = cross(Di, Dj);
-          Kokkos::View<T[3]> dixR = cross(Di, dR);
-          Kokkos::View<T[3]> djxR = cross(Dj, dR);
+          Kokkos::View<T[3]> dixdj = kokkos_linalg_3d::cross(Di, Dj);
+          Kokkos::View<T[3]> dixR = kokkos_linalg_3d::cross(Di, dR);
+          Kokkos::View<T[3]> djxR = kokkos_linalg_3d::cross(Dj, dR);
 
-          Kokkos::View<T[3]> QIR = gemv(Qi, dR);
-          Kokkos::View<T[3]> QJR = gemv(Qj, dR);
-          Kokkos::View<T[3]> QIQJR = gemv(Qi, QJR);
-          Kokkos::View<T[3]> QJQIR = gemv(Qj, QIR);
-          Kokkos::View<T[3]> QIXQJ = cross_matrix_product(Qi, Qj);
+          Kokkos::View<T[3]> QIR = kokkos_linalg_3d::gemv(Qi, dR);
+          Kokkos::View<T[3]> QJR = kokkos_linalg_3d::gemv(Qj, dR);
+          Kokkos::View<T[3]> QIQJR = kokkos_linalg_3d::gemv(Qi, QJR);
+          Kokkos::View<T[3]> QJQIR = kokkos_linalg_3d::gemv(Qj, QIR);
+          Kokkos::View<T[3]> QIXQJ =
+              kokkos_linalg_3d::cross_matrix_product(Qi, Qj);
 
-          Kokkos::View<T[3]> RxQIR = cross(dR, QIR);
-          Kokkos::View<T[3]> RxQJR = cross(dR, QJR);
+          Kokkos::View<T[3]> RxQIR = kokkos_linalg_3d::cross(dR, QIR);
+          Kokkos::View<T[3]> RxQJR = kokkos_linalg_3d::cross(dR, QJR);
 
-          Kokkos::View<T[3]> RxQIJR = cross(dR, QIQJR);
-          Kokkos::View<T[3]> RxQJIR = cross(dR, QJQIR);
+          Kokkos::View<T[3]> RxQIJR = kokkos_linalg_3d::cross(dR, QIQJR);
+          Kokkos::View<T[3]> RxQJIR = kokkos_linalg_3d::cross(dR, QJQIR);
 
-          Kokkos::View<T[3]> QJRXQIR = cross(QJR, QIR);
+          Kokkos::View<T[3]> QJRXQIR = kokkos_linalg_3d::cross(QJR, QIR);
 
-          Kokkos::View<T[3]> QIDJ = gemv(Qi, Dj);
-          Kokkos::View<T[3]> QJDI = gemv(Qj, Di);
+          Kokkos::View<T[3]> QIDJ = kokkos_linalg_3d::gemv(Qi, Dj);
+          Kokkos::View<T[3]> QJDI = kokkos_linalg_3d::gemv(Qj, Di);
 
-          Kokkos::View<T[3]> DIXQJR = cross(Di, QJR);
-          Kokkos::View<T[3]> DJXQIR = cross(Dj, QIR);
+          Kokkos::View<T[3]> DIXQJR = kokkos_linalg_3d::cross(Di, QJR);
+          Kokkos::View<T[3]> DJXQIR = kokkos_linalg_3d::cross(Dj, QIR);
 
-          Kokkos::View<T[3]> RXQIDJ = cross(dR, QIDJ);
+          Kokkos::View<T[3]> RXQIDJ = kokkos_linalg_3d::cross(dR, QIDJ);
 
-          Kokkos::View<T[3]> RXQJDI = cross(dR, QJDI);
+          Kokkos::View<T[3]> RXQJDI = kokkos_linalg_3d::cross(dR, QJDI);
 
-          T QII = trace(Qi);
-          T QJJ = trace(Qj);
+          T QII = kokkos_linalg_3d::trace(Qi);
+          T QJJ = kokkos_linalg_3d::trace(Qj);
 
-          T DD = dot(Di, Dj);
-          T DIR = dot(Di, dR);
-          T DJR = dot(Dj, dR);
-          T QIRR = dot(QIR, dR);
-          T QJRR = dot(QJR, dR);
-          T QIRDJ = dot(QIR, dR);
+          T DD = kokkos_linalg_3d::dot(Di, Dj);
+          T DIR = kokkos_linalg_3d::dot(Di, dR);
+          T DJR = kokkos_linalg_3d::dot(Dj, dR);
+          T QIRR = kokkos_linalg_3d::dot(QIR, dR);
+          T QJRR = kokkos_linalg_3d::dot(QJR, dR);
+          T QIRDJ = kokkos_linalg_3d::dot(QIR, dR);
         }
       });
 }
