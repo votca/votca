@@ -61,9 +61,10 @@ class RSpace {
   T r_max;  ///< floating-point version of the r-space cutoff
   T l;      // boxsize
 
-  T pot_energy;             ///< potential energy computed for the r-space part
-  Kokkos::View<T * [3]> f;  ///< forces computed for the k-space part
-  Kokkos::View<T * [3]> tqe;  ///< torque computed for the k-space part
+  T pot_energy = 0.0;       ///< potential energy computed for the r-space part
+  T virial = 0.0;           ///< virial computed for the r-space part
+  Kokkos::View<T * [3]> f;  ///< forces computed for the r-space part
+  Kokkos::View<T * [3]> tqe;  ///< torque computed for the r-space part
 
   bool is_monopole;    ///< compute the monopole contributions
   bool is_dipole;      ///< compute the dipole contributions
@@ -114,8 +115,12 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
         }
       });
 
+  pot_energy = 0.0;
+  virial = 0.0;
   Kokkos::parallel_for(
       N, KOKKOS_LAMBDA(const int i) {
+        T thread_Virial = 0.0;
+        T thread_Potential = 0.0;
         for (int j = i + 1; j < N; ++j) {
           Kokkos::View<T[3]> dR("distance vector");
           for (int d = 0; d < 3; d++) {
@@ -170,15 +175,39 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
           Kokkos::View<T[3]> RXQJDI = kokkos_linalg_3d::cross(dR, QJDI);
 
           T QII = kokkos_linalg_3d::trace(Qi);
-          T QJJ = kokkos_linalg_3d::trace(Qj);
+          T QJJ = kokkos_linalg_3d::trace(Qj);  // sc1
 
-          T DD = kokkos_linalg_3d::dot(Di, Dj);
-          T DIR = kokkos_linalg_3d::dot(Di, dR);
-          T DJR = kokkos_linalg_3d::dot(Dj, dR);
-          T QIRR = kokkos_linalg_3d::dot(QIR, dR);
-          T QJRR = kokkos_linalg_3d::dot(QJR, dR);
-          T QIRDJ = kokkos_linalg_3d::dot(QIR, dR);
+          T DD = kokkos_linalg_3d::dot(Di, Dj);        // sc2
+          T DIR = kokkos_linalg_3d::dot(Di, dR);       // sc3
+          T DJR = kokkos_linalg_3d::dot(Dj, dR);       // sc4
+          T QIRR = kokkos_linalg_3d::dot(QIR, dR);     // sc5
+          T QJRR = kokkos_linalg_3d::dot(QJR, dR);     // sc6
+          T QIRDJ = kokkos_linalg_3d::dot(QIR, Dj);    // sc7
+          T QJRDI = kokkos_linalg_3d::dot(QJR, Di);    // sc8
+          T QJRQIR = kokkos_linalg_3d::dot(QJR, QIR);  // sc9
+          T QMIQMJ = kokkos_linalg_3d::dot(Qi, Qj);    // sc10
+
+          // eqn 38-42
+          Kokkos::View<T[9]> GL("GL");
+          GL(0) = q(i) * q(j);
+          GL(1) = q(j) * DIR - q(i) * DJR;
+          GL(2) = q(i) * QJRR + q(j) * QIRR - DIR * DJR;
+          GL(3) = DIR * QJRR - DJR * QIRR;
+          GL(4) = QIRR * QJRR;
+          GL(5) = -(QJJ * QIRR + QJRR * QII + 4 * QJRQIR);
+          GL(6) = DD - q(j) * QII - q(i) * QJJ;
+          GL(7) = DJR * QII - QJJ * DIR + 2 * (QIRDJ - QJRDI);
+          GL(8) = 2 * QMIQMJ + QII * QJJ;
+
+          thread_Potential += Bn(0) * GL(0) + Bn(1) * (GL(1) + GL(6)) +
+                              Bn(2) * (GL(2) + GL(7) + GL(8)) +
+                              Bn(3) * (GL(3) + GL(5)) + Bn(4) * GL(4);
+          thread_Virial += Bn(0) * GL(0) + Bn(1) * (2 * GL(1) + 3 * GL(6)) +
+                           Bn(2) * (3 * GL(2) + 4 * GL(7) + 5 * GL(8)) +
+                           Bn(3) * (4 * GL(3) + 5 * GL(5)) + Bn(4) * 5 * GL(4);
         }
+        Kokkos::atomic_add(&pot_energy, thread_Potential);
+        Kokkos::atomic_add(&virial, thread_Virial);
       });
 }
 

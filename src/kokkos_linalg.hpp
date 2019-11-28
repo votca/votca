@@ -21,7 +21,13 @@ Kokkos::View<T[3]> cross(const Vector1& x, const Vector2& y) {
 
 template <class T, class Vector1, class Vector2>
 T dot(const Vector1& x, const Vector2& y) {
-  return x(0) * y(0) + x(1) * y(1) + x(2) * y(2);
+  static_assert(x.extend(0) == y.extend(0),
+                "Dimensions of arrays do not match!");
+  T result = 0.0;
+  for (auto i = 0; i < x.extend(0); i++) {
+    result += x(i) * y(i);
+  }
+  return result;
 }
 
 template <class T, class Vector>
