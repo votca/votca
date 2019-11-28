@@ -15,16 +15,16 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE kspace_test
-#include "../src/KSpace.hpp"
+#define BOOST_TEST_MODULE rspace_test
+#include "../src/RSpace.hpp"
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(kspace_test)
+BOOST_AUTO_TEST_SUITE(rspace_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) {
   Kokkos::initialize();
   {
-    KSpace<double> a;
+    RSpace<double> a;
     a.init_params(0.3, 0.7, 1.2);
 
     // testing particle positions

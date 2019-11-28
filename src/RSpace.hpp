@@ -131,11 +131,11 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
           T inv_dist = 1.0 / std::sqrt(inv_dist);
 
           // eqn 69-71 in Smith Point Multipoles in Ewald Summation(Revisited)
-          T Bn[6];
-          Bn[0] = inv_dist * std::erfc(alpha / inv_dist);
+          Kokkos::View<T[6]> Bn("erfc derivatives");
+          Bn(0) = inv_dist * std::erfc(alpha / inv_dist);
           T expfactor = std::exp(-alpha * alpha * dist2);
           for (int b = 1; b < 6; b++) {
-            Bn[b] = inv_dist * inv_dist * (2 * b - 1) * Bn[b - 1] +
+            Bn(b) = inv_dist * inv_dist * (2 * b - 1) * Bn(b - 1) +
                     std::pow(2 * alpha * alpha, b) / (alpha * std::sqrt(M_PI)) *
                         expfactor;
           }

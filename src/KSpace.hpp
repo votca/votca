@@ -206,9 +206,9 @@ void KSpace<T>::init_params(const T _alpha, const T _k_max, const T _l) {
   alpha = _alpha;
   gamma = -0.25 / (alpha * alpha);
   k_sq_int = (int)_k_max;
-  k_max_int = (int)std::floor(sqrt(_k_max));
+  k_max_int = std::max(1, (int)std::floor(sqrt(_k_max)));
   // transformed length
-  T rcl = 2.0 * M_PI / _l;
+  rcl = 2.0 * M_PI / _l;
   l = _l;
 }
 
@@ -225,10 +225,10 @@ void KSpace<T>::compute_ak() {
     expf = std::exp(gamma * rcl * rcl);
   }
 
-  ak = Kokkos::View<T*>("AK coefficients", k_sq_int);
+  ak = Kokkos::View<T*>("AK coefficients", k_sq_int + 1);
 
   Kokkos::parallel_for(
-      k_sq_int, KOKKOS_LAMBDA(const int k) {
+      ak.extent(0), KOKKOS_LAMBDA(const int k) {
         T rksq = (T)k * rcl * rcl;
         T eksq = std::pow(expf, (T)k);
         ak(k) = eksq / rksq;
@@ -245,7 +245,8 @@ void KSpace<T>::compute_ak() {
 template <class T>
 void KSpace<T>::compute_exponentials(Kokkos::View<T * [3]> xyz) {
   // get number of particles
-  size_t N = xyz.size() / 3.0;
+  size_t N = xyz.extent(0);
+  std::cout << N << std::endl;
   // create Kokkos views of sufficient size to store the factors
   cos_fac = Kokkos::View<T***>("cosine exponential factors", N,
                                2 * (k_max_int) + 1, 3);
@@ -268,8 +269,10 @@ void KSpace<T>::compute_exponentials(Kokkos::View<T * [3]> xyz) {
   Kokkos::parallel_for(
       N, KOKKOS_LAMBDA(const int n) {
         for (int d = 0; d < 3; ++d) {
-          cos_fac(n, 1 + offset, d) = std::cos(rcl * xyz(3 * n, d));
-          sin_fac(n, 1 + offset, d) = std::sin(rcl * xyz(3 * n, d));
+          std::cout << n << " " << offset << " " << d << " " << rcl
+                    << std::endl;
+          cos_fac(n, 1 + offset, d) = std::cos(rcl * xyz(n, d));
+          sin_fac(n, 1 + offset, d) = std::sin(rcl * xyz(n, d));
           cos_fac(n, -1 + offset, d) = cos_fac(n, 1 + offset, d);
           sin_fac(n, -1 + offset, d) = -sin_fac(n, 1 + offset, d);
         }

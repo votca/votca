@@ -3,6 +3,8 @@ find_package(Boost 1.53.0 REQUIRED COMPONENTS unit_test_framework)
 # Each test listed in Alphabetical order
 foreach(PROG
 test_kspace
+test_rspace
+test_linalg_3d
 test_QDMEwald
 )
 
