@@ -29,12 +29,16 @@ namespace xtp {
 
 class QPGrid {
 
-  // This class solves the QP equation for the variable QP energy '\omega':
+  // This class solves the system of QP equations. For each energy level:
+  //
   //   \Sigma_c(\omega) = \omega - E_intercept.
-  // Every solution '\omega' is associated to a pole in the spectral function
-  // 'A(\omega)'. 'E_intercept' denotes the intercept of the line function on
+  //
+  // Every solution '\omega*' is associated to a pole in the spectral function
+  // 'A(\omega*)'. 'E_intercept' denotes the intercept of the line function on
   // the right-hand-side of the equation:
+  //
   //   E_intercept = E_KS + \Sigma_x - v_xc,
+  //
   // with
   //   'E_KS' the Kohn-Sham energy,
   //   '\Sigma_x' the exchange part of the self-energy,
@@ -76,7 +80,9 @@ class QPGrid {
   //
   // The solutions to the QP equation are found by solving the root-finding
   // problem associated to the target function 'f_targ':
+  //
   //   f_targ(\omega) = \Sigma_c(\omega) + E_intercept - \omega
+  //
   // The target function evaluated at the grid points is contained by 'targ'.
   bool FindQPEnergy(const Eigen::VectorXd& freq, const Eigen::VectorXd& sigc,
                     const Eigen::VectorXd& targ, double& qp_energy) const;
