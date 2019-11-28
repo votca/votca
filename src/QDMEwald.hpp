@@ -25,7 +25,8 @@ class QDMEwald {
    * @param l         system size (cubic system)
    */
   QDMEwald(T alpha, T k_max, T r_max, T l)
-      : kspace(KSpace<T>(alpha, k_max, l)), rspace(RSpace<T>(alpha, r_max)) {}
+      : kspace(KSpace<T>(alpha, k_max, l)),
+        rspace(RSpace<T>(alpha, r_max, l)) {}
 
   /**
    *
