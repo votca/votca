@@ -38,11 +38,8 @@ Eigen::VectorXd Sigma_Exact::CalcCorrelationDiag(
 #pragma omp parallel for
   for (Index m = 0; m < _qptotal; m++) {
     double sigmc = 0.0;
-    const Eigen::MatrixXd& res_m = _residues[m];
     for (Index s = 0; s < rpasize; s++) {
-      const Eigen::VectorXd res_mm = res_m.col(s).cwiseAbs2();
-      double eigenvalue = _rpa_solution.omega(s);
-      sigmc += CalcSigmaC(res_mm, eigenvalue, frequencies(m));
+      sigmc += CalcSigmaC(m, m, s, frequencies(m));
     }
     // Multiply with factor 2.0 to sum over both (identical) spin states
     result(m) = 2.0 * sigmc;
@@ -56,15 +53,11 @@ Eigen::MatrixXd Sigma_Exact::CalcCorrelationOffDiag(
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
 #pragma omp parallel for
   for (Index m = 0; m < _qptotal; m++) {
-    const Eigen::MatrixXd& res_m = _residues[m];
     for (Index n = m + 1; n < _qptotal; n++) {
       double sigmc = 0.0;
-      const Eigen::MatrixXd& res_n = _residues[n];
       for (Index s = 0; s < rpasize; s++) {
-        Eigen::VectorXd res_mn = res_m.col(s).cwiseProduct(res_n.col(s));
-        double eigenvalue = _rpa_solution.omega(s);
-        double sigmc_m = CalcSigmaC(res_mn, eigenvalue, frequencies(m));
-        double sigmc_n = CalcSigmaC(res_mn, eigenvalue, frequencies(n));
+        double sigmc_m = CalcSigmaC(m, n, s, frequencies(m));
+        double sigmc_n = CalcSigmaC(m, n, s, frequencies(n));
         sigmc += sigmc_m + sigmc_n;
       }
       // Multiply with factor 2.0 to sum over both (identical) spin states
@@ -99,12 +92,14 @@ std::vector<Eigen::MatrixXd> Sigma_Exact::CalcResidues() const {
   return residues;
 }
 
-double Sigma_Exact::CalcSigmaC(const Eigen::VectorXd& res_mn, double eigenvalue,
-                               double freq) const {
+double Sigma_Exact::CalcSigmaC(Index m, Index n, Index s, double freq) const {
   const double eta = _opt.eta;
   const Index lumo = _opt.homo + 1;
   const Index n_occ = lumo - _opt.rpamin;
   const Index n_unocc = _opt.rpamax - _opt.homo;
+  const double eigenvalue = _rpa_solution.omega(s);
+  const Eigen::VectorXd res_mn =
+      _residues[m].col(s).cwiseProduct(_residues[n].col(s));
   Eigen::ArrayXd temp = -_rpa.getRPAInputEnergies().array() + freq;
   temp.segment(0, n_occ) += eigenvalue;
   temp.segment(n_occ, n_unocc) -= eigenvalue;
