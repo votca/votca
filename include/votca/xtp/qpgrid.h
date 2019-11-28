@@ -29,19 +29,21 @@ namespace xtp {
 
 class QPGrid {
 
-  // This class solves the QP equation for the variable QP energy \omega:
+  // This class solves the QP equation for the variable QP energy '\omega':
   //   \Sigma_c(\omega) = \omega - E_intercept.
-  // Here, E_intercept denotes the intercept of the line function on the
-  // right-hand-side of the equation:
+  // Every solution '\omega' is associated to a pole in the spectral function
+  // 'A(\omega)'. 'E_intercept' denotes the intercept of the line function on
+  // the right-hand-side of the equation:
   //   E_intercept = E_KS + \Sigma_x - v_xc,
   // with
-  //   E_KS the Kohn-Sham energy,
-  //   \Sigma_x the exchange part of the self-energy,
-  //   v_xc the exchange-correlation potential.
+  //   'E_KS' the Kohn-Sham energy,
+  //   '\Sigma_x' the exchange part of the self-energy,
+  //   'v_xc' the exchange-correlation potential.
   //
-  // The QP energy is defined as the solution \omega* for which the pole weight
-  // Z is maximized. Here, we assume that the pole with the highest pole weight
-  // corresponds to the coherent part of the spectral function A(/omega).
+  // The QP energy is defined as the solution '\omega*' for which the pole
+  // weight 'Z' is maximized. Here, we assume that the pole with the highest
+  // pole weight corresponds to the coherent part of the spectral function
+  // 'A(/omega)'.
 
  public:
   QPGrid(Sigma_base& sigma) : _sigma(sigma) {}
@@ -68,10 +70,15 @@ class QPGrid {
   Eigen::VectorXd _energy_intercept;
 
   // 'FindQPEnergy' finds the best estimate of the QP energy 'qp_energy' on the
-  // grid with grid points 'freq'. The self-energy correlation values evaluated
-  // at the grid points are contained by 'sigc'. Returns 'true' if a solution
-  // to the QP equation was found and 'false' otherwise.
-  bool FindQPEnergy(const Eigen::VectorXd& freq, const Eigen::VectorXd& sigc, double& qp_energy) const;
+  // grid with grid points 'freq'. The self-energy correlation evaluated at the
+  // grid points is contained by 'sigc'. Returns 'true' if a solution to the QP
+  // equation was found and 'false' otherwise.
+  //
+  // The solutions to the QP equation are found by solving the root-finding
+  // problem associated to the target function 'f_targ':
+  //   f_targ(\omega) = \Sigma_c(\omega) + E_intercept - \omega
+  // The target function evaluated at the grid points is contained by 'targ'.
+  bool FindQPEnergy(const Eigen::VectorXd& freq, const Eigen::VectorXd& sigc, const Eigen::VectorXd& targ, double& qp_energy) const;
 };
 
 }  // namespace xtp
