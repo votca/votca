@@ -52,7 +52,7 @@ class QPGrid {
     Index homo = 0;
     Index qpmin = 0;
     Index qpmax = 0;
-    Index steps = 201;  // Number of grid points
+    Index steps = 201;      // Number of grid points
     double spacing = 0.01;  // Spacing of grid points in Ha
   };
 
@@ -78,7 +78,8 @@ class QPGrid {
   // problem associated to the target function 'f_targ':
   //   f_targ(\omega) = \Sigma_c(\omega) + E_intercept - \omega
   // The target function evaluated at the grid points is contained by 'targ'.
-  bool FindQPEnergy(const Eigen::VectorXd& freq, const Eigen::VectorXd& sigc, const Eigen::VectorXd& targ, double& qp_energy) const;
+  bool FindQPEnergy(const Eigen::VectorXd& freq, const Eigen::VectorXd& sigc,
+                    const Eigen::VectorXd& targ, double& qp_energy) const;
 };
 
 }  // namespace xtp

@@ -96,8 +96,7 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   C.applyOnTheLeft(AmB.cwiseSqrt().asDiagonal());
   C.applyOnTheRight(AmB.cwiseSqrt().asDiagonal());
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
-      Diagonalize_H2p_C(C);
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es = Diagonalize_H2p_C(C);
 
   RPA::rpa_eigensolution sol;
 
@@ -108,7 +107,7 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
       << tools::conv::hrt2ev * sol.omega.minCoeff() << std::flush;
 
   sol.XpY = Eigen::MatrixXd(rpasize, rpasize);
-  
+
   Eigen::VectorXd AmB_sqrt = AmB.cwiseSqrt();
   Eigen::VectorXd Omega_sqrt_inv = sol.omega.cwiseSqrt().cwiseInverse();
   for (int s = 0; s < rpasize; s++) {
@@ -158,7 +157,8 @@ Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
   return ApB;
 }
 
-Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> RPA::Diagonalize_H2p_C(const Eigen::MatrixXd& C) const {
+Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> RPA::Diagonalize_H2p_C(
+    const Eigen::MatrixXd& C) const {
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Diagonalizing two-particle Hamiltonian "
       << std::flush;

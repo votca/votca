@@ -92,7 +92,7 @@ std::vector<Eigen::MatrixXd> Sigma_Exact::CalcResidues() const {
       const Eigen::MatrixXd fc =
           _Mmn[v].block(n_occ, 0, n_unocc, auxsize) * Mmn_mT;  // Sum over chi
       res += fc.transpose() * _rpa_solution.XpY.block(vc.I(v, 0), 0, n_unocc,
-                                                       rpasize);  // Sum over c
+                                                      rpasize);  // Sum over c
     }
     residues[m] = res;
   }

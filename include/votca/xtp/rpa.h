@@ -81,7 +81,8 @@ class RPA {
 
   Eigen::VectorXd Calculate_H2p_AmB() const;
   Eigen::MatrixXd Calculate_H2p_ApB() const;
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Diagonalize_H2p_C(const Eigen::MatrixXd& C) const;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Diagonalize_H2p_C(
+      const Eigen::MatrixXd& C) const;
 };
 
 }  // namespace xtp
