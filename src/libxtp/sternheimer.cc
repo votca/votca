@@ -91,7 +91,7 @@ std::vector<std::complex<double>> Sternheimer::BuildGrid(
   for (int n = 0; n <= steps; n++) {
     // Converts from input eV to Hartree
     grid.push_back(omega_start * ev2hrt + n * stepsize * ev2hrt +
-                   imaginary_shift * i);
+                   imaginary_shift * i * ev2hrt);
   }
 
   return grid;
@@ -195,7 +195,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(
   Eigen::MatrixXcd solution_m =
       Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
 
-  double e_field = 0.1;
+  double e_field = 1E-5;
 
   Eigen::MatrixXcd pertubation = -e_field * initGuess;
   Eigen::MatrixXcd delta_n_old;
@@ -246,12 +246,14 @@ Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(
     pertubation =
         -e_field * initGuess + eris.ContractRightIndecesWithMatrix(delta_n_new);
 
-    if ((delta_n_new - delta_n_old).squaredNorm() < 1e-6) {
+
+    std::cout<<"diff="<<(delta_n_new - delta_n_old).squaredNorm()<<std::endl;
+    if ((delta_n_new - delta_n_old).squaredNorm() < 1e-9) {
       return delta_n_new;
     }
   }
   std::cout << "Not Converged, diff = "
-            << (delta_n_new - delta_n_old).squaredNorm() << std::endl;
+            << (delta_n_new - delta_n_old).squaredNorm() <<"w="<<w<<std::endl;
   return delta_n_new;
 }
 
@@ -261,8 +263,14 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
 
   std::vector<std::complex<double>> grid_w =
       BuildGrid(omega_start, omega_end, steps, imaginary_shift);
+
+  // for(int i=0;i<grid_w.size();i++){
+  //   grid_w[i]=grid_w[i]*grid_w[i];
+  //   std::cout<<grid_w[i]<<std::endl;
+  // }
+
   std::vector<std::complex<double>> w =
-      BuildGrid(omega_start, omega_end, resolution_output, 0.0);
+      BuildGrid(omega_start, omega_end, resolution_output, 0.3);
 
   PadeApprox pade_1;
   // PadeApprox pade_2;
@@ -270,12 +278,12 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
   PadeApprox pade_4;
   // PadeApprox pade_5;
   PadeApprox pade_6;
-  pade_1.initialize(2 * grid_w.size());
+  pade_1.initialize(4 * grid_w.size());
   // pade_2.initialize(2*grid_w.size());
   // pade_3.initialize(2*grid_w.size());
-  pade_4.initialize(2 * grid_w.size());
+  pade_4.initialize(4 * grid_w.size());
   // pade_5.initialize(2*grid_w.size());
-  pade_6.initialize(2 * grid_w.size());
+  pade_6.initialize(4 * grid_w.size());
 
   AOBasis basis = _orbitals.SetupDftBasis();
   AODipole dipole;
@@ -298,6 +306,12 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
     }
     pade_1.addPoint(grid_w[n], Polar(0, 0));
     pade_1.addPoint(conj(grid_w[n]), conj(Polar(0, 0)));
+    pade_1.addPoint(-grid_w[n], conj(Polar(0, 0)));
+    pade_1.addPoint(-conj(grid_w[n]), Polar(0, 0));
+
+    //pade_1.printInfo();
+
+    //throw std::exception();
 
     // pade_2.addPoint(grid_w[n], Polar(0,1));
     // pade_2.addPoint(conj(grid_w[n]), conj(Polar(0,1)));
@@ -307,12 +321,17 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
 
     pade_4.addPoint(grid_w[n], Polar(1, 1));
     pade_4.addPoint(conj(grid_w[n]), conj(Polar(1, 1)));
+    pade_4.addPoint(-grid_w[n], conj(Polar(1, 1)));
+    pade_4.addPoint(-conj(grid_w[n]), Polar(1, 1));
+
 
     // pade_5.addPoint(grid_w[n], Polar(1,2));
     // pade_5.addPoint(conj(grid_w[n]), conj(Polar(1,2)));
 
     pade_6.addPoint(grid_w[n], Polar(2, 2));
     pade_6.addPoint(conj(grid_w[n]), conj(Polar(2, 2)));
+    pade_6.addPoint(-grid_w[n], conj(Polar(2, 2)));
+    pade_6.addPoint(-conj(grid_w[n]), Polar(2, 2));
 
     std::cout << "Done with w=" << grid_w[n] << std::endl;
   }

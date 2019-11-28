@@ -62,6 +62,7 @@ void PadeApprox::addPoint(std::complex<double> frequency, std::complex<double> v
   this->_grid.push_back(frequency);
   this->_value.push_back(value);
   this->_coeff.push_back(RecursivePolynom(_grid.size() - 1, _grid.size()));
+
   if ((_coeff.at(_coeff.size() - 1) !=
       _coeff.at(_coeff.size() - 1))||abs(_coeff.at(_coeff.size() - 1))<1e-6) {
     std::cout
@@ -90,7 +91,10 @@ std::complex<double> PadeApprox::RecursivePolynom(int indx, int degree) {
     
     std::complex<double> result=u/l;
     if(result!=result){
-        std::cout<<"NAN detected: l="<<l<<std::endl;
+    //     std::cout<<"NAN detected: l = "<<l<<std::endl;
+    //     std::cout<<"first gridpoint "<<_grid.at(indx)<<std::endl;
+    //     std::cout<<"second gridpoint "<<_grid.at(degree-2)<<std::endl;
+    //     std::cout<<"temp "<<temp<<std::endl;
     }
     else{_temp_container_g[indx][degree-1]=result;}
     return result;
