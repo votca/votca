@@ -46,7 +46,7 @@ class Sigma_Exact : public Sigma_base {
   RPA::rpa_eigensolution _rpa_solution;    // Eigenvalues, eigenvectors from RPA
   std::vector<Eigen::MatrixXd> _residues;  // Residues
 
-  std::vector<Eigen::MatrixXd> CalcResidues() const;
+  Eigen::MatrixXd CalcResidues(Index m) const;
   double CalcSigmaC(Index m, Index n, Index s, double freq) const;
 };
 }  // namespace xtp

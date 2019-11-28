@@ -27,7 +27,11 @@ namespace xtp {
 
 void Sigma_Exact::PrepareScreening() {
   _rpa_solution = _rpa.Diagonalize_H2p();
-  _residues = CalcResidues();
+  _residues = std::vector<Eigen::MatrixXd>(_qptotal);
+#pragma omp parallel for
+  for (Index m = 0; m < _qptotal; m++) {
+    _residues[m] = CalcResidues(m);
+  }
   return;
 }
 
@@ -68,7 +72,7 @@ Eigen::MatrixXd Sigma_Exact::CalcCorrelationOffDiag(
   return result;
 }
 
-std::vector<Eigen::MatrixXd> Sigma_Exact::CalcResidues() const {
+Eigen::MatrixXd Sigma_Exact::CalcResidues(Index m) const {
   const Index lumo = _opt.homo + 1;
   const Index n_occ = lumo - _opt.rpamin;
   const Index n_unocc = _opt.rpamax - _opt.homo;
@@ -76,20 +80,15 @@ std::vector<Eigen::MatrixXd> Sigma_Exact::CalcResidues() const {
   const Index qpoffset = _opt.qpmin - _opt.rpamin;
   const Index auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, n_unocc);
-  std::vector<Eigen::MatrixXd> residues(_qptotal);
-#pragma omp parallel for
-  for (Index m = 0; m < _qptotal; m++) {
-    const Eigen::MatrixXd Mmn_mT = _Mmn[m + qpoffset].transpose();
-    Eigen::MatrixXd res = Eigen::MatrixXd::Zero(_rpatotal, rpasize);
-    for (Index v = 0; v < n_occ; v++) {  // Sum over v
-      const Eigen::MatrixXd fc =
-          _Mmn[v].block(n_occ, 0, n_unocc, auxsize) * Mmn_mT;  // Sum over chi
-      res += fc.transpose() * _rpa_solution.XpY.block(vc.I(v, 0), 0, n_unocc,
-                                                      rpasize);  // Sum over c
-    }
-    residues[m] = res;
+  const Eigen::MatrixXd Mmn_mT = _Mmn[m + qpoffset].transpose();
+  Eigen::MatrixXd res = Eigen::MatrixXd::Zero(_rpatotal, rpasize);
+  for (Index v = 0; v < n_occ; v++) {  // Sum over v
+    const Eigen::MatrixXd fc =
+        _Mmn[v].block(n_occ, 0, n_unocc, auxsize) * Mmn_mT;  // Sum over chi
+    res += fc.transpose() * _rpa_solution.XpY.block(vc.I(v, 0), 0, n_unocc,
+                                                    rpasize);  // Sum over c
   }
-  return residues;
+  return res;
 }
 
 double Sigma_Exact::CalcSigmaC(Index m, Index n, Index s, double freq) const {
