@@ -122,20 +122,20 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
         T thread_Virial = 0.0;
         T thread_Potential = 0.0;
         for (int j = i + 1; j < N; ++j) {
-          Kokkos::View<T[3]> dR("distance vector");
+          std::array<T, 3> dR;
           for (int d = 0; d < 3; d++) {
-            dR(d) = xyz(i, d) - xyz(j, d);
-            dR(d) -= std::round(dR[d] / l) * l;
+            dR[d] = xyz(i, d) - xyz(j, d);
+            dR[d] -= std::round(dR[d] / l) * l;
           }
           T dist2 = dR[0] * dR[0] + dR[1] * dR[1] + dR[2] * dR[2];
           T inv_dist = 1.0 / std::sqrt(inv_dist);
 
           // eqn 69-71 in Smith Point Multipoles in Ewald Summation(Revisited)
-          Kokkos::View<T[6]> Bn("erfc derivatives");
-          Bn(0) = inv_dist * std::erfc(alpha / inv_dist);
+          std::array<T, 6> Bn;
+          Bn[0] = inv_dist * std::erfc(alpha / inv_dist);
           T expfactor = std::exp(-alpha * alpha * dist2);
           for (int b = 1; b < 6; b++) {
-            Bn(b) = inv_dist * inv_dist * (2 * b - 1) * Bn(b - 1) +
+            Bn[b] = inv_dist * inv_dist * (2 * b - 1) * Bn[b - 1] +
                     std::pow(2 * alpha * alpha, b) / (alpha * std::sqrt(M_PI)) *
                         expfactor;
           }
@@ -145,34 +145,34 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
           auto Qi = Kokkos::subview(Q, i, Kokkos::ALL());
           auto Qj = Kokkos::subview(Q, j, Kokkos::ALL());
 
-          Kokkos::View<T[3]> dixdj = kokkos_linalg_3d::cross(Di, Dj);
-          Kokkos::View<T[3]> dixR = kokkos_linalg_3d::cross(Di, dR);
-          Kokkos::View<T[3]> djxR = kokkos_linalg_3d::cross(Dj, dR);
+          std::array<T, 3> dixdj = kokkos_linalg_3d::cross(Di, Dj);
+          std::array<T, 3> dixR = kokkos_linalg_3d::cross(Di, dR);
+          std::array<T, 3> djxR = kokkos_linalg_3d::cross(Dj, dR);
 
-          Kokkos::View<T[3]> QIR = kokkos_linalg_3d::gemv(Qi, dR);
-          Kokkos::View<T[3]> QJR = kokkos_linalg_3d::gemv(Qj, dR);
-          Kokkos::View<T[3]> QIQJR = kokkos_linalg_3d::gemv(Qi, QJR);
-          Kokkos::View<T[3]> QJQIR = kokkos_linalg_3d::gemv(Qj, QIR);
-          Kokkos::View<T[3]> QIXQJ =
+          std::array<T, 3> QIR = kokkos_linalg_3d::gemv(Qi, dR);
+          std::array<T, 3> QJR = kokkos_linalg_3d::gemv(Qj, dR);
+          std::array<T, 3> QIQJR = kokkos_linalg_3d::gemv(Qi, QJR);
+          std::array<T, 3> QJQIR = kokkos_linalg_3d::gemv(Qj, QIR);
+          std::array<T, 3> QIXQJ =
               kokkos_linalg_3d::cross_matrix_product(Qi, Qj);
 
-          Kokkos::View<T[3]> RxQIR = kokkos_linalg_3d::cross(dR, QIR);
-          Kokkos::View<T[3]> RxQJR = kokkos_linalg_3d::cross(dR, QJR);
+          std::array<T, 3> RxQIR = kokkos_linalg_3d::cross(dR, QIR);
+          std::array<T, 3> RxQJR = kokkos_linalg_3d::cross(dR, QJR);
 
-          Kokkos::View<T[3]> RxQIJR = kokkos_linalg_3d::cross(dR, QIQJR);
-          Kokkos::View<T[3]> RxQJIR = kokkos_linalg_3d::cross(dR, QJQIR);
+          std::array<T, 3> RxQIJR = kokkos_linalg_3d::cross(dR, QIQJR);
+          std::array<T, 3> RxQJIR = kokkos_linalg_3d::cross(dR, QJQIR);
 
-          Kokkos::View<T[3]> QJRXQIR = kokkos_linalg_3d::cross(QJR, QIR);
+          std::array<T, 3> QJRXQIR = kokkos_linalg_3d::cross(QJR, QIR);
 
-          Kokkos::View<T[3]> QIDJ = kokkos_linalg_3d::gemv(Qi, Dj);
-          Kokkos::View<T[3]> QJDI = kokkos_linalg_3d::gemv(Qj, Di);
+          std::array<T, 3> QIDJ = kokkos_linalg_3d::gemv(Qi, Dj);
+          std::array<T, 3> QJDI = kokkos_linalg_3d::gemv(Qj, Di);
 
-          Kokkos::View<T[3]> DIXQJR = kokkos_linalg_3d::cross(Di, QJR);
-          Kokkos::View<T[3]> DJXQIR = kokkos_linalg_3d::cross(Dj, QIR);
+          std::array<T, 3> DIXQJR = kokkos_linalg_3d::cross(Di, QJR);
+          std::array<T, 3> DJXQIR = kokkos_linalg_3d::cross(Dj, QIR);
 
-          Kokkos::View<T[3]> RXQIDJ = kokkos_linalg_3d::cross(dR, QIDJ);
+          std::array<T, 3> RXQIDJ = kokkos_linalg_3d::cross(dR, QIDJ);
 
-          Kokkos::View<T[3]> RXQJDI = kokkos_linalg_3d::cross(dR, QJDI);
+          std::array<T, 3> RXQJDI = kokkos_linalg_3d::cross(dR, QJDI);
 
           T QII = kokkos_linalg_3d::trace(Qi);
           T QJJ = kokkos_linalg_3d::trace(Qj);  // sc1
@@ -188,23 +188,23 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
           T QMIQMJ = kokkos_linalg_3d::dot(Qi, Qj);    // sc10
 
           // eqn 38-42
-          Kokkos::View<T[9]> GL("GL");
-          GL(0) = q(i) * q(j);
-          GL(1) = q(j) * DIR - q(i) * DJR;
-          GL(2) = q(i) * QJRR + q(j) * QIRR - DIR * DJR;
-          GL(3) = DIR * QJRR - DJR * QIRR;
-          GL(4) = QIRR * QJRR;
-          GL(5) = -(QJJ * QIRR + QJRR * QII + 4 * QJRQIR);
-          GL(6) = DD - q(j) * QII - q(i) * QJJ;
-          GL(7) = DJR * QII - QJJ * DIR + 2 * (QIRDJ - QJRDI);
-          GL(8) = 2 * QMIQMJ + QII * QJJ;
+          std::array<T, 9> GL;
+          GL[0] = q(i) * q(j);
+          GL[1] = q(j) * DIR - q(i) * DJR;
+          GL[2] = q(i) * QJRR + q(j) * QIRR - DIR * DJR;
+          GL[3] = DIR * QJRR - DJR * QIRR;
+          GL[4] = QIRR * QJRR;
+          GL[5] = -(QJJ * QIRR + QJRR * QII + 4 * QJRQIR);
+          GL[6] = DD - q(j) * QII - q(i) * QJJ;
+          GL[7] = DJR * QII - QJJ * DIR + 2 * (QIRDJ - QJRDI);
+          GL[8] = 2 * QMIQMJ + QII * QJJ;
 
-          thread_Potential += Bn(0) * GL(0) + Bn(1) * (GL(1) + GL(6)) +
-                              Bn(2) * (GL(2) + GL(7) + GL(8)) +
-                              Bn(3) * (GL(3) + GL(5)) + Bn(4) * GL(4);
-          thread_Virial += Bn(0) * GL(0) + Bn(1) * (2 * GL(1) + 3 * GL(6)) +
-                           Bn(2) * (3 * GL(2) + 4 * GL(7) + 5 * GL(8)) +
-                           Bn(3) * (4 * GL(3) + 5 * GL(5)) + Bn(4) * 5 * GL(4);
+          thread_Potential += Bn[0] * GL[0] + Bn[1] * (GL[1] + GL[6]) +
+                              Bn[2] * (GL[2] + GL[7] + GL[8]) +
+                              Bn[3] * (GL[3] + GL[5]) + Bn[4] * GL[4];
+          thread_Virial += Bn[0] * GL[0] + Bn[1] * (2 * GL[1] + 3 * GL[6]) +
+                           Bn[2] * (3 * GL[2] + 4 * GL[7] + 5 * GL[8]) +
+                           Bn[3] * (4 * GL[3] + 5 * GL[5]) + Bn[4] * 5 * GL[4];
         }
         Kokkos::atomic_add(&pot_energy, thread_Potential);
         Kokkos::atomic_add(&virial, thread_Virial);
