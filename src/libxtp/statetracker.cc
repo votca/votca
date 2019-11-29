@@ -208,7 +208,7 @@ std::vector<Index> StateTracker::DeltaQTracker(const Orbitals& orbitals) const {
   frag.copy_withoutvalue(_fragment_dQ);
   std::vector<QMFragment<BSE_Population> > loc = {frag};
   low.CalcChargeperFragment(loc, orbitals, _statehist[0].Type());
-  Eigen::VectorXd dq = (loc[0].value().H - loc[0].value().E).cwiseAbs();
+  Eigen::VectorXd dq = (loc[0].value().H + loc[0].value().E).cwiseAbs();
 
   for (Index i = 0; i < dq.size(); i++) {
     if (dq[i] > _fragment_dQ.value()) {
