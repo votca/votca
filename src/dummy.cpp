@@ -1,40 +1,52 @@
 #include "QDMEwald.hpp"
 
+#include <iostream>
 #include <vector>
 
 int main() {
   Kokkos::initialize();
   {
-    // testing the initialization with different data types
-    QDMEwald<double> qdme_d(1.0, 1.0, 1.0, 1.0);
-    QDMEwald<float> qdme_f(1.0f, 1.0f, 1.0f, 1.0f);
-    QDMEwald<long double> qdme_ld(1.0l, 1.0l, 1.0l, 1.0l);
 
     // testing system size
-    double l = 1.00;
+    constexpr int cry_l = 16;
+    constexpr int N = cry_l * cry_l * cry_l;
+    constexpr double l = (double)cry_l / 2.0;
 
     // testing particle positions
-    std::vector<double> xyz{0.00, 0.00, 0.00, 0.50, 0.00, 0.00, 0.00, 0.50,
-                            0.00, 0.50, 0.50, 0.00, 0.00, 0.00, 0.50, 0.50,
-                            0.00, 0.50, 0.00, 0.50, 0.50, 0.50, 0.50, 0.50};
+    std::vector<double> xyz(3 * N);
 
     // testing charges
-    std::vector<double> q{-1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0};
+    std::vector<double> q(N);
 
     // testing dipole momenta
-    std::vector<double> d{-0.5, 0.3,  -0.1, -0.4, 0.4,  -0.2, -0.3, 0.5,
-                          -0.3, -0.2, 0.4,  -0.4, -0.1, 0.3,  -0.5, -0.0,
-                          0.2,  -0.4, 0.1,  0.1,  -0.3, 0.2,  0.0,  -0.2};
+    std::vector<double> d(3 * N);
+    std::vector<double> Q(9 * N);
 
-    std::vector<double> Q{
-        -0.5, 0.3,  -0.1, -0.1, 0.5,  -0.3, 0.1,  0.1,  -0.3, -0.4, 0.4,  -0.2,
-        0.0,  0.4,  -0.4, 0.2,  0.0,  -0.2, -0.3, 0.5,  -0.3, 0.1,  0.3,  -0.5,
-        0.3,  -0.1, -0.1, -0.2, 0.4,  -0.4, 0.2,  0.2,  -0.4, 0.4,  -0.2, -0.0,
-        -0.1, 0.3,  -0.5, 0.3,  0.1,  -0.3, 0.5,  -0.3, 0.1,  0.0,  0.2,  -0.4,
-        0.4,  0.0,  -0.2, 0.4,  -0.4, 0.2,  0.1,  0.1,  -0.3, 0.5,  -0.1, -0.1,
-        0.3,  -0.5, 0.3,  0.2,  0.0,  -0.2, 0.4,  -0.2, 0.0,  0.2,  -0.4, 0.4};
+    for (int i = 0; i < N; ++i) {
+      xyz.at(3 * i + 0) = (double)(i % cry_l) * 0.5;
+      xyz.at(3 * i + 1) = (double)((i % (cry_l * cry_l)) / cry_l) * 0.5;
+      xyz.at(3 * i + 2) = (double)(i / (cry_l * cry_l)) * 0.5;
+
+      q.at(i) = -1 + (double)(i % 2) * 2.0;
+    }
+
+    for (auto i : d) i = 0.0;
+
+    for (auto i : Q) i = 0.0;
+
+    double alpha = 2.6;
+    double r_max = 3.4;
+    double k_max = 9.7;
+
+    // testing the initialization with different data types
+    QDMEwald<double> qdme_d(alpha, k_max, r_max, l);
+    QDMEwald<float> qdme_f((float)alpha, (float)k_max, (float)r_max, (float)l);
+    QDMEwald<long double> qdme_ld((long double)alpha, (long double)k_max,
+                                  (long double)r_max, (long double)l);
 
     qdme_d.compute(xyz, q, d, Q);
+
+    std::cout << qdme_d.get_energy() << std::endl;
   }
   Kokkos::finalize();
 }

@@ -40,9 +40,21 @@ class QDMEwald {
   void compute(const std::vector<T>&, const std::vector<T>&,
                const std::vector<T>&, const std::vector<T>&);
 
+  /**
+   *
+   * Getter for the k-space contribution to energy
+   *
+   * @return type T containing the energy
+   */
+
+  T get_energy();
+
  private:
   KSpace<T> kspace;
   RSpace<T> rspace;
+
+  T total_energy;
+  T total_virial;
 };
 
 /**
@@ -57,7 +69,30 @@ class QDMEwald {
 template <class T>
 void QDMEwald<T>::compute(const std::vector<T>& xyz, const std::vector<T>& q,
                           const std::vector<T>& d, const std::vector<T>& Q) {
+
+  total_energy = 0.0;
+  total_virial = 0.0;
+
   // compute k-space contribution
   kspace.compute(xyz, q, d, Q);
+  // compute r-space contribution
+  rspace.compute(xyz, q, d, Q);
+
+  total_energy += kspace.get_energy();
+  std::cout << kspace.get_energy() << std::endl;
+  total_energy += rspace.get_energy();
+  std::cout << rspace.get_energy() << std::endl;
 }
+
+/**
+ *
+ * Getter for the k-space contribution to energy
+ *
+ * @return type T containing the energy
+ */
+template <class T>
+T QDMEwald<T>::get_energy() {
+  return total_energy;
+}
+
 #endif

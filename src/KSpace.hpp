@@ -480,7 +480,7 @@ void KSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
   // loop over the k-images to compute the necessary
   // parameters (energy, virial, torque, forces)
   int miny = 0;
-  int minz = 0;
+  int minz = 1;
 
   // set contributions to potential energy, virial, forces and torque to zero
   pot_energy = 0.0;
@@ -503,11 +503,18 @@ void KSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
         // opposed to original Fortran indexing
         int kk = ix * ix + iy * iy + iz * iz - 1;
         if (kk > k_sq_int) continue;
+        if (kk == 0) continue;
         // compute exp (ikr) and the corresponding scalar and vector
         // products for the different multipoles
         compute_vector_components(ix, iy, iz, q, d, Q);
         compute_vector_sums();
         // add potential energy
+#ifdef DEBUG_OUTPUT_ENABLED
+        std::cout << "k-space DEBUG: " << ix << " " << iy << " " << iz << " "
+                  << kk << " " << ak(kk) << " " << vec_sum(0) << " "
+                  << vec_sum(1) << " " << vec_sum(2) << " " << vec_sum(3) << " "
+                  << vec_sum(4) << " " << vec_sum(5) << " " << std::endl;
+#endif
         pot_energy +=
             ak(kk) * ((vec_sum(1) + vec_sum(2) - vec_sum(5) * vec_sum(1) +
                        vec_sum(2) - vec_sum(5)) +
