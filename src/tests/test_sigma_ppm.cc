@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   opt.rpamax = 16;
   sigma.configure(opt);
 
-  Eigen::MatrixXd x = sigma.CalcExchange();
+  Eigen::MatrixXd x = sigma.CalcExchangeMatrix();
 
   Eigen::MatrixXd x_ref = Eigen::MatrixXd::Zero(17, 17);
   x_ref << -0.898354, 5.71768e-07, -1.37292e-08, 1.98142e-07, -0.149915,

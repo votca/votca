@@ -67,7 +67,6 @@ class Sigma_base {
   }
 
   // Legacy. To remove!
-  Eigen::MatrixXd CalcExchange() const { return CalcExchangeMatrix(); }
   Eigen::VectorXd CalcCorrelationDiag(
       const Eigen::VectorXd& frequencies) const {
     return CalcCorrelationMatrix(frequencies).diagonal();

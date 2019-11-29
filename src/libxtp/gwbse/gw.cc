@@ -149,7 +149,7 @@ Eigen::VectorXd GW::ScissorShift_DFTlevel(
 
 void GW::CalculateGWPerturbation() {
 
-  _Sigma_x = (1 - _opt.ScaHFX) * _sigma->CalcExchange();
+  _Sigma_x = (1 - _opt.ScaHFX) * _sigma->CalcExchangeMatrix();
   XTP_LOG_SAVE(logDEBUG, _log)
       << TimeStamp() << " Calculated Hartree exchange contribution"
       << std::flush;
