@@ -224,7 +224,7 @@ Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
     double qp_energy = 0.0;
     double pole_weight_max = -1.0;
     for (Index i_node = 1; i_node < _opt.qp_grid_steps; ++i_node) {
-      double freq = frequency0 - range + (double)i_node * _opt.qp_grid_spacing;
+      double freq = freq_prev + _opt.qp_grid_spacing;
       double sigc = _sigma->CalcCorrelation(gw_level, gw_level, freq);
       double targ = sigc + intercept0 - freq;
       if (targ_prev * targ < 0.0) {  // Sign change
