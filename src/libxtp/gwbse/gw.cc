@@ -206,7 +206,7 @@ void GW::CalculateGWPerturbation() {
   PrintGWA_Energies();
 }
 
-Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
+Eigen::VectorXd GW::SolveQP_Grid(const Eigen::VectorXd& frequencies) const {
   const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
   const double range =
       _opt.qp_grid_spacing * (double)(_opt.qp_grid_steps - 1) / 2.0;
