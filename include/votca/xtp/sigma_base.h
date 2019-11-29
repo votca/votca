@@ -51,8 +51,10 @@ class Sigma_base {
 
   // Calculates full exchange matrix
   Eigen::MatrixXd CalcExchangeMatrix() const;
-  // Calculates full correlation matrix
-  Eigen::MatrixXd CalcCorrelationMatrix(
+  // Calculates correlation diagonal
+  Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies) const;
+  // Calculates correlation off-diagonal
+  Eigen::MatrixXd CalcCorrelationOffDiag(
       const Eigen::VectorXd& frequencies) const;
 
   // Sets up the screening parametrisation
@@ -60,23 +62,6 @@ class Sigma_base {
   // Calculates Sigma_c elements
   virtual double CalcCorrelation(Index gw_level1, Index gw_level2,
                                  double frequency) const = 0;
-
-  // Calculates Sigma_c diagonal elements
-  double CalcCorrelationDiag(Index gw_level, double frequency) const {
-    return CalcCorrelation(gw_level, gw_level, frequency);
-  }
-
-  // Legacy. To remove!
-  Eigen::VectorXd CalcCorrelationDiag(
-      const Eigen::VectorXd& frequencies) const {
-    return CalcCorrelationMatrix(frequencies).diagonal();
-  }
-  Eigen::MatrixXd CalcCorrelationOffDiag(
-      const Eigen::VectorXd& frequencies) const {
-    Eigen::MatrixXd result = CalcCorrelationMatrix(frequencies);
-    result.diagonal() = Eigen::VectorXd::Zero(_qptotal);
-    return result;
-  }
 
  protected:
   options _opt;

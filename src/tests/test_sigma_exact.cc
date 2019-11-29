@@ -253,11 +253,9 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   BOOST_CHECK_EQUAL(check_x, true);
 
   sigma.PrepareScreening();
+  Eigen::MatrixXd c = sigma.CalcCorrelationOffDiag(mo_energy);
+  c.diagonal() = sigma.CalcCorrelationDiag(mo_energy);
 
-  Eigen::VectorXd c_diag = sigma.CalcCorrelationDiag(mo_energy);
-  Eigen::MatrixXd c_off = sigma.CalcCorrelationOffDiag(mo_energy);
-
-  c_off.diagonal() = c_diag;
   Eigen::MatrixXd c_ref = Eigen::MatrixXd::Zero(17, 17);
   c_ref << 0.00049504, 5.25671e-10, 1.14604e-09, -0.000237725, -0.00170732,
       2.17028e-09, 2.21063e-09, 0.0287528, 0.00236979, 7.93769e-10,
@@ -313,19 +311,19 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
       -2.0088e-09, -6.59807e-09, 0.0168582, 0.0253594, 7.2481e-09, -7.14016e-11,
       -0.0138153, -0.0743819;
 
-  bool check_c_diag = c_diag.isApprox(c_ref.diagonal(), 1e-5);
+  bool check_c_diag = c.diagonal().isApprox(c_ref.diagonal(), 1e-5);
   if (!check_c_diag) {
     cout << "Sigma C" << endl;
-    cout << c_diag << endl;
+    cout << c.diagonal() << endl;
     cout << "Sigma C ref" << endl;
     cout << c_ref.diagonal() << endl;
   }
   BOOST_CHECK_EQUAL(check_c_diag, true);
 
-  bool check_c = c_ref.isApprox(c_off, 1e-5);
+  bool check_c = c.isApprox(c_ref, 1e-5);
   if (!check_c) {
     cout << "Sigma C" << endl;
-    cout << c_off << endl;
+    cout << c << endl;
     cout << "Sigma C ref" << endl;
     cout << c_ref << endl;
   }
