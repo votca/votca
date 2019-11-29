@@ -34,7 +34,7 @@ class Sigma_PPM : public Sigma_base {
   Sigma_PPM(TCMatrix_gwbse& Mmn, RPA& rpa) : Sigma_base(Mmn, rpa){};
 
   // Sets up the screening parametrisation
-  void PrepareScreening();
+  void PrepareScreening() override;
   // Calculates Sigma_c elements
   double CalcCorrelation(Index gw_level1, Index gw_level2,
                          double frequency) const override;
