@@ -206,7 +206,7 @@ void GW::CalculateGWPerturbation() {
   PrintGWA_Energies();
 }
 
-Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
+Eigen::VectorXd GW::SolveQP_Grid(const Eigen::VectorXd& frequencies) const {
   const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
   const double range =
       _opt.qp_grid_spacing * (double)(_opt.qp_grid_steps - 1) / 2.0;
@@ -250,34 +250,39 @@ Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
   return frequencies_new;
 }
 
-Eigen::VectorXd GW::SolveQP_FixedPoint(Eigen::VectorXd frequencies) const {
-  for (Index i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
-    Eigen::VectorXd frequencies_prev = frequencies;
-    frequencies = _Sigma_x.diagonal() +
-                  _sigma->CalcCorrelationDiag(frequencies) - _vxc.diagonal() +
-                  _dft_energies.segment(_opt.qpmin, _qptotal);
-    if (tools::globals::verbose) {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " G_Iteration:" << i_freq
-          << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;
-    }
-    if (Converged(frequencies, frequencies_prev, _opt.g_sc_limit)) {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " Converged after " << i_freq + 1
-          << " G iterations." << std::flush;
-      break;
-    } else if (i_freq == _opt.g_sc_max_iterations - 1 &&
-               _opt.g_sc_max_iterations > 1) {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp() << " G-self-consistency cycle not converged after "
-          << _opt.g_sc_max_iterations << " iterations." << std::flush;
-      break;
-    } else {
-      double alpha = 0.0;
-      frequencies = (1 - alpha) * frequencies + alpha * frequencies_prev;
+Eigen::VectorXd GW::SolveQP_FixedPoint(
+    const Eigen::VectorXd& frequencies) const {
+  Eigen::VectorXd frequencies_new = frequencies;
+#pragma omp parallel for schedule(dynamic)
+  for (Index gw_level = 0; gw_level < qptotal; ++gw_level) {
+    for (Index i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
+      Eigen::VectorXd frequencies_prev = frequencies;
+      frequencies = _Sigma_x.diagonal() +
+                    _sigma->CalcCorrelationDiag(frequencies) - _vxc.diagonal() +
+                    _dft_energies.segment(_opt.qpmin, _qptotal);
+      if (tools::globals::verbose) {
+        XTP_LOG_SAVE(logDEBUG, _log)
+            << TimeStamp() << " G_Iteration:" << i_freq
+            << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;
+      }
+      if (Converged(frequencies, frequencies_prev, _opt.g_sc_limit)) {
+        XTP_LOG_SAVE(logDEBUG, _log)
+            << TimeStamp() << " Converged after " << i_freq + 1
+            << " G iterations." << std::flush;
+        break;
+      } else if (i_freq == _opt.g_sc_max_iterations - 1 &&
+                 _opt.g_sc_max_iterations > 1) {
+        XTP_LOG_SAVE(logDEBUG, _log)
+            << TimeStamp() << " G-self-consistency cycle not converged after "
+            << _opt.g_sc_max_iterations << " iterations." << std::flush;
+        break;
+      } else {
+        double alpha = 0.0;
+        frequencies = (1 - alpha) * frequencies + alpha * frequencies_prev;
+      }
     }
   }
-  return frequencies;
+  return frequencies_new;
 }
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
