@@ -36,6 +36,7 @@ stages:
     - cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON -DENABLE_WERROR=ON
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DENABLE_REGRESSION_TESTING=${REGRESSION_TESTING:-ON}
       -DBUILD_OWN_GROMACS=${BUILD_GROMACS} ${BUILD_GROMACS:+-DENABLE_WARNING_FLAGS=OFF}
+      ${CMAKE_GENERATOR:+-G${CMAKE_GENERATOR}}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
       ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON
       -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DWITH_GMX=OFF -DBUILD_XTP=OFF -DENABLE_REGRESSION_TESTING=OFF}
@@ -67,6 +68,7 @@ None Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: ""
+    CMAKE_GENERATOR: "Ninja"
   extends: .build
 
 Debug Clang:
@@ -74,6 +76,7 @@ Debug Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
   extends: .build
 
 Release GCC:
@@ -88,6 +91,7 @@ Release Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
   extends: .build
 
 Debug GCC Ubuntu:
@@ -103,6 +107,7 @@ Debug Clang Ubuntu:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "ubuntu"
   extends: .build
 
@@ -119,6 +124,7 @@ Release Clang Ubuntu:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "ubuntu"
   extends: .build
 
@@ -136,6 +142,7 @@ Debug Clang Rawhide:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_rawhide"
   extends: .build
   allow_failure: true
@@ -154,6 +161,7 @@ Release Clang Rawhide:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_rawhide"
   extends: .build
   allow_failure: true
@@ -172,6 +180,7 @@ Release Clang Minimal:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     MINIMAL: "yes"
     DISTRO: "fedora_nogmx"
   extends: .build
@@ -197,6 +206,7 @@ Release Clang GMX2016:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2016"
   extends: .build
 
@@ -213,6 +223,7 @@ Release Clang GMX2016D:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2016_d"
   extends: .build
 
@@ -229,6 +240,7 @@ Release Clang GMX2018:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2018"
   extends: .build
 
@@ -245,6 +257,7 @@ Release Clang GMX2018D:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2018_d"
   extends: .build
 
@@ -261,6 +274,7 @@ Release Clang GMX2019:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2019"
   extends: .build
 
@@ -277,6 +291,7 @@ Release Clang GMX2019D:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2019_d"
   extends: .build
 
@@ -294,6 +309,7 @@ Release Clang GMX2020:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2020"
     REGRESSION_TESTING: "OFF"
   extends: .build
@@ -312,6 +328,7 @@ Release Clang GMX2020D:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2020_d"
     REGRESSION_TESTING: "OFF"
   extends: .build
@@ -331,6 +348,7 @@ Release Clang GMX9999:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx9999"
     REGRESSION_TESTING: "OFF"
   extends: .build
@@ -351,6 +369,7 @@ Release Clang GMX9999D:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx9999_d"
     REGRESSION_TESTING: "OFF"
   extends: .build

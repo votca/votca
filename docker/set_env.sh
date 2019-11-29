@@ -29,6 +29,7 @@ if [[ $ENV -eq 1 ]]; then
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   add_to_docker_opts DOXYGEN=yes
   [[ ${TRAVIS_BUILD_STAGE_NAME} != "Deploy" ]] && add_to_docker_opts DOXYGEN_COVERAGE=yes
+  [[ $CXX = clang++ ]] && add_to_docker_opts CMAKE_GENERATOR="Ninja"
 elif [[ $ENV -eq 2 ]]; then
   # Release build, which gets push to dockerhub, first half of the tests (for tools, csg, csg-tutorials and votca)
   add_to_docker_opts TESTING=ON
@@ -36,11 +37,13 @@ elif [[ $ENV -eq 2 ]]; then
   # only run csg-tutorials regressions tests for csg, tools, csg-tutorials and votca
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools|csg-tutorials|votca) ]] && add_to_docker_opts REGRESSION_TESTING=ON || export SKIP=yes
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
+  [[ $CXX = clang++ ]] && add_to_docker_opts CMAKE_GENERATOR="Ninja"
 elif [[ $ENV -eq 3 ]]; then
   # Debug build (no time problem as no tests are run)
   add_to_docker_opts TESTING=OFF
   add_to_docker_opts CMAKE_BUILD_TYPE=Debug
   add_to_docker_opts CLANG_FORMAT=yes
+  [[ $CXX = clang++ ]] && add_to_docker_opts CMAKE_GENERATOR="Ninja"
 elif [[ $ENV -eq 4 ]]; then
   # Coverage build on Ubuntu, Fedora has issues, see #67
   # Build with no cmake_build_type and coverage on, first half of the tests
