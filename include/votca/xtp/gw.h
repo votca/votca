@@ -100,7 +100,7 @@ class GW {
   void PrintGWA_Energies() const;
 
   Eigen::VectorXd SolveQP_Grid(const Eigen::VectorXd& frequencies) const;
-  Eigen::VectorXd SolveQP_FixedPoint(Eigen::VectorXd frequencies) const;
+  Eigen::VectorXd SolveQP_FixedPoint(const Eigen::VectorXd& frequencies) const;
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
 };
