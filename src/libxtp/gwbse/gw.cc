@@ -253,7 +253,6 @@ Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
 Eigen::VectorXd GW::SolveQP_FixedPoint(Eigen::VectorXd frequencies) const {
   for (Index i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
     Eigen::VectorXd frequencies_prev = frequencies;
-    // Do fixed point iteration
     frequencies = _Sigma_x.diagonal() +
                   _sigma->CalcCorrelationDiag(frequencies) - _vxc.diagonal() +
                   _dft_energies.segment(_opt.qpmin, _qptotal);
