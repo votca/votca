@@ -230,7 +230,7 @@ Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
       if (targ_prev * targ < 0.0) {  // Sign change
         double dsigc_dfreq = (sigc - sigc_prev) / _opt.qp_grid_spacing;
         double dtarg_dfreq = (targ - targ_prev) / _opt.qp_grid_spacing;
-        // Calculate fixed-point estimate
+        // Calculate fixed-point estimate of the pole (=root)
         double pole = freq_prev - targ_prev / dtarg_dfreq;
         // Calculate pole weight Z \in (0, 1)
         double pole_weight = 1.0 / (1.0 - dsigc_dfreq);
