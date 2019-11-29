@@ -178,7 +178,7 @@ void GW::CalculateGWPerturbation() {
       XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Solved QP equation on QP grid" << std::flush;
     } else if (_opt.qp_solver == "fixedpoint") {
-      frequencies = SolveQP_SelfConsistent(frequencies);
+      frequencies = SolveQP_FixedPoint(frequencies);
       XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Solved QP equation self-consistently"
           << std::flush;
@@ -223,10 +223,13 @@ Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
   return _qpgrid->Evaluate(frequencies);
 }
 
-Eigen::VectorXd GW::SolveQP_SelfConsistent(Eigen::VectorXd frequencies) const {
+Eigen::VectorXd GW::SolveQP_FixedPoint(Eigen::VectorXd frequencies) const {
   for (Index i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
     Eigen::VectorXd frequencies_prev = frequencies;
-    frequencies = IterateQP_FixedPoint(frequencies);
+    // Do fixed point iteration
+    frequencies = _Sigma_x.diagonal() +
+                  _sigma->CalcCorrelationDiag(frequencies) - _vxc.diagonal() +
+                  _dft_energies.segment(_opt.qpmin, _qptotal);
     if (tools::globals::verbose) {
       XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " G_Iteration:" << i_freq
@@ -249,11 +252,6 @@ Eigen::VectorXd GW::SolveQP_SelfConsistent(Eigen::VectorXd frequencies) const {
     }
   }
   return frequencies;
-}
-
-Eigen::VectorXd GW::IterateQP_FixedPoint(Eigen::VectorXd frequencies) const {
-  return _Sigma_x.diagonal() + _sigma->CalcCorrelationDiag(frequencies) -
-         _vxc.diagonal() + _dft_energies.segment(_opt.qpmin, _qptotal);
 }
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
