@@ -213,38 +213,38 @@ Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
   const Eigen::VectorXd intercept =
       _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
       _vxc.diagonal();
-  Eigen::VectorXd offset =
-      Eigen::VectorXd::LinSpaced(_opt.qp_grid_steps, -range, range);
-  Eigen::MatrixXd sigc_mat = Eigen::MatrixXd::Zero(qptotal, _opt.qp_grid_steps);
-  for (Index i_node = 0; i_node < _opt.qp_grid_steps; ++i_node) {
-    sigc_mat.col(i_node) =
-        _sigma->CalcCorrelationDiag(frequencies.array() + offset[i_node]);
-  }
   Eigen::VectorXd frequencies_new = frequencies;
-  for (Index level = 0; level < qptotal; ++level) {
-    const Eigen::VectorXd freq = frequencies[level] + offset.array();
-    const Eigen::VectorXd sigc = sigc_mat.row(level);
-    const Eigen::VectorXd targ = sigc.array() + intercept[level] - freq.array();
+#pragma omp parallel for schedule(dynamic)
+  for (Index gw_level = 0; gw_level < qptotal; ++gw_level) {
+    const double frequency0 = frequencies[gw_level];
+    const double intercept0 = intercept[gw_level];
+    double freq_prev = frequency0 - range;
+    double sigc_prev = _sigma->CalcCorrelation(gw_level, gw_level, freq_prev);
+    double targ_prev = sigc_prev + intercept0 - freq_prev;
     double qp_energy = 0.0;
     double pole_weight_max = -1.0;
-    for (Index i_node = 0; i_node < _opt.qp_grid_steps - 1; ++i_node) {
-      if (targ[i_node] * targ[i_node + 1] < 0.0) {  // Sign change
-        double dsigc_dfreq = (sigc[i_node + 1] - sigc[i_node]) /
-                             (freq[i_node + 1] - freq[i_node]);
-        double dtarg_dfreq = (targ[i_node + 1] - targ[i_node]) /
-                             (freq[i_node + 1] - freq[i_node]);
-        double pole =
-            freq[i_node] - targ[i_node] / dtarg_dfreq;  // Fixed-point estimate
-        double pole_weight =
-            1.0 / (1.0 - dsigc_dfreq);  // Pole weight Z in (0, 1)
+    for (Index i_node = 1; i_node < _opt.qp_grid_steps; ++i_node) {
+      double freq = frequency0 - range + (double)i_node * _opt.qp_grid_spacing;
+      double sigc = _sigma->CalcCorrelation(gw_level, gw_level, freq);
+      double targ = sigc + intercept0 - freq;
+      if (targ_prev * targ < 0.0) {  // Sign change
+        double dsigc_dfreq = (sigc - sigc_prev) / _opt.qp_grid_spacing;
+        double dtarg_dfreq = (targ - targ_prev) / _opt.qp_grid_spacing;
+        // Calculate fixed-point estimate
+        double pole = freq_prev - targ_prev / dtarg_dfreq;
+        // Calculate pole weight Z \in (0, 1)
+        double pole_weight = 1.0 / (1.0 - dsigc_dfreq);
         if (pole_weight >= 1e-5 && pole_weight > pole_weight_max) {
           qp_energy = pole;
           pole_weight_max = pole_weight;
         }
       }
+      freq_prev = freq;
+      sigc_prev = sigc;
+      targ_prev = targ;
     }
     if (pole_weight_max >= 0.0) {
-      frequencies_new[level] = qp_energy;
+      frequencies_new[gw_level] = qp_energy;
     }
   }
   return frequencies_new;
