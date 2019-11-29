@@ -29,50 +29,37 @@ void Sigma_Exact::PrepareScreening() {
   _rpa_solution = _rpa.Diagonalize_H2p();
   _residues = std::vector<Eigen::MatrixXd>(_qptotal);
 #pragma omp parallel for
-  for (Index m = 0; m < _qptotal; m++) {
-    _residues[m] = CalcResidues(m);
+  for (Index gw_level = 0; gw_level < _qptotal; gw_level++) {
+    _residues[gw_level] = CalcResidues(gw_level);
   }
   return;
 }
 
-Eigen::VectorXd Sigma_Exact::CalcCorrelationDiag(
-    const Eigen::VectorXd& frequencies) const {
-  const Index rpasize = _rpa_solution.omega.size();  // TODO: Rename
-  Eigen::VectorXd result = Eigen::VectorXd::Zero(_qptotal);
-#pragma omp parallel for
-  for (Index m = 0; m < _qptotal; m++) {
-    double sigmc = 0.0;
-    for (Index s = 0; s < rpasize; s++) {
-      sigmc += CalcSigmaC(m, m, s, frequencies(m));
-    }
-    // Multiply with factor 2.0 to sum over both (identical) spin states
-    result(m) = 2.0 * sigmc;
-  }
-  return result;
-}
-
-Eigen::MatrixXd Sigma_Exact::CalcCorrelationOffDiag(
-    const Eigen::VectorXd& frequencies) const {
+double Sigma_Exact::CalcCorrelation(Index gw_level1, Index gw_level2,
+                                    double frequency) const {
+  const double eta = _opt.eta;
+  const Index lumo = _opt.homo + 1;
+  const Index n_occ = lumo - _opt.rpamin;
+  const Index n_unocc = _opt.rpamax - _opt.homo;
   const Index rpasize = _rpa_solution.omega.size();
-  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
-#pragma omp parallel for
-  for (Index m = 0; m < _qptotal; m++) {
-    for (Index n = m + 1; n < _qptotal; n++) {
-      double sigmc = 0.0;
-      for (Index s = 0; s < rpasize; s++) {
-        double sigmc_m = CalcSigmaC(m, n, s, frequencies(m));
-        double sigmc_n = CalcSigmaC(m, n, s, frequencies(n));
-        sigmc += sigmc_m + sigmc_n;
-      }
-      // Multiply with factor 2.0 to sum over both (identical) spin states
-      result(m, n) = 0.5 * 2.0 * sigmc;
-      result(n, m) = 0.5 * 2.0 * sigmc;
-    }
+  double sigma_c = 0.0;
+  for (Index s = 0; s < rpasize; s++) {
+    const double eigenvalue = _rpa_solution.omega(s);
+    const Eigen::VectorXd& res1 = _residues[gw_level1].col(s);
+    const Eigen::VectorXd& res2 = _residues[gw_level2].col(s);
+    const Eigen::VectorXd res_12 = res1.cwiseProduct(res2);
+    Eigen::ArrayXd temp = -_rpa.getRPAInputEnergies().array() + frequency;
+    temp.segment(0, n_occ) += eigenvalue;
+    temp.segment(n_occ, n_unocc) -= eigenvalue;
+    const Eigen::ArrayXd numer = res_12.array() * temp;
+    const Eigen::ArrayXd denom = temp.abs2() + eta * eta;
+    sigma_c += (numer / denom).sum();
   }
-  return result;
+  // Multiply with factor 2.0 to sum over both (identical) spin states
+  return 2.0 * sigma_c;
 }
 
-Eigen::MatrixXd Sigma_Exact::CalcResidues(Index m) const {
+Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level) const {
   const Index lumo = _opt.homo + 1;
   const Index n_occ = lumo - _opt.rpamin;
   const Index n_unocc = _opt.rpamax - _opt.homo;
@@ -80,31 +67,16 @@ Eigen::MatrixXd Sigma_Exact::CalcResidues(Index m) const {
   const Index qpoffset = _opt.qpmin - _opt.rpamin;
   const Index auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, n_unocc);
-  const Eigen::MatrixXd Mmn_mT = _Mmn[m + qpoffset].transpose();
+  const Eigen::MatrixXd Mmn_i_T = _Mmn[gw_level + qpoffset].transpose();
   Eigen::MatrixXd res = Eigen::MatrixXd::Zero(_rpatotal, rpasize);
   for (Index v = 0; v < n_occ; v++) {  // Sum over v
-    const Eigen::MatrixXd fc =
-        _Mmn[v].block(n_occ, 0, n_unocc, auxsize) * Mmn_mT;  // Sum over chi
-    res += fc.transpose() * _rpa_solution.XpY.block(vc.I(v, 0), 0, n_unocc,
-                                                    rpasize);  // Sum over c
+    const Eigen::MatrixXd& Mmn_v = _Mmn[v].block(n_occ, 0, n_unocc, auxsize);
+    const Eigen::MatrixXd fc = Mmn_v * Mmn_i_T;  // Sum over chi
+    const Eigen::MatrixXd& XpY_v =
+        _rpa_solution.XpY.block(vc.I(v, 0), 0, n_unocc, rpasize);
+    res += fc.transpose() * XpY_v;  // Sum over c
   }
   return res;
-}
-
-double Sigma_Exact::CalcSigmaC(Index m, Index n, Index s, double freq) const {
-  const double eta = _opt.eta;
-  const Index lumo = _opt.homo + 1;
-  const Index n_occ = lumo - _opt.rpamin;
-  const Index n_unocc = _opt.rpamax - _opt.homo;
-  const double eigenvalue = _rpa_solution.omega(s);
-  const Eigen::VectorXd res_mn =
-      _residues[m].col(s).cwiseProduct(_residues[n].col(s));
-  Eigen::ArrayXd temp = -_rpa.getRPAInputEnergies().array() + freq;
-  temp.segment(0, n_occ) += eigenvalue;
-  temp.segment(n_occ, n_unocc) -= eigenvalue;
-  const Eigen::ArrayXd numer = res_mn.array() * temp;
-  const Eigen::ArrayXd denom = temp.abs2() + eta * eta;
-  return (numer / denom).sum();
 }
 
 }  // namespace xtp

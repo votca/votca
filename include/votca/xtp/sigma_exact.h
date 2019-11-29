@@ -36,18 +36,15 @@ class Sigma_Exact : public Sigma_base {
 
   // Sets up the screening parametrisation
   void PrepareScreening();
-  // Calculates Sigma_c diag elements
-  Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies) const;
-  // Calculates Sigma_c offdiag elements
-  Eigen::MatrixXd CalcCorrelationOffDiag(
-      const Eigen::VectorXd& frequencies) const;
+  // Calculates Sigma_c elements
+  double CalcCorrelation(Index gw_level1, Index gw_level2,
+                         double frequency) const override;
 
  private:
   RPA::rpa_eigensolution _rpa_solution;    // Eigenvalues, eigenvectors from RPA
   std::vector<Eigen::MatrixXd> _residues;  // Residues
 
-  Eigen::MatrixXd CalcResidues(Index m) const;
-  double CalcSigmaC(Index m, Index n, Index s, double freq) const;
+  Eigen::MatrixXd CalcResidues(Index gw_level) const;
 };
 }  // namespace xtp
 }  // namespace votca
