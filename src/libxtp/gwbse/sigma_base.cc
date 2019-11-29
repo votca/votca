@@ -48,11 +48,11 @@ Eigen::MatrixXd Sigma_base::CalcExchangeMatrix() const {
 
 Eigen::VectorXd Sigma_base::CalcCorrelationDiag(
     const Eigen::VectorXd& frequencies) const {
-  Eigen::VectorXd result = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
+  Eigen::VectorXd result = Eigen::VectorXd::Zero(_qptotal);
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < _qptotal; gw_level++) {
     double sigma_c = CalcCorrelation(gw_level, gw_level, frequencies[gw_level]);
-    result(gw_level, gw_level) = sigma_c;
+    result(gw_level) = sigma_c;
   }
   return result;
 }
