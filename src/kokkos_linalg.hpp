@@ -79,6 +79,35 @@ typename Matrix::value_type trace(const Matrix& A) {
   assert(size(A) == 9 && "Only 3x3 dimensions allowed");
   return A[0] + A[4] + A[8];
 }
+
+template <class Vector>
+typename std::array<typename Vector::value_type, 3> scale_3d(
+    const typename Vector::value_type s, const Vector& v) {
+  assert(size(v) == 3 && "Dimension must be 3");
+  std::array<typename Vector::value_type, 3> result;
+  for (int i = 0; i < 3; ++i) result[i] = s * v[i];
+
+  return result;
+}
+
+template <class Vector>
+typename std::array<std::array<typename Vector::value_type, 3>, 3> dualbase_3d(
+    const Vector& a, const Vector& b, const Vector& c) {
+  assert(size(a) == size(b) && "Dimensions of vector a and b do not match");
+  assert(size(b) == size(c) && "Dimensions of vector b and c do not match");
+  assert(size(a) == 3 && "Dimension must be 3");
+
+  std::array<std::array<typename Vector::value_type, 3>, 3> result;
+
+  typename Vector::value_type V = dot(a, cross(b, c));
+  typename Vector::value_type V_inv = 1.0 / V;
+
+  result[0] = scale_3d(V_inv, cross(b, c));
+  result[1] = scale_3d(V_inv, cross(c, a));
+  result[2] = scale_3d(V_inv, cross(a, b));
+
+  return result;
+}
 }  // namespace kokkos_linalg_3d
 
 #endif

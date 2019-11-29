@@ -151,4 +151,57 @@ BOOST_AUTO_TEST_CASE(cross_matrix_product) {
   Kokkos::finalize();
 }
 
+BOOST_AUTO_TEST_CASE(scale_3d) {
+  Kokkos::initialize();
+  {
+    Kokkos::View<double[3]> v("v");
+    v(0) = -1.2;
+    v(1) = 2.4;
+    v(2) = 1000.0;
+    double s = 0.25;
+
+    auto result = kokkos_linalg_3d::scale_3d(s, v);
+
+    BOOST_CHECK_CLOSE(result[0], -0.3, 1e-9);
+    BOOST_CHECK_CLOSE(result[1], 0.6, 1e-9);
+    BOOST_CHECK_CLOSE(result[2], 250.0, 1e-9);
+  }
+  Kokkos::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(dualbase_3d) {
+  Kokkos::initialize();
+  {
+    Kokkos::View<double[3]> a("a");
+    a(0) = 1.0;
+    a(1) = 1.0;
+    a(2) = 1.0;
+
+    Kokkos::View<double[3]> b("b");
+    b(0) = -1.0;
+    b(1) = 1.0;
+    b(2) = 1.0;
+
+    Kokkos::View<double[3]> c("c");
+    c(0) = 1.0;
+    c(1) = -1.0;
+    c(2) = 1.0;
+
+    auto result = kokkos_linalg_3d::dualbase_3d(a, b, c);
+
+    BOOST_CHECK_CLOSE(result[0][0], 0.5, 1e-9);
+    BOOST_CHECK_CLOSE(result[0][1], 0.5, 1e-9);
+    BOOST_CHECK_CLOSE(result[0][2], 0.0, 1e-9);
+
+    BOOST_CHECK_CLOSE(result[1][0], -0.5, 1e-9);
+    BOOST_CHECK_CLOSE(result[1][1], 0.0, 1e-9);
+    BOOST_CHECK_CLOSE(result[1][2], 0.5, 1e-9);
+
+    BOOST_CHECK_CLOSE(result[2][0], 0.0, 1e-9);
+    BOOST_CHECK_CLOSE(result[2][1], -0.5, 1e-9);
+    BOOST_CHECK_CLOSE(result[2][2], 0.5, 1e-9);
+  }
+  Kokkos::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()
