@@ -22,7 +22,6 @@
 #define _VOTCA_XTP_GW_H
 
 #include "votca/xtp/logger.h"
-#include "votca/xtp/qpgrid.h"
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/sigma_base.h>
@@ -87,7 +86,6 @@ class GW {
   options _opt;
 
   std::unique_ptr<Sigma_base> _sigma = nullptr;
-  std::unique_ptr<QPGrid> _qpgrid = nullptr;
   Logger& _log;
   TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _vxc;

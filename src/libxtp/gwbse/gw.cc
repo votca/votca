@@ -44,17 +44,6 @@ void GW::configure(const options& opt) {
   _sigma->configure(sigma_opt);
   _Sigma_x = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
   _Sigma_c = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
-  if (_opt.qp_solver == "grid") {
-    QPGrid grid(*_sigma);
-    QPGrid::options grid_opt;
-    grid_opt.homo = _opt.homo;
-    grid_opt.qpmin = _opt.qpmin;
-    grid_opt.qpmax = _opt.qpmax;
-    grid_opt.steps = _opt.qp_grid_steps;
-    grid_opt.spacing = _opt.qp_grid_spacing;
-    grid.configure(grid_opt);
-    _qpgrid = std::make_unique<QPGrid>(grid);
-  }
 }
 
 double GW::CalcHomoLumoShift(Eigen::VectorXd frequencies) const {
@@ -218,9 +207,47 @@ void GW::CalculateGWPerturbation() {
 }
 
 Eigen::VectorXd GW::SolveQP_Grid(Eigen::VectorXd frequencies) const {
-  _qpgrid->setEnergyIntercept(_dft_energies.segment(_opt.qpmin, _qptotal) +
-                              _Sigma_x.diagonal() - _vxc.diagonal());
-  return _qpgrid->Evaluate(frequencies);
+  const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
+  const double range =
+      _opt.qp_grid_spacing * (double)(_opt.qp_grid_steps - 1) / 2.0;
+  const Eigen::VectorXd intercept =
+      _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
+      _vxc.diagonal();
+  Eigen::VectorXd offset =
+      Eigen::VectorXd::LinSpaced(_opt.qp_grid_steps, -range, range);
+  Eigen::MatrixXd sigc_mat = Eigen::MatrixXd::Zero(qptotal, _opt.qp_grid_steps);
+  for (Index i_node = 0; i_node < _opt.qp_grid_steps; ++i_node) {
+    sigc_mat.col(i_node) =
+        _sigma->CalcCorrelationDiag(frequencies.array() + offset[i_node]);
+  }
+  Eigen::VectorXd frequencies_new = frequencies;
+  for (Index level = 0; level < qptotal; ++level) {
+    const Eigen::VectorXd freq = frequencies[level] + offset.array();
+    const Eigen::VectorXd sigc = sigc_mat.row(level);
+    const Eigen::VectorXd targ = sigc.array() + intercept[level] - freq.array();
+    double qp_energy = 0.0;
+    double pole_weight_max = -1.0;
+    for (Index i_node = 0; i_node < _opt.qp_grid_steps - 1; ++i_node) {
+      if (targ[i_node] * targ[i_node + 1] < 0.0) {  // Sign change
+        double dsigc_dfreq = (sigc[i_node + 1] - sigc[i_node]) /
+                             (freq[i_node + 1] - freq[i_node]);
+        double dtarg_dfreq = (targ[i_node + 1] - targ[i_node]) /
+                             (freq[i_node + 1] - freq[i_node]);
+        double pole =
+            freq[i_node] - targ[i_node] / dtarg_dfreq;  // Fixed-point estimate
+        double pole_weight =
+            1.0 / (1.0 - dsigc_dfreq);  // Pole weight Z in (0, 1)
+        if (pole_weight >= 1e-5 && pole_weight > pole_weight_max) {
+          qp_energy = pole;
+          pole_weight_max = pole_weight;
+        }
+      }
+    }
+    if (pole_weight_max >= 0.0) {
+      frequencies_new[level] = qp_energy;
+    }
+  }
+  return frequencies_new;
 }
 
 Eigen::VectorXd GW::SolveQP_FixedPoint(Eigen::VectorXd frequencies) const {
