@@ -22,8 +22,8 @@ namespace csg {
 
 Eigen::Vector3d OrthorhombicBox::BCShortestConnection(
     const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const {
-  Eigen::Array3d box = _box.diagonal();
-  Eigen::Array3d r_ij = r_j - r_i;
+  const Eigen::Array3d box = _box.diagonal();
+  const Eigen::Array3d r_ij = r_j - r_i;
   return (r_ij - box * (r_ij / box).round()).matrix();
 }
 

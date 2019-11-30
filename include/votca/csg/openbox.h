@@ -26,10 +26,10 @@ namespace csg {
 class OpenBox : public BoundaryCondition {
 
  public:
-  Eigen::Vector3d BCShortestConnection(
-      const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const override;
+  Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r_i,
+                                       const Eigen::Vector3d &r_j) const final;
 
-  eBoxtype getBoxType() override { return typeOpen; }
+  eBoxtype getBoxType() final { return typeOpen; }
 };
 
 }  // namespace csg
