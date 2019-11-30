@@ -3,6 +3,13 @@
 [![Build Status](https://travis-ci.org/votca/xtp.svg?branch=master)](https://travis-ci.org/votca/xtp)
 [![pipeline status](https://gitlab.com/votca/xtp/badges/master/pipeline.svg)](https://gitlab.com/votca/xtp/commits/master)
 
+VOTCA-XTP is a library which allows you to calculate the electronic properties of organic materials, e.g.
+- excited state properties via GW-BSE
+- spectra using QM/MM in conjunction with excited state treatment via GW-BSE
+- energetic disorder for electrons/holes and excitions via QM/MM or fast MM/MM multipole methods
+- electron and hole mobilities using electronic couplings and kinetic Monte-Carlo
+- electron, hole, singlet and triplet diffusion constants using electronic couplings and kinetic Monte-Carlo
+
 Installation instructions and developer information can be found
 [here](https://github.com/votca/votca/blob/master/share/doc/INSTALL.md)
 
