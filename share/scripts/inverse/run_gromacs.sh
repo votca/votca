@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,6 +60,9 @@ grompp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
 grompp=( $(csg_get_property cg.inverse.gromacs.grompp.bin) )
 [[ -n "$(type -p ${grompp[0]})" ]] || die "${0##*/}: grompp binary '${grompp[0]}' not found"
+
+gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
+[[ ${gmx_ver} = *"VERSION 2020"* ]] && die "GROMACS 2020 doesn't support tabulated interactions, that are needed for coarse-graining (see and comment on https://redmine.gromacs.org/issues/1347). Please use GROMACS 2019 for now."
 
 traj=$(csg_get_property cg.inverse.gromacs.traj)
 # in main simulation we usually do care about traj and temperature
@@ -177,7 +180,6 @@ if [[ ${mdrun_opts} != *tableb* ]]; then
     [[ -f $i ]] && tables+=" $i"
   done
   if [[ -n ${tables} ]]; then
-    gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
     msg --color blue --to-stderr "Automatically added '-tableb${tables} to mdrun options (add -tableb option to cg.inverse.gromacs.mdrun.opts yourself if this is wrong)"
     mdrun_opts+=" -tableb${tables}"
   fi
