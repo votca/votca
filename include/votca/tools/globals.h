@@ -22,6 +22,15 @@
 #include <votca/tools/votca_config.h>
 
 namespace votca {
+
+struct Log {
+  /// be loud and noisy
+  enum Level { error = 0, warning = 1, info = 2, debug = 3 };
+
+  static Level current_level;
+
+  static bool verbose() { return current_level > Level::error; }
+};
 namespace tools {
 
 /**
@@ -31,8 +40,7 @@ namespace tools {
 */
 
 struct globals {
-  /// be loud and noisy
-  static bool verbose;
+
   /// web of the package
   static std::string url;
   /// email address of the developers
