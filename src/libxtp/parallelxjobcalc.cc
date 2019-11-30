@@ -35,12 +35,12 @@ bool ParallelXJobCalc<JobContainer>::EvaluateFrame(const Topology &top) {
   std::string progFile = _jobfile;
   std::unique_ptr<JobOperator> master = std::unique_ptr<JobOperator>(
       new JobOperator(-1, top, *this, _openmp_threads));
-  master->getLogger().setReportLevel(logDEBUG);
+  master->getLogger().setReportLevel(Log::current_level);
   master->getLogger().setMultithreading(true);
-  master->getLogger().setPreface(logINFO, "\nMST INF");
-  master->getLogger().setPreface(logERROR, "\nMST ERR");
-  master->getLogger().setPreface(logWARNING, "\nMST WAR");
-  master->getLogger().setPreface(logDEBUG, "\nMST DBG");
+  master->getLogger().setPreface(Log::info, "\nMST INF");
+  master->getLogger().setPreface(Log::error, "\nMST ERR");
+  master->getLogger().setPreface(Log::warning, "\nMST WAR");
+  master->getLogger().setPreface(Log::debug, "\nMST DBG");
   _progObs->InitFromProgFile(progFile, *(master.get()));
 
   // CREATE + EXECUTE THREADS (XJOB HANDLERS)
@@ -122,15 +122,16 @@ void ParallelXJobCalc<JobContainer>::CustomizeLogger(QMThread &thread) {
 
   // CONFIGURE LOGGER
   Logger &log = thread.getLogger();
-  log.setReportLevel(logDEBUG);
+  log.setReportLevel(Log::current_level);
   log.setMultithreading(_maverick);
 
-  log.setPreface(logINFO, (format("\nT%1$02d INF ...") % thread.getId()).str());
-  log.setPreface(logERROR,
+  log.setPreface(Log::info,
+                 (format("\nT%1$02d INF ...") % thread.getId()).str());
+  log.setPreface(Log::error,
                  (format("\nT%1$02d ERR ...") % thread.getId()).str());
-  log.setPreface(logWARNING,
+  log.setPreface(Log::warning,
                  (format("\nT%1$02d WAR ...") % thread.getId()).str());
-  log.setPreface(logDEBUG,
+  log.setPreface(Log::debug,
                  (format("\nT%1$02d DBG ...") % thread.getId()).str());
 }
 

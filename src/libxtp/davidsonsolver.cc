@@ -33,36 +33,36 @@ DavidsonSolver::DavidsonSolver(Logger &log) : _log(log) {}
 
 void DavidsonSolver::printTiming(
     const std::chrono::time_point<std::chrono::system_clock> &start) const {
-  XTP_LOG_SAVE(Log::error, _log)
+  XTP_LOG(Log::error, _log)
       << TimeStamp() << "-----------------------------------" << flush;
   std::chrono::time_point<std::chrono::system_clock> end =
       std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = end - start;
-  XTP_LOG_SAVE(Log::error, _log) << TimeStamp() << "- Davidson ran for "
-                                 << elapsed_time.count() << "secs." << flush;
-  XTP_LOG_SAVE(Log::error, _log)
+  XTP_LOG(Log::error, _log) << TimeStamp() << "- Davidson ran for "
+                            << elapsed_time.count() << "secs." << flush;
+  XTP_LOG(Log::error, _log)
       << TimeStamp() << "-----------------------------------" << flush;
 }
 
 void DavidsonSolver::checkOptions(Index operator_size) {
   //. search space exceeding the system size
   if (_max_search_space > operator_size) {
-    XTP_LOG_SAVE(Log::error, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " == Warning : Max search space ("
         << _max_search_space << ") larger than system size (" << operator_size
         << ")" << flush;
 
     _max_search_space = operator_size;
-    XTP_LOG_SAVE(Log::error, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " == Warning : Max search space set to "
         << operator_size << flush;
 
     this->_davidson_ortho = ORTHO::QR;
-    XTP_LOG_SAVE(Log::error, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp()
         << " == Warning : Orthogonalization set to QR for stabilty " << flush;
 
-    XTP_LOG_SAVE(Log::error, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp()
         << " == Warning : If problems appear, try asking for less than "
         << Index(operator_size / 10) << " eigenvalues" << flush;
@@ -70,7 +70,7 @@ void DavidsonSolver::checkOptions(Index operator_size) {
 
   if (this->_matrix_type == MATRIX_TYPE::HAM) {
     this->_davidson_ortho = ORTHO::QR;
-    XTP_LOG_SAVE(Log::error, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp()
         << " == Warning : Orthogonalization set to QR for non-symmetric matrix"
         << flush;
@@ -79,36 +79,31 @@ void DavidsonSolver::checkOptions(Index operator_size) {
 
 void DavidsonSolver::printOptions(Index operator_size) const {
 
-  XTP_LOG_SAVE(Log::error, _log)
-      << TimeStamp() << " Davidson Solver using " << OPENMP::getMaxThreads()
-      << " threads." << flush;
-  XTP_LOG_SAVE(Log::error, _log)
-      << TimeStamp() << " Tolerance : " << _tol << flush;
+  XTP_LOG(Log::error, _log) << TimeStamp() << " Davidson Solver using "
+                            << OPENMP::getMaxThreads() << " threads." << flush;
+  XTP_LOG(Log::error, _log) << TimeStamp() << " Tolerance : " << _tol << flush;
 
   switch (this->_davidson_correction) {
     case CORR::DPR:
-      XTP_LOG_SAVE(Log::error, _log)
-          << TimeStamp() << " DPR Correction" << flush;
+      XTP_LOG(Log::error, _log) << TimeStamp() << " DPR Correction" << flush;
       break;
     case CORR::OLSEN:
-      XTP_LOG_SAVE(Log::error, _log)
-          << TimeStamp() << " Olsen Correction" << flush;
+      XTP_LOG(Log::error, _log) << TimeStamp() << " Olsen Correction" << flush;
       break;
   }
 
   switch (this->_davidson_ortho) {
     case ORTHO::GS:
-      XTP_LOG_SAVE(Log::error, _log)
+      XTP_LOG(Log::error, _log)
           << TimeStamp() << " Gram-Schmidt Orthogonalization" << flush;
       break;
     case ORTHO::QR:
-      XTP_LOG_SAVE(Log::error, _log)
+      XTP_LOG(Log::error, _log)
           << TimeStamp() << " QR Orthogonalization" << flush;
       break;
   }
-  XTP_LOG_SAVE(Log::error, _log)
-      << TimeStamp() << " Matrix size : " << operator_size << 'x'
-      << operator_size << flush;
+  XTP_LOG(Log::error, _log) << TimeStamp() << " Matrix size : " << operator_size
+                            << 'x' << operator_size << flush;
 }
 
 void DavidsonSolver::printIterationData(
@@ -116,7 +111,7 @@ void DavidsonSolver::printIterationData(
     const DavidsonSolver::ProjectedSpace &proj, Index neigen) const {
 
   if (_i_iter == 0) {
-    XTP_LOG_SAVE(Log::error, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " iter\tSearch Space\tNorm" << flush;
   }
 
@@ -125,7 +120,7 @@ void DavidsonSolver::printIterationData(
     converged_roots += proj.root_converged[i];
   }
   double percent_converged = 100 * double(converged_roots) / double(neigen);
-  XTP_LOG_SAVE(Log::error, _log)
+  XTP_LOG(Log::error, _log)
       << TimeStamp()
       << format(" %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") % _i_iter %
              proj.search_space() % rep.res_norm().head(neigen).maxCoeff() %
@@ -413,8 +408,8 @@ void DavidsonSolver::storeConvergedData(
     const DavidsonSolver::RitzEigenPair &rep, Index neigen) {
 
   DavidsonSolver::storeEigenPairs(rep, neigen);
-  XTP_LOG_SAVE(Log::error, _log) << TimeStamp() << " Davidson converged after "
-                                 << _i_iter << " iterations." << flush;
+  XTP_LOG(Log::error, _log) << TimeStamp() << " Davidson converged after "
+                            << _i_iter << " iterations." << flush;
   _info = Eigen::ComputationInfo::Success;
 }
 
@@ -435,7 +430,7 @@ void DavidsonSolver::storeNotConvergedData(
     }
   }
   percent_converged /= double(neigen);
-  XTP_LOG_SAVE(Log::error, _log)
+  XTP_LOG(Log::error, _log)
       << TimeStamp() << "- Warning : Davidson "
       << format("%1$5.2f%%") % percent_converged << " converged after "
       << _i_iter << " iterations." << flush;

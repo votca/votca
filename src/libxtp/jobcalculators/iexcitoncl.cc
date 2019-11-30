@@ -113,8 +113,8 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
         std::to_string(seg_B.getId()) + " not found in neighborlist ");
   }
 
-  XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Evaluating pair " << job_ID
-                              << " [" << ID_A << ":" << ID_B << "]" << flush;
+  XTP_LOG(Log::error, pLog) << TimeStamp() << " Evaluating pair " << job_ID
+                            << " [" << ID_A << ":" << ID_B << "]" << flush;
 
   StaticMapper map(pLog);
   map.LoadMappingFile(_mapfile);
@@ -227,7 +227,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
   Index number_of_pairs = nblist.size();
   Index current_pairs = 0;
   Logger log;
-  log.setReportLevel(logINFO);
+  log.setReportLevel(Log::current_level);
 
   // load the QC results in a vector indexed by the pair ID
   xml.LoadFromXML(_jobfile);
@@ -251,7 +251,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
       QMPair* qmp = nblist.FindPair(&segA, &segB);
 
       if (qmp == nullptr) {
-        XTP_LOG_SAVE(logINFO, log)
+        XTP_LOG(Log::error, log)
             << "No pair " << idA << ":" << idB
             << " found in the neighbor list. Ignoring" << flush;
       } else {
@@ -267,8 +267,8 @@ void IEXCITON::ReadJobFile(Topology& top) {
   }  // finished loading from the file
 
   // loop over all pairs in the neighbor list
-  XTP_LOG_SAVE(logINFO, log)
-      << "Neighborlist size " << top.NBList().size() << flush;
+  XTP_LOG(Log::error, log) << "Neighborlist size " << top.NBList().size()
+                           << flush;
   for (QMPair* pair : top.NBList()) {
 
     if (records[pair->getId()] == nullptr) {
@@ -286,8 +286,8 @@ void IEXCITON::ReadJobFile(Topology& top) {
       pair->setJeff2(Jeff2, QMStateType::Singlet);
     }
   }
-  XTP_LOG_SAVE(logINFO, log) << "Pairs [total:updated] " << number_of_pairs
-                             << ":" << current_pairs << flush;
+  XTP_LOG(Log::error, log) << "Pairs [total:updated] " << number_of_pairs << ":"
+                           << current_pairs << flush;
   cout << log;
 }
 

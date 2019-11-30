@@ -84,7 +84,7 @@ void MolPol::Initialize(tools::Property& options) {
     log.setMultithreading(true);
 
     // Set-up QM package
-    XTP_LOG_SAVE(Log::error, log)
+    XTP_LOG(Log::error, log)
         << "Using package <" << qm_package << ">" << std::flush;
     QMPackageFactory::RegisterAll();
     std::unique_ptr<QMPackage> qmpack =
@@ -110,10 +110,7 @@ Eigen::Vector3d MolPol::Polarize(const PolarSegment& input,
                                  const Eigen::Vector3d& ext_field) const {
   Logger log;
   log.setMultithreading(false);
-  log.setPreface(Log::info, "\n ...");
-  log.setPreface(Log::error, "\n ...");
-  log.setPreface(Log::warning, "\n ...");
-  log.setPreface(Log::debug, "\n ...");
+  log.setCommonPreface("\n ...");
 
   log.setReportLevel(Log::current_level);
 

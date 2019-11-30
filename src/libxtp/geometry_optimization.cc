@@ -148,21 +148,21 @@ void GeometryOptimization::Evaluate() {
 void GeometryOptimization::Report(const BFGSTRM& bfgstrm, const Forces& forces,
                                   Logger& pLog) {
 
-  XTP_LOG_SAVE(Log::error, pLog) << std::flush;
-  XTP_LOG_SAVE(Log::error, pLog)
+  XTP_LOG(Log::error, pLog) << std::flush;
+  XTP_LOG(Log::error, pLog)
       << (boost::format("=========== OPTIMIZATION SUMMARY "
                         "================================= "))
              .str()
       << std::flush;
-  XTP_LOG_SAVE(Log::error, pLog)
+  XTP_LOG(Log::error, pLog)
       << "At iteration  " << bfgstrm.getIteration() << std::flush;
-  XTP_LOG_SAVE(Log::error, pLog)
+  XTP_LOG(Log::error, pLog)
       << (boost::format(" ---- POSITIONS (Angstrom)   ")).str() << std::flush;
-  XTP_LOG_SAVE(Log::error, pLog)
+  XTP_LOG(Log::error, pLog)
       << (boost::format(" Atom\t x\t  y\t  z ")).str() << std::flush;
   const Eigen::VectorXd& atomvec = bfgstrm.getParameters();
   for (Index i = 0; i < atomvec.size(); i += 3) {
-    XTP_LOG_SAVE(Log::error, pLog)
+    XTP_LOG(Log::error, pLog)
         << (boost::format("%1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f") % (i / 3) %
             (atomvec(i) * votca::tools::conv::bohr2ang) %
             (atomvec(i + 1) * votca::tools::conv::bohr2ang) %
@@ -170,12 +170,12 @@ void GeometryOptimization::Report(const BFGSTRM& bfgstrm, const Forces& forces,
                .str()
         << std::flush;
   }
-  XTP_LOG_SAVE(Log::error, pLog)
+  XTP_LOG(Log::error, pLog)
       << (boost::format("   Total energy:     %1$12.8f Hartree ") %
           bfgstrm.getCost())
              .str()
       << std::flush;
-  XTP_LOG_SAVE(Log::error, pLog)
+  XTP_LOG(Log::error, pLog)
       << (boost::format("   Trust radius:     %1$12.8f Bohr     ") %
           bfgstrm.getTrustRadius())
              .str()

@@ -466,10 +466,7 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   prop.LoadFromXML("bsecoupling.xml");
   BSECoupling coup;
   Logger log;
-  log.setPreface(logINFO, "\n... ...");
-  log.setPreface(logERROR, "\n... ...");
-  log.setPreface(logWARNING, "\n... ...");
-  log.setPreface(logDEBUG, "\n... ...");
+  log.setCommonPreface("\n... ...");
   coup.setLogger(&log);
 
   AB.QPdiag().eigenvalues().resize(34);
@@ -706,7 +703,7 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   AB.QPdiag().eigenvectors() = ReadMatrixFromString(Hqp_input_string);
 
   coup.Initialize(prop);
-  log.setReportLevel(logDEBUG);
+  log.setReportLevel(Log::error);
   coup.CalculateCouplings(A, B, AB);
   votca::tools::Property output;
   coup.Addoutput(output, A, B);

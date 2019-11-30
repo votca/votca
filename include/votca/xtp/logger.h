@@ -33,13 +33,7 @@ namespace xtp {
 /*
  * Macros to use the Logger: XTP_LOG(level,logger) << message
  */
-#define XTP_LOG(level, log)                              \
-  if (&log != nullptr && level > (log).getReportLevel()) \
-    ;                                                    \
-  else                                                   \
-    (log)(level)
-
-#define XTP_LOG_SAVE(level, log)      \
+#define XTP_LOG(level, log)           \
   if (level > (log).getReportLevel()) \
     ;                                 \
   else                                \
@@ -102,7 +96,7 @@ class LogBuffer : public std::stringbuf {
   std::ostringstream _stringStream;
 
   // Multithreading
-  bool _maverick;
+  bool _maverick = true;
 
   std::string _errorPreface = "\n ERROR   ";
   std::string _warnPreface = "\n WARNING ";
@@ -171,9 +165,13 @@ class Logger : public std::ostream {
   }
 
  public:
-  Logger() : std::ostream(new LogBuffer()), _ReportLevel(Log::current_level){};
+  Logger() : std::ostream(new LogBuffer()), _ReportLevel(Log::current_level) {
+    setMultithreading(_maverick);
+  }
   Logger(Log::Level ReportLevel)
-      : std::ostream(new LogBuffer()), _ReportLevel(ReportLevel) {}
+      : std::ostream(new LogBuffer()), _ReportLevel(ReportLevel) {
+    setMultithreading(_maverick);
+  }
 
   ~Logger() final {
     delete rdbuf();
