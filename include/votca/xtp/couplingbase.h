@@ -22,7 +22,7 @@
 #define VOTCA_XTP_COUPLINGBASE_H
 
 #include <boost/format.hpp>
-#include <votca/xtp/aomatrix.h>
+
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
 
@@ -56,58 +56,6 @@ class CouplingBase {
 
   Eigen::MatrixXd CalculateOverlapMatrix(const Orbitals& orbitalsAB) const;
 };
-
-inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(
-    const Orbitals& orbitalsAB) const {
-  AOBasis dftbasis = orbitalsAB.SetupDftBasis();
-  AOOverlap dftAOoverlap;
-  dftAOoverlap.Fill(dftbasis);
-  return dftAOoverlap.Matrix();
-}
-
-inline void CouplingBase::CheckAtomCoordinates(
-    const Orbitals& orbitalsA, const Orbitals& orbitalsB,
-    const Orbitals& orbitalsAB) const {
-  const QMMolecule& atomsA = orbitalsA.QMAtoms();
-  const QMMolecule& atomsB = orbitalsB.QMAtoms();
-  const QMMolecule& atomsAll = orbitalsAB.QMAtoms();
-  bool coordinates_agree = true;
-  for (Index i = 0; i < atomsAll.size(); i++) {
-    const QMAtom& dimer = atomsAll[i];
-    const QMAtom* monomer = nullptr;
-
-    if (i < atomsA.size()) {
-      monomer = &atomsA[i];
-    } else if (i < atomsB.size() + atomsA.size()) {
-      monomer = &atomsB[i - atomsA.size()];
-    } else {
-      // Linker
-      XTP_LOG(logERROR, *_pLog)
-          << (boost::format(
-                  "Neither Monomer A nor Monomer B contains "
-                  "atom %s on line %u. Hence, this atom is part of a linker.") %
-              dimer.getElement() % (i + 1))
-                 .str()
-          << std::flush;
-      continue;
-    }
-
-    if (!monomer->getPos().isApprox(dimer.getPos(), 0.001)) {
-      coordinates_agree = false;
-    }
-
-    if (monomer->getElement() != dimer.getElement()) {
-      throw std::runtime_error(
-          "\nERROR: Atom types do not agree in dimer and monomers\n");
-    }
-  }
-
-  if (!coordinates_agree) {
-    XTP_LOG(logINFO, *_pLog) << "======WARNING=======\n Coordinates of monomer "
-                                "and dimer atoms do not agree"
-                             << std::flush;
-  }
-}
 
 }  // namespace xtp
 }  // namespace votca

@@ -72,7 +72,7 @@ void Orca::WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
   tools::Elements elementInfo;
   BasisSet bs;
   bs.Load(bs_name);
-  XTP_LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << bs_name << flush;
+  XTP_LOG(Log::error, *_pLog) << "Loaded Basis Set " << bs_name << flush;
   ofstream el_file;
 
   el_file.open(el_file_name);
@@ -131,13 +131,14 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
   ECPBasisSet ecp;
   ecp.Load(_ecp_name);
 
-  XTP_LOG(logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
+  XTP_LOG(Log::error, *_pLog)
+      << "Loaded Pseudopotentials " << _ecp_name << flush;
 
   for (const std::string& element_name : UniqueElements) {
     try {
       ecp.getElement(element_name);
     } catch (std::runtime_error& error) {
-      XTP_LOG(logDEBUG, *_pLog)
+      XTP_LOG(Log::error, *_pLog)
           << "No pseudopotential for " << element_name << " available" << flush;
       continue;
     }
@@ -280,7 +281,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   inp_file.close();
   // and now generate a shell script to run both jobs, if neccessary
 
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::info, *_pLog)
       << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
   _scratch_dir = scratch_dir_backup + temp_suffix;
   WriteShellScript();
@@ -316,25 +317,25 @@ bool Orca::WriteShellScript() {
  */
 bool Orca::Run() {
 
-  XTP_LOG(logDEBUG, *_pLog) << "Running Orca job" << flush;
+  XTP_LOG(Log::error, *_pLog) << "Running Orca job" << flush;
 
   if (std::system(nullptr)) {
 
     std::string command = "cd " + _run_dir + "; sh " + _shell_file_name;
     Index check = std::system(command.c_str());
     if (check == -1) {
-      XTP_LOG(logERROR, *_pLog)
+      XTP_LOG(Log::error, *_pLog)
           << _input_file_name << " failed to start" << flush;
       return false;
     }
     if (CheckLogFile()) {
-      XTP_LOG(logDEBUG, *_pLog) << "Finished Orca job" << flush;
+      XTP_LOG(Log::error, *_pLog) << "Finished Orca job" << flush;
       return true;
     } else {
-      XTP_LOG(logDEBUG, *_pLog) << "Orca job failed" << flush;
+      XTP_LOG(Log::error, *_pLog) << "Orca job failed" << flush;
     }
   } else {
-    XTP_LOG(logERROR, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << _input_file_name << " failed to start" << flush;
     return false;
   }
@@ -395,7 +396,7 @@ StaticSegment Orca::GetCharges() const {
 
   StaticSegment result("charges", 0);
 
-  XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
+  XTP_LOG(Log::error, *_pLog) << "Parsing " << _log_file_name << flush;
   std::string log_file_name_full = _run_dir + "/" + _log_file_name;
   std::string line;
 
@@ -408,7 +409,7 @@ StaticSegment Orca::GetCharges() const {
     std::string::size_type charge_pos = line.find("CHELPG Charges");
 
     if (charge_pos != std::string::npos) {
-      XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
+      XTP_LOG(Log::error, *_pLog) << "Getting charges" << flush;
       getline(input_file, line);
       std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
       Index nfields = Index(row.size());
@@ -451,7 +452,7 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
 
     std::string::size_type pol_pos = line.find("THE POLARIZABILITY TENSOR");
     if (pol_pos != std::string::npos) {
-      XTP_LOG(logDEBUG, *_pLog) << "Getting polarizability" << flush;
+      XTP_LOG(Log::error, *_pLog) << "Getting polarizability" << flush;
       getline(input_file, line);
       getline(input_file, line);
       getline(input_file, line);
@@ -492,7 +493,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     orbitals.setECPName(_ecp_name);
   }
 
-  XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
+  XTP_LOG(Log::error, *_pLog) << "Parsing " << _log_file_name << flush;
   std::string log_file_name_full = _run_dir + "/" + _log_file_name;
   // check if LOG file is complete
   if (!CheckLogFile()) {
@@ -509,11 +510,11 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   std::ifstream input_file(log_file_name_full);
 
   if (input_file.fail()) {
-    XTP_LOG(logERROR, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << "File " << log_file_name_full << " not found " << flush;
     return false;
   } else {
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << "Reading Coordinates and occupationnumbers and energies from "
         << log_file_name_full << flush;
   }
@@ -535,10 +536,10 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
       std::string energy = results[4];
       boost::trim(energy);
       orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
-      XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") %
-                                    orbitals.getDFTTotalEnergy())
-                                       .str()
-                                << flush;
+      XTP_LOG(Log::error, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") %
+                                      orbitals.getDFTTotalEnergy())
+                                         .str()
+                                  << flush;
     }
 
     std::string::size_type HFX_pos = line.find("Fraction HF Exchange ScalHFX");
@@ -547,7 +548,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
                               boost::algorithm::token_compress_on);
       double ScaHFX = boost::lexical_cast<double>(results.back());
       orbitals.setScaHFX(ScaHFX);
-      XTP_LOG(logDEBUG, *_pLog)
+      XTP_LOG(Log::error, *_pLog)
           << "DFT with " << ScaHFX << " of HF exchange!" << flush;
     }
 
@@ -559,8 +560,8 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
           results[4];  // The 4th element of results vector is the Basis Dim
       boost::trim(dim);
       levels = boost::lexical_cast<Index>(dim);
-      XTP_LOG(logDEBUG, *_pLog) << "Basis Dimension: " << levels << flush;
-      XTP_LOG(logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
+      XTP_LOG(Log::info, *_pLog) << "Basis Dimension: " << levels << flush;
+      XTP_LOG(Log::info, *_pLog) << "Energy levels: " << levels << flush;
     }
 
     std::string::size_type OE_pos = line.find("ORBITAL ENERGIES");
@@ -571,7 +572,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
       getline(input_file, line);
       getline(input_file, line);
       if (line.find("E(Eh)") == std::string::npos) {
-        XTP_LOG(logDEBUG, *_pLog)
+        XTP_LOG(Log::error, *_pLog)
             << "Warning: Orbital Energies not found in log file" << flush;
       }
       for (Index i = 0; i < levels; i++) {
@@ -580,9 +581,9 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
         boost::trim(no);
         Index levelnumber = boost::lexical_cast<Index>(no);
         if (levelnumber != i) {
-          XTP_LOG(logDEBUG, *_pLog) << "Have a look at the orbital energies "
-                                       "something weird is going on"
-                                    << flush;
+          XTP_LOG(Log::error, *_pLog) << "Have a look at the orbital energies "
+                                         "something weird is going on"
+                                      << flush;
         }
         std::string oc = results[1];
         boost::trim(oc);
@@ -596,7 +597,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
           occupancy[i] = occ;
         } else {
           if (occ == 1) {
-            XTP_LOG(logDEBUG, *_pLog)
+            XTP_LOG(Log::error, *_pLog)
                 << "Watch out! No distinction between alpha and beta "
                    "electrons. Check if occ = 1 is suitable for your "
                    "calculation "
@@ -622,12 +623,12 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     }
   }
 
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::info, *_pLog)
       << "Alpha electrons: " << number_of_electrons << flush;
   Index occupied_levels = number_of_electrons;
   Index unoccupied_levels = levels - occupied_levels;
-  XTP_LOG(logDEBUG, *_pLog) << "Occupied levels: " << occupied_levels << flush;
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::info, *_pLog) << "Occupied levels: " << occupied_levels << flush;
+  XTP_LOG(Log::info, *_pLog)
       << "Unoccupied levels: " << unoccupied_levels << flush;
 
   /************************************************************/
@@ -645,7 +646,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     orbitals.MOs().eigenvalues()[i] = energies[i];
   }
 
-  XTP_LOG(logDEBUG, *_pLog) << "Done reading Log file" << flush;
+  XTP_LOG(Log::error, *_pLog) << "Done reading Log file" << flush;
 
   return found_success;
 }
@@ -657,7 +658,7 @@ void Orca::GetCoordinates(T& mol, string& line, ifstream& input_file) const {
   using Atom = typename std::iterator_traits<typename T::iterator>::value_type;
 
   if (coordinates_pos != std::string::npos) {
-    XTP_LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
+    XTP_LOG(Log::error, *_pLog) << "Getting the coordinates" << flush;
     bool has_QMAtoms = mol.size() > 0;
     // three garbage lines
     getline(input_file, line);
@@ -691,7 +692,7 @@ bool Orca::CheckLogFile() {
   ifstream input_file(_run_dir + "/" + _log_file_name);
 
   if (input_file.fail()) {
-    XTP_LOG(logERROR, *_pLog) << "Orca LOG is not found" << flush;
+    XTP_LOG(Log::error, *_pLog) << "Orca LOG is not found" << flush;
     return false;
   };
 
@@ -701,16 +702,16 @@ bool Orca::CheckLogFile() {
     boost::trim(line);
     std::string::size_type error = line.find("FATAL ERROR ENCOUNTERED");
     if (error != std::string::npos) {
-      XTP_LOG(logERROR, *_pLog) << "ORCA encountered a fatal error, maybe a "
-                                   "look in the log file may help."
-                                << flush;
+      XTP_LOG(Log::error, *_pLog) << "ORCA encountered a fatal error, maybe a "
+                                     "look in the log file may help."
+                                  << flush;
       return false;
     }
     error = line.find(
         "mpirun detected that one or more processes exited with non-zero "
         "status");
     if (error != std::string::npos) {
-      XTP_LOG(logERROR, *_pLog)
+      XTP_LOG(Log::error, *_pLog)
           << "ORCA had an mpi problem, maybe your openmpi version is not good."
           << flush;
       return false;
@@ -732,7 +733,7 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
         "Basis size not set, calculator does not parse log file first");
   }
 
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << "Reading the gbw file, this may or may not work so be careful: "
       << flush;
   ifstream infile;
@@ -764,8 +765,8 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   }
   int dim_read = *((int*)buffer.data());
   infile.seekg(offset + 8, ios::beg);
-  XTP_LOG(logDEBUG, *_pLog) << "Number of operators: " << op_read
-                            << " Basis dimension: " << dim_read << flush;
+  XTP_LOG(Log::info, *_pLog) << "Number of operators: " << op_read
+                             << " Basis dimension: " << dim_read << flush;
   Index n = op_read * dim_read * dim_read;
   for (Index i = 0; i < n; i++) {
     infile.read(buffer.data(), 8);
@@ -786,7 +787,7 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
     }
   }
   ReorderOutput(orbitals);
-  XTP_LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
+  XTP_LOG(Log::error, *_pLog) << "Done parsing" << flush;
   return true;
 }
 

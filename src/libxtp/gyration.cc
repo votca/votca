@@ -39,8 +39,8 @@ void Density2Gyration::Initialize(tools::Property& options) {
 }
 
 void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
-  XTP_LOG_SAVE(logDEBUG, _log) << "===== Running on " << OPENMP::getMaxThreads()
-                               << " threads ===== " << flush;
+  XTP_LOG(Log::error, _log) << "===== Running on " << OPENMP::getMaxThreads()
+                            << " threads ===== " << flush;
 
   const QMMolecule& Atomlist = orbitals.QMAtoms();
   Eigen::MatrixXd DMAT_tot;
@@ -59,9 +59,9 @@ void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
     Gyrationtensor gyro = numway.IntegrateGyrationTensor(DMAT_tot);
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
     es.computeDirect(gyro.gyration);
-    XTP_LOG_SAVE(logDEBUG, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Converting to Eigenframe " << flush;
-    XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Reporting " << flush;
+    XTP_LOG(Log::error, _log) << TimeStamp() << " Reporting " << flush;
     ReportAnalysis(_state.ToLongString(), gyro, es);
 
   } else {
@@ -71,18 +71,18 @@ void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
     Gyrationtensor gyro_hole = numway.IntegrateGyrationTensor(DMAT[0]);
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es_h;
     es_h.computeDirect(gyro_hole.gyration);
-    XTP_LOG_SAVE(logDEBUG, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Converting to Eigenframe " << flush;
-    XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Reporting " << flush;
+    XTP_LOG(Log::error, _log) << TimeStamp() << " Reporting " << flush;
     ReportAnalysis("hole", gyro_hole, es_h);
 
     // electron density
     Gyrationtensor gyro_electron = numway.IntegrateGyrationTensor(DMAT[1]);
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es_e;
     es_e.computeDirect(gyro_electron.gyration);
-    XTP_LOG_SAVE(logDEBUG, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Converting to Eigenframe " << flush;
-    XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Reporting " << flush;
+    XTP_LOG(Log::error, _log) << TimeStamp() << " Reporting " << flush;
     ReportAnalysis("electron", gyro_electron, es_e);
   }
   return;
@@ -117,102 +117,102 @@ void Density2Gyration::ReportAnalysis(
     string label, const Gyrationtensor& gyro,
     const Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d>& es) {
 
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << "---------------- " << label << " ----------------" << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Norm               = %1$9.4f ") % (gyro.mass))
       << flush;
 
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Centroid x         = %1$9.4f Ang") %
           (gyro.centroid.x() * tools::conv::bohr2ang))
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Centroid y         = %1$9.4f Ang") %
           (gyro.centroid.y() * tools::conv::bohr2ang))
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Centroid y         = %1$9.4f Ang") %
           (gyro.centroid.z() * tools::conv::bohr2ang))
       << flush;
 
   double RA2 = tools::conv::bohr2ang * tools::conv::bohr2ang;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Gyration Tensor xx = %1$9.4f Ang^2") %
           (gyro.gyration(0, 0) * RA2))
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Gyration Tensor xy = %1$9.4f Ang^2") %
           (gyro.gyration(0, 1) * RA2))
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Gyration Tensor xz = %1$9.4f Ang^2") %
           (gyro.gyration(0, 2) * RA2))
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Gyration Tensor yy = %1$9.4f Ang^2") %
           (gyro.gyration(1, 1) * RA2))
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Gyration Tensor yz = %1$9.4f Ang^2") %
           (gyro.gyration(1, 2) * RA2))
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Gyration Tensor zz = %1$9.4f Ang^2") %
           (gyro.gyration(2, 2) * RA2))
       << flush;
 
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Gyration Tensor D1 = %1$9.4f Ang^2") %
           (es.eigenvalues()[0] * RA2))
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Gyration Tensor D2 = %1$9.4f Ang^2") %
           (es.eigenvalues()[1] * RA2))
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Gyration Tensor D3 = %1$9.4f Ang^2") %
           (es.eigenvalues()[2] * RA2))
       << flush;
 
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Radius of Gyration = %1$9.4f Ang") %
           (std::sqrt(es.eigenvalues().sum()) * tools::conv::bohr2ang))
       << flush;
 
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Tensor EF Axis 1 1 = %1$9.4f ") %
           es.eigenvectors().col(0).x())
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Tensor EF Axis 1 2 = %1$9.4f ") %
           es.eigenvectors().col(0).y())
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Tensor EF Axis 1 3 = %1$9.4f ") %
           es.eigenvectors().col(0).z())
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Tensor EF Axis 2 1 = %1$9.4f ") %
           es.eigenvectors().col(1).x())
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Tensor EF Axis 2 2 = %1$9.4f ") %
           es.eigenvectors().col(1).y())
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Tensor EF Axis 2 3 = %1$9.4f ") %
           es.eigenvectors().col(1).z())
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Tensor EF Axis 3 1 = %1$9.4f ") %
           es.eigenvectors().col(2).x())
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Tensor EF Axis 3 2 = %1$9.4f ") %
           es.eigenvectors().col(2).y())
       << flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << (boost::format("  Tensor EF Axis 3 3 = %1$9.4f ") %
           es.eigenvectors().col(2).z())
       << flush;

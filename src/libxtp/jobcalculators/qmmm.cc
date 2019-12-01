@@ -93,8 +93,8 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
 
   if (_print_regions_pdb) {
     std::string pdb_filename = "regions.pdb";
-    XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Writing jobtopology to "
-                                << (workdir + "/" + pdb_filename) << std::flush;
+    XTP_LOG(Log::error, pLog) << TimeStamp() << " Writing jobtopology to "
+                              << (workdir + "/" + pdb_filename) << std::flush;
     jobtop.WriteToPdb(workdir + "/" + pdb_filename);
   }
 
@@ -104,7 +104,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   }
   bool no_top_scf = false;
   if (jobtop.size() - no_static_regions < 2) {
-    XTP_LOG_SAVE(logINFO, pLog)
+    XTP_LOG(Log::error, pLog)
         << TimeStamp() << " Only " << jobtop.size() - no_static_regions
         << " scf region is used. The remaining regions are static. So no "
            "inter regions scf is required. "
@@ -115,12 +115,12 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   Index iteration = 0;
   for (; iteration < _max_iterations; iteration++) {
 
-    XTP_LOG_SAVE(logINFO, pLog)
+    XTP_LOG(Log::error, pLog)
         << TimeStamp() << " --Inter Region SCF Iteration " << iteration + 1
         << " of " << _max_iterations << std::flush;
 
     for (std::unique_ptr<Region>& region : jobtop) {
-      XTP_LOG_SAVE(logINFO, pLog)
+      XTP_LOG(Log::error, pLog)
           << TimeStamp() << " Evaluating " << region->identify() << " "
           << region->getId() << std::flush;
       region->Reset();
@@ -134,8 +134,8 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
 
     std::string checkpointfilename =
         "checkpoint_iter_" + std::to_string(iteration + 1) + ".hdf5";
-    XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Writing checkpoint to "
-                                << checkpointfilename << std::flush;
+    XTP_LOG(Log::error, pLog) << TimeStamp() << " Writing checkpoint to "
+                              << checkpointfilename << std::flush;
     jobtop.WriteToHdf5(workdir + "/" + checkpointfilename);
 
     if (!no_top_scf) {
@@ -148,23 +148,22 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
       for (const std::unique_ptr<Region>& reg : jobtop) {
         etot += reg->Etotal();
       }
-      XTP_LOG_SAVE(logINFO, pLog)
-          << TimeStamp() << " --Total Energy all regions " << etot
-          << std::flush;
+      XTP_LOG(Log::error, pLog) << TimeStamp() << " --Total Energy all regions "
+                                << etot << std::flush;
 
       bool all_regions_converged =
           std::all_of(converged_regions.begin(), converged_regions.end(),
                       [](bool i) { return i; });
 
       if (all_regions_converged) {
-        XTP_LOG_SAVE(logINFO, pLog)
+        XTP_LOG(Log::error, pLog)
             << TimeStamp() << " Job converged after " << iteration + 1
             << " iterations." << std::flush;
         jres.setStatus(Job::JobStatus::COMPLETE);
         break;
       }
       if (iteration == _max_iterations - 1) {
-        XTP_LOG_SAVE(logINFO, pLog)
+        XTP_LOG(Log::error, pLog)
             << TimeStamp() << " Job did not converge after " << iteration + 1
             << " iterations.\n Writing results to jobfile." << std::flush;
         jres.setStatus(Job::JobStatus::FAILED);

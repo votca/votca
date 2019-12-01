@@ -33,9 +33,6 @@ using namespace std;
 
 void GenCube::Initialize(tools::Property& options) {
 
-  // update options with the VOTCASHARE defaults
-  UpdateWithDefaults(options, "xtp");
-
   string key = "options." + Identify();
   _orbfile = options.get(key + ".input").as<string>();
   _output_file = options.get(key + ".output").as<string>();
@@ -58,21 +55,14 @@ void GenCube::Initialize(tools::Property& options) {
     _infile1 = options.get(key + ".infile1").as<string>();
     _infile2 = options.get(key + ".infile2").as<string>();
   }
-
-  // get the path to the shared folders with xml files
-  char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == nullptr) {
-    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-  }
 }
 
 void GenCube::calculateCube() {
 
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::error, _log)
       << "Reading serialized QM data from " << _orbfile << flush;
 
   Orbitals orbitals;
-  XTP_LOG_SAVE(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
   orbitals.ReadFromCpt(_orbfile);
 
   const QMMolecule& atoms = orbitals.QMAtoms();
@@ -146,8 +136,8 @@ void GenCube::calculateCube() {
   // load DFT basis set (element-wise information) from xml file
   BasisSet dftbs;
   dftbs.Load(orbitals.getDFTbasisName());
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << " Loaded DFT Basis Set " << orbitals.getDFTbasisName() << flush;
+  XTP_LOG(Log::info, _log) << " Loaded DFT Basis Set "
+                           << orbitals.getDFTbasisName() << flush;
 
   // fill DFT AO basis by going through all atoms
   AOBasis dftbasis;
@@ -175,8 +165,7 @@ void GenCube::calculateCube() {
     }
   }
 
-  XTP_LOG_SAVE(logDEBUG, _log) << " Calculating cube data ... \n" << flush;
-  _log.setPreface(logDEBUG, "... ...");
+  XTP_LOG(Log::error, _log) << " Calculating cube data ... \n" << flush;
 
   boost::progress_display progress(_xsteps);
   // eval density at cube grid points
@@ -208,8 +197,7 @@ void GenCube::calculateCube() {
   }  // x-component
 
   out.close();
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << "Wrote cube data to " << _output_file << flush;
+  XTP_LOG(Log::error, _log) << "Wrote cube data to " << _output_file << flush;
   return;
 }
 
@@ -237,11 +225,10 @@ void GenCube::subtractCubes() {
 
   // open infiles for reading
   ifstream in1;
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << " Reading first cube from " << _infile1 << flush;
+  XTP_LOG(Log::error, _log) << " Reading first cube from " << _infile1 << flush;
   in1.open(_infile1, ios::in);
   ifstream in2;
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::error, _log)
       << " Reading second cube from " << _infile2 << flush;
   in2.open(_infile2, ios::in);
   string s;
@@ -425,19 +412,16 @@ void GenCube::subtractCubes() {
   }
 
   out.close();
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::error, _log)
       << "Wrote subtracted cube data to " << _output_file << flush;
 }
 
 bool GenCube::Evaluate() {
   OPENMP::setMaxThreads(_nThreads);
-  _log.setReportLevel(logDEBUG);
+  _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
 
-  _log.setPreface(logINFO, "\n... ...");
-  _log.setPreface(logERROR, "\n... ...");
-  _log.setPreface(logWARNING, "\n... ...");
-  _log.setPreface(logDEBUG, "\n... ...");
+  _log.setCommonPreface("\n... ...");
 
   // calculate new cube
   if (_mode == "new") {

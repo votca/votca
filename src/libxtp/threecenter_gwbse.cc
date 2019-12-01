@@ -184,7 +184,7 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlock(
  */
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
     const Eigen::MatrixXd& matrix) {
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::info, _log)
       << TimeStamp()
       << " Using Default OpenMP for tensor matrix multiplication: " << flush;
 #pragma omp parallel for
@@ -239,7 +239,7 @@ void TCMatrix_gwbse::FillAllBlocksOpenMP(const AOBasis& gwbasis,
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrixCuda(
     const Eigen::MatrixXd& matrix) {
 
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::info, _log)
       << TimeStamp()
       << " Using CUDA/OpenMP for tensor matrix multiplication: " << flush;
 
@@ -338,7 +338,7 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlockCUDA(
       }
     }
   } catch (const std::runtime_error& error) {
-    XTP_LOG_SAVE(logDEBUG, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " FillBlockCUDA failed due to: " << error.what()
         << flush;
     throw;

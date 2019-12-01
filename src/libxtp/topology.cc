@@ -75,7 +75,7 @@ void Topology::setBox(const Eigen::Matrix3d &box,
   }
 
   if (_bc != nullptr) {
-    if (votca::tools::globals::verbose) {
+    if (Log::verbose()) {
       std::cout << "Removing periodic box. Creating new... " << std::endl;
     }
   }

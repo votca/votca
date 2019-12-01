@@ -60,6 +60,8 @@ BOOST_AUTO_TEST_CASE(parabola_test) {
 
   parabola p5;
   BFGSTRM bfgstrm(p5);
+  Logger log;
+  bfgstrm.setLog(&log);
   bfgstrm.setNumofIterations(100);
   bfgstrm.setTrustRadius(0.1);
   bfgstrm.Optimize(5 * Eigen::VectorXd::Ones(5));
@@ -113,6 +115,8 @@ BOOST_AUTO_TEST_CASE(booth_test) {
 
   booth p2;
   BFGSTRM bfgstrm(p2);
+  Logger log;
+  bfgstrm.setLog(&log);
   bfgstrm.setNumofIterations(1000);
   bfgstrm.setTrustRadius(0.1);
   bfgstrm.Optimize(5 * Eigen::VectorXd::Ones(2));
