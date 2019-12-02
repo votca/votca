@@ -48,13 +48,13 @@ void JobTopology::ModifyOptionsByJobFile(
     Index id = prop->get("id").as<Index>();
     std::vector<std::string> paths = FindReplacePathsInOptions(*prop, tag);
     if (!paths.empty()) {
-      XTP_LOG_SAVE(logINFO, _log) << " Region " << std::to_string(id)
-                                  << " is modified by jobfile" << std::flush;
-      XTP_LOG_SAVE(logINFO, _log)
+      XTP_LOG(Log::info, _log) << " Region " << std::to_string(id)
+                               << " is modified by jobfile" << std::flush;
+      XTP_LOG(Log::info, _log)
           << " Replacing the following paths with jobfile entries"
           << std::flush;
       for (const std::string& path : paths) {
-        XTP_LOG_SAVE(logINFO, _log) << " - " << path << std::flush;
+        XTP_LOG(Log::info, _log) << " - " << path << std::flush;
       }
 
       bool found_region_in_jobfile = false;
@@ -87,9 +87,9 @@ void JobTopology::BuildRegions(const Topology& top, tools::Property options) {
 
   // around this point the whole jobtopology will be centered
   CreateRegions(options, top, region_seg_ids);
-  XTP_LOG_SAVE(logINFO, _log) << " Regions created" << std::flush;
+  XTP_LOG(Log::error, _log) << " Regions created" << std::flush;
   for (const auto& region : _regions) {
-    XTP_LOG_SAVE(logINFO, _log) << *region << std::flush;
+    XTP_LOG(Log::error, _log) << *region << std::flush;
   }
 
   return;

@@ -414,10 +414,7 @@ BOOST_AUTO_TEST_CASE(coupling) {
   Logger log;
   dftcoup.setLogger(&log);
   dftcoup.Initialize(prop.get("dftcoupling_options"));
-  log.setPreface(logINFO, "\n... ...");
-  log.setPreface(logERROR, "\n... ...");
-  log.setPreface(logWARNING, "\n... ...");
-  log.setPreface(logDEBUG, "\n... ...");
+  log.setCommonPreface("\n... ...");
   dftcoup.CalculateCouplings(A, B, AB);
 
   votca::tools::Property output;

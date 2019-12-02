@@ -42,9 +42,6 @@ class eeInteractor {
   Eigen::Matrix3d FillTholeInteraction(const PolarSite& site1,
                                        const PolarSite& site2) const;
 
-  Eigen::Vector3d VThole(const PolarSite& site1, const PolarSite& site2,
-                         const Eigen::Vector3d& dQ) const;
-
   Eigen::VectorXd Cholesky_IntraSegment(const PolarSegment& seg) const;
 
   template <class T, enum Estatic>

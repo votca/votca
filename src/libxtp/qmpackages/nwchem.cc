@@ -168,10 +168,10 @@ bool NWChem::WriteGuess(const Orbitals& orbitals) {
                         "; asc2mov 5000 system.mos system.movecs > convert.log";
   Index i = std::system(command.c_str());
   if (i == 0) {
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::info, *_pLog)
         << "Converted MO file from ascii to binary" << flush;
   } else {
-    XTP_LOG(logERROR, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << "Conversion of binary MO file to binary failed. " << flush;
     return false;
   }
@@ -259,7 +259,7 @@ bool NWChem::WriteInputFile(const Orbitals& orbitals) {
   nw_file << endl;
   nw_file.close();
   // and now generate a shell script to run both jobs, if neccessary
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::info, *_pLog)
       << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
   _scratch_dir = scratch_dir_backup + temp_suffix;
@@ -294,7 +294,7 @@ bool NWChem::WriteShellScript() {
  */
 bool NWChem::Run() {
 
-  XTP_LOG(logDEBUG, *_pLog) << "Running NWChem job" << flush;
+  XTP_LOG(Log::error, *_pLog) << "Running NWChem job" << flush;
 
   if (std::system(nullptr)) {
 
@@ -309,13 +309,13 @@ bool NWChem::Run() {
 
     Index check = std::system(command.c_str());
     if (check == -1) {
-      XTP_LOG(logERROR, *_pLog)
+      XTP_LOG(Log::error, *_pLog)
           << _input_file_name << " failed to start" << flush;
       return false;
     }
 
     if (CheckLogFile()) {
-      XTP_LOG(logDEBUG, *_pLog) << "Finished NWChem job" << flush;
+      XTP_LOG(Log::error, *_pLog) << "Finished NWChem job" << flush;
       /* maybe we DO need to convert from fortran binary to ASCII first to avoid
     compiler-dependent issues */
       std::string command2;
@@ -325,21 +325,21 @@ bool NWChem::Run() {
                  ascii_mo_file_name + "> convert.log";
       Index i = std::system(command2.c_str());
       if (i == 0) {
-        XTP_LOG(logDEBUG, *_pLog)
+        XTP_LOG(Log::info, *_pLog)
             << "Converted MO file from binary to ascii" << flush;
       } else {
-        XTP_LOG(logERROR, *_pLog)
+        XTP_LOG(Log::error, *_pLog)
             << "Conversion of binary MO file to ascii failed. " << flush;
         return false;
       }
 
       return true;
     } else {
-      XTP_LOG(logDEBUG, *_pLog) << "NWChem job failed" << flush;
+      XTP_LOG(Log::error, *_pLog) << "NWChem job failed" << flush;
       return false;
     }
   } else {
-    XTP_LOG(logERROR, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << _input_file_name << " failed to start" << flush;
     return false;
   }
@@ -407,12 +407,12 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
   std::ifstream input_file(orb_file_name_full);
 
   if (input_file.fail()) {
-    XTP_LOG(logERROR, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << "File " << orb_file_name_full
         << " with molecular orbitals is not found " << flush;
     return false;
   } else {
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << "Reading MOs from " << orb_file_name_full << flush;
   }
 
@@ -422,11 +422,11 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
   }
   // next line has basis set size
   input_file >> basis_size;
-  XTP_LOG(logDEBUG, *_pLog) << "Basis set size: " << basis_size << flush;
+  XTP_LOG(Log::error, *_pLog) << "Basis set size: " << basis_size << flush;
 
   // next line has number of stored MOs
   input_file >> levels;
-  XTP_LOG(logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
+  XTP_LOG(Log::info, *_pLog) << "Energy levels: " << levels << flush;
 
   /* next lines contain information about occupation of the MOs
    *  - each line has 3 numbers
@@ -451,13 +451,13 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
     }
   }
 
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << "Alpha electrons: " << number_of_electrons << flush;
 
   Index occupied_levels = number_of_electrons;
   Index unoccupied_levels = levels - occupied_levels;
-  XTP_LOG(logDEBUG, *_pLog) << "Occupied levels: " << occupied_levels << flush;
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::info, *_pLog) << "Occupied levels: " << occupied_levels << flush;
+  XTP_LOG(Log::info, *_pLog)
       << "Unoccupied levels: " << unoccupied_levels << flush;
 
   // reset index and read MO energies the same way
@@ -512,7 +512,7 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
   }
 
   ReorderOutput(orbitals);
-  XTP_LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
+  XTP_LOG(Log::error, *_pLog) << "Done reading MOs" << flush;
 
   return true;
 }
@@ -531,7 +531,7 @@ StaticSegment NWChem::GetCharges() const {
 
     std::string::size_type charge_pos = line.find("ESP");
     if (charge_pos != std::string::npos) {
-      XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
+      XTP_LOG(Log::error, *_pLog) << "Getting charges" << flush;
       has_charges = true;
       // two empty lines
       getline(input_file, line);
@@ -582,13 +582,13 @@ Eigen::Matrix3d NWChem::GetPolarizability() const {
     std::string::size_type pol_pos =
         line.find("DFT Linear Response polarizability / au");
     if (pol_pos != std::string::npos) {
-      XTP_LOG(logDEBUG, *_pLog) << "Getting polarizability" << flush;
+      XTP_LOG(Log::error, *_pLog) << "Getting polarizability" << flush;
       getline(input_file, line);
       tools::Tokenizer tok(line, " ");
       std::vector<std::string> line_split = tok.ToVector();
       double frequency = std::stod(line_split[2]);
       if (std::abs(frequency) > 1e-9) {
-        XTP_LOG(logDEBUG, *_pLog)
+        XTP_LOG(Log::error, *_pLog)
             << "Warning: Polarizability was calculated for frequency "
             << frequency << " normally f=0 for static polarizability" << flush;
       }
@@ -624,12 +624,12 @@ bool NWChem::CheckLogFile() const {
   ifstream input_file((_run_dir + "/" + _log_file_name));
 
   if (input_file.fail()) {
-    XTP_LOG(logERROR, *_pLog) << "NWChem LOG is not found" << flush;
+    XTP_LOG(Log::error, *_pLog) << "NWChem LOG is not found" << flush;
     return false;
   };
 
   if (input_file.peek() == std::ifstream::traits_type::eof()) {
-    XTP_LOG(logERROR, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << "NWChem run failed. Check OpenMPI version!" << flush;
     return false;
   };
@@ -662,7 +662,7 @@ bool NWChem::CheckLogFile() const {
     if (total_energy_pos != std::string::npos) {
       return true;
     } else if (diis_pos != std::string::npos) {
-      XTP_LOG(logERROR, *_pLog) << "NWChem LOG is incomplete" << flush;
+      XTP_LOG(Log::error, *_pLog) << "NWChem LOG is incomplete" << flush;
       return false;
     } else {
       // go to previous line
@@ -688,7 +688,7 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
   std::string line;
   std::vector<std::string> results;
 
-  XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
+  XTP_LOG(Log::error, *_pLog) << "Parsing " << _log_file_name << flush;
   std::string log_file_name_full = _run_dir + "/" + _log_file_name;
   // check if LOG file is complete
   if (!CheckLogFile()) {
@@ -719,7 +719,7 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
       boost::trim(bf);
       Index basis_set_size = boost::lexical_cast<Index>(bf);
       orbitals.setBasisSetSize(basis_set_size);
-      XTP_LOG(logDEBUG, *_pLog)
+      XTP_LOG(Log::info, *_pLog)
           << "Basis functions: " << basis_set_size << flush;
     }
 
@@ -731,15 +731,15 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
       std::string energy = results.back();
       boost::trim(energy);
       orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
-      XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") %
-                                    orbitals.getDFTTotalEnergy())
-                                       .str()
-                                << flush;
+      XTP_LOG(Log::error, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") %
+                                      orbitals.getDFTTotalEnergy())
+                                         .str()
+                                  << flush;
     }
 
     std::string::size_type coordinates_pos = line.find("Output coordinates");
     if (coordinates_pos != std::string::npos) {
-      XTP_LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
+      XTP_LOG(Log::error, *_pLog) << "Getting the coordinates" << flush;
       //_has_coordinates = true;
       bool has_QMAtoms = orbitals.hasQMAtoms();
       // three garbage lines
@@ -779,13 +779,13 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
       results = tok.ToVector();
       double ScaHFX = boost::lexical_cast<double>(results.back());
       orbitals.setScaHFX(ScaHFX);
-      XTP_LOG(logDEBUG, *_pLog)
+      XTP_LOG(Log::error, *_pLog)
           << "DFT with " << ScaHFX << " of HF exchange!" << flush;
     }
 
   }  // end of reading the file line-by-line
 
-  XTP_LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
+  XTP_LOG(Log::error, *_pLog) << "Done parsing" << flush;
   return true;
 }
 
@@ -794,7 +794,7 @@ void NWChem::WriteBasisset(ofstream& nw_file, const QMMolecule& qmatoms) {
   std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
   BasisSet bs;
   bs.Load(_basisset_name);
-  XTP_LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
+  XTP_LOG(Log::error, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
   nw_file << "basis spherical" << endl;
   for (const std::string& element_name : UniqueElements) {
     const Element& element = bs.getElement(element_name);
@@ -842,13 +842,14 @@ void NWChem::WriteECP(ofstream& nw_file, const QMMolecule& qmatoms) {
   ECPBasisSet ecp;
   ecp.Load(_ecp_name);
 
-  XTP_LOG(logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
+  XTP_LOG(Log::error, *_pLog)
+      << "Loaded Pseudopotentials " << _ecp_name << flush;
 
   for (const std::string& element_name : UniqueElements) {
     try {
       ecp.getElement(element_name);
     } catch (std::runtime_error& error) {
-      XTP_LOG(logDEBUG, *_pLog)
+      XTP_LOG(Log::error, *_pLog)
           << "No pseudopotential for " << element_name << " available" << flush;
       continue;
     }
