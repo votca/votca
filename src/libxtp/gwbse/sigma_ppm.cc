@@ -31,7 +31,8 @@ void Sigma_PPM::PrepareScreening() {
   _Mmn.MultiplyRightWithAuxMatrix(_ppm.getPpm_phi());
 }
 
-double Sigma_PPM::CalcCorrelation(Index gw_level, double frequency) const {
+double Sigma_PPM::CalcCorrelationDiagElement(Index gw_level,
+                                             double frequency) const {
   const Index lumo = _opt.homo + 1;
   const Index levelsum = _Mmn.nsize();   // total number of bands
   const Index auxsize = _Mmn.auxsize();  // size of the GW basis
@@ -59,8 +60,10 @@ double Sigma_PPM::CalcCorrelation(Index gw_level, double frequency) const {
   return sigma_c;
 }
 
-double Sigma_PPM::CalcCorrelation(Index gw_level1, Index gw_level2,
-                                  double frequency1, double frequency2) const {
+double Sigma_PPM::CalcCorrelationOffDiagElement(Index gw_level1,
+                                                Index gw_level2,
+                                                double frequency1,
+                                                double frequency2) const {
   const Index lumo = _opt.homo + 1;
   const Index levelsum = _Mmn.nsize();   // total number of bands
   const Index auxsize = _Mmn.auxsize();  // size of the GW basis

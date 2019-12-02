@@ -218,13 +218,13 @@ Eigen::VectorXd GW::SolveQP_Grid(const Eigen::VectorXd& frequencies) const {
     const double frequency0 = frequencies[gw_level];
     const double intercept0 = intercept[gw_level];
     double freq_prev = frequency0 - range;
-    double sigc_prev = _sigma->CalcCorrelation(gw_level, freq_prev);
+    double sigc_prev = _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
     double targ_prev = sigc_prev + intercept0 - freq_prev;
     double qp_energy = 0.0;
     double pole_weight_max = -1.0;
     for (Index i_node = 1; i_node < _opt.qp_grid_steps; ++i_node) {
       double freq = freq_prev + _opt.qp_grid_spacing;
-      double sigc = _sigma->CalcCorrelation(gw_level, freq);
+      double sigc = _sigma->CalcCorrelationDiagElement(gw_level, freq);
       double targ = sigc + intercept0 - freq;
       if (targ_prev * targ < 0.0) {  // Sign change
         double dsigc_dfreq = (sigc - sigc_prev) / _opt.qp_grid_spacing;
@@ -262,7 +262,7 @@ Eigen::VectorXd GW::SolveQP_FixedPoint(
     double freq = frequencies[gw_level];
     for (Index g_iter = 0; g_iter < _opt.g_sc_max_iterations; ++g_iter) {
       double freq_prev = freq;
-      double sigc = _sigma->CalcCorrelation(gw_level, freq);
+      double sigc = _sigma->CalcCorrelationDiagElement(gw_level, freq);
       // Update frequency via fixed-point iteration
       freq = sigc + intercept0;
       if (std::abs(freq - freq_prev) < _opt.g_sc_limit) {

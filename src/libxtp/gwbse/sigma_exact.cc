@@ -35,7 +35,8 @@ void Sigma_Exact::PrepareScreening() {
   return;
 }
 
-double Sigma_Exact::CalcCorrelation(Index gw_level, double frequency) const {
+double Sigma_Exact::CalcCorrelationDiagElement(Index gw_level,
+                                               double frequency) const {
   const double eta = _opt.eta;
   const Index lumo = _opt.homo + 1;
   const Index n_occ = lumo - _opt.rpamin;
@@ -56,9 +57,10 @@ double Sigma_Exact::CalcCorrelation(Index gw_level, double frequency) const {
   return 2.0 * sigma_c;
 }
 
-double Sigma_Exact::CalcCorrelation(Index gw_level1, Index gw_level2,
-                                    double frequency1,
-                                    double frequency2) const {
+double Sigma_Exact::CalcCorrelationOffDiagElement(Index gw_level1,
+                                                  Index gw_level2,
+                                                  double frequency1,
+                                                  double frequency2) const {
   const double eta = _opt.eta;
   const Index lumo = _opt.homo + 1;
   const Index n_occ = lumo - _opt.rpamin;
