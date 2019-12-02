@@ -108,6 +108,49 @@ typename std::array<std::array<typename Vector::value_type, 3>, 3> dualbase_3d(
 
   return result;
 }
+
+template <class Vector1, class Vector2>
+void add_to(Vector1& a, const Vector2& b) {
+  assert(size(a) == size(b) && "Dimensions of vector a and b do not match");
+  for (int i = 0; i < size(a); i++) {
+    a[i] += b[i];
+  }
+  return;
+}
+
+template <class Vector1, class Vector2>
+void subtract_from(Vector1& a, const Vector2& b) {
+  assert(size(a) == size(b) && "Dimensions of vector a and b do not match");
+  for (int i = 0; i < size(a); i++) {
+    a[i] -= b[i];
+  }
+  return;
+}
+
+template <class Vector1, class Vector2>
+typename std::array<typename Vector1::value_type, 3> add(const Vector1& a,
+                                                         const Vector2& b) {
+  assert(size(a) == size(b) && "Dimensions of vector a and b do not match");
+  assert(size(a) == 3 && "Dimension must be 3");
+  std::array<typename Vector1::value_type, 3> result;
+  for (int i = 0; i < size(a); i++) {
+    result[i] = a[i] + b[i];
+  }
+  return result;
+}
+
+template <class Vector1, class Vector2>
+typename std::array<typename Vector1::value_type, 3> subtract(
+    const Vector1& a, const Vector2& b) {
+  assert(size(a) == size(b) && "Dimensions of vector a and b do not match");
+  assert(size(a) == 3 && "Dimension must be 3");
+  std::array<typename Vector1::value_type, 3> result;
+  for (int i = 0; i < size(a); i++) {
+    result[i] = a[i] - b[i];
+  }
+  return result;
+}
+
 }  // namespace kokkos_linalg_3d
 
 #endif
