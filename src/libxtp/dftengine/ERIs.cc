@@ -72,7 +72,7 @@ Eigen::MatrixXcd ERIs::ContractRightIndecesWithMatrix(const Eigen::MatrixXcd& ma
   for (int i = 0; i < _threecenter.size(); i++) {
     const Symmetric_Matrix& threecenter = _threecenter[i];
     // Trace over prod::DMAT,I(l)=componentwise product over
-    const std::complex<double> factor = (threecenter.FullMatrix().cwiseProduct(mat)).sum();
+    const std::complex<double> factor = (threecenter.FullMatrix().cast<std::complex<double>>().cwiseProduct(mat)).sum();
     threecenter.AddtoEigenMatrix(ERIS_thread[OPENMP::getThreadId()], factor);
   }
 

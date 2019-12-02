@@ -59,6 +59,7 @@ class GW {
     double step = 0.;
     double imshift = 0;
     double resolution = 0;
+    double lorentzian_broadening=0.3; //eV
   };
 
   void configure(const options& opt);

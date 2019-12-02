@@ -45,6 +45,7 @@ class Sternheimer {
   std::vector<Eigen::Matrix3cd> Polarisability(double omega_start,
                                                double omega_end, int steps,
                                                double imaginary_shift,
+                                               double lorentzian_broadening,
                                                int resolution_output) const;
   // Prints the isotropic average of the polarizability tensor
   void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar,
@@ -103,7 +104,7 @@ class Sternheimer {
   Eigen::VectorXcd SternheimerRHS(const Eigen::MatrixXcd& inverse_overlap,
                                   const Eigen::MatrixXcd& density,
                                   const Eigen::MatrixXcd& pertubation,
-                                  const Eigen::VectorXcd& coeff) const;
+                                  const Eigen::VectorXd& coeff) const;
   // Calculates the response of the electron density using one shot Sternheimer
   std::vector<Eigen::MatrixXcd> DeltaNOneShot(
       std::vector<std::complex<double>> w,

@@ -17,17 +17,17 @@
  *
  */
 
+#include "votca/xtp/ERIs.h"
 #include <fstream>
 #include <votca/tools/property.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aomatrix3d.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/padeapprox.h>
 #include <votca/xtp/sternheimer.h>
-#include <votca/xtp/aomatrix3d.h>
-#include "votca/xtp/ERIs.h"
 
 namespace votca {
 namespace xtp {
@@ -53,11 +53,11 @@ Eigen::MatrixXcd Sternheimer::OverlapMatrix() {
   AOBasis basis = _orbitals.SetupDftBasis();
   AOOverlap overlap;
   overlap.Fill(basis);
-  return overlap.Matrix().cast < std::complex<double>>();
+  return overlap.Matrix().cast<std::complex<double>>();
 }
 
 Eigen::MatrixXcd Sternheimer::DensityMatrix() {
-  return _orbitals.DensityMatrixGroundState().cast < std::complex<double>>();
+  return _orbitals.DensityMatrixGroundState().cast<std::complex<double>>();
 }
 
 Eigen::MatrixXcd Sternheimer::Hamiltonian() {
@@ -66,7 +66,7 @@ Eigen::MatrixXcd Sternheimer::Hamiltonian() {
   return (_overlap_Matrix * mo_coefficients *
           _orbitals.MOs().eigenvalues().asDiagonal() *
           mo_coefficients.transpose() * _overlap_Matrix)
-             .cast < std::complex<double>>();
+      .cast<std::complex<double>>();
 }
 
 Eigen::MatrixXcd Sternheimer::CoulombMatrix() {
@@ -74,7 +74,7 @@ Eigen::MatrixXcd Sternheimer::CoulombMatrix() {
   AOBasis basis = _orbitals.SetupDftBasis();
   AOCoulomb coulomb;
   coulomb.Fill(basis);
-  return coulomb.Matrix().cast < std::complex<double>>();
+  return coulomb.Matrix().cast<std::complex<double>>();
 }
 
 std::vector<std::complex<double>> Sternheimer::BuildGrid(
@@ -101,20 +101,21 @@ Eigen::MatrixXcd Sternheimer::SternheimerLHS(
     const Eigen::MatrixXcd& hamiltonian,
     const Eigen::MatrixXcd& inverse_overlap, double eps,
     std::complex<double> omega, bool pm) const {
-
+  Eigen::MatrixXcd Identity_cmplx =
+      Eigen::MatrixXd::Identity(_basis_size, _basis_size)
+          .cast<std::complex<double>>();
   std::complex<double> temp = eps + omega;
   if (pm != true) {
     temp = (eps - omega);
   }
   Eigen::MatrixXcd LHS =
-      (inverse_overlap * hamiltonian -
-       temp * Eigen::MatrixXcd::Identity(_basis_size, _basis_size));
+      (inverse_overlap * hamiltonian - temp * Identity_cmplx);
   return LHS;
 }
 
 Eigen::VectorXcd Sternheimer::SternheimerRHS(
     const Eigen::MatrixXcd& inverse_overlap, const Eigen::MatrixXcd& density,
-    const Eigen::MatrixXcd& pertubation, const Eigen::VectorXcd& coeff) const {
+    const Eigen::MatrixXcd& pertubation, const Eigen::VectorXd& coeff) const {
 
   Eigen::VectorXcd RHS = -1 * (inverse_overlap - density) * pertubation * coeff;
   return RHS;
@@ -189,33 +190,42 @@ std::vector<Eigen::MatrixXcd> Sternheimer::DeltaNOneShot(
 
 Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(
     std::complex<double> w, const Eigen::MatrixXd& initGuess) const {
-
+      std::cout << "Frequencies " << w << std::endl;
+  //_orbitals.getNumberOfAlphaElectrons()
   Eigen::MatrixXcd solution_p =
-      Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
+      Eigen::MatrixXd::Zero(_basis_size, _num_occ_lvls)
+          .cast<std::complex<double>>();
   Eigen::MatrixXcd solution_m =
-      Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
+      Eigen::MatrixXd::Zero(_basis_size, _num_occ_lvls)
+          .cast<std::complex<double>>();
 
   double e_field = 1E-5;
 
   Eigen::MatrixXcd pertubation = -e_field * initGuess;
-  Eigen::MatrixXcd delta_n_old;
-  Eigen::MatrixXcd delta_n_new =
-  Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
-  AOBasis dftbasis = _orbitals.SetupDftBasis();
-  ERIs eris;
-  eris.Initialize(dftbasis, dftbasis);
+  Eigen::MatrixXcd delta_n_old = Eigen::MatrixXd::Zero(_basis_size, _basis_size)
+                                     .cast<std::complex<double>>();
+  Eigen::MatrixXcd delta_n_new = Eigen::MatrixXd::Zero(_basis_size, _basis_size)
+                                     .cast<std::complex<double>>();
 
-  double alpha = 2 * (_mo_energies(_num_occ_lvls) - _mo_energies(2));
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
+  AOBasis auxbasis = _orbitals.SetupAuxBasis();
+  ERIs eris;
+  eris.Initialize(dftbasis, auxbasis);
+  
+  double alpha = 2 * (_mo_energies(_num_occ_lvls - 1) - _mo_energies(0));
+  std::cout << "alpha " << alpha << std::endl;
+  Eigen::MatrixXcd V_ext = (-e_field * initGuess).cast<std::complex<double>>();
 
   for (int n = 0; n < 100; n++) {
+    
     for (int v = 0; v < _num_occ_lvls; v++) {
       Eigen::MatrixXcd RHS =
           SternheimerRHS(_inverse_overlap, _density_Matrix, pertubation,
                          _mo_coefficients.col(v));
-      if (real(w) < 1) {
+      if (real(w) < -1) {
         Eigen::MatrixXcd H_new =
             _Hamiltonian_Matrix +
-            alpha * _overlap_Matrix * _density_Matrix.transpose();
+            alpha * _density_Matrix.transpose();
         Eigen::MatrixXcd LHS_P = SternheimerLHS(
             _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, true);
 
@@ -226,40 +236,46 @@ Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(
         solution_p.col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
       }
 
-      if (real(w) < 1) {
+      if (real(w) < -1) {
         Eigen::MatrixXcd H_new =
             _Hamiltonian_Matrix +
-            alpha * _overlap_Matrix * _density_Matrix.transpose();
+            alpha  * _density_Matrix.transpose();
         Eigen::MatrixXcd LHS_M = SternheimerLHS(
             _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, false);
-        solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
+        solution_m.col(v) = LHS_M.
+        colPivHouseholderQr().solve(RHS);
       } else {
         Eigen::MatrixXcd LHS_M = SternheimerLHS(
             _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, false);
         solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
       }
     }
+
     delta_n_old = delta_n_new;
-    delta_n_new = 2 * _mo_coefficients * solution_p.transpose() +
-                  2 * _mo_coefficients * solution_m.transpose();
+    delta_n_new = 2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) *
+                      solution_p.transpose() +
+                  2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) *
+                      solution_m.transpose();
 
-    pertubation =
-        -e_field * initGuess + eris.ContractRightIndecesWithMatrix(delta_n_new);
-
-
-    std::cout<<"diff="<<(delta_n_new - delta_n_old).squaredNorm()<<std::endl;
+    
+    std::cout << "Delta_N at step  " << n << "\n"
+              << (_overlap_Matrix * delta_n_new).trace() << std::endl;
+    pertubation = V_ext + eris.ContractRightIndecesWithMatrix(delta_n_new);
+    std::cout << "Update perturbation at step " << n << std::endl;
+    // std::cout<<"diff="<<(delta_n_new - delta_n_old).squaredNorm()<<std::endl;
     if ((delta_n_new - delta_n_old).squaredNorm() < 1e-9) {
       return delta_n_new;
     }
   }
   std::cout << "Not Converged, diff = "
-            << (delta_n_new - delta_n_old).squaredNorm() <<"w="<<w<<std::endl;
+            << (delta_n_new - delta_n_old).squaredNorm() << "w=" << w
+            << std::endl;
   return delta_n_new;
 }
 
 std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
     double omega_start, double omega_end, int steps, double imaginary_shift,
-    int resolution_output) const {
+    double lorentzian_broadening, int resolution_output) const {
 
   std::vector<std::complex<double>> grid_w =
       BuildGrid(omega_start, omega_end, steps, imaginary_shift);
@@ -269,8 +285,8 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
   //   std::cout<<grid_w[i]<<std::endl;
   // }
 
-  std::vector<std::complex<double>> w =
-      BuildGrid(omega_start, omega_end, resolution_output, 0.3);
+  std::vector<std::complex<double>> w = BuildGrid(
+      omega_start, omega_end, resolution_output, lorentzian_broadening);
 
   PadeApprox pade_1;
   // PadeApprox pade_2;
@@ -289,7 +305,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
   AODipole dipole;
   dipole.Fill(basis);
 
-  #pragma omp parallel for
+#pragma omp parallel for
   for (int n = 0; n < grid_w.size(); n++) {
     Eigen::MatrixXcd Polar = Eigen::MatrixXcd::Zero(3, 3);
     for (int i = 0; i < 3; i++) {
@@ -309,9 +325,9 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
     pade_1.addPoint(-grid_w[n], conj(Polar(0, 0)));
     pade_1.addPoint(-conj(grid_w[n]), Polar(0, 0));
 
-    //pade_1.printInfo();
+    // pade_1.printInfo();
 
-    //throw std::exception();
+    // throw std::exception();
 
     // pade_2.addPoint(grid_w[n], Polar(0,1));
     // pade_2.addPoint(conj(grid_w[n]), conj(Polar(0,1)));
@@ -324,7 +340,6 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
     pade_4.addPoint(-grid_w[n], conj(Polar(1, 1)));
     pade_4.addPoint(-conj(grid_w[n]), Polar(1, 1));
 
-
     // pade_5.addPoint(grid_w[n], Polar(1,2));
     // pade_5.addPoint(conj(grid_w[n]), conj(Polar(1,2)));
 
@@ -335,7 +350,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
 
     std::cout << "Done with w=" << grid_w[n] << std::endl;
   }
-  //pade_4.printInfo();
+  // pade_4.printInfo();
   std::vector<Eigen::Matrix3cd> Polar_pade;
 
   for (std::complex<double> w : w) {
@@ -349,7 +364,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
     // Polar_pade[Polar_pade.size()-1](2,0)=Polar_pade[Polar_pade.size()-1](0,2);
     // Polar_pade[Polar_pade.size()-1](2,1)=Polar_pade[Polar_pade.size()-1](1,2);
     Polar_pade[Polar_pade.size() - 1](2, 2) = pade_6.evaluatePoint(w);
-    //pade_1.printAB();
+    // pade_1.printAB();
   }
   printIsotropicAverage(Polar_pade, w);
   return Polar_pade;

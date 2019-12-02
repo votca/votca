@@ -223,6 +223,8 @@ _gwopt.imshift = options.ifExistsReturnElseReturnDefault<double>(
 	key + ".sternheimer.imshift",_gwopt.imshift);
 _gwopt.resolution = options.ifExistsReturnElseReturnDefault<Index>(
 	key + ".sternheimer.resolution",_gwopt.resolution);
+_gwopt.lorentzian_broadening = options.ifExistsReturnElseReturnDefault<double>(
+	key + ".sternheimer.lorentzian_broadening",_gwopt.lorentzian_broadening);
   XTP_LOG(logDEBUG, *_pLog) << " Omega initial: " << _gwopt.omegain << flush;
   XTP_LOG(logDEBUG, *_pLog) << " Omega final: " << _gwopt.omegafin << flush;
   XTP_LOG(logDEBUG, *_pLog) << " Step: " << _gwopt.step << flush;
@@ -584,6 +586,9 @@ bool GWBSE::Evaluate() {
 
     const double ev2hrt = 1 / votca::tools::conv::hrt2ev;
 
+    _orbitals.setAuxbasisName(_auxbasis_name);
+
+
     Sternheimer sternheimer(_orbitals, *_pLog);
 
     std::vector<Eigen::Matrix3cd> polar;
@@ -591,7 +596,8 @@ bool GWBSE::Evaluate() {
     // XTP_LOG(logDEBUG, *_pLog)<<TimeStamp()<<" Initialised Grid "<<flush;
 
     sternheimer.Initialize();
-    polar = sternheimer.Polarisability(_gwopt.omegain,_gwopt.omegafin,_gwopt.step, _gwopt.imshift, _gwopt.resolution);
+    polar = sternheimer.Polarisability(_gwopt.omegain,_gwopt.omegafin,_gwopt.step, _gwopt.imshift,
+      _gwopt.lorentzian_broadening,_gwopt.resolution);
     
     std::cout << std::endl << "Finished Sternheimer" << std::endl;
 
