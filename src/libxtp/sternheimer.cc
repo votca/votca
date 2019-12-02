@@ -190,7 +190,7 @@ std::vector<Eigen::MatrixXcd> Sternheimer::DeltaNOneShot(
 
 Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(
     std::complex<double> w, const Eigen::MatrixXd& initGuess) const {
-      std::cout << "Frequencies " << w << std::endl;
+      //std::cout << "Frequencies " << w << std::endl;
   //_orbitals.getNumberOfAlphaElectrons()
   Eigen::MatrixXcd solution_p =
       Eigen::MatrixXd::Zero(_basis_size, _num_occ_lvls)
@@ -213,7 +213,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(
   eris.Initialize(dftbasis, auxbasis);
   
   double alpha = 2 * (_mo_energies(_num_occ_lvls - 1) - _mo_energies(0));
-  std::cout << "alpha " << alpha << std::endl;
+  //std::cout << "alpha " << alpha << std::endl;
   Eigen::MatrixXcd V_ext = (-e_field * initGuess).cast<std::complex<double>>();
 
   for (int n = 0; n < 100; n++) {
@@ -258,10 +258,10 @@ Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(
                       solution_m.transpose();
 
     
-    std::cout << "Delta_N at step  " << n << "\n"
-              << (_overlap_Matrix * delta_n_new).trace() << std::endl;
+    //std::cout << "Delta_N at step  " << n << "\n"
+              //<< (_overlap_Matrix * delta_n_new).trace() << std::endl;
     pertubation = V_ext + eris.ContractRightIndecesWithMatrix(delta_n_new);
-    std::cout << "Update perturbation at step " << n << std::endl;
+    //std::cout << "Update perturbation at step " << n << std::endl;
     // std::cout<<"diff="<<(delta_n_new - delta_n_old).squaredNorm()<<std::endl;
     if ((delta_n_new - delta_n_old).squaredNorm() < 1e-9) {
       return delta_n_new;
@@ -280,10 +280,9 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
   std::vector<std::complex<double>> grid_w =
       BuildGrid(omega_start, omega_end, steps, imaginary_shift);
 
-  // for(int i=0;i<grid_w.size();i++){
-  //   grid_w[i]=grid_w[i]*grid_w[i];
-  //   std::cout<<grid_w[i]<<std::endl;
-  // }
+  for(int i=0;i<grid_w.size();i++){
+     std::cout<<grid_w[i]<<std::endl;
+  }
 
   std::vector<std::complex<double>> w = BuildGrid(
       omega_start, omega_end, resolution_output, lorentzian_broadening);
