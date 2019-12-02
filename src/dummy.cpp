@@ -8,7 +8,7 @@ int main() {
   {
 
     // testing system size
-    constexpr int cry_l = 8;
+    constexpr int cry_l = 16;
     constexpr int N = cry_l * cry_l * cry_l;
     constexpr double l = (double)cry_l / 2.0;
 
@@ -38,9 +38,9 @@ int main() {
 
     for (auto i : Q) i = 0.0;
 
-    double alpha = 1.46010226038;
-    double r_max = 3.11778257707;
-    double k_max = 13.2935926895;
+    double alpha = 1.02113246946;
+    double r_max = 3.64;
+    double k_max = 7.59093986701;
 
     // testing the initialization with different data types
     QDMEwald<double> qdme_d(alpha, k_max, r_max, l);
