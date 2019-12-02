@@ -8,7 +8,7 @@ int main() {
   {
 
     // testing system size
-    constexpr int cry_l = 16;
+    constexpr int cry_l = 8;
     constexpr int N = cry_l * cry_l * cry_l;
     constexpr double l = (double)cry_l / 2.0;
 
@@ -28,15 +28,19 @@ int main() {
       xyz.at(3 * i + 2) = (double)(i / (cry_l * cry_l)) * 0.5;
 
       q.at(i) = -1 + (double)(i % 2) * 2.0;
+
+      std::cout << i << ": " << xyz.at(3 * i + 0) << " " << xyz.at(3 * i + 1)
+                << " " << xyz.at(3 * i + 2) << " " << q.at(i) << " "
+                << std::endl;
     }
 
     for (auto i : d) i = 0.0;
 
     for (auto i : Q) i = 0.0;
 
-    double alpha = 2.6;
-    double r_max = 3.4;
-    double k_max = 9.7;
+    double alpha = 1.46010226038;
+    double r_max = 3.11778257707;
+    double k_max = 13.2935926895;
 
     // testing the initialization with different data types
     QDMEwald<double> qdme_d(alpha, k_max, r_max, l);
