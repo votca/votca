@@ -53,6 +53,9 @@ class QDMEwald {
   KSpace<T> kspace;
   RSpace<T> rspace;
 
+  std::vector<T> force;
+  std::vector<T> torque;
+
   T total_energy;
   T total_virial;
 };
@@ -82,6 +85,23 @@ void QDMEwald<T>::compute(const std::vector<T>& xyz, const std::vector<T>& q,
   std::cout << kspace.get_energy() << std::endl;
   total_energy += rspace.get_energy();
   std::cout << rspace.get_energy() << std::endl;
+
+  force = kspace.get_forces();
+  torque = kspace.get_torque();
+
+  std::vector<T> total_force(3, (T)0);
+
+  std::vector<T> r_force = rspace.get_forces();
+  std::vector<T> r_torque = rspace.get_torque();
+
+  for (int i = 0; i < force.size(); ++i) {
+    force.at(i) += r_force.at(i);
+    torque.at(i) += r_torque.at(i);
+    total_force.at(i % 3) += r_force.at(i);
+  }
+
+  std::cout << "total forces: " << total_force.at(0) << " " << total_force.at(1)
+            << " " << total_force.at(2) << std::endl;
 }
 
 /**
