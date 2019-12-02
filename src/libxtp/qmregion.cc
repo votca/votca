@@ -86,7 +86,7 @@ bool QMRegion::Converged() const {
     info = "converged";
     converged = true;
   }
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << " Region:" << this->identify() << " " << this->getId() << " is "
       << info << " deltaE=" << Echange << " RMS Dmat=" << Dchange
       << " MaxDmat=" << Dmax << std::flush;
@@ -98,14 +98,14 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   std::vector<double> interact_energies = ApplyInfluenceOfOtherRegions(regions);
   double e_ext =
       std::accumulate(interact_energies.begin(), interact_energies.end(), 0.0);
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::info, _log)
       << TimeStamp()
       << " Calculated interaction potentials with other regions. E[hrt]= "
       << e_ext << std::flush;
-  XTP_LOG_SAVE(logINFO, _log) << "Writing inputs" << std::flush;
+  XTP_LOG(Log::info, _log) << "Writing inputs" << std::flush;
   _qmpackage->setRunDir(_workdir);
   _qmpackage->WriteInputFile(_orb);
-  XTP_LOG_SAVE(logINFO, _log) << "Running DFT calculation" << std::flush;
+  XTP_LOG(Log::error, _log) << "Running DFT calculation" << std::flush;
   bool run_success = _qmpackage->Run();
   if (!run_success) {
     _info = false;
@@ -248,8 +248,8 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   overlap.Fill(basis);
   double N_comp = dmat.cwiseProduct(overlap.Matrix()).sum();
   if (std::abs(Ngrid - N_comp) > 0.001) {
-    XTP_LOG_SAVE(logDEBUG, _log) << "=======================" << std::flush;
-    XTP_LOG_SAVE(logDEBUG, _log)
+    XTP_LOG(Log::error, _log) << "=======================" << std::flush;
+    XTP_LOG(Log::error, _log)
         << "WARNING: Calculated Densities at Numerical Grid, Number of "
            "electrons "
         << Ngrid << " is far away from the the real value " << N_comp

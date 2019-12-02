@@ -55,16 +55,13 @@ void DensityAnalysis::Initialize(tools::Property& options) {
 
 bool DensityAnalysis::Evaluate() {
   OPENMP::setMaxThreads(_nThreads);
-  _log.setReportLevel(logDEBUG);
+  _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
 
-  _log.setPreface(logINFO, "\n... ...");
-  _log.setPreface(logERROR, "\n... ...");
-  _log.setPreface(logWARNING, "\n... ...");
-  _log.setPreface(logDEBUG, "\n... ...");
+  _log.setCommonPreface("\n... ...");
 
   Orbitals orbitals;
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::error, _log)
       << " Loading QM data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
 

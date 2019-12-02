@@ -135,7 +135,7 @@ void GWBSE::Initialize(tools::Property& options) {
       }
     }
 
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Ignoring " << ignored_corelevels
         << " core levels for " << ignore_corelevels << " and beyond." << flush;
   }
@@ -188,15 +188,15 @@ void GWBSE::Initialize(tools::Property& options) {
   Index bse_ctotal = bse_cmax - bse_cmin + 1;
   Index bse_size = bse_vtotal * bse_ctotal;
 
-  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " RPA level range [" << rpamin
-                            << ":" << rpamax << "]" << flush;
-  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " GW  level range [" << qpmin
-                            << ":" << qpmax << "]" << flush;
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog) << TimeStamp() << " RPA level range [" << rpamin
+                              << ":" << rpamax << "]" << flush;
+  XTP_LOG(Log::error, *_pLog) << TimeStamp() << " GW  level range [" << qpmin
+                              << ":" << qpmax << "]" << flush;
+  XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " BSE level range occ[" << bse_vmin << ":" << bse_vmax
       << "]  virt[" << bse_cmin << ":" << bse_cmax << "]" << flush;
-  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " BSE Hamiltonian has size "
-                            << bse_size << "x" << bse_size << flush;
+  XTP_LOG(Log::error, *_pLog) << TimeStamp() << " BSE Hamiltonian has size "
+                              << bse_size << "x" << bse_size << flush;
 
   _gwopt.reset_3c = options.ifExistsReturnElseReturnDefault<Index>(
       key + ".rebuild_threecenter_freq", _gwopt.reset_3c);
@@ -256,7 +256,7 @@ void GWBSE::Initialize(tools::Property& options) {
 
       // check size
       if (_bseopt.nmax > bse_size / 4) {
-        XTP_LOG(logDEBUG, *_pLog)
+        XTP_LOG(Log::error, *_pLog)
             << TimeStamp()
             << " Warning : Too many eigenvalues required for Davidson. Default "
                "to Lapack diagonalization"
@@ -270,9 +270,9 @@ void GWBSE::Initialize(tools::Property& options) {
       key + ".useTDA", _bseopt.useTDA);
   _orbitals.setTDAApprox(_bseopt.useTDA);
   if (!_bseopt.useTDA) {
-    XTP_LOG(logDEBUG, *_pLog) << " BSE type: full" << flush;
+    XTP_LOG(Log::error, *_pLog) << " BSE type: full" << flush;
   } else {
-    XTP_LOG(logDEBUG, *_pLog) << " BSE type: TDA" << flush;
+    XTP_LOG(Log::error, *_pLog) << " BSE type: TDA" << flush;
   }
 
   if (options.exists(key + ".vxc")) {
@@ -299,7 +299,7 @@ void GWBSE::Initialize(tools::Property& options) {
   if (mode == "G0W0") {
     _gwopt.gw_sc_max_iterations = 1;
   }
-  XTP_LOG(logDEBUG, *_pLog) << " Running GW as: " << mode << flush;
+  XTP_LOG(Log::error, *_pLog) << " Running GW as: " << mode << flush;
   _gwopt.ScaHFX = _orbitals.getScaHFX();
 
   _gwopt.shift = options.ifExistsReturnElseReturnDefault<double>(
@@ -320,10 +320,10 @@ void GWBSE::Initialize(tools::Property& options) {
   _gwopt.gw_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
       key + ".gw_sc_limit",
       _gwopt.gw_sc_limit);  // convergence criteria for shift it
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << " g_sc_limit [Hartree]: " << _gwopt.g_sc_limit << flush;
   if (_gwopt.gw_sc_max_iterations > 1) {
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << " gw_sc_limit [Hartree]: " << _gwopt.gw_sc_limit << flush;
   }
   _bseopt.min_print_weight = options.ifExistsReturnElseReturnDefault<double>(
@@ -349,19 +349,19 @@ void GWBSE::Initialize(tools::Property& options) {
     _do_bse_triplets = true;
   }
 
-  XTP_LOG(logDEBUG, *_pLog) << " Tasks: " << flush;
+  XTP_LOG(Log::error, *_pLog) << " Tasks: " << flush;
   if (_do_gw) {
-    XTP_LOG(logDEBUG, *_pLog) << " GW " << flush;
+    XTP_LOG(Log::error, *_pLog) << " GW " << flush;
   }
   if (_do_bse_singlets) {
-    XTP_LOG(logDEBUG, *_pLog) << " singlets " << flush;
+    XTP_LOG(Log::error, *_pLog) << " singlets " << flush;
   }
   if (_do_bse_triplets) {
-    XTP_LOG(logDEBUG, *_pLog) << " triplets " << flush;
+    XTP_LOG(Log::error, *_pLog) << " triplets " << flush;
   }
-  XTP_LOG(logDEBUG, *_pLog) << " Store: " << flush;
+  XTP_LOG(Log::error, *_pLog) << " Store: " << flush;
   if (_do_gw) {
-    XTP_LOG(logDEBUG, *_pLog) << " GW " << flush;
+    XTP_LOG(Log::error, *_pLog) << " GW " << flush;
   }
 
   if (options.exists(key + ".fragments")) {
@@ -379,15 +379,15 @@ void GWBSE::Initialize(tools::Property& options) {
   _gwopt.sigma_integration =
       options.ifExistsReturnElseReturnDefault<std::string>(
           key + ".sigma_integrator", _gwopt.sigma_integration);
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << " Sigma integration: " << _gwopt.sigma_integration << flush;
   _gwopt.eta =
       options.ifExistsReturnElseReturnDefault<double>(key + ".eta", _gwopt.eta);
   if (_gwopt.sigma_integration == "exact") {
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << " RPA Hamiltonian size: " << (homo + 1 - rpamin) * (rpamax - homo)
         << flush;
-    XTP_LOG(logDEBUG, *_pLog) << " eta: " << _gwopt.eta << flush;
+    XTP_LOG(Log::error, *_pLog) << " eta: " << _gwopt.eta << flush;
   }
 
   _gwopt.qp_solver = options.ifExistsReturnElseReturnDefault<std::string>(
@@ -396,11 +396,11 @@ void GWBSE::Initialize(tools::Property& options) {
       key + ".qp_grid_steps", _gwopt.qp_grid_steps);
   _gwopt.qp_grid_spacing = options.ifExistsReturnElseReturnDefault<double>(
       key + ".qp_grid_spacing", _gwopt.qp_grid_spacing);
-  XTP_LOG(logDEBUG, *_pLog) << " QP solver: " << _gwopt.qp_solver << flush;
+  XTP_LOG(Log::error, *_pLog) << " QP solver: " << _gwopt.qp_solver << flush;
   if (_gwopt.qp_solver == "grid") {
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << " QP grid steps: " << _gwopt.qp_grid_steps << flush;
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << " QP grid spacing: " << _gwopt.qp_grid_spacing << flush;
   }
 
@@ -513,18 +513,18 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
   }
 
   numint.GridSetup(_grid, _orbitals.QMAtoms(), dftbasis);
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::info, *_pLog)
       << TimeStamp() << " Setup grid for integration with gridsize: " << _grid
       << " with " << numint.getGridSize() << " points, divided into "
       << numint.getBoxesSize() << " boxes" << flush;
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Integrating Vxc in VOTCA with functional "
       << _functional << flush;
   Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
   Mat_p_Energy e_vxc_ao = numint.IntegrateVXC(DMAT);
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::info, *_pLog)
       << TimeStamp() << " Calculated Vxc in VOTCA" << flush;
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Set hybrid exchange factor: " << _orbitals.getScaHFX()
       << flush;
   Index qptotal = _gwopt.qpmax - _gwopt.qpmin + 1;
@@ -533,7 +533,7 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
       _orbitals.MOs().eigenvectors().block(0, _gwopt.qpmin, basissize, qptotal);
 
   Eigen::MatrixXd vxc = mos.transpose() * e_vxc_ao.matrix() * mos;
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Calculated exchange-correlation expectation values "
       << flush;
 
@@ -543,19 +543,19 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
 bool GWBSE::Evaluate() {
 
   // set the parallelization
-  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using "
-                            << OPENMP::getMaxThreads() << " threads" << flush;
+  XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Using "
+                              << OPENMP::getMaxThreads() << " threads" << flush;
 
   if (tools::globals::VOTCA_MKL) {
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Using MKL overload for Eigen " << flush;
   } else {
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << TimeStamp()
         << " Using native Eigen implementation, no BLAS overload " << flush;
   }
 
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Molecule Coordinates [A] " << flush;
   for (QMAtom& atom : _orbitals.QMAtoms()) {
     std::string output =
@@ -566,42 +566,42 @@ bool GWBSE::Evaluate() {
          (atom.getPos().z() * tools::conv::bohr2ang))
             .str();
 
-    XTP_LOG(logDEBUG, *_pLog) << output << flush;
+    XTP_LOG(Log::error, *_pLog) << output << flush;
   }
 
   std::string dft_package = _orbitals.getQMpackage();
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " DFT data was created by " << dft_package << flush;
 
   BasisSet dftbs;
   dftbs.Load(_dftbasis_name);
 
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
   // fill DFT AO basis by going through all atoms
   AOBasis dftbasis;
   dftbasis.Fill(dftbs, _orbitals.QMAtoms());
-  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Basis of size "
-                            << dftbasis.AOBasisSize() << flush;
+  XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Filled DFT Basis of size "
+                              << dftbasis.AOBasisSize() << flush;
 
   // load auxiliary basis set (element-wise information) from xml file
   BasisSet auxbs;
   auxbs.Load(_auxbasis_name);
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Loaded Auxbasis Set " << _auxbasis_name << flush;
 
   // fill auxiliary AO basis by going through all atoms
   AOBasis auxbasis;
   auxbasis.Fill(auxbs, _orbitals.QMAtoms());
   _orbitals.setAuxbasisName(_auxbasis_name);
-  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled Auxbasis of size "
-                            << auxbasis.AOBasisSize() << flush;
+  XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Filled Auxbasis of size "
+                              << auxbasis.AOBasisSize() << flush;
 
   if ((_do_bse_singlets || _do_bse_triplets) && _fragments.size() > 0) {
     for (const auto& frag : _fragments) {
-      XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Fragment " << frag.getId()
-                                << " size:" << frag.size() << flush;
+      XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Fragment " << frag.getId()
+                                  << " size:" << frag.size() << flush;
     }
   }
 
@@ -614,15 +614,15 @@ bool GWBSE::Evaluate() {
   // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, _gwopt.qpmax,
                  _gwopt.rpamin, _gwopt.rpamax);
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << TimeStamp()
       << " Calculating Mmn_beta (3-center-repulsion x orbitals)  " << flush;
   Mmn.Fill(auxbasis, dftbasis, _orbitals.MOs().eigenvectors());
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::info, *_pLog)
       << TimeStamp() << " Removed " << Mmn.Removedfunctions()
       << " functions from Aux Coulomb matrix to avoid near linear dependencies"
       << flush;
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Calculated Mmn_beta (3-center-repulsion x orbitals)  "
       << flush;
 
@@ -638,17 +638,17 @@ bool GWBSE::Evaluate() {
     // E_qp)
     _orbitals.QPpertEnergies() = gw.getGWAResults();
 
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::info, *_pLog)
         << TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
     gw.CalculateHQP();
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
     Hqp = gw.getHQP();
 
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
         gw.DiagonalizeQPHamiltonian();
     if (es.info() == Eigen::ComputationInfo::Success) {
-      XTP_LOG(logDEBUG, *_pLog)
+      XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
     }
 
@@ -675,19 +675,19 @@ bool GWBSE::Evaluate() {
 
     if (_do_bse_triplets) {
       bse.Solve_triplets(_orbitals);
-      XTP_LOG(logDEBUG, *_pLog)
+      XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Solved BSE for triplets " << flush;
       bse.Analyze_triplets(_fragments, _orbitals);
     }
 
     if (_do_bse_singlets) {
       bse.Solve_singlets(_orbitals);
-      XTP_LOG(logDEBUG, *_pLog)
+      XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Solved BSE for singlets " << flush;
       bse.Analyze_singlets(_fragments, _orbitals);
     }
   }
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " GWBSE calculation finished " << flush;
   return true;
 }

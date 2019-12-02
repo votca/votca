@@ -209,12 +209,13 @@ BOOST_AUTO_TEST_CASE(rpa_h2p) {
 
   Eigen::VectorXd rpa_XpY_diag = sol.XpY.diagonal();
 
-  bool check_rpa_XpY_diag = rpa_XpY_diag_ref.isApprox(rpa_XpY_diag, 0.0001);
+  bool check_rpa_XpY_diag =
+      rpa_XpY_diag_ref.cwiseAbs().isApprox(rpa_XpY_diag.cwiseAbs(), 0.0001);
   if (!check_rpa_XpY_diag) {
     cout << "rpa_XpY_diag" << endl;
-    cout << rpa_XpY_diag << endl;
+    cout << rpa_XpY_diag.transpose() << endl;
     cout << "rpa_XpY_diag_ref" << endl;
-    cout << rpa_XpY_diag_ref << endl;
+    cout << rpa_XpY_diag_ref.transpose() << endl;
   }
   BOOST_CHECK_EQUAL(check_rpa_XpY_diag, 1);
 }

@@ -146,7 +146,7 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
                                      const Orbitals& orbitalsB,
                                      const Orbitals& orbitalsAB) {
 
-  XTP_LOG(logDEBUG, *_pLog) << "Calculating electronic couplings" << flush;
+  XTP_LOG(Log::error, *_pLog) << "Calculating electronic couplings" << flush;
 
   CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
 
@@ -164,7 +164,7 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   Index levelsA = Range_orbA.second;
   Index levelsB = Range_orbB.second;
 
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::error, *_pLog)
       << "Levels:Basis A[" << levelsA << ":" << basisA << "]"
       << " B[" << levelsB << ":" << basisB << "]" << flush;
 
@@ -179,26 +179,26 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   auto MOsB = orbitalsB.MOs().eigenvectors().block(0, Range_orbB.first, basisB,
                                                    Range_orbB.second);
 
-  XTP_LOG(logDEBUG, *_pLog) << "Calculating overlap matrix for basisset: "
-                            << orbitalsAB.getDFTbasisName() << flush;
+  XTP_LOG(Log::info, *_pLog) << "Calculating overlap matrix for basisset: "
+                             << orbitalsAB.getDFTbasisName() << flush;
 
   Eigen::MatrixXd overlap =
       CalculateOverlapMatrix(orbitalsAB) * orbitalsAB.MOs().eigenvectors();
 
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::info, *_pLog)
       << "Projecting monomers onto dimer orbitals" << flush;
   Eigen::MatrixXd A_AB = MOsA.transpose() * overlap.topRows(basisA);
   Eigen::MatrixXd B_AB = MOsB.transpose() * overlap.bottomRows(basisB);
   Eigen::VectorXd mag_A = A_AB.rowwise().squaredNorm();
   if (mag_A.any() < 0.95) {
-    XTP_LOG(logERROR, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << "\nWarning: "
         << "Projection of orbitals of monomer A on dimer is insufficient,mag="
         << mag_A.minCoeff() << flush;
   }
   Eigen::VectorXd mag_B = B_AB.rowwise().squaredNorm();
   if (mag_B.any() < 0.95) {
-    XTP_LOG(logERROR, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << "\nWarning: "
         << "Projection of orbitals of monomer B on dimer is insufficient,mag="
         << mag_B.minCoeff() << flush;
@@ -208,19 +208,19 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   psi_AxB_dimer_basis.topRows(A_AB.rows()) = A_AB;
   psi_AxB_dimer_basis.bottomRows(B_AB.rows()) = B_AB;
 
-  XTP_LOG(logDEBUG, *_pLog)
+  XTP_LOG(Log::info, *_pLog)
       << "Projecting the Fock matrix onto the dimer basis" << flush;
   Eigen::MatrixXd JAB_dimer = psi_AxB_dimer_basis *
                               orbitalsAB.MOs().eigenvalues().asDiagonal() *
                               psi_AxB_dimer_basis.transpose();
-  XTP_LOG(logDEBUG, *_pLog) << "Constructing Overlap matrix" << flush;
+  XTP_LOG(Log::info, *_pLog) << "Constructing Overlap matrix" << flush;
   Eigen::MatrixXd S_AxB = psi_AxB_dimer_basis * psi_AxB_dimer_basis.transpose();
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S_AxB);
   Eigen::MatrixXd Sm1 = es.operatorInverseSqrt();
-  XTP_LOG(logDEBUG, *_pLog) << "Smallest eigenvalue of overlap matrix is "
-                            << es.eigenvalues()(0) << flush;
+  XTP_LOG(Log::info, *_pLog) << "Smallest eigenvalue of overlap matrix is "
+                             << es.eigenvalues()(0) << flush;
   JAB = Sm1 * JAB_dimer * Sm1;
-  XTP_LOG(logDEBUG, *_pLog) << "Done with electronic couplings" << flush;
+  XTP_LOG(Log::error, *_pLog) << "Done with electronic couplings" << flush;
 }
 
 }  // namespace xtp

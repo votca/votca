@@ -24,13 +24,12 @@ namespace xtp {
 void ConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
   _S = &S;
   Sminusahalf = S.Pseudo_InvSqrt(etol);
-  XTP_LOG(logDEBUG, *_log) << TimeStamp()
-                           << " Smallest value of AOOverlap matrix is "
-                           << _S->SmallestEigenValue() << std::flush;
-  XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Removed "
-                           << _S->Removedfunctions()
-                           << " basisfunction from inverse overlap matrix"
-                           << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << TimeStamp() << " Smallest value of AOOverlap matrix is "
+      << _S->SmallestEigenValue() << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << TimeStamp() << " Removed " << _S->Removedfunctions()
+      << " basisfunction from inverse overlap matrix" << std::flush;
   return;
 }
 
@@ -71,11 +70,11 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
 
   _diis.Update(_maxerrorindex, errormatrix);
   bool diis_error = false;
-  XTP_LOG(logDEBUG, *_log) << TimeStamp() << " DIIs error " << getDIIsError()
-                           << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << TimeStamp() << " DIIs error " << getDIIsError() << std::flush;
 
-  XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Delta Etot " << getDeltaE()
-                           << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << TimeStamp() << " Delta Etot " << getDeltaE() << std::flush;
 
   if ((_diiserror < _opt.adiis_start || _diiserror < _opt.diis_start) &&
       _opt.usediis && _mathist.size() > 2) {
@@ -86,17 +85,17 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
         _totE.back() > 0.9 * _totE[_totE.size() - 2]) {
       coeffs = _adiis.CalcCoeff(_dmatHist, _mathist);
       diis_error = !_adiis.Info();
-      XTP_LOG(logDEBUG, *_log)
+      XTP_LOG(Log::warning, *_log)
           << TimeStamp() << " Using ADIIS for next guess" << std::flush;
 
     } else {
       coeffs = _diis.CalcCoeff();
       diis_error = !_diis.Info();
-      XTP_LOG(logDEBUG, *_log)
+      XTP_LOG(Log::warning, *_log)
           << TimeStamp() << " Using DIIS for next guess" << std::flush;
     }
     if (diis_error) {
-      XTP_LOG(logDEBUG, *_log)
+      XTP_LOG(Log::warning, *_log)
           << TimeStamp() << " (A)DIIS failed using mixing instead"
           << std::flush;
       H_guess = H;
@@ -121,7 +120,7 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
     _usedmixing = true;
     dmatout =
         _opt.mixingparameter * dmat + (1.0 - _opt.mixingparameter) * dmatout;
-    XTP_LOG(logDEBUG, *_log)
+    XTP_LOG(Log::warning, *_log)
         << TimeStamp() << " Using Mixing with alpha=" << _opt.mixingparameter
         << std::flush;
   } else {
@@ -131,32 +130,32 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
 }
 
 void ConvergenceAcc::PrintConfigOptions() const {
-  XTP_LOG(logDEBUG, *_log) << TimeStamp()
-                           << " Convergence Options:" << std::flush;
-  XTP_LOG(logDEBUG, *_log) << "\t\t Delta E [Ha]: " << _opt.Econverged
-                           << std::flush;
-  XTP_LOG(logDEBUG, *_log) << "\t\t DIIS max error: " << _opt.error_converged
-                           << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << TimeStamp() << " Convergence Options:" << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << "\t\t Delta E [Ha]: " << _opt.Econverged << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << "\t\t DIIS max error: " << _opt.error_converged << std::flush;
   if (_opt.usediis) {
-    XTP_LOG(logDEBUG, *_log)
+    XTP_LOG(Log::error, *_log)
         << "\t\t DIIS histlength: " << _opt.histlength << std::flush;
-    XTP_LOG(logDEBUG, *_log)
+    XTP_LOG(Log::error, *_log)
         << "\t\t ADIIS start: " << _opt.adiis_start << std::flush;
-    XTP_LOG(logDEBUG, *_log)
+    XTP_LOG(Log::error, *_log)
         << "\t\t DIIS start: " << _opt.diis_start << std::flush;
     std::string del = "oldest";
     if (_opt.maxout) {
       del = "largest";
     }
-    XTP_LOG(logDEBUG, *_log)
+    XTP_LOG(Log::error, *_log)
         << "\t\t Deleting " << del << " element from DIIS hist" << std::flush;
   }
-  XTP_LOG(logDEBUG, *_log) << "\t\t Levelshift[Ha]: " << _opt.levelshift
-                           << std::flush;
-  XTP_LOG(logDEBUG, *_log) << "\t\t Levelshift end: " << _opt.levelshiftend
-                           << std::flush;
-  XTP_LOG(logDEBUG, *_log) << "\t\t Mixing Parameter alpha: "
-                           << _opt.mixingparameter << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << "\t\t Levelshift[Ha]: " << _opt.levelshift << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << "\t\t Levelshift end: " << _opt.levelshiftend << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << "\t\t Mixing Parameter alpha: " << _opt.mixingparameter << std::flush;
 }
 
 tools::EigenSystem ConvergenceAcc::SolveFockmatrix(
@@ -187,9 +186,9 @@ void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H,
     virt(i) = _opt.levelshift;
   }
 
-  XTP_LOG(logDEBUG, *_log) << TimeStamp()
-                           << " Using levelshift:" << _opt.levelshift
-                           << " Hartree" << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << TimeStamp() << " Using levelshift:" << _opt.levelshift << " Hartree"
+      << std::flush;
   Eigen::MatrixXd vir = _S->Matrix() * MOs_old * virt.asDiagonal() *
                         MOs_old.transpose() * _S->Matrix();
   H += vir;

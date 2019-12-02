@@ -63,43 +63,43 @@ void StateTracker::Initialize(tools::Property& options) {
 }
 
 void StateTracker::PrintInfo() const {
-  XTP_LOG(logDEBUG, *_log) << "Initial state: " << _statehist[0].ToString()
-                           << flush;
+  XTP_LOG(Log::error, *_log)
+      << "Initial state: " << _statehist[0].ToString() << flush;
   if (_statehist.size() > 1) {
-    XTP_LOG(logDEBUG, *_log)
+    XTP_LOG(Log::error, *_log)
         << "Last state: " << _statehist.back().ToString() << flush;
   }
   if (_use_osctracker) {
-    XTP_LOG(logDEBUG, *_log)
+    XTP_LOG(Log::error, *_log)
         << "Using oscillator strength tracker with threshold " << _oscthreshold
         << flush;
   }
   if (_use_overlaptracker) {
     if (_overlapthreshold == 0.0) {
-      XTP_LOG(logDEBUG, *_log)
+      XTP_LOG(Log::error, *_log)
           << "Using overlap filer with no threshold " << flush;
     } else {
-      XTP_LOG(logDEBUG, *_log) << "Using overlap filer with threshold "
-                               << _overlapthreshold << flush;
+      XTP_LOG(Log::error, *_log) << "Using overlap filer with threshold "
+                                 << _overlapthreshold << flush;
     }
   }
   if (_use_localizationtracker) {
-    XTP_LOG(logDEBUG, *_log)
+    XTP_LOG(Log::error, *_log)
         << "Using localization tracker for " << _fragment_loc << flush;
   }
   if (_use_dQtracker) {
-    XTP_LOG(logDEBUG, *_log)
+    XTP_LOG(Log::error, *_log)
         << "Using Delta Q tracker for fragment " << _fragment_dQ << flush;
   }
   if (_use_osctracker && _use_dQtracker) {
-    XTP_LOG(logDEBUG, *_log) << "WARNING: trackering for optically active CT "
-                                "transition - might not make sense... "
-                             << flush;
+    XTP_LOG(Log::error, *_log) << "WARNING: trackering for optically active CT "
+                                  "transition - might not make sense... "
+                               << flush;
   }
   if (_use_dQtracker + _use_osctracker + _use_localizationtracker +
           _use_osctracker <
       1) {
-    XTP_LOG(logDEBUG, *_log) << "WARNING: No tracker is used " << flush;
+    XTP_LOG(Log::error, *_log) << "WARNING: No tracker is used " << flush;
   }
 }
 
@@ -154,12 +154,13 @@ QMState StateTracker::CalcState(const Orbitals& orbitals) const {
   QMState state;
   if (result.size() < 1) {
     state = _statehist.back();
-    XTP_LOG(logDEBUG, *_log)
+    XTP_LOG(Log::error, *_log)
         << "No State found by tracker using last state: " << state.ToString()
         << flush;
   } else {
     state = QMState(_statehist.back().Type(), result[0], false);
-    XTP_LOG(logDEBUG, *_log) << "Next State is: " << state.ToString() << flush;
+    XTP_LOG(Log::error, *_log)
+        << "Next State is: " << state.ToString() << flush;
   }
   return state;
 }
@@ -208,7 +209,7 @@ std::vector<Index> StateTracker::DeltaQTracker(const Orbitals& orbitals) const {
   frag.copy_withoutvalue(_fragment_dQ);
   std::vector<QMFragment<BSE_Population> > loc = {frag};
   low.CalcChargeperFragment(loc, orbitals, _statehist[0].Type());
-  Eigen::VectorXd dq = (loc[0].value().H - loc[0].value().E).cwiseAbs();
+  Eigen::VectorXd dq = (loc[0].value().H + loc[0].value().E).cwiseAbs();
 
   for (Index i = 0; i < dq.size(); i++) {
     if (dq[i] > _fragment_dQ.value()) {

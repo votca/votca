@@ -74,14 +74,13 @@ bool Log2Mps::Evaluate() {
 
   // Logger (required for QM package, so we can just as well use it)
   Logger log;
-  log.setPreface(logINFO, "\n... ...");
-  log.setPreface(logDEBUG, "\n... ...");
-  log.setReportLevel(logDEBUG);
+  log.setCommonPreface("\n... ...");
+  log.setReportLevel(Log::current_level);
   log.setMultithreading(true);
 
   // Set-up QM package
-  XTP_LOG_SAVE(logINFO, log)
-      << "Using package <" << _package << ">" << std::flush;
+  XTP_LOG(Log::error, log) << "Using package <" << _package << ">"
+                           << std::flush;
 
   std::unique_ptr<QMPackage> qmpack =
       std::unique_ptr<QMPackage>(QMPackages().Create(_package));
@@ -96,15 +95,12 @@ bool Log2Mps::Evaluate() {
   // Sanity checks, total charge
 
   if (atoms.size() < 1) {
-    std::cout << "\nERROR No charges extracted from " << _logfile
-              << ". Abort.\n"
-              << std::flush;
-    throw std::runtime_error("(see above, input or parsing error)");
+    throw std::runtime_error("ERROR No charges extracted from " + _logfile);
   }
 
   double Q = atoms.CalcTotalQ();
-  XTP_LOG_SAVE(logINFO, log)
-      << atoms.size() << " QM atoms, total charge Q = " << Q << std::flush;
+  XTP_LOG(Log::error, log) << atoms.size()
+                           << " QM atoms, total charge Q = " << Q << std::flush;
 
   std::string tag =
       "::LOG2MPS " + (boost::format("(log-file='%1$s' : %2$d QM atoms)") %

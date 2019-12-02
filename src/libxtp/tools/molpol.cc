@@ -76,13 +76,15 @@ void MolPol::Initialize(tools::Property& options) {
         options.ifExistsReturnElseThrowRuntimeError<std::string>(key +
                                                                  ".logfile");
     Logger log;
-    log.setPreface(logINFO, "\n... ...");
-    log.setPreface(logDEBUG, "\n... ...");
-    log.setReportLevel(logDEBUG);
+    log.setPreface(Log::info, "\n ...");
+    log.setPreface(Log::error, "\n ...");
+    log.setPreface(Log::warning, "\n ...");
+    log.setPreface(Log::debug, "\n ...");
+    log.setReportLevel(Log::current_level);
     log.setMultithreading(true);
 
     // Set-up QM package
-    XTP_LOG_SAVE(logINFO, log)
+    XTP_LOG(Log::error, log)
         << "Using package <" << qm_package << ">" << std::flush;
     QMPackageFactory::RegisterAll();
     std::unique_ptr<QMPackage> qmpack =
@@ -108,13 +110,10 @@ Eigen::Vector3d MolPol::Polarize(const PolarSegment& input,
                                  const Eigen::Vector3d& ext_field) const {
   Logger log;
   log.setMultithreading(false);
-  log.setPreface(logINFO, (boost::format("\n ...")).str());
-  log.setPreface(logERROR, (boost::format("\n ...")).str());
-  log.setPreface(logWARNING, (boost::format("\n ...")).str());
-  log.setPreface(logDEBUG, (boost::format("\n ...")).str());
-  if (tools::globals::verbose) {
-    log.setReportLevel(logDEBUG);
-  }
+  log.setCommonPreface("\n ...");
+
+  log.setReportLevel(Log::current_level);
+
   PolarRegion pol(0, log);
   pol.Initialize(_polar_options);
   pol.push_back(input);

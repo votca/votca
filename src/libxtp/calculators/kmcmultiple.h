@@ -35,10 +35,10 @@ class KMCMultiple : public KMCCalculator {
 
  private:
   void RunVSSM() override;
-  void PrintChargeVelocity(double simtime) const;
+  void PrintChargeVelocity(double simtime);
 
   void PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
-                       double simtime, unsigned long step) const;
+                       double simtime, unsigned long step);
 
   void WriteToEnergyFile(std::fstream& tfile, double simtime,
                          unsigned long step) const;
@@ -48,7 +48,7 @@ class KMCMultiple : public KMCCalculator {
                          double simtime, unsigned long step) const;
 
   void PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor, double simtime,
-                      unsigned long step) const;
+                      unsigned long step);
 
   double _runtime;
   double _outputtime;

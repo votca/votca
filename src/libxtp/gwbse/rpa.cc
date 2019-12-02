@@ -100,11 +100,14 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
 
   RPA::rpa_eigensolution sol;
 
+  // Do not remove this line! It has to be there for MKL to not crash
+  sol.omega = Eigen::VectorXd::Zero(es.eigenvalues().size());
   sol.omega = es.eigenvalues().cwiseSqrt();
 
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << " Lowest neutral excitation energy (eV): "
-      << tools::conv::hrt2ev * sol.omega.minCoeff() << std::flush;
+  XTP_LOG(Log::info, _log) << TimeStamp()
+                           << " Lowest neutral excitation energy (eV): "
+                           << tools::conv::hrt2ev * sol.omega.minCoeff()
+                           << std::flush;
 
   sol.XpY = Eigen::MatrixXd(rpasize, rpasize);
 
@@ -159,15 +162,15 @@ Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
 
 Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> RPA::Diagonalize_H2p_C(
     const Eigen::MatrixXd& C) const {
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::error, _log)
       << TimeStamp() << " Diagonalizing two-particle Hamiltonian "
       << std::flush;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(C);  // Uses lower triangle
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::error, _log)
       << TimeStamp() << " Diagonalization done " << std::flush;
   double minCoeff = es.eigenvalues().minCoeff();
   if (minCoeff <= 0.0) {
-    XTP_LOG_SAVE(logDEBUG, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Detected non-positive eigenvalue: " << minCoeff
         << std::flush;
     throw std::runtime_error("Detected non-positive eigenvalue.");
