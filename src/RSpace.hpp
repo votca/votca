@@ -157,16 +157,18 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
         dR[d] -= std::round(dR[d] / l) * l;
       }
       T dist2 = dR[0] * dR[0] + dR[1] * dR[1] + dR[2] * dR[2];
-      T inv_dist = 1.0 / std::sqrt(dist2);
+      T dist = std::sqrt(dist2);
+      T inv_dist = 1.0 / dist;
 
       // eqn 69-71 in Smith Point Multipoles in Ewald Summation(Revisited)
       std::array<T, 6> Bn;
       Bn[0] = inv_dist * std::erfc(alpha / inv_dist);
       T expfactor = std::exp(-alpha * alpha * dist2);
       for (int b = 1; b < 6; b++) {
-        Bn[b] = inv_dist * inv_dist * (2 * b - 1) * Bn[b - 1] +
-                std::pow(2 * alpha * alpha, b) / (alpha * std::sqrt(M_PI)) *
-                    expfactor;
+        Bn[b] = inv_dist * inv_dist *
+                ((T)(2 * b - 1) * Bn[b - 1] + std::pow(2 * alpha * alpha, b) /
+                                                  (alpha * std::sqrt(M_PI)) *
+                                                  expfactor);
       }
 
       auto Di = Kokkos::subview(d, i, Kokkos::ALL());
@@ -230,9 +232,11 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
       thread_Potential += Bn[0] * GL[0] + Bn[1] * (GL[1] + GL[6]) +
                           Bn[2] * (GL[2] + GL[7] + GL[8]) +
                           Bn[3] * (GL[3] + GL[5]) + Bn[4] * GL[4];
-#ifdef DEBUG_OUTPUT_ENABLED
+#ifndef DEBUG_OUTPUT_ENABLED
       std::cout << "r-space DEBUG: " << i << " <> " << j << " " << pot_energy
-                << " + " << thread_Potential << " " << Bn[0] << " "
+                << " + " << thread_Potential << " ( " << (Bn[0] * GL[0])
+                << " ) "
+                << " " << Bn[0] << " "
                 << " " << Bn[1] << " "
                 << " " << Bn[2] << " "
                 << " " << Bn[3] << " "
