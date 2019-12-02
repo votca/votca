@@ -37,7 +37,7 @@ class GW {
         _Mmn(Mmn),
         _vxc(vxc),
         _dft_energies(dft_energies),
-        _rpa(Mmn){};
+        _rpa(log, Mmn){};
 
   struct options {
     Index homo;
@@ -45,6 +45,7 @@ class GW {
     Index qpmax;
     Index rpamin;
     Index rpamax;
+    double eta = 1e-3;
     double g_sc_limit = 1e-5;  // default 1e-5
     Index g_sc_max_iterations = 50;
     double gw_sc_limit = 1e-5;
@@ -54,6 +55,9 @@ class GW {
     std::string sigma_integration = "ppm";
     Index reset_3c = 5;  // how often the 3c integrals in iterate should be
                          // rebuild
+    std::string qp_solver = "fixedpoint";
+    Index qp_grid_steps = 201;      // Number of grid points
+    double qp_grid_spacing = 0.01;  // Spacing of grid points in Ha
   };
 
   void configure(const options& opt);
@@ -89,13 +93,14 @@ class GW {
 
   RPA _rpa;
 
-  Eigen::VectorXd CalculateExcitationFreq(Eigen::VectorXd frequencies);
-  double CalcHomoLumoShift() const;
+  double CalcHomoLumoShift(Eigen::VectorXd frequencies) const;
   Eigen::VectorXd ScissorShift_DFTlevel(
       const Eigen::VectorXd& dft_energies) const;
   void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const;
   void PrintGWA_Energies() const;
-  Eigen::VectorXd CalcDiagonalEnergies() const;
+
+  Eigen::VectorXd SolveQP_Grid(const Eigen::VectorXd& frequencies) const;
+  Eigen::VectorXd SolveQP_FixedPoint(const Eigen::VectorXd& frequencies) const;
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
 };
