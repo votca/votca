@@ -11,6 +11,8 @@ For more detailed information about the changes see the history of the
  * full LAMMPS support
  * improved testing
  * new tutorial with more functionality
+ * deleted netbeans support
+ * removed old manual
  
 ## Version 1.5.1 (released 20.11.19)
  * remove exit() calls in the library
