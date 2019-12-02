@@ -59,9 +59,12 @@ class Sigma_base {
 
   // Sets up the screening parametrisation
   virtual void PrepareScreening() = 0;
-  // Calculates Sigma_c elements
+  // Calculates Sigma_c diagonal elements
+  virtual double CalcCorrelation(Index gw_level, double frequency) const = 0;
+  // Calculates Sigma_c off-diagonal elements
   virtual double CalcCorrelation(Index gw_level1, Index gw_level2,
-                                 double frequency) const = 0;
+                                 double frequency1,
+                                 double frequency2) const = 0;
 
  protected:
   options _opt;

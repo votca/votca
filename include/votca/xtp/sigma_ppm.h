@@ -35,9 +35,13 @@ class Sigma_PPM : public Sigma_base {
 
   // Sets up the screening parametrisation
   void PrepareScreening() override;
-  // Calculates Sigma_c elements
-  double CalcCorrelation(Index gw_level1, Index gw_level2,
-                         double frequency) const override;
+  // Calculates Sigma_c diagonal elements
+  virtual double CalcCorrelation(Index gw_level,
+                                 double frequency) const override;
+  // Calculates Sigma_c off-diagonal elements
+  virtual double CalcCorrelation(Index gw_level1, Index gw_level2,
+                                 double frequency1,
+                                 double frequency2) const override;
 
  private:
   inline void Stabilize(Eigen::ArrayXd& denom) const;

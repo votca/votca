@@ -35,8 +35,30 @@ void Sigma_Exact::PrepareScreening() {
   return;
 }
 
+double Sigma_Exact::CalcCorrelation(Index gw_level, double frequency) const {
+  const double eta = _opt.eta;
+  const Index lumo = _opt.homo + 1;
+  const Index n_occ = lumo - _opt.rpamin;
+  const Index n_unocc = _opt.rpamax - _opt.homo;
+  const Index rpasize = _rpa_solution.omega.size();
+  double sigma_c = 0.0;
+  for (Index s = 0; s < rpasize; s++) {
+    const double eigenvalue = _rpa_solution.omega(s);
+    const Eigen::VectorXd res_12 = _residues[gw_level].col(s).cwiseAbs2();
+    Eigen::ArrayXd temp = -_rpa.getRPAInputEnergies().array() + frequency;
+    temp.segment(0, n_occ) += eigenvalue;
+    temp.segment(n_occ, n_unocc) -= eigenvalue;
+    const Eigen::ArrayXd numer = res_12.array() * temp;
+    const Eigen::ArrayXd denom = temp.abs2() + eta * eta;
+    sigma_c += (numer / denom).sum();
+  }
+  // Multiply with factor 2.0 to sum over both (identical) spin states
+  return 2.0 * sigma_c;
+}
+
 double Sigma_Exact::CalcCorrelation(Index gw_level1, Index gw_level2,
-                                    double frequency) const {
+                                    double frequency1,
+                                    double frequency2) const {
   const double eta = _opt.eta;
   const Index lumo = _opt.homo + 1;
   const Index n_occ = lumo - _opt.rpamin;
@@ -48,12 +70,16 @@ double Sigma_Exact::CalcCorrelation(Index gw_level1, Index gw_level2,
     const Eigen::VectorXd& res1 = _residues[gw_level1].col(s);
     const Eigen::VectorXd& res2 = _residues[gw_level2].col(s);
     const Eigen::VectorXd res_12 = res1.cwiseProduct(res2);
-    Eigen::ArrayXd temp = -_rpa.getRPAInputEnergies().array() + frequency;
-    temp.segment(0, n_occ) += eigenvalue;
-    temp.segment(n_occ, n_unocc) -= eigenvalue;
-    const Eigen::ArrayXd numer = res_12.array() * temp;
-    const Eigen::ArrayXd denom = temp.abs2() + eta * eta;
-    sigma_c += (numer / denom).sum();
+    Eigen::ArrayXd temp1 = -_rpa.getRPAInputEnergies().array();
+    temp1.segment(0, n_occ) += eigenvalue;
+    temp1.segment(n_occ, n_unocc) -= eigenvalue;
+    const Eigen::ArrayXd temp2 = temp1 + frequency2;
+    temp1 += frequency1;
+    const Eigen::ArrayXd numer1 = res_12.array() * temp1;
+    const Eigen::ArrayXd numer2 = res_12.array() * temp2;
+    const Eigen::ArrayXd denom1 = temp1.abs2() + eta * eta;
+    const Eigen::ArrayXd denom2 = temp2.abs2() + eta * eta;
+    sigma_c += 0.5 * ((numer1 / denom1) + (numer2 / denom2)).sum();
   }
   // Multiply with factor 2.0 to sum over both (identical) spin states
   return 2.0 * sigma_c;
