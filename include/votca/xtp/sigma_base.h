@@ -39,24 +39,33 @@ class Sigma_base {
     Index qpmin = 0;
     Index qpmax = 0;
     Index rpamin = 0;
+    Index rpamax = 0;
+    double eta = 1e-3;
   };
 
   void configure(options opt) {
     _opt = opt;
     _qptotal = opt.qpmax - opt.qpmin + 1;
+    _rpatotal = opt.rpamax - opt.rpamin + 1;
   }
 
-  // Calculates Full exchange matrix
-  Eigen::MatrixXd CalcExchange() const;
+  // Calculates full exchange matrix
+  Eigen::MatrixXd CalcExchangeMatrix() const;
+  // Calculates correlation diagonal
+  Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies) const;
+  // Calculates correlation off-diagonal
+  Eigen::MatrixXd CalcCorrelationOffDiag(
+      const Eigen::VectorXd& frequencies) const;
 
   // Sets up the screening parametrisation
   virtual void PrepareScreening() = 0;
-  // Calculates Sigma_c diag elements
-  virtual Eigen::VectorXd CalcCorrelationDiag(
-      const Eigen::VectorXd& frequencies) const = 0;
-  // Calculates Sigma_c offdiag elements
-  virtual Eigen::MatrixXd CalcCorrelationOffDiag(
-      const Eigen::VectorXd& frequencies) const = 0;
+  // Calculates Sigma_c diagonal elements
+  virtual double CalcCorrelationDiagElement(Index gw_level,
+                                            double frequency) const = 0;
+  // Calculates Sigma_c off-diagonal elements
+  virtual double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
+                                               double frequency1,
+                                               double frequency2) const = 0;
 
  protected:
   options _opt;
@@ -64,6 +73,7 @@ class Sigma_base {
   const RPA& _rpa;
 
   Index _qptotal = 0;
+  Index _rpatotal = 0;
 };
 }  // namespace xtp
 }  // namespace votca

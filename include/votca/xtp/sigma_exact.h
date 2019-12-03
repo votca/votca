@@ -17,10 +17,10 @@
  *
  */
 
-#pragma once
-#ifndef _VOTCA_XTP_SIGMA_PPM_H
-#define _VOTCA_XTP_SIGMA_PPM_H
-#include <votca/xtp/ppm.h>
+#ifndef _VOTCA_XTP_SIGMA_EXACT_H
+#define _VOTCA_XTP_SIGMA_EXACT_H
+
+#include <votca/xtp/rpa.h>
 #include <votca/xtp/sigma_base.h>
 
 namespace votca {
@@ -29,9 +29,10 @@ namespace xtp {
 class TCMatrix_gwbse;
 class RPA;
 
-class Sigma_PPM : public Sigma_base {
+class Sigma_Exact : public Sigma_base {
+
  public:
-  Sigma_PPM(TCMatrix_gwbse& Mmn, RPA& rpa) : Sigma_base(Mmn, rpa){};
+  Sigma_Exact(TCMatrix_gwbse& Mmn, RPA& rpa) : Sigma_base(Mmn, rpa){};
 
   // Sets up the screening parametrisation
   void PrepareScreening() override;
@@ -44,10 +45,12 @@ class Sigma_PPM : public Sigma_base {
       double frequency2) const override;
 
  private:
-  inline void Stabilize(Eigen::ArrayXd& denom) const;
-  PPM _ppm;
+  RPA::rpa_eigensolution _rpa_solution;    // Eigenvalues, eigenvectors from RPA
+  std::vector<Eigen::MatrixXd> _residues;  // Residues
+
+  Eigen::MatrixXd CalcResidues(Index gw_level) const;
 };
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_SIGMA_H */
+#endif /* _VOTCA_XTP_SIGMA_EXACT_H */

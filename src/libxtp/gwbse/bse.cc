@@ -47,7 +47,7 @@ void BSE::configure(const options& opt, const Eigen::VectorXd& DFTenergies) {
 }
 
 void BSE::SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies) {
-  RPA rpa = RPA(_Mmn);
+  RPA rpa = RPA(_log, _Mmn);
   rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
   rpa.UpdateRPAInputEnergies(DFTenergies, _Hqp.diagonal(), _opt.qpmin);
 
