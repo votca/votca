@@ -1,6 +1,20 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
+## Version 1.6_rc1 (released XX.12.19)
+ * completely new statefile in hdf5 format for larger systems
+ * new electrostatics with PCG solver
+ * new QM/MM engine with freely configurable regions
+ * exact GW-BSE for small systems
+ * new iterative matrix solvers for large systems
+ * CUDA support for parts of GW-BSE
+ * full LAMMPS support
+ * improved testing
+ * new tutorial with more functionality
+ * deleted netbeans support
+ * removed old manual
+ * Major CMake refactor
+ 
 ## Version 1.5.1 (released 20.11.19)
  * remove exit() calls in the library
  * fix build on CentOs7
