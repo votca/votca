@@ -1,8 +1,11 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
-## Version 1.6-dev
+## Version 1.6_rc1 (released XX.12.19)
 * replaced fftw with Eigen3 fft 
 * replaced random with std::random implementation
+* added many unit tests
+* formated code with clang-format
+* major cmake refactor
 
 ## Version 1.5.1 (released 20.11.19)
  * switch votca_compare to python3
