@@ -144,7 +144,6 @@ std::vector<Index> StateTracker::ComparePairofVectors(
   return result;
 }
 
-
 std::vector<Index> StateTracker::CollapseResults(
     std::vector<std::vector<Index> >& results) const {
   if (results.size() == 1) {
@@ -264,8 +263,8 @@ std::vector<Index> StateTracker::DeltaQTracker(const Orbitals& orbitals) const {
 }
 Eigen::VectorXd StateTracker::CalculateOverlapBSE(
     const Orbitals& orbitals) const {
-  // Define some useful Indeegers as the numeber of states, the number of occ and
-  // virt level
+  // Define some useful Indeegers as the numeber of states, the number of occ
+  // and virt level
   Index nostates = orbitals.NumberofStates(_statehist[0].Type());
   Index v = orbitals.getBSEvmax() + 1;
   Index c = orbitals.getBSEcmax() + 1;
@@ -451,8 +450,9 @@ std::vector<Index> StateTracker::DensityTracker(
   }
   std::vector<Index> index = std::vector<Index>(dnorm.size());
   std::iota(index.begin(), index.end(), 0);
-  std::stable_sort(index.begin(), index.end(),
-                   [&dnorm](Index i1, Index i2) { return dnorm[i1] < dnorm[i2]; });
+  std::stable_sort(index.begin(), index.end(), [&dnorm](Index i1, Index i2) {
+    return dnorm[i1] < dnorm[i2];
+  });
   Index offset = 0;
   if (_statehist[0].Type() == QMStateType::DQPstate) {
     offset = orbitals.getGWAmin();
