@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,74 +15,43 @@
  *
  */
 
-#ifndef _crosscorrelate_H
-#define	_crosscorrelate_H
+#ifndef VOTCA_TOOLS_CROSSCORRELATE_H
+#define VOTCA_TOOLS_CROSSCORRELATE_H
 
-#include <vector>
-#include <iostream>
 #include "datacollection.h"
+#include <iostream>
+#include <vector>
+#include <votca/tools/eigen.h>
+#include <votca/tools/types.h>
 
-namespace votca { namespace tools {
-
-using namespace std;
+namespace votca {
+namespace tools {
 
 /**
-    \brief class to calculate cross correlkations and autocorrelations
-
-    This class is relatively outdated and only used in csg_boltzmann!
-
-    \todo implementation
+    \brief class to calculate cross correlations and autocorrelations
 */
-class CrossCorrelate
-{
-    public:
-        /// constructor
-        CrossCorrelate() {};
-        /// destructor
-        ~CrossCorrelate() {};
-        
-        /**
-            calculate the cross correlation
-         */
-        //void CrossCorrelate(DataCollection<double>::selection *data1, 
-        //    DataCollection<double>::selection *data2, bool average = false);
-        
-        /**
-            calculate the auto correlation
-               
-         */
-        void AutoCorrelate(DataCollection<double>::selection *data, bool average = false);
+class CrossCorrelate {
+ public:
+  CrossCorrelate() = default;
+  ~CrossCorrelate() = default;
 
-        // Calculates only the Fourier trafo
-        void FFTOnly(vector <double>& ivec);
-        
-        // Calculates only the Discrete Cosine trafo
-        void DCTOnly(vector <double>& ivec);
-        
-        // Calculates Fourier trafo and then auto correlation
-        void AutoFourier(vector <double>& ivec);
-        
-        // Calculates Discrete Cosine trafo and then auto correlation
-        void AutoCosine(vector <double>& ivec);
-        
-        // Calculates auto correlation via two Fourier trafos
-        void AutoCorr(vector <double>& ivec);
-        
-        vector<double> &getData() { return _corrfunc; }
-    private:
-        vector<double> _corrfunc;
+  void AutoCorrelate(DataCollection<double>::selection& data);
+
+  std::vector<double>& getData() { return _corrfunc; }
+  const std::vector<double>& getData() const { return _corrfunc; }
+
+ private:
+  std::vector<double> _corrfunc;
 };
 
-inline ostream& operator<<(ostream& out, CrossCorrelate &c)
-{
-    vector<double> &data = c.getData();
-    for(size_t i=0; i<data.size(); i++) {
-        out << i << " " << c.getData()[i] << endl;
-    }
-    return out;
+inline std::ostream& operator<<(std::ostream& out, const CrossCorrelate& c) {
+  for (Index i = 0; i < Index(c.getData().size()); i++) {
+    out << i << " " << c.getData()[i] << std::endl;
+  }
+  return out;
 }
 
-}}
+}  // namespace tools
+}  // namespace votca
 
-#endif	/* _crosscorrelate_H */
-
+#endif /* VOTCA_TOOLS_CROSSCORRELATE_H */

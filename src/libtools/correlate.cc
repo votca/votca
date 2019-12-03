@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,39 +15,30 @@
  */
 
 #include <votca/tools/correlate.h>
-#include <math.h>
+#include <votca/tools/eigen.h>
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
 
-/**
-    \todo clean implementation!!!
-*/
-void Correlate::CalcCorrelations(DataCollection<double>::selection *data)
-{    
-    size_t N;
-    double xm(0), xsq(0);    
-    
-    N = (*data)[0].size();
-     for(size_t i=0; i<N; i++) {
-        xm += (*data)[0][i];
-        xsq += (*data)[0][i]*(*data)[0][i];
-    }
-    xm/=(double)N;
-    
-    for(size_t v=1; v<data->size(); v++) {
-        pair<string, double> p("do_names", 0);        
-        double ym(0), ysq(0);
-        
-        for(size_t i=0; i<N; i++) {
-            ym+=(*data)[v][i];
-            ysq+=(*data)[v][i]*(*data)[v][i];
-            p.second+= (*data)[v][i]*(*data)[0][i];
-        }
-        ym/=(double)N;
-        double norm = (xsq - ((double)N)*xm*xm)*(ysq - ((double)N)*ym*ym);
-        p.second = (p.second - ((double)N)*xm*ym) / sqrt(norm);
-        _corr.push_back(p);
-    }
+void Correlate::CalcCorrelations(DataCollection<double>::selection &data) {
+  Index N = Index(data[0].size());
+  double Nd = (double)N;
+  Eigen::Map<Eigen::ArrayXd> m0(data[0].data(), N);
+  double xm = m0.sum();
+  xm /= Nd;
+  double xsq = m0.abs2().sum();
+
+  for (Index v = 1; v < data.size(); v++) {
+    Eigen::Map<Eigen::ArrayXd> m_v(data[v].data(), N);
+    double ym = m_v.sum();
+    double ysq = m_v.abs2().sum();
+    double p = (m_v * m0).sum();
+    ym /= Nd;
+    double norm = std::sqrt((xsq - Nd * xm * xm) * (ysq - Nd * ym * ym));
+    p = (p - Nd * xm * ym) / norm;
+    _corr.push_back(p);
+  }
 }
 
-}}
+}  // namespace tools
+}  // namespace votca

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,8 +18,10 @@
  */
 
 #include <iostream>
-#include <utility>
 #include <limits>
+#include <utility>
+#include <vector>
+#include <votca/tools/types.h>
 
 #ifndef _VOTCA_TOOLS_EDGE_H
 #define _VOTCA_TOOLS_EDGE_H
@@ -36,29 +38,36 @@ namespace tools {
  * a link.
  */
 class Edge {
- private:
-  std::pair<int, int> vertices;
+ protected:
+  std::vector<Index> vertices_;
 
  public:
-  Edge() {}
-  ~Edge() {}
+  Edge() = default;
+  virtual ~Edge() = default;
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
-  Edge(int ID1, int ID2);
-  Edge(const Edge& ed) : vertices(ed.vertices) {}
+  Edge(Index ID1, Index ID2);
   /// Given one of the integers in the edge the other will be output
-  int getOtherV(int ver) const;
+  Index getOtherEndPoint(Index ver) const;
   /// grab the smaller integer
-  int getV1() const { return vertices.first; }
+  Index getEndPoint1() const { return vertices_.front(); }
   /// grab the larger integer
-  int getV2() const { return vertices.second; }
+  Index getEndPoint2() const { return vertices_.back(); }
 
-  /// Determine if the edge contains the int ID
-  bool contains(int ID) const;
+  /**
+   * \brief Checks to see if an edge loops back on itself.
+   *
+   * If both ends of the edge point to the same vertex than it is considered a
+   * loop.
+   **/
+  bool loop() const { return vertices_.front() == vertices_.back(); }
+
+  /// Determine if the edge contains the Index ID
+  bool contains(Index ID) const;
   /// Checks if Edges are equivalent
-  bool operator==(const Edge ed) const;
+  virtual bool operator==(const Edge& ed) const;
   /// Checks if Edges are not equivalent
-  bool operator!=(const Edge ed) const;
+  virtual bool operator!=(const Edge& ed) const;
 
   /// If the vertices are smaller in value
   /// Edge ed1(2,3);
@@ -68,20 +77,20 @@ class Edge {
   /// assert(ed2<ed1); // will return true
   /// assert(ed3<ed1); // will return true
   /// assert(ed3<ed1); // will return true
-  bool operator<(const Edge ed) const;
-  bool operator>(const Edge ed) const;
-  bool operator<=(const Edge ed) const;
-  bool operator>=(const Edge ed) const;
+  virtual bool operator<(const Edge& ed) const;
+  virtual bool operator>(const Edge& ed) const;
+  virtual bool operator<=(const Edge& ed) const;
+  virtual bool operator>=(const Edge& ed) const;
 
   /// Print the contents of the edge
-  friend std::ostream& operator<<(std::ostream& os, const Edge ed);
+  friend std::ostream& operator<<(std::ostream& os, const Edge& ed);
 };
 
 // Value used as a dummy object
-const Edge DUMMY_EDGE(std::numeric_limits<int>::max(),
-                      std::numeric_limits<int>::max());
-}
-}
+const Edge DUMMY_EDGE(std::numeric_limits<Index>::max(),
+                      std::numeric_limits<Index>::max());
+}  // namespace tools
+}  // namespace votca
 
 /// Define a hasher so we can use it as a key in an unordered_map
 namespace std {
@@ -89,8 +98,9 @@ template <>
 class hash<votca::tools::Edge> {
  public:
   size_t operator()(const votca::tools::Edge& ed) const {
-    return hash<int>()(ed.getV1()) ^ hash<int>()(ed.getV2());
+    return hash<votca::Index>()(ed.getEndPoint1()) ^
+           hash<votca::Index>()(ed.getEndPoint2());
   }
 };
-}
+}  // namespace std
 #endif  // _VOTCA_TOOLS_EDGE_H

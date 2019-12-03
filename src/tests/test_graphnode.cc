@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,18 +22,9 @@
 #include <cmath>
 #include <exception>
 #include <iostream>
-#include <iostream>
 #include <votca/tools/graphnode.h>
 using namespace std;
 using namespace votca::tools;
-
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
 
 BOOST_AUTO_TEST_SUITE(graphnode_test)
 
@@ -45,7 +36,7 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK_EQUAL(gn == gn, true);
   BOOST_CHECK_EQUAL(gn.getStringId(), "");
 
-  unordered_map<string, int> int_vals = {{"Num", 134}};
+  unordered_map<string, votca::Index> int_vals = {{"Num", 134}};
   unordered_map<string, double> double_vals = {{"Height", 159.32}};
   unordered_map<string, string> str_vals = {{"Name", "George"}};
   GraphNode gn2(int_vals, double_vals, str_vals);
@@ -56,7 +47,7 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
 }
 
 BOOST_AUTO_TEST_CASE(setters_test) {
-  unordered_map<string, int> int_vals = {{"Num", 134}};
+  unordered_map<string, votca::Index> int_vals = {{"Num", 134}};
   unordered_map<string, double> double_vals = {{"Height", 159.32}};
   unordered_map<string, string> str_vals = {{"Name", "George"}};
   GraphNode gn2(int_vals, double_vals, str_vals);
@@ -64,7 +55,7 @@ BOOST_AUTO_TEST_CASE(setters_test) {
   string str{"Num134Height159.32NameGeorge"};
   BOOST_CHECK_EQUAL(gn2.getStringId(), str);
 
-  unordered_map<string, int> int_vals2 = {{"Second", 2}, {"First", 1}};
+  unordered_map<string, votca::Index> int_vals2 = {{"Second", 2}, {"First", 1}};
   gn2.setInt(int_vals2);
   str = "First1Second2Height159.32NameGeorge";
   BOOST_CHECK_EQUAL(gn2.getStringId(), str);
@@ -83,8 +74,8 @@ BOOST_AUTO_TEST_CASE(setters_test) {
 }
 
 BOOST_AUTO_TEST_CASE(comparisontest) {
-  unordered_map<string, int> int_vals1 = {{"a", 134}};
-  unordered_map<string, int> int_vals2 = {{"b", 134}};
+  unordered_map<string, votca::Index> int_vals1 = {{"a", 134}};
+  unordered_map<string, votca::Index> int_vals2 = {{"b", 134}};
 
   unordered_map<string, double> double_vals;
   unordered_map<string, string> str_vals;

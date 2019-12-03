@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,26 +23,17 @@
 #include <map>
 #include <sstream>
 #include <vector>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
-
-using namespace std;
 
 /**
  * \brief This class handles a set of arrays which can be identified by name
  * tags
  *
- * This class is a Container of arrays. The arrays can be accessed by 
- * specifying a name, or whole groups of arrays can be selected using select an
- * regular expressions. Regular expressions are not fully implemented at the 
- * moment. Instead, selections are performed using wildcard compare.
- *
- * Be aware that you might specify as typename if you define a container, array
- * or iterator! There is currently no suppurt for user created groups, but will 
- * follow later.
- *
- * This class is relatively outdated and only used in csg_boltzmann!
+ * This class is a Container of arrays. The arrays can be accessed by
+ * specifying a name or wildcard.
  *
  **/
 template <typename T>
@@ -51,31 +42,35 @@ class DataCollection {
   /**
    * \brief The array class, extends vector by a name tag
    */
-  class array : public vector<T> {
+  class array : public std::vector<T> {
    public:
-    array(string name) { _name = name; }
-    const string &getName() { return _name; }
+    array(std::string name) { _name = name; }
+    const std::string &getName() const { return _name; }
 
    private:
-    string _name;
+    std::string _name;
   };
 
-  typedef vector<array *> container;
-  typedef typename vector<array *>::iterator iterator;
+  using iterator = typename std::vector<array *>::iterator;
+  using const_iterator = typename std::vector<array *>::const_iterator;
 
   /**
    * \brief class for array selection
    */
   class selection {
    public:
-    selection() {}
-    ~selection() {}
+    selection() = default;
+    ~selection() = default;
 
-    typedef typename vector<array *>::iterator iterator;
-    size_t size() { return _arrays.size(); }
-    bool empty() { return _arrays.empty(); }
-    array &operator[](size_t i) {
-      assert(i < _arrays.size());
+    Index size() const { return Index(_arrays.size()); }
+    bool empty() const { return _arrays.empty(); }
+    array &operator[](Index i) {
+      assert(i < Index(_arrays.size()));
+      return *(_arrays[i]);
+    }
+
+    const array &operator[](Index i) const {
+      assert(i < Index(_arrays.size()));
       return *(_arrays[i]);
     }
 
@@ -86,13 +81,15 @@ class DataCollection {
 
     iterator begin() { return _arrays.begin(); }
     iterator end() { return _arrays.end(); }
+    const_iterator begin() const { return _arrays.begin(); }
+    const_iterator end() const { return _arrays.end(); }
 
    private:
-    vector<array *> _arrays;
+    std::vector<array *> _arrays;
   };
 
   /// constructor
-  DataCollection() {}
+  DataCollection() = default;
   /// destructor
   ~DataCollection() { clear(); }
 
@@ -103,86 +100,99 @@ class DataCollection {
   /**
    *  \ brief returns the number of arrays
    */
-  size_t size() { return _data.size(); }
-  bool empty() { return _data.empty(); }
-  array &operator[](int i) {
-    assert(i < _data.size());
+  Index size() const { return Index(_data.size()); }
+  bool empty() const { return _data.empty(); }
+  array &operator[](Index i) {
+    assert(i < Index(_data.size()));
     return *(_data[i]);
   }
   iterator begin() { return _data.begin(); }
   iterator end() { return _data.end(); }
+  const_iterator begin() const { return _data.begin(); }
+  const_iterator end() const { return _data.end(); }
 
   /**
    * \brief create a new array
    */
-  array *CreateArray(string name);
+  array *CreateArray(std::string name);
 
   /**
    * \brief access the data container
    */
-  container &Data() { return _data; }
+  std::vector<array *> &Data() { return _data; }
+  const std::vector<array *> &Data() const { return _data; }
 
   /**
    * \brief access an array by name
    */
-  array *ArrayByName(string name);
+  array *ArrayByName(std::string name);
 
   /**
    * \brief select a set of arrays
+   *
+   * WARNING If attempting to append to an existing selection you must be
+   * careful if there exist more than one array with the same name the
+   * first array name that matches 'strselection' will be appended.
    */
-  selection *select(string strselection, selection *sel_append = NULL);
+  selection *select(std::string strselection, selection *sel_append = nullptr);
 
  private:
-  container _data;
+  std::vector<array *> _data;
 
-  map<string, array *> _array_by_name;
+  std::map<std::string, array *> _array_by_name;
 };
 
 template <typename T>
 void DataCollection<T>::clear() {
-  {
-    typename container::iterator iter;
-    for (iter = _data.begin(); iter != _data.end(); ++iter) delete *iter;
-    _data.clear();
+
+  for (auto &d : _data) {
+    delete d;
   }
+  _data.clear();
 }
 
 template <typename T>
-typename DataCollection<T>::array *DataCollection<T>::CreateArray(string name) {
-  assert(ArrayByName(name) == NULL);
+typename DataCollection<T>::array *DataCollection<T>::CreateArray(
+    std::string name) {
+  assert(ArrayByName(name) == nullptr);
   array *a = new array(name);
   _data.push_back(a);
-  _array_by_name[name.c_str()] = a;
+  _array_by_name[name] = a;
 
   return a;
 }
 
 template <typename T>
-typename DataCollection<T>::array *DataCollection<T>::ArrayByName(string name) {
-  typename map<string, array *>::iterator i;
-  i = _array_by_name.find(name);
-  if (i == _array_by_name.end()) return NULL;
+typename DataCollection<T>::array *DataCollection<T>::ArrayByName(
+    std::string name) {
+  typename std::map<std::string, array *>::iterator i =
+      _array_by_name.find(name);
+  if (i == _array_by_name.end()) {
+    return nullptr;
+  }
   return (*i).second;
 }
 
 template <typename T>
 typename DataCollection<T>::selection *DataCollection<T>::select(
-    string strselection, 
-    selection *sel_append) {
+    std::string strselection, selection *sel_append) {
 
   typename DataCollection<T>::selection *sel = sel_append;
-  if (!sel_append) sel = new typename DataCollection<T>::selection;
+  if (!sel_append) {
+    sel = new typename DataCollection<T>::selection;
+  }
 
-  for (typename map<string, array *>::iterator i = _array_by_name.begin();
-       i != _array_by_name.end(); ++i) {
-    if (wildcmp(strselection.c_str(), (*i).second->getName().c_str()))
-      sel->push_back((*i).second);
+  for (auto &pair : _array_by_name) {
+    if (wildcmp(strselection.c_str(), pair.second->getName().c_str())) {
+      sel->push_back(pair.second);
+    }
   }
   return sel;
 }
 
-ostream &operator<<(ostream &out, DataCollection<double>::selection &sel);
-}
-}
+std::ostream &operator<<(std::ostream &out,
+                         const DataCollection<double>::selection &sel);
+}  // namespace tools
+}  // namespace votca
 
 #endif  // _VOTCA_TOOLS_DATACOLLECTION_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,34 @@
  *
  */
 
-#ifndef MUTEX_H
-#define	MUTEX_H
+#ifndef __VOTCA_TOOLS_MUTEX__H
+#define __VOTCA_TOOLS_MUTEX__H
 #include <pthread.h>
 
 namespace votca {
-    namespace tools {
+namespace tools {
 
 /**
          \brief Convenient class for Mutexes
 
-         * Class allows to create, lock and unlock mutexes. Destroying is handled
+         * Class allows to create, lock and unlock mutexes. Destroying is
+   handled
          * by the destructor.
 
          */
-        class Mutex {
-        public:
-            Mutex();
-            ~Mutex();
+class Mutex {
+ public:
+  Mutex();
+  ~Mutex();
 
+  void Lock();
+  void Unlock();
 
-            void Lock();
-            void Unlock();
+ private:
+  pthread_mutex_t _mutexVar;
+};
 
-        private:
-            pthread_mutex_t _mutexVar;
-        };
+}  // namespace tools
+}  // namespace votca
 
-    }
-}
-
-#endif	/* MUTEX_H */
-
+#endif /* __VOTCA_TOOLS_MUTEX__H */

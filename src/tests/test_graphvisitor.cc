@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -30,9 +30,17 @@
 using namespace std;
 using namespace votca::tools;
 
+class GraphVisitorTest : public GraphVisitor {
+ private:
+  void addEdges_(const Graph&, votca::Index) override {
+    throw runtime_error("Undefined method.");
+  }
+  Edge getEdge_() override { throw runtime_error("Undefined method."); }
+};
+
 BOOST_AUTO_TEST_SUITE(graphvisitor_test)
 
-BOOST_AUTO_TEST_CASE(constructor_test) { GraphVisitor gv; }
+BOOST_AUTO_TEST_CASE(constructor_test) { GraphVisitorTest gv; }
 
 BOOST_AUTO_TEST_CASE(basic_test) {
   // Create edge
@@ -44,13 +52,13 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   GraphNode gn1;
   GraphNode gn2;
 
-  unordered_map<int, GraphNode> nodes;
+  unordered_map<votca::Index, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
 
   Graph g(edges, nodes);
 
-  GraphVisitor gv;
+  GraphVisitorTest gv;
 
   BOOST_CHECK(gv.queEmpty());
 
@@ -61,9 +69,9 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   // Error because no nextEdge function ptr passed in
   BOOST_CHECK_THROW(gv.nextEdge(g), runtime_error);
 
-  BOOST_CHECK_EQUAL(gv.getStartingVertex(),0);
+  BOOST_CHECK_EQUAL(gv.getStartingVertex(), 0);
   gv.setStartingVertex(2);
-  BOOST_CHECK_EQUAL(gv.getStartingVertex(),2);
+  BOOST_CHECK_EQUAL(gv.getStartingVertex(), 2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -38,21 +38,23 @@ using namespace boost;
 ///////////////////////////////////////////////////////////
 /// Converts a double into a string with max number of significant
 /// figures indicated by sf
-string sig_fig_(double val, int sf) {
-  return ([val](int number_of_sig_figs) -> string {
+string sig_fig_(double val, Index sf) {
+  return ([val](Index number_of_sig_figs) -> string {
     stringstream lStream;
-    lStream << setprecision(number_of_sig_figs) << val;
+    lStream << setprecision(int(number_of_sig_figs)) << val;
     return lStream.str();
   })(sf);
 }
 
 /// Turns the map of ints into a string that is sorted alphabetically
 /// by the keys
-string getIntStringId_(const unordered_map<string, int> int_vals) {
+string getIntStringId_(const unordered_map<string, Index> int_vals) {
   vector<string> keys;
   // Grab integer keys sort alphabetically and store in string_id
   string int_string_id;
-  for (auto it : int_vals) keys.push_back(it.first);
+  for (auto it : int_vals) {
+    keys.push_back(it.first);
+  }
   sort(keys.begin(), keys.end());
   for (auto key : keys) {
     int_string_id.append(key);
@@ -68,7 +70,9 @@ string getDoubleStringId_(const unordered_map<string, double> double_vals) {
   vector<string> keys;
   // Grab double keys sort alphabetically and store in string_id
   string double_string_id;
-  for (auto it : double_vals) keys.push_back(it.first);
+  for (auto it : double_vals) {
+    keys.push_back(it.first);
+  }
   sort(keys.begin(), keys.end());
   for (auto key : keys) {
     double_string_id.append(key);
@@ -84,7 +88,9 @@ string getStrStringId_(const unordered_map<string, string> str_vals) {
   vector<string> keys;
   // Grab string keys sort alphabetically and store in string_id
   string str_string_id;
-  for (auto it : str_vals) keys.push_back(it.first);
+  for (auto it : str_vals) {
+    keys.push_back(it.first);
+  }
   sort(keys.begin(), keys.end());
   for (auto key : keys) {
     str_string_id.append(key);
@@ -109,7 +115,7 @@ void GraphNode::initStringId_() {
 ///////////////////////////////////////////////////////////
 // Public Functions
 ///////////////////////////////////////////////////////////
-GraphNode::GraphNode(const unordered_map<string, int> int_vals,
+GraphNode::GraphNode(const unordered_map<string, Index> int_vals,
                      const unordered_map<string, double> double_vals,
                      const unordered_map<string, string> str_vals) {
   int_vals_ = int_vals;
@@ -118,7 +124,7 @@ GraphNode::GraphNode(const unordered_map<string, int> int_vals,
   initStringId_();
 }
 
-void GraphNode::setInt(const unordered_map<string, int> int_vals) {
+void GraphNode::setInt(const unordered_map<string, Index> int_vals) {
   int_vals_ = int_vals;
   initStringId_();
 }
@@ -133,36 +139,31 @@ void GraphNode::setStr(const unordered_map<string, string> str_vals) {
   initStringId_();
 }
 
-int GraphNode::getInt(const string str) {
-  if (int_vals_.count(str) == 0)
+Index GraphNode::getInt(const string str) {
+  if (int_vals_.count(str) == 0) {
     throw invalid_argument(
         "GraphNode does not "
         "contain value");
+  }
   return int_vals_[str];
 }
 
 double GraphNode::getDouble(const string str) {
-  if (double_vals_.count(str) == 0)
+  if (double_vals_.count(str) == 0) {
     throw invalid_argument(
         "GraphNode does not "
         "contain value");
+  }
   return double_vals_[str];
 }
 
 std::string GraphNode::getStr(const string str) {
-  if (str_vals_.count(str) == 0)
+  if (str_vals_.count(str) == 0) {
     throw invalid_argument(
         "GraphNode does not "
         "contain value");
+  }
   return str_vals_[str];
-}
-
-GraphNode& GraphNode::operator=(const GraphNode& gn) {
-  str_id_ = gn.str_id_;
-  int_vals_ = gn.int_vals_;
-  double_vals_ = gn.double_vals_;
-  str_vals_ = gn.str_vals_;
-  return *this;
 }
 
 bool GraphNode::operator!=(const GraphNode gn) const {
@@ -175,16 +176,16 @@ bool GraphNode::operator==(const GraphNode gn) const {
 
 ostream& operator<<(ostream& os, const GraphNode gn) {
   os << "Integer Values" << endl;
-  for (auto it = gn.int_vals_.begin(); it != gn.int_vals_.end(); ++it) {
-    os << it->first << " " << it->second << endl;
+  for (const auto& int_val : gn.int_vals_) {
+    os << int_val.first << " " << int_val.second << endl;
   }
   os << "Double  Values" << endl;
-  for (auto it = gn.double_vals_.begin(); it != gn.double_vals_.end(); ++it) {
-    os << it->first << " " << it->second << endl;
+  for (const auto& double_val : gn.double_vals_) {
+    os << double_val.first << " " << double_val.second << endl;
   }
   os << "String  Values" << endl;
-  for (auto it = gn.str_vals_.begin(); it != gn.str_vals_.end(); ++it) {
-    os << it->first << " " << it->second << endl;
+  for (const auto& str_val : gn.str_vals_) {
+    os << str_val.first << " " << str_val.second << endl;
   }
   return os;
 }
@@ -193,5 +194,5 @@ bool cmpNode(GraphNode gn1, GraphNode gn2) {
   string str1_Id = gn1.getStringId();
   return str1_Id.compare(gn2.getStringId()) < 0;
 }
-}
-}
+}  // namespace tools
+}  // namespace votca

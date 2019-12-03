@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,6 +21,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <votca/tools/types.h>
 
 #ifndef _VOTCA_TOOLS_GRAPHNODE_H
 #define _VOTCA_TOOLS_GRAPHNODE_H
@@ -43,34 +44,32 @@ class GraphDistVisitor;
 class GraphNode {
  private:
   std::string str_id_{""};
-  std::unordered_map<std::string, int> int_vals_;
+  std::unordered_map<std::string, Index> int_vals_;
   std::unordered_map<std::string, double> double_vals_;
   std::unordered_map<std::string, std::string> str_vals_;
   void initStringId_();
 
  public:
-  GraphNode(){};
+  GraphNode() = default;
 
   /// Constructor
   /// Each map corresponds to a different content the graph node can contain.
-  GraphNode(const std::unordered_map<std::string, int> int_vals,
+  GraphNode(const std::unordered_map<std::string, Index> int_vals,
             const std::unordered_map<std::string, double> double_vals,
             const std::unordered_map<std::string, std::string> str_vals);
 
   /// Basic setters
-  void setInt(const std::unordered_map<std::string, int> int_vals);
+  void setInt(const std::unordered_map<std::string, Index> int_vals);
   void setDouble(const std::unordered_map<std::string, double> double_vals);
   void setStr(const std::unordered_map<std::string, std::string> str_vals);
 
   /// Basic getters
-  int getInt(const std::string str);
+  Index getInt(const std::string str);
   double getDouble(const std::string str);
   std::string getStr(const std::string str);
 
   /// Get the string id unique to the contents of the graph node
   std::string getStringId() const { return str_id_; }
-
-  GraphNode& operator=(const GraphNode& gn);
 
   bool operator==(const GraphNode gn) const;
   bool operator!=(const GraphNode gn) const;
@@ -94,6 +93,6 @@ class GraphNode {
  */
 bool cmpNode(GraphNode gn1, GraphNode gn2);
 
-}
-}
+}  // namespace tools
+}  // namespace votca
 #endif  // _VOTCA_TOOLS_GRAPHNODE_H
