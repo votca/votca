@@ -56,12 +56,18 @@ class StateTracker {
   std::vector<Index> LocTracker(const Orbitals& orbitals) const;
   std::vector<Index> DeltaQTracker(const Orbitals& orbitals) const;
   std::vector<Index> OverlapTracker(const Orbitals& orbitals) const;
+  std::vector<Index> OverlapTrackerBSE(const Orbitals& orbitals) const;
+  std::vector<Index> DensityTracker(const Orbitals& orbitals) const;
 
   Eigen::VectorXd CalculateOverlap(const Orbitals& orbitals) const;
+  Eigen::VectorXd CalculateOverlapBSE(const Orbitals& orbitals) const;
 
   void UpdateLastCoeff(const Orbitals& orbitals);
   Eigen::MatrixXd CalcOrthoCoeffs(const Orbitals& orbitals) const;
-
+  void UpdateLastCoeff_matrix(const Orbitals& orbitals);
+  void UpdateLastDmat(const Orbitals& orbitals);
+  void UpdateLastBSE_R(const Orbitals& orbitals);
+  Eigen::VectorXd CalculateDNorm(const Orbitals& orbitals) const;
   std::vector<Index> CollapseResults(
       std::vector<std::vector<Index> >& results) const;
   std::vector<Index> ComparePairofVectors(std::vector<Index>& vec1,
@@ -70,13 +76,17 @@ class StateTracker {
   Logger* _log;
 
   std::vector<QMState> _statehist;
-
+  bool _use_overlaptracker_bse = false;
+  bool _use_densitytracker = false;
   bool _use_osctracker = false;
   double _oscthreshold = 0.0;
-
+  double _dmatthreshold = 0.0;
   bool _use_overlaptracker = false;
   Eigen::VectorXd _laststatecoeff;
   double _overlapthreshold = 0.0;
+  Eigen::MatrixXd _laststatecoeff_mat;
+  Eigen::MatrixXd _lastdmat;
+  Eigen::VectorXd _lastbse_R;
 
   bool _use_localizationtracker = false;
   QMFragment<double> _fragment_loc;
