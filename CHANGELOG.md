@@ -5,6 +5,7 @@ For more detailed information about the changes see the history of the
  * Major CMake refactor
  * Improved file readers
  * Added more tests
+ * Added csg_imc_solve, removing octave and python solvers
 
 ## Version 1.5.1 (released 20.11.19)
  * bug fixes for gcc-5
