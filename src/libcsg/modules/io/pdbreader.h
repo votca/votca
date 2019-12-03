@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,15 @@
 #ifndef __VOTCA_CSG_PDBREADER_H
 #define __VOTCA_CSG_PDBREADER_H
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/tools/elements.h>
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 /**
     brief class for reading pdb files
@@ -38,29 +35,27 @@ using namespace std;
     for pdb files
 
 */
-class PDBReader : public TopologyReader,
-                  public TrajectoryReader,
-                  public Elements {
-  public:
-    /// Constuctor
-    PDBReader() {}
-    /// Destructor
-    ~PDBReader() {}
-    /// open a topology file
-    bool ReadTopology(string file, Topology &top);
-    /// open a trajectory file
-    bool Open(const string &file);
-    /// read in the first frame
-    bool FirstFrame(Topology &top);
-    /// read in the next frame
-    bool NextFrame(Topology &top);
-    void Close();
+class PDBReader : public TopologyReader, public TrajectoryReader {
+ public:
+  /// Constuctor
+  PDBReader() = default;
+  /// Destructor
+  ~PDBReader() override = default;
+  /// open a topology file
+  bool ReadTopology(std::string file, Topology &top) override;
+  /// open a trajectory file
+  bool Open(const std::string &file) override;
+  /// read in the first frame
+  bool FirstFrame(Topology &top) override;
+  /// read in the next frame
+  bool NextFrame(Topology &top) override;
+  void Close() override;
 
-  private:
-    ifstream _fl;
-    bool _topology;
+ private:
+  std::ifstream _fl;
+  bool _topology;
 };
-}
-}
+}  // namespace csg
+}  // namespace votca
 
 #endif  // __VOTCA_CSG_PDBREADER_H

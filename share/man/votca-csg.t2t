@@ -26,28 +26,28 @@ Performs tasks that are needed for simple Boltzmann inversion in an interactive 
 Calls script from the interactive framework for the user.
 : **csg_density**
 Calculates all kind of density profiles.
+: **csg_dlptopol**
+Create skeleton for dlpoly topology based on atomistic topology and a mapping file.
 : **csg_dump**
 Prints atoms that are read from a topology file to help debug atom naming.
 : **csg_fmatch**
 Performs force matching (also called //multiscale coarse-graining//).
 : **csg_gmxtopol**
 Create skeleton for gromacs topology based on atomistic topology and a mapping file.
-: **csg_imcrepack**
-Is internally called by inversion scripts to kick out zero entries in the matrix for inverse Monte Carlo (imc).
+: **csg_imc_solver**
+Is internally called by inversion scripts to solve matrix equation for inverse Monte Carlo (imc).
 : **csg_inverse**
 Starts the script to run iterative Boltzmann inverse (ibi) or inverse Monte Carlo (imc), etc.
 : **csg_map**
 Map a reference trajectory to a coarse-grained trajectory.
-: **csg_part_dist**
-Outputs the time-averaged number of particles, listed by particle types.
 : **csg_property**
 Helper program called by inverse scripts to parse xml file.
 : **csg_resample**
 Changes grid + interval and interpolated any sort of table files.
+: **csg_reupdate**
+Reform the relative entropy update in inverse scripts.
 : **csg_stat**
 Calculates  all kind of distribuions  (bonded + non-bonded).
-: **multi_g_rdf**
-A multiplexed version of g_rdf
 
 
 = AUTHORS =

@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,66 +16,65 @@
  */
 
 #include <votca/csg/nematicorder.h>
-#include <votca/tools/matrix.h>
-#include <votca/tools/tokenizer.h>
-#include <votca/csg/topology.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
-void NematicOrder::Process(Topology &top, const string &filter)
-{
-    _mu.ZeroMatrix();
-    _mv.ZeroMatrix();
-    _mw.ZeroMatrix();
-    int N=0;
-    bool bU, bV, bW;
-    bU=bV=bW = false;
-    
-    for(BeadContainer::iterator iter = top.Beads().begin();
-    iter!=top.Beads().end();++iter) {
-        
-        Bead *bead = *iter;
-        
-        if(!wildcmp(filter.c_str(), bead->getName().c_str())) continue;
-        
-        if( bead->getSymmetry() ==1 )
-            continue;
-            
-        if(bead->HasU()) {
-            _mu += bead->getU()|bead->getU();
-            _mu[0][0] -= 1./3.;
-            _mu[1][1] -= 1./3.;
-            _mu[2][2] -= 1./3.;
-            bU = true;
-        }
-        
-        if(bead->HasV()) {
-            _mv += bead->getV()|bead->getV();
-            _mv[0][0] -= 1./3.;
-            _mv[1][1] -= 1./3.;
-            _mv[2][2] -= 1./3.;
-            bV = true;
-        }
-        
-        if(bead->HasW()) {
-            _mw += bead->getW()|bead->getW();
-            _mw[0][0] -= 1./3.;
-            _mw[1][1] -= 1./3.;
-            _mw[2][2] -= 1./3.;
-            bW = true;
-        }
-        N++;
+using namespace std;
+
+void NematicOrder::Process(Topology &top, const string &filter) {
+  _mu = Eigen::Matrix3d::Zero();
+  _mv = Eigen::Matrix3d::Zero();
+  _mw = Eigen::Matrix3d::Zero();
+  Index N = 0;
+  bool bU, bV, bW;
+  bU = bV = bW = false;
+
+  for (auto bead : top.Beads()) {
+
+    if (!tools::wildcmp(filter, bead->getName())) {
+      continue;
     }
-    
-    double f = 1./(double)N*3./2.;
-    _mu = f*_mu;_mv = f*_mv;_mw = f*_mw;
-    
-    if(bU)
-        _mu.SolveEigensystem(_nemat_u);
-    if(bV)
-        _mv.SolveEigensystem(_nemat_v);
-    if(bW)
-        _mw.SolveEigensystem(_nemat_w);               
+
+    if (bead->getSymmetry() == 1) {
+      continue;
+    }
+
+    if (bead->HasU()) {
+      _mu += bead->getU() * bead->getU().transpose();
+      _mu.diagonal().array() -= 1. / 3.;
+      bU = true;
+    }
+
+    if (bead->HasV()) {
+      _mu += bead->getV() * bead->getV().transpose();
+      _mu.diagonal().array() -= 1. / 3.;
+      bV = true;
+    }
+
+    if (bead->HasW()) {
+      _mu += bead->getW() * bead->getW().transpose();
+      _mu.diagonal().array() -= 1. / 3.;
+      bW = true;
+    }
+    N++;
+  }
+
+  double f = 1. / (double)N * 3. / 2.;
+  _mu = f * _mu;
+  _mv = f * _mv;
+  _mw = f * _mw;
+
+  if (bU) {
+    _nemat_u.computeDirect(_mu);
+  }
+  if (bV) {
+    _nemat_v.computeDirect(_mv);
+  }
+  if (bW) {
+    _nemat_w.computeDirect(_mw);
+  }
 }
 
-}}
+}  // namespace csg
+}  // namespace votca

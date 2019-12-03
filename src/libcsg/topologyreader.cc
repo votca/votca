@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,33 +19,33 @@
 #include <votca_config.h>
 #endif
 
-#include <votca/csg/topologyreader.h>
-#include "modules/io/lammpsdumpreader.h"
-#include "modules/io/lammpsdatareader.h"
-#include "modules/io/xmltopologyreader.h"
-#include "modules/io/xyzreader.h"
 #include "modules/io/groreader.h"
+#include "modules/io/lammpsdatareader.h"
+#include "modules/io/lammpsdumpreader.h"
+#include "modules/io/xmltopologyreader.h"
+#include <votca/csg/topologyreader.h>
+#include <votca/csg/xyzreader.h>
 #ifdef GMX_DOUBLE
 #include "modules/io/gmxtopologyreader.h"
 #endif
-#include "modules/io/pdbreader.h"
 #include "modules/io/dlpolytopologyreader.h"
+#include "modules/io/pdbreader.h"
 
+namespace votca {
+namespace csg {
 
-namespace votca { namespace csg {
-
-void TopologyReader::RegisterPlugins(void)
-{
-    TopReaderFactory().Register<XMLTopologyReader>("xml");
-    TopReaderFactory().Register<LAMMPSDumpReader>("dump");
-    TopReaderFactory().Register<LAMMPSDataReader>("data");
-    TopReaderFactory().Register<XYZReader>("xyz");
-    TopReaderFactory().Register<GROReader>("gro");
+void TopologyReader::RegisterPlugins(void) {
+  TopReaderFactory().Register<XMLTopologyReader>("xml");
+  TopReaderFactory().Register<LAMMPSDumpReader>("dump");
+  TopReaderFactory().Register<LAMMPSDataReader>("data");
+  TopReaderFactory().Register<XYZReader>("xyz");
+  TopReaderFactory().Register<GROReader>("gro");
 #ifdef GMX_DOUBLE
-    TopReaderFactory().Register<GMXTopologyReader>("tpr");
+  TopReaderFactory().Register<GMXTopologyReader>("tpr");
 #endif
-    TopReaderFactory().Register<PDBReader>("pdb");
-    TopReaderFactory().Register<DLPOLYTopologyReader>("dlpf");
+  TopReaderFactory().Register<PDBReader>("pdb");
+  TopReaderFactory().Register<DLPOLYTopologyReader>("dlpf");
 }
 
-}}
+}  // namespace csg
+}  // namespace votca
