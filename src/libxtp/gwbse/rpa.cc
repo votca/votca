@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,77 +17,166 @@
  *
  */
 
-
-
-#include <votca/xtp/rpa.h>
-#include <votca/xtp/aomatrix.h>
 #include "votca/xtp/threecenter.h"
-
-
+#include "votca/xtp/vc2index.h"
+#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/rpa.h>
 
 namespace votca {
-  namespace xtp {
+namespace xtp {
 
- void RPA::calculate_epsilon(const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& Mmn_full) {
-const int size = Mmn_full.getAuxDimension(); // size of gwbasis
-            for (auto& matrix : _epsilon_r) {
-                matrix = Eigen::MatrixXd::Identity(size,size);
-            }
-            for (auto& matrix : _epsilon_i) {
-                matrix = Eigen::MatrixXd::Identity(size,size);
-            }
+void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
+                                 const Eigen::VectorXd& gwaenergies,
+                                 Index qpmin) {
+  Index rpatotal = _rpamax - _rpamin + 1;
+  _energies = dftenergies.segment(_rpamin, rpatotal);
+  Index gwsize = Index(gwaenergies.size());
+  Index lumo = _homo + 1;
 
-            int lumo=_homo+1;
-            int n_occ=lumo-_rpamin;
-            int n_unocc=_rpamax-_homo;
-            
-#pragma omp parallel for 
-            for (int m_level = 0; m_level < n_occ; m_level++) {
-                const double qp_energy_m = qp_energies(m_level + _rpamin);
-#if (GWBSE_DOUBLE)
-                const Eigen::MatrixXd Mmn_RPA = Mmn_full[ m_level ].block(n_occ, 0,n_unocc, size );
-#else
-                const Eigen::MatrixXd Mmn_RPA = Mmn_full[ m_level ].block(n_occ,0,  n_unocc, size).cast<double>();       
-#endif
-                Eigen::MatrixXd tempresult=Eigen::MatrixXd::Zero(size,size);
-                Eigen::MatrixXd denom_x_Mmn_RPA=Eigen::MatrixXd::Zero(n_unocc,size);
-                for (int i = 0; i < _screen_freq_i.size(); ++i) {   
-                    // a temporary matrix, that will get filled in empty levels loop
-                    const double screen_freq2 = _screen_freq_i(i) * _screen_freq_i(i);
-                    for (int n_level = 0; n_level < n_unocc; n_level++) {
-                        const double deltaE = qp_energies(n_level + lumo) - qp_energy_m;
-                        const double denom=4.0 * deltaE / (deltaE * deltaE + screen_freq2);  
-                        denom_x_Mmn_RPA.row(n_level)=Mmn_RPA.row(n_level)*denom; //hartree    
-                    }
-                    tempresult.noalias() = Mmn_RPA.transpose() * denom_x_Mmn_RPA;
+  Index qpmax = qpmin + gwsize - 1;
+  _energies.segment(qpmin - _rpamin, gwsize) = gwaenergies;
+  double DFTgap = dftenergies(lumo) - dftenergies(_homo);
+  double QPgap = gwaenergies(lumo - qpmin) - gwaenergies(_homo - qpmin);
+  double shift = QPgap - DFTgap;
+  Index levelaboveqpmax = _rpamax - qpmax;
+  _energies.segment(qpmax + 1 - _rpamin, levelaboveqpmax).array() += shift;
+}
 
-#pragma omp critical
-                    {
-                        _epsilon_i[i] += tempresult;
-                    }
-                }
+template <bool imag>
+Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
+  const Index size = _Mmn.auxsize();
+  std::vector<Eigen::MatrixXd> thread_result = std::vector<Eigen::MatrixXd>(
+      OPENMP::getMaxThreads(), Eigen::MatrixXd::Zero(size, size));
+  const Index lumo = _homo + 1;
+  const Index n_occ = lumo - _rpamin;
+  const Index n_unocc = _rpamax - lumo + 1;
+  const double freq2 = frequency * frequency;
+  const double eta2 = _eta * _eta;
+#pragma omp parallel for
+  for (Index m_level = 0; m_level < n_occ; m_level++) {
+    const double qp_energy_m = _energies(m_level);
 
-                //real parts
-                for (int i = 0; i < _screen_freq_r.size(); ++i) {
-                    for (int n_level = 0;  n_level < n_unocc; n_level++) {
-                        const double deltaE = qp_energies(n_level + lumo) - qp_energy_m;
-                        const double denom=2.0 * (1.0 / (deltaE - _screen_freq_r(i)) + 1.0 / (deltaE + _screen_freq_r(i)));
-                        denom_x_Mmn_RPA.row(n_level)=Mmn_RPA.row(n_level)*denom; //hartree    
-                    }
-                    tempresult.noalias() = Mmn_RPA.transpose() * denom_x_Mmn_RPA;
+    const Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
 
-#pragma omp critical
-                    {
-                        _epsilon_r[i] += tempresult;
-                    }
-                }
-
-            } // occupied levels
-
-
-            return;
-        }
-
-   
+    const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;
+    Eigen::VectorXd denom;
+    if (imag) {
+      denom = 4 * deltaE / (deltaE.square() + freq2);
+    } else {
+      Eigen::ArrayXd deltEf = deltaE - frequency;
+      Eigen::ArrayXd sum = deltEf / (deltEf.square() + eta2);
+      deltEf = deltaE + frequency;
+      sum += deltEf / (deltEf.square() + eta2);
+      denom = 2 * sum;
+    }
+    thread_result[OPENMP::getThreadId()] +=
+        Mmn_RPA.transpose() * denom.asDiagonal() * Mmn_RPA;
   }
-};
+  Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
+  for (const auto& mat : thread_result) {
+    result += mat;
+  }
+  return result;
+}
+
+template Eigen::MatrixXd RPA::calculate_epsilon<true>(double frequency) const;
+template Eigen::MatrixXd RPA::calculate_epsilon<false>(double frequency) const;
+
+RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
+  const Index lumo = _homo + 1;
+  const Index n_occ = lumo - _rpamin;
+  const Index n_unocc = _rpamax - lumo + 1;
+  const Index rpasize = n_occ * n_unocc;
+
+  Eigen::VectorXd AmB = Calculate_H2p_AmB();
+  Eigen::MatrixXd ApB = Calculate_H2p_ApB();
+
+  // C = AmB^1/2 * ApB * AmB^1/2
+  Eigen::MatrixXd& C = ApB;
+  C.applyOnTheLeft(AmB.cwiseSqrt().asDiagonal());
+  C.applyOnTheRight(AmB.cwiseSqrt().asDiagonal());
+
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es = Diagonalize_H2p_C(C);
+
+  RPA::rpa_eigensolution sol;
+
+  // Do not remove this line! It has to be there for MKL to not crash
+  sol.omega = Eigen::VectorXd::Zero(es.eigenvalues().size());
+  sol.omega = es.eigenvalues().cwiseSqrt();
+
+  XTP_LOG(Log::info, _log) << TimeStamp()
+                           << " Lowest neutral excitation energy (eV): "
+                           << tools::conv::hrt2ev * sol.omega.minCoeff()
+                           << std::flush;
+
+  sol.XpY = Eigen::MatrixXd(rpasize, rpasize);
+
+  Eigen::VectorXd AmB_sqrt = AmB.cwiseSqrt();
+  Eigen::VectorXd Omega_sqrt_inv = sol.omega.cwiseSqrt().cwiseInverse();
+  for (int s = 0; s < rpasize; s++) {
+    sol.XpY.col(s) =
+        Omega_sqrt_inv(s) * AmB_sqrt.cwiseProduct(es.eigenvectors().col(s));
+  }
+
+  return sol;
+}
+
+Eigen::VectorXd RPA::Calculate_H2p_AmB() const {
+  const Index lumo = _homo + 1;
+  const Index n_occ = lumo - _rpamin;
+  const Index n_unocc = _rpamax - lumo + 1;
+  const Index rpasize = n_occ * n_unocc;
+  vc2index vc = vc2index(0, 0, n_unocc);
+  Eigen::VectorXd AmB = Eigen::VectorXd::Zero(rpasize);
+  for (Index v = 0; v < n_occ; v++) {
+    Index i = vc.I(v, 0);
+    AmB.segment(i, n_unocc) =
+        _energies.segment(n_occ, n_unocc).array() - _energies(v);
+  }
+  return AmB;
+}
+
+Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
+  const Index lumo = _homo + 1;
+  const Index n_occ = lumo - _rpamin;
+  const Index n_unocc = _rpamax - lumo + 1;
+  const Index rpasize = n_occ * n_unocc;
+  const Index auxsize = _Mmn.auxsize();
+  vc2index vc = vc2index(0, 0, n_unocc);
+  Eigen::MatrixXd ApB = Eigen::MatrixXd::Zero(rpasize, rpasize);
+#pragma omp parallel for schedule(guided)
+  for (Index v2 = 0; v2 < n_occ; v2++) {
+    Index i2 = vc.I(v2, 0);
+    const Eigen::MatrixXd Mmn_v2T =
+        _Mmn[v2].block(n_occ, 0, n_unocc, auxsize).transpose();
+    for (Index v1 = v2; v1 < n_occ; v1++) {
+      Index i1 = vc.I(v1, 0);
+      // Multiply with factor 2 to sum over both (identical) spin states
+      ApB.block(i1, i2, n_unocc, n_unocc) =
+          2 * 2 * _Mmn[v1].block(n_occ, 0, n_unocc, auxsize) * Mmn_v2T;
+    }
+  }
+  ApB.diagonal() += Calculate_H2p_AmB();
+  return ApB;
+}
+
+Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> RPA::Diagonalize_H2p_C(
+    const Eigen::MatrixXd& C) const {
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Diagonalizing two-particle Hamiltonian "
+      << std::flush;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(C);  // Uses lower triangle
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Diagonalization done " << std::flush;
+  double minCoeff = es.eigenvalues().minCoeff();
+  if (minCoeff <= 0.0) {
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Detected non-positive eigenvalue: " << minCoeff
+        << std::flush;
+    throw std::runtime_error("Detected non-positive eigenvalue.");
+  }
+  return es;
+}
+
+}  // namespace xtp
+}  // namespace votca

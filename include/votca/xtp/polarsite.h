@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,145 +17,150 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_XTP_POLARSITE_H
 #define __VOTCA_XTP_POLARSITE_H
 
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/xtp/staticsite.h>
 
-namespace votca { namespace xtp {
-    /**
-    \brief Class to represent Atom/Site in electrostatic+polarisation 
+namespace votca {
+namespace xtp {
 
-     The units are atomic units, e.g. Bohr, Hartree.By default a PolarSite cannot be polarised.
+/**
+\brief Class to represent Atom/Site in electrostatic+polarisation
+
+ The units are atomic units, e.g. Bohr, Hartree.
 */
-class PolarSite
-{
+class PolarSite : public StaticSite {
 
-public:
+ public:
+  // delete these two functions because we do not want to be able to read
+  // StaticSite::data but PolarSite::data
+  void WriteData(StaticSite::data& d) const = delete;
+  void ReadData(StaticSite::data& d) = delete;
 
-    PolarSite(int id, std::string element, Eigen::Vector3d pos);
-            
-    PolarSite(int id, std::string element)
-                    :PolarSite(id,element,Eigen::Vector3d::Zero()){
-                };
+  PolarSite(Index id, std::string element, Eigen::Vector3d pos);
+  PolarSite(Index id, std::string element)
+      : PolarSite(id, element, Eigen::Vector3d::Zero()){};
 
-    PolarSite(const CheckpointReader& r){
-        ReadFromCpt(r);
-    }
+  ~PolarSite() override = default;
 
-    PolarSite(const QMAtom& atom, double charge):PolarSite(atom.getAtomID(),atom.getElement(),atom.getPos()){
-        setCharge(charge);
-    }
-      
+  void setPolarisation(const Eigen::Matrix3d& pol) override;
 
-    int getId() const{ return _id; }
-    int getRank()const{return _rank;}
-    const std::string &getElement() const{ return _element; }
-    const Eigen::Vector3d &getPos() const{ return _pos; }
-    
-    bool isPolarisable() const{ return _isPolarisable;}
-    
-    void setPolarisable(bool polarisable){
-        _isPolarisable=polarisable;
-    }
-    
-    void setMultipole(const Eigen::VectorXd& multipole){
-        _multipole=multipole;
-        calcRank();
-    }
+  Eigen::Matrix3d getPolarisation() const { return _pinv.inverse(); }
 
-    void setCharge(double q){
-        _multipole(0)=q;
-        calcRank();
-    }
-    
-    void setPolarisation(const Eigen::Matrix3d pol){
-        _Ps=pol;
-        Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
-        es.computeDirect(_Ps,Eigen::EigenvaluesOnly);
-        _eigendamp=es.eigenvalues().maxCoeff();
-    }
-    
-    void ResetInduction(){
-        PhiU=0.0;
-        _inducedDipole=Eigen::Vector3d::Zero();
-        _inducedDipole_old=Eigen::Vector3d::Zero();
-        _localinducedField=Eigen::Vector3d::Zero();
-    }
-    
-    // COORDINATES TRANSFORMATION
-    void Translate(const Eigen::VectorXd &shift);
-    void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos);
- 
-    // MULTIPOLES DEFINITION
-    
-    double getCharge() const{return _multipole(0);}
-    const Eigen::VectorXd& getPermMultipole()const {return _multipole;}//Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s,...[NOT following Stone order for dipoles]
-    
-    Eigen::Vector3d getDipole()const{
-        Eigen::Vector3d dipole=Eigen::Vector3d::Zero();
-        if(_isPolarisable){
-            dipole+=_inducedDipole;
-        }
-        if(_rank>0){
-            dipole+=_multipole.segment<3>(1);
-        }
-        return dipole;
-    }
-    
-    Eigen::Matrix3d CalculateCartesianMultipole()const; 
-    static Eigen::VectorXd CalculateSphericalMultipole(const Eigen::Matrix3d& quadrupole_cartesian);
-    
-    Eigen::Vector3d getField()const{return _localpermanetField+_localinducedField;}
-    
-    double getPotential()const{return PhiP+PhiU;}
-    
-    std::string WriteMpsLine(std::string unit = "bohr")const;
-    void Induce(double wSOR);
-       
-    double InteractStatic(PolarSite& otherSite);
-    
-    double InteractInduction(PolarSite& otherSite, double a=0.39);
-    
-    double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
-    
-    void WriteToCpt(const CheckpointWriter& w)const;
+  const Eigen::Matrix3d& getPInv() const { return _pinv; }
 
-   void ReadFromCpt(const CheckpointReader& r);
-   
-   static std::string Identify(){return "polarsite";}
-    
-    
-private:
-       
-    void calcRank(); 
-    Eigen::MatrixXd FillTholeInteraction(const PolarSite& otherSite, double a);
-    Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
-    
-    int     _id;
-    std::string  _element;
-    Eigen::Vector3d _pos;
-    int     _rank;
+  // MULTIPOLES DEFINITION
+  Eigen::Vector3d getDipole() const override;
 
-    Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
-     bool _isPolarisable=false;
-    //required for polarisation
-    
-    Eigen::Matrix3d _Ps;
-    Eigen::Vector3d _localpermanetField;
-    Eigen::Vector3d _localinducedField;
-    Eigen::Vector3d _inducedDipole;
-    Eigen::Vector3d _inducedDipole_old;
-    double _eigendamp;
-    
-    double PhiP;                            // Electric potential (due to perm.)
-    double PhiU;                            // Electric potential (due to indu.)
+  double getSqrtInvEigenDamp() const { return _eigendamp_invsqrt; }
 
+  void Rotate(const Eigen::Matrix3d& R,
+              const Eigen::Vector3d& ref_pos) override {
+    StaticSite::Rotate(R, ref_pos);
+    _pinv = R.transpose() * _pinv * R;
+  }
+
+  const Eigen::Vector3d& V() const { return _V; }
+
+  Eigen::Vector3d& V() { return _V; }
+
+  const Eigen::Vector3d& V_noE() const { return _V_noE; }
+
+  Eigen::Vector3d& V_noE() { return _V_noE; }
+
+  void Reset() {
+    _V.setZero();
+    _V_noE.setZero();
+  }
+
+  double deltaQ_V_ext() const { return _induced_dipole.dot(_V); }
+
+  double InternalEnergy() const {
+    return 0.5 * _induced_dipole.transpose() * _pinv * _induced_dipole;
+  }
+
+  const Eigen::Vector3d& Induced_Dipole() const { return _induced_dipole; }
+  void setInduced_Dipole(const Eigen::Vector3d& induced_dipole) {
+    _induced_dipole = induced_dipole;
+  }
+
+  struct data {
+    Index id;
+    char* element;
+    double posX;
+    double posY;
+    double posZ;
+
+    Index rank;
+
+    double Q00;
+    double Q11c;
+    double Q11s;
+    double Q10;
+    double Q20;
+    double Q21c;
+    double Q21s;
+    double Q22c;
+    double Q22s;
+
+    double Vx;
+    double Vy;
+    double Vz;
+
+    double Vx_noE;
+    double Vy_noE;
+    double Vz_noE;
+
+    double pxx;
+    double pxy;
+    double pxz;
+    double pyy;
+    double pyz;
+    double pzz;
+
+    double d_x_ind;
+    double d_y_ind;
+    double d_z_ind;
+  };
+  // do not move up has to be below data definition
+  PolarSite(const data& d);
+
+  double DipoleChange() const;
+
+  void SetupCptTable(CptTable& table) const override;
+  void WriteData(data& d) const;
+  void ReadData(const data& d);
+
+  std::string identify() const override { return "polarsite"; }
+
+  friend std::ostream& operator<<(std::ostream& out, const PolarSite& site) {
+    out << site.getId() << " " << site.getElement() << " " << site.getRank();
+    out << " " << site.getPos().transpose() << " "
+        << site.Induced_Dipole().transpose() << "\n";
+    return out;
+  }
+
+ private:
+  std::string writePolarisation() const override;
+
+  // PolarSite has two external fields,
+  // the first is used for interaction with regions, which are further out, i.e.
+  // the interaction energy with it is included in the polar region energy
+  Eigen::Vector3d _V = Eigen::Vector3d::Zero();
+  // the second is used for interaction with regions, which are further inside,
+  // i.e. the interaction energy with it is included in the other region's
+  // energy
+  Eigen::Vector3d _V_noE = Eigen::Vector3d::Zero();
+
+  Eigen::Vector3d _induced_dipole = Eigen::Vector3d::Zero();
+  Eigen::Matrix3d _pinv = Eigen::Matrix3d::Zero();
+  double _eigendamp_invsqrt = 0.0;
 };
 
-
-}}
-
+}  // namespace xtp
+}  // namespace votca
 
 #endif

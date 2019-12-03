@@ -3,26 +3,26 @@
 <!-- xtp_tools -e exciton options.xml -->
 <dftgwbse help="Electronic Excitations using GW-BSE">
 
-        <dftpackage help="Package for DFT ground state">orca_gwbse.xml</dftpackage>
+        <dftpackage help="Package for DFT ground state">xtpdft.xml</dftpackage>
 
         <mode help="Calculator mode: energy or optimize">energy</mode>
-        <reporting>noisy</reporting>
-        <archive>system.orb</archive>
-        <molecule>system.xyz</molecule>
+        <reporting help="Package for DFT ground state">noisy</reporting>
+        <archive help=".orb file to create">system.orb</archive>
+        <molecule help="Input geometry .xyz">system.xyz</molecule>
 
         <gwbse_engine>
             <tasks help="guess,input,dft,parse,gwbse">input,dft,parse,gwbse</tasks>
-            <dftlog>system.log</dftlog>
-            <mofile>system.gbw</mofile>
-            <gwbse_options>mbgft.xml</gwbse_options>
-            <redirect_logger>0</redirect_logger>
+            <dftlog help="qmpackage log file to parse">system_dft.orb</dftlog>
+            <mofile help="qmpackage file with MO coefficients">system.gbw</mofile>
+            <gwbse_options help="xml file with gwbse options">gwbse.xml</gwbse_options>
+            <redirect_logger help="">0</redirect_logger>
         </gwbse_engine>
 
-        <geometry_optimization>
-            <state>s1</state>
-            <filter>
+        <geometry_optimization help="geometry optimization options">
+            <state help="initial state to optimize for">s1</state>
+            <statetracker help="tries to identify state without looking at the energy">
                 <oscillator_strength>0.001</oscillator_strength>
-            </filter>
+            </statetracker>
             <convergence help="Convergence criteria for geometry optimization">
                     <energy help="default: 1.e-6 Hartree">0.01</energy>
                     <RMSForce help="default: 3.e-5 Hartree/Bohr">0.01</RMSForce>
@@ -31,13 +31,13 @@
                     <MaxStep help="default: 1.e-3 Bohr">0.01</MaxStep>
             </convergence>
 
-            <optimizer>
+            <optimizer help="optimiser method">
                 <method>BFGS-TRM</method>
-                <trust>0.01</trust>
+                <trust help="initial trustregion in Angstrom">0.01</trust>
             </optimizer>
             <forces>
-                <method>central</method>
-                <removal>total</removal>
+                <method help="finite differences method, central or forward">central</method>
+                <CoMforce_removal help="Remove total force on molecule">1</CoMforce_removal>
                 <displacement help="default: 0.001 Angstrom">0.01</displacement>
             </forces>
         </geometry_optimization>

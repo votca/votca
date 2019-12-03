@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,85 +17,73 @@
 
 #define BOOST_TEST_MODULE segment_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/atom.h>
-#include <votca/tools/vec.h>
 #include <vector>
+#include <votca/xtp/checkpoint.h>
+#include <votca/xtp/segment.h>
 
 using namespace votca::tools;
 using namespace votca::xtp;
-using namespace std;
+using votca::Index;
 
 BOOST_AUTO_TEST_SUITE(segment_test)
 
-BOOST_AUTO_TEST_CASE(constructors_test) { Segment seg(1, "seg1"); }
+BOOST_AUTO_TEST_CASE(getElementtest) {
+  Segment seg("one", 1);
+  Atom atm1(1, "C", Eigen::Vector3d::Zero());
+  Atom atm2(2, "H", Eigen::Vector3d::UnitX());
+  Atom atm3(3, "N", Eigen::Vector3d::UnitY());
+  Atom atm4(4, "Au", Eigen::Vector3d::UnitZ());
+  Atom atm5(5, "C", 2 * Eigen::Vector3d::UnitZ());
 
-BOOST_AUTO_TEST_CASE(simple_getters_setters_test) {
-  Segment seg(3, "seg2");
-  BOOST_CHECK_EQUAL(seg.getId(), 3);
-  BOOST_CHECK_EQUAL(seg.getName(), "seg2");
-  vec v;
-  v.setX(1.1);
-  v.setY(2.2);
-  v.setZ(3.3);
-  seg.setPos(v);
-  auto v2 = seg.getPos();
-  BOOST_CHECK_EQUAL(v2.getX(),v.getX());
-  BOOST_CHECK_EQUAL(v2.getY(),v.getY());
-  BOOST_CHECK_EQUAL(v2.getZ(),v.getZ());  
-  seg.setOcc(1.1,1);
-  BOOST_CHECK_EQUAL(seg.getOcc(1),1.1);
- 
+  seg.push_back(atm1);
+  seg.push_back(atm2);
+  seg.push_back(atm2);
+  seg.push_back(atm3);
+  seg.push_back(atm4);
+  seg.push_back(atm3);
+  seg.push_back(atm5);
+  std::vector<std::string> unique_ele = seg.FindUniqueElements();
+
+  std::vector<std::string> unique_ele_ref = {"C", "H", "N", "Au"};
+
+  BOOST_CHECK_EQUAL(unique_ele.size(), unique_ele_ref.size());
+
+  for (Index i = 0; i < Index(unique_ele.size()); i++) {
+    BOOST_CHECK_EQUAL(unique_ele[i], unique_ele_ref[i]);
+  }
 }
 
-BOOST_AUTO_TEST_CASE(add_atom_test){
+BOOST_AUTO_TEST_CASE(writehdf5) {
+  Segment seg("one", 1);
+  Atom atm1(1, "C", Eigen::Vector3d::Zero());
+  Atom atm2(2, "H", Eigen::Vector3d::UnitX());
+  Atom atm3(3, "N", Eigen::Vector3d::UnitY());
+  Atom atm4(4, "Au", Eigen::Vector3d::UnitZ());
+  Atom atm5(5, "C", 2 * Eigen::Vector3d::UnitZ());
 
-  bool hasQM = true;  
-  vec qmpos;
-  qmpos.setX(2.0);
-  qmpos.setY(2.0);
-  qmpos.setZ(2.0);
+  seg.push_back(atm1);
+  seg.push_back(atm2);
+  seg.push_back(atm2);
+  seg.push_back(atm3);
+  seg.push_back(atm4);
+  seg.push_back(atm3);
+  seg.push_back(atm5);
+  {
+    CheckpointFile f("segment_test.hdf5");
+    CheckpointWriter w = f.getWriter();
+    seg.WriteToCpt(w);
+  }
 
-  vec pos;
-  pos.setX(3.0);
-  pos.setY(3.0);
-  pos.setZ(3.0);
-
-  Atom * atm = new Atom(nullptr, "res1",1,"CSP",2,hasQM,3,qmpos,"C",1.0);
-  atm->setPos(pos);
-  Segment seg(4, "seg4");
-  seg.AddAtom(atm);
-  vector<Atom*> v_atoms = seg.Atoms();
-  BOOST_CHECK_EQUAL(v_atoms.size(),1);
-  delete  atm;
-}
-
-BOOST_AUTO_TEST_CASE(calc_pos_test){
-  
-  bool hasQM = true;  
-  vec qmpos;
-  qmpos.setX(2.0);
-  qmpos.setY(2.0);
-  qmpos.setZ(2.0);
-
-  vec pos;
-  pos.setX(3.0);
-  pos.setY(3.0);
-  pos.setZ(3.0);
-
-  Atom * atm = new Atom(nullptr, "res1",1,"CSP",2,hasQM,3,qmpos,"C",1.0);
-  atm->setPos(pos);
-  Segment seg(4, "seg4");
-  seg.AddAtom(atm);
-  vector<Atom*> v_atoms = seg.Atoms();
-  BOOST_CHECK_EQUAL(v_atoms.size(),1);
-  // Calculates the MD position of the segment (center of mass)
-  seg.calcPos();
-  auto v_seg = seg.getPos(); 
-  BOOST_CHECK_EQUAL(v_seg.getX(),3.0);
-  BOOST_CHECK_EQUAL(v_seg.getY(),3.0);
-  BOOST_CHECK_EQUAL(v_seg.getZ(),3.0);
-  delete atm;
+  CheckpointFile f("segment_test.hdf5");
+  CheckpointReader r = f.getReader();
+  Segment seg2(r);
+  for (Index i = 0; i < seg2.size(); i++) {
+    const Atom& a1 = seg[i];
+    const Atom& a2 = seg2[i];
+    BOOST_CHECK_EQUAL(a1.getName(), a2.getName());
+    bool pos_equal = a1.getPos().isApprox(a2.getPos(), 1e-9);
+    BOOST_CHECK_EQUAL(pos_equal, true);
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,20 +19,58 @@
 
 #include <votca/xtp/mmregion.h>
 
-
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-
-        void MMRegion::WriteToCpt(CheckpointWriter& w)const{
-
-            
-        }
-
-        void MMRegion::ReadFromCpt(CheckpointReader& r){
-            
-        }
-  
-
+template <class T>
+double MMRegion<T>::charge() const {
+  double charge = 0.0;
+  for (const auto& seg : _segments) {
+    for (const auto& site : seg) {
+      charge += site.getCharge();
     }
+  }
+  return charge;
 }
+
+template <class T>
+void MMRegion<T>::WritePDB(csg::PDBWriter& writer) const {
+  for (const auto& seg : _segments) {
+    writer.WriteContainer(seg);
+  }
+}
+
+template <class T>
+void MMRegion<T>::WriteToCpt(CheckpointWriter& w) const {
+  w(_id, "id");
+  w(identify(), "type");
+  Index size = Index(_segments.size());
+  w(size, "size");
+  CheckpointWriter ww = w.openChild("segments");
+  for (const auto& seg : _segments) {
+    CheckpointWriter www =
+        ww.openChild(seg.identify() + "_" + std::to_string(seg.getId()));
+    seg.WriteToCpt(www);
+  }
+}
+template <class T>
+void MMRegion<T>::ReadFromCpt(CheckpointReader& r) {
+  r(_id, "id");
+  Index size;
+  r(size, "size");
+  _segments.clear();
+  _segments.reserve(size);
+  T dummy("dummy", 0);
+  CheckpointReader rr = r.openChild("segments");
+  for (Index i = 0; i < size; i++) {
+    CheckpointReader rrr =
+        rr.openChild(dummy.identify() + "_" + std::to_string(i));
+    _segments.push_back(T(rrr));
+  }
+}
+
+template class MMRegion<PolarSegment>;
+template class MMRegion<StaticSegment>;
+
+}  // namespace xtp
+}  // namespace votca

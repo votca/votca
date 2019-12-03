@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,80 +17,69 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_ERIS_H
-#define	VOTCA_XTP_ERIS_H
+#define VOTCA_XTP_ERIS_H
 
-
-#include <votca/xtp/threecenter.h>
 #include <votca/xtp/fourcenter.h>
+#include <votca/xtp/threecenter.h>
 
-namespace votca { namespace xtp {
-   
+namespace votca {
+namespace xtp {
+
 /**
-* \brief Takes a density matrix and and an auxillary basis set and calculates the electron repulsion integrals. 
-*
-* 
-* 
-*/    
-    class ERIs{    
-        
-    public:
+ * \brief Takes a density matrix and and an auxiliary basis set and calculates
+ * the electron repulsion integrals.
+ *
+ *
+ *
+ */
+class ERIs {
 
-        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, const Eigen::MatrixXd& inverse_Coulomb);
-        void Initialize_4c_small_molecule(AOBasis &_dftbasis); 
-        void Initialize_4c_screening(AOBasis &_dftbasis, double eps); // Pre-screening
-      
-        const Eigen::MatrixXd& getEXX() const{return _EXXs;}
-        
-        const Eigen::MatrixXd& getERIs() const{return _ERIs;}
-        double& getERIsenergy(){return _ERIsenergy;}
-        double& getEXXsenergy(){return _EXXsenergy;}
-        
-        void CalculateERIs(const Eigen::MatrixXd &DMAT);
-        void CalculateEXX(const Eigen::MatrixXd &DMAT);
-        void CalculateEXX(const Eigen::Block<Eigen::MatrixXd>& occMos,const Eigen::MatrixXd &DMAT);
-        void CalculateERIs_4c_small_molecule(const Eigen::MatrixXd &DMAT); 
-        void CalculateEXX_4c_small_molecule(const Eigen::MatrixXd &DMAT);
-        
-        void CalculateERIs_4c_direct(const AOBasis& dftbasis, const Eigen::MatrixXd& DMAT);
-        
-        int getSize1(){return _ERIs.rows();}
-        int getSize2(){return _ERIs.cols();}
-        
-        void printERIs();
-        
-    private:
+ public:
+  void Initialize(const AOBasis& dftbasis, const AOBasis& auxbasis);
+  void Initialize_4c_small_molecule(const AOBasis& dftbasis);
+  void Initialize_4c_screening(const AOBasis& dftbasis,
+                               double eps);  // Pre-screening
 
-        bool _with_screening = false;
-        double _screening_eps;
-        Eigen::MatrixXd _diagonals; // Square matrix containing <ab|ab> for all basis functions a, b
-        
-        void CalculateERIsDiagonals(const AOBasis& dftbasis);
-        
-        bool CheckScreen(double eps,
-            const AOShell& shell_1, const AOShell& shell_2,
-            const AOShell& shell_3, const AOShell& shell_4);
-        
-        TCMatrix_dft _threecenter;
-        FCMatrix _fourcenter; 
-       
-        Eigen::MatrixXd _ERIs;
-        Eigen::MatrixXd _EXXs;
-        
-        double _ERIsenergy;
-        double _EXXsenergy;
+  Mat_p_Energy CalculateERIs(const Eigen::MatrixXd& DMAT) const;
+  Mat_p_Energy CalculateEXX(const Eigen::MatrixXd& DMAT) const;
+  Mat_p_Energy CalculateEXX(const Eigen::MatrixXd& occMos,
+                            const Eigen::MatrixXd& DMAT) const;
+  Mat_p_Energy CalculateERIs_4c_small_molecule(
+      const Eigen::MatrixXd& DMAT) const;
+  Mat_p_Energy CalculateEXX_4c_small_molecule(
+      const Eigen::MatrixXd& DMAT) const;
 
-        void CalculateEnergy(const Eigen::MatrixXd &DMAT);
-        void CalculateEXXEnergy(const Eigen::MatrixXd &DMAT);
-        
-        void FillERIsBlock(Eigen::MatrixXd& ERIsCur, const Eigen::MatrixXd& DMAT,
-            const tensor4d& block,
-            const AOShell& shell_1, const AOShell& shell_2,
-            const AOShell& shell_3, const AOShell& shell_4);
-        
-    };
+  Mat_p_Energy CalculateERIs_4c_direct(const AOBasis& dftbasis,
+                                       const Eigen::MatrixXd& DMAT) const;
 
-}}
+  Index Removedfunctions() const { return _threecenter.Removedfunctions(); }
 
-#endif	// VOTCA_XTP_ERIS_H
+ private:
+  bool _with_screening = false;
+  double _screening_eps;
+  Eigen::MatrixXd _diagonals;  // Square matrix containing <ab|ab> for all basis
+                               // functions a, b
 
+  void CalculateERIsDiagonals(const AOBasis& dftbasis);
+
+  bool CheckScreen(double eps, const AOShell& shell_1, const AOShell& shell_2,
+                   const AOShell& shell_3, const AOShell& shell_4) const;
+
+  TCMatrix_dft _threecenter;
+  FCMatrix _fourcenter;
+
+  double CalculateEnergy(const Eigen::MatrixXd& DMAT,
+                         const Eigen::MatrixXd& matrix_operator) const;
+  template <bool transposed_block>
+  void FillERIsBlock(Eigen::MatrixXd& ERIsCur, const Eigen::MatrixXd& DMAT,
+                     const Eigen::Tensor<double, 4>& block,
+                     const AOShell& shell_1, const AOShell& shell_2,
+                     const AOShell& shell_3, const AOShell& shell_4) const;
+};
+
+}  // namespace xtp
+}  // namespace votca
+
+#endif  // VOTCA_XTP_ERIS_H

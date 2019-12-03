@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,35 +17,28 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_ADIIS__H
 #define _VOTCA_XTP_ADIIS__H
 
-
-
-#include <votca/xtp/eigen.h> 
+#include <memory>
 #include <vector>
+#include <votca/xtp/eigen.h>
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
+class ADIIS {
+ public:
+  Eigen::VectorXd CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
+                            const std::vector<Eigen::MatrixXd>& mathist);
 
+  bool Info() { return success; }
 
- 
- class ADIIS{
-public:
-
-    ADIIS():success(true) {};
-   ~ADIIS() {};
-   
-    Eigen::VectorXd CalcCoeff(const std::vector< Eigen::MatrixXd* >& _dmathist,const std::vector< Eigen::MatrixXd* >& _mathist);
-    
-   
-   bool Info(){return success;}
  private:
-     
-     bool success;
-  
- };
-    
-}}
+  bool success = true;
+};
 
-#endif	
+}  // namespace xtp
+}  // namespace votca
 
+#endif

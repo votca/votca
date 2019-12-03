@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,40 +17,41 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_VC2INDEX_H
 #define _VOTCA_XTP_VC2INDEX_H
 
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace xtp {
 /**
-* \brief This class transforms a pair of indices v,c into a compound index I, via I=ctotal*v+c
-* the fast dimension is c. If you have a choice iterate over c and v not over I. 
-*
-*
-*/
+ * \brief This class transforms a pair of indices v,c into a compound index I,
+ * via I=ctotal*v+c the fast dimension is c. If you have a choice iterate over c
+ * and v not over I.
+ *
+ *
+ */
 class vc2index {
 
-public:
+ public:
+  vc2index(Index vmin, Index cmin, Index ctotal)
+      : _vmin(vmin), _cmin(cmin), _ctotal(ctotal){};
 
-    vc2index(int vmin, int cmin, int ctotal):_vmin(vmin),_cmin(cmin),_ctotal(ctotal){};
+  inline Index I(Index v, Index c) const {
+    return _ctotal * (v - _vmin) + (c - _cmin);
+  }
 
-    inline int I(int v,int c)const{return _ctotal*(v-_vmin)+c-_cmin;}
+  inline Index v(Index index) const { return (index / _ctotal + _vmin); }
 
-    inline int v(int index)const{return index/_ctotal+_vmin;}
+  inline Index c(Index index) const { return (index % _ctotal + _cmin); }
 
-    inline int c(int index)const{return index%_ctotal+_cmin;}
-
-
-private:
-
-
-int _vmin;
-int _cmin;
-int _ctotal;
-    
+ private:
+  Index _vmin;
+  Index _cmin;
+  Index _ctotal;
 };
-}
-}
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* _VOTCA_XTP_VC2INDEX_H */

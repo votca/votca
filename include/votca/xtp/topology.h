@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,122 +17,88 @@
  *
  */
 
-
+#pragma once
 #ifndef VOTCA_XTP_TOPOLOGY_H
-#define	VOTCA_XTP_TOPOLOGY_H
-
-#include <vector>
-#include <string>
-
-#include <votca/tools/property.h>
+#define VOTCA_XTP_TOPOLOGY_H
 
 #include <votca/csg/boundarycondition.h>
 #include <votca/csg/openbox.h>
 #include <votca/csg/orthorhombicbox.h>
 #include <votca/csg/triclinicbox.h>
-
 #include <votca/xtp/qmnblist.h>
 
-namespace CSG = votca::csg;
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
-
-class Molecule;
 class Segment;
-class SegmentType;
-class Fragment;
-class Atom;
 /**
- * \brief Container for molecules, conjugated segments, rigid fragments,
+ * \brief Container for segments and box
  * and atoms.
-*/
-class Topology 
-{
-public:
+ */
+class Topology {
+ public:
+  Topology() = default;
 
-    Topology();
-   ~Topology();
+  Topology(const Topology &top);
 
+  Topology &operator=(const Topology &top);
 
-    // Population: Molecules, segments, fragments, atoms
+  // I do not have to manually make a move constructor or move assignment
+  // operator or destructor because I only have to reassign pointers in qmnblist
+  // object
 
-    Molecule    *AddMolecule (std::string molecule_name);
-    Segment     *AddSegment  (std::string segment_name);
-    Atom        *AddAtom     (std::string atom_name);
-    Fragment    *AddFragment (std::string fragment_name);
-    SegmentType *AddSegmentType (std::string typeName);
+  Segment &AddSegment(std::string segment_name);
 
-    Molecule    *getMolecule(int id) { return _molecules[id-1]; }
-    Segment     *getSegment(int id)  { return _segments[id-1]; }
-    Fragment    *getFragment(int id) { return _fragments[id-1]; }
-    Atom        *getAtom(int id)     { return _atoms[id-1]; }
-    SegmentType *getSegmentType(int id) { return _segmentTypes[id-1]; }
+  Segment &getSegment(Index id) { return _segments[id]; }
+  const Segment &getSegment(Index id) const { return _segments[id]; }
 
-    std::vector< Atom* >         &Atoms() { return _atoms; }
-    std::vector< Fragment* >     &Fragments() { return _fragments; }
-    std::vector< Segment* >      &Segments() { return _segments; }
-    std::vector< Molecule* >     &Molecules() { return _molecules; }
-    std::vector< SegmentType* >  &SegmentTypes() { return _segmentTypes; }
+  std::vector<Segment> &Segments() { return _segments; }
+  const std::vector<Segment> &Segments() const { return _segments; }
 
-    bool                Rigidify();
-    void                setCanRigidify(bool yesno) { _canRigidify = yesno; }
-    const bool         &canRigidify() { return _canRigidify; }
-    const bool         &isRigid() { return _isRigid; }
-    void                setIsEStatified(bool yesno) { _isEStatified = yesno; }
-    const bool         &isEStatified() { return _isEStatified; }
+  // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
+  Eigen::Vector3d PbShortestConnect(const Eigen::Vector3d &r1,
+                                    const Eigen::Vector3d &r2) const;
+  const Eigen::Matrix3d &getBox() const { return _bc->getBox(); }
+  double BoxVolume() const { return _bc->BoxVolume(); }
+  void setBox(const Eigen::Matrix3d &box,
+              csg::BoundaryCondition::eBoxtype boxtype =
+                  csg::BoundaryCondition::typeAuto);
 
+  QMNBList &NBList() { return _nblist; }
+  const QMNBList &NBList() const { return _nblist; }
 
+  // Trajectory meta data: step number, time, frame (= Db ID)
 
-    // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
+  Index getStep() const { return _step; }
+  void setStep(Index step) { _step = step; }
+  double getTime() const { return _time; }
+  void setTime(double time) { _time = time; }
 
-    votca::tools::vec              PbShortestConnect(const votca::tools::vec &r1, const votca::tools::vec &r2) const;
-    const votca::tools::matrix    &getBox() { return _bc->getBox(); }
-    double           BoxVolume() { return _bc->BoxVolume(); }
-    void             setBox(const votca::tools::matrix &box,
-                            CSG::BoundaryCondition::eBoxtype boxtype =
-                            CSG::BoundaryCondition::typeAuto);
+  void WriteToCpt(CheckpointWriter &w) const;
 
-    QMNBList       &NBList() { return _nblist; }
+  void WriteToPdb(std::string filename) const;
 
-    // Trajectory meta data: step number, time, frame (= Db ID)
+  void ReadFromCpt(CheckpointReader &r);
 
-    const int       &getStep() { return _step; }
-    void             setStep(int step) { _step = step; }
-    const double    &getTime() { return _time; }
-    void             setTime(double time) { _time = time; }
+  double GetShortestDist(const Segment &seg1, const Segment &seg2) const;
 
-    int              getDatabaseId() { return _db_id; };
-    void             setDatabaseId(int id) { _db_id = id; }
-    void             CleanUp();
+  std::vector<const Segment *> FindAllSegmentsOnMolecule(
+      const Segment &seg1, const Segment &seg2) const;
 
-protected:
+ protected:
+  std::vector<Segment> _segments;
 
-    std::vector < Molecule* >    _molecules;
-    std::vector < Segment* >     _segments;
-    std::vector < Fragment* >    _fragments;
-    std::vector < Atom* >        _atoms;
-    std::vector < SegmentType* > _segmentTypes;
+  std::unique_ptr<csg::BoundaryCondition> _bc = nullptr;
+  QMNBList _nblist;
 
+  double _time;
+  Index _step;
 
-    int    _db_id;
-    bool                    _hasPb;
-    CSG::BoundaryCondition *_bc;
-    QMNBList               _nblist;
-
-    bool                    _canRigidify;
-    bool                    _isRigid;
-    bool                    _isEStatified;
-
-    double _time;
-    int    _step;
-
-
-    CSG::BoundaryCondition::eBoxtype
-    AutoDetectBoxType(const votca::tools::matrix &box);
-
+  csg::BoundaryCondition::eBoxtype AutoDetectBoxType(
+      const Eigen::Matrix3d &box);
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif	// VOTCA_XTP_TOPOLOGY_H 
-
+#endif  // VOTCA_XTP_TOPOLOGY_H

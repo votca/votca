@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,20 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_CHECKPOINT_UTILS_H
 #define VOTCA_XTP_CHECKPOINT_UTILS_H
 
 #include <H5Cpp.h>
+#include <cstddef>
+#include <cstring>
 #include <string>
+#include <votca/tools/types.h>
 
 namespace votca {
 namespace xtp {
 
-typedef H5::Group CptLoc;
+using CptLoc = H5::Group;
 
 namespace checkpoint_utils {
 
@@ -54,21 +58,46 @@ struct InferDataType<int> {
 };
 
 template <>
-struct InferDataType<unsigned int> {
+struct InferDataType<long int> {
+  static const H5::DataType* get(void) { return &H5::PredType::NATIVE_LONG; }
+};
+
+template <>
+struct InferDataType<unsigned> {
   static const H5::DataType* get(void) { return &H5::PredType::NATIVE_UINT; }
 };
 
 template <>
 struct InferDataType<std::string> {
   static const H5::DataType* get(void) {
-    static const H5::StrType strtype(0, H5T_VARIABLE);
+
+#if (defined(__GNUC__) && defined(__clang__))
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
+#elif (defined(__GNUC__) && !defined(__INTEL_COMPILER))
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#elif (defined(__INTEL_COMPILER))
+#pragma warning push
+#pragma warning(disable : 1682)  // implicit conversion of a 64-bit integral
+                                 // type to a smaller integral type
+#endif
+    static const H5::StrType strtype(H5T_C_S1, H5T_VARIABLE);
+#if (defined(__GNUC__) && defined(__clang__))
+#pragma clang diagnostic pop
+#elif (defined(__GNUC__) && !defined(__INTEL_COMPILER))
+#pragma GCC diagnostic pop
+#elif (defined(__INTEL_COMPILER))
+#pragma warning pop
+#endif
+
     return &strtype;
   }
 };
 
 H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
 
-} // checkpoint_utils
-} // xtp
-} // votca
-#endif //VOTCA_XTP_CHECKPOINT_UTILS_H
+}  // namespace checkpoint_utils
+}  // namespace xtp
+}  // namespace votca
+#endif  // VOTCA_XTP_CHECKPOINT_UTILS_H

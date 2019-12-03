@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,262 +16,195 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#include <votca/xtp/topology.h>
-#include <votca/xtp/molecule.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/segmenttype.h>
-#include <votca/xtp/fragment.h>
 #include <votca/xtp/atom.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/topology.h>
 
-#include <votca/tools/matrix.h>
-#include <votca/tools/vec.h>
-#include <votca/tools/globals.h>
+#include "votca/xtp/checkpointwriter.h"
 #include <boost/lexical_cast.hpp>
+#include <votca/csg/pdbwriter.h>
+#include <votca/tools/globals.h>
 
-using namespace std;
-using namespace votca::tools;
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
+Topology::Topology(const Topology &top) {
+  _segments = top._segments;
+  _time = top._time;
+  _step = top._step;
+  this->setBox(top.getBox());
+  for (const QMPair *pair : top.NBList()) {
+    const Segment &seg1 = _segments[pair->Seg1()->getId()];
+    const Segment &seg2 = _segments[pair->Seg2()->getId()];
+    _nblist.Add(seg1, seg2, pair->R());
+  }
+}
 
-  Topology::Topology() : _db_id(-1), _hasPb(0), 
-  _bc(NULL), _nblist(this),
-  _isRigid(false), _isEStatified(false)  { }
-
-  // +++++++++++++++++++++ //
-  // Clean-Up, Destruct    //
-  // +++++++++++++++++++++ //
-
-  void Topology::CleanUp() {
-
-    vector < Molecule* > ::iterator mit;
-    for (mit = _molecules.begin(); mit < _molecules.end(); mit++) delete *mit;
-    _molecules.clear();
-    _segments.clear();
-    _fragments.clear();
-    _atoms.clear();
-
-    vector < SegmentType* > ::iterator sit;
-    for (sit = _segmentTypes.begin(); sit < _segmentTypes.end(); sit++) {
-      delete *sit;
-    }
-    _segmentTypes.clear();
-
-    if (_bc) { delete(_bc); _bc = NULL; }
-    _bc = new CSG::OpenBox;
-
+Topology &Topology::operator=(const Topology &top) {
+  if (&top != this) {
+    _segments = top._segments;
+    _time = top._time;
+    _step = top._step;
+    this->setBox(top.getBox());
     _nblist.Cleanup();
-    _isRigid = false;
-  }
-
-
-  Topology::~Topology() {
-
-    // clean up the list of molecules; this also deletes atoms
-    vector < Molecule* > :: iterator molecule;
-    for (molecule = _molecules.begin();
-        molecule < _molecules.end();
-        ++molecule) {
-      delete *molecule;
+    for (const QMPair *pair : top.NBList()) {
+      const Segment &seg1 = _segments[pair->Seg1()->getId()];
+      const Segment &seg2 = _segments[pair->Seg2()->getId()];
+      _nblist.Add(seg1, seg2, pair->R());
     }
-    _molecules.clear();
-    _segments.clear();
-    _fragments.clear();
-    _atoms.clear();
+  }
+  return *this;
+}
 
-    vector < SegmentType* > ::iterator typeit;
-    for (typeit = _segmentTypes.begin();
-        typeit < _segmentTypes.end();
-        typeit++) {
-      delete *typeit;
+Segment &Topology::AddSegment(std::string segment_name) {
+  Index segment_id = Index(_segments.size());
+  _segments.push_back(Segment(segment_name, segment_id));
+  return _segments.back();
+}
+
+// +++++++++++++++++ //
+// Periodic Boundary //
+// +++++++++++++++++ //
+void Topology::setBox(const Eigen::Matrix3d &box,
+                      csg::BoundaryCondition::eBoxtype boxtype) {
+
+  // Determine box type automatically in case boxtype == typeAuto
+  if (boxtype == csg::BoundaryCondition::typeAuto) {
+    boxtype = AutoDetectBoxType(box);
+  }
+
+  if (_bc != nullptr) {
+    if (Log::verbose()) {
+      std::cout << "Removing periodic box. Creating new... " << std::endl;
     }
-    _segmentTypes.clear();
-
-
+  }
+  _bc.reset(nullptr);
+  switch (boxtype) {
+    case csg::BoundaryCondition::typeTriclinic:
+      _bc.reset(new csg::TriclinicBox());
+      break;
+    case csg::BoundaryCondition::typeOrthorhombic:
+      _bc.reset(new csg::OrthorhombicBox());
+      break;
+    default:
+      _bc.reset(new csg::OpenBox());
+      break;
   }
 
+  _bc->setBox(box);
+}
 
-  // ++++++++ //
-  // Populate //
-  // ++++++++ //
+csg::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(
+    const Eigen::Matrix3d &box) {
 
-  Fragment *Topology::AddFragment(string fragment_name) {
-    int fragment_id = _fragments.size() + 1;
-    Fragment* fragment = new Fragment(fragment_id, fragment_name);
-    _fragments.push_back(fragment);
-    fragment->setTopology(this);
-    return fragment;
+  // Set box type to OpenBox in case "box" is the zero matrix,
+  // to OrthorhombicBox in case "box" is a diagonal matrix,
+  // or to TriclinicBox otherwise
+
+  if (box.isApproxToConstant(0)) {
+    std::cout << "WARNING: No box vectors specified in trajectory."
+                 "Using open-box boundary conditions. "
+              << std::endl;
+    return csg::BoundaryCondition::typeOpen;
   }
 
-  Segment *Topology::AddSegment(string segment_name) {
-    int segment_id = _segments.size() + 1;
-    Segment* segment = new Segment(segment_id, segment_name);
-    _segments.push_back(segment);
-    segment->setTopology(this);
-    return segment;
+  else if ((box - Eigen::Matrix3d(box.diagonal().asDiagonal()))
+               .isApproxToConstant(0)) {
+    return csg::BoundaryCondition::typeOrthorhombic;
   }
 
-  Atom *Topology::AddAtom(string atom_name) {
-    int atom_id = _atoms.size() + 1;
-    Atom *atom = new Atom(atom_id, atom_name);
-    _atoms.push_back(atom);
-    atom->setTopology(this);
-    return atom;
+  else {
+    return csg::BoundaryCondition::typeTriclinic;
   }
 
-  Molecule *Topology::AddMolecule(string molecule_name) {
-    int molecule_id = _molecules.size() + 1;
-    Molecule *molecule = new Molecule(molecule_id, molecule_name);
-    _molecules.push_back(molecule);
-    molecule->setTopology(this);
-    return molecule;
-  }
+  return csg::BoundaryCondition::typeOpen;
+}
 
-  SegmentType *Topology::AddSegmentType(string typeName) {
-    int typeId = _segmentTypes.size() + 1;
-    SegmentType *segType = new SegmentType(typeId, typeName);
-    _segmentTypes.push_back(segType);
-    segType->setTopology(this);
-    return segType;
-  }
+Eigen::Vector3d Topology::PbShortestConnect(const Eigen::Vector3d &r1,
+                                            const Eigen::Vector3d &r2) const {
+  return _bc->BCShortestConnection(r1, r2);
+}
 
-
-
-  // +++++++++++++++++ //
-  // Periodic Boundary //
-  // +++++++++++++++++ //
-
-  void Topology::setBox(const matrix &box,
-      CSG::BoundaryCondition::eBoxtype boxtype) {
-
-    // Determine box type automatically in case boxtype == typeAuto
-    if(boxtype == CSG::BoundaryCondition::typeAuto) {
-      boxtype = AutoDetectBoxType(box);
-    }
-
-    if(_hasPb) {
-      if (votca::tools::globals::verbose) {
-        cout << "Removing periodic box. Creating new... " << endl;
+double Topology::GetShortestDist(const Segment &seg1,
+                                 const Segment &seg2) const {
+  double R2 = std::numeric_limits<double>::max();
+  for (const Atom &atom1 : seg1) {
+    for (const Atom &atom2 : seg2) {
+      double R2_test =
+          PbShortestConnect(atom1.getPos(), atom2.getPos()).squaredNorm();
+      if (R2_test < R2) {
+        R2 = R2_test;
       }
-      delete _bc;
-    }
-
-    switch(boxtype) {
-      case CSG::BoundaryCondition::typeTriclinic:
-        _bc = new CSG::TriclinicBox();
-        break;
-      case CSG::BoundaryCondition::typeOrthorhombic:
-        _bc = new CSG::OrthorhombicBox();
-        break;
-      default:
-        _bc = new CSG::OpenBox();
-        break;
-    }
-
-    _bc->setBox(box);
-    _hasPb = true;
-  }
-
-
-  CSG::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(const matrix &box){
-
-    // Set box type to OpenBox in case "box" is the zero matrix,
-    // to OrthorhombicBox in case "box" is a diagonal matrix,
-    // or to TriclinicBox otherwise
-
-    if(box.get(0,0)==0 && box.get(0,1)==0 && box.get(0,2)==0 &&
-        box.get(1,0)==0 && box.get(1,1)==0 && box.get(1,2)==0 &&
-        box.get(2,0)==0 && box.get(2,1)==0 && box.get(2,2)==0) {
-
-      cout << "WARNING: No box vectors specified in trajectory."
-        "Using open-box boundary conditions. " << endl;
-      return CSG::BoundaryCondition::typeOpen;
-    }
-
-    else if(box.get(0,1)==0 && box.get(0,2)==0 &&
-        box.get(1,0)==0 && box.get(1,2)==0 &&
-        box.get(2,0)==0 && box.get(2,1)==0) {
-
-      return CSG::BoundaryCondition::typeOrthorhombic;
-    }
-
-    else {
-      return CSG::BoundaryCondition::typeTriclinic;
-    }
-
-    return CSG::BoundaryCondition::typeOpen;
-  }
-
-
-  vec Topology::PbShortestConnect(const vec &r1, const vec &r2) const {
-    return _bc->BCShortestConnection(r1, r2);
-  }
-
-
-
-  bool Topology::Rigidify() {
-
-    if (!_canRigidify) {
-      cout << endl
-        << "... ... ABORT: Request to rigidify system, but no QM "
-        "coordinates provided. ";
-      return 0;
-    }
-    else {
-
-      // Rigidify segments
-      vector<Segment*> ::iterator sit;
-      for (sit = _segments.begin();
-          sit < _segments.end();
-          sit++) {
-
-        (*sit)->Rigidify();
-      }
-
-      cout << endl
-        << "... ... Rigidified " << _segments.size() << " segments. "
-        << flush;
-
-      if (this->NBList().size() > 0) {
-
-        // Rigidify pairs
-        // [ Why this is needed: Orientation matrices for fragments are not
-        //   not written to the state file, and hence lost whenever a frame
-        //   is saved and reloaded. When reading in a new frame from the
-        //   database, pairs are created from scratch based on two segment
-        //   IDs each. Then the pair constructor is called to check whether
-        //   the pair is formed across the periodic boundary. If so, it
-        //   creates a ghost from the second partner. This ghost is a new
-        //   segment which is just accessible from within the pair, but not
-        //   from the topology; i.e. it is not stored in any segment containers.
-        //   Since at this point, fragments do not store rotation matrices yet,
-        //   the ghost - very much deconnected from its originator - does not,
-        //   either. Therefore it should not be forgotten here. --- A way out
-        //   would be to rigidify the topology within StateSaver::ReadFrame,
-        //   after atoms have been created, but before pairs are created. ]
-
-        QMNBList &nblist = this->NBList();
-
-        QMNBList::iterator pit;
-        int count = 0;
-        for (pit = nblist.begin(); pit != nblist.end(); pit++) {
-
-          QMPair *qmpair = *pit;
-          if (qmpair->HasGhost()) {
-            count++;
-            qmpair->Seg2PbCopy()->Rigidify();
-          }
-        }
-
-        cout << endl
-          << "... ... Rigidified " << count << " ghosts. "
-          << flush;
-      }
-
-      _isRigid = true;
-      return 1;
     }
   }
+  return std::sqrt(R2);
+}
 
-}}
+std::vector<const Segment *> Topology::FindAllSegmentsOnMolecule(
+    const Segment &seg1, const Segment &seg2) const {
+  const std::vector<Index> &ids1 = seg1.getMoleculeIds();
+  const std::vector<Index> &ids2 = seg2.getMoleculeIds();
+  std::vector<Index> common_elements;
+  std::set_intersection(ids1.begin(), ids1.end(), ids2.begin(), ids2.end(),
+                        std::back_inserter(common_elements));
+  std::vector<const Segment *> results;
+  if (common_elements.empty() || common_elements.size() > 1) {
+    return results;
+  }
+  Index molid = common_elements[0];
+
+  for (const Segment &seg : _segments) {
+    if (std::find(seg.getMoleculeIds().begin(), seg.getMoleculeIds().end(),
+                  molid) != seg.getMoleculeIds().end()) {
+      results.push_back(&seg);
+    }
+  }
+  return results;
+}
+
+void Topology::WriteToPdb(std::string filename) const {
+
+  csg::PDBWriter writer;
+  writer.Open(filename, false);
+  writer.WriteHeader("Frame:" + std::to_string(this->getStep()));
+  writer.WriteBox(this->getBox() * tools::conv::bohr2ang);
+  for (const Segment &seg : _segments) {
+    writer.WriteContainer(seg);
+  }
+  writer.Close();
+}
+
+void Topology::WriteToCpt(CheckpointWriter &w) const {
+  w(_time, "time");
+  w(_step, "step");
+  w(this->getBox(), "box");
+  CheckpointWriter ww = w.openChild("segments");
+  for (const Segment &seg : _segments) {
+    CheckpointWriter u = ww.openChild("segment" + std::to_string(seg.getId()));
+    seg.WriteToCpt(u);
+  }
+  CheckpointWriter www = w.openChild("neighborlist");
+  _nblist.WriteToCpt(www);
+}
+
+void Topology::ReadFromCpt(CheckpointReader &r) {
+  r(_time, "time");
+  r(_step, "step");
+  Eigen::Matrix3d box;
+  r(box, "box");
+  setBox(box);
+  CheckpointReader v = r.openChild("segments");
+  _segments.clear();
+  Index count = v.getNumDataSets();
+  _segments.reserve(count);
+  for (Index i = 0; i < count; i++) {
+    CheckpointReader w = v.openChild("segment" + std::to_string(i));
+    _segments.push_back(Segment(w));
+  }
+  CheckpointReader rr = r.openChild("neighborlist");
+  _nblist.ReadFromCpt(rr, _segments);
+}
+
+}  // namespace xtp
+}  // namespace votca

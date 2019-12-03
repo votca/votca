@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,155 +17,133 @@
  *
  */
 
-
-#include <votca/xtp/esp2multipole.h>
 #include <boost/format.hpp>
+#include <votca/xtp/esp2multipole.h>
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/nbo.h>
 #include <votca/xtp/populationanalysis.h>
 
 namespace votca {
-    namespace xtp {
-      using std::flush;
+namespace xtp {
+using std::flush;
 
-        void Esp2multipole::Initialize(tools::Property& options) {
-            std::string key = Identify();
-            _do_svd = false;
+void Esp2multipole::Initialize(tools::Property& options) {
+  std::string key = Identify();
+  _do_svd = false;
 
-            _use_mulliken = false;
-            _use_CHELPG = false;
-            _use_lowdin = false;
+  _use_mulliken = false;
+  _use_CHELPG = false;
+  _use_lowdin = false;
 
-            std::string statestring = options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
-            _state.FromString(statestring);
-          
-            std::vector<std::string> choices={"mulliken","loewdin","CHELPG"};
-            _method=options.ifExistsAndinListReturnElseThrowRuntimeError(key+".method",choices);
+  std::string statestring =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
+  _state.FromString(statestring);
 
-            if (_method == "mulliken")_use_mulliken = true;
-            else if (_method == "loewdin" ) _use_lowdin = true;
-            else if (_method == "CHELPG")_use_CHELPG = true;
-              
+  std::vector<std::string> choices = {"mulliken", "loewdin", "CHELPG"};
+  _method = options.ifExistsAndinListReturnElseThrowRuntimeError(
+      key + ".method", choices);
 
-            if (_use_CHELPG) {
-                _integrationmethod = options.ifExistsReturnElseReturnDefault<std::string>(key + ".integrationmethod","numeric");
-            }
-            if (!(_integrationmethod == "numeric" || _integrationmethod == "analytic")) {
-                std::runtime_error("Method not recognized. Only numeric and analytic available");
-            }
-            
-            if (options.exists(key + ".constraints")) {
-                 if (options.exists(key + ".constraints.regions")) {
-                     std::list<tools::Property*> prop_region = options.Select(key + ".constraints.regions.region");
-                     for (tools::Property* prop:prop_region) {
-                         std::string indices=prop->get("indices").as<std::string>();
-                         tools::Tokenizer tok(indices,"\n\t ,");
-                         Espfit::ConstraintRegion reg;
-                         tok.ConvertToVector<int>(reg.atomindices);
-                         reg.charge=prop->get("charge").as<double>();
-                         _regionconstraint.push_back(reg);
-                         XTP_LOG(logDEBUG, *_log) << "Fit constrained by SUM(";
-                         for(int i:reg.atomindices){
-                             XTP_LOG(logDEBUG, *_log)<<i<<" ";
-                         }
-                        XTP_LOG(logDEBUG, *_log)<<")="<<reg.charge<< flush;
-                     }
-                 }
-                 if (options.exists(key + ".constraints.pairs")) {
-                     std::list<tools::Property*> prop_pair = options.Select(key + ".constraints.pairs.pair");
-                     for (tools::Property* prop:prop_pair) {
-                         std::string pairstring=prop->as<std::string>();
-                        tools::Tokenizer tok(pairstring,"\n\t ,");
-                        std::vector<int> pairvec;
-                        tok.ConvertToVector<int>(pairvec);
-                        std::pair<int,int> pair;
-                        pair.first=pairvec[0];
-                        pair.second=pairvec[1];
-                        _pairconstraint.push_back(pair);
-                        XTP_LOG(logDEBUG, *_log) << "Charge "<<pair.first<<" "<<pair.second<<" constrained to be equal."<<flush;
-                     }
-                 }
-            }
+  if (_method == "mulliken") {
+    _use_mulliken = true;
+  } else if (_method == "loewdin") {
+    _use_lowdin = true;
+  } else if (_method == "CHELPG") {
+    _use_CHELPG = true;
+  }
 
-          _gridsize =options.ifExistsReturnElseReturnDefault<std::string>(key + ".gridsize","medium");
-          _openmp_threads = options.ifExistsReturnElseReturnDefault<int>(key + ".openmp",1);
-
-            if (options.exists(key + ".svd")) {
-                _do_svd = options.get(key + ".svd.do_svd").as<bool>();
-                _conditionnumber = options.get(key + ".svd.conditionnumber").as<double>();
-            }
-
-            // get the path to the shared folders with xml files
-            char *votca_share = getenv("VOTCASHARE");
-            if (votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-            return;
-        }
-
-        
-
-        void Esp2multipole::WritetoFile(std::string output_file,const Orbitals& orbitals) {
-
-            std::string data_format = boost::filesystem::extension(output_file);
-            if (!(data_format == ".mps")) {
-                throw std::runtime_error("Outputfile format not recognized. Export only to .mps");
-            }
-            std::string tag = "TOOL:" + Identify() + "_" + _state.ToString();
-
-            orbitals.Multipoles().WriteMPS(output_file, tag);
-            return;
-        }
-
-        void Esp2multipole::PrintDipoles(Orbitals& orbitals){
-          Eigen::Vector3d classical_dip = orbitals.Multipoles().CalcDipole();
-          
-          XTP_LOG(logDEBUG, *_log) << "El Dipole from fitted charges [e*bohr]:\n\t\t"
-                  << boost::format(" dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f")
-                  % classical_dip[0] % classical_dip[1] % classical_dip[2] % classical_dip.squaredNorm()<< flush;
-          Eigen::Vector3d qm_dip=orbitals.CalcElDipole(_state);
-          XTP_LOG(logDEBUG, *_log) << "El Dipole from exact qm density [e*bohr]:\n\t\t"
-                  << boost::format(" dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f")
-                  % qm_dip[0] % qm_dip[1] % qm_dip[2] % qm_dip.squaredNorm()<< flush;
-        }
-
-        void Esp2multipole::Extractingcharges(Orbitals & orbitals) {
-            int threads = 1;
-#ifdef _OPENMP
-            if (_openmp_threads > 0) omp_set_num_threads(_openmp_threads);
-            threads = omp_get_max_threads();
-#endif
-            XTP_LOG(logDEBUG, *_log) << "===== Running on " << threads << " threads ===== " << flush;
-            BasisSet bs;
-            bs.LoadBasisSet(orbitals.getDFTbasis());
-            AOBasis basis;
-            basis.AOBasisFill(bs, orbitals.QMAtoms());   
-
-            if (_use_mulliken) {
-                Mulliken mulliken;
-                mulliken.CalcChargeperAtom(orbitals, basis, _state);
-            }
-            else if (_use_lowdin) {
-                Lowdin lowdin;
-                lowdin.CalcChargeperAtom(orbitals, basis, _state);
-            } else if (_use_CHELPG) {
-                Espfit esp = Espfit(_log);
-                if(_pairconstraint.size()>0){
-                    esp.setPairConstraint(_pairconstraint);
-                }
-                if(_regionconstraint.size()>0){
-                    esp.setRegionConstraint(_regionconstraint);
-                }
-                
-                if (_do_svd) {
-                    esp.setUseSVD(_conditionnumber);
-                }
-                if (_integrationmethod == "numeric") {
-                    esp.Fit2Density(orbitals, _state, basis, _gridsize);
-                } else if (_integrationmethod == "analytic") esp.Fit2Density_analytic(orbitals, _state, basis);
-            } 
-
-            PrintDipoles(orbitals);
-            
-        }
-
+  if (options.exists(key + ".constraints")) {
+    if (options.exists(key + ".constraints.regions")) {
+      std::vector<tools::Property*> prop_region =
+          options.Select(key + ".constraints.regions.region");
+      Index index = 0;
+      for (tools::Property* prop : prop_region) {
+        std::string indices = prop->get("indices").as<std::string>();
+        QMFragment<double> reg = QMFragment<double>(index, indices);
+        index++;
+        reg.value() = prop->get("charge").as<double>();
+        _regionconstraint.push_back(reg);
+        XTP_LOG(Log::error, _log) << "Fit constrained by Region" << flush;
+        XTP_LOG(Log::error, _log) << reg;
+      }
     }
+    if (options.exists(key + ".constraints.pairs")) {
+      std::vector<tools::Property*> prop_pair =
+          options.Select(key + ".constraints.pairs.pair");
+      for (tools::Property* prop : prop_pair) {
+        std::string pairstring = prop->as<std::string>();
+        tools::Tokenizer tok(pairstring, "\n\t ,");
+        std::vector<Index> pairvec;
+        tok.ConvertToVector<Index>(pairvec);
+        std::pair<Index, Index> pair;
+        pair.first = pairvec[0];
+        pair.second = pairvec[1];
+        _pairconstraint.push_back(pair);
+        XTP_LOG(Log::error, _log)
+            << "Charges " << pair.first << " " << pair.second
+            << " constrained to be equal." << flush;
+      }
+    }
+  }
+
+  _gridsize = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".gridsize", "medium");
+
+  if (options.exists(key + ".svd")) {
+    _do_svd = options.get(key + ".svd.do_svd").as<bool>();
+    _conditionnumber = options.get(key + ".svd.conditionnumber").as<double>();
+  }
+
+  return;
 }
+
+void Esp2multipole::PrintDipoles(const Orbitals& orbitals,
+                                 const StaticSegment& seg) const {
+  Eigen::Vector3d classical_dip = seg.CalcDipole();
+
+  XTP_LOG(Log::error, _log)
+      << "El Dipole from fitted charges [e*bohr]:\n\t\t"
+      << boost::format(
+             " dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f") %
+             classical_dip.x() % classical_dip.y() % classical_dip.z() %
+             classical_dip.squaredNorm()
+      << flush;
+  Eigen::Vector3d qm_dip = orbitals.CalcElDipole(_state);
+  XTP_LOG(Log::error, _log)
+      << "El Dipole from exact qm density [e*bohr]:\n\t\t"
+      << boost::format(
+             " dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f") %
+             qm_dip.x() % qm_dip.y() % qm_dip.z() % qm_dip.squaredNorm()
+      << flush;
+}
+
+StaticSegment Esp2multipole::Extractingcharges(const Orbitals& orbitals) const {
+  XTP_LOG(Log::error, _log) << "===== Running on " << OPENMP::getMaxThreads()
+                            << " threads ===== " << flush;
+  StaticSegment result("result", 0);
+  if (_use_mulliken) {
+    Mulliken mulliken;
+    result = mulliken.CalcChargeperAtom(orbitals, _state);
+  } else if (_use_lowdin) {
+    Lowdin lowdin;
+    result = lowdin.CalcChargeperAtom(orbitals, _state);
+  } else if (_use_CHELPG) {
+    Espfit esp = Espfit(_log);
+    if (_pairconstraint.size() > 0) {
+      esp.setPairConstraint(_pairconstraint);
+    }
+    if (_regionconstraint.size() > 0) {
+      esp.setRegionConstraint(_regionconstraint);
+    }
+
+    if (_do_svd) {
+      esp.setUseSVD(_conditionnumber);
+    }
+    result = esp.Fit2Density(orbitals, _state, _gridsize);
+  }
+
+  PrintDipoles(orbitals, result);
+  return result;
+}
+
+}  // namespace xtp
+}  // namespace votca

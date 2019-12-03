@@ -1,0 +1,34 @@
+<gwbse>
+        <basisset help="basiset to use">ubecppol</basisset>
+        <auxbasisset help="auxilliary basiset to use">aux-ubecppol</auxbasisset>
+        <ranges help="default: all levels in RPA, 1:2*HOMO in QP and BSE; other options: factor,explicit">default</ranges>
+        <rpamax help="only needed, if ranges is factor or explicit, number of levels in rpa"></rpamax> 
+        <qpmin help="only needed, if ranges is factor or explicit, lowest MO to be used in GW"></qpmin> 
+        <qpmax help="only needed, if ranges is factor or explicit, highest MO to be used in GW"></qpmax> 
+        <bsemin  help="only needed, if ranges is factor or explicit, lowest MO to be used in BSE"></bsemin> 
+        <bsemax help="only needed, if ranges is factor or explicit, highest MO to be used in BSE"></bsemax> 
+        <vxc  help="Exchange correlation functional computation for GW">
+                <functional help="functional name(s) according to LIBXC">XC_HYB_GGA_XC_PBEH</functional>
+                <grid help="grid quality xcoarse,coarse,medium,fine,xfine">medium</grid>
+        </vxc>
+        <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" unit="hartree">0.2</scissor_shift> 
+        <mode help="use single short (G0W0) or self-consistent GW (evGW)">evGW</mode>
+        <tasks help="tasks to do gw,singlets,triplets or all">gw,singlets,triplets</tasks> 
+        <sigma_integrator help="self-energy correlation integration method: ppm, exact">ppm</tasks>
+        <eta help="small parameter eta of the Green's function">1e-3</tasks>
+        <qp_solver help="QP equation solve method: fixedpoint, grid">fixedpoint</tasks>
+        <qp_grid_steps help="number of QP grid points">201</tasks>
+        <qp_grid_spacing help="spacing of QP grid points in Ha">1.0</tasks>
+        <exctotal help="maximum number of BSE states to calculate">25</exctotal>
+        <useTDA help="use TDA for BSE default `false`">1</useTDA>
+        <ignore_corelevles help="exclude core MO level from calculation on RPA,GW or BSE level, default=no">no</ignore_corelevels>
+        <eigensolver help="options for BSE eigenvalue decompostion">
+                <dodavidson help="use davidson solver" >1</dodavidson>
+                <davidson_correction help="DPR or OHLSEN" >DPR</davidson_correction>
+                <davidson_tolerance help="loose,normal,strict"> normal</davidson_tolerance>
+                <davidson_ortho help="orthogonalisation routine GS or QR" >GS</davidson_ortho>
+                <davidson_update help=" how large the search space can become min, safe, max" >safe</davidson_update>
+                <davidson_maxiter help="max iterations" >50</davidson_maxiter>
+                <domatrixfree help="solve without explicitly setting up BSE matrix, (slower but a lot less memory required" >0</domatrixfree>
+        </eigensolver>
+</gwbse>

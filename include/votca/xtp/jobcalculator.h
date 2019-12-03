@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,44 +16,44 @@
  * limitations under the License.
  *
  */
-/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For an earlier history see ctp repo commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#pragma once
 #ifndef VOTCA_XTP_JOBCALCULATOR_H
 #define VOTCA_XTP_JOBCALCULATOR_H
 
-
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/topology.h>
+#include <votca/tools/calculator.h>
+#include <votca/xtp/job.h>
 #include <votca/xtp/progressobserver.h>
+#include <votca/xtp/topology.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
 class Topology;
 
-class JobCalculator : public QMCalculator
-{
-public:
+class JobCalculator : public tools::Calculator {
+ public:
+  JobCalculator() = default;
+  ~JobCalculator() override = default;
 
-                    JobCalculator() {}
-    virtual        ~JobCalculator() {}
+  std::string Identify() override = 0;
 
-    virtual std::string  Identify() { return "Generic Job calculator"; }
+  virtual bool EvaluateFrame(const Topology &top) = 0;
 
-    virtual bool    EvaluateFrame(Topology *top) { return true; }
-    virtual void    EndEvaluate(Topology *top) { }
+  virtual void WriteJobFile(const Topology &top) = 0;
+  virtual void ReadJobFile(Topology &top) = 0;
 
-    virtual void    WriteJobFile(Topology *top)  { ; }
-    virtual void    ReadJobFile(Topology *top) { ; }
+  void setOpenMPThreads(Index ompthreads) { _openmp_threads = ompthreads; }
+  void setProgObserver(ProgObserver<std::vector<Job> > *obs) { _progObs = obs; }
 
-    void            setProgObserver(ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *obs) { _progObs = obs; }
-
-protected:
-    
-    ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *_progObs;
-
+ protected:
+  Index _openmp_threads;
+  ProgObserver<std::vector<Job> > *_progObs;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif // VOTCA_XTP_JOBCALCULATOR_H
-
+#endif  // VOTCA_XTP_JOBCALCULATOR_H

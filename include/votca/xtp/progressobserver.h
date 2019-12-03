@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,100 +16,70 @@
  * limitations under the License.
  *
  */
-/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For an earlier history see ctp repo commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#pragma once
 #ifndef VOTCA_XTP_PROGRESSOBSERVER_H
 #define VOTCA_XTP_PROGRESSOBSERVER_H
-
-#include <vector>
-#include <iostream>
-#include <votca/tools/mutex.h>
-#include <votca/tools/property.h>
-#include <votca/xtp/job.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/program_options.hpp>
+#include <vector>
+#include <votca/tools/mutex.h>
+#include <votca/tools/property.h>
 
-namespace votca { namespace xtp {
-    
+namespace votca {
+namespace xtp {
+
 class QMThread;
 
-// TYPENAME EXAMPLE USAGE
-//     ProgObserver< vector<Job*>, Job*, Job::JobResult >
-// REQUIRED METHODS FOR TYPENAMES
-//     pJob ->getId() ->SaveResults(rJob)
-//     JobContainer .size() .begin() .end()
-    
-template<typename JobContainer, typename pJob, typename rJob>
-class ProgObserver 
-{
-    
-public:
-    
-    typedef typename JobContainer::iterator JobItCnt;
-    typedef typename std::vector<pJob>::iterator JobItVec;
-    
-    ProgObserver()
-        : _lockFile("__NOFILE__"), _progFile("__NOFILE__"), _cacheSize(-1),
-          _nextjit(NULL), _metajit(NULL), _startJobsCount(0) { ; }
-    
-   ~ProgObserver() { ; }
-    
-    void InitCmdLineOpts(const boost::program_options::variables_map &optsMap);
-    void InitFromProgFile(std::string progFile, QMThread *master);   
-    pJob RequestNextJob(QMThread *thread);
-    void ReportJobDone(pJob job, rJob *res, QMThread *thread);
-    
-    void SyncWithProgFile(QMThread *thread);
-    void LockProgFile(QMThread *thread);
-    void ReleaseProgFile(QMThread *thread);
-    
-    std::string GenerateHost(QMThread *thread);
-    std::string GenerateTime();
-   
-   
-private:    
-    
-    std::string _lockFile;
-    std::string _progFile;
-    int _cacheSize;
-    JobContainer _jobs;
-    
-    std::vector<pJob> _jobsToProc;
-    std::vector<pJob> _jobsToSync;
-    
-    JobItVec _nextjit;
-    JobItCnt _metajit;
-    tools::Mutex _lockThread;
-    boost::interprocess::file_lock *_flock;
-    
-    std::map<std::string,bool> _restart_hosts;
-    std::map<std::string,bool> _restart_stats;
-    bool _restartMode;
-    int _jobsReported;
+template <typename JobContainer>
+class ProgObserver {
 
-    bool _moreJobsAvailable;
-    int _startJobsCount;
-    int _maxJobs;
-    
+  using Job = typename std::iterator_traits<
+      typename JobContainer::iterator>::value_type;
+
+  using Result = typename Job::JobResult;
+
+ public:
+  void InitCmdLineOpts(const boost::program_options::variables_map &optsMap);
+  void InitFromProgFile(std::string progFile, QMThread &master);
+  ProgObserver::Job *RequestNextJob(QMThread &thread);
+  void ReportJobDone(Job &job, Result &res, QMThread &thread);
+
+  void SyncWithProgFile(QMThread &thread);
+  void LockProgFile(QMThread &thread);
+  void ReleaseProgFile(QMThread &thread);
+
+  std::string GenerateHost();
+  std::string GenerateTime();
+
+ private:
+  std::string _lockFile = "";
+  std::string _progFile = "";
+  Index _cacheSize = -1;
+  JobContainer _jobs;
+
+  std::vector<Job *> _jobsToProc;
+  std::vector<Job *> _jobsToSync;
+
+  using iterator = typename JobContainer::iterator;
+  iterator _metajit;
+  using iterator_vec = typename std::vector<Job *>::iterator;
+  iterator_vec _nextjit;
+  tools::Mutex _lockThread;
+  std::unique_ptr<boost::interprocess::file_lock> _flock;
+
+  std::map<std::string, bool> _restart_hosts;
+  std::map<std::string, bool> _restart_stats;
+  bool _restartMode = false;
+  Index _jobsReported = 0;
+
+  bool _moreJobsAvailable = false;
+  Index _startJobsCount = 0;
+  Index _maxJobs = 0;
 };
 
-
-
-
-template<typename JobContainer, typename pJob, typename rJob>
-JobContainer LOAD_JOBS(const std::string &xml_file);
-
-template<typename JobContainer, typename pJob, typename rJob>
-void WRITE_JOBS(JobContainer &jobs, const std::string &job_file, std::string fileformat);
-
-template<typename JobContainer, typename pJob, typename rJob>
-void UPDATE_JOBS(JobContainer &from, JobContainer &to, std::string thisHost);
-    
-    
-    
-    
-}}
-
-
-#endif // VOTCA_XTP_PROGRESSOBSERVER_H
-
+}  // namespace xtp
+}  // namespace votca
+#endif  // VOTCA_XTP_PROGRESSOBSERVER_H

@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,64 +17,57 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_ESP2MULTIPOLE_H
 #define VOTCA_XTP_ESP2MULTIPOLE_H
 
-#include <stdio.h>
-#include <votca/xtp/logger.h>
 #include <boost/filesystem.hpp>
+#include <stdio.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/orbitals.h>
+#include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/espfit.h>
-namespace votca { namespace xtp {
+#include <votca/xtp/logger.h>
+#include <votca/xtp/orbitals.h>
+namespace votca {
+namespace xtp {
 
-    
-class Esp2multipole 
-{
-public:
+class Esp2multipole {
+ public:
+  Esp2multipole(Logger& log) : _log(log) {
+    _pairconstraint.resize(0);
+    _regionconstraint.resize(0);
+  }
 
-    Esp2multipole (Logger* log) {
-        _log=log; 
-        _pairconstraint.resize(0);
-        _regionconstraint.resize(0);
-        }
+  std::string Identify() { return "esp2multipole"; }
 
-    std::string Identify() { return "esp2multipole"; }
+  void Initialize(tools::Property& options);
 
-    void   Initialize(tools::Property &options);
-    
-   
-    void Extractingcharges( Orbitals& orbitals );
- 
+  StaticSegment Extractingcharges(const Orbitals& orbitals) const;
 
-    void WritetoFile(std::string output_file,const Orbitals& orbitals);
-    std::string GetStateString()const{return _state.ToString();}
+  std::string GetStateString() const { return _state.ToString(); }
 
-private:
-    
-    void PrintDipoles(Orbitals& orbitals);
-    
-    QMState      _state;  
-    int         _openmp_threads;
-    std::string      _method;
-    std::string      _integrationmethod;
-    std::string      _gridsize;
-    bool        _use_mulliken;
-    bool        _use_lowdin;
-    bool        _use_CHELPG;
-    bool        _do_svd;
-    double      _conditionnumber;
-    
-    Logger*      _log;
-    std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     
-    std::vector< Espfit::ConstraintRegion > _regionconstraint;
-    
+ private:
+  void PrintDipoles(const Orbitals& orbitals, const StaticSegment& seg) const;
 
+  QMState _state;
+  std::string _method;
+  std::string _gridsize;
+  bool _use_mulliken;
+  bool _use_lowdin;
+  bool _use_CHELPG;
+  bool _do_svd;
+  double _conditionnumber;
+
+  Logger& _log;
+  std::vector<std::pair<Index, Index> > _pairconstraint;  //  pairconstraint[i]
+                                                          //  is all the
+                                                          //  atomindices which
+                                                          //  have the same
+                                                          //  charge
+  std::vector<QMFragment<double> > _regionconstraint;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-
-}}
-
-
-#endif // VOTCA_XTP_ESP2MULTIPOLE_H
+#endif  // VOTCA_XTP_ESP2MULTIPOLE_H

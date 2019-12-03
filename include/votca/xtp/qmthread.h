@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,48 +16,48 @@
  * limitations under the License.
  *
  */
-/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For an earlier history see ctp repo commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#pragma once
 #ifndef VOTCA_XTP_QMTHREAD_H
-#define	VOTCA_XTP_QMTHREAD_H
+#define VOTCA_XTP_QMTHREAD_H
 
-#include "votca/tools/thread.h"
 #include "votca/tools/globals.h"
+#include "votca/tools/thread.h"
 #include "votca/xtp/logger.h"
+#include <ctime>
 #include <iostream>
 #include <string>
-#include <ctime>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-  // ++++++++++++++++++++++++++++++++++++++ //
-  // Thread class with local string stream //
-  // ++++++++++++++++++++++++++++++++++++++ //
+// ++++++++++++++++++++++++++++++++++++++ //
+// Thread class with local string stream //
+// ++++++++++++++++++++++++++++++++++++++ //
 
-  class QMThread : public tools::Thread
-  {
-    public:
-      QMThread() { _maverick = false; }
-      QMThread(bool maverick) { _maverick = maverick; }; 
-      ~QMThread() {};
+class QMThread : public tools::Thread {
+ public:
+  QMThread() = default;
+  QMThread(bool maverick) : _maverick(maverick) { ; }
+  ~QMThread() override = default;
 
-      int  getId() { return _id; }
-      void setId(int id) { _id = id; }
-      bool isMaverick() { return _maverick; }
+  Index getId() const { return _id; }
+  void setId(Index id) { _id = id; }
+  bool isMaverick() const { return _maverick; }
 
-      Logger* getLogger() { return &_logger; }
-      virtual void Run(void) { ; }
+  Logger& getLogger() { return _logger; }
+  void Run(void) override { ; }
 
-    protected:
+ protected:
+  Index _id;
+  std::stringstream _ss;
+  bool _maverick = false;
+  Logger _logger;
+};
 
-      int              _id;
-      std::stringstream     _ss;
-      bool             _maverick;
-      Logger           _logger;
+}  // namespace xtp
+}  // namespace votca
 
-  };
-
-
-}}
-
-#endif // VOTCA_XTP_QMTHREAD_H
+#endif  // VOTCA_XTP_QMTHREAD_H

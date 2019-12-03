@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,16 +17,14 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_XTP_ORCA_H
-#define	__VOTCA_XTP_ORCA_H
+#define __VOTCA_XTP_ORCA_H
 
 #include <votca/xtp/qmpackage.h>
 
-#include <string>
-
-
-
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 /**
     \brief Wrapper for the ORCA program
 
@@ -34,51 +32,48 @@ namespace votca { namespace xtp {
     and extracts information from its log and io files
 
 */
-class Orca : public QMPackage
-{
-public:
+class Orbitals;
+class Orca : public QMPackage {
+ public:
+  std::string getPackageName() const override { return "orca"; }
 
-   std::string getPackageName() const{ return "orca"; }
+  void Initialize(tools::Property& options) override;
 
-   void Initialize( tools::Property &options );
+  bool WriteInputFile(const Orbitals& orbitals) override;
 
-   bool WriteInputFile(const Orbitals& orbitals);
+  bool WriteShellScript();
 
-   bool WriteShellScript();
+  bool Run() override;
 
-   bool Run();
+  void CleanUp() override;
 
-   void CleanUp();
+  bool CheckLogFile();
 
-   bool CheckLogFile();
+  bool ParseLogFile(Orbitals& orbitals) override;
 
-   bool ParseLogFile( Orbitals& orbitals );
+  bool ParseMOsFile(Orbitals& orbitals) override;
 
-   bool ParseOrbitalsFile( Orbitals& orbitals );
+  StaticSegment GetCharges() const override;
 
+  Eigen::Matrix3d GetPolarizability() const override;
 
-   std::string getScratchDir( ) { return _scratch_dir; }
+ private:
+  std::string indent(const double& number);
+  std::string getLName(Index lnum);
 
-private:
+  void WriteBasisset(const QMMolecule& qmatoms, std::string& _bs_name,
+                     std::string& el_file_name);
+  void WriteCoordinates(std::ofstream& com_file, const QMMolecule&);
+  void WriteECP(std::ofstream& com_file, const QMMolecule&);
+  void WriteBackgroundCharges();
 
-    std::string                              _shell_file_name;
-    std::string                              _scratch_dir;
-    bool                                _is_optimization;
-
-    std::string                              _cleanup;
-
-    std::string indent( const double &number );
-    std::string getLName(int lnum);
-
-    void WriteBasisset(const QMMolecule& qmatoms, std::string& _bs_name, std::string& el_file_name);
-    void WriteCoordinates(std::ofstream& com_file,const QMMolecule&);
-    void WriteECP(std::ofstream& com_file, const QMMolecule&);
-    void WriteBackgroundCharges();
-    
-    void WriteChargeOption();
+  void WriteChargeOption() override;
+  template <class T>
+  void GetCoordinates(T& mol, std::string& line,
+                      std::ifstream& input_file) const;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-}}
-
-#endif	/* __VOTCA_XTP_ORCA_H */
+#endif /* __VOTCA_XTP_ORCA_H */

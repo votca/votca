@@ -3,24 +3,25 @@
 <!-- xtp_tools -e coupling options.xml -->
 <coupling help="Electronic couplings from log and orbital files (GAUSSAIN, ORCA, NWChem)" section="sec:coupling">
 
-        <dftpackage help="First-principles package">gaussian</dftpackage>
+        <dftpackage help="xml file with options for dft calculations">gaussian.xml</dftpackage>
 
         <output help="Output file" default="coupling.out.xml">coupling.out.xml</output>
-
-        <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0">0</degeneracy>
+        
+        
+           <dftcoupling_options>
+            <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0">0.0</degeneracy>
+            <levA help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule A">1</levA>
+            <levB help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule B">1</levB>
+        </dftcoupling_options>
 
         <moleculeA help="">
                 <log help="Log file of molecule A" default="A.log">A.log</log>
                 <orbitals help="Orbitals file" default="A.orb">A.orb</orbitals>
-                <levels help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels" default="3">3</levels>
-                <trim help="" default="2" >2</trim>
         </moleculeA>
 
         <moleculeB>
                 <log help="Log file of molecule B" default="B.log">B.log</log>
                 <orbitals help="Orbitals file" default="B.orb">B.orb</orbitals>
-                <levels help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels" default="3">3</levels>
-                <trim help="" default="2" >2</trim>
         </moleculeB>
 
         <dimerAB>

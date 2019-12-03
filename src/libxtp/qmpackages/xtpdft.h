@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,57 +17,61 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_XTP_XTPDFT_H
 #define __VOTCA_XTP_XTPDFT_H
 
-
+#include <string>
+#include <votca/xtp/dftengine.h>
+#include <votca/xtp/orbitals.h>
 #include <votca/xtp/polarsite.h>
 #include <votca/xtp/qmpackage.h>
-#include <votca/xtp/dftengine.h>
-
-#include <string>
-
-
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-        /**
-            \brief Wrapper for the internal XTP DFT engine
-
-
-         */
-        class XTPDFT : public QMPackage {
-        public:
-
-            std::string getPackageName() const{return "xtp";}
-
-            void Initialize(tools::Property &options);
-
-            bool WriteInputFile(const Orbitals& orbitals);
-
-            bool Run();
-
-            void CleanUp();
-
-            bool CheckLogFile();
-
-            bool ParseLogFile(Orbitals& orbitals);
-
-            bool ParseOrbitalsFile(Orbitals& orbitals);
-
-        private:
-            void WriteChargeOption() { return ;}
-            tools::Property _xtpdft_options;
-            std::string _cleanup;
-
-            Orbitals _orbitals;
-
-            
-        };
+/**
+    \brief Wrapper for the internal XTP DFT engine
 
 
-    }
-}
+ */
+
+class XTPDFT : public QMPackage {
+ public:
+  std::string getPackageName() const override { return "xtp"; }
+
+  void Initialize(tools::Property& options) override;
+
+  bool WriteInputFile(const Orbitals& orbitals) override;
+
+  bool Run() override;
+
+  void CleanUp() override;
+
+  bool CheckLogFile();
+
+  bool ParseLogFile(Orbitals& orbitals) override;
+
+  bool ParseMOsFile(Orbitals& orbitals) override;
+
+  StaticSegment GetCharges() const override {
+    throw std::runtime_error(
+        "If you want partial charges just run the 'partialcharges' calculator");
+  }
+
+  Eigen::Matrix3d GetPolarizability() const override {
+    throw std::runtime_error(
+        "GetPolarizability() is not implemented for xtpdft");
+  }
+
+ private:
+  void WriteChargeOption() override { return; }
+  tools::Property _xtpdft_options;
+
+  Orbitals _orbitals;
+};
+
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* __VOTCA_XTP_XTPDFT_H */

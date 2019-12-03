@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,153 +17,120 @@
  *
  */
 
-#ifndef VOTCA_XTP_BSE_H
-#define VOTCA_XTP_BSE_H
+#pragma once
+#ifndef _VOTCA_XTP_BSE_H
+#define _VOTCA_XTP_BSE_H
 
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/ppm.h>
-#include <votca/xtp/threecenter.h>
-#include <votca/xtp/qmstate.h>
 #include <votca/xtp/logger.h>
+#include <votca/xtp/orbitals.h>
+#include <votca/xtp/qmstate.h>
+#include <votca/xtp/threecenter.h>
 
 namespace votca {
 namespace xtp {
+struct BSE_Population;
+template <Index cqp, Index cx, Index cd, Index cd2>
+class BSE_OPERATOR;
+typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
+typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
+template <class T>
+class QMFragment;
 
 class BSE {
+
+ public:
+  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp)
+      : _log(log), _Mmn(Mmn), _Hqp(Hqp){};
+
+  struct options {
+    bool useTDA = true;
+    Index homo;
+    Index rpamin;
+    Index rpamax;
+    Index qpmin;
+    Index vmin;
+    Index cmax;
+    Index nmax = 5;           // number of eigenvectors to calculate
+    bool davidson = true;     // use davidson to diagonalize the matrix
+    bool matrixfree = false;  // use matrix free method
+    std::string davidson_correction = "DPR";
+    std::string davidson_ortho = "GS";
+    std::string davidson_tolerance = "normal";
+    std::string davidson_update = "safe";
+    Index davidson_maxiter = 50;
+    double min_print_weight =
+        0.5;  // minimium contribution for state to print it
+  };
+
+  void configure(const options& opt, const Eigen::VectorXd& DFTenergies);
+
+  void Solve_singlets(Orbitals& orb) const;
+  void Solve_triplets(Orbitals& orb) const;
+
+  SingletOperator_TDA getSingletOperator_TDA() const;
+  TripletOperator_TDA getTripletOperator_TDA() const;
+
+  void Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
+                        const Orbitals& orb) const;
+  void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
+                        const Orbitals& orb) const;
+
  private:
-     
-struct Interaction {
+  options _opt;
+
+  struct Interaction {
     Eigen::VectorXd exchange_contrib;
     Eigen::VectorXd direct_contrib;
     Eigen::VectorXd qp_contrib;
+  };
+
+  Logger& _log;
+  Index _bse_vmax;
+  Index _bse_cmin;
+  Index _bse_size;
+  Index _bse_vtotal;
+  Index _bse_ctotal;
+
+  Eigen::VectorXd _epsilon_0_inv;
+
+  TCMatrix_gwbse& _Mmn;
+  const Eigen::MatrixXd& _Hqp;
+
+  tools::EigenSystem Solve_singlets_TDA() const;
+  tools::EigenSystem Solve_singlets_BTDA() const;
+
+  tools::EigenSystem Solve_triplets_TDA() const;
+  tools::EigenSystem Solve_triplets_BTDA() const;
+
+  void PrintWeights(const Eigen::VectorXd& weights) const;
+
+  template <typename BSE_OPERATOR>
+  void configureBSEOperator(BSE_OPERATOR& H) const;
+
+  template <typename BSE_OPERATOR>
+  tools::EigenSystem solve_hermitian(BSE_OPERATOR& H) const;
+
+  template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
+  tools::EigenSystem Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
+                                        BSE_OPERATOR_AmB&) const;
+
+  template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
+  tools::EigenSystem Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
+                                                 BSE_OPERATOR_B& Bop) const;
+
+  void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
+                     Index state) const;
+  void printWeights(Index i_bse, double weight) const;
+  void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies);
+
+  Interaction Analyze_eh_interaction(const QMStateType& type,
+                                     const Orbitals& orb) const;
+  template <typename BSE_OPERATOR>
+  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type,
+                                                 const Orbitals& orb,
+                                                 const BSE_OPERATOR& H) const;
 };
+}  // namespace xtp
+}  // namespace votca
 
-struct Population {
-
-public:
-    
-    std::vector<Eigen::VectorXd> popH;
-    std::vector<Eigen::VectorXd> popE;
-    std::vector<Eigen::VectorXd> Crgs;
-    Eigen::VectorXd popGs;
-};   
-    
- public:
- 
-  BSE(Orbitals& orbitals,Logger *log,double min_print_weight):
-        _log(log),
-        _orbitals(orbitals),
-        _eh_s(orbitals.eh_s()),
-        _eh_t(orbitals.eh_t()),
-        _bse_singlet_energies(orbitals.BSESingletEnergies()),
-        _bse_singlet_coefficients(orbitals.BSESingletCoefficients()),
-        _bse_singlet_coefficients_AR(orbitals.BSESingletCoefficientsAR()),
-        _bse_triplet_energies(orbitals.BSETripletEnergies()),
-        _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
-        _min_print_weight(min_print_weight){};
-  
-  void setGWData(const TCMatrix_gwbse* Mmn,const PPM* ppm,const Eigen::MatrixXd* Hqp){
-      _Mmn=Mmn;
-      _ppm=ppm;
-      _Hqp=Hqp;   
-  }
-  
-  void setBSEindices(int homo,int vmin, int cmax, int nmax) {
-                _homo=homo;
-                _bse_vmin = vmin;
-                _bse_vmax = homo;
-                _bse_cmin = homo+1;
-                _bse_cmax = cmax;
-                _bse_nmax = nmax;
-                _bse_vtotal = _bse_vmax - _bse_vmin + 1;
-                _bse_ctotal = _bse_cmax - _bse_cmin + 1;
-                _bse_size = _bse_vtotal * _bse_ctotal;
-                return;
-            }
-
-   
-  void Solve_triplets();
-  void Solve_singlets();
-  void Solve_singlets_BTDA();
-  void Analyze_triplets(const AOBasis& dftbasis);
-  void Analyze_singlets(const AOBasis& dftbasis);
-   
-  void FreeMatrices(){
-      _eh_t.resize(0, 0);
-      _eh_s.resize(0, 0);
-  }
-  
-  void SetupHs();
-  
-  void SetupHt();
-  
-  void FreeTriplets(){
-      _bse_triplet_coefficients.resize(0,0);
-  }
-  
-  void FreeSinglets(){
-      _bse_singlet_coefficients.resize(0,0);
-      _bse_singlet_coefficients_AR.resize(0,0);
-  }
- 
- private:
- 
-      
-Logger *_log;
-  int  _homo;
-  int  _bse_vmin;
-  int  _bse_vmax;
-  int  _bse_cmin;
-  int  _bse_cmax;
-  int  _bse_size;
-  int  _bse_vtotal;
-  int  _bse_ctotal;
-  int _bse_nmax;
-  
-  Orbitals& _orbitals;
-  
-  const TCMatrix_gwbse* _Mmn;
-  const PPM* _ppm;
-  const Eigen::MatrixXd* _Hqp;
-  
-
-  // BSE variables and functions
-  MatrixXfd& _eh_s;  // only for storage in orbitals object
-  MatrixXfd& _eh_t;  // only for storage in orbitals object
-
-  VectorXfd& _bse_singlet_energies;  // stored in orbitals object
-  MatrixXfd& _bse_singlet_coefficients;  // stored in orbitals
-                                                      // object
-  MatrixXfd& _bse_singlet_coefficients_AR;  // stored in orbitals
-                                                         // object
-  VectorXfd& _bse_triplet_energies;  // stored in orbitals object
-  MatrixXfd& _bse_triplet_coefficients;  // stored in orbitals
-                                                      // object
-  
-  double _min_print_weight;
-
-   template <typename T>
-  void Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-   template <typename T>
-  void Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor);
-   template <typename T>
-   void Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-   template <typename T>
-  void Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor);
-
- void printFragInfo(const Population& pop, int i);
- void printWeights(int i_bse, double weight);
- 
-  Interaction Analyze_eh_interaction(const QMStateType& type);
-  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H);
-
-  Population FragmentPopulations(const QMStateType& type, const AOBasis& dftbasis);
-
-  std::vector<Eigen::MatrixXd > CalcFreeTransition_Dipoles(const AOBasis& dftbasis);
-
-  std::vector<Eigen::Vector3d > CalcCoupledTransition_Dipoles(const AOBasis& dftbasis);
-};
-}
-}
-
-#endif // VOTCA_XTP_BSE_H
+#endif /* _VOTCA_XTP_BSE_H */

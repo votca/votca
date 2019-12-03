@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,49 +16,50 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For earlier commit history see ctp commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#pragma once
 #ifndef VOTCA_XTP_QMNBList_H
-#define	VOTCA_XTP_QMNBList_H
+#define VOTCA_XTP_QMNBList_H
 
-#include <string>
-#include <vector>
-#include <list>
-
-#include <votca/tools/tokenizer.h>
 #include <votca/csg/pairlist.h>
 #include <votca/xtp/qmpair.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-class Topology;
+class QMNBList : public csg::PairList<const Segment*, QMPair> {
+ public:
+  QMNBList() = default;
+  ~QMNBList() override { csg::PairList<const Segment*, QMPair>::Cleanup(); }
 
-class QMNBList : public csg::PairList< Segment*, QMPair >
-{
-public:
-  
-    QMNBList() : _top(NULL), _cutoff(0) { };
-    QMNBList(Topology* top) : _top(top), _cutoff(0) { };
-   ~QMNBList() { 
-       csg::PairList<Segment*, QMPair>::Cleanup();       
-   }
-    
-   
-    void    setCutoff(double cutoff) { _cutoff = cutoff; }
-    double  getCutoff() { return _cutoff; }
+  QMPair& Add(const Segment& seg1, const Segment& seg2,
+              const Eigen::Vector3d& r);
 
-    QMPair *Add(Segment* seg1, Segment* seg2,bool safe=true);
-    
-    void AddQMNBlist(QMNBList &temp);
-    
-protected:
-    
-    Topology   *_top;
-    double      _cutoff;
+  template <class Compare>
+  void sortAndReindex(Compare comp);
+
+  const QMPair* operator[](Index index) const { return _pairs[index]; }
+  QMPair* operator[](Index index) { return _pairs[index]; }
+
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r, const std::vector<Segment>& segments);
+
+ protected:
 };
 
-}}
+template <class Compare>
+inline void QMNBList::sortAndReindex(Compare comp) {
+  std::sort(_pairs.begin(), _pairs.end(), comp);
 
+  for (Index i = 0; i < Index(_pairs.size()); i++) {
+    _pairs[i]->setId(i);
+  }
+}
 
-#endif	// VOTCA_XTP_QMNBLIST_H 
+}  // namespace xtp
+}  // namespace votca
 
+#endif  // VOTCA_XTP_QMNBLIST_H

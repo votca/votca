@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,21 +17,22 @@
  *
  */
 
-
 #include <votca/xtp/jobcalculatorfactory.h>
 
 #include "jobcalculators/eqm.h"
-#include "jobcalculators/iqm.h"
 #include "jobcalculators/iexcitoncl.h"
+#include "jobcalculators/iqm.h"
+#include "jobcalculators/qmmm.h"
 
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
-
-void JobCalculatorfactory::RegisterAll(void)
-{	
-        JobCalculators().Register<IQM>                  ("iqm");
-        JobCalculators().Register<EQM>                  ("eqm");
-        JobCalculators().Register<IEXCITON>             ("iexcitoncl");
+void JobCalculatorfactory::RegisterAll(void) {
+  JobCalculators().Register<IQM>("iqm");
+  JobCalculators().Register<EQM>("eqm");
+  JobCalculators().Register<IEXCITON>("iexcitoncl");
+  JobCalculators().Register<QMMM>("qmmm");
 }
 
-}}
+}  // namespace xtp
+}  // namespace votca

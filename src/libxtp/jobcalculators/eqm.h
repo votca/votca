@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,58 +17,58 @@
  *
  */
 
+#pragma once
 #ifndef _CALC_XTP_EQM_H
 #define _CALC_XTP_EQM_H
 
-#include <votca/xtp/gwbse.h> // including GWBSE functionality
-#include <votca/xtp/qmpackagefactory.h>
+#include <votca/xtp/gwbse.h>  // including GWBSE functionality
 #include <votca/xtp/parallelxjobcalc.h>
+#include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/segment.h>
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-        /**
-         * \brief GWBSE implementation
-         *
-         * Evaluates DFT and GWBSE for all molecules
-         * Requires a first-principles package, i.e. GAUSSIAN, ORCA, NWChem
-         *
-         * Callname: eqm
-         */
+/**
+ * \brief GWBSE implementation
+ *
+ * Evaluates DFT and GWBSE for all molecules
+ * Requires a first-principles package, i.e. GAUSSIAN, ORCA, NWChem
+ *
+ * Callname: eqm
+ */
 
-        class EQM : public ParallelXJobCalc< std::vector< Job*>, Job*, Job::JobResult > {
-        public:
-            void WriteLoggerToFile(const std::string& logfile, Logger& logger);
-            std::string Identify() {
-                return "eqm";
-            }
-            void Initialize(tools::Property *options);
-            Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
-            
-            void CleanUp() {;}
-            void WriteJobFile(Topology *top);
-        private:
-            
-           void SetJobToFailed(Job::JobResult& jres, Logger* pLog, const std::string& errormessage);
-            void ParseOptionsXML(tools::Property *options);
+class EQM : public ParallelXJobCalc<std::vector<Job> > {
+ public:
+  std::string Identify() override { return "eqm"; }
+  void Initialize(tools::Property &options) override;
+  Job::JobResult EvalJob(const Topology &top, Job &job,
+                         QMThread &thread) override;
 
-            std::string _package;
-            tools::Property _package_options;
-            tools::Property _gwbse_options;
-            tools::Property _esp_options;
+  void CleanUp() { ; }
+  void WriteJobFile(const Topology &top) override;
+  void ReadJobFile(Topology &) override { return; }
 
-            // what to do
-            bool _do_dft_input;
-            bool _do_dft_run;
-            bool _do_dft_parse;
-            bool _do_gwbse;
-            bool _do_esp;
+ private:
+  void WriteLoggerToFile(const std::string &logfile, Logger &logger);
 
-        };
+  void SetJobToFailed(Job::JobResult &jres, Logger &pLog,
+                      const std::string &errormessage);
+  void ParseOptionsXML(tools::Property &options);
 
+  tools::Property _package_options;
+  tools::Property _gwbse_options;
+  tools::Property _esp_options;
 
-    }
-}
+  // what to do
+  bool _do_dft_input;
+  bool _do_dft_run;
+  bool _do_dft_parse;
+  bool _do_gwbse;
+  bool _do_esp;
+};
+
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* _CALC_GWBSE_TOOL_H */
