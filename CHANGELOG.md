@@ -1,7 +1,10 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/csg/commits/master).
 
-## Version 1.6-dev
+## Version 1.6_rc1 (released XX.12.19)
+ * Major CMake refactor
+ * Improved file readers
+ * Added more tests
 
 ## Version 1.5.1 (released 20.11.19)
  * bug fixes for gcc-5
