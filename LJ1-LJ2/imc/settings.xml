@@ -26,9 +26,8 @@
       <post_add></post_add>
       <!-- inverse monte carlo specific stuff -->
       <imc>
-        <reg>1000</reg> 
-       <group>group_1</group>
-       </imc>
+        <group>group_1</group>
+      </imc>
       <!-- name of the table for gromacs run -->
       <gromacs>
         <table>table_LJ1_LJ1.xvg</table>
@@ -62,8 +61,7 @@
       <post_add></post_add>
       <!-- inverse monte carlo specific stuff -->
       <imc>
-        <reg>1000</reg> 
-       <group>group_1</group>
+        <group>group_1</group>
        </imc>
       <!-- name of the table for gromacs run -->
       <gromacs>
@@ -99,8 +97,7 @@
       <post_add></post_add>
       <!-- inverse monte carlo specific stuff -->
       <imc>
-        <reg>1000</reg> 
-       <group>group_1</group>
+        <group>group_1</group>
        </imc>
       <!-- name of the table for gromacs run -->
       <gromacs>
@@ -132,8 +129,10 @@
     <iterations_max>20</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>imc</method>
-    <imc>		   
-      <solver>numpy</solver>
+    <imc>
+     <group_1>
+       <reg>1000</reg>
+     </group_1>
     </imc>
   </inverse>
 </cg>

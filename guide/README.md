@@ -47,18 +47,18 @@ The tutorial uses GROMACS, a molecular dynamics (MD) package, for generating the
 ## Input files
 
 You will need four files to run MD simulations
-  * `conf.gro` - stores the coordinates of the molecule(s). It can be viewed with vmd. The default  file name is `conf.gro`. 
-  * `grompp.mdp` - stores all simulation options, such as time step, number of simulation steps, etc. 
-  * `topol.top` - topology of the molecule
-  * `forcefield.itp` - description of the atomistic force-field (not always needed)
+* `conf.gro` - stores the coordinates of the molecule(s). It can be viewed with vmd. The default  file name is `conf.gro`. 
+* `grompp.mdp` - stores all simulation options, such as time step, number of simulation steps, etc. 
+* `topol.top` - topology of the molecule
+* `forcefield.itp` - description of the atomistic force-field (not always needed)
 
 During this tutorial, you will need to modify 
-  * `nsteps` - number of MD steps
-  * `nstxout` - output frequency of coordinates to the trajectory file traj.trr
-  * `nstfout` - output frequency of forces to traj.trr
-  * `nstxout-compressed` - output frequency to the traj.xtc file, often used by the iterative Boltzmann inversion method
-  * `nstlog` - output frequency of the md.log file
-  * `nstenergy` - output frequency to the ener.edr file containing all thermodynamic information
+* `nsteps` - number of MD steps
+* `nstxout` - output frequency of coordinates to the trajectory file traj.trr
+* `nstfout` - output frequency of forces to traj.trr
+* `nstxout-compressed` - output frequency to the traj.xtc file, often used by the iterative Boltzmann inversion method
+* `nstlog` - output frequency of the md.log file
+* `nstenergy` - output frequency to the ener.edr file containing all thermodynamic information
 
 ## MD simulations
 
@@ -77,9 +77,9 @@ Input files
 
 Here is an example of the ESPResSo++ input files to run the CG MD simulations of the Iterative Boltzmann inversion procedure.
 
-  * `conf.gro` - stores the coordinates of the molecule(s). It can be viewed with vmd. A pdb or xyz file would be okay, too.
-  * `spce.py` is the simulation script which will be called by csg_inverse. It stores the whole simulation procedure.
-  * `topol.xml` -topology of the molecule, defined in the initial condition. This is needed as most gro/pdb/xyz files have no molecule definition in them.
+* `conf.gro` - stores the coordinates of the molecule(s). It can be viewed with vmd. A pdb or xyz file would be okay, too.
+* `spce.py` is the simulation script which will be called by csg_inverse. It stores the whole simulation procedure.
+* `topol.xml` -topology of the molecule, defined in the initial condition. This is needed as most gro/pdb/xyz files have no molecule definition in them.
 
 
 # Mapping an atomistic trajectory onto a coarse-grained trajectory
