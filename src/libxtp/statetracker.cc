@@ -96,7 +96,7 @@ void StateTracker::PrintInfo() const {
                                   "transition - might not make sense... "
                                << flush;
   }
-  if (_use_dQtracker + _use_osctracker + _use_localizationtracker +
+  if (_use_dQtracker + _use_overlaptracker + _use_localizationtracker +
           _use_osctracker <
       1) {
     XTP_LOG(Log::error, *_log) << "WARNING: No tracker is used " << flush;
@@ -130,7 +130,7 @@ std::vector<Index> StateTracker::CollapseResults(
 
 QMState StateTracker::CalcState(const Orbitals& orbitals) const {
 
-  if (_use_dQtracker + _use_osctracker + _use_localizationtracker +
+  if (_use_dQtracker + _use_overlaptracker + _use_localizationtracker +
           _use_osctracker <
       1) {
     return _statehist[0];
