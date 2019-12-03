@@ -195,7 +195,8 @@ std::vector<Index> StateTracker::LocTracker(const Orbitals& orbitals) const {
   const Eigen::VectorXd& popE = loc[0].value().E;
   const Eigen::VectorXd& popH = loc[0].value().H;
   for (Index i = 0; i < popE.size(); i++) {
-    if (popE[i] > _fragment_loc.value() && popH[i] > _fragment_loc.value()) {
+    if (std::abs(popE[i]) > _fragment_loc.value() &&
+        std::abs(popH[i]) > _fragment_loc.value()) {
       indexes.push_back(i);
     }
   }
