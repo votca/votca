@@ -7,7 +7,6 @@ stages:
     max: 2
   variables:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
-    CXXFLAGS: "-Wall -Werror"
     DISTRO: "latest"
   image: votca/buildenv:${DISTRO}
   stage: build
@@ -29,18 +28,23 @@ stages:
     - git -C ${CI_PROJECT_DIR} branch -d commit_of_build_${CI_BUILD_ID}
     - git checkout -f ${CI_COMMIT_SHA}
     - git submodule update --recursive --init
+    - if [[ ${CI_COMMIT_REF_NAME} = next ]]; then
+        git submodule foreach git checkout master && git submodule foreach git pull;
+      fi
     - mkdir -p build
     - pushd build
-    - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DBUILD_CTP_MANUAL=ON -DBUILD_CSG_MANUAL=ON -DBUILD_XTP_MANUAL=ON
-      -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_OWN_GROMACS=${BUILD_GROMACS}
-      -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install -DBUILD_XTP_MANUAL=OFF}
-      ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DWITH_FFTW=OFF -DWITH_GSL=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GSL=ON
-      -DWITH_MKL=OFF -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DWITH_GMX=OFF -DWITH_SQLITE3=OFF
-      -DCMAKE_DISABLE_FIND_PACKAGE_SQLITE3=ON -DBUILD_XTP=OFF -DBUILD_CTP=OFF}
-    - make -O -k -j${j} -l${j} VERBOSE=1
-    - make test CTEST_OUTPUT_ON_FAILURE=1
-    - test -z "${MODULE_BUILD}" && make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
-    - sudo make install
+    - cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON -DENABLE_WERROR=ON
+      -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DENABLE_REGRESSION_TESTING=${REGRESSION_TESTING:-ON}
+      -DBUILD_OWN_GROMACS=${BUILD_GROMACS} ${BUILD_GROMACS:+-DENABLE_WARNING_FLAGS=OFF}
+      ${CMAKE_GENERATOR:+-G${CMAKE_GENERATOR}}
+      -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
+      ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON
+      -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DWITH_GMX=OFF -DBUILD_XTP=OFF -DENABLE_REGRESSION_TESTING=OFF}
+    - cmake --build . -- -j2
+    - ctest --output-on-failure
+    - test -z "${MODULE_BUILD}" && DESTDIR=${PWD}/install cmake --build . --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
+    - sudo cmake --build . --target install
+    - if [[ ${CLANG_FORMAT} && ${CI_COMMIT_REF_NAME} != next ]]; then cmake --build . --target format && git diff --submodule=diff --exit-code; fi
     - ccache -s
 
 Debug GCC:
@@ -49,6 +53,7 @@ Debug GCC:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
+    CLANG_FORMAT: "yes"
   extends: .build
 
 None GCC:
@@ -63,6 +68,7 @@ None Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: ""
+    CMAKE_GENERATOR: "Ninja"
   extends: .build
 
 Debug Clang:
@@ -70,6 +76,7 @@ Debug Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
   extends: .build
 
 Release GCC:
@@ -84,6 +91,7 @@ Release Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
   extends: .build
 
 Debug GCC Ubuntu:
@@ -99,6 +107,7 @@ Debug Clang Ubuntu:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "ubuntu"
   extends: .build
 
@@ -115,8 +124,47 @@ Release Clang Ubuntu:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "ubuntu"
   extends: .build
+
+Debug GCC Rawhide:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+  allow_failure: true
+
+Debug Clang Rawhide:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+  allow_failure: true
+
+Release GCC Rawhide:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+  allow_failure: true
+
+Release Clang Rawhide:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+  allow_failure: true
 
 Release GCC Minimal:
   variables:
@@ -132,6 +180,7 @@ Release Clang Minimal:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     MINIMAL: "yes"
     DISTRO: "fedora_nogmx"
   extends: .build
@@ -157,6 +206,7 @@ Release Clang GMX2016:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2016"
   extends: .build
 
@@ -173,6 +223,7 @@ Release Clang GMX2016D:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2016_d"
   extends: .build
 
@@ -189,6 +240,7 @@ Release Clang GMX2018:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2018"
   extends: .build
 
@@ -205,6 +257,7 @@ Release Clang GMX2018D:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2018_d"
   extends: .build
 
@@ -221,6 +274,7 @@ Release Clang GMX2019:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2019"
   extends: .build
 
@@ -237,7 +291,46 @@ Release Clang GMX2019D:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx2019_d"
+  extends: .build
+
+Release GCC GMX2020:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "fedora_gmx2020"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Release Clang GMX2020:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "fedora_gmx2020"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Release GCC GMX2020D:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "fedora_gmx2020_d"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Release Clang GMX2020D:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "fedora_gmx2020_d"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Release GCC GMX9999:
@@ -246,6 +339,7 @@ Release GCC GMX9999:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_gmx9999"
+    REGRESSION_TESTING: "OFF"
   extends: .build
   allow_failure: true
 
@@ -254,7 +348,9 @@ Release Clang GMX9999:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx9999"
+    REGRESSION_TESTING: "OFF"
   extends: .build
   allow_failure: true
 
@@ -264,6 +360,7 @@ Release GCC GMX9999D:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_gmx9999_d"
+    REGRESSION_TESTING: "OFF"
   extends: .build
   allow_failure: true
 
@@ -272,7 +369,9 @@ Release Clang GMX9999D:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_gmx9999_d"
+    REGRESSION_TESTING: "OFF"
   extends: .build
   allow_failure: true
 
@@ -281,7 +380,7 @@ Release GCC OWN GMX:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
-    CXXFLAGS: "-Wall"
+    DISTRO: "fedora_nogmx"
     BUILD_GROMACS: "yes"
   extends: .build
 
