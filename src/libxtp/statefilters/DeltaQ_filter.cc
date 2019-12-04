@@ -22,14 +22,16 @@ namespace votca {
 namespace xtp {
 
 void OscillatorStrength_filter::Initialize(const tools::Property& options) {
-  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>(
-      "oscillator_strength");
+  std::string indices =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>("fragment");
+  _fragment = QMFragment<double>(0, indices);
+  _fragment.value() =
+      options.ifExistsReturnElseThrowRuntimeError<double>("threshold");
 }
 
 void OscillatorStrength_filter::Info(Logger& log) const {
-  XTP_LOG(Log::error, log)
-      << "Using oscillator strength tracker with threshold " << _threshold
-      << std::flush;
+  XTP_LOG(Log::error, *_log)
+      << "Using Delta Q tracker for fragment " << _fragment_dQ << std::flush;
 }
 
 void OscillatorStrength_filter::UpdateHist(const Orbitals&) { return; }
@@ -47,12 +49,11 @@ std::vector<Index> OscillatorStrength_filter::CalcIndeces(
 }
 
 void OscillatorStrength_filter::WriteToCpt(CheckpointWriter& w) {
-
-  w(_threshold, "threshold");
+  _fragment.WriteToCpt(w);
 }
 
 void OscillatorStrength_filter::ReadFromCpt(CheckpointReader& r) {
-  r(_threshold, "threshold");
+  _fragment.ReadFromCpt(r);
 }
 
 }  // namespace xtp

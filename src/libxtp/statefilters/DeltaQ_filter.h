@@ -22,6 +22,7 @@
 #define __VOTCA_XTP_DELTAQ_FILTER_H
 
 #include "statefilter_base.h"
+#include <votca/xtp/qmfragment.h>
 
 namespace votca {
 namespace xtp {
@@ -29,9 +30,7 @@ namespace xtp {
 /**
     \brief ChargeTransfer_filter
     tracks states according to how much charge is
-     on a fragment A and fragment B
-
-
+     on a fragment A and the rest of the molecule
  */
 
 class DeltaQ_filter : public StateFilter_base {
@@ -51,7 +50,7 @@ class DeltaQ_filter : public StateFilter_base {
   void ReadFromCpt(CheckpointReader& r) final;
 
  private:
-  double _threshold = 0.0;
+  QMFragment<double> _fragment;
 };
 
 }  // namespace xtp
