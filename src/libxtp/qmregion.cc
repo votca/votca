@@ -17,8 +17,9 @@
  *
  */
 
+#include "votca/xtp/density_integration.h"
 #include "votca/xtp/eeinteractor.h"
-#include "votca/xtp/numerical_integrations.h"
+#include "votca/xtp/vxc_grid.h"
 #include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/polarregion.h>
@@ -233,10 +234,11 @@ void QMRegion::AddNucleiFields(std::vector<PolarSegment>& segments,
 void QMRegion::ApplyQMFieldToPolarSegments(
     std::vector<PolarSegment>& segments) const {
 
-  NumericalIntegration numint;
+  Vxc_Grid grid;
   AOBasis basis =
       _orb.SetupDftBasis();  // grid needs a basis in scope all the time
-  numint.GridSetup(_grid_accuracy_for_ext_interaction, _orb.QMAtoms(), basis);
+  grid.GridSetup(_grid_accuracy_for_ext_interaction, _orb.QMAtoms(), basis);
+  DensityIntegration<Vxc_Grid> numint(grid);
 
   QMState state = QMState("groundstate");
   if (_do_gwbse) {

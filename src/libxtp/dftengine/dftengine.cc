@@ -28,6 +28,7 @@
 #include <votca/tools/elements.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/aopotential.h>
+#include <votca/xtp/density_integration.h>
 #include <votca/xtp/dftengine.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
@@ -83,9 +84,6 @@ void DFTEngine::Initialize(Property& options) {
 
   _grid_name = options.ifExistsReturnElseReturnDefault<string>(
       key + ".integration_grid", "medium");
-  _use_small_grid = options.ifExistsReturnElseReturnDefault<bool>(
-      key + ".integration_grid_small", true);
-  _grid_name_small = ReturnSmallGrid(_grid_name);
   _xc_functional_name = options.ifExistsReturnElseThrowRuntimeError<string>(
       key + ".xc_functional");
 
@@ -190,20 +188,15 @@ tools::EigenSystem DFTEngine::IndependentElectronGuess(
   return _conv_accelerator.SolveFockmatrix(H0.matrix());
 }
 
-tools::EigenSystem DFTEngine::ModelPotentialGuess(const Mat_p_Energy& H0,
-                                                  const QMMolecule& mol) const {
+tools::EigenSystem DFTEngine::ModelPotentialGuess(
+    const Mat_p_Energy& H0, const QMMolecule& mol,
+    const Vxc_Potential<Vxc_Grid>& vxcpotential) const {
   Eigen::MatrixXd Dmat = AtomicGuess(mol);
   Mat_p_Energy ERIs = CalculateERIs(Dmat);
-  Mat_p_Energy e_vxc(Dmat.rows(), Dmat.cols());
-  if (_use_small_grid) {
-    e_vxc = _gridIntegration_small.IntegrateVXC(Dmat);
-    XTP_LOG(Log::info, *_pLog)
-        << TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
-  } else {
-    Mat_p_Energy e_vxc_loc = _gridIntegration.IntegrateVXC(Dmat);
-    XTP_LOG(Log::info, *_pLog)
-        << TimeStamp() << " Filled DFT Vxc matrix " << flush;
-  }
+  Mat_p_Energy e_vxc = vxcpotential.IntegrateVXC(Dmat);
+  XTP_LOG(Log::info, *_pLog)
+      << TimeStamp() << " Filled DFT Vxc matrix " << flush;
+
   Eigen::MatrixXd H = H0.matrix() + ERIs.matrix() + e_vxc.matrix();
   if (_ScaHFX > 0) {
     Mat_p_Energy EXXs = CalcEXXs(Eigen::MatrixXd::Zero(0, 0), Dmat);
@@ -219,7 +212,7 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
   tools::EigenSystem MOs;
   MOs.eigenvalues() = Eigen::VectorXd::Zero(H0.cols());
   MOs.eigenvectors() = Eigen::MatrixXd::Zero(H0.rows(), H0.cols());
-
+  Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Nuclear Repulsion Energy is " << H0.energy() << flush;
 
@@ -235,7 +228,7 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     if (_initial_guess == "independent") {
       MOs = IndependentElectronGuess(H0);
     } else if (_initial_guess == "atom") {
-      MOs = ModelPotentialGuess(H0, orb.QMAtoms());
+      MOs = ModelPotentialGuess(H0, orb.QMAtoms(), vxcpotential);
     } else {
       throw std::runtime_error("Initial guess method not known/implemented");
     }
@@ -258,16 +251,10 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Iteration " << this_iter + 1
                                 << " of " << _max_iter << flush;
 
-    Mat_p_Energy e_vxc(Dmat.rows(), Dmat.cols());
-    if (_use_small_grid && _conv_accelerator.getDIIsError() > 1e-3) {
-      e_vxc = _gridIntegration_small.IntegrateVXC(Dmat);
-      XTP_LOG(Log::info, *_pLog)
-          << TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
-    } else {
-      e_vxc = _gridIntegration.IntegrateVXC(Dmat);
-      XTP_LOG(Log::info, *_pLog)
-          << TimeStamp() << " Filled DFT Vxc matrix " << flush;
-    }
+    Mat_p_Energy e_vxc = vxcpotential.IntegrateVXC(Dmat);
+    XTP_LOG(Log::info, *_pLog)
+        << TimeStamp() << " Filled DFT Vxc matrix " << flush;
+
     Mat_p_Energy ERIs = CalculateERIs(Dmat);
     Eigen::MatrixXd H = H0.matrix() + ERIs.matrix() + e_vxc.matrix();
     double Eone = Dmat.cwiseProduct(H0.matrix()).sum();
@@ -471,7 +458,9 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   BasisSet basisset;
   basisset.Load(_dftbasis_name);
   AOBasis dftbasis;
-  NumericalIntegration gridIntegration;
+  Vxc_Grid grid;
+  grid.GridSetup(_grid_name, atom, dftbasis);
+  Vxc_Potential<Vxc_Grid> gridIntegration(grid);
   dftbasis.Fill(basisset, atom);
   ECPAOBasis ecp;
   if (with_ecp) {
@@ -479,7 +468,6 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
     ecps.Load(_ecp_name);
     ecp.Fill(ecps, atom);
   }
-  gridIntegration.GridSetup(_grid_name, atom, dftbasis);
   gridIntegration.setXCfunctional(_xc_functional_name);
   Index numofelectrons = uniqueAtom.getNuccharge();
   Index alpha_e = 0;
@@ -790,38 +778,6 @@ void DFTEngine::Prepare(QMMolecule& mol) {
     }
   }
 
-  _gridIntegration.GridSetup(_grid_name, mol, _dftbasis);
-  _gridIntegration.setXCfunctional(_xc_functional_name);
-
-  _ScaHFX = _gridIntegration.getExactExchange(_xc_functional_name);
-  if (_ScaHFX > 0) {
-    XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Using hybrid functional with alpha=" << _ScaHFX
-        << flush;
-  }
-
-  XTP_LOG(Log::error, *_pLog)
-      << TimeStamp() << " Setup numerical integration grid " << _grid_name
-      << " for vxc functional " << _xc_functional_name << flush;
-  XTP_LOG(Log::info, *_pLog)
-      << "\t\t "
-      << " with " << _gridIntegration.getGridSize() << " points"
-      << " divided into " << _gridIntegration.getBoxesSize() << " boxes"
-      << flush;
-  if (_use_small_grid) {
-    _gridIntegration_small.GridSetup(_grid_name_small, mol, _dftbasis);
-    _gridIntegration_small.setXCfunctional(_xc_functional_name);
-    XTP_LOG(Log::info, *_pLog)
-        << TimeStamp() << " Setup small numerical integration grid "
-        << _grid_name_small << " for vxc functional " << _xc_functional_name
-        << flush;
-    XTP_LOG(Log::info, *_pLog)
-        << "\t\t "
-        << " with " << _gridIntegration_small.getGridSize() << " points"
-        << " divided into " << _gridIntegration_small.getBoxesSize() << " boxes"
-        << flush;
-  }
-
   for (const QMAtom& atom : mol) {
     _numofelectrons += atom.getNuccharge();
   }
@@ -834,6 +790,27 @@ void DFTEngine::Prepare(QMMolecule& mol) {
 
   SetupInvariantMatrices();
   return;
+}
+
+Vxc_Potential<Vxc_Grid> DFTEngine::SetupVxc(const QMMolecule& mol) {
+  _ScaHFX = Vxc_Potential<Vxc_Grid>::getExactExchange(_xc_functional_name);
+  if (_ScaHFX > 0) {
+    XTP_LOG(Log::error, *_pLog)
+        << TimeStamp() << " Using hybrid functional with alpha=" << _ScaHFX
+        << flush;
+  }
+  Vxc_Grid grid;
+  grid.GridSetup(_grid_name, mol, _dftbasis);
+  Vxc_Potential<Vxc_Grid> vxc(grid);
+  vxc.setXCfunctional(_xc_functional_name);
+  XTP_LOG(Log::error, *_pLog)
+      << TimeStamp() << " Setup numerical integration grid " << _grid_name
+      << " for vxc functional " << _xc_functional_name << flush;
+  XTP_LOG(Log::info, *_pLog)
+      << "\t\t "
+      << " with " << grid.getGridSize() << " points"
+      << " divided into " << grid.getBoxesSize() << " boxes" << flush;
+  return vxc;
 }
 
 double DFTEngine::NuclearRepulsion(const QMMolecule& mol) const {
@@ -849,28 +826,6 @@ double DFTEngine::NuclearRepulsion(const QMMolecule& mol) const {
     }
   }
   return E_nucnuc;
-}
-
-string DFTEngine::ReturnSmallGrid(const string& largegrid) {
-  string smallgrid;
-
-  if (largegrid == "xfine") {
-    smallgrid = "fine";
-  } else if (largegrid == "fine") {
-    smallgrid = "medium";
-  } else if (largegrid == "medium") {
-    _use_small_grid = false;
-    smallgrid = "medium";
-  } else if (largegrid == "coarse") {
-    _use_small_grid = false;
-    smallgrid = "coarse";
-  } else if (largegrid == "xcoarse") {
-    _use_small_grid = false;
-    smallgrid = "xcoarse";
-  } else {
-    throw runtime_error("Grid name for Vxc integration not known.");
-  }
-  return smallgrid;
 }
 
 // average atom densities matrices, for SP and other combined shells average
@@ -980,8 +935,9 @@ Mat_p_Energy DFTEngine::IntegrateExternalDensity(
   basis.Load(extdensity.getDFTbasisName());
   AOBasis aobasis;
   aobasis.Fill(basis, extdensity.QMAtoms());
-  NumericalIntegration numint;
-  numint.GridSetup(_gridquality, extdensity.QMAtoms(), aobasis);
+  Vxc_Grid grid;
+  grid.GridSetup(_gridquality, extdensity.QMAtoms(), aobasis);
+  DensityIntegration<Vxc_Grid> numint(grid);
   Eigen::MatrixXd dmat = extdensity.DensityMatrixGroundState();
 
   numint.IntegrateDensity(dmat);

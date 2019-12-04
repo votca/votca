@@ -21,8 +21,8 @@
 #define VOTCA_XTP_GYRATION_H
 
 #include <stdio.h>
+#include <votca/xtp/density_integration.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/orbitals.h>
 namespace votca {
 namespace xtp {

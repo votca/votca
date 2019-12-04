@@ -22,6 +22,46 @@
 namespace votca {
 namespace xtp {
 
+void GridBox::FindSignificantShells(const AOBasis& basis) {
+
+  for (const AOShell& store : basis) {
+    const double decay = store.getMinDecay();
+    const Eigen::Vector3d& shellpos = store.getPos();
+    for (const auto& point : grid_pos) {
+      Eigen::Vector3d dist = shellpos - point;
+      double distsq = dist.squaredNorm();
+      // if contribution is smaller than -ln(1e-10), add shell to list
+      if ((decay * distsq) < 20.7) {
+        addShell(&store);
+        break;
+      }
+    }
+  }
+}
+
+Eigen::VectorXd GridBox::CalcAOValue_and_Grad(
+    Eigen::MatrixX3d& ao_grad, const Eigen::Vector3d& point) const {
+  Eigen::VectorXd ao = Eigen::VectorXd::Zero(Matrixsize());
+  for (Index j = 0; j < Shellsize(); ++j) {
+    Eigen::Block<Eigen::MatrixX3d> grad_block =
+        ao_grad.block(aoranges[j].start, 0, aoranges[j].size, 3);
+    Eigen::VectorBlock<Eigen::VectorXd> ao_block =
+        ao.segment(aoranges[j].start, aoranges[j].size);
+    significant_shells[j]->EvalAOspace(ao_block, grad_block, point);
+  }
+  return ao;
+}
+
+Eigen::VectorXd GridBox::CalcAOValues(const Eigen::Vector3d& pos) const {
+  Eigen::VectorXd ao = Eigen::VectorXd::Zero(Matrixsize());
+  for (Index j = 0; j < Shellsize(); ++j) {
+    Eigen::VectorBlock<Eigen::VectorXd> ao_block =
+        ao.segment(aoranges[j].start, aoranges[j].size);
+    significant_shells[j]->EvalAOspace(ao_block, pos);
+  }
+  return ao;
+}
+
 void GridBox::AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,
                              const Eigen::MatrixXd& smallmatrix) const {
   for (Index i = 0; i < Index(ranges.size()); i++) {
