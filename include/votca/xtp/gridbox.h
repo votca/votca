@@ -75,6 +75,8 @@ class GridBox {
 
   Eigen::MatrixXd ReadFromBigMatrix(const Eigen::MatrixXd& bigmatrix) const;
 
+  Eigen::VectorXd ReadFromBigVector(const Eigen::VectorXd& bigvector) const;
+
   void AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,
                       const Eigen::MatrixXd& smallmatrix) const;
 

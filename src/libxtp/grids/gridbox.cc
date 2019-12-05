@@ -89,6 +89,16 @@ Eigen::MatrixXd GridBox::ReadFromBigMatrix(
   return matrix;
 }
 
+Eigen::VectorXd GridBox::ReadFromBigVector(
+    const Eigen::VectorXd& bigvector) const {
+  Eigen::VectorXd vector = Eigen::VectorXd(matrix_size);
+  for (Index i = 0; i < Index(ranges.size()); i++) {
+    vector.segment(inv_ranges[i].start, inv_ranges[i].size) =
+        bigvector.segment(ranges[i].start, ranges[i].size);
+  }
+  return vector;
+}
+
 void GridBox::PrepareForIntegration() {
   Index index = 0;
   aoranges = std::vector<GridboxRange>(0);

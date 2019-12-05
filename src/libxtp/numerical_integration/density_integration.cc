@@ -19,6 +19,7 @@
 
 #include <votca/xtp/aopotential.h>
 #include <votca/xtp/density_integration.h>
+#include <votca/xtp/regular_grid.h>
 #include <votca/xtp/vxc_grid.h>
 
 namespace votca {
@@ -29,15 +30,13 @@ double DensityIntegration<Grid>::IntegratePotential(
     const Eigen::Vector3d& rvector) const {
 
   double result = 0.0;
-  assert(_densities.empty() && "Density not calculated");
+  assert(!_densities.empty() && "Density not calculated");
   for (Index i = 0; i < _grid.getBoxesSize(); i++) {
     const std::vector<Eigen::Vector3d>& points = _grid[i].getGridPoints();
-    const std::vector<double>& weights = _grid[i].getGridWeights();
     const std::vector<double>& densities = _densities[i];
     for (Index j = 0; j < _grid[i].size(); j++) {
-      double charge = -weights[j] * densities[j];
       double dist = (points[j] - rvector).norm();
-      result += charge / dist;
+      result -= densities[j] / dist;
     }
   }
   return result;
@@ -48,15 +47,13 @@ Eigen::Vector3d DensityIntegration<Grid>::IntegrateField(
     const Eigen::Vector3d& rvector) const {
 
   Eigen::Vector3d result = Eigen::Vector3d::Zero();
-  assert(_densities.empty() && "Density not calculated");
+  assert(!_densities.empty() && "Density not calculated");
   for (Index i = 0; i < _grid.getBoxesSize(); i++) {
     const std::vector<Eigen::Vector3d>& points = _grid[i].getGridPoints();
-    const std::vector<double>& weights = _grid[i].getGridWeights();
     const std::vector<double>& densities = _densities[i];
     for (Index j = 0; j < _grid[i].size(); j++) {
-      double charge = -weights[j] * densities[j];
       Eigen::Vector3d r = points[j] - rvector;
-      result += charge * r / std::pow(r.norm(), 3);  // x,y,z
+      result -= densities[j] * r / std::pow(r.norm(), 3);  // x,y,z
     }
   }
   return result;
@@ -88,9 +85,9 @@ double DensityIntegration<Grid>::IntegrateDensity(
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
       Eigen::VectorXd ao = box.CalcAOValues(points[p]);
-      double rho = (ao.transpose() * DMAT_here * ao)(0, 0);
+      double rho = (ao.transpose() * DMAT_here * ao)(0, 0) * weights[p];
       _densities[i][p] = rho;
-      N_box += rho * weights[p];
+      N_box += rho;
     }
     N_thread[OPENMP::getThreadId()] += N_box;
   }
@@ -122,11 +119,11 @@ Gyrationtensor DensityIntegration<Grid>::IntegrateGyrationTensor(
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
       Eigen::VectorXd ao = box.CalcAOValues(points[p]);
-      double rho = (ao.transpose() * DMAT_here * ao).value();
+      double rho = (ao.transpose() * DMAT_here * ao).value() * weights[p];
       _densities[i][p] = rho;
-      N_box += rho * weights[p];
-      centroid_box += rho * weights[p] * points[p];
-      gyration_box += rho * weights[p] * points[p] * points[p].transpose();
+      N_box += rho;
+      centroid_box += rho * points[p];
+      gyration_box += rho * points[p] * points[p].transpose();
     }
     N_thread[OPENMP::getThreadId()] += N_box;
     centroid_thread[OPENMP::getThreadId()] += centroid_box;
@@ -157,25 +154,24 @@ Eigen::MatrixXd DensityIntegration<Grid>::IntegratePotential(
   Eigen::MatrixXd Potential = Eigen::MatrixXd::Zero(
       externalbasis.AOBasisSize(), externalbasis.AOBasisSize());
 
-  assert(_densities.empty() && "Density not calculated");
+  assert(!_densities.empty() && "Density not calculated");
   for (Index i = 0; i < _grid.getBoxesSize(); i++) {
     const std::vector<Eigen::Vector3d>& points = _grid[i].getGridPoints();
-    const std::vector<double>& weights = _grid[i].getGridWeights();
     const std::vector<double>& densities = _densities[i];
     for (Index j = 0; j < _grid[i].size(); j++) {
-      double weighteddensity = weights[j] * densities[j];
-      if (weighteddensity < 1e-12) {
+      if (densities[j] < 1e-12) {
         continue;
       }
       AOMultipole esp;
       esp.FillPotential(externalbasis, points[j]);
-      Potential += weighteddensity * esp.Matrix();
+      Potential += densities[j] * esp.Matrix();
     }
   }
   return Potential;
 }
 
 template class DensityIntegration<Vxc_Grid>;
+template class DensityIntegration<Regular_Grid>;
 
 }  // namespace xtp
 }  // namespace votca

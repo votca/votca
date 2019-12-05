@@ -458,17 +458,19 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   BasisSet basisset;
   basisset.Load(_dftbasis_name);
   AOBasis dftbasis;
+  dftbasis.Fill(basisset, atom);
   Vxc_Grid grid;
   grid.GridSetup(_grid_name, atom, dftbasis);
   Vxc_Potential<Vxc_Grid> gridIntegration(grid);
-  dftbasis.Fill(basisset, atom);
+  gridIntegration.setXCfunctional(_xc_functional_name);
+
   ECPAOBasis ecp;
   if (with_ecp) {
     ECPBasisSet ecps;
     ecps.Load(_ecp_name);
     ecp.Fill(ecps, atom);
   }
-  gridIntegration.setXCfunctional(_xc_functional_name);
+
   Index numofelectrons = uniqueAtom.getNuccharge();
   Index alpha_e = 0;
   Index beta_e = 0;
@@ -938,7 +940,7 @@ Mat_p_Energy DFTEngine::IntegrateExternalDensity(
   Vxc_Grid grid;
   grid.GridSetup(_gridquality, extdensity.QMAtoms(), aobasis);
   DensityIntegration<Vxc_Grid> numint(grid);
-  Eigen::MatrixXd dmat = extdensity.DensityMatrixGroundState();
+  Eigen::MatrixXd dmat = extdensity.DensityMatrixFull(_state);
 
   numint.IntegrateDensity(dmat);
   XTP_LOG(Log::error, *_pLog)

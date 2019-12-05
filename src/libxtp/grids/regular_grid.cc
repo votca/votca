@@ -53,67 +53,37 @@ void Regular_Grid::GridSetup(const Eigen::Array<Index, 3, 1>& steps,
   Eigen::Array3d minpos = min - padding;
   Eigen::Array3d stepsizes = steps.cast<double>() / (max - min + 2 * padding);
 
-  const Index boxsize = 10;
+  const Index gridboxsize = 500;
 
-  Eigen::Array<Index, 3, 1> tempgridsize =
-      (steps.cast<double>() / boxsize).ceil().cast<Index>();
-
-  std::vector<std::vector<
-      std::vector<std::vector<GridContainers::Cartesian_gridpoint>>>>
-      tempgrid = std::vector<std::vector<
-          std::vector<std::vector<GridContainers::Cartesian_gridpoint>>>>(
-          tempgridsize.x());
-  for (Index i = 0; i < tempgridsize.x(); i++) {
-    tempgrid[i].resize(tempgridsize.y());
-    for (Index j = 0; j < tempgridsize.y(); j++) {
-      tempgrid[i][j].resize(tempgridsize.z());
-      for (Index k = 0; k < tempgridsize.z(); k++) {
-        tempgrid[i][j][k].reserve(std::pow(boxsize, 3));
-      }
-    }
-  }
-
+  GridBox gridbox;
   for (Index i = 0; i < steps.x(); i++) {
     double x = minpos.x() + double(i) * stepsizes.x();
-    Index box_index_x = i / tempgridsize.x();
     for (Index j = 0; j < steps.y(); j++) {
       double y = minpos.y() + double(j) * stepsizes.y();
-      Index box_index_y = j / tempgridsize.y();
       for (Index k = 0; k < steps.z(); k++) {
         double z = minpos.z() + double(k) * stepsizes.z();
-        Index box_index_z = k / tempgridsize.z();
         GridContainers::Cartesian_gridpoint point;
         point.grid_weight = 1.0;
         point.grid_pos = Eigen::Vector3d(x, y, z);
-        tempgrid[box_index_x][box_index_y][box_index_z].push_back(point);
+        gridbox.addGridPoint(point);
+        if (gridbox.size() == gridboxsize) {
+          _grid_boxes.push_back(gridbox);
+          gridbox = GridBox();
+        }
       }
     }
   }
-
-  for (auto& boxes_xy : tempgrid) {
-    for (auto& boxes_z : boxes_xy) {
-      for (auto& box : boxes_z) {
-        if (box.empty()) {
-          continue;
-        }
-        GridBox gridbox;
-        for (const auto& point : box) {
-          gridbox.addGridPoint(point);
-        }
-        _grid_boxes.push_back(gridbox);
-      }
-    }
-  }
+  _grid_boxes.push_back(gridbox);
 
 #pragma omp parallel for
   for (Index i = 0; i < getBoxesSize(); i++) {
     _grid_boxes[i].FindSignificantShells(basis);
+    _grid_boxes[i].PrepareForIntegration();
   }
 
   _totalgridsize = 0;
   for (auto& box : _grid_boxes) {
     _totalgridsize += box.size();
-    box.PrepareForIntegration();
   }
 }
 
