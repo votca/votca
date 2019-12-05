@@ -3,14 +3,14 @@
 #include <iostream>
 #include <vector>
 
-int main() {
+int main(int argc, char** argv) {
   Kokkos::initialize();
   {
 
     // testing system size
-    constexpr int cry_l = 16;
-    constexpr int N = cry_l * cry_l * cry_l;
-    constexpr double l = (double)cry_l / 2.0;
+    const int cry_l = (argc >= 2) ? atoi(argv[1]) : 16;
+    const int N = cry_l * cry_l * cry_l;
+    const double l = (double)cry_l / 2.0;
 
     // testing particle positions
     std::vector<double> xyz(3 * N);
@@ -23,15 +23,15 @@ int main() {
     std::vector<double> Q(9 * N);
 
     for (int i = 0; i < N; ++i) {
-      xyz.at(3 * i + 0) = (double)(i % cry_l) * 0.5;
-      xyz.at(3 * i + 1) = (double)((i % (cry_l * cry_l)) / cry_l) * 0.5;
-      xyz.at(3 * i + 2) = (double)(i / (cry_l * cry_l)) * 0.5;
+      int ix = i % cry_l;
+      int iy = (i % (cry_l * cry_l)) / cry_l;
+      int iz = i / (cry_l * cry_l);
 
-      q.at(i) = -1 + (double)(i % 2) * 2.0;
+      xyz.at(3 * i + 0) = (double)(ix)*0.5;
+      xyz.at(3 * i + 1) = (double)(iy)*0.5;
+      xyz.at(3 * i + 2) = (double)(iz)*0.5;
 
-      std::cout << i << ": " << xyz.at(3 * i + 0) << " " << xyz.at(3 * i + 1)
-                << " " << xyz.at(3 * i + 2) << " " << q.at(i) << " "
-                << std::endl;
+      q.at(i) = (double)((ix + iy + iz) % 2) ? 1.0 : -1.0;
     }
 
     for (auto i : d) i = 0.0;
@@ -40,7 +40,7 @@ int main() {
 
     double alpha = 1.02113246946;
     double r_max = 3.64;
-    double k_max = 7.59093986701;
+    double k_max = std::pow(7.59093986701, 2.0);
 
     // testing the initialization with different data types
     QDMEwald<double> qdme_d(alpha, k_max, r_max, l);

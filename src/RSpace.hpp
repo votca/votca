@@ -125,7 +125,10 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
   Kokkos::View<T * [3]> d("dipole moments", N);
   Kokkos::View<T * [9]> Q("quadrupole moments", N);
 
+  Kokkos::View<T*> pe("potential energy", N);
+
   Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    pe(n) = 0.0;
     q(n) = _q.at(n);
     for (int i = 0; i < 3; ++i) {
       xyz(n, i) = _xyz.at(3 * n + i);
@@ -162,6 +165,7 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
         dR[d] -= std::round(dR[d] / l) * l;
       }
       T dist2 = dR[0] * dR[0] + dR[1] * dR[1] + dR[2] * dR[2];
+      //      if (dist2 > r_max * r_max) continue;
       T inv_dist = 1.0 / std::sqrt(dist2);
 
       // eqn 69-71 in Smith Point Multipoles in Ewald Summation(Revisited)
@@ -233,12 +237,19 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
       GL[7] = DJR * QII - QJJ * DIR + 2 * (QIRDJ - QJRDI);
       GL[8] = 2 * QMIQMJ + QII * QJJ;
 
-      thread_Potential += Bn[0] * GL[0] + Bn[1] * (GL[1] + GL[6]) +
-                          Bn[2] * (GL[2] + GL[7] + GL[8]) +
-                          Bn[3] * (GL[3] + GL[5]) + Bn[4] * GL[4];
+      thread_Potential = Bn[0] * GL[0] + Bn[1] * (GL[1] + GL[6]) +
+                         Bn[2] * (GL[2] + GL[7] + GL[8]) +
+                         Bn[3] * (GL[3] + GL[5]) + Bn[4] * GL[4];
+
 #ifdef DEBUG_OUTPUT_ENABLED
       std::cout << "r-space DEBUG: " << i << " <> " << j << " " << pot_energy
-                << " + " << thread_Potential << " " << Bn[0] << " "
+                << " { " << xyz(i, 0) << ", " << xyz(i, 1) << ", " << xyz(i, 2)
+                << " } "
+                << " { " << xyz(j, 0) << ", " << xyz(j, 1) << ", " << xyz(j, 2)
+                << " } "
+                << " + " << thread_Potential << " " << dist2 << " "
+                << " " << (Bn[0] * GL[0]) << " "
+                << " " << Bn[0] << " "
                 << " " << Bn[1] << " "
                 << " " << Bn[2] << " "
                 << " " << Bn[3] << " "
@@ -255,6 +266,11 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
                 << " " << GL[6] << " "
                 << " " << GL[7] << " " << std::endl;
 #endif
+
+      Kokkos::atomic_add(&pe(i), 0.5 * thread_Potential);
+      Kokkos::atomic_add(&pe(j), 0.5 * thread_Potential);
+      Kokkos::atomic_add(&pot_energy, thread_Potential);
+
       thread_Virial += Bn[0] * GL[0] + Bn[1] * (2 * GL[1] + 3 * GL[6]) +
                        Bn[2] * (3 * GL[2] + 4 * GL[7] + 5 * GL[8]) +
                        Bn[3] * (4 * GL[3] + 5 * GL[5]) + Bn[4] * 5 * GL[4];
@@ -321,9 +337,24 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
       Kokkos::atomic_add(&tqe(i, k), torque_i[k]);
     }
 
-    Kokkos::atomic_add(&pot_energy, thread_Potential);
     Kokkos::atomic_add(&virial, thread_Virial);
   });
+
+  // self energy correction
+  T U_self = 0.0;
+  Kokkos::parallel_reduce(N,
+                          KOKKOS_LAMBDA(const int i, T& self_tmp) {
+                            T tmp = -q(i) * q(i) * alpha / std::sqrt(M_PI);
+                            pe(i) += tmp;
+                            self_tmp += tmp;
+                          },
+                          U_self);
+
+  pot_energy += U_self;
+
+  std::cout << "DEBUG: " << pe(0) << " " << pot_energy << std::endl;
+  std::cout << "DEBUG: " << pe(N / 2) << " " << pot_energy << std::endl;
+  std::cout << "DEBUG: " << pe(N - 1) << " " << pot_energy << std::endl;
 }
 
 /**

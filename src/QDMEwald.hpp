@@ -82,9 +82,9 @@ void QDMEwald<T>::compute(const std::vector<T>& xyz, const std::vector<T>& q,
   rspace.compute(xyz, q, d, Q);
 
   total_energy += kspace.get_energy();
-  std::cout << kspace.get_energy() << std::endl;
+  std::cout << "KSpace energy: " << kspace.get_energy() << std::endl;
   total_energy += rspace.get_energy();
-  std::cout << rspace.get_energy() << std::endl;
+  std::cout << "RSpace energy: " << rspace.get_energy() << std::endl;
 
   force = kspace.get_forces();
   torque = kspace.get_torque();
