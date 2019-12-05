@@ -33,6 +33,9 @@ std::vector<std::vector<double> >
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
     const Eigen::VectorXd amplitude_here = box.ReadFromBigVector(amplitude);
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();

@@ -76,6 +76,9 @@ double DensityIntegration<Grid>::IntegrateDensity(
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
     double N_box = 0.0;
     const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
@@ -108,6 +111,9 @@ Gyrationtensor DensityIntegration<Grid>::IntegrateGyrationTensor(
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
     double N_box = 0.0;
     Eigen::Vector3d centroid_box = Eigen::Vector3d::Zero();
     Eigen::Matrix3d gyration_box = Eigen::Matrix3d::Zero();

@@ -164,6 +164,9 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
     double EXC_box = 0.0;
     const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
     const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
