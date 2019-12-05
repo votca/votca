@@ -140,22 +140,25 @@ void GenCube::subtractCubes() {
   double xincr;
   double yincr;
   double zincr;
-  in1 >> _xsteps;
+  Index xsteps;
+  Index ysteps;
+  Index zsteps;
+  in1 >> xsteps;
   in1 >> xincr;
   in1 >> tempdouble;
   in1 >> tempdouble;
-  in1 >> _ysteps;
+  in1 >> ysteps;
   in1 >> tempdouble;
   in1 >> yincr;
   in1 >> tempdouble;
-  in1 >> _zsteps;
+  in1 >> zsteps;
   in1 >> tempdouble;
   in1 >> tempdouble;
   in1 >> zincr;
 
   // check second cube
   in2 >> tempint;
-  if (tempint != _xsteps) {
+  if (tempint != xsteps) {
     throw std::runtime_error("xsteps does not match");
   }
   in2 >> tempdouble;
@@ -165,7 +168,7 @@ void GenCube::subtractCubes() {
   in2 >> tempdouble;
   in2 >> tempdouble;
   in2 >> tempint;
-  if (tempint != _ysteps) {
+  if (tempint != ysteps) {
     throw std::runtime_error("ysteps does not match");
   }
   in2 >> tempdouble;
@@ -175,7 +178,7 @@ void GenCube::subtractCubes() {
   }
   in2 >> tempdouble;
   in2 >> tempint;
-  if (tempint != _zsteps) {
+  if (tempint != zsteps) {
     throw std::runtime_error("zsteps does not match");
   }
   in2 >> tempdouble;
@@ -185,9 +188,9 @@ void GenCube::subtractCubes() {
     throw std::runtime_error("zincr does not match");
   }
 
-  out << boost::format("%1$d %2$f 0.0 0.0 \n") % _xsteps % xincr;
-  out << boost::format("%1$d 0.0 %2$f 0.0 \n") % _ysteps % yincr;
-  out << boost::format("%1$d 0.0 0.0 %2$f \n") % _zsteps % zincr;
+  out << boost::format("%1$d %2$f 0.0 0.0 \n") % xsteps % xincr;
+  out << boost::format("%1$d 0.0 %2$f 0.0 \n") % ysteps % yincr;
+  out << boost::format("%1$d 0.0 0.0 %2$f \n") % zsteps % zincr;
 
   // atom information
 
@@ -250,14 +253,14 @@ void GenCube::subtractCubes() {
   // now read data
   double val1;
   double val2;
-  for (Index ix = 0; ix < _xsteps; ix++) {
-    for (Index iy = 0; iy < _ysteps; iy++) {
+  for (Index ix = 0; ix < xsteps; ix++) {
+    for (Index iy = 0; iy < ysteps; iy++) {
       Index Nrecord = 0;
-      for (Index iz = 0; iz < _zsteps; iz++) {
+      for (Index iz = 0; iz < zsteps; iz++) {
         Nrecord++;
         in1 >> val1;
         in2 >> val2;
-        if (Nrecord == 6 || iz == _zsteps - 1) {
+        if (Nrecord == 6 || iz == zsteps - 1) {
           out << boost::format("%1$E \n") % (val1 - val2);
           Nrecord = 0;
         } else {
