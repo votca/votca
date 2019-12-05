@@ -30,50 +30,35 @@ void Vxc_Grid::SortGridpointsintoBlocks(
         grid) {
   const double boxsize = 1;  // 1 bohr
 
-  Eigen::Vector3d min =
-      Eigen::Vector3d::Ones() * std::numeric_limits<double>::max();
-  Eigen::Vector3d max =
-      Eigen::Vector3d::Ones() * std::numeric_limits<double>::min();
+  Eigen::Array3d min =
+      Eigen::Array3d::Ones() * std::numeric_limits<double>::max();
+  Eigen::Array3d max =
+      Eigen::Array3d::Ones() * std::numeric_limits<double>::min();
 
   for (const auto& atom_grid : grid) {
     for (const auto& gridpoint : atom_grid) {
       const Eigen::Vector3d& pos = gridpoint.grid_pos;
-      if (pos[0] > max[0]) {
-        max[0] = pos[0];
-      } else if (pos[0] < min[0]) {
-        min[0] = pos[0];
-      }
-      if (pos[1] > max[1]) {
-        max[1] = pos[1];
-      } else if (pos[1] < min[1]) {
-        min[1] = pos[1];
-      }
-      if (pos[2] > max[2]) {
-        max[2] = pos[2];
-      } else if (pos[2] < min[2]) {
-        min[2] = pos[2];
-      }
+      max = max.max(pos.array()).eval();
+      min = min.min(pos.array()).eval();
     }
   }
 
-  Eigen::Vector3d molextension = max - min;
-  Eigen::Vector3d numberofboxes = molextension / boxsize;
-  Eigen::Vector3d roundednumofbox(std::ceil(numberofboxes[0]),
-                                  std::ceil(numberofboxes[1]),
-                                  std::ceil(numberofboxes[2]));
+  Eigen::Array3d molextension = max - min;
+  Eigen::Array<Index, 3, 1> numberofboxes =
+      (molextension / boxsize).ceil().cast<Index>();
 
   std::vector<std::vector<
       std::vector<std::vector<const GridContainers::Cartesian_gridpoint*> > > >
       boxes;
   // creating temparray
-  for (Index i = 0; i < Index(roundednumofbox[0]); i++) {
+  for (Index i = 0; i < numberofboxes.x(); i++) {
     std::vector<
         std::vector<std::vector<const GridContainers::Cartesian_gridpoint*> > >
         boxes_yz;
-    for (Index j = 0; j < Index(roundednumofbox[1]); j++) {
+    for (Index j = 0; j < numberofboxes.y(); j++) {
       std::vector<std::vector<const GridContainers::Cartesian_gridpoint*> >
           boxes_z;
-      for (Index k = 0; k < Index(roundednumofbox[2]); k++) {
+      for (Index k = 0; k < numberofboxes.z(); k++) {
         std::vector<const GridContainers::Cartesian_gridpoint*> box;
         box.reserve(100);
         boxes_z.push_back(box);
@@ -85,7 +70,7 @@ void Vxc_Grid::SortGridpointsintoBlocks(
 
   for (const auto& atomgrid : grid) {
     for (const auto& gridpoint : atomgrid) {
-      Eigen::Vector3d pos = gridpoint.grid_pos - min;
+      Eigen::Vector3d pos = gridpoint.grid_pos - min.matrix();
       Eigen::Vector3d index = pos / boxsize;
       Index i_x = Index(index[0]);
       Index i_y = Index(index[1]);
@@ -96,7 +81,7 @@ void Vxc_Grid::SortGridpointsintoBlocks(
   for (auto& boxes_xy : boxes) {
     for (auto& boxes_z : boxes_xy) {
       for (auto& box : boxes_z) {
-        if (box.size() < 1) {
+        if (box.empty()) {
           continue;
         }
         GridBox gridbox;
@@ -111,8 +96,10 @@ void Vxc_Grid::SortGridpointsintoBlocks(
 }
 
 void Vxc_Grid::FindSignificantShells(const AOBasis& basis) {
-  for (GridBox& box : _grid_boxes) {
-    box.FindSignificantShells(basis);
+
+#pragma omp parallel for
+  for (Index i = 0; i < getBoxesSize(); i++) {
+    _grid_boxes[i].FindSignificantShells(basis);
   }
 
   std::vector<GridBox> grid_boxes_copy;
@@ -138,11 +125,11 @@ void Vxc_Grid::FindSignificantShells(const AOBasis& basis) {
   }
 
   _totalgridsize = 0;
-  _grid_boxes = grid_boxes_copy;
-  for (auto& box : _grid_boxes) {
+  for (auto& box : grid_boxes_copy) {
     _totalgridsize += box.size();
     box.PrepareForIntegration();
   }
+  _grid_boxes = grid_boxes_copy;
 }
 
 std::vector<const Eigen::Vector3d*> Vxc_Grid::getGridpoints() const {
