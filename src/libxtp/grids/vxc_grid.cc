@@ -70,9 +70,9 @@ void Vxc_Grid::SortGridpointsintoBlocks(
 
   for (const auto& atomgrid : grid) {
     for (const auto& gridpoint : atomgrid) {
-      Eigen::Vector3d pos = gridpoint.grid_pos - min.matrix();
+      Eigen::Array3d pos = gridpoint.grid_pos - min.matrix();
       Eigen::Array<Index, 3, 1> index = (pos / boxsize).floor().cast<Index>();
-      boxes[index.x()[index.y()][index.z()].push_back(&gridpoint);
+      boxes[index.x()][index.y()][index.z()].push_back(&gridpoint);
     }
   }
   for (auto& boxes_xy : boxes) {
