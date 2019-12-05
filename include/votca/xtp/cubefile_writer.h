@@ -21,7 +21,9 @@
 #ifndef VOTCA_XTP_CUBEFILE_WRITER_H
 #define VOTCA_XTP_CUBEFILE_WRITER_H
 
+#include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/regular_grid.h>
 /**
  * \brief Writes an orbital file to a .cube file
  */
@@ -31,15 +33,20 @@ namespace xtp {
 class CubeFile_Writer {
 
  public:
-  CubeFile_Writer(Eigen::Array3i steps, double padding)
-      : _steps(steps), _padding(padding){};
+  CubeFile_Writer(Eigen::Array<Index, 3, 1> steps, double padding, Logger& log)
+      : _steps(steps), _padding(padding), _log(log){};
 
   void WriteFile(const std::string& filename, const Orbitals& orb,
-                 QMState state) const;
+                 QMState state, bool dostateonly) const;
 
  private:
-  Eigen::Array3i _steps;
+  std::vector<std::vector<double> > CalculateValues(
+      const Orbitals& orb, QMState state, bool dostateonly,
+      const Regular_Grid& grid) const;
+
+  Eigen::Array<Index, 3, 1> _steps;
   double _padding;
+  Logger& _log;
 };
 
 }  // namespace xtp

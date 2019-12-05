@@ -19,8 +19,6 @@
 
 #include <votca/xtp/aopotential.h>
 #include <votca/xtp/density_integration.h>
-#include <votca/xtp/regular_grid.h>
-#include <votca/xtp/vxc_grid.h>
 
 namespace votca {
 namespace xtp {

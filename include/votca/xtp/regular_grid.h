@@ -37,7 +37,6 @@ class Regular_Grid {
   void GridSetup(const Eigen::Array3d& stepsize, const Eigen::Array3d& padding,
                  const QMMolecule& atoms, const AOBasis& basis);
 
-  std::vector<const Eigen::Vector3d*> getGridpoints() const;
   Index getGridSize() const { return _totalgridsize; }
   Index getBoxesSize() const { return Index(_grid_boxes.size()); }
 
@@ -52,9 +51,19 @@ class Regular_Grid {
   }
   std::vector<GridBox>::const_iterator end() const { return _grid_boxes.end(); }
 
+  Eigen::Array3d getStepSizes() const { return _stepsizes; }
+
+  Eigen::Vector3d getStartingPoint() const { return _startingpoint; }
+
+  Eigen::Array<Index, 3, 1> getSteps() const { return _steps; }
+
  private:
   Index _totalgridsize;
   std::vector<GridBox> _grid_boxes;
+
+  Eigen::Array3d _stepsizes = Eigen::Array3d::Zero();
+  Eigen::Vector3d _startingpoint = Eigen::Vector3d::Zero();
+  Eigen::Array<Index, 3, 1> _steps = Eigen::Array<Index, 3, 1>::Zero();
 };
 
 }  // namespace xtp

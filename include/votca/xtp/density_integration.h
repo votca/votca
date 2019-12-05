@@ -23,6 +23,8 @@
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/eigen.h>
+#include <votca/xtp/regular_grid.h>
+#include <votca/xtp/vxc_grid.h>
 namespace votca {
 namespace xtp {
 
@@ -35,7 +37,7 @@ struct Gyrationtensor {
 template <class Grid>
 class DensityIntegration {
  public:
-  DensityIntegration(Grid grid) : _grid(grid){};
+  explicit DensityIntegration(const Grid& grid) : _grid(grid){};
 
   double IntegrateDensity(const Eigen::MatrixXd& density_matrix);
   double IntegratePotential(const Eigen::Vector3d& rvector) const;
@@ -43,6 +45,10 @@ class DensityIntegration {
   Eigen::MatrixXd IntegratePotential(const AOBasis& externalbasis) const;
 
   Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& density_matrix);
+
+  const std::vector<std::vector<double> >& getDensities() const {
+    return _densities;
+  }
 
  private:
   void SetupDensityContainer();

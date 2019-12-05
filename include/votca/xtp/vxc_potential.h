@@ -33,7 +33,7 @@ namespace xtp {
 template <class Grid>
 class Vxc_Potential {
  public:
-  Vxc_Potential(Grid grid) : _grid(grid){};
+  explicit Vxc_Potential(const Grid& grid) : _grid(grid){};
   ~Vxc_Potential();
 
   static double getExactExchange(const std::string& functional);

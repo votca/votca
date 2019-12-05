@@ -23,13 +23,14 @@
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/eigen.h>
+#include <votca/xtp/regular_grid.h>
 namespace votca {
 namespace xtp {
 
 template <class Grid>
 class AmplitudeIntegration {
  public:
-  AmplitudeIntegration(Grid grid) : _grid(grid){};
+  explicit AmplitudeIntegration(const Grid& grid) : _grid(grid){};
 
   std::vector<std::vector<double> > IntegrateAmplitude(
       const Eigen::VectorXd& amplitude);

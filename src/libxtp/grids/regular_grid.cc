@@ -50,18 +50,18 @@ void Regular_Grid::GridSetup(const Eigen::Array<Index, 3, 1>& steps,
       atoms.CalcSpatialMinMax();
   Eigen::Array3d min = extension.first.array();
   Eigen::Array3d max = extension.second.array();
-  Eigen::Array3d minpos = min - padding;
-  Eigen::Array3d stepsizes = steps.cast<double>() / (max - min + 2 * padding);
-
+  _startingpoint = min - padding;
+  _stepsizes = (max - min + 2 * padding) / (steps - 1).cast<double>();
+  _steps = steps;
   const Index gridboxsize = 500;
 
   GridBox gridbox;
   for (Index i = 0; i < steps.x(); i++) {
-    double x = minpos.x() + double(i) * stepsizes.x();
+    double x = _startingpoint.x() + double(i) * _stepsizes.x();
     for (Index j = 0; j < steps.y(); j++) {
-      double y = minpos.y() + double(j) * stepsizes.y();
+      double y = _startingpoint.y() + double(j) * _stepsizes.y();
       for (Index k = 0; k < steps.z(); k++) {
-        double z = minpos.z() + double(k) * stepsizes.z();
+        double z = _startingpoint.z() + double(k) * _stepsizes.z();
         GridContainers::Cartesian_gridpoint point;
         point.grid_weight = 1.0;
         point.grid_pos = Eigen::Vector3d(x, y, z);
@@ -73,8 +73,9 @@ void Regular_Grid::GridSetup(const Eigen::Array<Index, 3, 1>& steps,
       }
     }
   }
-  _grid_boxes.push_back(gridbox);
-
+  if (gridbox.size() > 0) {
+    _grid_boxes.push_back(gridbox);
+  }
 #pragma omp parallel for
   for (Index i = 0; i < getBoxesSize(); i++) {
     _grid_boxes[i].FindSignificantShells(basis);
