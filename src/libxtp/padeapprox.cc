@@ -88,15 +88,14 @@ std::complex<double> PadeApprox::RecursivePolynom(int indx, int degree) {
     std::complex<double> temp = RecursivePolynom(indx, degree - 1);
     std::complex<double> u = RecursivePolynom(degree-2, degree-1) - temp;
     std::complex<double> l = temp * (_grid.at(indx) - _grid.at(degree - 2));
-    
-    std::complex<double> result=u/l;
-    if(result!=result){
-    //     std::cout<<"NAN detected: l = "<<l<<std::endl;
-    //     std::cout<<"first gridpoint "<<_grid.at(indx)<<std::endl;
-    //     std::cout<<"second gridpoint "<<_grid.at(degree-2)<<std::endl;
-    //     std::cout<<"temp "<<temp<<std::endl;
+    if(norm(l)<1E-6){
+      std::cout<<"warning denominator small! l = "<<l<<" ,u = "<<u<<std::endl;
+      std::cout<<"result="<<u/l<<std::endl<<std::endl;
     }
-    else{_temp_container_g[indx][degree-1]=result;}
+    std::complex<double> result=u/l;
+    if(result==result){
+    _temp_container_g[indx][degree-1]=result;
+    }
     return result;
   }
 }
@@ -155,6 +154,11 @@ std::complex<double> PadeApprox::evaluatePoint(std::complex<double> frequency) {
     _temp_container_B.push_back(std::complex<double>(1,0));
     std::complex<double> B=RecursiveB(frequency, _grid.size());
     std::complex<double> A=RecursiveA(frequency, _grid.size());
+
+    if(norm(B)<1E-6){
+      std::cout<<"Warning B small : B = "<<B<<" A = "<<A<<std::endl;
+    }
+
     // if(abs(B)<1E-3){
     //   std::cout<<"Applying correction"<<std::endl;
     //   for(int i=0; i<_temp_container_A.size(); i++){

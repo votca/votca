@@ -72,7 +72,7 @@ Eigen::MatrixXcd ERIs::ContractRightIndecesWithMatrix(const Eigen::MatrixXcd& ma
   for (int i = 0; i < _threecenter.size(); i++) {
     const Symmetric_Matrix& threecenter = _threecenter[i];
     // Trace over prod::DMAT,I(l)=componentwise product over
-    const std::complex<double> factor = (threecenter.FullMatrix().cast<std::complex<double>>().cwiseProduct(mat)).sum();
+    const std::complex<double> factor = (threecenter.FullMatrix().cwiseProduct(mat)).sum();
     threecenter.AddtoEigenMatrix(ERIS_thread[OPENMP::getThreadId()], factor);
   }
 
@@ -125,6 +125,45 @@ Mat_p_Energy ERIs::CalculateEXX(const Eigen::MatrixXd& occMos,
   double energy = CalculateEnergy(DMAT, EXXs);
   return Mat_p_Energy(energy, EXXs);
 }
+
+Eigen::MatrixXcd ERIs::FourCenterTest(const Eigen::MatrixXcd& mat) const{
+
+  Eigen::MatrixXcd ERIs2 = Eigen::MatrixXcd::Zero(mat.rows(), mat.cols());
+  const Eigen::VectorXd& fourc_vector = _fourcenter.get_4c_vector();
+
+  Index dftBasisSize = mat.rows();
+  Index vectorSize = (dftBasisSize * (dftBasisSize + 1)) / 2;
+
+  for (Index i = 0; i  < dftBasisSize; i++) {
+    Index sum_i = (i*(i+1)) / 2;
+    for(Index j = i; j<dftBasisSize; j++){
+      Index index_ij = dftBasisSize * i - sum_i +j;
+      Index index_ij_kl_a = vectorSize * index_ij - (index_ij * (index_ij + 1)) /2;
+      for(Index k = 0; k < dftBasisSize; k++) {
+        Index sum_k = (k * (k + 1)) / 2;
+        for(Index l = k; l<dftBasisSize; l++){
+          Index index_kl = dftBasisSize * k - sum_k + l;
+          Index index_ij_kl = index_ij_kl_a + index_kl;
+          if(index_ij>index_kl){
+            index_ij_kl = vectorSize *index_kl - (index_kl * (index_kl + 1)) / 2 + index_ij;
+          }
+          // std::cout<<"size = "<<fourc_vector.size()<<std::endl;
+          // std::cout<<"index = " << index_ij_kl<<std::endl;
+          // std::cout<<"fourc_vector(index_ij_kl)="<<fourc_vector(index_ij_kl)<<std::endl;
+          if(l == k){
+            ERIs2(i,j)+= mat(k,l)*fourc_vector(index_ij_kl);
+          } else {
+            ERIs2(i,j) += (mat(k, l)+mat(l,k)) * fourc_vector(index_ij_kl);
+            
+          }
+        }
+      }
+      ERIs2(j,i)=ERIs2(i,j);
+    }
+  }
+  return ERIs2;
+}
+
 
 Mat_p_Energy ERIs::CalculateERIs_4c_small_molecule(
     const Eigen::MatrixXd& DMAT) const {

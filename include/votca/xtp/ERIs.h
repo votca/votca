@@ -44,6 +44,7 @@ class ERIs {
 
   Mat_p_Energy CalculateERIs(const Eigen::MatrixXd& DMAT) const;
   Eigen::MatrixXcd ContractRightIndecesWithMatrix(const Eigen::MatrixXcd& mat ) const;
+  Eigen::MatrixXcd FourCenterTest(const Eigen::MatrixXcd& mat) const;
   Mat_p_Energy CalculateEXX(const Eigen::MatrixXd& DMAT) const;
   Mat_p_Energy CalculateEXX(const Eigen::MatrixXd& occMos,
                             const Eigen::MatrixXd& DMAT) const;

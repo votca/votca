@@ -43,7 +43,7 @@ Multishift::MultiShiftResult Multishift::ComplexBiCG(const Eigen::MatrixXcd& A, 
 
   Eigen::VectorXcd x = Eigen::VectorXcd::Zero(_matrix_size);
  
-  double res = 1;
+  double res = 1.0;
   double tol = 1e-30;
  
   int i = 0;
@@ -56,7 +56,7 @@ Multishift::MultiShiftResult Multishift::ComplexBiCG(const Eigen::MatrixXcd& A, 
     x = x + result._step_length_a[i] * p;
     result._residue.push_back(result._residue[i] - result._step_length_a[i] * A * p);
     r_t = r_t - std::conj(result._step_length_a[i]) * A.adjoint() * p_t;
-    result._step_length_b.push_back(-1 * (A.adjoint() * p_t).dot(result._residue[i + 1]) / p_t.dot(A * p));
+    result._step_length_b.push_back(-(A.adjoint() * p_t).dot(result._residue[i + 1]) / p_t.dot(A * p));
     p = result._residue[i + 1] + result._step_length_b[i] * p;
     p_t = r_t + std::conj(result._step_length_b[i]) * p_t;
     res = result._residue[i].squaredNorm();
@@ -99,7 +99,7 @@ Eigen::VectorXcd Multishift::DoMultishift(const Eigen::MatrixXcd& A,
 
   std::complex<double> pi = 1;
   std::complex<double> stepsize;
-  std::complex<double> pi_p = (1 + w * input._step_length_a[0]) * 1;
+  std::complex<double> pi_p = (1.0 + w * input._step_length_a[0]);
 
   std::complex<double> pi_temp;
 
@@ -116,7 +116,7 @@ Eigen::VectorXcd Multishift::DoMultishift(const Eigen::MatrixXcd& A,
     direction_t = residue_t + std::conj(beta) * direction_t;
 
     pi_temp = pi_p;
-    pi_p = (1 + w * input._step_length_a[i+1]) * pi_p +
+    pi_p = (1.0 + w * input._step_length_a[i+1]) * pi_p +
            input._step_length_a[i+1] * input._step_length_b[i+1- 1] / input._step_length_a[i+1- 1] * (pi_p - pi);
     pi = pi_temp;
   }
