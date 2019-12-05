@@ -19,7 +19,6 @@
 
 #include <votca/xtp/amplitude_integration.h>
 #include <votca/xtp/aopotential.h>
-#include <votca/xtp/regular_grid.h>
 
 namespace votca {
 namespace xtp {

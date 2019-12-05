@@ -35,10 +35,10 @@ class GenCube : public QMTool {
 
   ~GenCube() override = default;
 
-  std::string Identify() override { return "gencube"; }
+  std::string Identify() final { return "gencube"; }
 
-  void Initialize(tools::Property& options) override;
-  bool Evaluate() override;
+  void Initialize(tools::Property& options) final;
+  bool Evaluate() final;
 
  private:
   Eigen::VectorXd EvaluateBasisAtPosition(const AOBasis& dftbasis,

@@ -140,12 +140,11 @@ void CubeFile_Writer::WriteFile(const std::string& filename,
     for (Index iy = 0; iy < steps.y(); iy++) {
       Index Nrecord = 0;
       for (Index iz = 0; iz < steps.z(); iz++) {
+        out << boost::format("%1$E ") % gridvalues(iz, iy, ix);
         Nrecord++;
         if (Nrecord == 6 || iz == (steps.z() - 1)) {
-          out << boost::format("%1$E \n") % gridvalues(iz, iy, ix);
+          out << "\n";
           Nrecord = 0;
-        } else {
-          out << boost::format("%1$E ") % gridvalues(iz, iy, ix);
         }
       }
     }

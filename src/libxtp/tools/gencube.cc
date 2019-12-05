@@ -24,6 +24,7 @@
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/cubefile_writer.h>
 #include <votca/xtp/orbitals.h>
 
 namespace votca {
@@ -34,18 +35,22 @@ using namespace std;
 void GenCube::Initialize(tools::Property& options) {
 
   string key = "options." + Identify();
-  _orbfile = options.get(key + ".input").as<string>();
-  _output_file = options.get(key + ".output").as<string>();
+  _orbfile =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".input");
+  _output_file =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".output");
 
   // padding
-  _padding = options.get(key + ".padding").as<double>();
+  _padding =
+      options.ifExistsReturnElseThrowRuntimeError<double>(key + ".padding");
 
   // steps
   _xsteps = options.get(key + ".xsteps").as<Index>();
   _ysteps = options.get(key + ".ysteps").as<Index>();
   _zsteps = options.get(key + ".zsteps").as<Index>();
 
-  std::string statestring = options.get(key + ".state").as<string>();
+  std::string statestring =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
   _state.FromString(statestring);
   _dostateonly =
       options.ifExistsReturnElseReturnDefault<bool>(key + ".diff2gs", false);
@@ -64,6 +69,11 @@ void GenCube::calculateCube() {
 
   Orbitals orbitals;
   orbitals.ReadFromCpt(_orbfile);
+
+  CubeFile_Writer writer(
+      (Eigen::Array<Index, 3, 1>(_xsteps, _ysteps, _zsteps) + 1).eval(),
+      _padding, _log);
+  writer.WriteFile("test_writer.cube", orbitals, _state, false);
 
   const QMMolecule& atoms = orbitals.QMAtoms();
 
