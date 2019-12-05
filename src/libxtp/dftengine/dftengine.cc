@@ -207,12 +207,12 @@ tools::EigenSystem DFTEngine::ModelPotentialGuess(
 
 bool DFTEngine::Evaluate(Orbitals& orb) {
   Prepare(orb.QMAtoms());
-  ConfigOrbfile(orb);
   Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
   tools::EigenSystem MOs;
   MOs.eigenvalues() = Eigen::VectorXd::Zero(H0.cols());
   MOs.eigenvectors() = Eigen::MatrixXd::Zero(H0.rows(), H0.cols());
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
+  ConfigOrbfile(orb);
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Nuclear Repulsion Energy is " << H0.energy() << flush;
 
