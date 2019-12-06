@@ -26,10 +26,10 @@ namespace csg {
 class TriclinicBox : public BoundaryCondition {
 
  public:
-  Eigen::Vector3d BCShortestConnection(
-      const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const override;
+  Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r_i,
+                                       const Eigen::Vector3d &r_j) const final;
 
-  eBoxtype getBoxType() override { return typeTriclinic; }
+  eBoxtype getBoxType() final { return typeTriclinic; }
 
  protected:
 };
