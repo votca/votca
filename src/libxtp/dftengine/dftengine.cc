@@ -288,11 +288,10 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
 
     PrintMOs(MOs.eigenvalues(), Log::info);
 
-    XTP_LOG(Log::error, *_pLog)
-        << "\t\tGAP "
-        << MOs.eigenvalues()(_numofelectrons / 2) -
-               MOs.eigenvalues()(_numofelectrons / 2 - 1)
-        << flush;
+    XTP_LOG(Log::info, *_pLog) << "\t\tGAP "
+                               << MOs.eigenvalues()(_numofelectrons / 2) -
+                                      MOs.eigenvalues()(_numofelectrons / 2 - 1)
+                               << flush;
 
     if (_conv_accelerator.isConverged()) {
       XTP_LOG(Log::error, *_pLog)
