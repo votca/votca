@@ -18,6 +18,7 @@
  */
 
 #include "Overlap_filter.h"
+#include <votca/xtp/aomatrix.h>
 namespace votca {
 namespace xtp {
 
@@ -37,13 +38,104 @@ void Overlap_filter::Info(Logger& log) const {
 
 Eigen::VectorXd Overlap_filter::CalculateOverlap(const Orbitals& orb,
                                                  QMStateType type) const {
-  Eigen::MatrixXd coeffs = CalcOrthoCoeffs(orb, type);
-  Eigen::VectorXd overlap = (coeffs * _laststatecoeff).cwiseAbs2();
-  return overlap;
+  AOOverlap S_ao;
+  S_ao.Fill(orb.SetupDftBasis());
+
+  Eigen::MatrixXd coeffs = CalcAOCoeffs(orb, type);
+  if (type.isSingleParticleState()) {
+    return (coeffs * S_ao.Matrix() * _laststatecoeff).cwiseAbs2();
+  } else {
+
+    Index basis = orb.getBasisSetSize();
+    Eigen::VectorXd overlap = Eigen::VectorXd::Zero(coeffs.cols());
+
+#pragma omp parallel for schedule(dynamic)
+    for (Index i = 0; i < coeffs.cols(); i++) {
+      {
+        Eigen::VectorXd state = coeffs.col(i).head(basis);
+        Eigen::Map<const Eigen::MatrixXd> mat(state.data(), basis, basis);
+        Eigen::VectorXd laststate = _laststatecoeff.head(basis);
+        Eigen::Map<const Eigen::MatrixXd> lastmat(laststate.data(), basis,
+                                                  basis);
+
+        overlap(i) = (mat * S_ao.Matrix() * lastmat.transpose())
+                         .cwiseProduct(S_ao.Matrix())
+                         .sum();
+      }
+      if (!orb.getTDAApprox()) {
+        Eigen::VectorXd state = coeffs.col(i).tail(basis);
+        Eigen::Map<const Eigen::MatrixXd> mat(state.data(), basis, basis);
+        Eigen::VectorXd laststate = _laststatecoeff.tail(basis);
+        Eigen::Map<const Eigen::MatrixXd> lastmat(laststate.data(), basis,
+                                                  basis);
+
+        overlap(i) -= (mat * S_ao.Matrix() * lastmat.transpose())
+                          .cwiseProduct(S_ao.Matrix())
+                          .sum();
+      }
+    }
+    return overlap;
+  }
 }
 
-Eigen::MatrixXd Overlap_filter::CalcOrthoCoeffs(const Orbitals& orb,
-                                                QMStateType type) const {
+Eigen::MatrixXd Overlap_filter::CalcExcitonAORepresentation(
+    const Orbitals& orb, QMStateType type) const {
+  Eigen::MatrixXd coeffs;
+  Index nostates = orb.NumberofStates(type);
+  Index bse_cmax = orb.getBSEcmax();
+  Index bse_cmin = orb.getBSEcmin();
+  Index bse_vmax = orb.getBSEvmax();
+  Index bse_vmin = orb.getBSEvmin();
+  Index bse_vtotal = bse_vmax - bse_vmin + 1;
+  Index bse_ctotal = bse_cmax - bse_cmin + 1;
+  Index basis = orb.getBasisSetSize();
+  Index bse_size_ao = basis * basis;
+  auto occlevels = orb.MOs().eigenvectors().block(
+      0, bse_vmin, orb.MOs().eigenvectors().rows(), bse_vtotal);
+  auto virtlevels = orb.MOs().eigenvectors().block(
+      0, bse_cmin, orb.MOs().eigenvectors().rows(), bse_ctotal);
+
+  if (orb.getTDAApprox()) {
+    coeffs.resize(bse_size_ao, nostates);
+  } else {
+    coeffs.resize(2 * bse_size_ao, nostates);
+  }
+#pragma omp parallel for schedule(dynamic)
+  for (Index i = 0; i < nostates; i++) {
+    {
+      Eigen::VectorXd exciton;
+      if (type == QMStateType::Singlet) {
+        exciton = orb.BSESinglets().eigenvectors().col(i);
+      } else {
+        exciton = orb.BSETriplets().eigenvectors().col(i);
+      }
+      Eigen::Map<const Eigen::MatrixXd> mat(exciton.data(), bse_ctotal,
+                                            bse_vtotal);
+      const Eigen::MatrixXd aomatrix =
+          occlevels * mat.transpose() * virtlevels.transpose();
+      coeffs.col(i).head(bse_size_ao) =
+          Eigen::Map<const Eigen::VectorXd>(aomatrix.data(), bse_size_ao);
+    }
+    if (!orb.getTDAApprox()) {
+      Eigen::VectorXd exciton;
+      if (type == QMStateType::Singlet) {
+        exciton = orb.BSESinglets().eigenvectors2().col(i);
+      } else {
+        exciton = orb.BSETriplets().eigenvectors2().col(i);
+      }
+      Eigen::Map<const Eigen::MatrixXd> mat(exciton.data(), bse_ctotal,
+                                            bse_vtotal);
+      const Eigen::MatrixXd aomatrix =
+          occlevels * mat.transpose() * virtlevels.transpose();
+      coeffs.col(i).tail(bse_size_ao) =
+          Eigen::Map<const Eigen::VectorXd>(aomatrix.data(), bse_size_ao);
+    }
+  }
+  return coeffs;
+}
+
+Eigen::MatrixXd Overlap_filter::CalcAOCoeffs(const Orbitals& orb,
+                                             QMStateType type) const {
   Eigen::MatrixXd coeffs;
   if (type.isSingleParticleState()) {
     if (type == QMStateType::DQPstate) {
@@ -52,20 +144,18 @@ Eigen::MatrixXd Overlap_filter::CalcOrthoCoeffs(const Orbitals& orb,
       coeffs = orb.MOs().eigenvectors();
     }
   } else {
-    throw std::runtime_error(
-        "Overlap for excitons is implemented within TDA. Use a different "
-        "filter");
+    coeffs = CalcExcitonAORepresentation(orb, type);
   }
   return coeffs;
 }
 
 void Overlap_filter::UpdateHist(const Orbitals& orb, QMState state) {
-  Eigen::MatrixXd ortho_coeffs = CalcOrthoCoeffs(orb, state.Type());
+  Eigen::MatrixXd aocoeffs = CalcAOCoeffs(orb, state.Type());
   Index offset = 0;
   if (state.Type() == QMStateType::DQPstate) {
     offset = orb.getGWAmin();
   }
-  _laststatecoeff = ortho_coeffs.col(state.StateIdx() - offset);
+  _laststatecoeff = aocoeffs.col(state.StateIdx() - offset);
 }
 
 std::vector<Index> Overlap_filter::CalcIndeces(const Orbitals& orb,

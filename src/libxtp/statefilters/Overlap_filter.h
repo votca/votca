@@ -52,7 +52,10 @@ class Overlap_filter : public StateFilter_base {
 
  private:
   Eigen::VectorXd CalculateOverlap(const Orbitals& orb, QMStateType type) const;
-  Eigen::MatrixXd CalcOrthoCoeffs(const Orbitals& orb, QMStateType type) const;
+  Eigen::MatrixXd CalcAOCoeffs(const Orbitals& orb, QMStateType type) const;
+
+  Eigen::MatrixXd CalcExcitonAORepresentation(const Orbitals& orb,
+                                              QMStateType type) const;
   double _threshold = 0.0;
 
   Eigen::VectorXd _laststatecoeff;
