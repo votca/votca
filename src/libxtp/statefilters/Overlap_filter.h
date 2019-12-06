@@ -39,17 +39,18 @@ class Overlap_filter : public StateFilter_base {
 
   void Info(Logger& log) const final;
 
-  void UpdateHist(const Orbitals& orb) final;
+  void UpdateHist(const Orbitals& orb, QMState state) final;
 
-  std::vector<Index> CalcIndeces(const Orbitals& orb) const final;
+  std::vector<Index> CalcIndeces(const Orbitals& orb,
+                                 QMStateType type) const final;
 
   void WriteToCpt(CheckpointWriter& w) final;
 
   void ReadFromCpt(CheckpointReader& r) final;
 
  private:
-  Eigen::VectorXd CalculateOverlap(const Orbitals& orbitals) const;
-  Eigen::MatrixXd CalcOrthoCoeffs(const Orbitals& orbitals) const;
+  Eigen::VectorXd CalculateOverlap(const Orbitals& orb, QMStateType type) const;
+  Eigen::MatrixXd CalcOrthoCoeffs(const Orbitals& orb, QMStateType type) const;
   double _threshold = 0.0;
 
   Eigen::VectorXd _laststatecoeff;

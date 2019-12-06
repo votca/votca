@@ -216,6 +216,17 @@ QMState StateTracker::CalcStateAndUpdate(const Orbitals& orbitals) {
   return result;
 }
 
+std::vector<Index> StateTracker::OscTracker(const Orbitals& orbitals) const {
+  Eigen::VectorXd oscs = orbitals.Oscillatorstrengths();
+  std::vector<Index> indexes;
+  for (Index i = 0; i < oscs.size(); i++) {
+    if (oscs[i] > _oscthreshold) {
+      indexes.push_back(i);
+    }
+  }
+  return indexes;
+}
+
 std::vector<Index> StateTracker::LocTracker(const Orbitals& orbitals) const {
   std::vector<Index> indexes;
   Lowdin low;
@@ -476,6 +487,8 @@ void StateTracker::WriteToCpt(CheckpointWriter& w) const {
   w(_laststatecoeff, "laststatecoeff");
 
   w(_use_localizationtracker, "localizationtracker");
+  CheckpointWriter ww = w.openChild("fragment_loc");
+  _fragment_loc.WriteToCpt(ww);
 
   w(_use_dQtracker, "dQtracker");
   CheckpointWriter ww2 = w.openChild("fragment_dQ");

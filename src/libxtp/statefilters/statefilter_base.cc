@@ -16,7 +16,43 @@
  * limitations under the License.
  *
  */
+#include "statefilter_base.h"
 
 namespace votca {
-namespace xtp {}
+namespace xtp {
+
+template <bool larger>
+std::vector<Index> StateFilter_base::ReduceAndSortIndeces(
+    const Eigen::VectorXd& overlap, Index offset, double threshold) const {
+  std::vector<Index> index = std::vector<Index>(overlap.size());
+  std::iota(index.begin(), index.end(), offset);
+  std::stable_sort(index.begin(), index.end(), [&overlap](Index i1, Index i2) {
+    if (larger) {
+      return overlap[i1] > overlap[i2];
+    } else {
+      return overlap[i1] < overlap[i2];
+    }
+  });
+  Index validelements;
+  if (larger) {
+    validelements = (overlap.array() > threshold).sum();
+  } else {
+    validelements = (overlap.array() < threshold).sum();
+  }
+
+  std::vector<Index> indexes(validelements);
+  std::copy_n(index.begin(), validelements, indexes.begin());
+  return indexes;
+}
+
+std::vector<Index> StateFilter_base::ReduceAndSortIndecesUp(
+    const Eigen::VectorXd& overlap, Index offset, double threshold) const {
+  return ReduceAndSortIndeces<true>(overlap, offset, threshold);
+}
+std::vector<Index> StateFilter_base::ReduceAndSortIndecesDown(
+    const Eigen::VectorXd& overlap, Index offset, double threshold) const {
+  return ReduceAndSortIndeces<false>(overlap, offset, threshold);
+}
+
+}  // namespace xtp
 }  // namespace votca

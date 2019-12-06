@@ -42,9 +42,10 @@ class OscillatorStrength_filter : public StateFilter_base {
 
   void Info(Logger& log) const final;
 
-  void UpdateHist(const Orbitals& orb) final;
+  void UpdateHist(const Orbitals& orb, QMState state) final;
 
-  std::vector<Index> CalcIndeces(const Orbitals& orb) const final;
+  std::vector<Index> CalcIndeces(const Orbitals& orb,
+                                 QMStateType type) const final;
 
   void WriteToCpt(CheckpointWriter& w) final;
 

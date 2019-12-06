@@ -46,13 +46,27 @@ class StateFilter_base {
 
   virtual void Info(Logger&) const = 0;
 
-  virtual void UpdateHist(const Orbitals&) = 0;
+  virtual void UpdateHist(const Orbitals&, QMState) = 0;
 
-  virtual std::vector<Index> CalcIndeces(const Orbitals&) const = 0;
+  virtual std::vector<Index> CalcIndeces(const Orbitals&,
+                                         QMStateType) const = 0;
 
   virtual void WriteToCpt(CheckpointWriter&) = 0;
 
   virtual void ReadFromCpt(CheckpointReader&) = 0;
+
+ protected:
+  std::vector<Index> ReduceAndSortIndecesUp(const Eigen::VectorXd& overlap,
+                                            Index offset,
+                                            double threshold) const;
+  std::vector<Index> ReduceAndSortIndecesDown(const Eigen::VectorXd& overlap,
+                                              Index offset,
+                                              double threshold) const;
+
+ private:
+  template <bool larger>
+  std::vector<Index> ReduceAndSortIndeces(const Eigen::VectorXd& overlap,
+                                          Index offset, double threshold) const;
 };
 
 }  // namespace xtp

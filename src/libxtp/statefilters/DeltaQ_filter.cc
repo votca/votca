@@ -18,10 +18,11 @@
  */
 
 #include "DeltaQ_filter.h"
+#include <votca/xtp/populationanalysis.h>
 namespace votca {
 namespace xtp {
 
-void OscillatorStrength_filter::Initialize(const tools::Property& options) {
+void DeltaQ_filter::Initialize(const tools::Property& options) {
   std::string indices =
       options.ifExistsReturnElseThrowRuntimeError<std::string>("fragment");
   _fragment = QMFragment<double>(0, indices);
@@ -29,30 +30,34 @@ void OscillatorStrength_filter::Initialize(const tools::Property& options) {
       options.ifExistsReturnElseThrowRuntimeError<double>("threshold");
 }
 
-void OscillatorStrength_filter::Info(Logger& log) const {
-  XTP_LOG(Log::error, *_log)
-      << "Using Delta Q tracker for fragment " << _fragment_dQ << std::flush;
+void DeltaQ_filter::Info(Logger& log) const {
+  XTP_LOG(Log::error, log) << "Using Delta Q tracker for fragment " << _fragment
+                           << std::flush;
 }
 
-void OscillatorStrength_filter::UpdateHist(const Orbitals&) { return; }
+void DeltaQ_filter::UpdateHist(const Orbitals&, QMState) { return; }
 
-std::vector<Index> OscillatorStrength_filter::CalcIndeces(
-    const Orbitals& orb) const {
-  Eigen::VectorXd oscs = orb.Oscillatorstrengths();
+std::vector<Index> DeltaQ_filter::CalcIndeces(const Orbitals& orb,
+                                              QMStateType type) const {
   std::vector<Index> indexes;
-  for (Index i = 0; i < oscs.size(); i++) {
-    if (oscs[i] > _threshold) {
+  Lowdin low;
+  QMFragment<BSE_Population> frag;
+  frag.copy_withoutvalue(_fragment);
+  std::vector<QMFragment<BSE_Population> > loc = {frag};
+  low.CalcChargeperFragment(loc, orb, type);
+  Eigen::VectorXd dq = (loc[0].value().H + loc[0].value().E).cwiseAbs();
+
+  for (Index i = 0; i < dq.size(); i++) {
+    if (dq[i] > _fragment.value()) {
       indexes.push_back(i);
     }
   }
   return indexes;
 }
 
-void OscillatorStrength_filter::WriteToCpt(CheckpointWriter& w) {
-  _fragment.WriteToCpt(w);
-}
+void DeltaQ_filter::WriteToCpt(CheckpointWriter& w) { _fragment.WriteToCpt(w); }
 
-void OscillatorStrength_filter::ReadFromCpt(CheckpointReader& r) {
+void DeltaQ_filter::ReadFromCpt(CheckpointReader& r) {
   _fragment.ReadFromCpt(r);
 }
 

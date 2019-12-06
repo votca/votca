@@ -18,24 +18,23 @@
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_LOCALISATION_FILTER_H
-#define __VOTCA_XTP_LOCALISATION_FILTER_H
+#ifndef __VOTCA_XTP_DENSITY_FILTER_H
+#define __VOTCA_XTP_DENSITY_FILTER_H
 
 #include "statefilter_base.h"
-#include <votca/xtp/qmfragment.h>
 
 namespace votca {
 namespace xtp {
 
 /**
-    \brief Localisation_filter
-    tracks states according to how localised they are in a specific region
-
+    \brief density_filter
+    tracks states according to the difference of their density matrix to an
+   earlier state
  */
 
-class Localisation_filter : public StateFilter_base {
+class Density_filter : public StateFilter_base {
  public:
-  std::string Identify() const final { return "Localisation"; }
+  std::string Identify() const final { return "Density"; }
 
   void Initialize(const tools::Property& options) final;
 
@@ -51,10 +50,14 @@ class Localisation_filter : public StateFilter_base {
   void ReadFromCpt(CheckpointReader& r) final;
 
  private:
-  QMFragment<double> _fragment;
+  Eigen::VectorXd CalculateOverlap(const Orbitals& orb, QMStateType type) const;
+  Eigen::MatrixXd CalcOrthoCoeffs(const Orbitals& orb, QMStateType type) const;
+  double _threshold = 0.0;
+
+  Eigen::MatrixXd _laststate_dmat;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_XTP_LOCALISATION_FILTER_H */
+#endif /* __VOTCA_XTP_OSCILLATORSTRENGTH_FILTER_H */

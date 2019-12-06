@@ -22,35 +22,34 @@ namespace votca {
 namespace xtp {
 
 void Overlap_filter::Initialize(const tools::Property& options) {
-  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>("overlap");
+  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>("threshold");
 }
 
 void Overlap_filter::Info(Logger& log) const {
   if (_threshold == 0.0) {
-    XTP_LOG(Log::error, *_log)
-        << "Using overlap filer with no threshold " << flush;
+    XTP_LOG(Log::error, log)
+        << "Using overlap filter with no threshold " << std::flush;
   } else {
-    XTP_LOG(Log::error, *_log)
-        << "Using overlap filer with threshold " << _threshold << flush;
+    XTP_LOG(Log::error, log)
+        << "Using overlap filter with threshold " << _threshold << std::flush;
   }
 }
 
-Eigen::VectorXd Overlap_filter::CalculateOverlap(
-    const Orbitals& orbitals) const {
-  Eigen::MatrixXd coeffs = CalcOrthoCoeffs(orbitals);
+Eigen::VectorXd Overlap_filter::CalculateOverlap(const Orbitals& orb,
+                                                 QMStateType type) const {
+  Eigen::MatrixXd coeffs = CalcOrthoCoeffs(orb, type);
   Eigen::VectorXd overlap = (coeffs * _laststatecoeff).cwiseAbs2();
   return overlap;
 }
 
-Eigen::MatrixXd Overlap_filter::CalcOrthoCoeffs(
-    const Orbitals& orbitals) const {
-  QMStateType type = _statehist[0].Type();
+Eigen::MatrixXd Overlap_filter::CalcOrthoCoeffs(const Orbitals& orb,
+                                                QMStateType type) const {
   Eigen::MatrixXd coeffs;
   if (type.isSingleParticleState()) {
     if (type == QMStateType::DQPstate) {
-      coeffs = orbitals.CalculateQParticleAORepresentation();
+      coeffs = orb.CalculateQParticleAORepresentation();
     } else {
-      coeffs = orbitals.MOs().eigenvectors();
+      coeffs = orb.MOs().eigenvectors();
     }
   } else {
     throw std::runtime_error(
@@ -60,49 +59,23 @@ Eigen::MatrixXd Overlap_filter::CalcOrthoCoeffs(
   return coeffs;
 }
 
-void Overlap_filter::UpdateHist(const Orbitals&) {
-  Eigen::MatrixXd ortho_coeffs = CalcOrthoCoeffs(orbitals);
+void Overlap_filter::UpdateHist(const Orbitals& orb, QMState state) {
+  Eigen::MatrixXd ortho_coeffs = CalcOrthoCoeffs(orb, state.Type());
   Index offset = 0;
-  if (_statehist[0].Type() == QMStateType::DQPstate) {
-    offset = orbitals.getGWAmin();
+  if (state.Type() == QMStateType::DQPstate) {
+    offset = orb.getGWAmin();
   }
-  _laststatecoeff = ortho_coeffs.col(_statehist.back().StateIdx() - offset);
+  _laststatecoeff = ortho_coeffs.col(state.StateIdx() - offset);
 }
 
-std::vector<Index> Overlap_filter::CalcIndeces(const Orbitals& orb) const {
-
-  std::vector<Index> indexes;
-  if (_statehist.size() <= 1) {
-    indexes = std::vector<Index>{_statehist[0].StateIdx()};
-    return indexes;
-  }
-
-  Eigen::VectorXd Overlap = CalculateOverlap(orbitals);
-  Index validelements = Index(Overlap.size());
-  for (Index i = 0; i < Index(Overlap.size()); i++) {
-    if (Overlap(i) < _threshold) {
-      validelements--;
-    }
-  }
-
-  std::vector<Index> index = std::vector<Index>(Overlap.size());
-  std::iota(index.begin(), index.end(), 0);
-  std::stable_sort(index.begin(), index.end(), [&Overlap](Index i1, Index i2) {
-    return Overlap[i1] > Overlap[i2];
-  });
-
+std::vector<Index> Overlap_filter::CalcIndeces(const Orbitals& orb,
+                                               QMStateType type) const {
   Index offset = 0;
-  if (_statehist[0].Type().isGWState()) {
-    offset = orbitals.getGWAmin();
+  if (type.isGWState()) {
+    offset = orb.getGWAmin();
   }
-
-  for (Index i : index) {
-    if (Index(indexes.size()) == validelements) {
-      break;
-    }
-    indexes.push_back(i + offset);
-  }
-  return indexes;
+  Eigen::VectorXd Overlap = CalculateOverlap(orb, type);
+  return ReduceAndSortIndecesUp(Overlap, offset, _threshold);
 }
 
 void Overlap_filter::WriteToCpt(CheckpointWriter& w) {

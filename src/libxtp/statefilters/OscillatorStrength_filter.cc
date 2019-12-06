@@ -32,10 +32,10 @@ void OscillatorStrength_filter::Info(Logger& log) const {
       << std::flush;
 }
 
-void OscillatorStrength_filter::UpdateHist(const Orbitals&) { return; }
+void OscillatorStrength_filter::UpdateHist(const Orbitals&, QMState) { return; }
 
-std::vector<Index> OscillatorStrength_filter::CalcIndeces(
-    const Orbitals& orb) const {
+std::vector<Index> OscillatorStrength_filter::CalcIndeces(const Orbitals& orb,
+                                                          QMStateType) const {
   Eigen::VectorXd oscs = orb.Oscillatorstrengths();
   std::vector<Index> indexes;
   for (Index i = 0; i < oscs.size(); i++) {
