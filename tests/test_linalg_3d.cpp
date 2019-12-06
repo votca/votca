@@ -204,4 +204,96 @@ BOOST_AUTO_TEST_CASE(dualbase_3d) {
   Kokkos::finalize();
 }
 
+BOOST_AUTO_TEST_CASE(add_to) {
+  Kokkos::initialize();
+  {
+    Kokkos::View<double[5]> a("a");
+    a(0) = 1.2;
+    a(1) = -0.4;
+    a(2) = 3.7;
+    a(3) = -2.8;
+    a(4) = 0.6;
+    Kokkos::View<double[5]> b("b");
+    b(0) = -1.2;
+    b(1) = 1.4;
+    b(2) = -4.7;
+    b(3) = 1.8;
+    b(4) = 1.0;
+    kokkos_linalg_3d::add_to(a, b);
+
+    BOOST_CHECK_CLOSE(a(0), 0.0, 1e-9);
+    BOOST_CHECK_CLOSE(a(1), 1.0, 1e-9);
+    BOOST_CHECK_CLOSE(a(2), -1.0, 1e-9);
+    BOOST_CHECK_CLOSE(a(3), -1.0, 1e-9);
+    BOOST_CHECK_CLOSE(a(4), 1.6, 1e-9);
+  }
+  Kokkos::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(subtract_from) {
+  Kokkos::initialize();
+  {
+    Kokkos::View<double[5]> a("a");
+    a(0) = 1.2;
+    a(1) = -0.4;
+    a(2) = 3.7;
+    a(3) = -2.8;
+    a(4) = 0.6;
+    Kokkos::View<double[5]> b("b");
+    b(0) = -1.2;
+    b(1) = 1.4;
+    b(2) = -4.7;
+    b(3) = 1.8;
+    b(4) = 1.0;
+    kokkos_linalg_3d::subtract_from(a, b);
+
+    BOOST_CHECK_CLOSE(a(0), 2.4, 1e-9);
+    BOOST_CHECK_CLOSE(a(1), -1.8, 1e-9);
+    BOOST_CHECK_CLOSE(a(2), 8.4, 1e-9);
+    BOOST_CHECK_CLOSE(a(3), -4.6, 1e-9);
+    BOOST_CHECK_CLOSE(a(4), -0.4, 1e-9);
+  }
+  Kokkos::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(add) {
+  Kokkos::initialize();
+  {
+    Kokkos::View<double[3]> a("a");
+    a(0) = 1.2;
+    a(1) = -0.4;
+    a(2) = 3.7;
+    Kokkos::View<double[3]> b("b");
+    b(0) = -1.2;
+    b(1) = 1.4;
+    b(2) = -4.7;
+    auto result = kokkos_linalg_3d::add(a, b);
+
+    BOOST_CHECK_CLOSE(result[0], 0.0, 1e-9);
+    BOOST_CHECK_CLOSE(result[1], 1.0, 1e-9);
+    BOOST_CHECK_CLOSE(result[2], -1.0, 1e-9);
+  }
+  Kokkos::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(subtract) {
+  Kokkos::initialize();
+  {
+    Kokkos::View<double[3]> a("a");
+    a(0) = 1.2;
+    a(1) = -0.4;
+    a(2) = 3.7;
+    Kokkos::View<double[3]> b("b");
+    b(0) = -1.2;
+    b(1) = 1.4;
+    b(2) = -4.7;
+    auto result = kokkos_linalg_3d::subtract(a, b);
+
+    BOOST_CHECK_CLOSE(result[0], 2.4, 1e-9);
+    BOOST_CHECK_CLOSE(result[1], -1.8, 1e-9);
+    BOOST_CHECK_CLOSE(result[2], 8.4, 1e-9);
+  }
+  Kokkos::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

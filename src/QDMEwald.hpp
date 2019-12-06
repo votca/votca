@@ -49,6 +49,30 @@ class QDMEwald {
 
   T get_energy();
 
+  /**
+   *
+   * Getter for the k-space contribution to energy
+   *
+   * @return std::vector<T> containing the forces
+   */
+  std::vector<T> get_forces();
+
+  /**
+   *
+   * Getter for the k-space contribution to energy
+   *
+   * @return std::vector<T> containing the torque
+   */
+  std::vector<T> get_torque();
+
+  /**
+   *
+   * Getter for the k-space contribution to energy
+   *
+   * @return std::vector<T> containing the sum over all forces
+   */
+  std::vector<T> get_total_force();
+
  private:
   KSpace<T> kspace;
   RSpace<T> rspace;
@@ -82,14 +106,14 @@ void QDMEwald<T>::compute(const std::vector<T>& xyz, const std::vector<T>& q,
   rspace.compute(xyz, q, d, Q);
 
   total_energy += kspace.get_energy();
-  std::cout << "KSpace energy: " << kspace.get_energy() << std::endl;
   total_energy += rspace.get_energy();
+#ifndef QDMEWALD_DEBUG_ENABLED
+  std::cout << "KSpace energy: " << kspace.get_energy() << std::endl;
   std::cout << "RSpace energy: " << rspace.get_energy() << std::endl;
+#endif
 
   force = kspace.get_forces();
   torque = kspace.get_torque();
-
-  std::vector<T> total_force(3, (T)0);
 
   std::vector<T> r_force = rspace.get_forces();
   std::vector<T> r_torque = rspace.get_torque();
@@ -97,22 +121,64 @@ void QDMEwald<T>::compute(const std::vector<T>& xyz, const std::vector<T>& q,
   for (int i = 0; i < force.size(); ++i) {
     force.at(i) += r_force.at(i);
     torque.at(i) += r_torque.at(i);
-    total_force.at(i % 3) += r_force.at(i);
   }
-
-  std::cout << "total forces: " << total_force.at(0) << " " << total_force.at(1)
-            << " " << total_force.at(2) << std::endl;
 }
 
 /**
  *
- * Getter for the k-space contribution to energy
+ * Getter for the total energy
  *
  * @return type T containing the energy
  */
 template <class T>
 T QDMEwald<T>::get_energy() {
   return total_energy;
+}
+
+/**
+ *
+ * Getter for the k-space contribution to energy
+ *
+ * @return std::vector<T> containing the forces
+ */
+template <class T>
+std::vector<T> QDMEwald<T>::get_forces() {
+  return force;
+}
+
+/**
+ *
+ * Getter for the k-space contribution to energy
+ *
+ * @return std::vector<T> containing the torque
+ */
+template <class T>
+std::vector<T> QDMEwald<T>::get_torque() {
+  return torque;
+}
+
+/**
+ *
+ * Getter for the k-space contribution to energy
+ *
+ * @return std::vector<T> containing the sum over all forces
+ */
+template <class T>
+std::vector<T> QDMEwald<T>::get_total_force() {
+  std::vector<T> total_force(3, (T)0);
+  for (int i = 0; i < force.size(); ++i) {
+#ifdef QDMEWALD_DEBUG_ENABLED
+    if (i % 3 == 0) std::cout << "idx " << i / 3 << ": ";
+    std::cout << force.at(i) << " ";
+#endif
+    total_force.at(i % 3) += force.at(i);
+#ifdef QDMEWALD_DEBUG_ENABLED
+    if (i % 3 == 2)
+      std::cout << " => " << total_force.at(0) << " " << total_force.at(1)
+                << " " << total_force.at(2) << std::endl;
+#endif
+  }
+  return total_force;
 }
 
 #endif

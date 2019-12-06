@@ -221,7 +221,7 @@ template <class T>
 void KSpace<T>::compute_ak() {
   T expf = 0.0;
 
-  if (alpha > (T)1e-12) {
+  if (alpha < (T)0.0) {
     expf = std::exp(gamma * rcl * rcl);
   }
 
@@ -279,7 +279,7 @@ void KSpace<T>::compute_exponentials(Kokkos::View<T * [3]> xyz) {
             cos_fac(n, k - 1 + offset, d) * cos_fac(n, 1 + offset, d) -
             sin_fac(n, k - 1 + offset, d) * sin_fac(n, 1 + offset, d);
         sin_fac(n, k + offset, d) =
-            sin_fac(n, k - 1 + offset, d) * cos_fac(n, 1 + offset, d) -
+            sin_fac(n, k - 1 + offset, d) * cos_fac(n, 1 + offset, d) +
             cos_fac(n, k - 1 + offset, d) * sin_fac(n, 1 + offset, d);
         cos_fac(n, -k + offset, d) = cos_fac(n, k + offset, d);
         sin_fac(n, -k + offset, d) = -sin_fac(n, k + offset, d);
@@ -320,7 +320,7 @@ void KSpace<T>::compute_vector_components(const int x, const int y, const int z,
   Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
     T cxy = cos_fac(n, x + offset, 1) * cos_fac(n, y + offset, 2) -
             sin_fac(n, x + offset, 1) * sin_fac(n, y + offset, 2);
-    T sxy = sin_fac(n, x + offset, 1) * cos_fac(n, y + offset, 2) -
+    T sxy = sin_fac(n, x + offset, 1) * cos_fac(n, y + offset, 2) +
             sin_fac(n, y + offset, 2) * cos_fac(n, x + offset, 1);
     // scalar product dipole moment and k-vector
     T dk = rx * d(n, 0) + ry * d(n, 1) + rz * d(n, 2);

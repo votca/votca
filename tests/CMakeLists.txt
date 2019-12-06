@@ -6,6 +6,7 @@ test_kspace
 test_rspace
 test_linalg_3d
 test_QDMEwald
+test_NaCl
 )
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cpp)

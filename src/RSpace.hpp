@@ -351,10 +351,14 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
                           U_self);
 
   pot_energy += U_self;
-
-  std::cout << "DEBUG: " << pe(0) << " " << pot_energy << std::endl;
-  std::cout << "DEBUG: " << pe(N / 2) << " " << pot_energy << std::endl;
-  std::cout << "DEBUG: " << pe(N - 1) << " " << pot_energy << std::endl;
+#ifdef QDMEWALD_DEBUG_ENABLED
+  std::cout << "DEBUG: r-space energy particle 0:   " << pe(0) << " "
+            << pot_energy << std::endl;
+  std::cout << "DEBUG: r-space energy particle N/2: " << pe(N / 2) << " "
+            << pot_energy << std::endl;
+  std::cout << "DEBUG: r-space energy particle N-1: " << pe(N - 1) << " "
+            << pot_energy << std::endl;
+#endif
 }
 
 /**
