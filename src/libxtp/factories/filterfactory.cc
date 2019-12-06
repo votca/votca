@@ -17,22 +17,23 @@
  *
  */
 
-#include <votca/xtp/jobcalculatorfactory.h>
-
-#include "jobcalculators/eqm.h"
-#include "jobcalculators/iexcitoncl.h"
-#include "jobcalculators/iqm.h"
-#include "jobcalculators/qmmm.h"
+#include "../statefilters/DeltaQ_filter.h"
+#include "../statefilters/Density_filter.h"
+#include "../statefilters/Localisation_filter.h"
+#include "../statefilters/OscillatorStrength_filter.h"
+#include "../statefilters/Overlap_filter.h"
+#include <votca/xtp/filterfactory.h>
 
 namespace votca {
 namespace xtp {
 
-void JobCalculatorfactory::RegisterAll(void) {
-  JobCalculators().Register<IQM>("iqm");
-  JobCalculators().Register<EQM>("eqm");
-  JobCalculators().Register<IEXCITON>("iexcitoncl");
-  JobCalculators().Register<QMMM>("qmmm");
+void FilterFactory::RegisterAll(void) {
+  Filter().Register<DeltaQ_filter>("chargeTransfer");
+  Filter().Register<Density_filter>("density");
+  Filter().Register<Localisation_filter>("localisation");
+  Filter().Register<OscillatorStrength_filter>("oscillatorstrength");
+  Filter().Register<Localisation_filter>("localisation");
+  Filter().Register<Overlap_filter>("overlap");
 }
-
 }  // namespace xtp
 }  // namespace votca

@@ -21,7 +21,7 @@
 #ifndef __VOTCA_XTP_OVERLAP_FILTER_H
 #define __VOTCA_XTP_OVERLAP_FILTER_H
 
-#include "statefilter_base.h"
+#include <votca/xtp/statefilter_base.h>
 
 namespace votca {
 namespace xtp {
@@ -33,13 +33,15 @@ namespace xtp {
 
 class Overlap_filter : public StateFilter_base {
  public:
-  std::string Identify() const final { return "Overlap"; }
+  std::string Identify() const final { return "overlap"; }
 
   void Initialize(const tools::Property& options) final;
 
   void Info(Logger& log) const final;
 
   void UpdateHist(const Orbitals& orb, QMState state) final;
+
+  bool NeedsInitialState() const final { return true; }
 
   std::vector<Index> CalcIndeces(const Orbitals& orb,
                                  QMStateType type) const final;

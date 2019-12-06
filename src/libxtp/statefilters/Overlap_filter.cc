@@ -22,7 +22,7 @@ namespace votca {
 namespace xtp {
 
 void Overlap_filter::Initialize(const tools::Property& options) {
-  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>("threshold");
+  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>(".");
 }
 
 void Overlap_filter::Info(Logger& log) const {

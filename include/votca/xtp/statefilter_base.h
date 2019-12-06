@@ -46,6 +46,8 @@ class StateFilter_base {
 
   virtual void Info(Logger&) const = 0;
 
+  virtual bool NeedsInitialState() const = 0;
+
   virtual void UpdateHist(const Orbitals&, QMState) = 0;
 
   virtual std::vector<Index> CalcIndeces(const Orbitals&,

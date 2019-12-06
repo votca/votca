@@ -22,8 +22,7 @@ namespace votca {
 namespace xtp {
 
 void OscillatorStrength_filter::Initialize(const tools::Property& options) {
-  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>(
-      "oscillator_strength");
+  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>(".");
 }
 
 void OscillatorStrength_filter::Info(Logger& log) const {
@@ -47,7 +46,6 @@ std::vector<Index> OscillatorStrength_filter::CalcIndeces(const Orbitals& orb,
 }
 
 void OscillatorStrength_filter::WriteToCpt(CheckpointWriter& w) {
-
   w(_threshold, "threshold");
 }
 

@@ -19,6 +19,7 @@
 
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/numerical_integrations.h"
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/polarregion.h>

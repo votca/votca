@@ -21,8 +21,8 @@
 #ifndef __VOTCA_XTP_DELTAQ_FILTER_H
 #define __VOTCA_XTP_DELTAQ_FILTER_H
 
-#include "statefilter_base.h"
 #include <votca/xtp/qmfragment.h>
+#include <votca/xtp/statefilter_base.h>
 
 namespace votca {
 namespace xtp {
@@ -35,11 +35,13 @@ namespace xtp {
 
 class DeltaQ_filter : public StateFilter_base {
  public:
-  std::string Identify() const final { return "ChargeTransfer"; }
+  std::string Identify() const final { return "chargetransfer"; }
 
   void Initialize(const tools::Property& options) final;
 
   void Info(Logger& log) const final;
+
+  bool NeedsInitialState() const final { return false; }
 
   void UpdateHist(const Orbitals& orb, QMState state) final;
 

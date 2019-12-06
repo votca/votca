@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-#include "statefilter_base.h"
-
+#include <votca/xtp/statefilter_base.h>
 namespace votca {
 namespace xtp {
 

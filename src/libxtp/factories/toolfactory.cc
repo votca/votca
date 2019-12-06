@@ -19,16 +19,16 @@
 
 #include <votca/xtp/toolfactory.h>
 
-#include "tools/coupling.h"
-#include "tools/densityanalysis.h"
-#include "tools/dftgwbse.h"
-#include "tools/excitoncoupling.h"
-#include "tools/gencube.h"
-#include "tools/log2mps.h"
-#include "tools/molpol.h"
-#include "tools/partialcharges.h"
-#include "tools/qmsandbox.h"
-#include "tools/spectrum.h"
+#include "../tools/coupling.h"
+#include "../tools/densityanalysis.h"
+#include "../tools/dftgwbse.h"
+#include "../tools/excitoncoupling.h"
+#include "../tools/gencube.h"
+#include "../tools/log2mps.h"
+#include "../tools/molpol.h"
+#include "../tools/partialcharges.h"
+#include "../tools/qmsandbox.h"
+#include "../tools/spectrum.h"
 
 namespace votca {
 namespace xtp {

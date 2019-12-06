@@ -21,8 +21,8 @@
 #ifndef __VOTCA_XTP_LOCALISATION_FILTER_H
 #define __VOTCA_XTP_LOCALISATION_FILTER_H
 
-#include "statefilter_base.h"
 #include <votca/xtp/qmfragment.h>
+#include <votca/xtp/statefilter_base.h>
 
 namespace votca {
 namespace xtp {
@@ -35,11 +35,13 @@ namespace xtp {
 
 class Localisation_filter : public StateFilter_base {
  public:
-  std::string Identify() const final { return "Localisation"; }
+  std::string Identify() const final { return "localisation"; }
 
   void Initialize(const tools::Property& options) final;
 
   void Info(Logger& log) const final;
+
+  bool NeedsInitialState() const final { return false; }
 
   void UpdateHist(const Orbitals& orb, QMState state) final;
 

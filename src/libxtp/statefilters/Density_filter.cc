@@ -22,7 +22,7 @@ namespace votca {
 namespace xtp {
 
 void Density_filter::Initialize(const tools::Property& options) {
-  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>("threshold");
+  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>(".");
 }
 
 void Density_filter::Info(Logger& log) const {
@@ -36,7 +36,7 @@ void Density_filter::Info(Logger& log) const {
 }
 
 void Density_filter::UpdateHist(const Orbitals& orb, QMState state) {
-  _laststatedmat = orb.DensityMatrixFull(state);
+  _laststate_dmat = orb.DensityMatrixFull(state);
 }
 
 Eigen::VectorXd Density_filter::CalculateDNorm(const Orbitals& orb,
@@ -55,7 +55,7 @@ std::vector<Index> Density_filter::CalcIndeces(const Orbitals& orb,
                                                QMStateType type) const {
   Eigen::VectorXd Overlap = CalculateDNorm(orb, type);
   Index offset = 0;
-  if (state.Type() == QMStateType::DQPstate) {
+  if (type == QMStateType::DQPstate) {
     offset = orb.getGWAmin();
   }
   return ReduceAndSortIndecesDown(Overlap, offset, _threshold);

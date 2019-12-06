@@ -200,8 +200,8 @@ BOOST_AUTO_TEST_CASE(osc) {
   {
     std::ofstream options("statetracker.xml");
     options << "<statetracker>" << std::endl;
-    options << "  <oscillator_strength>0.0019</oscillator_strength>"
-            << std::endl;
+    options << "  <filters>oscillatorstrength</filters>" << std::endl;
+    options << "  <oscillatorstrength>0.0019</oscillatorstrength>" << std::endl;
     options << "</statetracker>" << std::endl;
     options.close();
     votca::tools::Property prop;
@@ -219,6 +219,7 @@ BOOST_AUTO_TEST_CASE(osc) {
   {
     std::ofstream options("statetracker.xml");
     options << "<statetracker>" << std::endl;
+    options << "  <filters>localisation</filters>" << std::endl;
     options << "  <localisation>" << std::endl;
     options << "  <fragment>0 1</fragment>" << std::endl;
     options << "  <threshold>0.5</threshold>" << std::endl;
@@ -241,6 +242,7 @@ BOOST_AUTO_TEST_CASE(osc) {
 BOOST_AUTO_TEST_CASE(readwrite_hdf5) {
   std::ofstream options("statetracker.xml");
   options << "<statetracker>" << std::endl;
+  options << "  <filters>localisation</filters>" << std::endl;
   options << "  <localisation>" << std::endl;
   options << "  <fragment>0 1</fragment>" << std::endl;
   options << "  <threshold>0.1</threshold>" << std::endl;

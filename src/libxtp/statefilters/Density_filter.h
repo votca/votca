@@ -21,7 +21,7 @@
 #ifndef __VOTCA_XTP_DENSITY_FILTER_H
 #define __VOTCA_XTP_DENSITY_FILTER_H
 
-#include "statefilter_base.h"
+#include <votca/xtp/statefilter_base.h>
 
 namespace votca {
 namespace xtp {
@@ -34,13 +34,15 @@ namespace xtp {
 
 class Density_filter : public StateFilter_base {
  public:
-  std::string Identify() const final { return "Density"; }
+  std::string Identify() const final { return "density"; }
 
   void Initialize(const tools::Property& options) final;
 
   void Info(Logger& log) const final;
 
   void UpdateHist(const Orbitals& orb, QMState state) final;
+
+  bool NeedsInitialState() const final { return true; }
 
   std::vector<Index> CalcIndeces(const Orbitals& orb,
                                  QMStateType type) const final;
@@ -50,8 +52,7 @@ class Density_filter : public StateFilter_base {
   void ReadFromCpt(CheckpointReader& r) final;
 
  private:
-  Eigen::VectorXd CalculateOverlap(const Orbitals& orb, QMStateType type) const;
-  Eigen::MatrixXd CalcOrthoCoeffs(const Orbitals& orb, QMStateType type) const;
+  Eigen::VectorXd CalculateDNorm(const Orbitals& orb, QMStateType type) const;
   double _threshold = 0.0;
 
   Eigen::MatrixXd _laststate_dmat;
