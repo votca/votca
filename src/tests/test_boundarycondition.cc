@@ -18,15 +18,14 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE pdbreader_test
+#include "../../include/votca/csg/openbox.h"
+#include "../../include/votca/csg/orthorhombicbox.h"
+#include "../../include/votca/csg/triclinicbox.h"
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
-#include "../../include/votca/csg/openbox.h"
-#include "../../include/votca/csg/triclinicbox.h"
-#include "../../include/votca/csg/orthorhombicbox.h"
 
-#include <vector>
 #include <memory>
-#include <iostream>
+#include <vector>
 
 using namespace std;
 using namespace votca::csg;
@@ -34,92 +33,93 @@ using namespace votca::csg;
 BOOST_AUTO_TEST_SUITE(boundarycondition_test)
 
 BOOST_AUTO_TEST_CASE(test_boundarycondition_initiatialization) {
-    vector<unique_ptr<BoundaryCondition>> boundaries;
-    
-    boundaries.push_back(unique_ptr<OpenBox>(new OpenBox));   
-    boundaries.push_back(unique_ptr<TriclinicBox>(new TriclinicBox));   
-    boundaries.push_back(unique_ptr<OrthorhombicBox>(new OrthorhombicBox));   
+  vector<unique_ptr<BoundaryCondition>> boundaries;
 
-    BOOST_CHECK_EQUAL(boundaries.at(0)->getBoxType(),BoundaryCondition::eBoxtype::typeOpen);
-    BOOST_CHECK_EQUAL(boundaries.at(1)->getBoxType(),BoundaryCondition::eBoxtype::typeTriclinic);
-    BOOST_CHECK_EQUAL(boundaries.at(2)->getBoxType(),BoundaryCondition::eBoxtype::typeOrthorhombic);
+  boundaries.push_back(unique_ptr<OpenBox>(new OpenBox));
+  boundaries.push_back(unique_ptr<TriclinicBox>(new TriclinicBox));
+  boundaries.push_back(unique_ptr<OrthorhombicBox>(new OrthorhombicBox));
+
+  BOOST_CHECK_EQUAL(boundaries.at(0)->getBoxType(),
+                    BoundaryCondition::eBoxtype::typeOpen);
+  BOOST_CHECK_EQUAL(boundaries.at(1)->getBoxType(),
+                    BoundaryCondition::eBoxtype::typeTriclinic);
+  BOOST_CHECK_EQUAL(boundaries.at(2)->getBoxType(),
+                    BoundaryCondition::eBoxtype::typeOrthorhombic);
 }
 
 BOOST_AUTO_TEST_CASE(test_boundarycondition_boxvolume) {
-    vector<unique_ptr<BoundaryCondition>> boundaries;
-    
-    boundaries.push_back(unique_ptr<OpenBox>(new OpenBox));   
-    boundaries.push_back(unique_ptr<TriclinicBox>(new TriclinicBox));   
-    boundaries.push_back(unique_ptr<OrthorhombicBox>(new OrthorhombicBox));   
+  vector<unique_ptr<BoundaryCondition>> boundaries;
 
-    Eigen::Matrix3d box;
-    box << 0.0, 0.0, 0.0, 
-           0.0, 0.0, 0.0,
-           0.0, 0.0, 0.0;
+  boundaries.push_back(unique_ptr<OpenBox>(new OpenBox));
+  boundaries.push_back(unique_ptr<TriclinicBox>(new TriclinicBox));
+  boundaries.push_back(unique_ptr<OrthorhombicBox>(new OrthorhombicBox));
 
-    boundaries.at(0)->setBox(box);
-    boundaries.at(1)->setBox(box);
-    boundaries.at(2)->setBox(box);
+  Eigen::Matrix3d box;
+  box << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
 
-    BOOST_CHECK_EQUAL(boundaries.at(0)->BoxVolume(),0.0);
-    BOOST_CHECK_EQUAL(boundaries.at(1)->BoxVolume(),0.0);
-    BOOST_CHECK_EQUAL(boundaries.at(2)->BoxVolume(),0.0);
+  boundaries.at(0)->setBox(box);
+  boundaries.at(1)->setBox(box);
+  boundaries.at(2)->setBox(box);
 
-    box(0,0) = 1.0;
-    box(1,1) = 2.0;
-    box(2,2) = 1.0;
+  BOOST_CHECK_EQUAL(boundaries.at(0)->BoxVolume(), 0.0);
+  BOOST_CHECK_EQUAL(boundaries.at(1)->BoxVolume(), 0.0);
+  BOOST_CHECK_EQUAL(boundaries.at(2)->BoxVolume(), 0.0);
 
-    boundaries.at(0)->setBox(box);
-    boundaries.at(1)->setBox(box);
-    boundaries.at(2)->setBox(box);
-    
-    BOOST_CHECK_EQUAL(boundaries.at(0)->BoxVolume(),2.0);
-    BOOST_CHECK_EQUAL(boundaries.at(1)->BoxVolume(),2.0);
-    BOOST_CHECK_EQUAL(boundaries.at(2)->BoxVolume(),2.0);
+  box(0, 0) = 1.0;
+  box(1, 1) = 2.0;
+  box(2, 2) = 1.0;
+
+  boundaries.at(0)->setBox(box);
+  boundaries.at(1)->setBox(box);
+  boundaries.at(2)->setBox(box);
+
+  BOOST_CHECK_EQUAL(boundaries.at(0)->BoxVolume(), 2.0);
+  BOOST_CHECK_EQUAL(boundaries.at(1)->BoxVolume(), 2.0);
+  BOOST_CHECK_EQUAL(boundaries.at(2)->BoxVolume(), 2.0);
 }
 
 BOOST_AUTO_TEST_CASE(test_boundarycondition_clone) {
-    vector<unique_ptr<BoundaryCondition>> boundaries;
-    
-    boundaries.push_back(unique_ptr<OpenBox>(new OpenBox));   
-    boundaries.push_back(unique_ptr<TriclinicBox>(new TriclinicBox));   
-    boundaries.push_back(unique_ptr<OrthorhombicBox>(new OrthorhombicBox));   
+  vector<unique_ptr<BoundaryCondition>> boundaries;
 
-    Eigen::Matrix3d box;
-    box << 0.0, 0.0, 0.0, 
-           0.0, 0.0, 0.0,
-           0.0, 0.0, 0.0;
+  boundaries.push_back(unique_ptr<OpenBox>(new OpenBox));
+  boundaries.push_back(unique_ptr<TriclinicBox>(new TriclinicBox));
+  boundaries.push_back(unique_ptr<OrthorhombicBox>(new OrthorhombicBox));
 
-    boundaries.at(0)->setBox(box);
-    boundaries.at(1)->setBox(box);
-    boundaries.at(2)->setBox(box);
+  Eigen::Matrix3d box;
+  box << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
 
-    vector<unique_ptr<BoundaryCondition>> boundaries_copy;
+  boundaries.at(0)->setBox(box);
+  boundaries.at(1)->setBox(box);
+  boundaries.at(2)->setBox(box);
 
-    boundaries_copy.push_back(boundaries.at(0)->Clone());
-    boundaries_copy.push_back(boundaries.at(1)->Clone());
-    boundaries_copy.push_back(boundaries.at(2)->Clone());
+  vector<unique_ptr<BoundaryCondition>> boundaries_copy;
 
-    BOOST_CHECK_EQUAL(boundaries_copy.at(0)->getBoxType(),BoundaryCondition::eBoxtype::typeOpen);
-    BOOST_CHECK_EQUAL(boundaries_copy.at(1)->getBoxType(),BoundaryCondition::eBoxtype::typeTriclinic);
-    BOOST_CHECK_EQUAL(boundaries_copy.at(2)->getBoxType(),BoundaryCondition::eBoxtype::typeOrthorhombic);
+  boundaries_copy.push_back(boundaries.at(0)->Clone());
+  boundaries_copy.push_back(boundaries.at(1)->Clone());
+  boundaries_copy.push_back(boundaries.at(2)->Clone());
 
-    box(0,0) = 1.0;
-    box(1,1) = 2.0;
-    box(2,2) = 1.0;
+  BOOST_CHECK_EQUAL(boundaries_copy.at(0)->getBoxType(),
+                    BoundaryCondition::eBoxtype::typeOpen);
+  BOOST_CHECK_EQUAL(boundaries_copy.at(1)->getBoxType(),
+                    BoundaryCondition::eBoxtype::typeTriclinic);
+  BOOST_CHECK_EQUAL(boundaries_copy.at(2)->getBoxType(),
+                    BoundaryCondition::eBoxtype::typeOrthorhombic);
 
-    boundaries_copy.at(0)->setBox(box);
-    boundaries_copy.at(1)->setBox(box);
-    boundaries_copy.at(2)->setBox(box);
-    
-    BOOST_CHECK_EQUAL(boundaries_copy.at(0)->BoxVolume(),2.0);
-    BOOST_CHECK_EQUAL(boundaries_copy.at(1)->BoxVolume(),2.0);
-    BOOST_CHECK_EQUAL(boundaries_copy.at(2)->BoxVolume(),2.0);
+  box(0, 0) = 1.0;
+  box(1, 1) = 2.0;
+  box(2, 2) = 1.0;
 
-    /* Ensure that the original boundaries were not altered */
-    BOOST_CHECK_EQUAL(boundaries.at(0)->BoxVolume(),0.0);
-    BOOST_CHECK_EQUAL(boundaries.at(1)->BoxVolume(),0.0);
-    BOOST_CHECK_EQUAL(boundaries.at(2)->BoxVolume(),0.0);
+  boundaries_copy.at(0)->setBox(box);
+  boundaries_copy.at(1)->setBox(box);
+  boundaries_copy.at(2)->setBox(box);
 
+  BOOST_CHECK_EQUAL(boundaries_copy.at(0)->BoxVolume(), 2.0);
+  BOOST_CHECK_EQUAL(boundaries_copy.at(1)->BoxVolume(), 2.0);
+  BOOST_CHECK_EQUAL(boundaries_copy.at(2)->BoxVolume(), 2.0);
+
+  /* Ensure that the original boundaries were not altered */
+  BOOST_CHECK_EQUAL(boundaries.at(0)->BoxVolume(), 0.0);
+  BOOST_CHECK_EQUAL(boundaries.at(1)->BoxVolume(), 0.0);
+  BOOST_CHECK_EQUAL(boundaries.at(2)->BoxVolume(), 0.0);
 }
 BOOST_AUTO_TEST_SUITE_END()

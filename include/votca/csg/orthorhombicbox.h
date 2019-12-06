@@ -26,18 +26,15 @@ namespace csg {
 class OrthorhombicBox : public BoundaryCondition {
 
  public:
-  Eigen::Vector3d BCShortestConnection(
-      const Eigen::Vector3d &r_i,
-      const Eigen::Vector3d &r_j) const final;
+  Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r_i,
+                                       const Eigen::Vector3d &r_j) const final;
 
   virtual std::unique_ptr<BoundaryCondition> Clone() const final {
     return std::unique_ptr<BoundaryCondition>(new OrthorhombicBox(*this));
   }
 
-  eBoxtype getBoxType() const noexcept final {
-    return typeOrthorhombic;
-  }
- 
+  eBoxtype getBoxType() const noexcept final { return typeOrthorhombic; }
+
  protected:
 };
 
