@@ -1,5 +1,6 @@
 #include "QDMEwald.hpp"
 
+#include <iomanip>
 #include <iostream>
 #include <vector>
 
@@ -50,7 +51,16 @@ int main(int argc, char** argv) {
 
     qdme_d.compute(xyz, q, d, Q);
 
-    std::cout << qdme_d.get_energy() << std::endl;
+    double total_energy = qdme_d.get_energy();
+    auto total_forces = qdme_d.get_total_force();
+
+    std::cout << std::setprecision(12);
+    std::cout << "total energy: " << total_energy << std::endl;
+    std::cout << "expt. energy: " << N * -1.747564594633 << std::endl;
+    std::cout << "relative error: "
+              << total_energy / (N * -1.747564594633) - 1.0 << std::endl;
+    std::cout << "total forces: " << total_forces.at(0) << " "
+              << total_forces.at(1) << " " << total_forces.at(2) << std::endl;
   }
   Kokkos::finalize();
 }
