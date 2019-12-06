@@ -170,9 +170,6 @@ dist adjust dist_adjust.pl
 dist invert dist_boltzmann_invert.pl
 
 
-# tools needed for (atom/molecule) configuration handling
-configuration compare configuration_compare.py
-
 # error analysis
 tables jackknife tables_jackknife.pl
 
