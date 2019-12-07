@@ -107,10 +107,10 @@ int Application::Exec(int argc, char **argv) {
     ParseCommandLine(argc,
                      argv);  // initialize general parameters & read input file
 
+    Log::current_level = Log::error;
     if (_op_vm.count("verbose")) {
       Log::current_level = Log::warning;
     }
-
     if (_op_vm.count("verbose1")) {
       Log::current_level = Log::info;
     }
