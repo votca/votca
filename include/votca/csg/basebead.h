@@ -139,9 +139,9 @@ class BaseBead {
   }
 
  protected:
-  BaseBead() : topology_item_(nullptr), mass_(0.0), bead_position_set_(false){};
+  BaseBead(){};
 
-  TopologyItem topology_item_;
+  TopologyItem topology_item_ = nullptr;
 
   std::string type_ = tools::topology_constants::unassigned_bead_type;
   Index id_ = tools::topology_constants::unassigned_residue_id;
@@ -149,10 +149,10 @@ class BaseBead {
   std::string element_symbol_ = tools::topology_constants::unassigned_element;
   TOOLS::Name name_;
 
-  double mass_;
+  double mass_ = 0.0;
   Eigen::Vector3d bead_position_;
 
-  bool bead_position_set_;
+  bool bead_position_set_ = false;
 };
 
 inline void BaseBead::setPos(const Eigen::Vector3d &bead_position) {
