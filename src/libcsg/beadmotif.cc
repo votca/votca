@@ -65,7 +65,7 @@ void BeadMotif::CalculateType_() {
   type_up_to_date_ = true;
 }
 
-bool BeadMotif::isSingle_() {
+bool BeadMotif::isSingle_() const noexcept {
   if (BeadCount() == 1) {
     return true;
   }
