@@ -69,14 +69,14 @@ class BeadStructure {
   /**
    * \brief returns the number of beads in the bead structure
    **/
-  size_t BeadCount() { return beads_.size(); }
+  size_t BeadCount() const noexcept { return beads_.size(); }
 
   /**
    * \brief add a bead to the bead structure
    *
    * The same bead cannot be added twice.
    **/
-  void AddBead(T * bead);
+  void AddBead(T *bead);
 
   /**
    * \brief Get the bead with the specified id
