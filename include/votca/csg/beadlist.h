@@ -57,7 +57,7 @@ class BeadList {
   iterator begin() { return _beads.begin(); }
   iterator end() { return _beads.end(); }
 
-  Topology *getTopology() { return _topology; }
+  Topology *getTopology() const { return _topology; }
 
  private:
   std::vector<Bead *> _beads;
