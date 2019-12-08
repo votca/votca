@@ -143,7 +143,7 @@ class BeadMotif : public BeadStructure<BaseBead> {
    *
    * @param[in] basebead pointer
    **/
-  void AddBead(BaseBead *basebead);
+  void AddBead(BaseBead & basebead);
 
   /**
    * \brief Adds a new connection to the motif

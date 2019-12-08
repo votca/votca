@@ -76,7 +76,7 @@ class BeadStructure {
    *
    * The same bead cannot be added twice.
    **/
-  void AddBead(T *bead);
+  void AddBead(T * bead);
 
   /**
    * \brief Get the bead with the specified id
