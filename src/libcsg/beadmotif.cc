@@ -195,7 +195,7 @@ bool BeadMotif::isMotifSimple() {
   return true;
 }
 
-void BeadMotif::AddBead(BaseBead & bead) {
+void BeadMotif::AddBead(BaseBead& bead) {
   type_ = MotifType::undefined;
   BeadStructure<BaseBead>::AddBead(&bead);
   junctionsUpToDate_ = false;
