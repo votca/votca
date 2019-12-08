@@ -23,8 +23,6 @@
 #include "beadstructure.h"
 #include <votca/tools/reducedgraph.h>
 
-namespace TOOLS = votca::tools;
-
 namespace votca {
 namespace csg {
 
@@ -163,7 +161,7 @@ class BeadMotif : public BeadStructure<BaseBead> {
   bool type_up_to_date_ = false;
 
   std::vector<Index> junctions_;
-  TOOLS::ReducedGraph reduced_graph_;
+  tools::ReducedGraph reduced_graph_;
 
   void InitializeGraph_();
   bool junctionExist_();
