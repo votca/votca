@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/beadmotif.h>
+#include "../../include/votca/csg/beadmotif.h"
 
 namespace votca {
 namespace csg {
