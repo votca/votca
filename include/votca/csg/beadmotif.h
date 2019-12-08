@@ -143,7 +143,7 @@ class BeadMotif : public BeadStructure<BaseBead> {
    *
    * @param[in] basebead pointer
    **/
-  void AddBead(BaseBead & basebead);
+  void AddBead(BaseBead &basebead);
 
   /**
    * \brief Adds a new connection to the motif
@@ -166,7 +166,7 @@ class BeadMotif : public BeadStructure<BaseBead> {
   void InitializeGraph_();
   bool junctionExist_();
   void CalculateType_();
-  bool isSingle_();
+  bool isSingle_() const noexcept;
   bool isLine_();
   bool isLoop_();
   bool isFusedRing_();
