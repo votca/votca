@@ -19,8 +19,8 @@
 #ifndef VOTCA_CSG_BEADMOTIF_H
 #define VOTCA_CSG_BEADMOTIF_H
 
+#include "basebead.h"
 #include "beadstructure.h"
-#include <votca/csg/basebead.h>
 #include <votca/tools/reducedgraph.h>
 
 namespace TOOLS = votca::tools;
