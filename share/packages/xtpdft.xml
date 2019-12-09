@@ -16,7 +16,6 @@
 <ecp help="Pseudo potential to use, Delete if you do not want to use ecps">ecp</ecp>
 <auxbasisset help="auxiliary to use, Delete if you do not want to use RI approximation">aux-ubecppol</auxbasisset>  
 <integration_grid help="grid quality xcoarse,coarse,medium,fine,xfine">medium</integration_grid>
-<integration_grid_small help="use a smaller grid for start of calculation">0</integration_grid_small>
 <xc_functional help="functional name(s) according to LIBXC">XC_HYB_GGA_XC_PBEH</xc_functional>
 <max_iterations help="max iterations to use">200</max_iterations>
 <read_guess help="try to read guess from orbitals file">0</read_guess>
