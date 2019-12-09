@@ -45,14 +45,13 @@ class NBListGrid_3Body : public NBList_3Body {
   Index _box_Na, _box_Nb, _box_Nc;
 
   std::vector<cell_t> _grid;
-  Topology *_top;
 
   void InitializeGrid(const Eigen::Matrix3d &box);
 
   cell_t &getCell(const Eigen::Vector3d &r);
   cell_t &getCell(const Index &a, const Index &b, const Index &c);
 
-  void TestBead(cell_t &cell, Bead *bead);
+  void TestBead(const Topology & top, cell_t &cell, Bead *bead);
 };
 
 inline NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const Index &a,
