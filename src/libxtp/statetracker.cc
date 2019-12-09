@@ -63,11 +63,10 @@ void StateTracker::PrintInfo() const {
 std::vector<Index> StateTracker::ComparePairofVectors(
     std::vector<Index>& vec1, std::vector<Index>& vec2) const {
   std::vector<Index> result(std::min(vec1, vec2));
-  std::vector<Index>::iterator it;
   std::sort(vec1.begin(), vec1.end());
   std::sort(vec2.begin(), vec2.end());
-  it = std::set_intersection(vec1.begin(), vec1.end(), vec2.begin(), vec2.end(),
-                             result.begin());
+  std::vector<Index>::iterator it = std::set_intersection(
+      vec1.begin(), vec1.end(), vec2.begin(), vec2.end(), result.begin());
   result.resize(it - result.begin());
   return result;
 }
@@ -96,7 +95,8 @@ QMState StateTracker::CalcState(const Orbitals& orbitals) const {
     if (_statehist.size() < 2 && filter->NeedsInitialState()) {
       XTP_LOG(Log::error, *_log)
           << "Filter " << filter->Identify()
-          << " not used in first iteration as it needs reference" << flush;
+          << " not used in first iteration as it needs a reference state"
+          << flush;
       continue;
     }
     results.push_back(filter->CalcIndeces(orbitals, _statehist[0].Type()));

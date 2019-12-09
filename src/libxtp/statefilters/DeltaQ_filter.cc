@@ -39,14 +39,18 @@ void DeltaQ_filter::UpdateHist(const Orbitals&, QMState) { return; }
 
 std::vector<Index> DeltaQ_filter::CalcIndeces(const Orbitals& orb,
                                               QMStateType type) const {
+
+  if (!type.isExciton()) {
+    throw std::runtime_error("ChargeTransfer filter only works for excitons.");
+  }
   std::vector<Index> indexes;
   Lowdin low;
   QMFragment<BSE_Population> frag;
+
   frag.copy_withoutvalue(_fragment);
   std::vector<QMFragment<BSE_Population> > loc = {frag};
   low.CalcChargeperFragment(loc, orb, type);
   Eigen::VectorXd dq = (loc[0].value().H + loc[0].value().E).cwiseAbs();
-
   for (Index i = 0; i < dq.size(); i++) {
     if (dq[i] > _fragment.value()) {
       indexes.push_back(i);

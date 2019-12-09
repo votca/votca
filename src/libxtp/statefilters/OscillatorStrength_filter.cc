@@ -33,8 +33,13 @@ void OscillatorStrength_filter::Info(Logger& log) const {
 
 void OscillatorStrength_filter::UpdateHist(const Orbitals&, QMState) { return; }
 
-std::vector<Index> OscillatorStrength_filter::CalcIndeces(const Orbitals& orb,
-                                                          QMStateType) const {
+std::vector<Index> OscillatorStrength_filter::CalcIndeces(
+    const Orbitals& orb, QMStateType type) const {
+
+  if (type != QMStateType::Singlet) {
+    throw std::runtime_error(
+        "OscillatorStrength filter only works for singlets.");
+  }
   Eigen::VectorXd oscs = orb.Oscillatorstrengths();
   std::vector<Index> indexes;
   for (Index i = 0; i < oscs.size(); i++) {

@@ -39,6 +39,10 @@ void Localisation_filter::UpdateHist(const Orbitals&, QMState) { return; }
 
 std::vector<Index> Localisation_filter::CalcIndeces(const Orbitals& orb,
                                                     QMStateType type) const {
+
+  if (!type.isExciton()) {
+    throw std::runtime_error("Localisation filter only works for excitons.");
+  }
   std::vector<Index> indexes;
   Lowdin low;
   QMFragment<BSE_Population> frag;
