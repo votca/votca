@@ -57,11 +57,11 @@ class BeadList {
   iterator begin() { return _beads.begin(); }
   iterator end() { return _beads.end(); }
 
-  const Topology & getTopology() const { return _topology; }
+  const Topology & getTopology() const { return *_topology; }
 
  private:
   std::vector<Bead *> _beads;
-  Topology *_topology;
+  Topology *_topology = nullptr;
 };
 
 }  // namespace csg
