@@ -38,12 +38,12 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
   }
 
   // check if all bead lists "have" the same topology
-  assert(list1.getTopology() == list2.getTopology());
-  assert(list1.getTopology() == list3.getTopology());
-  assert(list2.getTopology() == list3.getTopology());
-  Topology *top = _top = list1.getTopology();
+  assert(&(list1.getTopology()) == &(list2.getTopology()));
+  assert(&(list1.getTopology()) == &(list3.getTopology()));
+  assert(&(list2.getTopology()) == &(list3.getTopology()));
+  const Topology & top = list1.getTopology();
 
-  InitializeGrid(top->getBox());
+  InitializeGrid(top.getBox());
 
   // Add all beads of list1 to _beads1
   for (auto &iter : list1) {
@@ -63,7 +63,7 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
   // loop over beads of list 1 again to get the correlations
   for (auto &iter : list1) {
     cell_t &cell = getCell(iter->getPos());
-    TestBead(cell, iter);
+    TestBead(top, cell, iter);
   }
 }
 
@@ -79,9 +79,9 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
 
   // check if both bead lists "have" the same topology
   assert(list1.getTopology() == list2.getTopology());
-  Topology *top = _top = list1.getTopology();
+  const Topology & top = list1.getTopology();
 
-  InitializeGrid(top->getBox());
+  InitializeGrid(top.getBox());
 
   // Add all beads of list1 to _beads1
   for (auto &bead : list1) {
@@ -101,7 +101,7 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
   // loop over beads of list 1 again to get the correlations
   for (auto &bead : list1) {
     cell_t &cell = getCell(bead->getPos());
-    TestBead(cell, bead);
+    TestBead(top, cell, bead);
   }
 }
 
@@ -111,9 +111,9 @@ void NBListGrid_3Body::Generate(BeadList &list, bool do_exclusions) {
     return;
   }
 
-  Topology *top = _top = list.getTopology();
+  const Topology & top = list.getTopology();
 
-  InitializeGrid(top->getBox());
+  InitializeGrid(top.getBox());
 
   // Add all beads of list to all! bead lists of the cell
   for (auto &iter : list) {
@@ -129,7 +129,7 @@ void NBListGrid_3Body::Generate(BeadList &list, bool do_exclusions) {
   // here)
   for (auto &bead : list) {
     cell_t &cell = getCell(bead->getPos());
-    TestBead(cell, bead);
+    TestBead(top, cell, bead);
   }
 }
 
@@ -231,7 +231,7 @@ NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const Eigen::Vector3d &r) {
   return getCell(a, b, c);
 }
 
-void NBListGrid_3Body::TestBead(NBListGrid_3Body::cell_t &cell, Bead *bead) {
+void NBListGrid_3Body::TestBead(const Topology & top, NBListGrid_3Body::cell_t &cell, Bead *bead) {
   BeadList::iterator iter2;
   BeadList::iterator iter3;
   Eigen::Vector3d u = bead->getPos();
@@ -264,9 +264,9 @@ void NBListGrid_3Body::TestBead(NBListGrid_3Body::cell_t &cell, Bead *bead) {
           Eigen::Vector3d v = (*iter2)->getPos();
           Eigen::Vector3d z = (*iter3)->getPos();
 
-          Eigen::Vector3d r12 = _top->BCShortestConnection(u, v);
-          Eigen::Vector3d r13 = _top->BCShortestConnection(u, z);
-          Eigen::Vector3d r23 = _top->BCShortestConnection(v, z);
+          Eigen::Vector3d r12 = top.BCShortestConnection(u, v);
+          Eigen::Vector3d r13 = top.BCShortestConnection(u, z);
+          Eigen::Vector3d r23 = top.BCShortestConnection(v, z);
           double d12 = r12.norm();
           double d13 = r13.norm();
           double d23 = r23.norm();
@@ -278,9 +278,9 @@ void NBListGrid_3Body::TestBead(NBListGrid_3Body::cell_t &cell, Bead *bead) {
             /// experimental: at the moment exclude interaction as soon as
             /// one of the three pairs (1,2) (1,3) (2,3) is excluded!
             if (_do_exclusions) {
-              if ((_top->getExclusions().IsExcluded(bead, *iter2)) ||
-                  (_top->getExclusions().IsExcluded(bead, *iter3)) ||
-                  (_top->getExclusions().IsExcluded(*iter2, *iter3))) {
+              if ((top.getExclusions().IsExcluded(bead, *iter2)) ||
+                  (top.getExclusions().IsExcluded(bead, *iter3)) ||
+                  (top.getExclusions().IsExcluded(*iter2, *iter3))) {
                 continue;
               }
             }
