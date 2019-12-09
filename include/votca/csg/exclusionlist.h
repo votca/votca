@@ -58,7 +58,7 @@ class ExclusionList {
   iterator begin() { return _exclusions.begin(); }
   iterator end() { return _exclusions.end(); }
 
-  bool IsExcluded(Bead *bead1, Bead *bead2);
+  bool IsExcluded(Bead *bead1, Bead *bead2) const;
 
   template <typename iteratable>
   void InsertExclusion(Bead *bead, iteratable &excluded);

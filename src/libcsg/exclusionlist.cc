@@ -47,7 +47,7 @@ void ExclusionList::CreateExclusions(Topology *top) {
   }
 }
 
-bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) {
+bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) const {
   exclusion_t *excl;
   if (bead1->getMolecule() != bead2->getMolecule()) {
     return false;
