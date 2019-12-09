@@ -21,7 +21,6 @@
 #include <votca/xtp/dftcoupling.h>
 
 #include <boost/format.hpp>
-#include <boost/progress.hpp>
 #include <votca/tools/constants.h>
 
 namespace votca {
