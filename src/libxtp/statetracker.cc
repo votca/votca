@@ -102,6 +102,13 @@ QMState StateTracker::CalcState(const Orbitals& orbitals) const {
     results.push_back(filter->CalcIndeces(orbitals, _statehist[0].Type()));
   }
 
+  for (auto i : results) {
+    std::cout << std::endl;
+    for (auto j : i) {
+      std::cout << j << " ";
+    }
+    std::cout << std::endl;
+  }
   std::vector<Index> result = CollapseResults(results);
   QMState state;
   if (result.size() < 1) {
