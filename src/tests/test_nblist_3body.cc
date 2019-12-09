@@ -64,7 +64,6 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
                      charge);
   b->setPos(pos);
   mol->AddBead(b, bead_type_name);
-  b->setMolecule(mol);
 
   name = "dummy2";
   resnr = 0;
@@ -73,7 +72,6 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
   b = top.CreateBead(Bead::spherical, name, bead_type_name, resnr, mass,
                      charge);
   mol->AddBead(b, bead_type_name);
-  b->setMolecule(mol);
   pos = Eigen::Vector3d::UnitX();
   b->setPos(pos);
 
@@ -84,7 +82,6 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
   b = top.CreateBead(Bead::spherical, name, bead_type_name, resnr, mass,
                      charge);
   mol->AddBead(b, bead_type_name);
-  b->setMolecule(mol);
   pos[0] = 1.0;
   pos[1] = 1.0;
   pos[2] = 0.0;

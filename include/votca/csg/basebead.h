@@ -14,16 +14,15 @@
  * limitations under the License.
  *
  */
-
-#ifndef _VOTCA_CSG_BASEBEAD_H
-#define _VOTCA_CSG_BASEBEAD_H
+#pragma once
+#ifndef VOTCA_CSG_BASEBEAD_H
+#define VOTCA_CSG_BASEBEAD_H
 
 #include <assert.h>
 #include <memory>
-#include <votca/csg/moleculeitem.h>
 #include <votca/csg/topologyitem.h>
+#include <votca/tools/constants.h>
 #include <votca/tools/eigen.h>
-#include <votca/tools/identity.h>
 #include <votca/tools/name.h>
 #include <votca/tools/types.h>
 namespace TOOLS = votca::tools;
@@ -47,10 +46,10 @@ class BaseBead {
   virtual ~BaseBead() = default;
 
   /// Gets the id of the bead
-  Index getId() const { return id_.getId(); }
+  Index getId() const noexcept { return id_; }
 
   /// Sets the id of the bead
-  void setId(Index id) { id_.setId(id); }
+  void setId(const Index &id) noexcept { id_ = id; }
 
   /// Gets the name of the bead
   std::string getName() const { return name_.getName(); }
@@ -58,11 +57,22 @@ class BaseBead {
   /// Sets the name of the bead
   void setName(std::string name) { return name_.setName(name); }
 
-  /// Sets the molecule the bead is attached too
-  void setMolecule(Molecule *molecule) { molecule_item_.setMolecule(molecule); }
+  /**
+   * @brief assign the bead to a molecule with the provided id
+   *
+   * @param molecule_id
+   */
+  void setMoleculeId(const Index &molecule_id) noexcept {
+    molecule_id_ = molecule_id;
+  }
 
-  /// Gets the molecule pointer the bead is attached too
-  Molecule *getMolecule() const { return molecule_item_.getMolecule(); }
+  /**
+   * @brief Get the id of the molecule the bead is a part of, if the molecule
+   * id has not been set return topology_constants::unassigned_molecule_id
+   *
+   * @return
+   */
+  Index getMoleculeId() const noexcept { return molecule_id_; }
 
   /// Gets the topology pointer the bead is attached too
   Topology *getParent() const { return topology_item_.getParent(); }
@@ -71,25 +81,33 @@ class BaseBead {
    * get the bead type
    * \return const string
    */
-  virtual const std::string getType() const { return type_.getName(); }
+  virtual const std::string getType() const noexcept { return type_; }
 
   /**
    * set the bead type
    * \param bead type object
    */
-  virtual void setType(std::string type) { type_.setName(type); }
+  virtual void setType(const std::string &type) noexcept { type_ = type; }
+
+  /**
+   * @brief Returns the element type of the bead
+   *
+   * @return either the element symbol i.e. "Si" for silcon or unassigned if it
+   * has not been specified.
+   */
+  std::string getElement() const noexcept { return element_symbol_; }
 
   /**
    * get the mass of the base bead
    * \return - base bead mass
    */
-  virtual const double &getMass() const { return mass_; }
+  virtual const double &getMass() const noexcept { return mass_; }
 
   /**
    * set the mass of the base bead
    * \param - base bead mass
    */
-  virtual void setMass(const double &m) { mass_ = m; }
+  virtual void setMass(const double &m) noexcept { mass_ = m; }
 
   /**
    * set the position of the base bead
@@ -113,29 +131,28 @@ class BaseBead {
   }
 
   /** does this configuration store positions? */
-  bool HasPos() const { return bead_position_set_; }
+  bool HasPos() const noexcept { return bead_position_set_; }
 
   /** set has position to true */
-  void HasPos(bool true_or_false) { bead_position_set_ = true_or_false; }
+  void HasPos(const bool &true_or_false) noexcept {
+    bead_position_set_ = true_or_false;
+  }
 
  protected:
-  BaseBead()
-      : topology_item_(nullptr),
-        molecule_item_(nullptr),
-        mass_(0.0),
-        bead_position_set_(false){};
+  BaseBead(){};
 
-  TopologyItem topology_item_;
-  MoleculeItem molecule_item_;
+  TopologyItem topology_item_ = nullptr;
 
-  TOOLS::Identity<Index> id_;
+  std::string type_ = tools::topology_constants::unassigned_bead_type;
+  Index id_ = tools::topology_constants::unassigned_residue_id;
+  Index molecule_id_ = tools::topology_constants::unassigned_molecule_id;
+  std::string element_symbol_ = tools::topology_constants::unassigned_element;
   TOOLS::Name name_;
-  TOOLS::Name type_;
 
-  double mass_;
+  double mass_ = 0.0;
   Eigen::Vector3d bead_position_;
 
-  bool bead_position_set_;
+  bool bead_position_set_ = false;
 };
 
 inline void BaseBead::setPos(const Eigen::Vector3d &bead_position) {
@@ -151,4 +168,4 @@ inline const Eigen::Vector3d &BaseBead::getPos() const {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_BASEBEAD_H
+#endif  // VOTCA_CSG_BASEBEAD_H
