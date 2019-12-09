@@ -18,47 +18,28 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_GENCUBE_H
-#define _VOTCA_XTP_GENCUBE_H
+#ifndef XTP_AMPLITUDE_INTEGRATION_H
+#define XTP_AMPLITUDE_INTEGRATION_H
 
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/qmtool.h>
-
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/eigen.h>
+#include <votca/xtp/regular_grid.h>
 namespace votca {
 namespace xtp {
-class AOBasis;
 
-class GenCube : public QMTool {
+template <class Grid>
+class AmplitudeIntegration {
  public:
-  GenCube() = default;
+  explicit AmplitudeIntegration(const Grid& grid) : _grid(grid){};
 
-  ~GenCube() override = default;
-
-  std::string Identify() final { return "gencube"; }
-
-  void Initialize(tools::Property& options) final;
-  bool Evaluate() final;
+  std::vector<std::vector<double> > IntegrateAmplitude(
+      const Eigen::VectorXd& amplitude);
 
  private:
-  void calculateCube();
-  void subtractCubes();
-
-  std::string _orbfile;
-  std::string _output_file;
-  std::string _infile1;
-  std::string _infile2;
-
-  bool _dostateonly;
-
-  double _padding;
-  Eigen::Array<Index, 3, 1> _steps;
-  QMState _state;
-  std::string _mode;
-  Logger _log;
+  std::vector<std::vector<double> > SetupAmplitudeContainer();
+  const Grid _grid;
 };
 
 }  // namespace xtp
 }  // namespace votca
-
-#endif
+#endif  // XTP_NUMERICAL_INTEGRATION_H

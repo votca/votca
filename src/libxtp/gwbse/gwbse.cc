@@ -25,8 +25,9 @@
 #include <votca/xtp/ecpbasisset.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/vxc_grid.h>
+#include <votca/xtp/vxc_potential.h>
 using boost::format;
 using namespace boost::filesystem;
 using std::flush;
@@ -500,9 +501,7 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
     }
   }
 
-  NumericalIntegration numint;
-  numint.setXCfunctional(_functional);
-  double ScaHFX_temp = numint.getExactExchange(_functional);
+  double ScaHFX_temp = Vxc_Potential<Vxc_Grid>::getExactExchange(_functional);
   if (ScaHFX_temp != _orbitals.getScaHFX()) {
     throw std::runtime_error(
         (boost::format("GWBSE exact exchange a=%s differs from qmpackage "
@@ -512,16 +511,19 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
             .str());
   }
 
-  numint.GridSetup(_grid, _orbitals.QMAtoms(), dftbasis);
+  Vxc_Grid grid;
+  grid.GridSetup(_grid, _orbitals.QMAtoms(), dftbasis);
   XTP_LOG(Log::info, *_pLog)
       << TimeStamp() << " Setup grid for integration with gridsize: " << _grid
-      << " with " << numint.getGridSize() << " points, divided into "
-      << numint.getBoxesSize() << " boxes" << flush;
+      << " with " << grid.getGridSize() << " points, divided into "
+      << grid.getBoxesSize() << " boxes" << flush;
+  Vxc_Potential<Vxc_Grid> vxcpotential(grid);
+  vxcpotential.setXCfunctional(_functional);
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Integrating Vxc in VOTCA with functional "
       << _functional << flush;
   Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
-  Mat_p_Energy e_vxc_ao = numint.IntegrateVXC(DMAT);
+  Mat_p_Energy e_vxc_ao = vxcpotential.IntegrateVXC(DMAT);
   XTP_LOG(Log::info, *_pLog)
       << TimeStamp() << " Calculated Vxc in VOTCA" << flush;
   XTP_LOG(Log::error, *_pLog)

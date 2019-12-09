@@ -18,47 +18,38 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_GENCUBE_H
-#define _VOTCA_XTP_GENCUBE_H
+#ifndef VOTCA_XTP_CUBEFILE_WRITER_H
+#define VOTCA_XTP_CUBEFILE_WRITER_H
 
 #include <votca/xtp/logger.h>
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/qmtool.h>
+#include <votca/xtp/orbitals.h>
+#include <votca/xtp/regular_grid.h>
+/**
+ * \brief Writes an orbital file to a .cube file
+ */
 
 namespace votca {
 namespace xtp {
-class AOBasis;
+class CubeFile_Writer {
 
-class GenCube : public QMTool {
  public:
-  GenCube() = default;
+  CubeFile_Writer(Eigen::Array<Index, 3, 1> steps, double padding, Logger& log)
+      : _steps(steps), _padding(padding), _log(log){};
 
-  ~GenCube() override = default;
-
-  std::string Identify() final { return "gencube"; }
-
-  void Initialize(tools::Property& options) final;
-  bool Evaluate() final;
+  void WriteFile(const std::string& filename, const Orbitals& orb,
+                 QMState state, bool dostateonly) const;
 
  private:
-  void calculateCube();
-  void subtractCubes();
+  std::vector<std::vector<double> > CalculateValues(
+      const Orbitals& orb, QMState state, bool dostateonly,
+      const Regular_Grid& grid) const;
 
-  std::string _orbfile;
-  std::string _output_file;
-  std::string _infile1;
-  std::string _infile2;
-
-  bool _dostateonly;
-
-  double _padding;
   Eigen::Array<Index, 3, 1> _steps;
-  QMState _state;
-  std::string _mode;
-  Logger _log;
+  double _padding;
+  Logger& _log;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_CUBEFILE_WRITER_H

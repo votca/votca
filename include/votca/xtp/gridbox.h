@@ -34,6 +34,11 @@ struct GridboxRange {
 class GridBox {
 
  public:
+  void FindSignificantShells(const AOBasis& basis);
+  Eigen::VectorXd CalcAOValue_and_Grad(Eigen::MatrixX3d& ao_grad,
+                                       const Eigen::Vector3d& point) const;
+  Eigen::VectorXd CalcAOValues(const Eigen::Vector3d& pos) const;
+
   const std::vector<Eigen::Vector3d>& getGridPoints() const { return grid_pos; }
 
   const std::vector<double>& getGridWeights() const { return weights; }
@@ -51,12 +56,8 @@ class GridBox {
   Index Matrixsize() const { return matrix_size; }
 
   void addGridBox(const GridBox& box) {
-    const std::vector<Eigen::Vector3d>& p = box.getGridPoints();
-    const std::vector<double>& w = box.getGridWeights();
-    for (Index i = 0; i < Index(w.size()); ++i) {
-      grid_pos.push_back(p[i]);
-      weights.push_back(w[i]);
-    }
+    grid_pos.insert(grid_pos.end(), box.grid_pos.begin(), box.grid_pos.end());
+    weights.insert(weights.end(), box.weights.begin(), box.weights.end());
     return;
   }
 
@@ -70,15 +71,11 @@ class GridBox {
     matrix_size += shell->getNumFunc();
   };
 
-  void prepareDensity() { densities.reserve(grid_pos.size()); }
-
-  void addDensity(double density) { densities.push_back(density); }
-
-  const std::vector<double>& getGridDensities() const { return densities; }
-
   void PrepareForIntegration();
 
   Eigen::MatrixXd ReadFromBigMatrix(const Eigen::MatrixXd& bigmatrix) const;
+
+  Eigen::VectorXd ReadFromBigVector(const Eigen::VectorXd& bigvector) const;
 
   void AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,
                       const Eigen::MatrixXd& smallmatrix) const;
@@ -103,10 +100,9 @@ class GridBox {
   std::vector<GridboxRange> aoranges;
   std::vector<GridboxRange> ranges;
   std::vector<GridboxRange> inv_ranges;
-  std::vector<Eigen::Vector3d> grid_pos;  // bohr
+  std::vector<Eigen::Vector3d> grid_pos;
   std::vector<const AOShell*> significant_shells;
   std::vector<double> weights;
-  std::vector<double> densities;
 };
 
 }  // namespace xtp
