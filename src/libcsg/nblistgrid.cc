@@ -34,10 +34,10 @@ void NBListGrid::Generate(BeadList &list1, BeadList &list2,
     return;
   }
 
-  assert(list1.getTopology() == list2.getTopology());
-  Topology *top = _top = list1.getTopology();
+  assert(&(list1.getTopology()) == &(list2.getTopology()));
+  const Topology & top = _top = list1.getTopology();
 
-  InitializeGrid(top->getBox());
+  InitializeGrid(top.getBox());
 
   // Add all beads of list1
   for (auto &iter : list1) {
@@ -56,9 +56,9 @@ void NBListGrid::Generate(BeadList &list, bool do_exclusions) {
     return;
   }
 
-  Topology *top = _top = list.getTopology();
+  const Topology & top = _top = list.getTopology();
 
-  InitializeGrid(top->getBox());
+  InitializeGrid(top.getBox());
 
   for (auto &iter : list) {
     cell_t &cell = getCell(iter->getPos());
