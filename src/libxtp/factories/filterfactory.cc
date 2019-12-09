@@ -32,7 +32,6 @@ void FilterFactory::RegisterAll(void) {
   Filter().Register<Density_filter>("density");
   Filter().Register<Localisation_filter>("localisation");
   Filter().Register<OscillatorStrength_filter>("oscillatorstrength");
-  Filter().Register<Localisation_filter>("localisation");
   Filter().Register<Overlap_filter>("overlap");
 }
 }  // namespace xtp
