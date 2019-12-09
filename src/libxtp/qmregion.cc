@@ -19,8 +19,8 @@
 
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/eeinteractor.h"
-#include <votca/xtp/aomatrix.h>
 #include "votca/xtp/vxc_grid.h"
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/polarregion.h>
