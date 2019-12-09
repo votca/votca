@@ -49,7 +49,7 @@ void ExclusionList::CreateExclusions(Topology *top) {
 
 bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) {
   exclusion_t *excl;
-  if (bead1->getMolecule() != bead2->getMolecule()) {
+  if (bead1->getMoleculeId() != bead2->getMoleculeId()) {
     return false;
   }
   if (bead2->getId() < bead1->getId()) {
