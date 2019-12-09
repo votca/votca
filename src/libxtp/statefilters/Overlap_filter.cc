@@ -43,18 +43,17 @@ Eigen::VectorXd Overlap_filter::CalculateOverlap(const Orbitals& orb,
 
   Eigen::MatrixXd coeffs = CalcAOCoeffs(orb, type);
   if (type.isSingleParticleState()) {
-    return (coeffs * S_ao.Matrix() * _laststatecoeff).cwiseAbs2();
+    return (coeffs.transpose() * S_ao.Matrix() * _laststatecoeff).cwiseAbs();
   } else {
 
     Index basis = orb.getBasisSetSize();
     Eigen::VectorXd overlap = Eigen::VectorXd::Zero(coeffs.cols());
-
 #pragma omp parallel for schedule(dynamic)
     for (Index i = 0; i < coeffs.cols(); i++) {
       {
-        Eigen::VectorXd state = coeffs.col(i).head(basis);
+        Eigen::VectorXd state = coeffs.col(i).head(basis * basis);
         Eigen::Map<const Eigen::MatrixXd> mat(state.data(), basis, basis);
-        Eigen::VectorXd laststate = _laststatecoeff.head(basis);
+        Eigen::VectorXd laststate = _laststatecoeff.head(basis * basis);
         Eigen::Map<const Eigen::MatrixXd> lastmat(laststate.data(), basis,
                                                   basis);
 
@@ -63,9 +62,9 @@ Eigen::VectorXd Overlap_filter::CalculateOverlap(const Orbitals& orb,
                          .sum();
       }
       if (!orb.getTDAApprox()) {
-        Eigen::VectorXd state = coeffs.col(i).tail(basis);
+        Eigen::VectorXd state = coeffs.col(i).tail(basis * basis);
         Eigen::Map<const Eigen::MatrixXd> mat(state.data(), basis, basis);
-        Eigen::VectorXd laststate = _laststatecoeff.tail(basis);
+        Eigen::VectorXd laststate = _laststatecoeff.tail(basis * basis);
         Eigen::Map<const Eigen::MatrixXd> lastmat(laststate.data(), basis,
                                                   basis);
 
@@ -74,7 +73,7 @@ Eigen::VectorXd Overlap_filter::CalculateOverlap(const Orbitals& orb,
                           .sum();
       }
     }
-    return overlap;
+    return overlap.cwiseAbs();
   }
 }
 
