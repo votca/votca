@@ -78,7 +78,7 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
   }
 
   // check if both bead lists "have" the same topology
-  assert(list1.getTopology() == list2.getTopology());
+  assert(&(list1.getTopology()) == &(list2.getTopology()));
   const Topology & top = list1.getTopology();
 
   InitializeGrid(top.getBox());
