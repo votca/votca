@@ -17,21 +17,32 @@
  *
  */
 
-#include "qmpackages/gaussian.h"
-#include "qmpackages/nwchem.h"
-#include "qmpackages/orca.h"
-#include <votca/xtp/qmpackagefactory.h>
+#pragma once
+#ifndef VOTCA_XTP_FILTERFACTORY_H
+#define VOTCA_XTP_FILTERFACTORY_H
 
-#include "qmpackages/xtpdft.h"
+#include <votca/tools/objectfactory.h>
+#include <votca/xtp/statefilter_base.h>
 
 namespace votca {
 namespace xtp {
 
-void QMPackageFactory::RegisterAll(void) {
-  QMPackages().Register<Gaussian>("gaussian");
-  QMPackages().Register<NWChem>("nwchem");
-  QMPackages().Register<Orca>("orca");
-  QMPackages().Register<XTPDFT>("xtp");
+class FilterFactory
+    : public tools::ObjectFactory<std::string, StateFilter_base> {
+ private:
+  FilterFactory() = default;
+
+ public:
+  static void RegisterAll(void);
+  friend FilterFactory &Filter();
+};
+
+inline FilterFactory &Filter() {
+  static FilterFactory _instance;
+  return _instance;
 }
+
 }  // namespace xtp
 }  // namespace votca
+
+#endif  // VOTCA_XTP_QMPACKAGEFACTORY_H
