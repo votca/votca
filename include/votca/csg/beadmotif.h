@@ -15,14 +15,13 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_CSG_BEADMOTIF_H
 #define VOTCA_CSG_BEADMOTIF_H
 
+#include "basebead.h"
 #include "beadstructure.h"
-#include <votca/csg/basebead.h>
 #include <votca/tools/reducedgraph.h>
-
-namespace TOOLS = votca::tools;
 
 namespace votca {
 namespace csg {
@@ -144,7 +143,7 @@ class BeadMotif : public BeadStructure<BaseBead> {
    *
    * @param[in] basebead pointer
    **/
-  void AddBead(BaseBead *basebead);
+  void AddBead(BaseBead &basebead);
 
   /**
    * \brief Adds a new connection to the motif
@@ -162,12 +161,12 @@ class BeadMotif : public BeadStructure<BaseBead> {
   bool type_up_to_date_ = false;
 
   std::vector<Index> junctions_;
-  TOOLS::ReducedGraph reduced_graph_;
+  tools::ReducedGraph reduced_graph_;
 
   void InitializeGraph_();
   bool junctionExist_();
   void CalculateType_();
-  bool isSingle_();
+  bool isSingle_() const noexcept;
   bool isLine_();
   bool isLoop_();
   bool isFusedRing_();
