@@ -248,6 +248,7 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
       1.099170E-03, 2.376104E-03, 6.024153E-03, 1.793501E-02, 2.752360E-02,
       2.090443E-02, 8.313980E-03, 2.555200E-03, 1.039559E-03, 1.089311E-03,
       9.769998E-04, 9.895743E-04, 1.253110E-03, 1.902528E-03, 1.319557E-03;
+  BOOST_CHECK_EQUAL(values_ref1.size(), result1.size());
 
   bool check_ref1 = values_ref1.isApprox(result1, 1e-4);
   BOOST_CHECK_EQUAL(check_ref1, true);
@@ -286,6 +287,7 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
       4.737040E-04, -9.333764E-05, 1.653119E-04, 1.265738E-03, 1.126837E-03;
 
   bool check_ref2 = values_ref2.isApprox(result2, 1e-4);
+  BOOST_CHECK_EQUAL(values_ref2.size(), result2.size());
   BOOST_CHECK_EQUAL(check_ref2, true);
   if (!check_ref2) {
     std::cout << "ref" << std::endl;
@@ -304,7 +306,7 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
 
   auto result3 = Readcubefile("test_writer3.cube");
 
-  Eigen::VectorXd values_ref3 = Eigen::VectorXd(140);
+  Eigen::VectorXd values_ref3 = Eigen::VectorXd(139);
   values_ref3 << -5, -1.938861, -1.938861, -1.938861, 3, 1.938861, 0.0, 0.0, 4,
       0.0, 1.292574, 0.0, 8, 0.0, 0.0, 0.553960, 6, 6, 0.000000, 0.000000,
       0.000000, 1, 1, 1.188861, 1.188861, 1.188861, 1, 1, -1.188861, -1.188861,
@@ -330,6 +332,7 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
       -1.595010E-02, -2.654467E-02, -4.987706E-02, -9.711037E-02, -1.496463E-01,
       -1.553243E-01, -1.038165E-01;
 
+  BOOST_CHECK_EQUAL(values_ref3.size(), result3.size());
   bool check_ref3 = values_ref3.isApprox(result3, 1e-4);
   BOOST_CHECK_EQUAL(check_ref3, true);
   if (!check_ref3) {
