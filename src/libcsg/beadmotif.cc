@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/beadmotif.h>
+#include "../../include/votca/csg/beadmotif.h"
 
 namespace votca {
 namespace csg {
@@ -65,7 +65,7 @@ void BeadMotif::CalculateType_() {
   type_up_to_date_ = true;
 }
 
-bool BeadMotif::isSingle_() {
+bool BeadMotif::isSingle_() const noexcept {
   if (BeadCount() == 1) {
     return true;
   }
@@ -195,9 +195,9 @@ bool BeadMotif::isMotifSimple() {
   return true;
 }
 
-void BeadMotif::AddBead(BaseBead* bead) {
+void BeadMotif::AddBead(BaseBead& bead) {
   type_ = MotifType::undefined;
-  BeadStructure<BaseBead>::AddBead(bead);
+  BeadStructure<BaseBead>::AddBead(&bead);
   junctionsUpToDate_ = false;
   type_up_to_date_ = false;
 }
