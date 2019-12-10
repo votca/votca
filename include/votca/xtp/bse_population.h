@@ -60,7 +60,7 @@ struct BSE_Population {
     if (pop.H.size() < 1) {
       return out;
     }
-    Eigen::VectorXd diff = pop.H - pop.E;
+    Eigen::VectorXd diff = pop.H + pop.E;
     out << "GroundstateCharge:" << pop.Gs << "\n";
     out << "Index hole electron dQ Qeff\n";
     for (Index i = 0; i < pop.H.size(); ++i) {

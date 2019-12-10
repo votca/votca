@@ -19,10 +19,10 @@
 
 #include <votca/xtp/jobcalculatorfactory.h>
 
-#include "jobcalculators/eqm.h"
-#include "jobcalculators/iexcitoncl.h"
-#include "jobcalculators/iqm.h"
-#include "jobcalculators/qmmm.h"
+#include "../jobcalculators/eqm.h"
+#include "../jobcalculators/iexcitoncl.h"
+#include "../jobcalculators/iqm.h"
+#include "../jobcalculators/qmmm.h"
 
 namespace votca {
 namespace xtp {
