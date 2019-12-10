@@ -35,7 +35,7 @@ void NBListGrid::Generate(BeadList &list1, BeadList &list2,
   }
 
   assert(&(list1.getTopology()) == &(list2.getTopology()));
-  const Topology & top = list1.getTopology();
+  const Topology &top = list1.getTopology();
 
   InitializeGrid(top.getBox());
 
@@ -56,7 +56,7 @@ void NBListGrid::Generate(BeadList &list, bool do_exclusions) {
     return;
   }
 
-  const Topology & top = list.getTopology();
+  const Topology &top = list.getTopology();
 
   InitializeGrid(top.getBox());
 
@@ -167,14 +167,16 @@ NBListGrid::cell_t &NBListGrid::getCell(const Eigen::Vector3d &r) {
   return getCell(a, b, c);
 }
 
-void NBListGrid::TestBead(const Topology & top, NBListGrid::cell_t &cell, Bead *bead) {
+void NBListGrid::TestBead(const Topology &top, NBListGrid::cell_t &cell,
+                          Bead *bead) {
   TestCell(top, cell, bead);
   for (auto &neighbour : cell._neighbours) {
     TestCell(top, *neighbour, bead);
   }
 }
 
-void NBListGrid::TestCell(const Topology & top, NBListGrid::cell_t &cell, Bead *bead) {
+void NBListGrid::TestCell(const Topology &top, NBListGrid::cell_t &cell,
+                          Bead *bead) {
   Eigen::Vector3d u = bead->getPos();
 
   for (auto &_bead : cell._beads) {

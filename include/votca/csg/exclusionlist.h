@@ -84,8 +84,10 @@ inline ExclusionList::exclusion_t *ExclusionList::GetExclusions(Bead *bead) {
   return (*iter).second;
 }
 
-inline const ExclusionList::exclusion_t *ExclusionList::GetExclusions(Bead *bead) const {
-  std::map<Bead *, exclusion_t *>::const_iterator iter = _excl_by_bead.find(bead);
+inline const ExclusionList::exclusion_t *ExclusionList::GetExclusions(
+    Bead *bead) const {
+  std::map<Bead *, exclusion_t *>::const_iterator iter =
+      _excl_by_bead.find(bead);
   if (iter == _excl_by_bead.end()) {
     return nullptr;
   }

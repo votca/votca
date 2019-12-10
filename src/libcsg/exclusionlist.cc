@@ -55,8 +55,8 @@ bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) const {
     swap(bead1, bead2);
   }
 
-  const exclusion_t * excl = GetExclusions(bead1);
-  if (excl!=nullptr) {
+  const exclusion_t *excl = GetExclusions(bead1);
+  if (excl != nullptr) {
     if (find(excl->_exclude.begin(), excl->_exclude.end(), bead2) !=
         excl->_exclude.end()) {
       return true;

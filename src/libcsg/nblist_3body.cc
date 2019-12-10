@@ -50,7 +50,7 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
   assert(&(list1.getTopology()) == &(list2.getTopology()));
   assert(&(list1.getTopology()) == &(list3.getTopology()));
   assert(&(list2.getTopology()) == &(list3.getTopology()));
-  const Topology & top = list1.getTopology();
+  const Topology &top = list1.getTopology();
 
   // builds neighbor lists for all cases, where all list are of different bead
   // typess (list1 neq list2 neq list3), list2 and list3 are of the same type

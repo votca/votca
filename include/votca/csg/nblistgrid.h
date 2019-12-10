@@ -48,8 +48,8 @@ class NBListGrid : public NBList {
   cell_t &getCell(const Eigen::Vector3d &r);
   cell_t &getCell(const Index &a, const Index &b, const Index &c);
 
-  void TestBead(const Topology & top, cell_t &cell, Bead *bead);
-  void TestCell(const Topology & top, cell_t &cell, Bead *bead);
+  void TestBead(const Topology &top, cell_t &cell, Bead *bead);
+  void TestCell(const Topology &top, cell_t &cell, Bead *bead);
 };
 
 inline NBListGrid::cell_t &NBListGrid::getCell(const Index &a, const Index &b,

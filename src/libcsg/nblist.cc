@@ -44,7 +44,7 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
   }
 
   assert(&(list1.getTopology()) == &(list2.getTopology()));
-  const Topology & top = list1.getTopology();
+  const Topology &top = list1.getTopology();
 
   for (iter1 = list1.begin(); iter1 != list1.end(); ++iter1) {
     if (&list1 == &list2) {

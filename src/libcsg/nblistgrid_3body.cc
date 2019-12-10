@@ -41,7 +41,7 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
   assert(&(list1.getTopology()) == &(list2.getTopology()));
   assert(&(list1.getTopology()) == &(list3.getTopology()));
   assert(&(list2.getTopology()) == &(list3.getTopology()));
-  const Topology & top = list1.getTopology();
+  const Topology &top = list1.getTopology();
 
   InitializeGrid(top.getBox());
 
@@ -79,7 +79,7 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
 
   // check if both bead lists "have" the same topology
   assert(&(list1.getTopology()) == &(list2.getTopology()));
-  const Topology & top = list1.getTopology();
+  const Topology &top = list1.getTopology();
 
   InitializeGrid(top.getBox());
 
@@ -111,7 +111,7 @@ void NBListGrid_3Body::Generate(BeadList &list, bool do_exclusions) {
     return;
   }
 
-  const Topology & top = list.getTopology();
+  const Topology &top = list.getTopology();
 
   InitializeGrid(top.getBox());
 
@@ -231,7 +231,8 @@ NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const Eigen::Vector3d &r) {
   return getCell(a, b, c);
 }
 
-void NBListGrid_3Body::TestBead(const Topology & top, NBListGrid_3Body::cell_t &cell, Bead *bead) {
+void NBListGrid_3Body::TestBead(const Topology &top,
+                                NBListGrid_3Body::cell_t &cell, Bead *bead) {
   BeadList::iterator iter2;
   BeadList::iterator iter3;
   Eigen::Vector3d u = bead->getPos();
