@@ -51,9 +51,10 @@ Index BeadList::Generate(Topology &top, const string &select) {
   return size();
 }
 
-Index BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
-                                            Eigen::Vector3d ref,
-                                            double radius) {
+Index BeadList::GenerateInSphericalSubvolume(Topology &top,
+                                             const string &select,
+                                             Eigen::Vector3d ref,
+                                             double radius) {
   _topology = &top;
   bool selectByName = false;
   string pSelect;  // parsed selection string
