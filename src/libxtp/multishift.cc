@@ -44,11 +44,11 @@ Multishift::MultiShiftResult Multishift::ComplexBiCG(const Eigen::MatrixXcd& A, 
   Eigen::VectorXcd x = Eigen::VectorXcd::Zero(_matrix_size);
  
   double res = 1.0;
-  double tol = 1e-30;
+  double tol = 1e-18;
  
   int i = 0;
 
-  int max_iter = 1000000;
+  int max_iter = 1E9;
 
   while (res > tol) {
     

@@ -100,6 +100,8 @@ class Sternheimer {
                                   const Eigen::MatrixXcd& inverse_overlap,
                                   double eps, std::complex<double> omega,
                                   bool pm) const;
+
+  std::vector<Eigen::MatrixXcd> InvertLHS(std::vector<Eigen::MatrixXcd>& LHS);
   // sets up the right hand side of the sternheimer equation
   Eigen::VectorXcd SternheimerRHS(const Eigen::MatrixXcd& inverse_overlap,
                                   const Eigen::MatrixXcd& density,
