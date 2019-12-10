@@ -31,7 +31,7 @@ void Molecule::AddBead(Bead *bead, const string &name) {
   bead->setMolecule(this);
 }
 
-long Molecule::getBeadByName(const string &name) {
+Index Molecule::getBeadByName(const string &name) {
   map<string, Index>::iterator iter = _beadmap.find(name);
   if (iter == _beadmap.end()) {
     std::cout << "cannot find: <" << name << "> in " << _name << "\n";

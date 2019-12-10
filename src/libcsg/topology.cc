@@ -199,7 +199,7 @@ void Topology::CopyTopologyData(Topology *top) {
   }
 }
 
-long Topology::getBeadTypeId(string type) const {
+Index Topology::getBeadTypeId(string type) const {
   assert(beadtypes_.count(type));
   return beadtypes_.at(type);
 }
