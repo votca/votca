@@ -121,7 +121,7 @@ Eigen::MatrixXd Symmetric_Matrix::UpperMatrix() const {
   return result;
 }
 
-long Symmetric_Matrix::index(Index i, Index j) const {
+Index Symmetric_Matrix::index(Index i, Index j) const {
   Index index;
   if (i >= j) {
     index = (i * (i + 1)) / 2 + j;
