@@ -108,6 +108,7 @@ class BeadStructure {
    **/
   bool isStructureEquivalent(BeadStructure<T> &beadstructure);
 
+  /// Determine if a bead exists in the structure
   bool BeadExist(Index bead_id) const { return beads_.count(bead_id); }
 
  protected:
