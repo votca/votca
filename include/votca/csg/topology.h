@@ -374,6 +374,7 @@ class Topology {
    * \return exclusion list
    */
   ExclusionList &getExclusions() { return _exclusions; }
+  const ExclusionList &getExclusions() const { return _exclusions; }
 
   BoundaryCondition::eBoxtype getBoxType() const { return _bc->getBoxType(); }
 
