@@ -88,7 +88,7 @@ class BeadStructure {
    * A bead cannot be connected to itself. It also may not be connected to a
    * bead that has not yet been added to the structure.
    **/
-  void ConnectBeads(Index bead1_id, Index bead2_id);
+  void ConnectBeads(const Index &bead1_id, const Index &bead2_id);
 
   /**
    * \brief Return a vector of all the beads neighboring the index
@@ -198,7 +198,8 @@ void BeadStructure<T>::AddBead(T &bead) {
 }
 
 template <class T>
-void BeadStructure<T>::ConnectBeads(Index bead1_id, Index bead2_id) {
+void BeadStructure<T>::ConnectBeads(const Index &bead1_id,
+                                    const Index &bead2_id) {
   if (!(beads_.count(bead1_id)) || !(beads_.count(bead2_id))) {
     std::string err =
         "Cannot connect beads in bead structure that do not exist";
