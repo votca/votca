@@ -179,15 +179,15 @@ tools::GraphNode BeadStructure<T>::BaseBeadToGraphNode_(T *basebead) {
 
 template <class T>
 void BeadStructure<T>::AddBead(T &bead) {
-  if (beads_.count(bead->getId())) {
+  if (beads_.count(bead.getId())) {
     std::string err = "Cannot add bead with Id ";
-    err += std::to_string(bead->getId());
+    err += std::to_string(bead.getId());
     err += " because each bead must have a unique Id and a bead with that Id ";
     err += "already exists within the beadstructure";
     throw std::invalid_argument(err);
   }
   size_t numberOfBeads = beads_.size();
-  beads_[bead->getId()] = bead;
+  beads_[bead.getId()] = &bead;
 
   if (numberOfBeads != beads_.size()) {
     single_structureUpToDate_ = false;
@@ -280,7 +280,7 @@ std::vector<T *> BeadStructure<T>::getNeighBeads(Index index) {
 template <class T>
 T &BeadStructure<T>::getBead(Index index) {
   assert(beads_.count(index));
-  return beads_[index];
+  return *beads_[index];
 }
 
 }  // namespace csg
