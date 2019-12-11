@@ -185,7 +185,7 @@ void DavidsonSolver::set_size_update(std::string update_size) {
   }
 }
 
-long DavidsonSolver::getSizeUpdate(Index neigen) const {
+Index DavidsonSolver::getSizeUpdate(Index neigen) const {
   Index size_update;
   switch (this->_davidson_update) {
     case UPDATE::MIN:

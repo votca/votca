@@ -46,7 +46,7 @@ class HamiltonianOperator
   // Required typedefs, constants, and method:
   using Scalar = double;
   using RealScalar = double;
-  using StorageIndex = long;
+  using StorageIndex = votca::Index;
   enum {
     ColsAtCompileTime = Eigen::Dynamic,
     MaxColsAtCompileTime = Eigen::Dynamic,
