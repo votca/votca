@@ -141,8 +141,9 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         const Eigen::Vector3d wmp = W - P;
         const Eigen::Vector3d wmc = W - pos_gamma;
 
+        constexpr Index maximum = 2;
         Eigen::Tensor<double, 3> R_temp(ncombined, ngamma,
-                                        std::max(2l, mmax + 1));
+                                        std::max(maximum, mmax + 1));
         R_temp.setZero();
 
         const Eigen::VectorXd FmT = AOTransform::XIntegrate(mmax + 1, U);
