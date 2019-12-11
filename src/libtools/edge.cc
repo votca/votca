@@ -31,7 +31,7 @@ Edge::Edge(Index ID1, Index ID2) {
   vertices_ = vector<Index>{min({ID1, ID2}), max({ID1, ID2})};
 }
 
-long Edge::getOtherEndPoint(Index ver) const {
+Index Edge::getOtherEndPoint(Index ver) const {
   if (ver == vertices_.front()) {
     return vertices_.back();
   } else {
