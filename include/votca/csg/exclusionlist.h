@@ -52,13 +52,14 @@ class ExclusionList {
 
   void CreateExclusions(Topology *top);
   exclusion_t *GetExclusions(Bead *bead);
+  const exclusion_t *GetExclusions(Bead *bead) const;
 
   using iterator = std::list<exclusion_t *>::iterator;
 
   iterator begin() { return _exclusions.begin(); }
   iterator end() { return _exclusions.end(); }
 
-  bool IsExcluded(Bead *bead1, Bead *bead2);
+  bool IsExcluded(Bead *bead1, Bead *bead2) const;
 
   template <typename iteratable>
   void InsertExclusion(Bead *bead, iteratable &excluded);
@@ -76,6 +77,17 @@ class ExclusionList {
 
 inline ExclusionList::exclusion_t *ExclusionList::GetExclusions(Bead *bead) {
   std::map<Bead *, exclusion_t *>::iterator iter = _excl_by_bead.find(bead);
+  if (iter == _excl_by_bead.end()) {
+    return nullptr;
+  }
+
+  return (*iter).second;
+}
+
+inline const ExclusionList::exclusion_t *ExclusionList::GetExclusions(
+    Bead *bead) const {
+  std::map<Bead *, exclusion_t *>::const_iterator iter =
+      _excl_by_bead.find(bead);
   if (iter == _excl_by_bead.end()) {
     return nullptr;
   }
