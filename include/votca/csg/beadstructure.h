@@ -80,7 +80,8 @@ class BeadStructure {
   /**
    * \brief Get the bead with the specified id
    **/
-  T &getBead(Index id);
+  T &getBead(const Index &id);
+  const T &getBead(const Index &id) const;
 
   /**
    * \brief Create a connection between two beads in the structure
@@ -280,7 +281,13 @@ std::vector<T *> BeadStructure<T>::getNeighBeads(Index index) {
 }
 
 template <class T>
-T &BeadStructure<T>::getBead(Index index) {
+T &BeadStructure<T>::getBead(const Index &index) {
+  assert(beads_.count(index));
+  return *beads_[index];
+}
+
+template <class T>
+const T &BeadStructure<T>::getBead(const Index &index) const {
   assert(beads_.count(index));
   return *beads_[index];
 }
