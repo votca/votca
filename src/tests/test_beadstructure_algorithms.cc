@@ -93,32 +93,32 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
 
   // Methane
   BeadStructure<BaseBead> beadstructure_methane;
-  beadstructure_methane.AddBead(&testbead1);
-  beadstructure_methane.AddBead(&testbead2);
-  beadstructure_methane.AddBead(&testbead3);
-  beadstructure_methane.AddBead(&testbead4);
-  beadstructure_methane.AddBead(&testbead5);
+  beadstructure_methane.AddBead(testbead1);
+  beadstructure_methane.AddBead(testbead2);
+  beadstructure_methane.AddBead(testbead3);
+  beadstructure_methane.AddBead(testbead4);
+  beadstructure_methane.AddBead(testbead5);
 
   // Water
   BeadStructure<BaseBead> beadstructure_water;
-  beadstructure_water.AddBead(&testbead6);
-  beadstructure_water.AddBead(&testbead7);
-  beadstructure_water.AddBead(&testbead8);
+  beadstructure_water.AddBead(testbead6);
+  beadstructure_water.AddBead(testbead7);
+  beadstructure_water.AddBead(testbead8);
 
   // Helium
   BeadStructure<BaseBead> beadstructure_helium;
-  beadstructure_helium.AddBead(&testbead12);
+  beadstructure_helium.AddBead(testbead12);
 
   // Methane and Water and Helium
   BeadStructure<BaseBead> beadstructure;
-  beadstructure.AddBead(&testbead1);
-  beadstructure.AddBead(&testbead2);
-  beadstructure.AddBead(&testbead3);
-  beadstructure.AddBead(&testbead4);
-  beadstructure.AddBead(&testbead5);
-  beadstructure.AddBead(&testbead6);
-  beadstructure.AddBead(&testbead7);
-  beadstructure.AddBead(&testbead8);
+  beadstructure.AddBead(testbead1);
+  beadstructure.AddBead(testbead2);
+  beadstructure.AddBead(testbead3);
+  beadstructure.AddBead(testbead4);
+  beadstructure.AddBead(testbead5);
+  beadstructure.AddBead(testbead6);
+  beadstructure.AddBead(testbead7);
+  beadstructure.AddBead(testbead8);
 
   // Connect beads
   // Methane
@@ -176,9 +176,9 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   testbead10.setId(10);
 
   // Adding the water
-  beadstructure.AddBead(&testbead9);
-  beadstructure.AddBead(&testbead10);
-  beadstructure.AddBead(&testbead11);
+  beadstructure.AddBead(testbead9);
+  beadstructure.AddBead(testbead10);
+  beadstructure.AddBead(testbead11);
 
   beadstructure.ConnectBeads(9, 10);
   beadstructure.ConnectBeads(11, 10);
@@ -188,7 +188,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   testbead13.setName("Helium");
   testbead13.setId(13);
 
-  beadstructure.AddBead(&testbead13);
+  beadstructure.AddBead(testbead13);
 
   structures = breakIntoStructures(beadstructure);
 
