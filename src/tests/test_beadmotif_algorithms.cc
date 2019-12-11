@@ -72,11 +72,11 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
   testbead5.setName("Hydrogen");
   testbead5.setId(5);
 
-  beadstructure1.AddBead(&testbead1);
-  beadstructure1.AddBead(&testbead2);
-  beadstructure1.AddBead(&testbead3);
-  beadstructure1.AddBead(&testbead4);
-  beadstructure1.AddBead(&testbead5);
+  beadstructure1.AddBead(testbead1);
+  beadstructure1.AddBead(testbead2);
+  beadstructure1.AddBead(testbead3);
+  beadstructure1.AddBead(testbead4);
+  beadstructure1.AddBead(testbead5);
 
   beadstructure1.ConnectBeads(1, 2);
   beadstructure1.ConnectBeads(3, 2);
@@ -101,9 +101,9 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
   testbead8.setName("Hydrogen");
   testbead8.setId(8);
 
-  beadstructure1.AddBead(&testbead6);
-  beadstructure1.AddBead(&testbead7);
-  beadstructure1.AddBead(&testbead8);
+  beadstructure1.AddBead(testbead6);
+  beadstructure1.AddBead(testbead7);
+  beadstructure1.AddBead(testbead8);
 
   // Connect beads
   beadstructure1.ConnectBeads(6, 7);
@@ -132,10 +132,10 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
   testbead12.setName("Carbon");
   testbead12.setId(12);
 
-  beadstructure1.AddBead(&testbead9);
-  beadstructure1.AddBead(&testbead10);
-  beadstructure1.AddBead(&testbead11);
-  beadstructure1.AddBead(&testbead12);
+  beadstructure1.AddBead(testbead9);
+  beadstructure1.AddBead(testbead10);
+  beadstructure1.AddBead(testbead11);
+  beadstructure1.AddBead(testbead12);
 
   beadstructure1.ConnectBeads(9, 10);
   beadstructure1.ConnectBeads(9, 11);
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
     fused_ring.push_back(temp);
   }
   for (votca::Index index = 0; index < 6; ++index) {
-    beadstructure1.AddBead(&fused_ring.at(index));
+    beadstructure1.AddBead(fused_ring.at(index));
   }
 
   beadstructure1.ConnectBeads(13, 14);
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
   TestBead testbead19;
   testbead19.setName("Helium");
   testbead19.setId(19);
-  beadstructure1.AddBead(&testbead19);
+  beadstructure1.AddBead(testbead19);
 
   list<BeadMotif> bead_motifs;
   bead_motifs = breakIntoMotifs<list<BeadMotif>>(beadstructure1);
@@ -246,11 +246,11 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs) {
   testbead5.setName("Hydrogen");
   testbead5.setId(5);
 
-  beadstructure1.AddBead(&testbead1);
-  beadstructure1.AddBead(&testbead2);
-  beadstructure1.AddBead(&testbead3);
-  beadstructure1.AddBead(&testbead4);
-  beadstructure1.AddBead(&testbead5);
+  beadstructure1.AddBead(testbead1);
+  beadstructure1.AddBead(testbead2);
+  beadstructure1.AddBead(testbead3);
+  beadstructure1.AddBead(testbead4);
+  beadstructure1.AddBead(testbead5);
 
   beadstructure1.ConnectBeads(1, 2);
   beadstructure1.ConnectBeads(3, 2);
@@ -341,12 +341,12 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs2) {
   testbead6.setName("Hydrogen");
   testbead6.setId(6);
 
-  beadstructure1.AddBead(&testbead1);
-  beadstructure1.AddBead(&testbead2);
-  beadstructure1.AddBead(&testbead3);
-  beadstructure1.AddBead(&testbead4);
-  beadstructure1.AddBead(&testbead5);
-  beadstructure1.AddBead(&testbead6);
+  beadstructure1.AddBead(testbead1);
+  beadstructure1.AddBead(testbead2);
+  beadstructure1.AddBead(testbead3);
+  beadstructure1.AddBead(testbead4);
+  beadstructure1.AddBead(testbead5);
+  beadstructure1.AddBead(testbead6);
 
   //
   // C1 - C2
@@ -469,17 +469,17 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs3) {
   testbead12.setName("Silicon");
   testbead12.setId(12);
 
-  beadstructure1.AddBead(&testbead1);
-  beadstructure1.AddBead(&testbead2);
-  beadstructure1.AddBead(&testbead3);
-  beadstructure1.AddBead(&testbead4);
-  beadstructure1.AddBead(&testbead5);
-  beadstructure1.AddBead(&testbead6);
-  beadstructure1.AddBead(&testbead7);
-  beadstructure1.AddBead(&testbead8);
-  beadstructure1.AddBead(&testbead9);
-  beadstructure1.AddBead(&testbead11);
-  beadstructure1.AddBead(&testbead12);
+  beadstructure1.AddBead(testbead1);
+  beadstructure1.AddBead(testbead2);
+  beadstructure1.AddBead(testbead3);
+  beadstructure1.AddBead(testbead4);
+  beadstructure1.AddBead(testbead5);
+  beadstructure1.AddBead(testbead6);
+  beadstructure1.AddBead(testbead7);
+  beadstructure1.AddBead(testbead8);
+  beadstructure1.AddBead(testbead9);
+  beadstructure1.AddBead(testbead11);
+  beadstructure1.AddBead(testbead12);
 
   //
   // C1 - C2             Si11 - Si12
