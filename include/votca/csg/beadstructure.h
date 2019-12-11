@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_BEADSTRUCTURE_H
-#define _VOTCA_CSG_BEADSTRUCTURE_H
+#ifndef VOTCA_CSG_BEADSTRUCTURE_H
+#define VOTCA_CSG_BEADSTRUCTURE_H
 
 #include <cassert>
 #include <unordered_map>
@@ -287,4 +287,5 @@ T *BeadStructure<T>::getBead(Index index) {
 }  // namespace csg
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_CSG_BEADSTRUCTURE_H
+#
