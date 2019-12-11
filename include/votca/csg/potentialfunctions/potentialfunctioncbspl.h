@@ -67,7 +67,10 @@ class PotentialFunctionCBSPL : public PotentialFunction {
   double _dr;
   Eigen::VectorXd _rbreak;
 
-  // this shoudl not be a 4x4 matrix because of alignment problems
+  // this should not be a 4x4 matrix because of alignment problems
+  // as certain eigen datastructures require alignment modifiers if 
+  // stored in std:: datastructures, to avoid making the code more 
+  // complicated, we revert back to dynamic sized matrices here.
   Eigen::MatrixXd _M;
 };
 }  // namespace csg
