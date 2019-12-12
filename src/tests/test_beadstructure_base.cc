@@ -25,6 +25,7 @@
 #include <votca/tools/types.h>
 using namespace std;
 using namespace votca::csg;
+using namespace votca::tools;
 
 class TestBead : public BaseBead {
  public:
@@ -80,6 +81,39 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_getBeadIds) {
   sort(bead_ids.begin(), bead_ids.end());
   BOOST_CHECK_EQUAL(bead_ids.at(0), 1);
   BOOST_CHECK_EQUAL(bead_ids.at(1), 2);
+}
+BOOST_AUTO_TEST_CASE(test_beadstructure_getSubStructure) {
+  BeadStructure beadstructure;
+  TestBead testbead1;
+  testbead1.setId(1);
+  testbead1.setName("Carbon");
+  TestBead testbead2;
+  testbead2.setId(2);
+  testbead2.setName("Carbon");
+  TestBead testbead3;
+  testbead3.setId(3);
+  testbead3.setName("Hydrogen");
+  beadstructure.AddBead(testbead1);
+  beadstructure.AddBead(testbead2);
+  beadstructure.AddBead(testbead3);
+  beadstructure.ConnectBeads(1, 2);
+  beadstructure.ConnectBeads(2, 3);
+
+  vector<votca::Index> CH = {2, 3};
+  vector<Edge> CH_bond = {Edge(2, 3)};
+  BeadStructure CHstructure = beadstructure.getSubStructure(CH, CH_bond);
+  BOOST_CHECK(CHstructure.BeadExist(2));
+  BOOST_CHECK(CHstructure.BeadExist(3));
+
+  /// Should Throw bond connecting bead 1 and 3 is not in beadstructure
+  vector<Edge> CH_bond_false = {Edge(1, 3)};
+  BOOST_CHECK_THROW(beadstructure.getSubStructure(CH, CH_bond_false),
+                    std::runtime_error);
+
+  /// Should Throw bead with id 4 is not in beadstructure
+  vector<votca::Index> CHH_false = {2, 3, 4};
+  BOOST_CHECK_THROW(beadstructure.getSubStructure(CHH_false, CH_bond),
+                    std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleStructure) {
