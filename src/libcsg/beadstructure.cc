@@ -22,6 +22,7 @@
 #include <votca/tools/graphalgorithm.h>
 #include <votca/tools/graphdistvisitor.h>
 
+using namespace std;
 using namespace votca;
 using namespace votca::csg;
 using namespace votca::tools;
@@ -161,5 +162,11 @@ std::vector<Index> BeadStructure::getNeighBeadIds(const Index &index) {
 }
 
 std::vector<Index> BeadStructure::getBeadIds() const {
-  return graph_.getVertices();
+  /// Do not use graph_.getVertices() because this would require that the graph
+  /// is updated
+  vector<Index> bead_ids;
+  for (auto &id_and_bead_info : beads_) {
+    bead_ids.push_back(id_and_bead_info.first);
+  }
+  return bead_ids;
 }
