@@ -48,10 +48,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_add_and_getbead) {
   testbead.setId(2);
   beadstructure.AddBead(testbead);
   BOOST_CHECK_EQUAL(beadstructure.BeadCount(), 1);
-  auto testbead2 = beadstructure.getBead(2);
-  BOOST_CHECK_EQUAL(testbead2.getId(), testbead.getId());
-  const auto testbead3 = beadstructure.getBead(2);
-  BOOST_CHECK_EQUAL(testbead3.getId(), testbead.getId());
+  BOOST_CHECK(beadstructure.BeadExist(2));
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_ConnectBeads) {
