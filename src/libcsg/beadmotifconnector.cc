@@ -23,7 +23,7 @@ using namespace votca::tools;
 namespace votca {
 namespace csg {
 
-using element = boost_bimap::value_type;
+using element = reduced_edge_to_edges_map::value_type;
 
 void BeadMotifConnector::AddMotifAndBeadEdge(Edge motif_edge, Edge bead_edge) {
   motif_and_bead_edges_.insert(element(motif_edge, bead_edge));
