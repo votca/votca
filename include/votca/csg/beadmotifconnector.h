@@ -88,7 +88,7 @@ class BeadMotifConnector {
   std::vector<tools::Edge> getBeadEdges() const;
 
   /// Returns the motifs involved between two beads given by bead_edge
-  tools::Edge getMotifEdge(const tools::Edge bead_edge) const;
+  tools::Edge getMotifEdge(const tools::Edge& bead_edge) const;
   /// Returns all the motif edges
   std::unordered_set<tools::Edge> getMotifEdges() const;
 
