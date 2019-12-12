@@ -202,17 +202,17 @@ Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(
   Eigen::MatrixXcd delta_n_old = Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
   Eigen::MatrixXcd delta_n_new = Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
 
-  AOBasis dftbasis = _orbitals.SetupDftBasis();
-  AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  ERIs eris;
+  //AOBasis dftbasis = _orbitals.SetupDftBasis();
+  //AOBasis auxbasis = _orbitals.SetupAuxBasis();
+  //ERIs eris;
   // eris.Initialize(dftbasis, auxbasis);
   // eris.Initialize_4c_small_molecule(dftbasis);
   
   Eigen::MatrixXcd V_ext = (-e_field * initGuess).cast<std::complex<double>>();
   std::vector<Eigen::MatrixXcd> LHS;
 
-  double diff_new = 1000;
-  double diff_old = 1000;
+  double diff_new = 1000000;
+  double diff_old = 1000000;
 
 
   for (int n = 0; n < 1; n++) {
@@ -291,17 +291,17 @@ Eigen::MatrixXcd Sternheimer::DeltaNSelfConsistent(
     //std::cout << "Dn = " <<std::endl<< delta_n_new << std::endl;
     //throw std::exception();
 
-    diff_old=diff_new;
-    diff_new=(delta_n_new - delta_n_old).squaredNorm();
-    std::cout<<"diff="<<diff_new<<std::endl;
-    if ((delta_n_new - delta_n_old).squaredNorm() < 1e-9) {
-      std::cout<<"converged after "<<n<<" iterations"<<std::endl;
-      return delta_n_new;
-    }
-    if(diff_new>diff_old){
-      std::cout<<"stopped after "<<n<<" iterations"<<std::endl;
-      return delta_n_old;
-    }
+    // diff_old=diff_new;
+    // diff_new=(delta_n_new - delta_n_old).squaredNorm();
+    // std::cout<<"diff="<<diff_new<<std::endl;
+    // if ((delta_n_new - delta_n_old).squaredNorm() < 1e-9) {
+    //   std::cout<<"converged after "<<n<<" iterations"<<std::endl;
+    //   return delta_n_new;
+    // }
+    // if(diff_new>diff_old){
+    //   std::cout<<"stopped after "<<n<<" iterations"<<std::endl;
+    //   return delta_n_old;
+    // }
   }
   // std::cout << "Not Converged, diff = "
   //           << (delta_n_new - delta_n_old).squaredNorm() << "w=" << w

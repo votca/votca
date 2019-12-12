@@ -42,8 +42,8 @@ class SternheimerW {
                                          std::string gridtype);
 
   std::vector<Eigen::MatrixXcd> Polarisability(
-      const std::vector<std::complex<double>>& grid_w,
-      const std::vector<std::complex<double>>& w, std::string gridtype);
+      double omega_start, double omega_end, int steps, double imaginary_shift,
+    double lorentzian_broadening, int resolution_output, std::string gridtype);
 
   
  private:
@@ -69,6 +69,11 @@ class SternheimerW {
 
   Eigen::MatrixXd _mo_coefficients;
   Eigen::VectorXd _mo_energies;
+
+  std::vector<std::complex<double>> BuildGrid(double omega_start,
+                                              double omega_end, int steps,
+                                              double imaginary_shift) const;
+
 
   void initializeMultishift(int size);
 
@@ -97,11 +102,18 @@ class SternheimerW {
   Eigen::VectorXcd SternheimerSolve(const Eigen::MatrixXcd& LHS,
                                     const Eigen::VectorXcd& RHS);
 
-  std::vector<Eigen::MatrixXcd> DeltaNOneShot(std::vector<std::complex<double>> w,
+  Eigen::MatrixXcd DeltaNOneShot(std::complex<double> w,
                                            Eigen::Vector3d r)const;
   
   std::vector<Eigen::MatrixXcd> DeltaNSelfConsistent(std::vector<std::complex<double>>& frequency, Eigen::Vector3d& r) const;
-  
+
+  Eigen::MatrixXcd GreensFunctionLHS(std::complex<double> w) const;
+  Eigen::MatrixXcd GreensFunctionRHS(Eigen::Vector3d r) const;
+
+  Eigen::MatrixXcd AnalyticGreensfunction(std::complex<double> w, Eigen::Vector3d r) const;
+
+
+
 };
 }  // namespace xtp
 }  // namespace votca
