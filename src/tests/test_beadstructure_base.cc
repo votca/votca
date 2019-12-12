@@ -47,6 +47,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_add_and_getbead) {
   BeadStructure beadstructure;
   TestBead testbead;
   testbead.setId(2);
+  testbead.setName("Carbon");
   beadstructure.AddBead(testbead);
   BOOST_CHECK_EQUAL(beadstructure.BeadCount(), 1);
   BOOST_CHECK(beadstructure.BeadExist(2));
