@@ -31,9 +31,29 @@
 namespace votca {
 namespace csg {
 
+/**
+ * @brief Maps a reduced edge to all the edges that make up the reduced edge
+ *
+ * Reduced edge
+ *
+ * 0 - 4
+ *
+ * Will point to explicit edges:
+ *
+ * 0 - 1 - 2 - 3 - 4
+ *
+ * Each of these explicit edges will point back to the reduced edge
+ *
+ * Explicit Edges       Reduced Edge
+ *
+ *      0 - 1      ->       0 - 4
+ *      1 - 2      ->       0 - 4
+ *      2 - 3      ->       0 - 4
+ *      3 - 4      ->       0 - 4
+ */
 typedef boost::bimap<boost::bimaps::multiset_of<tools::Edge>,
                      boost::bimaps::set_of<tools::Edge>>
-    boost_bimap;
+    reduced_edge_to_edges_map;
 
 /**
  * \brief Simple class for storing the connections between motifs and the
@@ -72,7 +92,8 @@ class BeadMotifConnector {
   std::unordered_set<tools::Edge> getMotifEdges();
 
  private:
-  boost_bimap motif_and_bead_edges_;
+  reduced_edge_to_edges_map;
+  motif_and_bead_edges_;
 };
 
 }  // namespace csg
