@@ -50,6 +50,8 @@ vector<Edge> BeadMotifConnector::getBeadEdges() const noexcept {
 }
 
 Edge BeadMotifConnector::getMotifEdge(const Edge& bead_edge) const {
+  assert(motif_and_bead_edges_.right.count(bead_edge) &&
+         "bead_edge is not contained in beadmotifconnector.");
   return motif_and_bead_edges_.right.at(bead_edge);
 }
 
