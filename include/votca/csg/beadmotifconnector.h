@@ -80,7 +80,8 @@ typedef boost::bimap<boost::bimaps::multiset_of<tools::Edge>,
  **/
 class BeadMotifConnector {
  public:
-  void AddMotifAndBeadEdge(tools::Edge motif_edge, tools::Edge bead_edge);
+  void AddMotifAndBeadEdge(const tools::Edge& motif_edge,
+                           const tools::Edge& bead_edge);
   /// Returns the bead edges connecting the motifs specified by motif_edge
   std::vector<tools::Edge> getBeadEdges(const tools::Edge& motif_edge) const;
   /// Returns all the bead edges connecting the motifs
@@ -92,8 +93,7 @@ class BeadMotifConnector {
   std::unordered_set<tools::Edge> getMotifEdges() const;
 
  private:
-  reduced_edge_to_edges_map;
-  motif_and_bead_edges_;
+  reduced_edge_to_edges_map motif_and_bead_edges_;
 };
 
 }  // namespace csg
