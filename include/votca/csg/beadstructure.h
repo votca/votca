@@ -123,7 +123,7 @@ class BeadStructure {
   std::string structure_id_ = "";
   tools::Graph graph_;
   std::set<tools::Edge> connections_;
-  std::unordered_map<Index,const T *> beads_;
+  std::unordered_map<Index, const T *> beads_;
   std::unordered_map<Index, tools::GraphNode> graphnodes_;
 };
 
@@ -139,7 +139,7 @@ void BeadStructure<T>::InitializeGraph_() {
       connections_vector.push_back(edge);
     }
 
-    for (std::pair<const Index,const T *> &id_bead_ptr_pair : beads_) {
+    for (std::pair<const Index, const T *> &id_bead_ptr_pair : beads_) {
       graphnodes_[id_bead_ptr_pair.first] =
           BaseBeadToGraphNode_(id_bead_ptr_pair.second);
     }
