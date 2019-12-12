@@ -36,8 +36,16 @@ enum MassUnit {
 
 enum TimeUnit { seconds, microseconds, nanoseconds, femtoseconds, picoseconds };
 
-enum EnergyUnit { electron_volts, kilocalories, hartrees, joules };
-
+enum EnergyUnit {
+  electron_volts,
+  kilocalories,
+  hartrees,
+  joules,
+  kilojoules,
+  kilojoules_per_mole,
+  joules_per_mole,
+  kilocalories_per_mole
+};
 /**
  * @brief Class converts between different unit types
  */
