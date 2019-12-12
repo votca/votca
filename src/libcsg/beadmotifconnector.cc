@@ -25,11 +25,12 @@ namespace csg {
 
 using element = reduced_edge_to_edges_map::value_type;
 
-void BeadMotifConnector::AddMotifAndBeadEdge(Edge motif_edge, Edge bead_edge) {
+void BeadMotifConnector::AddMotifAndBeadEdge(const Edge& motif_edge,
+                                             const Edge& bead_edge) {
   motif_and_bead_edges_.insert(element(motif_edge, bead_edge));
 }
 
-vector<Edge> BeadMotifConnector::getBeadEdges(Edge motif_edge) {
+vector<Edge> BeadMotifConnector::getBeadEdges(const Edge& motif_edge) {
   auto left_iterator_range = motif_and_bead_edges_.left.equal_range(motif_edge);
   vector<Edge> bead_edges;
   for (auto iterator = left_iterator_range.first;
