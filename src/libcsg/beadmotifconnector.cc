@@ -40,7 +40,7 @@ vector<Edge> BeadMotifConnector::getBeadEdges(const Edge& motif_edge) const {
   return bead_edges;
 }
 
-vector<Edge> BeadMotifConnector::getBeadEdges() const {
+vector<Edge> BeadMotifConnector::getBeadEdges() const noexcept {
   vector<Edge> bead_edges;
   for (auto left_iterator = motif_and_bead_edges_.left.begin();
        left_iterator != motif_and_bead_edges_.left.end(); ++left_iterator) {
@@ -53,7 +53,7 @@ Edge BeadMotifConnector::getMotifEdge(const Edge& bead_edge) const {
   return motif_and_bead_edges_.right.at(bead_edge);
 }
 
-unordered_set<Edge> BeadMotifConnector::getMotifEdges() const {
+unordered_set<Edge> BeadMotifConnector::getMotifEdges() const noexcept {
   unordered_set<Edge> motif_edges;
   for (auto left_iterator = motif_and_bead_edges_.left.begin();
        left_iterator != motif_and_bead_edges_.left.end(); ++left_iterator) {
