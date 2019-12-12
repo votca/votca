@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   testbead12.setId(12);
 
   // Methane
-  BeadStructure<BaseBead> beadstructure_methane;
+  BeadStructure beadstructure_methane;
   beadstructure_methane.AddBead(testbead1);
   beadstructure_methane.AddBead(testbead2);
   beadstructure_methane.AddBead(testbead3);
@@ -100,17 +100,17 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   beadstructure_methane.AddBead(testbead5);
 
   // Water
-  BeadStructure<BaseBead> beadstructure_water;
+  BeadStructure beadstructure_water;
   beadstructure_water.AddBead(testbead6);
   beadstructure_water.AddBead(testbead7);
   beadstructure_water.AddBead(testbead8);
 
   // Helium
-  BeadStructure<BaseBead> beadstructure_helium;
+  BeadStructure beadstructure_helium;
   beadstructure_helium.AddBead(testbead12);
 
   // Methane and Water and Helium
-  BeadStructure<BaseBead> beadstructure;
+  BeadStructure beadstructure;
   beadstructure.AddBead(testbead1);
   beadstructure.AddBead(testbead2);
   beadstructure.AddBead(testbead3);
@@ -139,8 +139,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   beadstructure.ConnectBeads(6, 7);
   beadstructure.ConnectBeads(7, 8);
   cout << "Calling break into structures " << endl;
-  vector<BeadStructure<BaseBead>> structures =
-      breakIntoStructures(beadstructure);
+  vector<BeadStructure> structures = breakIntoStructures(beadstructure);
 
   BOOST_CHECK_EQUAL(structures.size(), 2);
   cout << "Bead Count 1 " << structures.at(0).BeadCount() << endl;

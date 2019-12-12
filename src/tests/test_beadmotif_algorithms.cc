@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_SUITE(beadmotif_algorithms_test)
 
 BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
 
-  BeadStructure<BaseBead> beadstructure1;
+  BeadStructure beadstructure1;
 
   // Beads for bead structure 1
   // Make a methane molecule
@@ -213,7 +213,7 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
 
 BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs) {
 
-  BeadStructure<BaseBead> beadstructure1;
+  BeadStructure beadstructure1;
 
   // Beads for bead structure 1
   // Make a methane molecule
@@ -307,7 +307,7 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs) {
 
 BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs2) {
 
-  BeadStructure<BaseBead> beadstructure1;
+  BeadStructure beadstructure1;
 
   // Beads for bead structure 1
   //
@@ -400,7 +400,7 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs2) {
 
 BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs3) {
 
-  BeadStructure<BaseBead> beadstructure1;
+  BeadStructure beadstructure1;
 
   // Beads for bead structure 1
   //
