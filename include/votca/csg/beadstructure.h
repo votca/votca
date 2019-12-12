@@ -47,7 +47,7 @@ namespace csg {
  **/
 class BeadStructure {
  public:
-  ~BeadStructure() = default;
+  virtual ~BeadStructure() = default;
 
   /**
    * @brief Given indices and edges that exist are a subset of beadstructure,
