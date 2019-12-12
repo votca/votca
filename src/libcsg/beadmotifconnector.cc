@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/beadmotifconnector.h>
+#include "../../include/votca/csg/beadmotifconnector.h"
 
 using namespace std;
 using namespace votca::tools;
