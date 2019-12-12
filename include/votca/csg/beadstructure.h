@@ -53,8 +53,14 @@ class BeadStructure {
    * @brief Given indices and edges that exist are a subset of beadstructure,
    * return the sub-beadstructure
    *
-   * @param Indices of the substructure
-   * @param Edges of the substructure
+   * If the edges and and indices passed in do not exist within the current
+   * BeadStructure a runtime exception is thrown, as the the sub structure is
+   * not actually a sub structure of the current BeadStructure.
+   *
+   * @param Indices of the substructure, must exist within the current
+   * BeadStructure
+   * @param Edges of the substructure, must exist within the current
+   * BeadStructure
    *
    * @return BeadStructure which is a substructure of BeadStructure
    */
