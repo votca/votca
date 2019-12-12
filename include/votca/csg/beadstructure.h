@@ -49,8 +49,18 @@ class BeadStructure {
  public:
   ~BeadStructure() = default;
 
+  /**
+   * @brief Given indices and edges that exist are a subset of beadstructure,
+   * return the sub-beadstructure
+   *
+   * @param Indices of the substructure
+   * @param Edges of the substructure
+   *
+   * @return BeadStructure which is a substructure of BeadStructure
+   */
   BeadStructure getSubStructure(const std::vector<Index> &,
                                 const std::vector<tools::Edge> &) const;
+
   /**
    * \brief Determine if the bead structure consists of a single connected
    * structure
@@ -89,6 +99,7 @@ class BeadStructure {
   std::vector<Index> getNeighBeadIds(const Index &index);
 
   tools::Graph getGraph();
+
   /**
    * \brief Compare the topology of two bead structures
    *
