@@ -75,12 +75,11 @@ class BeadStructure {
    *
    * The same bead cannot be added twice.
    **/
-  void AddBead(T &bead);
+  void AddBead(const T &bead);
 
   /**
    * \brief Get the bead with the specified id
    **/
-  T &getBead(const Index &id);
   const T &getBead(const Index &id) const;
 
   /**
@@ -94,7 +93,7 @@ class BeadStructure {
   /**
    * \brief Return a vector of all the beads neighboring the index
    **/
-  std::vector<T *> getNeighBeads(Index index);
+  std::vector<const T *> getNeighBeads(Index index);
 
   tools::Graph getGraph();
   /**
@@ -115,7 +114,7 @@ class BeadStructure {
  protected:
   void InitializeGraph_();
   void CalculateStructure_();
-  tools::GraphNode BaseBeadToGraphNode_(T *basebead);
+  tools::GraphNode BaseBeadToGraphNode_(const T *basebead);
 
   bool structureIdUpToDate = false;
   bool graphUpToDate = false;
@@ -124,7 +123,7 @@ class BeadStructure {
   std::string structure_id_ = "";
   tools::Graph graph_;
   std::set<tools::Edge> connections_;
-  std::unordered_map<Index, T *> beads_;
+  std::unordered_map<Index,const T *> beads_;
   std::unordered_map<Index, tools::GraphNode> graphnodes_;
 };
 
@@ -140,7 +139,7 @@ void BeadStructure<T>::InitializeGraph_() {
       connections_vector.push_back(edge);
     }
 
-    for (std::pair<const Index, T *> &id_bead_ptr_pair : beads_) {
+    for (std::pair<const Index,const T *> &id_bead_ptr_pair : beads_) {
       graphnodes_[id_bead_ptr_pair.first] =
           BaseBeadToGraphNode_(id_bead_ptr_pair.second);
     }
@@ -160,7 +159,7 @@ void BeadStructure<T>::CalculateStructure_() {
 }
 
 template <class T>
-tools::GraphNode BeadStructure<T>::BaseBeadToGraphNode_(T *basebead) {
+tools::GraphNode BeadStructure<T>::BaseBeadToGraphNode_(const T *basebead) {
   std::unordered_map<std::string, double> attributes1;
   std::unordered_map<std::string, std::string> attributes2;
 
@@ -180,7 +179,7 @@ tools::GraphNode BeadStructure<T>::BaseBeadToGraphNode_(T *basebead) {
  ***************************/
 
 template <class T>
-void BeadStructure<T>::AddBead(T &bead) {
+void BeadStructure<T>::AddBead(const T &bead) {
   if (beads_.count(bead.getId())) {
     std::string err = "Cannot add bead with Id ";
     err += std::to_string(bead.getId());
@@ -268,32 +267,25 @@ bool BeadStructure<T>::isStructureEquivalent(BeadStructure<T> &beadstructure) {
 }
 
 template <class T>
-std::vector<T *> BeadStructure<T>::getNeighBeads(Index index) {
+std::vector<const T *> BeadStructure<T>::getNeighBeads(Index index) {
   if (!graphUpToDate) {
     InitializeGraph_();
   }
   std::vector<Index> neighbor_ids = graph_.getNeighVertices(index);
-  std::vector<T *> neighbeads;
+  std::vector<const T *> neighbeads;
   for (Index &node_id : neighbor_ids) {
-    neighbeads.push_back(beads_[node_id]);
+    neighbeads.push_back(beads_.at(node_id));
   }
   return neighbeads;
 }
 
 template <class T>
-T &BeadStructure<T>::getBead(const Index &index) {
-  assert(beads_.count(index));
-  return *beads_[index];
-}
-
-template <class T>
 const T &BeadStructure<T>::getBead(const Index &index) const {
   assert(beads_.count(index));
-  return *beads_[index];
+  return *beads_.at(index);
 }
 
 }  // namespace csg
 }  // namespace votca
 
 #endif  // VOTCA_CSG_BEADSTRUCTURE_H
-#
