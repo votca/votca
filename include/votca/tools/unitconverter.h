@@ -46,6 +46,8 @@ enum EnergyUnit {
   joules_per_mole,
   kilocalories_per_mole
 };
+
+enum ChargeUnit { e, coulombs };
 /**
  * @brief Class converts between different unit types
  */
