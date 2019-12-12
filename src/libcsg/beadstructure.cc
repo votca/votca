@@ -81,9 +81,28 @@ BeadStructure BeadStructure::getSubStructure(
     const std::vector<tools::Edge> &connections) const {
   BeadStructure new_beadstructure;
   for (const Index &bead_id : bead_ids) {
+    if (beads_.count(bead_id) == 0) {
+      string error_msg =
+          "Cannot get bead substructure from current "
+          "BeadStructure, bead with id " +
+          to_string(bead_id) +
+          " is not found in"
+          " the BeadStructure";
+      throw runtime_error(error_msg);
+    }
     new_beadstructure.beads_[bead_id] = beads_.at(bead_id);
   }
   for (const tools::Edge &edge : connections) {
+    if (connections_.count(edge) == 0) {
+      string error_msg =
+          "Cannot get bead substructure from current "
+          "BeadStructure, edge between beads " +
+          to_string(edge.getEndPoint1()) + " and " +
+          to_string(edge.getEndPoint2()) +
+          " is not found in the "
+          "BeadStructure";
+      throw runtime_error(error_msg);
+    }
     new_beadstructure.ConnectBeads(edge.getEndPoint1(), edge.getEndPoint2());
   }
   return new_beadstructure;
