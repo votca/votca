@@ -16,8 +16,8 @@
  */
 
 #pragma once
-#ifndef _VOTCA_CSG_BEADMOTIFCONNECTOR_H
-#define _VOTCA_CSG_BEADMOTIFCONNECTOR_H
+#ifndef VOTCA_CSG_BEADMOTIFCONNECTOR_H
+#define VOTCA_CSG_BEADMOTIFCONNECTOR_H
 
 #include <unordered_set>
 #include <vector>
@@ -80,4 +80,4 @@ class BeadMotifConnector {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_BEADMOTIFCONNECTOR_H
+#endif  // VOTCA_CSG_BEADMOTIFCONNECTOR_H
