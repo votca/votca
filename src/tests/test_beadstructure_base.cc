@@ -22,7 +22,7 @@
 #include <stdexcept>
 #include <votca/csg/basebead.h>
 #include <votca/csg/beadstructure.h>  // IWYU pragma: keep
-
+#include <votca/tools/types.h>
 using namespace std;
 using namespace votca::csg;
 
@@ -34,16 +34,16 @@ class TestBead : public BaseBead {
 BOOST_AUTO_TEST_SUITE(beadstructure_test)
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_constructor) {
-  BeadStructure<TestBead> beadstructure;
+  BeadStructure beadstructure;
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_beadcount) {
-  BeadStructure<TestBead> beadstructure;
+  BeadStructure beadstructure;
   BOOST_CHECK_EQUAL(beadstructure.BeadCount(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_add_and_getbead) {
-  BeadStructure<TestBead> beadstructure;
+  BeadStructure beadstructure;
   TestBead testbead;
   testbead.setId(2);
   beadstructure.AddBead(testbead);
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_add_and_getbead) {
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_ConnectBeads) {
-  BeadStructure<TestBead> beadstructure;
+  BeadStructure beadstructure;
   TestBead testbead1;
   testbead1.setId(1);
   testbead1.setName("Carbon");
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_ConnectBeads) {
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleStructure) {
-  BeadStructure<TestBead> beadstructure;
+  BeadStructure beadstructure;
 
   TestBead testbead1;
   testbead1.setName("Carbon");
@@ -111,8 +111,8 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleStructure) {
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_isStructureEquivalent) {
-  BeadStructure<TestBead> beadstructure1;
-  BeadStructure<TestBead> beadstructure2;
+  BeadStructure beadstructure1;
+  BeadStructure beadstructure2;
 
   // Beads for bead structure 1
   TestBead testbead1;
@@ -184,8 +184,8 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_isStructureEquivalent) {
   BOOST_CHECK(beadstructure1.isStructureEquivalent(beadstructure2));
 }
 
-BOOST_AUTO_TEST_CASE(test_beadstructure_getNeighBeads) {
-  BeadStructure<TestBead> beadstructure1;
+BOOST_AUTO_TEST_CASE(test_beadstructure_getNeighBeadIds) {
+  BeadStructure beadstructure1;
 
   // Beads for bead structure 1
   // Make a methane molecule
@@ -244,21 +244,21 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_getNeighBeads) {
 
   // At this point non of the beads are connected so should return a vector of
   // size 0
-  auto v1 = beadstructure1.getNeighBeads(1);
+  auto v1 = beadstructure1.getNeighBeadIds(1);
   BOOST_CHECK_EQUAL(v1.size(), 0);
-  auto v2 = beadstructure1.getNeighBeads(2);
+  auto v2 = beadstructure1.getNeighBeadIds(2);
   BOOST_CHECK_EQUAL(v2.size(), 0);
-  auto v3 = beadstructure1.getNeighBeads(3);
+  auto v3 = beadstructure1.getNeighBeadIds(3);
   BOOST_CHECK_EQUAL(v3.size(), 0);
-  auto v4 = beadstructure1.getNeighBeads(4);
+  auto v4 = beadstructure1.getNeighBeadIds(4);
   BOOST_CHECK_EQUAL(v4.size(), 0);
-  auto v5 = beadstructure1.getNeighBeads(5);
+  auto v5 = beadstructure1.getNeighBeadIds(5);
   BOOST_CHECK_EQUAL(v5.size(), 0);
-  auto v6 = beadstructure1.getNeighBeads(1);
+  auto v6 = beadstructure1.getNeighBeadIds(1);
   BOOST_CHECK_EQUAL(v6.size(), 0);
-  auto v7 = beadstructure1.getNeighBeads(7);
+  auto v7 = beadstructure1.getNeighBeadIds(7);
   BOOST_CHECK_EQUAL(v7.size(), 0);
-  auto v8 = beadstructure1.getNeighBeads(8);
+  auto v8 = beadstructure1.getNeighBeadIds(8);
   BOOST_CHECK_EQUAL(v8.size(), 0);
 
   // Connect beads
@@ -269,21 +269,21 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_getNeighBeads) {
   beadstructure1.ConnectBeads(6, 7);
   beadstructure1.ConnectBeads(7, 8);
 
-  v1 = beadstructure1.getNeighBeads(1);
+  v1 = beadstructure1.getNeighBeadIds(1);
   BOOST_CHECK_EQUAL(v1.size(), 1);
-  v2 = beadstructure1.getNeighBeads(2);
+  v2 = beadstructure1.getNeighBeadIds(2);
   BOOST_CHECK_EQUAL(v2.size(), 4);
-  v3 = beadstructure1.getNeighBeads(3);
+  v3 = beadstructure1.getNeighBeadIds(3);
   BOOST_CHECK_EQUAL(v3.size(), 1);
-  v4 = beadstructure1.getNeighBeads(4);
+  v4 = beadstructure1.getNeighBeadIds(4);
   BOOST_CHECK_EQUAL(v4.size(), 1);
-  v5 = beadstructure1.getNeighBeads(5);
+  v5 = beadstructure1.getNeighBeadIds(5);
   BOOST_CHECK_EQUAL(v5.size(), 1);
-  v6 = beadstructure1.getNeighBeads(1);
+  v6 = beadstructure1.getNeighBeadIds(1);
   BOOST_CHECK_EQUAL(v6.size(), 1);
-  v7 = beadstructure1.getNeighBeads(7);
+  v7 = beadstructure1.getNeighBeadIds(7);
   BOOST_CHECK_EQUAL(v7.size(), 2);
-  v8 = beadstructure1.getNeighBeads(8);
+  v8 = beadstructure1.getNeighBeadIds(8);
   BOOST_CHECK_EQUAL(v8.size(), 1);
 }
 
@@ -314,7 +314,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_catchError) {
     testbead6.setName("Hydrogen");
     testbead6.setId(5);
 
-    BeadStructure<TestBead> beadstructure;
+    BeadStructure beadstructure;
     beadstructure.AddBead(testbead1);
     beadstructure.AddBead(testbead2);
     beadstructure.AddBead(testbead3);
