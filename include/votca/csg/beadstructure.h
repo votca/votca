@@ -146,7 +146,10 @@ void BeadStructure::AddBead(const T &bead) {
   }
   UpdateOnBeadAddition_();
   size_t numberOfBeads = beads_.size();
-  BeadInfo bead_info = {.mass = bead.getMass(), .name = bead.getName()};
+  BeadInfo bead_info;
+  bead_info.mass = bead.getMass();
+  bead_info.name = bead.getName();
+
   beads_[bead.getId()] = bead_info;
 
   if (numberOfBeads != beads_.size()) {
