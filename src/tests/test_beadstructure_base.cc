@@ -64,6 +64,24 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_ConnectBeads) {
   beadstructure.ConnectBeads(1, 2);
 }
 
+BOOST_AUTO_TEST_CASE(test_beadstructure_getBeadIds) {
+  BeadStructure beadstructure;
+  TestBead testbead1;
+  testbead1.setId(1);
+  testbead1.setName("Carbon");
+  TestBead testbead2;
+  testbead2.setId(2);
+  testbead2.setName("Carbon");
+  beadstructure.AddBead(testbead1);
+  beadstructure.AddBead(testbead2);
+
+  vector<votca::Index> bead_ids = beadstructure.getBeadIds();
+  BOOST_CHECK_EQUAL(bead_ids.size(), 2);
+  sort(bead_ids.begin(), bead_ids.end());
+  BOOST_CHECK_EQUAL(bead_ids.at(0), 1);
+  BOOST_CHECK_EQUAL(bead_ids.at(1), 2);
+}
+
 BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleStructure) {
   BeadStructure beadstructure;
 
