@@ -30,6 +30,7 @@ enum MassUnit {
   picograms,
   femtograms,
   atomic_mass_units,
+  grams_per_mole, // the same as atomic mass units
   kilograms,
   grams
 };
@@ -116,6 +117,8 @@ class UnitConverter {
       case MassUnit::attograms:
         return 60221366517;
       case MassUnit::atomic_mass_units:
+        return 1.0;
+      case MassUnit::grams_per_mole:
         return 1.0;
     }
     return 0.0;
