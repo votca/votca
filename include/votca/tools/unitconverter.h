@@ -106,15 +106,15 @@ class UnitConverter {
   constexpr double getMassValue_(const MassUnit& enum_type) const noexcept {
     switch (enum_type) {
       case MassUnit::kilograms:
-        return 6.02214E26;
+        return 6.0221366517E26;
       case MassUnit::grams:
-        return 6.02214E23;
+        return 6.0221366517E23;
       case MassUnit::picograms:
-        return 6.02214E14;
+        return 6.0221366517E14;
       case MassUnit::femtograms:
-        return 6.02214E11;
+        return 6.0221366517E11;
       case MassUnit::attograms:
-        return 602214;
+        return 60221366517;
       case MassUnit::atomic_mass_units:
         return 1.0;
     }
