@@ -80,7 +80,7 @@ class UnitConverter {
       case DistanceUnit::angstroms:
         return 1.0;
       case DistanceUnit::bohr:
-        return 0.529177;
+        return 0.52917721092;
     }
     return 0.0;
   }
