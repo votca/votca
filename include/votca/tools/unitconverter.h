@@ -153,7 +153,7 @@ class UnitConverter {
       case ChargeUnit::e:
         return 1.0;
       case ChargeUnit::coulombs:
-        return 1.602176565E-19;
+        return 1/(1.602176565E-19);
     }
     return 0.0;
   }
