@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_energy) {
   energy_new =
       converter.convert(EnergyUnit::electron_volts, EnergyUnit::kilojoules) *
       energy;
-  BOOST_CHECK_CLOSE(3.67493E-5, energy_new, 0.01);
+  BOOST_CHECK_CLOSE(1.602176E-22, energy_new, 0.01);
 
   energy_new =
       converter.convert(EnergyUnit::electron_volts, EnergyUnit::kilojoules_per_mole) *
@@ -140,6 +140,15 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_energy) {
       converter.convert(EnergyUnit::electron_volts, EnergyUnit::kilocalories_per_mole) *
       energy;
   BOOST_CHECK_CLOSE(0.04336, energy_new, 0.01);
+}
+
+BOOST_AUTO_TEST_CASE(unitconverter_test_charge) {
+  UnitConverter converter;
+
+  double charge = 1;  // Assuming in units of e
+  double charge_new = converter.convert(ChargeUnit::e,
+                                        ChargeUnit::coulombs) * charge;
+  BOOST_CHECK_CLOSE(1.6021764E-19, charge_new, 0.01 );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
