@@ -89,7 +89,12 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_mass) {
   mass_new =
       converter.convert(MassUnit::kilograms, MassUnit::atomic_mass_units) *
       mass;
-  BOOST_CHECK_CLOSE(6.022E26, mass_new, 0.01);
+  BOOST_CHECK_CLOSE(6.02213665E26, mass_new, 0.01);
+
+  mass_new =
+      converter.convert(MassUnit::kilograms, MassUnit::grams_per_mole) *
+      mass;
+  BOOST_CHECK_CLOSE(6.02213665E26, mass_new, 0.01);
 }
 
 BOOST_AUTO_TEST_CASE(unitconverter_test_energy) {
