@@ -171,6 +171,27 @@ class UnitConverter {
       return 0.0;
     }
 
+   /// Default force unit is the kilojoules per mole nanometer
+  constexpr double getForceValue_(const ForceUnit& enum_type) const noexcept {
+    switch (enum_type) {
+      case ForceUnit::kilocalories_per_mole_angstrom:
+        return convert(EnergyUnit::kilojoules_per_mole,
+            EnergyUnit::kilocalories_per_mole) /
+          convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
+      case ForceUnit::newtons:
+        return convert(EnergyUnit::kilojoules, EnergyUnit::joules) /
+          convert(DistanceUnit::nanometers, DistanceUnit::meters);
+      case ForceUnit::kilojoules_per_mole_nanometer:
+        return 1.0;
+      case ForceUnit::kilojoules_per_mole_angstrom:
+        return 10.0;
+      case ForceUnit::hatree_per_bohr:
+        return convert(EnergyUnit::kilojoules_per_mole, EnergyUnit::hartrees) /
+          convert(DistanceUnit::nanometers, DistanceUnit::bohr);
+    }
+    return 0.0;
+  }
+
  public:
   constexpr double convert(const DistanceUnit& from,
                            const DistanceUnit& to) const noexcept {
