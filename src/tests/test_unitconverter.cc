@@ -120,6 +120,26 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_energy) {
       converter.convert(EnergyUnit::electron_volts, EnergyUnit::hartrees) *
       energy;
   BOOST_CHECK_CLOSE(0.0367493, energy_new, 0.01);
+
+  energy_new =
+      converter.convert(EnergyUnit::electron_volts, EnergyUnit::kilojoules) *
+      energy;
+  BOOST_CHECK_CLOSE(3.67493E-5, energy_new, 0.01);
+
+  energy_new =
+      converter.convert(EnergyUnit::electron_volts, EnergyUnit::kilojoules_per_mole) *
+      energy;
+  BOOST_CHECK_CLOSE(0.010364, energy_new, 0.01);
+
+  energy_new =
+      converter.convert(EnergyUnit::electron_volts, EnergyUnit::joules_per_mole) *
+      energy;
+  BOOST_CHECK_CLOSE(1.0364E-5, energy_new, 0.01);
+
+  energy_new =
+      converter.convert(EnergyUnit::electron_volts, EnergyUnit::kilocalories_per_mole) *
+      energy;
+  BOOST_CHECK_CLOSE(0.04336, energy_new, 0.01);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
