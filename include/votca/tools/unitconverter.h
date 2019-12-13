@@ -145,6 +145,17 @@ class UnitConverter {
     return 0.0;
   }
 
+  /// All charge in terms of elementary charge e
+  constexpr double getChargeValue_(const ChargeUnit& enum_type) const noexcept {
+    switch (enum_type) {
+      case ChargeUnit::e:
+        return 1.0;
+      case ChargeUnit::coulombs:
+        return 1.602176565E-19;
+    }
+    return 0.0;
+  }
+
  public:
   constexpr double convert(const DistanceUnit& from,
                            const DistanceUnit& to) const noexcept {
