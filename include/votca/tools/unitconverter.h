@@ -48,6 +48,12 @@ enum EnergyUnit {
 };
 
 enum ChargeUnit { e, coulombs };
+
+enum VelocityUnit {
+  angstroms_per_femtosecond,
+  angstroms_per_picosecond,
+  nanometers_per_picosecond
+};
 /**
  * @brief Class converts between different unit types
  */
