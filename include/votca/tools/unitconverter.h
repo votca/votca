@@ -209,6 +209,18 @@ class UnitConverter {
       noexcept {
     return getEnergyValue_(from) / getEnergyValue_(to);
   }
+  constexpr double convert(const ChargeUnit& from, const ChargeUnit& to) const
+    noexcept {
+      return getChargeValue_(from) / getChargeValue_(to);
+    }
+  constexpr double convert(const VelocityUnit& from,
+      const VelocityUnit& to) const noexcept {
+    return getVelocityValue_(from) / getVelocityValue_(to);
+  }
+  constexpr double convert(const ForceUnit& from, const ForceUnit& to) const
+    noexcept {
+      return getForceValue_(from) / getForceValue_(to);
+    }
 };
 }  // namespace tools
 }  // namespace votca
