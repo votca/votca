@@ -127,12 +127,18 @@ class UnitConverter {
   /// All energies in terms of electron volts
   constexpr double getEnergyValue_(const EnergyUnit& enum_type) const noexcept {
     switch (enum_type) {
+      case EnergyUnit::kilojoules_per_mole:
+        return 96.4853074993;
+      case EnergyUnit::joules_per_mole:
+        return 96.4853074993E3;
+      case EnergyUnit::kilocalories_per_mole:
+        return 23.061;
       case EnergyUnit::kilocalories:
         return 2.613195131836172E22;
       case EnergyUnit::joules:
-        return 6.242E18;
+        return 6.2415097E18;
       case EnergyUnit::hartrees:
-        return 27.2114;
+        return 27.211368602;
       case EnergyUnit::electron_volts:
         return 1.0;
     }
