@@ -115,7 +115,7 @@ class UnitConverter {
       case MassUnit::femtograms:
         return 6.0221366517E11;
       case MassUnit::attograms:
-        return 60221366517;
+        return 602213.66517;
       case MassUnit::atomic_mass_units:
         return 1.0;
       case MassUnit::grams_per_mole:
@@ -135,6 +135,8 @@ class UnitConverter {
         return 23.061;
       case EnergyUnit::kilocalories:
         return 2.613195131836172E22;
+      case EnergyUnit::kilojoules:
+        return 6.2415097E21;
       case EnergyUnit::joules:
         return 6.2415097E18;
       case EnergyUnit::hartrees:
