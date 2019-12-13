@@ -156,6 +156,21 @@ class UnitConverter {
     return 0.0;
   }
 
+  /// All velocities in terms of nanometers per picosecond
+  constexpr double getVelocityValue_(const VelocityUnit& enum_type) const
+    noexcept {
+      switch (enum_type) {
+        case VelocityUnit::nanometers_per_picosecond:
+          return 1.0;
+        case VelocityUnit::angstroms_per_picosecond:
+          return convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
+        case VelocityUnit::angstroms_per_femtosecond:
+          return convert(DistanceUnit::nanometers, DistanceUnit::angstroms) /
+            convert(TimeUnit::picoseconds, TimeUnit::femtoseconds);
+      }
+      return 0.0;
+    }
+
  public:
   constexpr double convert(const DistanceUnit& from,
                            const DistanceUnit& to) const noexcept {
