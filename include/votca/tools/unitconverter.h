@@ -54,6 +54,14 @@ enum VelocityUnit {
   angstroms_per_picosecond,
   nanometers_per_picosecond
 };
+
+enum ForceUnit {
+  kilocalories_per_mole_angstrom,
+  newtons,
+  kilojoules_per_mole_nanometer,
+  kilojoules_per_mole_angstrom,
+  hatree_per_bohr
+};
 /**
  * @brief Class converts between different unit types
  */
