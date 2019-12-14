@@ -61,7 +61,7 @@ masses=mass*np.ones(atomnumber)
 system = espressomd.System(box_l=box_length, time_step=time_step)
 system.cell_system.skin = skin
 system.set_random_state_PRNG()
-system.thermostat.set_langevin(kT=1., gamma=1.)
+system.thermostat.set_langevin(kT=1., gamma=1., seed=123)
 system.part.add(pos=positions, mass=masses)
 
 print("number of particles: ", len(system.part))
