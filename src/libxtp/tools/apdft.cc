@@ -15,40 +15,40 @@
  *
  */
 
-#include "apft.h"
-
-using namespace std;
+#include "apdft.h"
+#include <votca/xtp/density_integration.h>
+#include <votca/xtp/orbitals.h>
+#include <votca/xtp/vxc_grid.h>
 
 namespace votca {
 namespace xtp {
 
 void APDFT::Initialize(tools::Property &opt) {
 
-  std::string key = "options." + Identify();
+  std::string key = "opt." + Identify();
 
   _grid_accuracy =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".grid");
-  _orbfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".orbfile");
+      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".grid");
+  _orbfile =
+      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".orbfile");
   _outputfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".output");
+      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".output");
   std::string statestring =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
+      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
   _state.FromString(statestring);
 }
-}  // namespace xtp
 
 bool APDFT::Evaluate() {
 
   Orbitals orb;
   orb.ReadFromCpt(_orbfile);
   AOBasis basis = orb.SetupDftBasis();
-  Vxc_grid grid;
+  Vxc_Grid grid;
   grid.GridSetup(_grid_accuracy, orb.QMAtoms(), basis);
 
-  DensityIntegration<Vxc_grid> integration(grid);
+  DensityIntegration<Vxc_Grid> integration(grid);
 
-  integration.IntegrateDensity(orb.FullDensityMatrix(_state));
+  integration.IntegrateDensity(orb.DensityMatrixFull(_state));
   std::vector<double> potential_values;
   potential_values.reserve(orb.QMAtoms().size());
   for (const auto &atom : orb.QMAtoms()) {
@@ -56,15 +56,15 @@ bool APDFT::Evaluate() {
   }
 
   std::fstream outfile;
-  ratefs.open(_outputfile, std::fstream::out);
-  ratefs << "AtomId, Element, Potential[Hartree]" << std::endl;
+  outfile.open(_outputfile, std::fstream::out);
+  outfile << "AtomId, Element, Potential[Hartree]" << std::endl;
   for (Index i = 0; i < orb.QMAtoms().size(); i++) {
-    ratefs << orb.QMAtoms()[i].getId() << " " << orb.QMAtoms()[i].getElement()
-           << " " << potential_values[i] << std::endl;
+    outfile << orb.QMAtoms()[i].getId() << " " << orb.QMAtoms()[i].getElement()
+            << " " << potential_values[i] << std::endl;
   }
-  ratefs.close();
+  outfile.close();
   return true;
 }
 
-}  // namespace votca
+}  // namespace xtp
 }  // namespace votca

@@ -21,8 +21,6 @@
 #ifndef _VOTCA_XTP_TOOLS_APDFT_H
 #define _VOTCA_XTP_TOOLS_APDFT_H
 
-#include <votca/tools/densityintegration.h>
-#include <votca/xtp/orbitals.h>
 #include <votca/xtp/qmstate.h>
 #include <votca/xtp/qmtool.h>
 
