@@ -37,15 +37,22 @@ enum MassUnit {
 
 enum TimeUnit { seconds, microseconds, nanoseconds, femtoseconds, picoseconds };
 
+// Extrinsic Energy Units
 enum EnergyUnit {
   electron_volts,
   kilocalories,
   hartrees,
   joules,
   kilojoules,
+};
+
+// Intrinsic Energy Units
+enum MolarEnergyUnit {
   kilojoules_per_mole,
   joules_per_mole,
-  kilocalories_per_mole
+  kilocalories_per_mole,
+  electron_volts_per_mole,
+  hartrees_per_mole
 };
 
 enum ChargeUnit { e, coulombs };
@@ -56,13 +63,24 @@ enum VelocityUnit {
   nanometers_per_picosecond
 };
 
+// Extrinsic Force Units
 enum ForceUnit {
-  kilocalories_per_mole_angstrom,
+  kilocalories_per_angstrom,
   newtons,
-  kilojoules_per_mole_nanometer,
-  kilojoules_per_mole_angstrom,
+  kilojoules_per_nanometer,
+  kilojoules_per_angstrom,
   hatree_per_bohr
 };
+
+// Intrinsic Force Units
+enum MolarForceUnit {
+  kilocalories_per_mole_angstrom,
+  newtons_per_mole,
+  kilojoules_per_mole_nanometer,
+  kilojoules_per_mole_angstrom,
+  hatree_per_mole_bohr
+};
+
 /**
  * @brief Class converts between different unit types
  */
@@ -73,15 +91,15 @@ class UnitConverter {
       noexcept {
     switch (enum_type) {
       case DistanceUnit::meters:
-        return 1E10;
+        return 1E-10;
       case DistanceUnit::centimeters:
-        return 1E8;
+        return 1E-8;
       case DistanceUnit::nanometers:
-        return 10.0;
+        return 0.1;
       case DistanceUnit::angstroms:
         return 1.0;
       case DistanceUnit::bohr:
-        return 0.52917721092;
+        return 1.8897161646321;
     }
     return 0.0;
   }
@@ -90,15 +108,15 @@ class UnitConverter {
   constexpr double getTimeValue_(const TimeUnit& enum_type) const noexcept {
     switch (enum_type) {
       case TimeUnit::seconds:
-        return 1E12;
+        return 1E-12;
       case TimeUnit::microseconds:
-        return 1E6;
+        return 1E-6;
       case TimeUnit::nanoseconds:
-        return 1000;
+        return 1E-3;
       case TimeUnit::picoseconds:
         return 1.0;
       case TimeUnit::femtoseconds:
-        return 0.001;
+        return 1000;
     }
     return 0.0;
   }
@@ -107,15 +125,15 @@ class UnitConverter {
   constexpr double getMassValue_(const MassUnit& enum_type) const noexcept {
     switch (enum_type) {
       case MassUnit::kilograms:
-        return 6.0221366517E26;
+        return 1.6605402E-27;
       case MassUnit::grams:
-        return 6.0221366517E23;
+        return 1.6605402E-24;
       case MassUnit::picograms:
-        return 6.0221366517E14;
+        return 1.6605402E-12;
       case MassUnit::femtograms:
-        return 6.0221366517E11;
+        return 1.6605402E-9;
       case MassUnit::attograms:
-        return 602213.66517;
+        return 1.66054019E-6;
       case MassUnit::atomic_mass_units:
         return 1.0;
       case MassUnit::grams_per_mole:
@@ -127,33 +145,43 @@ class UnitConverter {
   /// All energies in terms of electron volts
   constexpr double getEnergyValue_(const EnergyUnit& enum_type) const noexcept {
     switch (enum_type) {
-      case EnergyUnit::kilojoules_per_mole:
-        return 96.4853074993;
-      case EnergyUnit::joules_per_mole:
-        return 96.4853074993E3;
-      case EnergyUnit::kilocalories_per_mole:
-        return 23.061;
       case EnergyUnit::kilocalories:
-        return 2.613195131836172E22;
+        return 3.82929389E-23;
       case EnergyUnit::kilojoules:
-        return 6.2415097E21;
+        return 1.602176634E-22;
       case EnergyUnit::joules:
-        return 6.2415097E18;
+        return 1.602176634E-19;
       case EnergyUnit::hartrees:
-        return 27.211368602;
+        return 0.0367493;
       case EnergyUnit::electron_volts:
         return 1.0;
     }
     return 0.0;
   }
 
+  // All molar energies in terms of eV_per_mole
+  constexpr double getMolarEnergyValue_(const MolarEnergyUnit& enum_type) const noexcept {
+    switch (enum_type) {
+      case MolarEnergyUnit::kilojoules_per_mole:
+        return 1.602176634E-22;
+      case MolarEnergyUnit::joules_per_mole:
+        return 1.602176634E-19;
+      case MolarEnergyUnit::kilocalories_per_mole:
+        return 3.82929389E-23;
+      case MolarEnergyUnit::hartrees_per_mole:
+        return 0.0367493;
+      case MolarEnergyUnit::electron_volts_per_mole:
+        return 1.0;
+    }
+    return 0.0;
+  }
   /// All charge in terms of elementary charge e
   constexpr double getChargeValue_(const ChargeUnit& enum_type) const noexcept {
     switch (enum_type) {
       case ChargeUnit::e:
-        return 1.0;
+        return 1;
       case ChargeUnit::coulombs:
-        return 1/(1.602176565E-19);
+        return 1.602176565E-19;
     }
     return 0.0;
   }
@@ -167,62 +195,88 @@ class UnitConverter {
         case VelocityUnit::angstroms_per_picosecond:
           return convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
         case VelocityUnit::angstroms_per_femtosecond:
-          return convert(DistanceUnit::nanometers, DistanceUnit::angstroms) /
-            convert(TimeUnit::picoseconds, TimeUnit::femtoseconds);
+          return convert(DistanceUnit::nanometers, DistanceUnit::angstroms) / convert(TimeUnit::picoseconds, TimeUnit::femtoseconds);
       }
       return 0.0;
     }
 
-   /// Default force unit is the kilojoules per mole nanometer
+   /// Default force unit is the kilojoules per nanometer
   constexpr double getForceValue_(const ForceUnit& enum_type) const noexcept {
     switch (enum_type) {
-      case ForceUnit::kilocalories_per_mole_angstrom:
-        return convert(EnergyUnit::kilojoules_per_mole,
-            EnergyUnit::kilocalories_per_mole) /
+      case ForceUnit::kilocalories_per_angstrom:
+        return convert(EnergyUnit::kilojoules,
+            EnergyUnit::kilocalories) /
           convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
       case ForceUnit::newtons:
         return convert(EnergyUnit::kilojoules, EnergyUnit::joules) /
           convert(DistanceUnit::nanometers, DistanceUnit::meters);
-      case ForceUnit::kilojoules_per_mole_nanometer:
+      case ForceUnit::kilojoules_per_nanometer:
         return 1.0;
-      case ForceUnit::kilojoules_per_mole_angstrom:
-        return 10.0;
+      case ForceUnit::kilojoules_per_angstrom:
+        return (1.0) / convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
       case ForceUnit::hatree_per_bohr:
-        return convert(EnergyUnit::kilojoules_per_mole, EnergyUnit::hartrees) /
-          convert(DistanceUnit::nanometers, DistanceUnit::bohr);
+        return convert(EnergyUnit::kilojoules, EnergyUnit::hartrees) /
+        (convert(DistanceUnit::nanometers, DistanceUnit::bohr));
     }
     return 0.0;
   }
 
+   /// Default force unit is the kilojoules per mole nanometer
+  constexpr double getMolarForceValue_(const MolarForceUnit& enum_type) const noexcept {
+    switch (enum_type) {
+      case MolarForceUnit::kilocalories_per_mole_angstrom:
+        return convert(MolarEnergyUnit::kilojoules_per_mole,
+            MolarEnergyUnit::kilocalories_per_mole) /
+          convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
+      case MolarForceUnit::newtons_per_mole:
+        return convert(MolarEnergyUnit::kilojoules_per_mole, MolarEnergyUnit::joules_per_mole) /
+          convert(DistanceUnit::nanometers, DistanceUnit::meters);
+      case MolarForceUnit::kilojoules_per_mole_nanometer:
+        return 1.0;
+      case MolarForceUnit::kilojoules_per_mole_angstrom:
+        return (1.0) / convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
+      case MolarForceUnit::hatree_per_mole_bohr:
+        return convert(MolarEnergyUnit::kilojoules_per_mole, MolarEnergyUnit::hartrees_per_mole) /
+        (convert(DistanceUnit::nanometers, DistanceUnit::bohr));
+    }
+    return 0.0;
+  }
  public:
   constexpr double convert(const DistanceUnit& from,
                            const DistanceUnit& to) const noexcept {
-    return getDistanceValue_(from) / getDistanceValue_(to);
+    return getDistanceValue_(to) / getDistanceValue_(from);
   }
   constexpr double convert(const TimeUnit& from, const TimeUnit& to) const
       noexcept {
-    return getTimeValue_(from) / getTimeValue_(to);
+    return getTimeValue_(to) / getTimeValue_(from);
   }
   constexpr double convert(const MassUnit& from, const MassUnit& to) const
       noexcept {
-    return getMassValue_(from) / getMassValue_(to);
+    return getMassValue_(to) / getMassValue_(from);
   }
-  constexpr double convert(const EnergyUnit& from, const EnergyUnit& to) const
-      noexcept {
-    return getEnergyValue_(from) / getEnergyValue_(to);
+  constexpr double convert(const EnergyUnit& from, const EnergyUnit& to) const noexcept {
+    return getEnergyValue_(to) / getEnergyValue_(from);
+  }
+  constexpr double convert(const MolarEnergyUnit& from, const MolarEnergyUnit& to) const noexcept {
+    return getMolarEnergyValue_(to) / getMolarEnergyValue_(from);
   }
   constexpr double convert(const ChargeUnit& from, const ChargeUnit& to) const
     noexcept {
-      return getChargeValue_(from) / getChargeValue_(to);
+      return getChargeValue_(to) / getChargeValue_(from);
     }
   constexpr double convert(const VelocityUnit& from,
       const VelocityUnit& to) const noexcept {
-    return getVelocityValue_(from) / getVelocityValue_(to);
+    return getVelocityValue_(to) / getVelocityValue_(from);
   }
   constexpr double convert(const ForceUnit& from, const ForceUnit& to) const
     noexcept {
-      return getForceValue_(from) / getForceValue_(to);
+      return (getForceValue_(to)) / (getForceValue_(from));
     }
+  constexpr double convert(const MolarForceUnit& from, const MolarForceUnit& to) const
+    noexcept {
+      return (getMolarForceValue_(to)) / (getMolarForceValue_(from));
+    }
+
 };
 }  // namespace tools
 }  // namespace votca
