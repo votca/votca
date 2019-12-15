@@ -19,6 +19,7 @@
 
 #include <votca/xtp/toolfactory.h>
 
+#include "../tools/apdft.h"
 #include "../tools/coupling.h"
 #include "../tools/densityanalysis.h"
 #include "../tools/dftgwbse.h"
@@ -45,6 +46,7 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<DensityAnalysis>("densityanalysis");
   QMTools().Register<Coupling>("coupling");
   QMTools().Register<MolPol>("molpol");
+  QMTools().Register<APDFT>("apdft");
 }
 
 }  // namespace xtp
