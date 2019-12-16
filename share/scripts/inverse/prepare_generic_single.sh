@@ -15,14 +15,51 @@
 # limitations under the License.
 #
 
-if [[ $1 = "--help" ]]; then
-cat <<EOF
-${0##*/}, version %version%
-This script implements the prepares the potential in step 0, using pot.in or by resampling the target distribution
+DESCRIPTION="${0##*/}, version %version%
+This script implements the prepares the potential in step 0, using pot.in or by
+resampling the target distribution
 
-Usage: ${0##*/}
-EOF
-  exit 0
+Use --use-table or --use-bi to enforce the method. Otherwise it will use
+.pot.in if present and BI if not.
+
+Usage: ${0##*/} [--help] [--use-table] [--use-bi]"
+
+USE_TABLE=false
+USE_BI=false
+SHOW_HELP=false
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+
+    case $key in
+    --use-table)
+        USE_TABLE=true
+        shift # past argument
+        shift # past value
+        ;;
+    --use-bi)
+        USE_BI=true
+        shift # past argument
+        shift # past value
+        ;;
+    --help)
+        SHOW_HELP=true
+        shift # past argument
+        shift # past value
+        ;;
+    *)    # unknown option
+        die "unknown argument $key"
+        ;;
+    esac
+done
+
+if [[ $SHOW_HELP == true ]]; then
+    echo "$DESCRIPTION"
+    exit 0
+fi
+
+if [[ ($USE_TABLE == true) && ($USE_BI == true) ]]; then
+    die "use either --use-table or --use-bi"
 fi
 
 name=$(csg_get_interaction_property name)
@@ -34,32 +71,54 @@ main_dir=$(get_main_dir)
 bondtype="$(csg_get_interaction_property bondtype)"
 output="${name}.pot.new"
 
-if [[ -f ${main_dir}/${name}.pot.in ]]; then
-  msg "Using given table ${name}.pot.in for ${name}"
-  smooth="$(critical mktemp ${name}.pot.in.smooth.XXX)"
-  echo "Converting ${main_dir}/${name}.pot.in to ${output}"
-  critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${smooth} --grid ${min}:${step}:${max} --comment "$comment"
-  extrapolate="$(critical mktemp ${name}.pot.in.extrapolate.XXX)"
-  do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
-  shifted="$(critical mktemp ${name}.pot.in.shifted.XXX)"
-  do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
-  do_external table change_flag "${shifted}" "${output}"
-else
-  target=$(csg_get_interaction_property inverse.target)
-  msg "Using initial guess from dist ${target} for ${name}"
-  #resample target dist
-  do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
-  # initial guess from rdf
-  raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
-  kbt="$(csg_get_property cg.inverse.kBT)"
-  dist_min="$(csg_get_property cg.inverse.dist_min)"
-  do_external dist invert --type "${bondtype}" --kbT "${kbt}" --min "${dist_min}" ${name}.dist.tgt ${raw}
-  smooth="$(critical mktemp ${name}.pot.new.smooth.XXX)"
-  critical csg_resample --in ${raw} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
-  extrapolate="$(critical mktemp ${name}.pot.new.extrapolate.XXX)"
-  do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
-  shifted="$(critical mktemp ${name}.pot.new.shifted.XXX)"
-  do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
-  do_external table change_flag "${shifted}" "${output}"
+function table_init() {
+    msg "Using given table ${name}.pot.in for ${name}"
+    smooth="$(critical mktemp ${name}.pot.in.smooth.XXX)"
+    echo "Converting ${main_dir}/${name}.pot.in to ${output}"
+    critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${smooth} --grid ${min}:${step}:${max} --comment "$comment"
+    extrapolate="$(critical mktemp ${name}.pot.in.extrapolate.XXX)"
+    do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
+    shifted="$(critical mktemp ${name}.pot.in.shifted.XXX)"
+    do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
+    do_external table change_flag "${shifted}" "${output}"
+}
+
+function bi_init() {
+    target=$(csg_get_interaction_property inverse.target)
+    msg "Using initial guess from dist ${target} for ${name}"
+    #resample target dist
+    do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
+    # initial guess from rdf
+    raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
+    kbt="$(csg_get_property cg.inverse.kBT)"
+    dist_min="$(csg_get_property cg.inverse.dist_min)"
+    do_external dist invert --type "${bondtype}" --kbT "${kbt}" --min "${dist_min}" ${name}.dist.tgt ${raw}
+    smooth="$(critical mktemp ${name}.pot.new.smooth.XXX)"
+    critical csg_resample --in ${raw} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
+    extrapolate="$(critical mktemp ${name}.pot.new.extrapolate.XXX)"
+    do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
+    shifted="$(critical mktemp ${name}.pot.new.shifted.XXX)"
+    do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
+    do_external table change_flag "${shifted}" "${output}"
+}
+
+TABLE_PRESENT=false
+if ! [[ -f ${main_dir}/${name}.pot.in ]]; then
+    TABLE_PRESENT=true
 fi
 
+echo $USE_BI
+echo $USE_TABLE
+echo $USE_TABLE
+
+if [[ $USE_BI == true ]]; then
+    if [[ $TABLE_PRESENT == true ]]; then
+        msg "there is a table ${name}.pot.in present, but you still choose BI"
+    fi
+    bi_init
+elif [[ $USE_TABLE == true ]]; then
+    if ! [[ $TABLE_PRESENT == true ]]; then
+        die "missing table ${main_dir}/${name}.pot.in"
+    fi
+    table_init
+fi

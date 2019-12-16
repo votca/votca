@@ -38,8 +38,11 @@ void Imc::Initialize() {
   // do some output
   if (_do_imc) {
     cout << "begin to calculate inverse monte carlo parameters\n";
+      if (_include_intra) {
+          throw runtime_error(string("error, can not have --do-imc and --include-intra"));
+      }
   } else {
-    cout << "begin to calculate distribution functions\n";
+      cout << "begin to calculate distribution functions\n";
   }
   cout << "# of bonded interactions: " << _bonded.size() << endl;
   cout << "# of non-bonded interactions: " << _nonbonded.size() << endl;
@@ -181,7 +184,11 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
 
   i->_step = p->get("step").as<double>();
   i->_min = p->get("min").as<double>();
-  i->_max = p->get("max").as<double>();
+  if (_include_intra) {
+    i->_max = p->get("max_intra").as<double>();
+  } else {
+    i->_max = p->get("max").as<double>();
+  }
   i->_norm = 1.0;
   i->_p = p;
 
@@ -383,9 +390,9 @@ void Imc::Worker::DoNonbonded(Topology *top) {
 
         // is it same types or different types?
         if (prop->get("type1").value() == prop->get("type2").value()) {
-          nb->Generate(beads1);
+          nb->Generate(beads1, !(_imc->_include_intra));
         } else {
-          nb->Generate(beads1, beads2);
+          nb->Generate(beads1, beads2, !(_imc->_include_intra));
         }
       }
 

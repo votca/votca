@@ -25,20 +25,17 @@ csg master inverse.sh
 # BEGIN: these scripts have to be defined for each method
 # method initialization
 prepare ibi prepare_generic.sh
-prepare ihnc prepare_ihnc.sh
-prepare hncgn prepare_hncgn.sh
+prepare hnc prepare_hnc.sh
 prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
 prepare optimizer prepare_optimizer.sh
 prepare re prepare_re.sh
 prepare_single ibi prepare_generic_single.sh
-prepare_single ihnc prepare_ihnc_single.sh
-prepare_single hncgn prepare_hncgn_single.sh
 prepare_single imc prepare_generic_single.sh
+prepare_single generic prepare_generic_single.sh
 prepare_single optimizer prepare_optimizer_single.sh
 initstep ibi initialize_step_generic.sh
-initstep ihnc initialize_step_generic.sh
-initstep hncgn initialize_step_generic.sh
+initstep hnc initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 initstep optimizer initialize_step_optimizer.sh
 initstep re initialize_step_re.sh
@@ -52,8 +49,7 @@ update ibm update_ibm.sh
 # add up the potential
 # TODO: think about name add_pot, is other name maybe better
 add_pot ibi add_pot_generic.sh
-add_pot ihnc add_pot_generic.sh
-add_pot hncgn add_pot_generic.sh
+add_pot hnc add_pot_generic.sh
 add_pot imc add_pot_generic.sh
 add_pot optimizer dummy.sh
 add_pot re dummy.sh
@@ -62,22 +58,19 @@ add_pot re dummy.sh
 
 # pre update
 pre_update ibi dummy.sh
-pre_update ihnc dummy.sh
-pre_update hncgn dummy.sh
+pre_update hnc dummy.sh
 pre_update imc dummy.sh
 pre_update optimizer dummy.sh
 pre_update re pre_update_re.sh
 
 # post update
 post_update ibi post_update_generic.sh
-post_update ihnc post_update_generic.sh
-post_update hncgn post_update_generic.sh
+post_update hnc post_update_generic.sh
 post_update imc post_update_generic.sh
 post_update optimizer dummy.sh
 post_update re post_update_generic.sh
 post_update_single ibi post_update_generic_single.sh
-post_update_single ihnc post_update_generic_single.sh
-post_update_single hncgn post_update_generic_single.sh
+post_update_single hnc post_update_generic_single.sh
 post_update_single imc post_update_generic_single.sh
 post_update_single re post_update_re_single.sh
 
@@ -121,16 +114,11 @@ update ibi update_ibi.sh
 update ibi_single update_ibi_single.sh
 update ibi_pot update_ibi_pot.pl
 
-# ihnc specific stuff
-update ihnc update_ihnc.sh
-update ihnc_single update_ihnc_single.sh
-update ihnc_pot update_ihnc_pot.py
-dist invert_hnc prepare_hnc_single.py
-
-# hncgn specific stuff
-update hncgn update_hncgn.sh
-update hncgn_single update_hncgn_single.sh
-update hncgn_pot update_hncgn_pot.py
+# hnc specific stuff
+update hnc update_hnc.sh
+update hnc_pot hnc.py
+dist invert_hnc hnc.py
+hnc_stat_incl generic hnc_stat_incl_generic.sh
 
 # imc specific stuff
 update imc update_imc.sh

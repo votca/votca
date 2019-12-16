@@ -384,33 +384,31 @@
       <DESC>Special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
     </map>
     <method>
-      <DESC>method to be performed: ibi/imc/ft/optimizer</DESC>
+      <DESC>method to be performed: ibi/imc/ft/optimizer/hncgn</DESC>
     </method>
-    <ihnc>
-      <DESC>general options for the ihnc scheme</DESC>
+    <hnc>
+      <DESC>general options for the hnc schemes (hncgn/ihnc/hncn)</DESC>
       <initial_guess>hnc
-        <DESC>Method for the initial potential guess</DESC>
+        <DESC>Method for the initial potential guess: table/bi/hnc-ignoreintra/hnc</DESC>
       </initial_guess>
-      <density>
-        <DESC>Number density</DESC>
-      </density>
+      <hnc_method>hncgn
+      <DESC>Actuall method to use: hncn/ihnc-ignoreintra/ihnc/hncgn</DESC>
+      </hnc_method>
+      <ignore_intramolecular_correlation>false
+        <DESC>If true, the HNC updates (not the initial guess) will ignore the presence of intramolecular correlation.</DESC>
+      </ignore_intramolecular_correlation>
       <cut_off>
-        <DESC>Cut-off used in MD. Potential will be set to zero beyond this point.</DESC>
+        <DESC>Cut-off used for non-bonded potenitals in MD.
+          Potential will be set to zero beyond this point.</DESC>
       </cut_off>
-    </ihnc>
-    <hncgn>
-      <DESC>general options for the hncgn scheme</DESC>
-      <initial_guess>hnc
-        <DESC>Method for the initial potential guess</DESC>
-      </initial_guess>
-      <density>
-        <DESC>Number density</DESC>
-      </density>
-      <cut_off>
-        <DESC>Cut-off used in MD. Potential will be set to zero beyond this point.</DESC>
-      </cut_off>
+      <densities>
+        <DESC>List of densities of the beads, sorted by bead name. TODO: replace by automatic calculation.</DESC>
+      </densities>
+      <n_intra>
+        <DESC>List of n_intra, the number of equal beads, sorted by bead name. TODO: replace by automatic calculation.</DESC>
+      </n_intra>
       <pressure_constraint>none
-        <DESC>Apply pressure constraint.</DESC>
+        <DESC>Apply pressure constraint. Only for hncgn</DESC>
       </pressure_constraint>
       <extrap_near_core>power
         <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
@@ -418,10 +416,10 @@
       <fix_near_cut_off>full-deriv
         <DESC>Method for fixing discontinuity at end of potential. Valid values are: full-deriv (default), none</DESC>
       </fix_near_cut_off>
-      <verbose>True
-        <DESC>Print some info and dump compressed numpy arrays. Valid values are: True (default), False</DESC>
+      <verbose>true
+        <DESC>Print some info and dump compressed numpy arrays. Valid values are: true (default), false</DESC>
       </verbose>
-    </hncgn>
+    </hnc>
     <optimizer>
       <cma>
         <DESC>general options for the cma optimizer</DESC>
