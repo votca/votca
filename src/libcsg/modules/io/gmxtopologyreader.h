@@ -34,6 +34,17 @@ namespace csg {
 */
 class GMXTopologyReader : public TopologyReader {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::nanometers;
+  const tools::MassUnit mass_unit = tools::MassUnit::atomic_mass_units;
+  const tools::TimeUnit time_unit = tools::TimeUnit::picoseconds;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::MolarEnergyUnit energy_unit =
+      tools::EnergyUnit::kilojoules_per_mole;
+  const tools::VelocityUnit velocity_unit =
+      tools::VelocityUnit::nanometers_per_picosecond;
+  const tools::MolarForceUnit force_unit =
+      tools::ForceUnit::kilojoules_per_mole_nanometer;
+
   GMXTopologyReader() = default;
 
   /// read a topology file
