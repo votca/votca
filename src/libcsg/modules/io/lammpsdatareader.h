@@ -43,9 +43,9 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
   const tools::TimeUnit time_unit = tools::TimeUnit::femtoseconds;
   const tools::MassUnit mass_unit = tools::MassUnit::grams_per_mole;
   const tools::MolarEnergyUnit energy_unit =
-      tools::EnergyUnit::kilocalories_per_mole;
+      tools::MolarEnergyUnit::kilocalories_per_mole;
   const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
-  const tools::ForceUnit force_unit =
+  const tools::MolarForceUnit force_unit =
       tools::MolarForceUnit::kilocalories_per_mole_angstrom;
 
   LAMMPSDataReader() = default;
