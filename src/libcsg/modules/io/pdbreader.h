@@ -38,6 +38,8 @@ namespace csg {
 */
 class PDBReader : public TopologyReader, public TrajectoryReader {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+
   /// Constuctor
   PDBReader() = default;
   /// Destructor
