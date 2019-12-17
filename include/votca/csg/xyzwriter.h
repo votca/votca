@@ -29,6 +29,8 @@ namespace csg {
 
 class XYZWriter : public TrajectoryWriter {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+
   void Open(std::string file, bool bAppend = false) override;
   void Close() override;
 
