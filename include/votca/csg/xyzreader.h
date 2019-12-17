@@ -39,6 +39,8 @@ namespace csg {
 */
 class XYZReader : public TrajectoryReader, public TopologyReader {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+
   XYZReader() = default;
   ~XYZReader() override = default;
 
