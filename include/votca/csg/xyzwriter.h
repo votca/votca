@@ -22,6 +22,7 @@
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
 #include <votca/tools/constants.h>
+#include <votca/tools/unitconverter.h>
 
 namespace votca {
 namespace csg {
