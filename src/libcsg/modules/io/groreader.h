@@ -42,10 +42,10 @@ class GROReader : public TrajectoryReader, public TopologyReader {
   const tools::TimeUnit time_unit = tools::TimeUnit::picoseconds;
   const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
   const tools::MolarEnergyUnit energy_unit =
-      tools::EnergyUnit::kilojoules_per_mole;
+      tools::MolarEnergyUnit::kilojoules_per_mole;
   const tools::VelocityUnit velocity_unit =
       tools::VelocityUnit::nanometers_per_picosecond;
-  const tools::ForceUnit force_unit =
+  const tools::MolarForceUnit force_unit =
       tools::MolarForceUnit::kilojoules_per_mole_nanometer;
 
   GROReader() = default;
