@@ -28,6 +28,16 @@ namespace csg {
 
 class GROWriter : public TrajectoryWriter {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::nanometers;
+  const tools::MassUnit mass_unit = tools::MassUnit::atomic_mass_units;
+  const tools::TimeUnit time_unit = tools::TimeUnit::picoseconds;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::EnergyUnit energy_unit = tools::EnergyUnit::kilojoules_per_mole;
+  const tools::VelocityUnit velocity_unit =
+      tools::VelocityUnit::nanometers_per_picosecond;
+  const tools::ForceUnit force_unit =
+      tools::ForceUnit::kilojoules_per_mole_nanometer;
+
   void Open(std::string file, bool bAppend = false) override;
   void Close() override;
 
