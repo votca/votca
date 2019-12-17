@@ -22,7 +22,7 @@
 #include <iostream>
 #include <string>
 #include <votca/csg/trajectoryreader.h>
-#include <votca/tools/unitconversion.h>
+#include <votca/tools/unitconverter.h>
 
 namespace votca {
 namespace csg {
