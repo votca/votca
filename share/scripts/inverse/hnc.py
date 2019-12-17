@@ -491,7 +491,7 @@ def main():
                               type=str, default=None)
     parser_hncgn.add_argument('--extrap-near-core',
                               dest='extrap_near_core',
-                              type=str, choices=['none', 'power'])
+                              type=str, choices=['none', 'constant', 'power'])
     parser_hncgn.add_argument('--fix-near-cut-off',
                               dest='fix_near_cut_off',
                               type=str, choices=['none', 'full-deriv'])
@@ -564,7 +564,7 @@ def main():
         g_name = 'g_cur'
         G_name = 'G_cur'
     else:
-        print('no intramolecular correlations provided, assuming there are'
+        print('no intramolecular correlations provided, assuming there are '
               'none')
         # this will result in zero arrays in input_arrays['G_minus_g'] in the
         # below loop

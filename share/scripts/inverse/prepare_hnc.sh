@@ -64,13 +64,11 @@ case "$initial_guess" in
         #raw="$raw $(critical mktemp ${name}.pot.hnc.raw.XXX)"
         out="$out ${name}.pot.new"
     done
-    if [ "${initial_guess}" = "hnc" ]; then
+    if [[ "${initial_guess}" == "hnc" && $n_intra -gt 1 ]]; then
         critical cp -t . ${main_dir}/$(printf '%s.dist-incl.tgt' $nb_interactions)
         G_tgt_flag="--G-tgt $(printf '%s.dist-incl.tgt' $nb_interactions)"
-    elif [ "${initial_guess}" = "hnc-ignoreintra" ]; then
-        G_tgt_flag=''
     else
-        die "verbose has to be 'true' or 'false'"
+        G_tgt_flag=''
     fi
     do_external dist invert_hnc $verbose_flag invert_hnc \
     --g-tgt $(printf "%s.dist.tgt" $nb_interactions) \
