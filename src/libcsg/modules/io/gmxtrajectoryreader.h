@@ -24,6 +24,7 @@
 
 #include <string>
 #include <votca/csg/trajectoryreader.h>
+#include <votca/tools/unitconverter.h>
 
 #include <gromacs/fileio/oenv.h>
 #include <gromacs/fileio/trxio.h>
