@@ -47,7 +47,8 @@ class DLPOLYTopologyReader : public TopologyReader {
       tools::MolarEnergyUnit::joules_per_mole;
   const tools::VelocityUnit velocity_unit =
       tools::VelocityUnit::angstroms_per_picosecond;
-
+  const tools::MolarForceUnit force_unit =
+      tools::MolarForceUnit::kilojoules_per_mole_angstrom;
   /// read a topology file
   bool ReadTopology(std::string file, Topology &top) override;
 
