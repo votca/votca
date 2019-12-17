@@ -44,7 +44,7 @@ class DLPOLYTopologyReader : public TopologyReader {
   const tools::TimeUnit time_unit = tools::TimeUnit::picoseconds;
   const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
   const tools::MolarEnergyUnit molar_energy_unit =
-      tools::EnergyUnit::joules_per_mole;
+      tools::MolarEnergyUnit::joules_per_mole;
   const tools::VelocityUnit velocity_unit =
       tools::VelocityUnit::angstroms_per_picosecond;
 
