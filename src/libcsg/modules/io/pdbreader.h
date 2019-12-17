@@ -24,6 +24,7 @@
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/tools/elements.h>
+#include <votca/tools/unitconverter.h>
 
 namespace votca {
 namespace csg {
