@@ -107,10 +107,6 @@ if ! [[ -f ${main_dir}/${name}.pot.in ]]; then
     TABLE_PRESENT=true
 fi
 
-echo $USE_BI
-echo $USE_TABLE
-echo $USE_TABLE
-
 if [[ $USE_BI == true ]]; then
     if [[ $TABLE_PRESENT == true ]]; then
         msg "there is a table ${name}.pot.in present, but you still choose BI"
@@ -121,4 +117,12 @@ elif [[ $USE_TABLE == true ]]; then
         die "missing table ${main_dir}/${name}.pot.in"
     fi
     table_init
+else
+    # this is the old default behaviour
+    if [[ $TABLE_PRESENT == true ]]; then
+        msg "there is a table ${name}.pot.in present, gonna use it"
+        table_init
+    else
+        bi_init
+    fi
 fi
