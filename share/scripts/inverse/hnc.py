@@ -435,7 +435,7 @@ def main():
                         help='save some intermeditary results',
                         action='store_const', const=True, default=False)
     # subparsers
-    subparsers = parser.add_subparsers(dest='subcommand', required=True)
+    subparsers = parser.add_subparsers(dest='subcommand')
     parser_invert_hnc = subparsers.add_parser('invert_hnc',
                                               help='potential guess using HNC')
     parser_ihnc = subparsers.add_parser('ihnc',
@@ -498,6 +498,11 @@ def main():
 
     args = parser.parse_args()
 
+    # check for subcommand
+    if args.subcommand is None:
+        parser.print_help()
+        raise Exception("subcommand needed")
+
     # close writable files directly due to weird bug, where np.savetxt would
     # write empty file, use filename later.
     # I should report it, but on the other side, argparse opened files do not
@@ -522,7 +527,7 @@ def main():
                             for argname, flist in file_arguments
                             if len(flist) != n_interactions]
     for argname, flist in file_arguments_wrong:
-        raise Exception("""You provided N = {} densities, therefore
+        raise Exception("""N = {} densities provided, therefore
                         there should be (N * (N + 1)) // 2 = {}
                         files for {}, but {} was
                         provided""".format(n_beads, n_interactions, argname,
