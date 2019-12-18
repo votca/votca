@@ -498,6 +498,14 @@ def main():
 
     args = parser.parse_args()
 
+    # close writable files directly due to weird bug, where np.savetxt would
+    # write empty file, use filename later.
+    # I should report it, but on the other side, argparse opened files do not
+    # get closed at any point, so this is better
+    for f in args.U_out:
+        f.close()
+    args.U_out = [f.name for f in args.U_out]
+
     # infering variables from input
     n_beads = len(args.densities)
     # nr. of elements in triangular matrix incl. diagonal
