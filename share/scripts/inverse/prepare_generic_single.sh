@@ -103,7 +103,7 @@ function bi_init() {
 }
 
 TABLE_PRESENT=false
-if ! [[ -f ${main_dir}/${name}.pot.in ]]; then
+if [[ -f ${main_dir}/${name}.pot.in ]]; then
     TABLE_PRESENT=true
 fi
 
