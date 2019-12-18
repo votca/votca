@@ -522,10 +522,11 @@ def main():
                             for argname, flist in file_arguments
                             if len(flist) != n_interactions]
     for argname, flist in file_arguments_wrong:
-        raise Exception(f"""You provided N = {n_beads} densities, therefore
-                        there should be (N * (N + 1)) // 2 = {n_interactions}
-                        files for {argname}, but {[f.name for f in flist]} was
-                        provided""")
+        raise Exception("""You provided N = {} densities, therefore
+                        there should be (N * (N + 1)) // 2 = {}
+                        files for {}, but {} was
+                        provided""".format(n_beads, n_interactions, argname,
+                                           [f.name for f in flist])
     # multicomponent not implemented
     if any(len(files) != 1 for files in [args.g_tgt, args.densities]):
         raise Exception('not implemented for multiple components!')
