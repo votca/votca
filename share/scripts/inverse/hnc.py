@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" fooo """
+# """Multi purpose script for HNC inverse methods"""
 #
 # Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
@@ -526,7 +526,7 @@ def main():
                         there should be (N * (N + 1)) // 2 = {}
                         files for {}, but {} was
                         provided""".format(n_beads, n_interactions, argname,
-                                           [f.name for f in flist])
+                                           [f.name for f in flist]))
     # multicomponent not implemented
     if any((len(files) != 1 for files in [args.g_tgt, args.densities])):
         raise Exception('not implemented for multiple components!')
