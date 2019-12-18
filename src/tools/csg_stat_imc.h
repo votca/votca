@@ -115,7 +115,7 @@ class Imc {
   std::map<std::string, std::unique_ptr<group_t> > _groups;
 
   /// create a new interaction entry based on given options
-  interaction_t *AddInteraction(tools::Property *p);
+  interaction_t *AddInteraction(tools::Property *p, bool is_bonded);
 
   /// get group by name, creates one if it doesn't exist
   group_t *getGroup(const std::string &name);
