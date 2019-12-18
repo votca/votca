@@ -34,6 +34,20 @@ topol=$(csg_get_property cg.inverse.$sim_prog.topol)
 traj=$(csg_get_property cg.inverse.$sim_prog.traj)
 [[ -f $traj ]] || die "${0##*/}: traj file '$traj' not found"
 
+maps=
+#always try to find mapping files
+if : ; then
+  mapping="$(csg_get_property --allow-empty cg.inverse.$sim_prog.rdf.map)"
+  [[ -z $mapping ]] && mapping="$(csg_get_property --allow-empty cg.inverse.map)"
+  #fail if we have bonded interaction, but no mapping file
+  [[ -n $(csg_get_property --allow-empty cg.bonded.name) && -z $mapping ]] && die "Mapping file for bonded interaction needed"
+  for map in ${mapping}; do
+    [[ -f "$(get_main_dir)/$map" ]] || die "${0##*/}: Mapping file '$map' for bonded interaction not found in maindir"
+    maps+="$(get_main_dir)/$map;"
+  done
+fi
+echo $maps
+
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time)"
 if [[ ${CSG_RUNTEST} ]] && csg_calc "$equi_time" ">" "0"; then
   msg --color blue --to-stderr "Automatically setting equi_time to 0, because CSG_RUNTEST was set"
@@ -49,5 +63,5 @@ fi
 tasks=$(get_number_tasks)
 
 critical csg_stat --options "$CSGXMLFILE" --top "$topol" --trj "$traj" \
-    --begin $equi_time --first-frame $first_frame --nt $tasks --include-intra --ext "dist-incl.new"
-
+    --begin $equi_time --first-frame $first_frame --nt $tasks --include-intra --ext "dist-incl.new" \
+    ${maps:+--cg ${maps}}
