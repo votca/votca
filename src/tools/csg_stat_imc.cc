@@ -184,11 +184,7 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
 
   i->_step = p->get("step").as<double>();
   i->_min = p->get("min").as<double>();
-  if (_include_intra && (! i->_is_bonded)) {
-    i->_max = p->get("max_intra").as<double>();
-  } else {
-    i->_max = p->get("max").as<double>();
-  }
+  i->_max = p->get("max").as<double>();
   i->_norm = 1.0;
   i->_p = p;
 
