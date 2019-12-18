@@ -528,7 +528,7 @@ def main():
                         provided""".format(n_beads, n_interactions, argname,
                                            [f.name for f in flist])
     # multicomponent not implemented
-    if any(len(files) != 1 for files in [args.g_tgt, args.densities]):
+    if any((len(files) != 1 for files in [args.g_tgt, args.densities])):
         raise Exception('not implemented for multiple components!')
     if len(args.n_intra) > 1:
         raise Exception('not implemented for multiple components!')
