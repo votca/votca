@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
-## Version 1.6_rc1 (released XX.12.19)
+## Version 1.6_rc1 (released 04.12.19)
  * completely new statefile in hdf5 format for larger systems
  * new electrostatics with PCG solver
  * new QM/MM engine with freely configurable regions

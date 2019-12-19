@@ -62,7 +62,7 @@ void NWChem::WriteChargeOption() {
   }
 }
 
-long NWChem::WriteBackgroundCharges(ofstream& nw_file) {
+Index NWChem::WriteBackgroundCharges(ofstream& nw_file) {
 
   Index numberofcharges = 0;
   boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");

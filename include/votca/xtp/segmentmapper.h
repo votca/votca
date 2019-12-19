@@ -47,7 +47,7 @@ class SegmentMapper {
   using mapAtom = typename std::iterator_traits<
       typename AtomContainer::iterator>::value_type;
 
-  typedef std::pair<long, std::string> atom_id;
+  typedef std::pair<Index, std::string> atom_id;
 
   struct FragInfo {
     std::vector<double> _weights;
@@ -57,7 +57,7 @@ class SegmentMapper {
   };
 
   struct Seginfo {
-    std::pair<long, Index> minmax;
+    std::pair<Index, Index> minmax;
     std::vector<Index> mdatoms;
     std::vector<FragInfo> fragments;
     bool map2md;
@@ -86,8 +86,8 @@ class SegmentMapper {
                       const std::vector<const Atom*>& fragment_mdatoms) const;
 
   Logger& _log;
-  std::pair<long, Index> CalcAtomIdRange(const Segment& seg) const;
-  std::pair<long, Index> CalcAtomIdRange(const std::vector<Index>& seg) const;
+  std::pair<Index, Index> CalcAtomIdRange(const Segment& seg) const;
+  std::pair<Index, Index> CalcAtomIdRange(const std::vector<Index>& seg) const;
 
   atom_id StringToMapIndex(const std::string& map_string) const;
 

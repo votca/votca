@@ -515,8 +515,8 @@ void Gaussian::CleanUp() {
  * Reads in the MO coefficients from a GAUSSIAN fort.7 file
  */
 bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
-  std::map<long, std::vector<double> > coefficients;
-  std::map<long, double> energies;
+  std::map<Index, std::vector<double> > coefficients;
+  std::map<Index, double> energies;
 
   std::string line;
   Index levels = 0;
@@ -576,7 +576,7 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
 
   // some sanity checks
   XTP_LOG(Log::info, *_pLog) << "Energy levels: " << levels << flush;
-  std::map<long, std::vector<double> >::iterator iter = coefficients.begin();
+  std::map<Index, std::vector<double> >::iterator iter = coefficients.begin();
   basis_size = Index(iter->second.size());
 
   for (const auto& row : coefficients) {
