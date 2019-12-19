@@ -34,10 +34,10 @@ void NBListGrid::Generate(BeadList &list1, BeadList &list2,
     return;
   }
 
-  assert(list1.getTopology() == list2.getTopology());
-  Topology *top = _top = list1.getTopology();
+  assert(&(list1.getTopology()) == &(list2.getTopology()));
+  const Topology &top = list1.getTopology();
 
-  InitializeGrid(top->getBox());
+  InitializeGrid(top.getBox());
 
   // Add all beads of list1
   for (auto &iter : list1) {
@@ -46,7 +46,7 @@ void NBListGrid::Generate(BeadList &list1, BeadList &list2,
 
   for (auto &iter : list2) {
     cell_t &cell = getCell(iter->getPos());
-    TestBead(cell, iter);
+    TestBead(top, cell, iter);
   }
 }
 
@@ -56,13 +56,13 @@ void NBListGrid::Generate(BeadList &list, bool do_exclusions) {
     return;
   }
 
-  Topology *top = _top = list.getTopology();
+  const Topology &top = list.getTopology();
 
-  InitializeGrid(top->getBox());
+  InitializeGrid(top.getBox());
 
   for (auto &iter : list) {
     cell_t &cell = getCell(iter->getPos());
-    TestBead(cell, iter);
+    TestBead(top, cell, iter);
     getCell(iter->getPos())._beads.push_back(iter);
   }
 }
@@ -167,24 +167,26 @@ NBListGrid::cell_t &NBListGrid::getCell(const Eigen::Vector3d &r) {
   return getCell(a, b, c);
 }
 
-void NBListGrid::TestBead(NBListGrid::cell_t &cell, Bead *bead) {
-  TestCell(cell, bead);
+void NBListGrid::TestBead(const Topology &top, NBListGrid::cell_t &cell,
+                          Bead *bead) {
+  TestCell(top, cell, bead);
   for (auto &neighbour : cell._neighbours) {
-    TestCell(*neighbour, bead);
+    TestCell(top, *neighbour, bead);
   }
 }
 
-void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead) {
+void NBListGrid::TestCell(const Topology &top, NBListGrid::cell_t &cell,
+                          Bead *bead) {
   Eigen::Vector3d u = bead->getPos();
 
   for (auto &_bead : cell._beads) {
 
     Eigen::Vector3d v = _bead->getPos();
-    Eigen::Vector3d r = _top->BCShortestConnection(v, u);
+    Eigen::Vector3d r = top.BCShortestConnection(v, u);
     double d = r.norm();
     if (d < _cutoff) {
       if (_do_exclusions) {
-        if (_top->getExclusions().IsExcluded(_bead, bead)) {
+        if (top.getExclusions().IsExcluded(_bead, bead)) {
           continue;
         }
       }

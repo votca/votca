@@ -28,7 +28,7 @@ void Molecule::AddBead(Bead *bead, const string &name) {
   _bead_names.push_back(name);
   _beadmap[name] = _beads.size() - 1;
 
-  bead->setMolecule(this);
+  bead->setMoleculeId(_id);
 }
 
 Index Molecule::getBeadByName(const string &name) {

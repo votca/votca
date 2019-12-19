@@ -47,10 +47,10 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
   }
 
   // check if all bead lists "have" the same topology
-  assert(list1.getTopology() == list2.getTopology());
-  assert(list1.getTopology() == list3.getTopology());
-  assert(list2.getTopology() == list3.getTopology());
-  Topology *top = list1.getTopology();
+  assert(&(list1.getTopology()) == &(list2.getTopology()));
+  assert(&(list1.getTopology()) == &(list3.getTopology()));
+  assert(&(list2.getTopology()) == &(list3.getTopology()));
+  const Topology &top = list1.getTopology();
 
   // builds neighbor lists for all cases, where all list are of different bead
   // typess (list1 neq list2 neq list3), list2 and list3 are of the same type
@@ -93,9 +93,9 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
         Eigen::Vector3d v = (*iter2)->getPos();
         Eigen::Vector3d z = (*iter3)->getPos();
 
-        Eigen::Vector3d r12 = top->BCShortestConnection(u, v);
-        Eigen::Vector3d r13 = top->BCShortestConnection(u, z);
-        Eigen::Vector3d r23 = top->BCShortestConnection(v, z);
+        Eigen::Vector3d r12 = top.BCShortestConnection(u, v);
+        Eigen::Vector3d r13 = top.BCShortestConnection(u, z);
+        Eigen::Vector3d r23 = top.BCShortestConnection(v, z);
         double d12 = r12.norm();
         double d13 = r13.norm();
         double d23 = r23.norm();
@@ -106,9 +106,9 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
           /// experimental: at the moment exclude interaction as soon as one of
           /// the three pairs (1,2) (1,3) (2,3) is excluded!
           if (_do_exclusions) {
-            if ((top->getExclusions().IsExcluded(*iter1, *iter2)) ||
-                (top->getExclusions().IsExcluded(*iter1, *iter3)) ||
-                (top->getExclusions().IsExcluded(*iter2, *iter3))) {
+            if ((top.getExclusions().IsExcluded(*iter1, *iter2)) ||
+                (top.getExclusions().IsExcluded(*iter1, *iter3)) ||
+                (top.getExclusions().IsExcluded(*iter2, *iter3))) {
               continue;
             }
           }
