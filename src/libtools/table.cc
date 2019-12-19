@@ -198,7 +198,7 @@ void Table::Smooth(Index Nsmooth) {
   }
   for (Index i = 0; i < Nsmooth; i++) {
     _y.segment(1, n_2) =
-        0.25 * (_y.head(n_2) + 2 * _y.segment(1, n_2) + _y.tail(n_2));
+        (0.25 * (_y.head(n_2) + 2 * _y.segment(1, n_2) + _y.tail(n_2))).eval();
   }
 }
 
@@ -207,7 +207,7 @@ std::ostream &operator<<(std::ostream &out, const Table &t) {
   out.precision(10);
 
   if (t._has_yerr) {
-    for (long int i = 0; i < t._x.size(); ++i) {
+    for (Index i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i] << " " << t._yerr[i];
       if (t._flags[i] == '\0' || t._flags[i] == ' ') {
         out << "\n";
@@ -216,7 +216,7 @@ std::ostream &operator<<(std::ostream &out, const Table &t) {
       }
     }
   } else {
-    for (long int i = 0; i < t._x.size(); ++i) {
+    for (Index i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i];
       if (t._flags[i] == '\0' || t._flags[i] == ' ') {
         out << "\n";
@@ -231,7 +231,7 @@ std::ostream &operator<<(std::ostream &out, const Table &t) {
 
 // TODO: modify this function to be able to treat _has_yerr == true
 void Table::push_back(double x, double y, char flags) {
-  long int n = size();
+  Index n = size();
   resize(n + 1);
   _x[n] = x;
   _y[n] = y;

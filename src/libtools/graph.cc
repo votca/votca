@@ -134,7 +134,7 @@ void Graph::calcId_() {
   return;
 }
 
-long Graph::getDegree(Index vertex) const {
+Index Graph::getDegree(Index vertex) const {
   if (edge_container_.vertexExist(vertex)) {
     return edge_container_.getDegree(vertex);
   }

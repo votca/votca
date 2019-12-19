@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
-## Version 1.6_rc1 (released XX.12.19)
+## Version 1.6_rc1 (released 04.12.19)
 * replaced fftw with Eigen3 fft 
 * replaced random with std::random implementation
 * added many unit tests

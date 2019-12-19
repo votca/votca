@@ -34,10 +34,10 @@ Eigen::VectorXd linalg_constrained_qrsolve(const Eigen::MatrixXd &A,
     }
   }
 
-  const long int NoVariables = A.cols();
+  const Index NoVariables = A.cols();
   const Index NoConstrains =
       constr.rows();  // number of constraints is number of rows of constr
-  const long int deg_of_freedom = NoVariables - NoConstrains;
+  const Index deg_of_freedom = NoVariables - NoConstrains;
 
   Eigen::HouseholderQR<Eigen::MatrixXd> QR(constr.transpose());
 

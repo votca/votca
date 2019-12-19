@@ -36,7 +36,7 @@ stages:
     - mkdir -p build
     - pushd build
     - cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON -DENABLE_WERROR=ON
-      -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DENABLE_REGRESSION_TESTING=ON
+      -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DENABLE_REGRESSION_TESTING=${REGRESSION_TESTING:-ON}
       -DBUILD_OWN_GROMACS=${BUILD_GROMACS} ${BUILD_GROMACS:+-DENABLE_WARNING_FLAGS=OFF}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
       ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON
@@ -48,13 +48,21 @@ stages:
     - if [[ ${CLANG_FORMAT} ]]; then cmake --build . --target format && git -C ${CI_PROJECT_DIR}/votca/${CI_PROJECT_NAME} diff --exit-code; fi
     - ccache -s
 
-Debug GCC:
+Debug GCC Format:
   stage: canary
   variables:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
+    REGRESSION_TESTING: "OFF"
     CLANG_FORMAT: "yes"
+  extends: .build
+
+Debug GCC:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
   extends: .build
 
 None GCC:

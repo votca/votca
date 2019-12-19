@@ -18,9 +18,10 @@
 #ifndef _VOTCA_TOOLS_TYPES_H
 #define _VOTCA_TOOLS_TYPES_H
 
+#include <votca/tools/eigen.h>
 namespace votca {
 
-using Index = long int;
+using Index = Eigen::Index;
 
 }  // namespace votca
 
