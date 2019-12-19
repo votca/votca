@@ -18,47 +18,33 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_GENCUBE_H
-#define _VOTCA_XTP_GENCUBE_H
+#ifndef _VOTCA_XTP_TOOLS_APDFT_H
+#define _VOTCA_XTP_TOOLS_APDFT_H
 
-#include <votca/xtp/logger.h>
 #include <votca/xtp/qmstate.h>
 #include <votca/xtp/qmtool.h>
 
 namespace votca {
 namespace xtp {
-class AOBasis;
 
-class GenCube : public QMTool {
+class APDFT : public QMTool {
  public:
-  GenCube() = default;
+  APDFT() = default;
 
-  ~GenCube() override = default;
+  ~APDFT() final = default;
+  std::string Identify() final { return "apdft"; }
 
-  std::string Identify() final { return "gencube"; }
-
-  void Initialize(tools::Property& options) final;
+  void Initialize(tools::Property &opt) final;
   bool Evaluate() final;
 
  private:
-  void calculateCube();
-  void subtractCubes();
-
+  std::string _grid_accuracy = "medium";
   std::string _orbfile;
-  std::string _output_file;
-  std::string _infile1;
-  std::string _infile2;
-
-  bool _dostateonly;
-
-  double _padding;
-  Eigen::Array<Index, 3, 1> _steps;
   QMState _state;
-  std::string _mode;
-  Logger _log;
+  std::string _outputfile;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // _VOTCA_XTP_TOOLS_APDFT_H

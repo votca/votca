@@ -185,8 +185,8 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlock(
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
     const Eigen::MatrixXd& matrix) {
   XTP_LOG(Log::info, _log)
-      << TimeStamp()
-      << " Using Default OpenMP for tensor matrix multiplication: " << flush;
+      << TimeStamp() << " Using Default OpenMP for tensor matrix multiplication"
+      << flush;
 #pragma omp parallel for
   for (Index i_occ = 0; i_occ < _mtotal; i_occ++) {
     Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
@@ -240,8 +240,8 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixCuda(
     const Eigen::MatrixXd& matrix) {
 
   XTP_LOG(Log::info, _log)
-      << TimeStamp()
-      << " Using CUDA/OpenMP for tensor matrix multiplication: " << flush;
+      << TimeStamp() << " Using CUDA/OpenMP for tensor matrix multiplication"
+      << flush;
 
   CudaPipeline cuda_pip;
   const Eigen::MatrixXd& head = _matrix.front();

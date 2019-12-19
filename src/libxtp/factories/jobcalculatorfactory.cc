@@ -17,48 +17,22 @@
  *
  */
 
-#pragma once
-#ifndef _VOTCA_XTP_GENCUBE_H
-#define _VOTCA_XTP_GENCUBE_H
+#include <votca/xtp/jobcalculatorfactory.h>
 
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/qmtool.h>
+#include "../jobcalculators/eqm.h"
+#include "../jobcalculators/iexcitoncl.h"
+#include "../jobcalculators/iqm.h"
+#include "../jobcalculators/qmmm.h"
 
 namespace votca {
 namespace xtp {
-class AOBasis;
 
-class GenCube : public QMTool {
- public:
-  GenCube() = default;
-
-  ~GenCube() override = default;
-
-  std::string Identify() final { return "gencube"; }
-
-  void Initialize(tools::Property& options) final;
-  bool Evaluate() final;
-
- private:
-  void calculateCube();
-  void subtractCubes();
-
-  std::string _orbfile;
-  std::string _output_file;
-  std::string _infile1;
-  std::string _infile2;
-
-  bool _dostateonly;
-
-  double _padding;
-  Eigen::Array<Index, 3, 1> _steps;
-  QMState _state;
-  std::string _mode;
-  Logger _log;
-};
+void JobCalculatorfactory::RegisterAll(void) {
+  JobCalculators().Register<IQM>("iqm");
+  JobCalculators().Register<EQM>("eqm");
+  JobCalculators().Register<IEXCITON>("iexcitoncl");
+  JobCalculators().Register<QMMM>("qmmm");
+}
 
 }  // namespace xtp
 }  // namespace votca
-
-#endif

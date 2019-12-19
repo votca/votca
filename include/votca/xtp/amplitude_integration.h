@@ -17,21 +17,29 @@
  *
  */
 
-#include "qmpackages/gaussian.h"
-#include "qmpackages/nwchem.h"
-#include "qmpackages/orca.h"
-#include <votca/xtp/qmpackagefactory.h>
+#pragma once
+#ifndef XTP_AMPLITUDE_INTEGRATION_H
+#define XTP_AMPLITUDE_INTEGRATION_H
 
-#include "qmpackages/xtpdft.h"
-
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/eigen.h>
+#include <votca/xtp/regular_grid.h>
 namespace votca {
 namespace xtp {
 
-void QMPackageFactory::RegisterAll(void) {
-  QMPackages().Register<Gaussian>("gaussian");
-  QMPackages().Register<NWChem>("nwchem");
-  QMPackages().Register<Orca>("orca");
-  QMPackages().Register<XTPDFT>("xtp");
-}
+template <class Grid>
+class AmplitudeIntegration {
+ public:
+  explicit AmplitudeIntegration(const Grid& grid) : _grid(grid){};
+
+  std::vector<std::vector<double> > IntegrateAmplitude(
+      const Eigen::VectorXd& amplitude);
+
+ private:
+  std::vector<std::vector<double> > SetupAmplitudeContainer();
+  const Grid _grid;
+};
+
 }  // namespace xtp
 }  // namespace votca
+#endif  // XTP_NUMERICAL_INTEGRATION_H

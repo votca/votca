@@ -17,48 +17,20 @@
  *
  */
 
-#pragma once
-#ifndef _VOTCA_XTP_GENCUBE_H
-#define _VOTCA_XTP_GENCUBE_H
-
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/qmtool.h>
+#include "../qmpackages/gaussian.h"
+#include "../qmpackages/nwchem.h"
+#include "../qmpackages/orca.h"
+#include "../qmpackages/xtpdft.h"
+#include <votca/xtp/qmpackagefactory.h>
 
 namespace votca {
 namespace xtp {
-class AOBasis;
 
-class GenCube : public QMTool {
- public:
-  GenCube() = default;
-
-  ~GenCube() override = default;
-
-  std::string Identify() final { return "gencube"; }
-
-  void Initialize(tools::Property& options) final;
-  bool Evaluate() final;
-
- private:
-  void calculateCube();
-  void subtractCubes();
-
-  std::string _orbfile;
-  std::string _output_file;
-  std::string _infile1;
-  std::string _infile2;
-
-  bool _dostateonly;
-
-  double _padding;
-  Eigen::Array<Index, 3, 1> _steps;
-  QMState _state;
-  std::string _mode;
-  Logger _log;
-};
-
+void QMPackageFactory::RegisterAll(void) {
+  QMPackages().Register<Gaussian>("gaussian");
+  QMPackages().Register<NWChem>("nwchem");
+  QMPackages().Register<Orca>("orca");
+  QMPackages().Register<XTPDFT>("xtp");
+}
 }  // namespace xtp
 }  // namespace votca
-
-#endif

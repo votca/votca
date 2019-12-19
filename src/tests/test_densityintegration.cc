@@ -15,15 +15,16 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE aomatrix_test
+#define BOOST_TEST_MODULE density_integration_test
 #include "votca/xtp/orbitals.h"
 #include <boost/test/unit_test.hpp>
 #include <fstream>
-#include <votca/xtp/numerical_integrations.h>
+#include <votca/xtp/density_integration.h>
+#include <votca/xtp/vxc_grid.h>
 using namespace votca::xtp;
 using namespace std;
 
-BOOST_AUTO_TEST_SUITE(numerical_integration_test)
+BOOST_AUTO_TEST_SUITE(density_integration_test)
 
 AOBasis CreateBasis(const QMMolecule& mol) {
   ofstream basisfile("3-21G.xml");
@@ -148,98 +149,6 @@ Eigen::MatrixXd DMat() {
   return dmat;
 }
 
-BOOST_AUTO_TEST_CASE(vxc_test) {
-
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " C            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
-  xyzfile.close();
-
-  QMMolecule mol("none", 0);
-
-  mol.LoadFromFile("molecule.xyz");
-  AOBasis aobasis = CreateBasis(mol);
-
-  Eigen::MatrixXd dmat = DMat();
-
-  NumericalIntegration num;
-  num.GridSetup("medium", mol, aobasis);
-  num.setXCfunctional("XC_GGA_X_PBE XC_GGA_C_PBE");
-
-  BOOST_CHECK_EQUAL(num.getGridSize(), num.getGridpoints().size());
-  BOOST_CHECK_EQUAL(num.getGridSize(), 53404);
-  BOOST_CHECK_EQUAL(num.getBoxesSize(), 51);
-
-  BOOST_CHECK_CLOSE(num.getExactExchange("XC_GGA_X_PBE XC_GGA_C_PBE"), 0.0,
-                    1e-5);
-  BOOST_CHECK_CLOSE(num.getExactExchange("XC_HYB_GGA_XC_PBEH"), 0.25, 1e-5);
-  Mat_p_Energy e_vxc = num.IntegrateVXC(dmat);
-  Eigen::MatrixXd vxc_ref = Eigen::MatrixXd::Zero(17, 17);
-  vxc_ref << -0.604846, -0.193724, 1.4208e-12, 1.24779e-12, 1.33915e-12,
-      -0.158347, 2.77358e-12, 2.74891e-12, 2.76197e-12, -0.0171771, -0.0712393,
-      -0.0171771, -0.0712393, -0.0171771, -0.0712393, -0.0171771, -0.0712393,
-      -0.193724, -0.830219, 3.50498e-13, 4.0751e-16, 1.87309e-13, -0.566479,
-      1.38973e-13, 3.9268e-14, 9.4247e-14, -0.131012, -0.287372, -0.131012,
-      -0.287372, -0.131012, -0.287372, -0.131012, -0.287372, 1.4208e-12,
-      3.50498e-13, -0.814676, 5.25758e-14, 6.17368e-14, 2.75977e-13, -0.328319,
-      6.87396e-14, 7.04428e-14, -0.10473, -0.0814687, -0.10473, -0.0814687,
-      0.10473, 0.0814687, 0.10473, 0.0814687, 1.24779e-12, 4.0751e-16,
-      5.25758e-14, -0.814676, 1.44859e-13, 5.42212e-14, 6.87022e-14, -0.328319,
-      9.0481e-14, -0.10473, -0.0814687, 0.10473, 0.0814687, 0.10473, 0.0814687,
-      -0.10473, -0.0814687, 1.33915e-12, 1.87309e-13, 6.17368e-14, 1.44859e-13,
-      -0.814676, 1.76012e-13, 7.03983e-14, 9.05174e-14, -0.328319, -0.10473,
-      -0.0814687, 0.10473, 0.0814687, -0.10473, -0.0814687, 0.10473, 0.0814687,
-      -0.158347, -0.566479, 2.75977e-13, 5.42212e-14, 1.76012e-13, -0.508333,
-      8.56063e-15, -6.62991e-14, -2.11309e-14, -0.157267, -0.288594, -0.157267,
-      -0.288594, -0.157267, -0.288594, -0.157267, -0.288594, 2.77358e-12,
-      1.38973e-13, -0.328319, 6.87022e-14, 7.03983e-14, 8.56063e-15, -0.308367,
-      -4.39422e-14, -4.05135e-14, -0.113309, -0.0917206, -0.113309, -0.0917206,
-      0.113309, 0.0917206, 0.113309, 0.0917206, 2.74891e-12, 3.9268e-14,
-      6.87396e-14, -0.328319, 9.05174e-14, -6.62991e-14, -4.39422e-14,
-      -0.308367, -3.9348e-14, -0.113309, -0.0917206, 0.113309, 0.0917206,
-      0.113309, 0.0917206, -0.113309, -0.0917206, 2.76197e-12, 9.4247e-14,
-      7.04428e-14, 9.0481e-14, -0.328319, -2.11309e-14, -4.05135e-14,
-      -3.9348e-14, -0.308367, -0.113309, -0.0917206, 0.113309, 0.0917206,
-      -0.113309, -0.0917206, 0.113309, 0.0917206, -0.0171771, -0.131012,
-      -0.10473, -0.10473, -0.10473, -0.157267, -0.113309, -0.113309, -0.113309,
-      -0.416577, -0.237903, -0.00491594, -0.0554951, -0.00491594, -0.0554951,
-      -0.00491594, -0.0554951, -0.0712393, -0.287372, -0.0814687, -0.0814687,
-      -0.0814687, -0.288594, -0.0917206, -0.0917206, -0.0917206, -0.237903,
-      -0.2758, -0.0554951, -0.140797, -0.0554951, -0.140797, -0.0554951,
-      -0.140797, -0.0171771, -0.131012, -0.10473, 0.10473, 0.10473, -0.157267,
-      -0.113309, 0.113309, 0.113309, -0.00491594, -0.0554951, -0.416577,
-      -0.237903, -0.00491594, -0.0554951, -0.00491594, -0.0554951, -0.0712393,
-      -0.287372, -0.0814687, 0.0814687, 0.0814687, -0.288594, -0.0917206,
-      0.0917206, 0.0917206, -0.0554951, -0.140797, -0.237903, -0.2758,
-      -0.0554951, -0.140797, -0.0554951, -0.140797, -0.0171771, -0.131012,
-      0.10473, 0.10473, -0.10473, -0.157267, 0.113309, 0.113309, -0.113309,
-      -0.00491594, -0.0554951, -0.00491594, -0.0554951, -0.416577, -0.237903,
-      -0.00491594, -0.0554951, -0.0712393, -0.287372, 0.0814687, 0.0814687,
-      -0.0814687, -0.288594, 0.0917206, 0.0917206, -0.0917206, -0.0554951,
-      -0.140797, -0.0554951, -0.140797, -0.237903, -0.2758, -0.0554951,
-      -0.140797, -0.0171771, -0.131012, 0.10473, -0.10473, 0.10473, -0.157267,
-      0.113309, -0.113309, 0.113309, -0.00491594, -0.0554951, -0.00491594,
-      -0.0554951, -0.00491594, -0.0554951, -0.416577, -0.237903, -0.0712393,
-      -0.287372, 0.0814687, -0.0814687, 0.0814687, -0.288594, 0.0917206,
-      -0.0917206, 0.0917206, -0.0554951, -0.140797, -0.0554951, -0.140797,
-      -0.0554951, -0.140797, -0.237903, -0.2758;
-  bool check_vxc = e_vxc.matrix().isApprox(vxc_ref, 0.0001);
-
-  BOOST_CHECK_CLOSE(e_vxc.energy(), -4.6303432151572643, 1e-5);
-  if (!check_vxc) {
-    std::cout << "ref" << std::endl;
-    std::cout << vxc_ref << std::endl;
-    std::cout << "calc" << std::endl;
-    std::cout << e_vxc.matrix() << std::endl;
-  }
-  BOOST_CHECK_EQUAL(check_vxc, 1);
-}
-
 BOOST_AUTO_TEST_CASE(density_test) {
 
   ofstream xyzfile("molecule.xyz");
@@ -258,9 +167,9 @@ BOOST_AUTO_TEST_CASE(density_test) {
   AOBasis aobasis = CreateBasis(mol);
 
   Eigen::MatrixXd dmat = DMat();
-
-  NumericalIntegration num;
-  num.GridSetup("medium", mol, aobasis);
+  Vxc_Grid grid;
+  grid.GridSetup("medium", mol, aobasis);
+  DensityIntegration<Vxc_Grid> num(grid);
 
   double ntot = num.IntegrateDensity(dmat);
   BOOST_CHECK_CLOSE(ntot, 8.000000, 1e-5);
@@ -298,9 +207,9 @@ BOOST_AUTO_TEST_CASE(gyration_test) {
   AOBasis aobasis = CreateBasis(mol);
 
   Eigen::MatrixXd dmat = DMat();
-
-  NumericalIntegration num;
-  num.GridSetup("medium", mol, aobasis);
+  Vxc_Grid grid;
+  grid.GridSetup("medium", mol, aobasis);
+  DensityIntegration<Vxc_Grid> num(grid);
 
   Gyrationtensor tensor = num.IntegrateGyrationTensor(dmat);
   BOOST_CHECK_CLOSE(tensor.mass, 8.0000005, 1e-5);
