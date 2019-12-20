@@ -44,8 +44,8 @@ class GmxTopolApp : public CsgApplication {
 
  protected:
   void WriteAtoms(ostream &out, Molecule &cg);
-  void WriteInteractions(ostream &out, Molecule &cg);
-  void WriteMolecule(ostream &out, Molecule &cg);
+  void WriteInteractions(ostream &out,Topology & top, Molecule &cg);
+  void WriteMolecule(ostream &out,Topology & top, Molecule &cg);
 };
 
 void GmxTopolApp::Initialize(void) {
@@ -62,7 +62,7 @@ bool GmxTopolApp::EvaluateTopology(Topology *top, Topology *) {
   }
   ofstream fl;
   fl.open((OptionsMap()["out"].as<string>() + ".top"));
-  WriteMolecule(fl, *(top->MoleculeByIndex(0)));
+  WriteMolecule(fl,*top, *(top->MoleculeByIndex(0)));
   fl.close();
   return true;
 }
@@ -78,10 +78,10 @@ void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg) {
   out << endl;
 }
 
-void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg) {
+void GmxTopolApp::WriteInteractions(ostream &out,Topology & top, Molecule &cg) {
   votca::Index nb = -1;
 
-  for (Interaction *ic : cg.getParent()->BondedInteractions()) {
+  for (Interaction *ic : top.BondedInteractions()) {
     if (ic->getMolecule() != cg.getId()) {
       continue;
     }
@@ -114,12 +114,12 @@ void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg) {
   }
 }
 
-void GmxTopolApp::WriteMolecule(ostream &out, Molecule &cg) {
+void GmxTopolApp::WriteMolecule(ostream &out,Topology & top, Molecule &cg) {
   out << "[ moleculetype ]\n";
   out << cg.getName() << " 3\n\n";
 
   WriteAtoms(out, cg);
-  WriteInteractions(out, cg);
+  WriteInteractions(out,top, cg);
 }
 
 int main(int argc, char **argv) {
