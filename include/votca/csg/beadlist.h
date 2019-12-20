@@ -15,11 +15,12 @@
  *
  */
 
-#ifndef _VOTCA_CSG_BEADLIST_H
-#define _VOTCA_CSG_BEADLIST_H
+#pragma once
+#ifndef VOTCA_CSG_BEADLIST_H
+#define VOTCA_CSG_BEADLIST_H
 
-#include <list>
 #include <string>
+#include <vector>
 #include <votca/tools/eigen.h>
 #include <votca/tools/types.h>
 
@@ -56,14 +57,14 @@ class BeadList {
   iterator begin() { return _beads.begin(); }
   iterator end() { return _beads.end(); }
 
-  Topology *getTopology() { return _topology; }
+  const Topology &getTopology() const { return *_topology; }
 
  private:
   std::vector<Bead *> _beads;
-  Topology *_topology;
+  Topology *_topology = nullptr;
 };
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_BEADLIST_H */
+#endif  // VOTCA_CSG_BEADLIST_H
