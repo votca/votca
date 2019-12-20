@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_RESIDUE_H
-#define _VOTCA_CSG_RESIDUE_H
+#ifndef VOTCA_CSG_RESIDUE_H
+#define VOTCA_CSG_RESIDUE_H
 
 #include "topologyitem.h"
 #include <string>
@@ -56,4 +56,4 @@ inline const std::string &Residue::getName() { return _name; }
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_RESIDUE_H */
+#endif // VOTCA_CSG_RESIDUE_H
