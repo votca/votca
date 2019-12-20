@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "bead.h"
-#include "beadtype.h"
 #include "boundarycondition.h"
 #include "exclusionlist.h"
 #include "molecule.h"
