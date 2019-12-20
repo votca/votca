@@ -47,13 +47,21 @@ stages:
     - if [[ ${CLANG_FORMAT} && ${CI_COMMIT_REF_NAME} != next ]]; then cmake --build . --target format && git diff --submodule=diff --exit-code; fi
     - ccache -s
 
-Debug GCC:
+Debug GCC Format:
   stage: canary
   variables:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
+    REGRESSION_TESTING: "OFF"
     CLANG_FORMAT: "yes"
+  extends: .build
+
+Debug GCC:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
   extends: .build
 
 None GCC:
