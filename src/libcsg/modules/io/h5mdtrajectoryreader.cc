@@ -115,7 +115,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   CheckError(g_box, "Unable to open " + box_gr_name + " group");
   hid_t at_box_dimension = H5Aopen(g_box, "dimension", H5P_DEFAULT);
   CheckError(at_box_dimension, "Unable to open dimension attribute.");
-  Index dimension;
+  int dimension;
   H5Aread(at_box_dimension, H5Aget_type(at_box_dimension), &dimension);
   if (dimension != 3) {
     throw ios_base::failure("Wrong dimension " +
@@ -242,7 +242,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   double *positions;
   double *forces = nullptr;
   double *velocities = nullptr;
-  Index *ids = nullptr;
+  int *ids = nullptr;
 
   try {
     positions = ReadVectorData<double>(ds_atom_position_, H5T_NATIVE_DOUBLE,
@@ -262,7 +262,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   }
 
   if (has_id_group_ != H5MDTrajectoryReader::NONE) {
-    ids = ReadScalarData<Index>(ds_atom_id_, H5T_NATIVE_INT, idx_frame_);
+    ids = ReadScalarData<int>(ds_atom_id_, H5T_NATIVE_INT, idx_frame_);
   }
 
   // Process atoms.
