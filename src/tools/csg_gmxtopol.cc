@@ -44,8 +44,8 @@ class GmxTopolApp : public CsgApplication {
 
  protected:
   void WriteAtoms(ostream &out, Molecule &cg);
-  void WriteInteractions(ostream &out,Topology & top, Molecule &cg);
-  void WriteMolecule(ostream &out,Topology & top, Molecule &cg);
+  void WriteInteractions(ostream &out,const Topology & top, Molecule &cg);
+  void WriteMolecule(ostream &out,const Topology & top, Molecule &cg);
 };
 
 void GmxTopolApp::Initialize(void) {
@@ -78,10 +78,10 @@ void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg) {
   out << endl;
 }
 
-void GmxTopolApp::WriteInteractions(ostream &out,Topology & top, Molecule &cg) {
+void GmxTopolApp::WriteInteractions(ostream &out,const Topology & top, Molecule &cg) {
   votca::Index nb = -1;
 
-  for (Interaction *ic : top.BondedInteractions()) {
+  for (const Interaction *ic : top.BondedInteractions()) {
     if (ic->getMolecule() != cg.getId()) {
       continue;
     }
@@ -114,7 +114,7 @@ void GmxTopolApp::WriteInteractions(ostream &out,Topology & top, Molecule &cg) {
   }
 }
 
-void GmxTopolApp::WriteMolecule(ostream &out,Topology & top, Molecule &cg) {
+void GmxTopolApp::WriteMolecule(ostream &out,const Topology & top, Molecule &cg) {
   out << "[ moleculetype ]\n";
   out << cg.getName() << " 3\n\n";
 
