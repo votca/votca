@@ -27,6 +27,7 @@
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aomatrix3d.h>
 #include <votca/xtp/aopotential.h>
 #include <votca/xtp/density_integration.h>
 #include <votca/xtp/dftengine.h>
@@ -95,6 +96,13 @@ void DFTEngine::Initialize(Property& options) {
         key + ".externaldensity.gridquality");
     _state = options.ifExistsReturnElseThrowRuntimeError<string>(
         key + ".externaldensity.state");
+  }
+
+  if (options.exists(key + ".externalfield")) {
+    _integrate_ext_field = true;
+
+    _extfield = options.ifExistsReturnElseThrowRuntimeError<Eigen::Vector3d>(
+        key + ".externalfield");
   }
 
   if (options.exists(key + ".convergence")) {
@@ -396,6 +404,15 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
     E0 += extdensity_result.energy();
     H0 += extdensity_result.matrix();
   }
+
+  if (_integrate_ext_field) {
+
+    XTP_LOG(Log::error, *_pLog)
+        << TimeStamp() << " Integrating external electric field with F[Hrt]="
+        << _extfield.transpose() << flush;
+    H0 += IntegrateExternalField(mol);
+  }
+
   return Mat_p_Energy(E0, H0);
 }
 
@@ -912,6 +929,19 @@ double DFTEngine::ExternalRepulsion(
     }
   }
   return E_ext;
+}
+
+Eigen::MatrixXd DFTEngine::IntegrateExternalField(const QMMolecule& mol) const {
+
+  AODipole dipole;
+  dipole.setCenter(mol.getPos());
+  dipole.Fill(_dftbasis);
+  Eigen::MatrixXd result =
+      Eigen::MatrixXd::Zero(dipole.Dimension(), dipole.Dimension());
+  for (Index i = 0; i < 3; i++) {
+    result -= dipole.Matrix()[i] * _extfield[i];
+  }
+  return result;
 }
 
 Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
