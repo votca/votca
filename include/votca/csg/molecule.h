@@ -38,7 +38,7 @@ class Interaction;
     \todo sort atoms in molecule
 
 */
-class Molecule : public TopologyItem {
+class Molecule {
  public:
   /// get the molecule ID
   Index getId() const { return _id; }
