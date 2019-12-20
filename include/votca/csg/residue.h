@@ -18,7 +18,6 @@
 #ifndef VOTCA_CSG_RESIDUE_H
 #define VOTCA_CSG_RESIDUE_H
 
-#include "topologyitem.h"
 #include <string>
 
 namespace votca {
@@ -32,7 +31,7 @@ namespace csg {
    based on their residue.
 
 */
-class Residue : public TopologyItem {
+class Residue {
  public:
   /// get the name of the residue
   const std::string &getName();
