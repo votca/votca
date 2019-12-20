@@ -115,7 +115,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   CheckError(g_box, "Unable to open " + box_gr_name + " group");
   hid_t at_box_dimension = H5Aopen(g_box, "dimension", H5P_DEFAULT);
   CheckError(at_box_dimension, "Unable to open dimension attribute.");
-  Index dimension;
+  int dimension;
   H5Aread(at_box_dimension, H5Aget_type(at_box_dimension), &dimension);
   if (dimension != 3) {
     throw ios_base::failure("Wrong dimension " +
