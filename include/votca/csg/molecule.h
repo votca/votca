@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_MOLECULE_H
-#define _VOTCA_CSG_MOLECULE_H
+#ifndef VOTCA_CSG_MOLECULE_H
+#define VOTCA_CSG_MOLECULE_H
 
 #include "bead.h"
 #include <assert.h>
@@ -116,4 +116,4 @@ inline Index Molecule::getBeadIdByName(const std::string &name) {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_MOLECULE_H */
+#endif // VOTCA_CSG_MOLECULE_H 
