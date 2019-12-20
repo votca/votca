@@ -116,4 +116,4 @@ inline Index Molecule::getBeadIdByName(const std::string &name) {
 }  // namespace csg
 }  // namespace votca
 
-#endif // VOTCA_CSG_MOLECULE_H 
+#endif // VOTCA_CSG_MOLECULE_H
