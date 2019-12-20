@@ -47,6 +47,12 @@ BOOST_AUTO_TEST_CASE(test_beadmotifconnector_getedges) {
   Edge ed_bead(1, 2);
   // Connects motifs
   Edge ed_motif(4, 5);
+
+  /*
+   * Motif  4 --- 5
+   *
+   * Bead   1 --- 2
+   */
   bead_connector.AddMotifAndBeadEdge(ed_motif, ed_bead);
 
   vector<Edge> bead_edges = bead_connector.getBeadEdges(ed_motif);
@@ -56,18 +62,38 @@ BOOST_AUTO_TEST_CASE(test_beadmotifconnector_getedges) {
   Edge motif_edge = bead_connector.getMotifEdge(ed_bead);
   BOOST_CHECK_EQUAL(motif_edge, ed_motif);
 
+  /*
+   * Motif  4 --- 5
+   *
+   * Bead   1 --- 2
+   * Bead   7 --- 8
+   */
   Edge ed_bead2(7, 8);
   bead_connector.AddMotifAndBeadEdge(ed_motif, ed_bead2);
 
   bead_edges = bead_connector.getBeadEdges(ed_motif);
   BOOST_CHECK_EQUAL(bead_edges.size(), 2);
 
+  /*
+   * Motif  7 --- 4 --- 5
+   *
+   * Bead         1 --- 2
+   * Bead         7 --- 8
+   * Bead   9 --- 11
+   */
   Edge ed_motif2(4, 7);
   Edge ed_bead3(9, 11);
+
   bead_connector.AddMotifAndBeadEdge(ed_motif2, ed_bead3);
 
   unordered_set<Edge> motif_edges = bead_connector.getMotifEdges();
   BOOST_CHECK_EQUAL(motif_edges.size(), 2);
+
+  vector<Edge> bead_edges2 = bead_connector.getBeadEdges(ed_motif);
+  sort(bead_edges2.begin(), bead_edges2.end());
+  BOOST_CHECK_EQUAL(bead_edges2.size(), 2);
+  BOOST_CHECK_EQUAL(bead_edges2.at(0), ed_bead);
+  BOOST_CHECK_EQUAL(bead_edges2.at(1), ed_bead2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
