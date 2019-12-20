@@ -2,6 +2,7 @@
 [![codecov](https://codecov.io/gh/votca/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/votca/tools)
 [![Build Status](https://travis-ci.org/votca/tools.svg?branch=master)](https://travis-ci.org/votca/tools)
 [![pipeline status](https://gitlab.com/votca/tools/badges/master/pipeline.svg)](https://gitlab.com/votca/tools/commits/master)
+[![DOI](https://zenodo.org/badge/23848711.svg)](https://zenodo.org/badge/latestdoi/23848711)
 
 This is the tools module of the VOTCA package.
 
