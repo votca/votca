@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-
+#pragma once
 #ifndef VOTCA_CSG_RESIDUE_H
 #define VOTCA_CSG_RESIDUE_H
 
