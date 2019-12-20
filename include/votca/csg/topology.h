@@ -433,19 +433,19 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
 }
 
 inline Molecule *Topology::CreateMolecule(std::string name) {
-  Molecule *mol = new Molecule(this, _molecules.size(), name);
+  Molecule *mol = new Molecule(_molecules.size(), name);
   _molecules.push_back(mol);
   return mol;
 }
 
 inline Residue *Topology::CreateResidue(std::string name, Index id) {
-  Residue *res = new Residue(this, id, name);
+  Residue *res = new Residue(id, name);
   _residues.push_back(res);
   return res;
 }
 
 inline Residue *Topology::CreateResidue(std::string name) {
-  Residue *res = new Residue(this, _residues.size(), name);
+  Residue *res = new Residue(_residues.size(), name);
   _residues.push_back(res);
   return res;
 }
