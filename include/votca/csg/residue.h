@@ -45,8 +45,8 @@ class Residue {
 
  private:
   /// constructor
-  Residue(Topology *parent, Index id, const std::string &name)
-      : TopologyItem(parent), _id(id), _name(name) {}
+  Residue(Index id, const std::string &name)
+      : _id(id), _name(name) {}
   friend class Topology;
 };
 
