@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_CSG_TOPOLOGY_H
 #define VOTCA_CSG_TOPOLOGY_H
 
