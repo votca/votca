@@ -19,7 +19,6 @@
 #define _VOTCA_CSG_MOLECULE_H
 
 #include "bead.h"
-#include "topologyitem.h"
 #include <assert.h>
 #include <map>
 #include <string>
