@@ -242,7 +242,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   double *positions;
   double *forces = nullptr;
   double *velocities = nullptr;
-  Index *ids = nullptr;
+  int *ids = nullptr;
 
   try {
     positions = ReadVectorData<double>(ds_atom_position_, H5T_NATIVE_DOUBLE,
@@ -262,7 +262,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   }
 
   if (has_id_group_ != H5MDTrajectoryReader::NONE) {
-    ids = ReadScalarData<Index>(ds_atom_id_, H5T_NATIVE_INT, idx_frame_);
+    ids = ReadScalarData<int>(ds_atom_id_, H5T_NATIVE_INT, idx_frame_);
   }
 
   // Process atoms.
