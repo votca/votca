@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_TOPOLOGY_H
-#define _VOTCA_CSG_TOPOLOGY_H
+#ifndef VOTCA_CSG_TOPOLOGY_H
+#define VOTCA_CSG_TOPOLOGY_H
 
 #include <cassert>
 #include <list>
@@ -463,4 +463,4 @@ inline void Topology::InsertExclusion(Bead *bead1, iteratable &l) {
 
 #include "interaction.h"
 
-#endif /* _VOTCA_CSG_TOPOLOGY_H */
+#endif // VOTCA_CSG_TOPOLOGY_H
