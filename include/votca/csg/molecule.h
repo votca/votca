@@ -98,8 +98,8 @@ class Molecule {
   void *_userdata;
 
   /// constructor
-  Molecule(Topology *parent, Index id, std::string name)
-      : TopologyItem(parent), _id(id), _name(name) {}
+  Molecule(Index id, std::string name)
+      : _id(id), _name(name) {}
 
   friend class Topology;
 };
