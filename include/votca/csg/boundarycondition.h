@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
-#pragma once
 #ifndef VOTCA_CSG_BOUNDARYCONDITION_H
 #define VOTCA_CSG_BOUNDARYCONDITION_H
+#pragma once
 
 #include <memory>
 #include <votca/tools/eigen.h>
