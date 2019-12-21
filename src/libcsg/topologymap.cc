@@ -15,6 +15,7 @@
  *
  */
 
+#include "../../include/votca/csg/boundarycondition.h"
 #include <votca/csg/topologymap.h>
 
 namespace votca {
@@ -34,7 +35,7 @@ void TopologyMap::Apply() {
   _out->setBox(_in->getBox());
 
   for (auto& _map : _maps) {
-    _map->Apply();
+    _map->Apply(_out->getBoundary());
   }
 }
 

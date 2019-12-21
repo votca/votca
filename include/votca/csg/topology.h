@@ -291,6 +291,10 @@ class Topology {
   const Eigen::Matrix3d &getBox() const { return _bc->getBox(); };
 
   /**
+   * @brief Return the boundary condition object
+   */
+  const BoundaryCondition & getBoundary() const { assert(_bc!=nullptr && "Cannot return boundary condition is null"); return *_bc; };
+  /**
    * set the time of current frame
    * \param t simulation time in ns
    */
