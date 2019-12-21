@@ -20,11 +20,12 @@
 #define BOOST_TEST_MODULE beadtriple_test
 #include <boost/test/unit_test.hpp>
 
+#include "../../include/votca/csg/bead.h"
+#include "../../include/votca/csg/beadtriple.h"
+#include "../../include/votca/csg/beadtype.h"
+#include "../../include/votca/csg/topology.h"
 #include <string>
 #include <tuple>
-#include <votca/csg/bead.h>
-#include <votca/csg/beadtriple.h>
-#include <votca/csg/topology.h>
 
 using namespace std;
 using namespace votca::csg;

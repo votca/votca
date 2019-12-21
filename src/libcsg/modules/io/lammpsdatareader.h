@@ -18,11 +18,11 @@
 #ifndef _VOTCA_CSG_LAMMPSDATAREADER_H
 #define _VOTCA_CSG_LAMMPSDATAREADER_H
 
+#include "../../../../include/votca/csg/topologyreader.h"
+#include "../../../../include/votca/csg/trajectoryreader.h"
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <votca/csg/topologyreader.h>
-#include <votca/csg/trajectoryreader.h>
 #include <votca/tools/unitconverter.h>
 
 namespace votca {

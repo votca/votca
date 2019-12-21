@@ -18,10 +18,10 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE beadstructure_test
+#include "../../include/votca/csg/basebead.h"
+#include "../../include/votca/csg/beadstructure.h"  // IWYU pragma: keep
 #include <boost/test/unit_test.hpp>
 #include <stdexcept>
-#include <votca/csg/basebead.h>
-#include <votca/csg/beadstructure.h>  // IWYU pragma: keep
 #include <votca/tools/types.h>
 using namespace std;
 using namespace votca::csg;

@@ -15,11 +15,11 @@
  *
  */
 
+#include "../../include/votca/csg/map.h"
+#include "../../include/votca/csg/bead.h"
+#include "../../include/votca/csg/topology.h"
 #include <numeric>
 #include <string>
-#include <votca/csg/bead.h>
-#include <votca/csg/map.h>
-#include <votca/csg/topology.h>
 #include <votca/tools/eigen.h>
 #include <votca/tools/tokenizer.h>
 

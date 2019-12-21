@@ -18,9 +18,9 @@
 #ifndef _GROWRITER_H
 #define _GROWRITER_H
 
+#include "../../../../include/votca/csg/topology.h"
+#include "../../../../include/votca/csg/trajectorywriter.h"
 #include <stdio.h>
-#include <votca/csg/topology.h>
-#include <votca/csg/trajectorywriter.h>
 #include <votca/tools/unitconverter.h>
 
 namespace votca {

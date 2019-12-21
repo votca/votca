@@ -15,16 +15,16 @@
  *
  */
 
+#include "../../include/votca/csg/topology.h"
+#include "../../include/votca/csg/boundarycondition.h"
+#include "../../include/votca/csg/interaction.h"
+#include "../../include/votca/csg/molecule.h"
+#include "../../include/votca/csg/openbox.h"
 #include <boost/lexical_cast.hpp>
 #include <cassert>
 #include <regex>
 #include <stdexcept>
 #include <unordered_set>
-#include <votca/csg/boundarycondition.h>
-#include <votca/csg/interaction.h>
-#include <votca/csg/molecule.h>
-#include <votca/csg/openbox.h>
-#include <votca/csg/topology.h>
 #include <votca/tools/rangeparser.h>
 
 namespace votca {

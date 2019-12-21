@@ -15,9 +15,9 @@
  *
  */
 
+#include "../../include/votca/csg/nblist.h"
+#include "../../include/votca/csg/topology.h"
 #include <iostream>
-#include <votca/csg/nblist.h>
-#include <votca/csg/topology.h>
 
 namespace votca {
 namespace csg {

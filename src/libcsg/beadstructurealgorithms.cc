@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/beadstructurealgorithms.h>
+#include "../../include/votca/csg/beadstructurealgorithms.h"
 #include <votca/tools/graphalgorithm.h>
 using namespace std;
 using namespace votca::tools;

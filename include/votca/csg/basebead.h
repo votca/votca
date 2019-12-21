@@ -18,6 +18,7 @@
 #define VOTCA_CSG_BASEBEAD_H
 #pragma once
 
+#include "topologyitem.h"
 #include <assert.h>
 #include <memory>
 #include <votca/tools/constants.h>

@@ -16,9 +16,9 @@
  */
 
 #include "lammpsdatareader.h"
+#include "../../../../include/votca/csg/topology.h"
 #include <boost/algorithm/string.hpp>
 #include <vector>
-#include <votca/csg/topology.h>
 #include <votca/tools/elements.h>
 #include <votca/tools/floatingpointcomparison.h>
 #include <votca/tools/getline.h>

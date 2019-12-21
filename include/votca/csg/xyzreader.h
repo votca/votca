@@ -18,11 +18,11 @@
 #ifndef __VOTCA_CSG_XYZREADER_H
 #define __VOTCA_CSG_XYZREADER_H
 
+#include "topologyreader.h"
+#include "trajectoryreader.h"
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <votca/csg/topologyreader.h>
-#include <votca/csg/trajectoryreader.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/unitconverter.h>
 

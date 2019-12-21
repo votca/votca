@@ -20,12 +20,13 @@
 #define BOOST_TEST_MODULE nblist_3body_test
 #include <boost/test/unit_test.hpp>
 
+#include "../../include/votca/csg/bead.h"
+#include "../../include/votca/csg/beadlist.h"
+#include "../../include/votca/csg/beadtype.h"
+#include "../../include/votca/csg/nblistgrid_3body.h"
+#include "../../include/votca/csg/topology.h"
 #include <string>
 #include <vector>
-#include <votca/csg/bead.h>
-#include <votca/csg/beadlist.h>
-#include <votca/csg/nblistgrid_3body.h>
-#include <votca/csg/topology.h>
 
 using namespace std;
 using namespace votca::csg;

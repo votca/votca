@@ -15,8 +15,8 @@
  *
  */
 
-#include <votca/csg/nblistgrid_3body.h>
-#include <votca/csg/topology.h>
+#include "../../include/votca/csg/nblistgrid_3body.h"
+#include "../../include/votca/csg/topology.h"
 
 namespace votca {
 namespace csg {

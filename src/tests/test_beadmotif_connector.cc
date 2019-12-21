@@ -20,7 +20,7 @@
 #define BOOST_TEST_MODULE beadmotifconnector_test
 #include <boost/test/unit_test.hpp>
 
-#include <votca/csg/beadmotifconnector.h>
+#include "../../include/votca/csg/beadmotifconnector.h"
 
 using namespace std;
 using namespace votca::csg;
