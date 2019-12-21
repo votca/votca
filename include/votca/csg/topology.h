@@ -176,6 +176,7 @@ class Topology {
    * @return bonded interaction container
    */
   InteractionContainer &BondedInteractions() { return _interactions; }
+  const InteractionContainer &BondedInteractions() const { return _interactions; }
 
   void AddBondedInteraction(Interaction *ic);
   std::list<Interaction *> InteractionsInGroup(const std::string &group);
