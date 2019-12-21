@@ -22,8 +22,8 @@
 #include <votca_config.h>
 #endif
 
+#include "../../../../include/votca/csg/trajectoryreader.h"
 #include <string>
-#include <votca/csg/trajectoryreader.h>
 #include <votca/tools/unitconverter.h>
 
 #include <gromacs/fileio/oenv.h>

@@ -22,8 +22,8 @@
 #include <votca_config.h>
 #endif
 
-#include <votca/csg/topology.h>
-#include <votca/csg/trajectorywriter.h>
+#include "../../../../include/votca/csg/topology.h"
+#include "../../../../include/votca/csg/trajectorywriter.h"
 #include <votca/tools/unitconverter.h>
 
 struct t_trxstatus;

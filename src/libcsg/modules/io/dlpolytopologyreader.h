@@ -18,9 +18,9 @@
 #ifndef _DLPTOPOLOGYREADER_H
 #define _DLPTOPOLOGYREADER_H
 
+#include "../../../../include/votca/csg/topology.h"
+#include "../../../../include/votca/csg/topologyreader.h"
 #include <string>
-#include <votca/csg/topology.h>
-#include <votca/csg/topologyreader.h>
 #include <votca/tools/unitconverter.h>
 
 namespace votca {

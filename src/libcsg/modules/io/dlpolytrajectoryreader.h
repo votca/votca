@@ -18,10 +18,10 @@
 #ifndef _dlpolytrajectoryreader_H
 #define _dlpolytrajectoryreader_H
 
+#include "../../../../include/votca/csg/trajectoryreader.h"
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <votca/csg/trajectoryreader.h>
 #include <votca/tools/unitconverter.h>
 
 namespace votca {
