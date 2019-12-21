@@ -17,6 +17,7 @@
 
 #ifndef VOTCA_CSG_MAP_H
 #define VOTCA_CSG_MAP_H
+#pragma once
 
 #include "molecule.h"
 #include <vector>
