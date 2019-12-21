@@ -305,6 +305,7 @@ class Bead : public BaseBead {
     bead_force_set_ = false;
   }
 
+  friend class Topology;
   friend class Molecule;
 };
 
