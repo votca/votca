@@ -20,7 +20,6 @@
 
 #include <assert.h>
 #include <memory>
-#include <votca/csg/topologyitem.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/eigen.h>
 #include <votca/tools/name.h>
@@ -140,8 +139,6 @@ class BaseBead {
 
  protected:
   BaseBead(){};
-
-  TopologyItem topology_item_ = nullptr;
 
   std::string type_ = tools::topology_constants::unassigned_bead_type;
   Index id_ = tools::topology_constants::unassigned_residue_id;
