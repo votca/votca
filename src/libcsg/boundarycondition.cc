@@ -25,7 +25,7 @@ namespace votca {
       return std::abs(_box.determinant());
     }
 
-    undaryCondition::getShortestBoxDimension() const {
+    double BundaryCondition::getShortestBoxDimension() const {
       assert(getBoxType() != eBoxtype::typeOpen &&
           "Cannot get the shortest dimension of the box because it is open");
 
