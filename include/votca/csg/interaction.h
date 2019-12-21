@@ -79,8 +79,8 @@ class Interaction {
   }
 
   virtual Eigen::Vector3d Grad(const Topology &top, Index bead) = 0;
-  Index BeadCount() { return _beads.size(); }
-  Index getBeadId(Index bead) {
+  Index BeadCount() const { return _beads.size(); }
+  Index getBeadId(Index bead) const {
     assert(bead > -1 && boost::lexical_cast<size_t>(bead) < _beads.size());
     return _beads[bead];
   }
