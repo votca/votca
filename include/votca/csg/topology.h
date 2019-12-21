@@ -428,7 +428,7 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
                                   std::string type, Index resnr, double m,
                                   double q) {
 
-  Bead *b = new Bead(this, _beads.size(), type, symmetry, name, resnr, m, q);
+  Bead *b = new Bead(_beads.size(), type, symmetry, name, resnr, m, q);
   _beads.push_back(b);
   return b;
 }
