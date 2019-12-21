@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_MAP_H
-#define _VOTCA_CSG_MAP_H
+#ifndef VOTCA_CSG_MAP_H
+#define VOTCA_CSG_MAP_H
 
 #include "molecule.h"
 #include <vector>
@@ -114,4 +114,4 @@ class Map_Ellipsoid : public Map_Sphere {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_MAP_H */
+#endif // VOTCA_CSG_MAP_H
