@@ -73,9 +73,6 @@ class BaseBead {
    */
   Index getMoleculeId() const noexcept { return molecule_id_; }
 
-  /// Gets the topology pointer the bead is attached too
-  Topology *getParent() const { return topology_item_.getParent(); }
-
   /**
    * get the bead type
    * \return const string
