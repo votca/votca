@@ -15,8 +15,8 @@
  *
  */
 
+#include "../../include/votca/csg/boundarycondition.h"
 #include <vector>
-#include <votca/csg/boundarycondition.h>
 
 namespace votca {
 namespace csg {
