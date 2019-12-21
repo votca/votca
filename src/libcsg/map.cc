@@ -136,7 +136,7 @@ void Map_Sphere::Apply(const BoundaryCondition & bc) {
   _out->ClearParentBeads();
 
   // the following is needed for pbc treatment
-  double max_dist = 0.5 * bc.getShortestBoxSize();
+  double max_dist = 0.5 * bc.getShortestBoxDimension();
   Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
   string name0;
   Index id0 = 0;
@@ -200,7 +200,7 @@ void Map_Ellipsoid::Apply(const BoundaryConditions & bc) {
   bPos = bVel = bF = false;
 
   // the following is needed for pbc treatment
-  double max_dist = 0.5 * bc.getShortestBoxSize();
+  double max_dist = 0.5 * bc.getShortestBoxDimension();
   Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
   if (_matrix.size() > 0) {
     if (_matrix.front()._in->HasPos()) {
