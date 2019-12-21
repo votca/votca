@@ -21,6 +21,7 @@
 #include <string>
 #include <votca/csg/topology.h>
 #include <votca/csg/topologyreader.h>
+#include <votca/tools/unitconverter.h>
 
 namespace votca {
 namespace csg {
@@ -37,6 +38,17 @@ class DLPOLYTopologyReader : public TopologyReader {
  public:
   DLPOLYTopologyReader() = default;
 
+  /// Set default units
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+  const tools::MassUnit mass_unit = tools::MassUnit::atomic_mass_units;
+  const tools::TimeUnit time_unit = tools::TimeUnit::picoseconds;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::MolarEnergyUnit molar_energy_unit =
+      tools::MolarEnergyUnit::joules_per_mole;
+  const tools::VelocityUnit velocity_unit =
+      tools::VelocityUnit::angstroms_per_picosecond;
+  const tools::MolarForceUnit force_unit =
+      tools::MolarForceUnit::kilojoules_per_mole_angstrom;
   /// read a topology file
   bool ReadTopology(std::string file, Topology &top) override;
 

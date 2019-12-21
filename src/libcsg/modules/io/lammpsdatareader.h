@@ -23,6 +23,7 @@
 #include <string>
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
+#include <votca/tools/unitconverter.h>
 
 namespace votca {
 namespace csg {
@@ -38,6 +39,15 @@ class Molecule;
 */
 class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+  const tools::TimeUnit time_unit = tools::TimeUnit::femtoseconds;
+  const tools::MassUnit mass_unit = tools::MassUnit::grams_per_mole;
+  const tools::MolarEnergyUnit energy_unit =
+      tools::MolarEnergyUnit::kilocalories_per_mole;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::MolarForceUnit force_unit =
+      tools::MolarForceUnit::kilocalories_per_mole_angstrom;
+
   LAMMPSDataReader() = default;
   ~LAMMPSDataReader() override = default;
 
