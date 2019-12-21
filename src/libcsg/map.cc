@@ -194,7 +194,7 @@ void Map_Sphere::Apply(const BoundaryCondition & bc) {
 }
 
 /// \todo implement this function
-void Map_Ellipsoid::Apply(const BoundaryConditions & bc) {
+void Map_Ellipsoid::Apply(const BoundaryCondition & bc) {
 
   bool bPos, bVel, bF;
   bPos = bVel = bF = false;
