@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
-#pragma once
 #ifndef VOTCA_CSG_UNITS_H
 #define VOTCA_CSG_UNITS_H
+#pragma once
 
 #include <votca/tools/unitconversion.h>
 
