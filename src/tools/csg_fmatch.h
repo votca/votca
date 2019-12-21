@@ -18,8 +18,8 @@
 #ifndef _VOTCA_CSG_FMATCH_H
 #define _VOTCA_CSG_FMATCH_H
 
-#include <votca/csg/csgapplication.h>
-#include <votca/csg/trajectoryreader.h>
+#include "../../include/votca/csg/csgapplication.h"
+#include "../../include/votca/csg/trajectoryreader.h"
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/property.h>
 

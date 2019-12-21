@@ -20,12 +20,12 @@
 #define BOOST_TEST_MODULE interaction_test
 #include <boost/test/unit_test.hpp>
 
+#include "../../include/votca/csg/bead.h"
+#include "../../include/votca/csg/beadtype.h"
+#include "../../include/votca/csg/interaction.h"
+#include "../../include/votca/csg/molecule.h"
+#include "../../include/votca/csg/topology.h"
 #include <string>
-#include <votca/csg/bead.h>
-#include <votca/csg/beadtype.h>
-#include <votca/csg/interaction.h>
-#include <votca/csg/molecule.h>
-#include <votca/csg/topology.h>
 
 using namespace std;
 using namespace votca::csg;

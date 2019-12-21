@@ -18,8 +18,8 @@
 #ifndef _VOTCA_CSG_GMXTOPOLOGYREADER_H
 #define _VOTCA_CSG_GMXTOPOLOGYREADER_H
 
+#include "../../../../include/votca/csg/topologyreader.h"
 #include <string>
-#include <votca/csg/topologyreader.h>
 #include <votca/tools/unitconverter.h>
 
 namespace votca {

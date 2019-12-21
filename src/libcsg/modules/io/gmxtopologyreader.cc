@@ -22,7 +22,7 @@
 #include <iostream>
 #include <string>
 
-#include <votca/csg/topology.h>
+#include "../../../../include/votca/csg/topology.h"
 
 #include "gmxtopologyreader.h"
 

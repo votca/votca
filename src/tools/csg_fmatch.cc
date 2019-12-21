@@ -16,14 +16,14 @@
  */
 
 #include "csg_fmatch.h"
+#include "../../include/votca/csg/beadlist.h"
+#include "../../include/votca/csg/nblistgrid.h"
+#include "../../include/votca/csg/nblistgrid_3body.h"
 #include <fstream>
 #include <iostream>
 #include <math.h>
 #include <sstream>
 #include <stdio.h>
-#include <votca/csg/beadlist.h>
-#include <votca/csg/nblistgrid.h>
-#include <votca/csg/nblistgrid_3body.h>
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/linalg.h>
 #include <votca/tools/table.h>

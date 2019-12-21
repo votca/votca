@@ -20,9 +20,9 @@
 #define BOOST_TEST_MODULE beadmotif_test
 #include <boost/test/unit_test.hpp>
 
+#include "../../include/votca/csg/basebead.h"
+#include "../../include/votca/csg/beadmotif.h"
 #include <string>
-#include <votca/csg/basebead.h>
-#include <votca/csg/beadmotif.h>
 
 using namespace std;
 using namespace votca::csg;

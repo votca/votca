@@ -18,8 +18,8 @@
 #ifndef _DLPOLYTRAJECTORYWRITER_H
 #define _DLPOLYTRAJECTORYWRITER_H
 
-#include <votca/csg/topology.h>
-#include <votca/csg/trajectorywriter.h>
+#include "../../../../include/votca/csg/topology.h"
+#include "../../../../include/votca/csg/trajectorywriter.h"
 #include <votca/tools/unitconverter.h>
 
 namespace votca {
