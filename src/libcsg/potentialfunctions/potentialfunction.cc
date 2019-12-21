@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/potentialfunctions/potentialfunction.h>
+#include "../../../include/votca/csg/potentialfunctions/potentialfunction.h"
 #include <votca/tools/table.h>
 
 #include <boost/lexical_cast.hpp>
