@@ -22,7 +22,6 @@
 #include <boost/test/unit_test.hpp>
 #include <string>
 #include <votca/csg/basebead.h>
-#include <votca/csg/beadtype.h>
 #include <votca/csg/molecule.h>
 #include <votca/csg/topology.h>
 
