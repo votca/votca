@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_INTERACTION_H
-#define _VOTCA_CSG_INTERACTION_H
+#ifndef VOTCA_CSG_INTERACTION_H
+#define VOTCA_CSG_INTERACTION_H
 
 #include "bead.h"
 #include "topology.h"
@@ -321,4 +321,4 @@ inline Eigen::Vector3d IDihedral::Grad(const Topology &top, Index bead) {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_INTERACTION_H
+#endif  // VOTCA_CSG_INTERACTION_H
