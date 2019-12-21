@@ -18,7 +18,7 @@
 #define VOTCA_CSG_UNITS_H
 #pragma once
 
-#include <votca/tools/unitconversion.h>
+#include <votca/tools/unitconverter.h>
 
 namespace votca {
 namespace csg {
