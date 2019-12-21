@@ -17,6 +17,7 @@
 
 #ifndef VOTCA_CSG_BEAD_H
 #define VOTCA_CSG_BEAD_H
+#pragma once
 
 #include <assert.h>
 #include <cassert>
