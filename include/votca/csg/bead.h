@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_BEAD_H
-#define _VOTCA_CSG_BEAD_H
+#ifndef VOTCA_CSG_BEAD_H
+#define VOTCA_CSG_BEAD_H
 
 #include <assert.h>
 #include <cassert>
@@ -370,4 +370,4 @@ inline void Bead::HasW(bool b) { bW_ = b; }
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_BEAD_H
+#endif  // VOTCA_CSG_BEAD_H
