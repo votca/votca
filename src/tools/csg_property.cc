@@ -15,9 +15,9 @@
  *
  */
 
+#include "../../include/votca/csg/version.h"
 #include <boost/program_options.hpp>
 #include <iostream>
-#include <votca/csg/version.h>
 #include <votca/tools/property.h>
 #include <votca/tools/tokenizer.h>
 
