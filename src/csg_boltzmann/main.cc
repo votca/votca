@@ -19,6 +19,7 @@
 // here!
 //
 
+#include "../../include/votca/csg/csgapplication.h"
 #include "analysistool.h"
 #include "bondedstatistics.h"
 #include "stdanalysis.h"
@@ -28,7 +29,6 @@
 #include <map>
 #include <math.h>
 #include <string>
-#include <votca/csg/csgapplication.h>
 #include <votca/tools/rangeparser.h>
 #include <votca/tools/tokenizer.h>
 
