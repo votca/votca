@@ -45,9 +45,9 @@ Map::~Map() {
   _maps.clear();
 }
 
-void Map::Apply() {
+void Map::Apply(const BoundaryCondition & bc) {
   for (auto &_map : _maps) {
-    _map->Apply();
+    _map->Apply(bc);
   }
 }
 
@@ -129,15 +129,14 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
   }
 }
 
-void Map_Sphere::Apply() {
+void Map_Sphere::Apply(const BoundaryCondition & bc) {
 
   bool bPos, bVel, bF;
   bPos = bVel = bF = false;
   _out->ClearParentBeads();
 
   // the following is needed for pbc treatment
-  Topology *top = _out->getParent();
-  double max_dist = 0.5 * top->ShortestBoxSize();
+  double max_dist = 0.5 * bc.getShortestBoxSize();
   Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
   string name0;
   Index id0 = 0;
@@ -159,7 +158,7 @@ void Map_Sphere::Apply() {
     _out->AddParentBead(bead->getId());
     M += bead->getMass();
     if (bead->HasPos()) {
-      Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
+      Eigen::Vector3d r = bc.BCShortestConnection(r0, bead->getPos());
       if (r.norm() > max_dist) {
         cout << r0 << " " << bead->getPos() << endl;
         throw std::runtime_error(
@@ -195,14 +194,13 @@ void Map_Sphere::Apply() {
 }
 
 /// \todo implement this function
-void Map_Ellipsoid::Apply() {
+void Map_Ellipsoid::Apply(const BoundaryConditions & bc) {
 
   bool bPos, bVel, bF;
   bPos = bVel = bF = false;
 
   // the following is needed for pbc treatment
-  Topology *top = _out->getParent();
-  double max_dist = 0.5 * top->ShortestBoxSize();
+  double max_dist = 0.5 * bc.getShortestBoxSize();
   Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
   if (_matrix.size() > 0) {
     if (_matrix.front()._in->HasPos()) {
@@ -221,7 +219,7 @@ void Map_Ellipsoid::Apply() {
     Bead *bead = iter._in;
     _out->AddParentBead(bead->getId());
     if (bead->HasPos()) {
-      Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
+      Eigen::Vector3d r = bc.BCShortestConnection(r0, bead->getPos());
       if (r.norm() > max_dist) {
         throw std::runtime_error(
             "coarse-grained bead is bigger than half the box");

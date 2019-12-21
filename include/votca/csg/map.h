@@ -37,7 +37,7 @@ class Map {
 
   void AddBeadMap(BeadMap *bmap) { _maps.push_back(bmap); }
 
-  void Apply();
+  void Apply(const BoundaryCondition & bc);
 
  protected:
   Molecule _in, _out;
@@ -50,7 +50,7 @@ class Map {
 class BeadMap {
  public:
   virtual ~BeadMap() = default;
-  virtual void Apply() = 0;
+  virtual void Apply(const BoundaryCondition & ) = 0;
   virtual void Initialize(Molecule *in, Bead *out, tools::Property *opts_map,
                           tools::Property *opts_bead);
 
@@ -76,7 +76,7 @@ inline void BeadMap::Initialize(Molecule *in, Bead *out,
 class Map_Sphere : public BeadMap {
  public:
   Map_Sphere() = default;
-  void Apply() override;
+  void Apply(const BoundaryCondition & ) override;
 
   void Initialize(Molecule *in, Bead *out, tools::Property *opts_bead,
                   tools::Property *opts_map) override;
@@ -106,7 +106,7 @@ inline void Map_Sphere::AddElem(Bead *in, double weight, double force_weight) {
 class Map_Ellipsoid : public Map_Sphere {
  public:
   Map_Ellipsoid() = default;
-  void Apply() override;
+  void Apply(const BoundaryCondition &) override;
 
  protected:
 };
