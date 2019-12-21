@@ -336,7 +336,7 @@ BoundaryCondition::eBoxtype Topology::autoDetectBoxType(
 }
 
 double Topology::ShortestBoxSize() const {
-  return _bc->getShortestBoxSize();
+  return _bc->getShortestBoxDimension();
 }
 
 }  // namespace csg
