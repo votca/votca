@@ -18,9 +18,9 @@
 #ifndef VOTCA_CSG_BASEBEAD_H
 #define VOTCA_CSG_BASEBEAD_H
 
+#include "topologyitem.h"
 #include <assert.h>
 #include <memory>
-#include <votca/csg/topologyitem.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/eigen.h>
 #include <votca/tools/name.h>

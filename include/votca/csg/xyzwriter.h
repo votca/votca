@@ -18,9 +18,9 @@
 #ifndef __VOTCA_CSG_XYZWRITER_H
 #define __VOTCA_CSG_XYZWRITER_H
 
+#include "topology.h"
+#include "trajectorywriter.h"
 #include <stdio.h>
-#include <votca/csg/topology.h>
-#include <votca/csg/trajectorywriter.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/unitconverter.h>
 
