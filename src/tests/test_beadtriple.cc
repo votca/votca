@@ -24,7 +24,6 @@
 #include <tuple>
 #include <votca/csg/bead.h>
 #include <votca/csg/beadtriple.h>
-#include <votca/csg/beadtype.h>
 #include <votca/csg/topology.h>
 
 using namespace std;
