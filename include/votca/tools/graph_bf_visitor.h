@@ -20,9 +20,9 @@
 #ifndef __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
 
+#include "graphvisitor.h"
 #include <deque>
 #include <queue>
-#include <votca/tools/graphvisitor.h>
 
 /**
  * \brief A breadth first (BF) graph visitor

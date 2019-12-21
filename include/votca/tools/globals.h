@@ -18,8 +18,8 @@
 #ifndef __VOTCA_TOOLS_GLOBALS_H
 #define __VOTCA_TOOLS_GLOBALS_H
 
+#include "votca_config.h"
 #include <string>
-#include <votca/tools/votca_config.h>
 
 namespace votca {
 

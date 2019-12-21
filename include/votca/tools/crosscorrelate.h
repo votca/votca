@@ -19,10 +19,10 @@
 #define VOTCA_TOOLS_CROSSCORRELATE_H
 
 #include "datacollection.h"
+#include "eigen.h"
+#include "types.h"
 #include <iostream>
 #include <vector>
-#include <votca/tools/eigen.h>
-#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {

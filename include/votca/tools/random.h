@@ -18,8 +18,8 @@
 #ifndef _VOTCA_TOOLS_RANDOM_H_
 #define _VOTCA_TOOLS_RANDOM_H_
 
+#include "types.h"
 #include <random>
-#include <votca/tools/types.h>
 namespace votca {
 namespace tools {
 
