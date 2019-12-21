@@ -15,10 +15,10 @@
  *
  */
 
+#include "../../include/votca/tools/cubicspline.h"
+#include "../../include/votca/tools/linalg.h"
 #include <cmath>
 #include <iostream>
-#include <votca/tools/cubicspline.h>
-#include <votca/tools/linalg.h>
 
 namespace votca {
 namespace tools {

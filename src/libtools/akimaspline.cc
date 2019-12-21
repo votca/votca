@@ -15,9 +15,9 @@
  *
  */
 
+#include "../../include/votca/tools/akimaspline.h"
+#include "../../include/votca/tools/linalg.h"
 #include <iostream>
-#include <votca/tools/akimaspline.h>
-#include <votca/tools/linalg.h>
 
 namespace votca {
 namespace tools {

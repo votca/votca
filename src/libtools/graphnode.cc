@@ -17,6 +17,7 @@
  *
  */
 
+#include "../../include/votca/tools/graphnode.h"
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
 #include <iomanip>
@@ -25,7 +26,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <votca/tools/graphnode.h>
 
 namespace votca {
 namespace tools {

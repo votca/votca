@@ -17,13 +17,13 @@
  *
  */
 
+#include "../../include/votca/tools/edgecontainer.h"
+#include "../../include/votca/tools/edge.h"
 #include <algorithm>
 #include <cassert>
 #include <exception>
 #include <set>
 #include <vector>
-#include <votca/tools/edge.h>
-#include <votca/tools/edgecontainer.h>
 
 namespace votca {
 namespace tools {

@@ -15,9 +15,9 @@
  *
  */
 
+#include "../../include/votca/tools/linspline.h"
+#include "../../include/votca/tools/linalg.h"
 #include <iostream>
-#include <votca/tools/linalg.h>
-#include <votca/tools/linspline.h>
 
 namespace votca {
 namespace tools {

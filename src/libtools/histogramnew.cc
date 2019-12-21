@@ -15,8 +15,8 @@
  *
  */
 
+#include "../../include/votca/tools/histogramnew.h"
 #include <algorithm>
-#include <votca/tools/histogramnew.h>
 
 using namespace std;
 namespace votca {

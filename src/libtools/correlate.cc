@@ -14,8 +14,8 @@
  *
  */
 
-#include <votca/tools/correlate.h>
-#include <votca/tools/eigen.h>
+#include "../../include/votca/tools/correlate.h"
+#include "../../include/votca/tools/eigen.h"
 
 namespace votca {
 namespace tools {

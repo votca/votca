@@ -17,9 +17,9 @@
  *
  */
 
+#include "../../include/votca/tools/reducededge.h"
 #include <algorithm>
 #include <cassert>
-#include <votca/tools/reducededge.h>
 
 namespace votca {
 namespace tools {

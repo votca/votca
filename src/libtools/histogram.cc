@@ -15,10 +15,10 @@
  *
  */
 
+#include "../../include/votca/tools/histogram.h"
 #include <limits>
 #include <math.h>
 #include <numeric>
-#include <votca/tools/histogram.h>
 
 namespace votca {
 namespace tools {
