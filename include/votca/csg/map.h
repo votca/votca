@@ -20,6 +20,7 @@
 #pragma once
 
 #include "molecule.h"
+#include "boundarycondition.h"
 #include <vector>
 #include <votca/tools/eigen.h>
 #include <votca/tools/property.h>
