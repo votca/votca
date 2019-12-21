@@ -289,10 +289,9 @@ class Bead : public BaseBead {
   bool bead_force_set_;
 
   /// constructor
-  Bead(Topology *owner, Index id, std::string type, Symmetry symmetry,
+  Bead(Index id, std::string type, Symmetry symmetry,
        std::string name, Index resnr, double m, double q)
       : symmetry_(symmetry), charge_(q), residue_number_(resnr) {
-    topology_item_._parent = owner;
     setId(id);
     setType(type);
     setName(name);
@@ -305,7 +304,6 @@ class Bead : public BaseBead {
     bead_force_set_ = false;
   }
 
-  friend class Topology;
   friend class Molecule;
 };
 
