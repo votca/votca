@@ -2,6 +2,7 @@
 [![codecov](https://codecov.io/gh/votca/csgapps/branch/master/graph/badge.svg)](https://codecov.io/gh/votca/csgapps)
 [![Build Status](https://travis-ci.org/votca/csgapps.svg?branch=master)](https://travis-ci.org/votca/csgapps)
 [![pipeline status](https://gitlab.com/votca/csgapps/badges/master/pipeline.svg)](https://gitlab.com/votca/csgapps/commits/master)
+[![DOI](https://zenodo.org/badge/23939372.svg)](https://zenodo.org/badge/latestdoi/23939372)
 
 This repository contains some small analysis programs which are written based on the votca csg framework
 
