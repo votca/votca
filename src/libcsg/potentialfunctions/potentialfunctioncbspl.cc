@@ -84,7 +84,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, Index nlam,
         "3. Use more knot values.\n");
   }
 
-  _M = Eigen::Matrix4d::Zero();
+  _M = Eigen::MatrixXd::Zero(4, 4);
   _M(0, 0) = 1.0;
   _M(0, 1) = 4.0;
   _M(0, 2) = 1.0;
