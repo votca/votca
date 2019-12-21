@@ -21,7 +21,7 @@
 #include <iostream>
 #include <vector>
 
-#include <votca/tools/datacollection.h>
+#include "../../include/votca/tools/datacollection.h"
 
 using namespace std;
 using namespace votca::tools;

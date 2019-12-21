@@ -22,7 +22,7 @@
 #include <set>
 #include <unordered_map>
 
-#include <votca/tools/reducededge.h>
+#include "../../include/votca/tools/reducededge.h"
 
 using namespace std;
 using namespace votca::tools;

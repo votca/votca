@@ -18,9 +18,9 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE linspline_test
+#include "../../include/votca/tools/linspline.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
-#include <votca/tools/linspline.h>
 
 using namespace votca::tools;
 

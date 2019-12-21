@@ -19,12 +19,12 @@
 #define BOOST_TEST_MODULE structureparameters_test
 
 #include "../../include/votca/tools/structureparameters.h"
+#include "../../include/votca/tools/types.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <votca/tools/types.h>
 using namespace std;
 using namespace votca::tools;
 

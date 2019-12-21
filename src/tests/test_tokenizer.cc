@@ -18,10 +18,10 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE tokenizer_test
+#include "../../include/votca/tools/tokenizer.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
-#include <votca/tools/tokenizer.h>
 
 using namespace std;
 using namespace votca::tools;

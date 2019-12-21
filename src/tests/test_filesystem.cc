@@ -17,9 +17,9 @@
 
 #define BOOST_TEST_MAIN
 
+#include "../../include/votca/tools/filesystem.h"
 #include <boost/test/unit_test.hpp>
 #include <fstream>
-#include <votca/tools/filesystem.h>
 using namespace std;
 using namespace votca::tools;
 
