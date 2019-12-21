@@ -24,7 +24,6 @@
 #include <vector>
 #include <votca/csg/bead.h>
 #include <votca/csg/beadlist.h>
-#include <votca/csg/beadtype.h>
 #include <votca/csg/nblistgrid_3body.h>
 #include <votca/csg/topology.h>
 
