@@ -22,7 +22,7 @@
 #include <set>
 #include <unordered_map>
 
-#include <votca/tools/edge.h>
+#include "../../include/votca/tools/edge.h"
 
 using namespace std;
 using namespace votca::tools;

@@ -18,8 +18,8 @@
  *
  */
 
-#include <votca/tools/graph.h>
-#include <votca/tools/reducededge.h>
+#include "graph.h"
+#include "reducededge.h"
 
 #ifndef _VOTCA_TOOLS_REDUCEDGRAPH_H
 #define _VOTCA_TOOLS_REDUCEDGRAPH_H

@@ -19,11 +19,11 @@
 #define _VOTCA_TOOLS_DATACOLLECTION_H
 
 #include "tokenizer.h"
+#include "types.h"
 #include <assert.h>
 #include <map>
 #include <sstream>
 #include <vector>
-#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {

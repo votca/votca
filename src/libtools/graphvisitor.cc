@@ -17,12 +17,12 @@
  *
  */
 
+#include "../../include/votca/tools/graphvisitor.h"
+#include "../../include/votca/tools/edge.h"
+#include "../../include/votca/tools/graph.h"
 #include <exception>
 #include <iostream>
 #include <vector>
-#include <votca/tools/edge.h>
-#include <votca/tools/graph.h>
-#include <votca/tools/graphvisitor.h>
 
 using namespace std;
 

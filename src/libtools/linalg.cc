@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include <votca/tools/linalg.h>
+#include "../../include/votca/tools/linalg.h"
 
 #include <iostream>
 #include <sstream>

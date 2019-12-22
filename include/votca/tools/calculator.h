@@ -20,9 +20,9 @@
 #ifndef VOTCA_TOOLS_CALCULATOR_H
 #define VOTCA_TOOLS_CALCULATOR_H
 
-#include <votca/tools/globals.h>
-#include <votca/tools/property.h>
-#include <votca/tools/propertyiomanipulator.h>
+#include "globals.h"
+#include "property.h"
+#include "propertyiomanipulator.h"
 
 namespace votca {
 namespace tools {

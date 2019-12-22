@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/tools/spline.h>
+#include "../../include/votca/tools/spline.h"
 
 namespace votca {
 namespace tools {

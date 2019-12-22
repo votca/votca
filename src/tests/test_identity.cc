@@ -17,10 +17,10 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE identity_test
+#include "../../include/votca/tools/identity.h"
+#include "../../include/votca/tools/types.h"
 #include <boost/test/unit_test.hpp>
 #include <exception>
-#include <votca/tools/identity.h>
-#include <votca/tools/types.h>
 
 using namespace std;
 using namespace votca::tools;

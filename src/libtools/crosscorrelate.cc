@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/tools/crosscorrelate.h>
+#include "../../include/votca/tools/crosscorrelate.h"
 
 namespace votca {
 namespace tools {

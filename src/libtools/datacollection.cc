@@ -15,8 +15,8 @@
  *
  */
 
+#include "../../include/votca/tools/datacollection.h"
 #include <sstream>
-#include <votca/tools/datacollection.h>
 
 namespace votca {
 namespace tools {

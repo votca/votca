@@ -17,10 +17,10 @@
  *
  */
 
+#include "../../include/votca/tools/graph.h"
 #include <algorithm>
 #include <cassert>
 #include <string>
-#include <votca/tools/graph.h>
 
 using namespace std;
 

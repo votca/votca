@@ -20,12 +20,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE graph_bf_visitor_test
+#include "../../include/votca/tools/graph.h"
+#include "../../include/votca/tools/graph_bf_visitor.h"
+#include "../../include/votca/tools/graphnode.h"
 #include <boost/test/unit_test.hpp>
 #include <unordered_map>
 #include <vector>
-#include <votca/tools/graph.h>
-#include <votca/tools/graph_bf_visitor.h>
-#include <votca/tools/graphnode.h>
 
 using namespace std;
 using namespace votca::tools;

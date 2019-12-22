@@ -17,9 +17,9 @@
  *
  */
 
+#include "../../include/votca/tools/filesystem.h"
 #include <boost/algorithm/string.hpp>
 #include <fstream>
-#include <votca/tools/filesystem.h>
 
 namespace votca {
 namespace tools {

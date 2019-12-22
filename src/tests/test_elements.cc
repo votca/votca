@@ -18,10 +18,10 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE elements_test
+#include "../../include/votca/tools/elements.h"
 #include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <exception>
-#include <votca/tools/elements.h>
 
 using namespace std;
 using namespace votca::tools;

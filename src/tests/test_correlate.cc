@@ -18,11 +18,11 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE correlate_test
+#include "../../include/votca/tools/correlate.h"
 #include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <exception>
 #include <iostream>
-#include <votca/tools/correlate.h>
 using namespace votca;
 using namespace votca::tools;
 

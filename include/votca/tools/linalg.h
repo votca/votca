@@ -17,9 +17,9 @@
 
 #ifndef __VOTCA_TOOLS_LINALG_H
 #define __VOTCA_TOOLS_LINALG_H
-#include <votca/tools/eigen.h>
-#include <votca/tools/eigensystem.h>
-#include <votca/tools/types.h>
+#include "eigen.h"
+#include "eigensystem.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {

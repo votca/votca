@@ -21,6 +21,7 @@
 #include "eigen.h"
 #include "lexical_cast.h"
 #include "tokenizer.h"
+#include "types.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 #include <iostream>
@@ -29,7 +30,6 @@
 #include <stdexcept>
 #include <stdlib.h>
 #include <string>
-#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {

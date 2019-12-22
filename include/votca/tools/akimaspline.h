@@ -18,9 +18,9 @@
 #ifndef __VOTCA_TOOLS_AKIMASPLINE_H
 #define __VOTCA_TOOLS_AKIMASPLINE_H
 
+#include "eigen.h"
 #include "spline.h"
 #include <iostream>
-#include <votca/tools/eigen.h>
 
 namespace votca {
 namespace tools {

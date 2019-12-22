@@ -18,9 +18,9 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE cubicspline_test
+#include "../../include/votca/tools/cubicspline.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
-#include <votca/tools/cubicspline.h>
 
 using namespace votca::tools;
 
