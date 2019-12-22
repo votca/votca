@@ -19,8 +19,8 @@
 #define VOTCA_CSG_MAP_H
 #pragma once
 
-#include "molecule.h"
 #include "boundarycondition.h"
+#include "molecule.h"
 #include <vector>
 #include <votca/tools/eigen.h>
 #include <votca/tools/property.h>
@@ -39,7 +39,7 @@ class Map {
 
   void AddBeadMap(BeadMap *bmap) { _maps.push_back(bmap); }
 
-  void Apply(const BoundaryCondition & bc);
+  void Apply(const BoundaryCondition &bc);
 
  protected:
   Molecule _in, _out;
@@ -52,7 +52,7 @@ class Map {
 class BeadMap {
  public:
   virtual ~BeadMap() = default;
-  virtual void Apply(const BoundaryCondition & ) = 0;
+  virtual void Apply(const BoundaryCondition &) = 0;
   virtual void Initialize(Molecule *in, Bead *out, tools::Property *opts_map,
                           tools::Property *opts_bead);
 
@@ -78,7 +78,7 @@ inline void BeadMap::Initialize(Molecule *in, Bead *out,
 class Map_Sphere : public BeadMap {
  public:
   Map_Sphere() = default;
-  void Apply(const BoundaryCondition & ) override;
+  void Apply(const BoundaryCondition &) override;
 
   void Initialize(Molecule *in, Bead *out, tools::Property *opts_bead,
                   tools::Property *opts_map) override;
@@ -116,4 +116,4 @@ class Map_Ellipsoid : public Map_Sphere {
 }  // namespace csg
 }  // namespace votca
 
-#endif // VOTCA_CSG_MAP_H
+#endif  // VOTCA_CSG_MAP_H

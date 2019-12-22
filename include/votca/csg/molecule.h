@@ -98,8 +98,7 @@ class Molecule {
   void *_userdata;
 
   /// constructor
-  Molecule(Index id, std::string name)
-      : _id(id), _name(name) {}
+  Molecule(Index id, std::string name) : _id(id), _name(name) {}
 
   friend class Topology;
 };
@@ -117,4 +116,4 @@ inline Index Molecule::getBeadIdByName(const std::string &name) {
 }  // namespace csg
 }  // namespace votca
 
-#endif // VOTCA_CSG_MOLECULE_H
+#endif  // VOTCA_CSG_MOLECULE_H

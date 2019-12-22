@@ -53,7 +53,9 @@ class CsgBoltzmann : public CsgApplication {
   bool EvaluateTopology(Topology *top, Topology *top_ref) override;
 
  protected:
-  ExclusionList *CreateExclusionList(Topology * top_atomistic, Molecule &atomistic, Topology * top_cg, Molecule &cg);
+  ExclusionList *CreateExclusionList(Topology *top_atomistic,
+                                     Molecule &atomistic, Topology *top_cg,
+                                     Molecule &cg);
   BondedStatistics _bs;
 };
 void CsgBoltzmann::Initialize() {
@@ -86,8 +88,8 @@ bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref) {
          << " in coarse grained representation "
          << top_ref->MoleculeByIndex(0)->getName() << endl;
 
-    ex = CreateExclusionList(top_ref, *top_ref->MoleculeByIndex(0),
-                             top, *top->MoleculeByIndex(0));
+    ex = CreateExclusionList(top_ref, *top_ref->MoleculeByIndex(0), top,
+                             *top->MoleculeByIndex(0));
     std::ofstream fl;
     fl.open(OptionsMap()["excl"].as<string>());
     fl << "# atomistic: " << top_ref->MoleculeByIndex(0)->getName()
@@ -101,8 +103,10 @@ bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref) {
   return true;
 }
 
-ExclusionList *CsgBoltzmann::CreateExclusionList(Topology * top_atomistic, Molecule &atomistic,
-                                                 Topology * top_cg, Molecule &cg) {
+ExclusionList *CsgBoltzmann::CreateExclusionList(Topology *top_atomistic,
+                                                 Molecule &atomistic,
+                                                 Topology *top_cg,
+                                                 Molecule &cg) {
   ExclusionList *ex = new ExclusionList();
   // exclude all with all
   {

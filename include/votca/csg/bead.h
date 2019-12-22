@@ -290,8 +290,8 @@ class Bead : public BaseBead {
   bool bead_force_set_;
 
   /// constructor
-  Bead(Index id, std::string type, Symmetry symmetry,
-       std::string name, Index resnr, double m, double q)
+  Bead(Index id, std::string type, Symmetry symmetry, std::string name,
+       Index resnr, double m, double q)
       : symmetry_(symmetry), charge_(q), residue_number_(resnr) {
     setId(id);
     setType(type);

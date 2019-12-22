@@ -45,8 +45,7 @@ class Residue {
 
  private:
   /// constructor
-  Residue(Index id, const std::string &name)
-      : _id(id), _name(name) {}
+  Residue(Index id, const std::string &name) : _id(id), _name(name) {}
   friend class Topology;
 };
 
@@ -55,4 +54,4 @@ inline const std::string &Residue::getName() { return _name; }
 }  // namespace csg
 }  // namespace votca
 
-#endif // VOTCA_CSG_RESIDUE_H
+#endif  // VOTCA_CSG_RESIDUE_H

@@ -15,8 +15,8 @@
  *
  */
 
-#include "../../include/votca/csg/boundarycondition.h"
 #include "../../include/votca/csg/topologymap.h"
+#include "../../include/votca/csg/boundarycondition.h"
 
 namespace votca {
 namespace csg {

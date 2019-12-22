@@ -176,7 +176,9 @@ class Topology {
    * @return bonded interaction container
    */
   InteractionContainer &BondedInteractions() { return _interactions; }
-  const InteractionContainer &BondedInteractions() const { return _interactions; }
+  const InteractionContainer &BondedInteractions() const {
+    return _interactions;
+  }
 
   void AddBondedInteraction(Interaction *ic);
   std::list<Interaction *> InteractionsInGroup(const std::string &group);
@@ -293,7 +295,10 @@ class Topology {
   /**
    * @brief Return the boundary condition object
    */
-  const BoundaryCondition & getBoundary() const { assert(_bc!=nullptr && "Cannot return boundary condition is null"); return *_bc; };
+  const BoundaryCondition &getBoundary() const {
+    assert(_bc != nullptr && "Cannot return boundary condition is null");
+    return *_bc;
+  };
   /**
    * set the time of current frame
    * \param t simulation time in ns
@@ -469,4 +474,4 @@ inline void Topology::InsertExclusion(Bead *bead1, iteratable &l) {
 
 #include "interaction.h"
 
-#endif // VOTCA_CSG_TOPOLOGY_H
+#endif  // VOTCA_CSG_TOPOLOGY_H

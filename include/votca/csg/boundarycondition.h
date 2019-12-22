@@ -62,12 +62,11 @@ class BoundaryCondition {
    */
   const Eigen::Matrix3d &getBox() const noexcept { return _box; };
 
-
   /**
-   * @brief Self explanatory gets the shortest dimension of the boundary 
+   * @brief Self explanatory gets the shortest dimension of the boundary
    * conditions
    *
-   * @return 
+   * @return
    */
   double getShortestBoxDimension() const;
 
