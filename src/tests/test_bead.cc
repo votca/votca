@@ -19,7 +19,6 @@
 
 #define BOOST_TEST_MODULE bead_test
 #include "../../include/votca/csg/bead.h"
-#include "../../include/votca/csg/beadtype.h"
 #include "../../include/votca/csg/molecule.h"
 #include "../../include/votca/csg/topology.h"
 #include <boost/test/floating_point_comparison.hpp>

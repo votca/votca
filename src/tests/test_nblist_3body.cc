@@ -22,7 +22,6 @@
 
 #include "../../include/votca/csg/bead.h"
 #include "../../include/votca/csg/beadlist.h"
-#include "../../include/votca/csg/beadtype.h"
 #include "../../include/votca/csg/nblist_3body.h"
 #include "../../include/votca/csg/topology.h"
 #include <string>

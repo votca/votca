@@ -21,7 +21,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include "../../include/votca/csg/bead.h"
-#include "../../include/votca/csg/beadtype.h"
 #include "../../include/votca/csg/interaction.h"
 #include "../../include/votca/csg/molecule.h"
 #include "../../include/votca/csg/topology.h"
