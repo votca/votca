@@ -225,6 +225,9 @@ void CsgApplication::Run(void) {
   // read in the topology for master
   //////////////////////////////////////////////////
   reader->ReadTopology(_op_vm["top"].as<std::string>(), master->_top);
+  // Ensure that the coarse grained topology will have the same boundaries
+  master->_top_cg.setBox(master->_top.getBox());
+
   std::cout << "I have " << master->_top.BeadCount() << " beads in "
             << master->_top.MoleculeCount() << " molecules" << std::endl;
   master->_top.CheckMoleculeNaming();
