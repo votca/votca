@@ -65,6 +65,10 @@ add_custom_target(manpages ALL)
 ########################################################################
 set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
 find_package(MKL)
+# https://software.intel.com/en-us/articles/symbol-lookup-error-when-linking-intel-mkl-with-gcc-on-ubuntu
+if(MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-as-needed")
+endif()
 
 find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
