@@ -7,8 +7,6 @@ if(NOT_VOTCA_XML)
 endif()
 install(FILES ${VOTCA_XML} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/xml)
 
-find_program(GMX_EXECUTABLE gmx_d gmx)
-find_package_handle_standard_args(GMX REQUIRED_VARS GMX_EXECUTABLE)
 if(NOT GMX_FOUND)
   set(GMX_EXECUTABLE "gmx")
 endif()
