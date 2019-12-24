@@ -228,6 +228,14 @@ if(ENABLE_TESTING)
       add_test(NAME integration_Compare_csg_dump_gmx_tpr_output COMMAND ${CMAKE_COMMAND} -E compare_files csg_dump_tpr.out ${REFPATH}/csg_dump_tpr.out WORKING_DIRECTORY ${RUNPATH})
       set_tests_properties(integration_Compare_csg_dump_gmx_tpr_output PROPERTIES DEPENDS integration_Run_csg_dump_gmx_tpr)
       set_tests_properties(integration_Compare_csg_dump_gmx_tpr_output PROPERTIES LABELS "csg;tools;votca;integration")
+      add_test(NAME integration_Run_csg_dump_gmx_tpr_excl
+        COMMAND ${BASH} -c "$<TARGET_FILE:csg_dump> --excl --top ${RUNPATH}/topol.tpr > csg_dump_tpr_excl.out"
+        WORKING_DIRECTORY ${RUNPATH})
+      set_tests_properties(integration_Run_csg_dump_gmx_tpr_excl PROPERTIES LABELS "csg;tools;votca;integration")
+      set_tests_properties(integration_Run_csg_dump_gmx_tpr_excl PROPERTIES DEPENDS integration_Run_csg_dump_gmx_grompp)
+      add_test(NAME integration_Compare_csg_dump_gmx_tpr_excl_output COMMAND ${CMAKE_COMMAND} -E compare_files csg_dump_tpr_excl.out ${REFPATH}/csg_dump_tpr_excl.out WORKING_DIRECTORY ${RUNPATH})
+      set_tests_properties(integration_Compare_csg_dump_gmx_tpr_excl_output PROPERTIES DEPENDS integration_Run_csg_dump_gmx_tpr_excl)
+      set_tests_properties(integration_Compare_csg_dump_gmx_tpr_excl_output PROPERTIES LABELS "csg;tools;votca;integration")
     endif()
   endif()
 
