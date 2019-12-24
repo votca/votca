@@ -14,11 +14,10 @@
  * limitations under the License.
  *
  */
-#pragma once
 #ifndef VOTCA_CSG_BASEBEAD_H
 #define VOTCA_CSG_BASEBEAD_H
+#pragma once
 
-#include "topologyitem.h"
 #include <assert.h>
 #include <memory>
 #include <votca/tools/constants.h>
@@ -73,9 +72,6 @@ class BaseBead {
    * @return
    */
   Index getMoleculeId() const noexcept { return molecule_id_; }
-
-  /// Gets the topology pointer the bead is attached too
-  Topology *getParent() const { return topology_item_.getParent(); }
 
   /**
    * get the bead type
@@ -140,8 +136,6 @@ class BaseBead {
 
  protected:
   BaseBead(){};
-
-  TopologyItem topology_item_ = nullptr;
 
   std::string type_ = tools::topology_constants::unassigned_bead_type;
   Index id_ = tools::topology_constants::unassigned_residue_id;

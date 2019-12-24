@@ -336,24 +336,7 @@ BoundaryCondition::eBoxtype Topology::autoDetectBoxType(
 }
 
 double Topology::ShortestBoxSize() const {
-  Eigen::Vector3d box_a = getBox().col(0);
-  Eigen::Vector3d box_b = getBox().col(1);
-  Eigen::Vector3d box_c = getBox().col(2);
-
-  // create plane normals
-  Eigen::Vector3d norm_a = box_b.cross(box_c);
-  Eigen::Vector3d norm_b = box_c.cross(box_a);
-  Eigen::Vector3d norm_c = box_a.cross(box_b);
-
-  norm_a.normalize();
-  norm_b.normalize();
-  norm_c.normalize();
-
-  double la = box_a.dot(norm_a);
-  double lb = box_b.dot(norm_b);
-  double lc = box_c.dot(norm_c);
-
-  return std::min(la, std::min(lb, lc));
+  return _bc->getShortestBoxDimension();
 }
 
 }  // namespace csg

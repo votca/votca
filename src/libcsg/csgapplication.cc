@@ -225,6 +225,9 @@ void CsgApplication::Run(void) {
   // read in the topology for master
   //////////////////////////////////////////////////
   reader->ReadTopology(_op_vm["top"].as<std::string>(), master->_top);
+  // Ensure that the coarse grained topology will have the same boundaries
+  master->_top_cg.setBox(master->_top.getBox());
+
   std::cout << "I have " << master->_top.BeadCount() << " beads in "
             << master->_top.MoleculeCount() << " molecules" << std::endl;
   master->_top.CheckMoleculeNaming();
@@ -249,9 +252,17 @@ void CsgApplication::Run(void) {
     std::cout << "I have " << master->_top_cg.BeadCount() << " beads in "
               << master->_top_cg.MoleculeCount()
               << " molecules for the coarsegraining" << std::endl;
-    master->_map->Apply();
-    if (!EvaluateTopology(&master->_top_cg, &master->_top)) {
-      return;
+
+    // If the trajectory reader is off but mapping flag is specified do apply
+    // the mapping, this switch is necessary in cases where xml files are
+    // specified, which do not contain positional information. In such cases
+    // it is not possible to apply the positional mapping, a trajectory file
+    // must be read in.
+    if (DoTrajectory() == false) {
+      master->_map->Apply();
+      if (!EvaluateTopology(&master->_top_cg, &master->_top)) {
+        return;
+      }
     }
   } else if (!EvaluateTopology(&master->_top)) {
     return;

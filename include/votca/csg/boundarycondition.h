@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
-#pragma once
 #ifndef VOTCA_CSG_BOUNDARYCONDITION_H
 #define VOTCA_CSG_BOUNDARYCONDITION_H
+#pragma once
 
 #include <memory>
 #include <votca/tools/eigen.h>
@@ -61,6 +61,14 @@ class BoundaryCondition {
    * \return triclinic box matrix
    */
   const Eigen::Matrix3d &getBox() const noexcept { return _box; };
+
+  /**
+   * @brief Self explanatory gets the shortest dimension of the boundary
+   * conditions
+   *
+   * @return
+   */
+  double getShortestBoxDimension() const;
 
   /**
    * get the volume of the box
