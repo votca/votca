@@ -221,7 +221,7 @@ if(ENABLE_TESTING)
     set_tests_properties(integration_Run_gmx_grompp PROPERTIES LABELS "csg;tools;votca;integration")
     if(BASH)
       add_test(NAME integration_Run_csg_dump_gmx_tpr
-        COMMAND ${BASH} -c "$<TARGET_FILE:csg_dump> --top ${RUNPATH}/topol.tpr > csg_dump_tpr.out"
+        COMMAND ${BASH} -c "$<TARGET_FILE:csg_dump> --top topol.tpr > csg_dump_tpr.out"
         WORKING_DIRECTORY ${RUNPATH})
       set_tests_properties(integration_Run_csg_dump_gmx_tpr PROPERTIES LABELS "csg;tools;votca;integration")
       set_tests_properties(integration_Run_csg_dump_gmx_tpr PROPERTIES DEPENDS integration_Run_gmx_grompp)
@@ -229,7 +229,7 @@ if(ENABLE_TESTING)
       set_tests_properties(integration_Compare_csg_dump_gmx_tpr_output PROPERTIES DEPENDS integration_Run_csg_dump_gmx_tpr)
       set_tests_properties(integration_Compare_csg_dump_gmx_tpr_output PROPERTIES LABELS "csg;tools;votca;integration")
       add_test(NAME integration_Run_csg_dump_gmx_tpr_excl
-        COMMAND ${BASH} -c "$<TARGET_FILE:csg_dump> --excl --top ${RUNPATH}/topol.tpr > csg_dump_tpr_excl.out"
+        COMMAND ${BASH} -c "$<TARGET_FILE:csg_dump> --excl --top topol.tpr > csg_dump_tpr_excl.out"
         WORKING_DIRECTORY ${RUNPATH})
       set_tests_properties(integration_Run_csg_dump_gmx_tpr_excl PROPERTIES LABELS "csg;tools;votca;integration")
       set_tests_properties(integration_Run_csg_dump_gmx_tpr_excl PROPERTIES DEPENDS integration_Run_gmx_grompp)
@@ -240,12 +240,19 @@ if(ENABLE_TESTING)
     add_test(NAME integration_Run_gmx_mdrun COMMAND ${GMX_EXECUTABLE} mdrun WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Run_gmx_mdrun PROPERTIES DEPENDS integration_Run_gmx_grompp)
     set_tests_properties(integration_Run_gmx_mdrun PROPERTIES LABELS "csg;tools;votca;integration")
-    add_test(NAME integration_Run_csg_map_gmx COMMAND csg_map --top ${RUNPATH}/topol.tpr --trj ${RUNPATH}/traj.trr --out traj.gro --no-map --nframes 1 WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Run_csg_map_gmx COMMAND csg_map --top topol.tpr --trj traj.trr --out traj.gro --no-map --nframes 1 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Run_csg_map_gmx PROPERTIES DEPENDS integration_Run_gmx_mdrun)
     set_tests_properties(integration_Run_csg_map_gmx PROPERTIES LABELS "csg;tools;votca;integration")
     add_test(NAME integration_Compare_csg_map_gmx_output COMMAND $<TARGET_FILE:VOTCA::votca_compare> --etol ${REGRESSIONTEST_TOLERANCE} -f1 traj.gro -f2 ${REFPATH}/conf.gro WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_csg_map_gmx_output PROPERTIES DEPENDS integration_Run_csg_map_gmx)
     set_tests_properties(integration_Compare_csg_map_gmx_output PROPERTIES LABELS "csg;tools;votca;integration") 
+    add_test(NAME integration_Run_csg_map_gmx_xtc COMMAND csg_map --top topol.tpr --trj traj_comp.xtc  --out traj_comp.gro --no-map --nframes 1 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_csg_map_gmx_xtc PROPERTIES DEPENDS integration_Run_gmx_mdrun)
+    set_tests_properties(integration_Run_csg_map_gmx_xtc PROPERTIES LABELS "csg;tools;votca;integration")
+    add_test(NAME integration_Compare_csg_map_gmx_xtc_output
+             COMMAND $<TARGET_FILE:VOTCA::votca_compare> --etol ${REGRESSIONTEST_TOLERANCE} -f1 traj_comp.gro -f2 ${REFPATH}/conf.gro WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_csg_map_gmx_xtc_output PROPERTIES DEPENDS integration_Run_csg_map_gmx_xtc)
+    set_tests_properties(integration_Compare_csg_map_gmx_xtc_output PROPERTIES LABELS "csg;tools;votca;integration") 
   endif()
 
   if(BASH)
