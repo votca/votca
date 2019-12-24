@@ -198,6 +198,17 @@ if(ENABLE_TESTING)
     set_tests_properties(integration_Compare_csg_dump_output PROPERTIES DEPENDS integration_Run_csg_dump)
     set_tests_properties(integration_Compare_csg_dump_output PROPERTIES LABELS "csg;tools;votca;integration")
 
+    set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_dump_gro)
+    set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/spce/3mols)
+    file(MAKE_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Run_csg_dump_gro
+      COMMAND ${BASH} -c "$<TARGET_FILE:csg_dump> --top ${REFPATH}/conf.gro > csg_dump_gro.out"
+      WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_csg_dump_gro PROPERTIES LABELS "csg;tools;votca;integration")
+    add_test(NAME integration_Compare_csg_dump_gro_output COMMAND ${CMAKE_COMMAND} -E compare_files csg_dump_gro.out ${REFPATH}/csg_dump_gro.out WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_csg_dump_gro_output PROPERTIES DEPENDS integration_Run_csg_dump_gro)
+    set_tests_properties(integration_Compare_csg_dump_gro_output PROPERTIES LABELS "csg;tools;votca;integration")
+
     set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_property)
     set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/csg_property)
     file(MAKE_DIRECTORY ${RUNPATH})

@@ -1,0 +1,13 @@
+WARNING: topology created from .gro file, masses and charges are wrong!
+I have 9 beads in 0 molecules
+Boundary Condition: orthorhombic
+ Box matix: 1.86206 0 0
+            0 1.86206 0
+            0 0 1.86206
+           
+List of residues:
+0 name: SOL id: 0
+1 name: SOL id: 1
+2 name: SOL id: 2
+
+List of molecules:
