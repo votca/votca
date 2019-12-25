@@ -15,11 +15,11 @@
  *
  */
 
-#ifndef _VOTCA_CSG_MOLECULE_H
-#define _VOTCA_CSG_MOLECULE_H
+#pragma once
+#ifndef VOTCA_CSG_MOLECULE_H
+#define VOTCA_CSG_MOLECULE_H
 
 #include "bead.h"
-#include "topologyitem.h"
 #include <assert.h>
 #include <map>
 #include <string>
@@ -39,7 +39,7 @@ class Interaction;
     \todo sort atoms in molecule
 
 */
-class Molecule : public TopologyItem {
+class Molecule {
  public:
   /// get the molecule ID
   Index getId() const { return _id; }
@@ -98,8 +98,7 @@ class Molecule : public TopologyItem {
   void *_userdata;
 
   /// constructor
-  Molecule(Topology *parent, Index id, std::string name)
-      : TopologyItem(parent), _id(id), _name(name) {}
+  Molecule(Index id, std::string name) : _id(id), _name(name) {}
 
   friend class Topology;
 };
@@ -117,4 +116,4 @@ inline Index Molecule::getBeadIdByName(const std::string &name) {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_MOLECULE_H */
+#endif  // VOTCA_CSG_MOLECULE_H

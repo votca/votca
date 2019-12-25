@@ -15,9 +15,9 @@
  *
  */
 
+#include "../../include/votca/csg/cgengine.h"
+#include "../../include/votca/csg/version.h"
 #include <fstream>
-#include <votca/csg/cgengine.h>
-#include <votca/csg/version.h>
 #include <votca/tools/tokenizer.h>
 
 namespace votca {

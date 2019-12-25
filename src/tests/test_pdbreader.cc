@@ -18,13 +18,13 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE pdbreader_test
+#include "../../include/votca/csg/bead.h"
+#include "../../include/votca/csg/topologyreader.h"
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <fstream>
 #include <string>
-#include <votca/csg/bead.h>
-#include <votca/csg/topologyreader.h>
 #include <votca/tools/elements.h>
 
 using namespace std;

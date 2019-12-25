@@ -16,15 +16,15 @@
  */
 
 #include "csg_stat_imc.h"
+#include "../../include/votca/csg/beadlist.h"
+#include "../../include/votca/csg/imcio.h"
+#include "../../include/votca/csg/nblistgrid.h"
+#include "../../include/votca/csg/nblistgrid_3body.h"
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <numeric>
-#include <votca/csg/beadlist.h>
-#include <votca/csg/imcio.h>
-#include <votca/csg/nblistgrid.h>
-#include <votca/csg/nblistgrid_3body.h>
 #include <votca/tools/rangeparser.h>
 
 namespace votca {

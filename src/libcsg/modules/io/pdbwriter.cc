@@ -15,10 +15,10 @@
  *
  */
 
+#include "../../../../include/votca/csg/pdbwriter.h"
 #include <boost/format.hpp>
 #include <stdio.h>
 #include <string>
-#include <votca/csg/pdbwriter.h>
 
 namespace votca {
 namespace csg {

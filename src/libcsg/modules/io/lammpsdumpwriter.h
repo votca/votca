@@ -18,15 +18,28 @@
 #ifndef __VOTCA_CSG_LAMMPSDUMPWRITER_H
 #define __VOTCA_CSG_LAMMPSDUMPWRITER_H
 
+#include "../../../../include/votca/csg/topology.h"
+#include "../../../../include/votca/csg/trajectorywriter.h"
 #include <stdio.h>
-#include <votca/csg/topology.h>
-#include <votca/csg/trajectorywriter.h>
+#include <votca/tools/unitconverter.h>
 
 namespace votca {
 namespace csg {
 
 class LAMMPSDumpWriter : public TrajectoryWriter {
  public:
+  /// Assuming units are using 'units real' lammps command
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+  const tools::TimeUnit time_unit = tools::TimeUnit::femtoseconds;
+  const tools::MassUnit mass_unit = tools::MassUnit::grams_per_mole;
+  const tools::MolarEnergyUnit energy_unit =
+      tools::MolarEnergyUnit::kilocalories_per_mole;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::MolarForceUnit force_unit =
+      tools::MolarForceUnit::kilocalories_per_mole_angstrom;
+  const tools::VelocityUnit velocity_unit =
+      tools::VelocityUnit::angstroms_per_femtosecond;
+
   void Open(std::string file, bool bAppend = false) override;
   void Close() override;
 
