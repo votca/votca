@@ -102,13 +102,18 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
 
       // add exclusions
       for (size_t iatom = 0; iatom < natoms_mol; iatom++) {
-        // read exclusions
-        t_blocka *excl = &(mol->excls);
-        // insert exclusions
         std::list<Bead *> excl_list;
+#if GMX_VERSION >= 20210000
+        gmx::ListOfLists<int> &excl = mol->excls;
+        for (const Index k : excl[iatom]) {
+          excl_list.push_back(top.getBead(k + ifirstatom));
+        }
+#else
+        t_blocka *excl = &(mol->excls);
         for (Index k = excl->index[iatom]; k < excl->index[iatom + 1]; k++) {
           excl_list.push_back(top.getBead(excl->a[k] + ifirstatom));
         }
+#endif
         top.InsertExclusion(top.getBead(iatom + ifirstatom), excl_list);
       }
       ifirstatom += natoms_mol;

@@ -79,6 +79,9 @@ if (WITH_GMX)
   endif()
 endif(WITH_GMX) 
 
+find_program(GMX_EXECUTABLE gmx_d gmx)
+find_package_handle_standard_args(GMX REQUIRED_VARS GMX_EXECUTABLE)
+
 if(ENABLE_TESTING)
   set(REGRESSIONTEST_TOLERANCE "5e-5" CACHE STRING "Tolerance for the regression tests")
   mark_as_advanced(REGRESSIONTEST_TOLERANCE)
