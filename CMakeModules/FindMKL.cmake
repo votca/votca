@@ -255,7 +255,7 @@ if(NOT WIN32)
   find_library(M_LIB m)
   mark_as_advanced(M_LIB)
 endif()
-if(MKL_FOUND)
+if(MKL_FOUND AND NOT TARGET MKL::MKL)
   add_library(MKL::MKL SHARED IMPORTED)
   if(MKL_THREAD_LAYER STREQUAL "Sequential")
     set_target_properties(MKL::MKL
