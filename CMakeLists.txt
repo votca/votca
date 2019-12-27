@@ -95,6 +95,7 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
+set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
 find_package(MKL)
 # https://software.intel.com/en-us/articles/symbol-lookup-error-when-linking-intel-mkl-with-gcc-on-ubuntu
 if(MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
