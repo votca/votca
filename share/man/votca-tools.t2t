@@ -1,6 +1,6 @@
 votca-tools
 VOTCA Development Team 
-%%mtime(%d/%m/%Y)
+03/11/2013
 
 %to build votca-tools.man run:
 %txt2tags -q -t man -i votca-tools.t2t -o votca-tools.man
