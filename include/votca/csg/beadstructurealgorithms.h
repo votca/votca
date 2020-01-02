@@ -23,8 +23,7 @@
 namespace votca {
 namespace csg {
 
-std::vector<BeadStructure<BaseBead>> breakIntoStructures(
-    BeadStructure<BaseBead>& beadstructure);
+std::vector<BeadStructure> breakIntoStructures(BeadStructure& beadstructure);
 
 }  // namespace csg
 }  // namespace votca

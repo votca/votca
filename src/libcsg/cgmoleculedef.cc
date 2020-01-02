@@ -15,17 +15,17 @@
  *
  */
 
+#include "../../include/votca/csg/interaction.h"
 #include <boost/lexical_cast.hpp>
 #include <iostream>
-#include <votca/csg/interaction.h>
 #include <votca/tools/tokenizer.h>
 
+#include "../../include/votca/csg/cgmoleculedef.h"
+#include "../../include/votca/csg/map.h"
+#include "../../include/votca/csg/topology.h"
 #include <stddef.h>
 #include <stdexcept>
 #include <string>
-#include <votca/csg/cgmoleculedef.h>
-#include <votca/csg/map.h>
-#include <votca/csg/topology.h>
 #include <votca/tools/property.h>
 
 namespace votca {

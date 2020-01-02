@@ -18,11 +18,12 @@
 #ifndef _VOTCA_CSG_LAMMPSDUMPREADER_H
 #define _VOTCA_CSG_LAMMPSDUMPREADER_H
 
+#include "../../../../include/votca/csg/topologyreader.h"
+#include "../../../../include/votca/csg/trajectoryreader.h"
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <votca/csg/topologyreader.h>
-#include <votca/csg/trajectoryreader.h>
+#include <votca/tools/unitconverter.h>
 
 namespace votca {
 namespace csg {
@@ -36,6 +37,18 @@ namespace csg {
 */
 class LAMMPSDumpReader : public TrajectoryReader, public TopologyReader {
  public:
+  /// Assuming units are using 'units real' lammps command
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+  const tools::TimeUnit time_unit = tools::TimeUnit::femtoseconds;
+  const tools::MassUnit mass_unit = tools::MassUnit::grams_per_mole;
+  const tools::MolarEnergyUnit energy_unit =
+      tools::MolarEnergyUnit::kilocalories_per_mole;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::MolarForceUnit force_unit =
+      tools::MolarForceUnit::kilocalories_per_mole_angstrom;
+  const tools::VelocityUnit velocity_unit =
+      tools::VelocityUnit::angstroms_per_femtosecond;
+
   LAMMPSDumpReader() = default;
   ~LAMMPSDumpReader() override = default;
 

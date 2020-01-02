@@ -15,9 +15,9 @@
  *
  */
 
+#include "../../include/votca/csg/version.h"
 #include <boost/program_options.hpp>
 #include <iostream>
-#include <votca/csg/version.h>
 #include <votca/tools/akimaspline.h>
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/linspline.h>

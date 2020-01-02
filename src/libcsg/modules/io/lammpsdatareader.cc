@@ -16,9 +16,9 @@
  */
 
 #include "lammpsdatareader.h"
+#include "../../../../include/votca/csg/topology.h"
 #include <boost/algorithm/string.hpp>
 #include <vector>
-#include <votca/csg/topology.h>
 #include <votca/tools/elements.h>
 #include <votca/tools/floatingpointcomparison.h>
 #include <votca/tools/getline.h>
@@ -480,7 +480,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
                          residue_index, mass, charge);
 
       mol->AddBead(b, bead_type_name);
-      b->setMolecule(mol);
+      b->setMoleculeId(mol->getId());
 
     } else {
       b = top.getBead(atomIndex - startingIndex);
@@ -533,7 +533,7 @@ void LAMMPSDataReader::ReadBonds_(Topology &top) {
       ic->setGroup("BONDS");
       ic->setIndex(bondId);
       auto b = top.getBead(atom1Index);
-      auto mi = b->getMolecule();
+      auto mi = top.getMolecule(b->getMoleculeId());
       ic->setMolecule(atomIdToMoleculeId_[atom1Index]);
       top.AddBondedInteraction(ic);
       mi->AddInteraction(ic);
@@ -591,7 +591,7 @@ void LAMMPSDataReader::ReadAngles_(Topology &top) {
       ic->setGroup("ANGLES");
       ic->setIndex(angleId);
       auto b = top.getBead(atom1Index);
-      auto mi = b->getMolecule();
+      auto mi = top.getMolecule(b->getMoleculeId());
       ic->setMolecule(atomIdToMoleculeId_[atom1Index]);
       top.AddBondedInteraction(ic);
       mi->AddInteraction(ic);
@@ -662,7 +662,7 @@ void LAMMPSDataReader::ReadDihedrals_(Topology &top) {
       ic->setGroup("DIHEDRALS");
       ic->setIndex(dihedralId);
       auto b = top.getBead(atom1Index);
-      auto mi = b->getMolecule();
+      auto mi = top.getMolecule(b->getMoleculeId());
       ic->setMolecule(atomIdToMoleculeId_[atom1Index]);
       top.AddBondedInteraction(ic);
       mi->AddInteraction(ic);

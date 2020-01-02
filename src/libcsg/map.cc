@@ -15,11 +15,11 @@
  *
  */
 
+#include "../../include/votca/csg/map.h"
+#include "../../include/votca/csg/bead.h"
+#include "../../include/votca/csg/topology.h"
 #include <numeric>
 #include <string>
-#include <votca/csg/bead.h>
-#include <votca/csg/map.h>
-#include <votca/csg/topology.h>
 #include <votca/tools/eigen.h>
 #include <votca/tools/tokenizer.h>
 
@@ -45,9 +45,9 @@ Map::~Map() {
   _maps.clear();
 }
 
-void Map::Apply() {
+void Map::Apply(const BoundaryCondition &bc) {
   for (auto &_map : _maps) {
-    _map->Apply();
+    _map->Apply(bc);
   }
 }
 
@@ -129,15 +129,15 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
   }
 }
 
-void Map_Sphere::Apply() {
+void Map_Sphere::Apply(const BoundaryCondition &bc) {
+
+  assert(_matrix.size() > 0 && "Cannot map to sphere there are no beads");
 
   bool bPos, bVel, bF;
   bPos = bVel = bF = false;
   _out->ClearParentBeads();
 
   // the following is needed for pbc treatment
-  Topology *top = _out->getParent();
-  double max_dist = 0.5 * top->ShortestBoxSize();
   Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
   string name0;
   Index id0 = 0;
@@ -154,26 +154,45 @@ void Map_Sphere::Apply() {
   Eigen::Vector3d f = Eigen::Vector3d::Zero();
   Eigen::Vector3d vel = Eigen::Vector3d::Zero();
 
+  Bead *bead_max_dist = _matrix.at(0)._in;
+  double max_bead_dist =
+      bc.BCShortestConnection(r0, bead_max_dist->getPos()).norm();
+
   for (auto &iter : _matrix) {
     Bead *bead = iter._in;
     _out->AddParentBead(bead->getId());
     M += bead->getMass();
     if (bead->HasPos()) {
-      Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
-      if (r.norm() > max_dist) {
-        cout << r0 << " " << bead->getPos() << endl;
-        throw std::runtime_error(
-            "coarse-grained bead is bigger than half the box \n (atoms " +
-            name0 + " (id " + boost::lexical_cast<string>(id0 + 1) + ")" +
-            ", " + bead->getName() + " (id " +
-            boost::lexical_cast<string>(bead->getId() + 1) + ")" +
-            +" , molecule " +
-            boost::lexical_cast<string>(bead->getMolecule()->getId() + 1) +
-            ")");
+      Eigen::Vector3d r = bc.BCShortestConnection(r0, bead->getPos());
+      if (r.norm() > max_bead_dist) {
+        max_bead_dist = r.norm();
+        bead_max_dist = bead;
       }
       cg += iter._weight * (r + r0);
       bPos = true;
     }
+  }
+
+  /// Safety check, if box is not open check if the bead is larger than the
+  /// boundaries
+  if (bc.getBoxType() != BoundaryCondition::eBoxtype::typeOpen) {
+    double max_dist = 0.5 * bc.getShortestBoxDimension();
+    if (max_bead_dist > max_dist) {
+      cout << r0 << " " << bead_max_dist->getPos() << endl;
+      throw std::runtime_error(
+          "coarse-grained bead is bigger than half the box \n "
+          "(atoms " +
+          name0 + " (id " + boost::lexical_cast<string>(id0 + 1) + ")" + ", " +
+          bead_max_dist->getName() + " (id " +
+          boost::lexical_cast<string>(bead_max_dist->getId() + 1) + ")" +
+          +" , molecule " +
+          boost::lexical_cast<string>(bead_max_dist->getMoleculeId() + 1) +
+          ")");
+    }
+  }
+
+  for (auto &iter : _matrix) {
+    Bead *bead = iter._in;
     if (bead->HasVel()) {
       vel += iter._weight * bead->getVel();
       bVel = true;
@@ -196,18 +215,22 @@ void Map_Sphere::Apply() {
 }
 
 /// \todo implement this function
-void Map_Ellipsoid::Apply() {
+void Map_Ellipsoid::Apply(const BoundaryCondition &bc) {
+
+  assert(_matrix.size() > 0 && "Cannot map to ellipsoid there are no beads");
 
   bool bPos, bVel, bF;
   bPos = bVel = bF = false;
 
   // the following is needed for pbc treatment
-  Topology *top = _out->getParent();
-  double max_dist = 0.5 * top->ShortestBoxSize();
   Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
+  string name0;
+  Index id0 = 0;
   if (_matrix.size() > 0) {
     if (_matrix.front()._in->HasPos()) {
       r0 = _matrix.front()._in->getPos();
+      name0 = _matrix.front()._in->getName();
+      id0 = _matrix.front()._in->getId();
     }
   }
   Eigen::Vector3d cg = Eigen::Vector3d::Zero();
@@ -218,18 +241,45 @@ void Map_Ellipsoid::Apply() {
   Index n;
   n = 0;
   _out->ClearParentBeads();
+
+  Bead *bead_max_dist = _matrix.at(0)._in;
+  double max_bead_dist =
+      bc.BCShortestConnection(r0, bead_max_dist->getPos()).norm();
+
   for (auto &iter : _matrix) {
     Bead *bead = iter._in;
     _out->AddParentBead(bead->getId());
     if (bead->HasPos()) {
-      Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
-      if (r.norm() > max_dist) {
-        throw std::runtime_error(
-            "coarse-grained bead is bigger than half the box");
+      Eigen::Vector3d r = bc.BCShortestConnection(r0, bead->getPos());
+      if (r.norm() > max_bead_dist) {
+        max_bead_dist = r.norm();
+        bead_max_dist = bead;
       }
       cg += iter._weight * (r + r0);
       bPos = true;
     }
+  }
+
+  /// Safety check, if box is not open check if the bead is larger than the
+  /// boundaries
+  if (bc.getBoxType() != BoundaryCondition::eBoxtype::typeOpen) {
+    double max_dist = 0.5 * bc.getShortestBoxDimension();
+    if (max_bead_dist > max_dist) {
+      cout << r0 << " " << bead_max_dist->getPos() << endl;
+      throw std::runtime_error(
+          "coarse-grained bead is bigger than half the box \n "
+          "(atoms " +
+          name0 + " (id " + boost::lexical_cast<string>(id0 + 1) + ")" + ", " +
+          bead_max_dist->getName() + " (id " +
+          boost::lexical_cast<string>(bead_max_dist->getId() + 1) + ")" +
+          +" , molecule " +
+          boost::lexical_cast<string>(bead_max_dist->getMoleculeId() + 1) +
+          ")");
+    }
+  }
+
+  for (auto &iter : _matrix) {
+    Bead *bead = iter._in;
     if (bead->HasVel() == true) {
       vel += iter._weight * bead->getVel();
       bVel = true;
