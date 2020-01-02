@@ -1,6 +1,6 @@
 votca-csg
 VOTCA Development Team 
-%%mtime(%d/%m/%Y)
+@VOTCA_DATE@
 
 %make the manpage type 7, txt2tags does 1 by default
 %!postproc(man): "^(\.TH.*) 1 "  "\1 7 "
@@ -59,7 +59,7 @@ This Manual Page converted from t2t format to the this format by [txt2tags http:
 
 = COPYRIGHT =
 
-Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
