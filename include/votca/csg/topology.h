@@ -15,8 +15,9 @@
  *
  */
 
-#ifndef _VOTCA_CSG_TOPOLOGY_H
-#define _VOTCA_CSG_TOPOLOGY_H
+#ifndef VOTCA_CSG_TOPOLOGY_H
+#define VOTCA_CSG_TOPOLOGY_H
+#pragma once
 
 #include <cassert>
 #include <list>
@@ -25,7 +26,6 @@
 #include <vector>
 
 #include "bead.h"
-#include "beadtype.h"
 #include "boundarycondition.h"
 #include "exclusionlist.h"
 #include "molecule.h"
@@ -176,6 +176,9 @@ class Topology {
    * @return bonded interaction container
    */
   InteractionContainer &BondedInteractions() { return _interactions; }
+  const InteractionContainer &BondedInteractions() const {
+    return _interactions;
+  }
 
   void AddBondedInteraction(Interaction *ic);
   std::list<Interaction *> InteractionsInGroup(const std::string &group);
@@ -290,6 +293,13 @@ class Topology {
   const Eigen::Matrix3d &getBox() const { return _bc->getBox(); };
 
   /**
+   * @brief Return the boundary condition object
+   */
+  const BoundaryCondition &getBoundary() const {
+    assert(_bc != nullptr && "Cannot return boundary condition is null");
+    return *_bc;
+  };
+  /**
    * set the time of current frame
    * \param t simulation time in ns
    */
@@ -374,6 +384,7 @@ class Topology {
    * \return exclusion list
    */
   ExclusionList &getExclusions() { return _exclusions; }
+  const ExclusionList &getExclusions() const { return _exclusions; }
 
   BoundaryCondition::eBoxtype getBoxType() const { return _bc->getBoxType(); }
 
@@ -426,25 +437,25 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
                                   std::string type, Index resnr, double m,
                                   double q) {
 
-  Bead *b = new Bead(this, _beads.size(), type, symmetry, name, resnr, m, q);
+  Bead *b = new Bead(_beads.size(), type, symmetry, name, resnr, m, q);
   _beads.push_back(b);
   return b;
 }
 
 inline Molecule *Topology::CreateMolecule(std::string name) {
-  Molecule *mol = new Molecule(this, _molecules.size(), name);
+  Molecule *mol = new Molecule(_molecules.size(), name);
   _molecules.push_back(mol);
   return mol;
 }
 
 inline Residue *Topology::CreateResidue(std::string name, Index id) {
-  Residue *res = new Residue(this, id, name);
+  Residue *res = new Residue(id, name);
   _residues.push_back(res);
   return res;
 }
 
 inline Residue *Topology::CreateResidue(std::string name) {
-  Residue *res = new Residue(this, _residues.size(), name);
+  Residue *res = new Residue(_residues.size(), name);
   _residues.push_back(res);
   return res;
 }
@@ -463,4 +474,4 @@ inline void Topology::InsertExclusion(Bead *bead1, iteratable &l) {
 
 #include "interaction.h"
 
-#endif /* _VOTCA_CSG_TOPOLOGY_H */
+#endif  // VOTCA_CSG_TOPOLOGY_H

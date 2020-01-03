@@ -18,14 +18,13 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE triplelist_test
+#include "../../include/votca/csg/bead.h"
+#include "../../include/votca/csg/beadtriple.h"
+#include "../../include/votca/csg/topology.h"
+#include "../../include/votca/csg/triplelist.h"
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <string>
-#include <votca/csg/bead.h>
-#include <votca/csg/beadtriple.h>
-#include <votca/csg/beadtype.h>
-#include <votca/csg/topology.h>
-#include <votca/csg/triplelist.h>
 
 using namespace std;
 using namespace votca::csg;

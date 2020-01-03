@@ -15,8 +15,9 @@
  *
  */
 
-#ifndef _VOTCA_CSG_INTERACTION_H
-#define _VOTCA_CSG_INTERACTION_H
+#pragma once
+#ifndef VOTCA_CSG_INTERACTION_H
+#define VOTCA_CSG_INTERACTION_H
 
 #include "bead.h"
 #include "topology.h"
@@ -79,8 +80,8 @@ class Interaction {
   }
 
   virtual Eigen::Vector3d Grad(const Topology &top, Index bead) = 0;
-  Index BeadCount() { return _beads.size(); }
-  Index getBeadId(Index bead) {
+  Index BeadCount() const { return _beads.size(); }
+  Index getBeadId(Index bead) const {
     assert(bead > -1 && boost::lexical_cast<size_t>(bead) < _beads.size());
     return _beads[bead];
   }
@@ -321,4 +322,4 @@ inline Eigen::Vector3d IDihedral::Grad(const Topology &top, Index bead) {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_INTERACTION_H
+#endif  // VOTCA_CSG_INTERACTION_H

@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/potentialfunctions/potentialfunctionljg.h>
+#include "../../../include/votca/csg/potentialfunctions/potentialfunctionljg.h"
 
 using namespace std;
 

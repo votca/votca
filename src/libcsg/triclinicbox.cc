@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/triclinicbox.h>
+#include "../../include/votca/csg/triclinicbox.h"
 
 namespace votca {
 namespace csg {

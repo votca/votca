@@ -18,8 +18,8 @@
 #ifndef SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
 #define SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
 
-#include <votca/csg/topologyreader.h>
-#include <votca/csg/trajectoryreader.h>
+#include "../../../../include/votca/csg/topologyreader.h"
+#include "../../../../include/votca/csg/trajectoryreader.h"
 
 #include <cstdio>
 #include <fstream>

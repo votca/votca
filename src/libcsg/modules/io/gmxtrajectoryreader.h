@@ -22,8 +22,9 @@
 #include <votca_config.h>
 #endif
 
+#include "../../../../include/votca/csg/trajectoryreader.h"
 #include <string>
-#include <votca/csg/trajectoryreader.h>
+#include <votca/tools/unitconverter.h>
 
 #include <gromacs/fileio/oenv.h>
 #include <gromacs/fileio/trxio.h>
@@ -46,6 +47,17 @@ namespace csg {
 class GMXTrajectoryReader : public TrajectoryReader {
  public:
   GMXTrajectoryReader() = default;
+
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::nanometers;
+  const tools::MassUnit mass_unit = tools::MassUnit::atomic_mass_units;
+  const tools::TimeUnit time_unit = tools::TimeUnit::picoseconds;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::MolarEnergyUnit energy_unit =
+      tools::MolarEnergyUnit::kilojoules_per_mole;
+  const tools::VelocityUnit velocity_unit =
+      tools::VelocityUnit::nanometers_per_picosecond;
+  const tools::MolarForceUnit force_unit =
+      tools::MolarForceUnit::kilojoules_per_mole_nanometer;
 
   /// open a trejectory file
   bool Open(const std::string &file) override;

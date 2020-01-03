@@ -18,12 +18,13 @@
 #ifndef __VOTCA_CSG_PDBREADER_H
 #define __VOTCA_CSG_PDBREADER_H
 
+#include "../../../../include/votca/csg/topologyreader.h"
+#include "../../../../include/votca/csg/trajectoryreader.h"
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <votca/csg/topologyreader.h>
-#include <votca/csg/trajectoryreader.h>
 #include <votca/tools/elements.h>
+#include <votca/tools/unitconverter.h>
 
 namespace votca {
 namespace csg {
@@ -37,6 +38,8 @@ namespace csg {
 */
 class PDBReader : public TopologyReader, public TrajectoryReader {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+
   /// Constuctor
   PDBReader() = default;
   /// Destructor

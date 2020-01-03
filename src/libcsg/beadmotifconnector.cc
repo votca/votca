@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/beadmotifconnector.h>
+#include "../../include/votca/csg/beadmotifconnector.h"
 
 using namespace std;
 using namespace votca::tools;
@@ -23,13 +23,14 @@ using namespace votca::tools;
 namespace votca {
 namespace csg {
 
-using element = boost_bimap::value_type;
+using element = reduced_edge_to_edges_map::value_type;
 
-void BeadMotifConnector::AddMotifAndBeadEdge(Edge motif_edge, Edge bead_edge) {
+void BeadMotifConnector::AddMotifAndBeadEdge(const Edge& motif_edge,
+                                             const Edge& bead_edge) {
   motif_and_bead_edges_.insert(element(motif_edge, bead_edge));
 }
 
-vector<Edge> BeadMotifConnector::getBeadEdges(Edge motif_edge) {
+vector<Edge> BeadMotifConnector::getBeadEdges(const Edge& motif_edge) const {
   auto left_iterator_range = motif_and_bead_edges_.left.equal_range(motif_edge);
   vector<Edge> bead_edges;
   for (auto iterator = left_iterator_range.first;
@@ -39,7 +40,7 @@ vector<Edge> BeadMotifConnector::getBeadEdges(Edge motif_edge) {
   return bead_edges;
 }
 
-vector<Edge> BeadMotifConnector::getBeadEdges() {
+vector<Edge> BeadMotifConnector::getBeadEdges() const noexcept {
   vector<Edge> bead_edges;
   for (auto left_iterator = motif_and_bead_edges_.left.begin();
        left_iterator != motif_and_bead_edges_.left.end(); ++left_iterator) {
@@ -48,11 +49,13 @@ vector<Edge> BeadMotifConnector::getBeadEdges() {
   return bead_edges;
 }
 
-Edge BeadMotifConnector::getMotifEdge(Edge bead_edge) {
+Edge BeadMotifConnector::getMotifEdge(const Edge& bead_edge) const {
+  assert(motif_and_bead_edges_.right.count(bead_edge) &&
+         "bead_edge is not contained in beadmotifconnector.");
   return motif_and_bead_edges_.right.at(bead_edge);
 }
 
-unordered_set<Edge> BeadMotifConnector::getMotifEdges() {
+unordered_set<Edge> BeadMotifConnector::getMotifEdges() const noexcept {
   unordered_set<Edge> motif_edges;
   for (auto left_iterator = motif_and_bead_edges_.left.begin();
        left_iterator != motif_and_bead_edges_.left.end(); ++left_iterator) {
