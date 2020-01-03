@@ -20,6 +20,7 @@ from optparse import OptionParser
 import sys
 import re
 import pickle
+import os
 
 try:
     import numpy
@@ -105,7 +106,12 @@ if current_state.state == "Initialization":
     if len(current_state.parameters) != 1:
         sys.exit(
             "In Initialization step the state file should contain only one set (line)")
-    es = cma.CMAEvolutionStrategy(current_state.parameters[0], options.eps)
+    if 'CSG_RUNTEST' in os.environ:
+        opts = cma.CMAOptions()
+        opts.set('seed', 1984)
+        es = cma.CMAEvolutionStrategy(current_state.parameters[0], options.eps, opts)
+    else:
+        es = cma.CMAEvolutionStrategy(current_state.parameters[0], options.eps)
 else:
     [es, X] = pickle.load(open("cma.internal_state.cur"))
     if not numpy.allclose(X, current_state.parameters):
