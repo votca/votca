@@ -1,6 +1,12 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
+## Version 1.6_rc2 (released XX.01.20)
+* fix remove giant logo from tarball (#337)
+* fix assertions related to GLIBCXX_ASSERTIONS (#345)
+* remove unused boost serialisation (#346)
+* fix build on 32-bit archs (#347)
+
 ## Version 1.6_rc1 (released 04.12.19)
  * completely new statefile in hdf5 format for larger systems
  * new electrostatics with PCG solver
