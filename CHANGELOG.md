@@ -6,6 +6,7 @@ For more detailed information about the changes see the history of the
 * fix assertions related to GLIBCXX_ASSERTIONS (#345)
 * remove unused boost serialisation (#346)
 * fix build on 32-bit archs (#347)
+* add ENABLE_HIGH_MEMORY_TESTS cmake option (#356)
 
 ## Version 1.6_rc1 (released 04.12.19)
  * completely new statefile in hdf5 format for larger systems
