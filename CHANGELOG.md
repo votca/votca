@@ -1,6 +1,15 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/csg/commits/master).
 
+## Version 1.6_rc2 (released XX.01.20)
+* fix inheritance bug in cmake files (#466) 
+* fix build on 32-bit archs (#473)
+* fixed alignment problem in potential class (#471)
+* fix h5md reader (#478, #481)
+* added more tests for gmx (#489) and gmx-2020 support (#488)
+* add support for txt2tags-3.4 (#491)
+* fix cma seed for testing (#494)
+
 ## Version 1.6_rc1 (released 04.12.19)
  * Major CMake refactor
  * Improved file readers
