@@ -1,6 +1,12 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
+## Version 1.7-dev
+* added apdft (#350)
+* added test to cubefile reader (#344)
+* fix state tracker (#333)
+* grid class refator (#335)
+
 ## Version 1.6_rc2 (released XX.01.20)
 * fix remove giant logo from tarball (#337)
 * fix assertions related to GLIBCXX_ASSERTIONS (#345)
