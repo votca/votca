@@ -1,5 +1,16 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
+## Version 1.7-dev
+* add support of txt2tqs 3.4 (#208)
+* fix MKL:: target creation (#207)
+* use local includes (#204)
+* add more support for units (#200)
+
+## Version 1.6_rc2 (released XX.01.20)
+* fix inheritance bug in cmake files (#197) 
+* fix bug in table class (#196)
+* fix build on 32-bit archs (#199)
+
 ## Version 1.6_rc1 (released 04.12.19)
 * replaced fftw with Eigen3 fft 
 * replaced random with std::random implementation
