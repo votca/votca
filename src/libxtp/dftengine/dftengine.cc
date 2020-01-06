@@ -908,14 +908,14 @@ double DFTEngine::ExternalRepulsion(
   for (const QMAtom& atom : mol) {
     StaticSite nucleus = StaticSite(atom, double(atom.getNuccharge()));
     for (const std::unique_ptr<StaticSite>& site : *_externalsites) {
-      if((site.getPos()-nucleus.getPos().norm()<1e-7){
+      if ((site->getPos() - nucleus.getPos()).norm() < 1e-7) {
         XTP_LOG(Log::error, *_pLog) << TimeStamp()
                                     << " External site sits on nucleus, "
                                        "interaction between them is ignored."
                                     << flush;
         continue;
       }
-      E_ext+=interactor.CalcStaticEnergy_site(*site, nucleus);
+      E_ext += interactor.CalcStaticEnergy_site(*site, nucleus);
     }
   }
   return E_ext;
