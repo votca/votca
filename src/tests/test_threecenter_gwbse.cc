@@ -27,7 +27,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(threecenter_gwbse_test)
 BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
-  OPENMP::setMaxThreads(1);
+
   std::ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << endl;
   xyzfile << " methane" << endl;
@@ -277,5 +277,38 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   }
 
   BOOST_CHECK_EQUAL(check4_before, true);
+
+  Eigen::MatrixXd auxmatrix =
+      Eigen::MatrixXd::Identity(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+  tc.MultiplyRightWithAuxMatrix(auxmatrix);
+
+  bool check0_after = ref0b.isApprox(tc[0], 1e-5);
+  if (!check0_after) {
+    cout << "tc0" << endl;
+    cout << tc[0] << endl;
+    cout << "tc0_ref" << endl;
+    cout << ref0b << endl;
+  }
+  BOOST_CHECK_EQUAL(check0_after, true);
+
+  bool check2_after = ref2b.isApprox(tc[2], 1e-5);
+  if (!check2_after) {
+    cout << "tc2" << endl;
+    cout << tc[2] << endl;
+    cout << "tc2_ref" << endl;
+    cout << ref2b << endl;
+  }
+
+  BOOST_CHECK_EQUAL(check2_after, true);
+
+  bool check4_after = ref4b.isApprox(tc[4], 1e-5);
+  if (!check4_after) {
+    cout << "tc4" << endl;
+    cout << tc[4] << endl;
+    cout << "tc4_ref" << endl;
+    cout << ref4b << endl;
+  }
+
+  BOOST_CHECK_EQUAL(check4_after, true);
 }
 BOOST_AUTO_TEST_SUITE_END()
