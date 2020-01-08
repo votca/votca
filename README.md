@@ -11,6 +11,10 @@ http://www.votca.org
 The development of VOTCA is mainly funded by academic research grants. If you
 use this package, please cite the VOTCA papers:
 
+* Excited-State Electronic Structure of Molecules Using Many-Body Green’s Functions: Quasiparticles and Electron-Hole Excitations with VOTCA-XTP,
+  G. Tirimbo, V. Sundaram, O. Caylak, W. Scharpach, J. Sijen, C. Junghans, J. Brown, F. Zapata Ruiz, N. Renaud, J. Wehner, and B. Baumeier,
+  ChemRxiv:11477895 (2020).
+
 * Electronic Excitations in Complex Molecular Environments: Many-Body Green’s
   Functions Theory in VOTCA-XTP Jens Wehner, Lothar Brombacher, Joshua Brown,
   Christoph Junghans, Onur Caylak, Yuriy Khalak, Pranav Madhikar, Gianluca
