@@ -82,6 +82,8 @@ class DavidsonSolver {
     // target the lowest diagonal element
     ProjectedSpace proj = initProjectedSpace(neigen, size_initial_guess);
     RitzEigenPair rep;
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " iter\tSearch Space\tNorm" << flush;
 
     for (_i_iter = 0; _i_iter < _iter_max; _i_iter++) {
 
@@ -89,12 +91,9 @@ class DavidsonSolver {
 
       if (do_restart) {
         restart(rep, proj, size_initial_guess);
-
-      } else {
-        updateProjection(A, proj);
-        rep = getGuessVectors(A, proj);
-        extendProjection(rep, proj);
       }
+      updateProjection(A, proj);
+      rep = getGuessVectors(A, proj);
 
       printIterationData(rep, proj, neigen);
 
@@ -108,6 +107,7 @@ class DavidsonSolver {
         storeNotConvergedData(rep, proj.root_converged, neigen);
         break;
       }
+      extendProjection(rep, proj);
     }
 
     printTiming(start);

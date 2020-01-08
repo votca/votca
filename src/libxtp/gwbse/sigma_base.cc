@@ -66,10 +66,10 @@ Eigen::MatrixXd Sigma_base::CalcCorrelationOffDiag(
     for (Index gw_level2 = gw_level1 + 1; gw_level2 < _qptotal; gw_level2++) {
       double sigma_c = CalcCorrelationOffDiagElement(
           gw_level1, gw_level2, frequencies[gw_level1], frequencies[gw_level2]);
-      result(gw_level1, gw_level2) = sigma_c;
       result(gw_level2, gw_level1) = sigma_c;
     }
   }
+  result = result.selfadjointView<Eigen::Lower>();
   return result;
 }
 
