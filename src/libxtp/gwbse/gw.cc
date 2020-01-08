@@ -20,6 +20,7 @@
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_exact.h"
 #include "votca/xtp/sigma_ppm.h"
+#include <votca/tools/rangeparser.h>
 #include <votca/xtp/gw.h>
 
 namespace votca {
@@ -298,6 +299,38 @@ void GW::CalculateHQP() {
   Eigen::VectorXd diag_backup = _Sigma_c.diagonal();
   _Sigma_c = _sigma->CalcCorrelationOffDiag(_gwa_energies);
   _Sigma_c.diagonal() = diag_backup;
+}
+
+void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
+  const Index steps = _opt.sigma_plot_steps;
+  const double spacing = _opt.sigma_plot_spacing;
+  const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
+  XTP_LOG(Log::info, _log) << TimeStamp() << " Plotting Sigma diagonals "
+                           << std::flush;
+  // TODO: Process "full"
+  tools::RangeParser rp;
+  rp.Parse(_opt.sigma_plot_states);
+  // TODO: Validate range
+  Index count = 0;
+  for (Index gw_level : rp) {
+    count++;
+  }
+  // TODO: Is there a better way to get "count"? Why can't I do the following?
+  // Index count = std::distance(rp.begin(), rp.end());
+  Eigen::IOFormat fmt(Eigen::StreamPrecision, 0, "", " ");
+  // TODO: Multi-thread
+  for (int grid_point = 0; grid_point < steps; grid_point++) {
+    const double offset = (grid_point - ((steps - 1) / 2)) * spacing;
+    Eigen::VectorXd result = Eigen::VectorXd::Zero(2 * count);
+    for (Index gw_level : rp) {
+      double omega = frequencies(gw_level) + offset;
+      double sigma = _sigma->CalcCorrelationDiagElement(gw_level, omega);
+      result(2 * gw_level) = omega;
+      result(2 * gw_level + 1) = sigma;
+    }
+    // TODO: Write to file
+    XTP_LOG(Log::info, _log) << result.format(fmt) << std::flush;
+  }
 }
 
 }  // namespace xtp

@@ -78,6 +78,8 @@ class GW {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonian()
       const;
 
+  void PlotSigma(const Eigen::VectorXd& frequencies) const;
+
  private:
   Index _qptotal;
 

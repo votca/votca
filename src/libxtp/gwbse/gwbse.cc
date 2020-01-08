@@ -21,7 +21,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <votca/tools/constants.h>
-#include <votca/tools/rangeparser.h>
 #include <votca/xtp/bse.h>
 #include <votca/xtp/ecpbasisset.h>
 #include <votca/xtp/gwbse.h>
@@ -413,19 +412,17 @@ void GWBSE::Initialize(tools::Property& options) {
       key + ".sigma_plot_steps", _gwopt.sigma_plot_steps);
   _gwopt.sigma_plot_spacing = options.ifExistsReturnElseReturnDefault<double>(
       key + ".sigma_plot_spacing", _gwopt.sigma_plot_spacing);
+  // TODO: Option for filename?
+  // TODO: Option to write as binary file?
   if (!_gwopt.sigma_plot_states.empty()) {
+    // TODO: Validate sigma_plot_states?
     XTP_LOG(Log::error, *_pLog)
         << " Sigma plot states: " << _gwopt.sigma_plot_states << flush;
-    if (_gwopt.sigma_plot_states != "full") {
-      tools::RangeParser rp;
-      rp.Parse(_gwopt.sigma_plot_states);  // TODO: Error handling?
-    }
     XTP_LOG(Log::error, *_pLog)
         << " Sigma plot steps: " << _gwopt.sigma_plot_steps << flush;
     XTP_LOG(Log::error, *_pLog)
         << " Sigma plot spacing: " << _gwopt.sigma_plot_spacing << flush;
   }
-  // TODO: Option to write as binary file?
 
   return;
 }
@@ -657,6 +654,10 @@ bool GWBSE::Evaluate() {
     GW gw = GW(*_pLog, Mmn, vxc, _orbitals.MOs().eigenvalues());
     gw.configure(_gwopt);
     gw.CalculateGWPerturbation();
+
+    if (!_gwopt.sigma_plot_states.empty()) {
+      gw.PlotSigma(gw.getGWAResults());
+    }
 
     // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc,
     // E_qp)
