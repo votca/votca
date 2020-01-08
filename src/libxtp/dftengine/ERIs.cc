@@ -59,6 +59,7 @@ Mat_p_Energy ERIs::CalculateERIs(const Eigen::MatrixXd& DMAT) const {
   Eigen::MatrixXd ERIs2 =
       std::accumulate(ERIS_thread.begin(), ERIS_thread.end(),
                       Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()).eval());
+
   ERIs2 = ERIs2.selfadjointView<Eigen::Upper>();
   double energy = CalculateEnergy(DMAT, ERIs2);
   return Mat_p_Energy(energy, ERIs2);

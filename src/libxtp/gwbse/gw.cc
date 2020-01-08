@@ -256,12 +256,15 @@ Eigen::VectorXd GW::SolveQP_FixedPoint(
       _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
       _vxc.diagonal();
   Eigen::VectorXd frequencies_new = frequencies;
+
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < qptotal; ++gw_level) {
     const double intercept0 = intercept[gw_level];
     double freq = frequencies[gw_level];
+
     for (Index g_iter = 0; g_iter < _opt.g_sc_max_iterations; ++g_iter) {
       double freq_prev = freq;
+
       double sigc = _sigma->CalcCorrelationDiagElement(gw_level, freq);
       // Update frequency via fixed-point iteration
       freq = sigc + intercept0;
