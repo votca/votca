@@ -307,21 +307,24 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
   XTP_LOG(Log::info, _log) << TimeStamp() << " Plotting Sigma diagonals "
                            << std::flush;
-  // TODO: Process "full"
   tools::RangeParser rp;
   rp.Parse(_opt.sigma_plot_states);
-  // TODO: Validate range
+  XTP_LOG(Log::info, _log) << "grid point";
   Index count = 0;
   for (Index gw_level : rp) {
+    // TODO: Validate gw_level
+    XTP_LOG(Log::info, _log) << boost::format("\tomega(%d)") % gw_level;
+    XTP_LOG(Log::info, _log) << boost::format("\tsigma(%d)") % gw_level;
     count++;
   }
-  // TODO: Is there a better way to get "count"? Why can't I do the following?
-  // Index count = std::distance(rp.begin(), rp.end());
-  Eigen::IOFormat fmt(Eigen::StreamPrecision, 0, "", " ");
-  // TODO: Multi-thread
-  for (int grid_point = 0; grid_point < steps; grid_point++) {
-    const double offset = (grid_point - ((steps - 1) / 2)) * spacing;
+  XTP_LOG(Log::info, _log) << std::flush;
+  boost::format numFormat("\t%+1.4f");
+  Eigen::IOFormat matFormat(Eigen::StreamPrecision, 0, "", "\t");
+  for (int i = 0; i < steps; i++) {
+    const int grid_point = i - ((steps - 1) / 2);
+    const double offset = grid_point * spacing;
     Eigen::VectorXd result = Eigen::VectorXd::Zero(2 * count);
+    // TODO: Multi-thread?
     for (Index gw_level : rp) {
       double omega = frequencies(gw_level) + offset;
       double sigma = _sigma->CalcCorrelationDiagElement(gw_level, omega);
@@ -329,7 +332,9 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
       result(2 * gw_level + 1) = sigma;
     }
     // TODO: Write to file
-    XTP_LOG(Log::info, _log) << result.format(fmt) << std::flush;
+    XTP_LOG(Log::info, _log)
+        << boost::format("%4d") % grid_point
+        << numFormat % result.format(matFormat) << std::flush;
   }
 }
 
