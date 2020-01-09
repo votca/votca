@@ -314,20 +314,17 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   // TODO: How to handle "all"?
   std::ofstream out;
   out.open("sigma_plot.txt");
-  out << "grid point";
   Index count = 0;
   for (Index gw_level : rp) {
-    // TODO: Validate gw_level
-    // Close file on out-of-range
-    out << boost::format("\tomega(%1$d)\tsigma(%1$d)") % gw_level;
+    out << boost::format("%1$somega(%2$d)\tsigma(%2$d)") %
+               (count == 0 ? "" : "\t") % gw_level;
     count++;
   }
   out << std::endl;
-  boost::format numFormat("\t%+1.4f");
+  boost::format numFormat("%+1.4f");
   Eigen::IOFormat matFormat(Eigen::StreamPrecision, 0, "", "\t");
   for (int i = 0; i < steps; i++) {
-    const int grid_point = i - ((steps - 1) / 2);
-    const double offset = grid_point * spacing;
+    const double offset = (i - ((steps - 1) / 2)) * spacing;
     Eigen::VectorXd result = Eigen::VectorXd::Zero(2 * count);
     // TODO: Multi-thread?
     for (Index gw_level : rp) {
@@ -336,8 +333,7 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
       result(2 * gw_level) = omega;
       result(2 * gw_level + 1) = sigma;
     }
-    out << boost::format("%4d") % grid_point
-        << numFormat % result.format(matFormat) << std::endl;
+    out << numFormat % result.format(matFormat) << std::endl;
   }
   out.close();
 }

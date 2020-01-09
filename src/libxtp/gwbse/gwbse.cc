@@ -413,7 +413,6 @@ void GWBSE::Initialize(tools::Property& options) {
   _gwopt.sigma_plot_spacing = options.ifExistsReturnElseReturnDefault<double>(
       key + ".sigma_plot_spacing", _gwopt.sigma_plot_spacing);
   // TODO: Option for filename?
-  // TODO: Option to write as binary file?
   if (!_gwopt.sigma_plot_states.empty()) {
     // TODO: Validate sigma_plot_states?
     XTP_LOG(Log::error, *_pLog)
