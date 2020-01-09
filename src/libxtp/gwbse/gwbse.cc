@@ -412,15 +412,18 @@ void GWBSE::Initialize(tools::Property& options) {
       key + ".sigma_plot_steps", _gwopt.sigma_plot_steps);
   _gwopt.sigma_plot_spacing = options.ifExistsReturnElseReturnDefault<double>(
       key + ".sigma_plot_spacing", _gwopt.sigma_plot_spacing);
-  // TODO: Option for filename?
+  _gwopt.sigma_plot_filename =
+      options.ifExistsReturnElseReturnDefault<std::string>(
+          key + ".sigma_plot_filename", _gwopt.sigma_plot_filename);
   if (!_gwopt.sigma_plot_states.empty()) {
-    // TODO: Validate sigma_plot_states?
     XTP_LOG(Log::error, *_pLog)
         << " Sigma plot states: " << _gwopt.sigma_plot_states << flush;
     XTP_LOG(Log::error, *_pLog)
         << " Sigma plot steps: " << _gwopt.sigma_plot_steps << flush;
     XTP_LOG(Log::error, *_pLog)
         << " Sigma plot spacing: " << _gwopt.sigma_plot_spacing << flush;
+    XTP_LOG(Log::error, *_pLog)
+        << " Sigma plot filename: " << _gwopt.sigma_plot_filename << flush;
   }
 
   return;

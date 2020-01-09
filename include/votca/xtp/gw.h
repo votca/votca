@@ -59,8 +59,9 @@ class GW {
     Index qp_grid_steps = 201;      // Number of grid points
     double qp_grid_spacing = 0.01;  // Spacing of grid points in Ha
     std::string sigma_plot_states = "";
-    Index sigma_plot_steps = 201;
-    double sigma_plot_spacing = 0.01;
+    Index sigma_plot_steps = 201;      // Number of grid points
+    double sigma_plot_spacing = 0.01;  // Spacing of grid points in Ha
+    std::string sigma_plot_filename = "sigma_plot.log";
   };
 
   void configure(const options& opt);

@@ -328,7 +328,7 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   const Index count = ind.size();
 
   std::ofstream out;
-  out.open("sigma_plot.txt");
+  out.open(_opt.sigma_plot_filename);
 
   for (Index i = 0; i < count; i++) {
     Index gw_level = ind[i];
