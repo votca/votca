@@ -20,6 +20,8 @@
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_exact.h"
 #include "votca/xtp/sigma_ppm.h"
+#include <fstream>
+#include <iostream>
 #include <votca/tools/rangeparser.h>
 #include <votca/xtp/gw.h>
 
@@ -308,16 +310,19 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   XTP_LOG(Log::info, _log) << TimeStamp() << " Plotting Sigma diagonals "
                            << std::flush;
   tools::RangeParser rp;
-  rp.Parse(_opt.sigma_plot_states);
-  XTP_LOG(Log::info, _log) << "grid point";
+  rp.Parse(_opt.sigma_plot_states);  // TODO: Error handling?
+  // TODO: How to handle "all"?
+  std::ofstream out;
+  out.open("sigma_plot.txt");
+  out << "grid point";
   Index count = 0;
   for (Index gw_level : rp) {
     // TODO: Validate gw_level
-    XTP_LOG(Log::info, _log) << boost::format("\tomega(%d)") % gw_level;
-    XTP_LOG(Log::info, _log) << boost::format("\tsigma(%d)") % gw_level;
+    // Close file on out-of-range
+    out << boost::format("\tomega(%1$d)\tsigma(%1$d)") % gw_level;
     count++;
   }
-  XTP_LOG(Log::info, _log) << std::flush;
+  out << std::endl;
   boost::format numFormat("\t%+1.4f");
   Eigen::IOFormat matFormat(Eigen::StreamPrecision, 0, "", "\t");
   for (int i = 0; i < steps; i++) {
@@ -331,11 +336,10 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
       result(2 * gw_level) = omega;
       result(2 * gw_level + 1) = sigma;
     }
-    // TODO: Write to file
-    XTP_LOG(Log::info, _log)
-        << boost::format("%4d") % grid_point
-        << numFormat % result.format(matFormat) << std::flush;
+    out << boost::format("%4d") % grid_point
+        << numFormat % result.format(matFormat) << std::endl;
   }
+  out.close();
 }
 
 }  // namespace xtp
