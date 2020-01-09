@@ -310,17 +310,15 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   XTP_LOG(Log::info, _log) << TimeStamp() << " Plotting Sigma diagonals "
                            << std::flush;
 
-  // TODO: Can the following vector be filled more elegantly?
-  std::vector<int> ind;
+  std::vector<Index> ind;
   if (_opt.sigma_plot_states == "all") {
-    for (Index gw_level = 0; gw_level < qptotal; gw_level++) {
-      ind.push_back(gw_level);
-    }
+    ind.resize(qptotal);
+    std::iota(ind.begin(), ind.end(), _opt.qpmin);
   } else {
     tools::RangeParser rp;
-    rp.Parse(_opt.sigma_plot_states);  // TODO: Error handling?
+    rp.Parse(_opt.sigma_plot_states);
     for (Index gw_level : rp) {
-      if (gw_level >= 0 && gw_level < qptotal) {
+      if (gw_level >= _opt.qpmin && gw_level <= _opt.qpmax) {
         ind.push_back(gw_level);
       }
     }
@@ -339,10 +337,10 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
 
   boost::format numFormat("%+1.4f");
   Eigen::IOFormat matFormat(Eigen::StreamPrecision, 0, "", "\t");
-  for (int i = 0; i < steps; i++) {
-    const double offset = (i - ((steps - 1) / 2)) * spacing;
+  for (Index grid_point = 0; grid_point < steps; grid_point++) {
+    const double offset = (grid_point - ((steps - 1) / 2)) * spacing;
     Eigen::VectorXd row = Eigen::VectorXd::Zero(2 * count);
-    // TODO: Multi-thread?
+#pragma omp parallel for schedule(dynamic)
     for (Index i = 0; i < count; i++) {
       Index gw_level = ind[i];
       double omega = frequencies(gw_level) + offset;
