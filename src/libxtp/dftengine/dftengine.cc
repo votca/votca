@@ -213,8 +213,6 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
   MOs.eigenvectors() = Eigen::MatrixXd::Zero(H0.rows(), H0.cols());
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
   ConfigOrbfile(orb);
-  XTP_LOG(Log::error, *_pLog)
-      << TimeStamp() << " Nuclear Repulsion Energy is " << H0.energy() << flush;
 
   if (_with_guess) {
     XTP_LOG(Log::error, *_pLog)
@@ -339,6 +337,8 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
       << TimeStamp() << " Constructed independent particle hamiltonian "
       << flush;
   double E0 = NuclearRepulsion(mol);
+  XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Nuclear Repulsion Energy is "
+                              << std::setprecision(9) << E0 << flush;
 
   if (_with_ecp) {
     AOECP dftAOECP;
@@ -383,8 +383,9 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
 
     Mat_p_Energy ext_multipoles =
         IntegrateExternalMultipoles(mol, *_externalsites);
-    XTP_LOG(Log::error, *_pLog) << TimeStamp() << " E_electrostatic "
-                                << ext_multipoles.energy() << flush;
+    XTP_LOG(Log::error, *_pLog)
+        << TimeStamp() << " Nuclei-external site interaction energy "
+        << std::setprecision(9) << ext_multipoles.energy() << flush;
     E0 += ext_multipoles.energy();
     H0 += ext_multipoles.matrix();
   }
@@ -394,6 +395,9 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
     extdensity.ReadFromCpt(_orbfilename);
     Mat_p_Energy extdensity_result = IntegrateExternalDensity(mol, extdensity);
     E0 += extdensity_result.energy();
+    XTP_LOG(Log::error, *_pLog)
+        << TimeStamp() << " Nuclei- external density interaction energy "
+        << std::setprecision(9) << extdensity_result.energy() << flush;
     H0 += extdensity_result.matrix();
   }
   return Mat_p_Energy(E0, H0);
@@ -908,7 +912,14 @@ double DFTEngine::ExternalRepulsion(
   for (const QMAtom& atom : mol) {
     StaticSite nucleus = StaticSite(atom, double(atom.getNuccharge()));
     for (const std::unique_ptr<StaticSite>& site : *_externalsites) {
-      interactor.CalcStaticEnergy_site(*site, nucleus);
+      if ((site->getPos() - nucleus.getPos()).norm() < 1e-7) {
+        XTP_LOG(Log::error, *_pLog) << TimeStamp()
+                                    << " External site sits on nucleus, "
+                                       "interaction between them is ignored."
+                                    << flush;
+        continue;
+      }
+      E_ext += interactor.CalcStaticEnergy_site(*site, nucleus);
     }
   }
   return E_ext;
@@ -927,6 +938,7 @@ Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
       << flush;
   result.matrix() = dftAOESP.Matrix();
   result.energy() = ExternalRepulsion(mol, multipoles);
+
   return result;
 }
 
