@@ -259,7 +259,7 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   dft.Initialize(prop);
   dft.Evaluate(orb);
 
-  BOOST_CHECK_CLOSE(orb.getDFTTotalEnergy(), -78.611399705809276, 1e-5);
+  BOOST_CHECK_CLOSE(orb.getDFTTotalEnergy(), -75.891684954029387, 1e-5);
 
   Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(13);
   MOs_energy_ref << -19.3481, -1.30585, -0.789203, -0.59822, -0.555272,
