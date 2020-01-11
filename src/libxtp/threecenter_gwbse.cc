@@ -189,8 +189,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
       << flush;
 #pragma omp parallel for
   for (Index i_occ = 0; i_occ < _mtotal; i_occ++) {
-    Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
-    _matrix[i_occ] = temp;
+    _matrix[i_occ] *= matrix;
   }
   return;
 }
@@ -260,8 +259,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixCuda(
       cuda_pip.gemm(cuma_A, cuma_B, cuma_C);
       _matrix[i_occ] = cuma_C;
     } else {
-      Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
-      _matrix[i_occ] = temp;
+      _matrix[i_occ] *= matrix;
     }
   }
 }
