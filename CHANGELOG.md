@@ -2,6 +2,7 @@ For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
 ## Version 1.7-dev
+* Add external fields to dft calculations (#351, #353)
 * added def2 and cc basis sets (#355)
 * added apdft (#350)
 * added test to cubefile reader (#344)
