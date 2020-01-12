@@ -335,7 +335,7 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   }
   out << std::endl;
 
-  boost::format numFormat("%+1.4f");
+  boost::format numFormat("%+1.6f");
   Eigen::IOFormat matFormat(Eigen::StreamPrecision, 0, "", "\t");
   for (Index grid_point = 0; grid_point < steps; grid_point++) {
     const double offset = (grid_point - ((steps - 1) / 2)) * spacing;
