@@ -304,53 +304,51 @@ void GW::CalculateHQP() {
 }
 
 void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
-  const Index steps = _opt.sigma_plot_steps;
+  const Index num_points = _opt.sigma_plot_steps;
   const double spacing = _opt.sigma_plot_spacing;
   const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
   XTP_LOG(Log::info, _log) << TimeStamp() << " Plotting Sigma diagonals "
                            << std::flush;
 
-  std::vector<Index> ind;
+  std::vector<Index> state_inds;
   if (_opt.sigma_plot_states == "all") {
-    ind.resize(qptotal);
-    std::iota(ind.begin(), ind.end(), _opt.qpmin);
+    state_inds.resize(qptotal);
+    std::iota(state_inds.begin(), state_inds.end(), _opt.qpmin);
   } else {
     tools::RangeParser rp;
     rp.Parse(_opt.sigma_plot_states);
     for (Index gw_level : rp) {
       if (gw_level >= _opt.qpmin && gw_level <= _opt.qpmax) {
-        ind.push_back(gw_level);
+        state_inds.push_back(gw_level);
       }
     }
   }
-  const Index count = ind.size();
+  const Index num_states = state_inds.size();
+
+  Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(num_points, 2 * num_states);
+#pragma omp parallel for schedule(dynamic)
+  for (Index grid_point = 0; grid_point < num_points; grid_point++) {
+    const double offset = (grid_point - ((num_points - 1) / 2)) * spacing;
+    for (Index i = 0; i < num_states; i++) {
+      const Index gw_level = state_inds[i];
+      const double omega = frequencies(gw_level) + offset;
+      const double sigma = _sigma->CalcCorrelationDiagElement(gw_level, omega);
+      mat(grid_point, 2 * gw_level) = omega;
+      mat(grid_point, 2 * gw_level + 1) = sigma;
+    }
+  }
 
   std::ofstream out;
   out.open(_opt.sigma_plot_filename);
-
-  for (Index i = 0; i < count; i++) {
-    Index gw_level = ind[i];
+  for (Index i = 0; i < num_states; i++) {
+    const Index gw_level = state_inds[i];
     out << boost::format("%1$somega(%2$d)\tsigma(%2$d)") %
                (i == 0 ? "" : "\t") % gw_level;
   }
   out << std::endl;
-
   boost::format numFormat("%+1.6f");
-  Eigen::IOFormat matFormat(Eigen::StreamPrecision, 0, "", "\t");
-  for (Index grid_point = 0; grid_point < steps; grid_point++) {
-    const double offset = (grid_point - ((steps - 1) / 2)) * spacing;
-    Eigen::VectorXd row = Eigen::VectorXd::Zero(2 * count);
-#pragma omp parallel for schedule(dynamic)
-    for (Index i = 0; i < count; i++) {
-      Index gw_level = ind[i];
-      double omega = frequencies(gw_level) + offset;
-      double sigma = _sigma->CalcCorrelationDiagElement(gw_level, omega);
-      row(2 * gw_level) = omega;
-      row(2 * gw_level + 1) = sigma;
-    }
-    out << numFormat % row.format(matFormat) << std::endl;
-  }
-
+  Eigen::IOFormat matFormat(Eigen::StreamPrecision, 0, "\t", "\n");
+  out << numFormat % mat.format(matFormat) << std::endl;
   out.close();
 }
 
