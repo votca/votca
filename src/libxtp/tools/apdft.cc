@@ -25,12 +25,12 @@ namespace xtp {
 
 void APDFT::Initialize(tools::Property &opt) {
 
-  std::string key = "opt." + Identify();
+  std::string key = "options." + Identify();
 
   _grid_accuracy =
       opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".grid");
   _orbfile =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".orbfile");
+      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".input");
   _outputfile =
       opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".output");
   std::string statestring =
@@ -60,7 +60,7 @@ bool APDFT::Evaluate() {
   outfile << "AtomId, Element, Potential[Hartree]" << std::endl;
   for (Index i = 0; i < orb.QMAtoms().size(); i++) {
     outfile << orb.QMAtoms()[i].getId() << " " << orb.QMAtoms()[i].getElement()
-            << " " << potential_values[i] << std::endl;
+            << " " << std::setprecision(14) << potential_values[i] << std::endl;
   }
   outfile.close();
   return true;
