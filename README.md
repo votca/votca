@@ -1,6 +1,6 @@
 This is a tutorial for the VOTCA-XTP package
 
-How to approach the tutorial? [Click here](https://github.com/votca/xtp-tutorials/blob/electrostatics/guide/TUTORIAL.md).
+How to approach the tutorial? [Click here](https://github.com/votca/xtp-tutorials/blob/master/guide/TUTORIAL.md).
 
 Installation instructions and developer information can be found
 [here](https://github.com/votca/votca/blob/master/share/doc/INSTALL.md)
