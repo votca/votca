@@ -200,8 +200,13 @@ BOOST_AUTO_TEST_CASE(osc) {
   {
     std::ofstream options("statetracker.xml");
     options << "<statetracker>" << std::endl;
-    options << "  <oscillator_strength>0.0019</oscillator_strength>"
+    options << "  <filters>oscillatorstrength,localisation</filters>"
             << std::endl;
+    options << "  <oscillatorstrength>0.0019</oscillatorstrength>" << std::endl;
+    options << "  <localisation>" << std::endl;
+    options << "  <fragment>0 1</fragment>" << std::endl;
+    options << "  <threshold>0.1</threshold>" << std::endl;
+    options << "  </localisation>" << std::endl;
     options << "</statetracker>" << std::endl;
     options.close();
     votca::tools::Property prop;
@@ -215,32 +220,12 @@ BOOST_AUTO_TEST_CASE(osc) {
     BOOST_CHECK_EQUAL(newstate.Type().ToString(), "s");
     BOOST_CHECK_EQUAL(newstate.StateIdx(), 1);
   }
-
-  {
-    std::ofstream options("statetracker.xml");
-    options << "<statetracker>" << std::endl;
-    options << "  <localisation>" << std::endl;
-    options << "  <fragment>0 1</fragment>" << std::endl;
-    options << "  <threshold>0.5</threshold>" << std::endl;
-    options << "  </localisation>" << std::endl;
-    options << "</statetracker>" << std::endl;
-    options.close();
-    votca::tools::Property prop;
-    prop.LoadFromXML("statetracker.xml");
-    StateTracker tracker;
-    tracker.setLogger(&log);
-    QMState s("s1");
-    tracker.setInitialState(s);
-    tracker.Initialize(prop.get("statetracker"));
-    QMState newstate = tracker.CalcState(orb);
-    BOOST_CHECK_EQUAL(newstate.Type().ToString(), "s");
-    BOOST_CHECK_EQUAL(newstate.StateIdx(), 0);
-  }
 }
 
 BOOST_AUTO_TEST_CASE(readwrite_hdf5) {
   std::ofstream options("statetracker.xml");
   options << "<statetracker>" << std::endl;
+  options << "  <filters>localisation</filters>" << std::endl;
   options << "  <localisation>" << std::endl;
   options << "  <fragment>0 1</fragment>" << std::endl;
   options << "  <threshold>0.1</threshold>" << std::endl;

@@ -18,64 +18,46 @@
  */
 
 #pragma once
-#ifndef XTP_NUMERICAL_INTEGRATION_H
-#define XTP_NUMERICAL_INTEGRATION_H
+#ifndef XTP_VXC_GRID_H
+#define XTP_VXC_GRID_H
 
 #include <votca/xtp/grid_containers.h>
 #include <votca/xtp/gridbox.h>
-
-#include <xc.h>
-#undef LOG
 
 namespace votca {
 namespace xtp {
 class LebedevGrid;
 class QMMolecule;
 class aobasis;
-struct Gyrationtensor {
-  double mass;
-  Eigen::Vector3d centroid;
-  Eigen::Matrix3d gyration;
-};
 
-class NumericalIntegration {
+class Vxc_Grid {
  public:
-  ~NumericalIntegration();
-
   void GridSetup(const std::string& type, const QMMolecule& atoms,
                  const AOBasis& basis);
 
-  double getExactExchange(const std::string& functional) const;
   std::vector<const Eigen::Vector3d*> getGridpoints() const;
   std::vector<double> getWeightedDensities() const;
   Index getGridSize() const { return _totalgridsize; }
   Index getBoxesSize() const { return Index(_grid_boxes.size()); }
 
-  void setXCfunctional(const std::string& functional);
-  double IntegrateDensity(const Eigen::MatrixXd& density_matrix);
-  double IntegratePotential(const Eigen::Vector3d& rvector) const;
-  Eigen::Vector3d IntegrateField(const Eigen::Vector3d& rvector) const;
-  Eigen::MatrixXd IntegratePotential(const AOBasis& externalbasis) const;
+  const GridBox& operator[](Index index) const { return _grid_boxes[index]; }
+  GridBox& operator[](Index index) { return _grid_boxes[index]; }
 
-  Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& density_matrix);
+  typename std::vector<GridBox>::iterator begin() {
+    return _grid_boxes.begin();
+  }
+  typename std::vector<GridBox>::iterator end() { return _grid_boxes.end(); }
 
-  Mat_p_Energy IntegrateVXC(const Eigen::MatrixXd& density_matrix) const;
+  typename std::vector<GridBox>::const_iterator begin() const {
+    return _grid_boxes.begin();
+  }
+  typename std::vector<GridBox>::const_iterator end() const {
+    return _grid_boxes.end();
+  }
 
  private:
-  struct XC_entry {
-    double f_xc = 0;  // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r
-    double df_drho = 0;    // v_xc_rho(r) = df/drho
-    double df_dsigma = 0;  // df/dsigma ( df/dgrad(rho) = df/dsigma *
-                           // dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
-  };
-
-  Eigen::VectorXd CalcAOValue_and_Grad(Eigen::MatrixX3d& ao_grad,
-                                       const GridBox& box,
-                                       const Eigen::Vector3d& point) const;
-  Eigen::VectorXd CalcAOValues(const GridBox& box,
-                               const Eigen::Vector3d& pos) const;
   void FindSignificantShells(const AOBasis& basis);
-  XC_entry EvaluateXC(double rho, double sigma) const;
+
   double erf1c(double x) const;
 
   void SortGridpointsintoBlocks(
@@ -104,16 +86,9 @@ class NumericalIntegration {
 
   Index _totalgridsize;
   std::vector<GridBox> _grid_boxes;
-  int xfunc_id;
   bool _density_set = false;
-  bool _setXC = false;
-
-  bool _use_separate;
-  int cfunc_id;
-  xc_func_type xfunc;  // handle for exchange functional
-  xc_func_type cfunc;  // handle for correlation functional
 };
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // XTP_NUMERICAL_INTEGRATION_H
+#endif  // XTP_VXC_GRID_H

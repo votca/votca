@@ -15,7 +15,7 @@
                 <options_dft help="xml file with options for dft calculations">xtpdft.xml</options_dft>
                 <options_gwbse help="xml file with options for gwbse calculations">gwbse.xml</options_gwbse>
                 <statetracker help="filter to identify excited states from some characteristic and not the energy">
-                    <oscillator_strength>0.5</oscillator_strength>
+                    <oscillatorstrength>0.5</oscillatorstrength>
                 </statetracker>
                 <state help="qmstate to calculate i.e. n or s1">jobfile</state>
                 <segments help="which segments to include in this region and which geometry they have">jobfile</segments>

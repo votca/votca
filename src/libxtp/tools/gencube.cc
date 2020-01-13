@@ -24,6 +24,7 @@
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/cubefile_writer.h>
 #include <votca/xtp/orbitals.h>
 
 namespace votca {
@@ -34,18 +35,22 @@ using namespace std;
 void GenCube::Initialize(tools::Property& options) {
 
   string key = "options." + Identify();
-  _orbfile = options.get(key + ".input").as<string>();
-  _output_file = options.get(key + ".output").as<string>();
+  _orbfile =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".input");
+  _output_file =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".output");
 
   // padding
-  _padding = options.get(key + ".padding").as<double>();
+  _padding =
+      options.ifExistsReturnElseThrowRuntimeError<double>(key + ".padding");
 
   // steps
-  _xsteps = options.get(key + ".xsteps").as<Index>();
-  _ysteps = options.get(key + ".ysteps").as<Index>();
-  _zsteps = options.get(key + ".zsteps").as<Index>();
+  _steps.x() = options.get(key + ".xsteps").as<Index>();
+  _steps.y() = options.get(key + ".ysteps").as<Index>();
+  _steps.z() = options.get(key + ".zsteps").as<Index>();
 
-  std::string statestring = options.get(key + ".state").as<string>();
+  std::string statestring =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
   _state.FromString(statestring);
   _dostateonly =
       options.ifExistsReturnElseReturnDefault<bool>(key + ".diff2gs", false);
@@ -65,160 +70,11 @@ void GenCube::calculateCube() {
   Orbitals orbitals;
   orbitals.ReadFromCpt(_orbfile);
 
-  const QMMolecule& atoms = orbitals.QMAtoms();
-
-  std::pair<Eigen::Vector3d, Eigen::Vector3d> minmax =
-      atoms.CalcSpatialMinMax();
-
-  // generate cube grid
-  double xstart = minmax.first.x() - _padding;
-  double xstop = minmax.second.x() + _padding;
-  double ystart = minmax.first.y() - _padding;
-  double ystop = minmax.second.y() + _padding;
-  double zstart = minmax.first.z() - _padding;
-  double zstop = minmax.second.z() + _padding;
-
-  double xincr = (xstop - xstart) / double(_xsteps);
-  double yincr = (ystop - ystart) / double(_ysteps);
-  double zincr = (zstop - zstart) / double(_zsteps);
-
-  std::ofstream out(_output_file);
-  if (!out.is_open()) {
-    throw std::runtime_error("Bad file handle: " + _output_file);
-  }
-  bool do_amplitude = (_state.Type().isSingleParticleState());
-
-  // write cube header
-  if (_state.isTransition()) {
-    out << boost::format("Transition state: %1$s \n") % _state.ToString();
-  } else if (do_amplitude) {
-    out << boost::format("%1$s with energy %2$f eV \n") % _state.ToString() %
-               (orbitals.getExcitedStateEnergy(_state) * tools::conv::hrt2ev);
-  } else {
-    if (_dostateonly) {
-      out << boost::format(
-                 "Difference electron density of excited state %1$s \n") %
-                 _state.ToString();
-    } else {
-      out << boost::format("Total electron density of %1$s state\n") %
-                 _state.ToString();
-    }
-  }
-
-  out << "Created by VOTCA-XTP \n";
-  if (do_amplitude) {
-    out << boost::format("-%1$lu %2$f %3$f %4$f \n") % atoms.size() % xstart %
-               ystart % zstart;
-  } else {
-    out << boost::format("%1$lu %2$f %3$f %4$f \n") % atoms.size() % xstart %
-               ystart % zstart;
-  }
-
-  out << boost::format("%1$d %2$f 0.0 0.0 \n") % (_xsteps + 1) % xincr;
-  out << boost::format("%1$d 0.0 %2$f 0.0 \n") % (_ysteps + 1) % yincr;
-  out << boost::format("%1$d 0.0 0.0 %2$f \n") % (_zsteps + 1) % zincr;
-  tools::Elements elements;
-  for (const QMAtom& atom : atoms) {
-    double x = atom.getPos().x();
-    double y = atom.getPos().y();
-    double z = atom.getPos().z();
-    string element = atom.getElement();
-    Index atnum = elements.getEleNum(element);
-    Index crg = atom.getNuccharge();
-    out << boost::format("%1$d %2$d %3$f %4$f %5$f\n") % atnum % crg % x % y %
-               z;
-  }
-
-  if (do_amplitude) {
-    out << boost::format("  1 %1$d \n") % (_state.StateIdx() + 1);
-  }
-
-  // load DFT basis set (element-wise information) from xml file
-  BasisSet dftbs;
-  dftbs.Load(orbitals.getDFTbasisName());
-  XTP_LOG(Log::info, _log) << " Loaded DFT Basis Set "
-                           << orbitals.getDFTbasisName() << flush;
-
-  // fill DFT AO basis by going through all atoms
-  AOBasis dftbasis;
-  dftbasis.Fill(dftbs, orbitals.QMAtoms());
-
-  Eigen::MatrixXd mat =
-      Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());
-  if (_dostateonly) {
-    if (_state.Type().isExciton()) {
-      std::array<Eigen::MatrixXd, 2> DMAT =
-          orbitals.DensityMatrixExcitedState(_state);
-      mat = DMAT[1] - DMAT[0];
-    }
-  } else {
-    mat = orbitals.DensityMatrixFull(_state);
-  }
-  Index amplitudeindex = 0;
-  if (do_amplitude) {
-    if (_state.Type() == QMStateType::DQPstate) {
-      mat = orbitals.CalculateQParticleAORepresentation();
-      amplitudeindex = _state.StateIdx() - orbitals.getGWAmin();
-    } else {
-      mat = orbitals.MOs().eigenvectors();
-      amplitudeindex = _state.StateIdx();
-    }
-  }
-
-  XTP_LOG(Log::error, _log) << " Calculating cube data ... \n" << flush;
-
-  boost::progress_display progress(_xsteps);
-  // eval density at cube grid points
-  for (Index ix = 0; ix <= _xsteps; ix++) {
-    double x = xstart + double(ix) * xincr;
-    for (Index iy = 0; iy <= _ysteps; iy++) {
-      double y = ystart + double(iy) * yincr;
-      Index Nrecord = 0;
-      for (Index iz = 0; iz <= _zsteps; iz++) {
-        double z = zstart + double(iz) * zincr;
-        Nrecord++;
-        Eigen::Vector3d pos(x, y, z);
-        Eigen::VectorXd tmat = EvaluateBasisAtPosition(dftbasis, pos);
-        double value = 0.0;
-        if (do_amplitude) {
-          value = (mat.col(amplitudeindex).transpose() * tmat).value();
-        } else {
-          value = (tmat.transpose() * mat * tmat).value();
-        }
-        if (Nrecord == 6 || iz == _zsteps) {
-          out << boost::format("%1$E \n") % value;
-          Nrecord = 0;
-        } else {
-          out << boost::format("%1$E ") % value;
-        }
-      }  // z-component
-    }    // y-component
-    ++progress;
-  }  // x-component
-
-  out.close();
+  CubeFile_Writer writer(_steps, _padding, _log);
+  XTP_LOG(Log::error, _log) << "Created cube grid" << flush;
+  writer.WriteFile(_output_file, orbitals, _state, false);
   XTP_LOG(Log::error, _log) << "Wrote cube data to " << _output_file << flush;
   return;
-}
-
-Eigen::VectorXd GenCube::EvaluateBasisAtPosition(const AOBasis& dftbasis,
-                                                 const Eigen::Vector3d& pos) {
-
-  // get value of orbitals at each gridpoint
-  Eigen::VectorXd tmat = Eigen::VectorXd::Zero(dftbasis.AOBasisSize());
-  for (const AOShell& shell : dftbasis) {
-    const double decay = shell.getMinDecay();
-    const Eigen::Vector3d& shellpos = shell.getPos();
-    Eigen::Vector3d dist = shellpos - pos;
-    double distsq = dist.squaredNorm();
-    // if contribution is smaller than -ln(1e-10), calc density
-    if ((decay * distsq) < 20.7) {
-      Eigen::VectorBlock<Eigen::VectorXd> tmat_block =
-          tmat.segment(shell.getStartIndex(), shell.getNumFunc());
-      shell.EvalAOspace(tmat_block, pos);
-    }
-  }
-  return tmat;
 }
 
 void GenCube::subtractCubes() {
@@ -284,22 +140,25 @@ void GenCube::subtractCubes() {
   double xincr;
   double yincr;
   double zincr;
-  in1 >> _xsteps;
+  Index xsteps;
+  Index ysteps;
+  Index zsteps;
+  in1 >> xsteps;
   in1 >> xincr;
   in1 >> tempdouble;
   in1 >> tempdouble;
-  in1 >> _ysteps;
+  in1 >> ysteps;
   in1 >> tempdouble;
   in1 >> yincr;
   in1 >> tempdouble;
-  in1 >> _zsteps;
+  in1 >> zsteps;
   in1 >> tempdouble;
   in1 >> tempdouble;
   in1 >> zincr;
 
   // check second cube
   in2 >> tempint;
-  if (tempint != _xsteps) {
+  if (tempint != xsteps) {
     throw std::runtime_error("xsteps does not match");
   }
   in2 >> tempdouble;
@@ -309,7 +168,7 @@ void GenCube::subtractCubes() {
   in2 >> tempdouble;
   in2 >> tempdouble;
   in2 >> tempint;
-  if (tempint != _ysteps) {
+  if (tempint != ysteps) {
     throw std::runtime_error("ysteps does not match");
   }
   in2 >> tempdouble;
@@ -319,7 +178,7 @@ void GenCube::subtractCubes() {
   }
   in2 >> tempdouble;
   in2 >> tempint;
-  if (tempint != _zsteps) {
+  if (tempint != zsteps) {
     throw std::runtime_error("zsteps does not match");
   }
   in2 >> tempdouble;
@@ -329,9 +188,9 @@ void GenCube::subtractCubes() {
     throw std::runtime_error("zincr does not match");
   }
 
-  out << boost::format("%1$d %2$f 0.0 0.0 \n") % _xsteps % xincr;
-  out << boost::format("%1$d 0.0 %2$f 0.0 \n") % _ysteps % yincr;
-  out << boost::format("%1$d 0.0 0.0 %2$f \n") % _zsteps % zincr;
+  out << boost::format("%1$d %2$f 0.0 0.0 \n") % xsteps % xincr;
+  out << boost::format("%1$d 0.0 %2$f 0.0 \n") % ysteps % yincr;
+  out << boost::format("%1$d 0.0 0.0 %2$f \n") % zsteps % zincr;
 
   // atom information
 
@@ -394,14 +253,14 @@ void GenCube::subtractCubes() {
   // now read data
   double val1;
   double val2;
-  for (Index ix = 0; ix < _xsteps; ix++) {
-    for (Index iy = 0; iy < _ysteps; iy++) {
+  for (Index ix = 0; ix < xsteps; ix++) {
+    for (Index iy = 0; iy < ysteps; iy++) {
       Index Nrecord = 0;
-      for (Index iz = 0; iz < _zsteps; iz++) {
+      for (Index iz = 0; iz < zsteps; iz++) {
         Nrecord++;
         in1 >> val1;
         in2 >> val2;
-        if (Nrecord == 6 || iz == _zsteps - 1) {
+        if (Nrecord == 6 || iz == zsteps - 1) {
           out << boost::format("%1$E \n") % (val1 - val2);
           Nrecord = 0;
         } else {

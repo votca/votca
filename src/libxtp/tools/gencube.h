@@ -35,15 +35,12 @@ class GenCube : public QMTool {
 
   ~GenCube() override = default;
 
-  std::string Identify() override { return "gencube"; }
+  std::string Identify() final { return "gencube"; }
 
-  void Initialize(tools::Property& options) override;
-  bool Evaluate() override;
+  void Initialize(tools::Property& options) final;
+  bool Evaluate() final;
 
  private:
-  Eigen::VectorXd EvaluateBasisAtPosition(const AOBasis& dftbasis,
-                                          const Eigen::Vector3d& pos);
-
   void calculateCube();
   void subtractCubes();
 
@@ -55,9 +52,7 @@ class GenCube : public QMTool {
   bool _dostateonly;
 
   double _padding;
-  Index _xsteps;
-  Index _ysteps;
-  Index _zsteps;
+  Eigen::Array<Index, 3, 1> _steps;
   QMState _state;
   std::string _mode;
   Logger _log;

@@ -19,10 +19,11 @@
 
 #include <votca/tools/constants.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/density_integration.h>
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/grid.h>
-#include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/vxc_grid.h>
 
 namespace votca {
 namespace xtp {
@@ -45,12 +46,13 @@ StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
   overlap.Fill(basis);
   double N_comp = dmat.cwiseProduct(overlap.Matrix()).sum();
 
-  NumericalIntegration numway;
-
-  numway.GridSetup(gridsize, orbitals.QMAtoms(), basis);
+  Vxc_Grid numintgrid;
+  numintgrid.GridSetup(gridsize, orbitals.QMAtoms(), basis);
   XTP_LOG(Log::info, _log) << TimeStamp() << " Setup " << gridsize
-                           << " Numerical Grid with " << numway.getGridSize()
-                           << " gridpoints." << flush;
+                           << " Numerical Grid with "
+                           << numintgrid.getGridSize() << " gridpoints."
+                           << flush;
+  DensityIntegration<Vxc_Grid> numway(numintgrid);
   double N = numway.IntegrateDensity(dmat);
   XTP_LOG(Log::error, _log)
       << TimeStamp()

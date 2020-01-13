@@ -19,14 +19,14 @@
 
 #include <votca/xtp/calculatorfactory.h>
 
-#include "calculators/eanalyze.h"
-#include "calculators/einternal.h"
-#include "calculators/ianalyze.h"
-#include "calculators/kmclifetime.h"
-#include "calculators/kmcmultiple.h"
-#include "calculators/mapchecker.h"
-#include "calculators/neighborlist.h"
-#include "calculators/vaverage.h"
+#include "../calculators/eanalyze.h"
+#include "../calculators/einternal.h"
+#include "../calculators/ianalyze.h"
+#include "../calculators/kmclifetime.h"
+#include "../calculators/kmcmultiple.h"
+#include "../calculators/mapchecker.h"
+#include "../calculators/neighborlist.h"
+#include "../calculators/vaverage.h"
 
 namespace votca {
 namespace xtp {

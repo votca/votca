@@ -17,22 +17,32 @@
  *
  */
 
-#include <votca/xtp/jobcalculatorfactory.h>
+#pragma once
+#ifndef VOTCA_XTP_FILTERFACTORY_H
+#define VOTCA_XTP_FILTERFACTORY_H
 
-#include "jobcalculators/eqm.h"
-#include "jobcalculators/iexcitoncl.h"
-#include "jobcalculators/iqm.h"
-#include "jobcalculators/qmmm.h"
+#include <votca/tools/objectfactory.h>
+#include <votca/xtp/statefilter_base.h>
 
 namespace votca {
 namespace xtp {
 
-void JobCalculatorfactory::RegisterAll(void) {
-  JobCalculators().Register<IQM>("iqm");
-  JobCalculators().Register<EQM>("eqm");
-  JobCalculators().Register<IEXCITON>("iexcitoncl");
-  JobCalculators().Register<QMMM>("qmmm");
+class FilterFactory
+    : public tools::ObjectFactory<std::string, StateFilter_base> {
+ private:
+  FilterFactory() = default;
+
+ public:
+  static void RegisterAll(void);
+  friend FilterFactory &Filter();
+};
+
+inline FilterFactory &Filter() {
+  static FilterFactory _instance;
+  return _instance;
 }
 
 }  // namespace xtp
 }  // namespace votca
+
+#endif  // VOTCA_XTP_QMPACKAGEFACTORY_H

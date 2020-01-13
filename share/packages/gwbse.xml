@@ -14,14 +14,14 @@
         <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" unit="hartree">0.2</scissor_shift> 
         <mode help="use single short (G0W0) or self-consistent GW (evGW)">evGW</mode>
         <tasks help="tasks to do gw,singlets,triplets or all">gw,singlets,triplets</tasks> 
-        <sigma_integrator help="self-energy correlation integration method: ppm, exact">ppm</tasks>
-        <eta help="small parameter eta of the Green's function">1e-3</tasks>
-        <qp_solver help="QP equation solve method: fixedpoint, grid">fixedpoint</tasks>
-        <qp_grid_steps help="number of QP grid points">201</tasks>
-        <qp_grid_spacing help="spacing of QP grid points in Ha">1.0</tasks>
+        <sigma_integrator help="self-energy correlation integration method: ppm, exact">ppm</sigma_integrator>
+        <eta help="small parameter eta of the Green's function">1e-3</eta>
+        <qp_solver help="QP equation solve method: fixedpoint, grid">fixedpoint</qp_solver>
+        <qp_grid_steps help="number of QP grid points">201</qp_grid_steps>
+        <qp_grid_spacing help="spacing of QP grid points in Ha">1e-3</qp_grid_spacing>
         <exctotal help="maximum number of BSE states to calculate">25</exctotal>
         <useTDA help="use TDA for BSE default `false`">1</useTDA>
-        <ignore_corelevles help="exclude core MO level from calculation on RPA,GW or BSE level, default=no">no</ignore_corelevels>
+        <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level, default=no">no</ignore_corelevels>
         <eigensolver help="options for BSE eigenvalue decompostion">
                 <dodavidson help="use davidson solver" >1</dodavidson>
                 <davidson_correction help="DPR or OHLSEN" >DPR</davidson_correction>

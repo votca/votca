@@ -20,7 +20,7 @@
 #include <boost/format.hpp>
 #include <votca/tools/elements.h>
 #include <votca/xtp/gyration.h>
-
+#include <votca/xtp/vxc_grid.h>
 using namespace std;
 using namespace votca::tools;
 
@@ -52,8 +52,9 @@ void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
   AnalyzeGeometry(Atomlist);
 
   // setup numerical integration grid
-  NumericalIntegration numway;
-  numway.GridSetup(_gridsize, Atomlist, basis);
+  Vxc_Grid grid;
+  grid.GridSetup(_gridsize, Atomlist, basis);
+  DensityIntegration<Vxc_Grid> numway(grid);
 
   if (!_dostateonly) {
     Eigen::MatrixXd DMATGS = orbitals.DensityMatrixFull(_state);
