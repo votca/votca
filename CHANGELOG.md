@@ -1,6 +1,13 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/csg/commits/master).
 
+## Version 1.7-dev
+* remove topology item (#486)
+* switch to local includes (#487)
+* add default units to readers (#483)
+* update bead related classes (#475, #474, #469, #468, #460)
+* update boundary class (#457)
+
 ## Version 1.6_rc2 (released XX.01.20)
 * fix inheritance bug in cmake files (#466) 
 * fix build on 32-bit archs (#473)

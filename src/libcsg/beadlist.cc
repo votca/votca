@@ -15,8 +15,8 @@
  *
  */
 
-#include <votca/csg/beadlist.h>
-#include <votca/csg/topology.h>
+#include "../../include/votca/csg/beadlist.h"
+#include "../../include/votca/csg/topology.h"
 #include <votca/tools/tokenizer.h>
 
 namespace votca {
