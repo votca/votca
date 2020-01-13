@@ -9,6 +9,7 @@ For more detailed information about the changes see the history of the
 * added more tests for gmx (#489) and gmx-2020 support (#488)
 * add support for txt2tags-3.4 (#491)
 * fix cma seed for testing (#494)
+* remove old doxygen target (#498)
 
 ## Version 1.6_rc1 (released 04.12.19)
  * Major CMake refactor
