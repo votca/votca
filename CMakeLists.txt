@@ -118,10 +118,7 @@ if(BUILD_XTP)
   list(APPEND ENABLED_VOTCA_PACKAGES xtp-tutorials)
 endif()
 
-find_package(Doxygen)
-if (DOXYGEN_FOUND AND DOXYGEN_DOT_FOUND)
-  add_subdirectory(share/doc)
-endif()
+add_subdirectory(share/doc)
 add_subdirectory(share/format)
 
 include(FeatureSummary)
