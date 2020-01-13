@@ -28,7 +28,7 @@ namespace votca {
 namespace xtp {
 
 void FilterFactory::RegisterAll(void) {
-  Filter().Register<DeltaQ_filter>("chargeTransfer");
+  Filter().Register<DeltaQ_filter>("chargetransfer");
   Filter().Register<Density_filter>("density");
   Filter().Register<Localisation_filter>("localisation");
   Filter().Register<OscillatorStrength_filter>("oscillatorstrength");
