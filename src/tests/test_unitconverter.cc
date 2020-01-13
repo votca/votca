@@ -20,7 +20,8 @@
 #define BOOST_TEST_MODULE unitconverter_test
 #include "../../include/votca/tools/unitconverter.h"
 #include <boost/test/unit_test.hpp>
-
+#include <iostream>
+using namespace std;
 using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(unitconverter_test)
@@ -47,6 +48,23 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_distance) {
   distance_new =
       converter.convert(DistanceUnit::meters, DistanceUnit::bohr) * distance;
   BOOST_CHECK_CLOSE(1.8897e+10, distance_new, 0.01);
+
+  // Now assuming distance in angstroms
+  distance_new =
+      converter.convert(DistanceUnit::angstroms, DistanceUnit::nanometers) *
+      distance;
+  BOOST_CHECK_CLOSE(0.1, distance_new, 0.01);
+
+  distance_new =
+      converter.convert(DistanceUnit::angstroms, DistanceUnit::meters) *
+      distance;
+  BOOST_CHECK_CLOSE(1.E-10, distance_new, 0.01);
+
+  // Now assuming distance in Bohr
+  distance_new =
+      converter.convert(DistanceUnit::nanometers, DistanceUnit::bohr) *
+      distance;
+  BOOST_CHECK_CLOSE(18.8973, distance_new, 0.01);
 }
 
 BOOST_AUTO_TEST_CASE(unitconverter_test_time) {
@@ -77,11 +95,11 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_mass) {
   BOOST_CHECK_CLOSE(1E3, mass_new, 0.01);
 
   mass_new = converter.convert(MassUnit::kilograms, MassUnit::picograms) * mass;
-  BOOST_CHECK_CLOSE(1E12, mass_new, 0.01);
+  BOOST_CHECK_CLOSE(1E15, mass_new, 0.01);
 
   mass_new =
       converter.convert(MassUnit::kilograms, MassUnit::femtograms) * mass;
-  BOOST_CHECK_CLOSE(1E15, mass_new, 0.01);
+  BOOST_CHECK_CLOSE(1E18, mass_new, 0.01);
 
   mass_new = converter.convert(MassUnit::kilograms, MassUnit::attograms) * mass;
   BOOST_CHECK_CLOSE(1E21, mass_new, 0.01);
@@ -89,7 +107,11 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_mass) {
   mass_new =
       converter.convert(MassUnit::kilograms, MassUnit::atomic_mass_units) *
       mass;
-  BOOST_CHECK_CLOSE(6.022E26, mass_new, 0.01);
+  BOOST_CHECK_CLOSE(6.02213665E26, mass_new, 0.01);
+
+  mass_new =
+      converter.convert(MassUnit::kilograms, MassUnit::grams_per_mole) * mass;
+  BOOST_CHECK_CLOSE(6.02213665E26, mass_new, 0.01);
 }
 
 BOOST_AUTO_TEST_CASE(unitconverter_test_energy) {
@@ -104,7 +126,7 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_energy) {
   energy_new =
       converter.convert(EnergyUnit::electron_volts, EnergyUnit::kilocalories) *
       energy;
-  BOOST_CHECK_CLOSE(3.826732982229865E-23, energy_new, 0.01);
+  BOOST_CHECK_CLOSE(3.82929E-23, energy_new, 0.01);
 
   energy_new =
       converter.convert(EnergyUnit::electron_volts, EnergyUnit::joules) *
@@ -115,6 +137,127 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_energy) {
       converter.convert(EnergyUnit::electron_volts, EnergyUnit::hartrees) *
       energy;
   BOOST_CHECK_CLOSE(0.0367493, energy_new, 0.01);
+
+  energy_new =
+      converter.convert(EnergyUnit::electron_volts, EnergyUnit::kilojoules) *
+      energy;
+  BOOST_CHECK_CLOSE(1.602176E-22, energy_new, 0.01);
 }
 
+BOOST_AUTO_TEST_CASE(unitconverter_test_molar_energy) {
+  UnitConverter converter;
+
+  double energy = 1;  // Assuming in electron volts
+  double energy_new =
+      converter.convert(MolarEnergyUnit::electron_volts_per_mole,
+                        MolarEnergyUnit::electron_volts_per_mole) *
+      energy;
+  BOOST_CHECK_CLOSE(1, energy_new, 0.01);
+
+  energy_new = converter.convert(MolarEnergyUnit::electron_volts_per_mole,
+                                 MolarEnergyUnit::kilocalories_per_mole) *
+               energy;
+  BOOST_CHECK_CLOSE(3.82929E-23, energy_new, 0.01);
+
+  energy_new = converter.convert(MolarEnergyUnit::electron_volts_per_mole,
+                                 MolarEnergyUnit::joules_per_mole) *
+               energy;
+  BOOST_CHECK_CLOSE(1.60218E-19, energy_new, 0.01);
+
+  energy_new = converter.convert(MolarEnergyUnit::electron_volts_per_mole,
+                                 MolarEnergyUnit::hartrees_per_mole) *
+               energy;
+  BOOST_CHECK_CLOSE(0.0367493, energy_new, 0.01);
+
+  energy_new = converter.convert(MolarEnergyUnit::electron_volts_per_mole,
+                                 MolarEnergyUnit::kilojoules_per_mole) *
+               energy;
+  BOOST_CHECK_CLOSE(1.602176E-22, energy_new, 0.01);
+}
+
+BOOST_AUTO_TEST_CASE(unitconverter_test_charge) {
+  UnitConverter converter;
+
+  double charge = 1.602176565E-19;  // Assuming in units of coulombs
+  double charge_new =
+      converter.convert(ChargeUnit::coulombs, ChargeUnit::e) * charge;
+  BOOST_CHECK_CLOSE(1.000, charge_new, 0.01);
+
+  charge = 1;  // Assuming in eV
+  charge_new = converter.convert(ChargeUnit::e, ChargeUnit::coulombs) * charge;
+  BOOST_CHECK_CLOSE(1.60217656E-19, charge_new, 0.01);
+}
+
+BOOST_AUTO_TEST_CASE(unitconverter_test_velocity) {
+  UnitConverter converter;
+
+  double velocity = 1;  // Assuming in units of angstroms_per_femtosecond
+  double velocity_new =
+      converter.convert(VelocityUnit::angstroms_per_femtosecond,
+                        VelocityUnit::angstroms_per_picosecond) *
+      velocity;
+  BOOST_CHECK_CLOSE(1000, velocity_new, 0.01);
+
+  velocity_new = converter.convert(VelocityUnit::angstroms_per_femtosecond,
+                                   VelocityUnit::nanometers_per_picosecond) *
+                 velocity;
+  BOOST_CHECK_CLOSE(100, velocity_new, 0.01);
+
+  // Assuming in units of nanometers_per_picosecond
+  velocity_new = converter.convert(VelocityUnit::nanometers_per_picosecond,
+                                   VelocityUnit::angstroms_per_femtosecond) *
+                 velocity;
+  BOOST_CHECK_CLOSE(0.01, velocity_new, 0.01);
+}
+
+BOOST_AUTO_TEST_CASE(unitconverter_test_force) {
+  UnitConverter converter;
+
+  double force = 1;  // Assuming kilojoules_per_nanometer
+  double force_new = converter.convert(ForceUnit::kilojoules_per_nanometer,
+                                       ForceUnit::kilocalories_per_angstrom) *
+                     force;
+  BOOST_CHECK_CLOSE(0.0239006, force_new, 0.01);
+
+  force_new = converter.convert(ForceUnit::kilojoules_per_nanometer,
+                                ForceUnit::kilojoules_per_angstrom) *
+              force;
+  BOOST_CHECK_CLOSE(0.1, force_new, 0.01);
+
+  force_new = converter.convert(ForceUnit::kilojoules_per_nanometer,
+                                ForceUnit::hatree_per_bohr) *
+              force;
+  BOOST_CHECK_CLOSE(1.2138E19, force_new, 0.01);
+
+  force_new = converter.convert(ForceUnit::kilojoules_per_nanometer,
+                                ForceUnit::newtons) *
+              force;
+  BOOST_CHECK_CLOSE(1E12, force_new, 0.01);
+}
+
+BOOST_AUTO_TEST_CASE(unitconverter_test_molar_force) {
+  UnitConverter converter;
+
+  double force = 1;  // Assuming kilojoules_per_mole_nanometer
+  double force_new =
+      converter.convert(MolarForceUnit::kilojoules_per_mole_nanometer,
+                        MolarForceUnit::kilocalories_per_mole_angstrom) *
+      force;
+  BOOST_CHECK_CLOSE(0.0239006, force_new, 0.01);
+
+  force_new = converter.convert(MolarForceUnit::kilojoules_per_mole_nanometer,
+                                MolarForceUnit::kilojoules_per_mole_angstrom) *
+              force;
+  BOOST_CHECK_CLOSE(0.1, force_new, 0.01);
+
+  force_new = converter.convert(MolarForceUnit::kilojoules_per_mole_nanometer,
+                                MolarForceUnit::hatree_per_mole_bohr) *
+              force;
+  BOOST_CHECK_CLOSE(1.2138E19, force_new, 0.01);
+
+  force_new = converter.convert(MolarForceUnit::kilojoules_per_mole_nanometer,
+                                MolarForceUnit::newtons_per_mole) *
+              force;
+  BOOST_CHECK_CLOSE(1E12, force_new, 0.01);
+}
 BOOST_AUTO_TEST_SUITE_END()

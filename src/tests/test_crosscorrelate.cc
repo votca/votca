@@ -18,11 +18,11 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE crosscorrelate_test
+#include "../../include/votca/tools/crosscorrelate.h"
 #include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <exception>
 #include <iostream>
-#include <votca/tools/crosscorrelate.h>
 using namespace votca;
 using namespace votca::tools;
 

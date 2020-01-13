@@ -17,12 +17,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE edgecontainer_test
+#include "../../include/votca/tools/edge.h"
+#include "../../include/votca/tools/edgecontainer.h"
 #include <boost/test/unit_test.hpp>
 #include <exception>
 #include <iostream>
 #include <vector>
-#include <votca/tools/edge.h>
-#include <votca/tools/edgecontainer.h>
 
 using namespace std;
 using namespace votca::tools;

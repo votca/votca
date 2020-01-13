@@ -18,7 +18,7 @@
 #ifndef _VOTCA_TOOLS_TYPES_H
 #define _VOTCA_TOOLS_TYPES_H
 
-#include <votca/tools/eigen.h>
+#include "eigen.h"
 namespace votca {
 
 using Index = Eigen::Index;

@@ -17,8 +17,8 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE floatingpointcomparison_test
+#include "../../include/votca/tools/floatingpointcomparison.h"
 #include <boost/test/unit_test.hpp>
-#include <votca/tools/floatingpointcomparison.h>
 
 using namespace std;
 using namespace votca::tools;

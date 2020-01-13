@@ -17,7 +17,7 @@
 
 #ifndef __VOTCA_TOOLS_EIGENSYSTEM_H
 #define __VOTCA_TOOLS_EIGENSYSTEM_H
-#include <votca/tools/eigen.h>
+#include "eigen.h"
 
 namespace votca {
 namespace tools {

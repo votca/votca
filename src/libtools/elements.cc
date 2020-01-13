@@ -17,8 +17,8 @@
  *
  */
 
+#include "../../include/votca/tools/elements.h"
 #include <boost/algorithm/string.hpp>
-#include <votca/tools/elements.h>
 
 namespace votca {
 namespace tools {
