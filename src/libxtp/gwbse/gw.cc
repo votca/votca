@@ -150,9 +150,8 @@ void GW::CalculateGWPerturbation() {
   // gwaenergies/frequencies have size qptotal
   // homo index is relative to dft_energies
   Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
-  Eigen::VectorXd rpa_energies =
-      dft_shifted_energies.segment(_opt.rpamin, _opt.rpamax - _opt.rpamin + 1);
-  _rpa.setRPAInputEnergies(rpa_energies);
+  _rpa.setRPAInputEnergies(
+      dft_shifted_energies.segment(_opt.rpamin, _opt.rpamax - _opt.rpamin + 1));
   Eigen::VectorXd frequencies =
       dft_shifted_energies.segment(_opt.qpmin, _qptotal);
   for (Index i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
@@ -179,29 +178,29 @@ void GW::CalculateGWPerturbation() {
     _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(_gwa_energies);
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Calculated correlation diagonal" << std::flush;
-    Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
-    _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
-    XTP_LOG(Log::info, _log)
-        << TimeStamp() << " GW_Iteration:" << i_gw
-        << " Shift[Hrt]:" << CalcHomoLumoShift(_gwa_energies) << std::flush;
-    if (Converged(_rpa.getRPAInputEnergies(), rpa_energies_old,
-                  _opt.gw_sc_limit)) {
-      XTP_LOG(Log::error, _log) << TimeStamp() << " Converged after "
-                                << i_gw + 1 << " GW iterations." << std::flush;
-      break;
-    } else if (i_gw == _opt.gw_sc_max_iterations - 1 &&
-               _opt.gw_sc_max_iterations > 1) {
+
+    if (_opt.gw_sc_max_iterations > 1) {
+      Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
+      _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
       XTP_LOG(Log::error, _log)
-          << TimeStamp()
-          << " WARNING! GW-self-consistency cycle not converged after "
-          << _opt.gw_sc_max_iterations << " iterations." << std::flush;
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << "      Run continues. Inspect results carefully!"
-          << std::flush;
-      break;
-    } else {
-      double alpha = 0.0;
-      rpa_energies = (1 - alpha) * rpa_energies + alpha * rpa_energies_old;
+          << TimeStamp() << " GW_Iteration:" << i_gw
+          << " Shift[Hrt]:" << CalcHomoLumoShift(_gwa_energies) << std::flush;
+      if (Converged(_rpa.getRPAInputEnergies(), rpa_energies_old,
+                    _opt.gw_sc_limit)) {
+        XTP_LOG(Log::error, _log)
+            << TimeStamp() << " Converged after " << i_gw + 1
+            << " GW iterations." << std::flush;
+        break;
+      } else if (i_gw == _opt.gw_sc_max_iterations - 1) {
+        XTP_LOG(Log::error, _log)
+            << TimeStamp()
+            << " WARNING! GW-self-consistency cycle not converged after "
+            << _opt.gw_sc_max_iterations << " iterations." << std::flush;
+        XTP_LOG(Log::error, _log)
+            << TimeStamp() << "      Run continues. Inspect results carefully!"
+            << std::flush;
+        break;
+      }
     }
   }
 
