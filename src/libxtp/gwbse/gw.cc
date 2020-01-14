@@ -338,7 +338,7 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
       const double omega = frequencies(gw_level) + offset;
       const double sigma = _sigma->CalcCorrelationDiagElement(gw_level, omega);
       mat(grid_point, 2 * gw_level) = omega;
-      mat(grid_point, 2 * gw_level + 1) = sigma - omega + intercept[i];
+      mat(grid_point, 2 * gw_level + 1) = sigma + intercept[i];
     }
   }
 
