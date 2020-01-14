@@ -10,6 +10,7 @@ For more detailed information about the changes see the history of the [reposito
 * fix inheritance bug in cmake files (#197) 
 * fix bug in table class (#196)
 * fix build on 32-bit archs (#199)
+* remove old doxygen target (#211)
 
 ## Version 1.6_rc1 (released 04.12.19)
 * replaced fftw with Eigen3 fft 
