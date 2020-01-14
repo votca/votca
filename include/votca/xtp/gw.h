@@ -58,10 +58,6 @@ class GW {
     std::string qp_solver = "fixedpoint";
     Index qp_grid_steps = 201;      // Number of grid points
     double qp_grid_spacing = 0.01;  // Spacing of grid points in Ha
-    std::string sigma_plot_states = "";
-    Index sigma_plot_steps = 201;      // Number of grid points
-    double sigma_plot_spacing = 0.01;  // Spacing of grid points in Ha
-    std::string sigma_plot_filename = "sigma_plot.log";
   };
 
   void configure(const options& opt);
@@ -79,7 +75,8 @@ class GW {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonian()
       const;
 
-  void PlotSigma(const Eigen::VectorXd& frequencies) const;
+  void PlotSigma(std::string filename, Index steps, double spacing,
+                 std::string states) const;
 
  private:
   Index _qptotal;

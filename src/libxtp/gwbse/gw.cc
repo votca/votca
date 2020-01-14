@@ -302,24 +302,22 @@ void GW::CalculateHQP() {
   _Sigma_c.diagonal() = diag_backup;
 }
 
-void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
-  const Index num_points = _opt.sigma_plot_steps;
-  const double spacing = _opt.sigma_plot_spacing;
-  const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
-  XTP_LOG(Log::info, _log) << TimeStamp() << " Plotting Sigma diagonals "
-                           << std::flush;
+void GW::PlotSigma(std::string filename, Index steps, double spacing,
+                   std::string states) const {
+
+  Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
+  Eigen::VectorXd frequencies =
+      dft_shifted_energies.segment(_opt.qpmin, _qptotal);
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Writing quasiparticle frequency dependence to "
+      << filename << std::flush;
 
   std::vector<Index> state_inds;
-  if (_opt.sigma_plot_states == "all") {
-    state_inds.resize(qptotal);
-    std::iota(state_inds.begin(), state_inds.end(), _opt.qpmin);
-  } else {
-    tools::RangeParser rp;
-    rp.Parse(_opt.sigma_plot_states);
-    for (Index gw_level : rp) {
-      if (gw_level >= _opt.qpmin && gw_level <= _opt.qpmax) {
-        state_inds.push_back(gw_level);
-      }
+  tools::RangeParser rp;
+  rp.Parse(states);
+  for (Index gw_level : rp) {
+    if (gw_level >= _opt.qpmin && gw_level <= _opt.qpmax) {
+      state_inds.push_back(gw_level);
     }
   }
   const Index num_states = state_inds.size();
@@ -327,11 +325,11 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   const Eigen::VectorXd intercept =
       _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
       _vxc.diagonal();
-  Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(num_points, 2 * num_states);
+  Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(steps, 2 * num_states);
 #pragma omp parallel for schedule(dynamic)
-  for (Index grid_point = 0; grid_point < num_points; grid_point++) {
+  for (Index grid_point = 0; grid_point < steps; grid_point++) {
     const double offset =
-        ((double)grid_point - ((double)(num_points - 1) / 2.0)) * spacing;
+        ((double)grid_point - ((double)(steps - 1) / 2.0)) * spacing;
     for (Index i = 0; i < num_states; i++) {
       const Index gw_level = state_inds[i];
       const double omega = frequencies(gw_level) + offset;
@@ -342,11 +340,10 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   }
 
   std::ofstream out;
-  out.open(_opt.sigma_plot_filename);
+  out.open(filename);
   for (Index i = 0; i < num_states; i++) {
     const Index gw_level = state_inds[i];
-    out << boost::format(
-               "%1$somega(%2$d)\tsigma_c(omega(%2$d))+e_KS+sigma_x-v_XC") %
+    out << boost::format("#%1$somega_%2$d\tE_QP(omega)_%2$d") %
                (i == 0 ? "" : "\t") % gw_level;
   }
   out << std::endl;

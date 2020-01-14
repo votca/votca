@@ -405,25 +405,23 @@ void GWBSE::Initialize(tools::Property& options) {
         << " QP grid spacing: " << _gwopt.qp_grid_spacing << flush;
   }
 
-  _gwopt.sigma_plot_states =
-      options.ifExistsReturnElseReturnDefault<std::string>(
-          key + ".sigma_plot_states", _gwopt.sigma_plot_states);
-  _gwopt.sigma_plot_steps = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".sigma_plot_steps", _gwopt.sigma_plot_steps);
-  _gwopt.sigma_plot_spacing = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".sigma_plot_spacing", _gwopt.sigma_plot_spacing);
-  _gwopt.sigma_plot_filename =
-      options.ifExistsReturnElseReturnDefault<std::string>(
-          key + ".sigma_plot_filename", _gwopt.sigma_plot_filename);
-  if (!_gwopt.sigma_plot_states.empty()) {
+  _sigma_plot_states = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".sigma_plot_states", _sigma_plot_states);
+  _sigma_plot_steps = options.ifExistsReturnElseReturnDefault<Index>(
+      key + ".sigma_plot_steps", _sigma_plot_steps);
+  _sigma_plot_spacing = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".sigma_plot_spacing", _sigma_plot_spacing);
+  _sigma_plot_filename = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".sigma_plot_filename", _sigma_plot_filename);
+  if (!_sigma_plot_states.empty()) {
     XTP_LOG(Log::error, *_pLog)
-        << " Sigma plot states: " << _gwopt.sigma_plot_states << flush;
+        << " Sigma plot states: " << _sigma_plot_states << flush;
     XTP_LOG(Log::error, *_pLog)
-        << " Sigma plot steps: " << _gwopt.sigma_plot_steps << flush;
+        << " Sigma plot steps: " << _sigma_plot_steps << flush;
     XTP_LOG(Log::error, *_pLog)
-        << " Sigma plot spacing: " << _gwopt.sigma_plot_spacing << flush;
+        << " Sigma plot spacing: " << _sigma_plot_spacing << flush;
     XTP_LOG(Log::error, *_pLog)
-        << " Sigma plot filename: " << _gwopt.sigma_plot_filename << flush;
+        << " Sigma plot filename: " << _sigma_plot_filename << flush;
   }
 
   return;
@@ -657,8 +655,9 @@ bool GWBSE::Evaluate() {
     gw.configure(_gwopt);
     gw.CalculateGWPerturbation();
 
-    if (!_gwopt.sigma_plot_states.empty()) {
-      gw.PlotSigma(gw.getGWAResults());
+    if (!_sigma_plot_states.empty()) {
+      gw.PlotSigma(_sigma_plot_filename, _sigma_plot_steps, _sigma_plot_spacing,
+                   _sigma_plot_states);
     }
 
     // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc,
