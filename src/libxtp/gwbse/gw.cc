@@ -347,8 +347,7 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   for (Index i = 0; i < num_states; i++) {
     const Index gw_level = state_inds[i];
     out << boost::format(
-               "%1$somega(%2$d)\tsigma_c(omega(%2$d))-omega(%2$d)+e_KS+sigma_x-"
-               "v_XC") %
+               "%1$somega(%2$d)\tsigma_c(omega(%2$d))+e_KS+sigma_x-v_XC") %
                (i == 0 ? "" : "\t") % gw_level;
   }
   out << std::endl;
