@@ -328,7 +328,7 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(num_points, 2 * num_states);
 #pragma omp parallel for schedule(dynamic)
   for (Index grid_point = 0; grid_point < num_points; grid_point++) {
-    const double offset = (grid_point - ((num_points - 1) / 2)) * spacing;
+    const double offset = ((double)grid_point - ((double)(num_points - 1) / 2.0)) * spacing;
     for (Index i = 0; i < num_states; i++) {
       const Index gw_level = state_inds[i];
       const double omega = frequencies(gw_level) + offset;
