@@ -325,16 +325,20 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   }
   const Index num_states = state_inds.size();
 
+  const Eigen::VectorXd intercept =
+      _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
+      _vxc.diagonal();
   Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(num_points, 2 * num_states);
 #pragma omp parallel for schedule(dynamic)
   for (Index grid_point = 0; grid_point < num_points; grid_point++) {
-    const double offset = ((double)grid_point - ((double)(num_points - 1) / 2.0)) * spacing;
+    const double offset =
+        ((double)grid_point - ((double)(num_points - 1) / 2.0)) * spacing;
     for (Index i = 0; i < num_states; i++) {
       const Index gw_level = state_inds[i];
       const double omega = frequencies(gw_level) + offset;
       const double sigma = _sigma->CalcCorrelationDiagElement(gw_level, omega);
       mat(grid_point, 2 * gw_level) = omega;
-      mat(grid_point, 2 * gw_level + 1) = sigma;
+      mat(grid_point, 2 * gw_level + 1) = sigma + intercept[i];
     }
   }
 
@@ -342,7 +346,8 @@ void GW::PlotSigma(const Eigen::VectorXd& frequencies) const {
   out.open(_opt.sigma_plot_filename);
   for (Index i = 0; i < num_states; i++) {
     const Index gw_level = state_inds[i];
-    out << boost::format("%1$somega(%2$d)\tsigma(%2$d)") %
+    out << boost::format(
+               "%1$somega(%2$d)\tsigma_c(omega(%2$d))+e_KS+sigma_x-v_XC") %
                (i == 0 ? "" : "\t") % gw_level;
   }
   out << std::endl;
