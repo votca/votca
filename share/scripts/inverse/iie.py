@@ -134,7 +134,7 @@ def gauss_newton_constrained(A, C, b, d):
 def calc_dU_hncgn_sc(r, g_cur, g_tgt, kBT, density,
                      g_min, cut_off, constraints,
                      verbose):
-    """Apply the (constrained) HNCGN method."""
+    """Apply the (constrained) single-component HNCGN method."""
 
     # for convenience grids (real and reciprocal) are without the zero value
     r, g, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
@@ -320,12 +320,13 @@ def fix_U_near_cut_off_full(dU, r, U, cut_off):
     return dU_fixed
 
 
-def calc_dU_ihnc_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
-                         hncn_variant=False):
+def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
+                           closure, newton_mod):
     """calculates an update step dU for the potential from g_tgt, g_cur, and
     G_minus_g  using IHNC (or HNCN) step for molecules with n identical beads.
     This means it works for two-bead hexane, but is expected to fail for
     three-bead hexane"""
+    print(closure, newton_mod)
     # reciprocal space with radial symmetry ω
     omega = np.arange(1, len(r)) / (2 * max(r))
     # difference of rdf to target 'f'
@@ -346,15 +347,27 @@ def calc_dU_ihnc_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     c_prime_hat = b_hat * g_prime_hat / (b_hat + e_hat * h_hat)**2
     c_prime = fourier(omega, c_prime_hat, r)
     # dU from HNC
-    with np.errstate(divide='ignore', invalid='ignore'):
-        if hncn_variant:
-            dU = kBT * (-(g_prime / g_tgt) + g_prime - c_prime)
-        else:
-            dU = kBT * (np.log(g_cur / g_tgt) + g_prime - c_prime)
+    with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
+        if closure == 'hnc':
+            if newton_mod:
+                dU = kBT * (np.log(g_cur / g_tgt) + g_prime - c_prime)
+            else:
+                dU = kBT * (-(g_prime / g_tgt) + g_prime - c_prime)
+        elif closure == 'py':
+            # for PY we also need c
+            c_hat = h_hat / (b_hat + e_hat * h_hat)
+            c = fourier(omega, c_hat, r)
+            if newton_mod:
+                # dU = kBT * ()
+                raise NotImplementedError
+            else:
+                # probably wrong:
+                dU = kBT * (1 / (1 - c / g_tgt)
+                            * (- c_prime * g_tgt + g_prime * c) / g_tgt**2)
     return dU
 
 
-def calc_U_hnc_sym_mol(r, g_cur, G_minus_g, n, kBT, rho):
+def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
     """calculates U from g and G_minus_g for molecules with n identical beads.
     This means it works for two-bead hexane, but is expected to fail for
     three-bead hexane"""
@@ -377,7 +390,10 @@ def calc_U_hnc_sym_mol(r, g_cur, G_minus_g, n, kBT, rho):
     c = fourier(omega, c_hat, r)
     # U from HNC
     with np.errstate(divide='ignore', invalid='ignore'):
-        U = kBT * (-np.log(g_cur) + h - c)
+        if closure == 'hnc':
+            U = kBT * (-np.log(g_cur) + h - c)
+        elif closure == 'py':
+            U = kBT * np.log(1 - c/g_cur)
     return U
 
 
@@ -431,20 +447,30 @@ def main():
     This script calculatess U or ΔU with the HNC methods.
     """
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('-v', '--verbose', dest='verbose',
-                        help='save some intermeditary results',
-                        action='store_const', const=True, default=False)
     # subparsers
     subparsers = parser.add_subparsers(dest='subcommand')
-    parser_invert_hnc = subparsers.add_parser('invert_hnc',
-                                              help='potential guess using HNC')
-    parser_ihnc = subparsers.add_parser('ihnc',
-                                        help='potential update IHNC')
-    parser_hncgn = subparsers.add_parser('hncgn',
-                                         help='potential update HNCGN')
+    parser_pot_guess = subparsers.add_parser(
+        'potential_guess',
+        help='potential guess from inverting integral equation')
+    parser_newton = subparsers.add_parser(
+        'newton',
+        help='potential update using Newton method')
+    parser_newton_mod = subparsers.add_parser(
+        'newton-mod',
+        help='potential update using a modified Newton method')
+    parser_gauss_newton = subparsers.add_parser(
+        'gauss-newton',
+        help='potential update using Gauss-Newton method')
 
     # all subparsers
-    for pars in [parser_invert_hnc, parser_ihnc, parser_hncgn]:
+    for pars in [parser_pot_guess, parser_newton, parser_newton_mod,
+                 parser_gauss_newton]:
+        pars.add_argument('-v', '--verbose', dest='verbose',
+                          help='save some intermeditary results',
+                          action='store_const', const=True, default=False)
+        pars.add_argument('--closure', type=str, choices=['hnc', 'py'],
+                          required=True,
+                          help='Closure equation to use for the OZ equation')
         pars.add_argument('--g-tgt', type=argparse.FileType('r'),
                           nargs='+', required=True,
                           metavar=('X-X.dist.tgt', 'X-Y.dist.tgt'),
@@ -466,19 +492,19 @@ def main():
                           metavar=('X-X.dpot.new', 'X-Y.dpot.new'),
                           help='U or ΔU output files')
     # intial potential guess subparsers
-    for pars in [parser_invert_hnc]:
+    for pars in [parser_pot_guess]:
         pars.add_argument('--G-tgt', type=argparse.FileType('r'),
                           nargs='+', required=False,
                           metavar=('X-X-incl.dist.tgt', 'X-Y-incl.dist.tgt'),
                           help='RDF (including intramolecular) target files')
     # update potential subparsers
-    for pars in [parser_ihnc, parser_hncgn]:
+    for pars in [parser_newton, parser_newton_mod, parser_gauss_newton]:
         pars.add_argument('--g-cur', type=argparse.FileType('r'),
                           nargs='+', required=True,
                           metavar=('X-X.dist.cur', 'X-Y.dist.cur'),
                           help='RDF current files')
         pars.add_argument('--G-cur', type=argparse.FileType('r'),
-                          nargs='*', required=False,
+                          nargs='+', required=False,
                           metavar=('X-X-incl.dist.cur', 'X-Y-incl.dist.cur'),
                           help='RDF (including intramolecular) current files')
         pars.add_argument('--U-cur', type=argparse.FileType('r'),
@@ -486,15 +512,16 @@ def main():
                           metavar=('X-X.pot.cur', 'X-Y.pot.cur'),
                           help='potential current files')
     # HNCGN only options
-    parser_hncgn.add_argument('--pressure-constraint',
-                              dest='pressure_constraint',
-                              type=str, default=None)
-    parser_hncgn.add_argument('--extrap-near-core',
-                              dest='extrap_near_core',
-                              type=str, choices=['none', 'constant', 'power'])
-    parser_hncgn.add_argument('--fix-near-cut-off',
-                              dest='fix_near_cut_off',
-                              type=str, choices=['none', 'full-deriv'])
+    parser_gauss_newton.add_argument('--pressure-constraint',
+                                     dest='pressure_constraint',
+                                     type=str, default=None)
+    parser_gauss_newton.add_argument('--extrap-near-core',
+                                     dest='extrap_near_core',
+                                     type=str, choices=['none', 'constant',
+                                                        'power'])
+    parser_gauss_newton.add_argument('--fix-near-cut-off',
+                                     dest='fix_near_cut_off',
+                                     type=str, choices=['none', 'full-deriv'])
 
     args = parser.parse_args()
 
@@ -592,12 +619,13 @@ def main():
                                             [:G_dict['y'].shape[0]])
         input_arrays['G_minus_g'].append({'y': G_minus_g})
 
-    # invert_hnc
-    if args.subcommand in ['invert_hnc']:
-        U1 = calc_U_hnc_sym_mol(r,
-                                input_arrays['g_tgt'][0]['y'],
-                                input_arrays['G_minus_g'][0]['y'],
-                                args.n_intra[0], args.kBT, args.densities[0])
+    # guess potential from distribution
+    if args.subcommand in ['potential_guess']:
+        U1 = calc_U_sym_mol(r,
+                            input_arrays['g_tgt'][0]['y'],
+                            input_arrays['G_minus_g'][0]['y'],
+                            args.n_intra[0], args.kBT, args.densities[0],
+                            args.closure)
         U_flag1 = np.array(['i'] * len(r))
         U_flag2 = upd_flag_g_smaller_g_min(U_flag1,
                                            input_arrays['g_tgt'][0]['y'],
@@ -607,14 +635,15 @@ def main():
         comment = "created by: {}".format(" ".join(sys.argv))
         saveto_table(args.U_out[0], r, U3, U_flag2, comment)
 
-    # ihnc
-    if args.subcommand in ['ihnc']:
-        dU1 = calc_dU_ihnc_sym_mol(r,
-                                   input_arrays['g_tgt'][0]['y'],
-                                   input_arrays['g_cur'][0]['y'],
-                                   input_arrays['G_minus_g'][0]['y'],
-                                   args.n_intra[0], args.kBT,
-                                   args.densities[0])
+    # newton update
+    if args.subcommand in ['newton', 'newton-mod']:
+        dU1 = calc_dU_newton_sym_mol(r,
+                                     input_arrays['g_tgt'][0]['y'],
+                                     input_arrays['g_cur'][0]['y'],
+                                     input_arrays['G_minus_g'][0]['y'],
+                                     args.n_intra[0], args.kBT,
+                                     args.densities[0], args.closure,
+                                     args.subcommand == 'newton-mod')
         dU_flag1 = np.array(['i'] * len(r))
         dU_flag2 = upd_flag_g_smaller_g_min(dU_flag1,
                                             input_arrays['g_tgt'][0]['y'],
@@ -633,8 +662,8 @@ def main():
         comment = "created by: {}".format(" ".join(sys.argv))
         saveto_table(args.U_out[0], r, dU3, dU_flag4, comment)
 
-    # hncgn
-    if args.subcommand in ['hncgn']:
+    # gauss-newton update
+    if args.subcommand in ['gauss-newton']:
         # parse constraints
         constraints = []
         if args.pressure_constraint is not None:

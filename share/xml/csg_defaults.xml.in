@@ -384,18 +384,35 @@
       <DESC>Special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
     </map>
     <method>
-      <DESC>method to be performed: ibi/imc/ft/optimizer/hncgn</DESC>
+      <DESC>method to be performed: ibi/iie/imc/ft/optimizer</DESC>
     </method>
-    <hnc>
-      <DESC>general options for the hnc schemes (hncgn/ihnc/hncn)</DESC>
-      <initial_guess>hnc
-        <DESC>Method for the initial potential guess: table/bi/hnc-ignoreintra/hnc</DESC>
+
+    <iie>
+      <DESC>general options for the IIE schemes (hncgn/ihnc/hncn/pygn/ipy/pyn)</DESC>
+
+      <initial_guess>
+        <DESC>Settings for the initial guess</DESC>
+        <method>ie
+          <DESC>Method for the initial potential guess: table/bi/ie</DESC>
+        </method>
+        <closure>
+          <DESC>OZ equation closure in case of method=ie: hnc/py</DESC>
+        </closure>
+        <ignore_intramolecular_correlation>false
+          <DESC>If true, the initial guess will ignore the presence of intramolecular correlation in the CG molecule.</DESC>
+        </ignore_intramolecular_correlation>
       </initial_guess>
-      <hnc_method>hncgn
-      <DESC>Actuall method to use: hncn/ihnc-ignoreintra/ihnc/hncgn</DESC>
-      </hnc_method>
+
+      <method>gauss-newton
+        <DESC>Update method to use: gauss-newton/newton/newton-mod.
+          For example closure=hnc + method=gauss-newton will result in the HNCGN method.
+          newton_mod is a modified newton scheme that results in an IBI like expression e.g. IHNC.</DESC>
+      </method>
+      <closure>hnc
+        <DESC>OZ equation closure for the IIE update: hnc/py</DESC>
+      </closure>
       <ignore_intramolecular_correlation>false
-        <DESC>If true, the HNC updates (not the initial guess) will ignore the presence of intramolecular correlation.</DESC>
+        <DESC>If true, the IIE updates (not the initial guess) will ignore the presence of intramolecular correlation in the CG molecule.</DESC>
       </ignore_intramolecular_correlation>
       <cut_off>
         <DESC>Cut-off used for non-bonded potenitals in MD.
@@ -408,7 +425,7 @@
         <DESC>List of n_intra, the number of equal beads, sorted by bead name. TODO: replace by automatic calculation.</DESC>
       </n_intra>
       <pressure_constraint>none
-        <DESC>Apply pressure constraint. Only for hncgn</DESC>
+      <DESC>Apply pressure constraint. Only for hncgn/pygn</DESC>
       </pressure_constraint>
       <extrap_near_core>power
         <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
@@ -419,7 +436,8 @@
       <verbose>true
         <DESC>Print some info and dump compressed numpy arrays. Valid values are: true (default), false</DESC>
       </verbose>
-    </hnc>
+    </iie>
+
     <optimizer>
       <cma>
         <DESC>general options for the cma optimizer</DESC>

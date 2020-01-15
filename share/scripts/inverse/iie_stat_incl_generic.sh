@@ -19,7 +19,7 @@ if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implemtents calculation of distributions including intramolecular
-interactions for the HNC methods using generic csg tools (csg_stat)
+interactions for the IIECG methods using generic csg tools (csg_stat)
 
 Usage: ${0##*/}
 EOF

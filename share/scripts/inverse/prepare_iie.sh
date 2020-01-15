@@ -25,52 +25,65 @@ EOF
    exit 0
 fi
 
+# case insensitive comparisons
+shopt -s nocasematch
+
 sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"
-initial_guess="$(csg_get_property cg.inverse.${method}.initial_guess)"
+initial_guess_method="$(csg_get_property cg.inverse.${method}.initial_guess.method)"
 main_dir=$(get_main_dir)
 nb_interactions=$(csg_get_property --allow-empty cg.non-bonded.name)
 kBT="$(csg_get_property cg.inverse.kBT)"
-densities="$(csg_get_property cg.inverse.hnc.densities)"
-n_intra="$(csg_get_property cg.inverse.hnc.n_intra)"
-verbose=$(csg_get_property cg.inverse.hnc.verbose)
-cut_off="$(csg_get_property cg.inverse.hnc.cut_off)"
+densities="$(csg_get_property cg.inverse.iie.densities)"
+n_intra="$(csg_get_property cg.inverse.iie.n_intra)"
+verbose=$(csg_get_property cg.inverse.iie.verbose)
+cut_off="$(csg_get_property cg.inverse.iie.cut_off)"
 
-if [ "${verbose}" = 'true' ]; then
+if [ "${verbose}" == 'true' ]; then
     verbose_flag="--verbose"
-elif [ "${verbose}" = 'false' ]; then
+elif [ "${verbose}" == 'false' ]; then
     verbose_flag=""
 else
     die "verbose has to be 'true' or 'false'"
 fi
 
-case "$initial_guess" in
+case "$initial_guess_method" in
 "table")
     for_all "bonded non-bonded" do_external prepare_single generic --use-table
     ;;
 "bi")
     for_all "bonded non-bonded" do_external prepare_single generic --use-bi
     ;;
-"hnc"|"hnc-ignoreintra")
+"ie")
+    # only for IE
+    initial_guess_closure="$(csg_get_property cg.inverse.${method}.initial_guess.closure)"
+    initial_guess_ignore_intra="$(csg_get_property cg.inverse.${method}.initial_guess.ignore_intramolecular_correlation)"
+
+    # bonded distributions inversion
     for_all "bonded" do_external prepare_single generic --use-bi
     # resample all target distributions
     for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 
-    # initial guess from rdf with hnc
-    # TODO implement propper extrapolation
+    # initial guess from rdf with hnc or py
+    # TODO implement propper extrapolation (use raw, then extrapolate)
     #raw=""
     out=""
     for name in $nb_interactions; do
-        #raw="$raw $(critical mktemp ${name}.pot.hnc.raw.XXX)"
+        #raw="$raw $(critical mktemp ${name}.pot.ie.raw.XXX)"
         out="$out ${name}.pot.new"
     done
-    if [[ "${initial_guess}" == "hnc" && $n_intra -gt 1 ]]; then
+    if [[ "${initial_guess_ignore_intra}" == "false" && $n_intra -gt 1 ]]; then
         critical cp -t . ${main_dir}/$(printf '%s.dist-incl.tgt' $nb_interactions)
         G_tgt_flag="--G-tgt $(printf '%s.dist-incl.tgt' $nb_interactions)"
     else
         G_tgt_flag=''
     fi
-    do_external dist invert_hnc $verbose_flag invert_hnc \
+
+    closure_flag="--closure ${initial_guess_closure}"
+
+    do_external dist invert_iie potential_guess \
+    $verbose_flag \
+    $closure_flag \
     --g-tgt $(printf "%s.dist.tgt" $nb_interactions) \
     $G_tgt_flag \
     --U-out $out \
@@ -78,7 +91,7 @@ case "$initial_guess" in
     --n-intra $n_intra
     ;;
 *)
-    die "cg.inverse.${method}.initial_guess has to be either table, bi, hnc, or hnc-ignoreintra"
+    die "cg.inverse.${method}.initial_guess has to be either table, bi, or ie"
     ;;
 esac
 
