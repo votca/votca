@@ -20,6 +20,9 @@
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_exact.h"
 #include "votca/xtp/sigma_ppm.h"
+#include <fstream>
+#include <iostream>
+#include <votca/tools/rangeparser.h>
 #include <votca/xtp/gw.h>
 
 namespace votca {
@@ -147,9 +150,8 @@ void GW::CalculateGWPerturbation() {
   // gwaenergies/frequencies have size qptotal
   // homo index is relative to dft_energies
   Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
-  Eigen::VectorXd rpa_energies =
-      dft_shifted_energies.segment(_opt.rpamin, _opt.rpamax - _opt.rpamin + 1);
-  _rpa.setRPAInputEnergies(rpa_energies);
+  _rpa.setRPAInputEnergies(
+      dft_shifted_energies.segment(_opt.rpamin, _opt.rpamax - _opt.rpamin + 1));
   Eigen::VectorXd frequencies =
       dft_shifted_energies.segment(_opt.qpmin, _qptotal);
   for (Index i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
@@ -176,29 +178,29 @@ void GW::CalculateGWPerturbation() {
     _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(_gwa_energies);
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Calculated correlation diagonal" << std::flush;
-    Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
-    _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
-    XTP_LOG(Log::info, _log)
-        << TimeStamp() << " GW_Iteration:" << i_gw
-        << " Shift[Hrt]:" << CalcHomoLumoShift(_gwa_energies) << std::flush;
-    if (Converged(_rpa.getRPAInputEnergies(), rpa_energies_old,
-                  _opt.gw_sc_limit)) {
-      XTP_LOG(Log::error, _log) << TimeStamp() << " Converged after "
-                                << i_gw + 1 << " GW iterations." << std::flush;
-      break;
-    } else if (i_gw == _opt.gw_sc_max_iterations - 1 &&
-               _opt.gw_sc_max_iterations > 1) {
+
+    if (_opt.gw_sc_max_iterations > 1) {
+      Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
+      _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
       XTP_LOG(Log::error, _log)
-          << TimeStamp()
-          << " WARNING! GW-self-consistency cycle not converged after "
-          << _opt.gw_sc_max_iterations << " iterations." << std::flush;
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << "      Run continues. Inspect results carefully!"
-          << std::flush;
-      break;
-    } else {
-      double alpha = 0.0;
-      rpa_energies = (1 - alpha) * rpa_energies + alpha * rpa_energies_old;
+          << TimeStamp() << " GW_Iteration:" << i_gw
+          << " Shift[Hrt]:" << CalcHomoLumoShift(_gwa_energies) << std::flush;
+      if (Converged(_rpa.getRPAInputEnergies(), rpa_energies_old,
+                    _opt.gw_sc_limit)) {
+        XTP_LOG(Log::error, _log)
+            << TimeStamp() << " Converged after " << i_gw + 1
+            << " GW iterations." << std::flush;
+        break;
+      } else if (i_gw == _opt.gw_sc_max_iterations - 1) {
+        XTP_LOG(Log::error, _log)
+            << TimeStamp()
+            << " WARNING! GW-self-consistency cycle not converged after "
+            << _opt.gw_sc_max_iterations << " iterations." << std::flush;
+        XTP_LOG(Log::error, _log)
+            << TimeStamp() << "      Run continues. Inspect results carefully!"
+            << std::flush;
+        break;
+      }
     }
   }
 
@@ -298,6 +300,57 @@ void GW::CalculateHQP() {
   Eigen::VectorXd diag_backup = _Sigma_c.diagonal();
   _Sigma_c = _sigma->CalcCorrelationOffDiag(_gwa_energies);
   _Sigma_c.diagonal() = diag_backup;
+}
+
+void GW::PlotSigma(std::string filename, Index steps, double spacing,
+                   std::string states) const {
+
+  Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
+  Eigen::VectorXd frequencies =
+      dft_shifted_energies.segment(_opt.qpmin, _qptotal);
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Writing quasiparticle frequency dependence to "
+      << filename << std::flush;
+
+  std::vector<Index> state_inds;
+  tools::RangeParser rp;
+  rp.Parse(states);
+  for (Index gw_level : rp) {
+    if (gw_level >= _opt.qpmin && gw_level <= _opt.qpmax) {
+      state_inds.push_back(gw_level);
+    }
+  }
+  const Index num_states = state_inds.size();
+
+  const Eigen::VectorXd intercept =
+      _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
+      _vxc.diagonal();
+  Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(steps, 2 * num_states);
+#pragma omp parallel for schedule(dynamic)
+  for (Index grid_point = 0; grid_point < steps; grid_point++) {
+    const double offset =
+        ((double)grid_point - ((double)(steps - 1) / 2.0)) * spacing;
+    for (Index i = 0; i < num_states; i++) {
+      const Index gw_level = state_inds[i];
+      const double omega = frequencies(gw_level) + offset;
+      const double sigma = _sigma->CalcCorrelationDiagElement(gw_level, omega);
+      mat(grid_point, 2 * gw_level) = omega;
+      mat(grid_point, 2 * gw_level + 1) = sigma + intercept[i];
+    }
+  }
+
+  std::ofstream out;
+  out.open(filename);
+  for (Index i = 0; i < num_states; i++) {
+    const Index gw_level = state_inds[i];
+    out << boost::format("#%1$somega_%2$d\tE_QP(omega)_%2$d") %
+               (i == 0 ? "" : "\t") % gw_level;
+  }
+  out << std::endl;
+  boost::format numFormat("%+1.6f");
+  Eigen::IOFormat matFormat(Eigen::StreamPrecision, 0, "\t", "\n");
+  out << numFormat % mat.format(matFormat) << std::endl;
+  out.close();
 }
 
 }  // namespace xtp

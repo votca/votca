@@ -75,6 +75,9 @@ class GW {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonian()
       const;
 
+  void PlotSigma(std::string filename, Index steps, double spacing,
+                 std::string states) const;
+
  private:
   Index _qptotal;
 
