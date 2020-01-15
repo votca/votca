@@ -35,26 +35,31 @@ void Sigma_Exact::PrepareScreening() {
   return;
 }
 
-double Sigma_Exact::CalcCorrelationDiagElement(Index gw_level,
-                                               double frequency) const {
-  const double eta = _opt.eta;
+std::pair<double, double> Sigma_Exact::CalcCorrelationDiagElement(
+    Index gw_level, double frequency) const {
+  const double eta2 = _opt.eta * _opt.eta;
   const Index lumo = _opt.homo + 1;
   const Index n_occ = lumo - _opt.rpamin;
   const Index n_unocc = _opt.rpamax - _opt.homo;
   const Index rpasize = _rpa_solution.omega.size();
-  double sigma_c = 0.0;
+  std::pair<double, double> sigma = {0.0, 0.0};
   for (Index s = 0; s < rpasize; s++) {
     const double eigenvalue = _rpa_solution.omega(s);
-    const Eigen::VectorXd res_12 = _residues[gw_level].col(s).cwiseAbs2();
+    const Eigen::ArrayXd res_12 = _residues[gw_level].col(s).cwiseAbs2();
     Eigen::ArrayXd temp = -_rpa.getRPAInputEnergies().array() + frequency;
     temp.segment(0, n_occ) += eigenvalue;
     temp.segment(n_occ, n_unocc) -= eigenvalue;
-    const Eigen::ArrayXd numer = res_12.array() * temp;
-    const Eigen::ArrayXd denom = temp.abs2() + eta * eta;
-    sigma_c += (numer / denom).sum();
+    const Eigen::ArrayXd numer = res_12 * temp;
+    const Eigen::ArrayXd denom = temp.abs2() + eta2;
+    double sigma_temp = (numer / denom).sum();
+    sigma.first += sigma_temp;
+    sigma.second +=
+        eta2 * (res_12 / denom.abs2()).sum() - std::pow(sigma_temp, 2);
   }
   // Multiply with factor 2.0 to sum over both (identical) spin states
-  return 2.0 * sigma_c;
+  sigma.first *= 2;
+  sigma.second *= 2;
+  return sigma;
 }
 
 double Sigma_Exact::CalcCorrelationOffDiagElement(Index gw_level1,

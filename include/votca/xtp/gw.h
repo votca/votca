@@ -46,7 +46,7 @@ class GW {
     Index rpamin;
     Index rpamax;
     double eta = 1e-3;
-    double g_sc_limit = 1e-5;  // default 1e-5
+    double g_sc_limit = 1e-5;
     Index g_sc_max_iterations = 50;
     double gw_sc_limit = 1e-5;
     Index gw_sc_max_iterations = 50;
