@@ -435,9 +435,9 @@ void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
     double qeff = dq + frag.value().Gs;
     XTP_LOG(Log::error, _log)
         << format(
-               "           Fragment %1$4d% -- hole: %2$5.1f%%  electron: "
+               "           Fragment %1$4d -- hole: %2$5.1f%%  electron: "
                "%3$5.1f%%  dQ: %4$+5.2f  Qeff: %5$+5.2f") %
-               frag.getId() % (100.0 * frag.value().H[state]) %
+               int(frag.getId()) % (100.0 * frag.value().H[state]) %
                (-100.0 * frag.value().E[state]) % dq % qeff
         << flush;
   }
