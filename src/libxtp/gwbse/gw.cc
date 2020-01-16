@@ -20,11 +20,11 @@
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_exact.h"
 #include "votca/xtp/sigma_ppm.h"
-#include <boost/math/tools/roots.hpp>
 #include <fstream>
 #include <iostream>
 #include <votca/tools/rangeparser.h>
 #include <votca/xtp/gw.h>
+#include <votca/xtp/newton_rapson.h>
 
 namespace votca {
 namespace xtp {
@@ -168,17 +168,16 @@ void GW::CalculateGWPerturbation() {
     if (_opt.qp_solver == "grid") {
       frequencies = SolveQP_Grid(frequencies);
       XTP_LOG(Log::error, _log)
-          << TimeStamp() << " Solved QP equation on QP grid" << std::flush;
+          << TimeStamp() << " Solved QP equations on QP grid" << std::flush;
     } else if (_opt.qp_solver == "fixedpoint") {
       frequencies = SolveQP_FixedPoint(frequencies);
       XTP_LOG(Log::error, _log)
-          << TimeStamp() << " Solved QP equation self-consistently"
+          << TimeStamp() << " Solved QP equations self-consistently"
           << std::flush;
     }
-    _gwa_energies = frequencies;
-    _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(_gwa_energies);
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Calculated correlation diagonal" << std::flush;
+    _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies);
+    _gwa_energies = _dft_energies.segment(_opt.qpmin, _qptotal) +
+                    _Sigma_x.diagonal() + _Sigma_c.diagonal() - _vxc.diagonal();
 
     if (_opt.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
@@ -280,9 +279,6 @@ class QPFunc {
 Eigen::VectorXd GW::SolveQP_FixedPoint(
     const Eigen::VectorXd& frequencies) const {
 
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Using Newton Rapson approach to solve QP Equation"
-      << std::flush;
   const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
   const Eigen::VectorXd intercept =
       _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
@@ -290,29 +286,32 @@ Eigen::VectorXd GW::SolveQP_FixedPoint(
   Eigen::VectorXd frequencies_new = frequencies;
 
   Eigen::ArrayXi converged = Eigen::ArrayXi::Zero(qptotal);
-  double upperbound = std::numeric_limits<double>::max();
-  int accuracy_digits = -int(std::floor(std::log10(_opt.g_sc_limit))) + 1;
-  boost::uintmax_t max_iterations =
-      static_cast<boost::uintmax_t>(_opt.g_sc_max_iterations);
-#pragma omp parallel for schedule(dynamic)
+
+  //#pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < qptotal; ++gw_level) {
     double initial_freq = frequencies[gw_level];
 
     QPFunc f(gw_level, *_sigma.get(), intercept[gw_level]);
-    boost::uintmax_t iters = max_iterations;
 
-    double freq_new =
-        boost::math::tools::newton_raphson_iterate<QPFunc, double>(
-            f, initial_freq, -upperbound, upperbound, accuracy_digits, iters);
-    if (iters < max_iterations) {
+    NewtonRapson<QPFunc> newton = NewtonRapson<QPFunc>(
+        _opt.g_sc_max_iterations, _opt.g_sc_limit, _opt.qp_solver_alpha);
+    double freq_new = newton.FindRoot(f, initial_freq);
+    if (newton.getInfo() == NewtonRapson<QPFunc>::success) {
       converged[gw_level] = true;
     }
     frequencies_new[gw_level] = freq_new;
   }
-  double converged_percent =
-      double(converged.sum()) / double(converged.size()) * 100;
-  XTP_LOG(Log::error, _log) << TimeStamp() << " " << converged_percent
-                            << "% of roots were converged." << std::flush;
+  if (converged.sum() != converged.size()) {
+    std::string states = "";
+    for (Index s = 0; s < converged.size(); s++) {
+      if (converged[s] == 0) {
+        states += (std::to_string(s + _opt.qpmin) + " ");
+      }
+    }
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Not converged PQP states are:" << states
+        << std::flush;
+  }
   return frequencies_new;
 }
 
@@ -330,7 +329,6 @@ bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
 }
 
 void GW::CalculateHQP() {
-  _rpa.UpdateRPAInputEnergies(_dft_energies, _gwa_energies, _opt.qpmin);
   Eigen::VectorXd diag_backup = _Sigma_c.diagonal();
   _Sigma_c = _sigma->CalcCorrelationOffDiag(_gwa_energies);
   _Sigma_c.diagonal() = diag_backup;
@@ -359,7 +357,7 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   const Eigen::VectorXd intercept =
       _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
       _vxc.diagonal();
-  Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(steps, 3 * num_states);
+  Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(steps, 2 * num_states);
 #pragma omp parallel for schedule(dynamic)
   for (Index grid_point = 0; grid_point < steps; grid_point++) {
     const double offset =
@@ -369,9 +367,8 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
       const double omega = frequencies(gw_level) + offset;
       std::pair<double, double> sigma =
           _sigma->CalcCorrelationDiagElement(gw_level, omega);
-      mat(grid_point, 3 * i) = omega;
-      mat(grid_point, 3 * i + 1) = sigma.first + intercept[i];
-      mat(grid_point, 3 * i + 2) = sigma.second;
+      mat(grid_point, 2 * i) = omega;
+      mat(grid_point, 2 * i + 1) = sigma.first + intercept[i];
     }
   }
 
@@ -379,7 +376,7 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   out.open(filename);
   for (Index i = 0; i < num_states; i++) {
     const Index gw_level = state_inds[i];
-    out << boost::format("#%1$somega_%2$d\tE_QP(omega)_%2$d\tdE_QP/domega") %
+    out << boost::format("#%1$somega_%2$d\tE_QP(omega)_%2$d") %
                (i == 0 ? "" : "\t") % gw_level;
   }
   out << std::endl;

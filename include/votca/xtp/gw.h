@@ -47,7 +47,7 @@ class GW {
     Index rpamax;
     double eta = 1e-3;
     double g_sc_limit = 1e-5;
-    Index g_sc_max_iterations = 50;
+    Index g_sc_max_iterations = 100;
     double gw_sc_limit = 1e-5;
     Index gw_sc_max_iterations = 50;
     double shift = 0;
@@ -56,6 +56,7 @@ class GW {
     Index reset_3c = 5;  // how often the 3c integrals in iterate should be
                          // rebuild
     std::string qp_solver = "fixedpoint";
+    double qp_solver_alpha = 0.75;
     Index qp_grid_steps = 201;      // Number of grid points
     double qp_grid_spacing = 0.01;  // Spacing of grid points in Ha
   };
