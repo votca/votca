@@ -131,9 +131,6 @@ void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
 
 Eigen::VectorXd GW::ScissorShift_DFTlevel(
     const Eigen::VectorXd& dft_energies) const {
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Scissor shifting DFT energies by: " << _opt.shift
-      << " Hrt" << std::flush;
   Eigen::VectorXd shifted_energies = dft_energies;
   shifted_energies.segment(_opt.homo + 1, dft_energies.size() - _opt.homo - 1)
       .array() += _opt.shift;
@@ -150,6 +147,9 @@ void GW::CalculateGWPerturbation() {
   // rpaenergies/Mmn have size rpatotal
   // gwaenergies/frequencies have size qptotal
   // homo index is relative to dft_energies
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Scissor shifting DFT energies by: " << _opt.shift
+      << " Hrt" << std::flush;
   Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
   _rpa.setRPAInputEnergies(
       dft_shifted_energies.segment(_opt.rpamin, _opt.rpamax - _opt.rpamin + 1));
@@ -167,11 +167,11 @@ void GW::CalculateGWPerturbation() {
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
     if (_opt.qp_solver == "grid") {
       frequencies = SolveQP_Grid(frequencies);
-      XTP_LOG(Log::error, _log)
+      XTP_LOG(Log::info, _log)
           << TimeStamp() << " Solved QP equations on QP grid" << std::flush;
     } else if (_opt.qp_solver == "fixedpoint") {
       frequencies = SolveQP_FixedPoint(frequencies);
-      XTP_LOG(Log::error, _log)
+      XTP_LOG(Log::info, _log)
           << TimeStamp() << " Solved QP equations self-consistently"
           << std::flush;
     }
@@ -287,7 +287,7 @@ Eigen::VectorXd GW::SolveQP_FixedPoint(
 
   Eigen::ArrayXi converged = Eigen::ArrayXi::Zero(qptotal);
 
-  //#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < qptotal; ++gw_level) {
     double initial_freq = frequencies[gw_level];
 
