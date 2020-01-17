@@ -148,8 +148,8 @@ BOOST_AUTO_TEST_CASE(regular_grid_build_large) {
   Eigen::Array<votca::Index, 3, 1> steps(30, 30, 30);
   Eigen::Array3d padding(1.0, 1.0, 1.0);
   grid.GridSetup(steps, padding, mol, aobasis);
-  auto max = extend.second.array() + padding;
-  auto min = extend.first.array() - padding;
+  auto max = extend.second.array() + padding + 1e-9;
+  auto min = extend.first.array() - padding - 1e-9;
   for (auto& a : grid) {
     for (auto& point : a.getGridPoints()) {
       bool check_larger = (point.array() > max).any();

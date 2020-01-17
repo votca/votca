@@ -20,9 +20,7 @@
 #pragma once
 #ifndef VOTCA_XTP_QMFRAGMENT_H
 #define VOTCA_XTP_QMFRAGMENT_H
-#include <boost/lexical_cast.hpp>
-#include <limits>
-#include <votca/tools/tokenizer.h>
+#include <votca/xtp/IndexParser.h>
 #include <votca/xtp/bse_population.h>
 
 /**
@@ -108,22 +106,8 @@ class QMFragment {
   void ReadValue(CheckpointReader& r);
 
   void FillAtomIndices(const std::string& atoms) {
-    tools::Tokenizer tok(atoms, " ,\n\t");
-    std::vector<std::string> results;
-    tok.ToVector(results);
-    const std::string delimiter = "...";
-    for (std::string s : results) {
-      if (s.find(delimiter) != std::string::npos) {
-        Index start = std::stol(s.substr(0, s.find(delimiter)));
-        Index stop =
-            std::stol(s.erase(0, s.find(delimiter) + delimiter.length()));
-        for (Index i = start; i <= stop; i++) {
-          _atomindices.push_back(i);
-        }
-      } else {
-        _atomindices.push_back(std::stol(s));
-      }
-    }
+    IndexParser p;
+    _atomindices = p.CreateIndexVector(atoms);
   }
 
   std::vector<Index> _atomindices;

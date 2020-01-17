@@ -22,7 +22,7 @@
 #include "votca/xtp/sigma_ppm.h"
 #include <fstream>
 #include <iostream>
-#include <votca/tools/rangeparser.h>
+#include <votca/xtp/IndexParser.h>
 #include <votca/xtp/gw.h>
 #include <votca/xtp/newton_rapson.h>
 
@@ -302,15 +302,15 @@ Eigen::VectorXd GW::SolveQP_FixedPoint(
     frequencies_new[gw_level] = freq_new;
   }
   if (converged.sum() != converged.size()) {
-    std::string states = "";
+    std::vector<Index> states;
     for (Index s = 0; s < converged.size(); s++) {
       if (converged[s] == 0) {
-        states += (std::to_string(s + _opt.qpmin) + " ");
+        states.push_back(s);
       }
     }
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Not converged PQP states are:" << states
-        << std::flush;
+    IndexParser rp;
+    XTP_LOG(Log::error, _log) << TimeStamp() << " Not converged PQP states are:"
+                              << rp.CreateIndexString(states) << std::flush;
   }
   return frequencies_new;
 }
@@ -340,18 +340,19 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
   Eigen::VectorXd frequencies =
       dft_shifted_energies.segment(_opt.qpmin, _qptotal);
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Writing quasiparticle frequency dependence to "
-      << filename << std::flush;
 
   std::vector<Index> state_inds;
-  tools::RangeParser rp;
-  rp.Parse(states);
-  for (Index gw_level : rp) {
+  IndexParser rp;
+  std::vector<Index> parsed_states = rp.CreateIndexVector(states);
+  for (Index gw_level : parsed_states) {
     if (gw_level >= _opt.qpmin && gw_level <= _opt.qpmax) {
       state_inds.push_back(gw_level);
     }
   }
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " PQP(omega) written to '" << filename
+      << "' for states " << rp.CreateIndexString(state_inds) << std::flush;
+
   const Index num_states = state_inds.size();
 
   const Eigen::VectorXd intercept =
