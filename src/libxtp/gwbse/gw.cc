@@ -71,8 +71,8 @@ Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> GW::DiagonalizeQPHamiltonian()
 }
 
 void GW::PrintGWA_Energies() const {
-
-  double shift = CalcHomoLumoShift(_gwa_energies);
+  Eigen::VectorXd gwa_energies = getGWAResults();
+  double shift = CalcHomoLumoShift(gwa_energies);
 
   XTP_LOG(Log::error, _log)
       << (boost::format(
@@ -96,7 +96,7 @@ void GW::PrintGWA_Energies() const {
         << (boost::format(" = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
                           "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
             (i + _opt.qpmin) % _dft_energies(i + _opt.qpmin) % _vxc(i, i) %
-            _Sigma_x(i, i) % _Sigma_c(i, i) % _gwa_energies(i))
+            _Sigma_x(i, i) % _Sigma_c(i, i) % gwa_energies(i))
                .str()
         << std::flush;
   }
@@ -104,6 +104,7 @@ void GW::PrintGWA_Energies() const {
 }
 
 void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
+  Eigen::VectorXd gwa_energies = getGWAResults();
   XTP_LOG(Log::error, _log)
       << TimeStamp() << " Full quasiparticle Hamiltonian  " << std::flush;
   XTP_LOG(Log::error, _log)
@@ -122,7 +123,7 @@ void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
     XTP_LOG(Log::error, _log)
         << level
         << (boost::format(" = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-            (i + _opt.qpmin) % _gwa_energies(i) % qp_diag_energies(i))
+            (i + _opt.qpmin) % gwa_energies(i) % qp_diag_energies(i))
                .str()
         << std::flush;
   }
@@ -175,7 +176,7 @@ void GW::CalculateGWPerturbation() {
       _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
       XTP_LOG(Log::error, _log)
           << TimeStamp() << " GW_Iteration:" << i_gw
-          << " Shift[Hrt]:" << CalcHomoLumoShift(_gwa_energies) << std::flush;
+          << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;
       if (Converged(_rpa.getRPAInputEnergies(), rpa_energies_old,
                     _opt.gw_sc_limit)) {
         XTP_LOG(Log::error, _log)
@@ -194,10 +195,12 @@ void GW::CalculateGWPerturbation() {
       }
     }
   }
-  _gwa_energies =
-      _rpa.getRPAInputEnergies().segment(_opt.qpmin - _opt.rpamin, _qptotal) +
-      _Sigma_x.diagonal() - _vxc.diagonal() + _Sigma_c.diagonal();
   PrintGWA_Energies();
+}
+
+Eigen::VectorXd GW::getGWAResults() const {
+  return _Sigma_x.diagonal() + _Sigma_c.diagonal() - _vxc.diagonal() +
+         _dft_energies.segment(_opt.qpmin, _qptotal);
 }
 
 Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
@@ -348,16 +351,20 @@ bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
 
 void GW::CalculateHQP() {
   Eigen::VectorXd diag_backup = _Sigma_c.diagonal();
-  _Sigma_c = _sigma->CalcCorrelationOffDiag(_gwa_energies);
+  _Sigma_c = _sigma->CalcCorrelationOffDiag(getGWAResults());
   _Sigma_c.diagonal() = diag_backup;
 }
 
 void GW::PlotSigma(std::string filename, Index steps, double spacing,
                    std::string states) const {
 
-  Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
-  Eigen::VectorXd frequencies =
-      dft_shifted_energies.segment(_opt.qpmin, _qptotal);
+  Eigen::VectorXd frequencies;
+  if (_opt.gw_sc_max_iterations == 1) {
+    Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
+    frequencies = dft_shifted_energies.segment(_opt.qpmin, _qptotal);
+  } else {
+    frequencies = getGWAResults();
+  }
 
   std::vector<Index> state_inds;
   IndexParser rp;
