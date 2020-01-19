@@ -165,19 +165,10 @@ void GW::CalculateGWPerturbation() {
     _sigma->PrepareScreening();
     XTP_LOG(Log::info, _log)
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
-    if (_opt.qp_solver == "grid") {
-      frequencies = SolveQP_Grid(frequencies);
-      XTP_LOG(Log::info, _log)
-          << TimeStamp() << " Solved QP equations on QP grid" << std::flush;
-    } else if (_opt.qp_solver == "fixedpoint") {
-      frequencies = SolveQP_FixedPoint(frequencies);
-      XTP_LOG(Log::info, _log)
-          << TimeStamp() << " Solved QP equations self-consistently"
-          << std::flush;
-    }
+    XTP_LOG(Log::info, _log) << TimeStamp() << " Solving QP equations using "
+                             << _opt.qp_solver << std::flush;
+    frequencies = SolveQP(frequencies);
     _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies);
-    _gwa_energies = _dft_energies.segment(_opt.qpmin, _qptotal) +
-                    _Sigma_x.diagonal() + _Sigma_c.diagonal() - _vxc.diagonal();
 
     if (_opt.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
@@ -203,56 +194,108 @@ void GW::CalculateGWPerturbation() {
       }
     }
   }
-
+  _gwa_energies =
+      _rpa.getRPAInputEnergies().segment(_opt.qpmin - _opt.rpamin, _qptotal) +
+      _Sigma_x.diagonal() - _vxc.diagonal() + _Sigma_c.diagonal();
   PrintGWA_Energies();
 }
 
-Eigen::VectorXd GW::SolveQP_Grid(const Eigen::VectorXd& frequencies) const {
-  const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
-  const double range =
-      _opt.qp_grid_spacing * (double)(_opt.qp_grid_steps - 1) / 2.0;
-  const Eigen::VectorXd intercept =
-      _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
-      _vxc.diagonal();
+Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
+  const Eigen::VectorXd intercepts =
+      _rpa.getRPAInputEnergies().segment(_opt.qpmin - _opt.rpamin, _qptotal) +
+      _Sigma_x.diagonal() - _vxc.diagonal();
   Eigen::VectorXd frequencies_new = frequencies;
+  Eigen::ArrayXi converged = Eigen::ArrayXi::Zero(_qptotal);
 #pragma omp parallel for schedule(dynamic)
-  for (Index gw_level = 0; gw_level < qptotal; ++gw_level) {
-    const double frequency0 = frequencies[gw_level];
-    const double intercept0 = intercept[gw_level];
-    double freq_prev = frequency0 - range;
-    std::pair<double, double> temp =
-        _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
-    double sigc_prev = temp.first;
-    double targ_prev = sigc_prev + intercept0 - freq_prev;
-    double qp_energy = 0.0;
-    double pole_weight_max = -1.0;
-    for (Index i_node = 1; i_node < _opt.qp_grid_steps; ++i_node) {
-      double freq = freq_prev + _opt.qp_grid_spacing;
-      std::pair<double, double> temp2 =
-          _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
-      double sigc = temp2.first;
-      double targ = sigc + intercept0 - freq;
-      if (targ_prev * targ < 0.0) {  // Sign change
-        double dsigc_dfreq = (sigc - sigc_prev) / _opt.qp_grid_spacing;
-        double dtarg_dfreq = (targ - targ_prev) / _opt.qp_grid_spacing;
-        // Calculate fixed-point estimate of the pole (=root)
-        double pole = freq_prev - targ_prev / dtarg_dfreq;
-        // Calculate pole weight Z \in (0, 1)
-        double pole_weight = 1.0 / (1.0 - dsigc_dfreq);
-        if (pole_weight >= 1e-5 && pole_weight > pole_weight_max) {
-          qp_energy = pole;
-          pole_weight_max = pole_weight;
-        }
-      }
-      freq_prev = freq;
-      sigc_prev = sigc;
-      targ_prev = targ;
+  for (Index gw_level = 0; gw_level < _qptotal; ++gw_level) {
+    double initial_f = frequencies[gw_level];
+    double intercept = intercepts[gw_level];
+    boost::optional<double> newf;
+
+    if (_opt.qp_solver == "grid") {
+      newf = SolveQP_Grid(intercept, initial_f, gw_level);
+    } else if (_opt.qp_solver == "fixedpoint") {
+      newf = SolveQP_FixedPoint(intercept, initial_f, gw_level);
     }
-    if (pole_weight_max >= 0.0) {
-      frequencies_new[gw_level] = qp_energy;
+
+    if (newf) {
+      frequencies_new[gw_level] = newf.value();
+      converged[gw_level] = true;
+    } else {
+      newf = SolveQP_Linearisation(intercept, initial_f, gw_level);
+      if (newf) {
+        frequencies_new[gw_level] = newf.value();
+      }
     }
   }
+
+  if (converged.sum() != converged.size()) {
+    std::vector<Index> states;
+    for (Index s = 0; s < converged.size(); s++) {
+      if (converged[s] == 0) {
+        states.push_back(s);
+      }
+    }
+    IndexParser rp;
+    XTP_LOG(Log::error, _log) << TimeStamp() << " Not converged PQP states are:"
+                              << rp.CreateIndexString(states) << std::flush;
+  }
   return frequencies_new;
+}
+
+boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
+                                                  double frequency0,
+                                                  Index gw_level) const {
+  boost::optional<double> newf = boost::none;
+
+  std::pair<double, double> temp =
+      _sigma->CalcCorrelationDiagElement(gw_level, frequency0);
+  double sigma_x_m_Vxc = intercept0 - frequency0;
+  double Z = temp.second + 1.0;
+  if (std::abs(Z) > 1e-9) {
+    newf = frequency0 + (sigma_x_m_Vxc + temp.first) / Z;
+  }
+  return newf;
+}
+
+boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
+                                         Index gw_level) const {
+  const double range =
+      _opt.qp_grid_spacing * (double)(_opt.qp_grid_steps - 1) / 2.0;
+  boost::optional<double> newf = boost::none;
+  double freq_prev = frequency0 - range;
+  std::pair<double, double> temp =
+      _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
+  double sigc_prev = temp.first;
+  double targ_prev = sigc_prev + intercept0 - freq_prev;
+  double qp_energy = 0.0;
+  double pole_weight_max = -1.0;
+  for (Index i_node = 1; i_node < _opt.qp_grid_steps; ++i_node) {
+    double freq = freq_prev + _opt.qp_grid_spacing;
+    std::pair<double, double> temp2 =
+        _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
+    double sigc = temp2.first;
+    double targ = sigc + intercept0 - freq;
+    if (targ_prev * targ < 0.0) {  // Sign change
+      double dsigc_dfreq = (sigc - sigc_prev) / _opt.qp_grid_spacing;
+      double dtarg_dfreq = (targ - targ_prev) / _opt.qp_grid_spacing;
+      // Calculate fixed-point estimate of the pole (=root)
+      double pole = freq_prev - targ_prev / dtarg_dfreq;
+      // Calculate pole weight Z \in (0, 1)
+      double pole_weight = 1.0 / (1.0 - dsigc_dfreq);
+      if (pole_weight >= 1e-5 && pole_weight > pole_weight_max) {
+        qp_energy = pole;
+        pole_weight_max = pole_weight;
+      }
+    }
+    freq_prev = freq;
+    sigc_prev = sigc;
+    targ_prev = targ;
+  }
+  if (pole_weight_max >= 0.0) {
+    newf = qp_energy;
+  }
+  return newf;
 }
 
 // small class which calculates f(w) with and df/dw(w)
@@ -276,43 +319,18 @@ class QPFunc {
   const Sigma_base& _sigma_c_func;
 };
 
-Eigen::VectorXd GW::SolveQP_FixedPoint(
-    const Eigen::VectorXd& frequencies) const {
-
-  const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
-  const Eigen::VectorXd intercept =
-      _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
-      _vxc.diagonal();
-  Eigen::VectorXd frequencies_new = frequencies;
-
-  Eigen::ArrayXi converged = Eigen::ArrayXi::Zero(qptotal);
-
-#pragma omp parallel for schedule(dynamic)
-  for (Index gw_level = 0; gw_level < qptotal; ++gw_level) {
-    double initial_freq = frequencies[gw_level];
-
-    QPFunc f(gw_level, *_sigma.get(), intercept[gw_level]);
-
-    NewtonRapson<QPFunc> newton = NewtonRapson<QPFunc>(
-        _opt.g_sc_max_iterations, _opt.g_sc_limit, _opt.qp_solver_alpha);
-    double freq_new = newton.FindRoot(f, initial_freq);
-    if (newton.getInfo() == NewtonRapson<QPFunc>::success) {
-      converged[gw_level] = true;
-    }
-    frequencies_new[gw_level] = freq_new;
+boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,
+                                               double frequency0,
+                                               Index gw_level) const {
+  boost::optional<double> newf = boost::none;
+  QPFunc f(gw_level, *_sigma.get(), intercept0);
+  NewtonRapson<QPFunc> newton = NewtonRapson<QPFunc>(
+      _opt.g_sc_max_iterations, _opt.g_sc_limit, _opt.qp_solver_alpha);
+  double freq_new = newton.FindRoot(f, frequency0);
+  if (newton.getInfo() == NewtonRapson<QPFunc>::success) {
+    newf = freq_new;
   }
-  if (converged.sum() != converged.size()) {
-    std::vector<Index> states;
-    for (Index s = 0; s < converged.size(); s++) {
-      if (converged[s] == 0) {
-        states.push_back(s);
-      }
-    }
-    IndexParser rp;
-    XTP_LOG(Log::error, _log) << TimeStamp() << " Not converged PQP states are:"
-                              << rp.CreateIndexString(states) << std::flush;
-  }
-  return frequencies_new;
+  return newf;
 }
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,

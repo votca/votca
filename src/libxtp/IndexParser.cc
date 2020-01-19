@@ -32,17 +32,28 @@ std::vector<Index> IndexParser::CreateIndexVector(
   tools::Tokenizer tok(Ids, " ,\n\t");
   std::vector<std::string> results;
   tok.ToVector(results);
-  const std::string delimiter = "...";
+  const std::string delimiter = ":";
   for (std::string s : results) {
     if (s.find(delimiter) != std::string::npos) {
-      Index start = boost::lexical_cast<Index>(s.substr(0, s.find(delimiter)));
-      Index stop = boost::lexical_cast<Index>(
-          s.erase(0, s.find(delimiter) + delimiter.length()));
-      for (Index i = start; i <= stop; i++) {
-        result.push_back(i);
+      std::string copy_s = s;
+      try {
+        Index start =
+            boost::lexical_cast<Index>(s.substr(0, s.find(delimiter)));
+        Index stop = boost::lexical_cast<Index>(
+            s.erase(0, s.find(delimiter) + delimiter.length()));
+        for (Index i = start; i <= stop; i++) {
+          result.push_back(i);
+        }
+      } catch (boost::bad_lexical_cast&) {
+        throw std::runtime_error("Could not convert " + copy_s +
+                                 " to range of integers.");
       }
     } else {
-      result.push_back(boost::lexical_cast<Index>(s));
+      try {
+        result.push_back(boost::lexical_cast<Index>(s));
+      } catch (boost::bad_lexical_cast&) {
+        throw std::runtime_error("Could not convert " + s + " to integer.");
+      }
     }
   }
   // Eliminates duplicates and sorts the vector
@@ -77,7 +88,7 @@ std::string IndexParser::CreateIndexString(
       }
     } else {
       if (range_started) {
-        result += std::to_string(startindex) + "..." +
+        result += std::to_string(startindex) + ":" +
                   (std::to_string(sorted_unique[i])) + " ";
         range_started = false;
       } else {

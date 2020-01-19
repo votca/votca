@@ -49,7 +49,7 @@ class GW {
     double g_sc_limit = 1e-5;
     Index g_sc_max_iterations = 100;
     double gw_sc_limit = 1e-5;
-    Index gw_sc_max_iterations = 50;
+    Index gw_sc_max_iterations = 100;
     double shift = 0;
     double ScaHFX = 0.0;
     std::string sigma_integration = "ppm";
@@ -103,8 +103,15 @@ class GW {
   void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const;
   void PrintGWA_Energies() const;
 
-  Eigen::VectorXd SolveQP_Grid(const Eigen::VectorXd& frequencies) const;
-  Eigen::VectorXd SolveQP_FixedPoint(const Eigen::VectorXd& frequencies) const;
+  Eigen::VectorXd SolveQP(const Eigen::VectorXd& frequencies) const;
+  boost::optional<double> SolveQP_Grid(double intercept0, double frequency0,
+                                       Index gw_level) const;
+  boost::optional<double> SolveQP_FixedPoint(double intercept0,
+                                             double frequency0,
+                                             Index gw_level) const;
+  boost::optional<double> SolveQP_Linearisation(double intercept0,
+                                                double frequency0,
+                                                Index gw_level) const;
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
 };

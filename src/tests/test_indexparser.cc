@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_SUITE(index_parser_test)
 BOOST_AUTO_TEST_CASE(readstring_test) {
   IndexParser parser;
 
-  std::string test = "1 5 3...11 15...17";
+  std::string test = "1 5 3:11 15:17";
   std::vector<votca::Index> result = parser.CreateIndexVector(test);
 
   std::vector<votca::Index> ref = {1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 16, 17};
@@ -37,13 +37,23 @@ BOOST_AUTO_TEST_CASE(readstring_test) {
   }
 }
 
+BOOST_AUTO_TEST_CASE(error_handling) {
+  IndexParser parser;
+
+  std::string test = "1 5 3...11 15:17";
+  BOOST_REQUIRE_THROW(parser.CreateIndexVector(test), std::runtime_error);
+
+  std::string test2 = "1a 5 15:17";
+  BOOST_REQUIRE_THROW(parser.CreateIndexVector(test), std::runtime_error);
+}
+
 BOOST_AUTO_TEST_CASE(generatestring_test) {
 
   std::vector<votca::Index> input = {1, 3,  4,  5,  6,  7, 8,
                                      9, 10, 11, 15, 16, 17};
   IndexParser parser;
   std::string result = parser.CreateIndexString(input);
-  std::string ref = "1 3...11 15...17";
+  std::string ref = "1 3:11 15:17";
   BOOST_CHECK_EQUAL(result, ref);
 }
 
