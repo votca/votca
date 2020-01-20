@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(error_handling) {
   BOOST_REQUIRE_THROW(parser.CreateIndexVector(test), std::runtime_error);
 
   std::string test2 = "1a 5 15:17";
-  BOOST_REQUIRE_THROW(parser.CreateIndexVector(test), std::runtime_error);
+  BOOST_REQUIRE_THROW(parser.CreateIndexVector(test2), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(generatestring_test) {

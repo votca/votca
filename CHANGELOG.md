@@ -8,6 +8,8 @@ For more detailed information about the changes see the history of the
 * added test to cubefile reader (#344)
 * fix state tracker (#333)
 * grid class refator (#335)
+* changed ppm screening (#371)
+
 
 ## Version 1.6_rc2 (released XX.01.20)
 * fix remove giant logo from tarball (#337)
