@@ -28,7 +28,6 @@ namespace xtp {
 
 Eigen::MatrixXd Sigma_base::CalcExchangeMatrix() const {
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
-  Index auxsize = _Mmn.auxsize();
   Index occlevel = _opt.homo - _opt.rpamin + 1;
   Index qpmin = _opt.qpmin - _opt.rpamin;
 #pragma omp parallel for schedule(dynamic)
