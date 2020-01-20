@@ -112,7 +112,7 @@ class QMFragment {
 
   std::vector<Index> _atomindices;
   Index _id = -1;
-  T _value;
+  T _value{};
 };
 
 template <class T>
