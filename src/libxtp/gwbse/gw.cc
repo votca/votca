@@ -169,7 +169,6 @@ void GW::CalculateGWPerturbation() {
     XTP_LOG(Log::info, _log) << TimeStamp() << " Solving QP equations using "
                              << _opt.qp_solver << std::flush;
     frequencies = SolveQP(frequencies);
-    _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies);
 
     if (_opt.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
@@ -195,6 +194,7 @@ void GW::CalculateGWPerturbation() {
       }
     }
   }
+  _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies);
   PrintGWA_Energies();
 }
 
@@ -205,8 +205,8 @@ Eigen::VectorXd GW::getGWAResults() const {
 
 Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
   const Eigen::VectorXd intercepts =
-      _rpa.getRPAInputEnergies().segment(_opt.qpmin - _opt.rpamin, _qptotal) +
-      _Sigma_x.diagonal() - _vxc.diagonal();
+      _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
+      _vxc.diagonal();
   Eigen::VectorXd frequencies_new = frequencies;
   Eigen::ArrayXi converged = Eigen::ArrayXi::Zero(_qptotal);
 #pragma omp parallel for schedule(dynamic)
@@ -358,13 +358,8 @@ void GW::CalculateHQP() {
 void GW::PlotSigma(std::string filename, Index steps, double spacing,
                    std::string states) const {
 
-  Eigen::VectorXd frequencies;
-  if (_opt.gw_sc_max_iterations == 1) {
-    Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
-    frequencies = dft_shifted_energies.segment(_opt.qpmin, _qptotal);
-  } else {
-    frequencies = getGWAResults();
-  }
+  Eigen::VectorXd frequencies =
+      _rpa.getRPAInputEnergies().segment(_opt.qpmin - _opt.rpamin, _qptotal);
 
   std::vector<Index> state_inds;
   IndexParser rp;
