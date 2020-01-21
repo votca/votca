@@ -168,7 +168,7 @@ if OPTIONS.run:
 
             start = time.time()
 
-            cmd = 'xtp_tools -e dftgwbse -o dftgwbse.xml -t {}> dftgwbse.log'.format(OPTIONS.threads)
+            cmd = 'xtp_tools -e dftgwbse -o dftgwbse.xml -t {} > dftgwbse.log'.format(OPTIONS.threads)
             os.system(cmd)
             dt = time.time() - start
             molinfo = {}

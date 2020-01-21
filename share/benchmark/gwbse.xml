@@ -1,6 +1,6 @@
 <gwbse>
         <basisset help="basiset to use">cc-pVTZ</basisset>
-        <auxbasisset help="auxilliary basiset to use">aux-ccpVTZ</auxbasisset>
+        <auxbasisset help="auxilliary basiset to use">aux-cc-pVTZ</auxbasisset>
         <ranges help="default: all levels in RPA, 1:2*HOMO in QP and BSE; other options: factor,explicit">full</ranges>
         <rpamax help="only needed, if ranges is factor or explicit, number of levels in rpa"></rpamax> 
         <qpmin help="only needed, if ranges is factor or explicit, lowest MO to be used in GW"></qpmin> 
