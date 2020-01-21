@@ -163,9 +163,9 @@ if OPTIONS.run:
             referencedata = json.load(fp)
 
     for mol in molecules:
-        print("Running {}".format(mol).ljust(30), end="")
+        print("Running {}".format(mol).ljust(30), end="\r")
         with cd("RUN/{}".format(mol)):
-
+            
             start = time.time()
 
             cmd = 'xtp_tools -e dftgwbse -o dftgwbse.xml -t {} > dftgwbse.log'.format(OPTIONS.threads)
@@ -173,7 +173,7 @@ if OPTIONS.run:
             dt = time.time() - start
             molinfo = {}
             molinfo["duration[s]"] = dt
-            print(" Duration: \t{:8.2f} seconds.".format(dt), end='')
+            print("{}".format(mol).ljust(30)+" Duration: \t{:8.2f} seconds.".format(dt), end='')
             if not os.path.isfile("system.orb"):
                 print(" Computation Failed")
                 molinfo["Status"] = "Failed"
