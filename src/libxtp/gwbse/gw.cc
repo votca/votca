@@ -166,8 +166,8 @@ void GW::CalculateGWPerturbation() {
     _sigma->PrepareScreening();
     XTP_LOG(Log::info, _log)
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
-    XTP_LOG(Log::info, _log) << TimeStamp() << " Solving QP equations using "
-                             << _opt.qp_solver << std::flush;
+    XTP_LOG(Log::info, _log)
+        << TimeStamp() << " Solving QP equations " << std::flush;
     frequencies = SolveQP(frequencies);
 
     if (_opt.gw_sc_max_iterations > 1) {
@@ -215,11 +215,7 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     double intercept = intercepts[gw_level];
     boost::optional<double> newf;
 
-    if (_opt.qp_solver == "grid") {
-      newf = SolveQP_Grid(intercept, initial_f, gw_level);
-    } else if (_opt.qp_solver == "fixedpoint") {
-      newf = SolveQP_FixedPoint(intercept, initial_f, gw_level);
-    }
+    newf = SolveQP_Grid(intercept, initial_f, gw_level);
 
     if (newf) {
       frequencies_new[gw_level] = newf.value();
@@ -228,6 +224,11 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
       newf = SolveQP_Linearisation(intercept, initial_f, gw_level);
       if (newf) {
         frequencies_new[gw_level] = newf.value();
+        newf = SolveQP_Grid(intercept, *newf, gw_level);
+        if (newf) {
+          frequencies_new[gw_level] = newf.value();
+          converged[gw_level] = true;
+        }
       }
     }
   }
@@ -264,7 +265,7 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
 boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
                                          Index gw_level) const {
   const double range =
-      _opt.qp_grid_spacing * (double)(_opt.qp_grid_steps - 1) / 2.0;
+      _opt.qp_grid_spacing * double(_opt.qp_grid_steps - 1) / 2.0;
   boost::optional<double> newf = boost::none;
   double freq_prev = frequency0 - range;
   std::pair<double, double> temp =
@@ -280,15 +281,23 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
     double sigc = temp2.first;
     double targ = sigc + intercept0 - freq;
     if (targ_prev * targ < 0.0) {  // Sign change
-      double dsigc_dfreq = (sigc - sigc_prev) / _opt.qp_grid_spacing;
-      double dtarg_dfreq = (targ - targ_prev) / _opt.qp_grid_spacing;
-      // Calculate fixed-point estimate of the pole (=root)
-      double pole = freq_prev - targ_prev / dtarg_dfreq;
-      // Calculate pole weight Z \in (0, 1)
-      double pole_weight = 1.0 / (1.0 - dsigc_dfreq);
-      if (pole_weight >= 1e-5 && pole_weight > pole_weight_max) {
-        qp_energy = pole;
-        pole_weight_max = pole_weight;
+
+      boost::optional<double> f =
+          SolveQP_FixedPoint(intercept0, 0.5 * (freq + freq_prev), gw_level);
+      if (f) {
+        if (std::abs(*f - 0.5 * (freq + freq_prev) > _opt.qp_grid_spacing)) {
+          std::cout << "Out of bounds" << *f << "[" << freq_prev << "," << freq
+                    << "]" << std::endl;
+        }
+        std::pair<double, double> temp3 =
+            _sigma->CalcCorrelationDiagElement(gw_level, *f);
+        double pole_weight = 1.0 / (1.0 - temp3.second);
+        if (pole_weight >= 1e-5 && pole_weight > pole_weight_max) {
+          qp_energy = *f;
+          pole_weight_max = pole_weight;
+        }
+      } else {
+        std::cout << "Something went really wrong" << std::endl;
       }
     }
     freq_prev = freq;
