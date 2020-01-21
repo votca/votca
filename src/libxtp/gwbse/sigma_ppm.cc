@@ -56,10 +56,8 @@ std::pair<double, double> Sigma_PPM::CalcCorrelationDiagElement(
     temp.segment(0, lumo) += ppm_freq;
     temp.segment(lumo, levelsum - lumo) -= ppm_freq;
     Eigen::ArrayXd denom = temp.abs2() + eta2;
-    double sigma_temp = fac * (Mmn2 * temp / denom).sum();
-    sigma.first += sigma_temp;
-    sigma.second +=
-        fac * eta2 * (Mmn2 / denom.abs2()).sum() - std::pow(sigma_temp, 2);
+    sigma.first += fac * (Mmn2 * temp / denom).sum();
+    sigma.second += fac * ((eta2 - temp.abs2()) * Mmn2 / denom.abs2()).sum();
   }
   return sigma;
 }

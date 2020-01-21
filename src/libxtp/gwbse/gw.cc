@@ -254,10 +254,9 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
 
   std::pair<double, double> temp =
       _sigma->CalcCorrelationDiagElement(gw_level, frequency0);
-  double sigma_x_m_Vxc = intercept0 - frequency0;
-  double Z = temp.second + 1.0;
+  double Z = 1.0 - temp.second;
   if (std::abs(Z) > 1e-9) {
-    newf = frequency0 + (sigma_x_m_Vxc + temp.first) / Z;
+    newf = frequency0 + (intercept0 - frequency0 + temp.first) / Z;
   }
   return newf;
 }
@@ -268,18 +267,16 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
       _opt.qp_grid_spacing * double(_opt.qp_grid_steps - 1) / 2.0;
   boost::optional<double> newf = boost::none;
   double freq_prev = frequency0 - range;
-  std::pair<double, double> temp =
+  std::pair<double, double> sigc_prev =
       _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
-  double sigc_prev = temp.first;
-  double targ_prev = sigc_prev + intercept0 - freq_prev;
+  double targ_prev = sigc_prev.first + intercept0 - freq_prev;
   double qp_energy = 0.0;
   double pole_weight_max = -1.0;
   for (Index i_node = 1; i_node < _opt.qp_grid_steps; ++i_node) {
     double freq = freq_prev + _opt.qp_grid_spacing;
-    std::pair<double, double> temp2 =
+    std::pair<double, double> sigc =
         _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
-    double sigc = temp2.first;
-    double targ = sigc + intercept0 - freq;
+    double targ = sigc.first + intercept0 - freq;
     if (targ_prev * targ < 0.0) {  // Sign change
 
       boost::optional<double> f =
@@ -301,7 +298,6 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
       }
     }
     freq_prev = freq;
-    sigc_prev = sigc;
     targ_prev = targ;
   }
   if (pole_weight_max >= 0.0) {
@@ -387,7 +383,7 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   const Eigen::VectorXd intercept =
       _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
       _vxc.diagonal();
-  Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(steps, 2 * num_states);
+  Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(steps, 3 * num_states);
 #pragma omp parallel for schedule(dynamic)
   for (Index grid_point = 0; grid_point < steps; grid_point++) {
     const double offset =
@@ -397,8 +393,9 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
       const double omega = frequencies(gw_level) + offset;
       std::pair<double, double> sigma =
           _sigma->CalcCorrelationDiagElement(gw_level, omega);
-      mat(grid_point, 2 * i) = omega;
-      mat(grid_point, 2 * i + 1) = sigma.first + intercept[i];
+      mat(grid_point, 3 * i) = omega;
+      mat(grid_point, 3 * i + 1) = sigma.first + intercept[i];
+      mat(grid_point, 3 * i + 2) = sigma.second;
     }
   }
 

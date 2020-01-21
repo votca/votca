@@ -49,12 +49,9 @@ std::pair<double, double> Sigma_Exact::CalcCorrelationDiagElement(
     Eigen::ArrayXd temp = -_rpa.getRPAInputEnergies().array() + frequency;
     temp.segment(0, n_occ) += eigenvalue;
     temp.segment(n_occ, n_unocc) -= eigenvalue;
-    const Eigen::ArrayXd numer = res_12 * temp;
     const Eigen::ArrayXd denom = temp.abs2() + eta2;
-    double sigma_temp = (numer / denom).sum();
-    sigma.first += sigma_temp;
-    sigma.second +=
-        eta2 * (res_12 / denom.abs2()).sum() - std::pow(sigma_temp, 2);
+    sigma.first += (res_12 * temp / denom).sum();
+    sigma.second += ((eta2 - temp.abs2()) * res_12 / denom.abs2()).sum();
   }
   // Multiply with factor 2.0 to sum over both (identical) spin states
   sigma.first *= 2;
