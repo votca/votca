@@ -179,11 +179,11 @@ if OPTIONS.run:
                 molinfo["Status"] = "Failed"
             else:
                 S = ReadEnergyFromHDF5("system.orb")
-                print(" S1 = {3.6f}[Hrt]".format(S[0]))
+                print(" S1 = {:3.6f}[Hrt]".format(S[0]))
                 molinfo["Status"] = "Success"
                 molinfo["S1[Hrt]"] = S[0]
         if referencedata and referencedata[mol]["Status"] == "Success":
-            print(" S1_ref = {3.6f}[Hrt]".format(
+            print(" S1_ref = {:3.6f}[Hrt]".format(
                 referencedata[mol]["S1[Hrt]"]))
 
         moldata[mol] = molinfo
