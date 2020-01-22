@@ -106,7 +106,6 @@ QMState StateTracker::CalcState(const Orbitals& orbitals) const {
   QMState state;
   if (result.size() < 1) {
     state = _statehist.back();
-    _statehist.push_back(state);
     XTP_LOG(Log::error, *_log)
         << "No State found by tracker using last state: " << state.ToString()
         << flush;
@@ -120,6 +119,7 @@ QMState StateTracker::CalcState(const Orbitals& orbitals) const {
 
 QMState StateTracker::CalcStateAndUpdate(const Orbitals& orbitals) {
   QMState result = CalcState(orbitals);
+  _statehist.push_back(result);
   for (auto& filter : _filters) {
     filter->UpdateHist(orbitals, result);
   }
