@@ -215,19 +215,20 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     double intercept = intercepts[gw_level];
     boost::optional<double> newf;
 
-    newf = SolveQP_Grid(intercept, initial_f, gw_level);
+    newf = SolveQP_FixedPoint(intercept, initial_f, gw_level);
 
     if (newf) {
       frequencies_new[gw_level] = newf.value();
       converged[gw_level] = true;
     } else {
-      newf = SolveQP_Linearisation(intercept, initial_f, gw_level);
+      newf = SolveQP_Grid(intercept, initial_f, gw_level);
       if (newf) {
         frequencies_new[gw_level] = newf.value();
-        newf = SolveQP_Grid(intercept, *newf, gw_level);
+        converged[gw_level] = true;
+      } else {
+        newf = SolveQP_Linearisation(intercept, initial_f, gw_level);
         if (newf) {
           frequencies_new[gw_level] = newf.value();
-          converged[gw_level] = true;
         }
       }
     }
@@ -283,8 +284,8 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
           SolveQP_FixedPoint(intercept0, 0.5 * (freq + freq_prev), gw_level);
       if (f) {
         if (std::abs(*f - 0.5 * (freq + freq_prev) > _opt.qp_grid_spacing)) {
-          std::cout << "Out of bounds" << *f << "[" << freq_prev << "," << freq
-                    << "]" << std::endl;
+          std::cout << "Out of bounds " << gw_level << " " << *f << "["
+                    << freq_prev << "," << freq << "]" << std::endl;
         }
         std::pair<double, double> temp3 =
             _sigma->CalcCorrelationDiagElement(gw_level, *f);
@@ -394,7 +395,7 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
       std::pair<double, double> sigma =
           _sigma->CalcCorrelationDiagElement(gw_level, omega);
       mat(grid_point, 3 * i) = omega;
-      mat(grid_point, 3 * i + 1) = sigma.first + intercept[i];
+      mat(grid_point, 3 * i + 1) = sigma.first + intercept[gw_level];
       mat(grid_point, 3 * i + 2) = sigma.second;
     }
   }
