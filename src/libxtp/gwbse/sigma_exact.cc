@@ -28,7 +28,7 @@ namespace xtp {
 void Sigma_Exact::PrepareScreening() {
   _rpa_solution = _rpa.Diagonalize_H2p();
   _residues = std::vector<Eigen::MatrixXd>(_qptotal);
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < _qptotal; gw_level++) {
     _residues[gw_level] = CalcResidues(gw_level);
   }
@@ -63,7 +63,7 @@ double Sigma_Exact::CalcCorrelationOffDiagElement(Index gw_level1,
                                                   Index gw_level2,
                                                   double frequency1,
                                                   double frequency2) const {
-  const double eta = _opt.eta;
+  const double eta2 = _opt.eta * _opt.eta;
   const Index lumo = _opt.homo + 1;
   const Index n_occ = lumo - _opt.rpamin;
   const Index n_unocc = _opt.rpamax - _opt.homo;
@@ -81,8 +81,8 @@ double Sigma_Exact::CalcCorrelationOffDiagElement(Index gw_level1,
     temp1 += frequency1;
     const Eigen::ArrayXd numer1 = res_12.array() * temp1;
     const Eigen::ArrayXd numer2 = res_12.array() * temp2;
-    const Eigen::ArrayXd denom1 = temp1.abs2() + eta * eta;
-    const Eigen::ArrayXd denom2 = temp2.abs2() + eta * eta;
+    const Eigen::ArrayXd denom1 = temp1.abs2() + eta2;
+    const Eigen::ArrayXd denom2 = temp2.abs2() + eta2;
     sigma_c += 0.5 * ((numer1 / denom1) + (numer2 / denom2)).sum();
   }
   // Multiply with factor 2.0 to sum over both (identical) spin states
@@ -97,13 +97,12 @@ Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level) const {
   const Index qpoffset = _opt.qpmin - _opt.rpamin;
   const Index auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, n_unocc);
-  const Eigen::MatrixXd Mmn_i_T = _Mmn[gw_level + qpoffset].transpose();
+  const Eigen::MatrixXd& Mmn_i = _Mmn[gw_level + qpoffset];
   Eigen::MatrixXd res = Eigen::MatrixXd::Zero(_rpatotal, rpasize);
   for (Index v = 0; v < n_occ; v++) {  // Sum over v
-    const Eigen::MatrixXd& Mmn_v = _Mmn[v].block(n_occ, 0, n_unocc, auxsize);
-    const Eigen::MatrixXd fc = Mmn_v * Mmn_i_T;  // Sum over chi
-    const Eigen::MatrixXd& XpY_v =
-        _rpa_solution.XpY.block(vc.I(v, 0), 0, n_unocc, rpasize);
+    auto Mmn_v = _Mmn[v].block(n_occ, 0, n_unocc, auxsize);
+    const Eigen::MatrixXd fc = Mmn_v * Mmn_i.transpose();  // Sum over chi
+    auto XpY_v = _rpa_solution.XpY.block(vc.I(v, 0), 0, n_unocc, rpasize);
     res += fc.transpose() * XpY_v;  // Sum over c
   }
   return res;

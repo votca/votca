@@ -122,7 +122,7 @@ void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
     }
     XTP_LOG(Log::error, _log)
         << level
-        << (boost::format(" = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
+        << (boost::format(" = %1$4d PQP = %2$+1.6f DQP = %3$+1.6f ") %
             (i + _opt.qpmin) % gwa_energies(i) % qp_diag_energies(i))
                .str()
         << std::flush;
@@ -214,9 +214,9 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     double initial_f = frequencies[gw_level];
     double intercept = intercepts[gw_level];
     boost::optional<double> newf;
-
-    newf = SolveQP_FixedPoint(intercept, initial_f, gw_level);
-
+    if (_opt.qp_solver == "fixedpoint") {
+      newf = SolveQP_FixedPoint(intercept, initial_f, gw_level);
+    }
     if (newf) {
       frequencies_new[gw_level] = newf.value();
       converged[gw_level] = true;
@@ -270,24 +270,19 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
       _opt.qp_grid_spacing * double(_opt.qp_grid_steps - 1) / 2.0;
   boost::optional<double> newf = boost::none;
   double freq_prev = frequency0 - range;
-  std::pair<double, double> sigc_prev =
-      _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
-  double targ_prev = sigc_prev.first + intercept0 - freq_prev;
+  QPFunc fqp(gw_level, *_sigma.get(), intercept0);
+  std::pair<double, double> targ_prev = fqp(freq_prev);
   double qp_energy = 0.0;
   double pole_weight_max = -1.0;
   for (Index i_node = 1; i_node < _opt.qp_grid_steps; ++i_node) {
     double freq = freq_prev + _opt.qp_grid_spacing;
-    std::pair<double, double> sigc =
-        _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
-    double targ = sigc.first + intercept0 - freq;
-    if (targ_prev * targ < 0.0) {  // Sign change
-
-      QPFunc fqp(gw_level, *_sigma.get(), intercept0);
-      double f = SolveQP_Bisection(freq_prev, targ_prev, freq, targ, fqp);
-      std::pair<double, double> temp3 =
-          _sigma->CalcCorrelationDiagElement(gw_level, f);
-      double pole_weight = 1.0 / (1.0 - temp3.second);
-      if (pole_weight >= 1e-5 && pole_weight > pole_weight_max) {
+    std::pair<double, double> targ = fqp(freq);
+    if (targ_prev.first * targ.first < 0.0) {  // Sign change
+      double f =
+          SolveQP_Bisection(freq_prev, targ_prev.first, freq, targ.first, fqp);
+      std::pair<double, double> temp3 = fqp(f);
+      double pole_weight = -1.0 / temp3.second;
+      if (std::abs(pole_weight) > pole_weight_max) {
         qp_energy = f;
         pole_weight_max = pole_weight;
       }
@@ -295,6 +290,7 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
     freq_prev = freq;
     targ_prev = targ;
   }
+
   if (pole_weight_max >= 0.0) {
     newf = qp_energy;
   }
@@ -328,18 +324,21 @@ double GW::SolveQP_Bisection(double lowerbound, double f_lowerbound,
   while (true) {
     double c = 0.5 * (lowerbound + upperbound);
     if (std::abs(upperbound - lowerbound) < _opt.g_sc_limit) {
-      break;
       zero = c;
+      break;
     }
     std::pair<double, double> temp = f(c);
     double y_c = temp.first;
     if (std::abs(y_c) < _opt.g_sc_limit) {
-      break;
       zero = c;
+      break;
     }
     if (y_c * f_lowerbound > 0) {
       lowerbound = c;
       f_lowerbound = y_c;
+    } else {
+      upperbound = c;
+      f_upperbound = y_c;
     }
   }
   return zero;
@@ -407,7 +406,8 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   out.open(filename);
   for (Index i = 0; i < num_states; i++) {
     const Index gw_level = state_inds[i];
-    out << boost::format("#%1$somega_%2$d\tE_QP(omega)_%2$d") %
+    out << boost::format(
+               "#%1$somega_%2$d\tE_QP(omega)_%2$d\tdE_QP_domega%2$d") %
                (i == 0 ? "" : "\t") % gw_level;
   }
   out << std::endl;

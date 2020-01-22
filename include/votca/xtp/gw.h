@@ -47,9 +47,9 @@ class GW {
     Index rpamax;
     double eta = 1e-3;
     double g_sc_limit = 1e-5;
-    Index g_sc_max_iterations = 100;
+    Index g_sc_max_iterations = 50;
     double gw_sc_limit = 1e-5;
-    Index gw_sc_max_iterations = 100;
+    Index gw_sc_max_iterations = 50;
     double shift = 0;
     double ScaHFX = 0.0;
     std::string sigma_integration = "ppm";
@@ -57,8 +57,8 @@ class GW {
                          // rebuild
     std::string qp_solver = "fixedpoint";
     double qp_solver_alpha = 0.75;
-    Index qp_grid_steps = 201;      // Number of grid points
-    double qp_grid_spacing = 0.01;  // Spacing of grid points in Ha
+    Index qp_grid_steps = 601;       // Number of grid points
+    double qp_grid_spacing = 0.005;  // Spacing of grid points in Ha
   };
 
   void configure(const options& opt);
