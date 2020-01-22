@@ -244,6 +244,8 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     IndexParser rp;
     XTP_LOG(Log::error, _log) << TimeStamp() << " Not converged PQP states are:"
                               << rp.CreateIndexString(states) << std::flush;
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Increase the grid search interval" << std::flush;
   }
   return frequencies_new;
 }
@@ -280,22 +282,14 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
     double targ = sigc.first + intercept0 - freq;
     if (targ_prev * targ < 0.0) {  // Sign change
 
-      boost::optional<double> f =
-          SolveQP_FixedPoint(intercept0, 0.5 * (freq + freq_prev), gw_level);
-      if (f) {
-        if (std::abs(*f - 0.5 * (freq + freq_prev) > _opt.qp_grid_spacing)) {
-          std::cout << "Out of bounds " << gw_level << " " << *f << "["
-                    << freq_prev << "," << freq << "]" << std::endl;
-        }
-        std::pair<double, double> temp3 =
-            _sigma->CalcCorrelationDiagElement(gw_level, *f);
-        double pole_weight = 1.0 / (1.0 - temp3.second);
-        if (pole_weight >= 1e-5 && pole_weight > pole_weight_max) {
-          qp_energy = *f;
-          pole_weight_max = pole_weight;
-        }
-      } else {
-        std::cout << "Something went really wrong" << std::endl;
+      QPFunc fqp(gw_level, *_sigma.get(), intercept0);
+      double f = SolveQP_Bisection(freq_prev, targ_prev, freq, targ, fqp);
+      std::pair<double, double> temp3 =
+          _sigma->CalcCorrelationDiagElement(gw_level, f);
+      double pole_weight = 1.0 / (1.0 - temp3.second);
+      if (pole_weight >= 1e-5 && pole_weight > pole_weight_max) {
+        qp_energy = f;
+        pole_weight_max = pole_weight;
       }
     }
     freq_prev = freq;
@@ -306,27 +300,6 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
   }
   return newf;
 }
-
-// small class which calculates f(w) with and df/dw(w)
-// f=Sigma_c(w)+offset-w
-// offset= e_dft+Sigma_x-Vxc
-class QPFunc {
- public:
-  QPFunc(Index gw_level, const Sigma_base& sigma, double offset)
-      : _gw_level(gw_level), _offset(offset), _sigma_c_func(sigma){};
-  std::pair<double, double> operator()(double frequency) const {
-    std::pair<double, double> value =
-        _sigma_c_func.CalcCorrelationDiagElement(_gw_level, frequency);
-    value.first += (_offset - frequency);
-    value.second -= 1.0;
-    return value;
-  }
-
- private:
-  Index _gw_level;
-  double _offset;
-  const Sigma_base& _sigma_c_func;
-};
 
 boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,
                                                double frequency0,
@@ -340,6 +313,36 @@ boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,
     newf = freq_new;
   }
   return newf;
+}
+
+// https://en.wikipedia.org/wiki/Bisection_method
+double GW::SolveQP_Bisection(double lowerbound, double f_lowerbound,
+                             double upperbound, double f_upperbound,
+                             const QPFunc& f) const {
+
+  if (f_lowerbound * f_upperbound > 0) {
+    throw std::runtime_error(
+        "Bisection needs a postive and negative function value");
+  }
+  double zero = 0.0;
+  while (true) {
+    double c = 0.5 * (lowerbound + upperbound);
+    if (std::abs(upperbound - lowerbound) < _opt.g_sc_limit) {
+      break;
+      zero = c;
+    }
+    std::pair<double, double> temp = f(c);
+    double y_c = temp.first;
+    if (std::abs(y_c) < _opt.g_sc_limit) {
+      break;
+      zero = c;
+    }
+    if (y_c * f_lowerbound > 0) {
+      lowerbound = c;
+      f_lowerbound = y_c;
+    }
+  }
+  return zero;
 }
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
