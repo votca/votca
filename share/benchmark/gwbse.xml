@@ -15,7 +15,6 @@
         <mode help="use single short (G0W0) or self-consistent GW (evGW)">evGW</mode>
         <tasks help="tasks to do gw,singlets,triplets or all">gw,singlets,triplets</tasks> 
         <sigma_integrator help="self-energy correlation integration method: ppm, exact">ppm</sigma_integrator>
-        <eta help="small parameter eta of the Green's function">1e-3</eta>
         <exctotal help="maximum number of BSE states to calculate">25</exctotal>
         <useTDA help="use TDA for BSE default `false`">1</useTDA>
         <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level, default=no">no</ignore_corelevels>
