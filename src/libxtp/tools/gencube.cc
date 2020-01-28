@@ -72,7 +72,7 @@ void GenCube::calculateCube() {
 
   CubeFile_Writer writer(_steps, _padding, _log);
   XTP_LOG(Log::error, _log) << "Created cube grid" << flush;
-  writer.WriteFile(_output_file, orbitals, _state, false);
+  writer.WriteFile(_output_file, orbitals, _state, _dostateonly);
   XTP_LOG(Log::error, _log) << "Wrote cube data to " << _output_file << flush;
   return;
 }
