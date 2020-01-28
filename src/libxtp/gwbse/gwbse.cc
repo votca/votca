@@ -299,6 +299,9 @@ void GWBSE::Initialize(tools::Property& options) {
           key + ".mode", choices);
   if (mode == "G0W0") {
     _gwopt.gw_sc_max_iterations = 1;
+  } else if (mode == "evGW") {
+    _gwopt.g_sc_limit = 0.1 * _gwopt.gw_sc_limit;
+    _gwopt.eta = 0.1;
   }
   XTP_LOG(Log::error, *_pLog) << " Running GW as: " << mode << flush;
   _gwopt.ScaHFX = _orbitals.getScaHFX();
@@ -388,8 +391,8 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *_pLog)
         << " RPA Hamiltonian size: " << (homo + 1 - rpamin) * (rpamax - homo)
         << flush;
-    XTP_LOG(Log::error, *_pLog) << " eta: " << _gwopt.eta << flush;
   }
+  XTP_LOG(Log::error, *_pLog) << " eta: " << _gwopt.eta << flush;
 
   _gwopt.qp_solver = options.ifExistsReturnElseReturnDefault<std::string>(
       key + ".qp_solver", _gwopt.qp_solver);

@@ -37,12 +37,15 @@ class Sigma_Exact : public Sigma_base {
   // Sets up the screening parametrisation
   void PrepareScreening() final;
   // Calculates Sigma_c diagonal elements
-  virtual std::pair<double, double> CalcCorrelationDiagElement(
-      Index gw_level, double frequency) const final;
+  double CalcCorrelationDiagElement(Index gw_level,
+                                    double frequency) const final;
+
+  double CalcCorrelationDiagElementDerivative(Index gw_level,
+                                              double frequency) const final;
   // Calculates Sigma_c off-diagonal elements
-  virtual double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
-                                               double frequency1,
-                                               double frequency2) const final;
+  double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
+                                       double frequency1,
+                                       double frequency2) const final;
 
  private:
   RPA::rpa_eigensolution _rpa_solution;    // Eigenvalues, eigenvectors from RPA

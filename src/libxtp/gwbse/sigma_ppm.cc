@@ -31,35 +31,56 @@ void Sigma_PPM::PrepareScreening() {
   _Mmn.MultiplyRightWithAuxMatrix(_ppm.getPpm_phi());
 }
 
-std::pair<double, double> Sigma_PPM::CalcCorrelationDiagElement(
-    Index gw_level, double frequency) const {
+double Sigma_PPM::CalcCorrelationDiagElement(Index gw_level,
+                                             double frequency) const {
   const Index lumo = _opt.homo + 1;
   const double eta2 = _opt.eta * _opt.eta;
-  const Index levelsum = _Mmn.nsize();   // total number of bands
-  const Index auxsize = _Mmn.auxsize();  // size of the GW basis
-  const Eigen::VectorXd ppm_weight = _ppm.getPpm_weight();
-  const Eigen::VectorXd ppm_freqs = _ppm.getPpm_freq();
+  const Index levelsum = _Mmn.nsize();  // total number of bands
   const Index qpmin_offset = _opt.qpmin - _opt.rpamin;
-  const Eigen::VectorXd RPAEnergies = _rpa.getRPAInputEnergies();
-  std::pair<double, double> sigma = {0.0, 0.0};
-  for (Index i_aux = 0; i_aux < auxsize; i_aux++) {
+  double sigma = 0.0;
+  for (Index i_aux = 0; i_aux < _Mmn.auxsize(); i_aux++) {
     // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc
     // PPM_construct_parameters
-    if (ppm_weight(i_aux) < 1.e-9) {
+    if (_ppm.getPpm_weight()(i_aux) < 1.e-9) {
       continue;
     }
-    const double ppm_freq = ppm_freqs(i_aux);
-    const double fac = 0.5 * ppm_weight(i_aux) * ppm_freq;
+    const double ppm_freq = _ppm.getPpm_freq()(i_aux);
+    const double fac = 0.5 * _ppm.getPpm_weight()(i_aux) * ppm_freq;
     const Eigen::ArrayXd Mmn2 =
         _Mmn[gw_level + qpmin_offset].col(i_aux).cwiseAbs2();
-    Eigen::ArrayXd temp = frequency - RPAEnergies.array();
+    Eigen::ArrayXd temp = frequency - _rpa.getRPAInputEnergies().array();
     temp.segment(0, lumo) += ppm_freq;
     temp.segment(lumo, levelsum - lumo) -= ppm_freq;
     Eigen::ArrayXd denom = temp.abs2() + eta2;
-    sigma.first += fac * (Mmn2 * temp / denom).sum();
-    sigma.second += fac * ((eta2 - temp.abs2()) * Mmn2 / denom.abs2()).sum();
+    sigma += fac * (Mmn2 * temp / denom).sum();
   }
   return sigma;
+}
+
+double Sigma_PPM::CalcCorrelationDiagElementDerivative(Index gw_level,
+                                                       double frequency) const {
+  const Index lumo = _opt.homo + 1;
+  const double eta2 = _opt.eta * _opt.eta;
+  const Index levelsum = _Mmn.nsize();  // total number of bands
+  const Index qpmin_offset = _opt.qpmin - _opt.rpamin;
+  double dsigma_domega = 0.0;
+  for (Index i_aux = 0; i_aux < _Mmn.auxsize(); i_aux++) {
+    // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc
+    // PPM_construct_parameters
+    if (_ppm.getPpm_weight()(i_aux) < 1.e-9) {
+      continue;
+    }
+    const double ppm_freq = _ppm.getPpm_freq()(i_aux);
+    const double fac = 0.5 * _ppm.getPpm_weight()(i_aux) * ppm_freq;
+    const Eigen::ArrayXd Mmn2 =
+        _Mmn[gw_level + qpmin_offset].col(i_aux).cwiseAbs2();
+    Eigen::ArrayXd temp = frequency - _rpa.getRPAInputEnergies().array();
+    temp.segment(0, lumo) += ppm_freq;
+    temp.segment(lumo, levelsum - lumo) -= ppm_freq;
+    Eigen::ArrayXd denom = temp.abs2() + eta2;
+    dsigma_domega += fac * ((eta2 - temp.abs2()) * Mmn2 / denom.abs2()).sum();
+  }
+  return dsigma_domega;
 }
 
 double Sigma_PPM::CalcCorrelationOffDiagElement(Index gw_level1,

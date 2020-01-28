@@ -255,11 +255,12 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
                                                   Index gw_level) const {
   boost::optional<double> newf = boost::none;
 
-  std::pair<double, double> temp =
-      _sigma->CalcCorrelationDiagElement(gw_level, frequency0);
-  double Z = 1.0 - temp.second;
+  double sigma = _sigma->CalcCorrelationDiagElement(gw_level, frequency0);
+  double dsigma_domega =
+      _sigma->CalcCorrelationDiagElementDerivative(gw_level, frequency0);
+  double Z = 1.0 - dsigma_domega;
   if (std::abs(Z) > 1e-9) {
-    newf = frequency0 + (intercept0 - frequency0 + temp.first) / Z;
+    newf = frequency0 + (intercept0 - frequency0 + sigma) / Z;
   }
   return newf;
 }
@@ -271,27 +272,27 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
   boost::optional<double> newf = boost::none;
   double freq_prev = frequency0 - range;
   QPFunc fqp(gw_level, *_sigma.get(), intercept0);
-  std::pair<double, double> targ_prev = fqp(freq_prev);
+  double targ_prev = fqp.value(freq_prev);
   double qp_energy = 0.0;
-  double pole_weight_max = -1.0;
+  double gradient_max = std::numeric_limits<double>::max();
+  bool pole_found = false;
   for (Index i_node = 1; i_node < _opt.qp_grid_steps; ++i_node) {
     double freq = freq_prev + _opt.qp_grid_spacing;
-    std::pair<double, double> targ = fqp(freq);
-    if (targ_prev.first * targ.first < 0.0) {  // Sign change
-      double f =
-          SolveQP_Bisection(freq_prev, targ_prev.first, freq, targ.first, fqp);
-      std::pair<double, double> temp3 = fqp(f);
-      double pole_weight = -1.0 / temp3.second;
-      if (std::abs(pole_weight) > pole_weight_max) {
+    double targ = fqp.value(freq);
+    if (targ_prev * targ < 0.0) {  // Sign change
+      double f = SolveQP_Bisection(freq_prev, targ_prev, freq, targ, fqp);
+      double gradient = std::abs(fqp.deriv(f));
+      if (gradient < gradient_max) {
         qp_energy = f;
-        pole_weight_max = pole_weight;
+        gradient_max = gradient;
+        pole_found = true;
       }
     }
     freq_prev = freq;
     targ_prev = targ;
   }
 
-  if (pole_weight_max >= 0.0) {
+  if (pole_found) {
     newf = qp_energy;
   }
   return newf;
@@ -327,8 +328,7 @@ double GW::SolveQP_Bisection(double lowerbound, double f_lowerbound,
       zero = c;
       break;
     }
-    std::pair<double, double> temp = f(c);
-    double y_c = temp.first;
+    double y_c = f.value(c);
     if (std::abs(y_c) < _opt.g_sc_limit) {
       zero = c;
       break;
@@ -386,7 +386,7 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   const Eigen::VectorXd intercept =
       _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
       _vxc.diagonal();
-  Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(steps, 3 * num_states);
+  Eigen::MatrixXd mat = Eigen::MatrixXd::Zero(steps, 2 * num_states);
 #pragma omp parallel for schedule(dynamic)
   for (Index grid_point = 0; grid_point < steps; grid_point++) {
     const double offset =
@@ -394,11 +394,9 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
     for (Index i = 0; i < num_states; i++) {
       const Index gw_level = state_inds[i];
       const double omega = frequencies(gw_level) + offset;
-      std::pair<double, double> sigma =
-          _sigma->CalcCorrelationDiagElement(gw_level, omega);
+      double sigma = _sigma->CalcCorrelationDiagElement(gw_level, omega);
       mat(grid_point, 3 * i) = omega;
-      mat(grid_point, 3 * i + 1) = sigma.first + intercept[gw_level];
-      mat(grid_point, 3 * i + 2) = sigma.second;
+      mat(grid_point, 3 * i + 1) = sigma + intercept[gw_level];
     }
   }
 
@@ -406,8 +404,7 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   out.open(filename);
   for (Index i = 0; i < num_states; i++) {
     const Index gw_level = state_inds[i];
-    out << boost::format(
-               "#%1$somega_%2$d\tE_QP(omega)_%2$d\tdE_QP_domega%2$d") %
+    out << boost::format("#%1$somega_%2$d\tE_QP(omega)_%2$d\t") %
                (i == 0 ? "" : "\t") % gw_level;
   }
   out << std::endl;

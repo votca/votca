@@ -49,9 +49,8 @@ Eigen::VectorXd Sigma_base::CalcCorrelationDiag(
   Eigen::VectorXd result = Eigen::VectorXd::Zero(_qptotal);
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < _qptotal; gw_level++) {
-    std::pair<double, double> temp =
+    result(gw_level) =
         CalcCorrelationDiagElement(gw_level, frequencies[gw_level]);
-    result(gw_level) = temp.first;
   }
   return result;
 }

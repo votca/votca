@@ -190,12 +190,12 @@ if OPTIONS.run:
 
     print(30*"-")
     dttotal = time.time() - totaltime
-    print("Total time: {:8.2}".format(dttotal))
+    print("Total time: {:8.2f}".format(dttotal))
     goodruns = 0
     for _, result in moldata.items():
         if result["Status"] == "Success":
             goodruns += 1
-    print("{:1.2}% of runs completed successfully".format(
+    print("{:1.2f}% of runs completed successfully".format(
         float(goodruns)/float(len(moldata))*100.0))
 
     print("Writing benchmark data to 'result.json'")

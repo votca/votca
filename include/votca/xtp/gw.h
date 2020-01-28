@@ -55,7 +55,7 @@ class GW {
     std::string sigma_integration = "ppm";
     Index reset_3c = 5;  // how often the 3c integrals in iterate should be
                          // rebuild
-    std::string qp_solver = "fixedpoint";
+    std::string qp_solver = "grid";
     double qp_solver_alpha = 0.75;
     Index qp_grid_steps = 601;       // Number of grid points
     double qp_grid_spacing = 0.005;  // Spacing of grid points in Ha
@@ -102,11 +102,23 @@ class GW {
     QPFunc(Index gw_level, const Sigma_base& sigma, double offset)
         : _gw_level(gw_level), _offset(offset), _sigma_c_func(sigma){};
     std::pair<double, double> operator()(double frequency) const {
-      std::pair<double, double> value =
+      std::pair<double, double> value;
+      value.first =
           _sigma_c_func.CalcCorrelationDiagElement(_gw_level, frequency);
+      value.second = _sigma_c_func.CalcCorrelationDiagElementDerivative(
+          _gw_level, frequency);
       value.first += (_offset - frequency);
       value.second -= 1.0;
       return value;
+    }
+    double value(double frequency) const {
+      return _sigma_c_func.CalcCorrelationDiagElement(_gw_level, frequency) +
+             _offset - frequency;
+    }
+    double deriv(double frequency) const {
+      return _sigma_c_func.CalcCorrelationDiagElementDerivative(_gw_level,
+                                                                frequency) +
+             _offset - frequency;
     }
 
    private:
