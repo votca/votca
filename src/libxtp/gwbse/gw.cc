@@ -122,7 +122,7 @@ void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
     }
     XTP_LOG(Log::error, _log)
         << level
-        << (boost::format(" = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
+        << (boost::format(" = %1$4d PQP = %2$+1.6f DQP = %3$+1.6f ") %
             (i + _opt.qpmin) % gwa_energies(i) % qp_diag_energies(i))
                .str()
         << std::flush;
@@ -166,8 +166,8 @@ void GW::CalculateGWPerturbation() {
     _sigma->PrepareScreening();
     XTP_LOG(Log::info, _log)
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
-    XTP_LOG(Log::info, _log) << TimeStamp() << " Solving QP equations using "
-                             << _opt.qp_solver << std::flush;
+    XTP_LOG(Log::info, _log)
+        << TimeStamp() << " Solving QP equations " << std::flush;
     frequencies = SolveQP(frequencies);
 
     if (_opt.gw_sc_max_iterations > 1) {
@@ -214,20 +214,22 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     double initial_f = frequencies[gw_level];
     double intercept = intercepts[gw_level];
     boost::optional<double> newf;
-
-    if (_opt.qp_solver == "grid") {
-      newf = SolveQP_Grid(intercept, initial_f, gw_level);
-    } else if (_opt.qp_solver == "fixedpoint") {
+    if (_opt.qp_solver == "fixedpoint") {
       newf = SolveQP_FixedPoint(intercept, initial_f, gw_level);
     }
-
     if (newf) {
       frequencies_new[gw_level] = newf.value();
       converged[gw_level] = true;
     } else {
-      newf = SolveQP_Linearisation(intercept, initial_f, gw_level);
+      newf = SolveQP_Grid(intercept, initial_f, gw_level);
       if (newf) {
         frequencies_new[gw_level] = newf.value();
+        converged[gw_level] = true;
+      } else {
+        newf = SolveQP_Linearisation(intercept, initial_f, gw_level);
+        if (newf) {
+          frequencies_new[gw_level] = newf.value();
+        }
       }
     }
   }
@@ -242,6 +244,8 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     IndexParser rp;
     XTP_LOG(Log::error, _log) << TimeStamp() << " Not converged PQP states are:"
                               << rp.CreateIndexString(states) << std::flush;
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Increase the grid search interval" << std::flush;
   }
   return frequencies_new;
 }
@@ -251,12 +255,12 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
                                                   Index gw_level) const {
   boost::optional<double> newf = boost::none;
 
-  std::pair<double, double> temp =
-      _sigma->CalcCorrelationDiagElement(gw_level, frequency0);
-  double sigma_x_m_Vxc = intercept0 - frequency0;
-  double Z = temp.second + 1.0;
+  double sigma = _sigma->CalcCorrelationDiagElement(gw_level, frequency0);
+  double dsigma_domega =
+      _sigma->CalcCorrelationDiagElementDerivative(gw_level, frequency0);
+  double Z = 1.0 - dsigma_domega;
   if (std::abs(Z) > 1e-9) {
-    newf = frequency0 + (sigma_x_m_Vxc + temp.first) / Z;
+    newf = frequency0 + (intercept0 - frequency0 + sigma) / Z;
   }
   return newf;
 }
@@ -264,63 +268,35 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
 boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
                                          Index gw_level) const {
   const double range =
-      _opt.qp_grid_spacing * (double)(_opt.qp_grid_steps - 1) / 2.0;
+      _opt.qp_grid_spacing * double(_opt.qp_grid_steps - 1) / 2.0;
   boost::optional<double> newf = boost::none;
   double freq_prev = frequency0 - range;
-  std::pair<double, double> temp =
-      _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
-  double sigc_prev = temp.first;
-  double targ_prev = sigc_prev + intercept0 - freq_prev;
+  QPFunc fqp(gw_level, *_sigma.get(), intercept0);
+  double targ_prev = fqp.value(freq_prev);
   double qp_energy = 0.0;
-  double pole_weight_max = -1.0;
+  double gradient_max = std::numeric_limits<double>::max();
+  bool pole_found = false;
   for (Index i_node = 1; i_node < _opt.qp_grid_steps; ++i_node) {
     double freq = freq_prev + _opt.qp_grid_spacing;
-    std::pair<double, double> temp2 =
-        _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
-    double sigc = temp2.first;
-    double targ = sigc + intercept0 - freq;
+    double targ = fqp.value(freq);
     if (targ_prev * targ < 0.0) {  // Sign change
-      double dsigc_dfreq = (sigc - sigc_prev) / _opt.qp_grid_spacing;
-      double dtarg_dfreq = (targ - targ_prev) / _opt.qp_grid_spacing;
-      // Calculate fixed-point estimate of the pole (=root)
-      double pole = freq_prev - targ_prev / dtarg_dfreq;
-      // Calculate pole weight Z \in (0, 1)
-      double pole_weight = 1.0 / (1.0 - dsigc_dfreq);
-      if (pole_weight >= 1e-5 && pole_weight > pole_weight_max) {
-        qp_energy = pole;
-        pole_weight_max = pole_weight;
+      double f = SolveQP_Bisection(freq_prev, targ_prev, freq, targ, fqp);
+      double gradient = std::abs(fqp.deriv(f));
+      if (gradient < gradient_max) {
+        qp_energy = f;
+        gradient_max = gradient;
+        pole_found = true;
       }
     }
     freq_prev = freq;
-    sigc_prev = sigc;
     targ_prev = targ;
   }
-  if (pole_weight_max >= 0.0) {
+
+  if (pole_found) {
     newf = qp_energy;
   }
   return newf;
 }
-
-// small class which calculates f(w) with and df/dw(w)
-// f=Sigma_c(w)+offset-w
-// offset= e_dft+Sigma_x-Vxc
-class QPFunc {
- public:
-  QPFunc(Index gw_level, const Sigma_base& sigma, double offset)
-      : _gw_level(gw_level), _offset(offset), _sigma_c_func(sigma){};
-  std::pair<double, double> operator()(double frequency) const {
-    std::pair<double, double> value =
-        _sigma_c_func.CalcCorrelationDiagElement(_gw_level, frequency);
-    value.first += (_offset - frequency);
-    value.second -= 1.0;
-    return value;
-  }
-
- private:
-  Index _gw_level;
-  double _offset;
-  const Sigma_base& _sigma_c_func;
-};
 
 boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,
                                                double frequency0,
@@ -334,6 +310,38 @@ boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,
     newf = freq_new;
   }
   return newf;
+}
+
+// https://en.wikipedia.org/wiki/Bisection_method
+double GW::SolveQP_Bisection(double lowerbound, double f_lowerbound,
+                             double upperbound, double f_upperbound,
+                             const QPFunc& f) const {
+
+  if (f_lowerbound * f_upperbound > 0) {
+    throw std::runtime_error(
+        "Bisection needs a postive and negative function value");
+  }
+  double zero = 0.0;
+  while (true) {
+    double c = 0.5 * (lowerbound + upperbound);
+    if (std::abs(upperbound - lowerbound) < _opt.g_sc_limit) {
+      zero = c;
+      break;
+    }
+    double y_c = f.value(c);
+    if (std::abs(y_c) < _opt.g_sc_limit) {
+      zero = c;
+      break;
+    }
+    if (y_c * f_lowerbound > 0) {
+      lowerbound = c;
+      f_lowerbound = y_c;
+    } else {
+      upperbound = c;
+      f_upperbound = y_c;
+    }
+  }
+  return zero;
 }
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
@@ -386,10 +394,9 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
     for (Index i = 0; i < num_states; i++) {
       const Index gw_level = state_inds[i];
       const double omega = frequencies(gw_level) + offset;
-      std::pair<double, double> sigma =
-          _sigma->CalcCorrelationDiagElement(gw_level, omega);
-      mat(grid_point, 2 * i) = omega;
-      mat(grid_point, 2 * i + 1) = sigma.first + intercept[i];
+      double sigma = _sigma->CalcCorrelationDiagElement(gw_level, omega);
+      mat(grid_point, 3 * i) = omega;
+      mat(grid_point, 3 * i + 1) = sigma + intercept[gw_level];
     }
   }
 
@@ -397,7 +404,7 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   out.open(filename);
   for (Index i = 0; i < num_states; i++) {
     const Index gw_level = state_inds[i];
-    out << boost::format("#%1$somega_%2$d\tE_QP(omega)_%2$d") %
+    out << boost::format("#%1$somega_%2$d\tE_QP(omega)_%2$d\t") %
                (i == 0 ? "" : "\t") % gw_level;
   }
   out << std::endl;

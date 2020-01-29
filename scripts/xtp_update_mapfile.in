@@ -32,7 +32,7 @@ VOTCAHEADER = '''\
 {progtitle}
 
 please submit bugs to bugs@votca.org 
-xtp_update_exciton, version {version}
+xtp_update_mapfile, version {version}
 
 '''.format(version=VERSION, progtitle=PROGTITLE)
 
@@ -51,7 +51,7 @@ class XtpHelpFormatter(argparse.HelpFormatter):
         return VOTCAHEADER
 
 
-progargs = argparse.ArgumentParser(prog='xtp_update_exciton',
+progargs = argparse.ArgumentParser(prog='xtp_update_mapfile',
                                    formatter_class=lambda prog: XtpHelpFormatter(
                                        prog, max_help_position=70),
                                    description=PROGDESCR)

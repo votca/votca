@@ -19,6 +19,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <numeric>
 #include <set>
 #include <votca/tools/tokenizer.h>
 #include <votca/xtp/IndexParser.h>

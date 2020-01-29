@@ -33,7 +33,7 @@ VOTCAHEADER = '''\
 {progtitle}
 
 please submit bugs to bugs@votca.org 
-xtp_update, version {version}
+xtp_makeauxbasis, version {version}
 
 '''.format(version=VERSION, progtitle=PROGTITLE)
 

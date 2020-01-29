@@ -21,10 +21,12 @@
 #ifndef VOTCA_XTP_INDEXPARSER_H
 #define VOTCA_XTP_INDEXPARSER_H
 
+#include <string>
+#include <vector>
 #include <votca/tools/types.h>
 
 /**
- * \brief Parser to read strings containing indeces in the format "1 2...7 8"
+ * \brief Parser to read strings containing indexes in the format "1 2:7 8"
  * and returning a sorted expanded std::vector<Index> with only unique entries
  * It can also do the opposite
  */
