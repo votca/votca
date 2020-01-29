@@ -238,11 +238,9 @@ double EulerMaclaurinGrid::RadialIntegral(double alpha, Index l,
   double value = 0.0;
   double valexp;
   if (ilo == 0) {
-    double expo = sqrt(alpha) * cutoff;
-    if (expo > 40.0) {
-      value = 0.0;
-    } else {
-      value = 0.5 * sqrt(pi / alpha) * std::erfc(expo);
+    double expo = std::sqrt(alpha) * cutoff;
+    if (expo <= 40.0) {
+      value = 0.5 * std::sqrt(pi / alpha) * std::erfc(expo);
     }
   }
   double exponent = alpha * cutoff * cutoff;
@@ -250,7 +248,7 @@ double EulerMaclaurinGrid::RadialIntegral(double alpha, Index l,
     valexp = 0.0;
     value = 0.0;
   } else {
-    valexp = exp(-exponent);
+    valexp = std::exp(-exponent);
     value = valexp / 2.0 / alpha;
   }
   for (Index i = ilo + 2; i <= l; i += 2) {

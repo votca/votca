@@ -542,7 +542,6 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
   getline(input_file, line);
   std::vector<std::string> strs;
   boost::algorithm::split(strs, line, boost::is_any_of("(D)"));
-  std::string format = strs.at(2);
 
   while (input_file) {
 
@@ -846,7 +845,6 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
 
   Index occupied_levels = 0;
   Index unoccupied_levels = 0;
-  Index number_of_electrons = 0;
   Index basis_set_size = 0;
 
   XTP_LOG(Log::error, *_pLog)
@@ -901,7 +899,8 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
     if (electrons_pos != std::string::npos) {
       tools::Tokenizer tok(line, "\t ");
       std::vector<std::string> line_split = tok.ToVector();
-      number_of_electrons = boost::lexical_cast<Index>(line_split.front());
+      Index number_of_electrons =
+          boost::lexical_cast<Index>(line_split.front());
       orbitals.setNumberOfAlphaElectrons(number_of_electrons);
       XTP_LOG(Log::error, *_pLog)
           << "Alpha electrons: " << number_of_electrons << flush;

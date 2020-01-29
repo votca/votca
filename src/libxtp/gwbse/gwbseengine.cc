@@ -38,7 +38,6 @@ void GWBSEEngine::Initialize(tools::Property& options,
                              std::string archive_filename) {
 
   _archive_file = archive_filename;
-  std::string key = Identify();
 
   std::string tasks_string = options.get(".tasks").as<std::string>();
 

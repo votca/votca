@@ -208,7 +208,8 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
       _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
       _vxc.diagonal();
   Eigen::VectorXd frequencies_new = frequencies;
-  Eigen::ArrayXi converged = Eigen::ArrayXi::Zero(_qptotal);
+  Eigen::Array<bool, Eigen::Dynamic, 1> converged =
+      Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(_qptotal);
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < _qptotal; ++gw_level) {
     double initial_f = frequencies[gw_level];
@@ -234,10 +235,10 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     }
   }
 
-  if (converged.sum() != converged.size()) {
+  if ((converged == true).all()) {
     std::vector<Index> states;
     for (Index s = 0; s < converged.size(); s++) {
-      if (converged[s] == 0) {
+      if (!converged[s]) {
         states.push_back(s);
       }
     }
@@ -404,7 +405,7 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   out.open(filename);
   for (Index i = 0; i < num_states; i++) {
     const Index gw_level = state_inds[i];
-    out << boost::format("#%1$somega_%2$d\tE_QP(omega)_%2$d\t") %
+    out << boost::format("#%1$somega_%2$d\tE_QP(omega)_%2$d") %
                (i == 0 ? "" : "\t") % gw_level;
   }
   out << std::endl;
