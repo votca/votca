@@ -51,6 +51,10 @@ class Sternheimer {
   void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar,
                              std::vector<std::complex<double>>& grid) const;
 
+  Eigen::MatrixXcd NPAndersonMixing(std::vector<Eigen::MatrixXcd>& Input, std::vector<Eigen::MatrixXcd>& Output, double alpha) const;
+
+  Eigen::MatrixXcd BroydenMixing(std::vector<Eigen::MatrixXcd> Input, std::vector<Eigen::MatrixXcd> Output, double alpha)const;
+  
  private:
   Logger& _log;
 
@@ -108,13 +112,13 @@ class Sternheimer {
                                   const Eigen::MatrixXcd& pertubation,
                                   const Eigen::VectorXd& coeff) const;
   // Calculates the response of the electron density using one shot Sternheimer
-  std::vector<Eigen::MatrixXcd> DeltaNOneShot(
-      std::vector<std::complex<double>> w,
-      const Eigen::MatrixXd& pertubation) const;
-  // Calculates the response of the electron density using self consistent
-  // Sternheimer
-  Eigen::MatrixXcd DeltaNSelfConsistent(std::complex<double> w,
-                                        const Eigen::MatrixXd& initGuess) const;
+  Eigen::MatrixXcd DeltaNOneShot(
+      std::complex<double> w,
+      const Eigen::MatrixXcd& pertubation) const;
+
+  Eigen::MatrixXcd AndersonMixing(Eigen::MatrixXcd inNew, Eigen::MatrixXcd inOld, Eigen::MatrixXcd outNew, Eigen::MatrixXcd outOld, double alpha) const;    
+  
+  
 };
 }  // namespace xtp
 }  // namespace votca

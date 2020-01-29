@@ -123,15 +123,6 @@ std::complex<double> PadeApprox::RecursiveB(std::complex<double> frequency, int 
     std::complex<double> B= ((frequency - _grid.at(index - 2)) *
                                                     _coeff.at(index - 1) *
                                                     RecursiveB(frequency, index - 2) + RecursiveB(frequency, index - 1));
-    // if(abs(B)>1E3){
-    //   std::cout<<"Index="<<index<<std::endl;
-    //   std::cout<<"B_n="<<RecursiveB(frequency, index - 1)<<std::endl;
-    //   std::cout<<"B_n-1="<<RecursiveB(frequency, index - 2)<<std::endl;
-    //   std::cout<<"dist="<<(frequency - _grid.at(index - 2))<<std::endl;
-    //   std::cout<<"dist="<<_coeff.at(index - 1)<<std::endl;
-    //   std::cout<<std::endl;     
-    // }
-
     _temp_container_B.push_back(B);
     return B;
   }
@@ -155,9 +146,9 @@ std::complex<double> PadeApprox::evaluatePoint(std::complex<double> frequency) {
     std::complex<double> B=RecursiveB(frequency, _grid.size());
     std::complex<double> A=RecursiveA(frequency, _grid.size());
 
-    if(norm(B)<1E-6){
-      std::cout<<"Warning B small : B = "<<B<<" A = "<<A<<std::endl;
-    }
+    // if(norm(B)<1E-6){
+    //   std::cout<<"Warning B small : B = "<<B<<" A = "<<A<<std::endl;
+    // }
 
     // if(abs(B)<1E-3){
     //   std::cout<<"Applying correction"<<std::endl;

@@ -41,7 +41,13 @@ class SternheimerW {
   std::vector<Eigen::MatrixXcd> DeltaNOS(std::complex<double> w,
                                          std::string gridtype);
 
-  std::vector<Eigen::MatrixXcd> Polarisability(
+  void printGreensfunction(double omega_start, double omega_end, int steps, double imaginary_shift,
+    double lorentzian_broadening, int resolution_output);
+
+  void printDielectricFunction(double omega_start, double omega_end, int steps, double imaginary_shift,
+    double lorentzian_broadening, int resolution_output, std::string gridtype);
+
+  std::complex<double> SelfEnergy(
       double omega_start, double omega_end, int steps, double imaginary_shift,
     double lorentzian_broadening, int resolution_output, std::string gridtype);
 
@@ -105,14 +111,21 @@ class SternheimerW {
   Eigen::MatrixXcd DeltaNOneShot(std::complex<double> w,
                                            Eigen::Vector3d r)const;
   
-  std::vector<Eigen::MatrixXcd> DeltaNSelfConsistent(std::vector<std::complex<double>>& frequency, Eigen::Vector3d& r) const;
+  Eigen::VectorXd EvaluateBasisAtPosition(const AOBasis& dftbasis,
+                                                 const Eigen::Vector3d& pos)const;
+  Eigen::MatrixXcd DielectricMatrix(Eigen::MatrixXcd deltaN)const;
+  std::complex<double> ScreenedCoulomb(Eigen::Vector3d gridpoint1, Eigen::Vector3d gridpoint2, std::complex<double> frequency)const;
 
   Eigen::MatrixXcd GreensFunctionLHS(std::complex<double> w) const;
   Eigen::MatrixXcd GreensFunctionRHS(Eigen::Vector3d r) const;
 
-  Eigen::MatrixXcd AnalyticGreensfunction(std::complex<double> w, Eigen::Vector3d r) const;
+  Eigen::MatrixXcd AnalyticGreensfunction(std::complex<double> w) const;
 
+  double Lorentzian(double r, std::complex<double> freq)const;
 
+  Eigen::MatrixXcd NonAnalyticGreensfunction(std::complex<double> freq)const;
+
+  std::complex<double> GreensFunction(Eigen::Vector3d gridpoint1, Eigen::Vector3d gridpoint2, std::complex<double> frequency)const;
 
 };
 }  // namespace xtp

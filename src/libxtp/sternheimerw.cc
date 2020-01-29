@@ -35,6 +35,28 @@
 namespace votca {
 namespace xtp {
 
+Eigen::VectorXd SternheimerW::EvaluateBasisAtPosition(const AOBasis& dftbasis,
+                                                 const Eigen::Vector3d& pos)const{
+
+  // get value of orbitals at each gridpoint
+  Eigen::VectorXd tmat = Eigen::VectorXd::Zero(dftbasis.AOBasisSize());
+  for (const AOShell& shell : dftbasis) {
+    const double decay = shell.getMinDecay();
+    const Eigen::Vector3d& shellpos = shell.getPos();
+    Eigen::Vector3d dist = shellpos - pos;
+    double distsq = dist.squaredNorm();
+    // if contribution is smaller than -ln(1e-10), calc density
+    if ((decay * distsq) < 20.7) {
+      Eigen::VectorBlock<Eigen::VectorXd> tmat_block =
+          tmat.segment(shell.getStartIndex(), shell.getNumFunc());
+      shell.EvalAOspace(tmat_block, pos);
+    }
+  }
+  return tmat;
+}
+
+
+
 void SternheimerW::Initialize() {
 
   this->_num_occ_lvls = _orbitals.getNumberOfAlphaElectrons();
@@ -187,10 +209,52 @@ Eigen::MatrixXcd SternheimerW::DeltaNOneShot(
   return delta_n;
 }
 
-Eigen::MatrixXcd DielectricMatrix(Eigen::MatrixXcd deltaN){
+Eigen::MatrixXcd SternheimerW::DielectricMatrix(Eigen::MatrixXcd deltaN)const{
 
   return Eigen::MatrixXcd::Identity(deltaN.rows(),deltaN.cols())-deltaN;
 
+}
+void SternheimerW::printDielectricFunction(double omega_start, double omega_end, int steps, double imaginary_shift,
+    double lorentzian_broadening, int resolution_output, std::string gridtype){
+
+    std::vector<std::complex<double>> grid_w =
+      BuildGrid(omega_start, omega_end, steps, 0);
+
+    AOBasis dftbasis = _orbitals.SetupDftBasis();
+    
+    NumericalIntegration numint;
+    numint.GridSetup(gridtype, _orbitals.QMAtoms(),
+                   dftbasis);
+    std::vector<std::pair<double, const Eigen::Vector3d*>> grid =
+      numint.getGridpoints();
+
+    std::cout << "gridsize= " << numint.getGridSize() << std::endl;
+
+    
+    for (int o = 0; o < grid_w.size(); o++) {
+      for (const std::pair<double, const Eigen::Vector3d*> point: grid) {  
+        Eigen::Vector3d gridcont = *point.second;
+        Eigen::MatrixXcd dielectricMatrix = DielectricMatrix(DeltaNOneShot(grid_w[o], *point.second));
+        Eigen::MatrixXcd ScreenedCoulomb=dielectricMatrix.inverse()*CoulombMatrix(*point.second);
+      }
+    }
+}
+
+std::complex<double> SternheimerW::ScreenedCoulomb(Eigen::Vector3d gridpoint1, Eigen::Vector3d gridpoint2, std::complex<double> frequency)const{
+
+  AOBasis basis = _orbitals.SetupDftBasis();
+  Eigen::MatrixXcd dielectricMatrix = DielectricMatrix(DeltaNOneShot(frequency, gridpoint1));
+  Eigen::MatrixXcd ScreenedCoulombMatrix = dielectricMatrix.inverse()*CoulombMatrix(gridpoint1);      
+  std::complex<double>  W=0.0;
+  
+  for(int n=0; n < _basis_size; n++){
+    for(int m; m < _basis_size; m++){
+
+      W+=EvaluateBasisAtPosition(basis,gridpoint2)(n)*ScreenedCoulombMatrix(n,m)*EvaluateBasisAtPosition(basis,gridpoint2)(m);
+
+    }
+  }
+  return W;
 }
 
 Eigen::MatrixXcd SternheimerW::GreensFunctionLHS(std::complex<double> w) const{
@@ -200,61 +264,113 @@ Eigen::MatrixXcd SternheimerW::GreensFunctionLHS(std::complex<double> w) const{
 
 }
 
-Eigen::MatrixXcd SternheimerW::AnalyticGreensfunction(std::complex<double> w, Eigen::Vector3d r) const{
-
+Eigen::MatrixXcd SternheimerW::AnalyticGreensfunction(std::complex<double> w) const{
   return GreensFunctionLHS(w).colPivHouseholderQr().solve(-1*Eigen::MatrixXcd::Identity(_basis_size,_basis_size));
 
 }
 
-std::vector<Eigen::MatrixXcd> SternheimerW::Polarisability(
+double SternheimerW::Lorentzian(double center, std::complex<double> freq)const{
+  double gamma=0.001;
+
+  //double prefactor = 1/(votca::tools::conv::Pi*gamma);
+  double enumerator = gamma*gamma;
+  double denominator = (std::pow(abs(freq-center),2)+gamma*gamma);
+  return (enumerator/denominator);
+
+}
+
+Eigen::MatrixXcd SternheimerW::NonAnalyticGreensfunction(std::complex<double> freq)const{
+  Eigen::MatrixXcd NonAnalyticGreens=Eigen::MatrixXcd::Zero(_basis_size,_basis_size);
+
+  std::complex<double> factor(0,2*votca::tools::conv::Pi);
+
+  for(int v=0; v<_num_occ_lvls;v++){
+    NonAnalyticGreens+=factor*Lorentzian(_mo_energies[v],freq)*_mo_coefficients.col(v)*_mo_coefficients.col(v).transpose();
+  }
+
+  return NonAnalyticGreens;
+}
+
+std::complex<double> SternheimerW::GreensFunction(Eigen::Vector3d gridpoint1, Eigen::Vector3d gridpoint2, std::complex<double> frequency)const{
+
+  AOBasis basis = _orbitals.SetupDftBasis();
+
+  Eigen::MatrixXcd GreensFunctionMatrix = NonAnalyticGreensfunction(frequency)+AnalyticGreensfunction(frequency);
+
+  std::complex<double>  G=0.0;
+  
+  for(int n=0; n < _basis_size; n++){
+    for(int m; m < _basis_size; m++){
+
+      G+=EvaluateBasisAtPosition(basis,gridpoint1)(n)*GreensFunctionMatrix(n,m)*EvaluateBasisAtPosition(basis,gridpoint2)(m);
+
+    }
+  }
+  return G;
+}
+
+void SternheimerW::printGreensfunction(double omega_start, double omega_end, int steps, double imaginary_shift,
+    double lorentzian_broadening, int resolution_output){
+
+    std::vector<std::complex<double>> grid_w =
+      BuildGrid(omega_start, omega_end, steps, 0);
+
+    for(std::complex<double> w: grid_w){
+
+      double Greens=imag((AnalyticGreensfunction(w)+NonAnalyticGreensfunction(w)).trace());
+
+      std::cout<< real(w) <<" "<<Greens<<" "<<real(AnalyticGreensfunction(w).trace())<<" "<<imag(NonAnalyticGreensfunction(w).trace())<<std::endl;
+
+    }
+
+
+}
+
+
+
+std::complex<double> SternheimerW::SelfEnergy(
     double omega_start, double omega_end, int steps, double imaginary_shift,
     double lorentzian_broadening, int resolution_output, std::string gridtype) {
   
-  std::vector<std::complex<double>> grid_w =
-      BuildGrid(omega_start, omega_end, steps, imaginary_shift);
   std::vector<std::complex<double>> w =
       BuildGrid(omega_start, omega_end, steps, 0);
   
-  //initializePade(3);
-  //initializeMultishift(_orbitals.getBasisSetSize());
-
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   NumericalIntegration numint;
   numint.GridSetup(gridtype, _orbitals.QMAtoms(),
-                   dftbasis);  // For now use medium grid
+                   dftbasis);
   std::vector<std::pair<double, const Eigen::Vector3d*>> grid =
       numint.getGridpoints();
 
   std::cout << "gridsize= " << numint.getGridSize() << std::endl;
+  
+  std::complex<double> SelfEnergy = 0.0;
 
-  AOBasis basis = _orbitals.SetupDftBasis();
-  
-  std::vector<Eigen::MatrixXcd> Polar;
-  
-  int index=0;
-  for (const std::pair<double, const Eigen::Vector3d*> point: grid) {  
-    //std::vector<Eigen::MatrixXcd> delta_n = DeltaNOneShot(grid_w, *point.second);
-    Eigen::Vector3d gridcont = *point.second;
-    for (int o = 0; o < grid_w.size(); o++) {
-      Eigen::MatrixXcd dielectricMatrix = DielectricMatrix(DeltaNOneShot(grid_w[o], *point.second));
-    }
-    if(index%1000==0){
-        std::cout<<"Iteration="<<index<<std::endl;
-    }
-    index++;
-  }
-  
-  for (int i = 0; i < Polar.size(); i++) {
-    //_pade.addPoint(grid_w[i], Polar[i].real());
-    //_pade.addPoint(conj(grid_w[i]), Polar[i].real());
-  }
+  double stepsize = (omega_end - omega_start) / steps;
 
-  //std::vector<Eigen::MatrixXcd> Polar_pade;
-  for (std::complex<double> w:w) {
-    std::cout<<"Calculated Point number"<<w<<std::endl;
-    //Polar_pade.push_back(_pade.evaluatePoint(w));
-  }
-  return Polar;
+  for(std::pair<double, const Eigen::Vector3d*> r: grid){
+    for(std::pair<double, const Eigen::Vector3d*> r_p: grid){
+      for(std::complex<double> omega: w){
+          //SelfEnergy+=ScreenedCoulomb(r.second()*,r_p.second()*,omega)*(GreensFunction(r.second()*,r_p.second()*,omega));
+      }
+    }
+  }  
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 }
 
 }  // namespace xtp

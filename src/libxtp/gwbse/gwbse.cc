@@ -590,15 +590,19 @@ bool GWBSE::Evaluate() {
 
 
     Sternheimer sternheimer(_orbitals, *_pLog);
+    SternheimerW sternheimerw(_orbitals, *_pLog);
 
     std::vector<Eigen::Matrix3cd> polar;
 
     // XTP_LOG(logDEBUG, *_pLog)<<TimeStamp()<<" Initialised Grid "<<flush;
 
     sternheimer.Initialize();
+    //sternheimerw.Initialize();
     polar = sternheimer.Polarisability(_gwopt.omegain,_gwopt.omegafin,_gwopt.step, _gwopt.imshift,
-      _gwopt.lorentzian_broadening,_gwopt.resolution);
-    
+       _gwopt.lorentzian_broadening,_gwopt.resolution);
+    //sternheimerw.printGreensfunction(_gwopt.omegain,_gwopt.omegafin,_gwopt.step, _gwopt.imshift,
+      //_gwopt.lorentzian_broadening,_gwopt.resolution);
+
     std::cout << std::endl << "Finished Sternheimer" << std::endl;
 
   } else {
