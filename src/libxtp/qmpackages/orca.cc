@@ -593,22 +593,19 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
         if (occ == 2 || occ == 1) {
           number_of_electrons++;
           occupancy[i] = occ;
-        } else if (occ == 0) {
-          occupancy[i] = occ;
-        } else {
           if (occ == 1) {
             XTP_LOG(Log::error, *_pLog)
                 << "Watch out! No distinction between alpha and beta "
                    "electrons. Check if occ = 1 is suitable for your "
                    "calculation "
                 << flush;
-            number_of_electrons++;
-            occupancy[i] = occ;
-          } else {
-            throw runtime_error(
-                "Only empty or doubly occupied orbitals are allowed not "
-                "running the right kind of DFT calculation");
           }
+        } else if (occ == 0) {
+          occupancy[i] = occ;
+        } else {
+          throw runtime_error(
+              "Only empty or doubly occupied orbitals are allowed not "
+              "running the right kind of DFT calculation");
         }
         std::string e = results[2];
         boost::trim(e);

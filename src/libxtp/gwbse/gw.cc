@@ -22,8 +22,9 @@
 #include "votca/xtp/sigma_ppm.h"
 #include <fstream>
 #include <iostream>
-#include <votca/tools/rangeparser.h>
+#include <votca/xtp/IndexParser.h>
 #include <votca/xtp/gw.h>
+#include <votca/xtp/newton_rapson.h>
 
 namespace votca {
 namespace xtp {
@@ -70,8 +71,8 @@ Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> GW::DiagonalizeQPHamiltonian()
 }
 
 void GW::PrintGWA_Energies() const {
-
-  double shift = CalcHomoLumoShift(_gwa_energies);
+  Eigen::VectorXd gwa_energies = getGWAResults();
+  double shift = CalcHomoLumoShift(gwa_energies);
 
   XTP_LOG(Log::error, _log)
       << (boost::format(
@@ -95,7 +96,7 @@ void GW::PrintGWA_Energies() const {
         << (boost::format(" = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
                           "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
             (i + _opt.qpmin) % _dft_energies(i + _opt.qpmin) % _vxc(i, i) %
-            _Sigma_x(i, i) % _Sigma_c(i, i) % _gwa_energies(i))
+            _Sigma_x(i, i) % _Sigma_c(i, i) % gwa_energies(i))
                .str()
         << std::flush;
   }
@@ -103,6 +104,7 @@ void GW::PrintGWA_Energies() const {
 }
 
 void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
+  Eigen::VectorXd gwa_energies = getGWAResults();
   XTP_LOG(Log::error, _log)
       << TimeStamp() << " Full quasiparticle Hamiltonian  " << std::flush;
   XTP_LOG(Log::error, _log)
@@ -120,8 +122,8 @@ void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
     }
     XTP_LOG(Log::error, _log)
         << level
-        << (boost::format(" = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-            (i + _opt.qpmin) % _gwa_energies(i) % qp_diag_energies(i))
+        << (boost::format(" = %1$4d PQP = %2$+1.6f DQP = %3$+1.6f ") %
+            (i + _opt.qpmin) % gwa_energies(i) % qp_diag_energies(i))
                .str()
         << std::flush;
   }
@@ -130,9 +132,6 @@ void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
 
 Eigen::VectorXd GW::ScissorShift_DFTlevel(
     const Eigen::VectorXd& dft_energies) const {
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Scissor shifting DFT energies by: " << _opt.shift
-      << " Hrt" << std::flush;
   Eigen::VectorXd shifted_energies = dft_energies;
   shifted_energies.segment(_opt.homo + 1, dft_energies.size() - _opt.homo - 1)
       .array() += _opt.shift;
@@ -149,6 +148,9 @@ void GW::CalculateGWPerturbation() {
   // rpaenergies/Mmn have size rpatotal
   // gwaenergies/frequencies have size qptotal
   // homo index is relative to dft_energies
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Scissor shifting DFT energies by: " << _opt.shift
+      << " Hrt" << std::flush;
   Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
   _rpa.setRPAInputEnergies(
       dft_shifted_energies.segment(_opt.rpamin, _opt.rpamax - _opt.rpamin + 1));
@@ -164,27 +166,16 @@ void GW::CalculateGWPerturbation() {
     _sigma->PrepareScreening();
     XTP_LOG(Log::info, _log)
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
-    if (_opt.qp_solver == "grid") {
-      frequencies = SolveQP_Grid(frequencies);
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << " Solved QP equation on QP grid" << std::flush;
-    } else if (_opt.qp_solver == "fixedpoint") {
-      frequencies = SolveQP_FixedPoint(frequencies);
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << " Solved QP equation self-consistently"
-          << std::flush;
-    }
-    _gwa_energies = frequencies;
-    _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(_gwa_energies);
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Calculated correlation diagonal" << std::flush;
+    XTP_LOG(Log::info, _log)
+        << TimeStamp() << " Solving QP equations " << std::flush;
+    frequencies = SolveQP(frequencies);
 
     if (_opt.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
       _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
       XTP_LOG(Log::error, _log)
           << TimeStamp() << " GW_Iteration:" << i_gw
-          << " Shift[Hrt]:" << CalcHomoLumoShift(_gwa_energies) << std::flush;
+          << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;
       if (Converged(_rpa.getRPAInputEnergies(), rpa_energies_old,
                     _opt.gw_sc_limit)) {
         XTP_LOG(Log::error, _log)
@@ -203,83 +194,155 @@ void GW::CalculateGWPerturbation() {
       }
     }
   }
-
+  _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies);
   PrintGWA_Energies();
 }
 
-Eigen::VectorXd GW::SolveQP_Grid(const Eigen::VectorXd& frequencies) const {
-  const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
-  const double range =
-      _opt.qp_grid_spacing * (double)(_opt.qp_grid_steps - 1) / 2.0;
-  const Eigen::VectorXd intercept =
+Eigen::VectorXd GW::getGWAResults() const {
+  return _Sigma_x.diagonal() + _Sigma_c.diagonal() - _vxc.diagonal() +
+         _dft_energies.segment(_opt.qpmin, _qptotal);
+}
+
+Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
+  const Eigen::VectorXd intercepts =
       _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
       _vxc.diagonal();
   Eigen::VectorXd frequencies_new = frequencies;
+  Eigen::Array<bool, Eigen::Dynamic, 1> converged =
+      Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(_qptotal);
 #pragma omp parallel for schedule(dynamic)
-  for (Index gw_level = 0; gw_level < qptotal; ++gw_level) {
-    const double frequency0 = frequencies[gw_level];
-    const double intercept0 = intercept[gw_level];
-    double freq_prev = frequency0 - range;
-    double sigc_prev = _sigma->CalcCorrelationDiagElement(gw_level, freq_prev);
-    double targ_prev = sigc_prev + intercept0 - freq_prev;
-    double qp_energy = 0.0;
-    double pole_weight_max = -1.0;
-    for (Index i_node = 1; i_node < _opt.qp_grid_steps; ++i_node) {
-      double freq = freq_prev + _opt.qp_grid_spacing;
-      double sigc = _sigma->CalcCorrelationDiagElement(gw_level, freq);
-      double targ = sigc + intercept0 - freq;
-      if (targ_prev * targ < 0.0) {  // Sign change
-        double dsigc_dfreq = (sigc - sigc_prev) / _opt.qp_grid_spacing;
-        double dtarg_dfreq = (targ - targ_prev) / _opt.qp_grid_spacing;
-        // Calculate fixed-point estimate of the pole (=root)
-        double pole = freq_prev - targ_prev / dtarg_dfreq;
-        // Calculate pole weight Z \in (0, 1)
-        double pole_weight = 1.0 / (1.0 - dsigc_dfreq);
-        if (pole_weight >= 1e-5 && pole_weight > pole_weight_max) {
-          qp_energy = pole;
-          pole_weight_max = pole_weight;
+  for (Index gw_level = 0; gw_level < _qptotal; ++gw_level) {
+    double initial_f = frequencies[gw_level];
+    double intercept = intercepts[gw_level];
+    boost::optional<double> newf;
+    if (_opt.qp_solver == "fixedpoint") {
+      newf = SolveQP_FixedPoint(intercept, initial_f, gw_level);
+    }
+    if (newf) {
+      frequencies_new[gw_level] = newf.value();
+      converged[gw_level] = true;
+    } else {
+      newf = SolveQP_Grid(intercept, initial_f, gw_level);
+      if (newf) {
+        frequencies_new[gw_level] = newf.value();
+        converged[gw_level] = true;
+      } else {
+        newf = SolveQP_Linearisation(intercept, initial_f, gw_level);
+        if (newf) {
+          frequencies_new[gw_level] = newf.value();
         }
       }
-      freq_prev = freq;
-      sigc_prev = sigc;
-      targ_prev = targ;
     }
-    if (pole_weight_max >= 0.0) {
-      frequencies_new[gw_level] = qp_energy;
+  }
+
+  if (!converged.all()) {
+    std::vector<Index> states;
+    for (Index s = 0; s < converged.size(); s++) {
+      if (!converged[s]) {
+        states.push_back(s);
+      }
     }
+    IndexParser rp;
+    XTP_LOG(Log::error, _log) << TimeStamp() << " Not converged PQP states are:"
+                              << rp.CreateIndexString(states) << std::flush;
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Increase the grid search interval" << std::flush;
   }
   return frequencies_new;
 }
 
-Eigen::VectorXd GW::SolveQP_FixedPoint(
-    const Eigen::VectorXd& frequencies) const {
-  const Index qptotal = _opt.qpmax - _opt.qpmin + 1;
-  const Eigen::VectorXd intercept =
-      _dft_energies.segment(_opt.qpmin, _qptotal) + _Sigma_x.diagonal() -
-      _vxc.diagonal();
-  Eigen::VectorXd frequencies_new = frequencies;
+boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
+                                                  double frequency0,
+                                                  Index gw_level) const {
+  boost::optional<double> newf = boost::none;
 
-#pragma omp parallel for schedule(dynamic)
-  for (Index gw_level = 0; gw_level < qptotal; ++gw_level) {
-    const double intercept0 = intercept[gw_level];
-    double freq = frequencies[gw_level];
+  double sigma = _sigma->CalcCorrelationDiagElement(gw_level, frequency0);
+  double dsigma_domega =
+      _sigma->CalcCorrelationDiagElementDerivative(gw_level, frequency0);
+  double Z = 1.0 - dsigma_domega;
+  if (std::abs(Z) > 1e-9) {
+    newf = frequency0 + (intercept0 - frequency0 + sigma) / Z;
+  }
+  return newf;
+}
 
-    for (Index g_iter = 0; g_iter < _opt.g_sc_max_iterations; ++g_iter) {
-      double freq_prev = freq;
-
-      double sigc = _sigma->CalcCorrelationDiagElement(gw_level, freq);
-      // Update frequency via fixed-point iteration
-      freq = sigc + intercept0;
-      if (std::abs(freq - freq_prev) < _opt.g_sc_limit) {
-        break;  // Converged
-      } else if (_opt.g_sc_max_iterations != 0 &&
-                 g_iter == _opt.g_sc_max_iterations - 1) {
-        break;  // Not converged
+boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
+                                         Index gw_level) const {
+  const double range =
+      _opt.qp_grid_spacing * double(_opt.qp_grid_steps - 1) / 2.0;
+  boost::optional<double> newf = boost::none;
+  double freq_prev = frequency0 - range;
+  QPFunc fqp(gw_level, *_sigma.get(), intercept0);
+  double targ_prev = fqp.value(freq_prev);
+  double qp_energy = 0.0;
+  double gradient_max = std::numeric_limits<double>::max();
+  bool pole_found = false;
+  for (Index i_node = 1; i_node < _opt.qp_grid_steps; ++i_node) {
+    double freq = freq_prev + _opt.qp_grid_spacing;
+    double targ = fqp.value(freq);
+    if (targ_prev * targ < 0.0) {  // Sign change
+      double f = SolveQP_Bisection(freq_prev, targ_prev, freq, targ, fqp);
+      double gradient = std::abs(fqp.deriv(f));
+      if (gradient < gradient_max) {
+        qp_energy = f;
+        gradient_max = gradient;
+        pole_found = true;
       }
     }
-    frequencies_new[gw_level] = freq;
+    freq_prev = freq;
+    targ_prev = targ;
   }
-  return frequencies_new;
+
+  if (pole_found) {
+    newf = qp_energy;
+  }
+  return newf;
+}
+
+boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,
+                                               double frequency0,
+                                               Index gw_level) const {
+  boost::optional<double> newf = boost::none;
+  QPFunc f(gw_level, *_sigma.get(), intercept0);
+  NewtonRapson<QPFunc> newton = NewtonRapson<QPFunc>(
+      _opt.g_sc_max_iterations, _opt.g_sc_limit, _opt.qp_solver_alpha);
+  double freq_new = newton.FindRoot(f, frequency0);
+  if (newton.getInfo() == NewtonRapson<QPFunc>::success) {
+    newf = freq_new;
+  }
+  return newf;
+}
+
+// https://en.wikipedia.org/wiki/Bisection_method
+double GW::SolveQP_Bisection(double lowerbound, double f_lowerbound,
+                             double upperbound, double f_upperbound,
+                             const QPFunc& f) const {
+
+  if (f_lowerbound * f_upperbound > 0) {
+    throw std::runtime_error(
+        "Bisection needs a postive and negative function value");
+  }
+  double zero = 0.0;
+  while (true) {
+    double c = 0.5 * (lowerbound + upperbound);
+    if (std::abs(upperbound - lowerbound) < _opt.g_sc_limit) {
+      zero = c;
+      break;
+    }
+    double y_c = f.value(c);
+    if (std::abs(y_c) < _opt.g_sc_limit) {
+      zero = c;
+      break;
+    }
+    if (y_c * f_lowerbound > 0) {
+      lowerbound = c;
+      f_lowerbound = y_c;
+    } else {
+      upperbound = c;
+      f_upperbound = y_c;
+    }
+  }
+  return zero;
 }
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
@@ -296,30 +359,29 @@ bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
 }
 
 void GW::CalculateHQP() {
-  _rpa.UpdateRPAInputEnergies(_dft_energies, _gwa_energies, _opt.qpmin);
   Eigen::VectorXd diag_backup = _Sigma_c.diagonal();
-  _Sigma_c = _sigma->CalcCorrelationOffDiag(_gwa_energies);
+  _Sigma_c = _sigma->CalcCorrelationOffDiag(getGWAResults());
   _Sigma_c.diagonal() = diag_backup;
 }
 
 void GW::PlotSigma(std::string filename, Index steps, double spacing,
                    std::string states) const {
 
-  Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
   Eigen::VectorXd frequencies =
-      dft_shifted_energies.segment(_opt.qpmin, _qptotal);
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Writing quasiparticle frequency dependence to "
-      << filename << std::flush;
+      _rpa.getRPAInputEnergies().segment(_opt.qpmin - _opt.rpamin, _qptotal);
 
   std::vector<Index> state_inds;
-  tools::RangeParser rp;
-  rp.Parse(states);
-  for (Index gw_level : rp) {
+  IndexParser rp;
+  std::vector<Index> parsed_states = rp.CreateIndexVector(states);
+  for (Index gw_level : parsed_states) {
     if (gw_level >= _opt.qpmin && gw_level <= _opt.qpmax) {
       state_inds.push_back(gw_level);
     }
   }
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " PQP(omega) written to '" << filename
+      << "' for states " << rp.CreateIndexString(state_inds) << std::flush;
+
   const Index num_states = state_inds.size();
 
   const Eigen::VectorXd intercept =
@@ -333,9 +395,9 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
     for (Index i = 0; i < num_states; i++) {
       const Index gw_level = state_inds[i];
       const double omega = frequencies(gw_level) + offset;
-      const double sigma = _sigma->CalcCorrelationDiagElement(gw_level, omega);
-      mat(grid_point, 2 * gw_level) = omega;
-      mat(grid_point, 2 * gw_level + 1) = sigma + intercept[i];
+      double sigma = _sigma->CalcCorrelationDiagElement(gw_level, omega);
+      mat(grid_point, 2 * i) = omega;
+      mat(grid_point, 2 * i + 1) = sigma + intercept[gw_level];
     }
   }
 

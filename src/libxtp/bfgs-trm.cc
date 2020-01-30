@@ -38,7 +38,6 @@ void BFGSTRM::Optimize(const Eigen::VectorXd& initialparameters) {
   Eigen::VectorXd last_gradient = Eigen::VectorXd::Zero(_parameters.size());
   double delta_cost = 0;
   for (_iteration = 1; _iteration <= _max_iteration; _iteration++) {
-    bool step_accepted = false;
     for (Index i = 0; i < 100; i++) {
       TrustRegion subproblem;
       delta_p_trial =
@@ -46,7 +45,8 @@ void BFGSTRM::Optimize(const Eigen::VectorXd& initialparameters) {
       double trialcost =
           _costfunction.EvaluateCost(_parameters + delta_p_trial);
       delta_cost = trialcost - lastcost;
-      step_accepted = AcceptRejectStep(delta_p_trial, gradient, delta_cost);
+      bool step_accepted =
+          AcceptRejectStep(delta_p_trial, gradient, delta_cost);
       if (step_accepted) {
         _cost = trialcost;
         _parameters += delta_p_trial;

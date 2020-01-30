@@ -44,7 +44,6 @@ void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
                             << " threads ===== " << flush;
 
   const QMMolecule& Atomlist = orbitals.QMAtoms();
-  Eigen::MatrixXd DMAT_tot;
   BasisSet bs;
   bs.Load(orbitals.getDFTbasisName());
   AOBasis basis;
@@ -57,7 +56,7 @@ void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
   DensityIntegration<Vxc_Grid> numway(grid);
 
   if (!_dostateonly) {
-    Eigen::MatrixXd DMATGS = orbitals.DensityMatrixFull(_state);
+    Eigen::MatrixXd DMAT_tot = orbitals.DensityMatrixFull(_state);
     Gyrationtensor gyro = numway.IntegrateGyrationTensor(DMAT_tot);
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
     es.computeDirect(gyro.gyration);

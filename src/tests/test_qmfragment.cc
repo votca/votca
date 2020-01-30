@@ -26,7 +26,7 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(qmfragment_test)
 
 BOOST_AUTO_TEST_CASE(stringprocessing) {
-  std::string index = "1 2 3 5...9";
+  std::string index = "1 2 3 5:9";
   QMFragment<double> frag(0, index);
   std::vector<Index> ref = {1, 2, 3, 5, 6, 7, 8, 9};
 
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(stringprocessing) {
 }
 
 BOOST_AUTO_TEST_CASE(readinandwritinghdf5) {
-  std::string index = "1 2 3 5...9";
+  std::string index = "1 2 3 5:9";
   QMFragment<double> frag(0, index);
 
   frag.value() = -0.5;
