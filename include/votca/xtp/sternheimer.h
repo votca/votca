@@ -53,6 +53,8 @@ class Sternheimer {
   void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar,
                              std::vector<std::complex<double>>& grid) const;
 
+  std::vector<double> getIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar) const;
+
   Eigen::MatrixXcd NPAndersonMixing(std::vector<Eigen::MatrixXcd>& Input, std::vector<Eigen::MatrixXcd>& Output, double alpha) const;
 
   Eigen::MatrixXcd BroydenMixing(std::vector<Eigen::MatrixXcd> Input, std::vector<Eigen::MatrixXcd> Output, double alpha)const;

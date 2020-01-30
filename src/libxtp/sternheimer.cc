@@ -208,8 +208,8 @@ Eigen::MatrixXcd Sternheimer::DeltaNOneShot(
     perturbationVectorInput.push_back(perturbationUsed);
   }else{
 
-    perturbationUsed = (BroydenMixing(perturbationVectorInput, perturbationVectoroutput, 0.5));
-    //perturbationUsed = (NPAndersonMixing(perturbationVectorInput, perturbationVectoroutput, 0.5));
+    //perturbationUsed = (BroydenMixing(perturbationVectorInput, perturbationVectoroutput, 0.5));
+    perturbationUsed = (NPAndersonMixing(perturbationVectorInput, perturbationVectoroutput, 0.5));
     //std::cout<<"test"<<std::endl;
     if(perturbationVectorInput.size()>4){
       perturbationVectorInput.erase(perturbationVectorInput.begin());
@@ -241,8 +241,25 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(std::vector<Eigen::MatrixXcd>& In
 
   //std::cout<<"Started Anderson Mixing with size "<<Input.size()<<" Output size = "<<Output.size()<<std::endl;
 
+  //std::vector<Eigen::VectorXcd> Input_vec;
+  //std::vector<Eigen::VectorXcd> Output_vec;
+
+  // for(int i=0; i<Input.size(); i++){
+
+  //   Eigen::Map<Eigen::VectorXcd> v1(Input.at(i).data(), Input.at(i).size());
+  //   Eigen::Map<Eigen::VectorXcd> v2(Output.at(i).data(), Output.at(i).size());
+  //   Input_vec.push_back(v1);
+  //   Output_vec.push_back(v2);
+
+
+  // }
+  
+  //int size = Input_vec.size();
+
   //Calculating Delta N and saving it for speedup
+  
   Eigen::MatrixXcd DeltaN = Output.back()-Input.back();
+  //Eigen::VectorXcd DeltaN= Output_vec.back()-Input.back();
 
     //std::cout<<"1"<<std::endl;
 
@@ -256,10 +273,11 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(std::vector<Eigen::MatrixXcd>& In
   for(int m = 1; m<Input.size(); m++){
     
     c(m-1)=(DeltaN-Output.at(Output.size()-1-m)+Input.at(Input.size()-1-m)).cwiseProduct(DeltaN).sum().real();
+    //c(m-1)=(DeltaN-Output_vec.at(size-1-m)+Input_vec.at(size-1-m)).dot(DeltaN).real();
     for(int j = 1; j<Input.size(); j++){
 
       A(m-1,j-1) = (DeltaN-Output.at(Output.size()-1-m)+Input.at(Input.size()-1-m)).cwiseProduct(DeltaN-Output.at(Output.size()-1-j)+Input.at(Input.size()-1-j)).sum().real();
-
+      //A(m-1,j-1) = (DeltaN-Output_vec.at(size-1-m)+Input_vec.at(size-1-m)).dot(DeltaN-Output_vec.at(size-1-j)+Input_vec.at(size-1-j));
     }
   }
   //Solving the System to obtain coefficients
@@ -269,12 +287,15 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(std::vector<Eigen::MatrixXcd>& In
 
   Eigen::MatrixXcd OutMixed = Output.back();
   Eigen::MatrixXcd InMixed = Input.back();
-
+  //Eigen::VectorXcd OutMixed = Output_vec.back();
+  //Eigen::VectorXcd InMixed = Input_vec.back();
 
   for(int n=1;n<Input.size();n++){
 
-    OutMixed+=coefficients(n)*(Output.at(Output.size()-1-n)-Output.at(Output.size()-1));
-    InMixed+=coefficients(n)*(Input.at(Input.size()-1-n)-Input.at(Input.size()-1));
+    OutMixed+=coefficients(n-1)*(Output.at(Output.size()-1-n)-Output.at(Output.size()-1));
+    InMixed+=coefficients(n-1)*(Input.at(Input.size()-1-n)-Input.at(Input.size()-1));
+    //OutMixed+=coefficients(n-1)*(Output_vec.at(size-1-n)-Output_vec.back();
+    //InMixed+=coefficients(n-1)*(Input_vec.at(size-1-n)-Input_vec.back();
 
   }
 
@@ -455,6 +476,19 @@ void Sternheimer::printIsotropicAverage(
                      real(polar.at(i)(0, 0)) / 3
               << std::endl;
   }
-}
+  }
+  std::vector<double> Sternheimer::getIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar) const{
+
+    std::vector<double> iA;
+
+    for(int i=0; i<polar.size(); i++){
+
+      iA.push_back(real((polar.at(i)(2, 2))) + real(polar.at(i)(1, 1)) +
+                     real(polar.at(i)(0, 0)) / 3);
+
+    }
+
+  }
+
 }  // namespace xtp
 }  // namespace votca
