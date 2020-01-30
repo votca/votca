@@ -235,7 +235,7 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     }
   }
 
-  if ((converged == false).any()) {
+  if (!converged.all()) {
     std::vector<Index> states;
     for (Index s = 0; s < converged.size(); s++) {
       if (!converged[s]) {
