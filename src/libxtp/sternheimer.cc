@@ -188,7 +188,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNOneShot(
  
   Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(delta_n_out_new);
 
-  if(perturbationVectoroutput.size()>19){
+  if(perturbationVectoroutput.size()>4){
     perturbationVectoroutput.erase(perturbationVectoroutput.begin());
   }
 
@@ -209,8 +209,9 @@ Eigen::MatrixXcd Sternheimer::DeltaNOneShot(
   }else{
 
     perturbationUsed = (BroydenMixing(perturbationVectorInput, perturbationVectoroutput, 0.5));
+    //perturbationUsed = (NPAndersonMixing(perturbationVectorInput, perturbationVectoroutput, 0.5));
     //std::cout<<"test"<<std::endl;
-    if(perturbationVectorInput.size()>19){
+    if(perturbationVectorInput.size()>4){
       perturbationVectorInput.erase(perturbationVectorInput.begin());
     }
     perturbationVectorInput.push_back(perturbationUsed);
@@ -293,17 +294,32 @@ Eigen::MatrixXcd Sternheimer::BroydenMixing(std::vector<Eigen::MatrixXcd> Input,
   Eigen::MatrixXd alpha = Eigen::MatrixXd::Zero(histSize-1,histSize-1);
   Eigen::MatrixXd beta = Eigen::MatrixXd::Zero(histSize-1,histSize-1);
   Eigen::VectorXd weights = Eigen::VectorXd::Zero(histSize);
-
+  //std::cout<<"1"<<std::endl;
   for(int m=0;m<histSize;m++){
-    weights(m)=1/sqrt(((Output.at(m)-Input.at(m)).cwiseProduct(Output.at(m)-Input.at(m)).sum().real()));
+    weights(m)=1/sqrt(abs((Output.at(m)-Input.at(m)).cwiseProduct((Output.at(m)-Input.at(m))).sum().real()));
+    //std::cout<<"check "<<((Output.at(m)-Input.at(m)).cwiseProduct(Output.at(m)-Input.at(m)).real().sum())<<std::endl;
   }
+  //std::cout<<"2"<<std::endl;
   for(int m=0;m<histSize-1;m++){
     for(int l=0;l<histSize-1;l++){
       alpha(m,l)=weights(m)*weights(l)*((Output.at(l+1)-Input.at(l+1)-Output.at(l)+Input.at(l))/(Output.at(l+1)-Input.at(l+1)-Output.at(l)+Input.at(l)).norm()).cwiseProduct(
                     ((Output.at(m+1)-Input.at(m+1)-Output.at(m)+Input.at(m))/(Output.at(m+1)-Input.at(m+1)-Output.at(m)+Input.at(m)).norm())).sum().real();
+
+                    // if(alpha(m,l)!=alpha(m,l)){
+                    //   std::cout<<"denominator1 = "<< (Output.at(l+1)-Input.at(l+1)-Output.at(l)+Input.at(l)).norm() <<std::endl;
+                    //   std::cout<<"denominator2 = "<< (Output.at(m+1)-Input.at(m+1)-Output.at(m)+Input.at(m)).norm() <<std::endl;
+                    //   std::cout<<"weights="<<weights(m)<<" "<<weights(l)<<std::endl;
+                    // }
     }
   }
+    //std::cout<<"3"<<std::endl;
+  // if(abs((weights(0)*weights(0)*Eigen::MatrixXd::Identity(histSize-1,histSize-1)+alpha).determinant())<10e-6){
+    //std::cout<<"w = "<<weights(0)<<std::endl;
+    //std::cout<<"alpha "<<alpha<<std::endl; 
+
+  // }
   beta=(weights(0)*weights(0)*Eigen::MatrixXd::Identity(histSize-1,histSize-1)+alpha).inverse();
+    //std::cout<<"3.5"<<std::endl;
   for(int m=0;m<histSize;m++){
     for(int l=0;l<histSize-1;l++){
       for(int k=0;k<m-1;k++){
@@ -312,9 +328,9 @@ Eigen::MatrixXcd Sternheimer::BroydenMixing(std::vector<Eigen::MatrixXcd> Input,
       }
     }
   }
-
+    //std::cout<<"4"<<std::endl;
   Eigen::MatrixXcd BroydenMix = Input.back()+FirstInverseJacobian*(Output.back()-Input.back());
-
+    //std::cout<<"5"<<std::endl;
   for(int n=0;n<histSize-1;n++){
 
     BroydenMix -= weights(n)*gamma(histSize,n)*FirstInverseJacobian*((Output.at(n+1)-Input.at(n+1)-Output.at(n)+Input.at(n))/(Output.at(n+1)-Input.at(n+1)-

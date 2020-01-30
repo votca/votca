@@ -33,9 +33,11 @@ namespace xtp {
 
 class Sternheimer {
  public:
+  Sternheimer();
+
   Sternheimer(Orbitals& orbitals, Logger& log)
       : _orbitals(orbitals), _log(log){};
-
+  
   // Calculates and saves all matrices needed to perform Sternheimer
   // calculations from DFT
   void Initialize();
@@ -54,7 +56,7 @@ class Sternheimer {
   Eigen::MatrixXcd NPAndersonMixing(std::vector<Eigen::MatrixXcd>& Input, std::vector<Eigen::MatrixXcd>& Output, double alpha) const;
 
   Eigen::MatrixXcd BroydenMixing(std::vector<Eigen::MatrixXcd> Input, std::vector<Eigen::MatrixXcd> Output, double alpha)const;
-  
+
  private:
   Logger& _log;
 
