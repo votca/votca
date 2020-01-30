@@ -43,7 +43,7 @@ class PadeApprox {
 
   void addPoint(std::complex<double> frequency, std::complex<double> value);
 
-  void initialize(int num_points);
+  void initialize(Index num_points);
 
   void clear();
   
@@ -53,7 +53,7 @@ class PadeApprox {
 
  private:
      
-  int _num_points;
+  Index _num_points;
      
   std::vector<std::complex<double>> _value;
 
@@ -66,13 +66,13 @@ class PadeApprox {
   std::vector<std::complex<double>> _temp_container_A;
   std::vector<std::complex<double>> _temp_container_B;
 
-  int _rejected_points = 0;
+  Index _rejected_points = 0;
   
-  std::complex<double> RecursivePolynom(int indx, int degree);
+  std::complex<double> RecursivePolynom(Index indx, Index degree);
 
-  std::complex<double> RecursiveA(std::complex<double> frequency, int index);
+  std::complex<double> RecursiveA(std::complex<double> frequency, Index index);
 
-  std::complex<double> RecursiveB(std::complex<double> frequency, int index);
+  std::complex<double> RecursiveB(std::complex<double> frequency, Index index);
 };
 }  // namespace xtp
 }  // namespace votca

@@ -47,6 +47,8 @@ Eigen::VectorXd ADIIS::CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
 
   ADIIS_costfunction a_cost = ADIIS_costfunction(DiF, DiFj);
   BFGSTRM optimizer = BFGSTRM(a_cost);
+  Logger log;
+  optimizer.setLog(&log);
   optimizer.setNumofIterations(1000);
   optimizer.setTrustRadius(0.01);
   // Starting point: equal weights on all matrices

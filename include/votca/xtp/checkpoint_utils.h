@@ -77,12 +77,18 @@ struct InferDataType<std::string> {
 #elif (defined(__GNUC__) && !defined(__INTEL_COMPILER))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
+#elif (defined(__INTEL_COMPILER))
+#pragma warning push
+#pragma warning(disable : 1682)  // implicit conversion of a 64-bit integral
+                                 // type to a smaller integral type
 #endif
     static const H5::StrType strtype(H5T_C_S1, H5T_VARIABLE);
 #if (defined(__GNUC__) && defined(__clang__))
 #pragma clang diagnostic pop
 #elif (defined(__GNUC__) && !defined(__INTEL_COMPILER))
 #pragma GCC diagnostic pop
+#elif (defined(__INTEL_COMPILER))
+#pragma warning pop
 #endif
 
     return &strtype;

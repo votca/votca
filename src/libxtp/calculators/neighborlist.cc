@@ -16,7 +16,8 @@
  */
 
 #include "neighborlist.h"
-
+#include <boost/format.hpp>
+#include <boost/progress.hpp>
 using namespace std;
 
 namespace votca {
@@ -91,10 +92,6 @@ Index Neighborlist::DetClassicalPairs(Topology& top) {
 bool Neighborlist::EvaluateFrame(Topology& top) {
   OPENMP::setMaxThreads(_nThreads);
   std::cout << " Using " << OPENMP::getMaxThreads() << " threads" << std::flush;
-
-  if (tools::globals::verbose) {
-    std::cout << std::endl << "... ..." << std::flush;
-  }
 
   double min = top.getBox().diagonal().minCoeff();
 

@@ -21,11 +21,11 @@
 #ifndef VOTCA_XTP_STATETRACKER_H
 #define VOTCA_XTP_STATETRACKER_H
 
+#include <memory>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/populationanalysis.h>
-#include <votca/xtp/qmfragment.h>
 #include <votca/xtp/qmstate.h>
+#include <votca/xtp/statefilter_base.h>
 
 namespace votca {
 namespace xtp {
@@ -39,7 +39,7 @@ namespace xtp {
 class StateTracker {
 
  public:
-  void Initialize(tools::Property& options);
+  void Initialize(const tools::Property& options);
   void setLogger(Logger* log) { _log = log; }
   void setInitialState(const QMState& state) { _statehist.push_back(state); }
   void PrintInfo() const;
@@ -52,16 +52,7 @@ class StateTracker {
   void ReadFromCpt(CheckpointReader& r);
 
  private:
-  std::vector<Index> OscTracker(const Orbitals& orbitals) const;
-  std::vector<Index> LocTracker(const Orbitals& orbitals) const;
-  std::vector<Index> DeltaQTracker(const Orbitals& orbitals) const;
-  std::vector<Index> OverlapTracker(const Orbitals& orbitals) const;
-
-  Eigen::VectorXd CalculateOverlap(const Orbitals& orbitals) const;
-
   void UpdateLastCoeff(const Orbitals& orbitals);
-  Eigen::MatrixXd CalcOrthoCoeffs(const Orbitals& orbitals) const;
-
   std::vector<Index> CollapseResults(
       std::vector<std::vector<Index> >& results) const;
   std::vector<Index> ComparePairofVectors(std::vector<Index>& vec1,
@@ -70,19 +61,7 @@ class StateTracker {
   Logger* _log;
 
   std::vector<QMState> _statehist;
-
-  bool _use_osctracker = false;
-  double _oscthreshold = 0.0;
-
-  bool _use_overlaptracker = false;
-  Eigen::VectorXd _laststatecoeff;
-  double _overlapthreshold = 0.0;
-
-  bool _use_localizationtracker = false;
-  QMFragment<double> _fragment_loc;
-
-  bool _use_dQtracker = false;
-  QMFragment<double> _fragment_dQ;
+  std::vector<std::unique_ptr<StateFilter_base> > _filters;
 };
 }  // namespace xtp
 }  // namespace votca

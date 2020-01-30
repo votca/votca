@@ -38,7 +38,6 @@ void BFGSTRM::Optimize(const Eigen::VectorXd& initialparameters) {
   Eigen::VectorXd last_gradient = Eigen::VectorXd::Zero(_parameters.size());
   double delta_cost = 0;
   for (_iteration = 1; _iteration <= _max_iteration; _iteration++) {
-    bool step_accepted = false;
     for (Index i = 0; i < 100; i++) {
       TrustRegion subproblem;
       delta_p_trial =
@@ -46,7 +45,8 @@ void BFGSTRM::Optimize(const Eigen::VectorXd& initialparameters) {
       double trialcost =
           _costfunction.EvaluateCost(_parameters + delta_p_trial);
       delta_cost = trialcost - lastcost;
-      step_accepted = AcceptRejectStep(delta_p_trial, gradient, delta_cost);
+      bool step_accepted =
+          AcceptRejectStep(delta_p_trial, gradient, delta_cost);
       if (step_accepted) {
         _cost = trialcost;
         _parameters += delta_p_trial;
@@ -66,14 +66,12 @@ void BFGSTRM::Optimize(const Eigen::VectorXd& initialparameters) {
       break;
     } else if (_iteration == _max_iteration) {
       _success = false;
-      if (_logging) {
-        XTP_LOG(logINFO, *_pLog)
-            << (boost::format("BFGS-TRM @iteration %1$d: not converged after "
-                              "%2$d iterations ") %
-                _iteration % _max_iteration)
-                   .str()
-            << std::flush;
-      }
+      XTP_LOG(Log::warning, *_pLog)
+          << (boost::format("BFGS-TRM @iteration %1$d: not converged after "
+                            "%2$d iterations ") %
+              _iteration % _max_iteration)
+                 .str()
+          << std::flush;
     }
   }
   return;
@@ -87,20 +85,19 @@ bool BFGSTRM::AcceptRejectStep(const Eigen::VectorXd& delta_p,
   if (cost_delta > 0.0) {
     // total energy has unexpectedly increased, half the trust radius
     _trust_radius = 0.25 * _trust_radius;
-    if (_logging) {
-      XTP_LOG(logINFO, *_pLog)
-          << (boost::format("BFGS-TRM @iteration %1$d: DeltaCost %2$2.4e step "
-                            "rejected ") %
-              _iteration % cost_delta)
-                 .str()
-          << std::flush;
-      XTP_LOG(logINFO, *_pLog)
-          << (boost::format(
-                  "BFGS-TRM @iteration %1$d: new trust radius %2$2.4e") %
-              _iteration % _trust_radius)
-                 .str()
-          << std::flush;
-    }
+    XTP_LOG(Log::warning, *_pLog)
+        << (boost::format("BFGS-TRM @iteration %1$d: DeltaCost %2$2.4e step "
+                          "rejected ") %
+            _iteration % cost_delta)
+               .str()
+        << std::flush;
+    XTP_LOG(Log::warning, *_pLog)
+        << (boost::format(
+                "BFGS-TRM @iteration %1$d: new trust radius %2$2.4e") %
+            _iteration % _trust_radius)
+               .str()
+        << std::flush;
+
   } else {
     // total energy has decreased, we accept the step but might update the trust
     // radius
@@ -114,21 +111,19 @@ bool BFGSTRM::AcceptRejectStep(const Eigen::VectorXd& delta_p,
     } else if (tr_check < 0.25) {
       _trust_radius = 0.25 * _trust_radius;
     }
-    if (_logging) {
-      XTP_LOG(logINFO, *_pLog)
-          << (boost::format(
-                  "BFGS-TRM @iteration %1$d: DeltaCost/QuadraticApprox %2$2.4f "
-                  "step accepted ") %
-              _iteration % tr_check)
-                 .str()
-          << std::flush;
-      XTP_LOG(logINFO, *_pLog)
-          << (boost::format(
-                  "BFGS-TRM @iteration %1$d: new trust radius %2$2.4e") %
-              _iteration % _trust_radius)
-                 .str()
-          << std::flush;
-    }
+    XTP_LOG(Log::warning, *_pLog)
+        << (boost::format(
+                "BFGS-TRM @iteration %1$d: DeltaCost/QuadraticApprox %2$2.4f "
+                "step accepted ") %
+            _iteration % tr_check)
+               .str()
+        << std::flush;
+    XTP_LOG(Log::warning, *_pLog)
+        << (boost::format(
+                "BFGS-TRM @iteration %1$d: new trust radius %2$2.4e") %
+            _iteration % _trust_radius)
+               .str()
+        << std::flush;
   }
   return step_accepted;
 }

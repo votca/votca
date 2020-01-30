@@ -2,7 +2,6 @@
     <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
         <print_regions_pdb help="print the geometry of the regions to a pdb file">true</print_regions_pdb>
         <max_iterations help="max iterations for qmmm scf loop">50</max_iterations>
-        <openmp_threads help="internal parallelization for each job">1</openmp_threads>
         <map_file help="xml file with segment definition">system.xml</map_file>
         <job_file help="name of jobfile to which jobs are written">qmmm_jobs.xml</job_file>
         <write_parse>
@@ -16,7 +15,7 @@
                 <options_dft help="xml file with options for dft calculations">xtpdft.xml</options_dft>
                 <options_gwbse help="xml file with options for gwbse calculations">gwbse.xml</options_gwbse>
                 <statetracker help="filter to identify excited states from some characteristic and not the energy">
-                    <oscillator_strength>0.5</oscillator_strength>
+                    <oscillatorstrength>0.5</oscillatorstrength>
                 </statetracker>
                 <state help="qmstate to calculate i.e. n or s1">jobfile</state>
                 <segments help="which segments to include in this region and which geometry they have">jobfile</segments>

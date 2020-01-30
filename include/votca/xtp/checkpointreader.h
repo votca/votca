@@ -167,6 +167,9 @@ class CheckpointReader {
     hsize_t matCols = dims[1];
 
     matrix.derived().resize(matRows, matCols);
+    if (matrix.size() == 0) {
+      return;
+    }
 
     hsize_t matColSize = matrix.derived().outerStride();
 
@@ -205,6 +208,9 @@ class CheckpointReader {
     dp.getSimpleExtentDims(dims, nullptr);
 
     v.resize(dims[0]);
+    if (v.empty()) {
+      return;
+    }
     try {
       dataset.read(&(v[0]), *dataType);
     } catch (H5::Exception&) {
@@ -227,6 +233,9 @@ class CheckpointReader {
     dp.getSimpleExtentDims(dims, nullptr);
 
     std::vector<char*> temp(dims[0]);
+    if (temp.empty()) {
+      return;
+    }
     try {
       dataset.read(temp.data(), *dataType);
     } catch (H5::Exception&) {

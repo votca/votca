@@ -18,6 +18,7 @@
 #include "kmclifetime.h"
 #include "votca/xtp/qmstate.h"
 #include <boost/format.hpp>
+#include <boost/progress.hpp>
 #include <locale>
 #include <votca/tools/constants.h>
 #include <votca/tools/property.h>
@@ -58,8 +59,12 @@ void KMCLifetime::Initialize(tools::Property& options) {
     _do_carrierenergy = false;
   }
 
+  _log.setReportLevel(Log::current_level);
+  _log.setCommonPreface("\n ...");
+
   _carriertype = QMStateType(QMStateType::Singlet);
-  cout << "carrier type:" << _carriertype.ToLongString() << endl;
+  XTP_LOG(Log::error, _log)
+      << "carrier type:" << _carriertype.ToLongString() << flush;
   _field = Eigen::Vector3d::Zero();
 
   return;
@@ -155,10 +160,10 @@ void KMCLifetime::WriteToTraj(fstream& traj, unsigned long insertioncount,
 void KMCLifetime::RunVSSM() {
 
   Index realtime_start = time(nullptr);
-  cout << endl
-       << "Algorithm: VSSM for Multiple Charges with finite Lifetime" << endl;
-  cout << "number of charges: " << _numberofcarriers << endl;
-  cout << "number of nodes: " << _nodes.size() << endl;
+  XTP_LOG(Log::error, _log)
+      << "\nAlgorithm: VSSM for Multiple Charges with finite Lifetime\n"
+         "number of charges: "
+      << _numberofcarriers << "\nnumber of nodes: " << _nodes.size() << flush;
 
   if (_numberofcarriers > Index(_nodes.size())) {
     throw runtime_error(
@@ -169,7 +174,8 @@ void KMCLifetime::RunVSSM() {
   fstream traj;
   fstream energyfile;
 
-  cout << "Writing trajectory to " << _trajectoryfile << "." << endl;
+  XTP_LOG(Log::error, _log)
+      << "Writing trajectory to " << _trajectoryfile << "." << flush;
   traj.open(_trajectoryfile, fstream::out);
   traj << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last "
           "Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]"
@@ -177,16 +183,18 @@ void KMCLifetime::RunVSSM() {
 
   if (_do_carrierenergy) {
 
-    cout << "Tracking the energy of one charge carrier and exponential average "
-            "with alpha="
-         << _alpha << " to " << _energy_outputfile << endl;
+    XTP_LOG(Log::error, _log)
+        << "Tracking the energy of one charge carrier and exponential average "
+           "with alpha="
+        << _alpha << " to " << _energy_outputfile << flush;
     energyfile.open(_energy_outputfile, fstream::out);
     energyfile << "Simtime [s]\tSteps\tCarrier ID\tEnergy_a=" << _alpha
                << "[eV]" << endl;
   }
 
   // Injection
-  cout << endl << "injection method: " << _injectionmethod << endl;
+  XTP_LOG(Log::error, _log)
+      << "\ninjection method: " << _injectionmethod << flush;
 
   RandomlyCreateCharges();
 
@@ -199,7 +207,7 @@ void KMCLifetime::RunVSSM() {
 
   time_t now = time(nullptr);
   tm* localtm = localtime(&now);
-  cout << "Run started at " << asctime(localtm) << endl;
+  XTP_LOG(Log::error, _log) << "Run started at " << asctime(localtm) << flush;
 
   double avlifetime = 0.0;
   double meanfreepath = 0.0;
@@ -210,11 +218,11 @@ void KMCLifetime::RunVSSM() {
 
   while (insertioncount < _insertions) {
     if ((time(nullptr) - realtime_start) > Index(_maxrealtime * 60. * 60.)) {
-      cout << endl
-           << "Real time limit of " << _maxrealtime << " hours ("
-           << Index(_maxrealtime * 60 * 60 + 0.5)
-           << " seconds) has been reached. Stopping here." << endl
-           << endl;
+      XTP_LOG(Log::error, _log)
+          << "\nReal time limit of " << _maxrealtime << " hours ("
+          << Index(_maxrealtime * 60 * 60 + 0.5)
+          << " seconds) has been reached. Stopping here.\n"
+          << flush;
       break;
     }
 
@@ -271,6 +279,7 @@ void KMCLifetime::RunVSSM() {
 
       // determine where it will jump to
       ResetForbiddenlist(forbiddendests);
+      boost::progress_display progress(_insertions);
 
       while (true) {
         // LEVEL 2
@@ -286,14 +295,7 @@ void KMCLifetime::RunVSSM() {
           meanfreepath += dr_travelled.norm();
           difflength_squared += dr_travelled.cwiseAbs2();
           WriteToTraj(traj, insertioncount, simtime, *affectedcarrier);
-          if (tools::globals::verbose &&
-              (_insertions < 1500 ||
-               insertioncount % (_insertions / 1000) == 0 ||
-               double(insertioncount) < 0.001 * double(_insertions))) {
-            std::cout << "\rInsertion " << insertioncount + 1 << " of "
-                      << _insertions;
-            std::cout << std::flush;
-          }
+          ++progress;
           RandomlyAssignCarriertoSite(*affectedcarrier);
           affectedcarrier->resetCarrier();
           insertioncount++;
@@ -335,19 +337,20 @@ void KMCLifetime::RunVSSM() {
     }
   }
 
-  cout << endl;
-  cout << "Total runtime:\t\t\t\t\t" << simtime << " s" << endl;
-  cout << "Total KMC steps:\t\t\t\t" << step << endl;
-  cout << "Average lifetime:\t\t\t\t" << avlifetime / double(insertioncount)
-       << " s" << endl;
-  cout << "Mean freepath\t l=<|r_x-r_o|> :\t\t"
-       << (meanfreepath * tools::conv::bohr2nm / double(insertioncount))
-       << " nm" << endl;
-  cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"
-       << std::sqrt(difflength_squared.norm() / double(insertioncount)) *
-              tools::conv::bohr2nm
-       << " nm" << endl;
-  cout << endl;
+  XTP_LOG(Log::error, _log)
+      << "\nTotal runtime:\t\t\t\t\t" << simtime
+      << " s\n"
+         "Total KMC steps:\t\t\t\t"
+      << step << "\nAverage lifetime:\t\t\t\t"
+      << avlifetime / double(insertioncount) << " s\n"
+      << "Mean freepath\t l=<|r_x-r_o|> :\t\t"
+      << (meanfreepath * tools::conv::bohr2nm / double(insertioncount))
+      << " nm\n"
+      << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"
+      << std::sqrt(difflength_squared.norm() / double(insertioncount)) *
+             tools::conv::bohr2nm
+      << " nm\n"
+      << flush;
 
   WriteOccupationtoFile(simtime, _occfile);
   traj.close();
@@ -358,13 +361,13 @@ void KMCLifetime::RunVSSM() {
 }
 
 bool KMCLifetime::EvaluateFrame(Topology& top) {
-  std::cout << "-----------------------------------" << std::endl;
-  std::cout << "      KMCLIFETIME started" << std::endl;
-  std::cout << "-----------------------------------" << std::endl << std::endl;
+  XTP_LOG(Log::error, _log) << "\n-----------------------------------"
+                               "\n      KMCLIFETIME started"
+                               "\n-----------------------------------\n"
+                            << std::flush;
 
-  if (tools::globals::verbose) {
-    cout << endl << "Initialising random number generator" << endl;
-  }
+  XTP_LOG(Log::info, _log) << "\nInitialising random number generator" << flush;
+
   _RandomVariable.init(_seed);
   LoadGraph(top);
   ReadLifetimeFile(_lifetimefile);
@@ -376,8 +379,8 @@ bool KMCLifetime::EvaluateFrame(Topology& top) {
 
   time_t now = time(nullptr);
   tm* localtm = localtime(&now);
-  std::cout << "      KMCLIFETIME finished at:" << asctime(localtm)
-            << std::endl;
+  XTP_LOG(Log::error, _log)
+      << " KMCLIFETIME finished at:" << asctime(localtm) << std::flush;
 
   return true;
 }

@@ -105,11 +105,8 @@ bool MapChecker::EvaluateFrame(Topology& top) {
   top.WriteToPdb(filename);
 
   Logger log;
-  log.setReportLevel(TLogLevel::logDEBUG);
-  log.setPreface(logINFO, "\n... ...");
-  log.setPreface(logERROR, "\n... ...");
-  log.setPreface(logWARNING, "\n... ...");
-  log.setPreface(logDEBUG, "\n... ...");
+  log.setReportLevel(Log::current_level);
+  log.setCommonPreface("\n... ...");
 
   QMMapper map(log);
 

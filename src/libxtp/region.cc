@@ -37,7 +37,7 @@ std::vector<double> Region::ApplyInfluenceOfOtherRegions(
     QMRegion QMdummy(0, _log, "");
     StaticRegion Staticdummy(0, _log);
     PolarRegion Polardummy(0, _log);
-    XTP_LOG_SAVE(logINFO, _log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Evaluating interaction between " << this->identify()
         << " " << this->getId() << " and " << reg->identify() << " "
         << reg->getId() << std::flush;

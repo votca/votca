@@ -55,14 +55,15 @@ bool XTPDFT::Run() {
   bool success = xtpdft.Evaluate(_orbitals);
   _basisset_name = xtpdft.getDFTBasisName();
   std::string file_name = _run_dir + "/" + _log_file_name;
-  XTP_LOG(logDEBUG, *_pLog) << "Writing result to " << _log_file_name << flush;
+  XTP_LOG(Log::error, *_pLog)
+      << "Writing result to " << _log_file_name << flush;
   _orbitals.WriteToCpt(file_name);
   return success;
 }
 
 void XTPDFT::CleanUp() {
   if (_cleanup.size() != 0) {
-    XTP_LOG(logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
+    XTP_LOG(Log::info, *_pLog) << "Removing " << _cleanup << " files" << flush;
     tools::Tokenizer tok_cleanup(_cleanup, ", ");
     std::vector<std::string> cleanup_info;
     tok_cleanup.ToVector(cleanup_info);
@@ -86,12 +87,12 @@ bool XTPDFT::ParseLogFile(Orbitals& orbitals) {
   try {
     std::string file_name = _run_dir + "/" + _log_file_name;
     orbitals.ReadFromCpt(file_name);
-    XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.8f ") %
-                                  orbitals.getDFTTotalEnergy())
-                                     .str()
-                              << flush;
+    XTP_LOG(Log::error, *_pLog) << (boost::format("QM energy[Hrt]: %4.8f ") %
+                                    orbitals.getDFTTotalEnergy())
+                                       .str()
+                                << flush;
   } catch (std::runtime_error& error) {
-    XTP_LOG(logDEBUG, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << "Reading" << _log_file_name << " failed" << flush;
     return false;
   }

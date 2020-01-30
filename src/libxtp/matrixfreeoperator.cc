@@ -26,7 +26,7 @@ Eigen::RowVectorXd MatrixFreeOperator::OperatorRow(Index) const {
   return Eigen::RowVectorXd::Zero(0);
 }
 
-Eigen::MatrixXd MatrixFreeOperator::OperatorBlock(long, long) const {
+Eigen::MatrixXd MatrixFreeOperator::OperatorBlock(Index, Index) const {
   return Eigen::MatrixXd::Zero(0, 0);
 }
 
@@ -89,7 +89,7 @@ Eigen::MatrixXd MatrixFreeOperator::get_full_matrix() const {
 }
 
 // get the size
-long MatrixFreeOperator::size() const { return this->_size; }
+Index MatrixFreeOperator::size() const { return this->_size; }
 
 // set the size
 void MatrixFreeOperator::set_size(Index size) { this->_size = size; }

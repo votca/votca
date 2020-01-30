@@ -1,6 +1,43 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
+## Version 1.7-dev
+* Add external fields to dft calculations (#351, #353)
+* added def2 and cc basis sets (#355)
+* added apdft (#350)
+* added test to cubefile reader (#344)
+* fix state tracker (#333)
+* grid class refator (#335)
+* changed ppm screening (#371)
+
+
+## Version 1.6_rc2 (released XX.01.20)
+* fix remove giant logo from tarball (#337)
+* fix assertions related to GLIBCXX_ASSERTIONS (#345)
+* remove unused boost serialisation (#346)
+* fix build on 32-bit archs (#347)
+* add ENABLE_HIGH_MEMORY_TESTS cmake option (#356)
+* fix copyright (#363)
+* remove old doxygen target (#365)
+
+## Version 1.6_rc1 (released 04.12.19)
+ * completely new statefile in hdf5 format for larger systems
+ * new electrostatics with PCG solver
+ * new QM/MM engine with freely configurable regions
+ * exact GW-BSE for small systems
+ * new iterative matrix solvers for large systems
+ * CUDA support for parts of GW-BSE
+ * full LAMMPS support
+ * improved testing
+ * new tutorial with more functionality
+ * deleted netbeans support
+ * removed old manual
+ * Major CMake refactor
+ 
+## Version 1.5.1 (released 20.11.19)
+ * remove exit() calls in the library
+ * fix build on CentOs7
+
 ## Version 1.5 _SuperVictor_ (released 31.01.19)
 * enable gitlab CI
 

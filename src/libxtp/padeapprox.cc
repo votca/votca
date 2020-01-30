@@ -44,15 +44,15 @@ void PadeApprox::printInfo() {
     std::cout<<"num of rejected points="<<_rejected_points<<std::endl;
     
     std::cout<<"Coefficients:"<<std::endl;
-    for(int i=0;i<_coeff.size();i++){
+    for(Index i=0;i<_coeff.size();i++){
         std::cout<<"c_"<<i<<" ="<<_coeff[i]<<std::endl;
     }
     std::cout<<"Grid:"<<std::endl;
-    for(int i=0;i<_grid.size();i++){
+    for(Index i=0;i<_grid.size();i++){
         std::cout<<"g_"<<i<<" ="<<_grid[i]<<std::endl;
     }
     std::cout<<"Values:"<<std::endl;
-    for(int i=0;i<_value.size();i++){
+    for(Index i=0;i<_value.size();i++){
         std::cout<<"v_"<<i<<" ="<<_value[i]<<std::endl;
     }
 }
@@ -71,14 +71,14 @@ void PadeApprox::addPoint(std::complex<double> frequency, std::complex<double> v
     _coeff.pop_back();
     _grid.pop_back();
     _value.pop_back();
-    for(int i=0;i<_num_points;i++){
+    for(Index i=0;i<_num_points;i++){
         _temp_container_g[_grid.size()-1][i]=0;
     }
     _rejected_points++;
   }
 }
 
-std::complex<double> PadeApprox::RecursivePolynom(int indx, int degree) {
+std::complex<double> PadeApprox::RecursivePolynom(Index indx, Index degree) {
        
   if (degree == 1) {
     return _value.at(indx);
@@ -100,7 +100,7 @@ std::complex<double> PadeApprox::RecursivePolynom(int indx, int degree) {
   }
 }
 
-std::complex<double> PadeApprox::RecursiveA(std::complex<double> frequency, int index) {
+std::complex<double> PadeApprox::RecursiveA(std::complex<double> frequency, Index index) {
 
     if(_temp_container_A.size()>index){
         return _temp_container_A[index];
@@ -114,7 +114,7 @@ std::complex<double> PadeApprox::RecursiveA(std::complex<double> frequency, int 
   }
 }
 
-std::complex<double> PadeApprox::RecursiveB(std::complex<double> frequency, int index) {
+std::complex<double> PadeApprox::RecursiveB(std::complex<double> frequency, Index index) {
 
   if(_temp_container_B.size()>index){
         return _temp_container_B[index];
@@ -128,9 +128,9 @@ std::complex<double> PadeApprox::RecursiveB(std::complex<double> frequency, int 
   }
 }
 
-void PadeApprox::initialize(int num_points) { 
+void PadeApprox::initialize(Index num_points) { 
     this->_temp_container_g.resize(num_points);
-    for (int i = 0; i < num_points; i++){
+    for (Index i = 0; i < num_points; i++){
         _temp_container_g[i].resize(num_points);
     }
     this->_num_points=num_points;
@@ -152,25 +152,25 @@ std::complex<double> PadeApprox::evaluatePoint(std::complex<double> frequency) {
 
     // if(abs(B)<1E-3){
     //   std::cout<<"Applying correction"<<std::endl;
-    //   for(int i=0; i<_temp_container_A.size(); i++){
+    //   for(Index i=0; i<_temp_container_A.size(); i++){
     //     std::cout<<"A old = "<<_temp_container_A[i]<<std::endl;
     //     _temp_container_A[i]= _temp_container_A[i]/abs(B);
     //     std::cout<<"A new = "<<_temp_container_A[i]<<std::endl;
     //   }
       
-    //   for(int i=0; i<_temp_container_B.size()-1; i++){
+    //   for(Index i=0; i<_temp_container_B.size()-1; i++){
     //     _temp_container_B[i]= _temp_container_B[i]/abs(B);
     //   }
 
     //   }else if(abs(B)>1E3){
     //   std::cout<<"Applying correction"<<std::endl;
-    //   for(int i=0; i<_temp_container_A.size(); i++){
+    //   for(Index i=0; i<_temp_container_A.size(); i++){
     //     std::cout<<"A old = "<<_temp_container_A[i]<<std::endl;
     //     _temp_container_A[i]= _temp_container_A[i]/abs(B);
     //     std::cout<<"A new = "<<_temp_container_A[i]<<std::endl;
     //   }
       
-    //   for(int i=0; i<_temp_container_B.size(); i++){
+    //   for(Index i=0; i<_temp_container_B.size(); i++){
     //     _temp_container_B[i]= _temp_container_B[i]/abs(B);
     //   }
 
@@ -180,11 +180,11 @@ std::complex<double> PadeApprox::evaluatePoint(std::complex<double> frequency) {
 
 void PadeApprox::printAB(){
 
-  for(int i=0; i<_temp_container_A.size(); i++){
+  for(Index i=0; i<_temp_container_A.size(); i++){
     std::cout<<"A_"<<i<<" = "<<_temp_container_A[i]<<std::endl;
   }
   std::cout<<std::endl;
-  for(int i=0; i<_temp_container_B.size(); i++){
+  for(Index i=0; i<_temp_container_B.size(); i++){
     std::cout<<"B_"<<i<<" = "<<_temp_container_B[i]<<std::endl;
   }
 

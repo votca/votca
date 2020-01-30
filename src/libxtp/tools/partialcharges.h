@@ -59,25 +59,21 @@ void Partialcharges::Initialize(tools::Property& options) {
 
 bool Partialcharges::Evaluate() {
   OPENMP::setMaxThreads(_nThreads);
-  _log.setReportLevel(logDEBUG);
+  _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
 
-  _log.setPreface(logINFO, "\n... ...");
-  _log.setPreface(logERROR, "\n... ...");
-  _log.setPreface(logWARNING, "\n... ...");
-  _log.setPreface(logDEBUG, "\n... ...");
+  _log.setCommonPreface("\n... ...");
+
   Orbitals orbitals;
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::error, _log)
       << " Loading QM data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << "Loaded QM data from " << _orbfile << std::flush;
   Esp2multipole esp2multipole = Esp2multipole(_log);
   esp2multipole.Initialize(_esp_options);
   StaticSegment seg = esp2multipole.Extractingcharges(orbitals);
   seg.WriteMPS(_output_file, esp2multipole.GetStateString());
 
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::error, _log)
       << "Written charges to " << _output_file << std::flush;
 
   return true;

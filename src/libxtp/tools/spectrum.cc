@@ -58,20 +58,17 @@ void Spectrum::Initialize(tools::Property& options) {
 
 bool Spectrum::Evaluate() {
   OPENMP::setMaxThreads(_nThreads);
-  _log.setReportLevel(logDEBUG);
+  _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
 
-  _log.setPreface(logINFO, "\n... ...");
-  _log.setPreface(logERROR, "\n... ...");
-  _log.setPreface(logWARNING, "\n... ...");
-  _log.setPreface(logDEBUG, "\n... ...");
+  _log.setCommonPreface("\n... ...");
 
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::error, _log)
       << "Calculating absorption spectrum plot " << _orbfile << std::flush;
 
   Orbitals orbitals;
   // load the QM data from serialized orbitals object
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::error, _log)
       << " Loading QM data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
 
@@ -97,7 +94,7 @@ bool Spectrum::Evaluate() {
   }
 
   Index n_exc = _maxexc - _minexc + 1;
-  XTP_LOG_SAVE(logDEBUG, _log)
+  XTP_LOG(Log::error, _log)
       << " Considering " << n_exc << " excitation with max energy "
       << BSESingletEnergies(_maxexc) << " eV / min wave length "
       << evtonm(BSESingletEnergies[_maxexc - 1]) << " nm" << std::flush;
@@ -164,7 +161,7 @@ bool Spectrum::Evaluate() {
           << eps_Lorentzian << "   " << imeps_Lorentzian << std::endl;
     }
 
-    XTP_LOG_SAVE(logDEBUG, _log)
+    XTP_LOG(Log::error, _log)
         << " Spectrum in energy range from  " << _lower << " to " << _upper
         << " eV and with broadening of FWHM " << _fwhm
         << " eV written to file  " << _output_file << std::flush;
@@ -196,7 +193,7 @@ bool Spectrum::Evaluate() {
       ofs << lambda << "    " << eps_Gaussian << "   " << imeps_Gaussian
           << "   " << eps_Lorentzian << "   " << imeps_Lorentzian << std::endl;
     }
-    XTP_LOG_SAVE(logDEBUG, _log)
+    XTP_LOG(Log::error, _log)
         << " Spectrum in wavelength range from  " << _lower << " to " << _upper
         << " nm and with broadening of FWHM " << _fwhm
         << " nm written to file  " << _output_file << std::flush;

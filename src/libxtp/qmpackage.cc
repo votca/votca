@@ -88,7 +88,7 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) const {
 
   if (orbitals.hasMOs()) {
     dftbasis.ReorderMOs(orbitals.MOs().eigenvectors(), getPackageName(), "xtp");
-    XTP_LOG(logDEBUG, *_pLog) << "Reordered MOs" << flush;
+    XTP_LOG(Log::info, *_pLog) << "Reordered MOs" << flush;
   }
 
   return;

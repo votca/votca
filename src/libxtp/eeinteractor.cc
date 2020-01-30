@@ -178,33 +178,6 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
   return result;  // T_1alpha,1beta (alpha,beta=x,y,z)
 }
 
-Eigen::Vector3d eeInteractor::VThole(const PolarSite& site1,
-                                     const PolarSite& site2,
-                                     const Eigen::Vector3d& dQ) const {
-
-  const Eigen::Vector3d& posB = site2.getPos();
-  const Eigen::Vector3d& posA = site1.getPos();
-  Eigen::Vector3d a =
-      posB - posA;            // Vector of the distance between polar sites
-  const double R = a.norm();  // Norm of distance vector
-  const double fac1 = 1 / R;
-  a *= fac1;  // unit vector pointing from A to B
-
-  double lambda3 = std::pow(fac1, 3);
-  double lambda5 = lambda3;
-  const double au3 = _expdamping * std::pow(R, 3) *
-                     site1.getSqrtInvEigenDamp() *
-                     site2.getSqrtInvEigenDamp();  // au3 is dimensionless
-  if (au3 < 40) {
-    const double exp_ua = std::exp(-au3);
-    lambda3 *= (1 - exp_ua);
-    lambda5 *= (1 - (1 + au3) * exp_ua);
-  }
-  Eigen::Vector3d result = -3 * lambda5 * a * (a.transpose() * dQ);
-  result += lambda3 * dQ;
-  return result;  // T_1alpha,1beta (alpha,beta=x,y,z)
-}
-
 template <enum Estatic CE>
 double eeInteractor::ApplyStaticField_site(const StaticSite& site1,
                                            PolarSite& site2) const {
@@ -274,7 +247,8 @@ eeInteractor::E_terms eeInteractor::CalcPolarEnergy_site(
   // contributions are stat-induced, induced-stat and induced induced
   eeInteractor::E_terms val;
   val.E_indu_indu() = site1.Induced_Dipole().transpose() *
-                      VThole(site1, site2, site2.Induced_Dipole());
+                      FillTholeInteraction(site1, site2) *
+                      site2.Induced_Dipole();
   val.E_indu_stat() = CalcPolar_stat_Energy_site(site1, site2);
   val.E_indu_stat() += CalcPolar_stat_Energy_site(site2, site1);
   return val;
@@ -376,7 +350,7 @@ double eeInteractor::CalcPolarEnergy_IntraSegment(
   for (Index i = 0; i < seg.size(); i++) {
     for (Index j = 0; j < i; j++) {
       e += seg[i].Induced_Dipole().transpose() *
-           VThole(seg[i], seg[j], seg[j].Induced_Dipole());
+           FillTholeInteraction(seg[i], seg[j]) * seg[j].Induced_Dipole();
     }
   }
   return e;

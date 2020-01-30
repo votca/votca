@@ -94,7 +94,7 @@ void KMCCalculator::LoadGraph(Topology& top) {
     _nodes[pair->Seg2()->getId()].AddEventfromQmPair(*pair, _nodes,
                                                      rates.rate21);
   }
-  _RandomVariable.setMaxInt(long(_nodes.size()));
+  _RandomVariable.setMaxInt(Index(_nodes.size()));
   cout << "    Rates for " << _nodes.size() << " sites are computed." << endl;
   WriteRatestoFile(_ratefile, nblist);
 

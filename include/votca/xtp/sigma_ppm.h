@@ -34,16 +34,19 @@ class Sigma_PPM : public Sigma_base {
   Sigma_PPM(TCMatrix_gwbse& Mmn, RPA& rpa) : Sigma_base(Mmn, rpa){};
 
   // Sets up the screening parametrisation
-  void PrepareScreening() override;
-  // Calculates Sigma_c diag elements
-  Eigen::VectorXd CalcCorrelationDiag(
-      const Eigen::VectorXd& frequencies) const override;
-  // Calculates Sigma_c offdiag elements
-  Eigen::MatrixXd CalcCorrelationOffDiag(
-      const Eigen::VectorXd& frequencies) const override;
+  void PrepareScreening() final;
+  // Calculates Sigma_c diagonal elements
+  double CalcCorrelationDiagElement(Index gw_level,
+                                    double frequency) const final;
+
+  double CalcCorrelationDiagElementDerivative(Index gw_level,
+                                              double frequency) const final;
+  // Calculates Sigma_c off-diagonal elements
+  double CalcCorrelationOffDiagElement(Index gw_level1, Index gw_level2,
+                                       double frequency1,
+                                       double frequency2) const final;
 
  private:
-  inline void Stabilize(Eigen::ArrayXd& denom) const;
   PPM _ppm;
 };
 }  // namespace xtp

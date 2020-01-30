@@ -45,10 +45,10 @@ class Sternheimer {
   // Calculates the Polarizability Tensor for given frequency grid according to
   // Paper https://journals.aps.org/prb/pdf/10.1103/PhysRevB.89.085129
   std::vector<Eigen::Matrix3cd> Polarisability(double omega_start,
-                                               double omega_end, int steps,
+                                               double omega_end, Index steps,
                                                double imaginary_shift,
                                                double lorentzian_broadening,
-                                               int resolution_output) const;
+                                               Index resolution_output) const;
   // Prints the isotropic average of the polarizability tensor
   void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar,
                              std::vector<std::complex<double>>& grid) const;
@@ -66,9 +66,9 @@ class Sternheimer {
 
   Multishift _multishift;
 
-  int _num_occ_lvls;
+  Index _num_occ_lvls;
 
-  int _basis_size;
+  Index _basis_size;
 
   Eigen::MatrixXcd _Hamiltonian_Matrix;
 
@@ -82,10 +82,10 @@ class Sternheimer {
   Eigen::VectorXd _mo_energies;
 
   // Sets up the Multishift solver for linear systems of given size
-  void initializeMultishift(int size);
+  void initializeMultishift(Index size);
 
   // Sets up the N-Point Pade approximation
-  void initializePade(int size);
+  void initializePade(Index size);
   // returns the overlap matrix for all occupied states
   Eigen::MatrixXcd OverlapMatrix();
   // returns the density matrix for all occupied states
@@ -98,7 +98,7 @@ class Sternheimer {
   // Bulids the frequency grid for the polarizability calculations
   // Input values in eV
   std::vector<std::complex<double>> BuildGrid(double omega_start,
-                                              double omega_end, int steps,
+                                              double omega_end, Index steps,
                                               double imaginary_shift) const;
 
   // Computes the Dipole Integral

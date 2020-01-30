@@ -53,11 +53,13 @@ void KMCMultiple::Initialize(tools::Property& options) {
                         _carriertype.ToLongString());
   }
 
+  _log.setReportLevel(Log::current_level);
+  _log.setCommonPreface("\n ...");
   return;
 }
 
 void KMCMultiple::PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor,
-                                 double simtime, unsigned long step) const {
+                                 double simtime, unsigned long step) {
   double absolute_field = _field.norm();
 
   if (absolute_field == 0) {
@@ -65,28 +67,30 @@ void KMCMultiple::PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor,
     Eigen::Matrix3d result =
         avgdiffusiontensor /
         (double(diffusionsteps) * 2.0 * simtime * double(_numberofcarriers));
-    cout << endl
-         << "Step: " << step
-         << " Diffusion tensor averaged over all carriers (nm^2/s):" << endl
-         << result * tools::conv::bohr2nm * tools::conv::bohr2nm << endl;
+    XTP_LOG(Log::error, _log)
+        << "\nStep: " << step
+        << " Diffusion tensor averaged over all carriers (nm^2/s):\n"
+        << result * tools::conv::bohr2nm * tools::conv::bohr2nm << flush;
   } else {
     double average_mobility = 0;
     double bohr2Hrts_to_nm2Vs =
         tools::conv::bohr2nm * tools::conv::bohr2nm / tools::conv::hrt2ev;
-    cout << endl << "Mobilities (nm^2/Vs): " << endl;
+    XTP_LOG(Log::error, _log) << "\nMobilities (nm^2/Vs): " << flush;
     for (Index i = 0; i < _numberofcarriers; i++) {
       Eigen::Vector3d velocity = _carriers[i].get_dRtravelled() / simtime;
       double mobility =
           velocity.dot(_field) / (absolute_field * absolute_field);
-      cout << std::scientific << "    carrier " << i + 1
-           << ": mu=" << mobility * bohr2Hrts_to_nm2Vs << endl;
+      XTP_LOG(Log::error, _log)
+          << std::scientific << "    carrier " << i + 1
+          << ": mu=" << mobility * bohr2Hrts_to_nm2Vs << flush;
       average_mobility +=
           velocity.dot(_field) / (absolute_field * absolute_field);
     }
     average_mobility /= double(_numberofcarriers);
-    cout << std::scientific
-         << "  Overall average mobility in field direction <mu>="
-         << average_mobility * bohr2Hrts_to_nm2Vs << " nm^2/Vs  " << endl;
+    XTP_LOG(Log::error, _log)
+        << std::scientific
+        << "  Overall average mobility in field direction <mu>="
+        << average_mobility * bohr2Hrts_to_nm2Vs << " nm^2/Vs  " << flush;
   }
 }
 
@@ -138,7 +142,7 @@ void KMCMultiple::WriteToEnergyFile(std::fstream& tfile, double simtime,
 }
 
 void KMCMultiple::PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
-                                  double simtime, unsigned long step) const {
+                                  double simtime, unsigned long step) {
   unsigned long diffusionsteps = step / _diffusionresolution;
   Eigen::Matrix3d result =
       avgdiffusiontensor /
@@ -147,50 +151,57 @@ void KMCMultiple::PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(result);
   double bohr2_nm2 = tools::conv::bohr2nm * tools::conv::bohr2nm;
-  cout << endl << "Eigenvalues: " << endl << endl;
+  XTP_LOG(Log::error, _log) << "\nEigenvalues:\n " << flush;
   for (Index i = 0; i < 3; i++) {
-    cout << "Eigenvalue: " << es.eigenvalues()(i) * bohr2_nm2 << endl
-         << "Eigenvector: ";
-    cout << es.eigenvectors().col(i).x() << "   ";
-    cout << es.eigenvectors().col(i).y() << "   ";
-    cout << es.eigenvectors().col(i).z() << endl << endl;
+    XTP_LOG(Log::error, _log)
+        << "Eigenvalue: " << es.eigenvalues()(i) * bohr2_nm2 << flush
+        << "Eigenvector: " << es.eigenvectors().col(i).x() << "   "
+        << es.eigenvectors().col(i).y() << "   " << es.eigenvectors().col(i).z()
+        << "\n"
+        << flush;
   }
   double bohr2Hrts_to_nm2Vs =
       tools::conv::bohr2nm * tools::conv::bohr2nm / tools::conv::hrt2ev;
   // calculate average mobility from the Einstein relation
   if (_field.norm() == 0) {
-    cout << "The following value is calculated using the Einstein relation "
-            "and assuming an isotropic medium"
-         << endl;
+    XTP_LOG(Log::error, _log)
+        << "The following value is calculated using the Einstein relation "
+           "and assuming an isotropic medium"
+        << flush;
     double avgD = 1. / 3. * es.eigenvalues().sum();
     double average_mobility = std::abs(avgD / _temperature);
-    cout << std::scientific << "  Overall average mobility <mu>="
-         << average_mobility * bohr2Hrts_to_nm2Vs << " nm^2/Vs " << endl;
+    XTP_LOG(Log::error, _log)
+        << std::scientific << "  Overall average mobility <mu>="
+        << average_mobility * bohr2Hrts_to_nm2Vs << " nm^2/Vs " << flush;
   }
 }
 
-void KMCMultiple::PrintChargeVelocity(double simtime) const {
+void KMCMultiple::PrintChargeVelocity(double simtime) {
   Eigen::Vector3d avg_dr_travelled = Eigen::Vector3d::Zero();
   for (Index i = 0; i < _numberofcarriers; i++) {
-    cout << std::scientific << "    carrier " << i + 1 << ": "
-         << _carriers[i].get_dRtravelled().transpose() / simtime *
-                tools::conv::bohr2nm
-         << endl;
+    XTP_LOG(Log::error, _log)
+        << std::scientific << "    carrier " << i + 1 << ": "
+        << _carriers[i].get_dRtravelled().transpose() / simtime *
+               tools::conv::bohr2nm
+        << flush;
     avg_dr_travelled += _carriers[i].get_dRtravelled();
   }
   avg_dr_travelled /= double(_numberofcarriers);
 
   Eigen::Vector3d avgvelocity = avg_dr_travelled / simtime;
-  cout << std::scientific << "  Overall average velocity (nm/s): "
-       << avgvelocity.transpose() * tools::conv::bohr2nm << endl;
+  XTP_LOG(Log::error, _log)
+      << std::scientific << "  Overall average velocity (nm/s): "
+      << avgvelocity.transpose() * tools::conv::bohr2nm << flush;
 }
 
 void KMCMultiple::RunVSSM() {
 
   Index realtime_start = time(nullptr);
-  cout << endl << "Algorithm: VSSM for Multiple Charges" << endl;
-  cout << "number of carriers: " << _numberofcarriers << endl;
-  cout << "number of nodes: " << _nodes.size() << endl;
+  XTP_LOG(Log::error, _log)
+      << "\nAlgorithm: VSSM for Multiple Charges" << flush;
+  XTP_LOG(Log::error, _log)
+      << "number of carriers: " << _numberofcarriers << flush;
+  XTP_LOG(Log::error, _log) << "number of nodes: " << _nodes.size() << flush;
 
   bool checkifoutput = (_outputtime != 0);
   double nexttrajoutput = 0;
@@ -199,25 +210,29 @@ void KMCMultiple::RunVSSM() {
   bool stopontime = false;
 
   if (_runtime > 100) {
-    cout << "stop condition: " << maxsteps << " steps." << endl;
+    XTP_LOG(Log::error, _log)
+        << "stop condition: " << maxsteps << " steps." << flush;
 
     if (checkifoutput) {
-      cout << "output frequency: ";
-      cout << "every " << outputstep << " steps." << endl;
+      XTP_LOG(Log::error, _log) << "output frequency: ";
+      XTP_LOG(Log::error, _log) << "every " << outputstep << " steps." << flush;
     }
   } else {
     stopontime = true;
-    cout << "stop condition: " << _runtime << " seconds runtime." << endl;
+    XTP_LOG(Log::error, _log)
+        << "stop condition: " << _runtime << " seconds runtime." << flush;
 
     if (checkifoutput) {
-      cout << "output frequency: ";
-      cout << "every " << _outputtime << " seconds." << endl;
+      XTP_LOG(Log::error, _log) << "output frequency:\n "
+                                   "every "
+                                << _outputtime << " seconds." << flush;
     }
   }
-  cout << "(If you specify runtimes larger than 100 kmcmultiple assumes that "
-          "you are specifying the number of steps for both runtime and "
-          "outputtime.)"
-       << endl;
+  XTP_LOG(Log::error, _log)
+      << "(If you specify runtimes larger than 100 kmcmultiple assumes that "
+         "you are specifying the number of steps for both runtime and "
+         "outputtime.)"
+      << flush;
 
   if (!stopontime && _outputtime != 0 && floor(_outputtime) != _outputtime) {
     throw runtime_error(
@@ -238,7 +253,8 @@ void KMCMultiple::RunVSSM() {
 
   if (checkifoutput) {
 
-    cout << "Writing trajectory to " << _trajectoryfile << "." << endl;
+    XTP_LOG(Log::error, _log)
+        << "Writing trajectory to " << _trajectoryfile << "." << flush;
     traj.open(_trajectoryfile, std::fstream::out);
 
     traj << "time[s]\tsteps\t";
@@ -252,8 +268,9 @@ void KMCMultiple::RunVSSM() {
     }
     traj << endl;
     if (!_timefile.empty()) {
-      cout << "Writing time dependence of energy and mobility to " << _timefile
-           << "." << endl;
+      XTP_LOG(Log::error, _log)
+          << "Writing time dependence of energy and mobility to " << _timefile
+          << "." << flush;
       tfile.open(_timefile, std::fstream::out);
       tfile << "time[s]\t "
                "steps\tenergy_per_carrier[eV]\tmobility[nm**2/"
@@ -293,11 +310,11 @@ void KMCMultiple::RunVSSM() {
           (!stopontime && step < maxsteps))) {
 
     if ((time(nullptr) - realtime_start) > Index(_maxrealtime * 60. * 60.)) {
-      cout << endl
-           << "Real time limit of " << _maxrealtime << " hours ("
-           << Index(_maxrealtime * 60 * 60 + 0.5)
-           << " seconds) has been reached. Stopping here." << endl
-           << endl;
+      XTP_LOG(Log::error, _log)
+          << "\nReal time limit of " << _maxrealtime << " hours ("
+          << Index(_maxrealtime * 60 * 60 + 0.5)
+          << " seconds) has been reached. Stopping here.\n"
+          << flush;
       break;
     }
 
@@ -408,18 +425,20 @@ void KMCMultiple::RunVSSM() {
 
   WriteOccupationtoFile(simtime, _occfile);
 
-  cout << endl << "finished KMC simulation after " << step << " steps." << endl;
-  cout << "simulated time " << simtime << " seconds." << endl;
-  cout << "runtime: ";
-  cout << endl << endl;
+  XTP_LOG(Log::error, _log) << "\nfinished KMC simulation after " << step
+                            << " steps.\n"
+                               "simulated time "
+                            << simtime << " seconds.\n"
+                            << flush;
 
   PrintChargeVelocity(simtime);
 
-  cout << endl << "Distances travelled (nm): " << endl;
+  XTP_LOG(Log::error, _log) << "\nDistances travelled (nm): " << flush;
   for (Index i = 0; i < _numberofcarriers; i++) {
-    cout << std::scientific << "    carrier " << i + 1 << ": "
-         << _carriers[i].get_dRtravelled().transpose() * tools::conv::bohr2nm
-         << endl;
+    XTP_LOG(Log::error, _log)
+        << std::scientific << "    carrier " << i + 1 << ": "
+        << _carriers[i].get_dRtravelled().transpose() * tools::conv::bohr2nm
+        << flush;
   }
 
   PrintDiffandMu(avgdiffusiontensor, simtime, step);
@@ -429,16 +448,12 @@ void KMCMultiple::RunVSSM() {
 }
 
 bool KMCMultiple::EvaluateFrame(Topology& top) {
-  std::cout << std::endl;
-  std::cout << "-----------------------------------" << std::endl;
-  std::cout << "      KMC FOR MULTIPLE CHARGES" << std::endl;
-  std::cout << "-----------------------------------" << std::endl << std::endl;
+  XTP_LOG(Log::error, _log) << "\n-----------------------------------"
+                               "\n      KMC FOR MULTIPLE CHARGES"
+                               "\n-----------------------------------\n"
+                            << std::flush;
 
-  // Initialise random number generator
-  if (tools::globals::verbose) {
-    cout << endl << "Initialising random number generator" << endl;
-  }
-
+  XTP_LOG(Log::info, _log) << "\nInitialising random number generator" << flush;
   _RandomVariable.init(_seed);
 
   LoadGraph(top);

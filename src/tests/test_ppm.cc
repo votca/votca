@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(ppm_full) {
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, es.eigenvectors());
 
-  RPA rpa = RPA(Mmn);
+  RPA rpa = RPA(log, Mmn);
   rpa.configure(4, 0, 16);
   rpa.setRPAInputEnergies(es.eigenvalues());
 

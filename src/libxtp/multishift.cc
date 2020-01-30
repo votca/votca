@@ -28,7 +28,7 @@
 namespace votca {
 namespace xtp {
 
-void Multishift::setMatrixSize(int size) {
+void Multishift::setMatrixSize(Index size) {
   this->_matrix_size = size;
 }
 
@@ -46,9 +46,9 @@ Multishift::MultiShiftResult Multishift::ComplexBiCG(const Eigen::MatrixXcd& A, 
   double res = 1.0;
   double tol = 1e-18;
  
-  int i = 0;
+  Index i = 0;
 
-  int max_iter = 1E9;
+  Index max_iter = 1E9;
 
   while (res > tol) {
     
@@ -103,7 +103,7 @@ Eigen::VectorXcd Multishift::DoMultishift(const Eigen::MatrixXcd& A,
 
   std::complex<double> pi_temp;
 
-  for(int i = 0;i < input._step_length_a.size();i++) {
+  for(Index i = 0;i < input._step_length_a.size();i++) {
 
     stepsize = (pi / pi_p) * input._step_length_a[i];
     x = x + stepsize * direction;

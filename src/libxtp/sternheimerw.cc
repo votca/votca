@@ -21,22 +21,20 @@
 #include <fstream>
 #include <math.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/aopotential.h>
-#include <votca/xtp/aomatrix3d.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aomatrix3d.h>
+#include <votca/xtp/aopotential.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/padeapprox.h>
 #include <votca/xtp/sternheimerw.h>
 
-#include "votca/xtp/numerical_integrations.h"
-
 namespace votca {
 namespace xtp {
 
-Eigen::VectorXd SternheimerW::EvaluateBasisAtPosition(const AOBasis& dftbasis,
-                                                 const Eigen::Vector3d& pos)const{
+Eigen::VectorXd SternheimerW::EvaluateBasisAtPosition(
+    const AOBasis& dftbasis, const Eigen::Vector3d& pos) const {
 
   // get value of orbitals at each gridpoint
   Eigen::VectorXd tmat = Eigen::VectorXd::Zero(dftbasis.AOBasisSize());
@@ -55,8 +53,6 @@ Eigen::VectorXd SternheimerW::EvaluateBasisAtPosition(const AOBasis& dftbasis,
   return tmat;
 }
 
-
-
 void SternheimerW::Initialize() {
 
   this->_num_occ_lvls = _orbitals.getNumberOfAlphaElectrons();
@@ -70,7 +66,7 @@ void SternheimerW::Initialize() {
 }
 
 std::vector<std::complex<double>> SternheimerW::BuildGrid(
-    double omega_start, double omega_end, int steps,
+    double omega_start, double omega_end, Index steps,
     double imaginary_shift) const {
 
   std::vector<std::complex<double>> grid;
@@ -80,7 +76,7 @@ std::vector<std::complex<double>> SternheimerW::BuildGrid(
   std::complex<double> d(1, 0);
   std::complex<double> i(0, 1);
 
-  for (int n = 0; n <= steps; n++) {
+  for (Index n = 0; n <= steps; n++) {
     // Converts from input eV to Hartree
     grid.push_back(omega_start * ev2hrt + n * stepsize * ev2hrt +
                    imaginary_shift * i * ev2hrt);
@@ -89,17 +85,12 @@ std::vector<std::complex<double>> SternheimerW::BuildGrid(
   return grid;
 }
 
-
-
-
-void SternheimerW::initializeMultishift(int size) { 
+void SternheimerW::initializeMultishift(Index size) {
   _multishift.setMatrixSize(size);
 }
-void SternheimerW::initializePade(int size) {
-  _pade.initialize(size);
-}
+void SternheimerW::initializePade(Index size) { _pade.initialize(size); }
 
-Eigen::MatrixXd SternheimerW::OverlapMatrix() const{
+Eigen::MatrixXd SternheimerW::OverlapMatrix() const {
 
   AOBasis basis = _orbitals.SetupDftBasis();
   AOOverlap overlap;
@@ -107,14 +98,14 @@ Eigen::MatrixXd SternheimerW::OverlapMatrix() const{
   return overlap.Matrix();
 }
 
-Eigen::MatrixXd SternheimerW::DensityMatrix() const{
+Eigen::MatrixXd SternheimerW::DensityMatrix() const {
 
   return _orbitals.DensityMatrixGroundState();
 }
 
-Eigen::MatrixXd SternheimerW::Hamiltonian() const{
+Eigen::MatrixXd SternheimerW::Hamiltonian() const {
 
-  const Eigen::MatrixXd& mo_coefficients =_orbitals.MOs().eigenvectors();
+  const Eigen::MatrixXd& mo_coefficients = _orbitals.MOs().eigenvectors();
   const Eigen::MatrixXd& mo_energies = _orbitals.MOs().eigenvalues();
   const Eigen::MatrixXd overlap = OverlapMatrix();
   Eigen::MatrixXd H = overlap * mo_coefficients * mo_energies *
@@ -122,47 +113,44 @@ Eigen::MatrixXd SternheimerW::Hamiltonian() const{
 
   return H;
 }
-Eigen::MatrixXcd SternheimerW::CoulombMatrix(Eigen::Vector3d gridpoint) const{
+Eigen::MatrixXcd SternheimerW::CoulombMatrix(Eigen::Vector3d gridpoint) const {
 
   AOBasis basis = _orbitals.SetupDftBasis();
   AOMultipole aoesp;
-  aoesp.FillPotential(basis,gridpoint);
+  aoesp.FillPotential(basis, gridpoint);
   return aoesp.Matrix();
 }
 
-Eigen::MatrixXcd SternheimerW::SternheimerLHS(const Eigen::MatrixXcd& hamiltonian,
-                                              const Eigen::MatrixXcd& inverse_overlap,
-                                              double eps,
-                                              std::complex<double> omega,
-                                              bool pm) const{
+Eigen::MatrixXcd SternheimerW::SternheimerLHS(
+    const Eigen::MatrixXcd& hamiltonian,
+    const Eigen::MatrixXcd& inverse_overlap, double eps,
+    std::complex<double> omega, bool pm) const {
 
   // distinguish between +w and -w
-  std::complex<double> temp=eps+omega;
+  std::complex<double> temp = eps + omega;
   if (pm != true) {
     temp = (eps - omega);
   }
-  return (inverse_overlap*hamiltonian - temp*Eigen::MatrixXcd::Identity(_basis_size,_basis_size));
+  return (inverse_overlap * hamiltonian -
+          temp * Eigen::MatrixXcd::Identity(_basis_size, _basis_size));
 }
 
-Eigen::VectorXcd SternheimerW::SternheimerRHS(const Eigen::MatrixXcd& inverse_overlap,
-                                              const Eigen::MatrixXcd& density,
-                                              const Eigen::MatrixXcd& pertubation,
-                                              const Eigen::VectorXcd& coeff) const{
+Eigen::VectorXcd SternheimerW::SternheimerRHS(
+    const Eigen::MatrixXcd& inverse_overlap, const Eigen::MatrixXcd& density,
+    const Eigen::MatrixXcd& pertubation, const Eigen::VectorXcd& coeff) const {
 
-  return -1*(inverse_overlap-density)*pertubation*coeff;
+  return -1 * (inverse_overlap - density) * pertubation * coeff;
 }
 
 Eigen::VectorXcd SternheimerW::SternheimerSolve(const Eigen::MatrixXcd& LHS,
-                                                const Eigen::VectorXcd& RHS){
+                                                const Eigen::VectorXcd& RHS) {
   return LHS.colPivHouseholderQr().solve(RHS);
 }
 
-Eigen::MatrixXcd SternheimerW::DeltaNOneShot(
-    std::complex<double> w, Eigen::Vector3d r) const{
+Eigen::MatrixXcd SternheimerW::DeltaNOneShot(std::complex<double> w,
+                                             Eigen::Vector3d r) const {
 
   Eigen::MatrixXcd V = CoulombMatrix(r);
-  
-  double alpha = 2 * (_mo_energies(_num_occ_lvls) - _mo_energies(2));
 
   Eigen::MatrixXcd solution_p =
       Eigen::MatrixXcd::Zero(_basis_size, _num_occ_lvls);
@@ -173,204 +161,185 @@ Eigen::MatrixXcd SternheimerW::DeltaNOneShot(
   Eigen::MatrixXcd LHS_P;
   Eigen::MatrixXcd LHS_M;
 
-  Eigen::VectorXcd RHS;// = Eigen::Xcd::Zero(_basis_size, _basis_size);
+  Eigen::VectorXcd RHS;  // = Eigen::Xcd::Zero(_basis_size, _basis_size);
 
-  //Multishift::MultiShiftResult result;
-  
-  for (int v = 0; v < _num_occ_lvls; v++) {
+  for (Index v = 0; v < _num_occ_lvls; v++) {
 
-    RHS = SternheimerRHS(_inverse_overlap, _density_Matrix, V, _mo_coefficients.col(v));
+    RHS = SternheimerRHS(_inverse_overlap, _density_Matrix, V,
+                         _mo_coefficients.col(v));
+    LHS_P = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap,
+                           _mo_energies(v), w, true);
+    solution_p.col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
+    LHS_M = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap,
+                           _mo_energies(v), w, false);
+    solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
+  }
 
-      
-        LHS_P = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, true);
-        solution_p.col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
-        //solution_p[i].col(v) = _multishift.DoMultishift(LHS_P,RHS,w[i],result);
-//        if(((LHS_P+w[i]*Eigen::MatrixXcd::Identity(_basis_size,_basis_size))*solution_p[i].col(v)-RHS).norm()>1e-13){
-//            std::cout<<"res_p="<<(LHS_P+w[i]*Eigen::MatrixXcd::Identity(_basis_size,_basis_size))*solution_p[i].col(v)-RHS<<std::endl;
-//        }
-
-        LHS_M = SternheimerLHS(_Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, false);
-        
-        solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
-        //solution_m[i].col(v) = _multishift.DoMultishift(LHS_M,RHS,-w[i],result);
-        //if(((LHS_M+w[i]*Eigen::MatrixXcd::Identity(_basis_size,_basis_size))*solution_m[i].col(v)-RHS).norm()>1e-13){
-        //    std::cout<<"res_m="<<(LHS_M-w[i]*Eigen::MatrixXcd::Identity(_basis_size,_basis_size))*solution_m[i].col(v)-RHS<<std::endl;
-        //}
-      
-    }
-  
-
-  Eigen::MatrixXcd delta_n=Eigen::MatrixXcd::Zero(solution_p.cols(),solution_p.rows());
-
-    delta_n +=
-    2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) * solution_p.transpose() +
-    2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) * solution_m.transpose();
+  Eigen::MatrixXcd delta_n = 2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) *
+                 solution_p.transpose() +
+             2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) *
+                 solution_m.transpose();
 
   return delta_n;
 }
 
-Eigen::MatrixXcd SternheimerW::DielectricMatrix(Eigen::MatrixXcd deltaN)const{
-
-  return Eigen::MatrixXcd::Identity(deltaN.rows(),deltaN.cols())-deltaN;
-
+Eigen::MatrixXcd SternheimerW::DielectricMatrix(Eigen::MatrixXcd deltaN) const {
+  deltaN.diagonal().array()-=1.0;
+  return -deltaN;
 }
-void SternheimerW::printDielectricFunction(double omega_start, double omega_end, int steps, double imaginary_shift,
-    double lorentzian_broadening, int resolution_output, std::string gridtype){
+void SternheimerW::printDielectricFunction(double omega_start, double omega_end,
+                                           Index steps, double imaginary_shift,
+                                           double lorentzian_broadening,
+                                           Index resolution_output,
+                                           std::string gridtype) {
 
-    std::vector<std::complex<double>> grid_w =
+  std::vector<std::complex<double>> grid_w =
       BuildGrid(omega_start, omega_end, steps, 0);
 
-    AOBasis dftbasis = _orbitals.SetupDftBasis();
-    
-    NumericalIntegration numint;
-    numint.GridSetup(gridtype, _orbitals.QMAtoms(),
-                   dftbasis);
-    std::vector<std::pair<double, const Eigen::Vector3d*>> grid =
-      numint.getGridpoints();
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
 
-    std::cout << "gridsize= " << numint.getGridSize() << std::endl;
-
-    
-    for (int o = 0; o < grid_w.size(); o++) {
-      for (const std::pair<double, const Eigen::Vector3d*> point: grid) {  
-        Eigen::Vector3d gridcont = *point.second;
-        Eigen::MatrixXcd dielectricMatrix = DielectricMatrix(DeltaNOneShot(grid_w[o], *point.second));
-        Eigen::MatrixXcd ScreenedCoulomb=dielectricMatrix.inverse()*CoulombMatrix(*point.second);
-      }
+  //NumericalIntegration numint;
+  //numint.GridSetup(gridtype, _orbitals.QMAtoms(), dftbasis);
+  std::vector<std::pair<double, const Eigen::Vector3d*>> grid  ;
+ 
+  for (Index o = 0; o < grid_w.size(); o++) {
+    for (const std::pair<double, const Eigen::Vector3d*> point : grid) {
+      Eigen::Vector3d gridcont = *point.second;
+      Eigen::MatrixXcd dielectricMatrix =
+          DielectricMatrix(DeltaNOneShot(grid_w[o], *point.second));
+      Eigen::MatrixXcd ScreenedCoulomb =
+          dielectricMatrix.inverse() * CoulombMatrix(*point.second);
     }
+  }
 }
 
-std::complex<double> SternheimerW::ScreenedCoulomb(Eigen::Vector3d gridpoint1, Eigen::Vector3d gridpoint2, std::complex<double> frequency)const{
+std::complex<double> SternheimerW::ScreenedCoulomb(
+    Eigen::Vector3d gridpoint1, Eigen::Vector3d gridpoint2,
+    std::complex<double> frequency) const {
 
   AOBasis basis = _orbitals.SetupDftBasis();
-  Eigen::MatrixXcd dielectricMatrix = DielectricMatrix(DeltaNOneShot(frequency, gridpoint1));
-  Eigen::MatrixXcd ScreenedCoulombMatrix = dielectricMatrix.inverse()*CoulombMatrix(gridpoint1);      
-  std::complex<double>  W=0.0;
-  
-  for(int n=0; n < _basis_size; n++){
-    for(int m; m < _basis_size; m++){
+  Eigen::MatrixXcd dielectricMatrix =
+      DielectricMatrix(DeltaNOneShot(frequency, gridpoint1));
+  Eigen::MatrixXcd ScreenedCoulombMatrix =
+      dielectricMatrix.inverse() * CoulombMatrix(gridpoint1);
+  std::complex<double> W = 0.0;
 
-      W+=EvaluateBasisAtPosition(basis,gridpoint2)(n)*ScreenedCoulombMatrix(n,m)*EvaluateBasisAtPosition(basis,gridpoint2)(m);
+  for (Index n = 0; n < _basis_size; n++) {
+    for (Index m=0; m < _basis_size; m++) {
 
+      W += EvaluateBasisAtPosition(basis, gridpoint2)(n) *
+           ScreenedCoulombMatrix(n, m) *
+           EvaluateBasisAtPosition(basis, gridpoint2)(m);
     }
   }
   return W;
 }
 
-Eigen::MatrixXcd SternheimerW::GreensFunctionLHS(std::complex<double> w) const{
+Eigen::MatrixXcd SternheimerW::GreensFunctionLHS(std::complex<double> w) const {
 
-  return _Hamiltonian_Matrix-w*_overlap_Matrix;
-
-
+  return _Hamiltonian_Matrix - w * _overlap_Matrix;
 }
 
-Eigen::MatrixXcd SternheimerW::AnalyticGreensfunction(std::complex<double> w) const{
-  return GreensFunctionLHS(w).colPivHouseholderQr().solve(-1*Eigen::MatrixXcd::Identity(_basis_size,_basis_size));
-
+Eigen::MatrixXcd SternheimerW::AnalyticGreensfunction(
+    std::complex<double> w) const {
+  return GreensFunctionLHS(w).colPivHouseholderQr().solve(
+      -1 * Eigen::MatrixXcd::Identity(_basis_size, _basis_size));
 }
 
-double SternheimerW::Lorentzian(double center, std::complex<double> freq)const{
-  double gamma=0.001;
+double SternheimerW::Lorentzian(double center,
+                                std::complex<double> freq) const {
+  double gamma = 0.001;
 
-  //double prefactor = 1/(votca::tools::conv::Pi*gamma);
-  double enumerator = gamma*gamma;
-  double denominator = (std::pow(abs(freq-center),2)+gamma*gamma);
-  return (enumerator/denominator);
-
+  // double prefactor = 1/(votca::tools::conv::Pi*gamma);
+  double enumerator = gamma * gamma;
+  double denominator = (std::pow(abs(freq - center), 2) + gamma * gamma);
+  return (enumerator / denominator);
 }
 
-Eigen::MatrixXcd SternheimerW::NonAnalyticGreensfunction(std::complex<double> freq)const{
-  Eigen::MatrixXcd NonAnalyticGreens=Eigen::MatrixXcd::Zero(_basis_size,_basis_size);
+Eigen::MatrixXcd SternheimerW::NonAnalyticGreensfunction(
+    std::complex<double> freq) const {
+  Eigen::MatrixXcd NonAnalyticGreens =
+      Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
 
-  std::complex<double> factor(0,2*votca::tools::conv::Pi);
+  std::complex<double> factor(0, 2 * votca::tools::conv::Pi);
 
-  for(int v=0; v<_num_occ_lvls;v++){
-    NonAnalyticGreens+=factor*Lorentzian(_mo_energies[v],freq)*_mo_coefficients.col(v)*_mo_coefficients.col(v).transpose();
+  for (Index v = 0; v < _num_occ_lvls; v++) {
+    NonAnalyticGreens += factor * Lorentzian(_mo_energies[v], freq) *
+                         _mo_coefficients.col(v) *
+                         _mo_coefficients.col(v).transpose();
   }
 
   return NonAnalyticGreens;
 }
 
-std::complex<double> SternheimerW::GreensFunction(Eigen::Vector3d gridpoint1, Eigen::Vector3d gridpoint2, std::complex<double> frequency)const{
+std::complex<double> SternheimerW::GreensFunction(
+    Eigen::Vector3d gridpoint1, Eigen::Vector3d gridpoint2,
+    std::complex<double> frequency) const {
 
   AOBasis basis = _orbitals.SetupDftBasis();
 
-  Eigen::MatrixXcd GreensFunctionMatrix = NonAnalyticGreensfunction(frequency)+AnalyticGreensfunction(frequency);
+  Eigen::MatrixXcd GreensFunctionMatrix =
+      NonAnalyticGreensfunction(frequency) + AnalyticGreensfunction(frequency);
 
-  std::complex<double>  G=0.0;
-  
-  for(int n=0; n < _basis_size; n++){
-    for(int m; m < _basis_size; m++){
+  std::complex<double> G = 0.0;
 
-      G+=EvaluateBasisAtPosition(basis,gridpoint1)(n)*GreensFunctionMatrix(n,m)*EvaluateBasisAtPosition(basis,gridpoint2)(m);
+  for (Index n = 0; n < _basis_size; n++) {
+    for (Index m= 0; m < _basis_size; m++) {
 
+      G += EvaluateBasisAtPosition(basis, gridpoint1)(n) *
+           GreensFunctionMatrix(n, m) *
+           EvaluateBasisAtPosition(basis, gridpoint2)(m);
     }
   }
   return G;
 }
 
-void SternheimerW::printGreensfunction(double omega_start, double omega_end, int steps, double imaginary_shift,
-    double lorentzian_broadening, int resolution_output){
+void SternheimerW::printGreensfunction(double omega_start, double omega_end,
+                                       Index steps, double imaginary_shift,
+                                       double lorentzian_broadening,
+                                       Index resolution_output) {
 
-    std::vector<std::complex<double>> grid_w =
+  std::vector<std::complex<double>> grid_w =
       BuildGrid(omega_start, omega_end, steps, 0);
 
-    for(std::complex<double> w: grid_w){
+  for (std::complex<double> w : grid_w) {
 
-      double Greens=imag((AnalyticGreensfunction(w)+NonAnalyticGreensfunction(w)).trace());
+    double Greens = imag(
+        (AnalyticGreensfunction(w) + NonAnalyticGreensfunction(w)).trace());
 
-      std::cout<< real(w) <<" "<<Greens<<" "<<real(AnalyticGreensfunction(w).trace())<<" "<<imag(NonAnalyticGreensfunction(w).trace())<<std::endl;
-
-    }
-
-
+    std::cout << real(w) << " " << Greens << " "
+              << real(AnalyticGreensfunction(w).trace()) << " "
+              << imag(NonAnalyticGreensfunction(w).trace()) << std::endl;
+  }
 }
 
+std::complex<double> SternheimerW::SelfEnergy(double omega_start,
+                                              double omega_end, Index steps,
+                                              double imaginary_shift,
+                                              double lorentzian_broadening,
+                                              Index resolution_output,
+                                              std::string gridtype) {
 
-
-std::complex<double> SternheimerW::SelfEnergy(
-    double omega_start, double omega_end, int steps, double imaginary_shift,
-    double lorentzian_broadening, int resolution_output, std::string gridtype) {
-  
   std::vector<std::complex<double>> w =
       BuildGrid(omega_start, omega_end, steps, 0);
-  
-  AOBasis dftbasis = _orbitals.SetupDftBasis();
-  NumericalIntegration numint;
-  numint.GridSetup(gridtype, _orbitals.QMAtoms(),
-                   dftbasis);
-  std::vector<std::pair<double, const Eigen::Vector3d*>> grid =
-      numint.getGridpoints();
 
-  std::cout << "gridsize= " << numint.getGridSize() << std::endl;
-  
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
+ // NumericalIntegration numint;
+ // numint.GridSetup(gridtype, _orbitals.QMAtoms(), dftbasis);
+  std::vector<std::pair<double, const Eigen::Vector3d*>> grid ;
+
   std::complex<double> SelfEnergy = 0.0;
 
   double stepsize = (omega_end - omega_start) / steps;
 
-  for(std::pair<double, const Eigen::Vector3d*> r: grid){
-    for(std::pair<double, const Eigen::Vector3d*> r_p: grid){
-      for(std::complex<double> omega: w){
-          //SelfEnergy+=ScreenedCoulomb(r.second()*,r_p.second()*,omega)*(GreensFunction(r.second()*,r_p.second()*,omega));
+  for (std::pair<double, const Eigen::Vector3d*> r : grid) {
+    for (std::pair<double, const Eigen::Vector3d*> r_p : grid) {
+      for (std::complex<double> omega : w) {
+        // SelfEnergy+=ScreenedCoulomb(r.second()*,r_p.second()*,omega)*(GreensFunction(r.second()*,r_p.second()*,omega));
       }
     }
-  }  
-
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
+  }
+  return SelfEnergy;
 }
 
 }  // namespace xtp

@@ -1,0 +1,22 @@
+<options>
+
+<!-- xtp_tools -e exciton options.xml -->
+<dftgwbse help="Electronic Excitations using GW-BSE">
+
+        <dftpackage help="Package for DFT ground state">xtpdft.xml</dftpackage>
+
+        <mode help="Calculator mode: energy or optimize">energy</mode>
+        <archive help=".orb file to create">system.orb</archive>
+        <molecule help="Input geometry .xyz">system.xyz</molecule>
+
+        <gwbse_engine>
+            <tasks help="guess,input,dft,parse,gwbse">input,dft,parse,gwbse</tasks>
+            <dftlog help="qmpackage log file to parse">system_dft.orb</dftlog>
+            <mofile help="qmpackage file with MO coefficients">system.gbw</mofile>
+            <gwbse_options help="xml file with gwbse options">gwbse.xml</gwbse_options>
+            <redirect_logger help="">0</redirect_logger>
+        </gwbse_engine>
+
+</dftgwbse>
+
+</options>

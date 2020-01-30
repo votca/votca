@@ -38,7 +38,7 @@ class Multishift {
       bool converged=true;    
   };
   
-  void setMatrixSize(int size);
+  void setMatrixSize(Index size);
 
   Multishift::MultiShiftResult ComplexBiCG(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b)const;
 
@@ -47,7 +47,7 @@ class Multishift {
 
  private:
    
-  int _matrix_size;
+  Index _matrix_size;
 
 };
 }  // namespace xtp

@@ -95,7 +95,6 @@ class ParallelXJobCalc : public JobCalculator {
   tools::Mutex _logMutex;
   std::string _mapfile = "";
   std::string _jobfile = "";
-  Index _openmp_threads = 1;
 };
 
 }  // namespace xtp

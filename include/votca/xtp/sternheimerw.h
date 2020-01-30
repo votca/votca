@@ -41,15 +41,15 @@ class SternheimerW {
   std::vector<Eigen::MatrixXcd> DeltaNOS(std::complex<double> w,
                                          std::string gridtype);
 
-  void printGreensfunction(double omega_start, double omega_end, int steps, double imaginary_shift,
-    double lorentzian_broadening, int resolution_output);
+  void printGreensfunction(double omega_start, double omega_end, Index steps, double imaginary_shift,
+    double lorentzian_broadening, Index resolution_output);
 
-  void printDielectricFunction(double omega_start, double omega_end, int steps, double imaginary_shift,
-    double lorentzian_broadening, int resolution_output, std::string gridtype);
+  void printDielectricFunction(double omega_start, double omega_end, Index steps, double imaginary_shift,
+    double lorentzian_broadening, Index resolution_output, std::string gridtype);
 
   std::complex<double> SelfEnergy(
-      double omega_start, double omega_end, int steps, double imaginary_shift,
-    double lorentzian_broadening, int resolution_output, std::string gridtype);
+      double omega_start, double omega_end, Index steps, double imaginary_shift,
+    double lorentzian_broadening, Index resolution_output, std::string gridtype);
 
   
  private:
@@ -61,9 +61,9 @@ class SternheimerW {
 
   Multishift _multishift;
 
-  int _num_occ_lvls;
+  Index _num_occ_lvls;
 
-  int _basis_size;
+  Index _basis_size;
 
   Eigen::MatrixXcd _Hamiltonian_Matrix;
 
@@ -77,13 +77,13 @@ class SternheimerW {
   Eigen::VectorXd _mo_energies;
 
   std::vector<std::complex<double>> BuildGrid(double omega_start,
-                                              double omega_end, int steps,
+                                              double omega_end, Index steps,
                                               double imaginary_shift) const;
 
 
-  void initializeMultishift(int size);
+  void initializeMultishift(Index size);
 
-  void initializePade(int size);
+  void initializePade(Index size);
   
   // returns the overlap matrix for all occupied states
   Eigen::MatrixXd OverlapMatrix() const;

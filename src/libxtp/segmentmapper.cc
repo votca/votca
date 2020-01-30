@@ -1,5 +1,6 @@
 /*
- *            Copyright 2016 The MUSCET Development Team
+ *            Copyright 2016 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
  *
@@ -71,9 +72,9 @@ std::vector<double> SegmentMapper<AtomContainer>::getWeights(
     tools::Tokenizer tok_weights(weights_string, " \t\n");
     tok_weights.ConvertToVector(weights);
   } else {
-    XTP_LOG_SAVE(logDEBUG, _log) << " Did not find weights for fragment "
-                                 << frag.get("name").as<std::string>()
-                                 << " Using atomic masses" << std::flush;
+    XTP_LOG(Log::error, _log) << " Did not find weights for fragment "
+                              << frag.get("name").as<std::string>()
+                              << " Using atomic masses" << std::flush;
     std::string frags =
         frag.get(_mapatom_xml.at("atoms")).template as<std::string>();
     tools::Tokenizer tok_atoms(frags, " \t\n");
@@ -88,10 +89,10 @@ std::vector<double> SegmentMapper<AtomContainer>::getWeights(
       }
 
       double weight = e.getMass(entries[1]);
-      XTP_LOG_SAVE(logDEBUG, _log) << entries[1] << ":" << weight << " ";
+      XTP_LOG(Log::info, _log) << entries[1] << ":" << weight << " ";
       weights.push_back(weight);
     }
-    XTP_LOG_SAVE(logDEBUG, _log) << std::endl;
+    XTP_LOG(Log::error, _log) << std::endl;
   }
 
   return weights;
@@ -143,7 +144,7 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
     mapatom_ids.push_back(map_result.first);
     seginfo.mapatoms.push_back(map_result);
     if (Atom::GetElementFromString(md_result.second) != map_result.second) {
-      XTP_LOG_SAVE(logINFO, _log)
+      XTP_LOG(Log::error, _log)
           << "WARNING: mdatom'" << md_result.second << "' and "
           << _mapatom_xml["name"] << " '" << map_result.second
           << "' do not have same element" << std::flush;
@@ -229,7 +230,7 @@ void SegmentMapper<AtomContainer>::LoadMappingFile(const std::string& mapfile) {
 }
 
 template <class AtomContainer>
-std::pair<long, std::string> SegmentMapper<AtomContainer>::StringToMapIndex(
+std::pair<Index, std::string> SegmentMapper<AtomContainer>::StringToMapIndex(
     const std::string& map_string) const {
   tools::Tokenizer tok(map_string, ":");
   std::vector<std::string> result = tok.ToVector();
@@ -237,10 +238,10 @@ std::pair<long, std::string> SegmentMapper<AtomContainer>::StringToMapIndex(
     throw std::runtime_error("Entry " + map_string +
                              " is not properly formatted.");
   }
-  return std::pair<long, std::string>(std::stoi(result[0]), result[1]);
+  return std::pair<Index, std::string>(std::stoi(result[0]), result[1]);
 }
 template <class AtomContainer>
-std::pair<long, std::string> SegmentMapper<AtomContainer>::StringToMDIndex(
+std::pair<Index, std::string> SegmentMapper<AtomContainer>::StringToMDIndex(
     const std::string& md_string) const {
   tools::Tokenizer tok(md_string, ":");
   std::vector<std::string> result = tok.ToVector();
@@ -255,18 +256,18 @@ std::pair<long, std::string> SegmentMapper<AtomContainer>::StringToMDIndex(
     throw std::runtime_error("Atom entry " + md_string +
                              " is not well formatted");
   }
-  return std::pair<long, std::string>(atomid, result[1]);
+  return std::pair<Index, std::string>(atomid, result[1]);
 }
 
 template <class AtomContainer>
-std::pair<long, Index> SegmentMapper<AtomContainer>::CalcAtomIdRange(
+std::pair<Index, Index> SegmentMapper<AtomContainer>::CalcAtomIdRange(
     const std::vector<Index>& seg) const {
   Index max_res_id = *std::max_element(seg.begin(), seg.end());
   Index min_res_id = *std::min_element(seg.begin(), seg.end());
-  return std::pair<long, Index>(min_res_id, max_res_id);
+  return std::pair<Index, Index>(min_res_id, max_res_id);
 }
 template <class AtomContainer>
-std::pair<long, Index> SegmentMapper<AtomContainer>::CalcAtomIdRange(
+std::pair<Index, Index> SegmentMapper<AtomContainer>::CalcAtomIdRange(
     const Segment& seg) const {
   Index max_res_id = std::max_element(seg.begin(), seg.end(),
                                       [](const Atom& a, const Atom& b) {
@@ -279,7 +280,7 @@ std::pair<long, Index> SegmentMapper<AtomContainer>::CalcAtomIdRange(
                                         return a.getId() < b.getId();
                                       })
                          ->getId();
-  return std::pair<long, Index>(min_res_id, max_res_id);
+  return std::pair<Index, Index>(min_res_id, max_res_id);
 }
 
 template <class AtomContainer>
@@ -294,7 +295,7 @@ void SegmentMapper<AtomContainer>::PlaceMapAtomonMD(
 }
 
 template <class AtomContainer>
-long SegmentMapper<AtomContainer>::FindVectorIndexFromAtomId(
+Index SegmentMapper<AtomContainer>::FindVectorIndexFromAtomId(
     Index atomid, const std::vector<mapAtom*>& fragment_mapatoms) const {
   Index i = 0;
   for (; i < Index(fragment_mapatoms.size()); i++) {
@@ -415,7 +416,7 @@ AtomContainer SegmentMapper<AtomContainer>::map(
         "Could not find a Segment of name: " + seg.getType() + " in mapfile.");
   }
   Seginfo seginfo = _segment_info.at(seg.getType());
-  if (long(seginfo.mdatoms.size()) != seg.size()) {
+  if (Index(seginfo.mdatoms.size()) != seg.size()) {
     throw std::runtime_error(
         "Segment '" + seg.getType() +
         "' does not contain the same number of atoms as mapping file: " +
@@ -423,8 +424,8 @@ AtomContainer SegmentMapper<AtomContainer>::map(
         std::to_string(seg.size()));
   }
 
-  std::pair<long, Index> minmax_map = seginfo.minmax;
-  std::pair<long, Index> minmax = CalcAtomIdRange(seg);
+  std::pair<Index, Index> minmax_map = seginfo.minmax;
+  std::pair<Index, Index> minmax = CalcAtomIdRange(seg);
 
   if ((minmax_map.first - minmax_map.second) !=
       (minmax.first - minmax.second)) {
@@ -442,7 +443,7 @@ AtomContainer SegmentMapper<AtomContainer>::map(
   AtomContainer Result(seg.getType(), seg.getId());
   Result.LoadFromFile(coordfilename);
 
-  if (long(seginfo.mapatoms.size()) != Result.size()) {
+  if (Index(seginfo.mapatoms.size()) != Result.size()) {
     throw std::runtime_error(
         _mapatom_xml.at("tag") + "Segment '" + seg.getType() +
         "' does not contain the same number of atoms as mapping file: " +

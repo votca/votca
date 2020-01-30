@@ -21,8 +21,6 @@
 #ifndef __VOTCA_XTP_NEIGHBORLIST_H
 #define __VOTCA_XTP_NEIGHBORLIST_H
 
-#include <boost/format.hpp>
-#include <boost/progress.hpp>
 #include <votca/tools/globals.h>
 #include <votca/xtp/atom.h>
 #include <votca/xtp/qmcalculator.h>

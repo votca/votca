@@ -26,21 +26,14 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
+#include <votca/tools/globals.h>
 namespace votca {
 namespace xtp {
-
-enum TLogLevel { logERROR, logWARNING, logINFO, logDEBUG };
 
 /*
  * Macros to use the Logger: XTP_LOG(level,logger) << message
  */
-#define XTP_LOG(level, log)                           \
-  if (&log != NULL && level > (log).getReportLevel()) \
-    ;                                                 \
-  else                                                \
-    (log)(level)
-
-#define XTP_LOG_SAVE(level, log)      \
+#define XTP_LOG(level, log)           \
   if (level > (log).getReportLevel()) \
     ;                                 \
   else                                \
@@ -52,28 +45,28 @@ enum TLogLevel { logERROR, logWARNING, logINFO, logDEBUG };
 class LogBuffer : public std::stringbuf {
 
  public:
-  LogBuffer() : std::stringbuf() {}
+  LogBuffer() : std::stringbuf() { _LogLevel = Log::current_level; }
 
   // sets the log level (needed for output)
-  void setLogLevel(TLogLevel LogLevel) { _LogLevel = LogLevel; }
+  void setLogLevel(Log::Level LogLevel) { _LogLevel = LogLevel; }
 
   // sets Multithreading (buffering required)
   void setMultithreading(bool maverick) { _maverick = maverick; }
 
-  // sets preface strings for logERROR, logWARNING, ...
-  void setPreface(TLogLevel level, std::string preface) {
+  // sets preface strings for Log::error, Log::warning, ...
+  void setPreface(Log::Level level, std::string preface) {
     switch (level) {
 
-      case logERROR:
+      case Log::Level::error:
         _errorPreface = preface;
         break;
-      case logWARNING:
+      case Log::Level::warning:
         _warnPreface = preface;
         break;
-      case logINFO:
+      case Log::Level::info:
         _infoPreface = preface;
         break;
-      case logDEBUG:
+      case Log::Level::debug:
         _dbgPreface = preface;
         break;
     }
@@ -97,18 +90,18 @@ class LogBuffer : public std::stringbuf {
 
  private:
   // Log Level (WARNING, INFO, etc)
-  TLogLevel _LogLevel = TLogLevel::logDEBUG;
+  Log::Level _LogLevel = Log::Level::error;
 
   // temporary buffer to store messages
   std::ostringstream _stringStream;
 
   // Multithreading
-  bool _maverick;
+  bool _maverick = true;
 
-  std::string _errorPreface = " ERROR   ";
-  std::string _warnPreface = " WARNING ";
-  std::string _infoPreface = "         ";
-  std::string _dbgPreface = " DEBUG   ";
+  std::string _errorPreface = "\n ERROR   ";
+  std::string _warnPreface = "\n WARNING ";
+  std::string _infoPreface = "\n         ";
+  std::string _dbgPreface = "\n DEBUG   ";
   bool _writePreface = true;
 
  protected:
@@ -118,16 +111,16 @@ class LogBuffer : public std::stringbuf {
 
     if (_writePreface) {
       switch (_LogLevel) {
-        case logERROR:
+        case Log::Level::error:
           _message << _errorPreface;
           break;
-        case logWARNING:
+        case Log::Level::warning:
           _message << _warnPreface;
           break;
-        case logINFO:
+        case Log::Level::info:
           _message << _infoPreface;
           break;
-        case logDEBUG:
+        case Log::Level::debug:
           _message << _dbgPreface;
           break;
       }
@@ -155,14 +148,14 @@ class LogBuffer : public std::stringbuf {
  *
  *  \code
  *  #include <votca/xtp/logger.h>
- *  Logger* log = new Logger(); // create a logger object
- *  log->setReportLevel(logDEBUG); // output only log messages starting from a
- * DEBUG level XTP_LOG(logERROR,*log) << "Error detected" << flush; // write to
+ *  Logger log; // create a logger object
+ *  log.setReportLevel(Log::error); // output only log messages starting from a
+ *  level XTP_LOG(Log::error,*log) << "Error detected" << flush; // write to
  * the logger at an ERROR level cout << log; // output logger content to
  * standard output \endcode
  *
- *  Logger has four predefined log levels: logERROR, logWARNING, logINFO,
- * logDEBUG.
+ *  Logger has four predefined log levels: error, warning, info,
+ * debug.
  */
 class Logger : public std::ostream {
 
@@ -172,31 +165,42 @@ class Logger : public std::ostream {
   }
 
  public:
-  Logger() : std::ostream(new LogBuffer()){};
-  Logger(TLogLevel ReportLevel)
-      : std::ostream(new LogBuffer()), _ReportLevel(ReportLevel) {}
+  Logger() : std::ostream(new LogBuffer()), _ReportLevel(Log::current_level) {
+    setMultithreading(_maverick);
+  }
+  Logger(Log::Level ReportLevel)
+      : std::ostream(new LogBuffer()), _ReportLevel(ReportLevel) {
+    setMultithreading(_maverick);
+  }
 
-  ~Logger() override {
+  ~Logger() final {
     delete rdbuf();
     rdbuf(nullptr);
   }
 
-  Logger &operator()(TLogLevel LogLevel) {
+  Logger &operator()(Log::Level LogLevel) {
     dynamic_cast<LogBuffer *>(rdbuf())->setLogLevel(LogLevel);
     return *this;
   }
 
-  void setReportLevel(TLogLevel ReportLevel) { _ReportLevel = ReportLevel; }
+  void setReportLevel(Log::Level ReportLevel) { _ReportLevel = ReportLevel; }
   void setMultithreading(bool maverick) {
     _maverick = maverick;
     dynamic_cast<LogBuffer *>(rdbuf())->setMultithreading(_maverick);
   }
-  bool isMaverick() { return _maverick; }
+  bool isMaverick() const { return _maverick; }
 
-  TLogLevel getReportLevel() { return _ReportLevel; }
+  Log::Level getReportLevel() const { return _ReportLevel; }
 
-  void setPreface(TLogLevel level, std::string preface) {
+  void setPreface(Log::Level level, const std::string &preface) {
     dynamic_cast<LogBuffer *>(rdbuf())->setPreface(level, preface);
+  }
+
+  void setCommonPreface(const std::string &preface) {
+    setPreface(Log::info, preface);
+    setPreface(Log::error, preface);
+    setPreface(Log::debug, preface);
+    setPreface(Log::warning, preface);
   }
 
   void EnablePreface() { dynamic_cast<LogBuffer *>(rdbuf())->EnablePreface(); }
@@ -207,7 +211,7 @@ class Logger : public std::ostream {
 
  private:
   // at what level of detail output messages
-  TLogLevel _ReportLevel = TLogLevel::logERROR;
+  Log::Level _ReportLevel = Log::error;
 
   // if true, only a single processor job is executed
   bool _maverick = false;

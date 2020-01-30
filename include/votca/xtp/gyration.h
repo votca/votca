@@ -1,5 +1,6 @@
 /*
- *            Copyright 2016 The MUSCET Development Team
+ *            Copyright 2016 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
  *
@@ -21,8 +22,8 @@
 #define VOTCA_XTP_GYRATION_H
 
 #include <stdio.h>
+#include <votca/xtp/density_integration.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/orbitals.h>
 namespace votca {
 namespace xtp {

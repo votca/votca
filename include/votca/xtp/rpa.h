@@ -20,6 +20,7 @@
 #pragma once
 #ifndef _VOTCA_XTP_RPA_H
 #define _VOTCA_XTP_RPA_H
+#include "votca/xtp/logger.h"
 #include <vector>
 #include <votca/xtp/eigen.h>
 
@@ -29,7 +30,7 @@ class TCMatrix_gwbse;
 
 class RPA {
  public:
-  RPA(const TCMatrix_gwbse& Mmn) : _Mmn(Mmn){};
+  RPA(Logger& log, const TCMatrix_gwbse& Mmn) : _log(log), _Mmn(Mmn){};
 
   void configure(Index homo, Index rpamin, Index rpamax) {
     _homo = homo;
@@ -57,6 +58,13 @@ class RPA {
   void UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
                               const Eigen::VectorXd& gwaenergies, Index qpmin);
 
+  struct rpa_eigensolution {
+    Eigen::VectorXd omega;  // Eigenvalues
+    Eigen::MatrixXd XpY;    // Eigenvector components (X + Y)
+  };
+
+  rpa_eigensolution Diagonalize_H2p() const;
+
  private:
   Index _homo;  // HOMO index with respect to dft energies
   Index _rpamin;
@@ -65,11 +73,18 @@ class RPA {
 
   Eigen::VectorXd _energies;
 
+  Logger& _log;
   const TCMatrix_gwbse& _Mmn;
 
   template <bool imag>
   Eigen::MatrixXd calculate_epsilon(double frequency) const;
+
+  Eigen::VectorXd Calculate_H2p_AmB() const;
+  Eigen::MatrixXd Calculate_H2p_ApB() const;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Diagonalize_H2p_C(
+      const Eigen::MatrixXd& C) const;
 };
+
 }  // namespace xtp
 }  // namespace votca
 

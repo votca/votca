@@ -114,7 +114,7 @@ void XtpMap::Run() {
   }
   CSG::Topology mdtopol;
   topread->ReadTopology(topfile, mdtopol);
-  if (TOOLS::globals::verbose) {
+  if (votca::Log::verbose()) {
     cout << "Read MD topology from " << topfile << ": Found "
          << mdtopol.BeadCount() << " atoms in " << mdtopol.MoleculeCount()
          << " molecules. " << endl;
@@ -259,7 +259,7 @@ void XtpMap::Run() {
 
     throw runtime_error("Time or frame number exceeds trajectory length");
   }
-  if (TOOLS::globals::verbose) {
+  if (votca::Log::verbose()) {
     cout << "Read MD trajectory from " << trjfile << ": found " << frames_found
          << " frames, starting from frame " << firstFrame << endl;
   }

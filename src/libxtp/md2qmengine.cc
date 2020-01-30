@@ -69,7 +69,7 @@ void Md2QmEngine::CheckMappingFile(tools::Property& topology_map) const {
   }
 }
 
-long Md2QmEngine::DetermineAtomNumOffset(
+Index Md2QmEngine::DetermineAtomNumOffset(
     const csg::Molecule* mol, const std::vector<Index>& atom_ids_map) const {
   std::vector<Index> IDs;
   IDs.reserve(mol->BeadCount());
@@ -132,7 +132,7 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
   xtptop.setBox(top.getBox() * tools::conv::nm2bohr, top.getBoxType());
 
   // which segmentname does an atom belong to molname atomid
-  std::map<std::string, std::map<long, std::string> > MolToSegMap;
+  std::map<std::string, std::map<Index, std::string> > MolToSegMap;
 
   // which atomids belong to molname
   std::map<std::string, std::vector<Index> > MolToAtomIds;

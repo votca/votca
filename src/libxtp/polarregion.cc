@@ -57,7 +57,7 @@ bool PolarRegion::Converged() const {
     info = "converged";
     converged = true;
   }
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << TimeStamp() << " Region:" << this->identify() << " " << this->getId()
       << " is " << info << " deltaE=" << Echange << std::flush;
   return converged;
@@ -146,19 +146,19 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   Energy_terms e_contrib;
   e_contrib.E_static_ext() =
       std::accumulate(energies.begin(), energies.end(), 0.0);
-  XTP_LOG_SAVE(logINFO, _log) << TimeStamp()
-                              << " Calculated static-static and polar-static "
-                                 "interaction with other regions"
-                              << std::flush;
+  XTP_LOG(Log::info, _log) << TimeStamp()
+                           << " Calculated static-static and polar-static "
+                              "interaction with other regions"
+                           << std::flush;
   e_contrib.E_static_static() = StaticInteraction();
-  XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << " Calculated static interaction in region "
-      << std::flush;
+  XTP_LOG(Log::info, _log) << TimeStamp()
+                           << " Calculated static interaction in region "
+                           << std::flush;
   Index dof_polarisation = 0;
   for (const PolarSegment& seg : _segments) {
     dof_polarisation += seg.size() * 3;
   }
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << TimeStamp() << " Starting Solving for classical polarisation with "
       << dof_polarisation << " degrees of freedom." << std::flush;
 
@@ -201,7 +201,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   cg.compute(A);
   Eigen::VectorXd x = cg.solveWithGuess(b, initial_induced_dipoles);
 
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << TimeStamp() << " CG: #iterations: " << cg.iterations()
       << ", estimated error: " << cg.error() << std::flush;
 
@@ -220,49 +220,45 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   }
 
   e_contrib.addInternalPolarContrib(PolarEnergy());
-  XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << " Calculated polar interaction in region" << std::flush;
+  XTP_LOG(Log::info, _log) << TimeStamp()
+                           << " Calculated polar interaction in region"
+                           << std::flush;
   e_contrib.E_polar_ext() = PolarEnergy_extern();
-  XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << " Calculated polar interaction with other regions"
-      << std::flush;
+  XTP_LOG(Log::info, _log) << TimeStamp()
+                           << " Calculated polar interaction with other regions"
+                           << std::flush;
 
-  XTP_LOG_SAVE(logINFO, _log)
-      << std::setprecision(10)
-      << "   Internal static energy [hrt]= " << e_contrib.E_static_static()
-      << std::flush;
-  XTP_LOG_SAVE(logINFO, _log)
-      << std::setprecision(10)
-      << "   External static energy [hrt]= " << e_contrib.E_static_ext()
-      << std::flush;
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::info, _log) << std::setprecision(10)
+                           << "   Internal static energy [hrt]= "
+                           << e_contrib.E_static_static() << std::flush;
+  XTP_LOG(Log::info, _log) << std::setprecision(10)
+                           << "   External static energy [hrt]= "
+                           << e_contrib.E_static_ext() << std::flush;
+  XTP_LOG(Log::error, _log)
       << std::setprecision(10)
       << "  Total static energy [hrt]= " << e_contrib.Estatic() << std::flush;
 
-  XTP_LOG_SAVE(logINFO, _log)
-      << std::setprecision(10)
-      << "   internal dQ-dQ energy [hrt]= " << e_contrib.E_indu_indu()
-      << std::flush;
+  XTP_LOG(Log::info, _log) << std::setprecision(10)
+                           << "   internal dQ-dQ energy [hrt]= "
+                           << e_contrib.E_indu_indu() << std::flush;
 
-  XTP_LOG_SAVE(logINFO, _log)
-      << std::setprecision(10)
-      << "   internal Q-dQ energy [hrt]= " << e_contrib.E_indu_stat()
-      << std::flush;
+  XTP_LOG(Log::info, _log) << std::setprecision(10)
+                           << "   internal Q-dQ energy [hrt]= "
+                           << e_contrib.E_indu_stat() << std::flush;
 
-  XTP_LOG_SAVE(logINFO, _log)
-      << std::setprecision(10)
-      << "   Internal energy [hrt]= " << e_contrib.E_internal() << std::flush;
+  XTP_LOG(Log::info, _log) << std::setprecision(10)
+                           << "   Internal energy [hrt]= "
+                           << e_contrib.E_internal() << std::flush;
 
-  XTP_LOG_SAVE(logINFO, _log)
-      << std::setprecision(10)
-      << "   External polar energy [hrt]= " << e_contrib.E_polar_ext()
-      << std::flush;
+  XTP_LOG(Log::info, _log) << std::setprecision(10)
+                           << "   External polar energy [hrt]= "
+                           << e_contrib.E_polar_ext() << std::flush;
 
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << std::setprecision(10)
       << "  Total polar energy [hrt]= " << e_contrib.Epolar() << std::flush;
 
-  XTP_LOG_SAVE(logINFO, _log)
+  XTP_LOG(Log::error, _log)
       << std::setprecision(10) << " Total energy [hrt]= " << e_contrib.Etotal()
       << std::flush;
   _E_hist.push_back(e_contrib);
