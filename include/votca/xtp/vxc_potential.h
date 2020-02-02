@@ -40,6 +40,9 @@ class Vxc_Potential {
   void setXCfunctional(const std::string& functional);
   Mat_p_Energy IntegrateVXC(const Eigen::MatrixXd& density_matrix) const;
 
+  Eigen::MatrixXcd IntegrateFXC(const Eigen::MatrixXd& density_matrix,
+                                const Eigen::MatrixXcd& perturbation) const;
+
  private:
   struct XC_entry {
     double f_xc = 0;  // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r
@@ -49,6 +52,8 @@ class Vxc_Potential {
   };
 
   XC_entry EvaluateXC(double rho, double sigma) const;
+
+  double EvaluateFXC(double rho) const;
 
   const Grid _grid;
   int xfunc_id;

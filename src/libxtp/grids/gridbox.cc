@@ -62,8 +62,8 @@ Eigen::VectorXd GridBox::CalcAOValues(const Eigen::Vector3d& pos) const {
   return ao;
 }
 
-void GridBox::AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,
-                             const Eigen::MatrixXd& smallmatrix) const {
+template <class T>
+void GridBox::AddtoBigMatrix(T& bigmatrix, const T& smallmatrix) const {
   for (Index i = 0; i < Index(ranges.size()); i++) {
     for (Index j = 0; j < Index(ranges.size()); j++) {
       bigmatrix.block(ranges[i].start, ranges[j].start, ranges[i].size,
@@ -74,10 +74,15 @@ void GridBox::AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,
   }
   return;
 }
+template void GridBox::AddtoBigMatrix<Eigen::MatrixXd>(
+    Eigen::MatrixXd& bigmatrix, const Eigen::MatrixXd& smallmatrix) const;
 
-Eigen::MatrixXd GridBox::ReadFromBigMatrix(
-    const Eigen::MatrixXd& bigmatrix) const {
-  Eigen::MatrixXd matrix = Eigen::MatrixXd(matrix_size, matrix_size);
+template void GridBox::AddtoBigMatrix<Eigen::MatrixXcd>(
+    Eigen::MatrixXcd& bigmatrix, const Eigen::MatrixXcd& smallmatrix) const;
+
+template <class T>
+T GridBox::ReadFromBigMatrix(const T& bigmatrix) const {
+  T matrix = T(matrix_size, matrix_size);
   for (Index i = 0; i < Index(ranges.size()); i++) {
     for (Index j = 0; j < Index(ranges.size()); j++) {
       matrix.block(inv_ranges[i].start, inv_ranges[j].start, inv_ranges[i].size,
@@ -88,6 +93,10 @@ Eigen::MatrixXd GridBox::ReadFromBigMatrix(
   }
   return matrix;
 }
+
+template Eigen::MatrixXd  GridBox::ReadFromBigMatrix<Eigen::MatrixXd>(const Eigen::MatrixXd& bigmatrix)const;
+
+template Eigen::MatrixXcd  GridBox::ReadFromBigMatrix<Eigen::MatrixXcd>(const Eigen::MatrixXcd& bigmatrix)const;
 
 Eigen::VectorXd GridBox::ReadFromBigVector(
     const Eigen::VectorXd& bigvector) const {

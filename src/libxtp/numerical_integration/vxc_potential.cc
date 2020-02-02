@@ -150,6 +150,94 @@ typename Vxc_Potential<Grid>::XC_entry Vxc_Potential<Grid>::EvaluateXC(
 
   return result;
 }
+
+template <class Grid>
+double Vxc_Potential<Grid>::EvaluateFXC(double rho) const {
+
+  double result;
+  switch (xfunc.info->family) {
+    case XC_FAMILY_LDA:
+      xc_lda_fxc(&xfunc, 1, &rho, &result);
+      break;
+    case XC_FAMILY_GGA:
+    case XC_FAMILY_HYB_GGA:
+      throw std::runtime_error("GGA not implemented");
+      break;
+  }
+  if (_use_separate) {
+    double temp;
+    // via libxc correlation part only
+    switch (cfunc.info->family) {
+      case XC_FAMILY_LDA:
+        xc_lda_fxc(&cfunc, 1, &rho, &temp);
+        break;
+      case XC_FAMILY_GGA:
+      case XC_FAMILY_HYB_GGA:
+        throw std::runtime_error("GGA not implemented");
+        break;
+    }
+
+    result += temp;
+  }
+
+  return result;
+}
+
+template <class Grid>
+Eigen::MatrixXcd Vxc_Potential<Grid>::IntegrateFXC(
+    const Eigen::MatrixXd& density_matrix,
+    const Eigen::MatrixXcd& perturbation) const {
+
+  Index nthreads = OPENMP::getMaxThreads();
+
+  std::vector<Eigen::MatrixXcd> fxc_thread = std::vector<Eigen::MatrixXcd>(
+      nthreads,
+      Eigen::MatrixXcd::Zero(density_matrix.rows(), density_matrix.cols()));
+
+#pragma omp parallel for schedule(guided)
+  for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
+    const GridBox& box = _grid[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+    const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
+    const Eigen::MatrixXcd perturbation_here =
+        box.ReadFromBigMatrix(density_matrix);
+    const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
+    double cutoff =
+        1.e-40 / double(density_matrix.rows()) / double(density_matrix.rows());
+    if (DMAT_here.cwiseAbs2().maxCoeff() < cutoff) {
+      continue;
+    }
+    Eigen::MatrixXcd Fxc_here =
+        Eigen::MatrixXcd::Zero(DMAT_here.rows(), DMAT_here.cols());
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+
+    // iterate over gridpoints
+    for (Index p = 0; p < box.size(); p++) {
+      Eigen::VectorXd ao = box.CalcAOValues(points[p]);
+      const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
+      const double weight = weights[p];
+      if (rho * weight < 1.e-20) {
+        continue;  // skip the rest, if density is very small
+      }
+
+      double fxc = EvaluateFXC(rho);
+      std::complex<double> pert_coeff =
+          (ao.transpose() * perturbation_here * ao).value();
+      Fxc_here += pert_coeff * fxc * ao * ao.transpose();
+    }
+    box.AddtoBigMatrix(fxc_thread[OPENMP::getThreadId()], Fxc_here);
+  }
+  
+Eigen::MatrixXcd Fxc = std::accumulate(
+      fxc_thread.begin(), fxc_thread.end(),
+      Eigen::MatrixXcd::Zero(density_matrix.rows(), density_matrix.cols())
+          .eval());
+return Fxc;
+}
+
 template <class Grid>
 Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
     const Eigen::MatrixXd& density_matrix) const {

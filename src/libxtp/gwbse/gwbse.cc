@@ -211,27 +211,32 @@ void GWBSE::Initialize(tools::Property& options) {
     _bseopt.nmax = bse_size;
   }
 
-//sternheimer option
-if (options.exists(key+".sternheimer")){
-  XTP_LOG(Log::error, *_pLog) << " Running Sternheimer" << flush;
-_gwopt.omegain = options.ifExistsReturnElseReturnDefault<double>(
-	key + ".sternheimer.omegain",_gwopt.omegain);
-_gwopt.omegafin = options.ifExistsReturnElseReturnDefault<double>(
-	key + ".sternheimer.omegafin",_gwopt.omegafin);
-_gwopt.step = options.ifExistsReturnElseReturnDefault<Index>(
-	key + ".sternheimer.step",_gwopt.step);
-_gwopt.imshift = options.ifExistsReturnElseReturnDefault<double>(
-	key + ".sternheimer.imshift",_gwopt.imshift);
-_gwopt.resolution = options.ifExistsReturnElseReturnDefault<Index>(
-	key + ".sternheimer.resolution",_gwopt.resolution);
-_gwopt.lorentzian_broadening = options.ifExistsReturnElseReturnDefault<double>(
-	key + ".sternheimer.lorentzian_broadening",_gwopt.lorentzian_broadening);
-  XTP_LOG(Log::error, *_pLog) << " Omega initial: " << _gwopt.omegain << flush;
-  XTP_LOG(Log::error, *_pLog) << " Omega final: " << _gwopt.omegafin << flush;
-  XTP_LOG(Log::error, *_pLog) << " Step: " << _gwopt.step << flush;
-  XTP_LOG(Log::error, *_pLog) << " Imaginary shift: " << _gwopt.imshift << flush;
-  XTP_LOG(Log::error, *_pLog) << " Resolution: " << _gwopt.resolution << flush;
-}
+  // sternheimer option
+  if (options.exists(key + ".sternheimer")) {
+    XTP_LOG(Log::error, *_pLog) << " Running Sternheimer" << flush;
+    _gwopt.omegain = options.ifExistsReturnElseReturnDefault<double>(
+        key + ".sternheimer.omegain", _gwopt.omegain);
+    _gwopt.omegafin = options.ifExistsReturnElseReturnDefault<double>(
+        key + ".sternheimer.omegafin", _gwopt.omegafin);
+    _gwopt.step = options.ifExistsReturnElseReturnDefault<Index>(
+        key + ".sternheimer.step", _gwopt.step);
+    _gwopt.imshift = options.ifExistsReturnElseReturnDefault<double>(
+        key + ".sternheimer.imshift", _gwopt.imshift);
+    _gwopt.resolution = options.ifExistsReturnElseReturnDefault<Index>(
+        key + ".sternheimer.resolution", _gwopt.resolution);
+    _gwopt.lorentzian_broadening =
+        options.ifExistsReturnElseReturnDefault<double>(
+            key + ".sternheimer.lorentzian_broadening",
+            _gwopt.lorentzian_broadening);
+    XTP_LOG(Log::error, *_pLog)
+        << " Omega initial: " << _gwopt.omegain << flush;
+    XTP_LOG(Log::error, *_pLog) << " Omega final: " << _gwopt.omegafin << flush;
+    XTP_LOG(Log::error, *_pLog) << " Step: " << _gwopt.step << flush;
+    XTP_LOG(Log::error, *_pLog)
+        << " Imaginary shift: " << _gwopt.imshift << flush;
+    XTP_LOG(Log::error, *_pLog)
+        << " Resolution: " << _gwopt.resolution << flush;
+  }
 
   // eigensolver options
   if (options.exists(key + ".eigensolver")) {
@@ -361,8 +366,6 @@ _gwopt.lorentzian_broadening = options.ifExistsReturnElseReturnDefault<double>(
 
   _do_Sternheimer = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".sternheimer", _do_Sternheimer);
-
-
 
   // possible tasks
   std::string tasks_string =
@@ -641,16 +644,15 @@ bool GWBSE::Evaluate() {
 
     _orbitals.setAuxbasisName(_auxbasis_name);
 
-
     Sternheimer sternheimer(_orbitals, *_pLog);
     SternheimerW sternheimerw(_orbitals, *_pLog);
-    
+
     sternheimer.Initialize();
-    std::vector<Eigen::Matrix3cd> polar = sternheimer.Polarisability(_gwopt.omegain,_gwopt.omegafin,_gwopt.step, _gwopt.imshift,
-       _gwopt.lorentzian_broadening,_gwopt.resolution);
+    std::vector<Eigen::Matrix3cd> polar = sternheimer.Polarisability(
+        _gwopt.omegain, _gwopt.omegafin, _gwopt.step, _gwopt.imshift,
+        _gwopt.lorentzian_broadening, _gwopt.resolution);
 
-
-XTP_LOG(Log::error, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Finished Sternheimer " << flush;
 
   } else {
@@ -658,32 +660,33 @@ XTP_LOG(Log::error, *_pLog)
     BasisSet dftbs;
     dftbs.Load(_dftbasis_name);
 
-  XTP_LOG(Log::error, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
     // fill DFT AO basis by going through all atoms
     AOBasis dftbasis;
     dftbasis.Fill(dftbs, _orbitals.QMAtoms());
-  XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Filled DFT Basis of size "
-                              << dftbasis.AOBasisSize() << flush;
+    XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Filled DFT Basis of size "
+                                << dftbasis.AOBasisSize() << flush;
 
     // load auxiliary basis set (element-wise information) from xml file
     BasisSet auxbs;
     auxbs.Load(_auxbasis_name);
-  XTP_LOG(Log::error, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Loaded Auxbasis Set " << _auxbasis_name << flush;
 
     // fill auxiliary AO basis by going through all atoms
     AOBasis auxbasis;
     auxbasis.Fill(auxbs, _orbitals.QMAtoms());
     _orbitals.setAuxbasisName(_auxbasis_name);
-  XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Filled Auxbasis of size "
-                              << auxbasis.AOBasisSize() << flush;
+    XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Filled Auxbasis of size "
+                                << auxbasis.AOBasisSize() << flush;
 
     if ((_do_bse_singlets || _do_bse_triplets) && _fragments.size() > 0) {
       for (const auto& frag : _fragments) {
-      XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Fragment " << frag.getId()
-                                  << " size:" << frag.size() << flush;
+        XTP_LOG(Log::error, *_pLog)
+            << TimeStamp() << " Fragment " << frag.getId()
+            << " size:" << frag.size() << flush;
       }
     }
 
@@ -697,16 +700,16 @@ XTP_LOG(Log::error, *_pLog)
     // rpamin here, because RPA needs till rpamin
     Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, _gwopt.qpmax,
                    _gwopt.rpamin, _gwopt.rpamax);
-  XTP_LOG(Log::error, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << TimeStamp()
         << " Calculating Mmn_beta (3-center-repulsion x orbitals)  " << flush;
     Mmn.Fill(auxbasis, dftbasis, _orbitals.MOs().eigenvectors());
-  XTP_LOG(Log::info, *_pLog)
+    XTP_LOG(Log::info, *_pLog)
         << TimeStamp() << " Removed " << Mmn.Removedfunctions()
         << " functions from Aux Coulomb matrix to avoid near linear "
            "dependencies"
         << flush;
-  XTP_LOG(Log::error, *_pLog)
+    XTP_LOG(Log::error, *_pLog)
         << TimeStamp()
         << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
@@ -718,24 +721,24 @@ XTP_LOG(Log::error, *_pLog)
       gw.configure(_gwopt);
       gw.CalculateGWPerturbation();
 
-    if (!_sigma_plot_states.empty()) {
-      gw.PlotSigma(_sigma_plot_filename, _sigma_plot_steps, _sigma_plot_spacing,
-                   _sigma_plot_states);
-    }
+      if (!_sigma_plot_states.empty()) {
+        gw.PlotSigma(_sigma_plot_filename, _sigma_plot_steps,
+                     _sigma_plot_spacing, _sigma_plot_states);
+      }
 
       _orbitals.QPpertEnergies() = gw.getGWAResults();
 
-    XTP_LOG(Log::info, *_pLog)
+      XTP_LOG(Log::info, *_pLog)
           << TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
       gw.CalculateHQP();
-    XTP_LOG(Log::error, *_pLog)
+      XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
       Hqp = gw.getHQP();
 
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
           gw.DiagonalizeQPHamiltonian();
       if (es.info() == Eigen::ComputationInfo::Success) {
-      XTP_LOG(Log::error, *_pLog)
+        XTP_LOG(Log::error, *_pLog)
             << TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
       }
 
@@ -762,14 +765,14 @@ XTP_LOG(Log::error, *_pLog)
 
       if (_do_bse_triplets) {
         bse.Solve_triplets(_orbitals);
-      XTP_LOG(Log::error, *_pLog)
+        XTP_LOG(Log::error, *_pLog)
             << TimeStamp() << " Solved BSE for triplets " << flush;
         bse.Analyze_triplets(_fragments, _orbitals);
       }
 
       if (_do_bse_singlets) {
         bse.Solve_singlets(_orbitals);
-      XTP_LOG(Log::error, *_pLog)
+        XTP_LOG(Log::error, *_pLog)
             << TimeStamp() << " Solved BSE for singlets " << flush;
         bse.Analyze_singlets(_fragments, _orbitals);
       }

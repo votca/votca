@@ -73,12 +73,14 @@ class GridBox {
 
   void PrepareForIntegration();
 
-  Eigen::MatrixXd ReadFromBigMatrix(const Eigen::MatrixXd& bigmatrix) const;
+template<class T>
+  T ReadFromBigMatrix(const T& bigmatrix) const;
 
   Eigen::VectorXd ReadFromBigVector(const Eigen::VectorXd& bigvector) const;
 
-  void AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,
-                      const Eigen::MatrixXd& smallmatrix) const;
+template<class T>
+  void AddtoBigMatrix(T& bigmatrix,
+                      const T& smallmatrix) const;
 
   static bool compareGridboxes(GridBox& box1, GridBox& box2) {
     if (box1.Matrixsize() != box2.Matrixsize()) {

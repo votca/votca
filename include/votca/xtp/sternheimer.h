@@ -76,7 +76,7 @@ class Sternheimer {
 
   Eigen::MatrixXcd _inverse_overlap;
 
-  Eigen::MatrixXcd _density_Matrix;
+  Eigen::MatrixXd _density_Matrix;
 
   Eigen::MatrixXd _mo_coefficients;
   Eigen::VectorXd _mo_energies;

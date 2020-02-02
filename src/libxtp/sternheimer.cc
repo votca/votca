@@ -30,6 +30,8 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/padeapprox.h>
 #include <votca/xtp/sternheimer.h>
+#include <votca/xtp/vxc_potential.h>
+#include <votca/xtp/vxc_grid.h>
 
 namespace votca {
 namespace xtp {
@@ -152,6 +154,12 @@ Eigen::MatrixXcd Sternheimer::DeltaNOneShot(
   // diis.setHistLength(10);
   // diis.Update(0,10e9*(-e_field * perturbation));
 
+Vxc_Grid grid;
+grid.GridSetup("fine",_orbitals.QMAtoms(),dftbasis);
+Vxc_Potential<Vxc_Grid>Vxcpot(grid);
+std::cout<<_orbitals.getXCFunctionalName()<<std::endl;
+Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+
   double diff = 10000;
 
   for (Index n = 0; n < 200; n++) {
@@ -189,17 +197,21 @@ Eigen::MatrixXcd Sternheimer::DeltaNOneShot(
     Eigen::MatrixXcd contract =
         eris.ContractRightIndecesWithMatrix(delta_n_out_new);
 
+    Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix,delta_n_out_new);
+
+    std::cout<<"Norm of Fxc"<<FxcInt.norm()<<std::endl;
+
     if (perturbationVectoroutput.size() > 4) {
       perturbationVectoroutput.erase(perturbationVectoroutput.begin());
     }
 
-    perturbationVectoroutput.push_back((-e_field * perturbation) + contract);
+    perturbationVectoroutput.push_back((-e_field * perturbation) + contract +FxcInt);
 
     diff = (perturbationVectorInput.back() - perturbationVectoroutput.back())
                .squaredNorm();
     std::cout << n << " " << diff << std::endl;
     if (diff < 10e-9) {
-      std::cout << "Converged after " << n + 1 << " iteration." << std::endl;
+      std::cout << "Converged after " << n + 1 << " iteration. TEST" << std::endl;
       // throw std::exception();
       return delta_n_out_new;
     }
@@ -517,7 +529,8 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
     Polar_pade[Polar_pade.size() - 1](1, 1) = pade_4.evaluatePoint(w);
     // Polar_pade[Polar_pade.size() - 1](1,2)=pade_5.evaluatePoint(w);
     // Polar_pade[Polar_pade.size() -
-    // 1](2,0)=Polar_pade[Polar_pade.size()-1](0,2); Polar_pade[Polar_pade.size()
+    // 1](2,0)=Polar_pade[Polar_pade.size()-1](0,2);
+    // Polar_pade[Polar_pade.size()
     // - 1](2,1)=Polar_pade[Polar_pade.size()-1](1,2);
     Polar_pade[Polar_pade.size() - 1](2, 2) = pade_6.evaluatePoint(w);
   }
