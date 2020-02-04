@@ -199,8 +199,6 @@ Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
     Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix,delta_n_out_new);
 
-    std::cout<<"Norm of Fxc"<<FxcInt.norm()<<std::endl;
-
     if (perturbationVectoroutput.size() > 4) {
       perturbationVectoroutput.erase(perturbationVectoroutput.begin());
     }
@@ -440,7 +438,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
 
   std::vector<std::complex<double>> grid_w =
       BuildGrid(omega_start, omega_end, steps, imaginary_shift);
-
+  std::cout << "\n This is the grid \n";
   for (Index i = 0; i < grid_w.size(); i++) {
     std::cout << grid_w[i] << std::endl;
   }
@@ -471,7 +469,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability(
   AOBasis basis = _orbitals.SetupDftBasis();
   AODipole dipole;
   dipole.Fill(basis);
-
+std::cout << "\n Starting Sternheimer \n";
 #pragma omp parallel for
   for (Index n = 0; n < grid_w.size(); n++) {
     for (Index i = 0; i < 3; i++) {
