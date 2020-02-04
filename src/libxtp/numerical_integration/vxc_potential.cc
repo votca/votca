@@ -202,7 +202,7 @@ Eigen::MatrixXcd Vxc_Potential<Grid>::IntegrateFXC(
     }
     const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
     const Eigen::MatrixXcd perturbation_here =
-        box.ReadFromBigMatrix(density_matrix);
+        box.ReadFromBigMatrix(perturbation);
     const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
     double cutoff =
         1.e-40 / double(density_matrix.rows()) / double(density_matrix.rows());
@@ -226,7 +226,7 @@ Eigen::MatrixXcd Vxc_Potential<Grid>::IntegrateFXC(
       double fxc = EvaluateFXC(rho);
       std::complex<double> pert_coeff =
           (ao.transpose() * perturbation_here * ao).value();
-      Fxc_here += pert_coeff * fxc * ao * ao.transpose();
+      Fxc_here += weight*pert_coeff * fxc * ao * ao.transpose();
     }
     box.AddtoBigMatrix(fxc_thread[OPENMP::getThreadId()], Fxc_here);
   }
