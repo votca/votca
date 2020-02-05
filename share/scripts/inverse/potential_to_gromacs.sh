@@ -127,15 +127,19 @@ else
   scale="${input}"
 fi
 
+if [[ $tabtype = "dihedral" ]]; then
+  csg_resample_opts=( "--boundaries" "periodic")
+fi
+
 #keep the grid for now, so that extrapolate can calculate the right mean
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
-critical csg_resample --in ${scale} --out "$smooth" --grid "${zero}:${step}:${tablend}"
+critical csg_resample --in ${scale} --out "$smooth" --grid "${zero}:${step}:${tablend}" "${csg_resample_opts[@]}"
 
 extrapol="$(critical mktemp ${trunc}.pot.extrapol.XXXXX)"
 do_external potential extrapolate ${clean:+--clean} --type "$tabtype" "${smooth}" "${extrapol}"
 
 interpol="$(critical mktemp ${trunc}.pot.interpol.XXXXX)"
-critical csg_resample --in "${extrapol}" --out "$interpol" --grid "${zero}:${gromacs_bins}:${tablend}" --comment "$comment"
+critical csg_resample --in "${extrapol}" --out "$interpol" --grid "${zero}:${gromacs_bins}:${tablend}" "${csg_resample_opts[@]}" --comment "$comment"
 
 if [[ $do_shift = "yes" ]]; then
   tshift="$(critical mktemp ${trunc}.pot.shift.XXXXX)"
