@@ -178,13 +178,15 @@ Index Vxc_Grid::UpdateOrder(LebedevGrid& sphericalgridofElement, Index maxorder,
     } else if ((r >= PruningIntervals[0]) && (r < PruningIntervals[1])) {
       order = sphericalgridofElement.getOrderFromIndex(4);
     } else if ((r >= PruningIntervals[1]) && (r < PruningIntervals[2])) {
+      constexpr Index maximum = 4;
       order =
-          sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, 4l));
+          sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, maximum));
     } else if ((r >= PruningIntervals[2]) && (r < PruningIntervals[3])) {
       order = maxorder;
     } else {
+      constexpr Index maximum = 1;
       order =
-          sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, 1l));
+          sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, maximum));
     }
   }
   return order;
