@@ -10,6 +10,13 @@ For more detailed information about the changes see the history of the
 * fix copyright (#363)
 * remove old doxygen target (#365)
 * fix some gcc10 warnings (#376)
+* Add external fields to dft calculations (#351, #353)
+* added def2 and cc basis sets (#355)
+* added apdft (#350)
+* added test to cubefile reader (#344)
+* fix state tracker (#333)
+* grid class refator (#335)
+* changed ppm screening (#371)
 
 ## Version 1.6_rc1 (released 04.12.19)
  * completely new statefile in hdf5 format for larger systems

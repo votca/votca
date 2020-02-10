@@ -26,8 +26,9 @@
 #include <votca/xtp/convergenceacc.h>
 #include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/staticsite.h>
+#include <votca/xtp/vxc_grid.h>
+#include <votca/xtp/vxc_potential.h>
 
 namespace votca {
 namespace xtp {
@@ -60,6 +61,8 @@ class DFTEngine {
  private:
   void Prepare(QMMolecule& mol);
 
+  Vxc_Potential<Vxc_Grid> SetupVxc(const QMMolecule& mol);
+
   Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs) const;
   void PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level);
   void CalcElDipole(const Orbitals& orb) const;
@@ -76,12 +79,14 @@ class DFTEngine {
   Mat_p_Energy IntegrateExternalDensity(const QMMolecule& mol,
                                         const Orbitals& extdensity) const;
 
+  Eigen::MatrixXd IntegrateExternalField(const QMMolecule& mol) const;
+
   tools::EigenSystem IndependentElectronGuess(const Mat_p_Energy& H0) const;
-  tools::EigenSystem ModelPotentialGuess(const Mat_p_Energy& H0,
-                                         const QMMolecule& mol) const;
+  tools::EigenSystem ModelPotentialGuess(
+      const Mat_p_Energy& H0, const QMMolecule& mol,
+      const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
 
   Eigen::MatrixXd AtomicGuess(const QMMolecule& mol) const;
-  std::string ReturnSmallGrid(const std::string& largegrid);
 
   Eigen::MatrixXd RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) const;
 
@@ -112,10 +117,6 @@ class DFTEngine {
 
   // numerical integration Vxc
   std::string _grid_name;
-  std::string _grid_name_small;
-  bool _use_small_grid;
-  NumericalIntegration _gridIntegration;
-  NumericalIntegration _gridIntegration_small;
 
   // AO Matrices
   AOOverlap _dftAOoverlap;
@@ -145,6 +146,9 @@ class DFTEngine {
   std::string _orbfilename;
   std::string _gridquality;
   std::string _state;
+
+  Eigen::Vector3d _extfield = Eigen::Vector3d::Zero();
+  bool _integrate_ext_field = false;
 };
 
 }  // namespace xtp

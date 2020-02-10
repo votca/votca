@@ -25,8 +25,9 @@
 #include <votca/xtp/ecpbasisset.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/vxc_grid.h>
+#include <votca/xtp/vxc_potential.h>
 using boost::format;
 using namespace boost::filesystem;
 using std::flush;
@@ -298,6 +299,9 @@ void GWBSE::Initialize(tools::Property& options) {
           key + ".mode", choices);
   if (mode == "G0W0") {
     _gwopt.gw_sc_max_iterations = 1;
+  } else if (mode == "evGW") {
+    _gwopt.g_sc_limit = 0.1 * _gwopt.gw_sc_limit;
+    _gwopt.eta = 0.1;
   }
   XTP_LOG(Log::error, *_pLog) << " Running GW as: " << mode << flush;
   _gwopt.ScaHFX = _orbitals.getScaHFX();
@@ -387,8 +391,8 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *_pLog)
         << " RPA Hamiltonian size: " << (homo + 1 - rpamin) * (rpamax - homo)
         << flush;
-    XTP_LOG(Log::error, *_pLog) << " eta: " << _gwopt.eta << flush;
   }
+  XTP_LOG(Log::error, *_pLog) << " eta: " << _gwopt.eta << flush;
 
   _gwopt.qp_solver = options.ifExistsReturnElseReturnDefault<std::string>(
       key + ".qp_solver", _gwopt.qp_solver);
@@ -402,6 +406,25 @@ void GWBSE::Initialize(tools::Property& options) {
         << " QP grid steps: " << _gwopt.qp_grid_steps << flush;
     XTP_LOG(Log::error, *_pLog)
         << " QP grid spacing: " << _gwopt.qp_grid_spacing << flush;
+  }
+
+  _sigma_plot_states = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".sigma_plot_states", _sigma_plot_states);
+  _sigma_plot_steps = options.ifExistsReturnElseReturnDefault<Index>(
+      key + ".sigma_plot_steps", _sigma_plot_steps);
+  _sigma_plot_spacing = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".sigma_plot_spacing", _sigma_plot_spacing);
+  _sigma_plot_filename = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".sigma_plot_filename", _sigma_plot_filename);
+  if (!_sigma_plot_states.empty()) {
+    XTP_LOG(Log::error, *_pLog)
+        << " Sigma plot states: " << _sigma_plot_states << flush;
+    XTP_LOG(Log::error, *_pLog)
+        << " Sigma plot steps: " << _sigma_plot_steps << flush;
+    XTP_LOG(Log::error, *_pLog)
+        << " Sigma plot spacing: " << _sigma_plot_spacing << flush;
+    XTP_LOG(Log::error, *_pLog)
+        << " Sigma plot filename: " << _sigma_plot_filename << flush;
   }
 
   return;
@@ -500,9 +523,7 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
     }
   }
 
-  NumericalIntegration numint;
-  numint.setXCfunctional(_functional);
-  double ScaHFX_temp = numint.getExactExchange(_functional);
+  double ScaHFX_temp = Vxc_Potential<Vxc_Grid>::getExactExchange(_functional);
   if (ScaHFX_temp != _orbitals.getScaHFX()) {
     throw std::runtime_error(
         (boost::format("GWBSE exact exchange a=%s differs from qmpackage "
@@ -512,16 +533,19 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
             .str());
   }
 
-  numint.GridSetup(_grid, _orbitals.QMAtoms(), dftbasis);
+  Vxc_Grid grid;
+  grid.GridSetup(_grid, _orbitals.QMAtoms(), dftbasis);
   XTP_LOG(Log::info, *_pLog)
       << TimeStamp() << " Setup grid for integration with gridsize: " << _grid
-      << " with " << numint.getGridSize() << " points, divided into "
-      << numint.getBoxesSize() << " boxes" << flush;
+      << " with " << grid.getGridSize() << " points, divided into "
+      << grid.getBoxesSize() << " boxes" << flush;
+  Vxc_Potential<Vxc_Grid> vxcpotential(grid);
+  vxcpotential.setXCfunctional(_functional);
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Integrating Vxc in VOTCA with functional "
       << _functional << flush;
   Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
-  Mat_p_Energy e_vxc_ao = numint.IntegrateVXC(DMAT);
+  Mat_p_Energy e_vxc_ao = vxcpotential.IntegrateVXC(DMAT);
   XTP_LOG(Log::info, *_pLog)
       << TimeStamp() << " Calculated Vxc in VOTCA" << flush;
   XTP_LOG(Log::error, *_pLog)
@@ -633,6 +657,11 @@ bool GWBSE::Evaluate() {
     GW gw = GW(*_pLog, Mmn, vxc, _orbitals.MOs().eigenvalues());
     gw.configure(_gwopt);
     gw.CalculateGWPerturbation();
+
+    if (!_sigma_plot_states.empty()) {
+      gw.PlotSigma(_sigma_plot_filename, _sigma_plot_steps, _sigma_plot_spacing,
+                   _sigma_plot_states);
+    }
 
     // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc,
     // E_qp)

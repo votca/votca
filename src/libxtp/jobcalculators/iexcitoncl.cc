@@ -274,15 +274,12 @@ void IEXCITON::ReadJobFile(Topology& top) {
     if (records[pair->getId()] == nullptr) {
       continue;  // skip pairs which are not in the jobfile
     }
-    double Jeff2 = 0.0;
-    double jAB = 0.0;
+
     if (pair->getType() == QMPair::Excitoncl) {
       Property* pair_property = records[pair->getId()];
-      vector<Property*> pCoupling = pair_property->Select("Coupling");
-      for (Property* coup : pCoupling) {
-        jAB = coup->getAttribute<double>("jABstatic");
-      }
-      Jeff2 = jAB * jAB * tools::conv::ev2hrt * tools::conv::ev2hrt;
+      const Property& pCoupling = pair_property->get("Coupling");
+      double jAB = pCoupling.getAttribute<double>("jABstatic");
+      double Jeff2 = jAB * jAB * tools::conv::ev2hrt * tools::conv::ev2hrt;
       pair->setJeff2(Jeff2, QMStateType::Singlet);
     }
   }

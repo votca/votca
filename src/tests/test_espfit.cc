@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
 
   std::vector<QMFragment<double> > regionconstraint;
 
-  std::string indeces = "1...2";
+  std::string indeces = "1:2";
   QMFragment<double> reg = QMFragment<double>(0, indeces);
   reg.value() = 1.0;
   regionconstraint.push_back(reg);

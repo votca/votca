@@ -141,8 +141,7 @@ class TCMatrix_gwbse : public TCMatrix {
                            const Eigen::MatrixXd& dft_orbitals);
 
   std::vector<Eigen::MatrixXd> ComputeSymmStorage(
-      const AOShell& auxshell, const AOBasis& dftbasis,
-      const Eigen::MatrixXd& dft_orbitals) const;
+      const AOShell& auxshell, const AOBasis& dftbasis) const;
 
 #if defined(USE_CUDA)
   std::array<CudaMatrix, 2> SendDFTMatricesToGPU(

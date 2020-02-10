@@ -46,7 +46,7 @@ class GW {
     Index rpamin;
     Index rpamax;
     double eta = 1e-3;
-    double g_sc_limit = 1e-5;  // default 1e-5
+    double g_sc_limit = 1e-5;
     Index g_sc_max_iterations = 50;
     double gw_sc_limit = 1e-5;
     Index gw_sc_max_iterations = 50;
@@ -55,14 +55,15 @@ class GW {
     std::string sigma_integration = "ppm";
     Index reset_3c = 5;  // how often the 3c integrals in iterate should be
                          // rebuild
-    std::string qp_solver = "fixedpoint";
-    Index qp_grid_steps = 201;      // Number of grid points
-    double qp_grid_spacing = 0.01;  // Spacing of grid points in Ha
+    std::string qp_solver = "grid";
+    double qp_solver_alpha = 0.75;
+    Index qp_grid_steps = 601;       // Number of grid points
+    double qp_grid_spacing = 0.005;  // Spacing of grid points in Ha
   };
 
   void configure(const options& opt);
 
-  const Eigen::VectorXd& getGWAResults() const { return _gwa_energies; }
+  Eigen::VectorXd getGWAResults() const;
   // Calculates the diagonal elements up to self consistency
   void CalculateGWPerturbation();
 
@@ -75,10 +76,11 @@ class GW {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonian()
       const;
 
+  void PlotSigma(std::string filename, Index steps, double spacing,
+                 std::string states) const;
+
  private:
   Index _qptotal;
-
-  Eigen::VectorXd _gwa_energies;
 
   Eigen::MatrixXd _Sigma_x;
   Eigen::MatrixXd _Sigma_c;
@@ -92,15 +94,57 @@ class GW {
   const Eigen::VectorXd& _dft_energies;
 
   RPA _rpa;
+  // small class which calculates f(w) with and df/dw(w)
+  // f=Sigma_c(w)+offset-w
+  // offset= e_dft+Sigma_x-Vxc
+  class QPFunc {
+   public:
+    QPFunc(Index gw_level, const Sigma_base& sigma, double offset)
+        : _gw_level(gw_level), _offset(offset), _sigma_c_func(sigma){};
+    std::pair<double, double> operator()(double frequency) const {
+      std::pair<double, double> value;
+      value.first =
+          _sigma_c_func.CalcCorrelationDiagElement(_gw_level, frequency);
+      value.second = _sigma_c_func.CalcCorrelationDiagElementDerivative(
+          _gw_level, frequency);
+      value.first += (_offset - frequency);
+      value.second -= 1.0;
+      return value;
+    }
+    double value(double frequency) const {
+      return _sigma_c_func.CalcCorrelationDiagElement(_gw_level, frequency) +
+             _offset - frequency;
+    }
+    double deriv(double frequency) const {
+      return _sigma_c_func.CalcCorrelationDiagElementDerivative(_gw_level,
+                                                                frequency) +
+             _offset - frequency;
+    }
 
+   private:
+    Index _gw_level;
+    double _offset;
+    const Sigma_base& _sigma_c_func;
+  };
+
+  double SolveQP_Bisection(double lowerbound, double f_lowerbound,
+                           double upperbound, double f_upperbound,
+                           const QPFunc& f) const;
   double CalcHomoLumoShift(Eigen::VectorXd frequencies) const;
   Eigen::VectorXd ScissorShift_DFTlevel(
       const Eigen::VectorXd& dft_energies) const;
   void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const;
   void PrintGWA_Energies() const;
 
-  Eigen::VectorXd SolveQP_Grid(const Eigen::VectorXd& frequencies) const;
-  Eigen::VectorXd SolveQP_FixedPoint(const Eigen::VectorXd& frequencies) const;
+  Eigen::VectorXd SolveQP(const Eigen::VectorXd& frequencies) const;
+  boost::optional<double> SolveQP_Grid(double intercept0, double frequency0,
+                                       Index gw_level) const;
+  boost::optional<double> SolveQP_FixedPoint(double intercept0,
+                                             double frequency0,
+                                             Index gw_level) const;
+  boost::optional<double> SolveQP_Linearisation(double intercept0,
+                                                double frequency0,
+                                                Index gw_level) const;
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
 };

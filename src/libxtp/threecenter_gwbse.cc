@@ -104,15 +104,10 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
  * GW shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock)
  */
 std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
-    const AOShell& auxshell, const AOBasis& dftbasis,
-    const Eigen::MatrixXd& dft_orbitals) const {
+    const AOShell& auxshell, const AOBasis& dftbasis) const {
   std::vector<Eigen::MatrixXd> symmstorage = std::vector<Eigen::MatrixXd>(
       auxshell.getNumFunc(),
       Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
-  const Eigen::MatrixXd dftm =
-      dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
-  const Eigen::MatrixXd dftn =
-      dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
   // alpha-loop over the "left" DFT basis function
   for (Index row = 0; row < dftbasis.getNumofShells(); row++) {
 
@@ -185,12 +180,11 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlock(
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
     const Eigen::MatrixXd& matrix) {
   XTP_LOG(Log::info, _log)
-      << TimeStamp()
-      << " Using Default OpenMP for tensor matrix multiplication: " << flush;
+      << TimeStamp() << " Using Default OpenMP for tensor matrix multiplication"
+      << flush;
 #pragma omp parallel for
   for (Index i_occ = 0; i_occ < _mtotal; i_occ++) {
-    Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
-    _matrix[i_occ] = temp;
+    _matrix[i_occ] *= matrix;
   }
   return;
 }
@@ -205,7 +199,7 @@ void TCMatrix_gwbse::FillAllBlocksOpenMP(const AOBasis& gwbasis,
     // Fill block for this shell (3-center overlap with _dft_basis +
     // multiplication with _dft_orbitals )
     std::vector<Eigen::MatrixXd> symmstorage =
-        ComputeSymmStorage(shell, dftbasis, dft_orbitals);
+        ComputeSymmStorage(shell, dftbasis);
 
     std::vector<Eigen::MatrixXd> block = FillBlock(symmstorage, dft_orbitals);
 
@@ -240,8 +234,8 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixCuda(
     const Eigen::MatrixXd& matrix) {
 
   XTP_LOG(Log::info, _log)
-      << TimeStamp()
-      << " Using CUDA/OpenMP for tensor matrix multiplication: " << flush;
+      << TimeStamp() << " Using CUDA/OpenMP for tensor matrix multiplication"
+      << flush;
 
   CudaPipeline cuda_pip;
   const Eigen::MatrixXd& head = _matrix.front();
@@ -260,8 +254,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixCuda(
       cuda_pip.gemm(cuma_A, cuma_B, cuma_C);
       _matrix[i_occ] = cuma_C;
     } else {
-      Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
-      _matrix[i_occ] = temp;
+      _matrix[i_occ] *= matrix;
     }
   }
 }
@@ -287,7 +280,7 @@ void TCMatrix_gwbse::FillAllBlocksCuda(const AOBasis& gwbasis,
     // Fill block for this shell (3-center overlap with _dft_basis +
     // multiplication with _dft_orbitals )
     std::vector<Eigen::MatrixXd> symmstorage =
-        ComputeSymmStorage(shell, dftbasis, dft_orbitals);
+        ComputeSymmStorage(shell, dftbasis);
 
     // If cuda is enable all the GPU communication happens through a single
     // thread that reuses all memory allocated in the GPU and it's dynamically

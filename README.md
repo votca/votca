@@ -2,6 +2,7 @@
 [![codecov](https://codecov.io/gh/votca/xtp/branch/master/graph/badge.svg)](https://codecov.io/gh/votca/xtp)
 [![Build Status](https://travis-ci.org/votca/xtp.svg?branch=master)](https://travis-ci.org/votca/xtp)
 [![pipeline status](https://gitlab.com/votca/xtp/badges/master/pipeline.svg)](https://gitlab.com/votca/xtp/commits/master)
+[![DOI](https://zenodo.org/badge/50048374.svg)](https://zenodo.org/badge/latestdoi/50048374)
 
 VOTCA-XTP is a library which allows you to calculate the electronic properties of organic materials, e.g.
 - excited state properties via GW-BSE

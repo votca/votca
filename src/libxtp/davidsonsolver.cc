@@ -110,11 +110,6 @@ void DavidsonSolver::printIterationData(
     const DavidsonSolver::RitzEigenPair &rep,
     const DavidsonSolver::ProjectedSpace &proj, Index neigen) const {
 
-  if (_i_iter == 0) {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " iter\tSearch Space\tNorm" << flush;
-  }
-
   Index converged_roots = 0;
   for (Index i = 0; i < neigen; i++) {
     converged_roots += proj.root_converged[i];

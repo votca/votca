@@ -252,7 +252,7 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
         occupation(i) = 2;
       }
       numofelec -= numofpossibleelectrons;
-    } else if (numofpossibleelectrons > numofelec) {
+    } else {
       double occ = double(numofelec) / double(deglevel.size());
       for (Index i : deglevel) {
         occupation(i) = occ;
