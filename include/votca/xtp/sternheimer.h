@@ -116,7 +116,7 @@ class Sternheimer {
                                   const Eigen::MatrixXcd& pertubation,
                                   const Eigen::VectorXd& coeff) const;
   // Calculates the response of the electron density using one shot Sternheimer
-  Eigen::MatrixXcd DeltaNOneShot(
+  Eigen::MatrixXcd DeltaNSC(
       std::complex<double> w,
       const Eigen::MatrixXcd& pertubation) const;
 

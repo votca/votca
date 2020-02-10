@@ -117,7 +117,7 @@ Eigen::VectorXcd Sternheimer::SternheimerRHS(
   return RHS;
 }
 
-Eigen::MatrixXcd Sternheimer::DeltaNOneShot(
+Eigen::MatrixXcd Sternheimer::DeltaNSC(
     std::complex<double> w, const Eigen::MatrixXcd& perturbation) const {
   Eigen::MatrixXcd solution_p =
       Eigen::MatrixXcd::Zero(_basis_size, _num_occ_lvls);
@@ -132,9 +132,6 @@ Eigen::MatrixXcd Sternheimer::DeltaNOneShot(
   std::vector<Eigen::MatrixXcd> perturbationVectoroutput;
   perturbationVectorInput.push_back(-e_field * perturbation);
   Eigen::MatrixXcd perturbationUsed = (-e_field * perturbation);
-  // Eigen::MatrixXcd delta_n_in_new = Eigen::MatrixXcd::Zero(_basis_size,
-  // _basis_size); Eigen::MatrixXcd delta_n_in_old =
-  // Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
   Eigen::MatrixXcd delta_n_out_new =
       Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
   Eigen::MatrixXcd delta_n_out_old =
@@ -147,12 +144,6 @@ Eigen::MatrixXcd Sternheimer::DeltaNOneShot(
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
   ERIs eris;
   eris.Initialize(dftbasis, auxbasis);
-  // eris.Initialize(dftbasis);
-
-  // ADIIS adiis;
-  // DIIS diis;
-  // diis.setHistLength(10);
-  // diis.Update(0,10e9*(-e_field * perturbation));
 
 Vxc_Grid grid;
 grid.GridSetup("fine",_orbitals.QMAtoms(),dftbasis);
@@ -165,7 +156,7 @@ Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
   for (Index n = 0; n < 200; n++) {
 
     for (Index v = 0; v < _num_occ_lvls; v++) {
-      // std::cout<<"Loop v="<<v<<std::endl;
+
       Eigen::MatrixXcd RHS =
           SternheimerRHS(_inverse_overlap, _density_Matrix, perturbationUsed,
                          _mo_coefficients.col(v));
@@ -177,7 +168,6 @@ Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
           _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, false);
       solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
     }
-    // std::cout<<"Solving Sternheimer complete"<<std::endl;
     delta_n_out_old = delta_n_out_new;
     delta_n_out_new =
         2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) *
@@ -187,12 +177,6 @@ Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
     Eigen::MatrixXcd delta = (delta_n_out_new - delta_n_out_old);
     diff = delta.squaredNorm();
-
-    // if(diff<10e-9){
-    //   std::cout<<"Converged after " << n+1 <<" iteration."<<std::endl;
-    //   //throw std::exception();
-    //   return delta_n_out_new;
-    // }
 
     Eigen::MatrixXcd contract =
         eris.ContractRightIndecesWithMatrix(delta_n_out_new);
@@ -207,15 +191,12 @@ Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
     diff = (perturbationVectorInput.back() - perturbationVectoroutput.back())
                .squaredNorm();
-    std::cout << n << " " << diff << std::endl;
+    //std::cout << n << " " << diff << std::endl;
     if (diff < 10e-9) {
-      std::cout << "Converged after " << n + 1 << " iteration. TEST" << std::endl;
+      std::cout << "Converged after " << n + 1 << " iteration." << std::endl;
       // throw std::exception();
       return delta_n_out_new;
     }
-
-    // perturbationUsed =
-    // mixing*(perturbationVector.at(perturbationVector.size()-2))+(1-mixing)*perturbationVector.at(perturbationVector.size()-1);
     if (n == 0) {
       perturbationUsed =
           mixing * perturbationVectoroutput.back() +
@@ -224,21 +205,16 @@ Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
       perturbationVectorInput.push_back(perturbationUsed);
     } else {
 
-      // perturbationUsed = (BroydenMixing(perturbationVectorInput,
-      // perturbationVectoroutput, 0.5));
       perturbationUsed = (NPAndersonMixing(perturbationVectorInput,
                                            perturbationVectoroutput, 0.5));
-      // std::cout<<"test"<<std::endl;
       if (perturbationVectorInput.size() > 4) {
         perturbationVectorInput.erase(perturbationVectorInput.begin());
       }
       perturbationVectorInput.push_back(perturbationUsed);
-      // std::cout<<"test2"<<std::endl;
     }
   }
   std::cout << "NOT converged diff = " << diff << " The frequency is w = " << w
             << std::endl;
-  // std::cout<<"Returning delta n from first iteration"<<std::endl;
   return delta_n_step_one;
 }
 
@@ -255,8 +231,6 @@ Eigen::MatrixXcd Sternheimer::AndersonMixing(Eigen::MatrixXcd inNew,
   Eigen::MatrixXcd nIn = beta * inOld + (1 - beta) * inNew;
   Eigen::MatrixXcd nOut = beta * outOld + (1 - beta) * outNew;
 
-  // std::cout<<"beta = "<<beta<<std::endl;
-
   return alpha * nOut + (1 - alpha) * nIn;
 }
 
@@ -264,34 +238,12 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
     std::vector<Eigen::MatrixXcd>& Input, std::vector<Eigen::MatrixXcd>& Output,
     double alpha) const {
 
-  // std::cout<<"Started Anderson Mixing with size "<<Input.size()<<" Output
-  // size = "<<Output.size()<<std::endl;
-
-  // std::vector<Eigen::VectorXcd> Input_vec;
-  // std::vector<Eigen::VectorXcd> Output_vec;
-
-  // for(Index i=0; i<Input.size(); i++){
-
-  //   Eigen::Map<Eigen::VectorXcd> v1(Input.at(i).data(), Input.at(i).size());
-  //   Eigen::Map<Eigen::VectorXcd> v2(Output.at(i).data(),
-  //   Output.at(i).size()); Input_vec.push_back(v1); Output_vec.push_back(v2);
-
-  // }
-
-  // Index size = Input_vec.size();
-
-  // Calculating Delta N and saving it for speedup
-
   Eigen::MatrixXcd DeltaN = Output.back() - Input.back();
-  // Eigen::VectorXcd DeltaN= Output_vec.back()-Input.back();
-
-  // std::cout<<"1"<<std::endl;
 
   // Building Linear System for Coefficients
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(Input.size() - 1, Input.size() - 1);
   Eigen::VectorXd c = Eigen::VectorXd::Zero(Input.size() - 1);
 
-  // std::cout<<"2"<<std::endl;
 
   for (Index m = 1; m < Input.size(); m++) {
 
@@ -300,7 +252,6 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
                    .cwiseProduct(DeltaN)
                    .sum()
                    .real();
-    // c(m-1)=(DeltaN-Output_vec.at(size-1-m)+Input_vec.at(size-1-m)).dot(DeltaN).real();
     for (Index j = 1; j < Input.size(); j++) {
 
       A(m - 1, j - 1) =
@@ -310,8 +261,6 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
                             Input.at(Input.size() - 1 - j))
               .sum()
               .real();
-      // A(m-1,j-1) =
-      // (DeltaN-Output_vec.at(size-1-m)+Input_vec.at(size-1-m)).dot(DeltaN-Output_vec.at(size-1-j)+Input_vec.at(size-1-j));
     }
   }
   // Solving the System to obtain coefficients
@@ -321,8 +270,6 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
 
   Eigen::MatrixXcd OutMixed = Output.back();
   Eigen::MatrixXcd InMixed = Input.back();
-  // Eigen::VectorXcd OutMixed = Output_vec.back();
-  // Eigen::VectorXcd InMixed = Input_vec.back();
 
   for (Index n = 1; n < Input.size(); n++) {
 
@@ -330,8 +277,6 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
                                        Output.at(Output.size() - 1));
     InMixed += coefficients(n - 1) *
                (Input.at(Input.size() - 1 - n) - Input.at(Input.size() - 1));
-    // OutMixed+=coefficients(n-1)*(Output_vec.at(size-1-n)-Output_vec.back();
-    // InMixed+=coefficients(n-1)*(Input_vec.at(size-1-n)-Input_vec.back();
   }
 
   // Returning the linear Mix of Input and Output
@@ -358,10 +303,7 @@ Eigen::MatrixXcd Sternheimer::BroydenMixing(
                                   .cwiseProduct((Output.at(m) - Input.at(m)))
                                   .sum()
                                   .real()));
-    // std::cout<<"check
-    // "<<((Output.at(m)-Input.at(m)).cwiseProduct(Output.at(m)-Input.at(m)).real().sum())<<std::endl;
   }
-  // std::cout<<"2"<<std::endl;
   for (Index m = 0; m < histSize - 1; m++) {
     for (Index l = 0; l < histSize - 1; l++) {
       alpha(m, l) =
@@ -377,27 +319,12 @@ Eigen::MatrixXcd Sternheimer::BroydenMixing(
               .sum()
               .real();
 
-      // if(alpha(m,l)!=alpha(m,l)){
-      //   std::cout<<"denominator1 = "<<
-      //   (Output.at(l+1)-Input.at(l+1)-Output.at(l)+Input.at(l)).norm()
-      //   <<std::endl; std::cout<<"denominator2 = "<<
-      //   (Output.at(m+1)-Input.at(m+1)-Output.at(m)+Input.at(m)).norm()
-      //   <<std::endl; std::cout<<"weights="<<weights(m)<<"
-      //   "<<weights(l)<<std::endl;
-      // }
     }
   }
-  // std::cout<<"3"<<std::endl;
-  // if(abs((weights(0)*weights(0)*Eigen::MatrixXd::Identity(histSize-1,histSize-1)+alpha).determinant())<10e-6){
-  // std::cout<<"w = "<<weights(0)<<std::endl;
-  // std::cout<<"alpha "<<alpha<<std::endl;
-
-  // }
   beta = (weights(0) * weights(0) *
               Eigen::MatrixXd::Identity(histSize - 1, histSize - 1) +
           alpha)
              .inverse();
-  // std::cout<<"3.5"<<std::endl;
   for (Index m = 0; m < histSize; m++) {
     for (Index l = 0; l < histSize - 1; l++) {
       for (Index k = 0; k < m - 1; k++) {
@@ -413,10 +340,8 @@ Eigen::MatrixXcd Sternheimer::BroydenMixing(
       }
     }
   }
-  // std::cout<<"4"<<std::endl;
   Eigen::MatrixXcd BroydenMix =
       Input.back() + FirstInverseJacobian * (Output.back() - Input.back());
-  // std::cout<<"5"<<std::endl;
   for (Index n = 0; n < histSize - 1; n++) {
 
     BroydenMix -=
@@ -473,7 +398,7 @@ std::cout << "\n Starting Sternheimer \n";
 #pragma omp parallel for
   for (Index n = 0; n < grid_w.size(); n++) {
     for (Index i = 0; i < 3; i++) {
-      Eigen::MatrixXcd delta_n = DeltaNOneShot(grid_w[n], dipole.Matrix()[i]);
+      Eigen::MatrixXcd delta_n = DeltaNSC(grid_w[n], dipole.Matrix()[i]);
       for (Index j = i; j < 3; j++) {
         Polar[n](i, j) = -(delta_n.cwiseProduct(dipole.Matrix()[j])).sum();
       }
@@ -491,25 +416,10 @@ std::cout << "\n Starting Sternheimer \n";
     pade_1.addPoint(-grid_w[n], conj(Polar[n](0, 0)));
     pade_1.addPoint(-conj(grid_w[n]), Polar[n](0, 0));
 
-    // pade_2.addPoint(grid_w[n], Polar[n](0,1));
-    // pade_2.addPoint(conj(grid_w[n]), conj(Polar[n](0,1)));
-    // pade_2.addPoint(-grid_w[n], conj(Polar[n](0, 1)));
-    // pade_2.addPoint(-conj(grid_w[n]), Polar[n](0, 1));
-
-    // pade_3.addPoint(grid_w[n], Polar[n](0,2));
-    // pade_3.addPoint(conj(grid_w[n]), conj(Polar[n](0,2)));
-    // pade_3.addPoint(-grid_w[n], conj(Polar[n](0, 2)));
-    // pade_3.addPoint(-conj(grid_w[n]), Polar[n](0, 2));
-
     pade_4.addPoint(grid_w[n], Polar[n](1, 1));
     pade_4.addPoint(conj(grid_w[n]), conj(Polar[n](1, 1)));
     pade_4.addPoint(-grid_w[n], conj(Polar[n](1, 1)));
     pade_4.addPoint(-conj(grid_w[n]), Polar[n](1, 1));
-
-    // pade_5.addPoint(grid_w[n], Polar[n](1,2));
-    // pade_5.addPoint(conj(grid_w[n]), conj(Polar[n](1,2)));
-    // pade_5.addPoint(-grid_w[n], conj(Polar[n](1, 2)));
-    // pade_5.addPoint(-conj(grid_w[n]), Polar[n](1, 2));
 
     pade_6.addPoint(grid_w[n], Polar[n](2, 2));
     pade_6.addPoint(conj(grid_w[n]), conj(Polar[n](2, 2)));
@@ -520,16 +430,7 @@ std::cout << "\n Starting Sternheimer \n";
   for (std::complex<double> w : frequency_grid) {
     Polar_pade.push_back(Eigen::Matrix3cd::Zero());
     Polar_pade[Polar_pade.size() - 1](0, 0) = pade_1.evaluatePoint(w);
-    // Polar_pade[Polar_pade.size() - 1](0,1)=pade_2.evaluatePoint(w);
-    // Polar_pade[Polar_pade.size() - 1](0,2)=pade_3.evaluatePoint(w);
-    // Polar_pade[Polar_pade.size() -
-    // 1](1,0)=Polar_pade[Polar_pade.size()-1](0,1);
     Polar_pade[Polar_pade.size() - 1](1, 1) = pade_4.evaluatePoint(w);
-    // Polar_pade[Polar_pade.size() - 1](1,2)=pade_5.evaluatePoint(w);
-    // Polar_pade[Polar_pade.size() -
-    // 1](2,0)=Polar_pade[Polar_pade.size()-1](0,2);
-    // Polar_pade[Polar_pade.size()
-    // - 1](2,1)=Polar_pade[Polar_pade.size()-1](1,2);
     Polar_pade[Polar_pade.size() - 1](2, 2) = pade_6.evaluatePoint(w);
   }
   printIsotropicAverage(Polar_pade, frequency_grid);
