@@ -229,10 +229,10 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
   return delta_n_step_one;
 }
 
-Eigen::MatrixXcd Sternheimer::AndersonMixing(Eigen::MatrixXcd inNew,
-                                             Eigen::MatrixXcd inOld,
-                                             Eigen::MatrixXcd outNew,
-                                             Eigen::MatrixXcd outOld,
+Eigen::MatrixXcd Sternheimer::AndersonMixing(Eigen::MatrixXcd& inNew,
+                                             Eigen::MatrixXcd& inOld,
+                                             Eigen::MatrixXcd& outNew,
+                                             Eigen::MatrixXcd& outOld,
                                              double alpha) const {
 
   std::complex<double> beta =
@@ -294,7 +294,7 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
 }
 
 Eigen::MatrixXcd Sternheimer::BroydenMixing(
-    std::vector<Eigen::MatrixXcd> Input, std::vector<Eigen::MatrixXcd> Output,
+    std::vector<Eigen::MatrixXcd>& Input, std::vector<Eigen::MatrixXcd>& Output,
     double jacobianScaling) const {
 
   // Approximation of the first inverse Jacobian

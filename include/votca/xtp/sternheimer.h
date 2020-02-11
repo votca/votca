@@ -56,7 +56,7 @@ class Sternheimer {
     double perturbation_strength =
         0.1;  // strength of the electric field for polarizability
     Index max_iterations_sc_sternheimer = 100;
-    double tolerance_sc_sternheimer = 10E-9;
+    double tolerance_sc_sternheimer = 10E-14;
     double mixing_constant = 0.5;  // 0<mixing_const<1
     Index max_mixing_history = 5;
   };
@@ -137,17 +137,17 @@ class Sternheimer {
                             const Eigen::MatrixXcd& pertubation) const;
 
   // Basic Anderson Mixing using only the last step
-  Eigen::MatrixXcd AndersonMixing(Eigen::MatrixXcd inNew,
-                                  Eigen::MatrixXcd inOld,
-                                  Eigen::MatrixXcd outNew,
-                                  Eigen::MatrixXcd outOld, double alpha) const;
+  Eigen::MatrixXcd AndersonMixing(Eigen::MatrixXcd& inNew,
+                                  Eigen::MatrixXcd& inOld,
+                                  Eigen::MatrixXcd& outNew,
+                                  Eigen::MatrixXcd& outOld, double alpha) const;
   // Anderson Mixing with variable history length
   Eigen::MatrixXcd NPAndersonMixing(std::vector<Eigen::MatrixXcd>& Input,
                                     std::vector<Eigen::MatrixXcd>& Output,
                                     double alpha) const;
   // Borydens Method for Mixing with variable history size
-  Eigen::MatrixXcd BroydenMixing(std::vector<Eigen::MatrixXcd> Input,
-                                 std::vector<Eigen::MatrixXcd> Output,
+  Eigen::MatrixXcd BroydenMixing(std::vector<Eigen::MatrixXcd>& Input,
+                                 std::vector<Eigen::MatrixXcd>& Output,
                                  double alpha) const;
 };
 }  // namespace xtp
