@@ -65,9 +65,9 @@ void PadeApprox::addPoint(std::complex<double> frequency, std::complex<double> v
 
   if ((_coeff.at(_coeff.size() - 1) !=
       _coeff.at(_coeff.size() - 1))||abs(_coeff.at(_coeff.size() - 1))<1e-6) {
-    std::cout
-        << "reject point, unvalid coeficient at w=" << frequency
-        << std::endl <<"Value="<<value<<std::endl<<std::endl;
+    //std::cout
+        //<< "reject point, unvalid coeficient at w=" << frequency
+        //<< std::endl <<"Value="<<value<<std::endl<<std::endl;
     _coeff.pop_back();
     _grid.pop_back();
     _value.pop_back();
@@ -88,10 +88,6 @@ std::complex<double> PadeApprox::RecursivePolynom(Index indx, Index degree) {
     std::complex<double> temp = RecursivePolynom(indx, degree - 1);
     std::complex<double> u = RecursivePolynom(degree-2, degree-1) - temp;
     std::complex<double> l = temp * (_grid.at(indx) - _grid.at(degree - 2));
-    if(norm(l)<1E-6){
-      std::cout<<"warning denominator small! l = "<<l<<" ,u = "<<u<<std::endl;
-      std::cout<<"result="<<u/l<<std::endl<<std::endl;
-    }
     std::complex<double> result=u/l;
     if(result==result){
     _temp_container_g[indx][degree-1]=result;
@@ -146,35 +142,6 @@ std::complex<double> PadeApprox::evaluatePoint(std::complex<double> frequency) {
     std::complex<double> B=RecursiveB(frequency, _grid.size());
     std::complex<double> A=RecursiveA(frequency, _grid.size());
 
-    // if(norm(B)<1E-6){
-    //   std::cout<<"Warning B small : B = "<<B<<" A = "<<A<<std::endl;
-    // }
-
-    // if(abs(B)<1E-3){
-    //   std::cout<<"Applying correction"<<std::endl;
-    //   for(Index i=0; i<_temp_container_A.size(); i++){
-    //     std::cout<<"A old = "<<_temp_container_A[i]<<std::endl;
-    //     _temp_container_A[i]= _temp_container_A[i]/abs(B);
-    //     std::cout<<"A new = "<<_temp_container_A[i]<<std::endl;
-    //   }
-      
-    //   for(Index i=0; i<_temp_container_B.size()-1; i++){
-    //     _temp_container_B[i]= _temp_container_B[i]/abs(B);
-    //   }
-
-    //   }else if(abs(B)>1E3){
-    //   std::cout<<"Applying correction"<<std::endl;
-    //   for(Index i=0; i<_temp_container_A.size(); i++){
-    //     std::cout<<"A old = "<<_temp_container_A[i]<<std::endl;
-    //     _temp_container_A[i]= _temp_container_A[i]/abs(B);
-    //     std::cout<<"A new = "<<_temp_container_A[i]<<std::endl;
-    //   }
-      
-    //   for(Index i=0; i<_temp_container_B.size(); i++){
-    //     _temp_container_B[i]= _temp_container_B[i]/abs(B);
-    //   }
-
-    // }
   return A/B;
 }
 

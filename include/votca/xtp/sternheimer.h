@@ -40,15 +40,29 @@ class Sternheimer {
   
   // Calculates and saves all matrices needed to perform Sternheimer
   // calculations from DFT
-  void Initialize();
+  void setUpMatrices();
+
+  struct options_sternheimer{
+
+    double start_frequency_grid = 0.0;  //in eV
+    double end_frequency_grid = 20;     //in eV
+    Index number_of_frequency_grid_points;
+    double imaginary_shift_pade_approx; //in eV
+    double lorentzian_broadening;       //in eV
+    Index number_output_grid_points;
+    std::string numerical_Integration_grid_type = "coarse";
+    double perturbation_strength = 0.1;
+    Index max_iterations_sc_sternheimer = 100;
+    double tolerance_sc_sternheimer = 10E-9;
+    double mixing_constant = 0.5;       //0<m<1
+
+  };
+
+  void configurate(const options_sternheimer& opt);
 
   // Calculates the Polarizability Tensor for given frequency grid according to
   // Paper https://journals.aps.org/prb/pdf/10.1103/PhysRevB.89.085129
-  std::vector<Eigen::Matrix3cd> Polarisability(double omega_start,
-                                               double omega_end, Index steps,
-                                               double imaginary_shift,
-                                               double lorentzian_broadening,
-                                               Index resolution_output) const;
+  std::vector<Eigen::Matrix3cd> Polarisability() const;
   // Prints the isotropic average of the polarizability tensor
   void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar,
                              std::vector<std::complex<double>>& grid) const;
@@ -63,6 +77,8 @@ class Sternheimer {
   Logger& _log;
 
   Orbitals& _orbitals;
+
+  options_sternheimer _opt;
 
   Multishift _multishift;
 

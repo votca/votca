@@ -645,12 +645,21 @@ bool GWBSE::Evaluate() {
     _orbitals.setAuxbasisName(_auxbasis_name);
 
     Sternheimer sternheimer(_orbitals, *_pLog);
-    SternheimerW sternheimerw(_orbitals, *_pLog);
 
-    sternheimer.Initialize();
-    std::vector<Eigen::Matrix3cd> polar = sternheimer.Polarisability(
-        _gwopt.omegain, _gwopt.omegafin, _gwopt.step, _gwopt.imshift,
-        _gwopt.lorentzian_broadening, _gwopt.resolution);
+    sternheimer.setUpMatrices();
+
+    Sternheimer::options_sternheimer opt;
+    opt.start_frequency_grid=_gwopt.omegain;
+    opt.end_frequency_grid=_gwopt.omegafin;
+    opt.number_of_frequency_grid_points=_gwopt.step;
+    opt.imaginary_shift_pade_approx=_gwopt.imshift;
+    opt.lorentzian_broadening=_gwopt.lorentzian_broadening;
+    opt.number_output_grid_points=_gwopt.resolution;
+
+    sternheimer.configurate(opt);
+
+    std::vector<Eigen::Matrix3cd> polar = sternheimer.Polarisability();
+    
 
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Finished Sternheimer " << flush;
