@@ -185,7 +185,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
     Eigen::MatrixXcd FxcInt =
         Vxcpot.IntegrateFXC(_density_Matrix, delta_n_out_new);
 
-    if (perturbationVectoroutput.size() > 4) {
+    if (perturbationVectoroutput.size() > _opt.max_mixing_history-1) {
       perturbationVectoroutput.erase(perturbationVectoroutput.begin());
     }
 
@@ -208,7 +208,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
 
       perturbationUsed = (NPAndersonMixing(perturbationVectorInput,
                                            perturbationVectoroutput, 0.5));
-      if (perturbationVectorInput.size() > 4) {
+      if (perturbationVectorInput.size() > _opt.max_mixing_history-1) {
         perturbationVectorInput.erase(perturbationVectorInput.begin());
       }
       perturbationVectorInput.push_back(perturbationUsed);

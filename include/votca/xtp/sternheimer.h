@@ -55,6 +55,7 @@ class Sternheimer {
     Index max_iterations_sc_sternheimer = 100;
     double tolerance_sc_sternheimer = 10E-9;
     double mixing_constant = 0.5;       //0<m<1
+    Index max_mixing_history = 5;
 
   };
 
