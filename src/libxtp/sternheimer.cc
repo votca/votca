@@ -38,6 +38,7 @@ namespace xtp {
 
 void Sternheimer::setUpMatrices() {
 
+  // saving matrices needed from orbitals
   this->_num_occ_lvls = _orbitals.getNumberOfAlphaElectrons();
   this->_basis_size = _orbitals.getBasisSetSize();
   this->_overlap_Matrix = OverlapMatrix();
@@ -48,9 +49,7 @@ void Sternheimer::setUpMatrices() {
   this->_Hamiltonian_Matrix = Hamiltonian();
 }
 
-void Sternheimer::configurate(const options_sternheimer& opt){
-  _opt=opt;
-}
+void Sternheimer::configurate(const options_sternheimer& opt) { _opt = opt; }
 
 void Sternheimer::initializeMultishift(Index size) {
   _multishift.setMatrixSize(size);
@@ -70,6 +69,7 @@ Eigen::MatrixXcd Sternheimer::DensityMatrix() {
 
 Eigen::MatrixXcd Sternheimer::Hamiltonian() {
 
+  // rebuilding Hamitonian from eigenvectors and values
   const Eigen::MatrixXd& mo_coefficients = _orbitals.MOs().eigenvectors();
   return (_overlap_Matrix * mo_coefficients *
           _orbitals.MOs().eigenvalues().asDiagonal() *
@@ -93,7 +93,7 @@ std::vector<std::complex<double>> Sternheimer::BuildGrid(
     grid.push_back(omega_start * ev2hrt + n * stepsize * ev2hrt +
                    imaginary_shift * i * ev2hrt);
   }
-
+  // Grid has form: stepsize*n+i*imaginary shift
   return grid;
 }
 
@@ -123,45 +123,51 @@ Eigen::VectorXcd Sternheimer::SternheimerRHS(
 
 Eigen::MatrixXcd Sternheimer::DeltaNSC(
     std::complex<double> w, const Eigen::MatrixXcd& perturbation) const {
-  Eigen::MatrixXcd solution_p =
-      Eigen::MatrixXcd::Zero(_basis_size, _num_occ_lvls);
-  Eigen::MatrixXcd solution_m =
-      Eigen::MatrixXcd::Zero(_basis_size, _num_occ_lvls);
 
-  double e_field = _opt.perturbation_strength;
-
+  // Setting up vectors to store old results for Anderson mixing and initial
+  // perturbation
   std::vector<Eigen::MatrixXcd> perturbationVectorInput;
   std::vector<Eigen::MatrixXcd> perturbationVectoroutput;
+
   perturbationVectorInput.push_back(-_opt.perturbation_strength * perturbation);
   Eigen::MatrixXcd perturbationUsed = perturbationVectorInput.back();
+
   Eigen::MatrixXcd delta_n_out_new =
       Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
   Eigen::MatrixXcd delta_n_out_old =
       Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
   Eigen::MatrixXcd delta_n_step_one =
       Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
-  Eigen::MatrixXcd V_ext = -e_field * perturbation;
 
+  // Setting up ERIS for four center integral
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
   ERIs eris;
   eris.Initialize(dftbasis, auxbasis);
 
+  // Setting up Grid for Fxc functional
   Vxc_Grid grid;
-  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(), dftbasis);
+  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                 dftbasis);
   Vxc_Potential<Vxc_Grid> Vxcpot(grid);
   Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
-  double diff = 10000;
-
+  // Loop until convergence
   for (Index n = 0; n < _opt.max_iterations_sc_sternheimer; n++) {
 
+    // Matrices to store the solutions of the sternheimer equation
+    Eigen::MatrixXcd solution_p =
+        Eigen::MatrixXcd::Zero(_basis_size, _num_occ_lvls);
+    Eigen::MatrixXcd solution_m =
+        Eigen::MatrixXcd::Zero(_basis_size, _num_occ_lvls);
+    // Loop over all occupied states
     for (Index v = 0; v < _num_occ_lvls; v++) {
 
+      // Building RHS
       Eigen::MatrixXcd RHS =
           SternheimerRHS(_inverse_overlap, _density_Matrix, perturbationUsed,
                          _mo_coefficients.col(v));
-
+      // Building LHS with +/- omega and solving the system
       Eigen::MatrixXcd LHS_P = SternheimerLHS(
           _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, true);
       solution_p.col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
@@ -169,53 +175,57 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
           _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, false);
       solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
     }
+    // Saving previous delta n
     delta_n_out_old = delta_n_out_new;
+    // Calculating new delta n
     delta_n_out_new =
         2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) *
             solution_p.transpose() +
         2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) *
             solution_m.transpose();
 
-    Eigen::MatrixXcd delta = (delta_n_out_new - delta_n_out_old);
-    diff = delta.squaredNorm();
-
+    // Perfomring the to four center Integrals to update delta V
     Eigen::MatrixXcd contract =
         eris.ContractRightIndecesWithMatrix(delta_n_out_new);
 
     Eigen::MatrixXcd FxcInt =
         Vxcpot.IntegrateFXC(_density_Matrix, delta_n_out_new);
 
-    if (perturbationVectoroutput.size() > _opt.max_mixing_history-1) {
+    // Check if max mixing history is reached and adding new step to history
+    if (perturbationVectoroutput.size() > _opt.max_mixing_history - 1) {
       perturbationVectoroutput.erase(perturbationVectoroutput.begin());
     }
 
-    perturbationVectoroutput.push_back((-e_field * perturbation) + contract +
-                                       FxcInt);
+    perturbationVectoroutput.push_back(
+        (-_opt.perturbation_strength * perturbation) + contract + FxcInt);
 
-    diff = (perturbationVectorInput.back() - perturbationVectoroutput.back())
-               .squaredNorm();
+    double diff =
+        (perturbationVectorInput.back() - perturbationVectoroutput.back())
+            .squaredNorm();
     // std::cout << n << " " << diff << std::endl;
     if (diff < _opt.tolerance_sc_sternheimer) {
       std::cout << "Converged after " << n + 1 << " iteration." << std::endl;
       // throw std::exception();
       return delta_n_out_new;
     }
+    // Mixing if at least in iteration 2
     if (n == 0) {
-      perturbationUsed = _opt.mixing_constant * perturbationVectoroutput.back() +
-                         (1 - _opt.mixing_constant) * perturbationVectorInput.back();
+      perturbationUsed =
+          _opt.mixing_constant * perturbationVectoroutput.back() +
+          (1 - _opt.mixing_constant) * perturbationVectorInput.back();
       perturbationVectorInput.push_back(perturbationUsed);
     } else {
 
       perturbationUsed = (NPAndersonMixing(perturbationVectorInput,
                                            perturbationVectoroutput, 0.5));
-      if (perturbationVectorInput.size() > _opt.max_mixing_history-1) {
+      if (perturbationVectorInput.size() > _opt.max_mixing_history - 1) {
         perturbationVectorInput.erase(perturbationVectorInput.begin());
       }
       perturbationVectorInput.push_back(perturbationUsed);
     }
   }
-  std::cout << "NOT converged diff = " << diff << " The frequency is w = " << w
-            << std::endl;
+
+  std::cout << "NOT converged the frequency is w = " << w << std::endl;
   return delta_n_step_one;
 }
 
@@ -358,15 +368,17 @@ Eigen::MatrixXcd Sternheimer::BroydenMixing(
 
 std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability() const {
 
-  std::vector<std::complex<double>> frequency_evaluation_grid =
-      BuildGrid(_opt.start_frequency_grid, _opt.end_frequency_grid, _opt.number_of_frequency_grid_points, _opt.imaginary_shift_pade_approx);
+  std::vector<std::complex<double>> frequency_evaluation_grid = BuildGrid(
+      _opt.start_frequency_grid, _opt.end_frequency_grid,
+      _opt.number_of_frequency_grid_points, _opt.imaginary_shift_pade_approx);
   // std::cout << "\n This is the grid \n";
   // for (Index i = 0; i < frequency_evaluation_grid.size(); i++) {
   //   std::cout << frequency_evaluation_grid[i] << std::endl;
   // }
 
-  std::vector<std::complex<double>> output_grid = BuildGrid(
-      _opt.start_frequency_grid, _opt.end_frequency_grid, _opt.number_output_grid_points, _opt.lorentzian_broadening);
+  std::vector<std::complex<double>> output_grid =
+      BuildGrid(_opt.start_frequency_grid, _opt.end_frequency_grid,
+                _opt.number_output_grid_points, _opt.lorentzian_broadening);
 
   std::vector<Eigen::Matrix3cd> Polar;
   std::vector<Eigen::Matrix3cd> Polar_pade;
@@ -389,7 +401,8 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability() const {
 #pragma omp parallel for
   for (Index n = 0; n < frequency_evaluation_grid.size(); n++) {
     for (Index i = 0; i < 3; i++) {
-      Eigen::MatrixXcd delta_n = DeltaNSC(frequency_evaluation_grid[n], dipole.Matrix()[i]);
+      Eigen::MatrixXcd delta_n =
+          DeltaNSC(frequency_evaluation_grid[n], dipole.Matrix()[i]);
       for (Index j = i; j < 3; j++) {
         Polar[n](i, j) = -(delta_n.cwiseProduct(dipole.Matrix()[j])).sum();
       }

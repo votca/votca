@@ -37,28 +37,30 @@ class Sternheimer {
 
   Sternheimer(Orbitals& orbitals, Logger& log)
       : _orbitals(orbitals), _log(log){};
-  
+
   // Calculates and saves all matrices needed to perform Sternheimer
   // calculations from DFT
   void setUpMatrices();
 
-  struct options_sternheimer{
+  // Options for Sternheimer
+  struct options_sternheimer {
 
-    double start_frequency_grid = 0.0;  //in eV
-    double end_frequency_grid = 20;     //in eV
-    Index number_of_frequency_grid_points;
-    double imaginary_shift_pade_approx; //in eV
-    double lorentzian_broadening;       //in eV
-    Index number_output_grid_points;
-    std::string numerical_Integration_grid_type = "coarse";
-    double perturbation_strength = 0.1;
+    double start_frequency_grid = 0.0;  // in eV
+    double end_frequency_grid = 20;     // in eV
+    Index number_of_frequency_grid_points = 30;
+    double imaginary_shift_pade_approx = 3;  // in eV
+    double lorentzian_broadening;            // in eV
+    Index number_output_grid_points = 1000;
+    std::string numerical_Integration_grid_type =
+        "coarse";  // xfine fine medium coarse xcoarse
+    double perturbation_strength =
+        0.1;  // strength of the electric field for polarizability
     Index max_iterations_sc_sternheimer = 100;
     double tolerance_sc_sternheimer = 10E-9;
-    double mixing_constant = 0.5;       //0<m<1
+    double mixing_constant = 0.5;  // 0<mixing_const<1
     Index max_mixing_history = 5;
-
   };
-
+  // Edit Options
   void configurate(const options_sternheimer& opt);
 
   // Calculates the Polarizability Tensor for given frequency grid according to
@@ -67,12 +69,9 @@ class Sternheimer {
   // Prints the isotropic average of the polarizability tensor
   void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar,
                              std::vector<std::complex<double>>& grid) const;
-
-  std::vector<double> getIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar) const;
-
-  Eigen::MatrixXcd NPAndersonMixing(std::vector<Eigen::MatrixXcd>& Input, std::vector<Eigen::MatrixXcd>& Output, double alpha) const;
-
-  Eigen::MatrixXcd BroydenMixing(std::vector<Eigen::MatrixXcd> Input, std::vector<Eigen::MatrixXcd> Output, double alpha)const;
+  // Returns Isotropic Average from Polarizability Tensor
+  std::vector<double> getIsotropicAverage(
+      std::vector<Eigen::Matrix3cd>& polar) const;
 
  private:
   Logger& _log;
@@ -132,14 +131,24 @@ class Sternheimer {
                                   const Eigen::MatrixXcd& density,
                                   const Eigen::MatrixXcd& pertubation,
                                   const Eigen::VectorXd& coeff) const;
-  // Calculates the response of the electron density using one shot Sternheimer
-  Eigen::MatrixXcd DeltaNSC(
-      std::complex<double> w,
-      const Eigen::MatrixXcd& pertubation) const;
+  // Calculates the response of the electron density using the self consistent
+  // sternheimer method
+  Eigen::MatrixXcd DeltaNSC(std::complex<double> w,
+                            const Eigen::MatrixXcd& pertubation) const;
 
-  Eigen::MatrixXcd AndersonMixing(Eigen::MatrixXcd inNew, Eigen::MatrixXcd inOld, Eigen::MatrixXcd outNew, Eigen::MatrixXcd outOld, double alpha) const;    
-  
-  
+  // Basic Anderson Mixing using only the last step
+  Eigen::MatrixXcd AndersonMixing(Eigen::MatrixXcd inNew,
+                                  Eigen::MatrixXcd inOld,
+                                  Eigen::MatrixXcd outNew,
+                                  Eigen::MatrixXcd outOld, double alpha) const;
+  // Anderson Mixing with variable history length
+  Eigen::MatrixXcd NPAndersonMixing(std::vector<Eigen::MatrixXcd>& Input,
+                                    std::vector<Eigen::MatrixXcd>& Output,
+                                    double alpha) const;
+  // Borydens Method for Mixing with variable history size
+  Eigen::MatrixXcd BroydenMixing(std::vector<Eigen::MatrixXcd> Input,
+                                 std::vector<Eigen::MatrixXcd> Output,
+                                 double alpha) const;
 };
 }  // namespace xtp
 }  // namespace votca
