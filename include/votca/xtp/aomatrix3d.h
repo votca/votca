@@ -22,6 +22,7 @@
 #define VOTCA_XTP_AOMATRIX3D_H
 
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/staticsite.h>
 
 namespace votca {
 namespace xtp {
@@ -64,6 +65,24 @@ class AODipole : public AOMatrix3D {
 
  private:
   Eigen::Vector3d _r = Eigen::Vector3d::Zero();
+};
+
+class AO3ddipole : public AOMatrix3D {
+ public:
+  void setCenter(const Eigen::Vector3d& r) {
+    _r = r;
+  }  // definition of a center around which the moment should be calculated
+ protected:
+  void FillBlock3D(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
+                 const AOShell& shell_row,
+                 const AOShell& shell_col) const;
+
+ private:
+  Eigen::Vector3d _r = Eigen::Vector3d::Zero();
+
+  void setSite(const StaticSite* site) { _site = site; };
+
+  const StaticSite* _site;
 };
 
 }  // namespace xtp
