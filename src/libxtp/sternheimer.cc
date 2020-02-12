@@ -129,7 +129,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
   std::vector<Eigen::MatrixXcd> perturbationVectorInput;
   std::vector<Eigen::MatrixXcd> perturbationVectoroutput;
 
-  perturbationVectorInput.push_back(-_opt.perturbation_strength * perturbation);
+  perturbationVectorInput.push_back(perturbation);
   Eigen::MatrixXcd perturbationUsed = perturbationVectorInput.back();
 
   Eigen::MatrixXcd delta_n_out_new =
@@ -197,7 +197,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
     }
 
     perturbationVectoroutput.push_back(
-        (-_opt.perturbation_strength * perturbation) + contract + FxcInt);
+        (perturbation) + contract + FxcInt);
 
     double diff =
         (perturbationVectorInput.back() - perturbationVectoroutput.back())
@@ -402,7 +402,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability() const {
   for (Index n = 0; n < frequency_evaluation_grid.size(); n++) {
     for (Index i = 0; i < 3; i++) {
       Eigen::MatrixXcd delta_n =
-          DeltaNSC(frequency_evaluation_grid[n], dipole.Matrix()[i]);
+          DeltaNSC(frequency_evaluation_grid[n], -_opt.perturbation_strength * dipole.Matrix()[i]);
       for (Index j = i; j < 3; j++) {
         Polar[n](i, j) = -(delta_n.cwiseProduct(dipole.Matrix()[j])).sum();
       }
