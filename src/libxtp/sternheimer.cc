@@ -307,7 +307,7 @@ Eigen::MatrixXcd Sternheimer::BroydenMixing(
   Eigen::MatrixXd alpha = Eigen::MatrixXd::Zero(histSize - 1, histSize - 1);
   Eigen::MatrixXd beta = Eigen::MatrixXd::Zero(histSize - 1, histSize - 1);
   Eigen::VectorXd weights = Eigen::VectorXd::Zero(histSize);
-  // std::cout<<"1"<<std::endl;
+
   for (Index m = 0; m < histSize; m++) {
     weights(m) = 1 / sqrt(abs((Output.at(m) - Input.at(m))
                                   .cwiseProduct((Output.at(m) - Input.at(m)))

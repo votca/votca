@@ -49,7 +49,7 @@ class Sternheimer {
     double end_frequency_grid = 20;     // in eV
     Index number_of_frequency_grid_points = 30;
     double imaginary_shift_pade_approx = 3;  // in eV
-    double lorentzian_broadening;            // in eV
+    double lorentzian_broadening = 0;            // in eV
     Index number_output_grid_points = 1000;
     std::string numerical_Integration_grid_type =
         "coarse";  // xfine fine medium coarse xcoarse
