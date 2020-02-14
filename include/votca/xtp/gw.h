@@ -79,6 +79,10 @@ class GW {
   void PlotSigma(std::string filename, Index steps, double spacing,
                  std::string states) const;
 
+  Eigen::VectorXd RPAInputEnergies() const {
+    return _rpa.getRPAInputEnergies();
+  }
+
  private:
   Index _qptotal;
 
