@@ -25,7 +25,9 @@
 #include <votca/tools/property.h>
 #include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/logger.h>
+#include <votca/xtp/settings.h>
 #include <votca/xtp/staticsite.h>
+
 namespace votca {
 namespace xtp {
 
@@ -106,6 +108,7 @@ class QMPackage {
   };
 
   void ParseCommonOptions(tools::Property& options);
+  std::string FindTemplateFile() const;
 
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
@@ -115,6 +118,10 @@ class QMPackage {
 
   std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,
                                            const std::string separators) const;
+
+  Settings _settings;
+
+  enum class _ConvergenceTightness {Low, Normal, Tigh, VeryTigh};
 
   Index _charge;
   Index _spin;  // 2S+1

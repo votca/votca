@@ -17,10 +17,10 @@
  *
  */
 
-#include "votca/xtp/qmpackage.h"
 #include <boost/algorithm/string.hpp>
 #include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/qmpackage.h>
 
 namespace votca {
 namespace xtp {
@@ -28,27 +28,26 @@ using std::flush;
 
 void QMPackage::ParseCommonOptions(tools::Property& options) {
 
-  std::string key = "package";
-  std::string name = options.get(key + ".name").as<std::string>();
+  _settings.read_property(options);
+  Settings qmpackage_template{};
+  qmpackage_template.load_from_xml(this->FindTemplateFile());
+  _settings.merge(qmpackage_template);
+  _settings.validate();
 
-  if (name != getPackageName()) {
-    throw std::runtime_error("Tried to use " + name +
-                             " package. Wrong options file");
-  }
+  std::string key = "package";
+  std::string name = _settings.get("name");
+  _charge = _settings.get<Index>("charge");
+  _spin = _settings.get<Index>("spin");
 
   if (getPackageName() != "xtp") {
-    _executable = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".executable");
+    _executable = _settings.get("executable");
+    _scratch_dir = _settings.get("scratch");
     _memory = options.ifExistsReturnElseThrowRuntimeError<std::string>(
         key + ".memory");
     _options = options.ifExistsReturnElseThrowRuntimeError<std::string>(
         key + ".options");
-    _scratch_dir = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".scratch");
   }
 
-  _charge = options.ifExistsReturnElseThrowRuntimeError<Index>(key + ".charge");
-  _spin = options.ifExistsReturnElseThrowRuntimeError<Index>(key + ".spin");
   _cleanup =
       options.ifExistsReturnElseReturnDefault(key + ".cleanup", _cleanup);
   _dpl_spacing = options.ifExistsReturnElseReturnDefault(
@@ -149,6 +148,13 @@ std::vector<std::string> QMPackage::GetLineAndSplit(
   boost::trim(line);
   tools::Tokenizer tok(line, separators);
   return tok.ToVector();
+}
+
+std::string QMPackage::FindTemplateFile() const {
+  auto xmlFile = std::string(getenv("VOTCASHARE")) +
+                 std::string("/xtp/packages/qmpackage_template.xml");
+
+  return xmlFile;
 }
 
 }  // namespace xtp

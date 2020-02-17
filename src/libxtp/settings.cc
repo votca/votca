@@ -31,6 +31,12 @@ void Settings::read_property(const Property& properties) {
   }
 }
 
+void Settings::load_from_xml(const std::string& path) {
+  Property options;
+  options.LoadFromXML(path);
+  this->read_property(options);
+}
+
 void Settings::merge(const Settings& other) {
   // Merge general properties
   for (const auto& pair : other._nodes) {
@@ -43,11 +49,15 @@ void Settings::merge(const Settings& other) {
 }
 
 Settings::Settings_map::const_iterator Settings::search_for_mandatory_keyword(
-    std::string key) const {
+    const std::string& key) const {
   std::ostringstream oss;
   auto it = this->_nodes.find(key);
-  oss << "the " << key << " keyword is mandatory\n";
   if (it == this->_nodes.end()) {
+    oss << "the " << key << " keyword is mandatory\n";
+    /*     it = this->_keyword_options.find(key) {
+          oss << key << "must be one of the following values:\n" << *it << "\n";
+        }
+     */
     throw std::runtime_error(oss.str());
   } else {
     return it;
@@ -55,10 +65,11 @@ Settings::Settings_map::const_iterator Settings::search_for_mandatory_keyword(
 }
 
 void Settings::validate() const {
-  this->validate_name();
-  this->search_for_mandatory_keyword("executable");
+  for (const auto& x : _mandatory_keyword) {
+    this->search_for_mandatory_keyword(x);
+  }
 
-  std::ostringstream oss;
+  /* std::ostringstream oss;
   for (const auto& pair : this->_nodes) {
     auto it = find(_general_properties.cbegin(), _general_properties.cend(),
                    pair.first);
@@ -66,18 +77,7 @@ void Settings::validate() const {
       oss << "Unknown keyword: " << pair.first << "\n";
       throw std::runtime_error(oss.str());
     }
-  }
-}
-
-void Settings::validate_name() const {
-  auto it = this->search_for_mandatory_keyword("name");
-  std::string name = it->second.value();
-  std::vector<std::string> names = {"orca", "gaussian", "nwchem", "xtpdft"};
-  auto it2 = find(names.cbegin(), names.cend(), name);
-  if (it2 == names.cend()) {
-    throw std::runtime_error(
-        "name must be one of: orca, gaussian, nwchem or xtpdft\n");
-  }
+   }*/
 }
 
 std::ostream& operator<<(std::ostream& os, const Settings& sett) {

@@ -48,20 +48,37 @@ class Settings {
   void read_property(const Property& prop);
 
   /**
+   * \brief read Settings from xml
+   * @param path to the xml
+   */
+  void load_from_xml(const std::string& path);
+
+  /**
    * \brief Merge two settings objects
    * @param other Settings object
    */
   void merge(const Settings& other);
 
   /**
+   * \brief Get a given key
+   * @param key
+   */
+  template <typename T = std::string>
+  T get(const std::string& key) const {
+    auto it = this->_nodes.find(key);
+    if (it != this->_nodes.end()) {
+      return it->second.get(key).as<T>();
+    } else {
+      std::ostringstream oss;
+      oss << "Unknown keyword: " << key << "\n";
+      throw std::runtime_error(oss.str());
+    }
+  }
+
+  /**
    * \brief Check that the input is correct
    */
   void validate() const;
-
-  /**
-   * \brief Check that the QMPackage name is valid
-   */
-  void validate_name() const;
 
   friend std::ostream& operator<<(std::ostream& os, const Settings& sett);
 
@@ -70,23 +87,29 @@ class Settings {
   Settings_map _nodes;
   std::string _executable_path;
 
+  Settings_map::const_iterator search_for_mandatory_keyword(
+      const std::string& key) const;
+
   std::vector<std::string> _general_properties = {
       "auxbasisset",            // string
       "basisset",               // string
       "charge",                 // int
       "convergence_tightness",  // std::string
-      "executable",             // std::string
       "external_charge",        // Eigen::Vector9d
-      "functional",             // string
-      "name",             // string, one of: orca, nwchem, gaussian, xtpdft,
-      "optimize",         // boolean
-      "polarisation",     // boolean
-      "pseudopotential",  // string
-      "spin"              // int
+      "optimize",               // boolean
+      "polarisation",           // boolean
+      "pseudopotential",        // string
+      "spin"                    // int
   };
 
-  Settings_map::const_iterator search_for_mandatory_keyword(
-      std::string key) const;
+  std::vector<std::string> _mandatory_keyword = {
+      "executable",  // string
+      "functional",  // string
+      "name",        // string, one of: orca, nwchem, gaussian, xtpdft,
+  };
+
+  std::unordered_map<std::string, std::vector<std::string>> _keyword_options{
+      {"name", {"orca", "gaussian", "nwchem", "xtpdft"}}};
 };
 
 }  // namespace xtp
