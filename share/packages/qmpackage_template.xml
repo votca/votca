@@ -1,0 +1,11 @@
+<package>
+<name>orca</name>
+<charge>0</charge>
+<spin>1</spin>
+<basisset>ubecppol</basisset>
+<auxbasisset>aux-ubecppol</auxbasisset>
+<optimize>false</optimize>
+<functional>pbe</functional>
+<scratch>/tmp/xtp_qmpackage</scratch>
+<polarisation>false</polarisation>
+</package>

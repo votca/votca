@@ -38,6 +38,8 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   std::string name = _settings.get("name");
   _charge = _settings.get<Index>("charge");
   _spin = _settings.get<Index>("spin");
+  _basisset_name = _settings.get("basisset");
+  _auxbasisset_name = _settings.get("auxbasisset");
 
   if (getPackageName() != "xtp") {
     _executable = _settings.get("executable");
@@ -55,15 +57,6 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
 
   _write_guess = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".read_guess", _write_guess);
-
-  if (options.exists(key + ".basisset")) {
-    _basisset_name = options.get(key + ".basisset").as<std::string>();
-    _write_basis_set = true;
-  }
-  if (options.exists(key + ".auxbasisset")) {
-    _auxbasisset_name = options.get(key + ".auxbasisset").as<std::string>();
-    _write_auxbasis_set = true;
-  }
 
   if (options.exists(key + ".ecp")) {
     _write_pseudopotentials = true;

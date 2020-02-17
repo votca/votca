@@ -121,7 +121,7 @@ class QMPackage {
 
   Settings _settings;
 
-  enum class _ConvergenceTightness {Low, Normal, Tigh, VeryTigh};
+  enum class _ConvergenceTightness { Low, Normal, Tigh, VeryTigh };
 
   Index _charge;
   Index _spin;  // 2S+1
@@ -149,8 +149,8 @@ class QMPackage {
 
   bool _write_guess = false;
   bool _write_charges = false;
-  bool _write_basis_set = false;
-  bool _write_auxbasis_set = false;
+  bool _write_basis_set = true;
+  bool _write_auxbasis_set = true;
   bool _write_pseudopotentials = false;
 
   Logger* _pLog;

@@ -54,10 +54,13 @@ Settings::Settings_map::const_iterator Settings::search_for_mandatory_keyword(
   auto it = this->_nodes.find(key);
   if (it == this->_nodes.end()) {
     oss << "the " << key << " keyword is mandatory\n";
-    /*     it = this->_keyword_options.find(key) {
-          oss << key << "must be one of the following values:\n" << *it << "\n";
-        }
-     */
+    auto it2 = this->_keyword_options.find(key);
+    if (it2 != this->_keyword_options.end()) {
+      oss << key << "must be one of the following values:\n";
+      for (const auto& x : it2->second) {
+        oss << x << "\n";
+      }
+    }
     throw std::runtime_error(oss.str());
   } else {
     return it;
