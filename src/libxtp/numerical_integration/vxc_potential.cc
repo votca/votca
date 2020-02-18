@@ -238,6 +238,8 @@ Eigen::MatrixXcd Fxc = std::accumulate(
 return Fxc;
 }
 
+
+
 template <class Grid>
 Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
     const Eigen::MatrixXd& density_matrix) const {

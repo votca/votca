@@ -660,13 +660,13 @@ bool GWBSE::Evaluate() {
 
     //std::vector<Eigen::Matrix3cd> polar = sternheimer.Polarisability();
 
-    Eigen::MatrixXcd EPC = sternheimer.ElectronPhononCoupling();
+    std::vector<Eigen::Vector3cd> EPC = sternheimer.EnergyGradient();
 
-    XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << "Result :"  << flush;
+    // XTP_LOG(Log::error, *_pLog)
+    //     << TimeStamp() << "Result :"  << flush;
 
-     XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << EPC << flush;
+    //  XTP_LOG(Log::error, *_pLog)
+    //     << TimeStamp() << EPC << flush;
     
 
     XTP_LOG(Log::error, *_pLog)

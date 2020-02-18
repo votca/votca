@@ -27,11 +27,7 @@ namespace xtp {
 
 void AO3ddipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
                            const AOShell& shell_row,
-                           const AOShell& shell_col) const {}
-
-void AO3ddipole::FillBlock3D(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
-                             const AOShell& shell_row,
-                             const AOShell& shell_col, Eigen::Vector3d r) const {
+                           const AOShell& shell_col) const {
 
   const double pi = boost::math::constants::pi<double>();
 
@@ -64,18 +60,12 @@ void AO3ddipole::FillBlock3D(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
 
   double distsq = diff.squaredNorm();
 
-  std::cout << "SetUP AO3D Dipole Complete" << std::endl;
-
   // iterate over Gaussians in this shell_row
   for (const auto& gaussian_row : shell_row) {
-
-
 
     // iterate over Gaussians in this shell_col
     // get decay constant
     const double decay_row = gaussian_row.getDecay();
-
-
 
     for (const auto& gaussian_col : shell_col) {
       // get decay constant
@@ -101,7 +91,7 @@ void AO3ddipole::FillBlock3D(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
           fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_col;
 
       const Eigen::Vector3d PmC =
-          fak2 * (decay_row * pos_row + decay_col * pos_col) -  r;
+          fak2 * (decay_row * pos_row + decay_col * pos_col) - _r;
 
       const double U = zeta * PmC.squaredNorm();
       // +3 quadrupole, +2 dipole, +1 nuclear attraction integrals
@@ -114,6 +104,496 @@ void AO3ddipole::FillBlock3D(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
                          fak2 * exp(-exparg);
 
       //------------------------------------------------------
+      //------------------------------------------------------
+
+      // Integrals     p - s
+      if (lmax_row > 0) {
+        for (Index m = 0; m < lsum; m++) {
+          nuc3(Cart::x, 0, m) =
+              PmA(0) * nuc3(0, 0, m) - PmC(0) * nuc3(0, 0, m + 1);
+          nuc3(Cart::y, 0, m) =
+              PmA(1) * nuc3(0, 0, m) - PmC(1) * nuc3(0, 0, m + 1);
+          nuc3(Cart::z, 0, m) =
+              PmA(2) * nuc3(0, 0, m) - PmC(2) * nuc3(0, 0, m + 1);
+        }
+      }
+      //------------------------------------------------------
+
+      // Integrals     d - s
+      if (lmax_row > 1) {
+        for (Index m = 0; m < lsum - 1; m++) {
+          double term = fak * (nuc3(0, 0, m) - nuc3(0, 0, m + 1));
+          nuc3(Cart::xx, 0, m) = PmA(0) * nuc3(Cart::x, 0, m) -
+                                 PmC(0) * nuc3(Cart::x, 0, m + 1) + term;
+          nuc3(Cart::xy, 0, m) =
+              PmA(0) * nuc3(Cart::y, 0, m) - PmC(0) * nuc3(Cart::y, 0, m + 1);
+          nuc3(Cart::xz, 0, m) =
+              PmA(0) * nuc3(Cart::z, 0, m) - PmC(0) * nuc3(Cart::z, 0, m + 1);
+          nuc3(Cart::yy, 0, m) = PmA(1) * nuc3(Cart::y, 0, m) -
+                                 PmC(1) * nuc3(Cart::y, 0, m + 1) + term;
+          nuc3(Cart::yz, 0, m) =
+              PmA(1) * nuc3(Cart::z, 0, m) - PmC(1) * nuc3(Cart::z, 0, m + 1);
+          nuc3(Cart::zz, 0, m) = PmA(2) * nuc3(Cart::z, 0, m) -
+                                 PmC(2) * nuc3(Cart::z, 0, m + 1) + term;
+        }
+      }
+      //------------------------------------------------------
+
+      // Integrals     f - s
+      if (lmax_row > 2) {
+        for (Index m = 0; m < lsum - 2; m++) {
+          nuc3(Cart::xxx, 0, m) =
+              PmA(0) * nuc3(Cart::xx, 0, m) -
+              PmC(0) * nuc3(Cart::xx, 0, m + 1) +
+              2 * fak * (nuc3(Cart::x, 0, m) - nuc3(Cart::x, 0, m + 1));
+          nuc3(Cart::xxy, 0, m) =
+              PmA(1) * nuc3(Cart::xx, 0, m) - PmC(1) * nuc3(Cart::xx, 0, m + 1);
+          nuc3(Cart::xxz, 0, m) =
+              PmA(2) * nuc3(Cart::xx, 0, m) - PmC(2) * nuc3(Cart::xx, 0, m + 1);
+          nuc3(Cart::xyy, 0, m) =
+              PmA(0) * nuc3(Cart::yy, 0, m) - PmC(0) * nuc3(Cart::yy, 0, m + 1);
+          nuc3(Cart::xyz, 0, m) =
+              PmA(0) * nuc3(Cart::yz, 0, m) - PmC(0) * nuc3(Cart::yz, 0, m + 1);
+          nuc3(Cart::xzz, 0, m) =
+              PmA(0) * nuc3(Cart::zz, 0, m) - PmC(0) * nuc3(Cart::zz, 0, m + 1);
+          nuc3(Cart::yyy, 0, m) =
+              PmA(1) * nuc3(Cart::yy, 0, m) -
+              PmC(1) * nuc3(Cart::yy, 0, m + 1) +
+              2 * fak * (nuc3(Cart::y, 0, m) - nuc3(Cart::y, 0, m + 1));
+          nuc3(Cart::yyz, 0, m) =
+              PmA(2) * nuc3(Cart::yy, 0, m) - PmC(2) * nuc3(Cart::yy, 0, m + 1);
+          nuc3(Cart::yzz, 0, m) =
+              PmA(1) * nuc3(Cart::zz, 0, m) - PmC(1) * nuc3(Cart::zz, 0, m + 1);
+          nuc3(Cart::zzz, 0, m) =
+              PmA(2) * nuc3(Cart::zz, 0, m) -
+              PmC(2) * nuc3(Cart::zz, 0, m + 1) +
+              2 * fak * (nuc3(Cart::z, 0, m) - nuc3(Cart::z, 0, m + 1));
+        }
+      }
+      //------------------------------------------------------
+
+      // Integrals     g - s
+      if (lmax_row > 3) {
+        for (Index m = 0; m < lsum - 3; m++) {
+          double term_xx =
+              fak * (nuc3(Cart::xx, 0, m) - nuc3(Cart::xx, 0, m + 1));
+          double term_yy =
+              fak * (nuc3(Cart::yy, 0, m) - nuc3(Cart::yy, 0, m + 1));
+          double term_zz =
+              fak * (nuc3(Cart::zz, 0, m) - nuc3(Cart::zz, 0, m + 1));
+          nuc3(Cart::xxxx, 0, m) = PmA(0) * nuc3(Cart::xxx, 0, m) -
+                                   PmC(0) * nuc3(Cart::xxx, 0, m + 1) +
+                                   3 * term_xx;
+          nuc3(Cart::xxxy, 0, m) = PmA(1) * nuc3(Cart::xxx, 0, m) -
+                                   PmC(1) * nuc3(Cart::xxx, 0, m + 1);
+          nuc3(Cart::xxxz, 0, m) = PmA(2) * nuc3(Cart::xxx, 0, m) -
+                                   PmC(2) * nuc3(Cart::xxx, 0, m + 1);
+          nuc3(Cart::xxyy, 0, m) = PmA(0) * nuc3(Cart::xyy, 0, m) -
+                                   PmC(0) * nuc3(Cart::xyy, 0, m + 1) + term_yy;
+          nuc3(Cart::xxyz, 0, m) = PmA(1) * nuc3(Cart::xxz, 0, m) -
+                                   PmC(1) * nuc3(Cart::xxz, 0, m + 1);
+          nuc3(Cart::xxzz, 0, m) = PmA(0) * nuc3(Cart::xzz, 0, m) -
+                                   PmC(0) * nuc3(Cart::xzz, 0, m + 1) + term_zz;
+          nuc3(Cart::xyyy, 0, m) = PmA(0) * nuc3(Cart::yyy, 0, m) -
+                                   PmC(0) * nuc3(Cart::yyy, 0, m + 1);
+          nuc3(Cart::xyyz, 0, m) = PmA(0) * nuc3(Cart::yyz, 0, m) -
+                                   PmC(0) * nuc3(Cart::yyz, 0, m + 1);
+          nuc3(Cart::xyzz, 0, m) = PmA(0) * nuc3(Cart::yzz, 0, m) -
+                                   PmC(0) * nuc3(Cart::yzz, 0, m + 1);
+          nuc3(Cart::xzzz, 0, m) = PmA(0) * nuc3(Cart::zzz, 0, m) -
+                                   PmC(0) * nuc3(Cart::zzz, 0, m + 1);
+          nuc3(Cart::yyyy, 0, m) = PmA(1) * nuc3(Cart::yyy, 0, m) -
+                                   PmC(1) * nuc3(Cart::yyy, 0, m + 1) +
+                                   3 * term_yy;
+          nuc3(Cart::yyyz, 0, m) = PmA(2) * nuc3(Cart::yyy, 0, m) -
+                                   PmC(2) * nuc3(Cart::yyy, 0, m + 1);
+          nuc3(Cart::yyzz, 0, m) = PmA(1) * nuc3(Cart::yzz, 0, m) -
+                                   PmC(1) * nuc3(Cart::yzz, 0, m + 1) + term_zz;
+          nuc3(Cart::yzzz, 0, m) = PmA(1) * nuc3(Cart::zzz, 0, m) -
+                                   PmC(1) * nuc3(Cart::zzz, 0, m + 1);
+          nuc3(Cart::zzzz, 0, m) = PmA(2) * nuc3(Cart::zzz, 0, m) -
+                                   PmC(2) * nuc3(Cart::zzz, 0, m + 1) +
+                                   3 * term_zz;
+        }
+      }
+      //------------------------------------------------------
+
+      if (lmax_col > 0) {
+
+        // Integrals     s - p
+        for (Index m = 0; m < lmax_col; m++) {
+          nuc3(0, Cart::x, m) =
+              PmB(0) * nuc3(0, 0, m) - PmC(0) * nuc3(0, 0, m + 1);
+          nuc3(0, Cart::y, m) =
+              PmB(1) * nuc3(0, 0, m) - PmC(1) * nuc3(0, 0, m + 1);
+          nuc3(0, Cart::z, m) =
+              PmB(2) * nuc3(0, 0, m) - PmC(2) * nuc3(0, 0, m + 1);
+        }
+        //------------------------------------------------------
+
+        // Integrals     p - p
+        if (lmax_row > 0) {
+          for (Index m = 0; m < lmax_col; m++) {
+            double term = fak * (nuc3(0, 0, m) - nuc3(0, 0, m + 1));
+            for (Index i = 1; i < 4; i++) {
+              nuc3(i, Cart::x, m) = PmB(0) * nuc3(i, 0, m) -
+                                    PmC(0) * nuc3(i, 0, m + 1) + nx[i] * term;
+              nuc3(i, Cart::y, m) = PmB(1) * nuc3(i, 0, m) -
+                                    PmC(1) * nuc3(i, 0, m + 1) + ny[i] * term;
+              nuc3(i, Cart::z, m) = PmB(2) * nuc3(i, 0, m) -
+                                    PmC(2) * nuc3(i, 0, m + 1) + nz[i] * term;
+            }
+          }
+        }
+        //------------------------------------------------------
+
+        // Integrals     d - p     f - p     g - p
+        for (Index m = 0; m < lmax_col; m++) {
+          for (Index i = 4; i < n_orbitals[lmax_row]; i++) {
+            int nx_i = nx[i];
+            int ny_i = ny[i];
+            int nz_i = nz[i];
+            int ilx_i = i_less_x[i];
+            int ily_i = i_less_y[i];
+            int ilz_i = i_less_z[i];
+            nuc3(i, Cart::x, m) =
+                PmB(0) * nuc3(i, 0, m) - PmC(0) * nuc3(i, 0, m + 1) +
+                nx_i * fak * (nuc3(ilx_i, 0, m) - nuc3(ilx_i, 0, m + 1));
+            nuc3(i, Cart::y, m) =
+                PmB(1) * nuc3(i, 0, m) - PmC(1) * nuc3(i, 0, m + 1) +
+                ny_i * fak * (nuc3(ily_i, 0, m) - nuc3(ily_i, 0, m + 1));
+            nuc3(i, Cart::z, m) =
+                PmB(2) * nuc3(i, 0, m) - PmC(2) * nuc3(i, 0, m + 1) +
+                nz_i * fak * (nuc3(ilz_i, 0, m) - nuc3(ilz_i, 0, m + 1));
+          }
+        }
+        //------------------------------------------------------
+
+      }  // end if (lmax_col > 0)
+
+      if (lmax_col > 1) {
+
+        // Integrals     s - d
+        for (Index m = 0; m < lmax_col - 1; m++) {
+          double term = fak * (nuc3(0, 0, m) - nuc3(0, 0, m + 1));
+          nuc3(0, Cart::xx, m) = PmB(0) * nuc3(0, Cart::x, m) -
+                                 PmC(0) * nuc3(0, Cart::x, m + 1) + term;
+          nuc3(0, Cart::xy, m) =
+              PmB(0) * nuc3(0, Cart::y, m) - PmC(0) * nuc3(0, Cart::y, m + 1);
+          nuc3(0, Cart::xz, m) =
+              PmB(0) * nuc3(0, Cart::z, m) - PmC(0) * nuc3(0, Cart::z, m + 1);
+          nuc3(0, Cart::yy, m) = PmB(1) * nuc3(0, Cart::y, m) -
+                                 PmC(1) * nuc3(0, Cart::y, m + 1) + term;
+          nuc3(0, Cart::yz, m) =
+              PmB(1) * nuc3(0, Cart::z, m) - PmC(1) * nuc3(0, Cart::z, m + 1);
+          nuc3(0, Cart::zz, m) = PmB(2) * nuc3(0, Cart::z, m) -
+                                 PmC(2) * nuc3(0, Cart::z, m + 1) + term;
+        }
+        //------------------------------------------------------
+
+        // Integrals     p - d     d - d     f - d     g - d
+        for (Index m = 0; m < lmax_col - 1; m++) {
+          for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
+            int nx_i = nx[i];
+            int ny_i = ny[i];
+            int nz_i = nz[i];
+            int ilx_i = i_less_x[i];
+            int ily_i = i_less_y[i];
+            int ilz_i = i_less_z[i];
+            double term = fak * (nuc3(i, 0, m) - nuc3(i, 0, m + 1));
+            nuc3(i, Cart::xx, m) =
+                PmB(0) * nuc3(i, Cart::x, m) -
+                PmC(0) * nuc3(i, Cart::x, m + 1) +
+                nx_i * fak *
+                    (nuc3(ilx_i, Cart::x, m) - nuc3(ilx_i, Cart::x, m + 1)) +
+                term;
+            nuc3(i, Cart::xy, m) =
+                PmB(0) * nuc3(i, Cart::y, m) -
+                PmC(0) * nuc3(i, Cart::y, m + 1) +
+                nx_i * fak *
+                    (nuc3(ilx_i, Cart::y, m) - nuc3(ilx_i, Cart::y, m + 1));
+            nuc3(i, Cart::xz, m) =
+                PmB(0) * nuc3(i, Cart::z, m) -
+                PmC(0) * nuc3(i, Cart::z, m + 1) +
+                nx_i * fak *
+                    (nuc3(ilx_i, Cart::z, m) - nuc3(ilx_i, Cart::z, m + 1));
+            nuc3(i, Cart::yy, m) =
+                PmB(1) * nuc3(i, Cart::y, m) -
+                PmC(1) * nuc3(i, Cart::y, m + 1) +
+                ny_i * fak *
+                    (nuc3(ily_i, Cart::y, m) - nuc3(ily_i, Cart::y, m + 1)) +
+                term;
+            nuc3(i, Cart::yz, m) =
+                PmB(1) * nuc3(i, Cart::z, m) -
+                PmC(1) * nuc3(i, Cart::z, m + 1) +
+                ny_i * fak *
+                    (nuc3(ily_i, Cart::z, m) - nuc3(ily_i, Cart::z, m + 1));
+            nuc3(i, Cart::zz, m) =
+                PmB(2) * nuc3(i, Cart::z, m) -
+                PmC(2) * nuc3(i, Cart::z, m + 1) +
+                nz_i * fak *
+                    (nuc3(ilz_i, Cart::z, m) - nuc3(ilz_i, Cart::z, m + 1)) +
+                term;
+          }
+        }
+        //------------------------------------------------------
+
+      }  // end if (lmax_col > 1)
+
+      if (lmax_col > 2) {
+
+        // Integrals     s - f
+        for (Index m = 0; m < lmax_col - 2; m++) {
+          nuc3(0, Cart::xxx, m) =
+              PmB(0) * nuc3(0, Cart::xx, m) -
+              PmC(0) * nuc3(0, Cart::xx, m + 1) +
+              2 * fak * (nuc3(0, Cart::x, m) - nuc3(0, Cart::x, m + 1));
+          nuc3(0, Cart::xxy, m) =
+              PmB(1) * nuc3(0, Cart::xx, m) - PmC(1) * nuc3(0, Cart::xx, m + 1);
+          nuc3(0, Cart::xxz, m) =
+              PmB(2) * nuc3(0, Cart::xx, m) - PmC(2) * nuc3(0, Cart::xx, m + 1);
+          nuc3(0, Cart::xyy, m) =
+              PmB(0) * nuc3(0, Cart::yy, m) - PmC(0) * nuc3(0, Cart::yy, m + 1);
+          nuc3(0, Cart::xyz, m) =
+              PmB(0) * nuc3(0, Cart::yz, m) - PmC(0) * nuc3(0, Cart::yz, m + 1);
+          nuc3(0, Cart::xzz, m) =
+              PmB(0) * nuc3(0, Cart::zz, m) - PmC(0) * nuc3(0, Cart::zz, m + 1);
+          nuc3(0, Cart::yyy, m) =
+              PmB(1) * nuc3(0, Cart::yy, m) -
+              PmC(1) * nuc3(0, Cart::yy, m + 1) +
+              2 * fak * (nuc3(0, Cart::y, m) - nuc3(0, Cart::y, m + 1));
+          nuc3(0, Cart::yyz, m) =
+              PmB(2) * nuc3(0, Cart::yy, m) - PmC(2) * nuc3(0, Cart::yy, m + 1);
+          nuc3(0, Cart::yzz, m) =
+              PmB(1) * nuc3(0, Cart::zz, m) - PmC(1) * nuc3(0, Cart::zz, m + 1);
+          nuc3(0, Cart::zzz, m) =
+              PmB(2) * nuc3(0, Cart::zz, m) -
+              PmC(2) * nuc3(0, Cart::zz, m + 1) +
+              2 * fak * (nuc3(0, Cart::z, m) - nuc3(0, Cart::z, m + 1));
+        }
+        //------------------------------------------------------
+
+        // Integrals     p - f     d - f     f - f     g - f
+        for (Index m = 0; m < lmax_col - 2; m++) {
+          for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
+            int nx_i = nx[i];
+            int ny_i = ny[i];
+            int nz_i = nz[i];
+            int ilx_i = i_less_x[i];
+            int ily_i = i_less_y[i];
+            int ilz_i = i_less_z[i];
+            double term_x =
+                2 * fak * (nuc3(i, Cart::x, m) - nuc3(i, Cart::x, m + 1));
+            double term_y =
+                2 * fak * (nuc3(i, Cart::y, m) - nuc3(i, Cart::y, m + 1));
+            double term_z =
+                2 * fak * (nuc3(i, Cart::z, m) - nuc3(i, Cart::z, m + 1));
+            nuc3(i, Cart::xxx, m) =
+                PmB(0) * nuc3(i, Cart::xx, m) -
+                PmC(0) * nuc3(i, Cart::xx, m + 1) +
+                nx_i * fak *
+                    (nuc3(ilx_i, Cart::xx, m) - nuc3(ilx_i, Cart::xx, m + 1)) +
+                term_x;
+            nuc3(i, Cart::xxy, m) =
+                PmB(1) * nuc3(i, Cart::xx, m) -
+                PmC(1) * nuc3(i, Cart::xx, m + 1) +
+                ny_i * fak *
+                    (nuc3(ily_i, Cart::xx, m) - nuc3(ily_i, Cart::xx, m + 1));
+            nuc3(i, Cart::xxz, m) =
+                PmB(2) * nuc3(i, Cart::xx, m) -
+                PmC(2) * nuc3(i, Cart::xx, m + 1) +
+                nz_i * fak *
+                    (nuc3(ilz_i, Cart::xx, m) - nuc3(ilz_i, Cart::xx, m + 1));
+            nuc3(i, Cart::xyy, m) =
+                PmB(0) * nuc3(i, Cart::yy, m) -
+                PmC(0) * nuc3(i, Cart::yy, m + 1) +
+                nx_i * fak *
+                    (nuc3(ilx_i, Cart::yy, m) - nuc3(ilx_i, Cart::yy, m + 1));
+            nuc3(i, Cart::xyz, m) =
+                PmB(0) * nuc3(i, Cart::yz, m) -
+                PmC(0) * nuc3(i, Cart::yz, m + 1) +
+                nx_i * fak *
+                    (nuc3(ilx_i, Cart::yz, m) - nuc3(ilx_i, Cart::yz, m + 1));
+            nuc3(i, Cart::xzz, m) =
+                PmB(0) * nuc3(i, Cart::zz, m) -
+                PmC(0) * nuc3(i, Cart::zz, m + 1) +
+                nx_i * fak *
+                    (nuc3(ilx_i, Cart::zz, m) - nuc3(ilx_i, Cart::zz, m + 1));
+            nuc3(i, Cart::yyy, m) =
+                PmB(1) * nuc3(i, Cart::yy, m) -
+                PmC(1) * nuc3(i, Cart::yy, m + 1) +
+                ny_i * fak *
+                    (nuc3(ily_i, Cart::yy, m) - nuc3(ily_i, Cart::yy, m + 1)) +
+                term_y;
+            nuc3(i, Cart::yyz, m) =
+                PmB(2) * nuc3(i, Cart::yy, m) -
+                PmC(2) * nuc3(i, Cart::yy, m + 1) +
+                nz_i * fak *
+                    (nuc3(ilz_i, Cart::yy, m) - nuc3(ilz_i, Cart::yy, m + 1));
+            nuc3(i, Cart::yzz, m) =
+                PmB(1) * nuc3(i, Cart::zz, m) -
+                PmC(1) * nuc3(i, Cart::zz, m + 1) +
+                ny_i * fak *
+                    (nuc3(ily_i, Cart::zz, m) - nuc3(ily_i, Cart::zz, m + 1));
+            nuc3(i, Cart::zzz, m) =
+                PmB(2) * nuc3(i, Cart::zz, m) -
+                PmC(2) * nuc3(i, Cart::zz, m + 1) +
+                nz_i * fak *
+                    (nuc3(ilz_i, Cart::zz, m) - nuc3(ilz_i, Cart::zz, m + 1)) +
+                term_z;
+          }
+        }
+        //------------------------------------------------------
+
+      }  // end if (lmax_col > 2)
+
+      if (lmax_col > 3) {
+
+        // Integrals     s - g
+        for (Index m = 0; m < lmax_col - 3; m++) {
+          double term_xx =
+              fak * (nuc3(0, Cart::xx, m) - nuc3(0, Cart::xx, m + 1));
+          double term_yy =
+              fak * (nuc3(0, Cart::yy, m) - nuc3(0, Cart::yy, m + 1));
+          double term_zz =
+              fak * (nuc3(0, Cart::zz, m) - nuc3(0, Cart::zz, m + 1));
+          nuc3(0, Cart::xxxx, m) = PmB(0) * nuc3(0, Cart::xxx, m) -
+                                   PmC(0) * nuc3(0, Cart::xxx, m + 1) +
+                                   3 * term_xx;
+          nuc3(0, Cart::xxxy, m) = PmB(1) * nuc3(0, Cart::xxx, m) -
+                                   PmC(1) * nuc3(0, Cart::xxx, m + 1);
+          nuc3(0, Cart::xxxz, m) = PmB(2) * nuc3(0, Cart::xxx, m) -
+                                   PmC(2) * nuc3(0, Cart::xxx, m + 1);
+          nuc3(0, Cart::xxyy, m) = PmB(0) * nuc3(0, Cart::xyy, m) -
+                                   PmC(0) * nuc3(0, Cart::xyy, m + 1) + term_yy;
+          nuc3(0, Cart::xxyz, m) = PmB(1) * nuc3(0, Cart::xxz, m) -
+                                   PmC(1) * nuc3(0, Cart::xxz, m + 1);
+          nuc3(0, Cart::xxzz, m) = PmB(0) * nuc3(0, Cart::xzz, m) -
+                                   PmC(0) * nuc3(0, Cart::xzz, m + 1) + term_zz;
+          nuc3(0, Cart::xyyy, m) = PmB(0) * nuc3(0, Cart::yyy, m) -
+                                   PmC(0) * nuc3(0, Cart::yyy, m + 1);
+          nuc3(0, Cart::xyyz, m) = PmB(0) * nuc3(0, Cart::yyz, m) -
+                                   PmC(0) * nuc3(0, Cart::yyz, m + 1);
+          nuc3(0, Cart::xyzz, m) = PmB(0) * nuc3(0, Cart::yzz, m) -
+                                   PmC(0) * nuc3(0, Cart::yzz, m + 1);
+          nuc3(0, Cart::xzzz, m) = PmB(0) * nuc3(0, Cart::zzz, m) -
+                                   PmC(0) * nuc3(0, Cart::zzz, m + 1);
+          nuc3(0, Cart::yyyy, m) = PmB(1) * nuc3(0, Cart::yyy, m) -
+                                   PmC(1) * nuc3(0, Cart::yyy, m + 1) +
+                                   3 * term_yy;
+          nuc3(0, Cart::yyyz, m) = PmB(2) * nuc3(0, Cart::yyy, m) -
+                                   PmC(2) * nuc3(0, Cart::yyy, m + 1);
+          nuc3(0, Cart::yyzz, m) = PmB(1) * nuc3(0, Cart::yzz, m) -
+                                   PmC(1) * nuc3(0, Cart::yzz, m + 1) + term_zz;
+          nuc3(0, Cart::yzzz, m) = PmB(1) * nuc3(0, Cart::zzz, m) -
+                                   PmC(1) * nuc3(0, Cart::zzz, m + 1);
+          nuc3(0, Cart::zzzz, m) = PmB(2) * nuc3(0, Cart::zzz, m) -
+                                   PmC(2) * nuc3(0, Cart::zzz, m + 1) +
+                                   3 * term_zz;
+        }
+        //------------------------------------------------------
+
+        // Integrals     p - g     d - g     f - g     g - g
+        for (Index m = 0; m < lmax_col - 3; m++) {
+          for (Index i = 1; i < n_orbitals[lmax_row]; i++) {
+            int nx_i = nx[i];
+            int ny_i = ny[i];
+            int nz_i = nz[i];
+            int ilx_i = i_less_x[i];
+            int ily_i = i_less_y[i];
+            int ilz_i = i_less_z[i];
+            double term_xx =
+                fak * (nuc3(i, Cart::xx, m) - nuc3(i, Cart::xx, m + 1));
+            double term_yy =
+                fak * (nuc3(i, Cart::yy, m) - nuc3(i, Cart::yy, m + 1));
+            double term_zz =
+                fak * (nuc3(i, Cart::zz, m) - nuc3(i, Cart::zz, m + 1));
+            nuc3(i, Cart::xxxx, m) = PmB(0) * nuc3(i, Cart::xxx, m) -
+                                     PmC(0) * nuc3(i, Cart::xxx, m + 1) +
+                                     nx_i * fak *
+                                         (nuc3(ilx_i, Cart::xxx, m) -
+                                          nuc3(ilx_i, Cart::xxx, m + 1)) +
+                                     3 * term_xx;
+            nuc3(i, Cart::xxxy, m) =
+                PmB(1) * nuc3(i, Cart::xxx, m) -
+                PmC(1) * nuc3(i, Cart::xxx, m + 1) +
+                ny_i * fak *
+                    (nuc3(ily_i, Cart::xxx, m) - nuc3(ily_i, Cart::xxx, m + 1));
+            nuc3(i, Cart::xxxz, m) =
+                PmB(2) * nuc3(i, Cart::xxx, m) -
+                PmC(2) * nuc3(i, Cart::xxx, m + 1) +
+                nz_i * fak *
+                    (nuc3(ilz_i, Cart::xxx, m) - nuc3(ilz_i, Cart::xxx, m + 1));
+            nuc3(i, Cart::xxyy, m) = PmB(0) * nuc3(i, Cart::xyy, m) -
+                                     PmC(0) * nuc3(i, Cart::xyy, m + 1) +
+                                     nx_i * fak *
+                                         (nuc3(ilx_i, Cart::xyy, m) -
+                                          nuc3(ilx_i, Cart::xyy, m + 1)) +
+                                     term_yy;
+            nuc3(i, Cart::xxyz, m) =
+                PmB(1) * nuc3(i, Cart::xxz, m) -
+                PmC(1) * nuc3(i, Cart::xxz, m + 1) +
+                ny_i * fak *
+                    (nuc3(ily_i, Cart::xxz, m) - nuc3(ily_i, Cart::xxz, m + 1));
+            nuc3(i, Cart::xxzz, m) = PmB(0) * nuc3(i, Cart::xzz, m) -
+                                     PmC(0) * nuc3(i, Cart::xzz, m + 1) +
+                                     nx_i * fak *
+                                         (nuc3(ilx_i, Cart::xzz, m) -
+                                          nuc3(ilx_i, Cart::xzz, m + 1)) +
+                                     term_zz;
+            nuc3(i, Cart::xyyy, m) =
+                PmB(0) * nuc3(i, Cart::yyy, m) -
+                PmC(0) * nuc3(i, Cart::yyy, m + 1) +
+                nx_i * fak *
+                    (nuc3(ilx_i, Cart::yyy, m) - nuc3(ilx_i, Cart::yyy, m + 1));
+            nuc3(i, Cart::xyyz, m) =
+                PmB(0) * nuc3(i, Cart::yyz, m) -
+                PmC(0) * nuc3(i, Cart::yyz, m + 1) +
+                nx_i * fak *
+                    (nuc3(ilx_i, Cart::yyz, m) - nuc3(ilx_i, Cart::yyz, m + 1));
+            nuc3(i, Cart::xyzz, m) =
+                PmB(0) * nuc3(i, Cart::yzz, m) -
+                PmC(0) * nuc3(i, Cart::yzz, m + 1) +
+                nx_i * fak *
+                    (nuc3(ilx_i, Cart::yzz, m) - nuc3(ilx_i, Cart::yzz, m + 1));
+            nuc3(i, Cart::xzzz, m) =
+                PmB(0) * nuc3(i, Cart::zzz, m) -
+                PmC(0) * nuc3(i, Cart::zzz, m + 1) +
+                nx_i * fak *
+                    (nuc3(ilx_i, Cart::zzz, m) - nuc3(ilx_i, Cart::zzz, m + 1));
+            nuc3(i, Cart::yyyy, m) = PmB(1) * nuc3(i, Cart::yyy, m) -
+                                     PmC(1) * nuc3(i, Cart::yyy, m + 1) +
+                                     ny_i * fak *
+                                         (nuc3(ily_i, Cart::yyy, m) -
+                                          nuc3(ily_i, Cart::yyy, m + 1)) +
+                                     3 * term_yy;
+            nuc3(i, Cart::yyyz, m) =
+                PmB(2) * nuc3(i, Cart::yyy, m) -
+                PmC(2) * nuc3(i, Cart::yyy, m + 1) +
+                nz_i * fak *
+                    (nuc3(ilz_i, Cart::yyy, m) - nuc3(ilz_i, Cart::yyy, m + 1));
+            nuc3(i, Cart::yyzz, m) = PmB(1) * nuc3(i, Cart::yzz, m) -
+                                     PmC(1) * nuc3(i, Cart::yzz, m + 1) +
+                                     ny_i * fak *
+                                         (nuc3(ily_i, Cart::yzz, m) -
+                                          nuc3(ily_i, Cart::yzz, m + 1)) +
+                                     term_zz;
+            nuc3(i, Cart::yzzz, m) =
+                PmB(1) * nuc3(i, Cart::zzz, m) -
+                PmC(1) * nuc3(i, Cart::zzz, m + 1) +
+                ny_i * fak *
+                    (nuc3(ily_i, Cart::zzz, m) - nuc3(ily_i, Cart::zzz, m + 1));
+            nuc3(i, Cart::zzzz, m) = PmB(2) * nuc3(i, Cart::zzz, m) -
+                                     PmC(2) * nuc3(i, Cart::zzz, m + 1) +
+                                     nz_i * fak *
+                                         (nuc3(ilz_i, Cart::zzz, m) -
+                                          nuc3(ilz_i, Cart::zzz, m + 1)) +
+                                     3 * term_zz;
+          }
+        }
+        //------------------------------------------------------
+      }  // end if (lmax_col > 3)
+
 
       if (rank > 0) {
         Eigen::Tensor<double, 4> dip4(nrows, ncols, 3, lsum + 1);
@@ -820,21 +1300,20 @@ void AO3ddipole::FillBlock3D(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
 
         std::vector<Eigen::MatrixXd> multipole;
 
-        multipole.push_back(
-            Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
-        multipole.push_back(
-            Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
-        multipole.push_back(
-            Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
+        // multipole.push_back(
+        //     Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
+        // multipole.push_back(
+        //     Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
+        // multipole.push_back(
+        //     Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
 
-        multipole[0] +=
-            dipole.x() * Eigen::Map<Eigen::MatrixXd>(dip4.data(), nrows, ncols);
+        multipole.push_back(
+            Eigen::Map<Eigen::MatrixXd>(dip4.data(), nrows, ncols));
         size_t offset = nrows * ncols;
-        multipole[1] += dipole.y() * Eigen::Map<Eigen::MatrixXd>(
-                                         dip4.data() + offset, nrows, ncols);
-        multipole[2] +=
-            dipole.z() *
-            Eigen::Map<Eigen::MatrixXd>(dip4.data() + 2 * offset, nrows, ncols);
+        multipole.push_back(
+            Eigen::Map<Eigen::MatrixXd>(dip4.data() + offset, nrows, ncols));
+        multipole.push_back(Eigen::Map<Eigen::MatrixXd>(
+            dip4.data() + 2 * offset, nrows, ncols));
 
         std::vector<Eigen::MatrixXd> multipole_sph;
         multipole_sph.push_back(
@@ -854,54 +1333,15 @@ void AO3ddipole::FillBlock3D(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
             AOTransform::getTrafo(gaussian_col));
         // save to matrix
 
-        std::cout << "Saving Result to matrix" << std::endl;
 
-        matrix[0] += multipole[0];
-        matrix[1] += multipole[1];
-        matrix[2] += multipole[2];
-
-        std::cout<<"Gaussian Row "<<std::endl<<AOTransform::getTrafo(gaussian_row).transpose()<<std::endl;
-        std::cout<<"Gaussian Col "<<std::endl<<AOTransform::getTrafo(gaussian_col)<<std::endl;
-
-        std::cout<<"matrix[0]="<<std::endl<<multipole[0]<<std::endl;
-        std::cout<<"matrix[1]="<<std::endl<<multipole[1].trace()<<std::endl;
-        std::cout<<"matrix[2]="<<std::endl<<multipole[2].trace()<<std::endl;
+        matrix[0] += multipole_sph[0];
+        matrix[1] += multipole_sph[1];
+        matrix[2] += multipole_sph[2];
 
       }
     }  // shell_col Gaussians
   }    // shell_row Gaussians
 }
-  void AO3ddipole::FillPotential(const AOBasis& aobasis,
-                                  const Eigen::Vector3d& r) {
-    StaticSite s = StaticSite(0, "", r);
-    s.setCharge(1.0);
-    setSite(&s);
-    //_aopotential = Fill(aobasis);
-  }
-
-  void AO3ddipole::FillPotential(const AOBasis& aobasis,
-                                  const QMMolecule& atoms) {
-    //_aopotential =
-       // Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-    for (const auto& atom : atoms) {
-      StaticSite s = StaticSite(atom, double(atom.getNuccharge()));
-      setSite(&s);
-      //_aopotential -= Fill(aobasis);
-    }
-    return;
-  }
-
-  void AO3ddipole::FillPotential(
-      const AOBasis& aobasis,
-      const std::vector<std::unique_ptr<StaticSite>>& externalsites) {
-    //_aopotential =
-       // Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-    for (const std::unique_ptr<StaticSite>& site : externalsites) {
-      setSite(site.get());
-      //_aopotential -= Fill(aobasis);
-    }
-  }
-
 
 }  // namespace xtp
 }  // namespace votca

@@ -56,9 +56,9 @@ class Sternheimer {
     double perturbation_strength =
         0.1;  // strength of the electric field for polarizability
     Index max_iterations_sc_sternheimer = 100;
-    double tolerance_sc_sternheimer = 10E-14;
+    double tolerance_sc_sternheimer = 10E-9;
     double mixing_constant = 0.5;  // 0<mixing_const<1
-    Index max_mixing_history = 5;
+    Index max_mixing_history = 10;
   };
 
   // Edit Options
@@ -68,7 +68,7 @@ class Sternheimer {
   // Paper https://journals.aps.org/prb/pdf/10.1103/PhysRevB.89.085129
   std::vector<Eigen::Matrix3cd> Polarisability() const;
 
-  Eigen::MatrixXcd ElectronPhononCoupling() const;
+  std::vector<Eigen::Vector3cd> EnergyGradient() const;
   // Prints the isotropic average of the polarizability tensor
   void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar,
                              std::vector<std::complex<double>>& grid) const;

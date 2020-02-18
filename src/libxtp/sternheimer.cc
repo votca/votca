@@ -153,7 +153,8 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
   Vxc_Potential<Vxc_Grid> Vxcpot(grid);
   Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
-  double alpha = _mo_energies(_mo_energies.size() - 1);
+  //double alpha = 4*(_mo_energies(_mo_energies.size()-1)-_mo_energies(0));
+  double alpha = 1000;
   // Loop until convergence
   for (Index n = 0; n < _opt.max_iterations_sc_sternheimer; n++) {
 
@@ -169,16 +170,18 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
       Eigen::MatrixXcd RHS =
           SternheimerRHS(_inverse_overlap, _density_Matrix, perturbationUsed,
                          _mo_coefficients.col(v));
+
+      //std::cout<<"RHS "<< RHS <<std::endl;
       // Building LHS with +/- omega and solving the system
       Eigen::MatrixXcd LHS_P = SternheimerLHS(
           _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, true);
       Eigen::MatrixXcd LHS_M = SternheimerLHS(
           _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, false);
-      if (w.real() < 10E-6 && w.imag() < 10E-9) {
+      if (true) {
         LHS_P = LHS_P +
-                alpha * _inverse_overlap * _density_Matrix * _overlap_Matrix;
+                alpha * _density_Matrix.transpose()*_overlap_Matrix;
         LHS_M = LHS_M +
-                alpha * _inverse_overlap * _density_Matrix * _overlap_Matrix;
+                alpha * _density_Matrix.transpose()*_overlap_Matrix;
       }
       solution_p.col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
       solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
@@ -191,7 +194,6 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
             solution_p.transpose() +
         2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) *
             solution_m.transpose();
-
     // Perfomring the to four center Integrals to update delta V
     Eigen::MatrixXcd contract =
         eris.ContractRightIndecesWithMatrix(delta_n_out_new);
@@ -470,7 +472,7 @@ std::vector<double> Sternheimer::getIsotropicAverage(
   }
   return iA;
 }
-Eigen::MatrixXcd Sternheimer::ElectronPhononCoupling() const {
+std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
 
 
   QMMolecule mol = _orbitals.QMAtoms();
@@ -493,54 +495,42 @@ Eigen::MatrixXcd Sternheimer::ElectronPhononCoupling() const {
   //QMMolecule molecule;
   Index number_of_atoms = mol.size();
 
-  Eigen::MatrixXcd result;
+  std::vector<Eigen::Vector3cd> EnergyGrad;
 
-  std::cout<<"SetUP AO3dDipole"<<std::endl;
+  
   AO3ddipole ao3dDipole;
   // Loop over Nuclei
   for (int k = 0; k < number_of_atoms; k++) {
     
     //ao3dDipole.FillPotential(dftbasis, r);
-    std::cout<<"Loop = "<<k<<std::endl;
+    std::cout<<"Loop over Atom "<<k<<std::endl;
 
+    ao3dDipole.setCenter(mol.at(k).getPos());
+    ao3dDipole.Fill(dftbasis);
+    
+    double sign = 1.0;
 
-    std::vector<Eigen::MatrixXd> DipoleMatrices;
+    EnergyGrad.push_back(Eigen::Vector3d::Zero());
 
-   
-
-    DipoleMatrices.push_back(Eigen::MatrixXd::Zero(_basis_size,_basis_size));
-    DipoleMatrices.push_back(Eigen::MatrixXd::Zero(_basis_size,_basis_size));
-    DipoleMatrices.push_back(Eigen::MatrixXd::Zero(_basis_size,_basis_size));
-    for (int i = 0; i < dftbasis.getShellsofAtom(k).size() - 1; i++) {
-      for (int j = i; j < dftbasis.getShellsofAtom(k).size() - 1; j++) {
-        
-        //Index p = dftbasis.getShellsofAtom(k)[i]. ;
-
-        std::vector<Eigen::Block<Eigen::MatrixXd>> block;
-        block.push_back(DipoleMatrices[0].block(0,0,_basis_size,_basis_size));
-        block.push_back(DipoleMatrices[1].block(0,0,_basis_size,_basis_size));
-        block.push_back(DipoleMatrices[2].block(0,0,_basis_size,_basis_size));
-        std::cout<<" I "<<i<<" J "<<j<<std::endl;
-
-        ao3dDipole.FillBlock3D(block, *dftbasis.getShellsofAtom(k)[i], *dftbasis.getShellsofAtom(k)[j], mol.at(k).getPos());  //?
-
-        DipoleMatrices[0]+=block[0];
-        DipoleMatrices[1]+=block[1];
-        DipoleMatrices[2]+=block[2];
-
-      }
-    }
     for (int a = 0; a < 3; a++) {
 
-      Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, DipoleMatrices[a]);
+      Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, sign* ao3dDipole.Matrix()[a]);
       Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(DeltaN);
-
       Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
-      Eigen::MatrixXcd DeltaV = DipoleMatrices[a] + contract + FxcInt;
-      result+=DeltaV*mol.at(k).getNuccharge();
+      Eigen::MatrixXcd DeltaV = sign * ao3dDipole.Matrix()[a] + contract + FxcInt;
+      EnergyGrad[k][a]=_density_Matrix.transpose().cwiseProduct(DeltaV*mol.at(k).getNuccharge()).sum();
     }
   }
-  return result;
+
+  for(int i=0; i<EnergyGrad.size(); i++){
+
+    //std::cout<<"Atom Type : "<<mol.at(i).getElement()<<" Atom Index : "<<i<<std::endl;
+    //std::cout<<"Gradient = "<<std::endl<<EnergyGrad[i]<<std::endl<<std::endl;
+    std::cout<<EnergyGrad[i].real()<<std::endl;
+    
+  }
+
+  return EnergyGrad;
 }
 
 }  // namespace xtp
