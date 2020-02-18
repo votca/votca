@@ -500,6 +500,9 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
   
   AO3ddipole ao3dDipole;
   // Loop over Nuclei
+
+
+
   for (int k = 0; k < number_of_atoms; k++) {
     
     //ao3dDipole.FillPotential(dftbasis, r);
@@ -520,6 +523,26 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
       Eigen::MatrixXcd DeltaV = sign * ao3dDipole.Matrix()[a] + contract + FxcInt;
       EnergyGrad[k][a]=_density_Matrix.transpose().cwiseProduct(DeltaV*mol.at(k).getNuccharge()).sum();
     }
+    std::cout << "Electronic Forces \n " << EnergyGrad[k] << std::endl;
+    //std::vector<Eigen::Vector3d> nuclei_forces;
+    for (int l = 0; l<number_of_atoms; l++){
+      
+      if(l!=k){
+
+
+      Eigen::Vector3d distance = (mol.at(k).getPos()-mol.at(l).getPos());
+
+      //nuclei_forces.push_back(mol.at(k).getNuccharge()*mol.at(l).getNuccharge()*distance/std::pow(distance.squaredNorm(),3);
+
+      std::cout<<"Nuclei Force \n"<<mol.at(k).getNuccharge()*mol.at(l).getNuccharge()*distance/std::pow(distance.norm(),3)<<std::endl;
+
+
+      EnergyGrad[k]+=mol.at(k).getNuccharge()*mol.at(l).getNuccharge()*distance/std::pow(distance.norm(),3);
+      }
+    }
+
+
+
   }
 
   for(int i=0; i<EnergyGrad.size(); i++){
