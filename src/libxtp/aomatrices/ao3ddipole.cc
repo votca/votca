@@ -18,24 +18,28 @@
  */
 
 //#include <votca/xtp/aopotential.h>
+#include <votca/xtp/aomatrix3d.h>
 #include <votca/xtp/aotransform.h>
 #include <votca/xtp/qmmolecule.h>
-#include <votca/xtp/aomatrix3d.h>
 
 namespace votca {
 namespace xtp {
 
-    void AO3ddipole::FillBlock3D(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
-                            const AOShell& shell_row,
-                            const AOShell& shell_col) const {
+void AO3ddipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
+                           const AOShell& shell_row,
+                           const AOShell& shell_col) const {}
+
+void AO3ddipole::FillBlock3D(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
+                             const AOShell& shell_row,
+                             const AOShell& shell_col, Eigen::Vector3d r) const {
 
   const double pi = boost::math::constants::pi<double>();
 
   Index rank = 1;
-  
-  //const double charge = _site->getCharge();
+
+  // const double charge = _site->getCharge();
   const Eigen::Vector3d dipole = Eigen::Vector3d::Ones();
- 
+
   // shell info, only lmax tells how far to go
   Index lmax_row = shell_row.getLmax();
   Index lmax_col = shell_col.getLmax();
@@ -60,14 +64,22 @@ namespace xtp {
 
   double distsq = diff.squaredNorm();
 
+  std::cout << "SetUP AO3D Dipole Complete" << std::endl;
+
   // iterate over Gaussians in this shell_row
   for (const auto& gaussian_row : shell_row) {
+
+
+
     // iterate over Gaussians in this shell_col
     // get decay constant
     const double decay_row = gaussian_row.getDecay();
 
+
+
     for (const auto& gaussian_col : shell_col) {
       // get decay constant
+
       const double decay_col = gaussian_col.getDecay();
 
       const double zeta = decay_row + decay_col;
@@ -84,13 +96,14 @@ namespace xtp {
       // some helpers
       const Eigen::Vector3d PmA =
           fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_row;
+
       const Eigen::Vector3d PmB =
           fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_col;
+
       const Eigen::Vector3d PmC =
-          fak2 * (decay_row * pos_row + decay_col * pos_col) - _site->getPos();
+          fak2 * (decay_row * pos_row + decay_col * pos_col) -  r;
 
       const double U = zeta * PmC.squaredNorm();
-
       // +3 quadrupole, +2 dipole, +1 nuclear attraction integrals
       const Eigen::VectorXd FmU = AOTransform::XIntegrate(lsum + rank + 1, U);
 
@@ -99,9 +112,8 @@ namespace xtp {
       // (s-s element normiert )
       double prefactor = 4. * sqrt(2. / pi) * pow(decay_row * decay_col, .75) *
                          fak2 * exp(-exparg);
-  
-      //------------------------------------------------------
 
+      //------------------------------------------------------
 
       if (rank > 0) {
         Eigen::Tensor<double, 4> dip4(nrows, ncols, 3, lsum + 1);
@@ -805,49 +817,91 @@ namespace xtp {
           //------------------------------------------------------
 
         }  // end if (lmax_col > 3)
+
         std::vector<Eigen::MatrixXd> multipole;
 
-        multipole.push_back(Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
-        multipole.push_back(Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
-        multipole.push_back(Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
-          
+        multipole.push_back(
+            Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
+        multipole.push_back(
+            Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
+        multipole.push_back(
+            Eigen::Map<Eigen::MatrixXd>(nuc3.data(), nrows, ncols));
+
         multipole[0] +=
             dipole.x() * Eigen::Map<Eigen::MatrixXd>(dip4.data(), nrows, ncols);
         size_t offset = nrows * ncols;
         multipole[1] += dipole.y() * Eigen::Map<Eigen::MatrixXd>(
-                                      dip4.data() + offset, nrows, ncols);
-        multipole[2] += dipole.z() * Eigen::Map<Eigen::MatrixXd>(
-                                      dip4.data() + 2 * offset, nrows, ncols);
-      
-
-
-
+                                         dip4.data() + offset, nrows, ncols);
+        multipole[2] +=
+            dipole.z() *
+            Eigen::Map<Eigen::MatrixXd>(dip4.data() + 2 * offset, nrows, ncols);
 
         std::vector<Eigen::MatrixXd> multipole_sph;
-        multipole_sph.push_back(AOTransform::getTrafo(gaussian_row).transpose() *
-          multipole[0].bottomRightCorner(shell_row.getCartesianNumFunc(),
-                                      shell_col.getCartesianNumFunc()) *
-          AOTransform::getTrafo(gaussian_col));
-          multipole_sph.push_back(AOTransform::getTrafo(gaussian_row).transpose() *
-          multipole[1].bottomRightCorner(shell_row.getCartesianNumFunc(),
-                                      shell_col.getCartesianNumFunc()) *
-          AOTransform::getTrafo(gaussian_col));
-          multipole_sph.push_back(AOTransform::getTrafo(gaussian_row).transpose() *
-          multipole[2].bottomRightCorner(shell_row.getCartesianNumFunc(),
-                                      shell_col.getCartesianNumFunc()) *
-          AOTransform::getTrafo(gaussian_col));
-      // save to matrix
+        multipole_sph.push_back(
+            AOTransform::getTrafo(gaussian_row).transpose() *
+            multipole[0].bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                           shell_col.getCartesianNumFunc()) *
+            AOTransform::getTrafo(gaussian_col));
+        multipole_sph.push_back(
+            AOTransform::getTrafo(gaussian_row).transpose() *
+            multipole[1].bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                           shell_col.getCartesianNumFunc()) *
+            AOTransform::getTrafo(gaussian_col));
+        multipole_sph.push_back(
+            AOTransform::getTrafo(gaussian_row).transpose() *
+            multipole[2].bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                           shell_col.getCartesianNumFunc()) *
+            AOTransform::getTrafo(gaussian_col));
+        // save to matrix
 
-      matrix[0] += multipole_sph[0];
-      matrix[1] += multipole_sph[1];
-      matrix[2] += multipole_sph[2];
+        std::cout << "Saving Result to matrix" << std::endl;
 
-    
-    }
+        matrix[0] += multipole[0];
+        matrix[1] += multipole[1];
+        matrix[2] += multipole[2];
+
+        std::cout<<"Gaussian Row "<<std::endl<<AOTransform::getTrafo(gaussian_row).transpose()<<std::endl;
+        std::cout<<"Gaussian Col "<<std::endl<<AOTransform::getTrafo(gaussian_col)<<std::endl;
+
+        std::cout<<"matrix[0]="<<std::endl<<multipole[0]<<std::endl;
+        std::cout<<"matrix[1]="<<std::endl<<multipole[1].trace()<<std::endl;
+        std::cout<<"matrix[2]="<<std::endl<<multipole[2].trace()<<std::endl;
+
+      }
     }  // shell_col Gaussians
-    }    // shell_row Gaussians
+  }    // shell_row Gaussians
+}
+  void AO3ddipole::FillPotential(const AOBasis& aobasis,
+                                  const Eigen::Vector3d& r) {
+    StaticSite s = StaticSite(0, "", r);
+    s.setCharge(1.0);
+    setSite(&s);
+    //_aopotential = Fill(aobasis);
+  }
 
-                            
-}
-}
-}
+  void AO3ddipole::FillPotential(const AOBasis& aobasis,
+                                  const QMMolecule& atoms) {
+    //_aopotential =
+       // Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+    for (const auto& atom : atoms) {
+      StaticSite s = StaticSite(atom, double(atom.getNuccharge()));
+      setSite(&s);
+      //_aopotential -= Fill(aobasis);
+    }
+    return;
+  }
+
+  void AO3ddipole::FillPotential(
+      const AOBasis& aobasis,
+      const std::vector<std::unique_ptr<StaticSite>>& externalsites) {
+    //_aopotential =
+       // Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+    for (const std::unique_ptr<StaticSite>& site : externalsites) {
+      setSite(site.get());
+      //_aopotential -= Fill(aobasis);
+    }
+  }
+
+
+}  // namespace xtp
+}  // namespace votca

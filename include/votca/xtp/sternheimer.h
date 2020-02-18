@@ -67,6 +67,8 @@ class Sternheimer {
   // Calculates the Polarizability Tensor for given frequency grid according to
   // Paper https://journals.aps.org/prb/pdf/10.1103/PhysRevB.89.085129
   std::vector<Eigen::Matrix3cd> Polarisability() const;
+
+  Eigen::MatrixXcd ElectronPhononCoupling() const;
   // Prints the isotropic average of the polarizability tensor
   void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar,
                              std::vector<std::complex<double>>& grid) const;
@@ -117,7 +119,7 @@ class Sternheimer {
   std::vector<std::complex<double>> BuildGrid(double omega_start,
                                               double omega_end, Index steps,
                                               double imaginary_shift) const;
-
+                                              
   // Computes the Dipole Integral
   std::vector<Eigen::MatrixXcd> DipoleIntegral();
   // sets up the left hand side of the sternheimer equation

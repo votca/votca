@@ -72,11 +72,21 @@ class AO3ddipole : public AOMatrix3D {
   void setCenter(const Eigen::Vector3d& r) {
     _r = r;
   }  // definition of a center around which the moment should be calculated
- protected:
   void FillBlock3D(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
                  const AOShell& shell_row,
-                 const AOShell& shell_col) const;
+                 const AOShell& shell_col, Eigen::Vector3d r) const;
+  void FillPotential(const AOBasis& aobasis, const QMMolecule& atoms);
+  void FillPotential(const AOBasis& aobasis, const Eigen::Vector3d& r);
+  void FillPotential(
+      const AOBasis& aobasis,
+      const std::vector<std::unique_ptr<StaticSite>>& externalsites);
 
+      
+ protected:
+  
+  void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
+                         const AOShell& shell_row,
+                         const AOShell& shell_col) const override;
  private:
   Eigen::Vector3d _r = Eigen::Vector3d::Zero();
 

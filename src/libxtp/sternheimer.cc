@@ -29,6 +29,7 @@
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/padeapprox.h>
+#include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/sternheimer.h>
 #include <votca/xtp/vxc_grid.h>
 #include <votca/xtp/vxc_potential.h>
@@ -152,6 +153,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
   Vxc_Potential<Vxc_Grid> Vxcpot(grid);
   Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
+  double alpha = _mo_energies(_mo_energies.size() - 1);
   // Loop until convergence
   for (Index n = 0; n < _opt.max_iterations_sc_sternheimer; n++) {
 
@@ -170,9 +172,15 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
       // Building LHS with +/- omega and solving the system
       Eigen::MatrixXcd LHS_P = SternheimerLHS(
           _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, true);
-      solution_p.col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
       Eigen::MatrixXcd LHS_M = SternheimerLHS(
           _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, false);
+      if (w.real() < 10E-6 && w.imag() < 10E-9) {
+        LHS_P = LHS_P +
+                alpha * _inverse_overlap * _density_Matrix * _overlap_Matrix;
+        LHS_M = LHS_M +
+                alpha * _inverse_overlap * _density_Matrix * _overlap_Matrix;
+      }
+      solution_p.col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
       solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
     }
     // Saving previous delta n
@@ -196,13 +204,12 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
       perturbationVectoroutput.erase(perturbationVectoroutput.begin());
     }
 
-    perturbationVectoroutput.push_back(
-        (perturbation) + contract + FxcInt);
+    perturbationVectoroutput.push_back((perturbation) + contract + FxcInt);
 
     double diff =
         (perturbationVectorInput.back() - perturbationVectoroutput.back())
             .squaredNorm();
-    // std::cout << n << " " << diff << std::endl;
+     std::cout << n << " " << diff << std::endl;
     if (diff < _opt.tolerance_sc_sternheimer) {
       std::cout << "Converged after " << n + 1 << " iteration." << std::endl;
       // throw std::exception();
@@ -402,7 +409,8 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability() const {
   for (Index n = 0; n < frequency_evaluation_grid.size(); n++) {
     for (Index i = 0; i < 3; i++) {
       Eigen::MatrixXcd delta_n =
-          DeltaNSC(frequency_evaluation_grid[n], -_opt.perturbation_strength * dipole.Matrix()[i]);
+          DeltaNSC(frequency_evaluation_grid[n],
+                   -_opt.perturbation_strength * dipole.Matrix()[i]);
       for (Index j = i; j < 3; j++) {
         Polar[n](i, j) = -(delta_n.cwiseProduct(dipole.Matrix()[j])).sum();
       }
@@ -462,6 +470,79 @@ std::vector<double> Sternheimer::getIsotropicAverage(
   }
   return iA;
 }
+Eigen::MatrixXcd Sternheimer::ElectronPhononCoupling() const {
+
+
+  QMMolecule mol = _orbitals.QMAtoms();
+
+  // Setting up Grid for Fxc functional
+
+  std::cout<<"SetUP ERIS"<<std::endl;
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
+  AOBasis auxbasis = _orbitals.SetupAuxBasis();
+  ERIs eris;
+  eris.Initialize(dftbasis, auxbasis);
+
+  std::cout<<"SetUP Grid"<<std::endl;
+  Vxc_Grid grid;
+  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                 dftbasis);
+  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+
+  //QMMolecule molecule;
+  Index number_of_atoms = mol.size();
+
+  Eigen::MatrixXcd result;
+
+  std::cout<<"SetUP AO3dDipole"<<std::endl;
+  AO3ddipole ao3dDipole;
+  // Loop over Nuclei
+  for (int k = 0; k < number_of_atoms; k++) {
+    
+    //ao3dDipole.FillPotential(dftbasis, r);
+    std::cout<<"Loop = "<<k<<std::endl;
+
+
+    std::vector<Eigen::MatrixXd> DipoleMatrices;
+
+   
+
+    DipoleMatrices.push_back(Eigen::MatrixXd::Zero(_basis_size,_basis_size));
+    DipoleMatrices.push_back(Eigen::MatrixXd::Zero(_basis_size,_basis_size));
+    DipoleMatrices.push_back(Eigen::MatrixXd::Zero(_basis_size,_basis_size));
+    for (int i = 0; i < dftbasis.getShellsofAtom(k).size() - 1; i++) {
+      for (int j = i; j < dftbasis.getShellsofAtom(k).size() - 1; j++) {
+        
+        //Index p = dftbasis.getShellsofAtom(k)[i]. ;
+
+        std::vector<Eigen::Block<Eigen::MatrixXd>> block;
+        block.push_back(DipoleMatrices[0].block(0,0,_basis_size,_basis_size));
+        block.push_back(DipoleMatrices[1].block(0,0,_basis_size,_basis_size));
+        block.push_back(DipoleMatrices[2].block(0,0,_basis_size,_basis_size));
+        std::cout<<" I "<<i<<" J "<<j<<std::endl;
+
+        ao3dDipole.FillBlock3D(block, *dftbasis.getShellsofAtom(k)[i], *dftbasis.getShellsofAtom(k)[j], mol.at(k).getPos());  //?
+
+        DipoleMatrices[0]+=block[0];
+        DipoleMatrices[1]+=block[1];
+        DipoleMatrices[2]+=block[2];
+
+      }
+    }
+    for (int a = 0; a < 3; a++) {
+
+      Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, DipoleMatrices[a]);
+      Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(DeltaN);
+
+      Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+      Eigen::MatrixXcd DeltaV = DipoleMatrices[a] + contract + FxcInt;
+      result+=DeltaV*mol.at(k).getNuccharge();
+    }
+  }
+  return result;
+}
 
 }  // namespace xtp
+
 }  // namespace votca
