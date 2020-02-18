@@ -7,7 +7,6 @@
   <charge help="charge of system">0</charge>
   <spin help="multiplicity of qm configuration">1</spin>  
   <options help="additional options that should be written to input file"># pop=minimal pbepbe/gen pseudo=read punch=mo nosymm test</options>
-  <memory  help="maximum memory code should use">1Gb</memory>
  
   <cleanup help="files to delete identified by fileending"></cleanup>
 </package>

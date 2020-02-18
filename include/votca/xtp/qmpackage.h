@@ -119,13 +119,12 @@ class QMPackage {
   std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,
                                            const std::string separators) const;
 
-  Settings _settings;
+  Settings _settings{"package"};
 
   enum class _ConvergenceTightness { Low, Normal, Tigh, VeryTigh };
 
   Index _charge;
-  Index _spin;  // 2S+1
-  std::string _memory;
+  Index _spin;  // 2S+1mem
   std::string _options;
 
   std::string _executable;

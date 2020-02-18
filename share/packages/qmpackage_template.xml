@@ -8,4 +8,7 @@
 <functional>pbe</functional>
 <scratch>/tmp/xtp_qmpackage</scratch>
 <polarisation>false</polarisation>
+<gaussian> 
+    <memory help="maximum memory code should use">1GB</memory>
+</gaussian>
 </package>

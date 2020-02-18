@@ -288,9 +288,7 @@ void Gaussian::WriteCoordinates(std::ofstream& com_file,
  * relevant keywords, charge, and spin information.
  */
 void Gaussian::WriteHeader(std::ofstream& com_file) {
-  if (_memory.size()) {
-    com_file << "%mem=" << _memory << endl;
-  }
+  com_file << "%mem=" << _settings.get("gaussian.memory");
 
   Index threads = OPENMP::getMaxThreads();
   if (threads > 0) {

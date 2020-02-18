@@ -24,8 +24,9 @@ using votca::tools::Property;
 namespace votca {
 namespace xtp {
 
-void Settings::read_property(const Property& properties) {
-  for (const auto& prop : properties) {
+void Settings::read_property(const Property& properties,
+                             const std::string& key) {
+  for (const auto& prop : properties.get(key)) {
     const auto& name = prop.name();
     this->_nodes[name] = prop;
   }
@@ -34,7 +35,7 @@ void Settings::read_property(const Property& properties) {
 void Settings::load_from_xml(const std::string& path) {
   Property options;
   options.LoadFromXML(path);
-  this->read_property(options);
+  this->read_property(options, _root_key);
 }
 
 void Settings::merge(const Settings& other) {
@@ -46,6 +47,11 @@ void Settings::merge(const Settings& other) {
       this->_nodes[pair.first] = val;
     }
   }
+}
+
+bool Settings::exists(const std::string& key) const {
+  auto it = this->_nodes.find(key);
+  return (it != this->_nodes.end()) ? true : false;
 }
 
 Settings::Settings_map::const_iterator Settings::search_for_mandatory_keyword(

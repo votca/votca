@@ -25,6 +25,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <votca/tools/property.h>
 
 using votca::tools::Property;
@@ -39,13 +40,14 @@ class Settings {
  public:
   // Decompose a Property object into Settings
   Settings() = default;
+  Settings(const std::string& root_key) : _root_key{root_key} {};
   ~Settings() = default;
 
   /**
    * \brief Transform Properties into settings
    * @param Property object
    */
-  void read_property(const Property& prop);
+  void read_property(const Property& prop, const std::string& key);
 
   /**
    * \brief read Settings from xml
@@ -65,15 +67,29 @@ class Settings {
    */
   template <typename T = std::string>
   T get(const std::string& key) const {
-    auto it = this->_nodes.find(key);
-    if (it != this->_nodes.end()) {
-      return it->second.get(key).as<T>();
-    } else {
+    auto delimeter = ".";
+    std::string primary_key = key;
+    std::string secondary_key;
+
+    auto iter = key.find(delimeter);
+    if (iter != std::string::npos) {
+      primary_key = key.substr(0, key.find(delimeter));
+      secondary_key = key.substr(key.find(delimeter) + 1);
+    }
+
+    auto it = this->_nodes.find(primary_key);
+    if (it == this->_nodes.end()) {
       std::ostringstream oss;
       oss << "Unknown keyword: " << key << "\n";
       throw std::runtime_error(oss.str());
+    } else if (secondary_key.empty()) {
+      return it->second.as<T>();
+    } else {
+      return it->second.get(secondary_key).as<T>();
     }
   }
+
+  bool exists(const std::string& key) const;
 
   /**
    * \brief Check that the input is correct
@@ -85,7 +101,7 @@ class Settings {
  protected:
   using Settings_map = std::unordered_map<std::string, Property>;
   Settings_map _nodes;
-  std::string _executable_path;
+  std::string _root_key;
 
   Settings_map::const_iterator search_for_mandatory_keyword(
       const std::string& key) const;
@@ -98,7 +114,7 @@ class Settings {
       "external_charge",        // Eigen::Vector9d
       "optimize",               // boolean
       "polarisation",           // boolean
-      "pseudopotential",        // string
+      "ecp",                    // string
       "spin"                    // int
   };
 
@@ -110,7 +126,7 @@ class Settings {
 
   std::unordered_map<std::string, std::vector<std::string>> _keyword_options{
       {"name", {"orca", "gaussian", "nwchem", "xtpdft"}}};
-};
+};  // namespace xtp
 
 }  // namespace xtp
 }  // namespace votca

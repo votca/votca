@@ -28,13 +28,14 @@ using std::flush;
 
 void QMPackage::ParseCommonOptions(tools::Property& options) {
 
-  _settings.read_property(options);
-  Settings qmpackage_template{};
+  std::string key = "package";
+
+  _settings.read_property(options, "package");
+  Settings qmpackage_template{"package"};
   qmpackage_template.load_from_xml(this->FindTemplateFile());
   _settings.merge(qmpackage_template);
   _settings.validate();
 
-  std::string key = "package";
   std::string name = _settings.get("name");
   _charge = _settings.get<Index>("charge");
   _spin = _settings.get<Index>("spin");
@@ -44,10 +45,7 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   if (getPackageName() != "xtp") {
     _executable = _settings.get("executable");
     _scratch_dir = _settings.get("scratch");
-    _memory = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".memory");
-    _options = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".options");
+    _options = _settings.get("options");
   }
 
   _cleanup =
@@ -58,9 +56,9 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   _write_guess = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".read_guess", _write_guess);
 
-  if (options.exists(key + ".ecp")) {
+  if (_settings.exists("ecp")) {
     _write_pseudopotentials = true;
-    _ecp_name = options.get(key + ".ecp").as<std::string>();
+    _ecp_name = _settings.get("ecp");
   }
 }
 
