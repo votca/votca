@@ -36,7 +36,6 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   _settings.merge(qmpackage_template);
   _settings.validate();
 
-  std::string name = _settings.get("name");
   _charge = _settings.get<Index>("charge");
   _spin = _settings.get<Index>("spin");
   _basisset_name = _settings.get("basisset");

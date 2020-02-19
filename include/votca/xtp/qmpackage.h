@@ -142,8 +142,6 @@ class QMPackage {
   std::string _scratch_dir;
   std::string _cleanup = "";
 
-  bool _get_charges = false;
-
   bool _write_guess = false;
   bool _write_charges = false;
   bool _write_basis_set = true;
