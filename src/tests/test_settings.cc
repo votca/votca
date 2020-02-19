@@ -58,21 +58,4 @@ BOOST_AUTO_TEST_CASE(create_settings) {
   BOOST_TEST(basisset == "ubecppol");
   BOOST_TEST(orca_guess == "GUESS PMODEL");
 }
-
-BOOST_AUTO_TEST_CASE(create_section) {
-  std::ofstream orca_prop("orca_prop.xml");
-  orca_prop << "<package>\n"
-            << "<orca>\n"
-            << "   <scf>GUESS PMODEL</scf>\n"
-            << "</orca>\n"
-            << "</package>\n";
-  orca_prop.close();
-
-  Settings orca_settings{"package"};
-  orca_settings.load_from_xml("orca_prop.xml");
-  std::string section = orca_settings.create_orca_section("orca.scf");
-  std::string expected = "%scf GUESS PMODEL\n    end";
-  BOOST_TEST(expected == section);
-}
-
 BOOST_AUTO_TEST_SUITE_END()

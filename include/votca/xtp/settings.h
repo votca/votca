@@ -90,14 +90,6 @@ class Settings {
   }
 
   /**
-   * \brief Create a section input for a given QMpackage
-   * @param package
-   * @param key to property
-   */
-  std::string create_orca_section(const std::string& key) const;
-  std::string create_gaussian_section(const std::string& key) const;
-
-  /**
    * \brief Check if a property exists
    * @param key
    */

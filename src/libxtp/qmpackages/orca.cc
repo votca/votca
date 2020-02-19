@@ -44,9 +44,6 @@ void Orca::Initialize(tools::Property& options) {
   _mo_file_name = fileName + ".gbw";
 
   ParseCommonOptions(options);
-
-  // Read the scf guess directly from the settings
-  _options += _settings.create_orca_section("orca.scf");
 }
 
 /* Custom basis sets are written on a per-element basis to
@@ -265,8 +262,11 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
     WriteBackgroundCharges();
   }
 
+  // Read the SCF Guess
+  _options += this->CreateInputSection("orca.scf");
   // Write main DFT method
   _options += this->WriteMethod();
+
   inp_file << _options << "\n";
   inp_file << endl;
   inp_file.close();
