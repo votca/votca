@@ -6,7 +6,7 @@
 <auxbasisset>aux-ubecppol</auxbasisset>
 <optimize>false</optimize>
 <functional>pbe</functional>
-<scratch>/tmp/xtp_qmpackage</scratch>
+<scratch>/tmp/qmpackage</scratch>
 <polarisation>false</polarisation>
 <dipole_spacing>0.1</dipole_spacing>
 <read_guess>false</read_guess>
@@ -17,6 +17,7 @@
 <nwchem>
 </nwchem>
 <orca>
+    <method>! DFT</memory>
     <scf>GUESS PMODEL</scf>
 </orca>
 <xtpdft>

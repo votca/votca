@@ -94,7 +94,8 @@ class Settings {
    * @param package
    * @param key to property
    */
-  std::string CreateInputSection(const std::string& key) const;
+  std::string create_orca_section(const std::string& key) const;
+  std::string create_gaussian_section(const std::string& key) const;
 
   /**
    * \brief Check if a property exists

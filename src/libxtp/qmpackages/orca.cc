@@ -46,7 +46,7 @@ void Orca::Initialize(tools::Property& options) {
   ParseCommonOptions(options);
 
   // Read the scf guess directly from the settings
-  _options += "\n " + _settings.get("orca.scf");
+  _options += _settings.create_orca_section("orca.scf");
 }
 
 /* Custom basis sets are written on a per-element basis to
@@ -805,5 +805,6 @@ std::string Orca::indent(const double& number) {
   std::string snumber = ssnumber.str();
   return snumber;
 }
+
 }  // namespace xtp
 }  // namespace votca

@@ -70,8 +70,9 @@ BOOST_AUTO_TEST_CASE(create_section) {
 
   Settings orca_settings{"package"};
   orca_settings.load_from_xml("orca_prop.xml");
-  std::string section = orca_settings.CreateInputSection("orca.scf");
-  std::cout << "section:\n" << section << "\n";
+  std::string section = orca_settings.create_orca_section("orca.scf");
+  std::string expected = "%scf GUESS PMODEL\n    end";
+  BOOST_TEST(expected == section);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

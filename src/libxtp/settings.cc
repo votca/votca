@@ -89,13 +89,14 @@ void Settings::validate() const {
    }*/
 }
 
-std::string Settings::CreateInputSection(const std::string& key) const {
+std::string Settings::create_orca_section(const std::string& key) const {
   std::ostringstream oss;
   std::string section = key.substr(key.find(".") + 1);
   oss << "%" << section << " " << this->get(key) << "\n"
       << "    end";
   return oss.str();
 }
+
 
 std::ostream& operator<<(std::ostream& os, const Settings& sett) {
   for (const auto& prop : sett._nodes) {
