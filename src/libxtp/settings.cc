@@ -56,18 +56,18 @@ bool Settings::exists(const std::string& key) const {
 
 Settings::Settings_map::const_iterator Settings::search_for_mandatory_keyword(
     const std::string& key) const {
-  std::ostringstream oss;
+  std::stringstream stream;
   auto it = this->_nodes.find(key);
   if (it == this->_nodes.end()) {
-    oss << "the " << key << " keyword is mandatory\n";
+    stream << "the " << key << " keyword is mandatory\n";
     auto it2 = this->_keyword_options.find(key);
     if (it2 != this->_keyword_options.end()) {
-      oss << key << "must be one of the following values:\n";
+      stream << key << "must be one of the following values:\n";
       for (const auto& x : it2->second) {
-        oss << x << "\n";
+        stream << x << "\n";
       }
     }
-    throw std::runtime_error(oss.str());
+    throw std::runtime_error(stream.str());
   } else {
     return it;
   }
@@ -90,13 +90,12 @@ void Settings::validate() const {
 }
 
 std::string Settings::create_orca_section(const std::string& key) const {
-  std::ostringstream oss;
+  std::stringstream stream;
   std::string section = key.substr(key.find(".") + 1);
-  oss << "%" << section << " " << this->get(key) << "\n"
-      << "    end";
-  return oss.str();
+  stream << "%" << section << " " << this->get(key) << "\n"
+         << "    end";
+  return stream.str();
 }
-
 
 std::ostream& operator<<(std::ostream& os, const Settings& sett) {
   for (const auto& prop : sett._nodes) {

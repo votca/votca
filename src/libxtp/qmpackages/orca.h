@@ -71,6 +71,14 @@ class Orca : public QMPackage {
   template <class T>
   void GetCoordinates(T& mol, std::string& line,
                       std::ifstream& input_file) const;
+  std::string WriteMethod() const;
+  std::string CreateInputSection(const std::string& key) const;
+
+  std::unordered_map<std::string, std::string> _convergence_map{
+      {"low", "Loose"},
+      {"normal", "Medium"},
+      {"tight", "Tight"},
+      {"verytight", "VeryTight"}};
 };
 
 }  // namespace xtp

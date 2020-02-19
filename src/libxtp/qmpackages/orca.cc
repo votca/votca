@@ -265,6 +265,8 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
     WriteBackgroundCharges();
   }
 
+  // Write main DFT method
+  _options += this->WriteMethod();
   inp_file << _options << "\n";
   inp_file << endl;
   inp_file.close();
@@ -804,6 +806,23 @@ std::string Orca::indent(const double& number) {
            << number;
   std::string snumber = ssnumber.str();
   return snumber;
+}
+
+std::string Orca::CreateInputSection(const std::string& key) const {
+  std::stringstream stream;
+  std::string section = key.substr(key.find(".") + 1);
+  stream << "%" << section << " " << this->_settings.get(key) << "\n"
+         << "    end";
+  return stream.str();
+}
+
+std::string Orca::WriteMethod() const {
+  std::stringstream stream;
+  std::string convergence =
+      this->_convergence_map.at(_settings.get("convergence_tightness"));
+  stream << this->CreateInputSection("orca.method") << " "
+         << _settings.get("functional") << " " << convergence << "\n";
+  return stream.str();
 }
 
 }  // namespace xtp

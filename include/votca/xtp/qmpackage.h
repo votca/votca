@@ -121,8 +121,6 @@ class QMPackage {
 
   Settings _settings{"package"};
 
-  enum class _ConvergenceTightness { Low, Normal, Tigh, VeryTigh };
-
   Index _charge;
   Index _spin;  // 2S+1mem
   std::string _options;
