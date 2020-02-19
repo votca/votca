@@ -42,20 +42,15 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   _basisset_name = _settings.get("basisset");
   _auxbasisset_name = _settings.get("auxbasisset");
 
+  _cleanup = _settings.get("cleanup");
+  _dpl_spacing = _settings.get<double>("dipole_spacing");
+  _write_guess = _settings.get<bool>("read_guess");
+
   if (getPackageName() != "xtp") {
     _executable = _settings.get("executable");
     _scratch_dir = _settings.get("scratch");
     _options = _settings.get("options");
   }
-
-  _cleanup =
-      options.ifExistsReturnElseReturnDefault(key + ".cleanup", _cleanup);
-  _dpl_spacing = options.ifExistsReturnElseReturnDefault(
-      key + ".dipole_spacing", _dpl_spacing);
-
-  _write_guess = options.ifExistsReturnElseReturnDefault<bool>(
-      key + ".read_guess", _write_guess);
-
   if (_settings.exists("ecp")) {
     _write_pseudopotentials = true;
     _ecp_name = _settings.get("ecp");

@@ -45,15 +45,10 @@ void Orca::Initialize(tools::Property& options) {
 
   ParseCommonOptions(options);
 
-  // check if the optimize keyword is present, if yes, read updated coords
-  std::string::size_type iop_pos =
-      _options.find(" Opt"); /*optimization word in orca*/
-  if (iop_pos != std::string::npos) {
-    _is_optimization = true;
-  }
+  _is_optimization = _settings.get<bool>("optimize");
 
   if (_write_guess) {
-    iop_pos = _options.find("Guess MORead");
+    std::string::size_type iop_pos = _options.find("Guess MORead");
     if (iop_pos != std::string::npos) {
       _options = _options + "\n Guess MORead ";
     }

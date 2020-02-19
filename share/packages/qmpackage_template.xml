@@ -8,6 +8,9 @@
 <functional>pbe</functional>
 <scratch>/tmp/xtp_qmpackage</scratch>
 <polarisation>false</polarisation>
+<dipole_spacing>0.1</dipole_spacing>
+<read_guess>false</read_guess>
+<cleanup> </cleanup>
 <gaussian> 
     <memory help="maximum memory code should use">1GB</memory>
 </gaussian>
