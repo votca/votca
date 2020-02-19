@@ -14,4 +14,11 @@
 <gaussian> 
     <memory help="maximum memory code should use">1GB</memory>
 </gaussian>
+<nwchem>
+</nwchem>
+<orca>
+    <scf>GUESS PMODEL</scf>
+</orca>
+<xtpdft>
+</xtpdft>
 </package>

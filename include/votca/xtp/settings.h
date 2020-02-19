@@ -89,6 +89,17 @@ class Settings {
     }
   }
 
+  /**
+   * \brief Create a section input for a given QMpackage
+   * @param package
+   * @param key to property
+   */
+  std::string CreateInputSection(const std::string& key) const;
+
+  /**
+   * \brief Check if a property exists
+   * @param key
+   */
   bool exists(const std::string& key) const;
 
   /**

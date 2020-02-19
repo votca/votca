@@ -40,7 +40,12 @@ BOOST_AUTO_TEST_CASE(create_settings) {
            << "<functional>pbe</functional>\n"
            << "<scratch>/tmp/xtp_qmpackage</scratch>\n"
            << "<polarisation>false</polarisation>\n"
-           << "<gaussian>\n    <memory>1GB</memory>\n</gaussian>\n"
+           << "<gaussian>\n"
+           << "    <memory>1GB</memory>\n"
+           << "</gaussian>\n"
+           << "<orca>\n"
+           << "   <scf>GUESS PMODEL</scf>\n"
+           << "</orca>\n"
            << "</package>";
   defaults.close();
 
@@ -48,7 +53,25 @@ BOOST_AUTO_TEST_CASE(create_settings) {
   qmpackage_template.load_from_xml("defaults.xml");
   auto gaussian_memory = qmpackage_template.get("gaussian.memory");
   auto basisset = qmpackage_template.get("basisset");
+  auto orca_guess = qmpackage_template.get("orca.scf");
   BOOST_TEST(gaussian_memory == "1GB");
   BOOST_TEST(basisset == "ubecppol");
+  BOOST_TEST(orca_guess == "GUESS PMODEL");
 }
+
+BOOST_AUTO_TEST_CASE(create_section) {
+  std::ofstream orca_prop("orca_prop.xml");
+  orca_prop << "<package>\n"
+            << "<orca>\n"
+            << "   <scf>GUESS PMODEL</scf>\n"
+            << "</orca>\n"
+            << "</package>\n";
+  orca_prop.close();
+
+  Settings orca_settings{"package"};
+  orca_settings.load_from_xml("orca_prop.xml");
+  std::string section = orca_settings.CreateInputSection("orca.scf");
+  std::cout << "section:\n" << section << "\n";
+}
+
 BOOST_AUTO_TEST_SUITE_END()
