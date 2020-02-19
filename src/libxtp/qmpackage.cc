@@ -43,7 +43,6 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   _auxbasisset_name = _settings.get("auxbasisset");
 
   _cleanup = _settings.get("cleanup");
-  _dpl_spacing = _settings.get<double>("dipole_spacing");
   _write_guess = _settings.get<bool>("read_guess");
 
   if (getPackageName() != "xtp") {
@@ -97,8 +96,8 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
 
   std::vector<QMPackage::MinimalMMCharge> multipoles_split;
   // Calculate virtual charge positions
-  double a = _dpl_spacing;                // this is in a0
-  double mag_d = aps.getDipole().norm();  // this is in e * a0
+  double a = _settings.get<double>("dipole_spacing");  // this is in a0
+  double mag_d = aps.getDipole().norm();               // this is in e * a0
   const Eigen::Vector3d dir_d = aps.getDipole().normalized();
   const Eigen::Vector3d A = aps.getPos() + 0.5 * a * dir_d;
   const Eigen::Vector3d B = aps.getPos() - 0.5 * a * dir_d;
@@ -113,7 +112,7 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
     const Eigen::Matrix3d components = aps.CalculateCartesianMultipole();
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
     es.computeDirect(components);
-    double a2 = 2 * _dpl_spacing;
+    double a2 = 2 * _settings.get<double>("dipole_spacing");
     for (Index i = 0; i < 3; i++) {
       double q = es.eigenvalues()[i] / (a2 * a2);
       const Eigen::Vector3d vec1 =

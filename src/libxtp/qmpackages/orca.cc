@@ -45,8 +45,6 @@ void Orca::Initialize(tools::Property& options) {
 
   ParseCommonOptions(options);
 
-  _is_optimization = _settings.get<bool>("optimize");
-
   if (_write_guess) {
     std::string::size_type iop_pos = _options.find("Guess MORead");
     if (iop_pos != std::string::npos) {

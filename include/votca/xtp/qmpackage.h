@@ -140,8 +140,6 @@ class QMPackage {
 
   std::string _shell_file_name;
   std::string _scratch_dir;
-  bool _is_optimization = false;
-
   std::string _cleanup = "";
 
   bool _get_charges = false;
@@ -155,7 +153,6 @@ class QMPackage {
   Logger* _pLog;
 
   std::vector<std::unique_ptr<StaticSite> > _externalsites;
-  double _dpl_spacing = 0.1;
 };
 
 }  // namespace xtp
