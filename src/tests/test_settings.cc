@@ -18,6 +18,7 @@
 #define BOOST_TEST_MODULE settings_test
 
 #include <boost/test/unit_test.hpp>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <votca/xtp/settings.h>
@@ -26,12 +27,25 @@ using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(settings_test)
 
 BOOST_AUTO_TEST_CASE(create_settings) {
-  Settings qmpackage_template{"package"};
-  std::string env = getenv("VOTCASHARE");
-  auto xmlFile = std::string(getenv("VOTCASHARE")) +
-                 std::string("/xtp/packages/qmpackage_template.xml");
-  qmpackage_template.load_from_xml(xmlFile);
 
+  std::ofstream defaults("defaults.xml");
+
+  defaults << "<package>\n"
+           << "<name>orca</name>\n"
+           << "<charge>0</charge>\n"
+           << "<spin>1</spin>\n"
+           << "<basisset>ubecppol</basisset>\n"
+           << "<auxbasisset>aux-ubecppol</auxbasisset>\n"
+           << "<optimize>false</optimize>\n"
+           << "<functional>pbe</functional>\n"
+           << "<scratch>/tmp/xtp_qmpackage</scratch>\n"
+           << "<polarisation>false</polarisation>\n"
+           << "<gaussian>\n    <memory>1GB</memory>\n</gaussian>\n"
+           << "</package>";
+  defaults.close();
+
+  Settings qmpackage_template{"package"};
+  qmpackage_template.load_from_xml("defaults.xml");
   auto gaussian_memory = qmpackage_template.get("gaussian.memory");
   auto basisset = qmpackage_template.get("basisset");
   BOOST_TEST(gaussian_memory == "1GB");
