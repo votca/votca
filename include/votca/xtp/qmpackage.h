@@ -70,7 +70,6 @@ class QMPackage {
       }
     }
     if (!_write_charges) {
-      _write_charges = true;
       WriteChargeOption();
     }
   }

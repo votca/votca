@@ -161,10 +161,7 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
 }
 
 void Orca::WriteChargeOption() {
-  std::string::size_type iop_pos = _options.find("pointcharges");
-  if (iop_pos == std::string::npos) {
-    _options = _options + "\n %pointcharges \"background.crg\"";
-  }
+  _options += this->CreateInputSection("orca.pointcharges");
 }
 
 /* For QM/MM the molecules in the MM environment are represented by

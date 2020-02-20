@@ -43,6 +43,7 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
 
   _cleanup = _settings.get("cleanup");
   _write_guess = _settings.get<bool>("read_guess");
+  _write_charges = _settings.get<bool>("write_charges");
 
   if (getPackageName() != "xtp") {
     _executable = _settings.get("executable");
