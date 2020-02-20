@@ -62,7 +62,7 @@ class BSE {
         0.5;  // minimium contribution for state to print it
   };
 
-  void configure(const options& opt, const Eigen::VectorXd& DFTenergies);
+  void configure(const options& opt, const Eigen::VectorXd& RPAEnergies);
 
   void Solve_singlets(Orbitals& orb) const;
   void Solve_triplets(Orbitals& orb) const;

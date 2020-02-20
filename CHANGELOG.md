@@ -9,6 +9,7 @@ For more detailed information about the changes see the history of the
 * fix state tracker (#333)
 * grid class refator (#335)
 * changed ppm screening (#371)
+* G0W0 rpa energies are fixed in BSE()
 
 
 ## Version 1.6_rc2 (released XX.01.20)
