@@ -812,7 +812,7 @@ std::string Orca::CreateInputSection(const std::string& key) const {
   std::stringstream stream;
   std::string section = key.substr(key.find(".") + 1);
   stream << "%" << section << " " << this->_settings.get(key) << "\n"
-         << "    end";
+         << "    end\n";
   return stream.str();
 }
 
@@ -820,8 +820,9 @@ std::string Orca::WriteMethod() const {
   std::stringstream stream;
   std::string convergence =
       this->_convergence_map.at(_settings.get("convergence_tightness"));
-  stream << "! " << this->CreateInputSection("orca.method") << " "
-         << _settings.get("functional") << " " << convergence << "\n";
+  stream << "! " << _settings.get("orca.method") << " "
+         << _settings.get("functional") << " " << convergence << "SCF"
+         << "\n";
   return stream.str();
 }
 
