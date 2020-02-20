@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/tools/calculator.h>
+#include "../../include/votca/tools/calculator.h"
 
 namespace votca {
 namespace tools {

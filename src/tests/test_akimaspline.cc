@@ -18,9 +18,9 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE akimaspline_test
+#include "../../include/votca/tools/akimaspline.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
-#include <votca/tools/akimaspline.h>
 
 using namespace votca::tools;
 

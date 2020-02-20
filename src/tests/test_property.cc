@@ -18,10 +18,10 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE property_test
+#include "../../include/votca/tools/property.h"
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <sstream>
-#include <votca/tools/property.h>
 using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(property_test)

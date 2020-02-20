@@ -18,9 +18,9 @@
 #ifndef VOTCA_TOOLS_CUBICSPLINE_H
 #define VOTCA_TOOLS_CUBICSPLINE_H
 
+#include "eigen.h"
 #include "spline.h"
 #include <iostream>
-#include <votca/tools/eigen.h>
 
 namespace votca {
 namespace tools {

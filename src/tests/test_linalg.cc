@@ -18,9 +18,9 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE linalg_test
+#include "../../include/votca/tools/linalg.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
-#include <votca/tools/linalg.h>
 
 using namespace votca::tools;
 

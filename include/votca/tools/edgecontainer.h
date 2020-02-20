@@ -20,11 +20,11 @@
 #ifndef _VOTCA_TOOLS_EDGECONTAINER_H
 #define _VOTCA_TOOLS_EDGECONTAINER_H
 
+#include "edge.h"
 #include <map>
 #include <set>
 #include <unordered_map>
 #include <vector>
-#include <votca/tools/edge.h>
 
 namespace votca {
 namespace tools {

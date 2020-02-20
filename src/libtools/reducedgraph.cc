@@ -17,10 +17,10 @@
  *
  */
 
+#include "../../include/votca/tools/reducedgraph.h"
+#include "../../include/votca/tools/edge.h"
 #include <algorithm>
 #include <cassert>
-#include <votca/tools/edge.h>
-#include <votca/tools/reducedgraph.h>
 
 using namespace std;
 

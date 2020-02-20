@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/tools/colors.h>
+#include "../../include/votca/tools/colors.h"
 
 namespace votca {
 namespace tools {

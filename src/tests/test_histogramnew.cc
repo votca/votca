@@ -17,11 +17,11 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE histogramnew_test
+#include "../../include/votca/tools/histogramnew.h"
+#include "../../include/votca/tools/table.h"
 #include <boost/test/unit_test.hpp>
 #include <exception>
 #include <iostream>
-#include <votca/tools/histogramnew.h>
-#include <votca/tools/table.h>
 
 using namespace std;
 using namespace votca::tools;
