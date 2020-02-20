@@ -1,5 +1,6 @@
 <package>
   <name help="name of dft package">orca</name>
   <executable help="executable command for package">/opt/orca/orca</executable>
-  <options help="additional options that should be written to input file"></options >
-  </package>
+  <functional>pbe0</functional>
+  <ecp>ecp</ecp>
+</package>

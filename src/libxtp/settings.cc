@@ -73,6 +73,12 @@ Settings::Settings_map::const_iterator Settings::search_for_mandatory_keyword(
   }
 }
 
+void Settings::add(const std::string& key, const std::string& value) {
+  std::string primary_key = key.substr(0, key.find("."));
+  Property& prop = this->_nodes[primary_key];
+  prop.add(key, value);
+}
+
 void Settings::validate() const {
   for (const auto& x : _mandatory_keyword) {
     this->search_for_mandatory_keyword(x);

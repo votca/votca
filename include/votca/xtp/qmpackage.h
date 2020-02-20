@@ -122,7 +122,7 @@ class QMPackage {
 
   Index _charge;
   Index _spin;  // 2S+1mem
-  std::string _options;
+  std::string _options = "";
 
   std::string _executable;
   std::string _input_file_name;

@@ -6,7 +6,6 @@
 <auxbasisset>aux-ubecppol</auxbasisset>
 <optimize>false</optimize>
 <functional>pbe0</functional>
-<ecp>ecp</ecp>
 <scratch>/tmp/qmpackage</scratch>
 <polarisation>false</polarisation>
 <dipole_spacing>0.1</dipole_spacing>
@@ -22,7 +21,6 @@
 </nwchem>
 <orca>
     <scf>GUESS PMODEL</scf>
-    <pointcharges>"background.crg"</pointcharges>
 </orca>
 <xtpdft>
     <convergence>

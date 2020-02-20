@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -48,7 +48,10 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   if (getPackageName() != "xtp") {
     _executable = _settings.get("executable");
     _scratch_dir = _settings.get("scratch");
-    _options = _settings.get("options");
+    // TODO: REMOVE THIS SECTION AFTER CLEANING ALL THE PACKAGES
+    if (_settings.exists("options")) {
+      _settings.get("option");
+    }
   }
   if (_settings.exists("ecp")) {
     _write_pseudopotentials = true;

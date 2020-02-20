@@ -62,6 +62,11 @@ class Settings {
   void merge(const Settings& other);
 
   /**
+  * \brief Add property
+  */
+  void add(const std::string& key, const std::string& value);
+
+  /**
    * \brief Get a given key
    * @param key
    */
