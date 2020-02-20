@@ -76,7 +76,7 @@ class Orca : public QMPackage {
 
   std::unordered_map<std::string, std::string> _convergence_map{
       {"low", "Loose"},
-      {"normal", "Medium"},
+      {"normal", "Strong"},
       {"tight", "Tight"},
       {"verytight", "VeryTight"}};
 };
