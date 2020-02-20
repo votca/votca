@@ -5,7 +5,8 @@
 <basisset>ubecppol</basisset>
 <auxbasisset>aux-ubecppol</auxbasisset>
 <optimize>false</optimize>
-<functional>pbe</functional>
+<functional>pbe0</functional>
+<ecp>ecp</ecp>
 <scratch>/tmp/qmpackage</scratch>
 <polarisation>false</polarisation>
 <dipole_spacing>0.1</dipole_spacing>

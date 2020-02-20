@@ -69,7 +69,7 @@ class QMPackage {
             std::unique_ptr<StaticSite>(new Sitetype(site)));
       }
     }
-    if (!_write_charges) {
+    if (_write_charges) {
       WriteChargeOption();
     }
   }
