@@ -50,7 +50,7 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
     _scratch_dir = _settings.get("scratch");
     // TODO: REMOVE THIS SECTION AFTER CLEANING ALL THE PACKAGES
     if (_settings.exists("options")) {
-      _settings.get("option");
+      _settings.get("options");
     }
   }
   if (_settings.exists("ecp")) {
