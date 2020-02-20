@@ -262,7 +262,10 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
 
   // Write Orca section specified by the user
   for (const auto& prop : this->_settings.property("orca")) {
-    _options += this->CreateInputSection("orca." + prop.name());
+    const std::string& prop_name = prop.name();
+    if (prop_name != "method") {
+      _options += this->CreateInputSection("orca." + prop_name);
+    }
   }
   // Write main DFT method
   _options += this->WriteMethod();
@@ -822,7 +825,10 @@ std::string Orca::WriteMethod() const {
   std::string convergence =
       this->_convergence_map.at(_settings.get("convergence_tightness"));
   stream << "! DFT " << _settings.get("functional") << " " << convergence
-         << "SCF" << opt << "\n";
+         << "SCF"
+         << opt
+         // additional properties provided by the user
+         << _settings.get("orca.method") << "\n";
   return stream.str();
 }
 
