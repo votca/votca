@@ -18,8 +18,9 @@
 <nwchem>
 </nwchem>
 <orca>
-    <method>! DFT</memory>
+    <method>! DFT</method>
     <scf>GUESS PMODEL</scf>
+    <pointcharges>"background.crg"</pointcharges>
 </orca>
 <xtpdft>
 </xtpdft>
