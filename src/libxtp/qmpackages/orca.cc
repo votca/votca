@@ -820,7 +820,7 @@ std::string Orca::WriteMethod() const {
   std::stringstream stream;
   std::string convergence =
       this->_convergence_map.at(_settings.get("convergence_tightness"));
-  stream << this->CreateInputSection("orca.method") << " "
+  stream << "! " << this->CreateInputSection("orca.method") << " "
          << _settings.get("functional") << " " << convergence << "\n";
   return stream.str();
 }
