@@ -18,12 +18,24 @@
     <memory help="maximum memory code should use">1GB</memory>
 </gaussian>
 <nwchem>
+<method>dft</method>
 </nwchem>
 <orca>
-    <method>DFT</method>
     <scf>GUESS PMODEL</scf>
     <pointcharges>"background.crg"</pointcharges>
 </orca>
 <xtpdft>
+    <convergence>
+        <energy help="DeltaE at which calculation is converged" unit="hartree">1e-7</energy>
+        <method help="Main method to use for convergence accelertation DIIS or mixing">DIIS</method>
+        <DIIS_start help="DIIS error at which DIIS takes over">0.002</DIIS_start>
+        <ADIIS_start help="DIIS error at which ADIIS takes over">0.8</ADIIS_start>
+        <DIIS_length help="old hamiltonians to keep in history">20</DIIS_length>
+        <levelshift help="levelshift to apply to hamiltonian " unit="hartree">0.0</levelshift>
+        <levelshift_end help="DIIS error at levelshifting is disabled">0.2</levelshift_end>
+    </convergence>
+    <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities)">atom</initial_guess>
+    <integration_grid help="grid quality xcoarse,coarse,medium,fine,xfine">medium</integration_grid>
+    <max_iterations help="max iterations to use">200</max_iterations>
 </xtpdft>
 </package>

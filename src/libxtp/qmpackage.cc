@@ -30,8 +30,8 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
 
   std::string key = "package";
 
-  _settings.read_property(options, "package");
-  Settings qmpackage_template{"package"};
+  _settings.read_property(options, key);
+  Settings qmpackage_template{key};
   qmpackage_template.load_from_xml(this->FindTemplateFile());
   _settings.merge(qmpackage_template);
   _settings.validate();
