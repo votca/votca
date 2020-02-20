@@ -224,7 +224,7 @@ bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &,
   _cor.Process(dist, P2);
   _count.Process(dist);
 
-  if (b1->getMolecule() == b2->getMolecule()) {
+  if (b1->getMoleculeId() == b2->getMoleculeId()) {
     return false;
   }
 
