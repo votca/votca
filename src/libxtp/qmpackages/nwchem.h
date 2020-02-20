@@ -65,6 +65,9 @@ class NWChem : public QMPackage {
   std::string FortranFormat(const double& number);
   Index WriteBackgroundCharges(std::ofstream& nw_file);
   void WriteChargeOption() override;
+  std::string CreateInputSection(const std::string& keyword,
+                                 const std::string& body) const;
+  std::string WriteMethod() const;
 };
 
 }  // namespace xtp

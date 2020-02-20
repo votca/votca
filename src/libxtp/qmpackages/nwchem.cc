@@ -248,6 +248,8 @@ bool NWChem::WriteInputFile(const Orbitals& orbitals) {
     }
   }
 
+  _options += this->WriteMethod();
+
   nw_file << _options << "\n";
   if (_write_guess) {
     bool worked = WriteGuess(orbitals);
@@ -885,6 +887,25 @@ std::string NWChem::FortranFormat(const double& number) {
            << number;
   std::string snumber = ssnumber.str();
   return snumber;
+}
+
+std::string NWChem::CreateInputSection(const std::string& keyword,
+                                       const std::string& body) const {
+  std::stringstream stream;
+  stream << keyword << "\n"
+         << body << "\n"
+         << "end\n";
+  return stream.str();
+}
+
+std::string NWChem::WriteMethod() const {
+  std::stringstream body, dft_section;
+  body << "xc " << this->_settings.get("functional") << "\n"
+       << "direct\n";
+
+  dft_section << this->CreateInputSection("dft", body.str()) << "\n"
+              << "task dft";
+  return dft_section.str();
 }
 
 }  // namespace xtp
