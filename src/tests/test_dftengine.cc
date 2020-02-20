@@ -232,6 +232,7 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   xml << "<spin>1</spin>" << std::endl;
   xml << "<name>xtp</name>" << std::endl;
   xml << "<charge>0</charge>" << std::endl;
+  xml << "<xtpdft>" << std::endl;
   xml << "<convergence>" << std::endl;
   xml << "    <energy>1e-7</energy>" << std::endl;
   xml << "    <method>DIIS</method>" << std::endl;
@@ -247,6 +248,7 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   xml << "<integration_grid_small>0</integration_grid_small>" << std::endl;
   xml << "<xc_functional>XC_HYB_GGA_XC_PBEH</xc_functional>" << std::endl;
   xml << "<max_iterations>1</max_iterations>" << std::endl;
+  xml << "</xtpdft>" << std::endl;
   xml << "<read_guess>0</read_guess>" << std::endl;
   xml << "<cleanup></cleanup>" << std::endl;
   xml << "</package>" << std::endl;
