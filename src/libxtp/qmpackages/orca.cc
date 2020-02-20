@@ -161,7 +161,7 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
 }
 
 void Orca::WriteChargeOption() {
-  this ->_settings.add("orca.pointcharges", "\"background.crg\"");
+  this->_settings.add("orca.pointcharges", "\"background.crg\"");
   _options += this->CreateInputSection("orca.pointcharges");
 }
 
@@ -260,8 +260,10 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
     WriteBackgroundCharges();
   }
 
-  // Read the SCF Guess
-  _options += this->CreateInputSection("orca.scf");
+  // Write Orca section specified by the user
+  for (const auto& prop : this->_settings.property("orca")) {
+    _options += this->CreateInputSection("orca." + prop.name());
+  }
   // Write main DFT method
   _options += this->WriteMethod();
 

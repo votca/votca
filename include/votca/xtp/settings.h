@@ -62,8 +62,8 @@ class Settings {
   void merge(const Settings& other);
 
   /**
-  * \brief Add property
-  */
+   * \brief Add property
+   */
   void add(const std::string& key, const std::string& value);
 
   /**
@@ -92,6 +92,10 @@ class Settings {
     } else {
       return it->second.get(secondary_key).as<T>();
     }
+  }
+
+  const Property& property(const std::string& key) const {
+    return _nodes.at(key);
   }
 
   /**
