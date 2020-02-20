@@ -20,6 +20,7 @@
 <method>dft</method>
 </nwchem>
 <orca>
+    <method></method>
     <scf>GUESS PMODEL</scf>
 </orca>
 <xtpdft>
