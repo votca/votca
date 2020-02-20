@@ -16,10 +16,10 @@
  */
 
 #include "gmxtrajectoryreader.h"
+#include "../../../../include/votca/csg/topology.h"
 #include <cstdlib>
 #include <gromacs/utility/programcontext.h>
 #include <iostream>
-#include <votca/csg/topology.h>
 
 namespace votca {
 namespace csg {

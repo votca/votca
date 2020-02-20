@@ -19,10 +19,10 @@
 #include <votca_config.h>
 #endif
 
+#include "../../include/votca/csg/trajectoryreader.h"
+#include "../../include/votca/csg/xyzreader.h"
 #include "modules/io/lammpsdatareader.h"
 #include "modules/io/lammpsdumpreader.h"
-#include <votca/csg/trajectoryreader.h>
-#include <votca/csg/xyzreader.h>
 
 #ifdef GMX_DOUBLE
 #include "modules/io/gmxtrajectoryreader.h"

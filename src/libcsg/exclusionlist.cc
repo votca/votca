@@ -15,9 +15,9 @@
  *
  */
 
+#include "../../include/votca/csg/exclusionlist.h"
+#include "../../include/votca/csg/topology.h"
 #include <algorithm>
-#include <votca/csg/exclusionlist.h>
-#include <votca/csg/topology.h>
 
 namespace votca {
 namespace csg {
@@ -47,15 +47,16 @@ void ExclusionList::CreateExclusions(Topology *top) {
   }
 }
 
-bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) {
-  exclusion_t *excl;
-  if (bead1->getMolecule() != bead2->getMolecule()) {
+bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) const {
+  if (bead1->getMoleculeId() != bead2->getMoleculeId()) {
     return false;
   }
   if (bead2->getId() < bead1->getId()) {
     swap(bead1, bead2);
   }
-  if ((excl = GetExclusions(bead1))) {
+
+  const exclusion_t *excl = GetExclusions(bead1);
+  if (excl != nullptr) {
     if (find(excl->_exclude.begin(), excl->_exclude.end(), bead2) !=
         excl->_exclude.end()) {
       return true;
