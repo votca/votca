@@ -36,7 +36,8 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
-void BSE::configure(const options& opt, const Eigen::VectorXd& RPAInputEnergies) {
+void BSE::configure(const options& opt,
+                    const Eigen::VectorXd& RPAInputEnergies) {
   _opt = opt;
   _bse_vmax = _opt.homo;
   _bse_cmin = _opt.homo + 1;
@@ -46,7 +47,8 @@ void BSE::configure(const options& opt, const Eigen::VectorXd& RPAInputEnergies)
   SetupDirectInteractionOperator(RPAInputEnergies);
 }
 
-void BSE::SetupDirectInteractionOperator(const Eigen::VectorXd& RPAInputEnergies) {
+void BSE::SetupDirectInteractionOperator(
+    const Eigen::VectorXd& RPAInputEnergies) {
   RPA rpa = RPA(_log, _Mmn);
   rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
   rpa.setRPAInputEnergies(RPAInputEnergies);

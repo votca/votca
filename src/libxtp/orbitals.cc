@@ -531,7 +531,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_useTDA, "useTDA");
   w(_ECP, "ECP");
 
- w(_rpa_inputenergies,"RPA_inputenergies");
+  w(_rpa_inputenergies, "RPA_inputenergies");
   w(_QPpert_energies, "QPpert_energies");
 
   w(_QPdiag, "QPdiag");
@@ -585,7 +585,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_useTDA, "useTDA");
   r(_ECP, "ECP");
 
-r(_rpa_inputenergies,"RPA_inputenergies");
+  r(_rpa_inputenergies, "RPA_inputenergies");
   r(_QPpert_energies, "QPpert_energies");
   r(_QPdiag, "QPdiag");
 

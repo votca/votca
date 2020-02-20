@@ -666,7 +666,7 @@ bool GWBSE::Evaluate() {
     // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc,
     // E_qp)
     _orbitals.QPpertEnergies() = gw.getGWAResults();
-    _orbitals.RPAInputEnergies()= gw.RPAInputEnergies();
+    _orbitals.RPAInputEnergies() = gw.RPAInputEnergies();
 
     XTP_LOG(Log::info, *_pLog)
         << TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
@@ -701,7 +701,7 @@ bool GWBSE::Evaluate() {
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
     BSE bse = BSE(*_pLog, Mmn, Hqp);
-    bse.configure(_bseopt,  _orbitals.RPAInputEnergies());
+    bse.configure(_bseopt, _orbitals.RPAInputEnergies());
 
     if (_do_bse_triplets) {
       bse.Solve_triplets(_orbitals);
