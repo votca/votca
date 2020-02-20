@@ -133,7 +133,7 @@ fi
 
 #keep the grid for now, so that extrapolate can calculate the right mean
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
-critical csg_resample --in ${scale} --out "$smooth" --grid "${zero}:${step}:${tablend}" "${csg_resample_opts[@]}"
+critical csg_resample --in "${scale}" --out "$smooth" --grid "${zero}:${step}:${tablend}" "${csg_resample_opts[@]}"
 
 extrapol="$(critical mktemp ${trunc}.pot.extrapol.XXXXX)"
 do_external potential extrapolate ${clean:+--clean} --type "$tabtype" "${smooth}" "${extrapol}"
