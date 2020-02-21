@@ -23,7 +23,7 @@
 namespace votca {
 namespace xtp {
 
-void ANDERSON::UpdateOutput(const Eigen::MatrixXcd &newOutput) {
+void ANDERSON::UpdateOutput(const Eigen::VectorXd &newOutput) {
 
   // Check if max mixing history is reached and adding new step to history
   if (_output.size() > _max_history - 1) {
@@ -33,7 +33,7 @@ void ANDERSON::UpdateOutput(const Eigen::MatrixXcd &newOutput) {
   _output.push_back(newOutput);
 }
 
-void ANDERSON::UpdateInput(const Eigen::MatrixXcd &newInput) {
+void ANDERSON::UpdateInput(const Eigen::VectorXd &newInput) {
 
   if (_input.size() > _max_history - 1) {
     _input.erase(_input.begin());
@@ -41,15 +41,15 @@ void ANDERSON::UpdateInput(const Eigen::MatrixXcd &newInput) {
   _input.push_back(newInput);
 }
 
-Eigen::MatrixXcd ANDERSON::NPAndersonMixing(const double alpha) {
+Eigen::VectorXd ANDERSON::NPAndersonMixing(const double alpha) {
 
   _iteration++;
 
-    Eigen::MatrixXcd OutMixed = _output.back();
-    Eigen::MatrixXcd InMixed = _input.back();
+    Eigen::VectorXd OutMixed = _output.back();
+    Eigen::VectorXd InMixed  = _input.back();
   if (_iteration > 1) {
 
-    Eigen::MatrixXcd DeltaN = _output.back() - _input.back();
+    Eigen::VectorXd DeltaN = _output.back() - _input.back();
 
 
     // Building Linear System for Coefficients
@@ -62,8 +62,7 @@ Eigen::MatrixXcd ANDERSON::NPAndersonMixing(const double alpha) {
       c(m - 1) = (DeltaN - _output.at(_output.size() - 1 - m) +
                   _input.at(_input.size() - 1 - m))
                      .cwiseProduct(DeltaN)
-                     .sum()
-                     .real();
+                     .sum();
       for (Index j = 1; j < _input.size(); j++) {
 
         A(m - 1, j - 1) =
@@ -71,12 +70,11 @@ Eigen::MatrixXcd ANDERSON::NPAndersonMixing(const double alpha) {
              _input.at(_input.size() - 1 - m))
                 .cwiseProduct(DeltaN - _output.at(_output.size() - 1 - j) +
                               _input.at(_input.size() - 1 - j))
-                .sum()
-                .real();
+                .sum();
       }
     }
     // Solving the System to obtain coefficients
-    Eigen::VectorXcd coefficients = A.fullPivHouseholderQr().solve(c);
+    Eigen::VectorXd coefficients = A.fullPivHouseholderQr().solve(c);
 
     //std::cout << coefficients << std::endl;
 

@@ -184,9 +184,9 @@ void GW::CalculateGWPerturbation() {
       if (_opt.gw_anderson_order > 0) {
         std::cout << "Using Anderson order " << _opt.gw_anderson_order << std::endl;
         _mixing.UpdateOutput(frequencies);
-        Eigen::MatrixXcd mixed_frequencies = _mixing.NPAndersonMixing(0.4);
+        Eigen::VectorXd mixed_frequencies = _mixing.NPAndersonMixing(0.4);
         _mixing.UpdateInput(mixed_frequencies);
-        Eigen::VectorXd mf = mixed_frequencies.real();
+        Eigen::VectorXd mf = mixed_frequencies;
         _rpa.UpdateRPAInputEnergies(_dft_energies, mf, _opt.qpmin);
 
         std::cout << "\n" << i_gw << "\n" << std::endl;

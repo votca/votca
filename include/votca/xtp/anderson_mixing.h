@@ -30,18 +30,18 @@ namespace xtp {
 
 class ANDERSON {
  public:
-  Eigen::MatrixXcd NPAndersonMixing(const double alpha);
+  Eigen::VectorXd NPAndersonMixing(const double alpha);
 
-  void UpdateOutput(const Eigen::MatrixXcd &newOutput);
-  void UpdateInput(const Eigen::MatrixXcd &newInput);
+  void UpdateOutput(const Eigen::VectorXd &newOutput);
+  void UpdateInput(const Eigen::VectorXd &newInput);
   void SetOrder( const Index max_history ) { _max_history = max_history +1; };
   bool Info() { return success; }
 
  private:
   bool success = true;
 
-  std::vector<Eigen::MatrixXcd> _input;
-  std::vector<Eigen::MatrixXcd> _output;
+  std::vector<Eigen::VectorXd> _input;
+  std::vector<Eigen::VectorXd> _output;
 
   Index _max_history = 25;
   Index _iteration = 0;
