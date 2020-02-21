@@ -23,6 +23,7 @@
 #include <fstream>
 #include <iostream>
 #include <votca/xtp/IndexParser.h>
+#include <votca/xtp/anderson_mixing.h>
 #include <votca/xtp/gw.h>
 #include <votca/xtp/newton_rapson.h>
 
@@ -48,6 +49,7 @@ void GW::configure(const options& opt) {
   _sigma->configure(sigma_opt);
   _Sigma_x = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
   _Sigma_c = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
+  _anderson_order = _opt.gw_anderson_order;
 }
 
 double GW::CalcHomoLumoShift(Eigen::VectorXd frequencies) const {
@@ -156,6 +158,11 @@ void GW::CalculateGWPerturbation() {
       dft_shifted_energies.segment(_opt.rpamin, _opt.rpamax - _opt.rpamin + 1));
   Eigen::VectorXd frequencies =
       dft_shifted_energies.segment(_opt.qpmin, _qptotal);
+
+  ANDERSON _mixing;
+  _mixing.UpdateInput(frequencies);
+  _mixing.SetOrder(_opt.gw_anderson_order);
+
   for (Index i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
 
     if (i_gw % _opt.reset_3c == 0 && i_gw != 0) {
@@ -171,8 +178,40 @@ void GW::CalculateGWPerturbation() {
     frequencies = SolveQP(frequencies);
 
     if (_opt.gw_sc_max_iterations > 1) {
-      Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
-      _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
+      Eigen::VectorXd rpa_energies_old =
+          _rpa.getRPAInputEnergies();
+
+      if (_opt.gw_anderson_order > 0) {
+        std::cout << "Using Anderson order " << _opt.gw_anderson_order << std::endl;
+        _mixing.UpdateOutput(frequencies);
+        Eigen::MatrixXcd mixed_frequencies = _mixing.NPAndersonMixing(0.4);
+        _mixing.UpdateInput(mixed_frequencies);
+        Eigen::VectorXd mf = mixed_frequencies.real();
+        _rpa.UpdateRPAInputEnergies(_dft_energies, mf, _opt.qpmin);
+
+        std::cout << "\n" << i_gw << "\n" << std::endl;
+
+        for ( int i = 0 ; i < mf.size() ; i++){
+          std::cout << "QPSCF " << i << " " << std::setprecision(9) << mf(i) << std::endl;
+        }
+
+
+
+
+
+
+
+
+
+      } else {
+        std::cout << "plain QP update" << std::endl;
+        _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
+        for ( int i = 0 ; i < frequencies.size() ; i++){
+          std::cout << "QPSCF " << i << " " << std::setprecision(9) << frequencies(i) << std::endl;
+        }
+
+      }
+
       XTP_LOG(Log::error, _log)
           << TimeStamp() << " GW_Iteration:" << i_gw
           << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;

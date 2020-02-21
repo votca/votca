@@ -321,6 +321,11 @@ void GWBSE::Initialize(tools::Property& options) {
       _gwopt.gw_sc_max_iterations);  // convergence criteria for qp iteration
                                      // [Hartree]]
 
+
+_gwopt.gw_anderson_order = options.ifExistsReturnElseReturnDefault<Index>(
+      key + ".gw_anderson_order",
+      _gwopt.gw_anderson_order);  // convergence criteria for shift it
+
   _gwopt.gw_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
       key + ".gw_sc_limit",
       _gwopt.gw_sc_limit);  // convergence criteria for shift it

@@ -59,6 +59,7 @@ class GW {
     double qp_solver_alpha = 0.75;
     Index qp_grid_steps = 601;       // Number of grid points
     double qp_grid_spacing = 0.005;  // Spacing of grid points in Ha
+    Index gw_anderson_order = 0;
   };
 
   void configure(const options& opt);
@@ -85,6 +86,7 @@ class GW {
 
  private:
   Index _qptotal;
+  Index _anderson_order;
 
   Eigen::MatrixXd _Sigma_x;
   Eigen::MatrixXd _Sigma_c;
