@@ -42,10 +42,7 @@ void NWChem::Initialize(tools::Property& options) {
   ParseCommonOptions(options);
 
   if (_write_guess) {
-    std::string::size_type iop_pos = _options.find("iterations 1");
-    if (iop_pos != std::string::npos) {
-      _options = _options + "\n iterations 1 ";
-    }
+    this->_settings.append_to_property("nwchem.dft", "iterations 1");
   }
 }
 
@@ -55,12 +52,7 @@ void NWChem::Initialize(tools::Property& options) {
  * backround.crg file.
  */
 
-void NWChem::WriteChargeOption() {
-  std::string::size_type iop_pos = _options.find("set bq background");
-  if (iop_pos != std::string::npos) {
-    _options = _options + "\n set bq background";
-  }
-}
+void NWChem::WriteChargeOption() { _options += "\n set bq background"; }
 
 Index NWChem::WriteBackgroundCharges(ofstream& nw_file) {
 
@@ -197,7 +189,6 @@ bool NWChem::WriteInputFile(const Orbitals& orbitals) {
   nw_file << "geometry noautoz noautosym" << endl;
 
   const QMMolecule& qmatoms = orbitals.QMAtoms();
-
   for (const QMAtom& atom : qmatoms) {
     Eigen::Vector3d pos = atom.getPos() * tools::conv::bohr2ang;
     nw_file << setw(3) << atom.getElement() << setw(12)
@@ -218,7 +209,6 @@ bool NWChem::WriteInputFile(const Orbitals& orbitals) {
     nw_file << "load background.crg format 1 2 3 4" << endl;
     nw_file << "end\n" << endl;
   }
-
   if (_write_basis_set) {
     WriteBasisset(nw_file, qmatoms);
   }
@@ -226,7 +216,6 @@ bool NWChem::WriteInputFile(const Orbitals& orbitals) {
   if (_write_pseudopotentials) {
     WriteECP(nw_file, qmatoms);
   }
-
   // write charge of the molecule
   nw_file << "\ncharge " << _charge << "\n";
 
@@ -235,22 +224,9 @@ bool NWChem::WriteInputFile(const Orbitals& orbitals) {
     std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
     nw_file << _temp;
   }
-  if (_charge != 0) {
-    std::string dft = "dft";
-    if (_options.find(dft) != std::string::npos) {
-      Index dftpos = Index(_options.find(dft));
-      dftpos += Index(dft.size());
-      std::string openshell =
-          "\nodft\n" + (boost::format("mult %1%\n") % _spin).str();
-      _options.insert(dftpos, openshell, 0, openshell.size());
-    } else {
-      throw runtime_error("NWCHEM: dft input data missing");
-    }
-  }
 
   _options += this->WriteMethod();
-
-  nw_file << _options << "\n";
+  nw_file << _options;
   if (_write_guess) {
     bool worked = WriteGuess(orbitals);
     if (!worked) {
@@ -900,8 +876,13 @@ std::string NWChem::CreateInputSection(const std::string& keyword,
 
 std::string NWChem::WriteMethod() const {
   std::stringstream body, dft_section;
+  std::string multi;
+  if (_spin != 1) {
+    multi = "odft\n" + (boost::format("mult %1%\n") % _spin).str();
+  }
+
   body << "xc " << this->_settings.get("functional") << "\n"
-       << "direct\n";
+       << multi << _settings.get("nwchem.dft");
 
   dft_section << this->CreateInputSection("dft", body.str()) << "\n"
               << "task dft";

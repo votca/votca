@@ -79,6 +79,18 @@ void Settings::add(const std::string& key, const std::string& value) {
   prop.add(key, value);
 }
 
+void Settings::append_to_property(const std::string& key,
+                                  const std::string& value) {
+  std::string primary_key = this->get_primary_key(key);
+  Property& prop = this->_nodes[primary_key];
+  if (prop.exists(key)) {
+    std::string old = prop.value();
+    prop.set(key, old + value);
+  } else {
+    prop.add(key, value);
+  }
+}
+
 void Settings::validate() const {
   for (const auto& x : _mandatory_keyword) {
     this->search_for_mandatory_keyword(x);

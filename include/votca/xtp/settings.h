@@ -93,10 +93,20 @@ class Settings {
       return it->second.get(secondary_key).as<T>();
     }
   }
-
+  /**
+   * \brief Retrieve property
+   * @param key to property
+   */
   const Property& property(const std::string& key) const {
     return _nodes.at(key);
   }
+
+  /**
+   * \brief Append string to prop
+   * @param key to look for
+   * @param value to append
+   */
+  void append_to_property(const std::string& key, const std::string& value);
 
   /**
    * \brief Check if a property exists
@@ -115,6 +125,10 @@ class Settings {
   using Settings_map = std::unordered_map<std::string, Property>;
   Settings_map _nodes;
   std::string _root_key;
+
+  std::string get_primary_key(const std::string& key) {
+    return key.substr(0, key.find("."));
+  }
 
   Settings_map::const_iterator search_for_mandatory_keyword(
       const std::string& key) const;

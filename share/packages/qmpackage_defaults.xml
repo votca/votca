@@ -17,7 +17,9 @@
     <memory help="maximum memory code should use">1GB</memory>
 </gaussian>
 <nwchem>
-<method>dft</method>
+    <dft>
+direct
+    </dft>
 </nwchem>
 <orca>
     <method></method>
