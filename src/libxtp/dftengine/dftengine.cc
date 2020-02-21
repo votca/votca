@@ -86,8 +86,8 @@ void DFTEngine::Initialize(Property& options) {
 
   _grid_name = options.ifExistsReturnElseReturnDefault<string>(
       key_xtpdft + ".integration_grid", "medium");
-  _xc_functional_name = options.ifExistsReturnElseThrowRuntimeError<string>(
-      key + "functional");
+  _xc_functional_name =
+      options.ifExistsReturnElseThrowRuntimeError<string>(key + ".functional");
 
   if (options.exists(key_xtpdft + ".externaldensity")) {
     _integrate_ext_density = true;
@@ -115,7 +115,8 @@ void DFTEngine::Initialize(Property& options) {
         key_xtpdft + ".convergence.max_iterations", 100);
 
     if (options.exists(key_xtpdft + ".convergence.method")) {
-      string method = options.get(key_xtpdft + ".convergence.method").as<string>();
+      string method =
+          options.get(key_xtpdft + ".convergence.method").as<string>();
       if (method == "DIIS") {
         _conv_opt.usediis = true;
       } else if (method == "mixing") {
