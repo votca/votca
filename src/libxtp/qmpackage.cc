@@ -31,9 +31,9 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   std::string key = "package";
 
   _settings.read_property(options, key);
-  Settings qmpackage_template{key};
-  qmpackage_template.load_from_xml(this->FindTemplateFile());
-  _settings.merge(qmpackage_template);
+  Settings qmpackage_defaults{key};
+  qmpackage_defaults.load_from_xml(this->FindDefaultsFile());
+  _settings.merge(qmpackage_defaults);
   _settings.validate();
 
   _charge = _settings.get<Index>("charge");
@@ -138,9 +138,9 @@ std::vector<std::string> QMPackage::GetLineAndSplit(
   return tok.ToVector();
 }
 
-std::string QMPackage::FindTemplateFile() const {
+std::string QMPackage::FindDefaultsFile() const {
   auto xmlFile = std::string(getenv("VOTCASHARE")) +
-                 std::string("/xtp/packages/qmpackage_template.xml");
+                 std::string("/xtp/packages/qmpackage_defaults.xml");
 
   return xmlFile;
 }

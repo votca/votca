@@ -107,7 +107,7 @@ class QMPackage {
   };
 
   void ParseCommonOptions(tools::Property& options);
-  std::string FindTemplateFile() const;
+  std::string FindDefaultsFile() const;
 
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
