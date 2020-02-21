@@ -1,8 +1,9 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
-## Version 1.6 (released XX.02.20)
+## Version 1.6 _SuperPelagia_ (released XX.02.20)
 * fix 32-bit build (#381, #380)
+* remove duplicated basissets (#384, #386, #387)
 
 ## Version 1.6_rc2 (released 10.02.20)
 * fix remove giant logo from tarball (#337)
