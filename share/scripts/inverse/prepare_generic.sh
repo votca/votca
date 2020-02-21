@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,4 +36,13 @@ if [[ $sim_prog != @(gromacs|lammps) ]] ; then
   msg --color blue "# If you find a problem report it under:             #"
   msg --color blue "# https://github.com/votca/csg                       #"
   msg --color blue "######################################################"
+fi
+
+dihedral_names=$(for_all "dihedral" csg_get_interaction_property name)
+if [[ ${dihedral_names} ]]; then
+  msg --color blue "###########################################################"
+  msg --color blue "# WARNING using VOTCA for dihedrals is still experimental #"
+  msg --color blue "# If you find any issues please report them at:           #"
+  msg --color blue "# https://github.com/votca/csg                            #"
+  msg --color blue "###########################################################"
 fi

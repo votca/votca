@@ -1,6 +1,10 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/csg/commits/master).
 
+## Version 1.6 _SuperPelagia_ (released XX.02.20)
+* enforce periodic boundaries for dihedrals (#500)
+* add warning about dihedrals (#500)
+
 ## Version 1.6_rc2 (released 10.02.20)
 * fix inheritance bug in cmake files (#466) 
 * fix build on 32-bit archs (#473)
