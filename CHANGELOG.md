@@ -8,7 +8,7 @@ For more detailed information about the changes see the history of the
 * update bead related classes (#475, #474, #469, #468, #460)
 * update boundary class (#457)
 
-## Version 1.6_rc2 (released XX.01.20)
+## Version 1.6_rc2 (released 10.02.20)
 * fix inheritance bug in cmake files (#466) 
 * fix build on 32-bit archs (#473)
 * fixed alignment problem in potential class (#471)
