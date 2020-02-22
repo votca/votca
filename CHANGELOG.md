@@ -2,16 +2,13 @@ For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
 ## Version 1.7-dev
-* Add external fields to dft calculations (#351, #353)
-* added def2 and cc basis sets (#355)
-* added apdft (#350)
-* added test to cubefile reader (#344)
-* fix state tracker (#333)
-* grid class refator (#335)
-* changed ppm screening (#371)
+* G0W0 rpa energies are fixed in BSE (#383) 
 
+## Version 1.6 _SuperPelagia_ (released XX.02.20)
+* fix 32-bit build (#381, #380)
+* remove duplicated basissets (#384, #386, #387)
 
-## Version 1.6_rc2 (released XX.01.20)
+## Version 1.6_rc2 (released 10.02.20)
 * fix remove giant logo from tarball (#337)
 * fix assertions related to GLIBCXX_ASSERTIONS (#345)
 * remove unused boost serialisation (#346)
@@ -19,6 +16,14 @@ For more detailed information about the changes see the history of the
 * add ENABLE_HIGH_MEMORY_TESTS cmake option (#356)
 * fix copyright (#363)
 * remove old doxygen target (#365)
+* fix some gcc10 warnings (#376)
+* Add external fields to dft calculations (#351, #353)
+* added def2 and cc basis sets (#355)
+* added apdft (#350)
+* added test to cubefile reader (#344)
+* fix state tracker (#333)
+* grid class refator (#335)
+* changed ppm screening (#371)
 
 ## Version 1.6_rc1 (released 04.12.19)
  * completely new statefile in hdf5 format for larger systems
