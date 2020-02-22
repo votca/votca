@@ -8,6 +8,11 @@ For more detailed information about the changes see the history of the
 * update bead related classes (#475, #474, #469, #468, #460)
 * update boundary class (#457)
 
+## Version 1.6 _SuperPelagia_ (released XX.02.20)
+* enforce periodic boundaries for dihedrals (#500)
+* add warning about dihedrals (#500)
+* fix typo in option in potential_extrapolate (#502)
+
 ## Version 1.6_rc2 (released 10.02.20)
 * fix inheritance bug in cmake files (#466) 
 * fix build on 32-bit archs (#473)
