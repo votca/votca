@@ -14,11 +14,10 @@
  * limitations under the License.
  *
  */
+#pragma once
+#ifndef VOTCA_CSG_RESIDUE_H
+#define VOTCA_CSG_RESIDUE_H
 
-#ifndef _VOTCA_CSG_RESIDUE_H
-#define _VOTCA_CSG_RESIDUE_H
-
-#include "topologyitem.h"
 #include <string>
 
 namespace votca {
@@ -32,7 +31,7 @@ namespace csg {
    based on their residue.
 
 */
-class Residue : public TopologyItem {
+class Residue {
  public:
   /// get the name of the residue
   const std::string &getName();
@@ -46,8 +45,7 @@ class Residue : public TopologyItem {
 
  private:
   /// constructor
-  Residue(Topology *parent, Index id, const std::string &name)
-      : TopologyItem(parent), _id(id), _name(name) {}
+  Residue(Index id, const std::string &name) : _id(id), _name(name) {}
   friend class Topology;
 };
 
@@ -56,4 +54,4 @@ inline const std::string &Residue::getName() { return _name; }
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_RESIDUE_H */
+#endif  // VOTCA_CSG_RESIDUE_H

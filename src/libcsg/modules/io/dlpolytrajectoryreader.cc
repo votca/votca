@@ -16,12 +16,12 @@
  */
 
 #include "dlpolytrajectoryreader.h"
+#include "../../../../include/votca/csg/boundarycondition.h"
+#include "../../../../include/votca/csg/topology.h"
 #include <boost/filesystem/convenience.hpp>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <votca/csg/boundarycondition.h>
-#include <votca/csg/topology.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/getline.h>
 

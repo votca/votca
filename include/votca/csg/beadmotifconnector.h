@@ -15,8 +15,9 @@
  *
  */
 
-#ifndef _VOTCA_CSG_BEADMOTIFCONNECTOR_H
-#define _VOTCA_CSG_BEADMOTIFCONNECTOR_H
+#pragma once
+#ifndef VOTCA_CSG_BEADMOTIFCONNECTOR_H
+#define VOTCA_CSG_BEADMOTIFCONNECTOR_H
 
 #include <unordered_set>
 #include <vector>
@@ -27,14 +28,32 @@
 
 #include <votca/tools/edge.h>
 
-namespace TOOLS = votca::tools;
-
 namespace votca {
 namespace csg {
 
-typedef boost::bimap<boost::bimaps::multiset_of<TOOLS::Edge>,
-                     boost::bimaps::set_of<TOOLS::Edge>>
-    boost_bimap;
+/**
+ * @brief Maps a reduced edge to all the edges that make up the reduced edge
+ *
+ * Reduced edge
+ *
+ * 0 - 4
+ *
+ * Will point to explicit edges:
+ *
+ * 0 - 1 - 2 - 3 - 4
+ *
+ * Each of these explicit edges will point back to the reduced edge
+ *
+ * Explicit Edges       Reduced Edge
+ *
+ *      0 - 1      ->       0 - 4
+ *      1 - 2      ->       0 - 4
+ *      2 - 3      ->       0 - 4
+ *      3 - 4      ->       0 - 4
+ */
+typedef boost::bimap<boost::bimaps::multiset_of<tools::Edge>,
+                     boost::bimaps::set_of<tools::Edge>>
+    reduced_edge_to_edges_map;
 
 /**
  * \brief Simple class for storing the connections between motifs and the
@@ -61,22 +80,23 @@ typedef boost::bimap<boost::bimaps::multiset_of<TOOLS::Edge>,
  **/
 class BeadMotifConnector {
  public:
-  void AddMotifAndBeadEdge(TOOLS::Edge motif_edge, TOOLS::Edge bead_edge);
+  void AddMotifAndBeadEdge(const tools::Edge& motif_edge,
+                           const tools::Edge& bead_edge);
   /// Returns the bead edges connecting the motifs specified by motif_edge
-  std::vector<TOOLS::Edge> getBeadEdges(TOOLS::Edge motif_edge);
+  std::vector<tools::Edge> getBeadEdges(const tools::Edge& motif_edge) const;
   /// Returns all the bead edges connecting the motifs
-  std::vector<TOOLS::Edge> getBeadEdges();
+  std::vector<tools::Edge> getBeadEdges() const noexcept;
 
   /// Returns the motifs involved between two beads given by bead_edge
-  TOOLS::Edge getMotifEdge(TOOLS::Edge bead_edge);
+  tools::Edge getMotifEdge(const tools::Edge& bead_edge) const;
   /// Returns all the motif edges
-  std::unordered_set<TOOLS::Edge> getMotifEdges();
+  std::unordered_set<tools::Edge> getMotifEdges() const noexcept;
 
  private:
-  boost_bimap motif_and_bead_edges_;
+  reduced_edge_to_edges_map motif_and_bead_edges_;
 };
 
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_BEADMOTIFCONNECTOR_H
+#endif  // VOTCA_CSG_BEADMOTIFCONNECTOR_H

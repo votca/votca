@@ -20,14 +20,14 @@
 #define BOOST_TEST_MODULE lammpdumpstrajectoryreaderwriter_test
 #include <boost/test/unit_test.hpp>
 
+#include "../../include/votca/csg/bead.h"
+#include "../../include/votca/csg/orthorhombicbox.h"
+#include "../../include/votca/csg/trajectoryreader.h"
+#include "../../include/votca/csg/trajectorywriter.h"
 #include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <string>
-#include <votca/csg/bead.h>
-#include <votca/csg/orthorhombicbox.h>
-#include <votca/csg/trajectoryreader.h>
-#include <votca/csg/trajectorywriter.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 #include <votca/tools/types.h>

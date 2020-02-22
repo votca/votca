@@ -311,20 +311,17 @@ void MotifDeconstructor_::deconstructComplexSingleStructures(
 
     vector<Index> all_vertices = full_graph.getVertices();
 
-    BeadStructure<BaseBead> new_beadstructure;
-    for (Index& vertex : all_vertices) {
-      new_beadstructure.AddBead(id_and_bead_motif.second.getBead(vertex));
-    }
-
+    std::vector<Edge> new_beadstructure_edges;
     for (pair<const Edge, bool>& edge_and_remove : remove_edges) {
       if (edge_and_remove.second == false) {
-        Edge edge = edge_and_remove.first;
-        new_beadstructure.ConnectBeads(edge.getEndPoint1(),
-                                       edge.getEndPoint2());
+
+        new_beadstructure_edges.push_back(edge_and_remove.first);
       } else {
         bead_edges_removed_.push_back(edge_and_remove.first);
       }
     }
+    BeadStructure new_beadstructure = id_and_bead_motif.second.getSubStructure(
+        all_vertices, new_beadstructure_edges);
 
     list<BeadMotif> split_motifs_temp =
         breakIntoMotifs<list<BeadMotif>>(new_beadstructure);

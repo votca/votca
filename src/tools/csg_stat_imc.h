@@ -18,7 +18,7 @@
 #ifndef _VOTCA_CSG_IMC_H
 #define _VOTCA_CSG_IMC_H
 
-#include <votca/csg/csgapplication.h>
+#include "../../include/votca/csg/csgapplication.h"
 #include <votca/tools/average.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/property.h>
