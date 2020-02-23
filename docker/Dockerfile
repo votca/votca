@@ -76,8 +76,8 @@ RUN if [ ${COVERAGE} ]; then \
       -C "${TRAVIS_PULL_REQUEST_SHA:-$TRAVIS_COMMIT}" \
       -F "${CC}" -X "gcovout"; \
   fi; \
-fi
-RUN if [[ ${CLANG_FORMAT} && ${TRAVIS_BRANCH} != next ]]; then \
+fi > codecov.log 2>&1 && tail -n 25 codecov.log || { cat codecov.log; false; }
+RUN if [ -n "${CLANG_FORMAT}" ]  && [ ${TRAVIS_BRANCH} != next ]; then \
       cmake --build . --target format && \
       git -C ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) diff --submodule=diff --exit-code; \
     fi
