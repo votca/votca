@@ -160,7 +160,6 @@ void GW::CalculateGWPerturbation() {
       dft_shifted_energies.segment(_opt.qpmin, _qptotal);
 
   ANDERSON _mixing;
-  _mixing.UpdateInput(frequencies);
   _mixing.SetOrder(_opt.gw_anderson_order);
 
   for (Index i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
@@ -175,41 +174,37 @@ void GW::CalculateGWPerturbation() {
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
     XTP_LOG(Log::info, _log)
         << TimeStamp() << " Solving QP equations " << std::flush;
+    if (_opt.gw_anderson_order > 0 && i_gw == 2) {
+      _mixing.UpdateInput(frequencies);
+    }
+
     frequencies = SolveQP(frequencies);
 
     if (_opt.gw_sc_max_iterations > 1) {
-      Eigen::VectorXd rpa_energies_old =
-          _rpa.getRPAInputEnergies();
-
-      if (_opt.gw_anderson_order > 0) {
-        std::cout << "Using Anderson order " << _opt.gw_anderson_order << std::endl;
+      Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
+      if (_opt.gw_anderson_order > 0 && i_gw > 1) {
+        std::cout << "Using Anderson order " << _opt.gw_anderson_order
+                  << std::endl;
         _mixing.UpdateOutput(frequencies);
-        Eigen::VectorXd mixed_frequencies = _mixing.NPAndersonMixing(0.4);
+        Eigen::VectorXd mixed_frequencies = _mixing.NPAndersonMixing(0.7);
         _mixing.UpdateInput(mixed_frequencies);
-        Eigen::VectorXd mf = mixed_frequencies;
-        _rpa.UpdateRPAInputEnergies(_dft_energies, mf, _opt.qpmin);
+        _rpa.UpdateRPAInputEnergies(_dft_energies, mixed_frequencies, _opt.qpmin);
+        frequencies = mixed_frequencies;
 
         std::cout << "\n" << i_gw << "\n" << std::endl;
 
-        for ( int i = 0 ; i < mf.size() ; i++){
-          std::cout << "QPSCF " << i << " " << std::setprecision(9) << mf(i) << std::endl;
+        for (int i = 0; i < mixed_frequencies.size(); i++) {
+          std::cout << "QPSCF " << i << " " << std::setprecision(9) << mixed_frequencies(i)
+                    << std::endl;
         }
-
-
-
-
-
-
-
-
 
       } else {
         std::cout << "plain QP update" << std::endl;
         _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
-        for ( int i = 0 ; i < frequencies.size() ; i++){
-          std::cout << "QPSCF " << i << " " << std::setprecision(9) << frequencies(i) << std::endl;
+        for (int i = 0; i < frequencies.size(); i++) {
+          std::cout << "QPSCF " << i << " " << std::setprecision(9)
+                    << frequencies(i) << std::endl;
         }
-
       }
 
       XTP_LOG(Log::error, _log)
