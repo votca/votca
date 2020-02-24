@@ -14,6 +14,14 @@
 <convergence_tightness help="One of low, normal, tight, verytight">tight</convergence_tightness>
 <cleanup> </cleanup>
 <gaussian> 
+    <method>
+        <int>=nobasistransform</int>
+        <pop>=minimal</pop>
+        <pseudo>=read</pseudo>
+        <punch>=mo</punch>
+        <test></test>
+        <nosymm></nosymm>
+    </method>
     <memory help="maximum memory code should use">1GB</memory>
 </gaussian>
 <nwchem>

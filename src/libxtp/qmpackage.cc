@@ -48,10 +48,6 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   if (getPackageName() != "xtp") {
     _executable = _settings.get("executable");
     _scratch_dir = _settings.get("scratch");
-    // TODO: REMOVE THIS SECTION AFTER CLEANING ALL THE PACKAGES
-    if (_settings.exists("options")) {
-      _options = _settings.get("options");
-    }
   }
   if (_settings.exists("ecp")) {
     _write_pseudopotentials = true;

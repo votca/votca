@@ -21,6 +21,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <cassert>
 #include <iomanip>
 #include <stdio.h>
 #include <votca/tools/constants.h>
@@ -39,64 +40,23 @@ void Gaussian::Initialize(tools::Property& options) {
   _log_file_name = fileName + ".log";
   _shell_file_name = fileName + ".sh";
   _mo_file_name = "fort.7";
-  std::string key = "package";
   ParseCommonOptions(options);
-
-  if (options.exists(key + ".vdWRadii")) {
-    _vdWfooter = options.get(key + ".vdWRadii").as<std::string>();
-  }
 
   /* G09 by default deletes functions from the basisset according to some
    * criterion based on, a.o., the contraction coefficients. This can lead
    * to inconsistencies when MOs are later used in VOTCA's GWBSE modules
    * (and other post-processing routines). G09's default can be modified
-   * by the keywork int=nobasistransform. This will add this keyword
-   * automatically to the _options string for runs with G09.
+   * by the keywork int=nobasistransform.
    */
   if (_executable == "g09") {
-    std::string::size_type basistransform_pos =
-        (boost::algorithm::to_lower_copy(_options)).find("nobasistransform");
-    if (basistransform_pos == std::string::npos) {
-      _options = _options + " int=nobasistransform ";
-    }
-  }
-  std::string::size_type iop_pos;
-  // check if the guess keyword is present, if yes, append the guess later
-  if (_write_guess) {
-    iop_pos = _options.find("cards");
-    if (iop_pos != std::string::npos) {
-      _options = _options + " cards ";
-    }
-  }
-
-  // check if the basis set is available ("/gen")
-  iop_pos = _options.find("gen");
-  if (iop_pos != std::string::npos) {
-    _write_basis_set = true;
-  } else {
-    _write_basis_set = false;
-  }
-
-  // check if pseudopotentials are required ("pseudo")
-  iop_pos = _options.find("pseudo");
-  if (iop_pos != std::string::npos) {
-    _write_pseudopotentials = true;
-  } else {
-    _write_pseudopotentials = false;
+    const Property& gauss = this->_settings.property("gaussian");
+    const std::string& transf =
+        gauss.get("gaussian.method.int").as<std::string>();
+    assert(transf == "nobasistransform");
   }
 }
 
-void Gaussian::WriteChargeOption() {
-  std::string::size_type iop_pos = _options.find("charge");
-  if (iop_pos == std::string::npos) {
-    std::string::size_type pos = _options.find('\n');
-    if (pos != std::string::npos) {
-      _options.insert(pos, " charge");
-    } else {
-      _options = _options + " charge";
-    }
-  }
-}
+void Gaussian::WriteChargeOption() {}
 
 /* Custom basis sets are written on a per-element basis to
  * 'elementname'.gbs files, which are then included in the
@@ -294,15 +254,15 @@ void Gaussian::WriteHeader(std::ofstream& com_file) {
   if (threads > 0) {
     com_file << "%nprocshared=" << threads << endl;
   }
-  if (_options.size()) {
-    com_file << _options << endl;
-  }
+
+  com_file << this->WriteMethod();
 
   com_file << endl;
   com_file << "TITLE ";
 
   com_file << endl << endl;
-  com_file << setw(2) << _charge << setw(2) << _spin << endl;
+  com_file << setw(2) << _settings.get("charge") << setw(2)
+           << _settings.get("_spin") << endl;
   return;
 }
 
@@ -340,11 +300,6 @@ bool Gaussian::WriteInputFile(const Orbitals& orbitals) {
     // write ECPs
     if (_write_pseudopotentials) {
       WriteECP(com_file, qmatoms);
-    }
-
-    // write the background charges
-    if (_write_charges) {
-      WriteBackgroundCharges(com_file);
     }
 
     // write inital guess
@@ -1013,6 +968,14 @@ std::string Gaussian::FortranFormat(double number) {
   std::string snumber = ssnumber.str();
   boost::replace_first(snumber, "e", "D");
   return snumber;
+}
+
+std::string Gaussian::WriteMethod() const {
+  std::stringstream stream;
+  stream << "#" << _settings.get("functional") << " "
+         << _settings.get("gaussian.method");
+  std::string guess = (_write_guess) ? "guess=cards" : "";
+  return stream.str() + guess + "\n";
 }
 
 }  // namespace xtp

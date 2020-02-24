@@ -78,6 +78,7 @@ class Gaussian : public QMPackage {
   void WriteHeader(std::ofstream& com_file);
 
   void WriteChargeOption() override;
+  std::string WriteMethod() const;
 };
 
 }  // namespace xtp

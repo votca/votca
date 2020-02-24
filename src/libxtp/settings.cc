@@ -95,16 +95,6 @@ void Settings::validate() const {
   for (const auto& x : _mandatory_keyword) {
     this->search_for_mandatory_keyword(x);
   }
-
-  /* std::ostringstream oss;
-  for (const auto& pair : this->_nodes) {
-    auto it = find(_general_properties.cbegin(), _general_properties.cend(),
-                   pair.first);
-    if (it == _general_properties.cend()) {
-      oss << "Unknown keyword: " << pair.first << "\n";
-      throw std::runtime_error(oss.str());
-    }
-   }*/
 }
 
 std::ostream& operator<<(std::ostream& os, const Settings& sett) {
