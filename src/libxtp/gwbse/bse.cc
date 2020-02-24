@@ -36,20 +36,22 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
-void BSE::configure(const options& opt, const Eigen::VectorXd& DFTenergies) {
+void BSE::configure(const options& opt,
+                    const Eigen::VectorXd& RPAInputEnergies) {
   _opt = opt;
   _bse_vmax = _opt.homo;
   _bse_cmin = _opt.homo + 1;
   _bse_vtotal = _bse_vmax - _opt.vmin + 1;
   _bse_ctotal = _opt.cmax - _bse_cmin + 1;
   _bse_size = _bse_vtotal * _bse_ctotal;
-  SetupDirectInteractionOperator(DFTenergies);
+  SetupDirectInteractionOperator(RPAInputEnergies);
 }
 
-void BSE::SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies) {
+void BSE::SetupDirectInteractionOperator(
+    const Eigen::VectorXd& RPAInputEnergies) {
   RPA rpa = RPA(_log, _Mmn);
   rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
-  rpa.UpdateRPAInputEnergies(DFTenergies, _Hqp.diagonal(), _opt.qpmin);
+  rpa.setRPAInputEnergies(RPAInputEnergies);
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.calculate_epsilon_r(0));
   _Mmn.MultiplyRightWithAuxMatrix(es.eigenvectors());
