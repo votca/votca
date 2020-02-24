@@ -42,17 +42,25 @@ void Gaussian::Initialize(tools::Property& options) {
   _mo_file_name = "fort.7";
   ParseCommonOptions(options);
 
-  /* G09 by default deletes functions from the basisset according to some
-   * criterion based on, a.o., the contraction coefficients. This can lead
-   * to inconsistencies when MOs are later used in VOTCA's GWBSE modules
-   * (and other post-processing routines). G09's default can be modified
-   * by the keywork int=nobasistransform.
-   */
   if (_executable == "g09") {
+    std::stringstream stream;
+    stream
+        << "G09 by default deletes functions from the basisset according to\n"
+        << "some criterion based on the contraction coefficients\n"
+        << " This can lead to inconsistencies when MOs are later used in\n"
+        << "VOTCA's GWBSE modules (and other post-processing routines).\n"
+        << "G09's default can be modified by the keywork: "
+        << "int=nobasistransform.\n";
+
     const Property& gauss = this->_settings.property("gaussian");
-    const std::string& transf =
-        gauss.get("gaussian.method.int").as<std::string>();
-    assert(transf == "nobasistransform");
+    if (gauss.exists("method.int")) {
+      const std::string& transf = gauss.get("method.int").value();
+      if (transf != "=nobasistransform") {
+        throw std::runtime_error(stream.str());
+      }
+    } else {
+      throw std::runtime_error(stream.str());
+    }
   }
 }
 
@@ -248,7 +256,7 @@ void Gaussian::WriteCoordinates(std::ofstream& com_file,
  * relevant keywords, charge, and spin information.
  */
 void Gaussian::WriteHeader(std::ofstream& com_file) {
-  com_file << "%mem=" << _settings.get("gaussian.memory");
+  com_file << "%mem=" << _settings.get("gaussian.memory") << "\n";
 
   Index threads = OPENMP::getMaxThreads();
   if (threads > 0) {
@@ -262,7 +270,7 @@ void Gaussian::WriteHeader(std::ofstream& com_file) {
 
   com_file << endl << endl;
   com_file << setw(2) << _settings.get("charge") << setw(2)
-           << _settings.get("_spin") << endl;
+           << _settings.get("spin") << endl;
   return;
 }
 
@@ -491,7 +499,8 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
     XTP_LOG(Log::info, *_pLog) << "Reading MOs from " << _mo_file_name << flush;
   }
 
-  // number of coefficients per line is  in the first line of the file (5D15.8)
+  // number of coefficients per line is  in the first line of the file
+  // (5D15.8)
   getline(input_file, line);
   std::vector<std::string> strs;
   boost::algorithm::split(strs, line, boost::is_any_of("(D)"));
@@ -861,7 +870,8 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
 
     /*
      * basis set size
-     * N basis functions,  M primitive gaussians,   K cartesian basis functions
+     * N basis functions,  M primitive gaussians,   K cartesian basis
+     * functions
      */
     std::string::size_type basis_pos = line.find("basis functions,");
     if (basis_pos != std::string::npos) {
@@ -949,7 +959,8 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
     XTP_LOG(Log::error, *_pLog)
         << "WARNING === WARNING \n, could not find ScaHFX= entry in log."
            "\n probably you forgt #P in the beginning of the input file.\n"
-           " If you are running a hybrid functional calculation redo it! Now! "
+           " If you are running a hybrid functional calculation redo it! "
+           "Now! "
            "Please!\n ===WARNING=== \n"
         << flush;
     orbitals.setScaHFX(0.0);
@@ -972,8 +983,12 @@ std::string Gaussian::FortranFormat(double number) {
 
 std::string Gaussian::WriteMethod() const {
   std::stringstream stream;
-  stream << "#" << _settings.get("functional") << " "
-         << _settings.get("gaussian.method");
+  const Property& gauss = _settings.property("gaussian");
+  cout << "gauss:\n" << gauss << "\n";
+  stream << "# " << _settings.get("functional") << " ";
+  for (const Property& prop : gauss.get("method")) {
+    stream << prop.name() << prop.value() << " ";
+  }
   std::string guess = (_write_guess) ? "guess=cards" : "";
   return stream.str() + guess + "\n";
 }
