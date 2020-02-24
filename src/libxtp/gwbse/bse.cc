@@ -53,8 +53,6 @@ void BSE::SetupDirectInteractionOperator(
   rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
   rpa.setRPAInputEnergies(RPAInputEnergies);
 
-  std::cout << "Mmn" << _Mmn.msize() << " " << _Mmn.nsize() << " " << _Mmn.auxsize() << std::endl;
-
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.calculate_epsilon_r(0));
   _Mmn.MultiplyRightWithAuxMatrix(es.eigenvectors());
 
