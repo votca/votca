@@ -701,11 +701,10 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
       "2.28071e-14 -2.35353e-11 1.71015e-12 7.96531e-13 2.72019e-11 "
       "-0.00502671 0.00448979 -2.90263e-12 2.01326e-13 -4.04695e-11 -0.999888";
   AB.QPdiag().eigenvectors() = ReadMatrixFromString(Hqp_input_string);
-   const Eigen::MatrixXd& qpcoeff = AB.QPdiag().eigenvectors();
-  Eigen::MatrixXd Hqp = qpcoeff *
-                        AB.QPdiag().eigenvalues().asDiagonal() *
-                        qpcoeff.transpose();
-AB.RPAInputEnergies()=Hqp.diagonal();
+  const Eigen::MatrixXd& qpcoeff = AB.QPdiag().eigenvectors();
+  Eigen::MatrixXd Hqp =
+      qpcoeff * AB.QPdiag().eigenvalues().asDiagonal() * qpcoeff.transpose();
+  AB.RPAInputEnergies() = Hqp.diagonal();
   coup.Initialize(prop);
   log.setReportLevel(Log::error);
   coup.CalculateCouplings(A, B, AB);

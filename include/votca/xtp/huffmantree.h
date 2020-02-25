@@ -223,7 +223,7 @@ class huffmanTree {
 
   std::vector<huffmanNode<T>> htree;
   bool treeIsMade = false;
-  double sum_of_values;
+  double sum_of_values = 0.0;
   std::vector<T> *events = nullptr;
 };
 

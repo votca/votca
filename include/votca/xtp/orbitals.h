@@ -231,16 +231,13 @@ class Orbitals {
   void setScaHFX(double ScaHFX) { _ScaHFX = ScaHFX; }
 
   // access to perturbative QP energies
-  bool hasRPAInputEnergies() const {
-    return (_rpa_inputenergies.size() > 0);
-  }
+  bool hasRPAInputEnergies() const { return (_rpa_inputenergies.size() > 0); }
 
   const Eigen::VectorXd &RPAInputEnergies() const { return _rpa_inputenergies; }
 
   Eigen::VectorXd &RPAInputEnergies() { return _rpa_inputenergies; }
 
-
-   // access to RPA input energies energies
+  // access to RPA input energies energies
   bool hasQPpert() const {
     return (_QPpert_energies.size() > 0) ? true : false;
   }
@@ -381,8 +378,7 @@ class Orbitals {
   std::string _functionalname = "";
   std::string _qm_package = "";
 
-
-Eigen::VectorXd _rpa_inputenergies;
+  Eigen::VectorXd _rpa_inputenergies;
   // perturbative quasiparticle energies
   Eigen::VectorXd _QPpert_energies;
 
