@@ -95,10 +95,10 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index index) const {
   Index c1 = vc.c(index);
   Eigen::MatrixXd Result = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_vtotal);
   Index cmin = _bse_vtotal;
-   // v->c
+  // v->c
   Result.col(v1) = _Hqp.col(c1 + cmin).segment(cmin, _bse_ctotal);
   // c-> v
-  Index vmin = 0; //_opt.vmin - _opt.qpmin;
+  Index vmin = 0;  //_opt.vmin - _opt.qpmin;
   Result.row(c1) -= _Hqp.col(v1 + vmin).segment(vmin, _bse_vtotal);
   return Eigen::Map<Eigen::RowVectorXd>(Result.data(), Result.size());
 }
