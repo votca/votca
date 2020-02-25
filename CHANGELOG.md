@@ -3,6 +3,7 @@ For more detailed information about the changes see the history of the
 
 ## Version 1.7-dev
 * G0W0 rpa energies are fixed in BSE (#383) 
+* Fixed Cuda implementation (#391)
 
 ## Version 1.6 _SuperPelagia_ (released XX.02.20)
 * fix 32-bit build (#381, #380)
