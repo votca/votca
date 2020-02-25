@@ -823,7 +823,8 @@ std::string Orca::WriteMethod() const {
   std::stringstream stream;
   std::string opt = (_settings.get<bool>("optimize")) ? " Opt " : "";
   std::string convergence =
-      this->_convergence_map.at(_settings.get("convergence_tightness")) + "SCF ";
+      this->_convergence_map.at(_settings.get("convergence_tightness")) +
+      "SCF ";
   stream << "! DFT " << _settings.get("functional") << " " << convergence
          << opt
          // additional properties provided by the user
