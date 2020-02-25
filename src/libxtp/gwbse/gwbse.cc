@@ -652,7 +652,7 @@ bool GWBSE::Evaluate() {
       << flush;
 
   Eigen::MatrixXd Hqp;
-
+  Eigen::MatrixXd Hqp_BSE;
   if (_do_gw) {
     Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
     GW gw = GW(*_pLog, Mmn, vxc, _orbitals.MOs().eigenvalues());
@@ -675,6 +675,7 @@ bool GWBSE::Evaluate() {
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
     Hqp = gw.getHQP();
+    Hqp_BSE = PrepareHQP_forBSE(Hqp);
 
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
         gw.DiagonalizeQPHamiltonian();
@@ -702,71 +703,6 @@ bool GWBSE::Evaluate() {
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
 
-    Index bse_vmax = _bseopt.homo;
-    Index bse_cmin = _bseopt.homo + 1;
-    Index bse_vtotal = bse_vmax - _bseopt.vmin + 1;
-    Index bse_ctotal = _bseopt.cmax - bse_cmin + 1;
-    Index hqp_size = bse_vtotal + bse_ctotal;
-    Index gwsize = _gwopt.qpmax - _gwopt.qpmin + 1;
-    Index RPAoffset = _bseopt.vmin - _gwopt.rpamin;
-    Eigen::MatrixXd Hqp_BSE = Eigen::MatrixXd::Zero(hqp_size, hqp_size);
-
-    // if bse range is smaller than qprange, cut out  Hqp block
-    if (_bseopt.vmin >= _gwopt.qpmin) {
-      Index start = _bseopt.vmin - _gwopt.qpmin;
-      if (_bseopt.cmax <= _gwopt.qpmax) {
-        // std::cout << "cutting Hqp " << std::endl;
-        Hqp_BSE = Hqp.block(start, start, hqp_size, hqp_size);
-      } else {
-        Hqp_BSE.block(0, 0, gwsize - start, gwsize - start) =
-            Hqp.block(start, start, gwsize - start, gwsize - start);
-
-        // now extend
-        Index virtoffset = gwsize - start;
-        Index virt_extra = _bseopt.cmax - _gwopt.qpmax;
-        // std::cout << "padding virt " << virt_extra << " from " << virtoffset
-        //          << std::endl;
-        for (Index i_virt = 0; i_virt < virt_extra; ++i_virt) {
-          Hqp_BSE(virtoffset + i_virt, virtoffset + i_virt) =
-              _orbitals.RPAInputEnergies()(RPAoffset + virtoffset + i_virt);
-        }
-      }
-    }
-
-    if (_bseopt.vmin < _gwopt.qpmin) {
-      // std::cout << "Padding Hqp " << std::endl;
-
-      Index occ_extra = _gwopt.qpmin - _bseopt.vmin;
-      // put RPA input energies in top left corner _bsemin < _qpmin
-      // std::cout << "padding occs " << occ_extra << std::endl;
-      for (Index i_occ = 0; i_occ < occ_extra; ++i_occ) {
-        Hqp_BSE(i_occ, i_occ) = _orbitals.RPAInputEnergies()(RPAoffset + i_occ);
-      }
-      // put explicit Hqp on _qpmin:_qpmax block
-      Hqp_BSE.block(occ_extra, occ_extra, gwsize, gwsize) = Hqp;
-
-      if (_bseopt.cmax > _gwopt.qpmax) {
-
-        // now extend
-        Index virtoffset = occ_extra + gwsize;
-        Index virt_extra = _bseopt.cmax - _gwopt.qpmax;
-        // std::cout << "padding virt " << virt_extra << " from " << virtoffset
-        //          << std::endl;
-        for (Index i_virt = 0; i_virt < virt_extra; ++i_virt) {
-          Hqp_BSE(virtoffset + i_virt, virtoffset + i_virt) =
-              _orbitals.RPAInputEnergies()(RPAoffset + virtoffset + i_virt);
-        }
-      }
-    }
-
-    std::cout << "Padded Hqp " << std::endl;
-    std::cout << "Hqp_BSE size" << Hqp_BSE.cols() << std::endl;
-    for (Index i = 0; i < Hqp_BSE.rows(); ++i) {
-      for (Index j = 0; j < Hqp_BSE.rows(); ++j) {
-        std::cout << i << " " << j << " " << Hqp_BSE(i, j) << std::endl;
-      }
-    }
-
     BSE bse = BSE(*_pLog, Mmn, Hqp_BSE);
     bse.configure(_bseopt, _orbitals.RPAInputEnergies());
 
@@ -788,5 +724,60 @@ bool GWBSE::Evaluate() {
       << TimeStamp() << " GWBSE calculation finished " << flush;
   return true;
 }
+
+Eigen::MatrixXd GWBSE::PrepareHQP_forBSE(const Eigen::MatrixXd& Hqp) {
+
+  Index bse_vmax = _bseopt.homo;
+  Index bse_cmin = _bseopt.homo + 1;
+  Index bse_vtotal = bse_vmax - _bseopt.vmin + 1;
+  Index bse_ctotal = _bseopt.cmax - bse_cmin + 1;
+  Index hqp_size = bse_vtotal + bse_ctotal;
+  Index gwsize = _gwopt.qpmax - _gwopt.qpmin + 1;
+  Index RPAoffset = _bseopt.vmin - _gwopt.rpamin;
+  Eigen::MatrixXd Hqp_BSE = Eigen::MatrixXd::Zero(hqp_size, hqp_size);
+
+  // if bse range is smaller than qprange, cut out  Hqp block
+  if (_bseopt.vmin >= _gwopt.qpmin) {
+    Index start = _bseopt.vmin - _gwopt.qpmin;
+    if (_bseopt.cmax <= _gwopt.qpmax) {
+      Hqp_BSE = Hqp.block(start, start, hqp_size, hqp_size);
+    } else {
+      Hqp_BSE.block(0, 0, gwsize - start, gwsize - start) =
+          Hqp.block(start, start, gwsize - start, gwsize - start);
+
+      // now extend
+      Index virtoffset = gwsize - start;
+      Index virt_extra = _bseopt.cmax - _gwopt.qpmax;
+      for (Index i_virt = 0; i_virt < virt_extra; ++i_virt) {
+        Hqp_BSE(virtoffset + i_virt, virtoffset + i_virt) =
+            _orbitals.RPAInputEnergies()(RPAoffset + virtoffset + i_virt);
+      }
+    }
+  }
+
+  if (_bseopt.vmin < _gwopt.qpmin) {
+    Index occ_extra = _gwopt.qpmin - _bseopt.vmin;
+    // put RPA input energies in top left corner _bsemin < _qpmin
+    for (Index i_occ = 0; i_occ < occ_extra; ++i_occ) {
+      Hqp_BSE(i_occ, i_occ) = _orbitals.RPAInputEnergies()(RPAoffset + i_occ);
+    }
+    // put explicit Hqp on _qpmin:_qpmax block
+    Hqp_BSE.block(occ_extra, occ_extra, gwsize, gwsize) = Hqp;
+
+    if (_bseopt.cmax > _gwopt.qpmax) {
+
+      // now extend
+      Index virtoffset = occ_extra + gwsize;
+      Index virt_extra = _bseopt.cmax - _gwopt.qpmax;
+      for (Index i_virt = 0; i_virt < virt_extra; ++i_virt) {
+        Hqp_BSE(virtoffset + i_virt, virtoffset + i_virt) =
+            _orbitals.RPAInputEnergies()(RPAoffset + virtoffset + i_virt);
+      }
+    }
+  }
+
+  return Hqp_BSE;
+}
+
 }  // namespace xtp
 }  // namespace votca
