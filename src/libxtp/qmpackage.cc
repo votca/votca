@@ -31,19 +31,29 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   std::string key = "package";
 
   _settings.read_property(options, key);
-  Settings qmpackage_defaults{key};
-  qmpackage_defaults.load_from_xml(this->FindDefaultsFile());
-  _settings.merge(qmpackage_defaults);
+  char* votca_share = getenv("VOTCASHARE");
+  if (votca_share == nullptr) {
+    std::cout << "Warning: VOTCASHARE environment variable not defined\n";
+  } else {
+    Settings qmpackage_defaults{key};
+    qmpackage_defaults.load_from_xml(this->FindDefaultsFile());
+    _settings.merge(qmpackage_defaults);
+  }
   _settings.validate();
 
   _charge = _settings.get<Index>("charge");
   _spin = _settings.get<Index>("spin");
   _basisset_name = _settings.get("basisset");
-  _auxbasisset_name = _settings.get("auxbasisset");
+  if (_settings.exists("auxbasisset")) {
+    _auxbasisset_name = _settings.get("auxbasisset");
+  }
 
-  _cleanup = _settings.get("cleanup");
   _write_guess = _settings.get<bool>("read_guess");
   _write_charges = _settings.get<bool>("write_charges");
+
+  if (_settings.exists("cleanup")) {
+    _cleanup = _settings.get("cleanup");
+  }
 
   if (getPackageName() != "xtp") {
     _executable = _settings.get("executable");
