@@ -59,6 +59,7 @@ CudaMatrix::operator Eigen::MatrixXd() const {
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(this->rows(), this->cols());
   checkCuda(cudaMemcpyAsync(result.data(), this->data(), this->size_matrix(),
                             cudaMemcpyDeviceToHost, this->_stream));
+  checkCuda(cudaStreamSynchronize(this->_stream));
   return result;
 }
 
