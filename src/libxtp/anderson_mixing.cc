@@ -47,7 +47,7 @@ Eigen::VectorXd ANDERSON::NPAndersonMixing(const double alpha) {
 
   Eigen::VectorXd OutMixed = _output.back();
   Eigen::VectorXd InMixed = _input.back();
-  if (_iteration > 1) {
+  if (_iteration > 1 && _max_history > 1) {
 
     Eigen::VectorXd DeltaN = _output.back() - _input.back();
 
