@@ -59,7 +59,9 @@ class GW {
     double qp_solver_alpha = 0.75;
     Index qp_grid_steps = 601;       // Number of grid points
     double qp_grid_spacing = 0.005;  // Spacing of grid points in Ha
-    Index gw_anderson_order = 0;
+    Index gw_anderson_order = 0;     // Anderson order, default: plain update
+    double gw_anderson_alpha =
+        0.7;  // Anderson mixing alpha, also linear mixing
   };
 
   void configure(const options& opt);

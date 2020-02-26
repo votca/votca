@@ -36,28 +36,21 @@ void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
   Index qpmax = qpmin + gwsize - 1;
   _energies.segment(qpmin - _rpamin, gwsize) = gwaenergies;
 
-  double DFTgap = dftenergies(lumo) - dftenergies(_homo);
-  double QPgap = gwaenergies(lumo - qpmin) - gwaenergies(_homo - qpmin);
-  double shift = QPgap - DFTgap;
-
-  Eigen::VectorXd corrections_occ  = _energies.segment(qpmin - _rpamin, lumo - qpmin) - dftenergies.segment(qpmin - _rpamin, lumo - qpmin);
-  Eigen::VectorXd corrections_virt = _energies.segment(lumo - qpmin, gwsize - (lumo-qpmin)) - dftenergies.segment(lumo - qpmin, gwsize - (lumo-qpmin));
+  Eigen::VectorXd corrections_occ =
+      _energies.segment(qpmin - _rpamin, lumo - qpmin) -
+      dftenergies.segment(qpmin - _rpamin, lumo - qpmin);
+  Eigen::VectorXd corrections_virt =
+      _energies.segment(lumo - qpmin, gwsize - (lumo - qpmin)) -
+      dftenergies.segment(lumo - qpmin, gwsize - (lumo - qpmin));
   double max_correction_occ = (corrections_occ.cwiseAbs()).maxCoeff();
   double max_correction_virt = (corrections_virt.cwiseAbs()).maxCoeff();
-
-  std::cout << " max occ " << corrections_occ.size() << " " << max_correction_occ << std::endl;
-  std::cout << " max virt " << corrections_virt.size() << " " << max_correction_virt << std::endl;
-
-
 
   Index levelaboveqpmax = _rpamax - qpmax;
   Index levelbelowqpmin = _rpamin - qpmin;
 
-  // Gap correction update
-  //_energies.segment(qpmax + 1 - _rpamin, levelaboveqpmax).array() += shift;
-
-  _energies.segment(0,levelbelowqpmin).array() -= max_correction_occ;
-  _energies.segment(qpmax + 1 - _rpamin, levelaboveqpmax).array() += max_correction_virt;
+  _energies.segment(0, levelbelowqpmin).array() -= max_correction_occ;
+  _energies.segment(qpmax + 1 - _rpamin, levelaboveqpmax).array() +=
+      max_correction_virt;
 }
 
 template <bool imag>

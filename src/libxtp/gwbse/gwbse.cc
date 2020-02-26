@@ -316,15 +316,11 @@ void GWBSE::Initialize(tools::Property& options) {
       _gwopt.g_sc_max_iterations);  // convergence criteria for qp iteration
                                     // [Hartree]]
 
-  _gwopt.gw_sc_max_iterations = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".gw_sc_max_iterations",
-      _gwopt.gw_sc_max_iterations);  // convergence criteria for qp iteration
-                                     // [Hartree]]
-
-
-_gwopt.gw_anderson_order = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".gw_anderson_order",
-      _gwopt.gw_anderson_order);  // convergence criteria for shift it
+  if (mode == "evGW") {
+    _gwopt.gw_sc_max_iterations =
+        options.ifExistsReturnElseReturnDefault<Index>(
+            key + ".gw_sc_max_iterations", _gwopt.gw_sc_max_iterations);
+  }
 
   _gwopt.gw_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
       key + ".gw_sc_limit",
@@ -411,6 +407,26 @@ _gwopt.gw_anderson_order = options.ifExistsReturnElseReturnDefault<Index>(
         << " QP grid steps: " << _gwopt.qp_grid_steps << flush;
     XTP_LOG(Log::error, *_pLog)
         << " QP grid spacing: " << _gwopt.qp_grid_spacing << flush;
+  }
+  _gwopt.gw_anderson_order = options.ifExistsReturnElseReturnDefault<Index>(
+      key + ".gw_anderson_order",
+      _gwopt.gw_anderson_order);  // max history in Anderson mixing (0: plain,
+                                  // 1: linear, >1 Anderson)
+
+  _gwopt.gw_anderson_alpha = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".gw_anderson_alpha", _gwopt.gw_anderson_alpha);
+
+  if (mode == "evGW") {
+    if (_gwopt.gw_anderson_order == 0) {
+      XTP_LOG(Log::error, *_pLog) << " evGW with plain update " << std::flush;
+    } else if (_gwopt.gw_anderson_order == 1) {
+      XTP_LOG(Log::error, *_pLog) << " evGW with linear update using alpha "
+                                  << _gwopt.gw_anderson_alpha << std::flush;
+    } else {
+      XTP_LOG(Log::error, *_pLog) << " evGW with Anderson update with history "
+                                  << _gwopt.gw_anderson_order << " using alpha "
+                                  << _gwopt.gw_anderson_alpha << std::flush;
+    }
   }
 
   _sigma_plot_states = options.ifExistsReturnElseReturnDefault<std::string>(

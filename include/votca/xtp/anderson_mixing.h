@@ -34,7 +34,7 @@ class ANDERSON {
 
   void UpdateOutput(const Eigen::VectorXd &newOutput);
   void UpdateInput(const Eigen::VectorXd &newInput);
-  void SetOrder( const Index max_history ) { _max_history = max_history +1; };
+  void SetOrder(const Index max_history) { _max_history = max_history + 1; };
   bool Info() { return success; }
 
  private:

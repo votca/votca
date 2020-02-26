@@ -174,7 +174,7 @@ void GW::CalculateGWPerturbation() {
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
     XTP_LOG(Log::info, _log)
         << TimeStamp() << " Solving QP equations " << std::flush;
-    if (_opt.gw_anderson_order > 0 && i_gw == 2) {
+    if (_opt.gw_anderson_order > 0 && i_gw == 1) {
       _mixing.UpdateInput(frequencies);
     }
 
@@ -182,39 +182,47 @@ void GW::CalculateGWPerturbation() {
 
     if (_opt.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
-      if (_opt.gw_anderson_order > 0 && i_gw > 1) {
-        std::cout << "Using Anderson order " << _opt.gw_anderson_order
-                  << std::endl;
+      if (_opt.gw_anderson_order > 0 && i_gw > 0) {
+        if (_opt.gw_anderson_order == 1) {
+          XTP_LOG(Log::debug, _log) << "GWSC using linear mixing with alpha: "
+                                    << _opt.gw_anderson_alpha << std::flush;
+        } else {
+          XTP_LOG(Log::debug, _log)
+              << "GWSC using Anderson mixing with history "
+              << _opt.gw_anderson_order << ", alpha: " << _opt.gw_anderson_alpha
+              << std::flush;
+        }
         _mixing.UpdateOutput(frequencies);
-        Eigen::VectorXd mixed_frequencies = _mixing.NPAndersonMixing(0.7);
+        Eigen::VectorXd mixed_frequencies =
+            _mixing.NPAndersonMixing(_opt.gw_anderson_alpha);
         _mixing.UpdateInput(mixed_frequencies);
-        _rpa.UpdateRPAInputEnergies(_dft_energies, mixed_frequencies, _opt.qpmin);
+        _rpa.UpdateRPAInputEnergies(_dft_energies, mixed_frequencies,
+                                    _opt.qpmin);
         frequencies = mixed_frequencies;
 
-        std::cout << "\n" << i_gw << "\n" << std::endl;
-
         for (int i = 0; i < mixed_frequencies.size(); i++) {
-          std::cout << "QPSCF " << i << " " << std::setprecision(9) << mixed_frequencies(i)
-                    << std::endl;
+          XTP_LOG(Log::debug, _log)
+              << "... GWSC iter " << i_gw << " state " << i << " "
+              << std::setprecision(9) << mixed_frequencies(i) << std::flush;
         }
 
       } else {
-        std::cout << "plain QP update" << std::endl;
+        XTP_LOG(Log::debug, _log) << "GWSC using plain update " << std::flush;
         _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
         for (int i = 0; i < frequencies.size(); i++) {
-          std::cout << "QPSCF " << i << " " << std::setprecision(9)
-                    << frequencies(i) << std::endl;
+          XTP_LOG(Log::debug, _log)
+              << "... GWSC iter " << i_gw << " state " << i << " "
+              << std::setprecision(9) << frequencies(i) << std::flush;
         }
       }
 
-      XTP_LOG(Log::error, _log)
+      XTP_LOG(Log::info, _log)
           << TimeStamp() << " GW_Iteration:" << i_gw
           << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;
       if (Converged(_rpa.getRPAInputEnergies(), rpa_energies_old,
                     _opt.gw_sc_limit)) {
-        XTP_LOG(Log::error, _log)
-            << TimeStamp() << " Converged after " << i_gw + 1
-            << " GW iterations." << std::flush;
+        XTP_LOG(Log::info, _log) << TimeStamp() << " Converged after "
+                                 << i_gw + 1 << " GW iterations." << std::flush;
         break;
       } else if (i_gw == _opt.gw_sc_max_iterations - 1) {
         XTP_LOG(Log::error, _log)
