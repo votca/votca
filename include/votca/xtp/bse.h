@@ -68,6 +68,8 @@ class BSE {
   void Solve_singlets(Orbitals& orb) const;
   void Solve_triplets(Orbitals& orb) const;
 
+  Eigen::MatrixXd getHqp() const { return _Hqp; };
+
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
 

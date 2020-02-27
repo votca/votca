@@ -48,8 +48,7 @@ void BSE::configure(const options& opt,
   SetupDirectInteractionOperator(RPAInputEnergies);
 }
 
-Eigen::MatrixXd BSE::AdjustHqpSize(
-    const Eigen::VectorXd& RPAInputEnergies) {
+Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::VectorXd& RPAInputEnergies) {
 
   Index hqp_size = _bse_vtotal + _bse_ctotal;
   Index gwsize = _opt.qpmax - _opt.qpmin + 1;
