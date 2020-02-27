@@ -62,8 +62,6 @@ class GWBSE {
 
   void addoutput(tools::Property& summary);
 
-  Eigen::MatrixXd PrepareHQP_forBSE(const Eigen::MatrixXd& Hqp);
-
  private:
   Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
   Index CountCoreLevels();

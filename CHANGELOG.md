@@ -4,7 +4,9 @@ For more detailed information about the changes see the history of the
 ## Version 1.7-dev
 * G0W0 rpa energies are fixed in BSE (#383) 
 * Hqp part of BSE can be separate from QP range (#388)
-	
+* Fixed Cuda implementation (#391)
+
+>>>>>>> master
 ## Version 1.6 _SuperPelagia_ (released XX.02.20)
 * fix 32-bit build (#381, #380)
 * remove duplicated basissets (#384, #386, #387)

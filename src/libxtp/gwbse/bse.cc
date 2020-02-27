@@ -44,7 +44,49 @@ void BSE::configure(const options& opt,
   _bse_vtotal = _bse_vmax - _opt.vmin + 1;
   _bse_ctotal = _opt.cmax - _bse_cmin + 1;
   _bse_size = _bse_vtotal * _bse_ctotal;
+  _Hqp = Scale_or_Expand_HQP(RPAInputEnergies);
   SetupDirectInteractionOperator(RPAInputEnergies);
+}
+
+Eigen::MatrixXd BSE::Scale_or_Expand_HQP(
+    const Eigen::VectorXd& RPAInputEnergies) {
+
+  Index hqp_size = _bse_vtotal + _bse_ctotal;
+  Index gwsize = _opt.qpmax - _opt.qpmin + 1;
+  Index RPAoffset = _opt.vmin - _opt.rpamin;
+  Eigen::MatrixXd Hqp_BSE = Eigen::MatrixXd::Zero(hqp_size, hqp_size);
+
+  if (_opt.vmin >= _opt.qpmin) {
+    Index start = _opt.vmin - _opt.qpmin;
+    if (_opt.cmax <= _opt.qpmax) {
+      Hqp_BSE = _Hqp_in.block(start, start, hqp_size, hqp_size);
+    } else {
+      Index virtoffset = gwsize - start;
+      Hqp_BSE.topLeftCorner(virtoffset, virtoffset) =
+          _Hqp_in.block(start, start, virtoffset, virtoffset);
+
+      Index virt_extra = _opt.cmax - _opt.qpmax;
+      Hqp_BSE.diagonal().tail(virt_extra) =
+          RPAInputEnergies.segment(RPAoffset + virtoffset, virt_extra);
+    }
+  }
+
+  if (_opt.vmin < _opt.qpmin) {
+    Index occ_extra = _opt.qpmin - _opt.vmin;
+    Hqp_BSE.diagonal().head(occ_extra) =
+        RPAInputEnergies.segment(RPAoffset, occ_extra);
+
+    Hqp_BSE.block(occ_extra, occ_extra, gwsize, gwsize) = _Hqp_in;
+
+    if (_opt.cmax > _opt.qpmax) {
+      Index virtoffset = occ_extra + gwsize;
+      Index virt_extra = _opt.cmax - _opt.qpmax;
+      Hqp_BSE.diagonal().tail(virt_extra) =
+          RPAInputEnergies.segment(RPAoffset + virtoffset, virt_extra);
+    }
+  }
+
+  return Hqp_BSE;
 }
 
 void BSE::SetupDirectInteractionOperator(
