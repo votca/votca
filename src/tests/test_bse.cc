@@ -237,12 +237,14 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.useTDA = true;
   opt.homo = 4;
   opt.qpmin = 0;
+  opt.qpmax = 16;
 
   orbitals.setBSEindices(0, 16);
 
   BSE bse = BSE(log, Mmn, Hqp);
   orbitals.setTDAApprox(true);
   orbitals.RPAInputEnergies() = Hqp.diagonal();
+  bse.configure(opt, orbitals.RPAInputEnergies());
 
   ////////////////////////////////////////////////////////
   // TDA Singlet lapack, davidson, davidson matrix free
