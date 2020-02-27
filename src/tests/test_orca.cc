@@ -8517,7 +8517,7 @@ BOOST_AUTO_TEST_CASE(opt_test) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(input_generation) {
+BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
   std::ofstream defaults("user_input.xml"), basis("3-21G.xml"),
       xyzfile("co.xyz");
 
@@ -8622,6 +8622,27 @@ BOOST_AUTO_TEST_CASE(input_generation) {
   Orbitals orb;
   orb.QMAtoms().LoadFromFile("co.xyz");
   orca->WriteInputFile(orb);
+
+  std::ifstream file_input("system.inp");
+  std::stringstream buffer;
+  buffer << file_input.rdbuf();
+  std::string inp = buffer.str();
+
+  // check basis section
+  auto index1 = inp.find("%basis");
+  auto index2 = inp.find("end", index1);
+  BOOST_CHECK_EQUAL(inp.substr(index1, index2 - index1),
+                    "%basis\nGTOName =\"system.bas\";\n");
+
+  // check basis section
+  index1 = inp.find("%scf");
+  index2 = inp.find("end", index1);
+  BOOST_CHECK_EQUAL(inp.substr(index1, index2 - index1),
+                    "%scf\nGUESS PMODEL\n");
+
+  // Check method
+  index1 = inp.find("!");
+  BOOST_CHECK_EQUAL(inp.substr(index1), "! DFT pbe0 TightSCF \n");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

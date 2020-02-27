@@ -226,7 +226,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   // put coordinates
   WriteCoordinates(inp_file, qmatoms);
   // add parallelization info
-  inp_file << "%pal\n "
+  inp_file << "%pal\n"
            << "nprocs " << threads << "\nend"
            << "\n"
            << endl;
@@ -234,7 +234,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   if (_write_basis_set) {
     std::string el_file_name = _run_dir + "/" + "system.bas";
     WriteBasisset(qmatoms, _basisset_name, el_file_name);
-    inp_file << "%basis\n " << endl;
+    inp_file << "%basis\n";
     inp_file << "GTOName"
              << " "
              << "="
@@ -269,9 +269,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   }
   // Write main DFT method
   _options += this->WriteMethod();
-
-  inp_file << _options << "\n";
-  inp_file << endl;
+  inp_file << _options;
   inp_file.close();
   // and now generate a shell script to run both jobs, if neccessary
 
@@ -814,8 +812,9 @@ std::string Orca::indent(const double& number) {
 std::string Orca::CreateInputSection(const std::string& key) const {
   std::stringstream stream;
   std::string section = key.substr(key.find(".") + 1);
-  stream << "%" << section << " " << this->_settings.get(key) << "\n"
-         << "    end\n";
+  stream << "%" << section << "\n"
+         << this->_settings.get(key) << "\n"
+         << "end\n";
   return stream.str();
 }
 
