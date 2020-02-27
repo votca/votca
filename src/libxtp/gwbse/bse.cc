@@ -44,11 +44,11 @@ void BSE::configure(const options& opt,
   _bse_vtotal = _bse_vmax - _opt.vmin + 1;
   _bse_ctotal = _opt.cmax - _bse_cmin + 1;
   _bse_size = _bse_vtotal * _bse_ctotal;
-  _Hqp = Scale_or_Expand_HQP(RPAInputEnergies);
+  _Hqp = AdjustHqpSize(RPAInputEnergies);
   SetupDirectInteractionOperator(RPAInputEnergies);
 }
 
-Eigen::MatrixXd BSE::Scale_or_Expand_HQP(
+Eigen::MatrixXd BSE::AdjustHqpSize(
     const Eigen::VectorXd& RPAInputEnergies) {
 
   Index hqp_size = _bse_vtotal + _bse_ctotal;

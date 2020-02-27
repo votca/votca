@@ -125,7 +125,7 @@ class BSE {
   void printWeights(Index i_bse, double weight) const;
   void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies);
 
-  Eigen::MatrixXd Scale_or_Expand_HQP(const Eigen::VectorXd& RPAInputEnergies);
+  Eigen::MatrixXd AdjustHqpSize(const Eigen::VectorXd& RPAInputEnergies);
 
   Interaction Analyze_eh_interaction(const QMStateType& type,
                                      const Orbitals& orb) const;
