@@ -3,7 +3,6 @@
 <charge>0</charge>
 <spin>1</spin>
 <basisset>ubecppol</basisset>
-<auxbasisset>aux-ubecppol</auxbasisset>
 <optimize>false</optimize>
 <functional>pbe0</functional>
 <scratch>/tmp/qmpackage</scratch>
