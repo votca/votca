@@ -984,7 +984,6 @@ std::string Gaussian::FortranFormat(double number) {
 std::string Gaussian::WriteMethod() const {
   std::stringstream stream;
   const Property& gauss = _settings.property("gaussian");
-  cout << "gauss:\n" << gauss << "\n";
   stream << "# " << _settings.get("functional") << " ";
   for (const Property& prop : gauss.get("method")) {
     stream << prop.name() << prop.value() << " ";

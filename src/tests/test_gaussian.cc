@@ -1548,4 +1548,138 @@ BOOST_AUTO_TEST_CASE(read_optgeometry) {
   }
 }
 
+BOOST_AUTO_TEST_CASE(input_generation_version_09) {
+  std::ofstream defaults("user_input.xml"), basis("3-21G.xml"),
+      xyzfile("co.xyz");
+
+  defaults << "<package>\n"
+           << "<name>gaussian</name>\n"
+           << "<charge>0</charge>\n"
+           << "<spin>1</spin>\n"
+           << "<executable>g09</executable>\n"
+           << "<basisset>3-21G.xml</basisset>\n"
+           << "<functional>pbe0</functional>\n"
+           << "<read_guess>false</read_guess>\n"
+           << "<write_charges>false</write_charges>\n"
+           << "<scratch>/tmp/qmpackage</scratch>\n"
+           << "<optimize>false</optimize>\n"
+           << "<convergence_tightness>tight</convergence_tightness>\n"
+           << "<gaussian>\n"
+           << "   <method>\n"
+           << "         <int>=nobasistransform</int>\n"
+           << "         <pop>=minimal</pop>"
+           << "            <pseudo>=read</pseudo>\n"
+           << "            <punch>=mo</punch>\n"
+           << "         <test></test>\n"
+           << "            <nosymm></nosymm>\n"
+           << "    </method>\n"
+           << "   <memory>1GB</memory>\n"
+           << "</gaussian>\n"
+           << "</package>";
+  defaults.close();
+
+  basis << "<basis name=\"3-21G\">\n"
+        << "<element name=\"C\">\n"
+        << "<shell scale=\"1.0\" type=\"S\">\n"
+        << "<constant decay=\"1.722560e+02\">\n"
+        << "<contractions factor=\"6.176690e-02\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"2.591090e+01\">\n"
+        << "<contractions factor=\"3.587940e-01\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"5.533350e+00\">\n"
+        << "<contractions factor=\"7.007130e-01\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "<shell scale=\"1.0\" type=\"SP\">\n"
+        << "<constant decay=\"3.664980e+00\">\n"
+        << "<contractions factor=\"-3.958970e-01\" type=\"S\"/>\n"
+        << "<contractions factor=\"2.364600e-01\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"7.705450e-01\">\n"
+        << "<contractions factor=\"1.215840e+00\" type=\"S\"/>\n"
+        << "<contractions factor=\"8.606190e-01\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "<shell scale=\"1.0\" type=\"SP\">\n"
+        << "<constant decay=\"1.958570e-01\">\n"
+        << "<contractions factor=\"1.000000e+00\" type=\"S\"/>\n"
+        << "<contractions factor=\"1.000000e+00\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "</element>\n"
+
+        << "<element name=\"O\">\n"
+        << "<shell scale=\"1.0\" type=\"S\">\n"
+        << "<constant decay=\"3.220370e+02\">\n"
+        << "<contractions factor=\"5.923940e-02\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"4.843080e+01\">\n"
+        << "<contractions factor=\"3.515000e-01\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"1.042060e+01\">\n"
+        << "<contractions factor=\"7.076580e-01\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "<shell scale=\"1.0\" type=\"SP\">\n"
+        << "<constant decay=\"7.402940e+00\">\n"
+        << "<contractions factor=\"-4.044530e-01\" type=\"S\"/>\n"
+        << "<contractions factor=\"2.445860e-01\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"1.576200e+00\">\n"
+        << "<contractions factor=\"1.221560e+00\" type=\"S\"/>\n"
+        << "<contractions factor=\"8.539550e-01\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "<shell scale=\"1.0\" type=\"SP\">\n"
+        << "<constant decay=\"3.736840e-01\">\n"
+        << "<contractions factor=\"1.000000e+00\" type=\"S\"/>\n"
+        << "<contractions factor=\"1.000000e+00\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "</element>\n"
+        << "</basis>";
+  basis.close();
+
+  xyzfile << "2\n\n"
+          << "C  0.6969 0.0 0.0\n"
+             "O -0.6969 0.0 0.0\n";
+  xyzfile.close();
+
+  Property prop;
+  prop.LoadFromXML("user_input.xml");
+
+  QMPackageFactory::RegisterAll();
+  std::unique_ptr<QMPackage> gaussian =
+      std::unique_ptr<QMPackage>(QMPackages().Create("gaussian"));
+  Logger log;
+  gaussian->setLog(&log);
+  gaussian->setRunDir(".");
+  gaussian->Initialize(prop);
+
+  Orbitals orb;
+  orb.QMAtoms().LoadFromFile("co.xyz");
+  gaussian->WriteInputFile(orb);
+
+  std::ifstream file_input("system.com");
+  std::stringstream buffer;
+  buffer << file_input.rdbuf();
+  std::string inp = buffer.str();
+
+  // check dft section
+  auto index1 = inp.find("#");
+  auto index2 = inp.find("\nTITLE", index1);
+  std::string method = inp.substr(index1, index2 - index1);
+  std::stringstream stream;
+  stream << "# pbe0 int=nobasistransform pop=minimal pseudo=read "
+         << "punch=mo test nosymm \n";
+  BOOST_CHECK_EQUAL(method, stream.str());
+
+  // Look for basis files in input
+  index1 = inp.find("@C.gbs");
+  BOOST_CHECK(index1 != std::string::npos);
+  index1 = inp.find("@O.gbs");
+  BOOST_CHECK(index1 != std::string::npos);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

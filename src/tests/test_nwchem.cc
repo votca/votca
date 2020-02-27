@@ -1575,7 +1575,7 @@ BOOST_AUTO_TEST_CASE(opt_test) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
+ BOOST_AUTO_TEST_CASE(input_generation_version_6_8_1) {
   std::ofstream defaults("user_input.xml"), basis("3-21G.xml"),
       xyzfile("co.xyz");
 
