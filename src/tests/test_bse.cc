@@ -673,8 +673,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   BOOST_CHECK_EQUAL(check_tpsi_dav2, true);
 
   // Cutout Hamiltonian
-  // cout << Hqp.block(1,1,15,15) << endl;
-
   Eigen::MatrixXd Hqp_cut_ref = Eigen::MatrixXd::Zero(15, 15);
   Hqp_cut_ref << -0.461602, 1.12979e-07, -1.47246e-07, -1.3086e-07, 0.0443459,
       0.000553929, 0.000427421, 8.38616e-05, 0.000289144, -0.0101872,
