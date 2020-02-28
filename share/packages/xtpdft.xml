@@ -10,6 +10,7 @@
     <DIIS_length help="old hamiltonians to keep in history">20</DIIS_length>
     <levelshift help="levelshift to apply to hamiltonian " unit="hartree">0.0</levelshift>
     <levelshift_end help="DIIS error at levelshifting is disabled">0.2</levelshift_end>
+    <max_iterations help="max iterations to use">200</max_iterations>
 </convergence>
 <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities)">atom</initial_guess>
 <basisset help="basiset to use">ubecppol</basisset>
@@ -17,7 +18,6 @@
 <auxbasisset help="auxiliary to use, Delete if you do not want to use RI approximation">aux-ubecppol</auxbasisset>  
 <integration_grid help="grid quality xcoarse,coarse,medium,fine,xfine">medium</integration_grid>
 <xc_functional help="functional name(s) according to LIBXC">XC_HYB_GGA_XC_PBEH</xc_functional>
-<max_iterations help="max iterations to use">200</max_iterations>
 <read_guess help="try to read guess from orbitals file">0</read_guess>
 <cleanup help="files to delete identified by fileending"></cleanup>
 </package>
