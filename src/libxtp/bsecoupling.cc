@@ -431,6 +431,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   opt.cmax = orbitalsAB.getBSEcmax();
   opt.homo = orbitalsAB.getHomo();
   opt.qpmin = orbitalsAB.getGWAmin();
+  opt.qpmax = orbitalsAB.getGWAmax();
   opt.rpamax = orbitalsAB.getRPAmax();
   opt.rpamin = orbitalsAB.getRPAmin();
   opt.useTDA = true;

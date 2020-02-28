@@ -68,6 +68,8 @@ class BSE {
   void Solve_singlets(Orbitals& orb) const;
   void Solve_triplets(Orbitals& orb) const;
 
+  Eigen::MatrixXd getHqp() const { return _Hqp; };
+
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
 
@@ -125,7 +127,7 @@ class BSE {
   void printWeights(Index i_bse, double weight) const;
   void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies);
 
-  Eigen::MatrixXd Scale_or_Expand_HQP(const Eigen::VectorXd& RPAInputEnergies);
+  Eigen::MatrixXd AdjustHqpSize(const Eigen::VectorXd& RPAInputEnergies);
 
   Interaction Analyze_eh_interaction(const QMStateType& type,
                                      const Orbitals& orb) const;

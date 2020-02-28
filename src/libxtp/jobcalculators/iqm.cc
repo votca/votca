@@ -412,6 +412,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       bool _run_dft_status = qmpackage->Run();
       if (!_run_dft_status) {
         SetJobToFailed(jres, pLog, qmpackage->getPackageName() + " run failed");
+        WriteLoggerToFile(work_dir + "/dft.log", dft_logger);
         return jres;
       }
     }
