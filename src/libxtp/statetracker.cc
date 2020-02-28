@@ -32,7 +32,7 @@ void StateTracker::Initialize(const tools::Property& options) {
   std::vector<std::string> list_filters = tok.ToVector();
 
   FilterFactory::RegisterAll();
-  for (const std::string filtername : list_filters) {
+  for (const std::string &filtername : list_filters) {
     _filters.push_back(
         std::unique_ptr<StateFilter_base>(Filter().Create(filtername)));
   }

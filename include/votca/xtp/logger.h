@@ -157,7 +157,7 @@ class LogBuffer : public std::stringbuf {
  *  Logger has four predefined log levels: error, warning, info,
  * debug.
  */
-class Logger : public std::ostream {
+class Logger final: public std::ostream {
 
   friend std::ostream &operator<<(std::ostream &log_out, Logger &logger) {
     log_out << logger.Messages();

@@ -54,7 +54,7 @@ class DipoleDipoleInteraction
                           const std::vector<PolarSegment>& segs)
       : _interactor(interactor) {
     _size = 0;
-    for (const PolarSegment seg : segs) {
+    for (const PolarSegment &seg : segs) {
       _size += 3 * seg.size();
     }
     _sites.reserve(_size / 3);

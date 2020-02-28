@@ -182,7 +182,7 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
           }
         }
       }
-      for (const Eigen::MatrixXd mat : thread_wiseresult) {
+      for (const Eigen::MatrixXd &mat : thread_wiseresult) {
         dst += mat;
       }
     }
