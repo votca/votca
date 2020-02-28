@@ -46,7 +46,7 @@ void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
   double max_correction_virt = (corrections_virt.cwiseAbs()).maxCoeff();
 
   Index levelaboveqpmax = _rpamax - qpmax;
-  Index levelbelowqpmin = _rpamin - qpmin;
+  Index levelbelowqpmin =  qpmin - _rpamin;
 
   _energies.segment(0, levelbelowqpmin).array() -= max_correction_occ;
   _energies.segment(qpmax + 1 - _rpamin, levelaboveqpmax).array() +=
