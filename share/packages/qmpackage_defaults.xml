@@ -41,9 +41,9 @@ direct
         <DIIS_length help="old hamiltonians to keep in history">20</DIIS_length>
         <levelshift help="levelshift to apply to hamiltonian " unit="hartree">0.0</levelshift>
         <levelshift_end help="DIIS error at levelshifting is disabled">0.2</levelshift_end>
+        <max_iterations help="max iterations to use">200</max_iterations>
     </convergence>
     <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities)">atom</initial_guess>
     <integration_grid help="grid quality xcoarse,coarse,medium,fine,xfine">medium</integration_grid>
-    <max_iterations help="max iterations to use">200</max_iterations>
 </xtpdft>
 </package>
