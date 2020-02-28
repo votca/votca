@@ -27,7 +27,7 @@
 namespace votca {
 namespace xtp {
 
-class APDFT final: public QMTool {
+class APDFT final : public QMTool {
  public:
   APDFT() = default;
 

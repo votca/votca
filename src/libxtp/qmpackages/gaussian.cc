@@ -501,7 +501,7 @@ void Gaussian::CleanUp() {
           }
           ++fit;
         }
-        for (const auto &filename : fileswithfileending) {
+        for (const auto& filename : fileswithfileending) {
           std::string file_name = _run_dir + "/" + filename;
           remove(file_name.c_str());
         }
