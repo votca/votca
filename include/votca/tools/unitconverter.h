@@ -44,8 +44,8 @@ enum EnergyUnit { electron_volts, kilocalories, hartrees, joules };
 class UnitConverter {
  private:
   /// All distances with respect to Ang
-  constexpr double getDistanceValue_(
-      const DistanceUnit& enum_type) const noexcept {
+  constexpr double getDistanceValue_(const DistanceUnit& enum_type) const
+      noexcept {
     switch (enum_type) {
       case DistanceUnit::meters:
         return 1E10;
@@ -117,16 +117,16 @@ class UnitConverter {
                            const DistanceUnit& to) const noexcept {
     return getDistanceValue_(from) / getDistanceValue_(to);
   }
-  constexpr double convert(const TimeUnit& from,
-                           const TimeUnit& to) const noexcept {
+  constexpr double convert(const TimeUnit& from, const TimeUnit& to) const
+      noexcept {
     return getTimeValue_(from) / getTimeValue_(to);
   }
-  constexpr double convert(const MassUnit& from,
-                           const MassUnit& to) const noexcept {
+  constexpr double convert(const MassUnit& from, const MassUnit& to) const
+      noexcept {
     return getMassValue_(from) / getMassValue_(to);
   }
-  constexpr double convert(const EnergyUnit& from,
-                           const EnergyUnit& to) const noexcept {
+  constexpr double convert(const EnergyUnit& from, const EnergyUnit& to) const
+      noexcept {
     return getEnergyValue_(from) / getEnergyValue_(to);
   }
 };
