@@ -17,11 +17,11 @@
  *
  */
 
+#include "types.h"
 #include <iostream>
 #include <limits>
 #include <utility>
 #include <vector>
-#include <votca/tools/types.h>
 
 #ifndef _VOTCA_TOOLS_EDGE_H
 #define _VOTCA_TOOLS_EDGE_H

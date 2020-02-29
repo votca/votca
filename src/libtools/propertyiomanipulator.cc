@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/tools/propertyiomanipulator.h>
+#include "../../include/votca/tools/propertyiomanipulator.h"
 
 namespace votca {
 namespace tools {

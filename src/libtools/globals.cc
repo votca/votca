@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/tools/globals.h>
+#include "../../include/votca/tools/globals.h"
 
 namespace votca {
 

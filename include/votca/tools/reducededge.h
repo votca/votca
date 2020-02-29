@@ -17,7 +17,7 @@
  *
  */
 
-#include <votca/tools/edge.h>
+#include "edge.h"
 
 #ifndef _VOTCA_TOOLS_REDUCEDEDGE_H
 #define _VOTCA_TOOLS_REDUCEDEDGE_H

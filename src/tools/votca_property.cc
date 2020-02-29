@@ -15,15 +15,15 @@
  *
  */
 
+#include "../../include/votca/tools/application.h"
+#include "../../include/votca/tools/globals.h"
+#include "../../include/votca/tools/property.h"
+#include "../../include/votca/tools/propertyiomanipulator.h"
+#include "../../include/votca/tools/version.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
-#include <votca/tools/application.h>
-#include <votca/tools/globals.h>
-#include <votca/tools/property.h>
-#include <votca/tools/propertyiomanipulator.h>
-#include <votca/tools/version.h>
 
 using namespace std;
 using namespace votca::tools;
