@@ -6,6 +6,9 @@ For more detailed information about the changes see the history of the [reposito
 * use local includes (#204)
 * add more support for units (#200)
 
+## Version 1.6 _SuperPelagia_ (released XX.02.20)
+* fix clang-10 warnings (#217)
+
 ## Version 1.6_rc2 (released 10.02.20)
 * fix inheritance bug in cmake files (#197) 
 * fix bug in table class (#196)
