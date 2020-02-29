@@ -57,7 +57,8 @@ Index EdgeContainer::getDegree(const Index vertex) const {
   if (adj_list_.at(vertex).size() == 0) {
     return degree_count;
   }
-  for (const pair<Index, Index>& neighbor_and_count : adj_list_.at(vertex)) {
+  for (const pair<const Index, Index>& neighbor_and_count :
+       adj_list_.at(vertex)) {
     if (neighbor_and_count.first == vertex) {
       degree_count += neighbor_and_count.second * 2;
     } else {
@@ -145,7 +146,8 @@ vector<Index> EdgeContainer::getVertices() const {
 vector<Index> EdgeContainer::getNeighVertices(Index vertex) const {
   vector<Index> neigh_verts;
   if (adj_list_.count(vertex)) {
-    for (const pair<Index, Index>& neigh_and_count : adj_list_.at(vertex)) {
+    for (const pair<const Index, Index>& neigh_and_count :
+         adj_list_.at(vertex)) {
       neigh_verts.push_back(neigh_and_count.first);
     }
   }
@@ -155,7 +157,8 @@ vector<Index> EdgeContainer::getNeighVertices(Index vertex) const {
 vector<Edge> EdgeContainer::getNeighEdges(Index vertex) const {
   vector<Edge> neigh_edges;
   if (adj_list_.count(vertex)) {
-    for (const pair<Index, Index>& neigh_and_count : adj_list_.at(vertex)) {
+    for (const pair<const Index, Index>& neigh_and_count :
+         adj_list_.at(vertex)) {
       for (Index count = 0;
            count < adj_list_.at(vertex).at(neigh_and_count.first); ++count) {
         neigh_edges.push_back(Edge(vertex, neigh_and_count.first));
@@ -168,7 +171,7 @@ vector<Edge> EdgeContainer::getNeighEdges(Index vertex) const {
 vector<Edge> EdgeContainer::getEdges() const {
   unordered_map<Edge, Index> extra_edge_count;
   for (const auto& vertex_and_neigh_and_count : adj_list_) {
-    for (const pair<Index, Index>& neigh_and_count :
+    for (const pair<const Index, Index>& neigh_and_count :
          vertex_and_neigh_and_count.second) {
       extra_edge_count[Edge(vertex_and_neigh_and_count.first,
                             neigh_and_count.first)] = neigh_and_count.second;

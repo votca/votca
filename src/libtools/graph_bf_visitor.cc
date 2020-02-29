@@ -39,14 +39,14 @@ Edge Graph_BF_Visitor::getEdge_() {
 }
 
 // Add edges to be explored
-void Graph_BF_Visitor::addEdges_(const Graph& graph, Index vertex) {
+void Graph_BF_Visitor::addEdges_(const Graph &graph, Index vertex) {
 
   vector<Edge> newest_edges = graph.getNeighEdges(vertex);
 
   // If first edges to be added
   if (edge_que_.empty()) {
     queue<Edge> first_edge_queue;
-    for (const Edge edge : newest_edges) {
+    for (const Edge &edge : newest_edges) {
       Index neigh_vert = edge.getOtherEndPoint(vertex);
       if (explored_.count(neigh_vert) == 0) {
         first_edge_queue.push(edge);
@@ -59,7 +59,7 @@ void Graph_BF_Visitor::addEdges_(const Graph& graph, Index vertex) {
 
     if (edge_que_.size() == 1) {
       queue<Edge> new_edge_queue;
-      for (const Edge edge : newest_edges) {
+      for (const Edge &edge : newest_edges) {
         Index neigh_vert = edge.getOtherEndPoint(vertex);
         if (explored_.count(neigh_vert) == 0) {
           new_edge_queue.push(edge);
@@ -69,7 +69,7 @@ void Graph_BF_Visitor::addEdges_(const Graph& graph, Index vertex) {
         edge_que_.push_back(new_edge_queue);
       }
     } else {
-      for (const Edge edge : newest_edges) {
+      for (const Edge &edge : newest_edges) {
         Index neigh_vert = edge.getOtherEndPoint(vertex);
         if (explored_.count(neigh_vert) == 0) {
           edge_que_.at(1).push(edge);
