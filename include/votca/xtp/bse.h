@@ -99,7 +99,6 @@ class BSE {
   Eigen::VectorXd _epsilon_0_inv;
 
   TCMatrix_gwbse& _Mmn;
-  // const Eigen::MatrixXd& _Hqp_in;
   Eigen::MatrixXd _Hqp;
 
   tools::EigenSystem Solve_singlets_TDA() const;
