@@ -436,8 +436,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   opt.rpamin = orbitalsAB.getRPAmin();
   opt.useTDA = true;
   opt.vmin = orbitalsAB.getBSEvmin();
-  BSE bse(*_pLog, Mmn, Hqp);
-  bse.configure(opt, orbitalsAB.RPAInputEnergies());
+  BSE bse(*_pLog, Mmn);
+  bse.configure(opt, orbitalsAB.RPAInputEnergies(), Hqp);
   XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Setup BSE operator" << flush;
 
   // now the different spin types
