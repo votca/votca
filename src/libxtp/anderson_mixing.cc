@@ -50,28 +50,27 @@ Eigen::VectorXd ANDERSON::NPAndersonMixing(const double alpha) {
 
   if (_iteration > 1 && _max_history > 1) {
 
-    Eigen::VectorXd DeltaN = _output.back() - _input.back();
+    Eigen::VectorXd DeltaN = OutMixed - InMixed;
 
     // Building Linear System for Coefficients
+    const Index used_history = _output.size()-1;
     Eigen::MatrixXd A =
-        Eigen::MatrixXd::Zero(_input.size() - 1, _input.size() - 1);
-    Eigen::VectorXd c = Eigen::VectorXd::Zero(_input.size() - 1);
+        Eigen::MatrixXd::Zero(used_history, used_history);
+    Eigen::VectorXd c = Eigen::VectorXd::Zero(used_history);
 
-    Index size = _output.size();
+    for (Index m = 1; m <= used_history; m++) {
 
-    for (Index m = 1; m < size; m++) {
-
-      c(m - 1) = (DeltaN - _output.at(_output.size() - 1 - m) +
-                  _input.at(_input.size() - 1 - m))
+      c(m - 1) = (DeltaN - _output.at(used_history - m) +
+                  _input.at(used_history - m))
                      .cwiseProduct(DeltaN)
                      .sum();
 
-      for (Index j = 1; j < size; j++) {
+      for (Index j = 1; j <= used_history; j++) {
         A(m - 1, j - 1) =
-            (DeltaN - _output.at(_output.size() - 1 - m) +
-             _input.at(_input.size() - 1 - m))
-                .cwiseProduct((DeltaN - _output.at(_output.size() - 1 - j) +
-                               _input.at(_input.size() - 1 - j)))
+            (DeltaN - _output.at(used_history - m) +
+             _input.at(used_history - m))
+                .cwiseProduct((DeltaN - _output.at(used_history - j) +
+                               _input.at(used_history - j)))
                 .sum();
       }
     }
@@ -79,12 +78,12 @@ Eigen::VectorXd ANDERSON::NPAndersonMixing(const double alpha) {
     Eigen::VectorXd coefficients = A.fullPivHouseholderQr().solve(c);
 
     // Mixing the Potentials
-    for (Index n = 1; n < size; n++) {
+    for (Index n = 1; n <= used_history; n++) {
 
-      OutMixed += coefficients(n - 1) * (_output.at(_output.size() - 1 - n) -
-                                         _output.at(_output.size() - 1));
-      InMixed += coefficients(n - 1) * (_input.at(_input.size() - 1 - n) -
-                                        _input.at(_input.size() - 1));
+      OutMixed += coefficients(n - 1) * (_output.at(used_history - n) -
+                                         _output.at(used_history));
+      InMixed += coefficients(n - 1) * (_input.at(used_history - n) -
+                                        _input.at(used_history));
     }
   }
 
