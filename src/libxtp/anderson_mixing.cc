@@ -90,6 +90,6 @@ Eigen::VectorXd ANDERSON::NPAndersonMixing(const double alpha) {
 
   // Returning the linear Mix of Input and Output
   return alpha * OutMixed + (1 - alpha) * InMixed;
-}  // namespace xtp
+}  
 }  // namespace xtp
 }  // namespace votca
