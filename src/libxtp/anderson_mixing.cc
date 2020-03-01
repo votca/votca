@@ -53,17 +53,16 @@ Eigen::VectorXd ANDERSON::NPAndersonMixing(const double alpha) {
     Eigen::VectorXd DeltaN = OutMixed - InMixed;
 
     // Building Linear System for Coefficients
-    const Index used_history = _output.size()-1;
-    Eigen::MatrixXd A =
-        Eigen::MatrixXd::Zero(used_history, used_history);
+    const Index used_history = _output.size() - 1;
+    Eigen::MatrixXd A = Eigen::MatrixXd::Zero(used_history, used_history);
     Eigen::VectorXd c = Eigen::VectorXd::Zero(used_history);
 
     for (Index m = 1; m <= used_history; m++) {
 
-      c(m - 1) = (DeltaN - _output.at(used_history - m) +
-                  _input.at(used_history - m))
-                     .cwiseProduct(DeltaN)
-                     .sum();
+      c(m - 1) =
+          (DeltaN - _output.at(used_history - m) + _input.at(used_history - m))
+              .cwiseProduct(DeltaN)
+              .sum();
 
       for (Index j = 1; j <= used_history; j++) {
         A(m - 1, j - 1) =
@@ -80,15 +79,15 @@ Eigen::VectorXd ANDERSON::NPAndersonMixing(const double alpha) {
     // Mixing the Potentials
     for (Index n = 1; n <= used_history; n++) {
 
-      OutMixed += coefficients(n - 1) * (_output.at(used_history - n) -
-                                         _output.at(used_history));
-      InMixed += coefficients(n - 1) * (_input.at(used_history - n) -
-                                        _input.at(used_history));
+      OutMixed += coefficients(n - 1) *
+                  (_output.at(used_history - n) - _output.at(used_history));
+      InMixed += coefficients(n - 1) *
+                 (_input.at(used_history - n) - _input.at(used_history));
     }
   }
 
   // Returning the linear Mix of Input and Output
   return alpha * OutMixed + (1 - alpha) * InMixed;
-}  
+}
 }  // namespace xtp
 }  // namespace votca
