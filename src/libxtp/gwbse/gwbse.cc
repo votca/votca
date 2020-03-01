@@ -697,7 +697,6 @@ bool GWBSE::Evaluate() {
         << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
 
     Hqp = gw.getHQP();
-    // Hqp_BSE = Scale_or_Expand_HQP_forBSE(Hqp);
 
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
         gw.DiagonalizeQPHamiltonian();
@@ -721,15 +720,13 @@ bool GWBSE::Evaluate() {
 
     Hqp = qpcoeff * _orbitals.QPdiag().eigenvalues().asDiagonal() *
           qpcoeff.transpose();
-
-    // Hqp_BSE = Scale_or_Expand_HQP_forBSE(Hqp);
   }
 
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
 
-    BSE bse = BSE(*_pLog, Mmn, Hqp);
-    bse.configure(_bseopt, _orbitals.RPAInputEnergies());
+    BSE bse = BSE(*_pLog, Mmn);
+    bse.configure(_bseopt, _orbitals.RPAInputEnergies(), Hqp);
 
     if (_do_bse_triplets) {
       bse.Solve_triplets(_orbitals);

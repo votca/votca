@@ -36,19 +36,20 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
-void BSE::configure(const options& opt,
-                    const Eigen::VectorXd& RPAInputEnergies) {
+void BSE::configure(const options& opt, const Eigen::VectorXd& RPAInputEnergies,
+                    const Eigen::MatrixXd& Hqp_in) {
   _opt = opt;
   _bse_vmax = _opt.homo;
   _bse_cmin = _opt.homo + 1;
   _bse_vtotal = _bse_vmax - _opt.vmin + 1;
   _bse_ctotal = _opt.cmax - _bse_cmin + 1;
   _bse_size = _bse_vtotal * _bse_ctotal;
-  _Hqp = AdjustHqpSize(RPAInputEnergies);
+  _Hqp = AdjustHqpSize(Hqp_in, RPAInputEnergies);
   SetupDirectInteractionOperator(RPAInputEnergies);
 }
 
-Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::VectorXd& RPAInputEnergies) {
+Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::MatrixXd& Hqp,
+                                   const Eigen::VectorXd& RPAInputEnergies) {
 
   Index hqp_size = _bse_vtotal + _bse_ctotal;
   Index gwsize = _opt.qpmax - _opt.qpmin + 1;
@@ -58,11 +59,11 @@ Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::VectorXd& RPAInputEnergies) {
   if (_opt.vmin >= _opt.qpmin) {
     Index start = _opt.vmin - _opt.qpmin;
     if (_opt.cmax <= _opt.qpmax) {
-      Hqp_BSE = _Hqp_in.block(start, start, hqp_size, hqp_size);
+      Hqp_BSE = Hqp.block(start, start, hqp_size, hqp_size);
     } else {
       Index virtoffset = gwsize - start;
       Hqp_BSE.topLeftCorner(virtoffset, virtoffset) =
-          _Hqp_in.block(start, start, virtoffset, virtoffset);
+          Hqp.block(start, start, virtoffset, virtoffset);
 
       Index virt_extra = _opt.cmax - _opt.qpmax;
       Hqp_BSE.diagonal().tail(virt_extra) =
@@ -75,7 +76,7 @@ Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::VectorXd& RPAInputEnergies) {
     Hqp_BSE.diagonal().head(occ_extra) =
         RPAInputEnergies.segment(RPAoffset, occ_extra);
 
-    Hqp_BSE.block(occ_extra, occ_extra, gwsize, gwsize) = _Hqp_in;
+    Hqp_BSE.block(occ_extra, occ_extra, gwsize, gwsize) = Hqp;
 
     if (_opt.cmax > _opt.qpmax) {
       Index virtoffset = occ_extra + gwsize;

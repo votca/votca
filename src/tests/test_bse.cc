@@ -241,7 +241,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   orbitals.setBSEindices(0, 16);
 
-  BSE bse = BSE(log, Mmn, Hqp);
+  BSE bse = BSE(log, Mmn);
   orbitals.setTDAApprox(true);
   orbitals.RPAInputEnergies() = Hqp.diagonal();
 
@@ -290,7 +290,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   // lapack
   opt.davidson = 0;
-  bse.configure(opt, orbitals.RPAInputEnergies());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
 
   // Hqp unchanged
   bool check_hqp_unchanged = Hqp.isApprox(bse.getHqp(), 0.001);
@@ -326,7 +326,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   // davidson full matrix
   opt.davidson = 1;
-  bse.configure(opt, orbitals.RPAInputEnergies());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_singlets(orbitals);
 
   std::vector<QMFragment<BSE_Population> > singlets;
@@ -357,7 +357,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   // davidson matrix free
   opt.davidson = 1;
   opt.matrixfree = 1;
-  bse.configure(opt, orbitals.RPAInputEnergies());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_singlets(orbitals);
   bool check_se_dav2 =
       se_ref.isApprox(orbitals.BSESinglets().eigenvalues(), 0.001);
@@ -465,7 +465,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.useTDA = false;
   opt.davidson = 0;
   opt.matrixfree = 0;
-  bse.configure(opt, orbitals.RPAInputEnergies());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   orbitals.setTDAApprox(false);
   bse.Solve_singlets(orbitals);
   orbitals.BSESinglets().eigenvectors().colwise().normalize();
@@ -523,7 +523,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.davidson = 1;
   opt.nmax = 3;
 
-  bse.configure(opt, orbitals.RPAInputEnergies());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_singlets(orbitals);
   orbitals.BSESinglets().eigenvectors().colwise().normalize();
   orbitals.BSESinglets().eigenvectors2().colwise().normalize();
@@ -595,7 +595,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   // lapack
   opt.davidson = 0;
   opt.matrixfree = 0;
-  bse.configure(opt, orbitals.RPAInputEnergies());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_triplets(orbitals);
   std::vector<QMFragment<BSE_Population> > triplets;
   bse.Analyze_triplets(triplets, orbitals);
@@ -623,7 +623,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   // davidson
   opt.davidson = 1;
   opt.matrixfree = 0;
-  bse.configure(opt, orbitals.RPAInputEnergies());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_triplets(orbitals);
 
   bool check_te_dav =
@@ -649,7 +649,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   // davidson matrix free
   opt.davidson = 1;
   opt.matrixfree = 1;
-  bse.configure(opt, orbitals.RPAInputEnergies());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_triplets(orbitals);
 
   bool check_te_dav2 =
@@ -720,7 +720,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   // Hqp cut
   opt.cmax = 15;
   opt.vmin = 1;
-  bse.configure(opt, orbitals.RPAInputEnergies());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bool check_hqp_cut = Hqp_cut_ref.isApprox(bse.getHqp(), 0.001);
   if (!check_hqp_cut) {
     cout << "cut Hqp" << endl;
@@ -735,8 +735,8 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.vmin = 0;
   opt.qpmin = 1;
   opt.qpmax = 15;
-  BSE bse2 = BSE(log, Mmn, Hqp_cut_ref);
-  bse2.configure(opt, orbitals.RPAInputEnergies());
+  BSE bse2 = BSE(log, Mmn);
+  bse2.configure(opt, orbitals.RPAInputEnergies(), Hqp_cut_ref);
   Eigen::MatrixXd Hqp_extended_ref = Eigen::MatrixXd::Zero(17, 17);
   Hqp_extended_ref << -0.934164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, -0.461602, 1.12979e-07, -1.47246e-07, -1.3086e-07, 0.0443459,
