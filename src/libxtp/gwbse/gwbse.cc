@@ -159,12 +159,12 @@ void GWBSE::Initialize(tools::Property& options) {
   }
 
   // some QP - BSE consistency checks are required
-  if (bse_vmin < qpmin) {
+  /* if (bse_vmin < qpmin) {
     qpmin = bse_vmin;
   }
   if (bse_cmax > qpmax) {
     qpmax = bse_cmax;
-  }
+  } */
 
   _gwopt.homo = homo;
   _gwopt.qpmin = qpmin;
@@ -176,6 +176,7 @@ void GWBSE::Initialize(tools::Property& options) {
   _bseopt.cmax = bse_cmax;
   _bseopt.homo = homo;
   _bseopt.qpmin = qpmin;
+  _bseopt.qpmax = qpmax;
   _bseopt.rpamin = rpamin;
   _bseopt.rpamax = rpamax;
 
@@ -636,8 +637,9 @@ bool GWBSE::Evaluate() {
   }
   TCMatrix_gwbse Mmn(*_pLog);
   // rpamin here, because RPA needs till rpamin
-  Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, _gwopt.qpmax,
-                 _gwopt.rpamin, _gwopt.rpamax);
+  Index max_3c = std::max(_bseopt.cmax, _gwopt.qpmax);
+  Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, max_3c, _gwopt.rpamin,
+                 _gwopt.rpamax);
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp()
       << " Calculating Mmn_beta (3-center-repulsion x orbitals)  " << flush;
@@ -651,7 +653,6 @@ bool GWBSE::Evaluate() {
       << flush;
 
   Eigen::MatrixXd Hqp;
-
   if (_do_gw) {
     Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
     GW gw = GW(*_pLog, Mmn, vxc, _orbitals.MOs().eigenvalues());
@@ -673,6 +674,7 @@ bool GWBSE::Evaluate() {
     gw.CalculateHQP();
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
+
     Hqp = gw.getHQP();
 
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
@@ -694,14 +696,16 @@ bool GWBSE::Evaluate() {
           ".orb file, rerun your GW calculation");
     }
     const Eigen::MatrixXd& qpcoeff = _orbitals.QPdiag().eigenvectors();
+
     Hqp = qpcoeff * _orbitals.QPdiag().eigenvalues().asDiagonal() *
           qpcoeff.transpose();
   }
 
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
-    BSE bse = BSE(*_pLog, Mmn, Hqp);
-    bse.configure(_bseopt, _orbitals.RPAInputEnergies());
+
+    BSE bse = BSE(*_pLog, Mmn);
+    bse.configure(_bseopt, _orbitals.RPAInputEnergies(), Hqp);
 
     if (_do_bse_triplets) {
       bse.Solve_triplets(_orbitals);
@@ -721,5 +725,6 @@ bool GWBSE::Evaluate() {
       << TimeStamp() << " GWBSE calculation finished " << flush;
   return true;
 }
+
 }  // namespace xtp
 }  // namespace votca

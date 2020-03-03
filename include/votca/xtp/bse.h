@@ -39,8 +39,9 @@ class QMFragment;
 class BSE {
 
  public:
-  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp)
-      : _log(log), _Mmn(Mmn), _Hqp(Hqp){};
+  //  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp_in)
+  //    : _log(log), _Mmn(Mmn), _Hqp_in(Hqp_in){};
+  BSE(Logger& log, TCMatrix_gwbse& Mmn) : _log(log), _Mmn(Mmn){};
 
   struct options {
     bool useTDA = true;
@@ -48,6 +49,7 @@ class BSE {
     Index rpamin;
     Index rpamax;
     Index qpmin;
+    Index qpmax;
     Index vmin;
     Index cmax;
     Index nmax = 5;           // number of eigenvectors to calculate
@@ -62,10 +64,13 @@ class BSE {
         0.5;  // minimium contribution for state to print it
   };
 
-  void configure(const options& opt, const Eigen::VectorXd& RPAEnergies);
+  void configure(const options& opt, const Eigen::VectorXd& RPAEnergies,
+                 const Eigen::MatrixXd& Hqp_in);
 
   void Solve_singlets(Orbitals& orb) const;
   void Solve_triplets(Orbitals& orb) const;
+
+  Eigen::MatrixXd getHqp() const { return _Hqp; };
 
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
@@ -94,7 +99,7 @@ class BSE {
   Eigen::VectorXd _epsilon_0_inv;
 
   TCMatrix_gwbse& _Mmn;
-  const Eigen::MatrixXd& _Hqp;
+  Eigen::MatrixXd _Hqp;
 
   tools::EigenSystem Solve_singlets_TDA() const;
   tools::EigenSystem Solve_singlets_BTDA() const;
@@ -122,6 +127,9 @@ class BSE {
                      Index state) const;
   void printWeights(Index i_bse, double weight) const;
   void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies);
+
+  Eigen::MatrixXd AdjustHqpSize(const Eigen::MatrixXd& Hqp_in,
+                                const Eigen::VectorXd& RPAInputEnergies);
 
   Interaction Analyze_eh_interaction(const QMStateType& type,
                                      const Orbitals& orb) const;
