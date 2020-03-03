@@ -287,14 +287,14 @@ void ProgObserver<JobContainer>::InitFromProgFile(std::string progFile,
   // SUMMARIZE OBSERVER VARIABLES: RESTART PATTERN, CACHE, LOCK FILE
   if (_restartMode && _restart_hosts.size()) {
     std::string infostr = "Restart if host == ";
-    for (const std::pair<std::string, bool> &host : _restart_hosts) {
+    for (const std::pair<const std::string, bool> &host : _restart_hosts) {
       infostr += host.first + " ";
     }
     XTP_LOG(Log::error, thread.getLogger()) << infostr << std::flush;
   }
   if (_restartMode && _restart_stats.size()) {
     std::string infostr = "Restart if stat == ";
-    for (const std::pair<std::string, bool> &host : _restart_hosts) {
+    for (const std::pair<const std::string, bool> &host : _restart_hosts) {
       infostr += host.first + " ";
     }
     XTP_LOG(Log::error, thread.getLogger()) << infostr << std::flush;
