@@ -34,7 +34,7 @@ namespace xtp {
 class Orbitals;
 
 // ========================================================================== //
-// QMPackage base class for wrappers of ORCA, GAUSSIAN, NWCHEM etc //
+// QMPackage base class for wrappers of ORCA
 // ========================================================================== //
 
 class QMPackage {
