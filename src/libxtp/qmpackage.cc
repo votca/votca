@@ -47,9 +47,7 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   if (_settings.has_key("auxbasisset")) {
     _auxbasisset_name = _settings.get("auxbasisset");
   }
-
   _write_guess = _settings.get<bool>("read_guess");
-  _write_charges = _settings.get<bool>("write_charges");
 
   if (_settings.has_key("cleanup")) {
     _cleanup = _settings.get("cleanup");
@@ -60,7 +58,6 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
     _scratch_dir = _settings.get("scratch");
   }
   if (_settings.has_key("ecp")) {
-    _write_pseudopotentials = true;
     _ecp_name = _settings.get("ecp");
   }
 }

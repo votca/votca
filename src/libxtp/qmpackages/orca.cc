@@ -250,13 +250,13 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   }  // write_basis set
 
   // ECPs
-  if (_write_pseudopotentials) {
+  if (_settings.has_key("ecp")) {
     WriteECP(inp_file, qmatoms);
   }
   inp_file << "end\n "
            << "\n"
            << endl;  // This end is for the basis set block
-  if (_write_charges) {
+  if (_settings.get<bool>("write_charges")) {
     WriteBackgroundCharges();
   }
 
@@ -481,7 +481,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   bool found_success = false;
   orbitals.setQMpackage(getPackageName());
   orbitals.setDFTbasisName(_basisset_name);
-  if (_write_pseudopotentials) {
+  if (_settings.has_key("ecp")) {
     orbitals.setECPName(_ecp_name);
   }
 

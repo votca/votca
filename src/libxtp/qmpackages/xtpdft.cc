@@ -49,7 +49,7 @@ bool XTPDFT::Run() {
   xtpdft.Initialize(_xtpdft_options);
   xtpdft.setLogger(_pLog);
 
-  if (_write_charges) {
+  if (_settings.get<bool>("write_charges")) {
     xtpdft.setExternalcharges(&_externalsites);
   }
   bool success = xtpdft.Evaluate(_orbitals);

@@ -69,7 +69,7 @@ class QMPackage {
             std::unique_ptr<StaticSite>(new Sitetype(site)));
       }
     }
-    if (_write_charges) {
+    if (_settings.get<bool>("write_charges")) {
       WriteChargeOption();
     }
   }
@@ -140,10 +140,8 @@ class QMPackage {
   std::string _cleanup = "";
 
   bool _write_guess = false;
-  bool _write_charges = false;
   bool _write_basis_set = true;
   bool _write_auxbasis_set = false;
-  bool _write_pseudopotentials = false;
 
   Logger* _pLog;
 
