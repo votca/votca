@@ -8608,7 +8608,7 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
              "O -0.6969 0.0 0.0\n";
   xyzfile.close();
 
-  Property prop;
+  votca::tools::Property prop;
   prop.LoadFromXML("user_input.xml");
 
   QMPackageFactory::RegisterAll();

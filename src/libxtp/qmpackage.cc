@@ -37,21 +37,21 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   } else {
     Settings qmpackage_defaults{key};
     qmpackage_defaults.load_from_xml(this->FindDefaultsFile());
-    _settings.merge(qmpackage_defaults);
+    _settings.amend(qmpackage_defaults);
   }
   _settings.validate();
 
   _charge = _settings.get<Index>("charge");
   _spin = _settings.get<Index>("spin");
   _basisset_name = _settings.get("basisset");
-  if (_settings.exists("auxbasisset")) {
+  if (_settings.has_key("auxbasisset")) {
     _auxbasisset_name = _settings.get("auxbasisset");
   }
 
   _write_guess = _settings.get<bool>("read_guess");
   _write_charges = _settings.get<bool>("write_charges");
 
-  if (_settings.exists("cleanup")) {
+  if (_settings.has_key("cleanup")) {
     _cleanup = _settings.get("cleanup");
   }
 
@@ -59,7 +59,7 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
     _executable = _settings.get("executable");
     _scratch_dir = _settings.get("scratch");
   }
-  if (_settings.exists("ecp")) {
+  if (_settings.has_key("ecp")) {
     _write_pseudopotentials = true;
     _ecp_name = _settings.get("ecp");
   }
@@ -121,7 +121,7 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
     const Eigen::Matrix3d components = aps.CalculateCartesianMultipole();
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
     es.computeDirect(components);
-    double a2 = 2 * _settings.get<double>("dipole_spacing");
+    double a2 = 2 * a;
     for (Index i = 0; i < 3; i++) {
       double q = es.eigenvalues()[i] / (a2 * a2);
       const Eigen::Vector3d vec1 =

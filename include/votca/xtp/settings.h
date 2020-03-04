@@ -28,8 +28,6 @@
 #include <utility>
 #include <votca/tools/property.h>
 
-using votca::tools::Property;
-
 /*
  * \brief Hierarchical representation of a QM Package input
  */
@@ -38,7 +36,7 @@ namespace xtp {
 
 class Settings {
  public:
-  // Decompose a Property object into Settings
+  // Decompose a votca::tools::Property object into Settings
   Settings() = default;
   Settings(const std::string& root_key) : _root_key{root_key} {};
   ~Settings() = default;
@@ -47,7 +45,8 @@ class Settings {
    * \brief Transform Properties into settings
    * @param Property object
    */
-  void read_property(const Property& prop, const std::string& key);
+  void read_property(const votca::tools::Property& prop,
+                     const std::string& key);
 
   /**
    * \brief read Settings from xml
@@ -56,10 +55,10 @@ class Settings {
   void load_from_xml(const std::string& path);
 
   /**
-   * \brief Merge two settings objects
+   * \brief Fill the missing values using another Settings instance
    * @param other Settings object
    */
-  void merge(const Settings& other);
+  void amend(const Settings& other);
 
   /**
    * \brief Add property
@@ -72,14 +71,14 @@ class Settings {
    */
   template <typename T = std::string>
   T get(const std::string& key) const {
-    auto delimeter = ".";
+    auto delimiter = ".";
     std::string primary_key = key;
     std::string secondary_key;
 
-    auto iter = key.find(delimeter);
+    auto iter = key.find(delimiter);
     if (iter != std::string::npos) {
-      primary_key = key.substr(0, key.find(delimeter));
-      secondary_key = key.substr(key.find(delimeter) + 1);
+      primary_key = key.substr(0, key.find(delimiter));
+      secondary_key = key.substr(key.find(delimiter) + 1);
     }
 
     auto it = this->_nodes.find(primary_key);
@@ -97,22 +96,15 @@ class Settings {
    * \brief Retrieve property
    * @param key to property
    */
-  const Property& property(const std::string& key) const {
+  const votca::tools::Property& property(const std::string& key) const {
     return _nodes.at(key);
   }
-
-  /**
-   * \brief Append string to prop
-   * @param key to look for
-   * @param value to append
-   */
-  void append_to_property(const std::string& key, const std::string& value);
 
   /**
    * \brief Check if a property exists
    * @param key
    */
-  bool exists(const std::string& key) const;
+  bool has_key(const std::string& key) const;
 
   /**
    * \brief Check that the input is correct
@@ -121,8 +113,8 @@ class Settings {
 
   friend std::ostream& operator<<(std::ostream& os, const Settings& sett);
 
- protected:
-  using Settings_map = std::unordered_map<std::string, Property>;
+ private:
+  using Settings_map = std::unordered_map<std::string, votca::tools::Property>;
   Settings_map _nodes;
   std::string _root_key;
 
@@ -130,30 +122,29 @@ class Settings {
     return key.substr(0, key.find("."));
   }
 
-  Settings_map::const_iterator search_for_mandatory_keyword(
-      const std::string& key) const;
+  void check_mandatory_keyword(const std::string& key) const;
 
   std::vector<std::string> _general_properties = {
       "auxbasisset",            // string
       "basisset",               // string
-      "charge",                 // int
+      "charge",                 // index
       "convergence_tightness",  // std::string
       "external_charge",        // Eigen::Vector9d
       "optimize",               // boolean
       "polarisation",           // boolean
       "ecp",                    // string
-      "spin"                    // int
+      "spin"                    // index
   };
 
   std::vector<std::string> _mandatory_keyword = {
       "executable",  // string
       "functional",  // string
-      "name",        // string, one of: orca, nwchem, gaussian, xtpdft,
+      "name",        // string, one of: orca
   };
 
   std::unordered_map<std::string, std::vector<std::string>> _keyword_options{
-      {"name", {"orca", "gaussian", "nwchem", "xtpdft"}}};
-};  // namespace xtp
+      {"name", {"orca"}}};
+};
 
 }  // namespace xtp
 }  // namespace votca

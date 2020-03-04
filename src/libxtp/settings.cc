@@ -19,12 +19,10 @@
 
 #include <votca/xtp/settings.h>
 
-using votca::tools::Property;
-
 namespace votca {
 namespace xtp {
 
-void Settings::read_property(const Property& properties,
+void Settings::read_property(const votca::tools::Property& properties,
                              const std::string& key) {
   for (const auto& prop : properties.get(key)) {
     const auto& name = prop.name();
@@ -33,12 +31,12 @@ void Settings::read_property(const Property& properties,
 }
 
 void Settings::load_from_xml(const std::string& path) {
-  Property options;
+  votca::tools::Property options;
   options.LoadFromXML(path);
   this->read_property(options, _root_key);
 }
 
-void Settings::merge(const Settings& other) {
+void Settings::amend(const Settings& other) {
   // Merge general properties
   for (const auto& pair : other._nodes) {
     auto it = this->_nodes.find(pair.first);
@@ -49,13 +47,12 @@ void Settings::merge(const Settings& other) {
   }
 }
 
-bool Settings::exists(const std::string& key) const {
+bool Settings::has_key(const std::string& key) const {
   auto it = this->_nodes.find(key);
   return (it != this->_nodes.end()) ? true : false;
 }
 
-Settings::Settings_map::const_iterator Settings::search_for_mandatory_keyword(
-    const std::string& key) const {
+void Settings::check_mandatory_keyword(const std::string& key) const {
   std::stringstream stream;
   auto it = this->_nodes.find(key);
   if (it == this->_nodes.end()) {
@@ -68,32 +65,18 @@ Settings::Settings_map::const_iterator Settings::search_for_mandatory_keyword(
       }
     }
     throw std::runtime_error(stream.str());
-  } else {
-    return it;
   }
 }
 
 void Settings::add(const std::string& key, const std::string& value) {
   std::string primary_key = key.substr(0, key.find("."));
-  Property& prop = this->_nodes[primary_key];
+  votca::tools::Property& prop = this->_nodes[primary_key];
   prop.add(key, value);
-}
-
-void Settings::append_to_property(const std::string& key,
-                                  const std::string& value) {
-  std::string primary_key = this->get_primary_key(key);
-  Property& prop = this->_nodes[primary_key];
-  if (prop.exists(key)) {
-    std::string old = prop.value();
-    prop.set(key, old + value);
-  } else {
-    prop.add(key, value);
-  }
 }
 
 void Settings::validate() const {
   for (const auto& x : _mandatory_keyword) {
-    this->search_for_mandatory_keyword(x);
+    this->check_mandatory_keyword(x);
   }
 }
 
