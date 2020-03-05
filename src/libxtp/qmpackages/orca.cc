@@ -238,9 +238,10 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
            << " "
            << "="
            << "\"system.bas\";" << endl;
-  if (_write_auxbasis_set) {
+  if (_settings.has_key("auxbasisset")) {
     std::string aux_file_name = _run_dir + "/" + "system.aux";
-    WriteBasisset(qmatoms, _auxbasisset_name, aux_file_name);
+    std::string auxbasisset_name = _settings.get("auxbasisset");
+    WriteBasisset(qmatoms, auxbasisset_name, aux_file_name);
     inp_file << "GTOAuxName"
              << " "
              << "="

@@ -137,8 +137,6 @@ class QMPackage {
   std::string _scratch_dir;
   std::string _cleanup = "";
 
-  bool _write_auxbasis_set = false;
-
   Logger* _pLog;
 
   std::vector<std::unique_ptr<StaticSite> > _externalsites;
