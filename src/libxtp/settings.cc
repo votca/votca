@@ -78,6 +78,20 @@ void Settings::validate() const {
   for (const auto& x : _mandatory_keyword) {
     this->check_mandatory_keyword(x);
   }
+  std::stringstream stream;
+  for (const auto& pair : this->_nodes) {
+    auto it = std::find(this->_general_properties.cbegin(),
+                        this->_general_properties.cend(), pair.first);
+
+    if (it == this->_general_properties.cend()) {
+      stream << "Unrecognized keyword \"" << pair.first << "\"\n"
+             << "Keywords must be one of the following:\n";
+      for (const std::string& key : this->_general_properties) {
+        stream << key << "\n";
+      }
+      throw std::runtime_error(stream.str());
+    }
+  }
 }
 
 std::ostream& operator<<(std::ostream& os, const Settings& sett) {

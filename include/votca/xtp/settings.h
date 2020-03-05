@@ -128,12 +128,22 @@ class Settings {
       "auxbasisset",            // string
       "basisset",               // string
       "charge",                 // index
+      "cleanup",                // string
       "convergence_tightness",  // std::string
-      "external_charge",        // Eigen::Vector9d
-      "optimize",               // boolean
-      "polarisation",           // boolean
+      "dipole_spacing",         // boolean
       "ecp",                    // string
-      "spin"                    // index
+      "executable",             // string
+      // "external_charge",        // Eigen::Vector9d
+      "functional",     // string
+      "name",           // string
+      "optimize",       // boolean
+      "orca",           // string
+      "polarisation",   // boolean
+      "read_guess",     // boolean
+      "spin",           // index
+      "scratch",        // string
+      "write_charges",  // boolean
+      "xtpdft",         // string
   };
 
   std::vector<std::string> _mandatory_keyword = {
