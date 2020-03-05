@@ -55,9 +55,6 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   if (getPackageName() != "xtp") {
     _scratch_dir = _settings.get("scratch");
   }
-  if (_settings.has_key("ecp")) {
-    _ecp_name = _settings.get("ecp");
-  }
 }
 
 void QMPackage::ReorderOutput(Orbitals& orbitals) const {

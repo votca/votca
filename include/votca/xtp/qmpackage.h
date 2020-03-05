@@ -132,7 +132,6 @@ class QMPackage {
 
   std::string _basisset_name;
   std::string _auxbasisset_name;
-  std::string _ecp_name;
 
   std::string _shell_file_name;
   std::string _scratch_dir;
