@@ -93,7 +93,7 @@ class QMPackage {
     _spin = std::abs(charge) + 1;
   }
 
-  bool GuessRequested() const { return _write_guess; }
+  bool GuessRequested() const { return _settings.get<bool>("read_guess"); }
 
   virtual StaticSegment GetCharges() const = 0;
 
@@ -139,8 +139,6 @@ class QMPackage {
   std::string _scratch_dir;
   std::string _cleanup = "";
 
-  bool _write_guess = false;
-  bool _write_basis_set = true;
   bool _write_auxbasis_set = false;
 
   Logger* _pLog;

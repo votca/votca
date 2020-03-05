@@ -231,23 +231,21 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
            << "\n"
            << endl;
   // basis set info
-  if (_write_basis_set) {
-    std::string el_file_name = _run_dir + "/" + "system.bas";
-    WriteBasisset(qmatoms, _basisset_name, el_file_name);
-    inp_file << "%basis\n";
-    inp_file << "GTOName"
+  std::string el_file_name = _run_dir + "/" + "system.bas";
+  WriteBasisset(qmatoms, _basisset_name, el_file_name);
+  inp_file << "%basis\n";
+  inp_file << "GTOName"
+           << " "
+           << "="
+           << "\"system.bas\";" << endl;
+  if (_write_auxbasis_set) {
+    std::string aux_file_name = _run_dir + "/" + "system.aux";
+    WriteBasisset(qmatoms, _auxbasisset_name, aux_file_name);
+    inp_file << "GTOAuxName"
              << " "
              << "="
-             << "\"system.bas\";" << endl;
-    if (_write_auxbasis_set) {
-      std::string aux_file_name = _run_dir + "/" + "system.aux";
-      WriteBasisset(qmatoms, _auxbasisset_name, aux_file_name);
-      inp_file << "GTOAuxName"
-               << " "
-               << "="
-               << "\"system.aux\";" << endl;
-    }
-  }  // write_basis set
+             << "\"system.aux\";" << endl;
+  }  // write_auxbasis set
 
   // ECPs
   if (_settings.has_key("ecp")) {
@@ -288,7 +286,7 @@ bool Orca::WriteShellScript() {
   shell_file << "#!/bin/bash" << endl;
   shell_file << "mkdir -p " << _scratch_dir << endl;
 
-  if (_write_guess) {
+  if (_settings.get<bool>("read_guess")) {
     if (!(boost::filesystem::exists(_run_dir + "/molA.gbw") &&
           boost::filesystem::exists(_run_dir + "/molB.gbw"))) {
       throw runtime_error(
@@ -340,7 +338,7 @@ bool Orca::Run() {
  */
 void Orca::CleanUp() {
 
-  if (_write_guess) {
+  if (_settings.get<bool>("read_guess")) {
     remove((_run_dir + "/" + "molA.gbw").c_str());
     remove((_run_dir + "/" + "molB.gbw").c_str());
     remove((_run_dir + "/" + "dimer.gbw").c_str());

@@ -47,7 +47,6 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   if (_settings.has_key("auxbasisset")) {
     _auxbasisset_name = _settings.get("auxbasisset");
   }
-  _write_guess = _settings.get<bool>("read_guess");
 
   if (_settings.has_key("cleanup")) {
     _cleanup = _settings.get("cleanup");
