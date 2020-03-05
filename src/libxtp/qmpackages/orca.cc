@@ -115,10 +115,10 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
   std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
 
   ECPBasisSet ecp;
-  ecp.Load(_ecp_name);
+  ecp.Load(_settings.get("ecp"));
 
   XTP_LOG(Log::error, *_pLog)
-      << "Loaded Pseudopotentials " << _ecp_name << flush;
+      << "Loaded Pseudopotentials " << _settings.get("ecp") << flush;
 
   for (const std::string& element_name : UniqueElements) {
     try {
@@ -293,10 +293,10 @@ bool Orca::WriteShellScript() {
           "Using guess relies on a molA.gbw and a molB.gbw file being in the "
           "directory.");
     }
-    shell_file << _executable
+    shell_file << _settings.get("executable")
                << "_mergefrag molA.gbw molB.gbw dimer.gbw > merge.log" << endl;
   }
-  shell_file << _executable << " " << _input_file_name << " > "
+  shell_file << _settings.get("executable") << " " << _input_file_name << " > "
              << _log_file_name << endl;  //" 2> run.error" << endl;
   shell_file.close();
   return true;
@@ -480,7 +480,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   orbitals.setQMpackage(getPackageName());
   orbitals.setDFTbasisName(_basisset_name);
   if (_settings.has_key("ecp")) {
-    orbitals.setECPName(_ecp_name);
+    orbitals.setECPName(_settings.get("ecp"));
   }
 
   XTP_LOG(Log::error, *_pLog) << "Parsing " << _log_file_name << flush;

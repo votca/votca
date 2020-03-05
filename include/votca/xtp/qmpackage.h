@@ -124,7 +124,6 @@ class QMPackage {
   Index _spin;  // 2S+1mem
   std::string _options = "";
 
-  std::string _executable;
   std::string _input_file_name;
   std::string _log_file_name;
   std::string _mo_file_name;

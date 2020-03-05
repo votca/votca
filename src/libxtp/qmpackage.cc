@@ -53,7 +53,6 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   }
 
   if (getPackageName() != "xtp") {
-    _executable = _settings.get("executable");
     _scratch_dir = _settings.get("scratch");
   }
   if (_settings.has_key("ecp")) {
