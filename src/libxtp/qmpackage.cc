@@ -44,9 +44,6 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   _charge = _settings.get<Index>("charge");
   _spin = _settings.get<Index>("spin");
   _basisset_name = _settings.get("basisset");
-  if (_settings.has_key("auxbasisset")) {
-    _auxbasisset_name = _settings.get("auxbasisset");
-  }
 
   if (_settings.has_key("cleanup")) {
     _cleanup = _settings.get("cleanup");

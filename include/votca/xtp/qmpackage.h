@@ -122,20 +122,15 @@ class QMPackage {
 
   Index _charge;
   Index _spin;  // 2S+1mem
-  std::string _options = "";
-
+  std::string _basisset_name;
+  std::string _cleanup = "";
   std::string _input_file_name;
   std::string _log_file_name;
   std::string _mo_file_name;
-
+  std::string _options = "";
   std::string _run_dir;
-
-  std::string _basisset_name;
-  std::string _auxbasisset_name;
-
-  std::string _shell_file_name;
   std::string _scratch_dir;
-  std::string _cleanup = "";
+  std::string _shell_file_name;
 
   Logger* _pLog;
 
