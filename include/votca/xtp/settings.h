@@ -115,7 +115,7 @@ class Settings {
 
  private:
   using Settings_map = std::unordered_map<std::string, votca::tools::Property>;
-  Settings_map _nodes; // {Key, Property} Map
+  Settings_map _nodes;  // {Key, Property} Map
   std::string _root_key;
 
   std::string get_primary_key(const std::string& key) {
