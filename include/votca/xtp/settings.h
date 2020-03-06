@@ -147,7 +147,6 @@ class Settings {
   };
 
   std::vector<std::string> _mandatory_keyword = {
-      "executable",  // string
       "functional",  // string
       "name",        // string, one of: orca
   };

@@ -7,6 +7,7 @@ For more detailed information about the changes see the history of the
 * Fixed Cuda implementation (#391)
 * Use a general syntax to represent all QMPackages input (#318)
 * Remove support for both Gaussian and NWChem (#318)
+* Fixed executable path check (#400)
 
 >>>>>>> master
 ## Version 1.6 _SuperPelagia_ (released XX.02.20)
