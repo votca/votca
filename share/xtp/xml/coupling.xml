@@ -1,9 +1,9 @@
 <options>
 
 <!-- xtp_tools -e coupling options.xml -->
-<coupling help="Electronic couplings from log and orbital files (GAUSSAIN, ORCA, NWChem)" section="sec:coupling">
+<coupling help="Electronic couplings from log and orbital files" section="sec:coupling">
 
-        <dftpackage help="xml file with options for dft calculations">gaussian.xml</dftpackage>
+        <dftpackage help="xml file with options for dft calculations">user_input.xml</dftpackage>
 
         <output help="Output file" default="coupling.out.xml">coupling.out.xml</output>
         

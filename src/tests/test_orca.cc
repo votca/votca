@@ -19,6 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/qmpackagefactory.h>
+
 using namespace votca::xtp;
 using namespace votca;
 using namespace std;
@@ -8514,6 +8515,134 @@ BOOST_AUTO_TEST_CASE(opt_test) {
     BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
+}
+
+BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
+  std::ofstream defaults("user_input.xml"), basis("3-21G.xml"),
+      xyzfile("co.xyz");
+
+  defaults << "<package>\n"
+           << "<name>orca</name>\n"
+           << "<charge>0</charge>\n"
+           << "<spin>1</spin>\n"
+           << "<executable>some/path/orca</executable>\n"
+           << "<basisset>3-21G.xml</basisset>\n"
+           << "<functional>pbe0</functional>\n"
+           << "<read_guess>false</read_guess>\n"
+           << "<write_charges>false</write_charges>\n"
+           << "<scratch>/tmp/qmpackage</scratch>\n"
+           << "<optimize>false</optimize>\n"
+           << "<convergence_tightness>tight</convergence_tightness>\n"
+           << "<orca>\n"
+           << "<method></method>\n"
+           << "<scf>GUESS PMODEL</scf>\n"
+           << "</orca>\n"
+           << "</package>";
+  defaults.close();
+
+  basis << "<basis name=\"3-21G\">\n"
+        << "<element name=\"C\">\n"
+        << "<shell scale=\"1.0\" type=\"S\">\n"
+        << "<constant decay=\"1.722560e+02\">\n"
+        << "<contractions factor=\"6.176690e-02\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"2.591090e+01\">\n"
+        << "<contractions factor=\"3.587940e-01\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"5.533350e+00\">\n"
+        << "<contractions factor=\"7.007130e-01\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "<shell scale=\"1.0\" type=\"SP\">\n"
+        << "<constant decay=\"3.664980e+00\">\n"
+        << "<contractions factor=\"-3.958970e-01\" type=\"S\"/>\n"
+        << "<contractions factor=\"2.364600e-01\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"7.705450e-01\">\n"
+        << "<contractions factor=\"1.215840e+00\" type=\"S\"/>\n"
+        << "<contractions factor=\"8.606190e-01\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "<shell scale=\"1.0\" type=\"SP\">\n"
+        << "<constant decay=\"1.958570e-01\">\n"
+        << "<contractions factor=\"1.000000e+00\" type=\"S\"/>\n"
+        << "<contractions factor=\"1.000000e+00\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "</element>\n"
+
+        << "<element name=\"O\">\n"
+        << "<shell scale=\"1.0\" type=\"S\">\n"
+        << "<constant decay=\"3.220370e+02\">\n"
+        << "<contractions factor=\"5.923940e-02\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"4.843080e+01\">\n"
+        << "<contractions factor=\"3.515000e-01\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"1.042060e+01\">\n"
+        << "<contractions factor=\"7.076580e-01\" type=\"S\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "<shell scale=\"1.0\" type=\"SP\">\n"
+        << "<constant decay=\"7.402940e+00\">\n"
+        << "<contractions factor=\"-4.044530e-01\" type=\"S\"/>\n"
+        << "<contractions factor=\"2.445860e-01\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "<constant decay=\"1.576200e+00\">\n"
+        << "<contractions factor=\"1.221560e+00\" type=\"S\"/>\n"
+        << "<contractions factor=\"8.539550e-01\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "<shell scale=\"1.0\" type=\"SP\">\n"
+        << "<constant decay=\"3.736840e-01\">\n"
+        << "<contractions factor=\"1.000000e+00\" type=\"S\"/>\n"
+        << "<contractions factor=\"1.000000e+00\" type=\"P\"/>\n"
+        << "</constant>\n"
+        << "</shell>\n"
+        << "</element>\n"
+        << "</basis>";
+  basis.close();
+
+  xyzfile << "2\n\n"
+          << "C  0.6969 0.0 0.0\n"
+             "O -0.6969 0.0 0.0\n";
+  xyzfile.close();
+
+  votca::tools::Property prop;
+  prop.LoadFromXML("user_input.xml");
+
+  QMPackageFactory::RegisterAll();
+  std::unique_ptr<QMPackage> orca =
+      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+  Logger log;
+  orca->setLog(&log);
+  orca->setRunDir(".");
+  orca->Initialize(prop);
+
+  Orbitals orb;
+  orb.QMAtoms().LoadFromFile("co.xyz");
+  orca->WriteInputFile(orb);
+
+  std::ifstream file_input("system.inp");
+  std::stringstream buffer;
+  buffer << file_input.rdbuf();
+  std::string inp = buffer.str();
+
+  // check basis section
+  auto index1 = inp.find("%basis");
+  auto index2 = inp.find("end", index1);
+  BOOST_CHECK_EQUAL(inp.substr(index1, index2 - index1),
+                    "%basis\nGTOName =\"system.bas\";\n");
+
+  // check basis section
+  index1 = inp.find("%scf");
+  index2 = inp.find("end", index1);
+  BOOST_CHECK_EQUAL(inp.substr(index1, index2 - index1),
+                    "%scf\nGUESS PMODEL\n");
+
+  // Check method
+  index1 = inp.find("!");
+  BOOST_CHECK_EQUAL(inp.substr(index1), "! DFT pbe0 TightSCF \n");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

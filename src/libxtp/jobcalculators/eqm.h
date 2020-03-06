@@ -33,7 +33,7 @@ namespace xtp {
  * \brief GWBSE implementation
  *
  * Evaluates DFT and GWBSE for all molecules
- * Requires a first-principles package, i.e. GAUSSIAN, ORCA, NWChem
+ * Requires a first-principles package, i.e. ORCA
  *
  * Callname: eqm
  */
