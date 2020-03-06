@@ -62,6 +62,8 @@ class Settings {
 
   /**
    * \brief Add property
+   * @param key to the property
+   * @param value content of the property
    */
   void add(const std::string& key, const std::string& value);
 
@@ -111,11 +113,9 @@ class Settings {
    */
   void validate() const;
 
-  friend std::ostream& operator<<(std::ostream& os, const Settings& sett);
-
  private:
   using Settings_map = std::unordered_map<std::string, votca::tools::Property>;
-  Settings_map _nodes;
+  Settings_map _nodes; // {Key, Property} Map
   std::string _root_key;
 
   std::string get_primary_key(const std::string& key) {

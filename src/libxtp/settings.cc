@@ -36,6 +36,7 @@ void Settings::load_from_xml(const std::string& path) {
   this->read_property(options, _root_key);
 }
 
+// TODO: move this method to Property
 void Settings::amend(const Settings& other) {
   // Merge general properties
   for (const auto& pair : other._nodes) {
@@ -52,22 +53,6 @@ bool Settings::has_key(const std::string& key) const {
   return (it != this->_nodes.end()) ? true : false;
 }
 
-void Settings::check_mandatory_keyword(const std::string& key) const {
-  std::stringstream stream;
-  auto it = this->_nodes.find(key);
-  if (it == this->_nodes.end()) {
-    stream << "the " << key << " keyword is mandatory\n";
-    auto it2 = this->_keyword_options.find(key);
-    if (it2 != this->_keyword_options.end()) {
-      stream << key << "must be one of the following values:\n";
-      for (const auto& x : it2->second) {
-        stream << x << "\n";
-      }
-    }
-    throw std::runtime_error(stream.str());
-  }
-}
-
 void Settings::add(const std::string& key, const std::string& value) {
   std::string primary_key = key.substr(0, key.find("."));
   votca::tools::Property& prop = this->_nodes[primary_key];
@@ -79,6 +64,7 @@ void Settings::validate() const {
     this->check_mandatory_keyword(x);
   }
   std::stringstream stream;
+  // Check that the input keys are valid
   for (const auto& pair : this->_nodes) {
     auto it = std::find(this->_general_properties.cbegin(),
                         this->_general_properties.cend(), pair.first);
@@ -94,11 +80,20 @@ void Settings::validate() const {
   }
 }
 
-std::ostream& operator<<(std::ostream& os, const Settings& sett) {
-  for (const auto& prop : sett._nodes) {
-    os << "name: " << prop.first << " value: " << prop.second.value() << "\n";
+void Settings::check_mandatory_keyword(const std::string& key) const {
+  std::stringstream stream;
+  auto it = this->_nodes.find(key);
+  if (it == this->_nodes.end()) {
+    stream << "the " << key << " keyword is mandatory\n";
+    auto it2 = this->_keyword_options.find(key);
+    if (it2 != this->_keyword_options.end()) {
+      stream << key << "must be one of the following values:\n";
+      for (const auto& x : it2->second) {
+        stream << x << "\n";
+      }
+    }
+    throw std::runtime_error(stream.str());
   }
-  return os;
 }
 
 }  // namespace xtp
