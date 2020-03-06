@@ -266,6 +266,21 @@ DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace(
   return proj;
 }
 
+bool DavidsonSolver::checkConvergence(const DavidsonSolver::RitzEigenPair &rep,
+                                      DavidsonSolver::ProjectedSpace &proj, Index neigen) {
+
+  Eigen::ArrayXd res_norm = rep.res_norm();    
+  bool converged = true       ;                     
+  for (Index j=0; j < proj.size_update; j++) {
+    proj.root_converged[j] = (res_norm[j] < _tol);
+    if (j < neigen) {
+      converged *= (res_norm[j] < _tol);
+    }
+    
+  }
+  return converged;
+}
+
 void DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
                                       DavidsonSolver::ProjectedSpace &proj) {
 
@@ -287,8 +302,6 @@ void DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
     proj.V.conservativeResize(Eigen::NoChange, proj.V.cols() + 1);
     proj.V.rightCols<1>() = w.normalized();
 
-    // track converged root
-    proj.root_converged[j] = (rep.res_norm()[j] < _tol);
   }
 
   proj.V = orthogonalize(proj.V, nupdate);
@@ -325,6 +338,7 @@ Eigen::VectorXd DavidsonSolver::computeCorrectionVector(
   }
   return Eigen::VectorXd::Zero(0);
 }
+
 
 Eigen::VectorXd DavidsonSolver::dpr(const Eigen::VectorXd &r,
                                     double lambda) const {
@@ -425,6 +439,7 @@ void DavidsonSolver::storeNotConvergedData(
     }
   }
   percent_converged /= double(neigen);
+  percent_converged *= 100.;
   XTP_LOG(Log::error, _log)
       << TimeStamp() << "- Warning : Davidson "
       << format("%1$5.2f%%") % percent_converged << " converged after "

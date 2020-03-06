@@ -92,12 +92,15 @@ class DavidsonSolver {
       if (do_restart) {
         restart(rep, proj, size_initial_guess);
       }
+
       updateProjection(A, proj);
-      rep = getGuessVectors(A, proj);
+      
+      rep = getRitzEigenPairs(A, proj);
 
       printIterationData(rep, proj, neigen);
 
-      bool converged = (rep.res_norm().head(neigen) < _tol).all();
+      bool converged = checkConvergence(rep, proj, neigen);
+      
       bool last_iter = _i_iter == (_iter_max - 1);
 
       if (converged) {
@@ -186,7 +189,7 @@ class DavidsonSolver {
   }
 
   template <typename MatrixReplacement>
-  RitzEigenPair getGuessVectors(const MatrixReplacement &A,
+  RitzEigenPair getRitzEigenPairs(const MatrixReplacement &A,
                                 const ProjectedSpace &proj) const {
     // get the ritz vectors
     switch (this->_matrix_type) {
@@ -269,6 +272,9 @@ class DavidsonSolver {
                                     Index size_initial_guess) const;
 
   void extendProjection(const RitzEigenPair &rep, ProjectedSpace &proj);
+
+  bool checkConvergence(const RitzEigenPair &rep, ProjectedSpace &proj, 
+                        Index neigen);
 
   void restart(const RitzEigenPair &rep, ProjectedSpace &proj,
                Index size_restart) const;
