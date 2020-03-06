@@ -82,7 +82,7 @@ void DftGwBse::Initialize(tools::Property& options) {
     _geoopt_options = options.get(key + ".geometry_optimization");
   }
 
-  // register all QM packages (Gaussian, NWCHEM, etc)
+  // register all QM packages
   QMPackageFactory::RegisterAll();
 }
 
