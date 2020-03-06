@@ -97,9 +97,9 @@ class DavidsonSolver {
       
       rep = getRitzEigenPairs(A, proj);
 
-      printIterationData(rep, proj, neigen);
-
       bool converged = checkConvergence(rep, proj, neigen);
+
+      printIterationData(rep, proj, neigen);      
       
       bool last_iter = _i_iter == (_iter_max - 1);
 
