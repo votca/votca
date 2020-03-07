@@ -158,14 +158,6 @@ void GWBSE::Initialize(tools::Property& options) {
     qpmin = 0;
   }
 
-  // some QP - BSE consistency checks are required
-  /* if (bse_vmin < qpmin) {
-    qpmin = bse_vmin;
-  }
-  if (bse_cmax > qpmax) {
-    qpmax = bse_cmax;
-  } */
-
   _gwopt.homo = homo;
   _gwopt.qpmin = qpmin;
   _gwopt.qpmax = qpmax;
@@ -275,6 +267,16 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *_pLog) << " BSE type: full" << flush;
   } else {
     XTP_LOG(Log::error, *_pLog) << " BSE type: TDA" << flush;
+  }
+
+  _bseopt.use_Hqp_offdiag = options.ifExistsReturnElseReturnDefault<bool>(
+      key + ".use_Hqp_offdiag", _bseopt.use_Hqp_offdiag);
+  if (!_bseopt.use_Hqp_offdiag) {
+    XTP_LOG(Log::error, *_pLog)
+        << " BSE without Hqp offdiagonal elements" << flush;
+  } else {
+    XTP_LOG(Log::error, *_pLog)
+        << " BSE with Hqp offdiagonal elements" << flush;
   }
 
   if (options.exists(key + ".vxc")) {
@@ -705,8 +707,12 @@ bool GWBSE::Evaluate() {
   if (_do_bse_singlets || _do_bse_triplets) {
 
     BSE bse = BSE(*_pLog, Mmn);
-    bse.configure(_bseopt, _orbitals.RPAInputEnergies(), Hqp);
-
+    if (_bseopt.use_Hqp_offdiag) {
+      bse.configure(_bseopt, _orbitals.RPAInputEnergies(), Hqp);
+    } else {
+      bse.configure(_bseopt, _orbitals.RPAInputEnergies(),
+                    Hqp.diagonal().asDiagonal());
+    }
     if (_do_bse_triplets) {
       bse.Solve_triplets(_orbitals);
       XTP_LOG(Log::error, *_pLog)
