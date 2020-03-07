@@ -38,7 +38,7 @@ namespace xtp {
 void IQM::Initialize(tools::Property& options) {
   ParseOptionsXML(options);
 
-  // register all QM packages (Gaussian, turbomole, etc))
+  // register all QM packages (Orca)
   QMPackageFactory::RegisterAll();
   return;
 }

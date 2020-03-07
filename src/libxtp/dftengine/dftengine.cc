@@ -46,6 +46,7 @@ namespace xtp {
 void DFTEngine::Initialize(Property& options) {
 
   string key = "package";
+  const string key_xtpdft = "package.xtpdft";
   _dftbasis_name =
       options.ifExistsReturnElseThrowRuntimeError<string>(key + ".basisset");
 
@@ -58,18 +59,18 @@ void DFTEngine::Initialize(Property& options) {
 
   if (!_with_RI) {
 
-    if (options.exists(key + ".four_center_method")) {
+    if (options.exists(key_xtpdft + ".four_center_method")) {
       std::vector<std::string> choices = {"direct", "cache"};
       _four_center_method =
           options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-              key + ".four_center_method", choices);
+              key_xtpdft + ".four_center_method", choices);
     } else {
       _four_center_method = "cache";
     }
     _with_screening = options.ifExistsReturnElseReturnDefault<bool>(
-        key + ".with_screening", true);
+        key_xtpdft + ".with_screening", true);
     _screening_eps = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".screening_eps", 1e-9);
+        key_xtpdft + ".screening_eps", 1e-9);
   }
 
   if (options.exists(key + ".ecp")) {
@@ -81,40 +82,41 @@ void DFTEngine::Initialize(Property& options) {
   _with_guess =
       options.ifExistsReturnElseReturnDefault<bool>(key + ".read_guess", false);
   _initial_guess = options.ifExistsReturnElseReturnDefault<string>(
-      key + ".initial_guess", "atom");
+      key_xtpdft + ".initial_guess", "atom");
 
   _grid_name = options.ifExistsReturnElseReturnDefault<string>(
-      key + ".integration_grid", "medium");
-  _xc_functional_name = options.ifExistsReturnElseThrowRuntimeError<string>(
-      key + ".xc_functional");
+      key_xtpdft + ".integration_grid", "medium");
+  _xc_functional_name =
+      options.ifExistsReturnElseThrowRuntimeError<string>(key + ".functional");
 
-  if (options.exists(key + ".externaldensity")) {
+  if (options.exists(key_xtpdft + ".externaldensity")) {
     _integrate_ext_density = true;
     _orbfilename = options.ifExistsReturnElseThrowRuntimeError<string>(
-        key + ".externaldensity.orbfile");
+        key_xtpdft + ".externaldensity.orbfile");
     _gridquality = options.ifExistsReturnElseThrowRuntimeError<string>(
-        key + ".externaldensity.gridquality");
+        key_xtpdft + ".externaldensity.gridquality");
     _state = options.ifExistsReturnElseThrowRuntimeError<string>(
-        key + ".externaldensity.state");
+        key_xtpdft + ".externaldensity.state");
   }
 
-  if (options.exists(key + ".externalfield")) {
+  if (options.exists(key_xtpdft + ".externalfield")) {
     _integrate_ext_field = true;
 
     _extfield = options.ifExistsReturnElseThrowRuntimeError<Eigen::Vector3d>(
-        key + ".externalfield");
+        key_xtpdft + ".externalfield");
   }
 
-  if (options.exists(key + ".convergence")) {
+  if (options.exists(key_xtpdft + ".convergence")) {
     _conv_opt.Econverged = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".convergence.energy", _conv_opt.Econverged);
+        key_xtpdft + ".convergence.energy", _conv_opt.Econverged);
     _conv_opt.error_converged = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".convergence.error", _conv_opt.error_converged);
+        key_xtpdft + ".convergence.error", _conv_opt.error_converged);
     _max_iter = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".convergence.max_iterations", 100);
+        key_xtpdft + ".convergence.max_iterations", 100);
 
-    if (options.exists(key + ".convergence.method")) {
-      string method = options.get(key + ".convergence.method").as<string>();
+    if (options.exists(key_xtpdft + ".convergence.method")) {
+      string method =
+          options.get(key_xtpdft + ".convergence.method").as<string>();
       if (method == "DIIS") {
         _conv_opt.usediis = true;
       } else if (method == "mixing") {
@@ -129,19 +131,19 @@ void DFTEngine::Initialize(Property& options) {
       _conv_opt.maxout = false;
     }
     _conv_opt.mixingparameter = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".convergence.mixing", _conv_opt.mixingparameter);
+        key_xtpdft + ".convergence.mixing", _conv_opt.mixingparameter);
     _conv_opt.levelshift = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".convergence.levelshift", _conv_opt.levelshift);
+        key_xtpdft + ".convergence.levelshift", _conv_opt.levelshift);
     _conv_opt.levelshiftend = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".convergence.levelshift_end", _conv_opt.levelshiftend);
+        key_xtpdft + ".convergence.levelshift_end", _conv_opt.levelshiftend);
     _conv_opt.maxout = options.ifExistsReturnElseReturnDefault<bool>(
-        key + ".convergence.DIIS_maxout", _conv_opt.maxout);
+        key_xtpdft + ".convergence.DIIS_maxout", _conv_opt.maxout);
     _conv_opt.histlength = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".convergence.DIIS_length", _conv_opt.histlength);
+        key_xtpdft + ".convergence.DIIS_length", _conv_opt.histlength);
     _conv_opt.diis_start = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".convergence.DIIS_start", _conv_opt.diis_start);
+        key_xtpdft + ".convergence.DIIS_start", _conv_opt.diis_start);
     _conv_opt.adiis_start = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".convergence.ADIIS_start", _conv_opt.adiis_start);
+        key_xtpdft + ".convergence.ADIIS_start", _conv_opt.adiis_start);
   }
 
   return;
