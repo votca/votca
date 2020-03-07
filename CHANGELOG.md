@@ -6,7 +6,8 @@ For more detailed information about the changes see the history of the
 * Hqp part of BSE can be separate from QP range (#388)
 * Fixed Cuda implementation (#391)
 * Use a general syntax to represent all QMPackages input (#318)
-* Remove support for both Gaussian and NWChem (#318)
+* Remove support for both Gaussian and NWChem (#318) 
+* Usage of offdiagonal elements of Hqp in BSE optional (#402)
 
 >>>>>>> master
 ## Version 1.6 _SuperPelagia_ (released XX.02.20)
