@@ -44,7 +44,11 @@ void BSE::configure(const options& opt, const Eigen::VectorXd& RPAInputEnergies,
   _bse_vtotal = _bse_vmax - _opt.vmin + 1;
   _bse_ctotal = _opt.cmax - _bse_cmin + 1;
   _bse_size = _bse_vtotal * _bse_ctotal;
-  _Hqp = AdjustHqpSize(Hqp_in, RPAInputEnergies);
+  if (_opt.use_Hqp_offdiag) {
+    _Hqp = AdjustHqpSize(Hqp_in, RPAInputEnergies);
+  } else {
+    _Hqp = AdjustHqpSize(Hqp_in, RPAInputEnergies).diagonal().asDiagonal();
+  }
   SetupDirectInteractionOperator(RPAInputEnergies);
 }
 
