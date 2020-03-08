@@ -62,6 +62,7 @@ class BSE {
     Index davidson_maxiter = 50;
     double min_print_weight =
         0.5;  // minimium contribution for state to print it
+    bool use_Hqp_offdiag = true;
   };
 
   void configure(const options& opt, const Eigen::VectorXd& RPAEnergies,
