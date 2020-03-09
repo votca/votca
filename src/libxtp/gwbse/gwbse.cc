@@ -411,24 +411,24 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *_pLog)
         << " QP grid spacing: " << _gwopt.qp_grid_spacing << flush;
   }
-  _gwopt.gw_anderson_order = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".gw_anderson_order",
-      _gwopt.gw_anderson_order);  // max history in Anderson mixing (0: plain,
+  _gwopt.gw_mixing_order = options.ifExistsReturnElseReturnDefault<Index>(
+      key + ".gw_mixing_order",
+      _gwopt.gw_mixing_order);  // max history in mixing (0: plain,
                                   // 1: linear, >1 Anderson)
 
-  _gwopt.gw_anderson_alpha = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".gw_anderson_alpha", _gwopt.gw_anderson_alpha);
+  _gwopt.gw_mixing_alpha = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".gw_mixing_alpha", _gwopt.gw_mixing_alpha);
 
   if (mode == "evGW") {
-    if (_gwopt.gw_anderson_order == 0) {
+    if (_gwopt.gw_mixing_order == 0) {
       XTP_LOG(Log::error, *_pLog) << " evGW with plain update " << std::flush;
-    } else if (_gwopt.gw_anderson_order == 1) {
+    } else if (_gwopt.gw_mixing_order == 1) {
       XTP_LOG(Log::error, *_pLog) << " evGW with linear update using alpha "
-                                  << _gwopt.gw_anderson_alpha << std::flush;
+                                  << _gwopt.gw_mixing_alpha << std::flush;
     } else {
       XTP_LOG(Log::error, *_pLog) << " evGW with Anderson update with history "
-                                  << _gwopt.gw_anderson_order << " using alpha "
-                                  << _gwopt.gw_anderson_alpha << std::flush;
+                                  << _gwopt.gw_mixing_order << " using alpha "
+                                  << _gwopt.gw_mixing_alpha << std::flush;
     }
   }
 

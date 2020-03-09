@@ -49,7 +49,7 @@ void GW::configure(const options& opt) {
   _sigma->configure(sigma_opt);
   _Sigma_x = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
   _Sigma_c = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
-  _anderson_order = _opt.gw_anderson_order;
+  _mixing_order = _opt.gw_mixing_order;
 }
 
 double GW::CalcHomoLumoShift(Eigen::VectorXd frequencies) const {
@@ -160,7 +160,7 @@ void GW::CalculateGWPerturbation() {
       dft_shifted_energies.segment(_opt.qpmin, _qptotal);
 
   ANDERSON _mixing;
-  _mixing.SetOrder(_opt.gw_anderson_order);
+  _mixing.SetOrder(_opt.gw_mixing_order);
 
   for (Index i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
 
@@ -174,7 +174,7 @@ void GW::CalculateGWPerturbation() {
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
     XTP_LOG(Log::info, _log)
         << TimeStamp() << " Solving QP equations " << std::flush;
-    if (_opt.gw_anderson_order > 0 && i_gw == 1) {
+    if (_opt.gw_mixing_order > 0 && i_gw == 1) {
       _mixing.UpdateInput(frequencies);
     }
 
@@ -182,19 +182,19 @@ void GW::CalculateGWPerturbation() {
 
     if (_opt.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
-      if (_opt.gw_anderson_order > 0 && i_gw > 0) {
-        if (_opt.gw_anderson_order == 1) {
+      if (_opt.gw_mixing_order > 0 && i_gw > 0) {
+        if (_opt.gw_mixing_order == 1) {
           XTP_LOG(Log::debug, _log) << "GWSC using linear mixing with alpha: "
-                                    << _opt.gw_anderson_alpha << std::flush;
+                                    << _opt.gw_mixing_alpha << std::flush;
         } else {
           XTP_LOG(Log::debug, _log)
               << "GWSC using Anderson mixing with history "
-              << _opt.gw_anderson_order << ", alpha: " << _opt.gw_anderson_alpha
+              << _opt.gw_mixing_order << ", alpha: " << _opt.gw_mixing_alpha
               << std::flush;
         }
         _mixing.UpdateOutput(frequencies);
         Eigen::VectorXd mixed_frequencies =
-            _mixing.NPAndersonMixing(_opt.gw_anderson_alpha);
+            _mixing.NPAndersonMixing(_opt.gw_mixing_alpha);
         _mixing.UpdateInput(mixed_frequencies);
         _rpa.UpdateRPAInputEnergies(_dft_energies, mixed_frequencies,
                                     _opt.qpmin);
