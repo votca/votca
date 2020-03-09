@@ -142,19 +142,19 @@ Index NumFuncShell_cartesian(const std::string& shell_type) {
   // single type shells defined here
   for (const char& t : shell_type) {
     if (t == 'S') {
-      nbf = 1;
+      nbf += 1;
     } else if (t == 'P') {
-      nbf = 3;
+      nbf += 3;
     } else if (t == 'D') {
-      nbf = 6;
+      nbf += 6;
     } else if (t == 'F') {
-      nbf = 10;
+      nbf += 10;
     } else if (t == 'G') {
-      nbf = 15;
+      nbf += 15;
     } else if (t == 'H') {
-      nbf = 21;
+      nbf += 21;
     } else if (t == 'I') {
-      nbf = 28;
+      nbf += 28;
     } else {
       throw std::runtime_error("NumFuncShell_cartesian shell_type not known");
     }

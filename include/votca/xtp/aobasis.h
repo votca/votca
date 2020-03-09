@@ -28,7 +28,6 @@ namespace votca {
 namespace xtp {
 class QMMolecule;
 class BasisSet;
-class QMPackage;
 
 /**
  * \brief Container to hold Basisfunctions for all atoms
@@ -37,9 +36,6 @@ class QMPackage;
  */
 class AOBasis {
  public:
-  void ReorderMOs(Eigen::MatrixXd& v, const QMPackage& start,
-                  const QMPackage& target) const;
-
   void Fill(const BasisSet& bs, const QMMolecule& atoms);
 
   Index AOBasisSize() const { return _AOBasisSize; }
@@ -58,25 +54,6 @@ class AOBasis {
 
  private:
   AOShell& addShell(const Shell& shell, const QMAtom& atom, Index startIndex);
-
-  void MultiplyMOs(Eigen::MatrixXd& v,
-                   const std::vector<Index>& multiplier) const;
-
-  std::vector<Index> invertOrder(const std::vector<Index>& order) const;
-
-  std::vector<Index> getReorderVector(const std::string& start,
-                                      const std::string& target) const;
-
-  void addReorderShell(const std::string& start, const std::string& target,
-                       const std::string& shell,
-                       std::vector<Index>& neworder) const;
-
-  std::vector<Index> getMultiplierVector(const std::string& start,
-                                         const std::string& target) const;
-
-  void addMultiplierShell(const std::string& start, const std::string& target,
-                          const std::string& shell,
-                          std::vector<Index>& multiplier) const;
 
   std::vector<AOShell> _aoshells;
 
