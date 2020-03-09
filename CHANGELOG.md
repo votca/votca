@@ -5,11 +5,12 @@ For more detailed information about the changes see the history of the
 * G0W0 rpa energies are fixed in BSE (#383) 
 * Hqp part of BSE can be separate from QP range (#388)
 * Fixed Cuda implementation (#391)
+* Plain, linear, and Anderson mixing in evGW
 * Use a general syntax to represent all QMPackages input (#318)
-* Remove support for both Gaussian and NWChem (#318) 
-* Usage of offdiagonal elements of Hqp in BSE optional (#402)
+* Remove support for both Gaussian and NWChem (#318)
+* Fixed executable path check (#400)
+* Usage of offdiagonal elements of Hqp in BSE optional, default: with offdiagonals (#402)
 
->>>>>>> master
 ## Version 1.6 _SuperPelagia_ (released XX.02.20)
 * fix 32-bit build (#381, #380)
 * remove duplicated basissets (#384, #386, #387)
