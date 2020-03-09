@@ -60,7 +60,11 @@ void Settings::add(const std::string& key, const std::string& value) {
 }
 
 void Settings::validate() const {
-  for (const auto& x : _mandatory_keyword) {
+  std::vector<std::string> keywords = _mandatory_keyword;
+  if (this->get("name") != "xtp") {
+    this->check_mandatory_keyword("executable");
+  }
+  for (const auto& x : keywords) {
     this->check_mandatory_keyword(x);
   }
   std::stringstream stream;

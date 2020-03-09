@@ -23,6 +23,7 @@
 #include <fstream>
 #include <iostream>
 #include <votca/xtp/IndexParser.h>
+#include <votca/xtp/anderson_mixing.h>
 #include <votca/xtp/gw.h>
 #include <votca/xtp/newton_rapson.h>
 
@@ -156,6 +157,10 @@ void GW::CalculateGWPerturbation() {
       dft_shifted_energies.segment(_opt.rpamin, _opt.rpamax - _opt.rpamin + 1));
   Eigen::VectorXd frequencies =
       dft_shifted_energies.segment(_opt.qpmin, _qptotal);
+
+  Anderson _mixing;
+  _mixing.Configure(_opt.gw_mixing_order, _opt.gw_mixing_alpha);
+
   for (Index i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
 
     if (i_gw % _opt.reset_3c == 0 && i_gw != 0) {
@@ -168,19 +173,49 @@ void GW::CalculateGWPerturbation() {
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
     XTP_LOG(Log::info, _log)
         << TimeStamp() << " Solving QP equations " << std::flush;
+    if (_opt.gw_mixing_order > 0 && i_gw > 0) {
+      _mixing.UpdateInput(frequencies);
+    }
+
     frequencies = SolveQP(frequencies);
 
     if (_opt.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
-      _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
-      XTP_LOG(Log::error, _log)
+      if (_opt.gw_mixing_order > 0 && i_gw > 0) {
+        if (_opt.gw_mixing_order == 1) {
+          XTP_LOG(Log::debug, _log)
+              << "GWSC using linear mixing with alpha: " << _opt.gw_mixing_alpha
+              << std::flush;
+        } else {
+          XTP_LOG(Log::debug, _log)
+              << "GWSC using Anderson mixing with history "
+              << _opt.gw_mixing_order << ", alpha: " << _opt.gw_mixing_alpha
+              << std::flush;
+        }
+        _mixing.UpdateOutput(frequencies);
+        Eigen::VectorXd mixed_frequencies = _mixing.MixHistory();
+        _rpa.UpdateRPAInputEnergies(_dft_energies, mixed_frequencies,
+                                    _opt.qpmin);
+        frequencies = mixed_frequencies;
+
+      } else {
+        XTP_LOG(Log::debug, _log) << "GWSC using plain update " << std::flush;
+        _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
+      }
+
+      for (int i = 0; i < frequencies.size(); i++) {
+        XTP_LOG(Log::debug, _log)
+            << "... GWSC iter " << i_gw << " state " << i << " "
+            << std::setprecision(9) << frequencies(i) << std::flush;
+      }
+
+      XTP_LOG(Log::info, _log)
           << TimeStamp() << " GW_Iteration:" << i_gw
           << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;
       if (Converged(_rpa.getRPAInputEnergies(), rpa_energies_old,
                     _opt.gw_sc_limit)) {
-        XTP_LOG(Log::error, _log)
-            << TimeStamp() << " Converged after " << i_gw + 1
-            << " GW iterations." << std::flush;
+        XTP_LOG(Log::info, _log) << TimeStamp() << " Converged after "
+                                 << i_gw + 1 << " GW iterations." << std::flush;
         break;
       } else if (i_gw == _opt.gw_sc_max_iterations - 1) {
         XTP_LOG(Log::error, _log)
