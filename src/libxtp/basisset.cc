@@ -24,7 +24,7 @@ namespace xtp {
 
 Index FindLmax(const std::string& type) {
 
-  assert(!type.empty() && "Shelltype most be non empty!");
+  assert(!type.empty() && "Shelltype must be non empty!");
   const char t = type.back();
   Index lmax = 0;
   if (t == 'S') {
@@ -48,7 +48,7 @@ Index FindLmax(const std::string& type) {
 }
 
 Index FindLmin(const std::string& type) {
-  assert(!type.empty() && "Shelltype most be non empty!");
+  assert(!type.empty() && "Shelltype must be non empty!");
   Index lmin = std::numeric_limits<Index>::max();
   const char t = type[0];
   if (t == 'S') {
@@ -66,14 +66,14 @@ Index FindLmin(const std::string& type) {
   } else if (t == 'I') {
     lmin = 6;
   } else {
-    throw std::runtime_error("FindLmax: Shelltype not known");
+    throw std::runtime_error("FindLmin: Shelltype not known");
   }
   return lmin;
 }
 
 Index OffsetFuncShell(const std::string& shell_type) {
   Index nbf = std::numeric_limits<Index>::max();
-  assert(!shell_type.empty() && "Shelltype most be non empty!");
+  assert(!shell_type.empty() && "Shelltype must be non empty!");
   const char t = shell_type[0];
   if (t == 'S') {
     nbf = 0;
@@ -97,7 +97,7 @@ Index OffsetFuncShell(const std::string& shell_type) {
 
 Index NumFuncShell(const std::string& shell_type) {
   Index nbf = 0;
-  assert(!shell_type.empty() && "Shelltype most be non empty!");
+  assert(!shell_type.empty() && "Shelltype must be non empty!");
   // single type shells
   for (const char& t : shell_type) {
     if (t == 'S') {
@@ -138,7 +138,7 @@ std::vector<Index> NumFuncSubShell(const std::string& shell_type) {
 
 Index NumFuncShell_cartesian(const std::string& shell_type) {
   Index nbf = 0;
-  assert(!shell_type.empty() && "Shelltype most be non empty!");
+  assert(!shell_type.empty() && "Shelltype must be non empty!");
   // single type shells defined here
   for (const char& t : shell_type) {
     if (t == 'S') {
@@ -164,7 +164,7 @@ Index NumFuncShell_cartesian(const std::string& shell_type) {
 
 Index OffsetFuncShell_cartesian(const std::string& shell_type) {
   Index nbf = std::numeric_limits<Index>::max();
-  assert(!shell_type.empty() && "Shelltype most be non empty!");
+  assert(!shell_type.empty() && "Shelltype must be non empty!");
   const char t = shell_type[0];
   if (t == 'S') {
     nbf = 0;
