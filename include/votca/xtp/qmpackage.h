@@ -25,14 +25,16 @@
 #include <votca/tools/property.h>
 #include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/logger.h>
+#include <votca/xtp/settings.h>
 #include <votca/xtp/staticsite.h>
+
 namespace votca {
 namespace xtp {
 
 class Orbitals;
 
 // ========================================================================== //
-// QMPackage base class for wrappers of ORCA, GAUSSIAN, NWCHEM etc //
+// QMPackage base class for wrappers of ORCA
 // ========================================================================== //
 
 class QMPackage {
@@ -67,8 +69,7 @@ class QMPackage {
             std::unique_ptr<StaticSite>(new Sitetype(site)));
       }
     }
-    if (!_write_charges) {
-      _write_charges = true;
+    if (_settings.get<bool>("write_charges")) {
       WriteChargeOption();
     }
   }
@@ -92,7 +93,7 @@ class QMPackage {
     _spin = std::abs(charge) + 1;
   }
 
-  bool GuessRequested() const { return _write_guess; }
+  bool GuessRequested() const { return _settings.get<bool>("read_guess"); }
 
   virtual StaticSegment GetCharges() const = 0;
 
@@ -106,6 +107,7 @@ class QMPackage {
   };
 
   void ParseCommonOptions(tools::Property& options);
+  std::string FindDefaultsFile() const;
 
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
@@ -116,40 +118,23 @@ class QMPackage {
   std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,
                                            const std::string separators) const;
 
-  Index _charge;
-  Index _spin;  // 2S+1
-  std::string _memory;
-  std::string _options;
+  Settings _settings{"package"};
 
-  std::string _executable;
+  Index _charge;
+  Index _spin;  // 2S+1mem
+  std::string _basisset_name;
+  std::string _cleanup = "";
   std::string _input_file_name;
   std::string _log_file_name;
   std::string _mo_file_name;
-
+  std::string _options = "";
   std::string _run_dir;
-
-  std::string _basisset_name;
-  std::string _auxbasisset_name;
-  std::string _ecp_name;
-
-  std::string _shell_file_name;
   std::string _scratch_dir;
-  bool _is_optimization = false;
-
-  std::string _cleanup = "";
-
-  bool _get_charges = false;
-
-  bool _write_guess = false;
-  bool _write_charges = false;
-  bool _write_basis_set = false;
-  bool _write_auxbasis_set = false;
-  bool _write_pseudopotentials = false;
+  std::string _shell_file_name;
 
   Logger* _pLog;
 
   std::vector<std::unique_ptr<StaticSite> > _externalsites;
-  double _dpl_spacing = 0.1;
 };
 
 }  // namespace xtp

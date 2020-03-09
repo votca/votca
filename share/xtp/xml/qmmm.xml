@@ -12,7 +12,7 @@
             <region help="definition of a region">
                 <id help="id of a region has to start from 0">0</id>
                 <type help="type of region qm/static/polar">qm</type>
-                <options_dft help="xml file with options for dft calculations">xtpdft.xml</options_dft>
+                <options_dft help="xml file with options for dft calculations">user_input.xml</options_dft>
                 <options_gwbse help="xml file with options for gwbse calculations">gwbse.xml</options_gwbse>
                 <statetracker help="filter to identify excited states from some characteristic and not the energy">
                     <oscillatorstrength>0.5</oscillatorstrength>

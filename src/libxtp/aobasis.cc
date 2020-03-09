@@ -37,7 +37,7 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
     return;
   }
 
-  if (target == "orca" || target == "nwchem") {
+  if (target == "orca") {
     std::vector<Index> multiplier = getMultiplierVector(target, start);
     // and reorder rows of _orbitals->_mo_coefficients() accordingly
     MultiplyMOs(v, multiplier);
@@ -64,8 +64,8 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
       }
     }
   }
-  // NWChem has some strange minus in d-functions
-  if (start == "nwchem" || start == "orca") {
+
+  if (start == "orca") {
     std::vector<Index> multiplier = getMultiplierVector(start, target);
     // and reorder rows of _orbitals->_mo_coefficients() accordingly
     MultiplyMOs(v, multiplier);
@@ -120,13 +120,7 @@ void AOBasis::addMultiplierShell(const std::string& start,
         multiplier.push_back(1);
         multiplier.push_back(1);
       } else if (shell_type == "D") {
-        if (start == "nwchem") {
-          multiplier.push_back(1);
-          multiplier.push_back(1);
-          multiplier.push_back(-1);
-          multiplier.push_back(1);
-          multiplier.push_back(1);
-        } else if (start == "orca") {
+        if (start == "orca") {
           multiplier.push_back(1);
           multiplier.push_back(1);
           multiplier.push_back(1);
@@ -147,14 +141,6 @@ void AOBasis::addMultiplierShell(const std::string& start,
           multiplier.push_back(-1);
           multiplier.push_back(-1);
 
-        } else if (start == "nwchem") {
-          multiplier.push_back(1);
-          multiplier.push_back(1);
-          multiplier.push_back(-1);
-          multiplier.push_back(+1);
-          multiplier.push_back(+1);
-          multiplier.push_back(+1);
-          multiplier.push_back(-1);
         } else {
           std::cerr << "Tried to get multipliers f-functions from package "
                     << start << ".";
@@ -234,8 +220,7 @@ void AOBasis::addReorderShell(const std::string& start,
                               const std::string& target,
                               const std::string& shell_type,
                               std::vector<Index>& order) const {
-  // Reordering is given by email from gaussian, orca output MOs, and
-  // http://www.nwchem-sw.org/index.php/Release66:Basis for nwchem
+  // Reordering is given by email from orca output MOs
 
   // current length of vector
 
@@ -255,11 +240,6 @@ void AOBasis::addReorderShell(const std::string& start,
           order.push_back(cur_pos + 1);
           order.push_back(cur_pos + 3);
           order.push_back(cur_pos + 2);
-        } else if (start == "gaussian" || start == "nwchem") {
-          // nwchem gaussian x,y,z Y1,1 Y1,-1 Y1,0
-          order.push_back(cur_pos + 3);
-          order.push_back(cur_pos + 2);
-          order.push_back(cur_pos + 1);
         } else {
           std::cerr << "Tried to reorder p-functions from package " << start
                     << ".";
@@ -271,20 +251,12 @@ void AOBasis::addReorderShell(const std::string& start,
       else if (shell_type == "D") {
         // orca order is d3z2-r2 dxz dyz dx2-y2 dxy e.g. Y2,0 Y2,1 Y2,-1 Y2,2
         // Y2,-2
-        if (start == "gaussian" || start == "orca") {
+        if (start == "orca") {
           order.push_back(cur_pos + 1);
           order.push_back(cur_pos + 3);
           order.push_back(cur_pos + 2);
           order.push_back(cur_pos + 5);
           order.push_back(cur_pos + 4);
-        } else if (start == "nwchem") {
-          // nwchem order is dxy dyz d3z2-r2 -dxz dx2-y2, e.g. Y2,-2 Y2,-1 Y2,0
-          // Y2,1 Y2,2
-          order.push_back(cur_pos + 4);
-          order.push_back(cur_pos + 2);
-          order.push_back(cur_pos + 1);
-          order.push_back(cur_pos + 3);
-          order.push_back(cur_pos + 5);
         } else {
           std::cerr << "Tried to reorder d-functions from package " << start
                     << ".";
@@ -292,8 +264,7 @@ void AOBasis::addReorderShell(const std::string& start,
         }
       } else if (shell_type == "F") {
         // ordering for votca is Yl,0 Yl,-1 Yl,1 ......Yl,-m Yl,m
-        if (start == "gaussian" || start == "orca") {
-          // ordering for gaussian and orca is Yl,0 Yl,1 Yl,-1 ......Yl,m Yl,-m
+        if (start == "orca") {
           order.push_back(cur_pos + 1);
           order.push_back(cur_pos + 3);
           order.push_back(cur_pos + 2);
@@ -301,17 +272,6 @@ void AOBasis::addReorderShell(const std::string& start,
           order.push_back(cur_pos + 4);
           order.push_back(cur_pos + 7);
           order.push_back(cur_pos + 6);
-        } else if (start == "nwchem") {
-          // ordering for nwchem is fxxy-yyy,
-          // fxyz,fyzz-xxy-yyy,fzzz-xxz-yyz,f-xzz+xxx+xyy,fxxz-yyz,fxyy-xxx
-          // e.g. Y3,-3 Y3,-2 Y3,-1 Y3,0 Y3,1 Y3,2 Y3,3
-          order.push_back(cur_pos + 6);
-          order.push_back(cur_pos + 4);
-          order.push_back(cur_pos + 2);
-          order.push_back(cur_pos + 1);
-          order.push_back(cur_pos + 3);
-          order.push_back(cur_pos + 5);
-          order.push_back(cur_pos + 7);
         } else {
           std::cerr << "Tried to reorder f-functions from package " << start
                     << ".";
@@ -319,8 +279,8 @@ void AOBasis::addReorderShell(const std::string& start,
         }
       } else if (shell_type == "G") {
         // ordering for votca is Yl,0 Yl,-1 Yl,1 ......Yl,-m Yl,m
-        if (start == "gaussian" || start == "orca") {
-          // ordering for gaussian and orca is Yl,0 Yl,1 Yl,-1 ......Yl,m Yl,-m
+        if (start == "orca") {
+          // ordering for orca is Yl,0 Yl,1 Yl,-1 ......Yl,m Yl,-m
           order.push_back(cur_pos + 1);
           order.push_back(cur_pos + 3);
           order.push_back(cur_pos + 2);
