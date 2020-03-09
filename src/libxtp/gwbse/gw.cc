@@ -173,7 +173,7 @@ void GW::CalculateGWPerturbation() {
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
     XTP_LOG(Log::info, _log)
         << TimeStamp() << " Solving QP equations " << std::flush;
-    if (_opt.gw_mixing_order > 0 && i_gw == 1) {
+    if (_opt.gw_mixing_order > 0 && i_gw > 0) {
       _mixing.UpdateInput(frequencies);
     }
 
@@ -194,7 +194,6 @@ void GW::CalculateGWPerturbation() {
         }
         _mixing.UpdateOutput(frequencies);
         Eigen::VectorXd mixed_frequencies = _mixing.MixHistory();
-        _mixing.UpdateInput(mixed_frequencies);
         _rpa.UpdateRPAInputEnergies(_dft_energies, mixed_frequencies,
                                     _opt.qpmin);
         frequencies = mixed_frequencies;
