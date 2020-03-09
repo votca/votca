@@ -184,8 +184,9 @@ void GW::CalculateGWPerturbation() {
       Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
       if (_opt.gw_mixing_order > 0 && i_gw > 0) {
         if (_opt.gw_mixing_order == 1) {
-          XTP_LOG(Log::debug, _log) << "GWSC using linear mixing with alpha: "
-                                    << _opt.gw_mixing_alpha << std::flush;
+          XTP_LOG(Log::debug, _log)
+              << "GWSC using linear mixing with alpha: " << _opt.gw_mixing_alpha
+              << std::flush;
         } else {
           XTP_LOG(Log::debug, _log)
               << "GWSC using Anderson mixing with history "

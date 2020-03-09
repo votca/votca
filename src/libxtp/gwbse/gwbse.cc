@@ -414,7 +414,7 @@ void GWBSE::Initialize(tools::Property& options) {
   _gwopt.gw_mixing_order = options.ifExistsReturnElseReturnDefault<Index>(
       key + ".gw_mixing_order",
       _gwopt.gw_mixing_order);  // max history in mixing (0: plain,
-                                  // 1: linear, >1 Anderson)
+                                // 1: linear, >1 Anderson)
 
   _gwopt.gw_mixing_alpha = options.ifExistsReturnElseReturnDefault<double>(
       key + ".gw_mixing_alpha", _gwopt.gw_mixing_alpha);
