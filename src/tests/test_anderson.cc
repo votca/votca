@@ -26,8 +26,8 @@ BOOST_AUTO_TEST_SUITE(anderson_test)
 
 BOOST_AUTO_TEST_CASE(coeffs_test) {
 
-  ANDERSON _mixing;
-  _mixing.SetOrder(3);
+  Anderson _mixing;
+  _mixing.Configure(3, 0.7);
   Eigen::VectorXd in1 = Eigen::VectorXd::Zero(7);
   in1 << -0.580533, -0.535803, -0.476481, -0.380558, 0.0969526, 0.133036,
       0.164243;
@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
       0.170433;
   _mixing.UpdateOutput(out1);
 
-  Eigen::VectorXd mixed = _mixing.NPAndersonMixing(0.7);
+  Eigen::VectorXd mixed = _mixing.MixHistory();
 
   Eigen::VectorXd ref1 = Eigen::VectorXd::Zero(7);
   ref1 << -0.597199, -0.544813, -0.484606, -0.384126, 0.103421, 0.137331,
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
       0.170768;
   _mixing.UpdateOutput(out2);
 
-  mixed = _mixing.NPAndersonMixing(0.7);
+  mixed = _mixing.MixHistory();
 
   Eigen::VectorXd ref2 = Eigen::VectorXd::Zero(7);
   ref2 << -0.606303, -0.549862, -0.489247, -0.385968, 0.10708, 0.139698,
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
       0.170977;
   _mixing.UpdateOutput(out3);
 
-  mixed = _mixing.NPAndersonMixing(0.7);
+  mixed = _mixing.MixHistory();
   Eigen::VectorXd ref3 = Eigen::VectorXd::Zero(7);
   ref3 << -0.606242, -0.549888, -0.489296, -0.385897, 0.107163, 0.139718,
       0.170977;

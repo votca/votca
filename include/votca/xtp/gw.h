@@ -87,7 +87,6 @@ class GW {
 
  private:
   Index _qptotal;
-  Index _mixing_order;
 
   Eigen::MatrixXd _Sigma_x;
   Eigen::MatrixXd _Sigma_c;

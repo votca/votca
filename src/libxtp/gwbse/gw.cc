@@ -49,7 +49,6 @@ void GW::configure(const options& opt) {
   _sigma->configure(sigma_opt);
   _Sigma_x = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
   _Sigma_c = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
-  _mixing_order = _opt.gw_mixing_order;
 }
 
 double GW::CalcHomoLumoShift(Eigen::VectorXd frequencies) const {
@@ -159,8 +158,8 @@ void GW::CalculateGWPerturbation() {
   Eigen::VectorXd frequencies =
       dft_shifted_energies.segment(_opt.qpmin, _qptotal);
 
-  ANDERSON _mixing;
-  _mixing.SetOrder(_opt.gw_mixing_order);
+  Anderson _mixing;
+  _mixing.Configure(_opt.gw_mixing_order, _opt.gw_mixing_alpha);
 
   for (Index i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
 
@@ -194,27 +193,21 @@ void GW::CalculateGWPerturbation() {
               << std::flush;
         }
         _mixing.UpdateOutput(frequencies);
-        Eigen::VectorXd mixed_frequencies =
-            _mixing.NPAndersonMixing(_opt.gw_mixing_alpha);
+        Eigen::VectorXd mixed_frequencies = _mixing.MixHistory();
         _mixing.UpdateInput(mixed_frequencies);
         _rpa.UpdateRPAInputEnergies(_dft_energies, mixed_frequencies,
                                     _opt.qpmin);
         frequencies = mixed_frequencies;
 
-        for (int i = 0; i < mixed_frequencies.size(); i++) {
-          XTP_LOG(Log::debug, _log)
-              << "... GWSC iter " << i_gw << " state " << i << " "
-              << std::setprecision(9) << mixed_frequencies(i) << std::flush;
-        }
-
       } else {
         XTP_LOG(Log::debug, _log) << "GWSC using plain update " << std::flush;
         _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
-        for (int i = 0; i < frequencies.size(); i++) {
-          XTP_LOG(Log::debug, _log)
-              << "... GWSC iter " << i_gw << " state " << i << " "
-              << std::setprecision(9) << frequencies(i) << std::flush;
-        }
+      }
+
+      for (int i = 0; i < frequencies.size(); i++) {
+        XTP_LOG(Log::debug, _log)
+            << "... GWSC iter " << i_gw << " state " << i << " "
+            << std::setprecision(9) << frequencies(i) << std::flush;
       }
 
       XTP_LOG(Log::info, _log)

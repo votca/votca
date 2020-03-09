@@ -23,71 +23,71 @@
 namespace votca {
 namespace xtp {
 
-void ANDERSON::UpdateOutput(const Eigen::VectorXd &newOutput) {
+void Anderson::Configure(const Index order, const double alpha) {
+  _order = order + 1;
+  _alpha = alpha;
+}
+
+void Anderson::UpdateOutput(const Eigen::VectorXd &newOutput) {
 
   // Check if max mixing history is reached and adding new step to history
   Index size = _output.size();
-  if (size > _max_history - 1) {
+  if (size > _order - 1) {
     _output.erase(_output.begin());
   }
   _output.push_back(newOutput);
 }
 
-void ANDERSON::UpdateInput(const Eigen::VectorXd &newInput) {
+void Anderson::UpdateInput(const Eigen::VectorXd &newInput) {
   Index size = _output.size();
-  if (size > _max_history - 1) {
+  if (size > _order - 1) {
     _input.erase(_input.begin());
   }
   _input.push_back(newInput);
 }
 
-Eigen::VectorXd ANDERSON::NPAndersonMixing(const double alpha) {
+const Eigen::VectorXd Anderson::MixHistory() {
 
-  _iteration++;
-
+  const Index iteration = _output.size();
+  const Index used_history = iteration - 1;
   Eigen::VectorXd OutMixed = _output.back();
   Eigen::VectorXd InMixed = _input.back();
 
-  if (_iteration > 1 && _max_history > 1) {
+  if (iteration > 1 && _order > 1) {
 
     Eigen::VectorXd DeltaN = OutMixed - InMixed;
 
     // Building Linear System for Coefficients
-    const Index used_history = _output.size() - 1;
     Eigen::MatrixXd A = Eigen::MatrixXd::Zero(used_history, used_history);
     Eigen::VectorXd c = Eigen::VectorXd::Zero(used_history);
 
-    for (Index m = 1; m <= used_history; m++) {
+    for (Index m = 1; m < iteration; m++) {
 
-      c(m - 1) =
-          (DeltaN - _output.at(used_history - m) + _input.at(used_history - m))
-              .cwiseProduct(DeltaN)
-              .sum();
+      c(m - 1) = (DeltaN - _output[used_history - m] + _input[used_history - m])
+                     .dot(DeltaN);
 
-      for (Index j = 1; j <= used_history; j++) {
+      for (Index j = 1; j < iteration; j++) {
         A(m - 1, j - 1) =
-            (DeltaN - _output.at(used_history - m) +
-             _input.at(used_history - m))
-                .cwiseProduct((DeltaN - _output.at(used_history - j) +
-                               _input.at(used_history - j)))
-                .sum();
+            (DeltaN - _output[used_history - m] + _input[used_history - m])
+                .dot((DeltaN - _output[used_history - j] +
+                      _input[used_history - j]));
       }
     }
     // Solving the System to obtain coefficients
     Eigen::VectorXd coefficients = A.fullPivHouseholderQr().solve(c);
 
     // Mixing the Potentials
-    for (Index n = 1; n <= used_history; n++) {
+    for (Index n = 1; n < iteration; n++) {
 
       OutMixed += coefficients(n - 1) *
-                  (_output.at(used_history - n) - _output.at(used_history));
+                  (_output[used_history - n] - _output[used_history]);
       InMixed += coefficients(n - 1) *
-                 (_input.at(used_history - n) - _input.at(used_history));
+                 (_input[used_history - n] - _input[used_history]);
     }
   }
 
   // Returning the linear Mix of Input and Output
-  return alpha * OutMixed + (1 - alpha) * InMixed;
+  return _alpha * OutMixed + (1 - _alpha) * InMixed;
 }
 }  // namespace xtp
 }  // namespace votca

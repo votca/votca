@@ -21,30 +21,38 @@
 #ifndef _VOTCA_XTP_ANDERSON__H
 #define _VOTCA_XTP_ANDERSON__H
 
-#include <iostream>
-#include <memory>
 #include <vector>
 #include <votca/xtp/eigen.h>
 namespace votca {
 namespace xtp {
-
-class ANDERSON {
+/**
+ * \brief Anderson mixing as convergence acceleration in SCF/fixed point
+ * problems
+ *
+ * Keeps a history of input and output solution vectors during a self-consistent
+ * fixed-point procedure and determines a new solution from an optimized mixing.
+ * Requires specification of the order of the method (maximum history to take)
+ * and a mixing parameter.
+ *
+ *  B. Baumeier, Diploma Thesis, Appendix C (2005)
+ *
+ *  I. Ramiere and T. Helfer, Iterative Residual-Based Vector Methods to
+ *  Accelerate Fixed Point Iterations, Comput. Math. Appl. 70, 2210 (2015)
+ */
+class Anderson {
  public:
-  Eigen::VectorXd NPAndersonMixing(const double alpha);
+  const Eigen::VectorXd MixHistory();
 
   void UpdateOutput(const Eigen::VectorXd &newOutput);
   void UpdateInput(const Eigen::VectorXd &newInput);
-  void SetOrder(const Index max_history) { _max_history = max_history + 1; };
-  bool Info() { return success; }
+  void Configure(const Index order, const double alpha);
 
  private:
-  bool success = true;
-
   std::vector<Eigen::VectorXd> _input;
   std::vector<Eigen::VectorXd> _output;
 
-  Index _max_history = 25;
-  Index _iteration = 0;
+  double _alpha = 0.7;
+  Index _order = 25;
 };
 
 }  // namespace xtp
