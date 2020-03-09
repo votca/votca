@@ -82,6 +82,7 @@ if(ENABLE_TESTING)
     list(APPEND test_cases test_cudapipeline)
     list(APPEND test_cases test_cudamatrix)    
   endif()
+  list(APPEND test_cases test_anderson)
 
   foreach(PROG ${test_cases} )
     add_executable(unit_${PROG} ${PROG}.cc)

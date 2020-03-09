@@ -5,6 +5,7 @@ For more detailed information about the changes see the history of the
 * G0W0 rpa energies are fixed in BSE (#383) 
 * Hqp part of BSE can be separate from QP range (#388)
 * Fixed Cuda implementation (#391)
+* Plain, linear, and Anderson mixing in evGW
 * Use a general syntax to represent all QMPackages input (#318)
 * Remove support for both Gaussian and NWChem (#318)
 * Fixed executable path check (#400)
