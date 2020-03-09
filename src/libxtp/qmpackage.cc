@@ -21,6 +21,7 @@
 #include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/qmpackage.h>
+#include <votca/xtp/qmpackagefactory.h>
 
 namespace votca {
 namespace xtp {
@@ -69,7 +70,10 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) const {
   }
 
   if (orbitals.hasMOs()) {
-    dftbasis.ReorderMOs(orbitals.MOs().eigenvectors(), getPackageName(), "xtp");
+    QMPackageFactory::RegisterAll();
+    std::unique_ptr<QMPackage> xtp =
+        std::unique_ptr<QMPackage>(QMPackages().Create("xtp"));
+    dftbasis.ReorderMOs(orbitals.MOs().eigenvectors(), *this, *xtp);
     XTP_LOG(Log::info, *_pLog) << "Reordered MOs" << flush;
   }
 
@@ -85,7 +89,10 @@ Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const {
   AOBasis dftbasis;
   dftbasis.Fill(dftbasisset, orbitals.QMAtoms());
   Eigen::MatrixXd result = orbitals.MOs().eigenvectors();
-  dftbasis.ReorderMOs(result, "xtp", getPackageName());
+  QMPackageFactory::RegisterAll();
+  std::unique_ptr<QMPackage> xtp =
+      std::unique_ptr<QMPackage>(QMPackages().Create("xtp"));
+  dftbasis.ReorderMOs(result, *xtp, *this);
   return result;
 }
 

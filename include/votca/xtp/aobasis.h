@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -28,6 +28,7 @@ namespace votca {
 namespace xtp {
 class QMMolecule;
 class BasisSet;
+class QMPackage;
 
 /**
  * \brief Container to hold Basisfunctions for all atoms
@@ -36,8 +37,8 @@ class BasisSet;
  */
 class AOBasis {
  public:
-  void ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
-                  const std::string& target) const;
+  void ReorderMOs(Eigen::MatrixXd& v, const QMPackage& start,
+                  const QMPackage& target) const;
 
   void Fill(const BasisSet& bs, const QMMolecule& atoms);
 
