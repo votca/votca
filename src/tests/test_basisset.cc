@@ -49,6 +49,15 @@ BOOST_AUTO_TEST_CASE(FreeFunctions_test) {
   BOOST_CHECK_EQUAL(NumFuncShell_cartesian("SPD"), 10);
 
   BOOST_CHECK_EQUAL(OffsetFuncShell_cartesian("FG"), 10);
+
+  BOOST_CHECK_EQUAL(CheckShellType("FG"), true);
+  BOOST_CHECK_EQUAL(CheckShellType("S"), true);
+  BOOST_CHECK_EQUAL(CheckShellType("PD"), true);
+  BOOST_CHECK_EQUAL(CheckShellType("s"), false);
+  BOOST_CHECK_EQUAL(CheckShellType("apdf"), false);
+  BOOST_CHECK_EQUAL(CheckShellType("PDS"), false);
+  BOOST_CHECK_EQUAL(CheckShellType("PDG"), false);
+  BOOST_CHECK_EQUAL(CheckShellType("SDFGI"), false);
 }
 
 BOOST_AUTO_TEST_CASE(Contraction_test) {

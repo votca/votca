@@ -187,6 +187,28 @@ Index OffsetFuncShell_cartesian(const std::string& shell_type) {
   return nbf;
 }
 
+bool CheckShellType(const std::string& shelltype) {
+  if (shelltype.empty()) {
+    return false;
+  }
+  std::vector<char> allowed_shells = {'S', 'P', 'D', 'F', 'G', 'H', 'I'};
+  std::vector<char>::iterator it =
+      std::find(allowed_shells.begin(), allowed_shells.end(), shelltype[0]);
+  if (it == allowed_shells.end()) {
+    return false;
+  } else {
+    Index index = std::distance(allowed_shells.begin(), it);
+    for (Index i = 1; i < Index(shelltype.size()); i++) {
+      if (index + i > Index(allowed_shells.size()) ||
+          shelltype[i] != allowed_shells[index + i]) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 void BasisSet::Load(const std::string& name) {
 
   _name = name;
@@ -216,6 +238,10 @@ void BasisSet::Load(const std::string& name) {
     std::vector<tools::Property*> shellProps = elementProp->Select("shell");
     for (tools::Property* shellProp : shellProps) {
       std::string shellType = shellProp->getAttribute<std::string>("type");
+      if (!CheckShellType(shellType)) {
+        throw std::runtime_error("Shelltype: '" + shellType +
+                                 "' is not a valid shelltype!");
+      }
       double shellScale = shellProp->getAttribute<double>("scale");
 
       Shell& shell = element.addShell(shellType, shellScale);
