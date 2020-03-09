@@ -8,7 +8,7 @@ For more detailed information about the changes see the history of the
 * Plain, linear, and Anderson mixing in evGW
 * Use a general syntax to represent all QMPackages input (#318)
 * Remove support for both Gaussian and NWChem (#318) 
-* Usage of offdiagonal elements of Hqp in BSE optional (#402)
+* Usage of offdiagonal elements of Hqp in BSE optional, default: with offdiagonals (#402)
 
 
 ## Version 1.6 _SuperPelagia_ (released XX.02.20)

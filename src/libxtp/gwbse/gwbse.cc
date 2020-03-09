@@ -728,12 +728,7 @@ bool GWBSE::Evaluate() {
   if (_do_bse_singlets || _do_bse_triplets) {
 
     BSE bse = BSE(*_pLog, Mmn);
-    if (_bseopt.use_Hqp_offdiag) {
-      bse.configure(_bseopt, _orbitals.RPAInputEnergies(), Hqp);
-    } else {
-      bse.configure(_bseopt, _orbitals.RPAInputEnergies(),
-                    Hqp.diagonal().asDiagonal());
-    }
+    bse.configure(_bseopt, _orbitals.RPAInputEnergies(), Hqp);
     if (_do_bse_triplets) {
       bse.Solve_triplets(_orbitals);
       XTP_LOG(Log::error, *_pLog)
