@@ -10,6 +10,7 @@ For more detailed information about the changes see the history of the
 * Remove support for both Gaussian and NWChem (#318)
 * Fixed executable path check (#400)
 * Usage of offdiagonal elements of Hqp in BSE optional, default: with offdiagonals (#402)
+* refactored MO reordering of external QMPackages
 
 ## Version 1.6 _SuperPelagia_ (released XX.02.20)
 * fix 32-bit build (#381, #380)
