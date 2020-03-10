@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,6 +22,7 @@
 #include "../../include/votca/tools/graph_bf_visitor.h"
 #include "../../include/votca/tools/graph_df_visitor.h"
 #include "../../include/votca/tools/graphalgorithm.h"
+#include "../../include/votca/tools/graphmemoryvisitor.h"
 #include "../../include/votca/tools/graphvisitor.h"
 
 using namespace std;
@@ -92,6 +93,54 @@ std::set<Edge> exploreBranch(Graph g, Index starting_vertex, const Edge& edge) {
   }
 
   return branch_edges;
+}
+
+std::string findCanonizedSequence(Graph& graph, std::vector<int>& sequence) {
+  // Determine the highest degree in the graph
+  Index maxD = graph.getMaxDegree();
+  // Get the vertices with this degree
+  std::vector<Index> vertices = graph.getVerticesDegree(maxD);
+
+  // Get the nodes and determine which node has the greatest stringID
+  // When compared using compare function
+  std::string str_id = "";
+  std::vector<Index> graph_node_ids;
+  for (const Index& vertex : vertices) {
+    GraphNode graph_node = graph.getNode(vertex);
+    Index comp_int = str_id.compare(graph_node.getStringId());
+    if (comp_int > 0) {
+      str_id = graph_node.getStringId();
+      graph_node_ids.clear();
+      graph_node_ids.push_back(vertex);
+    } else if (comp_int == 0) {
+      graph_node_ids.push_back(vertex);
+    }
+  }
+  // If the str_id is empty it means the nodes are empty and we will
+  // simply have to rely on the degree to choose the vertices to explore from
+  if (str_id.compare("") == 0) {
+    graph_node_ids = vertices;
+  }
+  // If two or more graph nodes are found to be equal then
+  // they must all be explored
+  std::string chosenId = "";
+  Graph graph_chosen = graph;
+
+  for (const Index& vertex : graph_node_ids) {
+    GraphMemoryVisitor graph_visitor;
+    graph_visitor.setStartingVertex(vertex);
+    Graph graph_temp = graph;
+    exploreGraph(graph_temp, graph_visitor);
+    std::string temp_struct_id = graph_temp.getId();
+    if (chosenId.compare(temp_struct_id) < 0) {
+      chosenId = temp_struct_id;
+      graph_chosen = graph_temp;
+      sequence = graph_visitor.getMemory();
+    }
+  }
+
+  graph = graph_chosen;
+  return chosenId;
 }
 
 ReducedGraph reduceGraph(Graph graph) {

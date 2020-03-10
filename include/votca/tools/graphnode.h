@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,8 +23,8 @@
 #include <unordered_map>
 #include <utility>
 
-#ifndef _VOTCA_TOOLS_GRAPHNODE_H
-#define _VOTCA_TOOLS_GRAPHNODE_H
+#ifndef VOTCA_TOOLS_GRAPHNODE_H
+#define VOTCA_TOOLS_GRAPHNODE_H
 
 namespace votca {
 namespace tools {
@@ -63,6 +63,10 @@ class GraphNode {
   void setDouble(const std::unordered_map<std::string, double> double_vals);
   void setStr(const std::unordered_map<std::string, std::string> str_vals);
 
+  void addInt(std::string label, Index value);
+  void addDouble(std::string label, double value);
+  void addStr(std::string label, std::string value);
+
   /// Basic getters
   Index getInt(const std::string str);
   double getDouble(const std::string str);
@@ -95,4 +99,4 @@ bool cmpNode(GraphNode gn1, GraphNode gn2);
 
 }  // namespace tools
 }  // namespace votca
-#endif  // _VOTCA_TOOLS_GRAPHNODE_H
+#endif  // VOTCA_TOOLS_GRAPHNODE_H

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
-#define __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
+#ifndef VOTCA_TOOLS_GRAPHALGORITHM_H
+#define VOTCA_TOOLS_GRAPHALGORITHM_H
 
 #include "graphnode.h"
 #include "reducedgraph.h"
@@ -163,6 +163,51 @@ std::vector<Graph> decoupleIsolatedSubGraphs(Graph graph);
 void exploreGraph(Graph& graph, GraphVisitor& graph_visitor);
 
 /**
+ * @brief Determines how the graph nodes of a particular graph must be arranged
+ * so that no matter what the sequence of nodes is if they are from a
+ * particular graph they are always returned in the same sequence
+ *
+ * This method allows one to find how a graph should be arranged in a canonical
+ * form.
+ *
+ * E.g. Given two of the same graphs but with different ordering of nodes
+ *
+ * Graph A       Graph B
+ * 1 - 2 - 3     4 - 3 - 2
+ *     |   |         |   |
+ *     5 - 4         1 - 5
+ *
+ * If each graph was passed in, assuming graph A reprsented the canonized form
+ * the sequence would show some thing like this.
+ *
+ * Graph A       Graph B
+ * 1 - 2 - 3     4(1) - 3(2) - 2(3)
+ *     |   |             |      |
+ *     5 - 4            1(5) - 5(4)
+ *
+ * Such that Graph A and B would be returned as vectors
+ *
+ * Graph A      Graph B
+ * [0] = 1      [0] = 4
+ * [1] = 2      [1] = 3
+ * [2] = 3      [2] = 2
+ * [3] = 4      [3] = 5
+ * [4] = 5      [4] = 1
+ *
+ * These sequences will allow the graph to be reordered such graph A and Graph
+ * B can be mapped onto each other. The algorithm will also return the string
+ * id of the graph in the return value.
+ *
+ * WARNING This algorithm requires that the nodes have been assigned ids.
+ *
+ * @param graph - graph to be examined
+ * @param sequence - vector of ints that contain the ids of the nodes
+ *
+ * @return
+ */
+std::string findCanonizedSequence(Graph& graph, std::vector<int>& sequence);
+
+/**
  * \brief Find a unique identifier that describes graph structure.
  *
  * This algorithm is designed to explore the topology of the graph and return an
@@ -224,4 +269,4 @@ std::string findStructureId(Graph& graph) {
 }  // namespace tools
 }  // namespace votca
 
-#endif  // __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
+#endif  // VOTCA_TOOLS_GRAPHALGORITHM_H

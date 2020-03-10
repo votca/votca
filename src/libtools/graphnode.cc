@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -136,6 +136,27 @@ void GraphNode::setDouble(const unordered_map<string, double> double_vals) {
 
 void GraphNode::setStr(const unordered_map<string, string> str_vals) {
   str_vals_ = str_vals;
+  initStringId_();
+}
+
+void GraphNode::addInt(std::string label, Index value) {
+  assert(int_vals_.count(label) == 0 &&
+         "Cannot add int to GraphNode label has already been used");
+  int_vals_[label] = value;
+  initStringId_();
+}
+
+void GraphNode::addDouble(std::string label, double value) {
+  assert(double_vals_.count(label) == 0 &&
+         "Cannot add double to GraphNode label has already been used");
+  double_vals_[label] = value;
+  initStringId_();
+}
+
+void GraphNode::addStr(std::string label, std::string value) {
+  assert(str_vals_.count(label) == 0 &&
+         "Cannot add string to GraphNode label has already been used");
+  str_vals_[label] = value;
   initStringId_();
 }
 
