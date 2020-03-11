@@ -173,26 +173,27 @@ void exploreGraph(Graph& graph, GraphVisitor& graph_visitor);
  * E.g. Given two of the same graphs but with different ordering of nodes
  *
  * Graph A       Graph B
- * 1 - 2 - 3     4 - 3 - 2
- *     |   |         |   |
- *     5 - 4         1 - 5
+ * 1a - 2a - 3a      4a - 3a - 2a
+ *       |   |             |   |
+ *      5b - 4b           1b - 5b
  *
  * If each graph was passed in, assuming graph A reprsented the canonized form
  * the sequence would show some thing like this.
  *
- * Graph A       Graph B
- * 1 - 2 - 3     4(1) - 3(2) - 2(3)
- *     |   |             |      |
- *     5 - 4            1(5) - 5(4)
+ * Graph A                     Graph B
+ * 1a(3) - 2a(1) - 3a(4)      4a(3) - 3a(1) - 2a(4)
+ *            |     |                   |       |
+ *         5b(2) - 4b(5)              1b(2) - 5b(5)
  *
- * Such that Graph A and B would be returned as vectors
+ * Such that Graph A and B would be returned as vectors, parenthesis indicate
+ * cannonized order.
  *
  * Graph A      Graph B
- * [0] = 1      [0] = 4
- * [1] = 2      [1] = 3
- * [2] = 3      [2] = 2
- * [3] = 4      [3] = 5
- * [4] = 5      [4] = 1
+ * [0] = 2      [0] = 3
+ * [1] = 5      [1] = 1
+ * [2] = 1      [2] = 4
+ * [3] = 3      [3] = 2
+ * [4] = 4      [4] = 5
  *
  * These sequences will allow the graph to be reordered such graph A and Graph
  * B can be mapped onto each other. The algorithm will also return the string

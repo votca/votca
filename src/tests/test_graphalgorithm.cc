@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -772,4 +772,144 @@ BOOST_AUTO_TEST_CASE(structureid_test) {
   }
 }
 
+BOOST_AUTO_TEST_CASE(find_canonized_sequence_test) {
+  {
+
+    /* Graph A       Graph B
+     * 1a - 2a - 3a     4a - 3a - 2a
+     *       |   |            |   |
+     *      5b - 4b          1b - 5b
+     */
+    // Create edge
+    Edge ed1_A(1, 2);
+    Edge ed2_A(2, 3);
+    Edge ed3_A(3, 4);
+    Edge ed4_A(4, 5);
+    Edge ed5_A(5, 2);
+
+    vector<Edge> edges_A;
+    edges_A.push_back(ed1_A);
+    edges_A.push_back(ed2_A);
+    edges_A.push_back(ed3_A);
+    edges_A.push_back(ed4_A);
+    edges_A.push_back(ed5_A);
+
+    // Create Graph nodes
+    GraphNode gn1_A;
+    GraphNode gn2_A;
+    GraphNode gn3_A;
+    GraphNode gn4_A;
+    GraphNode gn5_A;
+
+    gn1_A.addStr("label", "a");
+    gn2_A.addStr("label", "a");
+    gn3_A.addStr("label", "a");
+    gn4_A.addStr("label", "b");
+    gn5_A.addStr("label", "b");
+
+    unordered_map<votca::Index, GraphNode> nodes_A;
+    nodes_A[1] = gn1_A;
+    nodes_A[2] = gn2_A;
+    nodes_A[3] = gn3_A;
+    nodes_A[4] = gn4_A;
+    nodes_A[5] = gn5_A;
+
+    Graph gA(edges_A, nodes_A);
+    std::vector<int> sequence_A;
+    std::string structId_A = findCanonizedSequence(gA, sequence_A);
+
+    /* Graph A       Graph B
+     * 1a - 2a - 3a     4a - 3a - 2a
+     *       |   |            |   |
+     *      5b - 4b          1b - 5b
+     */
+    // Create edge
+    Edge ed1_B(4, 3);
+    Edge ed2_B(3, 2);
+    Edge ed3_B(2, 5);
+    Edge ed4_B(5, 1);
+    Edge ed5_B(1, 3);
+
+    vector<Edge> edges_B;
+    edges_B.push_back(ed1_B);
+    edges_B.push_back(ed2_B);
+    edges_B.push_back(ed3_B);
+    edges_B.push_back(ed4_B);
+    edges_B.push_back(ed5_B);
+
+    // Create Graph nodes
+    GraphNode gn1_B;
+    GraphNode gn2_B;
+    GraphNode gn3_B;
+    GraphNode gn4_B;
+    GraphNode gn5_B;
+
+    gn1_B.addStr("label", "b");
+    gn2_B.addStr("label", "a");
+    gn3_B.addStr("label", "a");
+    gn4_B.addStr("label", "a");
+    gn5_B.addStr("label", "b");
+
+    unordered_map<votca::Index, GraphNode> nodes_B;
+    nodes_B[1] = gn1_B;
+    nodes_B[2] = gn2_B;
+    nodes_B[3] = gn3_B;
+    nodes_B[4] = gn4_B;
+    nodes_B[5] = gn5_B;
+
+    Graph gB(edges_B, nodes_B);
+    std::vector<int> sequence_B;
+    std::string structId_B = findCanonizedSequence(gB, sequence_B);
+
+    std::cout << "struct ID A " << structId_A << std::endl;
+    std::cout << "struct ID B " << structId_B << std::endl;
+
+    std::cout << "Print Sequence" << std::endl;
+    std::cout
+        << "A     B    Cannonized A     Cannonzied B     Degree A   Degree B"
+        << std::endl;
+    std::cout
+        << "================================================================"
+        << std::endl;
+    for (int i = 0; i < 5; ++i) {
+      std::cout << sequence_A.at(i) << "     " << sequence_B.at(i);
+      std::cout << "          ";
+      std::cout << nodes_A.at(sequence_A.at(i)).getStr("label");
+      std::cout << "               ";
+      std::cout << nodes_B.at(sequence_B.at(i)).getStr("label");
+      std::cout << "              ";
+      std::cout << gA.getDegree(sequence_A.at(i));
+      std::cout << "          ";
+      std::cout << gB.getDegree(sequence_B.at(i));
+      std::cout << std::endl;
+    }
+    string answer = "Dist0labelaDist1labelaDist1labelaDist1labelbDist2labelb";
+    BOOST_CHECK_EQUAL(structId_A, answer);
+    BOOST_CHECK_EQUAL(structId_B, answer);
+
+    BOOST_CHECK_EQUAL(sequence_A.at(0), 2);
+    BOOST_CHECK_EQUAL(sequence_A.at(1), 5);
+    BOOST_CHECK_EQUAL(sequence_A.at(2), 1);
+    BOOST_CHECK_EQUAL(sequence_A.at(3), 3);
+    BOOST_CHECK_EQUAL(sequence_A.at(4), 4);
+
+    BOOST_CHECK_EQUAL(sequence_B.at(0), 3);
+    BOOST_CHECK_EQUAL(sequence_B.at(1), 1);
+    BOOST_CHECK_EQUAL(sequence_B.at(2), 4);
+    BOOST_CHECK_EQUAL(sequence_B.at(3), 2);
+    BOOST_CHECK_EQUAL(sequence_B.at(4), 5);
+
+    BOOST_CHECK_EQUAL(gA.getDegree(sequence_A.at(0)), 3);
+    BOOST_CHECK_EQUAL(gA.getDegree(sequence_A.at(1)), 2);
+    BOOST_CHECK_EQUAL(gA.getDegree(sequence_A.at(2)), 1);
+    BOOST_CHECK_EQUAL(gA.getDegree(sequence_A.at(3)), 2);
+    BOOST_CHECK_EQUAL(gA.getDegree(sequence_A.at(4)), 2);
+
+    BOOST_CHECK_EQUBL(gB.getDegree(sequence_B.at(0)), 3);
+    BOOST_CHECK_EQUBL(gB.getDegree(sequence_B.at(1)), 2);
+    BOOST_CHECK_EQUBL(gB.getDegree(sequence_B.at(2)), 1);
+    BOOST_CHECK_EQUBL(gB.getDegree(sequence_B.at(3)), 2);
+    BOOST_CHECK_EQUBL(gB.getDegree(sequence_B.at(4)), 2);
+  }
+}
 BOOST_AUTO_TEST_SUITE_END()
