@@ -215,6 +215,13 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
     if (diff < _opt.tolerance_sc_sternheimer) {
       std::cout << "Converged after " << n + 1 << " iteration." << std::endl;
       // throw std::exception();
+      Index occ = _orbitals.getNumberOfAlphaElectrons();
+      Eigen::MatrixXcd HmS = _Hamiltonian_Matrix - _overlap_Matrix * _orbitals.MOs().eigenvalues().head(occ).asDiagonal();
+      Eigen::MatrixXcd moc = _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls);
+      Eigen::MatrixXcd dmoc = solution_p;
+      std::complex<double> pulay1 = -2.0 * (dmoc.cwiseProduct(HmS * moc)).sum();
+      std::complex<double> pulay2 = -2.0 * (moc.cwiseProduct(HmS*dmoc)).sum();
+      std::cout << " \n Pulay " << pulay1 + pulay2 << std::endl; 
       return delta_n_out_new;
     }
     // Mixing if at least in iteration 2
@@ -523,7 +530,7 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
       Eigen::MatrixXcd DeltaV = sign * ao3dDipole.Matrix()[a] + contract + FxcInt;
       EnergyGrad[k][a]=_density_Matrix.transpose().cwiseProduct(DeltaV*mol.at(k).getNuccharge()).sum();
     }
-    std::cout << "Electronic Forces \n " << EnergyGrad[k] << std::endl;
+    //std::cout << "Electronic Forces \n " << EnergyGrad[k] << std::endl;
     //std::vector<Eigen::Vector3d> nuclei_forces;
     for (int l = 0; l<number_of_atoms; l++){
       
@@ -534,7 +541,7 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
 
       //nuclei_forces.push_back(mol.at(k).getNuccharge()*mol.at(l).getNuccharge()*distance/std::pow(distance.squaredNorm(),3);
 
-      std::cout<<"Nuclei Force \n"<<mol.at(k).getNuccharge()*mol.at(l).getNuccharge()*distance/std::pow(distance.norm(),3)<<std::endl;
+      //std::cout<<"Nuclei Force \n"<<mol.at(k).getNuccharge()*mol.at(l).getNuccharge()*distance/std::pow(distance.norm(),3)<<std::endl;
 
 
       EnergyGrad[k]+=mol.at(k).getNuccharge()*mol.at(l).getNuccharge()*distance/std::pow(distance.norm(),3);
@@ -549,7 +556,7 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
 
     //std::cout<<"Atom Type : "<<mol.at(i).getElement()<<" Atom Index : "<<i<<std::endl;
     //std::cout<<"Gradient = "<<std::endl<<EnergyGrad[i]<<std::endl<<std::endl;
-    std::cout<<EnergyGrad[i].real()<<std::endl;
+    std::cout<< EnergyGrad[i][0].real()<< "\t" << EnergyGrad[i][1].real()<< "\t" << EnergyGrad[i][2].real()<<std::endl;
     
   }
 
