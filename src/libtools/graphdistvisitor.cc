@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -32,7 +32,7 @@ namespace tools {
 
 // Add the distance to the node that has not yet been explored
 void GraphDistVisitor::exploreNode(pair<Index, GraphNode>& p_gn, Graph& g,
-                                   Edge ed) {
+                                   const Edge& ed) {
   // Determine if the node has already been explored
   Index vertex = p_gn.first;
   if (vertex == startingVertex_) {

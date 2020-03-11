@@ -61,7 +61,7 @@ class GraphMemoryVisitor : public Graph_BF_Visitor {
   /// Note the only manipulation to the BF visitor is the need to add a
   /// distance attribute to each of the graph nodes.
   void exploreNode(std::pair<Index, GraphNode>& p_gn, Graph& g,
-                   Edge ed = DUMMY_EDGE) override;
+                   const Edge& ed = DUMMY_EDGE) override;
 
   std::vector<Index> getMemory() const noexcept { return memory_; }
 };

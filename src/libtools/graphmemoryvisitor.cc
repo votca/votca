@@ -32,7 +32,7 @@ namespace tools {
 
 // Add the distance to the node that has not yet been explored
 void GraphMemoryVisitor::exploreNode(pair<Index, GraphNode>& p_gn, Graph& g,
-                                     Edge ed) {
+                                     const Edge& ed) {
   // Determine if the node has already been explored
   Index vertex = p_gn.first;
   if (vertex == startingVertex_) {
