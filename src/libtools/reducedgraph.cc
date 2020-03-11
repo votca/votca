@@ -394,7 +394,7 @@ vector<Index> ReducedGraph::getVerticesDegree(Index degree) const {
 
 ostream& operator<<(ostream& os, const ReducedGraph graph) {
   os << "Graph" << endl;
-  for (const pair<Index, GraphNode>& id_and_node : graph.nodes_) {
+  for (const pair<const Index, GraphNode>& id_and_node : graph.nodes_) {
     os << "Node " << id_and_node.first << endl;
     os << id_and_node.second << endl;
   }

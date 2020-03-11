@@ -177,7 +177,7 @@ ReducedGraph reduceGraph(Graph graph) {
     Index getUnexploredVertex() {
 
       vector<Index> remaining_unexplored;
-      for (const pair<Index, pair<bool, Index>>& vertex_record :
+      for (const pair<const Index, pair<bool, Index>>& vertex_record :
            vertex_explored_) {
         bool vertex_explored = vertex_record.second.first;
         if (!vertex_explored) {
