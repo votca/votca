@@ -63,9 +63,9 @@ class GraphNode {
   void setDouble(const std::unordered_map<std::string, double> double_vals);
   void setStr(const std::unordered_map<std::string, std::string> str_vals);
 
-  void addInt(std::string label, Index value);
-  void addDouble(std::string label, double value);
-  void addStr(std::string label, std::string value);
+  void addInt(std::string label, const Index& value);
+  void addDouble(std::string label, const double& value);
+  void addStr(std::string label, const std::string& value);
 
   /// Basic getters
   Index getInt(const std::string str);

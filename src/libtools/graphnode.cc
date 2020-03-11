@@ -139,21 +139,21 @@ void GraphNode::setStr(const unordered_map<string, string> str_vals) {
   initStringId_();
 }
 
-void GraphNode::addInt(std::string label, Index value) {
+void GraphNode::addInt(std::string label, const Index& value) {
   assert(int_vals_.count(label) == 0 &&
          "Cannot add int to GraphNode label has already been used");
   int_vals_[label] = value;
   initStringId_();
 }
 
-void GraphNode::addDouble(std::string label, double value) {
+void GraphNode::addDouble(std::string label, const double& value) {
   assert(double_vals_.count(label) == 0 &&
          "Cannot add double to GraphNode label has already been used");
   double_vals_[label] = value;
   initStringId_();
 }
 
-void GraphNode::addStr(std::string label, std::string value) {
+void GraphNode::addStr(std::string label, const std::string& value) {
   assert(str_vals_.count(label) == 0 &&
          "Cannot add string to GraphNode label has already been used");
   str_vals_[label] = value;
