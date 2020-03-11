@@ -214,14 +214,14 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
      std::cout << n << " " << diff << std::endl;
     if (diff < _opt.tolerance_sc_sternheimer) {
       std::cout << "Converged after " << n + 1 << " iteration." << std::endl;
-      // throw std::exception();
-      Index occ = _orbitals.getNumberOfAlphaElectrons();
-      Eigen::MatrixXcd HmS = _Hamiltonian_Matrix - _overlap_Matrix * _orbitals.MOs().eigenvalues().head(occ).asDiagonal();
-      Eigen::MatrixXcd moc = _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls);
-      Eigen::MatrixXcd dmoc = solution_p;
-      std::complex<double> pulay1 = -2.0 * (dmoc.cwiseProduct(HmS * moc)).sum();
-      std::complex<double> pulay2 = -2.0 * (moc.cwiseProduct(HmS*dmoc)).sum();
-      std::cout << " \n Pulay " << pulay1 + pulay2 << std::endl; 
+      // // throw std::exception();
+      // Index occ = _orbitals.getNumberOfAlphaElectrons();
+      // Eigen::MatrixXcd HmS = _Hamiltonian_Matrix - _overlap_Matrix * _orbitals.MOs().eigenvalues().head(occ).asDiagonal();
+      // Eigen::MatrixXcd moc = _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls);
+      // Eigen::MatrixXcd dmoc = solution_p;
+      // std::complex<double> pulay1 = -2.0 * (dmoc.cwiseProduct(HmS * moc)).sum();
+      // std::complex<double> pulay2 = -2.0 * (moc.cwiseProduct(HmS*dmoc)).sum();
+      // std::cout << " \n Pulay " << pulay1 + pulay2 << std::endl; 
       return delta_n_out_new;
     }
     // Mixing if at least in iteration 2
