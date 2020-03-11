@@ -39,9 +39,24 @@
 #include <utility>
 #include <vector>
 
-using namespace std;
-using namespace votca::tools;
+using std::cerr;
+using std::cout;
+using std::endl;
+using std::invalid_argument;
+using std::ostream;
+using std::pair;
+using std::runtime_error;
+using std::set;
+using std::string;
+using std::unordered_map;
+using std::vector;
 
+using votca::tools::Edge;
+using votca::tools::Graph;
+using votca::tools::Graph_BF_Visitor;
+using votca::tools::GraphDistVisitor;
+using votca::tools::GraphNode;
+using votca::tools::ReducedGraph;
 using namespace boost;
 using namespace boost::unit_test;
 
@@ -146,7 +161,7 @@ BOOST_AUTO_TEST_CASE(decouple_isolated_subgraphs_test) {
 
   Graph graph(edges, nodes);
 
-  vector<Graph> sub_graphs = decoupleIsolatedSubGraphs(graph);
+  vector<Graph> sub_graphs = votca::tools::decoupleIsolatedSubGraphs(graph);
 
   BOOST_CHECK_EQUAL(sub_graphs.size(), 3);
 
@@ -251,7 +266,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     nodes[6] = gn7;
 
     Graph g(edges, nodes);
-    ReducedGraph reduced_g = reduceGraph(g);
+    ReducedGraph reduced_g = votca::tools::reduceGraph(g);
 
     vector<Edge> edges2 = reduced_g.getEdges();
     BOOST_CHECK_EQUAL(edges2.size(), 5);
@@ -299,7 +314,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     }
 
     Graph graph(edges, nodes);
-    ReducedGraph reduced_graph = reduceGraph(graph);
+    ReducedGraph reduced_graph = votca::tools::reduceGraph(graph);
 
     vector<Edge> edges2 = reduced_graph.getEdges();
 
@@ -356,7 +371,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     }
 
     Graph graph(edges, nodes);
-    ReducedGraph reduced_graph = reduceGraph(graph);
+    ReducedGraph reduced_graph = votca::tools::reduceGraph(graph);
 
     vector<Edge> edges2 = reduced_graph.getEdges();
     BOOST_CHECK_EQUAL(edges2.size(), 2);
@@ -403,7 +418,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     }
 
     Graph graph(edges, nodes);
-    ReducedGraph reduced_graph = reduceGraph(graph);
+    ReducedGraph reduced_graph = votca::tools::reduceGraph(graph);
 
     vector<votca::Index> junctions = reduced_graph.getJunctions();
     BOOST_CHECK_EQUAL(junctions.size(), 2);
@@ -467,7 +482,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     }
 
     Graph g(edges, nodes);
-    ReducedGraph reduced_g = reduceGraph(g);
+    ReducedGraph reduced_g = votca::tools::reduceGraph(g);
 
     vector<votca::Index> junctions = reduced_g.getJunctions();
     BOOST_CHECK_EQUAL(junctions.size(), 2);
@@ -549,7 +564,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     }
 
     Graph g(edges, nodes);
-    ReducedGraph reduced_g = reduceGraph(g);
+    ReducedGraph reduced_g = votca::tools::reduceGraph(g);
 
     vector<votca::Index> junctions = reduced_g.getJunctions();
     BOOST_CHECK_EQUAL(junctions.size(), 2);
@@ -678,7 +693,8 @@ BOOST_AUTO_TEST_CASE(explorebranch_test) {
     Graph g(edges, nodes);
 
     votca::Index starting_vertex = 1;
-    set<Edge> branch_edges = exploreBranch(g, starting_vertex, ed3);
+    set<Edge> branch_edges =
+        votca::tools::exploreBranch(g, starting_vertex, ed3);
 
     // The following edges should be found in the branch
     //
@@ -765,7 +781,7 @@ BOOST_AUTO_TEST_CASE(structureid_test) {
 
     Graph g(edges, nodes);
 
-    string structId = findStructureId<GraphDistVisitor>(g);
+    string structId = votca::tools::findStructureId<GraphDistVisitor>(g);
 
     string answer = "Dist0Dist1Dist1Dist1Dist2Dist2Dist3";
     BOOST_CHECK_EQUAL(structId, answer);
@@ -816,7 +832,8 @@ BOOST_AUTO_TEST_CASE(find_canonized_sequence_test) {
 
     Graph gA(edges_A, nodes_A);
     std::vector<int> sequence_A;
-    std::string structId_A = findCanonizedSequence(gA, sequence_A);
+    std::string structId_A =
+        votca::tools::findCanonizedSequence(gA, sequence_A);
 
     /* Graph A       Graph B
      * 1a - 2a - 3a     4a - 3a - 2a
@@ -859,7 +876,8 @@ BOOST_AUTO_TEST_CASE(find_canonized_sequence_test) {
 
     Graph gB(edges_B, nodes_B);
     std::vector<int> sequence_B;
-    std::string structId_B = findCanonizedSequence(gB, sequence_B);
+    std::string structId_B =
+        votca::tools::findCanonizedSequence(gB, sequence_B);
 
     std::cout << "struct ID A " << structId_A << std::endl;
     std::cout << "struct ID B " << structId_B << std::endl;
@@ -905,11 +923,11 @@ BOOST_AUTO_TEST_CASE(find_canonized_sequence_test) {
     BOOST_CHECK_EQUAL(gA.getDegree(sequence_A.at(3)), 2);
     BOOST_CHECK_EQUAL(gA.getDegree(sequence_A.at(4)), 2);
 
-    BOOST_CHECK_EQUBL(gB.getDegree(sequence_B.at(0)), 3);
-    BOOST_CHECK_EQUBL(gB.getDegree(sequence_B.at(1)), 2);
-    BOOST_CHECK_EQUBL(gB.getDegree(sequence_B.at(2)), 1);
-    BOOST_CHECK_EQUBL(gB.getDegree(sequence_B.at(3)), 2);
-    BOOST_CHECK_EQUBL(gB.getDegree(sequence_B.at(4)), 2);
+    BOOST_CHECK_EQUAL(gB.getDegree(sequence_B.at(0)), 3);
+    BOOST_CHECK_EQUAL(gB.getDegree(sequence_B.at(1)), 2);
+    BOOST_CHECK_EQUAL(gB.getDegree(sequence_B.at(2)), 1);
+    BOOST_CHECK_EQUAL(gB.getDegree(sequence_B.at(3)), 2);
+    BOOST_CHECK_EQUAL(gB.getDegree(sequence_B.at(4)), 2);
   }
 }
 BOOST_AUTO_TEST_SUITE_END()
