@@ -1,6 +1,7 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
 ## Version 1.7-dev
+* add support for canonizing graphs (#219)
 * add support of txt2tqs 3.4 (#208)
 * fix MKL:: target creation (#207)
 * use local includes (#204)
