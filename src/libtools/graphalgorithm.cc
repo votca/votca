@@ -95,7 +95,7 @@ std::set<Edge> exploreBranch(Graph g, Index starting_vertex, const Edge& edge) {
   return branch_edges;
 }
 
-std::string findCanonizedSequence(Graph& graph, std::vector<int>& sequence) {
+std::string findCanonizedSequence(Graph& graph, std::vector<Index>& sequence) {
   // Determine the highest degree in the graph
   Index maxD = graph.getMaxDegree();
   // Get the vertices with this degree

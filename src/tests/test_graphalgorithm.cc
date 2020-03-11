@@ -831,7 +831,7 @@ BOOST_AUTO_TEST_CASE(find_canonized_sequence_test) {
     nodes_A[5] = gn5_A;
 
     Graph gA(edges_A, nodes_A);
-    std::vector<int> sequence_A;
+    std::vector<votca::Index> sequence_A;
     std::string structId_A =
         votca::tools::findCanonizedSequence(gA, sequence_A);
 
@@ -875,31 +875,28 @@ BOOST_AUTO_TEST_CASE(find_canonized_sequence_test) {
     nodes_B[5] = gn5_B;
 
     Graph gB(edges_B, nodes_B);
-    std::vector<int> sequence_B;
-    std::string structId_B =
-        votca::tools::findCanonizedSequence(gB, sequence_B);
+    vector<votca::Index> sequence_B;
+    string structId_B = votca::tools::findCanonizedSequence(gB, sequence_B);
 
-    std::cout << "struct ID A " << structId_A << std::endl;
-    std::cout << "struct ID B " << structId_B << std::endl;
+    cout << "struct ID A " << structId_A << endl;
+    cout << "struct ID B " << structId_B << endl;
 
-    std::cout << "Print Sequence" << std::endl;
-    std::cout
-        << "A     B    Cannonized A     Cannonzied B     Degree A   Degree B"
-        << std::endl;
-    std::cout
-        << "================================================================"
-        << std::endl;
+    cout << "Print Sequence" << endl;
+    cout << "A     B    Cannonized A     Cannonzied B     Degree A   Degree B"
+         << endl;
+    cout << "================================================================"
+         << endl;
     for (int i = 0; i < 5; ++i) {
-      std::cout << sequence_A.at(i) << "     " << sequence_B.at(i);
-      std::cout << "          ";
-      std::cout << nodes_A.at(sequence_A.at(i)).getStr("label");
-      std::cout << "               ";
-      std::cout << nodes_B.at(sequence_B.at(i)).getStr("label");
-      std::cout << "              ";
-      std::cout << gA.getDegree(sequence_A.at(i));
-      std::cout << "          ";
-      std::cout << gB.getDegree(sequence_B.at(i));
-      std::cout << std::endl;
+      cout << sequence_A.at(i) << "     " << sequence_B.at(i);
+      cout << "          ";
+      cout << nodes_A.at(sequence_A.at(i)).getStr("label");
+      cout << "               ";
+      cout << nodes_B.at(sequence_B.at(i)).getStr("label");
+      cout << "              ";
+      cout << gA.getDegree(sequence_A.at(i));
+      cout << "          ";
+      cout << gB.getDegree(sequence_B.at(i));
+      cout << endl;
     }
     string answer = "Dist0labelaDist1labelaDist1labelaDist1labelbDist2labelb";
     BOOST_CHECK_EQUAL(structId_A, answer);

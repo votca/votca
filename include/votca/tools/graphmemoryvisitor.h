@@ -53,7 +53,7 @@ class Graph_BF_Visitor;
 
 class GraphMemoryVisitor : public Graph_BF_Visitor {
  private:
-  std::vector<int> memory_;
+  std::vector<Index> memory_;
 
  public:
   GraphMemoryVisitor() = default;
@@ -63,7 +63,7 @@ class GraphMemoryVisitor : public Graph_BF_Visitor {
   void exploreNode(std::pair<Index, GraphNode>& p_gn, Graph& g,
                    Edge ed = DUMMY_EDGE) override;
 
-  std::vector<int> getMemory() const noexcept { return memory_; }
+  std::vector<Index> getMemory() const noexcept { return memory_; }
 };
 }  // namespace tools
 }  // namespace votca

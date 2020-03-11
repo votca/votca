@@ -206,7 +206,7 @@ void exploreGraph(Graph& graph, GraphVisitor& graph_visitor);
  *
  * @return
  */
-std::string findCanonizedSequence(Graph& graph, std::vector<int>& sequence);
+std::string findCanonizedSequence(Graph& graph, std::vector<Index>& sequence);
 
 /**
  * \brief Find a unique identifier that describes graph structure.
