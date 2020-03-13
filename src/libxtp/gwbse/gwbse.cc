@@ -232,14 +232,11 @@ void GWBSE::Initialize(tools::Property& options) {
         options.ifExistsReturnElseReturnDefault<double>(
             key + ".sternheimer.lorentzian_broadening",
             _gwopt.lorentzian_broadening);
-    _gwopt.calculation =
-        options.ifExistsReturnElseReturnDefault<std::string>(
-            key + ".sternheimer.calculation",
-            _gwopt.calculation);
+    _gwopt.calculation = options.ifExistsReturnElseReturnDefault<std::string>(
+        key + ".sternheimer.calculation", _gwopt.calculation);
     _gwopt.spatialgridtype =
         options.ifExistsReturnElseReturnDefault<std::string>(
-            key + ".sternheimer.spatialgridtype",
-            _gwopt.spatialgridtype);        
+            key + ".sternheimer.spatialgridtype", _gwopt.spatialgridtype);
     XTP_LOG(Log::error, *_pLog)
         << " Omega initial: " << _gwopt.omegain << flush;
     XTP_LOG(Log::error, *_pLog) << " Omega final: " << _gwopt.omegafin << flush;
@@ -248,8 +245,8 @@ void GWBSE::Initialize(tools::Property& options) {
         << " Imaginary shift: " << _gwopt.imshift << flush;
     XTP_LOG(Log::error, *_pLog)
         << " Resolution: " << _gwopt.resolution << flush;
-  XTP_LOG(Log::error, *_pLog)
-        << " Calculation: " << _gwopt.calculation << flush;    
+    XTP_LOG(Log::error, *_pLog)
+        << " Calculation: " << _gwopt.calculation << flush;
   }
 
   // eigensolver options
@@ -677,34 +674,41 @@ bool GWBSE::Evaluate() {
     opt.lorentzian_broadening = _gwopt.lorentzian_broadening;
     opt.number_output_grid_points = _gwopt.resolution;
     opt.numerical_Integration_grid_type = _gwopt.spatialgridtype;
-    
-    XTP_LOG(Log::error, *_pLog)  << TimeStamp() << " Started Sternheimer " << flush;
 
+    XTP_LOG(Log::error, *_pLog)
+        << TimeStamp() << " Started Sternheimer " << flush;
     if (_gwopt.calculation == "polarizability") {
       XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Started Sternheimer Polarizability" << flush;
+          << TimeStamp() << " Started Sternheimer Polarizability" << flush;
       sternheimer.configurate(opt);
       std::vector<Eigen::Matrix3cd> polar = sternheimer.Polarisability();
       sternheimer.printIsotropicAverage(polar);
+      XTP_LOG(Log::error, *_pLog)
+          << TimeStamp() << " Finished Sternheimer Polarizability" << flush;
     }
     if (_gwopt.calculation == "gradient") {
       XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Started Sternheimer Energy Gradient" << flush;
+          << TimeStamp() << " Started Sternheimer Energy Gradient" << flush;
       sternheimer.configurate(opt);
       std::vector<Eigen::Vector3cd> EPC = sternheimer.EnergyGradient();
+      sternheimer.printHellmannFeynmanForces(EPC);
+      XTP_LOG(Log::error, *_pLog)
+          << TimeStamp() << " Finished Sternheimer Energy Gradient" << flush;
     }
-    if (_gwopt.calculation == "gwsternheimer"){
-        XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Started Sternheimer GW" << flush;
-        sternheimer.configurate(opt);
-    std::vector<std::complex<double>> results;
-    for (Index n = 0; n < 2; n++) {
-      
-      results.push_back(sternheimer.SelfEnergy(_orbitals.MOs().eigenvalues()(n), n, n));
-      
+    if (_gwopt.calculation == "gwsternheimer") {
+      XTP_LOG(Log::error, *_pLog)
+          << TimeStamp() << " Started Sternheimer GW" << flush;
+      sternheimer.configurate(opt);
+      std::vector<std::complex<double>> results;
+      for (Index n = 0; n < 2; n++) {
+
+        results.push_back(
+            sternheimer.SelfEnergy(_orbitals.MOs().eigenvalues()(n), n, n));
+      }
+      XTP_LOG(Log::error, *_pLog)
+          << TimeStamp() << " Finished Sternheimer GW" << flush;
     }
-    }
-    
+
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Finished Sternheimer" << flush;
 

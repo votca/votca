@@ -484,13 +484,11 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
 
   // Setting up Grid for Fxc functional
 
-  std::cout << "SetUP ERIS" << std::endl;
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
   ERIs eris;
   eris.Initialize(dftbasis, auxbasis);
 
-  std::cout << "SetUP Grid" << std::endl;
   Vxc_Grid grid;
   grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
                  dftbasis);
@@ -506,9 +504,6 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
   // Loop over Nuclei
 
   for (int k = 0; k < number_of_atoms; k++) {
-
-    // ao3dDipole.FillPotential(dftbasis, r);
-    std::cout << "Loop over Atom " << k << std::endl;
 
     ao3dDipole.setCenter(mol.at(k).getPos());
     ao3dDipole.Fill(dftbasis);
@@ -538,16 +533,18 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
     }
   }
 
-  for (int i = 0; i < EnergyGrad.size(); i++) {
-
-    // std::cout<<"Atom Type : "<<mol.at(i).getElement()<<" Atom Index :
-    // "<<i<<std::endl; std::cout<<"Gradient =
-    // "<<std::endl<<EnergyGrad[i]<<std::endl<<std::endl;
-    std::cout << EnergyGrad[i][0].real() << "\t" << EnergyGrad[i][1].real()
-              << "\t" << EnergyGrad[i][2].real() << std::endl;
-  }
+  
 
   return EnergyGrad;
+}
+void Sternheimer::printHellmannFeynmanForces(
+   std::vector<Eigen::Vector3cd>& EnergyGrad) const {
+  QMMolecule mol = _orbitals.QMAtoms();
+  std::cout << "\n" <<"#Atom_Type " << "Atom_Index "<< "Gradient x y z "<< std::endl; 
+  for (int i = 0; i < EnergyGrad.size(); i++) {  
+    std::cout << mol.at(i).getElement() << " " << i << " " << EnergyGrad[i][0].real() << " " << EnergyGrad[i][1].real()
+              << " " << EnergyGrad[i][2].real() << std::endl;
+  }
 }
 
 Eigen::MatrixXcd Sternheimer::GreensFunctionLHS(std::complex<double> w) const {

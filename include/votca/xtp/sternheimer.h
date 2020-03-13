@@ -71,11 +71,14 @@ class Sternheimer {
   std::vector<Eigen::Vector3cd> EnergyGradient() const;
   // Prints the isotropic average of the polarizability tensor
   void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar) const;
+  // Prints the Hellmann-Feynman contribution of the Energy Gradient
+  void printHellmannFeynmanForces(std::vector<Eigen::Vector3cd>& EnergyGrad) const;
   // Returns Isotropic Average from Polarizability Tensor
   std::vector<double> getIsotropicAverage(
       std::vector<Eigen::Matrix3cd>& polar) const;
   // Return Self-Energy in one grid point r
   std::complex<double> SelfEnergy_at_r(double omega, Eigen::Vector3d gridpoint1, Index n, Index m) const;
+  // Return Self-Energy 
   std::complex<double> SelfEnergy(double omega, Index n, Index m) const;
  private:
   Logger& _log;
