@@ -214,16 +214,16 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
     //  std::cout << "Frequency: " << w << "Converged after " << n + 1
       //          << " iteration." << std::endl;
 
-      // // throw std::exception();
-      // Index occ = _orbitals.getNumberOfAlphaElectrons();
-      // Eigen::MatrixXcd HmS = _Hamiltonian_Matrix - _overlap_Matrix *
-      // _orbitals.MOs().eigenvalues().head(occ).asDiagonal(); Eigen::MatrixXcd
-      // moc = _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls);
-      // Eigen::MatrixXcd dmoc = solution_p;
-      // std::complex<double> pulay1 = -2.0 * (dmoc.cwiseProduct(HmS *
-      // moc)).sum(); std::complex<double> pulay2 = -2.0 *
-      // (moc.cwiseProduct(HmS*dmoc)).sum(); std::cout << " \n Pulay " << pulay1
-      // + pulay2 << std::endl;
+      // Pulay forces to be checked //
+      //  Index occ = _orbitals.getNumberOfAlphaElectrons();
+      //  Eigen::MatrixXcd HmS = _Hamiltonian_Matrix - _overlap_Matrix *
+      //  _orbitals.MOs().eigenvalues().head(occ).asDiagonal(); Eigen::MatrixXcd
+      //  moc = _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls);
+      //  Eigen::MatrixXcd dmoc = solution_p;
+      //  std::complex<double> pulay1 = -2.0 * (dmoc.cwiseProduct(HmS *
+      //  moc)).sum(); std::complex<double> pulay2 = -2.0 *
+      //  (moc.cwiseProduct(HmS*dmoc)).sum(); std::cout << " \n Pulay 1" << pulay1
+      //  << " Pulay 2" << pulay2 << std::endl;
       return delta_n_out_new;
     }
     // Mixing if at least in iteration 2
@@ -511,7 +511,7 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
     double sign = 1.0;
 
     EnergyGrad.push_back(Eigen::Vector3d::Zero());
-
+    
     for (int a = 0; a < 3; a++) {
 
       Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, sign * ao3dDipole.Matrix()[a]);
@@ -523,7 +523,6 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
                              .cwiseProduct(DeltaV * mol.at(k).getNuccharge())
                              .sum();
     }
-
     for (int l = 0; l < number_of_atoms; l++) {
       if (l != k) {
         Eigen::Vector3d distance = (mol.at(k).getPos() - mol.at(l).getPos());
@@ -533,12 +532,67 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
     }
   }
 
-  
-
   return EnergyGrad;
 }
 void Sternheimer::printHellmannFeynmanForces(
    std::vector<Eigen::Vector3cd>& EnergyGrad) const {
+  QMMolecule mol = _orbitals.QMAtoms();
+  std::cout << "\n" <<"#Atom_Type " << "Atom_Index "<< "Gradient x y z "<< std::endl; 
+  for (int i = 0; i < EnergyGrad.size(); i++) {  
+    std::cout << mol.at(i).getElement() << " " << i << " " << EnergyGrad[i][0].real() << " " << EnergyGrad[i][1].real()
+              << " " << EnergyGrad[i][2].real() << std::endl;
+  }
+}
+
+std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n, Index m) const {
+
+  QMMolecule mol = _orbitals.QMAtoms();
+
+  // Setting up Grid for Fxc functional
+
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
+  AOBasis auxbasis = _orbitals.SetupAuxBasis();
+  ERIs eris;
+  eris.Initialize(dftbasis, auxbasis);
+
+  Vxc_Grid grid;
+  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                 dftbasis);
+  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+
+  // QMMolecule molecule;
+  Index number_of_atoms = mol.size();
+
+  std::vector<Eigen::Vector3cd> EnergyGrad;
+
+  AO3ddipole ao3dDipole;
+  // Loop over Nuclei
+
+  for (int k = 0; k < number_of_atoms; k++) {
+
+    ao3dDipole.setCenter(mol.at(k).getPos());
+    ao3dDipole.Fill(dftbasis);
+
+    double sign = 1.0;
+
+    EnergyGrad.push_back(Eigen::Vector3d::Zero());
+    
+    for (int a = 0; a < 3; a++) {
+
+      Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, sign * ao3dDipole.Matrix()[a]);
+      Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(DeltaN);
+     Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+      Eigen::MatrixXcd DeltaV =
+          sign * ao3dDipole.Matrix()[a] + contract + FxcInt;
+      EnergyGrad[k][a] = _mo_coefficients.col(n).transpose() * ( DeltaV * mol.at(k).getNuccharge()) * _mo_coefficients.col(n);
+    }
+  }
+
+  return EnergyGrad;
+}
+void Sternheimer::printMOEnergyGradient(
+   std::vector<Eigen::Vector3cd>& EnergyGrad, Index n, Index m) const {
   QMMolecule mol = _orbitals.QMAtoms();
   std::cout << "\n" <<"#Atom_Type " << "Atom_Index "<< "Gradient x y z "<< std::endl; 
   for (int i = 0; i < EnergyGrad.size(); i++) {  
@@ -654,18 +708,18 @@ std::complex<double> Sternheimer::SelfEnergy_at_r(double omega,
   double delta = (_opt.end_frequency_grid - _opt.start_frequency_grid) /
                  _opt.number_of_frequency_grid_points;
   Index i = 0;
-
+  Eigen::MatrixXcd coulombmatrix = CoulombMatrix(gridpoint1);
   for (std::complex<double> omega_p : w) {
 
     if (i == 0) {
       right += 0.5 * GreensFunction(omega + omega_p) *
-               ScreenedCoulomb(gridpoint1, omega_p);
+               (ScreenedCoulomb(gridpoint1, omega_p)-coulombmatrix);
     } else if (i == _opt.number_of_frequency_grid_points - 1) {
       right += 0.5 * GreensFunction(omega + omega_p) *
-               ScreenedCoulomb(gridpoint1, omega_p);
+               (ScreenedCoulomb(gridpoint1, omega_p)-coulombmatrix);
     } else {
       right += GreensFunction(omega + omega_p) *
-               ScreenedCoulomb(gridpoint1, omega_p);
+               (ScreenedCoulomb(gridpoint1, omega_p)-coulombmatrix);
     }
     i++;
   }
@@ -685,13 +739,11 @@ std::complex<double> Sternheimer::SelfEnergy(double omega, Index n,
 
   std::complex<double> corrections(0.0, 0.0);
 
-  //for (Index i = 0; i < grid.getBoxesSize(); ++i) {
-  for (Index i = 0; i < 3; ++i) {  
+  for (Index i = 0; i < grid.getBoxesSize(); ++i) { 
     const GridBox& box = grid[i];
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();
     for (Index p = 0; p < box.size(); p++) {
-      std::cout << p << std::endl;
       corrections += weights[p] * SelfEnergy_at_r(omega, points[p], n, m);
     }
   }

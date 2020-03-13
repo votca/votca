@@ -695,6 +695,18 @@ bool GWBSE::Evaluate() {
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Finished Sternheimer Energy Gradient" << flush;
     }
+    if (_gwopt.calculation == "mogradient") {
+      XTP_LOG(Log::error, *_pLog)
+          << TimeStamp() << " Started Sternheimer MO Energy Gradient" << flush;
+      sternheimer.configurate(opt);
+      for (Index n=0; n < _orbitals.MOs().eigenvalues().size(); ++n){
+      
+      std::vector<Eigen::Vector3cd> EPC = sternheimer.MOEnergyGradient(n,n);
+      sternheimer.printMOEnergyGradient(EPC,n,n);
+      }
+      XTP_LOG(Log::error, *_pLog)
+          << TimeStamp() << " Finished Sternheimer MO Energy Gradient" << flush;
+    }
     if (_gwopt.calculation == "gwsternheimer") {
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Started Sternheimer GW" << flush;
