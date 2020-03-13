@@ -228,32 +228,18 @@ void GWBSE::Initialize(tools::Property& options) {
         options.ifExistsReturnElseReturnDefault<double>(
             key + ".sternheimer.lorentzian_broadening",
             _gwopt.lorentzian_broadening);
-    XTP_LOG(Log::error, *_pLog)
-        << " Omega initial: " << _gwopt.omegain << flush;
-    XTP_LOG(Log::error, *_pLog) << " Omega final: " << _gwopt.omegafin << flush;
-    XTP_LOG(Log::error, *_pLog) << " Step: " << _gwopt.step << flush;
-    XTP_LOG(Log::error, *_pLog)
-        << " Imaginary shift: " << _gwopt.imshift << flush;
-    XTP_LOG(Log::error, *_pLog)
-        << " Resolution: " << _gwopt.resolution << flush;
-  }
-
-  if (options.exists(key + ".SGW")) {
-    XTP_LOG(Log::error, *_pLog) << " Running Sternheimer GW" << flush;
-    _gwopt.omegain = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".SGW.omegain", _gwopt.omegain);
-    _gwopt.omegafin = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".SGW.omegafin", _gwopt.omegafin);
-    _gwopt.step = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".SGW.step", _gwopt.step);
-    _gwopt.imshift = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".SGW.imshift", _gwopt.imshift);
-    _gwopt.resolution = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".SGW.resolution", _gwopt.resolution);
     _gwopt.lorentzian_broadening =
         options.ifExistsReturnElseReturnDefault<double>(
-            key + ".SGW.lorentzian_broadening",
+            key + ".sternheimer.lorentzian_broadening",
             _gwopt.lorentzian_broadening);
+    _gwopt.calculation =
+        options.ifExistsReturnElseReturnDefault<std::string>(
+            key + ".sternheimer.calculation",
+            _gwopt.calculation);
+    _gwopt.spatialgridtype =
+        options.ifExistsReturnElseReturnDefault<std::string>(
+            key + ".sternheimer.spatialgridtype",
+            _gwopt.spatialgridtype);        
     XTP_LOG(Log::error, *_pLog)
         << " Omega initial: " << _gwopt.omegain << flush;
     XTP_LOG(Log::error, *_pLog) << " Omega final: " << _gwopt.omegafin << flush;
@@ -262,6 +248,8 @@ void GWBSE::Initialize(tools::Property& options) {
         << " Imaginary shift: " << _gwopt.imshift << flush;
     XTP_LOG(Log::error, *_pLog)
         << " Resolution: " << _gwopt.resolution << flush;
+  XTP_LOG(Log::error, *_pLog)
+        << " Calculation: " << _gwopt.calculation << flush;    
   }
 
   // eigensolver options
@@ -392,8 +380,6 @@ void GWBSE::Initialize(tools::Property& options) {
 
   _do_Sternheimer = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".sternheimer", _do_Sternheimer);
-  _do_SGW = options.ifExistsReturnElseReturnDefault<bool>(
-      key + ".SGW", _do_SGW);    
 
   // possible tasks
   std::string tasks_string =
@@ -409,9 +395,6 @@ void GWBSE::Initialize(tools::Property& options) {
   }
   if (tasks_string.find("sternheimer") != std::string::npos) {
     _do_Sternheimer = true;
-  }
-  if (tasks_string.find("SGW") != std::string::npos) {
-    _do_SGW = true;
   }
   if (tasks_string.find("singlets") != std::string::npos) {
     _do_bse_singlets = true;
@@ -501,9 +484,7 @@ void GWBSE::addoutput(tools::Property& summary) {
   if (_do_Sternheimer) {
     return;
   }
-  if (_do_SGW) {
-    return;
-  }
+
   const double hrt2ev = tools::conv::hrt2ev;
   tools::Property& gwbse_summary = summary.add("GWBSE", "");
   if (_do_gw) {
@@ -670,45 +651,8 @@ bool GWBSE::Evaluate() {
       << TimeStamp() << " DFT data was created by " << dft_package << flush;
 
   if (_do_Sternheimer) {
-
-    // XTP_LOG(Log::error, *_pLog)
-    //     << TimeStamp() << " Started Sternheimer " << flush;
-
-    // const double ev2hrt = 1 / votca::tools::conv::hrt2ev;
-
-    // _orbitals.setAuxbasisName(_auxbasis_name);
-
-    // Sternheimer sternheimer(_orbitals, *_pLog);
-
-    // sternheimer.setUpMatrices();
-
-    // Sternheimer::options_sternheimer opt;
-    // opt.start_frequency_grid=_gwopt.omegain;
-    // opt.end_frequency_grid=_gwopt.omegafin;
-    // opt.number_of_frequency_grid_points=_gwopt.step;
-    // opt.imaginary_shift_pade_approx=_gwopt.imshift;
-    // opt.lorentzian_broadening=_gwopt.lorentzian_broadening;
-    // opt.number_output_grid_points=_gwopt.resolution;
-
-    // sternheimer.configurate(opt);
-
-    // //std::vector<Eigen::Matrix3cd> polar = sternheimer.Polarisability();
-
-    // //std::vector<Eigen::Vector3cd> EPC = sternheimer.EnergyGradient();
-
-    // // XTP_LOG(Log::error, *_pLog)
-    // //     << TimeStamp() << "Result :"  << flush;
-
-    // //  XTP_LOG(Log::error, *_pLog)
-    // //     << TimeStamp() << EPC << flush;
-// //XTP_LOG(Log::error, *_pLog)
-//     //   << TimeStamp() << " Finished Sternheimer " << flush;
-    ////////////////////////////////////////////////////////////////////
-    XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Started Sternheimer GW" << flush;
-
     const double ev2hrt = 1 / votca::tools::conv::hrt2ev;
-BasisSet dftbs;
+    BasisSet dftbs;
     dftbs.Load(_dftbasis_name);
 
     XTP_LOG(Log::error, *_pLog)
@@ -721,93 +665,50 @@ BasisSet dftbs;
                                 << dftbasis.AOBasisSize() << flush;
     _orbitals.setAuxbasisName(_auxbasis_name);
 
-    SternheimerW SGW(_orbitals, *_pLog);
+    Sternheimer sternheimer(_orbitals, *_pLog);
 
-    SGW.Initialize();
+    sternheimer.setUpMatrices();
 
-    SternheimerW::options_sternheimer opt;
-    opt.start_frequency_grid=_gwopt.omegain;
-    opt.end_frequency_grid=_gwopt.omegafin;
-    opt.number_of_frequency_grid_points=_gwopt.step;
-    opt.imaginary_shift=_gwopt.imshift;
-    opt.lorentzian_broadening=_gwopt.lorentzian_broadening;
-    opt.number_output_grid_points=_gwopt.resolution;
-    opt.numerical_Integration_grid_type = "coarse";
-    SGW.configurate(opt);
-
-        Vxc_Grid grid;
-  grid.GridSetup(opt.numerical_Integration_grid_type, _orbitals.QMAtoms(), dftbasis);
-  XTP_LOG(Log::info, *_pLog)
-      << TimeStamp() << " Setup grid for integration with gridsize: " << _grid
-      << " with " << grid.getGridSize() << " points, divided into "
-      << grid.getBoxesSize() << " boxes" << flush;
-
-std::complex<double> prefactor (0.,1.0/(2*std::acos(-1.0))); // i/2pi
-
-for (Index i = 0; i < grid.getBoxesSize(); ++i) {
-    const GridBox& box = grid[i];
-    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-    const std::vector<double>& weights = box.getGridWeights();
+    Sternheimer::options_sternheimer opt;
+    opt.start_frequency_grid = _gwopt.omegain;
+    opt.end_frequency_grid = _gwopt.omegafin;
+    opt.number_of_frequency_grid_points = _gwopt.step;
+    opt.imaginary_shift_pade_approx = _gwopt.imshift;
+    opt.lorentzian_broadening = _gwopt.lorentzian_broadening;
+    opt.number_output_grid_points = _gwopt.resolution;
+    opt.numerical_Integration_grid_type = _gwopt.spatialgridtype;
     
-    for (Index n = 0; n < 10; n++){
-    std::complex<double> corrections (0.0,0.0);
-    for (Index p = 0; p < box.size(); p++) {
-        corrections += weights[p]*SGW.SelfEnergy_at_r(_orbitals.getMOEnergy(n),points[p],n,n);
+    XTP_LOG(Log::error, *_pLog)  << TimeStamp() << " Started Sternheimer " << flush;
+
+    if (_gwopt.calculation == "polarizability") {
+      XTP_LOG(Log::error, *_pLog)
+        << TimeStamp() << " Started Sternheimer Polarizability" << flush;
+      sternheimer.configurate(opt);
+      std::vector<Eigen::Matrix3cd> polar = sternheimer.Polarisability();
+      sternheimer.printIsotropicAverage(polar);
     }
-    std::cout << "\n Corrections state \t" << n << ":\t" << prefactor*corrections;
+    if (_gwopt.calculation == "gradient") {
+      XTP_LOG(Log::error, *_pLog)
+        << TimeStamp() << " Started Sternheimer Energy Gradient" << flush;
+      sternheimer.configurate(opt);
+      std::vector<Eigen::Vector3cd> EPC = sternheimer.EnergyGradient();
     }
-}
-
-
-    XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Finished Sternheimer GW" << flush;
-
-    
-
-  } 
-  else if (_do_SGW) { 
-    XTP_LOG(Log::error, *_pLog)
+    if (_gwopt.calculation == "gwsternheimer"){
+        XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Started Sternheimer GW" << flush;
-
-    const double ev2hrt = 1 / votca::tools::conv::hrt2ev;
-BasisSet dftbs;
-    dftbs.Load(_dftbasis_name);
-
-    XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
-
-    // fill DFT AO basis by going through all atoms
-    AOBasis dftbasis;
-    dftbasis.Fill(dftbs, _orbitals.QMAtoms());
-    XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Filled DFT Basis of size "
-                                << dftbasis.AOBasisSize() << flush;
-    _orbitals.setAuxbasisName(_auxbasis_name);
-
-    SternheimerW SGW(_orbitals, *_pLog);
-
-    SGW.Initialize();
-
-    SternheimerW::options_sternheimer opt;
-    opt.start_frequency_grid=_gwopt.omegain;
-    opt.end_frequency_grid=_gwopt.omegafin;
-    opt.number_of_frequency_grid_points=_gwopt.step;
-    opt.imaginary_shift=_gwopt.imshift;
-    opt.lorentzian_broadening=_gwopt.lorentzian_broadening;
-    opt.number_output_grid_points=_gwopt.resolution;
-    opt.numerical_Integration_grid_type = 'coarse';
-    SGW.configurate(opt);
-
-        Vxc_Grid grid;
-  grid.GridSetup(opt.numerical_Integration_grid_type, _orbitals.QMAtoms(), dftbasis);
-  XTP_LOG(Log::info, *_pLog)
-      << TimeStamp() << " Setup grid for integration with gridsize: " << _grid
-      << " with " << grid.getGridSize() << " points, divided into "
-      << grid.getBoxesSize() << " boxes" << flush;
-
-    XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Finished Sternheimer GW" << flush;
+        sternheimer.configurate(opt);
+    std::vector<std::complex<double>> results;
+    for (Index n = 0; n < 2; n++) {
+      
+      results.push_back(sternheimer.SelfEnergy(_orbitals.MOs().eigenvalues()(n), n, n));
+      
+    }
+    }
     
-   } else {
+    XTP_LOG(Log::error, *_pLog)
+        << TimeStamp() << " Finished Sternheimer" << flush;
+
+  } else {
 
     BasisSet dftbs;
     dftbs.Load(_dftbasis_name);

@@ -70,12 +70,13 @@ class Sternheimer {
 
   std::vector<Eigen::Vector3cd> EnergyGradient() const;
   // Prints the isotropic average of the polarizability tensor
-  void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar,
-                             std::vector<std::complex<double>>& grid) const;
+  void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar) const;
   // Returns Isotropic Average from Polarizability Tensor
   std::vector<double> getIsotropicAverage(
       std::vector<Eigen::Matrix3cd>& polar) const;
-
+  // Return Self-Energy in one grid point r
+  std::complex<double> SelfEnergy_at_r(double omega, Eigen::Vector3d gridpoint1, Index n, Index m) const;
+  std::complex<double> SelfEnergy(double omega, Index n, Index m) const;
  private:
   Logger& _log;
 
@@ -113,7 +114,7 @@ class Sternheimer {
   Eigen::MatrixXcd Hamiltonian();
   // Calculates coulomb matrix
   Eigen::MatrixXcd CoulombMatrix();
-
+  Eigen::MatrixXcd CoulombMatrix(Eigen::Vector3d gridpoint) const;
   // Bulids the frequency grid for the polarizability calculations
   // Input values in eV
   std::vector<std::complex<double>> BuildGrid(double omega_start,
@@ -152,6 +153,21 @@ class Sternheimer {
   Eigen::MatrixXcd BroydenMixing(std::vector<Eigen::MatrixXcd>& Input,
                                  std::vector<Eigen::MatrixXcd>& Output,
                                  double alpha) const;
+Eigen::MatrixXcd GreensFunctionLHS(std::complex<double> w) const;
+  Eigen::MatrixXcd GreensFunctionRHS(Eigen::Vector3d r) const;
+
+  Eigen::MatrixXcd AnalyticGreensfunction(std::complex<double> w) const;
+
+  double Lorentzian(double r, std::complex<double> freq) const;
+
+  Eigen::MatrixXcd NonAnalyticGreensfunction(std::complex<double> freq) const;
+
+  Eigen::MatrixXcd GreensFunction(std::complex<double> frequency) const;
+
+  Eigen::MatrixXcd ScreenedCoulomb( Eigen::Vector3d gridpoint1, std::complex<double> frequency) const;
+  
+  Eigen::VectorXd EvaluateBasisAtPosition(const AOBasis& dftbasis,
+                                          const Eigen::Vector3d& pos) const;
 };
 }  // namespace xtp
 }  // namespace votca
