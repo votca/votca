@@ -211,7 +211,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
             .squaredNorm();
     //std::cout << n << " " << diff << std::endl;
     if (diff < _opt.tolerance_sc_sternheimer) {
-    //  std::cout << "Frequency: " << w << "Converged after " << n + 1
+      //  std::cout << "Frequency: " << w << "Converged after " << n + 1
       //          << " iteration." << std::endl;
 
       // Pulay forces to be checked //
@@ -222,7 +222,8 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
       //  Eigen::MatrixXcd dmoc = solution_p;
       //  std::complex<double> pulay1 = -2.0 * (dmoc.cwiseProduct(HmS *
       //  moc)).sum(); std::complex<double> pulay2 = -2.0 *
-      //  (moc.cwiseProduct(HmS*dmoc)).sum(); std::cout << " \n Pulay 1" << pulay1
+      //  (moc.cwiseProduct(HmS*dmoc)).sum(); std::cout << " \n Pulay 1" <<
+      //  pulay1
       //  << " Pulay 2" << pulay2 << std::endl;
       return delta_n_out_new;
     }
@@ -458,7 +459,8 @@ void Sternheimer::printIsotropicAverage(
   std::vector<std::complex<double>> grid =
       BuildGrid(_opt.start_frequency_grid, _opt.end_frequency_grid,
                 _opt.number_output_grid_points, _opt.lorentzian_broadening);
-  std::cout << "\n" << "#Freq (ev) \t polarizability_isotropic_average" << std::endl;
+  std::cout << "\n"
+            << "#Freq (ev) \t polarizability_isotropic_average" << std::endl;
   for (Index i = 0; i < polar.size(); i++) {
     std::cout << real(grid.at(i)) * votca::tools::conv::hrt2ev << "\t"
               << real((polar.at(i)(2, 2))) + real(polar.at(i)(1, 1)) +
@@ -511,12 +513,12 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
     double sign = 1.0;
 
     EnergyGrad.push_back(Eigen::Vector3d::Zero());
-    
+
     for (int a = 0; a < 3; a++) {
 
       Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, sign * ao3dDipole.Matrix()[a]);
       Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(DeltaN);
-     Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+      Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
       Eigen::MatrixXcd DeltaV =
           sign * ao3dDipole.Matrix()[a] + contract + FxcInt;
       EnergyGrad[k][a] = _density_Matrix.transpose()
@@ -535,16 +537,117 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
   return EnergyGrad;
 }
 void Sternheimer::printHellmannFeynmanForces(
-   std::vector<Eigen::Vector3cd>& EnergyGrad) const {
+    std::vector<Eigen::Vector3cd>& EnergyGrad) const {
   QMMolecule mol = _orbitals.QMAtoms();
-  std::cout << "\n" <<"#Atom_Type " << "Atom_Index "<< "Gradient x y z "<< std::endl; 
-  for (int i = 0; i < EnergyGrad.size(); i++) {  
-    std::cout << mol.at(i).getElement() << " " << i << " " << EnergyGrad[i][0].real() << " " << EnergyGrad[i][1].real()
+  std::cout << "\n"
+            << "#Atom_Type "
+            << "Atom_Index "
+            << "Gradient x y z " << std::endl;
+  for (int i = 0; i < EnergyGrad.size(); i++) {
+    std::cout << mol.at(i).getElement() << " " << i << " "
+              << EnergyGrad[i][0].real() << " " << EnergyGrad[i][1].real()
               << " " << EnergyGrad[i][2].real() << std::endl;
   }
 }
 
-std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n, Index m) const {
+std::complex<double> Sternheimer::KoopmanCorrection(
+    Index n, double deltaf_n) const {
+
+  std::complex<double> v_nn = std::complex<double> (0.0,0.0);    
+  // Setting up Grid for Fxc functional
+
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
+  AOBasis auxbasis = _orbitals.SetupAuxBasis();
+  ERIs eris;
+  eris.Initialize(dftbasis, auxbasis);
+
+  Vxc_Grid grid;
+  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                 dftbasis);
+  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  
+  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+
+    // Build reference density matrix
+   Eigen::MatrixXd N_n =  _mo_coefficients.col(n)*_mo_coefficients.col(n).transpose();
+   Eigen::MatrixXd N_ref = (1.0-deltaf_n) * N_n;
+   N_ref += _density_Matrix.real();
+ 
+   // Build KI potentials
+   //(1) vhx(rho_ref) - vhx(rho)
+   Eigen::MatrixXd xc1 = Vxcpot.IntegrateVXC(N_ref).matrix();
+  
+   Eigen::MatrixXd xc2 = Vxcpot.IntegrateVXC(_density_Matrix).matrix();
+  
+   Eigen::MatrixXcd vhxc_1 = xc1 - xc2;
+  
+   vhxc_1 += (eris.ContractRightIndecesWithMatrix(N_n) - eris.ContractRightIndecesWithMatrix(_density_Matrix));
+  // //(2) w_ref 
+  Eigen::MatrixXcd vhxc_2 = Vxcpot.IntegrateFXC(_density_Matrix, N_n);
+  vhxc_2.diagonal().array() -=  (_overlap_Matrix).cwiseProduct( N_n * vhxc_2).sum();
+  
+  vhxc_2 *= deltaf_n;
+  
+  // //Evaluate expectation value
+  v_nn = (N_n).cwiseProduct(vhxc_2).sum();
+  return v_nn;
+}
+
+std::complex<double> Sternheimer::KoopmanRelaxationCoeff(
+    Index n, double deltaf_n) const {
+
+  std::complex<double> alpha_n = std::complex<double> (0.0,0.0);    
+  // Setting up Grid for Fxc functional
+
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
+  AOBasis auxbasis = _orbitals.SetupAuxBasis();
+  ERIs eris;
+  eris.Initialize(dftbasis, auxbasis);
+
+  Vxc_Grid grid;
+  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                 dftbasis);
+  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+
+  // Build MO-specific density
+
+  Eigen::MatrixXcd N_n = _mo_coefficients.col(n) * _mo_coefficients.col(n).transpose();
+
+  // Build inital perturbation
+
+  Eigen::MatrixXcd FxcInt_init =
+      deltaf_n * Vxcpot.IntegrateFXC(_density_Matrix, N_n);
+  FxcInt_init += eris.ContractRightIndecesWithMatrix(N_n);
+
+  //Do Sternheimer 
+  Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, FxcInt_init);
+  Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(DeltaN);
+  Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+  Eigen::MatrixXcd DeltaV = FxcInt_init + contract + FxcInt;
+  //Calculate orbital relaxation coeffs
+  alpha_n =
+     (N_n).cwiseProduct(DeltaV).sum();
+  alpha_n /= (N_n).cwiseProduct(FxcInt_init).sum();
+  return alpha_n;
+}
+
+void Sternheimer::printKoopmanRelaxationCoeff(std::complex<double> alpha, Index n) const {
+  std::cout << "\n"
+            << "#Orbital "
+            << "alpha " << std::endl;
+  std::cout << n << " " << alpha << std::endl; 
+}
+
+void Sternheimer::printKoopman(std::complex<double> alpha, std::complex<double> correction, Index n) const {
+  std::cout << "\n"
+            << "#Orbital "
+            << "alpha " << "correction" << " " << "Product" << std::endl;
+  std::cout << n << " " << alpha << " " << correction << " " << alpha*correction <<std::endl; 
+}
+
+std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n,
+                                                            Index m) const {
 
   QMMolecule mol = _orbitals.QMAtoms();
 
@@ -577,26 +680,32 @@ std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n, Index m) co
     double sign = 1.0;
 
     EnergyGrad.push_back(Eigen::Vector3d::Zero());
-    
+
     for (int a = 0; a < 3; a++) {
 
       Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, sign * ao3dDipole.Matrix()[a]);
       Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(DeltaN);
-     Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+      Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
       Eigen::MatrixXcd DeltaV =
           sign * ao3dDipole.Matrix()[a] + contract + FxcInt;
-      EnergyGrad[k][a] = _mo_coefficients.col(n).transpose() * ( DeltaV * mol.at(k).getNuccharge()) * _mo_coefficients.col(n);
+      EnergyGrad[k][a] = _mo_coefficients.col(n).transpose() *
+                         (DeltaV * mol.at(k).getNuccharge()) *
+                         _mo_coefficients.col(n);
     }
   }
 
   return EnergyGrad;
 }
 void Sternheimer::printMOEnergyGradient(
-   std::vector<Eigen::Vector3cd>& EnergyGrad, Index n, Index m) const {
+    std::vector<Eigen::Vector3cd>& EnergyGrad, Index n, Index m) const {
   QMMolecule mol = _orbitals.QMAtoms();
-  std::cout << "\n" <<"#Atom_Type " << "Atom_Index "<< "Gradient x y z "<< std::endl; 
-  for (int i = 0; i < EnergyGrad.size(); i++) {  
-    std::cout << mol.at(i).getElement() << " " << i << " " << EnergyGrad[i][0].real() << " " << EnergyGrad[i][1].real()
+  std::cout << "\n"
+            << "#Atom_Type "
+            << "Atom_Index "
+            << "Gradient x y z " << std::endl;
+  for (int i = 0; i < EnergyGrad.size(); i++) {
+    std::cout << mol.at(i).getElement() << " " << i << " "
+              << EnergyGrad[i][0].real() << " " << EnergyGrad[i][1].real()
               << " " << EnergyGrad[i][2].real() << std::endl;
   }
 }
@@ -713,13 +822,13 @@ std::complex<double> Sternheimer::SelfEnergy_at_r(double omega,
 
     if (i == 0) {
       right += 0.5 * GreensFunction(omega + omega_p) *
-               (ScreenedCoulomb(gridpoint1, omega_p)-coulombmatrix);
+               (ScreenedCoulomb(gridpoint1, omega_p) - coulombmatrix);
     } else if (i == _opt.number_of_frequency_grid_points - 1) {
       right += 0.5 * GreensFunction(omega + omega_p) *
-               (ScreenedCoulomb(gridpoint1, omega_p)-coulombmatrix);
+               (ScreenedCoulomb(gridpoint1, omega_p) - coulombmatrix);
     } else {
       right += GreensFunction(omega + omega_p) *
-               (ScreenedCoulomb(gridpoint1, omega_p)-coulombmatrix);
+               (ScreenedCoulomb(gridpoint1, omega_p) - coulombmatrix);
     }
     i++;
   }
@@ -739,7 +848,7 @@ std::complex<double> Sternheimer::SelfEnergy(double omega, Index n,
 
   std::complex<double> corrections(0.0, 0.0);
 
-  for (Index i = 0; i < grid.getBoxesSize(); ++i) { 
+  for (Index i = 0; i < grid.getBoxesSize(); ++i) {
     const GridBox& box = grid[i];
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();
@@ -749,7 +858,7 @@ std::complex<double> Sternheimer::SelfEnergy(double omega, Index n,
   }
   std::cout << "\n State:\t" << n << " " << m << "\t sigma_c \t" << corrections
             << std::endl;
-return corrections;
+  return corrections;
 }
 
 }  // namespace xtp
