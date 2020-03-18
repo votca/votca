@@ -699,40 +699,47 @@ bool GWBSE::Evaluate() {
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Started Sternheimer MO Energy Gradient" << flush;
       sternheimer.configurate(opt);
-      for (Index n=0; n < _orbitals.MOs().eigenvalues().size(); ++n){
-      
-      std::vector<Eigen::Vector3cd> EPC = sternheimer.MOEnergyGradient(n,n);
-      sternheimer.printMOEnergyGradient(EPC,n,n);
+      for (Index n = 0; n < _orbitals.MOs().eigenvalues().size(); ++n) {
+
+        std::vector<Eigen::Vector3cd> EPC = sternheimer.MOEnergyGradient(n, n);
+        sternheimer.printMOEnergyGradient(EPC, n, n);
       }
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Finished Sternheimer MO Energy Gradient" << flush;
     }
     if (_gwopt.calculation == "koopmanalpha") {
       XTP_LOG(Log::error, *_pLog)
-          << TimeStamp() << " Started Sternheimer Koopman's relaxation coefficients" << flush;
+          << TimeStamp()
+          << " Started Sternheimer Koopman's relaxation coefficients" << flush;
       sternheimer.configurate(opt);
-      for (Index n=0; n < _orbitals.MOs().eigenvalues().size(); ++n){
-      
-      std::complex<double> alpha = sternheimer.KoopmanRelaxationCoeff(n,2.0);
-      sternheimer.printKoopmanRelaxationCoeff(alpha,n);
+      for (Index n = 0; n < _orbitals.MOs().eigenvalues().size(); ++n) {
+
+        std::complex<double> alpha = sternheimer.KoopmanRelaxationCoeff(n, 2.0);
+        sternheimer.printKoopmanRelaxationCoeff(alpha, n);
       }
       XTP_LOG(Log::error, *_pLog)
-          << TimeStamp() << " Finished Sternheimer Koopman's relaxation coefficients" << flush;
+          << TimeStamp()
+          << " Finished Sternheimer Koopman's relaxation coefficients" << flush;
     }
 
     if (_gwopt.calculation == "koopman") {
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Started Sternheimer Koopman's compliant" << flush;
       sternheimer.configurate(opt);
-      for (Index n=0; n < _orbitals.MOs().eigenvalues().size(); ++n){
-      double sign = 2.0;
-      
-      std::complex<double> alpha = sternheimer.KoopmanRelaxationCoeff(n,1.0);
-      std::complex<double> correction = sternheimer.KoopmanCorrection(n,sign);
-      sternheimer.printKoopman(alpha,correction,n);
+      for (Index n = 0; n < _orbitals.MOs().eigenvalues().size(); ++n) {
+
+        double f = 1.0;  // For occupied states
+        if (n > _orbitals.getHomo()) {
+          f = 0.0;  // for unoccupied state
+        }
+        std::complex<double> alpha = sternheimer.KoopmanRelaxationCoeff(n, 1);
+        std::complex<double> correction = sternheimer.KoopmanCorrection(n, f);
+        std::cout << correction + _orbitals.MOs().eigenvalues()(n) << std::endl;
+        sternheimer.printKoopman(alpha, correction, n);
       }
       XTP_LOG(Log::error, *_pLog)
-          << TimeStamp() << " Finished Sternheimer Koopman's compliant" << flush;
+          << TimeStamp() << " Finished Sternheimer Koopman's compliant"
+          << flush;
     }
 
     if (_gwopt.calculation == "gwsternheimer") {

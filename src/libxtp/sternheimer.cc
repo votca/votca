@@ -209,7 +209,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
     double diff =
         (perturbationVectorInput.back() - perturbationVectoroutput.back())
             .squaredNorm();
-    //std::cout << n << " " << diff << std::endl;
+    // std::cout << n << " " << diff << std::endl;
     if (diff < _opt.tolerance_sc_sternheimer) {
       //  std::cout << "Frequency: " << w << "Converged after " << n + 1
       //          << " iteration." << std::endl;
@@ -550,10 +550,10 @@ void Sternheimer::printHellmannFeynmanForces(
   }
 }
 
-std::complex<double> Sternheimer::KoopmanCorrection(
-    Index n, double deltaf_n) const {
+std::complex<double> Sternheimer::KoopmanCorrection(Index n,
+                                                    double deltaf_n) const {
 
-  std::complex<double> v_nn = std::complex<double> (0.0,0.0);    
+  std::complex<double> v_nn = std::complex<double>(0.0, 0.0);
   // Setting up Grid for Fxc functional
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
@@ -565,38 +565,37 @@ std::complex<double> Sternheimer::KoopmanCorrection(
   grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
                  dftbasis);
   Vxc_Potential<Vxc_Grid> Vxcpot(grid);
-  
+
   Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
-    // Build reference density matrix
-   Eigen::MatrixXd N_n =  _mo_coefficients.col(n)*_mo_coefficients.col(n).transpose();
-   Eigen::MatrixXd N_ref = (1.0-deltaf_n) * N_n;
-   N_ref += _density_Matrix.real();
- 
-   // Build KI potentials
-   //(1) vhx(rho_ref) - vhx(rho)
-   Eigen::MatrixXd xc1 = Vxcpot.IntegrateVXC(N_ref).matrix();
-  
-   Eigen::MatrixXd xc2 = Vxcpot.IntegrateVXC(_density_Matrix).matrix();
-  
-   Eigen::MatrixXcd vhxc_1 = xc1 - xc2;
-  
-   vhxc_1 += (eris.ContractRightIndecesWithMatrix(N_n) - eris.ContractRightIndecesWithMatrix(_density_Matrix));
-  // //(2) w_ref 
-  Eigen::MatrixXcd vhxc_2 = Vxcpot.IntegrateFXC(_density_Matrix, N_n);
-  vhxc_2.diagonal().array() -=  (_overlap_Matrix).cwiseProduct( N_n * vhxc_2).sum();
-  
-  vhxc_2 *= deltaf_n;
-  
-  // //Evaluate expectation value
-  v_nn = (N_n).cwiseProduct(vhxc_2).sum();
-  return v_nn;
+  // Build reference density matrix
+  Eigen::MatrixXd N_n =
+      _mo_coefficients.col(n) * _mo_coefficients.col(n).transpose();
+  Eigen::MatrixXd N_ref = (1.0 - deltaf_n) * N_n;
+  N_ref += _density_Matrix.real();
+
+  // Build KI potentials
+  //(1)
+  Eigen::MatrixXcd vhxc_1 = Vxcpot.IntegrateVXC(_density_Matrix).matrix();
+  vhxc_1 += eris.ContractRightIndecesWithMatrix(_density_Matrix);
+  //(2)
+  Eigen::MatrixXcd vhxc_2 = Vxcpot.IntegrateVXC(N_ref).matrix();
+  vhxc_2 += eris.ContractRightIndecesWithMatrix(N_ref);
+  //(3)
+  Eigen::MatrixXcd vhxc_3 = Vxcpot.IntegrateVXC(N_ref - N_n).matrix();
+  vhxc_3 += eris.ContractRightIndecesWithMatrix(N_ref - N_n);
+  // constant
+  std::complex<double> constant = (N_ref).cwiseProduct(vhxc_2).sum();
+  constant -= (N_ref - N_n).cwiseProduct(vhxc_3).sum();
+  constant -= (N_n).cwiseProduct(vhxc_2).sum();
+  // Evaluate expectation value
+  return (N_n).cwiseProduct(-vhxc_1 + vhxc_3).sum() + constant;
 }
 
 std::complex<double> Sternheimer::KoopmanRelaxationCoeff(
     Index n, double deltaf_n) const {
 
-  std::complex<double> alpha_n = std::complex<double> (0.0,0.0);    
+  std::complex<double> alpha_n = std::complex<double>(0.0, 0.0);
   // Setting up Grid for Fxc functional
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
@@ -612,7 +611,8 @@ std::complex<double> Sternheimer::KoopmanRelaxationCoeff(
 
   // Build MO-specific density
 
-  Eigen::MatrixXcd N_n = _mo_coefficients.col(n) * _mo_coefficients.col(n).transpose();
+  Eigen::MatrixXcd N_n =
+      _mo_coefficients.col(n) * _mo_coefficients.col(n).transpose();
 
   // Build inital perturbation
 
@@ -620,30 +620,35 @@ std::complex<double> Sternheimer::KoopmanRelaxationCoeff(
       deltaf_n * Vxcpot.IntegrateFXC(_density_Matrix, N_n);
   FxcInt_init += eris.ContractRightIndecesWithMatrix(N_n);
 
-  //Do Sternheimer 
+  // Do Sternheimer
   Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, FxcInt_init);
   Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(DeltaN);
   Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
   Eigen::MatrixXcd DeltaV = FxcInt_init + contract + FxcInt;
-  //Calculate orbital relaxation coeffs
-  alpha_n =
-     (N_n).cwiseProduct(DeltaV).sum();
+  // Calculate orbital relaxation coeffs
+  alpha_n = (N_n).cwiseProduct(DeltaV).sum();
   alpha_n /= (N_n).cwiseProduct(FxcInt_init).sum();
   return alpha_n;
 }
 
-void Sternheimer::printKoopmanRelaxationCoeff(std::complex<double> alpha, Index n) const {
+void Sternheimer::printKoopmanRelaxationCoeff(std::complex<double> alpha,
+                                              Index n) const {
   std::cout << "\n"
             << "#Orbital "
             << "alpha " << std::endl;
-  std::cout << n << " " << alpha << std::endl; 
+  std::cout << n << " " << alpha << std::endl;
 }
 
-void Sternheimer::printKoopman(std::complex<double> alpha, std::complex<double> correction, Index n) const {
+void Sternheimer::printKoopman(std::complex<double> alpha,
+                               std::complex<double> correction, Index n) const {
   std::cout << "\n"
             << "#Orbital "
-            << "alpha " << "correction" << " " << "Product" << std::endl;
-  std::cout << n << " " << alpha << " " << correction << " " << alpha*correction <<std::endl; 
+            << "alpha "
+            << "correction"
+            << " "
+            << "Product" << std::endl;
+  std::cout << n << " " << alpha << " " << correction << " "
+            << alpha * correction << std::endl;
 }
 
 std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n,
