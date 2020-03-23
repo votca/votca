@@ -1,5 +1,5 @@
 /*
- *           Copyright 2009-2019 The VOTCA Development Team
+ *           Copyright 2009-2020 The VOTCA Development Team
  *                      (http://www.votca.org)
  *
  *     Licensed under the Apache License,Version 2.0 (the "License")
@@ -81,11 +81,11 @@ void StaticSite::Translate(const Eigen::VectorXd& shift) {
 
 std::string StaticSite::writePolarisation() const {
   tools::Elements e;
-  double default_pol = std::pow(tools::conv::ang2bohr, 3);
+  double default_pol = 1;  // default is alway 1A^3
   try {
     default_pol =
-        e.getPolarizability(_element) * std::pow(tools::conv::nm2bohr, 3);
-  } catch (const std::invalid_argument&) {
+        e.getPolarizability(_element) * std::pow(tools::conv::nm2ang, 3);
+  } catch (const std::runtime_error&) {
     ;
   }
   return (boost::format("     P %1$+1.7f\n") % default_pol).str();
