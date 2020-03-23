@@ -146,7 +146,6 @@ void QMPackage::ReorderMOs(Eigen::MatrixXd& v,
                              std::to_string(v.rows()) + ":" +
                              std::to_string(order.size()));
   }
-
   // actual swapping of coefficients
   for (Index s = 1, d; s < (Index)order.size(); ++s) {
     for (d = order[s]; d < s; d = order[d]) {
@@ -231,10 +230,11 @@ std::vector<Index> QMPackage::getReorderVector(const AOBasis& basis) const {
 }
 
 std::vector<Index> QMPackage::getReorderShell(const AOShell& shell) const {
-  // multipliers were all found using code, hard to establish
   std::vector<Index> reorder;
   for (Index i = 0; i < shell.getNumFunc(); i++) {
-    reorder.push_back(ShellReorder()[shell.getOffset() + i]);
+    // Shellreorder tells how much a certain funktion has to be shifted with
+    // reference to votca ordering
+    reorder.push_back(ShellReorder()[shell.getOffset() + i] + i);
   }
   return reorder;
 }
