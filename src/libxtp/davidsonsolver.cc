@@ -27,8 +27,6 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
-using namespace std;
-
 DavidsonSolver::DavidsonSolver(Logger &log) : _log(log) {}
 
 void DavidsonSolver::printTiming(
