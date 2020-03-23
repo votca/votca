@@ -23,8 +23,6 @@
 #include <votca/tools/constants.h>
 #include <votca/xtp/staticsite.h>
 
-using namespace std;
-
 namespace votca {
 namespace xtp {
 
@@ -91,7 +89,7 @@ std::string StaticSite::writePolarisation() const {
   return (boost::format("     P %1$+1.7f\n") % default_pol).str();
 }
 
-std::string StaticSite::WriteMpsLine(string unit) const {
+std::string StaticSite::WriteMpsLine(std::string unit) const {
   double conv_pos = 1.;
   if (unit == "angstrom") {
     conv_pos = tools::conv::bohr2ang;
