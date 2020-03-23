@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -267,16 +267,16 @@ DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace(
 }
 
 bool DavidsonSolver::checkConvergence(const DavidsonSolver::RitzEigenPair &rep,
-                                      DavidsonSolver::ProjectedSpace &proj, Index neigen) {
+                                      DavidsonSolver::ProjectedSpace &proj,
+                                      Index neigen) {
 
-  Eigen::ArrayXd res_norm = rep.res_norm();    
-  bool converged = true       ;                     
-  for (Index j=0; j < proj.size_update; j++) {
+  Eigen::ArrayXd res_norm = rep.res_norm();
+  bool converged = true;
+  for (Index j = 0; j < proj.size_update; j++) {
     proj.root_converged[j] = (res_norm[j] < _tol);
     if (j < neigen) {
       converged *= (res_norm[j] < _tol);
     }
-    
   }
   return converged;
 }
@@ -301,7 +301,6 @@ void DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
     // append the correction vector to the search space
     proj.V.conservativeResize(Eigen::NoChange, proj.V.cols() + 1);
     proj.V.rightCols<1>() = w.normalized();
-
   }
 
   proj.V = orthogonalize(proj.V, nupdate);
@@ -338,7 +337,6 @@ Eigen::VectorXd DavidsonSolver::computeCorrectionVector(
   }
   return Eigen::VectorXd::Zero(0);
 }
-
 
 Eigen::VectorXd DavidsonSolver::dpr(const Eigen::VectorXd &r,
                                     double lambda) const {
