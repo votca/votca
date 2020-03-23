@@ -164,14 +164,8 @@ void QMPackage::ReorderMOsToXTP(Eigen::MatrixXd& v,
                                 const AOBasis& basis) const {
 
   std::vector<Index> multiplier = getMultiplierVector(basis);
-  MultiplyMOs(v, multiplier);
 
   std::vector<Index> order = getReorderVector(basis);
-  std::cout << "order" << std::endl;
-  for (auto i : order) {
-    std::cout << i << " ";
-  }
-  std::cout << std::endl;
   ReorderMOs(v, order);
   MultiplyMOs(v, multiplier);
   return;
@@ -185,7 +179,6 @@ void QMPackage::ReorderMOsToNative(Eigen::MatrixXd& v,
   std::vector<Index> order = getReorderVector(basis);
   std::vector<Index> reverseorder = invertOrder(order);
   ReorderMOs(v, reverseorder);
-  MultiplyMOs(v, multiplier);
   return;
 }
 
