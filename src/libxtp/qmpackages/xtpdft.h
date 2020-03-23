@@ -71,10 +71,22 @@ class XTPDFT : public QMPackage {
   const std::array<Index, 25>& ShellReorder() const final { return _reorder; }
 
  private:
-  std::array<Index, 25> _multipliers = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-  std::array<Index, 25> _reorder = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  // clang-format off
+  std::array<Index,25> _multipliers={
+            1, //s
+            1,1,1, //p
+            1,1,1,1,1, //d
+            1,1,1,1,1,1,1, //f 
+            1,1,1,1,1,1,1,1,1 //g
+            };
+  std::array<Index,25> _reorder={
+            0, //s
+            0,1,2, //p 
+            0,1,2,3,4, //d 
+            0,1,2,3,4,5,6, //f
+            0,1,2,3,4,5,6,7,8 //g
+            };
+  // clang-format on
 
   void WriteChargeOption() final { return; }
   tools::Property _xtpdft_options;
