@@ -73,11 +73,11 @@ class Orca : public QMPackage {
             1,1,1,1,1,-1,-1,-1,-1 //g
             };
   std::array<Index,25> _reorder={
-            1, //s
-            1,3,2, //p orca order is z,x,y Y1,0,Y1,1,Y1,-1
-            1,3,2,5,4, //d orca order is d3z2-r2 dxz dyz dx2-y2 dxy e.g. Y2,0 Y2,1 Y2,-1 Y2,2
-            1,3,2,5,4,7,6, //f 
-            1,3,2,5,4,7,6,9,8 //g
+            0, //s
+            0,+1,-1, //p orca order is z,x,y Y1,0,Y1,1,Y1,-1
+            0,+1,-1,+1,-1, //d orca order is d3z2-r2 dxz dyz dx2-y2 dxy e.g. Y2,0 Y2,1 Y2,-1 Y2,2
+            0,+1,-1,+1,-1,+1,-1, //f 
+            0,+1,-1,+1,-1,+1,-1,+1,-1 //g
             };
   // clang-format on
   std::string indent(const double& number);
