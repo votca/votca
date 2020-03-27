@@ -15,12 +15,12 @@
  *
  */
 
+#include "../../include/votca/csg/imcio.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <votca/csg/imcio.h>
 #include <votca/tools/getline.h>
 #include <votca/tools/rangeparser.h>
 #include <votca/tools/table.h>

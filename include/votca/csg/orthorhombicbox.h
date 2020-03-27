@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
-
-#ifndef _VOTCA_CSG_ORTHORHOMBICBOX_H
-#define _VOTCA_CSG_ORTHORHOMBICBOX_H
+#pragma once
+#ifndef VOTCA_CSG_ORTHORHOMBICBOX_H
+#define VOTCA_CSG_ORTHORHOMBICBOX_H
 
 #include "boundarycondition.h"
 
@@ -29,7 +29,11 @@ class OrthorhombicBox : public BoundaryCondition {
   Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r_i,
                                        const Eigen::Vector3d &r_j) const final;
 
-  eBoxtype getBoxType() final { return typeOrthorhombic; }
+  virtual std::unique_ptr<BoundaryCondition> Clone() const final {
+    return std::unique_ptr<BoundaryCondition>(new OrthorhombicBox(*this));
+  }
+
+  eBoxtype getBoxType() const noexcept final { return typeOrthorhombic; }
 
  protected:
 };
@@ -37,4 +41,4 @@ class OrthorhombicBox : public BoundaryCondition {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_ORTHORHOMBICBOX_H */
+#endif  // VOTCA_CSG_ORTHORHOMBICBOX_H

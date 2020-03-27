@@ -15,13 +15,13 @@
  *
  */
 
+#include "../../../../include/votca/csg/topology.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <votca/csg/topology.h>
 #include <votca/tools/getline.h>
 #include <votca/tools/tokenizer.h>
 

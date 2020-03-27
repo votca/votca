@@ -15,13 +15,13 @@
  *
  */
 
+#include "../../include/votca/csg/csgapplication.h"
+#include "../../include/votca/csg/version.h"
 #include "csg_stat_imc.h"
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <iostream>
 #include <stdlib.h>
-#include <votca/csg/csgapplication.h>
-#include <votca/csg/version.h>
 
 // using namespace votca::tools;
 using namespace std;
