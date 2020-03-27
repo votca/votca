@@ -5,6 +5,7 @@ For more detailed information about the changes see the history of the
 * enforce periodic boundaries for dihedrals (#500)
 * add warning about dihedrals (#500)
 * fix typo in option in potential_extrapolate (#502)
+* update gmx tab. potential warning (#504)
 
 ## Version 1.6_rc2 (released 10.02.20)
 * fix inheritance bug in cmake files (#466) 
