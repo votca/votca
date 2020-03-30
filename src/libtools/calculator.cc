@@ -39,9 +39,12 @@ void Calculator::UpdateWithDefaults(Property &options, std::string package) {
   Property defaults_all;
   defaults_all.LoadFromXML(xmlFile);
   Property defaults = defaults_all.get("options." + id);
-
-  // if a value not given or a tag not present, provide default values
+  // if a value is given override default values
   AddDefaults(options_id, defaults);
+
+  // options.set("options." + defaults.name(), defaults.value());
+
+  options = defaults;
 
   // output calculator options
   std::string indent("          ");
@@ -50,27 +53,31 @@ void Calculator::UpdateWithDefaults(Property &options, std::string package) {
                                                    level, indent);
   if (Log::verbose()) {
     std::cout << "\n... ... options\n"
-              << IndentedText << options_id << "... ... options\n"
+              << IndentedText << options << "... ... options\n"
               << std::flush;
   }
 }
 
-void Calculator::AddDefaults(Property &p, const Property &defaults) {
+void Calculator::AddDefaults(Property &p, Property &defaults) {
 
-  for (const Property &prop : defaults) {
+  // Go through everything that is defined in user option
+  for (Property &prop : p) {
     std::string name = prop.path() + "." + prop.name();
 
-    Property rootp = *p.begin();
-    if (prop.hasAttribute("default")) {
-      if (rootp.exists(name)) {
-        if (rootp.HasChildren()) {
-          rootp.value() = prop.value();
-        }
-      } else {
-        rootp.add(prop.name(), prop.value());
-      }
+    // std::cout << name << " is given in user options" << std::endl;
+
+    // std::cout << defaults.exists(prop.name()) << std::endl;
+
+    if (prop.HasChildren()) {
+      AddDefaults(prop, defaults.get(prop.name()));
+    } else if (defaults.exists(prop.name())) {
+
+      defaults.set(prop.name(), prop.value());
+
+    } else {
+
+      defaults.add(prop.name(), prop.value());
     }
-    AddDefaults(p, prop);
   }
 }
 

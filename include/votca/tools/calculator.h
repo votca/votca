@@ -90,7 +90,7 @@ class Calculator {
   Index _nThreads;
   bool _maverick;
 
-  void AddDefaults(Property &p, const Property &defaults);
+  void AddDefaults(Property &p, Property &defaults);
 };
 
 }  // namespace tools
