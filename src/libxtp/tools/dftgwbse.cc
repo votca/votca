@@ -30,56 +30,56 @@ namespace xtp {
 
 void DftGwBse::Initialize(tools::Property& options) {
 
+  // Get Default options from VOTCASHARE/xtp/xml/dftgwbse.xml
+  // OLD UpdateWithDefaults(options, "xtp");
+  LoadDefaults("xtp");
+  UpdateWithUserOptions(options);
+
   _do_optimize = false;
-  std::string key = "options." + Identify();
+  _do_external = false;
+  _do_guess = false;
 
-  if (options.exists(key + ".mpsfile")) {
+  // check for MPS file with external multipoles for embedding
+  if (_options.exists(".mpsfile")) {
     _do_external = true;
-    _mpsfile = options.get(key + ".mpsfile").as<string>();
-  } else {
-    _do_external = false;
+    _mpsfile = options.get(".mpsfile").as<string>();
   }
 
-  if (options.exists(key + ".guess")) {
+  // check if guess is requested
+  if (_options.exists(".guess")) {
     _do_guess = true;
-    _guess_file = options.get(key + ".guess").as<string>();
-
-  } else {
-    _do_guess = false;
+    _guess_file = _options.get(".guess").as<string>();
   }
 
-  _archive_file = options.ifExistsReturnElseReturnDefault<string>(
-      key + ".archive", "system.orb");
-  _reporting = options.ifExistsReturnElseReturnDefault<string>(
-      key + ".reporting", "default");
+  _archive_file = _options.get(".archive").as<string>();
+  _reporting =
+      _options.ifExistsReturnElseReturnDefault<string>(".reporting", "default");
 
   // job tasks
   std::vector<string> choices = {"optimize", "energy"};
-  string mode = options.ifExistsAndinListReturnElseThrowRuntimeError<string>(
-      key + ".mode", choices);
+  string mode = _options.ifExistsAndinListReturnElseThrowRuntimeError<string>(
+      ".mode", choices);
   if (mode == "optimize") {
     _do_optimize = true;
   }
 
   // GWBSEENGINE options
-  _gwbseengine_options = options.get(key + ".gwbse_engine");
+  _gwbseengine_options = _options.get(".gwbse_engine");
 
   // options for dft package
-  string _package_xml = options.get(key + ".dftpackage").as<string>();
-  _package_options.LoadFromXML(_package_xml);
+  _package_options = _options.get(".dftpackage");
   _package = _package_options.get("package.name").as<string>();
 
   // MOLECULE properties
-  _xyzfile =
-      options.ifExistsReturnElseThrowRuntimeError<string>(key + ".molecule");
+  _xyzfile = _options.ifExistsReturnElseThrowRuntimeError<string>(".molecule");
 
   // XML OUTPUT
-  _xml_output = options.ifExistsReturnElseReturnDefault<string>(
-      key + ".output", "dftgwbse.out.xml");
+  _xml_output = _options.ifExistsReturnElseReturnDefault<string>(
+      ".output", "dftgwbse.out.xml");
 
   // if optimization is chosen, get options for geometry_optimizer
   if (_do_optimize) {
-    _geoopt_options = options.get(key + ".geometry_optimization");
+    _geoopt_options = _options.get(".geometry_optimization");
   }
 
   // register all QM packages
