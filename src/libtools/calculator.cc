@@ -20,12 +20,9 @@
 namespace votca {
 namespace tools {
 
-void Calculator::UpdateWithDefaults(Property &options, std::string package) {
+void Calculator::LoadDefaults(std::string package) {
 
-  // copy options from the object supplied by the Application
   std::string id = Identify();
-  Property options_id = options.get("options." + id);
-
   // add default values if specified in VOTCASHARE
   char *votca_share = getenv("VOTCASHARE");
   if (votca_share == nullptr) {
@@ -38,11 +35,32 @@ void Calculator::UpdateWithDefaults(Property &options, std::string package) {
 
   Property defaults_all;
   defaults_all.LoadFromXML(xmlFile);
-  Property defaults = defaults_all.get("options." + id);
+  _options = defaults_all.get("options." + id);
+}
+
+void Calculator::UpdateWithUserOptions(Property &options) {
+
+  // copy options from the object supplied by the Application
+  std::string id = Identify();
+  Property options_id = options.get("options." + id);
 
   // if a value is given override default values
-  AddDefaults(options_id, defaults);
-  options = defaults;
+  AddDefaults(options_id, _options);
+  //_options = _default_options;
+}
+
+void Calculator::UpdateWithDefaults(Property &options, std::string package) {
+
+  // copy options from the object supplied by the Application
+  std::string id = Identify();
+  Property options_id = options.get("options." + id);
+
+  // load defaults
+  LoadDefaults(package);
+
+  // if a value is given override default values
+  AddDefaults(options_id, _options);
+  options = _options;
 
   // output calculator options
   std::string indent("          ");
