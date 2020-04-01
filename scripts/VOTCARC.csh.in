@@ -27,9 +27,3 @@ if ( "$@LD_LIBRARY_PATH@" != "" ) setenv @LD_LIBRARY_PATH@ ":${@LD_LIBRARY_PATH@
 setenv @LD_LIBRARY_PATH@ "@CMAKE_INSTALL_FULL_LIBDIR@${@LD_LIBRARY_PATH@}"
 
 setenv VOTCASHARE "@CMAKE_INSTALL_FULL_DATADIR@/votca"
-
-#votca rc files
-foreach rc ( "${VOTCASHARE}"/rc/*rc.csh )
-  [ -r "$rc" ] && source "$rc"
-end
-unset rc
