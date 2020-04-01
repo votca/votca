@@ -50,7 +50,6 @@ class DftGwBse : public QMTool {
   std::string _xml_output;  // .xml output
   std::string _package;
   std::string _archive_file;  // .orb file to parse to
-  std::string _reporting;
   std::string _guess_orbA;
   std::string _guess_orbB;
 

@@ -22,6 +22,7 @@
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/segment.h>
 #include <votca/xtp/staticregion.h>
+#include <votca/tools/filesystem.h>
 
 using namespace std;
 
@@ -30,11 +31,43 @@ namespace xtp {
 
 void DftGwBse::Initialize(tools::Property& options) {
 
-  // Get Default options from VOTCASHARE/xtp/xml/dftgwbse.xml
-  // OLD UpdateWithDefaults(options, "xtp");
+  // get pre-defined default options from VOTCASHARE/xtp/xml/dftgwbse.xml
   LoadDefaults("xtp");
+  // update options with user specified input
   UpdateWithUserOptions(options);
 
+  // molecule coordinates
+  _xyzfile = _options.ifExistsReturnElseThrowRuntimeError<string>(".molecule");
+
+   // job tasks
+  std::vector<string> choices = {"optimize", "energy"};
+  string mode = _options.ifExistsAndinListReturnElseThrowRuntimeError<string>(
+      ".mode", choices);
+
+  // options for dft package
+  _package_options = _options.get(".dftpackage");
+  _package = _package_options.get("package.name").as<string>();
+
+  // set the basis sets and functional in DFT package
+  _package_options.get("package").add("basisset",_options.get("basisset").as<string>());
+  _package_options.get("package").add("auxbasisset",_options.get("auxbasisset").as<string>());
+  _package_options.get("package").add("functional",_options.get("functional").as<string>());
+
+  // GWBSEENGINE options
+  _gwbseengine_options = _options.get(".gwbse_engine");
+
+   // set the basis sets and functional in GWBSE
+  _gwbseengine_options.get("gwbse_options.gwbse").add("basisset",_options.get("basisset").as<string>());
+  _gwbseengine_options.get("gwbse_options.gwbse").add("auxbasisset",_options.get("auxbasisset").as<string>());
+  _gwbseengine_options.get("gwbse_options.gwbse.vxc").add("functional",_options.get("functional").as<string>());
+ 
+  // lets get the archive file name from the xyz file name
+  _archive_file = tools::filesystem::GetFileBase(_xyzfile) + ".orb";
+
+  // XML OUTPUT
+  _xml_output = tools::filesystem::GetFileBase(_xyzfile) + "_summary.xml";
+  
+  // checking for additional requests
   _do_optimize = false;
   _do_external = false;
   _do_guess = false;
@@ -51,34 +84,9 @@ void DftGwBse::Initialize(tools::Property& options) {
     _guess_file = _options.get(".guess").as<string>();
   }
 
-  _archive_file = _options.get(".archive").as<string>();
-  _reporting =
-      _options.ifExistsReturnElseReturnDefault<string>(".reporting", "default");
-
-  // job tasks
-  std::vector<string> choices = {"optimize", "energy"};
-  string mode = _options.ifExistsAndinListReturnElseThrowRuntimeError<string>(
-      ".mode", choices);
+  // if optimization is chosen, get options for geometry_optimizer
   if (mode == "optimize") {
     _do_optimize = true;
-  }
-
-  // GWBSEENGINE options
-  _gwbseengine_options = _options.get(".gwbse_engine");
-
-  // options for dft package
-  _package_options = _options.get(".dftpackage");
-  _package = _package_options.get("package.name").as<string>();
-
-  // MOLECULE properties
-  _xyzfile = _options.ifExistsReturnElseThrowRuntimeError<string>(".molecule");
-
-  // XML OUTPUT
-  _xml_output = _options.ifExistsReturnElseReturnDefault<string>(
-      ".output", "dftgwbse.out.xml");
-
-  // if optimization is chosen, get options for geometry_optimizer
-  if (_do_optimize) {
     _geoopt_options = _options.get(".geometry_optimization");
   }
 
