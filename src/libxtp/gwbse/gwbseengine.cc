@@ -62,8 +62,8 @@ void GWBSEEngine::Initialize(tools::Property& options,
     _gwbse_options = options.get(".gwbse_options");
   }
   // DFT log and MO file names
-  _MO_file = options.get(".mofile").as<std::string>();
-  _dftlog_file = options.get(".dftlog").as<std::string>();
+  _MO_file = _qmpackage->getMOFile();
+  _dftlog_file = _qmpackage->getLogFile();
 
   // Logger redirection
   _redirect_logger = options.ifExistsReturnElseReturnDefault<bool>(
