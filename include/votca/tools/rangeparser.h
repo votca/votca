@@ -18,10 +18,10 @@
 #ifndef VOTCA_TOOLS_RANGEPARSER_H
 #define VOTCA_TOOLS_RANGEPARSER_H
 
+#include "types.h"
 #include <list>
 #include <ostream>
 #include <string>
-#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {

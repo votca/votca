@@ -17,8 +17,8 @@
 
 #include "../../include/votca/tools/thread.h"
 #include "../../include/votca/tools/lexical_cast.h"
+#include "../../include/votca/tools/types.h"
 #include <stdexcept>
-#include <votca/tools/types.h>
 
 using namespace std;
 

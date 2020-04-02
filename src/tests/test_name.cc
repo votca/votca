@@ -18,10 +18,10 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE name_test
+#include "../../include/votca/tools/name.h"
 #include <boost/test/unit_test.hpp>
 #include <exception>
 #include <string>
-#include <votca/tools/name.h>
 
 using namespace std;
 using namespace votca::tools;

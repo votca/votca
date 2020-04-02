@@ -1,5 +1,11 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
+## Version 1.7-dev
+* add support of txt2tqs 3.4 (#208)
+* fix MKL:: target creation (#207)
+* use local includes (#204)
+* add more support for units (#200)
+
 ## Version 1.6 _SuperPelagia_ (released XX.02.20)
 * fix clang-10 warnings (#217)
 * clean up VOTCARC.* (#220)

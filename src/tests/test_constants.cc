@@ -18,8 +18,8 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE constants_test
+#include "../../include/votca/tools/constants.h"
 #include <boost/test/unit_test.hpp>
-#include <votca/tools/constants.h>
 
 using namespace votca::tools;
 using namespace votca::tools::conv;

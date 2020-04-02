@@ -18,11 +18,11 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE random2_test
+#include "../../include/votca/tools/random.h"
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
-#include <votca/tools/random.h>
 
 using namespace std;
 using namespace votca::tools;

@@ -17,11 +17,11 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE table_test
+#include "../../include/votca/tools/table.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/test/unit_test.hpp>
 #include <exception>
 #include <iostream>
-#include <votca/tools/table.h>
 
 using namespace std;
 using namespace votca::tools;

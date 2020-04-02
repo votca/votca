@@ -15,11 +15,11 @@
  *
  */
 
+#include "../../include/votca/tools/rangeparser.h"
+#include "../../include/votca/tools/tokenizer.h"
 #include <functional>
 #include <iostream>
 #include <stdexcept>
-#include <votca/tools/rangeparser.h>
-#include <votca/tools/tokenizer.h>
 
 namespace votca {
 namespace tools {

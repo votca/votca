@@ -18,12 +18,12 @@
 
 #define BOOST_TEST_MODULE thread_test
 #include "../../include/votca/tools/thread.h"
+#include "../../include/votca/tools/types.h"
 #include <boost/test/unit_test.hpp>
 #include <cassert>
 #include <exception>
 #include <memory>
 #include <vector>
-#include <votca/tools/types.h>
 
 using namespace std;
 using namespace votca::tools;
