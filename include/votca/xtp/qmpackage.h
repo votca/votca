@@ -99,6 +99,10 @@ class QMPackage {
 
   virtual Eigen::Matrix3d GetPolarizability() const = 0;
 
+  std::string getLogFile() const { return _log_file_name; };
+
+  std::string getMOFile() const { return _mo_file_name; };
+
  protected:
   struct MinimalMMCharge {
     MinimalMMCharge(const Eigen::Vector3d& pos, double q) : _pos(pos), _q(q){};
