@@ -112,8 +112,7 @@ bool XtpTools::EvaluateOptions() {
     return true;
   }
 
-  CheckRequired("execute", "Nothing to do here: Abort.");
-  CheckRequired("options", "Please provide an xml file with tool options");
+  CheckRequired("execute", "Please provide the name of the tool to execute");
 
   tools::Tokenizer xtools(OptionsMap()["execute"].as<string>(), " ,\n\t");
   std::vector<std::string> calc_string = xtools.ToVector();
@@ -142,8 +141,11 @@ bool XtpTools::EvaluateOptions() {
 
 void XtpTools::Run() {
 
-  string optionsFile = _op_vm["options"].as<string>();
-  _options.LoadFromXML(optionsFile);
+  auto it = _op_vm.find("options");
+  if (it != _op_vm.cend()) {
+    string optionsFile = _op_vm["options"].as<string>();
+    _options.LoadFromXML(optionsFile);
+  }
 
   Index nThreads = OptionsMap()["nthreads"].as<Index>();
   std::string name = ProgramName();
