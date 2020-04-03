@@ -45,13 +45,8 @@ void DftGwBse::Initialize(tools::Property& options) {
       ".mode", choices);
 
   // options for dft package
-  if (_options.exists("dftpackage")) {
-    _package_options = _options.get(".dftpackage");
-    _package = _package_options.get("package.name").as<string>();
-  } else {
-    _package_options.add("package", "");
-    _package = "xtp";
-  }
+  _package_options = _options.get(".dftpackage");
+  _package = _package_options.get("package.name").as<string>();
 
   // set the basis sets and functional in DFT package
   _package_options.get("package").add("basisset",
@@ -62,11 +57,7 @@ void DftGwBse::Initialize(tools::Property& options) {
                                       _options.get("functional").as<string>());
 
   // GWBSEENGINE options
-  if (_options.exists("gwbse_engine")) {
-    _gwbseengine_options = _options.get(".gwbse_engine");
-  } else {
-    _package_options.add("gwbse_engine", "");
-  }
+  _gwbseengine_options = _options.get(".gwbse_engine");
 
   // set the basis sets and functional in GWBSE
   _gwbseengine_options.get("gwbse_options.gwbse")
