@@ -11,8 +11,7 @@
         <dftpackage>
             <package>
                 <name help="Name of the DFT package" default="xtp">xtp</name>
-                <executable help="Executable of the DFT package" default="xtp">xtp</executable>
-            </package>      
+            </package>
         </dftpackage>
 
         <gwbse_engine>
