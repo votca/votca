@@ -46,3 +46,5 @@ CMakeCache.txt
 install_manifest.txt
 
 /build
+
+.vscode

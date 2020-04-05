@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,10 +17,11 @@
  *
  */
 
-#include "votca/xtp/qmpackage.h"
 #include <boost/algorithm/string.hpp>
 #include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/qmpackage.h>
+#include <votca/xtp/qmpackagefactory.h>
 
 namespace votca {
 namespace xtp {
@@ -29,46 +30,28 @@ using std::flush;
 void QMPackage::ParseCommonOptions(tools::Property& options) {
 
   std::string key = "package";
-  std::string name = options.get(key + ".name").as<std::string>();
 
-  if (name != getPackageName()) {
-    throw std::runtime_error("Tried to use " + name +
-                             " package. Wrong options file");
+  _settings.read_property(options, key);
+  char* votca_share = getenv("VOTCASHARE");
+  if (votca_share == nullptr) {
+    std::cout << "Warning: VOTCASHARE environment variable not defined\n";
+  } else {
+    Settings qmpackage_defaults{key};
+    qmpackage_defaults.load_from_xml(this->FindDefaultsFile());
+    _settings.amend(qmpackage_defaults);
+  }
+  _settings.validate();
+
+  _charge = _settings.get<Index>("charge");
+  _spin = _settings.get<Index>("spin");
+  _basisset_name = _settings.get("basisset");
+
+  if (_settings.has_key("cleanup")) {
+    _cleanup = _settings.get("cleanup");
   }
 
   if (getPackageName() != "xtp") {
-    _executable = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".executable");
-    _memory = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".memory");
-    _options = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".options");
-    _scratch_dir = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".scratch");
-  }
-
-  _charge = options.ifExistsReturnElseThrowRuntimeError<Index>(key + ".charge");
-  _spin = options.ifExistsReturnElseThrowRuntimeError<Index>(key + ".spin");
-  _cleanup =
-      options.ifExistsReturnElseReturnDefault(key + ".cleanup", _cleanup);
-  _dpl_spacing = options.ifExistsReturnElseReturnDefault(
-      key + ".dipole_spacing", _dpl_spacing);
-
-  _write_guess = options.ifExistsReturnElseReturnDefault<bool>(
-      key + ".read_guess", _write_guess);
-
-  if (options.exists(key + ".basisset")) {
-    _basisset_name = options.get(key + ".basisset").as<std::string>();
-    _write_basis_set = true;
-  }
-  if (options.exists(key + ".auxbasisset")) {
-    _auxbasisset_name = options.get(key + ".auxbasisset").as<std::string>();
-    _write_auxbasis_set = true;
-  }
-
-  if (options.exists(key + ".ecp")) {
-    _write_pseudopotentials = true;
-    _ecp_name = options.get(key + ".ecp").as<std::string>();
+    _scratch_dir = _settings.get("scratch");
   }
 }
 
@@ -87,7 +70,7 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) const {
   }
 
   if (orbitals.hasMOs()) {
-    dftbasis.ReorderMOs(orbitals.MOs().eigenvectors(), getPackageName(), "xtp");
+    ReorderMOsToXTP(orbitals.MOs().eigenvectors(), dftbasis);
     XTP_LOG(Log::info, *_pLog) << "Reordered MOs" << flush;
   }
 
@@ -95,15 +78,12 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) const {
 }
 
 Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const {
-  BasisSet dftbasisset;
-  dftbasisset.Load(_basisset_name);
   if (!orbitals.hasQMAtoms()) {
     throw std::runtime_error("Orbitals object has no QMAtoms");
   }
-  AOBasis dftbasis;
-  dftbasis.Fill(dftbasisset, orbitals.QMAtoms());
+  AOBasis dftbasis = orbitals.SetupDftBasis();
   Eigen::MatrixXd result = orbitals.MOs().eigenvectors();
-  dftbasis.ReorderMOs(result, "xtp", getPackageName());
+  ReorderMOsToNative(result, dftbasis);
   return result;
 }
 
@@ -112,8 +92,8 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
 
   std::vector<QMPackage::MinimalMMCharge> multipoles_split;
   // Calculate virtual charge positions
-  double a = _dpl_spacing;                // this is in a0
-  double mag_d = aps.getDipole().norm();  // this is in e * a0
+  double a = _settings.get<double>("dipole_spacing");  // this is in a0
+  double mag_d = aps.getDipole().norm();               // this is in e * a0
   const Eigen::Vector3d dir_d = aps.getDipole().normalized();
   const Eigen::Vector3d A = aps.getPos() + 0.5 * a * dir_d;
   const Eigen::Vector3d B = aps.getPos() - 0.5 * a * dir_d;
@@ -128,7 +108,7 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
     const Eigen::Matrix3d components = aps.CalculateCartesianMultipole();
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
     es.computeDirect(components);
-    double a2 = 2 * _dpl_spacing;
+    double a2 = 2 * a;
     for (Index i = 0; i < 3; i++) {
       double q = es.eigenvalues()[i] / (a2 * a2);
       const Eigen::Vector3d vec1 =
@@ -149,6 +129,124 @@ std::vector<std::string> QMPackage::GetLineAndSplit(
   boost::trim(line);
   tools::Tokenizer tok(line, separators);
   return tok.ToVector();
+}
+
+std::string QMPackage::FindDefaultsFile() const {
+  auto xmlFile = std::string(getenv("VOTCASHARE")) +
+                 std::string("/xtp/packages/qmpackage_defaults.xml");
+
+  return xmlFile;
+}
+
+void QMPackage::ReorderMOs(Eigen::MatrixXd& v,
+                           const std::vector<Index>& order) const {
+  // Sanity check
+  if (v.rows() != Index(order.size())) {
+    throw std::runtime_error("Size mismatch in ReorderMOs " +
+                             std::to_string(v.rows()) + ":" +
+                             std::to_string(order.size()));
+  }
+  // actual swapping of coefficients
+  for (Index s = 1, d; s < (Index)order.size(); ++s) {
+    for (d = order[s]; d < s; d = order[d]) {
+      ;
+    }
+    if (d == s) {
+      while (d = order[d], d != s) {
+        v.row(s).swap(v.row(d));
+      }
+    }
+  }
+}
+
+void QMPackage::ReorderMOsToXTP(Eigen::MatrixXd& v,
+                                const AOBasis& basis) const {
+
+  std::vector<Index> multiplier = getMultiplierVector(basis);
+
+  std::vector<Index> order = getReorderVector(basis);
+  ReorderMOs(v, order);
+  MultiplyMOs(v, multiplier);
+  return;
+}
+
+void QMPackage::ReorderMOsToNative(Eigen::MatrixXd& v,
+                                   const AOBasis& basis) const {
+
+  std::vector<Index> multiplier = getMultiplierVector(basis);
+  MultiplyMOs(v, multiplier);
+  std::vector<Index> order = getReorderVector(basis);
+  std::vector<Index> reverseorder = invertOrder(order);
+  ReorderMOs(v, reverseorder);
+  return;
+}
+
+void QMPackage::MultiplyMOs(Eigen::MatrixXd& v,
+                            const std::vector<Index>& multiplier) const {
+  // Sanity check
+  if (v.cols() != Index(multiplier.size())) {
+    std::cerr << "Size mismatch in MultiplyMOs" << v.cols() << ":"
+              << multiplier.size() << std::endl;
+    throw std::runtime_error("Abort!");
+  }
+  for (Index i = 0; i < v.cols(); i++) {
+    v.row(i) = multiplier[i] * v.row(i);
+  }
+  return;
+}
+
+std::vector<Index> QMPackage::getMultiplierVector(const AOBasis& basis) const {
+  std::vector<Index> multiplier;
+  multiplier.reserve(basis.AOBasisSize());
+  // go through basisset
+  for (const AOShell& shell : basis) {
+    std::vector<Index> shellmultiplier = getMultiplierShell(shell);
+    multiplier.insert(multiplier.end(), shellmultiplier.begin(),
+                      shellmultiplier.end());
+  }
+  return multiplier;
+}
+
+std::vector<Index> QMPackage::getMultiplierShell(const AOShell& shell) const {
+  // multipliers were all found using code, hard to establish
+  std::vector<Index> multiplier;
+  for (Index i = 0; i < shell.getNumFunc(); i++) {
+    multiplier.push_back(ShellMulitplier()[shell.getOffset() + i]);
+  }
+  return multiplier;
+}
+
+std::vector<Index> QMPackage::getReorderVector(const AOBasis& basis) const {
+  std::vector<Index> reorder;
+  reorder.reserve(basis.AOBasisSize());
+  // go through basisset
+  for (const AOShell& shell : basis) {
+    std::vector<Index> shellreorder = getReorderShell(shell);
+    std::for_each(shellreorder.begin(), shellreorder.end(),
+                  [&reorder](Index& i) { i += Index(reorder.size()); });
+    reorder.insert(reorder.end(), shellreorder.begin(), shellreorder.end());
+  }
+  return reorder;
+}
+
+std::vector<Index> QMPackage::getReorderShell(const AOShell& shell) const {
+  std::vector<Index> reorder;
+  for (Index i = 0; i < shell.getNumFunc(); i++) {
+    // Shellreorder tells how much a certain funktion has to be shifted with
+    // reference to votca ordering
+    reorder.push_back(ShellReorder()[shell.getOffset() + i] + i);
+  }
+  return reorder;
+}
+
+std::vector<Index> QMPackage::invertOrder(
+    const std::vector<Index>& order) const {
+
+  std::vector<Index> neworder = std::vector<Index>(order.size());
+  for (Index i = 0; i < Index(order.size()); i++) {
+    neworder[order[i]] = Index(i);
+  }
+  return neworder;
 }
 
 }  // namespace xtp

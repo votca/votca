@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -106,8 +106,8 @@ void MolPol::Initialize(tools::Property& options) {
       key + ".iterations", _max_iter);
 }
 
-Eigen::Vector3d MolPol::Polarize(const PolarSegment& input,
-                                 const Eigen::Vector3d& ext_field) const {
+Eigen::Vector3d MolPol::CalcInducedDipole(
+    const PolarSegment& input, const Eigen::Vector3d& ext_field) const {
   Logger log;
   log.setMultithreading(false);
   log.setCommonPreface("\n ...");
@@ -118,17 +118,19 @@ Eigen::Vector3d MolPol::Polarize(const PolarSegment& input,
   pol.Initialize(_polar_options);
   pol.push_back(input);
 
-  std::vector<std::unique_ptr<Region>> empty;
   PolarSegment& workmol = pol[0];
   for (PolarSite& site : workmol) {
     site.V() = ext_field;
   }
+  std::vector<std::unique_ptr<Region>> empty;  // pol interacts with nobody else
   pol.Evaluate(empty);
   Eigen::Vector3d induced_dipole = Eigen::Vector3d::Zero();
   for (const PolarSite& site : workmol) {
     induced_dipole += site.Induced_Dipole();
   }
-  std::cout << log;
+  if (Log::current_level > 0) {
+    std::cout << log;
+  }
   return induced_dipole;
 }
 
@@ -139,17 +141,17 @@ Eigen::Matrix3d MolPol::CalcClassicalPol(const PolarSegment& input) const {
   Eigen::Matrix3d polarisation = Eigen::Matrix3d::Zero();
   Eigen::Vector3d ext_field = fieldstrength * Eigen::Vector3d::UnitX();
   // central differences scheme
-  Eigen::Vector3d xplus = Polarize(input, ext_field);
-  Eigen::Vector3d xminus = Polarize(input, -ext_field);
-  polarisation.col(0) = xplus - xminus;
+  Eigen::Vector3d dxplus = CalcInducedDipole(input, ext_field);
+  Eigen::Vector3d dxminus = CalcInducedDipole(input, -ext_field);
+  polarisation.col(0) = dxplus - dxminus;
   ext_field = fieldstrength * Eigen::Vector3d::UnitY();
-  Eigen::Vector3d yplus = Polarize(input, ext_field);
-  Eigen::Vector3d yminus = Polarize(input, -ext_field);
-  polarisation.col(1) = yplus - yminus;
+  Eigen::Vector3d dyplus = CalcInducedDipole(input, ext_field);
+  Eigen::Vector3d dyminus = CalcInducedDipole(input, -ext_field);
+  polarisation.col(1) = dyplus - dyminus;
   ext_field = fieldstrength * Eigen::Vector3d::UnitZ();
-  Eigen::Vector3d zplus = Polarize(input, ext_field);
-  Eigen::Vector3d zminus = Polarize(input, -ext_field);
-  polarisation.col(2) = zplus - zminus;
+  Eigen::Vector3d dzplus = CalcInducedDipole(input, ext_field);
+  Eigen::Vector3d dzminus = CalcInducedDipole(input, -ext_field);
+  polarisation.col(2) = dzplus - dzminus;
 
   return -polarisation / (2 * fieldstrength);
 }
@@ -171,7 +173,6 @@ void MolPol::PrintPolarisation(const Eigen::Matrix3d& result) const {
 bool MolPol::Evaluate() {
   OPENMP::setMaxThreads(_nThreads);
   PolarSegment polar = _input;
-
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(_polarisation_target, Eigen::EigenvaluesOnly);
   const double pol_volume_target = std::pow(es.eigenvalues().prod(), 1.0 / 3.0);
@@ -186,6 +187,11 @@ bool MolPol::Evaluate() {
     std::cout << "\nIteration " << iter + 1 << " of " << _max_iter
               << " target:" << pol_volume_target
               << " current:" << pol_volume_iter << std::endl;
+
+    for (Index i = 0; i < polar.size(); i++) {
+      Eigen::Matrix3d local_pol = polar[i].getPolarisation();
+      polar[i].setPolarisation(local_pol * (1 + scale * _weights[i]));
+    }
 
     if (std::abs(scale) < _tolerance_pol) {
       std::cout << std::endl
@@ -203,12 +209,6 @@ bool MolPol::Evaluate() {
                 << "Check your input mps-file, target polarizability <target> "
                 << std::flush;
       PrintPolarisation(pol);
-    }
-
-    for (Index i = 0; i < polar.size(); i++) {
-      PolarSite& site = polar[i];
-      Eigen::Matrix3d local_pol = site.getPolarisation();
-      site.setPolarisation(local_pol * std::pow(1 + scale * _weights[i], 2));
     }
   }
   return true;

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_XTPDFT_H
-#define __VOTCA_XTP_XTPDFT_H
+#ifndef VOTCA_XTP_XTPDFT_H
+#define VOTCA_XTP_XTPDFT_H
 
 #include <string>
 #include <votca/xtp/dftengine.h>
@@ -38,34 +38,57 @@ namespace xtp {
 
 class XTPDFT : public QMPackage {
  public:
-  std::string getPackageName() const override { return "xtp"; }
+  std::string getPackageName() const final { return "xtp"; }
 
-  void Initialize(tools::Property& options) override;
+  void Initialize(tools::Property& options) final;
 
-  bool WriteInputFile(const Orbitals& orbitals) override;
+  bool WriteInputFile(const Orbitals& orbitals) final;
 
-  bool Run() override;
+  bool Run() final;
 
-  void CleanUp() override;
+  void CleanUp() final;
 
   bool CheckLogFile();
 
-  bool ParseLogFile(Orbitals& orbitals) override;
+  bool ParseLogFile(Orbitals& orbitals) final;
 
-  bool ParseMOsFile(Orbitals& orbitals) override;
+  bool ParseMOsFile(Orbitals& orbitals) final;
 
-  StaticSegment GetCharges() const override {
+  StaticSegment GetCharges() const final {
     throw std::runtime_error(
         "If you want partial charges just run the 'partialcharges' calculator");
   }
 
-  Eigen::Matrix3d GetPolarizability() const override {
+  Eigen::Matrix3d GetPolarizability() const final {
     throw std::runtime_error(
         "GetPolarizability() is not implemented for xtpdft");
   }
 
+ protected:
+  const std::array<Index, 25>& ShellMulitplier() const final {
+    return _multipliers;
+  }
+  const std::array<Index, 25>& ShellReorder() const final { return _reorder; }
+
  private:
-  void WriteChargeOption() override { return; }
+  // clang-format off
+  std::array<Index,25> _multipliers={
+            1, //s
+            1,1,1, //p
+            1,1,1,1,1, //d
+            1,1,1,1,1,1,1, //f 
+            1,1,1,1,1,1,1,1,1 //g
+            };
+  std::array<Index,25> _reorder={
+            0, //s
+            0,0,0, //p 
+            0,0,0,0,0, //d 
+            0,0,0,0,0,0,0, //f
+            0,0,0,0,0,0,0,0,0 //g
+            };
+  // clang-format on
+
+  void WriteChargeOption() final { return; }
   tools::Property _xtpdft_options;
 
   Orbitals _orbitals;
@@ -74,4 +97,4 @@ class XTPDFT : public QMPackage {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_XTP_XTPDFT_H */
+#endif  // VOTCA_XTP_XTPDFT_H

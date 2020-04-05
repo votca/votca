@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,21 +18,23 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_QM_PACKAGE_H
-#define VOTCA_XTP_QM_PACKAGE_H
+#ifndef VOTCA_XTP_QMPACKAGE_H
+#define VOTCA_XTP_QMPACKAGE_H
 
 #include "votca/xtp/aobasis.h"
 #include <votca/tools/property.h>
 #include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/logger.h>
+#include <votca/xtp/settings.h>
 #include <votca/xtp/staticsite.h>
+
 namespace votca {
 namespace xtp {
 
 class Orbitals;
 
 // ========================================================================== //
-// QMPackage base class for wrappers of ORCA, GAUSSIAN, NWCHEM etc //
+// QMPackage base class for wrappers of ORCA
 // ========================================================================== //
 
 class QMPackage {
@@ -67,8 +69,7 @@ class QMPackage {
             std::unique_ptr<StaticSite>(new Sitetype(site)));
       }
     }
-    if (!_write_charges) {
-      _write_charges = true;
+    if (_settings.get<bool>("write_charges")) {
       WriteChargeOption();
     }
   }
@@ -92,7 +93,7 @@ class QMPackage {
     _spin = std::abs(charge) + 1;
   }
 
-  bool GuessRequested() const { return _write_guess; }
+  bool GuessRequested() const { return _settings.get<bool>("read_guess"); }
 
   virtual StaticSegment GetCharges() const = 0;
 
@@ -106,6 +107,7 @@ class QMPackage {
   };
 
   void ParseCommonOptions(tools::Property& options);
+  std::string FindDefaultsFile() const;
 
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
@@ -116,43 +118,53 @@ class QMPackage {
   std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,
                                            const std::string separators) const;
 
-  Index _charge;
-  Index _spin;  // 2S+1
-  std::string _memory;
-  std::string _options;
+  // each qmpackage has its own ordering of the individual functions in each
+  // shell
+  // i.e. VOTCA uses z,y,x e.g. Y1,0 Y1,-1 Y1,1 for the p shell
+  // d3z2-r2 dyz dxz dxy dx2-y2 e.g. Y2,0 Y2,-1 Y2,1 Y2,-2 for the d shell and
+  // so forth. ORCA uses z,x,y for the p shell
+  // these methods reorder the MOs to that format using the
+  // ShellReorder() and ShellMulitplier() which specify the order for each
+  // QMPackage. Some codes also use different normalisation conditions which
+  // lead to other signs for some of the entries, which can be changed via the
+  // multipliers.
+  void ReorderMOsToXTP(Eigen::MatrixXd& v, const AOBasis& basis) const;
+  void ReorderMOsToNative(Eigen::MatrixXd& v, const AOBasis& basis) const;
 
-  std::string _executable;
+  void ReorderMOs(Eigen::MatrixXd& v, const std::vector<Index>& order) const;
+  void MultiplyMOs(Eigen::MatrixXd& v,
+                   const std::vector<Index>& multiplier) const;
+
+  std::vector<Index> getMultiplierVector(const AOBasis& basis) const;
+  std::vector<Index> getMultiplierShell(const AOShell& shell) const;
+
+  std::vector<Index> getReorderVector(const AOBasis& basis) const;
+  std::vector<Index> getReorderShell(const AOShell& shell) const;
+  std::vector<Index> invertOrder(const std::vector<Index>& order) const;
+
+  virtual const std::array<Index, 25>& ShellMulitplier() const = 0;
+  virtual const std::array<Index, 25>& ShellReorder() const = 0;
+
+  Settings _settings{"package"};
+
+  Index _charge;
+  Index _spin;  // 2S+1mem
+  std::string _basisset_name;
+  std::string _cleanup = "";
   std::string _input_file_name;
   std::string _log_file_name;
   std::string _mo_file_name;
-
+  std::string _options = "";
   std::string _run_dir;
-
-  std::string _basisset_name;
-  std::string _auxbasisset_name;
-  std::string _ecp_name;
-
-  std::string _shell_file_name;
   std::string _scratch_dir;
-  bool _is_optimization = false;
-
-  std::string _cleanup = "";
-
-  bool _get_charges = false;
-
-  bool _write_guess = false;
-  bool _write_charges = false;
-  bool _write_basis_set = false;
-  bool _write_auxbasis_set = false;
-  bool _write_pseudopotentials = false;
+  std::string _shell_file_name;
 
   Logger* _pLog;
 
   std::vector<std::unique_ptr<StaticSite> > _externalsites;
-  double _dpl_spacing = 0.1;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_QM_PACKAGE_H
+#endif  // VOTCA_XTP_QMPACKAGE_H

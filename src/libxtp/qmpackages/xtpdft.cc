@@ -49,11 +49,10 @@ bool XTPDFT::Run() {
   xtpdft.Initialize(_xtpdft_options);
   xtpdft.setLogger(_pLog);
 
-  if (_write_charges) {
+  if (_settings.get<bool>("write_charges")) {
     xtpdft.setExternalcharges(&_externalsites);
   }
   bool success = xtpdft.Evaluate(_orbitals);
-  _basisset_name = xtpdft.getDFTBasisName();
   std::string file_name = _run_dir + "/" + _log_file_name;
   XTP_LOG(Log::error, *_pLog)
       << "Writing result to " << _log_file_name << flush;

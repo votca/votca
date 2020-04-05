@@ -39,7 +39,7 @@ namespace xtp {
  *
  * Evaluates DFT & GWBSE-based coupling elements for all conjugated
  * segments from the neighbor list. Requires molecular orbitals of two monomers
- * and a dimer in GAUSSIAN, NWChem, or ORCAformat.
+ * and a dimer in ORCA format.
  *
  * Callname: iqm
  */
