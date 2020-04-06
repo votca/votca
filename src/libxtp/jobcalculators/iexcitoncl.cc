@@ -189,7 +189,7 @@ void IEXCITON::WriteJobFile(const Topology& top) {
           (boost::format("MP_FILES/%s_%s.mps") % name1 % state1.ToString())
               .str();
       string mps_file2 =
-          (boost::format("MP_FILES/%s_%s.mps") % name1 % state2.ToString())
+          (boost::format("MP_FILES/%s_%s.mps") % name2 % state2.ToString())
               .str();
 
       Property Input;
