@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,7 +19,6 @@
 
 #include "gencube.h"
 #include <boost/format.hpp>
-#include <boost/progress.hpp>
 #include <stdio.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
@@ -32,33 +31,36 @@ namespace xtp {
 
 using namespace std;
 
-void GenCube::Initialize(tools::Property& options) {
+void GenCube::Initialize(tools::Property& opt) {
 
-  string key = "options." + Identify();
+  // get pre-defined default options from VOTCASHARE/xtp/xml/apdft.xml
+  LoadDefaults("xtp");
+  // update options with user specified input
+  UpdateWithUserOptions(opt);
+
   _orbfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".input");
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
   _output_file =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".output");
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
 
   // padding
-  _padding =
-      options.ifExistsReturnElseThrowRuntimeError<double>(key + ".padding");
+  _padding = _options.ifExistsReturnElseThrowRuntimeError<double>(".padding");
 
   // steps
-  _steps.x() = options.get(key + ".xsteps").as<Index>();
-  _steps.y() = options.get(key + ".ysteps").as<Index>();
-  _steps.z() = options.get(key + ".zsteps").as<Index>();
+  _steps.y() = _options.get(".ysteps").as<Index>();
+  _steps.x() = _options.get(".xsteps").as<Index>();
+  _steps.z() = _options.get(".zsteps").as<Index>();
 
   std::string statestring =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".state");
   _state.FromString(statestring);
   _dostateonly =
-      options.ifExistsReturnElseReturnDefault<bool>(key + ".diff2gs", false);
+      _options.ifExistsReturnElseReturnDefault<bool>(".diff2gs", false);
 
-  _mode = options.get(key + ".mode").as<string>();
+  _mode = _options.get(".mode").as<std::string>();
   if (_mode == "subtract") {
-    _infile1 = options.get(key + ".infile1").as<string>();
-    _infile2 = options.get(key + ".infile2").as<string>();
+    _infile1 = _options.get(".infile1").as<std::string>();
+    _infile2 = _options.get(".infile2").as<std::string>();
   }
 }
 
