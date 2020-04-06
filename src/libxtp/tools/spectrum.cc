@@ -27,7 +27,7 @@ namespace xtp {
 
 void Spectrum::Initialize(tools::Property& opt) {
 
-  // get pre-defined default options from VOTCASHARE/xtp/xml/apdft.xml
+  // get pre-defined default options from VOTCASHARE/xtp/xml/spectrum.xml
   LoadDefaults("xtp");
   // update options with user specified input
   UpdateWithUserOptions(opt);

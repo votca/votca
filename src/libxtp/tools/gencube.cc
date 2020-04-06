@@ -33,7 +33,7 @@ using namespace std;
 
 void GenCube::Initialize(tools::Property& opt) {
 
-  // get pre-defined default options from VOTCASHARE/xtp/xml/apdft.xml
+  // get pre-defined default options from VOTCASHARE/xtp/xml/gencube.xml
   LoadDefaults("xtp");
   // update options with user specified input
   UpdateWithUserOptions(opt);

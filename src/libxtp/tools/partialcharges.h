@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -47,14 +47,18 @@ class Partialcharges : public QMTool {
   Logger _log;
 };
 
-void Partialcharges::Initialize(tools::Property& options) {
+void Partialcharges::Initialize(tools::Property& opt) {
 
-  std::string key = "options." + Identify();
-  _orbfile = options.get(key + ".input").as<std::string>();
-  _output_file = options.get(key + ".output").as<std::string>();
-  std::string _esp2multipole_xml =
-      options.get(key + ".esp_options").as<std::string>();
-  _esp_options.LoadFromXML(_esp2multipole_xml);
+  // get pre-defined default options from VOTCASHARE/xtp/xml/partialcharges.xml
+  LoadDefaults("xtp");
+  // update options with user specified input
+  UpdateWithUserOptions(opt);
+
+  _orbfile =
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
+  _output_file =
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
+  _esp_options = _options.get(".esp_options");
 }
 
 bool Partialcharges::Evaluate() {
