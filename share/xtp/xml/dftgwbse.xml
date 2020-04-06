@@ -2,7 +2,7 @@
     <!-- xtp_tools -e dftgwbse options.xml -->
     <dftgwbse help="Electronic Excitations using GW-BSE">
 
-        <molecule help="Input geometry .xyz" default="system.xyz">system.xyz</molecule>
+        <molecule help="Input geometry .xyz" default="votca.xyz">votca.xyz</molecule>
         <mode help="Calculator mode: energy or optimize" default="energy">energy</mode>
         <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
         <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
@@ -11,8 +11,7 @@
         <dftpackage>
             <package>
                 <name help="Name of the DFT package" default="xtp">xtp</name>
-                <executable help="Executable of the DFT package" default="xtp">xtp</executable>
-            </package>      
+            </package>
         </dftpackage>
 
         <gwbse_engine>
