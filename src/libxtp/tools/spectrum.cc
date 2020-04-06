@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -25,35 +25,32 @@
 namespace votca {
 namespace xtp {
 
-void Spectrum::Initialize(tools::Property& options) {
+void Spectrum::Initialize(tools::Property& opt) {
 
-  std::string key = "options." + Identify();
+  // get pre-defined default options from VOTCASHARE/xtp/xml/apdft.xml
+  LoadDefaults("xtp");
+  // update options with user specified input
+  UpdateWithUserOptions(opt);
 
   // orbitals file or pure DFT output
-  _orbfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".orbitals");
-  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".output", _output_file);
-  _n_pt =
-      options.ifExistsReturnElseReturnDefault<Index>(key + ".points", _n_pt);
-  _lower = options.get(key + ".lower").as<double>();
-  _upper = options.ifExistsReturnElseThrowRuntimeError<double>(key + ".upper");
-  _fwhm = options.ifExistsReturnElseThrowRuntimeError<double>(key + ".fwhm");
+  _orbfile =
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".orbitals");
+  _output_file =
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
+  _n_pt = _options.ifExistsReturnElseThrowRuntimeError<Index>(".points");
+  _lower = _options.get(".lower").as<double>();
+  _upper = _options.ifExistsReturnElseThrowRuntimeError<double>(".upper");
+  _fwhm = _options.ifExistsReturnElseThrowRuntimeError<double>(".fwhm");
 
-  if (options.exists(key + ".type")) {
+  if (_options.exists(".type")) {
     std::vector<std::string> choices = {"energy", "wavelength"};
     _spectrum_type =
-        options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-            key + ".type", choices);
+        _options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+            ".type", choices);
   }
-  _minexc =
-      options.ifExistsReturnElseReturnDefault<Index>(key + ".minexc", _minexc);
-  _maxexc =
-      options.ifExistsReturnElseReturnDefault<Index>(key + ".maxexc", _maxexc);
-  _shiftby =
-      options.ifExistsReturnElseReturnDefault<double>(key + ".shift", _shiftby);
-
-  return;
+  _minexc = _options.ifExistsReturnElseThrowRuntimeError<Index>(".minexc");
+  _maxexc = _options.ifExistsReturnElseThrowRuntimeError<Index>(".maxexc");
+  _shiftby = _options.ifExistsReturnElseThrowRuntimeError<double>(".shift");
 }
 
 bool Spectrum::Evaluate() {

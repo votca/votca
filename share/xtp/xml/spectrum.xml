@@ -1,10 +1,7 @@
 <options>
-
-<!-- xtp_tools -e coupling options.xml -->
 <spectrum help="Convolutes singlet spectrum with gaussian or lorentzian function">
-
-    <orbitals help="orbitals file to read from">system.orb</orbitals>
-    <output help="outputfile file">spectrum.dat</output>
+    <orbitals help="orbitals file to read from">votca.orb</orbitals>
+    <output help="outputfile file">votca_spectrum.dat</output>
     <fwhm help="peak width in eV">0.2</fwhm>
     <lower help="lower bound of spectrum in eV, default 0 eV">0.0</lower>
     <upper  help="upper bound of spectrum in eV">3.5</upper>
@@ -14,7 +11,6 @@
     <maxexc help="highest exciton to include in spectrum, default maximium">10000</maxexc>
     <shift help="shift spectrum by amount of eV">0.0</shift>
 </spectrum>
-
 </options>
 
 
