@@ -145,7 +145,7 @@ fi
 
 do_external convert_potential tab --header "${sim_prog}" --type "${bondtype}" "${tshift}" "${deriv}" "${output}"
 if [[ $clean ]]; then
-  rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}"
+  rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}" "${deriv}"
   [[ ${input} = ${scale} ]] || rm -f "${scale}"
   [[ ${input} = ${yscale} ]] || rm -f "${yscale}"
 fi
