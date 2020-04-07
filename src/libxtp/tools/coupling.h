@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -53,24 +53,26 @@ class Coupling : public QMTool {
   Logger _log;
 };
 
-void Coupling::Initialize(tools::Property &options) {
-  std::string key = "options." + Identify();
+void Coupling::Initialize(tools::Property &user_options) {
 
-  _MOsA = options.get(key + ".moleculeA.orbitals").as<std::string>();
-  _MOsB = options.get(key + ".moleculeB.orbitals").as<std::string>();
-  _MOsAB = options.get(key + ".dimerAB.orbitals").as<std::string>();
+  // get pre-defined default options from VOTCASHARE/xtp/xml/coupling.xml
+  LoadDefaults("xtp");
+  // update options with user specified input
+  UpdateWithUserOptions(user_options);
 
-  _logA = options.get(key + ".moleculeA.log").as<std::string>();
-  _logB = options.get(key + ".moleculeB.log").as<std::string>();
-  _logAB = options.get(key + ".dimerAB.log").as<std::string>();
+  _MOsA = _options.get(".moleculeA.orbitals").as<std::string>();
+  _MOsB = _options.get(".moleculeB.orbitals").as<std::string>();
+  _MOsAB = _options.get(".dimerAB.orbitals").as<std::string>();
 
-  _output_file = options.get(key + ".output").as<std::string>();
+  _logA = _options.get(".moleculeA.log").as<std::string>();
+  _logB = _options.get(".moleculeB.log").as<std::string>();
+  _logAB = _options.get(".dimerAB.log").as<std::string>();
 
-  std::string _package_xml = options.get(key + ".dftpackage").as<std::string>();
-  _package_options.LoadFromXML(_package_xml);
+  _output_file = _options.get(".output").as<std::string>();
+
+  _package_options = _options.get(".dftpackage");
   _package = _package_options.get("package.name").as<std::string>();
-
-  _dftcoupling_options = options.get(key + ".dftcoupling_options");
+  _dftcoupling_options = _options.get(".dftcoupling_options");
 
   QMPackageFactory::RegisterAll();
 }
