@@ -76,6 +76,7 @@ output="$2"
 echo "Convert $input to $output"
 
 sim_prog="$(csg_get_property cg.inverse.program)"
+[[ ${sim_prog} = "lammps" ]] || die "${0##*/}: cg.inverse.program was not set to 'lammps', but '${sim_prog}' (mind the default)"
 
 bondtype="$(csg_get_interaction_property bondtype)"
 
