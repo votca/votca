@@ -45,12 +45,12 @@ class Log2Mps : public QMTool {
   std::string _mpsfile;
 };
 
-void Log2Mps::Initialize(tools::Property &opt) {
+void Log2Mps::Initialize(tools::Property &user_options) {
 
   // get pre-defined default options from VOTCASHARE/xtp/xml/log2mps.xml
   LoadDefaults("xtp");
   // update options with user specified input
-  UpdateWithUserOptions(opt);
+  UpdateWithUserOptions(user_options);
 
   QMPackageFactory::RegisterAll();
 

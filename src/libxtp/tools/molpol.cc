@@ -25,12 +25,12 @@
 namespace votca {
 namespace xtp {
 
-void MolPol::Initialize(tools::Property& opt) {
+void MolPol::Initialize(tools::Property& user_options) {
 
   // get pre-defined default options from VOTCASHARE/xtp/xml/molpol.xml
   LoadDefaults("xtp");
   // update options with user specified input
-  UpdateWithUserOptions(opt);
+  UpdateWithUserOptions(user_options);
 
   std::string mps_input =
       _options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsinput");

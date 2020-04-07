@@ -23,12 +23,12 @@
 namespace votca {
 namespace xtp {
 
-void APDFT::Initialize(tools::Property &opt) {
+void APDFT::Initialize(tools::Property &user_options) {
 
   // get pre-defined default options from VOTCASHARE/xtp/xml/apdft.xml
   LoadDefaults("xtp");
   // update options with user specified input
-  UpdateWithUserOptions(opt);
+  UpdateWithUserOptions(user_options);
 
   _grid_accuracy =
       _options.ifExistsReturnElseThrowRuntimeError<std::string>(".grid");

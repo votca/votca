@@ -29,12 +29,12 @@ using namespace std;
 namespace votca {
 namespace xtp {
 
-void DftGwBse::Initialize(tools::Property& options) {
+void DftGwBse::Initialize(tools::Property& user_options) {
 
   // get pre-defined default options from VOTCASHARE/xtp/xml/dftgwbse.xml
   LoadDefaults("xtp");
   // update options with user specified input
-  UpdateWithUserOptions(options);
+  UpdateWithUserOptions(user_options);
 
   // molecule coordinates
   _xyzfile = _options.ifExistsReturnElseThrowRuntimeError<string>(".molecule");
@@ -81,7 +81,7 @@ void DftGwBse::Initialize(tools::Property& options) {
   // check for MPS file with external multipoles for embedding
   if (_options.exists(".mpsfile")) {
     _do_external = true;
-    _mpsfile = options.get(".mpsfile").as<string>();
+    _mpsfile = _options.get(".mpsfile").as<string>();
   }
 
   // check if guess is requested

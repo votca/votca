@@ -47,12 +47,12 @@ class Partialcharges : public QMTool {
   Logger _log;
 };
 
-void Partialcharges::Initialize(tools::Property& opt) {
+void Partialcharges::Initialize(tools::Property& user_options) {
 
   // get pre-defined default options from VOTCASHARE/xtp/xml/partialcharges.xml
   LoadDefaults("xtp");
   // update options with user specified input
-  UpdateWithUserOptions(opt);
+  UpdateWithUserOptions(user_options);
 
   _orbfile =
       _options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
