@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -146,6 +146,6 @@ fi
 do_external convert_potential tab --header "${sim_prog}" --type "${bondtype}" "${tshift}" "${deriv}" "${output}"
 if [[ $clean ]]; then
   rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}"
-  [[ ${input} != ${scale} ]] && rm -f "${scale}"
-  [[ ${input} != ${yscale} ]] && rm -f "${yscale}"
+  [[ ${input} = ${scale} ]] || rm -f "${scale}"
+  [[ ${input} = ${yscale} ]] || rm -f "${yscale}"
 fi
