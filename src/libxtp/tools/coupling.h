@@ -21,8 +21,6 @@
 #ifndef _VOTCA_XTP_TOOLS_COUPLINGH_H
 #define _VOTCA_XTP_TOOLS_COUPLINGH_H
 
-#include <stdio.h>
-
 #include <votca/xtp/dftcoupling.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmpackagefactory.h>

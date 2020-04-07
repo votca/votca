@@ -8,7 +8,7 @@
 
         <output help="Output file" default="votca_coupling.xml">votca_coupling.xml</output>
 
-           <dftcoupling_options>
+        <dftcoupling_options>
             <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0">0.0</degeneracy>
             <levA help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule A" default="1">1</levA>
             <levB help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule B" default="1">1</levB>
