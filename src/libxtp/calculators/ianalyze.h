@@ -39,10 +39,10 @@ class IAnalyze : public QMCalculator {
  private:
   double _resolution_logJ2;
   std::vector<QMStateType> _states;
-  double _resolution_space;
+  double _resolution_spatial;
   std::vector<QMPair::PairType> _pairtype;
-  bool _do_pairtype;
-  bool _do_IRdependence;
+  bool _do_pairtype = false;
+  bool _do_IRdependence = false;
 };
 
 }  // namespace xtp

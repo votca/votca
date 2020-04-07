@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,33 +22,28 @@
 #include <votca/tools/histogramnew.h>
 #include <votca/xtp/topology.h>
 
-using namespace std;
-
 namespace votca {
 namespace xtp {
 
-void IAnalyze::Initialize(tools::Property &opt) {
-  std::cout << std::endl;
-  _do_pairtype = false;
-  _do_IRdependence = false;
-  std::string key = "options." + Identify();
-  if (opt.exists(key + ".states")) {
-    std::string statestrings = opt.get(key + ".states").as<std::string>();
-    tools::Tokenizer tok(statestrings, ",\n\t ");
-    std::vector<std::string> string_vec;
-    tok.ToVector(string_vec);
-    for (std::string &state : string_vec) {
-      _states.push_back(QMStateType(state));
-    }
-  } else {
-    _states.push_back(QMStateType(QMStateType::Electron));
-    _states.push_back(QMStateType(QMStateType::Hole));
+void IAnalyze::Initialize(tools::Property &user_options) {
+
+  // get pre-defined default options from VOTCASHARE/xtp/xml/eanalyze.xml
+  LoadDefaults("xtp");
+  // update options with user specified input
+  UpdateWithUserOptions(user_options);
+
+  std::string statestrings = _options.get(".states").as<std::string>();
+  tools::Tokenizer tok(statestrings, ",\n\t ");
+  std::vector<std::string> string_vec;
+  tok.ToVector(string_vec);
+  for (std::string &state : string_vec) {
+    _states.push_back(QMStateType(state));
   }
 
-  _resolution_logJ2 = opt.get(key + ".resolution_logJ2").as<double>();
-  if (opt.exists(key + ".pairtype")) {
+  _resolution_logJ2 = _options.get(".resolution_logJ2").as<double>();
+  if (_options.exists(".pairtype")) {
     _do_pairtype = true;
-    std::string _store_stdstring = opt.get(key + ".pairtype").as<std::string>();
+    std::string _store_stdstring = _options.get(".pairtype").as<std::string>();
     if (_store_stdstring.find("Hopping") != std::string::npos) {
       _pairtype.push_back(QMPair::Hopping);
     }
@@ -56,14 +51,13 @@ void IAnalyze::Initialize(tools::Property &opt) {
       _pairtype.push_back(QMPair::Excitoncl);
     }
     if (!_pairtype.size()) {
-      std::cout << std::endl
-                << "... ... No pairtypes recognized will output all pairs. ";
+      std::cout << "\n... ... No pairtypes recognized will output all pairs. ";
       _do_pairtype = false;
     }
   }
-  if (opt.exists(key + ".resolution_space")) {
-    _resolution_space = opt.get(key + ".resolution_space").as<double>();
-    if (_resolution_space != 0.0) {
+  if (_options.exists(".resolution_spatial")) {
+    _resolution_spatial = _options.get(".resolution_spatial").as<double>();
+    if (_resolution_spatial != 0.0) {
       _do_IRdependence = true;
     }
   }
@@ -182,14 +176,14 @@ void IAnalyze::IRdependence(Topology &top, QMStateType state) {
   double MINR = *std::min_element(distances.begin(), distances.end());
 
   // Prepare R bins
-  Index pointsR = Index((MAXR - MINR) / _resolution_space);
+  Index pointsR = Index((MAXR - MINR) / _resolution_spatial);
   std::vector<std::vector<double> > rJ2;
   rJ2.resize(pointsR);
 
   // Loop over distance
   for (Index i = 0; i < pointsR; ++i) {
-    double thisMINR = MINR + double(i) * _resolution_space;
-    double thisMAXR = MINR + double(i + 1) * _resolution_space;
+    double thisMINR = MINR + double(i) * _resolution_spatial;
+    double thisMAXR = MINR + double(i + 1) * _resolution_spatial;
     // now count Js that lie within this R range
     for (Index j = 0; j < Index(J2s.size()); ++j) {
       if (thisMINR < distances[j] && distances[j] < thisMAXR) {
@@ -207,7 +201,7 @@ void IAnalyze::IRdependence(Topology &top, QMStateType state) {
     const std::vector<double> &vec = rJ2[i];
     double sum = std::accumulate(vec.begin(), vec.end(), 0.0);
     double AVG = sum / double(vec.size());
-    double thisR = MINR + (double(i) + 0.5) * _resolution_space;
+    double thisR = MINR + (double(i) + 0.5) * _resolution_spatial;
     double sq_sum =
         std::inner_product(vec.begin(), vec.end(), vec.begin(), 0.0);
     double STD = std::sqrt(sq_sum / double(vec.size()) - AVG * AVG);
