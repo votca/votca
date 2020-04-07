@@ -29,8 +29,6 @@
 namespace votca {
 namespace xtp {
 
-using namespace std;
-
 void GenCube::Initialize(tools::Property& user_options) {
 
   // get pre-defined default options from VOTCASHARE/xtp/xml/gencube.xml
@@ -67,29 +65,31 @@ void GenCube::Initialize(tools::Property& user_options) {
 void GenCube::calculateCube() {
 
   XTP_LOG(Log::error, _log)
-      << "Reading serialized QM data from " << _orbfile << flush;
+      << "Reading serialized QM data from " << _orbfile << std::flush;
 
   Orbitals orbitals;
   orbitals.ReadFromCpt(_orbfile);
 
   CubeFile_Writer writer(_steps, _padding, _log);
-  XTP_LOG(Log::error, _log) << "Created cube grid" << flush;
+  XTP_LOG(Log::error, _log) << "Created cube grid" << std::flush;
   writer.WriteFile(_output_file, orbitals, _state, _dostateonly);
-  XTP_LOG(Log::error, _log) << "Wrote cube data to " << _output_file << flush;
+  XTP_LOG(Log::error, _log)
+      << "Wrote cube data to " << _output_file << std::flush;
   return;
 }
 
 void GenCube::subtractCubes() {
 
   // open infiles for reading
-  ifstream in1;
-  XTP_LOG(Log::error, _log) << " Reading first cube from " << _infile1 << flush;
-  in1.open(_infile1, ios::in);
-  ifstream in2;
+  std::ifstream in1;
   XTP_LOG(Log::error, _log)
-      << " Reading second cube from " << _infile2 << flush;
-  in2.open(_infile2, ios::in);
-  string s;
+      << " Reading first cube from " << _infile1 << std::flush;
+  in1.open(_infile1, std::ios::in);
+  std::ifstream in2;
+  XTP_LOG(Log::error, _log)
+      << " Reading second cube from " << _infile2 << std::flush;
+  in2.open(_infile2, std::ios::in);
+  std::string s;
 
   std::ofstream out(_output_file);
 
@@ -274,7 +274,7 @@ void GenCube::subtractCubes() {
 
   out.close();
   XTP_LOG(Log::error, _log)
-      << "Wrote subtracted cube data to " << _output_file << flush;
+      << "Wrote subtracted cube data to " << _output_file << std::flush;
 }
 
 bool GenCube::Evaluate() {

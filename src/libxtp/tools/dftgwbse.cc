@@ -24,8 +24,6 @@
 #include <votca/xtp/segment.h>
 #include <votca/xtp/staticregion.h>
 
-using namespace std;
-
 namespace votca {
 namespace xtp {
 
@@ -37,35 +35,35 @@ void DftGwBse::Initialize(tools::Property& user_options) {
   UpdateWithUserOptions(user_options);
 
   // molecule coordinates
-  _xyzfile = _options.ifExistsReturnElseThrowRuntimeError<string>(".molecule");
+  _xyzfile = _options.ifExistsReturnElseThrowRuntimeError<std::string>(".molecule");
 
   // job tasks
-  std::vector<string> choices = {"optimize", "energy"};
-  string mode = _options.ifExistsAndinListReturnElseThrowRuntimeError<string>(
+  std::vector<std::string> choices = {"optimize", "energy"};
+  std::string mode = _options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
       ".mode", choices);
 
   // options for dft package
   _package_options = _options.get(".dftpackage");
-  _package = _package_options.get("package.name").as<string>();
+  _package = _package_options.get("package.name").as<std::string>();
 
   // set the basis sets and functional in DFT package
   _package_options.get("package").add("basisset",
-                                      _options.get("basisset").as<string>());
+                                      _options.get("basisset").as<std::string>());
   _package_options.get("package").add("auxbasisset",
-                                      _options.get("auxbasisset").as<string>());
+                                      _options.get("auxbasisset").as<std::string>());
   _package_options.get("package").add("functional",
-                                      _options.get("functional").as<string>());
+                                      _options.get("functional").as<std::string>());
 
   // GWBSEENGINE options
   _gwbseengine_options = _options.get(".gwbse_engine");
 
   // set the basis sets and functional in GWBSE
   _gwbseengine_options.get("gwbse_options.gwbse")
-      .add("basisset", _options.get("basisset").as<string>());
+      .add("basisset", _options.get("basisset").as<std::string>());
   _gwbseengine_options.get("gwbse_options.gwbse")
-      .add("auxbasisset", _options.get("auxbasisset").as<string>());
+      .add("auxbasisset", _options.get("auxbasisset").as<std::string>());
   _gwbseengine_options.get("gwbse_options.gwbse.vxc")
-      .add("functional", _options.get("functional").as<string>());
+      .add("functional", _options.get("functional").as<std::string>());
 
   // lets get the archive file name from the xyz file name
   _archive_file = tools::filesystem::GetFileBase(_xyzfile) + ".orb";
@@ -81,13 +79,13 @@ void DftGwBse::Initialize(tools::Property& user_options) {
   // check for MPS file with external multipoles for embedding
   if (_options.exists(".mpsfile")) {
     _do_external = true;
-    _mpsfile = _options.get(".mpsfile").as<string>();
+    _mpsfile = _options.get(".mpsfile").as<std::string>();
   }
 
   // check if guess is requested
   if (_options.exists(".guess")) {
     _do_guess = true;
-    _guess_file = _options.get(".guess").as<string>();
+    _guess_file = _options.get(".guess").as<std::string>();
   }
 
   // if optimization is chosen, get options for geometry_optimizer
@@ -112,10 +110,10 @@ bool DftGwBse::Evaluate() {
   Orbitals orbitals;
 
   if (_do_guess) {
-    XTP_LOG(Log::error, _log) << "Reading guess from " << _guess_file << flush;
+    XTP_LOG(Log::error, _log) << "Reading guess from " << _guess_file << std::flush;
     orbitals.ReadFromCpt(_guess_file);
   } else {
-    XTP_LOG(Log::error, _log) << "Reading structure from " << _xyzfile << flush;
+    XTP_LOG(Log::error, _log) << "Reading structure from " << _xyzfile << std::flush;
     orbitals.QMAtoms().LoadFromFile(_xyzfile);
   }
 
@@ -147,7 +145,7 @@ bool DftGwBse::Evaluate() {
     gwbse_engine.ExcitationEnergies(orbitals);
   }
 
-  XTP_LOG(Log::error, _log) << "Saving data to " << _archive_file << flush;
+  XTP_LOG(Log::error, _log) << "Saving data to " << _archive_file << std::flush;
   orbitals.WriteToCpt(_archive_file);
 
   tools::Property summary = gwbse_engine.ReportSummary();
@@ -155,7 +153,7 @@ bool DftGwBse::Evaluate() {
                                    // actually did gwbse
     tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1,
                                         "");
-    XTP_LOG(Log::error, _log) << "Writing output to " << _xml_output << flush;
+    XTP_LOG(Log::error, _log) << "Writing output to " << _xml_output << std::flush;
     std::ofstream ofout(_xml_output, std::ofstream::out);
     ofout << (summary.get("output"));
     ofout.close();
