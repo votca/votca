@@ -1,5 +1,5 @@
 /*
- *            Copyright 2016 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -44,14 +44,14 @@ class DensityAnalysis : public QMTool {
   Logger _log;
 };
 
-void DensityAnalysis::Initialize(tools::Property& options) {
+void DensityAnalysis::Initialize(tools::Property& user_options) {
 
-  std::string key = "options." + Identify();
-  _orbfile = options.get(key + ".input").as<std::string>();
+  // get pre-defined default options from VOTCASHARE/xtp/xml/densityanalysis.xml
+  LoadDefaults("xtp");
+  // update options with user specified input
+  UpdateWithUserOptions(user_options);
 
-  std::string gyration_xml =
-      options.get(key + ".gyration_options").as<std::string>();
-  _gyration_options.LoadFromXML(gyration_xml);
+  _gyration_options.get(".density2gyration");
 }
 
 bool DensityAnalysis::Evaluate() {
