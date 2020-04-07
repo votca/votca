@@ -113,6 +113,8 @@ class Sternheimer {
   Eigen::MatrixXd _mo_coefficients;
   Eigen::VectorXd _mo_energies;
 
+  Eigen::Tensor<double, 4> _Fxc_presaved;
+
   // Sets up the Multishift solver for linear systems of given size
   void initializeMultishift(Index size);
 
@@ -165,6 +167,9 @@ class Sternheimer {
   Eigen::MatrixXcd BroydenMixing(std::vector<Eigen::MatrixXcd>& Input,
                                  std::vector<Eigen::MatrixXcd>& Output,
                                  double alpha) const;
+
+  Eigen::MatrixXcd Fxc(Eigen::MatrixXcd deltaN) const;
+
 Eigen::MatrixXcd GreensFunctionLHS(std::complex<double> w) const;
   Eigen::MatrixXcd GreensFunctionRHS(Eigen::Vector3d r) const;
 

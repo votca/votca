@@ -42,6 +42,8 @@ class Vxc_Potential {
 
   Eigen::MatrixXcd IntegrateFXC(const Eigen::MatrixXd& density_matrix,
                                 const Eigen::MatrixXcd& perturbation) const;
+  Eigen::Tensor<double, 4> precalcFXC(const Eigen::MatrixXd density_matrix)const;
+
 
  private:
   struct XC_entry {
