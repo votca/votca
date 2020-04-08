@@ -138,7 +138,7 @@ Eigen::VectorXcd Sternheimer::SternheimerRHS(
 Eigen::MatrixXcd Sternheimer::DeltaNSC(
     std::complex<double> w, const Eigen::MatrixXcd& perturbation) const {
 
-  auto start = std::chrono::steady_clock::now();
+  //auto start = std::chrono::steady_clock::now();
 
   // Setting up vectors to store old results for Anderson mixing and initial
   // perturbation
@@ -155,43 +155,45 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
   Eigen::MatrixXcd delta_n_step_one =
       Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
 
-  auto setupinter1 = std::chrono::steady_clock::now();
-  std::cout << "init done: " 
-		<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter1 - start).count()
-		<< " sec"<<std::endl<<std::endl;
+  // auto setupinter1 = std::chrono::steady_clock::now();
+  // std::cout << "init done: " 
+	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter1 - start).count()
+	// 	<< " sec"<<std::endl<<std::endl;
 
   // Setting up ERIS for four center integral
   
-  auto setupinter2 = std::chrono::steady_clock::now();
-  std::cout << "ERIS done: " 
-		<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter2 - setupinter1).count()
-		<< " sec"<<std::endl<<std::endl;
+  // auto setupinter2 = std::chrono::steady_clock::now();
+  // std::cout << "ERIS done: " 
+	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter2 - setupinter1).count()
+	// 	<< " sec"<<std::endl<<std::endl;
 
-  // Setting up Grid for Fxc functional
-  // Vxc_Grid grid;
-  // grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-  //                dftbasis);
-  // Vxc_Potential<Vxc_Grid> Vxcpot(grid);
-  // Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
 
-  auto setupinter3 = std::chrono::steady_clock::now();
-  std::cout << "grid setup done: " 
-		<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter3 - setupinter2).count()
-		<< " sec"<<std::endl<<std::endl;
+  //Setting up Grid for Fxc functional
+  Vxc_Grid grid;
+  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                 dftbasis);
+  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+
+  // auto setupinter3 = std::chrono::steady_clock::now();
+  // std::cout << "grid setup done: " 
+	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter3 - setupinter2).count()
+	// 	<< " sec"<<std::endl<<std::endl;
 
   // double alpha = 4*(_mo_energies(_mo_energies.size()-1)-_mo_energies(0));
   double alpha = 1000;
   // Loop until convergence
 
-  auto inter1 = std::chrono::steady_clock::now();
-  std::cout << "Setup done: " 
-		<< std::chrono::duration_cast<std::chrono::milliseconds>(inter1 - start).count()
-		<< " sec"<<std::endl<<std::endl;
+  // auto inter1 = std::chrono::steady_clock::now();
+  // std::cout << "Setup done: " 
+	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter1 - start).count()
+	// 	<< " sec"<<std::endl<<std::endl;
 
 
 
   for (Index n = 0; n < _opt.max_iterations_sc_sternheimer; n++) {
-    auto ref = std::chrono::steady_clock::now();
+    //auto ref = std::chrono::steady_clock::now();
     // Matrices to store the solutions of the sternheimer equation
     Eigen::MatrixXcd solution_p =
         Eigen::MatrixXcd::Zero(_basis_size, _num_occ_lvls);
@@ -219,10 +221,10 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
       solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
     }
 
-    auto inter2 = std::chrono::steady_clock::now();
-  std::cout << "Sternheimer equation solved for all occ state: " 
-		<< std::chrono::duration_cast<std::chrono::milliseconds>(inter2 - ref).count()
-		<< " sec"<<std::endl<<std::endl;
+  //   auto inter2 = std::chrono::steady_clock::now();
+  // std::cout << "Sternheimer equation solved for all occ state: " 
+	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter2 - ref).count()
+	// 	<< " sec"<<std::endl<<std::endl;
 
 
     // Saving previous delta n
@@ -234,34 +236,32 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
         2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) *
             solution_m.transpose();
 
-  auto inter3 = std::chrono::steady_clock::now();
-  std::cout << "Delta N updated: " 
-		<< std::chrono::duration_cast<std::chrono::milliseconds>(inter3 - inter2).count()
-		<< " sec"<<std::endl<<std::endl;
+  // auto inter3 = std::chrono::steady_clock::now();
+  // std::cout << "Delta N updated: " 
+	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter3 - inter2).count()
+	// 	<< " sec"<<std::endl<<std::endl;
     // Perfomring the to four center Integrals to update delta V
     Eigen::MatrixXcd contract =
         _eris.ContractRightIndecesWithMatrix(delta_n_out_new);
 
-  auto inter4 = std::chrono::steady_clock::now();
-  std::cout << "Hartree integral done: " 
-		<< std::chrono::duration_cast<std::chrono::milliseconds>(inter4 - inter3).count()
-		<< " sec"<<std::endl<<std::endl;
+  // auto inter4 = std::chrono::steady_clock::now();
+  // std::cout << "Hartree integral done: " 
+	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter4 - inter3).count()
+	// 	<< " sec"<<std::endl<<std::endl;
 
 
-    //Eigen::MatrixXcd FxcInt =
-    //  Vxcpot.IntegrateFXC(_density_Matrix, delta_n_out_new);
+    // Eigen::MatrixXcd FxcInt =
+    //   Vxcpot.IntegrateFXC(_density_Matrix, delta_n_out_new);
     Eigen::MatrixXcd FxcInt = Fxc(delta_n_out_new);
     auto inter5 = std::chrono::steady_clock::now();
-    //std::cout<<"Classic: \n"<<FxcInt<<std::endl<<std::endl;
-    //std::cout<<"Presaved: \n"<<FxcInt2<<std::endl<<std::endl;
-    //std::cout<<"diff: \n"<<FxcInt-FxcInt2<<std::endl<<std::endl;
-    //std::cout<<"diff norm: \n"<<(FxcInt-FxcInt2).norm()<<std::endl<<std::endl;
+    // std::cout<<"Classic: \n"<<FxcInt<<std::endl<<std::endl;
+    // std::cout<<"Presaved: \n"<<FxcInt2<<std::endl<<std::endl;
+    // std::cout<<"diff: \n"<<FxcInt-FxcInt2<<std::endl<<std::endl;
+    // std::cout<<"diff norm: \n"<<(FxcInt-FxcInt2).norm()<<std::endl<<std::endl;
 
-    //throw std::exception();
-
-    std::cout << "Fxc integral done: " 
-		<< std::chrono::duration_cast<std::chrono::milliseconds>(inter5 - inter4).count()
-		<< " sec"<<std::endl<<std::endl;    
+    // std::cout << "Fxc integral done: " 
+		// << std::chrono::duration_cast<std::chrono::milliseconds>(inter5 - inter4).count()
+		// << " sec"<<std::endl<<std::endl;    
 
     // Check if max mixing history is reached and adding new step to history
     if (perturbationVectoroutput.size() > _opt.max_mixing_history - 1) {
@@ -306,10 +306,10 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
       }
       perturbationVectorInput.push_back(perturbationUsed);
     }
-    auto inter6 = std::chrono::steady_clock::now();
-    std::cout << "Mixing done, cycle finished: " 
-		<< std::chrono::duration_cast<std::chrono::milliseconds>(inter6 - inter5).count()
-		<< " sec"<<std::endl<<std::endl<<std::endl;
+    // auto inter6 = std::chrono::steady_clock::now();
+    // std::cout << "Mixing done, cycle finished: " 
+		// << std::chrono::duration_cast<std::chrono::milliseconds>(inter6 - inter5).count()
+		// << " sec"<<std::endl<<std::endl<<std::endl;
   }
 
   std::cout << "NOT converged the frequency is w = " << w << std::endl;
@@ -382,15 +382,33 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
 
 Eigen::MatrixXcd Sternheimer::Fxc(Eigen::MatrixXcd deltaN) const{
 
+  Index vectorSize = (_basis_size * (_basis_size + 1)) / 2;
+
   Eigen::MatrixXcd Fxc_sum=Eigen::MatrixXcd::Zero(deltaN.cols(),deltaN.cols());
-  for(Index i=0;i<deltaN.cols();i++){
-    for(Index j=0;j<deltaN.cols();j++){
-      for(Index k=0;k<deltaN.cols();k++){
-        for(Index l=0;l<deltaN.cols();l++){
-          Fxc_sum(i,j)+=_Fxc_presaved(i,j,k,l)*deltaN(k,l);
+
+  for (Index i = 0; i  < _basis_size; i++) {
+    Index sum_i = (i*(i+1)) / 2;
+    for(Index j = i; j<_basis_size; j++){
+      Index index_ij = _basis_size * i - sum_i +j;
+      Index index_ij_kl_a = vectorSize * index_ij - (index_ij * (index_ij + 1)) /2;
+      for(Index k = 0; k < _basis_size; k++) {
+        Index sum_k = (k * (k + 1)) / 2;
+        for(Index l = k; l<_basis_size; l++){
+          Index index_kl = _basis_size * k - sum_k + l;
+          Index index_ij_kl = index_ij_kl_a + index_kl;
+          if(index_ij>index_kl){
+            index_ij_kl = vectorSize *index_kl - (index_kl * (index_kl + 1)) / 2 + index_ij;
+          }
+          if(l == k){
+            Fxc_sum(i,j)+= deltaN(k,l)*_Fxc_presaved(index_ij_kl);
+          } else {
+            Fxc_sum(i,j) += (deltaN(k, l)+deltaN(l,k)) * _Fxc_presaved(index_ij_kl);
+            
+          }
         }
       }
-    }  
+      Fxc_sum(j,i)=Fxc_sum(i,j);
+    }
   }
   return Fxc_sum;
 }

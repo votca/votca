@@ -184,7 +184,7 @@ double Vxc_Potential<Grid>::EvaluateFXC(double rho) const {
 }
 
 template <class Grid>
-Eigen::Tensor<double, 4> Vxc_Potential<Grid>::precalcFXC(
+Eigen::VectorXd Vxc_Potential<Grid>::precalcFXC(
     const Eigen::MatrixXd density_matrix) const {
   Index nthreads = OPENMP::getMaxThreads();
 
@@ -195,9 +195,21 @@ Eigen::Tensor<double, 4> Vxc_Potential<Grid>::precalcFXC(
   //     Eigen::MatrixXcd::Zero(density_matrix.rows(), density_matrix.cols()));
 
   // Initialize tensor to save (ijkl)
-  Eigen::Tensor<double, 4> result(density_matrix.cols(), density_matrix.cols(),
-                                  density_matrix.cols(), density_matrix.cols());
-  result.setZero();
+  // Eigen::Tensor<double, 4> result(density_matrix.cols(), density_matrix.cols(),
+  //                                 density_matrix.cols(), density_matrix.cols());
+  // result.setZero();
+
+  Index vectorSize = (density_matrix.cols() * (density_matrix.cols() + 1)) / 2;
+  
+  Eigen::VectorXd result;
+
+  try {
+    result = Eigen::VectorXd::Zero((vectorSize * (vectorSize + 1)) / 2);
+  } catch (std::bad_alloc& ba) {
+    throw std::runtime_error(
+        "Basisset too large for fxc calculation. Not enough RAM.");
+  }
+  
   //#pragma omp parallel for schedule(guided)
 
   // std::cout<<"number of boxes"<<_grid.getBoxesSize()<<std::endl;
@@ -224,11 +236,11 @@ Eigen::Tensor<double, 4> Vxc_Potential<Grid>::precalcFXC(
     const std::vector<const AOShell*> significantShells = box.getShells();
 
     // Find indices of used basis functions for this box
-    std::vector<Index> significantFunctionIndices;
+    std::vector<Index> sFI;
 
     for (Index s = 0; s < box.getShells().size(); s++) {
       for (Index f = 0; f < significantShells.at(s)->getNumFunc(); f++) {
-        significantFunctionIndices.push_back(
+        sFI.push_back(
             significantShells.at(s)->getStartIndex() + f);
       }
     }
@@ -249,22 +261,35 @@ Eigen::Tensor<double, 4> Vxc_Potential<Grid>::precalcFXC(
       double fxc = EvaluateFXC(rho);
 
       // Loop over significant shells and calculate (ijkl)
-      for (int i2 = 0; i2 < significantFunctionIndices.size(); i2++) {
-        for (int j = 0; j < significantFunctionIndices.size(); j++) {
-          for (int k = 0; k < significantFunctionIndices.size(); k++) {
-            for (int l = 0; l < significantFunctionIndices.size(); l++) {
-              // std::cout<<"value =
-              // "<<weight*ao(i)*ao(j)*fxc*ao(k)*ao(l)<<std::endl;
-              result(significantFunctionIndices.at(i2),
-                     significantFunctionIndices.at(j),
-                     significantFunctionIndices.at(k),
-                     significantFunctionIndices.at(l)) +=
-                  weight * ao(i2) * ao(j) * fxc * ao(k) * ao(l);
-              // std::cout<<"test"<<std::endl;
-            }
+      for (Index i_3 = 0; i_3 < sFI.size(); i_3++) {
+        Index ind_3 = sFI.at(i_3);
+        Index sum_ind_3 = (ind_3 * (ind_3 + 1)) / 2;
+        for (Index i_4 = 0; i_4 < sFI.size(); i_4++) {
+          Index ind_4 = sFI.at(i_4);
+          if (ind_3 > ind_4) {
+            continue;
           }
-        }
-      }
+          Index index_34 = density_matrix.rows() * ind_3 - sum_ind_3 + ind_4;
+          Index index_34_12_a =
+              vectorSize * index_34 - (index_34 * (index_34 + 1)) / 2;
+          for (Index i_1 = 0; i_1 < sFI.size(); i_1++) {
+            Index ind_1 = sFI.at(i_1);
+            Index sum_ind_1 = (ind_1 * (ind_1 + 1)) / 2;
+            for (Index i_2 = 0; i_2 < sFI.size(); i_2++) {
+              Index ind_2 = sFI.at(i_2);
+              if (ind_1 > ind_2) {
+                continue;
+              }
+              Index index_12 = density_matrix.rows() * ind_1 - sum_ind_1 + ind_2;
+              if (index_34 > index_12) {
+                continue;
+              }
+              result(index_34_12_a + index_12) += weight * ao(i_1) * ao(i_2) * fxc * ao(i_3) * ao(i_4);
+
+            }  // i_2
+          }    // i_1
+        }      // i_4
+      }        // i_3
     }
   }
   std::cout << "Finished precalc" << std::endl;

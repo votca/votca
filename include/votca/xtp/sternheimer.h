@@ -116,7 +116,7 @@ class Sternheimer {
 
   ERIs _eris;
 
-  Eigen::Tensor<double, 4> _Fxc_presaved;
+  Eigen::VectorXd _Fxc_presaved;
 
   // Sets up the Multishift solver for linear systems of given size
   void initializeMultishift(Index size);
