@@ -99,6 +99,12 @@ class Calculator {
    */
   void UpdateWithUserOptions(Property &options);
 
+  void LoadDefaultsAndUpdateWithUserOptions(std::string package,
+                                            Property &options) {
+    LoadDefaults(package);
+    UpdateWithUserOptions(options);
+  }
+
  protected:
   Index _nThreads;
   bool _maverick;
