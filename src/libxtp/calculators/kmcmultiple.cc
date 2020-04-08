@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,6 @@
 #include <votca/xtp/gnode.h>
 #include <votca/xtp/topology.h>
 
-using namespace std;
-
 namespace votca {
 namespace xtp {
 void KMCMultiple::Initialize(tools::Property& options) {
@@ -49,8 +47,8 @@ void KMCMultiple::Initialize(tools::Property& options) {
                                                            "e");
   _carriertype = QMStateType(carriertype);
   if (!_carriertype.isKMCState()) {
-    throw runtime_error("KMC cannot be run for state:" +
-                        _carriertype.ToLongString());
+    throw std::runtime_error("KMC cannot be run for state:" +
+                             _carriertype.ToLongString());
   }
 
   _log.setReportLevel(Log::current_level);
@@ -70,19 +68,19 @@ void KMCMultiple::PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor,
     XTP_LOG(Log::error, _log)
         << "\nStep: " << step
         << " Diffusion tensor averaged over all carriers (nm^2/s):\n"
-        << result * tools::conv::bohr2nm * tools::conv::bohr2nm << flush;
+        << result * tools::conv::bohr2nm * tools::conv::bohr2nm << std::flush;
   } else {
     double average_mobility = 0;
     double bohr2Hrts_to_nm2Vs =
         tools::conv::bohr2nm * tools::conv::bohr2nm / tools::conv::hrt2ev;
-    XTP_LOG(Log::error, _log) << "\nMobilities (nm^2/Vs): " << flush;
+    XTP_LOG(Log::error, _log) << "\nMobilities (nm^2/Vs): " << std::flush;
     for (Index i = 0; i < _numberofcarriers; i++) {
       Eigen::Vector3d velocity = _carriers[i].get_dRtravelled() / simtime;
       double mobility =
           velocity.dot(_field) / (absolute_field * absolute_field);
       XTP_LOG(Log::error, _log)
           << std::scientific << "    carrier " << i + 1
-          << ": mu=" << mobility * bohr2Hrts_to_nm2Vs << flush;
+          << ": mu=" << mobility * bohr2Hrts_to_nm2Vs << std::flush;
       average_mobility +=
           velocity.dot(_field) / (absolute_field * absolute_field);
     }
@@ -90,12 +88,12 @@ void KMCMultiple::PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor,
     XTP_LOG(Log::error, _log)
         << std::scientific
         << "  Overall average mobility in field direction <mu>="
-        << average_mobility * bohr2Hrts_to_nm2Vs << " nm^2/Vs  " << flush;
+        << average_mobility * bohr2Hrts_to_nm2Vs << " nm^2/Vs  " << std::flush;
   }
 }
 
 void KMCMultiple::WriteToTrajectory(std::fstream& traj,
-                                    vector<Eigen::Vector3d>& startposition,
+                                    std::vector<Eigen::Vector3d>& startposition,
                                     double simtime, unsigned long step) const {
   traj << simtime << "\t";
   traj << step << "\t";
@@ -107,7 +105,7 @@ void KMCMultiple::WriteToTrajectory(std::fstream& traj,
     if (i < _numberofcarriers - 1) {
       traj << "\t";
     } else {
-      traj << endl;
+      traj << std::endl;
     }
   }
 }
@@ -138,7 +136,8 @@ void KMCMultiple::WriteToEnergyFile(std::fstream& tfile, double simtime,
         << currentenergy * tools::conv::hrt2ev << "\t"
         << currentmobility * bohr2Hrts_to_nm2Vs << "\t"
         << dr_travelled_field * tools::conv::bohr2nm << "\t"
-        << dr_travelled_current.norm() * tools::conv::bohr2nm << "\t" << endl;
+        << dr_travelled_current.norm() * tools::conv::bohr2nm << "\t"
+        << std::endl;
 }
 
 void KMCMultiple::PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
@@ -151,14 +150,14 @@ void KMCMultiple::PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(result);
   double bohr2_nm2 = tools::conv::bohr2nm * tools::conv::bohr2nm;
-  XTP_LOG(Log::error, _log) << "\nEigenvalues:\n " << flush;
+  XTP_LOG(Log::error, _log) << "\nEigenvalues:\n " << std::flush;
   for (Index i = 0; i < 3; i++) {
     XTP_LOG(Log::error, _log)
-        << "Eigenvalue: " << es.eigenvalues()(i) * bohr2_nm2 << flush
+        << "Eigenvalue: " << es.eigenvalues()(i) * bohr2_nm2 << std::flush
         << "Eigenvector: " << es.eigenvectors().col(i).x() << "   "
         << es.eigenvectors().col(i).y() << "   " << es.eigenvectors().col(i).z()
         << "\n"
-        << flush;
+        << std::flush;
   }
   double bohr2Hrts_to_nm2Vs =
       tools::conv::bohr2nm * tools::conv::bohr2nm / tools::conv::hrt2ev;
@@ -167,12 +166,12 @@ void KMCMultiple::PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
     XTP_LOG(Log::error, _log)
         << "The following value is calculated using the Einstein relation "
            "and assuming an isotropic medium"
-        << flush;
+        << std::flush;
     double avgD = 1. / 3. * es.eigenvalues().sum();
     double average_mobility = std::abs(avgD / _temperature);
     XTP_LOG(Log::error, _log)
         << std::scientific << "  Overall average mobility <mu>="
-        << average_mobility * bohr2Hrts_to_nm2Vs << " nm^2/Vs " << flush;
+        << average_mobility * bohr2Hrts_to_nm2Vs << " nm^2/Vs " << std::flush;
   }
 }
 
@@ -183,7 +182,7 @@ void KMCMultiple::PrintChargeVelocity(double simtime) {
         << std::scientific << "    carrier " << i + 1 << ": "
         << _carriers[i].get_dRtravelled().transpose() / simtime *
                tools::conv::bohr2nm
-        << flush;
+        << std::flush;
     avg_dr_travelled += _carriers[i].get_dRtravelled();
   }
   avg_dr_travelled /= double(_numberofcarriers);
@@ -191,17 +190,18 @@ void KMCMultiple::PrintChargeVelocity(double simtime) {
   Eigen::Vector3d avgvelocity = avg_dr_travelled / simtime;
   XTP_LOG(Log::error, _log)
       << std::scientific << "  Overall average velocity (nm/s): "
-      << avgvelocity.transpose() * tools::conv::bohr2nm << flush;
+      << avgvelocity.transpose() * tools::conv::bohr2nm << std::flush;
 }
 
 void KMCMultiple::RunVSSM() {
 
   Index realtime_start = time(nullptr);
   XTP_LOG(Log::error, _log)
-      << "\nAlgorithm: VSSM for Multiple Charges" << flush;
+      << "\nAlgorithm: VSSM for Multiple Charges" << std::flush;
   XTP_LOG(Log::error, _log)
-      << "number of carriers: " << _numberofcarriers << flush;
-  XTP_LOG(Log::error, _log) << "number of nodes: " << _nodes.size() << flush;
+      << "number of carriers: " << _numberofcarriers << std::flush;
+  XTP_LOG(Log::error, _log)
+      << "number of nodes: " << _nodes.size() << std::flush;
 
   bool checkifoutput = (_outputtime != 0);
   double nexttrajoutput = 0;
@@ -211,38 +211,39 @@ void KMCMultiple::RunVSSM() {
 
   if (_runtime > 100) {
     XTP_LOG(Log::error, _log)
-        << "stop condition: " << maxsteps << " steps." << flush;
+        << "stop condition: " << maxsteps << " steps." << std::flush;
 
     if (checkifoutput) {
       XTP_LOG(Log::error, _log) << "output frequency: ";
-      XTP_LOG(Log::error, _log) << "every " << outputstep << " steps." << flush;
+      XTP_LOG(Log::error, _log)
+          << "every " << outputstep << " steps." << std::flush;
     }
   } else {
     stopontime = true;
     XTP_LOG(Log::error, _log)
-        << "stop condition: " << _runtime << " seconds runtime." << flush;
+        << "stop condition: " << _runtime << " seconds runtime." << std::flush;
 
     if (checkifoutput) {
       XTP_LOG(Log::error, _log) << "output frequency:\n "
                                    "every "
-                                << _outputtime << " seconds." << flush;
+                                << _outputtime << " seconds." << std::flush;
     }
   }
   XTP_LOG(Log::error, _log)
       << "(If you specify runtimes larger than 100 kmcmultiple assumes that "
          "you are specifying the number of steps for both runtime and "
          "outputtime.)"
-      << flush;
+      << std::flush;
 
   if (!stopontime && _outputtime != 0 && floor(_outputtime) != _outputtime) {
-    throw runtime_error(
+    throw std::runtime_error(
         "ERROR in kmcmultiple: runtime was specified in steps (>100) and "
         "outputtime in seconds (not an integer). Please use the same units for "
         "both input parameters.");
   }
 
   if (_numberofcarriers > Index(_nodes.size())) {
-    throw runtime_error(
+    throw std::runtime_error(
         "ERROR in kmcmultiple: specified number of carriers is greater than "
         "the "
         "number of nodes. This conflicts with single occupation.");
@@ -254,7 +255,7 @@ void KMCMultiple::RunVSSM() {
   if (checkifoutput) {
 
     XTP_LOG(Log::error, _log)
-        << "Writing trajectory to " << _trajectoryfile << "." << flush;
+        << "Writing trajectory to " << _trajectoryfile << "." << std::flush;
     traj.open(_trajectoryfile, std::fstream::out);
 
     traj << "time[s]\tsteps\t";
@@ -266,21 +267,21 @@ void KMCMultiple::RunVSSM() {
         traj << "'\t";
       }
     }
-    traj << endl;
+    traj << std::endl;
     if (!_timefile.empty()) {
       XTP_LOG(Log::error, _log)
           << "Writing time dependence of energy and mobility to " << _timefile
-          << "." << flush;
+          << "." << std::flush;
       tfile.open(_timefile, std::fstream::out);
       tfile << "time[s]\t "
                "steps\tenergy_per_carrier[eV]\tmobility[nm**2/"
                "Vs]\tdistance_fielddirection[nm]\tdistance_absolute[nm]"
-            << endl;
+            << std::endl;
     }
   }
   RandomlyCreateCharges();
-  vector<Eigen::Vector3d> startposition(_numberofcarriers,
-                                        Eigen::Vector3d::Zero());
+  std::vector<Eigen::Vector3d> startposition(_numberofcarriers,
+                                             Eigen::Vector3d::Zero());
   for (Index i = 0; i < _numberofcarriers; i++) {
     startposition[i] = _carriers[i].getCurrentPosition();
   }
@@ -294,12 +295,12 @@ void KMCMultiple::RunVSSM() {
     if (i < _numberofcarriers - 1) {
       traj << "\t";
     } else {
-      traj << endl;
+      traj << std::endl;
     }
   }
 
-  vector<GNode*> forbiddennodes;
-  vector<GNode*> forbiddendests;
+  std::vector<GNode*> forbiddennodes;
+  std::vector<GNode*> forbiddendests;
 
   Eigen::Matrix3d avgdiffusiontensor = Eigen::Matrix3d::Zero();
 
@@ -314,7 +315,7 @@ void KMCMultiple::RunVSSM() {
           << "\nReal time limit of " << _maxrealtime << " hours ("
           << Index(_maxrealtime * 60 * 60 + 0.5)
           << " seconds) has been reached. Stopping here.\n"
-          << flush;
+          << std::flush;
       break;
     }
 
@@ -324,7 +325,7 @@ void KMCMultiple::RunVSSM() {
     }
     if (cumulated_rate <= 0) {  // this should not happen: no possible jumps
                                 // defined for a node
-      throw runtime_error(
+      throw std::runtime_error(
           "ERROR in kmcmultiple: Incorrect rates. All "
           "the escape rates for the current setting are 0.");
     }
@@ -429,16 +430,16 @@ void KMCMultiple::RunVSSM() {
                             << " steps.\n"
                                "simulated time "
                             << simtime << " seconds.\n"
-                            << flush;
+                            << std::flush;
 
   PrintChargeVelocity(simtime);
 
-  XTP_LOG(Log::error, _log) << "\nDistances travelled (nm): " << flush;
+  XTP_LOG(Log::error, _log) << "\nDistances travelled (nm): " << std::flush;
   for (Index i = 0; i < _numberofcarriers; i++) {
     XTP_LOG(Log::error, _log)
         << std::scientific << "    carrier " << i + 1 << ": "
         << _carriers[i].get_dRtravelled().transpose() * tools::conv::bohr2nm
-        << flush;
+        << std::flush;
   }
 
   PrintDiffandMu(avgdiffusiontensor, simtime, step);
@@ -453,7 +454,8 @@ bool KMCMultiple::EvaluateFrame(Topology& top) {
                                "\n-----------------------------------\n"
                             << std::flush;
 
-  XTP_LOG(Log::info, _log) << "\nInitialising random number generator" << flush;
+  XTP_LOG(Log::info, _log) << "\nInitialising random number generator"
+                           << std::flush;
   _RandomVariable.init(_seed);
 
   LoadGraph(top);

@@ -24,7 +24,7 @@ namespace xtp {
 
 void EInternal::Initialize(tools::Property &user_options) {
 
-  // get pre-defined default options from VOTCASHARE/xtp/xml/ianalyze.xml
+  // get pre-defined default options from VOTCASHARE/xtp/xml/einternal.xml
   LoadDefaults("xtp");
   // update options with user specified input
   UpdateWithUserOptions(user_options);
