@@ -1,6 +1,5 @@
 <options>
 
-
 <neighborlist help="Determines neighbouring pairs for exciton transport" section="sec:neighborlist">
         <segments help="cutoff distances for certain segments identified by name">
                 <type help="segment name1 segment_name2">DCV5T_ME3 DCV5T_ME3</type>
