@@ -170,11 +170,11 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
   AOBasis dftbasis = _orbitals.SetupDftBasis();
 
   //Setting up Grid for Fxc functional
-  Vxc_Grid grid;
-  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                 dftbasis);
-  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
-  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+  // Vxc_Grid grid;
+  // grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+  //                dftbasis);
+  // Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  // Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
   // auto setupinter3 = std::chrono::steady_clock::now();
   // std::cout << "grid setup done: " 
@@ -592,11 +592,11 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
   // ERIs eris;
   // eris.Initialize(dftbasis, auxbasis);
 
-  Vxc_Grid grid;
-  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                 dftbasis);
-  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
-  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+  // Vxc_Grid grid;
+  // grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+  //                dftbasis);
+  // Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  // Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
   // QMMolecule molecule;
   Index number_of_atoms = mol.size();
@@ -662,12 +662,12 @@ std::complex<double> Sternheimer::KoopmanCorrection(Index n,
   // ERIs eris;
   // eris.Initialize(dftbasis, auxbasis);
 
-  Vxc_Grid grid;
-  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                 dftbasis);
-  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+   Vxc_Grid grid;
+   grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                  dftbasis);
+   Vxc_Potential<Vxc_Grid> Vxcpot(grid);
 
-  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+   Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
   // Build reference density matrix
   Eigen::MatrixXd N_n =
@@ -764,11 +764,11 @@ std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n,
   // ERIs eris;
   // eris.Initialize(dftbasis, auxbasis);
 
-  Vxc_Grid grid;
-  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                 dftbasis);
-  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
-  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+  // Vxc_Grid grid;
+  // grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+  //                dftbasis);
+  // Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  // Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
   // QMMolecule molecule;
   Index number_of_atoms = mol.size();
@@ -873,11 +873,11 @@ Eigen::MatrixXcd Sternheimer::ScreenedCoulomb(
   // ERIs eris;
   // eris.Initialize(dftbasis, auxbasis);
 
-  Vxc_Grid grid;
-  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                 dftbasis);
-  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
-  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+  // Vxc_Grid grid;
+  // grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+  //                dftbasis);
+  // Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  // Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
   Eigen::MatrixXcd coulombmatrix = CoulombMatrix(gridpoint1);
   Eigen::MatrixXcd DeltaN = DeltaNSC(frequency, coulombmatrix);
   Eigen::MatrixXcd contract = _eris.ContractRightIndecesWithMatrix(DeltaN);
@@ -947,7 +947,7 @@ std::complex<double> Sternheimer::SelfEnergy(double omega, Index n,
                                              Index m) const {
   AOBasis basis = _orbitals.SetupDftBasis();
   Vxc_Grid grid;
-  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+  grid.GridSetup("xcoarse", _orbitals.QMAtoms(),
                  basis);
 
   std::complex<double> prefactor(0., 1.0 / (2 * std::acos(-1.0)));  // i/2pi
