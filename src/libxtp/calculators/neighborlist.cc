@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,17 @@
 #include "neighborlist.h"
 #include <boost/format.hpp>
 #include <boost/progress.hpp>
-using namespace std;
 
 namespace votca {
 namespace xtp {
 
-void Neighborlist::Initialize(tools::Property& options) {
+void Neighborlist::Initialize(tools::Property& user_options) {
 
-  // update options with the VOTCASHARE defaults
-  UpdateWithDefaults(options, "xtp");
-  std::string key = "options." + Identify();
+  // get pre-defined default options from VOTCASHARE/xtp/xml/neighborlist.xml
+  // and merge it with the user input
+  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  std::vector<tools::Property*> segs = options.Select(key + ".segments");
+  std::vector<tools::Property*> segs = _options.Select(".segments");
 
   for (tools::Property* segprop : segs) {
     std::string types = segprop->get("type").as<std::string>();
@@ -56,17 +55,17 @@ void Neighborlist::Initialize(tools::Property& options) {
     }
   }
 
-  if (options.exists(key + ".constant")) {
+  if (_options.exists(".constant")) {
     _useConstantCutoff = true;
     _constantCutoff =
-        options.get(key + ".constant").as<double>() * tools::conv::nm2bohr;
+        _options.get(".constant").as<double>() * tools::conv::nm2bohr;
   } else {
     _useConstantCutoff = false;
   }
-  if (options.exists(key + ".exciton_cutoff")) {
+  if (_options.exists(".exciton_cutoff")) {
     _useExcitonCutoff = true;
-    _excitonqmCutoff = options.get(key + ".exciton_cutoff").as<double>() *
-                       tools::conv::nm2bohr;
+    _excitonqmCutoff =
+        _options.get(".exciton_cutoff").as<double>() * tools::conv::nm2bohr;
   } else {
     _useExcitonCutoff = false;
   }
