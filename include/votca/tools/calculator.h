@@ -99,6 +99,11 @@ class Calculator {
    */
   void UpdateWithUserOptions(Property &options);
 
+  /**
+   * \brief Load the default options and merge them with the user input
+   *
+   * Defaults are overwritten with user input
+   */
   void LoadDefaultsAndUpdateWithUserOptions(std::string package,
                                             Property &options) {
     LoadDefaults(package);
