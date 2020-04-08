@@ -54,8 +54,6 @@ class ExcitonCoupling : public QMTool {
 
 void ExcitonCoupling::Initialize(tools::Property& user_options) {
 
-  // get pre-defined default options from VOTCASHARE/xtp/xml/excitoncoupling.xml
-  // and merge it with the user input
   LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _classical = _options.get(".classical").as<bool>();

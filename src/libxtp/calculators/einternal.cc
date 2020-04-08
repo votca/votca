@@ -24,8 +24,6 @@ namespace xtp {
 
 void EInternal::Initialize(tools::Property &user_options) {
 
-  // get pre-defined default options from VOTCASHARE/xtp/xml/einternal.xml and
-  // merge it with the user input
   LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _energiesXML =

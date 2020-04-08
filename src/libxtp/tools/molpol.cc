@@ -27,8 +27,6 @@ namespace xtp {
 
 void MolPol::Initialize(tools::Property& user_options) {
 
-  // get pre-defined default options from VOTCASHARE/xtp/xml/molpol.xml
-  // and merge it with the user input
   LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   std::string mps_input =

@@ -30,8 +30,6 @@ namespace xtp {
 
 void KMCLifetime::Initialize(tools::Property& user_options) {
 
-  // get pre-defined default options from VOTCASHARE/xtp/xml/kmclifetime.xml and
-  // merge it with the user input
   LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _insertions = _options.ifExistsReturnElseThrowRuntimeError<unsigned long>(

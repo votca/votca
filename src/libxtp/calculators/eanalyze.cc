@@ -22,8 +22,6 @@ namespace xtp {
 
 void EAnalyze::Initialize(tools::Property &user_options) {
 
-  // get pre-defined default options from VOTCASHARE/xtp/xml/eanalyze.xml and
-  // merge it with the user input
   LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _resolution_pairs = _options.get(".resolution_pairs").as<double>();

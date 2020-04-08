@@ -90,7 +90,8 @@ bool XtpTools::EvaluateOptions() {
 
   if (OptionsMap().count("description")) {
     CheckRequired("description", "no tool is given");
-    tools::Tokenizer tok(OptionsMap()["description"].as<std::string>(), " ,\n\t");
+    tools::Tokenizer tok(OptionsMap()["description"].as<std::string>(),
+                         " ,\n\t");
     // loop over the names in the description string
     for (const std::string& n : tok) {
       // loop over tools
@@ -123,7 +124,6 @@ bool XtpTools::EvaluateOptions() {
   bool found_calc = false;
   for (const auto& tool : xtp::QMTools().getObjects()) {
     if (calc_string[0].compare(tool.first) == 0) {
-      std::cout << " This is a XTP app\n";
       this->SetTool(xtp::QMTools().Create(calc_string[0]));
       found_calc = true;
       break;

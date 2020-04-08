@@ -103,7 +103,6 @@ bool XtpRun::EvaluateOptions() {
   for (const auto& calc : xtp::Calculators().getObjects()) {
 
     if (calc_string[0].compare(calc.first) == 0) {
-      std::cout << " This is a XTP app\n";
       xtp::StateApplication::SetCalculator(
           xtp::Calculators().Create(calc_string[0]));
       found_calc = true;
