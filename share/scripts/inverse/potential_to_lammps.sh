@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -76,6 +76,7 @@ output="$2"
 echo "Convert $input to $output"
 
 sim_prog="$(csg_get_property cg.inverse.program)"
+[[ ${sim_prog} = "lammps" ]] || die "${0##*/}: cg.inverse.program was not set to 'lammps', but '${sim_prog}' (mind the default)"
 
 bondtype="$(csg_get_interaction_property bondtype)"
 
@@ -145,7 +146,7 @@ fi
 
 do_external convert_potential tab --header "${sim_prog}" --type "${bondtype}" "${tshift}" "${deriv}" "${output}"
 if [[ $clean ]]; then
-  rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}"
-  [[ ${input} != ${scale} ]] && rm -f "${scale}"
-  [[ ${input} != ${yscale} ]] && rm -f "${yscale}"
+  rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}" "${deriv}"
+  [[ ${input} = ${scale} ]] || rm -f "${scale}"
+  [[ ${input} = ${yscale} ]] || rm -f "${yscale}"
 fi
