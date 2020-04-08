@@ -28,9 +28,8 @@ namespace xtp {
 void MolPol::Initialize(tools::Property& user_options) {
 
   // get pre-defined default options from VOTCASHARE/xtp/xml/molpol.xml
-  LoadDefaults("xtp");
-  // update options with user specified input
-  UpdateWithUserOptions(user_options);
+  // and merge it with the user input
+  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   std::string mps_input =
       _options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsinput");
@@ -104,7 +103,8 @@ void MolPol::Initialize(tools::Property& user_options) {
   _tolerance_pol =
       _options.ifExistsReturnElseThrowRuntimeError<double>(".tolerance");
 
-  _max_iter = _options.ifExistsReturnElseThrowRuntimeError<Index>(".iterations");
+  _max_iter =
+      _options.ifExistsReturnElseThrowRuntimeError<Index>(".iterations");
 }
 
 Eigen::Vector3d MolPol::CalcInducedDipole(

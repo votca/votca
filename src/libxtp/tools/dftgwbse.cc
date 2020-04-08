@@ -30,29 +30,30 @@ namespace xtp {
 void DftGwBse::Initialize(tools::Property& user_options) {
 
   // get pre-defined default options from VOTCASHARE/xtp/xml/dftgwbse.xml
-  LoadDefaults("xtp");
-  // update options with user specified input
-  UpdateWithUserOptions(user_options);
+  // and merge it with the user input
+  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   // molecule coordinates
-  _xyzfile = _options.ifExistsReturnElseThrowRuntimeError<std::string>(".molecule");
+  _xyzfile =
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".molecule");
 
   // job tasks
   std::vector<std::string> choices = {"optimize", "energy"};
-  std::string mode = _options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-      ".mode", choices);
+  std::string mode =
+      _options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+          ".mode", choices);
 
   // options for dft package
   _package_options = _options.get(".dftpackage");
   _package = _package_options.get("package.name").as<std::string>();
 
   // set the basis sets and functional in DFT package
-  _package_options.get("package").add("basisset",
-                                      _options.get("basisset").as<std::string>());
-  _package_options.get("package").add("auxbasisset",
-                                      _options.get("auxbasisset").as<std::string>());
-  _package_options.get("package").add("functional",
-                                      _options.get("functional").as<std::string>());
+  _package_options.get("package").add(
+      "basisset", _options.get("basisset").as<std::string>());
+  _package_options.get("package").add(
+      "auxbasisset", _options.get("auxbasisset").as<std::string>());
+  _package_options.get("package").add(
+      "functional", _options.get("functional").as<std::string>());
 
   // GWBSEENGINE options
   _gwbseengine_options = _options.get(".gwbse_engine");
@@ -110,10 +111,12 @@ bool DftGwBse::Evaluate() {
   Orbitals orbitals;
 
   if (_do_guess) {
-    XTP_LOG(Log::error, _log) << "Reading guess from " << _guess_file << std::flush;
+    XTP_LOG(Log::error, _log)
+        << "Reading guess from " << _guess_file << std::flush;
     orbitals.ReadFromCpt(_guess_file);
   } else {
-    XTP_LOG(Log::error, _log) << "Reading structure from " << _xyzfile << std::flush;
+    XTP_LOG(Log::error, _log)
+        << "Reading structure from " << _xyzfile << std::flush;
     orbitals.QMAtoms().LoadFromFile(_xyzfile);
   }
 
@@ -153,7 +156,8 @@ bool DftGwBse::Evaluate() {
                                    // actually did gwbse
     tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1,
                                         "");
-    XTP_LOG(Log::error, _log) << "Writing output to " << _xml_output << std::flush;
+    XTP_LOG(Log::error, _log)
+        << "Writing output to " << _xml_output << std::flush;
     std::ofstream ofout(_xml_output, std::ofstream::out);
     ofout << (summary.get("output"));
     ofout.close();

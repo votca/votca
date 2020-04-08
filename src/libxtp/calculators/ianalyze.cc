@@ -27,10 +27,9 @@ namespace xtp {
 
 void IAnalyze::Initialize(tools::Property &user_options) {
 
-  // get pre-defined default options from VOTCASHARE/xtp/xml/ianalyze.xml
-  LoadDefaults("xtp");
-  // update options with user specified input
-  UpdateWithUserOptions(user_options);
+  // get pre-defined default options from VOTCASHARE/xtp/xml/ianalyze.xml and
+  // merge it with the user input
+  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   std::string statestrings = _options.get(".states").as<std::string>();
   tools::Tokenizer tok(statestrings, ",\n\t ");

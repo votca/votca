@@ -47,9 +47,8 @@ class DensityAnalysis : public QMTool {
 void DensityAnalysis::Initialize(tools::Property& user_options) {
 
   // get pre-defined default options from VOTCASHARE/xtp/xml/densityanalysis.xml
-  LoadDefaults("xtp");
-  // update options with user specified input
-  UpdateWithUserOptions(user_options);
+  // and merge it with the user input
+  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _gyration_options.get(".density2gyration");
 }
