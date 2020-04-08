@@ -589,8 +589,8 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  ERIs eris;
-  eris.Initialize(dftbasis, auxbasis);
+  // ERIs eris;
+  // eris.Initialize(dftbasis, auxbasis);
 
   Vxc_Grid grid;
   grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
@@ -618,8 +618,8 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
     for (int a = 0; a < 3; a++) {
 
       Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, sign * ao3dDipole.Matrix()[a]);
-      Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(DeltaN);
-      Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+      Eigen::MatrixXcd contract = _eris.ContractRightIndecesWithMatrix(DeltaN);
+      Eigen::MatrixXcd FxcInt = Fxc(DeltaN);//Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
       Eigen::MatrixXcd DeltaV =
           sign * ao3dDipole.Matrix()[a] + contract + FxcInt;
       EnergyGrad[k][a] = _density_Matrix.transpose()
@@ -659,8 +659,8 @@ std::complex<double> Sternheimer::KoopmanCorrection(Index n,
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  ERIs eris;
-  eris.Initialize(dftbasis, auxbasis);
+  // ERIs eris;
+  // eris.Initialize(dftbasis, auxbasis);
 
   Vxc_Grid grid;
   grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
@@ -678,13 +678,13 @@ std::complex<double> Sternheimer::KoopmanCorrection(Index n,
   // Build KI potentials
   //(1)
   Eigen::MatrixXcd vhxc_1 = Vxcpot.IntegrateVXC(_density_Matrix).matrix();
-  vhxc_1 += eris.ContractRightIndecesWithMatrix(_density_Matrix);
+  vhxc_1 += _eris.ContractRightIndecesWithMatrix(_density_Matrix);
   //(2)
   Eigen::MatrixXcd vhxc_2 = Vxcpot.IntegrateVXC(N_ref).matrix();
-  vhxc_2 += eris.ContractRightIndecesWithMatrix(N_ref);
+  vhxc_2 += _eris.ContractRightIndecesWithMatrix(N_ref);
   //(3)
   Eigen::MatrixXcd vhxc_3 = Vxcpot.IntegrateVXC(N_ref - N_n).matrix();
-  vhxc_3 += eris.ContractRightIndecesWithMatrix(N_ref - N_n);
+  vhxc_3 += _eris.ContractRightIndecesWithMatrix(N_ref - N_n);
   // constant
   std::complex<double> constant = (N_ref).cwiseProduct(vhxc_2).sum();
   constant -= (N_ref - N_n).cwiseProduct(vhxc_3).sum();
@@ -701,8 +701,8 @@ std::complex<double> Sternheimer::KoopmanRelaxationCoeff(
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  ERIs eris;
-  eris.Initialize(dftbasis, auxbasis);
+  // ERIs eris;
+  // eris.Initialize(dftbasis, auxbasis);
 
   Vxc_Grid grid;
   grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
@@ -718,13 +718,13 @@ std::complex<double> Sternheimer::KoopmanRelaxationCoeff(
   // Build inital perturbation
 
   Eigen::MatrixXcd FxcInt_init =
-      deltaf_n * Vxcpot.IntegrateFXC(_density_Matrix, N_n);
-  FxcInt_init += eris.ContractRightIndecesWithMatrix(N_n);
+      deltaf_n * Fxc(N_n);//Vxcpot.IntegrateFXC(_density_Matrix, N_n);
+  FxcInt_init += _eris.ContractRightIndecesWithMatrix(N_n);
 
   // Do Sternheimer
   Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, FxcInt_init);
-  Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(DeltaN);
-  Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+  Eigen::MatrixXcd contract = _eris.ContractRightIndecesWithMatrix(DeltaN);
+  Eigen::MatrixXcd FxcInt = Fxc(DeltaN); // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
   Eigen::MatrixXcd DeltaV = FxcInt_init + contract + FxcInt;
   // Calculate orbital relaxation coeffs
   alpha_n = (N_n).cwiseProduct(DeltaV).sum();
@@ -761,8 +761,8 @@ std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n,
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  ERIs eris;
-  eris.Initialize(dftbasis, auxbasis);
+  // ERIs eris;
+  // eris.Initialize(dftbasis, auxbasis);
 
   Vxc_Grid grid;
   grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
@@ -790,8 +790,8 @@ std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n,
     for (int a = 0; a < 3; a++) {
 
       Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, sign * ao3dDipole.Matrix()[a]);
-      Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(DeltaN);
-      Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+      Eigen::MatrixXcd contract = _eris.ContractRightIndecesWithMatrix(DeltaN);
+      Eigen::MatrixXcd FxcInt = Fxc(DeltaN); //Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
       Eigen::MatrixXcd DeltaV =
           sign * ao3dDipole.Matrix()[a] + contract + FxcInt;
       EnergyGrad[k][a] = _mo_coefficients.col(n).transpose() *
@@ -870,8 +870,8 @@ Eigen::MatrixXcd Sternheimer::ScreenedCoulomb(
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  ERIs eris;
-  eris.Initialize(dftbasis, auxbasis);
+  // ERIs eris;
+  // eris.Initialize(dftbasis, auxbasis);
 
   Vxc_Grid grid;
   grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
@@ -880,8 +880,8 @@ Eigen::MatrixXcd Sternheimer::ScreenedCoulomb(
   Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
   Eigen::MatrixXcd coulombmatrix = CoulombMatrix(gridpoint1);
   Eigen::MatrixXcd DeltaN = DeltaNSC(frequency, coulombmatrix);
-  Eigen::MatrixXcd contract = eris.ContractRightIndecesWithMatrix(DeltaN);
-  Eigen::MatrixXcd FxcInt = Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+  Eigen::MatrixXcd contract = _eris.ContractRightIndecesWithMatrix(DeltaN);
+  Eigen::MatrixXcd FxcInt = Fxc(DeltaN); //Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
   Eigen::MatrixXcd DeltaV = coulombmatrix + contract + FxcInt;
 
   return DeltaV;
