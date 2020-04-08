@@ -26,25 +26,26 @@
 
 namespace votca {
 namespace xtp {
-void KMCMultiple::Initialize(tools::Property& options) {
-  std::string key = "options." + Identify();
-  ParseCommonOptions(options);
-  _runtime =
-      options.ifExistsReturnElseThrowRuntimeError<double>(key + ".runtime");
-  _field = options.ifExistsReturnElseReturnDefault<Eigen::Vector3d>(
-      key + ".field", Eigen::Vector3d::Zero());
+void KMCMultiple::Initialize(tools::Property& user_options) {
+
+  // get pre-defined default options from VOTCASHARE/xtp/xml/kmcmultiple.xml and
+  // merge it with the user input
+  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+
+  _runtime = _options.ifExistsReturnElseThrowRuntimeError<double>(".runtime");
+  _field =
+      _options.ifExistsReturnElseThrowRuntimeError<Eigen::Vector3d>(".field");
   double mtobohr = 1E9 * tools::conv::nm2bohr;
   _field *=
       (tools::conv::ev2hrt / mtobohr);  // Converting from V/m to Hartree/bohr
 
   _outputtime =
-      options.ifExistsReturnElseReturnDefault<double>(key + ".outputtime", 0);
-  _timefile = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".timefile", _timefile);
+      _options.ifExistsReturnElseThrowRuntimeError<double>(".outputtime");
+  _timefile = _options.ifExistsReturnElseReturnDefault<std::string>(".timefile",
+                                                                    _timefile);
 
   std::string carriertype =
-      options.ifExistsReturnElseReturnDefault<std::string>(key + ".carriertype",
-                                                           "e");
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".carriertype");
   _carriertype = QMStateType(carriertype);
   if (!_carriertype.isKMCState()) {
     throw std::runtime_error("KMC cannot be run for state:" +
@@ -53,7 +54,6 @@ void KMCMultiple::Initialize(tools::Property& options) {
 
   _log.setReportLevel(Log::current_level);
   _log.setCommonPreface("\n ...");
-  return;
 }
 
 void KMCMultiple::PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor,

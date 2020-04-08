@@ -9,7 +9,7 @@
 	    <injectionpattern help="Name pattern that specifies on which sites injection is possible. Use the wildcard '*' to inject on any site." unit="" default="*">*</injectionpattern>
 	    <injectionmethod help="Options: random/equilibrated. random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" unit="" default="random">random</injectionmethod>
 	    <numberofcarriers help="Number of electrons/holes in the simulation box" unit="integer" default="1">1</numberofcarriers>
-	    <field help="external electric field" unit="V/m" default="0">0</field>
+	    <field help="external electric field" unit="V/m" default="0.0 0.0 0.0">0.0 0.0 0.0</field>
 	    <carriertype help="Options: electron/hole/singlet/triplet. Specifies the carrier type of the transport under consideration." unit="" default="electron">electron</carriertype>
 	    <temperature help="Temperature in Kelvin." unit="Kelvin" default="300">300</temperature>
     </kmcmultiple>
