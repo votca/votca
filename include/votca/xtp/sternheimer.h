@@ -27,6 +27,7 @@
 #include <votca/xtp/logger.h>
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
+#include "votca/xtp/ERIs.h"
 
 namespace votca {
 namespace xtp {
@@ -112,6 +113,8 @@ class Sternheimer {
 
   Eigen::MatrixXd _mo_coefficients;
   Eigen::VectorXd _mo_energies;
+
+  ERIs _eris;
 
   Eigen::Tensor<double, 4> _Fxc_presaved;
 

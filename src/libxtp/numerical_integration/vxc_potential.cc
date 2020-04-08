@@ -183,35 +183,36 @@ double Vxc_Potential<Grid>::EvaluateFXC(double rho) const {
   return result;
 }
 
-
 template <class Grid>
-Eigen::Tensor<double, 4> Vxc_Potential<Grid>::precalcFXC(const Eigen::MatrixXd density_matrix)const{
-Index nthreads = OPENMP::getMaxThreads();
+Eigen::Tensor<double, 4> Vxc_Potential<Grid>::precalcFXC(
+    const Eigen::MatrixXd density_matrix) const {
+  Index nthreads = OPENMP::getMaxThreads();
 
-  std::cout<<"started precalc of Fxc"<<std::endl;
+  std::cout << "started precalc of Fxc" << std::endl;
 
   // std::vector<Eigen::MatrixXcd> fxc_thread = std::vector<Eigen::MatrixXcd>(
   //     nthreads,
   //     Eigen::MatrixXcd::Zero(density_matrix.rows(), density_matrix.cols()));
 
-  //Initialize tensor to save (ijkl)
-  Eigen::Tensor<double, 4> result(density_matrix.cols(),density_matrix.cols(),density_matrix.cols(),density_matrix.cols());
+  // Initialize tensor to save (ijkl)
+  Eigen::Tensor<double, 4> result(density_matrix.cols(), density_matrix.cols(),
+                                  density_matrix.cols(), density_matrix.cols());
   result.setZero();
-//#pragma omp parallel for schedule(guided)
+  //#pragma omp parallel for schedule(guided)
 
-  //std::cout<<"number of boxes"<<_grid.getBoxesSize()<<std::endl;
-  //std::cout<<"test "<<result(1,2,3,4)<<std::endl;
+  // std::cout<<"number of boxes"<<_grid.getBoxesSize()<<std::endl;
+  // std::cout<<"test "<<result(1,2,3,4)<<std::endl;
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
-    std::cout<<"started loop i = "<<i<<std::endl;
+    std::cout << "started loop i = " << i << std::endl;
     const GridBox& box = _grid[i];
     if (!box.Matrixsize()) {
       continue;
     }
     const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
-    
+
     const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
     double cutoff =
-        1.e-40 / double(density_matrix.rows()) / double(density_matrix.rows()); 
+        1.e-40 / double(density_matrix.rows()) / double(density_matrix.rows());
     if (DMAT_here.cwiseAbs2().maxCoeff() < cutoff) {
       continue;
     }
@@ -222,21 +223,23 @@ Index nthreads = OPENMP::getMaxThreads();
 
     const std::vector<const AOShell*> significantShells = box.getShells();
 
-    //Find indices of used basis functions for this box
+    // Find indices of used basis functions for this box
     std::vector<Index> significantFunctionIndices;
 
-    for(Index s=0;s<box.getShells().size();s++){
-      for(Index f=0;f<significantShells.at(s)->getNumFunc();f++){
-        significantFunctionIndices.push_back(significantShells.at(s)->getStartIndex()+f);
+    for (Index s = 0; s < box.getShells().size(); s++) {
+      for (Index f = 0; f < significantShells.at(s)->getNumFunc(); f++) {
+        significantFunctionIndices.push_back(
+            significantShells.at(s)->getStartIndex() + f);
       }
     }
 
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
       Eigen::VectorXd ao = box.CalcAOValues(points[p]);
-      //std::cout<<"Number of basis functions "<<ao.size()<<std::endl;
-      //std::cout<<"Number of basis functions "<<significantFunctionIndices.size()<<std::endl<<std::endl;
-      
+      // std::cout<<"Number of basis functions "<<ao.size()<<std::endl;
+      // std::cout<<"Number of basis functions
+      // "<<significantFunctionIndices.size()<<std::endl<<std::endl;
+
       const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
       const double weight = weights[p];
       if (rho * weight < 1.e-20) {
@@ -244,26 +247,29 @@ Index nthreads = OPENMP::getMaxThreads();
       }
 
       double fxc = EvaluateFXC(rho);
-      
-      //Loop over significant shells and calculate (ijkl)
-      for(Index i2:significantFunctionIndices){
-        //std::cout<<"started loop i = "<<i<<std::endl;
-        for(Index j:significantFunctionIndices){
-          for(Index k:significantFunctionIndices){
-            for(Index l:significantFunctionIndices){
-              //std::cout<<"value = "<<weight*ao(i)*ao(j)*fxc*ao(k)*ao(l)<<std::endl;
-              result(i2,j,k,l)+=weight*ao(i2)*ao(j)*fxc*ao(k)*ao(l);
-              //std::cout<<"test"<<std::endl;
+
+      // Loop over significant shells and calculate (ijkl)
+      for (int i2 = 0; i2 < significantFunctionIndices.size(); i2++) {
+        for (int j = 0; j < significantFunctionIndices.size(); j++) {
+          for (int k = 0; k < significantFunctionIndices.size(); k++) {
+            for (int l = 0; l < significantFunctionIndices.size(); l++) {
+              // std::cout<<"value =
+              // "<<weight*ao(i)*ao(j)*fxc*ao(k)*ao(l)<<std::endl;
+              result(significantFunctionIndices.at(i2),
+                     significantFunctionIndices.at(j),
+                     significantFunctionIndices.at(k),
+                     significantFunctionIndices.at(l)) +=
+                  weight * ao(i2) * ao(j) * fxc * ao(k) * ao(l);
+              // std::cout<<"test"<<std::endl;
             }
           }
         }
       }
     }
   }
-std::cout<<"Finished precalc"<<std::endl;
-return result;
+  std::cout << "Finished precalc" << std::endl;
+  return result;
 }
-
 
 template <class Grid>
 Eigen::MatrixXcd Vxc_Potential<Grid>::IntegrateFXC(
@@ -287,7 +293,7 @@ Eigen::MatrixXcd Vxc_Potential<Grid>::IntegrateFXC(
         box.ReadFromBigMatrix(perturbation);
     const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
     double cutoff =
-        1.e-40 / double(density_matrix.rows()) / double(density_matrix.rows()); 
+        1.e-40 / double(density_matrix.rows()) / double(density_matrix.rows());
     if (DMAT_here.cwiseAbs2().maxCoeff() < cutoff) {
       continue;
     }
@@ -308,19 +314,17 @@ Eigen::MatrixXcd Vxc_Potential<Grid>::IntegrateFXC(
       double fxc = EvaluateFXC(rho);
       std::complex<double> pert_coeff =
           (ao.transpose() * perturbation_here * ao).value();
-      Fxc_here += weight*pert_coeff * fxc * ao * ao.transpose();
+      Fxc_here += weight * pert_coeff * fxc * ao * ao.transpose();
     }
     box.AddtoBigMatrix(fxc_thread[OPENMP::getThreadId()], Fxc_here);
   }
-  
-Eigen::MatrixXcd Fxc = std::accumulate(
+
+  Eigen::MatrixXcd Fxc = std::accumulate(
       fxc_thread.begin(), fxc_thread.end(),
       Eigen::MatrixXcd::Zero(density_matrix.rows(), density_matrix.cols())
           .eval());
-return Fxc;
+  return Fxc;
 }
-
-
 
 template <class Grid>
 Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(

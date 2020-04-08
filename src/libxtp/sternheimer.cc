@@ -51,6 +51,10 @@ void Sternheimer::setUpMatrices() {
   this->_Hamiltonian_Matrix = Hamiltonian();
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
+  AOBasis auxbasis = _orbitals.SetupAuxBasis();
+  ERIs eris;
+  _eris.Initialize(dftbasis, auxbasis);
+
   Vxc_Grid grid;
   grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
                  dftbasis);
@@ -157,22 +161,18 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
 		<< " sec"<<std::endl<<std::endl;
 
   // Setting up ERIS for four center integral
-  AOBasis dftbasis = _orbitals.SetupDftBasis();
-  AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  ERIs eris;
-  eris.Initialize(dftbasis, auxbasis);
-
+  
   auto setupinter2 = std::chrono::steady_clock::now();
   std::cout << "ERIS done: " 
 		<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter2 - setupinter1).count()
 		<< " sec"<<std::endl<<std::endl;
 
   // Setting up Grid for Fxc functional
-  Vxc_Grid grid;
-  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                 dftbasis);
-  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
-  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+  // Vxc_Grid grid;
+  // grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+  //                dftbasis);
+  // Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  // Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
   auto setupinter3 = std::chrono::steady_clock::now();
   std::cout << "grid setup done: " 
@@ -240,7 +240,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
 		<< " sec"<<std::endl<<std::endl;
     // Perfomring the to four center Integrals to update delta V
     Eigen::MatrixXcd contract =
-        eris.ContractRightIndecesWithMatrix(delta_n_out_new);
+        _eris.ContractRightIndecesWithMatrix(delta_n_out_new);
 
   auto inter4 = std::chrono::steady_clock::now();
   std::cout << "Hartree integral done: " 
@@ -248,9 +248,9 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
 		<< " sec"<<std::endl<<std::endl;
 
 
-    Eigen::MatrixXcd FxcInt =
-       Vxcpot.IntegrateFXC(_density_Matrix, delta_n_out_new);
-    Eigen::MatrixXcd FxcInt2 = Fxc(delta_n_out_new);
+    //Eigen::MatrixXcd FxcInt =
+    //  Vxcpot.IntegrateFXC(_density_Matrix, delta_n_out_new);
+    Eigen::MatrixXcd FxcInt = Fxc(delta_n_out_new);
     auto inter5 = std::chrono::steady_clock::now();
     //std::cout<<"Classic: \n"<<FxcInt<<std::endl<<std::endl;
     //std::cout<<"Presaved: \n"<<FxcInt2<<std::endl<<std::endl;
