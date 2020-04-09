@@ -4,6 +4,7 @@ project(QDMEwald)
 
 option(QDMEwald_USE_CUDA "Using CUDA backend for GPU support" OFF)
 option(QDMEwald_KOKKOS_ARCH "Settings for the Kokkos architecture used" "BDW")
+option(QDMEwald_KOKKOS_ARCH "Settings for the Kokkos GPU architecture used" "Kepler30")
 
 option(QDMEwald_EWALD_KONLY "executable only computes k-space contribution of Ewald solver" OFF)
 option(QDMEwald_EWALD_RONLY "executable only computes r-space and smaller contributions of Ewald solver" OFF)
@@ -18,6 +19,7 @@ if (QDMEwald_USE_CUDA)
 endif (QDMEwald_USE_CUDA)
 
 set(KOKKOS_ARCH "-DKokkos_ARCH_${QDMEwald_KOKKOS_ARCH}=ON" CACHE STRING "Kokkos architecture string")
+set(KOKKOS_GPU_ARCH "-DKokkos_ARCH_${QDMEwald_KOKKOS_GPU_ARCH}=ON" CACHE STRING "Kokkos GPU architecture string")
 set(KOKKOS_ENABLE_SERIAL ON CACHE BOOL "Kokkos serial option")
 set(KOKKOS_ENABLE_OPENMP ON CACHE BOOL "Kokkos OpenMP option")
 
@@ -58,7 +60,8 @@ if (QDMEwald_USE_CUDA)
         SOURCE_DIR ${KOKKOS_INSTALL_DIR}
         #CONFIGURE_COMMAND CXX=${CMAKE_BINARY_DIR}/${KOKKOS_INSTALL_DIR}/bin/nvcc_wrapper cmake <SOURCE_DIR> -DKOKKOS_ARCH=${KOKKOS_ARCH} 
         CONFIGURE_COMMAND cmake <SOURCE_DIR>
-                          ${KOKKOS_ARCH} 
+                          ${KOKKOS_ARCH}
+                          ${KOKKOS_GPU_ARCH} 
                           -DKokkos_ENABLE_SERIAL:BOOL=ON 
                           -DKokkos_ENABLE_OPENMP:BOOL=ON
                           -DKokkos_ENABLE_CUDA:BOOL=ON
@@ -93,8 +96,7 @@ set (
     KOKKOS_BUILD_DIR
     ${INSTALL_DIR}
 )
-list(APPEND QDMEwald_LIBS ${KOKKOS_INSTALL_PREFIX}/lib/libkokkoscore.a)
-#list(APPEND QDMEwald_LIBS ${KOKKOS_INSTALL_PREFIX}/lib${BIT64FLAG}/libkokkoscore.a)
+list(APPEND QDMEwald_LIBS ${KOKKOS_INSTALL_PREFIX}/lib${BIT64FLAG}/libkokkoscore.a)
 include_directories(${KOKKOS_INSTALL_PREFIX}/include)
 
 #setting Cabana up
