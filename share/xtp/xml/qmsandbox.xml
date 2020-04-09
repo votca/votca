@@ -1,0 +1,10 @@
+<options>
+	<qmsandbox help="Sandbox to test xtp classes" label="sec:qmsanbox">
+		<ID help="Not in use">ID</ID>
+		<orbfile help="Orb file with the calculation's output" default="votca.orb">votca.orb</orbfile>
+        <espfile></espfile>
+		<dipole_split></dipole_split>
+		<quadrupole></quadrupole>
+		<quadrupole_split></quadrupole_split>
+	</qmsandbox>
+</options>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,18 +23,18 @@
 namespace votca {
 namespace xtp {
 
-void APDFT::Initialize(tools::Property &opt) {
+void APDFT::Initialize(tools::Property &user_options) {
 
-  std::string key = "options." + Identify();
+  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _grid_accuracy =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".grid");
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".grid");
   _orbfile =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".input");
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
   _outputfile =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".output");
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
   std::string statestring =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
+      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".state");
   _state.FromString(statestring);
 }
 
