@@ -62,8 +62,7 @@ void EQM::Initialize(tools::Property& user_options) {
 
 void EQM::WriteJobFile(const Topology& top) {
 
-  std::cout
-            << "\n... ... Writing job file: " << _jobfile << std::flush;
+  std::cout << "\n... ... Writing job file: " << _jobfile << std::flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open()) {
