@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,7 +21,7 @@
 #ifndef _CALC_XTP_EQM_H
 #define _CALC_XTP_EQM_H
 
-#include <votca/xtp/gwbse.h>  // including GWBSE functionality
+#include <votca/xtp/gwbse.h>
 #include <votca/xtp/parallelxjobcalc.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/segment.h>
@@ -30,12 +30,11 @@ namespace votca {
 namespace xtp {
 
 /**
- * \brief GWBSE implementation
+ * \brief Run DFT/GWBSE calculations
  *
  * Evaluates DFT and GWBSE for all molecules
  * Requires a first-principles package, i.e. ORCA
  *
- * Callname: eqm
  */
 
 class EQM : public ParallelXJobCalc<std::vector<Job> > {
@@ -54,21 +53,20 @@ class EQM : public ParallelXJobCalc<std::vector<Job> > {
 
   void SetJobToFailed(Job::JobResult &jres, Logger &pLog,
                       const std::string &errormessage);
-  void ParseOptionsXML(tools::Property &options);
 
   tools::Property _package_options;
   tools::Property _gwbse_options;
   tools::Property _esp_options;
 
   // what to do
-  bool _do_dft_input;
-  bool _do_dft_run;
-  bool _do_dft_parse;
-  bool _do_gwbse;
-  bool _do_esp;
+  bool _do_dft_input = false;
+  bool _do_dft_run = false;
+  bool _do_dft_parse = false;
+  bool _do_gwbse = false;
+  bool _do_esp = false;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _CALC_GWBSE_TOOL_H */
+#endif
