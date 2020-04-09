@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -30,23 +30,15 @@ using namespace boost::filesystem;
 namespace votca {
 namespace xtp {
 
-void EQM::Initialize(tools::Property& options) {
+void EQM::Initialize(tools::Property& user_options) {
 
-  _do_dft_input = false;
-  _do_dft_run = false;
-  _do_dft_parse = false;
-  _do_gwbse = false;
-  _do_esp = false;
-  ParseCommonOptions(options);
-  ParseOptionsXML(options);
+  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  ParseCommonOptions();
   QMPackageFactory::RegisterAll();
-}
 
-void EQM::ParseOptionsXML(tools::Property& options) {
-
-  std::string key = "options." + Identify();
   // job tasks
-  std::string _tasks_string = options.get(key + ".tasks").as<std::string>();
+  std::string _tasks_string = _options.get(".tasks").as<std::string>();
+
   if (_tasks_string.find("input") != std::string::npos) {
     _do_dft_input = true;
   }
@@ -63,31 +55,15 @@ void EQM::ParseOptionsXML(tools::Property& options) {
     _do_esp = true;
   }
 
-  if (_do_gwbse) {
-    std::string gwbse_xml =
-        options.get(key + ".gwbse_options").as<std::string>();
-    _gwbse_options.LoadFromXML(gwbse_xml);
-  }
-
-  if (_do_dft_input || _do_dft_run || _do_dft_parse) {
-    // options for dft package
-    std::string package_xml =
-        options.get(key + ".dftpackage").as<std::string>();
-    _package_options.LoadFromXML(package_xml);
-  }
-
-  // options for esp/partialcharges
-  if (_do_esp) {
-    key = "options." + Identify();
-    std::string _esp_xml = options.get(key + ".esp_options").as<std::string>();
-    _esp_options.LoadFromXML(_esp_xml);
-  }
+  _gwbse_options = _options.get(".gwbse_options");
+  _package_options = _options.get(".dftpackage");
+  _esp_options = _options.get(".esp_options");
 }
 
 void EQM::WriteJobFile(const Topology& top) {
 
-  std::cout << std::endl
-            << "... ... Writing job file: " << _jobfile << std::flush;
+  std::cout
+            << "\n... ... Writing job file: " << _jobfile << std::flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open()) {

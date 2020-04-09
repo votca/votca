@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,46 +26,32 @@
 namespace votca {
 namespace xtp {
 
-void QMMM::Initialize(tools::Property& options) {
+void QMMM::Initialize(tools::Property& user_options) {
 
-  std::string key = "options." + Identify();
-  ParseCommonOptions(options);
-  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".job_file");
+  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  ParseCommonOptions();
 
-  _print_regions_pdb = options.ifExistsReturnElseReturnDefault(
-      key + ".print_regions_pdb", _print_regions_pdb);
+  _jobfile = _options.get(".job_file").as<std::string>();
+  _print_regions_pdb = _options.get(".print_regions_pdb").as<bool>();
+  _max_iterations = _options.get(".max_iterations").as<Index>();
+  _regions_def = _options.get(".regions");
+  _regions_def.add("mapfile", _mapfile);
 
-  _max_iterations = options.ifExistsReturnElseReturnDefault(
-      key + ".max_iterations", _max_iterations);
-
-  if (options.exists(key + ".regions")) {
-    _regions_def = options.get(key + ".regions");
-    _regions_def.add("mapfile", _mapfile);
-  } else {
-    throw std::runtime_error("No region definitions found in optionsfile");
+  std::string states = _options.get(".write_parse.states").as<std::string>();
+  tools::Tokenizer tok(states, " ,;\n\t");
+  std::vector<std::string> statestrings = tok.ToVector();
+  _states.reserve(statestrings.size());
+  for (std::string s : statestrings) {
+    _states.push_back(QMState(s));
   }
-
-  if (options.exists(key + ".write_parse")) {
-    _write_parse = true;
-
-    std::string states = options.ifExistsReturnElseReturnDefault<std::string>(
-        key + ".write_parse.states", "e h");
-    tools::Tokenizer tok(states, " ,;\n\t");
-    std::vector<std::string> statestrings = tok.ToVector();
-    _states.reserve(statestrings.size());
-    for (std::string s : statestrings) {
-      _states.push_back(QMState(s));
+  bool groundstate_found = false;
+  for (const QMState& state : _states) {
+    if (state.Type() == QMStateType::Gstate) {
+      groundstate_found = true;
     }
-    bool groundstate_found = false;
-    for (const QMState& state : _states) {
-      if (state.Type() == QMStateType::Gstate) {
-        groundstate_found = true;
-      }
-    }
-    if (!groundstate_found) {
-      _states.push_back(QMState("n"));
-    }
+  }
+  if (!groundstate_found) {
+    _states.push_back(QMState("n"));
   }
 }
 
