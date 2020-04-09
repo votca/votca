@@ -47,10 +47,7 @@ class Log2Mps : public QMTool {
 
 void Log2Mps::Initialize(tools::Property &user_options) {
 
-  // get pre-defined default options from VOTCASHARE/xtp/xml/log2mps.xml
-  LoadDefaults("xtp");
-  // update options with user specified input
-  UpdateWithUserOptions(user_options);
+  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   QMPackageFactory::RegisterAll();
 
