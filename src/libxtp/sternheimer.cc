@@ -20,6 +20,7 @@
 #include "votca/xtp/ERIs.h"
 #include "votca/xtp/adiis.h"
 #include "votca/xtp/diis.h"
+#include <chrono>
 #include <fstream>
 #include <votca/tools/property.h>
 #include <votca/xtp/aobasis.h>
@@ -34,7 +35,6 @@
 #include <votca/xtp/sternheimer.h>
 #include <votca/xtp/vxc_grid.h>
 #include <votca/xtp/vxc_potential.h>
-#include <chrono>
 namespace votca {
 namespace xtp {
 
@@ -138,7 +138,7 @@ Eigen::VectorXcd Sternheimer::SternheimerRHS(
 Eigen::MatrixXcd Sternheimer::DeltaNSC(
     std::complex<double> w, const Eigen::MatrixXcd& perturbation) const {
 
-  //auto start = std::chrono::steady_clock::now();
+  // auto start = std::chrono::steady_clock::now();
 
   // Setting up vectors to store old results for Anderson mixing and initial
   // perturbation
@@ -156,20 +156,22 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
       Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
 
   // auto setupinter1 = std::chrono::steady_clock::now();
-  // std::cout << "init done: " 
-	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter1 - start).count()
-	// 	<< " sec"<<std::endl<<std::endl;
+  // std::cout << "init done: "
+  // 	<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter1 -
+  // start).count()
+  // 	<< " sec"<<std::endl<<std::endl;
 
   // Setting up ERIS for four center integral
-  
+
   // auto setupinter2 = std::chrono::steady_clock::now();
-  // std::cout << "ERIS done: " 
-	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter2 - setupinter1).count()
-	// 	<< " sec"<<std::endl<<std::endl;
+  // std::cout << "ERIS done: "
+  // 	<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter2 -
+  // setupinter1).count()
+  // 	<< " sec"<<std::endl<<std::endl;
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
 
-  //Setting up Grid for Fxc functional
+  // Setting up Grid for Fxc functional
   // Vxc_Grid grid;
   // grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
   //                dftbasis);
@@ -177,23 +179,23 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
   // Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
   // auto setupinter3 = std::chrono::steady_clock::now();
-  // std::cout << "grid setup done: " 
-	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter3 - setupinter2).count()
-	// 	<< " sec"<<std::endl<<std::endl;
+  // std::cout << "grid setup done: "
+  // 	<< std::chrono::duration_cast<std::chrono::milliseconds>(setupinter3 -
+  // setupinter2).count()
+  // 	<< " sec"<<std::endl<<std::endl;
 
   // double alpha = 4*(_mo_energies(_mo_energies.size()-1)-_mo_energies(0));
   double alpha = 1000;
   // Loop until convergence
 
   // auto inter1 = std::chrono::steady_clock::now();
-  // std::cout << "Setup done: " 
-	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter1 - start).count()
-	// 	<< " sec"<<std::endl<<std::endl;
-
-
+  // std::cout << "Setup done: "
+  // 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter1 -
+  // start).count()
+  // 	<< " sec"<<std::endl<<std::endl;
 
   for (Index n = 0; n < _opt.max_iterations_sc_sternheimer; n++) {
-    //auto ref = std::chrono::steady_clock::now();
+    // auto ref = std::chrono::steady_clock::now();
     // Matrices to store the solutions of the sternheimer equation
     Eigen::MatrixXcd solution_p =
         Eigen::MatrixXcd::Zero(_basis_size, _num_occ_lvls);
@@ -221,11 +223,11 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
       solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
     }
 
-  //   auto inter2 = std::chrono::steady_clock::now();
-  // std::cout << "Sternheimer equation solved for all occ state: " 
-	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter2 - ref).count()
-	// 	<< " sec"<<std::endl<<std::endl;
-
+    //   auto inter2 = std::chrono::steady_clock::now();
+    // std::cout << "Sternheimer equation solved for all occ state: "
+    // 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter2 -
+    // ref).count()
+    // 	<< " sec"<<std::endl<<std::endl;
 
     // Saving previous delta n
     delta_n_out_old = delta_n_out_new;
@@ -236,19 +238,20 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
         2 * _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls) *
             solution_m.transpose();
 
-  // auto inter3 = std::chrono::steady_clock::now();
-  // std::cout << "Delta N updated: " 
-	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter3 - inter2).count()
-	// 	<< " sec"<<std::endl<<std::endl;
+    // auto inter3 = std::chrono::steady_clock::now();
+    // std::cout << "Delta N updated: "
+    // 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter3 -
+    // inter2).count()
+    // 	<< " sec"<<std::endl<<std::endl;
     // Perfomring the to four center Integrals to update delta V
     Eigen::MatrixXcd contract =
         _eris.ContractRightIndecesWithMatrix(delta_n_out_new);
 
-  // auto inter4 = std::chrono::steady_clock::now();
-  // std::cout << "Hartree integral done: " 
-	// 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter4 - inter3).count()
-	// 	<< " sec"<<std::endl<<std::endl;
-
+    // auto inter4 = std::chrono::steady_clock::now();
+    // std::cout << "Hartree integral done: "
+    // 	<< std::chrono::duration_cast<std::chrono::milliseconds>(inter4 -
+    // inter3).count()
+    // 	<< " sec"<<std::endl<<std::endl;
 
     // Eigen::MatrixXcd FxcInt =
     //   Vxcpot.IntegrateFXC(_density_Matrix, delta_n_out_new);
@@ -257,11 +260,13 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
     // std::cout<<"Classic: \n"<<FxcInt<<std::endl<<std::endl;
     // std::cout<<"Presaved: \n"<<FxcInt2<<std::endl<<std::endl;
     // std::cout<<"diff: \n"<<FxcInt-FxcInt2<<std::endl<<std::endl;
-    // std::cout<<"diff norm: \n"<<(FxcInt-FxcInt2).norm()<<std::endl<<std::endl;
+    // std::cout<<"diff norm:
+    // \n"<<(FxcInt-FxcInt2).norm()<<std::endl<<std::endl;
 
-    // std::cout << "Fxc integral done: " 
-		// << std::chrono::duration_cast<std::chrono::milliseconds>(inter5 - inter4).count()
-		// << " sec"<<std::endl<<std::endl;    
+    // std::cout << "Fxc integral done: "
+    // << std::chrono::duration_cast<std::chrono::milliseconds>(inter5 -
+    // inter4).count()
+    // << " sec"<<std::endl<<std::endl;
 
     // Check if max mixing history is reached and adding new step to history
     if (perturbationVectoroutput.size() > _opt.max_mixing_history - 1) {
@@ -307,9 +312,10 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
       perturbationVectorInput.push_back(perturbationUsed);
     }
     // auto inter6 = std::chrono::steady_clock::now();
-    // std::cout << "Mixing done, cycle finished: " 
-		// << std::chrono::duration_cast<std::chrono::milliseconds>(inter6 - inter5).count()
-		// << " sec"<<std::endl<<std::endl<<std::endl;
+    // std::cout << "Mixing done, cycle finished: "
+    // << std::chrono::duration_cast<std::chrono::milliseconds>(inter6 -
+    // inter5).count()
+    // << " sec"<<std::endl<<std::endl<<std::endl;
   }
 
   std::cout << "NOT converged the frequency is w = " << w << std::endl;
@@ -380,34 +386,37 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
   return alpha * OutMixed + (1 - alpha) * InMixed;
 }
 
-Eigen::MatrixXcd Sternheimer::Fxc(Eigen::MatrixXcd deltaN) const{
+Eigen::MatrixXcd Sternheimer::Fxc(Eigen::MatrixXcd deltaN) const {
 
   Index vectorSize = (_basis_size * (_basis_size + 1)) / 2;
 
-  Eigen::MatrixXcd Fxc_sum=Eigen::MatrixXcd::Zero(deltaN.cols(),deltaN.cols());
+  Eigen::MatrixXcd Fxc_sum =
+      Eigen::MatrixXcd::Zero(deltaN.cols(), deltaN.cols());
 
-  for (Index i = 0; i  < _basis_size; i++) {
-    Index sum_i = (i*(i+1)) / 2;
-    for(Index j = i; j<_basis_size; j++){
-      Index index_ij = _basis_size * i - sum_i +j;
-      Index index_ij_kl_a = vectorSize * index_ij - (index_ij * (index_ij + 1)) /2;
-      for(Index k = 0; k < _basis_size; k++) {
+  for (Index i = 0; i < _basis_size; i++) {
+    Index sum_i = (i * (i + 1)) / 2;
+    for (Index j = i; j < _basis_size; j++) {
+      Index index_ij = _basis_size * i - sum_i + j;
+      Index index_ij_kl_a =
+          vectorSize * index_ij - (index_ij * (index_ij + 1)) / 2;
+      for (Index k = 0; k < _basis_size; k++) {
         Index sum_k = (k * (k + 1)) / 2;
-        for(Index l = k; l<_basis_size; l++){
+        for (Index l = k; l < _basis_size; l++) {
           Index index_kl = _basis_size * k - sum_k + l;
           Index index_ij_kl = index_ij_kl_a + index_kl;
-          if(index_ij>index_kl){
-            index_ij_kl = vectorSize *index_kl - (index_kl * (index_kl + 1)) / 2 + index_ij;
+          if (index_ij > index_kl) {
+            index_ij_kl = vectorSize * index_kl -
+                          (index_kl * (index_kl + 1)) / 2 + index_ij;
           }
-          if(l == k){
-            Fxc_sum(i,j)+= deltaN(k,l)*_Fxc_presaved(index_ij_kl);
+          if (l == k) {
+            Fxc_sum(i, j) += deltaN(k, l) * _Fxc_presaved(index_ij_kl);
           } else {
-            Fxc_sum(i,j) += (deltaN(k, l)+deltaN(l,k)) * _Fxc_presaved(index_ij_kl);
-            
+            Fxc_sum(i, j) +=
+                (deltaN(k, l) + deltaN(l, k)) * _Fxc_presaved(index_ij_kl);
           }
         }
       }
-      Fxc_sum(j,i)=Fxc_sum(i,j);
+      Fxc_sum(j, i) = Fxc_sum(i, j);
     }
   }
   return Fxc_sum;
@@ -619,7 +628,8 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
 
       Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, sign * ao3dDipole.Matrix()[a]);
       Eigen::MatrixXcd contract = _eris.ContractRightIndecesWithMatrix(DeltaN);
-      Eigen::MatrixXcd FxcInt = Fxc(DeltaN);//Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+      Eigen::MatrixXcd FxcInt =
+          Fxc(DeltaN);  // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
       Eigen::MatrixXcd DeltaV =
           sign * ao3dDipole.Matrix()[a] + contract + FxcInt;
       EnergyGrad[k][a] = _density_Matrix.transpose()
@@ -662,12 +672,12 @@ std::complex<double> Sternheimer::KoopmanCorrection(Index n,
   // ERIs eris;
   // eris.Initialize(dftbasis, auxbasis);
 
-   Vxc_Grid grid;
-   grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                  dftbasis);
-   Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  Vxc_Grid grid;
+  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                 dftbasis);
+  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
 
-   Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
   // Build reference density matrix
   Eigen::MatrixXd N_n =
@@ -718,13 +728,14 @@ std::complex<double> Sternheimer::KoopmanRelaxationCoeff(
   // Build inital perturbation
 
   Eigen::MatrixXcd FxcInt_init =
-      deltaf_n * Fxc(N_n);//Vxcpot.IntegrateFXC(_density_Matrix, N_n);
+      deltaf_n * Fxc(N_n);  // Vxcpot.IntegrateFXC(_density_Matrix, N_n);
   FxcInt_init += _eris.ContractRightIndecesWithMatrix(N_n);
 
   // Do Sternheimer
   Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, FxcInt_init);
   Eigen::MatrixXcd contract = _eris.ContractRightIndecesWithMatrix(DeltaN);
-  Eigen::MatrixXcd FxcInt = Fxc(DeltaN); // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+  Eigen::MatrixXcd FxcInt =
+      Fxc(DeltaN);  // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
   Eigen::MatrixXcd DeltaV = FxcInt_init + contract + FxcInt;
   // Calculate orbital relaxation coeffs
   alpha_n = (N_n).cwiseProduct(DeltaV).sum();
@@ -791,7 +802,8 @@ std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n,
 
       Eigen::MatrixXcd DeltaN = DeltaNSC(0.0, sign * ao3dDipole.Matrix()[a]);
       Eigen::MatrixXcd contract = _eris.ContractRightIndecesWithMatrix(DeltaN);
-      Eigen::MatrixXcd FxcInt = Fxc(DeltaN); //Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+      Eigen::MatrixXcd FxcInt =
+          Fxc(DeltaN);  // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
       Eigen::MatrixXcd DeltaV =
           sign * ao3dDipole.Matrix()[a] + contract + FxcInt;
       EnergyGrad[k][a] = _mo_coefficients.col(n).transpose() *
@@ -870,18 +882,14 @@ Eigen::MatrixXcd Sternheimer::ScreenedCoulomb(
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  // ERIs eris;
-  // eris.Initialize(dftbasis, auxbasis);
 
-  // Vxc_Grid grid;
-  // grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-  //                dftbasis);
-  // Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  // Vxc_Potential<Vxc_Grid> Vxcpot(_grid);
   // Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
   Eigen::MatrixXcd coulombmatrix = CoulombMatrix(gridpoint1);
   Eigen::MatrixXcd DeltaN = DeltaNSC(frequency, coulombmatrix);
   Eigen::MatrixXcd contract = _eris.ContractRightIndecesWithMatrix(DeltaN);
-  Eigen::MatrixXcd FxcInt = Fxc(DeltaN); //Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+  Eigen::MatrixXcd FxcInt =
+      Fxc(DeltaN);  // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
   Eigen::MatrixXcd DeltaV = coulombmatrix + contract + FxcInt;
 
   return DeltaV;
@@ -907,66 +915,89 @@ Eigen::VectorXd Sternheimer::EvaluateBasisAtPosition(
   return tmat;
 }
 
-Eigen::MatrixXcd Sternheimer::SelfEnergy_at_r(double omega,
-                                                  Eigen::Vector3d gridpoint1) const {
+Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
+                                               double omega_p) const {
+  // This function calculates GW at w and w_p (i.e before integral over
+  // frequencies)
+  // It perform the spatial grid integration. The final object is a matrix
+  AOBasis basis = _orbitals.SetupDftBasis();
+  Vxc_Grid _grid;
+  _grid.GridSetup("xcoarse", _orbitals.QMAtoms(), basis);
+
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<Eigen::MatrixXcd> sigma_thread = std::vector<Eigen::MatrixXcd>(
+      nthreads,
+      Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols()));
+
+#pragma omp parallel for schedule(guided)
+  for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
+    const GridBox& box = _grid[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+    const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(_density_Matrix);
+
+    const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
+    double cutoff = 1.e-40 / double(_density_Matrix.rows()) /
+                    double(_density_Matrix.rows());
+    if (DMAT_here.cwiseAbs2().maxCoeff() < cutoff) {
+      continue;
+    }
+
+    Eigen::MatrixXcd sigma_here =
+        Eigen::MatrixXcd::Zero(DMAT_here.rows(), DMAT_here.cols());
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+    // iterate over gridpoints
+    for (Index p = 0; p < box.size(); p++) {
+      Eigen::VectorXd ao = box.CalcAOValues(points[p]);
+      const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
+      const double weight = weights[p];
+      if (rho * weight < 1.e-20) {
+        continue;  // skip the rest, if density is very small
+      }
+      Eigen::MatrixXcd gw_c =
+          GreensFunction(omega + omega_p) *
+          (ScreenedCoulomb(points[p], omega_p) - CoulombMatrix(points[p]));
+      const Eigen::MatrixXcd sigma_r = box.ReadFromBigMatrix(gw_c);
+      sigma_here += weight * ao * ao.transpose() * sigma_r;
+    }
+
+    box.AddtoBigMatrix(sigma_thread[OPENMP::getThreadId()], sigma_here);
+  }
+
+  Eigen::MatrixXcd sigma = std::accumulate(
+      sigma_thread.begin(), sigma_thread.end(),
+      Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols())
+          .eval());
+  return sigma;
+}
+
+Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(double omega) const {
 
   std::vector<std::complex<double>> w = BuildGrid(
       _opt.start_frequency_grid, _opt.end_frequency_grid,
       _opt.number_of_frequency_grid_points, _opt.imaginary_shift_pade_approx);
 
-  AOBasis basis = _orbitals.SetupDftBasis();
-  Eigen::VectorXd chi = EvaluateBasisAtPosition(basis, gridpoint1);
-  Eigen::MatrixXd left = chi * chi.transpose();
-  Eigen::MatrixXcd right = Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
   // Integral over frequencies omega: trapezoidal rule
+  // I would like to implement some Gaussian quadrature instead 
   double delta = (_opt.end_frequency_grid - _opt.start_frequency_grid) /
                  _opt.number_of_frequency_grid_points;
   Index i = 0;
-  Eigen::MatrixXcd coulombmatrix = CoulombMatrix(gridpoint1);
-  
+  Eigen::MatrixXcd right = Eigen::MatrixXcd::Zero(_density_Matrix.cols(),_density_Matrix.cols());
   for (std::complex<double> omega_p : w) {
 
     if (i == 0) {
-      right += 0.5 * GreensFunction(omega + omega_p) *
-               (ScreenedCoulomb(gridpoint1, omega_p) - coulombmatrix);
+      right += 0.5 * SelfEnergy_at_wp(omega, omega_p.real());
     } else if (i == _opt.number_of_frequency_grid_points - 1) {
-      right += 0.5 * GreensFunction(omega + omega_p) *
-               (ScreenedCoulomb(gridpoint1, omega_p) - coulombmatrix);
+      right += 0.5 * SelfEnergy_at_wp(omega, omega_p.real());
     } else {
-      right += GreensFunction(omega + omega_p) *
-               (ScreenedCoulomb(gridpoint1, omega_p) - coulombmatrix);
+      right += SelfEnergy_at_wp(omega, omega_p.real());
     }
     i++;
   }
-
-  return left * right;
+  return right;
          
-}
-
-Eigen::VectorXcd Sternheimer::SelfEnergy(double omega) const {
-  AOBasis basis = _orbitals.SetupDftBasis();
-  Vxc_Grid grid;
-  grid.GridSetup("xcoarse", _orbitals.QMAtoms(),
-                 basis);
-
-  std::complex<double> prefactor(0., 1.0 / (2 * std::acos(-1.0)));  // i/2pi
-
-  Eigen::MatrixXcd corrections = Eigen::MatrixXcd::Zero(_basis_size,_basis_size);
-  
-  for (Index i = 0; i < grid.getBoxesSize(); ++i) {
-    const GridBox& box = grid[i];
-    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-    const std::vector<double>& weights = box.getGridWeights();
-    for (Index p = 0; p < box.size(); p++) {
-      corrections += weights[p] * SelfEnergy_at_r(omega, points[p]);
-    }
-  }
-  Index n_levels = _mo_coefficients.cols();
-  Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_levels);
-  for (Index n = 0; n < n_levels; ++n){
-    results(n) = _mo_coefficients.col(n).cwiseProduct(corrections*_mo_coefficients.col(n)).sum();
-  }
-  return corrections;
 }
 
 }  // namespace xtp

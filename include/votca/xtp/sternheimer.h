@@ -28,6 +28,7 @@
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
 #include "votca/xtp/ERIs.h"
+#include <votca/xtp/vxc_grid.h>
 
 namespace votca {
 namespace xtp {
@@ -86,10 +87,9 @@ class Sternheimer {
   // Returns Isotropic Average from Polarizability Tensor
   std::vector<double> getIsotropicAverage(
       std::vector<Eigen::Matrix3cd>& polar) const;
-  // Return Self-Energy in one grid point r
-  Eigen::MatrixXcd SelfEnergy_at_r(double omega, Eigen::Vector3d gridpoint1) const;
   // Return Self-Energy 
-  Eigen::VectorXcd SelfEnergy(double omega) const;
+  Eigen::MatrixXcd SelfEnergy_at_wp(double omega, double omega_p) const;
+  Eigen::MatrixXcd SelfEnergy_at_w(double omega) const;
  private:
   Logger& _log;
 

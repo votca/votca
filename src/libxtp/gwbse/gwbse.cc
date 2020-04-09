@@ -746,8 +746,9 @@ bool GWBSE::Evaluate() {
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Started Sternheimer GW" << flush;
       sternheimer.configurate(opt);
-      Eigen::VectorXcd results = sternheimer.SelfEnergy(_orbitals.MOs().eigenvalues()(0));
-      std::cout << "Sternheimer results " << results << std::endl; 
+
+      //Eigen::VectorXcd results = sternheimer.SelfEnergy(_orbitals.MOs().eigenvalues()(0));
+      std::cout << "Sternheimer results " << sternheimer.SelfEnergy_at_w(0.0).norm() << std::endl; 
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Finished Sternheimer GW" << flush;
     }
