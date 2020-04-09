@@ -77,12 +77,12 @@ class Calculator {
    * @param output stream
    */
   void DisplayOptions(std::ostream &out);
- 
+
   /**
    * \brief Loads default options stored in VOTCASHARE
    */
   void LoadDefaults(std::string package = "tools");
- 
+
   /**
    * \brief Updates options with default options stored in VOTCASHARE
    *
