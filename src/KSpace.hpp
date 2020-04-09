@@ -325,9 +325,9 @@ void KSpace<T>::compute_vector_components(const int x, const int y, const int z,
     // scalar product dipole moment and k-vector
     T dk = rx * d(n, 0) + ry * d(n, 1) + rz * d(n, 2);
     // tensor product quadrupole moment and k-vector
-    T Qk = rx * (rx * q(n, 0) + ry * q(n, 3) + rz * q(n, 6)) +
-           ry * (rx * q(n, 1) + ry * q(n, 4) + rz * q(n, 7)) +
-           rz * (rx * q(n, 2) + ry * q(n, 5) + rz * q(n, 8));
+    T Qk = rx * (rx * Q(n, 0) + ry * Q(n, 3) + rz * Q(n, 6)) +
+           ry * (rx * Q(n, 1) + ry * Q(n, 4) + rz * Q(n, 7)) +
+           rz * (rx * Q(n, 2) + ry * Q(n, 5) + rz * Q(n, 8));
     // cosine based vector component (monopole)
     vec_comp(n, 0) =
         cxy * cos_fac(n, z + offset, 3) - sxy * sin_fac(n, z + offset, 3);
@@ -339,12 +339,12 @@ void KSpace<T>::compute_vector_components(const int x, const int y, const int z,
     vec_comp(n, 3) = rx * d(n, 2) - ry * d(n, 0);
     vec_comp(n, 4) = ry * d(n, 0) - ry * d(n, 1);
     // vector component(s) (quadrupole)
-    vec_comp(n, 5) = rz * (rx * q(n, 1) + ry * q(n, 4) + rz * q(n, 7)) -
-                     ry * (rx * q(n, 2) + ry * q(n, 5) + rz * q(n, 8));
-    vec_comp(n, 6) = rx * (rx * q(n, 2) + ry * q(n, 5) + rz * q(n, 8)) -
-                     rz * (rx * q(n, 0) + ry * q(n, 3) + rz * q(n, 6));
-    vec_comp(n, 7) = ry * (rx * q(n, 0) + ry * q(n, 3) + rz * q(n, 6)) -
-                     rx * (rx * q(n, 1) + ry * q(n, 4) + rz * q(n, 7));
+    vec_comp(n, 5) = rz * (rx * Q(n, 1) + ry * Q(n, 4) + rz * Q(n, 7)) -
+                     ry * (rx * Q(n, 2) + ry * Q(n, 5) + rz * Q(n, 8));
+    vec_comp(n, 6) = rx * (rx * Q(n, 2) + ry * Q(n, 5) + rz * Q(n, 8)) -
+                     rz * (rx * Q(n, 0) + ry * Q(n, 3) + rz * Q(n, 6));
+    vec_comp(n, 7) = ry * (rx * Q(n, 0) + ry * Q(n, 3) + rz * Q(n, 6)) -
+                     rx * (rx * Q(n, 1) + ry * Q(n, 4) + rz * Q(n, 7));
     // cosine component (monopole)
     vec_comp(n, 8) = q(n) * vec_comp(n, 0);
     // sine component (monopole)
