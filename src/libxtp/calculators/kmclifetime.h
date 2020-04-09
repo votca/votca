@@ -37,8 +37,8 @@ class KMCLifetime : public KMCCalculator {
   void WriteDecayProbability(std::string filename);
 
   void RunVSSM() override;
-  void WriteToTraj(std::fstream& traj, unsigned long insertioncount, double simtime,
-                   const Chargecarrier& carrier) const;
+  void WriteToTraj(std::fstream& traj, unsigned long insertioncount,
+                   double simtime, const Chargecarrier& carrier) const;
 
   void ReadLifetimeFile(std::string filename);
   std::string _probfile;

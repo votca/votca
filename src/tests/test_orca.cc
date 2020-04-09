@@ -8631,8 +8631,9 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
   // check basis section
   auto index1 = inp.find("%basis");
   auto index2 = inp.find("end", index1);
-  BOOST_CHECK_EQUAL(inp.substr(index1, index2 - index1),
-                    "%basis\nGTOName =\"system.bas\";\nGTOAuxName =\"system.aux\";\n");
+  BOOST_CHECK_EQUAL(
+      inp.substr(index1, index2 - index1),
+      "%basis\nGTOName =\"system.bas\";\nGTOAuxName =\"system.aux\";\n");
 
   // check basis section
   index1 = inp.find("%scf");
