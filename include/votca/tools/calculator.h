@@ -77,19 +77,12 @@ class Calculator {
    * @param output stream
    */
   void DisplayOptions(std::ostream &out);
-  /**
-   * \brief Updates options with default options stored in VOTCASHARE
-   *
-   * If a value is not given or tag is not present and at the same time
-   * a default value exists in the corresponding XML file in VOTCASHARE
-   * a tag is created and/or a default value is assigned to it
-   */
-  void UpdateWithDefaults(Property &options, std::string package = "tools");
-
+ 
   /**
    * \brief Loads default options stored in VOTCASHARE
    */
   void LoadDefaults(std::string package = "tools");
+ 
   /**
    * \brief Updates options with default options stored in VOTCASHARE
    *
@@ -115,7 +108,6 @@ class Calculator {
   bool _maverick;
 
   void AddDefaults(Property &p, Property &defaults);
-  // Property _default_options; // default options
   Property _options;  // the finally used options
 };
 

@@ -46,32 +46,6 @@ void Calculator::UpdateWithUserOptions(Property &options) {
 
   // if a value is given override default values
   AddDefaults(options_id, _options);
-  //_options = _default_options;
-}
-
-void Calculator::UpdateWithDefaults(Property &options, std::string package) {
-
-  // copy options from the object supplied by the Application
-  std::string id = Identify();
-  Property options_id = options.get("options." + id);
-
-  // load defaults
-  LoadDefaults(package);
-
-  // if a value is given override default values
-  AddDefaults(options_id, _options);
-  options = _options;
-
-  // output calculator options
-  std::string indent("          ");
-  Index level = 1;
-  votca::tools::PropertyIOManipulator IndentedText(PropertyIOManipulator::TXT,
-                                                   level, indent);
-  if (Log::verbose()) {
-    std::cout << "\n... ... options\n"
-              << IndentedText << options << "... ... options\n"
-              << std::flush;
-  }
 }
 
 void Calculator::AddDefaults(Property &p, Property &defaults) {
