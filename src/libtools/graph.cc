@@ -98,7 +98,7 @@ GraphNode Graph::getNode(const Index vertex) const {
 
 vector<pair<Index, GraphNode>> Graph::getNodes(void) const {
   vector<pair<Index, GraphNode>> vec_nodes;
-  for (const pair<Index, GraphNode>& id_and_node : nodes_) {
+  for (const pair<const Index, GraphNode>& id_and_node : nodes_) {
     vec_nodes.push_back(id_and_node);
   }
   return vec_nodes;
@@ -118,7 +118,7 @@ void Graph::clearNodes() { nodes_.clear(); }
 
 void Graph::copyNodes(Graph& graph) {
   assert(nodes_.size() == 0);
-  for (const pair<Index, GraphNode>& id_and_node : graph.nodes_) {
+  for (const pair<const Index, GraphNode>& id_and_node : graph.nodes_) {
     this->nodes_[id_and_node.first] = id_and_node.second;
   }
 }
@@ -166,7 +166,7 @@ vector<Index> Graph::getVertices() const {
 
 ostream& operator<<(ostream& os, const Graph graph) {
   os << "Graph" << endl;
-  for (const pair<Index, GraphNode>& id_and_node : graph.nodes_) {
+  for (const pair<const Index, GraphNode>& id_and_node : graph.nodes_) {
     os << "Node " << id_and_node.first << endl;
     os << id_and_node.second << endl;
   }

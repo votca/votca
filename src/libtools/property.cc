@@ -428,7 +428,7 @@ void PrintNodeHLP(std::ostream &out, const Property &p,
     out << boost::format(ofmt) % name % defaults % unit % help;
   }
 
-  for (const Property pp : p) {
+  for (const Property &pp : p) {
     level++;
     if (prefix == "") {
       PrintNodeHLP(out, pp, start_level, level, pp.name(), offset);
