@@ -746,12 +746,8 @@ bool GWBSE::Evaluate() {
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Started Sternheimer GW" << flush;
       sternheimer.configurate(opt);
-      std::vector<std::complex<double>> results;
-      for (Index n = 0; n < 2; n++) {
-
-        results.push_back(
-            sternheimer.SelfEnergy(_orbitals.MOs().eigenvalues()(n), n, n));
-      }
+      Eigen::VectorXcd results = sternheimer.SelfEnergy(_orbitals.MOs().eigenvalues()(0));
+      std::cout << "Sternheimer results " << results << std::endl; 
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Finished Sternheimer GW" << flush;
     }

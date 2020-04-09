@@ -87,9 +87,9 @@ class Sternheimer {
   std::vector<double> getIsotropicAverage(
       std::vector<Eigen::Matrix3cd>& polar) const;
   // Return Self-Energy in one grid point r
-  std::complex<double> SelfEnergy_at_r(double omega, Eigen::Vector3d gridpoint1, Index n, Index m) const;
+  Eigen::MatrixXcd SelfEnergy_at_r(double omega, Eigen::Vector3d gridpoint1) const;
   // Return Self-Energy 
-  std::complex<double> SelfEnergy(double omega, Index n, Index m) const;
+  Eigen::VectorXcd SelfEnergy(double omega) const;
  private:
   Logger& _log;
 

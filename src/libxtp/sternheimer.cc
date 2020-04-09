@@ -907,9 +907,8 @@ Eigen::VectorXd Sternheimer::EvaluateBasisAtPosition(
   return tmat;
 }
 
-std::complex<double> Sternheimer::SelfEnergy_at_r(double omega,
-                                                  Eigen::Vector3d gridpoint1,
-                                                  Index n, Index m) const {
+Eigen::MatrixXcd Sternheimer::SelfEnergy_at_r(double omega,
+                                                  Eigen::Vector3d gridpoint1) const {
 
   std::vector<std::complex<double>> w = BuildGrid(
       _opt.start_frequency_grid, _opt.end_frequency_grid,
@@ -924,6 +923,7 @@ std::complex<double> Sternheimer::SelfEnergy_at_r(double omega,
                  _opt.number_of_frequency_grid_points;
   Index i = 0;
   Eigen::MatrixXcd coulombmatrix = CoulombMatrix(gridpoint1);
+  
   for (std::complex<double> omega_p : w) {
 
     if (i == 0) {
@@ -939,12 +939,11 @@ std::complex<double> Sternheimer::SelfEnergy_at_r(double omega,
     i++;
   }
 
-  return _mo_coefficients.col(n).transpose() * left * right *
-         _mo_coefficients.col(m);
+  return left * right;
+         
 }
 
-std::complex<double> Sternheimer::SelfEnergy(double omega, Index n,
-                                             Index m) const {
+Eigen::VectorXcd Sternheimer::SelfEnergy(double omega) const {
   AOBasis basis = _orbitals.SetupDftBasis();
   Vxc_Grid grid;
   grid.GridSetup("xcoarse", _orbitals.QMAtoms(),
@@ -952,18 +951,21 @@ std::complex<double> Sternheimer::SelfEnergy(double omega, Index n,
 
   std::complex<double> prefactor(0., 1.0 / (2 * std::acos(-1.0)));  // i/2pi
 
-  std::complex<double> corrections(0.0, 0.0);
-
+  Eigen::MatrixXcd corrections = Eigen::MatrixXcd::Zero(_basis_size,_basis_size);
+  
   for (Index i = 0; i < grid.getBoxesSize(); ++i) {
     const GridBox& box = grid[i];
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();
     for (Index p = 0; p < box.size(); p++) {
-      corrections += weights[p] * SelfEnergy_at_r(omega, points[p], n, m);
+      corrections += weights[p] * SelfEnergy_at_r(omega, points[p]);
     }
   }
-  std::cout << "\n State:\t" << n << " " << m << "\t sigma_c \t" << corrections
-            << std::endl;
+  Index n_levels = _mo_coefficients.cols();
+  Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_levels);
+  for (Index n = 0; n < n_levels; ++n){
+    results(n) = _mo_coefficients.col(n).cwiseProduct(corrections*_mo_coefficients.col(n)).sum();
+  }
   return corrections;
 }
 
