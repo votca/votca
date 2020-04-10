@@ -928,7 +928,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
   std::vector<Eigen::MatrixXcd> sigma_thread = std::vector<Eigen::MatrixXcd>(
       nthreads,
       Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols()));
-
+Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
@@ -936,7 +936,6 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
       continue;
     }
     const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(_density_Matrix);
-
     const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
     double cutoff = 1.e-40 / double(_density_Matrix.rows()) /
                     double(_density_Matrix.rows());
@@ -951,15 +950,16 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
       Eigen::VectorXd ao = box.CalcAOValues(points[p]);
+      double ao_ov = (ao*ao.transpose()).maxCoeff();
+      if (ao_ov < 1.e-8) {
+      continue;}
       const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
       const double weight = weights[p];
       if (rho * weight < 1.e-20) {
         continue;  // skip the rest, if density is very small
       }
-      Eigen::MatrixXcd gw_c =
-          GreensFunction(omega + omega_p) *
-          (ScreenedCoulomb(points[p], omega_p) - CoulombMatrix(points[p]));
-      const Eigen::MatrixXcd sigma_r = box.ReadFromBigMatrix(gw_c);
+       Eigen::MatrixXcd w_c = GF*(ScreenedCoulomb(points[p], omega_p) - CoulombMatrix(points[p]));
+      const Eigen::MatrixXcd sigma_r = box.ReadFromBigMatrix(w_c);
       sigma_here += weight * ao * ao.transpose() * sigma_r;
     }
 
