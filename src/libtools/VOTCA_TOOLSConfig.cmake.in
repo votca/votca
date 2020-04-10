@@ -28,4 +28,10 @@ if(@MKL_FOUND@)
       PROPERTIES
         IMPORTED_LOCATION "@MKL_ThreadLayer_IMPORTED_LOCATION@")
   endif()
+  if(NOT TARGET MKL::ThreadingLibrary)
+    add_library(MKL::ThreadingLibrary UNKNOWN IMPORTED)
+    set_target_properties(MKL::ThreadingLibrary
+      PROPERTIES
+        IMPORTED_LOCATION "@MKL_ThreadingLibrary_IMPORTED_LOCATION@")
+  endif()
 endif()
