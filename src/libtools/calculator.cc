@@ -20,25 +20,30 @@
 namespace votca {
 namespace tools {
 
-void Calculator::LoadDefaults(std::string package) {
-
-  std::string id = Identify();
-  // add default values if specified in VOTCASHARE
+std::string Calculator::GetVotcaShare() {
   char *votca_share = getenv("VOTCASHARE");
   if (votca_share == nullptr) {
     throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
   }
+  return std::string(votca_share);
+}
+
+void Calculator::LoadDefaults(std::string package) {
+
+  std::string id = Identify();
+  // add default values if specified in VOTCASHARE
+  std::string votca_share = this->GetVotcaShare();
+
   // load the xml description of the calculator (with defaults and test values)
-  std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/") +
-                        package + std::string("/xml/") + id +
-                        std::string(".xml");
+  std::string xmlFile = votca_share + std::string("/") + package +
+                        std::string("/xml/") + id + std::string(".xml");
 
   Property defaults_all;
   defaults_all.LoadFromXML(xmlFile);
   _options = defaults_all.get("options." + id);
 }
 
-void Calculator::UpdateWithUserOptions(Property &options) {
+void Calculator::UpdateWithUserOptions(const Property &options) {
 
   // copy options from the object supplied by the Application
   std::string id = Identify();
@@ -48,10 +53,10 @@ void Calculator::UpdateWithUserOptions(Property &options) {
   AddDefaults(options_id, _options);
 }
 
-void Calculator::AddDefaults(Property &p, Property &defaults) {
+void Calculator::AddDefaults(const Property &p, Property &defaults) {
 
   // Go through everything that is defined in user option
-  for (Property &prop : p) {
+  for (const Property &prop : p) {
     std::string name = prop.path() + "." + prop.name();
     if (prop.HasChildren()) {
       AddDefaults(prop, defaults.get(prop.name()));
