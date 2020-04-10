@@ -28,7 +28,7 @@ std::string Calculator::GetVotcaShare() {
   return std::string(votca_share);
 }
 
-void Calculator::LoadDefaults(std::string package) {
+void Calculator::LoadDefaults(const std::string package) {
 
   std::string id = Identify();
   // add default values if specified in VOTCASHARE
