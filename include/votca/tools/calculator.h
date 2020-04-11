@@ -108,7 +108,7 @@ class Calculator {
   bool _maverick;
 
   void AddDefaults(const Property &p, Property &defaults);
-  std::string GetVotcaShare();
+  static std::string GetVotcaShare();
 
   Property _options;  // the finally used options
 };
