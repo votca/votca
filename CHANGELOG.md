@@ -14,6 +14,7 @@ For more detailed information about the changes see the history of the
 * fix typo in option in potential_extrapolate (#502)
 * update gmx tab. potential warning (#504)
 * fix exit code with clean for potential_to_lammps.sh (#506)
+* remove obsolete link to MKL from cmake (#508)
 
 ## Version 1.6_rc2 (released 10.02.20)
 * fix inheritance bug in cmake files (#466) 
