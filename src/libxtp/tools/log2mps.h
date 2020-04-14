@@ -36,7 +36,7 @@ class Log2Mps : public QMTool {
 
   std::string Identify() override { return "log2mps"; }
 
-  void Initialize(tools::Property &options) override;
+  void Initialize(const tools::Property &options) override;
   bool Evaluate() override;
 
  private:
@@ -45,7 +45,7 @@ class Log2Mps : public QMTool {
   std::string _mpsfile;
 };
 
-void Log2Mps::Initialize(tools::Property &user_options) {
+void Log2Mps::Initialize(const tools::Property &user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

@@ -35,7 +35,7 @@ class Coupling : public QMTool {
 
   std::string Identify() override { return "coupling"; }
 
-  void Initialize(tools::Property &options) override;
+  void Initialize(const tools::Property &options) override;
   bool Evaluate() override;
 
  private:
@@ -51,7 +51,7 @@ class Coupling : public QMTool {
   Logger _log;
 };
 
-void Coupling::Initialize(tools::Property &user_options) {
+void Coupling::Initialize(const tools::Property &user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

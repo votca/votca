@@ -40,7 +40,7 @@ namespace xtp {
 class EQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
   std::string Identify() override { return "eqm"; }
-  void Initialize(tools::Property &options) override;
+  void Initialize(const tools::Property &options) override;
   Job::JobResult EvalJob(const Topology &top, Job &job,
                          QMThread &thread) override;
 

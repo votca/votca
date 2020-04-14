@@ -34,7 +34,7 @@ class EInternal : public QMCalculator {
 
   std::string Identify() override { return "einternal"; }
   bool WriteToStateFile() const override { return true; }
-  void Initialize(tools::Property &options) override;
+  void Initialize(const tools::Property &options) override;
   void ParseEnergies();
   bool EvaluateFrame(Topology &top) override;
 

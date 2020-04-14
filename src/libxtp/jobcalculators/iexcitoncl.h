@@ -41,7 +41,7 @@ namespace xtp {
 
 class IEXCITON : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  void Initialize(tools::Property &options) override;
+  void Initialize(const tools::Property &options) override;
 
   std::string Identify() override { return "iexcitoncl"; }
 

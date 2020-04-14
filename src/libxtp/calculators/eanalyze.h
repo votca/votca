@@ -41,7 +41,7 @@ class EAnalyze : public QMCalculator {
   bool WriteToStateFile() const override { return false; }
   std::string Identify() override { return "eanalyze"; }
 
-  void Initialize(tools::Property &opt) override;
+  void Initialize(const tools::Property &opt) override;
   bool EvaluateFrame(Topology &top) override;
 
  private:

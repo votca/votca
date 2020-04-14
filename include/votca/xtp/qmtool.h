@@ -36,7 +36,7 @@ class QMTool : public tools::Calculator {
   ~QMTool() override = default;
 
   std::string Identify() override = 0;
-  void Initialize(tools::Property &options) override = 0;
+  void Initialize(const tools::Property &options) override = 0;
   virtual bool Evaluate() = 0;
 };
 

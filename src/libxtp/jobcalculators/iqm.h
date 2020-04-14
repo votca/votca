@@ -46,7 +46,7 @@ namespace xtp {
 
 class IQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
   std::string Identify() override { return "iqm"; }
   Job::JobResult EvalJob(const Topology& top, Job& job,
                          QMThread& Thread) override;

@@ -22,7 +22,7 @@
 namespace votca {
 namespace xtp {
 
-void Neighborlist::Initialize(tools::Property& user_options) {
+void Neighborlist::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

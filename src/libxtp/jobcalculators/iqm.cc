@@ -35,7 +35,7 @@ using namespace boost::filesystem;
 namespace votca {
 namespace xtp {
 
-void IQM::Initialize(tools::Property& user_options) {
+void IQM::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

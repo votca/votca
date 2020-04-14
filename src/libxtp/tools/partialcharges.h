@@ -36,7 +36,7 @@ class Partialcharges : public QMTool {
 
   std::string Identify() override { return "partialcharges"; }
 
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
   bool Evaluate() override;
 
  private:
@@ -47,7 +47,7 @@ class Partialcharges : public QMTool {
   Logger _log;
 };
 
-void Partialcharges::Initialize(tools::Property& user_options) {
+void Partialcharges::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

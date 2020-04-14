@@ -23,7 +23,7 @@
 namespace votca {
 namespace xtp {
 
-void APDFT::Initialize(tools::Property &user_options) {
+void APDFT::Initialize(const tools::Property &user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

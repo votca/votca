@@ -25,7 +25,7 @@
 namespace votca {
 namespace xtp {
 
-void MolPol::Initialize(tools::Property& user_options) {
+void MolPol::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

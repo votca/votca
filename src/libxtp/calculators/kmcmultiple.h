@@ -30,7 +30,7 @@ class KMCMultiple : public KMCCalculator {
   ~KMCMultiple() override = default;
   bool WriteToStateFile() const override { return false; }
   std::string Identify() override { return "kmcmultiple"; }
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
   bool EvaluateFrame(Topology& top) override;
 
  private:

@@ -26,7 +26,7 @@
 
 namespace votca {
 namespace xtp {
-void KMCMultiple::Initialize(tools::Property& user_options) {
+void KMCMultiple::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

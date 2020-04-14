@@ -23,7 +23,7 @@
 namespace votca {
 namespace xtp {
 
-void VAverage::Initialize(tools::Property& user_options) {
+void VAverage::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

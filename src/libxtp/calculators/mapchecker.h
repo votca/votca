@@ -36,7 +36,7 @@ class MapChecker : public QMCalculator {
 
   std::string Identify() override { return "mapchecker"; }
   bool WriteToStateFile() const override { return false; }
-  void Initialize(tools::Property& opt) override;
+  void Initialize(const tools::Property& opt) override;
   bool EvaluateFrame(Topology& top) override;
 
  private:
@@ -55,7 +55,7 @@ class MapChecker : public QMCalculator {
   std::vector<QMState> _mdstates;
 };
 
-void MapChecker::Initialize(tools::Property& user_options) {
+void MapChecker::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

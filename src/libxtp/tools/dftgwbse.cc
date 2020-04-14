@@ -27,7 +27,7 @@
 namespace votca {
 namespace xtp {
 
-void DftGwBse::Initialize(tools::Property& user_options) {
+void DftGwBse::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

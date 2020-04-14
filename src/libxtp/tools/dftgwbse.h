@@ -36,7 +36,7 @@ class DftGwBse : public QMTool {
 
   std::string Identify() override { return "dftgwbse"; }
 
-  void Initialize(tools::Property &options) override;
+  void Initialize(const tools::Property &options) override;
   bool Evaluate() override;
 
  private:

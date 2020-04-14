@@ -22,7 +22,7 @@
 namespace votca {
 namespace xtp {
 
-void EInternal::Initialize(tools::Property &user_options) {
+void EInternal::Initialize(const tools::Property &user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

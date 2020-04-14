@@ -25,7 +25,7 @@
 namespace votca {
 namespace xtp {
 
-void IAnalyze::Initialize(tools::Property &user_options) {
+void IAnalyze::Initialize(const tools::Property &user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

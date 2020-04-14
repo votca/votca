@@ -33,7 +33,7 @@ class DensityAnalysis : public QMTool {
  public:
   std::string Identify() override { return "densityanalysis"; }
 
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
   bool Evaluate() override;
 
  private:
@@ -44,7 +44,7 @@ class DensityAnalysis : public QMTool {
   Logger _log;
 };
 
-void DensityAnalysis::Initialize(tools::Property& user_options) {
+void DensityAnalysis::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

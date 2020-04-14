@@ -28,7 +28,7 @@
 namespace votca {
 namespace xtp {
 
-void KMCLifetime::Initialize(tools::Property& user_options) {
+void KMCLifetime::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

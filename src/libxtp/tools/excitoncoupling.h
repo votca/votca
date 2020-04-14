@@ -38,7 +38,7 @@ class ExcitonCoupling : public QMTool {
  public:
   std::string Identify() override { return "excitoncoupling"; }
 
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
   bool Evaluate() override;
 
  private:
@@ -52,7 +52,7 @@ class ExcitonCoupling : public QMTool {
   Logger _log;
 };
 
-void ExcitonCoupling::Initialize(tools::Property& user_options) {
+void ExcitonCoupling::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

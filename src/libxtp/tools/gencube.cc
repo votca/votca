@@ -29,7 +29,7 @@
 namespace votca {
 namespace xtp {
 
-void GenCube::Initialize(tools::Property& user_options) {
+void GenCube::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

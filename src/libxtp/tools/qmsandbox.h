@@ -38,7 +38,7 @@ class QMSandbox : public QMTool {
 
   std::string Identify() override { return "qmsandbox"; }
 
-  void Initialize(tools::Property& user_options) override;
+  void Initialize(const tools::Property& user_options) override;
   bool Evaluate() override;
 
  private:
@@ -50,7 +50,7 @@ class QMSandbox : public QMTool {
   std::string _mpsfileqs;
 };
 
-void QMSandbox::Initialize(tools::Property& user_options) {
+void QMSandbox::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);

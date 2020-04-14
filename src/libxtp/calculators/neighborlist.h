@@ -34,7 +34,7 @@ class Neighborlist : public QMCalculator {
  public:
   std::string Identify() override { return "neighborlist"; }
   bool WriteToStateFile() const override { return true; }
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
   bool EvaluateFrame(Topology& top) override;
 
  private:
