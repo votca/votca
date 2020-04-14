@@ -81,8 +81,8 @@ find_package_handle_standard_args(GROMACS REQUIRED_VARS GROMACS_LIBRARY GROMACS_
 mark_as_advanced(GROMACS_LIBRARY GROMACS_INCLUDE_DIR GROMACS_VERSION)
 
 if(GROMACS_FOUND)
-  add_library(GMX::libgromacs UNKNOWN IMPORTED)
-  set_target_properties(GMX::libgromacs PROPERTIES
+  add_library(Gromacs::libgromacs UNKNOWN IMPORTED)
+  set_target_properties(Gromacs::libgromacs PROPERTIES
     IMPORTED_LOCATION ${GROMACS_LIBRARY}
     INTERFACE_INCLUDE_DIRECTORIES ${GROMACS_INCLUDE_DIR}
     INTERFACE_COMPILE_OPTIONS "${GROMACS_DEFINITIONS}")

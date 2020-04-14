@@ -8,10 +8,10 @@ list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${H5MD_SOURCES})
 file(GLOB VOTCA_SOURCES *.cc potentialfunctions/*.cc)
 
 add_library(votca_csg ${VOTCA_SOURCES} ${IO_SOURCES})
-if (TARGET GMX::libgromacs)
+if (TARGET Gromacs::libgromacs)
   #general to a gmx builds
   target_sources(votca_csg PRIVATE ${GMX_SOURCES})
-  target_link_libraries(votca_csg PRIVATE GMX::libgromacs)
+  target_link_libraries(votca_csg PRIVATE Gromacs::libgromacs)
 endif()
 
 
