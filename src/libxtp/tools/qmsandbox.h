@@ -52,20 +52,21 @@ class QMSandbox : public QMTool {
 
 void QMSandbox::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _orbfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".orbfile");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".orbfile");
   _espfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".espfile");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".espfile");
   _mpsfiled =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".dipole");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".dipole");
 
-  _mpsfileds = _options.ifExistsReturnElseThrowRuntimeError<std::string>(
+  _mpsfileds = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       ".dipole_split");
   _mpsfileq =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".quadrupole");
-  _mpsfileqs = _options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".quadrupole");
+  _mpsfileqs = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       ".quadrupole_split");
 }
 

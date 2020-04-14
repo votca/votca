@@ -47,12 +47,13 @@ class Log2Mps : public QMTool {
 
 void Log2Mps::Initialize(tools::Property &user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   QMPackageFactory::RegisterAll();
 
   _package =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".package");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".package");
 
   if (_package == "xtp") {
     throw std::runtime_error(
@@ -60,13 +61,12 @@ void Log2Mps::Initialize(tools::Property &user_options) {
         "on you .orb file");
   }
   _logfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".logfile");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".logfile");
 
   _mpsfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsfile");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsfile");
 
-  std::cout << "\n"
-            << "... ... " << _logfile << " => " << _mpsfile << "\n";
+  std::cout << "\n... ... " << _logfile << " => " << _mpsfile << "\n";
 }
 
 bool Log2Mps::Evaluate() {

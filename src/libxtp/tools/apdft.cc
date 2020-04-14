@@ -25,16 +25,16 @@ namespace xtp {
 
 void APDFT::Initialize(tools::Property &user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _grid_accuracy =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".grid");
-  _orbfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".grid");
+  _orbfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
   _outputfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
   std::string statestring =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".state");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".state");
   _state.FromString(statestring);
 }
 

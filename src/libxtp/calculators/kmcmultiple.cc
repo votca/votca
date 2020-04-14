@@ -28,22 +28,23 @@ namespace votca {
 namespace xtp {
 void KMCMultiple::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _runtime = _options.ifExistsReturnElseThrowRuntimeError<double>(".runtime");
+  _runtime = options.ifExistsReturnElseThrowRuntimeError<double>(".runtime");
   _field =
-      _options.ifExistsReturnElseThrowRuntimeError<Eigen::Vector3d>(".field");
+      options.ifExistsReturnElseThrowRuntimeError<Eigen::Vector3d>(".field");
   double mtobohr = 1E9 * tools::conv::nm2bohr;
   _field *=
       (tools::conv::ev2hrt / mtobohr);  // Converting from V/m to Hartree/bohr
 
   _outputtime =
-      _options.ifExistsReturnElseThrowRuntimeError<double>(".outputtime");
-  _timefile = _options.ifExistsReturnElseReturnDefault<std::string>(".timefile",
-                                                                    _timefile);
+      options.ifExistsReturnElseThrowRuntimeError<double>(".outputtime");
+  _timefile = options.ifExistsReturnElseReturnDefault<std::string>(".timefile",
+                                                                   _timefile);
 
   std::string carriertype =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".carriertype");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".carriertype");
   _carriertype = QMStateType(carriertype);
   if (!_carriertype.isKMCState()) {
     throw std::runtime_error("KMC cannot be run for state:" +

@@ -53,21 +53,22 @@ class Coupling : public QMTool {
 
 void Coupling::Initialize(tools::Property &user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _MOsA = _options.get(".moleculeA.orbitals").as<std::string>();
-  _MOsB = _options.get(".moleculeB.orbitals").as<std::string>();
-  _MOsAB = _options.get(".dimerAB.orbitals").as<std::string>();
+  _MOsA = options.get(".moleculeA.orbitals").as<std::string>();
+  _MOsB = options.get(".moleculeB.orbitals").as<std::string>();
+  _MOsAB = options.get(".dimerAB.orbitals").as<std::string>();
 
-  _logA = _options.get(".moleculeA.log").as<std::string>();
-  _logB = _options.get(".moleculeB.log").as<std::string>();
-  _logAB = _options.get(".dimerAB.log").as<std::string>();
+  _logA = options.get(".moleculeA.log").as<std::string>();
+  _logB = options.get(".moleculeB.log").as<std::string>();
+  _logAB = options.get(".dimerAB.log").as<std::string>();
 
-  _output_file = _options.get(".output").as<std::string>();
+  _output_file = options.get(".output").as<std::string>();
 
-  _package_options = _options.get(".dftpackage");
+  _package_options = options.get(".dftpackage");
   _package = _package_options.get("package.name").as<std::string>();
-  _dftcoupling_options = _options.get(".dftcoupling_options");
+  _dftcoupling_options = options.get(".dftcoupling_options");
 
   QMPackageFactory::RegisterAll();
 }

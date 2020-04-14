@@ -46,9 +46,10 @@ class DensityAnalysis : public QMTool {
 
 void DensityAnalysis::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _gyration_options.get(".density2gyration");
+  _gyration_options = options.get(".density2gyration");
 }
 
 bool DensityAnalysis::Evaluate() {

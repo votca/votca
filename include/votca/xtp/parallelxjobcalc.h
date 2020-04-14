@@ -88,7 +88,7 @@ class ParallelXJobCalc : public JobCalculator {
   };
 
  protected:
-  void ParseCommonOptions();
+  void ParseCommonOptions(const tools::Property &options);
 
   JobContainer _XJobs;
   tools::Mutex _coutMutex;

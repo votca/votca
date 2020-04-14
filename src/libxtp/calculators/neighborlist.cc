@@ -24,9 +24,10 @@ namespace xtp {
 
 void Neighborlist::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  std::vector<tools::Property*> segs = _options.Select(".segments");
+  std::vector<tools::Property*> segs = options.Select(".segments");
 
   for (tools::Property* segprop : segs) {
     std::string types = segprop->get("type").as<std::string>();
@@ -53,17 +54,17 @@ void Neighborlist::Initialize(tools::Property& user_options) {
     }
   }
 
-  if (_options.exists(".constant")) {
+  if (options.exists(".constant")) {
     _useConstantCutoff = true;
     _constantCutoff =
-        _options.get(".constant").as<double>() * tools::conv::nm2bohr;
+        options.get(".constant").as<double>() * tools::conv::nm2bohr;
   } else {
     _useConstantCutoff = false;
   }
-  if (_options.exists(".exciton_cutoff")) {
+  if (options.exists(".exciton_cutoff")) {
     _useExcitonCutoff = true;
     _excitonqmCutoff =
-        _options.get(".exciton_cutoff").as<double>() * tools::conv::nm2bohr;
+        options.get(".exciton_cutoff").as<double>() * tools::conv::nm2bohr;
   } else {
     _useExcitonCutoff = false;
   }

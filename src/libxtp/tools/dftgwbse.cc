@@ -29,40 +29,41 @@ namespace xtp {
 
 void DftGwBse::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   // molecule coordinates
   _xyzfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".molecule");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".molecule");
 
   // job tasks
   std::vector<std::string> choices = {"optimize", "energy"};
   std::string mode =
-      _options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
           ".mode", choices);
 
   // options for dft package
-  _package_options = _options.get(".dftpackage");
+  _package_options = options.get(".dftpackage");
   _package = _package_options.get("package.name").as<std::string>();
 
   // set the basis sets and functional in DFT package
   _package_options.get("package").add(
-      "basisset", _options.get("basisset").as<std::string>());
+      "basisset", options.get("basisset").as<std::string>());
   _package_options.get("package").add(
-      "auxbasisset", _options.get("auxbasisset").as<std::string>());
+      "auxbasisset", options.get("auxbasisset").as<std::string>());
   _package_options.get("package").add(
-      "functional", _options.get("functional").as<std::string>());
+      "functional", options.get("functional").as<std::string>());
 
   // GWBSEENGINE options
-  _gwbseengine_options = _options.get(".gwbse_engine");
+  _gwbseengine_options = options.get(".gwbse_engine");
 
   // set the basis sets and functional in GWBSE
   _gwbseengine_options.get("gwbse_options.gwbse")
-      .add("basisset", _options.get("basisset").as<std::string>());
+      .add("basisset", options.get("basisset").as<std::string>());
   _gwbseengine_options.get("gwbse_options.gwbse")
-      .add("auxbasisset", _options.get("auxbasisset").as<std::string>());
+      .add("auxbasisset", options.get("auxbasisset").as<std::string>());
   _gwbseengine_options.get("gwbse_options.gwbse.vxc")
-      .add("functional", _options.get("functional").as<std::string>());
+      .add("functional", options.get("functional").as<std::string>());
 
   // lets get the archive file name from the xyz file name
   _archive_file = tools::filesystem::GetFileBase(_xyzfile) + ".orb";
@@ -76,21 +77,21 @@ void DftGwBse::Initialize(tools::Property& user_options) {
   _do_guess = false;
 
   // check for MPS file with external multipoles for embedding
-  if (_options.exists(".mpsfile")) {
+  if (options.exists(".mpsfile")) {
     _do_external = true;
-    _mpsfile = _options.get(".mpsfile").as<std::string>();
+    _mpsfile = options.get(".mpsfile").as<std::string>();
   }
 
   // check if guess is requested
-  if (_options.exists(".guess")) {
+  if (options.exists(".guess")) {
     _do_guess = true;
-    _guess_file = _options.get(".guess").as<std::string>();
+    _guess_file = options.get(".guess").as<std::string>();
   }
 
   // if optimization is chosen, get options for geometry_optimizer
   if (mode == "optimize") {
     _do_optimize = true;
-    _geoopt_options = _options.get(".geometry_optimization");
+    _geoopt_options = options.get(".geometry_optimization");
   }
 
   // register all QM packages

@@ -27,9 +27,10 @@ namespace xtp {
 
 void IAnalyze::Initialize(tools::Property &user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  std::string statestrings = _options.get(".states").as<std::string>();
+  std::string statestrings = options.get(".states").as<std::string>();
   tools::Tokenizer tok(statestrings, ",\n\t ");
   std::vector<std::string> string_vec;
   tok.ToVector(string_vec);
@@ -37,10 +38,10 @@ void IAnalyze::Initialize(tools::Property &user_options) {
     _states.push_back(QMStateType(state));
   }
 
-  _resolution_logJ2 = _options.get(".resolution_logJ2").as<double>();
-  if (_options.exists(".pairtype")) {
+  _resolution_logJ2 = options.get(".resolution_logJ2").as<double>();
+  if (options.exists(".pairtype")) {
     _do_pairtype = true;
-    std::string _store_stdstring = _options.get(".pairtype").as<std::string>();
+    std::string _store_stdstring = options.get(".pairtype").as<std::string>();
     if (_store_stdstring.find("Hopping") != std::string::npos) {
       _pairtype.push_back(QMPair::Hopping);
     }
@@ -52,8 +53,8 @@ void IAnalyze::Initialize(tools::Property &user_options) {
       _do_pairtype = false;
     }
   }
-  if (_options.exists(".resolution_spatial")) {
-    _resolution_spatial = _options.get(".resolution_spatial").as<double>();
+  if (options.exists(".resolution_spatial")) {
+    _resolution_spatial = options.get(".resolution_spatial").as<double>();
     if (_resolution_spatial != 0.0) {
       _do_IRdependence = true;
     }

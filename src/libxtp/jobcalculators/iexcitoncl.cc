@@ -39,11 +39,12 @@ namespace xtp {
 
 void IEXCITON::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  ParseCommonOptions();
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  ParseCommonOptions(options);
 
-  if (_options.exists(".states")) {
-    std::string parse_string = _options.get(".states").as<std::string>();
+  if (options.exists(".states")) {
+    std::string parse_string = options.get(".states").as<std::string>();
     _statemap = FillParseMaps(parse_string);
   }
 }

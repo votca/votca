@@ -49,13 +49,14 @@ class Partialcharges : public QMTool {
 
 void Partialcharges::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _orbfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
   _output_file =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
-  _esp_options = _options.get(".esp_options");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
+  _esp_options = options.get(".esp_options");
 }
 
 bool Partialcharges::Evaluate() {

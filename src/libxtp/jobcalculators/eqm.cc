@@ -32,12 +32,13 @@ namespace xtp {
 
 void EQM::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  ParseCommonOptions();
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  ParseCommonOptions(options);
   QMPackageFactory::RegisterAll();
 
   // job tasks
-  std::string _tasks_string = _options.get(".tasks").as<std::string>();
+  std::string _tasks_string = options.get(".tasks").as<std::string>();
 
   if (_tasks_string.find("input") != std::string::npos) {
     _do_dft_input = true;
@@ -55,9 +56,9 @@ void EQM::Initialize(tools::Property& user_options) {
     _do_esp = true;
   }
 
-  _gwbse_options = _options.get(".gwbse_options");
-  _package_options = _options.get(".dftpackage");
-  _esp_options = _options.get(".esp_options");
+  _gwbse_options = options.get(".gwbse_options");
+  _package_options = options.get(".dftpackage");
+  _esp_options = options.get(".esp_options");
 }
 
 void EQM::WriteJobFile(const Topology& top) {

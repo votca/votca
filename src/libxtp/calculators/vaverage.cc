@@ -25,14 +25,15 @@ namespace xtp {
 
 void VAverage::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _ratefile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".ratefile");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".ratefile");
   _occfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".occfile");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".occfile");
   _outputfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".outputfile");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".outputfile");
 }
 
 std::vector<double> VAverage::ReadOccfile(std::string filename) const {

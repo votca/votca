@@ -31,31 +31,31 @@ namespace xtp {
 
 void GenCube::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _orbfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
+  _orbfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
   _output_file =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
 
   // padding
-  _padding = _options.ifExistsReturnElseThrowRuntimeError<double>(".padding");
+  _padding = options.ifExistsReturnElseThrowRuntimeError<double>(".padding");
 
   // steps
-  _steps.y() = _options.get(".ysteps").as<Index>();
-  _steps.x() = _options.get(".xsteps").as<Index>();
-  _steps.z() = _options.get(".zsteps").as<Index>();
+  _steps.y() = options.get(".ysteps").as<Index>();
+  _steps.x() = options.get(".xsteps").as<Index>();
+  _steps.z() = options.get(".zsteps").as<Index>();
 
   std::string statestring =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".state");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".state");
   _state.FromString(statestring);
   _dostateonly =
-      _options.ifExistsReturnElseReturnDefault<bool>(".diff2gs", false);
+      options.ifExistsReturnElseReturnDefault<bool>(".diff2gs", false);
 
-  _mode = _options.get(".mode").as<std::string>();
+  _mode = options.get(".mode").as<std::string>();
   if (_mode == "subtract") {
-    _infile1 = _options.get(".infile1").as<std::string>();
-    _infile2 = _options.get(".infile2").as<std::string>();
+    _infile1 = options.get(".infile1").as<std::string>();
+    _infile2 = options.get(".infile2").as<std::string>();
   }
 }
 

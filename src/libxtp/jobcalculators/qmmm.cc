@@ -28,16 +28,17 @@ namespace xtp {
 
 void QMMM::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  ParseCommonOptions();
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  ParseCommonOptions(options);
 
-  _jobfile = _options.get(".job_file").as<std::string>();
-  _print_regions_pdb = _options.get(".print_regions_pdb").as<bool>();
-  _max_iterations = _options.get(".max_iterations").as<Index>();
-  _regions_def = _options.get(".regions");
+  _jobfile = options.get(".job_file").as<std::string>();
+  _print_regions_pdb = options.get(".print_regions_pdb").as<bool>();
+  _max_iterations = options.get(".max_iterations").as<Index>();
+  _regions_def = options.get(".regions");
   _regions_def.add("mapfile", _mapfile);
 
-  std::string states = _options.get(".write_parse.states").as<std::string>();
+  std::string states = options.get(".write_parse.states").as<std::string>();
   tools::Tokenizer tok(states, " ,;\n\t");
   std::vector<std::string> statestrings = tok.ToVector();
   _states.reserve(statestrings.size());

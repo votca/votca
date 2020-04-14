@@ -24,10 +24,11 @@ namespace xtp {
 
 void EInternal::Initialize(tools::Property &user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _energiesXML =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".energiesXML");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".energiesXML");
 }
 
 void EInternal::ParseEnergies() {

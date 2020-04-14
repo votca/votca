@@ -30,18 +30,19 @@ namespace xtp {
 
 void KMCLifetime::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _insertions = _options.ifExistsReturnElseThrowRuntimeError<unsigned long>(
+  _insertions = options.ifExistsReturnElseThrowRuntimeError<unsigned long>(
       ".numberofinsertions");
 
-  _lifetimefile = _options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      ".lifetimefile");
+  _lifetimefile =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".lifetimefile");
 
-  _probfile = _options.ifExistsReturnElseReturnDefault<std::string>(
+  _probfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".decayprobfile", "");
 
-  tools::Property& carrier_options = _options.get(".carrierenergy");
+  tools::Property& carrier_options = options.get(".carrierenergy");
   _do_carrierenergy =
       carrier_options.ifExistsReturnElseThrowRuntimeError<bool>(".run");
   _energy_outputfile =

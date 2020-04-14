@@ -37,17 +37,18 @@ namespace xtp {
 
 void IQM::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  ParseCommonOptions();
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  ParseCommonOptions(options);
   QMPackageFactory::RegisterAll();
 
-  ParseOptionsXML();
+  ParseOptionsXML(options);
 }
 
-void IQM::ParseOptionsXML() {
+void IQM::ParseOptionsXML(const tools::Property& options) {
 
   // job tasks
-  std::string tasks_string = _options.get(".tasks").as<std::string>();
+  std::string tasks_string = options.get(".tasks").as<std::string>();
   if (tasks_string.find("input") != std::string::npos) {
     _do_dft_input = true;
   }
@@ -68,7 +69,7 @@ void IQM::ParseOptionsXML() {
   }
 
   // storage options
-  std::string store_string = _options.get(".store").as<std::string>();
+  std::string store_string = options.get(".store").as<std::string>();
   if (store_string.find("dft") != std::string::npos) {
     _store_dft = true;
   }
@@ -76,14 +77,14 @@ void IQM::ParseOptionsXML() {
     _store_gw = true;
   }
 
-  _dftpackage_options = _options.get(".dftpackage");
-  _gwbse_options = _options.get(".gwbse_options");
-  _dftcoupling_options = _options.get(".dftcoupling_options");
-  _bsecoupling_options = _options.get(".bsecoupling_options");
+  _dftpackage_options = options.get(".dftpackage");
+  _gwbse_options = options.get(".gwbse_options");
+  _dftcoupling_options = options.get(".dftcoupling_options");
+  _bsecoupling_options = options.get(".bsecoupling_options");
 
   // read linker groups
-  std::string linker = _options.ifExistsReturnElseReturnDefault<std::string>(
-      ".linker_names", "");
+  std::string linker =
+      options.ifExistsReturnElseReturnDefault<std::string>(".linker_names", "");
   tools::Tokenizer toker(linker, ", \t\n");
   std::vector<std::string> linkers = toker.ToVector();
   for (const std::string& link : linkers) {
@@ -98,25 +99,25 @@ void IQM::ParseOptionsXML() {
 
   // options for parsing data into state file
   std::string key_read = "options." + Identify() + ".readjobfile";
-  if (_options.exists(key_read + ".singlet")) {
+  if (options.exists(key_read + ".singlet")) {
     std::string parse_string_s =
-        _options.get(key_read + ".singlet").as<std::string>();
+        options.get(key_read + ".singlet").as<std::string>();
     _singlet_levels = FillParseMaps(parse_string_s);
   }
-  if (_options.exists(key_read + ".triplet")) {
+  if (options.exists(key_read + ".triplet")) {
     std::string parse_string_t =
-        _options.get(key_read + ".triplet").as<std::string>();
+        options.get(key_read + ".triplet").as<std::string>();
     _triplet_levels = FillParseMaps(parse_string_t);
   }
 
-  if (_options.exists(key_read + ".hole")) {
+  if (options.exists(key_read + ".hole")) {
     std::string parse_string_h =
-        _options.get(key_read + ".hole").as<std::string>();
+        options.get(key_read + ".hole").as<std::string>();
     _hole_levels = FillParseMaps(parse_string_h);
   }
-  if (_options.exists(key_read + ".electron")) {
+  if (options.exists(key_read + ".electron")) {
     std::string parse_string_e =
-        _options.get(key_read + ".electron").as<std::string>();
+        options.get(key_read + ".electron").as<std::string>();
     _electron_levels = FillParseMaps(parse_string_e);
   }
 }

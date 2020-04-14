@@ -57,27 +57,28 @@ class MapChecker : public QMCalculator {
 
 void MapChecker::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   _segmentfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".md_pdbfile");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".md_pdbfile");
 
   _qmfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".qm_pdbfile");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".qm_pdbfile");
 
   _mpfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".mp_pdbfile");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".mp_pdbfile");
 
   std::string output_qm =
-      _options.ifExistsReturnElseReturnDefault<std::string>(".qm_states", "");
+      options.ifExistsReturnElseReturnDefault<std::string>(".qm_states", "");
 
   _qmstates = StringToStates(output_qm);
   std::string output_md =
-      _options.ifExistsReturnElseReturnDefault<std::string>(".mp_states", "");
+      options.ifExistsReturnElseReturnDefault<std::string>(".mp_states", "");
   _mdstates = StringToStates(output_md);
   if (!(_qmstates.empty() && _mdstates.empty())) {
     _mapfile =
-        _options.ifExistsReturnElseThrowRuntimeError<std::string>(".map_file");
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(".map_file");
   }
 }
 

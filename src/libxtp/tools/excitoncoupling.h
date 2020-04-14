@@ -54,23 +54,24 @@ class ExcitonCoupling : public QMTool {
 
 void ExcitonCoupling::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _classical = _options.get(".classical").as<bool>();
+  _classical = options.get(".classical").as<bool>();
 
   if (!_classical) {
 
     _coupling_options.get(".bsecoupling_options");
 
-    _orbA = _options.get(".orbitalsA").as<std::string>();
-    _orbB = _options.get(".orbitalsB").as<std::string>();
-    _orbAB = _options.get(".orbitalsAB").as<std::string>();
+    _orbA = options.get(".orbitalsA").as<std::string>();
+    _orbB = options.get(".orbitalsB").as<std::string>();
+    _orbAB = options.get(".orbitalsAB").as<std::string>();
 
   } else {
-    _mpsA = _options.get(".mpsA").as<std::string>();
-    _mpsB = _options.get(".mpsB").as<std::string>();
+    _mpsA = options.get(".mpsA").as<std::string>();
+    _mpsB = options.get(".mpsB").as<std::string>();
   }
-  _output_file = _options.get(".output").as<std::string>();
+  _output_file = options.get(".output").as<std::string>();
 }
 
 bool ExcitonCoupling::Evaluate() {

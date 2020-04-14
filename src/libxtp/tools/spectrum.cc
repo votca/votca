@@ -27,27 +27,28 @@ namespace xtp {
 
 void Spectrum::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   // orbitals file or pure DFT output
   _orbfile =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".orbitals");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".orbitals");
   _output_file =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
-  _n_pt = _options.ifExistsReturnElseThrowRuntimeError<Index>(".points");
-  _lower = _options.get(".lower").as<double>();
-  _upper = _options.ifExistsReturnElseThrowRuntimeError<double>(".upper");
-  _fwhm = _options.ifExistsReturnElseThrowRuntimeError<double>(".fwhm");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
+  _n_pt = options.ifExistsReturnElseThrowRuntimeError<Index>(".points");
+  _lower = options.get(".lower").as<double>();
+  _upper = options.ifExistsReturnElseThrowRuntimeError<double>(".upper");
+  _fwhm = options.ifExistsReturnElseThrowRuntimeError<double>(".fwhm");
 
-  if (_options.exists(".type")) {
+  if (options.exists(".type")) {
     std::vector<std::string> choices = {"energy", "wavelength"};
     _spectrum_type =
-        _options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+        options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
             ".type", choices);
   }
-  _minexc = _options.ifExistsReturnElseThrowRuntimeError<Index>(".minexc");
-  _maxexc = _options.ifExistsReturnElseThrowRuntimeError<Index>(".maxexc");
-  _shiftby = _options.ifExistsReturnElseThrowRuntimeError<double>(".shift");
+  _minexc = options.ifExistsReturnElseThrowRuntimeError<Index>(".minexc");
+  _maxexc = options.ifExistsReturnElseThrowRuntimeError<Index>(".maxexc");
+  _shiftby = options.ifExistsReturnElseThrowRuntimeError<double>(".shift");
 }
 
 bool Spectrum::Evaluate() {

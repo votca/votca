@@ -63,7 +63,7 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
   void WriteLoggerToFile(const std::string& logfile, Logger& logger);
   void addLinkers(std::vector<const Segment*>& segments, const Topology& top);
   bool isLinker(const std::string& name);
-  void ParseOptionsXML();
+  void ParseOptionsXML(const tools::Property& options);
   std::map<std::string, QMState> FillParseMaps(const std::string& Mapstring);
 
   QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,

@@ -27,18 +27,19 @@ namespace xtp {
 
 void MolPol::Initialize(tools::Property& user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   std::string mps_input =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsinput");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsinput");
 
   _input.LoadFromFile(mps_input);
   _mps_output =
-      _options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsoutput");
-  _polar_options = _options.get(".options_polar");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsoutput");
+  _polar_options = options.get(".options_polar");
 
-  bool target_exists = _options.exists(".target");
-  bool qmpackage_exists = _options.exists(".qmpackage");
+  bool target_exists = options.exists(".target");
+  bool qmpackage_exists = options.exists(".qmpackage");
   if (target_exists && qmpackage_exists) {
     throw std::runtime_error(
         "Can only read either from target or qmpackage logfile");
@@ -52,7 +53,7 @@ void MolPol::Initialize(tools::Property& user_options) {
   if (target_exists) {
 
     Eigen::VectorXd target_vec =
-        _options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(
+        options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(
             ".target");
     if (target_vec.size() != 6) {
       throw std::runtime_error(
@@ -71,9 +72,9 @@ void MolPol::Initialize(tools::Property& user_options) {
     _polarisation_target(2, 2) = target_vec(5);
   } else {
     std::string qm_package =
-        _options.ifExistsReturnElseThrowRuntimeError<std::string>(".qmpackage");
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(".qmpackage");
     std::string log_file =
-        _options.ifExistsReturnElseThrowRuntimeError<std::string>(".logfile");
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(".logfile");
     Logger log;
     log.setPreface(Log::info, "\n ...");
     log.setPreface(Log::error, "\n ...");
@@ -96,13 +97,13 @@ void MolPol::Initialize(tools::Property& user_options) {
 
   Eigen::VectorXd default_weights = Eigen::VectorXd::Ones(_input.size());
   _weights =
-      _options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(".weights");
+      options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(".weights");
 
   _tolerance_pol =
-      _options.ifExistsReturnElseThrowRuntimeError<double>(".tolerance");
+      options.ifExistsReturnElseThrowRuntimeError<double>(".tolerance");
 
   _max_iter =
-      _options.ifExistsReturnElseThrowRuntimeError<Index>(".iterations");
+      options.ifExistsReturnElseThrowRuntimeError<Index>(".iterations");
 }
 
 Eigen::Vector3d MolPol::CalcInducedDipole(

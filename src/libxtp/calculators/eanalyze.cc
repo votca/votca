@@ -22,19 +22,20 @@ namespace xtp {
 
 void EAnalyze::Initialize(tools::Property &user_options) {
 
-  LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _resolution_pairs = _options.get(".resolution_pairs").as<double>();
-  _resolution_sites = _options.get(".resolution_sites").as<double>();
-  _resolution_spatial = _options.get(".resolution_spatial").as<double>();
+  _resolution_pairs = options.get(".resolution_pairs").as<double>();
+  _resolution_sites = options.get(".resolution_sites").as<double>();
+  _resolution_spatial = options.get(".resolution_spatial").as<double>();
 
-  if (_options.exists(".pattern")) {
-    _seg_pattern = _options.get(".pattern").as<std::string>();
+  if (options.exists(".pattern")) {
+    _seg_pattern = options.get(".pattern").as<std::string>();
   } else {
     _seg_pattern = "*";
   }
 
-  std::string statestrings = _options.get(".states").as<std::string>();
+  std::string statestrings = options.get(".states").as<std::string>();
   tools::Tokenizer tok(statestrings, ",\n\t ");
   std::vector<std::string> string_vec;
   tok.ToVector(string_vec);
@@ -42,13 +43,13 @@ void EAnalyze::Initialize(tools::Property &user_options) {
     _states.push_back(QMStateType(state));
   }
 
-  _doenergy_landscape = _options.ifExistsReturnElseReturnDefault<bool>(
-      ".energy_landscape", false);
+  _doenergy_landscape =
+      options.ifExistsReturnElseReturnDefault<bool>(".energy_landscape", false);
 
-  if (_options.exists(".distancemode")) {
+  if (options.exists(".distancemode")) {
     std::vector<std::string> choices = {"atoms", "centerofmass"};
     std::string distancemode =
-        _options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+        options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
             ".distancemode", choices);
     if (distancemode == "centerofmass") {
       _atomdistances = false;
