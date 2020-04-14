@@ -53,8 +53,7 @@ void MolPol::Initialize(const tools::Property& user_options) {
   if (target_exists) {
 
     Eigen::VectorXd target_vec =
-        options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(
-            ".target");
+        options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(".target");
     if (target_vec.size() != 6) {
       throw std::runtime_error(
           "ERROR <options.molpol.target> "
@@ -102,8 +101,7 @@ void MolPol::Initialize(const tools::Property& user_options) {
   _tolerance_pol =
       options.ifExistsReturnElseThrowRuntimeError<double>(".tolerance");
 
-  _max_iter =
-      options.ifExistsReturnElseThrowRuntimeError<Index>(".iterations");
+  _max_iter = options.ifExistsReturnElseThrowRuntimeError<Index>(".iterations");
 }
 
 Eigen::Vector3d MolPol::CalcInducedDipole(

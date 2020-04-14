@@ -62,8 +62,8 @@ void QMSandbox::Initialize(const tools::Property& user_options) {
   _mpsfiled =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(".dipole");
 
-  _mpsfileds = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      ".dipole_split");
+  _mpsfileds =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".dipole_split");
   _mpsfileq =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(".quadrupole");
   _mpsfileqs = options.ifExistsReturnElseThrowRuntimeError<std::string>(

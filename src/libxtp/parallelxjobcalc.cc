@@ -97,7 +97,8 @@ void ParallelXJobCalc<JobContainer>::JobOperator::Run() {
 }
 
 template <typename JobContainer>
-void ParallelXJobCalc<JobContainer>::ParseCommonOptions(const tools::Property& options) {
+void ParallelXJobCalc<JobContainer>::ParseCommonOptions(
+    const tools::Property &options) {
   std::cout << "\n... ... Initialized with " << _nThreads << " threads.\n";
 
   _maverick = (_nThreads == 1) ? true : false;
