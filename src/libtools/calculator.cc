@@ -30,25 +30,26 @@ std::string Calculator::GetVotcaShare() {
 
 Property Calculator::LoadDefaults(const std::string package) {
 
-  std::string id = Identify();
+  std::string calculator_name = Identify();
   // add default values if specified in VOTCASHARE
   std::string votca_share = Calculator::GetVotcaShare();
 
   // load the xml description of the calculator (with defaults and test values)
   std::string xmlFile = votca_share + std::string("/") + package +
-                        std::string("/xml/") + id + std::string(".xml");
+                        std::string("/xml/") + calculator_name +
+                        std::string(".xml");
 
   Property defaults_all;
   defaults_all.LoadFromXML(xmlFile);
-  return defaults_all.get("options." + id);
+  return defaults_all.get("options." + calculator_name);
 }
 
 void Calculator::UpdateWithUserOptions(Property &default_options,
                                        const Property &user_options) {
 
   // copy options from the object supplied by the Application
-  std::string id = Identify();
-  Property options_id = user_options.get("options." + id);
+  std::string calculator_name = Identify();
+  Property options_id = user_options.get("options." + calculator_name);
 
   // if a value is given override default values
   OverwriteDefaultsWithUserInput(options_id, default_options);

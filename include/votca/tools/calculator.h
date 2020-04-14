@@ -91,7 +91,7 @@ class Calculator {
    * a tag is created and/or a default value is assigned to it
    */
   void UpdateWithUserOptions(Property &default_options,
-                                 const Property &user_options);
+                             const Property &user_options);
 
   /**
    * \brief Load the default options and merge them with the user input
@@ -99,9 +99,9 @@ class Calculator {
    * Defaults are overwritten with user input
    */
   Property LoadDefaultsAndUpdateWithUserOptions(std::string package,
-                                                const Property &options) {
+                                                const Property &user_options) {
     Property defaults = LoadDefaults(package);
-    UpdateWithUserOptions(defaults, options);
+    UpdateWithUserOptions(defaults, user_options);
     return defaults;
   }
 
