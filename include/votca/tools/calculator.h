@@ -90,7 +90,7 @@ class Calculator {
    * a default value exists in the corresponding XML file in VOTCASHARE
    * a tag is created and/or a default value is assigned to it
    */
-  void UpdateWithUserOptions(const Property &options);
+  void UpdateWithUserOptions(const Property &user_options);
 
   /**
    * \brief Load the default options and merge them with the user input
@@ -107,7 +107,7 @@ class Calculator {
   Index _nThreads;
   bool _maverick;
 
-  void AddDefaults(const Property &p, Property &defaults);
+  void OverwriteDefaultsWithUserInput(const Property &p, Property &defaults);
   static std::string GetVotcaShare();
 
   Property _options;  // the finally used options

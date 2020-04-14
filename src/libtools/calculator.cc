@@ -50,16 +50,17 @@ void Calculator::UpdateWithUserOptions(const Property &user_options) {
   Property options_id = user_options.get("options." + id);
 
   // if a value is given override default values
-  AddDefaults(options_id, _options);
+  OverwriteDefaultsWithUserInput(options_id, _options);
 }
 
-void Calculator::AddDefaults(const Property &p, Property &defaults) {
+void Calculator::OverwriteDefaultsWithUserInput(const Property &p,
+                                                Property &defaults) {
 
   // Go through everything that is defined in user option
   for (const Property &prop : p) {
     std::string name = prop.path() + "." + prop.name();
     if (prop.HasChildren()) {
-      AddDefaults(prop, defaults.get(prop.name()));
+      OverwriteDefaultsWithUserInput(prop, defaults.get(prop.name()));
     } else if (defaults.exists(prop.name())) {
       defaults.set(prop.name(), prop.value());
     } else {
