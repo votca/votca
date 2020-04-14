@@ -81,7 +81,7 @@ class Calculator {
   /**
    * \brief Loads default options stored in VOTCASHARE
    */
-  Property LoadDefaults(std::string package = "tools");
+  Property LoadDefaults(const std::string package = "tools");
 
   /**
    * \brief Updates user options with default options stored in VOTCASHARE
@@ -98,7 +98,7 @@ class Calculator {
    *
    * Defaults are overwritten with user input
    */
-  Property LoadDefaultsAndUpdateWithUserOptions(std::string package,
+  Property LoadDefaultsAndUpdateWithUserOptions(const std::string package,
                                                 const Property &user_options) {
     Property defaults = LoadDefaults(package);
     UpdateWithUserOptions(defaults, user_options);
