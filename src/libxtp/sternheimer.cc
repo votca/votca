@@ -55,10 +55,10 @@ void Sternheimer::setUpMatrices() {
   ERIs eris;
   _eris.Initialize(dftbasis, auxbasis);
 
-  Vxc_Grid grid;
-  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+  Vxc_Grid _grid;
+  _grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
                  dftbasis);
-  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  Vxc_Potential<Vxc_Grid> Vxcpot(_grid);
   Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
   this->_Fxc_presaved = Vxcpot.precalcFXC(_density_Matrix);
 }
@@ -920,15 +920,17 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
   // This function calculates GW at w and w_p (i.e before integral over
   // frequencies)
   // It perform the spatial grid integration. The final object is a matrix
+  
   AOBasis basis = _orbitals.SetupDftBasis();
   Vxc_Grid _grid;
-  _grid.GridSetup("xcoarse", _orbitals.QMAtoms(), basis);
+ _grid.GridSetup("xcoarse", _orbitals.QMAtoms(), basis);
 
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<Eigen::MatrixXcd> sigma_thread = std::vector<Eigen::MatrixXcd>(
       nthreads,
       Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols()));
 Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
+
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
@@ -950,17 +952,21 @@ Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
       Eigen::VectorXd ao = box.CalcAOValues(points[p]);
-      double ao_ov = (ao*ao.transpose()).maxCoeff();
-      if (ao_ov < 1.e-8) {
-      continue;}
+      Eigen::MatrixXd S = ao * ao.transpose();
+
+      double ao_ov = S.maxCoeff();
+      
       const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
       const double weight = weights[p];
-      if (rho * weight < 1.e-20) {
-        continue;  // skip the rest, if density is very small
+      if (rho * weight < 1.e-3) {
+        continue;  // skip the rest, if density is very small. (rho * weight) is a sort of charge in the volume dV 
       }
-       Eigen::MatrixXcd w_c = GF*(ScreenedCoulomb(points[p], omega_p) - CoulombMatrix(points[p]));
+      if (ao_ov * weight< 1.e-8) {
+      continue;} // skip the rest, if the overlap is very small in that volume dV
+      
+      Eigen::MatrixXcd w_c = GF*(ScreenedCoulomb(points[p], omega_p) - CoulombMatrix(points[p]));
       const Eigen::MatrixXcd sigma_r = box.ReadFromBigMatrix(w_c);
-      sigma_here += weight * ao * ao.transpose() * sigma_r;
+      sigma_here += weight * S * sigma_r;
     }
 
     box.AddtoBigMatrix(sigma_thread[OPENMP::getThreadId()], sigma_here);
@@ -998,6 +1004,17 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(double omega) const {
   }
   return right;
          
+}
+
+
+Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(double omega) const {
+  Index n_states = _mo_coefficients.cols();
+  Eigen::MatrixXcd selfenergy = SelfEnergy_at_w(omega);
+  Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_states);
+  for (Index n=0; n < n_states; ++n){
+    results(n) = (_mo_coefficients.col(n).cwiseProduct(selfenergy * _mo_coefficients.col(n))).sum();
+  }
+  return results;
 }
 
 }  // namespace xtp

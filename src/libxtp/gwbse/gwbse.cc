@@ -748,7 +748,11 @@ bool GWBSE::Evaluate() {
       sternheimer.configurate(opt);
 
       //Eigen::VectorXcd results = sternheimer.SelfEnergy(_orbitals.MOs().eigenvalues()(0));
-      std::cout << "Sternheimer results " << sternheimer.SelfEnergy_at_w(0.0).norm() << std::endl; 
+      Eigen::MatrixXcd sigma_c = Eigen::MatrixXcd::Zero(_orbitals.MOs().eigenvalues().size(),10);
+      for (int w = 0; w < 10; ++w){
+        sigma_c.col(w) = sternheimer.SelfEnergy_diagonal(w);
+      }
+      std::cout << "Sternheimer results " << sigma_c << std::endl; 
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Finished Sternheimer GW" << flush;
     }

@@ -90,6 +90,7 @@ class Sternheimer {
   // Return Self-Energy 
   Eigen::MatrixXcd SelfEnergy_at_wp(double omega, double omega_p) const;
   Eigen::MatrixXcd SelfEnergy_at_w(double omega) const;
+  Eigen::VectorXcd SelfEnergy_diagonal(double omega) const;
  private:
   Logger& _log;
 
@@ -115,7 +116,6 @@ class Sternheimer {
   Eigen::VectorXd _mo_energies;
 
   ERIs _eris;
-
   Eigen::VectorXd _Fxc_presaved;
 
   // Sets up the Multishift solver for linear systems of given size
