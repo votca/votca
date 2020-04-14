@@ -52,9 +52,15 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
                << "</options>";
       defaults.close();
 
-      LoadDefaultsAndUpdateWithUserOptions("calculators", user_options);
+      // Load and check the options
+      tools::Property final_opt =
+          LoadDefaultsAndUpdateWithUserOptions("calculators", user_options);
+
+      Index prop1 = final_opt.get("option1").as<votca::Index>();
+      std::string prop2 = final_opt.get("option2").as<std::string>();
+      BOOST_CHECK_EQUAL(prop1, 42);
+      BOOST_CHECK_EQUAL(prop2, "3.141592");
     }
-    const tools::Property &GetOptions() { return _options; }
   };
 
   // Set votcashare env.
@@ -69,13 +75,6 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
 
   TestCalc test_calc;
   test_calc.Initialize(user_options);
-
-  const tools::Property &final_opt = test_calc.GetOptions();
-
-  Index prop1 = final_opt.get("option1").as<votca::Index>();
-  std::string prop2 = final_opt.get("option2").as<std::string>();
-  BOOST_CHECK_EQUAL(prop1, 42);
-  BOOST_CHECK_EQUAL(prop2, "3.141592");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
