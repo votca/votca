@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
    public:
     std::string Identify() override { return "testcalc"; }
 
-    void Initialize(tools::Property &user_options) override {
+    void Initialize(const tools::Property &user_options) override {
 
       // Create folder for test
       const char dir_path[] = "calculators";
@@ -63,8 +63,10 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
     }
   };
 
-  // Set votcashare env.
   setenv("VOTCASHARE", ".", 1);
+  char buff[FILENAME_MAX];
+  std::cout << "WARNING: the VOTCASHARE env. variable has been updated to "
+            << getcwd(buff, FILENAME_MAX) << "\n";
 
   // Generate user options
   tools::Property user_options;
