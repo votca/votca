@@ -33,7 +33,14 @@ void GMXTrajectoryReader::Close() { close_trx(_gmx_status); }
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
   gmx_output_env_t *oenv;
-  output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
+#if GMX_VERSION >= 20210000
+  gmx::TimeUnit timeunit = gmx::TimeUnit::Picoseconds;
+  XvgFormat xvg = XvgFormat::None;
+#else
+  time_unit_t timeunit = time_ps;
+  xvg_format_t xvg = exvgNONE;
+#endif
+  output_env_init(&oenv, gmx::getProgramContext(), timeunit, FALSE, xvg, 0);
   if (!read_first_frame(oenv, &_gmx_status, (char *)_filename.c_str(),
                         &_gmx_frame, TRX_READ_X | TRX_READ_V | TRX_READ_F)) {
     throw std::runtime_error(std::string("cannot open ") + _filename);
@@ -79,7 +86,14 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
 
 bool GMXTrajectoryReader::NextFrame(Topology &conf) {
   gmx_output_env_t *oenv;
-  output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
+#if GMX_VERSION >= 20210000
+  gmx::TimeUnit timeunit = gmx::TimeUnit::Picoseconds;
+  XvgFormat xvg = XvgFormat::None;
+#else
+  time_unit_t timeunit = time_ps;
+  xvg_format_t xvg = exvgNONE;
+#endif
+  output_env_init(&oenv, gmx::getProgramContext(), timeunit, FALSE, xvg, 0);
   if (!read_next_frame(oenv, _gmx_status, &_gmx_frame)) {
     return false;
   }
