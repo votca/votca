@@ -30,11 +30,16 @@ void Spectrum::Initialize(const tools::Property& user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
+
   // orbitals file or pure DFT output
-  _orbfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".orbitals");
-  _output_file =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".orbitals", _job_name + ".orb");
+
+  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", _job_name + "_spectrum.dat");
+
   _n_pt = options.ifExistsReturnElseThrowRuntimeError<Index>(".points");
   _lower = options.get(".lower").as<double>();
   _upper = options.ifExistsReturnElseThrowRuntimeError<double>(".upper");

@@ -1,7 +1,5 @@
 <options>
 <gencube help="Tool to generate cube files from .orb file" section="sec:gencube">
-        <output help="Output file" default="votca.cube">votca.cube</output>
-        <input help="Input file" default="votca.orb">votca.orb</input>
         <padding help="How far the grid should start from the molecule" default="6.5">6.512752</padding>
         <xsteps help="Gridpoints in x-direction" default="25">50</xsteps>
         <ysteps help="Gridpoints in y-direction" default="25">50</ysteps>

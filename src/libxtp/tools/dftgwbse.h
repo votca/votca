@@ -52,7 +52,6 @@ class DftGwBse : public QMTool {
   std::string _archive_file;  // .orb file to parse to
   std::string _guess_orbA;
   std::string _guess_orbB;
-  std::string _job_name = "votca";
 
   tools::Property _package_options;
   tools::Property _gwbseengine_options;

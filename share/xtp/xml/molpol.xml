@@ -1,7 +1,5 @@
 <options>
     <molpol help="Tool to scale distributed polarisibilites to DFT polarisibilites" section="sec:overlap">
-        <mpsinput help="Input file .mps format" default="votca.mps">votca.mps</mpsinput>
-        <mpsoutput help="Output file .mps format" default="votca_polar.mps">votca_polar.mps</mpsoutput>
         <options_polar help="Options for the electrostatic interaction">
             <tolerance_energy help="Energy change as convergence criterion" default="1e-5">1e-5</tolerance_energy>
             <tolerance_dipole help="Field change as convergence criterion" default="1e-5">1e-5</tolerance_dipole>

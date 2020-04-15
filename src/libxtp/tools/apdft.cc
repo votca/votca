@@ -28,11 +28,15 @@ void APDFT::Initialize(const tools::Property &user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
+
   _grid_accuracy =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(".grid");
-  _orbfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
-  _outputfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", _job_name + ".orb");
+  _outputfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", _job_name + "_state.dat");
   std::string statestring =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(".state");
   _state.FromString(statestring);

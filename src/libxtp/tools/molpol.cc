@@ -30,12 +30,15 @@ void MolPol::Initialize(const tools::Property& user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  std::string mps_input =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsinput");
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
+
+  std::string mps_input = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".mpsinput", _job_name + ".mps");
 
   _input.LoadFromFile(mps_input);
-  _mps_output =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsoutput");
+  _mps_output = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".mpsoutput", _job_name + "_polar.mps");
   _polar_options = options.get(".options_polar");
 
   bool target_exists = options.exists(".target");
