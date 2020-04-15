@@ -5,6 +5,7 @@ For more detailed information about the changes see the history of the [reposito
 * fix MKL:: target creation (#207)
 * use local includes (#204)
 * add more support for units (#200)
+* add methods to update user input with defaults (#222)
 
 ## Version 1.6 _SuperPelagia_ (released XX.02.20)
 * fix clang-10 warnings (#217)
