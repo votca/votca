@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,21 @@
 
 #include <votca/xtp/topology.h>
 
-using namespace std;
-
 namespace votca {
 namespace xtp {
 
-void EInternal::Initialize(tools::Property &options) {
-  std::string key = "options." + Identify();
+void EInternal::Initialize(const tools::Property &user_options) {
 
-  _energiesXML = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".energiesXML");
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+
+  _energiesXML =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".energiesXML");
 }
 
 void EInternal::ParseEnergies() {
 
-  std::cout << std::endl
-            << "... ... Site, reorg. energies from " << _energiesXML << ". "
-            << std::flush;
+  std::cout << "\n... ... Site, reorg. energies from " << _energiesXML << ".\n";
 
   tools::Property alloc;
   alloc.LoadFromXML(_energiesXML);

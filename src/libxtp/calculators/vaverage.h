@@ -39,7 +39,7 @@ class VAverage : public QMCalculator {
 
   std::string Identify() override { return "vaverage"; }
   bool WriteToStateFile() const override { return false; }
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
   bool EvaluateFrame(Topology& top) override;
 
  private:

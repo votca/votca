@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -46,7 +46,7 @@ namespace xtp {
 
 class IQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
   std::string Identify() override { return "iqm"; }
   Job::JobResult EvalJob(const Topology& top, Job& job,
                          QMThread& Thread) override;
@@ -63,7 +63,7 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
   void WriteLoggerToFile(const std::string& logfile, Logger& logger);
   void addLinkers(std::vector<const Segment*>& segments, const Topology& top);
   bool isLinker(const std::string& name);
-  void ParseOptionsXML(tools::Property& opt);
+  void ParseOptionsXML(const tools::Property& options);
   std::map<std::string, QMState> FillParseMaps(const std::string& Mapstring);
 
   QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,

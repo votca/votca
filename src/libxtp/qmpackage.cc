@@ -30,6 +30,7 @@ using std::flush;
 void QMPackage::ParseCommonOptions(tools::Property& options) {
 
   std::string key = "package";
+  // std::string key = "";
 
   _settings.read_property(options, key);
   char* votca_share = getenv("VOTCASHARE");
