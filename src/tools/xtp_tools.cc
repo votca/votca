@@ -69,6 +69,9 @@ void XtpTools::Initialize() {
   AddProgramOptions("Tools")("list,l", "Lists all available tools");
   AddProgramOptions("Tools")("description,d", propt::value<std::string>(),
                              "Short description of a tool");
+  AddProgramOptions("Tools")("name,n", propt::value<std::string>(),
+                             "Name of the job to run");
+
   // Options-related
   AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
                       "  number of threads to create");
@@ -121,6 +124,9 @@ bool XtpTools::EvaluateOptions() {
         "You can only run one calculator at the same time.");
   }
 
+  CheckRequired(
+      "name", "Please provide the job name to run (same as the xyz file name)");
+
   bool found_calc = false;
   for (const auto& tool : xtp::QMTools().getObjects()) {
     if (calc_string[0].compare(tool.first) == 0) {
@@ -144,7 +150,15 @@ void XtpTools::Run() {
   if (it != _op_vm.cend()) {
     std::string optionsFile = _op_vm["options"].as<std::string>();
     _options.LoadFromXML(optionsFile);
+  } else {
+    // Empty user options
+    tools::Property& opts = _options.add("options", "");
+    opts.add(_tool->Identify(), "");
   }
+
+  std::string job_name = _op_vm["name"].as<std::string>();
+  tools::Property& opts = _options.get("options." + _tool->Identify());
+  opts.add("job_name", job_name);
 
   Index nThreads = OptionsMap()["nthreads"].as<Index>();
   std::string name = ProgramName();

@@ -36,7 +36,8 @@ void Orca::Initialize(tools::Property& options) {
   // good luck
 
   // Orca file names
-  std::string fileName = "system";
+  const std::string& fileName =
+      options.ifExistsReturnElseReturnDefault<std::string>("job_name", "votca");
 
   _input_file_name = fileName + ".inp";
   _log_file_name = fileName + ".log";

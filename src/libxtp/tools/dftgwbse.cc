@@ -17,7 +17,6 @@
 
 #include "dftgwbse.h"
 #include <votca/tools/constants.h>
-#include <votca/tools/filesystem.h>
 #include <votca/xtp/geometry_optimization.h>
 #include <votca/xtp/gwbseengine.h>
 #include <votca/xtp/qmpackagefactory.h>
@@ -32,9 +31,12 @@ void DftGwBse::Initialize(const tools::Property& user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
+
   // molecule coordinates
-  _xyzfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".molecule");
+  _xyzfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".molecule", _job_name + ".xyz");
 
   // job tasks
   std::vector<std::string> choices = {"optimize", "energy"};
@@ -44,6 +46,7 @@ void DftGwBse::Initialize(const tools::Property& user_options) {
 
   // options for dft package
   _package_options = options.get(".dftpackage");
+  _package_options.add("job_name", _job_name);
   _package = _package_options.get("package.name").as<std::string>();
 
   // set the basis sets and functional in DFT package
@@ -66,10 +69,10 @@ void DftGwBse::Initialize(const tools::Property& user_options) {
       .add("functional", options.get("functional").as<std::string>());
 
   // lets get the archive file name from the xyz file name
-  _archive_file = tools::filesystem::GetFileBase(_xyzfile) + ".orb";
+  _archive_file = _job_name + ".orb";
 
   // XML OUTPUT
-  _xml_output = tools::filesystem::GetFileBase(_xyzfile) + "_summary.xml";
+  _xml_output = _job_name + "_summary.xml";
 
   // checking for additional requests
   _do_optimize = false;
