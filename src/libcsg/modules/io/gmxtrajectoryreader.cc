@@ -21,6 +21,8 @@
 #include <iostream>
 #include <votca/csg/topology.h>
 
+#include <gromacs/version.h>
+
 namespace votca {
 namespace csg {
 
