@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
  */
 
 #pragma once
-#ifndef __VOTCA_DIPOLEDIPOLEINTERACTION_H
-#define __VOTCA_DIPOLEDIPOLEINTERACTION_H
+#ifndef VOTCA_XTP_DIPOLEDIPOLEINTERACTION_H
+#define VOTCA_XTP_DIPOLEDIPOLEINTERACTION_H
 #include <votca/xtp/eeinteractor.h>
 #include <votca/xtp/eigen.h>
 namespace votca {
@@ -176,11 +176,12 @@ struct generic_product_impl<votca::xtp::DipoleDipoleInteraction, Vtype,
     // alpha must be 1 here
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-    dst = op.multiply(v);
+    Eigen::VectorXd temp = op.multiply(v);
+    dst = temp.cast<Scalar>();  // tumbleweed fix do not delete
   }
 };
 
 }  // namespace internal
 }  // namespace Eigen
 
-#endif  //__VOTCA_DIPOLEDIPOLEINTERACTION_H
+#endif  // VOTCA_XTP_DIPOLEDIPOLEINTERACTION_H
