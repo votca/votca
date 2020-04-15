@@ -3,7 +3,7 @@ For more detailed information about the changes see the history of the [reposito
 ## Version 1.6 _SuperPelagia_ (released XX.02.20)
 * fix clang-10 warnings (#217)
 * clean up VOTCARC.* (#220)
-* fix exported target with mkl (#223)
+* fix exported target with mkl (#223, #224)
 
 ## Version 1.6_rc2 (released 10.02.20)
 * fix inheritance bug in cmake files (#197) 
