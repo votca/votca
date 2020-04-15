@@ -73,11 +73,18 @@ void Imc::BeginEvaluate(Topology *top, Topology *) {
   _nblock = 0;
   _processed_some_frames = false;
 
+  double max_dist = 0.5 * top->ShortestBoxSize();
+
   // initialize non-bonded structures
   for (tools::Property *prop : _nonbonded) {
     string name = prop->get("name").value();
 
     interaction_t &i = *_interactions[name];
+
+    double max = i._average.getMax();
+    if (max > max_dist)
+      throw std::runtime_error("The max of interaction \"" + name +
+                               "\" bigger is than half the box.");
 
     // Preliminary: Quickest way to incorporate 3 body correlations
     if (i._threebody) {
