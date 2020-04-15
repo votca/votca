@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -59,12 +59,11 @@ void GWBSEEngine::Initialize(tools::Property& options,
 
   // XML option file for GWBSE
   if (_do_gwbse) {
-    std::string _gwbse_xml = options.get(".gwbse_options").as<std::string>();
-    _gwbse_options.LoadFromXML(_gwbse_xml);
+    _gwbse_options = options.get(".gwbse_options");
   }
   // DFT log and MO file names
-  _MO_file = options.get(".mofile").as<std::string>();
-  _dftlog_file = options.get(".dftlog").as<std::string>();
+  _MO_file = _qmpackage->getMOFile();
+  _dftlog_file = _qmpackage->getLogFile();
 
   // Logger redirection
   _redirect_logger = options.ifExistsReturnElseReturnDefault<bool>(

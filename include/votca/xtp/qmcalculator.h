@@ -37,7 +37,7 @@ class QMCalculator : public tools::Calculator {
 
   virtual bool WriteToStateFile() const = 0;
 
-  void Initialize(tools::Property &options) override = 0;
+  // void Initialize(tools::Property &options) override = 0;
   virtual bool EvaluateFrame(Topology &top) = 0;
 };
 

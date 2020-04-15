@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,21 +17,18 @@
  *
  */
 
-#include <iostream>
-#include <stdlib.h>
 #include <string>
 #include <votca/xtp/calculatorfactory.h>
 #include <votca/xtp/stateapplication.h>
 
-using namespace std;
 using namespace votca;
 
 class XtpRun : public xtp::StateApplication {
  public:
-  string ProgramName() override { return "xtp_run"; }
+  std::string ProgramName() override { return "xtp_run"; }
 
-  void HelpText(ostream& out) override {
-    out << "Runs excitation/charge transport calculators" << endl;
+  void HelpText(std::ostream& out) override {
+    out << "Runs excitation/charge transport calculators\n";
   }
 
   void HelpText(){};
@@ -49,18 +46,18 @@ void XtpRun::Initialize() {
   xtp::Calculatorfactory::RegisterAll();
   xtp::StateApplication::Initialize();
 
-  AddProgramOptions("Calculator")("execute,e", propt::value<string>(),
+  AddProgramOptions("Calculator")("execute,e", propt::value<std::string>(),
                                   "Name of calculator to run");
   AddProgramOptions("Calculator")("list,l", "Lists all available calculators");
-  AddProgramOptions("Calculator")("description,d", propt::value<string>(),
+  AddProgramOptions("Calculator")("description,d", propt::value<std::string>(),
                                   "Short description of a calculator");
 }
 
 bool XtpRun::EvaluateOptions() {
 
-  string helpdir = "xtp/xml";
+  std::string helpdir = "xtp/xml";
   if (OptionsMap().count("list")) {
-    cout << "Available XTP calculators: \n";
+    std::cout << "Available XTP calculators:\n";
     for (const auto& calc : xtp::Calculators().getObjects()) {
       PrintDescription(std::cout, calc.first, helpdir, Application::HelpShort);
     }
@@ -70,7 +67,8 @@ bool XtpRun::EvaluateOptions() {
 
   if (OptionsMap().count("description")) {
     CheckRequired("description", "no calculator is given");
-    tools::Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
+    tools::Tokenizer tok(OptionsMap()["description"].as<std::string>(),
+                         " ,\n\t");
     // loop over the names in the description string
     for (const std::string& n : tok) {
       // loop over calculators
@@ -85,7 +83,7 @@ bool XtpRun::EvaluateOptions() {
         }
       }
       if (printerror) {
-        cout << "Calculator " << n << " does not exist\n";
+        std::cout << "Calculator " << n << " does not exist\n";
       }
     }
     StopExecution();
@@ -93,11 +91,9 @@ bool XtpRun::EvaluateOptions() {
   }
 
   xtp::StateApplication::EvaluateOptions();
-  CheckRequired("options",
-                "Please provide an xml file with calculator options");
   CheckRequired("execute", "Nothing to do here: Abort.");
 
-  tools::Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
+  tools::Tokenizer calcs(OptionsMap()["execute"].as<std::string>(), " ,\n\t");
   std::vector<std::string> calc_string = calcs.ToVector();
   if (calc_string.size() != 1) {
     throw std::runtime_error(
@@ -107,7 +103,6 @@ bool XtpRun::EvaluateOptions() {
   for (const auto& calc : xtp::Calculators().getObjects()) {
 
     if (calc_string[0].compare(calc.first) == 0) {
-      cout << " This is a XTP app" << endl;
       xtp::StateApplication::SetCalculator(
           xtp::Calculators().Create(calc_string[0]));
       found_calc = true;
@@ -115,10 +110,10 @@ bool XtpRun::EvaluateOptions() {
     }
   }
   if (!found_calc) {
-    cout << "Calculator " << calc_string[0] << " does not exist\n";
+    std::cout << "Calculator " << calc_string[0] << " does not exist\n";
     StopExecution();
   } else {
-    _options.LoadFromXML(_op_vm["options"].as<string>());
+    _options.LoadFromXML(_op_vm["options"].as<std::string>());
   }
   return true;
 }

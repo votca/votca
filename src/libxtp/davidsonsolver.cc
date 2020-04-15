@@ -273,7 +273,7 @@ bool DavidsonSolver::checkConvergence(const DavidsonSolver::RitzEigenPair &rep,
   for (Index j = 0; j < proj.size_update; j++) {
     proj.root_converged[j] = (res_norm[j] < _tol);
     if (j < neigen) {
-      converged *= (res_norm[j] < _tol);
+      converged &= (res_norm[j] < _tol);
     }
   }
   return converged;

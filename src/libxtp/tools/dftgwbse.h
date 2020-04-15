@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -36,7 +36,7 @@ class DftGwBse : public QMTool {
 
   std::string Identify() override { return "dftgwbse"; }
 
-  void Initialize(tools::Property &options) override;
+  void Initialize(const tools::Property &options) override;
   bool Evaluate() override;
 
  private:
@@ -50,7 +50,6 @@ class DftGwBse : public QMTool {
   std::string _xml_output;  // .xml output
   std::string _package;
   std::string _archive_file;  // .orb file to parse to
-  std::string _reporting;
   std::string _guess_orbA;
   std::string _guess_orbB;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,58 +19,51 @@
 #include "votca/xtp/qmstate.h"
 #include <boost/format.hpp>
 #include <boost/progress.hpp>
-#include <locale>
 #include <votca/tools/constants.h>
 #include <votca/tools/property.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/gnode.h>
 #include <votca/xtp/topology.h>
 
-using namespace std;
-
 namespace votca {
 namespace xtp {
 
-void KMCLifetime::Initialize(tools::Property& options) {
+void KMCLifetime::Initialize(const tools::Property& user_options) {
 
-  std::string key = "options." + Identify();
-  ParseCommonOptions(options);
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+
   _insertions = options.ifExistsReturnElseThrowRuntimeError<unsigned long>(
-      key + ".numberofinsertions");
+      ".numberofinsertions");
 
-  _lifetimefile = options.ifExistsReturnElseThrowRuntimeError<string>(
-      key + ".lifetimefile");
+  _lifetimefile =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".lifetimefile");
 
   _probfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".decayprobfile", "");
+      ".decayprobfile", "");
 
-  std::string subkey = key + ".carrierenergy";
-  if (options.exists(subkey)) {
-    _do_carrierenergy =
-        options.ifExistsReturnElseReturnDefault<bool>(subkey + ".run", false);
-    _energy_outputfile = options.ifExistsReturnElseReturnDefault<std::string>(
-        subkey + ".outputfile", "energy.tab");
-    _alpha =
-        options.ifExistsReturnElseReturnDefault<double>(subkey + ".alpha", 0.3);
-    _outputsteps = options.ifExistsReturnElseReturnDefault<unsigned long>(
-        subkey + ".outputsteps", 100);
-
-  } else {
-    _do_carrierenergy = false;
-  }
+  tools::Property& carrier_options = options.get(".carrierenergy");
+  _do_carrierenergy =
+      carrier_options.ifExistsReturnElseThrowRuntimeError<bool>(".run");
+  _energy_outputfile =
+      carrier_options.ifExistsReturnElseThrowRuntimeError<std::string>(
+          ".outputfile");
+  _alpha =
+      carrier_options.ifExistsReturnElseThrowRuntimeError<double>(".alpha");
+  _outputsteps =
+      carrier_options.ifExistsReturnElseThrowRuntimeError<unsigned long>(
+          ".outputsteps");
 
   _log.setReportLevel(Log::current_level);
   _log.setCommonPreface("\n ...");
 
   _carriertype = QMStateType(QMStateType::Singlet);
   XTP_LOG(Log::error, _log)
-      << "carrier type:" << _carriertype.ToLongString() << flush;
+      << "carrier type:" << _carriertype.ToLongString() << std::flush;
   _field = Eigen::Vector3d::Zero();
-
-  return;
 }
 
-void KMCLifetime::WriteDecayProbability(string filename) {
+void KMCLifetime::WriteDecayProbability(std::string filename) {
 
   Eigen::VectorXd outrates = Eigen::VectorXd::Zero(_nodes.size());
   Eigen::VectorXd inrates = Eigen::VectorXd::Zero(_nodes.size());
@@ -92,12 +85,12 @@ void KMCLifetime::WriteDecayProbability(string filename) {
   outrates = decayrates.cwiseQuotient(outrates + decayrates);
   inrates = decayrates.cwiseQuotient(inrates + decayrates);
 
-  fstream probs;
-  probs.open(filename, fstream::out);
-  probs << "#SiteID, Relative Prob outgoing, Relative Prob ingoing" << endl;
+  std::fstream probs;
+  probs.open(filename, std::fstream::out);
+  probs << "#SiteID, Relative Prob outgoing, Relative Prob ingoing\n";
   for (unsigned i = 0; i < _nodes.size(); i++) {
     probs << _nodes[i].getId() << " " << outrates[i] << " " << inrates[i]
-          << endl;
+          << std::endl;
   }
   probs.close();
   return;
@@ -108,7 +101,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
   xml.LoadFromXML(filename);
   std::vector<tools::Property*> jobProps = xml.Select("lifetimes.site");
   if (jobProps.size() != _nodes.size()) {
-    throw runtime_error(
+    throw std::runtime_error(
         (boost::format("The number of sites in the topology: %i does not match "
                        "the number in the lifetimefile: %i") %
          _nodes.size() % jobProps.size())
@@ -125,13 +118,13 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
         check = true;
         break;
       } else if (node.getId() == site_id && node.canDecay()) {
-        throw runtime_error(
+        throw std::runtime_error(
             (boost::format("Node %i appears twice in your list") % site_id)
                 .str());
       }
     }
     if (!check) {
-      throw runtime_error(
+      throw std::runtime_error(
           (boost::format("Site from file with id: %i not found in state file") %
            site_id)
               .str());
@@ -144,7 +137,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
   return;
 }
 
-void KMCLifetime::WriteToTraj(fstream& traj, unsigned long insertioncount,
+void KMCLifetime::WriteToTraj(std::fstream& traj, unsigned long insertioncount,
                               double simtime,
                               const Chargecarrier& affectedcarrier) const {
   const Eigen::Vector3d& dr_travelled = affectedcarrier.get_dRtravelled();
@@ -154,7 +147,7 @@ void KMCLifetime::WriteToTraj(fstream& traj, unsigned long insertioncount,
        << affectedcarrier.getCurrentNodeId() + 1 << "\t"
        << dr_travelled.x() * tools::conv::bohr2nm << "\t"
        << dr_travelled.y() * tools::conv::bohr2nm << "\t"
-       << dr_travelled.z() * tools::conv::bohr2nm << endl;
+       << dr_travelled.z() * tools::conv::bohr2nm << std::endl;
 }
 
 void KMCLifetime::RunVSSM() {
@@ -163,38 +156,38 @@ void KMCLifetime::RunVSSM() {
   XTP_LOG(Log::error, _log)
       << "\nAlgorithm: VSSM for Multiple Charges with finite Lifetime\n"
          "number of charges: "
-      << _numberofcarriers << "\nnumber of nodes: " << _nodes.size() << flush;
+      << _numberofcarriers << "\nnumber of nodes: " << _nodes.size()
+      << std::flush;
 
   if (_numberofcarriers > Index(_nodes.size())) {
-    throw runtime_error(
+    throw std::runtime_error(
         "ERROR in kmclifetime: specified number of charges is greater than the "
         "number of nodes. This conflicts with single occupation.");
   }
 
-  fstream traj;
-  fstream energyfile;
+  std::fstream traj;
+  std::fstream energyfile;
 
   XTP_LOG(Log::error, _log)
-      << "Writing trajectory to " << _trajectoryfile << "." << flush;
-  traj.open(_trajectoryfile, fstream::out);
+      << "Writing trajectory to " << _trajectoryfile << "." << std::flush;
+  traj.open(_trajectoryfile, std::fstream::out);
   traj << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last "
-          "Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]"
-       << endl;
+          "Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]\n";
 
   if (_do_carrierenergy) {
 
     XTP_LOG(Log::error, _log)
         << "Tracking the energy of one charge carrier and exponential average "
            "with alpha="
-        << _alpha << " to " << _energy_outputfile << flush;
-    energyfile.open(_energy_outputfile, fstream::out);
+        << _alpha << " to " << _energy_outputfile << std::flush;
+    energyfile.open(_energy_outputfile, std::fstream::out);
     energyfile << "Simtime [s]\tSteps\tCarrier ID\tEnergy_a=" << _alpha
-               << "[eV]" << endl;
+               << "[eV]\n";
   }
 
   // Injection
   XTP_LOG(Log::error, _log)
-      << "\ninjection method: " << _injectionmethod << flush;
+      << "\ninjection method: " << _injectionmethod << std::flush;
 
   RandomlyCreateCharges();
 
@@ -207,7 +200,8 @@ void KMCLifetime::RunVSSM() {
 
   time_t now = time(nullptr);
   tm* localtm = localtime(&now);
-  XTP_LOG(Log::error, _log) << "Run started at " << asctime(localtm) << flush;
+  XTP_LOG(Log::error, _log)
+      << "Run started at " << asctime(localtm) << std::flush;
 
   double avlifetime = 0.0;
   double meanfreepath = 0.0;
@@ -222,7 +216,7 @@ void KMCLifetime::RunVSSM() {
           << "\nReal time limit of " << _maxrealtime << " hours ("
           << Index(_maxrealtime * 60 * 60 + 0.5)
           << " seconds) has been reached. Stopping here.\n"
-          << flush;
+          << std::flush;
       break;
     }
 
@@ -233,7 +227,7 @@ void KMCLifetime::RunVSSM() {
     }
     if (cumulated_rate == 0) {  // this should not happen: no possible jumps
                                 // defined for a node
-      throw runtime_error(
+      throw std::runtime_error(
           "ERROR in kmclifetime: Incorrect rates in the database file. All the "
           "escape rates for the current setting are 0.");
     }
@@ -253,7 +247,7 @@ void KMCLifetime::RunVSSM() {
       }
       if (print) {
         energyfile << simtime << "\t" << step << "\t" << _carriers[0].getId()
-                   << "\t" << avgenergy * tools::conv::hrt2ev << endl;
+                   << "\t" << avgenergy * tools::conv::hrt2ev << std::endl;
       }
     }
 
@@ -350,7 +344,7 @@ void KMCLifetime::RunVSSM() {
       << std::sqrt(difflength_squared.norm() / double(insertioncount)) *
              tools::conv::bohr2nm
       << " nm\n"
-      << flush;
+      << std::flush;
 
   WriteOccupationtoFile(simtime, _occfile);
   traj.close();
@@ -366,7 +360,8 @@ bool KMCLifetime::EvaluateFrame(Topology& top) {
                                "\n-----------------------------------\n"
                             << std::flush;
 
-  XTP_LOG(Log::info, _log) << "\nInitialising random number generator" << flush;
+  XTP_LOG(Log::info, _log) << "\nInitialising random number generator"
+                           << std::flush;
 
   _RandomVariable.init(_seed);
   LoadGraph(top);

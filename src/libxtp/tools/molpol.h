@@ -37,7 +37,7 @@ class MolPol : public QMTool {
 
   std::string Identify() override { return "molpol"; }
 
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
   bool Evaluate() override;
 
  private:
