@@ -2,7 +2,8 @@
 <name>orca</name>
 <charge>0</charge>
 <spin>1</spin>
-<basisset>ubecppol</basisset>
+<basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
+<auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
 <optimize>false</optimize>
 <functional>pbe0</functional>
 <scratch>/tmp/qmpackage</scratch>

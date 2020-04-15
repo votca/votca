@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -36,7 +36,7 @@ class Log2Mps : public QMTool {
 
   std::string Identify() override { return "log2mps"; }
 
-  void Initialize(tools::Property &options) override;
+  void Initialize(const tools::Property &options) override;
   bool Evaluate() override;
 
  private:
@@ -45,29 +45,28 @@ class Log2Mps : public QMTool {
   std::string _mpsfile;
 };
 
-void Log2Mps::Initialize(tools::Property &opt) {
+void Log2Mps::Initialize(const tools::Property &user_options) {
+
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
   QMPackageFactory::RegisterAll();
 
-  std::string key = "options.log2mps";
-  _package = opt.get(key + ".package").as<std::string>();
+  _package =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".package");
 
   if (_package == "xtp") {
     throw std::runtime_error(
         "XTP has no log file. For xtp package just run the partialcharges tool "
         "on you .orb file");
   }
-  _logfile = opt.get(key + ".logfile").as<std::string>();
+  _logfile =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".logfile");
 
-  _mpsfile = (opt.exists(key + ".mpsfile"))
-                 ? opt.get(key + ".mpsfile").as<std::string>()
-                 : "";
-  if (_mpsfile == "") {
-    _mpsfile = _logfile.substr(0, _logfile.size() - 4) + ".mps";
-  }
+  _mpsfile =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsfile");
 
-  std::cout << std::endl
-            << "... ... " << _logfile << " => " << _mpsfile << std::flush;
+  std::cout << "\n... ... " << _logfile << " => " << _mpsfile << "\n";
 }
 
 bool Log2Mps::Evaluate() {

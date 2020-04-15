@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -99,22 +99,18 @@ void ParallelXJobCalc<JobContainer>::JobOperator::Run() {
 template <typename JobContainer>
 void ParallelXJobCalc<JobContainer>::ParseCommonOptions(
     const tools::Property &options) {
-  std::cout << std::endl
-            << "... ... Initialized with " << _nThreads << " threads. "
-            << std::flush;
+  std::cout << "\n... ... Initialized with " << _nThreads << " threads.\n";
 
   _maverick = (_nThreads == 1) ? true : false;
 
-  std::string key = "options." + Identify();
-  std::cout << std::endl
-            << "... ... Using " << _openmp_threads << " openmp threads for "
+  std::cout << "\n... ... Using " << _openmp_threads << " openmp threads for "
             << _nThreads << "x" << _openmp_threads << "="
             << _nThreads * _openmp_threads << " total threads." << std::flush;
   OPENMP::setMaxThreads(_openmp_threads);
-  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".job_file");
-  _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".map_file");
+  _jobfile =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".job_file");
+  _mapfile =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".map_file");
 }
 
 template <typename JobContainer>
