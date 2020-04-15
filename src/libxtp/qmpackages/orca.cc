@@ -31,7 +31,7 @@ namespace votca {
 namespace xtp {
 using namespace std;
 
-void Orca::Initialize(tools::Property& options) {
+void Orca::Initialize(const tools::Property& options) {
 
   // good luck
 

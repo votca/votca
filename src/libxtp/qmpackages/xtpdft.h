@@ -40,7 +40,7 @@ class XTPDFT : public QMPackage {
  public:
   std::string getPackageName() const final { return "xtp"; }
 
-  void Initialize(tools::Property& options) final;
+  void Initialize(const tools::Property& options) final;
 
   bool WriteInputFile(const Orbitals& orbitals) final;
 

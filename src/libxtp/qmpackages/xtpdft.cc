@@ -29,7 +29,7 @@ namespace votca {
 namespace xtp {
 using namespace std;
 
-void XTPDFT::Initialize(tools::Property& options) {
+void XTPDFT::Initialize(const tools::Property& options) {
   _xtpdft_options = options;
   const std::string& job_name =
       options.ifExistsReturnElseReturnDefault<std::string>("job_name", "votca");

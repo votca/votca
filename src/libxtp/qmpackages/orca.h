@@ -37,7 +37,7 @@ class Orca : public QMPackage {
  public:
   std::string getPackageName() const override { return "orca"; }
 
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
 
   bool WriteInputFile(const Orbitals& orbitals) override;
 

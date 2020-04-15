@@ -43,7 +43,7 @@ class QMPackage {
 
   virtual std::string getPackageName() const = 0;
 
-  virtual void Initialize(tools::Property& options) = 0;
+  virtual void Initialize(const tools::Property& options) = 0;
 
   /// writes a coordinate file WITHOUT taking into account PBCs
   virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
@@ -110,7 +110,7 @@ class QMPackage {
     double _q;
   };
 
-  void ParseCommonOptions(tools::Property& options);
+  void ParseCommonOptions(const tools::Property& options);
   std::string FindDefaultsFile() const;
 
   virtual void WriteChargeOption() = 0;

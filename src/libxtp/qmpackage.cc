@@ -27,7 +27,7 @@ namespace votca {
 namespace xtp {
 using std::flush;
 
-void QMPackage::ParseCommonOptions(tools::Property& options) {
+void QMPackage::ParseCommonOptions(const tools::Property& options) {
 
   std::string key = "package";
   // std::string key = "";
