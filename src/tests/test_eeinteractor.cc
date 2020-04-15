@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -403,8 +403,7 @@ BOOST_AUTO_TEST_CASE(polar_case_monopole) {
   PolarSite two(2, "H");
   two.setPolarisation(Eigen::Matrix3d::Identity());
   two.setMultipole(mpoles1, 0);
-  two.setPos(Eigen::Vector3d::UnitZ());
-
+  two.setPos(2 * Eigen::Vector3d::UnitZ());
   seg1.push_back(one);
   seg2.push_back(two);
   double exp_damp =
@@ -413,9 +412,9 @@ BOOST_AUTO_TEST_CASE(polar_case_monopole) {
   double estat =
       interactor.ApplyStaticField<PolarSegment, Estatic::noE_V>(seg1, seg2);
   interactor.ApplyStaticField<PolarSegment, Estatic::noE_V>(seg2, seg1);
-  BOOST_CHECK_CLOSE(estat, 1, 1e-12);
+  BOOST_CHECK_CLOSE(estat, 0.5, 1e-12);
   Eigen::Vector3d field_ref;
-  field_ref << 0, 0, -1;
+  field_ref << 0, 0, -0.25;
   bool field_check = field_ref.isApprox(seg2[0].V_noE(), 1e-6);
   BOOST_CHECK_EQUAL(field_check, true);
   if (!field_check) {
@@ -451,6 +450,7 @@ BOOST_AUTO_TEST_CASE(polar_case_monopole) {
   cg.setMaxIterations(100);
   cg.setTolerance(1e-9);
   cg.compute(A);
+
   Eigen::VectorXd x = cg.solve(b);
   index = 0;
   for (PolarSegment& seg : segments) {
@@ -461,7 +461,7 @@ BOOST_AUTO_TEST_CASE(polar_case_monopole) {
   }
 
   Eigen::Vector3d dipole_ref;
-  dipole_ref << 0, 0, 1.0 / 3.0;
+  dipole_ref << 0, 0, 0.2;
 
   bool dipole_check =
       dipole_ref.isApprox(-segments[0][0].Induced_Dipole(), 1e-6);
@@ -487,9 +487,9 @@ BOOST_AUTO_TEST_CASE(polar_case_monopole) {
   double einternal = segments[0][0].InternalEnergy();
   einternal += segments[1][0].InternalEnergy();
 
-  BOOST_CHECK_CLOSE(epolar.E_indu_indu(), 2.0 / 9.0, 1e-12);
-  BOOST_CHECK_CLOSE(epolar.E_indu_stat(), -2.0 / 3.0, 1e-12);
-  BOOST_CHECK_CLOSE(einternal, 1.0 / 9.0, 1e-12);
+  BOOST_CHECK_CLOSE(epolar.E_indu_indu(), 0.01, 1e-12);
+  BOOST_CHECK_CLOSE(epolar.E_indu_stat(), -0.1, 1e-12);
+  BOOST_CHECK_CLOSE(einternal, 0.04, 1e-12);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
