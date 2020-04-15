@@ -58,10 +58,11 @@ if(ENABLE_WARNING_FLAGS)
   if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck")
   endif()
-  option(ENABLE_WERROR "Inject -Werror" OFF)
-  if(ENABLE_WERROR)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-  endif()
+endif()
+
+option(ENABLE_WERROR "Inject -Werror" OFF)
+if(ENABLE_WERROR)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 endif()
 
 ########################################################################
