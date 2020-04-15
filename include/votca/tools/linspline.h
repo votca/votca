@@ -18,9 +18,9 @@
 #ifndef _LINSPLINE_H
 #define _LINSPLINE_H
 
+#include "eigen.h"
 #include "spline.h"
 #include <iostream>
-#include <votca/tools/eigen.h>
 
 namespace votca {
 namespace tools {

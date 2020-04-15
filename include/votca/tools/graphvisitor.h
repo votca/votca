@@ -20,11 +20,11 @@
 #ifndef __VOTCA_TOOLS_GRAPH_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_VISITOR_H
 
+#include "edge.h"
+#include "graphnode.h"
 #include <iostream>
 #include <set>
 #include <vector>
-#include <votca/tools/edge.h>
-#include <votca/tools/graphnode.h>
 
 /**
  * \brief A graph visitor class for creating graph visitor objects

@@ -15,14 +15,14 @@
  *
  */
 
+#include "../../include/votca/tools/table.h"
+#include "../../include/votca/tools/lexical_cast.h"
+#include "../../include/votca/tools/tokenizer.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/range/algorithm.hpp>
 #include <fstream>
 #include <stdexcept>
 #include <vector>
-#include <votca/tools/lexical_cast.h>
-#include <votca/tools/table.h>
-#include <votca/tools/tokenizer.h>
 
 namespace votca {
 namespace tools {

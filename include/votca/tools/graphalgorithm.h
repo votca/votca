@@ -20,11 +20,11 @@
 #ifndef __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
 #define __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
 
+#include "graphnode.h"
+#include "reducedgraph.h"
 #include <iostream>
 #include <memory>
 #include <string>
-#include <votca/tools/graphnode.h>
-#include <votca/tools/reducedgraph.h>
 
 /**
  * \brief This file is a compilation of graph related algorithms.

@@ -18,9 +18,9 @@
 #ifndef VOTCA_TOOLS_CONSTANTS_H
 #define VOTCA_TOOLS_CONSTANTS_H
 
+#include "types.h"
 #include <boost/math/constants/constants.hpp>
 #include <cmath>
-#include <votca/tools/types.h>
 namespace votca {
 namespace tools {
 

@@ -18,10 +18,10 @@
 #ifndef VOTCA_TOOLS_TABLE_H
 #define VOTCA_TOOLS_TABLE_H
 
+#include "eigen.h"
+#include "types.h"
 #include <string>
 #include <vector>
-#include <votca/tools/eigen.h>
-#include <votca/tools/types.h>
 
 namespace votca {
 namespace tools {
