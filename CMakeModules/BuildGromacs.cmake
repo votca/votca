@@ -20,12 +20,12 @@ ExternalProject_get_property(Gromacs_build INSTALL_DIR)
 
 # create emtpy directory for imported targeti below
 file(MAKE_DIRECTORY "${INSTALL_DIR}/${CMAKE_INSTALL_INCLUDEDIR}")
-add_library(GMX::libgromacs UNKNOWN IMPORTED)
-set_target_properties(GMX::libgromacs PROPERTIES
+add_library(Gromacs::libgromacs UNKNOWN IMPORTED)
+set_target_properties(Gromacs::libgromacs PROPERTIES
   IMPORTED_LOCATION "${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libgromacs.so"
   INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/${CMAKE_INSTALL_INCLUDEDIR}"
   INTERFACE_COMPILE_OPTIONS "-DGMX_DOUBLE=0")
-add_dependencies(GMX::libgromacs Gromacs_build)
-set_target_properties(GMX::libgromacs PROPERTIES GROMACS_PATH "${INSTALL_DIR}/${CMAKE_INSTALL_BINDIR}")
+add_dependencies(Gromacs::libgromacs Gromacs_build)
+set_target_properties(Gromacs::libgromacs PROPERTIES GROMACS_PATH "${INSTALL_DIR}/${CMAKE_INSTALL_BINDIR}")
 
 install(DIRECTORY ${INSTALL_DIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX} USE_SOURCE_PERMISSIONS) 
