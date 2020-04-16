@@ -8623,7 +8623,10 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
 
   Orbitals orb;
   orb.QMAtoms().LoadFromFile("co.xyz");
-  orca->WriteInputFile(orb);
+  bool is_written = orca->WriteInputFile(orb);
+  if (!is_written) {
+    throw std::runtime_error("Orca input file was not written");
+  }
 
   std::string input_file = "system.inp";
   if (!tools::filesystem::FileExists(input_file)) {
