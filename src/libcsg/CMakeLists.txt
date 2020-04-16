@@ -8,10 +8,10 @@ list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${H5MD_SOURCES})
 file(GLOB VOTCA_SOURCES *.cc potentialfunctions/*.cc)
 
 add_library(votca_csg ${VOTCA_SOURCES} ${IO_SOURCES})
-if (TARGET GMX::libgromacs)
+if (TARGET Gromacs::libgromacs)
   #general to a gmx builds
   target_sources(votca_csg PRIVATE ${GMX_SOURCES})
-  target_link_libraries(votca_csg PRIVATE GMX::libgromacs)
+  target_link_libraries(votca_csg PRIVATE Gromacs::libgromacs)
 endif()
 
 
@@ -41,9 +41,6 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 add_dependencies(votca_csg gitversion-csg)
 set_target_properties(votca_csg PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_csg PUBLIC VOTCA::votca_tools Boost::boost PRIVATE Boost::program_options Boost::filesystem Boost::system Threads::Threads Eigen3::Eigen)
-if(MKL_FOUND)
-  target_link_libraries(votca_csg PRIVATE MKL::MKL)
-endif()
 
 install(TARGETS votca_csg EXPORT VOTCA_CSG_Targets
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
