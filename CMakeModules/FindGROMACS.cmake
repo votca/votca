@@ -28,16 +28,21 @@ function(_GROMACS_GET_VERSION _OUT_ver _version_hdr)
   endif()
   file(STRINGS ${_version_hdr} _contents REGEX "#define GMX_VERSION[ \t]+")
   if(_contents)
-    string(REGEX REPLACE ".*#define GMX_VERSION[ \t]+([0-9.]+).*" "\\1" ${_OUT_ver} "${_contents}")
+    string(REGEX REPLACE ".*#define GMX_VERSION[ \t]+([0-9]+).*" "\\1" ${_OUT_ver} "${_contents}")
     if(NOT ${${_OUT_ver}})
       message(FATAL_ERROR "Version parsing failed for GMX_VERSION in ${_version_hdr}, got empty return!")
     elseif(NOT ${${_OUT_ver}} MATCHES "^[0-9]+$")
       message(FATAL_ERROR "Version parsing failed for GMX_VERSION in ${_version_hdr}, excepted a number but got ${${_OUT_ver}}!")
     endif()
+    math(EXPR _MAJOR "${${_OUT_ver}} / 10000")
+    math(EXPR _MINOR "${${_OUT_ver}} - ${_MAJOR} * 10000")
+    set(${_OUT_ver} "${_MAJOR}.${_MINOR}")
+    unset(_MAJOR)
+    unset(_MINOR)
     set(${_OUT_ver} ${${_OUT_ver}} PARENT_SCOPE)
- else()
-   message(FATAL_ERROR "No GMX_VERSION line found in include file ${_version_hdr}")
- endif()
+  else()
+    message(FATAL_ERROR "No GMX_VERSION line found in include file ${_version_hdr}")
+  endif()
 endfunction()
 
 find_package(PkgConfig)
@@ -81,8 +86,8 @@ find_package_handle_standard_args(GROMACS REQUIRED_VARS GROMACS_LIBRARY GROMACS_
 mark_as_advanced(GROMACS_LIBRARY GROMACS_INCLUDE_DIR GROMACS_VERSION)
 
 if(GROMACS_FOUND)
-  add_library(GMX::libgromacs UNKNOWN IMPORTED)
-  set_target_properties(GMX::libgromacs PROPERTIES
+  add_library(Gromacs::libgromacs UNKNOWN IMPORTED)
+  set_target_properties(Gromacs::libgromacs PROPERTIES
     IMPORTED_LOCATION ${GROMACS_LIBRARY}
     INTERFACE_INCLUDE_DIRECTORIES ${GROMACS_INCLUDE_DIR}
     INTERFACE_COMPILE_OPTIONS "${GROMACS_DEFINITIONS}")
