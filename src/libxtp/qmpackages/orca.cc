@@ -37,7 +37,8 @@ void Orca::Initialize(const tools::Property& options) {
 
   // Orca file names
   const std::string& fileName =
-      options.ifExistsReturnElseReturnDefault<std::string>("job_name", "votca");
+      options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                           "system");
 
   _input_file_name = fileName + ".inp";
   _log_file_name = fileName + ".log";
@@ -269,7 +270,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   }
   // Write main DFT method
   _options += this->WriteMethod();
-  inp_file << _options << std::flush;
+  inp_file << _options;
   inp_file.close();
   // and now generate a shell script to run both jobs, if neccessary
 
