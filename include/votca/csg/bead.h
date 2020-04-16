@@ -15,8 +15,9 @@
  *
  */
 
-#ifndef _VOTCA_CSG_BEAD_H
-#define _VOTCA_CSG_BEAD_H
+#ifndef VOTCA_CSG_BEAD_H
+#define VOTCA_CSG_BEAD_H
+#pragma once
 
 #include <assert.h>
 #include <cassert>
@@ -289,10 +290,9 @@ class Bead : public BaseBead {
   bool bead_force_set_;
 
   /// constructor
-  Bead(Topology *owner, Index id, std::string type, Symmetry symmetry,
-       std::string name, Index resnr, double m, double q)
+  Bead(Index id, std::string type, Symmetry symmetry, std::string name,
+       Index resnr, double m, double q)
       : symmetry_(symmetry), charge_(q), residue_number_(resnr) {
-    topology_item_._parent = owner;
     setId(id);
     setType(type);
     setName(name);
@@ -372,4 +372,4 @@ inline void Bead::HasW(bool b) { bW_ = b; }
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_BEAD_H
+#endif  // VOTCA_CSG_BEAD_H

@@ -15,10 +15,10 @@
  *
  */
 
+#include "../../include/votca/csg/csgapplication.h"
 #include <boost/format.hpp>
 #include <fstream>
 #include <iostream>
-#include <votca/csg/csgapplication.h>
 
 using namespace votca::csg;
 using namespace std;

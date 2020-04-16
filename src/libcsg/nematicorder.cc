@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/nematicorder.h>
+#include "../../include/votca/csg/nematicorder.h"
 
 namespace votca {
 namespace csg {

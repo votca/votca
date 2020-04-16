@@ -15,9 +15,9 @@
  *
  */
 
+#include "../../../../include/votca/csg/xyzwriter.h"
 #include <stdio.h>
 #include <string>
-#include <votca/csg/xyzwriter.h>
 namespace votca {
 namespace csg {
 

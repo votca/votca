@@ -18,10 +18,10 @@
 #ifndef _XMLTOPOLOGYREADER_H
 #define _XMLTOPOLOGYREADER_H
 
+#include "../../../../include/votca/csg/topologyreader.h"
 #include <boost/unordered_map.hpp>
 #include <stack>
 #include <string>
-#include <votca/csg/topologyreader.h>
 
 namespace votca {
 namespace csg {

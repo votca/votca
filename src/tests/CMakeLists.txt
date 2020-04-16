@@ -16,6 +16,7 @@ foreach(PROG
   test_lammpsdumpreaderwriter
   test_nblist_3body
   test_nblistgrid_3body
+  test_boundarycondition
   test_pdbreader
   test_tabulatedpotential
   test_triplelist )

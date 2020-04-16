@@ -15,9 +15,9 @@
  *
  */
 
+#include "../../../../include/votca/csg/xyzreader.h"
 #include <boost/lexical_cast.hpp>
 #include <vector>
-#include <votca/csg/xyzreader.h>
 #include <votca/tools/getline.h>
 namespace votca {
 namespace csg {

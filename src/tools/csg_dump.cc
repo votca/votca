@@ -15,8 +15,8 @@
  *
  */
 
+#include "../../include/votca/csg/csgapplication.h"
 #include <stdlib.h>
-#include <votca/csg/csgapplication.h>
 
 using namespace std;
 using namespace votca::csg;
