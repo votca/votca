@@ -10,6 +10,7 @@ For more detailed information about the changes see the history of the
 * remove obsolete link to MKL from cmake (#508)
 * fix build with Gromacs 2021 (#510, #511)
 * warn about too long interaction in csg_stat (#512)
+* fix testing in postadd_plot.sh (#515)
 
 ## Version 1.6_rc2 (released 10.02.20)
 * fix inheritance bug in cmake files (#466) 
