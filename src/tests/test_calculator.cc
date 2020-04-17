@@ -58,8 +58,10 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
 
       Index prop1 = final_opt.get("option1").as<votca::Index>();
       std::string prop2 = final_opt.get("option2").as<std::string>();
+      std::string prop3 = final_opt.get("option3").as<std::string>();
       BOOST_CHECK_EQUAL(prop1, 42);
       BOOST_CHECK_EQUAL(prop2, "3.141592");
+      BOOST_CHECK_EQUAL(prop3, "some_value");
     }
   };
 
@@ -74,6 +76,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
   tools::Property &opt = user_options.add("options", "");
   tools::Property &opt_test = opt.add("testcalc", "");
   opt_test.add("option1", "42");
+  opt_test.add("option3", "some_value");
 
   TestCalc test_calc;
   test_calc.Initialize(user_options);
