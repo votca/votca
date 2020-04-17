@@ -117,6 +117,13 @@ void Imc::BeginEvaluate(Topology *top, Topology *) {
     // 2body
     if (!i._threebody) {
 
+      double max_dist = 0.5 * top->ShortestBoxSize();
+      double max = i._average.getMax();
+      if (max > max_dist) {
+        throw std::runtime_error("The max of interaction \"" + name +
+                                 "\" bigger is than half the box.");
+      }
+
       // generate the bead lists
       BeadList beads1, beads2;
 
