@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ if [[ -z ${what_to_kill} ]]; then
         echo -e "$REPLY" >> gnuplot_pipe.log
         [[ $REPLY = "exit" ]] && break
       fi
-    done | $gnuplot $opts &
+    done | $gnuplot ${CSG_RUNTEST:+-d} $opts &
     while true; do
       if [[ -z $(ps -o pid= -p "${CSG_MASTER_PID}") ]]; then
 	echo "exit" > $(get_main_dir)/gnuplot_pipe
@@ -74,5 +74,5 @@ if [[ -z ${what_to_kill} ]]; then
 else
   [[ -z $(type -p killall) ]] && die "${0##*/}: could not find killall needed to kill gnuplot"
   killall $what_to_kill
-  $gnuplot $opts "$(get_main_dir)/$script" || true #exit code not always clear
+  $gnuplot ${CSG_RUNTEST:+-d} $opts "$(get_main_dir)/$script" || true #exit code not always clear
 fi
