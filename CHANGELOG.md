@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
-## Version 1.6 _SuperPelagia_ (released XX.02.20)
+## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * fix clang-10 warnings (#217)
 * clean up VOTCARC.* (#220)
 * fix exported target with mkl (#223, #224)
