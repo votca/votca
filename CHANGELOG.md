@@ -15,7 +15,7 @@ For more detailed information about the changes see the history of the
 * fix build with gcc-10 (#422, #424)
 * Add name command line argument (#426)
 
-## Version 1.6 _SuperPelagia_ (released XX.02.20)
+## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * fix 32-bit build (#381, #380)
 * remove duplicated basissets (#384, #386, #387)
 * fix clang-10 warnings (#394)
