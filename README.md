@@ -33,13 +33,4 @@ For further details see:
 4. [VOTCA_LANGUAGE_GUIDE](share/doc/VOTCA_LANGUAGE_GUIDE.md)
 5. [Code of Conduct](share/doc/CODE_OF_CONDUCT.md)
 
-If you want to install CTP 
-
-    prefix=WHERE/TO/INSTALL/VOTCA
-    git clone -b ctp --recursive https://github.com/votca/votca.git
-    cd votca
-    mkdir build
-    cd build
-    cmake -DBUILD_CTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
-    cmake --build . -- -j<number of cores>
-    cmake --build . --target install
+You find the VOTCA-CTP repository [here](https://gitlab.mpcdf.mpg.de/votca/votca)
