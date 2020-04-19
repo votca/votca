@@ -1,0 +1,9 @@
+project = 'VOTCA'
+copyright = '2020, VOTCA Development Team'
+author = 'VOTCA Development Team'
+release = '@PROJECT_VERSION@'
+
+from recommonmark.parser import CommonMarkParser
+source_suffix = ['.rst', '.md']
+source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
+html_theme = 'alabaster'
