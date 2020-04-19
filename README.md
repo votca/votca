@@ -11,7 +11,7 @@ This is VOTCA's next generation build system for CSG and XTP. It allows you to e
 Usage:
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'stable' or 'v1.5.1'
+    version=master # or 'stable' or '1.6'
     git clone -b ${version} --recursive https://github.com/votca/votca.git
     cd votca
     mkdir build
