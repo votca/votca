@@ -110,7 +110,7 @@ class QMPackage {
     double _q;
   };
 
-  void ParseCommonOptions(const tools::Property& options);
+  tools::Property ParseCommonOptions(const tools::Property& options);
   std::string FindDefaultsFile() const;
 
   virtual void WriteChargeOption() = 0;

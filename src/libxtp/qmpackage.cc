@@ -27,7 +27,7 @@ namespace votca {
 namespace xtp {
 using std::flush;
 
-void QMPackage::ParseCommonOptions(const tools::Property& options) {
+tools::Property QMPackage::ParseCommonOptions(const tools::Property& options) {
 
   std::string key = "package";
   // std::string key = "";
@@ -54,6 +54,7 @@ void QMPackage::ParseCommonOptions(const tools::Property& options) {
   if (getPackageName() != "xtp") {
     _scratch_dir = _settings.get("scratch");
   }
+  return _settings.to_property("package");
 }
 
 void QMPackage::ReorderOutput(Orbitals& orbitals) const {
