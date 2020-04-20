@@ -1,4 +1,7 @@
-find_package(Clang QUIET)
+find_package(LLVM QUIET)
+if(LLVM_FOUND)
+  find_package(Clang QUIET)
+endif()
 if(TARGET clang-format)
   set(FORMAT_SOURCES)
   foreach(DIR ${ENABLED_VOTCA_PACKAGES})
