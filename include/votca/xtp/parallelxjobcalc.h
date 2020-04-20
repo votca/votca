@@ -89,6 +89,10 @@ class ParallelXJobCalc : public JobCalculator {
 
  protected:
   void ParseCommonOptions(const tools::Property &options);
+  // set the basis sets and functional in DFT package
+  tools::Property UpdateDFTOptions(const tools::Property &options);
+  // set the basis sets and functional in GWBSE
+  tools::Property UpdateGWBSEOptions(const tools::Property &options);
 
   JobContainer _XJobs;
   tools::Mutex _coutMutex;
