@@ -20,6 +20,7 @@ xtp_map -v -t MD_FILES/newfile.data -c MD_FILES/traj.dump -s system.xml -f state
 
 # output MD and QM mappings into extract.trajectory_md.pdb and extract.trajectory_qm.pdb files
 cp $VOTCASHARE/xtp/xml/mapchecker.xml OPTIONFILES/
+changeoption map_file system.xml OPTIONFILES/mapchecker.xml
 xtp_run -e mapchecker -o OPTIONFILES/mapchecker.xml -f state.hdf5
 
 
@@ -45,7 +46,6 @@ xtp_run -e einternal -o OPTIONFILES/einternal.xml -f state.hdf5
 
 
 cp $VOTCASHARE/xtp/packages/polar.xml OPTIONFILES/
-
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm_mm.xml -f state.hdf5 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" qmmm_mm_jobs.xml
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_mm_jobs.xml
@@ -68,14 +68,8 @@ xtp_run -e eanalyze -o OPTIONFILES/eanalyze.xml -f state.hdf5
 echo "Running eQM"
 
 cp $VOTCASHARE/xtp/xml/eqm.xml OPTIONFILES/
-cp $VOTCASHARE/xtp/packages/gwbse.xml OPTIONFILES/
-cp $VOTCASHARE/xtp/packages/xtpdft.xml OPTIONFILES/
-cp $VOTCASHARE/xtp/packages/esp2multipole.xml OPTIONFILES/
-
-changeoption dftpackage OPTIONFILES/xtpdft.xml OPTIONFILES/eqm.xml
-changeoption gwbse_options OPTIONFILES/gwbse.xml OPTIONFILES/eqm.xml
-
-changeoption ranges full OPTIONFILES/gwbse.xml
+changeoption ranges full OPTIONFILES/eqm.xml
+changeoption map_file system.xml OPTIONFILES/eqm.xml
 
 xtp_parallel -e eqm -o OPTIONFILES/eqm.xml -f state.hdf5 -s 0 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" eqm.jobs
@@ -91,24 +85,23 @@ xtp_parallel -e eqm -o OPTIONFILES/eqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 1
 echo "Running iQM"
 
 cp $VOTCASHARE/xtp/xml/iqm.xml OPTIONFILES/
-cp $VOTCASHARE/xtp/packages/gwbse.xml OPTIONFILES/gwbse_pair.xml
-cp $VOTCASHARE/xtp/packages/xtpdft.xml OPTIONFILES/xtpdft_pair.xml
-cp $VOTCASHARE/xtp/packages/bsecoupling.xml OPTIONFILES/
+changeoption map_file system.xml OPTIONFILES/iqm.xml
 
-changeoption bsecoupling_options OPTIONFILES/bsecoupling.xml OPTIONFILES/iqm.xml
-changeoption dftpackage OPTIONFILES/xtpdft_pair.xml OPTIONFILES/iqm.xml
-changeoption gwbse_options OPTIONFILES/gwbse_pair.xml OPTIONFILES/iqm.xml
-changeoption read_guess 1 OPTIONFILES/xtpdft_pair.xml
-changeoption energy 1e-2 OPTIONFILES/xtpdft_pair.xml
+# Append the states to read to iqm.xml
+TAIL=$(tail -n 2 OPTIONFILES/iqm.xml)
+head -n -2 OPTIONFILES/iqm.xml > OPTIONFILES/tmp
 
-changeoption ranges full OPTIONFILES/gwbse_pair.xml
+cat >> OPTIONFILES/tmp <<- EOM
+<readjobfile help="which states to read into the jobfile for each segment type">
+     <singlet>thiophene:s1</singlet>
+     <triplet>thiophene:t1</triplet>
+     <electron>thiophene:e1</electron>
+     <hole>thiophene:h1</hole>
+</readjobfile>
+EOM
 
-changeoption singlet "thiophene:s1" OPTIONFILES/iqm.xml
-changeoption triplet "thiophene:t1" OPTIONFILES/iqm.xml
-changeoption electron "thiophene:e1" OPTIONFILES/iqm.xml
-changeoption hole "thiophene:h1" OPTIONFILES/iqm.xml
-
-changeoption tasks "GW" OPTIONFILES/gwbse_pair.xml
+echo $TAIL >> OPTIONFILES/tmp
+mv OPTIONFILES/tmp  OPTIONFILES/iqm.xml
 
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" iqm.jobs
@@ -130,21 +123,3 @@ cp $VOTCASHARE/xtp/packages/gwbse.xml OPTIONFILES/gwbse_qmmm.xml
 cp $VOTCASHARE/xtp/packages/xtpdft.xml OPTIONFILES/xtpdft_qmmm.xml
 
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j run
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
