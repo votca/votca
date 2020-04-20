@@ -7,6 +7,7 @@ For more detailed information about the changes see the history of the
 * add default units to readers (#483)
 * update bead related classes (#475, #474, #469, #468, #460)
 * update boundary class (#457)
+* fix usage of PROJECT_SOURCE_DIR in cmake (#517)
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * enforce periodic boundaries for dihedrals (#500)
