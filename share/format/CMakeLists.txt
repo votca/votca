@@ -1,5 +1,5 @@
-find_package(CLANG_FORMAT 7.0.1)
-if(CLANG_FORMAT_FOUND)
+find_package(Clang QUIET)
+if(TARGET clang-format)
   set(FORMAT_SOURCES)
   foreach(DIR ${ENABLED_VOTCA_PACKAGES})
     set(ABS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../${DIR})
@@ -7,6 +7,6 @@ if(CLANG_FORMAT_FOUND)
     list(APPEND FORMAT_SOURCES ${${DIR}_SOURCES})
   endforeach()
   add_custom_target(format
-    COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${FORMAT_SOURCES}
+    COMMAND $<TARGET_FILE:clang-format> -i -style=file ${FORMAT_SOURCES}
     DEPENDS ${FORMAT_SOURCES})
 endif()
