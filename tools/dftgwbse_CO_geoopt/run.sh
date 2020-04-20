@@ -10,6 +10,7 @@ cp $VOTCASHARE/xtp/xml/dftgwbse.xml .
 
 changeoption ranges full dftgwbse.xml
 # Change enery mode to optimize
+gawk -i inplace 'NR==1,/mode/{sub(/>energy</, ">optimize<")} 1' dftgwbse.xml
 xtp_tools -n CO -e dftgwbse -o dftgwbse.xml -t 4 > dftgwbse.log
 
 
