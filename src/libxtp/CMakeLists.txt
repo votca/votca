@@ -1,6 +1,6 @@
 add_custom_target(gitversion-xtp COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -P ${CMAKE_MODULE_PATH}/gitversion.cmake)
+  -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 file(GLOB_RECURSE VOTCA_SOURCES *.cc *.cpp)
