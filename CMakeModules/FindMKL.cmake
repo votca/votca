@@ -135,12 +135,12 @@ function(find_mkl_library)
 
   cmake_parse_arguments(mkl_args "${options}" "${single_args}" "${multi_args}" ${ARGN})
 
-  if(NOT TARGET MKL::${mkl_args_NAME})
-    add_library(MKL::${mkl_args_NAME}        SHARED IMPORTED)
+  if(TARGET MKL::${mkl_args_NAME})
+    return()
   endif()
-  if(NOT TARGET MKL::${mkl_args_NAME}_STATIC)
-    add_library(MKL::${mkl_args_NAME}_STATIC SHARED IMPORTED)
-  endif()
+
+  add_library(MKL::${mkl_args_NAME}        SHARED IMPORTED)
+  add_library(MKL::${mkl_args_NAME}_STATIC SHARED IMPORTED)
   find_library(MKL_${mkl_args_NAME}_LINK_LIBRARY
     NAMES
       ${mkl_args_LIBRARY_NAME}${shared_suffix}
