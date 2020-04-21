@@ -16,7 +16,7 @@
 #
 
 
-from optparse import OptionParser
+import argparse
 import sys
 import re
 import pickle
@@ -89,10 +89,11 @@ except:
 
 
 usage = "usage: %prog [options] statefile-in statefile-out"
-parser = OptionParser(usage=usage)
-parser.add_option("--eps", dest="eps", metavar="EPS",
+parser = argparse.ArgumentParser(description=usage)
+
+parser.add_argument("--eps", dest="eps", metavar="EPS", type=float,
                   help="tolerance for initialization", default=0.1)
-(options, args) = parser.parse_args()
+(options, args) = parser.parse_known_args()
 
 if len(args) != 2:
     sys.exit("two statefile required as parameters")
