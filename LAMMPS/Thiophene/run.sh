@@ -77,7 +77,7 @@ sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' eqm.jobs
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' eqm.jobs
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' eqm.jobs
 
-xtp_parallel -e eqm -o OPTIONFILES/eqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 1
+xtp_parallel -e eqm -o OPTIONFILES/eqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 4
 
 #running iqm
 #iqm runs qm calculations for each pair in the hdf5 file, it consists of three stages first writing a jobfile, then running the calculations, if necessary 
@@ -107,7 +107,7 @@ xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" iqm.jobs
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' iqm.jobs
 
-xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 1
+xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 4
 
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -j "read"
 
@@ -118,5 +118,7 @@ cp $VOTCASHARE/xtp/xml/ianalyze.xml OPTIONFILES/
 xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.hdf5
 
 #running qmmm 
-cp qmmm.xml OPTIONFILES/
+cp $VOTCASHARE/xtp/packages/gwbse.xml OPTIONFILES/gwbse_qmmm.xml
+cp $VOTCASHARE/xtp/packages/xtpdft.xml OPTIONFILES/xtpdft_qmmm.xml
+
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j run
