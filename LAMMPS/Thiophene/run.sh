@@ -118,8 +118,5 @@ cp $VOTCASHARE/xtp/xml/ianalyze.xml OPTIONFILES/
 xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.hdf5
 
 #running qmmm 
-
-cp $VOTCASHARE/xtp/packages/gwbse.xml OPTIONFILES/gwbse_qmmm.xml
-cp $VOTCASHARE/xtp/packages/xtpdft.xml OPTIONFILES/xtpdft_qmmm.xml
-
+cp qmmm.xml OPTIONFILES/
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j run
