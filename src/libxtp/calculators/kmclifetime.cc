@@ -152,7 +152,8 @@ void KMCLifetime::WriteToTraj(std::fstream& traj, unsigned long insertioncount,
 
 void KMCLifetime::RunVSSM() {
 
-  Index realtime_start = time(nullptr);
+  std::chrono::time_point<std::chrono::system_clock> realtime_start =
+      std::chrono::system_clock::now();
   XTP_LOG(Log::error, _log)
       << "\nAlgorithm: VSSM for Multiple Charges with finite Lifetime\n"
          "number of charges: "
@@ -211,7 +212,9 @@ void KMCLifetime::RunVSSM() {
   Index carrieridold = _carriers[0].getId();
 
   while (insertioncount < _insertions) {
-    if ((time(nullptr) - realtime_start) > Index(_maxrealtime * 60. * 60.)) {
+    std::chrono::duration<double> elapsed_time =
+        std::chrono::system_clock::now() - realtime_start;
+    if (elapsed_time.count() > Index(_maxrealtime * 60. * 60.)) {
       XTP_LOG(Log::error, _log)
           << "\nReal time limit of " << _maxrealtime << " hours ("
           << Index(_maxrealtime * 60 * 60 + 0.5)

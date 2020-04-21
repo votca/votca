@@ -18,7 +18,7 @@
 #include "kmcmultiple.h"
 #include "votca/xtp/qmstate.h"
 #include <boost/format.hpp>
-#include <locale>
+#include <chrono>
 #include <votca/tools/constants.h>
 #include <votca/tools/property.h>
 #include <votca/xtp/gnode.h>
@@ -194,7 +194,8 @@ void KMCMultiple::PrintChargeVelocity(double simtime) {
 
 void KMCMultiple::RunVSSM() {
 
-  Index realtime_start = time(nullptr);
+  std::chrono::time_point<std::chrono::system_clock> realtime_start =
+      std::chrono::system_clock::now();
   XTP_LOG(Log::error, _log)
       << "\nAlgorithm: VSSM for Multiple Charges" << std::flush;
   XTP_LOG(Log::error, _log)
@@ -309,7 +310,9 @@ void KMCMultiple::RunVSSM() {
   while (((stopontime && simtime < _runtime) ||
           (!stopontime && step < maxsteps))) {
 
-    if ((time(nullptr) - realtime_start) > Index(_maxrealtime * 60. * 60.)) {
+    std::chrono::duration<double> elapsed_time =
+        std::chrono::system_clock::now() - realtime_start;
+    if (elapsed_time.count() > Index(_maxrealtime * 60. * 60.)) {
       XTP_LOG(Log::error, _log)
           << "\nReal time limit of " << _maxrealtime << " hours ("
           << Index(_maxrealtime * 60 * 60 + 0.5)
