@@ -958,7 +958,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
 
       const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
       const double weight = weights[p];
-      if (rho * weight < 1.e-4) {
+      if (rho * weight < 1.e-8) {
         continue;  // skip the rest, if density is very small. (rho * weight) is
                    // a sort of charge in the volume dV
       }
@@ -972,8 +972,6 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
       Eigen::MatrixXcd BareCoulomb = CoulombMatrix(points[p]);
       Eigen::MatrixXcd W_c =
           (ScreenedCoulomb(points[p], omega_p) - BareCoulomb);
-
-      Eigen::MatrixXcd sigma_r = box.ReadFromBigMatrix(W_c);
       sigma_here += weight * S * box.ReadFromBigMatrix(W_c);  // sigma_r;
     }
 
