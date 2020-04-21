@@ -17,6 +17,7 @@ find_package_handle_standard_args(SPHINX REQUIRED_VARS SPHINX_EXECUTABLE)
 if(SPHINX_FOUND)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
   file(GLOB PAGES *.md *.rst)
+  file(GLOB IMAGES *.png)	
   configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/sphinx/conf.py @ONLY)
   foreach(_MODULE ${ENABLED_VOTCA_PACKAGES})
     file(GLOB _MODULE_PAGES ${PROJECT_SOURCE_DIR}/${_MODULE}/guide/*.md ${PROJECT_SOURCE_DIR}/${_MODULE}/share/doc/*.md)
@@ -24,6 +25,10 @@ if(SPHINX_FOUND)
   endforeach()
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/sphinx/.pages
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PAGES} ${CMAKE_CURRENT_BINARY_DIR}/sphinx
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${IMAGES} ${CMAKE_CURRENT_BINARY_DIR}/sphinx
+
+
+
     COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_BINARY_DIR}/sphinx/.pages
     DEPENDS ${PAGES}
   )

@@ -6,4 +6,11 @@ release = '@PROJECT_VERSION@'
 from recommonmark.parser import CommonMarkParser
 source_suffix = ['.rst', '.md']
 source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
-html_theme = 'alabaster'
+
+html_logo = 'customLogo.png'
+html_theme = "sphinx_rtd_theme"
+#html_theme_path = ["_themes", ]
+html_theme_options= { 'logo_only' : True }
+
+#html_theme = 'alabaster'
+master_doc = 'index'
