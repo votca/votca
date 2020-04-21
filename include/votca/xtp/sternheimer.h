@@ -20,6 +20,7 @@
 #ifndef VOTCA_XTP_STERNHEIMER_H
 #define VOTCA_XTP_STERNHEIMER_H
 
+#include "votca/xtp/ERIs.h"
 #include <fstream>
 #include <votca/tools/property.h>
 #include <votca/xtp/aobasis.h>
@@ -27,7 +28,6 @@
 #include <votca/xtp/logger.h>
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
-#include "votca/xtp/ERIs.h"
 #include <votca/xtp/vxc_grid.h>
 
 namespace votca {
@@ -73,24 +73,28 @@ class Sternheimer {
   std::vector<Eigen::Vector3cd> EnergyGradient() const;
 
   std::vector<Eigen::Vector3cd> MOEnergyGradient(Index n, Index m) const;
-  
+
   std::complex<double> KoopmanCorrection(Index n, double deltaf_n) const;
   std::complex<double> KoopmanRelaxationCoeff(Index n, double deltaf_n) const;
   // Prints the isotropic average of the polarizability tensor
   void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar) const;
   // Prints the Hellmann-Feynman contribution of the Energy Gradient
-  void printHellmannFeynmanForces(std::vector<Eigen::Vector3cd>& EnergyGrad) const;
+  void printHellmannFeynmanForces(
+      std::vector<Eigen::Vector3cd>& EnergyGrad) const;
   // Prints the MO Energy gradient for state n and m
-  void printMOEnergyGradient(std::vector<Eigen::Vector3cd>& EnergyGrad,Index n, Index m) const;
-  void printKoopman(std::complex<double> alpha, std::complex<double> correction, Index n) const;
+  void printMOEnergyGradient(std::vector<Eigen::Vector3cd>& EnergyGrad, Index n,
+                             Index m) const;
+  void printKoopman(std::complex<double> alpha, std::complex<double> correction,
+                    Index n) const;
   void printKoopmanRelaxationCoeff(std::complex<double> alpha, Index n) const;
   // Returns Isotropic Average from Polarizability Tensor
   std::vector<double> getIsotropicAverage(
       std::vector<Eigen::Matrix3cd>& polar) const;
-  // Return Self-Energy 
+  // Return Self-Energy
   Eigen::MatrixXcd SelfEnergy_at_wp(double omega, double omega_p) const;
   Eigen::MatrixXcd SelfEnergy_at_w(double omega) const;
   Eigen::VectorXcd SelfEnergy_diagonal(double omega) const;
+
  private:
   Logger& _log;
 
@@ -137,7 +141,7 @@ class Sternheimer {
   std::vector<std::complex<double>> BuildGrid(double omega_start,
                                               double omega_end, Index steps,
                                               double imaginary_shift) const;
-                                              
+
   // Computes the Dipole Integral
   std::vector<Eigen::MatrixXcd> DipoleIntegral();
   // sets up the left hand side of the sternheimer equation
@@ -173,7 +177,7 @@ class Sternheimer {
 
   Eigen::MatrixXcd Fxc(Eigen::MatrixXcd deltaN) const;
 
-Eigen::MatrixXcd GreensFunctionLHS(std::complex<double> w) const;
+  Eigen::MatrixXcd GreensFunctionLHS(std::complex<double> w) const;
   Eigen::MatrixXcd GreensFunctionRHS(Eigen::Vector3d r) const;
 
   Eigen::MatrixXcd AnalyticGreensfunction(std::complex<double> w) const;
@@ -184,8 +188,9 @@ Eigen::MatrixXcd GreensFunctionLHS(std::complex<double> w) const;
 
   Eigen::MatrixXcd GreensFunction(std::complex<double> frequency) const;
 
-  Eigen::MatrixXcd ScreenedCoulomb( Eigen::Vector3d gridpoint1, std::complex<double> frequency) const;
-  
+  Eigen::MatrixXcd ScreenedCoulomb(Eigen::Vector3d gridpoint1,
+                                   std::complex<double> frequency) const;
+
   Eigen::VectorXd EvaluateBasisAtPosition(const AOBasis& dftbasis,
                                           const Eigen::Vector3d& pos) const;
 };

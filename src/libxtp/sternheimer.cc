@@ -27,6 +27,7 @@
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/aomatrix3d.h>
 #include <votca/xtp/aopotential.h>
+#include <votca/xtp/gauss_hermite_quadrature_constants.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
@@ -57,7 +58,7 @@ void Sternheimer::setUpMatrices() {
 
   Vxc_Grid _grid;
   _grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                 dftbasis);
+                  dftbasis);
   Vxc_Potential<Vxc_Grid> Vxcpot(_grid);
   Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
   this->_Fxc_presaved = Vxcpot.precalcFXC(_density_Matrix);
@@ -905,8 +906,8 @@ Eigen::VectorXd Sternheimer::EvaluateBasisAtPosition(
     const Eigen::Vector3d& shellpos = shell.getPos();
     Eigen::Vector3d dist = shellpos - pos;
     double distsq = dist.squaredNorm();
-    // if contribution is smaller than -ln(1e-10), calc density
-    if ((decay * distsq) < 20.7) {
+    // if contribution is smaller than -ln(1e-10) = 20.27, calc density
+    if ((decay * distsq) < -1.0 * std::log(1e-5)) {
       Eigen::VectorBlock<Eigen::VectorXd> tmat_block =
           tmat.segment(shell.getStartIndex(), shell.getNumFunc());
       shell.EvalAOspace(tmat_block, pos);
@@ -920,16 +921,16 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
   // This function calculates GW at w and w_p (i.e before integral over
   // frequencies)
   // It perform the spatial grid integration. The final object is a matrix
-  
+
   AOBasis basis = _orbitals.SetupDftBasis();
   Vxc_Grid _grid;
- _grid.GridSetup("xcoarse", _orbitals.QMAtoms(), basis);
+  _grid.GridSetup("xcoarse", _orbitals.QMAtoms(), basis);
 
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<Eigen::MatrixXcd> sigma_thread = std::vector<Eigen::MatrixXcd>(
       nthreads,
       Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols()));
-Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
+  Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
 
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
@@ -953,20 +954,27 @@ Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
     for (Index p = 0; p < box.size(); p++) {
       Eigen::VectorXd ao = box.CalcAOValues(points[p]);
       Eigen::MatrixXd S = ao * ao.transpose();
-
       double ao_ov = S.maxCoeff();
-      
+
       const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
       const double weight = weights[p];
-      if (rho * weight < 1.e-3) {
-        continue;  // skip the rest, if density is very small. (rho * weight) is a sort of charge in the volume dV 
+      if (rho * weight < 1.e-4) {
+        continue;  // skip the rest, if density is very small. (rho * weight) is
+                   // a sort of charge in the volume dV
       }
-      if (ao_ov * weight< 1.e-8) {
-      continue;} // skip the rest, if the overlap is very small in that volume dV
-      
-      Eigen::MatrixXcd w_c = GF*(ScreenedCoulomb(points[p], omega_p) - CoulombMatrix(points[p]));
-      const Eigen::MatrixXcd sigma_r = box.ReadFromBigMatrix(w_c);
-      sigma_here += weight * S * sigma_r;
+
+      if (ao_ov < 1.e-5) {
+        continue;  // skip the rest, if overalp in that point is very small.
+      }
+      // Evaluate bare and screend coulomb potential at point to evaluate the
+      // correlation screened Coulomb potential (W_c = W-v). W is evaluated in
+      // DeltaNsc
+      Eigen::MatrixXcd BareCoulomb = CoulombMatrix(points[p]);
+      Eigen::MatrixXcd W_c =
+          (ScreenedCoulomb(points[p], omega_p) - BareCoulomb);
+
+      Eigen::MatrixXcd sigma_r = box.ReadFromBigMatrix(W_c);
+      sigma_here += weight * S * box.ReadFromBigMatrix(W_c);  // sigma_r;
     }
 
     box.AddtoBigMatrix(sigma_thread[OPENMP::getThreadId()], sigma_here);
@@ -976,43 +984,36 @@ Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
       sigma_thread.begin(), sigma_thread.end(),
       Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols())
           .eval());
-  return sigma;
+  return GF * sigma;
 }
 
 Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(double omega) const {
+  // This function evaluates the frequency integration over w_p, leaving a
+  // function of omega Hermite quadrature of order 12: If you want to use
+  // different orders for now you have to change the 12 number in getPoints and
+  // getAdaptedWeights (now avail. 8,10,12,14,16,18,20,100)
 
-  std::vector<std::complex<double>> w = BuildGrid(
-      _opt.start_frequency_grid, _opt.end_frequency_grid,
-      _opt.number_of_frequency_grid_points, _opt.imaginary_shift_pade_approx);
+  Gauss_Hermite_Quadrature_Constants ghqc;
+  Eigen::VectorXd _quadpoints = ghqc.getPoints(12);
+  Eigen::VectorXd _quadadaptedweights = ghqc.getAdaptedWeights(12);
 
-  // Integral over frequencies omega: trapezoidal rule
-  // I would like to implement some Gaussian quadrature instead 
-  double delta = (_opt.end_frequency_grid - _opt.start_frequency_grid) /
-                 _opt.number_of_frequency_grid_points;
-  Index i = 0;
-  Eigen::MatrixXcd right = Eigen::MatrixXcd::Zero(_density_Matrix.cols(),_density_Matrix.cols());
-  for (std::complex<double> omega_p : w) {
-
-    if (i == 0) {
-      right += 0.5 * SelfEnergy_at_wp(omega, omega_p.real());
-    } else if (i == _opt.number_of_frequency_grid_points - 1) {
-      right += 0.5 * SelfEnergy_at_wp(omega, omega_p.real());
-    } else {
-      right += SelfEnergy_at_wp(omega, omega_p.real());
-    }
-    i++;
+  Eigen::MatrixXcd sigma =
+      Eigen::MatrixXcd::Zero(_density_Matrix.cols(), _density_Matrix.cols());
+  for (Index j = 0; j < 12; ++j) {
+    sigma += _quadadaptedweights(j) * SelfEnergy_at_wp(omega, _quadpoints(j));
   }
-  return right;
-         
-}
 
+  return sigma;
+}
 
 Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(double omega) const {
   Index n_states = _mo_coefficients.cols();
   Eigen::MatrixXcd selfenergy = SelfEnergy_at_w(omega);
   Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_states);
-  for (Index n=0; n < n_states; ++n){
-    results(n) = (_mo_coefficients.col(n).cwiseProduct(selfenergy * _mo_coefficients.col(n))).sum();
+  for (Index n = 0; n < n_states; ++n) {
+    results(n) = (_mo_coefficients.col(n).cwiseProduct(selfenergy *
+                                                       _mo_coefficients.col(n)))
+                     .sum();
   }
   return results;
 }
