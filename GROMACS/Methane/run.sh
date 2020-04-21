@@ -131,8 +131,12 @@ cp $VOTCASHARE/xtp/xml/ianalyze.xml OPTIONFILES/
 
 xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.hdf5
 
-#running qmmm 
+#running qmmm
 cp qmmm.xml OPTIONFILES/
+cp $VOTCASHARE/xtp/packages/gwbse.xml OPTIONFILES/gwbse_qmmm.xml
+cp $VOTCASHARE/xtp/packages/qmpackage_defaults.xml OPTIONFILES/qmpackage_qmmm.xml
+cp $VOTCASHARE/xtp/packages/polar.xml OPTIONFILES/
+
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" qmmm_jobs.xml
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_jobs.xml
