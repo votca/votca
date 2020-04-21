@@ -1,5 +1,5 @@
 <package>
-<name>xtpdft</name>
+<name>xtp</name>
 <charge>0</charge>
 <spin>1</spin>
 <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>

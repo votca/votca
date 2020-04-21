@@ -75,12 +75,9 @@
     <dftpackage>
         <package>
             <name help="Name of the DFT package" default="xtp">xtp</name>
-			<read_guess>true</read_guess>
+            <read_guess>true</read_guess>
         </package>
     </dftpackage>
 
 </iqm>
-
 </options>
-
-
