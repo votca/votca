@@ -19,14 +19,14 @@ xtp_map -v -t MD_FILES/newfile.data -c MD_FILES/traj.dump -s system.xml -f state
 # you can explore the created .hdf5 file with e.g. hdfview or HDFCompass
 
 # output MD and QM mappings into extract.trajectory_md.pdb and extract.trajectory_qm.pdb files
-cp $VOTCASHARE/xtp/xml/mapchecker.xml OPTIONFILES/
+cp "${VOTCASHARE}/xtp/xml/mapchecker.xml" OPTIONFILES/
 changeoption map_file system.xml OPTIONFILES/mapchecker.xml
 xtp_run -e mapchecker -o OPTIONFILES/mapchecker.xml -f state.hdf5
 
 
 #copy neighborlistfile from votca share folder to here
 
-cp $VOTCASHARE/xtp/xml/neighborlist.xml OPTIONFILES/
+cp "${VOTCASHARE}/xtp/xml/neighborlist.xml" OPTIONFILES/
 
 changeoption constant 0.6 OPTIONFILES/neighborlist.xml
 
@@ -36,7 +36,7 @@ xtp_run -e neighborlist -o OPTIONFILES/neighborlist.xml -f state.hdf5 -t 4
 
 # read in reorganisation energies stored in system.xml to state.hdf5
 
-cp $VOTCASHARE/xtp/xml/einternal.xml OPTIONFILES/
+cp "${VOTCASHARE}/xtp/xml/einternal.xml" OPTIONFILES/
 
 xtp_run -e einternal -o OPTIONFILES/einternal.xml -f state.hdf5
 
@@ -45,7 +45,7 @@ xtp_run -e einternal -o OPTIONFILES/einternal.xml -f state.hdf5
 #we just prepared an optionfile for the mm calculation as changing qmmm.xml for mm is too difficult with bash
 
 
-cp $VOTCASHARE/xtp/packages/polar.xml OPTIONFILES/
+cp "${VOTCASHARE}/xtp/packages/polar.xml" OPTIONFILES/
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm_mm.xml -f state.hdf5 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" qmmm_mm_jobs.xml
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_mm_jobs.xml
@@ -58,7 +58,7 @@ xtp_parallel -e qmmm -o OPTIONFILES/qmmm_mm.xml -f state.hdf5 -j "run"
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm_mm.xml -f state.hdf5 -j "read"
 #running eanalyze
 
-cp $VOTCASHARE/xtp/xml/eanalyze.xml OPTIONFILES/
+cp "${VOTCASHARE}/xtp/xml/eanalyze.xml" OPTIONFILES/
 
 xtp_run -e eanalyze -o OPTIONFILES/eanalyze.xml -f state.hdf5
 
@@ -67,7 +67,7 @@ xtp_run -e eanalyze -o OPTIONFILES/eanalyze.xml -f state.hdf5
 # on multiple machines and then reading them into the .hdf5 file
 echo "Running eQM"
 
-cp $VOTCASHARE/xtp/xml/eqm.xml OPTIONFILES/
+cp "${VOTCASHARE}/xtp/xml/eqm.xml" OPTIONFILES/
 changeoption ranges full OPTIONFILES/eqm.xml
 changeoption map_file system.xml OPTIONFILES/eqm.xml
 
@@ -84,7 +84,7 @@ xtp_parallel -e eqm -o OPTIONFILES/eqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 4
 # on multiple machines and then reading them into the .hdf5 file
 echo "Running iQM"
 
-cp $VOTCASHARE/xtp/xml/iqm.xml OPTIONFILES/
+cp "${VOTCASHARE}/xtp/xml/iqm.xml" OPTIONFILES/
 changeoption map_file system.xml OPTIONFILES/iqm.xml
 
 # Append the states to read to iqm.xml
@@ -100,7 +100,7 @@ cat >> OPTIONFILES/tmp <<- EOM
 </readjobfile>
 EOM
 
-echo $TAIL >> OPTIONFILES/tmp
+echo "${TAIL}" >> OPTIONFILES/tmp
 mv OPTIONFILES/tmp  OPTIONFILES/iqm.xml
 
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j "write"
@@ -113,12 +113,12 @@ xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -j "read"
 
 #running ianalyze
 
-cp $VOTCASHARE/xtp/xml/ianalyze.xml OPTIONFILES/
+cp "${VOTCASHARE}/xtp/xml/ianalyze.xml" OPTIONFILES/
 
 xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.hdf5
 
 #running qmmm 
-cp $VOTCASHARE/xtp/packages/gwbse.xml OPTIONFILES/gwbse_qmmm.xml
-cp $VOTCASHARE/xtp/packages/xtpdft.xml OPTIONFILES/xtpdft_qmmm.xml
+cp "${VOTCASHARE}/xtp/packages/gwbse.xml" OPTIONFILES/gwbse_qmmm.xml
+cp "${VOTCASHARE}/xtp/packages/xtpdft.xml" OPTIONFILES/xtpdft_qmmm.xml
 
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j run
