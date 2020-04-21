@@ -1,6 +1,8 @@
 find_package(LLVM QUIET)
+set_package_properties(LLVM PROPERTIES TYPE OPTIONAL PURPOSE "Needed for automatic code formatting with clang-format")
 if(LLVM_FOUND)
   find_package(Clang QUIET)
+  set_package_properties(Clang PROPERTIES TYPE OPTIONAL PURPOSE "Needed for automatic code formatting with clang-format")
 endif()
 if(TARGET clang-format)
   set(FORMAT_SOURCES)
