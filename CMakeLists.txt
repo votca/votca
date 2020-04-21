@@ -48,7 +48,7 @@ message(STATUS "VOTCA_CSG_DEFAULTS is ${VOTCA_CSG_DEFAULTS}")
 set(TEX2EPS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/tex2eps)
 set(BBOX_ADD ${CMAKE_CURRENT_SOURCE_DIR}/scripts/bbox_add.pl)
 
-include(${CMAKE_MODULE_PATH}/UseLATEX.cmake)
+include(${PROJECT_SOURCE_DIR}/CMakeModules/UseLATEX.cmake)
 
 ######################################
 # Include the following subdirectory # 
@@ -64,11 +64,11 @@ add_custom_target(gitid COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DPROJECT_VERSION="${PROJECT_VERSION}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -P ${CMAKE_MODULE_PATH}/gitid.cmake)
+  -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitid.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitid.tex)
 add_custom_command(OUTPUT gitid.tex DEPENDS gitid)
 
-configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall-csg-manual COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 if(NOT TARGET uninstall)
   add_custom_target(uninstall)
