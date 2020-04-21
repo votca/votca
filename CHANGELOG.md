@@ -14,6 +14,7 @@ For more detailed information about the changes see the history of the
 * Add defaults to XML (#319, #413)
 * fix build with gcc-10 (#422, #424)
 * fix usage of PROJECT_SOURCE_DIR in cmake (#431)
+* check that temperature is positive for KMC
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * fix 32-bit build (#381, #380)
