@@ -4,7 +4,7 @@ add_custom_target(help2t2t_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/help2t2t)
 add_custom_command(OUTPUT help2t2t ALL COMMAND ${CMAKE_COMMAND}
     -DINPUT="help2t2t.out" -DOUTPUT="help2t2t"
     -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-    -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/gitscript.cmake)
+    -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitscript.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES help2t2t)
 
 foreach(SCRIPT csg_call csg_inverse)
@@ -13,7 +13,7 @@ foreach(SCRIPT csg_call csg_inverse)
   add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
     -DINPUT="${SCRIPT}.out" -DOUTPUT="${SCRIPT}"
     -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-    -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/gitscript.cmake)
+    -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitscript.cmake)
   if(ENABLE_REGRESSION_TESTING OR BUILD_CSG_MANUAL)
     add_custom_command(TARGET ${SCRIPT}_build POST_BUILD COMMAND chmod +x ${SCRIPT})
   endif(ENABLE_REGRESSION_TESTING OR BUILD_CSG_MANUAL)
