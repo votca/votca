@@ -127,7 +127,7 @@ xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 -j "read"
 
 #running ianalyze
 
-cp ${VOTCASHARE}/xtp/xml/ianalyze.xml OPTIONFILES/
+cp "${VOTCASHARE}/xtp/xml/ianalyze.xml" OPTIONFILES/
 
 xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.hdf5
 
