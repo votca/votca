@@ -20,7 +20,7 @@ if(SPHINX_FOUND)
   file(GLOB IMAGES *.png)	
   configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/sphinx/conf.py @ONLY)
   foreach(_MODULE ${ENABLED_VOTCA_PACKAGES})
-    file(GLOB _MODULE_PAGES ${PROJECT_SOURCE_DIR}/${_MODULE}/guide/*.md ${PROJECT_SOURCE_DIR}/${_MODULE}/share/doc/*.md)
+    file(GLOB _MODULE_PAGES ${PROJECT_SOURCE_DIR}/${_MODULE}/guide/*.md ${PROJECT_SOURCE_DIR}/${_MODULE}/share/doc/*.rst)
     list(APPEND PAGES ${_MODULE_PAGES})
   endforeach()
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/sphinx/.pages
