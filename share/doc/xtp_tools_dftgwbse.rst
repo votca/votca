@@ -1,3 +1,6 @@
+dftgwbse
+********
+
 the `dftgwbse` calculator optionally takes an *xml* file that have the following hierarchical
 structure:
 
