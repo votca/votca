@@ -131,6 +131,33 @@ void ParallelXJobCalc<JobContainer>::CustomizeLogger(QMThread &thread) {
                  (format("\nT%1$02d DBG ...") % thread.getId()).str());
 }
 
+template <typename JobContainer>
+tools::Property ParallelXJobCalc<JobContainer>::UpdateGWBSEOptions(
+    const tools::Property &options) {
+  tools::Property gwbse_options = options.get(".gwbse_options");
+  gwbse_options.get(".gwbse").add("basisset",
+                                  options.get("basisset").as<std::string>());
+  gwbse_options.get(".gwbse").add("auxbasisset",
+                                  options.get("auxbasisset").as<std::string>());
+  gwbse_options.get(".gwbse.vxc")
+      .add("functional", options.get("functional").as<std::string>());
+
+  return gwbse_options;
+}
+
+template <typename JobContainer>
+tools::Property ParallelXJobCalc<JobContainer>::UpdateDFTOptions(
+    const tools::Property &options) {
+  tools::Property package_options = options.get(".dftpackage");
+  package_options.get("package").add("basisset",
+                                     options.get("basisset").as<std::string>());
+  package_options.get("package").add(
+      "auxbasisset", options.get("auxbasisset").as<std::string>());
+  package_options.get("package").add(
+      "functional", options.get("functional").as<std::string>());
+
+  return package_options;
+}
 // REGISTER PARALLEL CALCULATORS
 template class ParallelXJobCalc<std::vector<Job>>;
 

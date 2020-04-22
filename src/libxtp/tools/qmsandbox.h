@@ -55,8 +55,11 @@ void QMSandbox::Initialize(const tools::Property& user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _orbfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".orbfile");
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
+
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".orbfile", _job_name + ".orb");
   _espfile =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(".espfile");
   _mpsfiled =

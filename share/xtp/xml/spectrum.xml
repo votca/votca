@@ -1,7 +1,5 @@
 <options>
 <spectrum help="Convolutes singlet spectrum with gaussian or lorentzian function">
-    <orbitals help="orbitals file to read from" default="votca.orb">votca.orb</orbitals>
-    <output help="outputfile file" default="votca_spectrum.dat">votca_spectrum.dat</output>
     <fwhm help="peak width in eV" default="0.2">0.2</fwhm>
     <lower help="lower bound of spectrum in eV" default="0.0">0.0</lower>
     <upper  help="upper bound of spectrum in eV" default="3.5">3.5</upper>

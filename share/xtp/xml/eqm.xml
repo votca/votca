@@ -5,6 +5,10 @@
 	<tasks help="tasks to perform during calculation input,dft,parse,gwbse,esp" default="input,dft,parse,gwbse,esp">input,dft,parse,gwbse,esp</tasks>
 	<job_file help="name of jobfile to which jobs are written" default="eqm.jobs">eqm.jobs</job_file>
 	<map_file help="xml file with segment definition" default="votca_map.xml">votca_map.xml</map_file>
+    <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
+    <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
+    <functional help="Functional name(s) according to LIBXC" default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
+
 
     <gwbse_options help="xml file with options for gwbse calculations">
    	    <gwbse>
@@ -15,7 +19,7 @@
 	        <bsemin help="only needed, if ranges is factor or explicit, lowest MO to be used in BSE" default=""></bsemin>
 	        <bsemax help="only needed, if ranges is factor or explicit, highest MO to be used in BSE" default=""></bsemax>
 	        <vxc help="Exchange correlation functional computation for GW">
-	            <grid help="grid quality xcoarse,coarse,medium,fine,xfine" default="medium">medium</grid>
+				<grid help="grid quality xcoarse,coarse,medium,fine,xfine" default="medium">medium</grid>
 	        </vxc>
 	        <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" default="0.0" unit="hartree">0.0</scissor_shift>
 	        <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW">evGW</mode>

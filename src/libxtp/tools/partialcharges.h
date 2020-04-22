@@ -52,9 +52,13 @@ void Partialcharges::Initialize(const tools::Property& user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _orbfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
-  _output_file =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
+
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", _job_name + ".orb");
+  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", _job_name + ".mps");
   _esp_options = options.get(".esp_options");
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 #define BOOST_TEST_MODULE orca_test
 #include <boost/test/unit_test.hpp>
+#include <votca/tools/filesystem.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/qmpackagefactory.h>
 
@@ -8518,6 +8519,7 @@ BOOST_AUTO_TEST_CASE(opt_test) {
 }
 
 BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
+  unsetenv("VOTCASHARE");
   std::ofstream defaults("user_input.xml"), basis("3-21G.xml"),
       xyzfile("co.xyz");
 
@@ -8623,7 +8625,11 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
   orb.QMAtoms().LoadFromFile("co.xyz");
   orca->WriteInputFile(orb);
 
-  std::ifstream file_input("system.inp");
+  std::string input_file = "system.inp";
+  if (!tools::filesystem::FileExists(input_file)) {
+    throw std::runtime_error("Orca input file does not exists!");
+  }
+  std::ifstream file_input(input_file);
   std::stringstream buffer;
   buffer << file_input.rdbuf();
   std::string inp = buffer.str();

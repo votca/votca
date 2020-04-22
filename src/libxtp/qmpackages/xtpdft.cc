@@ -29,11 +29,12 @@ namespace votca {
 namespace xtp {
 using namespace std;
 
-void XTPDFT::Initialize(tools::Property& options) {
-  _xtpdft_options = options;
-  _log_file_name = "system_dft.orb";
-  _mo_file_name = "system_dft.orb";
-  ParseCommonOptions(options);
+void XTPDFT::Initialize(const tools::Property& options) {
+  const std::string& job_name =
+      options.ifExistsReturnElseReturnDefault<std::string>("job_name", "votca");
+  _log_file_name = job_name + ".orb";
+  _mo_file_name = _log_file_name;
+  _xtpdft_options = ParseCommonOptions(options);
 }
 
 bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {

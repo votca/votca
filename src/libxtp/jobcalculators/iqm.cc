@@ -77,8 +77,9 @@ void IQM::ParseOptionsXML(const tools::Property& options) {
     _store_gw = true;
   }
 
-  _dftpackage_options = options.get(".dftpackage");
-  _gwbse_options = options.get(".gwbse_options");
+  _dftpackage_options = this->UpdateDFTOptions(options);
+  _gwbse_options = this->UpdateGWBSEOptions(options);
+
   _dftcoupling_options = options.get(".dftcoupling_options");
   _bsecoupling_options = options.get(".bsecoupling_options");
 

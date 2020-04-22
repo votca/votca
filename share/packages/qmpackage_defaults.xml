@@ -1,18 +1,18 @@
 <package>
-<name>orca</name>
+<name>xtp</name>
 <charge>0</charge>
 <spin>1</spin>
 <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
 <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
 <optimize>false</optimize>
-<functional>pbe0</functional>
-<scratch>/tmp/qmpackage</scratch>
+<functional default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
+<scratch help="path to the scratch folder" default="/tmp/qmpackage">/tmp/qmpackage</scratch>
 <polarisation>false</polarisation>
 <dipole_spacing>0.1</dipole_spacing>
 <read_guess>false</read_guess>
 <write_charges>false</write_charges>
 <convergence_tightness help="One of low, normal, tight, verytight">tight</convergence_tightness>
-<cleanup> </cleanup>
+<cleanup help="files to remove after the calculation is done"> </cleanup>
 <orca>
     <method></method>
     <scf>GUESS PMODEL</scf>
