@@ -31,12 +31,14 @@ namespace votca {
 namespace xtp {
 using namespace std;
 
-void Orca::Initialize(tools::Property& options) {
+void Orca::Initialize(const tools::Property& options) {
 
   // good luck
 
   // Orca file names
-  std::string fileName = "system";
+  const std::string& fileName =
+      options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                           "system");
 
   _input_file_name = fileName + ".inp";
   _log_file_name = fileName + ".log";

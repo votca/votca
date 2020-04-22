@@ -33,10 +33,13 @@ void GenCube::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
 
-  _orbfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(".input");
-  _output_file =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".output");
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", _job_name + ".orb");
+  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", _job_name + ".cube");
 
   // padding
   _padding = options.ifExistsReturnElseThrowRuntimeError<double>(".padding");

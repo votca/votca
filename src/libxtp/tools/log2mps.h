@@ -50,6 +50,9 @@ void Log2Mps::Initialize(const tools::Property &user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
+
   QMPackageFactory::RegisterAll();
 
   _package =
@@ -60,11 +63,11 @@ void Log2Mps::Initialize(const tools::Property &user_options) {
         "XTP has no log file. For xtp package just run the partialcharges tool "
         "on you .orb file");
   }
-  _logfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".logfile");
+  _logfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".logfile", _job_name + ".log");
 
-  _mpsfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".mpsfile");
+  _mpsfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".mpsfile", _job_name + ".mps");
 
   std::cout << "\n... ... " << _logfile << " => " << _mpsfile << "\n";
 }

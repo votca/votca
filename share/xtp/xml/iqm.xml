@@ -5,6 +5,9 @@
     <map_file help="xml file with segment definition" default="votca_map.xml">votca_map.xml</map_file>
     <tasks help="tasks to perform during calculation >input,dft,parse,dftcoupling,gwbse,bsecoupling" default="input,dft,parse,dftcoupling,gwbse,bsecoupling">input,dft,parse,dftcoupling,gwbse,bsecoupling</tasks>
     <store help="store gw/dft results in hdf5 file, can require a lot of disk space in large systems"></store>
+    <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
+    <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
+    <functional help="Functional name(s) according to LIBXC" default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
 
     <gwbse_options help="xml file with options for gwbse calculations">
         <gwbse>
@@ -44,7 +47,7 @@
         </gwbse>
     </gwbse_options>
 
-    <bsecoupling help="Exciton couplings from serialized orbital files" section="sec:bsecoupling">
+    <bsecoupling_options help="Exciton couplings from serialized orbital files" section="sec:bsecoupling">
 
         <spin help="Spin type for couplings, singlet,triplet,all" default="singlet">all</spin>
         <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0">0</degeneracy>
@@ -61,7 +64,7 @@
                 <unoccLevels help="unoccupied levels for CTstates" default="5">5</unoccLevels>
          </moleculeB>
 
-    </bsecoupling>
+    </bsecoupling_options>
         
     <dftcoupling_options>
         <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0">0.0</degeneracy>
@@ -72,11 +75,9 @@
     <dftpackage>
         <package>
             <name help="Name of the DFT package" default="xtp">xtp</name>
+            <read_guess>true</read_guess>
         </package>
     </dftpackage>
 
 </iqm>
-
 </options>
-
-

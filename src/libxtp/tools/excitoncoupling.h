@@ -57,6 +57,9 @@ void ExcitonCoupling::Initialize(const tools::Property& user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
+
   _classical = options.get(".classical").as<bool>();
 
   if (!_classical) {
@@ -71,7 +74,8 @@ void ExcitonCoupling::Initialize(const tools::Property& user_options) {
     _mpsA = options.get(".mpsA").as<std::string>();
     _mpsB = options.get(".mpsB").as<std::string>();
   }
-  _output_file = options.get(".output").as<std::string>();
+  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
+      "output", _job_name + "_excitoncoupling.xml");
 }
 
 bool ExcitonCoupling::Evaluate() {

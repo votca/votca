@@ -1,7 +1,5 @@
 <options>
 <apdft help="Write Electrostatic potentials at core positions">
-        <output help="Output file" default="state.dat">state.dat</output>
-        <input help="Input file" default="votca.orb">votca.orb</input>
         <grid help="grid quality xcoarse,coarse,medium,fine,xfie", default="medium">medium</grid>
         <state help="State to generate potential for" default="N">N</state>
 </apdft>

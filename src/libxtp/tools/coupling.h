@@ -55,6 +55,8 @@ void Coupling::Initialize(const tools::Property &user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
 
   _MOsA = options.get(".moleculeA.orbitals").as<std::string>();
   _MOsB = options.get(".moleculeB.orbitals").as<std::string>();
@@ -64,7 +66,8 @@ void Coupling::Initialize(const tools::Property &user_options) {
   _logB = options.get(".moleculeB.log").as<std::string>();
   _logAB = options.get(".dimerAB.log").as<std::string>();
 
-  _output_file = options.get(".output").as<std::string>();
+  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
+      "output", _job_name + "_coupling.xml");
 
   _package_options = options.get(".dftpackage");
   _package = _package_options.get("package.name").as<std::string>();

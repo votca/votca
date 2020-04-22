@@ -38,6 +38,7 @@ class QMTool : public tools::Calculator {
   std::string Identify() override = 0;
   void Initialize(const tools::Property &options) override = 0;
   virtual bool Evaluate() = 0;
+  std::string _job_name = "votca";
 };
 
 }  // namespace xtp

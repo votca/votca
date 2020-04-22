@@ -100,5 +100,23 @@ void Settings::check_mandatory_keyword(const std::string& key) const {
   }
 }
 
+std::ostream& operator<<(std::ostream& out, const Settings& sett) {
+  for (const auto& pair : sett._nodes) {
+    out << "key: " << pair.first << "\n"
+        << "value: " << pair.second << "\n";
+  }
+  return out;
+}
+
+tools::Property Settings::to_property(const std::string& name) const {
+  tools::Property root{"options", "", "."};
+  tools::Property& prop = root.add(name, "");
+  for (const auto& pair : this->_nodes) {
+    tools::Property& new_prop = prop.add(pair.first, "");
+    new_prop = pair.second;
+  }
+  return root;
+}
+
 }  // namespace xtp
 }  // namespace votca

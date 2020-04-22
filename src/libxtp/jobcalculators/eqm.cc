@@ -56,8 +56,9 @@ void EQM::Initialize(const tools::Property& user_options) {
     _do_esp = true;
   }
 
-  _gwbse_options = options.get(".gwbse_options");
-  _package_options = options.get(".dftpackage");
+  // set the basis sets and functional for DFT and GWBSE
+  _gwbse_options = this->UpdateGWBSEOptions(options);
+  _package_options = this->UpdateDFTOptions(options);
   _esp_options = options.get(".esp_options");
 }
 

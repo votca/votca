@@ -21,6 +21,7 @@
 #define __XTP_SETTINGS__H
 
 #include <algorithm>
+#include <iostream>
 #include <iterator>
 #include <sstream>
 #include <string>
@@ -112,6 +113,14 @@ class Settings {
    * \brief Check that the input is correct
    */
   void validate() const;
+
+  /**
+   * \brief Convert a Settings object into a Property
+   * @param root name
+   */
+  tools::Property to_property(const std::string& root) const;
+
+  friend std::ostream& operator<<(std::ostream& out, const Settings& s);
 
  private:
   using Settings_map = std::unordered_map<std::string, votca::tools::Property>;
