@@ -214,7 +214,7 @@ void KMCLifetime::RunVSSM() {
   while (insertioncount < _insertions) {
     std::chrono::duration<double> elapsed_time =
         std::chrono::system_clock::now() - realtime_start;
-    if (elapsed_time.count() > Index(_maxrealtime * 60. * 60.)) {
+    if (elapsed_time.count() > (_maxrealtime * 60. * 60.)) {
       XTP_LOG(Log::error, _log)
           << "\nReal time limit of " << _maxrealtime << " hours ("
           << Index(_maxrealtime * 60 * 60 + 0.5)
