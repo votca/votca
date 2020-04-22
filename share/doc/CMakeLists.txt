@@ -1,4 +1,5 @@
 find_package(Doxygen)
+set_package_properties(Doxygen PROPERTIES TYPE OPTIONAL PURPOSE "Needed to build API documentation")
 if (DOXYGEN_FOUND)
   set(DOXYGEN_EXTRACT_ALL YES)
   set(DOXYGEN_EXTRACT_PRIVATE YES)
