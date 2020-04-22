@@ -754,7 +754,7 @@ bool GWBSE::Evaluate() {
       for (int w = 0; w < 1; ++w) {
         sigma_c.col(w) = sternheimer.SelfEnergy_diagonal(w);
       }
-      std::cout << "Sternheimer results " << sigma_c << std::endl;
+      std::cout << "Sternheimer results \n" << sigma_c << std::endl;
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Finished Sternheimer GW" << flush;
     }
