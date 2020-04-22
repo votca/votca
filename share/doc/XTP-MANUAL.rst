@@ -1,35 +1,36 @@
+**********
 XTP Manual
-==========
+**********
 
-# Introduction
-==============
+Introduction
+############
 
-# Theory and Background
-=======================
+Theory and Background
+#####################
 
-## DFT and GW-BSE
-=================
+DFT and GW-BSE
+**************
 
-## Hopping transport
-====================
+Hopping transport
+*****************
 
-# Workflow and Calculator Structure
-===================================
+Workflow and Calculator Structure
+#################################
 
-# xtp_tools
-===========
+xtp_tools
+#########
 
-## dftgwbse
-===========
+dftgwbse
+********
 
-# xtp_map
-=========
+xtp_map
+#######
 
-# xtp_run
-=========
+xtp_run
+#######
 
-# xtp_parallel
-==============
+xtp_parallel
+############
 
 
 
