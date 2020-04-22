@@ -7,6 +7,7 @@ For more detailed information about the changes see the history of the [reposito
 * add more support for units (#200)
 * add methods to update user input with defaults (#222)
 * fix usage of PROJECT_SOURCE_DIR in cmake (#230)
+* fix merging calculator defaults (#226, #227)
 
 ## Version 1.6.1 (released XX.04.20)
 * fix build with mkl (#229)

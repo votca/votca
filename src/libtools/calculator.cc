@@ -60,9 +60,13 @@ void Calculator::OverwriteDefaultsWithUserInput(const Property &p,
 
   // Go through everything that is defined in user option
   for (const Property &prop : p) {
-    std::string name = prop.path() + "." + prop.name();
     if (prop.HasChildren()) {
-      OverwriteDefaultsWithUserInput(prop, defaults.get(prop.name()));
+      if (defaults.exists(prop.name())) {
+        OverwriteDefaultsWithUserInput(prop, defaults.get(prop.name()));
+      } else {
+        Property &new_prop = defaults.add(prop.name(), "");
+        new_prop = prop;
+      }
     } else if (defaults.exists(prop.name())) {
       defaults.set(prop.name(), prop.value());
     } else {
