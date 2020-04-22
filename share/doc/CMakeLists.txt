@@ -18,21 +18,20 @@ find_package_handle_standard_args(SPHINX REQUIRED_VARS SPHINX_EXECUTABLE)
 if(SPHINX_FOUND)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
   file(GLOB PAGES *.md *.rst)
-  file(GLOB IMAGES *.png)	
+  file(GLOB IMAGES *.png)
   configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/sphinx/conf.py @ONLY)
   foreach(_MODULE ${ENABLED_VOTCA_PACKAGES})
     file(GLOB _MODULE_PAGES ${PROJECT_SOURCE_DIR}/${_MODULE}/guide/*.md ${PROJECT_SOURCE_DIR}/${_MODULE}/share/doc/*.rst)
     list(APPEND PAGES ${_MODULE_PAGES})
   endforeach()
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/sphinx/.pages
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PAGES} ${CMAKE_CURRENT_BINARY_DIR}/sphinx
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${IMAGES} ${CMAKE_CURRENT_BINARY_DIR}/sphinx
-
-
-
-    COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_BINARY_DIR}/sphinx/.pages
-    DEPENDS ${PAGES}
-  )
+  set(SPHINX_DEPS ${CMAKE_CURRENT_BINARY_DIR}/sphinx/conf.py)
+  foreach(_DEP ${PAGES} ${IMAGES})
+    get_filename_component(_FILE "${_DEP}" NAME)
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/sphinx/${_FILE}
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_DEP} ${CMAKE_CURRENT_BINARY_DIR}/sphinx/${_FILE} DEPENDS ${_DEP}
+    )
+    list(APPEND SPHINX_DEPS ${CMAKE_CURRENT_BINARY_DIR}/sphinx/${_FILE})
+  endforeach()
   add_custom_target(doc COMMAND ${SPHINX_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/sphinx ${CMAKE_CURRENT_BINARY_DIR}/sphinx.html
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/sphinx/.pages ${CMAKE_CURRENT_BINARY_DIR}/sphinx/conf.py)
+    DEPENDS ${SPHINX_DEPS})
 endif()
