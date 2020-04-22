@@ -8,6 +8,7 @@ ARG CXXFLAGS
 ARG CMAKE_BUILD_TYPE
 ARG TESTING
 ARG DOXYGEN
+ARG USERDOC
 ARG DOXYGEN_COVERAGE
 ARG MINIMAL
 ARG MODULE_BUILD
@@ -61,6 +62,9 @@ RUN if [ ${DOXYGEN} ]; then \
           -F doxygen -X gcov -f doxygen.coverage.info; \
         rm -f doxygen.coverage.info; \
       fi; \
+    fi
+RUN if [ ${USERDOC} ]; then \
+      cmake --build . --target doc; \
     fi
 RUN if [ ${TESTING} = ON ]; then ctest --output-on-failure ${TESTOPTS}; fi
 RUN if [ ! ${MODULE_BUILD} ]; then \
