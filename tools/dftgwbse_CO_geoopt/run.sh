@@ -4,23 +4,13 @@
 changeoption(){
     sed -i "s&<${1}.*>.*</${1}>&<${1}>${2}</${1}>&" $3
 }
-#convienience function to delete xml option
-deleteoption(){
- sed -i "s&<${1}.*>.*</${1}>&&" $2
-}
 
-
-cp $VOTCASHARE/xtp/xml/dftgwbse.xml .
-cp $VOTCASHARE/xtp/packages/xtpdft.xml .
-cp $VOTCASHARE/xtp/packages/gwbse.xml .
-changeoption gwbse_options gwbse.xml dftgwbse.xml
-changeoption dftpackage xtpdft.xml dftgwbse.xml
-changeoption mode optimize dftgwbse.xml
-changeoption molecule CO.xyz dftgwbse.xml
-changeoption dftlog system_dft.orb dftgwbse.xml
-changeoption shift_type evGW gwbse.xml
-changeoption ranges full gwbse.xml
 echo "Running dft + gwbse, output can be found in dftgwbse.log"
-xtp_tools -e dftgwbse -o dftgwbse.xml -t 4 > dftgwbse.log
+cp $VOTCASHARE/xtp/xml/dftgwbse.xml .
+
+changeoption ranges full dftgwbse.xml
+# Change enery mode to optimize
+gawk -i inplace 'NR==1,/mode/{sub(/>energy</, ">optimize<")} 1' dftgwbse.xml
+xtp_tools -n CO -e dftgwbse -o dftgwbse.xml -t 4 > dftgwbse.log
 
 

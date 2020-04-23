@@ -4,23 +4,17 @@
 changeoption(){
     sed -i "s&<${1}.*>.*</${1}>&<${1}>${2}</${1}>&" $3
 }
-#convienience function to delete xml option
-deleteoption(){
- sed -i "s&<${1}.*>.*</${1}>&&" $2
-}
 
 echo $VOTCASHARE
 
 #make OPTIONFILE folder, you can put all options into a single options.xml file but experience has shown, that this is better.
 
-mkdir OPTIONFILES
-
 cp $VOTCASHARE/xtp/xml/mapchecker.xml OPTIONFILES/
+changeoption map_file system.xml OPTIONFILES/mapchecker.xml
 xtp_run -e mapchecker -o OPTIONFILES/mapchecker.xml -f state.hdf5
 
 
 cp $VOTCASHARE/xtp/xml/eanalyze.xml OPTIONFILES/
-changeoption states "e h" OPTIONFILES/eanalyze.xml
 changeoption resolution_sites 0.03 OPTIONFILES/eanalyze.xml
 xtp_run -e eanalyze -o OPTIONFILES/eanalyze.xml -f state.hdf5
 
@@ -42,7 +36,3 @@ changeoption carriertype  "electron" OPTIONFILES/kmcmultiple.xml
 #run kmcmultiple calculator
 
 xtp_run -e kmcmultiple -o OPTIONFILES/kmcmultiple.xml -f state.hdf5
-
-
-
-
