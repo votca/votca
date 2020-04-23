@@ -176,7 +176,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
       std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = end - start;
   jobresult.add("E_tot", std::to_string(etot * tools::conv::hrt2ev));
-  jobresult.add("Compute_Time", std::to_string(int(elapsed_time.count())));
+  jobresult.add("Compute_Time", std::to_string(Index(elapsed_time.count())));
   jobresult.add("Total_Charge", std::to_string(charge));
   if (!no_top_scf) {
     jobresult.add("Iterations", std::to_string(iteration + 1));
