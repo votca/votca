@@ -78,7 +78,7 @@ set_package_properties(Eigen3 PROPERTIES TYPE REQUIRED PURPOSE "C++ vector data 
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
 find_package(FFTW3)
-set_package_properties(MKL PROPERTIES TYPE RECOMMENDED "Enables FFT functionality")
+set_package_properties(MKL PROPERTIES TYPE RECOMMENDED PURPOSE "Enables FFT functionality")
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
