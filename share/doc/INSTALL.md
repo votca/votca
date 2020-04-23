@@ -1,4 +1,5 @@
-# VOTCA Installation Guide
+Installation
+============
 
 ## VOTCA structure
 
@@ -188,3 +189,6 @@ This error can happen due to a multitude of reasons. You may have forgotten to a
 
 This can happen with some GCC versions. Adding the `-Wl,--no-as-needed` to `CMAKE_EXE_LINKER_FLAGS:STRING=`
 to the `CMakeCache.txt` in the `build` directory can fix this. For more information look [here](https://software.intel.com/en-us/articles/symbol-lookup-error-when-linking-intel-mkl-with-gcc-on-ubuntu)
+
+
+

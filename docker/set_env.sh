@@ -29,6 +29,8 @@ if [[ $ENV -eq 1 ]]; then
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   add_to_docker_opts DOXYGEN=yes
   export DOXYGEN=yes
+  add_to_docker_opts USERDOC=yes
+  export USERDOC=yes
   [[ ${TRAVIS_BUILD_STAGE_NAME} != "Deploy" ]] && add_to_docker_opts DOXYGEN_COVERAGE=yes
   [[ $CXX = clang++ ]] && add_to_docker_opts CMAKE_GENERATOR="Ninja"
 elif [[ $ENV -eq 2 ]]; then
