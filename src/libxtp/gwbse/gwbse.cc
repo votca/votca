@@ -747,14 +747,19 @@ bool GWBSE::Evaluate() {
           << TimeStamp() << " Started Sternheimer GW" << flush;
       sternheimer.configurate(opt);
 
-      // Eigen::VectorXcd results =
-      // sternheimer.SelfEnergy(_orbitals.MOs().eigenvalues()(0));
-      Eigen::MatrixXcd sigma_c =
-          Eigen::MatrixXcd::Zero(_orbitals.MOs().eigenvalues().size(), 10);
-      for (int w = 0; w < 1; ++w) {
-        sigma_c.col(w) = sternheimer.SelfEnergy_diagonal(w);
+      Index homo = _orbitals.getHomo();
+      Index lumo = homo+1;
+      
+      Index n_points = 200;
+      double omega_start = -2.;
+      double omega_fin = 2.;
+      double delta = (omega_fin - omega_start)/(n_points -1);
+      std::cout << "# omega HOMO LUMO\n" << std::endl;
+      for (int j = 0; j < n_points; ++j) {
+        double w = omega_start + j*delta;
+        Eigen::VectorXcd sigma_c = sternheimer.SelfEnergy_diagonal(w);
+        std::cout << w << "\t" << sigma_c(homo).real() << "\t" << sigma_c(lumo).real() << std::endl;
       }
-      std::cout << "Sternheimer results \n" << sigma_c << std::endl;
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Finished Sternheimer GW" << flush;
     }
