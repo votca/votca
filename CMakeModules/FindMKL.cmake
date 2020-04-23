@@ -222,6 +222,7 @@ if(MKL_THREAD_LAYER STREQUAL "Intel OpenMP")
   find_mkl_library(NAME ThreadingLibrary LIBRARY_NAME iomp5)
 elseif(MKL_THREAD_LAYER STREQUAL "GNU OpenMP")
   find_package(OpenMP REQUIRED)
+  set_package_properties(OpenMP PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
   find_mkl_library(NAME ThreadLayer LIBRARY_NAME mkl_gnu_thread)
   add_library(MKL::ThreadingLibrary SHARED IMPORTED)
   set_target_properties(MKL::ThreadingLibrary
