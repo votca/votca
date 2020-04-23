@@ -891,8 +891,9 @@ Eigen::MatrixXcd Sternheimer::ScreenedCoulomb(
   Eigen::MatrixXcd HartreeInt = _eris.ContractRightIndecesWithMatrix(DeltaN);
   Eigen::MatrixXcd FxcInt =
       Fxc(DeltaN);  // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
-  //Eigen::MatrixXcd DeltaV = coulombmatrix + HartreeInt + FxcInt;
-  Eigen::MatrixXcd DeltaV = HartreeInt + FxcInt; // Watchout! Here we subtract the bare coulomb potential
+  // Eigen::MatrixXcd DeltaV = coulombmatrix + HartreeInt + FxcInt;
+  Eigen::MatrixXcd DeltaV = HartreeInt + FxcInt;  // Watchout! Here we subtract
+                                                  // the bare coulomb potential
   return DeltaV;
 }
 
@@ -927,11 +928,9 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
   _grid.GridSetup("xcoarse", _orbitals.QMAtoms(), basis);
 
   Index nthreads = OPENMP::getMaxThreads();
-  std::vector<Eigen::MatrixXcd> sigma_thread = std::vector<Eigen::MatrixXcd>(
-      nthreads,
-      Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols()));
-  
-#pragma omp parallel for schedule(guided)
+
+  Eigen::MatrixXcd sigma =
+      Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols());
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
     if (!box.Matrixsize()) {
@@ -941,22 +940,20 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
     const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
     double cutoff = 1.e-40 / double(_density_Matrix.rows()) /
                     double(_density_Matrix.rows());
-    
-    // if (DMAT_here.cwiseAbs2().maxCoeff() < cutoff) {
-    //   continue;
-    // }
-     
+
     if (DMAT_here.cwiseAbs2().maxCoeff() < 1.e-3) {
       continue;
     }
 
-    Eigen::MatrixXcd sigma_here =
-        Eigen::MatrixXcd::Zero(DMAT_here.rows(), DMAT_here.cols());
+    std::vector<Eigen::MatrixXcd> sigma_thread = std::vector<Eigen::MatrixXcd>(
+        nthreads, Eigen::MatrixXcd::Zero(DMAT_here.rows(), DMAT_here.cols()));
+
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();
     // Record start time
     auto start1 = std::chrono::high_resolution_clock::now();
-    // iterate over gridpoints
+// iterate over gridpoints
+#pragma omp parallel for schedule(guided)
     for (Index p = 0; p < box.size(); p++) {
       Eigen::VectorXd ao = box.CalcAOValues(points[p]);
       Eigen::MatrixXd S = ao * ao.transpose();
@@ -964,7 +961,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
 
       const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
       const double weight = weights[p];
-      if (rho * weight < 1.e-10) {
+      if (rho * weight < 1.e-4) {
         continue;  // skip the rest, if density is very small. (rho * weight) is
                    // a sort of charge in the volume dV
       }
@@ -973,25 +970,25 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
         continue;  // skip the rest, if overalp in that point is very small.
       }
       // Evaluate bare and screend coulomb potential at point to evaluate the
-      // correlation screened Coulomb potential (W_c = W-v). This is evaluated in
-      // DeltaNsc
-      
-       Eigen::MatrixXcd W_c = ScreenedCoulomb(points[p], omega_p);
-      
-      sigma_here += weight * S * box.ReadFromBigMatrix(W_c);  // sigma_r;
+      // correlation screened Coulomb potential (W_c = W-v). This is evaluated
+      // in DeltaNsc
+
+      Eigen::MatrixXcd W_c = ScreenedCoulomb(points[p], omega_p);
+
+      sigma_thread[OPENMP::getThreadId()] +=
+          weight * S * box.ReadFromBigMatrix(W_c);
     }
-     // Record end time
+    // Record end time
     auto finish1 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed1 = finish1 - start1;
-    std::cout << "\n Thread: " << OPENMP::getThreadId() << " Elapsed time for Box " << i << " : " << elapsed1.count() << " s\n";
-
-    box.AddtoBigMatrix(sigma_thread[OPENMP::getThreadId()], sigma_here);
+    std::cout << "\n Elapsed time for Box " << i << " : " << elapsed1.count()
+              << " s\n";
+    Eigen::MatrixXcd sigma_box = std::accumulate(
+        sigma_thread.begin(), sigma_thread.end(),
+        Eigen::MatrixXcd::Zero(DMAT_here.rows(), DMAT_here.cols()).eval());
+    box.AddtoBigMatrix(sigma, sigma_box);
   }
-  Eigen::MatrixXcd sigma = std::accumulate(
-      sigma_thread.begin(), sigma_thread.end(),
-      Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols())
-          .eval());
-          //Multiply with the green's function G(omega+omega')
+  // Multiply with the green's function G(omega+omega')
   return GreensFunction(omega + omega_p) * sigma;
 }
 
@@ -1024,9 +1021,9 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(double omega) const {
                                                        _mo_coefficients.col(n)))
                      .sum();
   }
-  std::complex<double> prefactor(0.,1.);
-  prefactor /= std::atan(1)*8; // Dividing with 2*pi
-  return prefactor*results;
+  std::complex<double> prefactor(0., 1.);
+  prefactor /= std::atan(1) * 8;  // Dividing with 2*pi
+  return prefactor * results;
 }
 
 }  // namespace xtp
