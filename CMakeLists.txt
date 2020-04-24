@@ -22,10 +22,13 @@ endif()
 ########################################################################
 if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
+  set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(TXT2TAGS REQUIRED)
+set_package_properties(TXT2TAGS PROPERTIES TYPE OPTIONAL PURPOSE "Used to build csg-manual")
 find_package(VOTCA_CSG NO_MODULE REQUIRED)
+set_package_properties(VOTCA_CSG PROPERTIES TYPE REQUIRED PURPOSE "Votca csg library")
 if(DEFINED VOTCA_CSG_VERSION AND NOT VOTCA_CSG_VERSION STREQUAL PROJECT_VERSION)
   message(FATAL_ERROR "Incompatible VOTCA CSG version found (needed ${PROJECT_VERSION}, found ${VOTCA_CSG_VERSION})")
 endif()
@@ -96,6 +99,7 @@ add_custom_target(csg-manual_pdf ALL DEPENDS manual.pdf)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/manual.pdf DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 option(ENABLE_TESTING "Test if manual exists" OFF)
+add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
 if(ENABLE_TESTING)
   enable_testing()
   add_test(ManualExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/manual.pdf
