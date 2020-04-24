@@ -113,7 +113,9 @@ void Calculator::RecursivelyCheckOptions(const Property &p) {
 void Calculator::CheckOption(const Property &prop,
                              const std::vector<std::string> &choices) {
   const std::string &head = choices.front();
-  if (head == "float") {
+  if (head == "bool") {
+    prop.as<bool>();
+  } else if (head == "float") {
     prop.as<double>();
   } else if (head == "float+") {
     if (prop.as<double>() < 0.0) {

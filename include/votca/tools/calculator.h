@@ -110,8 +110,6 @@ class Calculator {
  protected:
   Index _nThreads;
   bool _maverick;
-  std::array<std::string, 4> _default_choices = {"float", "float+", "int",
-                                                 "int+"};
 
   void OverwriteDefaultsWithUserInput(const Property &p, Property &defaults);
   static void RecursivelyCheckOptions(const Property &prop);
