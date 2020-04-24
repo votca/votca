@@ -29,6 +29,7 @@ enable_language(CXX)
 # these need ot be done early (before further tests).
 #####################################################################
 
+include(FeatureSummary)
 include(CheckCXXCompilerFlag)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -151,3 +152,6 @@ add_subdirectory(scripts)
 add_subdirectory(src)
 add_subdirectory(share)
 
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
+endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
