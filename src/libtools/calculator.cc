@@ -75,5 +75,64 @@ void Calculator::OverwriteDefaultsWithUserInput(const Property &p,
   }
 }
 
+std::vector<std::string> Calculator::GetPropertyChoices(const Property &p) {
+  if (p.hasAttribute("choices")) {
+    std::string att = p.getAttribute<std::string>("choices");
+    Tokenizer tok{att, " ,"};
+    return tok.ToVector();
+  } else {
+    return {""};
+  }
+}
+
+void Calculator::RecursivelyCheckOptions(const Property &p) {
+  for (const Property &prop : p) {
+    if (prop.HasChildren()) {
+      RecursivelyCheckOptions(prop);
+    } else {
+      std::vector<std::string> choices = Calculator::GetPropertyChoices(prop);
+      const std::string &head = choices.front();
+      if (head != "") {
+        try {
+          Calculator::CheckOption(prop, choices);
+        } catch (const std::runtime_error &e) {
+          std::ostringstream oss;
+          oss << "\nInput option: " << prop.name() << "\n";
+          oss << "Must be one of: ";
+          for (const std::string c : choices) {
+            oss << c << "\n";
+          }
+          std::cout << oss.str();
+          throw e;
+        }
+      }
+    }
+  }
+}
+
+void Calculator::CheckOption(const Property &prop,
+                             const std::vector<std::string> &choices) {
+  const std::string &head = choices.front();
+  if (head == "float") {
+    prop.as<double>();
+  } else if (head == "float+") {
+    if (prop.as<double>() < 0.0) {
+      throw std::runtime_error("");
+    }
+  } else if (head == "int") {
+    prop.as<Index>();
+  } else if (head == "int+") {
+    if (prop.as<Index>() < 0) {
+      throw std::runtime_error("");
+    }
+  } else {
+    std::string value = prop.as<std::string>();
+    auto it = std::find(std::cbegin(choices), std::cend(choices), value);
+    if (it == std::cend(choices)) {
+      throw std::runtime_error("");
+    }
+  }
+}
+
 }  // namespace tools
 }  // namespace votca

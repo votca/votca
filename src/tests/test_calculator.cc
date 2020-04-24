@@ -46,8 +46,9 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
       std::ofstream defaults("calculators/xml/testcalc.xml");
       defaults << "<options>\n"
                << "<testcalc>\n"
-               << "<option1>0</option1>\n"
-               << "<option2>3.141592</option2>\n"
+               << "<option0 choices=\"foo,bar\">foo</option0>\n"
+               << "<option1 choices=\"int+\">0</option1>\n"
+               << "<option2 choices=\"float\">3.141592</option2>\n"
                << "</testcalc>\n"
                << "</options>";
       defaults.close();
@@ -56,9 +57,11 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
       tools::Property final_opt =
           LoadDefaultsAndUpdateWithUserOptions("calculators", user_options);
 
+      std::string prop0 = final_opt.get("option0").as<std::string>();
       Index prop1 = final_opt.get("option1").as<votca::Index>();
       std::string prop2 = final_opt.get("option2").as<std::string>();
       std::string prop3 = final_opt.get("option3.nested").as<std::string>();
+      BOOST_CHECK_EQUAL(prop0, "foo");
       BOOST_CHECK_EQUAL(prop1, 42);
       BOOST_CHECK_EQUAL(prop2, "3.141592");
       BOOST_CHECK_EQUAL(prop3, "nested_value");

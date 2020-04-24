@@ -23,6 +23,7 @@
 #include "globals.h"
 #include "property.h"
 #include "propertyiomanipulator.h"
+#include "tokenizer.h"
 
 namespace votca {
 namespace tools {
@@ -102,15 +103,22 @@ class Calculator {
                                                 const Property &user_options) {
     Property defaults = LoadDefaults(package);
     UpdateWithUserOptions(defaults, user_options);
+    RecursivelyCheckOptions(defaults);
     return defaults;
   }
 
  protected:
   Index _nThreads;
   bool _maverick;
+  std::array<std::string, 4> _default_choices = {"float", "float+", "int",
+                                                 "int+"};
 
   void OverwriteDefaultsWithUserInput(const Property &p, Property &defaults);
+  static void RecursivelyCheckOptions(const Property &prop);
+  static void CheckOption(const Property &p,
+                          const std::vector<std::string> &choices);
   static std::string GetVotcaShare();
+  static std::vector<std::string> GetPropertyChoices(const Property &prop);
 };
 
 }  // namespace tools
