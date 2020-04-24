@@ -16,6 +16,7 @@ endif()
 
 
 find_package(HDF5 COMPONENTS "C")
+set_package_properties(HDF5 PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read h5md data files")
 if(HDF5_FOUND)
   set(H5MD true)
   target_include_directories (votca_csg PRIVATE ${HDF5_INCLUDE_DIRS})

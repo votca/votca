@@ -39,5 +39,4 @@ set_target_properties(VOTCA::csg_call PROPERTIES VOTCASHARE ${PROJECT_SOURCE_DIR
 set_target_properties(VOTCA::csg_call PROPERTIES VOTCA_PATH "${CMAKE_CURRENT_BINARY_DIR}:${PROJECT_BINARY_DIR}/src/tools")
 set_target_properties(VOTCA::csg_inverse PROPERTIES VOTCA_CSG_DEFAULTS "${PROJECT_BINARY_DIR}/share/xml/csg_defaults.xml")
 
-option(WITH_RC_FILES "Install votca rc files, no need when installing under /usr" ON)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/csg-completion.bash DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/rc)

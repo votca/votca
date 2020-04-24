@@ -8,6 +8,7 @@ For more detailed information about the changes see the history of the
 * update bead related classes (#475, #474, #469, #468, #460)
 * update boundary class (#457)
 * fix usage of PROJECT_SOURCE_DIR in cmake (#517)
+* document cmake options and packages (#520)
 
 ## Version 1.6.1 (released XX.04.20)
 * add support for cma-3 (#158) 
