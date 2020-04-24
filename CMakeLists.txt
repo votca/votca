@@ -135,3 +135,7 @@ if(NOT TARGET uninstall)
   add_custom_target(uninstall)
 endif()
 add_dependencies(uninstall uninstall-csg-tutorials)
+
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
+endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
