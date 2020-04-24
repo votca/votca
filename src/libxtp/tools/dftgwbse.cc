@@ -39,10 +39,7 @@ void DftGwBse::Initialize(const tools::Property& user_options) {
       ".molecule", _job_name + ".xyz");
 
   // job tasks
-  std::vector<std::string> choices = {"optimize", "energy"};
-  std::string mode =
-      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-          ".mode", choices);
+  std::string mode = options.get(".mode").as<std::string>();
 
   // options for dft package
   _package_options = options.get(".dftpackage");

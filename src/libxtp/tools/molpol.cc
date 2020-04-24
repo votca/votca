@@ -55,8 +55,7 @@ void MolPol::Initialize(const tools::Property& user_options) {
 
   if (target_exists) {
 
-    Eigen::VectorXd target_vec =
-        options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(".target");
+    Eigen::VectorXd target_vec = options.get(".target").as<Eigen::VectorXd>();
     if (target_vec.size() != 6) {
       throw std::runtime_error(
           "ERROR <options.molpol.target> "
@@ -73,10 +72,8 @@ void MolPol::Initialize(const tools::Property& user_options) {
     _polarisation_target(1, 2) = target_vec(4);
     _polarisation_target(2, 2) = target_vec(5);
   } else {
-    std::string qm_package =
-        options.ifExistsReturnElseThrowRuntimeError<std::string>(".qmpackage");
-    std::string log_file =
-        options.ifExistsReturnElseThrowRuntimeError<std::string>(".logfile");
+    std::string qm_package = options.get(".qmpackage").as<std::string>();
+    std::string log_file = options.get(".logfile").as<std::string>();
     Logger log;
     log.setPreface(Log::info, "\n ...");
     log.setPreface(Log::error, "\n ...");

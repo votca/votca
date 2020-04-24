@@ -6,8 +6,8 @@
             <max_iter help="Maximum number of iterations" default="500">500</max_iter>
             <exp_damp help="Thole sharpness parameter" default="0.39">0.39</exp_damp>
         </options_polar>
-        <qmpackage  help="DFT package polarisation calculation was run with", default="xtp">xtp</qmpackage>
+        <qmpackage  help="DFT package polarisation calculation was run with", default="xtp" choices="xtp,orca">xtp</qmpackage>
         <logfile help="logfile of DFTpackage to read Target polarisability from" default="votca.orb">votca.orb</logfile>
-        <tolerance help="convergence tolerance" default="1e-4">1e-4</tolerance>
+        <tolerance help="convergence tolerance" default="1e-4" choices="float+">1e-4</tolerance>
     </molpol>
 </options>
