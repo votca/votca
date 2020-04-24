@@ -835,7 +835,7 @@ Eigen::MatrixXcd Sternheimer::GreensFunctionLHS(std::complex<double> w) const {
 
 Eigen::MatrixXcd Sternheimer::AnalyticGreensfunction(
     std::complex<double> w) const {
-  std::complex<double> eta(0., 1e-3);
+  std::complex<double> eta(0., 0.3*tools::conv::ev2hrt);
   return GreensFunctionLHS(w + eta).colPivHouseholderQr().solve(
       -1 * Eigen::MatrixXcd::Identity(_basis_size, _basis_size));
 }
@@ -910,7 +910,7 @@ Eigen::VectorXd Sternheimer::EvaluateBasisAtPosition(
     Eigen::Vector3d dist = shellpos - pos;
     double distsq = dist.squaredNorm();
     // if contribution is smaller than -ln(1e-10) = 20.27, calc density
-    if ((decay * distsq) < -1.0 * std::log(1e-5)) {
+    if ((decay * distsq) < -1.0 * std::log(1e-10)) {
       Eigen::VectorBlock<Eigen::VectorXd> tmat_block =
           tmat.segment(shell.getStartIndex(), shell.getNumFunc());
       shell.EvalAOspace(tmat_block, pos);
@@ -982,9 +982,9 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
   Index nthreads = OPENMP::getMaxThreads();
 
   double _padding = 6.512752;
-  Index _xsteps = 5;
-  Index _ysteps = 5;
-  Index _zsteps = 5;
+  Index _xsteps = 10;
+  Index _ysteps = 10;
+  Index _zsteps = 10;
 
   const QMMolecule& atoms = _orbitals.QMAtoms();
   std::pair<Eigen::Vector3d, Eigen::Vector3d> minmax =
@@ -1001,7 +1001,9 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
   double zincr = (zstop - zstart) / double(_zsteps);
 
   double weight = xincr * yincr * zincr;
-
+  double cx = 1;
+  double cy = 1;
+  double cz = 1;
   std::vector<Eigen::MatrixXcd> sigma_thread = std::vector<Eigen::MatrixXcd>(
       nthreads,
       Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols()));
@@ -1009,20 +1011,46 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
 #pragma omp parallel for schedule(guided)
   for (int ix = 0; ix <= _xsteps; ix++) {
     double x = xstart + double(ix) * xincr;
+    if (ix == 0){
+      cx = 0.5;
+    }
+    else if (ix==_xsteps){
+       cx = 0.5;
+    }
+    else {
+       cx = 1;
+    }
     for (int iy = 0; iy <= _ysteps; iy++) {
       double y = ystart + double(iy) * yincr;
-      int Nrecord = 0;
+      if (iy == 0){
+       cy = 0.5;
+    }
+    else if (iy==_ysteps){
+       cy = 0.5;
+    }
+    else {
+       cy = 1;
+    }
+     
       for (int iz = 0; iz <= _zsteps; iz++) {
         double z = zstart + double(iz) * zincr;
+        if (iz == 0){
+       cz = 0.5;
+    }
+    else if (iz==_zsteps){
+       cz = 0.5;
+    }
+    else {
+       cz= 1;
+    }
         Eigen::Vector3d pos(x, y, z);
         Eigen::VectorXd tmat = EvaluateBasisAtPosition(basis, pos);
         // Evaluate bare and screend coulomb potential at point to evaluate the
         // correlation screened Coulomb potential (W_c = W-v). This is evaluated
         // in DeltaNsc
         Eigen::MatrixXcd GW_c = GF * ScreenedCoulomb(pos, omega_p);
-        double value = 0.0;
         sigma_thread[OPENMP::getThreadId()] +=
-            weight * tmat * tmat.transpose() * GW_c;
+            cx*cy*cz*weight * tmat * tmat.transpose() * GW_c;
       }  // z-component
     }    // y-component
   }      // x-component
@@ -1043,11 +1071,11 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(double omega) const {
   Gauss_Hermite_Quadrature_Constants ghqc;
   Eigen::VectorXd _quadpoints = ghqc.getPoints(12);
   Eigen::VectorXd _quadadaptedweights = ghqc.getAdaptedWeights(12);
-
+  std::complex<double> delta(0.,-1e-3);
   Eigen::MatrixXcd sigma =
       Eigen::MatrixXcd::Zero(_density_Matrix.cols(), _density_Matrix.cols());
   for (Index j = 0; j < 12; ++j) {
-    sigma += _quadadaptedweights(j) * SelfEnergy_at_wp_regulargrid(omega, _quadpoints(j));
+    sigma += _quadadaptedweights(j) * SelfEnergy_at_wp_regulargrid(omega, _quadpoints(j)) * std::exp(delta*_quadpoints(j));
   }
 
   return sigma;
@@ -1063,7 +1091,7 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(double omega) const {
                      .sum();
   }
   std::complex<double> prefactor(0., 1.);  // complex i
-  prefactor /= std::atan(1) * 8;           // Dividing with 2*pi
+  prefactor /= 2*tools::conv::Pi;        // Dividing with 2*pi
   return prefactor * results;
 }
 

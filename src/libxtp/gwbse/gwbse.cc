@@ -750,7 +750,7 @@ bool GWBSE::Evaluate() {
       Index homo = _orbitals.getHomo();
       Index lumo = homo+1;
       
-      Index n_points = 200;
+      Index n_points = 100;
       
       double delta = 0.5; // 1 Hartree
       double homo_en =  _orbitals.getMOEnergy(homo);
