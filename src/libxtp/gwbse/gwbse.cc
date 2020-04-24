@@ -751,14 +751,17 @@ bool GWBSE::Evaluate() {
       Index lumo = homo+1;
       
       Index n_points = 200;
-      double omega_start = -2.;
-      double omega_fin = 2.;
-      double delta = (omega_fin - omega_start)/(n_points -1);
-      std::cout << "# omega HOMO LUMO\n" << std::endl;
+      
+      double delta = 0.5; // 1 Hartree
+      double homo_en =  _orbitals.getMOEnergy(homo);
+      double omega_start = homo_en - delta;
+      
+      std::cout << "\n # omega \t HOMO \n" << std::endl;
+      double steps = 2*delta/(n_points-1);
       for (int j = 0; j < n_points; ++j) {
-        double w = omega_start + j*delta;
+        double w = omega_start + j*steps;
         Eigen::VectorXcd sigma_c = sternheimer.SelfEnergy_diagonal(w);
-        std::cout << w << "\t" << sigma_c(homo).real() << "\t" << sigma_c(lumo).real() << std::endl;
+        std::cout << w << "\t" << sigma_c(homo).real() << "\t" << sigma_c(homo).imag() << std::endl;
       }
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Finished Sternheimer GW" << flush;
