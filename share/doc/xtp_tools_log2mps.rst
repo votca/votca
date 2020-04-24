@@ -1,7 +1,7 @@
 log2mps
 *******
 
-Calculator to generate a **mps** file from a *QM Package* output.
+Generates an mps-file (with polar-site definitions) from a QM log-file.
 
 The following table contains the input options for the calculator,
 

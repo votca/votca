@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Module to extract metadata from the xml files."""
 
 import argparse
 import xml.etree.ElementTree as ET
@@ -22,8 +23,7 @@ LEN_DESCRIPTION = 36
 TABLE_LINE = """|{:^30}|{:^36}|{:^19}|                    |\n""".format
 
 
-
-def extract_metadata(file_name: str) ->  Generator[ET.Element, None, None]:
+def extract_metadata(file_name: str) -> Generator[ET.Element, None, None]:
     """Get the metadata from the xml."""
     tree = ET.parse(file_name)
     root = tree.getroot()
@@ -31,12 +31,13 @@ def extract_metadata(file_name: str) ->  Generator[ET.Element, None, None]:
     for elem in data.getchildren():
         yield elem
 
-def get_recursive_attributes(elem: ET.Element, root_name: str= "") -> str:
-    """Get recursively the attributes of an ``ET.Element``"""
+
+def get_recursive_attributes(elem: ET.Element, root_name: str = "") -> str:
+    """Get recursively the attributes of an ``ET.Element``."""
     s = ""
     if elem.getchildren():
         return ''.join(get_recursive_attributes(el, f"{elem.tag}.") for el in elem.getchildren())
-        
+
     name = root_name + elem.tag
     description = elem.attrib.get("help", "")
     default = elem.attrib.get("default", "")
@@ -47,7 +48,8 @@ def get_recursive_attributes(elem: ET.Element, root_name: str= "") -> str:
     s += TABLE_SEPARATOR
 
     return s
-    
+
+
 def create_rst_table(file_name: str) -> None:
     """Create an RST table using the metadata in the XML file."""
     s = TABLE_HEADER
@@ -69,6 +71,11 @@ def wrap_line(name: str, description: str, default: str) -> str:
 
 
 def split_lines(data: str) -> List[str]:
+    """Split the ``data`` in lines smaller that ``LEN_DESCRIPTION``.
+
+    It Also appends the | char at the beginning to force the rst
+    interpreter to split the line.
+    """
     acc = [[]]
     # there are 3 characters in " | "
     count = 3
@@ -82,11 +89,12 @@ def split_lines(data: str) -> List[str]:
 
     return [" | " + ' '.join(x) for x in acc]
 
+
 def main():
     """Parse the command line arguments and run workflow."""
     args = parser.parse_args()
     create_rst_table(args.i)
 
+
 if __name__ == "__main__":
     main()
-    
