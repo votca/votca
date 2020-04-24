@@ -1,4 +1,5 @@
 option(WITH_RC_FILES "Install votca rc files, no need when installing under /usr" ON)
+add_feature_info(WITH_RC_FILES WITH_RC_FILES "Install votca rc files (VOTCARC.bash etc.)")
 if (WITH_RC_FILES)
   if(APPLE)
     set(LD_LIBRARY_PATH "DYLD_LIBRARY_PATH")
