@@ -17,9 +17,6 @@ structure:
    │   └── geometry optimization options
 
 
-An *xml* file containing the defaults for the `dftgwbse` calculator can be found at `${VOTCASHARE}/xtp/xml/dftgwbse.xml`.
-
-
 General **DFTGWBSE** options:
 
 +---------------------+------------------------------------+-------------------+--------------------+
@@ -63,21 +60,22 @@ General **DFTGWBSE** options:
 
 **Geometry Optimization** options:
 
-+---------------------+------------------------------------+-------------------+--------------------+
-|  Property Name      |  Description              	   | Default Value     |   Valid Input      |
-+=====================+====================================+===================+====================+
-| state               | state to optimize                  | s1                |                    |
-+---------------------+------------------------------------+-------------------+--------------------+
-| statetracker        | property to track the state        |                   |                    |
-+---------------------+------------------------------------+-------------------+--------------------+
-| statetracker.filter |                                    |oscillatorstrength | chargetransfer,    |
-|                     |                                    |                   | density,           |
-|                     |                                    |                   | localisation,      |
-|                     |                                    |                   | oscillatorstrength,|
-|                     |                                    |                   | overlap            |
-+---------------------+------------------------------------+-------------------+--------------------+
++---------------------+------------------------------------+-------------------+----------------------+
+|  Property Name      |  Description              	   | Default Value     |   Valid Input        |
++=====================+====================================+===================+======================+
+| state               | state to optimize                  | s1                |                      |
++---------------------+------------------------------------+-------------------+----------------------+
+| statetracker        | property to track the state        |                   |                      |
++---------------------+------------------------------------+-------------------+----------------------+
+| statetracker.filter |                                    |oscillatorstrength | | chargetransfer,    |
+|                     |                                    |                   | | density,           |
+|                     |                                    |                   | | localisation,      |
+|                     |                                    |                   | | oscillatorstrength,|
+|                     |                                    |                   | | overlap            |
++---------------------+------------------------------------+-------------------+----------------------+
 
 
 .. Note::
-   The `basisset`, `auxbasisset` and `functional` to run the DFT and GWBSE calculcations are taken from the *DFTGWBSE* section.
-
+   * *The `basisset`, `auxbasisset` and `functional` to run the DFT and GWBSE calculcations are taken from the *DFTGWBSE* section.
+   * An *xml* file containing the defaults for the `dftgwbse` calculator can be found at `${VOTCASHARE}/xtp/xml/dftgwbse.xml`.
+ 
