@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -357,6 +357,11 @@ vector<vector<Edge>> ReducedGraph::expandEdge(const Edge& edge) const {
     all_edges.push_back(edges);
   }
   return all_edges;
+}
+
+vector<vector<Index>> ReducedGraph::expandEdgeAsVertices(
+    const Edge& edge) const {
+  return expanded_edges_.at(edge);
 }
 
 vector<pair<Index, GraphNode>> ReducedGraph::getNodes() const {

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -39,9 +39,9 @@ Edge Graph_BF_Visitor::getEdge_() {
 }
 
 // Add edges to be explored
-void Graph_BF_Visitor::addEdges_(const Graph &graph, Index vertex) {
+void Graph_BF_Visitor::addEdges_(const Graph *graph, Index vertex) {
 
-  vector<Edge> newest_edges = graph.getNeighEdges(vertex);
+  vector<Edge> newest_edges = graph->getNeighEdges(vertex);
 
   // If first edges to be added
   if (edge_que_.empty()) {

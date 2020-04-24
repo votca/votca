@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -605,7 +605,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
     Graph g(vec_ed, m_gn);
 
     /// Here is what the string id of the graph should look like
-    string str = "a0b1c2d3e4";
+    string str = "a=0;b=1;c=2;d=3;e=4;";
     string s_id = g.getId();
     BOOST_CHECK_EQUAL(s_id, str);
 

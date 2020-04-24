@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -53,14 +53,14 @@ BOOST_AUTO_TEST_CASE(basic_test) {
 
   Graph_DF_Visitor gd_v;
   BOOST_CHECK(gd_v.queEmpty());
-  BOOST_CHECK_THROW(gd_v.exec(g, ed), runtime_error);
+  BOOST_CHECK_THROW(gd_v.exec(&g, ed), runtime_error);
   // Default starts with node index 0
-  gd_v.initialize(g);
+  gd_v.initialize(&g);
   BOOST_CHECK_EQUAL(gd_v.queEmpty(), false);
   // No exception should be thrown at this point
-  Edge ed1 = gd_v.nextEdge(g);
+  Edge ed1 = gd_v.nextEdge(&g);
   BOOST_CHECK_EQUAL(ed, ed1);
-  gd_v.exec(g, ed1);
+  gd_v.exec(&g, ed1);
   BOOST_CHECK(gd_v.queEmpty());
 
   // Show which vertices have been explored
@@ -127,42 +127,42 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   Graph_DF_Visitor gd_v;
 
   BOOST_CHECK(gd_v.queEmpty());
-  BOOST_CHECK_THROW(gd_v.exec(g, ed0), runtime_error);
+  BOOST_CHECK_THROW(gd_v.exec(&g, ed0), runtime_error);
   // Default starts with node index 0
-  gd_v.initialize(g);
+  gd_v.initialize(&g);
   BOOST_CHECK_EQUAL(gd_v.queEmpty(), false);
 
   // No exception should be thrown at this point
   // The visitor can progress down either branch it does not matter which one
   // it just matters that it completely explores the chosen branch before
   // exploring the next branch
-  Edge ed5 = gd_v.nextEdge(g);
-  gd_v.exec(g, ed5);
+  Edge ed5 = gd_v.nextEdge(&g);
+  gd_v.exec(&g, ed5);
 
   if (ed5 == ed2) {
-    ed5 = gd_v.nextEdge(g);
+    ed5 = gd_v.nextEdge(&g);
     BOOST_CHECK_EQUAL(ed3, ed5);
-    gd_v.exec(g, ed5);
+    gd_v.exec(&g, ed5);
 
-    ed5 = gd_v.nextEdge(g);
+    ed5 = gd_v.nextEdge(&g);
     BOOST_CHECK_EQUAL(ed0, ed5);
-    gd_v.exec(g, ed5);
+    gd_v.exec(&g, ed5);
 
-    ed5 = gd_v.nextEdge(g);
+    ed5 = gd_v.nextEdge(&g);
     BOOST_CHECK_EQUAL(ed1, ed5);
-    gd_v.exec(g, ed5);
+    gd_v.exec(&g, ed5);
   } else if (ed5 == ed0) {
-    ed5 = gd_v.nextEdge(g);
+    ed5 = gd_v.nextEdge(&g);
     BOOST_CHECK_EQUAL(ed1, ed5);
-    gd_v.exec(g, ed5);
+    gd_v.exec(&g, ed5);
 
-    ed5 = gd_v.nextEdge(g);
+    ed5 = gd_v.nextEdge(&g);
     BOOST_CHECK_EQUAL(ed2, ed5);
-    gd_v.exec(g, ed5);
+    gd_v.exec(&g, ed5);
 
-    ed5 = gd_v.nextEdge(g);
+    ed5 = gd_v.nextEdge(&g);
     BOOST_CHECK_EQUAL(ed3, ed5);
-    gd_v.exec(g, ed5);
+    gd_v.exec(&g, ed5);
 
   } else {
     // one of the staring edges should eithe be ed0 or ed2

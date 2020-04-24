@@ -1,6 +1,6 @@
 /*
  *            E
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,8 +21,8 @@
 #include "graph.h"
 #include "reducededge.h"
 
-#ifndef _VOTCA_TOOLS_REDUCEDGRAPH_H
-#define _VOTCA_TOOLS_REDUCEDGRAPH_H
+#ifndef VOTCA_TOOLS_REDUCEDGRAPH_H
+#define VOTCA_TOOLS_REDUCEDGRAPH_H
 
 namespace votca {
 namespace tools {
@@ -108,6 +108,8 @@ class ReducedGraph : public Graph {
    **/
   std::vector<std::vector<Edge>> expandEdge(const Edge& edge) const;
 
+  std::vector<std::vector<Index>> expandEdgeAsVertices(const Edge& edge) const;
+
   /// This method will return a copy of the full graph
   Graph expandGraph() const;
 
@@ -141,4 +143,4 @@ class ReducedGraph : public Graph {
 
 }  // namespace tools
 }  // namespace votca
-#endif  // _VOTCA_TOOLS_REDUCEDGRAPH_H
+#endif  // VOTCA_TOOLS_REDUCEDGRAPH_H

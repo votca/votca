@@ -19,6 +19,7 @@
 
 #ifndef VOTCA_TOOLS_GRAPHDISTVISITOR_H
 #define VOTCA_TOOLS_GRAPHDISTVISITOR_H
+#pragma once
 
 #include "graph_bf_visitor.h"
 #include <deque>
@@ -56,8 +57,8 @@ class GraphDistVisitor : public Graph_BF_Visitor {
 
   /// Note the only manipulation to the BF visitor is the need to add a
   /// distance attribute to each of the graph nodes.
-  void exploreNode(std::pair<Index, GraphNode>& p_gn, Graph& g,
-                   const Edge& ed = DUMMY_EDGE) override;
+  void explore(std::pair<Index, GraphNode>& p_gn, Graph* g,
+               const Edge& ed = DUMMY_EDGE) override;
 };
 }  // namespace tools
 }  // namespace votca

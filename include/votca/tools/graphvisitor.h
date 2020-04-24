@@ -56,12 +56,16 @@ class GraphVisitor {
   Index startingVertex_ = 0;
 
   /// What is done to an individual graph node as it is explored
-  virtual void addEdges_(const Graph& graph, Index vertex) = 0;
+  virtual void addEdges_(const Graph* graph, Index vertex) = 0;
   virtual Edge getEdge_() = 0;
   /// Edge(0,0) is a dummy value
  public:
-  virtual void exploreNode(std::pair<Index, GraphNode>& vertex_and_node,
-                           Graph& graph, const Edge& edge = DUMMY_EDGE);
+  /// To be generic Graph must be a pointer, it cannot be a reference
+  virtual void explore(std::pair<Index, GraphNode>& vertex_and_node,
+                       Graph* graph, Edge& edge);
+
+  virtual void explore(std::pair<Index, GraphNode>& vertex_and_node,
+                       Graph* graph, const Edge& edge = DUMMY_EDGE);
 
   GraphVisitor() = default;
 
@@ -77,17 +81,17 @@ class GraphVisitor {
   Index getStartingVertex() const { return startingVertex_; }
 
   /// Initialize the graphvisitor the default starting point is 0
-  void initialize(Graph& graph);
+  void initialize(Graph* graph);
 
   /// What the visitor does to each node as it is visited, it will
   /// simply add the vertex that was explored to the list of explored
   /// vertices in its current form.
-  virtual void exec(Graph& graph, Edge edge);
+  virtual void exec(Graph* graph, Edge edge);
 
   /// The next edge to be explored, note that when this function
   /// is called it removes the edge from the visitors queue and will
   /// no longer be accessible with a second call to nextEdge
-  Edge nextEdge(Graph graph);
+  Edge nextEdge(Graph* graph);
 
   /// Get the set of all the vertices that have been explored
   std::set<Index> getExploredVertices() const;

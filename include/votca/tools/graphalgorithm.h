@@ -160,7 +160,7 @@ std::vector<Graph> decoupleIsolatedSubGraphs(Graph graph);
  * @param[in,out] - Graph reference instance
  * @param[in,out] - graph visitor
  */
-void exploreGraph(Graph& graph, GraphVisitor& graph_visitor);
+void exploreGraph(Graph* graph, GraphVisitor& graph_visitor);
 
 /**
  * @brief Determines how the graph nodes of a particular graph must be arranged
@@ -256,7 +256,7 @@ std::string findStructureId(Graph& graph) {
     GV graph_visitor;
     graph_visitor.setStartingVertex(vertex);
     Graph graph_temp = graph;
-    exploreGraph(graph_temp, graph_visitor);
+    exploreGraph(&graph_temp, graph_visitor);
     std::string temp_struct_id = graph_temp.getId();
     if (chosenId.compare(temp_struct_id) < 0) {
       chosenId = temp_struct_id;

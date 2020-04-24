@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -53,14 +53,14 @@ BOOST_AUTO_TEST_CASE(basic_test) {
 
   Graph_BF_Visitor gb_v;
   BOOST_CHECK(gb_v.queEmpty());
-  BOOST_CHECK_THROW(gb_v.exec(g, ed), runtime_error);
+  BOOST_CHECK_THROW(gb_v.exec(&g, ed), runtime_error);
   // Default starts with node index 0
-  gb_v.initialize(g);
+  gb_v.initialize(&g);
   BOOST_CHECK_EQUAL(gb_v.queEmpty(), false);
   // No exception should be thrown at this point
-  Edge ed1 = gb_v.nextEdge(g);
+  Edge ed1 = gb_v.nextEdge(&g);
   BOOST_CHECK_EQUAL(ed, ed1);
-  gb_v.exec(g, ed1);
+  gb_v.exec(&g, ed1);
   BOOST_CHECK(gb_v.queEmpty());
 
   // Show which vertices have been explored
@@ -126,18 +126,18 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
 
   Graph_BF_Visitor gb_v;
   BOOST_CHECK(gb_v.queEmpty());
-  BOOST_CHECK_THROW(gb_v.exec(g, ed), runtime_error);
+  BOOST_CHECK_THROW(gb_v.exec(&g, ed), runtime_error);
   // Default starts with node index 0
-  gb_v.initialize(g);
+  gb_v.initialize(&g);
   BOOST_CHECK_EQUAL(gb_v.queEmpty(), false);
   // No exception should be thrown at this point
 
   // First two edges found should be ed and ed2
   vector<Edge> temp;
-  Edge ed5 = gb_v.nextEdge(g);
+  Edge ed5 = gb_v.nextEdge(&g);
   temp.push_back(ed5);
-  gb_v.exec(g, ed5);
-  ed5 = gb_v.nextEdge(g);
+  gb_v.exec(&g, ed5);
+  ed5 = gb_v.nextEdge(&g);
   temp.push_back(ed5);
 
   bool found_ed = false;
@@ -157,11 +157,11 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   // starting vertex so the order does not matter.
   temp.clear();
 
-  gb_v.exec(g, ed5);
-  ed5 = gb_v.nextEdge(g);
+  gb_v.exec(&g, ed5);
+  ed5 = gb_v.nextEdge(&g);
   temp.push_back(ed5);
-  gb_v.exec(g, ed5);
-  ed5 = gb_v.nextEdge(g);
+  gb_v.exec(&g, ed5);
+  ed5 = gb_v.nextEdge(&g);
   temp.push_back(ed5);
 
   bool found_ed1 = false;
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   BOOST_CHECK(found_ed1);
   BOOST_CHECK(found_ed3);
 
-  gb_v.exec(g, ed5);
+  gb_v.exec(&g, ed5);
   BOOST_CHECK(gb_v.queEmpty());
 
   // Show which vertices have been explored

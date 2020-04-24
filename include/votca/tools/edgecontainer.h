@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_EDGECONTAINER_H
-#define _VOTCA_TOOLS_EDGECONTAINER_H
+#ifndef VOTCA_TOOLS_EDGECONTAINER_H
+#define VOTCA_TOOLS_EDGECONTAINER_H
 
 #include "edge.h"
 #include <map>
@@ -38,7 +38,8 @@ namespace tools {
 class EdgeContainer {
  protected:
   /// The vertex, the neighboring vertices and the number of edges
-  std::unordered_map<Index, std::unordered_map<Index, Index>> adj_list_;
+  //  std::unordered_map<Index, std::unordered_map<Index, Index>> adj_list_;
+  std::map<Index, std::map<Index, Index>> adj_list_;
 
  public:
   /// Constructors can take no arguments a single Edge or a vector of edges
@@ -78,4 +79,4 @@ class EdgeContainer {
 }  // namespace tools
 }  // namespace votca
 
-#endif  // _VOTCA_TOOLS_EDGECONTAINER_H
+#endif  // VOTCA_TOOLS_EDGECONTAINER_H

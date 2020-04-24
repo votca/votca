@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -32,7 +32,7 @@ using namespace votca::tools;
 
 class GraphVisitorTest : public GraphVisitor {
  private:
-  void addEdges_(const Graph&, votca::Index) override {
+  void addEdges_(const Graph *, votca::Index) override {
     throw runtime_error("Undefined method.");
   }
   Edge getEdge_() override { throw runtime_error("Undefined method."); }
@@ -62,12 +62,12 @@ BOOST_AUTO_TEST_CASE(basic_test) {
 
   BOOST_CHECK(gv.queEmpty());
 
-  BOOST_CHECK_THROW(gv.exec(g, ed), runtime_error);
-  BOOST_CHECK_THROW(gv.initialize(g), runtime_error);
+  BOOST_CHECK_THROW(gv.exec(&g, ed), runtime_error);
+  BOOST_CHECK_THROW(gv.initialize(&g), runtime_error);
   // No exception should be thrown at this point
-  gv.exec(g, ed);
+  gv.exec(&g, ed);
   // Error because no nextEdge function ptr passed in
-  BOOST_CHECK_THROW(gv.nextEdge(g), runtime_error);
+  BOOST_CHECK_THROW(gv.nextEdge(&g), runtime_error);
 
   BOOST_CHECK_EQUAL(gv.getStartingVertex(), 0);
   gv.setStartingVertex(2);

@@ -17,39 +17,28 @@
  *
  */
 
-#ifndef VOTCA_TOOLS_GRAPH_DF_VISITOR_H
-#define VOTCA_TOOLS_GRAPH_DF_VISITOR_H
+#ifndef VOTCA_TOOLS_GRAPHBRANCHLEVELVISITOR_H
+#define VOTCA_TOOLS_GRAPHBRANCHLEVELVISITOR_H
+#pragma once
 
-#include "graphvisitor.h"
-#include <list>
+#include "graph_bf_visitor.h"
 
-/**
- * \brief A breadth first (DF) graph visitor
- *
- * This graph visitor will explore the vertices closest to the starting node
- * first and proceed outwards.
- *
- */
 namespace votca {
 namespace tools {
 
-class Graph;
-class Edge;
-class GraphNode;
-
-class Graph_DF_Visitor : public GraphVisitor {
- private:
-  std::list<Edge> edge_list_;
-
-  /// The core of the breadth first visitor is in how the edges are added
-  /// to the queue in this function
-  void addEdges_(const Graph* g, Index vertex) override;
-  Edge getEdge_() override;
+class GraphBranchLevelVisitor : public Graph_BF_Visitor {
 
  public:
-  Graph_DF_Visitor() = default;
-  bool queEmpty() const override;
+  GraphBranchLevelVisitor() = default;
+
+  /// Note the only manipulation to the BF visitor is the need to add a
+  /// level attribute attribute to each of the edges.
+  void explore(std::pair<Index, GraphNode>& p_gn, Graph* g, Edge& ed) override;
+
+  void explore(std::pair<Index, GraphNode>& p_gn, Graph* g,
+               const Edge& ed = DUMMY_EDGE) override;
 };
+
 }  // namespace tools
 }  // namespace votca
-#endif  // VOTCA_TOOLS_GRAPH_DF_VISITOR_H
+#endif  // VOTCA_TOOLS_GRAPHBRANCHLEVELVISITOR_H

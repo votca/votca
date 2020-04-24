@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,8 +23,9 @@
 #include <utility>
 #include <vector>
 
-#ifndef _VOTCA_TOOLS_EDGE_H
-#define _VOTCA_TOOLS_EDGE_H
+#include "graphnode.h"
+#ifndef VOTCA_TOOLS_EDGE_H
+#define VOTCA_TOOLS_EDGE_H
 
 namespace votca {
 namespace tools {
@@ -41,6 +42,8 @@ class Edge {
  protected:
   std::vector<Index> vertices_;
 
+  GraphNode edge_values_;
+
  public:
   Edge() = default;
   virtual ~Edge() = default;
@@ -54,6 +57,37 @@ class Edge {
   /// grab the larger integer
   Index getEndPoint2() const { return vertices_.back(); }
 
+  void addDouble(std::string label, const double& value) {
+    edge_values_.addDouble(label, value);
+  }
+
+  void addInt(std::string label, const Index value) {
+    edge_values_.addInt(label, value);
+  }
+
+  void addStr(std::string label, const std::string& value) {
+    edge_values_.addStr(label, value);
+  }
+
+  double getDouble(const std::string label) const {
+    return edge_values_.getDouble(label);
+  }
+
+  Index getInt(const std::string label) const {
+    return edge_values_.getInt(label);
+  }
+
+  std::string getStr(const std::string label) const {
+    return edge_values_.getStr(label);
+  }
+
+  bool hasInt(const std::string label) const {
+    return edge_values_.hasInt(label);
+  }
+
+  std::string getEdgePropertiesAsStr() const {
+    return edge_values_.getStringId();
+  }
   /**
    * \brief Checks to see if an edge loops back on itself.
    *
@@ -103,4 +137,4 @@ class hash<votca::tools::Edge> {
   }
 };
 }  // namespace std
-#endif  // _VOTCA_TOOLS_EDGE_H
+#endif  // VOTCA_TOOLS_EDGE_H

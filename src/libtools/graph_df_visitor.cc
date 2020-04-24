@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -36,8 +36,8 @@ Edge Graph_DF_Visitor::getEdge_() {
 }
 
 // Add edges to be explored
-void Graph_DF_Visitor::addEdges_(const Graph& g, Index vertex) {
-  auto eds = g.getNeighEdges(vertex);
+void Graph_DF_Visitor::addEdges_(const Graph* g, Index vertex) {
+  auto eds = g->getNeighEdges(vertex);
   if (edge_list_.empty()) {
     // If first edges to be added
     for (auto ed : eds) {

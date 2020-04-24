@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,24 +52,26 @@ BOOST_AUTO_TEST_CASE(setters_test) {
   unordered_map<string, string> str_vals = {{"Name", "George"}};
   GraphNode gn2(int_vals, double_vals, str_vals);
 
-  string str{"Num134Height159.32NameGeorge"};
+  string str{"Num=134,Height=159.32,Name=George;"};
   BOOST_CHECK_EQUAL(gn2.getStringId(), str);
 
   unordered_map<string, votca::Index> int_vals2 = {{"Second", 2}, {"First", 1}};
   gn2.setInt(int_vals2);
-  str = "First1Second2Height159.32NameGeorge";
+  str = "First=1,Second=2,Height=159.32,Name=George;";
   BOOST_CHECK_EQUAL(gn2.getStringId(), str);
 
   unordered_map<string, double> double_vals2 = {{"Height", 159.32},
                                                 {"Weight", 101.43}};
   gn2.setDouble(double_vals2);
-  str = "First1Second2Height159.32Weight101.43NameGeorge";
+  str = "First=1,Second=2,Height=159.32,Weight=101.43,Name=George;";
   BOOST_CHECK_EQUAL(gn2.getStringId(), str);
 
   unordered_map<string, string> str_vals2 = {{"Name", "George"},
                                              {"Address", "Koogler St"}};
   gn2.setStr(str_vals2);
-  str = "First1Second2Height159.32Weight101.43AddressKoogler StNameGeorge";
+  str =
+      "First=1,Second=2,Height=159.32,Weight=101.43,Address=Koogler "
+      "St,Name=George;";
   BOOST_CHECK_EQUAL(gn2.getStringId(), str);
 }
 
@@ -89,8 +91,8 @@ BOOST_AUTO_TEST_CASE(comparisontest) {
   vector<GraphNode> vec_gn = {gn1, gn2};
   sort(vec_gn.begin(), vec_gn.end(), cmpNode);
 
-  string str1{"a134"};
-  string str2{"b134"};
+  string str1{"a=134;"};
+  string str2{"b=134;"};
 
   BOOST_CHECK_EQUAL(vec_gn.at(0).getStringId(), str1);
   BOOST_CHECK_EQUAL(vec_gn.at(1).getStringId(), str2);

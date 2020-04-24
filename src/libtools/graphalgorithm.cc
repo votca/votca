@@ -22,7 +22,7 @@
 #include "../../include/votca/tools/graph_bf_visitor.h"
 #include "../../include/votca/tools/graph_df_visitor.h"
 #include "../../include/votca/tools/graphalgorithm.h"
-#include "../../include/votca/tools/graphmemoryvisitor.h"
+//#include "../../include/votca/tools/graphmemoryvisitor.h"
 #include "../../include/votca/tools/graphvisitor.h"
 
 using namespace std;
@@ -38,7 +38,7 @@ namespace tools {
  * Public Functions *
  ********************/
 bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor) {
-  exploreGraph(graph, graph_visitor);
+  exploreGraph(&graph, graph_visitor);
   return graph_visitor.getExploredVertices().size() ==
              graph.getVertices().size() &&
          graph.getIsolatedNodes().size() == 0;
@@ -71,15 +71,15 @@ std::set<Edge> exploreBranch(Graph g, Index starting_vertex, const Edge& edge) {
   Graph_BF_Visitor gv_breadth_first;
   GraphNode gn;
   pair<Index, GraphNode> pr_gn(starting_vertex, gn);
-  gv_breadth_first.exploreNode(pr_gn, g);
+  gv_breadth_first.explore(pr_gn, &g);
   gv_breadth_first.setStartingVertex(edge.getOtherEndPoint(starting_vertex));
-  gv_breadth_first.initialize(g);
+  gv_breadth_first.initialize(&g);
 
   branch_edges.insert(edge);
   while (!gv_breadth_first.queEmpty()) {
-    Edge ed = gv_breadth_first.nextEdge(g);
+    Edge ed = gv_breadth_first.nextEdge(&g);
     branch_edges.insert(ed);
-    gv_breadth_first.exec(g, ed);
+    gv_breadth_first.exec(&g, ed);
   }
 
   vector<Edge> neigh_edges = g.getNeighEdges(starting_vertex);
@@ -95,53 +95,13 @@ std::set<Edge> exploreBranch(Graph g, Index starting_vertex, const Edge& edge) {
   return branch_edges;
 }
 
-std::string findCanonizedSequence(Graph& graph, std::vector<Index>& sequence) {
-  // Determine the highest degree in the graph
-  Index maxD = graph.getMaxDegree();
-  // Get the vertices with this degree
-  std::vector<Index> vertices = graph.getVerticesDegree(maxD);
+/******************************************************************************
+ * Canonize Algorithm & Classes
+ ******************************************************************************/
+/*std::string findCanonizedSequence(Graph& graph, std::vector<Index>& sequence)
+{
 
-  // Get the nodes and determine which node has the greatest stringID
-  // When compared using compare function
-  std::string str_id = "";
-  std::vector<Index> graph_node_ids;
-  for (const Index& vertex : vertices) {
-    GraphNode graph_node = graph.getNode(vertex);
-    Index comp_int = str_id.compare(graph_node.getStringId());
-    if (comp_int > 0) {
-      str_id = graph_node.getStringId();
-      graph_node_ids.clear();
-      graph_node_ids.push_back(vertex);
-    } else if (comp_int == 0) {
-      graph_node_ids.push_back(vertex);
-    }
-  }
-  // If the str_id is empty it means the nodes are empty and we will
-  // simply have to rely on the degree to choose the vertices to explore from
-  if (str_id.compare("") == 0) {
-    graph_node_ids = vertices;
-  }
-  // If two or more graph nodes are found to be equal then
-  // they must all be explored
-  std::string chosenId = "";
-  Graph graph_chosen = graph;
-
-  for (const Index& vertex : graph_node_ids) {
-    GraphMemoryVisitor graph_visitor;
-    graph_visitor.setStartingVertex(vertex);
-    Graph graph_temp = graph;
-    exploreGraph(graph_temp, graph_visitor);
-    std::string temp_struct_id = graph_temp.getId();
-    if (chosenId.compare(temp_struct_id) < 0) {
-      chosenId = temp_struct_id;
-      graph_chosen = graph_temp;
-      sequence = graph_visitor.getMemory();
-    }
-  }
-
-  graph = graph_chosen;
-  return chosenId;
-}
+}*/
 
 ReducedGraph reduceGraph(Graph graph) {
 
@@ -226,13 +186,13 @@ ReducedGraph reduceGraph(Graph graph) {
     Index starting_vertex = exploration_record.getUnexploredVertex();
     exploration_record.explore(starting_vertex);
     graph_visitor.setStartingVertex(starting_vertex);
-    graph_visitor.initialize(graph);
+    graph_visitor.initialize(&graph);
 
     vector<Index> chain{starting_vertex};
     Index old_vertex = starting_vertex;
     bool new_chain = false;
     while (!graph_visitor.queEmpty()) {
-      Edge edge = graph_visitor.nextEdge(graph);
+      Edge edge = graph_visitor.nextEdge(&graph);
       vector<Index> unexplored_vertex = graph_visitor.getUnexploredVertex(edge);
 
       if (new_chain) {
@@ -270,7 +230,7 @@ ReducedGraph reduceGraph(Graph graph) {
         exploration_record.explore(new_vertex);
       }
 
-      graph_visitor.exec(graph, edge);
+      graph_visitor.exec(&graph, edge);
     }
   }
   vector<ReducedEdge> reduced_edges;
@@ -302,7 +262,7 @@ vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
     }
     Graph_BF_Visitor graph_visitor_breadth_first;
     graph_visitor_breadth_first.setStartingVertex(vertices[i]);
-    exploreGraph(graph, graph_visitor_breadth_first);
+    exploreGraph(&graph, graph_visitor_breadth_first);
     set<Index> sub_graph_explored_vertices =
         graph_visitor_breadth_first.getExploredVertices();
 
@@ -334,9 +294,9 @@ vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
   return subGraphs;
 }
 
-void exploreGraph(Graph& graph, GraphVisitor& graph_visitor) {
+void exploreGraph(Graph* graph, GraphVisitor& graph_visitor) {
 
-  if (!graph.vertexExist(graph_visitor.getStartingVertex())) {
+  if (!graph->vertexExist(graph_visitor.getStartingVertex())) {
     string err = "Cannot explore graph starting at vertex " +
                  to_string(graph_visitor.getStartingVertex()) +
                  " because it does not exist in the "

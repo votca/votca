@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -761,7 +761,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
     ReducedGraph g(vec_ed, m_gn);
 
     /// Here is what the string id of the graph should look like
-    string str = "a0c2d3e4";
+    string str = "a=0;c=2;d=3;e=4;";
     string s_id = g.getId();
     BOOST_CHECK_EQUAL(s_id, str);
 
@@ -776,7 +776,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
     ReducedGraph g3(vec_ed, m_gn);
     BOOST_CHECK(g != g3);
 
-    string str2 = "a0b1c2e4";
+    string str2 = "a=0;b=1;c=2;e=4;";
     string s_id2 = g3.getId();
     BOOST_CHECK_EQUAL(s_id2, str2);
 

@@ -33,8 +33,14 @@ class GraphNode;
 
 bool GraphVisitor::queEmpty() const { return true; }
 
-void GraphVisitor::exploreNode(pair<Index, GraphNode>& vertex_and_node, Graph&,
-                               const Edge&) {
+void GraphVisitor::explore(pair<Index, GraphNode>& vertex_and_node, Graph* g,
+                           Edge& ed) {
+  const Edge& ed_const = ed;
+  explore(vertex_and_node, g, ed_const);
+}
+
+void GraphVisitor::explore(pair<Index, GraphNode>& vertex_and_node, Graph*,
+                           const Edge&) {
   explored_.insert(vertex_and_node.first);
 }
 
@@ -53,15 +59,15 @@ bool GraphVisitor::vertexExplored(const Index vertex) const {
   return explored_.count(vertex) == 1;
 }
 
-void GraphVisitor::initialize(Graph& graph) {
-  vector<Edge> neigh_eds = graph.getNeighEdges(startingVertex_);
-  GraphNode graph_node = graph.getNode(startingVertex_);
+void GraphVisitor::initialize(Graph* graph) {
+  vector<Edge> neigh_eds = graph->getNeighEdges(startingVertex_);
+  GraphNode graph_node = graph->getNode(startingVertex_);
   pair<Index, GraphNode> vertex_and_graph_node(startingVertex_, graph_node);
-  exploreNode(vertex_and_graph_node, graph);
+  explore(vertex_and_graph_node, graph);
   addEdges_(graph, startingVertex_);
 }
 
-void GraphVisitor::exec(Graph& graph, Edge edge) {
+void GraphVisitor::exec(Graph* graph, Edge edge) {
   vector<Index> unexp_vert = getUnexploredVertex(edge);
   // If no vertices are return than just ignore it means the same
   // vertex was explored from a different direction
@@ -76,12 +82,12 @@ void GraphVisitor::exec(Graph& graph, Edge edge) {
   }
 
   pair<Index, GraphNode> vertex_and_node(unexp_vert.at(0),
-                                         graph.getNode(unexp_vert.at(0)));
+                                         graph->getNode(unexp_vert.at(0)));
 
-  exploreNode(vertex_and_node, graph, edge);
+  explore(vertex_and_node, graph, edge);
 }
 
-Edge GraphVisitor::nextEdge(Graph graph) {
+Edge GraphVisitor::nextEdge(Graph* graph) {
 
   // Get the edge and at the same time remove it from whatever queue it is in
 

@@ -30,6 +30,9 @@ namespace votca {
 namespace tools {
 
 class GraphDistVisitor;
+
+enum class StringIdType { full, brief };
+
 /**
  * \brief A graph node that will take a variety of different values
  *
@@ -44,6 +47,7 @@ class GraphDistVisitor;
 class GraphNode {
  private:
   std::string str_id_{""};
+  std::string str_id_no_label_{""};
   std::unordered_map<std::string, Index> int_vals_;
   std::unordered_map<std::string, double> double_vals_;
   std::unordered_map<std::string, std::string> str_vals_;
@@ -63,18 +67,27 @@ class GraphNode {
   void setDouble(const std::unordered_map<std::string, double> double_vals);
   void setStr(const std::unordered_map<std::string, std::string> str_vals);
 
-  void addInt(std::string label, const Index& value);
-  void addDouble(std::string label, const double& value);
+  void resetInt(std::string label, const Index& value);
+  void resetDouble(std::string label, const double& value);
+  void resetStr(std::string label, const std::string& value);
+
+  void addInt(std::string label, const Index value);
+  void addDouble(std::string label, const double value);
   void addStr(std::string label, const std::string& value);
 
+  bool hasInt(const std::string& label) const;
+
   /// Basic getters
-  Index getInt(const std::string str);
-  double getDouble(const std::string str);
-  std::string getStr(const std::string str);
+  Index getInt(const std::string& str) const;
+  double getDouble(const std::string& str) const;
+  std::string getStr(const std::string& str) const;
 
-  /// Get the string id unique to the contents of the graph node
-  std::string getStringId() const { return str_id_; }
-
+  /// Get the string id unique to the contents of the graph node, by default
+  /// will return the full string id
+  std::string getStringId(StringIdType type = StringIdType::full) const {
+    if (type == StringIdType::full) return str_id_;
+    return str_id_no_label_;
+  }
   bool operator==(const GraphNode gn) const;
   bool operator!=(const GraphNode gn) const;
 

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -54,14 +54,14 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   GraphDistVisitor gdv;
   BOOST_CHECK(gdv.queEmpty());
 
-  BOOST_CHECK_THROW(gdv.exec(g, ed), runtime_error);
+  BOOST_CHECK_THROW(gdv.exec(&g, ed), runtime_error);
   // Default starts with node index 0
-  gdv.initialize(g);
+  gdv.initialize(&g);
   BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
   // No exception should be thrown at this point
-  Edge ed1 = gdv.nextEdge(g);
+  Edge ed1 = gdv.nextEdge(&g);
   BOOST_CHECK_EQUAL(ed, ed1);
-  gdv.exec(g, ed1);
+  gdv.exec(&g, ed1);
   BOOST_CHECK(gdv.queEmpty());
   GraphNode gn3 = g.getNode(0);
   votca::Index dist = gn3.getInt("Dist");
@@ -120,19 +120,19 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   GraphDistVisitor gdv;
   BOOST_CHECK(gdv.queEmpty());
 
-  BOOST_CHECK_THROW(gdv.exec(g, ed), runtime_error);
+  BOOST_CHECK_THROW(gdv.exec(&g, ed), runtime_error);
   // Default starts with node index 0
-  gdv.initialize(g);
+  gdv.initialize(&g);
   BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
   // No exception should be thrown at this point
 
   // First two edges that should be explored are edges ed and ed6
   vector<Edge> temp;
-  Edge ed7 = gdv.nextEdge(g);
+  Edge ed7 = gdv.nextEdge(&g);
   temp.push_back(ed7);
-  gdv.exec(g, ed7);
-  ed7 = gdv.nextEdge(g);
-  gdv.exec(g, ed7);
+  gdv.exec(&g, ed7);
+  ed7 = gdv.nextEdge(&g);
+  gdv.exec(&g, ed7);
   temp.push_back(ed7);
 
   bool found_ed = false;
@@ -150,8 +150,8 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
 
   // Explore the whole graph
   while (!gdv.queEmpty()) {
-    ed7 = gdv.nextEdge(g);
-    gdv.exec(g, ed7);
+    ed7 = gdv.nextEdge(&g);
+    gdv.exec(&g, ed7);
   }
 
   // Now let's check that the distances for each node

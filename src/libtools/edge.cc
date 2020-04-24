@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -46,11 +46,15 @@ bool Edge::contains(Index ID) const {
 bool Edge::operator==(const Edge& ed) const {
   if (this->vertices_.front() == ed.vertices_.front() &&
       this->vertices_.back() == ed.vertices_.back()) {
-    return true;
+    if (this->edge_values_ == ed.edge_values_) {
+      return true;
+    }
   }
   if (this->vertices_.back() == ed.vertices_.front() &&
       this->vertices_.front() == ed.vertices_.back()) {
-    return true;
+    if (this->edge_values_ == ed.edge_values_) {
+      return true;
+    }
   }
   return false;
 }
