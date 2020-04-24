@@ -8,7 +8,7 @@
         <temperature help="Temperature in Kelvin." unit="kelvin" default="300" choices="int+">300</temperature>
         <trajectoryfile help="Name of the trajectory file" unit="">run1.csv</trajectoryfile>
         <carrierenergy help="Run a single carrier at the same time and records its energy">
-	        <run help="Switch on/off" default="0">0</run>
+	        <run help="Switch on/off" default="false" choices="bool">false</run>
 	        <outputfile help="File to write energies to" default="energies.csv">energies.csv</outputfile>
 	        <alpha help="Smoothing energy profile" default="0.05" choices="float+">0.05</alpha>
 	        <outputsteps help="Write to file every x steps" default="10" choices="int+">10</outputsteps>

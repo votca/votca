@@ -27,8 +27,7 @@ void EInternal::Initialize(const tools::Property &user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _energiesXML =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".energiesXML");
+  _energiesXML = options.get(".energiesXML").as<std::string>();
 }
 
 void EInternal::ParseEnergies() {

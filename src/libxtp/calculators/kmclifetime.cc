@@ -33,26 +33,18 @@ void KMCLifetime::Initialize(const tools::Property& user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _insertions = options.ifExistsReturnElseThrowRuntimeError<unsigned long>(
-      ".numberofinsertions");
+  _insertions = options.get(".numberofinsertions").as<unsigned long>();
 
-  _lifetimefile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".lifetimefile");
+  _lifetimefile = options.get(".lifetimefile").as<std::string>();
 
   _probfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".decayprobfile", "");
 
   tools::Property& carrier_options = options.get(".carrierenergy");
-  _do_carrierenergy =
-      carrier_options.ifExistsReturnElseThrowRuntimeError<bool>(".run");
-  _energy_outputfile =
-      carrier_options.ifExistsReturnElseThrowRuntimeError<std::string>(
-          ".outputfile");
-  _alpha =
-      carrier_options.ifExistsReturnElseThrowRuntimeError<double>(".alpha");
-  _outputsteps =
-      carrier_options.ifExistsReturnElseThrowRuntimeError<unsigned long>(
-          ".outputsteps");
+  _do_carrierenergy = carrier_options.get(".run").as<bool>();
+  _energy_outputfile = carrier_options.get(".outputfile").as<std::string>();
+  _alpha = carrier_options.get(".alpha").as<double>();
+  _outputsteps = carrier_options.get(".outputsteps").as<unsigned long>();
 
   _log.setReportLevel(Log::current_level);
   _log.setCommonPreface("\n ...");
