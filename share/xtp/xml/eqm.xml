@@ -11,54 +11,54 @@
 
 
     <gwbse_options help="xml file with options for gwbse calculations">
-   	    <gwbse>
-		    <ranges help="default: all levels in RPA, 1:2*HOMO in QP and all in BSE; other options: factor,explicit">default</ranges>
-	        <rpamax help="only needed, if ranges is factor or explicit, number of levels in rpa" default=""></rpamax>
-	        <qpmin help="only needed, if ranges is factor or explicit, lowest MO to be used in GW" default="" ></qpmin>
-	        <qpmax help="only needed, if ranges is factor or explicit, highest MO to be used in GW" default=""></qpmax>
-	        <bsemin help="only needed, if ranges is factor or explicit, lowest MO to be used in BSE" default=""></bsemin>
-	        <bsemax help="only needed, if ranges is factor or explicit, highest MO to be used in BSE" default=""></bsemax>
-	        <vxc help="Exchange correlation functional computation for GW">
-				<grid help="grid quality xcoarse,coarse,medium,fine,xfine" default="medium">medium</grid>
-	        </vxc>
-	        <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" default="0.0" unit="hartree">0.0</scissor_shift>
-	        <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW">evGW</mode>
-	        <tasks help="tasks to do gw,singlets,triplets or all" default="gw,singlets">gw,singlets</tasks>
-	        <sigma_integrator help="self-energy correlation integration method: ppm, exact" default="ppm">ppm</sigma_integrator>
-	        <eta help="small parameter eta of the Green's function" default="1e-3">1e-3</eta>
-	        <qp_solver help="QP equation solve method: fixedpoint, grid" default="grid">grid</qp_solver>
-	        <qp_grid_steps help="number of QP grid points" default="1001">1001</qp_grid_steps>
-	        <qp_grid_spacing help="spacing of QP grid points in Ha" default="0.001">0.001</qp_grid_spacing>
-	        <exctotal help="maximum number of BSE states to calculate" default="30">30</exctotal>
-	        <useTDA help="use TDA for BSE default `false`" default="0">0</useTDA>
-	        <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level" default="no">no</ignore_corelevels>
-	        <eigensolver help="options for BSE eigenvalue decompostion">
-	            <dodavidson help="use davidson solver" default="1">1</dodavidson>
-	            <davidson_correction help="DPR or OHLSEN" default="DPR">DPR</davidson_correction>
-	            <davidson_tolerance help="loose,normal,strict" default="strict">strict</davidson_tolerance>
-	            <davidson_ortho help="orthogonalisation routine GS or QR" default="GS">GS</davidson_ortho>
-	            <davidson_update help=" how large the search space can become min, safe, max" default="safe">safe</davidson_update>
-	            <davidson_maxiter help="max iterations" default="50">50</davidson_maxiter>
-	            <domatrixfree help="solve without explicitly setting up BSE matrix, (slower but a lot less memory required" default="0">0</domatrixfree>
-	        </eigensolver>
-	        <gw_sc_max_iterations help="Maximum number of iterations in gvGW" default="50">50</gw_sc_max_iterations>
-	        <gw_mixing_order help="Mixing of QP energies in evGW - 0: plain, 1: linear, >1: Anderson" default="20">20</gw_mixing_order>
-	        <g_sc_max_iterations help="What is this again?" default="100">100</g_sc_max_iterations>
-	        <use_Hqp_offdiagonals help="Using symmetrized off-diagonal elements of QP Hamiltonian in BSE" default="false">false</use_Hqp_offdiagonals>
-        </gwbse>
+                <gwbse>
+	                <ranges help="default: all levels in RPA, 1:2*HOMO in QP and all in BSE; other options: factor,explicit" choices="default,factor,explicit">default</ranges>
+	                <rpamax help="only needed, if ranges is factor or explicit, number of levels in rpa" default=""></rpamax>
+	                <qpmin help="only needed, if ranges is factor or explicit, lowest MO to be used in GW" default="" ></qpmin>
+	                <qpmax help="only needed, if ranges is factor or explicit, highest MO to be used in GW" default=""></qpmax>
+	                <bsemin help="only needed, if ranges is factor or explicit, lowest MO to be used in BSE" default=""></bsemin>
+	                <bsemax help="only needed, if ranges is factor or explicit, highest MO to be used in BSE" default=""></bsemax>
+	                <vxc help="Exchange correlation functional computation for GW">
+		                <grid help="grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine">medium</grid>
+	                </vxc>
+	                <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" default="0.0" unit="hartree" choices="float">0.0</scissor_shift>
+	                <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW" choices="evGW,G0W0">evGW</mode>
+	                <tasks help="tasks to do" default="gw,singlets">gw,singlets</tasks>
+	                <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact">ppm</sigma_integrator>
+	                <eta help="small parameter eta of the Green's function" default="1e-3" choices="float+">1e-3</eta>
+	                <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid">grid</qp_solver>
+	                <qp_grid_steps help="number of QP grid points" default="1001" choices="int+">1001</qp_grid_steps>
+	                <qp_grid_spacing help="spacing of QP grid points in Ha" default="0.001" choices="float+">0.001</qp_grid_spacing>
+	                <exctotal help="maximum number of BSE states to calculate" default="30" choices="int+">30</exctotal>
+	                <useTDA help="use TDA for BSE" default="false" choices="bool">false</useTDA>
+	                <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level" default="no" choices="yes,no">no</ignore_corelevels>
+	                <eigensolver help="options for BSE eigenvalue decompostion">
+		                <dodavidson help="use davidson solver" default="true" choices="bool">true</dodavidson>
+		                <davidson_correction help="Davidson correction method" default="DPR" choices="DPR,OHLSEN">DPR</davidson_correction>
+		                <davidson_tolerance help="Numerical tolerance" default="strict" choices="loose,normal,strict">strict</davidson_tolerance>
+		                <davidson_ortho help="orthogonalisation routine: Gram–Schmidt or QR" default="GS" choices="GS,QR">GS</davidson_ortho>
+		                <davidson_update help=" how large the search space" default="safe" choices="min,safe,max">safe</davidson_update>
+		                <davidson_maxiter help="max iterations" default="50" choices="int+">50</davidson_maxiter>
+		                <domatrixfree help="solve without explicitly setting up BSE matrix, (slower but a lot less memory required" default="false" choices="bool">false</domatrixfree>
+	                </eigensolver>
+	                <gw_sc_max_iterations help="Maximum number of iterations in gvGW" default="50" choices="int+">50</gw_sc_max_iterations>
+	                <gw_mixing_order help="Mixing of QP energies in evGW - 0: plain, 1: linear, >1: Anderson" default="20" choices="int+">20</gw_mixing_order>
+	                <g_sc_max_iterations help="What is this again?" default="100" choices="int+">100</g_sc_max_iterations>
+	                <use_Hqp_offdiagonals help="Using symmetrized off-diagonal elements of QP Hamiltonian in BSE" default="false" choices="bool">false</use_Hqp_offdiagonals>
+                </gwbse>
     </gwbse_options>
 
 	<dftpackage>
     	<package>
-        	<name help="Name of the DFT package" default="xtp">xtp</name>
+        	<name help="Name of the DFT package" default="xtp" choices="xtp,orca">xtp</name>
     	</package>
 	</dftpackage>
 
 	<esp_options help="xml file with options for CHELPG calculations">
     	<esp2multipole>
-        	<state help="ground-,excited or transitionstate (groundstate,singlet,n2s1)" default="n2S1">n2S1</state>
-        	<method help="Method to use derive partial charges, CHELPG and Mulliken implented" default="CHELPG">CHELPG</method>
-        	<gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA coarse,medium,fine" default="fine">fine</gridsize>
+        	<state help="ground-,excited or transitionstate" default="n2S1" choices="groundstate,singlet,n2s1">n2S1</state>
+        	<method help="Method to use derive partial charges" default="CHELPG" choices="CHELPG,Mulliken">CHELPG</method>
+        	<gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA" default="fine" choices="coarse,medium,fine">fine</gridsize>
     	</esp2multipole>
 	</esp_options>
 </eqm>
