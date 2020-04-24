@@ -111,7 +111,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATAD
 	PATTERN "install_manifest.txt" EXCLUDE PATTERN "*~" EXCLUDE
 	PATTERN "inverse.log" EXCLUDE)
 
-configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 option(ENABLE_TESTING "Test if cmake worked" OFF)
 if(ENABLE_TESTING)
   enable_testing()
