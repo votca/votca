@@ -27,8 +27,10 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 # User input options                                                   #
 ########################################################################
 include(GNUInstallDirs)
+include(FeatureSummary)
 
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
+add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
 if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
@@ -37,6 +39,7 @@ endif(ENABLE_TESTING)
 #Find external packages
 ########################################################################
 find_package(VOTCA_CSG REQUIRED NO_MODULE)
+set_package_properties(VOTCA_CSG PROPERTIES TYPE REQUIRED PURPOSE "Votca csg library")
 if(DEFINED VOTCA_CSG_VERSION AND NOT VOTCA_CSG_VERSION STREQUAL PROJECT_VERSION)
   message(FATAL_ERROR "Incompatible VOTCA CSG version found (needed ${PROJECT_VERSION}, found ${VOTCA_CSG_VERSION})")
 endif()
@@ -69,6 +72,5 @@ endif()
 add_dependencies(uninstall uninstall-csgapps)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  include(FeatureSummary)
   feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
 endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
