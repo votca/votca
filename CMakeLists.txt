@@ -12,6 +12,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 ########################################################################
 set(CMAKE_SIZEOF_VOID_P 8)
 include(GNUInstallDirs)
+include(FeatureSummary)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
   message(FATAL_ERROR "In-source build not supported with UseLATEX.cmake\nDo 'rm CMakeCache.txt; mkdir build; cd build; cmake ..' instead")
@@ -107,6 +108,5 @@ if(ENABLE_TESTING)
 endif(ENABLE_TESTING)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  include(FeatureSummary)
   feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
 endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
