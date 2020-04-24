@@ -27,6 +27,7 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 # User input options                                                   #
 ########################################################################
 include(GNUInstallDirs)
+include(FeatureSummary)
 
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
 add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
@@ -71,6 +72,5 @@ endif()
 add_dependencies(uninstall uninstall-csgapps)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  include(FeatureSummary)
   feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
 endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
