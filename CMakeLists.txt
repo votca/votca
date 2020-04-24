@@ -22,7 +22,7 @@ add_feature_info(BUILD_CSGAPPS BUILD_CSGAPPS "Build extra app using csg")
 option(BUILD_XTP "Build xtp" OFF)
 add_feature_info(BUILD_XTP BUILD_XTP "Build xtp module")
 option(BUILD_CSG_MANUAL "Build csg-manual" OFF)
-add_feature_info(BUILD_XTP BUILD_XTP "Build csg-manual")
+add_feature_info(BUILD_CSG_MANUAL BUILD_CSG_MANUAL "Build csg-manual")
 set(VOTCA_SKIP_FIND_PACKAGE VOTCA_TOOLS VOTCA_CSG)
 
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
