@@ -16,6 +16,7 @@
  */
 
 #include <votca/tools/crosscorrelate.h>
+#include <unsupported/Eigen/FFT>
 
 namespace votca {
 namespace tools {

@@ -49,7 +49,6 @@
 #endif
 #include <Eigen/Eigen>
 #include <unsupported/Eigen/CXX11/Tensor>
-#include <unsupported/Eigen/FFT>
 #if (defined STRICT_GNUC) && GCC_VERSION > 70000
 #pragma GCC diagnostic pop
 #endif
