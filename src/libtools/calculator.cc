@@ -99,11 +99,11 @@ void Calculator::RecursivelyCheckOptions(const Property &p) {
         } catch (const std::runtime_error &e) {
           std::ostringstream oss;
           oss << "\nInput option: " << prop.name() << "\n";
-          oss << "Must be one of: ";
+          oss << "Must have a value that belongs to the following categories: ";
           for (const std::string c : choices) {
             oss << c << "\n";
           }
-          std::cout << oss.str();
+          std::cout << oss.str() << e.what();
           throw e;
         }
       }
@@ -114,24 +114,31 @@ void Calculator::RecursivelyCheckOptions(const Property &p) {
 void Calculator::CheckOption(const Property &prop,
                              const std::vector<std::string> &choices) {
   const std::string &head = choices.front();
+  std::ostringstream oss;
+
   if (head == "bool") {
     prop.as<bool>();
   } else if (head == "float") {
     prop.as<double>();
   } else if (head == "float+") {
     if (prop.as<double>() < 0.0) {
-      throw std::runtime_error("");
+      oss << "\nProperty: " << prop.name() << "\nMust be a positive float";
+      throw std::runtime_error(oss.str());
     }
   } else if (head == "int") {
     prop.as<Index>();
   } else if (head == "int+") {
     if (prop.as<Index>() < 0) {
-      throw std::runtime_error("");
+      oss << "\nProperty: " << prop.name() << "\nMust be a positive integer";
+      throw std::runtime_error(oss.str());
     }
   } else {
     std::string value = prop.as<std::string>();
     auto it = std::find(std::cbegin(choices), std::cend(choices), value);
     if (it == std::cend(choices)) {
+      oss << "\n"
+          << "Property: " << prop.name() << "\nHas unknown value: " << value
+          << "\n";
       throw std::runtime_error("");
     }
   }
