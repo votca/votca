@@ -16,6 +16,7 @@
  */
 
 #include "../../include/votca/tools/calculator.h"
+#include "../../include/votca/tools/tokenizer.h"
 
 namespace votca {
 namespace tools {

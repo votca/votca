@@ -23,7 +23,6 @@
 #include "globals.h"
 #include "property.h"
 #include "propertyiomanipulator.h"
-#include "tokenizer.h"
 
 namespace votca {
 namespace tools {
