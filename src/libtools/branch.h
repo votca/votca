@@ -21,7 +21,6 @@
 #define VOTCA_TOOLS_BRANCH_H
 #pragma once
 
-#include <algorithm>
 #include <string>
 #include <vector>
 
