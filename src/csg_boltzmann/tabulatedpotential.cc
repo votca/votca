@@ -16,6 +16,7 @@
  */
 
 #include "tabulatedpotential.h"
+#include "../../include/votca/csg/version.h"
 #include "analysistool.h"
 #include "bondedstatistics.h"
 #include <boost/lexical_cast.hpp>
@@ -24,7 +25,6 @@
 #include <math.h>
 #include <string>
 #include <vector>
-#include <votca/csg/version.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/histogram.h>
 

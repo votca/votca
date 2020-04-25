@@ -15,9 +15,9 @@
  *
  */
 
+#include "../../../include/votca/csg/potentialfunctions/potentialfunctioncbspl.h"
 #include <boost/lexical_cast.hpp>
 #include <iostream>
-#include <votca/csg/potentialfunctions/potentialfunctioncbspl.h>
 #include <votca/tools/table.h>
 
 using namespace std;

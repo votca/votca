@@ -15,14 +15,13 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_CSG_BEADMOTIF_H
 #define VOTCA_CSG_BEADMOTIF_H
 
+#include "basebead.h"
 #include "beadstructure.h"
-#include <votca/csg/basebead.h>
 #include <votca/tools/reducedgraph.h>
-
-namespace TOOLS = votca::tools;
 
 namespace votca {
 namespace csg {
@@ -106,7 +105,7 @@ namespace csg {
  * from the original class is called.
  **/
 
-class BeadMotif : public BeadStructure<BaseBead> {
+class BeadMotif : public BeadStructure {
  public:
   enum MotifType {
     empty,
@@ -137,16 +136,6 @@ class BeadMotif : public BeadStructure<BaseBead> {
   bool isMotifSimple();
 
   /**
-   * \brief Adds a new bead to the motif
-   *
-   * This method calls the beastructure AddBead method but it also switches an
-   * attribute indicating that the beadtype is now out of date.
-   *
-   * @param[in] basebead pointer
-   **/
-  void AddBead(BaseBead *basebead);
-
-  /**
    * \brief Adds a new connection to the motif
    *
    * Also switches an internal attribute to indicate the beadtype is no longer
@@ -154,7 +143,7 @@ class BeadMotif : public BeadStructure<BaseBead> {
    *
    * \param[in] - id of the first and second beads that are connected
    **/
-  void ConnectBeads(Index bead1_id, Index bead2_id);
+  void ConnectBeads(const Index &bead1_id, const Index &bead2_id) final;
 
  private:
   MotifType type_ = MotifType::undefined;
@@ -162,12 +151,13 @@ class BeadMotif : public BeadStructure<BaseBead> {
   bool type_up_to_date_ = false;
 
   std::vector<Index> junctions_;
-  TOOLS::ReducedGraph reduced_graph_;
+  tools::ReducedGraph reduced_graph_;
 
+  void UpdateOnBeadAddition_() final;
   void InitializeGraph_();
   bool junctionExist_();
   void CalculateType_();
-  bool isSingle_();
+  bool isSingle_() const noexcept;
   bool isLine_();
   bool isLoop_();
   bool isFusedRing_();

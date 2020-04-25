@@ -17,13 +17,13 @@
 
 #ifndef _VOTCA_CSG_REUPDATE_H
 #define _VOTCA_CSG_REUPDATE_H
+#include "../../include/votca/csg/csgapplication.h"
+#include "../../include/votca/csg/potentialfunctions/potentialfunction.h"
+#include "../../include/votca/csg/potentialfunctions/potentialfunctioncbspl.h"
+#include "../../include/votca/csg/potentialfunctions/potentialfunctionlj126.h"
+#include "../../include/votca/csg/potentialfunctions/potentialfunctionljg.h"
+#include "../../include/votca/csg/topologyreader.h"
 #include <boost/program_options.hpp>
-#include <votca/csg/csgapplication.h>
-#include <votca/csg/potentialfunctions/potentialfunction.h>
-#include <votca/csg/potentialfunctions/potentialfunctioncbspl.h>
-#include <votca/csg/potentialfunctions/potentialfunctionlj126.h>
-#include <votca/csg/potentialfunctions/potentialfunctionljg.h>
-#include <votca/csg/topologyreader.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/property.h>
 #include <votca/tools/table.h>

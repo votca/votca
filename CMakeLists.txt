@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project(votca-csg)
 
-set(PROJECT_VERSION "1.6")
+set(PROJECT_VERSION "1.7-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "[1-9]+")
@@ -37,8 +37,10 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 ########################################################################
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 include(GNUInstallDirs)
+include(FeatureSummary)
 
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
+add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
 if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
@@ -48,13 +50,16 @@ endif(ENABLE_TESTING)
 ########################################################################
 if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
+  set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
-find_package(Threads REQUIRED)
 option(BUILD_MANPAGES "Build manpages" ON)
+add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 if (BUILD_MANPAGES)
   find_package(TXT2TAGS)
+  set_package_properties(TXT2TAGS PROPERTIES TYPE OPTIONAL PURPOSE "Used to build manpages")
   find_package(UnixCommands)
+  set_package_properties(UnixCommands PROPERTIES TYPE OPTIONAL PURPOSE "Used to build manpages")
 else (BUILD_MANPAGES)
   #we use TXT2TAGS_FOUND conditionals in other CMakeLists.txt
   #so that TXT2TAGS is never required
@@ -63,17 +68,26 @@ endif (BUILD_MANPAGES)
 
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
 find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
+find_package(Threads REQUIRED)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
+  set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
+  set_package_properties(Eigen3 PROPERTIES TYPE REQUIRED PURPOSE "C++ vector data structures")
+endif()
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
 find_package(VOTCA_TOOLS NO_MODULE REQUIRED)
+set_package_properties(VOTCA_TOOLS PROPERTIES TYPE REQUIRED PURPOSE "Votca base library")
 message(STATUS "Found VOTCA_TOOLS: ${VOTCA_TOOLS_DIR}")
 if(DEFINED VOTCA_TOOLS_VERSION AND NOT VOTCA_TOOLS_VERSION STREQUAL PROJECT_VERSION)
   message(FATAL_ERROR "Incompatible VOTCA Tools version found (needed ${PROJECT_VERSION}, found ${VOTCA_TOOLS_VERSION})")
 endif()
 
 option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functionality!" ON)
+add_feature_info(WITH_GMX WITH_GMX "Enable gromacs file readers/writers")
 if (WITH_GMX)
   find_package(GROMACS 2021 QUIET CONFIG NAMES gromacs gromacs_d)
+  set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read gromacs data files")
   if(NOT GROMACS_FOUND)
     find_package(GROMACS 2016 REQUIRED MODULE)
   endif()
@@ -89,6 +103,7 @@ if(ENABLE_TESTING)
   set(REGRESSIONTEST_TOLERANCE "5e-5" CACHE STRING "Tolerance for the regression tests")
   mark_as_advanced(REGRESSIONTEST_TOLERANCE)
   find_package(UnixCommands)
+  set_package_properties(UnixCommands PROPERTIES TYPE OPTIONAL PURPOSE "Used in testing")
 endif(ENABLE_TESTING)
 
 ########################################################################
@@ -139,7 +154,7 @@ configure_file(src/libcsg/VOTCA_CSGConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/
 string(REPLACE ";" " " VOTCA_BINARIES "${VOTCA_BINARIES}")
 configure_file(scripts/csg-completion.bash.in "${CMAKE_CURRENT_BINARY_DIR}/scripts/csg-completion.bash" @ONLY)
 
-configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall-csg COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 if(NOT TARGET uninstall)
   add_custom_target(uninstall)
@@ -147,6 +162,5 @@ endif()
 add_dependencies(uninstall uninstall-csg)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  include(FeatureSummary)
   feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
 endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/orthorhombicbox.h>
+#include "../../include/votca/csg/orthorhombicbox.h"
 
 namespace votca {
 namespace csg {

@@ -14,19 +14,20 @@
  * limitations under the License.
  *
  */
+#ifndef VOTCA_CSG_UNITS_H
+#define VOTCA_CSG_UNITS_H
+#pragma once
 
-#ifndef _GROWRITER_H
-#define _GROWRITER_H
-
-#include "../../../../include/votca/csg/topology.h"
-#include "../../../../include/votca/csg/trajectorywriter.h"
-#include <stdio.h>
 #include <votca/tools/unitconverter.h>
 
 namespace votca {
 namespace csg {
 
-class GROWriter : public TrajectoryWriter {
+/**
+ * @brief Class keeps track csgs default units, for when unit conversions are
+ * necessarry
+ */
+class CsgUnits {
  public:
   const tools::DistanceUnit distance_unit = tools::DistanceUnit::nanometers;
   const tools::MassUnit mass_unit = tools::MassUnit::atomic_mass_units;
@@ -38,17 +39,9 @@ class GROWriter : public TrajectoryWriter {
       tools::VelocityUnit::nanometers_per_picosecond;
   const tools::MolarForceUnit force_unit =
       tools::MolarForceUnit::kilojoules_per_mole_nanometer;
-
-  void Open(std::string file, bool bAppend = false) override;
-  void Close() override;
-
-  void Write(Topology *conf) override;
-
- private:
-  FILE *_out;
 };
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _GROWRITER_H */
+#endif  // VOTCA_CSG_UNITS_H
