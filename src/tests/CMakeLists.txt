@@ -2,6 +2,7 @@ if(ENABLE_TESTING)
   # Please place additional tests in alphabetical order
   find_package(Boost 1.57.0 REQUIRED COMPONENTS unit_test_framework)
   option(ENABLE_HIGH_MEMORY_TESTS "Build and run tests, which needs lot of memory" ON)
+  add_feature_info(ENABLE_HIGH_MEMORY_TESTS ENABLE_HIGH_MEMORY_TESTS "Enable unit tests that need a lot of memory")
   list(APPEND test_cases test_adiis)
   list(APPEND test_cases test_aobasis)
   list(APPEND test_cases test_aomatrix)
