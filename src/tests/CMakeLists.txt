@@ -2,6 +2,7 @@ find_package(Boost 1.53.0 REQUIRED COMPONENTS unit_test_framework)
 
 # Each test listed in Alphabetical order
 foreach(PROG
+    test_attributes
     test_branch
     test_branchsequencenode
     test_constants
