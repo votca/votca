@@ -22,8 +22,6 @@ make -j5
 make install
 ```
 
-The following option might be needed to disable sqlite3 libraries `-DWITH_SQLITE3=OFF`. 
-
 To build a gromacs version for VOTCA use
 
 ```bash
