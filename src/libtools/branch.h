@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "votca/tools/graph.h"
+#include "votca/tools/reducededge.h"
 #include "votca/tools/types.h"
 
 namespace votca {
