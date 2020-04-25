@@ -1,4 +1,5 @@
 find_package(EXPAT REQUIRED)
+set_package_properties(EXPAT PROPERTIES TYPE REQUIRED PURPOSE "Used for XML parsing")
 
 file(GLOB VOTCA_SOURCES *.cc)
 
