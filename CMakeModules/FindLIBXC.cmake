@@ -22,6 +22,7 @@
 
 # check if info is available via PkgConfig
 find_package(PkgConfig)
+set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc package")
 pkg_check_modules(PC_libxc libxc)
 
 find_path(LIBXC_INCLUDE_DIR NAMES xc.h HINTS HINTS ${PC_libxc_INCLUDE_DIRS})
