@@ -27,8 +27,8 @@ if(TARGET MKL::MKL)
   target_link_libraries(votca_tools PUBLIC MKL::MKL)
   install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindMKL.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
-if(TARGET FFTW3::FFTW3)
-  target_link_libraries(votca_tools PRIVATE FFTW3::FFTW3)
+if(TARGET FFTW3::fftw3)
+  target_link_libraries(votca_tools PRIVATE FFTW3::fftw3)
 endif()
 install(TARGETS votca_tools EXPORT VOTCA_TOOLS_Targets
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
