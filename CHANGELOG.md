@@ -9,6 +9,7 @@ For more detailed information about the changes see the history of the [reposito
 * fix usage of PROJECT_SOURCE_DIR in cmake (#230)
 * fix merging calculator defaults (#226, #227)
 * document cmake options and packages (#231)
+* make fftw3 a public dependency (#235)
 
 ## Version 1.6.1 (released XX.04.20)
 * fix build with mkl (#229)
