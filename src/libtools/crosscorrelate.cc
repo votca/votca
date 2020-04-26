@@ -16,6 +16,10 @@
  */
 
 #include <votca/tools/crosscorrelate.h>
+#include <votca/tools/eigen.h>
+
+// include after eigen.h
+#include <unsupported/Eigen/FFT>
 
 namespace votca {
 namespace tools {
