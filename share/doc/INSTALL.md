@@ -61,7 +61,7 @@ necessary to specify the path to a missed package. You will have to rerun the
 `cmake` command with the relevant flag(s) added. For example, in the case of a
 locally installed version of Gromacs:
 
-    cmake -DBUILD_CSGAPPS=ON -DCMAKE_INSTALL_PREFIX=${prefix} -DWITH_GMX=ON -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so ..
+    cmake -DBUILD_CSGAPPS=ON -DCMAKE_INSTALL_PREFIX=${prefix} -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so ..
 
 Be careful to use exactly the option suggested in the error message! You can
 also add `-LH` or `-LAH` options to the `cmake` command in order to see the
@@ -95,7 +95,6 @@ option and a couple of other rpath related tweaks when setting
 ### Other CMake Flags
 
 * `BUILD_CSG_MANUAL` - Build csg pdf manual
-* `WITH_GMX` - Build with Gromacs support (ON/OFF, Default ON)
 * `CMAKE_DISABLE_FIND_PACKAGE_<name>` - Disable using an optional package called
   `<name>` (ON/OFF)
 * `CMAKE_DISABLE_FIND_PACKAGE_HDF5` - Disable using the optional package `HDF5`
