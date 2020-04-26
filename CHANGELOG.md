@@ -12,6 +12,7 @@ For more detailed information about the changes see the history of the
 
 ## Version 1.6.1 (released XX.04.20)
 * add support for cma-3 (#158) 
+* allow special characters in build directory (#521) 
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * enforce periodic boundaries for dihedrals (#500)
