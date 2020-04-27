@@ -65,7 +65,7 @@ void CsgREupdate::Initialize() {
       "  Extension of the output potential tables")(
       "hessian-check",
       boost::program_options::value<bool>(&_hessian_check)->default_value(true),
-      "  Extension of the output potential tables");
+      "  Disable the hessian check (mostly for testing)");
   AddProgramOptions()("top", boost::program_options::value<string>(),
                       "  atomistic topology file (only needed for RE update)");
 }
