@@ -1,6 +1,6 @@
-option(WITH_RC_FILES "Install votca rc files, no need when installing under /usr" ON)
-add_feature_info(WITH_RC_FILES WITH_RC_FILES "Install votca rc files (VOTCARC.bash etc.)")
-if (WITH_RC_FILES)
+option(INSTALL_RC_FILES "Install votca rc files, no need when installing under /usr" ON)
+add_feature_info(INSTALL_RC_FILES INSTALL_RC_FILES "Install votca rc files (VOTCARC.bash etc.)")
+if(INSTALL_RC_FILES)
   if(APPLE)
     set(LD_LIBRARY_PATH "DYLD_LIBRARY_PATH")
   else(APPLE)
@@ -22,7 +22,7 @@ if (WITH_RC_FILES)
   configure_file(VOTCARC.bash.in ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.bash @ONLY)
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.csh
     ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.bash DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif (WITH_RC_FILES)
+endif(INSTALL_RC_FILES)
 
 foreach(SCRIPT votca_compare)
   configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
