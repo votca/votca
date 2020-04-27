@@ -17,6 +17,7 @@ For more detailed information about the changes see the history of the
 * fix usage of PROJECT_SOURCE_DIR in cmake (#431)
 * check that temperature is positive for KMC (#432)
 * document cmake options and packages (#434)
+* remove long gone MKL option for gitlab-ci (#435)
 * add documentation using Sphinx (#433)
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
