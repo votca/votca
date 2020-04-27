@@ -32,7 +32,21 @@ if(ENABLE_TESTING)
   add_test(NAME Compare_csg_reupdate_output COMMAND ${VOTCA_COMPARE} --etol ${REGRESSIONTEST_TOLERANCE} -f1 CG-CG.pot.new -f2 ${REFPATH}/CG-CG.pot.re WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(Compare_csg_reupdate_output PROPERTIES DEPENDS Run_csg_reupdate)
   set_tests_properties(Compare_csg_reupdate_output PROPERTIES LABELS "csg;tools;votca")
-
+  
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_reupdate2)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/CG-CG.rdf ${RUNPATH}/CG-CG.dist.new)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/CG-CG.imc.tgt ${RUNPATH}/CG-CG.dist.tgt)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/CG-CG.param.in_re ${RUNPATH}/CG-CG.param.cur)
+  add_test(NAME Run_csg_reupdate2 COMMAND csg_reupdate --options ${REFPATH}/settings_re.xml --top ${REFPATH}/topol_cg.xml --trj ${REFPATH}/frame_cg.dump --hessian-check no WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Run_csg_reupdate2 PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_reupdate_output2 COMMAND ${VOTCA_COMPARE} --etol ${REGRESSIONTEST_TOLERANCE} -f1 CG-CG.pot.new -f2 ${REFPATH}/CG-CG.pot.new.re WORKING_DIRECTORY ${RUNPATH})
+  add_test(NAME Compare_csg_reupdate_output3 COMMAND ${VOTCA_COMPARE} --etol ${REGRESSIONTEST_TOLERANCE} -f1 CG-CG.param.new -f2 ${REFPATH}/CG-CG.param.re WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_reupdate_output2 PROPERTIES DEPENDS Run_csg_reupdate2)
+  set_tests_properties(Compare_csg_reupdate_output2 PROPERTIES LABELS "csg;tools;votca")
+  set_tests_properties(Compare_csg_reupdate_output3 PROPERTIES DEPENDS Run_csg_reupdate2)
+  set_tests_properties(Compare_csg_reupdate_output3 PROPERTIES LABELS "csg;tools;votca")
+  
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_fmatch)
   file(MAKE_DIRECTORY ${RUNPATH})
   add_test(NAME Run_csg_fmatch 
