@@ -1,6 +1,5 @@
 log2mps
 *******
-
 Generates an mps-file (with polar-site definitions) from a QM log-file.
 
 The following table contains the input options for the calculator,

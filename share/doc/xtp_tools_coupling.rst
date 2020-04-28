@@ -1,6 +1,6 @@
 coupling
 ********
-
+Compute the electronic couplings from log and orbital files.
 The following table contains the input options for the calculator,
 
 .. list-table::

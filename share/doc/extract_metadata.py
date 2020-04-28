@@ -10,7 +10,7 @@ msg = "extract_metadata.py -i file.xml"
 parser = argparse.ArgumentParser(description=msg)
 parser.add_argument('-i', required=True,
                     help="Input file in YAML format")
-parser.add_argument('-o', help="Optional output file", default="table_rst.out")
+parser.add_argument('-o', help="Optional output file", default=None)
 
 TABLE_HEADER = """
 .. list-table:: Description
@@ -66,9 +66,11 @@ def main():
     """Parse the command line arguments and run workflow."""
     args = parser.parse_args()
     table = create_rst_table(args.i)
-    print(table)
-    with open(args.o, 'w')as f:
-        f.write(table)
+    if args.o is not None:
+        with open(args.o, 'w')as f:
+            f.write(table)
+    else:
+        print(table)
 
 
 if __name__ == "__main__":

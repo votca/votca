@@ -1,5 +1,6 @@
 dftgwbse
 ********
+Calculator to compute lectronic Excitations using the **GW-BSE** approximation.
 
 the `dftgwbse` calculator optionally takes an *xml* file that have the following hierarchical
 structure:

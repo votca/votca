@@ -1,8 +1,7 @@
 excitoncoupling
 ***************  
-Exciton couplings from serialized orbital files.
-
-The following table contains the input options for the calculator,
+Compute the exciton couplings from serialized orbital files.
+The following table contains the default input options for the calculator,
 
 .. list-table::
    :header-rows: 1
