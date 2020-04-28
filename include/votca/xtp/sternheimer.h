@@ -54,13 +54,14 @@ class Sternheimer {
     double lorentzian_broadening = 0;        // in eV
     Index number_output_grid_points = 1000;
     std::string numerical_Integration_grid_type =
-        "coarse";  // xfine fine medium coarse xcoarse
+        "xcoarse";  // xfine fine medium coarse xcoarse
     double perturbation_strength =
         0.1;  // strength of the electric field for polarizability
     Index max_iterations_sc_sternheimer = 100;
     double tolerance_sc_sternheimer = 10E-9;
     double mixing_constant = 0.5;  // 0<mixing_const<1
     Index max_mixing_history = 10;
+    Index gws_grid_spacing = 5;
   };
 
   // Edit Options

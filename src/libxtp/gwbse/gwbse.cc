@@ -228,15 +228,13 @@ void GWBSE::Initialize(tools::Property& options) {
         options.ifExistsReturnElseReturnDefault<double>(
             key + ".sternheimer.lorentzian_broadening",
             _gwopt.lorentzian_broadening);
-    _gwopt.lorentzian_broadening =
-        options.ifExistsReturnElseReturnDefault<double>(
-            key + ".sternheimer.lorentzian_broadening",
-            _gwopt.lorentzian_broadening);
     _gwopt.calculation = options.ifExistsReturnElseReturnDefault<std::string>(
         key + ".sternheimer.calculation", _gwopt.calculation);
     _gwopt.spatialgridtype =
         options.ifExistsReturnElseReturnDefault<std::string>(
             key + ".sternheimer.spatialgridtype", _gwopt.spatialgridtype);
+    _gwopt.gws_grid_spacing = options.ifExistsReturnElseReturnDefault<Index>(
+        key + ".sternheimer.gws_grid_spacing", _gwopt.gws_grid_spacing);
     XTP_LOG(Log::error, *_pLog)
         << " Omega initial: " << _gwopt.omegain << flush;
     XTP_LOG(Log::error, *_pLog) << " Omega final: " << _gwopt.omegafin << flush;
@@ -245,6 +243,8 @@ void GWBSE::Initialize(tools::Property& options) {
         << " Imaginary shift: " << _gwopt.imshift << flush;
     XTP_LOG(Log::error, *_pLog)
         << " Resolution: " << _gwopt.resolution << flush;
+    XTP_LOG(Log::error, *_pLog)
+        << " GW-Sternheimer Grid Spacing: " << _gwopt.gws_grid_spacing << flush;    
     XTP_LOG(Log::error, *_pLog)
         << " Calculation: " << _gwopt.calculation << flush;
   }
@@ -674,6 +674,7 @@ bool GWBSE::Evaluate() {
     opt.lorentzian_broadening = _gwopt.lorentzian_broadening;
     opt.number_output_grid_points = _gwopt.resolution;
     opt.numerical_Integration_grid_type = _gwopt.spatialgridtype;
+    opt.gws_grid_spacing = _gwopt.gws_grid_spacing;
 
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Started Sternheimer " << flush;
@@ -752,7 +753,7 @@ bool GWBSE::Evaluate() {
       
       Index n_points = 100;
       
-      double delta = 0.5; // 1 Hartree
+      double delta = 0.5; // 1 Hartree in total (+- 0.5 Hartree)
       double homo_en =  _orbitals.getMOEnergy(homo);
       double omega_start = homo_en - delta;
       

@@ -67,6 +67,7 @@ class GW {
     double lorentzian_broadening=0.3; //eV
     std::string calculation="polarizability"; //Type of calculation for Sternheimer
     std::string spatialgridtype="coarse";
+    Index gws_grid_spacing=5;
   };
 
   void configure(const options& opt);

@@ -283,18 +283,6 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
     if (diff < _opt.tolerance_sc_sternheimer) {
       //  std::cout << "Frequency: " << w << "Converged after " << n + 1
       //          << " iteration." << std::endl;
-
-      // Pulay forces to be checked //
-      //  Index occ = _orbitals.getNumberOfAlphaElectrons();
-      //  Eigen::MatrixXcd HmS = _Hamiltonian_Matrix - _overlap_Matrix *
-      //  _orbitals.MOs().eigenvalues().head(occ).asDiagonal(); Eigen::MatrixXcd
-      //  moc = _mo_coefficients.block(0, 0, _basis_size, _num_occ_lvls);
-      //  Eigen::MatrixXcd dmoc = solution_p;
-      //  std::complex<double> pulay1 = -2.0 * (dmoc.cwiseProduct(HmS *
-      //  moc)).sum(); std::complex<double> pulay2 = -2.0 *
-      //  (moc.cwiseProduct(HmS*dmoc)).sum(); std::cout << " \n Pulay 1" <<
-      //  pulay1
-      //  << " Pulay 2" << pulay2 << std::endl;
       return delta_n_out_new;
     }
     // Mixing if at least in iteration 2
@@ -599,16 +587,7 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  // ERIs eris;
-  // eris.Initialize(dftbasis, auxbasis);
-
-  // Vxc_Grid grid;
-  // grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-  //                dftbasis);
-  // Vxc_Potential<Vxc_Grid> Vxcpot(grid);
-  // Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
-
-  // QMMolecule molecule;
+  
   Index number_of_atoms = mol.size();
 
   std::vector<Eigen::Vector3cd> EnergyGrad;
@@ -773,16 +752,7 @@ std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n,
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  // ERIs eris;
-  // eris.Initialize(dftbasis, auxbasis);
-
-  // Vxc_Grid grid;
-  // grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-  //                dftbasis);
-  // Vxc_Potential<Vxc_Grid> Vxcpot(grid);
-  // Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
-
-  // QMMolecule molecule;
+  
   Index number_of_atoms = mol.size();
 
   std::vector<Eigen::Vector3cd> EnergyGrad;
@@ -835,7 +805,7 @@ Eigen::MatrixXcd Sternheimer::GreensFunctionLHS(std::complex<double> w) const {
 
 Eigen::MatrixXcd Sternheimer::AnalyticGreensfunction(
     std::complex<double> w) const {
-  std::complex<double> eta(0., 0.3*tools::conv::ev2hrt);
+  std::complex<double> eta(0., 0.3 * tools::conv::ev2hrt);
   return GreensFunctionLHS(w + eta).colPivHouseholderQr().solve(
       -1 * Eigen::MatrixXcd::Identity(_basis_size, _basis_size));
 }
@@ -982,9 +952,9 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
   Index nthreads = OPENMP::getMaxThreads();
 
   double _padding = 6.512752;
-  Index _xsteps = 10;
-  Index _ysteps = 10;
-  Index _zsteps = 10;
+  Index _xsteps = _opt.gws_grid_spacing;
+  Index _ysteps = _opt.gws_grid_spacing;
+  Index _zsteps = _opt.gws_grid_spacing;
 
   const QMMolecule& atoms = _orbitals.QMAtoms();
   std::pair<Eigen::Vector3d, Eigen::Vector3d> minmax =
@@ -1011,38 +981,32 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
 #pragma omp parallel for schedule(guided)
   for (int ix = 0; ix <= _xsteps; ix++) {
     double x = xstart + double(ix) * xincr;
-    if (ix == 0){
+    if (ix == 0) {
       cx = 0.5;
-    }
-    else if (ix==_xsteps){
-       cx = 0.5;
-    }
-    else {
-       cx = 1;
+    } else if (ix == _xsteps) {
+      cx = 0.5;
+    } else {
+      cx = 1;
     }
     for (int iy = 0; iy <= _ysteps; iy++) {
       double y = ystart + double(iy) * yincr;
-      if (iy == 0){
-       cy = 0.5;
-    }
-    else if (iy==_ysteps){
-       cy = 0.5;
-    }
-    else {
-       cy = 1;
-    }
-     
+      if (iy == 0) {
+        cy = 0.5;
+      } else if (iy == _ysteps) {
+        cy = 0.5;
+      } else {
+        cy = 1;
+      }
+
       for (int iz = 0; iz <= _zsteps; iz++) {
         double z = zstart + double(iz) * zincr;
-        if (iz == 0){
-       cz = 0.5;
-    }
-    else if (iz==_zsteps){
-       cz = 0.5;
-    }
-    else {
-       cz= 1;
-    }
+        if (iz == 0) {
+          cz = 0.5;
+        } else if (iz == _zsteps) {
+          cz = 0.5;
+        } else {
+          cz = 1;
+        }
         Eigen::Vector3d pos(x, y, z);
         Eigen::VectorXd tmat = EvaluateBasisAtPosition(basis, pos);
         // Evaluate bare and screend coulomb potential at point to evaluate the
@@ -1050,7 +1014,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
         // in DeltaNsc
         Eigen::MatrixXcd GW_c = GF * ScreenedCoulomb(pos, omega_p);
         sigma_thread[OPENMP::getThreadId()] +=
-            cx*cy*cz*weight * tmat * tmat.transpose() * GW_c;
+            cx * cy * cz * weight * tmat * tmat.transpose() * GW_c;
       }  // z-component
     }    // y-component
   }      // x-component
@@ -1071,11 +1035,13 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(double omega) const {
   Gauss_Hermite_Quadrature_Constants ghqc;
   Eigen::VectorXd _quadpoints = ghqc.getPoints(12);
   Eigen::VectorXd _quadadaptedweights = ghqc.getAdaptedWeights(12);
-  std::complex<double> delta(0.,-1e-3);
+  std::complex<double> delta(0., -1e-3);
   Eigen::MatrixXcd sigma =
       Eigen::MatrixXcd::Zero(_density_Matrix.cols(), _density_Matrix.cols());
   for (Index j = 0; j < 12; ++j) {
-    sigma += _quadadaptedweights(j) * SelfEnergy_at_wp_regulargrid(omega, _quadpoints(j)) * std::exp(delta*_quadpoints(j));
+    sigma += _quadadaptedweights(j) *
+             SelfEnergy_at_wp_regulargrid(omega, _quadpoints(j)) *
+             std::exp(delta * _quadpoints(j));
   }
 
   return sigma;
@@ -1090,8 +1056,7 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(double omega) const {
                                                        _mo_coefficients.col(n)))
                      .sum();
   }
-  std::complex<double> prefactor(0., 1.);  // complex i
-  prefactor /= 2*tools::conv::Pi;        // Dividing with 2*pi
+  std::complex<double> prefactor(0., 1./(2 * tools::conv::Pi));  // i/(2 pi)
   return prefactor * results;
 }
 
