@@ -1,5 +1,5 @@
 <options>
-<coupling help="Electronic couplings from log and orbital files" section="sec:coupling">
+<coupling help="Compute the electronic couplings from log and orbital files." section="sec:coupling">
         <dftpackage>
             <package>
                 <name help="Name of the DFT package" default="xtp" choices="xtp,orca">xtp</name>
