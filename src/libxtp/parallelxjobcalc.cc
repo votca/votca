@@ -107,10 +107,8 @@ void ParallelXJobCalc<JobContainer>::ParseCommonOptions(
             << _nThreads << "x" << _openmp_threads << "="
             << _nThreads * _openmp_threads << " total threads." << std::flush;
   OPENMP::setMaxThreads(_openmp_threads);
-  _jobfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".job_file");
-  _mapfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".map_file");
+  _jobfile = options.get(".job_file").as<std::string>();
+  _mapfile = options.get(".map_file").as<std::string>();
 }
 
 template <typename JobContainer>
