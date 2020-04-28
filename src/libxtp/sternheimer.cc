@@ -811,8 +811,7 @@ Eigen::MatrixXcd Sternheimer::AnalyticGreensfunction(
 }
 double Sternheimer::Lorentzian(double center, std::complex<double> freq) const {
   double gamma = 1e-3;
-
-  // double prefactor = 1/(votca::tools::conv::Pi*gamma);
+  // We avoid on purpose dividing with 1/pi
   double enumerator = gamma * gamma;
   double denominator = (std::pow(abs(freq - center), 2) + gamma * gamma);
   return (enumerator / denominator);
@@ -823,10 +822,12 @@ Eigen::MatrixXcd Sternheimer::NonAnalyticGreensfunction(
   Eigen::MatrixXcd NonAnalyticGreens =
       Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
 
-  std::complex<double> factor(0, 2 * votca::tools::conv::Pi);
+  // 2 i pi factor
+  std::complex<double> factor(0., 2. * votca::tools::conv::Pi);
 
   for (Index v = 0; v < _num_occ_lvls; v++) {
-    NonAnalyticGreens += Lorentzian(_mo_energies[v], freq) *
+    // If the dirac delta is zero (away from its center) avoid doing the product
+    NonAnalyticGreens +=  Lorentzian(_mo_energies[v], freq) *
                          _mo_coefficients.col(v) *
                          _mo_coefficients.col(v).transpose();
   }

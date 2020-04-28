@@ -63,7 +63,7 @@ class GW {
     double omegafin = 30; //eV
     Index step = 1;
     double imshift = 0;
-    Index resolution = 10; // Frequency grid points for polarisability output
+    Index resolution = 10; // Frequency grid points output (polarizability and gw-sternheimer)
     double lorentzian_broadening=0.3; //eV
     std::string calculation="polarizability"; //Type of calculation for Sternheimer
     std::string spatialgridtype="coarse";

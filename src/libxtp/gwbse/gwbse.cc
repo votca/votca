@@ -751,14 +751,17 @@ bool GWBSE::Evaluate() {
       Index homo = _orbitals.getHomo();
       Index lumo = homo+1;
       
-      Index n_points = 100;
+      Index n_points = opt.number_output_grid_points;// 100;
       
       double delta = 0.5; // 1 Hartree in total (+- 0.5 Hartree)
       double homo_en =  _orbitals.getMOEnergy(homo);
       double omega_start = homo_en - delta;
       
       std::cout << "\n # omega \t HOMO \n" << std::endl;
-      double steps = 2*delta/(n_points-1);
+      double steps = 0;
+      if (n_points > 1){
+      steps = 2*delta/(n_points-1);
+      }
       for (int j = 0; j < n_points; ++j) {
         double w = omega_start + j*steps;
         Eigen::VectorXcd sigma_c = sternheimer.SelfEnergy_diagonal(w);
