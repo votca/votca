@@ -52,7 +52,7 @@
 	                <use_Hqp_offdiagonals help="Using symmetrized off-diagonal elements of QP Hamiltonian in BSE" default="false" choices="bool">false</use_Hqp_offdiagonals>
                 </gwbse>
             </gwbse_options>
-            <redirect_logger help="Redirect Logger" default="false" choices>false</redirect_logger>
+            <redirect_logger help="Redirect Logger" default="false" choices="bool">false</redirect_logger>
         </gwbse_engine>
 
         <geometry_optimization help="geometry optimization options">

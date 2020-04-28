@@ -3,7 +3,7 @@
         <esp_options help="options for the method">
                 <esp2multipole>
                         <state help="ground-,excited or transitionstate" default="n2S1" choices="groundstate,singlet,n2s1">n2S1</state>
-                        <method help="Method to use derive partial charges" default="CHELPG" choices=", CHELPG,Mulliken">CHELPG</method>
+                        <method help="Method to use derive partial charges" default="CHELPG" choices="CHELPG,Mulliken">CHELPG</method>
                         <gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA" default="fine" choices="coarse,medium,fine">fine</gridsize>
                 </esp2multipole>
         </esp_options>
