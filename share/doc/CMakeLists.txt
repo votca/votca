@@ -17,6 +17,7 @@ find_program(SPHINX_EXECUTABLE NAMES sphinx-build DOC "Sphinx documentation gene
 find_package_handle_standard_args(SPHINX REQUIRED_VARS SPHINX_EXECUTABLE)
 if(SPHINX_FOUND)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
+  set(VOTCA_SPHINX_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx PARENT_SCOPE)
   file(GLOB PAGES *.md *.rst)
   file(GLOB IMAGES *.png)
   configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/sphinx/conf.py @ONLY)
