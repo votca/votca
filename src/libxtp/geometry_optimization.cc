@@ -47,10 +47,7 @@ void GeometryOptimization::Initialize(tools::Property& options) {
   _trust_radius *= tools::conv::ang2bohr;  // initial trust radius in a.u.
 
   _max_iteration = options.get(".maxiter").as<Index>();
-
-  _trajfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".trajectory_file", "optimisation.trj");
-
+  _trajfile = options.get(".trajectory_file").as<std::string>();
   _optimizer = options.get(".optimizer.method").as<std::string>();
   _force_options = options.get(".forces");
   _statetracker_options = options.get(".statetracker");

@@ -58,6 +58,7 @@
         <geometry_optimization help="geometry optimization options">
             <state help="initial state to optimize for" default="s1">s1</state>
             <maxiter help="Maximum iteration number" default="50" choices="int+">50</maxiter>
+            <trajectory_file help="File to write trajectory" default="optimisation.trj">optimisation.trj</trajectory_file>
             <statetracker help="tries to identify state without looking at the energy">
                 <oscillatorstrength default="0.0001" choices="float+">0.001</oscillatorstrength>
                 <filters help="property to track" default="oscillatorstrength" choices="chargetransfer,density,localisation,oscillatorstrength,overlap">oscillatorstrength</filters>
