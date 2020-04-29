@@ -11,5 +11,6 @@ The following calculators are available:
    excitoncoupling
    gencube
    log2mps
+   molpol
    partialcharges
    spectrum
