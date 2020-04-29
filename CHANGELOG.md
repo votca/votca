@@ -19,6 +19,9 @@ For more detailed information about the changes see the history of the
 * document cmake options and packages (#434)
 * remove long gone MKL option for gitlab-ci (#435)
 
+## Version 1.6.1 (released XX.04.20)
+* fix warnings on Ubuntu 20.04 (#438)
+
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * fix 32-bit build (#381, #380)
 * remove duplicated basissets (#384, #386, #387)

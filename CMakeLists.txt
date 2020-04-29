@@ -51,10 +51,14 @@ set_package_properties(LIBXC PROPERTIES TYPE REQUIRED PURPOSE "Used for exchange
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
 
-if (${HDF5_VERSION} GREATER 1.8)
+if(HDF5_VERSION VERSION_GREATER 1.8)
   message(WARNING "HDF5 will be used such that it is compatible with version 1.8.")
 endif()
 
+# https://github.com/votca/xtp/issues/436, hdf5-1.10.4 generates a implicitly-declared operator warning
+if(HDF5_VERSION VERSION_EQUAL 1.10.4)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-copy")
+endif()
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 include(GNUInstallDirs)
