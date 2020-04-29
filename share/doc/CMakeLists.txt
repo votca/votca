@@ -1,5 +1,5 @@
 if(NOT VOTCA_SPHINX_DIR)
-  return()
+  set(VOTCA_SPHINX_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 endif()
 find_package(Python REQUIRED COMPONENTS Interpreter)
 file(GLOB XMLS ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/xml/*.xml)
