@@ -65,13 +65,13 @@
             </statetracker>
             <convergence help="Convergence criteria for geometry optimization">
                 <energy help="default: 1.e-6 Hartree" default="1.e-6"  choices="float+">1.e-6</energy>
-                <RMSForce help="default: 3.e-5 Hartree/Bohr" default="3.e-5""Hartree/Bohr" choices="float+">3.e-5</RMSForce>
+                <RMSForce help="default: 3.e-5 Hartree/Bohr" default="3.e-5" choices="float+">3.e-5</RMSForce>
                 <MaxForce help="default: 1.e-4 Hartree/Bohr" default="1.e-4" choices="float+">1.e-4</MaxForce>
                 <RMSStep help="default: 6.e-4 Bohr" default="6.e-4" choices="float+">6.e-4</RMSStep>
                 <MaxStep help="default: 1.e-3 Bohr" default="1.e-3" choices="float+">1.e-3</MaxStep>
             </convergence>
             <optimizer help="optimiser method">
-                <method default="BFGS-TRM" choices=>BFGS-TRM</method>
+                <method default="BFGS-TRM" choices="BFGS-TRM">BFGS-TRM</method>
                 <trust help="initial trustregion in Angstrom" default="0.01" choices="float+">0.01</trust>
             </optimizer>
             <forces>

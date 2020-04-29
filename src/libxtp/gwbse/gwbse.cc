@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -64,11 +64,7 @@ void GWBSE::Initialize(tools::Property& options) {
   Index num_of_levels = _orbitals.getBasisSetSize();
   Index num_of_occlevels = _orbitals.getNumberOfAlphaElectrons();
 
-  std::vector<std::string> range_choice = {"default", "factor", "explicit",
-                                           "full"};
-  std::string ranges =
-      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-          key + ".ranges", range_choice);
+  std::string ranges = options.get(key + ".ranges").as<std::string>();
 
   // now check validity, and get rpa, qp, and bse level ranges accordingly
 
@@ -203,50 +199,29 @@ void GWBSE::Initialize(tools::Property& options) {
 
   // eigensolver options
   if (options.exists(key + ".eigensolver")) {
-    _bseopt.davidson = options.ifExistsReturnElseReturnDefault<bool>(
-        key + ".eigensolver.dodavidson", _bseopt.davidson);
+    _bseopt.davidson = options.get(key + ".eigensolver.dodavidson").as<bool>();
 
     if (_bseopt.davidson) {
 
-      _bseopt.matrixfree = options.ifExistsReturnElseReturnDefault<bool>(
-          key + ".eigensolver.domatrixfree", _bseopt.matrixfree);
+      _bseopt.matrixfree =
+          options.get(key + ".eigensolver.domatrixfree").as<bool>();
 
       _bseopt.davidson_correction =
-          options.ifExistsReturnElseReturnDefault<std::string>(
-              key + ".eigensolver.davidson_correction",
-              _bseopt.davidson_correction);
+          options.get(key + ".eigensolver.davidson_correction")
+              .as<std::string>();
 
       _bseopt.davidson_ortho =
-          options.ifExistsReturnElseReturnDefault<std::string>(
-              key + ".eigensolver.davidson_ortho", _bseopt.davidson_ortho);
+          options.get(key + ".eigensolver.davidson_ortho").as<std::string>();
 
       _bseopt.davidson_tolerance =
-          options.ifExistsReturnElseReturnDefault<std::string>(
-              key + ".eigensolver.davidson_tolerance",
-              _bseopt.davidson_tolerance);
+          options.get(key + ".eigensolver.davidson_tolerance")
+              .as<std::string>();
 
       _bseopt.davidson_update =
-          options.ifExistsReturnElseReturnDefault<std::string>(
-              key + ".eigensolver.davidson_update", _bseopt.davidson_update);
+          options.get(key + ".eigensolver.davidson_update").as<std::string>();
 
-      _bseopt.davidson_maxiter = options.ifExistsReturnElseReturnDefault<Index>(
-          key + ".eigensolver.davidson_maxiter", _bseopt.davidson_maxiter);
-
-      std::vector<std::string> _dcorr = {"DPR", "OLSEN"};
-      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-          key + ".eigensolver.davidson_correction", _dcorr);
-
-      std::vector<std::string> _dortho = {"GS", "QR"};
-      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-          key + ".eigensolver.davidson_ortho", _dortho);
-
-      std::vector<std::string> _dtol = {"strict", "normal", "loose"};
-      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-          key + ".eigensolver.davidson_tolerance", _dtol);
-
-      std::vector<std::string> _dup = {"min", "safe", "max"};
-      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-          key + ".eigensolver.davidson_update", _dup);
+      _bseopt.davidson_maxiter =
+          options.get(key + ".eigensolver.davidson_maxiter").as<Index>();
 
       // check size
       if (_bseopt.nmax > bse_size / 4) {
