@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -25,19 +25,24 @@
 namespace votca {
 namespace xtp {
 
-void MolPol::Initialize(tools::Property& options) {
-  std::string key = "options." + Identify();
-  std::string mps_input =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key +
-                                                               ".mpsinput");
+void MolPol::Initialize(const tools::Property& user_options) {
+
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
+
+  std::string mps_input = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".mpsinput", _job_name + ".mps");
 
   _input.LoadFromFile(mps_input);
-  _mps_output = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".mpsoutput");
-  _polar_options = options.get(key);
+  _mps_output = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".mpsoutput", _job_name + "_polar.mps");
+  _polar_options = options.get(".options_polar");
 
-  bool target_exists = options.exists(key + ".target");
-  bool qmpackage_exists = options.exists(key + ".qmpackage");
+  bool target_exists = options.exists(".target");
+  bool qmpackage_exists = options.exists(".qmpackage");
   if (target_exists && qmpackage_exists) {
     throw std::runtime_error(
         "Can only read either from target or qmpackage logfile");
@@ -51,8 +56,7 @@ void MolPol::Initialize(tools::Property& options) {
   if (target_exists) {
 
     Eigen::VectorXd target_vec =
-        options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(key +
-                                                                     ".target");
+        options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(".target");
     if (target_vec.size() != 6) {
       throw std::runtime_error(
           "ERROR <options.molpol.target> "
@@ -70,11 +74,9 @@ void MolPol::Initialize(tools::Property& options) {
     _polarisation_target(2, 2) = target_vec(5);
   } else {
     std::string qm_package =
-        options.ifExistsReturnElseThrowRuntimeError<std::string>(key +
-                                                                 ".qmpackage");
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(".qmpackage");
     std::string log_file =
-        options.ifExistsReturnElseThrowRuntimeError<std::string>(key +
-                                                                 ".logfile");
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(".logfile");
     Logger log;
     log.setPreface(Log::info, "\n ...");
     log.setPreface(Log::error, "\n ...");
@@ -96,18 +98,17 @@ void MolPol::Initialize(tools::Property& options) {
   }
 
   Eigen::VectorXd default_weights = Eigen::VectorXd::Ones(_input.size());
-  _weights = options.ifExistsReturnElseReturnDefault<Eigen::VectorXd>(
-      key + ".weights", default_weights);
+  _weights =
+      options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(".weights");
 
-  _tolerance_pol = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".tolerance", _tolerance_pol);
+  _tolerance_pol =
+      options.ifExistsReturnElseThrowRuntimeError<double>(".tolerance");
 
-  _max_iter = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".iterations", _max_iter);
+  _max_iter = options.ifExistsReturnElseThrowRuntimeError<Index>(".iterations");
 }
 
-Eigen::Vector3d MolPol::Polarize(const PolarSegment& input,
-                                 const Eigen::Vector3d& ext_field) const {
+Eigen::Vector3d MolPol::CalcInducedDipole(
+    const PolarSegment& input, const Eigen::Vector3d& ext_field) const {
   Logger log;
   log.setMultithreading(false);
   log.setCommonPreface("\n ...");
@@ -118,17 +119,19 @@ Eigen::Vector3d MolPol::Polarize(const PolarSegment& input,
   pol.Initialize(_polar_options);
   pol.push_back(input);
 
-  std::vector<std::unique_ptr<Region>> empty;
   PolarSegment& workmol = pol[0];
   for (PolarSite& site : workmol) {
     site.V() = ext_field;
   }
+  std::vector<std::unique_ptr<Region>> empty;  // pol interacts with nobody else
   pol.Evaluate(empty);
   Eigen::Vector3d induced_dipole = Eigen::Vector3d::Zero();
   for (const PolarSite& site : workmol) {
     induced_dipole += site.Induced_Dipole();
   }
-  std::cout << log;
+  if (Log::current_level > 0) {
+    std::cout << log;
+  }
   return induced_dipole;
 }
 
@@ -139,17 +142,17 @@ Eigen::Matrix3d MolPol::CalcClassicalPol(const PolarSegment& input) const {
   Eigen::Matrix3d polarisation = Eigen::Matrix3d::Zero();
   Eigen::Vector3d ext_field = fieldstrength * Eigen::Vector3d::UnitX();
   // central differences scheme
-  Eigen::Vector3d xplus = Polarize(input, ext_field);
-  Eigen::Vector3d xminus = Polarize(input, -ext_field);
-  polarisation.col(0) = xplus - xminus;
+  Eigen::Vector3d dxplus = CalcInducedDipole(input, ext_field);
+  Eigen::Vector3d dxminus = CalcInducedDipole(input, -ext_field);
+  polarisation.col(0) = dxplus - dxminus;
   ext_field = fieldstrength * Eigen::Vector3d::UnitY();
-  Eigen::Vector3d yplus = Polarize(input, ext_field);
-  Eigen::Vector3d yminus = Polarize(input, -ext_field);
-  polarisation.col(1) = yplus - yminus;
+  Eigen::Vector3d dyplus = CalcInducedDipole(input, ext_field);
+  Eigen::Vector3d dyminus = CalcInducedDipole(input, -ext_field);
+  polarisation.col(1) = dyplus - dyminus;
   ext_field = fieldstrength * Eigen::Vector3d::UnitZ();
-  Eigen::Vector3d zplus = Polarize(input, ext_field);
-  Eigen::Vector3d zminus = Polarize(input, -ext_field);
-  polarisation.col(2) = zplus - zminus;
+  Eigen::Vector3d dzplus = CalcInducedDipole(input, ext_field);
+  Eigen::Vector3d dzminus = CalcInducedDipole(input, -ext_field);
+  polarisation.col(2) = dzplus - dzminus;
 
   return -polarisation / (2 * fieldstrength);
 }
@@ -171,7 +174,6 @@ void MolPol::PrintPolarisation(const Eigen::Matrix3d& result) const {
 bool MolPol::Evaluate() {
   OPENMP::setMaxThreads(_nThreads);
   PolarSegment polar = _input;
-
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(_polarisation_target, Eigen::EigenvaluesOnly);
   const double pol_volume_target = std::pow(es.eigenvalues().prod(), 1.0 / 3.0);
@@ -186,6 +188,11 @@ bool MolPol::Evaluate() {
     std::cout << "\nIteration " << iter + 1 << " of " << _max_iter
               << " target:" << pol_volume_target
               << " current:" << pol_volume_iter << std::endl;
+
+    for (Index i = 0; i < polar.size(); i++) {
+      Eigen::Matrix3d local_pol = polar[i].getPolarisation();
+      polar[i].setPolarisation(local_pol * (1 + scale * _weights[i]));
+    }
 
     if (std::abs(scale) < _tolerance_pol) {
       std::cout << std::endl
@@ -203,12 +210,6 @@ bool MolPol::Evaluate() {
                 << "Check your input mps-file, target polarizability <target> "
                 << std::flush;
       PrintPolarisation(pol);
-    }
-
-    for (Index i = 0; i < polar.size(); i++) {
-      PolarSite& site = polar[i];
-      Eigen::Matrix3d local_pol = site.getPolarisation();
-      site.setPolarisation(local_pol * std::pow(1 + scale * _weights[i], 2));
     }
   }
   return true;

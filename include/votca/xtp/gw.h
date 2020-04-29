@@ -59,6 +59,8 @@ class GW {
     double qp_solver_alpha = 0.75;
     Index qp_grid_steps = 601;       // Number of grid points
     double qp_grid_spacing = 0.005;  // Spacing of grid points in Ha
+    Index gw_mixing_order = 0;       // mixing order, default: plain update
+    double gw_mixing_alpha = 0.7;    //  mixing alpha, also linear mixing
   };
 
   void configure(const options& opt);
@@ -78,6 +80,10 @@ class GW {
 
   void PlotSigma(std::string filename, Index steps, double spacing,
                  std::string states) const;
+
+  Eigen::VectorXd RPAInputEnergies() const {
+    return _rpa.getRPAInputEnergies();
+  }
 
  private:
   Index _qptotal;

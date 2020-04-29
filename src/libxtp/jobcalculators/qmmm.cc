@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,46 +26,33 @@
 namespace votca {
 namespace xtp {
 
-void QMMM::Initialize(tools::Property& options) {
+void QMMM::Initialize(const tools::Property& user_options) {
 
-  std::string key = "options." + Identify();
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
   ParseCommonOptions(options);
-  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".job_file");
 
-  _print_regions_pdb = options.ifExistsReturnElseReturnDefault(
-      key + ".print_regions_pdb", _print_regions_pdb);
+  _jobfile = options.get(".job_file").as<std::string>();
+  _print_regions_pdb = options.get(".print_regions_pdb").as<bool>();
+  _max_iterations = options.get(".max_iterations").as<Index>();
+  _regions_def = options.get(".regions");
+  _regions_def.add("mapfile", _mapfile);
 
-  _max_iterations = options.ifExistsReturnElseReturnDefault(
-      key + ".max_iterations", _max_iterations);
-
-  if (options.exists(key + ".regions")) {
-    _regions_def = options.get(key + ".regions");
-    _regions_def.add("mapfile", _mapfile);
-  } else {
-    throw std::runtime_error("No region definitions found in optionsfile");
+  std::string states = options.get(".write_parse.states").as<std::string>();
+  tools::Tokenizer tok(states, " ,;\n\t");
+  std::vector<std::string> statestrings = tok.ToVector();
+  _states.reserve(statestrings.size());
+  for (std::string s : statestrings) {
+    _states.push_back(QMState(s));
   }
-
-  if (options.exists(key + ".write_parse")) {
-    _write_parse = true;
-
-    std::string states = options.ifExistsReturnElseReturnDefault<std::string>(
-        key + ".write_parse.states", "e h");
-    tools::Tokenizer tok(states, " ,;\n\t");
-    std::vector<std::string> statestrings = tok.ToVector();
-    _states.reserve(statestrings.size());
-    for (std::string s : statestrings) {
-      _states.push_back(QMState(s));
+  bool groundstate_found = false;
+  for (const QMState& state : _states) {
+    if (state.Type() == QMStateType::Gstate) {
+      groundstate_found = true;
     }
-    bool groundstate_found = false;
-    for (const QMState& state : _states) {
-      if (state.Type() == QMStateType::Gstate) {
-        groundstate_found = true;
-      }
-    }
-    if (!groundstate_found) {
-      _states.push_back(QMState("n"));
-    }
+  }
+  if (!groundstate_found) {
+    _states.push_back(QMState("n"));
   }
 }
 
@@ -189,7 +176,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
       std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = end - start;
   jobresult.add("E_tot", std::to_string(etot * tools::conv::hrt2ev));
-  jobresult.add("Compute_Time", std::to_string(int(elapsed_time.count())));
+  jobresult.add("Compute_Time", std::to_string(Index(elapsed_time.count())));
   jobresult.add("Total_Charge", std::to_string(charge));
   if (!no_top_scf) {
     jobresult.add("Iterations", std::to_string(iteration + 1));

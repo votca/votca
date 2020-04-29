@@ -39,7 +39,7 @@ class Spectrum : public QMTool {
 
   std::string Identify() override { return "spectrum"; }
 
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
   bool Evaluate() override;
 
  private:

@@ -1,0 +1,9 @@
+<options>
+	<qmsandbox help="Sandbox to test xtp classes" label="sec:qmsanbox">
+		<ID help="Not in use">ID</ID>
+        <espfile></espfile>
+		<dipole_split></dipole_split>
+		<quadrupole></quadrupole>
+		<quadrupole_split></quadrupole_split>
+	</qmsandbox>
+</options>

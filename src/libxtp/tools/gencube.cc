@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,7 +19,6 @@
 
 #include "gencube.h"
 #include <boost/format.hpp>
-#include <boost/progress.hpp>
 #include <stdio.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
@@ -30,64 +29,67 @@
 namespace votca {
 namespace xtp {
 
-using namespace std;
+void GenCube::Initialize(const tools::Property& user_options) {
 
-void GenCube::Initialize(tools::Property& options) {
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
 
-  string key = "options." + Identify();
-  _orbfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".input");
-  _output_file =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".output");
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", _job_name + ".orb");
+  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", _job_name + ".cube");
 
   // padding
-  _padding =
-      options.ifExistsReturnElseThrowRuntimeError<double>(key + ".padding");
+  _padding = options.ifExistsReturnElseThrowRuntimeError<double>(".padding");
 
   // steps
-  _steps.x() = options.get(key + ".xsteps").as<Index>();
-  _steps.y() = options.get(key + ".ysteps").as<Index>();
-  _steps.z() = options.get(key + ".zsteps").as<Index>();
+  _steps.y() = options.get(".ysteps").as<Index>();
+  _steps.x() = options.get(".xsteps").as<Index>();
+  _steps.z() = options.get(".zsteps").as<Index>();
 
   std::string statestring =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".state");
   _state.FromString(statestring);
   _dostateonly =
-      options.ifExistsReturnElseReturnDefault<bool>(key + ".diff2gs", false);
+      options.ifExistsReturnElseReturnDefault<bool>(".diff2gs", false);
 
-  _mode = options.get(key + ".mode").as<string>();
+  _mode = options.get(".mode").as<std::string>();
   if (_mode == "subtract") {
-    _infile1 = options.get(key + ".infile1").as<string>();
-    _infile2 = options.get(key + ".infile2").as<string>();
+    _infile1 = options.get(".infile1").as<std::string>();
+    _infile2 = options.get(".infile2").as<std::string>();
   }
 }
 
 void GenCube::calculateCube() {
 
   XTP_LOG(Log::error, _log)
-      << "Reading serialized QM data from " << _orbfile << flush;
+      << "Reading serialized QM data from " << _orbfile << std::flush;
 
   Orbitals orbitals;
   orbitals.ReadFromCpt(_orbfile);
 
   CubeFile_Writer writer(_steps, _padding, _log);
-  XTP_LOG(Log::error, _log) << "Created cube grid" << flush;
+  XTP_LOG(Log::error, _log) << "Created cube grid" << std::flush;
   writer.WriteFile(_output_file, orbitals, _state, _dostateonly);
-  XTP_LOG(Log::error, _log) << "Wrote cube data to " << _output_file << flush;
+  XTP_LOG(Log::error, _log)
+      << "Wrote cube data to " << _output_file << std::flush;
   return;
 }
 
 void GenCube::subtractCubes() {
 
   // open infiles for reading
-  ifstream in1;
-  XTP_LOG(Log::error, _log) << " Reading first cube from " << _infile1 << flush;
-  in1.open(_infile1, ios::in);
-  ifstream in2;
+  std::ifstream in1;
   XTP_LOG(Log::error, _log)
-      << " Reading second cube from " << _infile2 << flush;
-  in2.open(_infile2, ios::in);
-  string s;
+      << " Reading first cube from " << _infile1 << std::flush;
+  in1.open(_infile1, std::ios::in);
+  std::ifstream in2;
+  XTP_LOG(Log::error, _log)
+      << " Reading second cube from " << _infile2 << std::flush;
+  in2.open(_infile2, std::ios::in);
+  std::string s;
 
   std::ofstream out(_output_file);
 
@@ -272,7 +274,7 @@ void GenCube::subtractCubes() {
 
   out.close();
   XTP_LOG(Log::error, _log)
-      << "Wrote subtracted cube data to " << _output_file << flush;
+      << "Wrote subtracted cube data to " << _output_file << std::flush;
 }
 
 bool GenCube::Evaluate() {

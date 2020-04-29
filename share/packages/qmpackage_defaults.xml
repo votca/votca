@@ -1,0 +1,34 @@
+<package>
+<name>xtp</name>
+<charge>0</charge>
+<spin>1</spin>
+<basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
+<auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
+<optimize>false</optimize>
+<functional default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
+<scratch help="path to the scratch folder" default="/tmp/qmpackage">/tmp/qmpackage</scratch>
+<polarisation>false</polarisation>
+<dipole_spacing>0.1</dipole_spacing>
+<read_guess>false</read_guess>
+<write_charges>false</write_charges>
+<convergence_tightness help="One of low, normal, tight, verytight">tight</convergence_tightness>
+<cleanup help="files to remove after the calculation is done"> </cleanup>
+<orca>
+    <method></method>
+    <scf>GUESS PMODEL</scf>
+</orca>
+<xtpdft>
+    <convergence>
+        <energy help="DeltaE at which calculation is converged" unit="hartree">1e-7</energy>
+        <method help="Main method to use for convergence accelertation DIIS or mixing">DIIS</method>
+        <DIIS_start help="DIIS error at which DIIS takes over">0.002</DIIS_start>
+        <ADIIS_start help="DIIS error at which ADIIS takes over">0.8</ADIIS_start>
+        <DIIS_length help="old hamiltonians to keep in history">20</DIIS_length>
+        <levelshift help="levelshift to apply to hamiltonian " unit="hartree">0.0</levelshift>
+        <levelshift_end help="DIIS error at levelshifting is disabled">0.2</levelshift_end>
+        <max_iterations help="max iterations to use">200</max_iterations>
+    </convergence>
+    <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities)">atom</initial_guess>
+    <integration_grid help="grid quality xcoarse,coarse,medium,fine,xfine">medium</integration_grid>
+</xtpdft>
+</package>

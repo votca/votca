@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -72,6 +72,14 @@ class PolarRegion : public MMRegion<PolarSegment> {
 
   double PolarEnergy_extern() const;
   eeInteractor::E_terms PolarEnergy() const;
+  Index CalcPolDoF() const;
+
+  Eigen::VectorXd CalcInducedDipoleInsideSegments() const;
+  Eigen::VectorXd ReadInducedDipolesFromLastIteration() const;
+
+  Eigen::VectorXd CalcInducedDipolesViaPCG(
+      const Eigen::VectorXd& initial_guess);
+  void WriteInducedDipolesToSegments(const Eigen::VectorXd& x);
 
   hist<Energy_terms> _E_hist;
   double _deltaE = 1e-5;
@@ -83,4 +91,4 @@ class PolarRegion : public MMRegion<PolarSegment> {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* VOTCA_XTP_MMREGION_H */
+#endif  // VOTCA_XTP_POLARREGION_H

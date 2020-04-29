@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -27,7 +27,6 @@
 #include <votca/xtp/version.h>
 #include <votca/xtp/xtpapplication.h>
 
-using namespace std;
 using namespace votca;
 
 class XtpTools : public xtp::XtpApplication {
@@ -36,10 +35,10 @@ class XtpTools : public xtp::XtpApplication {
 
   ~XtpTools() override = default;
 
-  string ProgramName() override { return "xtp_tools"; }
+  std::string ProgramName() override { return "xtp_tools"; }
 
-  void HelpText(ostream& out) override {
-    out << "Runs excitation/charge transport tools" << endl;
+  void HelpText(std::ostream& out) override {
+    out << "Runs excitation/charge transport tools\n";
   }
 
   void SetTool(xtp::QMTool* tool) {
@@ -65,11 +64,14 @@ void XtpTools::Initialize() {
   xtp::XtpApplication::Initialize();
 
   // Tools-related
-  AddProgramOptions("Tools")("execute,e", propt::value<string>(),
+  AddProgramOptions("Tools")("execute,e", propt::value<std::string>(),
                              "List of tools separated by ',' or ' '");
   AddProgramOptions("Tools")("list,l", "Lists all available tools");
-  AddProgramOptions("Tools")("description,d", propt::value<string>(),
+  AddProgramOptions("Tools")("description,d", propt::value<std::string>(),
                              "Short description of a tool");
+  AddProgramOptions("Tools")("name,n", propt::value<std::string>(),
+                             "Name of the job to run");
+
   // Options-related
   AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
                       "  number of threads to create");
@@ -77,10 +79,10 @@ void XtpTools::Initialize() {
 
 bool XtpTools::EvaluateOptions() {
 
-  string helpdir = "xtp/xml";
+  std::string helpdir = "xtp/xml";
 
   if (OptionsMap().count("list")) {
-    cout << "Available XTP tools: \n";
+    std::cout << "Available XTP tools: \n";
 
     for (const auto& tool : xtp::QMTools().getObjects()) {
       PrintDescription(std::cout, tool.first, helpdir, Application::HelpShort);
@@ -91,7 +93,8 @@ bool XtpTools::EvaluateOptions() {
 
   if (OptionsMap().count("description")) {
     CheckRequired("description", "no tool is given");
-    tools::Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
+    tools::Tokenizer tok(OptionsMap()["description"].as<std::string>(),
+                         " ,\n\t");
     // loop over the names in the description string
     for (const std::string& n : tok) {
       // loop over tools
@@ -105,45 +108,57 @@ bool XtpTools::EvaluateOptions() {
         }
       }
       if (printerror) {
-        cout << "Tool " << n << " does not exist\n";
+        std::cout << "Tool " << n << " does not exist\n";
       }
     }
     StopExecution();
     return true;
   }
 
-  CheckRequired("execute", "Nothing to do here: Abort.");
-  CheckRequired("options", "Please provide an xml file with tool options");
+  CheckRequired("execute", "Please provide the name of the tool to execute");
 
-  tools::Tokenizer xtools(OptionsMap()["execute"].as<string>(), " ,\n\t");
+  tools::Tokenizer xtools(OptionsMap()["execute"].as<std::string>(), " ,\n\t");
   std::vector<std::string> calc_string = xtools.ToVector();
   if (calc_string.size() != 1) {
     throw std::runtime_error(
         "You can only run one calculator at the same time.");
   }
 
+  CheckRequired(
+      "name", "Please provide the job name to run (same as the xyz file name)");
+
   bool found_calc = false;
   for (const auto& tool : xtp::QMTools().getObjects()) {
     if (calc_string[0].compare(tool.first) == 0) {
-      cout << " This is a XTP app" << endl;
       this->SetTool(xtp::QMTools().Create(calc_string[0]));
       found_calc = true;
       break;
     }
   }
   if (!found_calc) {
-    cout << "Tool " << calc_string[0] << " does not exist\n";
+    std::cout << "Tool " << calc_string[0] << " does not exist\n";
     StopExecution();
   } else {
-    cout << "Registered " << calc_string[0] << endl;
+    std::cout << "Registered " << calc_string[0];
   }
   return 1;
 }
 
 void XtpTools::Run() {
 
-  string optionsFile = _op_vm["options"].as<string>();
-  _options.LoadFromXML(optionsFile);
+  auto it = _op_vm.find("options");
+  if (it != _op_vm.cend()) {
+    std::string optionsFile = _op_vm["options"].as<std::string>();
+    _options.LoadFromXML(optionsFile);
+  } else {
+    // Empty user options
+    tools::Property& opts = _options.add("options", "");
+    opts.add(_tool->Identify(), "");
+  }
+
+  std::string job_name = _op_vm["name"].as<std::string>();
+  tools::Property& opts = _options.get("options." + _tool->Identify());
+  opts.add("job_name", job_name);
 
   Index nThreads = OptionsMap()["nthreads"].as<Index>();
   std::string name = ProgramName();
@@ -151,26 +166,24 @@ void XtpTools::Run() {
     name = name + ", version " + VersionString();
   }
   xtp::HelpTextHeader(name);
-  cout << "Initializing tool " << endl;
+  std::cout << "Initializing tool\n";
   BeginEvaluate(nThreads);
 
-  cout << "Evaluating tool " << endl;
+  std::cout << "Evaluating tool\n";
 
   Evaluate();
 }
 
 void XtpTools::BeginEvaluate(Index nThreads = 1) {
-  cout << "... " << _tool->Identify() << " " << flush;
+  std::cout << "... " << _tool->Identify() << " " << std::flush;
   _tool->setnThreads(nThreads);
   _tool->Initialize(_options);
-  cout << endl;
 }
 
 bool XtpTools::Evaluate() {
 
-  cout << "... " << _tool->Identify() << " " << flush;
+  std::cout << "... " << _tool->Identify() << " " << std::flush;
   _tool->Evaluate();
-  cout << endl;
   return true;
 }
 

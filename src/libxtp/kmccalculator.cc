@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ void KMCCalculator::ParseCommonOptions(tools::Property& options) {
       key + ".trajectoryfile", _trajectoryfile);
   _temperature = options.ifExistsReturnElseReturnDefault<double>(
       key + ".temperature", 300);
+
   _temperature *= (tools::conv::kB * tools::conv::ev2hrt);
   _occfile = options.ifExistsReturnElseReturnDefault<std::string>(
       key + ".occfile", _occfile);
@@ -80,6 +81,11 @@ void KMCCalculator::LoadGraph(Topology& top) {
   QMNBList& nblist = top.NBList();
   if (nblist.size() < 1) {
     throw std::runtime_error("neighborlist contains no pairs!");
+  }
+  if (_temperature <= 0) {
+    throw std::runtime_error(
+        "Your Temperature is negative or zero, please specify the temperature "
+        "in Kelvin.");
   }
 
   Rate_Engine rate_engine(_temperature, _field);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,66 +23,81 @@
 #include <votca/xtp/segment.h>
 #include <votca/xtp/staticregion.h>
 
-using namespace std;
-
 namespace votca {
 namespace xtp {
 
-void DftGwBse::Initialize(tools::Property& options) {
+void DftGwBse::Initialize(const tools::Property& user_options) {
 
-  _do_optimize = false;
-  std::string key = "options." + Identify();
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  if (options.exists(key + ".mpsfile")) {
-    _do_external = true;
-    _mpsfile = options.get(key + ".mpsfile").as<string>();
-  } else {
-    _do_external = false;
-  }
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
 
-  if (options.exists(key + ".guess")) {
-    _do_guess = true;
-    _guess_file = options.get(key + ".guess").as<string>();
-
-  } else {
-    _do_guess = false;
-  }
-
-  _archive_file = options.ifExistsReturnElseReturnDefault<string>(
-      key + ".archive", "system.orb");
-  _reporting = options.ifExistsReturnElseReturnDefault<string>(
-      key + ".reporting", "default");
+  // molecule coordinates
+  _xyzfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".molecule", _job_name + ".xyz");
 
   // job tasks
-  std::vector<string> choices = {"optimize", "energy"};
-  string mode = options.ifExistsAndinListReturnElseThrowRuntimeError<string>(
-      key + ".mode", choices);
-  if (mode == "optimize") {
-    _do_optimize = true;
-  }
-
-  // GWBSEENGINE options
-  _gwbseengine_options = options.get(key + ".gwbse_engine");
+  std::vector<std::string> choices = {"optimize", "energy"};
+  std::string mode =
+      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+          ".mode", choices);
 
   // options for dft package
-  string _package_xml = options.get(key + ".dftpackage").as<string>();
-  _package_options.LoadFromXML(_package_xml);
-  _package = _package_options.get("package.name").as<string>();
+  _package_options = options.get(".dftpackage");
+  _package_options.add("job_name", _job_name);
+  _package = _package_options.get("package.name").as<std::string>();
 
-  // MOLECULE properties
-  _xyzfile =
-      options.ifExistsReturnElseThrowRuntimeError<string>(key + ".molecule");
+  // set the basis sets and functional in DFT package
+  _package_options.get("package").add(
+      "basisset", options.get("basisset").as<std::string>());
+  _package_options.get("package").add(
+      "auxbasisset", options.get("auxbasisset").as<std::string>());
+  _package_options.get("package").add(
+      "functional", options.get("functional").as<std::string>());
+
+  // GWBSEENGINE options
+  _gwbseengine_options = options.get(".gwbse_engine");
+
+  // set the basis sets and functional in GWBSE
+  _gwbseengine_options.get("gwbse_options.gwbse")
+      .add("basisset", options.get("basisset").as<std::string>());
+  _gwbseengine_options.get("gwbse_options.gwbse")
+      .add("auxbasisset", options.get("auxbasisset").as<std::string>());
+  _gwbseengine_options.get("gwbse_options.gwbse.vxc")
+      .add("functional", options.get("functional").as<std::string>());
+
+  // lets get the archive file name from the xyz file name
+  _archive_file = _job_name + ".orb";
 
   // XML OUTPUT
-  _xml_output = options.ifExistsReturnElseReturnDefault<string>(
-      key + ".output", "dftgwbse.out.xml");
+  _xml_output = _job_name + "_summary.xml";
 
-  // if optimization is chosen, get options for geometry_optimizer
-  if (_do_optimize) {
-    _geoopt_options = options.get(key + ".geometry_optimization");
+  // checking for additional requests
+  _do_optimize = false;
+  _do_external = false;
+  _do_guess = false;
+
+  // check for MPS file with external multipoles for embedding
+  if (options.exists(".mpsfile")) {
+    _do_external = true;
+    _mpsfile = options.get(".mpsfile").as<std::string>();
   }
 
-  // register all QM packages (Gaussian, NWCHEM, etc)
+  // check if guess is requested
+  if (options.exists(".guess")) {
+    _do_guess = true;
+    _guess_file = options.get(".guess").as<std::string>();
+  }
+
+  // if optimization is chosen, get options for geometry_optimizer
+  if (mode == "optimize") {
+    _do_optimize = true;
+    _geoopt_options = options.get(".geometry_optimization");
+  }
+
+  // register all QM packages
   QMPackageFactory::RegisterAll();
 }
 
@@ -98,10 +113,12 @@ bool DftGwBse::Evaluate() {
   Orbitals orbitals;
 
   if (_do_guess) {
-    XTP_LOG(Log::error, _log) << "Reading guess from " << _guess_file << flush;
+    XTP_LOG(Log::error, _log)
+        << "Reading guess from " << _guess_file << std::flush;
     orbitals.ReadFromCpt(_guess_file);
   } else {
-    XTP_LOG(Log::error, _log) << "Reading structure from " << _xyzfile << flush;
+    XTP_LOG(Log::error, _log)
+        << "Reading structure from " << _xyzfile << std::flush;
     orbitals.QMAtoms().LoadFromFile(_xyzfile);
   }
 
@@ -133,7 +150,7 @@ bool DftGwBse::Evaluate() {
     gwbse_engine.ExcitationEnergies(orbitals);
   }
 
-  XTP_LOG(Log::error, _log) << "Saving data to " << _archive_file << flush;
+  XTP_LOG(Log::error, _log) << "Saving data to " << _archive_file << std::flush;
   orbitals.WriteToCpt(_archive_file);
 
   tools::Property summary = gwbse_engine.ReportSummary();
@@ -141,7 +158,8 @@ bool DftGwBse::Evaluate() {
                                    // actually did gwbse
     tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1,
                                         "");
-    XTP_LOG(Log::error, _log) << "Writing output to " << _xml_output << flush;
+    XTP_LOG(Log::error, _log)
+        << "Writing output to " << _xml_output << std::flush;
     std::ofstream ofout(_xml_output, std::ofstream::out);
     ofout << (summary.get("output"));
     ofout.close();

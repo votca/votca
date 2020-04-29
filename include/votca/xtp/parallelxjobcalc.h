@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -89,6 +89,10 @@ class ParallelXJobCalc : public JobCalculator {
 
  protected:
   void ParseCommonOptions(const tools::Property &options);
+  // set the basis sets and functional in DFT package
+  tools::Property UpdateDFTOptions(const tools::Property &options);
+  // set the basis sets and functional in GWBSE
+  tools::Property UpdateGWBSEOptions(const tools::Property &options);
 
   JobContainer _XJobs;
   tools::Mutex _coutMutex;

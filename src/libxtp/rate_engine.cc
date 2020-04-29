@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -43,6 +43,7 @@ Rate_Engine::PairRates Rate_Engine::Rate(const QMPair& pair,
   } else if (carriertype == QMStateType::Hole) {
     charge = 1.0;
   }
+
   double reorg12 = pair.getReorg12(carriertype) + pair.getLambdaO(carriertype);
   double reorg21 = pair.getReorg21(carriertype) - pair.getLambdaO(carriertype);
   if (std::abs(reorg12) < 1e-12 || std::abs(reorg21) < 1e-12) {

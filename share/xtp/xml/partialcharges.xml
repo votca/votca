@@ -1,12 +1,12 @@
 <options>
-
-<!-- xtp_tools -e partialcharges -o options.xml -->
 <partialcharges help="Tool to derive partial charges from QM results stores in serialized file" section="sec:overlap">
-        <output help="Output file either .mps or .pdb" default="Moleculecharges.mps">molA.mps</output>
-        <input help="Serialized file" default="molecule.orb">system.orb</input>
-        <esp_options help="options for the method">esp2multipole.xml</esp_options>
-        
-
+        <esp_options help="options for the method">
+                <esp2multipole>
+                        <state help="ground-,excited or transitionstate (groundstate,singlet,n2s1)" default="n2S1">n2S1</state>
+                        <method help="Method to use derive partial charges, CHELPG and Mulliken implented" default="CHELPG">CHELPG</method>
+                        <gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA coarse,medium,fine" default="fine">fine</gridsize>
+                </esp2multipole>
+        </esp_options>
 </partialcharges>
 
 </options>

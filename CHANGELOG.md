@@ -1,6 +1,24 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
+## Version 1.7-dev
+* G0W0 rpa energies are fixed in BSE (#383) 
+* Hqp part of BSE can be separate from QP range (#388)
+* Fixed Cuda implementation (#391)
+* Plain, linear, and Anderson mixing in evGW
+* Use a general syntax to represent all QMPackages input (#318)
+* Remove support for both Gaussian and NWChem (#318)
+* Fixed executable path check (#400)
+* Usage of offdiagonal elements of Hqp in BSE optional, default: with offdiagonals (#402)
+* refactored MO reordering of external QMPackages (#406)
+* Add defaults to XML (#319, #413)
+* fix build with gcc-10 (#422, #424)
+* Add name command line argument (#426)
+* fix usage of PROJECT_SOURCE_DIR in cmake (#431)
+* check that temperature is positive for KMC (#432)
+* document cmake options and packages (#434)
+* remove long gone MKL option for gitlab-ci (#435)
+
 ## Version 1.6.1 (released XX.04.20)
 * fix warnings on Ubuntu 20.04 (#438)
 

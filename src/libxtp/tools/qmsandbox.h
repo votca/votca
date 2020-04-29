@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,7 +21,6 @@
 #ifndef _VOTCA_XTP_QMSANDBOX_H
 #define _VOTCA_XTP_QMSANDBOX_H
 
-#include <stdio.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmtool.h>
 
@@ -39,7 +38,7 @@ class QMSandbox : public QMTool {
 
   std::string Identify() override { return "qmsandbox"; }
 
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& user_options) override;
   bool Evaluate() override;
 
  private:
@@ -51,26 +50,27 @@ class QMSandbox : public QMTool {
   std::string _mpsfileqs;
 };
 
-void QMSandbox::Initialize(tools::Property& options) {
+void QMSandbox::Initialize(const tools::Property& user_options) {
 
-  // update options with the VOTCASHARE defaults
-  // UpdateWithDefaults( options, "xtp" );
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  std::string key = "options." + Identify();
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
 
-  _orbfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".orbfile");
-  _espfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".espfile");
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".orbfile", _job_name + ".orb");
+  _espfile =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".espfile");
   _mpsfiled =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".dipole");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".dipole");
 
-  _mpsfileds = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".dipole_split");
-  _mpsfileq = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".quadrupole");
+  _mpsfileds =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".dipole_split");
+  _mpsfileq =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(".quadrupole");
   _mpsfileqs = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".quadrupole_split");
+      ".quadrupole_split");
 }
 
 bool QMSandbox::Evaluate() { return true; }

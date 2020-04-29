@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_MOLPOL_H
-#define _VOTCA_XTP_MOLPOL_H
+#ifndef VOTCA_XTP_MOLPOL_H
+#define VOTCA_XTP_MOLPOL_H
 
 #include <stdio.h>
 #include <votca/xtp/classicalsegment.h>
@@ -37,15 +37,15 @@ class MolPol : public QMTool {
 
   std::string Identify() override { return "molpol"; }
 
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
   bool Evaluate() override;
 
  private:
   void PrintPolarisation(const Eigen::Matrix3d& result) const;
 
   Eigen::Matrix3d CalcClassicalPol(const PolarSegment& input) const;
-  Eigen::Vector3d Polarize(const PolarSegment& input,
-                           const Eigen::Vector3d& ext_field) const;
+  Eigen::Vector3d CalcInducedDipole(const PolarSegment& input,
+                                    const Eigen::Vector3d& ext_field) const;
   Logger _log;
 
   std::string _mps_output;
@@ -63,4 +63,4 @@ class MolPol : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_MOLPOL_H

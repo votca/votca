@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -31,12 +31,14 @@ namespace votca {
 namespace xtp {
 using namespace std;
 
-void Orca::Initialize(tools::Property& options) {
+void Orca::Initialize(const tools::Property& options) {
 
   // good luck
 
   // Orca file names
-  std::string fileName = "system";
+  const std::string& fileName =
+      options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                           "system");
 
   _input_file_name = fileName + ".inp";
   _log_file_name = fileName + ".log";
@@ -44,20 +46,6 @@ void Orca::Initialize(tools::Property& options) {
   _mo_file_name = fileName + ".gbw";
 
   ParseCommonOptions(options);
-
-  // check if the optimize keyword is present, if yes, read updated coords
-  std::string::size_type iop_pos =
-      _options.find(" Opt"); /*optimization word in orca*/
-  if (iop_pos != std::string::npos) {
-    _is_optimization = true;
-  }
-
-  if (_write_guess) {
-    iop_pos = _options.find("Guess MORead");
-    if (iop_pos != std::string::npos) {
-      _options = _options + "\n Guess MORead ";
-    }
-  }
 }
 
 /* Custom basis sets are written on a per-element basis to
@@ -129,10 +117,10 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
   std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
 
   ECPBasisSet ecp;
-  ecp.Load(_ecp_name);
+  ecp.Load(_settings.get("ecp"));
 
   XTP_LOG(Log::error, *_pLog)
-      << "Loaded Pseudopotentials " << _ecp_name << flush;
+      << "Loaded Pseudopotentials " << _settings.get("ecp") << flush;
 
   for (const std::string& element_name : UniqueElements) {
     try {
@@ -175,10 +163,8 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
 }
 
 void Orca::WriteChargeOption() {
-  std::string::size_type iop_pos = _options.find("pointcharges");
-  if (iop_pos == std::string::npos) {
-    _options = _options + "\n %pointcharges \"background.crg\"";
-  }
+  this->_settings.add("orca.pointcharges", "\"background.crg\"");
+  _options += this->CreateInputSection("orca.pointcharges");
 }
 
 /* For QM/MM the molecules in the MM environment are represented by
@@ -242,42 +228,49 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   // put coordinates
   WriteCoordinates(inp_file, qmatoms);
   // add parallelization info
-  inp_file << "%pal\n "
+  inp_file << "%pal\n"
            << "nprocs " << threads << "\nend"
            << "\n"
            << endl;
   // basis set info
-  if (_write_basis_set) {
-    std::string el_file_name = _run_dir + "/" + "system.bas";
-    WriteBasisset(qmatoms, _basisset_name, el_file_name);
-    inp_file << "%basis\n " << endl;
-    inp_file << "GTOName"
+  std::string el_file_name = _run_dir + "/" + "system.bas";
+  WriteBasisset(qmatoms, _basisset_name, el_file_name);
+  inp_file << "%basis\n";
+  inp_file << "GTOName"
+           << " "
+           << "="
+           << "\"system.bas\";" << endl;
+  if (_settings.has_key("auxbasisset")) {
+    std::string aux_file_name = _run_dir + "/" + "system.aux";
+    std::string auxbasisset_name = _settings.get("auxbasisset");
+    WriteBasisset(qmatoms, auxbasisset_name, aux_file_name);
+    inp_file << "GTOAuxName"
              << " "
              << "="
-             << "\"system.bas\";" << endl;
-    if (_write_auxbasis_set) {
-      std::string aux_file_name = _run_dir + "/" + "system.aux";
-      WriteBasisset(qmatoms, _auxbasisset_name, aux_file_name);
-      inp_file << "GTOAuxName"
-               << " "
-               << "="
-               << "\"system.aux\";" << endl;
-    }
-  }  // write_basis set
+             << "\"system.aux\";" << endl;
+  }  // write_auxbasis set
 
   // ECPs
-  if (_write_pseudopotentials) {
+  if (_settings.has_key("ecp")) {
     WriteECP(inp_file, qmatoms);
   }
   inp_file << "end\n "
            << "\n"
            << endl;  // This end is for the basis set block
-  if (_write_charges) {
+  if (_settings.get<bool>("write_charges")) {
     WriteBackgroundCharges();
   }
 
-  inp_file << _options << "\n";
-  inp_file << endl;
+  // Write Orca section specified by the user
+  for (const auto& prop : this->_settings.property("orca")) {
+    const std::string& prop_name = prop.name();
+    if (prop_name != "method") {
+      _options += this->CreateInputSection("orca." + prop_name);
+    }
+  }
+  // Write main DFT method
+  _options += this->WriteMethod();
+  inp_file << _options;
   inp_file.close();
   // and now generate a shell script to run both jobs, if neccessary
 
@@ -296,17 +289,17 @@ bool Orca::WriteShellScript() {
   shell_file << "#!/bin/bash" << endl;
   shell_file << "mkdir -p " << _scratch_dir << endl;
 
-  if (_write_guess) {
+  if (_settings.get<bool>("read_guess")) {
     if (!(boost::filesystem::exists(_run_dir + "/molA.gbw") &&
           boost::filesystem::exists(_run_dir + "/molB.gbw"))) {
       throw runtime_error(
           "Using guess relies on a molA.gbw and a molB.gbw file being in the "
           "directory.");
     }
-    shell_file << _executable
+    shell_file << _settings.get("executable")
                << "_mergefrag molA.gbw molB.gbw dimer.gbw > merge.log" << endl;
   }
-  shell_file << _executable << " " << _input_file_name << " > "
+  shell_file << _settings.get("executable") << " " << _input_file_name << " > "
              << _log_file_name << endl;  //" 2> run.error" << endl;
   shell_file.close();
   return true;
@@ -348,7 +341,7 @@ bool Orca::Run() {
  */
 void Orca::CleanUp() {
 
-  if (_write_guess) {
+  if (_settings.get<bool>("read_guess")) {
     remove((_run_dir + "/" + "molA.gbw").c_str());
     remove((_run_dir + "/" + "molB.gbw").c_str());
     remove((_run_dir + "/" + "dimer.gbw").c_str());
@@ -489,8 +482,8 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   bool found_success = false;
   orbitals.setQMpackage(getPackageName());
   orbitals.setDFTbasisName(_basisset_name);
-  if (_write_pseudopotentials) {
-    orbitals.setECPName(_ecp_name);
+  if (_settings.has_key("ecp")) {
+    orbitals.setECPName(_settings.get("ecp"));
   }
 
   XTP_LOG(Log::error, *_pLog) << "Parsing " << _log_file_name << flush;
@@ -815,6 +808,28 @@ std::string Orca::indent(const double& number) {
            << number;
   std::string snumber = ssnumber.str();
   return snumber;
+}
+
+std::string Orca::CreateInputSection(const std::string& key) const {
+  std::stringstream stream;
+  std::string section = key.substr(key.find(".") + 1);
+  stream << "%" << section << "\n"
+         << this->_settings.get(key) << "\n"
+         << "end\n";
+  return stream.str();
+}
+
+std::string Orca::WriteMethod() const {
+  std::stringstream stream;
+  std::string opt = (_settings.get<bool>("optimize")) ? " Opt " : "";
+  std::string convergence =
+      this->_convergence_map.at(_settings.get("convergence_tightness")) +
+      "SCF ";
+  stream << "! DFT " << _settings.get("functional") << " " << convergence
+         << opt
+         // additional properties provided by the user
+         << _settings.get("orca.method") << "\n";
+  return stream.str();
 }
 
 }  // namespace xtp
