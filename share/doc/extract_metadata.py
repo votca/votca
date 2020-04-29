@@ -4,7 +4,7 @@
 import argparse
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import List, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 msg = "extract_metadata.py -i file.xml"
 
@@ -19,7 +19,7 @@ MAXIMUM_LINE_LENGTH = 60
 
 XTP_TABLE_HEADER = """
 {}
-The following table contains the input options for the calculator,
+The following table contains the defaults input options for the calculator,
 
 .. list-table::
    :header-rows: 1
@@ -56,25 +56,26 @@ CGS_TABLE_LINE = """
      - {}""".format
 
 
-def wrap_line(line: str) -> str:
-    """Split a line into lines smaller than ``max_len``."""
-    acc = [[]]
-    count = 7  # mulitiple lines start at column number 7
-    for word in line.split():
-        if count > MAXIMUM_LINE_LENGTH:
-            count = 7
-            acc.append([])
-        # Append words to the last list
-        acc[-1].append(word)
-        count += 1 + len(word)
+def main():
+    """Parse the command line arguments and run workflow."""
+    args = parser.parse_args()
+    file_name = Path(args.i)
+    if args.mode == "xtp":
+        table = xtp_create_rst_table(file_name)
+    else:
+        table = csg_create_rst_table(file_name)
 
-    it = iter(" ".join(word for word in line) for line in acc)
-    head = next(it)
-    spaces = f"\n{' ':^6s} | "
-    return "| " + head + spaces + f"{spaces}".join(line for line in it)
+    # Print
+    if args.o is not None:
+        path = Path(args.o)
+        create_parent_folder(path)
+        with open(path, 'w')as f:
+            f.write(table)
+    else:
+        print(table)
 
 
-def xtp_extract_metadata(file_name: str) -> Tuple[str, List[ET.Element]]:
+def xtp_extract_metadata(file_name: Path) -> Tuple[str, List[ET.Element]]:
     """Get the description and elements from the xml file."""
     tree = ET.parse(file_name)
     root = tree.getroot()
@@ -83,7 +84,7 @@ def xtp_extract_metadata(file_name: str) -> Tuple[str, List[ET.Element]]:
     return header, iter(data)
 
 
-def csg_extract_metadata(file_name: str) -> Tuple[str, List[ET.Element]]:
+def csg_extract_metadata(file_name: Path) -> Tuple[str, List[ET.Element]]:
     """Get the description and elements from the xml file."""
     tree = ET.parse(file_name)
     root = tree.getroot()
@@ -95,15 +96,13 @@ def csg_extract_metadata(file_name: str) -> Tuple[str, List[ET.Element]]:
 def xtp_get_recursive_attributes(elem: ET.Element, root_name: str = "") -> str:
     """Get recursively the attributes of an ``ET.Element``."""
     s = ""
-    if list(elem):
-        return ''.join(xtp_get_recursive_attributes(el, f"{elem.tag}.") for el in list(elem))
-
     name = root_name + elem.tag
-    description = elem.attrib.get("help", "")
-    if len(description) > MAXIMUM_LINE_LENGTH:
-        description = wrap_line(description)
-    default = elem.attrib.get("default", "")
-    choices = elem.attrib.get("choices", "")
+    if list(elem):
+        return ''.join(xtp_get_recursive_attributes(el, f"{name}.") for el in list(elem))
+
+    description = split_line(elem.attrib.get("help", ""))
+    default = split_line(elem.attrib.get("default", ""))
+    choices = multiline(elem.attrib.get("choices", ""))
     s += XTP_TABLE_LINE(name, description, default, choices)
 
     return s
@@ -134,16 +133,19 @@ def csg_get_recursive_attributes(elem: ET.Element, root_name: str = "") -> str:
     return s
 
 
-def xtp_create_rst_table(file_name: str) -> str:
+def xtp_create_rst_table(file_name: Path) -> str:
     """Create an RST table using the metadata in the XML file."""
     header, elements = xtp_extract_metadata(file_name)
+    header = generate_title(file_name.stem) + header
     s = XTP_TABLE_HEADER(header)
     for elem in elements:
         s += xtp_get_recursive_attributes(elem)
+
+    s += generate_note(file_name.stem)
     return s
 
 
-def csg_create_rst_table(file_name: str) -> str:
+def csg_create_rst_table(file_name: Path) -> str:
     """Create an RST table using the metadata in the XML file."""
     header, elements = csg_extract_metadata(file_name)
     s = CSG_TABLE_HEADER(header)
@@ -158,22 +160,58 @@ def create_parent_folder(path: Path) -> None:
         path.parent.mkdir(parents=True)
 
 
-def main():
-    """Parse the command line arguments and run workflow."""
-    args = parser.parse_args()
-    if args.mode == "xtp":
-        table = xtp_create_rst_table(args.i)
+def split_line(line: str, sep: Optional[str] = None) -> str:
+    """Split line if larger than ``MAXIMUM_LINE_LENGTH``."""
+    if len(line) > MAXIMUM_LINE_LENGTH:
+        return wrap_line(line, sep)
     else:
-        table = csg_create_rst_table(args.i)
+        return line
 
-    # Print
-    if args.o is not None:
-        path = Path(args.o)
-        create_parent_folder(path)
-        with open(path, 'w')as f:
-            f.write(table)
+
+def wrap_line(line: str, sep: Optional[str]) -> str:
+    """Split a line into lines smaller than ``max_len``."""
+    acc = [[]]
+    count = 7  # mulitiple lines start at column number 7
+    for word in line.split(sep=sep):
+        # If cumulative sum or the length of word is greater than MAXIMUM_LINE_LENGTH
+        if any(x > MAXIMUM_LINE_LENGTH for x in (count, len(word))):
+            count = 7
+            acc.append([])
+        # Append words to the last list
+        acc[-1].append(word)
+        count += 1 + len(word)
+
+    it = iter(" ".join(word for word in line) for line in acc)
+    return column_multiline(it)
+
+
+def generate_title(stem: str) -> str:
+    """Generate title in rst format using ``file_name``."""
+    return f"{stem}\n{'*' * len(stem)}\n"
+
+
+def generate_note(stem: str) -> str:
+    """Generate note specifying path to the xml file."""
+    note = f"""
+.. note::
+   An *xml* file containing the defaults for the `{stem}` calculator can be found at `$VOTCASHARE/xtp/xml/{stem}.xml`
+"""
+    return note
+
+
+def multiline(line: str) -> str:
+    """Split the comma separated words into lines."""
+    xs = line.split(',')
+    if len(xs) >= 2:
+        return column_multiline(iter(xs))
     else:
-        print(table)
+        return line
+
+
+def column_multiline(xs: Iterable[str]) -> str:
+    """Create a column with multiple lines."""
+    spaces = f"\n{' ':^6s} | "
+    return "| " + next(xs) + spaces + f"{spaces}".join(xs)
 
 
 if __name__ == "__main__":

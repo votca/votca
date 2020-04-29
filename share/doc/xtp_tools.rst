@@ -1,11 +1,14 @@
 xtp_tools
 #########
 
+The following calculators are available:
+
 .. toctree::
-   xtp_tools_coupling
-   xtp_tools_dftgwbse
-   xtp_tools_excitoncoupling
-   xtp_tools_gencube
-   xtp_tools_log2mps
-   xtp_tools_partialcharges
-   xtp_tools_spectrum
+   apdft
+   coupling
+   dftgwbse
+   excitoncoupling
+   gencube
+   log2mps
+   partialcharges
+   spectrum
