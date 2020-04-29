@@ -3,6 +3,7 @@
 
 import argparse
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from typing import List, Tuple
 
 msg = "extract_metadata.py -i file.xml"
@@ -78,7 +79,7 @@ def xtp_extract_metadata(file_name: str) -> Tuple[str, List[ET.Element]]:
     tree = ET.parse(file_name)
     root = tree.getroot()
     data = list(root)[0]
-    header = data.attrib["help"]
+    header = data.attrib.get("help", "")
     return header, iter(data)
 
 
@@ -151,6 +152,12 @@ def csg_create_rst_table(file_name: str) -> str:
     return s
 
 
+def create_parent_folder(path: Path) -> None:
+    """Create parent folder for ``path`` if it doesn't exists."""
+    if not path.parent.exists():
+        path.parent.mkdir(parents=True)
+
+
 def main():
     """Parse the command line arguments and run workflow."""
     args = parser.parse_args()
@@ -161,7 +168,9 @@ def main():
 
     # Print
     if args.o is not None:
-        with open(args.o, 'w')as f:
+        path = Path(args.o)
+        create_parent_folder(path)
+        with open(path, 'w')as f:
             f.write(table)
     else:
         print(table)
