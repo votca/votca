@@ -6,6 +6,7 @@ The following calculators are available:
 .. toctree::
    apdft
    coupling
+   densityanalysis
    dftgwbse
    excitoncoupling
    gencube

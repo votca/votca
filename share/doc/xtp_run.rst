@@ -11,3 +11,4 @@ The following calculators are available:
    kmcmultiple
    mapchecker
    neighborlist
+   vaverage
