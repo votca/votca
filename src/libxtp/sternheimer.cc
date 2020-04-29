@@ -943,7 +943,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
 }
 
 Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
-    double omega, double omega_p) const {
+    std::complex<double> omega, double omega_p) const {
   // This function calculates GW at w and w_p (i.e before integral over
   // frequencies)
   // It perform the spatial uniform grid integration. The final object is a
@@ -1027,7 +1027,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
   return sigma;
 }
 
-Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(double omega) const {
+Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const {
   // This function evaluates the frequency integration over w_p, leaving a
   // function of omega Hermite quadrature of order 12: If you want to use
   // different orders for now you have to change the 12 number in getPoints and
@@ -1048,7 +1048,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(double omega) const {
   return sigma;
 }
 
-Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(double omega) const {
+Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(std::complex<double> omega) const {
   Index n_states = _mo_coefficients.cols();
   Eigen::MatrixXcd selfenergy = SelfEnergy_at_w(omega);
   Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_states);

@@ -61,11 +61,11 @@ class GW {
     double qp_grid_spacing = 0.005;  // Spacing of grid points in Ha
     double omegain = 0.0; //eV
     double omegafin = 30; //eV
-    Index step = 1;
+    Index step = 10;
     double imshift = 0;
-    Index resolution = 10; // Frequency grid points output (polarizability and gw-sternheimer)
+    Index resolution = 1000; // Frequency grid points output (polarizability and gw-sternheimer)
     double lorentzian_broadening=0.3; //eV
-    std::string calculation="polarizability"; //Type of calculation for Sternheimer
+    std::string calculation="gwsternheimer"; //Type of calculation for Sternheimer
     std::string spatialgridtype="coarse";
     Index gws_grid_spacing=5;
   };
