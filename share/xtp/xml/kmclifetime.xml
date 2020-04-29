@@ -1,5 +1,5 @@
 <options>
-    <kmclifetime help="Kinetic Monte Carlo simulations of singlets with decay" label="calc:kmclifetime" section="sec:kmc">
+    <kmclifetime help="Perform Kinetic Monte Carlo simulations of singlets with decay" label="calc:kmclifetime" section="sec:kmc">
         <numberofinsertions>4000</numberofinsertions>
         <seed help="Integer to initialise the random number generator" default="23" choices="int+">23</seed>
         <numberofcarriers help="Number of electrons/holes in the simulation box" default="1" choices="int+">1</numberofcarriers>

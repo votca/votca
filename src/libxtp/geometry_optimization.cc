@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -29,51 +29,31 @@ namespace xtp {
 
 void GeometryOptimization::Initialize(tools::Property& options) {
 
-  std::string statestring =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".state");
+  std::string statestring = options.get(".state").as<std::string>();
   _opt_state.FromString(statestring);
   if (!_opt_state.Type().isExciton()) {
     throw std::runtime_error(
         "At the moment only excitonic states can be optimized");
   }
   // default convergence parameters from ORCA
-  _conv.deltaE = options.ifExistsReturnElseReturnDefault<double>(
-      ".convergence.energy", 1.e-6);  // Hartree
-  _conv.RMSForce = options.ifExistsReturnElseReturnDefault<double>(
-      ".convergence.RMSForce", 3.e-5);  // Hartree/Bohr
-  _conv.MaxForce = options.ifExistsReturnElseReturnDefault<double>(
-      ".convergence.MaxForce", 1.e-4);  // Hartree/Bohr
-  _conv.RMSStep = options.ifExistsReturnElseReturnDefault<double>(
-      ".convergence.RMSStep", 6.e-4);  // Bohr
-  _conv.MaxStep = options.ifExistsReturnElseReturnDefault<double>(
-      ".convergence.MaxStep", 1.e-3);  // Bohr
-  _trust_radius = options.ifExistsReturnElseReturnDefault<double>(
-      ".trust", 0.01);                     // Angstrom
+  _conv.deltaE = options.get(".convergence.energy").as<double>();  // Hartree
+  _conv.RMSForce =
+      options.get(".convergence.RMSForce").as<double>();  // Hartree/Bohr
+  _conv.MaxForce =
+      options.get(".convergence.MaxForce").as<double>();  // Hartree/Bohr
+  _conv.RMSStep = options.get(".convergence.RMSStep").as<double>();  // Bohr
+  _conv.MaxStep = options.get(".convergence.MaxStep").as<double>();  // Bohr
+  _trust_radius = options.get(".trust").as<double>();                // Angstrom
   _trust_radius *= tools::conv::ang2bohr;  // initial trust radius in a.u.
 
-  _max_iteration =
-      options.ifExistsReturnElseReturnDefault<Index>(".maxiter", 50);
+  _max_iteration = options.get(".maxiter").as<Index>();
 
   _trajfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".trajectory_file", "optimisation.trj");
 
-  std::vector<std::string> choices = {"BFGS-TRM"};
-  _optimizer =
-      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-          ".optimizer.method", choices);
-
-  if (options.exists(".forces")) {
-    _force_options = options.get(".forces");
-  } else {
-    throw std::runtime_error("No forces options provided");
-  }
-  if (options.exists(".statetracker")) {
-    _statetracker_options = options.get(".statetracker");
-  } else {
-    throw std::runtime_error("No filter options set");
-  }
-
-  return;
+  _optimizer = options.get(".optimizer.method").as<std::string>();
+  _force_options = options.get(".forces");
+  _statetracker_options = options.get(".statetracker");
 }
 
 void GeometryOptimization::Evaluate() {
