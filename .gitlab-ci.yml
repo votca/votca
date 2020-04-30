@@ -140,6 +140,40 @@ Release Clang Ubuntu:
     REGRESSION_TESTING: "OFF"
   extends: .build
 
+Debug GCC OpenSUSE:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "opensuse"
+  extends: .build
+
+Debug Clang OpenSUSE:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "opensuse"
+  extends: .build
+
+Release GCC OpenSUSE:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "opensuse"
+  extends: .build
+
+Release Clang OpenSUSE:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "opensuse"
+  extends: .build
+
 Debug GCC Rawhide:
   variables:
     CC: "gcc"
