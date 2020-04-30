@@ -88,38 +88,6 @@ Release Clang:
     CMAKE_BUILD_TYPE: "Release"
   extends: .build
 
-Debug GCC Ubuntu:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Debug"
-    DISTRO: "ubuntu"
-  extends: .build
-
-Debug Clang Ubuntu:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Debug"
-    DISTRO: "ubuntu"
-  extends: .build
-
-Release GCC Ubuntu:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "ubuntu"
-  extends: .build
-
-Release Clang Ubuntu:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "ubuntu"
-  extends: .build
-
 Release GCC Module:
   variables:
     CC: "gcc"
