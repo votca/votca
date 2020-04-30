@@ -120,23 +120,24 @@ bool Calculator::IsValidOption(const Property &prop,
                                const std::vector<std::string> &choices) {
   const std::string &head = choices.front();
   std::ostringstream oss;
-
+  bool is_valid;
   if (head == "bool") {
-    return Calculator::IsValidCast<bool>(prop);
+    is_valid = Calculator::IsValidCast<bool>(prop);
   } else if (head == "float") {
-    return Calculator::IsValidCast<double>(prop);
+    is_valid = Calculator::IsValidCast<double>(prop);
   } else if (head == "float+") {
-    return Calculator::IsValidCast<double>(prop) && (prop.as<double>() >= 0.0);
+    is_valid =
+        Calculator::IsValidCast<double>(prop) && (prop.as<double>() >= 0.0);
   } else if (head == "int") {
-    return Calculator::IsValidCast<Index>(prop);
-    prop.as<Index>();
+    is_valid = Calculator::IsValidCast<Index>(prop);
   } else if (head == "int+") {
-    return Calculator::IsValidCast<Index>(prop) && (prop.as<Index>() >= 0);
+    is_valid = Calculator::IsValidCast<Index>(prop) && (prop.as<Index>() >= 0);
   } else {
     std::string value = prop.as<std::string>();
     auto it = std::find(std::cbegin(choices), std::cend(choices), value);
-    return (it == std::cend(choices)) ? false : true;
+    is_valid = (it != std::cend(choices));
   }
+  return is_valid;
 }
 
 }  // namespace tools
