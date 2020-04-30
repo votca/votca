@@ -15,6 +15,7 @@ For more detailed information about the changes see the history of the [reposito
 ## Version 1.6.1 (released XX.04.20)
 * fix build with mkl (#229)
 * fix build with non-system libfftw (#234)
+* fix CI on Ubuntu-20.04 (#237)
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * fix clang-10 warnings (#217)
