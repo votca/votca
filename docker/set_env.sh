@@ -55,7 +55,8 @@ elif [[ $ENV -eq 4 ]]; then
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E _re -LE memory"
   # only run csg-tutorials regressions tests for csg, tools - csg-tutorials and votca have no coverable code
-  [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools) ]] && add_to_docker_opts REGRESSION_TESTING=ON
+  # Ubuntu comes with gmx-2020, so don't run regressions for now
+  # [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools) ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=
   CXXFLAGS="-O2" # gcc's default would be -O0 (slow!) otherwise
   add_to_docker_opts COVERAGE=yes
@@ -68,7 +69,9 @@ elif [[ $ENV -eq 5 ]]; then
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re -LE memory"
   # only run csg-tutorials regressions tests for csg, tools - csg-tutorials and votca have no coverable code
-  [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools) ]] && add_to_docker_opts REGRESSION_TESTING=ON || export SKIP=yes
+  # Ubuntu comes with gmx-2020, so don't run regressions for now
+  # [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools) ]] && add_to_docker_opts REGRESSION_TESTING=ON || export SKIP=yes
+  export SKIP=yes
   add_to_docker_opts CMAKE_BUILD_TYPE=
   CXXFLAGS="-O2" # gcc's default would be -O0 (slow!) otherwise
   add_to_docker_opts COVERAGE=yes

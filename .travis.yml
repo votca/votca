@@ -120,7 +120,7 @@ after_success:
       cd $HOME/userdoc;
       rm -rf *;
       git checkout -- deploy.enc;
-      docker cp ${CON}:/home/votca/votca/build/share/doc/sphinx.html . ;
+      docker cp ${CON}:/home/votca/votca/build/sphinx.html . ;
       shopt -s dotglob;
       mv sphinx.html/* .; rmdir sphinx.html;
       git add --all .;
