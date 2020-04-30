@@ -30,36 +30,21 @@ using namespace std;
 namespace votca {
 namespace xtp {
 
-void KMCCalculator::ParseCommonOptions(tools::Property& options) {
+void KMCCalculator::ParseCommonOptions(const tools::Property& options) {
   std::string key = "options." + Identify();
-  _seed = options.ifExistsReturnElseThrowRuntimeError<Index>(key + ".seed");
+  _seed = options.get(key + ".seed").as<Index>();
 
-  _numberofcarriers = options.ifExistsReturnElseThrowRuntimeError<Index>(
-      key + ".numberofcarriers");
-  _injection_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".injectionpattern");
-  _maxrealtime = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".maxrealtime", 1E10);
-  _trajectoryfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".trajectoryfile", _trajectoryfile);
-  _temperature = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".temperature", 300);
+  _numberofcarriers = options.get(key + ".numberofcarriers").as<Index>();
+  _injection_name = options.get(key + ".injectionpattern").as<std::string>();
+  _maxrealtime = options.get(key + ".maxrealtime").as<double>();
+  _trajectoryfile = options.get(key + ".trajectoryfile").as<std::string>();
+  _temperature = options.get(key + ".temperature").as<double>();
 
   _temperature *= (tools::conv::kB * tools::conv::ev2hrt);
-  _occfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".occfile", _occfile);
-  _ratefile = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".ratefile", _ratefile);
+  _occfile = options.get(key + ".occfile").as<std::string>();
+  _ratefile = options.get(key + ".ratefile").as<std::string>();
 
-  _injectionmethod = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".injectionmethod", "random");
-
-  if (_injectionmethod != "random") {
-    cout << "WARNING in kmcmultiple: Unknown injection method. It will be set "
-            "to random injection."
-         << endl;
-    _injectionmethod = "random";
-  }
+  _injectionmethod = options.get(key + ".injectionmethod").as<std::string>();
 }
 
 void KMCCalculator::LoadGraph(Topology& top) {

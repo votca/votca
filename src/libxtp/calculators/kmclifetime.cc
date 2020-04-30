@@ -32,15 +32,15 @@ void KMCLifetime::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  ParseCommonOptions(user_options);
 
   _insertions = options.get(".numberofinsertions").as<unsigned long>();
-
   _lifetimefile = options.get(".lifetimefile").as<std::string>();
 
   _probfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".decayprobfile", "");
 
-  tools::Property& carrier_options = options.get(".carrierenergy");
+  const tools::Property& carrier_options = options.get(".carrierenergy");
   _do_carrierenergy = carrier_options.get(".run").as<bool>();
   _energy_outputfile = carrier_options.get(".outputfile").as<std::string>();
   _alpha = carrier_options.get(".alpha").as<double>();

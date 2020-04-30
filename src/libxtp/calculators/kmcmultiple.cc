@@ -30,10 +30,10 @@ void KMCMultiple::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  ParseCommonOptions(user_options);
 
   _runtime = options.get(".runtime").as<double>();
-  _field =
-      options.ifExistsReturnElseThrowRuntimeError<Eigen::Vector3d>(".field");
+  _field = options.get(".field").as<Eigen::Vector3d>();
   double mtobohr = 1E9 * tools::conv::nm2bohr;
   _field *=
       (tools::conv::ev2hrt / mtobohr);  // Converting from V/m to Hartree/bohr
