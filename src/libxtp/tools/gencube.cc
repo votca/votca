@@ -51,8 +51,7 @@ void GenCube::Initialize(const tools::Property& user_options) {
 
   std::string statestring = options.get(".state").as<std::string>();
   _state.FromString(statestring);
-  _dostateonly =
-      options.ifExistsReturnElseReturnDefault<bool>(".diff2gs", false);
+  _dostateonly = options.get(".diff2gs").as<bool>();
 
   _mode = options.get(".mode").as<std::string>();
   if (_mode == "subtract") {

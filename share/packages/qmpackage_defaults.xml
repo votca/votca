@@ -1,17 +1,17 @@
 <package>
-<name>xtp</name>
-<charge>0</charge>
-<spin>1</spin>
+<name help="QM package to use" default="xtp" choices="xtp,orca">xtp</name>
+<charge help="Molecular charge" default="0" choices="int">0</charge>
+<spin help="Molecular multiplicity" default="1" choices="int+">1</spin>
 <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
 <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
-<optimize>false</optimize>
+<optimize help="Perform a molecular geometry optimization" default="false" choices="bool">false</optimize>
 <functional default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
 <scratch help="path to the scratch folder" default="/tmp/qmpackage">/tmp/qmpackage</scratch>
 <polarisation>false</polarisation>
 <dipole_spacing>0.1</dipole_spacing>
 <read_guess help="Read wave function guess" default="false" choices="bool">false</read_guess>
-<write_charges>false</write_charges>
-<convergence_tightness help="One of low, normal, tight, verytight">tight</convergence_tightness>
+<write_charges help="Print atomic charges" default="false" choices="bool">false</write_charges>
+<convergence_tightness help="" default="tight" choices="low, normal, tight, verytight">tight</convergence_tightness>
 <cleanup help="files to remove after the calculation is done"> </cleanup>
 <orca>
     <method></method>

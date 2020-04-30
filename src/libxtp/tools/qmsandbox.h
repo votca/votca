@@ -43,11 +43,6 @@ class QMSandbox : public QMTool {
 
  private:
   std::string _orbfile;
-  std::string _espfile;
-  std::string _mpsfiled;
-  std::string _mpsfileds;
-  std::string _mpsfileq;
-  std::string _mpsfileqs;
 };
 
 void QMSandbox::Initialize(const tools::Property& user_options) {
@@ -60,17 +55,6 @@ void QMSandbox::Initialize(const tools::Property& user_options) {
 
   _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".orbfile", _job_name + ".orb");
-  _espfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".espfile");
-  _mpsfiled =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".dipole");
-
-  _mpsfileds =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".dipole_split");
-  _mpsfileq =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".quadrupole");
-  _mpsfileqs = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      ".quadrupole_split");
 }
 
 bool QMSandbox::Evaluate() { return true; }

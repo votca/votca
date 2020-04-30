@@ -52,17 +52,16 @@ class BSE {
     Index qpmax;
     Index vmin;
     Index cmax;
-    Index nmax = 5;           // number of eigenvectors to calculate
-    bool davidson = true;     // use davidson to diagonalize the matrix
-    bool matrixfree = false;  // use matrix free method
-    std::string davidson_correction = "DPR";
-    std::string davidson_ortho = "GS";
-    std::string davidson_tolerance = "normal";
-    std::string davidson_update = "safe";
-    Index davidson_maxiter = 50;
-    double min_print_weight =
-        0.5;  // minimium contribution for state to print it
-    bool use_Hqp_offdiag = true;
+    Index nmax;       // number of eigenvectors to calculate
+    bool davidson;    // use davidson to diagonalize the matrix
+    bool matrixfree;  // use matrix free method
+    std::string davidson_correction;
+    std::string davidson_ortho;
+    std::string davidson_tolerance;
+    std::string davidson_update;
+    Index davidson_maxiter;
+    double min_print_weight;  // minimium contribution for state to print it
+    bool use_Hqp_offdiag;
   };
 
   void configure(const options& opt, const Eigen::VectorXd& RPAEnergies,

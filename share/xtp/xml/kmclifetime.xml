@@ -9,7 +9,7 @@
         <injectionpattern help="Name pattern that specifies on which sites injection is possible. Use the wildcard '*' to inject on any site." default="*">*</injectionpattern>
         <injectionmethod help="random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" default="random" choices="random">random</injectionmethod>
         <temperature help="Temperature in Kelvin." unit="kelvin" default="300" choices="int+">300</temperature>
-        <occfile help="File with the occupations" default="occupation.dat">occupation.dat</<occfile>
+        <occfile help="File with the occupations" default="occupation.dat">occupation.dat</occfile>
         <maxrealtime help="Maximum clocktime allow to the calculation(Seconds)" unit="second" choices="float+">1E10</maxrealtime>
         <carrierenergy help="Run a single carrier at the same time and records its energy">
 	        <run help="Switch on/off" default="false" choices="bool">false</run>

@@ -111,8 +111,7 @@ void GWBSE::Initialize(tools::Property& options) {
     bse_cmax = num_of_levels - 1;
   }
   std::string ignore_corelevels =
-      options.ifExistsReturnElseReturnDefault<std::string>(
-          key + ".ignore_corelevels", "none");
+      options.get(key + ".ignore_corelevels").as<std::string>();
 
   if (ignore_corelevels == "RPA" || ignore_corelevels == "GW" ||
       ignore_corelevels == "BSE") {
@@ -188,11 +187,9 @@ void GWBSE::Initialize(tools::Property& options) {
   XTP_LOG(Log::error, *_pLog) << TimeStamp() << " BSE Hamiltonian has size "
                               << bse_size << "x" << bse_size << flush;
 
-  _gwopt.reset_3c = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".rebuild_threecenter_freq", _gwopt.reset_3c);
+  _gwopt.reset_3c = options.get(key + ".rebuild_threecenter_freq").as<Index>();
 
-  _bseopt.nmax = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".exctotal", _bseopt.nmax);
+  _bseopt.nmax = options.get(key + ".exctotal").as<Index>();
   if (_bseopt.nmax > bse_size || _bseopt.nmax < 0) {
     _bseopt.nmax = bse_size;
   }
@@ -243,8 +240,7 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *_pLog) << " BSE type: TDA" << flush;
   }
 
-  _bseopt.use_Hqp_offdiag = options.ifExistsReturnElseReturnDefault<bool>(
-      key + ".use_Hqp_offdiag", _bseopt.use_Hqp_offdiag);
+  _bseopt.use_Hqp_offdiag = options.get(key + ".use_Hqp_offdiag").as<bool>();
 
   if (!_bseopt.use_Hqp_offdiag) {
     XTP_LOG(Log::error, *_pLog)
@@ -278,9 +274,10 @@ void GWBSE::Initialize(tools::Property& options) {
   _gwopt.ScaHFX = _orbitals.getScaHFX();
 
   _gwopt.shift = options.get(key + ".scissor_shift").as<double>();
-  _gwopt.g_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".g_sc_limit",
-      _gwopt.g_sc_limit);  // convergence criteria for qp iteration [Hartree]]
+  _gwopt.g_sc_limit =
+      options.get(key + ".g_sc_limit").as<double>();  // convergence criteria
+                                                      // for qp iteration
+                                                      // [Hartree]]
   _gwopt.g_sc_max_iterations =
       options.get(key + ".g_sc_max_iterations").as<Index>();  // convergence
                                                               // criteria for qp
@@ -292,17 +289,17 @@ void GWBSE::Initialize(tools::Property& options) {
         options.get(key + ".gw_sc_max_iterations").as<Index>();
   }
 
-  _gwopt.gw_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".gw_sc_limit",
-      _gwopt.gw_sc_limit);  // convergence criteria for shift it
+  _gwopt.gw_sc_limit =
+      options.get(key + ".gw_sc_limit").as<double>();  // convergence criteria
+                                                       // for shift it
   XTP_LOG(Log::error, *_pLog)
       << " g_sc_limit [Hartree]: " << _gwopt.g_sc_limit << flush;
   if (_gwopt.gw_sc_max_iterations > 1) {
     XTP_LOG(Log::error, *_pLog)
         << " gw_sc_limit [Hartree]: " << _gwopt.gw_sc_limit << flush;
   }
-  _bseopt.min_print_weight = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".bse_print_weight", _bseopt.min_print_weight);
+  _bseopt.min_print_weight =
+      options.get(key + ".bse_print_weight").as<double>();
   // print exciton WF composition weight larger than minimum
 
   // possible tasks
@@ -354,8 +351,7 @@ void GWBSE::Initialize(tools::Property& options) {
       options.get(key + ".sigma_integrator").as<std::string>();
   XTP_LOG(Log::error, *_pLog)
       << " Sigma integration: " << _gwopt.sigma_integration << flush;
-  _gwopt.eta =
-      options.ifExistsReturnElseReturnDefault<double>(key + ".eta", _gwopt.eta);
+  _gwopt.eta = options.get(key + ".eta").as<double>();
   if (_gwopt.sigma_integration == "exact") {
     XTP_LOG(Log::error, *_pLog)
         << " RPA Hamiltonian size: " << (homo + 1 - rpamin) * (rpamax - homo)
@@ -379,8 +375,7 @@ void GWBSE::Initialize(tools::Property& options) {
                                                           // 1: linear, >1
                                                           // Anderson)
 
-  _gwopt.gw_mixing_alpha = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".gw_mixing_alpha", _gwopt.gw_mixing_alpha);
+  _gwopt.gw_mixing_alpha = options.get(key + ".gw_mixing_alpha").as<double>();
 
   if (mode == "evGW") {
     if (_gwopt.gw_mixing_order == 0) {
@@ -395,14 +390,12 @@ void GWBSE::Initialize(tools::Property& options) {
     }
   }
 
-  _sigma_plot_states = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".sigma_plot_states", _sigma_plot_states);
-  _sigma_plot_steps = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".sigma_plot_steps", _sigma_plot_steps);
-  _sigma_plot_spacing = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".sigma_plot_spacing", _sigma_plot_spacing);
-  _sigma_plot_filename = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".sigma_plot_filename", _sigma_plot_filename);
+  _sigma_plot_states =
+      options.get(key + ".sigma_plot_states").as<std::string>();
+  _sigma_plot_steps = options.get(key + ".sigma_plot_steps").as<Index>();
+  _sigma_plot_spacing = options.get(key + ".sigma_plot_spacing").as<double>();
+  _sigma_plot_filename =
+      options.get(key + ".sigma_plot_filename").as<std::string>();
   if (!_sigma_plot_states.empty()) {
     XTP_LOG(Log::error, *_pLog)
         << " Sigma plot states: " << _sigma_plot_states << flush;
