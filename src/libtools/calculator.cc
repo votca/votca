@@ -94,55 +94,48 @@ void Calculator::RecursivelyCheckOptions(const Property &p) {
       std::vector<std::string> choices = Calculator::GetPropertyChoices(prop);
       const std::string &head = choices.front();
       if (head != "") {
-        try {
-          Calculator::CheckOption(prop, choices);
-        } catch (const std::runtime_error &e) {
+        if (!Calculator::IsValidOption(prop, choices)) {
           std::ostringstream oss;
           oss << "\nThe input value for \"" << prop.name() << "\"";
           if (choices.size() == 1) {
             oss << " should be a \"" << head << "\"";
           } else {
-            oss << " should be one of following values: ";
+            oss << " should be one of the following values: ";
             for (const std::string &c : choices) {
               oss << "\"" << c << "\""
                   << " ";
             }
           }
           oss << " But \"" << prop.value()
-              << "\" cannot be converted into one.";
-          std::cout << oss.str() << "\n";
-          throw;
+              << "\" cannot be converted into one.\n";
+          std::cout << oss.str();
+          throw std::runtime_error(oss.str());
         }
       }
     }
   }
 }
 
-void Calculator::CheckOption(const Property &prop,
-                             const std::vector<std::string> &choices) {
+bool Calculator::IsValidOption(const Property &prop,
+                               const std::vector<std::string> &choices) {
   const std::string &head = choices.front();
   std::ostringstream oss;
 
   if (head == "bool") {
-    prop.as<bool>();
+    return Calculator::IsValidCast<bool>(prop);
   } else if (head == "float") {
-    prop.as<double>();
+    return Calculator::IsValidCast<float>(prop);
   } else if (head == "float+") {
-    if (prop.as<double>() < 0.0) {
-      throw std::runtime_error("");
-    }
+    return Calculator::IsValidCast<float>(prop) && (prop.as<double>() >= 0.0);
   } else if (head == "int") {
+    return Calculator::IsValidCast<Index>(prop);
     prop.as<Index>();
   } else if (head == "int+") {
-    if (prop.as<Index>() < 0) {
-      throw std::runtime_error("");
-    }
+    return Calculator::IsValidCast<Index>(prop) && (prop.as<Index>() >= 0);
   } else {
     std::string value = prop.as<std::string>();
     auto it = std::find(std::cbegin(choices), std::cend(choices), value);
-    if (it == std::cend(choices)) {
-      throw std::runtime_error("");
-    }
+    return (it == std::cend(choices)) ? false : true;
   }
 }
 

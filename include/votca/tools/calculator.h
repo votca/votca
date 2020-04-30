@@ -112,10 +112,20 @@ class Calculator {
 
   void OverwriteDefaultsWithUserInput(const Property &p, Property &defaults);
   static void RecursivelyCheckOptions(const Property &prop);
-  static void CheckOption(const Property &p,
-                          const std::vector<std::string> &choices);
+  static bool IsValidOption(const Property &p,
+                            const std::vector<std::string> &choices);
   static std::string GetVotcaShare();
   static std::vector<std::string> GetPropertyChoices(const Property &prop);
+
+  template <typename T>
+  static bool IsValidCast(const tools::Property &prop) {
+    try {
+      prop.as<T>();
+      return true;
+    } catch (const std::runtime_error &e) {
+      return false;
+    }
+  }
 };
 
 }  // namespace tools
