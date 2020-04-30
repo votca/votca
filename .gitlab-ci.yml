@@ -106,6 +106,7 @@ Debug GCC Ubuntu:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
     DISTRO: "ubuntu"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Debug Clang Ubuntu:
@@ -114,6 +115,7 @@ Debug Clang Ubuntu:
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Debug"
     DISTRO: "ubuntu"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Release GCC Ubuntu:
@@ -122,6 +124,7 @@ Release GCC Ubuntu:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "ubuntu"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Release Clang Ubuntu:
@@ -130,6 +133,7 @@ Release Clang Ubuntu:
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "ubuntu"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Debug GCC Rawhide:
