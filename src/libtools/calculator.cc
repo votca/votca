@@ -124,9 +124,9 @@ bool Calculator::IsValidOption(const Property &prop,
   if (head == "bool") {
     return Calculator::IsValidCast<bool>(prop);
   } else if (head == "float") {
-    return Calculator::IsValidCast<float>(prop);
+    return Calculator::IsValidCast<double>(prop);
   } else if (head == "float+") {
-    return Calculator::IsValidCast<float>(prop) && (prop.as<double>() >= 0.0);
+    return Calculator::IsValidCast<double>(prop) && (prop.as<double>() >= 0.0);
   } else if (head == "int") {
     return Calculator::IsValidCast<Index>(prop);
     prop.as<Index>();
