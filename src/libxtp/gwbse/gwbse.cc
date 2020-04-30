@@ -235,8 +235,7 @@ void GWBSE::Initialize(tools::Property& options) {
     }
   }
 
-  _bseopt.useTDA = options.ifExistsReturnElseReturnDefault<bool>(
-      key + ".useTDA", _bseopt.useTDA);
+  _bseopt.useTDA = options.get(key + ".useTDA").as<bool>();
   _orbitals.setTDAApprox(_bseopt.useTDA);
   if (!_bseopt.useTDA) {
     XTP_LOG(Log::error, *_pLog) << " BSE type: full" << flush;
@@ -246,6 +245,7 @@ void GWBSE::Initialize(tools::Property& options) {
 
   _bseopt.use_Hqp_offdiag = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".use_Hqp_offdiag", _bseopt.use_Hqp_offdiag);
+
   if (!_bseopt.use_Hqp_offdiag) {
     XTP_LOG(Log::error, *_pLog)
         << " BSE without Hqp offdiagonal elements" << flush;
@@ -255,26 +255,19 @@ void GWBSE::Initialize(tools::Property& options) {
   }
 
   if (options.exists(key + ".vxc")) {
-    _functional = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".vxc.functional");
-    _grid = options.ifExistsReturnElseReturnDefault<std::string>(
-        key + ".vxc.grid", "medium");
+    _functional = options.get(key + ".vxc.functional").as<std::string>();
+    _grid = options.get(key + ".vxc.grid").as<std::string>();
   }
 
-  _auxbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".auxbasisset");
-  _dftbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".basisset");
+  _auxbasis_name = options.get(key + ".auxbasisset").as<std::string>();
+  _dftbasis_name = options.get(key + ".basisset").as<std::string>();
   if (_dftbasis_name != _orbitals.getDFTbasisName()) {
     throw std::runtime_error(
         "Name of the Basisset from .orb file: " + _orbitals.getDFTbasisName() +
         " and from GWBSE optionfile " + _dftbasis_name + " do not agree.");
   }
 
-  std::vector<std::string> choices = {"G0W0", "evGW"};
-  std::string mode =
-      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-          key + ".mode", choices);
+  std::string mode = options.get(key + ".mode").as<std::string>();
   if (mode == "G0W0") {
     _gwopt.gw_sc_max_iterations = 1;
   } else if (mode == "evGW") {
@@ -284,20 +277,19 @@ void GWBSE::Initialize(tools::Property& options) {
   XTP_LOG(Log::error, *_pLog) << " Running GW as: " << mode << flush;
   _gwopt.ScaHFX = _orbitals.getScaHFX();
 
-  _gwopt.shift = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".scissor_shift", _gwopt.shift);
+  _gwopt.shift = options.get(key + ".scissor_shift").as<double>();
   _gwopt.g_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
       key + ".g_sc_limit",
       _gwopt.g_sc_limit);  // convergence criteria for qp iteration [Hartree]]
-  _gwopt.g_sc_max_iterations = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".g_sc_max_iterations",
-      _gwopt.g_sc_max_iterations);  // convergence criteria for qp iteration
-                                    // [Hartree]]
+  _gwopt.g_sc_max_iterations =
+      options.get(key + ".g_sc_max_iterations").as<Index>();  // convergence
+                                                              // criteria for qp
+                                                              // iteration
+                                                              // [Hartree]]
 
   if (mode == "evGW") {
     _gwopt.gw_sc_max_iterations =
-        options.ifExistsReturnElseReturnDefault<Index>(
-            key + ".gw_sc_max_iterations", _gwopt.gw_sc_max_iterations);
+        options.get(key + ".gw_sc_max_iterations").as<Index>();
   }
 
   _gwopt.gw_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
@@ -314,8 +306,7 @@ void GWBSE::Initialize(tools::Property& options) {
   // print exciton WF composition weight larger than minimum
 
   // possible tasks
-  std::string tasks_string =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".tasks");
+  std::string tasks_string = options.get(key + ".tasks").as<std::string>();
   boost::algorithm::to_lower(tasks_string);
   if (tasks_string.find("all") != std::string::npos) {
     _do_gw = true;
@@ -360,8 +351,7 @@ void GWBSE::Initialize(tools::Property& options) {
   }
 
   _gwopt.sigma_integration =
-      options.ifExistsReturnElseReturnDefault<std::string>(
-          key + ".sigma_integrator", _gwopt.sigma_integration);
+      options.get(key + ".sigma_integrator").as<std::string>();
   XTP_LOG(Log::error, *_pLog)
       << " Sigma integration: " << _gwopt.sigma_integration << flush;
   _gwopt.eta =
@@ -373,12 +363,9 @@ void GWBSE::Initialize(tools::Property& options) {
   }
   XTP_LOG(Log::error, *_pLog) << " eta: " << _gwopt.eta << flush;
 
-  _gwopt.qp_solver = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".qp_solver", _gwopt.qp_solver);
-  _gwopt.qp_grid_steps = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".qp_grid_steps", _gwopt.qp_grid_steps);
-  _gwopt.qp_grid_spacing = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".qp_grid_spacing", _gwopt.qp_grid_spacing);
+  _gwopt.qp_solver = options.get(key + ".qp_solver").as<std::string>();
+  _gwopt.qp_grid_steps = options.get(key + ".qp_grid_steps").as<Index>();
+  _gwopt.qp_grid_spacing = options.get(key + ".qp_grid_spacing").as<double>();
   XTP_LOG(Log::error, *_pLog) << " QP solver: " << _gwopt.qp_solver << flush;
   if (_gwopt.qp_solver == "grid") {
     XTP_LOG(Log::error, *_pLog)
@@ -386,10 +373,11 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *_pLog)
         << " QP grid spacing: " << _gwopt.qp_grid_spacing << flush;
   }
-  _gwopt.gw_mixing_order = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".gw_mixing_order",
-      _gwopt.gw_mixing_order);  // max history in mixing (0: plain,
-                                // 1: linear, >1 Anderson)
+  _gwopt.gw_mixing_order =
+      options.get(key + ".gw_mixing_order").as<Index>();  // max history in
+                                                          // mixing (0: plain,
+                                                          // 1: linear, >1
+                                                          // Anderson)
 
   _gwopt.gw_mixing_alpha = options.ifExistsReturnElseReturnDefault<double>(
       key + ".gw_mixing_alpha", _gwopt.gw_mixing_alpha);
@@ -425,8 +413,6 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *_pLog)
         << " Sigma plot filename: " << _sigma_plot_filename << flush;
   }
-
-  return;
 }
 
 void GWBSE::addoutput(tools::Property& summary) {

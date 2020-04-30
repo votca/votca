@@ -126,7 +126,7 @@ class DFTEngine {
 
   // Convergence
   Index _numofelectrons = 0;
-  Index _max_iter = 100;
+  Index _max_iter;
   ConvergenceAcc::options _conv_opt;
   // DIIS variables
   ConvergenceAcc _conv_accelerator;

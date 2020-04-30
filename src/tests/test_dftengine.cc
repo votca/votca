@@ -123,6 +123,9 @@ BOOST_AUTO_TEST_CASE(dft_full) {
   xml << "<basisset>3-21G.xml</basisset>" << std::endl;
   xml << "<read_guess>0</read_guess>" << std::endl;
   xml << "<xtpdft>" << std::endl;
+  xml << "<with_screening choices=\"bool\">true</with_screening>\n";
+  xml << "<screening_eps  choices=\"float+\">1e-9</screening_eps>\n";
+  xml << "<four_center_method>cache</four_center_method>\n";
   xml << "<convergence>" << std::endl;
   xml << "    <energy>1e-7</energy>" << std::endl;
   xml << "    <method>DIIS</method>" << std::endl;
@@ -131,6 +134,7 @@ BOOST_AUTO_TEST_CASE(dft_full) {
   xml << "    <DIIS_length>20</DIIS_length>" << std::endl;
   xml << "    <levelshift>0.0</levelshift>" << std::endl;
   xml << "    <levelshift_end>0.2</levelshift_end>" << std::endl;
+  xml << "    <max_iterations choices=\"int+\">100</max_iterations>\n";
   xml << "</convergence>" << std::endl;
   xml << "<initial_guess>independent</initial_guess>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
@@ -237,6 +241,9 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   xml << "<basisset>3-21G.xml</basisset>" << std::endl;
   xml << "<read_guess>0</read_guess>" << std::endl;
   xml << "<xtpdft>" << std::endl;
+  xml << "<with_screening choices=\"bool\">true</with_screening>\n";
+  xml << "<screening_eps  choices=\"float+\">1e-9</screening_eps>\n";
+  xml << "<four_center_method>cache</four_center_method>\n";
   xml << "<convergence>" << std::endl;
   xml << "    <energy>1e-7</energy>" << std::endl;
   xml << "    <method>DIIS</method>" << std::endl;
@@ -245,6 +252,7 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   xml << "    <DIIS_length>20</DIIS_length>" << std::endl;
   xml << "    <levelshift>0.0</levelshift>" << std::endl;
   xml << "    <levelshift_end>0.2</levelshift_end>" << std::endl;
+  xml << "    <max_iterations choices=\"int+\">100</max_iterations>\n";
   xml << "</convergence>" << std::endl;
   xml << "<initial_guess>atom</initial_guess>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;

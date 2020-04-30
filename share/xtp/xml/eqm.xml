@@ -12,7 +12,7 @@
 
     <gwbse_options help="xml file with options for gwbse calculations">
                 <gwbse>
-	                <ranges help="default: all levels in RPA, 1:2*HOMO in QP and all in BSE; other options: factor,explicit" choices="default,factor,explicit">default</ranges>
+	                <ranges help="default: all levels in RPA, 1:2*HOMO in QP and all in BSE; other options: factor,explicit" choices="default,factor,explicit,full">default</ranges>
 	                <rpamax help="only needed, if ranges is factor or explicit, number of levels in rpa" default=""></rpamax>
 	                <qpmin help="only needed, if ranges is factor or explicit, lowest MO to be used in GW" default="" ></qpmin>
 	                <qpmax help="only needed, if ranges is factor or explicit, highest MO to be used in GW" default=""></qpmax>

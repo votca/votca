@@ -29,8 +29,7 @@ namespace xtp {
 
 void PolarRegion::Initialize(const tools::Property& prop) {
   std::string key = identify();
-  std::string filename =
-      prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_polar");
+  std::string filename = prop.get("options_polar").as<std::string>();
   tools::Property polar_xml;
   polar_xml.LoadFromXML(filename);
   _max_iter =

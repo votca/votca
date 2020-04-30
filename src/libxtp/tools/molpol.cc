@@ -95,13 +95,11 @@ void MolPol::Initialize(const tools::Property& user_options) {
   }
 
   Eigen::VectorXd default_weights = Eigen::VectorXd::Ones(_input.size());
-  _weights =
-      options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(".weights");
+  _weights = options.ifExistsReturnElseReturnDefault<Eigen::VectorXd>(
+      ".weights", default_weights);
 
-  _tolerance_pol =
-      options.ifExistsReturnElseThrowRuntimeError<double>(".tolerance");
-
-  _max_iter = options.ifExistsReturnElseThrowRuntimeError<Index>(".iterations");
+  _tolerance_pol = options.get(".tolerance").as<double>();
+  _max_iter = options.get(".iterations").as<Index>();
 }
 
 Eigen::Vector3d MolPol::CalcInducedDipole(
