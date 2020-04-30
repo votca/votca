@@ -58,16 +58,16 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   // Default starts with node index 0
   gdv.initialize(&g);
   BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
-  // No exception should be thrown at this point
+  // No exception should be thrown at this poIndex
   Edge ed1 = gdv.nextEdge(&g);
   BOOST_CHECK_EQUAL(ed, ed1);
   gdv.exec(&g, ed1);
   BOOST_CHECK(gdv.queEmpty());
   GraphNode gn3 = g.getNode(0);
-  votca::Index dist = gn3.getInt("Dist");
+  votca::Index dist = gn3.get<votca::Index>("Dist");
   BOOST_CHECK_EQUAL(dist, 0);
   GraphNode gn4 = g.getNode(1);
-  dist = gn4.getInt("Dist");
+  dist = gn4.get<votca::Index>("Dist");
   BOOST_CHECK_EQUAL(dist, 1);
 }
 
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   // Default starts with node index 0
   gdv.initialize(&g);
   BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
-  // No exception should be thrown at this point
+  // No exception should be thrown at this poIndex
 
   // First two edges that should be explored are edges ed and ed6
   vector<Edge> temp;
@@ -159,31 +159,31 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   // node which by default is node 0.
 
   GraphNode gn8 = g.getNode(0);
-  votca::Index dist = gn8.getInt("Dist");
+  votca::Index dist = gn8.get<votca::Index>("Dist");
   BOOST_CHECK_EQUAL(dist, 0);
 
   gn8 = g.getNode(1);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<votca::Index>("Dist");
   BOOST_CHECK_EQUAL(dist, 1);
 
   gn8 = g.getNode(2);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<votca::Index>("Dist");
   BOOST_CHECK_EQUAL(dist, 2);
 
   gn8 = g.getNode(3);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<votca::Index>("Dist");
   BOOST_CHECK_EQUAL(dist, 3);
 
   gn8 = g.getNode(4);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<votca::Index>("Dist");
   BOOST_CHECK_EQUAL(dist, 2);
 
   gn8 = g.getNode(5);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<votca::Index>("Dist");
   BOOST_CHECK_EQUAL(dist, 3);
 
   gn8 = g.getNode(6);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<votca::Index>("Dist");
   BOOST_CHECK_EQUAL(dist, 1);
 }
 

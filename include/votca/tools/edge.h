@@ -17,15 +17,18 @@
  *
  */
 
+#ifndef VOTCA_TOOLS_EDGE_H
+#define VOTCA_TOOLS_EDGE_H
+#pragma once
+
+#include "attributes.h"
+#include "graphnode.h"
 #include "types.h"
+
 #include <iostream>
 #include <limits>
 #include <utility>
 #include <vector>
-
-#include "graphnode.h"
-#ifndef VOTCA_TOOLS_EDGE_H
-#define VOTCA_TOOLS_EDGE_H
 
 namespace votca {
 namespace tools {
@@ -38,11 +41,11 @@ namespace tools {
  * always placed in id1, this allows us to reduce ambiguity when dealing with
  * a link.
  */
-class Edge {
+class Edge : public Attributes {
  protected:
   std::vector<Index> vertices_;
 
-  GraphNode edge_values_;
+  //  GraphNode edge_values_;
 
  public:
   Edge() = default;
@@ -56,38 +59,38 @@ class Edge {
   Index getEndPoint1() const { return vertices_.front(); }
   /// grab the larger integer
   Index getEndPoint2() const { return vertices_.back(); }
+  /*
+    void addDouble(std::string label, const double& value) {
+      edge_values_.addDouble(label, value);
+    }
 
-  void addDouble(std::string label, const double& value) {
-    edge_values_.addDouble(label, value);
-  }
+    void addInt(std::string label, const Index value) {
+      edge_values_.addInt(label, value);
+    }
 
-  void addInt(std::string label, const Index value) {
-    edge_values_.addInt(label, value);
-  }
+    void addStr(std::string label, const std::string& value) {
+      edge_values_.addStr(label, value);
+    }
 
-  void addStr(std::string label, const std::string& value) {
-    edge_values_.addStr(label, value);
-  }
+    double getDouble(const std::string label) const {
+      return edge_values_.getDouble(label);
+    }
 
-  double getDouble(const std::string label) const {
-    return edge_values_.getDouble(label);
-  }
+    Index getInt(const std::string label) const {
+      return edge_values_.getInt(label);
+    }
 
-  Index getInt(const std::string label) const {
-    return edge_values_.getInt(label);
-  }
+    std::string getStr(const std::string label) const {
+      return edge_values_.getStr(label);
+    }
 
-  std::string getStr(const std::string label) const {
-    return edge_values_.getStr(label);
-  }
-
-  bool hasInt(const std::string label) const {
-    return edge_values_.hasInt(label);
-  }
-
-  std::string getEdgePropertiesAsStr() const {
-    return edge_values_.getStringId();
-  }
+    bool hasInt(const std::string label) const {
+      return edge_values_.hasInt(label);
+    }*/
+  /*
+    std::string getEdgePropertiesAsStr() const {
+      return edge_values_.getStringId();
+    }*/
   /**
    * \brief Checks to see if an edge loops back on itself.
    *

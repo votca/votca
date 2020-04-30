@@ -30,6 +30,8 @@ using namespace std;
 namespace votca {
 namespace tools {
 
+static const string level = "Level";
+
 void GraphBranchLevelVisitor::explore(pair<Index, GraphNode>& p_gn, Graph* g,
                                       const Edge& ed) {
   throw std::runtime_error(
@@ -43,7 +45,7 @@ void GraphBranchLevelVisitor::explore(pair<Index, GraphNode>& p_gn, Graph* g,
   // Determine if the node has already been explored
   Index vertex = p_gn.first;
   if (vertex == startingVertex_) {
-    ed.addInt("Level", 0);
+    ed.add(level, int(0));
   } else {
     // Node has not been explored
     if (explored_.count(vertex) == 0) {
@@ -56,20 +58,20 @@ void GraphBranchLevelVisitor::explore(pair<Index, GraphNode>& p_gn, Graph* g,
       bool min_level_init = false;
       for (Edge& ed_prev : prev_edges) {
         if (ed_prev != ed) {
-          if (ed_prev.hasInt("Level")) {
+          if (ed_prev.exists(level)) {
             if (min_level_init == true) {
-              if (ed_prev.getInt("Level") < min_level) {
-                min_level = ed_prev.getInt("Level");
+              if (ed_prev.get<int>(level) < min_level) {
+                min_level = ed_prev.get<int>(level);
               }
             } else {
-              min_level = ed.getInt("Level");
+              min_level = ed.get<int>(level);
               min_level_init = true;
             }
           }
         }
       }  // for
 
-      ed.addInt("Level", min_level++);
+      ed.add(level, min_level++);
     }
   }
   // Ensure the graph node is set to explored

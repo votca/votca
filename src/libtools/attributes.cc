@@ -47,17 +47,6 @@ static string sig_fig_(double val, Index sf) {
   })(sf);
 }
 
-static void checkKey_(const std::string& key) {
-  std::vector<std::string> reserved_symbols{"=", ",", ";", "{", "}"};
-  for (const std::string& symbol : reserved_symbols) {
-    if (key.find(symbol) != std::string::npos) {
-      std::string err_msg = "Error keys to attributes cannot contain ";
-      err_msg += symbol + " symbol it is reserved for internal use.";
-      throw std::invalid_argument(err_msg);
-    }
-  }
-}
-
 static string getLabel_(const unordered_map<string, boost::any> vals) {
   vector<string> keys;
   for (auto it : vals) {
@@ -77,6 +66,9 @@ static string getLabel_(const unordered_map<string, boost::any> vals) {
       label.append(val);
     } else if (it->second.type() == typeid(Index)) {
       Index val = boost::any_cast<Index>(it->second);
+      label.append(lexical_cast<std::string>(val));
+    } else if (it->second.type() == typeid(int)) {
+      int val = boost::any_cast<int>(it->second);
       label.append(lexical_cast<std::string>(val));
     } else {
       std::string error_msg = "Unable to compile attribute label for type ";
@@ -107,6 +99,9 @@ static string getLabelBrief_(const unordered_map<string, boost::any> vals) {
     } else if (it->second.type() == typeid(Index)) {
       Index val = boost::any_cast<Index>(it->second);
       label.append(lexical_cast<std::string>(val));
+    } else if (it->second.type() == typeid(int)) {
+      int val = boost::any_cast<int>(it->second);
+      label.append(lexical_cast<std::string>(val));
     } else {
       std::string error_msg = "Unable to compile attribute label for type ";
       error_msg +=
@@ -133,39 +128,45 @@ void Attributes::buildLabels_() {
   if (brief_label_.length() > 0) brief_label_.back() = ';';
 }
 
+void Attributes::checkKey_(const std::string& key) {
+  std::vector<std::string> reserved_symbols{"=", ",", ";", "{", "}"};
+  for (const std::string& symbol : reserved_symbols) {
+    if (key.find(symbol) != std::string::npos) {
+      std::string err_msg = "Error keys to attributes cannot contain ";
+      err_msg += symbol + " symbol it is reserved for internal use.";
+      throw std::invalid_argument(err_msg);
+    }
+  }
+}
+
 ///////////////////////////////////////////////////////////
 // Public Functions
 ///////////////////////////////////////////////////////////
-Attributes::Attributes(const unordered_map<string, boost::any> attributes) {
+/*Attributes::Attributes(const unordered_map<string, boost::any> attributes) {
   attributes_ = attributes;
   buildLabels_();
-}
+}*/
 
-void Attributes::set(const unordered_map<string, boost::any> attributes) {
-  for (auto& pr : attributes_) {
-    checkKey_(pr.first);
+std::vector<std::string> Attributes::getKeys() const noexcept {
+  std::vector<std::string> keys;
+  for (const auto& key_val : attributes_) {
+    keys.push_back(key_val.first);
   }
-  attributes_ = attributes;
-  buildLabels_();
+  return keys;
 }
 
-void Attributes::reset(std::string key, const boost::any value) {
-  checkKey_(key);
-  if (attributes_.count(key) == 0) {
-    throw std::invalid_argument("Cannot reset attribute, " + key +
-                                " the key is not known.");
+std::unordered_map<std::string, std::string> Attributes::getTypes() const
+    noexcept {
+  std::unordered_map<std::string, std::string> keys_types;
+  for (const auto& key_val : attributes_) {
+    keys_types[key_val.first] = key_val.second.type().name();
   }
-  attributes_[key] = value;
-  buildLabels_();
+  return keys_types;
 }
 
-void Attributes::add(std::string key, const boost::any value) {
-  assert(attributes_.count(key) == 0 &&
-         "Cannot add attribute Attributes instance, the key has already been "
-         "used");
-  checkKey_(key);
-  attributes_[key] = value;
-  buildLabels_();
+void Attributes::remove(const std::string& key) {
+  assert(exists(key) && "Cannot remove item with provided key does not exist");
+  attributes_.erase(key);
 }
 
 bool Attributes::exists(const std::string& key) const {

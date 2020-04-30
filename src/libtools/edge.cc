@@ -46,13 +46,13 @@ bool Edge::contains(Index ID) const {
 bool Edge::operator==(const Edge& ed) const {
   if (this->vertices_.front() == ed.vertices_.front() &&
       this->vertices_.back() == ed.vertices_.back()) {
-    if (this->edge_values_ == ed.edge_values_) {
+    if (Attributes::operator==(ed)) {
       return true;
     }
   }
   if (this->vertices_.back() == ed.vertices_.front() &&
       this->vertices_.front() == ed.vertices_.back()) {
-    if (this->edge_values_ == ed.edge_values_) {
+    if (Attributes::operator==(ed)) {
       return true;
     }
   }

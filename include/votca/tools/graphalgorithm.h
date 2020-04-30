@@ -233,9 +233,9 @@ std::string findStructureId(Graph& graph) {
   std::vector<Index> graph_node_ids;
   for (const Index& vertex : vertices) {
     GraphNode graph_node = graph.getNode(vertex);
-    Index comp_int = str_id.compare(graph_node.getStringId());
+    Index comp_int = str_id.compare(graph_node.getContentLabel());
     if (comp_int > 0) {
-      str_id = graph_node.getStringId();
+      str_id = graph_node.getContentLabel();
       graph_node_ids.clear();
       graph_node_ids.push_back(vertex);
     } else if (comp_int == 0) {

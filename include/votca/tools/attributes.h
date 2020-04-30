@@ -39,16 +39,85 @@ class Attributes {
   // Consists of a key and a value
   std::unordered_map<std::string, boost::any> attributes_;
   void buildLabels_();
+  void checkKey_(const std::string& key);
 
  public:
   Attributes() = default;
 
   /// Constructor
-  Attributes(const std::unordered_map<std::string, boost::any> values);
+  //  Attributes(const std::unordered_map<std::string, boost::any> values);
 
-  void set(const std::unordered_map<std::string, boost::any> values);
-  void reset(const std::string key, const boost::any value);
-  void add(const std::string key, const boost::any value);
+  template <typename T>
+  Attributes(const std::unordered_map<std::string, T> values) {
+    for (auto key_val : values) attributes_[key_val.first] = key_val.second;
+    buildLabels_();
+  }
+
+  template <typename T, typename U>
+  Attributes(const std::unordered_map<std::string, T> values1,
+             const std::unordered_map<std::string, U> values2) {
+    for (auto key_val : values1) attributes_[key_val.first] = key_val.second;
+    for (auto key_val : values2) attributes_[key_val.first] = key_val.second;
+    buildLabels_();
+  }
+
+  template <typename T, typename U, typename V>
+  Attributes(const std::unordered_map<std::string, T> values1,
+             const std::unordered_map<std::string, U> values2,
+             const std::unordered_map<std::string, V> values3) {
+    for (auto key_val : values1) attributes_[key_val.first] = key_val.second;
+    for (auto key_val : values2) attributes_[key_val.first] = key_val.second;
+    for (auto key_val : values3) attributes_[key_val.first] = key_val.second;
+    buildLabels_();
+  }
+  /// Returns a list of the keys
+  std::vector<std::string> getKeys() const noexcept;
+
+  /// Returns the keys and the of the values that they store
+  std::unordered_map<std::string, std::string> getTypes() const noexcept;
+  /// Sets the attributes with the provided values
+  //  void set(const std::unordered_map<std::string, boost::any> values);
+
+  template <typename T>
+  void set(const std::unordered_map<std::string, T> values) {
+    for (auto& key_val : values) {
+      checkKey_(key_val.first);
+    }
+    attributes_.clear();
+    for (auto& key_val : values) {
+      attributes_[key_val.first] = key_val.second;
+    }
+    buildLabels_();
+  }
+
+  /// Resets the attributes with the provided value, the key must already exist
+  template <typename T>
+  void reset(const std::string key, const T value) {
+    checkKey_(key);
+    if (attributes_.count(key) == 0) {
+      throw std::invalid_argument("Cannot reset attribute, " + key +
+                                  " the key is not known.");
+    }
+    if (attributes_.at(key).type() != typeid(T)) {
+      throw std::invalid_argument(
+          "Cannot reset attribute to a different type.");
+    }
+    attributes_[key] = value;
+    buildLabels_();
+  }
+
+  template <typename T>
+  void add(const std::string key, const T value) {
+    assert(attributes_.count(key) == 0 &&
+           "Cannot add attribute Attributes instance, the key has already been "
+           "used");
+    checkKey_(key);
+    attributes_[key] = value;
+    buildLabels_();
+  }
+
+  void remove(const std::string& key);
+
   bool exists(const std::string& key) const;
 
   template <typename T>
@@ -59,9 +128,21 @@ class Attributes {
     try {
       val = boost::any_cast<T>(attributes_.at(key));
     } catch (const boost::bad_any_cast& e) {
-      throw boost::bad_any_cast("Bad any cast in attributes class");
+      throw std::runtime_error("Bad any cast in attributes class");
     }
     return val;
+  }
+
+  /// Return all values of a specific type
+  template <typename T>
+  std::unordered_map<std::string, T> getAll() const {
+    std::unordered_map<std::string, T> values;
+    for (auto& key_val : attributes_) {
+      if (key_val.second.type() == typeid(T)) {
+        values[key_val.first] = boost::any_cast<T>(key_val.second);
+      }
+    }
+    return values;
   }
 
   std::string getContentLabel(LabelType type = LabelType::verbose) const {

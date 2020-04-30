@@ -129,4 +129,35 @@ BOOST_AUTO_TEST_CASE(comparisontest) {
   BOOST_CHECK_EQUAL(vec_attr2.at(1).getContentLabel(), str2);
 }
 
+BOOST_AUTO_TEST_CASE(addtest) {
+
+  Attributes attr1;
+  Attributes attr2;
+  int val1 = 134;
+  int val2 = 134;
+  std::string key1 = "a";
+  std::string key2 = "b";
+
+  attr1.add(key1, val1);
+  attr2.add(key2, val2);
+
+  BOOST_CHECK_EQUAL(cmpAttributes(attr1, attr2), true);
+  BOOST_CHECK_EQUAL(cmpAttributes(attr2, attr1), false);
+
+  vector<Attributes> vec_attr = {attr1, attr2};
+  sort(vec_attr.begin(), vec_attr.end(), cmpAttributes);
+
+  string str1{"a=134;"};
+  string str2{"b=134;"};
+
+  BOOST_CHECK_EQUAL(vec_attr.at(0).getContentLabel(), str1);
+  BOOST_CHECK_EQUAL(vec_attr.at(1).getContentLabel(), str2);
+
+  vector<Attributes> vec_attr2 = {attr2, attr1};
+  sort(vec_attr2.begin(), vec_attr2.end(), cmpAttributes);
+
+  BOOST_CHECK_EQUAL(vec_attr2.at(0).getContentLabel(), str1);
+  BOOST_CHECK_EQUAL(vec_attr2.at(1).getContentLabel(), str2);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

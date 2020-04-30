@@ -86,9 +86,9 @@ BOOST_AUTO_TEST_CASE(string_id) {
   GraphNode gn1;
   GraphNode gn2;
 
-  gn.addStr("name", "a");
-  gn1.addStr("name", "c");
-  gn2.addStr("name", "b");
+  gn.add(string("name"), string("a"));
+  gn1.add(string("name"), string("c"));
+  gn2.add(string("name"), string("b"));
 
   unordered_map<votca::Index, GraphNode> m_gn;
   m_gn[0] = gn;
@@ -112,9 +112,9 @@ BOOST_AUTO_TEST_CASE(reverse_sequence) {
   GraphNode gn1;
   GraphNode gn2;
 
-  gn.addStr("name", "a");
-  gn1.addStr("name", "c");
-  gn2.addStr("name", "b");
+  gn.add(string("name"), string("a"));
+  gn1.add(string("name"), string("c"));
+  gn2.add(string("name"), string("b"));
 
   unordered_map<votca::Index, GraphNode> m_gn;
   m_gn[0] = gn;

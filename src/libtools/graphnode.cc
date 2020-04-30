@@ -18,21 +18,20 @@
  */
 
 #include "../../include/votca/tools/graphnode.h"
-#include <algorithm>
+#include <iostream>
+/*#include <algorithm>
 #include <boost/lexical_cast.hpp>
 #include <iomanip>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
+*/
 namespace votca {
 namespace tools {
 
 using namespace std;
-using namespace boost;
-
+/*using namespace boost;
 ///////////////////////////////////////////////////////////
 // Local Functions
 ///////////////////////////////////////////////////////////
@@ -323,26 +322,30 @@ bool GraphNode::operator!=(const GraphNode gn) const {
 bool GraphNode::operator==(const GraphNode gn) const {
   return !((*this) != gn);
 }
-
+*/
 ostream& operator<<(ostream& os, const GraphNode gn) {
   os << "Integer Values" << endl;
-  for (const auto& int_val : gn.int_vals_) {
+  std::unordered_map<std::string, int> int_vals = gn.getAll<int>();
+  for (const auto& int_val : int_vals) {
     os << int_val.first << " " << int_val.second << endl;
   }
   os << "Double  Values" << endl;
-  for (const auto& double_val : gn.double_vals_) {
+  std::unordered_map<std::string, double> double_vals = gn.getAll<double>();
+  for (const auto& double_val : double_vals) {
     os << double_val.first << " " << double_val.second << endl;
   }
   os << "String  Values" << endl;
-  for (const auto& str_val : gn.str_vals_) {
+  std::unordered_map<std::string, std::string> str_vals =
+      gn.getAll<std::string>();
+  for (const auto& str_val : str_vals) {
     os << str_val.first << " " << str_val.second << endl;
   }
   return os;
 }
 
 bool cmpNode(GraphNode gn1, GraphNode gn2) {
-  string str1_Id = gn1.getStringId();
-  return str1_Id.compare(gn2.getStringId()) < 0;
+  string label = gn1.getContentLabel();
+  return label.compare(gn2.getContentLabel()) < 0;
 }
 }  // namespace tools
-}  // namespace votca
+}  // namespace votca*/

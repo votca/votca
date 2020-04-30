@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -128,7 +128,7 @@ void Graph::calcId_() {
   sort(nodes.begin(), nodes.end(), cmpVertNodePair);
   string struct_Id_temp = "";
   for (const pair<Index, GraphNode>& id_and_node : nodes) {
-    struct_Id_temp.append(id_and_node.second.getStringId());
+    struct_Id_temp.append(id_and_node.second.getContentLabel());
   }
   id_ = struct_Id_temp;
   return;
@@ -175,8 +175,8 @@ ostream& operator<<(ostream& os, const Graph graph) {
 
 bool cmpVertNodePair(const pair<Index, GraphNode>& id_and_node1,
                      const pair<Index, GraphNode>& id_and_node2) {
-  string str1_Id = id_and_node1.second.getStringId();
-  return str1_Id.compare(id_and_node2.second.getStringId()) < 0;
+  string str1_Id = id_and_node1.second.getContentLabel();
+  return str1_Id.compare(id_and_node2.second.getContentLabel()) < 0;
 }
 }  // namespace tools
 }  // namespace votca

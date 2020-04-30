@@ -56,7 +56,7 @@ class Branch {
     // Create the string id
     for (Index& vert : vertex_sequence_) {
       GraphNode gn = graph.getNode(vert);
-      node_str_ids_[vert] = gn.getStringId();
+      node_str_ids_[vert] = gn.getContentLabel();
     }
   }
 

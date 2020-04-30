@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   GraphNode gn;
 
   BOOST_CHECK_EQUAL(gn == gn, true);
-  BOOST_CHECK_EQUAL(gn.getStringId(), "");
+  BOOST_CHECK_EQUAL(gn.getContentLabel(), "");
 
   unordered_map<string, votca::Index> int_vals = {{"Num", 134}};
   unordered_map<string, double> double_vals = {{"Height", 159.32}};
@@ -53,26 +53,26 @@ BOOST_AUTO_TEST_CASE(setters_test) {
   GraphNode gn2(int_vals, double_vals, str_vals);
 
   string str{"Num=134,Height=159.32,Name=George;"};
-  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+  BOOST_CHECK_EQUAL(gn2.getContentLabel(), str);
 
   unordered_map<string, votca::Index> int_vals2 = {{"Second", 2}, {"First", 1}};
-  gn2.setInt(int_vals2);
+  gn2.set(int_vals2);
   str = "First=1,Second=2,Height=159.32,Name=George;";
-  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+  BOOST_CHECK_EQUAL(gn2.getContentLabel(), str);
 
   unordered_map<string, double> double_vals2 = {{"Height", 159.32},
                                                 {"Weight", 101.43}};
-  gn2.setDouble(double_vals2);
+  gn2.set(double_vals2);
   str = "First=1,Second=2,Height=159.32,Weight=101.43,Name=George;";
-  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+  BOOST_CHECK_EQUAL(gn2.getContentLabel(), str);
 
   unordered_map<string, string> str_vals2 = {{"Name", "George"},
                                              {"Address", "Koogler St"}};
-  gn2.setStr(str_vals2);
+  gn2.set(str_vals2);
   str =
       "First=1,Second=2,Height=159.32,Weight=101.43,Address=Koogler "
       "St,Name=George;";
-  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+  BOOST_CHECK_EQUAL(gn2.getContentLabel(), str);
 }
 
 BOOST_AUTO_TEST_CASE(comparisontest) {
@@ -94,14 +94,14 @@ BOOST_AUTO_TEST_CASE(comparisontest) {
   string str1{"a=134;"};
   string str2{"b=134;"};
 
-  BOOST_CHECK_EQUAL(vec_gn.at(0).getStringId(), str1);
-  BOOST_CHECK_EQUAL(vec_gn.at(1).getStringId(), str2);
+  BOOST_CHECK_EQUAL(vec_gn.at(0).getContentLabel(), str1);
+  BOOST_CHECK_EQUAL(vec_gn.at(1).getContentLabel(), str2);
 
   vector<GraphNode> vec_gn2 = {gn2, gn1};
   sort(vec_gn2.begin(), vec_gn2.end(), cmpNode);
 
-  BOOST_CHECK_EQUAL(vec_gn2.at(0).getStringId(), str1);
-  BOOST_CHECK_EQUAL(vec_gn2.at(1).getStringId(), str2);
+  BOOST_CHECK_EQUAL(vec_gn2.at(0).getContentLabel(), str1);
+  BOOST_CHECK_EQUAL(vec_gn2.at(1).getContentLabel(), str2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -16,22 +16,23 @@
  * limitations under the License.
  *
  */
+#ifndef VOTCA_TOOLS_GRAPHNODE_H
+#define VOTCA_TOOLS_GRAPHNODE_H
 
+#include "attributes.h"
 #include "types.h"
+
 #include <iostream>
 #include <string>
 #include <unordered_map>
 #include <utility>
 
-#ifndef VOTCA_TOOLS_GRAPHNODE_H
-#define VOTCA_TOOLS_GRAPHNODE_H
-
 namespace votca {
 namespace tools {
 
-class GraphDistVisitor;
+// class GraphDistVisitor;
 
-enum class StringIdType { full, brief };
+// enum class StringIdType { full, brief };
 
 /**
  * \brief A graph node that will take a variety of different values
@@ -44,56 +45,70 @@ enum class StringIdType { full, brief };
  * NOTE: It may be of interest to take a look at the the Boost property map
  * class, which was designed for a similar purpose.
  */
-class GraphNode {
+class GraphNode : public Attributes {
  private:
-  std::string str_id_{""};
-  std::string str_id_no_label_{""};
-  std::unordered_map<std::string, Index> int_vals_;
-  std::unordered_map<std::string, double> double_vals_;
-  std::unordered_map<std::string, std::string> str_vals_;
-  void initStringId_();
+  // std::string str_id_{""};
+  // std::string str_id_no_label_{""};
+  // std::unordered_map<std::string, Index> int_vals_;
+  // std::unordered_map<std::string, double> double_vals_;
+  // std::unordered_map<std::string, std::string> str_vals_;
+  // void initStringId_();
 
  public:
   GraphNode() = default;
 
   /// Constructor
   /// Each map corresponds to a different content the graph node can contain.
-  GraphNode(const std::unordered_map<std::string, Index> int_vals,
-            const std::unordered_map<std::string, double> double_vals,
-            const std::unordered_map<std::string, std::string> str_vals);
+  /* GraphNode(const std::unordered_map<std::string, Index> int_vals,
+             const std::unordered_map<std::string, double> double_vals,
+             const std::unordered_map<std::string, std::string> str_vals);*/
+
+  template <typename T>
+  GraphNode(const std::unordered_map<std::string, T> values)
+      : Attributes(values){};
+
+  template <typename T, typename U>
+  GraphNode(const std::unordered_map<std::string, T> values1,
+            const std::unordered_map<std::string, U> values2)
+      : Attributes(values1, values2){};
+
+  template <typename T, typename U, typename V>
+  GraphNode(const std::unordered_map<std::string, T> values1,
+            const std::unordered_map<std::string, U> values2,
+            const std::unordered_map<std::string, V> values3)
+      : Attributes(values1, values2, values3){};
 
   /// Basic setters
-  void setInt(const std::unordered_map<std::string, Index> int_vals);
-  void setDouble(const std::unordered_map<std::string, double> double_vals);
-  void setStr(const std::unordered_map<std::string, std::string> str_vals);
+  //  void setInt(const std::unordered_map<std::string, Index> int_vals);
+  // void setDouble(const std::unordered_map<std::string, double> double_vals);
+  // void setStr(const std::unordered_map<std::string, std::string> str_vals);
 
-  void resetInt(std::string label, const Index& value);
-  void resetDouble(std::string label, const double& value);
-  void resetStr(std::string label, const std::string& value);
+  // void resetInt(std::string label, const Index& value);
+  // void resetDouble(std::string label, const double& value);
+  // void resetStr(std::string label, const std::string& value);
 
-  void addInt(std::string label, const Index value);
-  void addDouble(std::string label, const double value);
-  void addStr(std::string label, const std::string& value);
+  // void addInt(std::string label, const Index value);
+  // void addDouble(std::string label, const double value);
+  // void addStr(std::string label, const std::string& value);
 
-  bool hasInt(const std::string& label) const;
+  // bool hasInt(const std::string& label) const;
 
   /// Basic getters
-  Index getInt(const std::string& str) const;
-  double getDouble(const std::string& str) const;
-  std::string getStr(const std::string& str) const;
+  // Index getInt(const std::string& str) const;
+  // double getDouble(const std::string& str) const;
+  // std::string getStr(const std::string& str) const;
 
   /// Get the string id unique to the contents of the graph node, by default
   /// will return the full string id
-  std::string getStringId(StringIdType type = StringIdType::full) const {
-    if (type == StringIdType::full) return str_id_;
-    return str_id_no_label_;
-  }
-  bool operator==(const GraphNode gn) const;
-  bool operator!=(const GraphNode gn) const;
+  //  std::string getStringId(StringIdType type = StringIdType::full) const {
+  //    if (type == StringIdType::full) return str_id_;
+  //    return str_id_no_label_;
+  //  }
+  // bool operator==(const GraphNode gn) const;
+  // bool operator!=(const GraphNode gn) const;
 
   // Allow visitor to directly access members of the node
-  friend GraphDistVisitor;
-
+  // friend GraphDistVisitor;
   friend std::ostream& operator<<(std::ostream& os, const GraphNode gn);
 };
 
