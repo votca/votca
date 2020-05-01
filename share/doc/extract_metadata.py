@@ -32,34 +32,7 @@ parser.add_argument("-m", "--mode", help="Operation mode: xtp, csg, qm",
 
 MAXIMUM_LINE_LENGTH = 60
 
-XTP_TABLE_HEADER = """
-{}
-The following table contains the defaults input options for the calculator,
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 20 15 15
-   :align: center
-
-   * - Property Name
-     - Description
-     - Default Value
-     - Valid Input""".format
-
-CSG_TABLE_HEADER = """
-{}
-The following table contains the input options for CSG,
-
-.. list-table::
-   :header-rows: 1
-   :align: center
-
-   * - Property Name
-     - Description
-     - Default Value""".format
-
-
-QMPACKAGE_TABLE_HEADER = """
+DEFAULTS_TABLE_HEADER = """
 .. list-table::
    :header-rows: 1
    :widths: 30 20 15 15
@@ -69,6 +42,29 @@ QMPACKAGE_TABLE_HEADER = """
      - Description
      - Default Value
      - Valid Input"""
+
+
+def xtp_table_header(x: str) -> str:
+    """Create a table for XTP calculators."""
+    return f"""
+{x}
+The following table contains the defaults input options for the calculator,
+{DEFAULTS_TABLE_HEADER}"""
+
+
+def csg_table_header(x: str):
+    """Create a CSG table with its default values."""
+    return f"""
+{x}
+The following table contains the input options for CSG,
+
+.. list-table::
+   :header-rows: 1
+   :align: center
+
+   * - Property Name
+     - Description
+     - Default Value"""
 
 
 XTP_TABLE_LINE = """
@@ -169,7 +165,7 @@ def xtp_create_rst_table(file_name: Path) -> str:
     """Create an RST table using the metadata in the XML file."""
     header, elements = xtp_extract_metadata(file_name)
     header = generate_title(file_name.stem) + header
-    s = XTP_TABLE_HEADER(header)
+    s = xtp_table_header(header)
     for elem in elements:
         s += xtp_get_recursive_attributes(elem)
 
@@ -180,7 +176,7 @@ def xtp_create_rst_table(file_name: Path) -> str:
 def csg_create_rst_table(file_name: Path) -> str:
     """Create an RST table using the metadata in the XML file."""
     header, elements = csg_extract_metadata(file_name)
-    s = CSG_TABLE_HEADER(header)
+    s = csg_table_header(header)
     for elem in elements:
         s += csg_get_recursive_attributes(elem)
     return s
@@ -189,7 +185,7 @@ def csg_create_rst_table(file_name: Path) -> str:
 def qmpackage_create_rst_table(file_name) -> str:
     """Create an RST table using the metadata in the XML file."""
     children = get_root_children(file_name)
-    s = QMPACKAGE_TABLE_HEADER
+    s = DEFAULTS_TABLE_HEADER
     for elem in children:
         s += xtp_get_recursive_attributes(elem)
     return s
