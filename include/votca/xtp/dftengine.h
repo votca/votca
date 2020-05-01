@@ -44,7 +44,7 @@ class Orbitals;
 
 class DFTEngine {
  public:
-  void Initialize(tools::   Property& options);
+  void Initialize(tools::Property& options);
 
   void setLogger(Logger* pLog) { _pLog = pLog; }
 
