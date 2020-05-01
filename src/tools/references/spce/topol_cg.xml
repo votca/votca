@@ -1,0 +1,8 @@
+<topology>
+  <molecules>
+    <molecule name="SOL" nmols="216" nbeads="1">
+      <bead name="CG" type="CG" mass="18.0154" q="0" />
+    </molecule>
+  </molecules>
+</topology>
+
