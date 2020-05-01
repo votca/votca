@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation) = "yes" && $1 != "--
   msg "Doing main simulation"
 fi
 
-if [[ ${CSG_MDRUN_STEPS} ]]; then
+if [[ ${CSG_MDRUN_STEPS} && ! ${CSG_DONT_OVERWRITE_MDRUN_STEPS} ]]; then
   msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
   mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
 fi
