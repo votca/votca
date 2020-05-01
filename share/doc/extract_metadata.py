@@ -27,8 +27,8 @@ parser = argparse.ArgumentParser(description=msg)
 parser.add_argument('-i', required=True,
                     help="Input file in YAML format")
 parser.add_argument('-o', help="Optional output file", default=None)
-parser.add_argument("-m", "--mode", help="Operation mode: xtp or csg",
-                    choices=["xtp", "csg"], default="xtp")
+parser.add_argument("-m", "--mode", help="Operation mode: xtp, csg, qm",
+                    choices=["xtp", "csg", "qm"], default="xtp")
 
 MAXIMUM_LINE_LENGTH = 60
 
@@ -59,6 +59,18 @@ The following table contains the input options for CSG,
      - Default Value""".format
 
 
+QMPACKAGE_TABLE_HEADER = """
+.. list-table::
+   :header-rows: 1
+   :widths: 30 20 15 15
+   :align: center
+
+   * - Property Name
+     - Description
+     - Default Value
+     - Valid Input"""
+
+
 XTP_TABLE_LINE = """
    * - {}
      - {}
@@ -77,8 +89,10 @@ def main():
     file_name = Path(args.i)
     if args.mode == "xtp":
         table = xtp_create_rst_table(file_name)
-    else:
+    elif args.mode == "csg":
         table = csg_create_rst_table(file_name)
+    else:
+        table = qmpackage_create_rst_table(file_name)
 
     # Print
     if args.o is not None:
@@ -90,20 +104,23 @@ def main():
         print(table)
 
 
-def xtp_extract_metadata(file_name: Path) -> Tuple[str, List[ET.Element]]:
-    """Get the description and elements from the xml file."""
+def get_root_children(file_name: Path) -> List[ET.Element]:
+    """Get all the node children from root."""
     tree = ET.parse(file_name)
     root = tree.getroot()
-    data = list(root)[0]
+    return list(root)
+
+
+def xtp_extract_metadata(file_name: Path) -> Tuple[str, List[ET.Element]]:
+    """Get the description and elements from the xml file."""
+    data = get_root_children(file_name)[0]
     header = data.attrib.get("help", "")
     return header, iter(data)
 
 
 def csg_extract_metadata(file_name: Path) -> Tuple[str, List[ET.Element]]:
     """Get the description and elements from the xml file."""
-    tree = ET.parse(file_name)
-    root = tree.getroot()
-    children = list(root)
+    children = get_root_children(file_name)
     header = children[0].text
     return header, children[1:]
 
@@ -166,6 +183,15 @@ def csg_create_rst_table(file_name: Path) -> str:
     s = CSG_TABLE_HEADER(header)
     for elem in elements:
         s += csg_get_recursive_attributes(elem)
+    return s
+
+
+def qmpackage_create_rst_table(file_name) -> str:
+    """Create an RST table using the metadata in the XML file."""
+    children = get_root_children(file_name)
+    s = QMPACKAGE_TABLE_HEADER
+    for elem in children:
+        s += xtp_get_recursive_attributes(elem)
     return s
 
 

@@ -1,4 +1,4 @@
-<package>
+<package help="Defaults for the Quantum Mechanics packages">
 <name help="QM package to use" default="xtp" choices="xtp,orca">xtp</name>
 <charge help="Molecular charge" default="0" choices="int">0</charge>
 <spin help="Molecular multiplicity" default="1" choices="int+">1</spin>
@@ -11,11 +11,11 @@
 <dipole_spacing>0.1</dipole_spacing>
 <read_guess help="Read wave function guess" default="false" choices="bool">false</read_guess>
 <write_charges help="Print atomic charges" default="false" choices="bool">false</write_charges>
-<convergence_tightness help="" default="tight" choices="low, normal, tight, verytight">tight</convergence_tightness>
+<convergence_tightness help="" default="tight" choices="low,normal,tight,verytight">tight</convergence_tightness>
 <cleanup help="files to remove after the calculation is done"> </cleanup>
 <orca>
-    <method></method>
-    <scf>GUESS PMODEL</scf>
+    <method help="This is automatically fill with the functional and basis set"></method>
+    <scf help="Orca SCF section">GUESS PMODEL</scf>
 </orca>
 <xtpdft>
     <with_screening help="screening" default="true" choices="bool">true</with_screening>

@@ -6,3 +6,4 @@ XTP Manual
    xtp_introduction
    theory
    workflows_and_calculators
+   qmpackages
