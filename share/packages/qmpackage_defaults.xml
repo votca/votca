@@ -27,9 +27,12 @@
         <DIIS_start help="DIIS error at which DIIS takes over" default="0.002" choices="float+">0.002</DIIS_start>
         <ADIIS_start help="DIIS error at which ADIIS takes over" default="0.8" choices="float+">0.8</ADIIS_start>
         <DIIS_length help="old hamiltonians to keep in history" default="20" choices="int+">20</DIIS_length>
+        <DIIS_maxout help="" default="false" choices="bool">false</DIIS_maxout>
         <levelshift help="levelshift to apply to hamiltonian " unit="hartree" default="0.0" choices="float+">0.0</levelshift>
         <levelshift_end help="DIIS error at levelshifting is disabled" default="0.2" choices="float+">0.2</levelshift_end>
         <max_iterations help="max iterations to use" default="100" choices="int+">100</max_iterations>
+        <error help="convergence error" default="1e-7" choices="float+">1e-7</error>
+        <mixing help="" default="0.7" choices="float+">0.7</mixing>
     </convergence>
     <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities)" default="atom" choices="independent,atom">atom</initial_guess>
     <integration_grid help="grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine">medium</integration_grid>

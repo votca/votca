@@ -96,8 +96,8 @@ void DFTEngine::Initialize(Property& options) {
   if (options.exists(key_xtpdft + ".convergence")) {
     _conv_opt.Econverged =
         options.get(key_xtpdft + ".convergence.energy").as<double>();
-    _conv_opt.error_converged = options.ifExistsReturnElseReturnDefault<double>(
-        key_xtpdft + ".convergence.error", _conv_opt.error_converged);
+    _conv_opt.error_converged =
+        options.get(key_xtpdft + ".convergence.error").as<double>();
     _max_iter =
         options.get(key_xtpdft + ".convergence.max_iterations").as<Index>();
 
@@ -112,16 +112,16 @@ void DFTEngine::Initialize(Property& options) {
       _conv_opt.histlength = 1;
       _conv_opt.maxout = false;
     }
-    _conv_opt.mixingparameter = options.ifExistsReturnElseReturnDefault<double>(
-        key_xtpdft + ".convergence.mixing", _conv_opt.mixingparameter);
+    _conv_opt.mixingparameter =
+        options.get(key_xtpdft + ".convergence.mixing").as<double>();
     _conv_opt.levelshift =
         options.get(key_xtpdft + ".convergence.levelshift").as<double>();
     _conv_opt.levelshiftend =
         options.get(key_xtpdft + ".convergence.levelshift_end").as<double>();
-    _conv_opt.maxout = options.ifExistsReturnElseReturnDefault<bool>(
-        key_xtpdft + ".convergence.DIIS_maxout", _conv_opt.maxout);
-    _conv_opt.histlength = options.ifExistsReturnElseReturnDefault<Index>(
-        key_xtpdft + ".convergence.DIIS_length", _conv_opt.histlength);
+    _conv_opt.maxout =
+        options.get(key_xtpdft + ".convergence.DIIS_maxout").as<bool>();
+    _conv_opt.histlength =
+        options.get(key_xtpdft + ".convergence.DIIS_length").as<Index>();
     _conv_opt.diis_start =
         options.get(key_xtpdft + ".convergence.DIIS_start").as<double>();
     _conv_opt.adiis_start =

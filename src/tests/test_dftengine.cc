@@ -135,6 +135,9 @@ BOOST_AUTO_TEST_CASE(dft_full) {
   xml << "    <levelshift>0.0</levelshift>" << std::endl;
   xml << "    <levelshift_end>0.2</levelshift_end>" << std::endl;
   xml << "    <max_iterations choices=\"int+\">100</max_iterations>\n";
+  xml << "    <error choices=\"float+\">1e-7</error>\n";
+  xml << "    <DIIS_maxout choices=\"bool\">false</DIIS_maxout>\n";
+  xml << "    <mixing choices=\"float+\">0.7</mixing>\n";
   xml << "</convergence>" << std::endl;
   xml << "<initial_guess>independent</initial_guess>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
@@ -253,6 +256,9 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   xml << "    <levelshift>0.0</levelshift>" << std::endl;
   xml << "    <levelshift_end>0.2</levelshift_end>" << std::endl;
   xml << "    <max_iterations choices=\"int+\">100</max_iterations>\n";
+  xml << "    <error choices=\"float+\">1e-7</error>\n";
+  xml << "    <DIIS_maxout choices=\"bool\">false</DIIS_maxout>\n";
+  xml << "    <mixing choices=\"float+\">0.7</mixing>\n";
   xml << "</convergence>" << std::endl;
   xml << "<initial_guess>atom</initial_guess>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
