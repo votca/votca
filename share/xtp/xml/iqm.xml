@@ -34,7 +34,7 @@
 	                <eigensolver help="options for BSE eigenvalue decompostion">
 		                <dodavidson help="use davidson solver" default="true" choices="bool">true</dodavidson>
 		                <davidson_correction help="Davidson correction method" default="DPR" choices="DPR,OHLSEN">DPR</davidson_correction>
-		                <davidson_tolerance help="Numerical tolerance" default="strict" choices="loose,normal,strict">normal</davidson_tolerance>
+		                <davidson_tolerance help="Numerical tolerance" default="normal" choices="loose,normal,strict">normal</davidson_tolerance>
 		                <davidson_ortho help="orthogonalisation routine: Gram–Schmidt or QR" default="GS" choices="GS,QR">GS</davidson_ortho>
 		                <davidson_update help=" how large the search space" default="safe" choices="min,safe,max">safe</davidson_update>
 		                <davidson_maxiter help="max iterations" default="50" choices="int+">50</davidson_maxiter>

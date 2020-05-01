@@ -394,6 +394,13 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   // davidson full matrix
   opt.davidson = 1;
+  opt.matrixfree = 0;
+  opt.davidson_correction = "DPR";
+  opt.davidson_ortho = "GS";
+  opt.davidson_tolerance = "normal";
+  opt.davidson_update = "safe";
+  opt.davidson_maxiter = 50;
+
   bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_singlets(orbitals);
 
