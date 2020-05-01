@@ -39,7 +39,7 @@ void DftGwBse::Initialize(const tools::Property& user_options) {
       ".molecule", _job_name + ".xyz");
 
   // job tasks
-  bool _do_optimize = options.get(".optimize").as<bool>();
+  _do_optimize = options.get(".optimize").as<bool>();
 
   // options for dft package
   _package_options = options.get(".dftpackage");
