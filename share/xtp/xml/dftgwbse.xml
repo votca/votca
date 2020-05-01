@@ -2,7 +2,7 @@
     <!-- xtp_tools -e dftgwbse options.xml -->
     <dftgwbse help="Compute electronic excitations using GW-BSE">
 
-        <optimize help="Perform a molecular geometry optimization" default="false" choices="bool">false</mode>
+        <optimize help="Perform a molecular geometry optimization" default="false" choices="bool">false</optimize>
         <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
         <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
         <functional help="Functional name(s) according to LIBXC" default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
@@ -33,7 +33,7 @@
 	                <eta help="small parameter eta of the Green's function" default="1e-3" unit="Hartree" choices="float+">1e-3</eta>
 	                <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid">grid</qp_solver>
 	                <qp_grid_steps help="number of QP grid points" default="1001" choices="int+">1001</qp_grid_steps>
-	                <qp_grid_spacing help="spacing of QP grid points" unit="Hartree" default="0.001" unit="Hartree" choices="float+">0.001</qp_grid_spacing>
+	                <qp_grid_spacing help="spacing of QP grid points" unit="Hartree" default="0.001" choices="float+">0.001</qp_grid_spacing>
 	                <exctotal help="maximum number of BSE states to calculate" default="30" choices="int+">30</exctotal>
 	                <useTDA help="use TDA for BSE" default="false" choices="bool">false</useTDA>
 	                <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level" default="no" choices="RPA,GW,BSE,no">no</ignore_corelevels>
