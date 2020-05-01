@@ -2,7 +2,7 @@
     <!-- xtp_tools -e dftgwbse options.xml -->
     <dftgwbse help="Compute electronic excitations using GW-BSE">
 
-        <mode help="Calculator mode" default="energy" choices="energy,optimize">energy</mode>
+        <optimize help="Perform a molecular geometry optimization" default="false" choices="bool">false</mode>
         <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
         <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
         <functional help="Functional name(s) according to LIBXC" default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
@@ -30,10 +30,10 @@
 	                <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW" choices="evGW,G0W0">evGW</mode>
 	                <tasks help="tasks to do" default="gw,singlets">gw,singlets</tasks>
 	                <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact">ppm</sigma_integrator>
-	                <eta help="small parameter eta of the Green's function(Hartree)" default="1e-3" unit="Hartree" choices="float+">1e-3</eta>
+	                <eta help="small parameter eta of the Green's function" default="1e-3" unit="Hartree" choices="float+">1e-3</eta>
 	                <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid">grid</qp_solver>
 	                <qp_grid_steps help="number of QP grid points" default="1001" choices="int+">1001</qp_grid_steps>
-	                <qp_grid_spacing help="spacing of QP grid points in Hartree" default="0.001" unit="Hartree" choices="float+">0.001</qp_grid_spacing>
+	                <qp_grid_spacing help="spacing of QP grid points" unit="Hartree" default="0.001" unit="Hartree" choices="float+">0.001</qp_grid_spacing>
 	                <exctotal help="maximum number of BSE states to calculate" default="30" choices="int+">30</exctotal>
 	                <useTDA help="use TDA for BSE" default="false" choices="bool">false</useTDA>
 	                <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level" default="no" choices="RPA,GW,BSE,no">no</ignore_corelevels>
@@ -75,10 +75,10 @@
                 <filters help="property to track" default="oscillatorstrength" choices="chargetransfer,density,localisation,oscillatorstrength,overlap">oscillatorstrength</filters>
             </statetracker>
             <convergence help="Convergence criteria for geometry optimization">
-                <energy help="" unit="Hartree" default="1.e-6"  choices="float+">1.e-6</energy>
-                <RMSForce help="" unit="Hartree/Bohr" default="3.e-5" choices="float+">3.e-5</RMSForce>
-                <MaxForce help="" unit="Hartree/Bohr" default="1.e-4" choices="float+">1.e-4</MaxForce>
-                <RMSStep help="" unit="Bohr" default="6.e-4" choices="float+">6.e-4</RMSStep>
+                <energy help="Energy error tolerance" unit="Hartree" default="1.e-6"  choices="float+">1.e-6</energy>
+                <RMSForce help="Force Root mean square error tolerance" unit="Hartree/Bohr" default="3.e-5" choices="float+">3.e-5</RMSForce>
+                <MaxForce help="Maximum force Convergence criteria" unit="Hartree/Bohr" default="1.e-4" choices="float+">1.e-4</MaxForce>
+                <RMSStep help="Step Root mean square error tolerance" unit="Bohr" default="6.e-4" choices="float+">6.e-4</RMSStep>
                 <MaxStep help="convergence criteria for geometry optimisation" unit="Bohr" default="1.e-3" choices="float+">1.e-3</MaxStep>
             </convergence>
             <optimizer help="optimiser method">

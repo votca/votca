@@ -39,7 +39,7 @@ void DftGwBse::Initialize(const tools::Property& user_options) {
       ".molecule", _job_name + ".xyz");
 
   // job tasks
-  std::string mode = options.get(".mode").as<std::string>();
+  bool _do_optimize = options.get(".optimize").as<bool>();
 
   // options for dft package
   _package_options = options.get(".dftpackage");
@@ -72,7 +72,6 @@ void DftGwBse::Initialize(const tools::Property& user_options) {
   _xml_output = _job_name + "_summary.xml";
 
   // checking for additional requests
-  _do_optimize = false;
   _do_external = false;
   _do_guess = false;
 
@@ -89,8 +88,7 @@ void DftGwBse::Initialize(const tools::Property& user_options) {
   }
 
   // if optimization is chosen, get options for geometry_optimizer
-  if (mode == "optimize") {
-    _do_optimize = true;
+  if (_do_optimize) {
     _geoopt_options = options.get(".geometry_optimization");
   }
 
