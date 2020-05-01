@@ -16,6 +16,7 @@
  */
 
 #include "../../include/votca/tools/calculator.h"
+#include "../../include/votca/tools/tokenizer.h"
 
 namespace votca {
 namespace tools {
@@ -73,6 +74,70 @@ void Calculator::OverwriteDefaultsWithUserInput(const Property &p,
       defaults.add(prop.name(), prop.value());
     }
   }
+}
+
+std::vector<std::string> Calculator::GetPropertyChoices(const Property &p) {
+  if (p.hasAttribute("choices")) {
+    std::string att = p.getAttribute<std::string>("choices");
+    Tokenizer tok{att, " ,"};
+    return tok.ToVector();
+  } else {
+    return {""};
+  }
+}
+
+void Calculator::RecursivelyCheckOptions(const Property &p) {
+  for (const Property &prop : p) {
+    if (prop.HasChildren()) {
+      RecursivelyCheckOptions(prop);
+    } else {
+      std::vector<std::string> choices = Calculator::GetPropertyChoices(prop);
+      const std::string &head = choices.front();
+      if (head != "") {
+        if (!Calculator::IsValidOption(prop, choices)) {
+          std::ostringstream oss;
+          oss << "\nThe input value for \"" << prop.name() << "\"";
+          if (choices.size() == 1) {
+            oss << " should be a \"" << head << "\"";
+          } else {
+            oss << " should be one of the following values: ";
+            for (const std::string &c : choices) {
+              oss << "\"" << c << "\""
+                  << " ";
+            }
+          }
+          oss << " But \"" << prop.value()
+              << "\" cannot be converted into one.\n";
+          std::cout << oss.str();
+          throw std::runtime_error(oss.str());
+        }
+      }
+    }
+  }
+}
+
+bool Calculator::IsValidOption(const Property &prop,
+                               const std::vector<std::string> &choices) {
+  const std::string &head = choices.front();
+  std::ostringstream oss;
+  bool is_valid;
+  if (head == "bool") {
+    is_valid = Calculator::IsValidCast<bool>(prop);
+  } else if (head == "float") {
+    is_valid = Calculator::IsValidCast<double>(prop);
+  } else if (head == "float+") {
+    is_valid =
+        Calculator::IsValidCast<double>(prop) && (prop.as<double>() >= 0.0);
+  } else if (head == "int") {
+    is_valid = Calculator::IsValidCast<Index>(prop);
+  } else if (head == "int+") {
+    is_valid = Calculator::IsValidCast<Index>(prop) && (prop.as<Index>() >= 0);
+  } else {
+    std::string value = prop.as<std::string>();
+    auto it = std::find(std::cbegin(choices), std::cend(choices), value);
+    is_valid = (it != std::cend(choices));
+  }
+  return is_valid;
 }
 
 }  // namespace tools
