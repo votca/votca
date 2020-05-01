@@ -38,9 +38,7 @@ void Esp2multipole::Initialize(tools::Property& options) {
   std::string statestring = options.get(key + ".state").as<std::string>();
   _state.FromString(statestring);
 
-  std::vector<std::string> choices = {"mulliken", "loewdin", "CHELPG"};
-  _method = options.ifExistsAndinListReturnElseThrowRuntimeError(
-      key + ".method", choices);
+  _method = options.get(key + ".method").as<std::string>();
 
   if (_method == "mulliken") {
     _use_mulliken = true;

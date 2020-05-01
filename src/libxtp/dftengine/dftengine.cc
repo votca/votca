@@ -51,15 +51,12 @@ void DFTEngine::Initialize(Property& options) {
 
   if (options.exists(key + ".auxbasisset")) {
     _auxbasis_name = options.get(key + ".auxbasisset").as<string>();
-    _with_RI = true;
-  } else {
-    _with_RI = false;
   }
 
-  if (!_with_RI) {
+  _four_center_method =
+      options.get(key_xtpdft + ".four_center_method").as<std::string>();
 
-    _four_center_method =
-        options.get(key_xtpdft + ".four_center_method").as<std::string>();
+  if (_four_center_method != "RI") {
     _with_screening = options.get(key_xtpdft + ".with_screening").as<bool>();
     _screening_eps = options.get(key_xtpdft + ".screening_eps").as<double>();
   }
@@ -158,7 +155,7 @@ void DFTEngine::CalcElDipole(const Orbitals& orb) const {
 
 Mat_p_Energy DFTEngine::CalcEXXs(const Eigen::MatrixXd& MOCoeff,
                                  const Eigen::MatrixXd& Dmat) const {
-  if (_with_RI) {
+  if (_four_center_method == "RI") {
     if (_conv_accelerator.getUseMixing() || MOCoeff.rows() == 0) {
       return _ERIs.CalculateEXX(Dmat);
     } else {
@@ -417,7 +414,7 @@ void DFTEngine::SetupInvariantMatrices() {
   _conv_accelerator.setOverlap(_dftAOoverlap, 1e-8);
   _conv_accelerator.PrintConfigOptions();
 
-  if (_with_RI) {
+  if (_four_center_method == "RI") {
     // prepare invariant part of electron repulsion integrals
     _ERIs.Initialize(_dftbasis, _auxbasis);
     XTP_LOG(Log::info, *_pLog)
@@ -693,7 +690,7 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
   if (_with_ecp) {
     orb.setECPName(_ecp_name);
   }
-  if (_with_RI) {
+  if (_four_center_method == "RI") {
     orb.setAuxbasisName(_auxbasis_name);
   }
 
@@ -757,7 +754,7 @@ void DFTEngine::Prepare(QMMolecule& mol) {
       << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << " with "
       << _dftbasis.AOBasisSize() << " functions" << flush;
 
-  if (_with_RI) {
+  if (_four_center_method == "RI") {
     BasisSet auxbasisset;
     auxbasisset.Load(_auxbasis_name);
     _auxbasis.Fill(auxbasisset, mol);
@@ -994,7 +991,7 @@ Mat_p_Energy DFTEngine::IntegrateExternalDensity(
 }
 
 Mat_p_Energy DFTEngine::CalculateERIs(const Eigen::MatrixXd& DMAT) const {
-  if (_with_RI) {
+  if (_four_center_method == "RI") {
     return _ERIs.CalculateERIs(DMAT);
   } else if (_four_center_method == "cache") {
     return _ERIs.CalculateERIs_4c_small_molecule(DMAT);

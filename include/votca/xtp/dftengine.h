@@ -107,7 +107,6 @@ class DFTEngine {
   ECPAOBasis _ecp;
 
   bool _with_ecp;
-  bool _with_RI;
 
   std::string _four_center_method;  // direct | cache
 

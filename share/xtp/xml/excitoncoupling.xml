@@ -1,11 +1,11 @@
 <options>
 
 <excitoncoupling help="Exciton couplings from serialized orbital files" section="sec:bsecoupling">
-        <classical help="Exciton couplings from classical transition charges" default="0" choices="int+">0</classical>
+        <use_classical help="Calculate Couplings from classical charges instead of ab-initio" default="false" choices="bool">false</use_classical>
         <mpsA help="classical transition charges for segment A"></mpsA>
         <mpsB help="classical transition charges for segment B"></mpsB>
         <output help="Output file" default="votca_excitoncoupling.xml">votca_excitoncoupling.xml</output>
-        <bsecoupling_options help="xml file with options for bse coupling calculations">
+        <bsecoupling_options help="nested xml file with options for bse coupling calculations">
 
                 <spin help="Spin type for couplings" default="singlet" choices="singlet,triplet,all">all</spin>
                 <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0">0</degeneracy>
