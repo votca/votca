@@ -46,7 +46,7 @@ struct BranchSequenceLeafComparator {
     if (n1->sortAndGetBranchSequenceIds_().length() <
         n2->sortAndGetBranchSequenceIds_().length())
       return true;
-    return n1->getTreeStringId().compare(n2->getTreeStringId()) < 0;
+    return n1->getTreeContentLabel().compare(n2->getTreeContentLabel()) < 0;
   }
 };
 
@@ -123,7 +123,7 @@ void BranchSequenceLeaf::sortBranchSequence() {
   c_branch_str_id_ = sortAndGetBranchSequenceIds_();
 }
 
-std::string BranchSequenceLeaf::getTreeStringId() const {
+std::string BranchSequenceLeaf::getTreeContentLabel() const {
   if (not sorted_)
     throw std::runtime_error(
         "Cannot get cummulitive branch string id because the branch sequence "

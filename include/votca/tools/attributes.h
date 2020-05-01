@@ -116,7 +116,32 @@ class Attributes {
     buildLabels_();
   }
 
+  template <typename T>
+  void add(const std::unordered_map<std::string, T> values) {
+    for (auto& key_val : values) {
+      checkKey_(key_val.first);
+      assert(
+          attributes_.count(key_val.first) == 0 &&
+          "Cannot add attribute Attributes instance, the key has already been "
+          "used");
+      attributes_[key_val.first] = key_val.second;
+    }
+    buildLabels_();
+  }
+
   void remove(const std::string& key);
+
+  template <typename T>
+  void removeAll() {
+    auto it = attributes_.begin();
+    while (it != attributes_.end()) {
+      if (it->second.type() == typeid(T)) {
+        it = attributes_.erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
 
   bool exists(const std::string& key) const;
 

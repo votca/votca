@@ -4,7 +4,8 @@ find_package(Boost 1.53.0 REQUIRED COMPONENTS unit_test_framework)
 foreach(PROG
     test_attributes
     test_branch
-    test_branchsequencenode
+    test_branchtree
+    test_branchsequenceleaf
     test_constants
     test_correlate
     test_crosscorrelate

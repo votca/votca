@@ -21,61 +21,85 @@
 #define VOTCA_TOOLS_BRANCHTREE_H
 #pragma once
 
+#include "branchsequenceleaf.h"
+#include "votca/tools/types.h"
+
+#include <map>
+#include <memory>
+#include <vector>
+
 namespace votca {
 namespace tools {
-/*
+
+/**
+ * @brief BranchTree
+ *
+ * It is responsible for all branch sequence leafs, memory for leafs can only
+ * be created by the BranchTree
+ */
 class BranchTree {
-  private:
-    std::map<Index, std::vector<BranchSequenceNode *>> level_ptrs;
+ private:
+  // The levels of the different branches
+  typedef std::map<Level, std::vector<std::shared_ptr<BranchSequenceLeaf>>>
+      LevelManager;
+  LevelManager level_ptrs_;
 
-    int current_level_;
+  Level current_level_;
 
-    std::list<BranchSequenceNode *> prev_nodes
-    std::list<BranchSequenceNode *> current_nodes;
-  public:
-    BranchTree(int levels) : level_ptrs(levels), current_level_(levels) {};
+  std::list<std::shared_ptr<BranchSequenceLeaf>> prev_leafs_;
+  std::list<std::shared_ptr<BranchSequenceLeaf>> current_leafs_;
 
-    void stepLevel(){
-      assert(level!=0 && "Cannot step level at source");
+ public:
+  BranchTree() = default;
+  BranchTree(Level max_level) : current_level_(max_level){};
 
-      level--;
-      prev_nodes = std::move(current_nodes);
-      current_nodes.clear();
-    }
+  void stepLevel() {
+    assert(current_level_.num != 0 && "Cannot step level at source");
+    current_level_.num--;
+    prev_leafs_ = std::move(current_leafs_);
+    current_leafs_.clear();
+  }
 
-    void addBranch(int level, Branch branch) {
-      // Only check the source vertex when loolking to add nodes
-      assert(level==current_level_ && "Cannot add branch, wrong level");
+  Level getCurrentLevel() const { return current_level_; }
 
+  size_t countLeaves(Level level) const {
+    if (level_ptrs_.count(level) == 0) return 0;
+    return level_ptrs_.at(level).size();
+  }
 
-      BranchSequenceNode* node = new BranchSequenceNode(branch);
+  void addBranch(Level level, votca::Index branch_id, Branch branch) {
+    // Only check the source vertex when looking to add nodes
+    assert(level == current_level_ && "Cannot add branch, wrong level");
 
-      // Check to see if node is attached connected to any of the previously
-      // added BranchSequenceNodes
-      for ( BranchSequenceNode * p_node : prev_nodes) {
-        if( node->isParent(*p_node) ){
-          node->addLeaf(p_node);
-        }
+    auto new_leaf = std::shared_ptr<BranchSequenceLeaf>(
+        new BranchSequenceLeaf(branch_id, branch));
+
+    // Check to see if node is attached connected to any of the previously
+    // added BranchSequenceNodes
+    for (std::shared_ptr<BranchSequenceLeaf>& leaf : prev_leafs_) {
+      if (new_leaf->isRoot(leaf)) {
+        new_leaf->addLeaf(leaf);
       }
-      current_nodes.push_back(node)
-
     }
+    level_ptrs_[level].push_back(new_leaf);
+    current_leafs_.push_back(new_leaf);
+  }
 
-    // At each level we need to be able to calculate the string id
-    std::string getStrId(int level, int branch_id ){
-      assert(level>=0 && "Cannot access branch in negative levels");
-      assert(level>=current_level_ && "Cannot access level, level has not been
-added to the tree");
-      // Find the correct branch
-      for ( BranchSequenceNode * node : level_ptrs[level]){
-        if(node->branch_id_ == branch_id) {
-          return node->getCummulitiveBranchStringId();
-        }
+  // At each level we need to be able to calculate the string id
+  std::string getContentLabel(Level level, votca::Index branch_id) {
+    assert(level > negative_level && "Cannot access branch in negative levels");
+    assert(level >= current_level_ &&
+           "Cannot access level, level has not been added to the tree");
+    // Find the correct branch
+    for (auto& leaf : level_ptrs_[level]) {
+      if (leaf->getId() == branch_id) {
+        return leaf->getTreeContentLabel();
       }
-      return "";
     }
+    return "";
+  }
 };
-*/
-}
+
+}  // namespace tools
 }  // namespace votca
 #endif  // VOTCA_TOOLS_BRANCHTREE_H

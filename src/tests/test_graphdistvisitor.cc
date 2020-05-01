@@ -64,10 +64,10 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   gdv.exec(&g, ed1);
   BOOST_CHECK(gdv.queEmpty());
   GraphNode gn3 = g.getNode(0);
-  votca::Index dist = gn3.get<votca::Index>("Dist");
+  votca::Index dist = gn3.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 0);
   GraphNode gn4 = g.getNode(1);
-  dist = gn4.get<votca::Index>("Dist");
+  dist = gn4.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 1);
 }
 
@@ -159,31 +159,31 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   // node which by default is node 0.
 
   GraphNode gn8 = g.getNode(0);
-  votca::Index dist = gn8.get<votca::Index>("Dist");
+  int dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 0);
 
   gn8 = g.getNode(1);
-  dist = gn8.get<votca::Index>("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 1);
 
   gn8 = g.getNode(2);
-  dist = gn8.get<votca::Index>("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 2);
 
   gn8 = g.getNode(3);
-  dist = gn8.get<votca::Index>("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 3);
 
   gn8 = g.getNode(4);
-  dist = gn8.get<votca::Index>("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 2);
 
   gn8 = g.getNode(5);
-  dist = gn8.get<votca::Index>("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 3);
 
   gn8 = g.getNode(6);
-  dist = gn8.get<votca::Index>("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 1);
 }
 

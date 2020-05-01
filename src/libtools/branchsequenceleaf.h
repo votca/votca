@@ -28,6 +28,37 @@
 namespace votca {
 namespace tools {
 
+class Level {
+ public:
+  int num;
+  Level() : num(-1){};
+  Level(int lev_num) : num(lev_num){};
+
+  bool operator==(const Level& lev) const { return num == lev.num; }
+  bool operator!=(const Level& lev) const { return !(*this == lev); }
+  bool operator<(const Level& lev) const { return num < lev.num; }
+  bool operator>(const Level& lev) const {
+    return !(*this < lev) && (*this != lev);
+  }
+  bool operator<=(const Level& lev) const { return !(*this > lev); }
+  bool operator>=(const Level& lev) const { return !(*this < lev); }
+};
+
+Level negative_level;
+}  // namespace tools
+}  // namespace votca
+// custom specialization of std::hash can be injected in namespace std
+namespace std {
+template <>
+struct hash<votca::tools::Level> {
+  std::size_t operator()(votca::tools::Level const& level) const noexcept {
+    return std::hash<int>{}(level.num);
+  }
+};
+}  // namespace std
+
+namespace votca {
+namespace tools {
 /**
  * @brief Private class to work with canonize algorithm
  *
@@ -70,7 +101,7 @@ class BranchSequenceLeaf {
   bool branchExists_(const Branch& branch) const;
 
   // Used to ensure branch is not looping around on itself
-  Index branch_dist_;
+  Level level_;
 
   Index parallel_order_num_ = 0;
 
@@ -112,10 +143,9 @@ class BranchSequenceLeaf {
       : branch_id_(leaf.branch_id_),
         branch_(leaf.branch_),
         c_branch_str_id_(leaf.c_branch_str_id_),
-        branch_dist_(leaf.branch_dist_),
+        level_(leaf.level_),
         sorted_(leaf.sorted_),
         branch_end_(leaf.branch_end_) {
-
     for (const std::shared_ptr<BranchSequenceLeaf>& br_leaf :
          leaf.branch_sequence_) {
       branch_sequence_.push_back(std::shared_ptr<BranchSequenceLeaf>(br_leaf));
@@ -127,7 +157,7 @@ class BranchSequenceLeaf {
       : branch_id_(leaf.branch_id_),
         branch_(leaf.branch_),
         c_branch_str_id_(leaf.c_branch_str_id_),
-        branch_dist_(leaf.branch_dist_),
+        level_(leaf.level_),
         sorted_(leaf.sorted_),
         branch_end_(leaf.branch_end_) {
 
@@ -140,6 +170,9 @@ class BranchSequenceLeaf {
                                 leaf.branch_sequence_.end());
   };
 
+  Level getBranchLevel() const { return level_; }
+
+  votca::Index getId() const { return branch_id_; }
   /// Does what it says, to do this it must parse the whole tree
   std::vector<Index> getCanonicalVertexSequence() const;
 
@@ -149,7 +182,7 @@ class BranchSequenceLeaf {
    *
    * @return
    */
-  std::string getTreeStringId() const;
+  std::string getTreeContentLabel() const;
 
   bool isSorted() const noexcept { return sorted_; }
 

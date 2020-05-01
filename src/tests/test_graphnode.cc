@@ -46,32 +46,34 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK_EQUAL(gn3 == gn2, true);
 }
 
-BOOST_AUTO_TEST_CASE(setters_test) {
+BOOST_AUTO_TEST_CASE(add_test) {
   unordered_map<string, votca::Index> int_vals = {{"Num", 134}};
   unordered_map<string, double> double_vals = {{"Height", 159.32}};
   unordered_map<string, string> str_vals = {{"Name", "George"}};
   GraphNode gn2(int_vals, double_vals, str_vals);
 
-  string str{"Num=134,Height=159.32,Name=George;"};
+  string str{"Height=159.32,Name=George,Num=134;"};
   BOOST_CHECK_EQUAL(gn2.getContentLabel(), str);
 
   unordered_map<string, votca::Index> int_vals2 = {{"Second", 2}, {"First", 1}};
-  gn2.set(int_vals2);
-  str = "First=1,Second=2,Height=159.32,Name=George;";
+  /// Remove all the indices from the graphnode
+  gn2.removeAll<votca::Index>();
+  gn2.add(int_vals2);
+  str = "First=1,Height=159.32,Name=George,Second=2;";
   BOOST_CHECK_EQUAL(gn2.getContentLabel(), str);
 
   unordered_map<string, double> double_vals2 = {{"Height", 159.32},
                                                 {"Weight", 101.43}};
-  gn2.set(double_vals2);
-  str = "First=1,Second=2,Height=159.32,Weight=101.43,Name=George;";
+  gn2.remove(string("Height"));
+  gn2.add(double_vals2);
+  str = "First=1,Height=159.32,Name=George,Second=2,Weight=101.43;";
   BOOST_CHECK_EQUAL(gn2.getContentLabel(), str);
 
-  unordered_map<string, string> str_vals2 = {{"Name", "George"},
-                                             {"Address", "Koogler St"}};
-  gn2.set(str_vals2);
+  gn2.reset(string("Name"), string("George"));
+  gn2.add(string("Address"), string("Koogler St"));
   str =
-      "First=1,Second=2,Height=159.32,Weight=101.43,Address=Koogler "
-      "St,Name=George;";
+      "Address=Koogler "
+      "St,First=1,Height=159.32,Name=George,Second=2,Weight=101.43;";
   BOOST_CHECK_EQUAL(gn2.getContentLabel(), str);
 }
 

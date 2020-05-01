@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(canAddLeaf_sequenceIsIncomplete_addLeaf) {
   BOOST_TEST(sequenceleaf.treeIsIncomplete() == true);
 }
 
-BOOST_AUTO_TEST_CASE(getTreeStringId) {
+BOOST_AUTO_TEST_CASE(getTreeContentLabel) {
   vector<ReducedEdge> vec_ed;
   /// First branch
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
@@ -213,7 +213,7 @@ BOOST_AUTO_TEST_CASE(getTreeStringId) {
     sequenceleaf.addLeaf(leaf2);
 
     sequenceleaf.sortBranchSequence();
-    std::string cum_id = sequenceleaf.getTreeStringId();
+    std::string cum_id = sequenceleaf.getTreeContentLabel();
     BOOST_TEST(
         cum_id ==
         std::string(
@@ -249,7 +249,7 @@ BOOST_AUTO_TEST_CASE(getTreeStringId) {
     sequenceleaf.addLeaf(leaf2);
 
     sequenceleaf.sortBranchSequence();
-    std::string cum_id = sequenceleaf.getTreeStringId();
+    std::string cum_id = sequenceleaf.getTreeContentLabel();
     BOOST_TEST(cum_id == std::string("{name=a;name=a;name=a}{name=a;name=b;"
                                      "name=b}{name=a;name=c;name=c}"));
   }
@@ -372,7 +372,7 @@ BOOST_AUTO_TEST_CASE(getCanonicalVertexSequence) {
     auto leaf1 = std::make_shared<BranchSequenceLeaf>(branch_id1, branch1);
     sequenceleaf.addLeaf(leaf1);
     Index branch_id2 = 2;
-    auto leaf2 = std::make_shared<BranchSequenceLeaf>(branch_id1, branch1);
+    auto leaf2 = std::make_shared<BranchSequenceLeaf>(branch_id2, branch2);
     sequenceleaf.addLeaf(leaf2);
 
     sequenceleaf.sortBranchSequence();
@@ -388,7 +388,7 @@ BOOST_AUTO_TEST_CASE(getCanonicalVertexSequence) {
   ///
   ///    branch 0       -  b 4 -
   /// 0     1     2  /           \
-    /// a  -  a  -  a     branch 2
+  /// a  -  a  -  a     branch 2
   ///             |  \           /
   ///             c 3   -  b 5 -
   ///             |
