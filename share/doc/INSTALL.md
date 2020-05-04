@@ -166,6 +166,12 @@ and all its dependencies:
     spack install votca-csg
     spack install votca-xtp
 
+#### Stable version
+
+Spack can also install the latest stable version from git using:
+
+    spack install votca-csg@stable
+
 #### Development version
 
 Spack can also install the latest development version from git using:
@@ -180,7 +186,19 @@ following docker commands:
     docker pull votca/votca
     docker run -it votca/votca /bin/bash
     
-  ## Linking Error: Undefined reference to 
+#### Release version
+
+Docker can also install the latest released version, e.g.::
+
+    docker run -it votca/votca:v1.6 /bin/bash
+
+#### Stable version
+
+Docker can also install the latest stable version from git using:
+
+    docker run -it votca/votca:stable /bin/bash
+
+## Linking Error: Undefined reference to
  
 This error can happen due to a multitude of reasons. You may have forgotten to add paths to the `LD_LIBRARY_PATH` or forgotten to import an environment module. In these cases deleting the `CMakeCache.txt` in your `build` folder and rerunning `cmake`  will help. Unfortunately another cause might be ABI incompability between libraries due to different libraries being compiled with different compilers or compiler versions. Click [here](https://github.com/ICRAR/shark/issues/1) for an example. 
 
