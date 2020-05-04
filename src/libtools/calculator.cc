@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,57 +20,54 @@
 namespace votca {
 namespace tools {
 
-void Calculator::UpdateWithDefaults(Property &options, std::string package) {
-
-  // copy options from the object supplied by the Application
-  std::string id = Identify();
-  Property options_id = options.get("options." + id);
-
-  // add default values if specified in VOTCASHARE
+std::string Calculator::GetVotcaShare() {
   char *votca_share = getenv("VOTCASHARE");
   if (votca_share == nullptr) {
     throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
   }
+  return std::string(votca_share);
+}
+
+Property Calculator::LoadDefaults(const std::string package) {
+
+  std::string calculator_name = Identify();
+  // add default values if specified in VOTCASHARE
+  std::string votca_share = Calculator::GetVotcaShare();
+
   // load the xml description of the calculator (with defaults and test values)
-  std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/") +
-                        package + std::string("/xml/") + id +
+  std::string xmlFile = votca_share + std::string("/") + package +
+                        std::string("/xml/") + calculator_name +
                         std::string(".xml");
 
   Property defaults_all;
   defaults_all.LoadFromXML(xmlFile);
-  Property defaults = defaults_all.get("options." + id);
-
-  // if a value not given or a tag not present, provide default values
-  AddDefaults(options_id, defaults);
-
-  // output calculator options
-  std::string indent("          ");
-  Index level = 1;
-  votca::tools::PropertyIOManipulator IndentedText(PropertyIOManipulator::TXT,
-                                                   level, indent);
-  if (Log::verbose()) {
-    std::cout << "\n... ... options\n"
-              << IndentedText << options_id << "... ... options\n"
-              << std::flush;
-  }
+  return defaults_all.get("options." + calculator_name);
 }
 
-void Calculator::AddDefaults(Property &p, const Property &defaults) {
+void Calculator::UpdateWithUserOptions(Property &default_options,
+                                       const Property &user_options) {
 
-  for (const Property &prop : defaults) {
+  // copy options from the object supplied by the Application
+  std::string calculator_name = Identify();
+  Property options_id = user_options.get("options." + calculator_name);
+
+  // if a value is given override default values
+  OverwriteDefaultsWithUserInput(options_id, default_options);
+}
+
+void Calculator::OverwriteDefaultsWithUserInput(const Property &p,
+                                                Property &defaults) {
+
+  // Go through everything that is defined in user option
+  for (const Property &prop : p) {
     std::string name = prop.path() + "." + prop.name();
-
-    Property rootp = *p.begin();
-    if (prop.hasAttribute("default")) {
-      if (rootp.exists(name)) {
-        if (rootp.HasChildren()) {
-          rootp.value() = prop.value();
-        }
-      } else {
-        rootp.add(prop.name(), prop.value());
-      }
+    if (prop.HasChildren()) {
+      OverwriteDefaultsWithUserInput(prop, defaults.get(prop.name()));
+    } else if (defaults.exists(prop.name())) {
+      defaults.set(prop.name(), prop.value());
+    } else {
+      defaults.add(prop.name(), prop.value());
     }
-    AddDefaults(p, prop);
   }
 }
 

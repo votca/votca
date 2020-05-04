@@ -14,7 +14,7 @@ target_include_directories(votca_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -P ${CMAKE_MODULE_PATH}/gitversion.cmake)
+  -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 add_dependencies(votca_tools gitversion)
@@ -24,12 +24,7 @@ target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eig
 	Boost::filesystem Boost::system EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
 if(TARGET MKL::MKL)
   target_link_libraries(votca_tools PUBLIC MKL::MKL)
-  foreach(_PROP IMPORTED_LOCATION INTERFACE_LINK_LIBRARIES INTERFACE_INCLUDE_DIRECTORIES IMPORTED_NO_SONAME)
-    get_target_property(MKL_${_PROP} MKL::MKL ${_PROP})
-  endforeach()
-  foreach(_TGT Interface ThreadLayer)
-    get_target_property(MKL_${_TGT}_IMPORTED_LOCATION MKL::${_TGT} IMPORTED_LOCATION)
-  endforeach()
+  install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindMKL.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
 if(TARGET FFTW3::FFTW3)
   target_link_libraries(votca_tools PRIVATE FFTW3::FFTW3)
