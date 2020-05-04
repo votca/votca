@@ -436,6 +436,17 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   opt.rpamin = orbitalsAB.getRPAmin();
   opt.useTDA = true;
   opt.vmin = orbitalsAB.getBSEvmin();
+  opt.nmax = 5;
+  opt.davidson = true;     // use davidson to diagonalize the matrix
+  opt.matrixfree = false;  // use matrix free method
+  opt.davidson_correction = "DPR";
+  opt.davidson_ortho = "GS";
+  opt.davidson_tolerance = "normal";
+  opt.davidson_update = "safe";
+  opt.davidson_maxiter = 50;
+  opt.min_print_weight = 0.5;  // minimium contribution for state to print it
+  opt.use_Hqp_offdiag = true;
+
   BSE bse(*_pLog, Mmn);
   bse.configure(opt, orbitalsAB.RPAInputEnergies(), Hqp);
   XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Setup BSE operator" << flush;
