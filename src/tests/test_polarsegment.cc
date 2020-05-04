@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE(readwritehdf) {
     BOOST_CHECK_EQUAL(seg2[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(seg2[i].getElement(), seg[i].getElement());
     BOOST_CHECK_EQUAL(
-        seg2[i].getPolarisation().isApprox(seg[i].getPolarisation(), 1e-5),
+        seg2[i].getpolarization().isApprox(seg[i].getpolarization(), 1e-5),
         true);
   }
 }
@@ -196,7 +196,7 @@ BOOST_AUTO_TEST_CASE(readwritemps) {
     BOOST_CHECK_EQUAL(seg2[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(seg2[i].getElement(), seg[i].getElement());
     BOOST_CHECK_EQUAL(
-        seg2[i].getPolarisation().isApprox(seg[i].getPolarisation(), 1e-5),
+        seg2[i].getpolarization().isApprox(seg[i].getpolarization(), 1e-5),
         true);
   }
 }

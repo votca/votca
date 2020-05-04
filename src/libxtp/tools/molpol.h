@@ -41,7 +41,7 @@ class MolPol : public QMTool {
   bool Evaluate() override;
 
  private:
-  void PrintPolarisation(const Eigen::Matrix3d& result) const;
+  void Printpolarization(const Eigen::Matrix3d& result) const;
 
   Eigen::Matrix3d CalcClassicalPol(const PolarSegment& input) const;
   Eigen::Vector3d CalcInducedDipole(const PolarSegment& input,
@@ -50,7 +50,7 @@ class MolPol : public QMTool {
 
   std::string _mps_output;
   PolarSegment _input;
-  Eigen::Matrix3d _polarisation_target;
+  Eigen::Matrix3d _polarization_target;
 
   Eigen::VectorXd _weights;
 

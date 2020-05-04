@@ -396,12 +396,12 @@ BOOST_AUTO_TEST_CASE(polar_case_monopole) {
   PolarSegment seg1("one", 1);
   PolarSegment seg2("two", 2);
   PolarSite one(1, "H");
-  one.setPolarisation(Eigen::Matrix3d::Identity());
+  one.setpolarization(Eigen::Matrix3d::Identity());
   one.setMultipole(mpoles1, 0);
   one.setPos(Eigen::Vector3d::Zero());
 
   PolarSite two(2, "H");
-  two.setPolarisation(Eigen::Matrix3d::Identity());
+  two.setpolarization(Eigen::Matrix3d::Identity());
   two.setMultipole(mpoles1, 0);
   two.setPos(2 * Eigen::Vector3d::UnitZ());
   seg1.push_back(one);

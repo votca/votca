@@ -140,17 +140,17 @@ void PolarRegion::AppendResult(tools::Property& prop) const {
 }
 
 Index PolarRegion::CalcPolDoF() const {
-  Index dof_polarisation = 0;
+  Index dof_polarization = 0;
   for (const PolarSegment& seg : _segments) {
-    dof_polarisation += seg.size() * 3;
+    dof_polarization += seg.size() * 3;
   }
-  return dof_polarisation;
+  return dof_polarization;
 }
 
 Eigen::VectorXd PolarRegion::CalcInducedDipoleInsideSegments() const {
-  Index dof_polarisation = CalcPolDoF();
+  Index dof_polarization = CalcPolDoF();
   Eigen::VectorXd initial_induced_dipoles =
-      Eigen::VectorXd::Zero(dof_polarisation);
+      Eigen::VectorXd::Zero(dof_polarization);
   eeInteractor interactor(_exp_damp);
   Index index = 0;
   for (const PolarSegment& seg : _segments) {
@@ -162,9 +162,9 @@ Eigen::VectorXd PolarRegion::CalcInducedDipoleInsideSegments() const {
 }
 
 Eigen::VectorXd PolarRegion::ReadInducedDipolesFromLastIteration() const {
-  Index dof_polarisation = CalcPolDoF();
+  Index dof_polarization = CalcPolDoF();
   Eigen::VectorXd last_induced_dipoles =
-      Eigen::VectorXd::Zero(dof_polarisation);
+      Eigen::VectorXd::Zero(dof_polarization);
   Index index = 0;
   for (const PolarSegment& seg : _segments) {
     for (const PolarSite& site : seg) {
@@ -236,10 +236,10 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
   XTP_LOG(Log::info, _log) << TimeStamp()
                            << " Calculated static interaction in region "
                            << std::flush;
-  Index dof_polarisation = CalcPolDoF();
+  Index dof_polarization = CalcPolDoF();
   XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Starting Solving for classical polarisation with "
-      << dof_polarisation << " degrees of freedom." << std::flush;
+      << TimeStamp() << " Starting Solving for classical polarization with "
+      << dof_polarization << " degrees of freedom." << std::flush;
 
   Eigen::VectorXd initial_induced_dipoles;
   if (!_E_hist.filled() || _segments.size() == 1) {

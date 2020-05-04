@@ -1,5 +1,5 @@
 /*
- *            Copyright 2016 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -109,7 +109,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
       }
       double unit_conversion_3 = std::pow(tools::conv::ang2bohr, 3);
       p1 = p1 * unit_conversion_3;
-      this->_atomlist.back().setPolarisation(p1);
+      this->_atomlist.back().setpolarization(p1);
     }
     // Multipole lines
     else {

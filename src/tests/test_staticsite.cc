@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(translate_test) {
   BOOST_CHECK_EQUAL(shift.isApprox(st.getPos(), 1e-5), true);
 }
 
-BOOST_AUTO_TEST_CASE(writepolarisation_test) {
+BOOST_AUTO_TEST_CASE(writepolarization_test) {
   StaticSite st(1, "st2");
   Eigen::VectorXd multipole = Eigen::VectorXd::Zero(9);
   multipole << 1, 2, 3, 4, 8, 7, 2, 3.3, -0.5;

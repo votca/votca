@@ -7,7 +7,7 @@
 <optimize help="Perform a molecular geometry optimization" default="false" choices="bool">false</optimize>
 <functional default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
 <scratch help="path to the scratch folder" default="/tmp/qmpackage">/tmp/qmpackage</scratch>
-<polarisation>false</polarisation>
+<polarization>false</polarization>
 <dipole_spacing>0.1</dipole_spacing>
 <read_guess help="Read wave function guess" default="false" choices="bool">false</read_guess>
 <write_charges help="Print atomic charges" default="false" choices="bool">false</write_charges>
