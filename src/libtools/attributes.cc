@@ -39,7 +39,7 @@ using namespace boost;
 ///////////////////////////////////////////////////////////
 /// Converts a double into a string with max number of significant
 /// figures indicated by sf
-static string sig_fig_(double val, Index sf) {
+/*static string sig_fig_(double val, Index sf) {
   return ([val](Index number_of_sig_figs) -> string {
     stringstream lStream;
     lStream << setprecision(int(number_of_sig_figs)) << val;
@@ -111,24 +111,24 @@ static string getLabelBrief_(const unordered_map<string, boost::any> vals) {
     label.append(",");
   }
   return label;
-}
+}*/
 
 ///////////////////////////////////////////////////////////
 // Private Functions
 ///////////////////////////////////////////////////////////
 /// Used to reinitialize the string id if any of the contents
 /// of the graphnode change
-void Attributes::buildLabels_() {
-  full_label_.clear();
+/*void Attributes::buildLabels_() {
+  label_ = ContentLabel(attributes_);.clear();
   full_label_.append(getLabel_(attributes_));
   if (full_label_.length() > 0) full_label_.back() = ';';
 
   brief_label_.clear();
   brief_label_.append(getLabelBrief_(attributes_));
   if (brief_label_.length() > 0) brief_label_.back() = ';';
-}
+}*/
 
-void Attributes::checkKey_(const std::string& key) {
+/*void Attributes::checkKey_(const std::string& key) {
   std::vector<std::string> reserved_symbols{"=", ",", ";", "{", "}"};
   for (const std::string& symbol : reserved_symbols) {
     if (key.find(symbol) != std::string::npos) {
@@ -136,8 +136,8 @@ void Attributes::checkKey_(const std::string& key) {
       err_msg += symbol + " symbol it is reserved for internal use.";
       throw std::invalid_argument(err_msg);
     }
-  }
-}
+  }*/
+}  // namespace tools
 
 ///////////////////////////////////////////////////////////
 // Public Functions
@@ -210,5 +210,5 @@ bool cmpAttributes(Attributes attr1, Attributes attr2) {
   string label = attr1.getContentLabel();
   return label.compare(attr2.getContentLabel()) < 0;
 }
-}  // namespace tools
+}  // namespace votca
 }  // namespace votca

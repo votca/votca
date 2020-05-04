@@ -29,17 +29,14 @@
 namespace votca {
 namespace tools {
 
-enum class LabelType { verbose, concise };
-
 class Attributes {
  private:
-  std::string full_label_{""};
-  std::string brief_label_{""};
+  ContentLabel label_;
 
   // Consists of a key and a value
   std::unordered_map<std::string, boost::any> attributes_;
-  void buildLabels_();
-  void checkKey_(const std::string& key);
+  //  void buildLabels_();
+  //  void checkKey_(const std::string& key);
 
  public:
   Attributes() = default;
@@ -50,7 +47,7 @@ class Attributes {
   template <typename T>
   Attributes(const std::unordered_map<std::string, T> values) {
     for (auto key_val : values) attributes_[key_val.first] = key_val.second;
-    buildLabels_();
+    label_ = ContentLabel(attributes_);
   }
 
   template <typename T, typename U>
@@ -58,7 +55,7 @@ class Attributes {
              const std::unordered_map<std::string, U> values2) {
     for (auto key_val : values1) attributes_[key_val.first] = key_val.second;
     for (auto key_val : values2) attributes_[key_val.first] = key_val.second;
-    buildLabels_();
+    label_ = ContentLabel(attributes_);
   }
 
   template <typename T, typename U, typename V>
@@ -68,7 +65,7 @@ class Attributes {
     for (auto key_val : values1) attributes_[key_val.first] = key_val.second;
     for (auto key_val : values2) attributes_[key_val.first] = key_val.second;
     for (auto key_val : values3) attributes_[key_val.first] = key_val.second;
-    buildLabels_();
+    label_ = ContentLabel(attributes_);
   }
   /// Returns a list of the keys
   std::vector<std::string> getKeys() const noexcept;
@@ -77,23 +74,30 @@ class Attributes {
   std::unordered_map<std::string, std::string> getTypes() const noexcept;
   /// Sets the attributes with the provided values
   //  void set(const std::unordered_map<std::string, boost::any> values);
+  template <typename T>
+  void set(const std::string key, T value) {
+    attributes_.clear();
+    attributes_[key] = value;
+    label_ = ContentLabel(attributes_);
+  }
 
   template <typename T>
   void set(const std::unordered_map<std::string, T> values) {
-    for (auto& key_val : values) {
-      checkKey_(key_val.first);
-    }
+
     attributes_.clear();
     for (auto& key_val : values) {
       attributes_[key_val.first] = key_val.second;
     }
-    buildLabels_();
+    label_ = ContentLabel(attributes_);
   }
 
+  template <typename T>
+  void reset(const char* key, const T value) {
+    reset(std::string(key), value);
+  }
   /// Resets the attributes with the provided value, the key must already exist
   template <typename T>
   void reset(const std::string key, const T value) {
-    checkKey_(key);
     if (attributes_.count(key) == 0) {
       throw std::invalid_argument("Cannot reset attribute, " + key +
                                   " the key is not known.");
@@ -103,7 +107,12 @@ class Attributes {
           "Cannot reset attribute to a different type.");
     }
     attributes_[key] = value;
-    buildLabels_();
+    label_ = ContentLabel(attributes_);
+  }
+
+  template <typename T>
+  void add(const char* key, const T value) {
+    add(std::string(key), value);
   }
 
   template <typename T>
@@ -111,23 +120,23 @@ class Attributes {
     assert(attributes_.count(key) == 0 &&
            "Cannot add attribute Attributes instance, the key has already been "
            "used");
-    checkKey_(key);
     attributes_[key] = value;
-    buildLabels_();
+    label_ = ContentLabel(attributes_);
   }
 
   template <typename T>
   void add(const std::unordered_map<std::string, T> values) {
     for (auto& key_val : values) {
-      checkKey_(key_val.first);
       assert(
           attributes_.count(key_val.first) == 0 &&
           "Cannot add attribute Attributes instance, the key has already been "
           "used");
       attributes_[key_val.first] = key_val.second;
     }
-    buildLabels_();
+    label_ = ContentLabel(attributes_);
   }
+
+  void remove(const char* key) { remove(std::string(key)); }
 
   void remove(const std::string& key);
 
@@ -141,9 +150,17 @@ class Attributes {
         ++it;
       }
     }
+    label_ = ContentLabel(attributes_);
   }
 
+  bool exists(const char* key) const { return exists(std::string(key)); }
+
   bool exists(const std::string& key) const;
+
+  template <typename T>
+  T get(const char* key) const {
+    return get<T>(std::string(key));
+  }
 
   template <typename T>
   T get(const std::string key) const {
@@ -170,10 +187,7 @@ class Attributes {
     return values;
   }
 
-  std::string getContentLabel(LabelType type = LabelType::verbose) const {
-    if (type == LabelType::verbose) return full_label_;
-    return brief_label_;
-  }
+  ContentLabel getContentLabel() const { return label_; }
   bool operator==(const Attributes attr) const;
   bool operator!=(const Attributes attr) const;
 

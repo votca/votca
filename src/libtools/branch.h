@@ -30,20 +30,45 @@
 
 namespace votca {
 namespace tools {
+
+class Level {
+ public:
+  int num;
+  Level() : num(-1){};
+  Level(int lev_num) : num(lev_num){};
+
+  bool operator==(const Level& lev) const { return num == lev.num; }
+  bool operator!=(const Level& lev) const { return !(*this == lev); }
+  bool operator<(const Level& lev) const { return num < lev.num; }
+  bool operator>(const Level& lev) const {
+    return !(*this < lev) && (*this != lev);
+  }
+  bool operator<=(const Level& lev) const { return !(*this > lev); }
+  bool operator>=(const Level& lev) const { return !(*this < lev); }
+};
+
+}  // namespace tools
+}  // namespace votca
+// custom specialization of std::hash can be injected in namespace std
+namespace std {
+template <>
+struct hash<votca::tools::Level> {
+  std::size_t operator()(votca::tools::Level const& level) const noexcept {
+    return std::hash<int>{}(level.num);
+  }
+};
+}  // namespace std
+
+namespace votca {
+namespace tools {
 class Branch {
  private:
   std::vector<Index> vertex_sequence_;
   std::unordered_map<Index, std::string> node_str_ids_;
+  Level level_;
 
- public:
-  Branch(const ReducedEdge& edge, const Index starting_vertex,
-         const Graph& graph)
-      : Branch(edge.getChain(), starting_vertex, graph){};
-  // Create a branch, the branches are ordered such that the starting
-  // vertex is placed first in the sequence
-  Branch(const std::vector<Index>& branch_vertices, const Index starting_vertex,
-         const Graph& graph) {
-
+  void init_(const std::vector<Index>& branch_vertices,
+             const Index starting_vertex, const Graph& graph) {
     assert((branch_vertices.front() == starting_vertex ||
             branch_vertices.back() == starting_vertex) &&
            "Cannot create branch with the provided sequence, the provided "
@@ -60,18 +85,43 @@ class Branch {
     }
   }
 
+ public:
+  Branch(const ReducedEdge& edge, const Index starting_vertex,
+         const Graph& graph) {
+
+    if (not edge.exists("Level")) {
+      throw std::runtime_error(
+          "Cannot create branch from reduced edge it has not been assigned a "
+          "level");
+    }
+    level_ = Level(edge.get<int>("Level"));
+    init_(edge.getChain(), starting_vertex, graph);
+  };
+  // Create a branch, the branches are ordered such that the starting
+  // vertex is placed first in the sequence
+  Branch(const std::vector<Index>& branch_vertices, int level,
+         const Index starting_vertex, const Graph& graph) {
+
+    level_ = Level(level);
+    init_(branch_vertices, starting_vertex, graph);
+  }
+
+  Level getLevel() const noexcept { return level_; }
+
   void reverseSequence() {
     std::reverse(vertex_sequence_.begin(), vertex_sequence_.end());
   }
 
   Index getSource() const { return vertex_sequence_.front(); }
   Index getTerminal() const { return vertex_sequence_.back(); }
-  std::string getBranchStringId() const noexcept {
-    std::string branch_str_id_ = "";
+
+  ContentLabel getContentLabel() const noexcept {
+    ContentLabel label;
     for (const Index& vert : vertex_sequence_) {
-      branch_str_id_ += node_str_ids_.at(vert);
+      label.add(node_str_ids_.at(vert));
     }
-    return branch_str_id_;
+    label.makeBranch();
+    return label;
   }
 
   std::vector<Index> getSequence() const noexcept { return vertex_sequence_; }

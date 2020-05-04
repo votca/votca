@@ -36,6 +36,8 @@ BOOST_AUTO_TEST_SUITE(branch_test)
 BOOST_AUTO_TEST_CASE(constructors_test) {
   vector<ReducedEdge> vec_ed;
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
+  // Level attribute is required to create a branch from an edge
+  edge.add("Level", 0);
   vec_ed.push_back(edge);
 
   GraphNode gn;
@@ -56,6 +58,8 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
 BOOST_AUTO_TEST_CASE(terminal_and_source) {
   vector<ReducedEdge> vec_ed;
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
+  edge.add("Level", 0);
+  // Level attribute is required to create a branch from an edge
   vec_ed.push_back(edge);
 
   GraphNode gn;
@@ -80,6 +84,8 @@ BOOST_AUTO_TEST_CASE(terminal_and_source) {
 BOOST_AUTO_TEST_CASE(string_id) {
   vector<ReducedEdge> vec_ed;
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
+  edge.add("Level", 0);
+  // Level attribute is required to create a branch from an edge
   vec_ed.push_back(edge);
 
   GraphNode gn;
@@ -100,12 +106,14 @@ BOOST_AUTO_TEST_CASE(string_id) {
   Index starting_vertex = 0;
   Branch branch(edge, starting_vertex, graph);
 
-  BOOST_TEST(branch.getBranchStringId() == string("name=a;name=c;name=b;"));
+  BOOST_TEST(branch.getContentLabel() == string("name=a;name=c;name=b;"));
 }
 
 BOOST_AUTO_TEST_CASE(reverse_sequence) {
   vector<ReducedEdge> vec_ed;
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
+  edge.add("Level", 0);
+  // Level attribute is required to create a branch from an edge
   vec_ed.push_back(edge);
 
   GraphNode gn;
@@ -127,7 +135,7 @@ BOOST_AUTO_TEST_CASE(reverse_sequence) {
   Branch branch(edge, starting_vertex, graph);
 
   branch.reverseSequence();
-  BOOST_TEST(branch.getBranchStringId() == string("name=b;name=c;name=a;"));
+  BOOST_TEST(branch.getContentLabel() == string("name=b;name=c;name=a;"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

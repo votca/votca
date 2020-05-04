@@ -38,6 +38,7 @@ BOOST_AUTO_TEST_SUITE(branchsequenceleaf_test)
 BOOST_AUTO_TEST_CASE(constructors_test) {
   vector<ReducedEdge> vec_ed;
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
+  edge.add("Level", 0);
   vec_ed.push_back(edge);
 
   GraphNode gn;
@@ -61,6 +62,7 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
 BOOST_AUTO_TEST_CASE(canOrder_isDangling_makeBranchEnd) {
   vector<ReducedEdge> vec_ed;
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
+  edge.add("Level", 0);
   vec_ed.push_back(edge);
 
   GraphNode gn;
@@ -93,10 +95,13 @@ BOOST_AUTO_TEST_CASE(canAddLeaf_sequenceIsIncomplete_addLeaf) {
   vector<ReducedEdge> vec_ed;
   /// First branch
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
+  edge.add("Level", 0);
   /// Second branch
   ReducedEdge edge1(std::vector<Index>{2, 3});
+  edge1.add("Level", 0);
   /// Third branch
   ReducedEdge edge2(std::vector<Index>{2, 4, 5});
+  edge2.add("Level", 0);
 
   vec_ed.push_back(edge);
   vec_ed.push_back(edge1);
@@ -156,10 +161,13 @@ BOOST_AUTO_TEST_CASE(getTreeContentLabel) {
   vector<ReducedEdge> vec_ed;
   /// First branch
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
+  edge.add("Level", 1);
   /// Second branch
   ReducedEdge edge1(std::vector<Index>{2, 3});
+  edge1.add("Level", 1);
   /// Third branch
   ReducedEdge edge2(std::vector<Index>{2, 4, 5});
+  edge2.add("Level", 1);
 
   vec_ed.push_back(edge);
   vec_ed.push_back(edge1);
@@ -231,6 +239,7 @@ BOOST_AUTO_TEST_CASE(getTreeContentLabel) {
 
     // Replace edge1 to include vertex 6
     edge1 = ReducedEdge(std::vector<Index>{2, 3, 6});
+    edge1.add("Level", 1);
     Index starting_vertex = 0;
     Branch branch(edge, starting_vertex, graph);
     starting_vertex = 2;
@@ -259,10 +268,13 @@ BOOST_AUTO_TEST_CASE(getCanonicalVertexSequence) {
   vector<ReducedEdge> vec_ed;
   /// First branch
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
+  edge.add("Level", 1);
   /// Second branch
   ReducedEdge edge1(std::vector<Index>{2, 3});
+  edge1.add("Level", 1);
   /// Third branch
   ReducedEdge edge2(std::vector<Index>{2, 4, 5});
+  edge2.add("Level", 1);
 
   vec_ed.push_back(edge);
   vec_ed.push_back(edge1);
@@ -356,6 +368,7 @@ BOOST_AUTO_TEST_CASE(getCanonicalVertexSequence) {
 
     // Replace edge1 to include vertex 6
     edge1 = ReducedEdge(std::vector<Index>{2, 3, 6});
+    edge1.add("Level", 1);
     Index starting_vertex = 0;
     Branch branch(edge, starting_vertex, graph);
     starting_vertex = 2;
@@ -401,7 +414,9 @@ BOOST_AUTO_TEST_CASE(getCanonicalVertexSequence) {
 
     // Replace edge1 to include vertex 6
     edge1 = ReducedEdge(std::vector<Index>{2, 3, 6});
+    edge1.add("Level", 1);
     edge2 = ReducedEdge(std::vector<Index>{2, 4, 5, 2});
+    edge2.add("Level", 1);
 
     Index starting_vertex = 0;
     Branch branch(edge, starting_vertex, graph);
@@ -461,7 +476,9 @@ BOOST_AUTO_TEST_CASE(getCanonicalVertexSequence) {
 
     // Replace edge1 to include vertex 6
     edge1 = ReducedEdge(std::vector<Index>{2, 3, 6, 7});
+    edge1.add("Level", 1);
     edge2 = ReducedEdge(std::vector<Index>{2, 4, 5, 2});
+    edge2.add("Level", 1);
 
     Index starting_vertex = 0;
     Branch branch(edge, starting_vertex, graph);
@@ -527,22 +544,31 @@ BOOST_AUTO_TEST_CASE(getCanonicalVertexSequence) {
   vector<ReducedEdge> vec_ed2;
   /// First branch
   edge = ReducedEdge(std::vector<Index>{0, 1});
+  edge.add("Level", 1);
   /// Second branch
   edge1 = ReducedEdge(std::vector<Index>{1, 2});
+  edge1.add("Level", 1);
   /// Third branch
   edge2 = ReducedEdge(std::vector<Index>{1, 3});
+  edge2.add("Level", 1);
   /// Fourth branch
   ReducedEdge edge3 = ReducedEdge(std::vector<Index>{1, 4});
+  edge3.add("Level", 1);
   /// Fith branch
   ReducedEdge edge4 = ReducedEdge(std::vector<Index>{2, 3});
+  edge4.add("Level", 1);
   /// Sixth branch
   ReducedEdge edge5 = ReducedEdge(std::vector<Index>{4, 3});
+  edge5.add("Level", 1);
   /// Seventh branch
   ReducedEdge edge6 = ReducedEdge(std::vector<Index>{2, 5});
+  edge6.add("Level", 1);
   /// eigth branch
   ReducedEdge edge7 = ReducedEdge(std::vector<Index>{3, 5});
+  edge7.add("Level", 1);
   /// ninth branch
   ReducedEdge edge8 = ReducedEdge(std::vector<Index>{4, 5});
+  edge8.add("Level", 1);
 
   vec_ed.push_back(edge);
   vec_ed.push_back(edge1);

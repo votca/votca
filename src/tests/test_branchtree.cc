@@ -58,6 +58,8 @@ BOOST_AUTO_TEST_CASE(stepLevel_countLeaves_test) {
 BOOST_AUTO_TEST_CASE(addBranch_test) {
   vector<ReducedEdge> vec_ed;
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
+  int level_num = 5;
+  edge.add("Level", level_num);
   vec_ed.push_back(edge);
 
   GraphNode gn;
@@ -77,7 +79,7 @@ BOOST_AUTO_TEST_CASE(addBranch_test) {
   Level level(5);
   BranchTree tree(level);
   votca::Index branch_id = 1;
-  tree.addBranch(level, branch_id, branch);
+  tree.addBranch(branch_id, branch);
   size_t num_leaves = tree.countLeaves(level);
   BOOST_CHECK(num_leaves == 1);
 }

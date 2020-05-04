@@ -19,6 +19,7 @@
 
 #include "branchsequenceleaf.h"
 #include "branch.h"
+#include "votca/tools/contentlabel.h"
 #include "votca/tools/graphnode.h"
 #include "votca/tools/reducededge.h"
 #include <algorithm>
@@ -69,7 +70,7 @@ bool BranchSequenceLeaf::canOrder_(
 
 bool BranchSequenceLeaf::branchExists_(const Branch& branch) const {
   for (const std::shared_ptr<BranchSequenceLeaf>& leaf : branch_sequence_) {
-    if (leaf->branch_.getBranchStringId().compare(branch.getBranchStringId())) {
+    if (leaf->branch_.getContentLabel().compare(branch.getContentLabel())) {
       return true;
     }
   }
@@ -77,9 +78,9 @@ bool BranchSequenceLeaf::branchExists_(const Branch& branch) const {
 }
 
 std::string BranchSequenceLeaf::sortAndGetBranchSequenceIds_() {
-  c_branch_str_id_ = "{";
-  c_branch_str_id_.append(branch_.getBranchStringId());
-  c_branch_str_id_.back() = '}';
+  //  c_branch_str_id_ = "{";
+  //  c_branch_str_id_.append(branch_.getContentLabel());
+  //  c_branch_str_id_.back() = '}';
   std::sort(branch_sequence_.begin(), branch_sequence_.end(),
             BranchSequenceLeafComparator());
 

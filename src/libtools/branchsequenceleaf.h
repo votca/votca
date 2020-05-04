@@ -21,41 +21,10 @@
 #define VOTCA_TOOLS_BRANCHSEQUENCELEAF_H
 #pragma once
 #include "branch.h"
+#include "votca/tools/contentlabel.h"
 #include <iostream>
 #include <memory>
 #include <string>
-
-namespace votca {
-namespace tools {
-
-class Level {
- public:
-  int num;
-  Level() : num(-1){};
-  Level(int lev_num) : num(lev_num){};
-
-  bool operator==(const Level& lev) const { return num == lev.num; }
-  bool operator!=(const Level& lev) const { return !(*this == lev); }
-  bool operator<(const Level& lev) const { return num < lev.num; }
-  bool operator>(const Level& lev) const {
-    return !(*this < lev) && (*this != lev);
-  }
-  bool operator<=(const Level& lev) const { return !(*this > lev); }
-  bool operator>=(const Level& lev) const { return !(*this < lev); }
-};
-
-Level negative_level;
-}  // namespace tools
-}  // namespace votca
-// custom specialization of std::hash can be injected in namespace std
-namespace std {
-template <>
-struct hash<votca::tools::Level> {
-  std::size_t operator()(votca::tools::Level const& level) const noexcept {
-    return std::hash<int>{}(level.num);
-  }
-};
-}  // namespace std
 
 namespace votca {
 namespace tools {
@@ -182,7 +151,7 @@ class BranchSequenceLeaf {
    *
    * @return
    */
-  std::string getTreeContentLabel() const;
+  ContentLabel getTreeContentLabel() const;
 
   bool isSorted() const noexcept { return sorted_; }
 

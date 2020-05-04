@@ -22,6 +22,7 @@
 #pragma once
 
 #include "branchsequenceleaf.h"
+#include "votca/tools/contentlabel.h"
 #include "votca/tools/types.h"
 
 #include <map>
@@ -46,6 +47,8 @@ class BranchTree {
 
   Level current_level_;
 
+  // each branch must have a unique id for this to work
+  std::set<votca::Index> branch_ids_;
   std::list<std::shared_ptr<BranchSequenceLeaf>> prev_leafs_;
   std::list<std::shared_ptr<BranchSequenceLeaf>> current_leafs_;
 
@@ -53,51 +56,18 @@ class BranchTree {
   BranchTree() = default;
   BranchTree(Level max_level) : current_level_(max_level){};
 
-  void stepLevel() {
-    assert(current_level_.num != 0 && "Cannot step level at source");
-    current_level_.num--;
-    prev_leafs_ = std::move(current_leafs_);
-    current_leafs_.clear();
-  }
+  void stepLevel();
 
   Level getCurrentLevel() const { return current_level_; }
 
-  size_t countLeaves(Level level) const {
-    if (level_ptrs_.count(level) == 0) return 0;
-    return level_ptrs_.at(level).size();
-  }
+  size_t countLeaves(Level level) const;
 
-  void addBranch(Level level, votca::Index branch_id, Branch branch) {
-    // Only check the source vertex when looking to add nodes
-    assert(level == current_level_ && "Cannot add branch, wrong level");
+  std::vector<votca::Index> getBranchIds(Level level) const;
 
-    auto new_leaf = std::shared_ptr<BranchSequenceLeaf>(
-        new BranchSequenceLeaf(branch_id, branch));
-
-    // Check to see if node is attached connected to any of the previously
-    // added BranchSequenceNodes
-    for (std::shared_ptr<BranchSequenceLeaf>& leaf : prev_leafs_) {
-      if (new_leaf->isRoot(leaf)) {
-        new_leaf->addLeaf(leaf);
-      }
-    }
-    level_ptrs_[level].push_back(new_leaf);
-    current_leafs_.push_back(new_leaf);
-  }
+  void addBranch(votca::Index branch_id, Branch branch);
 
   // At each level we need to be able to calculate the string id
-  std::string getContentLabel(Level level, votca::Index branch_id) {
-    assert(level > negative_level && "Cannot access branch in negative levels");
-    assert(level >= current_level_ &&
-           "Cannot access level, level has not been added to the tree");
-    // Find the correct branch
-    for (auto& leaf : level_ptrs_[level]) {
-      if (leaf->getId() == branch_id) {
-        return leaf->getTreeContentLabel();
-      }
-    }
-    return "";
-  }
+  ContentLabel getContentLabel(Level level, votca::Index branch_id);
 };
 
 }  // namespace tools
