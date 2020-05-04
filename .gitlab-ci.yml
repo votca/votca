@@ -220,7 +220,7 @@ Release Clang Ubuntu Devel:
   extends: .build
   allow_failure: true
 
-Debug GCC OpenSUSE:
+Debug GCC openSUSE:
   variables:
     CC: "gcc"
     CXX: "g++"
@@ -228,7 +228,7 @@ Debug GCC OpenSUSE:
     DISTRO: "opensuse"
   extends: .build
 
-Debug Clang OpenSUSE:
+Debug Clang openSUSE:
   variables:
     CC: "clang"
     CXX: "clang++"
@@ -237,7 +237,7 @@ Debug Clang OpenSUSE:
     DISTRO: "opensuse"
   extends: .build
 
-Release GCC OpenSUSE:
+Release GCC openSUSE:
   variables:
     CC: "gcc"
     CXX: "g++"
@@ -245,7 +245,7 @@ Release GCC OpenSUSE:
     DISTRO: "opensuse"
   extends: .build
 
-Release Clang OpenSUSE:
+Release Clang openSUSE:
   variables:
     CC: "clang"
     CXX: "clang++"
