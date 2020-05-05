@@ -2,13 +2,13 @@ if(NOT VOTCA_SPHINX_DIR)
   set(VOTCA_SPHINX_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 endif()
 if(CMAKE_VERSION VERSION_LESS 3.12)
-  find_package(PythonInterp) # Deprecated since version 3.12
+  find_package(PythonInterp 3) # Deprecated since version 3.12
   set_package_properties(PythonInterp PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
   if(PYTHONINTERP_FOUND)
     set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
   endif()
 else()
-  find_package(Python COMPONENTS Interpreter)
+  find_package(Python 3 COMPONENTS Interpreter)
   set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
 endif()
 
