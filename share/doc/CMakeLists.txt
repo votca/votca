@@ -7,7 +7,7 @@ if(CMAKE_VERSION VERSION_LESS 3.12)
 else()
   find_package(Python COMPONENTS Interpreter)
 endif()
-find_package(Python REQUIRED COMPONENTS Interpreter)
+
 file(GLOB XMLS ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/xml/*.xml)
 set(XML_RST_FILES)
 foreach(_XML ${XMLS})
