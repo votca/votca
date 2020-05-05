@@ -127,7 +127,7 @@ This commands will:
   development version, as xtp still undergoes extensive development and no
   releases are available yet.
 
-## Binary Packages for various Linux Distributions
+## Packages for various Linux Distributions
 
 ### Fedora
 
@@ -197,6 +197,16 @@ Docker can also install the latest released version, e.g.::
 Docker can also install the latest stable version from git using:
 
     docker run -it votca/votca:stable /bin/bash
+
+### FreeBSD
+
+On FreeBSD votka can be installed from a binary package (recommended):
+
+    pkg install votka
+
+or it can be rebuilt and installed from the sources (slow):
+
+    cd /usr/ports/science/votca && make install clean
 
 ## Linking Error: Undefined reference to
  
