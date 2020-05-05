@@ -51,7 +51,7 @@ RUN cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
   -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca -DVOTCA_TEST_OPTS="${TESTOPTS}"} \
   ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_XTP=OFF} \
   ..
-RUN cmake --build . -- -j2
+RUN cmake --build . --parallel 2
 RUN ccache -s
 RUN if [ ${DOXYGEN} ]; then \
       cmake --build . --target doxygen; \
@@ -68,7 +68,7 @@ RUN if [ ${USERDOC} ]; then \
     fi
 RUN if [ ${TESTING} = ON ]; then ctest --output-on-failure ${TESTOPTS}; fi
 RUN if [ ! ${MODULE_BUILD} ]; then \
-      DESTDIR=${PWD}/install cmake --build . --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install; \
+      DESTDIR=${PWD}/install cmake --install . && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install; \
     fi
 RUN if [ ${COVERAGE} ]; then \
   if [ ${CC} = clang ]; then \
@@ -85,4 +85,4 @@ RUN if [ -n "${CLANG_FORMAT}" ]  && [ ${TRAVIS_BRANCH} != next ]; then \
       cmake --build . --target format && \
       git -C ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) diff --submodule=diff --exit-code; \
     fi
-RUN sudo cmake --build . --target install
+RUN sudo cmake --install .

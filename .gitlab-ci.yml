@@ -40,10 +40,10 @@ stages:
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
       ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON
       -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_XTP=OFF -DENABLE_REGRESSION_TESTING=OFF}
-    - cmake --build . -- -j2
+    - cmake --build . --parallel 2
     - ctest --output-on-failure
     - test -z "${MODULE_BUILD}" && DESTDIR=${PWD}/install cmake --build . --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
-    - sudo cmake --build . --target install
+    - sudo cmake --install .
     - if [[ ${CLANG_FORMAT} && ${CI_COMMIT_REF_NAME} != next ]]; then cmake --build . --target format && git diff --submodule=diff --exit-code; fi
     - ccache -s
 
@@ -138,6 +138,120 @@ Release Clang Ubuntu:
     CMAKE_GENERATOR: "Ninja"
     DISTRO: "ubuntu"
     REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Debug GCC Ubuntu_rolling:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "ubuntu_rolling"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Debug Clang Ubuntu_rolling:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "ubuntu_rolling"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Release GCC Ubuntu_rolling:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "ubuntu_rolling"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Release Clang Ubuntu_rolling:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "ubuntu_rolling"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Debug GCC Ubuntu Devel:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "ubuntu_devel"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+  allow_failure: true
+
+Debug Clang Ubuntu Devel:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "ubuntu_devel"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+  allow_failure: true
+
+Release GCC Ubuntu Devel:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "ubuntu_devel"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+  allow_failure: true
+
+Release Clang Ubuntu Devel:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "ubuntu_devel"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+  allow_failure: true
+
+Debug GCC openSUSE:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "opensuse"
+  extends: .build
+
+Debug Clang openSUSE:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "opensuse"
+  extends: .build
+
+Release GCC openSUSE:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "opensuse"
+  extends: .build
+
+Release Clang openSUSE:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "opensuse"
   extends: .build
 
 Debug GCC Rawhide:
