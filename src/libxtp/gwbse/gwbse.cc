@@ -170,6 +170,7 @@ void GWBSE::Initialize(tools::Property& options) {
   _orbitals.setRPAindices(rpamin, rpamax);
   _orbitals.setGWindices(qpmin, qpmax);
   _orbitals.setBSEindices(bse_vmin, bse_cmax);
+  _orbitals.SetFlagUseHqpOffdiag(_bseopt.use_Hqp_offdiag);
 
   Index bse_vmax = homo;
   Index bse_cmin = homo + 1;
