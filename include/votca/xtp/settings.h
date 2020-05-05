@@ -147,7 +147,7 @@ class Settings {
       "name",           // string
       "optimize",       // boolean
       "orca",           // string
-      "polarisation",   // boolean
+      "polarization",   // boolean
       "read_guess",     // boolean
       "spin",           // index
       "scratch",        // string

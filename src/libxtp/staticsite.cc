@@ -77,7 +77,7 @@ void StaticSite::Translate(const Eigen::VectorXd& shift) {
   return;
 }
 
-std::string StaticSite::writePolarisation() const {
+std::string StaticSite::writepolarization() const {
   tools::Elements e;
   double default_pol = 1;  // default is alway 1A^3
   try {
@@ -119,7 +119,7 @@ std::string StaticSite::WriteMpsLine(std::string unit) const {
     }
   }
   // Polarizability
-  output += writePolarisation();
+  output += writepolarization();
   return output;
 }
 

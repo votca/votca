@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,8 +145,8 @@ BOOST_AUTO_TEST_CASE(induction_test) {
   Eigen::Matrix3d poltensor = Eigen::Matrix3d::Zero();
   poltensor << 2, 1, 0, 1, 3, 1, 0, 1, 2.5;
 
-  ps1.setPolarisation(poltensor);
-  ps2.setPolarisation(poltensor);
+  ps1.setpolarization(poltensor);
+  ps2.setpolarization(poltensor);
 
   // double Energy= ps1.InteractStatic(ps2);
   ps1.Induce(1);

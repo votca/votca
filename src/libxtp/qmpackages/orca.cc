@@ -453,7 +453,7 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
       if (line.find("The raw cartesian tensor (atomic units)") ==
           std::string::npos) {
         throw std::runtime_error(
-            "Could not find cartesian polarisation tensor");
+            "Could not find cartesian polarization tensor");
       }
 
       for (Index i = 0; i < 3; i++) {
@@ -461,7 +461,7 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
         tools::Tokenizer tok2(line, " ");
         std::vector<std::string> values = tok2.ToVector();
         if (values.size() != 3) {
-          throw std::runtime_error("Polarisation line " + line +
+          throw std::runtime_error("polarization line " + line +
                                    " cannot be parsed");
         }
         Eigen::Vector3d row;
@@ -473,7 +473,7 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
     }
   }
   if (!has_pol) {
-    throw std::runtime_error("Could not find polarisation in logfile");
+    throw std::runtime_error("Could not find polarization in logfile");
   }
   return pol;
 }

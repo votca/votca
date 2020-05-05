@@ -1,11 +1,11 @@
 <options>
 <gencube help="Tool to generate cube files from .orb file" section="sec:gencube">
-        <padding help="How far the grid should start from the molecule" default="6.5">6.512752</padding>
-        <xsteps help="Gridpoints in x-direction" default="25">50</xsteps>
-        <ysteps help="Gridpoints in y-direction" default="25">50</ysteps>
-        <zsteps help="Gridpoints in z-direction" default="25">50</zsteps>
-        <state help="State to generate cube file for" default="N">N</state>
-        <diff2gs help="For excited states output difference to groundstate" default="false">false</diff2gs>
-        <mode help="new: generate new cube file, substract: substract to cube files specified below" default="new">new</mode>
+        <padding help="How far the grid should start from the molecule" unit="bohr" default="6.5" choices="float+">6.512752</padding>
+        <xsteps help="Gridpoints in x-direction" default="25" choices="int+">50</xsteps>
+        <ysteps help="Gridpoints in y-direction" default="25" choices="int+">50</ysteps>
+        <zsteps help="Gridpoints in z-direction" default="25" choices="int+">50</zsteps>
+        <state help="State to generate cube file for" default="N" choices="N">N</state>
+        <diff2gs help="For excited states output difference to groundstate" default="false" choices="bool">false</diff2gs>
+        <mode help="new: generate new cube file, substract: substract to cube files specified below" choices="new,substract" default="new">new</mode>
 </gencube>
 </options>

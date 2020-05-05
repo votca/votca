@@ -2,16 +2,19 @@
 
     <kmcmultiple help="Kinetic Monte Carlo simulations of multiple holes or electrons in periodic boundary conditions" label="calc:kmcmultiple" section="sec:kmc">
 
-	    <runtime help="Simulated time in seconds (if a number smaller than 100 is given) or number of KMC steps (if a number larger than 100 is given)" unit="seconds or integer" default="1e-4">1E-4</runtime>
-	    <outputtime help="Time difference between outputs into the trajectory file. Set to 0 if you wish to have no trajectory written out." unit="seconds" default="1E-8">1E-8</outputtime>
-	    <trajectoryfile help="Name of the trajectory file" unit="" default="trajectory.csv">trajectory.csv</trajectoryfile>
-	    <seed help="Integer to initialise the random number generator" unit="integer" default="123">123</seed>
+	    <runtime help="Simulated time in seconds (if a number smaller than 100 is given) or number of KMC steps (if a number larger than 100 is given)" unit="seconds or integer" default="1e-4" choices="float+">1E-4</runtime>
+	    <outputtime help="Time difference between outputs into the trajectory file. Set to 0 if you wish to have no trajectory written out." unit="seconds" default="1E-8" choices="float+">1E-8</outputtime>
+	    <trajectoryfile help="Name of the trajectory file" default="trajectory.csv">trajectory.csv</trajectoryfile>
+	    <ratefile help="File to write rates" default="rates.dat">rates.dat</ratefile>
+		<occfile help="File to write occupation" default="occupation.dat">occupation.dat</occfile>
+		<seed help="Integer to initialise the random number generator" default="123" choices="int+">123</seed>
 	    <injectionpattern help="Name pattern that specifies on which sites injection is possible. Use the wildcard '*' to inject on any site." unit="" default="*">*</injectionpattern>
-	    <injectionmethod help="Options: random/equilibrated. random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" unit="" default="random">random</injectionmethod>
-	    <numberofcarriers help="Number of electrons/holes in the simulation box" unit="integer" default="1">1</numberofcarriers>
+	    <injectionmethod help="random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" default="random" choices="random">random</injectionmethod>
+	    <numberofcarriers help="Number of electrons/holes in the simulation box" default="1" choices="int+">1</numberofcarriers>
 	    <field help="external electric field" unit="V/m" default="0.0 0.0 0.0">0.0 0.0 0.0</field>
-	    <carriertype help="Options: electron/hole/singlet/triplet. Specifies the carrier type of the transport under consideration." unit="" default="electron">electron</carriertype>
-	    <temperature help="Temperature in Kelvin." unit="Kelvin" default="300">300</temperature>
+	    <carriertype help="Specifies the carrier type of the transport under consideration." default="electron" choices="electron,hole,singlet,triplet">electron</carriertype>
+	    <temperature help="Temperature in Kelvin." unit="Kelvin" default="300" choices="float+">300</temperature>
+		<maxrealtime help="Maximum clocktime allow to the calculation(Seconds)" unit="second" choices="float+">1E10</maxrealtime>
     </kmcmultiple>
 
 </options>

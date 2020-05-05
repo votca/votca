@@ -1,25 +1,25 @@
 <options>
 
 <excitoncoupling help="Exciton couplings from serialized orbital files" section="sec:bsecoupling">
-        <classical help="Exciton couplings from classical transition charges" default="0">0</classical>
+        <use_classical help="Calculate Couplings from classical charges instead of ab-initio" default="false" choices="bool">false</use_classical>
         <mpsA help="classical transition charges for segment A"></mpsA>
         <mpsB help="classical transition charges for segment B"></mpsB>
         <output help="Output file" default="votca_excitoncoupling.xml">votca_excitoncoupling.xml</output>
-        <bsecoupling_options help="xml file with options for bse coupling calculations">
+        <bsecoupling_options help="nested xml file with options for bse coupling calculations">
 
-                <spin help="Spin type for couplings, singlet,triplet,all" default="singlet">all</spin>
+                <spin help="Spin type for couplings" default="singlet" choices="singlet,triplet,all">all</spin>
                 <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0">0</degeneracy>
 
                 <moleculeA help="Properties of molecule A">
-                        <states help="Number of excitons considered" default="5">1</states>
-                        <occLevels help="occupied levels for CTstates" default="5">15</occLevels>
-                        <unoccLevels help="unoccupied levels for CTstates" default="5">15</unoccLevels>
+                        <states help="Number of excitons considered" default="5" choices="int+">5</states>
+                        <occLevels help="occupied levels for CTstates" default="5" choices="int+">5</occLevels>
+                        <unoccLevels help="unoccupied levels for CTstates" default="5" choices="int+">5</unoccLevels>
                 </moleculeA>
 
                 <moleculeB help="Properties of molecule B">
-                        <states help="Number of excitons considered" default="5">1</states>
-                        <occLevels help="occupied levels for CTstates" default="5">15</occLevels>
-                        <unoccLevels help="unoccupied levels for CTstates" default="5">15</unoccLevels>
+                        <states help="Number of excitons considered" default="5" choices="int+">5</states>
+                        <occLevels help="occupied levels for CTstates" default="5" choices="int+">5</occLevels>
+                        <unoccLevels help="unoccupied levels for CTstates" default="5" choices="int+">5</unoccLevels>
                 </moleculeB>
 
         </bsecoupling_options>

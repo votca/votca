@@ -1,34 +1,40 @@
-<package>
-<name>xtp</name>
-<charge>0</charge>
-<spin>1</spin>
+<package help="Defaults for the Quantum Mechanics packages">
+<name help="QM package to use" default="xtp" choices="xtp,orca">xtp</name>
+<charge help="Molecular charge" default="0" choices="int">0</charge>
+<spin help="Molecular multiplicity" default="1" choices="int+">1</spin>
 <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
 <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
-<optimize>false</optimize>
+<optimize help="Perform a molecular geometry optimization" default="false" choices="bool">false</optimize>
 <functional default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
 <scratch help="path to the scratch folder" default="/tmp/qmpackage">/tmp/qmpackage</scratch>
-<polarisation>false</polarisation>
+<polarization>false</polarization>
 <dipole_spacing>0.1</dipole_spacing>
-<read_guess>false</read_guess>
-<write_charges>false</write_charges>
-<convergence_tightness help="One of low, normal, tight, verytight">tight</convergence_tightness>
+<read_guess help="Read wave function guess" default="false" choices="bool">false</read_guess>
+<write_charges help="Print atomic charges" default="false" choices="bool">false</write_charges>
+<convergence_tightness help="" default="tight" choices="low,normal,tight,verytight">tight</convergence_tightness>
 <cleanup help="files to remove after the calculation is done"> </cleanup>
 <orca>
-    <method></method>
-    <scf>GUESS PMODEL</scf>
+    <method help="This is automatically fill with the functional and basis set"></method>
+    <scf help="Orca SCF section">GUESS PMODEL</scf>
 </orca>
 <xtpdft>
+    <with_screening help="screening" default="true" choices="bool">true</with_screening>
+    <screening_eps  help="screening eps" default="1e-9" choices="float+">1e-9</screening_eps>
+    <four_center_method help="method to compute the four-center integrals" default="cache" choices="cache,direct,RI">cache</four_center_method>
     <convergence>
-        <energy help="DeltaE at which calculation is converged" unit="hartree">1e-7</energy>
-        <method help="Main method to use for convergence accelertation DIIS or mixing">DIIS</method>
-        <DIIS_start help="DIIS error at which DIIS takes over">0.002</DIIS_start>
-        <ADIIS_start help="DIIS error at which ADIIS takes over">0.8</ADIIS_start>
-        <DIIS_length help="old hamiltonians to keep in history">20</DIIS_length>
-        <levelshift help="levelshift to apply to hamiltonian " unit="hartree">0.0</levelshift>
-        <levelshift_end help="DIIS error at levelshifting is disabled">0.2</levelshift_end>
-        <max_iterations help="max iterations to use">200</max_iterations>
+        <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7">1e-7</energy>
+        <method help="Main method to use for convergence accelertation" choices="DIIS,mixing" default="DIIS">DIIS</method>
+        <DIIS_start help="DIIS error at which DIIS takes over" default="0.002" choices="float+">0.002</DIIS_start>
+        <ADIIS_start help="DIIS error at which ADIIS takes over" default="0.8" choices="float+">0.8</ADIIS_start>
+        <DIIS_length help="old hamiltonians to keep in history" default="20" choices="int+">20</DIIS_length>
+        <DIIS_maxout help="if true remove the maximum element in the history if DIIS_length is exceeded.Otherwise, the oldest element is removed." default="false" choices="bool">false</DIIS_maxout>
+        <levelshift help="levelshift to apply to hamiltonian " unit="hartree" default="0.0" choices="float+">0.0</levelshift>
+        <levelshift_end help="DIIS error at levelshifting is disabled" default="0.2" choices="float+">0.2</levelshift_end>
+        <max_iterations help="max iterations to use" default="100" choices="int+">100</max_iterations>
+        <error help="convergence error" default="1e-7" choices="float+">1e-7</error>
+        <mixing help="mixing parameter for linear mixing of density matrices" default="0.7" choices="float+">0.7</mixing>
     </convergence>
-    <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities)">atom</initial_guess>
-    <integration_grid help="grid quality xcoarse,coarse,medium,fine,xfine">medium</integration_grid>
+    <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities)" default="atom" choices="independent,atom">atom</initial_guess>
+    <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine">medium</integration_grid>
 </xtpdft>
 </package>

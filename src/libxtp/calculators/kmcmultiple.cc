@@ -30,21 +30,19 @@ void KMCMultiple::Initialize(const tools::Property& user_options) {
 
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  ParseCommonOptions(user_options);
 
-  _runtime = options.ifExistsReturnElseThrowRuntimeError<double>(".runtime");
-  _field =
-      options.ifExistsReturnElseThrowRuntimeError<Eigen::Vector3d>(".field");
+  _runtime = options.get(".runtime").as<double>();
+  _field = options.get(".field").as<Eigen::Vector3d>();
   double mtobohr = 1E9 * tools::conv::nm2bohr;
   _field *=
       (tools::conv::ev2hrt / mtobohr);  // Converting from V/m to Hartree/bohr
 
-  _outputtime =
-      options.ifExistsReturnElseThrowRuntimeError<double>(".outputtime");
+  _outputtime = options.get(".outputtime").as<double>();
   _timefile = options.ifExistsReturnElseReturnDefault<std::string>(".timefile",
                                                                    _timefile);
 
-  std::string carriertype =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".carriertype");
+  std::string carriertype = options.get(".carriertype").as<std::string>();
   _carriertype = QMStateType(carriertype);
   if (!_carriertype.isKMCState()) {
     throw std::runtime_error("KMC cannot be run for state:" +

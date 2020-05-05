@@ -55,8 +55,7 @@ void Log2Mps::Initialize(const tools::Property &user_options) {
 
   QMPackageFactory::RegisterAll();
 
-  _package =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".package");
+  _package = options.get(".package").as<std::string>();
 
   if (_package == "xtp") {
     throw std::runtime_error(

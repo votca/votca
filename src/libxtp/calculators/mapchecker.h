@@ -60,14 +60,11 @@ void MapChecker::Initialize(const tools::Property& user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _segmentfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".md_pdbfile");
+  _segmentfile = options.get(".md_pdbfile").as<std::string>();
 
-  _qmfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".qm_pdbfile");
+  _qmfile = options.get(".qm_pdbfile").as<std::string>();
 
-  _mpfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".mp_pdbfile");
+  _mpfile = options.get(".mp_pdbfile").as<std::string>();
 
   std::string output_qm =
       options.ifExistsReturnElseReturnDefault<std::string>(".qm_states", "");
@@ -77,8 +74,7 @@ void MapChecker::Initialize(const tools::Property& user_options) {
       options.ifExistsReturnElseReturnDefault<std::string>(".mp_states", "");
   _mdstates = StringToStates(output_md);
   if (!(_qmstates.empty() && _mdstates.empty())) {
-    _mapfile =
-        options.ifExistsReturnElseThrowRuntimeError<std::string>(".map_file");
+    _mapfile = options.get(".map_file").as<std::string>();
   }
 }
 

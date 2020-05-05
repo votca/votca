@@ -60,7 +60,7 @@ void ExcitonCoupling::Initialize(const tools::Property& user_options) {
   _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
                                                                    _job_name);
 
-  _classical = options.get(".classical").as<bool>();
+  _classical = options.get(".use_classical").as<bool>();
 
   if (!_classical) {
 

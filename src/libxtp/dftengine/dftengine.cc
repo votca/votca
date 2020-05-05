@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -47,30 +47,18 @@ void DFTEngine::Initialize(Property& options) {
 
   string key = "package";
   const string key_xtpdft = "package.xtpdft";
-  _dftbasis_name =
-      options.ifExistsReturnElseThrowRuntimeError<string>(key + ".basisset");
+  _dftbasis_name = options.get(key + ".basisset").as<string>();
 
   if (options.exists(key + ".auxbasisset")) {
     _auxbasis_name = options.get(key + ".auxbasisset").as<string>();
-    _with_RI = true;
-  } else {
-    _with_RI = false;
   }
 
-  if (!_with_RI) {
+  _four_center_method =
+      options.get(key_xtpdft + ".four_center_method").as<std::string>();
 
-    if (options.exists(key_xtpdft + ".four_center_method")) {
-      std::vector<std::string> choices = {"direct", "cache"};
-      _four_center_method =
-          options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-              key_xtpdft + ".four_center_method", choices);
-    } else {
-      _four_center_method = "cache";
-    }
-    _with_screening = options.ifExistsReturnElseReturnDefault<bool>(
-        key_xtpdft + ".with_screening", true);
-    _screening_eps = options.ifExistsReturnElseReturnDefault<double>(
-        key_xtpdft + ".screening_eps", 1e-9);
+  if (_four_center_method != "RI") {
+    _with_screening = options.get(key_xtpdft + ".with_screening").as<bool>();
+    _screening_eps = options.get(key_xtpdft + ".screening_eps").as<double>();
   }
 
   if (options.exists(key + ".ecp")) {
@@ -79,15 +67,11 @@ void DFTEngine::Initialize(Property& options) {
   } else {
     _with_ecp = false;
   }
-  _with_guess =
-      options.ifExistsReturnElseReturnDefault<bool>(key + ".read_guess", false);
-  _initial_guess = options.ifExistsReturnElseReturnDefault<string>(
-      key_xtpdft + ".initial_guess", "atom");
+  _with_guess = options.get(key + ".read_guess").as<bool>();
+  _initial_guess = options.get(key_xtpdft + ".initial_guess").as<string>();
 
-  _grid_name = options.ifExistsReturnElseReturnDefault<string>(
-      key_xtpdft + ".integration_grid", "medium");
-  _xc_functional_name =
-      options.ifExistsReturnElseThrowRuntimeError<string>(key + ".functional");
+  _grid_name = options.get(key_xtpdft + ".integration_grid").as<string>();
+  _xc_functional_name = options.get(key + ".functional").as<string>();
 
   if (options.exists(key_xtpdft + ".externaldensity")) {
     _integrate_ext_density = true;
@@ -107,43 +91,38 @@ void DFTEngine::Initialize(Property& options) {
   }
 
   if (options.exists(key_xtpdft + ".convergence")) {
-    _conv_opt.Econverged = options.ifExistsReturnElseReturnDefault<double>(
-        key_xtpdft + ".convergence.energy", _conv_opt.Econverged);
-    _conv_opt.error_converged = options.ifExistsReturnElseReturnDefault<double>(
-        key_xtpdft + ".convergence.error", _conv_opt.error_converged);
-    _max_iter = options.ifExistsReturnElseReturnDefault<Index>(
-        key_xtpdft + ".convergence.max_iterations", 100);
+    _conv_opt.Econverged =
+        options.get(key_xtpdft + ".convergence.energy").as<double>();
+    _conv_opt.error_converged =
+        options.get(key_xtpdft + ".convergence.error").as<double>();
+    _max_iter =
+        options.get(key_xtpdft + ".convergence.max_iterations").as<Index>();
 
-    if (options.exists(key_xtpdft + ".convergence.method")) {
-      string method =
-          options.get(key_xtpdft + ".convergence.method").as<string>();
-      if (method == "DIIS") {
-        _conv_opt.usediis = true;
-      } else if (method == "mixing") {
-        _conv_opt.usediis = false;
-      } else {
-        cout << "WARNING method not known. Using Mixing" << endl;
-        _conv_opt.usediis = false;
-      }
+    string method =
+        options.get(key_xtpdft + ".convergence.method").as<string>();
+    if (method == "DIIS") {
+      _conv_opt.usediis = true;
+    } else if (method == "mixing") {
+      _conv_opt.usediis = false;
     }
     if (!_conv_opt.usediis) {
       _conv_opt.histlength = 1;
       _conv_opt.maxout = false;
     }
-    _conv_opt.mixingparameter = options.ifExistsReturnElseReturnDefault<double>(
-        key_xtpdft + ".convergence.mixing", _conv_opt.mixingparameter);
-    _conv_opt.levelshift = options.ifExistsReturnElseReturnDefault<double>(
-        key_xtpdft + ".convergence.levelshift", _conv_opt.levelshift);
-    _conv_opt.levelshiftend = options.ifExistsReturnElseReturnDefault<double>(
-        key_xtpdft + ".convergence.levelshift_end", _conv_opt.levelshiftend);
-    _conv_opt.maxout = options.ifExistsReturnElseReturnDefault<bool>(
-        key_xtpdft + ".convergence.DIIS_maxout", _conv_opt.maxout);
-    _conv_opt.histlength = options.ifExistsReturnElseReturnDefault<Index>(
-        key_xtpdft + ".convergence.DIIS_length", _conv_opt.histlength);
-    _conv_opt.diis_start = options.ifExistsReturnElseReturnDefault<double>(
-        key_xtpdft + ".convergence.DIIS_start", _conv_opt.diis_start);
-    _conv_opt.adiis_start = options.ifExistsReturnElseReturnDefault<double>(
-        key_xtpdft + ".convergence.ADIIS_start", _conv_opt.adiis_start);
+    _conv_opt.mixingparameter =
+        options.get(key_xtpdft + ".convergence.mixing").as<double>();
+    _conv_opt.levelshift =
+        options.get(key_xtpdft + ".convergence.levelshift").as<double>();
+    _conv_opt.levelshiftend =
+        options.get(key_xtpdft + ".convergence.levelshift_end").as<double>();
+    _conv_opt.maxout =
+        options.get(key_xtpdft + ".convergence.DIIS_maxout").as<bool>();
+    _conv_opt.histlength =
+        options.get(key_xtpdft + ".convergence.DIIS_length").as<Index>();
+    _conv_opt.diis_start =
+        options.get(key_xtpdft + ".convergence.DIIS_start").as<double>();
+    _conv_opt.adiis_start =
+        options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
   }
 
   return;
@@ -176,7 +155,7 @@ void DFTEngine::CalcElDipole(const Orbitals& orb) const {
 
 Mat_p_Energy DFTEngine::CalcEXXs(const Eigen::MatrixXd& MOCoeff,
                                  const Eigen::MatrixXd& Dmat) const {
-  if (_with_RI) {
+  if (_four_center_method == "RI") {
     if (_conv_accelerator.getUseMixing() || MOCoeff.rows() == 0) {
       return _ERIs.CalculateEXX(Dmat);
     } else {
@@ -435,7 +414,7 @@ void DFTEngine::SetupInvariantMatrices() {
   _conv_accelerator.setOverlap(_dftAOoverlap, 1e-8);
   _conv_accelerator.PrintConfigOptions();
 
-  if (_with_RI) {
+  if (_four_center_method == "RI") {
     // prepare invariant part of electron repulsion integrals
     _ERIs.Initialize(_dftbasis, _auxbasis);
     XTP_LOG(Log::info, *_pLog)
@@ -711,7 +690,7 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
   if (_with_ecp) {
     orb.setECPName(_ecp_name);
   }
-  if (_with_RI) {
+  if (_four_center_method == "RI") {
     orb.setAuxbasisName(_auxbasis_name);
   }
 
@@ -775,7 +754,7 @@ void DFTEngine::Prepare(QMMolecule& mol) {
       << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << " with "
       << _dftbasis.AOBasisSize() << " functions" << flush;
 
-  if (_with_RI) {
+  if (_four_center_method == "RI") {
     BasisSet auxbasisset;
     auxbasisset.Load(_auxbasis_name);
     _auxbasis.Fill(auxbasisset, mol);
@@ -1012,7 +991,7 @@ Mat_p_Energy DFTEngine::IntegrateExternalDensity(
 }
 
 Mat_p_Energy DFTEngine::CalculateERIs(const Eigen::MatrixXd& DMAT) const {
-  if (_with_RI) {
+  if (_four_center_method == "RI") {
     return _ERIs.CalculateERIs(DMAT);
   } else if (_four_center_method == "cache") {
     return _ERIs.CalculateERIs_4c_small_molecule(DMAT);

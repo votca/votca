@@ -28,12 +28,9 @@ void VAverage::Initialize(const tools::Property& user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _ratefile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".ratefile");
-  _occfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".occfile");
-  _outputfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".outputfile");
+  _ratefile = options.get(".ratefile").as<std::string>();
+  _occfile = options.get(".occfile").as<std::string>();
+  _outputfile = options.get(".outputfile").as<std::string>();
 }
 
 std::vector<double> VAverage::ReadOccfile(std::string filename) const {

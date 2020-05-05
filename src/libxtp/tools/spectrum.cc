@@ -40,20 +40,15 @@ void Spectrum::Initialize(const tools::Property& user_options) {
   _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
       ".output", _job_name + "_spectrum.dat");
 
-  _n_pt = options.ifExistsReturnElseThrowRuntimeError<Index>(".points");
+  _n_pt = options.get(".points").as<Index>();
   _lower = options.get(".lower").as<double>();
-  _upper = options.ifExistsReturnElseThrowRuntimeError<double>(".upper");
-  _fwhm = options.ifExistsReturnElseThrowRuntimeError<double>(".fwhm");
+  _upper = options.get(".upper").as<double>();
+  _fwhm = options.get(".fwhm").as<double>();
 
-  if (options.exists(".type")) {
-    std::vector<std::string> choices = {"energy", "wavelength"};
-    _spectrum_type =
-        options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-            ".type", choices);
-  }
-  _minexc = options.ifExistsReturnElseThrowRuntimeError<Index>(".minexc");
-  _maxexc = options.ifExistsReturnElseThrowRuntimeError<Index>(".maxexc");
-  _shiftby = options.ifExistsReturnElseThrowRuntimeError<double>(".shift");
+  _spectrum_type = options.get(".type").as<std::string>();
+  _minexc = options.get(".minexc").as<Index>();
+  _maxexc = options.get(".maxexc").as<Index>();
+  _shiftby = options.get(".shift").as<double>();
 }
 
 bool Spectrum::Evaluate() {

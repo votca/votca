@@ -43,8 +43,7 @@ void EAnalyze::Initialize(const tools::Property &user_options) {
     _states.push_back(QMStateType(state));
   }
 
-  _doenergy_landscape =
-      options.ifExistsReturnElseReturnDefault<bool>(".energy_landscape", false);
+  _doenergy_landscape = options.get(".energy_landscape").as<bool>();
 
   if (options.exists(".distancemode")) {
     std::vector<std::string> choices = {"atoms", "centerofmass"};

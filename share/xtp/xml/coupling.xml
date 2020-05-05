@@ -1,15 +1,15 @@
 <options>
-<coupling help="Electronic couplings from log and orbital files" section="sec:coupling">
+<coupling help="Compute the electronic couplings from log and orbital files." section="sec:coupling">
         <dftpackage>
             <package>
-                <name help="Name of the DFT package" default="xtp">xtp</name>
+                <name help="Name of the DFT package" default="xtp" choices="xtp,orca">xtp</name>
             </package>
         </dftpackage>
 
         <dftcoupling_options>
-            <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0">0.0</degeneracy>
-            <levA help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule A" default="1">1</levA>
-            <levB help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule B" default="1">1</levB>
+            <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0" choices="float+">0.0</degeneracy>
+            <levA help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule A" default="1" choices="int+">1</levA>
+            <levB help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule B" default="1" choices="int+">1</levB>
         </dftcoupling_options>
 
         <moleculeA help="">

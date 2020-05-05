@@ -1,5 +1,5 @@
 <options>
 <neighborlist help="Determines neighbouring pairs for exciton transport" section="sec:neighborlist">
-        <constant  help="cutoff for all other types of pairs" unit="nm" default="1.5">1.5</constant>
+        <constant  help="cutoff for all other types of pairs" unit="nm" default="1.5" choices="float+">1.5</constant>
 </neighborlist>
 </options>

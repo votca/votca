@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(create_settings) {
            << "<optimize>false</optimize>\n"
            << "<functional>pbe</functional>\n"
            << "<scratch>/tmp/xtp_qmpackage</scratch>\n"
-           << "<polarisation>false</polarisation>\n"
+           << "<polarization>false</polarization>\n"
            << "<orca>\n"
            << "   <scf>GUESS PMODEL</scf>\n"
            << "</orca>\n"
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(test_amend) {
            << "<optimize>false</optimize>\n"
            << "<functional>pbe</functional>\n"
            << "<scratch>/tmp/xtp_qmpackage</scratch>\n"
-           << "<polarisation>false</polarisation>\n"
+           << "<polarization>false</polarization>\n"
            << "<orca>\n"
            << "   <scf>GUESS PMODEL</scf>\n"
            << "</orca>\n"

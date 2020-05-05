@@ -1,10 +1,11 @@
 <options>
 
 <eanalyze help="Histogram and correlation function of site energies and pair energy differences" section="sec:eanalyze">
-	<resolution_sites help="Bin size for site energy histogram" unit="eV" default="0.01">0.01</resolution_sites>
-	<resolution_pairs help="Bin size for pair energy histogram" unit="eV" default="0.01">0.01</resolution_pairs>
-	<resolution_spatial help="Bin size for site energy correlation" unit="eV" default="0.01">0.01</resolution_spatial>
+	<resolution_sites help="Bin size for site energy histogram" unit="eV" default="0.01" choices="float+">0.01</resolution_sites>
+	<resolution_pairs help="Bin size for pair energy histogram" unit="eV" default="0.01" choices="float+">0.01</resolution_pairs>
+	<resolution_spatial help="Bin size for site energy correlation" unit="eV" default="0.01" choices="float+">0.01</resolution_spatial>
 	<states help="states to analyze" default="e h s t">e h s t</states>
+	<energy_landscape help="" default="false" choices="bool">false</energy_landscape>
 </eanalyze>
 
 </options>

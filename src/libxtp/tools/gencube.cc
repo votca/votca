@@ -42,18 +42,16 @@ void GenCube::Initialize(const tools::Property& user_options) {
       ".output", _job_name + ".cube");
 
   // padding
-  _padding = options.ifExistsReturnElseThrowRuntimeError<double>(".padding");
+  _padding = options.get(".padding").as<double>();
 
   // steps
   _steps.y() = options.get(".ysteps").as<Index>();
   _steps.x() = options.get(".xsteps").as<Index>();
   _steps.z() = options.get(".zsteps").as<Index>();
 
-  std::string statestring =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(".state");
+  std::string statestring = options.get(".state").as<std::string>();
   _state.FromString(statestring);
-  _dostateonly =
-      options.ifExistsReturnElseReturnDefault<bool>(".diff2gs", false);
+  _dostateonly = options.get(".diff2gs").as<bool>();
 
   _mode = options.get(".mode").as<std::string>();
   if (_mode == "subtract") {
