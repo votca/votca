@@ -200,7 +200,7 @@ Docker can also install the latest stable version from git using:
 
 ### FreeBSD
 
-On FreeBSD votka can be installed from a binary package (recommended):
+On FreeBSD votca can be installed from a binary package (recommended):
 
     pkg install votka
 
