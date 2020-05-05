@@ -1,6 +1,12 @@
 if(NOT VOTCA_SPHINX_DIR)
   set(VOTCA_SPHINX_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 endif()
+if(CMAKE_VERSION VERSION_LESS 3.12)
+  find_package(PythonInterp REQUIRED) # Deprecated since version 3.12
+  set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+else()
+  find_package(Python COMPONENTS Interpreter)
+endif()
 find_package(Python REQUIRED COMPONENTS Interpreter)
 file(GLOB XMLS ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/xml/*.xml)
 set(XML_RST_FILES)
