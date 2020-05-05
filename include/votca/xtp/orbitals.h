@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -313,6 +313,9 @@ class Orbitals {
   void WriteToCpt(CheckpointWriter w) const;
   void ReadFromCpt(CheckpointReader parent);
 
+  bool GetFlagUseHqpOffdiag() const { return _use_Hqp_offdiag; };
+  void SetFlagUseHqpOffdiag(bool flag) { _use_Hqp_offdiag = flag; };
+
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
@@ -388,6 +391,8 @@ class Orbitals {
   tools::EigenSystem _BSE_singlet;
   std::vector<Eigen::Vector3d> _transition_dipoles;
   tools::EigenSystem _BSE_triplet;
+
+  bool _use_Hqp_offdiag = true;
 };
 
 }  // namespace xtp
