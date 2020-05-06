@@ -18,8 +18,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
   add_definitions(-DDEBUG)
-elseif(CMAKE_BUILD_TYPE STREQUAL Release)
-  add_definitions(-DBOOST_UBLAS_NDEBUG)
 endif()
 
 enable_language(CXX)
