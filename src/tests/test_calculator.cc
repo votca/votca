@@ -51,6 +51,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
                << "<option2 choices=\"float\">-3.141592</option2>\n"
                << "<option4 choices=\"float+\">3.141592</option4>\n"
                << "<option5 choices=\"bool\">true</option5>\n"
+               << "<option6 choices=\"foo,bar,baz,qux\">[foo,qux]</option6>\n"
                << "</testcalc>\n"
                << "</options>";
       defaults.close();
@@ -136,18 +137,20 @@ BOOST_AUTO_TEST_CASE(test_choices) {
   tools::Property &opt = user_options.add("options", "");
   opt.add("testchoices", "");
 
-  TestChoices test1, test2, test3, test4, test5;
+  TestChoices test1, test2, test3, test4, test5, test6;
   test1.SetOption("<option1 choices=\"foo, bar, baz, qux\">boom</option1>\n");
   test2.SetOption("<option2 choices =\"float\">some</option2>\n");
   test3.SetOption("<option3 choices=\"int\">3.14</option3>\n");
   test4.SetOption("<option4 choices=\"int+\">-2</option4>\n");
   test5.SetOption("<option5 choices=\"float+\">-3.14</option5>\n");
+  test6.SetOption("<option6 choices=\"foo,bar,qux\">[tux]</option6>\n");
 
   BOOST_CHECK_THROW(test1.Initialize(user_options), std::runtime_error);
   BOOST_CHECK_THROW(test2.Initialize(user_options), std::runtime_error);
   BOOST_CHECK_THROW(test3.Initialize(user_options), std::runtime_error);
   BOOST_CHECK_THROW(test4.Initialize(user_options), std::runtime_error);
   BOOST_CHECK_THROW(test5.Initialize(user_options), std::runtime_error);
+  BOOST_CHECK_THROW(test6.Initialize(user_options), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

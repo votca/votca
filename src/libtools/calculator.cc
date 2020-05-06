@@ -120,7 +120,7 @@ bool Calculator::IsValidOption(const Property &prop,
                                const std::vector<std::string> &choices) {
   const std::string &head = choices.front();
   std::ostringstream oss;
-  bool is_valid;
+  bool is_valid = true;
   if (head == "bool") {
     is_valid = Calculator::IsValidCast<bool>(prop);
   } else if (head == "float") {
@@ -134,8 +134,25 @@ bool Calculator::IsValidOption(const Property &prop,
     is_valid = Calculator::IsValidCast<Index>(prop) && (prop.as<Index>() >= 0);
   } else {
     std::string value = prop.as<std::string>();
-    auto it = std::find(std::cbegin(choices), std::cend(choices), value);
-    is_valid = (it != std::cend(choices));
+    std::size_t start_bracket = value.find('[');
+    if (start_bracket == std::string::npos) {
+      // There is a single choice out of multiple default valid choices
+      auto it = std::find(std::cbegin(choices), std::cend(choices), value);
+      is_valid = (it != std::cend(choices));
+    } else {
+      // there are multiple valid choices
+      std::size_t end_bracket = value.find(']');
+      std::string content =
+          value.substr(start_bracket + 1, end_bracket - start_bracket - 1);
+      Tokenizer tok{content, " ,"};
+      for (const std::string &word : tok) {
+        auto it = std::find(std::cbegin(choices), std::cend(choices), word);
+        if (it == std::cend(choices)) {
+          is_valid = false;
+          break;
+        }
+      }
+    }
   }
   return is_valid;
 }

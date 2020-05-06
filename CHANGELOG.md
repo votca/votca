@@ -12,6 +12,7 @@ For more detailed information about the changes see the history of the [reposito
 * make fftw3 a public dependency (#235)
 * rename WITH_RC_FILES to INSTALL_RC_FILES (#236)
 * check calculator input options (#232, #233)
+* allow calculator choices to be a list (#239)
 
 ## Version 1.6.1 (released XX.04.20)
 * fix build with mkl (#229)
