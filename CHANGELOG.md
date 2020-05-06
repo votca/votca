@@ -19,6 +19,7 @@ For more detailed information about the changes see the history of the
 * document cmake options and packages (#434)
 * remove long gone MKL option for gitlab-ci (#435)
 * add documentation using Sphinx (#433)
+* add kokkos-based Ewald solver (#444)
 
 ## Version 1.6.1 (released XX.04.20)
 * fix warnings on Ubuntu 20.04 (#438)
