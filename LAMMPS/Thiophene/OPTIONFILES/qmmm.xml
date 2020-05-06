@@ -12,6 +12,10 @@
                 <type help="type of region qm/static/polar">qm</type>
                 <options_dft>OPTIONFILES/xtpdft_qmmm.xml</options_dft>
                 <options_gwbse>OPTIONFILES/gwbse_qmmm.xml</options_gwbse>
+                <statetracker help="filter to identify excited states from some characteristic and not the energy">
+		    <filters help="list of filters to use" default="chargetransfer,density,localisation,oscillatorstrength,overlap" choices="chargetransfer,density,localisation,oscillatorstrength,overlap">[oscillatorstrength]</filters>
+                    <oscillator_strength>0.5</oscillator_strength>
+                </statetracker>
                 <filter help="filter to identify excited states from some characteristic and not the energy">
                     <oscillator_strength>0.5</oscillator_strength>
                 </filter>

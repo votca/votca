@@ -15,6 +15,7 @@
                 <options_dft help="xml file with options for dft calculations">OPTIONFILES/qmpackage_qmmm.xml</options_dft>
                 <options_gwbse help="xml file with options for gwbse calculations">OPTIONFILES/gwbse_qmmm.xml</options_gwbse>
                 <statetracker help="filter to identify excited states from some characteristic and not the energy">
+		    <filters help="list of filters to use" default="chargetransfer,density,localisation,oscillatorstrength,overlap" choices="chargetransfer,density,localisation,oscillatorstrength,overlap">[oscillatorstrength]</filters>
                     <oscillator_strength>0.5</oscillator_strength>
                 </statetracker>
                 <state help="qmstate to calculate i.e. n or s1">jobfile</state>
