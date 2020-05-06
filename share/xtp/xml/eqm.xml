@@ -2,7 +2,7 @@
 
 <eqm help="Executes qm calculations for individual molecules" section="sec:eqm">
 
-	<tasks help="tasks to perform during calculation input,dft,parse,gwbse,esp" default="input,dft,parse,gwbse,esp">input,dft,parse,gwbse,esp</tasks>
+	<tasks help="tasks to perform during calculation" default="input,dft,parse,gwbse,esp" choices="input,dft,parse,gwbse,esp">[input,dft,parse,gwbse,esp]</tasks>
 	<job_file help="name of jobfile to which jobs are written" default="eqm.jobs">eqm.jobs</job_file>
 	<map_file help="xml file with segment definition" default="votca_map.xml">votca_map.xml</map_file>
     <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
@@ -22,8 +22,8 @@
 	                </vxc>
 	                <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" default="0.0" unit="hartree" choices="float">0.0</scissor_shift>
 	                <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW" choices="evGW,G0W0">evGW</mode>
-	                <tasks help="tasks to do" default="gw,singlets">gw,singlets</tasks>
-	                <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact">ppm</sigma_integrator>
+	                <tasks help="tasks to do" default="gw,singlets" choices="gw,singlets">[gw,singlets]</tasks>
+					<sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact">ppm</sigma_integrator>
 	                <eta help="small parameter eta of the Green's function" default="1e-3" unit="Hartree" choices="float+">1e-3</eta>
 	                <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid">grid</qp_solver>
 	                <qp_grid_steps help="number of QP grid points" default="1001" choices="int+">1001</qp_grid_steps>
