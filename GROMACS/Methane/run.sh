@@ -72,6 +72,7 @@ echo "Running eQM"
 cp "$VOTCASHARE/xtp/xml/eqm.xml" OPTIONFILES/
 changeoption ranges full OPTIONFILES/gwbse.xml
 changeoption map_file system.xml OPTIONFILES/eqm.xml
+changeoption mode G0W0 OPTIONFILES/eqm.xml
 
 xtp_parallel -e eqm -o OPTIONFILES/eqm.xml -f state.hdf5 -s 0 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" eqm.jobs
