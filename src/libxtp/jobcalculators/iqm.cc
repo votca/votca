@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -35,23 +35,20 @@ using namespace boost::filesystem;
 namespace votca {
 namespace xtp {
 
-void IQM::Initialize(tools::Property& options) {
-  ParseOptionsXML(options);
+void IQM::Initialize(const tools::Property& user_options) {
 
-  // register all QM packages (Gaussian, turbomole, etc))
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  ParseCommonOptions(options);
   QMPackageFactory::RegisterAll();
-  return;
+
+  ParseOptionsXML(options);
 }
 
-void IQM::ParseOptionsXML(tools::Property& opt) {
-
-  ParseCommonOptions(opt);
-  // parsing general ibse options
-  std::string key = "options." + Identify();
-  // _energy_difference = opt.get( key + ".degeneracy" ).as< double > ();
+void IQM::ParseOptionsXML(const tools::Property& options) {
 
   // job tasks
-  std::string tasks_string = opt.get(key + ".tasks").as<std::string>();
+  std::string tasks_string = options.get(".tasks").as<std::string>();
   if (tasks_string.find("input") != std::string::npos) {
     _do_dft_input = true;
   }
@@ -72,7 +69,7 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
   }
 
   // storage options
-  std::string store_string = opt.get(key + ".store").as<std::string>();
+  std::string store_string = options.get(".store").as<std::string>();
   if (store_string.find("dft") != std::string::npos) {
     _store_dft = true;
   }
@@ -80,14 +77,15 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
     _store_gw = true;
   }
 
-  if (_do_dft_input || _do_dft_run || _do_dft_parse) {
-    std::string package_xml = opt.get(key + ".dftpackage").as<std::string>();
-    _dftpackage_options.LoadFromXML(package_xml);
-  }
+  _dftpackage_options = this->UpdateDFTOptions(options);
+  _gwbse_options = this->UpdateGWBSEOptions(options);
+
+  _dftcoupling_options = options.get(".dftcoupling_options");
+  _bsecoupling_options = options.get(".bsecoupling_options");
 
   // read linker groups
-  std::string linker = opt.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".linker_names", "");
+  std::string linker =
+      options.ifExistsReturnElseReturnDefault<std::string>(".linker_names", "");
   tools::Tokenizer toker(linker, ", \t\n");
   std::vector<std::string> linkers = toker.ToVector();
   for (const std::string& link : linkers) {
@@ -100,45 +98,29 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
     _linkers[link_split[0]] = QMState(link_split[1]);
   }
 
-  if (_do_dftcoupling) {
-    _dftcoupling_options = opt.get(key + ".dftcoupling_options");
-  }
-
-  if (_do_gwbse) {
-    std::string _gwbse_xml = opt.get(key + ".gwbse_options").as<std::string>();
-
-    _gwbse_options.LoadFromXML(_gwbse_xml);
-  }
-  if (_do_bsecoupling) {
-    std::string _coupling_xml =
-        opt.get(key + ".bsecoupling_options").as<std::string>();
-    _bsecoupling_options.LoadFromXML(_coupling_xml);
-  }
-
   // options for parsing data into state file
   std::string key_read = "options." + Identify() + ".readjobfile";
-  if (opt.exists(key_read + ".singlet")) {
+  if (options.exists(key_read + ".singlet")) {
     std::string parse_string_s =
-        opt.get(key_read + ".singlet").as<std::string>();
+        options.get(key_read + ".singlet").as<std::string>();
     _singlet_levels = FillParseMaps(parse_string_s);
   }
-  if (opt.exists(key_read + ".triplet")) {
+  if (options.exists(key_read + ".triplet")) {
     std::string parse_string_t =
-        opt.get(key_read + ".triplet").as<std::string>();
+        options.get(key_read + ".triplet").as<std::string>();
     _triplet_levels = FillParseMaps(parse_string_t);
   }
 
-  if (opt.exists(key_read + ".hole")) {
-    std::string parse_string_h = opt.get(key_read + ".hole").as<std::string>();
+  if (options.exists(key_read + ".hole")) {
+    std::string parse_string_h =
+        options.get(key_read + ".hole").as<std::string>();
     _hole_levels = FillParseMaps(parse_string_h);
   }
-  if (opt.exists(key_read + ".electron")) {
+  if (options.exists(key_read + ".electron")) {
     std::string parse_string_e =
-        opt.get(key_read + ".electron").as<std::string>();
+        options.get(key_read + ".electron").as<std::string>();
     _electron_levels = FillParseMaps(parse_string_e);
   }
-
-  return;
 }
 
 std::map<std::string, QMState> IQM::FillParseMaps(
@@ -175,7 +157,6 @@ void IQM::addLinkers(std::vector<const Segment*>& segments,
       segments.push_back(segment);
     }
   }
-  return;
 }
 
 bool IQM::isLinker(const std::string& name) {
@@ -412,6 +393,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       bool _run_dft_status = qmpackage->Run();
       if (!_run_dft_status) {
         SetJobToFailed(jres, pLog, qmpackage->getPackageName() + " run failed");
+        WriteLoggerToFile(work_dir + "/dft.log", dft_logger);
         return jres;
       }
     }

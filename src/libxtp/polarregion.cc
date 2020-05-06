@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -29,8 +29,7 @@ namespace xtp {
 
 void PolarRegion::Initialize(const tools::Property& prop) {
   std::string key = identify();
-  std::string filename =
-      prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_polar");
+  std::string filename = prop.get("options_polar").as<std::string>();
   tools::Property polar_xml;
   polar_xml.LoadFromXML(filename);
   _max_iter =
@@ -140,7 +139,90 @@ void PolarRegion::AppendResult(tools::Property& prop) const {
   prop.add("E_total", std::to_string(e.Etotal() * tools::conv::hrt2ev));
 }
 
-void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
+Index PolarRegion::CalcPolDoF() const {
+  Index dof_polarization = 0;
+  for (const PolarSegment& seg : _segments) {
+    dof_polarization += seg.size() * 3;
+  }
+  return dof_polarization;
+}
+
+Eigen::VectorXd PolarRegion::CalcInducedDipoleInsideSegments() const {
+  Index dof_polarization = CalcPolDoF();
+  Eigen::VectorXd initial_induced_dipoles =
+      Eigen::VectorXd::Zero(dof_polarization);
+  eeInteractor interactor(_exp_damp);
+  Index index = 0;
+  for (const PolarSegment& seg : _segments) {
+    initial_induced_dipoles.segment(index, 3 * seg.size()) =
+        interactor.Cholesky_IntraSegment(seg);
+    index += 3 * seg.size();
+  }
+  return initial_induced_dipoles;
+}
+
+Eigen::VectorXd PolarRegion::ReadInducedDipolesFromLastIteration() const {
+  Index dof_polarization = CalcPolDoF();
+  Eigen::VectorXd last_induced_dipoles =
+      Eigen::VectorXd::Zero(dof_polarization);
+  Index index = 0;
+  for (const PolarSegment& seg : _segments) {
+    for (const PolarSite& site : seg) {
+      last_induced_dipoles.segment<3>(index) = site.Induced_Dipole();
+      index += 3;
+    }
+  }
+  return last_induced_dipoles;
+}
+
+void PolarRegion::WriteInducedDipolesToSegments(const Eigen::VectorXd& x) {
+  Index index = 0;
+  for (PolarSegment& seg : _segments) {
+    for (PolarSite& site : seg) {
+      site.setInduced_Dipole(x.segment<3>(index));
+      index += 3;
+    }
+  }
+}
+
+Eigen::VectorXd PolarRegion::CalcInducedDipolesViaPCG(
+    const Eigen::VectorXd& initial_guess) {
+  Eigen::VectorXd b = Eigen::VectorXd::Zero(initial_guess.size());
+  Index index = 0;
+  for (PolarSegment& seg : _segments) {
+    for (const PolarSite& site : seg) {
+      auto V = site.V() + site.V_noE();
+      b.segment<3>(index) = -V;
+      index += 3;
+    }
+  }
+  eeInteractor interactor(_exp_damp);
+  DipoleDipoleInteraction A(interactor, _segments);
+  Eigen::ConjugateGradient<DipoleDipoleInteraction, Eigen::Lower | Eigen::Upper,
+                           Eigen::DiagonalPreconditioner<double>>
+      cg;
+  cg.setMaxIterations(_max_iter);
+  cg.setTolerance(_deltaD);
+  cg.compute(A);
+  Eigen::VectorXd x = cg.solveWithGuess(b, initial_guess);
+
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " CG: #iterations: " << cg.iterations()
+      << ", estimated error: " << cg.error() << std::flush;
+
+  if (cg.info() == Eigen::ComputationInfo::NoConvergence) {
+    _info = false;
+    _errormsg = "PCG iterations did not converge";
+  }
+
+  if (cg.info() == Eigen::ComputationInfo::NumericalIssue) {
+    _info = false;
+    _errormsg = "PCG had a numerical issue";
+  }
+  return x;
+}
+
+void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
 
   std::vector<double> energies = ApplyInfluenceOfOtherRegions(regions);
   Energy_terms e_contrib;
@@ -154,70 +236,30 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   XTP_LOG(Log::info, _log) << TimeStamp()
                            << " Calculated static interaction in region "
                            << std::flush;
-  Index dof_polarisation = 0;
-  for (const PolarSegment& seg : _segments) {
-    dof_polarisation += seg.size() * 3;
-  }
+  Index dof_polarization = CalcPolDoF();
   XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Starting Solving for classical polarisation with "
-      << dof_polarisation << " degrees of freedom." << std::flush;
+      << TimeStamp() << " Starting Solving for classical polarization with "
+      << dof_polarization << " degrees of freedom." << std::flush;
 
-  Eigen::VectorXd initial_induced_dipoles =
-      Eigen::VectorXd::Zero(dof_polarisation);
+  Eigen::VectorXd initial_induced_dipoles;
+  if (!_E_hist.filled() || _segments.size() == 1) {
+    initial_induced_dipoles = CalcInducedDipoleInsideSegments();
+  } else {
+    initial_induced_dipoles = ReadInducedDipolesFromLastIteration();
+  }
 
-  if (!_E_hist.filled()) {
-    eeInteractor interactor(_exp_damp);
-    Index index = 0;
-    for (PolarSegment& seg : _segments) {
-      initial_induced_dipoles.segment(index, 3 * seg.size()) =
-          interactor.Cholesky_IntraSegment(seg);
-      index += 3 * seg.size();
+  Eigen::VectorXd x;  // if only one segment
+  // it is solved exactly through the initial guess
+  if (_segments.size() != 1) {
+    x = CalcInducedDipolesViaPCG(initial_induced_dipoles);
+    if (!_info) {
+      return;
     }
   } else {
-    Index index = 0;
-    for (PolarSegment& seg : _segments) {
-      for (const PolarSite& site : seg) {
-        initial_induced_dipoles.segment<3>(index) = site.Induced_Dipole();
-        index += 3;
-      }
-    }
-  }
-  Eigen::VectorXd b = Eigen::VectorXd::Zero(dof_polarisation);
-  Index index = 0;
-  for (PolarSegment& seg : _segments) {
-    for (const PolarSite& site : seg) {
-      const Eigen::Vector3d V = site.V() + site.V_noE();
-      b.segment<3>(index) = -V;
-      index += 3;
-    }
+    x = initial_induced_dipoles;
   }
 
-  eeInteractor interactor(_exp_damp);
-  DipoleDipoleInteraction A(interactor, _segments);
-  Eigen::ConjugateGradient<DipoleDipoleInteraction, Eigen::Lower | Eigen::Upper>
-      cg;
-  cg.setMaxIterations(_max_iter);
-  cg.setTolerance(_deltaD);
-  cg.compute(A);
-  Eigen::VectorXd x = cg.solveWithGuess(b, initial_induced_dipoles);
-
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " CG: #iterations: " << cg.iterations()
-      << ", estimated error: " << cg.error() << std::flush;
-
-  if (cg.info() == Eigen::ComputationInfo::NoConvergence) {
-    _info = false;
-    _errormsg = "PCG iterations did not converge";
-    return;
-  }
-
-  index = 0;
-  for (PolarSegment& seg : _segments) {
-    for (PolarSite& site : seg) {
-      site.setInduced_Dipole(x.segment<3>(index));
-      index += 3;
-    }
-  }
+  WriteInducedDipolesToSegments(x);
 
   e_contrib.addInternalPolarContrib(PolarEnergy());
   XTP_LOG(Log::info, _log) << TimeStamp()

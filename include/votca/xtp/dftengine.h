@@ -107,7 +107,6 @@ class DFTEngine {
   ECPAOBasis _ecp;
 
   bool _with_ecp;
-  bool _with_RI;
 
   std::string _four_center_method;  // direct | cache
 
@@ -126,7 +125,7 @@ class DFTEngine {
 
   // Convergence
   Index _numofelectrons = 0;
-  Index _max_iter = 100;
+  Index _max_iter;
   ConvergenceAcc::options _conv_opt;
   // DIIS variables
   ConvergenceAcc _conv_accelerator;

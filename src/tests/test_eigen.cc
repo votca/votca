@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,6 +104,57 @@ BOOST_AUTO_TEST_CASE(inverse_test) {
     std::cout << m * dec.solve(Eigen::MatrixXd::Identity(17, 17)) << std::endl;
   }
   BOOST_CHECK_EQUAL(check_inv, 1);
+}
+
+BOOST_AUTO_TEST_CASE(PCG_test) {
+
+  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(3, 3);
+  A << 1, 3, -2, 3, 5, 6, 2, 4, 3;
+  Eigen::MatrixXd A_sym = A * A.transpose();
+  Eigen::VectorXd x_ref = Eigen::VectorXd::Zero(3);
+  x_ref << -15, 8, 2;
+  Eigen::VectorXd b = A_sym * x_ref;
+
+  Eigen::LLT<Eigen::MatrixXd> lltOfA(A_sym);
+  Eigen::VectorXd x_chol = lltOfA.solve(b);
+  bool check_chol = x_chol.isApprox(x_ref, 1e-7);
+  BOOST_CHECK_EQUAL(check_chol, 1);
+  if (!check_chol) {
+    std::cout << "result" << std::endl;
+    std::cout << x_chol.transpose() << std::endl;
+    std::cout << "ref" << std::endl;
+    std::cout << x_ref.transpose() << std::endl;
+  }
+
+  Eigen::ConjugateGradient<Eigen::MatrixXd, Eigen::Lower | Eigen::Upper,
+                           Eigen::DiagonalPreconditioner<double>>
+      cg1;
+  cg1.compute(A_sym);
+  Eigen::VectorXd x_cg1 = cg1.solve(b);
+
+  bool check_cg1 = x_cg1.isApprox(x_ref, 1e-7);
+  BOOST_CHECK_EQUAL(check_cg1, 1);
+  if (!check_cg1) {
+    std::cout << "result" << std::endl;
+    std::cout << x_cg1.transpose() << std::endl;
+    std::cout << "ref" << std::endl;
+    std::cout << x_ref.transpose() << std::endl;
+  }
+
+  Eigen::ConjugateGradient<Eigen::MatrixXd, Eigen::Lower | Eigen::Upper,
+                           Eigen::DiagonalPreconditioner<double>>
+      cg2;
+  cg2.compute(A_sym);
+  Eigen::VectorXd x_cg2 = cg2.solveWithGuess(b, x_ref);
+
+  bool check_cg2 = x_cg2.isApprox(x_ref, 1e-7);
+  BOOST_CHECK_EQUAL(check_cg2, 1);
+  if (!check_cg2) {
+    std::cout << "result" << std::endl;
+    std::cout << x_cg2.transpose() << std::endl;
+    std::cout << "ref" << std::endl;
+    std::cout << x_ref.transpose() << std::endl;
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

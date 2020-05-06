@@ -1,17 +1,21 @@
 <options>
-    <kmclifetime help="Kinetic Monte Carlo simulations of singlets with decay" label="calc:kmclifetime" section="sec:kmc">
+    <kmclifetime help="Perform Kinetic Monte Carlo simulations of singlets with decay" label="calc:kmclifetime" section="sec:kmc">
+        <lifetimefile help="File from which lifetimes are read in." default="lifetimes.xml">lifetimes.xml</lifetimefile>
+        <ratefile help="File containing the rates" default="rates.dat">rates.dat</ratefile>
+   	    <trajectoryfile help="Name of the trajectory file" default="trajectory.csv">trajectory.csv</trajectoryfile>
         <numberofinsertions>4000</numberofinsertions>
-        <seed help="Integer to initialise the random number generator" unit="integer">23</seed>
-        <numberofcarriers help="Number of electrons/holes in the simulation box" unit="integer">1</numberofcarriers>
-        <injectionpattern help="Name pattern that specifies on which sites injection is possible. Use the wildcard '*' to inject on any site.">*</injectionpattern>
-        <lifetimefile help="File from which lifetimes are read in.">lifetimes.xml</lifetimefile>
-        <temperature help="Temperature in Kelvin.">300</temperature>
-        <trajectoryfile help="Name of the trajectory file" unit="">run1.csv</trajectoryfile>
+        <seed help="Integer to initialise the random number generator" default="23" choices="int+">23</seed>
+        <numberofcarriers help="Number of electrons/holes in the simulation box" default="1" choices="int+">1</numberofcarriers>
+        <injectionpattern help="Name pattern that specifies on which sites injection is possible. Use the wildcard '*' to inject on any site." default="*">*</injectionpattern>
+        <injectionmethod help="random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" default="random" choices="random">random</injectionmethod>
+        <temperature help="Temperature in Kelvin." unit="kelvin" default="300" choices="int+">300</temperature>
+        <occfile help="File with the occupations" default="occupation.dat">occupation.dat</occfile>
+        <maxrealtime help="Maximum clocktime allow to the calculation(Seconds)" unit="second" choices="float+">1E10</maxrealtime>
         <carrierenergy help="Run a single carrier at the same time and records its energy">
-	        <run help="Switch on/off">0</run>
-	        <outputfile help="File to write energies to">energies.csv</outputfile>
-	        <alpha help="Smoothing energy profile">0.05</alpha>
-	        <outputsteps help="Write to file every x steps">10</outputsteps>
+	        <run help="Switch on/off" default="false" choices="bool">false</run>
+	        <outputfile help="File to write energies to" default="energies.csv">energies.csv</outputfile>
+	        <alpha help="Smoothing energy profile" default="0.05" choices="float+">0.05</alpha>
+	        <outputsteps help="Write to file every x steps" default="10" choices="int+">10</outputsteps>
         </carrierenergy>
     </kmclifetime>
 </options>

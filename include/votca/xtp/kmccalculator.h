@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ class KMCCalculator : public QMCalculator {
 
   std::string Identify() override = 0;
   bool WriteToStateFile() const override = 0;
-  void Initialize(tools::Property& options) override = 0;
+  void Initialize(const tools::Property& options) override = 0;
 
  protected:
   QMStateType _carriertype;
@@ -46,7 +46,7 @@ class KMCCalculator : public QMCalculator {
   void LoadGraph(Topology& top);
   virtual void RunVSSM() = 0;
 
-  void ParseCommonOptions(tools::Property& options);
+  void ParseCommonOptions(const tools::Property& options);
 
   double Promotetime(double cumulated_rate);
   void ResetForbiddenlist(std::vector<GNode*>& forbiddenid) const;
@@ -73,9 +73,9 @@ class KMCCalculator : public QMCalculator {
   Index _numberofcarriers;
   Eigen::Vector3d _field = Eigen::Vector3d::Zero();
   double _maxrealtime;
-  std::string _trajectoryfile = "trajectory.csv";
-  std::string _ratefile = "rates.dat";
-  std::string _occfile = "occupation.dat";
+  std::string _trajectoryfile;
+  std::string _ratefile;
+  std::string _occfile;
 
   Logger _log;
 

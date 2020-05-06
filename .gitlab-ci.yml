@@ -36,7 +36,7 @@ stages:
     - cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON -DBUILD_XTP=ON -DENABLE_WERROR=ON
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
-      -DWITH_MKL=${WITH_MKL} -DCMAKE_DISABLE_FIND_PACKAGE_MKL=${DISABLE_MKL}
+      -DCMAKE_DISABLE_FIND_PACKAGE_MKL=${DISABLE_MKL}
       -DUSE_CUDA=${USE_CUDA}      
     - cmake --build . -- -j2
     - ctest --output-on-failure
@@ -177,7 +177,6 @@ Debug GPU Ubuntu:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
     USE_CUDA: "yes"
-    WITH_MKL: "no"
     DISABLE_MKL: "yes"
     NO_INSTALL: "yes"
   before_script:

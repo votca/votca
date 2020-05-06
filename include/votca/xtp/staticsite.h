@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -113,7 +113,7 @@ class StaticSite {
 
   void WriteData(data& d) const;
   void ReadData(const data& d);
-  virtual void setPolarisation(const Eigen::Matrix3d&) { return; }
+  virtual void setpolarization(const Eigen::Matrix3d&) { return; }
 
   virtual std::string identify() const { return "staticsite"; }
 
@@ -124,7 +124,7 @@ class StaticSite {
   }
 
  protected:
-  virtual std::string writePolarisation() const;
+  virtual std::string writepolarization() const;
 
   Index _id = -1;
   std::string _element = "";

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_ORCA_H
-#define __VOTCA_XTP_ORCA_H
+#ifndef VOTCA_XTP_ORCA_H
+#define VOTCA_XTP_ORCA_H
 
 #include <votca/xtp/qmpackage.h>
 
@@ -37,7 +37,7 @@ class Orca : public QMPackage {
  public:
   std::string getPackageName() const override { return "orca"; }
 
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
 
   bool WriteInputFile(const Orbitals& orbitals) override;
 
@@ -57,7 +57,29 @@ class Orca : public QMPackage {
 
   Eigen::Matrix3d GetPolarizability() const override;
 
+ protected:
+  const std::array<Index, 25>& ShellMulitplier() const final {
+    return _multipliers;
+  }
+  const std::array<Index, 25>& ShellReorder() const final { return _reorder; }
+
  private:
+  // clang-format off
+  std::array<Index,25> _multipliers={
+            1, //s
+            1,1,1, //p
+            1,1,1,1,1, //d
+            1,1,1,1,1,-1,-1, //f 
+            1,1,1,1,1,-1,-1,-1,-1 //g
+            };
+  std::array<Index,25> _reorder={
+            0, //s
+            0,+1,-1, //p orca order is z,x,y Y1,0,Y1,1,Y1,-1
+            0,+1,-1,+1,-1, //d orca order is d3z2-r2 dxz dyz dx2-y2 dxy e.g. Y2,0 Y2,1 Y2,-1 Y2,2
+            0,+1,-1,+1,-1,+1,-1, //f 
+            0,+1,-1,+1,-1,+1,-1,+1,-1 //g
+            };
+  // clang-format on
   std::string indent(const double& number);
   std::string getLName(Index lnum);
 
@@ -71,9 +93,17 @@ class Orca : public QMPackage {
   template <class T>
   void GetCoordinates(T& mol, std::string& line,
                       std::ifstream& input_file) const;
+  std::string WriteMethod() const;
+  std::string CreateInputSection(const std::string& key) const;
+
+  std::unordered_map<std::string, std::string> _convergence_map{
+      {"low", "Loose"},
+      {"normal", "Strong"},
+      {"tight", "Tight"},
+      {"verytight", "VeryTight"}};
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_XTP_ORCA_H */
+#endif  // VOTCA_XTP_ORCA_H

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -36,7 +36,7 @@ class MapChecker : public QMCalculator {
 
   std::string Identify() override { return "mapchecker"; }
   bool WriteToStateFile() const override { return false; }
-  void Initialize(tools::Property& opt) override;
+  void Initialize(const tools::Property& opt) override;
   bool EvaluateFrame(Topology& top) override;
 
  private:
@@ -55,27 +55,26 @@ class MapChecker : public QMCalculator {
   std::vector<QMState> _mdstates;
 };
 
-void MapChecker::Initialize(tools::Property& opt) {
-  std::string key = "options." + Identify();
-  _segmentfile = opt.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".md_pdbfile", "md_segments.pdb");
+void MapChecker::Initialize(const tools::Property& user_options) {
 
-  _qmfile = opt.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".qm_pdbfile", "qm_segments.pdb");
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _mpfile = opt.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".mp_pdbfile", "mp_segments.pdb");
+  _segmentfile = options.get(".md_pdbfile").as<std::string>();
+
+  _qmfile = options.get(".qm_pdbfile").as<std::string>();
+
+  _mpfile = options.get(".mp_pdbfile").as<std::string>();
 
   std::string output_qm =
-      opt.ifExistsReturnElseReturnDefault<std::string>(key + ".qm_states", "");
+      options.ifExistsReturnElseReturnDefault<std::string>(".qm_states", "");
 
   _qmstates = StringToStates(output_qm);
   std::string output_md =
-      opt.ifExistsReturnElseReturnDefault<std::string>(key + ".mp_states", "");
+      options.ifExistsReturnElseReturnDefault<std::string>(".mp_states", "");
   _mdstates = StringToStates(output_md);
   if (!(_qmstates.empty() && _mdstates.empty())) {
-    _mapfile =
-        opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".map_file");
+    _mapfile = options.get(".map_file").as<std::string>();
   }
 }
 

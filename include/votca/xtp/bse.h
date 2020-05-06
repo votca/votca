@@ -39,8 +39,9 @@ class QMFragment;
 class BSE {
 
  public:
-  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp)
-      : _log(log), _Mmn(Mmn), _Hqp(Hqp){};
+  //  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp_in)
+  //    : _log(log), _Mmn(Mmn), _Hqp_in(Hqp_in){};
+  BSE(Logger& log, TCMatrix_gwbse& Mmn) : _log(log), _Mmn(Mmn){};
 
   struct options {
     bool useTDA = true;
@@ -48,24 +49,28 @@ class BSE {
     Index rpamin;
     Index rpamax;
     Index qpmin;
+    Index qpmax;
     Index vmin;
     Index cmax;
-    Index nmax = 5;           // number of eigenvectors to calculate
-    bool davidson = true;     // use davidson to diagonalize the matrix
-    bool matrixfree = false;  // use matrix free method
-    std::string davidson_correction = "DPR";
-    std::string davidson_ortho = "GS";
-    std::string davidson_tolerance = "normal";
-    std::string davidson_update = "safe";
-    Index davidson_maxiter = 50;
-    double min_print_weight =
-        0.5;  // minimium contribution for state to print it
+    Index nmax;       // number of eigenvectors to calculate
+    bool davidson;    // use davidson to diagonalize the matrix
+    bool matrixfree;  // use matrix free method
+    std::string davidson_correction;
+    std::string davidson_ortho;
+    std::string davidson_tolerance;
+    std::string davidson_update;
+    Index davidson_maxiter;
+    double min_print_weight;  // minimium contribution for state to print it
+    bool use_Hqp_offdiag;
   };
 
-  void configure(const options& opt, const Eigen::VectorXd& DFTenergies);
+  void configure(const options& opt, const Eigen::VectorXd& RPAEnergies,
+                 const Eigen::MatrixXd& Hqp_in);
 
   void Solve_singlets(Orbitals& orb) const;
   void Solve_triplets(Orbitals& orb) const;
+
+  Eigen::MatrixXd getHqp() const { return _Hqp; };
 
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
@@ -94,7 +99,7 @@ class BSE {
   Eigen::VectorXd _epsilon_0_inv;
 
   TCMatrix_gwbse& _Mmn;
-  const Eigen::MatrixXd& _Hqp;
+  Eigen::MatrixXd _Hqp;
 
   tools::EigenSystem Solve_singlets_TDA() const;
   tools::EigenSystem Solve_singlets_BTDA() const;
@@ -122,6 +127,9 @@ class BSE {
                      Index state) const;
   void printWeights(Index i_bse, double weight) const;
   void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies);
+
+  Eigen::MatrixXd AdjustHqpSize(const Eigen::MatrixXd& Hqp_in,
+                                const Eigen::VectorXd& RPAInputEnergies);
 
   Interaction Analyze_eh_interaction(const QMStateType& type,
                                      const Orbitals& orb) const;

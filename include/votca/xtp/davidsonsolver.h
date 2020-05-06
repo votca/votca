@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
  */
 
 #pragma once
-#ifndef __VOTCA_TOOLS_DAVIDSON_SOLVER_H
-#define __VOTCA_TOOLS_DAVIDSON_SOLVER_H
+#ifndef VOTCA_XTP_DAVIDSONSOLVER_H
+#define VOTCA_XTP_DAVIDSONSOLVER_H
 
 #include <chrono>
 #include <iostream>
@@ -92,12 +92,15 @@ class DavidsonSolver {
       if (do_restart) {
         restart(rep, proj, size_initial_guess);
       }
+
       updateProjection(A, proj);
-      rep = getGuessVectors(A, proj);
+
+      rep = getRitzEigenPairs(A, proj);
+
+      bool converged = checkConvergence(rep, proj, neigen);
 
       printIterationData(rep, proj, neigen);
 
-      bool converged = (rep.res_norm().head(neigen) < _tol).all();
       bool last_iter = _i_iter == (_iter_max - 1);
 
       if (converged) {
@@ -186,8 +189,8 @@ class DavidsonSolver {
   }
 
   template <typename MatrixReplacement>
-  RitzEigenPair getGuessVectors(const MatrixReplacement &A,
-                                const ProjectedSpace &proj) const {
+  RitzEigenPair getRitzEigenPairs(const MatrixReplacement &A,
+                                  const ProjectedSpace &proj) const {
     // get the ritz vectors
     switch (this->_matrix_type) {
       case MATRIX_TYPE::SYMM: {
@@ -270,6 +273,9 @@ class DavidsonSolver {
 
   void extendProjection(const RitzEigenPair &rep, ProjectedSpace &proj);
 
+  bool checkConvergence(const RitzEigenPair &rep, ProjectedSpace &proj,
+                        Index neigen);
+
   void restart(const RitzEigenPair &rep, ProjectedSpace &proj,
                Index size_restart) const;
 
@@ -284,4 +290,4 @@ class DavidsonSolver {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // __VOTCA_TOOLS_DAVIDSON_SOLVER_H
+#endif  // VOTCA_XTP_DAVIDSONSOLVER_H

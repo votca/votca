@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -231,6 +231,13 @@ class Orbitals {
   void setScaHFX(double ScaHFX) { _ScaHFX = ScaHFX; }
 
   // access to perturbative QP energies
+  bool hasRPAInputEnergies() const { return (_rpa_inputenergies.size() > 0); }
+
+  const Eigen::VectorXd &RPAInputEnergies() const { return _rpa_inputenergies; }
+
+  Eigen::VectorXd &RPAInputEnergies() { return _rpa_inputenergies; }
+
+  // access to RPA input energies energies
   bool hasQPpert() const {
     return (_QPpert_energies.size() > 0) ? true : false;
   }
@@ -306,6 +313,9 @@ class Orbitals {
   void WriteToCpt(CheckpointWriter w) const;
   void ReadFromCpt(CheckpointReader parent);
 
+  bool GetFlagUseHqpOffdiag() const { return _use_Hqp_offdiag; };
+  void SetFlagUseHqpOffdiag(bool flag) { _use_Hqp_offdiag = flag; };
+
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
@@ -371,6 +381,7 @@ class Orbitals {
   std::string _functionalname = "";
   std::string _qm_package = "";
 
+  Eigen::VectorXd _rpa_inputenergies;
   // perturbative quasiparticle energies
   Eigen::VectorXd _QPpert_energies;
 
@@ -380,6 +391,8 @@ class Orbitals {
   tools::EigenSystem _BSE_singlet;
   std::vector<Eigen::Vector3d> _transition_dipoles;
   tools::EigenSystem _BSE_triplet;
+
+  bool _use_Hqp_offdiag = true;
 };
 
 }  // namespace xtp

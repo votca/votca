@@ -1,12 +1,6 @@
 <options>
 <apdft help="Write Electrostatic potentials at core positions">
-
-        <output help="Output file" default="state.dat">H2O.dat</output>
-        <input help="Input file" default="system.orb">system.orb</input>
-       <grid help="grid quality xcoarse,coarse,medium,fine,xfine">medium</grid>
-        <state help="State to generate potential for" default="N">N</state>
-
-
+        <grid help="grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine">medium</grid>
+        <state help="QM state to generate potential" default="N">N</state>
 </apdft>
-
 </options>

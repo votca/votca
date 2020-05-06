@@ -34,7 +34,7 @@ class APDFT final : public QMTool {
   ~APDFT() final = default;
   std::string Identify() final { return "apdft"; }
 
-  void Initialize(tools::Property &opt) final;
+  void Initialize(const tools::Property &opt) final;
   bool Evaluate() final;
 
  private:

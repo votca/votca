@@ -44,7 +44,8 @@ BOOST_AUTO_TEST_CASE(rpa_calcenergies) {
   rpa.UpdateRPAInputEnergies(dftenergies, gwenergies, qpmin);
   Eigen::VectorXd rpaenergies = rpa.getRPAInputEnergies();
   Eigen::VectorXd rpaenergies_ref = Eigen::VectorXd::Zero(10);
-  rpaenergies_ref << -0.5, -0.15, -0.05, 0.05, 0.15, 0.45, 0.55, 0.65, 0.4, 0.5;
+  rpaenergies_ref << -0.85, -0.15, -0.05, 0.05, 0.15, 0.45, 0.55, 0.65, 0.75,
+      0.85;
   bool e_check = rpaenergies_ref.isApprox(rpaenergies, 0.0001);
 
   if (!e_check) {
@@ -53,6 +54,7 @@ BOOST_AUTO_TEST_CASE(rpa_calcenergies) {
     cout << "energy_ref" << endl;
     cout << rpaenergies_ref << endl;
   }
+  BOOST_CHECK_EQUAL(e_check, true);
 }
 
 BOOST_AUTO_TEST_CASE(rpa_full) {

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -531,6 +531,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_useTDA, "useTDA");
   w(_ECP, "ECP");
 
+  w(_rpa_inputenergies, "RPA_inputenergies");
   w(_QPpert_energies, "QPpert_energies");
 
   w(_QPdiag, "QPdiag");
@@ -540,6 +541,8 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_transition_dipoles, "transition_dipoles");
 
   w(_BSE_triplet, "BSE_triplet");
+
+  w(_use_Hqp_offdiag, "use_Hqp_offdiag");
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -584,6 +587,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_useTDA, "useTDA");
   r(_ECP, "ECP");
 
+  r(_rpa_inputenergies, "RPA_inputenergies");
   r(_QPpert_energies, "QPpert_energies");
   r(_QPdiag, "QPdiag");
 
@@ -592,6 +596,8 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_transition_dipoles, "transition_dipoles");
 
   r(_BSE_triplet, "BSE_triplet");
+
+  r(_use_Hqp_offdiag, "use_Hqp_offdiag");
 }
 }  // namespace xtp
 }  // namespace votca

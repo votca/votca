@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -431,12 +431,15 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   opt.cmax = orbitalsAB.getBSEcmax();
   opt.homo = orbitalsAB.getHomo();
   opt.qpmin = orbitalsAB.getGWAmin();
+  opt.qpmax = orbitalsAB.getGWAmax();
   opt.rpamax = orbitalsAB.getRPAmax();
   opt.rpamin = orbitalsAB.getRPAmin();
   opt.useTDA = true;
   opt.vmin = orbitalsAB.getBSEvmin();
-  BSE bse(*_pLog, Mmn, Hqp);
-  bse.configure(opt, orbitalsAB.MOs().eigenvalues());
+  opt.use_Hqp_offdiag = orbitalsAB.GetFlagUseHqpOffdiag();
+
+  BSE bse(*_pLog, Mmn);
+  bse.configure(opt, orbitalsAB.RPAInputEnergies(), Hqp);
   XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Setup BSE operator" << flush;
 
   // now the different spin types

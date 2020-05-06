@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,8 +26,7 @@ using std::flush;
 
 void StateTracker::Initialize(const tools::Property& options) {
 
-  std::string filters =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>("filters");
+  std::string filters = options.get("filters").as<std::string>();
   tools::Tokenizer tok(filters, " ,;\n");
   std::vector<std::string> list_filters = tok.ToVector();
 

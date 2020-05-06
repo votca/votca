@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,14 +23,14 @@
 namespace votca {
 namespace xtp {
 
-void VAverage::Initialize(tools::Property& options) {
-  std::string key = "options." + Identify();
-  _ratefile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".ratefile");
-  _occfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".occfile");
-  _outputfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".outputfile");
+void VAverage::Initialize(const tools::Property& user_options) {
+
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+
+  _ratefile = options.get(".ratefile").as<std::string>();
+  _occfile = options.get(".occfile").as<std::string>();
+  _outputfile = options.get(".outputfile").as<std::string>();
 }
 
 std::vector<double> VAverage::ReadOccfile(std::string filename) const {

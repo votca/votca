@@ -41,7 +41,7 @@ class EAnalyze : public QMCalculator {
   bool WriteToStateFile() const override { return false; }
   std::string Identify() override { return "eanalyze"; }
 
-  void Initialize(tools::Property &opt) override;
+  void Initialize(const tools::Property &opt) override;
   bool EvaluateFrame(Topology &top) override;
 
  private:
@@ -51,14 +51,10 @@ class EAnalyze : public QMCalculator {
 
   double _resolution_pairs;
   double _resolution_sites;
-  double _resolution_space;
+  double _resolution_spatial;
   bool _atomdistances = false;
 
   std::vector<QMStateType> _states;
-
-  bool _skip_corr = false;
-  bool _skip_sites = false;
-  bool _skip_pairs = false;
 
   bool _doenergy_landscape;
   Index _first_seg;

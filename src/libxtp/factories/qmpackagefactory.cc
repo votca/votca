@@ -17,8 +17,6 @@
  *
  */
 
-#include "../qmpackages/gaussian.h"
-#include "../qmpackages/nwchem.h"
 #include "../qmpackages/orca.h"
 #include "../qmpackages/xtpdft.h"
 #include <votca/xtp/qmpackagefactory.h>
@@ -27,8 +25,6 @@ namespace votca {
 namespace xtp {
 
 void QMPackageFactory::RegisterAll(void) {
-  QMPackages().Register<Gaussian>("gaussian");
-  QMPackages().Register<NWChem>("nwchem");
   QMPackages().Register<Orca>("orca");
   QMPackages().Register<XTPDFT>("xtp");
 }
