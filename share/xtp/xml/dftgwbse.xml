@@ -44,7 +44,7 @@
 		                <davidson_ortho help="orthogonalisation routine: Gram–Schmidt or QR" default="GS" choices="GS,QR">GS</davidson_ortho>
 		                <davidson_update help=" how large the search space" default="safe" choices="min,safe,max">safe</davidson_update>
 		                <davidson_maxiter help="max iterations" default="50" choices="int+">50</davidson_maxiter>
-		                <domatrixfree help="solve without explicitly setting up BSE matrix, (slower but a lot less memory required" default="true" choices="true">false</domatrixfree>
+		                <domatrixfree help="solve without explicitly setting up BSE matrix, (slower but a lot less memory required" default="true" choices="bool">false</domatrixfree>
 	                </eigensolver>
 	                <gw_sc_max_iterations help="Maximum number of iterations in eVGW" default="50" choices="int+">50</gw_sc_max_iterations>
 	                <gw_mixing_order help="Mixing of QP energies in evGW - 0: plain, 1: linear, >1: Anderson" default="20" choices="int+">20</gw_mixing_order>
