@@ -32,6 +32,6 @@ html_context = {
 
 extensions = [
     'recommonmark', # Parse markdown
-    'sphinx.ext.mathjax' # Write equations
-    'sphinx.ext.githubpage' # Create content to publish in githubpages
+    'sphinx.ext.mathjax', # Write equations
+    'sphinx.ext.githubpages' # Create content to publish in githubpages
 ]
