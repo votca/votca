@@ -4,8 +4,10 @@ author = 'VOTCA Development Team'
 release = '@PROJECT_VERSION@'
 
 from recommonmark.parser import CommonMarkParser
-source_suffix = ['.rst', '.md']
-source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
 html_logo = 'customLogo.png'
 html_theme = "sphinx_rtd_theme"
@@ -26,3 +28,10 @@ html_context = {
         '_static/theme_overrides.css',  # override wide tables in RTD theme
         ],
      }
+
+
+extensions = [
+    'recommonmark', # Parse markdown
+    'sphinx.ext.mathjax' # Write equations
+    'sphinx.ext.githubpage' # Create content to publish in githubpages
+]
