@@ -1,5 +1,5 @@
 <options>
 	<log2mps help="Generates an mps-file (with polar-site definitions) from a QM log-file" label="tool:log2mps">
-		<package help="QM package" default="orca" choices="orca">orca</package>
+		<package help="QM package" default="orca" choices="orca"></package>
 	</log2mps>
 </options>

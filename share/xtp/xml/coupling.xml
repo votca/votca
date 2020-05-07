@@ -2,29 +2,29 @@
 <coupling help="Compute the electronic couplings from log and orbital files." section="sec:coupling">
         <dftpackage>
             <package>
-                <name help="Name of the DFT package" default="xtp" choices="xtp,orca">xtp</name>
+                <name help="Name of the DFT package" default="xtp" choices="xtp,orca"></name>
             </package>
         </dftpackage>
 
         <dftcoupling_options>
-            <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0" choices="float+">0.0</degeneracy>
-            <levA help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule A" default="1" choices="int+">1</levA>
-            <levB help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule B" default="1" choices="int+">1</levB>
+            <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0.0" choices="float+"></degeneracy>
+            <levA help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule A" default="1" choices="int+"></levA>
+            <levB help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule B" default="1" choices="int+"></levB>
         </dftcoupling_options>
 
         <moleculeA help="">
-                <log help="Log file of molecule A" default="A.log">A.log</log>
-                <orbitals help="Orbitals file" default="A.orb">A.orb</orbitals>
+                <log help="Log file of molecule A" default="A.log"></log>
+                <orbitals help="Orbitals file" default="A.orb"></orbitals>
         </moleculeA>
 
         <moleculeB>
-                <log help="Log file of molecule B" default="B.log">B.log</log>
-                <orbitals help="Orbitals file" default="B.orb">B.orb</orbitals>
+                <log help="Log file of molecule B" default="B.log"></log>
+                <orbitals help="Orbitals file" default="B.orb"></orbitals>
         </moleculeB>
 
         <dimerAB>
-                <log help="Log file of dimer AB" default="AB.log">AB.log</log>
-                <orbitals help="Orbitals file" default="A.orb">AB.orb</orbitals>
+                <log help="Log file of dimer AB" default="AB.log"></log>
+                <orbitals help="Orbitals file" default="A.orb"></orbitals>
         </dimerAB>
 
 </coupling>

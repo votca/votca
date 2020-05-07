@@ -1,7 +1,6 @@
 <options>
     <density2gyration help="Determine centroid and gyration tensor of electronic density" section="sec:overlap">
-        <state help="Sate to analyse" default="s1">s1</state>
-        <difference_to_groundstate help="compare to the ground state" default="true" choices="bool">true</difference_to_groundstate>
-        <gridsize help="Grid accuracy for numerical integration coarse,medium,fine" default="medium">medium</gridsize>
+        <state help="Sate to analyse" default="s1"></state>
+        <difference_to_groundstate help="compare to the ground state" default="true" choices="bool"></difference_to_groundstate>
     </density2gyration>
 </options>

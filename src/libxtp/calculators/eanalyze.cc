@@ -36,13 +36,6 @@ void EAnalyze::Initialize(const tools::Property &user_options) {
   }
 
   std::string statestrings = options.get(".states").as<std::string>();
-  std::size_t start_bracket = statestrings.find('[');
-  if (start_bracket != std::string::npos) {
-    std::size_t end_bracket = statestrings.find(']');
-    statestrings =
-        statestrings.substr(start_bracket + 1, end_bracket - start_bracket - 1);
-  }
-
   tools::Tokenizer tok(statestrings, ",\n\t ");
   std::vector<std::string> string_vec;
   tok.ToVector(string_vec);
