@@ -44,16 +44,20 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
       boost::filesystem::create_directory(dir);
 
       std::ofstream defaults("calculators/xml/testcalc.xml");
-      defaults << "<options>\n"
-               << "<testcalc>\n"
-               << "<option0 default=\"foo\" choices=\"foo,bar\"></option0>\n"
-               << "<option1 default=\"0\" choices=\"int+\"></option1>\n"
-               << "<option2 default=\"-3.141592\" choices=\"float\"></option2>\n"
-               << "<option4 default=\"3.141592\" choices=\"float+\"></option4>\n"
-               << "<option5 default=\"true\" choices=\"bool\"></option5>\n"
-               << "<option6 default=\"foo,qux\" choices=\"[foo,bar,baz,qux]\"></option6>\n"
-               << "</testcalc>\n"
-               << "</options>";
+      defaults
+          << "<options>\n"
+          << "<testcalc>\n"
+          << "<option0 default=\"foo\" choices=\"foo,bar\"></option0>\n"
+          << "<option1 default=\"0\" choices=\"int+\"></option1>\n"
+          << "<option2 default=\"-3.141592\" choices=\"float\"></option2>\n"
+          << "<option4 default=\"3.141592\" choices=\"float+\"></option4>\n"
+          << "<option5 default=\"true\" choices=\"bool\"></option5>\n"
+          << "<option6 default=\"1,3\" choices=\"[1,2,3]\"></option6>\n"
+          << "<option7>\n"
+          << "<option71 default=\"none\" choices=\"some,none\"></option71>\n"
+          << "</option7>\n"
+          << "</testcalc>\n"
+          << "</options>";
       defaults.close();
 
       // Load and check the options
@@ -66,12 +70,17 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
       std::string prop3 = final_opt.get("option3.nested").as<std::string>();
       double prop4 = final_opt.get("option4").as<double>();
       bool prop5 = final_opt.get("option5").as<bool>();
+      std::string prop6 = final_opt.get("option6").as<std::string>();
+      const tools::Property &prop7 = final_opt.get("option7");
+      std::string prop71 = prop7.get("option71").as<std::string>();
       BOOST_CHECK_EQUAL(prop0, "foo");
       BOOST_CHECK_EQUAL(prop1, 42);
       BOOST_CHECK_CLOSE(prop2, -3.141592, 0.00001);
       BOOST_CHECK_EQUAL(prop3, "nested_value");
       BOOST_CHECK_CLOSE(prop4, 3.141592, 0.00001);
       BOOST_CHECK_EQUAL(prop5, true);
+      BOOST_CHECK_EQUAL(prop6, "1,3");
+      BOOST_CHECK_EQUAL(prop71, "none");
     }
   };
 
