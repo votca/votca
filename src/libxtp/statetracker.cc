@@ -27,12 +27,8 @@ using std::flush;
 void StateTracker::Initialize(const tools::Property& options) {
 
   std::string filters = options.get("filters").as<std::string>();
-  std::size_t start_bracket = filters.find('[');
-  if (start_bracket == std::string::npos) {
-    std::size_t end_bracket = filters.find(']');
-    filters =
-        filters.substr(start_bracket + 1, end_bracket - start_bracket - 1);
-  }
+  std::remove_if(begin(filters), end(filters),
+                 [](char& x) { return x == '[' || x == ']'; });
   tools::Tokenizer tok(filters, " ,;\n");
   std::vector<std::string> list_filters = tok.ToVector();
 
