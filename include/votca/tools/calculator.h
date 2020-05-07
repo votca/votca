@@ -101,6 +101,7 @@ class Calculator {
   Property LoadDefaultsAndUpdateWithUserOptions(const std::string package,
                                                 const Property &user_options) {
     Property defaults = LoadDefaults(package);
+    InjectDefaultsAsValues(defaults);
     UpdateWithUserOptions(defaults, user_options);
     RecursivelyCheckOptions(defaults);
     return defaults;
@@ -111,6 +112,8 @@ class Calculator {
   bool _maverick;
 
   void OverwriteDefaultsWithUserInput(const Property &p, Property &defaults);
+  // Copy the defaults into the value
+  static void InjectDefaultsAsValues(Property &defaults);
   static void RecursivelyCheckOptions(const Property &prop);
   static bool IsValidOption(const Property &p,
                             const std::vector<std::string> &choices);

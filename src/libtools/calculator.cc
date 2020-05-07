@@ -79,6 +79,11 @@ void Calculator::OverwriteDefaultsWithUserInput(const Property &p,
 std::vector<std::string> Calculator::GetPropertyChoices(const Property &p) {
   if (p.hasAttribute("choices")) {
     std::string att = p.getAttribute<std::string>("choices");
+    std::size_t start_bracket = att.find('[');
+    if (start_bracket != std::string::npos) {
+      std::size_t end_bracket = att.find(']');
+      att = att.substr(start_bracket + 1, end_bracket - start_bracket - 1);
+    }
     Tokenizer tok{att, " ,"};
     return tok.ToVector();
   } else {
@@ -134,17 +139,15 @@ bool Calculator::IsValidOption(const Property &prop,
     is_valid = Calculator::IsValidCast<Index>(prop) && (prop.as<Index>() >= 0);
   } else {
     std::string value = prop.as<std::string>();
-    std::size_t start_bracket = value.find('[');
+    std::string att = prop.getAttribute<std::string>("choices");
+    std::size_t start_bracket = att.find('[');
     if (start_bracket == std::string::npos) {
       // There is a single choice out of multiple default valid choices
       auto it = std::find(std::cbegin(choices), std::cend(choices), value);
       is_valid = (it != std::cend(choices));
     } else {
       // there are multiple valid choices
-      std::size_t end_bracket = value.find(']');
-      std::string content =
-          value.substr(start_bracket + 1, end_bracket - start_bracket - 1);
-      Tokenizer tok{content, " ,"};
+      Tokenizer tok{value, " ,"};
       for (const std::string &word : tok) {
         auto it = std::find(std::cbegin(choices), std::cend(choices), word);
         if (it == std::cend(choices)) {
@@ -155,6 +158,18 @@ bool Calculator::IsValidOption(const Property &prop,
     }
   }
   return is_valid;
+}
+
+void Calculator::InjectDefaultsAsValues(Property &defaults) {
+  for (Property &prop : defaults) {
+    if (prop.HasChildren()) {
+      InjectDefaultsAsValues(prop);
+    } else {
+      if (prop.hasAttribute("default")) {
+        prop.set(".", prop.getAttribute<std::string>("default"));
+      }
+    }
+  }
 }
 
 }  // namespace tools
