@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,11 +54,7 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
 
   size_t ifirstatom = 0;
 
-#if GMX_VERSION >= 20190000
   size_t nmolblock = mtop.molblock.size();
-#else
-  size_t nmolblock = mtop.nmolblock;
-#endif
 
   for (size_t iblock = 0; iblock < nmolblock; ++iblock) {
     gmx_moltype_t *mol = &(mtop.moltype[mtop.molblock[iblock].type]);
@@ -76,11 +72,7 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
     for (Index imol = 0; imol < mtop.molblock[iblock].nmol; ++imol) {
       Molecule *mi = top.CreateMolecule(molname);
 
-#if GMX_VERSION >= 20190000
       size_t natoms_mol = mtop.moltype[mtop.molblock[iblock].type].atoms.nr;
-#else
-      size_t natoms_mol = mtop.molblock[iblock].natoms_mol;
-#endif
       // read the atoms
       for (size_t iatom = 0; iatom < natoms_mol; iatom++) {
         t_atom *a = &(atoms->atom[iatom]);
