@@ -3,8 +3,8 @@
 <iqm help="QM calculator for pairs" section="sec:iqm">
     <job_file help="name of jobfile to which jobs are written" default="iqm.jobs">iqm.jobs</job_file>
     <map_file help="xml file with segment definition" default="votca_map.xml">votca_map.xml</map_file>
-    <tasks help="tasks to perform during calculation" default="input,dft,parse,dftcoupling,gwbse,bsecoupling" choices="input,dft,parse,dftcoupling,gwbse,bsecoupling">[input,dft,parse,dftcoupling,gwbse,bsecoupling]</tasks>
-    <store help="store gw/dft results in hdf5 file, can require a lot of disk space in large systems"></store>
+    <tasks help="tasks to perform during calculation" default="[input,dft,parse,dftcoupling,gwbse,bsecoupling]" choices="input,dft,parse,dftcoupling,gwbse,bsecoupling">[input,dft,parse,dftcoupling,gwbse,bsecoupling]</tasks>
+    <store help="store results in hdf5 file, can require a lot of disk space in large systems" default="none" choices="none,gw,dft">none</store>
     <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
     <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
     <functional help="Functional name(s) according to LIBXC" default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
