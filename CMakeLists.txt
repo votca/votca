@@ -75,7 +75,7 @@ option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functio
 if (WITH_GMX)
   find_package(GROMACS 2021 QUIET CONFIG NAMES gromacs gromacs_d)
   if(NOT GROMACS_FOUND)
-    find_package(GROMACS 2016 REQUIRED MODULE)
+    find_package(GROMACS 2019 REQUIRED MODULE)
   endif()
   if(DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_GREATER_EQUAL "2020")
     message(WARNING "Gromacs-2020 and above have no support for tabulated interactions, that are needed for coarse-graining (see and comment on https://gitlab.com/gromacs/gromacs/-/issues/1347)")
