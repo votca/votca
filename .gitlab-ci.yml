@@ -13,7 +13,7 @@ stages:
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/votca
-    when: always 
+    when: always
   dependencies: []
   cache:
     paths:
@@ -37,11 +37,12 @@ stages:
     - pushd build
     - cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON -DBUILD_CSG_MANUAL=ON -DENABLE_WERROR=ON
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      ${CMAKE_GENERATOR:+-G${CMAKE_GENERATOR}}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
-    - cmake --build . -- -j2
+    - cmake --build . --parallel 2
     - ctest --output-on-failure
-    - test -z "${MODULE_BUILD}" && DESTDIR=${PWD}/install cmake --build . --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
-    - sudo cmake --build . --target install
+    - test -z "${MODULE_BUILD}" && DESTDIR=${PWD}/install cmake --install . && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
+    - sudo cmake --install .
     - ccache -s
 
 Debug GCC:
@@ -57,6 +58,7 @@ Release Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
   extends: .build
 
 Release Clang Ubuntu:
@@ -64,7 +66,33 @@ Release Clang Ubuntu:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "ubuntu"
+  extends: .build
+
+Debug GCC Ubuntu_rolling:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "ubuntu_rolling"
+  extends: .build
+
+Debug GCC Ubuntu Devel:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "ubuntu_devel"
+  extends: .build
+  allow_failure: true
+
+Release GCC openSUSE:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "opensuse"
   extends: .build
 
 Debug GCC Rawhide:
