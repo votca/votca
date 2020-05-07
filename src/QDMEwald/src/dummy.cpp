@@ -1,5 +1,5 @@
 /*
- *            Copyright 2019 Juelich Supercomputing Centre
+ *            Copyright 2019 Forschungszentrum Juelich GmbH
  *            Copyright 2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *

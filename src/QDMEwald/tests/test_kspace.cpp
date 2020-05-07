@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Juelich Supercomputing Centre
+ * Copyright 2019 Forschungszentrum Juelich GmbH
  * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
