@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,10 +31,6 @@ fi
 tpr="$(csg_get_property cg.inverse.gromacs.topol)"
 
 mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
-# remove this block when dropping support for gmx-2018
-if [[ ${mdrun_opts} = *"-multi "* ]]; then
-  die "${0##*/}: Support for '-multi' got removed in gromacs-2019, please use multidir (through cg.inverse.gromacs.mdrun.multidir) option instead"
-fi
 
 multidir=( $(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.multidir) )
 
