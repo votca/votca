@@ -14,6 +14,7 @@ For more detailed information about the changes see the history of the [reposito
 * check calculator input options (#232, #233)
 * allow calculator choices to be a list (#239)
 * inject defaults into calculator values (#241)
+* fixed bug introduced by defaults injection (#241)
 
 ## Version 1.6.1 (released XX.04.20)
 * fix build with mkl (#229)
