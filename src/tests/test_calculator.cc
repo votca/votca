@@ -74,6 +74,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
       std::string prop6 = final_opt.get("option6").as<std::string>();
       const tools::Property &prop7 = final_opt.get("option7");
       std::string prop71 = prop7.get("option71").as<std::string>();
+      Index prop8 = final_opt.get("option8").as<Index>();
       Index prop9 = final_opt.get("option9").as<Index>();
       BOOST_CHECK_EQUAL(prop0, "foo");
       BOOST_CHECK_EQUAL(prop1, 42);
