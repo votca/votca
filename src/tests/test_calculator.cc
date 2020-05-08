@@ -73,6 +73,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
       std::string prop6 = final_opt.get("option6").as<std::string>();
       const tools::Property &prop7 = final_opt.get("option7");
       std::string prop71 = prop7.get("option71").as<std::string>();
+      Index prop8 = final_opt.get("option8").as<Index>();
       BOOST_CHECK_EQUAL(prop0, "foo");
       BOOST_CHECK_EQUAL(prop1, 42);
       BOOST_CHECK_CLOSE(prop2, -3.141592, 0.00001);
@@ -81,6 +82,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
       BOOST_CHECK_EQUAL(prop5, true);
       BOOST_CHECK_EQUAL(prop6, "1,3");
       BOOST_CHECK_EQUAL(prop71, "none");
+      BOOST_CHECK_EQUAL(prop8, 8);
     }
   };
 
@@ -97,6 +99,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
   opt_test.add("option1", "42");
   tools::Property &new_prop = opt_test.add("option3", "");
   new_prop.add("nested", "nested_value");
+  new_prop = opt_test.add("option8", "8");
 
   TestCalc test_calc;
   test_calc.Initialize(user_options);

@@ -68,9 +68,9 @@ void Calculator::OverwriteDefaultsWithUserInput(const Property &p,
         Property &new_prop = defaults.add(prop.name(), "");
         new_prop = prop;
       }
-    } else if (defaults.exists(prop.name())) {
+    } else if (defaults.exists(prop.name()) && (prop.value() != "")) {
       defaults.set(prop.name(), prop.value());
-    } else {
+    } else if (prop.value() != "") {
       defaults.add(prop.name(), prop.value());
     }
   }
