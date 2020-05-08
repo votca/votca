@@ -138,7 +138,7 @@ void QDMEwald<T>::compute(const std::vector<T>& xyz, const std::vector<T>& q,
   std::vector<T> r_force = rspace.get_forces();
   std::vector<T> r_torque = rspace.get_torque();
 
-  for (int i = 0; i < force.size(); ++i) {
+  for (size_t i = 0; i < force.size(); ++i) {
     force.at(i) += r_force.at(i);
     torque.at(i) += r_torque.at(i);
   }
@@ -186,7 +186,7 @@ std::vector<T> QDMEwald<T>::get_torque() {
 template <class T>
 std::vector<T> QDMEwald<T>::get_total_force() {
   std::vector<T> total_force(3, (T)0);
-  for (int i = 0; i < force.size(); ++i) {
+  for (size_t i = 0; i < force.size(); ++i) {
 #ifdef QDMEWALD_DEBUG_ENABLED
     if (i % 3 == 0) std::cout << "idx " << i / 3 << ": ";
     std::cout << force.at(i) << " ";

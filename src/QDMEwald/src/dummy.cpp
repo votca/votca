@@ -52,12 +52,12 @@ int main(int argc, char** argv) {
       xyz.at(3 * i + 1) = (double)(iy)*0.5;
       xyz.at(3 * i + 2) = (double)(iz)*0.5;
 
-      q.at(i) = (double)((ix + iy + iz) % 2) ? 1.0 : -1.0;
+      q.at(i) = (((ix + iy + iz) % 2) ? 1.0 : -1.0);
     }
 
-    for (auto i : d) i = 0.0;
+    for (double& i : d) i = 0.0;
 
-    for (auto i : Q) i = 0.0;
+    for (double& i : Q) i = 0.0;
 
     double alpha = 1.02113246946;
     double r_max = 3.64;
