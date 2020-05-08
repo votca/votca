@@ -55,15 +55,9 @@ int main(int argc, char** argv) {
       q.at(i) = (double)((ix + iy + iz) % 2) ? 1.0 : -1.0;
     }
 
-    // for (auto i : d) i = 0.0;
+    for (double& i : d) i = 0.0;
 
-    // for (auto i : Q) i = 0.0;
-
-    for (int i = 0; i < 3 * N; ++i)
-      d.at(i) = 0.0;
-
-    for (int i = 0; i < 9 * N; ++i)
-      Q.at(i) = 0.0;
+    for (double& i : Q) i = 0.0;
 
     double alpha = 1.02113246946;
     double r_max = 3.64;

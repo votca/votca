@@ -226,13 +226,7 @@ void KSpace<T>::init_params(const T _alpha, const T _k_max, const T _l) {
   alpha = _alpha;
   gamma = (T)-0.25 / (alpha * alpha);
   k_sq_int = (int)_k_max;
-  if (std::is_same<std::remove_cv_t<std::remove_reference_t<T>>,
-                   long double>::value)   
-    k_max_int = std::max(1, (int)std::floor(sqrtl(_k_max)));
-  else
-  {
-    k_max_int = std::max(1, (int)std::floor(sqrt(_k_max)));
-  }
+  k_max_int = std::max(1, (int)std::floor(std::sqrt(_k_max)));
     
   // transformed length
   rcl = (T)2.0 * (T)M_PI / _l;
