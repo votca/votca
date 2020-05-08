@@ -49,7 +49,7 @@ class RSpace {
    *                  part
    * @param _l         system length
    */
-  RSpace(T alpha, T r_max, T l) { init_params(alpha, r_max, l); }
+  RSpace(T _alpha, T _r_max, T _l) { init_params(_alpha, _r_max, _l); }
   /*
    *
    * Initialization of the internal parameters
@@ -178,11 +178,11 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
 
     std::array<T, 3> force_i = {0, 0, 0};
     std::array<T, 3> torque_i = {0, 0, 0};
-    for (int j = i + 1; j < N; ++j) {
+    for (size_t j = i + 1; j < N; ++j) {
       std::array<T, 3> dR;
-      for (int d = 0; d < 3; d++) {
-        dR[d] = xyz(i, d) - xyz(j, d);
-        dR[d] -= std::round(dR[d] / l) * l;
+      for (size_t dim = 0; dim < 3; dim++) {
+        dR[dim] = xyz(i, dim) - xyz(j, dim);
+        dR[dim] -= std::round(dR[dim] / l) * l;
       }
       T dist2 = dR[0] * dR[0] + dR[1] * dR[1] + dR[2] * dR[2];
       //      if (dist2 > r_max * r_max) continue;
@@ -218,7 +218,7 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
       std::array<T, 3> RxQJR = kl3::cross(dR, QJR);
 
       std::array<T, 3> RxQIJR = kl3::cross(dR, QIQJR);
-      std::array<T, 3> RxQJIR = kl3::cross(dR, QJQIR);
+      // std::array<T, 3> RxQJIR = kl3::cross(dR, QJQIR);
 
       std::array<T, 3> QJRXQIR = kl3::cross(QJR, QIR);
 
@@ -390,12 +390,12 @@ void RSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
 template <class T>
 std::vector<T> RSpace<T>::get_forces() {
   // get number of particles
-  int N = f.extent(0);
+  size_t N = f.extent(0);
 
   std::vector<T> k_forces(3 * N);
 
-  for (int n = 0; n < N; ++n) {
-    for (int d = 0; d < 3; ++d) {
+  for (size_t n = 0; n < N; ++n) {
+    for (size_t d = 0; d < 3; ++d) {
       k_forces.at(3 * n + d) = f(n, d);
     }
   }
@@ -412,12 +412,12 @@ std::vector<T> RSpace<T>::get_forces() {
 template <class T>
 std::vector<T> RSpace<T>::get_torque() {
   // get number of particles
-  int N = tqe.extent(0);
+  size_t N = tqe.extent(0);
 
   std::vector<T> k_torque(3 * N);
 
-  for (int n = 0; n < N; ++n) {
-    for (int d = 0; d < 3; ++d) {
+  for (size_t n = 0; n < N; ++n) {
+    for (size_t d = 0; d < 3; ++d) {
       k_torque.at(3 * n + d) = tqe(n, d);
     }
   }
