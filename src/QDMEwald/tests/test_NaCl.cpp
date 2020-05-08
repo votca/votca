@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(NaCl) {
       xyz.at(3 * i + 1) = (double)(iy)*0.5;
       xyz.at(3 * i + 2) = (double)(iz)*0.5;
 
-      q.at(i) = (double)((ix + iy + iz) % 2) ? 1.0 : -1.0;
+      q.at(i) = (((ix + iy + iz) % 2) ? 1.0 : -1.0);
     }
 
     for (double& i : d) i = 0.0;
