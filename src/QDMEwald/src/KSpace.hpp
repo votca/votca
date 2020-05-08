@@ -224,11 +224,18 @@ class KSpace {
 template <class T>
 void KSpace<T>::init_params(const T _alpha, const T _k_max, const T _l) {
   alpha = _alpha;
-  gamma = -0.25 / (alpha * alpha);
+  gamma = (T)-0.25 / (alpha * alpha);
   k_sq_int = (int)_k_max;
-  k_max_int = std::max(1, (int)std::floor(sqrt(_k_max)));
+  if (std::is_same<std::remove_cv_t<std::remove_reference_t<T>>,
+                   long double>::value)   
+    k_max_int = std::max(1, (int)std::floor(sqrtl(_k_max)));
+  else
+  {
+    k_max_int = std::max(1, (int)std::floor(sqrt(_k_max)));
+  }
+    
   // transformed length
-  rcl = 2.0 * M_PI / _l;
+  rcl = (T)2.0 * (T)M_PI / _l;
   l = _l;
 }
 
@@ -392,7 +399,7 @@ void KSpace<T>::compute_vector_sums() {
   // vec_sum:
   // [ CKC CKS DKC DKS QKC QKS ]
   // [  0   1   2   3   4   5  ]
-  int N = f.extent(0);
+  size_t N = f.extent(0);
   vec_sum = Kokkos::View<T[6]>("vector component sums");
 
   for (int i = 0; i < 6; ++i) {
@@ -416,7 +423,7 @@ void KSpace<T>::compute_forces(const int x, const int y, const int z) {
   T ry = rcl * (T)y;
   T rz = rcl * (T)z;
   int kk = x * x + y * y + z * z - 1;
-  int N = f.extent(0);
+  size_t N = f.extent(0);
   Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
     T qforce = ak(kk) * ((vec_comp(n, 9) + vec_comp(n, 10) - vec_comp(n, 13)) *
                              (vec_sum(0) - vec_sum(3) - vec_sum(5)) -
@@ -437,7 +444,7 @@ void KSpace<T>::compute_forces(const int x, const int y, const int z) {
 template <class T>
 void KSpace<T>::compute_torque(const int x, const int y, const int z) {
   int kk = x * x + y * y + z * z - 1;
-  int N = tqe.extent(0);
+  size_t N = tqe.extent(0);
   Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
     T qtqe1 =
         ak(kk) * (vec_comp(n, 1) * (vec_sum(0) - vec_sum(3) - vec_sum(4)) -
@@ -512,13 +519,13 @@ void KSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
     }
   });
 
-  T rx, ry, rz;
+  // T _rx, _ry, _rz;
   for (int ix = 0; ix <= k_max_int; ++ix) {
-    rx = rcl * (T)ix;
+    // _rx = rcl * (T)ix;
     for (int iy = miny; iy <= k_max_int; ++iy) {
-      ry = rcl * (T)iy;
+      // _ry = rcl * (T)iy;
       for (int iz = minz; iz <= k_max_int; ++iz) {
-        rz = rcl * (T)iz;
+        // _rz = rcl * (T)iz;
         // -1 to conform to C++ style array indexing
         // opposed to original Fortran indexing
         int kk = ix * ix + iy * iy + iz * iz - 1;
@@ -566,12 +573,12 @@ void KSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
 template <class T>
 std::vector<T> KSpace<T>::get_forces() {
   // get number of particles
-  int N = f.extent(0);
+  size_t N = f.extent(0);
 
   std::vector<T> k_forces(3 * N);
 
-  for (int n = 0; n < N; ++n) {
-    for (int d = 0; d < 3; ++d) {
+  for (size_t n = 0; n < N; ++n) {
+    for (size_t d = 0; d < 3; ++d) {
       k_forces.at(3 * n + d) = f(n, d);
     }
   }
@@ -588,12 +595,12 @@ std::vector<T> KSpace<T>::get_forces() {
 template <class T>
 std::vector<T> KSpace<T>::get_torque() {
   // get number of particles
-  int N = tqe.extent(0);
+  size_t N = tqe.extent(0);
 
   std::vector<T> k_torque(3 * N);
 
-  for (int n = 0; n < N; ++n) {
-    for (int d = 0; d < 3; ++d) {
+  for (size_t n = 0; n < N; ++n) {
+    for (size_t d = 0; d < 3; ++d) {
       k_torque.at(3 * n + d) = tqe(n, d);
     }
   }
