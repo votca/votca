@@ -56,6 +56,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
           << "<option7>\n"
           << "<option71 default=\"none\" choices=\"some,none\"></option71>\n"
           << "</option7>\n"
+          << "<option8 default=\"8\" choices=\"int+\"></option8>\n"
           << "</testcalc>\n"
           << "</options>";
       defaults.close();
@@ -73,7 +74,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
       std::string prop6 = final_opt.get("option6").as<std::string>();
       const tools::Property &prop7 = final_opt.get("option7");
       std::string prop71 = prop7.get("option71").as<std::string>();
-      Index prop8 = final_opt.get("option8").as<Index>();
+      Index prop9 = final_opt.get("option9").as<Index>();
       BOOST_CHECK_EQUAL(prop0, "foo");
       BOOST_CHECK_EQUAL(prop1, 42);
       BOOST_CHECK_CLOSE(prop2, -3.141592, 0.00001);
@@ -83,6 +84,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
       BOOST_CHECK_EQUAL(prop6, "1,3");
       BOOST_CHECK_EQUAL(prop71, "none");
       BOOST_CHECK_EQUAL(prop8, 8);
+      BOOST_CHECK_EQUAL(prop9, 9);
     }
   };
 
@@ -99,7 +101,8 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
   opt_test.add("option1", "42");
   tools::Property &new_prop = opt_test.add("option3", "");
   new_prop.add("nested", "nested_value");
-  new_prop = opt_test.add("option8", "8");
+  opt_test.add("option8", "");
+  opt_test.add("option9", "9");
 
   TestCalc test_calc;
   test_calc.Initialize(user_options);
