@@ -102,7 +102,9 @@ class Calculator {
                                                 const Property &user_options) {
     Property defaults = LoadDefaults(package);
     InjectDefaultsAsValues(defaults);
-    UpdateWithUserOptions(defaults, user_options);
+    Property user_options_with_defaults = user_options;
+    InjectDefaultsAsValues(user_options_with_defaults);
+    UpdateWithUserOptions(defaults, user_options_with_defaults);
     RecursivelyCheckOptions(defaults);
     return defaults;
   }

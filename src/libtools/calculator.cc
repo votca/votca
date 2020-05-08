@@ -165,7 +165,7 @@ void Calculator::InjectDefaultsAsValues(Property &defaults) {
     if (prop.HasChildren()) {
       InjectDefaultsAsValues(prop);
     } else {
-      if (prop.hasAttribute("default")) {
+      if (prop.hasAttribute("default") && (prop.value() == "")) {
         prop.set(".", prop.getAttribute<std::string>("default"));
       }
     }
