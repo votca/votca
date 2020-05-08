@@ -56,6 +56,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
           << "<option7>\n"
           << "<option71 default=\"none\" choices=\"some,none\"></option71>\n"
           << "</option7>\n"
+          << "<option8 default=\"8\" choices=\"int+\"></option8>\n"
           << "</testcalc>\n"
           << "</options>";
       defaults.close();
@@ -73,6 +74,8 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
       std::string prop6 = final_opt.get("option6").as<std::string>();
       const tools::Property &prop7 = final_opt.get("option7");
       std::string prop71 = prop7.get("option71").as<std::string>();
+      Index prop8 = final_opt.get("option8").as<Index>();
+      Index prop9 = final_opt.get("option9").as<Index>();
       BOOST_CHECK_EQUAL(prop0, "foo");
       BOOST_CHECK_EQUAL(prop1, 42);
       BOOST_CHECK_CLOSE(prop2, -3.141592, 0.00001);
@@ -81,6 +84,8 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
       BOOST_CHECK_EQUAL(prop5, true);
       BOOST_CHECK_EQUAL(prop6, "1,3");
       BOOST_CHECK_EQUAL(prop71, "none");
+      BOOST_CHECK_EQUAL(prop8, 8);
+      BOOST_CHECK_EQUAL(prop9, 9);
     }
   };
 
@@ -97,6 +102,8 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
   opt_test.add("option1", "42");
   tools::Property &new_prop = opt_test.add("option3", "");
   new_prop.add("nested", "nested_value");
+  opt_test.add("option8", "");
+  opt_test.add("option9", "9");
 
   TestCalc test_calc;
   test_calc.Initialize(user_options);
@@ -146,13 +153,14 @@ BOOST_AUTO_TEST_CASE(test_choices) {
   tools::Property &opt = user_options.add("options", "");
   opt.add("testchoices", "");
 
-  TestChoices test1, test2, test3, test4, test5, test6;
+  TestChoices test1, test2, test3, test4, test5, test6, test7;
   test1.SetOption("<option1 choices=\"foo, bar, baz, qux\">boom</option1>\n");
   test2.SetOption("<option2 choices =\"float\">some</option2>\n");
   test3.SetOption("<option3 choices=\"int\">3.14</option3>\n");
   test4.SetOption("<option4 choices=\"int+\">-2</option4>\n");
   test5.SetOption("<option5 choices=\"float+\">-3.14</option5>\n");
   test6.SetOption("<option6 choices=\"[foo,bar,qux]\">tux</option6>\n");
+  test7.SetOption("<option7 choices=\"float+\"></option7>\n");
 
   BOOST_CHECK_THROW(test1.Initialize(user_options), std::runtime_error);
   BOOST_CHECK_THROW(test2.Initialize(user_options), std::runtime_error);
@@ -160,6 +168,7 @@ BOOST_AUTO_TEST_CASE(test_choices) {
   BOOST_CHECK_THROW(test4.Initialize(user_options), std::runtime_error);
   BOOST_CHECK_THROW(test5.Initialize(user_options), std::runtime_error);
   BOOST_CHECK_THROW(test6.Initialize(user_options), std::runtime_error);
+  BOOST_CHECK_THROW(test7.Initialize(user_options), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
