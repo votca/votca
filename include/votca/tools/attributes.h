@@ -21,6 +21,7 @@
 #define VOTCA_TOOLS_ATTRIBUTES_H
 #pragma once
 
+#include "votca/tools/contentlabel.h"
 #include "votca/tools/types.h"
 #include <boost/any.hpp>
 #include <string>

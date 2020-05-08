@@ -21,7 +21,7 @@
 #define VOTCA_TOOLS_CONTENTLABEL_H
 #pragma once
 
-#include <deque>
+#include <array>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -48,31 +48,31 @@ enum class LabelType { verbose, concise };
  */
 class ContentLabel {
  private:
-  std::deque<std::string> labels_;
+  static constexpr int arr_len = 4;
+  // index 0 - opening type, 1 key, 2 - val, 3 - closing type
+  typedef std::array<std::string, arr_len> KeyValType;
+  std::vector<KeyValType> labels_;
   size_t hash_ = 0;
   size_t label_char_len_ = 0;
-  LabelType type_;
-  void append_(ContentLabel label);
+
+  void initLabels_(std::unordered_map<std::string, boost::any> values);
 
  public:
-  ContentLabel(std::unordered_map<std::string, boost::any> values,
-               LabelType type);
+  ContentLabel(std::unordered_map<std::string, boost::any> values);
   void add(GraphNode gn);
   void add(Branch br);
   void add(ContentLabel);
 
   void makeBranch();
 
-  LabelType getLabelType() const noexcept { return type_; }
+  std::string get(const LabelType& label_type) const;
 
-  std::string get() const;
-
-  bool operator!=(const ContentLabel label) const;
-  bool operator==(const ContentLabel label) const;
-  bool operator<(const ContentLabel label) const;
-  bool operator<=(const ContentLabel label) const;
-  bool operator>(const ContentLabel label) const;
-  bool operator>=(const ContentLabel label) const;
+  bool operator!=(const ContentLabel& label) const;
+  bool operator==(const ContentLabel& label) const;
+  bool operator<(const ContentLabel& label) const;
+  bool operator<=(const ContentLabel& label) const;
+  bool operator>(const ContentLabel& label) const;
+  bool operator>=(const ContentLabel& label) const;
 };
 
 }  // namespace tools

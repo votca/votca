@@ -31,12 +31,36 @@ using namespace std;
 namespace votca {
 namespace tools {
 
-static size_t generateHash(vector<string> labels) {
+static size_t generateHash(vector<KeyValTYpe> labels) {
   string flat_label = "";
-  for (string label : labels) {
-    flat_label.append(label);
+  for (auto key_val_type : labels) {
+    for (auto v : key_val_type) {
+      flat_label.append(v);
+    }
   }
   return hash<std::string>{}(flat_label);
+}
+
+static bool stringsEqual(const std::string& str1, const std::string& str2) {
+  return str1.compare(str2) == 0;
+}
+
+static bool stringLess(const std::string& str1, const std::string& str2) {
+  if (str1.size() < str2.size()) return true;
+  if (str2.size() < str1.size()) return false;
+  return str1.compare(str2) > 0;
+}
+
+static void checkString_(const std::string& key) {
+  std::vector<std::string> reserved_symbols{"=", ",", ";", "{", "}"};
+  for (const std::string& symbol : reserved_symbols) {
+    if (key.find(symbol) != std::string::npos) {
+      std::string err_msg =
+          "Error keys and values to ContentLabel cannot contain ";
+      err_msg += symbol + " symbol it is reserved for internal use.";
+      throw std::invalid_argument(err_msg);
+    }
+  }
 }
 
 static string sig_fig_(double val, Index sf) {
@@ -66,6 +90,28 @@ static string convertToString_(
   throw std::runtime_error(error_msg);
 }
 
+static std::string buildLabel_(const std::vector<KeyValType>& values,
+                               const LabelType& type) {
+  std::string label = "";
+  if (type == LabelType::verbose) {
+    for (const KeyValType& key_val_type : values) {
+      label += key_val_type[0];
+      label += key_val_type[1];
+      label += "=";
+      label += key_val_type[2];
+      label += key_val_type[3];
+    }
+  } else {
+    for (const KeyValType& key_val_type : values) {
+      label += key_val_type[0];
+      // Skip the key
+      label += key_val_type[2];
+      label += key_val_type[3];
+    }
+  }
+  return label;
+}
+/*
 static vector<string> buildKeys_(const unordered_map<string, boost::any> vals) {
   vector<string> keys_temp;
   for (auto it : vals) {
@@ -99,47 +145,58 @@ static vector<string> buildValues_(
     labels.push_back(label);
   }
   return labels;
-}
+}*/
 
-void ContentLabel::append_(ContentLabel label) {
-  full_label_.insert(full_label_.end(), label.full_label_.begin(),
-                     label.full_label_.end());
-  brief_label_.insert(brief_label_.end(), label.brief_label_.begin(),
-                      label.brief_label_.end());
+// Purpose is to place the contents in the vector
+void ContentLabel::initLabels_(
+    std::unordered_map<std::string, boost::any> values) {
+  // Sort the keys alphabetically
+  vector<string> keys_temp;
+  for (auto it : vals) {
+    keys_temp.push_back(it.first);
+  }
+  sort(keys_temp.begin(), keys_temp.end());
+
+  // Add the labels with their corresponding keys in the correct order
+  for (auto key : keys) {
+    auto it = values.find(key);
+    std::string val = convertToString_(it->second);
+    checkString_(key);
+    checkString_(val);
+    KeyValType key_val_type = {"", key, val, ","};
+    labels_.append(key_val_type);
+  }
+  // Change the last type from a comma to a semicolon to indicate end of
+  // the node
+  labels.back()[3] = ";";
+
+  // Update the char length of the ContentLabel
+  for (KeyValType& element : labels_) {
+    label_char_len_ += element[0].size();
+    label_char_len_ += element[1].size();
+    label_char_len_ += element[2].size();
+    label_char_len_ += element[3].size();
+  }
+
+  // Build the hash
+  hash_ = generateHash(labels_);
 }
 
 bool ContentLabel::containsBranch_() {
-  if (full_label_.back() == "}") return true;
+  if (labels_.front()[0] == "{") return true;
   return false;
 }
 
-void ContentLabel::checkKey_(const std::string& key) {
-  std::vector<std::string> reserved_symbols{"=", ",", ";", "{", "}"};
-  for (const std::string& symbol : reserved_symbols) {
-    if (key.find(symbol) != std::string::npos) {
-      std::string err_msg = "Error keys to ContentLabel cannot contain ";
-      err_msg += symbol + " symbol it is reserved for internal use.";
-      throw std::invalid_argument(err_msg);
-    }
-  }
-}
 void ContentLabel::ContentLabel(std::unordered_map<string, boost::any> values) {
-  full_label_ = getLabel_(values);
-  if (full_label_.size() > 0) full_label_.back().back() = ';';
-
-  brief_label_ = getLabelBrief_(values);
-  if (brief_label_.size() > 0) brief_label_.back().back() = ';';
-
-  hash_ = generateLabel(full_label_);
+  initLabels_(values);
 }
 
-std::string get(LabelType type = LabelType::verbose) {
-  if (type = LabelType::verbose) return full_label_;
-  return brief_label_;
+std::string get(LabelType type = LabelType::verbose) const {
+  return buildLabel_(labels_, type);
 }
-
+/*
 void ContentLabel::add(GraphNode gn) {
-  if (full_label_.back().back() == "}") {
+  if (labels_.back()[3] == "}") {
     throw std::runtime_argument(
         "Can only add graph node to content label before it has been made into "
         "a branch")
@@ -163,31 +220,62 @@ void ContentLabel::add(Branch br) {
   brief_label_.insert(brief_label_.end(), label.brief_label_.begin(),
                       label.brief_label_.end());
 
-  return;
 }
 void ContentLabel::add(ContentLabel label) {
   if (containsBranch()) {
   }
   return;
 }
-
+*/
 void ContentLabel::makeBranch() {
   if (containsBranch()) return;
-  full_label_.push_front("{");
-  full_label_.push_back("}");
-  brief_label_.push_front("{");
-  brief_label_.push_back("}");
+  if (labels_.size() == 0) return;
+  full_label_.at(0)[0] = "{";
+  full_label_.back()[3] = "}";
 }
 
-bool ContentLabel::operator!=(const ContentLabel label) const {
+bool ContentLabel::operator!=(const ContentLabel& label) const {
   if (label.hash_ != hash_) return true;
-  if (label.labels_.size() != labels_.size()) return true;
+  if (label.label_char_len_ != label_char_len_) return true;
+  for (size_t ind = 0; ind < num_elements; ++ind) {
+    for (size_t ind2 = 0; ind2 < arr_len; ++ind2) {
+      if (not stringsEqual(label.labels_.at(ind)[ind2],
+                           labels_.at(ind)[ind2])) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
-bool ContentLabel::operator==(const ContentLabel label) const;
-bool ContentLabel::operator<(const ContentLabel label) const;
-bool ContentLabel::operator<=(const ContentLabel label) const;
-bool ContentLabel::operator>(const ContentLabel label) const;
-bool ContentLabel::operator>=(const ContentLabel label) const;
+
+bool ContentLabel::operator==(const ContentLabel& label) const {
+  return not ContentLabel::operator!=(label);
+}
+
+bool ContentLabel::operator<(const ContentLabel& label) const {
+  if (label_char_len_ < label.label_char_len_) return true;
+  for (size_t ind = 0; ind < num_elements; ++ind) {
+    for (size_t ind2 = 0; ind2 < arr_len; ++ind2) {
+      if (stringLess(label.labels_.at(ind)[ind2], labels_.at(ind)[ind2])) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool ContentLabel::operator<=(const ContentLabel& label) const {
+  if (ContentLabel::operator==(label)) return true;
+  return ContentLabel::operator<(label);
+}
+
+bool ContentLabel::operator>(const ContentLabel& label) const {
+  return not ContentLabel::operator<=(label);
+}
+
+bool ContentLabel::operator>=(const ContentLabel& label) const {
+  return not ContentLabel::operator<(label);
+}
 
 }  // namespace tools
 }  // namespace votca
