@@ -344,8 +344,8 @@ ostream& operator<<(ostream& os, const GraphNode gn) {
 }
 
 bool cmpNode(GraphNode gn1, GraphNode gn2) {
-  string label = gn1.getContentLabel();
-  return label.compare(gn2.getContentLabel()) < 0;
+  ContentLabel label = gn1.getContentLabel();
+  return gn2.getContentLabel() < label;
 }
 }  // namespace tools
 }  // namespace votca*/

@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   Attributes attr;
 
   BOOST_CHECK_EQUAL(attr == attr, true);
-  BOOST_CHECK_EQUAL(attr.getContentLabel(), "");
+  BOOST_CHECK_EQUAL(attr.getContentLabel().get(), "");
 
   unordered_map<string, boost::any> values;
   int num = 134;
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(setters_test) {
   Attributes attr(values);
 
   string str{"Height=159.32,Name=George,Num=134;"};
-  BOOST_CHECK_EQUAL(attr.getContentLabel(), str);
+  BOOST_CHECK_EQUAL(attr.getContentLabel().get(), str);
 
   unordered_map<string, boost::any> values2;
   Index ind2 = 2;
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(setters_test) {
 
   attr.set(values2);
   str = "First=1,Second=2;";
-  BOOST_CHECK_EQUAL(attr.getContentLabel(), str);
+  BOOST_CHECK_EQUAL(attr.getContentLabel().get(), str);
 
   unordered_map<string, boost::any> values3;
   double weight = 101.43;
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(setters_test) {
 
   attr.set(values3);
   str = "Height=159.32,Weight=101.43;";
-  BOOST_CHECK_EQUAL(attr.getContentLabel(), str);
+  BOOST_CHECK_EQUAL(attr.getContentLabel().get(), str);
 
   unordered_map<string, boost::any> values4;
   string street = "Koogler St";
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(setters_test) {
 
   attr.set(values4);
   str = "Address=Koogler St,Name=George;";
-  BOOST_CHECK_EQUAL(attr.getContentLabel(), str);
+  BOOST_CHECK_EQUAL(attr.getContentLabel().get(), str);
 }
 
 BOOST_AUTO_TEST_CASE(comparisontest) {
@@ -119,14 +119,14 @@ BOOST_AUTO_TEST_CASE(comparisontest) {
   string str1{"a=134;"};
   string str2{"b=134;"};
 
-  BOOST_CHECK_EQUAL(vec_attr.at(0).getContentLabel(), str1);
-  BOOST_CHECK_EQUAL(vec_attr.at(1).getContentLabel(), str2);
+  BOOST_CHECK_EQUAL(vec_attr.at(0).getContentLabel().get(), str1);
+  BOOST_CHECK_EQUAL(vec_attr.at(1).getContentLabel().get(), str2);
 
   vector<Attributes> vec_attr2 = {attr2, attr1};
   sort(vec_attr2.begin(), vec_attr2.end(), cmpAttributes);
 
-  BOOST_CHECK_EQUAL(vec_attr2.at(0).getContentLabel(), str1);
-  BOOST_CHECK_EQUAL(vec_attr2.at(1).getContentLabel(), str2);
+  BOOST_CHECK_EQUAL(vec_attr2.at(0).getContentLabel().get(), str1);
+  BOOST_CHECK_EQUAL(vec_attr2.at(1).getContentLabel().get(), str2);
 }
 
 BOOST_AUTO_TEST_CASE(addtest) {
@@ -150,14 +150,14 @@ BOOST_AUTO_TEST_CASE(addtest) {
   string str1{"a=134;"};
   string str2{"b=134;"};
 
-  BOOST_CHECK_EQUAL(vec_attr.at(0).getContentLabel(), str1);
-  BOOST_CHECK_EQUAL(vec_attr.at(1).getContentLabel(), str2);
+  BOOST_CHECK_EQUAL(vec_attr.at(0).getContentLabel().get(), str1);
+  BOOST_CHECK_EQUAL(vec_attr.at(1).getContentLabel().get(), str2);
 
   vector<Attributes> vec_attr2 = {attr2, attr1};
   sort(vec_attr2.begin(), vec_attr2.end(), cmpAttributes);
 
-  BOOST_CHECK_EQUAL(vec_attr2.at(0).getContentLabel(), str1);
-  BOOST_CHECK_EQUAL(vec_attr2.at(1).getContentLabel(), str2);
+  BOOST_CHECK_EQUAL(vec_attr2.at(0).getContentLabel().get(), str1);
+  BOOST_CHECK_EQUAL(vec_attr2.at(1).getContentLabel().get(), str2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

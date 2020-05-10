@@ -290,7 +290,7 @@ void ReducedGraph::init_(vector<ReducedEdge> reduced_edges,
 
   edge_container_ = EdgeContainer(edges);
 
-  calcId_();
+  buildContentLabel_();
 }
 
 /******************************************************************************

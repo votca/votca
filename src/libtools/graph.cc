@@ -50,11 +50,11 @@ Graph::Graph(vector<Edge> edges, unordered_map<Index, GraphNode> nodes) {
       edge_container_.addVertex(id_and_node.first);
     }
   }
-  calcId_();
+  buildContentLabel_();
 }
 
 bool Graph::operator!=(const Graph& graph) const {
-  return id_.compare(graph.id_);
+  return label_ == graph.label_;
 }
 
 bool Graph::operator==(const Graph& graph) const { return !(*(this) != graph); }
@@ -84,7 +84,8 @@ vector<pair<Index, GraphNode>> Graph::getNeighNodes(Index vertex) const {
 void Graph::setNode(Index vertex, GraphNode& graph_node) {
   assert(nodes_.count(vertex) && "Can only set a node that already exists");
   nodes_[vertex] = graph_node;
-  calcId_();
+  // calcId_();
+  content_label_uptodate_ = false;
 }
 
 void Graph::setNode(std::pair<Index, GraphNode>& id_and_node) {
@@ -123,7 +124,7 @@ void Graph::copyNodes(Graph& graph) {
   }
 }
 
-void Graph::calcId_() {
+/*void Graph::calcId_() {
   auto nodes = getNodes();
   sort(nodes.begin(), nodes.end(), cmpVertNodePair);
   string struct_Id_temp = "";
@@ -132,6 +133,17 @@ void Graph::calcId_() {
   }
   id_ = struct_Id_temp;
   return;
+}*/
+
+void Graph::buildContentLabel_() {
+  /*  auto nodes = getNodes();
+    sort(nodes.begin(), nodes.end(), cmpVertNodePair);
+    string struct_Id_temp = "";
+    for (const pair<Index, GraphNode>& id_and_node : nodes) {
+      struct_Id_temp.append(id_and_node.second.getContentLabel());
+    }
+    id_ = struct_Id_temp;*/
+  content_label_uptodate_ = true;
 }
 
 Index Graph::getDegree(Index vertex) const {
@@ -175,8 +187,8 @@ ostream& operator<<(ostream& os, const Graph graph) {
 
 bool cmpVertNodePair(const pair<Index, GraphNode>& id_and_node1,
                      const pair<Index, GraphNode>& id_and_node2) {
-  string str1_Id = id_and_node1.second.getContentLabel();
-  return str1_Id.compare(id_and_node2.second.getContentLabel()) < 0;
+  return id_and_node1.second.getContentLabel() <
+         id_and_node2.second.getContentLabel();
 }
 }  // namespace tools
 }  // namespace votca

@@ -64,10 +64,11 @@ class BranchSequenceLeaf {
   bool branchIsUniqueToLeaf_(const Index branch_id) const;
 
   // sort by looking at the branches
-  std::string sortAndGetBranchSequenceIds_();
+  void sortLeaves_();
+  void buildLabel_();
 
   /// Check if the branch exists in the current branch sequence
-  bool branchExists_(const Branch& branch) const;
+  // bool branchExists_(const Branch& branch) const;
 
   // Used to ensure branch is not looping around on itself
   Level level_;
@@ -84,8 +85,7 @@ class BranchSequenceLeaf {
   // The actual branch
   Branch branch_;
 
-  // Cummulitive branch_string_id_ only used to sort branches
-  std::string c_branch_str_id_;
+  ContentLabel label_;
 
   // Pointers to leafs connected to 'branch_'
   std::vector<std::shared_ptr<BranchSequenceLeaf>> branch_sequence_;
@@ -111,7 +111,7 @@ class BranchSequenceLeaf {
   BranchSequenceLeaf(const BranchSequenceLeaf& leaf)
       : branch_id_(leaf.branch_id_),
         branch_(leaf.branch_),
-        c_branch_str_id_(leaf.c_branch_str_id_),
+        label_(leaf.label_),
         level_(leaf.level_),
         sorted_(leaf.sorted_),
         branch_end_(leaf.branch_end_) {
@@ -125,7 +125,7 @@ class BranchSequenceLeaf {
   BranchSequenceLeaf(BranchSequenceLeaf&& leaf)
       : branch_id_(leaf.branch_id_),
         branch_(leaf.branch_),
-        c_branch_str_id_(leaf.c_branch_str_id_),
+        label_(leaf.label_),
         level_(leaf.level_),
         sorted_(leaf.sorted_),
         branch_end_(leaf.branch_end_) {

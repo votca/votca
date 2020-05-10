@@ -221,7 +221,8 @@ BOOST_AUTO_TEST_CASE(getTreeContentLabel) {
     sequenceleaf.addLeaf(leaf2);
 
     sequenceleaf.sortBranchSequence();
-    std::string cum_id = sequenceleaf.getTreeContentLabel();
+
+    std::string cum_id = sequenceleaf.getTreeContentLabel().get();
     BOOST_TEST(
         cum_id ==
         std::string(
@@ -258,7 +259,7 @@ BOOST_AUTO_TEST_CASE(getTreeContentLabel) {
     sequenceleaf.addLeaf(leaf2);
 
     sequenceleaf.sortBranchSequence();
-    std::string cum_id = sequenceleaf.getTreeContentLabel();
+    std::string cum_id = sequenceleaf.getTreeContentLabel().get();
     BOOST_TEST(cum_id == std::string("{name=a;name=a;name=a}{name=a;name=b;"
                                      "name=b}{name=a;name=c;name=c}"));
   }

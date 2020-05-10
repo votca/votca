@@ -41,13 +41,11 @@ namespace tools {
 struct BranchSequenceLeafComparator {
   inline bool operator()(std::shared_ptr<BranchSequenceLeaf>& n1,
                          std::shared_ptr<BranchSequenceLeaf>& n2) {
-    if (n1->sortAndGetBranchSequenceIds_().length() >
-        n2->sortAndGetBranchSequenceIds_().length())
-      return false;
-    if (n1->sortAndGetBranchSequenceIds_().length() <
-        n2->sortAndGetBranchSequenceIds_().length())
-      return true;
-    return n1->getTreeContentLabel().compare(n2->getTreeContentLabel()) < 0;
+    n1->sortLeaves_();
+    n2->sortLeaves_();
+    n1->buildLabel_();
+    n2->buildLabel_();
+    return n1->label_ < n2->label_;
   }
 };
 
@@ -67,7 +65,7 @@ bool BranchSequenceLeaf::canOrder_(
   }
   return true;
 }
-
+/*
 bool BranchSequenceLeaf::branchExists_(const Branch& branch) const {
   for (const std::shared_ptr<BranchSequenceLeaf>& leaf : branch_sequence_) {
     if (leaf->branch_.getContentLabel().compare(branch.getContentLabel())) {
@@ -75,20 +73,19 @@ bool BranchSequenceLeaf::branchExists_(const Branch& branch) const {
     }
   }
   return false;
-}
+}*/
 
-std::string BranchSequenceLeaf::sortAndGetBranchSequenceIds_() {
-  //  c_branch_str_id_ = "{";
-  //  c_branch_str_id_.append(branch_.getContentLabel());
-  //  c_branch_str_id_.back() = '}';
+void BranchSequenceLeaf::sortLeaves_() {
   std::sort(branch_sequence_.begin(), branch_sequence_.end(),
             BranchSequenceLeafComparator());
+}
+
+void BranchSequenceLeaf::buildLabel_() {
 
   for (std::shared_ptr<BranchSequenceLeaf>& leaf_ : branch_sequence_) {
-    c_branch_str_id_ += leaf_->c_branch_str_id_;
+    label_.append(leaf_->label_);
   }
   sorted_ = true;
-  return c_branch_str_id_;
 }
 
 std::list<Index> BranchSequenceLeaf::getCanonicalVertexSequence_() const {
@@ -121,15 +118,16 @@ bool BranchSequenceLeaf::isRoot(
 }
 // Order by looking at the branches
 void BranchSequenceLeaf::sortBranchSequence() {
-  c_branch_str_id_ = sortAndGetBranchSequenceIds_();
+  sortLeaves_();
+  buildLabel_();
 }
 
-std::string BranchSequenceLeaf::getTreeContentLabel() const {
+ContentLabel BranchSequenceLeaf::getTreeContentLabel() const {
   if (not sorted_)
     throw std::runtime_error(
         "Cannot get cummulitive branch string id because the branch sequence "
         "leaf has not been sorted");
-  return c_branch_str_id_;
+  return label_;
 }
 
 std::vector<Index> BranchSequenceLeaf::getCanonicalVertexSequence() const {

@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(string_id) {
   Index starting_vertex = 0;
   Branch branch(edge, starting_vertex, graph);
 
-  BOOST_TEST(branch.getContentLabel() == string("name=a;name=c;name=b;"));
+  BOOST_TEST(branch.getContentLabel().get() == string("name=a;name=c;name=b;"));
 }
 
 BOOST_AUTO_TEST_CASE(reverse_sequence) {
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(reverse_sequence) {
   Branch branch(edge, starting_vertex, graph);
 
   branch.reverseSequence();
-  BOOST_TEST(branch.getContentLabel() == string("name=b;name=c;name=a;"));
+  BOOST_TEST(branch.getContentLabel().get() == string("name=b;name=c;name=a;"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

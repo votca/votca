@@ -583,7 +583,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
 
     /// Here is what the string id of the graph should look like
     string str = "a=0;b=1;c=2;d=3;e=4;";
-    string s_id = g.getId();
+    string s_id = g.getContentLabel().get();
     BOOST_CHECK_EQUAL(s_id, str);
 
     Graph g2(vec_ed, m_gn);

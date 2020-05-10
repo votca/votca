@@ -20,22 +20,28 @@
 #include "votca/tools/contentlabel.h"
 #include "votca/tools/types.h"
 
+#include <boost/lexical_cast.hpp>
+
 #include <algorithm>
 #include <functional>
+#include <iomanip>
 #include <string>
 #include <typeinfo>
 #include <unordered_map>
 #include <vector>
 
 using namespace std;
+using namespace boost;
+
 namespace votca {
 namespace tools {
 
-static size_t generateHash(vector<KeyValTYpe> labels) {
+static size_t generateHash(vector<ContentLabel::KeyValType> labels) {
   string flat_label = "";
   for (auto key_val_type : labels) {
-    for (auto v : key_val_type) {
-      flat_label.append(v);
+    for (auto val : key_val_type) {
+      // for ( size_t ind = 0; ind < ContentLabel::arr_len; ++ind ){
+      flat_label.append(val);
     }
   }
   return hash<std::string>{}(flat_label);
@@ -90,11 +96,13 @@ static string convertToString_(
   throw std::runtime_error(error_msg);
 }
 
-static std::string buildLabel_(const std::vector<KeyValType>& values,
-                               const LabelType& type) {
+static std::string buildLabel_(
+    const std::vector<ContentLabel::KeyValType>& values,
+    const LabelType& type) {
+
   std::string label = "";
   if (type == LabelType::verbose) {
-    for (const KeyValType& key_val_type : values) {
+    for (const ContentLabel::KeyValType& key_val_type : values) {
       label += key_val_type[0];
       label += key_val_type[1];
       label += "=";
@@ -102,7 +110,7 @@ static std::string buildLabel_(const std::vector<KeyValType>& values,
       label += key_val_type[3];
     }
   } else {
-    for (const KeyValType& key_val_type : values) {
+    for (const ContentLabel::KeyValType& key_val_type : values) {
       label += key_val_type[0];
       // Skip the key
       label += key_val_type[2];
@@ -111,6 +119,7 @@ static std::string buildLabel_(const std::vector<KeyValType>& values,
   }
   return label;
 }
+
 /*
 static vector<string> buildKeys_(const unordered_map<string, boost::any> vals) {
   vector<string> keys_temp;
@@ -152,23 +161,23 @@ void ContentLabel::initLabels_(
     std::unordered_map<std::string, boost::any> values) {
   // Sort the keys alphabetically
   vector<string> keys_temp;
-  for (auto it : vals) {
+  for (auto it : values) {
     keys_temp.push_back(it.first);
   }
   sort(keys_temp.begin(), keys_temp.end());
 
   // Add the labels with their corresponding keys in the correct order
-  for (auto key : keys) {
+  for (auto key : keys_temp) {
     auto it = values.find(key);
-    std::string val = convertToString_(it->second);
+    std::string val = convertToString_(it);
     checkString_(key);
     checkString_(val);
     KeyValType key_val_type = {"", key, val, ","};
-    labels_.append(key_val_type);
+    labels_.push_back(key_val_type);
   }
   // Change the last type from a comma to a semicolon to indicate end of
   // the node
-  labels.back()[3] = ";";
+  labels_.back()[3] = ";";
 
   // Update the char length of the ContentLabel
   for (KeyValType& element : labels_) {
@@ -182,17 +191,23 @@ void ContentLabel::initLabels_(
   hash_ = generateHash(labels_);
 }
 
-bool ContentLabel::containsBranch_() {
+bool ContentLabel::containsBranch_() const {
   if (labels_.front()[0] == "{") return true;
   return false;
 }
 
-void ContentLabel::ContentLabel(std::unordered_map<string, boost::any> values) {
+ContentLabel::ContentLabel(std::unordered_map<string, boost::any> values) {
   initLabels_(values);
 }
 
-std::string get(LabelType type = LabelType::verbose) const {
+std::string ContentLabel::get(const LabelType& type) const {
   return buildLabel_(labels_, type);
+}
+
+void ContentLabel::clear() {
+  hash_ = 0;
+  label_char_len_ = 0;
+  labels_.clear();
 }
 /*
 void ContentLabel::add(GraphNode gn) {
@@ -220,24 +235,23 @@ void ContentLabel::add(Branch br) {
   brief_label_.insert(brief_label_.end(), label.brief_label_.begin(),
                       label.brief_label_.end());
 
+}*/
+void ContentLabel::append(ContentLabel label) {
+  labels_.insert(labels_.begin(), label.labels_.begin(), label.labels_.end());
 }
-void ContentLabel::add(ContentLabel label) {
-  if (containsBranch()) {
-  }
-  return;
-}
-*/
+
 void ContentLabel::makeBranch() {
-  if (containsBranch()) return;
+  if (containsBranch_()) return;
   if (labels_.size() == 0) return;
-  full_label_.at(0)[0] = "{";
-  full_label_.back()[3] = "}";
+  labels_.at(0)[0] = "{";
+  labels_.back()[3] = "}";
 }
 
 bool ContentLabel::operator!=(const ContentLabel& label) const {
   if (label.hash_ != hash_) return true;
   if (label.label_char_len_ != label_char_len_) return true;
-  for (size_t ind = 0; ind < num_elements; ++ind) {
+  if (label.labels_.size() != labels_.size()) return true;
+  for (size_t ind = 0; ind < labels_.size(); ++ind) {
     for (size_t ind2 = 0; ind2 < arr_len; ++ind2) {
       if (not stringsEqual(label.labels_.at(ind)[ind2],
                            labels_.at(ind)[ind2])) {
@@ -254,6 +268,11 @@ bool ContentLabel::operator==(const ContentLabel& label) const {
 
 bool ContentLabel::operator<(const ContentLabel& label) const {
   if (label_char_len_ < label.label_char_len_) return true;
+  // Which one has fewer elements
+  size_t num_elements = labels_.size();
+  if (label.labels_.size() < num_elements) {
+    num_elements = label.labels_.size();
+  }
   for (size_t ind = 0; ind < num_elements; ++ind) {
     for (size_t ind2 = 0; ind2 < arr_len; ++ind2) {
       if (stringLess(label.labels_.at(ind)[ind2], labels_.at(ind)[ind2])) {

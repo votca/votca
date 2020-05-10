@@ -64,7 +64,7 @@ namespace tools {
 class Branch {
  private:
   std::vector<Index> vertex_sequence_;
-  std::unordered_map<Index, std::string> node_str_ids_;
+  std::unordered_map<Index, ContentLabel> node_labels_;
   Level level_;
 
   void init_(const std::vector<Index>& branch_vertices,
@@ -78,10 +78,10 @@ class Branch {
     if (branch_vertices.back() == starting_vertex) {
       reverse(vertex_sequence_.begin(), vertex_sequence_.end());
     }
-    // Create the string id
+    // Add the content label of the node
     for (Index& vert : vertex_sequence_) {
       GraphNode gn = graph.getNode(vert);
-      node_str_ids_[vert] = gn.getContentLabel();
+      node_labels_[vert] = gn.getContentLabel();
     }
   }
 
@@ -118,7 +118,7 @@ class Branch {
   ContentLabel getContentLabel() const noexcept {
     ContentLabel label;
     for (const Index& vert : vertex_sequence_) {
-      label.add(node_str_ids_.at(vert));
+      label.append(node_labels_.at(vert));
     }
     label.makeBranch();
     return label;

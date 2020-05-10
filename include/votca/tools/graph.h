@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,6 +17,7 @@
  *
  */
 
+#include "contentlabel.h"
 #include "edgecontainer.h"
 #include "graphnode.h"
 #include <iostream>
@@ -25,8 +26,8 @@
 #include <utility>
 #include <vector>
 
-#ifndef _VOTCA_TOOLS_GRAPH_H
-#define _VOTCA_TOOLS_GRAPH_H
+#ifndef VOTCA_TOOLS_GRAPH_H
+#define VOTCA_TOOLS_GRAPH_H
 
 namespace votca {
 namespace tools {
@@ -50,14 +51,16 @@ class Graph {
 
   /// This is the id of the graph to graphs that contain the same content
   /// are considered equal
-  std::string id_;
+  // std::string id_;
+  ContentLabel label_;
+  bool content_label_uptodate_ = false;
 
  protected:
   /// Calculate the id of the graph
-  void calcId_();
+  void buildContentLabel_();
 
  public:
-  Graph() : id_(""){};
+  Graph() = default;
   virtual ~Graph() = default;
   /// Constructor
   /// @param edgs - vector of edges where each edge is composed of two
@@ -99,7 +102,11 @@ class Graph {
   }
 
   /// Returns the id of graph
-  std::string getId() const { return id_; }
+  // std::string getId() const { return id_; }
+  ContentLabel getContentLabel() const {
+    assert(content_label_uptodate_ && "Cannot get content label out of date.");
+    return label_;
+  }
 
   /// Returns all the edges in the graph
   virtual std::vector<Edge> getEdges() { return edge_container_.getEdges(); }
@@ -162,4 +169,4 @@ bool cmpVertNodePair(const std::pair<Index, GraphNode>& id_and_node1,
                      const std::pair<Index, GraphNode>& id_and_node2);
 }  // namespace tools
 }  // namespace votca
-#endif  // _VOTCA_TOOLS_GRAPH_H
+#endif  // VOTCA_TOOLS_GRAPH_H

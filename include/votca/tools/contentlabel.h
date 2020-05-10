@@ -47,25 +47,32 @@ enum class LabelType { verbose, concise };
  * the correct sequence
  */
 class ContentLabel {
- private:
+ public:
   static constexpr int arr_len = 4;
-  // index 0 - opening type, 1 key, 2 - val, 3 - closing type
   typedef std::array<std::string, arr_len> KeyValType;
+
+ private:
+  // index 0 - opening type, 1 key, 2 - val, 3 - closing type
   std::vector<KeyValType> labels_;
   size_t hash_ = 0;
   size_t label_char_len_ = 0;
 
   void initLabels_(std::unordered_map<std::string, boost::any> values);
+  bool containsBranch_() const;
 
  public:
+  ContentLabel() = default;
   ContentLabel(std::unordered_map<std::string, boost::any> values);
   void add(GraphNode gn);
   void add(Branch br);
-  void add(ContentLabel);
+  void append(ContentLabel);
+
+  bool isEmpty() const noexcept { return labels_.size() == 0; }
+  void clear();
 
   void makeBranch();
 
-  std::string get(const LabelType& label_type) const;
+  std::string get(const LabelType& label_type = LabelType::verbose) const;
 
   bool operator!=(const ContentLabel& label) const;
   bool operator==(const ContentLabel& label) const;

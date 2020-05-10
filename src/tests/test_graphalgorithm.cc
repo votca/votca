@@ -780,7 +780,7 @@ BOOST_AUTO_TEST_CASE(structureid_test) {
 
     Graph g(edges, nodes);
 
-    string structId = votca::tools::findStructureId<GraphDistVisitor>(g);
+    string structId = votca::tools::findStructureId<GraphDistVisitor>(g).get();
 
     string answer = "Dist=0;Dist=1;Dist=1;Dist=1;Dist=2;Dist=2;Dist=3;";
     BOOST_CHECK_EQUAL(structId, answer);
