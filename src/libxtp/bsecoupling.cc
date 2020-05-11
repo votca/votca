@@ -240,7 +240,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   if ((basisA == 0) || (basisB == 0)) {
     throw std::runtime_error("Basis set size is not stored in monomers");
   }
-
   // get exciton information of molecule A
   Index bseA_cmax = orbitalsA.getBSEcmax();
   Index bseA_cmin = orbitalsA.getBSEcmin();
@@ -296,21 +295,21 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     _levB = bseB_singlet_exc;
   }
 
-  if (_levA > bseA_singlet_exc) {
+  if (_levA > bseA_triplet_exc) {
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp()
         << "  Number of Frenkel states you want is greater than stored for "
            "molecule A. Setting to max number available"
         << flush;
-    _levA = bseA_singlet_exc;
+    _levA = bseA_triplet_exc;
   }
-  if (_levB > bseB_singlet_exc) {
+  if (_levB > bseB_triplet_exc) {
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp()
         << "  Number of Frenkel states you want is greater than stored for "
            "molecule B. Setting to max number available"
         << flush;
-    _levB = bseB_singlet_exc;
+    _levB = bseB_triplet_exc;
   }
 
   if (_unoccA > bseA_ctotal) {
@@ -427,6 +426,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   Eigen::MatrixXd Hqp = qpcoeff *
                         orbitalsAB.QPdiag().eigenvalues().asDiagonal() *
                         qpcoeff.transpose();
+
   BSE::options opt;
   opt.cmax = orbitalsAB.getBSEcmax();
   opt.homo = orbitalsAB.getHomo();
