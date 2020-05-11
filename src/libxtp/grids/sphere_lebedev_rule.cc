@@ -80,6 +80,8 @@ Index LebedevGrid::Type2MaxOrder(const std::string &element,
     return Type2MaxOrder(CoarseOrder, element);
   } else if (type == "xcoarse") {
     return Type2MaxOrder(XcoarseOrder, element);
+  } else if (type == "xxcoarse") {
+    return Type2MaxOrder(XXcoarseOrder, element);
   } else if (type == "fine") {
     return Type2MaxOrder(FineOrder, element);
   } else if (type == "xfine") {
@@ -6892,6 +6894,7 @@ void LebedevGrid::FillOrders() {
   FillMediumOrder();
   FillCoarseOrder();
   FillXcoarseOrder();
+  FillXXcoarseOrder();
   FillFineOrder();
   FillXfineOrder();
 }
@@ -7138,6 +7141,55 @@ void LebedevGrid::FillXcoarseOrder() {
 
   // 4th row
   XcoarseOrder["Ag"] = 194;
+}
+
+void LebedevGrid::FillXXcoarseOrder() {
+  // order for H, He (not given in NWChem, assuming same as 1st row)
+  XXcoarseOrder["H"] = 50;
+  XXcoarseOrder["He"] = 50;
+
+  // orders for 1st row elements taken from NWChem
+  XXcoarseOrder["Li"] = 50;
+  XXcoarseOrder["Be"] = 50;
+  XXcoarseOrder["B"] = 50;
+  XXcoarseOrder["C"] = 50;
+  XXcoarseOrder["N"] = 50;
+  XXcoarseOrder["O"] = 50;
+  XXcoarseOrder["F"] = 50;
+  XXcoarseOrder["Ne"] = 50;
+
+  // orders for 2nd row elements taken from NWChem
+  XXcoarseOrder["Na"] = 50;
+  XXcoarseOrder["Mg"] = 50;
+  XXcoarseOrder["Al"] = 50;
+  XXcoarseOrder["Si"] = 50;
+  XXcoarseOrder["P"] = 50;
+  XXcoarseOrder["S"] = 50;
+  XXcoarseOrder["Cl"] = 50;
+  XXcoarseOrder["Ar"] = 50;
+
+  // orders for 3rd row elements taken from NWChem
+  XXcoarseOrder["K"] = 50;
+  XXcoarseOrder["Ca"] = 50;
+  XXcoarseOrder["Sc"] = 50;
+  XXcoarseOrder["Ti"] = 50;
+  XXcoarseOrder["V"] = 50;
+  XXcoarseOrder["Cr"] = 50;
+  XXcoarseOrder["Mn"] = 50;
+  XXcoarseOrder["Fe"] = 50;
+  XXcoarseOrder["Co"] = 50;
+  XXcoarseOrder["Ni"] = 50;
+  XXcoarseOrder["Cu"] = 50;
+  XXcoarseOrder["Zn"] = 50;
+  XXcoarseOrder["Ga"] = 50;
+  XXcoarseOrder["Ge"] = 50;
+  XXcoarseOrder["As"] = 50;
+  XXcoarseOrder["Se"] = 50;
+  XXcoarseOrder["Br"] = 50;
+  XXcoarseOrder["Kr"] = 50;
+
+  // 4th row
+  XcoarseOrder["Ag"] = 50;
 }
 
 }  // namespace xtp

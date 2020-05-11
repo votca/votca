@@ -256,8 +256,12 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
 
     // Eigen::MatrixXcd FxcInt =
     //   Vxcpot.IntegrateFXC(_density_Matrix, delta_n_out_new);
+
+
     Eigen::MatrixXcd FxcInt = Fxc(delta_n_out_new);
-    auto inter5 = std::chrono::steady_clock::now();
+
+
+    //auto inter5 = std::chrono::steady_clock::now();
     // std::cout<<"Classic: \n"<<FxcInt<<std::endl<<std::endl;
     // std::cout<<"Presaved: \n"<<FxcInt2<<std::endl<<std::endl;
     // std::cout<<"diff: \n"<<FxcInt-FxcInt2<<std::endl<<std::endl;
@@ -275,6 +279,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
     }
 
     perturbationVectoroutput.push_back((perturbation) + contract + FxcInt);
+    //perturbationVectoroutput.push_back((perturbation) + contract);
 
     double diff =
         (perturbationVectorInput.back() - perturbationVectoroutput.back())
@@ -890,7 +895,7 @@ Eigen::VectorXd Sternheimer::EvaluateBasisAtPosition(
   return tmat;
 }
 
-Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
+Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(std::complex<double> omega,
                                                double omega_p) const {
   // This function calculates GW at w and w_p (i.e before integral over
   // frequencies)
@@ -898,7 +903,16 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(double omega,
 
   AOBasis basis = _orbitals.SetupDftBasis();
   Vxc_Grid _grid;
-  _grid.GridSetup("xcoarse", _orbitals.QMAtoms(), basis);
+  _grid.GridSetup("xxcoarse", _orbitals.QMAtoms(), basis);
+  std::cout<<_grid.getGridSize()<<std::endl;
+
+  // std::vector<const Eigen::Vector3d*> gridp = _grid.getGridpoints();
+
+  // for(Index i=0;i<_grid.getGridSize();i++){
+  //   Eigen::Vector3d p=*gridp.at(i);
+  //   std::cout<<p.transpose()<<std::endl;
+  // }
+
   Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
   Index nthreads = OPENMP::getMaxThreads();
 
@@ -952,7 +966,8 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
   Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
   Index nthreads = OPENMP::getMaxThreads();
 
-  double _padding = 6.512752;
+  //double _padding = 6.512752;
+  double _padding = 0.1;
   Index _xsteps = _opt.gws_grid_spacing;
   Index _ysteps = _opt.gws_grid_spacing;
   Index _zsteps = _opt.gws_grid_spacing;
@@ -1034,14 +1049,14 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const 
   // getAdaptedWeights (now avail. 8,10,12,14,16,18,20,100)
 
   Gauss_Hermite_Quadrature_Constants ghqc;
-  Eigen::VectorXd _quadpoints = ghqc.getPoints(12);
-  Eigen::VectorXd _quadadaptedweights = ghqc.getAdaptedWeights(12);
+  Eigen::VectorXd _quadpoints = ghqc.getPoints(16);
+  Eigen::VectorXd _quadadaptedweights = ghqc.getAdaptedWeights(16);
   std::complex<double> delta(0., -1e-3);
   Eigen::MatrixXcd sigma =
       Eigen::MatrixXcd::Zero(_density_Matrix.cols(), _density_Matrix.cols());
-  for (Index j = 0; j < 12; ++j) {
+  for (Index j = 0; j < 16; ++j) {
     sigma += _quadadaptedweights(j) *
-             SelfEnergy_at_wp_regulargrid(omega, _quadpoints(j)) *
+             SelfEnergy_at_wp(omega, _quadpoints(j)) *
              std::exp(delta * _quadpoints(j));
   }
 
@@ -1057,7 +1072,7 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(std::complex<double> omega) co
                                                        _mo_coefficients.col(n)))
                      .sum();
   }
-  std::complex<double> prefactor(0., 1./(2 * tools::conv::Pi));  // i/(2 pi)
+  std::complex<double> prefactor(0., 1./(2 * tools::conv::Pi));  // i/(2 eta)
   return prefactor * results;
 }
 

@@ -253,7 +253,6 @@ void Vxc_Grid::GridSetup(const std::string& type, const QMMolecule& atoms,
   LebedevGrid sphericalgridofElement;
   initialgrids.spherical_grids =
       sphericalgridofElement.CalculateSphericalGrids(atoms, type);
-
   // for the partitioning, we need all inter-center distances later, stored in
   // matrix
   Eigen::MatrixXd Rij = CalcInverseAtomDist(atoms);

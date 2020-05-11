@@ -109,6 +109,7 @@ class LebedevGrid {
   std::map<std::string, Index> MediumOrder;
   std::map<std::string, Index> CoarseOrder;
   std::map<std::string, Index> XcoarseOrder;
+  std::map<std::string, Index> XXcoarseOrder;
   std::map<std::string, Index> FineOrder;
   std::map<std::string, Index> XfineOrder;
   std::map<Index, Index> Order2Index;
@@ -129,6 +130,8 @@ class LebedevGrid {
   void FillCoarseOrder();
 
   void FillXcoarseOrder();
+
+  void FillXXcoarseOrder();
 };
 
 }  // namespace xtp

@@ -70,6 +70,7 @@ class EulerMaclaurinGrid {
   std::map<std::string, Index> MediumGrid;
   std::map<std::string, Index> CoarseGrid;
   std::map<std::string, Index> XcoarseGrid;
+  std::map<std::string, Index> XXcoarseGrid;
   std::map<std::string, Index> FineGrid;
   std::map<std::string, Index> XfineGrid;
   std::map<std::string, double> Accuracy;
@@ -81,6 +82,7 @@ class EulerMaclaurinGrid {
     FillMediumGrid();
     FillCoarseGrid();
     FillXcoarseGrid();
+    FillXXcoarseGrid();
     FillFineGrid();
     FillXfineGrid();
   }
@@ -216,6 +218,7 @@ c                  Md   No   Lr  Unq  Unp
   }
 
   inline void FillAccuracy() {
+    Accuracy["xxcoarse"]=1e-2;
     Accuracy["xcoarse"] = 1e-4;
     Accuracy["coarse"] = 1e-5;
     Accuracy["medium"] = 1e-6;
@@ -471,6 +474,54 @@ c                  Md   No   Lr  Unq  Unp
 
     // 4th row (selection)
     XcoarseGrid["Ag"] = 84;
+  }
+    inline void FillXXcoarseGrid() {
+    // order for H, He (not given in NWChem, assuming same as 1st row)
+    XXcoarseGrid["H"] = 5;
+    XXcoarseGrid["He"] = 5;
+
+    // orders for 1st row elements taken from NWChem
+    XXcoarseGrid["Li"] = 5;
+    XXcoarseGrid["Be"] = 5;
+    XXcoarseGrid["B"] = 5;
+    XXcoarseGrid["C"] = 5;
+    XXcoarseGrid["N"] = 5;
+    XXcoarseGrid["O"] = 5;
+    XXcoarseGrid["F"] = 5;
+    XXcoarseGrid["Ne"] = 5;
+
+    // orders for 2nd row elements taken from NWChem
+    XXcoarseGrid["Na"] = 10;
+    XXcoarseGrid["Mg"] = 10;
+    XXcoarseGrid["Al"] = 10;
+    XXcoarseGrid["Si"] = 10;
+    XXcoarseGrid["P"] = 10;
+    XXcoarseGrid["S"] = 10;
+    XXcoarseGrid["Cl"] = 10;
+    XXcoarseGrid["Ar"] = 10;
+
+    // orders for 3rd row elements taken from NWChem
+    XXcoarseGrid["K"] = 12;
+    XXcoarseGrid["Ca"] = 12;
+    XXcoarseGrid["Sc"] = 12;
+    XXcoarseGrid["Ti"] = 12;
+    XXcoarseGrid["V"] = 12;
+    XXcoarseGrid["Cr"] = 12;
+    XXcoarseGrid["Mn"] = 12;
+    XXcoarseGrid["Fe"] = 12;
+    XXcoarseGrid["Co"] = 12;
+    XXcoarseGrid["Ni"] = 12;
+    XXcoarseGrid["Cu"] = 12;
+    XXcoarseGrid["Zn"] = 12;
+    XXcoarseGrid["Ga"] = 12;
+    XXcoarseGrid["Ge"] = 12;
+    XXcoarseGrid["As"] = 12;
+    XXcoarseGrid["Se"] = 12;
+    XXcoarseGrid["Br"] = 12;
+    XXcoarseGrid["Kr"] = 12;
+
+    // 4th row (selection)
+    XXcoarseGrid["Ag"] = 13;
   }
 };
 

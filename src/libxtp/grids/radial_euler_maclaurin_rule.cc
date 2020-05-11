@@ -188,7 +188,6 @@ GridContainers::radial_grid EulerMaclaurinGrid::CalculateRadialGridforAtom(
       -cutoff /
       (log(1.0 - std::pow((1.0 + double(np)) / (2.0 + double(np)), 3)));
   double factor = 3.0 / (1.0 + double(np));
-
   for (Index i = 0; i < np; i++) {
     double q = double(i + 1) / (double(np) + 1.0);
     double r = -alpha * std::log(1.0 - std::pow(q, 3));
@@ -266,6 +265,8 @@ Index EulerMaclaurinGrid::getGridParameters(const std::string& element,
     return CoarseGrid.at(element);
   } else if (type == "xcoarse") {
     return XcoarseGrid.at(element);
+  }else if (type == "xxcoarse") {
+    return XXcoarseGrid.at(element);
   } else if (type == "fine") {
     return FineGrid.at(element);
   } else if (type == "xfine") {

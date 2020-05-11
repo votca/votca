@@ -754,9 +754,11 @@ bool GWBSE::Evaluate() {
       
       Index n_points = opt.number_output_grid_points;// 100;
       Index eval_points = opt.number_of_frequency_grid_points;
-      double delta = 0.5; // 1 Hartree in total (+- 0.5 Hartree)
-      double homo_en =  _orbitals.getMOEnergy(homo);
-      double omega_start = homo_en - delta;
+      //double delta = 0.5; // 1 Hartree in total (+- 0.5 Hartree)
+      //double homo_en =  _orbitals.getMOEnergy(homo);
+      //double omega_start = homo_en - delta;
+      double omega_start = (opt.start_frequency_grid)*tools::conv::ev2hrt;
+      double omega_end = (opt.end_frequency_grid)*tools::conv::ev2hrt;
 
       PadeApprox pade;
       
@@ -766,20 +768,20 @@ bool GWBSE::Evaluate() {
       
       double steps = 0;
       if (eval_points > 1){
-      steps = 2*delta/(eval_points-1);
+        steps = (omega_end-omega_start)/eval_points;
       }
       for (int j = 0; j < eval_points; ++j) {
-        std::complex<double> w (0,omega_start + j*steps);
+        std::complex<double> w (omega_start + j*steps,0.05);
         Eigen::VectorXcd sigma_c = sternheimer.SelfEnergy_diagonal(w);
         pade.addPoint(w,sigma_c(homo));
         XTP_LOG(Log::error, *_pLog)
-          << TimeStamp() << "Frequency "<< w <<" finished."<< flush;
+          << TimeStamp() << "Frequency "<< w <<" finished. " << j << flush;
       }
 
       std::cout << "\n # omega \t HOMO \n" << std::endl;
 
       if (n_points > 1){
-      steps = 2*delta/(n_points-1);
+        steps = (omega_end-omega_start)/n_points;;
       }
       for (int j = 0; j < n_points; ++j) {
         double w =omega_start + j*steps;
