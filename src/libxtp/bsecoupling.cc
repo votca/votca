@@ -295,21 +295,21 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     _levB = bseB_singlet_exc;
   }
 
-  if (_levA > bseA_triplet_exc) {
+  if (_levA > bseA_singlet_exc) {
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp()
         << "  Number of Frenkel states you want is greater than stored for "
            "molecule A. Setting to max number available"
         << flush;
-    _levA = bseA_triplet_exc;
+    _levA = bseA_singlet_exc;
   }
-  if (_levB > bseB_triplet_exc) {
+  if (_levB > bseB_singlet_exc) {
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp()
         << "  Number of Frenkel states you want is greater than stored for "
            "molecule B. Setting to max number available"
         << flush;
-    _levB = bseB_triplet_exc;
+    _levB = bseB_singlet_exc;
   }
 
   if (_unoccA > bseA_ctotal) {
