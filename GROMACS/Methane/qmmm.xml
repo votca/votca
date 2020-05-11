@@ -48,8 +48,7 @@
 	  	    </package>
 		</options_dft>
 
-		<options_gwbse help="xml file with options for gwbse calculations">
-		<gwbse>
+		<gwbse help="xml file with options for gwbse calculations">
 		  <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
 		  <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
 		  <ranges help="default: all levels in RPA, 1:2*HOMO in QP and all in BSE; other options: factor,explicit" default="default" choices="default,factor,explicit,full"></ranges>
@@ -98,7 +97,6 @@
 		    <exctotal help="number of eigenvectors to calculate" default="5" choices="int+"></exctotal>
 		    <ignore_corelevels help="" default="none" choices="none,RPA,BSE,GW"></ignore_corelevels>
 		</gwbse>
-		</options_gwbse>
 
 		<statetracker help="filter to identify excited states from some characteristic and not the energy">
 		    <filters help="list of filters to use" default="oscillatorstrength" choices="[chargetransfer,density,localisation,oscillatorstrength,overlap]"></filters>
@@ -111,12 +109,13 @@
                 <id>1</id>
                 <type>polar</type>
 
-		<options_polar help="xml file with options for classical polarized calculations">
+		<polar help="xml file with options for classical polarized calculations">
+		  
 		  <tolerance_energy help="Energy change as convergence criterion">1e-5</tolerance_energy>
 		  <tolerance_dipole help="Field change as convergence criterion">1e-5</tolerance_dipole>
 		  <max_iter help="Maximum number of iterations">512</max_iter>
 		  <exp_damp help="Thole sharpness parameter">0.39</exp_damp>
-		</options_polar>
+		</polar>
 
 		<cutoff help="cutoff to define segments via distance to some segment in the same region or another region">
                     <relative_to_explicit_segs help="if distance should only be calculated to explicitly stated segments in the region or all which are also in the cutoff">true</relative_to_explicit_segs>

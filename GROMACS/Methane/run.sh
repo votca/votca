@@ -90,6 +90,7 @@ echo "Running iQM"
 cp "$VOTCASHARE/xtp/xml/iqm.xml" OPTIONFILES/
 changeoption map_file system.xml OPTIONFILES/iqm.xml
 changeoption ranges full OPTIONFILES/iqm.xml
+changeoption states 1 OPTIONFILES/iqm.xml
 
 # Append the states to read to iqm.xml
 TAIL=$(tail -n 2 OPTIONFILES/iqm.xml)
@@ -107,7 +108,7 @@ EOM
 echo "${TAIL}" >> OPTIONFILES/tmp
 mv OPTIONFILES/tmp  OPTIONFILES/iqm.xml
 
-xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j "write"
+xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j "write" -t 4
 sed -i "s/AVAILABLE/COMPLETE/g" iqm.jobs
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' iqm.jobs
 
@@ -115,7 +116,7 @@ xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 4
 
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -j "read"
 
-# #running iexcitoncl
+#running iexcitoncl
 
 cp "${VOTCASHARE}/xtp/xml/iexcitoncl.xml" OPTIONFILES
 xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 -j "write"
@@ -144,5 +145,5 @@ sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_jobs.xml
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_jobs.xml
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j run
 
-# We are not going to read it in
-#xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j "read"
+# # We are not going to read it in
+# #xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j "read"
