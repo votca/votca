@@ -59,8 +59,7 @@
                 </gwbse>
             </gwbse_options>
 
-    <bsecoupling_options help="Exciton couplings from serialized orbital files" section="sec:bsecoupling">
-
+    <bsecoupling help="Exciton couplings from serialized orbital files" section="sec:bsecoupling">
         <spin help="Spin type for couplings" default="all" choices="singlet,triplet,all"></spin>
         <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0" choices="float"></degeneracy>
 
@@ -75,8 +74,7 @@
                 <occLevels help="occupied levels for CTstates" default="5" choices="int+"></occLevels>
                 <unoccLevels help="unoccupied levels for CTstates" default="5" choices="int+"></unoccLevels>
          </moleculeB>
-
-    </bsecoupling_options>
+      </bsecoupling>
         
     <dftcoupling_options>
         <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0" choices="float+"></degeneracy>
