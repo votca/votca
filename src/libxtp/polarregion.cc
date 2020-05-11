@@ -29,19 +29,19 @@ namespace xtp {
 
 void PolarRegion::Initialize(const tools::Property& prop) {
   std::string key = identify();
-  std::string filename = prop.get("options_polar").as<std::string>();
-  tools::Property polar_xml;
-  polar_xml.LoadFromXML(filename);
-  _max_iter =
-      polar_xml.ifExistsReturnElseReturnDefault(key + ".max_iter", _max_iter);
-  _deltaD = polar_xml.ifExistsReturnElseReturnDefault(key + ".tolerance_dipole",
-                                                      _deltaD);
-  _deltaE = polar_xml.ifExistsReturnElseReturnDefault(key + ".tolerance_energy",
-                                                      _deltaE);
-  _exp_damp =
-      polar_xml.ifExistsReturnElseReturnDefault(key + ".exp_damp", _exp_damp);
+  tools::Property options_polar;
+  options_polar.add("polar", "");
+  tools::Property& prop_polar = options_polar.get("polar");
+  prop_polar = prop.get("polar");
 
-  return;
+  _max_iter = options_polar.ifExistsReturnElseReturnDefault(key + ".max_iter",
+                                                            _max_iter);
+  _deltaD = options_polar.ifExistsReturnElseReturnDefault(
+      key + ".tolerance_dipole", _deltaD);
+  _deltaE = options_polar.ifExistsReturnElseReturnDefault(
+      key + ".tolerance_energy", _deltaE);
+  _exp_damp = options_polar.ifExistsReturnElseReturnDefault(key + ".exp_damp",
+                                                            _exp_damp);
 }
 
 bool PolarRegion::Converged() const {
