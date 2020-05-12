@@ -4,7 +4,7 @@
     <lower help="lower bound of spectrum in eV" unit="eV" default="0.0" choices="float+"></lower>
     <upper  help="upper bound of spectrum in eV" unit="eV" default="3.5" choices="float+"></upper>
     <points help="datapoints between upper and lower to calculate" default="100" choices="int+"></points>
-    <type help="print put energy/wavelength (eV/nm)" unit="eV/nm" default="enery" choices="energy,wavelength"></type>
+    <type help="print put energy/wavelength (eV/nm)" unit="eV/nm" default="energy" choices="energy,wavelength"></type>
     <minexc help="lowest exciton to include in spectrum" default="0" choices="int+"></minexc>
     <maxexc help="highest exciton to include in spectrum" default="10000" choices="int+"></maxexc>
     <shift help="shift spectrum by amount of eV" unit="eV" default="0.0" choices="float+"></shift>
