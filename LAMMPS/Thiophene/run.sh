@@ -28,8 +28,6 @@ xtp_run -e mapchecker -o OPTIONFILES/mapchecker.xml -f state.hdf5
 
 cp "${VOTCASHARE}/xtp/xml/neighborlist.xml" OPTIONFILES/
 
-changeoption constant 0.6 OPTIONFILES/neighborlist.xml
-
 #run neighborlist calculator
 
 xtp_run -e neighborlist -o OPTIONFILES/neighborlist.xml -f state.hdf5 -t 4
@@ -43,8 +41,6 @@ xtp_run -e einternal -o OPTIONFILES/einternal.xml -f state.hdf5
 
 #site energies
 #we just prepared an optionfile for the mm calculation as changing qmmm.xml for mm is too difficult with bash
-
-
 cp "${VOTCASHARE}/xtp/packages/polar.xml" OPTIONFILES/
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm_mm.xml -f state.hdf5 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" qmmm_mm_jobs.xml
@@ -115,11 +111,7 @@ xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -j "read"
 #running ianalyze
 
 cp "${VOTCASHARE}/xtp/xml/ianalyze.xml" OPTIONFILES/
-
 xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.hdf5
 
 #running qmmm 
-cp "${VOTCASHARE}/xtp/packages/gwbse.xml" OPTIONFILES/gwbse_qmmm.xml
-cp "${VOTCASHARE}/xtp/packages/xtpdft.xml" OPTIONFILES/xtpdft_qmmm.xml
-
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j run
