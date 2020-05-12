@@ -13,7 +13,13 @@
             <region>
                 <id>0</id>
                 <type>polar</type>
-                <options_polar>OPTIONFILES/polar.xml</options_polar>
+	           <polar help="xml file with options for classical polarized calculations">
+		     <tolerance_energy help="Energy change as convergence criterion">1e-5</tolerance_energy>
+		     <tolerance_dipole help="Field change as convergence criterion">1e-5</tolerance_dipole>
+		     <max_iter help="Maximum number of iterations">512</max_iter>
+		     <exp_damp help="Thole sharpness parameter">0.39</exp_damp>
+		</polar>
+
                 <segments>jobfile</segments>
                 <cutoff>
                     <geometry>n</geometry>
