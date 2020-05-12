@@ -14,7 +14,7 @@
 	    <field help="external electric field" unit="V/m" default="0.0 0.0 0.0"></field>
 	    <carriertype help="Specifies the carrier type of the transport under consideration." default="electron" choices="electron,hole,singlet,triplet"></carriertype>
 	    <temperature help="Temperature in Kelvin." unit="Kelvin" default="300" choices="float+"></temperature>
-		<maxrealtime help="Maximum clocktime allow to the calculation(Seconds)" unit="second" choices="float+"></maxrealtime>
+		<maxrealtime help="Maximum clocktime allow to the calculation(Seconds)" default="1E10" unit="second" choices="float+"></maxrealtime>
     </kmcmultiple>
 
 </options>

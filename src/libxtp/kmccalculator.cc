@@ -31,20 +31,19 @@ namespace votca {
 namespace xtp {
 
 void KMCCalculator::ParseCommonOptions(const tools::Property& options) {
-  std::string key = "options." + Identify();
-  _seed = options.get(key + ".seed").as<Index>();
+  _seed = options.get(".seed").as<Index>();
 
-  _numberofcarriers = options.get(key + ".numberofcarriers").as<Index>();
-  _injection_name = options.get(key + ".injectionpattern").as<std::string>();
-  _maxrealtime = options.get(key + ".maxrealtime").as<double>();
-  _trajectoryfile = options.get(key + ".trajectoryfile").as<std::string>();
-  _temperature = options.get(key + ".temperature").as<double>();
+  _numberofcarriers = options.get(".numberofcarriers").as<Index>();
+  _injection_name = options.get(".injectionpattern").as<std::string>();
+  _maxrealtime = options.get(".maxrealtime").as<double>();
+  _trajectoryfile = options.get(".trajectoryfile").as<std::string>();
+  _temperature = options.get(".temperature").as<double>();
 
   _temperature *= (tools::conv::kB * tools::conv::ev2hrt);
-  _occfile = options.get(key + ".occfile").as<std::string>();
-  _ratefile = options.get(key + ".ratefile").as<std::string>();
+  _occfile = options.get(".occfile").as<std::string>();
+  _ratefile = options.get(".ratefile").as<std::string>();
 
-  _injectionmethod = options.get(key + ".injectionmethod").as<std::string>();
+  _injectionmethod = options.get(".injectionmethod").as<std::string>();
 }
 
 void KMCCalculator::LoadGraph(Topology& top) {
