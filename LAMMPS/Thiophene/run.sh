@@ -83,6 +83,8 @@ echo "Running iQM"
 
 cp "${VOTCASHARE}/xtp/xml/iqm.xml" OPTIONFILES/
 changeoption map_file system.xml OPTIONFILES/iqm.xml
+changeoption ranges full OPTIONFILES/iqm.xml
+changeoption states 1 OPTIONFILES/iqm.xml
 
 # Append the states to read to iqm.xml
 TAIL=$(tail -n 2 OPTIONFILES/iqm.xml)
