@@ -23,8 +23,10 @@
 #ifndef VOTCA_XTP_JOBCALCULATOR_H
 #define VOTCA_XTP_JOBCALCULATOR_H
 
+// VOTCA includes
 #include <votca/tools/calculator.h>
 
+// Local VOTCA includes
 #include "votca/xtp/job.h"
 #include "votca/xtp/progressobserver.h"
 #include "votca/xtp/topology.h"

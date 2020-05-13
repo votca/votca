@@ -20,10 +20,14 @@
 #pragma once
 #ifndef VOTCA_XTP_GWBSE_H
 #define VOTCA_XTP_GWBSE_H
+
+// Standard includes
 #include <fstream>
 
+// VOTCA includes
 #include <votca/tools/property.h>
 
+// Local VOTCA includes
 #include "votca/xtp/bse.h"
 #include "votca/xtp/eigen.h"
 #include "votca/xtp/gw.h"

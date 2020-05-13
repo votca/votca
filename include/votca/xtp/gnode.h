@@ -19,6 +19,7 @@
 #ifndef VOTCA_XTP_GNODE_H
 #define VOTCA_XTP_GNODE_H
 
+// Local VOTCA includes
 #include "votca/xtp/glink.h"
 #include "votca/xtp/huffmantree.h"
 #include "votca/xtp/qmpair.h"

@@ -23,8 +23,10 @@
 #ifndef VOTCA_XTP_QMNBLIST_H
 #define VOTCA_XTP_QMNBLIST_H
 
+// VOTCA includes
 #include <votca/csg/pairlist.h>
 
+// Local VOTCA includes
 #include "votca/xtp/qmpair.h"
 
 namespace votca {

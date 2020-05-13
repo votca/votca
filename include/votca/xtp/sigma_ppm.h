@@ -20,6 +20,8 @@
 #pragma once
 #ifndef VOTCA_XTP_SIGMA_PPM_H
 #define VOTCA_XTP_SIGMA_PPM_H
+
+// Local VOTCA includes
 #include "votca/xtp/ppm.h"
 #include "votca/xtp/sigma_base.h"
 

@@ -22,11 +22,15 @@
 #pragma once
 #ifndef VOTCA_XTP_PROGRESSOBSERVER_H
 #define VOTCA_XTP_PROGRESSOBSERVER_H
+
+// Standard includes
 #include <vector>
 
+// Third party includes
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/program_options.hpp>
 
+// VOTCA includes
 #include <votca/tools/mutex.h>
 #include <votca/tools/property.h>
 

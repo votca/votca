@@ -21,9 +21,12 @@
 #ifndef VOTCA_XTP_NEWTON_RAPSON_H
 #define VOTCA_XTP_NEWTON_RAPSON_H
 
+// VOTCA includes
 #include <votca/tools/types.h>
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
+
 namespace votca {
 namespace xtp {
 

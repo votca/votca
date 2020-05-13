@@ -18,6 +18,8 @@
 #pragma once
 #ifndef VOTCA_XTP_MATRIXFREEOPERATOR_H
 #define VOTCA_XTP_MATRIXFREEOPERATOR_H
+
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 
 namespace votca {

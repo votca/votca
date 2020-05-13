@@ -21,10 +21,12 @@
 #ifndef VOTCA_XTP_DENSITY_INTEGRATION_H
 #define VOTCA_XTP_DENSITY_INTEGRATION_H
 
+// Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/eigen.h"
 #include "votca/xtp/regular_grid.h"
 #include "votca/xtp/vxc_grid.h"
+
 namespace votca {
 namespace xtp {
 

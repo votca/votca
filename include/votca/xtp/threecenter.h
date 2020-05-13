@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_THREECENTER_H
 #define VOTCA_XTP_THREECENTER_H
 
+// Standard includes
 #include <array>
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/symmetric_matrix.h"

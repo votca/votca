@@ -21,11 +21,15 @@
 #ifndef VOTCA_XTP_SEGID_H
 #define VOTCA_XTP_SEGID_H
 
+// Standard includes
 #include <string>
 
+// VOTCA includes
 #include <votca/tools/tokenizer.h>
 
+// Local VOTCA includes
 #include "votca/xtp/qmstate.h"
+
 /**
  * \brief Small wrapper for a segment id and the corresponding QMState or
  * filename

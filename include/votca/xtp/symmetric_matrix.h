@@ -21,9 +21,11 @@
 #ifndef VOTCA_XTP_SYMMETRIC_MATRIX_H
 #define VOTCA_XTP_SYMMETRIC_MATRIX_H
 
+// Standard includes
 #include <iostream>
 #include <vector>
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 
 namespace votca {

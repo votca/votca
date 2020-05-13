@@ -21,10 +21,13 @@
 #ifndef VOTCA_XTP_QMSTATE_H
 #define VOTCA_XTP_QMSTATE_H
 
+// Standard includes
 #include <string>
 
+// VOTCA includes
 #include <votca/tools/types.h>
 
+// Local VOTCA includes
 #include "checkpointreader.h"
 #include "checkpointwriter.h"
 

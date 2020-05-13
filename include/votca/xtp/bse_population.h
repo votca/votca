@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_BSE_POPULATION_H
 #define VOTCA_XTP_BSE_POPULATION_H
 
+// Local VOTCA includes
 #include "votca/xtp/checkpoint.h"
 #include "votca/xtp/eigen.h"
 

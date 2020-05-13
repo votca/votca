@@ -23,8 +23,10 @@
 #ifndef VOTCA_XTP_QMPAIR_H
 #define VOTCA_XTP_QMPAIR_H
 
+// Standard includes
 #include <vector>
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/segment.h"

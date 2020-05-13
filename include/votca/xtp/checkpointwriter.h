@@ -18,15 +18,20 @@
 #ifndef VOTCA_XTP_CHECKPOINTWRITER_H
 #define VOTCA_XTP_CHECKPOINTWRITER_H
 
-#include <H5Cpp.h>
+// Standard includes
 #include <map>
 #include <string>
 #include <type_traits>
 #include <typeinfo>
 #include <vector>
 
+// Third party includes
+#include <H5Cpp.h>
+
+// VOTCA includes
 #include <votca/tools/linalg.h>
 
+// Local VOTCA includes
 #include "votca/xtp/checkpoint_utils.h"
 #include "votca/xtp/checkpointtable.h"
 #include "votca/xtp/eigen.h"

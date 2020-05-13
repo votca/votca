@@ -17,7 +17,7 @@
 #ifndef VOTCA_XTP_CHECKPOINTTABLE_H
 #define VOTCA_XTP_CHECKPOINTTABLE_H
 
-#include <H5Cpp.h>
+// Standard includes
 #include <cstddef>
 #include <cstring>
 #include <iostream>
@@ -26,6 +26,10 @@
 #include <string>
 #include <vector>
 
+// Third party includes
+#include <H5Cpp.h>
+
+// Local VOTCA includes
 #include "votca/xtp/checkpoint_utils.h"
 
 #define CPT_MEM_FROM_STRUCT(m, s) HOFFSET(s, m)

@@ -20,10 +20,13 @@
 #ifndef VOTCA_XTP_REGION_H
 #define VOTCA_XTP_REGION_H
 
+// Standard includes
 #include <iostream>
 
+// VOTCA includes
 #include <votca/csg/pdbwriter.h>
 
+// Local VOTCA includes
 #include "votca/xtp/checkpoint.h"
 #include "votca/xtp/logger.h"
 

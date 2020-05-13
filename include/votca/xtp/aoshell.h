@@ -21,10 +21,13 @@
 #ifndef VOTCA_XTP_AOSHELL_H
 #define VOTCA_XTP_AOSHELL_H
 
+// Third party includes
 #include <boost/math/constants/constants.hpp>
 
+// VOTCA includes
 #include <votca/tools/constants.h>
 
+// Local VOTCA includes
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/eigen.h"
 #include "votca/xtp/qmatom.h"

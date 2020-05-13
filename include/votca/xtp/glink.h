@@ -19,6 +19,7 @@
 #ifndef VOTCA_XTP_GLINK_H
 #define VOTCA_XTP_GLINK_H
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 
 namespace votca {

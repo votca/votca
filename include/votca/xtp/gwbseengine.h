@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_GWBSEENGINE_H
 #define VOTCA_XTP_GWBSEENGINE_H
 
+// VOTCA includes
 #include <votca/tools/property.h>
 
+// Local VOTCA includes
 #include "votca/xtp/logger.h"
 
 namespace votca {

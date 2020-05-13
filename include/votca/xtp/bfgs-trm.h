@@ -21,9 +21,11 @@
 #ifndef VOTCA_XTP_BFGS - TRM_H
 #define VOTCA_XTP_BFGS -TRM_H
 
+// Standard includes
 #include <functional>
 #include <vector>
 
+// Local VOTCA includes
 #include "votca/xtp/logger.h"
 #include "votca/xtp/optimiser_costfunction.h"
 

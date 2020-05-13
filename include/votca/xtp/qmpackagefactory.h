@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_QMPACKAGEFACTORY_H
 #define VOTCA_XTP_QMPACKAGEFACTORY_H
 
+// VOTCA includes
 #include <votca/tools/objectfactory.h>
 
+// Local VOTCA includes
 #include "votca/xtp/qmpackage.h"
 
 namespace votca {

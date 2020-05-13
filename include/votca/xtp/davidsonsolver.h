@@ -19,12 +19,15 @@
 #ifndef VOTCA_XTP_DAVIDSONSOLVER_H
 #define VOTCA_XTP_DAVIDSONSOLVER_H
 
+// Standard includes
 #include <chrono>
 #include <iostream>
 #include <stdexcept>
 
+// Third party includes
 #include <boost/format.hpp>
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 #include "votca/xtp/logger.h"
 

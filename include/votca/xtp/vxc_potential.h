@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_VXC_POTENTIAL_H
 #define VOTCA_XTP_VXC_POTENTIAL_H
 
+// Third party includes
 #include <xc.h>
 
+// Local VOTCA includes
 #include "votca/xtp/grid_containers.h"
 #include "votca/xtp/gridbox.h"
 

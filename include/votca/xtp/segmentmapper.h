@@ -19,11 +19,14 @@
 #ifndef VOTCA_XTP_SEGMENTMAPPER_H
 #define VOTCA_XTP_SEGMENTMAPPER_H
 
+// Standard includes
 #include <type_traits>
 
+// VOTCA includes
 #include <votca/csg/pdbwriter.h>
 #include <votca/tools/property.h>
 
+// Local VOTCA includes
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/qmmolecule.h"

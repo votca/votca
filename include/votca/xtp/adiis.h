@@ -21,9 +21,11 @@
 #ifndef VOTCA_XTP_ADIIS_H
 #define VOTCA_XTP_ADIIS_H
 
+// Standard includes
 #include <memory>
 #include <vector>
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 
 namespace votca {

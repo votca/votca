@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_STATEAPPLICATION_H
 #define VOTCA_XTP_STATEAPPLICATION_H
 
+// Local VOTCA includes
 #include "votca/xtp/qmcalculator.h"
 #include "votca/xtp/topology.h"
 #include "votca/xtp/xtpapplication.h"

@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_BSE_H
 #define VOTCA_XTP_BSE_H
 
+// Local VOTCA includes
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/qmstate.h"

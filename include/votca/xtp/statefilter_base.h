@@ -21,11 +21,14 @@
 #ifndef VOTCA_XTP_STATEFILTER_BASE_H
 #define VOTCA_XTP_STATEFILTER_BASE_H
 
+// Standard includes
 #include <string>
 
+// VOTCA includes
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
 
+// Local VOTCA includes
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
 

@@ -20,6 +20,7 @@
 #ifndef VOTCA_XTP_CHARGECARRIER_H
 #define VOTCA_XTP_CHARGECARRIER_H
 
+// Local VOTCA includes
 #include "votca/xtp/glink.h"
 #include "votca/xtp/gnode.h"
 

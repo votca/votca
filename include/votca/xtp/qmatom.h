@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_QMATOM_H
 #define VOTCA_XTP_QMATOM_H
 
+// VOTCA includes
 #include <votca/tools/elements.h>
 
+// Local VOTCA includes
 #include "votca/xtp/checkpoint.h"
 
 namespace votca {

@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_DFTENGINE_H
 #define VOTCA_XTP_DFTENGINE_H
 
+// VOTCA includes
 #include <votca/tools/property.h>
 
+// Local VOTCA includes
 #include "votca/xtp/ERIs.h"
 #include "votca/xtp/convergenceacc.h"
 #include "votca/xtp/ecpaobasis.h"

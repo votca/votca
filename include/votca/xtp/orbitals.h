@@ -21,9 +21,11 @@
 #ifndef VOTCA_XTP_ORBITALS_H
 #define VOTCA_XTP_ORBITALS_H
 
+// VOTCA includes
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 
+// Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/checkpoint.h"
 #include "votca/xtp/classicalsegment.h"

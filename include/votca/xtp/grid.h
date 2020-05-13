@@ -21,9 +21,11 @@
 #ifndef VOTCA_XTP_GRID_H
 #define VOTCA_XTP_GRID_H
 
+// Standard includes
 #include <string>
 #include <vector>
 
+// Local VOTCA includes
 #include "votca/xtp/logger.h"
 #include "votca/xtp/qmatom.h"
 #include "votca/xtp/qmmolecule.h"

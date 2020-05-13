@@ -17,6 +17,7 @@
 #ifndef VOTCA_XTP_HUFFMANTREE_H
 #define VOTCA_XTP_HUFFMANTREE_H
 
+// Standard includes
 #include <list>
 #include <queue>
 #include <stdlib.h>

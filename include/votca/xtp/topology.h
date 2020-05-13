@@ -21,11 +21,13 @@
 #ifndef VOTCA_XTP_TOPOLOGY_H
 #define VOTCA_XTP_TOPOLOGY_H
 
+// VOTCA includes
 #include <votca/csg/boundarycondition.h>
 #include <votca/csg/openbox.h>
 #include <votca/csg/orthorhombicbox.h>
 #include <votca/csg/triclinicbox.h>
 
+// Local VOTCA includes
 #include "votca/xtp/qmnblist.h"
 
 namespace votca {

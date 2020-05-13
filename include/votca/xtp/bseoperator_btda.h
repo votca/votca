@@ -18,6 +18,7 @@
 #ifndef VOTCA_XTP_BSEOPERATOR_BTDA_H
 #define VOTCA_XTP_BSEOPERATOR_BTDA_H
 
+// Local VOTCA includes
 #include "votca/xtp/bse_operator.h"
 #include "votca/xtp/eigen.h"
 

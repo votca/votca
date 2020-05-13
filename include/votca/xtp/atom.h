@@ -23,10 +23,12 @@
 #ifndef VOTCA_XTP_ATOM_H
 #define VOTCA_XTP_ATOM_H
 
+// Standard includes
 #include <exception>
 #include <map>
 #include <string>
 
+// Local VOTCA includes
 #include "votca/xtp/checkpointreader.h"
 #include "votca/xtp/checkpointwriter.h"
 

@@ -23,8 +23,10 @@
 #ifndef VOTCA_XTP_PARALLELXJOBCALC_H
 #define VOTCA_XTP_PARALLELXJOBCALC_H
 
+// VOTCA includes
 #include <votca/tools/mutex.h>
 
+// Local VOTCA includes
 #include "votca/xtp/job.h"
 #include "votca/xtp/jobcalculator.h"
 #include "votca/xtp/progressobserver.h"

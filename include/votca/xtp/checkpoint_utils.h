@@ -18,11 +18,15 @@
 #ifndef VOTCA_XTP_CHECKPOINT_UTILS_H
 #define VOTCA_XTP_CHECKPOINT_UTILS_H
 
-#include <H5Cpp.h>
+// Standard includes
 #include <cstddef>
 #include <cstring>
 #include <string>
 
+// Third party includes
+#include <H5Cpp.h>
+
+// VOTCA includes
 #include <votca/tools/types.h>
 
 namespace votca {

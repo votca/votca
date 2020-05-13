@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_PPM_H
 #define VOTCA_XTP_PPM_H
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 #include "votca/xtp/rpa.h"
 

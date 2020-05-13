@@ -23,13 +23,16 @@
 #ifndef VOTCA_XTP_QMTHREAD_H
 #define VOTCA_XTP_QMTHREAD_H
 
+// Standard includes
 #include <ctime>
 #include <iostream>
 #include <string>
 
+// VOTCA includes
 #include <votca/tools/globals.h>
 #include <votca/tools/thread.h>
 
+// Local VOTCA includes
 #include "votca/xtp/logger.h"
 
 namespace votca {

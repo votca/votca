@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_QMMOLECULE_H
 #define VOTCA_XTP_QMMOLECULE_H
 
+// Local VOTCA includes
 #include "votca/xtp/atomcontainer.h"
 #include "votca/xtp/qmatom.h"
 

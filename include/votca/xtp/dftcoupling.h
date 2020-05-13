@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_DFTCOUPLING_H
 #define VOTCA_XTP_DFTCOUPLING_H
 
+// Local VOTCA includes
 #include "votca/xtp/couplingbase.h"
 
 namespace votca {

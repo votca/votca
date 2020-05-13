@@ -23,8 +23,10 @@
 #ifndef VOTCA_XTP_QMTOOL_H
 #define VOTCA_XTP_QMTOOL_H
 
+// Third party includes
 #include <boost/format.hpp>
 
+// VOTCA includes
 #include <votca/tools/calculator.h>
 #include <votca/tools/property.h>
 

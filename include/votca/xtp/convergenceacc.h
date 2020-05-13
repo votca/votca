@@ -21,12 +21,15 @@
 #ifndef VOTCA_XTP_CONVERGENCEACC_H
 #define VOTCA_XTP_CONVERGENCEACC_H
 
+// VOTCA includes
 #include <votca/tools/linalg.h>
 
+// Local VOTCA includes
 #include "votca/xtp/adiis.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/diis.h"
 #include "votca/xtp/logger.h"
+
 namespace votca {
 namespace xtp {
 

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,9 +18,10 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_VC2INDEX_H
-#define _VOTCA_XTP_VC2INDEX_H
+#ifndef VOTCA_XTP_VC2INDEX_H
+#define VOTCA_XTP_VC2INDEX_H
 
+// VOTCA includes
 #include <votca/tools/types.h>
 
 namespace votca {
@@ -54,4 +55,4 @@ class vc2index {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_VC2INDEX_H */
+#endif  // VOTCA_XTP_VC2INDEX_H

@@ -20,8 +20,11 @@
 #pragma once
 #ifndef VOTCA_XTP_RPA_H
 #define VOTCA_XTP_RPA_H
+
+// Standard includes
 #include <vector>
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 #include "votca/xtp/logger.h"
 

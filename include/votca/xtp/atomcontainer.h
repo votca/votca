@@ -20,11 +20,15 @@
 #pragma once
 #ifndef VOTCA_XTP_ATOMCONTAINER_H
 #define VOTCA_XTP_ATOMCONTAINER_H
+
+// Standard includes
 #include <limits>
 #include <typeinfo>
 
+// VOTCA includes
 #include <votca/tools/elements.h>
 
+// Local VOTCA includes
 #include "votca/xtp/checkpoint.h"
 #include "votca/xtp/eigen.h"
 

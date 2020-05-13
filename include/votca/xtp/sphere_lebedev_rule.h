@@ -21,10 +21,13 @@
 #ifndef VOTCA_XTP_SPHERE_LEBEDEV_RULE_H
 #define VOTCA_XTP_SPHERE_LEBEDEV_RULE_H
 
+// Third party includes
 #include <boost/math/constants/constants.hpp>
 
+// VOTCA includes
 #include <votca/tools/property.h>
 
+// Local VOTCA includes
 #include "votca/xtp/grid_containers.h"
 #include "votca/xtp/qmatom.h"
 

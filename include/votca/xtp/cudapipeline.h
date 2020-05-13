@@ -25,6 +25,7 @@
 #error Cuda not enabled
 #endif
 
+// Local VOTCA includes
 #include "votca/xtp/cudamatrix.h"
 
 /*

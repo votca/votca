@@ -21,10 +21,12 @@
 #ifndef VOTCA_XTP_JOBTOPOLOGY_H
 #define VOTCA_XTP_JOBTOPOLOGY_H
 
+// Local VOTCA includes
 #include "votca/xtp/job.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/region.h"
 #include "votca/xtp/topology.h"
+
 /**
  * \brief Class to set up the topology, e.g division of molecules into different
  * regions for a specific job.

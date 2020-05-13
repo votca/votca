@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_GEOMETRY_OPTIMIZATION_H
 #define VOTCA_XTP_GEOMETRY_OPTIMIZATION_H
 
+// Standard includes
 #include <stdio.h>
 
+// Local VOTCA includes
 #include "votca/xtp/bfgs-trm.h"
 #include "votca/xtp/energy_costfunction.h"
 #include "votca/xtp/gwbseengine.h"

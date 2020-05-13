@@ -21,12 +21,16 @@
 #ifndef VOTCA_XTP_ESP2MULTIPOLE_H
 #define VOTCA_XTP_ESP2MULTIPOLE_H
 
+// Standard includes
 #include <stdio.h>
 
+// Third party includes
 #include <boost/filesystem.hpp>
 
+// VOTCA includes
 #include <votca/tools/property.h>
 
+// Local VOTCA includes
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/espfit.h"
 #include "votca/xtp/logger.h"

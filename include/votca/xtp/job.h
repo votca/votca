@@ -21,10 +21,12 @@
 #ifndef VOTCA_XTP_JOB_H
 #define VOTCA_XTP_JOB_H
 
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <string>
 
+// VOTCA includes
 #include <votca/tools/property.h>
 
 namespace votca {

@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_STATICREGION_H
 #define VOTCA_XTP_STATICREGION_H
 
+// Local VOTCA includes
 #include "votca/xtp/mmregion.h"
 
 namespace votca {

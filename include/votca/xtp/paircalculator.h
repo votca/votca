@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_PAIRCALCULATOR_H
 #define VOTCA_XTP_PAIRCALCULATOR_H
 
+// Local VOTCA includes
 #include "votca/xtp/qmcalculator.h"
 
 namespace votca {

@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_TRUSTREGION_H
 #define VOTCA_XTP_TRUSTREGION_H
 
+// Standard includes
 #include <iostream>
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 
 // Solves the trustregion subproblem g^T*s+0.5*s^T H s = min with ||s||<=delta

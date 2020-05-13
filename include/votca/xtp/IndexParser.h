@@ -21,9 +21,11 @@
 #ifndef VOTCA_XTP_INDEXPARSER_H
 #define VOTCA_XTP_INDEXPARSER_H
 
+// Standard includes
 #include <string>
 #include <vector>
 
+// VOTCA includes
 #include "votca/tools/types.h"
 
 /**

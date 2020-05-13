@@ -20,6 +20,7 @@
 #ifndef VOTCA_XTP_SIGMA_EXACT_H
 #define VOTCA_XTP_SIGMA_EXACT_H
 
+// Local VOTCA includes
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_base.h"
 

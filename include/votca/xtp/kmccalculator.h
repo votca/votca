@@ -19,10 +19,12 @@
 #ifndef VOTCA_XTP_KMCCALCULATOR_H
 #define VOTCA_XTP_KMCCALCULATOR_H
 
+// VOTCA includes
 #include <votca/tools/globals.h>
 #include <votca/tools/random.h>
 #include <votca/tools/tokenizer.h>
 
+// Local VOTCA includes
 #include "votca/xtp/chargecarrier.h"
 #include "votca/xtp/gnode.h"
 #include "votca/xtp/logger.h"

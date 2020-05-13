@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_COUPLINGBASE_H
 #define VOTCA_XTP_COUPLINGBASE_H
 
+// Third party includes
 #include <boost/format.hpp>
 
+// Local VOTCA includes
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
 

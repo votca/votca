@@ -20,7 +20,7 @@
 #pragma once
 #ifndef VOTCA_XTP_ECPAOBASIS_H
 #define VOTCA_XTP_ECPAOBASIS_H
-
+// Local VOTCA includes
 #include "votca/xtp/ecpaoshell.h"
 #include "votca/xtp/eigen.h"
 

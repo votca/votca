@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_RADIAL_EULER_MACLAURIN_RULE_H
 #define VOTCA_XTP_RADIAL_EULER_MACLAURIN_RULE_H
 
+// VOTCA includes
 #include <votca/tools/constants.h>
 
+// Local VOTCA includes
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/grid_containers.h"
 #include "votca/xtp/qmatom.h"

@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_FILTERFACTORY_H
 #define VOTCA_XTP_FILTERFACTORY_H
 
+// VOTCA includes
 #include <votca/tools/objectfactory.h>
 
+// Local VOTCA includes
 #include "votca/xtp/statefilter_base.h"
 
 namespace votca {

@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_POLARSITE_H
 #define VOTCA_XTP_POLARSITE_H
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 #include "votca/xtp/staticsite.h"
 

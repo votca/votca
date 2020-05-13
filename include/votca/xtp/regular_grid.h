@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_REGULAR_GRID_H
 #define VOTCA_XTP_REGULAR_GRID_H
 
+// Local VOTCA includes
 #include "votca/xtp/gridbox.h"
 
 namespace votca {

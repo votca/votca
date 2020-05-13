@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_STATETRACKER_H
 #define VOTCA_XTP_STATETRACKER_H
 
+// Standard includes
 #include <memory>
 
+// Local VOTCA includes
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/qmstate.h"

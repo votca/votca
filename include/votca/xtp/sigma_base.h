@@ -20,6 +20,8 @@
 #pragma once
 #ifndef VOTCA_XTP_SIGMA_BASE_H
 #define VOTCA_XTP_SIGMA_BASE_H
+
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 
 namespace votca {

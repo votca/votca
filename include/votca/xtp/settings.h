@@ -20,6 +20,7 @@
 #ifndef VOTCA_XTP_SETTINGS_H
 #define VOTCA_XTP_SETTINGS_H
 
+// Standard includes
 #include <algorithm>
 #include <iostream>
 #include <iterator>
@@ -28,6 +29,7 @@
 #include <unordered_map>
 #include <utility>
 
+// VOTCA includes
 #include <votca/tools/property.h>
 
 /*

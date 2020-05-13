@@ -21,9 +21,11 @@
 #ifndef VOTCA_XTP_SEGMENT_H
 #define VOTCA_XTP_SEGMENT_H
 
+// Standard includes
 #include <map>
 #include <vector>
 
+// Local VOTCA includes
 #include "votca/xtp/atom.h"
 #include "votca/xtp/atomcontainer.h"
 #include "votca/xtp/qmstate.h"

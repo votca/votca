@@ -21,9 +21,12 @@
 #ifndef VOTCA_XTP_ANDERSON_MIXING_H
 #define VOTCA_XTP_ANDERSON_MIXING_H
 
+// Standard includes
 #include <vector>
 
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
+
 namespace votca {
 namespace xtp {
 /**

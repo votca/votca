@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_FORCES_H
 #define VOTCA_XTP_FORCES_H
 
+// Standard includes
 #include <stdio.h>
 
+// Local VOTCA includes
 #include "votca/xtp/gwbseengine.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/qmatom.h"

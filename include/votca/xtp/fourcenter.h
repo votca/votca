@@ -20,6 +20,8 @@
 #pragma once
 #ifndef VOTCA_XTP_FOURCENTER_H
 #define VOTCA_XTP_FOURCENTER_H
+
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 
 /**

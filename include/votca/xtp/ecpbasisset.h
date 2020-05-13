@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_ECPBASISSET_H
 #define VOTCA_XTP_ECPBASISSET_H
 
+// Local VOTCA includes
 #include "votca/xtp/basisset.h"
 
 namespace votca {

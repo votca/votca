@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_GRIDBOX_H
 #define VOTCA_XTP_GRIDBOX_H
 
+// Local VOTCA includes
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/grid_containers.h"
 

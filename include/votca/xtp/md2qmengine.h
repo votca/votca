@@ -19,8 +19,10 @@
 #ifndef VOTCA_XTP_MD2QMENGINE_H
 #define VOTCA_XTP_MD2QMENGINE_H
 
+// VOTCA includes
 #include <votca/csg/topology.h>
 
+// Local VOTCA includes
 #include "votca/xtp/topology.h"
 
 namespace votca {

@@ -21,10 +21,13 @@
 #ifndef VOTCA_XTP_CALCULATORFACTORY_H
 #define VOTCA_XTP_CALCULATORFACTORY_H
 
+// Standard includes
 #include <map>
 
+// VOTCA includes
 #include <votca/tools/objectfactory.h>
 
+// Local VOTCA includes
 #include "votca/xtp/qmcalculator.h"
 
 namespace votca {

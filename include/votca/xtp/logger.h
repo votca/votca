@@ -23,11 +23,14 @@
 #ifndef VOTCA_XTP_LOGGER_H
 #define VOTCA_XTP_LOGGER_H
 
+// Standard includes
 #include <chrono>
 #include <iostream>
 #include <sstream>
 
+// VOTCA includes
 #include <votca/tools/globals.h>
+
 namespace votca {
 namespace xtp {
 

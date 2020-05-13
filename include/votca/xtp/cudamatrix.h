@@ -25,12 +25,16 @@
 #error Cuda not enabled
 #endif
 
-#include <cublas_v2.h>
-#include <curand.h>
+// Standard includes
 #include <iostream>
 #include <memory>
 #include <sstream>
 
+// Third party includes
+#include <cublas_v2.h>
+#include <curand.h>
+
+// Local VOTCA includes
 #include "votca/xtp/eigen.h"
 
 /*

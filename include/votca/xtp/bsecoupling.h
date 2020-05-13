@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_BSECOUPLING_H
 #define VOTCA_XTP_BSECOUPLING_H
 
+// Local VOTCA includes
 #include "votca/xtp/couplingbase.h"
 #include "votca/xtp/qmstate.h"
 
