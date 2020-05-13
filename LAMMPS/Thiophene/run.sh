@@ -2,7 +2,7 @@
 
 #convienience function to change xml option
 changeoption(){
-    sed -i "s&<${1}.*>.*</${1}>&<${1}>${2}</${1}>&" $3
+    sed -i "s&<${1}.*/>&<${1}>${2}</${1}>&" $3
 }
 #convienience function to delete xml option
 deleteoption(){
@@ -28,8 +28,6 @@ xtp_run -e mapchecker -o OPTIONFILES/mapchecker.xml -f state.hdf5
 
 cp "${VOTCASHARE}/xtp/xml/neighborlist.xml" OPTIONFILES/
 
-changeoption constant 0.6 OPTIONFILES/neighborlist.xml
-
 #run neighborlist calculator
 
 xtp_run -e neighborlist -o OPTIONFILES/neighborlist.xml -f state.hdf5 -t 4
@@ -43,9 +41,6 @@ xtp_run -e einternal -o OPTIONFILES/einternal.xml -f state.hdf5
 
 #site energies
 #we just prepared an optionfile for the mm calculation as changing qmmm.xml for mm is too difficult with bash
-
-
-cp "${VOTCASHARE}/xtp/packages/polar.xml" OPTIONFILES/
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm_mm.xml -f state.hdf5 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" qmmm_mm_jobs.xml
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_mm_jobs.xml
@@ -87,6 +82,8 @@ echo "Running iQM"
 
 cp "${VOTCASHARE}/xtp/xml/iqm.xml" OPTIONFILES/
 changeoption map_file system.xml OPTIONFILES/iqm.xml
+changeoption ranges full OPTIONFILES/iqm.xml
+changeoption states 1 OPTIONFILES/iqm.xml
 
 # Append the states to read to iqm.xml
 TAIL=$(tail -n 2 OPTIONFILES/iqm.xml)
@@ -113,13 +110,12 @@ xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 4
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -j "read"
 
 #running ianalyze
+cp "${VOTCASHARE}/xtp/xml/iexcitoncl.xml" OPTIONFILES
+xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 -j "write"
+sed -i "s/AVAILABLE/COMPLETE/g" exciton.jobs
+sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' exciton.jobs
 
-cp "${VOTCASHARE}/xtp/xml/ianalyze.xml" OPTIONFILES/
-
-xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.hdf5
+xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5
 
 #running qmmm 
-cp "${VOTCASHARE}/xtp/packages/gwbse.xml" OPTIONFILES/gwbse_qmmm.xml
-cp "${VOTCASHARE}/xtp/packages/xtpdft.xml" OPTIONFILES/xtpdft_qmmm.xml
-
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j run
