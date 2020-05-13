@@ -21,12 +21,12 @@
 #ifndef VOTCA_XTP_EIGEN_H
 #define VOTCA_XTP_EIGEN_H
 
+// CMake Generated file
+#include <votca/xtp/votca_config.h>
+
 // VOTCA includes
 #include <votca/tools/eigen.h>
 #include <votca/tools/types.h>
-
-// Local VOTCA includes
-#include "votca_config.h"
 
 typedef Eigen::Matrix<double, 9, 1> Vector9d;
 typedef Eigen::Matrix<double, 9, 9> Matrix9d;

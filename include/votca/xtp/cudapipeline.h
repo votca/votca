@@ -20,7 +20,8 @@
 #ifndef VOTCA_XTP_CUDAPIPELINE_H
 #define VOTCA_XTP_CUDAPIPELINE_H
 
-#include "votca_config.h"
+// CMake generated file
+#include <votca/xtp/votca_config.h>
 #ifndef USE_CUDA
 #error Cuda not enabled
 #endif
