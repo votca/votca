@@ -26,6 +26,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 #include <votca/tools/types.h>
 
 namespace votca {

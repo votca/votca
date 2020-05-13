@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,10 +18,10 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_SIGMA_PPM_H
-#define _VOTCA_XTP_SIGMA_PPM_H
-#include <votca/xtp/ppm.h>
-#include <votca/xtp/sigma_base.h>
+#ifndef VOTCA_XTP_SIGMA_PPM_H
+#define VOTCA_XTP_SIGMA_PPM_H
+#include "votca/xtp/ppm.h"
+#include "votca/xtp/sigma_base.h"
 
 namespace votca {
 namespace xtp {
@@ -52,4 +52,4 @@ class Sigma_PPM : public Sigma_base {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_SIGMA_H */
+#endif  // VOTCA_XTP_SIGMA_PPM_H

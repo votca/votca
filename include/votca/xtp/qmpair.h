@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,10 +24,10 @@
 #define VOTCA_XTP_QMPAIR_H
 
 #include <vector>
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/segment.h>
 
-#include "qmstate.h"
+#include "votca/xtp/eigen.h"
+#include "votca/xtp/qmstate.h"
+#include "votca/xtp/segment.h"
 
 namespace votca {
 namespace xtp {

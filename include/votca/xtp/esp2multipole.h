@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,13 +21,17 @@
 #ifndef VOTCA_XTP_ESP2MULTIPOLE_H
 #define VOTCA_XTP_ESP2MULTIPOLE_H
 
-#include <boost/filesystem.hpp>
 #include <stdio.h>
+
+#include <boost/filesystem.hpp>
+
 #include <votca/tools/property.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/espfit.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
+
+#include "votca/xtp/classicalsegment.h"
+#include "votca/xtp/espfit.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/orbitals.h"
+
 namespace votca {
 namespace xtp {
 

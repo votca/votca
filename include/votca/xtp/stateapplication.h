@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,10 +21,9 @@
 #ifndef VOTCA_XTP_STATEAPPLICATION_H
 #define VOTCA_XTP_STATEAPPLICATION_H
 
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/topology.h>
-
-#include <votca/xtp/xtpapplication.h>
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/topology.h"
+#include "votca/xtp/xtpapplication.h"
 
 namespace votca {
 namespace xtp {
@@ -51,4 +50,4 @@ class StateApplication : public XtpApplication {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_SQLAPPLICATION_H
+#endif  // VOTCA_XTP_STATEAPPLICATION_H

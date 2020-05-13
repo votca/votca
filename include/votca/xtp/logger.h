@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,12 +20,13 @@
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #pragma once
-#ifndef VOTCA_XTP_LOG_H
-#define VOTCA_XTP_LOG_H
+#ifndef VOTCA_XTP_LOGGER_H
+#define VOTCA_XTP_LOGGER_H
 
 #include <chrono>
 #include <iostream>
 #include <sstream>
+
 #include <votca/tools/globals.h>
 namespace votca {
 namespace xtp {
@@ -243,4 +244,4 @@ class TimeStamp {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_LOG_H
+#endif  // VOTCA_XTP_LOGGER_H

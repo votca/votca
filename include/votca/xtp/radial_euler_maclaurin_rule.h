@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,13 +18,14 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_EULER_MACLAURIN_H
-#define VOTCA_XTP_EULER_MACLAURIN_H
+#ifndef VOTCA_XTP_RADIAL_EULER_MACLAURIN_RULE_H
+#define VOTCA_XTP_RADIAL_EULER_MACLAURIN_RULE_H
 
 #include <votca/tools/constants.h>
-#include <votca/xtp/basisset.h>
-#include <votca/xtp/grid_containers.h>
-#include <votca/xtp/qmatom.h>
+
+#include "votca/xtp/basisset.h"
+#include "votca/xtp/grid_containers.h"
+#include "votca/xtp/qmatom.h"
 
 namespace votca {
 namespace xtp {
@@ -476,4 +477,4 @@ c                  Md   No   Lr  Unq  Unp
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // VOTCA_XTP_EULER_MACLAURIN_H
+#endif  // VOTCA_XTP_RADIAL_EULER_MACLAURIN_RULE_H

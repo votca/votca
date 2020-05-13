@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,9 +24,10 @@
 #define VOTCA_XTP_JOBCALCULATOR_H
 
 #include <votca/tools/calculator.h>
-#include <votca/xtp/job.h>
-#include <votca/xtp/progressobserver.h>
-#include <votca/xtp/topology.h>
+
+#include "votca/xtp/job.h"
+#include "votca/xtp/progressobserver.h"
+#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {

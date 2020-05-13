@@ -18,8 +18,10 @@
 #pragma once
 #ifndef VOTCA_XTP_DIPOLEDIPOLEINTERACTION_H
 #define VOTCA_XTP_DIPOLEDIPOLEINTERACTION_H
-#include <votca/xtp/eeinteractor.h>
-#include <votca/xtp/eigen.h>
+
+#include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/eigen.h"
+
 namespace votca {
 namespace xtp {
 class DipoleDipoleInteraction;

@@ -21,8 +21,8 @@
 #ifndef VOTCA_XTP_AOBASIS_H
 #define VOTCA_XTP_AOBASIS_H
 
-#include <votca/xtp/aoshell.h>
-#include <votca/xtp/eigen.h>
+#include "votca/xtp/aoshell.h"
+#include "votca/xtp/eigen.h"
 
 namespace votca {
 namespace xtp {

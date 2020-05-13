@@ -21,10 +21,10 @@
 #ifndef VOTCA_XTP_POLARREGION_H
 #define VOTCA_XTP_POLARREGION_H
 
-#include <votca/xtp/eeinteractor.h>
-#include <votca/xtp/energy_terms.h>
-#include <votca/xtp/hist.h>
-#include <votca/xtp/mmregion.h>
+#include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/energy_terms.h"
+#include "votca/xtp/hist.h"
+#include "votca/xtp/mmregion.h"
 /**
  * \brief defines a polar region and of interacting electrostatic and induction
  * segments

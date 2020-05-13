@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,11 +18,12 @@
  */
 
 #pragma once
-#ifndef __XTP_TRUSTREGION__H
-#define __XTP_TRUSTREGION__H
+#ifndef VOTCA_XTP_TRUSTREGION_H
+#define VOTCA_XTP_TRUSTREGION_H
 
 #include <iostream>
-#include <votca/xtp/eigen.h>
+
+#include "votca/xtp/eigen.h"
 
 // Solves the trustregion subproblem g^T*s+0.5*s^T H s = min with ||s||<=delta
 
@@ -73,4 +74,4 @@ class TrustRegion {
 
 }  // namespace xtp
 }  // namespace votca
-#endif /* TRUSTREGION_H */
+#endif  // VOTCA_XTP_TRUSTREGION_H

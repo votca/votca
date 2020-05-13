@@ -18,14 +18,15 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_GW_H
-#define _VOTCA_XTP_GW_H
+#ifndef VOTCA_XTP_GW_H
+#define VOTCA_XTP_GW_H
 
 #include "votca/xtp/logger.h"
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/rpa.h>
-#include <votca/xtp/sigma_base.h>
-#include <votca/xtp/threecenter.h>
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/rpa.h"
+#include "votca/xtp/sigma_base.h"
+#include "votca/xtp/threecenter.h"
+
 namespace votca {
 namespace xtp {
 
@@ -157,4 +158,4 @@ class GW {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_BSE_H */
+#endif  // VOTCA_XTP_GW_H

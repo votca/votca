@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,13 +18,14 @@
  */
 
 #pragma once
-#ifndef XTP_VXC_POTENTIAL_H
-#define XTP_VXC_POTENTIAL_H
-
-#include <votca/xtp/grid_containers.h>
-#include <votca/xtp/gridbox.h>
+#ifndef VOTCA_XTP_VXC_POTENTIAL_H
+#define VOTCA_XTP_VXC_POTENTIAL_H
 
 #include <xc.h>
+
+#include "votca/xtp/grid_containers.h"
+#include "votca/xtp/gridbox.h"
+
 #undef LOG
 
 namespace votca {
@@ -61,4 +62,4 @@ class Vxc_Potential {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // XTP_NUMERICAL_INTEGRATION_H
+#endif  // VOTCA_XTP_VXC_POTENTIAL_H

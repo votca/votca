@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@
 #define VOTCA_XTP_MD2QMENGINE_H
 
 #include <votca/csg/topology.h>
-#include <votca/xtp/topology.h>
+
+#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {

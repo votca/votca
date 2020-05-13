@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,11 +22,12 @@
 #define VOTCA_XTP_AOSHELL_H
 
 #include <boost/math/constants/constants.hpp>
-#include <votca/tools/constants.h>
-#include <votca/xtp/eigen.h>
 
-#include "qmatom.h"
-#include <votca/xtp/basisset.h>
+#include <votca/tools/constants.h>
+
+#include "votca/xtp/basisset.h"
+#include "votca/xtp/eigen.h"
+#include "votca/xtp/qmatom.h"
 
 namespace votca {
 namespace xtp {

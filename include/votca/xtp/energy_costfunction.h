@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,10 +21,9 @@
 #ifndef VOTCA_XTP_ENERGY_COSTFUNCTION_H
 #define VOTCA_XTP_ENERGY_COSTFUNCTION_H
 
-#include <votca/xtp/optimiser_costfunction.h>
-
-#include "forces.h"
-#include "orbitals.h"
+#include "votca/xtp/forces.h"
+#include "votca/xtp/optimiser_costfunction.h"
+#include "votca/xtp/orbitals.h"
 
 namespace votca {
 namespace xtp {

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,8 +21,8 @@
 #ifndef VOTCA_XTP_GRIDBOX_H
 #define VOTCA_XTP_GRIDBOX_H
 
-#include <votca/xtp/aoshell.h>
-#include <votca/xtp/grid_containers.h>
+#include "votca/xtp/aoshell.h"
+#include "votca/xtp/grid_containers.h"
 
 namespace votca {
 namespace xtp {

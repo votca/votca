@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,10 +17,10 @@
  *
  */
 
-#ifndef __XTP_CUDA_MATRIX__H
-#define __XTP_CUDA_MATRIX__H
+#ifndef VOTCA_XTP_CUDAMATRIX_H
+#define VOTCA_XTP_CUDAMATRIX_H
 
-#include <votca/xtp/votca_config.h>
+#include "votca/xtp/votca_config.h"
 #ifndef USE_CUDA
 #error Cuda not enabled
 #endif
@@ -30,7 +30,8 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include <votca/xtp/eigen.h>
+
+#include "votca/xtp/eigen.h"
 
 /*
  * \brief Matrix Representation inside an Nvidia GPU
@@ -80,4 +81,4 @@ class CudaMatrix {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_CUDAMATRIX_H

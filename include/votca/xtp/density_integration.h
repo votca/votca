@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,13 +18,13 @@
  */
 
 #pragma once
-#ifndef XTP_DENSITY_INTEGRATION_H
-#define XTP_DENSITY_INTEGRATION_H
+#ifndef VOTCA_XTP_DENSITY_INTEGRATION_H
+#define VOTCA_XTP_DENSITY_INTEGRATION_H
 
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/regular_grid.h>
-#include <votca/xtp/vxc_grid.h>
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/eigen.h"
+#include "votca/xtp/regular_grid.h"
+#include "votca/xtp/vxc_grid.h"
 namespace votca {
 namespace xtp {
 
@@ -59,4 +59,4 @@ class DensityIntegration {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // XTP_NUMERICAL_INTEGRATION_H
+#endif  // VOTCA_XTP_DENSITY_INTEGRATION_H

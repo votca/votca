@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
  */
 
 #pragma once
-#ifndef __VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
-#define __VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
-#include <votca/xtp/eigen.h>
+#ifndef VOTCA_XTP_MATRIXFREEOPERATOR_H
+#define VOTCA_XTP_MATRIXFREEOPERATOR_H
+#include "votca/xtp/eigen.h"
 
 namespace votca {
 namespace xtp {
@@ -191,4 +191,4 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
 }  // namespace internal
 }  // namespace Eigen
 
-#endif  //__VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
+#endif  // VOTCA_XTP_MATRIXFREEOPERATOR_H

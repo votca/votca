@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@
 #ifndef VOTCA_XTP_GNODE_H
 #define VOTCA_XTP_GNODE_H
 
-#include <votca/xtp/glink.h>
-#include <votca/xtp/huffmantree.h>
-#include <votca/xtp/qmpair.h>
-#include <votca/xtp/segment.h>
+#include "votca/xtp/glink.h"
+#include "votca/xtp/huffmantree.h"
+#include "votca/xtp/qmpair.h"
+#include "votca/xtp/segment.h"
 
 namespace votca {
 namespace xtp {

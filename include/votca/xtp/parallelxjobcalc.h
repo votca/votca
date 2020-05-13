@@ -24,10 +24,11 @@
 #define VOTCA_XTP_PARALLELXJOBCALC_H
 
 #include <votca/tools/mutex.h>
-#include <votca/xtp/job.h>
-#include <votca/xtp/jobcalculator.h>
-#include <votca/xtp/progressobserver.h>
-#include <votca/xtp/qmthread.h>
+
+#include "votca/xtp/job.h"
+#include "votca/xtp/jobcalculator.h"
+#include "votca/xtp/progressobserver.h"
+#include "votca/xtp/qmthread.h"
 
 /// PATHWAYS TO A NEW THREADED CALCULATOR
 /// ... 1 Define 'JobContainer' (needs to define iterator), 'pJob' ( =

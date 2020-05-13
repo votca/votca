@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,9 +21,9 @@
 #ifndef VOTCA_XTP_HIST_H
 #define VOTCA_XTP_HIST_H
 
-#include <votca/xtp/checkpoint.h>
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/energy_terms.h>
+#include "votca/xtp/checkpoint.h"
+#include "votca/xtp/eigen.h"
+#include "votca/xtp/energy_terms.h"
 
 /**
  * \brief Small container for convergence checking, stores current and last
@@ -116,4 +116,4 @@ inline void hist<Energy_terms>::WriteMetric(const Energy_terms& metric,
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_JOB_H
+#endif  // VOTCA_XTP_HIST_H

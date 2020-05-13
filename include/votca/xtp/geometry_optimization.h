@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,16 +18,17 @@
  */
 
 #pragma once
-#ifndef XTP_GEOMETRY_OPTIMIZATION_H
-#define XTP_GEOMETRY_OPTIMIZATION_H
+#ifndef VOTCA_XTP_GEOMETRY_OPTIMIZATION_H
+#define VOTCA_XTP_GEOMETRY_OPTIMIZATION_H
 
 #include <stdio.h>
-#include <votca/xtp/bfgs-trm.h>
-#include <votca/xtp/energy_costfunction.h>
-#include <votca/xtp/gwbseengine.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmatom.h>
-#include <votca/xtp/qmstate.h>
+
+#include "votca/xtp/bfgs-trm.h"
+#include "votca/xtp/energy_costfunction.h"
+#include "votca/xtp/gwbseengine.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmatom.h"
+#include "votca/xtp/qmstate.h"
 
 namespace votca {
 namespace xtp {

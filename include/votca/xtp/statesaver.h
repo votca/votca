@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,12 +18,13 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_STATE_SAVER_H
-#define VOTCA_XTP_STATE_SAVER_H
+#ifndef VOTCA_XTP_STATESAVER_H
+#define VOTCA_XTP_STATESAVER_H
 
 #include <map>
 #include <stdio.h>
-#include <votca/xtp/topology.h>
+
+#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {
@@ -46,4 +47,4 @@ class StateSaver {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_STATE_SAVER_H
+#endif  // VOTCA_XTP_STATESAVER_H

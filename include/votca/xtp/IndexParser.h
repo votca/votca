@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,7 +23,8 @@
 
 #include <string>
 #include <vector>
-#include <votca/tools/types.h>
+
+#include "votca/tools/types.h"
 
 /**
  * \brief Parser to read strings containing indexes in the format "1 2:7 8"
@@ -44,4 +45,4 @@ class IndexParser {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ATOMCONTAINER_H
+#endif  // VOTCA_XTP_INDEXPARSER_H

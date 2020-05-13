@@ -16,18 +16,18 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_CALCULATOR_H
-#define VOTCA_XTP_CALCULATOR_H
+#ifndef VOTCA_XTP_KMCCALCULATOR_H
+#define VOTCA_XTP_KMCCALCULATOR_H
 
 #include <votca/tools/globals.h>
 #include <votca/tools/random.h>
 #include <votca/tools/tokenizer.h>
-#include <votca/xtp/chargecarrier.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmstate.h>
 
-#include <votca/xtp/gnode.h>
-#include <votca/xtp/qmcalculator.h>
+#include "votca/xtp/chargecarrier.h"
+#include "votca/xtp/gnode.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/qmstate.h"
 
 namespace votca {
 namespace xtp {
@@ -85,4 +85,4 @@ class KMCCalculator : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_CALCULATOR_H
+#endif  // VOTCA_XTP_KMCCALCULATOR_H

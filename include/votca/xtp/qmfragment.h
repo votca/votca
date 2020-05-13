@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,8 +20,9 @@
 #pragma once
 #ifndef VOTCA_XTP_QMFRAGMENT_H
 #define VOTCA_XTP_QMFRAGMENT_H
-#include <votca/xtp/IndexParser.h>
-#include <votca/xtp/bse_population.h>
+
+#include "votca/xtp/IndexParser.h"
+#include "votca/xtp/bse_population.h"
 
 /**
  * \brief Container to define fragments of QMmolecules, containing atomindices,
@@ -139,4 +140,4 @@ inline void QMFragment<BSE_Population>::WriteValue(CheckpointWriter& w) const {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ATOMCONTAINER_H
+#endif  // VOTCA_XTP_QMFRAGMENT_H

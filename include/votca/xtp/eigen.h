@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,7 +23,9 @@
 
 #include <votca/tools/eigen.h>
 #include <votca/tools/types.h>
-#include <votca/xtp/votca_config.h>
+
+#include "votca/xtp/votca_config.h"
+
 typedef Eigen::Matrix<double, 9, 1> Vector9d;
 typedef Eigen::Matrix<double, 9, 9> Matrix9d;
 typedef Eigen::Array<votca::Index, Eigen::Dynamic, 1> ArrayXl;

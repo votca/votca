@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,20 @@
  *
  */
 #pragma once
-#ifndef VOTCA_XTP_CHECKPOINT_READER_H
-#define VOTCA_XTP_CHECKPOINT_READER_H
+#ifndef VOTCA_XTP_CHECKPOINTREADER_H
+#define VOTCA_XTP_CHECKPOINTREADER_H
 
 #include <H5Cpp.h>
 #include <string>
 #include <type_traits>
 #include <typeinfo>
 #include <vector>
+
 #include <votca/tools/linalg.h>
-#include <votca/xtp/checkpoint_utils.h>
-#include <votca/xtp/checkpointtable.h>
-#include <votca/xtp/eigen.h>
+
+#include "votca/xtp/checkpoint_utils.h"
+#include "votca/xtp/checkpointtable.h"
+#include "votca/xtp/eigen.h"
 
 namespace votca {
 namespace xtp {
@@ -282,4 +284,4 @@ class CheckpointReader {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_CHECKPOINT_READER_H
+#endif  // VOTCA_XTP_CHECKPOINTREADER_H

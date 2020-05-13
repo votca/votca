@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,10 +18,10 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_PSEUDOPOTENTIAL_H
-#define VOTCA_XTP_PSEUDOPOTENTIAL_H
+#ifndef VOTCA_XTP_ECPBASISSET_H
+#define VOTCA_XTP_ECPBASISSET_H
 
-#include <votca/xtp/basisset.h>
+#include "votca/xtp/basisset.h"
 
 namespace votca {
 namespace xtp {
@@ -146,4 +146,4 @@ class ECPBasisSet {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_PSEUDOPOTENTIAL_H
+#endif  // VOTCA_XTP_ECPBASISSET_H

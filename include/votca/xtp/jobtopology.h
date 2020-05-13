@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,10 +21,10 @@
 #ifndef VOTCA_XTP_JOBTOPOLOGY_H
 #define VOTCA_XTP_JOBTOPOLOGY_H
 
-#include <votca/xtp/job.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/region.h>
-#include <votca/xtp/topology.h>
+#include "votca/xtp/job.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/region.h"
+#include "votca/xtp/topology.h"
 /**
  * \brief Class to set up the topology, e.g division of molecules into different
  * regions for a specific job.

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,11 +18,11 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_ECPAOBasis_H
-#define VOTCA_XTP_ECPAOBasis_H
+#ifndef VOTCA_XTP_ECPAOBASIS_H
+#define VOTCA_XTP_ECPAOBASIS_H
 
-#include <votca/xtp/ecpaoshell.h>
-#include <votca/xtp/eigen.h>
+#include "votca/xtp/ecpaoshell.h"
+#include "votca/xtp/eigen.h"
 
 namespace votca {
 namespace xtp {
@@ -66,4 +66,4 @@ class ECPAOBasis {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ECPAOBasis_H
+#endif  // VOTCA_XTP_ECPAOBASIS_H

@@ -24,8 +24,9 @@
 #include <stdexcept>
 
 #include <boost/format.hpp>
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/logger.h>
+
+#include "votca/xtp/eigen.h"
+#include "votca/xtp/logger.h"
 
 using boost::format;
 using std::flush;

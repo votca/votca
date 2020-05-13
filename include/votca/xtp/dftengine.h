@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,13 +22,14 @@
 #define VOTCA_XTP_DFTENGINE_H
 
 #include <votca/tools/property.h>
-#include <votca/xtp/ERIs.h>
-#include <votca/xtp/convergenceacc.h>
-#include <votca/xtp/ecpaobasis.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/staticsite.h>
-#include <votca/xtp/vxc_grid.h>
-#include <votca/xtp/vxc_potential.h>
+
+#include "votca/xtp/ERIs.h"
+#include "votca/xtp/convergenceacc.h"
+#include "votca/xtp/ecpaobasis.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/staticsite.h"
+#include "votca/xtp/vxc_grid.h"
+#include "votca/xtp/vxc_potential.h"
 
 namespace votca {
 namespace xtp {

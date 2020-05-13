@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,12 +23,14 @@
 #ifndef VOTCA_XTP_QMTHREAD_H
 #define VOTCA_XTP_QMTHREAD_H
 
-#include "votca/tools/globals.h"
-#include "votca/tools/thread.h"
-#include "votca/xtp/logger.h"
 #include <ctime>
 #include <iostream>
 #include <string>
+
+#include <votca/tools/globals.h>
+#include <votca/tools/thread.h>
+
+#include "votca/xtp/logger.h"
 
 namespace votca {
 namespace xtp {

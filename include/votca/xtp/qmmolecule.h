@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,8 +21,8 @@
 #ifndef VOTCA_XTP_QMMOLECULE_H
 #define VOTCA_XTP_QMMOLECULE_H
 
-#include <votca/xtp/atomcontainer.h>
-#include <votca/xtp/qmatom.h>
+#include "votca/xtp/atomcontainer.h"
+#include "votca/xtp/qmatom.h"
 
 namespace votca {
 namespace xtp {
@@ -50,4 +50,4 @@ class QMMolecule : public AtomContainer<QMAtom> {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* VOTCA_XTP_QMMOLECULE_H */
+#endif  // VOTCA_XTP_QMMOLECULE_H

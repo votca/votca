@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,11 +20,12 @@
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #pragma once
-#ifndef VOTCA_XTP_QMNBList_H
-#define VOTCA_XTP_QMNBList_H
+#ifndef VOTCA_XTP_QMNBLIST_H
+#define VOTCA_XTP_QMNBLIST_H
 
 #include <votca/csg/pairlist.h>
-#include <votca/xtp/qmpair.h>
+
+#include "votca/xtp/qmpair.h"
 
 namespace votca {
 namespace xtp {

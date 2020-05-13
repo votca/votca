@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,7 +21,7 @@
 #ifndef VOTCA_XTP_STATICREGION_H
 #define VOTCA_XTP_STATICREGION_H
 
-#include <votca/xtp/mmregion.h>
+#include "votca/xtp/mmregion.h"
 
 namespace votca {
 namespace xtp {
@@ -57,4 +57,4 @@ class StaticRegion : public MMRegion<StaticSegment> {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* VOTCA_XTP_MMREGION_H */
+#endif  // VOTCA_XTP_STATICREGION_H

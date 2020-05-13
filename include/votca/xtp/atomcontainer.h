@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,9 +22,11 @@
 #define VOTCA_XTP_ATOMCONTAINER_H
 #include <limits>
 #include <typeinfo>
+
 #include <votca/tools/elements.h>
-#include <votca/xtp/checkpoint.h>
-#include <votca/xtp/eigen.h>
+
+#include "votca/xtp/checkpoint.h"
+#include "votca/xtp/eigen.h"
 
 /**
  * \brief Basic Container for QMAtoms,PolarSites and Atoms
