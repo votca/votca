@@ -1,6 +1,8 @@
-<options><vaverage>
-    <ratefile help="file with kmc rates from kmcmultiple" default="rates.dat">rates.dat</ratefile>
-    <occfile help="file with site occupations from kmcmultiple" default="occupation.dat">occupation.dat</occfile>
-    <outputfile help="outputfile" default="velocities.dat">velocities.dat</outputfile>
-</vaverage>
+<?xml version="1.0"?>
+<options>
+  <vaverage>
+    <ratefile help="file with kmc rates from kmcmultiple" default="rates.dat"/>
+    <occfile help="file with site occupations from kmcmultiple" default="occupation.dat"/>
+    <outputfile help="outputfile" default="velocities.dat"/>
+  </vaverage>
 </options>

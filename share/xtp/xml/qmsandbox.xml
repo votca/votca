@@ -1,5 +1,6 @@
+<?xml version="1.0"?>
 <options>
-	<qmsandbox help="Sandbox to test xtp classes" label="sec:qmsanbox">
-	<option1 help="some property" choices="float+">3.14</option1>
-	</qmsandbox>
+  <qmsandbox help="Sandbox to test xtp classes" label="sec:qmsanbox">
+    <option1 help="some property" default="3.14" choices="float+"/>
+  </qmsandbox>
 </options>

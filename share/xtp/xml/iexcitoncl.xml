@@ -1,6 +1,7 @@
+<?xml version="1.0"?>
 <options>
-    <iexcitoncl help="Classical coupling of transition charges" section="sec:iexcitoncl">
-        <map_file help="xml file with segment definition" default="votca_map.xml">votca_map.xml</map_file>
-        <job_file help="name of jobfile to which jobs are written" default="exciton.jobs">exciton.jobs</job_file>
-    </iexcitoncl>
+  <iexcitoncl help="Classical coupling of transition charges" section="sec:iexcitoncl">
+    <map_file help="xml file with segment definition" default="votca_map.xml"/>
+    <job_file help="name of jobfile to which jobs are written" default="exciton.jobs"/>
+  </iexcitoncl>
 </options>

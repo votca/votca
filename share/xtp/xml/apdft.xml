@@ -1,6 +1,7 @@
+<?xml version="1.0"?>
 <options>
-<apdft help="Write Electrostatic potentials at core positions">
-        <grid help="grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine">medium</grid>
-        <state help="QM state to generate potential" default="N">N</state>
-</apdft>
+  <apdft help="Write Electrostatic potentials at core positions">
+    <grid help="grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine"/>
+    <state help="QM state to generate potential" default="N"/>
+  </apdft>
 </options>

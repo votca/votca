@@ -240,7 +240,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   if ((basisA == 0) || (basisB == 0)) {
     throw std::runtime_error("Basis set size is not stored in monomers");
   }
-
   // get exciton information of molecule A
   Index bseA_cmax = orbitalsA.getBSEcmax();
   Index bseA_cmin = orbitalsA.getBSEcmin();
@@ -427,6 +426,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   Eigen::MatrixXd Hqp = qpcoeff *
                         orbitalsAB.QPdiag().eigenvalues().asDiagonal() *
                         qpcoeff.transpose();
+
   BSE::options opt;
   opt.cmax = orbitalsAB.getBSEcmax();
   opt.homo = orbitalsAB.getHomo();

@@ -81,7 +81,9 @@ void IQM::ParseOptionsXML(const tools::Property& options) {
   _gwbse_options = this->UpdateGWBSEOptions(options);
 
   _dftcoupling_options = options.get(".dftcoupling_options");
-  _bsecoupling_options = options.get(".bsecoupling_options");
+  _bsecoupling_options.add("bsecoupling", "");
+  tools::Property& prop_bsecoupling = _bsecoupling_options.get("bsecoupling");
+  prop_bsecoupling = options.get("bsecoupling");
 
   // read linker groups
   std::string linker =
