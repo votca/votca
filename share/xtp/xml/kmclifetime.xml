@@ -1,21 +1,22 @@
+<?xml version="1.0"?>
 <options>
-    <kmclifetime help="Perform Kinetic Monte Carlo simulations of singlets with decay" label="calc:kmclifetime" section="sec:kmc">
-        <lifetimefile help="File from which lifetimes are read in." default="lifetimes.xml"></lifetimefile>
-        <ratefile help="File containing the rates" default="rates.dat"></ratefile>
-   	    <trajectoryfile help="Name of the trajectory file" default="trajectory.csv"></trajectoryfile>
-        <numberofinsertions>4000</numberofinsertions>
-        <seed help="Integer to initialise the random number generator" default="23" choices="int+"></seed>
-        <numberofcarriers help="Number of electrons/holes in the simulation box" default="1" choices="int+"></numberofcarriers>
-        <injectionpattern help="Name pattern that specifies on which sites injection is possible. Use the wildcard '*' to inject on any site." default="*"></injectionpattern>
-        <injectionmethod help="random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" default="random" choices="random"></injectionmethod>
-        <temperature help="Temperature in Kelvin." unit="kelvin" default="300" choices="int+"></temperature>
-        <occfile help="File with the occupations" default="occupation.dat"></occfile>
-        <maxrealtime help="Maximum clocktime allow to the calculation(Seconds)" unit="second" default="1E10" choices="float+"></maxrealtime>
-        <carrierenergy help="Run a single carrier at the same time and records its energy">
-	        <run help="Switch on/off" default="false" choices="bool"></run>
-	        <outputfile help="File to write energies to" default="energies.csv"></outputfile>
-	        <alpha help="Smoothing energy profile" default="0.05" choices="float+"></alpha>
-	        <outputsteps help="Write to file every x steps" default="10" choices="int+"></outputsteps>
-        </carrierenergy>
-    </kmclifetime>
+  <kmclifetime help="Perform Kinetic Monte Carlo simulations of singlets with decay" label="calc:kmclifetime" section="sec:kmc">
+    <lifetimefile help="File from which lifetimes are read in." default="lifetimes.xml"/>
+    <ratefile help="File containing the rates" default="rates.dat"/>
+    <trajectoryfile help="Name of the trajectory file" default="trajectory.csv"/>
+    <numberofinsertions>4000</numberofinsertions>
+    <seed help="Integer to initialise the random number generator" default="23" choices="int+"/>
+    <numberofcarriers help="Number of electrons/holes in the simulation box" default="1" choices="int+"/>
+    <injectionpattern help="Name pattern that specifies on which sites injection is possible. Use the wildcard '*' to inject on any site." default="*"/>
+    <injectionmethod help="random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" default="random" choices="random"/>
+    <temperature help="Temperature in Kelvin." unit="kelvin" default="300" choices="int+"/>
+    <occfile help="File with the occupations" default="occupation.dat"/>
+    <maxrealtime help="Maximum clocktime allow to the calculation(Seconds)" unit="second" default="1E10" choices="float+"/>
+    <carrierenergy help="Run a single carrier at the same time and records its energy">
+      <run help="Switch on/off" default="false" choices="bool"/>
+      <outputfile help="File to write energies to" default="energies.csv"/>
+      <alpha help="Smoothing energy profile" default="0.05" choices="float+"/>
+      <outputsteps help="Write to file every x steps" default="10" choices="int+"/>
+    </carrierenergy>
+  </kmclifetime>
 </options>

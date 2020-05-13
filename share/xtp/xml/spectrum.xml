@@ -1,14 +1,13 @@
+<?xml version="1.0"?>
 <options>
-<spectrum help="Convolutes singlet spectrum with gaussian or lorentzian function">
-    <fwhm help="peak width in eV" default="0.2" choices="float+"></fwhm>
-    <lower help="lower bound of spectrum in eV" unit="eV" default="0.0" choices="float+"></lower>
-    <upper  help="upper bound of spectrum in eV" unit="eV" default="3.5" choices="float+"></upper>
-    <points help="datapoints between upper and lower to calculate" default="100" choices="int+"></points>
-    <type help="print put energy/wavelength (eV/nm)" unit="eV/nm" default="energy" choices="energy,wavelength"></type>
-    <minexc help="lowest exciton to include in spectrum" default="0" choices="int+"></minexc>
-    <maxexc help="highest exciton to include in spectrum" default="10000" choices="int+"></maxexc>
-    <shift help="shift spectrum by amount of eV" unit="eV" default="0.0" choices="float+"></shift>
-</spectrum>
+  <spectrum help="Convolutes singlet spectrum with gaussian or lorentzian function">
+    <fwhm help="peak width in eV" default="0.2" choices="float+"/>
+    <lower help="lower bound of spectrum in eV" unit="eV" default="0.0" choices="float+"/>
+    <upper help="upper bound of spectrum in eV" unit="eV" default="3.5" choices="float+"/>
+    <points help="datapoints between upper and lower to calculate" default="100" choices="int+"/>
+    <type help="print put energy/wavelength (eV/nm)" unit="eV/nm" default="energy" choices="energy,wavelength"/>
+    <minexc help="lowest exciton to include in spectrum" default="0" choices="int+"/>
+    <maxexc help="highest exciton to include in spectrum" default="10000" choices="int+"/>
+    <shift help="shift spectrum by amount of eV" unit="eV" default="0.0" choices="float+"/>
+  </spectrum>
 </options>
-
-

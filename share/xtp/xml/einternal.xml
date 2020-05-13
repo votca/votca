@@ -1,7 +1,6 @@
+<?xml version="1.0"?>
 <options>
-
-<einternal help="Reads in site and reorganosation energies and writes them to the state file" section="sec:einternal">
- 	<energiesXML help="XML input file with vacuum site, reorganization (charging, discharging) energies" default="system.xml"></energiesXML>
-</einternal>
-
+  <einternal help="Reads in site and reorganosation energies and writes them to the state file" section="sec:einternal">
+    <energiesXML help="XML input file with vacuum site, reorganization (charging, discharging) energies" default="system.xml"/>
+  </einternal>
 </options>

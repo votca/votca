@@ -1,12 +1,12 @@
+<?xml version="1.0"?>
 <options>
-    <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
-        <print_regions_pdb help="print the geometry of the regions to a pdb file" default="true" choices="bool"></print_regions_pdb>
-        <max_iterations help="max iterations for qmmm scf loop" default="100" choices="int+"></max_iterations>
-        <map_file help="xml file with segment definition" default="votca_map.xml"></map_file>
-        <job_file help="name of jobfile to which jobs are written" default="qmmm_jobs.xml"></job_file>
-        <write_parse>
-            <states help="states to write jobs for and which to parse from jobfile" default="n e h"></states>
-        </write_parse>
-    </qmmm>
-
+  <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
+    <print_regions_pdb help="print the geometry of the regions to a pdb file" default="true" choices="bool"/>
+    <max_iterations help="max iterations for qmmm scf loop" default="100" choices="int+"/>
+    <map_file help="xml file with segment definition" default="votca_map.xml"/>
+    <job_file help="name of jobfile to which jobs are written" default="qmmm_jobs.xml"/>
+    <write_parse>
+      <states help="states to write jobs for and which to parse from jobfile" default="n e h"/>
+    </write_parse>
+  </qmmm>
 </options>
