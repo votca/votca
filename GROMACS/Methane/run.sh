@@ -2,7 +2,7 @@
 
 #convienience function to change xml option
 changeoption(){
-    sed -i "s&<${1}.*>.*</${1}>&<${1}>${2}</${1}>&" $3
+    sed -i "s&<${1}.*/>&<${1}>${2}</${1}>&" $3
 }
 #convienience function to delete xml option
 deleteoption(){
@@ -44,10 +44,6 @@ xtp_run -e einternal -o OPTIONFILES/einternal.xml -f state.hdf5
 
 #site energies
 #we just prepared an optionfile for the mm calculation as changing qmmm.xml for mm is too difficult with bash
-
-
-cp "$VOTCASHARE/xtp/packages/polar.xml" OPTIONFILES/
-
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm_mm.xml -f state.hdf5 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" qmmm_mm_jobs.xml
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_mm_jobs.xml
@@ -70,7 +66,7 @@ xtp_run -e eanalyze -o OPTIONFILES/eanalyze.xml -f state.hdf5
 echo "Running eQM"
 
 cp "$VOTCASHARE/xtp/xml/eqm.xml" OPTIONFILES/
-changeoption ranges full OPTIONFILES/gwbse.xml
+changeoption ranges full OPTIONFILES/eqm.xml
 changeoption map_file system.xml OPTIONFILES/eqm.xml
 changeoption mode G0W0 OPTIONFILES/eqm.xml
 
@@ -135,10 +131,6 @@ xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.hdf5
 
 #running qmmm
 cp qmmm.xml OPTIONFILES/
-cp "${VOTCASHARE}/xtp/packages/gwbse.xml" OPTIONFILES/gwbse_qmmm.xml
-cp "${VOTCASHARE}/xtp/packages/qmpackage_defaults.xml" OPTIONFILES/qmpackage_qmmm.xml
-cp "${VOTCASHARE}/xtp/packages/polar.xml" OPTIONFILES/
-
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" qmmm_jobs.xml
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_jobs.xml

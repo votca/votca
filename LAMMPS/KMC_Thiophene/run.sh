@@ -2,7 +2,7 @@
 
 #convienience function to change xml option
 changeoption(){
-    sed -i "s&<${1}.*>.*</${1}>&<${1}>${2}</${1}>&" $3
+    sed -i "s&<${1}.*/>&<${1}>${2}</${1}>&" $3
 }
 
 echo $VOTCASHARE

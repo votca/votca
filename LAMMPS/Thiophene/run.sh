@@ -2,7 +2,7 @@
 
 #convienience function to change xml option
 changeoption(){
-    sed -i "s&<${1}.*>.*</${1}>&<${1}>${2}</${1}>&" $3
+    sed -i "s&<${1}.*/>&<${1}>${2}</${1}>&" $3
 }
 #convienience function to delete xml option
 deleteoption(){
@@ -41,7 +41,6 @@ xtp_run -e einternal -o OPTIONFILES/einternal.xml -f state.hdf5
 
 #site energies
 #we just prepared an optionfile for the mm calculation as changing qmmm.xml for mm is too difficult with bash
-cp "${VOTCASHARE}/xtp/packages/polar.xml" OPTIONFILES/
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm_mm.xml -f state.hdf5 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" qmmm_mm_jobs.xml
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_mm_jobs.xml

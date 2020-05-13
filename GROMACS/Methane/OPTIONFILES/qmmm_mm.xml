@@ -1,36 +1,40 @@
+<?xml version="1.0"?>
 <options>
-    <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
-        <print_regions_pdb>true</print_regions_pdb>
-        <max_iterations>50</max_iterations>
-        <openmp_threads>1</openmp_threads>
-        <map_file>system.xml</map_file>
- <job_file>qmmm_mm_jobs.xml</job_file>
-        <write_parse>
-            <states>n e h s1</states>
-        </write_parse>
-        
-        <regions>
-            <region>
-                <id>0</id>
-                <type>polar</type>
-                <options_polar>OPTIONFILES/polar.xml</options_polar>
-                <segments>jobfile</segments>
-                <cutoff>
-                    <geometry>n</geometry>
-                    <radius>0.5</radius>
-                </cutoff>
-            </region>
-            <region>
-                <id>1</id>
-                <type>static</type>
-                <cutoff>
-                    <relative_to_explicit_segs>true</relative_to_explicit_segs>
-                    <geometry>n</geometry>
-                    <radius>1.4</radius>
-                    <region>0</region>
-                </cutoff>
-            </region>
-        </regions>
-    </qmmm>
-
+  <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
+    <print_regions_pdb>true</print_regions_pdb>
+    <max_iterations>50</max_iterations>
+    <openmp_threads>1</openmp_threads>
+    <map_file>system.xml</map_file>
+    <job_file>qmmm_mm_jobs.xml</job_file>
+    <write_parse>
+      <states>n e h s1</states>
+    </write_parse>
+    <regions>
+      <region>
+        <id>0</id>
+        <type>polar</type>
+        <polar help="xml file with options for classical polarized calculations">
+          <tolerance_energy help="Energy change as convergence criterion">1e-5</tolerance_energy>
+          <tolerance_dipole help="Field change as convergence criterion">1e-5</tolerance_dipole>
+          <max_iter help="Maximum number of iterations">512</max_iter>
+          <exp_damp help="Thole sharpness parameter">0.39</exp_damp>
+        </polar>
+        <segments>jobfile</segments>
+        <cutoff>
+          <geometry>n</geometry>
+          <radius>0.5</radius>
+        </cutoff>
+      </region>
+      <region>
+        <id>1</id>
+        <type>static</type>
+        <cutoff>
+          <relative_to_explicit_segs>true</relative_to_explicit_segs>
+          <geometry>n</geometry>
+          <radius>1.4</radius>
+          <region>0</region>
+        </cutoff>
+      </region>
+    </regions>
+  </qmmm>
 </options>
