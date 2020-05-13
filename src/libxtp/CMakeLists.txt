@@ -21,6 +21,8 @@ endif()
 #CMAKE_CURRENT_BINARY_DIR for gitversion.h
 #PROJECT_BINARY_DIR/include for votca_config.h
 target_include_directories(votca_xtp PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/votca/xtp>
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/votca/xtp>
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> ${HDF5_INCLUDE_DIRS}
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
