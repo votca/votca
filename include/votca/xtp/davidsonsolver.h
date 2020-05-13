@@ -28,8 +28,8 @@
 #include <boost/format.hpp>
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/logger.h"
+#include "eigen.h"
+#include "logger.h"
 
 using boost::format;
 using std::flush;

@@ -22,11 +22,11 @@
 #define VOTCA_XTP_JOBAPPLICATION_H
 
 // Local VOTCA includes
-#include "votca/xtp/jobcalculator.h"
-#include "votca/xtp/progressobserver.h"
-#include "votca/xtp/statesaver.h"
-#include "votca/xtp/topology.h"
-#include "votca/xtp/xtpapplication.h"
+#include "jobcalculator.h"
+#include "progressobserver.h"
+#include "statesaver.h"
+#include "topology.h"
+#include "xtpapplication.h"
 
 namespace votca {
 namespace xtp {

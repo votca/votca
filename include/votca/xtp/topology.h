@@ -28,7 +28,7 @@
 #include <votca/csg/triclinicbox.h>
 
 // Local VOTCA includes
-#include "votca/xtp/qmnblist.h"
+#include "qmnblist.h"
 
 namespace votca {
 namespace xtp {

@@ -22,7 +22,7 @@
 #define VOTCA_XTP_REGULAR_GRID_H
 
 // Local VOTCA includes
-#include "votca/xtp/gridbox.h"
+#include "gridbox.h"
 
 namespace votca {
 namespace xtp {

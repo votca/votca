@@ -25,10 +25,10 @@
 #include <memory>
 
 // Local VOTCA includes
-#include "votca/xtp/logger.h"
-#include "votca/xtp/orbitals.h"
-#include "votca/xtp/qmstate.h"
-#include "votca/xtp/statefilter_base.h"
+#include "logger.h"
+#include "orbitals.h"
+#include "qmstate.h"
+#include "statefilter_base.h"
 
 namespace votca {
 namespace xtp {

@@ -25,13 +25,13 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
-#include "votca/xtp/ERIs.h"
-#include "votca/xtp/convergenceacc.h"
-#include "votca/xtp/ecpaobasis.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/staticsite.h"
-#include "votca/xtp/vxc_grid.h"
-#include "votca/xtp/vxc_potential.h"
+#include "ERIs.h"
+#include "convergenceacc.h"
+#include "ecpaobasis.h"
+#include "logger.h"
+#include "staticsite.h"
+#include "vxc_grid.h"
+#include "vxc_potential.h"
 
 namespace votca {
 namespace xtp {

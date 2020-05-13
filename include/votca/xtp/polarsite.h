@@ -22,8 +22,8 @@
 #define VOTCA_XTP_POLARSITE_H
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/staticsite.h"
+#include "eigen.h"
+#include "staticsite.h"
 
 namespace votca {
 namespace xtp {

@@ -22,7 +22,7 @@
 #define VOTCA_XTP_AOMATRIX_H
 
 // Local VOTCA includes
-#include "votca/xtp/aobasis.h"
+#include "aobasis.h"
 
 namespace votca {
 namespace xtp {

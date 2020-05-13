@@ -23,7 +23,7 @@
 #include <votca/csg/topology.h>
 
 // Local VOTCA includes
-#include "votca/xtp/topology.h"
+#include "topology.h"
 
 namespace votca {
 namespace xtp {

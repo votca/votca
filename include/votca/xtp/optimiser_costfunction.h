@@ -22,7 +22,7 @@
 #define VOTCA_XTP_OPTIMISER_COSTFUNCTION_H
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {

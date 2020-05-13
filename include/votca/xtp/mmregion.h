@@ -22,8 +22,8 @@
 #define VOTCA_XTP_MMREGION_H
 
 // Local VOTCA includes
-#include "votca/xtp/classicalsegment.h"
-#include "votca/xtp/region.h"
+#include "classicalsegment.h"
+#include "region.h"
 
 namespace votca {
 namespace xtp {

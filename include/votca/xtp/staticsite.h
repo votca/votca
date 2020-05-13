@@ -22,8 +22,8 @@ nn * See the License for the specific language governing permissions and
 #define VOTCA_XTP_STATICSITE_H
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/qmatom.h"
+#include "eigen.h"
+#include "qmatom.h"
 
 namespace votca {
 namespace xtp {

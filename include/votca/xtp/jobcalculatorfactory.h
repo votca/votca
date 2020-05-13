@@ -28,7 +28,7 @@
 #include <votca/tools/objectfactory.h>
 
 // Local VOTCA includes
-#include "votca/xtp/jobcalculator.h"
+#include "jobcalculator.h"
 
 namespace votca {
 namespace xtp {

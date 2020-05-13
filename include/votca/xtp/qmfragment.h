@@ -22,8 +22,8 @@
 #define VOTCA_XTP_QMFRAGMENT_H
 
 // Local VOTCA includes
-#include "votca/xtp/IndexParser.h"
-#include "votca/xtp/bse_population.h"
+#include "IndexParser.h"
+#include "bse_population.h"
 
 /**
  * \brief Container to define fragments of QMmolecules, containing atomindices,

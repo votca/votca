@@ -30,9 +30,9 @@
 #include <votca/tools/linalg.h>
 
 // Local VOTCA includes
-#include "votca/xtp/checkpoint_utils.h"
-#include "votca/xtp/checkpointtable.h"
-#include "votca/xtp/eigen.h"
+#include "checkpoint_utils.h"
+#include "checkpointtable.h"
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {

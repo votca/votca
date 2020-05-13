@@ -25,10 +25,10 @@
 #include <stdio.h>
 
 // Local VOTCA includes
-#include "votca/xtp/gwbseengine.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/qmatom.h"
-#include "votca/xtp/segment.h"
+#include "gwbseengine.h"
+#include "logger.h"
+#include "qmatom.h"
+#include "segment.h"
 
 namespace votca {
 namespace xtp {

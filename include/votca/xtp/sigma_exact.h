@@ -21,8 +21,8 @@
 #define VOTCA_XTP_SIGMA_EXACT_H
 
 // Local VOTCA includes
-#include "votca/xtp/rpa.h"
-#include "votca/xtp/sigma_base.h"
+#include "rpa.h"
+#include "sigma_base.h"
 
 namespace votca {
 namespace xtp {

@@ -28,7 +28,7 @@
 #include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
-#include "votca/xtp/qmstate.h"
+#include "qmstate.h"
 
 /**
  * \brief Small wrapper for a segment id and the corresponding QMState or

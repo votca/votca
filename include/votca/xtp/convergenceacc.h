@@ -25,10 +25,10 @@
 #include <votca/tools/linalg.h>
 
 // Local VOTCA includes
-#include "votca/xtp/adiis.h"
-#include "votca/xtp/aomatrix.h"
-#include "votca/xtp/diis.h"
-#include "votca/xtp/logger.h"
+#include "adiis.h"
+#include "aomatrix.h"
+#include "diis.h"
+#include "logger.h"
 
 namespace votca {
 namespace xtp {

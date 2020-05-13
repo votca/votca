@@ -22,8 +22,8 @@
 #define VOTCA_XTP_ERIS_H
 
 // Local VOTCA includes
-#include "votca/xtp/fourcenter.h"
-#include "votca/xtp/threecenter.h"
+#include "fourcenter.h"
+#include "threecenter.h"
 
 namespace votca {
 namespace xtp {

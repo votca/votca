@@ -25,7 +25,7 @@
 #include <votca/tools/objectfactory.h>
 
 // Local VOTCA includes
-#include "votca/xtp/qmpackage.h"
+#include "qmpackage.h"
 
 namespace votca {
 namespace xtp {

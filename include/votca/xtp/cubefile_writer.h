@@ -22,9 +22,9 @@
 #define VOTCA_XTP_CUBEFILE_WRITER_H
 
 // Local VOTCA includes
-#include "votca/xtp/logger.h"
-#include "votca/xtp/orbitals.h"
-#include "votca/xtp/regular_grid.h"
+#include "logger.h"
+#include "orbitals.h"
+#include "regular_grid.h"
 
 /**
  * \brief Writes an orbital file to a .cube file

@@ -22,11 +22,11 @@
 #define VOTCA_XTP_QMREGION_H
 
 // Local VOTCA includes
-#include "votca/xtp/hist.h"
-#include "votca/xtp/orbitals.h"
-#include "votca/xtp/qmpackagefactory.h"
-#include "votca/xtp/region.h"
-#include "votca/xtp/statetracker.h"
+#include "hist.h"
+#include "orbitals.h"
+#include "qmpackagefactory.h"
+#include "region.h"
+#include "statetracker.h"
 
 /**
  * \brief defines a qm region and runs dft and gwbse calculations

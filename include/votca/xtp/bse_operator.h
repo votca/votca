@@ -22,9 +22,9 @@
 #define VOTCA_XTP_BSE_OPERATOR_H
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/matrixfreeoperator.h"
-#include "votca/xtp/threecenter.h"
+#include "eigen.h"
+#include "matrixfreeoperator.h"
+#include "threecenter.h"
 
 namespace votca {
 namespace xtp {

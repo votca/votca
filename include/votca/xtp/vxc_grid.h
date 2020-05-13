@@ -22,8 +22,8 @@
 #define VOTCA_XTP_VXC_GRID_H
 
 // Local VOTCA includes
-#include "votca/xtp/grid_containers.h"
-#include "votca/xtp/gridbox.h"
+#include "grid_containers.h"
+#include "gridbox.h"
 
 namespace votca {
 namespace xtp {

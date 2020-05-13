@@ -22,8 +22,8 @@
 #define VOTCA_XTP_AOTRANSFORM_H
 
 // Local VOTCA includes
-#include "votca/xtp/aoshell.h"
-#include "votca/xtp/eigen.h"
+#include "aoshell.h"
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {

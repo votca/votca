@@ -20,8 +20,8 @@
 #define VOTCA_XTP_DIPOLEDIPOLEINTERACTION_H
 
 // Local VOTCA includes
-#include "votca/xtp/eeinteractor.h"
-#include "votca/xtp/eigen.h"
+#include "eeinteractor.h"
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {

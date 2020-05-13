@@ -25,7 +25,7 @@
 #include <iostream>
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
+#include "eigen.h"
 
 // Solves the trustregion subproblem g^T*s+0.5*s^T H s = min with ||s||<=delta
 

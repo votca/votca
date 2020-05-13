@@ -151,7 +151,7 @@ class LogBuffer : public std::stringbuf {
  *  Example:
  *
  *  \code
- *  #include <votca/xtp/logger.h>
+ *  #include <logger.h>
  *  Logger log; // create a logger object
  *  log.setReportLevel(Log::error); // output only log messages starting from a
  *  level XTP_LOG(Log::error,*log) << "Error detected" << flush; // write to

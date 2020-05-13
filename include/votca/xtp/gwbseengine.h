@@ -25,7 +25,7 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
-#include "votca/xtp/logger.h"
+#include "logger.h"
 
 namespace votca {
 namespace xtp {

@@ -25,8 +25,8 @@
 #include <boost/format.hpp>
 
 // Local VOTCA includes
-#include "votca/xtp/logger.h"
-#include "votca/xtp/orbitals.h"
+#include "logger.h"
+#include "orbitals.h"
 
 namespace votca {
 namespace xtp {

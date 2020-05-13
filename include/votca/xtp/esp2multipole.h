@@ -31,10 +31,10 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
-#include "votca/xtp/classicalsegment.h"
-#include "votca/xtp/espfit.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/orbitals.h"
+#include "classicalsegment.h"
+#include "espfit.h"
+#include "logger.h"
+#include "orbitals.h"
 
 namespace votca {
 namespace xtp {

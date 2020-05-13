@@ -20,13 +20,13 @@
 #ifndef VOTCA_XTP_CUDAPIPELINE_H
 #define VOTCA_XTP_CUDAPIPELINE_H
 
-#include "votca/xtp/votca_config.h"
+#include "votca_config.h"
 #ifndef USE_CUDA
 #error Cuda not enabled
 #endif
 
 // Local VOTCA includes
-#include "votca/xtp/cudamatrix.h"
+#include "cudamatrix.h"
 
 /*
  * \brief Perform Tensor-matrix multiplications in a GPU

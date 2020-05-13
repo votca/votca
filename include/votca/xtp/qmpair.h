@@ -27,9 +27,9 @@
 #include <vector>
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/qmstate.h"
-#include "votca/xtp/segment.h"
+#include "eigen.h"
+#include "qmstate.h"
+#include "segment.h"
 
 namespace votca {
 namespace xtp {

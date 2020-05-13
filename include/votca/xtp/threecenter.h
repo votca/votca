@@ -25,12 +25,12 @@
 #include <array>
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/symmetric_matrix.h"
+#include "eigen.h"
+#include "logger.h"
+#include "symmetric_matrix.h"
 
 #ifdef USE_CUDA
-#include "votca/xtp/cudapipeline.h"
+#include "cudapipeline.h"
 #endif
 
 /**

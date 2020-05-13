@@ -28,9 +28,9 @@
 #include <votca/tools/constants.h>
 
 // Local VOTCA includes
-#include "votca/xtp/ecpbasisset.h"
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/qmatom.h"
+#include "ecpbasisset.h"
+#include "eigen.h"
+#include "qmatom.h"
 
 namespace votca {
 namespace xtp {

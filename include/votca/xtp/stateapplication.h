@@ -22,9 +22,9 @@
 #define VOTCA_XTP_STATEAPPLICATION_H
 
 // Local VOTCA includes
-#include "votca/xtp/qmcalculator.h"
-#include "votca/xtp/topology.h"
-#include "votca/xtp/xtpapplication.h"
+#include "qmcalculator.h"
+#include "topology.h"
+#include "xtpapplication.h"
 
 namespace votca {
 namespace xtp {

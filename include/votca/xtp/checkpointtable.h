@@ -30,7 +30,7 @@
 #include <H5Cpp.h>
 
 // Local VOTCA includes
-#include "votca/xtp/checkpoint_utils.h"
+#include "checkpoint_utils.h"
 
 #define CPT_MEM_FROM_STRUCT(m, s) HOFFSET(s, m)
 #define CPT_MEMBER(m, s) HOFFSET(s, m)

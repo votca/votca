@@ -25,11 +25,11 @@
 #include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
-#include "votca/xtp/chargecarrier.h"
-#include "votca/xtp/gnode.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/qmcalculator.h"
-#include "votca/xtp/qmstate.h"
+#include "chargecarrier.h"
+#include "gnode.h"
+#include "logger.h"
+#include "qmcalculator.h"
+#include "qmstate.h"
 
 namespace votca {
 namespace xtp {

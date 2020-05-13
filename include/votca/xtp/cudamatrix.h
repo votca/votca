@@ -20,7 +20,7 @@
 #ifndef VOTCA_XTP_CUDAMATRIX_H
 #define VOTCA_XTP_CUDAMATRIX_H
 
-#include "votca/xtp/votca_config.h"
+#include "votca_config.h"
 #ifndef USE_CUDA
 #error Cuda not enabled
 #endif
@@ -35,7 +35,7 @@
 #include <curand.h>
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
+#include "eigen.h"
 
 /*
  * \brief Matrix Representation inside an Nvidia GPU

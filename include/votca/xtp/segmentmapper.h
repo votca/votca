@@ -27,11 +27,11 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
-#include "votca/xtp/classicalsegment.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/qmmolecule.h"
-#include "votca/xtp/segid.h"
-#include "votca/xtp/topology.h"
+#include "classicalsegment.h"
+#include "logger.h"
+#include "qmmolecule.h"
+#include "segid.h"
+#include "topology.h"
 
 namespace votca {
 namespace xtp {

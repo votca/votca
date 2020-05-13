@@ -25,7 +25,7 @@
 #include <votca/tools/elements.h>
 
 // Local VOTCA includes
-#include "votca/xtp/checkpoint.h"
+#include "checkpoint.h"
 
 namespace votca {
 namespace xtp {

@@ -22,11 +22,11 @@
 #define VOTCA_XTP_GW_H
 
 // Local VOTCA includes
-#include "votca/xtp/logger.h"
-#include "votca/xtp/orbitals.h"
-#include "votca/xtp/rpa.h"
-#include "votca/xtp/sigma_base.h"
-#include "votca/xtp/threecenter.h"
+#include "logger.h"
+#include "orbitals.h"
+#include "rpa.h"
+#include "sigma_base.h"
+#include "threecenter.h"
 
 namespace votca {
 namespace xtp {

@@ -27,8 +27,8 @@
 #include <votca/csg/pdbwriter.h>
 
 // Local VOTCA includes
-#include "votca/xtp/checkpoint.h"
-#include "votca/xtp/logger.h"
+#include "checkpoint.h"
+#include "logger.h"
 
 /**
  * \brief base class to derive regions from

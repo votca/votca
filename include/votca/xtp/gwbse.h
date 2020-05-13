@@ -28,11 +28,11 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
-#include "votca/xtp/bse.h"
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/gw.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/qmfragment.h"
+#include "bse.h"
+#include "eigen.h"
+#include "gw.h"
+#include "logger.h"
+#include "qmfragment.h"
 
 namespace votca {
 namespace xtp {

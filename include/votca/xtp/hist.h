@@ -22,9 +22,9 @@
 #define VOTCA_XTP_HIST_H
 
 // Local VOTCA includes
-#include "votca/xtp/checkpoint.h"
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/energy_terms.h"
+#include "checkpoint.h"
+#include "eigen.h"
+#include "energy_terms.h"
 
 /**
  * \brief Small container for convergence checking, stores current and last

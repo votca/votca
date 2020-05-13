@@ -22,9 +22,9 @@
 #define VOTCA_XTP_ESPFIT_H
 
 // Local VOTCA includes
-#include "votca/xtp/classicalsegment.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/qmfragment.h"
+#include "classicalsegment.h"
+#include "logger.h"
+#include "qmfragment.h"
 /**
  * \brief Takes a list of atoms, and the corresponding density matrix and puts
  * out a table of partial charges

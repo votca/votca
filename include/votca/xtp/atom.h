@@ -29,8 +29,8 @@
 #include <string>
 
 // Local VOTCA includes
-#include "votca/xtp/checkpointreader.h"
-#include "votca/xtp/checkpointwriter.h"
+#include "checkpointreader.h"
+#include "checkpointwriter.h"
 
 namespace votca {
 namespace xtp {

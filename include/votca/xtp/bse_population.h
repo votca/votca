@@ -22,8 +22,8 @@
 #define VOTCA_XTP_BSE_POPULATION_H
 
 // Local VOTCA includes
-#include "votca/xtp/checkpoint.h"
-#include "votca/xtp/eigen.h"
+#include "checkpoint.h"
+#include "eigen.h"
 
 /**
  * \brief Small container to keep occupation of BSE states for each atom

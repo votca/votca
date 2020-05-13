@@ -22,9 +22,9 @@
 #define VOTCA_XTP_POPULATIONANALYSIS_H
 
 // Local VOTCA includes
-#include "votca/xtp/aomatrix.h"
-#include "votca/xtp/orbitals.h"
-#include "votca/xtp/qmfragment.h"
+#include "aomatrix.h"
+#include "orbitals.h"
+#include "qmfragment.h"
 
 /**
  * \brief Takes a list of atoms, and the corresponding density matrix and puts

@@ -21,8 +21,8 @@
 #ifndef VOTCA_XTP_ECPAOBASIS_H
 #define VOTCA_XTP_ECPAOBASIS_H
 // Local VOTCA includes
-#include "votca/xtp/ecpaoshell.h"
-#include "votca/xtp/eigen.h"
+#include "ecpaoshell.h"
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {

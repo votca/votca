@@ -22,8 +22,8 @@
 #define VOTCA_XTP_BSECOUPLING_H
 
 // Local VOTCA includes
-#include "votca/xtp/couplingbase.h"
-#include "votca/xtp/qmstate.h"
+#include "couplingbase.h"
+#include "qmstate.h"
 
 namespace votca {
 namespace xtp {

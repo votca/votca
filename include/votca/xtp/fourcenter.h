@@ -22,7 +22,7 @@
 #define VOTCA_XTP_FOURCENTER_H
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
+#include "eigen.h"
 
 /**
  * \brief Calculates four center electron overlap integrals for DFT.

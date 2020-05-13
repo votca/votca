@@ -22,8 +22,8 @@
 #define VOTCA_XTP_SIGMA_PPM_H
 
 // Local VOTCA includes
-#include "votca/xtp/ppm.h"
-#include "votca/xtp/sigma_base.h"
+#include "ppm.h"
+#include "sigma_base.h"
 
 namespace votca {
 namespace xtp {

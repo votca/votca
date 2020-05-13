@@ -22,9 +22,9 @@
 #define VOTCA_XTP_CLASSICALSEGMENT_H
 
 // Local VOTCA includes
-#include "votca/xtp/atomcontainer.h"
-#include "votca/xtp/polarsite.h"
-#include "votca/xtp/staticsite.h"
+#include "atomcontainer.h"
+#include "polarsite.h"
+#include "staticsite.h"
 
 namespace votca {
 namespace xtp {

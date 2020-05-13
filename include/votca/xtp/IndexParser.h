@@ -26,7 +26,7 @@
 #include <vector>
 
 // VOTCA includes
-#include "votca/tools/types.h"
+#include <votca/tools/types.h>
 
 /**
  * \brief Parser to read strings containing indexes in the format "1 2:7 8"

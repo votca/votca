@@ -29,8 +29,8 @@
 #include <votca/tools/types.h>
 
 // Local VOTCA includes
-#include "votca/xtp/logger.h"
-#include "votca/xtp/orbitals.h"
+#include "logger.h"
+#include "orbitals.h"
 
 namespace votca {
 namespace xtp {

@@ -25,8 +25,8 @@
 #include <xc.h>
 
 // Local VOTCA includes
-#include "votca/xtp/grid_containers.h"
-#include "votca/xtp/gridbox.h"
+#include "grid_containers.h"
+#include "gridbox.h"
 
 #undef LOG
 

@@ -22,10 +22,10 @@
 #define VOTCA_XTP_BSE_H
 
 // Local VOTCA includes
-#include "votca/xtp/logger.h"
-#include "votca/xtp/orbitals.h"
-#include "votca/xtp/qmstate.h"
-#include "votca/xtp/threecenter.h"
+#include "logger.h"
+#include "orbitals.h"
+#include "qmstate.h"
+#include "threecenter.h"
 
 namespace votca {
 namespace xtp {

@@ -22,8 +22,8 @@
 #define VOTCA_XTP_EEINTERACTOR_H
 
 // Local VOTCA includes
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/eigen.h>
+#include <classicalsegment.h>
+#include <eigen.h>
 
 namespace votca {
 namespace xtp {

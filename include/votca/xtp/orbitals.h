@@ -26,12 +26,12 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
-#include "votca/xtp/aobasis.h"
-#include "votca/xtp/checkpoint.h"
-#include "votca/xtp/classicalsegment.h"
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/qmmolecule.h"
-#include "votca/xtp/qmstate.h"
+#include "aobasis.h"
+#include "checkpoint.h"
+#include "classicalsegment.h"
+#include "eigen.h"
+#include "qmmolecule.h"
+#include "qmstate.h"
 
 namespace votca {
 namespace xtp {

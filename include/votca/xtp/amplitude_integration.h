@@ -22,9 +22,9 @@
 #define VOTCA_XTP_AMPLITUDE_INTEGRATION_H
 
 // Local VOTCA includes
-#include "votca/xtp/aobasis.h"
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/regular_grid.h"
+#include "aobasis.h"
+#include "eigen.h"
+#include "regular_grid.h"
 
 namespace votca {
 namespace xtp {

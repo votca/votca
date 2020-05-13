@@ -26,8 +26,8 @@
 #include <vector>
 
 // Local VOTCA includes
-#include "votca/xtp/logger.h"
-#include "votca/xtp/optimiser_costfunction.h"
+#include "logger.h"
+#include "optimiser_costfunction.h"
 
 namespace votca {
 namespace xtp {

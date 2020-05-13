@@ -26,9 +26,9 @@
 #include <vector>
 
 // Local VOTCA includes
-#include "votca/xtp/atom.h"
-#include "votca/xtp/atomcontainer.h"
-#include "votca/xtp/qmstate.h"
+#include "atom.h"
+#include "atomcontainer.h"
+#include "qmstate.h"
 
 namespace votca {
 namespace xtp {

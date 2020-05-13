@@ -27,7 +27,7 @@
 #include <votca/csg/pairlist.h>
 
 // Local VOTCA includes
-#include "votca/xtp/qmpair.h"
+#include "qmpair.h"
 
 namespace votca {
 namespace xtp {

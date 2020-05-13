@@ -25,12 +25,12 @@
 #include <stdio.h>
 
 // Local VOTCA includes
-#include "votca/xtp/bfgs-trm.h"
-#include "votca/xtp/energy_costfunction.h"
-#include "votca/xtp/gwbseengine.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/qmatom.h"
-#include "votca/xtp/qmstate.h"
+#include "bfgs-trm.h"
+#include "energy_costfunction.h"
+#include "gwbseengine.h"
+#include "logger.h"
+#include "qmatom.h"
+#include "qmstate.h"
 
 namespace votca {
 namespace xtp {

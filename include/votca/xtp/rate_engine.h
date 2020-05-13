@@ -22,9 +22,9 @@
 #define VOTCA_XTP_RATE_ENGINE_H
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/qmpair.h"
-#include "votca/xtp/qmstate.h"
+#include "eigen.h"
+#include "qmpair.h"
+#include "qmstate.h"
 
 namespace votca {
 namespace xtp {

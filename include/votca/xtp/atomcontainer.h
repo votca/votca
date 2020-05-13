@@ -29,8 +29,8 @@
 #include <votca/tools/elements.h>
 
 // Local VOTCA includes
-#include "votca/xtp/checkpoint.h"
-#include "votca/xtp/eigen.h"
+#include "checkpoint.h"
+#include "eigen.h"
 
 /**
  * \brief Basic Container for QMAtoms,PolarSites and Atoms

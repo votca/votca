@@ -22,9 +22,9 @@
 #define VOTCA_XTP_AOPOTENTIAL_H
 
 // Local VOTCA includes
-#include "votca/xtp/aobasis.h"
-#include "votca/xtp/ecpaobasis.h"
-#include "votca/xtp/staticsite.h"
+#include "aobasis.h"
+#include "ecpaobasis.h"
+#include "staticsite.h"
 
 namespace votca {
 namespace xtp {

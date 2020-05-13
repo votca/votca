@@ -25,9 +25,9 @@
 #include <stdio.h>
 
 // Local VOTCA includes
-#include "votca/xtp/density_integration.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/orbitals.h"
+#include "density_integration.h"
+#include "logger.h"
+#include "orbitals.h"
 
 namespace votca {
 namespace xtp {

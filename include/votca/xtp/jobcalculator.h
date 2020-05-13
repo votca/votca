@@ -27,9 +27,9 @@
 #include <votca/tools/calculator.h>
 
 // Local VOTCA includes
-#include "votca/xtp/job.h"
-#include "votca/xtp/progressobserver.h"
-#include "votca/xtp/topology.h"
+#include "job.h"
+#include "progressobserver.h"
+#include "topology.h"
 
 namespace votca {
 namespace xtp {

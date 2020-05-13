@@ -26,7 +26,7 @@
 #include <votca/tools/types.h>
 
 // Local VOTCA includes
-#include "votca/xtp/votca_config.h"
+#include "votca_config.h"
 
 typedef Eigen::Matrix<double, 9, 1> Vector9d;
 typedef Eigen::Matrix<double, 9, 9> Matrix9d;

@@ -28,8 +28,8 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
-#include "votca/xtp/grid_containers.h"
-#include "votca/xtp/qmatom.h"
+#include "grid_containers.h"
+#include "qmatom.h"
 
 namespace votca {
 namespace xtp {

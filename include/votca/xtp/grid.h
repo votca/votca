@@ -26,9 +26,9 @@
 #include <vector>
 
 // Local VOTCA includes
-#include "votca/xtp/logger.h"
-#include "votca/xtp/qmatom.h"
-#include "votca/xtp/qmmolecule.h"
+#include "logger.h"
+#include "qmatom.h"
+#include "qmmolecule.h"
 /**
  * \brief Takes a list of atoms, and creates CHELPG grid.
  *

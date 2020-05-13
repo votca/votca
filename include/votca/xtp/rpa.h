@@ -25,8 +25,8 @@
 #include <vector>
 
 // Local VOTCA includes
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/logger.h"
+#include "eigen.h"
+#include "logger.h"
 
 namespace votca {
 namespace xtp {

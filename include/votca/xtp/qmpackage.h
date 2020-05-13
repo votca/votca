@@ -25,11 +25,11 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
-#include "votca/xtp/aobasis.h"
-#include "votca/xtp/classicalsegment.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/settings.h"
-#include "votca/xtp/staticsite.h"
+#include "aobasis.h"
+#include "classicalsegment.h"
+#include "logger.h"
+#include "settings.h"
+#include "staticsite.h"
 
 namespace votca {
 namespace xtp {
