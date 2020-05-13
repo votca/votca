@@ -11,7 +11,7 @@
     <injectionmethod help="random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" default="random" choices="random"/>
     <temperature help="Temperature in Kelvin." unit="kelvin" default="300" choices="int+"/>
     <occfile help="File with the occupations" default="occupation.dat"/>
-    <maxrealtime help="Maximum clocktime allow to the calculation(Seconds)" unit="second" default="1E10" choices="float+"/>
+    <maxrealtime help="Maximum clocktime allow to the calculation" unit="second" default="1E10" choices="float+"/>
     <carrierenergy help="Run a single carrier at the same time and records its energy">
       <run help="Switch on/off" default="false" choices="bool"/>
       <outputfile help="File to write energies to" default="energies.csv"/>
