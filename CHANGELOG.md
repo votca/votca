@@ -2,6 +2,7 @@ For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
 ## Version 1.7-dev
+* Standardising include order and style in header files (#448)
 * G0W0 rpa energies are fixed in BSE (#383) 
 * Hqp part of BSE can be separate from QP range (#388)
 * Fixed Cuda implementation (#391)
