@@ -267,7 +267,10 @@ bool ContentLabel::operator==(const ContentLabel& label) const {
 }
 
 bool ContentLabel::operator<(const ContentLabel& label) const {
-  if (label_char_len_ < label.label_char_len_) return true;
+  if (label_char_len_ < label.label_char_len_)
+    return true;
+  else if (label_char_len_ > label.label_char_len_)
+    return false;
   // Which one has fewer elements
   size_t num_elements = labels_.size();
   if (label.labels_.size() < num_elements) {

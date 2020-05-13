@@ -8,6 +8,7 @@ foreach(PROG
     test_branchsequenceleaf
     test_calculator
     test_constants
+    test_contentlabel
     test_correlate
     test_crosscorrelate
     test_cubicspline
