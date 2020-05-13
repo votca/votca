@@ -124,10 +124,12 @@ xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5
 xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 -j "read"
 
 #running ianalyze
+cp "${VOTCASHARE}/xtp/xml/iexcitoncl.xml" OPTIONFILES
+xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 -j "write"
+sed -i "s/AVAILABLE/COMPLETE/g" exciton.jobs
+sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' exciton.jobs
 
-cp "${VOTCASHARE}/xtp/xml/ianalyze.xml" OPTIONFILES/
-
-xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.hdf5
+xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5
 
 #running qmmm
 cp qmmm.xml OPTIONFILES/
