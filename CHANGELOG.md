@@ -2,7 +2,6 @@ For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
 ## Version 1.7-dev
-* Standardising include order and style in header files (#448)
 * G0W0 rpa energies are fixed in BSE (#383) 
 * Hqp part of BSE can be separate from QP range (#388)
 * Fixed Cuda implementation (#391)
@@ -25,6 +24,7 @@ For more detailed information about the changes see the history of the
 * move bsecoupling defaults to xml (#451)
 * address missing includes (#452)
 * fix readjobfiles path (#453)
+* Standardising include order and style in header files (#448)
 
 ## Version 1.6.1 (released XX.04.20)
 * fix warnings on Ubuntu 20.04 (#438)
