@@ -44,6 +44,7 @@ xtp_run -e einternal -o OPTIONFILES/einternal.xml -f state.hdf5
 
 #site energies
 #we just prepared an optionfile for the mm calculation as changing qmmm.xml for mm is too difficult with bash
+cp qmmm_mm.xml OPTIONFILES
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm_mm.xml -f state.hdf5 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" qmmm_mm_jobs.xml
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_mm_jobs.xml
@@ -109,7 +110,6 @@ sed -i "s/AVAILABLE/COMPLETE/g" iqm.jobs
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' iqm.jobs
 
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 4
-
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -j "read"
 
 #running iexcitoncl
