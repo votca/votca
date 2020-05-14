@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -285,17 +285,8 @@ void CsgREupdate::REFormulateLinEq() {
   /* adding 4th term in eq. 52 of ref J. Chem. Phys. 134, 094112, 2011
    * to _HS
    */
-  for (votca::Index row = 0; row < _nlamda; row++) {
 
-    for (votca::Index col = row; col < _nlamda; col++) {
-
-      _HS(row, col) += (-1.0 * _DS(row) * _DS(col));
-      _HS(col, row) += (-1.0 * _DS(row) * _DS(col));
-      // since at this step _DS(i) = -beta*<dU/dlamda_i>cg
-
-    }  // end loop over col
-
-  }  // end loop over row
+  _HS -= _DS * _DS.transpose();
 
   /* adding 1st term (i.e. aa ensemble avg) of eq. 51 to _DS
    * and of eq. 52 to _DH
@@ -452,8 +443,9 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
       }  // end loop pair_iter
 
       _HS(row, col) += (_beta * d2U_ij);
-      _HS(col, row) += (_beta * d2U_ij);
-
+      if (row != col) {
+        _HS(col, row) += (_beta * d2U_ij);
+      }
     }  // end loop col
 
   }  // end loop row
@@ -635,7 +627,9 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
       }
 
       _HS(row, col) -= _beta * d2U_ij;
-      _HS(col, row) -= _beta * d2U_ij;
+      if (row != col) {
+        _HS(col, row) -= _beta * d2U_ij;
+      }
     }  // end loop col
 
   }  // end loop row
