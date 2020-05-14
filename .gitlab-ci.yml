@@ -37,7 +37,7 @@ stages:
     - pushd build
     - cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON -DENABLE_WERROR=ON
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DENABLE_REGRESSION_TESTING=${REGRESSION_TESTING:-ON}
-      -DBUILD_OWN_GROMACS=${BUILD_GROMACS} ${BUILD_GROMACS:+-DENABLE_WARNING_FLAGS=OFF}
+      -DBUILD_OWN_GROMACS=${BUILD_GROMACS} ${BUILD_GROMACS:+-DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
       ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON
       -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DWITH_GMX=OFF -DBUILD_XTP=OFF -DENABLE_REGRESSION_TESTING=OFF}
@@ -196,70 +196,6 @@ Release GCC Module:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
     MODULE_BUILD: "yes"
-  extends: .build
-
-Release GCC GMX2016:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx2016"
-  extends: .build
-
-Release Clang GMX2016:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx2016"
-  extends: .build
-
-Release GCC GMX2016D:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx2016_d"
-  extends: .build
-
-Release Clang GMX2016D:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx2016_d"
-  extends: .build
-
-Release GCC GMX2018:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx2018"
-  extends: .build
-
-Release Clang GMX2018:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx2018"
-  extends: .build
-
-Release GCC GMX2018D:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx2018_d"
-  extends: .build
-
-Release Clang GMX2018D:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_gmx2018_d"
   extends: .build
 
 Release GCC GMX2019:
