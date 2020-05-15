@@ -237,7 +237,9 @@ void ContentLabel::add(Branch br) {
 
 }*/
 void ContentLabel::append(ContentLabel label) {
-  labels_.insert(labels_.begin(), label.labels_.begin(), label.labels_.end());
+  label_char_len_ += label.label_char_len_;
+  labels_.insert(labels_.end(), label.labels_.begin(), label.labels_.end());
+  hash_ = generateHash(labels_);
 }
 
 void ContentLabel::makeBranch() {

@@ -99,4 +99,28 @@ BOOST_AUTO_TEST_CASE(contentlabel_operators) {
   BOOST_CHECK(label3 != label);
 }
 
+BOOST_AUTO_TEST_CASE(contentlabel_append) {
+
+  unordered_map<string, boost::any> contents;
+  contents["Name"] = string("Joe");
+  contents["Age"] = int(32);
+  contents["Height"] = double(1.54);
+  ContentLabel label(contents);
+
+  unordered_map<string, boost::any> contents2;
+  contents2["Name"] = string("Randy");
+  contents2["Age"] = int(21);
+  contents2["Height"] = double(1.64);
+
+  ContentLabel label2(contents2);
+
+  label.append(label2);
+
+  string full_str_label =
+      "Age=32,Height=1.54,Name=Joe;Age=21,Height=1.64,Name=Randy;";
+  string brief_str_label = "32,1.54,Joe;21,1.64,Randy;";
+  BOOST_CHECK(full_str_label.compare(label.get()) == 0);
+  BOOST_CHECK(brief_str_label.compare(label.get(LabelType::concise)) == 0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
