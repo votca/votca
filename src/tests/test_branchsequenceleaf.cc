@@ -54,7 +54,8 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
 
   Index starting_vertex = 0;
   Branch branch(edge, starting_vertex, graph);
-
+  std::cout << "Getting branch content label string " << std::endl;
+  std::cout << branch.getContentLabel().get() << std::endl;
   Index branch_id = 0;
   BranchSequenceLeaf sequenceleaf(branch_id, branch);
 }
@@ -71,8 +72,6 @@ BOOST_AUTO_TEST_CASE(canOrder_isDangling_makeBranchEnd) {
 
   unordered_map<votca::Index, GraphNode> m_gn;
   m_gn[0] = gn;
-  m_gn[1] = gn1;
-  m_gn[2] = gn2;
 
   ReducedGraph graph(vec_ed, m_gn);
 
@@ -222,11 +221,12 @@ BOOST_AUTO_TEST_CASE(getTreeContentLabel) {
 
     sequenceleaf.sortBranchSequence();
 
+    std::string test_str =
+        "{name=a;name=a;name=a}{name=a;name=c}{name=a;name=b;name=b}";
     std::string cum_id = sequenceleaf.getTreeContentLabel().get();
-    BOOST_TEST(
-        cum_id ==
-        std::string(
-            "{name=a;name=a;name=a}{name=a;name=c}{name=a;name=b;name=b}"));
+    std::cout << test_str << std::endl;
+    std::cout << cum_id << std::endl;
+    BOOST_TEST(cum_id.compare(test_str) == 0);
   }
   /// Another graph node to the second branch so that they are equal length
   /// Second branch

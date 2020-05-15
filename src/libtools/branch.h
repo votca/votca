@@ -117,9 +117,11 @@ class Branch {
 
   ContentLabel getContentLabel() const noexcept {
     ContentLabel label;
+    std::cout << "getting content label from branch" << std::endl;
     for (const Index& vert : vertex_sequence_) {
       label.append(node_labels_.at(vert));
     }
+    std::cout << "Making label branch label" << std::endl;
     label.makeBranch();
     return label;
   }

@@ -102,10 +102,16 @@ class BranchSequenceLeaf {
                      const std::vector<Index>& branch_vertices,
                      const Index starting_vertex, const Graph& graph)
       : branch_id_(branch_id),
-        branch_(branch_vertices, starting_vertex, graph){};
+        branch_(branch_vertices, starting_vertex, graph) {
+    std::cout << "Error 1" << std::endl;
+    buildLabel_();
+  };
 
   BranchSequenceLeaf(const Index& branch_id, const Branch& branch)
-      : branch_id_(branch_id), branch_(branch){};
+      : branch_id_(branch_id), branch_(branch) {
+    std::cout << "Error 2" << std::endl;
+    buildLabel_();
+  };
 
   // Deep copy
   BranchSequenceLeaf(const BranchSequenceLeaf& leaf)
@@ -119,6 +125,7 @@ class BranchSequenceLeaf {
          leaf.branch_sequence_) {
       branch_sequence_.push_back(std::shared_ptr<BranchSequenceLeaf>(br_leaf));
     }
+    buildLabel_();
   };
 
   // Move constructor

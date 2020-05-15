@@ -17,6 +17,8 @@
  *
  */
 
+#include <iostream>
+
 #include "votca/tools/contentlabel.h"
 #include "votca/tools/types.h"
 
@@ -192,6 +194,7 @@ void ContentLabel::initLabels_(
 }
 
 bool ContentLabel::containsBranch_() const {
+  if (labels_.size() == 0) return false;
   if (labels_.front()[0] == "{") return true;
   return false;
 }
@@ -243,10 +246,14 @@ void ContentLabel::append(ContentLabel label) {
 }
 
 void ContentLabel::makeBranch() {
+  std::cout << "calling contains branch" << std::endl;
   if (containsBranch_()) return;
+  std::cout << "calling labels size" << std::endl;
   if (labels_.size() == 0) return;
+  std::cout << "Assigning branch brackets" << std::endl;
   labels_.at(0)[0] = "{";
   labels_.back()[3] = "}";
+  std::cout << "Done" << std::endl;
 }
 
 bool ContentLabel::operator!=(const ContentLabel& label) const {

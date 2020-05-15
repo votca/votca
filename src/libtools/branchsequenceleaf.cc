@@ -81,9 +81,13 @@ void BranchSequenceLeaf::sortLeaves_() {
 }
 
 void BranchSequenceLeaf::buildLabel_() {
-
+  std::cout << "Getting content from branch" << std::endl;
+  label_ = branch_.getContentLabel();
+  std::cout << "Looping" << std::endl;
   for (std::shared_ptr<BranchSequenceLeaf>& leaf_ : branch_sequence_) {
+    std::cout << "Cycling leaves" << std::endl;
     label_.append(leaf_->label_);
+    std::cout << "label is " << label_.get() << std::endl;
   }
   sorted_ = true;
 }
@@ -184,6 +188,8 @@ void BranchSequenceLeaf::addLeaf(std::shared_ptr<BranchSequenceLeaf> leaf) {
   //    std::shared_ptr<BranchSequenceLeaf> leaf_ptr =
   //    std::shared_ptr<BranchSequenceLeaf>(new BranchSequenceLeaf(leaf));
   branch_sequence_.push_back(leaf);
+  buildLabel_();
+  std::cout << "addLeaf " << label_.get() << std::endl;
 }
 
 }  // namespace tools
