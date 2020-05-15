@@ -18,7 +18,10 @@
 #define VOTCA_CSG_BOUNDARYCONDITION_H
 #pragma once
 
+// Standard includes
 #include <memory>
+
+// VOTCA includes
 #include <votca/tools/eigen.h>
 
 namespace votca {

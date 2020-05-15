@@ -19,9 +19,12 @@
 #ifndef VOTCA_CSG_BEADMOTIF_H
 #define VOTCA_CSG_BEADMOTIF_H
 
+// VOTCA includes
+#include <votca/tools/reducedgraph.h>
+
+// Local VOTCA includes
 #include "basebead.h"
 #include "beadstructure.h"
-#include <votca/tools/reducedgraph.h>
 
 namespace votca {
 namespace csg {

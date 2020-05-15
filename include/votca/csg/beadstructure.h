@@ -19,7 +19,10 @@
 #ifndef VOTCA_CSG_BEADSTRUCTURE_H
 #define VOTCA_CSG_BEADSTRUCTURE_H
 
+// Standard inlcudes
 #include <unordered_map>
+
+// VOTCA includes
 #include <votca/tools/graph.h>
 
 namespace votca {

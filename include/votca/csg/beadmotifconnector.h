@@ -19,13 +19,16 @@
 #ifndef VOTCA_CSG_BEADMOTIFCONNECTOR_H
 #define VOTCA_CSG_BEADMOTIFCONNECTOR_H
 
+// Standard includes
 #include <unordered_set>
 #include <vector>
 
+// Third party includes
 #include <boost/bimap.hpp>
 #include <boost/bimap/multiset_of.hpp>
 #include <boost/bimap/set_of.hpp>
 
+// VOTCA includes
 #include <votca/tools/edge.h>
 
 namespace votca {

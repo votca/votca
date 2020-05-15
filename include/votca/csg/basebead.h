@@ -18,12 +18,16 @@
 #define VOTCA_CSG_BASEBEAD_H
 #pragma once
 
+// Standard includes
 #include <assert.h>
 #include <memory>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/eigen.h>
 #include <votca/tools/name.h>
 #include <votca/tools/types.h>
+
 namespace TOOLS = votca::tools;
 
 namespace votca {

@@ -19,12 +19,17 @@
 #define VOTCA_CSG_TOPOLOGY_H
 #pragma once
 
+// Standard includes
 #include <cassert>
 #include <list>
 #include <map>
 #include <unordered_map>
 #include <vector>
 
+// VOTCA includes
+#include <votca/tools/types.h>
+
+// Local VOTCA includes
 #include "bead.h"
 #include "boundarycondition.h"
 #include "exclusionlist.h"
@@ -33,7 +38,6 @@
 #include "orthorhombicbox.h"
 #include "residue.h"
 #include "triclinicbox.h"
-#include <votca/tools/types.h>
 
 namespace votca {
 namespace csg {

@@ -18,10 +18,13 @@
 #ifndef _VOTCA_CSG_EXCLUSIONLIST_H
 #define _VOTCA_CSG_EXCLUSIONLIST_H
 
-#include "bead.h"
+// Standard includes
 #include <iostream>
 #include <list>
 #include <map>
+
+// Local VOTCA includes
+#include "bead.h"
 
 namespace votca {
 namespace csg {

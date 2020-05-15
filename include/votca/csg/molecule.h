@@ -19,11 +19,14 @@
 #ifndef VOTCA_CSG_MOLECULE_H
 #define VOTCA_CSG_MOLECULE_H
 
-#include "bead.h"
+// Standard includes
 #include <assert.h>
 #include <map>
 #include <string>
 #include <vector>
+
+// Local VOTCA includes
+#include "bead.h"
 
 namespace votca {
 namespace csg {

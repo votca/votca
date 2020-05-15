@@ -19,10 +19,13 @@
 #ifndef VOTCA_CSG_INTERACTION_H
 #define VOTCA_CSG_INTERACTION_H
 
-#include "bead.h"
-#include "topology.h"
+// Standard includes
 #include <sstream>
 #include <string>
+
+// Local VOTCA includes
+#include "bead.h"
+#include "topology.h"
 
 namespace votca {
 namespace csg {

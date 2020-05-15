@@ -18,9 +18,14 @@
 #ifndef _VOTCA_CSG_NBLISTGRID_H
 #define _VOTCA_CSG_NBLISTGRID_H
 
-#include "nblist.h"
+// Standard includes
 #include <vector>
+
+// VOTCA includes
 #include <votca/tools/eigen.h>
+
+// Local VOTCA includes
+#include "nblist.h"
 
 namespace votca {
 namespace csg {
