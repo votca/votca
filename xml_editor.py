@@ -16,12 +16,12 @@
 
 """Module to edit inplace the content of xml files."""
 
-__all__ = ["edit_calculator"]
+__all__ = ["edit_calculator", "add_section"]
 
 import io
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 
 
 def get_tree_and_root(file_name: Path) -> Tuple[ET.Element, ET.Element]:
@@ -48,22 +48,30 @@ def edit_calculator(calculator: str, option: str, value: str, folder: str = "OPT
 
 def edit_option(elem: ET.Element, option: str, value: str) -> None:
     """Change value of ``option`` in ``elem``."""
-    child = find_node_recursively(elem, option.lower())
-    child.text = value
+    children = find_nodes(elem, option.lower())
+    if not children:
+        raise RuntimeError(f"There is not {option} in {elem}")
+    else:
+        for child in children:
+            child.text = value
 
 
-def find_node_recursively(elem: ET.Element, option: str) -> ET.Element:
-    """Check if ``elem`` of its children has a node called ``option``."""
+def find_nodes(elem: ET.Element, option: str) -> List[ET.Element]:
+    """Find ``option`` in ``elem`` and in all its children."""
+    acc = []
+    find_nodes_recursively(elem, option, acc)
+    return acc
+
+
+def find_nodes_recursively(elem: ET.Element, option: str, acc: List[ET.Element]) -> None:
+    """Find ``option`` in ``elem`` and in all its children."""
     child = elem.find(option.lower())
     if child is not None:
-        return child
-    elif list(elem):
+        acc.append(child)
+    # If elem has children
+    if list(elem):
         for c in list(elem):
-            x = find_node_recursively(c, option)
-            if x is not None:
-                return x
-    else:
-        return None
+            find_nodes_recursively(c, option, acc)
 
 
 def add_section(calculator: str, xml_string: str, folder: str = "OPTIONFILES") -> None:
@@ -71,5 +79,6 @@ def add_section(calculator: str, xml_string: str, folder: str = "OPTIONFILES") -
     file_name = Path(folder) / Path(f"{calculator}.xml")
     tree, root = get_tree_and_root(file_name)
     new_elem = ET.parse(io.StringIO(xml_string))
-    root.append(new_elem.getroot())
+    calculator = next(iter(root))
+    calculator.append(new_elem.getroot())
     tree.write(file_name)
