@@ -22,7 +22,7 @@
 #define VOTCA_XTP_EIGEN_H
 
 // CMake Generated file
-#include <votca/xtp/votca_config.h>
+#include "votca_config.h"
 
 // VOTCA includes
 #include <votca/tools/eigen.h>
