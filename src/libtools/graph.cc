@@ -54,7 +54,7 @@ Graph::Graph(vector<Edge> edges, unordered_map<Index, GraphNode> nodes) {
 }
 
 bool Graph::operator!=(const Graph& graph) const {
-  return label_ == graph.label_;
+  return label_ != graph.label_;
 }
 
 bool Graph::operator==(const Graph& graph) const { return !(*(this) != graph); }
@@ -135,14 +135,14 @@ void Graph::copyNodes(Graph& graph) {
   return;
 }*/
 
+// TODO(JoshuaSBrown) this does not build a canonical label
 void Graph::buildContentLabel_() {
-  /*  auto nodes = getNodes();
-    sort(nodes.begin(), nodes.end(), cmpVertNodePair);
-    string struct_Id_temp = "";
-    for (const pair<Index, GraphNode>& id_and_node : nodes) {
-      struct_Id_temp.append(id_and_node.second.getContentLabel());
-    }
-    id_ = struct_Id_temp;*/
+  auto nodes = getNodes();
+  sort(nodes.begin(), nodes.end(), cmpVertNodePair);
+  label_.clear();
+  for (const pair<Index, GraphNode>& id_and_node : nodes) {
+    label_.append(id_and_node.second.getContentLabel());
+  }
   content_label_uptodate_ = true;
 }
 
