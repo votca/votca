@@ -112,6 +112,14 @@ if(ENABLE_TESTING)
   set_tests_properties(integration_Compare_csg_map_output PROPERTIES DEPENDS integration_Run_csg_map)
   set_tests_properties(integration_Compare_csg_map_output PROPERTIES LABELS "csg;tools;votca;integration")
 
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_map_gro)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  add_test(NAME integration_Run_csg_map_gro COMMAND csg_map --top ${REFPATH}/topol.xml --trj ${REFPATH}/frame.dump  --cg ${REFPATH}/mapping.xml --out conf_cg.gro --nframes 1 WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_csg_map_gro PROPERTIES LABELS "csg;tools;votca;integration")
+  add_test(NAME integration_Compare_csg_map_gro_output COMMAND $<TARGET_FILE:VOTCA::votca_compare> --etol ${REGRESSIONTEST_TOLERANCE} -f1 conf_cg.gro -f2 ${REFPATH}/conf_cg.gro WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_map_gro_output PROPERTIES DEPENDS integration_Run_csg_map_gro)
+  set_tests_properties(integration_Compare_csg_map_gro_output PROPERTIES LABELS "csg;tools;votca;integration")
+
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_stat)
   file(MAKE_DIRECTORY ${RUNPATH})
   add_test(NAME integration_Run_csg_stat
