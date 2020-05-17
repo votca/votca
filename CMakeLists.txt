@@ -17,6 +17,11 @@ include(FeatureSummary)
 ########################################################################
 # User input options                                                   #
 ########################################################################
+option(MODULE_BUILD "Build VOTCA modules one-by-one" OFF)
+if(NOT MODULE_BUILD AND NOT EXISTS "${PROJECT_SOURCE_DIR}/tools/CMakeLists.txt")
+  message(FATAL_ERROR "No CMake files found in tools/ ! Did you forgot to clone with '--recursive'? Run 'git submodule update --init' to fix that.")
+endif()
+
 option(BUILD_CSGAPPS "Build csgapps" OFF)
 add_feature_info(BUILD_CSGAPPS BUILD_CSGAPPS "Build extra app using csg")
 option(BUILD_XTP "Build xtp" OFF)
@@ -78,7 +83,6 @@ set(VOTCA_SPHINX_OUTPUT_DIR "${PROJECT_BINARY_DIR}/sphinx.html" CACHE PATH "Path
 ########################################################################
 #Find external packages
 ########################################################################
-option(MODULE_BUILD "Build VOTCA modules one-by-one" OFF)
 if(MODULE_BUILD)
   message(STATUS "Doing Module build")
   include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildModules.cmake)
