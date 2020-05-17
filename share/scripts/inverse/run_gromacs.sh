@@ -109,7 +109,7 @@ if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation) = "yes" && $1 != "--
   msg "Doing main simulation"
 fi
 
-if [[ ${CSG_MDRUN_STEPS} ]]; then
+if [[ ${CSG_MDRUN_STEPS} && ! ${CSG_DONT_OVERWRITE_MDRUN_STEPS} ]]; then
   msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
   mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
 fi
