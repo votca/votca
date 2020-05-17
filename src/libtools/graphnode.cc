@@ -345,7 +345,7 @@ ostream& operator<<(ostream& os, const GraphNode gn) {
 
 bool cmpNode(GraphNode gn1, GraphNode gn2) {
   ContentLabel label = gn1.getContentLabel();
-  return gn2.getContentLabel() < label;
+  return label < gn2.getContentLabel();
 }
 }  // namespace tools
 }  // namespace votca*/
