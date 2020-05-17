@@ -15,5 +15,11 @@
       </cbspl>
     </re>
   </non-bonded>
+  <inverse>
+    <!-- System T = 300*0.00831451 kBT units -->
+    <kBT>2.4942</kBT>
+    <!-- scaling parameter for the update-->
+    <scale>0.5</scale>
+  </inverse>
 </cg>
 
