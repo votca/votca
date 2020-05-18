@@ -21,7 +21,7 @@
         </vxc>
         <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" default="0.0" unit="hartree" choices="float"/>
         <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW" choices="evGW,G0W0"/>
-        <tasks help="tasks to do" default="gw,singlets" choices="[gw,singlets,triplets,all]"/>
+        <tasks help="tasks to do" default="all" choices="[gw,singlets,triplets,all]"/>
         <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact"/>
         <eta help="small parameter eta of the Green's function" default="1e-3" unit="Hartree" choices="float+"/>
         <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid"/>

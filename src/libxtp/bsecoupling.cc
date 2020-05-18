@@ -54,18 +54,12 @@ void BSECoupling::Initialize(Property& options) {
   _output_perturbation = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".use_perturbation", _output_perturbation);
 
-  _levA =
-      options.ifExistsReturnElseReturnDefault(key + ".moleculeA.states", _levA);
-  _levB =
-      options.ifExistsReturnElseReturnDefault(key + ".moleculeB.states", _levB);
-  _occA = options.ifExistsReturnElseReturnDefault(key + ".moleculeA.occLevels",
-                                                  _occA);
-  _occB = options.ifExistsReturnElseReturnDefault(key + ".moleculeB.occLevels",
-                                                  _occB);
-  _unoccA = options.ifExistsReturnElseReturnDefault(
-      key + ".moleculeA.unoccLevels", _unoccA);
-  _unoccB = options.ifExistsReturnElseReturnDefault(
-      key + ".moleculeB.unoccLevels", _unoccB);
+  _levA = options.get(key + ".moleculeA.states").as<Index>();
+  _levB = options.get(key + ".moleculeB.states").as<Index>();
+  _occA = options.get(key + ".moleculeA.occLevels").as<Index>();
+  _occB = options.get(key + ".moleculeB.occLevels").as<Index>();
+  _unoccA = options.get(key + ".moleculeA.unoccLevels").as<Index>();
+  _unoccB = options.get(key + ".moleculeB.unoccLevels").as<Index>();
 }
 
 void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,
@@ -437,7 +431,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   opt.useTDA = true;
   opt.vmin = orbitalsAB.getBSEvmin();
   opt.use_Hqp_offdiag = orbitalsAB.GetFlagUseHqpOffdiag();
-
   BSE bse(*_pLog, Mmn);
   bse.configure(opt, orbitalsAB.RPAInputEnergies(), Hqp);
   XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Setup BSE operator" << flush;
@@ -464,7 +457,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << "   calculated singlet couplings " << flush;
   }
-
   if (_doTriplets) {
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << "   Evaluating triplets" << flush;
@@ -484,10 +476,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << "   calculated triplet couplings " << flush;
   }
-
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << "  Done with exciton couplings" << flush;
-  return;
 }
 
 Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
