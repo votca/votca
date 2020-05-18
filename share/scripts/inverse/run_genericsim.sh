@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ if [[ -n $CSGENDING ]]; then
   echo "${0##*/}: $sim_prog does not support wallclock time yet (go here and implement it). Per step wallclock time check is still performed!"
 fi
 
-if [[ ${CSG_MDRUN_STEPS} ]]; then
+if [[ ${CSG_MDRUN_STEPS} && ! ${CSG_DONT_OVERWRITE_MDRUN_STEPS} ]]; then
   if [[ ${sim_prog} = "lammps" ]]; then
     critical sed -i "/^run/s/[0-9][0-9]*/${CSG_MDRUN_STEPS}/" "$script"
     msg --color blue --to-stderr "Replace run STEPS in '$script' to be ${CSG_MDRUN_STEPS}"
