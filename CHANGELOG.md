@@ -24,7 +24,7 @@ For more detailed information about the changes see the history of the
 * move bsecoupling defaults to xml (#451)
 * address missing includes (#452)
 * fix readjobfiles path (#453)
-* Standardising include order and style in header files (#448)
+* standardising include order and style in header files (#448)
 
 ## Version 1.6.1 (released XX.04.20)
 * fix warnings on Ubuntu 20.04 (#438)
