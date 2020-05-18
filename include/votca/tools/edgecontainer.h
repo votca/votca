@@ -20,11 +20,11 @@
 #ifndef _VOTCA_TOOLS_EDGECONTAINER_H
 #define _VOTCA_TOOLS_EDGECONTAINER_H
 
+#include "edge.h"
 #include <map>
 #include <set>
 #include <unordered_map>
 #include <vector>
-#include <votca/tools/edge.h>
 
 namespace votca {
 namespace tools {
@@ -38,39 +38,39 @@ namespace tools {
 class EdgeContainer {
  protected:
   /// The vertex, the neighboring vertices and the number of edges
-  std::unordered_map<int, std::unordered_map<int, int>> adj_list_;
+  std::unordered_map<Index, std::unordered_map<Index, Index>> adj_list_;
 
  public:
   /// Constructors can take no arguments a single Edge or a vector of edges
-  EdgeContainer(){};
+  EdgeContainer() = default;
   EdgeContainer(Edge edge);
   EdgeContainer(std::vector<Edge> edges);
 
   /// Get the value of the max degree
-  int getMaxDegree() const;
+  Index getMaxDegree() const;
   /// Contains vector of all vertices with degree
-  std::vector<int> getVerticesDegree(int degree) const;
+  std::vector<Index> getVerticesDegree(Index degree) const;
   /// Determine the degree of the vertex/number of edges attached
-  int getDegree(const int vertex) const;
+  Index getDegree(const Index vertex) const;
   /// Determine if a vertex with the specified degree exists
-  bool vertexExistWithDegree(int degree) const;
+  bool vertexExistWithDegree(Index degree) const;
 
   /// Check if the edge exists returns true or false
   bool edgeExist(const Edge& edge) const;
   /// Check if the vertex exists returns true or false
-  bool vertexExist(int vertex) const;
+  bool vertexExist(Index vertex) const;
   /// Add an edge to the container
   void addEdge(Edge edge);
   /// Add a lone vertex
-  void addVertex(int vertex);
+  void addVertex(Index vertex);
   /// Get all the edges in vector form
   std::vector<Edge> getEdges() const;
   /// Get all the vertices in vector form
-  std::vector<int> getVertices() const;
+  std::vector<Index> getVertices() const;
   /// Get the vertices neighboring vert
-  std::vector<int> getNeighVertices(int vertex) const;
+  std::vector<Index> getNeighVertices(Index vertex) const;
   /// Get the edges neighboring vert
-  std::vector<Edge> getNeighEdges(int vertex) const;
+  std::vector<Edge> getNeighEdges(Index vertex) const;
   /// Print output of object
   friend std::ostream& operator<<(std::ostream& os,
                                   const EdgeContainer edge_container);

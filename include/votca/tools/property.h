@@ -21,6 +21,7 @@
 #include "eigen.h"
 #include "lexical_cast.h"
 #include "tokenizer.h"
+#include "types.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 #include <iostream>
@@ -52,7 +53,7 @@ class Property {
   friend std::ostream &operator<<(std::ostream &out, const Property &p);
 
  public:
-  Property(){};
+  Property() = default;
   Property(const std::string &name, const std::string &value,
            const std::string &path)
       : _name(name), _value(value), _path(path) {}
@@ -108,7 +109,7 @@ class Property {
    * @return list of pointers to property objects
    *
    * returns a list of properties that match the key criteria including
-   * wildcards "*" and "?". Example: "base.item*.value"
+   * wildcard "*". Example: "base.item*.value"
    */
   std::vector<Property *> Select(const std::string &filter);
   std::vector<const Property *> Select(const std::string &filter) const;
@@ -137,7 +138,7 @@ class Property {
    * \brief return value as type
    *
    * returns the value after type conversion, e.g.
-   * p.as<int>() returns an integer
+   * p.as<Index>() returns an integer
    */
   template <typename T>
   T as() const;
@@ -160,8 +161,8 @@ class Property {
   bool HasChildren() const { return !_map.empty(); }
 
   /// iterator to iterate over properties
-  typedef std::vector<Property>::iterator iterator;
-  typedef std::vector<Property>::const_iterator const_iterator;
+  using iterator = std::vector<Property>::iterator;
+  using const_iterator = std::vector<Property>::const_iterator;
   /// \brief iterator to first child property
   iterator begin() { return _properties.begin(); }
   const_iterator begin() const { return _properties.begin(); }
@@ -169,13 +170,13 @@ class Property {
   iterator end() { return _properties.end(); }
   const_iterator end() const { return _properties.end(); }
   /// \brief number of child properties
-  std::vector<Property>::size_type size() const { return _properties.size(); }
+  Index size() const { return Index(_properties.size()); }
 
   /**
    * \brief return attribute as type
    *
    * returns an attribute after type conversion, e.g.
-   * p.getAttribute<int>() returns an integer
+   * p.getAttribute<Index>() returns an integer
    */
   template <typename T>
   T getAttribute(const std::string &attribute) const;
@@ -219,7 +220,7 @@ class Property {
    * \brief return attribute as type
    *
    * returns an attribute after type conversion, e.g.
-   * p.getAttribute<int>() returns an integer
+   * p.getAttribute<Index>() returns an integer
    */
   template <typename T>
   T getAttribute(AttributeIterator it);
@@ -229,10 +230,10 @@ class Property {
 
   void LoadFromXML(std::string filename);
 
-  static int getIOindex() { return IOindex; };
+  static Index getIOindex() { return IOindex; };
 
  private:
-  std::map<std::string, int> _map;
+  std::map<std::string, Index> _map;
   std::map<std::string, std::string> _attributes;
   std::vector<Property> _properties;
 
@@ -240,7 +241,7 @@ class Property {
   std::string _value = "";
   std::string _path = "";
 
-  static const int IOindex;
+  static const Index IOindex;
 };
 
 inline Property &Property::set(const std::string &key,
@@ -253,9 +254,11 @@ inline Property &Property::set(const std::string &key,
 inline Property &Property::add(const std::string &key,
                                const std::string &value) {
   std::string path = _path;
-  if (path != "") path = path + ".";
+  if (path != "") {
+    path = path + ".";
+  }
   _properties.push_back(Property(key, value, path + _name));
-  _map[key] = _properties.size() - 1;
+  _map[key] = Index(_properties.size()) - 1;
   return _properties.back();
 }
 
@@ -271,10 +274,11 @@ inline bool Property::exists(const std::string &key) const {
 // TO DO: write a better function for this!!!!
 template <>
 inline bool Property::as<bool>() const {
-  if (_value == "true" || _value == "TRUE" || _value == "1")
+  if (_value == "true" || _value == "TRUE" || _value == "1") {
     return true;
-  else
+  } else {
     return false;
+  }
 }
 
 template <typename T>
@@ -316,7 +320,7 @@ inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(
       possibleReturns.end()) {
     std::stringstream s;
     s << "Allowed options are: ";
-    for (unsigned i = 0; i < possibleReturns.size(); ++i) {
+    for (Index i = 0; i < Index(possibleReturns.size()); ++i) {
       s << possibleReturns[i] << " ";
     }
     s << std::endl;
@@ -338,12 +342,7 @@ inline Eigen::VectorXd Property::as<Eigen::VectorXd>() const {
   std::vector<double> tmp;
   Tokenizer tok(as<std::string>(), " ,");
   tok.ConvertToVector<double>(tmp);
-  Eigen::VectorXd result;
-  result.resize(tmp.size());
-  for (int i = 0; i < result.size(); i++) {
-    result(i) = tmp[i];
-  }
-  return result;
+  return Eigen::Map<Eigen::VectorXd>(tmp.data(), tmp.size());
 }
 
 template <>
@@ -352,7 +351,7 @@ inline Eigen::Vector3d Property::as<Eigen::Vector3d>() const {
   Tokenizer tok(as<std::string>(), " ,");
   tok.ConvertToVector<double>(tmp);
   Eigen::Vector3d result;
-  if (int(tmp.size()) != result.size()) {
+  if (Index(tmp.size()) != result.size()) {
     throw std::runtime_error("Vector has " +
                              boost::lexical_cast<std::string>(tmp.size()) +
                              " instead of three entries");
@@ -362,19 +361,10 @@ inline Eigen::Vector3d Property::as<Eigen::Vector3d>() const {
 }
 
 template <>
-inline std::vector<unsigned int> Property::as<std::vector<unsigned int> >()
-    const {
-  std::vector<unsigned int> tmp;
+inline std::vector<Index> Property::as<std::vector<Index> >() const {
+  std::vector<Index> tmp;
   Tokenizer tok(as<std::string>(), " ,");
-  tok.ConvertToVector<unsigned int>(tmp);
-  return tmp;
-}
-
-template <>
-inline std::vector<int> Property::as<std::vector<int> >() const {
-  std::vector<int> tmp;
-  Tokenizer tok(as<std::string>(), " ,\n\t");
-  tok.ConvertToVector<int>(tmp);
+  tok.ConvertToVector<Index>(tmp);
   return tmp;
 }
 
@@ -389,7 +379,9 @@ inline std::vector<double> Property::as<std::vector<double> >() const {
 inline bool Property::hasAttribute(const std::string &attribute) const {
   std::map<std::string, std::string>::const_iterator it;
   it = _attributes.find(attribute);
-  if (it == _attributes.end()) return false;
+  if (it == _attributes.end()) {
+    return false;
+  }
   return true;
 }
 

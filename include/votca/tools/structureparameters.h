@@ -26,7 +26,7 @@ namespace votca {
 namespace tools {
 
 /**
- * \breif Supported and Standardized parameter types
+ * \brief Supported and Standardized parameter types
  **/
 enum StructureParameter {
   Mass,
@@ -53,22 +53,22 @@ enum StructureParameter {
  * class Atom1 {
  *   public:
  *     Atom1(StructureParameters parameters) :
- *        id_(parameters.get<int>(StructureParameter::BeadId)),
+ *        id_(parameters.get<Index>(StructureParameter::BeadId)),
  *        mass_(parameters.get<double>(StructureParameter::Mass)){};
  *
  *   private:
- *    int id_;
+ *    Index id_;
  *    double mass_;
  * };
  *
  * class Atom2 {
  *   public:
  *     Atom2(StructureParameters parameters) :
- *        id_(parameters.get<int>(StructureParameter::BeadId)),
+ *        id_(parameters.get<Index>(StructureParameter::BeadId)),
  *        element_(parameters.get<string>(StructureParameter::Element)){};
  *
  *   private:
- *    int id_;
+ *    Index id_;
  *    string element_;
  * };
  *
@@ -82,7 +82,7 @@ enum StructureParameter {
  *   T CreateAtomOrBead {
  *
  *     string element = "C";
- *     int id = 1;
+ *     Index id = 1;
  *     double mass = 12.01;
  *
  *     StructureParameters parameters;

@@ -21,7 +21,7 @@
 #include <iostream>
 #include <vector>
 
-#include <votca/tools/datacollection.h>
+#include "../../include/votca/tools/datacollection.h"
 
 using namespace std;
 using namespace votca::tools;
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
  **/
 BOOST_AUTO_TEST_CASE(test_createarray) {
 
-  DataCollection<int> datacollection;
+  DataCollection<votca::Index> datacollection;
 
   string name_tag1 = "x positions";
   string name_tag2 = "y positions";
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(test_createarray) {
 
 BOOST_AUTO_TEST_CASE(test_getname) {
 
-  DataCollection<int> datacollection;
+  DataCollection<votca::Index> datacollection;
 
   string name_tag1 = "x positions";
   string name_tag2 = "y positions";
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(test_getname) {
 
 BOOST_AUTO_TEST_CASE(test_data) {
 
-  DataCollection<int> datacollection;
+  DataCollection<votca::Index> datacollection;
 
   string name_tag1 = "x positions";
   string name_tag2 = "y positions";
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(test_data) {
 
 BOOST_AUTO_TEST_CASE(test_bracket) {
 
-  DataCollection<int> datacollection;
+  DataCollection<votca::Index> datacollection;
 
   string name_tag1 = "x positions";
   string name_tag2 = "y positions";
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(test_bracket) {
 
 BOOST_AUTO_TEST_CASE(test_arraybyname) {
 
-  DataCollection<int> datacollection;
+  DataCollection<votca::Index> datacollection;
 
   string name_tag1 = "x positions";
   string name_tag2 = "y positions";

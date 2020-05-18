@@ -37,9 +37,9 @@ class PropertyIOManipulator {
  public:
   enum Type { XML, HLP, TEX, TXT };
 
-  explicit PropertyIOManipulator(Type type = XML, int level = 0,
+  explicit PropertyIOManipulator(Type type = XML, Index level = 0,
                                  std::string indentation = "",
-                                 ColorSchemeBase *color_scheme = NULL)
+                                 ColorSchemeBase *color_scheme = nullptr)
       : _type(type),
         _level(level),
         _indentation(indentation),
@@ -50,31 +50,35 @@ class PropertyIOManipulator {
   ~PropertyIOManipulator() { delete _color_scheme; }
   friend std::ostream &operator<<(std::ostream &os,
                                   PropertyIOManipulator &piom) {
-    os.pword(Property::getIOindex()) = &piom;
+    os.pword(int(Property::getIOindex())) = &piom;
     return os;
   }
 
   const Type &getType() { return _type; }
   void setType(Type type) { _type = type; }
-  const int &getLevel() { return _level; }
-  void setLevel(int level) { _level = level; }
+  const Index &getLevel() { return _level; }
+  void setLevel(Index level) { _level = level; }
   const std::string &getIndentation() { return _indentation; }
   void setIndentation(std::string indentation) { _indentation = indentation; }
   const ColorSchemeBase *getColorScheme() {
-    if (!_color_scheme) return &DEFAULT_COLORS;
+    if (!_color_scheme) {
+      return &DEFAULT_COLORS;
+    }
     return _color_scheme;
   }
 
   template <typename T>
   const ColorSchemeBase *setColorScheme() {
-    if (_color_scheme) delete _color_scheme;
+    if (_color_scheme) {
+      delete _color_scheme;
+    }
     _color_scheme = new Color<T>();
     return _color_scheme;
   }
 
  private:
   Type _type;
-  int _level;
+  Index _level;
   std::string _indentation;
   ColorSchemeBase *_color_scheme;
 };

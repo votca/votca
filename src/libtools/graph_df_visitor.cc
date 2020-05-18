@@ -16,11 +16,11 @@
  * limitations under the License.
  *
  */
+#include "../../include/votca/tools/graph_df_visitor.h"
+#include "../../include/votca/tools/edge.h"
+#include "../../include/votca/tools/graph.h"
+#include "../../include/votca/tools/graphnode.h"
 #include <algorithm>
-#include <votca/tools/edge.h>
-#include <votca/tools/graph.h>
-#include <votca/tools/graph_df_visitor.h>
-#include <votca/tools/graphnode.h>
 
 using namespace std;
 
@@ -29,26 +29,26 @@ namespace tools {
 
 bool Graph_DF_Visitor::queEmpty() const { return edge_list_.empty(); }
 
-Edge Graph_DF_Visitor::getEdge_(const Graph& g) {
+Edge Graph_DF_Visitor::getEdge_() {
   Edge ed = edge_list_.back();
   edge_list_.pop_back();
   return ed;
 }
 
 // Add edges to be explored
-void Graph_DF_Visitor::addEdges_(const Graph& g, int vertex) {
+void Graph_DF_Visitor::addEdges_(const Graph& g, Index vertex) {
   auto eds = g.getNeighEdges(vertex);
   if (edge_list_.empty()) {
     // If first edges to be added
     for (auto ed : eds) {
-      int neigh_vert = ed.getOtherEndPoint(vertex);
+      Index neigh_vert = ed.getOtherEndPoint(vertex);
       if (explored_.count(neigh_vert) == 0) {
         edge_list_.push_back(ed);
       }
     }
   } else {
     for (const auto& ed : eds) {
-      int neigh_vert = ed.getOtherEndPoint(vertex);
+      Index neigh_vert = ed.getOtherEndPoint(vertex);
       if (explored_.count(neigh_vert) == 0) {
         edge_list_.push_back(ed);
       } else {

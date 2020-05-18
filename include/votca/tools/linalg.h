@@ -17,24 +17,25 @@
 
 #ifndef __VOTCA_TOOLS_LINALG_H
 #define __VOTCA_TOOLS_LINALG_H
-#include <votca/tools/eigen.h>
-#include <votca/tools/eigensystem.h>
+#include "eigen.h"
+#include "eigensystem.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {
 
 /**
  * \brief solves A*x=b under the constraint B*x = 0
- * @param x storage for x
+ * @return x
  * @param A matrix for linear equation system
  * @param b inhomogenity
  * @param constr constrained condition
  *
  * This function implements the qrsolver under constraints
  */
-void linalg_constrained_qrsolve(Eigen::VectorXd& x, Eigen::MatrixXd& A,
-                                const Eigen::VectorXd& b,
-                                const Eigen::MatrixXd& constr);
+Eigen::VectorXd linalg_constrained_qrsolve(const Eigen::MatrixXd& A,
+                                           const Eigen::VectorXd& b,
+                                           const Eigen::MatrixXd& constr);
 
 /**
  * \brief solves A*V=E*V for the first n eigenvalues
@@ -44,7 +45,7 @@ void linalg_constrained_qrsolve(Eigen::VectorXd& x, Eigen::MatrixXd& A,
  * This function is only useful if MKL is used, wraps
  * LAPACKE_dsyevx
  */
-EigenSystem linalg_eigenvalues(Eigen::MatrixXd& A, int nmax);
+EigenSystem linalg_eigenvalues(Eigen::MatrixXd& A, Index nmax);
 
 }  // namespace tools
 }  // namespace votca

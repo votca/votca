@@ -17,6 +17,7 @@
 
 #include "../../include/votca/tools/thread.h"
 #include "../../include/votca/tools/lexical_cast.h"
+#include "../../include/votca/tools/types.h"
 #include <stdexcept>
 
 using namespace std;
@@ -27,13 +28,13 @@ namespace tools {
 void *runwrapper(void *arg) {
   Thread *thread = (Thread *)(arg);
   thread->Run();
-  pthread_exit(NULL);
-  return NULL;
+  pthread_exit(nullptr);
+  return nullptr;
 }
 
-Thread::Thread() {}
+Thread::Thread() = default;
 
-Thread::~Thread() {}
+Thread::~Thread() = default;
 
 void Thread::Start() {
 
@@ -51,7 +52,7 @@ void Thread::Start() {
   pthread_attr_setdetachstate(&_attr, PTHREAD_CREATE_JOINABLE);
   _finished = false;
 
-  int rc =
+  Index rc =
       pthread_create(&_thread, &_attr, runwrapper, static_cast<void *>(this));
   if (rc) {
     throw std::runtime_error("ERROR; return code from pthread_create() is " +
@@ -61,7 +62,7 @@ void Thread::Start() {
 
 void Thread::WaitDone() {
   void *status;
-  int rc = pthread_join(_thread, &status);
+  Index rc = pthread_join(_thread, &status);
   if (rc) {
     throw std::runtime_error("ERROR; return code from pthread_join() is " +
                              boost::lexical_cast<std::string>(rc));

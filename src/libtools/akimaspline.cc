@@ -15,28 +15,31 @@
  *
  */
 
+#include "../../include/votca/tools/akimaspline.h"
+#include "../../include/votca/tools/linalg.h"
 #include <iostream>
-#include <votca/tools/akimaspline.h>
-#include <votca/tools/linalg.h>
 
 namespace votca {
 namespace tools {
 
 using namespace std;
 
-void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
-  if (x.size() != y.size())
+void AkimaSpline::Interpolate(const Eigen::VectorXd &x,
+                              const Eigen::VectorXd &y) {
+  if (x.size() != y.size()) {
     throw std::invalid_argument(
         "error in AkimaSpline::Interpolate : sizes of vectors x and y do not "
         "match");
+  }
 
   // Akima splines require at least 4 points
-  if (x.size() < 4)
+  if (x.size() < 4) {
     throw std::invalid_argument(
         "error in AkimaSpline::Interpolate : vectors x and y have to contain "
         "at least 4 points");
+  }
 
-  const int N = x.size();
+  const Index N = x.size();
 
   // copy the grid points into f
   _r = x;
@@ -126,7 +129,7 @@ void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   }
 
   // calculate t's for all inner points [2,N-3]
-  for (int i = 2; i < N - 2; i++) {
+  for (Index i = 2; i < N - 2; i++) {
     m1 = (y(i - 1) - y(i - 2)) / (x(i - 1) - x(i - 2));
     m2 = (y(i) - y(i - 1)) / (x(i) - x(i - 1));
     m3 = (y(i + 1) - y(i)) / (x(i + 1) - x(i));
@@ -137,7 +140,7 @@ void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   // calculate p0,p1,p2,p3 for all intervals 0..(N-2), where interval
   // [x(i),x(i+1)] shall have number i (this means that the last interval
   // has number N-2)
-  for (int i = 0; i < N - 1; i++) {
+  for (Index i = 0; i < N - 1; i++) {
     p0(i) = y(i);
     p1(i) = t(i);
     p2(i) =
@@ -148,7 +151,7 @@ void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) {
   }
 }
 
-void AkimaSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) {
+void AkimaSpline::Fit(const Eigen::VectorXd &, const Eigen::VectorXd &) {
   throw std::runtime_error("Akima fit not implemented.");
 }
 

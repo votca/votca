@@ -18,10 +18,10 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE property_test
+#include "../../include/votca/tools/property.h"
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <sstream>
-#include <votca/tools/property.h>
 using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(property_test)
@@ -75,6 +75,45 @@ BOOST_AUTO_TEST_CASE(readin) {
   BOOST_CHECK_EQUAL(c.getAttribute<std::string>("type"), "D");
 
   BOOST_REQUIRE_THROW(c.getAttribute<std::string>("bla"), std::runtime_error);
+}
+
+BOOST_AUTO_TEST_CASE(select) {
+  std::ofstream xmlfile("test_select.xml");
+  xmlfile << "<A>" << std::endl;
+  xmlfile << "  <B>" << std::endl;
+  xmlfile << "    <Ca>blabla</Ca>" << std::endl;
+  xmlfile << "    <Ca>lala</Ca>" << std::endl;
+  xmlfile << "    <Cb>blabla</Cb>" << std::endl;
+  xmlfile << "    <Cb>lala</Cb>" << std::endl;
+  xmlfile << "  </B>" << std::endl;
+  xmlfile << "</A>" << std::endl;
+  xmlfile.close();
+
+  Property prop;
+  prop.LoadFromXML("test_select.xml");
+  std::vector<Property*> s1 = prop.Select("A.B.Ca");
+  BOOST_CHECK_EQUAL(s1.size(), 2);
+  const Property& propB = prop.get("A.B");
+  std::vector<const Property*> s2 = propB.Select("Ca");
+  BOOST_CHECK_EQUAL(s2.size(), 2);
+
+  std::vector<Property*> s3 = prop.Select("B");
+  BOOST_CHECK_EQUAL(s3.size(), 0);
+
+  std::vector<Property*> s4 = prop.Select("hello");
+  BOOST_CHECK_EQUAL(s4.size(), 0);
+
+  std::vector<Property*> s5 = prop.Select("");
+  BOOST_CHECK_EQUAL(s5.size(), 0);
+
+  std::vector<Property*> s6 = prop.Select(".");
+  BOOST_CHECK_EQUAL(s6.size(), 0);
+
+  std::vector<Property*> s7 = prop.Select("A");
+  BOOST_CHECK_EQUAL(s7.size(), 1);
+
+  std::vector<Property*> s8 = prop.Select("A.B.C*");
+  BOOST_CHECK_EQUAL(s8.size(), 4);
 }
 
 BOOST_AUTO_TEST_CASE(printtostream) {

@@ -18,9 +18,9 @@
 #ifndef __VOTCA_TOOLS_AKIMASPLINE_H
 #define __VOTCA_TOOLS_AKIMASPLINE_H
 
+#include "eigen.h"
 #include "spline.h"
 #include <iostream>
-#include <votca/tools/eigen.h>
 
 namespace votca {
 namespace tools {
@@ -40,12 +40,10 @@ namespace tools {
 class AkimaSpline : public Spline {
  public:
   // default constructor
-  AkimaSpline(){};
-  // AkimaSpline() :
-  //    _boundaries(splineNormal) {}
+  AkimaSpline() = default;
 
   // destructor
-  ~AkimaSpline(){};
+  ~AkimaSpline() override = default;
 
   /**
    * \brief Calculate the slope according to the original Akima paper ("A New
@@ -59,25 +57,19 @@ class AkimaSpline : public Spline {
   // construct an interpolation spline
   // x, y are the the points to construct interpolation, both vectors must be of
   // same size
-  void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y);
+  void Interpolate(const Eigen::VectorXd &x, const Eigen::VectorXd &y) override;
 
   // fit spline through noisy data
   // x,y are arrays with noisy data, both vectors must be of same size
-  void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y);
+  void Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) override;
 
   // Calculate the function value
-  double Calculate(const double &x);
+  double Calculate(double x) override;
 
   // Calculate the function derivative
-  double CalculateDerivative(const double &x);
-
-  // Calculate the function value for a whole array, story it in y
-  template <typename vector_type1, typename vector_type2>
-  void Calculate(vector_type1 &x, vector_type2 &y);
-
-  // Calculate the derivative value for a whole array, story it in y
-  template <typename vector_type1, typename vector_type2>
-  void CalculateDerivative(vector_type1 &x, vector_type2 &y);
+  double CalculateDerivative(double x) override;
+  using Spline::Calculate;
+  using Spline::CalculateDerivative;
 
  protected:
   // p1,p2,p3,p4 and t1,t2 (same identifiers as in Akima paper, page 591)
@@ -88,15 +80,15 @@ class AkimaSpline : public Spline {
   Eigen::VectorXd t;
 };
 
-inline double AkimaSpline::Calculate(const double &r) {
-  int interval = getInterval(r);
+inline double AkimaSpline::Calculate(double r) {
+  Index interval = getInterval(r);
   double z = r - _r[interval];
   return p0(interval) + p1(interval) * z + p2(interval) * z * z +
          p3(interval) * z * z * z;
 }
 
-inline double AkimaSpline::CalculateDerivative(const double &r) {
-  int interval = getInterval(r);
+inline double AkimaSpline::CalculateDerivative(double r) {
+  Index interval = getInterval(r);
   double z = r - _r[interval];
   return +p1(interval) + 2.0 * p2(interval) * z + 3.0 * p3(interval) * z * z;
 }
@@ -106,8 +98,8 @@ inline double AkimaSpline::getSlope(double m1, double m2, double m3,
   if ((m1 == m2) && (m3 == m4)) {
     return (m2 + m3) / 2.0;
   } else {
-    return (fabs(m4 - m3) * m2 + fabs(m2 - m1) * m3) /
-           (fabs(m4 - m3) + fabs(m2 - m1));
+    return (std::abs(m4 - m3) * m2 + std::abs(m2 - m1) * m3) /
+           (std::abs(m4 - m3) + std::abs(m2 - m1));
   }
 }
 

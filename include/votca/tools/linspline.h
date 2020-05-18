@@ -18,9 +18,9 @@
 #ifndef _LINSPLINE_H
 #define _LINSPLINE_H
 
+#include "eigen.h"
 #include "spline.h"
 #include <iostream>
-#include <votca/tools/eigen.h>
 
 namespace votca {
 namespace tools {
@@ -34,35 +34,29 @@ namespace tools {
 class LinSpline : public Spline {
  public:
   // default constructor
-  LinSpline(){};
+  LinSpline() = default;
   // LinSpline() :
   //    _boundaries(splineNormal) {}
 
   // destructor
-  ~LinSpline(){};
+  ~LinSpline() override = default;
 
   // construct an interpolation spline
   // x, y are the the points to construct interpolation, both vectors must be of
   // same size
-  void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y);
+  void Interpolate(const Eigen::VectorXd &x, const Eigen::VectorXd &y) override;
 
   // fit spline through noisy data
   // x,y are arrays with noisy data, both vectors must be of same size
-  void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y);
+  void Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) override;
 
   // Calculate the function value
-  double Calculate(const double &x);
+  double Calculate(double x) override;
 
   // Calculate the function derivative
-  double CalculateDerivative(const double &x);
-
-  // Calculate the function value for a whole array, story it in y
-  template <typename vector_type1, typename vector_type2>
-  void Calculate(vector_type1 &x, vector_type2 &y);
-
-  // Calculate the derivative value for a whole array, story it in y
-  template <typename vector_type1, typename vector_type2>
-  void CalculateDerivative(vector_type1 &x, vector_type2 &y);
+  double CalculateDerivative(double x) override;
+  using Spline::Calculate;
+  using Spline::CalculateDerivative;
 
  protected:
   // a,b for piecewise splines: ax+b
@@ -70,13 +64,13 @@ class LinSpline : public Spline {
   Eigen::VectorXd b;
 };
 
-inline double LinSpline::Calculate(const double &r) {
-  int interval = getInterval(r);
+inline double LinSpline::Calculate(double r) {
+  Index interval = getInterval(r);
   return a(interval) * r + b(interval);
 }
 
-inline double LinSpline::CalculateDerivative(const double &r) {
-  int interval = getInterval(r);
+inline double LinSpline::CalculateDerivative(double r) {
+  Index interval = getInterval(r);
   return a(interval);
 }
 

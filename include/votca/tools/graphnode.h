@@ -17,6 +17,7 @@
  *
  */
 
+#include "types.h"
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -43,34 +44,32 @@ class GraphDistVisitor;
 class GraphNode {
  private:
   std::string str_id_{""};
-  std::unordered_map<std::string, int> int_vals_;
+  std::unordered_map<std::string, Index> int_vals_;
   std::unordered_map<std::string, double> double_vals_;
   std::unordered_map<std::string, std::string> str_vals_;
   void initStringId_();
 
  public:
-  GraphNode(){};
+  GraphNode() = default;
 
   /// Constructor
   /// Each map corresponds to a different content the graph node can contain.
-  GraphNode(const std::unordered_map<std::string, int> int_vals,
+  GraphNode(const std::unordered_map<std::string, Index> int_vals,
             const std::unordered_map<std::string, double> double_vals,
             const std::unordered_map<std::string, std::string> str_vals);
 
   /// Basic setters
-  void setInt(const std::unordered_map<std::string, int> int_vals);
+  void setInt(const std::unordered_map<std::string, Index> int_vals);
   void setDouble(const std::unordered_map<std::string, double> double_vals);
   void setStr(const std::unordered_map<std::string, std::string> str_vals);
 
   /// Basic getters
-  int getInt(const std::string str);
+  Index getInt(const std::string str);
   double getDouble(const std::string str);
   std::string getStr(const std::string str);
 
   /// Get the string id unique to the contents of the graph node
   std::string getStringId() const { return str_id_; }
-
-  GraphNode& operator=(const GraphNode& gn);
 
   bool operator==(const GraphNode gn) const;
   bool operator!=(const GraphNode gn) const;

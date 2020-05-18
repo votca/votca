@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,9 +20,9 @@
 #ifndef VOTCA_TOOLS_CALCULATOR_H
 #define VOTCA_TOOLS_CALCULATOR_H
 
-#include <votca/tools/globals.h>
-#include <votca/tools/property.h>
-#include <votca/tools/propertyiomanipulator.h>
+#include "globals.h"
+#include "property.h"
+#include "propertyiomanipulator.h"
 
 namespace votca {
 namespace tools {
@@ -32,14 +32,14 @@ namespace tools {
  *
  * Calculators are grouped in CalculatorFactories and are run by Threads
  * or Applications. Every calculator has a description (an XML file) installed
- * in VOTCASHARE which is used to compile HELP and run TESTSUITE.
+ * in VOTCASHARE which is used to compile HELP.
  * This XML file also contains default values.
  *
  */
 class Calculator {
  public:
-  Calculator() {}
-  virtual ~Calculator() {}
+  Calculator() = default;
+  virtual ~Calculator() = default;
   /**
    * \brief Calculator name
    *
@@ -51,14 +51,6 @@ class Calculator {
    */
   virtual std::string Identify() = 0;
   /**
-   * \brief reads default options from an XML file in VOTCASHARE
-   *
-   * Help files for calculators are installed in the VOTCASHARE folder
-   * These files also contain default values (default attribute)
-   *
-   */
-  void LoadDefaults();
-  /**
    * \brief Initializes a calculator from an XML file with options
    *
    * Options are passed to a calculator by the Application
@@ -66,7 +58,7 @@ class Calculator {
    *
    * @param options Property object passed by the application to a calculator
    */
-  virtual void Initialize(Property &options) = 0;
+  virtual void Initialize(const Property &user_options) = 0;
   /**
    * \brief Sets number of threads to use
    *
@@ -75,7 +67,7 @@ class Calculator {
    * @param nThreads number of threads running this calculator
    *
    */
-  void setnThreads(unsigned int nThreads) {
+  void setnThreads(Index nThreads) {
     _nThreads = nThreads;
     _maverick = (_nThreads == 1) ? true : false;
   }
@@ -85,75 +77,61 @@ class Calculator {
    * @param output stream
    */
   void DisplayOptions(std::ostream &out);
+
   /**
-   * \brief Updates options with default options stored in VOTCASHARE
+   * \brief Loads default options stored in VOTCASHARE
+   */
+  Property LoadDefaults(const std::string package = "tools");
+
+  /**
+   * \brief Updates user options with default options stored in VOTCASHARE
    *
    * If a value is not given or tag is not present and at the same time
    * a default value exists in the corresponding XML file in VOTCASHARE
    * a tag is created and/or a default value is assigned to it
    */
-  void UpdateWithDefaults(Property &options, std::string package = "tools");
+  void UpdateWithUserOptions(Property &default_options,
+                             const Property &user_options);
+
+  /**
+   * \brief Load the default options and merge them with the user input
+   *
+   * Defaults are overwritten with user input
+   */
+  Property LoadDefaultsAndUpdateWithUserOptions(const std::string package,
+                                                const Property &user_options) {
+    Property defaults = LoadDefaults(package);
+    InjectDefaultsAsValues(defaults);
+    Property user_options_with_defaults = user_options;
+    InjectDefaultsAsValues(user_options_with_defaults);
+    UpdateWithUserOptions(defaults, user_options_with_defaults);
+    RecursivelyCheckOptions(defaults);
+    return defaults;
+  }
 
  protected:
-  unsigned int _nThreads;
+  Index _nThreads;
   bool _maverick;
 
-  void AddDefaults(Property &p, const Property &defaults);
-};
+  void OverwriteDefaultsWithUserInput(const Property &p, Property &defaults);
+  // Copy the defaults into the value
+  static void InjectDefaultsAsValues(Property &defaults);
+  static void RecursivelyCheckOptions(const Property &prop);
+  static bool IsValidOption(const Property &p,
+                            const std::vector<std::string> &choices);
+  static std::string GetVotcaShare();
+  static std::vector<std::string> GetPropertyChoices(const Property &prop);
 
-inline void Calculator::LoadDefaults() {}
-
-inline void Calculator::UpdateWithDefaults(Property &options,
-                                           std::string package) {
-
-  // copy options from the object supplied by the Application
-  std::string id = Identify();
-  Property options_id = options.get("options." + id);
-
-  // add default values if specified in VOTCASHARE
-  char *votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
-    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-  // load the xml description of the calculator (with defaults and test values)
-  std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/") +
-                        package + std::string("/xml/") + id +
-                        std::string(".xml");
-
-  Property defaults, defaults_all;
-  defaults_all.LoadFromXML(xmlFile);
-  defaults = defaults_all.get("options." + id);
-
-  // if a value not given or a tag not present, provide default values
-  AddDefaults(options_id, defaults);
-
-  // output calculator options
-  std::string indent("          ");
-  int level = 1;
-  votca::tools::PropertyIOManipulator IndentedText(PropertyIOManipulator::TXT,
-                                                   level, indent);
-  if (tools::globals::verbose) {
-    std::cout << "\n... ... options\n"
-              << IndentedText << options_id << "... ... options\n"
-              << std::flush;
-  }
-}
-
-inline void Calculator::AddDefaults(Property &p, const Property &defaults) {
-
-  for (const Property &prop : defaults) {
-    std::string name = prop.path() + "." + prop.name();
-
-    Property rootp = *p.begin();
-    if (prop.hasAttribute("default")) {
-      if (rootp.exists(name)) {
-        if (rootp.HasChildren()) rootp.value() = prop.value();
-      } else {
-        rootp.add(prop.name(), prop.value());
-      }
+  template <typename T>
+  static bool IsValidCast(const tools::Property &prop) {
+    try {
+      prop.as<T>();
+      return true;
+    } catch (const std::runtime_error &e) {
+      return false;
     }
-    AddDefaults(p, prop);
   }
-}
+};
 
 }  // namespace tools
 }  // namespace votca

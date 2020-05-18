@@ -15,12 +15,12 @@
  *
  */
 
-#include <votca/tools/mutex.h>
+#include "../../include/votca/tools/mutex.h"
 
 namespace votca {
 namespace tools {
 
-Mutex::Mutex() { pthread_mutex_init(&_mutexVar, NULL); }
+Mutex::Mutex() { pthread_mutex_init(&_mutexVar, nullptr); }
 
 Mutex::~Mutex() { pthread_mutex_destroy(&_mutexVar); }
 

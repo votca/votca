@@ -18,17 +18,16 @@
 #ifndef __VOTCA_TOOLS_VOTCA_CONFIG_H
 #define __VOTCA_TOOLS_VOTCA_CONFIG_H
 
-/* Compile without fftw and disable CrossCorrelate class */
-#cmakedefine NOFFTW
-
 /* OpenMP */
-
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
 
 /* Linear algebra packages */
-#cmakedefine MKL
+#cmakedefine MKL_FOUND
+
+/* FFT library */
+#cmakedefine FFTW3_FOUND
 
 /* Version number of package */
 #define TOOLS_VERSION "@PROJECT_VERSION@"

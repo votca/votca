@@ -17,12 +17,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE edgecontainer_test
+#include "../../include/votca/tools/edge.h"
+#include "../../include/votca/tools/edgecontainer.h"
 #include <boost/test/unit_test.hpp>
 #include <exception>
 #include <iostream>
 #include <vector>
-#include <votca/tools/edge.h>
-#include <votca/tools/edgecontainer.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -118,8 +118,12 @@ BOOST_AUTO_TEST_CASE(getedges_test) {
   bool ed_found = false;
   bool ed2_found = false;
   for (auto e1 : vec_ed) {
-    if (e1 == ed) ed_found = true;
-    if (e1 == ed2) ed2_found = true;
+    if (e1 == ed) {
+      ed_found = true;
+    }
+    if (e1 == ed2) {
+      ed2_found = true;
+    }
   }
   BOOST_CHECK(ed_found);
   BOOST_CHECK(ed2_found);
@@ -127,11 +131,15 @@ BOOST_AUTO_TEST_CASE(getedges_test) {
   // Should be able to add an edge more than once
   edCo.addEdge(ed);
   vec_ed = edCo.getEdges();
-  int ed_count = 0;
-  int ed2_count = 0;
+  votca::Index ed_count = 0;
+  votca::Index ed2_count = 0;
   for (auto e1 : vec_ed) {
-    if (e1 == ed) ++ed_count;
-    if (e1 == ed2) ++ed2_count;
+    if (e1 == ed) {
+      ++ed_count;
+    }
+    if (e1 == ed2) {
+      ++ed2_count;
+    }
   }
   BOOST_CHECK_EQUAL(ed_count, 2);
   BOOST_CHECK_EQUAL(ed2_count, 1);
@@ -148,9 +156,15 @@ BOOST_AUTO_TEST_CASE(getvertices_test) {
   bool vert2_found = false;
   bool vert3_found = false;
   for (auto ver : vec_vert) {
-    if (ver == 1) vert_found = true;
-    if (ver == 2) vert2_found = true;
-    if (ver == 3) vert3_found = true;
+    if (ver == 1) {
+      vert_found = true;
+    }
+    if (ver == 2) {
+      vert2_found = true;
+    }
+    if (ver == 3) {
+      vert3_found = true;
+    }
   }
   BOOST_CHECK(vert_found);
   BOOST_CHECK(vert2_found);
@@ -173,8 +187,12 @@ BOOST_AUTO_TEST_CASE(getneighvertices_test) {
   bool vert_found = false;
   bool vert3_found = false;
   for (auto ver : vec_vert) {
-    if (ver == 1) vert_found = true;
-    if (ver == 3) vert3_found = true;
+    if (ver == 1) {
+      vert_found = true;
+    }
+    if (ver == 3) {
+      vert3_found = true;
+    }
   }
   BOOST_CHECK(vert_found);
   BOOST_CHECK(vert3_found);
@@ -193,8 +211,12 @@ BOOST_AUTO_TEST_CASE(getneighedges) {
   bool edge_found = false;
   bool edge2_found = false;
   for (auto e1 : vec_edgs) {
-    if (e1 == ed) edge_found = true;
-    if (e1 == ed2) edge2_found = true;
+    if (e1 == ed) {
+      edge_found = true;
+    }
+    if (e1 == ed2) {
+      edge2_found = true;
+    }
   }
   BOOST_CHECK(edge_found);
   BOOST_CHECK(edge2_found);
@@ -212,11 +234,15 @@ BOOST_AUTO_TEST_CASE(getneighedges) {
   vec_edgs = edCo.getNeighEdges(2);
   BOOST_CHECK_EQUAL(vec_edgs.size(), 3);
 
-  int edge_count = 0;
-  int edge_count2 = 0;
+  votca::Index edge_count = 0;
+  votca::Index edge_count2 = 0;
   for (auto e1 : vec_edgs) {
-    if (e1 == ed) ++edge_count;
-    if (e1 == ed2) ++edge_count2;
+    if (e1 == ed) {
+      ++edge_count;
+    }
+    if (e1 == ed2) {
+      ++edge_count2;
+    }
   }
   BOOST_CHECK_EQUAL(edge_count, 2);
   BOOST_CHECK_EQUAL(edge_count2, 1);
@@ -234,7 +260,7 @@ BOOST_AUTO_TEST_CASE(getmaxdegree) {
   edCo.addEdge(ed2);
   edCo.addEdge(ed3);
 
-  int maxD = edCo.getMaxDegree();
+  votca::Index maxD = edCo.getMaxDegree();
   BOOST_CHECK_EQUAL(maxD, 3);
 
   edCo.addEdge(ed);

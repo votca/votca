@@ -17,21 +17,21 @@
  *
  */
 
+#include "../../include/votca/tools/edge.h"
 #include <algorithm>
 #include <iostream>
 #include <vector>
-#include <votca/tools/edge.h>
 
 namespace votca {
 namespace tools {
 
 using namespace std;
 
-Edge::Edge(int ID1, int ID2) {
-  vertices_ = vector<int>{min({ID1, ID2}), max({ID1, ID2})};
+Edge::Edge(Index ID1, Index ID2) {
+  vertices_ = vector<Index>{min({ID1, ID2}), max({ID1, ID2})};
 }
 
-int Edge::getOtherEndPoint(int ver) const {
+Index Edge::getOtherEndPoint(Index ver) const {
   if (ver == vertices_.front()) {
     return vertices_.back();
   } else {
@@ -39,26 +39,34 @@ int Edge::getOtherEndPoint(int ver) const {
   }
 }
 
-bool Edge::contains(int ID) const {
+bool Edge::contains(Index ID) const {
   return (vertices_.front() == ID || vertices_.back() == ID);
 }
 
 bool Edge::operator==(const Edge& ed) const {
   if (this->vertices_.front() == ed.vertices_.front() &&
-      this->vertices_.back() == ed.vertices_.back())
+      this->vertices_.back() == ed.vertices_.back()) {
     return true;
+  }
   if (this->vertices_.back() == ed.vertices_.front() &&
-      this->vertices_.front() == ed.vertices_.back())
+      this->vertices_.front() == ed.vertices_.back()) {
     return true;
+  }
   return false;
 }
 
 bool Edge::operator!=(const Edge& ed) const { return !(*this == ed); }
 
 bool Edge::operator<(const Edge& ed) const {
-  if (this->vertices_.front() < ed.vertices_.front()) return true;
-  if (this->vertices_.front() > ed.vertices_.front()) return false;
-  if (this->vertices_.back() < ed.vertices_.back()) return true;
+  if (this->vertices_.front() < ed.vertices_.front()) {
+    return true;
+  }
+  if (this->vertices_.front() > ed.vertices_.front()) {
+    return false;
+  }
+  if (this->vertices_.back() < ed.vertices_.back()) {
+    return true;
+  }
   return false;
 }
 

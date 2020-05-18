@@ -1,9 +1,7 @@
 find_package(EXPAT REQUIRED)
+set_package_properties(EXPAT PROPERTIES TYPE REQUIRED PURPOSE "Used for XML parsing")
 
 file(GLOB VOTCA_SOURCES *.cc)
-file(GLOB NOT_VOTCA_SOURCES version_nb.cc)
-file(GLOB_RECURSE VOTCA_SQL_SOURCES database.cc statement.cc)
-list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES} ${VOTCA_SQL_SOURCES})
 
 add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_LINALG_SOURCES})
 
@@ -17,8 +15,7 @@ target_include_directories(votca_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -DMERCURIAL_EXECUTABLE="${MERCURIAL_EXECUTABLE}"
-  -P ${CMAKE_MODULE_PATH}/gitversion.cmake)
+  -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 add_dependencies(votca_tools gitversion)
@@ -28,15 +25,12 @@ target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eig
 	Boost::filesystem Boost::system EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
 if(TARGET MKL::MKL)
   target_link_libraries(votca_tools PUBLIC MKL::MKL)
-  foreach(_PROP IMPORTED_LOCATION INTERFACE_LINK_LIBRARIES INTERFACE_INCLUDE_DIRECTORIES IMPORTED_NO_SONAME)
-    get_target_property(MKL_${_PROP} MKL::MKL ${_PROP})
-  endforeach()
-  foreach(_TGT Interface ThreadLayer)
-    get_target_property(MKL_${_TGT}_IMPORTED_LOCATION MKL::${_TGT} IMPORTED_LOCATION)
-  endforeach()
+  install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindMKL.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
-if(FFTW3_FOUND)
-  target_link_libraries(votca_tools PRIVATE FFTW3::FFTW3)
+if(TARGET FFTW3::fftw3)
+  # fftw3.h gets included in our public eigen.h through Eigen/FFT
+  target_link_libraries(votca_tools PUBLIC FFTW3::fftw3)
+  install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindFFTW3.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
 install(TARGETS votca_tools EXPORT VOTCA_TOOLS_Targets
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

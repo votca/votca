@@ -20,10 +20,10 @@
 #ifndef __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
 
+#include "graph_bf_visitor.h"
 #include <deque>
 #include <iostream>
 #include <queue>
-#include <votca/tools/graph_bf_visitor.h>
 
 /**
  * \brief A graph visitor determines the graph topology
@@ -52,12 +52,12 @@ class Graph_BF_Visitor;
 class GraphDistVisitor : public Graph_BF_Visitor {
 
  public:
-  GraphDistVisitor(){};
+  GraphDistVisitor() = default;
 
   /// Note the only manipulation to the BF visitor is the need to add a
   /// distance attribute to each of the graph nodes.
-  void exploreNode(std::pair<int, GraphNode>& p_gn, Graph& g,
-                   Edge ed = DUMMY_EDGE);
+  void exploreNode(std::pair<Index, GraphNode>& p_gn, Graph& g,
+                   Edge ed = DUMMY_EDGE) override;
 };
 }  // namespace tools
 }  // namespace votca

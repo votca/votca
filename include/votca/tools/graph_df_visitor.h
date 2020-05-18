@@ -20,8 +20,8 @@
 #ifndef __VOTCA_TOOLS_GRAPH_DF_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_DF_VISITOR_H
 
+#include "graphvisitor.h"
 #include <list>
-#include <votca/tools/graphvisitor.h>
 
 /**
  * \brief A breadth first (DF) graph visitor
@@ -43,12 +43,12 @@ class Graph_DF_Visitor : public GraphVisitor {
 
   /// The core of the breadth first visitor is in how the edges are added
   /// to the queue in this function
-  void addEdges_(const Graph& g, int vertex);
-  Edge getEdge_(const Graph& g);
+  void addEdges_(const Graph& g, Index vertex) override;
+  Edge getEdge_() override;
 
  public:
-  Graph_DF_Visitor(){};
-  bool queEmpty() const;
+  Graph_DF_Visitor() = default;
+  bool queEmpty() const override;
 };
 }  // namespace tools
 }  // namespace votca

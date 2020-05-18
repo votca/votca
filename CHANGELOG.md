@@ -1,6 +1,48 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
-## Version 1.6-dev
+## Version 1.7-dev
+* add support of txt2tqs 3.4 (#208)
+* fix MKL:: target creation (#207)
+* use local includes (#204)
+* add more support for units (#200)
+* add methods to update user input with defaults (#222)
+* fix usage of PROJECT_SOURCE_DIR in cmake (#230)
+* fix merging calculator defaults (#226, #227)
+* document cmake options and packages (#231)
+* make fftw3 a public dependency (#235)
+* rename WITH_RC_FILES to INSTALL_RC_FILES (#236)
+* check calculator input options (#232, #233)
+* allow calculator choices to be a list (#239)
+* inject defaults into calculator values (#241)
+* fixed bug introduced by defaults injection (#241, #242)
+
+## Version 1.6.1 (released XX.04.20)
+* fix build with mkl (#229)
+* fix build with non-system libfftw (#234)
+* fix CI on Ubuntu-20.04 (#237)
+
+## Version 1.6 _SuperPelagia_ (released 17.04.20)
+* fix clang-10 warnings (#217)
+* clean up VOTCARC.* (#220)
+* fix exported target with mkl (#223, #224)
+
+## Version 1.6_rc2 (released 10.02.20)
+* fix inheritance bug in cmake files (#197) 
+* fix bug in table class (#196)
+* fix build on 32-bit archs (#199)
+* remove old doxygen target (#211)
+
+## Version 1.6_rc1 (released 04.12.19)
+* replaced fftw with Eigen3 fft 
+* replaced random with std::random implementation
+* added many unit tests
+* formated code with clang-format
+* major cmake refactor
+
+## Version 1.5.1 (released 20.11.19)
+ * switch votca_compare to python3
+ * more clear error message for xmlreader
+ * fix build on CentOs7
 
 ## Version 1.5 _SuperVictor_ (released 31.01.19)
 

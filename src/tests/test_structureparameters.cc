@@ -19,12 +19,12 @@
 #define BOOST_TEST_MODULE structureparameters_test
 
 #include "../../include/votca/tools/structureparameters.h"
+#include "../../include/votca/tools/types.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
 using namespace std;
 using namespace votca::tools;
 
@@ -55,9 +55,10 @@ BOOST_AUTO_TEST_CASE(get_test) {
       parameters.get<string>(StructureParameter::Element);
   BOOST_CHECK_EQUAL(element_type, element_type_check);
 
-  int molecule_id = 201;
+  votca::Index molecule_id = 201;
   parameters.set(StructureParameter::MoleculeId, molecule_id);
-  int molecule_id_check = parameters.get<int>(StructureParameter::MoleculeId);
+  votca::Index molecule_id_check =
+      parameters.get<votca::Index>(StructureParameter::MoleculeId);
   BOOST_CHECK_EQUAL(molecule_id, molecule_id_check);
 }
 

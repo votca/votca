@@ -18,23 +18,15 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE graph_test
+#include "../../include/votca/tools/edge.h"
+#include "../../include/votca/tools/graph.h"
+#include "../../include/votca/tools/graphnode.h"
 #include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <exception>
 #include <iostream>
-#include <votca/tools/edge.h>
-#include <votca/tools/graph.h>
-#include <votca/tools/graphnode.h>
 using namespace std;
 using namespace votca::tools;
-
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
 
 BOOST_AUTO_TEST_SUITE(graph_test)
 
@@ -53,7 +45,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     /// Here gn is a single node as is thus isolated
     vector<Edge> vec_ed;
     GraphNode gn;
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
 
     Graph g(vec_ed, m_gn);
@@ -71,7 +63,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn1;
     GraphNode gn2;
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -83,9 +75,15 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     bool node2 = false;
 
     for (auto n_pr : iso_gn) {
-      if (n_pr.first == 0) node0 = true;
-      if (n_pr.first == 1) node1 = true;
-      if (n_pr.first == 2) node2 = true;
+      if (n_pr.first == 0) {
+        node0 = true;
+      }
+      if (n_pr.first == 1) {
+        node1 = true;
+      }
+      if (n_pr.first == 2) {
+        node2 = true;
+      }
     }
 
     BOOST_CHECK(node0);
@@ -106,7 +104,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn1;
     GraphNode gn2;
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -118,9 +116,15 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     bool node2 = false;
 
     for (auto n_pr : iso_gn) {
-      if (n_pr.first == 0) node0 = true;
-      if (n_pr.first == 1) node1 = true;
-      if (n_pr.first == 2) node2 = true;
+      if (n_pr.first == 0) {
+        node0 = true;
+      }
+      if (n_pr.first == 1) {
+        node1 = true;
+      }
+      if (n_pr.first == 2) {
+        node2 = true;
+      }
     }
 
     BOOST_CHECK(!node0);
@@ -140,7 +144,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn1;
     GraphNode gn2;
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -166,7 +170,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     GraphNode gn2;
     GraphNode gn3;
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -182,11 +186,11 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
 
 BOOST_AUTO_TEST_CASE(junctions_test) {
 
-  unordered_map<string, int> int_vals0 = {{"a", 0}};
-  unordered_map<string, int> int_vals1 = {{"b", 1}};
-  unordered_map<string, int> int_vals2 = {{"c", 2}};
-  unordered_map<string, int> int_vals3 = {{"d", 3}};
-  unordered_map<string, int> int_vals4 = {{"e", 4}};
+  unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+  unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+  unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+  unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+  unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
   unordered_map<string, double> double_vals;
   unordered_map<string, string> str_vals;
@@ -212,7 +216,7 @@ BOOST_AUTO_TEST_CASE(junctions_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<int, GraphNode> m_gn;
+  unordered_map<votca::Index, GraphNode> m_gn;
   m_gn[0] = gn;
   m_gn[1] = gn1;
   m_gn[2] = gn2;
@@ -228,11 +232,11 @@ BOOST_AUTO_TEST_CASE(junctions_test) {
 
 BOOST_AUTO_TEST_CASE(get_edges_test) {
 
-  unordered_map<string, int> int_vals0 = {{"a", 0}};
-  unordered_map<string, int> int_vals1 = {{"b", 1}};
-  unordered_map<string, int> int_vals2 = {{"c", 2}};
-  unordered_map<string, int> int_vals3 = {{"d", 3}};
-  unordered_map<string, int> int_vals4 = {{"e", 4}};
+  unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+  unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+  unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+  unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+  unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
   unordered_map<string, double> double_vals;
   unordered_map<string, string> str_vals;
@@ -258,7 +262,7 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<int, GraphNode> m_gn;
+  unordered_map<votca::Index, GraphNode> m_gn;
   m_gn[0] = gn;
   m_gn[1] = gn1;
   m_gn[2] = gn2;
@@ -273,10 +277,18 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
   bool ed2_found = false;
   bool ed3_found = false;
   for (auto ed_temp : edges) {
-    if (ed_temp == ed) ed0_found = true;
-    if (ed_temp == ed1) ed1_found = true;
-    if (ed_temp == ed2) ed2_found = true;
-    if (ed_temp == ed3) ed3_found = true;
+    if (ed_temp == ed) {
+      ed0_found = true;
+    }
+    if (ed_temp == ed1) {
+      ed1_found = true;
+    }
+    if (ed_temp == ed2) {
+      ed2_found = true;
+    }
+    if (ed_temp == ed3) {
+      ed3_found = true;
+    }
   }
 
   BOOST_CHECK(ed0_found);
@@ -287,11 +299,11 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
 
 BOOST_AUTO_TEST_CASE(get_vertices_test) {
 
-  unordered_map<string, int> int_vals0 = {{"a", 0}};
-  unordered_map<string, int> int_vals1 = {{"b", 1}};
-  unordered_map<string, int> int_vals2 = {{"c", 2}};
-  unordered_map<string, int> int_vals3 = {{"d", 3}};
-  unordered_map<string, int> int_vals4 = {{"e", 4}};
+  unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+  unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+  unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+  unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+  unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
   unordered_map<string, double> double_vals;
   unordered_map<string, string> str_vals;
@@ -317,7 +329,7 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<int, GraphNode> m_gn;
+  unordered_map<votca::Index, GraphNode> m_gn;
   m_gn[0] = gn;
   m_gn[1] = gn1;
   m_gn[2] = gn2;
@@ -329,11 +341,21 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
 
   vector<bool> vertices_found(5, false);
   for (auto vertex : vertices) {
-    if (vertex == 0) vertices_found.at(0) = true;
-    if (vertex == 1) vertices_found.at(1) = true;
-    if (vertex == 2) vertices_found.at(2) = true;
-    if (vertex == 3) vertices_found.at(3) = true;
-    if (vertex == 4) vertices_found.at(4) = true;
+    if (vertex == 0) {
+      vertices_found.at(0) = true;
+    }
+    if (vertex == 1) {
+      vertices_found.at(1) = true;
+    }
+    if (vertex == 2) {
+      vertices_found.at(2) = true;
+    }
+    if (vertex == 3) {
+      vertices_found.at(3) = true;
+    }
+    if (vertex == 4) {
+      vertices_found.at(4) = true;
+    }
   }
 
   for (auto found : vertices_found) {
@@ -344,11 +366,11 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
 BOOST_AUTO_TEST_CASE(compare_test) {
   {
 
-    unordered_map<string, int> int_vals0 = {{"a", 0}};
-    unordered_map<string, int> int_vals1 = {{"b", 1}};
-    unordered_map<string, int> int_vals2 = {{"c", 2}};
-    unordered_map<string, int> int_vals3 = {{"d", 3}};
-    unordered_map<string, int> int_vals4 = {{"e", 4}};
+    unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+    unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+    unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+    unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+    unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
     unordered_map<string, double> double_vals;
     unordered_map<string, string> str_vals;
@@ -374,7 +396,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[1] = gn1;
     m_gn[2] = gn2;
@@ -394,11 +416,11 @@ BOOST_AUTO_TEST_CASE(compare_test) {
   }
 
   {
-    unordered_map<string, int> int_vals0 = {{"a", 0}};
-    unordered_map<string, int> int_vals1 = {{"b", 1}};
-    unordered_map<string, int> int_vals2 = {{"c", 2}};
-    unordered_map<string, int> int_vals3 = {{"d", 3}};
-    unordered_map<string, int> int_vals4 = {{"e", 4}};
+    unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+    unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+    unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+    unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+    unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
     unordered_map<string, double> double_vals;
     unordered_map<string, string> str_vals;
@@ -424,7 +446,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
     /// Only difference is here where we have rearanged the nodes
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     m_gn[4] = gn;
     m_gn[1] = gn1;
     m_gn[3] = gn2;
@@ -445,11 +467,11 @@ BOOST_AUTO_TEST_CASE(compare_test) {
 }
 
 BOOST_AUTO_TEST_CASE(neighbornode_test) {
-  unordered_map<string, int> int_vals0 = {{"a", 0}};
-  unordered_map<string, int> int_vals1 = {{"b", 1}};
-  unordered_map<string, int> int_vals2 = {{"c", 2}};
-  unordered_map<string, int> int_vals3 = {{"d", 3}};
-  unordered_map<string, int> int_vals4 = {{"e", 4}};
+  unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+  unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+  unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+  unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+  unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
   unordered_map<string, double> double_vals;
 
@@ -475,7 +497,7 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   GraphNode gn3(int_vals3, double_vals, str_vals);
   GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<int, GraphNode> m_gn;
+  unordered_map<votca::Index, GraphNode> m_gn;
   /// Here the graph nodes are assigne to different vertices
   m_gn[0] = gn4;
   m_gn[1] = gn1;
@@ -495,8 +517,12 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   bool neigh2_found1 = false;
   bool neigh2_found2 = false;
   for (auto neigh_pr : neigh2) {
-    if (neigh_pr.second == gn4) neigh2_found1 = true;
-    if (neigh_pr.second == gn3) neigh2_found2 = true;
+    if (neigh_pr.second == gn4) {
+      neigh2_found1 = true;
+    }
+    if (neigh_pr.second == gn3) {
+      neigh2_found2 = true;
+    }
   }
   BOOST_CHECK(neigh2_found1);
   BOOST_CHECK(neigh2_found2);
@@ -507,9 +533,15 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   bool neigh3_found2 = false;
   bool neigh3_found3 = false;
   for (auto neigh_pr : neigh3) {
-    if (neigh_pr.second == gn1) neigh3_found1 = true;
-    if (neigh_pr.second == gn2) neigh3_found2 = true;
-    if (neigh_pr.second == gn) neigh3_found3 = true;
+    if (neigh_pr.second == gn1) {
+      neigh3_found1 = true;
+    }
+    if (neigh_pr.second == gn2) {
+      neigh3_found2 = true;
+    }
+    if (neigh_pr.second == gn) {
+      neigh3_found3 = true;
+    }
   }
   BOOST_CHECK(neigh3_found1);
   BOOST_CHECK(neigh3_found2);
@@ -535,11 +567,11 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
  */
 BOOST_AUTO_TEST_CASE(id_test) {
   {
-    unordered_map<string, int> int_vals0 = {{"a", 0}};
-    unordered_map<string, int> int_vals1 = {{"b", 1}};
-    unordered_map<string, int> int_vals2 = {{"c", 2}};
-    unordered_map<string, int> int_vals3 = {{"d", 3}};
-    unordered_map<string, int> int_vals4 = {{"e", 4}};
+    unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+    unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+    unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+    unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+    unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
     unordered_map<string, double> double_vals;
 
@@ -562,7 +594,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    unordered_map<int, GraphNode> m_gn;
+    unordered_map<votca::Index, GraphNode> m_gn;
     /// Here the graph nodes are assigne to different vertices
     m_gn[4] = gn;
     m_gn[1] = gn1;

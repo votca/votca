@@ -7,14 +7,13 @@ stages:
     max: 2
   variables:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
-    CXXFLAGS: "-Wall -Werror"
     DISTRO: "latest"
   image: votca/buildenv:${DISTRO}
   stage: build
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/votca
-    when: always 
+    when: always
   dependencies: []
   cache:
     paths:
@@ -36,26 +35,35 @@ stages:
     - git -C ${CI_PROJECT_NAME} checkout -f ${CI_COMMIT_SHA}
     - mkdir -p build
     - pushd build
-    - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON
-      -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_OWN_GROMACS=${BUILD_GROMACS} -DENABLE_REGRESSION_TESTING=ON
+    - cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON -DENABLE_WERROR=ON
+      -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DENABLE_REGRESSION_TESTING=${REGRESSION_TESTING:-ON}
+      -DBUILD_OWN_GROMACS=${BUILD_GROMACS} ${BUILD_GROMACS:+-DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF}
+      ${CMAKE_GENERATOR:+-G${CMAKE_GENERATOR}}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
-      ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DWITH_FFTW=OFF -DWITH_GSL=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GSL=ON
-      -DWITH_MKL=OFF -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DWITH_GMX=OFF -DWITH_SQLITE3=OFF
-      -DCMAKE_DISABLE_FIND_PACKAGE_SQLITE3=ON -DBUILD_XTP=OFF -DENABLE_REGRESSION_TESTING=OFF}
-    - make -O -k -j${j} -l${j} VERBOSE=1
-    - make test CTEST_OUTPUT_ON_FAILURE=1
-    - test -z "${MODULE_BUILD}" && make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
-    - sudo make install
-    - if [[ ${CLANG_FORMAT} ]]; then make format && git -C ${CI_PROJECT_DIR}/votca/${CI_PROJECT_NAME} diff --exit-code; fi
+      ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON
+      -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_XTP=OFF -DENABLE_REGRESSION_TESTING=OFF}
+    - cmake --build . --parallel 2
+    - ctest --output-on-failure
+    - test -z "${MODULE_BUILD}" && DESTDIR=${PWD}/install cmake --install . && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
+    - sudo cmake --install .
+    - if [[ ${CLANG_FORMAT} ]]; then cmake --build . --target format && git -C ${CI_PROJECT_DIR}/votca/${CI_PROJECT_NAME} diff --exit-code; fi
     - ccache -s
 
-Debug GCC:
+Debug GCC Format:
   stage: canary
   variables:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
+    REGRESSION_TESTING: "OFF"
     CLANG_FORMAT: "yes"
+  extends: .build
+
+Debug GCC:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
   extends: .build
 
 None GCC:
@@ -70,6 +78,7 @@ None Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: ""
+    CMAKE_GENERATOR: "Ninja"
   extends: .build
 
 Debug Clang:
@@ -77,6 +86,7 @@ Debug Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
   extends: .build
 
 Release GCC:
@@ -91,6 +101,7 @@ Release Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
   extends: .build
 
 Debug GCC Ubuntu:
@@ -99,6 +110,7 @@ Debug GCC Ubuntu:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
     DISTRO: "ubuntu"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Debug Clang Ubuntu:
@@ -106,7 +118,9 @@ Debug Clang Ubuntu:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "ubuntu"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Release GCC Ubuntu:
@@ -115,6 +129,7 @@ Release GCC Ubuntu:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "ubuntu"
+    REGRESSION_TESTING: "OFF"
   extends: .build
 
 Release Clang Ubuntu:
@@ -122,7 +137,123 @@ Release Clang Ubuntu:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "ubuntu"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Debug GCC Ubuntu_rolling:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "ubuntu_rolling"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Debug Clang Ubuntu_rolling:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "ubuntu_rolling"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Release GCC Ubuntu_rolling:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "ubuntu_rolling"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Release Clang Ubuntu_rolling:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "ubuntu_rolling"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+
+Debug GCC Ubuntu Devel:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "ubuntu_devel"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+  allow_failure: true
+
+Debug Clang Ubuntu Devel:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "ubuntu_devel"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+  allow_failure: true
+
+Release GCC Ubuntu Devel:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "ubuntu_devel"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+  allow_failure: true
+
+Release Clang Ubuntu Devel:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "ubuntu_devel"
+    REGRESSION_TESTING: "OFF"
+  extends: .build
+  allow_failure: true
+
+Debug GCC openSUSE:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "opensuse"
+  extends: .build
+
+Debug Clang openSUSE:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "opensuse"
+  extends: .build
+
+Release GCC openSUSE:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "opensuse"
+  extends: .build
+
+Release Clang openSUSE:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
+    DISTRO: "opensuse"
   extends: .build
 
 Debug GCC Rawhide:
@@ -139,6 +270,7 @@ Debug Clang Rawhide:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Debug"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_rawhide"
   extends: .build
   allow_failure: true
@@ -157,6 +289,7 @@ Release Clang Rawhide:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     DISTRO: "fedora_rawhide"
   extends: .build
   allow_failure: true
@@ -175,6 +308,7 @@ Release Clang Minimal:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+    CMAKE_GENERATOR: "Ninja"
     MINIMAL: "yes"
     DISTRO: "fedora_nogmx"
   extends: .build

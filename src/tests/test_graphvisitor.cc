@@ -20,22 +20,22 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE graphvisitor_test
+#include "../../include/votca/tools/graph.h"
+#include "../../include/votca/tools/graphnode.h"
+#include "../../include/votca/tools/graphvisitor.h"
 #include <boost/test/unit_test.hpp>
 #include <unordered_map>
 #include <vector>
-#include <votca/tools/graph.h>
-#include <votca/tools/graphnode.h>
-#include <votca/tools/graphvisitor.h>
 
 using namespace std;
 using namespace votca::tools;
 
 class GraphVisitorTest : public GraphVisitor {
  private:
-  void addEdges_(const Graph&, int) {
+  void addEdges_(const Graph&, votca::Index) override {
     throw runtime_error("Undefined method.");
   }
-  Edge getEdge_(const Graph&) { throw runtime_error("Undefined method."); }
+  Edge getEdge_() override { throw runtime_error("Undefined method."); }
 };
 
 BOOST_AUTO_TEST_SUITE(graphvisitor_test)
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   GraphNode gn1;
   GraphNode gn2;
 
-  unordered_map<int, GraphNode> nodes;
+  unordered_map<votca::Index, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
 

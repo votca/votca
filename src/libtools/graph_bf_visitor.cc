@@ -17,10 +17,10 @@
  *
  */
 
-#include <votca/tools/edge.h>
-#include <votca/tools/graph.h>
-#include <votca/tools/graph_bf_visitor.h>
-#include <votca/tools/graphnode.h>
+#include "../../include/votca/tools/graph_bf_visitor.h"
+#include "../../include/votca/tools/edge.h"
+#include "../../include/votca/tools/graph.h"
+#include "../../include/votca/tools/graphnode.h"
 
 using namespace std;
 
@@ -29,7 +29,7 @@ namespace tools {
 
 bool Graph_BF_Visitor::queEmpty() const { return edge_que_.empty(); }
 
-Edge Graph_BF_Visitor::getEdge_(const Graph& graph) {
+Edge Graph_BF_Visitor::getEdge_() {
   Edge oldest_edge = edge_que_.at(0).front();
   edge_que_.at(0).pop();
   if (edge_que_.at(0).size() == 0) {
@@ -39,15 +39,15 @@ Edge Graph_BF_Visitor::getEdge_(const Graph& graph) {
 }
 
 // Add edges to be explored
-void Graph_BF_Visitor::addEdges_(const Graph& graph, int vertex) {
+void Graph_BF_Visitor::addEdges_(const Graph &graph, Index vertex) {
 
   vector<Edge> newest_edges = graph.getNeighEdges(vertex);
 
   // If first edges to be added
   if (edge_que_.empty()) {
     queue<Edge> first_edge_queue;
-    for (const Edge edge : newest_edges) {
-      int neigh_vert = edge.getOtherEndPoint(vertex);
+    for (const Edge &edge : newest_edges) {
+      Index neigh_vert = edge.getOtherEndPoint(vertex);
       if (explored_.count(neigh_vert) == 0) {
         first_edge_queue.push(edge);
       }
@@ -59,8 +59,8 @@ void Graph_BF_Visitor::addEdges_(const Graph& graph, int vertex) {
 
     if (edge_que_.size() == 1) {
       queue<Edge> new_edge_queue;
-      for (const Edge edge : newest_edges) {
-        int neigh_vert = edge.getOtherEndPoint(vertex);
+      for (const Edge &edge : newest_edges) {
+        Index neigh_vert = edge.getOtherEndPoint(vertex);
         if (explored_.count(neigh_vert) == 0) {
           new_edge_queue.push(edge);
         }
@@ -69,8 +69,8 @@ void Graph_BF_Visitor::addEdges_(const Graph& graph, int vertex) {
         edge_que_.push_back(new_edge_queue);
       }
     } else {
-      for (const Edge edge : newest_edges) {
-        int neigh_vert = edge.getOtherEndPoint(vertex);
+      for (const Edge &edge : newest_edges) {
+        Index neigh_vert = edge.getOtherEndPoint(vertex);
         if (explored_.count(neigh_vert) == 0) {
           edge_que_.at(1).push(edge);
         }

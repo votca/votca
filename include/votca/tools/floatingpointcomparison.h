@@ -39,9 +39,13 @@ namespace tools {
 template <typename T>
 static bool isApproximatelyEqual(T a, T b, T tolerance) {
   T diff = std::abs(a - b);
-  if (diff <= tolerance) return true;
+  if (diff <= tolerance) {
+    return true;
+  }
 
-  if (diff < std::max(std::abs(a), std::abs(b)) * tolerance) return true;
+  if (diff < std::max(std::abs(a), std::abs(b)) * tolerance) {
+    return true;
+  }
   return false;
 }
 

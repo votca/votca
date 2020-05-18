@@ -20,9 +20,9 @@
 #ifndef __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
 
+#include "graphvisitor.h"
 #include <deque>
 #include <queue>
-#include <votca/tools/graphvisitor.h>
 
 /**
  * \brief A breadth first (BF) graph visitor
@@ -44,12 +44,12 @@ class Graph_BF_Visitor : public GraphVisitor {
 
   /// The core of the breadth first visitor is in how the edges are added
   /// to the queue in this function
-  void addEdges_(const Graph& graph, int vertex);
-  Edge getEdge_(const Graph& graph);
+  void addEdges_(const Graph& graph, Index vertex) override;
+  Edge getEdge_() override;
 
  public:
-  Graph_BF_Visitor(){};
-  bool queEmpty() const;
+  Graph_BF_Visitor() = default;
+  bool queEmpty() const override;
 };
 }  // namespace tools
 }  // namespace votca

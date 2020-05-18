@@ -17,11 +17,11 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE table_test
+#include "../../include/votca/tools/table.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/test/unit_test.hpp>
 #include <exception>
 #include <iostream>
-#include <votca/tools/table.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -70,15 +70,17 @@ BOOST_AUTO_TEST_CASE(xy_test) {
 
   auto x_v = tb.x();
   auto y_v = tb.y();
-  for (int i = 0; i < 10; ++i) {
-    int x = i;
-    int y = 2 * x;
-    BOOST_CHECK_EQUAL(static_cast<int>(x_v(i)), static_cast<int>(tb.x(i)));
-    BOOST_CHECK_EQUAL(static_cast<int>(y_v(i)), static_cast<int>(tb.y(i)));
-    BOOST_CHECK_EQUAL(x, static_cast<int>(tb.x(i)));
-    BOOST_CHECK_EQUAL(y, static_cast<int>(tb.y(i)));
-    BOOST_CHECK_EQUAL(x, static_cast<int>(x_v(i)));
-    BOOST_CHECK_EQUAL(y, static_cast<int>(y_v(i)));
+  for (votca::Index i = 0; i < 10; ++i) {
+    votca::Index x = i;
+    votca::Index y = 2 * x;
+    BOOST_CHECK_EQUAL(static_cast<votca::Index>(x_v(i)),
+                      static_cast<votca::Index>(tb.x(i)));
+    BOOST_CHECK_EQUAL(static_cast<votca::Index>(y_v(i)),
+                      static_cast<votca::Index>(tb.y(i)));
+    BOOST_CHECK_EQUAL(x, static_cast<votca::Index>(tb.x(i)));
+    BOOST_CHECK_EQUAL(y, static_cast<votca::Index>(tb.y(i)));
+    BOOST_CHECK_EQUAL(x, static_cast<votca::Index>(x_v(i)));
+    BOOST_CHECK_EQUAL(y, static_cast<votca::Index>(y_v(i)));
   }
 }
 
@@ -89,10 +91,10 @@ BOOST_AUTO_TEST_CASE(getMinMax_test) {
     tb.push_back(x, y);
   }
 
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMinX()), 0);
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMaxX()), 9);
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMinY()), 0);
-  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMaxY()), 18);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMinX()), 0);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMaxX()), 9);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMinY()), 0);
+  BOOST_CHECK_EQUAL(static_cast<votca::Index>(tb.getMaxY()), 18);
 }
 
 BOOST_AUTO_TEST_CASE(generate_grid_spacing_test) {
@@ -103,8 +105,57 @@ BOOST_AUTO_TEST_CASE(generate_grid_spacing_test) {
   tb.GenerateGridSpacing(min_v, max_v, 0.2);
 
   BOOST_CHECK_EQUAL(tb.size(), 5);
-  BOOST_CHECK_EQUAL(static_cast<int>(round(tb.getMinX() * 10)), 12);
-  BOOST_CHECK_EQUAL(static_cast<int>(round(tb.getMaxX() * 10)), 20);
+  BOOST_CHECK_CLOSE(tb.getMinX(), 1.2, 1e-5);
+  BOOST_CHECK_CLOSE(tb.getMaxX(), 2.0, 1e-5);
+}
+
+BOOST_AUTO_TEST_CASE(generate_grid_spacing_test_low) {
+  Table tb;
+  double min_v = 1.2;
+  double max_v = 2.0;
+
+  tb.GenerateGridSpacing(min_v, max_v, 0.3);
+
+  BOOST_CHECK_EQUAL(tb.size(), 3);
+  BOOST_CHECK_CLOSE(tb.getMinX(), 1.2, 1e-5);
+  BOOST_CHECK_CLOSE(tb.getMaxX(), 2.0, 1e-5);
+}
+
+BOOST_AUTO_TEST_CASE(generate_grid_spacing_test_high) {
+  Table tb;
+  double min_v = 1.2;
+  double max_v = 2.0;
+
+  tb.GenerateGridSpacing(min_v, max_v, 0.15);
+
+  BOOST_CHECK_EQUAL(tb.size(), 6);
+  BOOST_CHECK_CLOSE(tb.getMinX(), 1.2, 1e-5);
+  BOOST_CHECK_CLOSE(tb.getMaxX(), 2.0, 1e-5);
+}
+
+BOOST_AUTO_TEST_CASE(smoothing_test) {
+  Table tb;
+  double min_v = 1.2;
+  double max_v = 2.0;
+
+  tb.GenerateGridSpacing(min_v, max_v, 0.1);
+
+  BOOST_CHECK_EQUAL(tb.size(), 9);
+  tb.y() = tb.x().array().sinh();
+  tb.Smooth(2);
+  Eigen::VectorXd refy = Eigen::VectorXd::Zero(9);
+  refy << 1.50946, 1.70595, 1.91384, 2.13995, 2.38747, 2.65889, 2.95692,
+      3.28227, 3.62686;
+
+  bool equal = tb.y().isApprox(refy, 1e-5);
+
+  if (!equal) {
+    std::cout << "result value" << std::endl;
+    std::cout << tb.y().transpose() << std::endl;
+    std::cout << "ref value" << std::endl;
+    std::cout << refy.transpose() << std::endl;
+  }
+  BOOST_CHECK_EQUAL(equal, true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

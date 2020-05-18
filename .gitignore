@@ -4,6 +4,7 @@ rules.ninja
 build.ninja
 .ninja_*
 build
+netbeans
 src/libtools/votca_config.h
 src/libtools/gitversion.h
 .project

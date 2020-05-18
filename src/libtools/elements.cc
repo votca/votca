@@ -17,11 +17,11 @@
  *
  */
 
+#include "../../include/votca/tools/elements.h"
 #include <boost/algorithm/string.hpp>
-#include <votca/tools/elements.h>
 
-using namespace votca::tools;
-using namespace std;
+namespace votca {
+namespace tools {
 
 /*************************
  * Public Facing Methods *
@@ -30,7 +30,7 @@ bool Elements::isElement(std::string name) {
   return isEleShort(name) || isEleFull(name);
 }
 
-double Elements::getNucCrg(std::string name) {
+Index Elements::getNucCrg(std::string name) {
   if (!this->_filled_NucCrg) {
     this->FillNucCrg();
     _filled_NucCrg = true;
@@ -43,7 +43,7 @@ double Elements::getNucCrg(std::string name) {
   }
 }
 
-int Elements::getEleNum(std::string name) {
+Index Elements::getEleNum(std::string name) {
   if (!this->_filled_EleNum) {
     this->FillEleNum();
     _filled_EleNum = true;
@@ -69,51 +69,61 @@ double Elements::getMass(std::string name) {
   }
 }
 
-double Elements::getVdWChelpG(string name) {
+double Elements::getVdWChelpG(std::string name) {
   if (!this->_filled_VdWChelpG) {
     this->FillVdWChelpG();
     _filled_VdWChelpG = true;
   }
-  if (_VdWChelpG.count(name) == 0)
-    throw invalid_argument("Element not found in VdWChelpG map " + name);
+  if (_VdWChelpG.count(name) == 0) {
+    throw std::runtime_error("Element not found in VdWChelpG map " + name);
+  }
   return _VdWChelpG.at(name);
 }
 
-double Elements::getVdWMK(string name) {
+double Elements::getVdWMK(std::string name) {
   if (!this->_filled_VdWMK) {
     this->FillVdWMK();
     _filled_VdWMK = true;
   }
-  if (_VdWMK.count(name) == 0)
-    throw invalid_argument("Element not found in VdWMP map " + name);
+  if (_VdWMK.count(name) == 0) {
+    throw std::runtime_error("Element not found in VdWMP map " + name);
+  }
   return _VdWMK.at(name);
 }
 
-double Elements::getPolarizability(string name) {
+double Elements::getPolarizability(std::string name) {
   if (!this->_filled_ElPolarizability) {
     this->FillPolarizability();
     _filled_ElPolarizability = true;
   }
-  if (_ElPolarizability.count(name) == 0)
-    throw invalid_argument("Element not found in ElPolarizability map " + name);
+  if (_ElPolarizability.count(name) == 0) {
+    throw std::runtime_error("Element not found in ElPolarizability map " +
+                             name);
+  }
   return _ElPolarizability.at(name);
 }
 
-double Elements::getCovRad(string name, string unit) {
+double Elements::getCovRad(std::string name, std::string unit) {
   // TODO - This should be replaced with an object, an object that should
   //       auto recognise the units and return it in a standard type
   if (!this->_filled_CovRad) {
     this->FillCovRad();
     _filled_CovRad = true;
   }
-  if (!unit.compare("bohr")) return conv::ang2bohr * _CovRad.find(name)->second;
-  if (!unit.compare("nm")) return conv::ang2nm * _CovRad.find(name)->second;
-  if (!unit.compare("ang")) return _CovRad.find(name)->second;
-  throw invalid_argument("Must specify appropriate units " + unit +
-                         " is not known");
+  if (!unit.compare("bohr")) {
+    return conv::ang2bohr * _CovRad.find(name)->second;
+  }
+  if (!unit.compare("nm")) {
+    return conv::ang2nm * _CovRad.find(name)->second;
+  }
+  if (!unit.compare("ang")) {
+    return _CovRad.find(name)->second;
+  }
+  throw std::runtime_error("Must specify appropriate units " + unit +
+                           " is not known");
 }
 
-string Elements::getEleName(int elenum) {
+std::string Elements::getEleName(Index elenum) {
   if (!this->_filled_EleName) {
     this->FillEleName();
     _filled_EleName = true;
@@ -121,7 +131,7 @@ string Elements::getEleName(int elenum) {
   return _EleName.at(elenum);
 }
 
-string Elements::getEleFull(string eleshort) {
+std::string Elements::getEleFull(std::string eleshort) {
   if (!this->_filled_EleFull) {
     this->FillEleFull();
     _filled_EleFull = true;
@@ -129,7 +139,7 @@ string Elements::getEleFull(string eleshort) {
   return _EleFull.at(eleshort);
 }
 
-string Elements::getEleShort(string elefull) {
+std::string Elements::getEleShort(std::string elefull) {
   if (!this->_filled_EleShort) {
     this->FillEleShort();
     _filled_EleShort = true;
@@ -142,7 +152,7 @@ bool Elements::isEleFull(std::string fullname) {
     this->FillEleShort();
     _filled_EleShort = true;
   }
-  string name_upper = boost::to_upper_copy<std::string>(fullname);
+  std::string name_upper = boost::to_upper_copy<std::string>(fullname);
   return _EleShort.count(name_upper);
 }
 
@@ -156,14 +166,16 @@ bool Elements::isEleShort(std::string shortname) {
 
 bool Elements::isMassAssociatedWithElement(double mass, double tolerance) {
   auto closestMatch = findShortNameOfElementClosestInMass_(mass);
-  if (closestMatch.second / _Mass[closestMatch.first] > tolerance) return false;
+  if (closestMatch.second / _Mass[closestMatch.first] > tolerance) {
+    return false;
+  }
   return true;
 }
 
-string Elements::getEleShortClosestInMass(double mass, double tolerance) {
+std::string Elements::getEleShortClosestInMass(double mass, double tolerance) {
   auto closestMatch = findShortNameOfElementClosestInMass_(mass);
   if (closestMatch.second / _Mass[closestMatch.first] > tolerance) {
-    throw runtime_error(
+    throw std::runtime_error(
         "In attempt to determine if mass is associated "
         " with an element the mass exceeds tolerance of a possible match");
   }
@@ -174,21 +186,21 @@ string Elements::getEleShortClosestInMass(double mass, double tolerance) {
  * Private Methods *
  *******************/
 
-pair<string, double> Elements::findShortNameOfElementClosestInMass_(
+std::pair<std::string, double> Elements::findShortNameOfElementClosestInMass_(
     double mass) {
   if (!this->_filled_Mass) {
     this->FillMass();
     _filled_Mass = true;
   }
-  string eleShort = "H";
-  double diff = abs(mass - _Mass[eleShort]);
+  std::string eleShort = "H";
+  double diff = std::abs(mass - _Mass[eleShort]);
   for (const auto& ele_pr : _Mass) {
     if (abs(ele_pr.second - mass) < diff) {
       eleShort = ele_pr.first;
       diff = abs(ele_pr.second - mass);
     }
   }
-  return pair<string, double>(eleShort, diff);
+  return std::pair<std::string, double>(eleShort, diff);
 }
 
 void Elements::FillMass() {
@@ -264,7 +276,7 @@ void Elements::FillMass() {
   _Mass["Po"] = 209;
   _Mass["At"] = 210;
   _Mass["Rn"] = 222;
-};
+}
 
 void Elements::FillVdWChelpG() {
   // VdW radii in Angstrom as used in CHELPG paper [Journal of Computational
@@ -288,7 +300,7 @@ void Elements::FillVdWChelpG() {
   _VdWChelpG["Cl"] = 2.0;
   _VdWChelpG["Ar"] = 2.0;
   _VdWChelpG["Ag"] = 1.7;
-};
+}
 
 void Elements::FillNucCrg() {
   // Nuclear Charges
@@ -364,7 +376,7 @@ void Elements::FillNucCrg() {
   _NucCrg["Po"] = 84.00;
   _NucCrg["At"] = 85.00;
   _NucCrg["Rn"] = 86.00;
-};
+}
 
 void Elements::FillCovRad() {
   // Covalent Radii, used by BulkESP to break system into molecules
@@ -442,7 +454,7 @@ void Elements::FillCovRad() {
   _CovRad["Po"] = 1.40;
   _CovRad["At"] = 1.50;
   _CovRad["Rn"] = 1.50;
-};
+}
 
 void Elements::FillEleNum() {
   // Nuclear Charges
@@ -517,7 +529,7 @@ void Elements::FillEleNum() {
   _EleNum["Po"] = 84;
   _EleNum["At"] = 85;
   _EleNum["Rn"] = 86;
-};
+}
 
 void Elements::FillEleName() {
   // Nuclear Charges
@@ -593,7 +605,7 @@ void Elements::FillEleName() {
   _EleName[84] = "Po";
   _EleName[85] = "At";
   _EleName[86] = "Rn";
-};
+}
 
 void Elements::FillEleShort() {
   // VdW radii in Angstrom as used in MK Gaussian
@@ -668,7 +680,7 @@ void Elements::FillEleShort() {
   _EleShort["PLONIUM"] = "Po";
   _EleShort["ASTATINE"] = "At";
   _EleShort["RADON"] = "Rn";
-};
+}
 
 void Elements::FillEleFull() {
   // VdW radii in Angstrom as used in MK Gaussian
@@ -743,7 +755,7 @@ void Elements::FillEleFull() {
   _EleFull["Po"] = "POLONIUM";
   _EleFull["At"] = "ASTATINE";
   _EleFull["Rn"] = "RADON";
-};
+}
 
 void Elements::FillVdWMK() {
   // VdW radii in Angstrom as used in MK Gaussian
@@ -765,7 +777,7 @@ void Elements::FillVdWMK() {
   _VdWMK["S"] = 1.75;
   _VdWMK["Cl"] = 1.7;
   _VdWMK["Ag"] = 2.0;
-};
+}
 
 void Elements::FillPolarizability() {
   _ElPolarizability["H"] = 0.496e-3;
@@ -780,4 +792,7 @@ void Elements::FillPolarizability() {
       5.80e-3;  //[1]P. Fuentealba, “The static dipole polarizability of
                 // aluminium atom: discrepancy between theory and experiment,”
                 // Chemical physics letters, vol. 397, no. 4, pp. 459–461, 2004.
-};
+}
+
+}  // namespace tools
+}  // namespace votca

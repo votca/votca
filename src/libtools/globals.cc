@@ -15,16 +15,17 @@
  *
  */
 
-#include <votca/tools/globals.h>
+#include "../../include/votca/tools/globals.h"
 
 namespace votca {
+
+Log::Level Log::current_level = Log::info;
 namespace tools {
 
-bool globals::verbose = false;
 std::string globals::url = "http://www.votca.org";
 std::string globals::email = "devs@votca.org";
 
-#if defined(MKL)
+#ifdef MKL_FOUND
 bool globals::VOTCA_MKL = true;
 #else
 bool globals::VOTCA_MKL = false;

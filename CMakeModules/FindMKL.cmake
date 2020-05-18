@@ -135,6 +135,10 @@ function(find_mkl_library)
 
   cmake_parse_arguments(mkl_args "${options}" "${single_args}" "${multi_args}" ${ARGN})
 
+  if(TARGET MKL::${mkl_args_NAME})
+    return()
+  endif()
+
   add_library(MKL::${mkl_args_NAME}        SHARED IMPORTED)
   add_library(MKL::${mkl_args_NAME}_STATIC SHARED IMPORTED)
   find_library(MKL_${mkl_args_NAME}_LINK_LIBRARY
@@ -218,6 +222,7 @@ if(MKL_THREAD_LAYER STREQUAL "Intel OpenMP")
   find_mkl_library(NAME ThreadingLibrary LIBRARY_NAME iomp5)
 elseif(MKL_THREAD_LAYER STREQUAL "GNU OpenMP")
   find_package(OpenMP REQUIRED)
+  set_package_properties(OpenMP PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization in MKL")
   find_mkl_library(NAME ThreadLayer LIBRARY_NAME mkl_gnu_thread)
   add_library(MKL::ThreadingLibrary SHARED IMPORTED)
   set_target_properties(MKL::ThreadingLibrary
@@ -255,7 +260,7 @@ if(NOT WIN32)
   find_library(M_LIB m)
   mark_as_advanced(M_LIB)
 endif()
-if(MKL_FOUND)
+if(MKL_FOUND AND NOT TARGET MKL::MKL)
   add_library(MKL::MKL SHARED IMPORTED)
   if(MKL_THREAD_LAYER STREQUAL "Sequential")
     set_target_properties(MKL::MKL

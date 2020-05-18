@@ -18,8 +18,8 @@
  *
  */
 
-#include <votca/tools/graph.h>
-#include <votca/tools/reducededge.h>
+#include "graph.h"
+#include "reducededge.h"
 
 #ifndef _VOTCA_TOOLS_REDUCEDGRAPH_H
 #define _VOTCA_TOOLS_REDUCEDGRAPH_H
@@ -69,20 +69,20 @@ class ReducedGraph : public Graph {
    * Would be stored in the parent graph datastructure, the rest of the
    * vertices are stored as a vector in the expanded_edges_ object
    **/
-  std::unordered_map<Edge, std::vector<std::vector<int>>> expanded_edges_;
+  std::unordered_map<Edge, std::vector<std::vector<Index>>> expanded_edges_;
 
   void init_(std::vector<ReducedEdge> reduced_edges,
-             std::unordered_map<int, GraphNode> nodes);
+             std::unordered_map<Index, GraphNode> nodes);
 
   // Junctions must be stored internally
-  std::set<int> junctions_;
+  std::set<Index> junctions_;
 
  public:
-  ReducedGraph(){};
+  ReducedGraph() = default;
 
   ReducedGraph(std::vector<ReducedEdge> reduced_edges);
   ReducedGraph(std::vector<ReducedEdge> reduced_edges,
-               std::unordered_map<int, GraphNode> nodes);
+               std::unordered_map<Index, GraphNode> nodes);
 
   /**
    * \brief Allows one to return all edges connecting two vertices of the
@@ -130,11 +130,11 @@ class ReducedGraph : public Graph {
    *
    * Thus 1 is the only junction that exists in the reduced graph
    **/
-  // std::vector<int> getJunctions() const;
+  // std::vector<Index> getJunctions() const;
 
-  std::vector<std::pair<int, GraphNode>> getNodes(void) const;
+  std::vector<std::pair<Index, GraphNode>> getNodes(void) const override;
 
-  std::vector<int> getVerticesDegree(int degree) const;
+  std::vector<Index> getVerticesDegree(Index degree) const override;
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph graph);
 };

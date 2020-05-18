@@ -21,6 +21,13 @@
 
 #define BOOST_TEST_MODULE graphalgorithm_test
 
+#include "../../include/votca/tools/edge.h"
+#include "../../include/votca/tools/graph.h"
+#include "../../include/votca/tools/graph_bf_visitor.h"
+#include "../../include/votca/tools/graphalgorithm.h"
+#include "../../include/votca/tools/graphdistvisitor.h"
+#include "../../include/votca/tools/graphnode.h"
+#include "../../include/votca/tools/reducedgraph.h"
 #include <boost/test/unit_test.hpp>
 #include <ext/alloc_traits.h>
 #include <iostream>
@@ -31,13 +38,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <votca/tools/edge.h>
-#include <votca/tools/graph.h>
-#include <votca/tools/graph_bf_visitor.h>
-#include <votca/tools/graphalgorithm.h>
-#include <votca/tools/graphdistvisitor.h>
-#include <votca/tools/graphnode.h>
-#include <votca/tools/reducedgraph.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(single_network_algorithm_test) {
     GraphNode gn1;
     GraphNode gn2;
 
-    unordered_map<int, GraphNode> nodes;
+    unordered_map<votca::Index, GraphNode> nodes;
     nodes[0] = gn1;
     nodes[1] = gn2;
 
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(single_network_algorithm_test) {
     GraphNode gn2;
     GraphNode gn3;
 
-    unordered_map<int, GraphNode> nodes;
+    unordered_map<votca::Index, GraphNode> nodes;
     nodes[0] = gn1;
     nodes[1] = gn2;
     nodes[2] = gn3;
@@ -138,8 +138,8 @@ BOOST_AUTO_TEST_CASE(decouple_isolated_subgraphs_test) {
 
   vector<Edge> edges{ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9};
 
-  unordered_map<int, GraphNode> nodes;
-  for (int index = 1; index < 12; ++index) {
+  unordered_map<votca::Index, GraphNode> nodes;
+  for (votca::Index index = 1; index < 12; ++index) {
     GraphNode gn;
     nodes[index] = gn;
   }
@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(decouple_isolated_subgraphs_test) {
 
   BOOST_CHECK_EQUAL(sub_graphs.size(), 3);
 
-  unordered_map<int, bool> vertices_sub_graph1;
+  unordered_map<votca::Index, bool> vertices_sub_graph1;
   vertices_sub_graph1[1] = false;
   vertices_sub_graph1[2] = false;
   vertices_sub_graph1[3] = false;
@@ -159,29 +159,29 @@ BOOST_AUTO_TEST_CASE(decouple_isolated_subgraphs_test) {
   vertices_sub_graph1[6] = false;
   vertices_sub_graph1[7] = false;
 
-  unordered_map<int, bool> vertices_sub_graph2;
+  unordered_map<votca::Index, bool> vertices_sub_graph2;
   vertices_sub_graph2[8] = false;
   vertices_sub_graph2[9] = false;
   vertices_sub_graph2[10] = false;
-  unordered_map<int, bool> vertices_sub_graph3;
+  unordered_map<votca::Index, bool> vertices_sub_graph3;
   vertices_sub_graph3[11] = false;
 
   for (const Graph& sub_graph : sub_graphs) {
-    const vector<int> vertices = sub_graph.getVertices();
+    const vector<votca::Index> vertices = sub_graph.getVertices();
     if (vertices_sub_graph1.count(vertices.at(0))) {
-      for (const int& vertex : vertices) {
+      for (const votca::Index& vertex : vertices) {
         if (vertices_sub_graph1.count(vertex)) {
           vertices_sub_graph1.at(vertex) = true;
         }
       }
     } else if (vertices_sub_graph2.count(vertices.at(0))) {
-      for (const int& vertex : vertices) {
+      for (const votca::Index& vertex : vertices) {
         if (vertices_sub_graph2.count(vertex)) {
           vertices_sub_graph2.at(vertex) = true;
         }
       }
     } else if (vertices_sub_graph3.count(vertices.at(0))) {
-      for (const int& vertex : vertices) {
+      for (const votca::Index& vertex : vertices) {
         if (vertices_sub_graph3.count(vertex)) {
           vertices_sub_graph3.at(vertex) = true;
         }
@@ -190,17 +190,17 @@ BOOST_AUTO_TEST_CASE(decouple_isolated_subgraphs_test) {
   }
 
   BOOST_CHECK_EQUAL(vertices_sub_graph1.size(), 7);
-  for (const pair<int, bool>& found : vertices_sub_graph1) {
+  for (const pair<const votca::Index, bool>& found : vertices_sub_graph1) {
     BOOST_CHECK(found.second);
   }
 
   BOOST_CHECK_EQUAL(vertices_sub_graph2.size(), 3);
-  for (const pair<int, bool>& found : vertices_sub_graph2) {
+  for (const pair<const votca::Index, bool>& found : vertices_sub_graph2) {
     BOOST_CHECK(found.second);
   }
 
   BOOST_CHECK_EQUAL(vertices_sub_graph3.size(), 1);
-  for (const pair<int, bool>& found : vertices_sub_graph3) {
+  for (const pair<const votca::Index, bool>& found : vertices_sub_graph3) {
     BOOST_CHECK(found.second);
   }
 }
@@ -241,7 +241,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     GraphNode gn6;
     GraphNode gn7;
 
-    unordered_map<int, GraphNode> nodes;
+    unordered_map<votca::Index, GraphNode> nodes;
     nodes[0] = gn1;
     nodes[1] = gn2;
     nodes[2] = gn3;
@@ -257,11 +257,21 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     BOOST_CHECK_EQUAL(edges2.size(), 5);
     vector<bool> found_edges(5, false);
     for (Edge& edge : edges2) {
-      if (edge == ed1) found_edges.at(0) = true;
-      if (edge == ed2) found_edges.at(1) = true;
-      if (edge == ed3) found_edges.at(2) = true;
-      if (edge == ed4) found_edges.at(3) = true;
-      if (edge == ed5) found_edges.at(4) = true;
+      if (edge == ed1) {
+        found_edges.at(0) = true;
+      }
+      if (edge == ed2) {
+        found_edges.at(1) = true;
+      }
+      if (edge == ed3) {
+        found_edges.at(2) = true;
+      }
+      if (edge == ed4) {
+        found_edges.at(3) = true;
+      }
+      if (edge == ed5) {
+        found_edges.at(4) = true;
+      }
     }
 
     for (const bool& found : found_edges) {
@@ -282,8 +292,8 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     //
     vector<Edge> edges{Edge(1, 2), Edge(2, 3), Edge(3, 4), Edge(1, 4)};
 
-    unordered_map<int, GraphNode> nodes;
-    for (int vertex = 1; vertex <= 4; ++vertex) {
+    unordered_map<votca::Index, GraphNode> nodes;
+    for (votca::Index vertex = 1; vertex <= 4; ++vertex) {
       GraphNode gn;
       nodes[vertex] = gn;
     }
@@ -305,10 +315,18 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     vector<bool> found_edge(4, false);
 
     for (const Edge& edge : edges3.at(0)) {
-      if (edge == edges.at(0)) found_edge.at(0) = true;
-      if (edge == edges.at(1)) found_edge.at(1) = true;
-      if (edge == edges.at(2)) found_edge.at(2) = true;
-      if (edge == edges.at(3)) found_edge.at(3) = true;
+      if (edge == edges.at(0)) {
+        found_edge.at(0) = true;
+      }
+      if (edge == edges.at(1)) {
+        found_edge.at(1) = true;
+      }
+      if (edge == edges.at(2)) {
+        found_edge.at(2) = true;
+      }
+      if (edge == edges.at(3)) {
+        found_edge.at(3) = true;
+      }
     }
 
     for (bool found : found_edge) {
@@ -331,8 +349,8 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     vector<Edge> edges{Edge(1, 2), Edge(2, 3), Edge(3, 4),
                        Edge(1, 4), Edge(3, 5), Edge(5, 6)};
 
-    unordered_map<int, GraphNode> nodes;
-    for (int vertex = 1; vertex <= 6; ++vertex) {
+    unordered_map<votca::Index, GraphNode> nodes;
+    for (votca::Index vertex = 1; vertex <= 6; ++vertex) {
       GraphNode gn;
       nodes[vertex] = gn;
     }
@@ -378,8 +396,8 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
                        Edge(3, 5), Edge(5, 7), Edge(7, 6), Edge(6, 8),
                        Edge(8, 9), Edge(9, 7)};
 
-    unordered_map<int, GraphNode> nodes;
-    for (int vertex = 1; vertex <= 9; ++vertex) {
+    unordered_map<votca::Index, GraphNode> nodes;
+    for (votca::Index vertex = 1; vertex <= 9; ++vertex) {
       GraphNode gn;
       nodes[vertex] = gn;
     }
@@ -387,11 +405,11 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     Graph graph(edges, nodes);
     ReducedGraph reduced_graph = reduceGraph(graph);
 
-    vector<int> junctions = reduced_graph.getJunctions();
+    vector<votca::Index> junctions = reduced_graph.getJunctions();
     BOOST_CHECK_EQUAL(junctions.size(), 2);
     bool found_junction_3 = false;
     bool found_junction_7 = false;
-    for (int junction : junctions) {
+    for (votca::Index junction : junctions) {
       if (junction == 3) {
         found_junction_3 = true;
       } else if (junction == 7) {
@@ -442,8 +460,8 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
 
     vector<Edge> edges{ed1, ed2, ed3, ed4, ed5, ed6};
 
-    unordered_map<int, GraphNode> nodes;
-    for (int index = 0; index < 18; ++index) {
+    unordered_map<votca::Index, GraphNode> nodes;
+    for (votca::Index index = 0; index < 18; ++index) {
       GraphNode gn;
       nodes[index] = gn;
     }
@@ -451,11 +469,11 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     Graph g(edges, nodes);
     ReducedGraph reduced_g = reduceGraph(g);
 
-    vector<int> junctions = reduced_g.getJunctions();
+    vector<votca::Index> junctions = reduced_g.getJunctions();
     BOOST_CHECK_EQUAL(junctions.size(), 2);
     bool found_junction_1 = false;
     bool found_junction_2 = false;
-    for (int junction : junctions) {
+    for (votca::Index junction : junctions) {
       if (junction == 1) {
         found_junction_1 = true;
       } else if (junction == 2) {
@@ -475,9 +493,11 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     vector<Edge> edges2 = reduced_g.getEdges();
     BOOST_CHECK_EQUAL(edges2.size(), 3);
 
-    int edge_count1_2 = 0;
+    votca::Index edge_count1_2 = 0;
     for (const Edge& edge_temp : edges2) {
-      if (edge_temp == ed1) ++edge_count1_2;
+      if (edge_temp == ed1) {
+        ++edge_count1_2;
+      }
     }
     BOOST_CHECK_EQUAL(edge_count1_2, 3);
   }
@@ -522,8 +542,8 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
                        ed9, ed10, ed11, ed12, ed13, ed14, ed15, ed16};
 
     // Create Graph nodes
-    unordered_map<int, GraphNode> nodes;
-    for (int index = 0; index < 18; ++index) {
+    unordered_map<votca::Index, GraphNode> nodes;
+    for (votca::Index index = 0; index < 18; ++index) {
       GraphNode gn;
       nodes[index] = gn;
     }
@@ -531,12 +551,12 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     Graph g(edges, nodes);
     ReducedGraph reduced_g = reduceGraph(g);
 
-    vector<int> junctions = reduced_g.getJunctions();
+    vector<votca::Index> junctions = reduced_g.getJunctions();
     BOOST_CHECK_EQUAL(junctions.size(), 2);
 
     bool found_junction_1 = false;
     bool found_junction_6 = false;
-    for (int junction : junctions) {
+    for (votca::Index junction : junctions) {
       if (junction == 1) {
         found_junction_1 = true;
       } else if (junction == 6) {
@@ -584,24 +604,36 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     Edge ed10_12(10, 12);
     Edge ed14_14(14, 14);
 
-    int edge_count0_1 = 0;
-    int edge_count1_2 = 0;
-    int edge_count1_6 = 0;
-    int edge_count6_8 = 0;
-    int edge_count10_12 = 0;
-    int edge_count14_14 = 0;
+    votca::Index edge_count0_1 = 0;
+    votca::Index edge_count1_2 = 0;
+    votca::Index edge_count1_6 = 0;
+    votca::Index edge_count6_8 = 0;
+    votca::Index edge_count10_12 = 0;
+    votca::Index edge_count14_14 = 0;
 
     vector<Edge> edges2 = reduced_g.getEdges();
 
     BOOST_CHECK_EQUAL(edges2.size(), 7);
 
     for (Edge& edge : edges2) {
-      if (edge == ed0_1) ++edge_count0_1;
-      if (edge == ed1_2) ++edge_count1_2;
-      if (edge == ed1_6) ++edge_count1_6;
-      if (edge == ed6_8) ++edge_count6_8;
-      if (edge == ed10_12) ++edge_count10_12;
-      if (edge == ed14_14) ++edge_count14_14;
+      if (edge == ed0_1) {
+        ++edge_count0_1;
+      }
+      if (edge == ed1_2) {
+        ++edge_count1_2;
+      }
+      if (edge == ed1_6) {
+        ++edge_count1_6;
+      }
+      if (edge == ed6_8) {
+        ++edge_count6_8;
+      }
+      if (edge == ed10_12) {
+        ++edge_count10_12;
+      }
+      if (edge == ed14_14) {
+        ++edge_count14_14;
+      }
     }
 
     BOOST_CHECK_EQUAL(edge_count0_1, 1);
@@ -637,15 +669,15 @@ BOOST_AUTO_TEST_CASE(explorebranch_test) {
     vector<Edge> edges{ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9, ed10, ed11};
 
     // Create Graph nodes
-    unordered_map<int, GraphNode> nodes;
-    for (int index = 0; index < 11; ++index) {
+    unordered_map<votca::Index, GraphNode> nodes;
+    for (votca::Index index = 0; index < 11; ++index) {
       GraphNode gn;
       nodes[index] = gn;
     }
 
     Graph g(edges, nodes);
 
-    int starting_vertex = 1;
+    votca::Index starting_vertex = 1;
     set<Edge> branch_edges = exploreBranch(g, starting_vertex, ed3);
 
     // The following edges should be found in the branch
@@ -657,16 +689,32 @@ BOOST_AUTO_TEST_CASE(explorebranch_test) {
     BOOST_CHECK_EQUAL(branch_edges.size(), 8);
 
     vector<bool> found_edges(8, false);
-    int index = 0;
+    votca::Index index = 0;
     for (const Edge& ed : branch_edges) {
-      if (ed == ed3) found_edges.at(index) = true;
-      if (ed == ed4) found_edges.at(index) = true;
-      if (ed == ed5) found_edges.at(index) = true;
-      if (ed == ed6) found_edges.at(index) = true;
-      if (ed == ed7) found_edges.at(index) = true;
-      if (ed == ed8) found_edges.at(index) = true;
-      if (ed == ed9) found_edges.at(index) = true;
-      if (ed == ed10) found_edges.at(index) = true;
+      if (ed == ed3) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed4) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed5) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed6) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed7) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed8) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed9) {
+        found_edges.at(index) = true;
+      }
+      if (ed == ed10) {
+        found_edges.at(index) = true;
+      }
       ++index;
     }
 
@@ -706,7 +754,7 @@ BOOST_AUTO_TEST_CASE(structureid_test) {
     GraphNode gn6;
     GraphNode gn7;
 
-    unordered_map<int, GraphNode> nodes;
+    unordered_map<votca::Index, GraphNode> nodes;
     nodes[0] = gn1;
     nodes[1] = gn2;
     nodes[2] = gn3;

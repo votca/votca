@@ -18,6 +18,7 @@
 #ifndef VOTCA_TOOLS_RANGEPARSER_H
 #define VOTCA_TOOLS_RANGEPARSER_H
 
+#include "types.h"
 #include <list>
 #include <ostream>
 #include <string>
@@ -36,22 +37,22 @@ class RangeParser {
 
   void Parse(std::string range);
 
-  void Add(int begin, int end, int stride = 1);
+  void Add(Index begin, Index end, Index stride = 1);
 
  private:
   struct block_t {
-    block_t() {}
-    block_t(const int &begin, const int &end, const int &stride)
+    block_t() = default;
+    block_t(const Index &begin, const Index &end, const Index &stride)
         : _begin(begin), _end(end), _stride(stride) {}
 
-    int _begin, _end, _stride;
+    Index _begin, _end, _stride;
   };
 
  public:
   struct iterator {
-    iterator() {}
+    iterator() = default;
 
-    int operator*() const { return _current; }
+    Index operator*() const { return _current; }
 
     RangeParser::iterator &operator++();
 
@@ -63,7 +64,7 @@ class RangeParser {
 
     iterator(RangeParser *, std::list<block_t>::iterator);
     std::list<block_t>::iterator _block;
-    int _current;
+    Index _current;
 
     friend class RangeParser;
   };
@@ -79,7 +80,7 @@ class RangeParser {
   friend std::ostream &operator<<(std::ostream &out, const RangeParser &rp);
 };
 
-inline void RangeParser::Add(int begin, int end, int stride) {
+inline void RangeParser::Add(Index begin, Index end, Index stride) {
   _blocks.push_back(block_t(begin, end, stride));
 }
 
@@ -94,10 +95,11 @@ inline RangeParser::iterator RangeParser::end() {
 inline RangeParser::iterator::iterator(RangeParser *parent,
                                        std::list<block_t>::iterator block)
     : _parent(parent), _block(block) {
-  if (block != parent->_blocks.end())
+  if (block != parent->_blocks.end()) {
     _current = (*block)._begin;
-  else
+  } else {
     _current = -1;
+  }
 }
 
 inline bool RangeParser::iterator::operator==(const RangeParser::iterator &i) {
@@ -111,13 +113,16 @@ inline bool RangeParser::iterator::operator!=(const RangeParser::iterator &i) {
 inline std::ostream &operator<<(std::ostream &out, const RangeParser &rp) {
   std::list<RangeParser::block_t>::const_iterator iter(rp._blocks.begin());
   for (; iter != rp._blocks.end(); ++iter) {
-    if (iter != rp._blocks.begin()) out << ",";
-    if (iter->_begin == iter->_end)
+    if (iter != rp._blocks.begin()) {
+      out << ",";
+    }
+    if (iter->_begin == iter->_end) {
       out << iter->_begin;
-    else if (iter->_stride == 1)
+    } else if (iter->_stride == 1) {
       out << iter->_begin << ":" << iter->_end;
-    else
+    } else {
       out << iter->_begin << ":" << iter->_stride << ":" << iter->_end;
+    }
   }
   return out;
 }

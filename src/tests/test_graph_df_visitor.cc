@@ -20,12 +20,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE graph_df_visitor_test
+#include "../../include/votca/tools/graph.h"
+#include "../../include/votca/tools/graph_df_visitor.h"
+#include "../../include/votca/tools/graphnode.h"
 #include <boost/test/unit_test.hpp>
 #include <unordered_map>
 #include <vector>
-#include <votca/tools/graph.h>
-#include <votca/tools/graph_df_visitor.h>
-#include <votca/tools/graphnode.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   GraphNode gn1;
   GraphNode gn2;
 
-  unordered_map<int, GraphNode> nodes;
+  unordered_map<votca::Index, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
 
@@ -69,8 +69,12 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   bool v0 = false;
   bool v1 = false;
   for (auto ver : exploredV) {
-    if (ver == 0) v0 = true;
-    if (ver == 1) v1 = true;
+    if (ver == 0) {
+      v0 = true;
+    }
+    if (ver == 1) {
+      v1 = true;
+    }
   }
 
   // Both vertices should have been explored
@@ -111,7 +115,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   GraphNode gn4;
   GraphNode gn5;
 
-  unordered_map<int, GraphNode> nodes;
+  unordered_map<votca::Index, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
   nodes[2] = gn3;
@@ -176,11 +180,21 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   bool v3 = false;
   bool v4 = false;
   for (auto ver : exploredV) {
-    if (ver == 0) v0 = true;
-    if (ver == 1) v1 = true;
-    if (ver == 2) v2 = true;
-    if (ver == 3) v3 = true;
-    if (ver == 4) v4 = true;
+    if (ver == 0) {
+      v0 = true;
+    }
+    if (ver == 1) {
+      v1 = true;
+    }
+    if (ver == 2) {
+      v2 = true;
+    }
+    if (ver == 3) {
+      v3 = true;
+    }
+    if (ver == 4) {
+      v4 = true;
+    }
   }
 
   // All 5 vertices should have been explored

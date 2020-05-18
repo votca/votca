@@ -15,17 +15,14 @@
  *
  */
 
-#ifndef _types_H
-#define _types_H
+#ifndef _VOTCA_TOOLS_TYPES_H
+#define _VOTCA_TOOLS_TYPES_H
 
+#include "eigen.h"
 namespace votca {
-namespace tools {
 
-typedef unsigned char byte_t;
-typedef unsigned short word_t;
-typedef unsigned long dword_t;
+using Index = Eigen::Index;
 
-}  // namespace tools
 }  // namespace votca
 
 #endif /* _types_H */

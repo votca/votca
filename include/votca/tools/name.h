@@ -40,7 +40,7 @@ class Name {
   bool name_set_{false};
 
  public:
-  Name(){};
+  Name() = default;
   Name(const std::string name) : name_(name), name_set_(true){};
   void setName(const std::string &name) {
     name_ = name;

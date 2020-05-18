@@ -15,25 +15,21 @@
  *
  */
 
+#include "../../include/votca/tools/histogram.h"
 #include <limits>
 #include <math.h>
 #include <numeric>
-#include <votca/tools/histogram.h>
 
 namespace votca {
 namespace tools {
 
-Histogram::Histogram() : _min(0), _max(0) {}
+Histogram::Histogram() = default;
 
-Histogram::Histogram(options_t op) : _min(0), _max(0), _options(op) {}
+Histogram::Histogram(options_t op) : _options(op) {}
 
-Histogram::~Histogram() {}
+Histogram::~Histogram() = default;
 
-void Histogram::ProcessData(DataCollection<double>::selection *data) {
-  DataCollection<double>::selection::iterator array;
-  DataCollection<double>::array::iterator iter;
-  int ii;
-  int ndata = 0;
+void Histogram::ProcessData(DataCollection<double>::selection* data) {
 
   _pdf.assign(_options._n, 0);
 
@@ -45,42 +41,38 @@ void Histogram::ProcessData(DataCollection<double>::selection *data) {
     _min = _options._min;
     _max = _options._max;
   }
-
-  for (array = data->begin(); array != data->end(); ++array) {
-    ndata += (*array)->size();
+  for (auto& array : *data) {
     if (_options._extend_interval || _options._auto_interval) {
-      for (iter = (*array)->begin(); iter != (*array)->end(); ++iter) {
-        _min = std::min(*iter, _min);
-        _max = std::max(*iter, _max);
+      for (auto& value : *array) {
+        _min = std::min(value, _min);
+        _max = std::max(value, _max);
       }
     }
   }
 
-  // make that the highes value fits into interval
-  // if(_options._auto_interval || _max!=_options._max)
-  //    _max = _max + 0.5*(_max - _min)/(double)(_options._n);
-
   _interval = (_max - _min) / (double)(_options._n - 1);
 
   double v = 1.;
-  for (array = data->begin(); array != data->end(); ++array) {
-    for (iter = (*array)->begin(); iter != (*array)->end(); ++iter) {
-      ii = (int)floor((*iter - _min) / _interval + 0.5);  // the interval should
-                                                          // be centered around
-                                                          // the sampling point
+  for (auto& array : *data) {
+    for (auto& value : *array) {
+      Index ii = (Index)floor((value - _min) / _interval +
+                              0.5);  // the interval should
+                                     // be centered around
+                                     // the sampling point
       if (ii < 0 || ii >= _options._n) {
         if (_options._periodic) {
-          while (ii < 0) ii += _options._n;
+          while (ii < 0) {
+            ii += _options._n;
+          }
           ii = ii % _options._n;
         } else {
           continue;
-        }  // cout << "[histogram.cc]: out of bounds" << endl; continue;}
+        }
       }
       _pdf[ii] += v;
     }
   }
 
-  // cout << _pdf.size() << " " << _options._periodic << endl;
   if (_options._scale == "bond") {
     for (size_t i = 0; i < _pdf.size(); ++i) {
       double r = _min + _interval * (double)i;
@@ -102,8 +94,9 @@ void Histogram::ProcessData(DataCollection<double>::selection *data) {
           _pdf[i] = _pdf[i - 1];
         }
 
-      } else
+      } else {
         _pdf[i] /= sa;
+      }
     }
   }
 
@@ -111,7 +104,9 @@ void Histogram::ProcessData(DataCollection<double>::selection *data) {
     _pdf[0] = (_pdf[0] + _pdf[_options._n - 1]);
     _pdf[_options._n - 1] = _pdf[0];
   }
-  if (_options._normalize) Normalize();
+  if (_options._normalize) {
+    Normalize();
+  }
 }
 
 void Histogram::Normalize(void) {
