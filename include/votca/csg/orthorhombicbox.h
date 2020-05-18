@@ -18,6 +18,7 @@
 #ifndef VOTCA_CSG_ORTHORHOMBICBOX_H
 #define VOTCA_CSG_ORTHORHOMBICBOX_H
 
+// Local VOTCA includes
 #include "boundarycondition.h"
 
 namespace votca {

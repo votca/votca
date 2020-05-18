@@ -18,11 +18,16 @@
 #ifndef __VOTCA_CSG_XYZWRITER_H
 #define __VOTCA_CSG_XYZWRITER_H
 
-#include "topology.h"
-#include "trajectorywriter.h"
+// Standard includes
 #include <stdio.h>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "topology.h"
+#include "trajectorywriter.h"
 
 namespace votca {
 namespace csg {

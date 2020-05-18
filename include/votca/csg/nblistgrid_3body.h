@@ -18,8 +18,11 @@
 #ifndef _VOTCA_CSG_NBLISTGRID_3BODY_H
 #define _VOTCA_CSG_NBLISTGRID_3BODY_H
 
-#include "nblist_3body.h"
+// Standard includes
 #include <vector>
+
+// Local VOTCA includes
+#include "nblist_3body.h"
 
 namespace votca {
 namespace csg {

@@ -19,11 +19,16 @@
 #define VOTCA_CSG_MAP_H
 #pragma once
 
-#include "boundarycondition.h"
-#include "molecule.h"
+// Standard includes
 #include <vector>
+
+// VOTCA includes
 #include <votca/tools/eigen.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "boundarycondition.h"
+#include "molecule.h"
 
 namespace votca {
 namespace csg {

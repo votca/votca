@@ -19,12 +19,16 @@
 #define VOTCA_CSG_BEAD_H
 #pragma once
 
+// Standard includes
 #include <assert.h>
 #include <cassert>
 #include <string>
+
+// VOTCA includes
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
 
+// Local VOTCA includes
 #include "basebead.h"
 
 namespace votca {

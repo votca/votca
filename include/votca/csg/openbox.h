@@ -18,6 +18,7 @@
 #ifndef VOTCA_CSG_OPENBOX_H
 #define VOTCA_CSG_OPENBOX_H
 
+// Local VOTCA includes
 #include "boundarycondition.h"
 
 namespace votca {

@@ -18,6 +18,7 @@
 #ifndef _VOTCA_CSG_NBLIST_H
 #define _VOTCA_CSG_NBLIST_H
 
+// Local VOTCA includes
 #include "beadlist.h"
 #include "beadpair.h"
 #include "exclusionlist.h"

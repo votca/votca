@@ -18,6 +18,7 @@
 #ifndef VOTCA_CSG_BEADMOTIFALGORITHMS_H
 #define VOTCA_CSG_BEADMOTIFALGORITHMS_H
 
+// Local VOTCA includes
 #include "beadmotif.h"
 #include "beadmotifconnector.h"
 #include "beadstructure.h"

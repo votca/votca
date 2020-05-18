@@ -18,11 +18,16 @@
 #ifndef _PDBWRITER_H
 #define _PDBWRITER_H
 
-#include "topology.h"
-#include "trajectorywriter.h"
+// Standard includes
 #include <stdio.h>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "topology.h"
+#include "trajectorywriter.h"
 
 namespace votca {
 namespace csg {

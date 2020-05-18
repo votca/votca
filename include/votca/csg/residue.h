@@ -18,6 +18,7 @@
 #ifndef VOTCA_CSG_RESIDUE_H
 #define VOTCA_CSG_RESIDUE_H
 
+// Standard includes
 #include <string>
 
 namespace votca {

@@ -19,8 +19,11 @@
 #ifndef VOTCA_CSG_BEADLIST_H
 #define VOTCA_CSG_BEADLIST_H
 
+// Standard includes
 #include <string>
 #include <vector>
+
+// VOTCA includes
 #include <votca/tools/eigen.h>
 #include <votca/tools/types.h>
 
