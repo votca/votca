@@ -96,7 +96,7 @@ for i, (line1, line2) in enumerate(zip(OPTIONS.file1, OPTIONS.file2)):
     if line1.startswith('#') or line2.startswith('#'):
         continue
     for j, (entry1, entry2) in enumerate(zip(line1.split(), line2.split())):
-        if RepresentsFloat(entry1) or RepresentsFloat(entry2):
+        if RepresentsFloat(entry1) and RepresentsFloat(entry2):
             if isclose(entry1,entry2,OPTIONS.etol,OPTIONS.etol):
                 logs.append([i, j, entry1, entry2])
         elif entry1 != entry2:
