@@ -58,9 +58,23 @@ def edit_option(elem: ET.Element, option: str, value: str) -> None:
 
 def find_nodes(elem: ET.Element, option: str) -> List[ET.Element]:
     """Find ``option`` in ``elem`` and in all its children."""
-    acc = []
-    find_nodes_recursively(elem, option, acc)
-    return acc
+    sections = option.split('.')
+    if len(sections) == 1:
+        acc = []
+        find_nodes_recursively(elem, option, acc)
+        return acc
+    else:
+        return find_section(elem, sections)
+
+
+def find_section(elem: ET.Element, sections: List[str]) -> List[ET.Element]:
+    """Search recursively for '.' separated section in elem."""
+    for name in sections:
+        elem = elem.find(name)
+        if elem is None:
+            break
+
+    return [elem]
 
 
 def find_nodes_recursively(elem: ET.Element, option: str, acc: List[ET.Element]) -> None:

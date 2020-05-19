@@ -26,3 +26,5 @@ if(NOT TARGET uninstall)
   add_custom_target(uninstall)
 endif()
 add_dependencies(uninstall uninstall-xtp-tutorials)
+
+add_subdirectory(doc)

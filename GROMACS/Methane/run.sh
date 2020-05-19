@@ -81,7 +81,7 @@ xtp_parallel -e eqm -o OPTIONFILES/eqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 4
 
 #running iqm
 #iqm runs qm calculations for each pair in the hdf5 file, it consists of three stages first writing a jobfile, then running the calculations, if necessary 
-# on multiple machines and then reading them into the .hdf5 file
+# # on multiple machines and then reading them into the .hdf5 file
 echo "Running iQM"
 
 cp "$VOTCASHARE/xtp/xml/iqm.xml" OPTIONFILES/
@@ -105,39 +105,40 @@ EOM
 echo "${TAIL}" >> OPTIONFILES/tmp
 mv OPTIONFILES/tmp  OPTIONFILES/iqm.xml
 
-xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j "write" -t 4
+xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" iqm.jobs
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' iqm.jobs
 
+# valgrind --track-origins=yes xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 4
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -s 0 -j run -c 1 -t 4
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.hdf5 -j "read"
 
-#running iexcitoncl
+# #running iexcitoncl
 
-cp "${VOTCASHARE}/xtp/xml/iexcitoncl.xml" OPTIONFILES
-xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 -j "write"
-sed -i "s/AVAILABLE/COMPLETE/g" exciton.jobs
-sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' exciton.jobs
+# cp "${VOTCASHARE}/xtp/xml/iexcitoncl.xml" OPTIONFILES
+# changeoption map_file system.xml OPTIONFILES/iexcitoncl.xml
+# xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 -j "write"
 
-xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 
+# sed -i "s/AVAILABLE/COMPLETE/g" exciton.jobs
+# sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' exciton.jobs
 
-xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 -j "read"
+# xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 
 
-#running ianalyze
-cp "${VOTCASHARE}/xtp/xml/iexcitoncl.xml" OPTIONFILES
-xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 -j "write"
-sed -i "s/AVAILABLE/COMPLETE/g" exciton.jobs
-sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' exciton.jobs
+# xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5 -j "read"
 
-xtp_parallel -e iexcitoncl -o OPTIONFILES/iexcitoncl.xml -f state.hdf5
+# #running ianalyze
+# cp "${VOTCASHARE}/xtp/xml/ianalyze.xml" OPTIONFILES/
 
-#running qmmm
-cp qmmm.xml OPTIONFILES/
-xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j "write"
-sed -i "s/AVAILABLE/COMPLETE/g" qmmm_jobs.xml
-sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_jobs.xml
-sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_jobs.xml
-xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j run
+# xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.hdf5
+
+
+# #running qmmm
+# cp qmmm.xml OPTIONFILES/
+# xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j "write"
+# sed -i "s/AVAILABLE/COMPLETE/g" qmmm_jobs.xml
+# sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_jobs.xml
+# sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_jobs.xml
+# xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j run
 
 # # We are not going to read it in
 # #xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j "read"
