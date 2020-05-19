@@ -770,12 +770,15 @@ bool GWBSE::Evaluate() {
       if (eval_points > 1){
         steps = (omega_end-omega_start)/eval_points;
       }
+
+      
+
       for (int j = 0; j < eval_points; ++j) {
-        std::complex<double> w (omega_start + j*steps,0.05);
+        std::complex<double> w (0,omega_start + j*steps);
         Eigen::VectorXcd sigma_c = sternheimer.SelfEnergy_diagonal(w);
-        pade.addPoint(w,sigma_c(homo));
+         pade.addPoint(w,sigma_c(homo));
         XTP_LOG(Log::error, *_pLog)
-          << TimeStamp() << "Frequency "<< w <<" finished. " << j << flush;
+           << TimeStamp() << "Frequency "<< w <<" finished. " << j << flush;
       }
 
       std::cout << "\n # omega \t HOMO \n" << std::endl;

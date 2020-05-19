@@ -896,7 +896,7 @@ Eigen::VectorXd Sternheimer::EvaluateBasisAtPosition(
 }
 
 Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(std::complex<double> omega,
-                                               double omega_p) const {
+                                               std::complex<double> omega_p) const {
   // This function calculates GW at w and w_p (i.e before integral over
   // frequencies)
   // It perform the spatial grid integration. The final object is a matrix
@@ -904,7 +904,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(std::complex<double> omega,
   AOBasis basis = _orbitals.SetupDftBasis();
   Vxc_Grid _grid;
   _grid.GridSetup("xxcoarse", _orbitals.QMAtoms(), basis);
-  std::cout<<_grid.getGridSize()<<std::endl;
+  //std::cout<<_grid.getGridSize()<<std::endl;
 
   // std::vector<const Eigen::Vector3d*> gridp = _grid.getGridpoints();
 
@@ -1049,15 +1049,45 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const 
   // getAdaptedWeights (now avail. 8,10,12,14,16,18,20,100)
 
   Gauss_Hermite_Quadrature_Constants ghqc;
-  Eigen::VectorXd _quadpoints = ghqc.getPoints(16);
-  Eigen::VectorXd _quadadaptedweights = ghqc.getAdaptedWeights(16);
+  Eigen::VectorXd _quadpoints = ghqc.getPoints(30);
+  Eigen::VectorXd _quadadaptedweights = ghqc.getAdaptedWeights(30);
   std::complex<double> delta(0., -1e-3);
   Eigen::MatrixXcd sigma =
       Eigen::MatrixXcd::Zero(_density_Matrix.cols(), _density_Matrix.cols());
-  for (Index j = 0; j < 16; ++j) {
+  for (Index j = 0; j < 30; ++j) {
+    std::complex<double> gridpoint(0,_quadpoints(j)); 
     sigma += _quadadaptedweights(j) *
-             SelfEnergy_at_wp(omega, _quadpoints(j)) *
-             std::exp(delta * _quadpoints(j));
+             SelfEnergy_at_wp(omega, gridpoint) *
+             std::exp(delta * gridpoint);
+  }
+
+  return sigma;
+}
+
+Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w_rect(std::complex<double> omega) const {
+  // This function evaluates the frequency integration over w_p, using the rectangle rule
+
+  std::vector<double> _quadpoints;
+  std::vector<double> _quadadaptedweights;
+
+  for(Index j = 0; j < 25; ++j){
+
+    _quadpoints.push_back(-6.0+j*0.5);
+    _quadadaptedweights.push_back(0.5);
+
+  }
+
+  std::complex<double> delta(0., -1e-3);
+  Eigen::MatrixXcd sigma =
+      Eigen::MatrixXcd::Zero(_density_Matrix.cols(), _density_Matrix.cols());
+  for (Index j = 0; j < 25; ++j) {
+
+    Eigen::MatrixXcd SE=SelfEnergy_at_wp(omega, _quadpoints.at(j));
+
+    sigma += _quadadaptedweights.at(j) * SE;
+
+    std::cout<<_quadpoints.at(j)<<" "<<SE.norm()<<std::endl;
+
   }
 
   return sigma;
