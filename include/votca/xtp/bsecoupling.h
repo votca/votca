@@ -97,10 +97,10 @@ class BSECoupling : public CouplingBase {
   bool _output_perturbation = true;
   Index _levA;
   Index _levB;
-  Index _occA = 5;
-  Index _unoccA = 5;
-  Index _occB = 5;
-  Index _unoccB = 5;
+  Index _occA;
+  Index _unoccA;
+  Index _occB;
+  Index _unoccB;
 };
 
 }  // namespace xtp
