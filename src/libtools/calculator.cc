@@ -68,9 +68,9 @@ void Calculator::OverwriteDefaultsWithUserInput(const Property &p,
         Property &new_prop = defaults.add(prop.name(), "");
         new_prop = prop;
       }
-    } else if (defaults.exists(prop.name())) {
+    } else if (defaults.exists(prop.name()) && (prop.value() != "")) {
       defaults.set(prop.name(), prop.value());
-    } else {
+    } else if (prop.value() != "") {
       defaults.add(prop.name(), prop.value());
     }
   }
@@ -79,6 +79,11 @@ void Calculator::OverwriteDefaultsWithUserInput(const Property &p,
 std::vector<std::string> Calculator::GetPropertyChoices(const Property &p) {
   if (p.hasAttribute("choices")) {
     std::string att = p.getAttribute<std::string>("choices");
+    std::size_t start_bracket = att.find('[');
+    if (start_bracket != std::string::npos) {
+      std::size_t end_bracket = att.find(']');
+      att = att.substr(start_bracket + 1, end_bracket - start_bracket - 1);
+    }
     Tokenizer tok{att, " ,"};
     return tok.ToVector();
   } else {
@@ -120,7 +125,7 @@ bool Calculator::IsValidOption(const Property &prop,
                                const std::vector<std::string> &choices) {
   const std::string &head = choices.front();
   std::ostringstream oss;
-  bool is_valid;
+  bool is_valid = true;
   if (head == "bool") {
     is_valid = Calculator::IsValidCast<bool>(prop);
   } else if (head == "float") {
@@ -134,10 +139,37 @@ bool Calculator::IsValidOption(const Property &prop,
     is_valid = Calculator::IsValidCast<Index>(prop) && (prop.as<Index>() >= 0);
   } else {
     std::string value = prop.as<std::string>();
-    auto it = std::find(std::cbegin(choices), std::cend(choices), value);
-    is_valid = (it != std::cend(choices));
+    std::string att = prop.getAttribute<std::string>("choices");
+    std::size_t start_bracket = att.find('[');
+    if (start_bracket == std::string::npos) {
+      // There is a single choice out of multiple default valid choices
+      auto it = std::find(std::cbegin(choices), std::cend(choices), value);
+      is_valid = (it != std::cend(choices));
+    } else {
+      // there are multiple valid choices
+      Tokenizer tok{value, " ,"};
+      for (const std::string &word : tok) {
+        auto it = std::find(std::cbegin(choices), std::cend(choices), word);
+        if (it == std::cend(choices)) {
+          is_valid = false;
+          break;
+        }
+      }
+    }
   }
   return is_valid;
+}
+
+void Calculator::InjectDefaultsAsValues(Property &defaults) {
+  for (Property &prop : defaults) {
+    if (prop.HasChildren()) {
+      InjectDefaultsAsValues(prop);
+    } else {
+      if (prop.hasAttribute("default") && (prop.value() == "")) {
+        prop.set(".", prop.getAttribute<std::string>("default"));
+      }
+    }
+  }
 }
 
 }  // namespace tools

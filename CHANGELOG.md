@@ -13,6 +13,11 @@ For more detailed information about the changes see the history of the [reposito
 * make fftw3 a public dependency (#235)
 * rename WITH_RC_FILES to INSTALL_RC_FILES (#236)
 * check calculator input options (#232, #233)
+* allow calculator choices to be a list (#239)
+* inject defaults into calculator values (#241)
+* fixed bug introduced by defaults injection (#241, #242)
+* make votca_compare always executable in builddir (#244)
+* add rel. compare to votca_compare (#143)
 
 ## Version 1.6.1 (released XX.04.20)
 * fix build with mkl (#229)
