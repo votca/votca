@@ -1,10 +1,5 @@
-find_package(LLVM QUIET)
-set_package_properties(LLVM PROPERTIES TYPE OPTIONAL PURPOSE "Needed for automatic code formatting with clang-format")
-if(LLVM_FOUND)
-  find_package(Clang QUIET)
-  set_package_properties(Clang PROPERTIES TYPE OPTIONAL PURPOSE "Needed for automatic code formatting with clang-format")
-endif()
-if(TARGET clang-format)
+find_package(CLANG_FORMAT 7.0.1)
+if(CLANG_FORMAT_FOUND)
   set(FORMAT_SOURCES)
   foreach(DIR ${ENABLED_VOTCA_PACKAGES})
     set(ABS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../${DIR})
@@ -12,6 +7,6 @@ if(TARGET clang-format)
     list(APPEND FORMAT_SOURCES ${${DIR}_SOURCES})
   endforeach()
   add_custom_target(format
-    COMMAND $<TARGET_FILE:clang-format> -i -style=file ${FORMAT_SOURCES}
+    COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${FORMAT_SOURCES}
     DEPENDS ${FORMAT_SOURCES})
 endif()
