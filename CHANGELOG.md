@@ -12,6 +12,7 @@ For more detailed information about the changes see the history of the
 * drop WITH_GMX in cmake in favor of auto-detect (#523)
 * Standardising include order and style in header files (#531)
 * make scripts always executable in builddir (#533)
+* rename REGRESSIONTEST_TOLERANCE to INTEGRATIONTEST_TOLERANCE (#534)
 
 ## Version 1.6.1 (released XX.04.20)
 * add support for cma-3 (#158) 
