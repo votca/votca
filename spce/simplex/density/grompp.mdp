@@ -60,4 +60,4 @@ pcoupl                   = no ; fixed box size
 ;
 gen_vel                  = yes
 gen_temp                 = 300 ; K
-gen_seed                 = -1
+gen_seed                 = 1993
