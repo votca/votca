@@ -15,15 +15,23 @@
  *
  */
 
-#include "kmclifetime.h"
-#include "votca/xtp/qmstate.h"
+// Standard includes
+#include <fstream>
+
+// Third party includes
 #include <boost/format.hpp>
 #include <boost/progress.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/gnode.h>
-#include <votca/xtp/topology.h>
+
+// Local VOTCA includes
+#include "kmclifetime.h"
+#include "votca/xtp/eigen.h"
+#include "votca/xtp/gnode.h"
+#include "votca/xtp/qmstate.h"
+#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {
