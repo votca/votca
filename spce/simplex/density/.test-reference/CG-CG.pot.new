@@ -1,8 +1,8 @@
-#Created on Thu 21 May 2020 08:57:19 PM MDT by junghans@pn1806404-fedora
+#Created on Fri 22 May 2020 09:41:57 AM MDT by junghans@pn1806404-fedora
 #called from tag_file.sh, version 1.7-dev gitid: a446925 (dirty)
 #settings file: '/home/junghans/votca/build/csg-tutorials/spce/simplex/density/settings.xml'
 #working directory: /home/junghans/votca/build/csg-tutorials/spce/simplex/density/step_001
-#Created on Thu 21 May 2020 08:57:19 PM MDT by junghans@pn1806404-fedora
+#Created on Fri 22 May 2020 09:41:56 AM MDT by junghans@pn1806404-fedora
 #called from table_functional.sh, version 1.7-dev gitid: a446925 (dirty)
 #settings file: '/home/junghans/votca/build/csg-tutorials/spce/simplex/density/settings.xml'
 #working directory: /home/junghans/votca/build/csg-tutorials/spce/simplex/density/step_001
@@ -11,7 +11,7 @@
 #eps=0.64
 #sig=0.31
 #set samples 701
-#set table 'table.plot.Qot'
+#set table 'table.plot.7v4'
 #plot [0:1.4] 4*eps*((sig/x)**12-(sig/x)**6)
 #
 # Gnuplot output:
