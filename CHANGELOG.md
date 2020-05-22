@@ -17,6 +17,7 @@ For more detailed information about the changes see the history of the [reposito
 * fixed bug introduced by defaults injection (#241, #242)
 * make votca_compare always executable in builddir (#244)
 * add rel. compare to votca_compare (#143)
+* standardize header formatting (#246)
 
 ## Version 1.6.1 (released XX.04.20)
 * fix build with mkl (#229)
