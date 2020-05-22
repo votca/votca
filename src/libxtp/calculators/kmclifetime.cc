@@ -16,6 +16,7 @@
  */
 
 // Standard includes
+#include <exception>
 #include <fstream>
 
 // Third party includes
@@ -89,7 +90,7 @@ void KMCLifetime::WriteDecayProbability(std::string filename) {
   probs.open(filename, std::fstream::out);
   if (!probs.is_open()) {
     std::string error_msg = "Unable to write to file " + filename;
-    throw std::exception(error_msg);
+    throw std::runtime_error(error_msg);
   }
   probs << "#SiteID, Relative Prob outgoing, Relative Prob ingoing\n";
   for (unsigned i = 0; i < _nodes.size(); i++) {
@@ -179,7 +180,7 @@ void KMCLifetime::RunVSSM() {
   traj.open(_trajectoryfile, std::fstream::out);
   if (!traj.is_open()) {
     std::string error_msg = "Unable to write to file " + _trajectoryfile;
-    throw std::exception(error_msg);
+    throw std::runtime_error(error_msg);
   }
 
   traj << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last "
@@ -194,7 +195,7 @@ void KMCLifetime::RunVSSM() {
     energyfile.open(_energy_outputfile, std::fstream::out);
     if (!energyfile.is_open()) {
       std::string error_msg = "Unable to write to file " + _energy_outputfile;
-      throw std::exception(error_msg);
+      throw std::runtime_error(error_msg);
     }
 
     energyfile << "Simtime [s]\tSteps\tCarrier ID\tEnergy_a=" << _alpha
