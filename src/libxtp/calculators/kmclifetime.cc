@@ -86,7 +86,8 @@ void KMCLifetime::WriteDecayProbability(std::string filename) {
   inrates = decayrates.cwiseQuotient(inrates + decayrates);
 
   std::fstream probs;
-  if (!probs.open(filename, std::fstream::out)) {
+  probs.open(filename, std::fstream::out);
+  if (!probs.is_open()) {
     std::string error_msg = "Unable to write to file " + filename;
     throw std::exception(error_msg);
   }
@@ -175,7 +176,8 @@ void KMCLifetime::RunVSSM() {
   XTP_LOG(Log::error, _log)
       << "Writing trajectory to " << _trajectoryfile << "." << std::flush;
 
-  if (!traj.open(_trajectoryfile, std::fstream::out)) {
+  traj.open(_trajectoryfile, std::fstream::out);
+  if (!traj.is_open()) {
     std::string error_msg = "Unable to write to file " + _trajectoryfile;
     throw std::exception(error_msg);
   }
@@ -189,8 +191,8 @@ void KMCLifetime::RunVSSM() {
         << "Tracking the energy of one charge carrier and exponential average "
            "with alpha="
         << _alpha << " to " << _energy_outputfile << std::flush;
-
-    if (!energyfile.open(_energy_outputfile, std::fstream::out)) {
+    energyfile.open(_energy_outputfile, std::fstream::out);
+    if (!energyfile.is_open()) {
       std::string error_msg = "Unable to write to file " + _energy_outputfile;
       throw std::exception(error_msg);
     }
