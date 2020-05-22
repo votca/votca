@@ -86,7 +86,10 @@ void KMCLifetime::WriteDecayProbability(std::string filename) {
   inrates = decayrates.cwiseQuotient(inrates + decayrates);
 
   std::fstream probs;
-  probs.open(filename, std::fstream::out);
+  if (!probs.open(filename, std::fstream::out)) {
+    std::string error_msg = "Unable to write to file " + filename;
+    throw std::exception(error_msg);
+  }
   probs << "#SiteID, Relative Prob outgoing, Relative Prob ingoing\n";
   for (unsigned i = 0; i < _nodes.size(); i++) {
     probs << _nodes[i].getId() << " " << outrates[i] << " " << inrates[i]
@@ -171,7 +174,12 @@ void KMCLifetime::RunVSSM() {
 
   XTP_LOG(Log::error, _log)
       << "Writing trajectory to " << _trajectoryfile << "." << std::flush;
-  traj.open(_trajectoryfile, std::fstream::out);
+
+  if (!traj.open(_trajectoryfile, std::fstream::out)) {
+    std::string error_msg = "Unable to write to file " + _trajectoryfile;
+    throw std::exception(error_msg);
+  }
+
   traj << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last "
           "Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]\n";
 
@@ -181,7 +189,12 @@ void KMCLifetime::RunVSSM() {
         << "Tracking the energy of one charge carrier and exponential average "
            "with alpha="
         << _alpha << " to " << _energy_outputfile << std::flush;
-    energyfile.open(_energy_outputfile, std::fstream::out);
+
+    if (!energyfile.open(_energy_outputfile, std::fstream::out)) {
+      std::string error_msg = "Unable to write to file " + _energy_outputfile;
+      throw std::exception(error_msg);
+    }
+
     energyfile << "Simtime [s]\tSteps\tCarrier ID\tEnergy_a=" << _alpha
                << "[eV]\n";
   }
