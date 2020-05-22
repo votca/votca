@@ -22,7 +22,7 @@
 #include <string>
 
 // Local VOTCA includes
-#include <votca/tools/votca_config.h>
+#include "votca_config.h"
 
 namespace votca {
 
