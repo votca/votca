@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  *
  */
 
-#ifndef _tools_version_H
-#define _tools_version_H
+#ifndef VOTCA_TOOLS_VERSION_H
+#define VOTCA_TOOLS_VERSION_H
 
+// Standard includes
 #include <string>
 
 namespace votca {
@@ -26,4 +27,4 @@ const std::string& ToolsVersionStr();
 }
 }  // namespace votca
 
-#endif /* _tools_version_H */
+#endif  // VOTCA_TOOLS_VERSION_H

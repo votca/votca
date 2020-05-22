@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,16 +17,18 @@
  *
  */
 
-#include "edgecontainer.h"
-#include "graphnode.h"
-#include <iostream>
+#ifndef VOTCA_TOOLS_GRAPH_H
+#define VOTCA_TOOLS_GRAPH_H
+
+// Standard includes
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
-#ifndef _VOTCA_TOOLS_GRAPH_H
-#define _VOTCA_TOOLS_GRAPH_H
+// Local VOTCA includes
+#include "edgecontainer.h"
+#include "graphnode.h"
 
 namespace votca {
 namespace tools {
@@ -162,4 +164,4 @@ bool cmpVertNodePair(const std::pair<Index, GraphNode>& id_and_node1,
                      const std::pair<Index, GraphNode>& id_and_node2);
 }  // namespace tools
 }  // namespace votca
-#endif  // _VOTCA_TOOLS_GRAPH_H
+#endif  // VOTCA_TOOLS_GRAPH_H

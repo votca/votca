@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,14 +17,17 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_EDGECONTAINER_H
-#define _VOTCA_TOOLS_EDGECONTAINER_H
+#ifndef VOTCA_TOOLS_EDGECONTAINER_H
+#define VOTCA_TOOLS_EDGECONTAINER_H
 
-#include "edge.h"
+// Standard includes
 #include <map>
 #include <set>
 #include <unordered_map>
 #include <vector>
+
+// Local VOTCA includes
+#include "edge.h"
 
 namespace votca {
 namespace tools {
@@ -78,4 +81,4 @@ class EdgeContainer {
 }  // namespace tools
 }  // namespace votca
 
-#endif  // _VOTCA_TOOLS_EDGECONTAINER_H
+#endif  // VOTCA_TOOLS_EDGECONTAINER_H

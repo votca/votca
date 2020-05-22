@@ -8,6 +8,7 @@ add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_LINALG_SOURCES})
 #CMAKE_CURRENT_BINARY_DIR for gitversion.h
 #PROJECT_BINARY_DIR/include for votca_config.h
 target_include_directories(votca_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/votca/tools>
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)

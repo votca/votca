@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  *
  */
 
-#include <expat.h>
+// Standard includes
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -25,14 +25,17 @@
 #include <string.h>
 #include <string>
 
-#include "../../include/votca/tools/colors.h"
-#include "../../include/votca/tools/property.h"
-#include "../../include/votca/tools/propertyiomanipulator.h"
-#include "../../include/votca/tools/tokenizer.h"
-
+// Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <expat.h>
 #include <unistd.h>
+
+// Local VOTCA includes
+#include "votca/tools/colors.h"
+#include "votca/tools/property.h"
+#include "votca/tools/propertyiomanipulator.h"
+#include "votca/tools/tokenizer.h"
 
 namespace votca {
 namespace tools {

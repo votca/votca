@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  *
  */
 
-#include "../../include/votca/tools/globals.h"
+// Local VOTCA includes
+#include "votca/tools/globals.h"
 
 namespace votca {
 
@@ -50,7 +51,7 @@ std::string globals::man::authors(
 std::string globals::man::copyright(
     "\n.SH COPYRIGHT\n"
     "\n.P\n\n"
-    "Copyright 2009\\-2019 The VOTCA Development Team (%1%).\n"
+    "Copyright 2009\\-2020 The VOTCA Development Team (%1%).\n"
     "\n.P\n"
     "Licensed under the Apache License, Version 2.0 (the \"License\") "
     "you may not use this file except in compliance with the License. "

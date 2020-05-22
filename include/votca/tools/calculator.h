@@ -20,6 +20,7 @@
 #ifndef VOTCA_TOOLS_CALCULATOR_H
 #define VOTCA_TOOLS_CALCULATOR_H
 
+// Local VOTCA includes
 #include "globals.h"
 #include "property.h"
 #include "propertyiomanipulator.h"
@@ -136,4 +137,4 @@ class Calculator {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* VOTCA_TOOLS_CALCULATOR_H */
+#endif  // VOTCA_TOOLS_CALCULATOR_H
