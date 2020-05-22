@@ -22,6 +22,7 @@ For more detailed information about the changes see the history of the
 * add kokkos-based Ewald solver (#444, #446)
 * allow multiple choices for the calculator options (#442, #445)
 * move bsecoupling defaults to xml (#451)
+* address missing includes (#452)
 
 ## Version 1.6.1 (released XX.04.20)
 * fix warnings on Ubuntu 20.04 (#438)
