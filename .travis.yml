@@ -28,25 +28,25 @@ jobs:
 env:
   matrix:
     - ENV=1
-    - ENV=2
+      #    - ENV=2
     - ENV=3
-    - ENV=4
-    - ENV=5
-    - ENV=6
-    - ENV=7
-    - ENV=8
-    - ENV=9
-    - ENV=10
-    - ENV=11
-    - ENV=12
-    - ENV=13
-    - ENV=14
-    - ENV=15
-    - ENV=16
-    - ENV=17
-    - ENV=18
-    - ENV=19
-    - ENV=20
+#    - ENV=4
+#    - ENV=5
+#    - ENV=6
+#    - ENV=7
+#    - ENV=8
+#    - ENV=9
+#    - ENV=10
+#    - ENV=11
+#    - ENV=12
+#    - ENV=13
+#    - ENV=14
+#    - ENV=15
+#    - ENV=16
+#    - ENV=17
+#    - ENV=18
+#    - ENV=19
+#    - ENV=20
 
 before_script:
  # innocuous comment
