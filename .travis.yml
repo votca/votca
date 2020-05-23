@@ -49,6 +49,7 @@ env:
     - ENV=20
 
 before_script:
+ # innocuous comment
  - git checkout -b current_commit
  - cd ../../
  - if [[ ${TRAVIS_REPO_SLUG} = */votca ]]; then
