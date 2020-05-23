@@ -15,7 +15,7 @@ add_feature_info(ENABLE_REGRESSION_TESTING ENABLE_REGRESSION_TESTING "Enable reg
 if(ENABLE_REGRESSION_TESTING)
   option(ENABLE_EXPERIMENTAL_TESTS "Run more unstable regression tests as well" OFF)
   add_feature_info(ENABLE_EXPERIMENTAL_TESTS ENABLE_EXPERIMENTAL_TESTS "Enable experimental regression tests")
-  set(REGRESSIONTEST_TOLERANCE "5e-2" CACHE STRING "Tolerance for the regression tests")
+  set(REGRESSIONTEST_TOLERANCE "1e-1" CACHE STRING "Tolerance for the regression tests")
   mark_as_advanced(REGRESSIONTEST_TOLERANCE)
   enable_testing()
   find_package(LMP)
