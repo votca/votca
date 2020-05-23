@@ -13,14 +13,14 @@ git:
   quiet: true
 
 stages:
-  - canary
+  #  - canary
   - test
   - deploy
 
 jobs:
   include:
-    - stage: canary
-      env: ENV=3
+    #    - stage: canary
+    #  env: ENV=3
     - stage: deploy
       if: repo = votca/votca AND type != pull_request
       env: ENV=1
@@ -152,7 +152,7 @@ cache:
 
 compiler:
   - gcc
-  - clang
+    #  - clang
 
 notifications:
   email:
