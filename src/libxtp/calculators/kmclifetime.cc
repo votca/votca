@@ -15,15 +15,24 @@
  *
  */
 
-#include "kmclifetime.h"
-#include "votca/xtp/qmstate.h"
+// Standard includes
+#include <exception>
+#include <fstream>
+
+// Third party includes
 #include <boost/format.hpp>
 #include <boost/progress.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/gnode.h>
-#include <votca/xtp/topology.h>
+
+// Local VOTCA includes
+#include "kmclifetime.h"
+#include "votca/xtp/eigen.h"
+#include "votca/xtp/gnode.h"
+#include "votca/xtp/qmstate.h"
+#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {
@@ -79,6 +88,10 @@ void KMCLifetime::WriteDecayProbability(std::string filename) {
 
   std::fstream probs;
   probs.open(filename, std::fstream::out);
+  if (!probs.is_open()) {
+    std::string error_msg = "Unable to write to file " + filename;
+    throw std::runtime_error(error_msg);
+  }
   probs << "#SiteID, Relative Prob outgoing, Relative Prob ingoing\n";
   for (unsigned i = 0; i < _nodes.size(); i++) {
     probs << _nodes[i].getId() << " " << outrates[i] << " " << inrates[i]
@@ -163,7 +176,13 @@ void KMCLifetime::RunVSSM() {
 
   XTP_LOG(Log::error, _log)
       << "Writing trajectory to " << _trajectoryfile << "." << std::flush;
+
   traj.open(_trajectoryfile, std::fstream::out);
+  if (!traj.is_open()) {
+    std::string error_msg = "Unable to write to file " + _trajectoryfile;
+    throw std::runtime_error(error_msg);
+  }
+
   traj << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last "
           "Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]\n";
 
@@ -174,6 +193,11 @@ void KMCLifetime::RunVSSM() {
            "with alpha="
         << _alpha << " to " << _energy_outputfile << std::flush;
     energyfile.open(_energy_outputfile, std::fstream::out);
+    if (!energyfile.is_open()) {
+      std::string error_msg = "Unable to write to file " + _energy_outputfile;
+      throw std::runtime_error(error_msg);
+    }
+
     energyfile << "Simtime [s]\tSteps\tCarrier ID\tEnergy_a=" << _alpha
                << "[eV]\n";
   }
