@@ -28,6 +28,8 @@
 #include <votca/xtp/aomatrix3d.h>
 #include <votca/xtp/aopotential.h>
 #include <votca/xtp/gauss_hermite_quadrature_constants.h>
+#include <votca/xtp/gauss_laguerre_quadrature_constants.h>
+#include <votca/xtp/gauss_legendre_quadrature_constants.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
@@ -1047,20 +1049,53 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const 
   // function of omega Hermite quadrature of order 12: If you want to use
   // different orders for now you have to change the 12 number in getPoints and
   // getAdaptedWeights (now avail. 8,10,12,14,16,18,20,100)
+  Index order = 8;
 
-  Gauss_Hermite_Quadrature_Constants ghqc;
-  Eigen::VectorXd _quadpoints = ghqc.getPoints(30);
-  Eigen::VectorXd _quadadaptedweights = ghqc.getAdaptedWeights(30);
   std::complex<double> delta(0., -1e-3);
+  double omega_s = 0.3*tools::conv::ev2hrt; //Fixed shift respect to real axis
   Eigen::MatrixXcd sigma =
       Eigen::MatrixXcd::Zero(_density_Matrix.cols(), _density_Matrix.cols());
-  for (Index j = 0; j < 30; ++j) {
-    std::complex<double> gridpoint(0,_quadpoints(j)); 
-    sigma += _quadadaptedweights(j) *
-             SelfEnergy_at_wp(omega, gridpoint) *
-             std::exp(delta * gridpoint);
-  }
 
+  if (_opt.quadrature_scheme == "laguerre") {
+    // Laguerre is from 0 to infinity
+    Gauss_Laguerre_Quadrature_Constants glqc;
+    Eigen::VectorXd _quadpoints = glqc.getPoints(order);
+    Eigen::VectorXd _quadadaptedweights = glqc.getAdaptedWeights(order);
+    for (Index j = 0; j < order; ++j) {
+    std::complex<double> gridpoint(omega_s,_quadpoints(j)); 
+    sigma += _quadadaptedweights(j) *
+             SelfEnergy_at_wp(omega, gridpoint);
+  }
+  sigma *=2; //This because later we multiply sigma by -1/2pi
+  } else if (_opt.quadrature_scheme == "legendre") {
+    //Modified Legendre is from -1 to 1
+    Gauss_Legendre_Quadrature_Constants glqc;
+    Eigen::VectorXd _quadpoints = glqc.getPoints(_opt.quadrature_order);
+    Eigen::VectorXd _quadadaptedweights = glqc.getAdaptedWeights(_opt.quadrature_order);
+    double x0 = 0.5;
+    for (Index j = 0; j < _opt.quadrature_order; ++j) {
+      double exponent = (1+_quadpoints(j))/(1-_quadpoints(j));
+      double mod_quadpoints = std::pow(x0,exponent);
+      double mod_weights =  2*x0*_quadadaptedweights(j)/std::pow(1-_quadadaptedweights(j),2);
+    std::complex<double> gridpoint(omega_s,mod_quadpoints); 
+    sigma += mod_weights * SelfEnergy_at_wp(omega, gridpoint);
+  }
+  sigma *=2; //This because later we multiply sigma by -1/2pi
+  } else if (_opt.quadrature_scheme == "hermite") {
+    //Hermite is from -infty to infty
+    Gauss_Hermite_Quadrature_Constants glqc;
+    Eigen::VectorXd _quadpoints = glqc.getPoints(_opt.quadrature_order);
+    Eigen::VectorXd _quadadaptedweights = glqc.getAdaptedWeights(_opt.quadrature_order);
+    for (Index j = 0; j < _opt.quadrature_order; ++j) {
+    std::complex<double> gridpoint(omega_s,_quadpoints(j)); 
+    sigma += _quadadaptedweights(j) *
+             SelfEnergy_at_wp(omega, gridpoint);
+  }
+  } else {
+    std::cout << "There no such a thing as the integration scheme you asked"
+              << std::endl;
+  }
+  
   return sigma;
 }
 
@@ -1102,7 +1137,7 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(std::complex<double> omega) co
                                                        _mo_coefficients.col(n)))
                      .sum();
   }
-  std::complex<double> prefactor(0., 1./(2 * tools::conv::Pi));  // i/(2 eta)
+  std::complex<double> prefactor(-1./(2 * tools::conv::Pi),0.);  // i/(2 eta)
   return prefactor * results;
 }
 

@@ -236,6 +236,10 @@ void GWBSE::Initialize(tools::Property& options) {
             key + ".sternheimer.spatialgridtype", _gwopt.spatialgridtype);
     _gwopt.gws_grid_spacing = options.ifExistsReturnElseReturnDefault<Index>(
         key + ".sternheimer.gws_grid_spacing", _gwopt.gws_grid_spacing);
+    _gwopt.quadrature_scheme = options.ifExistsReturnElseReturnDefault<std::string>(
+        key + ".sternheimer.quadrature_scheme", _gwopt.quadrature_scheme);
+    _gwopt.quadrature_order = options.ifExistsReturnElseReturnDefault<Index>(
+        key + ".sternheimer.quadrature_order", _gwopt.quadrature_order);    
     XTP_LOG(Log::error, *_pLog)
         << " Omega initial: " << _gwopt.omegain << flush;
     XTP_LOG(Log::error, *_pLog) << " Omega final: " << _gwopt.omegafin << flush;
@@ -248,6 +252,8 @@ void GWBSE::Initialize(tools::Property& options) {
         << " GW-Sternheimer Grid Spacing: " << _gwopt.gws_grid_spacing << flush;    
     XTP_LOG(Log::error, *_pLog)
         << " Calculation: " << _gwopt.calculation << flush;
+    XTP_LOG(Log::error, *_pLog)
+        << " Quadrature: " << _gwopt.quadrature_scheme << " Order: " << _gwopt.quadrature_order << flush;    
   }
 
   // eigensolver options

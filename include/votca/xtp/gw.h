@@ -67,7 +67,9 @@ class GW {
     double lorentzian_broadening=0.3; //eV
     std::string calculation="gwsternheimer"; //Type of calculation for Sternheimer
     std::string spatialgridtype="coarse";
-    Index gws_grid_spacing=5;
+    Index gws_grid_spacing=5; 
+    Index quadrature_order = 8; //Order of the quadrature for self energy integration
+    std::string quadrature_scheme = "hermite"; //Kind of quadrature for self energy integration
   };
 
   void configure(const options& opt);
