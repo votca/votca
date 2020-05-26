@@ -101,7 +101,7 @@ void IQM::ParseOptionsXML(const tools::Property& options) {
   }
 
   // options for parsing data into state file
-  std::string key_read = "options." + Identify() + ".readjobfile";
+  std::string key_read = ".readjobfile";
   if (options.exists(key_read + ".singlet")) {
     std::string parse_string_s =
         options.get(key_read + ".singlet").as<std::string>();
