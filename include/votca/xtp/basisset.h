@@ -21,11 +21,14 @@
 #ifndef VOTCA_XTP_BASISSET_H
 #define VOTCA_XTP_BASISSET_H
 
+// Standard includes
 #include <iostream>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
+// VOTCA includes
 #include <votca/tools/types.h>
 
 namespace votca {

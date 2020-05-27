@@ -18,11 +18,12 @@
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_POLARSITE_H
-#define __VOTCA_XTP_POLARSITE_H
+#ifndef VOTCA_XTP_POLARSITE_H
+#define VOTCA_XTP_POLARSITE_H
 
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/staticsite.h>
+// Local VOTCA includes
+#include "eigen.h"
+#include "staticsite.h"
 
 namespace votca {
 namespace xtp {
@@ -163,4 +164,4 @@ class PolarSite : public StaticSite {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_POLARSITE_H

@@ -18,11 +18,12 @@ nn * See the License for the specific language governing permissions and
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_STATICSITE_H
-#define __VOTCA_XTP_STATICSITE_H
+#ifndef VOTCA_XTP_STATICSITE_H
+#define VOTCA_XTP_STATICSITE_H
 
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/qmatom.h>
+// Local VOTCA includes
+#include "eigen.h"
+#include "qmatom.h"
 
 namespace votca {
 namespace xtp {
@@ -136,4 +137,4 @@ class StaticSite {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_STATICSITE_H

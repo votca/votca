@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  *
  */
 #pragma once
-#ifndef VOTCA_XTP_CHECKPOINT_TABLE_H
-#define VOTCA_XTP_CHECKPOINT_TABLE_H
+#ifndef VOTCA_XTP_CHECKPOINTTABLE_H
+#define VOTCA_XTP_CHECKPOINTTABLE_H
 
-#include <H5Cpp.h>
+// Standard includes
 #include <cstddef>
 #include <cstring>
 #include <iostream>
@@ -25,7 +25,12 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <votca/xtp/checkpoint_utils.h>
+
+// Third party includes
+#include <H5Cpp.h>
+
+// Local VOTCA includes
+#include "checkpoint_utils.h"
 
 #define CPT_MEM_FROM_STRUCT(m, s) HOFFSET(s, m)
 #define CPT_MEMBER(m, s) HOFFSET(s, m)
@@ -211,4 +216,4 @@ class CptTable {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // VOTCA_XTP_CHECKPOINT_TABLE_H
+#endif  // VOTCA_XTP_CHECKPOINTTABLE_H

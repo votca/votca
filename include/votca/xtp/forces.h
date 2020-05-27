@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,11 +21,14 @@
 #ifndef VOTCA_XTP_FORCES_H
 #define VOTCA_XTP_FORCES_H
 
+// Standard includes
 #include <stdio.h>
-#include <votca/xtp/gwbseengine.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmatom.h>
-#include <votca/xtp/segment.h>
+
+// Local VOTCA includes
+#include "gwbseengine.h"
+#include "logger.h"
+#include "qmatom.h"
+#include "segment.h"
 
 namespace votca {
 namespace xtp {

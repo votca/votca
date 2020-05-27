@@ -18,11 +18,15 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_ANDERSON__H
-#define _VOTCA_XTP_ANDERSON__H
+#ifndef VOTCA_XTP_ANDERSON_MIXING_H
+#define VOTCA_XTP_ANDERSON_MIXING_H
 
+// Standard includes
 #include <vector>
-#include <votca/xtp/eigen.h>
+
+// Local VOTCA includes
+#include "eigen.h"
+
 namespace votca {
 namespace xtp {
 /**
@@ -58,4 +62,4 @@ class Anderson {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_ANDERSON_MIXING_H

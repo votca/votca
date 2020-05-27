@@ -21,12 +21,15 @@
 #ifndef VOTCA_XTP_QMPACKAGE_H
 #define VOTCA_XTP_QMPACKAGE_H
 
-#include "votca/xtp/aobasis.h"
+// VOTCA includes
 #include <votca/tools/property.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/settings.h>
-#include <votca/xtp/staticsite.h>
+
+// Local VOTCA includes
+#include "aobasis.h"
+#include "classicalsegment.h"
+#include "logger.h"
+#include "settings.h"
+#include "staticsite.h"
 
 namespace votca {
 namespace xtp {
