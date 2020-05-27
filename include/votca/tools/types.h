@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,16 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_TYPES_H
-#define _VOTCA_TOOLS_TYPES_H
+#ifndef VOTCA_TOOLS_TYPES_H
+#define VOTCA_TOOLS_TYPES_H
 
+// Local VOTCA includes
 #include "eigen.h"
+
 namespace votca {
 
 using Index = Eigen::Index;
 
 }  // namespace votca
 
-#endif /* _types_H */
+#endif  // VOTCA_TOOLS_TYPES_H

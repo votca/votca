@@ -1,6 +1,6 @@
 /*
  *            E
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,11 +18,12 @@
  *
  */
 
+#ifndef VOTCA_TOOLS_REDUCEDGRAPH_H
+#define VOTCA_TOOLS_REDUCEDGRAPH_H
+
+// Local VOTCA includes
 #include "graph.h"
 #include "reducededge.h"
-
-#ifndef _VOTCA_TOOLS_REDUCEDGRAPH_H
-#define _VOTCA_TOOLS_REDUCEDGRAPH_H
 
 namespace votca {
 namespace tools {
@@ -141,4 +142,4 @@ class ReducedGraph : public Graph {
 
 }  // namespace tools
 }  // namespace votca
-#endif  // _VOTCA_TOOLS_REDUCEDGRAPH_H
+#endif  // VOTCA_TOOLS_REDUCEDGRAPH_H

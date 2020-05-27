@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@
 #ifndef VOTCA_TOOLS_STRUCTUREPARAMETERS_H
 #define VOTCA_TOOLS_STRUCTUREPARAMETERS_H
 
-#include <boost/any.hpp>
+// Standard includes
 #include <cassert>
 #include <unordered_map>
+
+// Third party includes
+#include <boost/any.hpp>
 
 namespace votca {
 namespace tools {
@@ -125,4 +128,4 @@ T StructureParameters::get(const StructureParameter parameter) const {
 
 }  // namespace tools
 }  // namespace votca
-#endif  // VOTCA_TOOL_STRUCTUREPARAMETERS_H
+#endif  // VOTCA_TOOLS_STRUCTUREPARAMETERS_H

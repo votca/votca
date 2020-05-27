@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,20 @@
  *
  */
 
-#include "../../include/votca/tools/application.h"
-#include "../../include/votca/tools/globals.h"
-#include "../../include/votca/tools/property.h"
-#include "../../include/votca/tools/propertyiomanipulator.h"
-#include "../../include/votca/tools/version.h"
+// Standard includes
+#include <iostream>
+
+// Third party includes
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
-#include <iostream>
+
+// Local VOTCA includes
+#include "votca/tools/application.h"
+#include "votca/tools/globals.h"
+#include "votca/tools/property.h"
+#include "votca/tools/propertyiomanipulator.h"
+#include "votca/tools/version.h"
 
 using namespace std;
 using namespace votca::tools;

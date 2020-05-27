@@ -15,8 +15,9 @@
  *
  */
 
-#include "../../include/votca/tools/calculator.h"
-#include "../../include/votca/tools/tokenizer.h"
+// Local VOTCA includes
+#include "votca/tools/calculator.h"
+#include "votca/tools/tokenizer.h"
 
 namespace votca {
 namespace tools {

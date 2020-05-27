@@ -20,7 +20,8 @@
 #ifndef __VOTCA_TOOLS_EIGEN__H
 #define __VOTCA_TOOLS_EIGEN__H
 
-#include <votca/tools/votca_config.h>
+// Local VOTCA includes
+#include "votca_config.h"
 
 #ifdef MKL_FOUND
 #include <mkl.h>

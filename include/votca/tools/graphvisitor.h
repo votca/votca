@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,14 +17,16 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GRAPH_VISITOR_H
-#define __VOTCA_TOOLS_GRAPH_VISITOR_H
+#ifndef VOTCA_TOOLS_GRAPHVISITOR_H
+#define VOTCA_TOOLS_GRAPHVISITOR_H
 
-#include "edge.h"
-#include "graphnode.h"
-#include <iostream>
+// Standard includes
 #include <set>
 #include <vector>
+
+// Local VOTCA includes
+#include "edge.h"
+#include "graphnode.h"
 
 /**
  * \brief A graph visitor class for creating graph visitor objects
@@ -98,4 +100,4 @@ class GraphVisitor {
 }  // namespace tools
 }  // namespace votca
 
-#endif  // __VOTCA_TOOLS_GRAPH_VISITOR_H
+#endif  // VOTCA_TOOLS_GRAPHVISITOR_H

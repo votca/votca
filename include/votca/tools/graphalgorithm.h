@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,14 +17,16 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
-#define __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
+#ifndef VOTCA_TOOLS_GRAPHALGORITHM_H
+#define VOTCA_TOOLS_GRAPHALGORITHM_H
 
-#include "graphnode.h"
-#include "reducedgraph.h"
-#include <iostream>
+// Standard includes
 #include <memory>
 #include <string>
+
+// Local VOTCA includes
+#include "graphnode.h"
+#include "reducedgraph.h"
 
 /**
  * \brief This file is a compilation of graph related algorithms.
@@ -224,4 +226,4 @@ std::string findStructureId(Graph& graph) {
 }  // namespace tools
 }  // namespace votca
 
-#endif  // __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
+#endif  // VOTCA_TOOLS_GRAPHALGORITHM_H

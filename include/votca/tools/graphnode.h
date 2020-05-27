@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,14 +17,16 @@
  *
  */
 
-#include "types.h"
-#include <iostream>
+#ifndef VOTCA_TOOLS_GRAPHNODE_H
+#define VOTCA_TOOLS_GRAPHNODE_H
+
+// Standard includes
 #include <string>
 #include <unordered_map>
 #include <utility>
 
-#ifndef _VOTCA_TOOLS_GRAPHNODE_H
-#define _VOTCA_TOOLS_GRAPHNODE_H
+// Local VOTCA includes
+#include "types.h"
 
 namespace votca {
 namespace tools {
@@ -95,4 +97,4 @@ bool cmpNode(GraphNode gn1, GraphNode gn2);
 
 }  // namespace tools
 }  // namespace votca
-#endif  // _VOTCA_TOOLS_GRAPHNODE_H
+#endif  // VOTCA_TOOLS_GRAPHNODE_H

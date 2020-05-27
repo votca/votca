@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,13 +17,16 @@
  *
  */
 
-#include "../../include/votca/tools/edgecontainer.h"
-#include "../../include/votca/tools/edge.h"
+// Standard includes
 #include <algorithm>
 #include <cassert>
 #include <exception>
 #include <set>
 #include <vector>
+
+// Local VOTCA includes
+#include "votca/tools/edge.h"
+#include "votca/tools/edgecontainer.h"
 
 namespace votca {
 namespace tools {

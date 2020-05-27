@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,10 +17,11 @@
  *
  */
 
-#include "edge.h"
+#ifndef VOTCA_TOOLS_REDUCEDEDGE_H
+#define VOTCA_TOOLS_REDUCEDEDGE_H
 
-#ifndef _VOTCA_TOOLS_REDUCEDEDGE_H
-#define _VOTCA_TOOLS_REDUCEDEDGE_H
+// Local VOTCA includes
+#include "edge.h"
 
 namespace votca {
 namespace tools {
@@ -163,4 +164,4 @@ class hash<votca::tools::ReducedEdge> {
   }
 };
 }  // namespace std
-#endif  // _VOTCA_TOOLS_REDUCEDEDGE_H
+#endif  // VOTCA_TOOLS_REDUCEDEDGE_H
