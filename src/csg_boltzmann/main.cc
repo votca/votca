@@ -180,7 +180,7 @@ void CsgBoltzmann::InteractiveMode() {
 
   cout << help_text << endl;
 
-  while (1) {
+  while (true) {
     string line;
     cout << "> ";
     getline(cin, line);
