@@ -50,8 +50,6 @@ if(ENABLE_TESTING)
   set_tests_properties(integration_Compare_csg_reupdate_output3 PROPERTIES DEPENDS integration_Run_csg_reupdate2)
   set_tests_properties(integration_Compare_csg_reupdate_output3 PROPERTIES LABELS "csg;tools;votca")
 
-  find_program(GMX_EXECUTABLE gmx_d gmx)
-  find_package_handle_standard_args(GMX REQUIRED_VARS GMX_EXECUTABLE)
   if(GMX_FOUND)
     set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_reupdate_gmx)
     file(MAKE_DIRECTORY ${RUNPATH})

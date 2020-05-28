@@ -7,6 +7,7 @@ For more detailed information about the changes see the history of the
 * fix CI on Ubuntu-20.04 (#526)
 * drop support for gmx 2016/2018 (#529)
 * fix csg_reupdate and add tests (#525)
+* fix detection of lmp and gmx in cmake (#540)
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * enforce periodic boundaries for dihedrals (#500)
