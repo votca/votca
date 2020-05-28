@@ -18,18 +18,23 @@
 #ifndef VOTCA_TOOLS_PROPERTY_H
 #define VOTCA_TOOLS_PROPERTY_H
 
-#include "eigen.h"
-#include "lexical_cast.h"
-#include "tokenizer.h"
-#include "types.h"
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/format.hpp>
+// Standard includes
 #include <cstdlib>
 #include <iostream>
 #include <list>
 #include <map>
 #include <stdexcept>
 #include <string>
+
+// Third party includes
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/format.hpp>
+
+// Local VOTCA includes
+#include "eigen.h"
+#include "lexical_cast.h"
+#include "tokenizer.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {

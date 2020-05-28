@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,15 +17,20 @@
  *
  */
 
-#include "../../include/votca/tools/graphnode.h"
+// Standard includes
 #include <algorithm>
-#include <boost/lexical_cast.hpp>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/graphnode.h"
 
 namespace votca {
 namespace tools {

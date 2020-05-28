@@ -20,6 +20,7 @@
 #ifndef VOTCA_TOOLS_REDUCEDEDGE_H
 #define VOTCA_TOOLS_REDUCEDEDGE_H
 
+// Local VOTCA includes
 #include "edge.h"
 
 namespace votca {

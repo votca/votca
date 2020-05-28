@@ -15,9 +15,8 @@
  *
  */
 
-#include <cstdio>
+// Standard includes
 #include <cstring>
-#include <expat.h>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -25,14 +24,17 @@
 #include <stdexcept>
 #include <string>
 
-#include "../../include/votca/tools/colors.h"
-#include "../../include/votca/tools/property.h"
-#include "../../include/votca/tools/propertyiomanipulator.h"
-#include "../../include/votca/tools/tokenizer.h"
-
+// Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <expat.h>
 #include <unistd.h>
+
+// Local VOTCA includes
+#include "votca/tools/colors.h"
+#include "votca/tools/property.h"
+#include "votca/tools/propertyiomanipulator.h"
+#include "votca/tools/tokenizer.h"
 
 namespace votca {
 namespace tools {

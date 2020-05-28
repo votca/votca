@@ -18,10 +18,13 @@
 #ifndef VOTCA_TOOLS_TABLE_H
 #define VOTCA_TOOLS_TABLE_H
 
-#include "eigen.h"
-#include "types.h"
+// Standard includes
 #include <string>
 #include <vector>
+
+// Local VOTCA includes
+#include "eigen.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {

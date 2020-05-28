@@ -18,11 +18,13 @@
 #ifndef VOTCA_TOOLS_HISTOGRAM_H
 #define VOTCA_TOOLS_HISTOGRAM_H
 
-#include "datacollection.h"
+// Standard includes
 #include <cmath>
-#include <iostream>
 #include <limits>
 #include <vector>
+
+// Local VOTCA includes
+#include "datacollection.h"
 
 namespace votca {
 namespace tools {

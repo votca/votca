@@ -18,9 +18,9 @@
 #ifndef VOTCA_TOOLS_LINSPLINE_H
 #define VOTCA_TOOLS_LINSPLINE_H
 
+// Local VOTCA includes
 #include "eigen.h"
 #include "spline.h"
-#include <iostream>
 
 namespace votca {
 namespace tools {

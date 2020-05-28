@@ -20,12 +20,12 @@
 #ifndef VOTCA_TOOLS_ELEMENTS_H
 #define VOTCA_TOOLS_ELEMENTS_H
 
-#include "constants.h"
-#include <fstream>
-#include <iostream>
+// Standard includes
 #include <map>
-#include <stdexcept>
 #include <string>
+
+// Local VOTCA includes
+#include "constants.h"
 
 namespace votca {
 namespace tools {

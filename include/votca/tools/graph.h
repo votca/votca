@@ -17,16 +17,18 @@
  *
  */
 
-#include "edgecontainer.h"
-#include "graphnode.h"
-#include <iostream>
+#ifndef VOTCA_TOOLS_GRAPH_H
+#define VOTCA_TOOLS_GRAPH_H
+
+// Standard includes
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
-#ifndef VOTCA_TOOLS_GRAPH_H
-#define VOTCA_TOOLS_GRAPH_H
+// Local VOTCA includes
+#include "edgecontainer.h"
+#include "graphnode.h"
 
 namespace votca {
 namespace tools {

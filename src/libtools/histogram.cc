@@ -15,10 +15,13 @@
  *
  */
 
-#include "../../include/votca/tools/histogram.h"
+// Standard includes
 #include <cmath>
 #include <limits>
 #include <numeric>
+
+// Local VOTCA includes
+#include "votca/tools/histogram.h"
 
 namespace votca {
 namespace tools {

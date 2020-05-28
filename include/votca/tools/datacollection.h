@@ -18,12 +18,15 @@
 #ifndef VOTCA_TOOLS_DATACOLLECTION_H
 #define VOTCA_TOOLS_DATACOLLECTION_H
 
-#include "tokenizer.h"
-#include "types.h"
+// Standard includes
 #include <cassert>
 #include <map>
 #include <sstream>
 #include <vector>
+
+// Local VOTCA includes
+#include "tokenizer.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {

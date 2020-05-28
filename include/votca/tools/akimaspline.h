@@ -18,9 +18,12 @@
 #ifndef VOTCA_TOOLS_AKIMASPLINE_H
 #define VOTCA_TOOLS_AKIMASPLINE_H
 
+// Standard includes
+#include <iostream>
+
+// Local VOTCA includes
 #include "eigen.h"
 #include "spline.h"
-#include <iostream>
 
 namespace votca {
 namespace tools {

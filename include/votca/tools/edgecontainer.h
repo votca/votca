@@ -20,11 +20,14 @@
 #ifndef VOTCA_TOOLS_EDGECONTAINER_H
 #define VOTCA_TOOLS_EDGECONTAINER_H
 
-#include "edge.h"
+// Standard includes
 #include <map>
 #include <set>
 #include <unordered_map>
 #include <vector>
+
+// Local VOTCA includes
+#include "edge.h"
 
 namespace votca {
 namespace tools {

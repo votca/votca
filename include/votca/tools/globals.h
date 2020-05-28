@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,14 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GLOBALS_H
-#define __VOTCA_TOOLS_GLOBALS_H
+#ifndef VOTCA_TOOLS_GLOBALS_H
+#define VOTCA_TOOLS_GLOBALS_H
 
+// Standard includes
 #include <string>
-#include <votca/tools/votca_config.h>
+
+// Local VOTCA includes
+#include "votca_config.h"
 
 namespace votca {
 
@@ -74,4 +77,4 @@ struct globals {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_TOOLS_GLOBALS_H */
+#endif  // VOTCA_TOOLS_GLOBALS_H

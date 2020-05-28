@@ -18,8 +18,11 @@
 #ifndef VOTCA_TOOLS_APPLICATION_H
 #define VOTCA_TOOLS_APPLICATION_H
 
-#include "property.h"
+// Third party includes
 #include <boost/program_options.hpp>
+
+// Local VOTCA includes
+#include "property.h"
 
 namespace votca {
 namespace tools {

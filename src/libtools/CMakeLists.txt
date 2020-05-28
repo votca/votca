@@ -10,6 +10,7 @@ add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_LINALG_SOURCES})
 target_include_directories(votca_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/votca/tools>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
