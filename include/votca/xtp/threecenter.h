@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,13 +18,16 @@
  */
 
 #pragma once
-#ifndef __XTP_THREECENTER__H
-#define __XTP_THREECENTER__H
+#ifndef VOTCA_XTP_THREECENTER_H
+#define VOTCA_XTP_THREECENTER_H
 
+// Standard includes
 #include <array>
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/symmetric_matrix.h>
+
+// Local VOTCA includes
+#include "eigen.h"
+#include "logger.h"
+#include "symmetric_matrix.h"
 
 #ifdef USE_CUDA
 #include "cudapipeline.h"
@@ -167,4 +170,4 @@ class TCMatrix_gwbse : public TCMatrix {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* AOMATRIX_H */
+#endif  // VOTCA_XTP_THREECENTER_H

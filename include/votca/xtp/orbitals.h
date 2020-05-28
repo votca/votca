@@ -21,14 +21,17 @@
 #ifndef VOTCA_XTP_ORBITALS_H
 #define VOTCA_XTP_ORBITALS_H
 
-#include "aobasis.h"
+// VOTCA includes
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/checkpoint.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/qmmolecule.h>
-#include <votca/xtp/qmstate.h>
+
+// Local VOTCA includes
+#include "aobasis.h"
+#include "checkpoint.h"
+#include "classicalsegment.h"
+#include "eigen.h"
+#include "qmmolecule.h"
+#include "qmstate.h"
 
 namespace votca {
 namespace xtp {

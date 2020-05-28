@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,12 +21,16 @@
 #ifndef VOTCA_XTP_ECPAOSHELL_H
 #define VOTCA_XTP_ECPAOSHELL_H
 
+// Third party includes
 #include <boost/math/constants/constants.hpp>
-#include <votca/tools/constants.h>
-#include <votca/xtp/eigen.h>
 
+// VOTCA includes
+#include <votca/tools/constants.h>
+
+// Local VOTCA includes
+#include "ecpbasisset.h"
+#include "eigen.h"
 #include "qmatom.h"
-#include <votca/xtp/ecpbasisset.h>
 
 namespace votca {
 namespace xtp {

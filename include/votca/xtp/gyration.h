@@ -21,10 +21,14 @@
 #ifndef VOTCA_XTP_GYRATION_H
 #define VOTCA_XTP_GYRATION_H
 
+// Standard includes
 #include <stdio.h>
-#include <votca/xtp/density_integration.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
+
+// Local VOTCA includes
+#include "density_integration.h"
+#include "logger.h"
+#include "orbitals.h"
+
 namespace votca {
 namespace xtp {
 

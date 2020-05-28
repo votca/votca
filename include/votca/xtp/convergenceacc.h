@@ -18,14 +18,18 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_CONVERGENCEACC__H
-#define _VOTCA_XTP_CONVERGENCEACC__H
+#ifndef VOTCA_XTP_CONVERGENCEACC_H
+#define VOTCA_XTP_CONVERGENCEACC_H
 
+// VOTCA includes
 #include <votca/tools/linalg.h>
-#include <votca/xtp/adiis.h>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/diis.h>
-#include <votca/xtp/logger.h>
+
+// Local VOTCA includes
+#include "adiis.h"
+#include "aomatrix.h"
+#include "diis.h"
+#include "logger.h"
+
 namespace votca {
 namespace xtp {
 
@@ -122,4 +126,4 @@ class ConvergenceAcc {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_CONVERGENCEACC_H

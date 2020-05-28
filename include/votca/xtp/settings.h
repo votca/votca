@@ -17,9 +17,10 @@
  *
  */
 
-#ifndef __XTP_SETTINGS__H
-#define __XTP_SETTINGS__H
+#ifndef VOTCA_XTP_SETTINGS_H
+#define VOTCA_XTP_SETTINGS_H
 
+// Standard includes
 #include <algorithm>
 #include <iostream>
 #include <iterator>
@@ -27,6 +28,8 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+
+// VOTCA includes
 #include <votca/tools/property.h>
 
 /*
@@ -166,4 +169,4 @@ class Settings {
 
 }  // namespace xtp
 }  // namespace votca
-#endif
+#endif  // VOTCA_XTP_SETTINGS_H
