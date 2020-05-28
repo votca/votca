@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
  *
  */
 
-#ifndef __VOTCA_CSG_XYZWRITER_H
-#define __VOTCA_CSG_XYZWRITER_H
+#ifndef VOTCA_CSG_XYZWRITER_H
+#define VOTCA_CSG_XYZWRITER_H
 
 // Standard includes
-#include <stdio.h>
+#include <cstdio>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -101,4 +101,4 @@ inline void XYZWriter::Write(T &container, std::string header) {
 }  // namespace csg
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_CSG_XYZWRITER_H

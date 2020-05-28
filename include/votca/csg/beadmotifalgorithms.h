@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ T breakIntoMotifs(BeadStructure &beadstructure) {
  **/
 
 std::pair<std::unordered_map<Index, BeadMotif>, BeadMotifConnector>
-    breakIntoSimpleMotifs(BeadMotif beadmotif);
+    breakIntoSimpleMotifs(BeadMotif bead_motif);
 
 }  // namespace csg
 }  // namespace votca

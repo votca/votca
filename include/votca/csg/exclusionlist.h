@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_EXCLUSIONLIST_H
-#define _VOTCA_CSG_EXCLUSIONLIST_H
+#ifndef VOTCA_CSG_EXCLUSIONLIST_H
+#define VOTCA_CSG_EXCLUSIONLIST_H
 
 // Standard includes
 #include <iostream>
@@ -65,7 +65,7 @@ class ExclusionList {
   bool IsExcluded(Bead *bead1, Bead *bead2) const;
 
   template <typename iteratable>
-  void InsertExclusion(Bead *bead, iteratable &excluded);
+  void InsertExclusion(Bead *bead1_, iteratable &l);
 
   void InsertExclusion(Bead *bead1, Bead *bead2);
 
@@ -202,9 +202,9 @@ inline void ExclusionList::RemoveExclusion(Bead *bead1, Bead *bead2) {
   }
 }
 
-std::ostream &operator<<(std::ostream &out, ExclusionList &ex);
+std::ostream &operator<<(std::ostream &out, ExclusionList &exl);
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_EXCLUSIONLIST_H */
+#endif  // VOTCA_CSG_EXCLUSIONLIST_H
