@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,10 +66,10 @@ class CubicSpline : public Spline {
   void Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) override;
 
   // Calculate the function value
-  double Calculate(double x) override;
+  double Calculate(double r) override;
 
   // Calculate the function derivative
-  double CalculateDerivative(double x) override;
+  double CalculateDerivative(double r) override;
 
   using Spline::Calculate;
   using Spline::CalculateDerivative;
@@ -90,7 +90,7 @@ class CubicSpline : public Spline {
    * one entry in that fitting matrix.
    */
   template <typename matrix_type>
-  void AddToFitMatrix(matrix_type &A, double x, Index offset1,
+  void AddToFitMatrix(matrix_type &M, double x, Index offset1,
                       Index offset2 = 0, double scale = 1);
 
   /**
@@ -104,7 +104,7 @@ class CubicSpline : public Spline {
    * one entry in that fitting matrix.
    */
   template <typename matrix_type>
-  void AddToFitMatrix(matrix_type &A, double x, Index offset1, Index offset2,
+  void AddToFitMatrix(matrix_type &M, double x, Index offset1, Index offset2,
                       double scale1, double scale2);
 
   /**
@@ -124,7 +124,7 @@ class CubicSpline : public Spline {
    * \param offsets
    */
   template <typename matrix_type>
-  void AddBCSumZeroToFitMatrix(matrix_type &A, Index offset1,
+  void AddBCSumZeroToFitMatrix(matrix_type &M, Index offset1,
                                Index offset2 = 0);
 
   /**
@@ -133,7 +133,7 @@ class CubicSpline : public Spline {
    * \param offsets
    */
   template <typename matrix_type>
-  void AddBCToFitMatrix(matrix_type &A, Index offset1, Index offset2 = 0);
+  void AddBCToFitMatrix(matrix_type &M, Index offset1, Index offset2 = 0);
 
  private:
   // y values of grid points
@@ -258,4 +258,4 @@ inline void CubicSpline::AddBCToFitMatrix(matrix_type &M, Index offset1,
 }  // namespace tools
 }  // namespace votca
 
-#endif /* VOTCA_TOOLS_CUBICSPLINE_H */
+#endif  // VOTCA_TOOLS_CUBICSPLINE_H

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_EDGECONTAINER_H
-#define _VOTCA_TOOLS_EDGECONTAINER_H
+#ifndef VOTCA_TOOLS_EDGECONTAINER_H
+#define VOTCA_TOOLS_EDGECONTAINER_H
 
 #include "edge.h"
 #include <map>
@@ -73,9 +73,9 @@ class EdgeContainer {
   std::vector<Edge> getNeighEdges(Index vertex) const;
   /// Print output of object
   friend std::ostream& operator<<(std::ostream& os,
-                                  const EdgeContainer edge_container);
+                                  const EdgeContainer edgecontainer);
 };
 }  // namespace tools
 }  // namespace votca
 
-#endif  // _VOTCA_TOOLS_EDGECONTAINER_H
+#endif  // VOTCA_TOOLS_EDGECONTAINER_H

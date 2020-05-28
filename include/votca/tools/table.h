@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ class Table {
   bool _has_yerr = false;
   bool _has_comment = false;
 
-  friend std::ostream &operator<<(std::ostream &out, const Table &v);
+  friend std::ostream &operator<<(std::ostream &out, const Table &t);
   friend std::istream &operator>>(std::istream &in, Table &t);
 
   std::string _comment_line;

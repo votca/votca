@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ class RangeParser {
  public:
   RangeParser();
 
-  void Parse(std::string range);
+  void Parse(std::string str);
 
   void Add(Index begin, Index end, Index stride = 1);
 
@@ -73,7 +73,7 @@ class RangeParser {
   RangeParser::iterator end();
 
  private:
-  void ParseBlock(std::string block);
+  void ParseBlock(std::string str);
 
   std::list<block_t> _blocks;
 
@@ -130,4 +130,4 @@ inline std::ostream &operator<<(std::ostream &out, const RangeParser &rp) {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* VOTCA_TOOLS_RANGEPARSER_H */
+#endif  // VOTCA_TOOLS_RANGEPARSER_H

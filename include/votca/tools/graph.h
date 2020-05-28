@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -25,8 +25,8 @@
 #include <utility>
 #include <vector>
 
-#ifndef _VOTCA_TOOLS_GRAPH_H
-#define _VOTCA_TOOLS_GRAPH_H
+#ifndef VOTCA_TOOLS_GRAPH_H
+#define VOTCA_TOOLS_GRAPH_H
 
 namespace votca {
 namespace tools {
@@ -64,7 +64,7 @@ class Graph {
   /// s (vertex ids) describing a link between the vertices
   /// @param nodes - unordered_map where the key is the vertex id and the
   /// target is the graph node
-  Graph(std::vector<Edge> edgs, std::unordered_map<Index, GraphNode> nodes);
+  Graph(std::vector<Edge> edges, std::unordered_map<Index, GraphNode> nodes);
 
   /// Equivalence and non equivalence operators work by determine if the
   /// contents of each graph node in each of the graphs are the same.
@@ -162,4 +162,4 @@ bool cmpVertNodePair(const std::pair<Index, GraphNode>& id_and_node1,
                      const std::pair<Index, GraphNode>& id_and_node2);
 }  // namespace tools
 }  // namespace votca
-#endif  // _VOTCA_TOOLS_GRAPH_H
+#endif  // VOTCA_TOOLS_GRAPH_H

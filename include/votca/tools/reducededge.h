@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,8 +19,8 @@
 
 #include "edge.h"
 
-#ifndef _VOTCA_TOOLS_REDUCEDEDGE_H
-#define _VOTCA_TOOLS_REDUCEDEDGE_H
+#ifndef VOTCA_TOOLS_REDUCEDEDGE_H
+#define VOTCA_TOOLS_REDUCEDEDGE_H
 
 namespace votca {
 namespace tools {
@@ -51,7 +51,7 @@ class ReducedEdge : public Edge {
   ReducedEdge() = default;
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
-  ReducedEdge(std::vector<Index> chain);
+  ReducedEdge(std::vector<Index> vertices);
 
   ReducedEdge(Index vertex1, Index vertex2)
       : ReducedEdge(std::vector<Index>{vertex1, vertex2}){};
@@ -163,4 +163,4 @@ class hash<votca::tools::ReducedEdge> {
   }
 };
 }  // namespace std
-#endif  // _VOTCA_TOOLS_REDUCEDEDGE_H
+#endif  // VOTCA_TOOLS_REDUCEDEDGE_H
