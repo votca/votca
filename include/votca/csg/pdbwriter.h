@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
  *
  */
 
-#ifndef _PDBWRITER_H
-#define _PDBWRITER_H
+#ifndef VOTCA_CSG_PDBWRITER_H
+#define VOTCA_CSG_PDBWRITER_H
 
 // Standard includes
-#include <stdio.h>
+#include <cstdio>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -127,4 +127,4 @@ inline void PDBWriter::WriteContainer(T &container) {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _PDBWRITER_H */
+#endif  // VOTCA_CSG_PDBWRITER_H

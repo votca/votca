@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -200,7 +200,7 @@ class Topology {
    * Records are kept of the different bead types in the topology object. This
    * method stores the bead type.
    **/
-  void RegisterBeadType(std::string name);
+  void RegisterBeadType(std::string type);
 
   /**
    * \brief Given a bead type this method returns the id associated with the
@@ -361,8 +361,8 @@ class Topology {
    * calculates the smallest distance between two points with correct treatment
    * of pbc
    */
-  Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r1,
-                                       const Eigen::Vector3d &r2) const;
+  Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r_i,
+                                       const Eigen::Vector3d &r_j) const;
 
   /**
    * \brief return the shortest box size

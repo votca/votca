@@ -17,12 +17,12 @@
 
 #include "csg_reupdate.h"
 #include "../../include/votca/csg/nblistgrid.h"
+#include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <math.h>
 #include <sstream>
-#include <stdio.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/linalg.h>
 /*

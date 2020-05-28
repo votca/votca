@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_FMATCH_H
-#define _VOTCA_CSG_FMATCH_H
+#ifndef VOTCA_CSG_CSG_FMATCH_H
+#define VOTCA_CSG_CSG_FMATCH_H
 
 #include "../../include/votca/csg/csgapplication.h"
 #include "../../include/votca/csg/trajectoryreader.h"
@@ -65,7 +65,7 @@ class CGForceMatching : public CsgApplication {
   /// parameters
   struct SplineInfo {
     /// \brief constructor
-    SplineInfo(votca::Index index, bool bonded, votca::Index matr_pos,
+    SplineInfo(votca::Index index, bool bonded_, votca::Index matr_pos_,
                votca::tools::Property *options);
     /// \brief number of spline functions
     votca::Index num_splinefun;
@@ -200,4 +200,4 @@ class CGForceMatching : public CsgApplication {
   TrajectoryReader *_trjreader_force;
 };
 
-#endif /* _VOTCA_CSG_FMATCH_H */
+#endif  // VOTCA_CSG_CSG_FMATCH_H

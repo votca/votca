@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_IMC_H
-#define _VOTCA_CSG_IMC_H
+#ifndef VOTCA_CSG_CSG_STAT_IMC_H
+#define VOTCA_CSG_CSG_STAT_IMC_H
 
 #include "../../include/votca/csg/csgapplication.h"
 #include <votca/tools/average.h>
@@ -150,7 +150,7 @@ class Imc {
 
  public:
   CsgApplication::Worker *ForkWorker();
-  void MergeWorker(CsgApplication::Worker *worker);
+  void MergeWorker(CsgApplication::Worker *worker_);
 };
 
 inline Imc::pair_t::pair_t(Imc::interaction_t *i1, Imc::interaction_t *i2,
@@ -161,4 +161,4 @@ inline Imc::pair_t::pair_t(Imc::interaction_t *i1, Imc::interaction_t *i2,
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_IMC_H */
+#endif  // VOTCA_CSG_CSG_STAT_IMC_H

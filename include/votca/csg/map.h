@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,8 +58,8 @@ class BeadMap {
  public:
   virtual ~BeadMap() = default;
   virtual void Apply(const BoundaryCondition &) = 0;
-  virtual void Initialize(Molecule *in, Bead *out, tools::Property *opts_map,
-                          tools::Property *opts_bead);
+  virtual void Initialize(Molecule *in, Bead *out, tools::Property *opts_bead,
+                          tools::Property *opts_map);
 
  protected:
   Molecule *_in;
