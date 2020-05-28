@@ -17,10 +17,10 @@
  *
  */
 
-#include "edge.h"
-
 #ifndef VOTCA_TOOLS_REDUCEDEDGE_H
 #define VOTCA_TOOLS_REDUCEDEDGE_H
+
+#include "edge.h"
 
 namespace votca {
 namespace tools {

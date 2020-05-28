@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ class Histogram {
   struct options_t;
 
   /// constructor
-  Histogram(options_t op);
+  Histogram(const options_t &op);
   Histogram();
   /// destructor
   ~Histogram();
@@ -90,4 +90,4 @@ inline std::ostream &operator<<(std::ostream &out, Histogram &h) {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* _histogram_H */
+#endif  // VOTCA_TOOLS_HISTOGRAM_H
