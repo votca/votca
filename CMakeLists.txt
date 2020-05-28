@@ -82,7 +82,7 @@ if (WITH_GMX)
   endif()
 endif(WITH_GMX) 
 
-find_program(GMX_EXECUTABLE gmx_d gmx)
+find_program(GMX_EXECUTABLE NAMES gmx_d gmx)
 find_package_handle_standard_args(GMX REQUIRED_VARS GMX_EXECUTABLE)
 
 if(ENABLE_TESTING)
