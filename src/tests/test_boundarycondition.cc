@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,9 @@ BOOST_AUTO_TEST_SUITE(boundarycondition_test)
 BOOST_AUTO_TEST_CASE(test_boundarycondition_initiatialization) {
   vector<unique_ptr<BoundaryCondition>> boundaries;
 
-  boundaries.push_back(unique_ptr<OpenBox>(new OpenBox));
-  boundaries.push_back(unique_ptr<TriclinicBox>(new TriclinicBox));
-  boundaries.push_back(unique_ptr<OrthorhombicBox>(new OrthorhombicBox));
+  boundaries.push_back(std::make_unique<OpenBox>());
+  boundaries.push_back(std::make_unique<TriclinicBox>());
+  boundaries.push_back(std::make_unique<OrthorhombicBox>());
 
   BOOST_CHECK_EQUAL(boundaries.at(0)->getBoxType(),
                     BoundaryCondition::eBoxtype::typeOpen);
@@ -50,9 +50,9 @@ BOOST_AUTO_TEST_CASE(test_boundarycondition_initiatialization) {
 BOOST_AUTO_TEST_CASE(test_boundarycondition_boxvolume) {
   vector<unique_ptr<BoundaryCondition>> boundaries;
 
-  boundaries.push_back(unique_ptr<OpenBox>(new OpenBox));
-  boundaries.push_back(unique_ptr<TriclinicBox>(new TriclinicBox));
-  boundaries.push_back(unique_ptr<OrthorhombicBox>(new OrthorhombicBox));
+  boundaries.push_back(std::make_unique<OpenBox>());
+  boundaries.push_back(std::make_unique<TriclinicBox>());
+  boundaries.push_back(std::make_unique<OrthorhombicBox>());
 
   Eigen::Matrix3d box;
   box << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
@@ -81,9 +81,9 @@ BOOST_AUTO_TEST_CASE(test_boundarycondition_boxvolume) {
 BOOST_AUTO_TEST_CASE(test_boundarycondition_clone) {
   vector<unique_ptr<BoundaryCondition>> boundaries;
 
-  boundaries.push_back(unique_ptr<OpenBox>(new OpenBox));
-  boundaries.push_back(unique_ptr<TriclinicBox>(new TriclinicBox));
-  boundaries.push_back(unique_ptr<OrthorhombicBox>(new OrthorhombicBox));
+  boundaries.push_back(std::make_unique<OpenBox>());
+  boundaries.push_back(std::make_unique<TriclinicBox>());
+  boundaries.push_back(std::make_unique<OrthorhombicBox>());
 
   Eigen::Matrix3d box;
   box << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;

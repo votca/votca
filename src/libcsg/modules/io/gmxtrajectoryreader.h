@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_GMXTRAJECTORYREADER_H
-#define _VOTCA_CSG_GMXTRAJECTORYREADER_H
+#ifndef VOTCA_CSG_GMXTRAJECTORYREADER_H
+#define VOTCA_CSG_GMXTRAJECTORYREADER_H
 
 #ifndef HAVE_NO_CONFIG
 #include <votca_config.h>
@@ -62,9 +62,9 @@ class GMXTrajectoryReader : public TrajectoryReader {
   /// open a trejectory file
   bool Open(const std::string &file) override;
   /// read in the first frame
-  bool FirstFrame(Topology &top) override;
+  bool FirstFrame(Topology &conf) override;
   /// read in the next frame
-  bool NextFrame(Topology &top) override;
+  bool NextFrame(Topology &conf) override;
 
   void Close() override;
 
@@ -80,4 +80,4 @@ class GMXTrajectoryReader : public TrajectoryReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_GMXTRAJECTORYREADER_H */
+#endif  // VOTCA_CSG_GMXTRAJECTORYREADER_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _DLPTOPOLOGYREADER_H
-#define _DLPTOPOLOGYREADER_H
+#ifndef VOTCA_CSG_DLPOLYTOPOLOGYREADER_H
+#define VOTCA_CSG_DLPOLYTOPOLOGYREADER_H
 
 #include "../../../../include/votca/csg/topology.h"
 #include "../../../../include/votca/csg/topologyreader.h"
@@ -64,18 +64,18 @@ class DLPOLYTopologyReader : public TopologyReader {
   std::string _fname;
   /// function to find and read the next line starting with a keyword/directive
   /// (skipping comments starting with "#" or ";")
-  std::string _NextKeyline(std::ifstream &fs, const char *wsp);
+  std::string _NextKeyline(std::ifstream &fs, const char *wspace);
   /// function to read the next line containing only a given keyword and an
   /// integer value after it (only skipping comments!)
-  std::string _NextKeyInt(std::ifstream &fs, const char *wsp,
+  std::string _NextKeyInt(std::ifstream &fs, const char *wspace,
                           const std::string &word, Index &ival);
   /// function to check if the given (last read) directive line starts with a
   /// given keyword and has an integer value at the end
-  bool _isKeyInt(const std::string &line, const char *wsp,
+  bool _isKeyInt(const std::string &line, const char *wspace,
                  const std::string &word, Index &ival);
 };
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _DLPTOPOLOGYREADER_H */
+#endif  // VOTCA_CSG_DLPOLYTOPOLOGYREADER_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <numeric>
 #include <votca/tools/rangeparser.h>
 
@@ -180,8 +181,8 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
   }
 
   votca::Index index = Index(_interactions.size());
-  auto success = _interactions.insert(std::make_pair(
-      name, std::unique_ptr<interaction_t>(new interaction_t())));
+  auto success = _interactions.insert(
+      std::make_pair(name, std::make_unique<interaction_t>()));
   interaction_t *i = success.first->second.get();
   i->_index = index;
   getGroup(group)->_interactions.push_back(i);
@@ -316,7 +317,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       if (gridsearch) {
         nb = std::unique_ptr<NBList_3Body>(new NBListGrid_3Body());
       } else {
-        nb = std::unique_ptr<NBList_3Body>(new NBList_3Body());
+        nb = std::make_unique<NBList_3Body>();
       }
 
       nb->setCutoff(i._cut);  // implement different cutoffs for different
@@ -453,8 +454,8 @@ Imc::group_t *Imc::getGroup(const string &name) {
   map<string, std::unique_ptr<group_t> >::iterator iter;
   iter = _groups.find(name);
   if (iter == _groups.end()) {
-    auto success = _groups.insert(
-        std::make_pair(name, std::unique_ptr<group_t>(new group_t())));
+    auto success =
+        _groups.insert(std::make_pair(name, std::make_unique<group_t>()));
     return success.first->second.get();
   }
   return (*iter).second.get();
