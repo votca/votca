@@ -27,4 +27,4 @@ if(NOT TARGET uninstall)
 endif()
 add_dependencies(uninstall uninstall-xtp-tutorials)
 
-add_subdirectory(doc)
+add_subdirectory(share/doc)
