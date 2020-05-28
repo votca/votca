@@ -83,10 +83,10 @@ class Orca : public QMPackage {
   std::string indent(const double& number);
   std::string getLName(Index lnum);
 
-  void WriteBasisset(const QMMolecule& qmatoms, std::string& _bs_name,
+  void WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
                      std::string& el_file_name);
-  void WriteCoordinates(std::ofstream& com_file, const QMMolecule&);
-  void WriteECP(std::ofstream& com_file, const QMMolecule&);
+  void WriteCoordinates(std::ofstream& inp_file, const QMMolecule&);
+  void WriteECP(std::ofstream& inp_file, const QMMolecule&);
   void WriteBackgroundCharges();
 
   void WriteChargeOption() override;

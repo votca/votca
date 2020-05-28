@@ -18,9 +18,9 @@
 #define VOTCA_XTP_HUFFMANTREE_H
 
 // Standard includes
+#include <cstdlib>
 #include <list>
 #include <queue>
-#include <stdlib.h>
 #include <vector>
 
 namespace votca {

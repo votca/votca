@@ -17,7 +17,7 @@
 
 #include "ianalyze.h"
 
-#include <math.h>
+#include <cmath>
 #include <numeric>
 #include <votca/tools/histogramnew.h>
 #include <votca/xtp/topology.h>

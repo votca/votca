@@ -16,8 +16,8 @@
  */
 
 #pragma once
-#ifndef __VOTCA_KMC_MULTIPLE_H
-#define __VOTCA_KMC_MULTIPLE_H
+#ifndef VOTCA_XTP_KMCMULTIPLE_H
+#define VOTCA_XTP_KMCMULTIPLE_H
 
 #include <fstream>
 #include <votca/xtp/kmccalculator.h>
@@ -30,7 +30,7 @@ class KMCMultiple : public KMCCalculator {
   ~KMCMultiple() override = default;
   bool WriteToStateFile() const override { return false; }
   std::string Identify() override { return "kmcmultiple"; }
-  void Initialize(const tools::Property& options) override;
+  void Initialize(const tools::Property& user_options) override;
   bool EvaluateFrame(Topology& top) override;
 
  private:
@@ -60,4 +60,4 @@ class KMCMultiple : public KMCCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_KMC_MULTIPLE_H */
+#endif  // VOTCA_XTP_KMCMULTIPLE_H

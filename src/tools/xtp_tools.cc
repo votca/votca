@@ -17,9 +17,9 @@
  *
  */
 
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string>
 #include <votca/tools/property.h>
 #include <votca/xtp/qmtool.h>

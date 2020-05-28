@@ -22,8 +22,8 @@
 #define VOTCA_XTP_STATESAVER_H
 
 // Standard includes
+#include <cstdio>
 #include <map>
-#include <stdio.h>
 
 // Local VOTCA includes
 #include "topology.h"

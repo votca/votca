@@ -49,7 +49,7 @@ class ProgObserver {
 
  public:
   void InitCmdLineOpts(const boost::program_options::variables_map &optsMap);
-  void InitFromProgFile(std::string progFile, QMThread &master);
+  void InitFromProgFile(std::string progFile, QMThread &thread);
   ProgObserver::Job *RequestNextJob(QMThread &thread);
   void ReportJobDone(Job &job, Result &res, QMThread &thread);
 

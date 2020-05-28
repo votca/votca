@@ -114,7 +114,7 @@ class BSE {
   void configureBSEOperator(BSE_OPERATOR& H) const;
 
   template <typename BSE_OPERATOR>
-  tools::EigenSystem solve_hermitian(BSE_OPERATOR& H) const;
+  tools::EigenSystem solve_hermitian(BSE_OPERATOR& h) const;
 
   template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
   tools::EigenSystem Solve_nonhermitian(BSE_OPERATOR_ApB& apb,

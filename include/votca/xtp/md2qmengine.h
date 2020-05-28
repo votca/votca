@@ -44,7 +44,7 @@ class Md2QmEngine {
                                const std::vector<Index>& atom_ids_map) const;
 
   void MakeSegmentsWholePBC(Topology& top) const;
-  bool CheckMolWhole(const Topology& top, const Segment& mol) const;
+  bool CheckMolWhole(const Topology& top, const Segment& seg) const;
 
   std::string _mapfile;
 };

@@ -36,7 +36,7 @@ class Log2Mps : public QMTool {
 
   std::string Identify() override { return "log2mps"; }
 
-  void Initialize(const tools::Property &options) override;
+  void Initialize(const tools::Property &user_options) override;
   bool Evaluate() override;
 
  private:
@@ -114,4 +114,4 @@ bool Log2Mps::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_LOG2MPS_H

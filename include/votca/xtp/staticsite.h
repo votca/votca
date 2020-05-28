@@ -92,7 +92,7 @@ class StaticSite {
 
   // COORDINATES TRANSFORMATION
   void Translate(const Eigen::VectorXd& shift);
-  virtual void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos);
+  virtual void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
 
   // MULTIPOLES DEFINITION
   double getCharge() const { return _Q(0); }
@@ -106,7 +106,7 @@ class StaticSite {
   Eigen::Matrix3d CalculateCartesianMultipole() const;
 
   static Eigen::VectorXd CalculateSphericalMultipole(
-      const Eigen::Matrix3d& quadrupole_cartesian);
+      const Eigen::Matrix3d& quad_cart);
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
 

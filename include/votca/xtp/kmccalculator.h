@@ -61,7 +61,7 @@ class KMCCalculator : public QMCalculator {
   Chargecarrier* ChooseAffectedCarrier(double cumulated_rate);
 
   void WriteOccupationtoFile(double simtime, std::string filename) const;
-  void WriteRatestoFile(std::string filename, const QMNBList& list) const;
+  void WriteRatestoFile(std::string filename, const QMNBList& nblist) const;
 
   void RandomlyCreateCharges();
   void RandomlyAssignCarriertoSite(Chargecarrier& Charge);
