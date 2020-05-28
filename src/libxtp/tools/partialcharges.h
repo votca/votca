@@ -18,11 +18,11 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_PARTIALCHARGES_H
-#define _VOTCA_XTP_PARTIALCHARGES_H
+#ifndef VOTCA_XTP_PARTIALCHARGES_H
+#define VOTCA_XTP_PARTIALCHARGES_H
 
 #include <boost/filesystem.hpp>
-#include <stdio.h>
+#include <cstdio>
 #include <votca/xtp/esp2multipole.h>
 #include <votca/xtp/logger.h>
 
@@ -36,7 +36,7 @@ class Partialcharges : public QMTool {
 
   std::string Identify() override { return "partialcharges"; }
 
-  void Initialize(const tools::Property& options) override;
+  void Initialize(const tools::Property& user_options) override;
   bool Evaluate() override;
 
  private:
@@ -87,4 +87,4 @@ bool Partialcharges::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_PARTIALCHARGES_H

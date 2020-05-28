@@ -19,7 +19,7 @@
 
 #include "gencube.h"
 #include <boost/format.hpp>
-#include <stdio.h>
+#include <cstdio>
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/aobasis.h>

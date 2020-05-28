@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,11 +18,11 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_EANALYZE_H
-#define _VOTCA_XTP_EANALYZE_H
+#ifndef VOTCA_XTP_EANALYZE_H
+#define VOTCA_XTP_EANALYZE_H
 
+#include <cmath>
 #include <fstream>
-#include <math.h>
 #include <numeric>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/tokenizer.h>
@@ -41,7 +41,7 @@ class EAnalyze : public QMCalculator {
   bool WriteToStateFile() const override { return false; }
   std::string Identify() override { return "eanalyze"; }
 
-  void Initialize(const tools::Property &opt) override;
+  void Initialize(const tools::Property &user_options) override;
   bool EvaluateFrame(Topology &top) override;
 
  private:
@@ -67,4 +67,4 @@ class EAnalyze : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // _VOTCA_XTP_EANALYZE_H
+#endif  // VOTCA_XTP_EANALYZE_H

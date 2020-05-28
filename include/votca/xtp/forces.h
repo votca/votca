@@ -22,7 +22,7 @@
 #define VOTCA_XTP_FORCES_H
 
 // Standard includes
-#include <stdio.h>
+#include <cstdio>
 
 // Local VOTCA includes
 #include "gwbseengine.h"

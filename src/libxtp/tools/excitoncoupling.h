@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_EXCITONCOUPLINGH_H
-#define _VOTCA_XTP_EXCITONCOUPLINGH_H
+#ifndef VOTCA_XTP_EXCITONCOUPLING_H
+#define VOTCA_XTP_EXCITONCOUPLING_H
 
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmtool.h>
@@ -38,7 +38,7 @@ class ExcitonCoupling : public QMTool {
  public:
   std::string Identify() override { return "excitoncoupling"; }
 
-  void Initialize(const tools::Property& options) override;
+  void Initialize(const tools::Property& user_options) override;
   bool Evaluate() override;
 
  private:
@@ -147,4 +147,4 @@ bool ExcitonCoupling::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_EXCITONCOUPLING_H

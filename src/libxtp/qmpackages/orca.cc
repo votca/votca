@@ -21,8 +21,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <cstdio>
 #include <iomanip>
-#include <stdio.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
