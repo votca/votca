@@ -46,7 +46,7 @@ class XtpTools : public xtp::XtpApplication {
   }
   void Initialize() override;
   bool EvaluateOptions() override;
-  void Run(void) override;
+  void Run() override;
 
   void BeginEvaluate(Index nThreads);
   bool Evaluate();
@@ -141,7 +141,7 @@ bool XtpTools::EvaluateOptions() {
   } else {
     std::cout << "Registered " << calc_string[0];
   }
-  return 1;
+  return true;
 }
 
 void XtpTools::Run() {
