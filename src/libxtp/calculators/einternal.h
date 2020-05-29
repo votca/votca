@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_EINTERNAL_H
-#define _VOTCA_XTP_EINTERNAL_H
+#ifndef VOTCA_XTP_EINTERNAL_H
+#define VOTCA_XTP_EINTERNAL_H
 
 #include "votca/xtp/qmstate.h"
 #include <votca/xtp/qmcalculator.h>
@@ -34,7 +34,7 @@ class EInternal : public QMCalculator {
 
   std::string Identify() override { return "einternal"; }
   bool WriteToStateFile() const override { return true; }
-  void Initialize(const tools::Property &options) override;
+  void Initialize(const tools::Property &user_options) override;
   void ParseEnergies();
   bool EvaluateFrame(Topology &top) override;
 
@@ -53,4 +53,4 @@ class EInternal : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  //_VOTCA_XTP_EINTERNAL_H
+#endif  // VOTCA_XTP_EINTERNAL_H

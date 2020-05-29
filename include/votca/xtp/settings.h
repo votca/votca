@@ -49,7 +49,7 @@ class Settings {
    * \brief Transform Properties into settings
    * @param Property object
    */
-  void read_property(const votca::tools::Property& prop,
+  void read_property(const votca::tools::Property& properties,
                      const std::string& key);
 
   /**
@@ -121,9 +121,9 @@ class Settings {
    * \brief Convert a Settings object into a Property
    * @param root name
    */
-  tools::Property to_property(const std::string& root) const;
+  tools::Property to_property(const std::string& name) const;
 
-  friend std::ostream& operator<<(std::ostream& out, const Settings& s);
+  friend std::ostream& operator<<(std::ostream& out, const Settings& sett);
 
  private:
   using Settings_map = std::unordered_map<std::string, votca::tools::Property>;

@@ -17,8 +17,8 @@
  *
  */
 
+#include <cstdlib>
 #include <iostream>
-#include <stdlib.h>
 #include <string>
 #include <votca/xtp/jobapplication.h>
 #include <votca/xtp/jobcalculatorfactory.h>

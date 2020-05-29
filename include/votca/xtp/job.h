@@ -39,7 +39,7 @@ class Job {
 
   Job(const tools::Property &prop);
   Job(Index id, const std::string &tag, const tools::Property &input,
-      JobStatus stat);
+      JobStatus status);
 
   std::string ConvertStatus(JobStatus) const;
   JobStatus ConvertStatus(std::string) const;

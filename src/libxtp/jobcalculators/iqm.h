@@ -46,10 +46,10 @@ namespace xtp {
 
 class IQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  void Initialize(const tools::Property& options) override;
+  void Initialize(const tools::Property& user_options) override;
   std::string Identify() override { return "iqm"; }
   Job::JobResult EvalJob(const Topology& top, Job& job,
-                         QMThread& Thread) override;
+                         QMThread& opThread) override;
   void WriteJobFile(const Topology& top) override;
   void ReadJobFile(Topology& top) override;
 
@@ -98,4 +98,4 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
 
 }  // namespace xtp
 }  // namespace votca
-#endif
+#endif  // VOTCA_XTP_IQM_H

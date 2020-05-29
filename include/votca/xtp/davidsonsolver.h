@@ -52,7 +52,7 @@ class DavidsonSolver {
   void set_tolerance(std::string tol);
   void set_correction(std::string method);
   void set_ortho(std::string method);
-  void set_size_update(std::string method);
+  void set_size_update(std::string update_size);
   void set_matrix_type(std::string mt);
 
   Eigen::ComputationInfo info() const { return _info; }
@@ -256,7 +256,7 @@ class DavidsonSolver {
 
   ArrayXl argsort(const Eigen::VectorXd &V) const;
 
-  Eigen::MatrixXd setupInitialEigenvectors(Index size) const;
+  Eigen::MatrixXd setupInitialEigenvectors(Index size_initial_guess) const;
 
   Eigen::MatrixXd extract_vectors(const Eigen::MatrixXd &V,
                                   const ArrayXl &idx) const;
@@ -268,7 +268,7 @@ class DavidsonSolver {
   Eigen::VectorXd computeCorrectionVector(const Eigen::VectorXd &qj,
                                           double lambdaj,
                                           const Eigen::VectorXd &Aqj) const;
-  Eigen::VectorXd dpr(const Eigen::VectorXd &w, double lambda) const;
+  Eigen::VectorXd dpr(const Eigen::VectorXd &r, double lambda) const;
   Eigen::VectorXd olsen(const Eigen::VectorXd &r, const Eigen::VectorXd &x,
                         double lambda) const;
 

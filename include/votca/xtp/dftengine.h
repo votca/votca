@@ -70,8 +70,8 @@ class DFTEngine {
   void PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level);
   void CalcElDipole(const Orbitals& orb) const;
   Mat_p_Energy CalculateERIs(const Eigen::MatrixXd& DMAT) const;
-  Mat_p_Energy CalcEXXs(const Eigen::MatrixXd& MOs,
-                        const Eigen::MatrixXd& DMAT) const;
+  Mat_p_Energy CalcEXXs(const Eigen::MatrixXd& MOCoeff,
+                        const Eigen::MatrixXd& Dmat) const;
   void ConfigOrbfile(Orbitals& orb);
   void SetupInvariantMatrices();
 

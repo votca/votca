@@ -17,7 +17,7 @@
 
 #include "ianalyze.h"
 
-#include <math.h>
+#include <cmath>
 #include <numeric>
 #include <votca/tools/histogramnew.h>
 #include <votca/xtp/topology.h>
@@ -66,7 +66,7 @@ bool IAnalyze::EvaluateFrame(Topology &top) {
   QMNBList &nblist = top.NBList();
   if (!nblist.size()) {
     std::cout << std::endl << "... ... No pairs in topology. Skip...";
-    return 0;
+    return false;
   }
   if (_do_pairtype) {
     bool pairs_exist = false;

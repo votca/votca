@@ -106,13 +106,13 @@ class TCMatrix_gwbse : public TCMatrix {
   void Initialize(Index basissize, Index mmin, Index mmax, Index nmin,
                   Index nmax);
 
-  void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
+  void Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
             const Eigen::MatrixXd& dft_orbitals);
   // Rebuilds ThreeCenterIntegrals, only works if the original basisobjects
   // still exist
   void Rebuild() { Fill(*_auxbasis, *_dftbasis, *_dft_orbitals); }
 
-  void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
+  void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix);
 
  private:
   // store vector of matrices
@@ -138,7 +138,7 @@ class TCMatrix_gwbse : public TCMatrix {
       const std::vector<Eigen::MatrixXd>& symmstorage,
       const Eigen::MatrixXd& dft_orbitals) const;
 
-  void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
+  void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& matrix);
 
   void FillAllBlocksOpenMP(const AOBasis& gwbasis, const AOBasis& dftbasis,
                            const Eigen::MatrixXd& dft_orbitals);

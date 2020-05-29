@@ -22,7 +22,7 @@
 #define VOTCA_XTP_ESP2MULTIPOLE_H
 
 // Standard includes
-#include <stdio.h>
+#include <cstdio>
 
 // Third party includes
 #include <boost/filesystem.hpp>

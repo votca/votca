@@ -22,7 +22,7 @@
 #define VOTCA_XTP_GYRATION_H
 
 // Standard includes
-#include <stdio.h>
+#include <cstdio>
 
 // Local VOTCA includes
 #include "density_integration.h"

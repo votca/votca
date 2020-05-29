@@ -43,8 +43,8 @@ std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l);
 
 class CheckpointFile {
  public:
-  CheckpointFile(std::string fileName);
-  CheckpointFile(std::string fileName, CheckpointAccessLevel access);
+  CheckpointFile(std::string fN);
+  CheckpointFile(std::string fN, CheckpointAccessLevel access);
 
   std::string getFileName();
   std::string getVersion();
