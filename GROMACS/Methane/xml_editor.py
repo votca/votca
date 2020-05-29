@@ -1,1 +1,1 @@
-../../xml_editor.py
+../../python_tools/xml_editor.py
