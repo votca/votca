@@ -66,7 +66,7 @@ class Graph {
   /// s (vertex ids) describing a link between the vertices
   /// @param nodes - unordered_map where the key is the vertex id and the
   /// target is the graph node
-  Graph(std::vector<Edge> edgs, std::unordered_map<Index, GraphNode> nodes);
+  Graph(std::vector<Edge> edges, std::unordered_map<Index, GraphNode> nodes);
 
   /// Equivalence and non equivalence operators work by determine if the
   /// contents of each graph node in each of the graphs are the same.

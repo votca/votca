@@ -100,10 +100,10 @@ class Elements {
   std::string getEleShort(std::string elefull);
 
   /// Is `eleshort` recognized an element symbol i.e. H, C, He, Ne etc
-  bool isEleShort(std::string eleshort);
+  bool isEleShort(std::string shortname);
 
   /// Is `elefull` recognized as an element name i.e. Carbon, HYDROGEN, suphur
-  bool isEleFull(std::string elefull);
+  bool isEleFull(std::string fullname);
 
   bool isMassAssociatedWithElement(double mass, double tolerance);
 
@@ -145,7 +145,7 @@ class Elements {
   /// Finds the element closest in mass and returns the difference as well as
   /// the string of elements short name
   std::pair<std::string, double> findShortNameOfElementClosestInMass_(
-      double Mass);
+      double mass);
 
   void FillMass();
   void FillVdWChelpG();

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_EIGEN__H
-#define __VOTCA_TOOLS_EIGEN__H
+#ifndef VOTCA_TOOLS_EIGEN_H
+#define VOTCA_TOOLS_EIGEN_H
 
 // Local VOTCA includes
 #include "votca_config.h"
@@ -55,4 +55,4 @@
 #pragma GCC diagnostic pop
 #endif
 
-#endif  //__VOTCA_TOOLS_EIGEN__H
+#endif  // VOTCA_TOOLS_EIGEN_H

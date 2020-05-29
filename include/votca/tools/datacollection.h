@@ -19,7 +19,7 @@
 #define VOTCA_TOOLS_DATACOLLECTION_H
 
 // Standard includes
-#include <assert.h>
+#include <cassert>
 #include <map>
 #include <sstream>
 #include <vector>

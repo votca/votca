@@ -16,8 +16,8 @@
  */
 
 // Standard includes
+#include <cmath>
 #include <limits>
-#include <math.h>
 #include <numeric>
 
 // Local VOTCA includes
@@ -28,7 +28,7 @@ namespace tools {
 
 Histogram::Histogram() = default;
 
-Histogram::Histogram(options_t op) : _options(op) {}
+Histogram::Histogram(const options_t& op) : _options(op) {}
 
 Histogram::~Histogram() = default;
 
@@ -112,7 +112,7 @@ void Histogram::ProcessData(DataCollection<double>::selection* data) {
   }
 }
 
-void Histogram::Normalize(void) {
+void Histogram::Normalize() {
   double norm = 1. / (_interval * accumulate(_pdf.begin(), _pdf.end(), 0.0));
   std::transform(_pdf.begin(), _pdf.end(), _pdf.begin(),
                  std::bind2nd(std::multiplies<double>(), norm));

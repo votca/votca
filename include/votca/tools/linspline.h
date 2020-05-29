@@ -51,10 +51,10 @@ class LinSpline : public Spline {
   void Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) override;
 
   // Calculate the function value
-  double Calculate(double x) override;
+  double Calculate(double r) override;
 
   // Calculate the function derivative
-  double CalculateDerivative(double x) override;
+  double CalculateDerivative(double r) override;
   using Spline::Calculate;
   using Spline::CalculateDerivative;
 

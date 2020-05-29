@@ -52,7 +52,7 @@ class ReducedEdge : public Edge {
   ReducedEdge() = default;
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
-  ReducedEdge(std::vector<Index> chain);
+  ReducedEdge(std::vector<Index> vertices);
 
   ReducedEdge(Index vertex1, Index vertex2)
       : ReducedEdge(std::vector<Index>{vertex1, vertex2}){};

@@ -125,7 +125,7 @@ class Table {
   bool _has_yerr = false;
   bool _has_comment = false;
 
-  friend std::ostream &operator<<(std::ostream &out, const Table &v);
+  friend std::ostream &operator<<(std::ostream &out, const Table &t);
   friend std::istream &operator>>(std::istream &in, Table &t);
 
   std::string _comment_line;

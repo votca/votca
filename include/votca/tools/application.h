@@ -146,7 +146,7 @@ class Application {
    * @param helptype Index or short (with options) help
    */
   void PrintDescription(std::ostream &out, const std::string &calculator_name,
-                        const std::string help_path, HelpType helptype);
+                        const std::string help_path, HelpType help_type);
 
  protected:
   /// Variable map containing all program options

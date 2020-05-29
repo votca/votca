@@ -16,13 +16,12 @@
  */
 
 // Standard includes
+#include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <stack>
 #include <stdexcept>
-#include <stdio.h>
-#include <string.h>
 #include <string>
 
 // Third party includes

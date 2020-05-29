@@ -38,7 +38,7 @@ class RangeParser {
  public:
   RangeParser();
 
-  void Parse(std::string range);
+  void Parse(std::string str);
 
   void Add(Index begin, Index end, Index stride = 1);
 
@@ -76,7 +76,7 @@ class RangeParser {
   RangeParser::iterator end();
 
  private:
-  void ParseBlock(std::string block);
+  void ParseBlock(std::string str);
 
   std::list<block_t> _blocks;
 

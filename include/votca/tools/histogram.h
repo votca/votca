@@ -40,7 +40,7 @@ class Histogram {
   struct options_t;
 
   /// constructor
-  Histogram(options_t op);
+  Histogram(const options_t &op);
   Histogram();
   /// destructor
   ~Histogram();

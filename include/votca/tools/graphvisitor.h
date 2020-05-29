@@ -95,7 +95,7 @@ class GraphVisitor {
   std::set<Index> getExploredVertices() const;
 
   /// Has the vertex been explored
-  bool vertexExplored(const Index vert) const;
+  bool vertexExplored(const Index vertex) const;
 };
 }  // namespace tools
 }  // namespace votca

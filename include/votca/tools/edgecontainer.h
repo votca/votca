@@ -76,7 +76,7 @@ class EdgeContainer {
   std::vector<Edge> getNeighEdges(Index vertex) const;
   /// Print output of object
   friend std::ostream& operator<<(std::ostream& os,
-                                  const EdgeContainer edge_container);
+                                  const EdgeContainer edgecontainer);
 };
 }  // namespace tools
 }  // namespace votca

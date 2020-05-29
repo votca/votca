@@ -19,11 +19,11 @@
 #define VOTCA_TOOLS_PROPERTY_H
 
 // Standard includes
+#include <cstdlib>
 #include <iostream>
 #include <list>
 #include <map>
 #include <stdexcept>
-#include <stdlib.h>
 #include <string>
 
 // Third party includes
