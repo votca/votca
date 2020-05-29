@@ -15,9 +15,12 @@
  *
  */
 
-#include "../../include/votca/csg/beadlist.h"
-#include "../../include/votca/csg/topology.h"
+// VOTCA includes
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/csg/beadlist.h"
+#include "votca/csg/topology.h"
 
 namespace votca {
 namespace csg {
