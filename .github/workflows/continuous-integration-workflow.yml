@@ -1,0 +1,163 @@
+name: CI
+on: [push]
+
+jobs:
+  CI:
+    continue-on-error: ${{ matrix.distro == 'ubuntu_devel' || matrix.distro == 'fedora_rawhide' || matrix.continue-on-error == true }}
+    strategy:
+      matrix:
+        distro: [latest, fedora_rawhide, opensuse, ubuntu, ubuntu_devel, ubuntu_rolling]
+        toolchain: [gnu, clang]
+        CMAKE_BUILD_TYPE: [Release, Debug]
+        include:
+          - distro: latest
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Debug
+            COVERAGE: true
+            ctest_args: '-R "regression_urea-water"'
+          - distro: latest
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Debug
+            COVERAGE: true
+            ctest_args: '-R "regression_spce_(re|imc|cma)"'
+          - distro: latest
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Debug
+            COVERAGE: true
+            ctest_args: '-R "regression_(methanol-water|propane_imc)"'
+          - distro: latest
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Debug
+            COVERAGE: true
+            ctest_args: '-E "regression_(urea-water|spce_(re|imc|cma)|methanol-water|propane_imc)"'
+          - distro: fedora_nogmx
+            toolchain: gnu
+            CMAKE_BUILD_TYPE: Release
+            MINIMAL: true
+          - distro: fedora_nogmx
+            toolchain: clang
+            CMAKE_BUILD_TYPE: Release
+            MINIMAL: true
+          - distro: fedora_nogmx
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Release
+            BUILD_GROMACS: true
+          - distro: latest
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Release
+            MODULE_BUILD: true
+          - distro: fedora_gmx2019
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Release
+          - distro: fedora_gmx2019
+            toolchain: clang
+            CMAKE_BUILD_TYPE: Release
+          - distro: fedora_gmx2019_d
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Release
+          - distro: fedora_gmx2019_d
+            toolchain: clang
+            CMAKE_BUILD_TYPE: Release
+          - distro: fedora_gmx2020
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Release
+            NO_REGRESSION_TESTING: true
+          - distro: fedora_gmx2020
+            toolchain: clang
+            CMAKE_BUILD_TYPE: Release
+            NO_REGRESSION_TESTING: true
+          - distro: fedora_gmx2020_d
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Release
+            NO_REGRESSION_TESTING: true
+          - distro: fedora_gmx2020_d
+            toolchain: clang
+            CMAKE_BUILD_TYPE: Release
+            NO_REGRESSION_TESTING: true
+          - distro: fedora_gmx9999
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Release
+            continue-on-error: true
+            NO_REGRESSION_TESTING: true
+          - distro: fedora_gmx9999
+            toolchain: clang
+            CMAKE_BUILD_TYPE: Release
+            continue-on-error: true
+            NO_REGRESSION_TESTING: true
+          - distro: fedora_gmx9999_d
+            toolchain: gcc
+            CMAKE_BUILD_TYPE: Release
+            continue-on-error: true
+            NO_REGRESSION_TESTING: true
+          - distro: fedora_gmx9999_d
+            toolchain: clang
+            CMAKE_BUILD_TYPE: Release
+            continue-on-error: true
+            NO_REGRESSION_TESTING: true
+    runs-on: ubuntu-latest
+    container: votca/buildenv:${{ matrix.distro }}
+    env:
+      CMAKE_BUILD_TYPE: ${{ matrix.CMAKE_BUILD_TYPE }}
+      MINIMAL: ${{ matrix.MINIMAL }}
+      BUILD_GROMACS: ${{ matrix.BUILD_GROMACS }}
+      MODULE_BUILD: ${{ matrix.MODULE_BUILD }}
+      REGRESSION_TESTING: ${{ ! startsWith(matrix.distro,'ubuntu') && ! matrix.NO_REGRESSION_TESTING }}
+      COVERAGE: ${{ matrix.COVERAGE }}
+      CCACHE_HASH: ccache-${{ matrix.distro }}-${{ matrix.toolchain }}-${{ matrix.CMAKE_BUILD_TYPE }}-minimal-${{ matrix.MINIMAL == true }}-owngmx-${{ matrix.BUILD_GROMACS == true }}-module-${{ matrix.MODULE_BUILD == true }}-coverage-${{ matrix.COVERAGE == true }} 
+    steps:
+      - name: Get time
+        id: time
+        run: echo "::set-output name=time::$(date +%s)"
+      - uses: actions/cache@v2
+        with:
+          path: ~/.ccache
+          key: ${{ env.CCACHE_HASH }}-${{ steps.time.outputs.time }}
+          restore-keys: ${{ env.CCACHE_HASH }} 
+      - uses: actions/checkout@master
+        with:
+          submodules: true
+      - name: Make latex.fmt
+        run: |
+          mkdir latex && cd latex &&
+          printf '\\documentclass{article}\n\\begin{document}\ntest\n\\end{document}' > test.tex &&
+          latex test.tex && cd .. && rm -rf latex
+      - name: Setup CC and CXX
+        run: |
+          if ${{ matrix.toolchain == 'clang' }}; then
+            echo "::set-env name=CXX::clang++" && echo "::set-env name=CC::clang"
+            echo "::set-env name=CMAKE_GENERATOR::Ninja"
+          else 
+            echo "::set-env name=CXX::g++" && echo "::set-env name=CC::gcc"
+          fi
+          ccache -z
+      - name: CMake
+        run: cmake -B builddir -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON -DENABLE_WERROR=ON 
+               -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DENABLE_REGRESSION_TESTING=${REGRESSION_TESTING:-ON}
+               -DBUILD_OWN_GROMACS=${BUILD_GROMACS} ${BUILD_GROMACS:+-DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF}
+               ${CMAKE_GENERATOR:+-G${CMAKE_GENERATOR}} ${COVERAGE:+-DENABLE_COVERAGE_BUILD=ON}
+               -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
+               ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON
+                  -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_XTP=OFF -DENABLE_REGRESSION_TESTING=OFF}
+      - name: Build
+        run: |
+          cmake --build builddir --parallel 2
+          ccache -s
+      - name: Tests
+        run: cd builddir && ctest --output-on-failure ${{ matrix.ctest_args }}
+      - name: Upload Report to codecov.io
+        if: ${{ matrix.COVERAGE }}
+        uses: codecov/codecov-action@v1
+      - name: Doxygen
+        if: ${{ ! matrix.MODULE_BUILD }}
+        run: cmake --build builddir --target doxygen
+      - name: Build Sphinx
+        if: ${{ ! startsWith(matrix.distro,'ubuntu') && matrix.distro != 'opensuse' && matrix.MODULE_BUILD != true }}
+        run: cmake --build builddir --target doc
+      - name: Test DESTDIR Install
+        if: ${{ ! matrix.MODULE_BUILD }}
+        run: DESTDIR=${PWD}/install cmake --install builddir && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
+      - name: Install
+        run: sudo cmake --install builddir
+      - name: Check Formatting
+        if: ${{ matrix.distro == 'latest' && matrix.MODULE_BUILD != true }}
+        run: cmake --build builddir --target format && git diff --submodule=diff --exit-code
