@@ -31,6 +31,7 @@ html_context = {
 
 
 extensions = [
+    'nbsphinx', # Generate sphinx documentation directly from the jupyter notebooks
     'recommonmark', # Parse markdown
     'sphinx.ext.mathjax', # Write equations
     'sphinx.ext.githubpages' # Create content to publish in githubpages
