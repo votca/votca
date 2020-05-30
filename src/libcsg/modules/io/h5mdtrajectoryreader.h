@@ -15,18 +15,21 @@
  *
  */
 
-#ifndef SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
-#define SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
+#ifndef VOTCA_CSG_H5MDTRAJECTORYREADER_PRIVATE_H
+#define VOTCA_CSG_H5MDTRAJECTORYREADER_PRIVATE_H
 
-#include "../../../../include/votca/csg/topologyreader.h"
-#include "../../../../include/votca/csg/trajectoryreader.h"
-
+// Standard includes
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <string>
 
-#include "hdf5.h"
+// Third party includes
+#include <hdf5.h>
+
+// Local VOTCA includes
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/trajectoryreader.h"
 
 namespace votca {  // NOLINT
 namespace csg {

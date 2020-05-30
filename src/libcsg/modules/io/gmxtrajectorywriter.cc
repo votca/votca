@@ -15,10 +15,16 @@
  *
  */
 
-#include "gmxtrajectorywriter.h"
+// Standard includes
+#include <string>
+
+// Third party includes
 #include <gromacs/fileio/trxio.h>
 #include <gromacs/trajectory/trajectoryframe.h>
-#include <string>
+
+// Local private VOTCA includes
+#include "gmxtrajectorywriter.h"
+
 // this one is needed because of bool is defined in one of the headers included
 // by gmx
 #undef bool

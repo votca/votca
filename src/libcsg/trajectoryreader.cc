@@ -19,20 +19,22 @@
 #include <votca_config.h>
 #endif
 
-#include "../../include/votca/csg/trajectoryreader.h"
-#include "../../include/votca/csg/xyzreader.h"
-#include "modules/io/lammpsdatareader.h"
-#include "modules/io/lammpsdumpreader.h"
+// Local VOTCA includes
+#include "votca/csg/trajectoryreader.h"
+#include "votca/csg/xyzreader.h"
 
-#ifdef GMX_DOUBLE
-#include "modules/io/gmxtrajectoryreader.h"
-#endif
+// Local private VOTCA includes
 #include "modules/io/dlpolytrajectoryreader.h"
-#include "modules/io/groreader.h"
-#include "modules/io/pdbreader.h"
 #ifdef H5MD
 #include "modules/io/h5mdtrajectoryreader.h"
 #endif
+#ifdef GMX_DOUBLE
+#include "modules/io/gmxtrajectoryreader.h"
+#endif
+#include "modules/io/groreader.h"
+#include "modules/io/lammpsdatareader.h"
+#include "modules/io/lammpsdumpreader.h"
+#include "modules/io/pdbreader.h"
 
 namespace votca {
 namespace csg {

@@ -15,9 +15,12 @@
  *
  */
 
-#include "../../include/votca/csg/exclusionlist.h"
-#include "../../include/votca/csg/topology.h"
+// Standard includes
 #include <algorithm>
+
+// Local VOTCA includes
+#include "votca/csg/exclusionlist.h"
+#include "votca/csg/topology.h"
 
 namespace votca {
 namespace csg {

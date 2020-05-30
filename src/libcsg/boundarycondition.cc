@@ -14,10 +14,13 @@
  * limitations under the License.
  *
  */
+
+// Standard includes
 #include <cassert>
 #include <vector>
 
-#include "../../include/votca/csg/boundarycondition.h"
+// Local VOTCA includes
+#include "votca/csg/boundarycondition.h"
 
 namespace votca {
 namespace csg {

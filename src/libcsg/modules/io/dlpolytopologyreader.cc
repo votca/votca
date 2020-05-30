@@ -15,20 +15,28 @@
  *
  */
 
-#include "../../../../include/votca/csg/topology.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem/convenience.hpp>
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+
+// Third party includes
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem/convenience.hpp>
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
 #include <votca/tools/getline.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/csg/topology.h"
 
 #ifndef HAVE_NO_CONFIG
 #include <votca_config.h>
 #endif
 
+// Local private VOTCA includes
 #include "dlpolytopologyreader.h"
 
 using namespace votca::tools;

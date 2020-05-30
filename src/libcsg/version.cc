@@ -15,17 +15,25 @@
  *
  */
 
-#include "../../include/votca/csg/version.h"
+// Standard includes
 #include <iostream>
-#include <votca/tools/version.h>
-#include <votca_config.h>
 
+// Third party includes
 #ifdef GMX_DOUBLE
 #include <gromacs/utility/baseversion.h>
 // this one is needed because of bool is defined in one of the headers included
 // by gmx
 #undef bool
 #endif
+
+// VOTCA includes
+#include <votca/tools/version.h>
+
+// Local VOTCA includes
+#include "votca/csg/version.h"
+
+// Local private VOTCA includes
+#include "votca_config.h"
 
 namespace votca {
 namespace csg {

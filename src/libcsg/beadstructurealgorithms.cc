@@ -15,8 +15,12 @@
  *
  */
 
-#include "../../include/votca/csg/beadstructurealgorithms.h"
+// VOTCA includes
 #include <votca/tools/graphalgorithm.h>
+
+// Local VOTCA includes
+#include "votca/csg/beadstructurealgorithms.h"
+
 using namespace std;
 using namespace votca::tools;
 

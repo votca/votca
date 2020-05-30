@@ -14,13 +14,17 @@
  * limitations under the License.
  *
  */
+
+// Standard includes
 #include <cassert>
 
-#include "../../include/votca/csg/beadstructure.h"
-
+// VOTCA includes
 #include <votca/tools/graph_bf_visitor.h>
 #include <votca/tools/graphalgorithm.h>
 #include <votca/tools/graphdistvisitor.h>
+
+// Local VOTCA includes
+#include "votca/csg/beadstructure.h"
 
 using namespace std;
 using namespace votca;

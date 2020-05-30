@@ -15,7 +15,8 @@
  *
  */
 
-#include "../../include/votca/csg/orthorhombicbox.h"
+// Local VOTCA includes
+#include "votca/csg/orthorhombicbox.h"
 
 namespace votca {
 namespace csg {

@@ -15,7 +15,8 @@
  *
  */
 
-#include "../../include/votca/csg/openbox.h"
+// Local VOTCA includes
+#include "votca/csg/openbox.h"
 
 namespace votca {
 namespace csg {

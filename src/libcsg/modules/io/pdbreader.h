@@ -15,16 +15,21 @@
  *
  */
 
-#ifndef __VOTCA_CSG_PDBREADER_H
-#define __VOTCA_CSG_PDBREADER_H
+#ifndef VOTCA_CSG_PDBREADER_PRIVATE_H
+#define VOTCA_CSG_PDBREADER_PRIVATE_H
 
-#include "../../../../include/votca/csg/topologyreader.h"
-#include "../../../../include/votca/csg/trajectoryreader.h"
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <string>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
 #include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/trajectoryreader.h"
 
 namespace votca {
 namespace csg {
@@ -61,4 +66,4 @@ class PDBReader : public TopologyReader, public TrajectoryReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // __VOTCA_CSG_PDBREADER_H
+#endif  // VOTCA_CSG_PDBREADER_PRIVATE_H

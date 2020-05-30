@@ -15,10 +15,15 @@
  *
  */
 
-#include "../../include/votca/csg/cgengine.h"
-#include "../../include/votca/csg/version.h"
+// Standard includes
 #include <fstream>
+
+// VOTCA includes
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/csg/cgengine.h"
+#include "votca/csg/version.h"
 
 namespace votca {
 namespace csg {

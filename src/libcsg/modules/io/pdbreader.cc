@@ -15,14 +15,21 @@
  *
  */
 
-#include "pdbreader.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem/convenience.hpp>
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <sstream>
 #include <unordered_map>
 #include <vector>
+
+// Third party includes
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem/convenience.hpp>
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
 #include <votca/tools/getline.h>
+
+// Local private VOTCA includes
+#include "pdbreader.h"
 
 namespace votca {
 namespace csg {

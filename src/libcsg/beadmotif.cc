@@ -15,8 +15,12 @@
  *
  */
 
-#include "../../include/votca/csg/beadmotif.h"
+// VOTCA includes
 #include <votca/tools/graphalgorithm.h>
+
+// Local VOTCA includes
+#include "votca/csg/beadmotif.h"
+
 namespace votca {
 namespace csg {
 class BaseBead;

@@ -15,9 +15,12 @@
  *
  */
 
-#include "../../include/votca/csg/nblist.h"
-#include "../../include/votca/csg/topology.h"
+// Standard library includes
 #include <iostream>
+
+// Local VOTCA includes
+#include "votca/csg/nblist.h"
+#include "votca/csg/topology.h"
 
 namespace votca {
 namespace csg {

@@ -15,7 +15,8 @@
  *
  */
 
-#include "../../include/votca/csg/triclinicbox.h"
+// Local VOTCA includes
+#include "votca/csg/triclinicbox.h"
 
 namespace votca {
 namespace csg {

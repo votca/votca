@@ -15,8 +15,11 @@
  *
  */
 
-#include "../../include/votca/csg/molecule.h"
+// Standard includes
 #include <iostream>
+
+// Local VOTCA includes
+#include "votca/csg/molecule.h"
 
 namespace votca {
 namespace csg {
