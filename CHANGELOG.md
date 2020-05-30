@@ -4,6 +4,7 @@ For more detailed information about the changes see the history of the [reposito
 * fix build with mkl (#229)
 * fix build with non-system libfftw (#234)
 * fix CI on Ubuntu-20.04 (#237)
+* fix bug related to calling c abs instead of c++ fabs (#248)
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * fix clang-10 warnings (#217)
