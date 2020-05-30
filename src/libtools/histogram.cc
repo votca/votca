@@ -76,7 +76,7 @@ void Histogram::ProcessData(DataCollection<double>::selection* data) {
   if (_options._scale == "bond") {
     for (size_t i = 0; i < _pdf.size(); ++i) {
       double r = _min + _interval * (double)i;
-      if (abs(r) < 1e-10) {
+      if (fabs(r) < 1e-10) {
         r = _min + _interval * (double)(i + 1);
         _pdf[i] = _pdf[i + 1];
       }
@@ -86,7 +86,7 @@ void Histogram::ProcessData(DataCollection<double>::selection* data) {
     for (size_t i = 0; i < _pdf.size(); ++i) {
       double alpha = _min + _interval * (double)i;
       double sa = sin(alpha);
-      if (abs(sa) < 1e-5) {
+      if (fabs(sa) < 1e-5) {
         if (i < _pdf.size() - 1) {
           alpha = _min + _interval * (double)(i + 1);
           _pdf[i] = _pdf[i + 1] / sin(alpha);
