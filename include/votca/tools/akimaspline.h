@@ -19,9 +19,9 @@
 #define __VOTCA_TOOLS_AKIMASPLINE_H
 
 #include "spline.h"
+#include <boost/math/special_functions/relative_difference.hpp>
 #include <iostream>
 #include <votca/tools/eigen.h>
-#include <boost/math/special_functions/relative_difference.hpp>
 
 namespace votca {
 namespace tools {
@@ -96,7 +96,8 @@ inline double AkimaSpline::CalculateDerivative(double r) {
 
 inline double AkimaSpline::getSlope(double m1, double m2, double m3,
                                     double m4) {
-  if (boost::math::epsilon_difference(m1, m2) < 1E-15 && boost::math::epsilon_difference(m3, m4) < 1E-15) {
+  if (boost::math::epsilon_difference(m1, m2) < 1E-15 &&
+      boost::math::epsilon_difference(m3, m4) < 1E-15) {
     return (m2 + m3) / 2.0;
   } else {
     return (std::fabs(m4 - m3) * m2 + std::fabs(m2 - m1) * m3) /
