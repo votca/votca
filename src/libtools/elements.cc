@@ -193,11 +193,11 @@ std::pair<std::string, double> Elements::findShortNameOfElementClosestInMass_(
     _filled_Mass = true;
   }
   std::string eleShort = "H";
-  double diff = std::abs(mass - _Mass[eleShort]);
+  double diff = std::fabs(mass - _Mass[eleShort]);
   for (const auto& ele_pr : _Mass) {
-    if (abs(ele_pr.second - mass) < diff) {
+    if (std::fabs(ele_pr.second - mass) < diff) {
       eleShort = ele_pr.first;
-      diff = abs(ele_pr.second - mass);
+      diff = std::fabs(ele_pr.second - mass);
     }
   }
   return std::pair<std::string, double>(eleShort, diff);

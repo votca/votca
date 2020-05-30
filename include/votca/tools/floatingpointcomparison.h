@@ -33,6 +33,10 @@
  * https://stackoverflow.com/questions/17333/what-is-the-most-effective-way-for-float-and-double-comparison
  * user ShitalShal
  */
+
+// Standard includes
+#include <cstdlib>
+
 namespace votca {
 namespace tools {
 
