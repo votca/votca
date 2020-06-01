@@ -8,6 +8,7 @@ source_suffix = {
     '.rst': 'restructuredtext',
     '.md': 'markdown',
 }
+source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
 
 html_logo = 'customLogo.png'
 html_theme = "sphinx_rtd_theme"
