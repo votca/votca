@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef _CALC_XTP_EQM_H
-#define _CALC_XTP_EQM_H
+#ifndef VOTCA_XTP_EQM_H
+#define VOTCA_XTP_EQM_H
 
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/parallelxjobcalc.h>
@@ -40,9 +40,9 @@ namespace xtp {
 class EQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
   std::string Identify() override { return "eqm"; }
-  void Initialize(const tools::Property &options) override;
+  void Initialize(const tools::Property &user_options) override;
   Job::JobResult EvalJob(const Topology &top, Job &job,
-                         QMThread &thread) override;
+                         QMThread &opThread) override;
 
   void CleanUp() { ; }
   void WriteJobFile(const Topology &top) override;
@@ -69,4 +69,4 @@ class EQM : public ParallelXJobCalc<std::vector<Job> > {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_EQM_H

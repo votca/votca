@@ -21,11 +21,11 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aomatrix3d.h"
 #include "votca/xtp/qmstate.h"
+#include <cstdio>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <numeric>
-#include <stdio.h>
 #include <votca/xtp/vc2index.h>
 #include <votca/xtp/version.h>
 

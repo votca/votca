@@ -31,7 +31,7 @@ class IAnalyze : public QMCalculator {
  public:
   std::string Identify() override { return "ianalyze"; }
   bool WriteToStateFile() const override { return false; }
-  void Initialize(const tools::Property &options) override;
+  void Initialize(const tools::Property &user_options) override;
   bool EvaluateFrame(Topology &top) override;
   void IHist(Topology &top, QMStateType state);
   void IRdependence(Topology &top, QMStateType state);
@@ -48,4 +48,4 @@ class IAnalyze : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_IANALYZE_H

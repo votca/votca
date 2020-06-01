@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_NEIGHBORLIST_H
-#define __VOTCA_XTP_NEIGHBORLIST_H
+#ifndef VOTCA_XTP_NEIGHBORLIST_H
+#define VOTCA_XTP_NEIGHBORLIST_H
 
 #include <votca/tools/globals.h>
 #include <votca/xtp/atom.h>
@@ -34,7 +34,7 @@ class Neighborlist : public QMCalculator {
  public:
   std::string Identify() override { return "neighborlist"; }
   bool WriteToStateFile() const override { return true; }
-  void Initialize(const tools::Property& options) override;
+  void Initialize(const tools::Property& user_options) override;
   bool EvaluateFrame(Topology& top) override;
 
  private:
@@ -51,4 +51,4 @@ class Neighborlist : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_NEIGHBORLIST_H

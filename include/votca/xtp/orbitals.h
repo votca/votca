@@ -314,7 +314,7 @@ class Orbitals {
   void ReadFromCpt(const std::string &filename);
 
   void WriteToCpt(CheckpointWriter w) const;
-  void ReadFromCpt(CheckpointReader parent);
+  void ReadFromCpt(CheckpointReader r);
 
   bool GetFlagUseHqpOffdiag() const { return _use_Hqp_offdiag; };
   void SetFlagUseHqpOffdiag(bool flag) { _use_Hqp_offdiag = flag; };

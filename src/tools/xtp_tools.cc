@@ -17,9 +17,9 @@
  *
  */
 
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string>
 #include <votca/tools/property.h>
 #include <votca/xtp/qmtool.h>
@@ -46,7 +46,7 @@ class XtpTools : public xtp::XtpApplication {
   }
   void Initialize() override;
   bool EvaluateOptions() override;
-  void Run(void) override;
+  void Run() override;
 
   void BeginEvaluate(Index nThreads);
   bool Evaluate();
@@ -141,7 +141,7 @@ bool XtpTools::EvaluateOptions() {
   } else {
     std::cout << "Registered " << calc_string[0];
   }
-  return 1;
+  return true;
 }
 
 void XtpTools::Run() {

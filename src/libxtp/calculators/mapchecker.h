@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_MAPCHECKER_H
-#define _VOTCA_XTP_MAPCHECKER_H
+#ifndef VOTCA_XTP_MAPCHECKER_H
+#define VOTCA_XTP_MAPCHECKER_H
 
 #include <votca/tools/filesystem.h>
 #include <votca/xtp/qmcalculator.h>
@@ -36,7 +36,7 @@ class MapChecker : public QMCalculator {
 
   std::string Identify() override { return "mapchecker"; }
   bool WriteToStateFile() const override { return false; }
-  void Initialize(const tools::Property& opt) override;
+  void Initialize(const tools::Property& user_options) override;
   bool EvaluateFrame(Topology& top) override;
 
  private:
@@ -161,4 +161,4 @@ std::string MapChecker::AddSteptoFilename(const std::string& filename,
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // _VOTCA_XTP_MAPCHECKER_H
+#endif  // VOTCA_XTP_MAPCHECKER_H

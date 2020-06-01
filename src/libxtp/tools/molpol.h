@@ -21,7 +21,7 @@
 #ifndef VOTCA_XTP_MOLPOL_H
 #define VOTCA_XTP_MOLPOL_H
 
-#include <stdio.h>
+#include <cstdio>
 #include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmtool.h>
@@ -37,7 +37,7 @@ class MolPol : public QMTool {
 
   std::string Identify() override { return "molpol"; }
 
-  void Initialize(const tools::Property& options) override;
+  void Initialize(const tools::Property& user_options) override;
   bool Evaluate() override;
 
  private:

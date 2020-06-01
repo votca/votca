@@ -18,10 +18,10 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_DFTGWBSE_H
-#define _VOTCA_XTP_DFTGWBSE_H
+#ifndef VOTCA_XTP_DFTGWBSE_H
+#define VOTCA_XTP_DFTGWBSE_H
 
-#include <stdio.h>
+#include <cstdio>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmtool.h>
 
@@ -36,7 +36,7 @@ class DftGwBse : public QMTool {
 
   std::string Identify() override { return "dftgwbse"; }
 
-  void Initialize(const tools::Property &options) override;
+  void Initialize(const tools::Property &user_options) override;
   bool Evaluate() override;
 
  private:
@@ -65,4 +65,4 @@ class DftGwBse : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_DFTGWBSE_H

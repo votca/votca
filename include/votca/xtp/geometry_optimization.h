@@ -22,7 +22,7 @@
 #define VOTCA_XTP_GEOMETRY_OPTIMIZATION_H
 
 // Standard includes
-#include <stdio.h>
+#include <cstdio>
 
 // Local VOTCA includes
 #include "bfgs-trm.h"
