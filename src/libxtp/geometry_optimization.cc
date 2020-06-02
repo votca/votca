@@ -43,7 +43,7 @@ void GeometryOptimization::Initialize(tools::Property& options) {
       options.get(".convergence.MaxForce").as<double>();  // Hartree/Bohr
   _conv.RMSStep = options.get(".convergence.RMSStep").as<double>();  // Bohr
   _conv.MaxStep = options.get(".convergence.MaxStep").as<double>();  // Bohr
-  _trust_radius = options.get(".trust").as<double>();                // Angstrom
+  _trust_radius = options.get("optimizer.trust").as<double>();       // Angstrom
   _trust_radius *= tools::conv::ang2bohr;  // initial trust radius in a.u.
 
   _max_iteration = options.get(".maxiter").as<Index>();
