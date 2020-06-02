@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,19 @@
  *
  */
 
-#ifndef _dlpolytrajectoryreader_H
-#define _dlpolytrajectoryreader_H
+#ifndef VOTCA_CSG_DLPOLYTRAJECTORYREADER_PRIVATE_H
+#define VOTCA_CSG_DLPOLYTRAJECTORYREADER_PRIVATE_H
 
-#include "../../../../include/votca/csg/trajectoryreader.h"
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <string>
+
+// VOTCA includes
 #include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "votca/csg/trajectoryreader.h"
 
 namespace votca {
 namespace csg {
@@ -83,4 +88,4 @@ class DLPOLYTrajectoryReader : public TrajectoryReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _dlpolytrajectoryreader_H */
+#endif  // VOTCA_CSG_DLPOLYTRAJECTORYREADER_PRIVATE_H

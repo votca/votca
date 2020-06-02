@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,22 @@
  *
  */
 
-#include "lammpsdatareader.h"
-#include "../../../../include/votca/csg/topology.h"
-#include <boost/algorithm/string.hpp>
+// Standard includes
 #include <vector>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
 #include <votca/tools/floatingpointcomparison.h>
 #include <votca/tools/getline.h>
+
+// Third party includes
+#include <boost/algorithm/string.hpp>
+
+// Local VOTCA includes
+#include "votca/csg/topology.h"
+
+// Local private VOTCA includes
+#include "lammpsdatareader.h"
 
 namespace votca {
 namespace csg {

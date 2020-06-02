@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,13 @@
  * limitations under the License.
  *
  */
+
+// Standard includes
 #include <cassert>
 #include <vector>
 
-#include "../../include/votca/csg/boundarycondition.h"
+// Local VOTCA includes
+#include "votca/csg/boundarycondition.h"
 
 namespace votca {
 namespace csg {

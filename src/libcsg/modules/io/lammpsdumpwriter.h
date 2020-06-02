@@ -15,13 +15,18 @@
  *
  */
 
-#ifndef VOTCA_CSG_LAMMPSDUMPWRITER_H
-#define VOTCA_CSG_LAMMPSDUMPWRITER_H
+#ifndef VOTCA_CSG_LAMMPSDUMPWRITER_PRIVATE_H
+#define VOTCA_CSG_LAMMPSDUMPWRITER_PRIVATE_H
 
-#include "../../../../include/votca/csg/topology.h"
-#include "../../../../include/votca/csg/trajectorywriter.h"
+// Standard includes
 #include <cstdio>
+
+// VOTCA includes
 #include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "votca/csg/topology.h"
+#include "votca/csg/trajectorywriter.h"
 
 namespace votca {
 namespace csg {
@@ -52,4 +57,4 @@ class LAMMPSDumpWriter : public TrajectoryWriter {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // VOTCA_CSG_LAMMPSDUMPWRITER_H
+#endif  // VOTCA_CSG_LAMMPSDUMPWRITER_PRIVATE_H

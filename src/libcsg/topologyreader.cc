@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,20 @@
 #include <votca_config.h>
 #endif
 
-#include "../../include/votca/csg/topologyreader.h"
-#include "../../include/votca/csg/xyzreader.h"
-#include "modules/io/groreader.h"
-#include "modules/io/lammpsdatareader.h"
-#include "modules/io/lammpsdumpreader.h"
-#include "modules/io/xmltopologyreader.h"
+// Local VOTCA includes
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/xyzreader.h"
+
+// Local private VOTCA includes
+#include "modules/io/dlpolytopologyreader.h"
 #ifdef GMX_DOUBLE
 #include "modules/io/gmxtopologyreader.h"
 #endif
-#include "modules/io/dlpolytopologyreader.h"
+#include "modules/io/groreader.h"
+#include "modules/io/lammpsdatareader.h"
+#include "modules/io/lammpsdumpreader.h"
 #include "modules/io/pdbreader.h"
+#include "modules/io/xmltopologyreader.h"
 
 namespace votca {
 namespace csg {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,19 @@
  *
  */
 
-#ifndef _VOTCA_CSG_GMXTRAJECTORYWRITER_H
-#define _VOTCA_CSG_GMXTRAJECTORYWRITER_H
+#ifndef VOTCA_CSG_GMXTRAJECTORYWRITER_PRIVATE_H
+#define VOTCA_CSG_GMXTRAJECTORYWRITER_PRIVATE_H
 
 #ifndef HAVE_NO_CONFIG
 #include <votca_config.h>
 #endif
 
-#include "../../../../include/votca/csg/topology.h"
-#include "../../../../include/votca/csg/trajectorywriter.h"
+// VOTCA includes
 #include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "votca/csg/topology.h"
+#include "votca/csg/trajectorywriter.h"
 
 struct t_trxstatus;
 namespace votca {
@@ -56,4 +59,4 @@ class GMXTrajectoryWriter : public TrajectoryWriter {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_GMXTRAJECTORYWRITER_H */
+#endif  // VOTCA_CSG_GMXTRAJECTORYWRITER_PRIVATE_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,24 @@
  *
  */
 
-#include "dlpolytrajectoryreader.h"
-#include "../../../../include/votca/csg/boundarycondition.h"
-#include "../../../../include/votca/csg/topology.h"
-#include <boost/filesystem/convenience.hpp>
+// Standard includes
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+
+// Third party includes
+#include <boost/filesystem/convenience.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/getline.h>
+
+// Local VOTCA includes
+#include "votca/csg/boundarycondition.h"
+#include "votca/csg/topology.h"
+
+// Local private VOTCA includes
+#include "dlpolytrajectoryreader.h"
 
 namespace votca {
 namespace csg {

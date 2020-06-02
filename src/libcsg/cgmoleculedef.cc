@@ -15,18 +15,24 @@
  *
  */
 
-#include "../../include/votca/csg/interaction.h"
-#include <boost/lexical_cast.hpp>
-#include <iostream>
-#include <votca/tools/tokenizer.h>
-
-#include "../../include/votca/csg/cgmoleculedef.h"
-#include "../../include/votca/csg/map.h"
-#include "../../include/votca/csg/topology.h"
+// Standard includes
 #include <cstddef>
+#include <iostream>
 #include <stdexcept>
 #include <string>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
 #include <votca/tools/property.h>
+#include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/csg/cgmoleculedef.h"
+#include "votca/csg/interaction.h"
+#include "votca/csg/map.h"
+#include "votca/csg/topology.h"
 
 namespace votca {
 namespace csg {

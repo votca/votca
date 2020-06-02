@@ -15,12 +15,17 @@
  *
  */
 
-#include "xmltopologyreader.h"
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
+
+// Local private VOTCA includes
+#include "xmltopologyreader.h"
 
 namespace votca {
 namespace csg {

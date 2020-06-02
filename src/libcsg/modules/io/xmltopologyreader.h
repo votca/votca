@@ -15,13 +15,18 @@
  *
  */
 
-#ifndef VOTCA_CSG_XMLTOPOLOGYREADER_H
-#define VOTCA_CSG_XMLTOPOLOGYREADER_H
+#ifndef VOTCA_CSG_XMLTOPOLOGYREADER_PRIVATE_H
+#define VOTCA_CSG_XMLTOPOLOGYREADER_PRIVATE_H
 
-#include "../../../../include/votca/csg/topologyreader.h"
-#include <boost/unordered_map.hpp>
+// Standard includes
 #include <stack>
 #include <string>
+
+// Third party includes
+#include <boost/unordered_map.hpp>
+
+// Local VOTCA includes
+#include "votca/csg/topologyreader.h"
 
 namespace votca {
 namespace csg {
@@ -111,4 +116,4 @@ class XMLTopologyReader : public TopologyReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // VOTCA_CSG_XMLTOPOLOGYREADER_H
+#endif  // VOTCA_CSG_XMLTOPOLOGYREADER_PRIVATE_H

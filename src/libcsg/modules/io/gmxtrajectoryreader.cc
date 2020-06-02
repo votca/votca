@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,19 @@
  *
  */
 
-#include "gmxtrajectoryreader.h"
-#include "../../../../include/votca/csg/topology.h"
+// Standard includes
 #include <cstdlib>
-#include <gromacs/utility/programcontext.h>
 #include <iostream>
 
+// Third party includes
+#include <gromacs/utility/programcontext.h>
 #include <gromacs/version.h>
+
+// Local VOTCA includes
+#include "votca/csg/topology.h"
+
+// Local private VOTCA includes
+#include "gmxtrajectoryreader.h"
 
 namespace votca {
 namespace csg {
