@@ -2,5 +2,9 @@ XTP Tutorials
 =============
 
 .. toctree::
-   QMMM_GROMACS
    DFTGWBSE_ENERGY
+   DFTGWBSE_OPTIMIZATION
+   QMMM_GROMACS
+   LAMMPS_KMC
+
+   

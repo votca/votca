@@ -48,7 +48,7 @@ def edit_calculator(calculator: str, option: str, value: str, folder: str = "OPT
 
 def edit_option(elem: ET.Element, option: str, value: str) -> None:
     """Change value of ``option`` in ``elem``."""
-    children = find_nodes(elem, option.lower())
+    children = find_nodes(elem, option)
     if not children:
         raise RuntimeError(f"There is not {option} in {elem}")
     else:
@@ -79,7 +79,7 @@ def find_section(elem: ET.Element, sections: List[str]) -> List[ET.Element]:
 
 def find_nodes_recursively(elem: ET.Element, option: str, acc: List[ET.Element]) -> None:
     """Find ``option`` in ``elem`` and in all its children."""
-    child = elem.find(option.lower())
+    child = elem.find(option)
     if child is not None:
         acc.append(child)
     # If elem has children
