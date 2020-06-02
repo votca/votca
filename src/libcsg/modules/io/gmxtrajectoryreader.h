@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,20 @@
  *
  */
 
-#ifndef VOTCA_CSG_GMXTRAJECTORYREADER_PRIVATE_H
-#define VOTCA_CSG_GMXTRAJECTORYREADER_PRIVATE_H
+#ifndef VOTCA_CSG_GMXTRAJECTORYREADER_H
+#define VOTCA_CSG_GMXTRAJECTORYREADER_H
 
 #ifndef HAVE_NO_CONFIG
 #include <votca_config.h>
 #endif
 
-// Standard includes
+#include "../../../../include/votca/csg/trajectoryreader.h"
 #include <string>
+#include <votca/tools/unitconverter.h>
 
-// Third party includes
 #include <gromacs/fileio/oenv.h>
 #include <gromacs/fileio/trxio.h>
 #include <gromacs/trajectory/trajectoryframe.h>
-
-// VOTCA includes
-#include <votca/tools/unitconverter.h>
-
-// Local VOTCA includes
-#include "votca/csg/trajectoryreader.h"
-
 // this one is needed because of bool is defined in one of the headers included
 // by gmx
 #undef bool
@@ -87,4 +80,4 @@ class GMXTrajectoryReader : public TrajectoryReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // VOTCA_CSG_GMXTRAJECTORYREADER_PRIVATE_H
+#endif  // VOTCA_CSG_GMXTRAJECTORYREADER_H

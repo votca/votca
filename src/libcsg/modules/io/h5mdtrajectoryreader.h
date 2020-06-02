@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,18 @@
  *
  */
 
-#ifndef VOTCA_CSG_H5MDTRAJECTORYREADER_PRIVATE_H
-#define VOTCA_CSG_H5MDTRAJECTORYREADER_PRIVATE_H
+#ifndef SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
+#define SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
 
-// Standard includes
+#include "../../../../include/votca/csg/topologyreader.h"
+#include "../../../../include/votca/csg/trajectoryreader.h"
+
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <string>
 
-// Third party includes
-#include <hdf5.h>
-
-// Local VOTCA includes
-#include "votca/csg/topologyreader.h"
-#include "votca/csg/trajectoryreader.h"
+#include "hdf5.h"
 
 namespace votca {  // NOLINT
 namespace csg {

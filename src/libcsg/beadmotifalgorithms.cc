@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,15 @@
  * limitations under the License.
  *
 / */
+#include "../../include/votca/csg/beadmotifalgorithms.h"
 
-// Standard includes
 #include <cassert>
 #include <cstddef>
 #include <utility>
-
-// VOTCA includes
 #include <votca/tools/graphalgorithm.h>
 #include <votca/tools/reducedgraph.h>
 
-// Local VOTCA includes
 #include "../../include/votca/csg/beadmotifconnector.h"
-#include "votca/csg/beadmotifalgorithms.h"
 
 namespace votca {
 namespace csg {

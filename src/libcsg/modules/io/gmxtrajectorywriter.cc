@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,10 @@
  *
  */
 
-// Standard includes
-#include <string>
-
-// Third party includes
+#include "gmxtrajectorywriter.h"
 #include <gromacs/fileio/trxio.h>
 #include <gromacs/trajectory/trajectoryframe.h>
-
-// Local private VOTCA includes
-#include "gmxtrajectorywriter.h"
-
+#include <string>
 // this one is needed because of bool is defined in one of the headers included
 // by gmx
 #undef bool

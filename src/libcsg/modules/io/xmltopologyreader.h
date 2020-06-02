@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,13 @@
  *
  */
 
-#ifndef VOTCA_CSG_XMLTOPOLOGYREADER_PRIVATE_H
-#define VOTCA_CSG_XMLTOPOLOGYREADER_PRIVATE_H
+#ifndef VOTCA_CSG_XMLTOPOLOGYREADER_H
+#define VOTCA_CSG_XMLTOPOLOGYREADER_H
 
-// Standard includes
+#include "../../../../include/votca/csg/topologyreader.h"
+#include <boost/unordered_map.hpp>
 #include <stack>
 #include <string>
-
-// Third party includes
-#include <boost/unordered_map.hpp>
-
-// Local VOTCA includes
-#include "votca/csg/topologyreader.h"
 
 namespace votca {
 namespace csg {
@@ -116,4 +111,4 @@ class XMLTopologyReader : public TopologyReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // VOTCA_CSG_XMLTOPOLOGYREADER_PRIVATE_H
+#endif  // VOTCA_CSG_XMLTOPOLOGYREADER_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,16 @@
  *
  */
 
-#ifndef VOTCA_CSG_PDBREADER_PRIVATE_H
-#define VOTCA_CSG_PDBREADER_PRIVATE_H
+#ifndef __VOTCA_CSG_PDBREADER_H
+#define __VOTCA_CSG_PDBREADER_H
 
-// Standard includes
+#include "../../../../include/votca/csg/topologyreader.h"
+#include "../../../../include/votca/csg/trajectoryreader.h"
 #include <fstream>
 #include <iostream>
 #include <string>
-
-// VOTCA includes
 #include <votca/tools/elements.h>
 #include <votca/tools/unitconverter.h>
-
-// Local VOTCA includes
-#include "votca/csg/topologyreader.h"
-#include "votca/csg/trajectoryreader.h"
 
 namespace votca {
 namespace csg {
@@ -66,4 +61,4 @@ class PDBReader : public TopologyReader, public TrajectoryReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // VOTCA_CSG_PDBREADER_PRIVATE_H
+#endif  // __VOTCA_CSG_PDBREADER_H

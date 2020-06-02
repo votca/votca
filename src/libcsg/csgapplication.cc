@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,14 @@
  *
  */
 
-// Third party includes
+#include "../../include/votca/csg/csgapplication.h"
+#include "../../include/votca/csg/cgengine.h"
+#include "../../include/votca/csg/topologymap.h"
+#include "../../include/votca/csg/topologyreader.h"
+#include "../../include/votca/csg/trajectoryreader.h"
+#include "../../include/votca/csg/trajectorywriter.h"
+#include "../../include/votca/csg/version.h"
 #include <boost/algorithm/string/trim.hpp>
-
-// Local VOTCA includes
-#include "votca/csg/cgengine.h"
-#include "votca/csg/csgapplication.h"
-#include "votca/csg/topologymap.h"
-#include "votca/csg/topologyreader.h"
-#include "votca/csg/trajectoryreader.h"
-#include "votca/csg/trajectorywriter.h"
-#include "votca/csg/version.h"
 
 namespace votca {
 namespace csg {

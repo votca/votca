@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,12 @@
  *
  */
 
-#ifndef VOTCA_CSG_DLPOLYTRAJECTORYWRITER_PRIVATE_H
-#define VOTCA_CSG_DLPOLYTRAJECTORYWRITER_PRIVATE_H
+#ifndef _DLPOLYTRAJECTORYWRITER_H
+#define _DLPOLYTRAJECTORYWRITER_H
 
-// VOTCA includes
+#include "../../../../include/votca/csg/topology.h"
+#include "../../../../include/votca/csg/trajectorywriter.h"
 #include <votca/tools/unitconverter.h>
-
-// Local VOTCA includes
-#include "votca/csg/topology.h"
-#include "votca/csg/trajectorywriter.h"
 
 namespace votca {
 namespace csg {
@@ -82,4 +79,4 @@ class DLPOLYTrajectoryWriter : public TrajectoryWriter {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // VOTCA_CSG_DLPOLYTRAJECTORYWRITER_PRIVATE_H
+#endif /* _DLPOLYTRAJECTORYWRITER_H */

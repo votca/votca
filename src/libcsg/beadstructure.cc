@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,13 @@
  * limitations under the License.
  *
  */
-
-// Standard includes
 #include <cassert>
 
-// VOTCA includes
+#include "../../include/votca/csg/beadstructure.h"
+
 #include <votca/tools/graph_bf_visitor.h>
 #include <votca/tools/graphalgorithm.h>
 #include <votca/tools/graphdistvisitor.h>
-
-// Local VOTCA includes
-#include "votca/csg/beadstructure.h"
 
 using namespace std;
 using namespace votca;
