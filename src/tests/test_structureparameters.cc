@@ -22,7 +22,6 @@
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
-#include <unordered_map>
 #include <vector>
 #include <votca/tools/types.h>
 using namespace std;
