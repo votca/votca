@@ -7,6 +7,7 @@ For more detailed information about the changes see the history of the [reposito
 * fix bug related to calling c abs instead of c++ fabs (#248)
 * updated floating point comparison to use boost epsilon error (#248)
 * promoted boost version from 1.53 to 1.63 (#248)
+* fix compile error in structure parameters by adding hash function (#248)
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * fix clang-10 warnings (#217)
