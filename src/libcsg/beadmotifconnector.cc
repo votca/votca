@@ -15,7 +15,8 @@
  *
  */
 
-#include "../../include/votca/csg/beadmotifconnector.h"
+// Local VOTCA includes
+#include "votca/csg/beadmotifconnector.h"
 
 using namespace std;
 using namespace votca::tools;

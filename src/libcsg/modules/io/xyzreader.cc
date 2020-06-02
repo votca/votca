@@ -15,10 +15,18 @@
  *
  */
 
-#include "../../../../include/votca/csg/xyzreader.h"
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <vector>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
 #include <votca/tools/getline.h>
+
+// Local VOTCA includes
+#include "votca/csg/xyzreader.h"
+
 namespace votca {
 namespace csg {
 using namespace boost;

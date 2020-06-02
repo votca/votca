@@ -15,13 +15,19 @@
  *
  */
 
-#include "gmxtrajectoryreader.h"
-#include "../../../../include/votca/csg/topology.h"
+// Standard includes
 #include <cstdlib>
-#include <gromacs/utility/programcontext.h>
 #include <iostream>
 
+// Third party includes
+#include <gromacs/utility/programcontext.h>
 #include <gromacs/version.h>
+
+// Local VOTCA includes
+#include "votca/csg/topology.h"
+
+// Local private VOTCA includes
+#include "gmxtrajectoryreader.h"
 
 namespace votca {
 namespace csg {

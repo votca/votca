@@ -18,10 +18,15 @@
 #ifndef VOTCA_CSG_DLPOLYTOPOLOGYREADER_H
 #define VOTCA_CSG_DLPOLYTOPOLOGYREADER_H
 
-#include "../../../../include/votca/csg/topology.h"
-#include "../../../../include/votca/csg/topologyreader.h"
+// Standard includes
 #include <string>
+
+// VOTCA includes
 #include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "votca/csg/topology.h"
+#include "votca/csg/topologyreader.h"
 
 namespace votca {
 namespace csg {

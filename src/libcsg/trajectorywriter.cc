@@ -19,18 +19,18 @@
 #include <votca_config.h>
 #endif
 
-#include "../../include/votca/csg/pdbwriter.h"
-#include "../../include/votca/csg/trajectorywriter.h"
-#include "../../include/votca/csg/xyzwriter.h"
-#include "modules/io/dlpolytrajectorywriter.h"
-#include "modules/io/lammpsdumpwriter.h"
-#include <iostream>
+// Local VOTCA includes
+#include "votca/csg/pdbwriter.h"
+#include "votca/csg/trajectorywriter.h"
+#include "votca/csg/xyzwriter.h"
 
+// Local private VOTCA includes
+#include "modules/io/dlpolytrajectorywriter.h"
 #ifdef GMX_DOUBLE
 #include "modules/io/gmxtrajectorywriter.h"
 #endif
-#include "modules/io/dlpolytrajectorywriter.h"
 #include "modules/io/growriter.h"
+#include "modules/io/lammpsdumpwriter.h"
 
 namespace votca {
 namespace csg {

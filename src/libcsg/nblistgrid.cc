@@ -15,8 +15,9 @@
  *
  */
 
-#include "../../include/votca/csg/nblistgrid.h"
-#include "../../include/votca/csg/topology.h"
+// Local VOTCA includes
+#include "votca/csg/nblistgrid.h"
+#include "votca/csg/topology.h"
 
 namespace votca {
 namespace csg {

@@ -15,20 +15,27 @@
  *
  */
 
-#ifndef VOTCA_CSG_GMXTRAJECTORYREADER_H
-#define VOTCA_CSG_GMXTRAJECTORYREADER_H
+#ifndef VOTCA_CSG_GMXTRAJECTORYREADER_PRIVATE_H
+#define VOTCA_CSG_GMXTRAJECTORYREADER_PRIVATE_H
 
 #ifndef HAVE_NO_CONFIG
 #include <votca_config.h>
 #endif
 
-#include "../../../../include/votca/csg/trajectoryreader.h"
+// Standard includes
 #include <string>
-#include <votca/tools/unitconverter.h>
 
+// Third party includes
 #include <gromacs/fileio/oenv.h>
 #include <gromacs/fileio/trxio.h>
 #include <gromacs/trajectory/trajectoryframe.h>
+
+// VOTCA includes
+#include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "votca/csg/trajectoryreader.h"
+
 // this one is needed because of bool is defined in one of the headers included
 // by gmx
 #undef bool
@@ -80,4 +87,4 @@ class GMXTrajectoryReader : public TrajectoryReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // VOTCA_CSG_GMXTRAJECTORYREADER_H
+#endif  // VOTCA_CSG_GMXTRAJECTORYREADER_PRIVATE_H

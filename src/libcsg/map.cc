@@ -15,13 +15,18 @@
  *
  */
 
-#include "../../include/votca/csg/map.h"
-#include "../../include/votca/csg/bead.h"
-#include "../../include/votca/csg/topology.h"
+// Standard includes
 #include <numeric>
 #include <string>
+
+// VOTCA includes
 #include <votca/tools/eigen.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/csg/bead.h"
+#include "votca/csg/map.h"
+#include "votca/csg/topology.h"
 
 namespace votca {
 namespace csg {

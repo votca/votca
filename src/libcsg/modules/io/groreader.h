@@ -15,15 +15,20 @@
  *
  */
 
-#ifndef _VOTCA_CSG_GROREADER_H
-#define _VOTCA_CSG_GROREADER_H
+#ifndef VOTCA_CSG_GROREADER_PRIVATE_H
+#define VOTCA_CSG_GROREADER_PRIVATE_H
 
-#include "../../../../include/votca/csg/topologyreader.h"
-#include "../../../../include/votca/csg/trajectoryreader.h"
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <string>
+
+// VOTCA includes
 #include <votca/tools/unitconverter.h>
+
+// Local includes
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/trajectoryreader.h"
 
 namespace votca {
 namespace csg {
@@ -71,4 +76,4 @@ class GROReader : public TrajectoryReader, public TopologyReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_GROREADER_H */
+#endif  // VOTCA_CSG_GROREADER_PRIVATE_H

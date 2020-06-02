@@ -15,10 +15,15 @@
  *
  */
 
-#include "../../../../include/votca/csg/pdbwriter.h"
-#include <boost/format.hpp>
+// Standard includes
 #include <cstdio>
 #include <string>
+
+// Third party includes
+#include <boost/format.hpp>
+
+// Local VOTCA includes
+#include "votca/csg/pdbwriter.h"
 
 namespace votca {
 namespace csg {

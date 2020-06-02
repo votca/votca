@@ -14,15 +14,19 @@
  * limitations under the License.
  *
 / */
-#include "../../include/votca/csg/beadmotifalgorithms.h"
 
+// Standard includes
 #include <cassert>
 #include <cstddef>
 #include <utility>
+
+// VOTCA includes
 #include <votca/tools/graphalgorithm.h>
 #include <votca/tools/reducedgraph.h>
 
+// Local VOTCA includes
 #include "../../include/votca/csg/beadmotifconnector.h"
+#include "votca/csg/beadmotifalgorithms.h"
 
 namespace votca {
 namespace csg {

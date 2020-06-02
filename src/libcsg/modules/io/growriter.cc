@@ -15,9 +15,12 @@
  *
  */
 
-#include "growriter.h"
+// Standard includes
 #include <cstdio>
 #include <string>
+
+// Local private VOTCA includes
+#include "growriter.h"
 
 namespace votca {
 namespace csg {

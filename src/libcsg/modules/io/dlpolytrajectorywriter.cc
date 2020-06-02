@@ -15,10 +15,15 @@
  *
  */
 
-#include "dlpolytrajectorywriter.h"
-#include <boost/filesystem/convenience.hpp>
+// Standard includes
 #include <iomanip>
 #include <string>
+
+// Third party includes
+#include <boost/filesystem/convenience.hpp>
+
+// Local private VOTCA includes
+#include "dlpolytrajectorywriter.h"
 
 namespace votca {
 namespace csg {

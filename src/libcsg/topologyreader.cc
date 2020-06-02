@@ -19,17 +19,20 @@
 #include <votca_config.h>
 #endif
 
-#include "../../include/votca/csg/topologyreader.h"
-#include "../../include/votca/csg/xyzreader.h"
-#include "modules/io/groreader.h"
-#include "modules/io/lammpsdatareader.h"
-#include "modules/io/lammpsdumpreader.h"
-#include "modules/io/xmltopologyreader.h"
+// Local VOTCA includes
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/xyzreader.h"
+
+// Local private VOTCA includes
+#include "modules/io/dlpolytopologyreader.h"
 #ifdef GMX_DOUBLE
 #include "modules/io/gmxtopologyreader.h"
 #endif
-#include "modules/io/dlpolytopologyreader.h"
+#include "modules/io/groreader.h"
+#include "modules/io/lammpsdatareader.h"
+#include "modules/io/lammpsdumpreader.h"
 #include "modules/io/pdbreader.h"
+#include "modules/io/xmltopologyreader.h"
 
 namespace votca {
 namespace csg {

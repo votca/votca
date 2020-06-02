@@ -15,15 +15,20 @@
  *
  */
 
-#ifndef _VOTCA_CSG_LAMMPSDATAREADER_H
-#define _VOTCA_CSG_LAMMPSDATAREADER_H
+#ifndef VOTCA_CSG_LAMMPSDATAREADER_PRIVATE_H
+#define VOTCA_CSG_LAMMPSDATAREADER_PRIVATE_H
 
-#include "../../../../include/votca/csg/topologyreader.h"
-#include "../../../../include/votca/csg/trajectoryreader.h"
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <string>
+
+// VOTCA includes
 #include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/trajectoryreader.h"
 
 namespace votca {
 namespace csg {
@@ -165,4 +170,4 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_LAMMPSDATAREADER_H
+#endif  // VOTCA_CSG_LAMMPSDATAREADER_PRIVATE_H
