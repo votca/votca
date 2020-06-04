@@ -54,7 +54,7 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(Threads REQUIRED)
 
-find_package(Boost 1.63.0 REQUIRED COMPONENTS program_options filesystem system )
+find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
 
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ON)
 #define this target here, so that individual man pages can append to it.
