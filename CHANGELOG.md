@@ -22,6 +22,7 @@ For more detailed information about the changes see the history of the
 * drop support for gmx 2016/2018 (#529)
 * fix csg_reupdate and add tests (#525)
 * fix detection of lmp and gmx in cmake (#540)
+* add test for lammpsdata reader (#544)
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * enforce periodic boundaries for dihedrals (#500)
