@@ -1141,6 +1141,77 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(std::complex<double> omega) co
   return prefactor * results;
 }
 
+Eigen::MatrixXcd Sternheimer::COHSEX()const{
+  
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
+  Vxc_Grid _grid;
+  _grid.GridSetup("xxcoarse", _orbitals.QMAtoms(), dftbasis);
+
+  Index nthreads = OPENMP::getMaxThreads();
+
+  //Evaluate static screened Exchange part by integration over r
+
+  Eigen::MatrixXcd Sigma_s =
+      Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols());
+  for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
+    const GridBox& box = _grid[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+
+    std::vector<Eigen::MatrixXcd> Sigma_s_thread = std::vector<Eigen::MatrixXcd>(
+        nthreads, Eigen::MatrixXcd::Zero(box.Matrixsize(), box.Matrixsize()));
+
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+
+  #pragma omp parallel for schedule(guided)
+    for (Index p = 0; p < box.size(); p++) {
+      Eigen::VectorXd ao = box.CalcAOValues(points[p]);
+      Eigen::MatrixXd S = ao * ao.transpose();
+      const double weight = weights[p];
+
+      // Evaluate bare and screend coulomb potential at point to evaluate the
+      // correlation screened Coulomb potential (W_c = W-v). This is evaluated
+      // in DeltaNsc
+
+      Eigen::MatrixXcd W_s = ScreenedCoulomb(points[p], 0);
+
+      W_s+=-S*W_s;
+
+      Sigma_s_thread[OPENMP::getThreadId()] +=
+          weight * S * box.ReadFromBigMatrix(W_s);
+          
+    }
+
+    Eigen::MatrixXcd Sigma_s_box = std::accumulate(
+        Sigma_s_thread.begin(), Sigma_s_thread.end(),
+        Eigen::MatrixXcd::Zero(box.Matrixsize(), box.Matrixsize()).eval());
+    box.AddtoBigMatrix(Sigma_s, Sigma_s_box);
+  }
+
+  //Calculate the static coulomb hole part
+
+  AOBasis auxbasis = _orbitals.SetupAuxBasis();
+
+  AOCoulomb AOC;
+
+  AOC.Fill(dftbasis);
+
+  Eigen::MatrixXcd coulombmatrix = AOC.Matrix();
+  Eigen::MatrixXcd DeltaN = DeltaNSC(0, coulombmatrix);
+  Eigen::MatrixXcd HartreeInt = _eris.ContractRightIndecesWithMatrix(DeltaN);
+  Eigen::MatrixXcd FxcInt =
+      Fxc(DeltaN);  // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
+  // Eigen::MatrixXcd DeltaV = coulombmatrix + HartreeInt + FxcInt;
+  Eigen::MatrixXcd DeltaV =
+      HartreeInt + FxcInt + coulombmatrix;
+
+  Eigen::MatrixXcd Sigma_c=1/2*DeltaV;
+
+  return Sigma_c+Sigma_s;
+}
+
 }  // namespace xtp
 
 }  // namespace votca

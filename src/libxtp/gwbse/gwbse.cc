@@ -761,6 +761,10 @@ bool GWBSE::Evaluate() {
           << TimeStamp() << " Quadrature order" << opt.quadrature_order<<flush;
       sternheimer.configurate(opt);
 
+      Eigen::MatrixXcd Sigma_cs=sternheimer.COHSEX();
+
+      std::cout<<Sigma_cs<<std::endl;
+
       Index homo = _orbitals.getHomo();
       Index lumo = homo+1;
       
