@@ -682,6 +682,8 @@ bool GWBSE::Evaluate() {
     opt.number_output_grid_points = _gwopt.resolution;
     opt.numerical_Integration_grid_type = _gwopt.spatialgridtype;
     opt.gws_grid_spacing = _gwopt.gws_grid_spacing;
+    opt.quadrature_order = _gwopt.quadrature_order;
+    opt.quadrature_scheme = _gwopt.quadrature_scheme;
 
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Started Sternheimer " << flush;
@@ -753,6 +755,10 @@ bool GWBSE::Evaluate() {
     if (_gwopt.calculation == "gwsternheimer") {
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Started Sternheimer GW" << flush;
+          XTP_LOG(Log::error, *_pLog)
+          << TimeStamp() << " Integration used" << opt.quadrature_scheme<<flush;
+          XTP_LOG(Log::error, *_pLog)
+          << TimeStamp() << " Quadrature order" << opt.quadrature_order<<flush;
       sternheimer.configurate(opt);
 
       Index homo = _orbitals.getHomo();
@@ -777,12 +783,13 @@ bool GWBSE::Evaluate() {
         steps = (omega_end-omega_start)/eval_points;
       }
 
-      
+      std::vector<std::complex<double>> result;
 
       for (int j = 0; j < eval_points; ++j) {
-        std::complex<double> w (0,omega_start + j*steps);
+        std::complex<double> w (omega_start +j*steps,0);
         Eigen::VectorXcd sigma_c = sternheimer.SelfEnergy_diagonal(w);
          pade.addPoint(w,sigma_c(homo));
+         result.push_back(sigma_c(homo));
         XTP_LOG(Log::error, *_pLog)
            << TimeStamp() << "Frequency "<< w <<" finished. " << j << flush;
       }
@@ -790,14 +797,13 @@ bool GWBSE::Evaluate() {
       std::cout << "\n # omega \t HOMO \n" << std::endl;
 
       if (n_points > 1){
-        steps = (omega_end-omega_start)/n_points;;
+         steps = (omega_end-omega_start)/n_points;;
       }
       for (int j = 0; j < n_points; ++j) {
         double w =omega_start + j*steps;
         std::complex<double> SE = pade.evaluatePoint(w);
         std::cout << w << "\t" << SE.real() << "\t" << SE.imag() << std::endl;
       }
-
 
       
       XTP_LOG(Log::error, *_pLog)

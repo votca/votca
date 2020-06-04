@@ -63,7 +63,7 @@ class Sternheimer {
     Index max_mixing_history = 10;
     Index gws_grid_spacing = 5;
     std::string quadrature_scheme = "hermite";
-    Index quadrature_order = 8;
+    Index quadrature_order = 12;
   };
 
   // Edit Options
