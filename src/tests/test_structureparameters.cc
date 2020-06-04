@@ -21,7 +21,6 @@
 // Standard includes
 #include <iostream>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 // Third party includes
