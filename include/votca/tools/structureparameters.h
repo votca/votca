@@ -108,7 +108,7 @@ class StructureParameters {
   T get(const StructureParameter parameter) const;
 
  private:
-  std::unordered_map<StructureParameter, boost::any> parameters;
+  std::unordered_map<StructureParameter, boost::any, std::hash<int>> parameters;
 };
 
 void StructureParameters::set(const StructureParameter parameter,
