@@ -54,6 +54,8 @@ def edit_option(elem: ET.Element, option: str, value: str) -> None:
     else:
         for child in children:
             child.text = value
+            if "default" in child.attrib:
+                del child.attrib["default"]
 
 
 def find_nodes(elem: ET.Element, option: str) -> List[ET.Element]:
