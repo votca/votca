@@ -1141,7 +1141,7 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(std::complex<double> omega) co
   return prefactor * results;
 }
 
-Eigen::MatrixXcd Sternheimer::COHSEX()const{
+Eigen::VectorXcd Sternheimer::COHSEX()const{
   
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   Vxc_Grid _grid;
@@ -1198,6 +1198,8 @@ Eigen::MatrixXcd Sternheimer::COHSEX()const{
 
   AOC.Fill(dftbasis);
 
+  std::cout<<AOC.Matrix()<<std::endl;
+
   Eigen::MatrixXcd coulombmatrix = AOC.Matrix();
   Eigen::MatrixXcd DeltaN = DeltaNSC(0, coulombmatrix);
   Eigen::MatrixXcd HartreeInt = _eris.ContractRightIndecesWithMatrix(DeltaN);
@@ -1209,7 +1211,22 @@ Eigen::MatrixXcd Sternheimer::COHSEX()const{
 
   Eigen::MatrixXcd Sigma_c=1/2*DeltaV;
 
-  return Sigma_c+Sigma_s;
+  Eigen::MatrixXcd Sigma_cs = Sigma_c+Sigma_s;
+
+  std::cout<<Sigma_s<<std::endl;
+  std::cout<<Sigma_c<<std::endl;
+
+
+  Index n_states = _mo_coefficients.cols();
+  Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_states);
+  for (Index n = 0; n < n_states; ++n) {
+    results(n) = (_mo_coefficients.col(n).cwiseProduct(Sigma_cs *
+                                                       _mo_coefficients.col(n)))
+                     .sum();
+  }
+  std::complex<double> prefactor(-1./(2 * tools::conv::Pi),0.);  // i/(2 eta)
+  return prefactor * results;
+
 }
 
 }  // namespace xtp

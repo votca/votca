@@ -99,7 +99,7 @@ class Sternheimer {
   Eigen::MatrixXcd SelfEnergy_at_w(std::complex<double> omega) const;
   Eigen::MatrixXcd SelfEnergy_at_w_rect(std::complex<double> omega) const;
   Eigen::VectorXcd SelfEnergy_diagonal(std::complex<double> omega) const;
-  Eigen::MatrixXcd COHSEX()const;
+  Eigen::VectorXcd COHSEX()const;
 
  private:
   Logger& _log;
