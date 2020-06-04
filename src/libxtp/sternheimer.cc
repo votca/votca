@@ -1052,17 +1052,17 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const 
   Index order = 8;
 
   std::complex<double> delta(0., -1e-3);
-  double omega_s = 0.3*tools::conv::ev2hrt; //Fixed shift respect to real axis
+  double omega_s = 0.0*tools::conv::ev2hrt; //Fixed shift on the real axis
   Eigen::MatrixXcd sigma =
       Eigen::MatrixXcd::Zero(_density_Matrix.cols(), _density_Matrix.cols());
 
   if (_opt.quadrature_scheme == "laguerre") {
     // Laguerre is from 0 to infinity
     Gauss_Laguerre_Quadrature_Constants glqc;
-    Eigen::VectorXd _quadpoints = glqc.getPoints(order);
-    Eigen::VectorXd _quadadaptedweights = glqc.getAdaptedWeights(order);
-    for (Index j = 0; j < order; ++j) {
-    std::complex<double> gridpoint(_quadpoints(j),0); 
+    Eigen::VectorXd _quadpoints = glqc.getPoints(_opt.quadrature_order);
+    Eigen::VectorXd _quadadaptedweights = glqc.getAdaptedWeights(_opt.quadrature_order);
+    for (Index j = 0; j < _opt.quadrature_order; ++j) {
+    std::complex<double> gridpoint(omega_s,_quadpoints(j)); 
     sigma += _quadadaptedweights(j) *
              SelfEnergy_at_wp(omega, gridpoint);
   }
@@ -1077,7 +1077,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const 
       double exponent = (1+_quadpoints(j))/(1-_quadpoints(j));
       double mod_quadpoints = std::pow(x0,exponent);
       double mod_weights =  2*x0*_quadadaptedweights(j)/std::pow(1-_quadadaptedweights(j),2);
-    std::complex<double> gridpoint(mod_quadpoints,0); 
+    std::complex<double> gridpoint(omega_s,mod_quadpoints); 
     sigma += mod_weights * SelfEnergy_at_wp(omega, gridpoint);
   }
   sigma *=2; //This because later we multiply sigma by -1/2pi
@@ -1087,7 +1087,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const 
     Eigen::VectorXd _quadpoints = glqc.getPoints(_opt.quadrature_order);
     Eigen::VectorXd _quadadaptedweights = glqc.getAdaptedWeights(_opt.quadrature_order);
     for (Index j = 0; j < _opt.quadrature_order; ++j) {
-    std::complex<double> gridpoint(_quadpoints(j),0); 
+    std::complex<double> gridpoint(omega_s,_quadpoints(j)); 
     sigma += _quadadaptedweights(j) *
              SelfEnergy_at_wp(omega, gridpoint);
   }
