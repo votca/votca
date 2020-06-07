@@ -54,8 +54,12 @@ if(HDF5_VERSION VERSION_GREATER 1.8)
 endif()
 
 # https://github.com/votca/xtp/issues/436, hdf5-1.10.4 generates a implicitly-declared operator warning
-if(HDF5_VERSION VERSION_EQUAL 1.10.4)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-copy")
+if(HDF5_VERSION VERSION_GREATER_EQUAL 1.10.4 AND HDF5_VERSION VERSION_LESS_EQUAL 1.10.6)
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("-Wno-deprecated-copy" COMPILER_SUPPORTS_WNO_DEPRECATED_COPY)
+  if(COMPILER_SUPPORTS_WNO_DEPRECATED_COPY)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-copy")
+  endif()
 endif()
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
