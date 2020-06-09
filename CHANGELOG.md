@@ -27,7 +27,7 @@ For more detailed information about the changes see the history of the
 * standardising include order and style in header files (#448)
 
 ## Version 1.6.1 (released XX.04.20)
-* fix warnings on Ubuntu 20.04 (#438)
+* fix warnings on Ubuntu 20.04 (#438, #460)
 * remove obsolete boost define (#440)
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
