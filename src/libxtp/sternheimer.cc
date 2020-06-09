@@ -1062,7 +1062,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const 
     Eigen::VectorXd _quadpoints = glqc.getPoints(_opt.quadrature_order);
     Eigen::VectorXd _quadadaptedweights = glqc.getAdaptedWeights(_opt.quadrature_order);
     for (Index j = 0; j < _opt.quadrature_order; ++j) {
-    std::complex<double> gridpoint(omega_s,_quadpoints(j)); 
+    std::complex<double> gridpoint(_quadpoints(j),0.25*tools::conv::ev2hrt); 
     sigma += _quadadaptedweights(j) *
              SelfEnergy_at_wp(omega, gridpoint);
   }
@@ -1077,7 +1077,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const 
       double exponent = (1+_quadpoints(j))/(1-_quadpoints(j));
       double mod_quadpoints = std::pow(x0,exponent);
       double mod_weights =  2*x0*_quadadaptedweights(j)/std::pow(1-_quadadaptedweights(j),2);
-    std::complex<double> gridpoint(omega_s,mod_quadpoints); 
+    std::complex<double> gridpoint(mod_quadpoints,0); 
     sigma += mod_weights * SelfEnergy_at_wp(omega, gridpoint);
   }
   sigma *=2; //This because later we multiply sigma by -1/2pi
@@ -1087,7 +1087,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const 
     Eigen::VectorXd _quadpoints = glqc.getPoints(_opt.quadrature_order);
     Eigen::VectorXd _quadadaptedweights = glqc.getAdaptedWeights(_opt.quadrature_order);
     for (Index j = 0; j < _opt.quadrature_order; ++j) {
-    std::complex<double> gridpoint(omega_s,_quadpoints(j)); 
+    std::complex<double> gridpoint(_quadpoints(j),0); 
     sigma += _quadadaptedweights(j) *
              SelfEnergy_at_wp(omega, gridpoint);
   }
