@@ -53,5 +53,4 @@ outputs:
     description: 'Number of build jobs to use'
 runs:
   using: 'docker'
-  image: 'docker://votca/buildenv:latest'
-  entrypoint: './.github/actions/setup/setup.sh'
+  image: 'Dockerfile'

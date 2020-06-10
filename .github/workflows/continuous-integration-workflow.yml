@@ -14,7 +14,7 @@ jobs:
     continue-on-error: ${{ matrix.distro == 'ubuntu_devel' || matrix.distro == 'fedora_rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
-        distro: [latest, fedora_rawhide, opensuse, ubuntu, ubuntu_devel, ubuntu_rolling]
+        distro: [latest, fedora_rawhide, opensuse, ubuntu, ubuntu_devel, ubuntu_rolling, ubuntu_18.04]
         toolchain: [gnu, clang]
         cmake_build_type: [Release, Debug]
         minimal: [false]
@@ -23,7 +23,7 @@ jobs:
         coverage: [false]
         include:
           - distro: latest
-            toolchain: gnu 
+            toolchain: gnu
             cmake_build_type: Debug
             coverage: Group1
           - distro: latest
@@ -128,11 +128,11 @@ jobs:
           key: ${{ steps.setup.outputs.cache_key }}
           restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
       - name: CMake
-        run: cmake -B builddir ${{ steps.setup.outputs.cmake_args }}
+        run: mkdir builddir && cd builddir && cmake ${{ steps.setup.outputs.cmake_args }} ..
       - name: Build
         run: |
           ccache -z
-          cmake --build builddir --parallel ${{ steps.setup.outputs.jobs }}
+          cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -s
       - name: Tests
         run: cd builddir && ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
@@ -147,9 +147,9 @@ jobs:
         run: cmake --build builddir --target doc
       - name: Test DESTDIR Install
         if: ${{ ! matrix.module_build }}
-        run: DESTDIR=${PWD}/install cmake --install builddir && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
+        run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
       - name: Install
-        run: sudo cmake --install builddir
+        run: sudo cmake --build builddir --target install
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
         run: cmake --build builddir --target format && git diff --submodule=diff --exit-code
