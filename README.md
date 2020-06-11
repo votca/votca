@@ -1,0 +1,7 @@
+# VOTCA's commonly used GitHub actions
+
+These GitHub actions are used by multiple VOTCA modules.
+
+Actions:
+
+-   setup, initializes variables, like `cmake_args` to be used during the build.
