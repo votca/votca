@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,16 +19,21 @@
 /// For an earlier history see ctp repo commit
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+// Standard includes
+#include <fstream>
+#include <unistd.h>
+
+// Third party includes
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <fstream>
 #include <sys/types.h>
-#include <unistd.h>
-#include <votca/xtp/job.h>
-#include <votca/xtp/progressobserver.h>
-#include <votca/xtp/qmthread.h>
+
+// Local VOTCA includes
+#include "votca/xtp/job.h"
+#include "votca/xtp/progressobserver.h"
+#include "votca/xtp/qmthread.h"
 
 using boost::format;
 

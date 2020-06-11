@@ -16,11 +16,15 @@
  * limitations under the License.
  *
  */
-#include "votca/xtp/aobasis.h"
+
+// Standard includes
 #include <vector>
-#include <votca/xtp/basisset.h>
-#include <votca/xtp/qmmolecule.h>
-#include <votca/xtp/qmpackage.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/basisset.h"
+#include "votca/xtp/qmmolecule.h"
+#include "votca/xtp/qmpackage.h"
 
 namespace votca {
 namespace xtp {

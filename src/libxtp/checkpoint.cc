@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,19 +17,24 @@
  *
  */
 
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
-#include <votca/xtp/votca_config.h>
-
-#include <boost/filesystem.hpp>
 #include <string>
 #include <type_traits>
 #include <typeinfo>
 #include <vector>
-#include <votca/xtp/checkpoint.h>
-#include <votca/xtp/checkpointreader.h>
-#include <votca/xtp/checkpointwriter.h>
+
+// Third party includes
+#include <boost/filesystem.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/checkpoint.h"
+#include "votca/xtp/checkpointreader.h"
+#include "votca/xtp/checkpointwriter.h"
+#include "votca/xtp/votca_config.h"
+
 namespace votca {
 namespace xtp {
 

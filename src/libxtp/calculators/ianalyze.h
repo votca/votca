@@ -18,11 +18,13 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_IANALYZE_H
-#define VOTCA_XTP_IANALYZE_H
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/qmpair.h>
-#include <votca/xtp/qmstate.h>
+#ifndef VOTCA_XTP_IANALYZE_PRIVATE_H
+#define VOTCA_XTP_IANALYZE_PRIVATE_H
+
+// Local VOTCA includes
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/qmpair.h"
+#include "votca/xtp/qmstate.h"
 
 namespace votca {
 namespace xtp {
@@ -48,4 +50,4 @@ class IAnalyze : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_IANALYZE_H
+#endif  // VOTCA_XTP_IANALYZE_PRIVATE_H

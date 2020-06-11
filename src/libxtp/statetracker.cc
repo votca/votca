@@ -17,8 +17,9 @@
  *
  */
 
+// Local VOTCA includes
 #include "votca/xtp/statetracker.h"
-#include <votca/xtp/filterfactory.h>
+#include "votca/xtp/filterfactory.h"
 
 namespace votca {
 namespace xtp {

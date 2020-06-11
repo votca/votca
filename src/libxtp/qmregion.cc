@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,15 +17,16 @@
  *
  */
 
+// Local VOTCA includes
+#include "votca/xtp/qmregion.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/gwbse.h"
+#include "votca/xtp/polarregion.h"
+#include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/polarregion.h>
-#include <votca/xtp/qmregion.h>
-#include <votca/xtp/staticregion.h>
 
 namespace votca {
 namespace xtp {

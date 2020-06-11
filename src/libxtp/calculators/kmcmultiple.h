@@ -16,11 +16,15 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_KMCMULTIPLE_H
-#define VOTCA_XTP_KMCMULTIPLE_H
+#ifndef VOTCA_XTP_KMCMULTIPLE_PRIVATE_H
+#define VOTCA_XTP_KMCMULTIPLE_PRIVATE_H
 
+// Standard includes
 #include <fstream>
-#include <votca/xtp/kmccalculator.h>
+
+// Local VOTCA includes
+#include "votca/xtp/kmccalculator.h"
+
 namespace votca {
 namespace xtp {
 
@@ -60,4 +64,4 @@ class KMCMultiple : public KMCCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_KMCMULTIPLE_H
+#endif  // VOTCA_XTP_KMCMULTIPLE_PRIVATE_H

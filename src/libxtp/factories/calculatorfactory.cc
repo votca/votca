@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,16 +17,18 @@
  *
  */
 
-#include <votca/xtp/calculatorfactory.h>
+// Local VOTCA includes
+#include "votca/xtp/calculatorfactory.h"
 
-#include "../calculators/eanalyze.h"
-#include "../calculators/einternal.h"
-#include "../calculators/ianalyze.h"
-#include "../calculators/kmclifetime.h"
-#include "../calculators/kmcmultiple.h"
-#include "../calculators/mapchecker.h"
-#include "../calculators/neighborlist.h"
-#include "../calculators/vaverage.h"
+// Local private VOTCA includes
+#include "libxtp/calculators/eanalyze.h"
+#include "libxtp/calculators/einternal.h"
+#include "libxtp/calculators/ianalyze.h"
+#include "libxtp/calculators/kmclifetime.h"
+#include "libxtp/calculators/kmcmultiple.h"
+#include "libxtp/calculators/mapchecker.h"
+#include "libxtp/calculators/neighborlist.h"
+#include "libxtp/calculators/vaverage.h"
 
 namespace votca {
 namespace xtp {

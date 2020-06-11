@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,15 +17,18 @@
  *
  */
 
+// Standard includes
+#include <fstream>
+#include <iostream>
+
+// Local VOTCA includes
+#include "votca/xtp/IndexParser.h"
+#include "votca/xtp/anderson_mixing.h"
+#include "votca/xtp/gw.h"
+#include "votca/xtp/newton_rapson.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_exact.h"
 #include "votca/xtp/sigma_ppm.h"
-#include <fstream>
-#include <iostream>
-#include <votca/xtp/IndexParser.h>
-#include <votca/xtp/anderson_mixing.h>
-#include <votca/xtp/gw.h>
-#include <votca/xtp/newton_rapson.h>
 
 namespace votca {
 namespace xtp {

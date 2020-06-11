@@ -15,11 +15,13 @@
  *
  */
 
+// Standard includes
 #include <iostream>
 #include <stdexcept>
 
-#include <votca/xtp/davidsonsolver.h>
-#include <votca/xtp/eigen.h>
+// Local VOTCA includes
+#include "votca/xtp/davidsonsolver.h"
+#include "votca/xtp/eigen.h"
 
 using boost::format;
 using std::flush;

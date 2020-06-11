@@ -17,10 +17,15 @@
  *
  */
 
+// Standard includes
 #include <cmath> /* ceil */
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
-#include <votca/xtp/grid.h>
+
+// Local VOTCA includes
+#include "votca/xtp/grid.h"
 
 namespace votca {
 namespace xtp {

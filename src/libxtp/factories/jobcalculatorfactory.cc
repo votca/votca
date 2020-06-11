@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,12 +17,14 @@
  *
  */
 
-#include <votca/xtp/jobcalculatorfactory.h>
+// Local VOTCA includes
+#include "votca/xtp/jobcalculatorfactory.h"
 
-#include "../jobcalculators/eqm.h"
-#include "../jobcalculators/iexcitoncl.h"
-#include "../jobcalculators/iqm.h"
-#include "../jobcalculators/qmmm.h"
+// Local private VOTCA includes
+#include "libxtp/jobcalculators/eqm.h"
+#include "libxtp/jobcalculators/iexcitoncl.h"
+#include "libxtp/jobcalculators/iqm.h"
+#include "libxtp/jobcalculators/qmmm.h"
 
 namespace votca {
 namespace xtp {

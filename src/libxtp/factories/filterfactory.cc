@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,12 +17,15 @@
  *
  */
 
-#include "../statefilters/DeltaQ_filter.h"
-#include "../statefilters/Density_filter.h"
-#include "../statefilters/Localisation_filter.h"
-#include "../statefilters/OscillatorStrength_filter.h"
-#include "../statefilters/Overlap_filter.h"
+// Local VOTCA includes
 #include <votca/xtp/filterfactory.h>
+
+// Local private VOTCA includes
+#include "libxtp/statefilters/DeltaQ_filter.h"
+#include "libxtp/statefilters/Density_filter.h"
+#include "libxtp/statefilters/Localisation_filter.h"
+#include "libxtp/statefilters/OscillatorStrength_filter.h"
+#include "libxtp/statefilters/Overlap_filter.h"
 
 namespace votca {
 namespace xtp {

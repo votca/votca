@@ -17,12 +17,15 @@
  *
  */
 
-#include "votca/xtp/eeinteractor.h"
+// Standard includes
 #include <numeric>
-#include <votca/xtp/dipoledipoleinteraction.h>
-#include <votca/xtp/polarregion.h>
-#include <votca/xtp/qmregion.h>
-#include <votca/xtp/staticregion.h>
+
+// Local VOTCA includes
+#include "votca/xtp/dipoledipoleinteraction.h"
+#include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/polarregion.h"
+#include "votca/xtp/qmregion.h"
+#include "votca/xtp/staticregion.h"
 
 namespace votca {
 namespace xtp {

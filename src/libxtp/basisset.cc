@@ -16,8 +16,12 @@
  * limitations under the License.
  *
  */
-#include "votca/xtp/basisset.h"
+
+// VOTCA includes
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/xtp/basisset.h"
 
 namespace votca {
 namespace xtp {

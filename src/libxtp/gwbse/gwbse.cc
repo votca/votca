@@ -17,17 +17,23 @@
  *
  */
 
+// Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
-#include <votca/xtp/bse.h>
-#include <votca/xtp/ecpbasisset.h>
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/vxc_grid.h>
-#include <votca/xtp/vxc_potential.h>
+
+// Local VOTCA includes
+#include "votca/xtp/bse.h"
+#include "votca/xtp/ecpbasisset.h"
+#include "votca/xtp/gwbse.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/vxc_grid.h"
+#include "votca/xtp/vxc_potential.h"
+
 using boost::format;
 using namespace boost::filesystem;
 using std::flush;

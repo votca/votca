@@ -17,10 +17,16 @@
  *
  */
 
+// Third party includes
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
-#include <votca/xtp/gyration.h>
-#include <votca/xtp/vxc_grid.h>
+
+// Local VOTCA includes
+#include "votca/xtp/gyration.h"
+#include "votca/xtp/vxc_grid.h"
+
 using namespace votca::tools;
 
 namespace votca {

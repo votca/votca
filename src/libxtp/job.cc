@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,10 +19,15 @@
 /// For an earlier history see ctp repo commit
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+// Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/propertyiomanipulator.h>
-#include <votca/xtp/job.h>
+
+// Local VOTCA includes
+#include "votca/xtp/job.h"
 
 namespace votca {
 namespace xtp {

@@ -18,11 +18,12 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_EINTERNAL_H
-#define VOTCA_XTP_EINTERNAL_H
+#ifndef VOTCA_XTP_EINTERNAL_PRIVATE_H
+#define VOTCA_XTP_EINTERNAL_PRIVATE_H
 
+// Local VOTCA includes
+#include "votca/xtp/qmcalculator.h"
 #include "votca/xtp/qmstate.h"
-#include <votca/xtp/qmcalculator.h>
 
 namespace votca {
 namespace xtp {
@@ -53,4 +54,4 @@ class EInternal : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_EINTERNAL_H
+#endif  // VOTCA_XTP_EINTERNAL_PRIVATE_H

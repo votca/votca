@@ -28,11 +28,13 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
-#include "kmclifetime.h"
 #include "votca/xtp/eigen.h"
 #include "votca/xtp/gnode.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/topology.h"
+
+// Local private VOTCA includes
+#include "kmclifetime.h"
 
 namespace votca {
 namespace xtp {

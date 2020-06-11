@@ -18,15 +18,19 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_VAVERAGE_H
-#define VOTCA_XTP_VAVERAGE_H
+#ifndef VOTCA_XTP_VAVERAGE_PRIVATE_H
+#define VOTCA_XTP_VAVERAGE_PRIVATE_H
 
+// Standard includes
 #include <cstdio>
+#include <string>
+#include <vector>
 
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/rate_engine.h>
+// Local VOTCA includes
+#include "votca/xtp/eigen.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/rate_engine.h"
 
 namespace votca {
 namespace xtp {
@@ -55,4 +59,4 @@ class VAverage : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_VAVERAGE_H
+#endif  // VOTCA_XTP_VAVERAGE_PRIVATE_H
