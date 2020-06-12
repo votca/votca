@@ -136,6 +136,9 @@ class EulerMaclaurinGrid {
 
     // 4th row (selection)
     _BraggSlaterRadii["Ag"] = 1.60 * ang2bohr;
+    _BraggSlaterRadii["Rb"] = 2.35 * ang2bohr;
+    _BraggSlaterRadii["Xe"] = 1.40 * ang2bohr;
+    _BraggSlaterRadii["I"] = 1.40 * ang2bohr;
 
     /* Copied from grid_atom_type_info.F of NWChem
 
@@ -216,6 +219,9 @@ c                  Md   No   Lr  Unq  Unp
 
     // row of period system for 4th row elements taken from NWChem
     _pruning_set["Ag"] = 3;
+    _pruning_set["Rb"] = 3;
+    _pruning_set["I"] = 3;
+    _pruning_set["Xe"] = 3;
   }
 
   inline void FillAccuracy() {
@@ -274,6 +280,9 @@ c                  Md   No   Lr  Unq  Unp
 
     // orders for 4th row elements (selected)
     MediumGrid["Ag"] = 123;
+    MediumGrid["Rb"] = 123;
+    MediumGrid["Xe"] = 123;
+    MediumGrid["I"] = 123;
   }
 
   inline void FillFineGrid() {
@@ -324,6 +333,9 @@ c                  Md   No   Lr  Unq  Unp
 
     // 4th row (selected)
     FineGrid["Ag"] = 141;
+    FineGrid["Rb"] = 141;
+    FineGrid["I"] = 141;
+    FineGrid["Xe"] = 141;
   }
 
   inline void FillXfineGrid() {
@@ -374,6 +386,9 @@ c                  Md   No   Lr  Unq  Unp
 
     // 4th row (selection)
     XfineGrid["Ag"] = 205;
+    XfineGrid["Rb"] = 205;
+    XfineGrid["I"] = 205;
+    XfineGrid["Xe"] = 205;
   }
 
   inline void FillCoarseGrid() {
@@ -424,6 +439,9 @@ c                  Md   No   Lr  Unq  Unp
 
     // 4th row (selection)
     CoarseGrid["Ag"] = 104;
+    CoarseGrid["Rb"] = 104;
+    CoarseGrid["I"] = 104;
+    CoarseGrid["Xe"] = 104;
   }
 
   inline void FillXcoarseGrid() {
@@ -474,6 +492,9 @@ c                  Md   No   Lr  Unq  Unp
 
     // 4th row (selection)
     XcoarseGrid["Ag"] = 84;
+    XcoarseGrid["Rb"] = 84;
+    XcoarseGrid["I"] = 84;
+    XcoarseGrid["Xe"] = 84;
   }
 };
 
