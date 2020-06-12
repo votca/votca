@@ -17,11 +17,17 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE settings_test
 
-#include <boost/test/unit_test.hpp>
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <votca/xtp/settings.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/settings.h"
+
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(settings_test)

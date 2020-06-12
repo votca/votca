@@ -16,8 +16,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE polarsegment_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/classicalsegment.h>
+
+// Local VOTCA includes
+#include "votca/xtp/classicalsegment.h"
 
 using namespace votca::xtp;
 using namespace votca;

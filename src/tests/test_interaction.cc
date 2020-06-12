@@ -16,8 +16,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE polararsite_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/polarsite.h>
+
+// Local VOTCA includes
+#include "votca/xtp/polarsite.h"
 
 using namespace votca::xtp;
 

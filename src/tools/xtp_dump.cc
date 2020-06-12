@@ -17,11 +17,14 @@
  *
  */
 
+// Standard includes
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <votca/xtp/extractorfactory.h>
-#include <votca/xtp/stateapplication.h>
+
+// Local VOTCA includes
+#include "votca/xtp/extractorfactory.h"
+#include "votca/xtp/stateapplication.h"
 
 using namespace std;
 using namespace votca;

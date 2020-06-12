@@ -16,9 +16,15 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE eigen_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <iostream>
-#include <votca/xtp/eigen.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/eigen.h"
 
 using namespace votca;
 

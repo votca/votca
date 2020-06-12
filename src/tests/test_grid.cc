@@ -16,11 +16,17 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE grid_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-#include <votca/xtp/grid.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/grid.h"
 
 using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(grid_test)

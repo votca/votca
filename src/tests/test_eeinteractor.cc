@@ -16,11 +16,18 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE eeinteractor_test
+
+// Standard includes
+#include <iostream>
+
+// Third party includes
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
-#include <iostream>
-#include <votca/xtp/dipoledipoleinteraction.h>
-#include <votca/xtp/eeinteractor.h>
+
+// Local VOTCA includes
+#include "votca/xtp/dipoledipoleinteraction.h"
+#include "votca/xtp/eeinteractor.h"
+
 using namespace votca::xtp;
 using namespace votca;
 

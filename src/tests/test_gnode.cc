@@ -16,14 +16,20 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE gnode_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
 #include <vector>
-#include <votca/xtp/glink.h>
-#include <votca/xtp/gnode.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/glink.h"
+#include "votca/xtp/gnode.h"
 
 using namespace votca;
 using namespace votca::xtp;
