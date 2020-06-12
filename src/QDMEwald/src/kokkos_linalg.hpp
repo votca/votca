@@ -18,11 +18,15 @@
  *
  */
 
-#ifndef KOKKOS_LINALG_CLASS_INCLUDED
-#define KOKKOS_LINALG_CLASS_INCLUDED
+#pragma once
+#ifndef VOTCA_XTP_KOKKOS_LINALG_PRIVATE_H
+#define VOTCA_XTP_KOKKOS_LINALG_PRIVATE_H
 
-#include "Kokkos_Core.hpp"
+// Standard includes
 #include <cmath>
+
+// Third party includes
+#include <Kokkos_Core.hpp>
 
 namespace kokkos_linalg_3d {
 
@@ -172,4 +176,4 @@ typename std::array<typename Vector1::value_type, 3> subtract(
 
 }  // namespace kokkos_linalg_3d
 
-#endif
+#endif // VOTCA_XTP_KOKKOS_LINALG_PRIVATE_H

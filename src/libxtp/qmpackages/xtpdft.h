@@ -18,14 +18,17 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_XTPDFT_H
-#define VOTCA_XTP_XTPDFT_H
+#ifndef VOTCA_XTP_XTPDFT_PRIVATE_H
+#define VOTCA_XTP_XTPDFT_PRIVATE_H
 
+// Standard includes
 #include <string>
-#include <votca/xtp/dftengine.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/polarsite.h>
-#include <votca/xtp/qmpackage.h>
+
+// Local VOTCA includes
+#include "votca/xtp/dftengine.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/polarsite.h"
+#include "votca/xtp/qmpackage.h"
 
 namespace votca {
 namespace xtp {
@@ -97,4 +100,4 @@ class XTPDFT : public QMPackage {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_XTPDFT_H
+#endif  // VOTCA_XTP_XTPDFT_PRIVATE_H

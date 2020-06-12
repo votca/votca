@@ -17,17 +17,22 @@
  *
  */
 
-#include "iqm.h"
-#include "votca/xtp/segmentmapper.h"
+// Third party includes
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
+// VOTCA includes
 #include <votca/tools/constants.h>
 
-#include <votca/xtp/atom.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmpackagefactory.h>
+// Local VOTCA includes
+#include "votca/xtp/atom.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmpackagefactory.h"
+#include "votca/xtp/segmentmapper.h"
+
+// Local private VOTCA includes
+#include "iqm.h"
 
 using boost::format;
 using namespace boost::filesystem;

@@ -17,15 +17,24 @@
  *
  */
 
-#include "orca.h"
+// Standard includes
+#include <cstdio>
+#include <iomanip>
+
+// Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <cstdio>
-#include <iomanip>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
-#include <votca/xtp/ecpaobasis.h>
-#include <votca/xtp/orbitals.h>
+
+// Local VOTCA includes
+#include "votca/xtp/ecpaobasis.h"
+#include "votca/xtp/orbitals.h"
+
+// Local private VOTCA includes
+#include "orca.h"
 
 namespace votca {
 namespace xtp {

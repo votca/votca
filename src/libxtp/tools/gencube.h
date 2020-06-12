@@ -18,12 +18,13 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_GENCUBE_H
-#define VOTCA_XTP_GENCUBE_H
+#ifndef VOTCA_XTP_GENCUBE_PRIVATE_H
+#define VOTCA_XTP_GENCUBE_PRIVATE_H
 
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/qmtool.h>
+// Local VOTCA includes
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmstate.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
@@ -61,4 +62,4 @@ class GenCube : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_GENCUBE_H
+#endif  // VOTCA_XTP_GENCUBE_PRIVATE_H

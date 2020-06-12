@@ -18,10 +18,11 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_ORCA_H
-#define VOTCA_XTP_ORCA_H
+#ifndef VOTCA_XTP_ORCA_PRIVATE_H
+#define VOTCA_XTP_ORCA_PRIVATE_H
 
-#include <votca/xtp/qmpackage.h>
+// Local VOTCA includes
+#include "votca/xtp/qmpackage.h"
 
 namespace votca {
 namespace xtp {
@@ -106,4 +107,4 @@ class Orca : public QMPackage {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ORCA_H
+#endif  // VOTCA_XTP_ORCA_PRIVATE_H

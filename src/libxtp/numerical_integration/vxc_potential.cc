@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,16 @@
  *
  */
 
+// Third party includes
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/tokenizer.h>
-#include <votca/xtp/vxc_functionals.h>
-#include <votca/xtp/vxc_grid.h>
-#include <votca/xtp/vxc_potential.h>
+
+// Local VOTCA includes
+#include "votca/xtp/vxc_functionals.h"
+#include "votca/xtp/vxc_grid.h"
+#include "votca/xtp/vxc_potential.h"
 
 namespace votca {
 namespace xtp {

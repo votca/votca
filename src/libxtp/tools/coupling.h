@@ -18,12 +18,13 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_COUPLING_H
-#define VOTCA_XTP_COUPLING_H
+#ifndef VOTCA_XTP_COUPLING_PRIVATE_H
+#define VOTCA_XTP_COUPLING_PRIVATE_H
 
-#include <votca/xtp/dftcoupling.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmpackagefactory.h>
+// Local VOTCA includes
+#include "votca/xtp/dftcoupling.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmpackagefactory.h"
 
 namespace votca {
 namespace xtp {
@@ -158,4 +159,4 @@ bool Coupling::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_COUPLING_H
+#endif  // VOTCA_XTP_COUPLING_PRIVATE_H

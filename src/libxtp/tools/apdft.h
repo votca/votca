@@ -18,11 +18,12 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_APDFT_H
-#define VOTCA_XTP_APDFT_H
+#ifndef VOTCA_XTP_APDFT_PRIVATE_H
+#define VOTCA_XTP_APDFT_PRIVATE_H
 
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/qmtool.h>
+// Local VOTCA includes
+#include "votca/xtp/qmstate.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
@@ -47,4 +48,4 @@ class APDFT final : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_APDFT_H
+#endif  // VOTCA_XTP_APDFT_PRIVATE_H

@@ -18,12 +18,16 @@
  *
  */
 
-#ifndef KSPACE_CLASS_INCLUDED
-#define KSPACE_CLASS_INCLUDED
+#pragma once
+#ifndef VOTCA_XTP_QDMEQALD_KSPACE_PRIVATE_H
+#define VOTCA_XTP_QDMEQALD_KSPACE_PRIVATE_H
 
-#include "Kokkos_Core.hpp"
+// Standard includes
 #include <cmath>
 #include <vector>
+
+// Third party includes
+#include <Kokkos_Core.hpp>
 
 /**
  *
@@ -644,4 +648,4 @@ std::vector<T> KSpace<T>::get_ak() {
   return k_ak;
 }
 
-#endif
+#endif // VOTCA_XTP_QDMEQALD_KSPACE_PRIVATE_H

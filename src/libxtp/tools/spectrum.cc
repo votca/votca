@@ -17,10 +17,17 @@
  *
  */
 
-#include "spectrum.h"
+// Third party includes
 #include <boost/math/constants/constants.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
+
+// Local VOTCA includes
 #include <votca/xtp/orbitals.h>
+
+// Local private VOTCA includes
+#include "spectrum.h"
 
 namespace votca {
 namespace xtp {

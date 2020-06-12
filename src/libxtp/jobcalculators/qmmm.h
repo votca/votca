@@ -18,10 +18,11 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_QMMM_H
-#define VOTCA_XTP_QMMM_H
+#ifndef VOTCA_XTP_QMMM_PRIVATE_H
+#define VOTCA_XTP_QMMM_PRIVATE_H
 
-#include <votca/xtp/parallelxjobcalc.h>
+// Local VOTCA includes
+#include "votca/xtp/parallelxjobcalc.h"
 
 namespace votca {
 namespace xtp {
@@ -56,4 +57,4 @@ class QMMM : public ParallelXJobCalc<std::vector<Job> > {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // VOTCA_XTP_QMMM_H
+#endif  // VOTCA_XTP_QMMM_PRIVATE_H

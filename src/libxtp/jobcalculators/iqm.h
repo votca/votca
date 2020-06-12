@@ -18,18 +18,22 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_IQM_H
-#define VOTCA_XTP_IQM_H
+#ifndef VOTCA_XTP_IQM_PRIVATE_H
+#define VOTCA_XTP_IQM_PRIVATE_H
 
-#include <votca/tools/property.h>
-
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <sys/stat.h>
-#include <votca/xtp/bsecoupling.h>
-#include <votca/xtp/dftcoupling.h>
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/parallelxjobcalc.h>
+
+// VOTCA includes
+#include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/xtp/bsecoupling.h"
+#include "votca/xtp/dftcoupling.h"
+#include "votca/xtp/gwbse.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/parallelxjobcalc.h"
 
 namespace votca {
 namespace xtp {
@@ -98,4 +102,4 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // VOTCA_XTP_IQM_H
+#endif  // VOTCA_XTP_IQM_PRIVATE_H
