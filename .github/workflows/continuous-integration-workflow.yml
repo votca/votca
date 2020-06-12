@@ -110,7 +110,7 @@ jobs:
           submodules: true
       - name: Run Votca Setup
         id: setup
-        uses: votca/actions/setup@master
+        uses: votca/actions/setup@v0
         with:
           distro: ${{ matrix.distro }}
           toolchain: ${{ matrix.toolchain }}
