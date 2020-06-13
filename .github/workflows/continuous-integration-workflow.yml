@@ -21,7 +21,22 @@ jobs:
         own_gmx: [false]
         module_build: [false]
         coverage: [false]
+        exclude:
+        # exclude this here to include it below with deploy: true
+          - distro: latest
+            toolchain: gnu
+            cmake_build_type: Release
+            minimal: false
+            own_gmx: false
+            module_build: false
         include:
+          - distro: latest
+            toolchain: gnu
+            cmake_build_type: Release
+            minimal: false
+            own_gmx: false
+            module_build: false
+            deploy: true # make sure there is only one build deploying
           - distro: latest
             toolchain: gnu
             cmake_build_type: Debug
@@ -153,3 +168,8 @@ jobs:
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
         run: cmake --build builddir --target format && git diff --submodule=diff --exit-code
+      - name: Deploy Doxygen and Website
+        if: ${{ matrix.deploy }}
+        env:
+          VOTCA_BOT_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
+        run: .github/workflows/deploy.sh
