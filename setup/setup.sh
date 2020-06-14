@@ -67,7 +67,7 @@ fi
 
 # lmp currently ill instruction on opensuse https://github.com/votca/csg-tutorials/issues/89
 if [[ ${INPUT_DISTRO} = opensuse ]]; then
-  cmake_args+( -DCMAKE_DISABLE_FIND_PACKAGE_LMP=ON )
+  cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_LMP=ON )
 fi
 
 cmake_args+=( ${INPUT_CMAKE_ARGS} )
