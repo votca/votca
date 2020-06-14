@@ -120,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     container: votca/buildenv:${{ matrix.distro }}
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2.2.0
         with:
           submodules: true
       - name: Run Votca Setup
