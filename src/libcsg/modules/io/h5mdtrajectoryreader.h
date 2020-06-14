@@ -129,7 +129,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   void ReadBox(hid_t ds, hid_t ds_data_type, Index row,
                std::unique_ptr<double[]> &data_out);
 
-  double ReadScaleFactor(const hid_t &ds, std::string unit_type);
+  double ReadScaleFactor(const hid_t& ds, const std::string& unit_type);
 
   void CheckError(hid_t hid, std::string error_message) {
     if (hid < 0) {

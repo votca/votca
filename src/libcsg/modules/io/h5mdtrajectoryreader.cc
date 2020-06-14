@@ -365,7 +365,7 @@ void H5MDTrajectoryReader::ReadBox(hid_t ds, hid_t ds_data_type, Index row,
   }
 }
 
-double H5MDTrajectoryReader::ReadScaleFactor(const hid_t &ds, std::string unit_type) {
+double H5MDTrajectoryReader::ReadScaleFactor(const hid_t& ds, const std::string& unit_type) {
   hid_t unit_attr = H5Aopen(ds, "unit", H5P_DEFAULT);
   double scaling_factor = 1.0;
   if (unit_attr > 0) {
