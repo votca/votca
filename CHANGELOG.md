@@ -19,7 +19,7 @@ For more detailed information about the changes see the history of the
 * add support for cma-3 (#158) 
 * allow special characters in build directory (#521) 
 * fix CI on Ubuntu-20.04 (#526)
-* drop support for gmx 2016/2018 (#529)
+* drop support for gmx 2016 (#529, #547)
 * fix csg_reupdate and add tests (#525)
 * fix detection of lmp and gmx in cmake (#540)
 * add test for lammpsdata reader (#544)
