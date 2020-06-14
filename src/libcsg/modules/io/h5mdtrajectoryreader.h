@@ -196,7 +196,6 @@ class H5MDTrajectoryReader : public TrajectoryReader {
           {"pm", 0.001},
           {"nm", 1.0},
           {"A", 0.1},
-          {"Å", 0.1},
           {"um", 1000.0}
       });
 
