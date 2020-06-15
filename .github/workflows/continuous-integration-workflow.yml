@@ -19,15 +19,18 @@ jobs:
         own_gmx: [false]
         module_build: [false]
         coverage: [false]
+        no_regression_testing: [true]
         include:
           - distro: latest
             toolchain: gnu
             cmake_build_type: Debug
             coverage: RestGroup
+            no_regression_testing: true
           - distro: latest
             toolchain: gnu
             cmake_build_type: Release
             module_build: true
+            no_regression_testing: true
     runs-on: ubuntu-latest
     container: votca/buildenv:${{ matrix.distro }}
     steps:
