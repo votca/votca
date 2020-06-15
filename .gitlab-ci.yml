@@ -42,6 +42,7 @@ stages:
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
       ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON
       -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_XTP=OFF -DENABLE_REGRESSION_TESTING=OFF}
+      ${EXTRA_CMAKE_ARGS}
     - cmake --build . --parallel 2
     - ctest --output-on-failure
     - test -z "${MODULE_BUILD}" && DESTDIR=${PWD}/install cmake --install . && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
@@ -228,6 +229,7 @@ Debug GCC openSUSE:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
     DISTRO: "opensuse"
+    EXTRA_CMAKE_ARGS: "-DCMAKE_DISABLE_FIND_PACKAGE_LMP=ON"
   extends: .build
 
 Debug Clang openSUSE:
@@ -237,6 +239,7 @@ Debug Clang openSUSE:
     CMAKE_BUILD_TYPE: "Debug"
     CMAKE_GENERATOR: "Ninja"
     DISTRO: "opensuse"
+    EXTRA_CMAKE_ARGS: "-DCMAKE_DISABLE_FIND_PACKAGE_LMP=ON"
   extends: .build
 
 Release GCC openSUSE:
@@ -245,6 +248,7 @@ Release GCC openSUSE:
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "opensuse"
+    EXTRA_CMAKE_ARGS: "-DCMAKE_DISABLE_FIND_PACKAGE_LMP=ON"
   extends: .build
 
 Release Clang openSUSE:
@@ -254,6 +258,7 @@ Release Clang openSUSE:
     CMAKE_BUILD_TYPE: "Release"
     CMAKE_GENERATOR: "Ninja"
     DISTRO: "opensuse"
+    EXTRA_CMAKE_ARGS: "-DCMAKE_DISABLE_FIND_PACKAGE_LMP=ON"
   extends: .build
 
 Debug GCC Rawhide:
