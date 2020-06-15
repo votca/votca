@@ -2,8 +2,6 @@
 
 builddir="$PWD/builddir"
 
-export
-
 git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc"
 pushd "$HOME/devdoc"
 rm -rf -- *
@@ -16,7 +14,7 @@ git add --all .
 git config --global user.name "Votca Bot"
 git config --global user.email "github@votca.org"
 git commit -m "Documentation Update for votca/votca@${GITHUB_SHA}"
-if [[ ${GITHUB_REFS} = "refs/heads/master" && ${VOTCA_BOT_TOKEN} ]]; then
+if [[ ${GITHUB_REF} = "refs/heads/master" && ${VOTCA_BOT_TOKEN} ]]; then
   git push "https://${VOTCA_BOT_TOKEN}@github.com:votca/doxygen.git" gh-pages
 else
   git show --no-color | head -c 1k
@@ -34,7 +32,7 @@ git add --all .
 git config --global user.name "Votca Bot"
 git config --global user.email "github@votca.org"
 git commit -m "Documentation Update for votca/votca@${GITHUB_SHA}"
-if [[ ${GITHUB_REFS} = "refs/heads/master" && ${VOTCA_BOT_TOKEN} ]]; then
+if [[ ${GITHUB_REF} = "refs/heads/master" && ${VOTCA_BOT_TOKEN} ]]; then
   git push "https://${VOTCA_BOT_TOKEN}@github.com:votca/votca.github.io.git" master
 else
   git show --no-color | head -c 1k
