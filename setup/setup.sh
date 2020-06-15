@@ -91,9 +91,11 @@ else
   print_output "check_format" "false"
 fi
 
+# Grep project name from CMakeLists.txt and cut votca- suffix
 [[ -f CMakeLists.txt ]] || die "No CMakeLists.txt found"
-project=$(sed -n 's/project(\([^)]*\))/\1/p' CMakeLists.txt)
+project=$(sed -n 's/project(\(votca-\)\?\([^)]*\))/\2/p' CMakeLists.txt)
 [[ ${project} ]] || die "Could not fetch project"
+
 ctest_args=( -L ${project} )
 if [[ ${INPUT_COVERAGE} ]]; then
   # split coverage into 4 group with less than 1hr runtime
@@ -121,3 +123,23 @@ print_output "ctest_args" "${ctest_args[@]}"
 j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0
 ((j++))
 print_output "jobs" "${j}"
+
+# Checkout votca main repo if we are building a module
+if [[ ${project} != votca ]]; then
+  git clone https://github.com/votca/votca
+  if [[ ${GITHUB_REF} = refs/pull/*/merge ]]; then # pull request
+    branch="${GITHUB_BASE_REF}"
+  elif [[ ${GITHUB_REF} = refs/heads/* ]]; then # branch, e.g. stable
+    branch=${GITHUB_REF#refs/heads/}
+  elif [[ ${GITHUB_REF} = refs/tags/* ]]; then # tag or release
+    branch=${GITHUB_REF#refs/tags/}
+  else
+    die "Handling on GITHUB_REF=${GITHUB_REF} not implemented"
+  fi
+  if [[ ${branch} && ${branch} != master ]]; then
+    git -C votca checkout -b "${branch}" || true # || true as the branch might not exist
+  fi
+  git -C votca submodule update --init
+  rm -rf "votca/${project}"
+  ln -s "../../${project}" "votca/${project}"
+fi
