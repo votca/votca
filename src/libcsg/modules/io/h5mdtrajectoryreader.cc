@@ -22,6 +22,7 @@
 
 // Third party includes
 #include <hdf5.h>
+
 #include <boost/regex.hpp>
 
 // Local private VOTCA includes
@@ -83,7 +84,8 @@ bool H5MDTrajectoryReader::Open(const std::string &file) {
   if (modules > 0) {
     hid_t module_units = H5Gopen(modules, "units", H5P_DEFAULT);
     if (module_units > 0) {
-      std::cout << "found units module - position and forces will be scaled " << std::endl;
+      std::cout << "found units module - position and forces will be scaled "
+                << std::endl;
       unit_module_enabled_ = true;
       H5Gclose(module_units);
     }
@@ -136,7 +138,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   H5Aread(at_box_dimension, H5Aget_type(at_box_dimension), &dimension);
   if (dimension != 3) {
     throw ios_base::failure("Wrong dimension " +
-        boost::lexical_cast<std::string>(dimension));
+                            boost::lexical_cast<std::string>(dimension));
   }
   // TODO: check if boundary is periodic.
   std::string box_edges_name = particle_group_name_ + "/box/edges";
@@ -214,7 +216,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   hsize_t dims[3];
   rank_ = H5Sget_simple_extent_dims(fs_atom_position_, dims, nullptr);
   N_particles_ = dims[1];
-  vec_components_ = (int) dims[2];
+  vec_components_ = (int)dims[2];
   max_idx_frame_ = dims[0] - 1;
 
   // TODO: reads mass, charge and particle type.
@@ -310,7 +312,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
     Bead *b = top.getBead(atom_id);
     if (b == nullptr) {
       throw std::runtime_error("Bead not found: " +
-          boost::lexical_cast<std::string>(atom_id));
+                               boost::lexical_cast<std::string>(atom_id));
     }
 
     b->setPos(Eigen::Vector3d(x, y, z));
@@ -361,11 +363,12 @@ void H5MDTrajectoryReader::ReadBox(hid_t ds, hid_t ds_data_type, Index row,
       H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out.get());
   if (status < 0) {
     throw std::runtime_error("Error ReadScalarData: " +
-        boost::lexical_cast<std::string>(status));
+                             boost::lexical_cast<std::string>(status));
   }
 }
 
-double H5MDTrajectoryReader::ReadScaleFactor(const hid_t& ds, const std::string& unit_type) {
+double H5MDTrajectoryReader::ReadScaleFactor(const hid_t &ds,
+                                             const std::string &unit_type) {
   hid_t unit_attr = H5Aopen(ds, "unit", H5P_DEFAULT);
   double scaling_factor = 1.0;
   if (unit_attr > 0) {
@@ -383,13 +386,16 @@ double H5MDTrajectoryReader::ReadScaleFactor(const hid_t& ds, const std::string&
     for (auto v : tok) {
       boost::smatch suffix_match;
       int unit_pow = 1;
-      if (boost::regex_match(v, suffix_match, suffix_units, boost::match_extra)) {
-        //If the prefix has numeric suffix then use it in the formula for scaling factor.
+      if (boost::regex_match(v, suffix_match, suffix_units,
+                             boost::match_extra)) {
+        // If the prefix has numeric suffix then use it in the formula for
+        // scaling factor.
         unit_pow = std::stoi(suffix_match[2]);
       }
-      auto votca_scaling_factor = length_units_votca_scaling_factors.find(v);
-      if (votca_scaling_factor != length_units_votca_scaling_factors.end()) {
-        scaling_factor = scaling_factor * pow(votca_scaling_factor->second, unit_pow);
+      auto votca_scaling_factor = votca_units_scaling_factors.find(v);
+      if (votca_scaling_factor != votca_units_scaling_factors.end()) {
+        scaling_factor =
+            scaling_factor * pow(votca_scaling_factor->second, unit_pow);
       }
     }
     std::cout << "Found units " << value << " for " << unit_type << ".";
