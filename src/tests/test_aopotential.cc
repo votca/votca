@@ -183,7 +183,6 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   ECPAOBasis ecpbasis;
   ecpbasis.Fill(ecps, orbitals.QMAtoms());
   AOECP ecp;
-  OPENMP::setMaxThreads(1);
   ecp.FillPotential(aobasis, ecpbasis);
   Eigen::MatrixXd ecp_ref = Eigen::MatrixXd::Zero(17, 17);
   ecp_ref << 21.6188, 1.34835, 0, 0, 0, 2.29744, 0, 0, 0, 0.209711, 1.01592,
@@ -815,7 +814,6 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   ECPAOBasis ecpbasis;
   ecpbasis.Fill(ecps, mol);
   AOECP ecp;
-  OPENMP::setMaxThreads(1);
   ecp.FillPotential(dftbasis, ecpbasis);
 
   Eigen::MatrixXd ecp_ref = Eigen::MatrixXd::Zero(dftbasissize, dftbasissize);

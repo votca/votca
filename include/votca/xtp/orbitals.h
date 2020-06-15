@@ -367,7 +367,6 @@ class Orbitals {
 
   Index _qpmin = 0;
   Index _qpmax = 0;
-
   Index _bse_vmin = 0;
   Index _bse_vmax = 0;
   Index _bse_cmin = 0;

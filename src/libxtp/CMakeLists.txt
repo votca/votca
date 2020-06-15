@@ -10,7 +10,11 @@ list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 add_library(votca_xtp  ${VOTCA_SOURCES})
 set_target_properties(votca_xtp PROPERTIES SOVERSION ${SOVERSION})
 add_dependencies(votca_xtp gitversion-xtp)
-target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE LIBXC::LIBXC Boost::program_options Boost::filesystem Boost::system Boost::timer )
+target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost  Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE LIBXC::LIBXC Boost::program_options Boost::filesystem Boost::system Boost::timer )
+
+if(TARGET OpenMP::OpenMP_CXX)
+  target_link_libraries(votca_xtp PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 if(USE_CUDA)
   target_link_libraries(votca_xtp PUBLIC ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
