@@ -45,6 +45,13 @@ class Mat_p_Energy {
   Mat_p_Energy(double e, Eigen::MatrixXd&& mat)
       : _energy(e), _matrix(std::move(mat)){};
 
+  Mat_p_Energy operator+(const Mat_p_Energy& other) const {
+    Mat_p_Energy result = *this;
+    result._energy += other._energy;
+    result._matrix += other._matrix;
+    return result;
+  }
+
   Index rows() const { return _matrix.rows(); }
   Index cols() const { return _matrix.cols(); }
   Eigen::MatrixXd& matrix() { return _matrix; }
@@ -56,6 +63,21 @@ class Mat_p_Energy {
   double _energy;
   Eigen::MatrixXd _matrix;
 };
+
+#pragma omp declare reduction (+:Mat_p_Energy: omp_out=omp_out+omp_in)\
+     initializer(omp_priv=Mat_p_Energy(omp_orig.rows(),omp_orig.cols()))
+
+#pragma omp declare reduction (+: Eigen::VectorXd: omp_out=omp_out+omp_in)\
+     initializer(omp_priv=Eigen::VectorXd::Zero(omp_orig.size()))
+
+#pragma omp declare reduction (+: Eigen::MatrixXd: omp_out=omp_out+omp_in)\
+     initializer(omp_priv=Eigen::MatrixXd::Zero(omp_orig.rows(),omp_orig.cols()))
+
+#pragma omp declare reduction (+: Eigen::Matrix3d: omp_out=omp_out+omp_in)\
+     initializer(omp_priv=Eigen::Matrix3d::Zero())
+
+#pragma omp declare reduction (+: Eigen::Vector3d: omp_out=omp_out+omp_in)\
+     initializer(omp_priv=Eigen::Vector3d::Zero())
 
 namespace OPENMP {
 inline Index getMaxThreads() {
