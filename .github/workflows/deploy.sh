@@ -2,6 +2,8 @@
 
 builddir="$PWD/builddir"
 
+export
+
 git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc"
 pushd "$HOME/devdoc"
 rm -rf -- *
