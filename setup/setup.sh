@@ -149,6 +149,6 @@ if [[ ${project} != votca ]]; then
     git -C votca checkout -b "${branch}" || true # || true as the branch might not exist
   fi
   git -C votca submodule update --init
-  rm -rf "votca/${project}"
-  ln -s "../../${project}" "votca/${project}"
+  git -C "votca/${project}" fetch "$PWD"
+  git -C "votca/${project}" checkout FETCH_HEAD
 fi
