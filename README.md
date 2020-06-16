@@ -29,17 +29,23 @@ We have no manual for the moment but we have a complete tutorial here:
 The development of VOTCA is mainly funded by academic research grants. If you
 use this package, please cite the VOTCA papers:
 
+* Excited-State Electronic Structure of Molecules Using Many-Body Green’s 
+  Functions: Quasiparticles and Electron-Hole Excitations with VOTCA-XTP. 
+  Gianluca Tirimbò, Vivek Sundaram, Onur Çaylak, Wouter Scharpach, Javier 
+  Sijen, Christoph Junghans, Joshua Brown, Felipe Zapata Ruiz, Nicolas 
+  Renaud, Jens Wehner, Björn Baumeier, J. Chem. Phys. 152, 114103 (2020).
+
 * Electronic Excitations in Complex Molecular Environments: Many-Body Green’s
-  Functions Theory in VOTCA-XTP Jens Wehner, Lothar Brombacher, Joshua Brown,
+  Functions Theory in VOTCA-XTP. Jens Wehner, Lothar Brombacher, Joshua Brown,
   Christoph Junghans, Onur Caylak, Yuriy Khalak, Pranav Madhikar, Gianluca
-  Tirimbo, Björn Baumeier J. Chem. Theory Comput. 14, 6353 (2018).
+  Tirimbo, Björn Baumeier, J. Chem. Theory Comput. 14, 6353 (2018).
 
 * Microscopic simulations of charge transport in disordered organic
-  semiconductors V. Ruehle, A. Lukyanov, F. May, M. Schrader, T. Vehoff, J.
-  Kirkpatrick, B. Baumeier and D. Andrienko J. Chem. Theo. Comp. 7, 3335-3345
+  semiconductors. V. Ruehle, A. Lukyanov, F. May, M. Schrader, T. Vehoff, J.
+  Kirkpatrick, B. Baumeier and D. Andrienko, J. Chem. Theo. Comp. 7, 3335-3345
   (2011)
 
-* Versatile Object-oriented Toolkit for Coarse-graining Applications, V.Ruehle,
+* Versatile Object-oriented Toolkit for Coarse-graining Applications. V.Ruehle,
   C. Junghans, A. Lukyanov, K. Kremer, D. Andrienko, J. Chem. Theo. Comp. 5
   (12), 3211 (2009)
 
