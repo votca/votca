@@ -263,6 +263,12 @@
       <default_reg>0
         <DESC> default magnitude for regularization parameter if not given for the group explicitly, default =0</DESC>
       </default_reg>
+      <bonded_method>imc
+        <DESC> method for calculating updates on the bonded interactions. ibi or imc (not implemented), default=imc </DESC>
+      </bonded_method>
+      <settings_nonbonded>imc
+        <DESC> settings file to be used with csg_stat --do-imc. only needed if bonded_method=ibi</DESC>
+      </settings_nonbonded>
     </imc>
     <lammps>
       <DESC> general lammps specific options </DESC>
@@ -589,7 +595,7 @@
         </table_bins>
       </sim_prog>
       <imc>
-        <DESC>ection containing inverse monte carlo specific options.</DESC>
+        <DESC>section containing inverse monte carlo specific options.</DESC>
         <group>
           <DESC>Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update. If no cross correlations should be calculated, interactions have to be put into different groups.</DESC>
         </group>

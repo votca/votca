@@ -326,7 +326,6 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     G_minus_g  using IHNC (or HNCN) step for molecules with n identical beads.
     This means it works for two-bead hexane, but is expected to fail for
     three-bead hexane"""
-    print(closure, newton_mod)
     # reciprocal space with radial symmetry ω
     omega = np.arange(1, len(r)) / (2 * max(r))
     # difference of rdf to target 'f'

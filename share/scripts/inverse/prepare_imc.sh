@@ -32,6 +32,12 @@ if [[ ${#names[@]} -gt 1 ]]; then
   msg --color blue "####################################################"
 fi
 
-[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && die "IMC does not support bonded interactions, go and implement it"
+
+[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && has_bonds=true || has_bonds=false
+bonded_method="$(csg_get_property cg.inverse.imc.bonded_method)"
+
+if [[ $has_bonds == true && $bonded_method == "imc" ]]; then
+  die "using IMC for bonded potentials is not implemented yet"
+fi
 
 do_external prepare generic

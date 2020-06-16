@@ -62,6 +62,7 @@ fi
 
 tasks=$(get_number_tasks)
 
+# this one would not need to do bonded interactions, but there is no option for this except to modify the .xml files
 critical csg_stat --options "$CSGXMLFILE" --top "$topol" --trj "$traj" \
     --begin $equi_time --first-frame $first_frame --nt $tasks --include-intra --ext "dist-incl.new" \
     ${maps:+--cg ${maps}}
