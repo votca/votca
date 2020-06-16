@@ -22,6 +22,12 @@ for i in INPUT_DISTRO INPUT_CMAKE_BUILD_TYPE INPUT_TOOLCHAIN INPUT_COVERAGE INPU
   echo "$i='${!i}'"
 done
 
+# Grep project name from CMakeLists.txt and cut votca- suffix
+[[ -f CMakeLists.txt ]] || die "No CMakeLists.txt found"
+project=$(sed -n 's/project(\(votca-\)\?\([^)]*\))/\2/p' CMakeLists.txt)
+[[ ${project} ]] || die "Could not fetch project"
+echo "Working on module '${project}'"
+
 cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON )
 if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
   cmake_args+=( -DCMAKE_BUILD_TYPE=${INPUT_CMAKE_BUILD_TYPE} )
@@ -52,6 +58,14 @@ else
 fi
 if ${INPUT_MINIMAL}; then
   cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_XTP=OFF )
+elif [[ ${project} = xtp* ]]; then
+  cmake_args+=( -DBUILD_CSGAPPS=OFF -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=OFF )
+elif [[ ${project} = csg-manual ]]; then
+  cmake_args+=( -DBUILD_CSGAPPS=OFF -DBUILD_XTP=OFF -DBUILD_CSG_MANUAL=ON )
+elif [[ ${project} = csgapps ]]; then
+  cmake_args+=( -DBUILD_CSGAPPS=ON -DBUILD_XTP=OFF -DBUILD_CSG_MANUAL=OFF )
+elif [[ ${project} = csg-tutorials ]]; then
+  cmake_args+=( -DBUILD_CSGAPPS=OFF -DBUILD_XTP=OFF -DBUILD_CSG_MANUAL=OFF )
 else
   cmake_args+=( -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON )
 fi
@@ -90,11 +104,6 @@ if [[ ${INPUT_DISTRO} = "latest" ]] && ! ${INPUT_MODULE}; then
 else
   print_output "check_format" "false"
 fi
-
-# Grep project name from CMakeLists.txt and cut votca- suffix
-[[ -f CMakeLists.txt ]] || die "No CMakeLists.txt found"
-project=$(sed -n 's/project(\(votca-\)\?\([^)]*\))/\2/p' CMakeLists.txt)
-[[ ${project} ]] || die "Could not fetch project"
 
 ctest_args=( -L ${project} )
 if [[ ${INPUT_COVERAGE} ]]; then
