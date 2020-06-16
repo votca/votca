@@ -24,7 +24,7 @@ done
 
 # Grep project name from CMakeLists.txt and cut votca- suffix
 [[ -f CMakeLists.txt ]] || die "No CMakeLists.txt found"
-project=$(sed -n 's/project(\(votca-\)\?\([^ )]*\).*)/\2/p')
+project=$(sed -n 's/project(\(votca-\)\?\([^ )]*\).*)/\2/p' CMakeLists.txt)
 [[ ${project} ]] || die "Could not fetch project"
 echo "Working on module '${project}'"
 
