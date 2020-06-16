@@ -13,10 +13,11 @@ find_program(JUPYTER_EXECUTABLE NAMES jupyter "Interactive computing environment
 set(NEW_NOTEBOOKS)
 foreach(_notebook ${NOTEBOOKS})
   get_filename_component(_FILE "${_notebook}" NAME_WLE)
+  get_filename_component(_DIR "${_notebook}" DIRECTORY)
   add_custom_command(OUTPUT ${_FILE}.ipynb
     COMMAND ${JUPYTER_EXECUTABLE} nbconvert --to notebook --ExecutePreprocessor.timeout=1000 --execute ${_notebook} --output ${_FILE}.ipynb
     )
-    list(APPEND NEW_NOTEBOOKS ${_FILE}.ipynb)
+    list(APPEND NEW_NOTEBOOKS "${_DIR}/${_FILE}.ipynb")
 endforeach()
 add_custom_target(executed_notebooks DEPENDS ${NEW_NOTEBOOKS})
 
