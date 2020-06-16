@@ -25,7 +25,7 @@ For more detailed information about the changes see the history of the
 * address missing includes (#452)
 * fix readjobfiles path (#453)
 * standardising include order and style in header files (#448)
-* changed to OpenMP reductions instead of hand crafted solutions (#466)
+* changed to OpenMP reductions instead of hand crafted solutions (#466, #471)
 * switch to GitHub Actions as CI (#467)
 
 ## Version 1.6.1 (released XX.04.20)
