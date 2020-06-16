@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2.2.0
         with:
-          submodules: true
+          fetch-depth: 0
       - name: Run Votca Setup
         id: setup
         uses: votca/actions/setup@master
