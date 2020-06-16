@@ -1,0 +1,70 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  CI:
+    continue-on-error: ${{ matrix.distro == 'ubuntu_devel' || matrix.distro == 'fedora_rawhide' || matrix.continue-on-error == true }}
+    strategy:
+      matrix:
+        distro: [latest, fedora_rawhide, opensuse, ubuntu, ubuntu_devel, ubuntu_rolling, ubuntu_18.04]
+        toolchain: [gnu]
+        cmake_build_type: [Release]
+        minimal: [false]
+        own_gmx: [false]
+        module_build: [false]
+        coverage: [false]
+        no_regression_testing: [true]
+        include:
+          - distro: latest
+            toolchain: gnu
+            cmake_build_type: Release
+            module_build: true
+            no_regression_testing: true
+    runs-on: ubuntu-latest
+    container: votca/buildenv:${{ matrix.distro }}
+    steps:
+      - uses: actions/checkout@v2.2.0
+        with:
+          submodules: true
+      - name: Run Votca Setup
+        id: setup
+        uses: votca/actions/setup@master
+        with:
+          distro: ${{ matrix.distro }}
+          toolchain: ${{ matrix.toolchain }}
+          minimal: ${{ matrix.minimal == true }}
+          module: ${{ matrix.module_build == true }}
+          own_gmx: ${{ matrix.own_gmx == true }}
+          regression_testing: ${{ matrix.no_regression_testing != true }}
+          coverage: ${{ matrix.coverage }}
+          cmake_build_type: ${{ matrix.cmake_build_type }}
+          ctest_args: ${{ matrix.ctest_args }}
+          cmake_args: ${{ matrix.cmake_args }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.ccache
+          key: ${{ steps.setup.outputs.cache_key }}
+          restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
+      - name: CMake
+        run: mkdir builddir && cd builddir && cmake ${{ steps.setup.outputs.cmake_args }} ../votca
+      - name: Build
+        run: |
+          ccache -z
+          cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
+          ccache -s
+      - name: Tests
+        run: cd builddir && ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+      - name: Build Sphinx
+        if: ${{ steps.setup.outputs.build_sphinx == 'true' }}
+        run: cmake --build builddir --target doc
+      - name: Test DESTDIR Install
+        if: ${{ ! matrix.module_build }}
+        run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
+      - name: Install
+        run: sudo cmake --build builddir --target install
