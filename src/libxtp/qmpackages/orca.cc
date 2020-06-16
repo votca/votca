@@ -825,11 +825,24 @@ std::string Orca::WriteMethod() const {
   std::string convergence =
       this->_convergence_map.at(_settings.get("convergence_tightness")) +
       "SCF ";
-  stream << "! DFT " << _settings.get("functional") << " " << convergence
+  stream << "! DFT " << this->GetOrcaFunctionalName() << " " << convergence
          << opt
          // additional properties provided by the user
          << _settings.get("orca.method") << "\n";
   return stream.str();
+}
+
+std::string Orca::GetOrcaFunctionalName() const {
+  std::string functional_name = _settings.get("functional");
+  std::transform(functional_name.begin(), functional_name.end(),
+                 functional_name.begin(),
+                 [](char& c) { return std::toupper(c); });
+  auto it = _libxc_name_to_orca_xc_name.find(functional_name);
+  if (it != _libxc_name_to_orca_xc_name.end()) {
+    return it->second;
+  } else {
+    return functional_name;
+  }
 }
 
 }  // namespace xtp

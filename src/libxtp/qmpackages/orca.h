@@ -95,12 +95,20 @@ class Orca : public QMPackage {
                       std::ifstream& input_file) const;
   std::string WriteMethod() const;
   std::string CreateInputSection(const std::string& key) const;
+  std::string GetOrcaFunctionalName() const;
 
   std::unordered_map<std::string, std::string> _convergence_map{
       {"low", "Loose"},
       {"normal", "Strong"},
       {"tight", "Tight"},
       {"verytight", "VeryTight"}};
+
+  std::unordered_map<std::string, std::string> _libxc_name_to_orca_xc_name{
+      // Hybrid  functionals
+      {"XC_HYB_GGA_XC_B1LYP", "B1LYP"}, // libXC 416
+      {"XC_HYB_GGA_XC_B3LYP", "B3LYP"}, // libXC 402
+      {"XC_HYB_GGA_XC_PBEH", "PBE0"},  // libXC 406
+  };
 };
 
 }  // namespace xtp
