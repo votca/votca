@@ -833,15 +833,28 @@ std::string Orca::WriteMethod() const {
 }
 
 std::string Orca::GetOrcaFunctionalName() const {
-  std::string functional_name = _settings.get("functional");
-  std::transform(functional_name.begin(), functional_name.end(),
-                 functional_name.begin(),
-                 [](char& c) { return std::toupper(c); });
-  auto it = _libxc_name_to_orca_xc_name.find(functional_name);
-  if (it != _libxc_name_to_orca_xc_name.end()) {
-    return it->second;
+
+  char* votca_share = getenv("VOTCASHARE");
+  if (votca_share == nullptr) {
+    return _settings.get("functional");
   } else {
-    return functional_name;
+    tools::Property all_functionals;
+
+    auto xml_file = std::string(getenv("VOTCASHARE")) +
+                    std::string("/xtp/packages/orca_functional_names.xml");
+
+    all_functionals.LoadFromXML(xml_file);
+
+    const tools::Property& functional_names =
+        all_functionals.get("functionals");
+
+    std::string input_name = _settings.get("functional");
+
+    if (functional_names.exists(input_name)) {
+      return functional_names.get(input_name).as<std::string>();
+    } else {
+      return input_name;
+    }
   }
 }
 

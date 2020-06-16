@@ -27,6 +27,7 @@ For more detailed information about the changes see the history of the
 * standardising include order and style in header files (#448)
 * changed to OpenMP reductions instead of hand crafted solutions (#466)
 * switch to GitHub Actions as CI (#467)
+* create a map between orca and libxc functional names (#461)
 
 ## Version 1.6.1 (released XX.04.20)
 * fix warnings on Ubuntu 20.04 (#438, #460)
