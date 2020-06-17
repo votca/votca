@@ -17,10 +17,6 @@ jobs:
         with:
           submodules: true
           path: votca
-      - name: Debug
-        run: |
-          pwd
-          ls
       - name: Build Docker images
         uses: docker/build-push-action@v1.1.0
         with:
