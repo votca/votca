@@ -853,7 +853,13 @@ std::string Orca::GetOrcaFunctionalName() const {
     if (functional_names.exists(input_name)) {
       return functional_names.get(input_name).as<std::string>();
     } else {
-      return input_name;
+      std::ostringstream oss;
+      oss << "The libxc functional \"" << input_name << "\"\n"
+          << "doesn't seem to have a corresponding name in Orca.\n"
+          << "Check the "
+          << "\"${VOTCASHARE}/xtp/packages/orca_functional_names.xml\""
+          << "file for the whole list of known libxc/orca functionals";
+      throw runtime_error(oss.str());
     }
   }
 }
