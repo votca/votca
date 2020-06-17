@@ -14,13 +14,12 @@ set(NEW_NOTEBOOKS)
 foreach(_notebook ${NOTEBOOKS})
   get_filename_component(_FILE "${_notebook}" NAME_WLE)
   get_filename_component(_DIR "${_notebook}" DIRECTORY)
-  add_custom_command(OUTPUT ${_FILE}.ipynb
-    COMMAND ${JUPYTER_EXECUTABLE} nbconvert --to notebook --ExecutePreprocessor.timeout=1000 --execute ${_notebook} --output ${_FILE}.ipynb
+  add_custom_command(OUTPUT ${_notebook}.ipynb
+    COMMAND ${JUPYTER_EXECUTABLE} nbconvert --to notebook --ExecutePreprocessor.timeout=1000 --inplace --execute ${_notebook}
     )
-    list(APPEND NEW_NOTEBOOKS "${_DIR}/${_FILE}.ipynb")
+    list(APPEND NEW_NOTEBOOKS ${_notebook}.ipynb)
 endforeach()
 add_custom_target(executed_notebooks DEPENDS ${NEW_NOTEBOOKS})
-
 
 
 set(IPYNB_FILES)
