@@ -849,6 +849,13 @@ std::string Orca::GetOrcaFunctionalName() const {
         all_functionals.get("functionals");
 
     std::string input_name = _settings.get("functional");
+    // Some functionals have a composed named separated by a space
+    // In the case just look for the first part
+    std::size_t plus = input_name.find(' ');
+    if (plus != std::string::npos) {
+      input_name = input_name.substr(0, plus);
+      std::cout << "\nnew input: " << input_name << "\n";
+    }
 
     if (functional_names.exists(input_name)) {
       return functional_names.get(input_name).as<std::string>();
