@@ -102,6 +102,7 @@ postadd shift postadd_shift.sh
 postadd overwrite postadd_overwrite.sh
 postadd plot postadd_plot.sh
 postadd average postadd_average.sh
+postadd smooth_at_cut_off postadd_smooth_at_cut_off.sh
 
 #convergence checks
 convergence_check default convergence_check_default.sh
@@ -165,6 +166,7 @@ table integrate table_integrate.pl
 table extrapolate table_extrapolate.pl
 table merge merge_tables.pl
 table smooth table_smooth.pl
+table smooth_at_cut_off table_smooth_at_cut_off.py
 table linearop table_linearop.pl
 #do not use table functional here as it needs gnuplot
 table dummy table_dummy.sh

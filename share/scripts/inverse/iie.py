@@ -44,7 +44,7 @@ np.seterr(all='raise')
 def readin_table(filename):
     """read in votca table"""
     table_dtype = {'names': ('x', 'y', 'y_flag'),
-                   'formats': ('f', 'f', 'S1')}
+                   'formats': ('f', 'f', 'U2')}
     x, y, y_flag = np.loadtxt(filename, dtype=table_dtype, comments=['#', '@'],
                               unpack=True)
     return x, y, y_flag
@@ -52,8 +52,11 @@ def readin_table(filename):
 
 def saveto_table(filename, x, y, y_flag, comment=""):
     """save votca table"""
-    data = np.column_stack((x.T, y.T, y_flag.T))
-    np.savetxt(filename, data, header=comment, fmt='%s')
+    data = np.zeros((len(x),), dtype='f, f, U2')
+    data['f0'] = x
+    data['f1'] = y
+    data['f2'] = y_flag
+    np.savetxt(filename, data, header=comment, fmt=['%e', '%e', '%s'])
 
 
 def compare_grids(grid_a, grid_b):
@@ -300,7 +303,7 @@ def shift_U_cutoff_zero(dU, r, U, cut_off):
     return dU_shift
 
 
-def fix_U_near_cut_off_full(dU, r, U, cut_off):
+def fix_U_near_cut_off_full(r, U, cut_off):
     """Modify the potential close to the cut-off in
     a way, such that it is more smooth. The derivative
     of the potential between the last two points will
@@ -310,14 +313,13 @@ def fix_U_near_cut_off_full(dU, r, U, cut_off):
 
     This also helps agains an artifact of p-HNCGN,
     where the last value of dU is a spike."""
-    dU_fixed = dU.copy()
+    U_fixed = U.copy()
     ndx_co = find_nearest_ndx(r, cut_off)
-    U_new = U + dU
-    second_last_deriv = U_new[ndx_co-1] - U_new[ndx_co-2]
-    shift = -1.0 * second_last_deriv - U_new[ndx_co-1]
+    second_last_deriv = U[ndx_co-1] - U[ndx_co-2]
+    shift = -1.0 * second_last_deriv - U[ndx_co-1]
     # modify up to second last value
-    dU_fixed[:ndx_co] += shift
-    return dU_fixed
+    U_fixed[:ndx_co] += shift
+    return U_fixed
 
 
 def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
@@ -703,9 +705,10 @@ def main():
         if args.fix_near_cut_off == 'none':
             dU = dU_shift.copy()
         elif args.fix_near_cut_off == 'full-deriv':
-            dU = fix_U_near_cut_off_full(dU_shift, r,
-                                         input_arrays['U_cur'][0]['y'],
-                                         args.cut_off)
+            U_new = input_arrays['U_cur'][0]['y'] + dU
+            U_new = fix_U_near_cut_off_full(r,
+                                            U_new,
+                                            args.cut_off)
         else:
             raise Exception("unknown fix scheme for near cut-off: "
                             + args.fix_near_cut_off)
