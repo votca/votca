@@ -2,7 +2,6 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_xtp)
-  set_target_properties(${PROG} PROPERTIES XTPBIN ${CMAKE_CURRENT_BINARY_DIR})
   install(TARGETS ${PROG} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   if (BUILD_MANPAGES)
