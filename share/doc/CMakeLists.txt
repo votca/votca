@@ -11,7 +11,8 @@ list(APPEND NOTEBOOKS "${PROJECT_SOURCE_DIR}/LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipy
 
 find_program(JUPYTER_EXECUTABLE NAMES jupyter "Interactive computing environment (https://jupyter.org/)")
 
-get_target_property(XTP_PATH_BIN xtp_tools XTPBIN)
+get_target_property(XTP_PATH votca_xtp XTP_PATH)
+get_target_property(VOTCASHARE votca_xtp VOTCA_SHARE)
 
 set(NEW_NOTEBOOKS)
 foreach(_notebook ${NOTEBOOKS})
@@ -19,7 +20,7 @@ foreach(_notebook ${NOTEBOOKS})
   get_filename_component(_DIR "${_notebook}" DIRECTORY)
   add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/${_FILE}
     WORKING_DIRECTORY ${_DIR}
-    COMMAND ${CMAKE_COMMAND} -E env PATH=${XTP_PATH_BIN}:$ENV{PATH} ${JUPYTER_EXECUTABLE} nbconvert --to notebook --ExecutePreprocessor.timeout=1000 --execute ${_notebook} --output ${VOTCA_SPHINX_DIR}/${_FILE}
+    COMMAND ${CMAKE_COMMAND} -E env PATH=${XTP_PATH}:$ENV{PATH} VOTCASHARE=${VOTCASHARE} ${JUPYTER_EXECUTABLE} nbconvert --to notebook --ExecutePreprocessor.timeout=1000 --execute ${_notebook} --output ${VOTCA_SPHINX_DIR}/${_FILE}
     )
     list(APPEND NEW_NOTEBOOKS ${VOTCA_SPHINX_DIR}/${_FILE})
   endforeach()
