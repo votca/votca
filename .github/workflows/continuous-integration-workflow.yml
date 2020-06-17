@@ -31,14 +31,8 @@ jobs:
           - distro: fedora_gmx2019
             toolchain: gnu
             cmake_build_type: Release
-          - distro: fedora_gmx2019
-            toolchain: clang
-            cmake_build_type: Release
           - distro: fedora_gmx2019_d
             toolchain: gnu
-            cmake_build_type: Release
-          - distro: fedora_gmx2019_d
-            toolchain: clang
             cmake_build_type: Release
     runs-on: ubuntu-latest
     container: votca/buildenv:${{ matrix.distro }}
