@@ -22,11 +22,11 @@ for i in INPUT_DISTRO INPUT_CMAKE_BUILD_TYPE INPUT_TOOLCHAIN INPUT_COVERAGE INPU
   echo "$i='${!i}'"
 done
 
-# Grep project name from CMakeLists.txt and cut votca- suffix
+# Grep module name from CMakeLists.txt and cut votca- suffix
 [[ -f CMakeLists.txt ]] || die "No CMakeLists.txt found"
-project=$(sed -n 's/project(\(votca-\)\?\([^ )]*\).*)/\2/p' CMakeLists.txt)
-[[ ${project} ]] || die "Could not fetch project"
-echo "Working on module '${project}'"
+module=$(sed -n 's/project(\(votca-\)\?\([^ )]*\).*)/\2/p' CMakeLists.txt)
+[[ ${module} ]] || die "Could not fetch module"
+print_output "module" "${module}"
 
 cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON )
 if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
@@ -58,13 +58,13 @@ else
 fi
 if ${INPUT_MINIMAL}; then
   cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_XTP=OFF )
-elif [[ ${project} = xtp* ]]; then
+elif [[ ${module} = xtp* ]]; then
   cmake_args+=( -DBUILD_CSGAPPS=OFF -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=OFF )
-elif [[ ${project} = csg-manual ]]; then
+elif [[ ${module} = csg-manual ]]; then
   cmake_args+=( -DBUILD_CSGAPPS=OFF -DBUILD_XTP=OFF -DBUILD_CSG_MANUAL=ON )
-elif [[ ${project} = csgapps ]]; then
+elif [[ ${module} = csgapps ]]; then
   cmake_args+=( -DBUILD_CSGAPPS=ON -DBUILD_XTP=OFF -DBUILD_CSG_MANUAL=OFF )
-elif [[ ${project} = csg-tutorials ]]; then
+elif [[ ${module} = csg-tutorials ]]; then
   cmake_args+=( -DBUILD_CSGAPPS=OFF -DBUILD_XTP=OFF -DBUILD_CSG_MANUAL=OFF )
 else
   cmake_args+=( -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON )
@@ -105,7 +105,7 @@ else
   print_output "check_format" "false"
 fi
 
-ctest_args=( -L ${project} )
+ctest_args=( -L ${module} )
 if [[ ${INPUT_COVERAGE} ]]; then
   # split coverage into 4 group with less than 1hr runtime
   # used votca/votca, csg, tools only
@@ -134,7 +134,7 @@ j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0
 print_output "jobs" "${j}"
 
 # Checkout votca main repo if we are building a module
-if [[ ${project} != votca ]]; then
+if [[ ${module} != votca ]]; then
   git clone https://github.com/votca/votca
   if [[ ${GITHUB_REF} = refs/pull/*/merge ]]; then # pull request
     branch="${GITHUB_BASE_REF}"
@@ -149,6 +149,6 @@ if [[ ${project} != votca ]]; then
     git -C votca checkout -b "${branch}" || true # || true as the branch might not exist
   fi
   git -C votca submodule update --init
-  git -C "votca/${project}" fetch "$PWD"
-  git -C "votca/${project}" checkout FETCH_HEAD
+  git -C "votca/${module}" fetch "$PWD"
+  git -C "votca/${module}" checkout FETCH_HEAD
 fi
