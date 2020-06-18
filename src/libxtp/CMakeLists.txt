@@ -7,8 +7,12 @@ file(GLOB_RECURSE VOTCA_SOURCES *.cc *.cpp)
 file(GLOB_RECURSE NOT_VOTCA_SOURCES cudapipeline.cc cudamatrix.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
+get_filename_component(_PARENT_PATH "${CMAKE_CURRENT_BINARY_DIR}" DIRECTORY)
+
 add_library(votca_xtp  ${VOTCA_SOURCES})
 set_target_properties(votca_xtp PROPERTIES SOVERSION ${SOVERSION})
+set_target_properties(votca_xtp PROPERTIES VOTCA_SHARE ${CMAKE_SOURCE_DIR}/xtp/share)
+set_target_properties(votca_xtp PROPERTIES XTP_PATH ${_PARENT_PATH}/tools)
 add_dependencies(votca_xtp gitversion-xtp)
 target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost  Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE LIBXC::LIBXC Boost::program_options Boost::filesystem Boost::system Boost::timer )
 
