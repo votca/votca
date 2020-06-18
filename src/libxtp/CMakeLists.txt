@@ -9,7 +9,6 @@ list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
 get_filename_component(_PARENT_PATH "${CMAKE_CURRENT_BINARY_DIR}" DIRECTORY)
 
-message(STATUS: "PARENT_PATH: ${_PARENT_PATH}")
 add_library(votca_xtp  ${VOTCA_SOURCES})
 set_target_properties(votca_xtp PROPERTIES SOVERSION ${SOVERSION})
 set_target_properties(votca_xtp PROPERTIES VOTCA_SHARE ${_PARENT_PATH}/../share)
