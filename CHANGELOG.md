@@ -27,6 +27,8 @@ For more detailed information about the changes see the history of the
 * standardising include order and style in header files (#448)
 * changed to OpenMP reductions instead of hand crafted solutions (#466, #471)
 * switch to GitHub Actions as CI (#467)
+* move tutorial to its own repo (#450)
+
 
 ## Version 1.6.1 (released XX.04.20)
 * fix warnings on Ubuntu 20.04 (#438, #460)
