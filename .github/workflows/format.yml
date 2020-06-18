@@ -7,7 +7,7 @@ jobs:
     name: clang-format
     if: ${{ github.event.comment.body == '@votca-bot format' }}
     runs-on: ubuntu-latest
-    container: votca/buildenv:latest
+    container: votca/buildenv:format
     steps:
       - name: Check if message comes from PR
         uses: octokit/request-action@v2.x
@@ -34,12 +34,12 @@ jobs:
           ref: ${{ fromJSON(steps.pr_info.outputs.data).head.ref }}
       - name: Run clang-format
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
-        run: find . -type f -regex ".*\.\(cc\|h\)" -print0 | xargs -0 clang-format -i -style=file
+        run: find . -type f -regex ".*\.\(c\|h\|cc\|cpp\|hpp)" -print0 | xargs -0 clang-format -i -style=file
       - name: Commit and push
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
         run: |
           git config --global user.name "Votca Bot"
           git config --global user.email "github@votca.org"
           git add -u
-          git commit -m "Format code using clang-format" || true
+          git commit -m "Format code using $(clang-format --version)" || true
           git push
