@@ -98,4 +98,4 @@ jobs:
         run: sudo cmake --build builddir --target install
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
-        run: cmake --build builddir --target format && git -C votca diff --submodule=diff --exit-code
+        run: cmake --build builddir --target format && git -C votca/${{ steps.setup.outputs.module }} diff --exit-code
