@@ -21,10 +21,10 @@
 #include "votca/xtp/jobcalculatorfactory.h"
 
 // Local private VOTCA includes
-#include "libxtp/jobcalculators/eqm.h"
-#include "libxtp/jobcalculators/iexcitoncl.h"
-#include "libxtp/jobcalculators/iqm.h"
-#include "libxtp/jobcalculators/qmmm.h"
+#include "jobcalculators/eqm.h"
+#include "jobcalculators/iexcitoncl.h"
+#include "jobcalculators/iqm.h"
+#include "jobcalculators/qmmm.h"
 
 namespace votca {
 namespace xtp {

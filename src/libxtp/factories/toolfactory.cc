@@ -21,17 +21,17 @@
 #include "votca/xtp/toolfactory.h"
 
 // Local private VOTCA includes
-#include "libxtp/tools/apdft.h"
-#include "libxtp/tools/coupling.h"
-#include "libxtp/tools/densityanalysis.h"
-#include "libxtp/tools/dftgwbse.h"
-#include "libxtp/tools/excitoncoupling.h"
-#include "libxtp/tools/gencube.h"
-#include "libxtp/tools/log2mps.h"
-#include "libxtp/tools/molpol.h"
-#include "libxtp/tools/partialcharges.h"
-#include "libxtp/tools/qmsandbox.h"
-#include "libxtp/tools/spectrum.h"
+#include "tools/apdft.h"
+#include "tools/coupling.h"
+#include "tools/densityanalysis.h"
+#include "tools/dftgwbse.h"
+#include "tools/excitoncoupling.h"
+#include "tools/gencube.h"
+#include "tools/log2mps.h"
+#include "tools/molpol.h"
+#include "tools/partialcharges.h"
+#include "tools/qmsandbox.h"
+#include "tools/spectrum.h"
 
 namespace votca {
 namespace xtp {

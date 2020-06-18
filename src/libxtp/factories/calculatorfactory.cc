@@ -21,14 +21,14 @@
 #include "votca/xtp/calculatorfactory.h"
 
 // Local private VOTCA includes
-#include "libxtp/calculators/eanalyze.h"
-#include "libxtp/calculators/einternal.h"
-#include "libxtp/calculators/ianalyze.h"
-#include "libxtp/calculators/kmclifetime.h"
-#include "libxtp/calculators/kmcmultiple.h"
-#include "libxtp/calculators/mapchecker.h"
-#include "libxtp/calculators/neighborlist.h"
-#include "libxtp/calculators/vaverage.h"
+#include "calculators/eanalyze.h"
+#include "calculators/einternal.h"
+#include "calculators/ianalyze.h"
+#include "calculators/kmclifetime.h"
+#include "calculators/kmcmultiple.h"
+#include "calculators/mapchecker.h"
+#include "calculators/neighborlist.h"
+#include "calculators/vaverage.h"
 
 namespace votca {
 namespace xtp {

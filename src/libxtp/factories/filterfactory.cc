@@ -21,11 +21,11 @@
 #include <votca/xtp/filterfactory.h>
 
 // Local private VOTCA includes
-#include "libxtp/statefilters/DeltaQ_filter.h"
-#include "libxtp/statefilters/Density_filter.h"
-#include "libxtp/statefilters/Localisation_filter.h"
-#include "libxtp/statefilters/OscillatorStrength_filter.h"
-#include "libxtp/statefilters/Overlap_filter.h"
+#include "statefilters/DeltaQ_filter.h"
+#include "statefilters/Density_filter.h"
+#include "statefilters/Localisation_filter.h"
+#include "statefilters/OscillatorStrength_filter.h"
+#include "statefilters/Overlap_filter.h"
 
 namespace votca {
 namespace xtp {

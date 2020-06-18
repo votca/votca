@@ -21,8 +21,8 @@
 #include "votca/xtp/qmpackagefactory.h"
 
 // Local private VOTCA includes
-#include "libxtp/qmpackages/orca.h"
-#include "libxtp/qmpackages/xtpdft.h"
+#include "qmpackages/orca.h"
+#include "qmpackages/xtpdft.h"
 
 namespace votca {
 namespace xtp {
