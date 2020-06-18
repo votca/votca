@@ -97,10 +97,11 @@ class Orca : public QMPackage {
   std::string CreateInputSection(const std::string& key) const;
 
   std::unordered_map<std::string, std::string> _convergence_map{
-      {"low", "Loose"},
-      {"normal", "Strong"},
-      {"tight", "Tight"},
-      {"verytight", "VeryTight"}};
+      {"low", "LooseSCF"},
+      {"normal", "StrongSCF"},
+      {"tight", "TightSCF"},
+      {"verytight", "VeryTightSCF"},
+      {"none", ""}};
 };
 
 }  // namespace xtp
