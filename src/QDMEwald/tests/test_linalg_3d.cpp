@@ -17,8 +17,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE linalg_test
-#include "../src/kokkos_linalg.hpp"
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
+
+// Local private VOTCA includes
+#include "kokkos_linalg.hpp"
 
 BOOST_AUTO_TEST_SUITE(linalg_test)
 
