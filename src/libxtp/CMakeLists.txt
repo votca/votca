@@ -27,7 +27,7 @@ if(USE_CUDA)
 endif()
 
 #CMAKE_CURRENT_BINARY_DIR for gitversion.h
-#PROJECT_BINARY_DIR/include/votca/xtp for votca_config.h
+#PROJECT_BINARY_DIR/include/votca/xtp for votca_xtp_config.h
 target_include_directories(votca_xtp PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> ${HDF5_INCLUDE_DIRS}
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
