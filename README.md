@@ -21,24 +21,29 @@ http://www.votca.org
 
 ### QMMM Tutorials
 You can find the GROMACS based tutorial at:
-```GROMACS/Methane/QMMM_GROMACS.ipynb```
+
+``GROMACS/Methane/QMMM_GROMACS.ipynb``
+
 and the one based on LAMMPS at:
-```LAMMPS/Thiophene/QMMM_LAMMPS.ipynb```
+
+``LAMMPS/Thiophene/QMMM_LAMMPS.ipynb``
 
 ### DFT-GWBSE TutorialS
-The single point calculation tutorial is located at:
-```tools/dftgwbse_CH4/DFTGWBSE_ENERGY.ipynb``
-and the optimization at:
-```tools/dftgwbse_CO_geoopt/DFTGWBSE_OPTIMIZATION.ipynb```
+The single point calculation and optmization tutorials are located at:
+
+```
+tools/dftgwbse_CH4/DFTGWBSE_ENERGY.ipynb
+tools/dftgwbse_CO_geoopt/DFTGWBSE_OPTIMIZATION.ipynb
+```
+
 
 ### KMC Tutorials
 the KMC tutorials using GROMACS and LAMMPS trajectories, can be found at:
+
 ```
 GROMACS/KMC_Methane/GROMACS_KMC.ipynb
 LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipynb
 ```
-respectively.
-
 
 ## Citation
 
