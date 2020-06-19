@@ -1,12 +1,46 @@
-This is a tutorial for the VOTCA-XTP package
+# About the Tutorials
+This repository contains several tutorials for the **VOTCA-XTP** package
+that show you how to perform the following calculations:
 
-How to approach the tutorial? [Click here](https://github.com/votca/xtp-tutorials/blob/master/guide/TUTORIAL.md).
+* A point energy calculation using DFT-GWBSE
+* A geometry optimization using DFT-GWBSE
+* A QMMM/DFT-GWBSE workflow using a GROMACS trajectory
+* A QMMM/DFT-GWBSE workflow using a LAMMPS trajectory
+* A Kinetic Monte-Carlo simulation for excited states using a LAMMPS trajectory
+* A Kinetic Monte-Carlo simulation for excited states using a GROMACS trajectory
 
-Installation instructions and developer information can be found
+## Installation
+* In order to try then You will need to follow the **VOTCA** installation instructions
 [here](https://github.com/votca/votca/blob/master/share/doc/INSTALL.md)
+* You will also need to install [Python and Jupyter](https://jupyter.readthedocs.io/en/latest/install.html)
 
 Further information on VOTCA can be found at
 http://www.votca.org
+
+## Tutorials Location
+
+### QMMM Tutorials
+You can find the GROMACS based tutorial at:
+```GROMACS/Methane/QMMM_GROMACS.ipynb```
+and the one based on LAMMPS at:
+```LAMMPS/Thiophene/QMMM_LAMMPS.ipynb```
+
+### DFT-GWBSE TutorialS
+The single point calculation tutorial is located at:
+```tools/dftgwbse_CH4/DFTGWBSE_ENERGY.ipynb``
+and the optimization at:
+```tools/dftgwbse_CO_geoopt/DFTGWBSE_OPTIMIZATION.ipynb```
+
+### KMC Tutorials
+the KMC tutorials using GROMACS and LAMMPS trajectories, can be found at:
+```
+GROMACS/KMC_Methane/GROMACS_KMC.ipynb
+LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipynb
+```
+respectively.
+
+
+## Citation
 
 The development of VOTCA is mainly funded by academic research grants. If you
 use this package, please cite the VOTCA papers:
