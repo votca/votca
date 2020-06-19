@@ -727,7 +727,7 @@ void DFTEngine::Prepare(QMMolecule& mol) {
   XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Using "
                               << OPENMP::getMaxThreads() << " threads" << flush;
 
-  if (tools::globals::VOTCA_MKL) {
+  if (XTP_HAS_MKL_OVERLOAD()) {
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Using MKL overload for Eigen " << flush;
   } else {

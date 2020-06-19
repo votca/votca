@@ -22,18 +22,31 @@
 #define VOTCA_XTP_EIGEN_H
 
 // CMake Generated file
-#include "votca_config.h"
+#include "votca_xtp_config.h"
 
 // VOTCA includes
 #include <votca/tools/eigen.h>
 #include <votca/tools/types.h>
-
+#include <votca/tools/votca_config.h>
 typedef Eigen::Matrix<double, 9, 1> Vector9d;
 typedef Eigen::Matrix<double, 9, 9> Matrix9d;
 typedef Eigen::Array<votca::Index, Eigen::Dynamic, 1> ArrayXl;
 
 namespace votca {
 namespace xtp {
+
+inline bool XTP_HAS_MKL_OVERLOAD() {
+
+  bool mkl_overload = false;
+#ifdef EIGEN_USE_MKL_ALL
+  mkl_overload = true;
+#endif
+  if (mkl_overload && tools::globals::VOTCA_MKL) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 // Stores matrix and energy together
 class Mat_p_Energy {
