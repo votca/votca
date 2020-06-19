@@ -26,12 +26,6 @@ namespace tools {
 std::string globals::url = "http://www.votca.org";
 std::string globals::email = "devs@votca.org";
 
-#ifdef MKL_FOUND
-bool globals::VOTCA_MKL = true;
-#else
-bool globals::VOTCA_MKL = false;
-#endif
-
 std::string globals::man::option(".TP\n\\fB%1%\\fR\n%2%\n");
 
 std::string globals::man::header(".TH \"%1%\" 1 \"\" \"Version: %2%\"\n\n");

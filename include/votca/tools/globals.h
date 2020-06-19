@@ -21,9 +21,6 @@
 // Standard includes
 #include <string>
 
-// Local VOTCA includes
-#include "votca_config.h"
-
 namespace votca {
 
 struct Log {
