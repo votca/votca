@@ -26,7 +26,7 @@ For more detailed information about the changes see the history of the
 * fix readjobfiles path (#453)
 * standardising include order and style in header files (#448)
 * changed to OpenMP reductions instead of hand crafted solutions (#466, #471)
-* switch to GitHub Actions as CI (#467, #474)
+* switch to GitHub Actions as CI (#467, #474, #477)
 * move tutorial to its own repo (#450)
 * removed share/packages folder (#475)
 
