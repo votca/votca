@@ -1,0 +1,15 @@
+name: 'Changelog'
+description: 'Create and commit changelog entry'
+inputs:
+  message:
+    description: 'message test to use (*: prefix will be removed)'
+    required: true
+  pr_number:
+    description: 'Pull request number'
+    required: true
+  token:
+    description: 'GitHub token to use'
+    required: false
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
