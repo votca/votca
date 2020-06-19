@@ -22,12 +22,15 @@
 #define VOTCA_XTP_EIGEN_H
 
 // CMake Generated file
+// clang-format off
+// order seems to matter here
 #include "votca_xtp_config.h"
+#include <votca/tools/votca_config.h>
+//clang-format on
 
 // VOTCA includes
 #include <votca/tools/eigen.h>
 #include <votca/tools/types.h>
-#include <votca/tools/votca_config.h>
 typedef Eigen::Matrix<double, 9, 1> Vector9d;
 typedef Eigen::Matrix<double, 9, 9> Matrix9d;
 typedef Eigen::Array<votca::Index, Eigen::Dynamic, 1> ArrayXl;
@@ -41,7 +44,11 @@ inline bool XTP_HAS_MKL_OVERLOAD() {
 #ifdef EIGEN_USE_MKL_ALL
   mkl_overload = true;
 #endif
-  if (mkl_overload && tools::globals::VOTCA_MKL) {
+  bool mkl_found = false;
+#ifdef MKL_FOUND
+  mkl_found = true;
+#endif
+  if (mkl_overload && mkl_found) {
     return true;
   } else {
     return false;
