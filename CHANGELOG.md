@@ -29,7 +29,8 @@ For more detailed information about the changes see the history of the
 * switch to GitHub Actions as CI (#467, #474)
 * move tutorial to its own repo (#450)
 * removed share/packages folder (#475)
-
+* copy orca *.gbw files in eqm (#472)
+	
 ## Version 1.6.1 (released XX.04.20)
 * fix warnings on Ubuntu 20.04 (#438, #460)
 * remove obsolete boost define (#440)
