@@ -32,6 +32,7 @@ jobs:
         with:
           repository: ${{ fromJSON(steps.pr_info.outputs.data).head.repo.full_name }}
           ref: ${{ fromJSON(steps.pr_info.outputs.data).head.ref }}
+          token: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Run clang-format
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
         run: find . -type f -regex ".*\.\(c\|h\|cc\|cpp\|hpp\)" -print0 | xargs -0 clang-format -i -style=file
