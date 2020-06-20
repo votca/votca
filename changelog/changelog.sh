@@ -9,7 +9,7 @@ die () {
 
 [[ ${INPUT_MESSAGE} ]] || die "No message given"
 [[ ${INPUT_PR_NUMBER} ]] || die "No PR number given"
-message="*${INPUT_MESSAGE#*:} (#$INPUT_PR_NUMBER)"
+message="* ${INPUT_MESSAGE#*: } (#$INPUT_PR_NUMBER)"
 
 [[ -f CMakeLists.txt ]] || die "No CMakeLists.txt found"
 version="$(sed -n 's/set(PROJECT_VERSION *"\([^"]*\)").*/\1/p' CMakeLists.txt)"
