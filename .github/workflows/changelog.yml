@@ -5,7 +5,7 @@ on:
 jobs:
   edit:
     name: add entry
-    if: ${{ startsWith(github.event.comment.body, '@votca-bot changelog:' }}
+    if: ${{ startsWith(github.event.comment.body, '@votca-bot changelog:') }}
     runs-on: ubuntu-latest
     steps:
       - name: Check if message comes from PR
