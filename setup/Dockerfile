@@ -1,4 +1,4 @@
-FROM votca/buildenv:latest
+FROM votca/buildenv:actions
 
 COPY setup.sh /setup.sh
 
