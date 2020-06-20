@@ -6946,7 +6946,6 @@ void LebedevGrid::FillMediumOrder() {
   MediumOrder["Rb"] = 590;
   MediumOrder["I"] = 590;
   MediumOrder["Xe"] = 590;
-  
 }
 
 void LebedevGrid::FillFineOrder() {

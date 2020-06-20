@@ -106,9 +106,10 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
           if (!shell_ecp->isNonLocal()) {
             // stop if local coefficient is not zero
             for (const auto& gaussian_ecp : *shell_ecp) {
-              if ( std::abs(gaussian_ecp.getContraction()) > 1e-5 ) {
+              if (std::abs(gaussian_ecp.getContraction()) > 1e-5) {
                 throw std::runtime_error(
-              "ECPs with explicit local parts are not supported. Use external DFT instead.");
+                    "ECPs with explicit local parts are not supported. Use "
+                    "external DFT instead.");
               }
             }
             continue;
