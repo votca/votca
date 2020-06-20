@@ -2,10 +2,10 @@
 <options>
   <!-- xtp_tools -e dftgwbse options.xml -->
   <dftgwbse help="Compute electronic excitations using GW-BSE">
-    <optimize help="Perform a molecular geometry optimization" default="false" choices="bool">false</optimize>
-    <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
-    <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
-    <functional help="Functional name(s) according to LIBXC" default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
+    <optimize help="Perform a molecular geometry optimization" default="false" choices="bool"/>
+    <basisset help="Basis set for MOs" default="def2-tzvp"/>
+    <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp"/>
+    <functional help="Functional name(s) according to LIBXC" default="XC_HYB_GGA_XC_PBEH"/>
     <dftpackage>
       <package>
         <name help="Name of the DFT package" default="xtp" choices="xtp,orca">xtp</name>

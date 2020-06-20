@@ -32,8 +32,6 @@
 /* Contact address of package */
 #define PACKAGE_BUGREPORT "@PROJECT_CONTACT@"
 
-#cmakedefine MKL
-
 #cmakedefine USE_CUDA
 
 #endif  // _VOTCA_XTP_CONFIG_H
