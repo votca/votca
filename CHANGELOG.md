@@ -31,6 +31,7 @@ For more detailed information about the changes see the history of the
 * removed share/packages folder (#475)
 * copy orca *.gbw files in eqm (#472)
 * improve mkl support (#479)
+* add def2-tzvp, def2-tzvpp, def2-qzvp, def2-qzvpp for Rb,I,Ag,Xe
 
 ## Version 1.6.1 (released XX.04.20)
 * fix warnings on Ubuntu 20.04 (#438, #460)
