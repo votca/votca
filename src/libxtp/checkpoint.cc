@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,7 +20,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
-#include <votca/xtp/votca_config.h>
+#include <votca/xtp/votca_xtp_config.h>
 
 #include <boost/filesystem.hpp>
 #include <string>
