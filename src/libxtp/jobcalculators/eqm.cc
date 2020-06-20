@@ -200,6 +200,21 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
         SetJobToFailed(jres, pLog, output);
         return jres;
       }
+      // additionally copy *.gbw files for orca (-> iqm guess)
+      if (qmpackage->getPackageName() == "orca") {
+        std::string DIR = eqm_work_dir + "/molecules/" + frame_dir;
+        boost::filesystem::create_directories(DIR);
+        std::string gbw_file =
+            (format("%1%_%2%%3%") % "molecule" % segId % ".gbw").str();
+        std::string GBWFILE = DIR + "/" + gbw_file;
+        XTP_LOG(Log::error, pLog)
+            << "Copying MO data to " << gbw_file << std::flush;
+        std::string GBWFILE_workdir = work_dir + "/system.gbw";
+        boost::filesystem::copy_file(
+            GBWFILE_workdir, GBWFILE,
+            boost::filesystem::copy_option::overwrite_if_exists);
+      }
+
     }  // end of the parse orbitals/log
     qmpackage->CleanUp();
     WriteLoggerToFile(work_dir + "/dft.log", dft_logger);

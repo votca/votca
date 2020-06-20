@@ -29,6 +29,7 @@ For more detailed information about the changes see the history of the
 * switch to GitHub Actions as CI (#467, #474, #477)
 * move tutorial to its own repo (#450)
 * removed share/packages folder (#475)
+* copy orca *.gbw files in eqm (#472)
 * improve mkl support (#479)
 * create a map between orca and libxc functional names (#461)
 
