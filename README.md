@@ -1,7 +1,6 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f9468cb3863b4a83b75eda6250755a3d)](https://www.codacy.com/manual/votca-package/csgapps?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=votca/csgapps&amp;utm_campaign=Badge_Grade)
 [![codecov](https://codecov.io/gh/votca/csgapps/branch/master/graph/badge.svg)](https://codecov.io/gh/votca/csgapps)
-[![Build Status](https://travis-ci.org/votca/csgapps.svg?branch=master)](https://travis-ci.org/votca/csgapps)
-[![pipeline status](https://gitlab.com/votca/csgapps/badges/master/pipeline.svg)](https://gitlab.com/votca/csgapps/commits/master)
+[![CI](https://github.com/votca/csgapps/workflows/CI/badge.svg)](https://github.com/votca/csgapps/actions?query=branch%3Agithub_actions+workflow%3ACI)
 [![DOI](https://zenodo.org/badge/23939372.svg)](https://zenodo.org/badge/latestdoi/23939372)
 
 This repository contains some small analysis programs which are written based on the votca csg framework
