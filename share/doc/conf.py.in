@@ -4,10 +4,12 @@ author = 'VOTCA Development Team'
 release = '@PROJECT_VERSION@'
 
 from recommonmark.parser import CommonMarkParser
+import sphinx
 source_suffix = {
     '.rst': 'restructuredtext',
 }
-source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
+if sphinx.version_info[0] < 2:
+    source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
 
 html_logo = 'customLogo.png'
 html_theme = "sphinx_rtd_theme"
