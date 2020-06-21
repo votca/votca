@@ -31,14 +31,6 @@ if(DEFINED VOTCA_CSG_VERSION AND NOT VOTCA_CSG_VERSION STREQUAL PROJECT_VERSION)
 endif()
 message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
 
-foreach(prog dvips ps2pdf)
-  string(TOUPPER "${prog}" PROG)
-  find_program(${PROG} ${prog})
-  find_package_handle_standard_args(${PROG} REQUIRED_VARS ${PROG})
-  if(NOT ${PROG}_FOUND)
-    message(FATAL_ERROR "Could not find ${prog}")
-  endif()
-endforeach()
 get_target_property(CSG_SHARE VOTCA::csg_call VOTCASHARE)
 message(STATUS "CSG_SHARE is ${CSG_SHARE}")
 
@@ -49,6 +41,22 @@ set(TEX2EPS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/tex2eps)
 set(BBOX_ADD ${CMAKE_CURRENT_SOURCE_DIR}/scripts/bbox_add.pl)
 
 include(${CMAKE_MODULE_PATH}/UseLATEX.cmake)
+
+if(NOT LATEX_WORKS)
+  #test if latex actually works, this also generates latex.fmt on fresh docker containers
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/latex-tmp)
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/latex-tmp/test.tex "\\documentclass{article}\n\\begin{document}\ntest\n\\end{document}\n")
+  execute_process(COMMAND ${LATEX_COMPILER} -halt-on-error test.tex
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/latex-tmp
+    OUTPUT_VARIABLE LATEX_OUTPUT ERROR_VARIABLE LATEX_OUTPUT
+    RESULT_VARIABLE LATEX_EXIT)
+  if(LATEX_EXIT EQUAL 0)
+    message(STATUS "LaTeX worked")
+    set(LATEX_WORKS TRUE CACHE INTERNAL "LaTeX works")
+  else()
+    message(FATAL_ERROR "LaTeX doesn't work, see ${CMAKE_CURRENT_BINARY_DIR}/latex-tmp for details")
+  endif()
+endif()
 
 ######################################
 # Include the following subdirectory # 
@@ -88,8 +96,8 @@ add_latex_document(manual.tex
 )
 
 add_custom_command(OUTPUT manual.pdf
-  COMMAND ${DVIPS} manual.dvi
-  COMMAND ${PS2PDF} manual.ps manual.pdf
+  COMMAND ${DVIPS_CONVERTER} manual.dvi
+  COMMAND ${PS2PDF_CONVERTER} manual.ps manual.pdf
   DEPENDS csg-manual_dvi
 )
 add_custom_target(csg-manual_pdf ALL DEPENDS manual.pdf)
