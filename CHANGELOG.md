@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
-## Version 1.6.1 (released XX.04.20)
+## Version 1.6.1 (released 21.06.20)
 * fix warnings on Ubuntu 20.04 (#438, #460)
 * remove obsolete boost define (#440)
 
