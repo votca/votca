@@ -16,7 +16,7 @@ For more detailed information about the changes see the history of the
 * standardising include order and style in library files (#542) 
 * move CI to GitHub Ations (#551, #552, #553)
 
-## Version 1.6.1 (released XX.04.20)
+## Version 1.6.1 (released 21.06.20)
 * add support for cma-3 (#158) 
 * allow special characters in build directory (#521) 
 * fix CI on Ubuntu-20.04 (#526)
