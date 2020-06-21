@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/csg/commits/master).
 
-## Version 1.6.1 (released XX.04.20)
+## Version 1.6.1 (released 21.06.20)
 * add support for cma-3 (#158) 
 * allow special characters in build directory (#521) 
 * fix CI on Ubuntu-20.04 (#526)
