@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
-## Version 1.6.1 (released XX.04.20)
+## Version 1.6.1 (released 21.06.20)
 * fix build with mkl (#229)
 * fix build with non-system libfftw (#234)
 * fix CI on Ubuntu-20.04 (#237)
