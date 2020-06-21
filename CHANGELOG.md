@@ -33,7 +33,7 @@ For more detailed information about the changes see the history of the
 * improve mkl support (#479)
 * add def2-tzvp, def2-tzvpp, def2-qzvp, def2-qzvpp for Rb,I,Ag,Xe (#480)
 
-## Version 1.6.1 (released XX.04.20)
+## Version 1.6.1 (released 21.06.20)
 * fix warnings on Ubuntu 20.04 (#438, #460)
 * remove obsolete boost define (#440)
 
