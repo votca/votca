@@ -841,7 +841,7 @@ std::string Orca::GetOrcaFunctionalName() const {
     tools::Property all_functionals;
 
     auto xml_file = std::string(getenv("VOTCASHARE")) +
-                    std::string("/xtp/packages/orca_functional_names.xml");
+                    std::string("/xtp/xml/orca_functional_names.xml");
 
     all_functionals.LoadFromXML(xml_file);
 

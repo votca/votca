@@ -14,7 +14,9 @@ endif()
 
 if(Python_EXECUTABLE)
   file(GLOB XMLS ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/xml/*.xml)
-  # Remove a single special file
+  # Remove the Map to convert from libxc to Orca funcitional names
+  list(REMOVE_ITEM XMLS ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/xml/orca_functional_names.xml)
+  # Remove the qmpackage defaults because they required a special parser
   list(REMOVE_ITEM XMLS ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/xml/qmpackage_defaults.xml)
 
   set(XML_RST_FILES)
