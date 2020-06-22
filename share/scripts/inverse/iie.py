@@ -372,7 +372,12 @@ def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
     """calculates U from g and G_minus_g for molecules with n identical beads.
     This means it works for two-bead hexane, but is expected to fail for
     three-bead hexane"""
-    # reciprocal space with radial symmetry ω
+    # single bead case
+    # (even though the formulas in this function would work)
+    if n == 1:
+        U = calc_U_single(r, g_cur, kBT, rho, closure)
+        return U
+    # reciprocal space ω with radial symmetry
     omega = np.arange(1, len(r)) / (2 * max(r))
     # total correlation function h
     h = g_cur - 1
@@ -388,6 +393,26 @@ def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
     # direct correlation function c from OZ including intramolecular
     # interactions
     c_hat = h_hat / (b_hat + e_hat * h_hat)
+    c = fourier(omega, c_hat, r)
+    # U from HNC
+    with np.errstate(divide='ignore', invalid='ignore'):
+        if closure == 'hnc':
+            U = kBT * (-np.log(g_cur) + h - c)
+        elif closure == 'py':
+            U = kBT * np.log(1 - c/g_cur)
+    return U
+
+
+def calc_U_single(r, g_cur, kBT, rho, closure):
+    """calculates U from g for single particle systems."""
+    # reciprocal space ω with radial symmetry
+    omega = np.arange(1, len(r)) / (2 * max(r))
+    # total correlation function h
+    h = g_cur - 1
+    h_hat = fourier(r, h, omega)
+    # direct correlation function c from OZ
+    # interactions
+    c_hat = h_hat / (1 + rho * h_hat)
     c = fourier(omega, c_hat, r)
     # U from HNC
     with np.errstate(divide='ignore', invalid='ignore'):
