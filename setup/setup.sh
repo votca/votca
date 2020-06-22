@@ -79,11 +79,6 @@ else
   cmake_args+=( -DENABLE_REGRESSION_TESTING=${INPUT_REGRESSION_TESTING} )
 fi
 
-# lmp currently ill instruction on opensuse https://github.com/votca/csg-tutorials/issues/89
-if [[ ${INPUT_DISTRO} = opensuse ]]; then
-  cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_LMP=ON )
-fi
-
 cmake_args+=( ${INPUT_CMAKE_ARGS} )
 print_output "cmake_args" "${cmake_args[@]}"
 
