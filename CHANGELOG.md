@@ -26,7 +26,7 @@ For more detailed information about the changes see the history of the
 * fix readjobfiles path (#453)
 * standardising include order and style in header files (#448)
 * changed to OpenMP reductions instead of hand crafted solutions (#466, #471)
-* switch to GitHub Actions as CI (#467, #474, #477)
+* switch to GitHub Actions as CI (#467, #474, #477, #482)
 * move tutorial to its own repo (#450)
 * removed share/packages folder (#475)
 * copy orca *.gbw files in eqm (#472)
@@ -34,7 +34,7 @@ For more detailed information about the changes see the history of the
 * add def2-tzvp, def2-tzvpp, def2-qzvp, def2-qzvpp for Rb,I,Ag,Xe (#480)
 * create a map between orca and libxc functional names (#461)
 
-## Version 1.6.1 (released XX.04.20)
+## Version 1.6.1 (released 21.06.20)
 * fix warnings on Ubuntu 20.04 (#438, #460)
 * remove obsolete boost define (#440)
 
