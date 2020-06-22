@@ -822,13 +822,18 @@ std::string Orca::CreateInputSection(const std::string& key) const {
 std::string Orca::WriteMethod() const {
   std::stringstream stream;
   std::string opt = (_settings.get<bool>("optimize")) ? " Opt " : "";
-  std::string convergence =
-      this->_convergence_map.at(_settings.get("convergence_tightness")) +
-      "SCF ";
+  std::string user_method =
+      (_settings.has_key("orca.method")) ? _settings.get("orca.method") : "";
+  std::string convergence = "";
+  if (!_settings.has_key("orca.scf")) {
+    convergence =
+        this->_convergence_map.at(_settings.get("convergence_tightness")) +
+        "SCF ";
+  }
   stream << "! DFT " << this->GetOrcaFunctionalName() << " " << convergence
          << opt
          // additional properties provided by the user
-         << _settings.get("orca.method") << "\n";
+         << user_method << "\n";
   return stream.str();
 }
 
@@ -854,7 +859,6 @@ std::string Orca::GetOrcaFunctionalName() const {
     std::size_t plus = input_name.find(' ');
     if (plus != std::string::npos) {
       input_name = input_name.substr(0, plus);
-      std::cout << "\nnew input: " << input_name << "\n";
     }
 
     if (functional_names.exists(input_name)) {
