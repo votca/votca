@@ -10,6 +10,9 @@ list(APPEND NOTEBOOKS "${PROJECT_SOURCE_DIR}/tools/dftgwbse_CO_geoopt/DFTGWBSE_O
 list(APPEND NOTEBOOKS "${PROJECT_SOURCE_DIR}/LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipynb")
 
 find_program(JUPYTER_EXECUTABLE NAMES jupyter "Interactive computing environment (https://jupyter.org/)")
+find_program(PIP_EXECUTABLE NAMES pip "Python package installer (https://pip.pypa.io/en/stable/)")
+
+add_custom_target(jupyter_client COMMAND ${PIP_EXECUTABLE} install jupyter_client --user)
 
 get_target_property(XTP_PATH votca_xtp XTP_PATH)
 get_target_property(VOTCASHARE votca_xtp VOTCA_SHARE)
@@ -26,3 +29,4 @@ foreach(_notebook ${NOTEBOOKS})
   endforeach()
 
 add_custom_target(doc-xtp-tutorials DEPENDS ${NEW_NOTEBOOKS})
+add_dependencies(doc-xtp-tutorials jupyter_client)
