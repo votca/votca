@@ -19,7 +19,7 @@ For more detailed information about the changes see the history of the
 * document cmake options and packages (#434)
 * remove long gone MKL option for gitlab-ci (#435)
 * add documentation using Sphinx (#433)
-* add kokkos-based Ewald solver (#444, #446)
+* add kokkos-based Ewald solver (#444, #446, #485)
 * allow multiple choices for the calculator options (#442, #445)
 * move bsecoupling defaults to xml (#451)
 * address missing includes (#452)
