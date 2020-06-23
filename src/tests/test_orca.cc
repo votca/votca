@@ -8648,7 +8648,7 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
 
   // Check method
   index1 = inp.find("!");
-  BOOST_CHECK_EQUAL(inp.substr(index1), "! DFT pbe0 TightSCF \n");
+  BOOST_CHECK_EQUAL(inp.substr(index1), "! DFT pbe0 \n");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
