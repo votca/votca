@@ -847,7 +847,7 @@ std::string Orca::GetOrcaFunctionalName() const {
     tools::Property all_functionals;
 
     auto xml_file = std::string(getenv("VOTCASHARE")) +
-                    std::string("/xtp/xml/orca_functional_names.xml");
+                    std::string("/xtp/data/orca_functional_names.xml");
 
     all_functionals.LoadFromXML(xml_file);
 
@@ -869,7 +869,7 @@ std::string Orca::GetOrcaFunctionalName() const {
       oss << "The libxc functional \"" << input_name << "\"\n"
           << "doesn't seem to have a corresponding name in Orca.\n"
           << "Check the "
-          << "\"${VOTCASHARE}/xtp/packages/orca_functional_names.xml\""
+          << "\"${VOTCASHARE}/xtp/data/orca_functional_names.xml\""
           << "file for the whole list of known libxc/orca functionals";
       throw runtime_error(oss.str());
     }
