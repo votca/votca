@@ -95,6 +95,7 @@ class Orca : public QMPackage {
                       std::ifstream& input_file) const;
   std::string WriteMethod() const;
   std::string CreateInputSection(const std::string& key) const;
+  std::string GetOrcaFunctionalName() const;
 
   std::unordered_map<std::string, std::string> _convergence_map{
       {"low", "Loose"},

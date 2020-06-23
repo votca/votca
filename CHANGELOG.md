@@ -32,6 +32,7 @@ For more detailed information about the changes see the history of the
 * copy orca *.gbw files in eqm (#472)
 * improve mkl support (#479)
 * add def2-tzvp, def2-tzvpp, def2-qzvp, def2-qzvpp for Rb,I,Ag,Xe (#480)
+* create a map between orca and libxc functional names (#461)
 
 ## Version 1.6.1 (released 21.06.20)
 * fix warnings on Ubuntu 20.04 (#438, #460)

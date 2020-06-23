@@ -16,7 +16,6 @@
   <cleanup help="files to remove after the calculation is done"> </cleanup>
   <orca>
     <method help="This is automatically fill with the functional and basis set"/>
-    <scf help="Orca SCF section">GUESS PMODEL</scf>
   </orca>
   <xtpdft>
     <with_screening help="screening" default="true" choices="bool">true</with_screening>
