@@ -6,6 +6,7 @@ set(PROJECT_VERSION "1.7-dev")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 include(GNUInstallDirs)
+include(FeatureSummary)
 
 find_package(VOTCA_XTP REQUIRED NO_MODULE)
 set_package_properties(VOTCA_XTP PROPERTIES TYPE REQUIRED PURPOSE "Votca xtp library")
