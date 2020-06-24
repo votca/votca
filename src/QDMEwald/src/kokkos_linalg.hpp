@@ -176,4 +176,4 @@ typename std::array<typename Vector1::value_type, 3> subtract(
 
 }  // namespace kokkos_linalg_3d
 
-#endif // VOTCA_XTP_KOKKOS_LINALG_PRIVATE_H
+#endif  // VOTCA_XTP_KOKKOS_LINALG_PRIVATE_H
