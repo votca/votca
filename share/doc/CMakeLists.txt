@@ -14,8 +14,8 @@ find_program(PIP_EXECUTABLE NAMES pip "Python package installer (https://pip.pyp
 
 add_custom_target(jupyter_client COMMAND ${PIP_EXECUTABLE} install wheel ipykernel jupyter_client --user)
 
-get_target_property(XTP_PATH votca_xtp XTP_PATH)
-get_target_property(VOTCASHARE votca_xtp VOTCA_SHARE)
+get_target_property(XTP_PATH VOTCA::votca_xtp XTP_PATH)
+get_target_property(VOTCASHARE VOTCA::votca_xtp VOTCA_SHARE)
 
 set(NEW_NOTEBOOKS)
 foreach(_notebook ${NOTEBOOKS})
