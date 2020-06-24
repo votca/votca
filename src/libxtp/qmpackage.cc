@@ -138,7 +138,7 @@ std::vector<std::string> QMPackage::GetLineAndSplit(
 
 std::string QMPackage::FindDefaultsFile() const {
   auto xmlFile = std::string(getenv("VOTCASHARE")) +
-                 std::string("/xtp/packages/qmpackage_defaults.xml");
+                 std::string("/xtp/data/qmpackage_defaults.xml");
 
   return xmlFile;
 }

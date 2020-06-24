@@ -39,7 +39,7 @@
             <dodavidson help="use davidson solver" default="true" choices="bool"/>
             <davidson_correction help="Davidson correction method" default="DPR" choices="DPR,OHLSEN"/>
             <davidson_tolerance help="Numerical tolerance" default="normal" choices="loose,normal,strict"/>
-            <davidson_ortho help="orthogonalisation routine: Gram&#x2013;Schmidt or QR" default="GS" choices="GS,QR"/>
+            <davidson_ortho help="orthogonalisation routine: GramSchmidt or QR" default="GS" choices="GS,QR"/>
             <davidson_update help=" how large the search space" default="safe" choices="min,safe,max"/>
             <davidson_maxiter help="max iterations" default="50" choices="int+"/>
             <domatrixfree help="solve without explicitly setting up BSE matrix, (slower but a lot less memory required" default="true" choices="bool">false</domatrixfree>

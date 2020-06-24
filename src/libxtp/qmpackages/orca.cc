@@ -831,14 +831,58 @@ std::string Orca::CreateInputSection(const std::string& key) const {
 std::string Orca::WriteMethod() const {
   std::stringstream stream;
   std::string opt = (_settings.get<bool>("optimize")) ? " Opt " : "";
-  std::string convergence =
-      this->_convergence_map.at(_settings.get("convergence_tightness")) +
-      "SCF ";
-  stream << "! DFT " << _settings.get("functional") << " " << convergence
+  const tools::Property& orca = _settings.property("orca");
+  std::string user_method =
+      (orca.exists("method")) ? orca.get("method").as<std::string>() : "";
+  std::string convergence = "";
+  if (!orca.exists("scf")) {
+    convergence =
+        this->_convergence_map.at(_settings.get("convergence_tightness")) +
+        "SCF ";
+  }
+  stream << "! DFT " << this->GetOrcaFunctionalName() << " " << convergence
          << opt
          // additional properties provided by the user
-         << _settings.get("orca.method") << "\n";
+         << user_method << "\n";
   return stream.str();
+}
+
+std::string Orca::GetOrcaFunctionalName() const {
+
+  char* votca_share = getenv("VOTCASHARE");
+  if (votca_share == nullptr) {
+    return _settings.get("functional");
+  } else {
+    tools::Property all_functionals;
+
+    auto xml_file = std::string(getenv("VOTCASHARE")) +
+                    std::string("/xtp/data/orca_functional_names.xml");
+
+    all_functionals.LoadFromXML(xml_file);
+
+    const tools::Property& functional_names =
+        all_functionals.get("functionals");
+
+    std::string input_name = _settings.get("functional");
+    // Some functionals have a composed named separated by a space
+    // In the case just look for the first part
+    std::size_t plus = input_name.find(' ');
+    if (plus != std::string::npos) {
+      input_name = input_name.substr(0, plus);
+    }
+
+    if (functional_names.exists(input_name)) {
+      return functional_names.get(input_name).as<std::string>();
+    } else {
+      std::ostringstream oss;
+      oss << "The libxc functional \"" << input_name << "\"\n"
+          << "doesn't seem to have a corresponding name in Orca.\n"
+          << "Check the "
+          << "\"${VOTCASHARE}/xtp/data/orca_functional_names.xml\""
+          << "file for the whole list of known libxc/orca functionals";
+      throw runtime_error(oss.str());
+    }
+  }
 }
 
 }  // namespace xtp

@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_ORCA_PRIVATE_H
-#define VOTCA_XTP_ORCA_PRIVATE_H
+#ifndef VOTCA_XTP_ORCA_H
+#define VOTCA_XTP_ORCA_H
 
 // Local VOTCA includes
 #include "votca/xtp/qmpackage.h"
@@ -96,6 +96,7 @@ class Orca : public QMPackage {
                       std::ifstream& input_file) const;
   std::string WriteMethod() const;
   std::string CreateInputSection(const std::string& key) const;
+  std::string GetOrcaFunctionalName() const;
 
   std::unordered_map<std::string, std::string> _convergence_map{
       {"low", "Loose"},
@@ -107,4 +108,4 @@ class Orca : public QMPackage {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ORCA_PRIVATE_H
+#endif  // VOTCA_XTP_ORCA_H

@@ -33,7 +33,7 @@
 #include "votca/xtp/checkpoint.h"
 #include "votca/xtp/checkpointreader.h"
 #include "votca/xtp/checkpointwriter.h"
-#include "votca/xtp/votca_config.h"
+#include "votca/xtp/votca_xtp_config.h"
 
 namespace votca {
 namespace xtp {
