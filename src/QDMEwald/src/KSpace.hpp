@@ -130,16 +130,16 @@ class KSpace {
   int k_sq_int;   ///< square value of the k-space limit
   int k_max_int;  ///< k-space image limit
 
-  T l;                       ///< system length
-  T rcl;                     ///< wave length of cell
-  T pot_energy = 0.0;        ///< potential energy computed for the k-space part
-  T virial = 0.0;            ///< virial computed for the k-space part
-  Kokkos::View<T* [3]> f;    ///< forces computed for the k-space part
-  Kokkos::View<T* [3]> tqe;  ///< torque computed for the k-space part
-  Kokkos::View<T* [15]> vec_comp;  ///< vector components for the computation
-                                   ///< of forces
-  Kokkos::View<T[6]> vec_sum;      ///< vector summation for the computation of
-                                   ///< pot. energy
+  T l;                      ///< system length
+  T rcl;                    ///< wave length of cell
+  T pot_energy = 0.0;       ///< potential energy computed for the k-space part
+  T virial = 0.0;           ///< virial computed for the k-space part
+  Kokkos::View<T * [3]> f;  ///< forces computed for the k-space part
+  Kokkos::View<T * [3]> tqe;        ///< torque computed for the k-space part
+  Kokkos::View<T * [15]> vec_comp;  ///< vector components for the computation
+                                    ///< of forces
+  Kokkos::View<T[6]> vec_sum;       ///< vector summation for the computation of
+                                    ///< pot. energy
 
   bool is_monopole;    ///< compute the monopole contributions
   bool is_dipole;      ///< compute the dipole contributions
@@ -159,7 +159,7 @@ class KSpace {
    *              factors
    * @param l     system length
    */
-  void compute_exponentials(Kokkos::View<T* [3]>);
+  void compute_exponentials(Kokkos::View<T * [3]>);
 
   /**
    *
@@ -183,8 +183,8 @@ class KSpace {
    */
   void compute_vector_components(const int, const int, const int,
                                  const Kokkos::View<T*>&,
-                                 const Kokkos::View<T* [3]>&,
-                                 const Kokkos::View<T* [9]>&);
+                                 const Kokkos::View<T * [3]>&,
+                                 const Kokkos::View<T * [9]>&);
 
   /**
    *
@@ -252,12 +252,11 @@ void KSpace<T>::compute_ak() {
 
   ak = Kokkos::View<T*>("AK coefficients", k_sq_int + 1);
 
-  Kokkos::parallel_for(
-      ak.extent(0), KOKKOS_LAMBDA(const int k) {
-        T rksq = (T)k * rcl * rcl;
-        T eksq = std::pow(expf, (T)k);
-        ak(k) = eksq / rksq;
-      });
+  Kokkos::parallel_for(ak.extent(0), KOKKOS_LAMBDA(const int k) {
+    T rksq = (T)k * rcl * rcl;
+    T eksq = std::pow(expf, (T)k);
+    ak(k) = eksq / rksq;
+  });
 }
 
 /*
@@ -268,7 +267,7 @@ void KSpace<T>::compute_ak() {
  * @param xyz       particles positons
  */
 template <class T>
-void KSpace<T>::compute_exponentials(Kokkos::View<T* [3]> xyz) {
+void KSpace<T>::compute_exponentials(Kokkos::View<T * [3]> xyz) {
   // get number of particles
   size_t N = xyz.extent(0);
   // create Kokkos views of sufficient size to store the factors
@@ -281,40 +280,37 @@ void KSpace<T>::compute_exponentials(Kokkos::View<T* [3]> xyz) {
   offset = k_max_int;
 
   // initialize the first factors (k == 0)
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        for (int d = 0; d < 3; ++d) {
-          cos_fac(n, 0 + offset, d) = 1.0;
-          sin_fac(n, 0 + offset, d) = 0.0;
-        }
-      });
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    for (int d = 0; d < 3; ++d) {
+      cos_fac(n, 0 + offset, d) = 1.0;
+      sin_fac(n, 0 + offset, d) = 0.0;
+    }
+  });
 
   // compute the exponential factors (k == 1 / k == -1)
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        for (int d = 0; d < 3; ++d) {
-          cos_fac(n, 1 + offset, d) = std::cos(rcl * xyz(n, d));
-          sin_fac(n, 1 + offset, d) = std::sin(rcl * xyz(n, d));
-          cos_fac(n, -1 + offset, d) = cos_fac(n, 1 + offset, d);
-          sin_fac(n, -1 + offset, d) = -sin_fac(n, 1 + offset, d);
-        }
-      });
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    for (int d = 0; d < 3; ++d) {
+      cos_fac(n, 1 + offset, d) = std::cos(rcl * xyz(n, d));
+      sin_fac(n, 1 + offset, d) = std::sin(rcl * xyz(n, d));
+      cos_fac(n, -1 + offset, d) = cos_fac(n, 1 + offset, d);
+      sin_fac(n, -1 + offset, d) = -sin_fac(n, 1 + offset, d);
+    }
+  });
 
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        for (int k = 2; k <= k_max_int; ++k) {
-          for (int d = 0; d < 3; ++d) {
-            cos_fac(n, k + offset, d) =
-                cos_fac(n, k - 1 + offset, d) * cos_fac(n, 1 + offset, d) -
-                sin_fac(n, k - 1 + offset, d) * sin_fac(n, 1 + offset, d);
-            sin_fac(n, k + offset, d) =
-                sin_fac(n, k - 1 + offset, d) * cos_fac(n, 1 + offset, d) +
-                cos_fac(n, k - 1 + offset, d) * sin_fac(n, 1 + offset, d);
-            cos_fac(n, -k + offset, d) = cos_fac(n, k + offset, d);
-            sin_fac(n, -k + offset, d) = -sin_fac(n, k + offset, d);
-          }
-        }
-      });
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    for (int k = 2; k <= k_max_int; ++k) {
+      for (int d = 0; d < 3; ++d) {
+        cos_fac(n, k + offset, d) =
+            cos_fac(n, k - 1 + offset, d) * cos_fac(n, 1 + offset, d) -
+            sin_fac(n, k - 1 + offset, d) * sin_fac(n, 1 + offset, d);
+        sin_fac(n, k + offset, d) =
+            sin_fac(n, k - 1 + offset, d) * cos_fac(n, 1 + offset, d) +
+            cos_fac(n, k - 1 + offset, d) * sin_fac(n, 1 + offset, d);
+        cos_fac(n, -k + offset, d) = cos_fac(n, k + offset, d);
+        sin_fac(n, -k + offset, d) = -sin_fac(n, k + offset, d);
+      }
+    }
+  });
 }
 
 /**
@@ -332,62 +328,61 @@ void KSpace<T>::compute_exponentials(Kokkos::View<T* [3]> xyz) {
 template <class T>
 void KSpace<T>::compute_vector_components(const int x, const int y, const int z,
                                           const Kokkos::View<T*>& q,
-                                          const Kokkos::View<T* [3]>& d,
-                                          const Kokkos::View<T* [9]>& Q) {
+                                          const Kokkos::View<T * [3]>& d,
+                                          const Kokkos::View<T * [9]>& Q) {
   size_t N = q.extent(0);
 
   // create vector component view
   // vec_comp:
   // [ CKR SKR DK[x] DK[y] DK[z] QK[x] QK[y] QK[z] CKC CKS DKC DKS QKC QKS ]
   // [  0   1   2     3     4      5     6     7    8   9   10  11  12  13 ]
-  vec_comp = Kokkos::View<T* [15]>("vector components", N);
+  vec_comp = Kokkos::View<T * [15]>("vector components", N);
 
   T rx = rcl * (T)x;
   T ry = rcl * (T)y;
   T rz = rcl * (T)z;
 
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        T cxy = cos_fac(n, x + offset, 1) * cos_fac(n, y + offset, 2) -
-                sin_fac(n, x + offset, 1) * sin_fac(n, y + offset, 2);
-        T sxy = sin_fac(n, x + offset, 1) * cos_fac(n, y + offset, 2) +
-                sin_fac(n, y + offset, 2) * cos_fac(n, x + offset, 1);
-        // scalar product dipole moment and k-vector
-        T dk = rx * d(n, 0) + ry * d(n, 1) + rz * d(n, 2);
-        // tensor product quadrupole moment and k-vector
-        T Qk = rx * (rx * Q(n, 0) + ry * Q(n, 3) + rz * Q(n, 6)) +
-               ry * (rx * Q(n, 1) + ry * Q(n, 4) + rz * Q(n, 7)) +
-               rz * (rx * Q(n, 2) + ry * Q(n, 5) + rz * Q(n, 8));
-        // cosine based vector component (monopole)
-        vec_comp(n, 0) =
-            cxy * cos_fac(n, z + offset, 3) - sxy * sin_fac(n, z + offset, 3);
-        // sine based vector component (monopole)
-        vec_comp(n, 1) =
-            sxy * cos_fac(n, z + offset, 3) + cxy * sin_fac(n, z + offset, 3);
-        // vector component(s) (dipole)
-        vec_comp(n, 2) = rz * d(n, 1) - ry * d(n, 2);
-        vec_comp(n, 3) = rx * d(n, 2) - ry * d(n, 0);
-        vec_comp(n, 4) = ry * d(n, 0) - ry * d(n, 1);
-        // vector component(s) (quadrupole)
-        vec_comp(n, 5) = rz * (rx * Q(n, 1) + ry * Q(n, 4) + rz * Q(n, 7)) -
-                         ry * (rx * Q(n, 2) + ry * Q(n, 5) + rz * Q(n, 8));
-        vec_comp(n, 6) = rx * (rx * Q(n, 2) + ry * Q(n, 5) + rz * Q(n, 8)) -
-                         rz * (rx * Q(n, 0) + ry * Q(n, 3) + rz * Q(n, 6));
-        vec_comp(n, 7) = ry * (rx * Q(n, 0) + ry * Q(n, 3) + rz * Q(n, 6)) -
-                         rx * (rx * Q(n, 1) + ry * Q(n, 4) + rz * Q(n, 7));
-        // cosine component (monopole)
-        vec_comp(n, 8) = q(n) * vec_comp(n, 0);
-        // sine component (monopole)
-        vec_comp(n, 9) = q(n) * vec_comp(n, 1);
-        // cosine component (dipole)
-        vec_comp(n, 10) = dk * vec_comp(n, 0);
-        // sine component (dipole)
-        vec_comp(n, 11) = dk * vec_comp(n, 1);
-        // cosine component (quadrupole)
-        vec_comp(n, 12) = Qk * vec_comp(n, 0);
-        // sine component (quadrupole)
-        vec_comp(n, 13) = Qk * vec_comp(n, 1);
-      });
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    T cxy = cos_fac(n, x + offset, 1) * cos_fac(n, y + offset, 2) -
+            sin_fac(n, x + offset, 1) * sin_fac(n, y + offset, 2);
+    T sxy = sin_fac(n, x + offset, 1) * cos_fac(n, y + offset, 2) +
+            sin_fac(n, y + offset, 2) * cos_fac(n, x + offset, 1);
+    // scalar product dipole moment and k-vector
+    T dk = rx * d(n, 0) + ry * d(n, 1) + rz * d(n, 2);
+    // tensor product quadrupole moment and k-vector
+    T Qk = rx * (rx * Q(n, 0) + ry * Q(n, 3) + rz * Q(n, 6)) +
+           ry * (rx * Q(n, 1) + ry * Q(n, 4) + rz * Q(n, 7)) +
+           rz * (rx * Q(n, 2) + ry * Q(n, 5) + rz * Q(n, 8));
+    // cosine based vector component (monopole)
+    vec_comp(n, 0) =
+        cxy * cos_fac(n, z + offset, 3) - sxy * sin_fac(n, z + offset, 3);
+    // sine based vector component (monopole)
+    vec_comp(n, 1) =
+        sxy * cos_fac(n, z + offset, 3) + cxy * sin_fac(n, z + offset, 3);
+    // vector component(s) (dipole)
+    vec_comp(n, 2) = rz * d(n, 1) - ry * d(n, 2);
+    vec_comp(n, 3) = rx * d(n, 2) - ry * d(n, 0);
+    vec_comp(n, 4) = ry * d(n, 0) - ry * d(n, 1);
+    // vector component(s) (quadrupole)
+    vec_comp(n, 5) = rz * (rx * Q(n, 1) + ry * Q(n, 4) + rz * Q(n, 7)) -
+                     ry * (rx * Q(n, 2) + ry * Q(n, 5) + rz * Q(n, 8));
+    vec_comp(n, 6) = rx * (rx * Q(n, 2) + ry * Q(n, 5) + rz * Q(n, 8)) -
+                     rz * (rx * Q(n, 0) + ry * Q(n, 3) + rz * Q(n, 6));
+    vec_comp(n, 7) = ry * (rx * Q(n, 0) + ry * Q(n, 3) + rz * Q(n, 6)) -
+                     rx * (rx * Q(n, 1) + ry * Q(n, 4) + rz * Q(n, 7));
+    // cosine component (monopole)
+    vec_comp(n, 8) = q(n) * vec_comp(n, 0);
+    // sine component (monopole)
+    vec_comp(n, 9) = q(n) * vec_comp(n, 1);
+    // cosine component (dipole)
+    vec_comp(n, 10) = dk * vec_comp(n, 0);
+    // sine component (dipole)
+    vec_comp(n, 11) = dk * vec_comp(n, 1);
+    // cosine component (quadrupole)
+    vec_comp(n, 12) = Qk * vec_comp(n, 0);
+    // sine component (quadrupole)
+    vec_comp(n, 13) = Qk * vec_comp(n, 1);
+  });
 }
 
 /**
@@ -427,17 +422,15 @@ void KSpace<T>::compute_forces(const int x, const int y, const int z) {
   T rz = rcl * (T)z;
   int kk = x * x + y * y + z * z - 1;
   size_t N = f.extent(0);
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        T qforce =
-            ak(kk) * ((vec_comp(n, 9) + vec_comp(n, 10) - vec_comp(n, 13)) *
-                          (vec_sum(0) - vec_sum(3) - vec_sum(5)) -
-                      (vec_comp(n, 8) - vec_comp(n, 11) - vec_comp(n, 12)) *
-                          (vec_sum(1) + vec_sum(2) - vec_sum(4)));
-        f(n, 0) += rx * qforce;
-        f(n, 1) += ry * qforce;
-        f(n, 2) += rz * qforce;
-      });
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    T qforce = ak(kk) * ((vec_comp(n, 9) + vec_comp(n, 10) - vec_comp(n, 13)) *
+                             (vec_sum(0) - vec_sum(3) - vec_sum(5)) -
+                         (vec_comp(n, 8) - vec_comp(n, 11) - vec_comp(n, 12)) *
+                             (vec_sum(1) + vec_sum(2) - vec_sum(4)));
+    f(n, 0) += rx * qforce;
+    f(n, 1) += ry * qforce;
+    f(n, 2) += rz * qforce;
+  });
 }
 
 /**
@@ -450,18 +443,17 @@ template <class T>
 void KSpace<T>::compute_torque(const int x, const int y, const int z) {
   int kk = x * x + y * y + z * z - 1;
   size_t N = tqe.extent(0);
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        T qtqe1 =
-            ak(kk) * (vec_comp(n, 1) * (vec_sum(0) - vec_sum(3) - vec_sum(4)) -
-                      vec_comp(n, 0) * (vec_sum(1) - vec_sum(2) - vec_sum(5)));
-        T qtqe2 = 2.0 * ak(kk) *
-                  (vec_comp(n, 0) * (vec_sum(0) - vec_sum(3) - vec_sum(4)) -
-                   vec_comp(n, 1) * (vec_sum(1) - vec_sum(2) - vec_sum(5)));
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    T qtqe1 =
+        ak(kk) * (vec_comp(n, 1) * (vec_sum(0) - vec_sum(3) - vec_sum(4)) -
+                  vec_comp(n, 0) * (vec_sum(1) - vec_sum(2) - vec_sum(5)));
+    T qtqe2 = 2.0 * ak(kk) *
+              (vec_comp(n, 0) * (vec_sum(0) - vec_sum(3) - vec_sum(4)) -
+               vec_comp(n, 1) * (vec_sum(1) - vec_sum(2) - vec_sum(5)));
 
-        for (int d = 0; d < 3; ++d)
-          tqe(n, d) += qtqe1 * vec_comp(n, 2 + d) + qtqe2 * vec_comp(n, 5 + d);
-      });
+    for (int d = 0; d < 3; ++d)
+      tqe(n, d) += qtqe1 * vec_comp(n, 2 + d) + qtqe2 * vec_comp(n, 5 + d);
+  });
 }
 
 /**
@@ -484,26 +476,25 @@ void KSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
   size_t N = _xyz.size() / 3;
 
   // store C++ vectors to Kokkos Views
-  Kokkos::View<T* [3]> xyz("positions", N);
+  Kokkos::View<T * [3]> xyz("positions", N);
   Kokkos::View<T*> q("charges", N);
-  Kokkos::View<T* [3]> d("dipole moments", N);
-  Kokkos::View<T* [9]> Q("quadrupole moments", N);
+  Kokkos::View<T * [3]> d("dipole moments", N);
+  Kokkos::View<T * [9]> Q("quadrupole moments", N);
 
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        q(n) = _q.at(n);
-        for (int i = 0; i < 3; ++i) {
-          xyz(n, i) = _xyz.at(3 * n + i);
-          d(n, i) = _d.at(3 * n + i);
-        }
-        for (int i = 0; i < 9; ++i) {
-          Q(n, i) = _Q.at(9 * n + i);
-        }
-      });
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    q(n) = _q.at(n);
+    for (int i = 0; i < 3; ++i) {
+      xyz(n, i) = _xyz.at(3 * n + i);
+      d(n, i) = _d.at(3 * n + i);
+    }
+    for (int i = 0; i < 9; ++i) {
+      Q(n, i) = _Q.at(9 * n + i);
+    }
+  });
 
   // create Kokkos views of sufficient size to store the factors
-  f = Kokkos::View<T* [3]>("k-space force contribution", N);
-  tqe = Kokkos::View<T* [3]>("k-space torque contribution", N);
+  f = Kokkos::View<T * [3]>("k-space force contribution", N);
+  tqe = Kokkos::View<T * [3]>("k-space torque contribution", N);
 
   // compute exponential factors
   compute_exponentials(xyz);
@@ -519,13 +510,12 @@ void KSpace<T>::compute(const std::vector<T>& _xyz, const std::vector<T>& _q,
   // set contributions to potential energy, virial, forces and torque to zero
   pot_energy = 0.0;
   virial = 0.0;
-  Kokkos::parallel_for(
-      N, KOKKOS_LAMBDA(const int n) {
-        for (int i = 0; i < 3; ++i) {
-          f(n, i) = 0.0;
-          tqe(n, i) = 0.0;
-        }
-      });
+  Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int n) {
+    for (int i = 0; i < 3; ++i) {
+      f(n, i) = 0.0;
+      tqe(n, i) = 0.0;
+    }
+  });
 
   // T _rx, _ry, _rz;
   for (int ix = 0; ix <= k_max_int; ++ix) {
@@ -658,4 +648,4 @@ std::vector<T> KSpace<T>::get_ak() {
   return k_ak;
 }
 
-#endif // VOTCA_XTP_QDMEQALD_KSPACE_PRIVATE_H
+#endif  // VOTCA_XTP_QDMEQALD_KSPACE_PRIVATE_H
