@@ -42,8 +42,9 @@ endif()
 # User input options                                                   #
 ########################################################################
 
-find_package(LIBXC REQUIRED)
-set_package_properties(LIBXC PROPERTIES TYPE REQUIRED PURPOSE "Used for exchange-correlation calculations")
+find_package(PkgConfig REQUIRED)
+set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc package")
+pkg_check_modules(LIBXC REQUIRED IMPORTED_TARGET libxc)
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
 
