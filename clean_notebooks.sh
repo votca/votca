@@ -6,10 +6,8 @@ dirs=("GROMACS/Methane" "LAMMPS/KMC_Thiophene" "LAMMPS/Thiophene" "tools/dftgwbs
 
 for x in "${files[*]}"
 do
-    jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace $x
+    jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace ${x}
 done
 
-for d in "${dirs[*]}"
-do
-    git clean -f
-done
+# Clean up temporal files
+git clean -f
