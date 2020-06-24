@@ -19,7 +19,7 @@ get_target_property(VOTCASHARE votca_xtp VOTCA_SHARE)
 
 set(NEW_NOTEBOOKS)
 foreach(_notebook ${NOTEBOOKS})
-  get_filename_component(_FILE "${_notebook}" NAME_WLE)
+  get_filename_component(_FILE "${_notebook}" NAME_WE)
   get_filename_component(_DIR "${_notebook}" DIRECTORY)
   add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/${_FILE}
     WORKING_DIRECTORY ${_DIR}
