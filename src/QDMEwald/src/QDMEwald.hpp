@@ -203,5 +203,4 @@ std::vector<T> QDMEwald<T>::get_total_force() {
   return total_force;
 }
 
-#endif // VOTCA_XTP_QDMEWALD_PRIVATE_H
-
+#endif  // VOTCA_XTP_QDMEWALD_PRIVATE_H
