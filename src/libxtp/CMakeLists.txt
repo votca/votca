@@ -14,7 +14,7 @@ set_target_properties(votca_xtp PROPERTIES SOVERSION ${SOVERSION})
 set_target_properties(votca_xtp PROPERTIES VOTCA_SHARE ${PROJECT_SOURCE_DIR}/share)
 set_target_properties(votca_xtp PROPERTIES XTP_PATH ${_PARENT_PATH}/tools)
 add_dependencies(votca_xtp gitversion-xtp)
-target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost  Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE LIBXC::LIBXC Boost::program_options Boost::filesystem Boost::system Boost::timer )
+target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE PkgConfig::LIBXC Boost::program_options Boost::filesystem Boost::system Boost::timer )
 
 if(TARGET OpenMP::OpenMP_CXX)
   target_link_libraries(votca_xtp PUBLIC OpenMP::OpenMP_CXX)
@@ -34,4 +34,15 @@ target_include_directories(votca_xtp PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/votca/xtp>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-install(TARGETS votca_xtp LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS votca_xtp EXPORT VOTCA_XTP_Targets
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(EXPORT VOTCA_XTP_Targets FILE VOTCA_XTP_Targets.cmake NAMESPACE VOTCA:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_XTP)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file("VOTCA_XTPConfigVersion.cmake" VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)
+configure_file(VOTCA_XTPConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_XTPConfig.cmake" @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_XTPConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_XTPConfigVersion.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_XTP)
+add_library(VOTCA::votca_xtp ALIAS votca_xtp)
