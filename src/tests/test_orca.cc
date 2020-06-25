@@ -16,10 +16,16 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE orca_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
+
+// VOTCA includes
 #include <votca/tools/filesystem.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/qmpackagefactory.h>
+
+// Local VOTCA includes
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/qmpackagefactory.h"
 
 using namespace votca::xtp;
 using namespace votca;

@@ -16,10 +16,11 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_KMCLIFETIME_H
-#define VOTCA_XTP_KMCLIFETIME_H
+#ifndef VOTCA_XTP_KMCLIFETIME_PRIVATE_H
+#define VOTCA_XTP_KMCLIFETIME_PRIVATE_H
 
-#include <votca/xtp/kmccalculator.h>
+// Local VOTCA includes
+#include "votca/xtp/kmccalculator.h"
 
 namespace votca {
 namespace xtp {
@@ -53,4 +54,4 @@ class KMCLifetime : public KMCCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_KMCLIFETIME_H
+#endif  // VOTCA_XTP_KMCLIFETIME_PRIVATE_H

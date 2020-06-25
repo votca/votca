@@ -17,14 +17,23 @@
  *
  */
 
-#include "gencube.h"
-#include <boost/format.hpp>
+// Standard includes
 #include <cstdio>
+
+// Third party includes
+#include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/cubefile_writer.h>
-#include <votca/xtp/orbitals.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/cubefile_writer.h"
+#include "votca/xtp/orbitals.h"
+
+// Local private VOTCA includes
+#include "gencube.h"
 
 namespace votca {
 namespace xtp {

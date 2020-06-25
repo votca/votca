@@ -18,11 +18,13 @@
  *
  */
 
-#include "QDMEwald.hpp"
-
+// Standard includes
 #include <iomanip>
 #include <iostream>
 #include <vector>
+
+// Local private VOTCA includes
+#include "QDMEwald.hpp"
 
 int main(int argc, char** argv) {
   Kokkos::initialize();

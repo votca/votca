@@ -17,15 +17,21 @@
  *
  */
 
-#include "iexcitoncl.h"
-#include "votca/xtp/segmentmapper.h"
-
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/propertyiomanipulator.h>
-#include <votca/xtp/eeinteractor.h>
-#include <votca/xtp/logger.h>
+
+// Local VOTCA includes
+#include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/segmentmapper.h"
+
+// Local private VOTCA includes
+#include "iexcitoncl.h"
 
 using namespace boost::filesystem;
 using namespace votca::tools;

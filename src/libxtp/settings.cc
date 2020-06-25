@@ -17,7 +17,8 @@
  *
  */
 
-#include <votca/xtp/settings.h>
+// Local VOTCA includes
+#include "votca/xtp/settings.h"
 
 namespace votca {
 namespace xtp {

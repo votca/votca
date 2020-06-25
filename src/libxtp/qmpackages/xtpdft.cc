@@ -17,13 +17,20 @@
  *
  */
 
-#include "xtpdft.h"
+// Standard includes
+#include <cstdio>
+#include <iomanip>
+
+// Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <cstdio>
-#include <iomanip>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
+
+// Local private VOTCA includes
+#include "xtpdft.h"
 
 namespace votca {
 namespace xtp {

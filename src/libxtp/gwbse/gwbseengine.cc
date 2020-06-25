@@ -17,12 +17,15 @@
  *
  */
 
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/gwbseengine.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmpackage.h>
+
+// Local VOTCA includes
+#include "votca/xtp/gwbse.h"
+#include "votca/xtp/gwbseengine.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmpackage.h"
 
 using boost::format;
 using namespace boost::filesystem;

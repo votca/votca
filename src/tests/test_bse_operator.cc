@@ -16,11 +16,17 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE bse_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <fstream>
-#include <votca/xtp/bse_operator.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/bse_operator.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;
 using namespace std;

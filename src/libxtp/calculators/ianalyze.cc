@@ -15,12 +15,18 @@
  *
  */
 
-#include "ianalyze.h"
-
+// Standard includes
 #include <cmath>
 #include <numeric>
+
+// VOTCA includes
 #include <votca/tools/histogramnew.h>
-#include <votca/xtp/topology.h>
+
+// Local VOTCA includes
+#include "votca/xtp/topology.h"
+
+// Local private VOTCA includes
+#include "ianalyze.h"
 
 namespace votca {
 namespace xtp {

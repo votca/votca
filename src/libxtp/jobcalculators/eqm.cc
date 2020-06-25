@@ -17,12 +17,17 @@
  *
  */
 
-#include "eqm.h"
-#include "votca/xtp/segmentmapper.h"
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/math/constants/constants.hpp>
-#include <votca/xtp/esp2multipole.h>
+
+// Local VOTCA includes
+#include "votca/xtp/esp2multipole.h"
+#include "votca/xtp/segmentmapper.h"
+
+// Local private VOTCA includes
+#include "eqm.h"
 
 using boost::format;
 using namespace boost::filesystem;

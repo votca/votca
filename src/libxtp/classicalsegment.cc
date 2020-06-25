@@ -17,11 +17,16 @@
  *
  */
 
-#include "votca/xtp/classicalsegment.h"
-#include "votca/xtp/atomcontainer.h"
+// Third party includes
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/xtp/atomcontainer.h"
+#include "votca/xtp/classicalsegment.h"
 
 namespace votca {
 namespace xtp {

@@ -17,12 +17,17 @@
  *
  */
 
+// Third party includes
+#include <boost/format.hpp>
+
+// VOTCA includes
+#include <votca/tools/constants.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/bse.h"
 #include "votca/xtp/bse_operator.h"
-#include <boost/format.hpp>
-#include <votca/tools/constants.h>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/bsecoupling.h>
+#include "votca/xtp/bsecoupling.h"
 
 namespace votca {
 namespace xtp {

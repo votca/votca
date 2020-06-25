@@ -17,8 +17,11 @@
  *
  */
 
+// Standard includes
 #include <regex>
-#include <votca/xtp/segmentmapper.h>
+
+// Local VOTCA includes
+#include "votca/xtp/segmentmapper.h"
 
 namespace votca {
 namespace xtp {

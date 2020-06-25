@@ -17,8 +17,9 @@
  *
  */
 
-#include <votca/xtp/aopotential.h>
-#include <votca/xtp/density_integration.h>
+// Local VOTCA includes
+#include "votca/xtp/density_integration.h"
+#include "votca/xtp/aopotential.h"
 
 namespace votca {
 namespace xtp {

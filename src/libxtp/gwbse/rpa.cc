@@ -17,10 +17,11 @@
  *
  */
 
+// Local VOTCA includes
+#include "votca/xtp/rpa.h"
+#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/rpa.h>
 
 namespace votca {
 namespace xtp {

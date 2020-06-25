@@ -17,12 +17,16 @@
  *
  */
 
+// Third party includes
+#include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/globals.h>
 #include <votca/tools/propertyiomanipulator.h>
 
-#include <boost/format.hpp>
-#include <votca/xtp/version.h>
-#include <votca/xtp/xtpapplication.h>
+// Local VOTCA includes
+#include "votca/xtp/version.h"
+#include "votca/xtp/xtpapplication.h"
 
 namespace votca {
 namespace xtp {

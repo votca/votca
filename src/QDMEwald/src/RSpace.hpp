@@ -18,11 +18,15 @@
  *
  */
 
-#ifndef RSPACE_CLASS_INCLUDED
-#define RSPACE_CLASS_INCLUDED
+#pragma once
+#ifndef VOTCA_XTP_RSPACE_PRIVATE_H
+#define VOTCA_XTP_RSPACE_PRIVATE_H
 
-#include "kokkos_linalg.hpp"
+// Standard includes
 #include <vector>
+
+// Local private VOTCA includes
+#include "kokkos_linalg.hpp"
 
 /**
  *
@@ -454,4 +458,4 @@ T RSpace<T>::get_virial() {
   return virial;
 }
 
-#endif
+#endif  // VOTCA_XTP_RSPACE_PRIVATE_H

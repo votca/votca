@@ -15,6 +15,7 @@
  *
  */
 
+// Local private VOTCA includes
 #include "eanalyze.h"
 
 namespace votca {

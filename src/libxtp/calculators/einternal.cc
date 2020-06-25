@@ -15,9 +15,11 @@
  *
  */
 
-#include "einternal.h"
+// Local VOTCA includes
+#include "votca/xtp/topology.h"
 
-#include <votca/xtp/topology.h>
+// Local private VOTCA includes
+#include "einternal.h"
 
 namespace votca {
 namespace xtp {

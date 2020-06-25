@@ -17,11 +17,14 @@
  *
  */
 
+// Third party includes
 #include <boost/format.hpp>
-#include <votca/xtp/esp2multipole.h>
-#include <votca/xtp/espfit.h>
-#include <votca/xtp/nbo.h>
-#include <votca/xtp/populationanalysis.h>
+
+// Local VOTCA includes
+#include "votca/xtp/esp2multipole.h"
+#include "votca/xtp/espfit.h"
+#include "votca/xtp/nbo.h"
+#include "votca/xtp/populationanalysis.h"
 
 namespace votca {
 namespace xtp {

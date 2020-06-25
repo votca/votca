@@ -19,9 +19,12 @@
 /// For an earlier history see ctp repo commit
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+// Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
-#include <votca/xtp/parallelxjobcalc.h>
+
+// Local VOTCA includes
+#include "votca/xtp/parallelxjobcalc.h"
 
 using boost::format;
 

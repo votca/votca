@@ -17,22 +17,29 @@
  *
  */
 
-#include "votca/xtp/aobasis.h"
-#include "votca/xtp/eeinteractor.h"
-#include "votca/xtp/mmregion.h"
-#include "votca/xtp/qmmolecule.h"
+// Standard includes
+#include <vector>
+
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <vector>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/aomatrix3d.h>
-#include <votca/xtp/aopotential.h>
-#include <votca/xtp/density_integration.h>
-#include <votca/xtp/dftengine.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/aomatrix3d.h"
+#include "votca/xtp/aopotential.h"
+#include "votca/xtp/density_integration.h"
+#include "votca/xtp/dftengine.h"
+#include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/mmregion.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/qmmolecule.h"
 
 using boost::format;
 using namespace boost::filesystem;

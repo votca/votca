@@ -17,11 +17,16 @@
  *
  */
 
+// Third party includes
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/tokenizer.h>
-#include <votca/xtp/vxc_functionals.h>
-#include <votca/xtp/vxc_grid.h>
-#include <votca/xtp/vxc_potential.h>
+
+// Local VOTCA includes
+#include "votca/xtp/vxc_functionals.h"
+#include "votca/xtp/vxc_grid.h"
+#include "votca/xtp/vxc_potential.h"
 
 namespace votca {
 namespace xtp {

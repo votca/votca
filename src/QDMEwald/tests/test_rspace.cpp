@@ -17,8 +17,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE rspace_test
-#include "../src/RSpace.hpp"
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
+
+// Local private VOTCA includes
+#include "RSpace.hpp"
 
 BOOST_AUTO_TEST_SUITE(rspace_test)
 

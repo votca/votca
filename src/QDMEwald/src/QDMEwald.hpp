@@ -18,9 +18,11 @@
  *
  */
 
-#ifndef QDMEWALD_INCLUDED
-#define QDMEWALD_INCLUDED
+#pragma once
+#ifndef VOTCA_XTP_QDMEWALD_PRIVATE_H
+#define VOTCA_XTP_QDMEWALD_PRIVATE_H
 
+// Local private VOTCA includes
 #include "KSpace.hpp"
 #include "RSpace.hpp"
 
@@ -201,4 +203,4 @@ std::vector<T> QDMEwald<T>::get_total_force() {
   return total_force;
 }
 
-#endif
+#endif  // VOTCA_XTP_QDMEWALD_PRIVATE_H

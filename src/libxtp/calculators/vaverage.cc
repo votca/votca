@@ -17,8 +17,11 @@
  *
  */
 
-#include "vaverage.h"
+// Local VOTCA includes
 #include "votca/xtp/topology.h"
+
+// Local private VOTCA includes
+#include "vaverage.h"
 
 namespace votca {
 namespace xtp {

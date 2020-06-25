@@ -16,10 +16,16 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE segmentmapper_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <cstdio>
 #include <cstdlib>
-#include <votca/xtp/segmentmapper.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/segmentmapper.h"
 
 using namespace votca::xtp;
 using namespace votca;

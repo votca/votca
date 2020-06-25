@@ -35,7 +35,9 @@ For more detailed information about the changes see the history of the
 * create a map between orca and libxc functional names (#461)
 * fix path to share/data (#486, #487)
 * remove special XML symbols (#488)
+* standardize includes in src files (#462)
 * add cmake exported target (#489)
+
 
 ## Version 1.6.1 (released 21.06.20)
 * fix warnings on Ubuntu 20.04 (#438, #460)
