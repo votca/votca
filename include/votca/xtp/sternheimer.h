@@ -64,6 +64,7 @@ class Sternheimer {
     Index gws_grid_spacing = 5;
     std::string quadrature_scheme = "hermite";
     Index quadrature_order = 12;
+    bool do_cs = true;
   };
 
   // Edit Options
@@ -100,7 +101,7 @@ class Sternheimer {
   Eigen::MatrixXcd SelfEnergy_at_w_rect(std::complex<double> omega) const;
   Eigen::VectorXcd SelfEnergy_exchange() const;
   Eigen::VectorXcd SelfEnergy_diagonal(std::complex<double> omega) const;
-  Eigen::VectorXcd COHSEX(Index ks_state)const;
+  void PrintCOHSEXqpenergies();
 
  private:
   Logger& _log;

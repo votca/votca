@@ -762,11 +762,17 @@ bool GWBSE::Evaluate() {
       sternheimer.configurate(opt);
 
       Index homo = _orbitals.getHomo();
+      Index ksstates = _orbitals.MOs().eigenvalues().size();
 
-      Eigen::MatrixXcd Sigma_cs=sternheimer.COHSEX(homo);
+      sternheimer.PrintCOHSEXqpenergies();
 
-      std::cout<<Sigma_cs<<std::endl;
+      // for(int i=0;i<ksstates;i++){
 
+      //     Eigen::VectorXcd Sigma_cs=sternheimer.SelfEnergy_diagonal(_orbitals.MOs().eigenvalues()[i]);
+
+      //     std::cout<<_orbitals.MOs().eigenvalues()[i]<<" "<<Sigma_cs[i]<<std::endl<<std::endl;
+
+      // }
       
       Index lumo = homo+1;
       

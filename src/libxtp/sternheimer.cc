@@ -259,11 +259,9 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
     // Eigen::MatrixXcd FxcInt =
     //   Vxcpot.IntegrateFXC(_density_Matrix, delta_n_out_new);
 
-
     Eigen::MatrixXcd FxcInt = Fxc(delta_n_out_new);
 
-
-    //auto inter5 = std::chrono::steady_clock::now();
+    // auto inter5 = std::chrono::steady_clock::now();
     // std::cout<<"Classic: \n"<<FxcInt<<std::endl<<std::endl;
     // std::cout<<"Presaved: \n"<<FxcInt2<<std::endl<<std::endl;
     // std::cout<<"diff: \n"<<FxcInt-FxcInt2<<std::endl<<std::endl;
@@ -281,7 +279,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSC(
     }
 
     perturbationVectoroutput.push_back((perturbation) + contract + FxcInt);
-    //perturbationVectoroutput.push_back((perturbation) + contract);
+    // perturbationVectoroutput.push_back((perturbation) + contract);
 
     double diff =
         (perturbationVectorInput.back() - perturbationVectoroutput.back())
@@ -594,7 +592,7 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  
+
   Index number_of_atoms = mol.size();
 
   std::vector<Eigen::Vector3cd> EnergyGrad;
@@ -759,7 +757,7 @@ std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n,
 
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
-  
+
   Index number_of_atoms = mol.size();
 
   std::vector<Eigen::Vector3cd> EnergyGrad;
@@ -816,14 +814,16 @@ Eigen::MatrixXcd Sternheimer::AnalyticGreensfunction(
   return GreensFunctionLHS(w + eta).colPivHouseholderQr().solve(
       -1 * Eigen::MatrixXcd::Identity(_basis_size, _basis_size));
 }
-std::complex<double> Sternheimer::Lorentzian(double center, std::complex<double> freq) const {
+std::complex<double> Sternheimer::Lorentzian(double center,
+                                             std::complex<double> freq) const {
   double gamma = 0.1 * tools::conv::ev2hrt;
   //// We avoid on purpose dividing with 1/pi
-  //double enumerator = gamma * gamma;
-  //double denominator = (std::pow(abs(freq - center), 2) + gamma * gamma);
-  //return (enumerator / denominator);
-  std::complex<double> j(0.,1.);
-  std::complex<double> lorentzian = 1./(freq-center-j*gamma) - 1./(freq-center+j*gamma);
+  // double enumerator = gamma * gamma;
+  // double denominator = (std::pow(abs(freq - center), 2) + gamma * gamma);
+  // return (enumerator / denominator);
+  std::complex<double> j(0., 1.);
+  std::complex<double> lorentzian =
+      1. / (freq - center - j * gamma) - 1. / (freq - center + j * gamma);
   return lorentzian;
 }
 
@@ -837,7 +837,7 @@ Eigen::MatrixXcd Sternheimer::NonAnalyticGreensfunction(
 
   for (Index v = 0; v < _num_occ_lvls; v++) {
     // If the dirac delta is zero (away from its center) avoid doing the product
-    NonAnalyticGreens +=  Lorentzian(_mo_energies[v], freq) *
+    NonAnalyticGreens += Lorentzian(_mo_energies[v], freq) *
                          _mo_coefficients.col(v) *
                          _mo_coefficients.col(v).transpose();
   }
@@ -874,9 +874,13 @@ Eigen::MatrixXcd Sternheimer::ScreenedCoulomb(
   Eigen::MatrixXcd FxcInt =
       Fxc(DeltaN);  // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
   // Eigen::MatrixXcd DeltaV = coulombmatrix + HartreeInt + FxcInt;
-  Eigen::MatrixXcd DeltaV =
-      HartreeInt + FxcInt;  // Watchout! Here we have subtracted
-                            // the bare coulomb potential
+  Eigen::MatrixXcd DeltaV;
+  if (_opt.do_cs == true) {
+    DeltaV = HartreeInt + FxcInt + coulombmatrix;
+  } else {
+    DeltaV = HartreeInt + FxcInt;  // Watchout! Here we have subtracted
+                                   // the bare coulomb potential
+  }
   return DeltaV;
 }
 
@@ -900,8 +904,8 @@ Eigen::VectorXd Sternheimer::EvaluateBasisAtPosition(
   return tmat;
 }
 
-Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(std::complex<double> omega,
-                                               std::complex<double> omega_p) const {
+Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(
+    std::complex<double> omega, std::complex<double> omega_p) const {
   // This function calculates GW at w and w_p (i.e before integral over
   // frequencies)
   // It perform the spatial grid integration. The final object is a matrix
@@ -909,7 +913,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(std::complex<double> omega,
   AOBasis basis = _orbitals.SetupDftBasis();
   Vxc_Grid _grid;
   _grid.GridSetup("xxcoarse", _orbitals.QMAtoms(), basis);
-  //std::cout<<_grid.getGridSize()<<std::endl;
+  // std::cout<<_grid.getGridSize()<<std::endl;
 
   // std::vector<const Eigen::Vector3d*> gridp = _grid.getGridpoints();
 
@@ -971,7 +975,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
   Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
   Index nthreads = OPENMP::getMaxThreads();
 
-  //double _padding = 6.512752;
+  // double _padding = 6.512752;
   double _padding = 0.1;
   Index _xsteps = _opt.gws_grid_spacing;
   Index _ysteps = _opt.gws_grid_spacing;
@@ -1047,7 +1051,8 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
   return sigma;
 }
 
-Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const {
+Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(
+    std::complex<double> omega) const {
   // This function evaluates the frequency integration over w_p, leaving a
   // function of omega Hermite quadrature of order 12: If you want to use
   // different orders for now you have to change the 12 number in getPoints and
@@ -1055,7 +1060,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const 
   Index order = 8;
 
   std::complex<double> delta(0., -1e-3);
-  double omega_s = 0.0*tools::conv::ev2hrt; //Fixed shift on the real axis
+  double omega_s = 0.0 * tools::conv::ev2hrt;  // Fixed shift on the real axis
   Eigen::MatrixXcd sigma =
       Eigen::MatrixXcd::Zero(_density_Matrix.cols(), _density_Matrix.cols());
 
@@ -1063,56 +1068,60 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(std::complex<double> omega) const 
     // Laguerre is from 0 to infinity
     Gauss_Laguerre_Quadrature_Constants glqc;
     Eigen::VectorXd _quadpoints = glqc.getPoints(_opt.quadrature_order);
-    Eigen::VectorXd _quadadaptedweights = glqc.getAdaptedWeights(_opt.quadrature_order);
+    Eigen::VectorXd _quadadaptedweights =
+        glqc.getAdaptedWeights(_opt.quadrature_order);
     for (Index j = 0; j < _opt.quadrature_order; ++j) {
-    std::complex<double> gridpoint(_quadpoints(j),0.25*tools::conv::ev2hrt); 
-    sigma += _quadadaptedweights(j) *
-             SelfEnergy_at_wp(omega, gridpoint);
-  }
-  sigma *=2; //This because later we multiply sigma by -1/2pi
+      std::complex<double> gridpoint(_quadpoints(j),
+                                     0.25 * tools::conv::ev2hrt);
+      sigma += _quadadaptedweights(j) * SelfEnergy_at_wp(omega, gridpoint);
+    }
+    sigma *= 2;  // This because later we multiply sigma by -1/2pi
   } else if (_opt.quadrature_scheme == "legendre") {
-    //Modified Legendre is from -1 to 1
+    // Modified Legendre is from -1 to 1
     Gauss_Legendre_Quadrature_Constants glqc;
     Eigen::VectorXd _quadpoints = glqc.getPoints(_opt.quadrature_order);
-    Eigen::VectorXd _quadadaptedweights = glqc.getAdaptedWeights(_opt.quadrature_order);
+    Eigen::VectorXd _quadadaptedweights =
+        glqc.getAdaptedWeights(_opt.quadrature_order);
     double x0 = 0.5;
     for (Index j = 0; j < _opt.quadrature_order; ++j) {
-      double exponent = (1+_quadpoints(j))/(1-_quadpoints(j));
-      double mod_quadpoints = std::pow(x0,exponent);
-      double mod_weights =  2*x0*_quadadaptedweights(j)/std::pow(1-_quadadaptedweights(j),2);
-    std::complex<double> gridpoint(mod_quadpoints,0); 
-    sigma += mod_weights * SelfEnergy_at_wp(omega, gridpoint);
-  }
-  sigma *=2; //This because later we multiply sigma by -1/2pi
+      double exponent = (1 + _quadpoints(j)) / (1 - _quadpoints(j));
+      double mod_quadpoints = std::pow(x0, exponent);
+      double mod_weights = 2 * x0 * _quadadaptedweights(j) /
+                           std::pow(1 - _quadadaptedweights(j), 2);
+      std::complex<double> gridpoint(mod_quadpoints, 0);
+      sigma += mod_weights * SelfEnergy_at_wp(omega, gridpoint);
+    }
+    sigma *= 2;  // This because later we multiply sigma by -1/2pi
   } else if (_opt.quadrature_scheme == "hermite") {
-    //Hermite is from -infty to infty
+    // Hermite is from -infty to infty
     Gauss_Hermite_Quadrature_Constants glqc;
     Eigen::VectorXd _quadpoints = glqc.getPoints(_opt.quadrature_order);
-    Eigen::VectorXd _quadadaptedweights = glqc.getAdaptedWeights(_opt.quadrature_order);
+    Eigen::VectorXd _quadadaptedweights =
+        glqc.getAdaptedWeights(_opt.quadrature_order);
     for (Index j = 0; j < _opt.quadrature_order; ++j) {
-    std::complex<double> gridpoint(_quadpoints(j),0); 
-    sigma += _quadadaptedweights(j) *
-             SelfEnergy_at_wp(omega, gridpoint);
-  }
+      std::complex<double> gridpoint(_quadpoints(j), 0);
+      sigma += _quadadaptedweights(j) * SelfEnergy_at_wp(omega, gridpoint);
+    }
   } else {
     std::cout << "There no such a thing as the integration scheme you asked"
               << std::endl;
   }
-  
+
   return sigma;
 }
 
-Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w_rect(std::complex<double> omega) const {
-  // This function evaluates the frequency integration over w_p, using the rectangle rule
+Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w_rect(
+    std::complex<double> omega) const {
+  // This function evaluates the frequency integration over w_p, using the
+  // rectangle rule
 
   std::vector<double> _quadpoints;
   std::vector<double> _quadadaptedweights;
 
-  for(Index j = 0; j < 25; ++j){
+  for (Index j = 0; j < 25; ++j) {
 
-    _quadpoints.push_back(-6.0+j*0.5);
+    _quadpoints.push_back(-6.0 + j * 0.5);
     _quadadaptedweights.push_back(0.5);
-
   }
 
   std::complex<double> delta(0., -1e-3);
@@ -1120,30 +1129,33 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w_rect(std::complex<double> omega) c
       Eigen::MatrixXcd::Zero(_density_Matrix.cols(), _density_Matrix.cols());
   for (Index j = 0; j < 25; ++j) {
 
-    Eigen::MatrixXcd SE=SelfEnergy_at_wp(omega, _quadpoints.at(j));
+    Eigen::MatrixXcd SE = SelfEnergy_at_wp(omega, _quadpoints.at(j));
 
     sigma += _quadadaptedweights.at(j) * SE;
 
-    std::cout<<_quadpoints.at(j)<<" "<<SE.norm()<<std::endl;
-
+    std::cout << _quadpoints.at(j) << " " << SE.norm() << std::endl;
   }
 
   return sigma;
 }
 
 Eigen::VectorXcd Sternheimer::SelfEnergy_exchange() const {
-    Index n_states = _mo_coefficients.cols();
-    Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_states);
-    for (Index n = 0; n < n_states; ++n) {
-      for (Index v = 0; v < _num_occ_lvls; ++v){
-        Eigen::MatrixXcd P_1 = _mo_coefficients.col(v) * _mo_coefficients.col(n).transpose();
-        results(n) += (P_1.transpose().cwiseProduct(_eris.ContractRightIndecesWithMatrix(P_1))).sum();
-      }
+  Index n_states = _mo_coefficients.cols();
+  Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_states);
+  for (Index n = 0; n < n_states; ++n) {
+    for (Index v = 0; v < _num_occ_lvls; ++v) {
+      Eigen::MatrixXcd P_1 =
+          _mo_coefficients.col(v) * _mo_coefficients.col(n).transpose();
+      results(n) += (P_1.transpose().cwiseProduct(
+                         _eris.ContractRightIndecesWithMatrix(P_1)))
+                        .sum();
     }
-    return -results;
+  }
+  return -results;
 }
 
-Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(std::complex<double> omega) const {
+Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(
+    std::complex<double> omega) const {
   Index n_states = _mo_coefficients.cols();
   Eigen::MatrixXcd selfenergy = SelfEnergy_at_w(omega);
   Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_states);
@@ -1152,84 +1164,43 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(std::complex<double> omega) co
                                                        _mo_coefficients.col(n)))
                      .sum();
   }
-  std::complex<double> prefactor(-1./(2 * tools::conv::Pi),0.);  // i/(2 eta)
+  std::complex<double> prefactor(-1. / (2 * tools::conv::Pi), 0.);  // i/(2 eta)
   return prefactor * results;
 }
 
-Eigen::VectorXcd Sternheimer::COHSEX(Index ks_state)const{
-  
-  
+void Sternheimer::PrintCOHSEXqpenergies() {
 
-  AOBasis dftbasis = _orbitals.SetupDftBasis();
-  Vxc_Grid _grid;
-  _grid.GridSetup("xxcoarse", _orbitals.QMAtoms(), dftbasis);
+  Index moEs = _mo_energies.size();
 
+  Eigen::VectorXcd Sigma_x = SelfEnergy_exchange();
 
-  Index nthreads = OPENMP::getMaxThreads();
+  Eigen::MatrixXcd V_xc = Fxc(_density_Matrix);
 
-  //Evaluate static screened Exchange part by integration over r
+  Eigen::VectorXcd V_xc_vec = Eigen::VectorXcd::Zero(moEs);
 
-  Eigen::MatrixXcd W =
-      Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols());
-  for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
-    const GridBox& box = _grid[i];
-    if (!box.Matrixsize()) {
-      continue;
-    }
-
-    std::vector<Eigen::MatrixXcd> W_thread = std::vector<Eigen::MatrixXcd>(
-        nthreads, Eigen::MatrixXcd::Zero(box.Matrixsize(), box.Matrixsize()));
-
-    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-    const std::vector<double>& weights = box.getGridWeights();
-
-  #pragma omp parallel for schedule(guided)
-    for (Index p = 0; p < box.size(); p++) {
-      Eigen::VectorXd ao = box.CalcAOValues(points[p]);
-      Eigen::MatrixXd S = ao * ao.transpose();
-      const double weight = weights[p];
-
-      // Evaluate bare and screend coulomb potential at point to evaluate the
-      // correlation screened Coulomb potential (W_c = W-v). This is evaluated
-      // in DeltaNsc
-
-      Eigen::MatrixXcd W_s = ScreenedCoulomb(points[p], _mo_energies[ks_state]);
-
-      W_thread[OPENMP::getThreadId()] +=
-          weight * S * box.ReadFromBigMatrix(W_s);
-          
-    }
-
-    Eigen::MatrixXcd W_box = std::accumulate(
-        W_thread.begin(), W_thread.end(),
-        Eigen::MatrixXcd::Zero(box.Matrixsize(), box.Matrixsize()).eval());
-    box.AddtoBigMatrix(W, W_box);
+  for (Index n = 0; n < moEs; n++) {
+    V_xc_vec(n) =
+        (_mo_coefficients.col(n).cwiseProduct(V_xc * _mo_coefficients.col(n)))
+            .sum();
   }
 
-  Eigen::MatrixXcd Sigma_s=W*NonAnalyticGreensfunction(_mo_energies[ks_state]);
+  std::cout << "Index \t e_KS \t Sigma_x \t Sigma_cs \t V_xc \t QP Energy"
+            << std::endl;
 
-  //Calculate the static coulomb hole part
+  for (int i = 0; i < moEs; i++) {
 
- Eigen::MatrixXcd Sigma_c=W*AnalyticGreensfunction(_mo_energies[ks_state]);
+    Eigen::VectorXcd Sigma_cs =
+        SelfEnergy_diagonal(_orbitals.MOs().eigenvalues()[i]);
 
-  
-
-  Eigen::MatrixXcd Sigma_cs = Sigma_c+Sigma_s;
-
-  std::cout<<Sigma_s<<std::endl;
-  std::cout<<Sigma_c<<std::endl;
-
-
-  Index n_states = _mo_coefficients.cols();
-  Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_states);
-  for (Index n = 0; n < n_states; ++n) {
-    results(n) = (_mo_coefficients.col(n).cwiseProduct(Sigma_cs *
-                                                       _mo_coefficients.col(n)))
-                     .sum();
+    std::cout << i << "\t" << _orbitals.MOs().eigenvalues()[i] << "\t"
+              << Sigma_cs[i].real() << "\t" << Sigma_x[i].real() << "\t"
+              << V_xc_vec[i].real()<<"\t"
+              << (_orbitals.MOs().eigenvalues()[i] + Sigma_cs[i] + Sigma_x[i] -
+                  V_xc_vec[i])
+                     .real()
+              << std::endl
+              << std::endl;
   }
-  std::complex<double> prefactor(-1./(2 * tools::conv::Pi),0.);  // i/(2 eta)
-  return prefactor * results;
-
 }
 
 }  // namespace xtp
