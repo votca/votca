@@ -816,12 +816,15 @@ Eigen::MatrixXcd Sternheimer::AnalyticGreensfunction(
   return GreensFunctionLHS(w + eta).colPivHouseholderQr().solve(
       -1 * Eigen::MatrixXcd::Identity(_basis_size, _basis_size));
 }
-double Sternheimer::Lorentzian(double center, std::complex<double> freq) const {
-  double gamma = 1e-3;
-  // We avoid on purpose dividing with 1/pi
-  double enumerator = gamma * gamma;
-  double denominator = (std::pow(abs(freq - center), 2) + gamma * gamma);
-  return (enumerator / denominator);
+std::complex<double> Sternheimer::Lorentzian(double center, std::complex<double> freq) const {
+  double gamma = 0.1 * tools::conv::ev2hrt;
+  //// We avoid on purpose dividing with 1/pi
+  //double enumerator = gamma * gamma;
+  //double denominator = (std::pow(abs(freq - center), 2) + gamma * gamma);
+  //return (enumerator / denominator);
+  std::complex<double> j(0.,1.);
+  std::complex<double> lorentzian = 1./(freq-center-j*gamma) - 1./(freq-center+j*gamma);
+  return lorentzian;
 }
 
 Eigen::MatrixXcd Sternheimer::NonAnalyticGreensfunction(
@@ -1128,6 +1131,18 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w_rect(std::complex<double> omega) c
   return sigma;
 }
 
+Eigen::VectorXcd Sternheimer::SelfEnergy_exchange() const {
+    Index n_states = _mo_coefficients.cols();
+    Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_states);
+    for (Index n = 0; n < n_states; ++n) {
+      for (Index v = 0; v < _num_occ_lvls; ++v){
+        Eigen::MatrixXcd P_1 = _mo_coefficients.col(v) * _mo_coefficients.col(n).transpose();
+        results(n) += (P_1.transpose().cwiseProduct(_eris.ContractRightIndecesWithMatrix(P_1))).sum();
+      }
+    }
+    return -results;
+}
+
 Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(std::complex<double> omega) const {
   Index n_states = _mo_coefficients.cols();
   Eigen::MatrixXcd selfenergy = SelfEnergy_at_w(omega);
@@ -1141,17 +1156,20 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(std::complex<double> omega) co
   return prefactor * results;
 }
 
-Eigen::VectorXcd Sternheimer::COHSEX()const{
+Eigen::VectorXcd Sternheimer::COHSEX(Index ks_state)const{
   
+  
+
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   Vxc_Grid _grid;
   _grid.GridSetup("xxcoarse", _orbitals.QMAtoms(), dftbasis);
+
 
   Index nthreads = OPENMP::getMaxThreads();
 
   //Evaluate static screened Exchange part by integration over r
 
-  Eigen::MatrixXcd Sigma_s =
+  Eigen::MatrixXcd W =
       Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols());
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
@@ -1159,7 +1177,7 @@ Eigen::VectorXcd Sternheimer::COHSEX()const{
       continue;
     }
 
-    std::vector<Eigen::MatrixXcd> Sigma_s_thread = std::vector<Eigen::MatrixXcd>(
+    std::vector<Eigen::MatrixXcd> W_thread = std::vector<Eigen::MatrixXcd>(
         nthreads, Eigen::MatrixXcd::Zero(box.Matrixsize(), box.Matrixsize()));
 
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
@@ -1175,41 +1193,26 @@ Eigen::VectorXcd Sternheimer::COHSEX()const{
       // correlation screened Coulomb potential (W_c = W-v). This is evaluated
       // in DeltaNsc
 
-      Eigen::MatrixXcd W_s = ScreenedCoulomb(points[p], 0);
+      Eigen::MatrixXcd W_s = ScreenedCoulomb(points[p], _mo_energies[ks_state]);
 
-      W_s+=-S*W_s;
-
-      Sigma_s_thread[OPENMP::getThreadId()] +=
+      W_thread[OPENMP::getThreadId()] +=
           weight * S * box.ReadFromBigMatrix(W_s);
           
     }
 
-    Eigen::MatrixXcd Sigma_s_box = std::accumulate(
-        Sigma_s_thread.begin(), Sigma_s_thread.end(),
+    Eigen::MatrixXcd W_box = std::accumulate(
+        W_thread.begin(), W_thread.end(),
         Eigen::MatrixXcd::Zero(box.Matrixsize(), box.Matrixsize()).eval());
-    box.AddtoBigMatrix(Sigma_s, Sigma_s_box);
+    box.AddtoBigMatrix(W, W_box);
   }
+
+  Eigen::MatrixXcd Sigma_s=W*NonAnalyticGreensfunction(_mo_energies[ks_state]);
 
   //Calculate the static coulomb hole part
 
-  AOBasis auxbasis = _orbitals.SetupAuxBasis();
+ Eigen::MatrixXcd Sigma_c=W*AnalyticGreensfunction(_mo_energies[ks_state]);
 
-  AOCoulomb AOC;
-
-  AOC.Fill(dftbasis);
-
-  std::cout<<AOC.Matrix()<<std::endl;
-
-  Eigen::MatrixXcd coulombmatrix = AOC.Matrix();
-  Eigen::MatrixXcd DeltaN = DeltaNSC(0, coulombmatrix);
-  Eigen::MatrixXcd HartreeInt = _eris.ContractRightIndecesWithMatrix(DeltaN);
-  Eigen::MatrixXcd FxcInt =
-      Fxc(DeltaN);  // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
-  // Eigen::MatrixXcd DeltaV = coulombmatrix + HartreeInt + FxcInt;
-  Eigen::MatrixXcd DeltaV =
-      HartreeInt + FxcInt + coulombmatrix;
-
-  Eigen::MatrixXcd Sigma_c=1/2*DeltaV;
+  
 
   Eigen::MatrixXcd Sigma_cs = Sigma_c+Sigma_s;
 

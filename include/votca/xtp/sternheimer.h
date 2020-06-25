@@ -98,8 +98,9 @@ class Sternheimer {
   Eigen::MatrixXcd SelfEnergy_at_wp_regulargrid(std::complex<double> omega, double omega_p) const;
   Eigen::MatrixXcd SelfEnergy_at_w(std::complex<double> omega) const;
   Eigen::MatrixXcd SelfEnergy_at_w_rect(std::complex<double> omega) const;
+  Eigen::VectorXcd SelfEnergy_exchange() const;
   Eigen::VectorXcd SelfEnergy_diagonal(std::complex<double> omega) const;
-  Eigen::VectorXcd COHSEX()const;
+  Eigen::VectorXcd COHSEX(Index ks_state)const;
 
  private:
   Logger& _log;
@@ -188,7 +189,7 @@ class Sternheimer {
 
   Eigen::MatrixXcd AnalyticGreensfunction(std::complex<double> w) const;
 
-  double Lorentzian(double r, std::complex<double> freq) const;
+  std::complex<double> Lorentzian(double center, std::complex<double> freq) const;
 
   Eigen::MatrixXcd NonAnalyticGreensfunction(std::complex<double> freq) const;
 
