@@ -139,7 +139,7 @@ jobs:
         if: ${{ ! matrix.module_build }}
         run: cmake --build builddir --target doxygen
       - name: Build Sphinx
-        if: ${{ ! matrix.module_build }}
+        if: ${{ ! matrix.module_build && matrix.distro != 'ubuntu_18.04' }}
         run: cmake --build builddir --target doc
       - name: Test DESTDIR Install
         if: ${{ ! matrix.module_build }}
