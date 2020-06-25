@@ -6,7 +6,6 @@ release = '@PROJECT_VERSION@'
 from recommonmark.parser import CommonMarkParser
 source_suffix = {
     '.rst': 'restructuredtext',
-    '.md': 'markdown',
 }
 
 import sphinx
