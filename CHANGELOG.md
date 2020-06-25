@@ -20,6 +20,7 @@ For more detailed information about the changes see the history of the [reposito
 * standardize header formatting (#246)
 * move CI to GitHub Ations (#251, #254, #256, #258, #260)
 * improve mkl detection (#257)
+* clean up installed cmake find modules (#263)
 
 ## Version 1.6.1 (released 21.06.20)
 * fix build with mkl (#229)

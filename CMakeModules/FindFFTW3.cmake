@@ -21,7 +21,9 @@
 #
 
 find_package(PkgConfig)
-set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect fftw package")
+if(COMMAND set_package_properties)
+  set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect fftw package")
+endif()
 
 pkg_check_modules(PC_FFTW3 fftw3)
 find_path(FFTW3_INCLUDE_DIR fftw3.h HINTS ${PC_FFTW3_INCLUDE_DIRS})
