@@ -239,7 +239,9 @@ void GWBSE::Initialize(tools::Property& options) {
     _gwopt.quadrature_scheme = options.ifExistsReturnElseReturnDefault<std::string>(
         key + ".sternheimer.quadrature_scheme", _gwopt.quadrature_scheme);
     _gwopt.quadrature_order = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".sternheimer.quadrature_order", _gwopt.quadrature_order);    
+        key + ".sternheimer.quadrature_order", _gwopt.quadrature_order);
+    _gwopt.do_cs = options.ifExistsReturnElseReturnDefault<bool>(
+        key + ".sternheimer.do_cs", _gwopt.do_cs);    
     XTP_LOG(Log::error, *_pLog)
         << " Omega initial: " << _gwopt.omegain << flush;
     XTP_LOG(Log::error, *_pLog) << " Omega final: " << _gwopt.omegafin << flush;
@@ -684,6 +686,7 @@ bool GWBSE::Evaluate() {
     opt.gws_grid_spacing = _gwopt.gws_grid_spacing;
     opt.quadrature_order = _gwopt.quadrature_order;
     opt.quadrature_scheme = _gwopt.quadrature_scheme;
+    opt.do_cs = _gwopt.do_cs; 
 
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Started Sternheimer " << flush;

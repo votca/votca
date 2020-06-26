@@ -70,6 +70,7 @@ class GW {
     Index gws_grid_spacing=5; 
     Index quadrature_order = 8; //Order of the quadrature for self energy integration
     std::string quadrature_scheme = "hermite"; //Kind of quadrature for self energy integration
+    bool do_cs=true;
   };
 
   void configure(const options& opt);

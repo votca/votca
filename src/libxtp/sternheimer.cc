@@ -1099,7 +1099,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(
     Eigen::VectorXd _quadadaptedweights =
         glqc.getAdaptedWeights(_opt.quadrature_order);
     for (Index j = 0; j < _opt.quadrature_order; ++j) {
-      std::complex<double> gridpoint(_quadpoints(j), 0);
+      std::complex<double> gridpoint(_quadpoints(j),0);
       sigma += _quadadaptedweights(j) * SelfEnergy_at_wp(omega, gridpoint);
     }
   } else {
@@ -1164,7 +1164,7 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(
                                                        _mo_coefficients.col(n)))
                      .sum();
   }
-  std::complex<double> prefactor(-1. / (2 * tools::conv::Pi), 0.);  // i/(2 eta)
+  std::complex<double> prefactor(0, 1. / (2 * tools::conv::Pi));  // i/(2 eta)
   return prefactor * results;
 }
 
@@ -1174,7 +1174,14 @@ void Sternheimer::PrintCOHSEXqpenergies() {
 
   Eigen::VectorXcd Sigma_x = SelfEnergy_exchange();
 
-  Eigen::MatrixXcd V_xc = Fxc(_density_Matrix);
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
+  Vxc_Grid grid;
+  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                 dftbasis);
+  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+
+  Eigen::MatrixXcd V_xc = Vxcpot.IntegrateVXC(_density_Matrix).matrix();
 
   Eigen::VectorXcd V_xc_vec = Eigen::VectorXcd::Zero(moEs);
 
@@ -1184,7 +1191,7 @@ void Sternheimer::PrintCOHSEXqpenergies() {
             .sum();
   }
 
-  std::cout << "Index \t e_KS \t Sigma_x \t Sigma_cs \t V_xc \t QP Energy"
+  std::cout << "Index \t e_KS \t Sigma_cs \t Sigma_x \t V_xc \t QP Energy"
             << std::endl;
 
   for (int i = 0; i < moEs; i++) {
