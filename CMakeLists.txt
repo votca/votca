@@ -28,7 +28,7 @@ option(BUILD_XTP "Build xtp" OFF)
 add_feature_info(BUILD_XTP BUILD_XTP "Build xtp module")
 option(BUILD_CSG_MANUAL "Build csg-manual" OFF)
 add_feature_info(BUILD_CSG_MANUAL BUILD_CSG_MANUAL "Build csg-manual")
-set(VOTCA_SKIP_FIND_PACKAGE VOTCA_TOOLS VOTCA_CSG)
+set(VOTCA_SKIP_FIND_PACKAGE VOTCA_TOOLS VOTCA_CSG VOTCA_XTP)
 
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
 add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
