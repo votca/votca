@@ -86,9 +86,12 @@ cache_key="ccache-${INPUT_DISTRO}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-m
 print_output "cache_restore_key" "${cache_key}"
 print_output "cache_key" "${cache_key}-$(date +%s)"
 
-if [[ ${INPUT_DISTRO} = ubuntu*  ]] || ${INPUT_MODULE}; then
-  # https://github.com/votca/votca/issues/318, sphinx build is currently broken on Ubuntu, due to sphinx 1.*
-  # fedora uses sphinx 2.*
+if [[ ${INPUT_DISTRO} = "ubuntu_18.04"  ]] || ${INPUT_MODULE}; then
+  # On Ubuntu 18.04 sphinx is too old for nbsphinx
+  # File "/usr/lib/python3/dist-packages/nbsphinx.py", line 1383, in _add_notebook_parser
+  #   source_suffix.append('.ipynb')
+  #   AttributeError: 'dict' object has no attribute 'append'
+  # nbsphinx that requires that sphinx>1.8 but in Ubuntu 18.04 sphinx==1.6.7
   print_output "build_sphinx" "false"
 else
   print_output "build_sphinx" "true"
