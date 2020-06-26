@@ -22,13 +22,15 @@
 find_program(JUPYTER_EXECUTABLE NAMES jupyter DOC "Interactive computing environment (https://jupyter.org/)")
 find_package_handle_standard_args(JUPYTER REQUIRED_VARS JUPYTER_EXECUTABLE)
 
-set(JUPYTER_NBCONVERT_FOUND FALSE)
 if(JUPYTER_FOUND)
-  execute_process(COMMAND ${JUPYTER_EXECUTABLE} nbconvert --help
-    RESULT_VARIABLE AVAILABLE_NBCONVERT)
-  if(AVAILABLE_NBCONVERT EQUAL 0)
-    set(JUPYTER_NBCONVERT_FOUND TRUE)
+  execute_process(COMMAND ${JUPYTER_EXECUTABLE} nbconvert --version
+    OUTPUT_VARIABLE nbconvert_version
+    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(${nbconvert_version} MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
+    set(JUPYTER_NBCONVERT_VERSION ${nbconvert_version})
+  else()
+    set(JUPYTER_NBCONVERT_VERSION 0.0)
   endif()
 endif()
 
-find_package_handle_standard_args(JUPYTER_NBCONVERT DEFAULT_MSG JUPYTER_NBCONVERT_FOUND)
+find_package_handle_standard_args(JUPYTER_NBCONVERT REQUIRED_VARS JUPYTER_EXECUTABLE JUPYTER_NBCONVERT_VERSION)
