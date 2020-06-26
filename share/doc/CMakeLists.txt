@@ -10,9 +10,10 @@ list(APPEND NOTEBOOKS "${PROJECT_SOURCE_DIR}/tools/dftgwbse_CO_geoopt/DFTGWBSE_O
 list(APPEND NOTEBOOKS "${PROJECT_SOURCE_DIR}/LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipynb")
 
 find_package(JUPYTER_NBCONVERT 5.4.1)
+find_package(SPHINX 2.1)
 set(NEW_NOTEBOOKS)
 
-if(JUPYTER_NBCONVERT_FOUND)
+if(JUPYTER_NBCONVERT_FOUND AND SPHINX_FOUND)
   get_target_property(XTP_PATH VOTCA::votca_xtp XTP_PATH)
   get_target_property(VOTCASHARE VOTCA::votca_xtp VOTCA_SHARE)
   foreach(_notebook ${NOTEBOOKS})
