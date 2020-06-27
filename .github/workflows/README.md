@@ -8,3 +8,4 @@ Actions:
 - `docker-build.yml`: does the build and deploy of the docker container from the `Dockerfile`
 - `continuous-integration-workflow.yml` and `docker-build.yml` are triggered for pushes to master and pull requests to
   master as well as on a schedule once a week to pull in updates from the votca/buildenv container.
+- `create-pr.yml`: will create a pull request when a `update_master_submodules` branch is create (manually or by action in a module)
