@@ -1,4 +1,4 @@
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6e930e3c0f5a4a9b83aa3362cfdd21e1)](https://www.codacy.com/manual/votca-package/xtp?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=votca/xtp&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/b9c7170d5c3440b7a2327a667cb1ec59)](https://www.codacy.com/gh/votca/xtp?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=votca/xtp&amp;utm_campaign=Badge_Grade)
 [![codecov](https://codecov.io/gh/votca/xtp/branch/master/graph/badge.svg)](https://codecov.io/gh/votca/xtp)
 [![CI](https://github.com/votca/xtp/workflows/CI/badge.svg)](https://github.com/votca/xtp/actions?query=branch%3Agithub_actions+workflow%3ACI)
 [![DOI](https://zenodo.org/badge/50048374.svg)](https://zenodo.org/badge/latestdoi/50048374)
