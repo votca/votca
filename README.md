@@ -1,3 +1,8 @@
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/677ff88de55e46ee9411e2eaa6248e0c)](https://www.codacy.com/gh/votca/csg-tutorials?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=votca/csg-tutorials&amp;utm_campaign=Badge_Grade)
+[![codecov](https://codecov.io/gh/votca/csg-tutorials/branch/master/graph/badge.svg)](https://codecov.io/gh/votca/csg-tutorials)
+[![CI](https://github.com/votca/csg-tutorials/workflows/CI/badge.svg)](https://github.com/votca/csg-tutorials/actions?query=branch%3Agithub_actions+workflow%3ACI)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3902713.svg)](https://doi.org/10.5281/zenodo.3902713)
+
 This is a collection of coarse-graining tutorials using the 
 VOTCA package. Further information on VOTCA can be found at
 http://www.votca.org
@@ -65,7 +70,7 @@ on Gromacs unless specified otherwise:
 -    `hexane/force_matching`: force matching (bonded and nonbonded interactions of liquid hexane
 -    `hexane/ibi_all`: iterative boltzmann inversion for bonded and nonbonded interactions of liquid hexane
 -    `hexane/ibi_nonbonded`: iterative boltzmann inversion for only nonbonded interactions of liquid hexane
--    `hexane/hybrid_force_matching  hybrid force matching of only nonbonded interactions (with bonded interactions from boltzmann inversion)
+-    `hexane/hybrid_force_matching`: hybrid force matching of only nonbonded interactions (with bonded interactions from boltzmann inversion)
 
 -    `methanol-water`: methanol-water mixture for 3 different concentrations
      -    `methanol-water/*/atomistic    atomistic simulations
