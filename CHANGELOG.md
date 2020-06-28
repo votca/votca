@@ -37,6 +37,7 @@ For more detailed information about the changes see the history of the
 * remove special XML symbols (#488)
 * standardize includes in src files (#462)
 * add cmake exported target (#489)
+* update codacy badge (#490)
 
 
 ## Version 1.6.1 (released 21.06.20)
