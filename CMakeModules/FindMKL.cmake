@@ -161,6 +161,9 @@ function(find_mkl_library)
       intel64
       intel64/gcc4.7)
   mark_as_advanced(MKL_${mkl_args_NAME}_LINK_LIBRARY)
+  iF(NOT MKL_${mkl_args_NAME}_LINK_LIBRARY)
+    message(FATAL_ERROR "MKL part ${mkl_args_NAME} (library ${mkl_args_LIBRARY_NAME}) not found")
+  endif()
 
   #message(STATUS "NAME: ${mkl_args_NAME} LIBNAME: ${mkl_args_LIBRARY_NAME} MKL_${mkl_args_NAME}_LINK_LIBRARY  ${MKL_${mkl_args_NAME}_LINK_LIBRARY}")
 
@@ -226,11 +229,13 @@ elseif(MKL_THREAD_LAYER STREQUAL "GNU OpenMP")
     set_package_properties(OpenMP PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization in MKL")
   endif()
   find_mkl_library(NAME ThreadLayer LIBRARY_NAME mkl_gnu_thread)
-  add_library(MKL::ThreadingLibrary SHARED IMPORTED)
-  set_target_properties(MKL::ThreadingLibrary
-    PROPERTIES
-      IMPORTED_LOCATION "${OpenMP_gomp_LIBRARY}"
-      INTERFACE_LINK_LIBRARIES OpenMP::OpenMP_CXX)
+  if(NOT TARGET MKL::ThreadingLibrary)
+    add_library(MKL::ThreadingLibrary SHARED IMPORTED)
+    set_target_properties(MKL::ThreadingLibrary
+      PROPERTIES
+        IMPORTED_LOCATION "${OpenMP_gomp_LIBRARY}"
+        INTERFACE_LINK_LIBRARIES OpenMP::OpenMP_CXX)
+  endif()
 elseif(MKL_THREAD_LAYER STREQUAL "TBB")
   find_mkl_library(NAME ThreadLayer LIBRARY_NAME mkl_tbb_thread)
   find_mkl_library(NAME ThreadingLibrary LIBRARY_NAME tbb)
