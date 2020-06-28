@@ -16,6 +16,7 @@ For more detailed information about the changes see the history of the
 * standardising include order and style in library files (#542) 
 * move CI to GitHub Ations (#551, #552, #553)
 * format CMake internal cpp code (#557)
+* update codacy badge (#558)
 
 ## Version 1.6.1 (released 21.06.20)
 * add support for cma-3 (#158) 
