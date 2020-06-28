@@ -1,0 +1,38 @@
+name: Create PR
+on:
+  create
+
+jobs:
+  PR:
+    name: Create
+    if: ${{ github.event.ref == 'update_master_submodules' || github.event.ref == 'update_stable_submodules' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine base branch
+        id: base
+        run:
+          echo "::set-output name=branch::$(echo ${{ github.event.ref }} | sed 's/update_\(.*\)_submodules/\1/')"
+      - name: Checkout code
+        uses: actions/checkout@master
+        with:
+          ref: ${{ github.event.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.VOTCA_BOT_TOKEN }}
+      - name: Try to merge base branch
+        run: |
+          git config --global user.name "Votca Bot"
+          git config --global user.email "github@votca.org"
+          git merge origin/${{ steps.base.outputs.branch }} || true
+          git push || true
+      - name: Create Pull Request
+        uses: actions/github-script@0.3.0
+        with:
+          github-token: ${{ secrets.VOTCA_BOT_TOKEN }}
+          script: |
+            github.pulls.create({
+              owner: 'votca',
+              repo: 'votca',
+              title: 'Update ${{ steps.base.outputs.branch }} submodules',
+              head: '${{ github.event.ref }}',
+              base: '${{ steps.base.outputs.branch }}'
+            })
