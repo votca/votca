@@ -36,6 +36,18 @@ jobs:
             toolchain: gnu
             cmake_build_type: Debug
             coverage: RestGroup
+          - distro: intel
+            toolchain: gnu
+            cmake_build_type: Debug
+          - distro: intel
+            toolchain: clang
+            cmake_build_type: Debug
+          - distro: intel
+            toolchain: gnu
+            cmake_build_type: Release
+          - distro: intel
+            toolchain: clang
+            cmake_build_type: Release
           - distro: fedora_nogmx
             toolchain: gnu
             cmake_build_type: Release
