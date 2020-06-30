@@ -36,6 +36,9 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)
   find_package(OpenMP 4.5)
   set_package_properties(OpenMP PROPERTIES TYPE RECOMMENDED PURPOSE "Used for thread parallelization in xtp")
+else()
+  # in case OpenMP was detected somewhere else
+  unset(OpenMP_FOUND)
 endif()
 
 ########################################################################
