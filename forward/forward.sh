@@ -24,8 +24,13 @@ git -C "${module}" remote update
 git -C "${module}" checkout "origin/${branch}"
 git add "${module}"
 
+gitmsg="$(git -C "${module}" log -1 --format=%s)"
+if [[ "${gitmsg}" =~ "Merge pull request #"([0-9]*) ]]; then
+  pr=" (votca/${module}#${BASH_REMATCH[1]})"
+fi
+
 git config --global user.name "Votca Bot"
 git config --global user.email "github@votca.org"
-git commit -m "Update ${module} submodule" || true
+git commit -m "Update ${module} submodule${pr}" || true
 git push origin "${push_branch}"
 popd
