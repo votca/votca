@@ -36,6 +36,22 @@ jobs:
             toolchain: gnu
             cmake_build_type: Debug
             coverage: RestGroup
+          - distro: intel
+            toolchain: gnu
+            cmake_build_type: Debug
+            ctest_args: "-LE memory"
+          - distro: intel
+            toolchain: clang
+            cmake_build_type: Debug
+            ctest_args: "-LE memory"
+          - distro: intel
+            toolchain: gnu
+            cmake_build_type: Release
+            ctest_args: "-LE memory"
+          - distro: intel
+            toolchain: clang
+            cmake_build_type: Release
+            ctest_args: "-LE memory"
           - distro: fedora_nogmx
             toolchain: gnu
             cmake_build_type: Release

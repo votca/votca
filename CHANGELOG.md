@@ -22,6 +22,7 @@ For more detailed information about the changes see the history of the [reposito
 * improve mkl detection (#257)
 * clean up installed cmake find modules (#263)
 * update codacy badge (#264)
+* add mkl builds to CI (#267)
 
 ## Version 1.6.1 (released 21.06.20)
 * fix build with mkl (#229)
