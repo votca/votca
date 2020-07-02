@@ -362,7 +362,7 @@ mark_as_advanced(MKL_RUNTIME_KERNEL_LIBRARIES)
 # https://cmake.org/cmake/help/v3.17/module/FindPackageHandleStandardArgs.html
 set(FPHSA_NAME_MISMATCHED TRUE)
 
-find_package_handle_standard_args(MKL_Shared
+find_package_handle_standard_args(MKL
   FAIL_MESSAGE "Could NOT find MKL: Source the compilervars.sh or mklvars.sh scripts included with your installation of MKL. This script searches for the libraries in MKLROOT, LIBRARY_PATHS(Linux), and LIB(Windows) environment variables"
   VERSION_VAR  MKL_VERSION_STRING
   REQUIRED_VARS MKL_INCLUDE_DIR
@@ -383,7 +383,7 @@ if(NOT WIN32)
   mark_as_advanced(M_LIB)
 endif()
 
-if(MKL_Shared_FOUND AND NOT TARGET MKL::Shared)
+if(MKL_FOUND AND NOT TARGET MKL::Shared)
   add_library(MKL::Shared SHARED IMPORTED)
   if(MKL_THREAD_LAYER STREQUAL "Sequential")
     set_target_properties(MKL::Shared

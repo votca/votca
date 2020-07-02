@@ -2,7 +2,7 @@ For more detailed information about the changes see the history of the [reposito
 
 ## Version 1.7-dev
 * add support of txt2tqs 3.4 (#208)
-* fix MKL:: target creation (#207, #265)
+* fix MKL:: target creation (#207, #265, #269)
 * use local includes (#204)
 * add more support for units (#200)
 * add methods to update user input with defaults (#222)
