@@ -28,7 +28,7 @@
 #define EIGEN_USE_MKL_ALL
 #endif
 
-#ifdef FFTW3_FOUND
+#if defined(FFTW3_FOUND) || defined(MKL_FOUND)
 #define EIGEN_FFTW_DEFAULT
 #endif
 
