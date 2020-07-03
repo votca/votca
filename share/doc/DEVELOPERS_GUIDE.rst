@@ -418,6 +418,8 @@ rules applied are:
 -  bullets are marked with ``*`` are used instead of ``-``
 -  words are emphasised by placing ``__`` on both sides
 
+NOTE: rst files are now preferred over markdown. 
+
 Automating Formatting
 ~~~~~~~~~~~~~~~~~~~~~
 
