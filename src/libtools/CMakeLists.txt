@@ -28,7 +28,7 @@ if(TARGET MKL::Shared)
 	target_link_libraries(votca_tools PUBLIC MKL::Shared)
   install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindMKL.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
-if(TARGET FFTW3::fftw3)
+if(FFTW3_FOUND)
   # fftw3.h gets included in our public eigen.h through Eigen/FFT
   target_link_libraries(votca_tools PUBLIC FFTW3::fftw3)
   install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindFFTW3.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)

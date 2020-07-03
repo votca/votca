@@ -79,8 +79,13 @@ find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
 set_package_properties(Eigen3 PROPERTIES TYPE REQUIRED PURPOSE "C++ vector data structures")
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
-find_package(FFTW3)
-set_package_properties(FFTW3 PROPERTIES TYPE RECOMMENDED PURPOSE "Enables FFT functionality")
+if(MKL_FOUND)
+  # MKL has its internal fftw3 implementation
+  unset(FFTW3_FOUND)
+else()
+  find_package(FFTW3)
+  set_package_properties(FFTW3 PROPERTIES TYPE RECOMMENDED PURPOSE "Enables FFT functionality")
+endif()
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
