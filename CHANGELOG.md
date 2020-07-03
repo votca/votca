@@ -23,6 +23,7 @@ For more detailed information about the changes see the history of the [reposito
 * clean up installed cmake find modules (#263)
 * update codacy badge (#264)
 * add mkl builds to CI (#267)
+* disable some memory tests when using mkl (#271)
 
 ## Version 1.6.1 (released 21.06.20)
 * fix build with mkl (#229)
