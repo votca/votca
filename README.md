@@ -1,7 +1,6 @@
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2fff2f588e7e40bd93292016052e6224)](https://www.codacy.com/manual/votca-package/csg?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=votca/csg&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/5b140fa4d7f749f5b1ea164694a5cecf)](https://www.codacy.com/gh/votca/csg?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=votca/csg&amp;utm_campaign=Badge_Grade)
 [![codecov](https://codecov.io/gh/votca/csg/branch/master/graph/badge.svg)](https://codecov.io/gh/votca/csg)
-[![Build Status](https://travis-ci.org/votca/csg.svg?branch=master)](https://travis-ci.org/votca/csg)
-[![pipeline status](https://gitlab.com/votca/csg/badges/master/pipeline.svg)](https://gitlab.com/votca/csg/commits/master)
+[![CI](https://github.com/votca/csg/workflows/CI/badge.svg)](https://github.com/votca/csg/actions?query=branch%3Agithub_actions+workflow%3ACI)
 [![DOI](https://zenodo.org/badge/41003167.svg)](https://zenodo.org/badge/latestdoi/41003167)
 
 VOTCA-CSG is a collection of tools, which help you to develop coarse grained interaction potential from atomistic reference simulations using force-matching, boltzmann inversion and others. 
