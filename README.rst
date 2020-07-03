@@ -10,7 +10,7 @@ singlet and triplet diffusion constants using electronic couplings and
 kinetic Monte-Carlo
 
 Installation instructions and developer information can be found
-`here <https://github.com/votca/votca/blob/master/share/doc/INSTALL.md>`__
+`here <https://github.com/votca/votca/blob/master/share/doc/INSTALL.rst>`__
 
 For other questions, we provide an email list:
 
