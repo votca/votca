@@ -19,6 +19,7 @@ Version 1.7-dev
 -  move CI to GitHub Ations (#551, #552, #553)
 -  format CMake internal cpp code (#557)
 -  update codacy badge (#558)
+-  convert markdown to rst format (#559)
 
 Version 1.6.1 (released 21.06.20)
 =================================
