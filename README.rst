@@ -31,11 +31,11 @@ Using this code via docker:
 
 For further details see:
 
-1. `Installation <share/doc/INSTALL.md>`__
+1. `Installation <share/doc/INSTALL.rst>`__
 2. `Further Information <http://www.votca.org>`__
-3. `Developers Guide <share/doc/DEVELOPERS_GUIDE.md>`__
-4. `VOTCA\_LANGUAGE\_GUIDE <share/doc/VOTCA_LANGUAGE_GUIDE.md>`__
-5. `Code of Conduct <share/doc/CODE_OF_CONDUCT.md>`__
+3. `Developers Guide <share/doc/DEVELOPERS_GUIDE.rst>`__
+4. `VOTCA\_LANGUAGE\_GUIDE <share/doc/VOTCA_LANGUAGE_GUIDE.rst>`__
+5. `Code of Conduct <share/doc/CODE_OF_CONDUCT.rst>`__
 
 You find the VOTCA-CTP repository
 `here <https://gitlab.mpcdf.mpg.de/votca/votca>`__
