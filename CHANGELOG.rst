@@ -44,6 +44,7 @@ Version 1.7-dev
 -  add cmake exported target (#489)
 -  update codacy badge (#490)
 -  add mkl builds to CI (#496)
+-  convert markdown to rst (#497)
 
 Version 1.6.1 (released 21.06.20)
 =================================
