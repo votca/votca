@@ -25,7 +25,7 @@ Version 1.7-dev
 -  improve mkl detection (#257)
 -  clean up installed cmake find modules (#263)
 -  update codacy badge (#264)
--  add mkl builds to CI (#267)
+-  add mkl builds to CI (#267, #271)
 -  convert markdown files to rst files (#272)
 
 Version 1.6.1 (released 21.06.20)
