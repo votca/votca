@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
-project(csg-tutorials)
+project(csg-tutorials LANGUAGES NONE)
 
 set(PROJECT_VERSION "1.7-dev")
 
