@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(votca-xtp)
+project(votca-xtp LANGUAGES CXX)
 
 set(PROJECT_VERSION "1.7-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
@@ -18,8 +18,6 @@ endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
   add_definitions(-DDEBUG)
 endif()
-
-enable_language(CXX)
 
 ######################################################################
 # compiler tests
