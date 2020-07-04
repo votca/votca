@@ -7,6 +7,8 @@ set(PROJECT_VERSION "1.7-dev")
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
+# not used, but stops GNUInstallDirs.cmake from warning
+set(CMAKE_INSTALL_LIBDIR "lib")
 include(GNUInstallDirs)
 include(FeatureSummary)
 
@@ -21,6 +23,7 @@ if(ENABLE_REGRESSION_TESTING)
   find_package(MDRUN_MPI)
   set_package_properties(MDRUN_MPI PROPERTIES TYPE OPTIONAL PURPOSE "gromacs mpi binary needed to run parallel gromacs regression tests")
   if(MDRUN_MPI_FOUND)
+    enable_language(CXX) # needed by mpi
     find_package(MPI)
     set_package_properties(MPI PROPERTIES TYPE OPTIONAL PURPOSE "mpiexec binary needed to run parallel gromacs regression tests")
     set(NPROCS 4 CACHE STRING "# processes for testing")
