@@ -127,14 +127,6 @@ set_package_properties(Kokkos PROPERTIES TYPE OPTIONAL PURPOSE "Used to Ewald so
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
-include(CheckIncludeFile)
-foreach(HEADER assert.h)
-  check_include_file(${HEADER} FOUND_${HEADER})
-  if(NOT FOUND_${HEADER})
-    message(FATAL_ERROR "Could not find needed header - ${HEADER}")
-  endif(NOT FOUND_${HEADER})
-endforeach(HEADER)
-
 include(CheckIncludeFileCXX)
 foreach(HEADER algorithm)
   check_include_file_cxx(${HEADER} FOUND_${HEADER})
