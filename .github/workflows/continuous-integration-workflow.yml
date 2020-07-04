@@ -104,11 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     container: votca/buildenv:${{ matrix.distro }}
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.4.0
-        with:
-          access_token: ${{ github.token }}
-      - name: Checkout code    
+      - name: Checkout code
         uses: actions/checkout@v2.2.0
         with:
           submodules: true
