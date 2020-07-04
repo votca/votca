@@ -81,7 +81,7 @@ fi
 
 # espresso is linked against wrong hdf5 on rawhide
 if [[ ${INPUT_DISTRO} = fedora_rawhide ]]; then
-  cmake_args+( -DCMAKE_DISABLE_FIND_PACKAGE_ESPRESSO=ON )
+  cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_ESPRESSO=ON )
 fi
 
 cmake_args+=( ${INPUT_CMAKE_ARGS} )
