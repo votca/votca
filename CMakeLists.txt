@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(votca-xtp)
+project(votca-xtp LANGUAGES CXX)
 
 set(PROJECT_VERSION "1.7-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
@@ -18,8 +18,6 @@ endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
   add_definitions(-DDEBUG)
 endif()
-
-enable_language(CXX)
 
 ######################################################################
 # compiler tests
@@ -129,14 +127,6 @@ set_package_properties(Kokkos PROPERTIES TYPE OPTIONAL PURPOSE "Used to Ewald so
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
-include(CheckIncludeFile)
-foreach(HEADER assert.h)
-  check_include_file(${HEADER} FOUND_${HEADER})
-  if(NOT FOUND_${HEADER})
-    message(FATAL_ERROR "Could not find needed header - ${HEADER}")
-  endif(NOT FOUND_${HEADER})
-endforeach(HEADER)
-
 include(CheckIncludeFileCXX)
 foreach(HEADER algorithm)
   check_include_file_cxx(${HEADER} FOUND_${HEADER})
@@ -147,13 +137,6 @@ endforeach(HEADER)
 
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
-include(CheckLibraryExists)
-foreach(FUNC sqrt)
-  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
-  if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-    message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
-  endif(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-endforeach(FUNC)
 
 ######################################
 # Include the following subdirectory #

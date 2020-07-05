@@ -45,6 +45,7 @@ Version 1.7-dev
 -  update codacy badge (#490)
 -  add mkl builds to CI (#496)
 -  convert markdown to rst (#497)
+-  enable CXX only in CMake (#499)
 
 Version 1.6.1 (released 21.06.20)
 =================================
