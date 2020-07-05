@@ -66,7 +66,7 @@ else (BUILD_MANPAGES)
   set(TXT2TAGS_FOUND)
 endif (BUILD_MANPAGES)
 
-find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
+find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system regex)
 find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
 find_package(Threads REQUIRED)
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

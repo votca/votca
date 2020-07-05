@@ -27,6 +27,8 @@
 // Third party includes
 #include <hdf5.h>
 
+#include <boost/regex.hpp>
+
 // Local VOTCA includes
 #include "votca/csg/topologyreader.h"
 #include "votca/csg/trajectoryreader.h"
@@ -128,6 +130,8 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   void ReadBox(hid_t ds, hid_t ds_data_type, Index row,
                std::unique_ptr<double[]> &data_out);
 
+  double ReadScaleFactor(const hid_t &ds, const std::string &unit_type);
+
   void CheckError(hid_t hid, std::string error_message) {
     if (hid < 0) {
       // H5Eprint(H5E_DEFAULT, stderr);
@@ -179,6 +183,22 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   Index N_particles_;
   //
   int vec_components_;
+
+  // Length scaling - VOTCA internally uses nm as the length unit.
+  bool unit_module_enabled_ = false;
+  double length_scaling_ = 1.0;
+  double velocity_scaling_ = 1.0;
+  double force_scaling_ = 1.0;
+
+  // Convert map from SI prefixes to nm (VOTCA base length unit).
+  std::unordered_map<std::string, double> votca_units_scaling_factors =
+      std::unordered_map<std::string, double>({{"fm", 0.000001},
+                                               {"pm", 0.001},
+                                               {"nm", 1.0},
+                                               {"A", 0.1},
+                                               {"um", 1000.0}});
+
+  boost::regex suffix_units = boost::regex("^([a-z]+)([0-9+-]+)");
 
   // Box matrix.
   Eigen::Matrix3d m;

@@ -20,6 +20,7 @@ Version 1.7-dev
 -  format CMake internal cpp code (#557)
 -  update codacy badge (#558)
 -  convert markdown to rst format (#559)
+-  read units stored in H5MD file (#549)
 
 Version 1.6.1 (released 21.06.20)
 =================================
