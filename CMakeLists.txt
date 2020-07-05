@@ -96,15 +96,6 @@ endforeach(HEADER)
 
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
-include(CheckCXXSourceCompiles)
-foreach(FUNC sqrt)
-  set(CMAKE_REQUIRED_LIBRARIES ${MATH_LIBRARIES} )
-  check_cxx_source_compiles("#include<math.h>\nfloat f; int main(){${FUNC}(f);return 0;}" FOUND_${FUNC}_${MATH_LIBRARIES})
-  unset(CMAKE_REQUIRED_LIBRARIES)
-  if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-    message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
-  endif(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-endforeach(FUNC)
 
 ######################################
 # Include the following subdirectory #
