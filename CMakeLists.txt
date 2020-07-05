@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(votca-tools)
+project(votca-tools LANGUAGES CXX)
 
 set(PROJECT_VERSION "1.7-dev")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
@@ -15,10 +15,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #release comes with -O3 by default
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
-
-enable_language(CXX)
-
-
 
 ######################################################################
 # compiler tests
@@ -90,16 +86,8 @@ endif()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
-include(CheckIncludeFile)
-foreach(HEADER assert.h math.h stdio.h stdlib.h string.h)
-  check_include_file(${HEADER} FOUND_${HEADER})
-  if(NOT FOUND_${HEADER})
-    message(FATAL_ERROR "Could not find needed header - ${HEADER}")
-  endif(NOT FOUND_${HEADER})
-endforeach(HEADER)
-
 include(CheckIncludeFileCXX)
-foreach(HEADER cmath fstream functional iostream limits list map ostream sstream stack stdexcept string vector)
+foreach(HEADER cassert cmath fstream functional iostream limits list map ostream sstream stack stdexcept string vector)
   check_include_file_cxx(${HEADER} FOUND_${HEADER})
   if(NOT FOUND_${HEADER})
     message(FATAL_ERROR "Could not find needed header - ${HEADER}")
@@ -108,13 +96,6 @@ endforeach(HEADER)
 
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
-include(CheckLibraryExists)
-foreach(FUNC sqrt)
-  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
-  if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-    message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
-  endif(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-endforeach(FUNC)
 
 ######################################
 # Include the following subdirectory #
