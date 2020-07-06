@@ -126,7 +126,7 @@ needed to execute the tutorial.
    :target: https://www.codacy.com/gh/votca/csg-tutorials?utm_source=github.com&utm_medium=referral&utm_content=votca/csg-tutorials&utm_campaign=Badge_Grade
 .. |codecov| image:: https://codecov.io/gh/votca/csg-tutorials/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/votca/csg-tutorials
-.. |CI| image:: https://github.com/votca/csg-tutorials/workflows/CI/badge.svg
-   :target: https://github.com/votca/csg-tutorials/actions?query=branch%3Agithub_actions+workflow%3ACI
+.. |CI| image:: https://github.com/votca/votca/workflows/CI/badge.svg?branch=master
+   :target: https://github.com/votca/votca/actions?query=workflow%3ACI+branch%3Amaster
 .. |DOI| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3902713.svg
    :target: https://doi.org/10.5281/zenodo.3902713
