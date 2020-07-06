@@ -60,7 +60,7 @@ You can contact the VOTCA Development Team at devs@votca.org.
    :target: https://www.codacy.com/gh/votca/xtp?utm_source=github.com&utm_medium=referral&utm_content=votca/xtp&utm_campaign=Badge_Grade
 .. |codecov| image:: https://codecov.io/gh/votca/xtp/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/votca/xtp
-.. |CI| image:: https://github.com/votca/xtp/workflows/CI/badge.svg
-   :target: https://github.com/votca/xtp/actions?query=branch%3Agithub_actions+workflow%3ACI
+.. |CI| image:: https://github.com/votca/votca/workflows/CI/badge.svg?branch=master
+   :target: https://github.com/votca/votca/actions?query=workflow%3ACI+branch%3Amaster
 .. |DOI| image:: https://zenodo.org/badge/50048374.svg
    :target: https://zenodo.org/badge/latestdoi/50048374
