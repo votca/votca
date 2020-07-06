@@ -100,9 +100,7 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   Eigen::VectorXd AmB = Calculate_H2p_AmB();
   Eigen::MatrixXd ApB = Calculate_H2p_ApB();
 
-
-  double ERPA = 0.5*(ApB.sum() + AmB.trace());
-
+  double RPA_correlation_energy = -0.25 * (ApB.trace() + AmB.sum());
 
   // C = AmB^1/2 * ApB * AmB^1/2
   Eigen::MatrixXd& C = ApB;
@@ -117,8 +115,7 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   sol.omega = Eigen::VectorXd::Zero(es.eigenvalues().size());
   sol.omega = es.eigenvalues().cwiseSqrt();
 
-  ERPA -= 0.5*sol.omega.sum();
-
+  RPA_correlation_energy += 0.5 * sol.omega.sum();
 
   XTP_LOG(Log::info, _log) << TimeStamp()
                            << " Lowest neutral excitation energy (eV): "
@@ -126,11 +123,8 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
                            << std::flush;
 
   XTP_LOG(Log::info, _log) << TimeStamp()
-                           << " RPA correlation energy (hartree): "
-                           << ERPA 
-                           << std::flush;
-
-
+                           << " RPA correlation energy (Hartree): "
+                           << RPA_correlation_energy << std::flush;
 
   sol.XpY = Eigen::MatrixXd(rpasize, rpasize);
 
