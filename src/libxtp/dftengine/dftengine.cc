@@ -297,6 +297,21 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Final Single Point Energy "
           << std::setprecision(12) << totenergy << " Ha" << flush;
+      XTP_LOG(Log::info, *_pLog)
+          << TimeStamp() << std::setprecision(12) << " Local Exc contribution "
+          << e_vxc.energy() << flush;
+      if (_ScaHFX > 0) {
+        XTP_LOG(Log::info, *_pLog)
+            << TimeStamp() << std::setprecision(12)
+            << " Non local Ex contribution " << exx << flush;
+      } else {
+        Mat_p_Energy EXXs = CalcEXXs(MOs.eigenvectors(), Dmat);
+        exx = -1 / 4 * EXXs.energy();
+      }
+      XTP_LOG(Log::info, *_pLog)
+          << TimeStamp() << std::setprecision(12) << " EXX Total energy "
+          << totenergy - e_vxc.energy() + (1.0 - _ScaHFX) * exx << flush;
+
       PrintMOs(MOs.eigenvalues(), Log::error);
       orb.setQMEnergy(totenergy);
       orb.MOs() = MOs;
