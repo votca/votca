@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(votca)
+project(votca LANGUAGES CXX)
 
 set(PROJECT_VERSION "1.7-dev")
 
