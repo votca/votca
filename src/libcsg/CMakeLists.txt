@@ -15,7 +15,7 @@ if (TARGET Gromacs::libgromacs)
 endif()
 
 
-find_package(HDF5 COMPONENTS "C")
+find_package(HDF5 COMPONENTS "CXX")
 set_package_properties(HDF5 PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read h5md data files")
 if(HDF5_FOUND)
   set(H5MD true)
