@@ -30,7 +30,7 @@ files in there
    :target: https://www.codacy.com/gh/votca/csgapps?utm_source=github.com&utm_medium=referral&utm_content=votca/csgapps&utm_campaign=Badge_Grade
 .. |codecov| image:: https://codecov.io/gh/votca/csgapps/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/votca/csgapps
-.. |CI| image:: https://github.com/votca/csgapps/workflows/CI/badge.svg
-   :target: https://github.com/votca/csgapps/actions?query=branch%3Agithub_actions+workflow%3ACI
+.. |CI| image:: https://github.com/votca/votca/workflows/CI/badge.svg?branch=master
+   :target: https://github.com/votca/votca/actions?query=workflow%3ACI+branch%3Amaster
 .. |DOI| image:: https://zenodo.org/badge/23939372.svg
    :target: https://zenodo.org/badge/latestdoi/23939372
