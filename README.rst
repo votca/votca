@@ -43,13 +43,11 @@ If you use this package, please cite the VOTCA papers:
 -  Microscopic simulations of charge transport in disordered organic
    semiconductors. V. Ruehle, A. Lukyanov, F. May, M. Schrader, T.
    Vehoff, J. Kirkpatrick, B. Baumeier and D. Andrienko, J. Chem. Theo.
-   Comp. 7, 3335-3345
-
-(2011) 
+   Comp. 7, 3335-3345 (2011). 
 
 -  Versatile Object-oriented Toolkit for Coarse-graining Applications.
    V.Ruehle, C. Junghans, A. Lukyanov, K. Kremer, D. Andrienko, J. Chem.
-   Theo. Comp. 5 (12), 3211 (2009)
+   Theo. Comp. 5 (12), 3211 (2009).
 
 In case of questions, please post them in the google discussion group
 for votca at http://groups.google.com/group/votca-xtp
@@ -60,7 +58,7 @@ You can contact the VOTCA Development Team at devs@votca.org.
    :target: https://www.codacy.com/gh/votca/xtp?utm_source=github.com&utm_medium=referral&utm_content=votca/xtp&utm_campaign=Badge_Grade
 .. |codecov| image:: https://codecov.io/gh/votca/xtp/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/votca/xtp
-.. |CI| image:: https://github.com/votca/xtp/workflows/CI/badge.svg
-   :target: https://github.com/votca/xtp/actions?query=branch%3Agithub_actions+workflow%3ACI
+.. |CI| image:: https://github.com/votca/votca/workflows/CI/badge.svg?branch=master
+   :target: https://github.com/votca/votca/actions?query=workflow%3ACI+branch%3Amaster
 .. |DOI| image:: https://zenodo.org/badge/50048374.svg
    :target: https://zenodo.org/badge/latestdoi/50048374
