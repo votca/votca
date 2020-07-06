@@ -122,7 +122,7 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
                            << tools::conv::hrt2ev * sol.omega.minCoeff()
                            << std::flush;
 
-  XTP_LOG(Log::info, _log) << TimeStamp()
+  XTP_LOG(Log::error, _log) << TimeStamp()
                            << " RPA correlation energy (Hartree): "
                            << RPA_correlation_energy << std::flush;
 
