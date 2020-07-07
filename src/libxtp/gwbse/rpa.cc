@@ -115,13 +115,13 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   sol.omega = es.eigenvalues().cwiseSqrt();
   sol.ERPA_correlation += 0.5 * sol.omega.sum();
 
-  // RPA_correlation_energy += 0.5 * sol.omega.sum();
-
   XTP_LOG(Log::info, _log) << TimeStamp()
                            << " Lowest neutral excitation energy (eV): "
                            << tools::conv::hrt2ev * sol.omega.minCoeff()
                            << std::flush;
 
+
+  // RPA correlation energy calculated from Eq.9 of J. Chem. Phys. 132, 234114 (2010)
   XTP_LOG(Log::error, _log)
       << TimeStamp()
       << " RPA correlation energy (Hartree): " << sol.ERPA_correlation
