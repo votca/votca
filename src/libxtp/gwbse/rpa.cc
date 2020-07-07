@@ -101,7 +101,7 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   Eigen::MatrixXd ApB = Calculate_H2p_ApB();
 
   RPA::rpa_eigensolution sol;
-  sol.ERPA_correlation = -0.25*(ApB.trace() + AmB.sum()) ;
+  sol.ERPA_correlation = -0.25 * (ApB.trace() + AmB.sum());
 
   // C = AmB^1/2 * ApB * AmB^1/2
   Eigen::MatrixXd& C = ApB;
@@ -113,18 +113,19 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   // Do not remove this line! It has to be there for MKL to not crash
   sol.omega = Eigen::VectorXd::Zero(es.eigenvalues().size());
   sol.omega = es.eigenvalues().cwiseSqrt();
-  sol.ERPA_correlation += 0.5*sol.omega.sum();
+  sol.ERPA_correlation += 0.5 * sol.omega.sum();
 
-  //RPA_correlation_energy += 0.5 * sol.omega.sum();
+  // RPA_correlation_energy += 0.5 * sol.omega.sum();
 
   XTP_LOG(Log::info, _log) << TimeStamp()
                            << " Lowest neutral excitation energy (eV): "
                            << tools::conv::hrt2ev * sol.omega.minCoeff()
                            << std::flush;
 
-  XTP_LOG(Log::error, _log) << TimeStamp()
-                           << " RPA correlation energy (Hartree): "
-                           << sol.ERPA_correlation << std::flush;
+  XTP_LOG(Log::error, _log)
+      << TimeStamp()
+      << " RPA correlation energy (Hartree): " << sol.ERPA_correlation
+      << std::flush;
 
   sol.XpY = Eigen::MatrixXd(rpasize, rpasize);
 

@@ -63,9 +63,9 @@ class RPA {
                               const Eigen::VectorXd& gwaenergies, Index qpmin);
 
   struct rpa_eigensolution {
-    Eigen::VectorXd omega;  // Eigenvalues
-    Eigen::MatrixXd XpY;    // Eigenvector components (X + Y)
-    double ERPA_correlation; // total correlation energy 
+    Eigen::VectorXd omega;    // Eigenvalues
+    Eigen::MatrixXd XpY;      // Eigenvector components (X + Y)
+    double ERPA_correlation;  // total correlation energy
   };
 
   rpa_eigensolution Diagonalize_H2p() const;
