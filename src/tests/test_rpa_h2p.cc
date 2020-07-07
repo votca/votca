@@ -202,6 +202,10 @@ BOOST_AUTO_TEST_CASE(rpa_h2p) {
 
   RPA::rpa_eigensolution sol = rpa.Diagonalize_H2p();
 
+
+
+  cout << sol.ERPA_correlation << endl;
+
   bool check_rpa_eigenvalues = rpa_omega_ref.isApprox(sol.omega, 0.0001);
   if (!check_rpa_eigenvalues) {
     cout << "rpa_omega" << endl;
