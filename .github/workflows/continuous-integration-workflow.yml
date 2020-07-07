@@ -17,22 +17,6 @@ jobs:
         module_build: [false]
         coverage: [false]
         include:
-          - distro: latest
-            toolchain: gnu
-            cmake_build_type: Debug
-            coverage: Group1
-          - distro: latest
-            toolchain: gnu
-            cmake_build_type: Debug
-            coverage: Group2
-          - distro: latest
-            toolchain: gnu
-            cmake_build_type: Debug
-            coverage: Group3
-          - distro: latest
-            toolchain: gnu
-            cmake_build_type: Debug
-            coverage: RestGroup
           - distro: fedora_nogmx
             toolchain: gnu
             cmake_build_type: Release
@@ -78,10 +62,8 @@ jobs:
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -s
       - name: Tests
-        run: cd builddir && ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
-      - name: Upload Report to codecov.io
-        if: ${{ matrix.coverage }}
-        uses: codecov/codecov-action@v1
+        run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+        working-directory: builddir
       - name: Doxygen
         if: ${{ ! matrix.module_build }}
         run: cmake --build builddir --target doxygen
