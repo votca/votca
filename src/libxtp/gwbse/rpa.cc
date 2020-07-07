@@ -114,7 +114,7 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   // Do not remove this line! It has to be there for MKL to not crash
   sol.omega = Eigen::VectorXd::Zero(es.eigenvalues().size());
   sol.omega = es.eigenvalues().cwiseSqrt();
-  sol.ERPA_correlation = 0.25*(ApB.sum() + AmB.trace()) - 0.5*sol.omega.sum();
+  sol.ERPA_correlation = 0.25*(ApB.trace() + AmB.sum()) - 0.5*sol.omega.sum();
 
   //RPA_correlation_energy += 0.5 * sol.omega.sum();
 
