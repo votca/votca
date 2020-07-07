@@ -1,4 +1,4 @@
-|Codacy Badge| |CI| |DOI|
+|Codacy Badge| |CI| |Docker| |DOI|
 
 This is VOTCA's next generation build system for CSG and XTP. It allows
 you to easily install:
@@ -42,7 +42,9 @@ You find the VOTCA-CTP repository
 
 .. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/b5567bfcf2c8411a8057c47fa7126781
    :target: https://www.codacy.com/gh/votca/votca?utm_source=github.com&utm_medium=referral&utm_content=votca/votca&utm_campaign=Badge_Grade
-.. |CI| image:: https://github.com/votca/votca/workflows/CI/badge.svg
-   :target: https://github.com/votca/votca/actions?query=branch%3Agithub_actions+workflow%3ACI
+.. |CI| image:: https://github.com/votca/votca/workflows/CI/badge.svg?branch=master
+   :target: https://github.com/votca/votca/actions?query=workflow%3ACI+branch%3Amaster
+.. |Docker| image:: https://github.com/votca/votca/workflows/Docker/badge.svg?branch=master
+   :target: https://github.com/votca/votca/actions?query=workflow%3ADocker+branch%3Amaster
 .. |DOI| image:: https://zenodo.org/badge/75022030.svg
    :target: https://zenodo.org/badge/latestdoi/75022030
