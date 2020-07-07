@@ -33,9 +33,9 @@ if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
   cmake_args+=( -DCMAKE_BUILD_TYPE=${INPUT_CMAKE_BUILD_TYPE} )
 fi
 if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
-  cmake_args+=( -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc )
+  cmake_args+=( -DCMAKE_CXX_COMPILER=g++ )
 elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
-  cmake_args+=( -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -GNinja )
+  cmake_args+=( -DCMAKE_CXX_COMPILER=clang++ -GNinja )
 else
   die "Unknown INPUT_TOOLCHAIN"
 fi
@@ -53,6 +53,11 @@ else
 fi	
 if ${INPUT_OWN_GMX}; then
   cmake_args+=( -DBUILD_OWN_GROMACS=ON -DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF )
+  if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
+    cmake_args+=( -DCMAKE_C_COMPILER=gcc )
+  elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
+    cmake_args+=( -DCMAKE_C_COMPILER=clang )
+  fi
 else
   cmake_args+=( -DENABLE_WERROR=ON )
 fi
