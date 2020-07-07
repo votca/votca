@@ -204,7 +204,8 @@ BOOST_AUTO_TEST_CASE(rpa_h2p) {
 
   RPA::rpa_eigensolution sol = rpa.Diagonalize_H2p();
 
-  bool check_rpa_correlation = rpa_correlation_ref.isApprox(sol.ERPA_correlation,0.0001);
+  bool check_rpa_correlation =
+      rpa_correlation_ref.isApprox(sol.ERPA_correlation, 0.0001);
   if (!check_rpa_correlation) {
     cout << "rpa_correlation" << endl;
     cout << sol.ERPA_correlation << endl;
