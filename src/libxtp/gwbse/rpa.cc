@@ -100,7 +100,8 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   Eigen::VectorXd AmB = Calculate_H2p_AmB();
   Eigen::MatrixXd ApB = Calculate_H2p_ApB();
 
-  //double RPA_correlation_energy = -0.25 * (ApB.trace() + AmB.sum());
+  RPA::rpa_eigensolution sol;
+  sol.ERPA_correlation = -0.25*(ApB.trace() + AmB.sum()) ;
 
   // C = AmB^1/2 * ApB * AmB^1/2
   Eigen::MatrixXd& C = ApB;
@@ -109,12 +110,10 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es = Diagonalize_H2p_C(C);
 
-  RPA::rpa_eigensolution sol;
-
   // Do not remove this line! It has to be there for MKL to not crash
   sol.omega = Eigen::VectorXd::Zero(es.eigenvalues().size());
   sol.omega = es.eigenvalues().cwiseSqrt();
-  sol.ERPA_correlation = 0.25*(ApB.trace() + AmB.sum()) - 0.5*sol.omega.sum();
+  sol.ERPA_correlation += 0.5*sol.omega.sum();
 
   //RPA_correlation_energy += 0.5 * sol.omega.sum();
 
