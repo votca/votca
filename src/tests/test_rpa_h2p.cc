@@ -176,6 +176,8 @@ BOOST_AUTO_TEST_CASE(rpa_h2p) {
   rpa.setRPAInputEnergies(eigenvals);
   rpa.configure(4, 0, 16);
 
+  double rpa_correlation_ref = -0.0587973;
+
   Eigen::VectorXd rpa_omega_ref = Eigen::VectorXd(60);
   rpa_omega_ref << 0.104192, 0.104192, 0.187814, 0.559693, 0.559693, 0.572575,
       0.577988, 0.577989, 0.579088, 0.618403, 0.618403, 0.67005, 0.678538,
@@ -202,9 +204,14 @@ BOOST_AUTO_TEST_CASE(rpa_h2p) {
 
   RPA::rpa_eigensolution sol = rpa.Diagonalize_H2p();
 
-
-
-  cout << sol.ERPA_correlation << endl;
+  bool check_rpa_correlation = rpa_correlation_ref.isApprox(sol.ERPA_correlation,0.0001);
+  if (!check_rpa_correlation) {
+    cout << "rpa_correlation" << endl;
+    cout << sol.ERPA_correlation << endl;
+    cout << "rpa_correlation_ref" << endl;
+    cout << rpa_correlation_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_rpa_correlation, 1);
 
   bool check_rpa_eigenvalues = rpa_omega_ref.isApprox(sol.omega, 0.0001);
   if (!check_rpa_eigenvalues) {
