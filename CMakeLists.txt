@@ -8,7 +8,7 @@ set(PROJECT_VERSION "1.7-dev")
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
 # not used, but stops GNUInstallDirs.cmake from warning
-set(CMAKE_INSTALL_LIBDIR "lib")
+set(CMAKE_INSTALL_LIBDIR "lib64")
 include(GNUInstallDirs)
 include(FeatureSummary)
 
@@ -17,13 +17,13 @@ add_feature_info(ENABLE_REGRESSION_TESTING ENABLE_REGRESSION_TESTING "Enable reg
 if(ENABLE_REGRESSION_TESTING)
   option(ENABLE_EXPERIMENTAL_TESTS "Run more unstable regression tests as well" OFF)
   add_feature_info(ENABLE_EXPERIMENTAL_TESTS ENABLE_EXPERIMENTAL_TESTS "Enable experimental regression tests")
+  enable_language(CXX) # needed by mpi for VOTCA_CSG
   enable_testing()
   find_package(LMP)
   set_package_properties(LMP PROPERTIES TYPE OPTIONAL PURPOSE "Lammps binary needed to run lammps regression tests")
   find_package(MDRUN_MPI)
   set_package_properties(MDRUN_MPI PROPERTIES TYPE OPTIONAL PURPOSE "gromacs mpi binary needed to run parallel gromacs regression tests")
   if(MDRUN_MPI_FOUND)
-    enable_language(CXX) # needed by mpi
     find_package(MPI)
     set_package_properties(MPI PROPERTIES TYPE OPTIONAL PURPOSE "mpiexec binary needed to run parallel gromacs regression tests")
     set(NPROCS 4 CACHE STRING "# processes for testing")
