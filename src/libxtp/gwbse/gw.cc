@@ -325,6 +325,7 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
       double qp_weight = 1.0 / (1.0 - gradient);
       roots.push_back(std::make_pair(f, qp_weight));
       if (std::abs(gradient) < gradient_max) {
+        gradient_max = std::abs(gradient);
         qp_energy = f;
         pole_found = true;
       }
