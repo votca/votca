@@ -19,6 +19,7 @@ html_theme_options= { 'logo_only' : True }
 
 #html_theme = 'alabaster'
 master_doc = 'index'
+nbsphinx_allow_errors = True
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
