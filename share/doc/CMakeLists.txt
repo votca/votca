@@ -14,6 +14,14 @@ find_package(SPHINX 2.1)
 set(NEW_NOTEBOOKS)
 
 if(JUPYTER_NBCONVERT_FOUND AND SPHINX_FOUND)
+  enable_language(CXX) # to detect xtp
+  find_package(VOTCA_XTP REQUIRED NO_MODULE)
+  set_package_properties(VOTCA_XTP PROPERTIES TYPE REQUIRED PURPOSE "Votca xtp library")
+  if(DEFINED VOTCA_XTP_VERSION AND NOT VOTCA_XTP_VERSION STREQUAL PROJECT_VERSION)
+    message(FATAL_ERROR "Incompatible VOTCA XTP version found (needed ${PROJECT_VERSION}, found ${VOTCA_XTP_VERSION})")
+  endif()
+  message(STATUS "Found VOTCA_XTP: ${VOTCA_XTP_DIR}")
+
   get_target_property(XTP_PATH VOTCA::votca_xtp XTP_PATH)
   get_target_property(VOTCASHARE VOTCA::votca_xtp VOTCA_SHARE)
   foreach(_notebook ${NOTEBOOKS})
