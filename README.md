@@ -2,17 +2,17 @@
 This repository contains several tutorials for the **VOTCA-XTP** package
 that show you how to perform the following calculations:
 
-*  	A point energy calculation using DFT-GWBSE
+*   A point energy calculation using DFT-GWBSE
 
-*  	A geometry optimization using DFT-GWBSE
+*   A geometry optimization using DFT-GWBSE
 
-*  	A QMMM/DFT-GWBSE workflow using a GROMACS trajectory
+*   A QMMM/DFT-GWBSE workflow using a GROMACS trajectory
 
-*  	A QMMM/DFT-GWBSE workflow using a LAMMPS trajectory
+*   A QMMM/DFT-GWBSE workflow using a LAMMPS trajectory
 
-*  	A Kinetic Monte-Carlo simulation for excited states using a LAMMPS trajectory
+*   A Kinetic Monte-Carlo simulation for excited states using a LAMMPS trajectory
 
-*  	A Kinetic Monte-Carlo simulation for excited states using a GROMACS trajectory
+*   A Kinetic Monte-Carlo simulation for excited states using a GROMACS trajectory
 
 ## Installation
 *   In order to try then You will need to follow the **VOTCA** installation instructions
