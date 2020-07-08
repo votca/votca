@@ -47,6 +47,7 @@ Version 1.7-dev
 -  convert markdown to rst (#497)
 -  enable CXX only in CMake (#499)
 -  implement RPA correlation energy (#498)
+-  added verbose option for rootfinder (#503)
 
 Version 1.6.1 (released 21.06.20)
 =================================
