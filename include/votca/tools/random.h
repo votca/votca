@@ -29,7 +29,12 @@ namespace tools {
 
 class Random {
  public:
-  void init(Index seed) { _mt = std::mt19937(seed); }
+  void init(Index seed) {
+    if (seed < 0) {
+      throw std::runtime_error("seed integer must be positive.");
+    }
+    _mt = std::mt19937(unsigned(seed));
+  }
   // draws a random double from [0,1)
   double rand_uniform() { return _distribution(_mt); }
   // sets maxint for a uniform integer distribution [0,maxint]
