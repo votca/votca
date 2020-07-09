@@ -172,7 +172,10 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
 }
 
 void Orca::WriteChargeOption() {
-  this->_settings.add("orca.pointcharges", "\"background.crg\"");
+  const tools::Property& orca = _settings.property("orca");
+  if (!orca.exists("pointcharges")) {
+    this->_settings.add("orca.pointcharges", "\"background.crg\"");
+  }
 }
 
 /* For QM/MM the molecules in the MM environment are represented by
