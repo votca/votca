@@ -16,11 +16,12 @@ version="$(sed -n 's/set(PROJECT_VERSION *"\([^"]*\)").*/\1/p' CMakeLists.txt)"
 
 if [[ -f CHANGELOG.rst ]]; then
   CHANGELOG=CHANGELOG.rst
-  version_section="$(awk -v v="${version}" '{if (match($0,"^Version")){go=0}; if (match($0,"^Version "+v)){go=1} if(go==1){print $0}}' "${CHANGELOG}")"
+  version="${version//_/\\\\\\\\_}" # backslash underscores
+  version_section="$(awk -v r="^Version ${version}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' "${CHANGELOG}")"
   message="-  ${INPUT_MESSAGE#*: } (#$INPUT_PR_NUMBER)"
 elif [[ -f CHANGELOG.md ]]; then
   CHANGELOG=CHANGELOG.md
-  version_section="$(awk "/^## Version ${version}/,/^$/{print \$0}" "${CHANGELOG}")"
+  version_section="$(awk "/^## Version ${version}( |$)/,/^$/{print \$0}" "${CHANGELOG}")"
   message="* ${INPUT_MESSAGE#*: } (#$INPUT_PR_NUMBER)"
 else
   die "No supported CHANGELOG found"
@@ -34,7 +35,7 @@ echo "Adding message '$message' after line '${last_line}'"
 sed -i "/$last_line/a ${message}" "${CHANGELOG}"
 
 git add "${CHANGELOG}"
-git config --global user.name "Votca Bot"
-git config --global user.email "github@votca.org"
+git config user.name "Votca Bot"
+git config user.email "github@votca.org"
 git commit -m "Update ${CHANGELOG}"
 git push
