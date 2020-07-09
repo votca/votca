@@ -42,7 +42,7 @@ else()
   foreach(_DEP ${NOTEBOOKS})
     get_filename_component(_FILE "${_DEP}" NAME)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/${_FILE}
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_DEP} ${VOTCA_SPHINX_DIR}/${_FILE} DEPENDS ${_DEP}
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${_DEP} ${VOTCA_SPHINX_DIR}/${_FILE} DEPENDS ${PROJECT_SOURCE_DIR}/${_DEP}
 )
     list(APPEND NEW_NOTEBOOKS ${VOTCA_SPHINX_DIR}/${_FILE})
     endforeach()
