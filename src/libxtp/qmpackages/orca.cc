@@ -172,10 +172,8 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
 }
 
 void Orca::WriteChargeOption() {
-  const tools::Property& orca = _settings.property("orca");
-  if (!orca.exists("pointcharges")) {
-    this->_settings.add("orca.pointcharges", "\"background.crg\"");
-  }
+  this->_settings.add("orca.pointcharges", "\"background.crg\"");
+  _options += this->CreateInputSection("orca.pointcharges", true);
 }
 
 /* For QM/MM the molecules in the MM environment are represented by
@@ -275,11 +273,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   // Write Orca section specified by the user
   for (const auto& prop : this->_settings.property("orca")) {
     const std::string& prop_name = prop.name();
-    if (prop_name == "pointcharges") {
-      std::ostringstream oss;
-      oss << "%pointcharges " << _settings.get("orca.pointcharges") << "\n";
-      _options += oss.str();
-    } else if (prop_name != "method") {
+    if (prop_name != "method") {
       _options += this->CreateInputSection("orca." + prop_name);
     }
   }
