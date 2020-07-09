@@ -103,6 +103,9 @@ class Sternheimer {
   Eigen::VectorXcd SelfEnergy_diagonal(std::complex<double> omega) const;
   void PrintCOHSEXqpenergies();
 
+  std::complex<double> SelfEnergy_cohsex(std::complex<double> omega,Index n) const;
+  Eigen::VectorXd Intercept() const;
+
  private:
   Logger& _log;
 

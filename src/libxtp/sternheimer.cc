@@ -810,7 +810,7 @@ Eigen::MatrixXcd Sternheimer::GreensFunctionLHS(std::complex<double> w) const {
 
 Eigen::MatrixXcd Sternheimer::AnalyticGreensfunction(
     std::complex<double> w) const {
-  std::complex<double> eta(0., 0.3 * tools::conv::ev2hrt);
+  std::complex<double> eta(0., 0.1 * tools::conv::ev2hrt);
   return GreensFunctionLHS(w + eta).colPivHouseholderQr().solve(
       -1 * Eigen::MatrixXcd::Identity(_basis_size, _basis_size));
 }
@@ -922,7 +922,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(
   //   std::cout<<p.transpose()<<std::endl;
   // }
 
-  Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
+  Eigen::MatrixXcd GF = AnalyticGreensfunction(omega + omega_p);
   Index nthreads = OPENMP::getMaxThreads();
 
   Eigen::MatrixXcd sigma =
@@ -1071,8 +1071,8 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(
     Eigen::VectorXd _quadadaptedweights =
         glqc.getAdaptedWeights(_opt.quadrature_order);
     for (Index j = 0; j < _opt.quadrature_order; ++j) {
-      std::complex<double> gridpoint(_quadpoints(j),
-                                     0.25 * tools::conv::ev2hrt);
+      std::complex<double> gridpoint(0,
+                                     _quadpoints(j));
       sigma += _quadadaptedweights(j) * SelfEnergy_at_wp(omega, gridpoint);
     }
     sigma *= 2;  // This because later we multiply sigma by -1/2pi
@@ -1088,7 +1088,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(
       double mod_quadpoints = std::pow(x0, exponent);
       double mod_weights = 2 * x0 * _quadadaptedweights(j) /
                            std::pow(1 - _quadadaptedweights(j), 2);
-      std::complex<double> gridpoint(mod_quadpoints, 0);
+      std::complex<double> gridpoint(0,mod_quadpoints);
       sigma += mod_weights * SelfEnergy_at_wp(omega, gridpoint);
     }
     sigma *= 2;  // This because later we multiply sigma by -1/2pi
@@ -1099,7 +1099,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(
     Eigen::VectorXd _quadadaptedweights =
         glqc.getAdaptedWeights(_opt.quadrature_order);
     for (Index j = 0; j < _opt.quadrature_order; ++j) {
-      std::complex<double> gridpoint(_quadpoints(j),0);
+      std::complex<double> gridpoint(0,_quadpoints(j));
       sigma += _quadadaptedweights(j) * SelfEnergy_at_wp(omega, gridpoint);
     }
   } else {
@@ -1164,7 +1164,7 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(
                                                        _mo_coefficients.col(n)))
                      .sum();
   }
-  std::complex<double> prefactor(0, 1. / (2 * tools::conv::Pi));  // i/(2 eta)
+  std::complex<double> prefactor(-1. / (2 * tools::conv::Pi),0);  // i/(2 eta)
   return prefactor * results;
 }
 
@@ -1209,6 +1209,66 @@ void Sternheimer::PrintCOHSEXqpenergies() {
               << std::endl;
   }
 }
+
+Eigen::VectorXd Sternheimer::Intercept() const{
+  Index moEs = _mo_energies.size();
+  Eigen::VectorXcd Sigma_x = SelfEnergy_exchange();
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
+  Vxc_Grid grid;
+  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                 dftbasis);
+  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
+  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+  Eigen::MatrixXcd V_xc = Vxcpot.IntegrateVXC(_density_Matrix).matrix();
+  Eigen::VectorXcd V_xc_vec = Eigen::VectorXcd::Zero(moEs);
+  for (Index n = 0; n < moEs; n++) {
+    V_xc_vec(n) =
+        (_mo_coefficients.col(n).cwiseProduct(V_xc * _mo_coefficients.col(n)))
+            .sum();
+  }
+  return (_orbitals.MOs().eigenvalues() + Sigma_x -
+                  V_xc_vec).real();
+}
+std::complex<double> Sternheimer::SelfEnergy_cohsex(std::complex<double> omega,
+                                                Index n) const {
+  AOBasis basis = _orbitals.SetupDftBasis();
+  Vxc_Grid _grid;
+  _grid.GridSetup("xxcoarse", _orbitals.QMAtoms(), basis);
+  Index nthreads = OPENMP::getMaxThreads();
+  std::complex<double> sigma;
+  for (Index v = 0; v < _num_occ_lvls; v++) {
+    for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
+      const GridBox& box = _grid[i];
+      if (!box.Matrixsize()) {
+        continue;
+      }
+      std::vector<std::complex<double>> sigma_thread =
+          std::vector<std::complex<double>>(nthreads, std::complex<double>(0.,0.));
+      const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+      const std::vector<double>& weights = box.getGridWeights();
+// iterate over gridpoints
+#pragma omp parallel for schedule(guided)
+      for (Index p = 0; p < box.size(); p++) {
+        const double weight = weights[p];
+        Eigen::VectorXd tmat = EvaluateBasisAtPosition(basis, points[p]);
+        double psi_n = (_mo_coefficients.col(n).cwiseProduct(tmat)).sum();
+        double psi_v = (_mo_coefficients.col(v).cwiseProduct(tmat)).sum();
+        Eigen::MatrixXcd W_c =
+            ScreenedCoulomb(points[p], omega - _mo_energies(v));
+        std::complex<double> sc =
+            ((_mo_coefficients.col(v))
+                 .cwiseProduct(W_c * _mo_coefficients.col(n)))
+                .sum();
+        sigma_thread[OPENMP::getThreadId()] += weight * psi_n * psi_v * sc;
+      }
+      std::complex<double> sigma_box = std::accumulate(
+          sigma_thread.begin(), sigma_thread.end(), std::complex<double>(0.,0.));
+      sigma -=  sigma_box;
+    }
+  }
+  return sigma;
+}
+
 
 }  // namespace xtp
 
