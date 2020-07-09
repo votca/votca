@@ -20,6 +20,7 @@
 #
 
 find_program(JUPYTER_EXECUTABLE NAMES jupyter DOC "Interactive computing environment (https://jupyter.org/)")
+include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(JUPYTER REQUIRED_VARS JUPYTER_EXECUTABLE)
 
 if(JUPYTER_FOUND)

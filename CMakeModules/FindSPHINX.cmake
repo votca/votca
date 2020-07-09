@@ -37,4 +37,6 @@ else()
   set(SPHINX_VERSION 0.0)
 endif()
 message(status "SPHINX_VERSION:${SPHINX_VERSION}")
+
+include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(SPHINX REQUIRED_VARS SPHINX_EXECUTABLE VERSION_VAR SPHINX_VERSION)
