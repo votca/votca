@@ -274,8 +274,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
     const std::string& prop_name = prop.name();
     if (prop_name == "pointcharges") {
       _options += this->CreateInputSection("orca.pointcharges", true);
-    }
-    if (prop_name != "method") {
+    } else if (prop_name != "method") {
       _options += this->CreateInputSection("orca." + prop_name);
     }
   }
