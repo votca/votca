@@ -30,6 +30,7 @@ Version 1.7-dev
 -  convert markdown files to rst files (#272)
 -  enable CXX only in CMake (#273)
 -  format code with clang-10 (#277)
+-  fix clang-9 conversion warning (#276)
 
 Version 1.6.1 (released 21.06.20)
 =================================
