@@ -2,7 +2,7 @@ if(NOT VOTCA_SPHINX_DIR)
   set(VOTCA_SPHINX_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 endif()
 
-file(GLOB NOTEBOOKS "GROMACS/Methane/QMMM_GROMACS.ipynb")
+set(NOTEBOOKS "GROMACS/Methane/QMMM_GROMACS.ipynb")
 list(APPEND NOTEBOOKS "LAMMPS/Thiophene/QMMM_LAMMPS.ipynb")
 list(APPEND NOTEBOOKS "tools/dftgwbse_CH4/DFTGWBSE_ENERGY.ipynb")
 list(APPEND NOTEBOOKS "tools/dftgwbse_CO_geoopt/DFTGWBSE_OPTIMIZATION.ipynb")
@@ -28,16 +28,17 @@ if(JUPYTER_NBCONVERT_FOUND AND SPHINX_FOUND)
     get_filename_component(_FILE "${_notebook}" NAME_WE)
     get_filename_component(_DIR "${_notebook}" DIRECTORY)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_DIR})
-    file(GLOB FILES RELATIVE ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/${_DIR}/*)
-    foreach(FILE ${FILES})
-      execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${PROJECT_SOURCE_DIR}/${FILE} ${CMAKE_CURRENT_BINARY_DIR}/${FILE})
-    endforeach(FILE ${FILES})
+    file(GLOB FILES ${PROJECT_SOURCE_DIR}/${_DIR}/*)
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_notebook}
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/${_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}
+      DEPENDS ${FILES})
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/${_FILE}
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}
       COMMAND ${CMAKE_COMMAND} -E env PATH=${XTP_PATH}:$ENV{PATH} VOTCASHARE=${VOTCASHARE} ${JUPYTER_EXECUTABLE} nbconvert --to notebook --ExecutePreprocessor.timeout=1000 --execute ${_FILE} --output ${VOTCA_SPHINX_DIR}/${_FILE}
-      )
-      list(APPEND NEW_NOTEBOOKS ${VOTCA_SPHINX_DIR}/${_FILE})
-    endforeach()
+      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${_notebook}
+    )
+    list(APPEND NEW_NOTEBOOKS ${VOTCA_SPHINX_DIR}/${_FILE})
+  endforeach()
 else()
   foreach(_DEP ${NOTEBOOKS})
     get_filename_component(_FILE "${_DEP}" NAME)
