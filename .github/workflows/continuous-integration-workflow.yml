@@ -9,7 +9,7 @@ jobs:
     continue-on-error: ${{ matrix.distro == 'ubuntu_devel' || matrix.distro == 'fedora_rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
-        distro: [latest, fedora_rawhide, opensuse, ubuntu, ubuntu_devel, ubuntu_rolling, ubuntu_18.04]
+        distro: [latest, fedora_rawhide, opensuse, ubuntu_18.04]
         toolchain: [gnu]
         cmake_build_type: [Release]
         minimal: [false]
@@ -64,7 +64,8 @@ jobs:
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -s
       - name: Tests
-        run: cd builddir && ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+        run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+        working-directory: builddir
       - name: Build Sphinx
         if: ${{ steps.setup.outputs.build_sphinx == 'true' }}
         run: cmake --build builddir --target doc
@@ -73,3 +74,6 @@ jobs:
         run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
       - name: Install
         run: sudo cmake --build builddir --target install
+      - name: Check for untracked files
+        run: git status --porcelain && git status --porcelain | sed Q1
+        working-directory: votca/${{ steps.setup.outputs.module }}
