@@ -9,7 +9,7 @@ jobs:
     continue-on-error: ${{ matrix.distro == 'ubuntu_devel' || matrix.distro == 'fedora_rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
-        distro: [latest, fedora_rawhide, opensuse, ubuntu, ubuntu_devel, ubuntu_rolling, ubuntu_18.04]
+        distro: [latest, fedora_rawhide, opensuse, ubuntu_18.04]
         toolchain: [gnu]
         cmake_build_type: [Release]
         minimal: [false]
