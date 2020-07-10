@@ -34,7 +34,7 @@ if(JUPYTER_NBCONVERT_FOUND AND SPHINX_FOUND)
       DEPENDS ${FILES})
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/${_FILE}
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}
-      COMMAND ${CMAKE_COMMAND} -E env PATH=${XTP_PATH}:$ENV{PATH} VOTCASHARE=${VOTCASHARE} ${JUPYTER_EXECUTABLE} nbconvert --to notebook --ExecutePreprocessor.timeout=1000 --execute ${_FILE} --output ${VOTCA_SPHINX_DIR}/${_FILE}
+      COMMAND ${CMAKE_COMMAND} -E env PATH=${XTP_PATH}:$ENV{PATH} VOTCASHARE=${VOTCASHARE} ${JUPYTER_EXECUTABLE} nbconvert --to notebook --ExecutePreprocessor.timeout=5000 --execute ${_FILE} --output ${VOTCA_SPHINX_DIR}/${_FILE}
       DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${_notebook}
     )
     list(APPEND NEW_NOTEBOOKS ${VOTCA_SPHINX_DIR}/${_FILE})
