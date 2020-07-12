@@ -1,5 +1,8 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
+## Version 1.6.2 (released XX.07.20)
+* format code with clang-10 (#278)
+
 ## Version 1.6.1 (released 21.06.20)
 * fix build with mkl (#229)
 * fix build with non-system libfftw (#234)
@@ -7,7 +10,6 @@ For more detailed information about the changes see the history of the [reposito
 * fix bug related to calling c abs instead of c++ fabs (#248)
 * updated floating point comparison in akimaspline.h (#248)
 * fix compile error in structure parameters by adding hash function (#248)
-* format code with clang-10 (#278)
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * fix clang-10 warnings (#217)
