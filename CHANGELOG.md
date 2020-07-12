@@ -7,6 +7,7 @@ For more detailed information about the changes see the history of the [reposito
 * fix bug related to calling c abs instead of c++ fabs (#248)
 * updated floating point comparison in akimaspline.h (#248)
 * fix compile error in structure parameters by adding hash function (#248)
+* format code with clang-10 (#278)
 
 ## Version 1.6 _SuperPelagia_ (released 17.04.20)
 * fix clang-10 warnings (#217)
