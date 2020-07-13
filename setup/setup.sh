@@ -36,6 +36,8 @@ if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=g++ )
 elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=clang++ -GNinja )
+elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
+  cmake_args+=( -DCMAKE_CXX_COMPILER=icpc )
 else
   die "Unknown INPUT_TOOLCHAIN"
 fi
@@ -57,6 +59,8 @@ if [[ ${INPUT_OWN_GMX} = true ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=gcc )
   elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=clang )
+  elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
+    cmake_args+=( -DCMAKE_C_COMPILER=icc )
   fi
 else
   cmake_args+=( -DENABLE_WERROR=ON )
