@@ -46,12 +46,12 @@ else
   cov_tag=false
 fi
 
-if ${INPUT_MODULE}; then
+if [[ ${INPUT_MODULE} = true ]]; then
   cmake_args+=( -DMODULE_BUILD=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca.install )
 else
   cmake_args+=( -DCMAKE_INSTALL_PREFIX=/usr )
 fi	
-if ${INPUT_OWN_GMX}; then
+if [[ ${INPUT_OWN_GMX} = true ]]; then
   cmake_args+=( -DBUILD_OWN_GROMACS=ON -DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF )
   if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=gcc )
@@ -61,7 +61,7 @@ if ${INPUT_OWN_GMX}; then
 else
   cmake_args+=( -DENABLE_WERROR=ON )
 fi
-if ${INPUT_MINIMAL}; then
+if [[ ${INPUT_MINIMAL} = true ]]; then
   cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_XTP=OFF )
 elif [[ ${module} = xtp* ]]; then
   cmake_args+=( -DBUILD_CSGAPPS=OFF -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=OFF )
@@ -75,7 +75,7 @@ else
   cmake_args+=( -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON )
 fi
 
-if ${INPUT_MINIMAL} || [[ ${INPUT_DISTRO} = ubuntu@(|_rolling|_devel) ]];  then
+if [[ ${INPUT_MINIMAL} = true || ${INPUT_DISTRO} = ubuntu@(|_rolling|_devel) ]];  then
   # Ubuntu 20.04 and above come with gromacs-2020, which doesn't have tabulated interaciton that are needed for csg regression tests
   # see https://gitlab.com/gromacs/gromacs/-/issues/1347
   # hopefully we can reenable this in the future with gromacs-2021
@@ -91,7 +91,7 @@ cache_key="ccache-${INPUT_DISTRO}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-m
 print_output "cache_restore_key" "${cache_key}"
 print_output "cache_key" "${cache_key}-$(date +%s)"
 
-if [[ ${INPUT_DISTRO} = "ubuntu_18.04"  || ${INPUT_CMAKE_BUILD_TYPE} = Debug ]] || ${INPUT_MODULE}; then
+if [[ ${INPUT_DISTRO} = "ubuntu_18.04"  || ${INPUT_CMAKE_BUILD_TYPE} = Debug || ${INPUT_MODULE} = true ]]; then
   # 1.) On Ubuntu 18.04 sphinx is too old for nbsphinx
   #     File "/usr/lib/python3/dist-packages/nbsphinx.py", line 1383, in _add_notebook_parser
   #       source_suffix.append('.ipynb')
@@ -104,7 +104,7 @@ else
   print_output "build_sphinx" "true"
 fi
 
-if [[ ${INPUT_DISTRO} = "latest" ]] && ! ${INPUT_MODULE}; then
+if [[ ${INPUT_DISTRO} = "latest" && ${INPUT_MODULE} = false ]]; then
   print_output "check_format" "true"
 else
   print_output "check_format" "false"
