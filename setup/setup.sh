@@ -170,7 +170,7 @@ print_output "jobs" "${j}"
 if [[ ${module} != votca ]]; then
   git clone https://github.com/votca/votca
   if [[ ${branch} && ${branch} != master ]]; then
-    git -C votca checkout -b "${branch}" || true # || true as the branch might not exist
+    git -C votca checkout "${branch}" || true # || true as the branch might not exist
   fi
   git -C votca submodule update --init
   git -C "votca/${module}" fetch "$PWD"
