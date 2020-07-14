@@ -14,20 +14,41 @@ die () {
 version="$(sed -n 's/set(PROJECT_VERSION *"\([^"]*\)").*/\1/p' CMakeLists.txt)"
 [[ ${version} ]] || die "No version found"
 
+if [[ $version = *-dev ]]; then
+  :
+elif [[ $version = *.*.* ]]; then
+  try_versions=( "${version%.*}.$((${version##*.}+1))" )
+elif [[ $version = *.* ]]; then
+  try_versions=( "${version}.1" )
+elif [[ $version = *_rc* ]]; then
+  try_versions=( "${version%_rc*}_rc$((${version#*_rc}+1))" )
+else
+  die "Unknown version scheme, found $version"
+fi
+try_versions+=( $version )
+echo "Trying versions ${try_versions[@]}"
+
 if [[ -f CHANGELOG.rst ]]; then
   CHANGELOG=CHANGELOG.rst
-  version="${version//_/\\\\\\\\_}" # backslash underscores
-  version_section="$(awk -v r="^Version ${version}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' "${CHANGELOG}")"
+  for v in ${try_versions[@]}; do
+    vb="${v//_/\\\\\\\\_}" # backslash underscores
+    version_section="$(awk -v r="^Version ${vb}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' "${CHANGELOG}")"
+    [[ ${version_section} ]] || break
+  done
   message="-  ${INPUT_MESSAGE#*: } (#$INPUT_PR_NUMBER)"
 elif [[ -f CHANGELOG.md ]]; then
   CHANGELOG=CHANGELOG.md
-  version_section="$(awk "/^## Version ${version}( |$)/,/^$/{print \$0}" "${CHANGELOG}")"
+  for v in ${try_versions[@]}; do
+    version_section="$(awk "/^## Version ${v}( |$)/,/^$/{print \$0}" "${CHANGELOG}")"
+    [[ -z ${version_section} ]] || break
+  done
   message="* ${INPUT_MESSAGE#*: } (#$INPUT_PR_NUMBER)"
 else
   die "No supported CHANGELOG found"
 fi
 
 [[ $version_section ]] || die "Could not find section to $version"
+echo "Found section for $v"
 last_line="$(echo "$version_section" | sed -n '$p')"
 [[ $last_line ]] || die "Could not grep last line"
 
