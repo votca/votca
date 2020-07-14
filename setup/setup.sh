@@ -28,6 +28,16 @@ module=$(sed -n 's/project(\(votca-\)\?\([^ )]*\).*)/\2/p' CMakeLists.txt)
 [[ ${module} ]] || die "Could not fetch module"
 print_output "module" "${module}"
 
+if [[ ${GITHUB_REF} = refs/pull/*/merge ]]; then # pull request
+  branch="${GITHUB_BASE_REF}"
+elif [[ ${GITHUB_REF} = refs/heads/* ]]; then # branch, e.g. stable
+  branch=${GITHUB_REF#refs/heads/}
+elif [[ ${GITHUB_REF} = refs/tags/* ]]; then # tag or release
+  branch=${GITHUB_REF#refs/tags/}
+else
+  die "Handling on GITHUB_REF=${GITHUB_REF} not implemented"
+fi
+
 cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON )
 if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
   cmake_args+=( -DCMAKE_BUILD_TYPE=${INPUT_CMAKE_BUILD_TYPE} )
@@ -41,6 +51,18 @@ elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
 else
   die "Unknown INPUT_TOOLCHAIN"
 fi
+
+#drop after v1.7 release
+if [[ ${branch} = "stable" ]]; then
+  if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
+    cmake_args+=( -DCMAKE_C_COMPILER=gcc )
+  elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
+    cmake_args+=( -DCMAKE_C_COMPILER=clang )
+  elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
+    cmake_args+=( -DCMAKE_C_COMPILER=icc )
+  fi
+fi
+
 if [[ ${INPUT_COVERAGE} && ${INPUT_COVERAGE} != "false" ]]; then
   cmake_args+=( -DENABLE_COVERAGE_BUILD=ON )
   cov_tag=true
@@ -55,7 +77,9 @@ else
 fi	
 if [[ ${INPUT_OWN_GMX} = true ]]; then
   cmake_args+=( -DBUILD_OWN_GROMACS=ON -DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF )
-  if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
+  if [[ ${branch} = "stable" ]]; then
+    : # done above, drop this line after v1.7 release
+  elif [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=gcc )
   elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=clang )
@@ -145,15 +169,6 @@ print_output "jobs" "${j}"
 # Checkout votca main repo if we are building a module
 if [[ ${module} != votca ]]; then
   git clone https://github.com/votca/votca
-  if [[ ${GITHUB_REF} = refs/pull/*/merge ]]; then # pull request
-    branch="${GITHUB_BASE_REF}"
-  elif [[ ${GITHUB_REF} = refs/heads/* ]]; then # branch, e.g. stable
-    branch=${GITHUB_REF#refs/heads/}
-  elif [[ ${GITHUB_REF} = refs/tags/* ]]; then # tag or release
-    branch=${GITHUB_REF#refs/tags/}
-  else
-    die "Handling on GITHUB_REF=${GITHUB_REF} not implemented"
-  fi
   if [[ ${branch} && ${branch} != master ]]; then
     git -C votca checkout -b "${branch}" || true # || true as the branch might not exist
   fi
