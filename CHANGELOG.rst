@@ -36,6 +36,7 @@ Version 1.6.2 (released XX.07.20)
 =================================
 
 -  format code with clang-10 (#278)
+-  move CI to GitHub Actions (#280)
 
 Version 1.6.1 (released 21.06.20)
 =================================
