@@ -18,8 +18,6 @@ endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 
 enable_language(CXX)
 
-
-
 ######################################################################
 # compiler tests
 # these need ot be done early (before further tests).
