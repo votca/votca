@@ -15,4 +15,4 @@ This repository contains some small analysis programs which are written based on
 *   _partial\_rdf_: calculates the rdf in a spherical subvolume
 *   _traj\_force_: add/subtracts reference forces from a given trajectory and stores in a new trajectory
 
-To add your own program just create a new folder and put your *.cc files in there
+To add your own program just create a new folder and put your `*.cc` files in there
