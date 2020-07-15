@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,11 +16,15 @@
  * limitations under the License.
  *
  */
+
+// Standard includes
 #include <algorithm>
-#include <votca/tools/edge.h>
-#include <votca/tools/graph.h>
-#include <votca/tools/graph_df_visitor.h>
-#include <votca/tools/graphnode.h>
+
+// Local VOTCA includes
+#include "votca/tools/edge.h"
+#include "votca/tools/graph.h"
+#include "votca/tools/graph_df_visitor.h"
+#include "votca/tools/graphnode.h"
 
 using namespace std;
 
