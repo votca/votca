@@ -20,10 +20,8 @@
 #
 
 find_program(JUPYTER_EXECUTABLE NAMES jupyter DOC "Interactive computing environment (https://jupyter.org/)")
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(JUPYTER REQUIRED_VARS JUPYTER_EXECUTABLE)
 
-if(JUPYTER_FOUND)
+if(JUPYTER_EXECUTABLE)
   execute_process(COMMAND ${JUPYTER_EXECUTABLE} nbconvert --version
     OUTPUT_VARIABLE nbconvert_version
     ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -33,4 +31,6 @@ if(JUPYTER_FOUND)
     set(JUPYTER_NBCONVERT_VERSION 0.0)
   endif()
 endif()
+
+include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(JUPYTER_NBCONVERT REQUIRED_VARS JUPYTER_EXECUTABLE VERSION_VAR JUPYTER_NBCONVERT_VERSION)
