@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,15 +16,17 @@
  * limitations under the License.
  *
  */
+#ifndef VOTCA_TOOLS_EDGE_H
+#define VOTCA_TOOLS_EDGE_H
 
+// Standard includes
 #include <iostream>
 #include <limits>
 #include <utility>
 #include <vector>
-#include <votca/tools/types.h>
 
-#ifndef _VOTCA_TOOLS_EDGE_H
-#define _VOTCA_TOOLS_EDGE_H
+// Local VOTCA includes
+#include "types.h"
 
 namespace votca {
 namespace tools {
@@ -103,4 +105,4 @@ class hash<votca::tools::Edge> {
   }
 };
 }  // namespace std
-#endif  // _VOTCA_TOOLS_EDGE_H
+#endif  // VOTCA_TOOLS_EDGE_H

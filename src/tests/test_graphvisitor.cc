@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,12 +20,18 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE graphvisitor_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <unordered_map>
 #include <vector>
-#include <votca/tools/graph.h>
-#include <votca/tools/graphnode.h>
-#include <votca/tools/graphvisitor.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/graph.h"
+#include "votca/tools/graphnode.h"
+#include "votca/tools/graphvisitor.h"
 
 using namespace std;
 using namespace votca::tools;
