@@ -173,7 +173,6 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
 
 void Orca::WriteChargeOption() {
   this->_settings.add("orca.pointcharges", "\"background.crg\"");
-  _options += this->CreateInputSection("orca.pointcharges");
 }
 
 /* For QM/MM the molecules in the MM environment are represented by
@@ -273,7 +272,9 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   // Write Orca section specified by the user
   for (const auto& prop : this->_settings.property("orca")) {
     const std::string& prop_name = prop.name();
-    if (prop_name != "method") {
+    if (prop_name == "pointcharges") {
+      _options += this->CreateInputSection("orca.pointcharges", true);
+    } else if (prop_name != "method") {
       _options += this->CreateInputSection("orca." + prop_name);
     }
   }
@@ -819,12 +820,19 @@ std::string Orca::indent(const double& number) {
   return snumber;
 }
 
-std::string Orca::CreateInputSection(const std::string& key) const {
+std::string Orca::CreateInputSection(const std::string& key,
+                                     bool single_line) const {
   std::stringstream stream;
   std::string section = key.substr(key.find(".") + 1);
-  stream << "%" << section << "\n"
-         << this->_settings.get(key) << "\n"
-         << "end\n";
+  stream << "%" << section;
+  if (single_line) {
+    stream << " " << _settings.get(key) << "\n";
+  } else {
+    stream << "\n"
+           << this->_settings.get(key) << "\n"
+           << "end\n";
+  }
+
   return stream.str();
 }
 
