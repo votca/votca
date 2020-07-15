@@ -48,6 +48,7 @@ Version 1.7-dev
 -  enable CXX only in CMake (#499)
 -  implement RPA correlation energy (#498)
 -  added verbose option for rootfinder (#503)
+-  fix orca pointcharges (#504)
 -  remove constant cutoff from neighborlist (#508)
 
 Version 1.6.1 (released 21.06.20)
