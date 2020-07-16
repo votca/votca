@@ -1,5 +1,4 @@
 stages:
-  - canary
   - build
 
 .build_script:
@@ -35,13 +34,14 @@ stages:
     - pushd build
     - cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON -DBUILD_XTP=ON -DENABLE_WERROR=ON
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      ${CMAKE_GENERATOR:+-G${CMAKE_GENERATOR}}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
-      -DWITH_MKL=${WITH_MKL} -DCMAKE_DISABLE_FIND_PACKAGE_MKL=${DISABLE_MKL}
+      -DCMAKE_DISABLE_FIND_PACKAGE_MKL=${DISABLE_MKL}
       -DUSE_CUDA=${USE_CUDA}      
-    - cmake --build . -- -j2
+    - cmake --build . --parallel 2
     - ctest --output-on-failure
-    - test -z "${MODULE_BUILD}" && DESTDIR=${PWD}/install cmake --build . --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
-    - sudo cmake --build . --target install
+    - test -z "${MODULE_BUILD}" && DESTDIR=${PWD}/install cmake --install . && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
+    - sudo cmake --install .
     - if [[ ${CLANG_FORMAT} ]]; then cmake --build . --target format && git -C ${CI_PROJECT_DIR}/votca/${CI_PROJECT_NAME} diff --exit-code; fi
     - ccache -s
 
@@ -51,135 +51,13 @@ stages:
   image: votca/buildenv:${DISTRO}
   extends: .build_script
     
-Debug GCC:
-  stage: canary
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Debug"
-    CLANG_FORMAT: "yes"
-  extends: .build
-
-None GCC:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: ""
-  extends: .build
-
-None Clang:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: ""
-  extends: .build
-
-Debug Clang:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Debug"
-  extends: .build
-
-Release GCC:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Release"
-  extends: .build
-
-Release Clang:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Release"
-  extends: .build
-
-Debug GCC Ubuntu:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Debug"
-    DISTRO: "ubuntu"
-  extends: .build
-
-Debug Clang Ubuntu:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Debug"
-    DISTRO: "ubuntu"
-  extends: .build
-
-Release GCC Ubuntu:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "ubuntu"
-  extends: .build
-
-Release Clang Ubuntu:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "ubuntu"
-  extends: .build
-
-Debug GCC Rawhide:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Debug"
-    DISTRO: "fedora_rawhide"
-  extends: .build
-  allow_failure: true
-
-Debug Clang Rawhide:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Debug"
-    DISTRO: "fedora_rawhide"
-  extends: .build
-  allow_failure: true
-
-Release GCC Rawhide:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_rawhide"
-  extends: .build
-  allow_failure: true
-
-Release Clang Rawhide:
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CMAKE_BUILD_TYPE: "Release"
-    DISTRO: "fedora_rawhide"
-  extends: .build
-  allow_failure: true
-
-Release GCC Module:
-  variables:
-    CC: "gcc"
-    CXX: "g++"
-    CMAKE_BUILD_TYPE: "Release"
-    MODULE_BUILD: "yes"
-  extends: .build
-
 Debug GPU Ubuntu:
   variables:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
     USE_CUDA: "yes"
-    WITH_MKL: "no"
     DISABLE_MKL: "yes"
-    NO_INSTALL: "yes"
   before_script:
     - source /opt/gromacs-2019/bin/GMXRC.bash
   extends: .build_script
