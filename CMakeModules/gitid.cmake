@@ -1,5 +1,3 @@
-set(CMAKE_MODULE_PATH ${TOP_SOURCE_DIR}/CMakeModules)
-
 if (GIT_EXECUTABLE)
   # refresh git index
   execute_process(COMMAND ${GIT_EXECUTABLE} update-index -q --refresh
