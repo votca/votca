@@ -29,7 +29,7 @@ jobs:
           script: |
             github.pulls.create({
               owner: 'votca',
-              repo: 'tools',
+              repo: 'csg-tutorials',
               title: 'Fixes from stable',
               head: 'stable_fixes',
               base: 'master'
