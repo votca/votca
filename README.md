@@ -1,6 +1,6 @@
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/48a26be8dd8b4f0fa67c93646fa6d30d)](https://www.codacy.com/manual/votca-package/votca?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=votca/votca&amp;utm_campaign=Badge_Grade)
-[![Build Status](https://travis-ci.org/votca/votca.svg?branch=master)](https://travis-ci.org/votca/votca)
-[![pipeline status](https://gitlab.com/votca/votca/badges/master/pipeline.svg)](https://gitlab.com/votca/votca/commits/master)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/b5567bfcf2c8411a8057c47fa7126781)](https://www.codacy.com/gh/votca/votca?utm_source=github.com&utm_medium=referral&utm_content=votca/votca&utm_campaign=Badge_Grade)
+[![CI](https://github.com/votca/votca/workflows/CI/badge.svg?branch=stable)](https://github.com/votca/votca/actions?query=workflow%3ACI+branch%3Astable)
+[![Docker](https://github.com/votca/votca/workflows/Docker/badge.svg?branch=stable)](https://github.com/votca/votca/actions?query=workflow%3A+branch%3Astable)
 
 This is VOTCA's next generation build system for CSG and XTP. It allows you to easily install: 
 
