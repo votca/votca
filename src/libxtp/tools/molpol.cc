@@ -44,20 +44,10 @@ void MolPol::Initialize(const tools::Property& user_options) {
       ".mpsoutput", _job_name + "_polar.mps");
   _polar_options = options.get(".options_polar");
 
-  bool target_exists = options.exists(".target");
-  bool qmpackage_exists = options.exists(".qmpackage");
-  if (target_exists && qmpackage_exists) {
-    throw std::runtime_error(
-        "Can only read either from target or qmpackage logfile");
-  }
+  // polar targer or qmpackage logfile
+  const std::string& mode = options.get("mode").as<std::string>();
 
-  if (!target_exists && !qmpackage_exists) {
-    throw std::runtime_error(
-        "You have to define a polar targer <target> or a or qmpackage logfile");
-  }
-
-  if (target_exists) {
-
+  if (mode == "target") {
     Eigen::VectorXd target_vec = options.get(".target").as<Eigen::VectorXd>();
     if (target_vec.size() != 6) {
       throw std::runtime_error(

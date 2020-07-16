@@ -41,7 +41,7 @@ void EAnalyze::Initialize(const tools::Property &user_options) {
 
   _doenergy_landscape = options.get(".do_energy_landscape").as<bool>();
 
-  if (options.(".do_distance_mode")) {
+  if (options.get(".do_distance_mode").as<bool>()) {
     std::string distancemode = options.get("distancemode").as<std::string>();
     if (distancemode == "centerofmass") {
       _atomdistances = false;
