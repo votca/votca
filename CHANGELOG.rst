@@ -23,6 +23,11 @@ Version 1.7-dev
 -  read units stored in H5MD file (#549)
 -  enable CXX only in CMake (#560)
 
+Version 1.6.2 (released XX.07.20)
+=================================
+
+-  move CI to GitHub Actions (#563)
+
 Version 1.6.1 (released 21.06.20)
 =================================
 
