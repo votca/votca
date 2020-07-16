@@ -875,12 +875,10 @@ Eigen::MatrixXcd Sternheimer::ScreenedCoulomb(
       Fxc(DeltaN);  // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
   // Eigen::MatrixXcd DeltaV = coulombmatrix + HartreeInt + FxcInt;
   Eigen::MatrixXcd DeltaV;
-  if (_opt.do_cs == true) {
-    DeltaV = HartreeInt + FxcInt + coulombmatrix;
-  } else {
-    DeltaV = HartreeInt + FxcInt;  // Watchout! Here we have subtracted
+  
+  DeltaV = HartreeInt + FxcInt;  // Watchout! Here we have subtracted
                                    // the bare coulomb potential
-  }
+  
   return DeltaV;
 }
 
@@ -927,6 +925,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(
 
   Eigen::MatrixXcd sigma =
       Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols());
+
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
     if (!box.Matrixsize()) {
@@ -951,6 +950,9 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(
       // in DeltaNsc
 
       Eigen::MatrixXcd GW_c = GF * ScreenedCoulomb(points[p], omega_p);
+      //Eigen::MatrixXcd GW_c_m = GF * ScreenedCoulomb(-1*points[p], omega_p);
+      //std::cout<<"GW_c norm = " <<GW_c.norm()<<std::endl;
+      //std::cout<<"GW_c_m norm = " <<GW_c_m.norm()<<std::endl;
 
       sigma_thread[OPENMP::getThreadId()] +=
           weight * S * box.ReadFromBigMatrix(GW_c);
@@ -961,22 +963,24 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(
         Eigen::MatrixXcd::Zero(box.Matrixsize(), box.Matrixsize()).eval());
     box.AddtoBigMatrix(sigma, sigma_box);
   }
-
   return sigma;
 }
 
 Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
-    std::complex<double> omega, double omega_p) const {
+    std::complex<double> omega, std::complex<double> omega_p) const {
+
+      //std::cout<<"regular grid size:"<<_opt.gws_grid_spacing<<std::endl;
+
   // This function calculates GW at w and w_p (i.e before integral over
   // frequencies)
   // It perform the spatial uniform grid integration. The final object is a
   // matrix
   AOBasis basis = _orbitals.SetupDftBasis();
-  Eigen::MatrixXcd GF = GreensFunction(omega + omega_p);
+  Eigen::MatrixXcd GF = AnalyticGreensfunction(omega + omega_p);
   Index nthreads = OPENMP::getMaxThreads();
 
   // double _padding = 6.512752;
-  double _padding = 0.1;
+  double _padding = 1;
   Index _xsteps = _opt.gws_grid_spacing;
   Index _ysteps = _opt.gws_grid_spacing;
   Index _zsteps = _opt.gws_grid_spacing;
@@ -1038,8 +1042,10 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
         // correlation screened Coulomb potential (W_c = W-v). This is evaluated
         // in DeltaNsc
         Eigen::MatrixXcd GW_c = GF * ScreenedCoulomb(pos, omega_p);
-        sigma_thread[OPENMP::getThreadId()] +=
-            cx * cy * cz * weight * tmat * tmat.transpose() * GW_c;
+        //sigma_thread[OPENMP::getThreadId()] +=
+        //     weight * tmat * tmat.transpose() * GW_c;
+         sigma_thread[OPENMP::getThreadId()] +=
+             cx * cy * cz * weight * tmat * tmat.transpose() * GW_c;
       }  // z-component
     }    // y-component
   }      // x-component

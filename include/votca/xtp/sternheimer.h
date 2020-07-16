@@ -96,7 +96,7 @@ class Sternheimer {
       std::vector<Eigen::Matrix3cd>& polar) const;
   // Return Self-Energy
   Eigen::MatrixXcd SelfEnergy_at_wp(std::complex<double> omega, std::complex<double> omega_p) const;
-  Eigen::MatrixXcd SelfEnergy_at_wp_regulargrid(std::complex<double> omega, double omega_p) const;
+  Eigen::MatrixXcd SelfEnergy_at_wp_regulargrid(std::complex<double> omega, std::complex<double> omega_p) const;
   Eigen::MatrixXcd SelfEnergy_at_w(std::complex<double> omega) const;
   Eigen::MatrixXcd SelfEnergy_at_w_rect(std::complex<double> omega) const;
   Eigen::VectorXcd SelfEnergy_exchange() const;
