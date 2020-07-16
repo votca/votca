@@ -73,8 +73,8 @@ endforeach()
 
 if(ENABLE_TESTING)
   add_test(IncludeExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_INSTALL_FULL_INCLUDEDIR}/votca
-           -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake) 
+           -P ${PROJECT_SOURCE_DIR}/CMakeModules/FileExists.cmake) 
 endif(ENABLE_TESTING)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/../README.md DESTINATION ${CMAKE_INSTALL_DOCDIR})
+install(FILES ${PROJECT_SOURCE_DIR}/README.md DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 
