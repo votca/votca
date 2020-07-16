@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - master
+      - stable
 
 jobs:
   CI:
@@ -56,7 +57,8 @@ jobs:
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -s
       - name: Tests
-        run: cd builddir && ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+        run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+        working-directory: builddir
       - name: Build Sphinx
         if: ${{ steps.setup.outputs.build_sphinx == 'true' }}
         run: cmake --build builddir --target doc
