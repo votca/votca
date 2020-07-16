@@ -50,6 +50,11 @@ Version 1.7-dev
 -  added verbose option for rootfinder (#503)
 -  fix orca pointcharges (#504)
 
+Version 1.6.2 (released XX.07.20)
+=================================
+
+-  move CI to GitHub Actions (#512)
+
 Version 1.6.1 (released 21.06.20)
 =================================
 
