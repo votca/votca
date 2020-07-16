@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE bsecoupling_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/bsecoupling.h>
+
+// Local VOTCA includes
+#include "votca/xtp/bsecoupling.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -701,7 +705,10 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
       "2.28071e-14 -2.35353e-11 1.71015e-12 7.96531e-13 2.72019e-11 "
       "-0.00502671 0.00448979 -2.90263e-12 2.01326e-13 -4.04695e-11 -0.999888";
   AB.QPdiag().eigenvectors() = ReadMatrixFromString(Hqp_input_string);
-
+  const Eigen::MatrixXd& qpcoeff = AB.QPdiag().eigenvectors();
+  Eigen::MatrixXd Hqp =
+      qpcoeff * AB.QPdiag().eigenvalues().asDiagonal() * qpcoeff.transpose();
+  AB.RPAInputEnergies() = Hqp.diagonal();
   coup.Initialize(prop);
   log.setReportLevel(Log::error);
   coup.CalculateCouplings(A, B, AB);

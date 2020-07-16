@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,61 +15,42 @@
  *
  */
 
+// Local private VOTCA includes
 #include "eanalyze.h"
-
-using namespace std;
 
 namespace votca {
 namespace xtp {
 
-void EAnalyze::Initialize(tools::Property &opt) {
+void EAnalyze::Initialize(const tools::Property &user_options) {
 
-  // update options with the VOTCASHARE defaults
-  UpdateWithDefaults(opt, "xtp");
-  std::string key = "options." + Identify();
-  if (opt.exists(key + ".resolution_pairs")) {
-    _resolution_pairs = opt.get(key + ".resolution_pairs").as<double>();
-  } else {
-    _skip_pairs = true;
-  }
-  if (opt.exists(key + ".resolution_sites")) {
-    _resolution_sites = opt.get(key + ".resolution_sites").as<double>();
-  } else {
-    _skip_sites = true;
-  }
-  if (opt.exists(key + ".resolution_space")) {
-    _resolution_space = opt.get(key + ".resolution_space").as<double>();
-  } else {
-    _skip_corr = true;
-  }
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  if (opt.exists(key + ".pattern")) {
-    _seg_pattern = opt.get(key + ".pattern").as<std::string>();
+  _resolution_pairs = options.get(".resolution_pairs").as<double>();
+  _resolution_sites = options.get(".resolution_sites").as<double>();
+  _resolution_spatial = options.get(".resolution_spatial").as<double>();
+
+  if (options.exists(".pattern")) {
+    _seg_pattern = options.get(".pattern").as<std::string>();
   } else {
     _seg_pattern = "*";
   }
 
-  if (opt.exists(key + ".states")) {
-    std::string statestrings = opt.get(key + ".states").as<std::string>();
-    tools::Tokenizer tok(statestrings, ",\n\t ");
-    std::vector<std::string> string_vec;
-    tok.ToVector(string_vec);
-    for (std::string &state : string_vec) {
-      _states.push_back(QMStateType(state));
-    }
-  } else {
-    _states.push_back(QMStateType::Electron);
-    _states.push_back(QMStateType::Hole);
+  std::string statestrings = options.get(".states").as<std::string>();
+  tools::Tokenizer tok(statestrings, ",\n\t ");
+  std::vector<std::string> string_vec;
+  tok.ToVector(string_vec);
+  for (std::string &state : string_vec) {
+    _states.push_back(QMStateType(state));
   }
 
-  _doenergy_landscape = opt.ifExistsReturnElseReturnDefault<bool>(
-      key + ".energy_landscape", false);
+  _doenergy_landscape = options.get(".energy_landscape").as<bool>();
 
-  if (opt.exists(key + ".distancemode")) {
+  if (options.exists(".distancemode")) {
     std::vector<std::string> choices = {"atoms", "centerofmass"};
     std::string distancemode =
-        opt.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-            key + ".distancemode", choices);
+        options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+            ".distancemode", choices);
     if (distancemode == "centerofmass") {
       _atomdistances = false;
     } else {
@@ -116,30 +97,15 @@ bool EAnalyze::EvaluateFrame(Topology &top) {
                 << "... ... ... No segments short-listed. Skip ... "
                 << std::flush;
     } else {
-      if (_skip_sites) {
-        std::cout << std::endl
-                  << "... ... ... Skip site-energy hist." << std::flush;
-      } else {
-        SiteHist(state);
-      }
-      if (_skip_corr) {
-        std::cout << std::endl
-                  << "... ... ... Skip correlation ..." << std::flush;
-      } else {
-        SiteCorr(top, state);
-      }
+      SiteHist(state);
+      SiteCorr(top, state);
     }
 
     if (!nblist.size()) {
       std::cout << std::endl
                 << "... ... ... No pairs in topology. Skip ... " << std::flush;
     } else {
-      if (_skip_pairs) {
-        std::cout << std::endl
-                  << "... ... ... Skip pair-energy hist." << std::flush;
-      } else {
-        PairHist(top, state);
-      }
+      PairHist(top, state);
     }
   }
 
@@ -292,12 +258,12 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
   double MAX = tabcorr.x().maxCoeff();
 
   // Prepare bins
-  Index BIN = Index((MAX - MIN) / _resolution_space + 0.5) + 1;
+  Index BIN = Index((MAX - MIN) / _resolution_spatial + 0.5) + 1;
   std::vector<std::vector<double> > histCs;
   histCs.resize(BIN);
 
   for (Index i = 0; i < tabcorr.size(); ++i) {
-    Index bin = Index((tabcorr.x()[i] - MIN) / _resolution_space + 0.5);
+    Index bin = Index((tabcorr.x()[i] - MIN) / _resolution_spatial + 0.5);
     histCs[bin].push_back(tabcorr.y()[i]);
   }
 
@@ -319,7 +285,7 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
     // error on mean value
     dcorr2 =
         dcorr2 / double(histCs[bin].size()) / double(histCs[bin].size() - 1);
-    double R = MIN + double(bin) * _resolution_space;
+    double R = MIN + double(bin) * _resolution_spatial;
     histC.set(bin, R, corr, ' ', std::sqrt(dcorr2));
   }
 

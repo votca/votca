@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,9 +18,10 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_VXCFUNCTIONALS_H
-#define VOTCA_XTP_VXCFUNCTIONALS_H
+#ifndef VOTCA_XTP_VXC_FUNCTIONALS_H
+#define VOTCA_XTP_VXC_FUNCTIONALS_H
 
+// Standard includes
 #include <map>
 #include <string>
 
@@ -305,4 +306,4 @@ class Vxc_Functionals {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_VXCFUNCTIONALS_H
+#endif  // VOTCA_XTP_VXC_FUNCTIONALS_H

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,11 +21,15 @@
 #ifndef VOTCA_XTP_QMSTATE_H
 #define VOTCA_XTP_QMSTATE_H
 
+// Standard includes
 #include <string>
 
+// VOTCA includes
+#include <votca/tools/types.h>
+
+// Local VOTCA includes
 #include "checkpointreader.h"
 #include "checkpointwriter.h"
-#include <votca/tools/types.h>
 
 namespace votca {
 namespace xtp {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,13 @@
  *
  */
 
-#ifndef __VOTCA_BSEOP_BTDA_H
-#define __VOTCA_BSEOP_BTDA_H
-#include <votca/xtp/bse_operator.h>
-#include <votca/xtp/eigen.h>
+#ifndef VOTCA_XTP_BSEOPERATOR_BTDA_H
+#define VOTCA_XTP_BSEOPERATOR_BTDA_H
+
+// Local VOTCA includes
+#include "bse_operator.h"
+#include "eigen.h"
+
 namespace votca {
 namespace xtp {
 
@@ -201,4 +204,4 @@ struct generic_product_impl<
 }  // namespace internal
 }  // namespace Eigen
 
-#endif  //__VOTCA_BSEOP_BTDA_H
+#endif  // VOTCA_XTP_BSEOPERATOR_BTDA_H

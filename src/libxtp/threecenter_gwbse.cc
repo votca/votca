@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,9 +17,10 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/threecenter.h>
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/threecenter.h"
 
 using std::flush;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,13 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aopotential_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/aopotential.h>
-#include <votca/xtp/orbitals.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aopotential.h"
+#include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -179,7 +183,6 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   ECPAOBasis ecpbasis;
   ecpbasis.Fill(ecps, orbitals.QMAtoms());
   AOECP ecp;
-  OPENMP::setMaxThreads(1);
   ecp.FillPotential(aobasis, ecpbasis);
   Eigen::MatrixXd ecp_ref = Eigen::MatrixXd::Zero(17, 17);
   ecp_ref << 21.6188, 1.34835, 0, 0, 0, 2.29744, 0, 0, 0, 0.209711, 1.01592,
@@ -811,7 +814,6 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   ECPAOBasis ecpbasis;
   ecpbasis.Fill(ecps, mol);
   AOECP ecp;
-  OPENMP::setMaxThreads(1);
   ecp.FillPotential(dftbasis, ecpbasis);
 
   Eigen::MatrixXd ecp_ref = Eigen::MatrixXd::Zero(dftbasissize, dftbasissize);

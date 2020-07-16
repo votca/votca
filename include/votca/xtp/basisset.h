@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,16 +21,21 @@
 #ifndef VOTCA_XTP_BASISSET_H
 #define VOTCA_XTP_BASISSET_H
 
+// Standard includes
 #include <iostream>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
+// VOTCA includes
 #include <votca/tools/types.h>
 
 namespace votca {
 namespace xtp {
 // shell type (S, P, D))
+
+bool CheckShellType(const std::string& shelltype);
 
 Index FindLmax(const std::string& type);
 
