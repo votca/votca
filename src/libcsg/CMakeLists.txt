@@ -15,7 +15,8 @@ if (TARGET Gromacs::libgromacs)
 endif()
 
 
-find_package(HDF5 COMPONENTS "C")
+find_package(HDF5 COMPONENTS "CXX")
+set_package_properties(HDF5 PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read h5md data files")
 if(HDF5_FOUND)
   set(H5MD true)
   target_include_directories (votca_csg PRIVATE ${HDF5_INCLUDE_DIRS})
@@ -35,12 +36,12 @@ target_include_directories(votca_csg PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
 add_custom_target(gitversion-csg COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -P ${CMAKE_MODULE_PATH}/gitversion.cmake)
+  -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 add_dependencies(votca_csg gitversion-csg)
 set_target_properties(votca_csg PROPERTIES SOVERSION ${SOVERSION})
-target_link_libraries(votca_csg PUBLIC VOTCA::votca_tools Boost::boost PRIVATE Boost::program_options Boost::filesystem Boost::system Threads::Threads Eigen3::Eigen)
+target_link_libraries(votca_csg PUBLIC VOTCA::votca_tools Boost::boost PRIVATE Boost::program_options Boost::filesystem Boost::system Boost::regex Threads::Threads Eigen3::Eigen)
 
 install(TARGETS votca_csg EXPORT VOTCA_CSG_Targets
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,18 @@
 #include <votca_config.h>
 #endif
 
-#include "modules/io/dlpolytrajectorywriter.h"
-#include "modules/io/lammpsdumpwriter.h"
-#include <iostream>
-#include <votca/csg/pdbwriter.h>
-#include <votca/csg/trajectorywriter.h>
-#include <votca/csg/xyzwriter.h>
+// Local VOTCA includes
+#include "votca/csg/pdbwriter.h"
+#include "votca/csg/trajectorywriter.h"
+#include "votca/csg/xyzwriter.h"
 
+// Local private VOTCA includes
+#include "modules/io/dlpolytrajectorywriter.h"
 #ifdef GMX_DOUBLE
 #include "modules/io/gmxtrajectorywriter.h"
 #endif
-#include "modules/io/dlpolytrajectorywriter.h"
 #include "modules/io/growriter.h"
+#include "modules/io/lammpsdumpwriter.h"
 
 namespace votca {
 namespace csg {

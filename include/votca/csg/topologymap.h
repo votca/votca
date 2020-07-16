@@ -18,9 +18,12 @@
 #ifndef _VOTCA_CSG_TOPOLOGYMAP_H
 #define _VOTCA_CSG_TOPOLOGYMAP_H
 
+// Standard includes
+#include <vector>
+
+// Local VOTCA includes
 #include "map.h"
 #include "topology.h"
-#include <vector>
 
 namespace votca {
 namespace csg {
