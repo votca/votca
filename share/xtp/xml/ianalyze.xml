@@ -4,5 +4,8 @@
     <resolution_logJ2 help="Bin size of histogram log(J2)" default="0.5" choices="float+"/>
     <resolution_space help="Bin size for r in log(J2(r))" unit="nm" default="0.05" choices="float+"/>
     <states help="states to analyze" default="e, h, s, t" choices="[e,h,s,t]"/>
+    <do_pairtype default="false" choices="bool"/>
+    <pairtype help="method to compute the pairtype" choices="Hopping,Excitoncl"/>
+    <do_resolution_spatial default="false" choices="bool"/>
   </ianalyze>
 </options>

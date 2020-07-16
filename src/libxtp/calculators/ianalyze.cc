@@ -45,7 +45,7 @@ void IAnalyze::Initialize(const tools::Property &user_options) {
   }
 
   _resolution_logJ2 = options.get(".resolution_logJ2").as<double>();
-  if (options.exists(".pairtype")) {
+  if (options.get(".pairtype").as<bool>()) {
     _do_pairtype = true;
     std::string _store_stdstring = options.get(".pairtype").as<std::string>();
     if (_store_stdstring.find("Hopping") != std::string::npos) {
@@ -59,7 +59,7 @@ void IAnalyze::Initialize(const tools::Property &user_options) {
       _do_pairtype = false;
     }
   }
-  if (options.exists(".resolution_spatial")) {
+  if (options.get(".do_resolution_spatial").as<bool>()) {
     _resolution_spatial = options.get(".resolution_spatial").as<double>();
     if (_resolution_spatial != 0.0) {
       _do_IRdependence = true;

@@ -57,14 +57,15 @@ void Neighborlist::Initialize(const tools::Property& user_options) {
     }
   }
 
-  if (options.exists(".constant")) {
+  const std::string& cutoff_type = options.get("cutoff_type").as<std::string>();
+  if (cutoff_type == "constant") {
     _useConstantCutoff = true;
     _constantCutoff =
         options.get(".constant").as<double>() * tools::conv::nm2bohr;
   } else {
     _useConstantCutoff = false;
   }
-  if (options.exists(".exciton_cutoff")) {
+  if (options.get(".use_exciton_cutoff").as<bool>()) {
     _useExcitonCutoff = true;
     _excitonqmCutoff =
         options.get(".exciton_cutoff").as<double>() * tools::conv::nm2bohr;

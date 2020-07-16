@@ -50,6 +50,7 @@ Version 1.7-dev
 -  added verbose option for rootfinder (#503)
 -  fix orca pointcharges (#504)
 -  remove constant cutoff from neighborlist (#508)
+-  fix default and flags properties issue (#511)
 
 Version 1.6.1 (released 21.06.20)
 =================================
