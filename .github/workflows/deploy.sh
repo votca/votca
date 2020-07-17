@@ -21,6 +21,10 @@ else
 fi
 popd
 
+if [[ ${GITHUB_BASE_REF} = stable || ${GITHUB_REF} = refs/heads/stable ]]; then
+  exit 0
+fi
+
 git clone --depth=1 https://github.com/votca/votca.github.io.git "$HOME/userdoc"
 pushd "$HOME/userdoc"
 rm -rf -- * .buildinfo .doctrees
