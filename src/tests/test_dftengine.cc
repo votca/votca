@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE dftengine_test
-#include <boost/test/unit_test.hpp>
-#include <votca/xtp/dftengine.h>
 
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/dftengine.h"
 #include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;
@@ -119,6 +122,13 @@ BOOST_AUTO_TEST_CASE(dft_full) {
   xml << "<spin>1</spin>" << std::endl;
   xml << "<name>xtp</name>" << std::endl;
   xml << "<charge>0</charge>" << std::endl;
+  xml << "<functional>XC_HYB_GGA_XC_PBEH</functional>" << std::endl;
+  xml << "<basisset>3-21G.xml</basisset>" << std::endl;
+  xml << "<read_guess>0</read_guess>" << std::endl;
+  xml << "<xtpdft>" << std::endl;
+  xml << "<with_screening choices=\"bool\">true</with_screening>\n";
+  xml << "<screening_eps  choices=\"float+\">1e-9</screening_eps>\n";
+  xml << "<four_center_method>cache</four_center_method>\n";
   xml << "<convergence>" << std::endl;
   xml << "    <energy>1e-7</energy>" << std::endl;
   xml << "    <method>DIIS</method>" << std::endl;
@@ -127,15 +137,16 @@ BOOST_AUTO_TEST_CASE(dft_full) {
   xml << "    <DIIS_length>20</DIIS_length>" << std::endl;
   xml << "    <levelshift>0.0</levelshift>" << std::endl;
   xml << "    <levelshift_end>0.2</levelshift_end>" << std::endl;
+  xml << "    <max_iterations choices=\"int+\">100</max_iterations>\n";
+  xml << "    <error choices=\"float+\">1e-7</error>\n";
+  xml << "    <DIIS_maxout choices=\"bool\">false</DIIS_maxout>\n";
+  xml << "    <mixing choices=\"float+\">0.7</mixing>\n";
   xml << "</convergence>" << std::endl;
   xml << "<initial_guess>independent</initial_guess>" << std::endl;
-  xml << "<basisset>3-21G.xml</basisset>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
   xml << "<integration_grid_small>0</integration_grid_small>" << std::endl;
-  xml << "<xc_functional>XC_HYB_GGA_XC_PBEH</xc_functional>" << std::endl;
   xml << "<max_iterations>200</max_iterations>" << std::endl;
-  xml << "<read_guess>0</read_guess>" << std::endl;
-  xml << "<cleanup></cleanup>" << std::endl;
+  xml << "</xtpdft>" << std::endl;
   xml << "</package>" << std::endl;
   xml.close();
   votca::tools::Property prop;
@@ -232,6 +243,13 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   xml << "<spin>1</spin>" << std::endl;
   xml << "<name>xtp</name>" << std::endl;
   xml << "<charge>0</charge>" << std::endl;
+  xml << "<functional>XC_HYB_GGA_XC_PBEH</functional>" << std::endl;
+  xml << "<basisset>3-21G.xml</basisset>" << std::endl;
+  xml << "<read_guess>0</read_guess>" << std::endl;
+  xml << "<xtpdft>" << std::endl;
+  xml << "<with_screening choices=\"bool\">true</with_screening>\n";
+  xml << "<screening_eps  choices=\"float+\">1e-9</screening_eps>\n";
+  xml << "<four_center_method>cache</four_center_method>\n";
   xml << "<convergence>" << std::endl;
   xml << "    <energy>1e-7</energy>" << std::endl;
   xml << "    <method>DIIS</method>" << std::endl;
@@ -240,15 +258,16 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   xml << "    <DIIS_length>20</DIIS_length>" << std::endl;
   xml << "    <levelshift>0.0</levelshift>" << std::endl;
   xml << "    <levelshift_end>0.2</levelshift_end>" << std::endl;
+  xml << "    <max_iterations choices=\"int+\">100</max_iterations>\n";
+  xml << "    <error choices=\"float+\">1e-7</error>\n";
+  xml << "    <DIIS_maxout choices=\"bool\">false</DIIS_maxout>\n";
+  xml << "    <mixing choices=\"float+\">0.7</mixing>\n";
   xml << "</convergence>" << std::endl;
   xml << "<initial_guess>atom</initial_guess>" << std::endl;
-  xml << "<basisset>3-21G.xml</basisset>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
   xml << "<integration_grid_small>0</integration_grid_small>" << std::endl;
-  xml << "<xc_functional>XC_HYB_GGA_XC_PBEH</xc_functional>" << std::endl;
   xml << "<max_iterations>1</max_iterations>" << std::endl;
-  xml << "<read_guess>0</read_guess>" << std::endl;
-  xml << "<cleanup></cleanup>" << std::endl;
+  xml << "</xtpdft>" << std::endl;
   xml << "</package>" << std::endl;
   xml.close();
   votca::tools::Property prop;

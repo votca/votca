@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,15 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/dftcoupling.h>
-
+// Third party includes
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/dftcoupling.h"
 
 namespace votca {
 namespace xtp {
