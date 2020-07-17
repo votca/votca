@@ -53,7 +53,7 @@ Version 1.7-dev
 Version 1.6.2 (released XX.07.20)
 =================================
 
--  move CI to GitHub Actions (#512)
+-  move CI to GitHub Actions (#512, #514)
 
 Version 1.6.1 (released 21.06.20)
 =================================
