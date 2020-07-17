@@ -9,6 +9,7 @@
     <dftpackage>
       <package>
         <name help="Name of the DFT package" default="xtp" choices="xtp,orca">xtp</name>
+        <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool"/>
       </package>
     </dftpackage>
     <use_mpsfile help="check for MPS file with external multipoles for embedding" default="false" choices="bool"/>
