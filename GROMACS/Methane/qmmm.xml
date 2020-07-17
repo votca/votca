@@ -18,7 +18,9 @@
             <charge help="Molecular charge" default="0" choices="int">0</charge>
             <spin help="Molecular multiplicity" default="1" choices="int+">1</spin>
             <basisset help="Basis set for MOs" default="def2-tzvp">def2-svp</basisset>
+            <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool">true</use_auxbasisset>
             <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-svp</auxbasisset>
+            <use_ecp help="use an Effective Core Potentials for DFT Calculations" default="false" choices="bool">false</use_ecp>
             <optimize help="Perform a molecular geometry optimization" default="false" choices="bool">false</optimize>
             <functional default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
             <scratch help="path to the scratch folder" default="/tmp/qmpackage">/tmp/qmpackage</scratch>
@@ -27,6 +29,8 @@
             <xtpdft>
               <with_screening help="screening" default="true" choices="bool">true</with_screening>
               <screening_eps help="screening eps" default="1e-9" choices="float+">1e-9</screening_eps>
+              <use_external_field help="whether or not to use an external field" default="false" choices="bool">false</use_external_field>
+              <use_external_density help="whether or not to use a precomputed external density" default="false" choices="bool">false</use_external_density>
               <four_center_method help="method to compute the four-center integrals" default="cache" choices="cache,direct,RI">cache</four_center_method>
               <convergence>
                 <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7">1e-7</energy>
