@@ -45,7 +45,7 @@ void IAnalyze::Initialize(const tools::Property &user_options) {
   }
 
   _resolution_logJ2 = options.get(".resolution_logJ2").as<double>();
-  if (options.get(".pairtype").as<bool>()) {
+  if (options.get(".do_pairtype").as<bool>()) {
     _do_pairtype = true;
     std::string _store_stdstring = options.get(".pairtype").as<std::string>();
     if (_store_stdstring.find("Hopping") != std::string::npos) {

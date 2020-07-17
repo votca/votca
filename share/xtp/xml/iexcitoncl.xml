@@ -3,6 +3,6 @@
   <iexcitoncl help="Classical coupling of transition charges" section="sec:iexcitoncl">
     <map_file help="xml file with segment definition" default="votca_map.xml"/>
     <job_file help="name of jobfile to which jobs are written" default="exciton.jobs"/>
-    <use_state help="Use pair of segments and exciton labels" default="false" choices="bool"/>
+    <use_states help="Use pair of segments and exciton labels" default="false" choices="bool"/>
   </iexcitoncl>
 </options>
