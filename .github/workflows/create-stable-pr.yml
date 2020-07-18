@@ -12,7 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@master
         with:
-          ref: ${{ github.event.ref }}
+          submodules: true
           fetch-depth: 0
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Try to merge master branch
