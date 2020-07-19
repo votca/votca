@@ -30,6 +30,10 @@ jobs:
             toolchain: gnu
             cmake_build_type: Release
             module_build: true
+          - distro: intel
+            toolchain: gnu
+            cmake_build_type: Release
+            module_build: true
     runs-on: ubuntu-latest
     container: votca/buildenv:${{ matrix.distro }}
     steps:
