@@ -60,7 +60,7 @@
 include(CheckTypeSize)
 
 check_type_size("int" INT_SIZE
-  BUILTIN_TYPES_ONLY LANGUAGE C)
+  BUILTIN_TYPES_ONLY LANGUAGE CXX)
 
 
 set(MKL_THREAD_LAYER "TBB" CACHE STRING "The thread layer to choose for MKL")
