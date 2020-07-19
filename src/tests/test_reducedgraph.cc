@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,20 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE reducedgraph_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <cmath>
 #include <exception>
 #include <iostream>
-#include <votca/tools/graphnode.h>
-#include <votca/tools/reducededge.h>
-#include <votca/tools/reducedgraph.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/graphnode.h"
+#include "votca/tools/reducededge.h"
+#include "votca/tools/reducedgraph.h"
+
 using namespace std;
 using namespace votca::tools;
 

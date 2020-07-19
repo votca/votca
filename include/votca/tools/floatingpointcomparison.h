@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,9 +17,10 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_FLOATINGPOINTCOMPARISON_H
-#define _VOTCA_TOOLS_FLOATINGPOINTCOMPARISON_H
+#ifndef VOTCA_TOOLS_FLOATINGPOINTCOMPARISON_H
+#define VOTCA_TOOLS_FLOATINGPOINTCOMPARISON_H
 
+// Standard includes
 #include <algorithm>
 #include <cmath>
 
@@ -55,4 +56,4 @@ static bool isApproximatelyEqual(T a, T b, T tolerance) {
 
 }  // namespace tools
 }  // namespace votca
-#endif  // _VOTCA_TOOLS_FLOATINGPOINTCOMPARISON_H
+#endif  // VOTCA_TOOLS_FLOATINGPOINTCOMPARISON_H

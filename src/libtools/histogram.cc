@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,20 @@
  *
  */
 
+// Standard includes
+#include <cmath>
 #include <limits>
-#include <math.h>
 #include <numeric>
-#include <votca/tools/histogram.h>
+
+// Local VOTCA includes
+#include "votca/tools/histogram.h"
 
 namespace votca {
 namespace tools {
 
 Histogram::Histogram() = default;
 
-Histogram::Histogram(options_t op) : _options(op) {}
+Histogram::Histogram(const options_t& op) : _options(op) {}
 
 Histogram::~Histogram() = default;
 
@@ -109,7 +112,7 @@ void Histogram::ProcessData(DataCollection<double>::selection* data) {
   }
 }
 
-void Histogram::Normalize(void) {
+void Histogram::Normalize() {
   double norm = 1. / (_interval * accumulate(_pdf.begin(), _pdf.end(), 0.0));
   std::transform(_pdf.begin(), _pdf.end(), _pdf.begin(),
                  std::bind2nd(std::multiplies<double>(), norm));

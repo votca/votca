@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_LINALG_H
-#define __VOTCA_TOOLS_LINALG_H
-#include <votca/tools/eigen.h>
-#include <votca/tools/eigensystem.h>
-#include <votca/tools/types.h>
+#ifndef VOTCA_TOOLS_LINALG_H
+#define VOTCA_TOOLS_LINALG_H
+
+// Local VOTCA includes
+#include "eigen.h"
+#include "eigensystem.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {
@@ -50,4 +52,4 @@ EigenSystem linalg_eigenvalues(Eigen::MatrixXd& A, Index nmax);
 }  // namespace tools
 }  // namespace votca
 
-#endif  // __VOTCA_TOOLS_LINALG_H
+#endif  // VOTCA_TOOLS_LINALG_H

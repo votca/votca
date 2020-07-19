@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,19 @@
  *
  */
 
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/range/algorithm.hpp>
+// Standard includes
 #include <fstream>
 #include <stdexcept>
 #include <vector>
-#include <votca/tools/lexical_cast.h>
-#include <votca/tools/table.h>
-#include <votca/tools/tokenizer.h>
+
+// Third party includes
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/range/algorithm.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/lexical_cast.h"
+#include "votca/tools/table.h"
+#include "votca/tools/tokenizer.h"
 
 namespace votca {
 namespace tools {
