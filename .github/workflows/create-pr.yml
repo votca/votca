@@ -13,9 +13,9 @@ jobs:
         run:
           echo "::set-output name=branch::$(echo ${{ github.event.ref }} | sed 's/update_\(.*\)_submodules/\1/')"
       - name: Checkout code
-        uses: actions/checkout@master
+        uses: actions/checkout@v2.2.0
         with:
-          ref: ${{ github.event.ref }}
+          submodules: true
           fetch-depth: 0
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Try to merge base branch
