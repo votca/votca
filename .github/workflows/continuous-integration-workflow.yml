@@ -23,6 +23,7 @@ jobs:
         own_gmx: [false]
         module_build: [false]
         coverage: [false]
+        deploy: [false]
         include:
           - distro: latest
             toolchain: gnu
@@ -31,9 +32,9 @@ jobs:
             own_gmx: false
             module_build: false
             coverage: false
-            no_regression_testing: true
             # make sure there is only one build deploying
             deploy: true
+            no_regression_testing: true
           - distro: fedora_nogmx
             toolchain: gnu
             cmake_build_type: Release
@@ -49,7 +50,11 @@ jobs:
           - distro: latest
             toolchain: gnu
             cmake_build_type: Release
+            minimal: false
+            own_gmx: false
             module_build: true
+            coverage: false
+            deploy: false
           - distro: fedora_gmx2019
             toolchain: gnu
             cmake_build_type: Release
