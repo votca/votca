@@ -49,6 +49,7 @@ Version 1.7-dev
 -  implement RPA correlation energy (#498)
 -  added verbose option for rootfinder (#503)
 -  fix orca pointcharges (#504)
+-  add more checks to the dft_parse_part (#510)
 
 Version 1.6.2 (released XX.07.20)
 =================================
