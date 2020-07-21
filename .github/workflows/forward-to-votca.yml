@@ -7,6 +7,7 @@ on:
 
 jobs:
   VOTCA:
+    if: startsWith(github.repository, 'votca/')
     runs-on: ubuntu-latest
     steps:
       - name: Update submodule
