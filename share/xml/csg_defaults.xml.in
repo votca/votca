@@ -677,9 +677,9 @@
             <scale>
               <DESC>slope of the simple pressure correction</DESC>
             </scale>
-            <A_max>0.1
+            <max_A>0.1
               <DESC>maximum prefactor in units of kBT</DESC>
-            </A_max>
+            </max_A>
           </simple>
           <ptype>
             <DESC>Generic Pressure correction options</DESC>
@@ -695,9 +695,9 @@
             <scale>1.0
               <DESC>extra scaling factor of pressure wjk correction</DESC>
             </scale>
-            <A_max>0.1
+            <max_A>0.1
               <DESC>maximum prefactor in units of kBT</DESC>
-            </A_max>
+            </max_A>
           </wjk>
         </pressure>
         <scale>1.0
