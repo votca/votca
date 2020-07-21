@@ -7,7 +7,7 @@ on:
 jobs:
   PR:
     name: Create
-    if: startsWith(github.repository, 'votca/')
+    if: github.repository_owner == 'votca'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

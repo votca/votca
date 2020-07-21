@@ -7,7 +7,7 @@ on:
 
 jobs:
   VOTCA:
-    if: startsWith(github.repository, 'votca/')
+    if: github.repository_owner == 'votca'
     runs-on: ubuntu-latest
     steps:
       - name: Update submodule
