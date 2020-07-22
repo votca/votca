@@ -7,6 +7,7 @@ on:
 jobs:
   PR:
     name: Create stable PR
+    if: github.repository_owner == 'votca'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
