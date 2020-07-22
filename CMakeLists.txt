@@ -131,7 +131,7 @@ if(ENABLE_TESTING)
   add_test(regression_UninstallExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
            -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake)
 
-  set_tests_properties(regression_UninstallExists PROPERTIES LABELS "regression")
+  set_tests_properties(regression_UninstallExists PROPERTIES LABELS "csg-tutorials;votca")
 endif(ENABLE_TESTING)
 add_custom_target(uninstall-csg-tutorials COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 if(NOT TARGET uninstall)
