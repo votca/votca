@@ -2,7 +2,7 @@ For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/csg/commits/master).
 
 ## Version 1.6.2 (released XX.07.20)
-* move CI to GitHub Actions (#563)
+* move CI to GitHub Actions (#563, #567)
 * add max scaling parameter to pressure correction (#565)
 
 ## Version 1.6.1 (released 21.06.20)
