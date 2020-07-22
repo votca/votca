@@ -113,6 +113,7 @@ if(ENABLE_TESTING)
   enable_testing()
   add_test(ManualExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/manual.pdf
            -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake) 
+  set_tests_properties(ManualExists PROPERTIES LABELS "csg-manual;votca")
 endif(ENABLE_TESTING)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
