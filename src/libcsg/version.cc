@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,25 @@
  *
  */
 
+// Standard includes
 #include <iostream>
-#include <votca/csg/version.h>
-#include <votca/tools/version.h>
-#include <votca_config.h>
 
+// Third party includes
 #ifdef GMX_DOUBLE
 #include <gromacs/utility/baseversion.h>
 // this one is needed because of bool is defined in one of the headers included
 // by gmx
 #undef bool
 #endif
+
+// VOTCA includes
+#include <votca/tools/version.h>
+
+// Local VOTCA includes
+#include "votca/csg/version.h"
+
+// Local private VOTCA includes
+#include "votca_config.h"
 
 namespace votca {
 namespace csg {

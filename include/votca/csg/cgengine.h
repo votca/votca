@@ -18,23 +18,28 @@
 #ifndef _VOTCA_CSG_CGENGINE_H
 #define _VOTCA_CSG_CGENGINE_H
 
-#include "cgmoleculedef.h"
-#include "cgobserver.h"
-#include "topology.h"
-#include "topologymap.h"
-#include <boost/program_options.hpp>
+// Standard includes
 #include <list>
 #include <map>
-#include <votca/tools/datacollection.h>
 
+// Third party includes
+#include <boost/program_options.hpp>
+
+// VOTCA includes
+#include <votca/tools/datacollection.h>
+#include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
 #include "cgengine.h"
 #include "cgmoleculedef.h"
+#include "cgobserver.h"
 #include "molecule.h"
 #include "nematicorder.h"
+#include "topology.h"
+#include "topologymap.h"
 #include "topologyreader.h"
 #include "trajectoryreader.h"
 #include "trajectorywriter.h"
-#include <votca/tools/tokenizer.h>
 
 namespace votca {
 namespace csg {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  *
  */
 
+#include "../../include/votca/csg/csgapplication.h"
+#include "../../include/votca/csg/version.h"
 #include "csg_stat_imc.h"
 #include <boost/program_options.hpp>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <stdlib.h>
-#include <votca/csg/csgapplication.h>
-#include <votca/csg/version.h>
 
 // using namespace votca::tools;
 using namespace std;

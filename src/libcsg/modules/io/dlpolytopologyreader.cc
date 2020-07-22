@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,28 @@
  *
  */
 
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem/convenience.hpp>
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <votca/csg/topology.h>
+
+// Third party includes
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem/convenience.hpp>
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
 #include <votca/tools/getline.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/csg/topology.h"
 
 #ifndef HAVE_NO_CONFIG
 #include <votca_config.h>
 #endif
 
+// Local private VOTCA includes
 #include "dlpolytopologyreader.h"
 
 using namespace votca::tools;

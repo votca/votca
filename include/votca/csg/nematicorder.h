@@ -18,8 +18,11 @@
 #ifndef _VOTCA_CSG_NEMATICORDER_H
 #define _VOTCA_CSG_NEMATICORDER_H
 
-#include "topology.h"
+// VOTCA includes
 #include <votca/tools/eigen.h>
+
+// Local VOTCA includes
+#include "topology.h"
 
 namespace votca {
 namespace csg {
