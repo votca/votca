@@ -28,7 +28,7 @@ EOF
   exit 0;
 }
 
-die "6 parameters are necessary\n" if ($#ARGV<5);
+die "7 parameters are necessary\n" if ($#ARGV<6);
 
 use CsgFunctions;
 
@@ -41,13 +41,14 @@ my $delta_r=$range[1];
 my $scale_factor=$ARGV[4];
 my $p_target=$ARGV[5];
 my $p_now=$ARGV[0];
+my $max_A=$ARGV[6];
 
 #Determine the sign
 my $pref;
 if ($p_now>$p_target){
-   $pref=-0.1*$kBT;
+   $pref=-$max_A*$kBT;
 } else {
-   $pref=0.1*$kBT;
+   $pref=$max_A*$kBT;
 }
 
 #Determine pressure factor
@@ -55,7 +56,7 @@ my $p_factor=($p_now-$p_target)*$scale_factor;
 $p_factor=-$p_factor if $p_factor<0;
 
 #Only use pressure factor if not too big
-#max is 0.1kbT
+#max is $max_A kBT
 $pref*=$p_factor if $p_factor<1;
 
 my @r;
