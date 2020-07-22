@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,16 @@
  *
  */
 
-#ifndef VOTCA_TOOLS_OBJECTFACTORY
-#define VOTCA_TOOLS_OBJECTFACTORY
+#ifndef VOTCA_TOOLS_OBJECTFACTORY_H
+#define VOTCA_TOOLS_OBJECTFACTORY_H
 
-#include <boost/lexical_cast.hpp>
-#include <iostream>
+// Standard includes
 #include <list>
 #include <map>
 #include <stdexcept>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
 
 namespace votca {
 namespace tools {
@@ -129,4 +131,4 @@ class ObjectFactoryRegister {
 }  // namespace tools
 }  // namespace votca
 
-#endif  // VOTCA_TOOLS_OBJECTFACTORY
+#endif  // VOTCA_TOOLS_OBJECTFACTORY_H

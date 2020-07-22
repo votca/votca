@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_GETLINE_H
-#define _VOTCA_TOOLS_GETLINE_H
+#ifndef VOTCA_TOOLS_GETLINE_H
+#define VOTCA_TOOLS_GETLINE_H
 
+// Standard includes
 #include <algorithm>
 #include <iostream>
 #include <string>
@@ -40,4 +41,4 @@ inline std::istream& getline(std::istream& is, std::string& str) {
 }  // namespace tools
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_TOOLS_GETLINE_H
