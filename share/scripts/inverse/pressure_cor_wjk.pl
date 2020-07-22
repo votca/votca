@@ -30,7 +30,7 @@ EOF
   exit 0;
 }
 
-die "8 parameters are necessary\n" if ($#ARGV<7);
+die "9 parameters are necessary\n" if ($#ARGV<8);
 
 
 use CsgFunctions;
@@ -42,7 +42,7 @@ my $max=$range[2];
 my $min=$range[0];
 my $delta_r=$range[1];
 
-my $partDens=$ARGV[6];
+my $partDens=$ARGV[7];
 my $scale_factor=$ARGV[4];
 
 my $pi= 3.14159265;
@@ -50,9 +50,10 @@ my $bar_to_SI = 0.06022; # 1bar=0.06022 kJ/(nm mol)
 
 my $p_target=$ARGV[5];
 my $p_now=$ARGV[0];
+my $max_A=$ARGV[6];
 
 # load current rdf
-my $cur_rdf_file="$ARGV[7]";
+my $cur_rdf_file="$ARGV[8]";
 my @r_cur;
 my @rdf_cur;
 my @flags_cur;
@@ -72,16 +73,16 @@ $integral += ($delta_r/2*$rdf_cur[$max/$delta_r]*$max*$max*$max);
 $pref = -3*$max*($p_now-$p_target)*$bar_to_SI;
 $pref /= 2*$pi*$partDens*$partDens*$integral;
 
-# use max($pref, +-0.1kt) as prefactor
+# use max($pref, +-$max_A kBT) as prefactor
 
 my $temp;
 $temp=$pref;
 $temp = -1*$temp if $temp<0;
-if ($temp > 0.1*$kBT){
+if ($temp > $max_A*$kBT){
 	if ($pref >0){
-		$pref=0.1*$kBT;
+		$pref=$max_A*$kBT;
 	}else{
-		$pref=-0.1*$kBT;
+		$pref=-$max_A*$kBT;
 	}
 }
 
