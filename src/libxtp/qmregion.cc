@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,15 +17,16 @@
  *
  */
 
+// Local VOTCA includes
+#include "votca/xtp/qmregion.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/gwbse.h"
+#include "votca/xtp/polarregion.h"
+#include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/polarregion.h>
-#include <votca/xtp/qmregion.h>
-#include <votca/xtp/staticregion.h>
 
 namespace votca {
 namespace xtp {
@@ -48,9 +49,10 @@ void QMRegion::Initialize(const tools::Property& prop) {
   if (_initstate.Type().isExciton() || _initstate.Type().isGWState()) {
 
     _do_gwbse = true;
-    std::string gwbsexml =
-        prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_gwbse");
-    _gwbseoptions.LoadFromXML(gwbsexml);
+    _gwbseoptions.add("gwbse", "");
+    tools::Property& prop_gwbse = _gwbseoptions.get("gwbse");
+    prop_gwbse = prop.get("gwbse");
+
     if (prop.exists("statetracker")) {
       tools::Property filter = prop.get("statetracker");
       _statetracker.setLogger(&_log);
@@ -68,9 +70,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
   _DeltaE = prop.ifExistsReturnElseReturnDefault("tolerance_energy", _DeltaE);
   _DeltaD = prop.ifExistsReturnElseReturnDefault("tolerance_density", _DeltaD);
 
-  std::string dftxml =
-      prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_dft");
-  _dftoptions.LoadFromXML(dftxml);
+  _dftoptions = prop.get("options_dft");
 }
 
 bool QMRegion::Converged() const {

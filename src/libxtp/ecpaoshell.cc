@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,9 +16,11 @@
  * limitations under the License.
  *
  */
+
+// Local VOTCA includes
 #include "votca/xtp/ecpaoshell.h"
+#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/ecpaobasis.h"
-#include <votca/xtp/aomatrix.h>
 
 namespace votca {
 namespace xtp {

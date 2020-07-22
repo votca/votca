@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,14 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE threecenter_dft_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
+
+// VOTCA includes
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/threecenter.h>
@@ -50,8 +56,6 @@ Eigen::MatrixXd ReadMatrixFromString(const std::string& matrix) {
 }
 
 BOOST_AUTO_TEST_CASE(small_basis) {
-
-  OPENMP::setMaxThreads(1);
 
   std::ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << std::endl;
@@ -261,7 +265,6 @@ BOOST_AUTO_TEST_CASE(small_basis) {
 }
 
 BOOST_AUTO_TEST_CASE(large_l_test) {
-  OPENMP::setMaxThreads(1);
   std::ofstream xyzfile("C2.xyz");
   xyzfile << " 2" << std::endl;
   xyzfile << " C2" << std::endl;

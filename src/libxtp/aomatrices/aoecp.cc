@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,9 @@
  *
  */
 
-#include <votca/xtp/aopotential.h>
-#include <votca/xtp/aotransform.h>
+// Local VOTCA includes
+#include "votca/xtp/aopotential.h"
+#include "votca/xtp/aotransform.h"
 
 namespace votca {
 namespace xtp {
@@ -104,6 +105,14 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         for (const ECPAOShell* shell_ecp : shells_perAtom) {
           // only do the non-local parts
           if (!shell_ecp->isNonLocal()) {
+            // stop if local coefficient is not zero
+            for (const auto& gaussian_ecp : *shell_ecp) {
+              if (std::abs(gaussian_ecp.getContraction()) > 1e-5) {
+                throw std::runtime_error(
+                    "ECPs with explicit local parts are not supported. Use "
+                    "external DFT instead.");
+              }
+            }
             continue;
           }
           Index index = 0;

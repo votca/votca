@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,15 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE gw_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <fstream>
-#include <votca/xtp/gw.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/gw.h"
 
 using namespace votca::xtp;
 using namespace std;
@@ -232,6 +238,17 @@ BOOST_AUTO_TEST_CASE(gw_full) {
   opt.rpamin = 0;
   opt.gw_sc_max_iterations = 1;
   opt.eta = 1e-3;
+  opt.sigma_integration = "ppm";
+  opt.reset_3c = 5;
+  opt.qp_solver = "grid";
+  opt.qp_grid_steps = 601;
+  opt.qp_grid_spacing = 0.005;
+  opt.gw_mixing_order = 0;
+  opt.gw_mixing_alpha = 0.7;
+  opt.g_sc_limit = 1e-5;
+  opt.g_sc_max_iterations = 50;
+  opt.gw_sc_limit = 1e-5;
+
   GW gw(log, Mmn, vxc, mo_eigenvalues);
   gw.configure(opt);
 
@@ -525,6 +542,16 @@ BOOST_AUTO_TEST_CASE(gw_full_QP_grid) {
   opt.gw_sc_max_iterations = 1;
   opt.qp_solver = "grid";
   opt.eta = 1e-3;
+  opt.sigma_integration = "ppm";
+  opt.reset_3c = 5;
+  opt.qp_grid_steps = 601;
+  opt.qp_grid_spacing = 0.005;
+  opt.gw_mixing_order = 0;
+  opt.gw_mixing_alpha = 0.7;
+  opt.g_sc_limit = 1e-5;
+  opt.g_sc_max_iterations = 50;
+  opt.gw_sc_limit = 1e-5;
+
   GW gw(log, Mmn, vxc, mo_eigenvalues);
   gw.configure(opt);
 
