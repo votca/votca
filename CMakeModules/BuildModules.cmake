@@ -74,5 +74,6 @@ endforeach()
 if(ENABLE_TESTING)
   add_test(IncludeExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_INSTALL_FULL_INCLUDEDIR}/votca
            -P ${PROJECT_SOURCE_DIR}/CMakeModules/FileExists.cmake) 
+  set_tests_properties(IncludeExists PROPERTIES LABELS "votca")
 endif(ENABLE_TESTING)
 install(FILES ${PROJECT_SOURCE_DIR}/README.rst DESTINATION ${CMAKE_INSTALL_DOCDIR})
