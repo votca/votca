@@ -12,7 +12,7 @@ if [[ -z ${INPUT_VERSION} ]]; then
   version="$(sed -n 's/set(PROJECT_VERSION *"\([^"]*\)").*/\1/p' CMakeLists.txt)"
   [[ ${version} ]] || die "No version found"
 else
-  version="${INPUT_VERSION}"
+  version="${INPUT_VERSION#refs/tags/v}"
 fi
 [[ -n ${INPUT_CHANGELOG} ]] || die "INPUT_CHANGELOG is empty"
 
