@@ -1,0 +1,11 @@
+name: 'Release Changelog'
+description: 'Create a md changelog file to be used with actions/create-release'
+inputs:
+  changlog:
+    description: 'File to write to'
+    required: true
+  version:
+    description: 'Version to look for in the CHANGELOG file'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
