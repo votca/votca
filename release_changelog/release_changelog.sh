@@ -29,4 +29,4 @@ fi
 
 [[ $version_section ]] || die "Could not find section to $version"
 echo "Writing following changelog to $INPUT_CHANGELOG: $version_section"
-echo "$version_section" > "${INPUT_VERSION}"
+echo "$version_section" > "${INPUT_CHANGELOG}"
