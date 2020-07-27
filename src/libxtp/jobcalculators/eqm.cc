@@ -225,7 +225,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     WriteLoggerToFile(work_dir + "/dft.log", dft_logger);
   }
 
-  if (!_do_dft_parse) {
+  if (!_do_dft_parse && (_do_gwbse || _do_esp)) {
     // load the DFT data from serialized orbitals object
     std::string ORB_FILE =
         eqm_work_dir + "/molecules/" + frame_dir + "/" + orb_file;
