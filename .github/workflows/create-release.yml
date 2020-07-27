@@ -21,10 +21,10 @@ jobs:
           prerelease: ${{ contains(github.ref, 'rc') }}
       - name: Get version
         run: echo "::set-env name=VERSION::${GITHUB_REF#refs/tags/v}"
-      - name: Upload manual
-        uses: actions/upload-release-asset@v1
       - name: Get manual
         run: wget https://github.com/votca/votca/releases/download/v${{ env.VERSION }}/votca-csg-manual-${{ env.VERSION }}.pdf
+      - name: Upload manual
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
         with:
