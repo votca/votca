@@ -130,7 +130,7 @@ class CsgFluctuations : public CsgApplication {
   // write out results in EndEvaluate
   void EndEvaluate() override;
   // do calculation in this function
-  void EvalConfiguration(Topology *top, Topology *top_ref) override;
+  void EvalConfiguration(Topology *conf, Topology *top_ref) override;
 
  protected:
   // number of particles in dV
