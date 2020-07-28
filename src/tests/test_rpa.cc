@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,17 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE rpa_test
-#include <boost/test/unit_test.hpp>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/rpa.h>
-#include <votca/xtp/threecenter.h>
+
+// Third party includes
+#include "boost/test/unit_test.hpp"
+
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/rpa.h"
+#include "votca/xtp/threecenter.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -44,7 +48,8 @@ BOOST_AUTO_TEST_CASE(rpa_calcenergies) {
   rpa.UpdateRPAInputEnergies(dftenergies, gwenergies, qpmin);
   Eigen::VectorXd rpaenergies = rpa.getRPAInputEnergies();
   Eigen::VectorXd rpaenergies_ref = Eigen::VectorXd::Zero(10);
-  rpaenergies_ref << -0.5, -0.15, -0.05, 0.05, 0.15, 0.45, 0.55, 0.65, 0.4, 0.5;
+  rpaenergies_ref << -0.85, -0.15, -0.05, 0.05, 0.15, 0.45, 0.55, 0.65, 0.75,
+      0.85;
   bool e_check = rpaenergies_ref.isApprox(rpaenergies, 0.0001);
 
   if (!e_check) {
@@ -53,6 +58,7 @@ BOOST_AUTO_TEST_CASE(rpa_calcenergies) {
     cout << "energy_ref" << endl;
     cout << rpaenergies_ref << endl;
   }
+  BOOST_CHECK_EQUAL(e_check, true);
 }
 
 BOOST_AUTO_TEST_CASE(rpa_full) {

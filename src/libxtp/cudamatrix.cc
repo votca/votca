@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,7 +17,8 @@
  *
  */
 
-#include <votca/xtp/cudamatrix.h>
+// Local VOTCA includes
+#include "votca/xtp/cudamatrix.h"
 
 namespace votca {
 namespace xtp {
@@ -59,6 +60,7 @@ CudaMatrix::operator Eigen::MatrixXd() const {
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(this->rows(), this->cols());
   checkCuda(cudaMemcpyAsync(result.data(), this->data(), this->size_matrix(),
                             cudaMemcpyDeviceToHost, this->_stream));
+  checkCuda(cudaStreamSynchronize(this->_stream));
   return result;
 }
 

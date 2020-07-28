@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,18 @@
  *
  */
 
-#include "votca/xtp/threecenter.h"
-#include <boost/math/constants/constants.hpp>
+// Standard includes
 #include <cmath>
+
+// Third party includes
+#include <boost/math/constants/constants.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
-#include <votca/xtp/sigma_base.h>
+
+// Local VOTCA includes
+#include "votca/xtp/sigma_base.h"
+#include "votca/xtp/threecenter.h"
 
 namespace votca {
 namespace xtp {

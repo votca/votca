@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,9 +21,10 @@
 #ifndef VOTCA_XTP_AOPOTENTIAL_H
 #define VOTCA_XTP_AOPOTENTIAL_H
 
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/ecpaobasis.h>
-#include <votca/xtp/staticsite.h>
+// Local VOTCA includes
+#include "aobasis.h"
+#include "ecpaobasis.h"
+#include "staticsite.h"
 
 namespace votca {
 namespace xtp {
@@ -114,4 +115,4 @@ class AOPlanewave : public AOPotential<std::complex<double>> {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_AOMATRIX_H
+#endif  // VOTCA_XTP_AOPOTENTIAL_H

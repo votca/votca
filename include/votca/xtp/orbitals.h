@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,14 +21,17 @@
 #ifndef VOTCA_XTP_ORBITALS_H
 #define VOTCA_XTP_ORBITALS_H
 
-#include "aobasis.h"
+// VOTCA includes
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/checkpoint.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/qmmolecule.h>
-#include <votca/xtp/qmstate.h>
+
+// Local VOTCA includes
+#include "aobasis.h"
+#include "checkpoint.h"
+#include "classicalsegment.h"
+#include "eigen.h"
+#include "qmmolecule.h"
+#include "qmstate.h"
 
 namespace votca {
 namespace xtp {
@@ -231,6 +234,13 @@ class Orbitals {
   void setScaHFX(double ScaHFX) { _ScaHFX = ScaHFX; }
 
   // access to perturbative QP energies
+  bool hasRPAInputEnergies() const { return (_rpa_inputenergies.size() > 0); }
+
+  const Eigen::VectorXd &RPAInputEnergies() const { return _rpa_inputenergies; }
+
+  Eigen::VectorXd &RPAInputEnergies() { return _rpa_inputenergies; }
+
+  // access to RPA input energies energies
   bool hasQPpert() const {
     return (_QPpert_energies.size() > 0) ? true : false;
   }
@@ -304,7 +314,10 @@ class Orbitals {
   void ReadFromCpt(const std::string &filename);
 
   void WriteToCpt(CheckpointWriter w) const;
-  void ReadFromCpt(CheckpointReader parent);
+  void ReadFromCpt(CheckpointReader r);
+
+  bool GetFlagUseHqpOffdiag() const { return _use_Hqp_offdiag; };
+  void SetFlagUseHqpOffdiag(bool flag) { _use_Hqp_offdiag = flag; };
 
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
@@ -354,7 +367,6 @@ class Orbitals {
 
   Index _qpmin = 0;
   Index _qpmax = 0;
-
   Index _bse_vmin = 0;
   Index _bse_vmax = 0;
   Index _bse_cmin = 0;
@@ -371,6 +383,7 @@ class Orbitals {
   std::string _functionalname = "";
   std::string _qm_package = "";
 
+  Eigen::VectorXd _rpa_inputenergies;
   // perturbative quasiparticle energies
   Eigen::VectorXd _QPpert_energies;
 
@@ -380,6 +393,8 @@ class Orbitals {
   tools::EigenSystem _BSE_singlet;
   std::vector<Eigen::Vector3d> _transition_dipoles;
   tools::EigenSystem _BSE_triplet;
+
+  bool _use_Hqp_offdiag = true;
 };
 
 }  // namespace xtp
