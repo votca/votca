@@ -108,6 +108,7 @@ die () { #make the iterative frame work stopp
   echo -e "\nCallstack:" >&2
   show_callstack >&2
   [[ -z $CSGLOG ]] && place="Details can be found above" || place="For details see the logfile $CSGLOG"
+  [[ ${CSG_RUNTEST} && ${CSGLOG} ]] && tail -n 200 "${CSGLOG}" >&4
   msg --color red --to-stderr "$(csg_banner "ERROR:" "$@" "$place")"
   if [[ -n ${CSG_MASTER_PID} ]]; then
     #grabbing the pid group would be easier, but it would not work on AIX

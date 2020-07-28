@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #ifndef VOTCA_CSG_BEADMOTIFALGORITHMS_H
 #define VOTCA_CSG_BEADMOTIFALGORITHMS_H
 
+// Local VOTCA includes
 #include "beadmotif.h"
 #include "beadmotifconnector.h"
 #include "beadstructure.h"
@@ -36,11 +37,10 @@ namespace csg {
  * @return - a container of beadmotifs
  **/
 template <class T>
-T breakIntoMotifs(BeadStructure<BaseBead> &beadstructure) {
+T breakIntoMotifs(BeadStructure &beadstructure) {
   T bead_motifs;
-  std::vector<BeadStructure<BaseBead>> structures =
-      breakIntoStructures(beadstructure);
-  for (BeadStructure<BaseBead> &structure : structures) {
+  std::vector<BeadStructure> structures = breakIntoStructures(beadstructure);
+  for (BeadStructure &structure : structures) {
     bead_motifs.push_back(BeadMotif(structure));
   }
   return bead_motifs;
@@ -78,7 +78,7 @@ T breakIntoMotifs(BeadStructure<BaseBead> &beadstructure) {
  **/
 
 std::pair<std::unordered_map<Index, BeadMotif>, BeadMotifConnector>
-    breakIntoSimpleMotifs(BeadMotif beadmotif);
+    breakIntoSimpleMotifs(BeadMotif bead_motif);
 
 }  // namespace csg
 }  // namespace votca

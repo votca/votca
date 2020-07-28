@@ -16,8 +16,8 @@
  */
 
 #include "csg_imc_solve.h"
+#include "../../include/votca/csg/imcio.h"
 #include <fstream>
-#include <votca/csg/imcio.h>
 #include <votca/tools/table.h>
 
 int main(int argc, char** argv) {
