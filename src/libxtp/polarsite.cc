@@ -1,5 +1,5 @@
 /*
- *           Copyright 2009-2019 The VOTCA Development Team
+ *           Copyright 2009-2020 The VOTCA Development Team
  *                      (http://www.votca.org)
  *
  *     Licensed under the Apache License,Version 2.0 (the "License")
@@ -17,11 +17,18 @@
  *
  */
 
-#include <boost/format.hpp>
+// Standard includes
 #include <fstream>
 #include <string>
+
+// Third party includes
+#include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
-#include <votca/xtp/polarsite.h>
+
+// Local VOTCA includes
+#include "votca/xtp/polarsite.h"
 
 using namespace std;
 
@@ -38,7 +45,7 @@ PolarSite::PolarSite(Index id, std::string element, Eigen::Vector3d pos)
   } catch (const std::runtime_error&) {
     ;
   }
-  setPolarisation(default_pol * Eigen::Matrix3d::Identity());
+  setpolarization(default_pol * Eigen::Matrix3d::Identity());
 }
 
 PolarSite::PolarSite(const data& d) { ReadData(d); }
@@ -49,7 +56,7 @@ Eigen::Vector3d PolarSite::getDipole() const {
   return dipole;
 }
 
-void PolarSite::setPolarisation(const Eigen::Matrix3d& pol) {
+void PolarSite::setpolarization(const Eigen::Matrix3d& pol) {
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(pol);
   _pinv = es.eigenvectors() * es.eigenvalues().cwiseInverse().asDiagonal() *
@@ -57,7 +64,7 @@ void PolarSite::setPolarisation(const Eigen::Matrix3d& pol) {
   _eigendamp_invsqrt = 1.0 / std::sqrt(es.eigenvalues().maxCoeff());
 }
 
-std::string PolarSite::writePolarisation() const {
+std::string PolarSite::writepolarization() const {
   double conv_pol = std::pow(tools::conv::bohr2ang, 3);
   Eigen::MatrixX3d pol = _pinv.inverse() * conv_pol;
   return (boost::format("     P %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f "
@@ -93,7 +100,7 @@ void PolarSite::SetupCptTable(CptTable& table) const {
   table.addCol(_V_noE[0], "Vx_noE", HOFFSET(data, Vx_noE));
   table.addCol(_V_noE[1], "Vy_NoE", HOFFSET(data, Vy_noE));
   table.addCol(_V_noE[2], "Vz_noE", HOFFSET(data, Vz_noE));
-  // P_inv and P have same polarisation so no problem, as only data type counts
+  // P_inv and P have same polarization so no problem, as only data type counts
   table.addCol(_pinv(0, 0), "pxx", HOFFSET(data, pxx));
   table.addCol(_pinv(0, 1), "pxy", HOFFSET(data, pxy));
   table.addCol(_pinv(0, 2), "pxz", HOFFSET(data, pxz));
@@ -185,7 +192,7 @@ void PolarSite::ReadData(const data& d) {
   Ps(2, 1) = d.pyz;
   Ps(2, 2) = d.pzz;
 
-  this->setPolarisation(Ps);
+  this->setpolarization(Ps);
 
   _induced_dipole.x() = d.d_x_ind;
   _induced_dipole.y() = d.d_y_ind;

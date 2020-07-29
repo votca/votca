@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
  */
 
 #pragma once
-#ifndef VOTCA_MD2QM_VERSION_H
-#define VOTCA_MD2QM_VERSION_H
+#ifndef VOTCA_XTP_VERSION_H
+#define VOTCA_XTP_VERSION_H
 
+// Standard includes
 #include <string>
+
 /**
  * \namespace votca::xtp
  * \brief Charge transport classes
@@ -33,4 +35,4 @@ void HelpTextHeader(const std::string &tool_name);
 }  // namespace xtp
 }  // namespace votca
 
-#endif  //  VOTCA_MD2QM_VERSION_H
+#endif  // VOTCA_XTP_VERSION_H

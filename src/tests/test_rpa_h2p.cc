@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE rpa_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/rpa.h>
-#include <votca/xtp/threecenter.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/rpa.h"
+#include "votca/xtp/threecenter.h"
 
 using namespace std;
 using namespace votca::xtp;
@@ -197,6 +201,8 @@ BOOST_AUTO_TEST_CASE(rpa_h2p) {
       1.05559e-06, 1.84996e-12, 5.76753e-06, -9.90455e-11, -0.000800706;
 
   RPA::rpa_eigensolution sol = rpa.Diagonalize_H2p();
+
+  BOOST_CHECK_CLOSE(sol.ERPA_correlation, -0.0587973, 1e-4);
 
   bool check_rpa_eigenvalues = rpa_omega_ref.isApprox(sol.omega, 0.0001);
   if (!check_rpa_eigenvalues) {

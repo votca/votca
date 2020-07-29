@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,13 +17,16 @@
  *
  */
 
+// VOTCA includes
 #include <votca/tools/constants.h>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/density_integration.h>
-#include <votca/xtp/espfit.h>
-#include <votca/xtp/grid.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/vxc_grid.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/density_integration.h"
+#include "votca/xtp/espfit.h"
+#include "votca/xtp/grid.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/vxc_grid.h"
 
 namespace votca {
 namespace xtp {

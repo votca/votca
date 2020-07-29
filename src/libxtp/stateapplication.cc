@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,12 +17,14 @@
  *
  */
 
+// Third party includes
 #include <boost/format.hpp>
-#include <votca/xtp/calculatorfactory.h>
-#include <votca/xtp/stateapplication.h>
-#include <votca/xtp/version.h>
 
+// Local VOTCA includes
+#include "votca/xtp/calculatorfactory.h"
+#include "votca/xtp/stateapplication.h"
 #include "votca/xtp/statesaver.h"
+#include "votca/xtp/version.h"
 
 namespace votca {
 namespace xtp {

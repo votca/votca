@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,15 +18,19 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_VAVERAGE_H
-#define _VOTCA_XTP_VAVERAGE_H
+#ifndef VOTCA_XTP_VAVERAGE_PRIVATE_H
+#define VOTCA_XTP_VAVERAGE_PRIVATE_H
 
-#include <stdio.h>
+// Standard includes
+#include <cstdio>
+#include <string>
+#include <vector>
 
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/rate_engine.h>
+// Local VOTCA includes
+#include "votca/xtp/eigen.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/rate_engine.h"
 
 namespace votca {
 namespace xtp {
@@ -39,7 +43,7 @@ class VAverage : public QMCalculator {
 
   std::string Identify() override { return "vaverage"; }
   bool WriteToStateFile() const override { return false; }
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& user_options) override;
   bool EvaluateFrame(Topology& top) override;
 
  private:
@@ -55,4 +59,4 @@ class VAverage : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_VAVERAGE_PRIVATE_H

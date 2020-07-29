@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,10 +17,11 @@
  *
  */
 
+// Local VOTCA includes
+#include "votca/xtp/sigma_exact.h"
+#include "votca/xtp/rpa.h"
+#include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"
-#include <votca/xtp/rpa.h>
-#include <votca/xtp/sigma_exact.h>
-#include <votca/xtp/threecenter.h>
 
 namespace votca {
 namespace xtp {
