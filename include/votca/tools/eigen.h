@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,17 +17,18 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_EIGEN__H
-#define __VOTCA_TOOLS_EIGEN__H
+#ifndef VOTCA_TOOLS_EIGEN_H
+#define VOTCA_TOOLS_EIGEN_H
 
-#include <votca/tools/votca_config.h>
+// Local VOTCA includes
+#include "votca_config.h"
 
 #ifdef MKL_FOUND
 #include <mkl.h>
 #define EIGEN_USE_MKL_ALL
 #endif
 
-#ifdef FFTW3_FOUND
+#if defined(FFTW3_FOUND) || defined(MKL_FOUND)
 #define EIGEN_FFTW_DEFAULT
 #endif
 
@@ -49,8 +50,9 @@
 #endif
 #include <Eigen/Eigen>
 #include <unsupported/Eigen/CXX11/Tensor>
+#include <unsupported/Eigen/FFT>
 #if (defined STRICT_GNUC) && GCC_VERSION > 70000
 #pragma GCC diagnostic pop
 #endif
 
-#endif  //__VOTCA_TOOLS_EIGEN__H
+#endif  // VOTCA_TOOLS_EIGEN_H

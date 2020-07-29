@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,8 +14,9 @@
  *
  */
 
-#include <votca/tools/correlate.h>
-#include <votca/tools/eigen.h>
+// Local VOTCA includes
+#include "votca/tools/correlate.h"
+#include "votca/tools/eigen.h"
 
 namespace votca {
 namespace tools {
