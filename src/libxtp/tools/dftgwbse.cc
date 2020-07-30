@@ -15,13 +15,18 @@
  *
  */
 
-#include "dftgwbse.h"
+// VOTCA includes
 #include <votca/tools/constants.h>
-#include <votca/xtp/geometry_optimization.h>
-#include <votca/xtp/gwbseengine.h>
-#include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/staticregion.h>
+
+// Local VOTCA includes
+#include "votca/xtp/geometry_optimization.h"
+#include "votca/xtp/gwbseengine.h"
+#include "votca/xtp/qmpackagefactory.h"
+#include "votca/xtp/segment.h"
+#include "votca/xtp/staticregion.h"
+
+// Local private VOTCA includes
+#include "dftgwbse.h"
 
 namespace votca {
 namespace xtp {

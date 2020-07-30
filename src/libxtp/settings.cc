@@ -17,7 +17,8 @@
  *
  */
 
-#include <votca/xtp/settings.h>
+// Local VOTCA includes
+#include "votca/xtp/settings.h"
 
 namespace votca {
 namespace xtp {
@@ -55,8 +56,9 @@ bool Settings::has_key(const std::string& key) const {
 
 void Settings::add(const std::string& key, const std::string& value) {
   std::string primary_key = key.substr(0, key.find("."));
+  std::string secondary_key = key.substr(key.find(".") + 1);
   votca::tools::Property& prop = this->_nodes[primary_key];
-  prop.add(key, value);
+  prop.add(secondary_key, value);
 }
 
 void Settings::validate() const {

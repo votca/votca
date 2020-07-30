@@ -18,15 +18,15 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_QMSANDBOX_H
-#define _VOTCA_XTP_QMSANDBOX_H
+#ifndef VOTCA_XTP_QMSANDBOX_PRIVATE_H
+#define VOTCA_XTP_QMSANDBOX_PRIVATE_H
 
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmtool.h>
-
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/qmpackagefactory.h>
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmpackagefactory.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
@@ -62,4 +62,4 @@ bool QMSandbox::Evaluate() { return true; }
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_QMSANDBOX_PRIVATE_H

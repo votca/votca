@@ -9,5 +9,5 @@ The following table, define the defaults use with the *QM Packages*,
 .. include:: qmpackage_defaults.rst
 
 .. note::
-   An *xml* file containing the QM packages defaults can be found at `$VOTCASHARE/xtp/xml/qmpackage_defaults.xml`
+   An *xml* file containing the QM packages defaults can be found at `$VOTCASHARE/xtp/data/qmpackage_defaults.xml`
 

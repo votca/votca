@@ -17,11 +17,14 @@
  *
  */
 
+// Third party includes
 #include <boost/algorithm/string.hpp>
-#include <votca/xtp/ecpaobasis.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/qmpackage.h>
-#include <votca/xtp/qmpackagefactory.h>
+
+// Local VOTCA includes
+#include "votca/xtp/ecpaobasis.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/qmpackage.h"
+#include "votca/xtp/qmpackagefactory.h"
 
 namespace votca {
 namespace xtp {
@@ -135,7 +138,7 @@ std::vector<std::string> QMPackage::GetLineAndSplit(
 
 std::string QMPackage::FindDefaultsFile() const {
   auto xmlFile = std::string(getenv("VOTCASHARE")) +
-                 std::string("/xtp/xml/qmpackage_defaults.xml");
+                 std::string("/xtp/data/qmpackage_defaults.xml");
 
   return xmlFile;
 }

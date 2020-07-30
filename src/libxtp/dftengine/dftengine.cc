@@ -17,22 +17,29 @@
  *
  */
 
-#include "votca/xtp/aobasis.h"
-#include "votca/xtp/eeinteractor.h"
-#include "votca/xtp/mmregion.h"
-#include "votca/xtp/qmmolecule.h"
+// Standard includes
+#include <vector>
+
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <vector>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/aomatrix3d.h>
-#include <votca/xtp/aopotential.h>
-#include <votca/xtp/density_integration.h>
-#include <votca/xtp/dftengine.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/aomatrix3d.h"
+#include "votca/xtp/aopotential.h"
+#include "votca/xtp/density_integration.h"
+#include "votca/xtp/dftengine.h"
+#include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/mmregion.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/qmmolecule.h"
 
 using boost::format;
 using namespace boost::filesystem;
@@ -290,6 +297,25 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Final Single Point Energy "
           << std::setprecision(12) << totenergy << " Ha" << flush;
+      XTP_LOG(Log::error, *_pLog) << TimeStamp() << std::setprecision(12)
+                                  << " Final Local Exc contribution "
+                                  << e_vxc.energy() << " Ha" << flush;
+      if (_ScaHFX > 0) {
+        XTP_LOG(Log::error, *_pLog)
+            << TimeStamp() << std::setprecision(12)
+            << " Final Non Local Ex contribution " << exx << " Ha" << flush;
+      }
+
+      Mat_p_Energy EXXs = CalcEXXs(MOs.eigenvectors(), Dmat);
+      exx = -1.0 / 4.0 * EXXs.energy();
+      XTP_LOG(Log::error, *_pLog) << TimeStamp() << std::setprecision(12)
+                                  << " EXX energy " << exx << " Ha" << flush;
+
+      XTP_LOG(Log::error, *_pLog)
+          << TimeStamp() << std::setprecision(12) << " Final EXX Total energy "
+          << totenergy - e_vxc.energy() + (1.0 - _ScaHFX) * exx << " Ha"
+          << flush;
+
       PrintMOs(MOs.eigenvalues(), Log::error);
       orb.setQMEnergy(totenergy);
       orb.MOs() = MOs;

@@ -17,11 +17,18 @@
  *
  */
 
-#include <boost/format.hpp>
+// Standard includes
 #include <fstream>
 #include <string>
+
+// Third party includes
+#include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
-#include <votca/xtp/polarsite.h>
+
+// Local VOTCA includes
+#include "votca/xtp/polarsite.h"
 
 using namespace std;
 

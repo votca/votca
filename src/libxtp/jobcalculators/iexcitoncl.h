@@ -18,15 +18,19 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_IEXCITONCL_H
-#define VOTCA_XTP_IEXCITONCL_H
+#ifndef VOTCA_XTP_IEXCITONCL_PRIVATE_H
+#define VOTCA_XTP_IEXCITONCL_PRIVATE_H
 
-#include <votca/tools/property.h>
-
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <sys/stat.h>
-#include <votca/xtp/parallelxjobcalc.h>
-#include <votca/xtp/qmstate.h>
+
+// VOTCA includes
+#include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/xtp/parallelxjobcalc.h"
+#include "votca/xtp/qmstate.h"
 
 namespace votca {
 namespace xtp {
@@ -60,4 +64,4 @@ class IEXCITON : public ParallelXJobCalc<std::vector<Job> > {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // VOTCA_XTP_IEXCITONCL_H
+#endif  // VOTCA_XTP_IEXCITONCL_PRIVATE_H

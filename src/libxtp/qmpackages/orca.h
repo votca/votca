@@ -21,7 +21,8 @@
 #ifndef VOTCA_XTP_ORCA_H
 #define VOTCA_XTP_ORCA_H
 
-#include <votca/xtp/qmpackage.h>
+// Local VOTCA includes
+#include "votca/xtp/qmpackage.h"
 
 namespace votca {
 namespace xtp {
@@ -94,7 +95,9 @@ class Orca : public QMPackage {
   void GetCoordinates(T& mol, std::string& line,
                       std::ifstream& input_file) const;
   std::string WriteMethod() const;
-  std::string CreateInputSection(const std::string& key) const;
+  std::string CreateInputSection(const std::string& key,
+                                 bool single_line = false) const;
+  std::string GetOrcaFunctionalName() const;
 
   std::unordered_map<std::string, std::string> _convergence_map{
       {"low", "LooseSCF"},

@@ -18,13 +18,16 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_LOG2MPS_H
-#define VOTCA_XTP_LOG2MPS_H
+#ifndef VOTCA_XTP_LOG2MPS_PRIVATE_H
+#define VOTCA_XTP_LOG2MPS_PRIVATE_H
 
+// Third party includes
 #include <boost/format.hpp>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/qmtool.h>
+
+// Local VOTCA includes
+#include "votca/xtp/classicalsegment.h"
+#include "votca/xtp/qmpackagefactory.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
@@ -114,4 +117,4 @@ bool Log2Mps::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_LOG2MPS_H
+#endif  // VOTCA_XTP_LOG2MPS_PRIVATE_H

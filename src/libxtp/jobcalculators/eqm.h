@@ -18,13 +18,14 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_EQM_H
-#define VOTCA_XTP_EQM_H
+#ifndef VOTCA_XTP_EQM_PRIVATE_H
+#define VOTCA_XTP_EQM_PRIVATE_H
 
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/parallelxjobcalc.h>
-#include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/segment.h>
+// Local VOTCA includes
+#include "votca/xtp/gwbse.h"
+#include "votca/xtp/parallelxjobcalc.h"
+#include "votca/xtp/qmpackagefactory.h"
+#include "votca/xtp/segment.h"
 
 namespace votca {
 namespace xtp {
@@ -69,4 +70,4 @@ class EQM : public ParallelXJobCalc<std::vector<Job> > {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_EQM_H
+#endif  // VOTCA_XTP_EQM_PRIVATE_H

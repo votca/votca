@@ -17,12 +17,17 @@
  *
  */
 
-#include "eqm.h"
-#include "votca/xtp/segmentmapper.h"
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/math/constants/constants.hpp>
-#include <votca/xtp/esp2multipole.h>
+
+// Local VOTCA includes
+#include "votca/xtp/esp2multipole.h"
+#include "votca/xtp/segmentmapper.h"
+
+// Local private VOTCA includes
+#include "eqm.h"
 
 using boost::format;
 using namespace boost::filesystem;
@@ -220,7 +225,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     WriteLoggerToFile(work_dir + "/dft.log", dft_logger);
   }
 
-  if (!_do_dft_parse) {
+  if (!_do_dft_parse && (_do_gwbse || _do_esp)) {
     // load the DFT data from serialized orbitals object
     std::string ORB_FILE =
         eqm_work_dir + "/molecules/" + frame_dir + "/" + orb_file;

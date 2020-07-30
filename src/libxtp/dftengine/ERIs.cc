@@ -17,9 +17,10 @@
  *
  */
 
-#include <votca/xtp/ERIs.h>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/symmetric_matrix.h>
+// Local VOTCA includes
+#include "votca/xtp/ERIs.h"
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/symmetric_matrix.h"
 
 namespace votca {
 namespace xtp {

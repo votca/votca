@@ -1,18 +1,16 @@
 name: CI
 on:
-  push:
-    branches:
-      - master
   pull_request:
     branches:
       - master
+      - stable
 
 jobs:
   CI:
     continue-on-error: ${{ matrix.distro == 'ubuntu_devel' || matrix.distro == 'fedora_rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
-        distro: [latest, fedora_rawhide, opensuse, ubuntu, ubuntu_devel, ubuntu_rolling, ubuntu_18.04]
+        distro: [latest, fedora_rawhide, opensuse, ubuntu, ubuntu_devel, ubuntu_rolling, ubuntu_18.04, intel]
         toolchain: [gnu, clang]
         cmake_build_type: [Release, Debug]
         minimal: [false]
@@ -21,11 +19,6 @@ jobs:
         coverage: [false]
         no_regression_testing: [true]
         include:
-          - distro: latest
-            toolchain: gnu
-            cmake_build_type: Debug
-            coverage: RestGroup
-            no_regression_testing: true
           - distro: latest
             toolchain: gnu
             cmake_build_type: Release
@@ -64,10 +57,8 @@ jobs:
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -s
       - name: Tests
-        run: cd builddir && ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
-      - name: Upload Report to codecov.io
-        if: ${{ matrix.coverage }}
-        uses: codecov/codecov-action@v1
+        run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+        working-directory: builddir
       - name: Doxygen
         if: ${{ ! matrix.module_build }}
         run: cmake --build builddir --target doxygen

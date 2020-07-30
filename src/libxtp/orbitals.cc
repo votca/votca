@@ -17,17 +17,19 @@
  *
  */
 
-#include "votca/xtp/orbitals.h"
-#include "votca/xtp/aomatrix.h"
-#include "votca/xtp/aomatrix3d.h"
-#include "votca/xtp/qmstate.h"
+// Standard includes
 #include <cstdio>
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 #include <numeric>
-#include <votca/xtp/vc2index.h>
-#include <votca/xtp/version.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/aomatrix3d.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/qmstate.h"
+#include "votca/xtp/vc2index.h"
+#include "votca/xtp/version.h"
 
 namespace votca {
 namespace xtp {

@@ -17,9 +17,12 @@
  *
  */
 
+// Standard includes
 #include <string>
-#include <votca/xtp/calculatorfactory.h>
-#include <votca/xtp/stateapplication.h>
+
+// Local VOTCA includes
+#include "votca/xtp/calculatorfactory.h"
+#include "votca/xtp/stateapplication.h"
 
 using namespace votca;
 

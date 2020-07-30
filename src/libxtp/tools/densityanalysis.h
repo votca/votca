@@ -18,13 +18,18 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_DENSITYANALYSIS_H
-#define VOTCA_XTP_DENSITYANALYSIS_H
+#ifndef VOTCA_XTP_DENSITYANALYSIS_PRIVATE_H
+#define VOTCA_XTP_DENSITYANALYSIS_PRIVATE_H
 
-#include <boost/filesystem.hpp>
+// Standard includes
 #include <cstdio>
-#include <votca/xtp/gyration.h>
-#include <votca/xtp/logger.h>
+
+// Third party includes
+#include <boost/filesystem.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/gyration.h"
+#include "votca/xtp/logger.h"
 
 namespace votca {
 namespace xtp {
@@ -74,4 +79,4 @@ bool DensityAnalysis::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_DENSITYANALYSIS_H
+#endif  // VOTCA_XTP_DENSITYANALYSIS_PRIVATE_H

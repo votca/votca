@@ -17,15 +17,20 @@
  *
  */
 
+// Standard includes
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <string>
+
+// VOTCA includes
 #include <votca/tools/property.h>
-#include <votca/xtp/qmtool.h>
-#include <votca/xtp/toolfactory.h>
-#include <votca/xtp/version.h>
-#include <votca/xtp/xtpapplication.h>
+
+// Local VOTCA includes
+#include "votca/xtp/qmtool.h"
+#include "votca/xtp/toolfactory.h"
+#include "votca/xtp/version.h"
+#include "votca/xtp/xtpapplication.h"
 
 using namespace votca;
 

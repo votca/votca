@@ -18,12 +18,15 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_DFTGWBSE_H
-#define VOTCA_XTP_DFTGWBSE_H
+#ifndef VOTCA_XTP_DFTGWBSE_PRIVATE_H
+#define VOTCA_XTP_DFTGWBSE_PRIVATE_H
 
+// Standard includes
 #include <cstdio>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmtool.h>
+
+// Local VOTCA includes
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
@@ -65,4 +68,4 @@ class DftGwBse : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_DFTGWBSE_H
+#endif  // VOTCA_XTP_DFTGWBSE_PRIVATE_H

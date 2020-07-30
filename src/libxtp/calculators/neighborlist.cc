@@ -15,9 +15,12 @@
  *
  */
 
-#include "neighborlist.h"
+// Third party includes
 #include <boost/format.hpp>
 #include <boost/progress.hpp>
+
+// Local private VOTCA includes
+#include "neighborlist.h"
 
 namespace votca {
 namespace xtp {

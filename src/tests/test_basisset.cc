@@ -16,13 +16,20 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE basisset_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <fstream>
 #include <iostream>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/aoshell.h>
-#include <votca/xtp/basisset.h>
-#include <votca/xtp/orbitals.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/aoshell.h"
+#include "votca/xtp/basisset.h"
+#include "votca/xtp/orbitals.h"
+
 using namespace votca::xtp;
 using namespace std;
 BOOST_AUTO_TEST_SUITE(basisset_test)

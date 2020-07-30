@@ -18,14 +18,17 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_NEIGHBORLIST_H
-#define VOTCA_XTP_NEIGHBORLIST_H
+#ifndef VOTCA_XTP_NEIGHBORLIST_PRIVATE_H
+#define VOTCA_XTP_NEIGHBORLIST_PRIVATE_H
 
+// VOTCA includes
 #include <votca/tools/globals.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/qmnblist.h>
-#include <votca/xtp/topology.h>
+
+// Local VOTCA includes
+#include "votca/xtp/atom.h"
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/qmnblist.h"
+#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {
@@ -51,4 +54,4 @@ class Neighborlist : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_NEIGHBORLIST_H
+#endif  // VOTCA_XTP_NEIGHBORLIST_PRIVATE_H

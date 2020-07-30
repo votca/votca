@@ -17,10 +17,13 @@
  *
  */
 
-#include "molpol.h"
+// Local VOTCA includes
 #include "votca/xtp/polarregion.h"
 #include "votca/xtp/qmpackage.h"
-#include <votca/xtp/qmpackagefactory.h>
+#include "votca/xtp/qmpackagefactory.h"
+
+// Local private VOTCA includes
+#include "molpol.h"
 
 namespace votca {
 namespace xtp {

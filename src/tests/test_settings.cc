@@ -17,11 +17,17 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE settings_test
 
-#include <boost/test/unit_test.hpp>
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <votca/xtp/settings.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/settings.h"
+
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(settings_test)
@@ -87,16 +93,19 @@ BOOST_AUTO_TEST_CASE(test_amend) {
   Settings user_input("package");
   user_input.load_from_xml("user_input.xml");
   user_input.amend(qmpackage_template);
+  user_input.add("orca.property", "42");
   user_input.validate();
 
   auto basisset = user_input.get("functional");
   auto ecp = user_input.get("ecp");
   auto orca_guess = user_input.get("orca.scf");
   auto executable = user_input.get("executable");
+  auto orca_prop = user_input.get("orca.property");
   BOOST_TEST(basisset == "B3LYP");
   BOOST_TEST(ecp == "ecp");
   BOOST_TEST(executable == "/opt/orca/orca");
   BOOST_TEST(orca_guess == "GUESS PMODEL");
+  BOOST_TEST(orca_prop == "42");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -18,18 +18,19 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_EXCITONCOUPLING_H
-#define VOTCA_XTP_EXCITONCOUPLING_H
+#ifndef VOTCA_XTP_EXCITONCOUPLING_PRIVATE_H
+#define VOTCA_XTP_EXCITONCOUPLING_PRIVATE_H
 
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmtool.h>
-
+// VOTCA includes
 #include <votca/tools/constants.h>
-#include <votca/xtp/bsecoupling.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/eeinteractor.h>
 
-#include <votca/xtp/qmpackagefactory.h>
+// Local VOTCA includes
+#include "votca/xtp/bsecoupling.h"
+#include "votca/xtp/classicalsegment.h"
+#include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmpackagefactory.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
@@ -147,4 +148,4 @@ bool ExcitonCoupling::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_EXCITONCOUPLING_H
+#endif  // VOTCA_XTP_EXCITONCOUPLING_PRIVATE_H

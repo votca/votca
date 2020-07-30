@@ -17,11 +17,18 @@
  *
  */
 
-#include "qmmm.h"
-#include "votca/xtp/qmregion.h"
-#include <boost/filesystem.hpp>
+// Standard includes
 #include <chrono>
-#include <votca/xtp/jobtopology.h>
+
+// Third party includes
+#include <boost/filesystem.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/jobtopology.h"
+#include "votca/xtp/qmregion.h"
+
+// Local private VOTCA includes
+#include "qmmm.h"
 
 namespace votca {
 namespace xtp {

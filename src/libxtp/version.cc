@@ -17,11 +17,16 @@
  *
  */
 
+// Standard includes
 #include <iostream>
+
+// VOTCA includes
 #include <votca/csg/version.h>
 #include <votca/tools/version.h>
-#include <votca/xtp/version.h>
-#include <votca/xtp/votca_xtp_config.h>
+
+// Local VOTCA includes
+#include "votca/xtp/version.h"
+#include "votca/xtp/votca_xtp_config.h"
 
 extern "C" {
 void VotcaMd2QmFromC() {

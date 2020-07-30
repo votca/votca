@@ -129,4 +129,4 @@ inline void setMaxThreads(Index) {}
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_EIGEN_H
+#endif // VOTCA_XTP_EIGEN_H

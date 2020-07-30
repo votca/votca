@@ -16,12 +16,11 @@
   <cleanup help="files to remove after the calculation is done"> </cleanup>
   <orca>
     <method help="This is automatically fill with the functional and basis set"/>
-    <scf help="Orca SCF section">GUESS PMODEL</scf>
   </orca>
   <xtpdft>
     <with_screening help="screening" default="true" choices="bool">true</with_screening>
     <screening_eps help="screening eps" default="1e-9" choices="float+">1e-9</screening_eps>
-    <four_center_method help="method to compute the four-center integrals" default="cache" choices="cache,direct,RI">cache</four_center_method>
+    <four_center_method help="method to compute the four-center integrals" default="cache" choices="cache,direct,RI">RI</four_center_method>
     <convergence>
       <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7">1e-7</energy>
       <method help="Main method to use for convergence accelertation" choices="DIIS,mixing" default="DIIS">DIIS</method>

@@ -16,8 +16,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE staticsite_test
+
+// Third party incldues
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/staticsite.h>
+
+// Local VOTCA includes
+#include "votca/xtp/staticsite.h"
 
 using namespace votca::xtp;
 

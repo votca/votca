@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,15 +17,18 @@
  *
  */
 
+// Standard includes
+#include <fstream>
+#include <iostream>
+
+// Local VOTCA includes
+#include "votca/xtp/IndexParser.h"
+#include "votca/xtp/anderson_mixing.h"
+#include "votca/xtp/gw.h"
+#include "votca/xtp/newton_rapson.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_exact.h"
 #include "votca/xtp/sigma_ppm.h"
-#include <fstream>
-#include <iostream>
-#include <votca/xtp/IndexParser.h>
-#include <votca/xtp/anderson_mixing.h>
-#include <votca/xtp/gw.h>
-#include <votca/xtp/newton_rapson.h>
 
 namespace votca {
 namespace xtp {
@@ -303,6 +306,7 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
 
 boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
                                          Index gw_level) const {
+  std::vector<std::pair<double, double>> roots;
   const double range =
       _opt.qp_grid_spacing * double(_opt.qp_grid_steps - 1) / 2.0;
   boost::optional<double> newf = boost::none;
@@ -317,15 +321,34 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
     double targ = fqp.value(freq);
     if (targ_prev * targ < 0.0) {  // Sign change
       double f = SolveQP_Bisection(freq_prev, targ_prev, freq, targ, fqp);
-      double gradient = std::abs(fqp.deriv(f));
-      if (gradient < gradient_max) {
+      double gradient = fqp.deriv(f);
+      double qp_weight = 1.0 / (1.0 - gradient);
+      roots.push_back(std::make_pair(f, qp_weight));
+      if (std::abs(gradient) < gradient_max) {
+        gradient_max = std::abs(gradient);
         qp_energy = f;
-        gradient_max = gradient;
         pole_found = true;
       }
     }
     freq_prev = freq;
     targ_prev = targ;
+  }
+  if (Log::current_level > Log::error) {
+#pragma omp critical
+    {
+      if (!pole_found) {
+        XTP_LOG(Log::info, _log)
+            << " No roots found for qplevel:" << gw_level << std::flush;
+      } else {
+        XTP_LOG(Log::info, _log) << " Roots found for qplevel:" << gw_level
+                                 << " (qpenergy:qpweight)\n\t\t";
+        for (auto& root : roots) {
+          XTP_LOG(Log::info, _log) << std::setprecision(5) << root.first << ":"
+                                   << root.second << " ";
+        }
+        XTP_LOG(Log::info, _log) << "Root chosen " << qp_energy << std::flush;
+      }
+    }
   }
 
   if (pole_found) {

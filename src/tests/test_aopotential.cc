@@ -16,9 +16,13 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aopotential_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/aopotential.h>
-#include <votca/xtp/orbitals.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aopotential.h"
+#include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;
 using namespace votca;

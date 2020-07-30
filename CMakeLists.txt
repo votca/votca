@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(votca-xtp)
+project(votca-xtp LANGUAGES CXX)
 
 set(PROJECT_VERSION "1.7-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
@@ -19,8 +19,6 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
   add_definitions(-DDEBUG)
 endif()
 
-enable_language(CXX)
-
 ######################################################################
 # compiler tests
 # these need ot be done early (before further tests).
@@ -36,14 +34,18 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)
   find_package(OpenMP 4.5)
   set_package_properties(OpenMP PROPERTIES TYPE RECOMMENDED PURPOSE "Used for thread parallelization in xtp")
+else()
+  # in case OpenMP was detected somewhere else
+  unset(OpenMP_FOUND)
 endif()
 
 ########################################################################
 # User input options                                                   #
 ########################################################################
 
-find_package(LIBXC REQUIRED)
-set_package_properties(LIBXC PROPERTIES TYPE REQUIRED PURPOSE "Used for exchange-correlation calculations")
+find_package(PkgConfig REQUIRED)
+set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc package")
+pkg_check_modules(LIBXC REQUIRED IMPORTED_TARGET libxc)
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
 
@@ -125,14 +127,6 @@ set_package_properties(Kokkos PROPERTIES TYPE OPTIONAL PURPOSE "Used to Ewald so
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
-include(CheckIncludeFile)
-foreach(HEADER assert.h)
-  check_include_file(${HEADER} FOUND_${HEADER})
-  if(NOT FOUND_${HEADER})
-    message(FATAL_ERROR "Could not find needed header - ${HEADER}")
-  endif(NOT FOUND_${HEADER})
-endforeach(HEADER)
-
 include(CheckIncludeFileCXX)
 foreach(HEADER algorithm)
   check_include_file_cxx(${HEADER} FOUND_${HEADER})
@@ -143,13 +137,6 @@ endforeach(HEADER)
 
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
-include(CheckLibraryExists)
-foreach(FUNC sqrt)
-  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
-  if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-    message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
-  endif(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-endforeach(FUNC)
 
 ######################################
 # Include the following subdirectory #

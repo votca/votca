@@ -17,10 +17,11 @@
  *
  */
 
+// Local VOTCA includes
+#include "votca/xtp/rpa.h"
+#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/rpa.h>
 
 namespace votca {
 namespace xtp {
@@ -99,6 +100,9 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   Eigen::VectorXd AmB = Calculate_H2p_AmB();
   Eigen::MatrixXd ApB = Calculate_H2p_ApB();
 
+  RPA::rpa_eigensolution sol;
+  sol.ERPA_correlation = -0.25 * (ApB.trace() + AmB.sum());
+
   // C = AmB^1/2 * ApB * AmB^1/2
   Eigen::MatrixXd& C = ApB;
   C.applyOnTheLeft(AmB.cwiseSqrt().asDiagonal());
@@ -106,16 +110,22 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es = Diagonalize_H2p_C(C);
 
-  RPA::rpa_eigensolution sol;
-
   // Do not remove this line! It has to be there for MKL to not crash
   sol.omega = Eigen::VectorXd::Zero(es.eigenvalues().size());
   sol.omega = es.eigenvalues().cwiseSqrt();
+  sol.ERPA_correlation += 0.5 * sol.omega.sum();
 
   XTP_LOG(Log::info, _log) << TimeStamp()
                            << " Lowest neutral excitation energy (eV): "
                            << tools::conv::hrt2ev * sol.omega.minCoeff()
                            << std::flush;
+
+  // RPA correlation energy calculated from Eq.9 of J. Chem. Phys. 132, 234114
+  // (2010)
+  XTP_LOG(Log::error, _log)
+      << TimeStamp()
+      << " RPA correlation energy (Hartree): " << sol.ERPA_correlation
+      << std::flush;
 
   sol.XpY = Eigen::MatrixXd(rpasize, rpasize);
 

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,10 +17,15 @@
  *
  */
 
+// Third party includes
 #include <boost/interprocess/sync/file_lock.hpp>
+
+// VOTCA includes
 #include <votca/tools/filesystem.h>
-#include <votca/xtp/statesaver.h>
-#include <votca/xtp/topology.h>
+
+// Local VOTCA includes
+#include "votca/xtp/statesaver.h"
+#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {

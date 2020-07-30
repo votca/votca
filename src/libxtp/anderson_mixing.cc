@@ -17,8 +17,11 @@
  *
  */
 
+// Third party includes
 #include <boost/format.hpp>
-#include <votca/xtp/anderson_mixing.h>
+
+// Local VOTCA includes
+#include "votca/xtp/anderson_mixing.h"
 
 namespace votca {
 namespace xtp {

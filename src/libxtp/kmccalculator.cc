@@ -15,15 +15,21 @@
  *
  */
 
-#include <boost/format.hpp>
+// Standard includes
 #include <locale>
-#include <votca/tools/constants.h>
-#include <votca/xtp/gnode.h>
-#include <votca/xtp/kmccalculator.h>
-#include <votca/xtp/topology.h>
 
+// Third party includes
+#include <boost/format.hpp>
+
+// VOTCA includes
+#include <votca/tools/constants.h>
+
+// Local VOTCA includes
+#include "votca/xtp/gnode.h"
+#include "votca/xtp/kmccalculator.h"
 #include "votca/xtp/qmstate.h"
-#include <votca/xtp/rate_engine.h>
+#include "votca/xtp/rate_engine.h"
+#include "votca/xtp/topology.h"
 
 using namespace std;
 

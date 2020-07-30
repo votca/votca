@@ -18,12 +18,15 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_MAPCHECKER_H
-#define VOTCA_XTP_MAPCHECKER_H
+#ifndef VOTCA_XTP_MAPCHECKER_PRIVATE_H
+#define VOTCA_XTP_MAPCHECKER_PRIVATE_H
 
+// VOTCA includes
 #include <votca/tools/filesystem.h>
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/segmentmapper.h>
+
+// Local VOTCA includes
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/segmentmapper.h"
 
 namespace votca {
 namespace xtp {
@@ -161,4 +164,4 @@ std::string MapChecker::AddSteptoFilename(const std::string& filename,
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_MAPCHECKER_H
+#endif  // VOTCA_XTP_MAPCHECKER_PRIVATE_H

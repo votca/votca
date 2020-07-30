@@ -17,6 +17,7 @@
  *
  */
 
+// Local VOTCA includes
 #include "votca/xtp/rate_engine.h"
 
 namespace votca {

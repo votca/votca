@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,18 +17,22 @@
  *
  */
 
-#include "votca/xtp/vc2index.h"
-#include <iostream>
-#include <votca/tools/linalg.h>
-#include <votca/xtp/bse.h>
-#include <votca/xtp/bse_operator.h>
-#include <votca/xtp/bseoperator_btda.h>
-#include <votca/xtp/davidsonsolver.h>
-#include <votca/xtp/populationanalysis.h>
-#include <votca/xtp/qmfragment.h>
-#include <votca/xtp/rpa.h>
-
+// Standard includes
 #include <chrono>
+#include <iostream>
+
+// VOTCA includes
+#include <votca/tools/linalg.h>
+
+// Local VOTCA includes
+#include "votca/xtp/bse.h"
+#include "votca/xtp/bse_operator.h"
+#include "votca/xtp/bseoperator_btda.h"
+#include "votca/xtp/davidsonsolver.h"
+#include "votca/xtp/populationanalysis.h"
+#include "votca/xtp/qmfragment.h"
+#include "votca/xtp/rpa.h"
+#include "votca/xtp/vc2index.h"
 
 using boost::format;
 using std::flush;

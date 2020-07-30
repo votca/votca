@@ -16,8 +16,14 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE threecenter_dft_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
+
+// VOTCA includes
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/threecenter.h>

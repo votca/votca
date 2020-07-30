@@ -17,8 +17,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE kspace_test
-#include "../src/KSpace.hpp"
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
+
+// Local private VOTCA includes
+#include "KSpace.hpp"
 
 BOOST_AUTO_TEST_SUITE(kspace_test)
 

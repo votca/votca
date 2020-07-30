@@ -18,13 +18,16 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_MOLPOL_H
-#define VOTCA_XTP_MOLPOL_H
+#ifndef VOTCA_XTP_MOLPOL_PRIVATE_H
+#define VOTCA_XTP_MOLPOL_PRIVATE_H
 
+// Standard includes
 #include <cstdio>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmtool.h>
+
+// Local VOTCA includes
+#include "votca/xtp/classicalsegment.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
@@ -63,4 +66,4 @@ class MolPol : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_MOLPOL_H
+#endif  // VOTCA_XTP_MOLPOL_PRIVATE_H
