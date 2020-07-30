@@ -66,7 +66,7 @@ jobs:
           for p in . tools csg csg-manual csgapps csg-tutorials xtp xtp-tutorials; do 
             git -C $p log -p --submodule origin/${BRANCH}..${BRANCH}
           done
-      - name: Upload manual
+      - name: Upload manual as artifact
         if: ${{ ! env.DEPLOY }}
         uses: actions/upload-artifact@v2
         with:
@@ -94,7 +94,7 @@ jobs:
           tag_name: v${{ env.VERSION }}
           release_name: v${{ env.VERSION }}
           prerelease: ${{ contains(env.VERSION, 'rc') }}
-      - name: Upload Manual
+      - name: Add Manual to release
         if: ${{ env.DEPLOY }}
         uses: actions/upload-release-asset@v1
         env:
