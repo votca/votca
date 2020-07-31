@@ -15,6 +15,9 @@
  *
  */
 
+#ifndef __VOTCA_CSG_VOTCA_CONFIG_H
+#define __VOTCA_CSG_VOTCA_CONFIG_H
+
 /* Used gromacs version */
 // clang-format off
 /* Whether h5md is compiled in */
@@ -26,3 +29,4 @@
 /* Contact address of package */
 #define PACKAGE_BUGREPORT "@PROJECT_CONTACT@"
 // clang-format on
+#endif  // __VOTCA_CSG_VOTCA_CONFIG_H
