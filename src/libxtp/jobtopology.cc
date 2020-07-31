@@ -27,6 +27,7 @@
 #include "votca/xtp/qmregion.h"
 #include "votca/xtp/segmentmapper.h"
 #include "votca/xtp/staticregion.h"
+#include "votca/xtp/version.h"
 
 namespace votca {
 namespace xtp {
@@ -338,7 +339,8 @@ void JobTopology::WriteToHdf5(std::string filename) const {
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
   CheckpointWriter a = cpf.getWriter();
   a(_job.getId(), "jobid");
-
+  a(XtpVersionStr(), "XTPVersion");
+  a(jobtopology_version(), "version");
   for (const auto& region : _regions) {
     CheckpointWriter w =
         cpf.getWriter("region_" + std::to_string(region->getId()));

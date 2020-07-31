@@ -395,6 +395,8 @@ class Orbitals {
   tools::EigenSystem _BSE_triplet;
 
   bool _use_Hqp_offdiag = true;
+
+  static constexpr int orbitals_version() { return 1; }
 };
 
 }  // namespace xtp

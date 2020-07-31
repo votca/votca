@@ -29,6 +29,7 @@
 #include "votca/xtp/checkpointwriter.h"
 #include "votca/xtp/segment.h"
 #include "votca/xtp/topology.h"
+#include "votca/xtp/version.h"
 
 namespace votca {
 namespace xtp {
@@ -180,6 +181,8 @@ void Topology::WriteToPdb(std::string filename) const {
 }
 
 void Topology::WriteToCpt(CheckpointWriter &w) const {
+  w(XtpVersionStr(), "XTPVersion");
+  w(topology_version(), "version");
   w(_time, "time");
   w(_step, "step");
   w(this->getBox(), "box");

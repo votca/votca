@@ -88,7 +88,7 @@ class Topology {
   std::vector<const Segment *> FindAllSegmentsOnMolecule(
       const Segment &seg1, const Segment &seg2) const;
 
- protected:
+ private:
   std::vector<Segment> _segments;
 
   std::unique_ptr<csg::BoundaryCondition> _bc = nullptr;
@@ -99,6 +99,8 @@ class Topology {
 
   csg::BoundaryCondition::eBoxtype AutoDetectBoxType(
       const Eigen::Matrix3d &box);
+
+  static constexpr int topology_version() { return 1; }
 };
 
 }  // namespace xtp
