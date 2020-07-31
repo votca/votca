@@ -26,9 +26,9 @@ else(HDF5_FOUND)
   set(H5MD)
 endif(HDF5_FOUND)
 
-configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
+configure_file(votca_csg_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_csg_config.h)
 
-#CMAKE_CURRENT_BINARY_DIR for gitversion.h /votca_config.h
+#CMAKE_CURRENT_BINARY_DIR for gitversion.h /votca_csg_config.h
 target_include_directories(votca_csg PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)

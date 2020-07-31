@@ -38,7 +38,7 @@ share/scripts/inverse/*.pyc
 __pycache__/
 netbeans
 src/libcsg/gitversion.h
-src/libcsg/votca_config.h
+src/libcsg/votca_csg_config.h
 
 netbeans/*/build
 netbeans/*/dist

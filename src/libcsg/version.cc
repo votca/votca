@@ -33,14 +33,14 @@
 #include "votca/csg/version.h"
 
 // Local private VOTCA includes
-#include "votca_config.h"
+#include "votca_csg_config.h"
 
 namespace votca {
 namespace csg {
 
 // defines gitversion
 #include "gitversion.h"
-static const std::string version_str = std::string(VERSION) + " " + gitversion +
+static const std::string version_str = std::string(CSG_VERSION) + " " + gitversion +
                                        " (compiled " __DATE__ ", " __TIME__ ")";
 
 const std::string &CsgVersionStr() { return version_str; }
@@ -49,7 +49,7 @@ void HelpTextHeader(const std::string &tool_name) {
   std::cout << "==================================================\n"
             << "========   VOTCA (http://www.votca.org)   ========\n"
             << "==================================================\n\n"
-            << "please submit bugs to " PACKAGE_BUGREPORT "\n\n"
+            << "please submit bugs to " CSG_BUGREPORT "\n\n"
             << tool_name << ", version " << votca::csg::CsgVersionStr()
             << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
 #ifdef GMX_DOUBLE

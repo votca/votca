@@ -24,9 +24,9 @@
 #cmakedefine H5MD
 
 /* Version number of package */
-#define VERSION "@PROJECT_VERSION@"
+#define CSG_VERSION "@PROJECT_VERSION@"
 
 /* Contact address of package */
-#define PACKAGE_BUGREPORT "@PROJECT_CONTACT@"
+#define CSG_BUGREPORT "@PROJECT_CONTACT@"
 // clang-format on
 #endif  // __VOTCA_CSG_VOTCA_CONFIG_H

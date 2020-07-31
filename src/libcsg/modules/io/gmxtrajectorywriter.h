@@ -19,7 +19,7 @@
 #define VOTCA_CSG_GMXTRAJECTORYWRITER_PRIVATE_H
 
 #ifndef HAVE_NO_CONFIG
-#include <votca_config.h>
+#include <votca_csg_config.h>
 #endif
 
 // VOTCA includes
