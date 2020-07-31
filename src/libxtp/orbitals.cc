@@ -505,7 +505,8 @@ void Orbitals::WriteToCpt(CheckpointFile f) const {
 }
 
 void Orbitals::WriteToCpt(CheckpointWriter w) const {
-  w(XtpVersionStr(), "Version");
+  w(XtpVersionStr(), "XTPVersion");
+  w(orbitals_version(), "version");
   w(_basis_set_size, "basis_set_size");
   w(_occupied_levels, "occupied_levels");
   w(_number_alpha_electrons, "number_alpha_electrons");

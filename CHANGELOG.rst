@@ -52,6 +52,7 @@ Version 1.7-dev
 -  fix orca pointcharges (#504)
 -  add more checks to the dft_parse_part (#510)
 -  add NOSCF option for iqm in internal and external DFT (#483)
+-  added versions to output files (#523)
    
 Version 1.6.2 (released XX.07.20)
 =================================

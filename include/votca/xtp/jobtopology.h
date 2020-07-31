@@ -106,6 +106,8 @@ class JobTopology {
   Logger& _log;
   std::vector<std::unique_ptr<Region> > _regions;
   std::string _workdir = "";
+
+  static constexpr int jobtopology_version() { return 1; }
 };
 }  // namespace xtp
 }  // namespace votca
