@@ -6,7 +6,7 @@ file(GLOB VOTCA_SOURCES *.cc)
 add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_LINALG_SOURCES})
 
 #CMAKE_CURRENT_BINARY_DIR for gitversion.h
-#PROJECT_BINARY_DIR/include for votca_config.h
+#PROJECT_BINARY_DIR/include for votca_tools_config.h
 target_include_directories(votca_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>

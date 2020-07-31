@@ -30,7 +30,7 @@
 #include "votca/tools/version.h"
 
 // Local private VOTCA includes
-#include "votca_config.h"
+#include "votca_tools_config.h"
 
 namespace votca {
 namespace tools {
@@ -45,7 +45,7 @@ void Application::ShowHelpText(std::ostream &out) {
   out << "========   VOTCA (http://www.votca.org)   ========\n";
   out << "==================================================\n\n";
 
-  out << "please submit bugs to " PACKAGE_BUGREPORT "\n\n";
+  out << "please submit bugs to " TOOLS_BUGREPORT "\n\n";
   out << ProgramName();
   if (VersionString() != "") {
     out << ", version " << VersionString();
