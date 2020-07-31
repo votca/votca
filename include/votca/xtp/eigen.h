@@ -25,7 +25,7 @@
 // clang-format off
 // order seems to matter here
 #include "votca_xtp_config.h"
-#include <votca/tools/votca_config.h>
+#include <votca/tools/votca_tools_config.h>
 //clang-format on
 
 // VOTCA includes
