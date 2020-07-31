@@ -53,12 +53,14 @@ Version 1.7-dev
 -  remove constant cutoff from neighborlist (#508)
 -  fix default and flags properties issue (#511)
 -  add more checks to the dft_parse_part (#510)
-
+-  add NOSCF option for iqm in internal and external DFT (#483)
+   
 Version 1.6.2 (released XX.07.20)
 =================================
 
 -  move CI to GitHub Actions (#512, #514, #516,
    #519)
+-  add more checks to the dft_parse_part (#521)
 
 Version 1.6.1 (released 21.06.20)
 =================================
