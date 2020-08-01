@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/xtp/commits/master>`__.
 
-Version 1.7-dev
+Version 2021-dev
 ===============
 
 -  G0W0 rpa energies are fixed in BSE (#383)
@@ -54,6 +54,7 @@ Version 1.7-dev
 -  fix default and flags properties issue (#511)
 -  add more checks to the dft_parse_part (#510)
 -  add NOSCF option for iqm in internal and external DFT (#483)
+-  added versions to output files (#523)
    
 Version 1.6.2 (released XX.07.20)
 =================================
