@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/tools/commits/stable>`__.
 
-Version 1.7-dev
+Version 2021-dev
 ===============
 
 -  add support of txt2tqs 3.4 (#208)

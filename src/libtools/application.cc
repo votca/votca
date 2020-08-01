@@ -29,6 +29,9 @@
 #include "votca/tools/propertyiomanipulator.h"
 #include "votca/tools/version.h"
 
+// Local private VOTCA includes
+#include "votca_tools_config.h"
+
 namespace votca {
 namespace tools {
 using namespace std;
@@ -42,7 +45,7 @@ void Application::ShowHelpText(std::ostream &out) {
   out << "========   VOTCA (http://www.votca.org)   ========\n";
   out << "==================================================\n\n";
 
-  out << "please submit bugs to bugs@votca.org\n\n";
+  out << "please submit bugs to " TOOLS_BUGREPORT "\n\n";
   out << ProgramName();
   if (VersionString() != "") {
     out << ", version " << VersionString();

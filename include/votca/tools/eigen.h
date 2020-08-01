@@ -21,7 +21,7 @@
 #define VOTCA_TOOLS_EIGEN_H
 
 // Local VOTCA includes
-#include "votca_config.h"
+#include "votca_tools_config.h"
 
 #ifdef MKL_FOUND
 #include <mkl.h>
