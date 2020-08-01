@@ -40,7 +40,8 @@ namespace csg {
 
 // defines gitversion
 #include "gitversion.h"
-static const std::string version_str = std::string(CSG_VERSION) + " " + gitversion +
+static const std::string version_str = std::string(CSG_VERSION) + " " +
+                                       gitversion +
                                        " (compiled " __DATE__ ", " __TIME__ ")";
 
 const std::string &CsgVersionStr() { return version_str; }
