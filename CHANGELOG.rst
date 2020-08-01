@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/xtp/commits/master>`__.
 
-Version 1.7-dev
+Version 2021-dev
 ===============
 
 -  G0W0 rpa energies are fixed in BSE (#383)
