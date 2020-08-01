@@ -16,7 +16,7 @@
  */
 
 #ifndef HAVE_NO_CONFIG
-#include <votca_config.h>
+#include <votca_csg_config.h>
 #endif
 
 #include <iostream>
