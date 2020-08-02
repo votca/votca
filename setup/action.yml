@@ -1,6 +1,9 @@
 name: 'Setup'
 description: 'Setup Votca environment'
 inputs:
+  branch:
+    description: 'Branch to work on (usually taken from GITHUB_REF)'
+    required: false
   cmake_args:
     description: 'Initial CMake args to use'
     required: false

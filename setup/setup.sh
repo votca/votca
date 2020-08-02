@@ -28,7 +28,9 @@ module=$(sed -n 's/project(\(votca-\)\?\([^ )]*\).*)/\2/p' CMakeLists.txt)
 [[ ${module} ]] || die "Could not fetch module"
 print_output "module" "${module}"
 
-if [[ ${GITHUB_REF} = refs/pull/*/merge ]]; then # pull request
+if [[ ${INPUT_BRANCH} ]]; then # user overwrite
+  branch="${INPUT_BRANCH}"
+elif [[ ${GITHUB_REF} = refs/pull/*/merge ]]; then # pull request
   branch="${GITHUB_BASE_REF}"
 elif [[ ${GITHUB_REF} = refs/heads/* ]]; then # branch, e.g. stable
   branch=${GITHUB_REF#refs/heads/}
