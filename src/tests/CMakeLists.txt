@@ -34,7 +34,8 @@ foreach(PROG
     test_random
     test_akimaspline
     test_linspline
-    test_unitconverter)
+    test_unitconverter
+    test_eigenio_matrixmarket)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})
@@ -55,3 +56,5 @@ foreach(PROG
     set_tests_properties(memory_${PROG} PROPERTIES LABELS "tools;votca;memory")
   endif(VALGRIND_FOUND) 
 endforeach(PROG)
+
+file(COPY DataFiles DESTINATION ${CMAKE_BINARY_DIR}/tools/src/tests/)
