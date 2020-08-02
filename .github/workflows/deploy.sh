@@ -21,7 +21,7 @@ else
 fi
 popd
 
-if [[ ${GITHUB_BASE_REF} = stable || ${GITHUB_REF} = refs/heads/stable ]]; then
+if [[ ${GITHUB_BASE_REF} = stable || ${GITHUB_REF} = refs/heads/stable || ${BRANCH} = stable ]]; then
   exit 0
 fi
 
