@@ -61,9 +61,10 @@ void WriteMatrix(const std::string& filename, const Eigen::MatrixXd& output) {
 }
 
 Eigen::MatrixXd ReadMatrix(const std::string& filename) {
-  int sym;
-  bool iscomplex;
-  bool isvector;
+  int sym = 0;
+  bool iscomplex = false;  // has to be false because getMarketHeader only sets
+                           // it to true but not to false
+  bool isvector = false;
   bool success = Eigen::getMarketHeader(filename, sym, iscomplex, isvector);
   if (!success) {
     throw std::runtime_error("Could not read " + filename);
@@ -72,7 +73,8 @@ Eigen::MatrixXd ReadMatrix(const std::string& filename) {
     throw std::runtime_error("Only supports reading in general matrices");
   }
   if (iscomplex) {
-    throw std::runtime_error("Only supports reading in real matrices");
+    throw std::runtime_error(
+        "Only supports reading in matrices with real numbers");
   }
 
   if (!isvector) {

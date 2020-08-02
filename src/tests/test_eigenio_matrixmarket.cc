@@ -24,6 +24,7 @@
 // Local VOTCA includes
 #include "votca/tools/eigenio_matrixmarket.h"
 #include "votca/tools/votca_tools_config.h"
+#include <iostream>
 
 using namespace votca::tools;
 
@@ -33,10 +34,10 @@ BOOST_AUTO_TEST_CASE(readvector_test) {
 
   Eigen::VectorXd ref = Eigen::VectorXd::Zero(4);
   ref << 1.0, 2.0, 3.0, 4.0;
-  std::cout << std::string(TOOLS_CMAKE_BINARY_DIR) << std::endl;
+  std::cout << std::string(TOOLS_TEST_FOLDER) << std::endl;
   Eigen::VectorXd readin = EigenIO_MatrixMarket::ReadVector(
-      std::string(TOOLS_CMAKE_BINARY_DIR) +
-      "/tools/src/tests/DataFiles/eigenio_matrixmarket/eigen_vector.mm");
+      std::string(TOOLS_TEST_FOLDER) +
+      "/DataFiles/eigenio_matrixmarket/eigen_vector.mm");
 
   bool check = ref.isApprox(readin, 1e-5);
 
@@ -71,8 +72,8 @@ BOOST_AUTO_TEST_CASE(readmatrix_test) {
   ref << 1.0, 5.0, 9.0, 2.0, 6.0, 10.0, 3.0, 7.0, 11.0, 4.0, 8.0, 12.0;
 
   Eigen::MatrixXd readin = EigenIO_MatrixMarket::ReadMatrix(
-      std::string(TOOLS_CMAKE_BINARY_DIR) +
-      "/tools/src/tests/DataFiles/eigenio_matrixmarket/eigen_matrix.mm");
+      std::string(TOOLS_TEST_FOLDER) +
+      "/DataFiles/eigenio_matrixmarket/eigen_matrix.mm");
 
   bool check = ref.isApprox(readin, 1e-5);
 

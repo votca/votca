@@ -30,7 +30,4 @@
 /* Contact address of package */
 #define TOOLS_BUGREPORT "@PROJECT_CONTACT@"
 
-#define TOOLS_CMAKE_BINARY_DIR "@CMAKE_BINARY_DIR@"
-
-
 #endif  // __VOTCA_TOOLS_VOTCA_CONFIG_H
