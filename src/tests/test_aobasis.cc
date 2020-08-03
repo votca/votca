@@ -35,33 +35,12 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(aobasis_test)
 
 BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
-  std::ofstream basisfile("notnormalized.xml");
-  basisfile << "<basis name=\"def2-TZVP\">" << std::endl;
-  basisfile << "  <element name=\"Al\">" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"D\">" << std::endl;
-  basisfile << "      <constant decay=\"1.570000e+00\">" << std::endl;
-  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"D\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "      <constant decay=\"3.330000e-01\">" << std::endl;
-  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"D\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell> " << std::endl;
-  basisfile << "  </element> " << std::endl;
-  basisfile << "</basis> " << std::endl;
-  basisfile.close();
-
-  std::ofstream xyzfile("Al.xyz");
-  xyzfile << " 1" << std::endl;
-  xyzfile << " Al" << std::endl;
-  xyzfile << " Al            .000000     .000000     .000000" << std::endl;
-  xyzfile.close();
 
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromFile("Al.xyz");
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/aobasis/Al.xyz");
   BasisSet basis;
-  basis.Load("notnormalized.xml");
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aobasis/notnormalized.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
 
