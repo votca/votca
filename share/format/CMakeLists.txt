@@ -1,4 +1,4 @@
-find_package(CLANG_FORMAT 7.0.1)
+find_package(CLANG_FORMAT 10)
 if(CLANG_FORMAT_FOUND)
   set(FORMAT_SOURCES)
   foreach(DIR ${ENABLED_VOTCA_PACKAGES})
