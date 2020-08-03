@@ -88,6 +88,7 @@ if(ENABLE_TESTING)
 
   foreach(PROG ${test_cases} )
     add_executable(unit_${PROG} ${PROG}.cc)
+    target_compile_definitions(unit_${PROG} PRIVATE XTP_TEST_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/DataFiles")
     target_link_libraries(unit_${PROG} votca_xtp Boost::unit_test_framework)
     target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
     add_test(unit_${PROG} unit_${PROG})
