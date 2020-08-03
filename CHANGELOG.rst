@@ -13,7 +13,6 @@ Version 2021-dev
 -  Fixed executable path check (#400)
 -  Usage of offdiagonal elements of Hqp in BSE optional, default: with
    offdiagonals (#402)
--  write an empty state file if it does not exist yet (#526)
 -  refactored MO reordering of external QMPackages (#406)
 -  Add defaults to XML (#319, #413)
 -  fix build with gcc-10 (#422, #424)
@@ -31,17 +30,14 @@ Version 2021-dev
 -  standardising include order and style in header files (#448)
 -  changed to OpenMP reductions instead of hand crafted solutions (#466,
    #471, #493)
--  write an empty state file if it does not exist yet (#526)
 -  switch to GitHub Actions as CI (#467, #474, #477, #482, #500, #502,
    #518)
--  write an empty state file if it does not exist yet (#526)
 -  move tutorial to its own repo (#450)
 -  removed share/packages folder (#475)
 -  copy orca \*.gbw files in eqm (#472)
 -  improve mkl support (#479)
 -  add def2-tzvp, def2-tzvpp, def2-qzvp, def2-qzvpp for Rb,I,Ag,Xe
    (#480)
--  write an empty state file if it does not exist yet (#526)
 -  create a map between orca and libxc functional names (#461)
 -  fix path to share/data (#486, #487)
 -  remove special XML symbols (#488)
@@ -58,13 +54,11 @@ Version 2021-dev
 -  add NOSCF option for iqm in internal and external DFT (#483)
 -  added versions to output files (#523)
    
--  write an empty state file if it does not exist yet (#526)
 Version 1.6.2 (released XX.07.20)
 =================================
 
 -  move CI to GitHub Actions (#512, #514, #516,
    #519)
--  write an empty state file if it does not exist yet (#526)
 -  add more checks to the dft_parse_part (#521)
 
 Version 1.6.1 (released 21.06.20)
@@ -171,10 +165,8 @@ Version 1.4\_rc1 (released 26.09.16)
 -  include manual
 -  an extension of the whole workflow from: electrons and holes, to
    singlet and triplet excitons
--  write an empty state file if it does not exist yet (#526)
 -  a fully functional GW-BSE code optimized for: molecular properties,
    including excited state geometry optimizsation
--  write an empty state file if it does not exist yet (#526)
 -  Inclusion of LIBXC to calculate Exchange correlation matrices
 -  allowing interfacing GW-BSE with many quantum mechanical packages
 -  support for ORCA DFT package
@@ -184,7 +176,6 @@ Version 1.4\_rc1 (released 26.09.16)
 -  support for intel mkl library and compilers for better performance
 -  A periodic polarisation embedding: to calculate classical
    configuration energies without cutoffs
--  write an empty state file if it does not exist yet (#526)
 -  xtp\_update\_exciton to update state file to newest format
 -  integration of moo and kmc into xtp for easier installation
 -  kmc\_lifetime calculator to simulate exciton movement with lifetimes
@@ -197,50 +188,37 @@ Version 1.3 (released XX.09.15)
 
 -  new executables: ctp\_tools, ctp\_dump, ctp\_parallel,
    xtp\_testsuite, xtp\_update
--  write an empty state file if it does not exist yet (#526)
 -  ctp\_tools wraps light-weight tools that assist e.g. in generating
    the system mapping file
--  write an empty state file if it does not exist yet (#526)
 -  ctp\_dump extracts information from the state file to human-readable
    format
--  write an empty state file if it does not exist yet (#526)
 -  ctp\_parallel wraps heavy-duty job-based calculators: allows
    synchronization across processes
--  write an empty state file if it does not exist yet (#526)
 -  ctp\_testsuite provides an easy-to-use environment to run: selected
    tests, individual calculators
--  write an empty state file if it does not exist yet (#526)
 -  ctp\_update updates an existent state file to the current version
 -  new calculators: edft, idft, pdb2map, xqmultipole, ...
 -  edft / idft: provide interfaces to the GAUSSIAN, TURBOMOLE & NWCHEM
    package, using packages computes: couplings, internal energies,
--  write an empty state file if it does not exist yet (#526)
    partial charges
--  write an empty state file if it does not exist yet (#526)
 -  pdb2map (generates a system mapping file from an input coordinate
    file)
--  write an empty state file if it does not exist yet (#526)
 -  xqmultipole computes classical configuration energies of: charged
    clusters embedded in a molecular environment
--  write an empty state file if it does not exist yet (#526)
 -  enhanced usability via the command-line help, tutorial & test-suite
 -  a GUI tutorial assists with the first practical steps in using
    VOTCA-CTP
--  write an empty state file if it does not exist yet (#526)
 -  an extended and homogenized help system provides: short infos on
    individual calculator options from the command line
--  write an empty state file if it does not exist yet (#526)
 
 Version 1.0 (released 23.10.11)
 ===============================
 
 -  parallel evaluation of site energies using: Thole model + GDMA -
    Tinker no longer required
--  write an empty state file if it does not exist yet (#526)
 -  much clearer input files (and many more checks for input errors)
 -  most of calculators are parallel and can be used on a cluster
 -  bug in zindo/ctp interface fixed
 -  state file now contains: the atomistic trajectory, rigid fragments,
    conjugated segments
--  write an empty state file if it does not exist yet (#526)
 -  support for several MD frames
