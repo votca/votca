@@ -49,7 +49,7 @@ fi
 
 [[ $version_section ]] || die "Could not find section to $version"
 echo "Found section for $v"
-last_line="$(echo "$version_section" | sed -n '$p')"
+last_line="$(echo "$version_section" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
 [[ $last_line ]] || die "Could not grep last line"
 
 echo "Adding message '$message' after line '${last_line}'"
