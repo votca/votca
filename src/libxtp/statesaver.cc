@@ -64,7 +64,7 @@ void StateSaver::WriteFrame(const Topology& top) {
 
   flock.unlock();
 
-  std::cout << "Writing MD topology (step = " << top.getStep()
+  std::cout << "Wrote MD topology (step = " << top.getStep()
             << ", time = " << top.getTime() << ") to " << _hdf5file
             << std::endl;
   std::cout << "... ";
