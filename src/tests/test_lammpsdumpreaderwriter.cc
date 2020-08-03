@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,12 +36,6 @@ using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
-// Check if file exists
-bool fexists(const string filename) {
-  std::ifstream ifile(filename);
-  return (bool)ifile;
-}
-
 BOOST_AUTO_TEST_SUITE(lammpsdumpreaderwriter_test)
 
 /**
@@ -60,11 +54,8 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   // and read from it. Create a topology object with the same
   // molecule to enable the ability to read in the trajectory
   // file
-  string lammpsdumpfilename = "test_thiophene.dump";
-  if (fexists(lammpsdumpfilename)) {
-    remove(lammpsdumpfilename.c_str());
-  }
-  ofstream outfile(lammpsdumpfilename);
+  string lammpsdumpfilename = std::string(CSG_TEST_DATA_FOLDER) +
+                              "/lammpsdumpreaderwriter/test_thiophene.dump";
 
   // Atom Coordinates
   vector<vector<double>> atom_xyz_file = {
@@ -91,50 +82,6 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
       {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1},
       {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1},
       {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}};
-
-  outfile << "ITEM: TIMESTEP" << endl;
-  outfile << "1" << endl;
-  outfile << "ITEM: NUMBER OF ATOMS" << endl;
-  outfile << "16" << endl;
-  outfile << "ITEM: BOX BOUNDS pp pp pp" << endl;
-  outfile << "0 0.000000" << endl;
-  outfile << "0 10.000000" << endl;
-  outfile << "0 10.000000" << endl;
-  outfile << "ITEM: ATOMS id type x y z fx fy fz" << endl;
-  outfile << "1 0 3.571663 -2.912328 0.627991 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "2 0 2.702771 -1.746477 0.724159 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "3 0 1.448135 -2.025836 0.308560 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "4 0 2.946939 -3.992905 0.161081 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "5 1 4.611604 -2.882320 0.919327 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "6 2 1.284820 -3.692216 -0.197094 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "7 1 3.374874 -4.971104 0.004941 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "8 1 3.082680 -0.806748 1.097073 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "9 0 0.244597 -1.159273 0.241620 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "10 2 -0.599083 -0.820914 -1.247944 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "11 0 -0.362405 -0.567118 1.284770 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "12 1 -0.017750 -0.642753 2.305544 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "13 0 -1.542466 0.201364 0.915934 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "14 0 -1.764805 0.138711 -0.400894 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "15 1 -2.563883 0.611988 -0.947270 0.100000 0.100000 0.100000"
-          << endl;
-  outfile << "16 1 -2.121735 0.732859 1.656506 0.100000 0.100000 0.100000"
-          << endl;
-
-  outfile.close();
 
   Topology top;
 
@@ -337,9 +284,6 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
   top.SetHasVel(true);
 
   string lammpsDumpFileName = "test_thiophene.dump";
-  if (fexists(lammpsDumpFileName)) {
-    remove(lammpsDumpFileName.c_str());
-  }
 
   // Write the topology object to a file
   TrajectoryWriter::RegisterPlugins();

@@ -23,6 +23,7 @@ foreach(PROG
 
   file(GLOB ${PROG}_SOURCES ${PROG}.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})
+  target_compile_definitions(unit_${PROG} PRIVATE CSG_TEST_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/DataFiles")
   if(PROG STREQUAL "test_bondedstatistics" OR PROG STREQUAL "test_tabulatedpotential")
     target_link_libraries(unit_${PROG} votca_csg_boltzmann)
   endif()
