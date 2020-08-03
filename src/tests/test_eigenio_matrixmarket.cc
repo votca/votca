@@ -34,10 +34,10 @@ BOOST_AUTO_TEST_CASE(readvector_test) {
 
   Eigen::VectorXd ref = Eigen::VectorXd::Zero(4);
   ref << 1.0, 2.0, 3.0, 4.0;
-  std::cout << std::string(TOOLS_TEST_FOLDER) << std::endl;
-  Eigen::VectorXd readin = EigenIO_MatrixMarket::ReadVector(
-      std::string(TOOLS_TEST_FOLDER) +
-      "/DataFiles/eigenio_matrixmarket/eigen_vector.mm");
+  std::cout << std::string(TOOLS_TEST_DATA_FOLDER) << std::endl;
+  Eigen::VectorXd readin =
+      EigenIO_MatrixMarket::ReadVector(std::string(TOOLS_TEST_DATA_FOLDER) +
+                                       "/eigenio_matrixmarket/eigen_vector.mm");
 
   bool check = ref.isApprox(readin, 1e-5);
 
@@ -71,9 +71,9 @@ BOOST_AUTO_TEST_CASE(readmatrix_test) {
   Eigen::MatrixXd ref = Eigen::MatrixXd::Zero(4, 3);
   ref << 1.0, 5.0, 9.0, 2.0, 6.0, 10.0, 3.0, 7.0, 11.0, 4.0, 8.0, 12.0;
 
-  Eigen::MatrixXd readin = EigenIO_MatrixMarket::ReadMatrix(
-      std::string(TOOLS_TEST_FOLDER) +
-      "/DataFiles/eigenio_matrixmarket/eigen_matrix.mm");
+  Eigen::MatrixXd readin =
+      EigenIO_MatrixMarket::ReadMatrix(std::string(TOOLS_TEST_DATA_FOLDER) +
+                                       "/eigenio_matrixmarket/eigen_matrix.mm");
 
   bool check = ref.isApprox(readin, 1e-5);
 
