@@ -39,7 +39,7 @@ foreach(PROG
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})
-  target_compile_definitions(unit_${PROG} PRIVATE TOOLS_TEST_DATA_FOLDER="${CMAKE_CURRENT_BINARY_DIR}/DataFiles")
+  target_compile_definitions(unit_${PROG} PRIVATE TOOLS_TEST_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/DataFiles")
   target_link_libraries(unit_${PROG} votca_tools Boost::unit_test_framework Boost::filesystem)
   target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
   add_test(unit_${PROG} unit_${PROG})
@@ -57,5 +57,3 @@ foreach(PROG
     set_tests_properties(memory_${PROG} PROPERTIES LABELS "tools;votca;memory")
   endif(VALGRIND_FOUND) 
 endforeach(PROG)
-
-
