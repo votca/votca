@@ -29,4 +29,5 @@
 
 /* Contact address of package */
 #define TOOLS_BUGREPORT "@PROJECT_CONTACT@"
+
 #endif  // __VOTCA_TOOLS_VOTCA_CONFIG_H
