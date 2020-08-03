@@ -31,6 +31,7 @@ Version 2021-dev
 -  enable CXX only in CMake (#273)
 -  format code with clang-10 (#277)
 -  fix clang-9 conversion warning (#276)
+-  add class to writeand read matrices (#290)
 
 Version 1.6.2 (released XX.07.20)
 =================================
