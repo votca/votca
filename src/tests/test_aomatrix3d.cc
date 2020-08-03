@@ -20,10 +20,11 @@
 // Third party includes
 #include <boost/test/unit_test.hpp>
 
+#include <votca/tools/eigenio_matrixmarket.h>
 // Local VOTCA includes
 #include "votca/xtp/aomatrix3d.h"
 #include "votca/xtp/orbitals.h"
-#include <votca/tools/eigenio_matrixmarket.h>
+
 using namespace votca::xtp;
 using namespace votca;
 using namespace std;
