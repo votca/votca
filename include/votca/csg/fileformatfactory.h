@@ -18,7 +18,10 @@
 #ifndef _VOTCA_CSG_FILEFORMATFACTORY_H
 #define _VOTCA_CSG_FILEFORMATFACTORY_H
 
+// Standard includes
 #include <string>
+
+// VOTCA includes
 #include <votca/tools/filesystem.h>
 #include <votca/tools/objectfactory.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,12 @@
  *
  */
 
+// Standard library includes
 #include <iostream>
-#include <votca/csg/nblist.h>
-#include <votca/csg/topology.h>
+
+// Local VOTCA includes
+#include "votca/csg/nblist.h"
+#include "votca/csg/topology.h"
 
 namespace votca {
 namespace csg {
@@ -43,8 +46,8 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
     return;
   }
 
-  assert(list1.getTopology() == list2.getTopology());
-  Topology *top = list1.getTopology();
+  assert(&(list1.getTopology()) == &(list2.getTopology()));
+  const Topology &top = list1.getTopology();
 
   for (iter1 = list1.begin(); iter1 != list1.end(); ++iter1) {
     if (&list1 == &list2) {
@@ -65,11 +68,11 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
       Eigen::Vector3d u = (*iter1)->getPos();
       Eigen::Vector3d v = (*iter2)->getPos();
 
-      Eigen::Vector3d r = top->BCShortestConnection(u, v);
+      Eigen::Vector3d r = top.BCShortestConnection(u, v);
       double d = r.norm();
       if (d < _cutoff) {
         if (_do_exclusions) {
-          if (top->getExclusions().IsExcluded(*iter1, *iter2)) {
+          if (top.getExclusions().IsExcluded(*iter1, *iter2)) {
             continue;
           }
         }

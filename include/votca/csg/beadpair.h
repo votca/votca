@@ -18,6 +18,7 @@
 #ifndef _VOTCA_CSG_BEADPAIR_H
 #define _VOTCA_CSG_BEADPAIR_H
 
+// VOTCA includes
 #include <votca/tools/eigen.h>
 
 namespace votca {
