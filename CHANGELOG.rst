@@ -65,6 +65,7 @@ Version 1.6.2 (released XX.07.20)
 -  move CI to GitHub Actions (#512, #514, #516,
    #519)
 -  add more checks to the dft_parse_part (#521)
+-  make unit tests work in parallel (#530)
 
 Version 1.6.1 (released 21.06.20)
 =================================
