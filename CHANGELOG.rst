@@ -57,6 +57,7 @@ Version 2021-dev
 -  added versions to output files (#523)
 -  write an empty state file if it does not exist yet (#526)
 -  fix double unit conversion (#531)
+-  Unittests can read input and reference values from files (#529)
 
 Version 1.6.2 (released XX.07.20)
 =================================
