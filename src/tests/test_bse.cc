@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE bse_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/bse.h>
-#include <votca/xtp/convergenceacc.h>
-#include <votca/xtp/qmfragment.h>
+
+// Local VOTCA includes
+#include "votca/xtp/bse.h"
+#include "votca/xtp/convergenceacc.h"
+#include "votca/xtp/qmfragment.h"
 
 using namespace votca::xtp;
 using namespace std;
@@ -237,15 +241,89 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.useTDA = true;
   opt.homo = 4;
   opt.qpmin = 0;
+  opt.qpmax = 16;
 
   orbitals.setBSEindices(0, 16);
 
-  BSE bse = BSE(log, Mmn, Hqp);
+  BSE bse = BSE(log, Mmn);
   orbitals.setTDAApprox(true);
+  orbitals.RPAInputEnergies() = Hqp.diagonal();
 
   ////////////////////////////////////////////////////////
   // TDA Singlet lapack, davidson, davidson matrix free
   ////////////////////////////////////////////////////////
+
+  // reference energy singlet, no offdiagonals in Hqp
+  Eigen::VectorXd se_nooffdiag_ref = Eigen::VectorXd::Zero(3);
+  se_nooffdiag_ref << 0.106862, 0.106862, 0.106863;
+
+  // reference singlet coefficients, no offdiagonals in Hqp
+  Eigen::MatrixXd spsi_nooffdiag_ref = Eigen::MatrixXd::Zero(60, 3);
+  spsi_nooffdiag_ref << 0.000607127, 0.0229731, -0.00406647, -0.00214374,
+      0.00410545, 0.0228742, -0.023232, 0.000221523, -0.00221698, -0.00388776,
+      -0.00141272, -0.00844522, 0.00855524, -0.00102477, -0.00376702,
+      0.000354366, 0.00924063, -0.00170887, -1.68897e-08, -7.30539e-09,
+      -1.41464e-09, -0.000399553, -0.0134162, 0.00241123, 0.00327622,
+      0.00224704, 0.0130456, -0.0132318, 0.000961469, 0.00315717, 4.73623e-11,
+      -2.41277e-08, 1.67218e-08, -1.06263e-11, -6.11075e-10, 6.17692e-10,
+      -0.00376757, -0.0945042, 0.0179134, -0.0033488, 0.00986624, 0.0479021,
+      -0.046906, 0.00138455, -0.00579045, -0.00542206, -0.00204946, -0.0118782,
+      0.0113272, -0.00127678, -0.00505523, -0.000860697, -0.0252409, 0.0046849,
+      -0.000321737, -0.0207846, 0.00343177, 0.00113344, 0.0296357, -0.00557715,
+      0.00383593, 0.0027263, 0.0147895, -0.0142376, 0.00131257, 0.0032389,
+      2.62534e-05, 0.00169595, -0.00028, 1.08999e-06, 7.04126e-05, -1.16259e-05,
+      0.0154019, 0.00867262, 0.0451478, -0.017964, 0.0554056, 0.055735,
+      0.0650762, -0.0175624, 0.0226305, 0.012757, -0.0151682, -0.00995265,
+      -0.0127642, -0.00328474, -0.0127777, 0.00396125, 0.00223629, 0.0118498,
+      -0.00664764, -0.00315664, -0.0197415, -0.00478285, -0.00268465,
+      -0.0140804, -0.012011, 0.0182182, 0.0141975, 0.0174373, 0.000514854,
+      0.0124932, 0.000542411, 0.000257571, 0.0016108, 2.25203e-05, 1.06938e-05,
+      6.68786e-05, 0.0452854, -0.00598435, -0.0141927, -0.0660776, -0.0203271,
+      -0.014953, -0.0216302, -0.0311786, 0.0719322, 0.0124298, 0.000593334,
+      0.0129825, 0.0135796, 0.00993452, -0.0146421, 0.0122985, -0.00145851,
+      -0.00396145, -0.0199896, 0.00138426, 0.00650989, -0.0142771, 0.00182775,
+      0.00450375, -0.017313, -0.00281174, -0.0118416, -0.0131535, -0.0113317,
+      0.0197418, 0.00163103, -0.000112957, -0.000531178, 6.7719e-05,
+      -4.68944e-06, -2.20537e-05, 0.0257085, 0.972807, -0.172195, -0.0907762,
+      0.17385, 0.968608, -0.98375, 0.00938037, -0.0938789, -0.0270786,
+      -0.00983958, -0.0588216, 0.0595876, -0.00713774, -0.0262375, 0.00246837,
+      0.0643612, -0.0119023, -1.06896e-07, 1.68654e-07, -1.75356e-07,
+      -0.00114093, -0.0383116, 0.00688553, 0.00935525, 0.00641671, 0.0372534,
+      -0.0377848, 0.00274555, 0.00901579, -5.44967e-09, -1.30237e-07,
+      1.03027e-07, -1.60385e-10, -5.02223e-10, 4.11064e-10;
+
+  // lapack
+  opt.davidson = 0;
+  // no offdiagonals
+  opt.use_Hqp_offdiag = false;
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
+
+  bse.Solve_singlets(orbitals);
+  bool check_se_nooffdiag =
+      se_nooffdiag_ref.isApprox(orbitals.BSESinglets().eigenvalues(), 0.001);
+  if (!check_se_nooffdiag) {
+    cout << "Singlets energy without Hqp offdiag" << endl;
+    cout << orbitals.BSESinglets().eigenvalues() << endl;
+    cout << "Singlets energy without Hqp offdiag ref" << endl;
+    cout << se_nooffdiag_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_se_nooffdiag, true);
+  Eigen::MatrixXd projection_nooffdiag =
+      spsi_nooffdiag_ref.transpose() * orbitals.BSESinglets().eigenvectors();
+  Eigen::VectorXd norms_nooffdiag = projection_nooffdiag.colwise().norm();
+  bool check_spsi_nooffdiag = norms_nooffdiag.isApproxToConstant(1, 1e-5);
+  if (!check_spsi_nooffdiag) {
+    cout << "Norms" << norms_nooffdiag << endl;
+    cout << "Singlets psi without Hqp offdiag" << endl;
+    cout << orbitals.BSESinglets().eigenvectors() << endl;
+    cout << "Singlets psi without Hqp offdiag ref" << endl;
+    cout << spsi_nooffdiag_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_spsi_nooffdiag, true);
+
+  // with Hqp offdiags
+  opt.use_Hqp_offdiag = true;
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
 
   // reference energy
   Eigen::VectorXd se_ref = Eigen::VectorXd::Zero(3);
@@ -286,9 +364,16 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
       -0.00519809, -0.000154171, -0.00125602, 4.03664e-08, -6.04796e-08,
       -4.6768e-08, -2.38233e-09, 2.31605e-09, 1.35922e-09;
 
-  // lapack
-  opt.davidson = 0;
-  bse.configure(opt, orbitals.MOs().eigenvalues());
+  // Hqp unchanged
+  bool check_hqp_unchanged = Hqp.isApprox(bse.getHqp(), 0.001);
+  if (!check_hqp_unchanged) {
+    cout << "unchanged Hqp" << endl;
+    cout << bse.getHqp() << endl;
+    cout << "unchanged Hqp ref" << endl;
+    cout << Hqp << endl;
+  }
+  BOOST_CHECK_EQUAL(check_hqp_unchanged, true);
+
   bse.Solve_singlets(orbitals);
   bool check_se = se_ref.isApprox(orbitals.BSESinglets().eigenvalues(), 0.001);
   if (!check_se) {
@@ -313,7 +398,14 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   // davidson full matrix
   opt.davidson = 1;
-  bse.configure(opt, orbitals.MOs().eigenvalues());
+  opt.matrixfree = 0;
+  opt.davidson_correction = "DPR";
+  opt.davidson_ortho = "GS";
+  opt.davidson_tolerance = "normal";
+  opt.davidson_update = "safe";
+  opt.davidson_maxiter = 50;
+
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_singlets(orbitals);
 
   std::vector<QMFragment<BSE_Population> > singlets;
@@ -344,7 +436,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   // davidson matrix free
   opt.davidson = 1;
   opt.matrixfree = 1;
-  bse.configure(opt, orbitals.MOs().eigenvalues());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_singlets(orbitals);
   bool check_se_dav2 =
       se_ref.isApprox(orbitals.BSESinglets().eigenvalues(), 0.001);
@@ -452,7 +544,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.useTDA = false;
   opt.davidson = 0;
   opt.matrixfree = 0;
-  bse.configure(opt, orbitals.MOs().eigenvalues());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   orbitals.setTDAApprox(false);
   bse.Solve_singlets(orbitals);
   orbitals.BSESinglets().eigenvectors().colwise().normalize();
@@ -510,7 +602,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.davidson = 1;
   opt.nmax = 3;
 
-  bse.configure(opt, orbitals.MOs().eigenvalues());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_singlets(orbitals);
   orbitals.BSESinglets().eigenvectors().colwise().normalize();
   orbitals.BSESinglets().eigenvectors2().colwise().normalize();
@@ -582,7 +674,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   // lapack
   opt.davidson = 0;
   opt.matrixfree = 0;
-  bse.configure(opt, orbitals.MOs().eigenvalues());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_triplets(orbitals);
   std::vector<QMFragment<BSE_Population> > triplets;
   bse.Analyze_triplets(triplets, orbitals);
@@ -610,7 +702,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   // davidson
   opt.davidson = 1;
   opt.matrixfree = 0;
-  bse.configure(opt, orbitals.MOs().eigenvalues());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_triplets(orbitals);
 
   bool check_te_dav =
@@ -636,7 +728,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   // davidson matrix free
   opt.davidson = 1;
   opt.matrixfree = 1;
-  bse.configure(opt, orbitals.MOs().eigenvalues());
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_triplets(orbitals);
 
   bool check_te_dav2 =
@@ -658,6 +750,126 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << tpsi_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_tpsi_dav2, true);
+
+  // Cutout Hamiltonian
+  Eigen::MatrixXd Hqp_cut_ref = Eigen::MatrixXd::Zero(15, 15);
+  Hqp_cut_ref << -0.461602, 1.12979e-07, -1.47246e-07, -1.3086e-07, 0.0443459,
+      0.000553929, 0.000427421, 8.38616e-05, 0.000289144, -0.0101872,
+      -1.28339e-07, 0.0141886, -0.000147938, -0.000241557, 5.71202e-07,
+      1.12979e-07, -0.461602, 1.72197e-07, 2.8006e-08, -0.000335948, 0.0406153,
+      -0.0178151, 0.0101352, 0.00106636, 0.000113704, 1.22667e-07, -0.000128128,
+      -0.0141459, 0.00111572, -4.57761e-07, -1.47246e-07, 1.72197e-07,
+      -0.461601, -4.34283e-08, 0.000614026, -0.0178095, -0.0406149, 0.00106915,
+      -0.0101316, -0.00027881, 4.86348e-08, 0.000252415, 0.00111443, 0.0141441,
+      1.01087e-07, -1.3086e-07, 2.8006e-08, -4.34283e-08, 0.00815998,
+      -1.70198e-07, 1.14219e-07, 1.10593e-09, -4.81365e-08, 2.75431e-09,
+      -2.95191e-08, -0.0166337, 5.78666e-08, 8.52843e-08, -1.74815e-08,
+      -0.00112475, 0.0443459, -0.000335948, 0.000614026, -1.70198e-07, 0.323811,
+      1.65813e-07, -1.51122e-08, -2.98465e-05, -0.000191357, 0.0138568,
+      2.86823e-07, -0.0372319, 6.58278e-05, 0.000142268, -2.94575e-07,
+      0.000553929, 0.0406153, -0.0178095, 1.14219e-07, 1.65813e-07, 0.323811,
+      -6.98568e-09, -0.0120376, -0.00686446, -0.000120523, -1.7727e-07,
+      0.000108686, 0.0351664, 0.0122284, 1.86591e-07, 0.000427421, -0.0178151,
+      -0.0406149, 1.10593e-09, -1.51122e-08, -6.98568e-09, 0.323811, 0.00686538,
+      -0.0120366, -0.00015138, 1.6913e-07, 0.000112864, -0.0122286, 0.0351659,
+      -2.32341e-08, 8.38616e-05, 0.0101352, 0.00106915, -4.81365e-08,
+      -2.98465e-05, -0.0120376, 0.00686538, 0.901732, 6.12076e-08, -9.96554e-08,
+      2.57089e-07, -1.03264e-05, 0.00917151, -0.00170387, -3.30584e-07,
+      0.000289144, 0.00106636, -0.0101316, 2.75431e-09, -0.000191357,
+      -0.00686446, -0.0120366, 6.12076e-08, 0.901732, -2.4407e-08, -1.19304e-08,
+      -9.06429e-05, 0.00170305, 0.00917133, -1.11726e-07, -0.0101872,
+      0.000113704, -0.00027881, -2.95191e-08, 0.0138568, -0.000120523,
+      -0.00015138, -9.96554e-08, -2.4407e-08, 0.901732, 3.23124e-07, 0.00932737,
+      2.69633e-05, 8.74181e-05, -4.83481e-07, -1.28339e-07, 1.22667e-07,
+      4.86348e-08, -0.0166337, 2.86823e-07, -1.7727e-07, 1.6913e-07,
+      2.57089e-07, -1.19304e-08, 3.23124e-07, 1.2237, -7.31155e-07,
+      -6.14518e-07, 2.79634e-08, -0.042011, 0.0141886, -0.000128128,
+      0.000252415, 5.78666e-08, -0.0372319, 0.000108686, 0.000112864,
+      -1.03264e-05, -9.06429e-05, 0.00932737, -7.31155e-07, 1.21009,
+      -2.99286e-07, -4.29557e-08, 6.13566e-07, -0.000147938, -0.0141459,
+      0.00111443, 8.52843e-08, 6.58278e-05, 0.0351664, -0.0122286, 0.00917151,
+      0.00170305, 2.69633e-05, -6.14518e-07, -2.99286e-07, 1.21009, 2.02234e-07,
+      7.00978e-07, -0.000241557, 0.00111572, 0.0141441, -1.74815e-08,
+      0.000142268, 0.0122284, 0.0351659, -0.00170387, 0.00917133, 8.74181e-05,
+      2.79634e-08, -4.29557e-08, 2.02234e-07, 1.21009, 3.77938e-08, 5.71202e-07,
+      -4.57761e-07, 1.01087e-07, -0.00112475, -2.94575e-07, 1.86591e-07,
+      -2.32341e-08, -3.30584e-07, -1.11726e-07, -4.83481e-07, -0.042011,
+      6.13566e-07, 7.00978e-07, 3.77938e-08, 1.93666;
+
+  // Hqp cut
+  opt.cmax = 15;
+  opt.vmin = 1;
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
+  bool check_hqp_cut = Hqp_cut_ref.isApprox(bse.getHqp(), 0.001);
+  if (!check_hqp_cut) {
+    cout << "cut Hqp" << endl;
+    cout << bse.getHqp() << endl;
+    cout << "cut Hqp ref" << endl;
+    cout << Hqp_cut_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_hqp_cut, true);
+
+  // Hqp extend
+  opt.cmax = 16;
+  opt.vmin = 0;
+  opt.qpmin = 1;
+  opt.qpmax = 15;
+  BSE bse2 = BSE(log, Mmn);
+  bse2.configure(opt, orbitals.RPAInputEnergies(), Hqp_cut_ref);
+  Eigen::MatrixXd Hqp_extended_ref = Eigen::MatrixXd::Zero(17, 17);
+  Hqp_extended_ref << -0.934164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, -0.461602, 1.12979e-07, -1.47246e-07, -1.3086e-07, 0.0443459,
+      0.000553929, 0.000427421, 8.38616e-05, 0.000289144, -0.0101872,
+      -1.28339e-07, 0.0141886, -0.000147938, -0.000241557, 5.71202e-07, 0, 0,
+      1.12979e-07, -0.461602, 1.72197e-07, 2.8006e-08, -0.000335948, 0.0406153,
+      -0.0178151, 0.0101352, 0.00106636, 0.000113704, 1.22667e-07, -0.000128128,
+      -0.0141459, 0.00111572, -4.57761e-07, 0, 0, -1.47246e-07, 1.72197e-07,
+      -0.461601, -4.34283e-08, 0.000614026, -0.0178095, -0.0406149, 0.00106915,
+      -0.0101316, -0.00027881, 4.86348e-08, 0.000252415, 0.00111443, 0.0141441,
+      1.01087e-07, 0, 0, -1.3086e-07, 2.8006e-08, -4.34283e-08, 0.00815998,
+      -1.70198e-07, 1.14219e-07, 1.10593e-09, -4.81365e-08, 2.75431e-09,
+      -2.95191e-08, -0.0166337, 5.78666e-08, 8.52843e-08, -1.74815e-08,
+      -0.00112475, 0, 0, 0.0443459, -0.000335948, 0.000614026, -1.70198e-07,
+      0.323811, 1.65813e-07, -1.51122e-08, -2.98465e-05, -0.000191357,
+      0.0138568, 2.86823e-07, -0.0372319, 6.58278e-05, 0.000142268,
+      -2.94575e-07, 0, 0, 0.000553929, 0.0406153, -0.0178095, 1.14219e-07,
+      1.65813e-07, 0.323811, -6.98568e-09, -0.0120376, -0.00686446,
+      -0.000120523, -1.7727e-07, 0.000108686, 0.0351664, 0.0122284, 1.86591e-07,
+      0, 0, 0.000427421, -0.0178151, -0.0406149, 1.10593e-09, -1.51122e-08,
+      -6.98568e-09, 0.323811, 0.00686538, -0.0120366, -0.00015138, 1.6913e-07,
+      0.000112864, -0.0122286, 0.0351659, -2.32341e-08, 0, 0, 8.38616e-05,
+      0.0101352, 0.00106915, -4.81365e-08, -2.98465e-05, -0.0120376, 0.00686538,
+      0.901732, 6.12076e-08, -9.96554e-08, 2.57089e-07, -1.03264e-05,
+      0.00917151, -0.00170387, -3.30584e-07, 0, 0, 0.000289144, 0.00106636,
+      -0.0101316, 2.75431e-09, -0.000191357, -0.00686446, -0.0120366,
+      6.12076e-08, 0.901732, -2.4407e-08, -1.19304e-08, -9.06429e-05,
+      0.00170305, 0.00917133, -1.11726e-07, 0, 0, -0.0101872, 0.000113704,
+      -0.00027881, -2.95191e-08, 0.0138568, -0.000120523, -0.00015138,
+      -9.96554e-08, -2.4407e-08, 0.901732, 3.23124e-07, 0.00932737, 2.69633e-05,
+      8.74181e-05, -4.83481e-07, 0, 0, -1.28339e-07, 1.22667e-07, 4.86348e-08,
+      -0.0166337, 2.86823e-07, -1.7727e-07, 1.6913e-07, 2.57089e-07,
+      -1.19304e-08, 3.23124e-07, 1.2237, -7.31155e-07, -6.14518e-07,
+      2.79634e-08, -0.042011, 0, 0, 0.0141886, -0.000128128, 0.000252415,
+      5.78666e-08, -0.0372319, 0.000108686, 0.000112864, -1.03264e-05,
+      -9.06429e-05, 0.00932737, -7.31155e-07, 1.21009, -2.99286e-07,
+      -4.29557e-08, 6.13566e-07, 0, 0, -0.000147938, -0.0141459, 0.00111443,
+      8.52843e-08, 6.58278e-05, 0.0351664, -0.0122286, 0.00917151, 0.00170305,
+      2.69633e-05, -6.14518e-07, -2.99286e-07, 1.21009, 2.02234e-07,
+      7.00978e-07, 0, 0, -0.000241557, 0.00111572, 0.0141441, -1.74815e-08,
+      0.000142268, 0.0122284, 0.0351659, -0.00170387, 0.00917133, 8.74181e-05,
+      2.79634e-08, -4.29557e-08, 2.02234e-07, 1.21009, 3.77938e-08, 0, 0,
+      5.71202e-07, -4.57761e-07, 1.01087e-07, -0.00112475, -2.94575e-07,
+      1.86591e-07, -2.32341e-08, -3.30584e-07, -1.11726e-07, -4.83481e-07,
+      -0.042011, 6.13566e-07, 7.00978e-07, 3.77938e-08, 1.93666, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19.4256;
+  bool check_hqp_extended = Hqp_extended_ref.isApprox(bse2.getHqp(), 0.001);
+  if (!check_hqp_extended) {
+    cout << "extended Hqp" << endl;
+    cout << bse2.getHqp() << endl;
+    cout << "extended Hqp ref" << endl;
+    cout << Hqp_extended_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_hqp_extended, true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,13 +18,16 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_BFGSTRM_H
-#define VOTCA_XTP_BFGSTRM_H
+#ifndef VOTCA_XTP_BFGS_TRM_H
+#define VOTCA_XTP_BFGS_TRM_H
 
+// Standard includes
 #include <functional>
 #include <vector>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/optimiser_costfunction.h>
+
+// Local VOTCA includes
+#include "logger.h"
+#include "optimiser_costfunction.h"
 
 namespace votca {
 namespace xtp {
@@ -91,4 +94,4 @@ class BFGSTRM {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // VOTCA_XTP_BFGSTRM_H
+#endif  // VOTCA_XTP_BFGS_TRM_H

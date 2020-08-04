@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,16 @@
  *
  */
 
+// Third party includes
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/tokenizer.h>
-#include <votca/xtp/vxc_functionals.h>
-#include <votca/xtp/vxc_grid.h>
-#include <votca/xtp/vxc_potential.h>
+
+// Local VOTCA includes
+#include "votca/xtp/vxc_functionals.h"
+#include "votca/xtp/vxc_grid.h"
+#include "votca/xtp/vxc_potential.h"
 
 namespace votca {
 namespace xtp {
@@ -154,14 +159,9 @@ template <class Grid>
 Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
     const Eigen::MatrixXd& density_matrix) const {
 
-  Index nthreads = OPENMP::getMaxThreads();
+  Mat_p_Energy vxc = Mat_p_Energy(density_matrix.rows(), density_matrix.cols());
 
-  std::vector<Eigen::MatrixXd> vxc_thread = std::vector<Eigen::MatrixXd>(
-      nthreads,
-      Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols()));
-  std::vector<double> Exc_thread = std::vector<double>(nthreads, 0.0);
-
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(guided) reduction(+ : vxc)
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
     if (!box.Matrixsize()) {
@@ -197,18 +197,11 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
       auto addXC = weight * (0.5 * xc.df_drho * ao + 2.0 * xc.df_dsigma * grad);
       Vxc_here.noalias() += addXC * ao.transpose();
     }
-    box.AddtoBigMatrix(vxc_thread[OPENMP::getThreadId()], Vxc_here);
-    Exc_thread[OPENMP::getThreadId()] += EXC_box;
+    box.AddtoBigMatrix(vxc.matrix(), Vxc_here);
+    vxc.energy() += EXC_box;
   }
 
-  double EXC = std::accumulate(Exc_thread.begin(), Exc_thread.end(), 0.0);
-  Eigen::MatrixXd Vxc = std::accumulate(
-      vxc_thread.begin(), vxc_thread.end(),
-      Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols())
-          .eval());
-
-  Mat_p_Energy Oxc(EXC, Vxc + Vxc.transpose());
-  return Oxc;
+  return Mat_p_Energy(vxc.energy(), vxc.matrix() + vxc.matrix().transpose());
 }
 
 template class Vxc_Potential<Vxc_Grid>;

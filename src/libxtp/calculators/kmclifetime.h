@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
  */
 
 #pragma once
-#ifndef __VOTCA_KMC_LIFETIME_H
-#define __VOTCA_KMC_LIFETIME_H
+#ifndef VOTCA_XTP_KMCLIFETIME_PRIVATE_H
+#define VOTCA_XTP_KMCLIFETIME_PRIVATE_H
 
-#include <votca/xtp/kmccalculator.h>
-using namespace std;
+// Local VOTCA includes
+#include "votca/xtp/kmccalculator.h"
 
 namespace votca {
 namespace xtp {
@@ -31,15 +31,15 @@ class KMCLifetime : public KMCCalculator {
   ~KMCLifetime() override = default;
   bool WriteToStateFile() const override { return false; }
   std::string Identify() override { return "kmclifetime"; }
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& user_options) override;
   bool EvaluateFrame(Topology& top) override;
 
  private:
   void WriteDecayProbability(std::string filename);
 
   void RunVSSM() override;
-  void WriteToTraj(fstream& traj, unsigned long insertioncount, double simtime,
-                   const Chargecarrier& carrier) const;
+  void WriteToTraj(std::fstream& traj, unsigned long insertioncount,
+                   double simtime, const Chargecarrier& affectedcarrier) const;
 
   void ReadLifetimeFile(std::string filename);
   std::string _probfile;
@@ -54,4 +54,4 @@ class KMCLifetime : public KMCCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_KMC_MULTIPLE_H */
+#endif  // VOTCA_XTP_KMCLIFETIME_PRIVATE_H
