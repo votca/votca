@@ -9,8 +9,13 @@
     <dftpackage>
       <package>
         <name help="Name of the DFT package" default="xtp" choices="xtp,orca">xtp</name>
+        <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool"/>
       </package>
     </dftpackage>
+    <use_mpsfile help="check for MPS file with external multipoles for embedding" default="false" choices="bool"/>
+    <mpsfile help="MPS file to read from if use_mpsfile"/>
+    <use_guess help="Use a precomputed wave function" default="false" choices="bool"/>
+    <guess help="File to read the wave function if the use guess flag is set to true"/>
     <gwbse_engine>
       <tasks help="task to compute" default="input,dft,parse,gwbse" choices="[input,dft,parse,gwbse]"/>
       <gwbse_options>

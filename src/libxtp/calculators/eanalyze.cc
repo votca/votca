@@ -29,12 +29,7 @@ void EAnalyze::Initialize(const tools::Property &user_options) {
   _resolution_pairs = options.get(".resolution_pairs").as<double>();
   _resolution_sites = options.get(".resolution_sites").as<double>();
   _resolution_spatial = options.get(".resolution_spatial").as<double>();
-
-  if (options.exists(".pattern")) {
-    _seg_pattern = options.get(".pattern").as<std::string>();
-  } else {
-    _seg_pattern = "*";
-  }
+  _seg_pattern = options.get(".match_pattern").as<std::string>();
 
   std::string statestrings = options.get(".states").as<std::string>();
   tools::Tokenizer tok(statestrings, ",\n\t ");
@@ -44,13 +39,10 @@ void EAnalyze::Initialize(const tools::Property &user_options) {
     _states.push_back(QMStateType(state));
   }
 
-  _doenergy_landscape = options.get(".energy_landscape").as<bool>();
+  _doenergy_landscape = options.get(".do_energy_landscape").as<bool>();
 
-  if (options.exists(".distancemode")) {
-    std::vector<std::string> choices = {"atoms", "centerofmass"};
-    std::string distancemode =
-        options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-            ".distancemode", choices);
+  if (options.get(".do_distance_mode").as<bool>()) {
+    std::string distancemode = options.get("distancemode").as<std::string>();
     if (distancemode == "centerofmass") {
       _atomdistances = false;
     } else {
