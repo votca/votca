@@ -31,16 +31,21 @@ namespace votca {
 namespace xtp {
 
 std::vector<Index> StateSaver::getFrames() const {
-  if (!tools::filesystem::FileExists(_hdf5file)) {
-    return std::vector<Index>();
-  }
   CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::READ);
   CheckpointReader r = cpf.getReader();
-  std::vector<Index> frames;
-  r(frames, "frames");
+  std::vector<Index> frames = std::vector<Index>{};
+  try {
+    r(frames, "frames");
+  } catch (std::runtime_error&) {
+    ;
+  }
   return frames;
 }
-void StateSaver::WriteFrame(const Topology &top) {
+void StateSaver::WriteFrame(const Topology& top) {
+  if (!tools::filesystem::FileExists(_hdf5file)) {
+    std::cout << "Creating statefile " << _hdf5file << std::endl;
+    CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::CREATE);
+  }
   boost::interprocess::file_lock flock(_hdf5file.c_str());
   flock.lock();
   if (!TopStepisinFrames(top.getStep())) {
@@ -59,7 +64,7 @@ void StateSaver::WriteFrame(const Topology &top) {
 
   flock.unlock();
 
-  std::cout << "Writing MD topology (step = " << top.getStep()
+  std::cout << "Wrote MD topology (step = " << top.getStep()
             << ", time = " << top.getTime() << ") to " << _hdf5file
             << std::endl;
   std::cout << "... ";
@@ -69,7 +74,9 @@ void StateSaver::WriteFrame(const Topology &top) {
 }
 
 Topology StateSaver::ReadFrame(Index frameid) const {
-
+  if (!tools::filesystem::FileExists(_hdf5file)) {
+    throw std::runtime_error("Statefile " + _hdf5file + " does not exist.");
+  }
   std::cout << "Import MD Topology (i.e. frame " << frameid << ")"
             << " from " << _hdf5file << std::endl;
   std::cout << "...";
