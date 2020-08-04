@@ -21,8 +21,8 @@
 #include <boost/test/unit_test.hpp>
 
 // VOTCA inlcudes
-#include <votca/tools/tokenizer.h>
 #include <votca/tools/eigenio_matrixmarket.h>
+#include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
@@ -35,16 +35,17 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(threecenter_gwbse_test)
 BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
 
-    QMMolecule mol(" ", 0);
-  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/molecule.xyz");
+  QMMolecule mol(" ", 0);
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/threecenter_gwbse/molecule.xyz");
   BasisSet basis;
-  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/3-21G.xml");
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) +
+             "/threecenter_gwbse/3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, mol);
 
   Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/MOs.mm");
- 
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/MOs.mm");
 
   Logger log;
   TCMatrix_gwbse tc{log};
@@ -52,7 +53,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   tc.Fill(aobasis, aobasis, MOs);
 
   Eigen::MatrixXd ref0b = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/ref0b.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/ref0b.mm");
 
   bool check0_before = ref0b.isApprox(tc[0], 1e-5);
   if (!check0_before) {
@@ -64,7 +65,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   BOOST_CHECK_EQUAL(check0_before, true);
 
   Eigen::MatrixXd ref2b = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/ref2b.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/ref2b.mm");
 
   bool check2_before = ref2b.isApprox(tc[2], 1e-5);
   if (!check2_before) {
@@ -77,7 +78,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   BOOST_CHECK_EQUAL(check2_before, true);
 
   Eigen::MatrixXd ref4b = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/ref4b.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/ref4b.mm");
 
   bool check4_before = ref4b.isApprox(tc[4], 1e-5);
   if (!check4_before) {
