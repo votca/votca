@@ -45,8 +45,8 @@ void Neighborlist::Initialize(const tools::Property& user_options) {
           "ERROR: Faulty pair definition for cut-off's: Need two segment names "
           "separated by a space");
     }
-    _cutoffs[names[0]][names[1]] = cutoff * tools::conv::nm2bohr;
-    _cutoffs[names[1]][names[0]] = cutoff * tools::conv::nm2bohr;
+    _cutoffs[names[0]][names[1]] = cutoff;
+    _cutoffs[names[1]][names[0]] = cutoff;
     if (std::find(_included_segments.begin(), _included_segments.end(),
                   names[0]) == _included_segments.end()) {
       _included_segments.push_back(names[0]);
@@ -160,8 +160,8 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
       if (cutoff > 0.5 * min) {
         throw std::runtime_error(
             (boost::format("Cutoff is larger than half the box size. Maximum "
-                           "allowed cutoff is %1$1.1f") %
-             (tools::conv::nm2bohr * 0.5 * min))
+                           "allowed cutoff is %1$1.1f (nm)") %
+             (tools::conv::bohr2nm * 0.5 * min))
                 .str());
       }
       double cutoff2 = cutoff * cutoff;
