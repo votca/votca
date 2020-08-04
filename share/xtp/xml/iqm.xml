@@ -79,6 +79,7 @@
       <package>
         <name help="Name of the DFT package" default="xtp" choices="orca,xtp"/>
         <read_guess help="Read wave function guess" default="true" choices="bool"/>
+        <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool"/>
       </package>
     </dftpackage>
   </iqm>

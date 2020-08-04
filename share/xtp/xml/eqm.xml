@@ -58,6 +58,7 @@
     <dftpackage>
       <package>
         <name help="Name of the DFT package" default="xtp" choices="xtp,orca"/>
+        <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool"/>
       </package>
     </dftpackage>
     <esp_options help="xml file with options for CHELPG calculations">

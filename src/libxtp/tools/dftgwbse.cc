@@ -76,19 +76,15 @@ void DftGwBse::Initialize(const tools::Property& user_options) {
   // XML OUTPUT
   _xml_output = _job_name + "_summary.xml";
 
-  // checking for additional requests
-  _do_external = false;
-  _do_guess = false;
-
   // check for MPS file with external multipoles for embedding
-  if (options.exists(".mpsfile")) {
-    _do_external = true;
+  _do_external = options.get("use_mpsfile").as<bool>();
+  if (_do_external) {
     _mpsfile = options.get(".mpsfile").as<std::string>();
   }
 
   // check if guess is requested
-  if (options.exists(".guess")) {
-    _do_guess = true;
+  _do_guess = options.get("use_guess").as<bool>();
+  if (_do_guess) {
     _guess_file = options.get(".guess").as<std::string>();
   }
 

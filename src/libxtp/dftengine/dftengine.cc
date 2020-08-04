@@ -56,7 +56,7 @@ void DFTEngine::Initialize(Property& options) {
   const string key_xtpdft = "package.xtpdft";
   _dftbasis_name = options.get(key + ".basisset").as<string>();
 
-  if (options.exists(key + ".auxbasisset")) {
+  if (options.get(key + ".use_auxbasisset").as<bool>()) {
     _auxbasis_name = options.get(key + ".auxbasisset").as<string>();
   }
 
@@ -68,7 +68,7 @@ void DFTEngine::Initialize(Property& options) {
     _screening_eps = options.get(key_xtpdft + ".screening_eps").as<double>();
   }
 
-  if (options.exists(key + ".ecp")) {
+  if (options.get(key + ".use_ecp").as<bool>()) {
     _ecp_name = options.get(key + ".ecp").as<string>();
     _with_ecp = true;
   } else {
@@ -80,7 +80,7 @@ void DFTEngine::Initialize(Property& options) {
   _grid_name = options.get(key_xtpdft + ".integration_grid").as<string>();
   _xc_functional_name = options.get(key + ".functional").as<string>();
 
-  if (options.exists(key_xtpdft + ".externaldensity")) {
+  if (options.get(key_xtpdft + ".use_external_density").as<bool>()) {
     _integrate_ext_density = true;
     _orbfilename = options.ifExistsReturnElseThrowRuntimeError<string>(
         key_xtpdft + ".externaldensity.orbfile");
@@ -90,47 +90,44 @@ void DFTEngine::Initialize(Property& options) {
         key_xtpdft + ".externaldensity.state");
   }
 
-  if (options.exists(key_xtpdft + ".externalfield")) {
+  if (options.get(key_xtpdft + ".use_external_field").as<bool>()) {
     _integrate_ext_field = true;
 
     _extfield = options.ifExistsReturnElseThrowRuntimeError<Eigen::Vector3d>(
         key_xtpdft + ".externalfield");
   }
 
-  if (options.exists(key_xtpdft + ".convergence")) {
-    _conv_opt.Econverged =
-        options.get(key_xtpdft + ".convergence.energy").as<double>();
-    _conv_opt.error_converged =
-        options.get(key_xtpdft + ".convergence.error").as<double>();
-    _max_iter =
-        options.get(key_xtpdft + ".convergence.max_iterations").as<Index>();
+  _conv_opt.Econverged =
+      options.get(key_xtpdft + ".convergence.energy").as<double>();
+  _conv_opt.error_converged =
+      options.get(key_xtpdft + ".convergence.error").as<double>();
+  _max_iter =
+      options.get(key_xtpdft + ".convergence.max_iterations").as<Index>();
 
-    string method =
-        options.get(key_xtpdft + ".convergence.method").as<string>();
-    if (method == "DIIS") {
-      _conv_opt.usediis = true;
-    } else if (method == "mixing") {
-      _conv_opt.usediis = false;
-    }
-    if (!_conv_opt.usediis) {
-      _conv_opt.histlength = 1;
-      _conv_opt.maxout = false;
-    }
-    _conv_opt.mixingparameter =
-        options.get(key_xtpdft + ".convergence.mixing").as<double>();
-    _conv_opt.levelshift =
-        options.get(key_xtpdft + ".convergence.levelshift").as<double>();
-    _conv_opt.levelshiftend =
-        options.get(key_xtpdft + ".convergence.levelshift_end").as<double>();
-    _conv_opt.maxout =
-        options.get(key_xtpdft + ".convergence.DIIS_maxout").as<bool>();
-    _conv_opt.histlength =
-        options.get(key_xtpdft + ".convergence.DIIS_length").as<Index>();
-    _conv_opt.diis_start =
-        options.get(key_xtpdft + ".convergence.DIIS_start").as<double>();
-    _conv_opt.adiis_start =
-        options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
+  string method = options.get(key_xtpdft + ".convergence.method").as<string>();
+  if (method == "DIIS") {
+    _conv_opt.usediis = true;
+  } else if (method == "mixing") {
+    _conv_opt.usediis = false;
   }
+  if (!_conv_opt.usediis) {
+    _conv_opt.histlength = 1;
+    _conv_opt.maxout = false;
+  }
+  _conv_opt.mixingparameter =
+      options.get(key_xtpdft + ".convergence.mixing").as<double>();
+  _conv_opt.levelshift =
+      options.get(key_xtpdft + ".convergence.levelshift").as<double>();
+  _conv_opt.levelshiftend =
+      options.get(key_xtpdft + ".convergence.levelshift_end").as<double>();
+  _conv_opt.maxout =
+      options.get(key_xtpdft + ".convergence.DIIS_maxout").as<bool>();
+  _conv_opt.histlength =
+      options.get(key_xtpdft + ".convergence.DIIS_length").as<Index>();
+  _conv_opt.diis_start =
+      options.get(key_xtpdft + ".convergence.DIIS_start").as<double>();
+  _conv_opt.adiis_start =
+      options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
 
   return;
 }

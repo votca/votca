@@ -50,11 +50,14 @@ Version 2021-dev
 -  implement RPA correlation energy (#498)
 -  added verbose option for rootfinder (#503)
 -  fix orca pointcharges (#504)
+-  remove constant cutoff from neighborlist (#508, #509)
+-  fix default and flags properties issue (#511)
 -  add more checks to the dft_parse_part (#510)
 -  add NOSCF option for iqm in internal and external DFT (#483)
 -  added versions to output files (#523)
 -  write an empty state file if it does not exist yet (#526)
-   
+-  fix double unit conversion (#531)
+
 Version 1.6.2 (released XX.07.20)
 =================================
 
