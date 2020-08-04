@@ -49,7 +49,7 @@ void IEXCITON::Initialize(const tools::Property& user_options) {
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
   ParseCommonOptions(options);
 
-  if (options.exists(".states")) {
+  if (options.get(".use_states").as<bool>()) {
     std::string parse_string = options.get(".states").as<std::string>();
     _statemap = FillParseMaps(parse_string);
   }

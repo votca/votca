@@ -124,8 +124,12 @@ BOOST_AUTO_TEST_CASE(dft_full) {
   xml << "<charge>0</charge>" << std::endl;
   xml << "<functional>XC_HYB_GGA_XC_PBEH</functional>" << std::endl;
   xml << "<basisset>3-21G.xml</basisset>" << std::endl;
+  xml << "<use_auxbasisset>false</use_auxbasisset>" << std::endl;
+  xml << "<use_ecp>false</use_ecp>" << std::endl;
   xml << "<read_guess>0</read_guess>" << std::endl;
   xml << "<xtpdft>" << std::endl;
+  xml << "<use_external_field>false</use_external_field>" << std::endl;
+  xml << "<use_external_density>false</use_external_density>" << std::endl;
   xml << "<with_screening choices=\"bool\">true</with_screening>\n";
   xml << "<screening_eps  choices=\"float+\">1e-9</screening_eps>\n";
   xml << "<four_center_method>cache</four_center_method>\n";
@@ -245,8 +249,12 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   xml << "<charge>0</charge>" << std::endl;
   xml << "<functional>XC_HYB_GGA_XC_PBEH</functional>" << std::endl;
   xml << "<basisset>3-21G.xml</basisset>" << std::endl;
+  xml << "<use_auxbasisset>false</use_auxbasisset>" << std::endl;
+  xml << "<use_ecp>false</use_ecp>" << std::endl;
   xml << "<read_guess>0</read_guess>" << std::endl;
   xml << "<xtpdft>" << std::endl;
+  xml << "<use_external_field>false</use_external_field>" << std::endl;
+  xml << "<use_external_density>false</use_external_density>" << std::endl;
   xml << "<with_screening choices=\"bool\">true</with_screening>\n";
   xml << "<screening_eps  choices=\"float+\">1e-9</screening_eps>\n";
   xml << "<four_center_method>cache</four_center_method>\n";
