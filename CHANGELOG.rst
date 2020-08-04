@@ -22,6 +22,7 @@ Version 2021-dev
 -  convert markdown to rst format (#559)
 -  read units stored in H5MD file (#549)
 -  enable CXX only in CMake (#560)
+-  refactored tests to use files instead of data in source code (#572)
 
 Version 1.6.2 (released XX.07.20)
 =================================
