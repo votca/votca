@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <options>
   <neighborlist help="Determines neighbouring pairs for exciton transport" section="sec:neighborlist">
-    <type help="segments names if the segmentname method is used"/>
+    <segmentname help="segments names if the segmentname method is used"/>
     <cutoff help="cutoff value if the segmentname method is used" unit="nm"/>
     <cutoff_type help="method to define the cutoff" default="constant" choices="constant,segmentname"/>
     <constant help="cutoff for all other types of pairs if the constant method is used" unit="nm" default="1.5" choices="float+"/>
     <use_exciton_cutoff help="Use exciton cutoff" default="false" choices="bool"/>
-    <exciton_cutoff help="value" units="nm"/>
+    <exciton_cutoff help="cutoff for classical exciton transition charge treatment" units="nm"/>
   </neighborlist>
 </options>

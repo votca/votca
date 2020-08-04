@@ -7,8 +7,8 @@
       <max_iter help="Maximum number of iterations" default="500"/>
       <exp_damp help="Thole sharpness parameter" default="0.39"/>
     </options_polar>
-    <mode help="Read the polar target from a file or a qmpackage logfile" choices="target,qmpackage"/>
-    <target help="should have this format: pxx pxy pxz pyy pyz pzz"/>
+    <mode help="Read the polar target from a file or a qmpackage logfile" choices="file,qmpackage"/>
+    <target_polarisability help="should have this format: pxx pxy pxz pyy pyz pzz"/>
     <qmpackage help="qmpackage name if mode is qmpackage" default="orca" choices="orca"/>
     <logfile help="logfile of DFTpackage to read Target polarisability from if mode is qmpackage" default="system.log"/>
     <tolerance help="convergence tolerance" default="1e-4" choices="float+"/>

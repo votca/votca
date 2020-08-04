@@ -33,7 +33,7 @@ void Neighborlist::Initialize(const tools::Property& user_options) {
   std::vector<tools::Property*> segs = options.Select(".segments");
 
   for (tools::Property* segprop : segs) {
-    std::string types = segprop->get("type").as<std::string>();
+    std::string types = segprop->get("segmentname").as<std::string>();
     double cutoff = segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
 
     tools::Tokenizer tok(types, " ");

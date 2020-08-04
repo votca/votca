@@ -47,8 +47,9 @@ void MolPol::Initialize(const tools::Property& user_options) {
   // polar targer or qmpackage logfile
   const std::string& mode = options.get("mode").as<std::string>();
 
-  if (mode == "target") {
-    Eigen::VectorXd target_vec = options.get(".target").as<Eigen::VectorXd>();
+  if (mode == "file") {
+    Eigen::VectorXd target_vec =
+        options.get(".target_polarisability").as<Eigen::VectorXd>();
     if (target_vec.size() != 6) {
       throw std::runtime_error(
           "ERROR <options.molpol.target> "
