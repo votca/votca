@@ -52,7 +52,8 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
 
   QMMolecule mol("none", 0);
 
-  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER)+ "/vxc_potential/molecule.xyz");
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/vxc_potential/molecule.xyz");
   AOBasis aobasis = CreateBasis(mol);
 
   Eigen::MatrixXd dmat = DMat();
@@ -70,10 +71,9 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
   BOOST_CHECK_CLOSE(num.getExactExchange("XC_HYB_GGA_XC_PBEH"), 0.25, 1e-5);
   Mat_p_Energy e_vxc = num.IntegrateVXC(dmat);
 
-
   Eigen::MatrixXd vxc_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-    std::string(XTP_TEST_DATA_FOLDER) + "/vxc_potential/vxc_ref.mm");
-    
+      std::string(XTP_TEST_DATA_FOLDER) + "/vxc_potential/vxc_ref.mm");
+
   bool check_vxc = e_vxc.matrix().isApprox(vxc_ref, 0.0001);
 
   BOOST_CHECK_CLOSE(e_vxc.energy(), -4.6303432151572643, 1e-5);
