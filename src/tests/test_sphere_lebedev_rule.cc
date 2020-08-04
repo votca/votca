@@ -74,7 +74,6 @@ BOOST_AUTO_TEST_CASE(medium_test) {
                 << Cgrid.theta[i] << ":" << C_theta_ref[i] << std::endl;
     }
   }
-
   bool Cweight = C_weight_ref.isApprox(Cgrid.weight, 0.0001);
   BOOST_CHECK_EQUAL(Cphi, true);
   BOOST_CHECK_EQUAL(Ctheta, true);
