@@ -202,40 +202,36 @@ void GWBSE::Initialize(tools::Property& options) {
   }
 
   // eigensolver options
-  if (options.exists(key + ".eigensolver")) {
-    _bseopt.davidson = options.get(key + ".eigensolver.dodavidson").as<bool>();
+  _bseopt.davidson = options.get(key + ".eigensolver.dodavidson").as<bool>();
 
-    if (_bseopt.davidson) {
+  if (_bseopt.davidson) {
 
-      _bseopt.matrixfree =
-          options.get(key + ".eigensolver.domatrixfree").as<bool>();
+    _bseopt.matrixfree =
+        options.get(key + ".eigensolver.domatrixfree").as<bool>();
 
-      _bseopt.davidson_correction =
-          options.get(key + ".eigensolver.davidson_correction")
-              .as<std::string>();
+    _bseopt.davidson_correction =
+        options.get(key + ".eigensolver.davidson_correction").as<std::string>();
 
-      _bseopt.davidson_ortho =
-          options.get(key + ".eigensolver.davidson_ortho").as<std::string>();
+    _bseopt.davidson_ortho =
+        options.get(key + ".eigensolver.davidson_ortho").as<std::string>();
 
-      _bseopt.davidson_tolerance =
-          options.get(key + ".eigensolver.davidson_tolerance")
-              .as<std::string>();
+    _bseopt.davidson_tolerance =
+        options.get(key + ".eigensolver.davidson_tolerance").as<std::string>();
 
-      _bseopt.davidson_update =
-          options.get(key + ".eigensolver.davidson_update").as<std::string>();
+    _bseopt.davidson_update =
+        options.get(key + ".eigensolver.davidson_update").as<std::string>();
 
-      _bseopt.davidson_maxiter =
-          options.get(key + ".eigensolver.davidson_maxiter").as<Index>();
+    _bseopt.davidson_maxiter =
+        options.get(key + ".eigensolver.davidson_maxiter").as<Index>();
 
-      // check size
-      if (_bseopt.nmax > bse_size / 4) {
-        XTP_LOG(Log::error, *_pLog)
-            << TimeStamp()
-            << " Warning : Too many eigenvalues required for Davidson. Default "
-               "to Lapack diagonalization"
-            << flush;
-        _bseopt.davidson = false;
-      }
+    // check size
+    if (_bseopt.nmax > bse_size / 4) {
+      XTP_LOG(Log::error, *_pLog)
+          << TimeStamp()
+          << " Warning : Too many eigenvalues required for Davidson. Default "
+             "to Lapack diagonalization"
+          << flush;
+      _bseopt.davidson = false;
     }
   }
 
@@ -257,10 +253,8 @@ void GWBSE::Initialize(tools::Property& options) {
         << " BSE with Hqp offdiagonal elements" << flush;
   }
 
-  if (options.exists(key + ".vxc")) {
-    _functional = options.get(key + ".vxc.functional").as<std::string>();
-    _grid = options.get(key + ".vxc.grid").as<std::string>();
-  }
+  _functional = options.get(key + ".vxc.functional").as<std::string>();
+  _grid = options.get(key + ".vxc.grid").as<std::string>();
 
   _auxbasis_name = options.get(key + ".auxbasisset").as<std::string>();
   _dftbasis_name = options.get(key + ".basisset").as<std::string>();
