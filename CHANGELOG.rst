@@ -57,7 +57,8 @@ Version 2021-dev
 -  added versions to output files (#523)
 -  write an empty state file if it does not exist yet (#526)
 -  fix double unit conversion (#531)
-
+-  fix double SCF in ORCA keyword line (#533)
+   
 Version 1.6.2 (released XX.07.20)
 =================================
 

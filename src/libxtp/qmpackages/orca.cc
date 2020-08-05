@@ -845,11 +845,10 @@ std::string Orca::WriteMethod() const {
   std::string convergence = "";
   if (!orca.exists("scf")) {
     convergence =
-        this->_convergence_map.at(_settings.get("convergence_tightness")) +
-        "SCF ";
+        this->_convergence_map.at(_settings.get("convergence_tightness"));
   }
   stream << "! DFT " << this->GetOrcaFunctionalName() << " " << convergence
-         << opt
+         << " " << opt << " " 
          // additional properties provided by the user
          << user_method << "\n";
   return stream.str();
