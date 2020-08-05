@@ -41,7 +41,8 @@ BOOST_AUTO_TEST_SUITE(sigma_test)
 BOOST_AUTO_TEST_CASE(sigma_full) {
 
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/sigma_exact/molecule.xyz");
   BasisSet basis;
   basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/3-21G.xml");
 
@@ -53,8 +54,8 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
       0.663355, 0.768373, 1.69292, 1.97724, 1.97724, 2.50877, 2.98732, 3.4418,
       3.4418, 4.81084, 17.1838;
 
-  Eigen::MatrixXd MOs =  votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/MOs.mm");
+  Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/MOs.mm");
 
   Logger log;
   TCMatrix_gwbse Mmn{log};
@@ -77,7 +78,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   Eigen::MatrixXd x = sigma.CalcExchangeMatrix();
 
   Eigen::MatrixXd x_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/x_ref.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/x_ref.mm");
 
   bool check_x = x_ref.isApprox(x, 1e-5);
   if (!check_x) {
@@ -93,7 +94,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   c.diagonal() = sigma.CalcCorrelationDiag(mo_energy);
 
   Eigen::MatrixXd c_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/c_ref.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/c_ref.mm");
 
   bool check_c_diag = c.diagonal().isApprox(c_ref.diagonal(), 1e-5);
   if (!check_c_diag) {

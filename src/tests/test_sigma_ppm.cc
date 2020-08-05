@@ -41,9 +41,10 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(sigma_test)
 
 BOOST_AUTO_TEST_CASE(sigma_full) {
-  
+
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/sigma_ppm/molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/sigma_ppm/molecule.xyz");
   BasisSet basis;
   basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/sigma_ppm/3-21G.xml");
 
