@@ -33,107 +33,10 @@ BOOST_AUTO_TEST_SUITE(segmentmapper_test)
 
 BOOST_AUTO_TEST_CASE(mapping_test) {
 
-  std::ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << std::endl;
-  xyzfile << " methane" << std::endl;
-  xyzfile << " C            .000000     .000000     .000000" << std::endl;
-  xyzfile << " H            .629118     .629118     .629118" << std::endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
-  xyzfile.close();
-
-  std::ofstream mapfile("ch4.xml");
-  mapfile << "<topology>" << std::endl;
-  mapfile << "	<molecules>" << std::endl;
-  mapfile << "		<molecule>" << std::endl;
-  mapfile << "			<name>Methane</name>" << std::endl;
-  mapfile << "			<mdname>Methane</mdname>" << std::endl;
-  mapfile << "			<segments>" << std::endl;
-  mapfile << "				<segment>" << std::endl;
-  mapfile << "					<name>Methane</name>"
-          << std::endl;
-  mapfile << "					"
-             "<qmcoords>molecule.xyz</qmcoords>"
-          << std::endl;
-  mapfile << "					<map2md>0</map2md>"
-          << std::endl;
-  mapfile << "					<fragments>" << std::endl;
-  mapfile << "						<fragment>"
-          << std::endl;
-  mapfile << "							"
-             "<name>ALAB_1</name>"
-          << std::endl;
-  mapfile << "							<mdatoms>  "
-             "1:CB:0    1:HB1:1   1:HB2:2     </mdatoms>"
-          << std::endl;
-  mapfile << "							<qmatoms>     "
-             "0:C          1:H          2:H              </qmatoms>"
-          << std::endl;
-  mapfile << "							<mpoles>      "
-             "0:C          1:H          2:H             </mpoles>"
-          << std::endl;
-  mapfile << "							<weights>      "
-             "12           1            1           </weights>"
-          << std::endl;
-  mapfile << "							<localframe>0 "
-             "1 2</localframe>"
-          << std::endl;
-  mapfile << "						</fragment>"
-          << std::endl;
-  mapfile << "<fragment>" << std::endl;
-  mapfile << "							"
-             "<name>ALAB_2</name>"
-          << std::endl;
-  mapfile << "							<mdatoms>  "
-             "1:HB3:3   </mdatoms>"
-          << std::endl;
-  mapfile << "							<qmatoms>     "
-             "3:H          </qmatoms>"
-          << std::endl;
-  mapfile << "							<mpoles>      "
-             "3:H          </mpoles>"
-          << std::endl;
-  mapfile << "							<weights>      "
-             "  1          </weights>"
-          << std::endl;
-  mapfile << "							"
-             "<localframe>3</localframe>"
-          << std::endl;
-  mapfile << "						</fragment>"
-          << std::endl;
-  mapfile << "<fragment>" << std::endl;
-  mapfile << "							"
-             "<name>ALAB_3</name>"
-          << std::endl;
-  mapfile << "							<mdatoms>   "
-             "1:HB4:4 </mdatoms>"
-          << std::endl;
-  mapfile << "							<qmatoms>      "
-             "     4:H     </qmatoms>"
-          << std::endl;
-  mapfile << "							<mpoles>       "
-             "    4:H     </mpoles>"
-          << std::endl;
-  mapfile << "							<weights>      "
-             "      1      </weights>"
-          << std::endl;
-  mapfile << "							"
-             "<localframe>4</localframe>"
-          << std::endl;
-  mapfile << "						</fragment>"
-          << std::endl;
-  mapfile << "					</fragments>" << std::endl;
-  mapfile << "				</segment>" << std::endl;
-  mapfile << "			</segments>" << std::endl;
-  mapfile << "		</molecule>" << std::endl;
-  mapfile << "	</molecules>" << std::endl;
-  mapfile << "</topology>" << std::endl;
-  mapfile.close();
-
   Logger log;
   QMMapper mapper = QMMapper(log);
-  mapper.LoadMappingFile("ch4.xml");
+  mapper.LoadMappingFile(std::string(XTP_TEST_DATA_FOLDER) +
+                         "/segmentmapper/ch4.xml");
   Segment seg("Methane", 1);
   Atom atm1(1, "CB", 5, Eigen::Vector3d::Zero(), "C");
   Atom atm2(1, "HB1", 6, Eigen::Vector3d::UnitX(), "H");
@@ -146,7 +49,8 @@ BOOST_AUTO_TEST_CASE(mapping_test) {
   seg.push_back(atm4);
   seg.push_back(atm5);
 
-  QMMolecule qmmol = mapper.map(seg, "molecule.xyz");
+  QMMolecule qmmol = mapper.map(
+      seg, std::string(XTP_TEST_DATA_FOLDER) + "/segmentmapper/molecule.xyz");
   std::vector<std::string> name_ref = {"C", "H", "H", "H", "H"};
   std::vector<Index> id_ref = {0, 1, 2, 3, 4};
   std::vector<Eigen::Vector3d> pos_ref;
@@ -186,107 +90,10 @@ BOOST_AUTO_TEST_CASE(mapping_test) {
 
 BOOST_AUTO_TEST_CASE(mapping_to_md_test) {
 
-  std::ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << std::endl;
-  xyzfile << " methane" << std::endl;
-  xyzfile << " C            .000000     .000000     .000000" << std::endl;
-  xyzfile << " H            .629118     .629118     .629118" << std::endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
-  xyzfile.close();
-
-  std::ofstream mapfile("ch4.xml");
-  mapfile << "<topology>" << std::endl;
-  mapfile << "	<molecules>" << std::endl;
-  mapfile << "		<molecule>" << std::endl;
-  mapfile << "			<name>Methane</name>" << std::endl;
-  mapfile << "			<mdname>Methane</mdname>" << std::endl;
-  mapfile << "			<segments>" << std::endl;
-  mapfile << "				<segment>" << std::endl;
-  mapfile << "					<name>Methane</name>"
-          << std::endl;
-  mapfile << "					"
-             "<qmcoords>molecule.xyz</qmcoords>"
-          << std::endl;
-  mapfile << "					<map2md>1</map2md>"
-          << std::endl;
-  mapfile << "					<fragments>" << std::endl;
-  mapfile << "						<fragment>"
-          << std::endl;
-  mapfile << "							"
-             "<name>ALAB_1</name>"
-          << std::endl;
-  mapfile << "							<mdatoms>  "
-             "1:CB:0    1:HB1:1   1:HB2:2     </mdatoms>"
-          << std::endl;
-  mapfile << "							<qmatoms>     "
-             "0:C          1:H          2:H              </qmatoms>"
-          << std::endl;
-  mapfile << "							<mpoles>      "
-             "0:C          1:H          2:H             </mpoles>"
-          << std::endl;
-  mapfile << "							<weights>      "
-             "12           1            1           </weights>"
-          << std::endl;
-  mapfile << "							<localframe>0 "
-             "1 2</localframe>"
-          << std::endl;
-  mapfile << "						</fragment>"
-          << std::endl;
-  mapfile << "<fragment>" << std::endl;
-  mapfile << "							"
-             "<name>ALAB_2</name>"
-          << std::endl;
-  mapfile << "							<mdatoms>  "
-             "1:HB3:3   </mdatoms>"
-          << std::endl;
-  mapfile << "							<qmatoms>     "
-             "3:H          </qmatoms>"
-          << std::endl;
-  mapfile << "							<mpoles>      "
-             "3:H          </mpoles>"
-          << std::endl;
-  mapfile << "							<weights>      "
-             "  1          </weights>"
-          << std::endl;
-  mapfile << "							"
-             "<localframe>3</localframe>"
-          << std::endl;
-  mapfile << "						</fragment>"
-          << std::endl;
-  mapfile << "<fragment>" << std::endl;
-  mapfile << "							"
-             "<name>ALAB_3</name>"
-          << std::endl;
-  mapfile << "							<mdatoms>   "
-             "1:HB4:4 </mdatoms>"
-          << std::endl;
-  mapfile << "							<qmatoms>      "
-             "     4:H     </qmatoms>"
-          << std::endl;
-  mapfile << "							<mpoles>       "
-             "    4:H     </mpoles>"
-          << std::endl;
-  mapfile << "							<weights>      "
-             "      1      </weights>"
-          << std::endl;
-  mapfile << "							"
-             "<localframe>4</localframe>"
-          << std::endl;
-  mapfile << "						</fragment>"
-          << std::endl;
-  mapfile << "					</fragments>" << std::endl;
-  mapfile << "				</segment>" << std::endl;
-  mapfile << "			</segments>" << std::endl;
-  mapfile << "		</molecule>" << std::endl;
-  mapfile << "	</molecules>" << std::endl;
-  mapfile << "</topology>" << std::endl;
-  mapfile.close();
-
   Logger log;
   QMMapper mapper = QMMapper(log);
-  mapper.LoadMappingFile("ch4.xml");
+  mapper.LoadMappingFile(std::string(XTP_TEST_DATA_FOLDER) +
+                         "/segmentmapper/ch4_2.xml");
   Segment seg("Methane", 1);
   Atom atm1(1, "CB", 5, Eigen::Vector3d::Zero(), "C");
   Atom atm2(1, "HB1", 6, Eigen::Vector3d::UnitX(), "H");
@@ -299,7 +106,8 @@ BOOST_AUTO_TEST_CASE(mapping_to_md_test) {
   seg.push_back(atm4);
   seg.push_back(atm5);
 
-  QMMolecule qmmol = mapper.map(seg, "molecule.xyz");
+  QMMolecule qmmol = mapper.map(
+      seg, std::string(XTP_TEST_DATA_FOLDER) + "/segmentmapper/molecule2.xyz");
   std::vector<std::string> name_ref = {"C", "H", "H", "H", "H"};
   std::vector<Index> id_ref = {0, 1, 2, 3, 4};
   std::vector<Eigen::Vector3d> pos_ref;
@@ -339,98 +147,10 @@ BOOST_AUTO_TEST_CASE(mapping_to_md_test) {
 
 BOOST_AUTO_TEST_CASE(mapping_test_no_weights) {
 
-  std::ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << std::endl;
-  xyzfile << " methane" << std::endl;
-  xyzfile << " C            .100000     .000000     .000000" << std::endl;
-  xyzfile << " H            .729118     .629118     .629118" << std::endl;
-  xyzfile << " H           -.529118    -.629118     .629118" << std::endl;
-  xyzfile << " H            .729118    -.629118    -.629118" << std::endl;
-  xyzfile << " H           -.529118     .629118    -.629118" << std::endl;
-  xyzfile.close();
-
-  std::ofstream mapfile("ch4.xml");
-  mapfile << "<topology>" << std::endl;
-  mapfile << "	<molecules>" << std::endl;
-  mapfile << "		<molecule>" << std::endl;
-  mapfile << "			<name>Methane</name>" << std::endl;
-  mapfile << "			<mdname>Methane</mdname>" << std::endl;
-  mapfile << "			<segments>" << std::endl;
-  mapfile << "				<segment>" << std::endl;
-  mapfile << "					<name>Methane</name>"
-          << std::endl;
-  mapfile << "					"
-             "<qmcoords>molecule.xyz</qmcoords>"
-          << std::endl;
-  mapfile << "					<map2md>0</map2md>"
-          << std::endl;
-  mapfile << "					<fragments>" << std::endl;
-  mapfile << "						<fragment>"
-          << std::endl;
-  mapfile << "							"
-             "<name>ALAB_1</name>"
-          << std::endl;
-  mapfile << "							<mdatoms>  "
-             "1:CB:0    1:HB1:1   1:HB2:2     </mdatoms>"
-          << std::endl;
-  mapfile << "							<qmatoms>     "
-             "0:C          1:H          2:H              </qmatoms>"
-          << std::endl;
-  mapfile << "							<mpoles>      "
-             "0:C          1:H          2:H             </mpoles>"
-          << std::endl;
-  mapfile << "							<localframe>0 "
-             "1 2</localframe>"
-          << std::endl;
-  mapfile << "						</fragment>"
-          << std::endl;
-  mapfile << "<fragment>" << std::endl;
-  mapfile << "							"
-             "<name>ALAB_2</name>"
-          << std::endl;
-  mapfile << "							<mdatoms>  "
-             "1:HB3:3   </mdatoms>"
-          << std::endl;
-  mapfile << "							<qmatoms>     "
-             "3:H          </qmatoms>"
-          << std::endl;
-  mapfile << "							<mpoles>      "
-             "3:H          </mpoles>"
-          << std::endl;
-  mapfile << "							"
-             "<localframe>3</localframe>"
-          << std::endl;
-  mapfile << "						</fragment>"
-          << std::endl;
-  mapfile << "<fragment>" << std::endl;
-  mapfile << "							"
-             "<name>ALAB_3</name>"
-          << std::endl;
-  mapfile << "							<mdatoms>   "
-             "1:HB4:4 </mdatoms>"
-          << std::endl;
-  mapfile << "							<qmatoms>      "
-             "     4:H     </qmatoms>"
-          << std::endl;
-  mapfile << "							<mpoles>       "
-             "    4:H     </mpoles>"
-          << std::endl;
-  mapfile << "							"
-             "<localframe>4</localframe>"
-          << std::endl;
-  mapfile << "						</fragment>"
-          << std::endl;
-  mapfile << "					</fragments>" << std::endl;
-  mapfile << "				</segment>" << std::endl;
-  mapfile << "			</segments>" << std::endl;
-  mapfile << "		</molecule>" << std::endl;
-  mapfile << "	</molecules>" << std::endl;
-  mapfile << "</topology>" << std::endl;
-  mapfile.close();
-
   Logger log;
   QMMapper mapper = QMMapper(log);
-  mapper.LoadMappingFile("ch4.xml");
+  mapper.LoadMappingFile(std::string(XTP_TEST_DATA_FOLDER) +
+                         "/segmentmapper/ch4_3.xml");
   Segment seg("Methane", 1);
   Atom atm1(1, "CB", 5, Eigen::Vector3d::Ones(), "C");
   Atom atm2(1, "HB1", 6, Eigen::Vector3d::UnitX() + Eigen::Vector3d::Ones(),
@@ -447,7 +167,8 @@ BOOST_AUTO_TEST_CASE(mapping_test_no_weights) {
   seg.push_back(atm4);
   seg.push_back(atm5);
 
-  QMMolecule qmmol = mapper.map(seg, "molecule.xyz");
+  QMMolecule qmmol = mapper.map(
+      seg, std::string(XTP_TEST_DATA_FOLDER) + "/segmentmapper/molecule3.xyz");
   std::vector<std::string> name_ref = {"C", "H", "H", "H", "H"};
   std::vector<Index> id_ref = {0, 1, 2, 3, 4};
   std::vector<Eigen::Vector3d> pos_ref;
