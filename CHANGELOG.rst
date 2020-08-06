@@ -59,6 +59,7 @@ Version 2021-dev
 -  fix double unit conversion (#531)
 -  Unittests can read input and reference values from files (#529)
 -  fix double SCF in ORCA keyword line (#533)
+-  added python script for jobfile manipulation (#535)
    
 Version 1.6.2 (released XX.07.20)
 =================================
