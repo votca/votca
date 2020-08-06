@@ -1,0 +1,10 @@
+<basis name="test">
+  <element name="C">
+    <shell scale="1.0" type="PD">
+      <constant decay="5.447178e+00">
+        <contractions factor="1.562850e-01" type="P"/>
+        <contractions factor="1.562850e-01" type="D"/>
+      </constant>
+    </shell>
+  </element>
+</basis>
