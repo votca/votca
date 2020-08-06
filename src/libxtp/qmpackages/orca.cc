@@ -838,18 +838,18 @@ std::string Orca::CreateInputSection(const std::string& key,
 
 std::string Orca::WriteMethod() const {
   std::stringstream stream;
-  std::string opt = (_settings.get<bool>("optimize")) ? " Opt " : "";
+  std::string opt = (_settings.get<bool>("optimize")) ? "Opt" : "";
   const tools::Property& orca = _settings.property("orca");
   std::string user_method =
       (orca.exists("method")) ? orca.get("method").as<std::string>() : "";
   std::string convergence = "";
   if (!orca.exists("scf")) {
     convergence =
-        this->_convergence_map.at(_settings.get("convergence_tightness")) +
-        "SCF ";
+        this->_convergence_map.at(_settings.get("convergence_tightness"));
   }
   stream << "! DFT " << this->GetOrcaFunctionalName() << " " << convergence
-         << opt
+         << " " << opt
+         << " "
          // additional properties provided by the user
          << user_method << "\n";
   return stream.str();
