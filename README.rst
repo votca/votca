@@ -23,7 +23,7 @@ Programs
 -  *traj\_force*: add/subtracts reference forces from a given trajectory
    and stores in a new trajectory
 
-To add your own program just create a new folder and put your *\*.cc*
+To add your own program just create a new folder and put your `\*.cc`
 files in there
 
 .. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/c22e2fb9c1f24dfa9afaed66ecfd7c08
