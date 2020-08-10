@@ -90,9 +90,12 @@ intermediate="$(critical mktemp "${input}.onlyleft.XXXXX")"
 if [[ $pot_type = "non-bonded"  ]]; then
   do_external table extrapolate --function ${lfct:-exponential} --avgpoints $avg_points --region left "${input}" "${intermediate}"
   do_external table extrapolate --function ${rfct:-constant} --avgpoints 1 --region right "${intermediate}" "${output}"
-elif [[ $pot_type = "bond"  || $pot_type = "angle" || $pot_type = "dihedral" ]]; then
+elif [[ $pot_type = "bond"  || $pot_type = "angle" ]]; then
   do_external table extrapolate --function ${lfct:-linear} --avgpoints $avg_points --region left "${input}" "${intermediate}"
   do_external table extrapolate --function ${rfct:-linear} --avgpoints $avg_points --region right "${intermediate}" "${output}"
+elif [[ $pot_type = "dihedral" ]]; then
+  do_external table extrapolate --function ${lfct:-linear} --avgpoints $avg_points --region left "${input}" "${intermediate}"
+  do_external table extrapolate --function ${rfct:-periodic} --avgpoints $avg_points --region right "${intermediate}" "${output}"
 else
   die "${0##*/}: I don't know how to extraploate potential type '$pot_type', go and implement it!"
 fi

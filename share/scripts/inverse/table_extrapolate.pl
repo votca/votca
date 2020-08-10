@@ -128,7 +128,7 @@ $usage
 
 Allowed options:
 --avgpoints A         average over the given number of points to extrapolate: default is 3
---function            constant, linear, quadratic or exponential, sasha: default is quadratic
+--function            constant, linear, quadratic or exponential, sasha, periodic: default is quadratic
 --no-flagupdate       do not update the flag of the extrapolated values
 --region              left, right, or leftright: default is leftright
 --curvature C         curvature of the quadratic function: default is 10000,
@@ -144,6 +144,7 @@ Extrapolation methods:
 - sasha: ''\$y = a*(x-b)^2\\;\\;b = (x0 - 2y_0/m)\\;\\; a = m^2/(4*y_0)\$''
 - exponential: ''\$y = a*\\\\exp(b*x)\\;\\;a = y0*\\\\exp(-m*x0/y0)\\;\\;b = m/y_0\$''
 - quadratic: ''\$y = C*(x+a)^2 + b\\;\\;a = m/(2*C) - x0\\;\\; b = y_0 - m^2/(4*C)\$''
+- periodic  same as linear, but extrapolates right side to end at first point of left side
 
 END
 		exit;
@@ -206,6 +207,9 @@ elsif ($function eq "exponential") {
 elsif ($function eq "sasha") {
    $extrap_method = \&sasha_shit;
 }
+elsif ($function eq "periodic") {
+   $extrap_method = \&extrapolate_linear;
+}
 else {
   die "$progname: Unknown extrapolation function: $function !\n";
 }
@@ -247,6 +251,9 @@ if ($do_right) {
   my $grad_end;
   if ($function eq "constant") {
     $grad_end = 0;
+  }
+  elsif ($function eq "periodic") {
+    $grad_end = ($val[0] - $val[$last])/($r[$#r] - $r[$last]);
   }
   else {
     $grad_end = ($val[$last] - $val[$last - $avgpoints])/($r[$last] - $r[$last-$avgpoints]);
