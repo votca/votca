@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
           if (in.x(i) < sp_min) {
             minindex = i;
           }
-          if (in.x(i) < sp_max) {
+          if (in.x(i) <= sp_max) {
             maxindex = i;
           }
         }
