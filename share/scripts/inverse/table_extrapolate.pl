@@ -253,7 +253,12 @@ if ($do_right) {
     $grad_end = 0;
   }
   elsif ($function eq "periodic") {
-    $grad_end = ($val[0] - $val[$last])/($r[$#r] - $r[$last]);
+    if ($last == $#r) {
+      $grad_end = 0;
+    }
+    else {
+      $grad_end = ($val[0] - $val[$last])/($r[$#r] - $r[$last]);
+    }
   }
   else {
     $grad_end = ($val[$last] - $val[$last - $avgpoints])/($r[$last] - $r[$last-$avgpoints]);
