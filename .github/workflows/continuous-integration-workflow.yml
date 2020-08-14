@@ -13,6 +13,7 @@ on:
 
 jobs:
   CI:
+    # Ubuntu devel, Fedora Rawhide and some other in the matrix are allowed to fail, so continue with other builds
     continue-on-error: ${{ matrix.distro == 'ubuntu_devel' || matrix.distro == 'fedora_rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
@@ -111,7 +112,7 @@ jobs:
         with:
           submodules: true
       - name: Run Votca Setup
-        id: setup
+        id: setup #use this id below to use outputs
         uses: votca/actions/setup@master
         with:
           distro: ${{ matrix.distro }}
