@@ -1,11 +1,11 @@
 Actions
 =======
 
--  :code:`continuous-integration-workflow.yml`: runs `cmake`, `make`, `ctest` and `make install` etc. for many different compiler,
-     distribution, gromacs combinations and special builds for minimal, internal gromacs and coverage
+-  :code:`continuous-integration-workflow.yml` runs :code:`cmake`, :code:`make`, :code:`ctest` and :code:`make install` etc. for many different compiler,
+   distribution, gromacs combinations and special builds for minimal, internal gromacs and coverage
      
      -  common setup parts done by `votca/actions/setup action <https://github.com/votca/votca/actions>`_
-        it mainly generates the right cmake arguments (`cmake_args`) for the combination of build parameters
+        it mainly generates the right cmake arguments (:code:`cmake_args`) for the combination of build parameters
      -  deploy of website and doxygen is happening in :code:`deploy.sh` (actual push only happens for master)
      
 .. For the continuous workflow action is this scheduled to run every friday `  - cron:  '0 5 * * FRI'` if so it would probably be a good idea to have a badge displaying whether it is passing or not. 
