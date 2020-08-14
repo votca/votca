@@ -2,21 +2,15 @@ Actions
 =======
 
 -  :code:`continuous-integration-workflow.yml`: runs `cmake`, `make`, `ctest` and `make install` etc. for many different compiler,
-     distro / gromacs combinations and special builds for minimal, internal gromacs and coverage
+     distribution, gromacs combinations and special builds for minimal, internal gromacs and coverage
+     
      -  common setup parts done by `votca/actions/setup action <https://github.com/votca/votca/actions>`_
         it mainly generates the right cmake arguments (`cmake_args`) for the combination of build parameters
      -  deploy of website and doxygen is happening in :code:`deploy.sh` (actual push only happens for master)
-
+     
 .. For the continuous workflow action is this scheduled to run every friday `  - cron:  '0 5 * * FRI'` if so it would probably be a good idea to have a badge displaying whether it is passing or not. 
-
-.. Can you explain what the id setup is being used for, is this just a unique identifier so you can store ccache in seperate folders to have a fast build? 
-
-.. 
-   `id: setup
-   uses: votca/actions/setup@master`
-
 -  :code:`docker-build.yml`: does the build and deploy of the docker container from the `Dockerfile`
--  `continuous-integration-workflow.yml` and `docker-build.yml` are triggered for pushes to master and pull requests to
+-  :code:`continuous-integration-workflow.yml` and :code:`docker-build.yml` are triggered for pushes to master and pull requests to
    master as well as on a schedule once a week to pull in updates from the votca/buildenv container
 -  :code:`create-pr.yml`: will create a pull request when the :code:`update_(master|stable)_submodules` branch gets created (manually by us or automatically by
    the `forward action <https://github.com/votca/actions/tree/master/forward>`_ running a module)
