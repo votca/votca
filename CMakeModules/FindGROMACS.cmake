@@ -46,6 +46,7 @@ function(_GROMACS_GET_VERSION _OUT_ver _version_hdr)
 endfunction()
 
 find_package(PkgConfig)
+set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect gromacs package")
 pkg_check_modules(PC_GROMACS_D libgromacs_d)
 pkg_check_modules(PC_GROMACS libgromacs)
 
