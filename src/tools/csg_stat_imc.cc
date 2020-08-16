@@ -487,18 +487,23 @@ void Imc::InitializeGroups() {
     // initialize matrix with zeroes
     M = Eigen::MatrixXd::Zero(n, n);
 
-    // now create references to the sub matrices
+    // now create references to the sub matrices and offsets
+    votca::Index offset_i = 0;
+    votca::Index offset_j = 0;
     // iterate over all possible cominations of pairs
     for (votca::Index i = 0; i < votca::Index(interactions.size()); i++) {
       votca::Index n1 = interactions[i]->_average.getNBins();
+      offset_j = offset_i;
       for (votca::Index j = i; j < votca::Index(interactions.size()); j++) {
         votca::Index n2 = interactions[j]->_average.getNBins();
         // create matrix proxy with sub-matrix
-        pair_matrix corr = M.block(i, j, n1, n2);
+        pair_matrix corr = M.block(offset_i, offset_j, n1, n2);
         // add the pair
         grp->_pairs.push_back(
-            pair_t(interactions[i], interactions[j], i, j, corr));
+            pair_t(interactions[i], interactions[j], offset_i, offset_j, corr));
+        offset_j += n2;
       }
+      offset_i += n1;
     }
   }
 }
