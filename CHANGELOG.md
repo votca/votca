@@ -5,7 +5,7 @@ For more detailed information about the changes see the history of the
 * move CI to GitHub Actions (#563, #567, #569)
 * add max scaling parameter to pressure correction (#565)
 * fix test dependencies for parallel ctest (#573)
-* fix multicomponent imc (#579)
+* fix multicomponent imc (#579, #581)
 
 ## Version 1.6.1 (released 21.06.20)
 * add support for cma-3 (#158) 
