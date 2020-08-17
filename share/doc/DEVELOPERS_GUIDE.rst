@@ -59,14 +59,14 @@ automate this.
 VOTCA continuous integration (Github actions)
 ---------------------------------------------
 
-Each pull request and commit to master in the tools, csg, csgapps, csg-tutorials, xtp, xtp-tutorials and in the votca repository 
+Each pull request and push to master in the tools, csg, csgapps, csg-tutorials, csg-manual, xtp, xtp-tutorials and in the votca repository 
 is build on a machine in the cloud using `Github actions <https://docs.github.com/en/actions>`__ (There is still some Gitlab for the GPU builds).
 
 VOTCA can build on various linux distributions, which are not all natively supported by Github actions. So instead of using the default virtual machines,
-VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of votca.
+VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of votca (see :code:`buildenv` below)
 
-The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`__. AS you can see there are two containers. The **buildenv** containers are the basic containers, which contain all the dependencies VOTCA requires, but not any VOTCA code.
-On top of these containers the actual containers for running the test builds are build. 
+The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`__. As you can see there are two containers. The **votca/buildenv** containers are the basic containers, which contain all the dependencies VOTCA requires, but not any VOTCA code.
+On top of these containers the actual containers for running the test builds are build, the **votca/votca** container.
 
 For more information also look at the `Github workflow files <https://github.com/votca/votca/tree/master/.github/workflows>`__.
 
