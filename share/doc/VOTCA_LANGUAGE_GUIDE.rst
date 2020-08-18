@@ -5,7 +5,8 @@ This language guide has been created to establish rules to keep VOTCAs
 code consistent between repositories. In the past, there has been
 difficulty in translating functionality between repositories and within
 the same repositories because different properties have been used to
-describe the same object attribute.
+describe the same object attribute. For general programming guidelines 
+look at the `Developers Guide <share/doc/DEVELOPERS_GUIDE.rst>`__
 
 Types and Ids
 -------------
@@ -36,3 +37,25 @@ To indicate a unique attribute an id should be used.
 
     int getBeadId();
     int getMoleculeId();
+
+Units in VOTCA
+--------------
+
+VOTCA tried as much as possible to standarize units across both CSG and
+XTP. Externally we parse in the units of the respective file format,
+e.g. ``.xyz`` ``Angstroem``, ``.gro`` ``nm``. Internally we convert all
+parsed units to:
+
+-  CSG: length ``nm``, energy ``kJ/mol`` and time ``ps``
+-  XTP: length ``bohr``, energy ``Hartree`` and time ``ps``
+
+Indexing in VOTCA
+-----------------
+
+All indeces in VOTCA start at ``0``. This is useful, because C++ arrays
+start at index 0.
+
+Apart from special cases all indeces and integers in votca should be
+``votca::Index`` which is a typedef for ``long int``. ``.size()``
+methods of std::containers return an ``unsigned long int`` and should be
+cast to ``votca::Index``. i.e: ``votca::Index(vector.size())``

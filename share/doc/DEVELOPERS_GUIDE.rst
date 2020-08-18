@@ -15,9 +15,6 @@ implementing code consistent with the VOTCA and cpp style and standard.
 -  `Merging With Stable <#merging-with-stable>`__
 -  `Failed Release Builds <#failed-release-builds>`__
 -  `Setting Up A GitLab Runner Server <#gitlab-server>`__
--  `Units in VOTCA <#units-in-votca>`__
--  `Indexing in VOTCA <#indexing-in-votca>`__
--  `Style Guide <#style-guide>`__
 
 Reporting Bugs
 --------------
@@ -59,6 +56,20 @@ is also mutliple steps. Fortunately you will find small scripts in the
 `dev-tools repo <https://github.com/votca/dev-tools>`__, which can
 automate this.
 
+VOTCA continuous integration (Github actions)
+---------------------------------------------
+
+Each pull request and push to master in the tools, csg, csgapps, csg-tutorials, csg-manual, xtp, xtp-tutorials and in the votca repository 
+is build on a machine in the cloud using `Github actions <https://docs.github.com/en/actions>`__ (There is still some Gitlab for the GPU builds).
+
+VOTCA can build on various linux distributions, which are not all natively supported by Github actions. So instead of using the default virtual machines,
+VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of votca (see :code:`buildenv` below)
+
+The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`__. As you can see there are two containers. The **votca/buildenv** containers are the basic containers, which contain all the dependencies VOTCA requires, but not any VOTCA code.
+On top of these containers the actual containers for running the test builds are build, the **votca/votca** container.
+
+For more information also look at the `Github workflow files <https://github.com/votca/votca/tree/master/.github/workflows>`__.
+
 CPP Resources
 -------------
 
@@ -73,6 +84,7 @@ an effort to really enforce it and follow best practices.
 
 CPP Tips
 --------
+
 
 Here are a few general tips that should be followed:
 
@@ -197,6 +209,11 @@ General
    you will use now. Write code, you need later, later. This avoids
    cluttering the codebase with unused "at some point we will need this
    functions".
+
+VOTCA specifics (indexing, ids, units)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This can all be found here `VOTCA\_LANGUAGE\_GUIDE <share/doc/VOTCA_LANGUAGE_GUIDE.rst>`__
 
 Testing
 -------
@@ -350,27 +367,7 @@ against the updated votca/votca repo. Once they pass their tests they
 can be merged. If a pull request was already made the travis tests may
 simply need to be restarted.
 
-Failed Travis Builds
---------------------
-
-There may come a time where one of the docker builds fails. It may be
-the case that the error message is clear and it can be reproduced on
-your host os. However, in the case that the error is specific to the
-enviorment used in the build the local enviornment can be simulated
-using a docker container.
-
-Before you can use this approach docker must be installed on your host
-OS. Begin by running a docker image the default is:
-
-::
-
-    docker run -it votca/buildenv:fedora /bin/bash
-
-This will run an interative docker container which you can interact with
-in bash . The next commands will need to be adjusted to whatever local
-environment you need to reproduce to test the error in the travis build.
-
-CPP Codeing Style Guide
+CPP Coding Style Guide
 -----------------------
 
 VOTCA uses a few auto formatting tools to help enforce the rules
@@ -567,64 +564,3 @@ the docker containers, images and volumes which can use a substantial
 amount of space if not cleaned. A docker cleanup script has been added
 in the `dev-tools <https://github.com/votca/dev-tools>`__ repo,
 instructions on how to set it up are provided in the script.
-
-Units in VOTCA
---------------
-
-VOTCA tried as much as possible to standarize units across both CSG and
-XTP. Externally we parse in the units of the respective file format,
-e.g. ``.xyz`` ``Angstroem``, ``.gro`` ``nm``. Internally we convert all
-parsed units to:
-
--  CSG: length ``nm``, energy ``kJ/mol`` and time ``ps``
--  XTP: length ``bohr``, energy ``Hartree`` and time ``ps``
-
-Indexing in VOTCA
------------------
-
-All indeces in VOTCA start at ``0``. This is useful, because C++ arrays
-start at index 0.
-
-Apart from special cases all indeces and integers in votca should be
-``votca::Index`` which is a typedef for ``long int``. ``.size()``
-methods of std::containers return an ``unsigned long int`` and should be
-cast to ``votca::Index``. i.e: ``votca::Index(vector.size())``
-
-Style Guide
------------
-
-This language guide has been created to establish rules to keep VOTCAs
-code consistent between repositories. In the past, there has been
-difficulty in translating functionality between repositories and within
-the same repositories because different properties have been used to
-describe the same object attribute.
-
-Types and Ids
-~~~~~~~~~~~~~
-
-As an example consider the csg bead object which had at one time
-contained the name, type and id attribute. The name of a bead is ill
-defined and could be unique but was not guaranteed to be so.
-
-If a bead were named C5 it was not clear if this was an arbitrary bead
-name, or if it was the 5th carbon atom in the system. Any any case the
-name attribute is not needed because if a unique id is needed the id of
-the bead could be used whereas if the type of the bead was needed the
-type attribute could be used. As such, the name method and attribute has
-been removed from the object.
-
-As a general rule, objects should not have a name method or attribute
-rather, any attribute that is not unique to an object should be
-indicated with a type method and attribute.
-
-::
-
-    std::string getBeadType();
-    std::string getResidueType();
-
-To indicate a unique attribute an id should be used.
-
-::
-
-    int getBeadId();
-    int getMoleculeId();
