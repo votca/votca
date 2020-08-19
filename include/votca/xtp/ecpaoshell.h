@@ -60,9 +60,8 @@ class ECPAOGaussianPrimitive {
 class ECPAOShell {
  public:
   ECPAOShell(const ECPShell& shell, const QMAtom& atom, Index startIndex,
-             Index Lmax)
-      : _type(shell.getType()),
-        _L(shell.getL()),
+             L Lmax)
+      : _L(shell.getL()),
         _numFunc(shell.getnumofFunc()),
         _startIndex(startIndex),
         _offset(shell.getOffset()),
@@ -72,14 +71,13 @@ class ECPAOShell {
     ;
   }
 
-  const std::string& getType() const { return _type; }
   Index getNumFunc() const { return _numFunc; }
   Index getStartIndex() const { return _startIndex; }
   Index getOffset() const { return _offset; }
   Index getAtomIndex() const { return _atomindex; }
 
-  Index getL() const { return _L; }
-  Index getLmaxElement() const { return _Lmax_element; }
+  L getL() const { return _L; }
+  L getLmaxElement() const { return _Lmax_element; }
   // Local part is with L=Lmax
   bool isNonLocal() const { return (_L < _Lmax_element); }
   const Eigen::Vector3d& getPos() const { return _pos; }
@@ -102,14 +100,14 @@ class ECPAOShell {
 
  private:
   std::string _type;
-  Index _L;
+  L _L;
   // number of functions in shell
   Index _numFunc;
   Index _startIndex;
   Index _offset;
   Eigen::Vector3d _pos;
   Index _atomindex;
-  Index _Lmax_element;  // Lmax of the Element not the shell
+  L _Lmax_element;  // Lmax of the Element not the shell
 
   // vector of pairs of decay constants and contraction coefficients
   std::vector<ECPAOGaussianPrimitive> _gaussians;

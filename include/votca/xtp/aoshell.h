@@ -44,19 +44,19 @@ class AOGaussianPrimitive {
  public:
   double getPowfactor() const { return _powfactor; }
   double getDecay() const { return _decay; }
-  const Eigen::VectorXd& getContraction() const { return _contraction; }
+  double getContraction() const { return _contraction; }
   const AOShell& getShell() const { return _aoshell; }
 
  private:
   double _decay;
-  Eigen::VectorXd _contraction;
+  double _contraction;
   const AOShell& _aoshell;
   double _powfactor;  // used in evalspace to speed up DFT
   // private constructor, only a shell can create a primitive
   AOGaussianPrimitive(const GaussianPrimitive& gaussian, const AOShell& aoshell)
-      : _decay(gaussian.decay()), _aoshell(aoshell) {
-    _contraction = Eigen::VectorXd::Map(gaussian.Contractions().data(),
-                                        gaussian.Contractions().size());
+      : _decay(gaussian.decay()),
+        _contraction(gaussian.contraction()),
+        _aoshell(aoshell) {
     _powfactor =
         std::pow(2.0 * _decay / boost::math::constants::pi<double>(), 0.75);
   }
@@ -80,9 +80,7 @@ class AOShell {
  public:
   AOShell(const AOShell& shell) {
 
-    _type = shell._type;
-    _Lmax = shell._Lmax;
-    _Lmin = shell._Lmin;
+    _l = shell._l;
     _scale = shell._scale;
     _numFunc = shell._numFunc;
     _numcartFunc = shell._numcartFunc;
@@ -98,18 +96,13 @@ class AOShell {
     }
   }
 
-  const std::string& getType() const { return _type; }
+  L getL() const { return _l; }
   Index getNumFunc() const { return _numFunc; }
   Index getCartesianNumFunc() const { return _numcartFunc; }
   Index getStartIndex() const { return _startIndex; }
   Index getOffset() const { return _offset; }
   Index getCartesianOffset() const { return _cartOffset; }
   Index getAtomIndex() const { return _atomindex; }
-
-  Index getLmax() const { return _Lmax; }
-  Index getLmin() const { return _Lmin; }
-
-  bool isCombined() const { return _Lmax != _Lmin; }
 
   const Eigen::Vector3d& getPos() const { return _pos; }
   double getScale() const { return _scale; }
@@ -150,23 +143,19 @@ class AOShell {
  private:
   // only class aobasis can construct shells
   AOShell(const Shell& shell, const QMAtom& atom, Index startIndex)
-      : _type(shell.getType()),
-        _Lmax(shell.getLmax()),
-        _Lmin(shell.getLmin()),
+      : _l(shell.getL()),
         _scale(shell.getScale()),
         _numFunc(shell.getnumofFunc()),
-        _numcartFunc(xtp::NumFuncShell_cartesian(shell.getType())),
+        _numcartFunc(xtp::NumFuncShell_cartesian(shell.getL())),
         _startIndex(startIndex),
         _offset(shell.getOffset()),
-        _cartOffset(xtp::OffsetFuncShell_cartesian(shell.getType())),
+        _cartOffset(xtp::OffsetFuncShell_cartesian(shell.getL())),
         _pos(atom.getPos()),
         _atomindex(atom.getId()) {
     ;
   }
 
-  std::string _type;
-  Index _Lmax;
-  Index _Lmin;
+  L _l;
   // scaling factor
   double _scale;
   // number of functions in shell

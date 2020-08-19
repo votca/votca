@@ -79,7 +79,7 @@ void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis& aobasis,
       // and loop over all shells to figure out minimum decay constant and
       // angular momentum of this function
       for (const AOShell* shell : shells) {
-        Index lmax = shell->getLmax();
+        Index lmax = Index(shell->getL());
         if (shell->getMinDecay() < decaymin) {
           decaymin = shell->getMinDecay();
           lvalue = lmax;

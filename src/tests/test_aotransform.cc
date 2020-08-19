@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include "votca/xtp/basisset.h"
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aotransform_test
@@ -57,7 +58,7 @@ BOOST_AUTO_TEST_CASE(transform_test) {
       bool check_transform = ref[ref_index].isApprox(transform, 1e-5);
       BOOST_CHECK_EQUAL(check_transform, 1);
       if (!check_transform) {
-        std::cout << "ref " << shell.getType() << std::endl;
+        std::cout << "ref " << xtp::EnumToString(shell.getL()) << std::endl;
         std::cout << ref[ref_index] << std::endl;
         std::cout << "result" << std::endl;
         std::cout << transform << std::endl;

@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
     bool ao_check = aoval_ref.segment(shell.getStartIndex(), shell.getNumFunc())
                         .isApprox(aoval, 1e-5);
     if (!ao_check) {
-      std::cout << shell.getType() << std::endl;
+      std::cout << shell << std::endl;
       std::cout << "ref" << std::endl;
       std::cout << aoval_ref << std::endl;
       std::cout << "result" << std::endl;
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
         aograd_ref.block(shell.getStartIndex(), 0, shell.getNumFunc(), 3)
             .isApprox(aograd, 1e-5);
     if (!aograd_check) {
-      std::cout << shell.getType() << std::endl;
+      std::cout << shell << std::endl;
       std::cout << "ref" << std::endl;
       std::cout << aograd_ref << std::endl;
       std::cout << "result" << std::endl;
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
 
     bool ao1vsao2_check = aoval_2.isApprox(aoval, 1e-5);
     if (!ao1vsao2_check) {
-      std::cout << shell.getType() << std::endl;
+      std::cout << shell << std::endl;
       std::cout << "ref" << std::endl;
       std::cout << aoval << std::endl;
       std::cout << "result" << std::endl;
