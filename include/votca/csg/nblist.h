@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_NBLIST_H
-#define _VOTCA_CSG_NBLIST_H
+#ifndef VOTCA_CSG_NBLIST_H
+#define VOTCA_CSG_NBLIST_H
 
 // Local VOTCA includes
 #include "beadlist.h"
@@ -53,7 +53,7 @@ class NBList : public PairList<Bead *, BeadPair> {
   /// set the cutoff for the neighbour search
   void setCutoff(double cutoff) { _cutoff = cutoff; }
   /// get the cutoff for the neighbour search
-  double getCutoff() { return _cutoff; }
+  double getCutoff() const { return _cutoff; }
 
   /**
    *  \brief match function for class member functions
@@ -72,15 +72,14 @@ class NBList : public PairList<Bead *, BeadPair> {
   template <typename T>
   void SetMatchFunction(T *object,
                         bool (T::*fkt)(Bead *, Bead *, const Eigen::Vector3d &,
-                                       const double dist));
+                                       double dist));
 
   /// \brief match function for static member functions or plain functions
   void SetMatchFunction(bool (*fkt)(Bead *, Bead *, const Eigen::Vector3d &,
-                                    const double dist));
+                                    double dist));
 
   /// standard match function
-  static bool match_always(Bead *, Bead *, const Eigen::Vector3d &,
-                           const double) {
+  static bool match_always(Bead *, Bead *, const Eigen::Vector3d &, double) {
     return true;
   }
 
@@ -120,13 +119,12 @@ class NBList : public PairList<Bead *, BeadPair> {
   template <typename T>
   class FunctorMember : public Functor {
    public:
-    using fkt_t = bool (T::*)(Bead *, Bead *, const Eigen::Vector3d &,
-                              const double);
+    using fkt_t = bool (T::*)(Bead *, Bead *, const Eigen::Vector3d &, double);
 
     FunctorMember(T *cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
 
     bool operator()(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
-                    const double dist) override {
+                    double dist) override {
       return (_cls->*_fkt)(b1, b2, r, dist);
     }
 
@@ -138,12 +136,11 @@ class NBList : public PairList<Bead *, BeadPair> {
   /// Functor for non-member functions
   class FunctorNonMember : public Functor {
    public:
-    using fkt_t = bool (*)(Bead *, Bead *, const Eigen::Vector3d &,
-                           const double);
+    using fkt_t = bool (*)(Bead *, Bead *, const Eigen::Vector3d &, double);
     FunctorNonMember(fkt_t fkt) : _fkt(fkt) {}
 
     bool operator()(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
-                    const double dist) override {
+                    double dist) override {
       return (*_fkt)(b1, b2, r, dist);
     }
 
@@ -163,7 +160,7 @@ template <typename T>
 inline void NBList::SetMatchFunction(T *object,
                                      bool (T::*fkt)(Bead *, Bead *,
                                                     const Eigen::Vector3d &,
-                                                    const double)) {
+                                                    double)) {
   if (_match_function) {
     delete _match_function;
   }
@@ -172,7 +169,7 @@ inline void NBList::SetMatchFunction(T *object,
 
 inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *,
                                                  const Eigen::Vector3d &,
-                                                 const double)) {
+                                                 double)) {
   if (_match_function) {
     delete _match_function;
   }
@@ -182,4 +179,4 @@ inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *,
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_NBLIST_H */
+#endif  // VOTCA_CSG_NBLIST_H

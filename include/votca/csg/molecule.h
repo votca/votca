@@ -74,16 +74,6 @@ class Molecule {
 
   std::vector<Interaction *> Interactions() { return _interactions; }
 
-  template <typename T>
-  void setUserData(T *userdata) {
-    _userdata = (void *)userdata;
-  }
-
-  template <typename T>
-  T *getUserData() {
-    return (T *)_userdata;
-  }
-
  private:
   // maps a name to a bead id
   std::map<std::string, Index> _beadmap;
@@ -97,8 +87,6 @@ class Molecule {
   // the beads in the molecule
   std::vector<Bead *> _beads;
   std::vector<std::string> _bead_names;
-
-  void *_userdata;
 
   /// constructor
   Molecule(Index id, std::string name) : _id(id), _name(name) {}

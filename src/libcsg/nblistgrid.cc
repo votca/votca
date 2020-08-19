@@ -178,12 +178,12 @@ void NBListGrid::TestBead(const Topology &top, NBListGrid::cell_t &cell,
 
 void NBListGrid::TestCell(const Topology &top, NBListGrid::cell_t &cell,
                           Bead *bead) {
-  Eigen::Vector3d u = bead->getPos();
+  const Eigen::Vector3d &u = bead->getPos();
 
   for (auto &_bead : cell._beads) {
 
-    Eigen::Vector3d v = _bead->getPos();
-    Eigen::Vector3d r = top.BCShortestConnection(v, u);
+    const Eigen::Vector3d &v = _bead->getPos();
+    const Eigen::Vector3d &r = top.BCShortestConnection(v, u);
     double d = r.norm();
     if (d < _cutoff) {
       if (_do_exclusions) {
