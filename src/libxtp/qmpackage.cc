@@ -75,7 +75,8 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) const {
   }
 
   if (orbitals.hasMOs()) {
-    ReorderMOsToXTP(orbitals.MOs().eigenvectors(), dftbasis);
+    OrbReorder reorder(ShellTranspositions(), ShellMulitplier());
+    reorder.reorderOrbitals(orbitals.MOs().eigenvectors(), dftbasis);
     XTP_LOG(Log::info, *_pLog) << "Reordered MOs" << flush;
   }
 
@@ -88,7 +89,11 @@ Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const {
   }
   AOBasis dftbasis = orbitals.SetupDftBasis();
   Eigen::MatrixXd result = orbitals.MOs().eigenvectors();
-  ReorderMOsToNative(result, dftbasis);
+  OrbReorder reorder(ShellTranspositions(), ShellMulitplier());
+
+  // If the ordering consists of independent transpositions reverting the
+  // order back is the same as reapplying the transpositions.
+  reorder.reorderOrbitals(result, dftbasis);
   return result;
 }
 
@@ -141,117 +146,6 @@ std::string QMPackage::FindDefaultsFile() const {
                  std::string("/xtp/data/qmpackage_defaults.xml");
 
   return xmlFile;
-}
-
-void QMPackage::ReorderMOs(Eigen::MatrixXd& v,
-                           const std::vector<Index>& order) const {
-  // Sanity check
-  if (v.rows() != Index(order.size())) {
-    throw std::runtime_error("Size mismatch in ReorderMOs " +
-                             std::to_string(v.rows()) + ":" +
-                             std::to_string(order.size()));
-  }
-  // actual swapping of coefficients
-  for (Index s = 1, d; s < (Index)order.size(); ++s) {
-    for (d = order[s]; d < s; d = order[d]) {
-      ;
-    }
-    if (d == s) {
-      while (d = order[d], d != s) {
-        v.row(s).swap(v.row(d));
-      }
-    }
-  }
-}
-
-void QMPackage::ReorderMOsToXTP(Eigen::MatrixXd& v,
-                                const AOBasis& basis) const {
-
-  std::vector<Index> multiplier = getMultiplierVector(basis);
-
-  std::vector<Index> order = getReorderVector(basis);
-  ReorderMOs(v, order);
-  MultiplyMOs(v, multiplier);
-  return;
-}
-
-void QMPackage::ReorderMOsToNative(Eigen::MatrixXd& v,
-                                   const AOBasis& basis) const {
-
-  std::vector<Index> multiplier = getMultiplierVector(basis);
-  MultiplyMOs(v, multiplier);
-  std::vector<Index> order = getReorderVector(basis);
-  std::vector<Index> reverseorder = invertOrder(order);
-  ReorderMOs(v, reverseorder);
-  return;
-}
-
-void QMPackage::MultiplyMOs(Eigen::MatrixXd& v,
-                            const std::vector<Index>& multiplier) const {
-  // Sanity check
-  if (v.cols() != Index(multiplier.size())) {
-    std::cerr << "Size mismatch in MultiplyMOs" << v.cols() << ":"
-              << multiplier.size() << std::endl;
-    throw std::runtime_error("Abort!");
-  }
-  for (Index i = 0; i < v.cols(); i++) {
-    v.row(i) = multiplier[i] * v.row(i);
-  }
-  return;
-}
-
-std::vector<Index> QMPackage::getMultiplierVector(const AOBasis& basis) const {
-  std::vector<Index> multiplier;
-  multiplier.reserve(basis.AOBasisSize());
-  // go through basisset
-  for (const AOShell& shell : basis) {
-    std::vector<Index> shellmultiplier = getMultiplierShell(shell);
-    multiplier.insert(multiplier.end(), shellmultiplier.begin(),
-                      shellmultiplier.end());
-  }
-  return multiplier;
-}
-
-std::vector<Index> QMPackage::getMultiplierShell(const AOShell& shell) const {
-  // multipliers were all found using code, hard to establish
-  std::vector<Index> multiplier;
-  for (Index i = 0; i < shell.getNumFunc(); i++) {
-    multiplier.push_back(ShellMulitplier()[shell.getOffset() + i]);
-  }
-  return multiplier;
-}
-
-std::vector<Index> QMPackage::getReorderVector(const AOBasis& basis) const {
-  std::vector<Index> reorder;
-  reorder.reserve(basis.AOBasisSize());
-  // go through basisset
-  for (const AOShell& shell : basis) {
-    std::vector<Index> shellreorder = getReorderShell(shell);
-    std::for_each(shellreorder.begin(), shellreorder.end(),
-                  [&reorder](Index& i) { i += Index(reorder.size()); });
-    reorder.insert(reorder.end(), shellreorder.begin(), shellreorder.end());
-  }
-  return reorder;
-}
-
-std::vector<Index> QMPackage::getReorderShell(const AOShell& shell) const {
-  std::vector<Index> reorder;
-  for (Index i = 0; i < shell.getNumFunc(); i++) {
-    // Shellreorder tells how much a certain funktion has to be shifted with
-    // reference to votca ordering
-    reorder.push_back(ShellReorder()[shell.getOffset() + i] + i);
-  }
-  return reorder;
-}
-
-std::vector<Index> QMPackage::invertOrder(
-    const std::vector<Index>& order) const {
-
-  std::vector<Index> neworder = std::vector<Index>(order.size());
-  for (Index i = 0; i < Index(order.size()); i++) {
-    neworder[order[i]] = Index(i);
-  }
-  return neworder;
 }
 
 }  // namespace xtp

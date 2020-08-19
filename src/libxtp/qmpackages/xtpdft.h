@@ -27,6 +27,7 @@
 // Local VOTCA includes
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/orbreorder.h"
 #include "votca/xtp/polarsite.h"
 #include "votca/xtp/qmpackage.h"
 
@@ -71,7 +72,9 @@ class XTPDFT : public QMPackage {
   const std::array<Index, 25>& ShellMulitplier() const final {
     return _multipliers;
   }
-  const std::array<Index, 25>& ShellReorder() const final { return _reorder; }
+  const OrbTranspositions& ShellTranspositions() const final {
+    return _transpositions;
+  }
 
  private:
   // clang-format off
@@ -82,13 +85,13 @@ class XTPDFT : public QMPackage {
             1,1,1,1,1,1,1, //f 
             1,1,1,1,1,1,1,1,1 //g
             };
-  std::array<Index,25> _reorder={
-            0, //s
-            0,0,0, //p 
-            0,0,0,0,0, //d 
-            0,0,0,0,0,0,0, //f
-            0,0,0,0,0,0,0,0,0 //g
-            };
+  OrbTranspositions _transpositions { 
+	  std::vector<std::array<Index, 2>> {}, //s
+ 	  std::vector<std::array<Index, 2>> {}, //p
+ 	  std::vector<std::array<Index, 2>> {}, //d
+	  std::vector<std::array<Index, 2>> {}, //f
+	  std::vector<std::array<Index, 2>> {}  //g
+  };
   // clang-format on
 
   void WriteChargeOption() final { return; }
