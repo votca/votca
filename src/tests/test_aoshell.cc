@@ -42,23 +42,6 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
   AOBasis aobasis;
   aobasis.Fill(basis, mol);
 
-  const AOShell& shell = aobasis.getShell(0);
-
-  Eigen::Vector3d gridpos = Eigen::Vector3d::Ones();
-  Eigen::VectorXd aoval = Eigen::VectorXd::Zero(aobasis.AOBasisSize());
-  Eigen::MatrixX3d aograd = Eigen::MatrixX3d::Zero(aobasis.AOBasisSize(), 3);
-  Eigen::Block<Eigen::MatrixX3d> grad_block =
-      aograd.block(0, 0, aobasis.AOBasisSize(), 3);
-  Eigen::VectorBlock<Eigen::VectorXd> ao_block =
-      aoval.segment(0, aobasis.AOBasisSize());
-
-  shell.EvalAOspace(ao_block, grad_block, gridpos);
-
-  Eigen::VectorXd aoval_2 = Eigen::VectorXd::Zero(aobasis.AOBasisSize());
-  Eigen::VectorBlock<Eigen::VectorXd> ao_block_2 =
-      aoval_2.segment(0, aobasis.AOBasisSize());
-  shell.EvalAOspace(ao_block_2, gridpos);
-
   Eigen::VectorXd aoval_ref = Eigen::VectorXd::Zero(aobasis.AOBasisSize());
   aoval_ref << 0.0680316, 0.0895832, 0.0895832, 0.0895832, 0, 0.126153,
       0.126153, 0.126153, 0, -0.102376, 0.0626925, 0.0626925, 0.198251, 0,
@@ -87,33 +70,57 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
       0.32674007231, -0.11148463165, 0.18066517099, 0.20658110657,
       -0.20658110657, 0, 0.024459014248, 0.024459014248, 0.23104012081;
 
-  bool ao_check = aoval_ref.isApprox(aoval, 1e-5);
-  if (!ao_check) {
-    std::cout << "ref" << std::endl;
-    std::cout << aoval_ref << std::endl;
-    std::cout << "result" << std::endl;
-    std::cout << aoval << std::endl;
-  }
-  BOOST_CHECK_EQUAL(ao_check, 1);
-  bool aograd_check = aograd_ref.isApprox(aograd, 1e-5);
-  if (!aograd_check) {
-    std::cout << "ref" << std::endl;
-    std::cout << aograd_ref << std::endl;
-    std::cout << "result" << std::endl;
-    std::cout << aograd << std::endl;
-  }
+  for (const AOShell& shell : aobasis) {
 
-  BOOST_CHECK_EQUAL(aograd_check, 1);
+    Eigen::Vector3d gridpos = Eigen::Vector3d::Ones();
+    Eigen::VectorXd aoval = Eigen::VectorXd::Zero(shell.getNumFunc());
+    Eigen::MatrixX3d aograd = Eigen::MatrixX3d::Zero(shell.getNumFunc(), 3);
+    Eigen::Block<Eigen::MatrixX3d> grad_block =
+        aograd.block(0, 0, shell.getNumFunc(), 3);
+    Eigen::VectorBlock<Eigen::VectorXd> ao_block =
+        aoval.segment(0, shell.getNumFunc());
 
-  bool ao1vsao2_check = aoval_2.isApprox(aoval, 1e-5);
-  if (!ao1vsao2_check) {
-    std::cout << "ref" << std::endl;
-    std::cout << aoval << std::endl;
-    std::cout << "result" << std::endl;
-    std::cout << aoval_2 << std::endl;
+    shell.EvalAOspace(ao_block, grad_block, gridpos);
+
+    Eigen::VectorXd aoval_2 = Eigen::VectorXd::Zero(shell.getNumFunc());
+    Eigen::VectorBlock<Eigen::VectorXd> ao_block_2 =
+        aoval_2.segment(0, shell.getNumFunc());
+    shell.EvalAOspace(ao_block_2, gridpos);
+
+    bool ao_check = aoval_ref.segment(shell.getStartIndex(), shell.getNumFunc())
+                        .isApprox(aoval, 1e-5);
+    if (!ao_check) {
+      std::cout << shell.getType() << std::endl;
+      std::cout << "ref" << std::endl;
+      std::cout << aoval_ref << std::endl;
+      std::cout << "result" << std::endl;
+      std::cout << aoval << std::endl;
+    }
+    BOOST_CHECK_EQUAL(ao_check, 1);
+    bool aograd_check =
+        aograd_ref.block(shell.getStartIndex(), 0, shell.getNumFunc(), 3)
+            .isApprox(aograd, 1e-5);
+    if (!aograd_check) {
+      std::cout << shell.getType() << std::endl;
+      std::cout << "ref" << std::endl;
+      std::cout << aograd_ref << std::endl;
+      std::cout << "result" << std::endl;
+      std::cout << aograd << std::endl;
+    }
+
+    BOOST_CHECK_EQUAL(aograd_check, 1);
+
+    bool ao1vsao2_check = aoval_2.isApprox(aoval, 1e-5);
+    if (!ao1vsao2_check) {
+      std::cout << shell.getType() << std::endl;
+      std::cout << "ref" << std::endl;
+      std::cout << aoval << std::endl;
+      std::cout << "result" << std::endl;
+      std::cout << aoval_2 << std::endl;
+    }
+
+    BOOST_CHECK_EQUAL(aograd_check, 1);
   }
-
-  BOOST_CHECK_EQUAL(aograd_check, 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

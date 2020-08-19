@@ -246,38 +246,46 @@ void BasisSet::Load(const std::string& name) {
         throw std::runtime_error("Shelltype: '" + shellType +
                                  "' is not a valid shelltype!");
       }
-      double shellScale = shellProp->getAttribute<double>("scale");
+      for (char subtype : shellType) {
 
-      Shell& shell = element.addShell(shellType, shellScale);
-      std::vector<tools::Property*> constProps = shellProp->Select("constant");
-      for (tools::Property* constProp : constProps) {
-        double decay = constProp->getAttribute<double>("decay");
-        std::vector<double> contraction =
-            std::vector<double>(shell.getLmax() + 1, 0.0);
-        std::vector<tools::Property*> contrProps =
-            constProp->Select("contractions");
-        for (tools::Property* contrProp : contrProps) {
-          std::string contrType = contrProp->getAttribute<std::string>("type");
-          double contrFactor = contrProp->getAttribute<double>("factor");
-          if (contrType == "S") {
-            contraction[0] = contrFactor;
-          } else if (contrType == "P") {
-            contraction[1] = contrFactor;
-          } else if (contrType == "D") {
-            contraction[2] = contrFactor;
-          } else if (contrType == "F") {
-            contraction[3] = contrFactor;
-          } else if (contrType == "G") {
-            contraction[4] = contrFactor;
-          } else if (contrType == "H") {
-            contraction[5] = contrFactor;
-          } else if (contrType == "I") {
-            contraction[6] = contrFactor;
-          } else {
-            throw std::runtime_error("LoadBasiset:Contractiontype not known");
+        double shellScale = shellProp->getAttribute<double>("scale");
+
+        Shell& shell = element.addShell(std::string(1, subtype), shellScale);
+        std::vector<tools::Property*> constProps =
+            shellProp->Select("constant");
+        for (tools::Property* constProp : constProps) {
+          double decay = constProp->getAttribute<double>("decay");
+          std::vector<double> contraction =
+              std::vector<double>(shell.getLmax() + 1, 0.0);
+          std::vector<tools::Property*> contrProps =
+              constProp->Select("contractions");
+          for (tools::Property* contrProp : contrProps) {
+            std::string contrType =
+                contrProp->getAttribute<std::string>("type");
+            if (contrType != std::string(1, subtype)) {
+              continue;
+            }
+            double contrFactor = contrProp->getAttribute<double>("factor");
+            if (contrType == "S") {
+              contraction[0] = contrFactor;
+            } else if (contrType == "P") {
+              contraction[1] = contrFactor;
+            } else if (contrType == "D") {
+              contraction[2] = contrFactor;
+            } else if (contrType == "F") {
+              contraction[3] = contrFactor;
+            } else if (contrType == "G") {
+              contraction[4] = contrFactor;
+            } else if (contrType == "H") {
+              contraction[5] = contrFactor;
+            } else if (contrType == "I") {
+              contraction[6] = contrFactor;
+            } else {
+              throw std::runtime_error("LoadBasiset:Contractiontype not known");
+            }
           }
+          shell.addGaussian(decay, contraction);
         }
-        shell.addGaussian(decay, contraction);
       }
     }
   }
