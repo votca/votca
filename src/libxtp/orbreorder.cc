@@ -38,12 +38,10 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
     multiplier.insert(multiplier.end(), shellmultiplier.begin(),
                       shellmultiplier.end());
     // reorder
-    for (Index l = shell.getLmin(); l <= shell.getLmax(); l++) {
-      for (auto& transposition : _transpositions[l]) {
-        moCoefficients.row(currentFunction + transposition[0])
-            .swap(moCoefficients.row(currentFunction + transposition[1]));
-      }
-      currentFunction += (2 * l + 1);
+    Index l = static_cast<Index>(shell.getL());
+    for (auto& transposition : _transpositions[l]) {
+      moCoefficients.row(currentFunction + transposition[0])
+          .swap(moCoefficients.row(currentFunction + transposition[1]));
     }
   }
 
@@ -51,7 +49,7 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
   for (Index i = 0; i < moCoefficients.cols(); i++) {
     moCoefficients.row(i) = multiplier[i] * moCoefficients.row(i);
   }
-}
+}  // namespace xtp
 
 }  // namespace xtp
 }  // namespace votca

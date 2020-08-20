@@ -29,6 +29,8 @@
 namespace votca {
 namespace xtp {
 
+// structure to store the transpositions for the first 5 shell types (i.e. s=0,
+// p, d, f, g=4)
 typedef std::array<std::vector<std::array<Index, 2>>, 5> OrbTranspositions;
 
 class OrbReorder {
