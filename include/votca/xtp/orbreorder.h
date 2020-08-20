@@ -41,7 +41,7 @@ class OrbReorder {
 
   ~OrbReorder() = default;
 
-  void reorderOrbitals(Eigen::MatrixXd& moCoefficients, AOBasis& basis);
+  void reorderOrbitals(Eigen::MatrixXd& moCoefficients, const AOBasis& basis);
 
  private:
   std::array<Index, 25> _multipliers;

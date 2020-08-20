@@ -24,7 +24,7 @@ namespace votca {
 namespace xtp {
 
 void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
-                                 AOBasis& basis) {
+                                 const AOBasis& basis) {
   std::vector<Index> multiplier;
   multiplier.reserve(basis.AOBasisSize());
 
