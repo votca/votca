@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/ecpaoshell.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpaobasis.h"
 
 namespace votca {
@@ -27,9 +28,9 @@ namespace xtp {
 
 std::ostream& operator<<(std::ostream& out, const ECPAOShell& shell) {
   out << "AtomIndex:" << shell.getAtomIndex();
-  out << " Shelltype:" << shell.getType() << " L:" << shell.getL()
-      << " NonLocal:" << shell.isNonLocal() << " Func:" << shell.getNumFunc()
-      << "\n";
+  out << " Shelltype:" << xtp::EnumToString(shell.getL())
+      << " L:" << Index(shell.getL()) << " NonLocal:" << shell.isNonLocal()
+      << " Func:" << shell.getNumFunc() << "\n";
   for (const auto& gaussian : shell) {
     out << " Gaussian Decay: " << gaussian.getDecay();
     out << " Power: " << gaussian.getPower();

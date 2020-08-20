@@ -92,24 +92,6 @@ class eeInteractor {
                                const StaticSite& site2) const;
 
  private:
-  class AxA {
-   public:
-    AxA(const Eigen::Vector3d& a) {
-      _data.segment<3>(0) = a.x() * a;
-      _data.segment<2>(3) = a.y() * a.segment<2>(1);
-      _data[5] = a.z() * a.z();
-    }
-    inline const double& xx() const { return _data[0]; }
-    inline const double& xy() const { return _data[1]; }
-    inline const double& xz() const { return _data[2]; }
-    inline const double& yy() const { return _data[3]; }
-    inline const double& yz() const { return _data[4]; }
-    inline const double& zz() const { return _data[5]; }
-
-   private:
-    Eigen::Matrix<double, 6, 1> _data;
-  };
-
   template <int N>
   Eigen::Matrix<double, N, 1> VSiteA(const StaticSite& site1,
                                      const StaticSite& site2) const;

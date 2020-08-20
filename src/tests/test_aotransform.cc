@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include "votca/xtp/basisset.h"
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aotransform_test
@@ -57,52 +58,12 @@ BOOST_AUTO_TEST_CASE(transform_test) {
       bool check_transform = ref[ref_index].isApprox(transform, 1e-5);
       BOOST_CHECK_EQUAL(check_transform, 1);
       if (!check_transform) {
-        std::cout << "ref " << shell.getType() << std::endl;
+        std::cout << "ref " << xtp::EnumToString(shell.getL()) << std::endl;
         std::cout << ref[ref_index] << std::endl;
         std::cout << "result" << std::endl;
         std::cout << transform << std::endl;
       }
       ref_index++;
-    }
-  }
-}
-
-BOOST_AUTO_TEST_CASE(composite_shell_transform) {
-  QMAtom a(0, "C", Eigen::Vector3d::Zero());
-  QMMolecule mol("zero", 0);
-  mol.push_back(a);
-
-  BasisSet bs;
-  bs.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aotransform/composite_PD.xml");
-  AOBasis basis;
-  basis.Fill(bs, mol);
-
-  Eigen::MatrixXd p = Eigen::MatrixXd::Zero(3, 3);
-
-  Eigen::MatrixXd d = Eigen::MatrixXd::Zero(6, 5);
-  p << 0.000000, 0.000000, 4.667840, 0.000000, 4.667840, 0.000000, 4.667840,
-      0.000000, 0.000000;
-  d << -6.289860, 0.000000, 0.000000, 0.000000, 10.894400, 0.000000, 0.000000,
-      0.000000, 21.788700, 0.000000, 0.000000, 0.000000, 21.788700, 0.000000,
-      0.000000, -6.289860, 0.000000, 0.000000, 0.000000, -10.894400, 0.000000,
-      21.788700, 0.000000, 0.000000, 0.000000, 12.579700, 0.000000, 0.000000,
-      0.000000, 0.000000;
-  Eigen::MatrixXd ref = Eigen::MatrixXd::Zero(9, 8);
-
-  ref.topLeftCorner<3, 3>() = p;
-  ref.bottomRightCorner<6, 5>() = d;
-
-  for (const AOShell& shell : basis) {
-    for (const AOGaussianPrimitive& gauss : shell) {
-      Eigen::MatrixXd transform = AOTransform::getTrafo(gauss);
-      bool check_transform = ref.isApprox(transform, 1e-5);
-      BOOST_CHECK_EQUAL(check_transform, 1);
-      if (!check_transform) {
-        std::cout << "ref " << shell.getType() << std::endl;
-        std::cout << ref << std::endl;
-        std::cout << "result" << std::endl;
-        std::cout << transform << std::endl;
-      }
     }
   }
 }

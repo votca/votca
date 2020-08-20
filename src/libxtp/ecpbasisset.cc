@@ -21,6 +21,7 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
+#include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpbasisset.h"
 
 namespace votca {
@@ -52,18 +53,23 @@ void ECPBasisSet::Load(const std::string& name) {
   for (tools::Property* elementProp : elementProps) {
     std::string elementName = elementProp->getAttribute<std::string>("name");
     Index lmax = elementProp->getAttribute<Index>("lmax");
+    if (lmax > Index(L::I)) {
+      throw std::runtime_error("In ecps lmax larger " +
+                               std::to_string(Index(L::I)) + " is not allowed");
+    }
     Index ncore = elementProp->getAttribute<Index>("ncore");
 
-    ECPElement& element = addElement(elementName, lmax, ncore);
+    ECPElement& element = addElement(elementName, static_cast<L>(lmax), ncore);
 
     std::vector<tools::Property*> shellProps = elementProp->Select("shell");
     for (tools::Property* shellProp : shellProps) {
       std::string shellType = shellProp->getAttribute<std::string>("type");
       if (shellType.size() > 1) {
         throw std::runtime_error(
-            "In ecps no combined shells e.g. SP are allowed");
+            "In ecps no combined shells e.g. SP are allowed. Here:" +
+            shellType);
       }
-      ECPShell& shell = element.addShell(shellType);
+      ECPShell& shell = element.addShell(StringToEnum(shellType));
       std::vector<tools::Property*> constProps = shellProp->Select("constant");
       for (tools::Property* constProp : constProps) {
         Index power = constProp->getAttribute<Index>("power");
@@ -77,7 +83,7 @@ void ECPBasisSet::Load(const std::string& name) {
 }
 
 // adding an Element to a Pseudopotential Library
-ECPElement& ECPBasisSet::addElement(std::string elementType, Index lmax,
+ECPElement& ECPBasisSet::addElement(std::string elementType, L lmax,
                                     Index ncore) {
   std::shared_ptr<ECPElement> element(new ECPElement(elementType, lmax, ncore));
   _elements[elementType] = element;
@@ -97,8 +103,8 @@ const ECPElement& ECPBasisSet::getElement(std::string element_type) const {
 
 std::ostream& operator<<(std::ostream& out, const ECPShell& shell) {
 
-  out << "Type:" << shell.getType() << " Func: " << shell.getnumofFunc()
-      << "\n";
+  out << "Type:" << xtp::EnumToString(shell.getL())
+      << " Func: " << shell.getnumofFunc() << "\n";
   for (const auto& gaussian : shell._gaussians) {
     out << " Gaussian Decay: " << gaussian._decay;
     out << " Contraction:" << gaussian._contraction << "\n";

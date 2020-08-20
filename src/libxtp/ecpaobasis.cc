@@ -29,7 +29,7 @@ namespace votca {
 namespace xtp {
 
 ECPAOShell& ECPAOBasis::addShell(const ECPShell& shell, const QMAtom& atom,
-                                 Index startIndex, Index Lmax) {
+                                 Index startIndex, L Lmax) {
   _aoshells.push_back(ECPAOShell(shell, atom, startIndex, Lmax));
   return _aoshells.back();
 }
@@ -62,12 +62,12 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
     if (element_exists) {
       const ECPElement& element = bs.getElement(name);
       atom._ecpcharge = element.getNcore();
-      Index lmax = element.getLmax();
+      L lmax = element.getLmax();
       for (const ECPShell& shell : element) {
         ECPAOShell& aoshell = addShell(shell, atom, _AOBasisSize, lmax);
         shellindex.push_back(index);
         index++;
-        _AOBasisSize += NumFuncShell(shell.getType());
+        _AOBasisSize += NumFuncShell(shell.getL());
         for (const ECPGaussianPrimitive& gaussian : shell) {
           aoshell.addGaussian(gaussian);
         }

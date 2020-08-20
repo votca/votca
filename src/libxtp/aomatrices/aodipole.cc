@@ -35,8 +35,8 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
    */
 
   // shell info, only lmax tells how far to go
-  Index lmax_row = shell_row.getLmax();
-  Index lmax_col = shell_col.getLmax();
+  Index lmax_row = Index(shell_row.getL());
+  Index lmax_col = Index(shell_col.getL());
 
   if (std::max(lmax_col, lmax_row) > 4) {
     throw std::runtime_error(

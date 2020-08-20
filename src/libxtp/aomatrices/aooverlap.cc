@@ -37,8 +37,8 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
 
   const AOShell& shell_row = g_row.getShell();
   const AOShell& shell_col = g_col.getShell();
-  Index lmax_row = shell_row.getLmax() + l_offset;
-  Index lmax_col = shell_col.getLmax() + l_offset;
+  Index lmax_row = Index(shell_row.getL()) + l_offset;
+  Index lmax_col = Index(shell_col.getL()) + l_offset;
 
   const double decay_row = g_row.getDecay();
   const double decay_col = g_col.getDecay();
@@ -582,8 +582,8 @@ void AOOverlap::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                           const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
-  Index lmax_row = shell_row.getLmax();
-  Index lmax_col = shell_col.getLmax();
+  Index lmax_row = Index(shell_row.getL());
+  Index lmax_col = Index(shell_col.getL());
 
   if (lmax_col > 6 || lmax_row > 6) {
     throw std::runtime_error(

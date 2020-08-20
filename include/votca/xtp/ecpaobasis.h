@@ -55,7 +55,7 @@ class ECPAOBasis {
 
  private:
   ECPAOShell& addShell(const ECPShell& shell, const QMAtom& atom,
-                       Index startIndex, Index Lmax);
+                       Index startIndex, L Lmax);
 
   std::vector<ECPAOShell> _aoshells;
 
