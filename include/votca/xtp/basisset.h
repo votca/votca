@@ -33,52 +33,49 @@
 
 namespace votca {
 namespace xtp {
+
+enum class L { S = 0, P = 1, D = 2, F = 3, G = 4, H = 5, I = 6 };
+
+std::string EnumToString(L l);
+
+L StringToEnum(const std::string& type);
+L StringToEnum(char type);
+
 // shell type (S, P, D))
 
 bool CheckShellType(const std::string& shelltype);
 
-Index FindLmax(const std::string& type);
+Index OffsetFuncShell(L l);
 
-Index FindLmin(const std::string& type);
+Index NumFuncShell(L l);
+Index NumFuncShell_cartesian(L l);
 
-Index OffsetFuncShell(const std::string& shell_type);
-
-Index NumFuncShell(const std::string& shell_type);
-Index NumFuncShell_cartesian(const std::string& shell_type);
-
-Index OffsetFuncShell_cartesian(const std::string& shell_type);
-
-std::vector<Index> NumFuncSubShell(const std::string& shell_type);
+Index OffsetFuncShell_cartesian(L l);
 
 // Gaussian function: contraction*exp(-decay*r^2)
 class GaussianPrimitive {
  public:
-  GaussianPrimitive(double decay, std::vector<double> contraction)
+  GaussianPrimitive(double decay, double contraction)
       : _decay(decay), _contraction(contraction) {}
-  const std::vector<double>& Contractions() const { return _contraction; }
+  double contraction() const { return _contraction; }
 
   double decay() const { return _decay; }
 
  private:
   double _decay;
-  std::vector<double> _contraction;
+  double _contraction;
 };
 
 class Shell {
 
  public:
-  Shell(std::string type, double scale) : _type(type), _scale(scale) { ; }
-  const std::string& getType() const { return _type; }
+  Shell(L l, double scale) : _l(l), _scale(scale) { ; }
 
-  bool isCombined() const { return (_type.length() > 1); }
+  L getL() const { return _l; }
 
-  Index getLmax() const { return FindLmax(_type); }
+  Index getnumofFunc() const { return NumFuncShell(_l); };
 
-  Index getLmin() const { return FindLmin(_type); }
-
-  Index getnumofFunc() const { return NumFuncShell(_type); };
-
-  Index getOffset() const { return OffsetFuncShell(_type); }
+  Index getOffset() const { return OffsetFuncShell(_l); }
 
   double getScale() const { return _scale; }
 
@@ -92,11 +89,11 @@ class Shell {
   }
 
   // adds a Gaussian
-  GaussianPrimitive& addGaussian(double decay, std::vector<double> contraction);
+  GaussianPrimitive& addGaussian(double decay, double contraction);
   friend std::ostream& operator<<(std::ostream& out, const Shell& shell);
 
  private:
-  std::string _type;
+  L _l;
   // scaling factor
   double _scale;
 
@@ -117,8 +114,8 @@ class Element {
 
   const std::string& getType() const { return _type; }
 
-  Shell& addShell(const std::string& shellType, double shellScale) {
-    _shells.push_back(Shell(shellType, shellScale));
+  Shell& addShell(L l, double shellScale) {
+    _shells.push_back(Shell(l, shellScale));
     return _shells.back();
   }
 

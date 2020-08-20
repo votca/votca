@@ -29,8 +29,8 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
                             const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
-  Index lmax_row = shell_row.getLmax();
-  Index lmax_col = shell_col.getLmax();
+  Index lmax_row = Index(shell_row.getL());
+  Index lmax_col = Index(shell_col.getL());
   // set size of internal block for recursion
   Index nrows = AOTransform::getBlockSize(lmax_row);
   Index ncols = AOTransform::getBlockSize(lmax_col);

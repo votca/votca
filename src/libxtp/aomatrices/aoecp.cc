@@ -31,14 +31,8 @@ void AOECP::FillPotential(const AOBasis& aobasis, const ECPAOBasis& ecp) {
 
 Eigen::VectorXd AOECP::ExpandContractions(const AOGaussianPrimitive& gaussian,
                                           const AOShell& shell) const {
-  const Eigen::VectorXd& contractions_row = gaussian.getContraction();
-  Eigen::VectorXd result = Eigen::VectorXd::Zero(shell.getNumFunc());
-  for (Index L = shell.getLmin(); L <= shell.getLmax(); L++) {
-    for (Index M = L * L; M < (L + 1) * (L + 1); M++) {
-      result[M - shell.getOffset()] = contractions_row[L];
-    }
-  }
-  return result;
+  return Eigen::VectorXd::Constant(shell.getNumFunc(),
+                                   gaussian.getContraction());
 }
 
 void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
@@ -116,19 +110,19 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
             continue;
           }
           Index index = 0;
+          Index L = Index(shell_ecp->getL());
           for (const auto& gaussian_ecp : *shell_ecp) {
-            powermatrix(index, shell_ecp->getL()) =
-                int(gaussian_ecp.getPower());
-            decaymatrix(index, shell_ecp->getL()) = gaussian_ecp.getDecay();
-            coefmatrix(index, shell_ecp->getL()) =
-                gaussian_ecp.getContraction();
+            powermatrix(index, L) = int(gaussian_ecp.getPower());
+            decaymatrix(index, L) = gaussian_ecp.getDecay();
+            coefmatrix(index, L) = gaussian_ecp.getContraction();
             index++;
           }
         }
 
-        Eigen::MatrixXd VNL_ECP = calcVNLmatrix(
-            shells_perAtom[0]->getLmaxElement(), shells_perAtom[0]->getPos(),
-            gaussian_row, gaussian_col, powermatrix, decaymatrix, coefmatrix);
+        Eigen::MatrixXd VNL_ECP =
+            calcVNLmatrix(Index(shells_perAtom[0]->getLmaxElement()),
+                          shells_perAtom[0]->getPos(), gaussian_row,
+                          gaussian_col, powermatrix, decaymatrix, coefmatrix);
 
         auto VNL_ECP_small =
             VNL_ECP.block(shell_row.getOffset(), shell_col.getOffset(),
@@ -172,8 +166,8 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   double beta = g_col.getDecay();
   const Eigen::Vector3d& posA = g_row.getShell().getPos();
   const Eigen::Vector3d& posB = g_col.getShell().getPos();
-  Index lmax_row = g_row.getShell().getLmax();
-  Index lmax_col = g_col.getShell().getLmax();
+  Index lmax_row = Index(g_row.getShell().getL());
+  Index lmax_col = Index(g_col.getShell().getL());
   Index lmin = std::min({lmax_row, lmax_col, lmax_ecp});
   Index lmax = std::max({lmax_row, lmax_col, lmax_ecp});
   Index nsph_row = (lmax_row + 1) * (lmax_row + 1);

@@ -864,19 +864,8 @@ Eigen::MatrixXd DFTEngine::SphericalAverageShells(
   std::vector<Index> ends;
   for (const AOShell& shell : dftbasis) {
     Index end = shell.getNumFunc() + start;
-
-    if (shell.isCombined()) {
-      std::vector<Index> temp = NumFuncSubShell(shell.getType());
-      Index numfunc = start;
-      for (Index& SubshellFunc : temp) {
-        starts.push_back(numfunc);
-        numfunc += SubshellFunc;
-        ends.push_back(numfunc);
-      }
-    } else {
-      starts.push_back(start);
-      ends.push_back(end);
-    }
+    starts.push_back(start);
+    ends.push_back(end);
     start = end;
   }
   for (Index k = 0; k < Index(starts.size()); k++) {

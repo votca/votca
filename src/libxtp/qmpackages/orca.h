@@ -100,7 +100,6 @@ class Orca : public QMPackage {
 
   // clang-format on
   std::string indent(const double& number);
-  std::string getLName(Index lnum);
 
   void WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
                      std::string& el_file_name);

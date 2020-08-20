@@ -55,7 +55,7 @@ void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
     const std::string& name = atom.getElement();
     const Element& element = bs.getElement(name);
     for (const Shell& shell : element) {
-      Index numfuncshell = NumFuncShell(shell.getType());
+      Index numfuncshell = NumFuncShell(shell.getL());
       AOShell& aoshell = addShell(shell, atom, _AOBasisSize);
       _AOBasisSize += numfuncshell;
       atomfunc += numfuncshell;

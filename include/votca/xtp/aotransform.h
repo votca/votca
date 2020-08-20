@@ -113,7 +113,7 @@ class AOTransform {
   };
   // clang-format on
 
-  static Eigen::MatrixXd getPrimitiveShellTrafo(Index l, double decay,
+  static Eigen::MatrixXd getPrimitiveShellTrafo(L l, double decay,
                                                 double contraction);
 };
 

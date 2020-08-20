@@ -30,6 +30,7 @@
 #include <votca/tools/elements.h>
 
 // Local VOTCA includes
+#include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/orbitals.h"
 
@@ -79,17 +80,14 @@ void Orca::WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
     const Element& element = bs.getElement(element_name);
     el_file << elementInfo.getEleFull(element_name) << endl;
     for (const Shell& shell : element) {
-      for (const char& subtype : shell.getType()) {
-        el_file << subtype << " " << shell.getSize() << endl;
-        Index sh_idx = 0;
-        for (const GaussianPrimitive& gaussian : shell) {
-          sh_idx++;
-          el_file << " " << sh_idx << " " << indent(gaussian.decay());
-          el_file << " "
-                  << indent(gaussian.Contractions()[FindLmax(
-                         std::string(1, subtype))]);
-          el_file << endl;
-        }
+      el_file << xtp::EnumToString(shell.getL()) << " " << shell.getSize()
+              << endl;
+      Index sh_idx = 0;
+      for (const GaussianPrimitive& gaussian : shell) {
+        sh_idx++;
+        el_file << " " << sh_idx << " " << indent(gaussian.decay());
+        el_file << " " << indent(gaussian.contraction());
+        el_file << endl;
       }
     }
   }
@@ -147,14 +145,15 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
     inp_file << "N_core"
              << " " << element.getNcore() << endl;
     inp_file << "lmax"
-             << " " << getLName(element.getLmax()) << endl;
+             << " " << EnumToString(element.getLmax()) << endl;
     // For Orca the order doesn't matter but let's write it in ascending order
     // write remaining shells in ascending order s,p,d...
-    for (Index i = 0; i <= element.getLmax(); i++) {
+    for (Index i = 0; i <= Index(element.getLmax()); i++) {
       for (const ECPShell& shell : element) {
-        if (shell.getL() == i) {
+        if (Index(shell.getL()) == i) {
           // shell type, number primitives, scale factor
-          inp_file << shell.getType() << " " << shell.getSize() << endl;
+          inp_file << xtp::EnumToString(shell.getL()) << " " << shell.getSize()
+                   << endl;
           Index sh_idx = 0;
           for (const ECPGaussianPrimitive& gaussian : shell) {
             sh_idx++;
@@ -789,22 +788,6 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   ReorderOutput(orbitals);
   XTP_LOG(Log::error, *_pLog) << "Done parsing" << flush;
   return true;
-}
-
-std::string Orca::getLName(Index lnum) {
-  if (lnum == 0) {
-    return "S";
-  } else if (lnum == 1) {
-    return "P";
-  } else if (lnum == 2) {
-    return "D";
-  } else if (lnum == 3) {
-    return "F";
-  } else {
-    throw runtime_error(
-        "Orca::getLName functions higher than F not implemented");
-  }
-  return "0";
 }
 
 std::string Orca::indent(const double& number) {

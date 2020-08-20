@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
   Index i = 0;
   bool check_norm = true;
   for (const AOGaussianPrimitive& gaussian : shell) {
-    if (std::abs(ref_results[i] - gaussian.getContraction()[2]) > 1e-7) {
+    if (std::abs(ref_results[i] - gaussian.getContraction()) > 1e-7) {
       check_norm = false;
       break;
     }
@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
   if (!check_norm) {
     for (const AOGaussianPrimitive& gaussian : shell) {
       std::cout << "Ref:" << ref_results[i]
-                << " result:" << gaussian.getContraction()[2] << std::endl;
+                << " result:" << gaussian.getContraction() << std::endl;
       i++;
     }
   }

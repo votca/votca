@@ -40,8 +40,8 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   // factor 1.5 I am not sure about but then 6 monopoles and this tensor agree
   const Eigen::Matrix3d quadrupole = 1.5 * _site->CalculateCartesianMultipole();
   // shell info, only lmax tells how far to go
-  Index lmax_row = shell_row.getLmax();
-  Index lmax_col = shell_col.getLmax();
+  Index lmax_row = Index(shell_row.getL());
+  Index lmax_col = Index(shell_col.getL());
   Index lsum = lmax_row + lmax_col;
   // set size of internal block for recursion
   Index nrows = AOTransform::getBlockSize(lmax_row);

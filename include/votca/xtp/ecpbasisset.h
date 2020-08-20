@@ -42,14 +42,12 @@ class ECPGaussianPrimitive {
 class ECPShell {
 
  public:
-  ECPShell(std::string type) : _type(type) { ; }
-  const std::string& getType() const { return _type; }
+  ECPShell(L l) : _l(l) { ; }
+  L getL() const { return _l; }
 
-  Index getL() const { return FindLmax(_type); }
+  Index getnumofFunc() const { return NumFuncShell(_l); }
 
-  Index getnumofFunc() const { return NumFuncShell(_type); };
-
-  Index getOffset() const { return OffsetFuncShell(_type); }
+  Index getOffset() const { return OffsetFuncShell(_l); }
 
   Index getSize() const { return _gaussians.size(); }
 
@@ -67,7 +65,7 @@ class ECPShell {
   friend std::ostream& operator<<(std::ostream& out, const ECPShell& shell);
 
  private:
-  std::string _type;
+  L _l;
   // vector of pairs of decay constants and contraction coefficients
   std::vector<ECPGaussianPrimitive> _gaussians;
 };
@@ -77,7 +75,7 @@ class ECPShell {
  */
 class ECPElement {
  public:
-  ECPElement(std::string type, Index lmax, Index ncore)
+  ECPElement(std::string type, L lmax, Index ncore)
       : _type(type), _lmax(lmax), _ncore(ncore) {
     ;
   }
@@ -87,12 +85,12 @@ class ECPElement {
 
   const std::string& getType() const { return _type; }
 
-  Index getLmax() const { return _lmax; }
+  L getLmax() const { return _lmax; }
 
   Index getNcore() const { return _ncore; }
 
-  ECPShell& addShell(const std::string& shellType) {
-    _shells.push_back(ECPShell(shellType));
+  ECPShell& addShell(L l) {
+    _shells.push_back(ECPShell(l));
     return _shells.back();
   }
 
@@ -103,7 +101,7 @@ class ECPElement {
  private:
   std::string _type;
   //  applies to the highest angular momentum lmax
-  Index _lmax;
+  L _lmax;
   // replaces ncore electrons
   Index _ncore;
 
@@ -117,7 +115,7 @@ class ECPBasisSet {
  public:
   void Load(const std::string& name);
 
-  ECPElement& addElement(std::string elementType, Index lmax, Index ncore);
+  ECPElement& addElement(std::string elementType, L lmax, Index ncore);
 
   const ECPElement& getElement(std::string element_type) const;
 
