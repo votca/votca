@@ -60,12 +60,12 @@ class Topology {
  public:
   /// constructor
   Topology() { _bc = new OpenBox(); }
-  virtual ~Topology();
+  ~Topology();
 
   /**
    * \brief Cleans up all the stored data
    */
-  virtual void Cleanup();
+  void Cleanup();
 
   /**
    * \brief Creates a new Bead
@@ -80,15 +80,15 @@ class Topology {
    *
    * The function creates a new bead and adds it to the list of beads.
    */
-  virtual Bead *CreateBead(Bead::Symmetry symmetry, std::string name,
-                           std::string type, Index resnr, double m, double q);
+  Bead *CreateBead(Bead::Symmetry symmetry, std::string name, std::string type,
+                   Index resnr, double m, double q);
 
   /**
    * \brief Creates a new molecule
    * \param[in] name name of the molecule
    * \return pointer to created molecule
    */
-  virtual Molecule *CreateMolecule(std::string name);
+  Molecule *CreateMolecule(std::string name);
 
   /**
    *  \brief checks weather molecules with the same name really contain the same
@@ -102,8 +102,8 @@ class Topology {
    * @param[in] name residue name
    * @return created residue
    */
-  virtual Residue *CreateResidue(std::string name);
-  virtual Residue *CreateResidue(std::string name, Index id);
+  Residue *CreateResidue(std::string name);
+  Residue *CreateResidue(std::string name, Index id);
 
   /**
    * \brief Create molecules based on the residue.
