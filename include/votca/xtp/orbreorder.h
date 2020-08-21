@@ -63,7 +63,7 @@ class OrbReorder {
   std::vector<Transposition> computeTranspositions(
       std::vector<Index> vStart, std::vector<Index> vTarget) const;
   std::vector<Index> copySegment(const std::array<Index, 25>& input,
-                                 Index start, Index size);
+                                 Index start, Index size) const;
 };
 
 }  // namespace xtp

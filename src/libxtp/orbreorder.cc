@@ -44,7 +44,7 @@ std::vector<Transposition> OrbReorder::computeTranspositions(
 }
 
 std::vector<Index> OrbReorder::copySegment(const std::array<Index, 25>& input,
-                                           Index start, Index size) {
+                                           Index start, Index size) const {
   return std::vector<Index>{input.begin() + start,
                             input.begin() + start + size};
 }
@@ -78,26 +78,26 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
   // reorder and get multiplier vector
   Index currentFunction = 0;
   for (const AOShell& shell : basis) {
-    // Make multiplier vector
-    std::vector<Index> shellmultiplier{
-        _multipliers.begin() + shell.getOffset(),
-        _multipliers.begin() + shell.getOffset() + shell.getNumFunc()};
-    multiplier.insert(multiplier.end(), shellmultiplier.begin(),
-                      shellmultiplier.end());
 
-    // reorder
+    // reorder shell
     Index l = static_cast<Index>(shell.getL());
     for (auto& transposition : _transpositions[l]) {
       moCoefficients.row(currentFunction + std::get<0>(transposition))
           .swap(
               moCoefficients.row(currentFunction + std::get<1>(transposition)));
     }
-    currentFunction += shell.getNumFunc();
-  }
 
-  // Multiply by multiplier
-  for (Index i = 0; i < moCoefficients.cols(); i++) {
-    moCoefficients.row(i) = multiplier[i] * moCoefficients.row(i);
+    // Get multiplier vector for shell
+    std::vector<Index> shellmultiplier =
+        copySegment(_multipliers, shell.getOffset(), shell.getNumFunc());
+
+    // multiply shell
+    for (Index i = 0; i < shell.getNumFunc(); i++) {
+      moCoefficients.row(currentFunction + i) =
+          shellmultiplier[i] * moCoefficients.row(currentFunction + i);
+      ;
+    }
+    currentFunction += shell.getNumFunc();
   }
 }  // namespace xtp
 
