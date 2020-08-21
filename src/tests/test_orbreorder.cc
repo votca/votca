@@ -53,7 +53,6 @@ BOOST_AUTO_TEST_CASE(orbreorder_test) {
             };
   // clang-format on
 
-
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/orbreorder/methane.xyz");
@@ -62,22 +61,19 @@ BOOST_AUTO_TEST_CASE(orbreorder_test) {
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
 
-
-  Eigen::MatrixXd moldenCoeffs =
-      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) + "/orbreorder/MOLDEN_order.mm");
-  //moldenCoeffs.transposeInPlace();
+  Eigen::MatrixXd moldenCoeffs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/orbreorder/MOLDEN_order.mm");
+  // moldenCoeffs.transposeInPlace();
   std::cout << moldenCoeffs << std::endl;
   std::cout << std::endl;
 
-  Eigen::MatrixXd votcaCoeffs =
-      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) + "/orbreorder/VOTCA_order.mm");
-  //votcaCoeffs.transposeInPlace();
-  
+  Eigen::MatrixXd votcaCoeffs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/orbreorder/VOTCA_order.mm");
+  // votcaCoeffs.transposeInPlace();
+
   std::cout << votcaCoeffs << std::endl;
   std::cout << std::endl;
- 
+
   // Convert moldenCoeffs to votcaCoeffs
   OrbReorder reorder(reorderList, multipliers);
   reorder.reorderOrbitals(moldenCoeffs, aobasis);
@@ -85,14 +81,11 @@ BOOST_AUTO_TEST_CASE(orbreorder_test) {
   std::cout << moldenCoeffs << std::endl;
   std::cout << std::endl;
 
-  for(int i = 0; i < moldenCoeffs.cols(); i++){
-    for(int j = 0; j < moldenCoeffs.cols(); j++){
-      std::cout << moldenCoeffs(j,i) << " " << votcaCoeffs(j,i) << std::endl;
-      BOOST_CHECK(std::abs(moldenCoeffs(j,i) - votcaCoeffs(j,i)) < 1e-5);
-      
+  for (int i = 0; i < moldenCoeffs.cols(); i++) {
+    for (int j = 0; j < moldenCoeffs.cols(); j++) {
+      std::cout << moldenCoeffs(j, i) << " " << votcaCoeffs(j, i) << std::endl;
+      BOOST_CHECK(std::abs(moldenCoeffs(j, i) - votcaCoeffs(j, i)) < 1e-5);
     }
   }
 }
 }
-
-
