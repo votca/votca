@@ -92,8 +92,7 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
 
     // multiply shell
     for (Index i = 0; i < shell.getNumFunc(); i++) {
-      moCoefficients.row(currentFunction + i) =
-          shellmultiplier[i] * moCoefficients.row(currentFunction + i);
+      moCoefficients.row(currentFunction + i) *= double(shellmultiplier[i]);
       ;
     }
     currentFunction += shell.getNumFunc();
