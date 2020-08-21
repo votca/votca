@@ -72,7 +72,7 @@ class XTPDFT : public QMPackage {
   const std::array<Index, 25>& ShellMulitplier() const final {
     return _multipliers;
   }
-  const std::array<Index,25>& ShellReorder() const final {
+  const std::array<Index, 25>& ShellReorder() const final {
     return _reorderList;
   }
 
@@ -93,7 +93,6 @@ class XTPDFT : public QMPackage {
             0,-1,1,-2,2,-3,3,-4,4 //g
             };
   // clang-format on
-
 
   void WriteChargeOption() final { return; }
   tools::Property _xtpdft_options;

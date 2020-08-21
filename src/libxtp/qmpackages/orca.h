@@ -63,7 +63,7 @@ class Orca : public QMPackage {
   const std::array<Index, 25>& ShellMulitplier() const final {
     return _multipliers;
   }
-  const std::array<Index,25>& ShellReorder() const final {
+  const std::array<Index, 25>& ShellReorder() const final {
     return _reorderList;
   }
 
