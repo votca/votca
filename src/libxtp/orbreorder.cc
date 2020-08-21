@@ -23,6 +23,45 @@
 namespace votca {
 namespace xtp {
 
+std::vector<std::array<Index, 2>> OrbReorder::computeTranspositions(
+    std::vector<Index> vStart, std::vector<Index> vTarget) {
+  if (vStart.size() != vTarget.size()) {
+    throw "Can't compute transpositions, reorder vectors have different "
+          "size!\n";
+  }
+  std::vector<std::array<Index, 2>> transpositions;
+  for (Index i = 0; i < static_cast<Index>(vStart.size()); i++) {
+    std::vector<Index>::iterator it;
+    it = std::find(vStart.begin(), vStart.end(), vTarget[i]);
+    Index pos = std::distance(vStart.begin(), it);
+    std::swap(vStart[i], vStart[pos]);
+    if (i != pos) {
+      transpositions.push_back(std::array<Index, 2>{i, pos});
+    }
+  }
+  return transpositions;
+}
+
+OrbReorder::OrbReorder(std::array<Index, 25> reorder,
+                       std::array<Index, 25> multipliers)
+    : _multipliers(multipliers), _reorder(reorder) {
+
+  // Compute transpositions for every shell
+  int currentFunction = 0;
+  for (int l = 0; l < 5; l++) {
+    int nrOfFunctions = 2 * l + 1;
+    _transpositions[l] = computeTranspositions(
+        std::vector<Index>{_reorder.begin() + currentFunction,
+                           _reorder.begin() + currentFunction + nrOfFunctions},
+        std::vector<Index>{_votcaOrder.begin() + currentFunction,
+                           _votcaOrder.begin() + currentFunction + nrOfFunctions});
+    for(auto& tr : _transpositions[l]){
+      std::cout << tr[0] << " " << tr[1] << std::endl;
+    }
+    currentFunction += nrOfFunctions;
+  }
+}
+
 void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
                                  const AOBasis& basis) {
   std::vector<Index> multiplier;

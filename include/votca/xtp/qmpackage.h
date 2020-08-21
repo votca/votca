@@ -127,12 +127,12 @@ class QMPackage {
   std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,
                                            const std::string separators) const;
 
-  // ShellTranspositions() and ShellMulitplier() specify the order for each
+  // ShellReorder() and ShellMulitplier() specify the order for each
   // QMPackage. Some codes also use different normalisation conditions which
   // lead to other signs for some of the entries, which can be changed via the
   // multipliers.
   virtual const std::array<Index, 25>& ShellMulitplier() const = 0;
-  virtual const OrbTranspositions& ShellTranspositions() const = 0;
+  virtual const std::array<Index, 25>& ShellReorder() const = 0;
 
   Settings _settings{"package"};
 

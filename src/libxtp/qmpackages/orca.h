@@ -63,8 +63,8 @@ class Orca : public QMPackage {
   const std::array<Index, 25>& ShellMulitplier() const final {
     return _multipliers;
   }
-  const OrbTranspositions& ShellTranspositions() const final {
-    return _transpositions;
+  const std::array<Index,25>& ShellReorder() const final {
+    return _reorderList;
   }
 
  private:
@@ -76,27 +76,13 @@ class Orca : public QMPackage {
             1,1,1,1,1,-1,-1, //f 
             1,1,1,1,1,-1,-1,-1,-1 //g
             };
-  OrbTranspositions _transpositions { 
-    std::vector<std::array<Index,2>> {}, //s
-    std::vector<std::array<Index,2>> {   //p
-    {1, 2}
-    }, 
-    std::vector<std::array<Index,2>> {   //d
-    {1, 2},
-    {3, 4}
-    },
-    std::vector<std::array<Index,2>> {   //f
-    {1, 2},
-    {3, 4},
-    {5, 6}
-    }, 
-    std::vector<std::array<Index,2>> {   //g
-    {1, 2},
-    {3, 4},
-    {5, 6},
-    {7, 8}
-    }
-  };
+  std::array<Index, 25> _reorderList={
+            0, //s
+            0, 1,-1, //p
+            0,1,-1,2,-2, //d
+            0,1,-1,2,-2,3,-3, //f 
+            0,1,-1,2,-2,3,-3,4,-4 //g
+            };
 
   // clang-format on
   std::string indent(const double& number);

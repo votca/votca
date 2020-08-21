@@ -37,36 +37,21 @@ BOOST_AUTO_TEST_SUITE(orbreorder_test)
 BOOST_AUTO_TEST_CASE(orbreorder_test) {
 
   // clang-format off
-  std::array<Index,25> _multipliers={
+  std::array<Index,25> multipliers={
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
             1,1,1,1,1,-1,-1, //f 
             1,1,1,1,1,-1,-1,-1,-1 //g
             };
-
-  OrbTranspositions _transpositions { 
-    std::vector<std::array<Index, 2>> {}, //s
-    std::vector<std::array<Index, 2>> {   //p
-      {0, 2}
-    }, 
-    std::vector<std::array<Index, 2>> {   //d
-      {1, 2},
-      {3, 4}
-      }, 
-    std::vector<std::array<Index, 2>> {   //f
-      {1, 2},  
-      {3, 4},
-      {5, 6}
-    }, 
-    std::vector<std::array<Index, 2>> {   //g
-      {1, 2},
-      {3, 4},
-      {5, 6},
-      {7, 8}
-    }
-  };
-  //clang-format on
+  std::array<Index, 25> reorderList={
+            0, //s
+            1,-1,0, //p
+            0,1,-1,2,-2, //d
+            0,1,-1,2,-2,3,-3, //f 
+            0,1,-1,2,-2,3,-3,4,-4 //g
+            };
+  // clang-format on
 
 
   Orbitals orbitals;
@@ -94,7 +79,7 @@ BOOST_AUTO_TEST_CASE(orbreorder_test) {
   std::cout << std::endl;
  
   // Convert moldenCoeffs to votcaCoeffs
-  OrbReorder reorder(_transpositions, _multipliers);
+  OrbReorder reorder(reorderList, multipliers);
   reorder.reorderOrbitals(moldenCoeffs, aobasis);
 
   std::cout << moldenCoeffs << std::endl;

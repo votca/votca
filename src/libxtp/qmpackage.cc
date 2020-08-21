@@ -75,7 +75,7 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) const {
   }
 
   if (orbitals.hasMOs()) {
-    OrbReorder reorder(ShellTranspositions(), ShellMulitplier());
+    OrbReorder reorder(ShellReorder(), ShellMulitplier());
     reorder.reorderOrbitals(orbitals.MOs().eigenvectors(), dftbasis);
     XTP_LOG(Log::info, *_pLog) << "Reordered MOs" << flush;
   }
@@ -89,7 +89,7 @@ Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const {
   }
   AOBasis dftbasis = orbitals.SetupDftBasis();
   Eigen::MatrixXd result = orbitals.MOs().eigenvectors();
-  OrbReorder reorder(ShellTranspositions(), ShellMulitplier());
+  OrbReorder reorder(ShellReorder(), ShellMulitplier());
 
   // If the ordering consists of independent transpositions reverting the
   // order back is the same as reapplying the transpositions.
