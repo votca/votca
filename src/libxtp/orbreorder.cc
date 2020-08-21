@@ -75,7 +75,6 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
   std::vector<Index> multiplier;
   multiplier.reserve(basis.AOBasisSize());
 
-  // reorder and get multiplier vector
   Index currentFunction = 0;
   for (const AOShell& shell : basis) {
 
