@@ -23,20 +23,20 @@
 namespace votca {
 namespace xtp {
 
-std::vector<std::array<Index, 2>> OrbReorder::computeTranspositions(
+std::vector<Transposition> OrbReorder::computeTranspositions(
     std::vector<Index> vStart, std::vector<Index> vTarget) {
   if (vStart.size() != vTarget.size()) {
     throw "Can't compute transpositions, reorder vectors have different "
           "size!\n";
   }
-  std::vector<std::array<Index, 2>> transpositions;
+  std::vector<Transposition> transpositions;
   for (Index i = 0; i < static_cast<Index>(vStart.size()); i++) {
     std::vector<Index>::iterator it;
     it = std::find(vStart.begin(), vStart.end(), vTarget[i]);
     Index pos = std::distance(vStart.begin(), it);
     std::swap(vStart[i], vStart[pos]);
     if (i != pos) {
-      transpositions.push_back(std::array<Index, 2>{i, pos});
+      transpositions.push_back(Transposition{i, pos});
     }
   }
   return transpositions;
