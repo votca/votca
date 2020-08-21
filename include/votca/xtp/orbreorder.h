@@ -47,6 +47,7 @@ class OrbReorder {
   std::array<Index, 25> _multipliers;
   std::array<Index, 25> _reorder;
   // clang-format off
+  // the ordering of the m quantumnumbers for every shell
   std::array<Index, 25> _votcaOrder={
             0, //s
             0,-1,1, //p

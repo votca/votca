@@ -67,9 +67,6 @@ OrbReorder::OrbReorder(std::array<Index, 25> reorder,
               _reorder.begin() + currentFunction,
               _reorder.begin() + currentFunction + nrOfFunctions});
     }
-    for (auto& tr : _transpositions[l]) {
-      std::cout << tr[0] << " " << tr[1] << std::endl;
-    }
     currentFunction += nrOfFunctions;
   }
 }
