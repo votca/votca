@@ -63,13 +63,11 @@ BOOST_AUTO_TEST_CASE(orbreorder_test) {
 
   Eigen::MatrixXd moldenCoeffs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/orbreorder/MOLDEN_order.mm");
-  // moldenCoeffs.transposeInPlace();
   std::cout << moldenCoeffs << std::endl;
   std::cout << std::endl;
 
   Eigen::MatrixXd votcaCoeffs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/orbreorder/VOTCA_order.mm");
-  // votcaCoeffs.transposeInPlace();
 
   std::cout << votcaCoeffs << std::endl;
   std::cout << std::endl;

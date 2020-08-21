@@ -31,10 +31,7 @@ namespace votca {
 namespace xtp {
 
 // structure to store a transposition
-typedef std::array<Index, 2> Transposition;
-// structure to store the transpositions for the first 5 shell types (i.e. s=0,
-// p, d, f, g=4)
-typedef std::array<std::vector<Transposition>, 5> OrbTranspositions;
+using Transposition = std::pair<Index, Index>;
 
 class OrbReorder {
  public:
@@ -46,6 +43,9 @@ class OrbReorder {
   void reorderOrbitals(Eigen::MatrixXd& moCoefficients, const AOBasis& basis);
 
  private:
+  // structure to store the transpositions for the first 5 shell types (i.e.
+  // s=0, p, d, f, g=4)
+  using OrbTranspositions = std::array<std::vector<Transposition>, 5>;
   std::array<Index, 25> _multipliers;
   std::array<Index, 25> _reorder;
   // clang-format off
@@ -61,7 +61,9 @@ class OrbReorder {
   OrbTranspositions _transpositions;
 
   std::vector<Transposition> computeTranspositions(
-      std::vector<Index> vStart, std::vector<Index> vTarget);
+      std::vector<Index> vStart, std::vector<Index> vTarget) const;
+  std::vector<Index> copySegment(const std::array<Index, 25>& input,
+                                 Index start, Index size);
 };
 
 }  // namespace xtp

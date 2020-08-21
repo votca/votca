@@ -24,10 +24,11 @@ namespace votca {
 namespace xtp {
 
 std::vector<Transposition> OrbReorder::computeTranspositions(
-    std::vector<Index> vStart, std::vector<Index> vTarget) {
+    std::vector<Index> vStart, std::vector<Index> vTarget) const {
   if (vStart.size() != vTarget.size()) {
-    throw "Can't compute transpositions, reorder vectors have different "
-          "size!\n";
+    throw std::runtime_error(
+        "Can't compute transpositions, reorder vectors have different "
+        "size!\n");
   }
   std::vector<Transposition> transpositions;
   for (Index i = 0; i < static_cast<Index>(vStart.size()); i++) {
@@ -42,34 +43,32 @@ std::vector<Transposition> OrbReorder::computeTranspositions(
   return transpositions;
 }
 
+std::vector<Index> OrbReorder::copySegment(const std::array<Index, 25>& input,
+                                           Index start, Index size) {
+  return std::vector<Index>{input.begin() + start,
+                            input.begin() + start + size};
+}
+
 OrbReorder::OrbReorder(std::array<Index, 25> reorder,
                        std::array<Index, 25> multipliers, bool reverse)
     : _multipliers(multipliers), _reorder(reorder) {
 
-  // Compute transpositions for every shell
+  // Compute transpositions for every individual shell
   int currentFunction = 0;
   for (int l = 0; l < 5; l++) {
     int nrOfFunctions = 2 * l + 1;
     if (!reverse) {
       _transpositions[l] = computeTranspositions(
-          std::vector<Index>{
-              _reorder.begin() + currentFunction,
-              _reorder.begin() + currentFunction + nrOfFunctions},
-          std::vector<Index>{
-              _votcaOrder.begin() + currentFunction,
-              _votcaOrder.begin() + currentFunction + nrOfFunctions});
+          copySegment(_reorder, currentFunction, nrOfFunctions),
+          copySegment(_votcaOrder, currentFunction, nrOfFunctions));
     } else {
       _transpositions[l] = computeTranspositions(
-          std::vector<Index>{
-              _votcaOrder.begin() + currentFunction,
-              _votcaOrder.begin() + currentFunction + nrOfFunctions},
-          std::vector<Index>{
-              _reorder.begin() + currentFunction,
-              _reorder.begin() + currentFunction + nrOfFunctions});
+          copySegment(_votcaOrder, currentFunction, nrOfFunctions),
+          copySegment(_reorder, currentFunction, nrOfFunctions));
     }
     currentFunction += nrOfFunctions;
   }
-}
+}  // namespace xtp
 
 void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
                                  const AOBasis& basis) {
@@ -85,13 +84,15 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
         _multipliers.begin() + shell.getOffset() + shell.getNumFunc()};
     multiplier.insert(multiplier.end(), shellmultiplier.begin(),
                       shellmultiplier.end());
+
     // reorder
     Index l = static_cast<Index>(shell.getL());
     for (auto& transposition : _transpositions[l]) {
-      moCoefficients.row(currentFunction + transposition[0])
-          .swap(moCoefficients.row(currentFunction + transposition[1]));
+      moCoefficients.row(currentFunction + std::get<0>(transposition))
+          .swap(
+              moCoefficients.row(currentFunction + std::get<1>(transposition)));
     }
-    currentFunction += (2 * l + 1);
+    currentFunction += shell.getNumFunc();
   }
 
   // Multiply by multiplier
