@@ -18,13 +18,16 @@
 #ifndef _VOTCA_CSG_APPLICATION_H
 #define _VOTCA_CSG_APPLICATION_H
 
+// VOTCA includes
+#include <votca/tools/application.h>
+#include <votca/tools/mutex.h>
+#include <votca/tools/thread.h>
+
+// Local VOTCA includes
 #include "cgobserver.h"
 #include "topology.h"
 #include "topologymap.h"
 #include "trajectoryreader.h"
-#include <votca/tools/application.h>
-#include <votca/tools/mutex.h>
-#include <votca/tools/thread.h>
 
 namespace votca {
 namespace csg {
