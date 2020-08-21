@@ -199,6 +199,28 @@ if(ENABLE_TESTING)
   set_tests_properties(integration_Compare_csg_imc_solve_reg_output_4 PROPERTIES DEPENDS integration_Run_csg_imc_solve_reg)
   set_tests_properties(integration_Compare_csg_imc_solve_reg_output_4 PROPERTIES LABELS "csg;tools;votca;integration")
 
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_stat_imc_multi)
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/LJ1-LJ2/smaller_system)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/LJ1-LJ1.dist.tgt ${RUNPATH}/LJ1-LJ1.dist.tgt)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/LJ1-LJ2.dist.tgt ${RUNPATH}/LJ1-LJ2.dist.tgt)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/LJ2-LJ2.dist.tgt ${RUNPATH}/LJ2-LJ2.dist.tgt)
+  add_test(NAME integration_Run_csg_stat_imc_multi
+    COMMAND csg_stat --top ${REFPATH}/topol.xml --trj ${REFPATH}/traj.gro --do-imc
+                   --options ${REFPATH}/settings_imc.xml
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_csg_stat_imc_multi PROPERTIES LABELS "csg;tools;votca;integration")
+  set_tests_properties(integration_Run_csg_stat_imc_multi PROPERTIES DEPENDS integration_Run_gmx_mdrun_multi)
+  add_test(NAME integration_Compare_csg_stat-imc_multi_output COMMAND $<TARGET_FILE:VOTCA::votca_compare> --etol ${INTEGRATIONTEST_TOLERANCE} -f1 all.imc -f2 ${REFPATH}/all.imc WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output PROPERTIES DEPENDS integration_Run_csg_stat-imc)
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output PROPERTIES LABELS "csg;tools;votca;integration")
+  add_test(NAME integration_Compare_csg_stat-imc_multi_output_2 COMMAND $<TARGET_FILE:VOTCA::votca_compare> --etol ${INTEGRATIONTEST_TOLERANCE} -f1 all.gmc -f2 ${REFPATH}/all.gmc WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output_2 PROPERTIES DEPENDS integration_Run_csg_stat-imc)
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output_2 PROPERTIES LABELS "csg;tools;votca;integration")
+  add_test(NAME integration_Compare_csg_stat-imc_multi_output_3 COMMAND ${CMAKE_COMMAND} -E compare_files all.idx ${REFPATH}/all.idx WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output_3 PROPERTIES DEPENDS integration_Run_csg_stat-imc)
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output_3 PROPERTIES LABELS "csg;tools;votca;integration")
+
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_resample)
   set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/csg_resample)
   file(MAKE_DIRECTORY ${RUNPATH})
