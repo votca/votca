@@ -89,10 +89,8 @@ Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const {
   }
   AOBasis dftbasis = orbitals.SetupDftBasis();
   Eigen::MatrixXd result = orbitals.MOs().eigenvectors();
-  OrbReorder reorder(ShellReorder(), ShellMulitplier());
-
-  // If the ordering consists of independent transpositions reverting the
-  // order back is the same as reapplying the transpositions.
+  bool reverseOrder = true;
+  OrbReorder reorder(ShellReorder(), ShellMulitplier(), reverseOrder);
   reorder.reorderOrbitals(result, dftbasis);
   return result;
 }

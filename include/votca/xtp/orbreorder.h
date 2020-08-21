@@ -21,8 +21,8 @@
 #ifndef VOTCA_XTP_ORBREODER_H
 #define VOTCA_XTP_ORBREODER_H
 
+#include <algorithm>
 #include <array>
-#include <algorithm> 
 
 #include "eigen.h"
 #include "votca/xtp/orbitals.h"
@@ -36,8 +36,8 @@ typedef std::array<std::vector<std::array<Index, 2>>, 5> OrbTranspositions;
 
 class OrbReorder {
  public:
-  OrbReorder(std::array<Index, 25>  reorder,
-             std::array<Index, 25> multipliers);
+  OrbReorder(std::array<Index, 25> reorder, std::array<Index, 25> multipliers,
+             bool reverse = false);
 
   ~OrbReorder() = default;
 
@@ -57,7 +57,8 @@ class OrbReorder {
   // clang-format on
   OrbTranspositions _transpositions;
 
-  std::vector<std::array<Index, 2>> computeTranspositions(std::vector<Index> vStart, std::vector<Index> vTarget);
+  std::vector<std::array<Index, 2>> computeTranspositions(
+      std::vector<Index> vStart, std::vector<Index> vTarget);
 };
 
 }  // namespace xtp

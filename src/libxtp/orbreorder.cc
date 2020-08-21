@@ -43,19 +43,31 @@ std::vector<std::array<Index, 2>> OrbReorder::computeTranspositions(
 }
 
 OrbReorder::OrbReorder(std::array<Index, 25> reorder,
-                       std::array<Index, 25> multipliers)
+                       std::array<Index, 25> multipliers, bool reverse)
     : _multipliers(multipliers), _reorder(reorder) {
 
   // Compute transpositions for every shell
   int currentFunction = 0;
   for (int l = 0; l < 5; l++) {
     int nrOfFunctions = 2 * l + 1;
-    _transpositions[l] = computeTranspositions(
-        std::vector<Index>{_reorder.begin() + currentFunction,
-                           _reorder.begin() + currentFunction + nrOfFunctions},
-        std::vector<Index>{_votcaOrder.begin() + currentFunction,
-                           _votcaOrder.begin() + currentFunction + nrOfFunctions});
-    for(auto& tr : _transpositions[l]){
+    if (!reverse) {
+      _transpositions[l] = computeTranspositions(
+          std::vector<Index>{
+              _reorder.begin() + currentFunction,
+              _reorder.begin() + currentFunction + nrOfFunctions},
+          std::vector<Index>{
+              _votcaOrder.begin() + currentFunction,
+              _votcaOrder.begin() + currentFunction + nrOfFunctions});
+    } else {
+      _transpositions[l] = computeTranspositions(
+          std::vector<Index>{
+              _votcaOrder.begin() + currentFunction,
+              _votcaOrder.begin() + currentFunction + nrOfFunctions},
+          std::vector<Index>{
+              _reorder.begin() + currentFunction,
+              _reorder.begin() + currentFunction + nrOfFunctions});
+    }
+    for (auto& tr : _transpositions[l]) {
       std::cout << tr[0] << " " << tr[1] << std::endl;
     }
     currentFunction += nrOfFunctions;
