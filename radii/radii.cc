@@ -15,7 +15,7 @@
  *
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <votca/csg/csgapplication.h>
 #include <votca/tools/average.h>
 #include <votca/tools/tokenizer.h>
