@@ -18,13 +18,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE basebead_test
+#include "../../include/votca/csg/basebead.h"
+#include "../../include/votca/csg/molecule.h"
+#include "../../include/votca/csg/topology.h"
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <string>
-#include <votca/csg/basebead.h>
-#include <votca/csg/beadtype.h>
-#include <votca/csg/molecule.h>
-#include <votca/csg/topology.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -68,10 +67,7 @@ BOOST_AUTO_TEST_CASE(test_basebead_getters_setters) {
   BOOST_CHECK_EQUAL(xyz3.isApprox(xyz_ref, 1e-5), true);
 
   Topology top;
-  auto mol = top.CreateMolecule("Molecule1");
-  basebead.setMolecule(mol);
-  auto mol2 = basebead.getMolecule();
-  bool molecules_equal = mol2->getName() == "Molecule1";
-  BOOST_CHECK(molecules_equal);
+  basebead.setMoleculeId(0);
+  BOOST_CHECK_EQUAL(basebead.getMoleculeId(), 0);
 }
 BOOST_AUTO_TEST_SUITE_END()

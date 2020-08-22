@@ -17,14 +17,15 @@
 
 #ifndef VOTCA_CSG_BEADSTRUCTUREALGORITHMS_H
 #define VOTCA_CSG_BEADSTRUCTUREALGORITHMS_H
+
+// Local VOTCA includes
 #include "basebead.h"
 #include "beadstructure.h"
 
 namespace votca {
 namespace csg {
 
-std::vector<BeadStructure<BaseBead>> breakIntoStructures(
-    BeadStructure<BaseBead>& beadstructure);
+std::vector<BeadStructure> breakIntoStructures(BeadStructure& beadstructure);
 
 }  // namespace csg
 }  // namespace votca
