@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
-## Version 1.6.2 (released XX.07.20)
+## Version 1.6.2 (released 22.08.20)
 * move CI to GitHub Actions (#512, #514, #516, #519)
 * add more checks to the dft_parse_part (#521)
 * make unit tests work in parallel (#530)
