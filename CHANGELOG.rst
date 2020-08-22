@@ -26,6 +26,11 @@ Version 2021-dev
 -  corrected max index in csg_resample (#575)
 -  add periodic extrapolation for dihedrals (#576)
 
+Version 1.6.3 (released XX.08.20)
+=================================
+
+-  fix test dependencies for parallel ctest (#585)
+
 Version 1.6.2 (released 22.08.20)
 =================================
 
