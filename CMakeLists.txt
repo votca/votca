@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(xtp-tutorials)
 
-set(PROJECT_VERSION "1.6.1")
+set(PROJECT_VERSION "1.6.2")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 include(GNUInstallDirs)
