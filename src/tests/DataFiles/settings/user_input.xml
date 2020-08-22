@@ -1,0 +1,6 @@
+<package>
+<name>orca</name>
+<executable>/opt/orca/orca</executable>
+<functional>B3LYP</functional>
+<ecp>ecp</ecp>
+</package>

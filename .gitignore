@@ -8,9 +8,8 @@ libvotca*.so.*
 share/doc/html
 share/doc/Doxyfile
 
-include/votca/xtp/votca_config.h
+include/votca/xtp/votca_xtp_config.h
 src/libxtp/gitversion.h
-include/votca/xtp/votca_config.h
 
 src/tools/xtp_dump
 src/tools/xtp_parallel
@@ -46,3 +45,5 @@ CMakeCache.txt
 install_manifest.txt
 
 /build
+
+.vscode

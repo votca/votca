@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,10 +20,15 @@
 #ifndef VOTCA_XTP_REGION_H
 #define VOTCA_XTP_REGION_H
 
+// Standard includes
 #include <iostream>
+
+// VOTCA includes
 #include <votca/csg/pdbwriter.h>
-#include <votca/xtp/checkpoint.h>
-#include <votca/xtp/logger.h>
+
+// Local VOTCA includes
+#include "checkpoint.h"
+#include "logger.h"
 
 /**
  * \brief base class to derive regions from

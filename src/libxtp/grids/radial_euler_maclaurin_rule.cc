@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,14 @@
  *
  */
 
-#include "votca/xtp/radial_euler_maclaurin_rule.h"
-#include "votca/xtp/aobasis.h"
-#include "votca/xtp/qmmolecule.h"
+// Third party includes
 #include <boost/math/constants/constants.hpp>
-#include <votca/xtp/aomatrix.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/qmmolecule.h"
+#include "votca/xtp/radial_euler_maclaurin_rule.h"
 
 namespace votca {
 namespace xtp {
@@ -76,7 +79,7 @@ void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis& aobasis,
       // and loop over all shells to figure out minimum decay constant and
       // angular momentum of this function
       for (const AOShell* shell : shells) {
-        Index lmax = shell->getLmax();
+        Index lmax = Index(shell->getL());
         if (shell->getMinDecay() < decaymin) {
           decaymin = shell->getMinDecay();
           lvalue = lmax;

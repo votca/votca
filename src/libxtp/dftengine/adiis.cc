@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,11 +16,15 @@
  * limitations under the License.
  *
  */
-#include "votca/xtp/adiis.h"
+
+// Third party includes
 #include <boost/format.hpp>
-#include <votca/xtp/adiis_costfunction.h>
-#include <votca/xtp/bfgs-trm.h>
-#include <votca/xtp/logger.h>
+
+// Local VOTCA includes
+#include "votca/xtp/adiis.h"
+#include "votca/xtp/adiis_costfunction.h"
+#include "votca/xtp/bfgs-trm.h"
+#include "votca/xtp/logger.h"
 
 namespace votca {
 namespace xtp {
