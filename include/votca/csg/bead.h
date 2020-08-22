@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,19 @@
  *
  */
 
-#ifndef _VOTCA_CSG_BEAD_H
-#define _VOTCA_CSG_BEAD_H
+#ifndef VOTCA_CSG_BEAD_H
+#define VOTCA_CSG_BEAD_H
+#pragma once
 
-#include <assert.h>
+// Standard includes
 #include <cassert>
 #include <string>
+
+// VOTCA includes
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
 
+// Local VOTCA includes
 #include "basebead.h"
 
 namespace votca {
@@ -289,10 +293,9 @@ class Bead : public BaseBead {
   bool bead_force_set_;
 
   /// constructor
-  Bead(Topology *owner, Index id, std::string type, Symmetry symmetry,
-       std::string name, Index resnr, double m, double q)
+  Bead(Index id, std::string type, Symmetry symmetry, std::string name,
+       Index resnr, double m, double q)
       : symmetry_(symmetry), charge_(q), residue_number_(resnr) {
-    topology_item_._parent = owner;
     setId(id);
     setType(type);
     setName(name);
@@ -372,4 +375,4 @@ inline void Bead::HasW(bool b) { bW_ = b; }
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_BEAD_H
+#endif  // VOTCA_CSG_BEAD_H

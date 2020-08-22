@@ -18,6 +18,7 @@
 #ifndef _VOTCA_CSG_NBLIST_3BODY_H
 #define _VOTCA_CSG_NBLIST_3BODY_H
 
+// Local VOTCA includes
 #include "beadlist.h"
 #include "beadtriple.h"
 #include "exclusionlist.h"

@@ -14,10 +14,11 @@
  * limitations under the License.
  *
  */
+#pragma once
+#ifndef VOTCA_CSG_OPENBOX_H
+#define VOTCA_CSG_OPENBOX_H
 
-#ifndef _VOTCA_CSG_OPENBOX_H
-#define _VOTCA_CSG_OPENBOX_H
-
+// Local VOTCA includes
 #include "boundarycondition.h"
 
 namespace votca {
@@ -29,10 +30,14 @@ class OpenBox : public BoundaryCondition {
   Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r_i,
                                        const Eigen::Vector3d &r_j) const final;
 
-  eBoxtype getBoxType() final { return typeOpen; }
+  virtual std::unique_ptr<BoundaryCondition> Clone() const final {
+    return std::unique_ptr<BoundaryCondition>(new OpenBox(*this));
+  }
+
+  eBoxtype getBoxType() const noexcept final { return typeOpen; }
 };
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_OPENBOX_H */
+#endif  // VOTCA_CSG_OPENBOX_H
