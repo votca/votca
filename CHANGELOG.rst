@@ -31,7 +31,7 @@ Version 1.6.3 (released XX.08.20)
 
 -  fix test dependencies for parallel ctest (#585)
 
-Version 1.6.2 (released 22.08.20)
+Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
 
 -  move CI to GitHub Actions (#563, #567, #569)
