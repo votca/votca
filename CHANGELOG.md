@@ -4,7 +4,7 @@ For more detailed information about the changes see the history of the
 ## Version 1.6.3 (released XX.08.20)
 * fix test dependencies for parallel ctest (#585)
 
-## Version 1.6.2 (released 22.08.20)
+## Version 1.6.2 _SuperGitta_ (released 22.08.20)
 * move CI to GitHub Actions (#563, #567, #569)
 * add max scaling parameter to pressure correction (#565)
 * fix test dependencies for parallel ctest (#573)
