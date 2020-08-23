@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,10 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/aotransform.h>
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/aotransform.h"
+
 namespace votca {
 namespace xtp {
 
@@ -27,8 +29,8 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                           const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
-  const Index lmax_row = shell_row.getLmax();
-  const Index lmax_col = shell_col.getLmax();
+  Index lmax_row = Index(shell_row.getL());
+  Index lmax_col = Index(shell_col.getL());
 
   // set size of internal block for recursion
   Index nrows = AOTransform::getBlockSize(lmax_row);

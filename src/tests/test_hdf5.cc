@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,20 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE test_hdf5
+
+// Standard includes
+#include <cassert>
+
+// Third party includes
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
-#include <cassert>
-#include <votca/xtp/checkpoint.h>
-#include <votca/xtp/checkpointreader.h>
-#include <votca/xtp/checkpointwriter.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/qmatom.h>
+
+// Local VOTCA includes
+#include "votca/xtp/checkpoint.h"
+#include "votca/xtp/checkpointreader.h"
+#include "votca/xtp/checkpointwriter.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/qmatom.h"
 
 BOOST_AUTO_TEST_SUITE(test_hdf5)
 using namespace votca::xtp;

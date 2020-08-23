@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,25 @@
  *
  */
 
-#include "neighborlist.h"
+// Third party includes
 #include <boost/format.hpp>
 #include <boost/progress.hpp>
-using namespace std;
+
+// Local private VOTCA includes
+#include "neighborlist.h"
 
 namespace votca {
 namespace xtp {
 
-void Neighborlist::Initialize(tools::Property& options) {
+void Neighborlist::Initialize(const tools::Property& user_options) {
 
-  // update options with the VOTCASHARE defaults
-  UpdateWithDefaults(options, "xtp");
-  std::string key = "options." + Identify();
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  std::vector<tools::Property*> segs = options.Select(key + ".segments");
+  std::vector<tools::Property*> segs = options.Select(".segments");
 
   for (tools::Property* segprop : segs) {
-    std::string types = segprop->get("type").as<std::string>();
+    std::string types = segprop->get("segmentname").as<std::string>();
     double cutoff = segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
 
     tools::Tokenizer tok(types, " ");
@@ -44,8 +45,8 @@ void Neighborlist::Initialize(tools::Property& options) {
           "ERROR: Faulty pair definition for cut-off's: Need two segment names "
           "separated by a space");
     }
-    _cutoffs[names[0]][names[1]] = cutoff * tools::conv::nm2bohr;
-    _cutoffs[names[1]][names[0]] = cutoff * tools::conv::nm2bohr;
+    _cutoffs[names[0]][names[1]] = cutoff;
+    _cutoffs[names[1]][names[0]] = cutoff;
     if (std::find(_included_segments.begin(), _included_segments.end(),
                   names[0]) == _included_segments.end()) {
       _included_segments.push_back(names[0]);
@@ -56,17 +57,18 @@ void Neighborlist::Initialize(tools::Property& options) {
     }
   }
 
-  if (options.exists(key + ".constant")) {
+  const std::string& cutoff_type = options.get("cutoff_type").as<std::string>();
+  if (cutoff_type == "constant") {
     _useConstantCutoff = true;
     _constantCutoff =
-        options.get(key + ".constant").as<double>() * tools::conv::nm2bohr;
+        options.get(".constant").as<double>() * tools::conv::nm2bohr;
   } else {
     _useConstantCutoff = false;
   }
-  if (options.exists(key + ".exciton_cutoff")) {
+  if (options.get(".use_exciton_cutoff").as<bool>()) {
     _useExcitonCutoff = true;
-    _excitonqmCutoff = options.get(key + ".exciton_cutoff").as<double>() *
-                       tools::conv::nm2bohr;
+    _excitonqmCutoff =
+        options.get(".exciton_cutoff").as<double>() * tools::conv::nm2bohr;
   } else {
     _useExcitonCutoff = false;
   }
@@ -158,8 +160,8 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
       if (cutoff > 0.5 * min) {
         throw std::runtime_error(
             (boost::format("Cutoff is larger than half the box size. Maximum "
-                           "allowed cutoff is %1$1.1f") %
-             (tools::conv::nm2bohr * 0.5 * min))
+                           "allowed cutoff is %1$1.1f (nm)") %
+             (tools::conv::bohr2nm * 0.5 * min))
                 .str());
       }
       double cutoff2 = cutoff * cutoff;

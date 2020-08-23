@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,6 +17,7 @@
  *
  */
 
+// Local VOTCA includes
 #include "votca/xtp/sphere_lebedev_rule.h"
 #include "votca/xtp/grid_containers.h"
 #include "votca/xtp/qmmolecule.h"
@@ -6943,6 +6944,9 @@ void LebedevGrid::FillMediumOrder() {
 
   // 4th row (selection)
   MediumOrder["Ag"] = 590;
+  MediumOrder["Rb"] = 590;
+  MediumOrder["I"] = 590;
+  MediumOrder["Xe"] = 590;
 }
 
 void LebedevGrid::FillFineOrder() {
@@ -6992,6 +6996,9 @@ void LebedevGrid::FillFineOrder() {
 
   // 4th row
   FineOrder["Ag"] = 974;
+  FineOrder["Rb"] = 974;
+  FineOrder["I"] = 974;
+  FineOrder["Xe"] = 974;
 }
 void LebedevGrid::FillXfineOrder() {
   // order for H, He (not given in NWChem, assuming same as 1st row)
@@ -7040,6 +7047,9 @@ void LebedevGrid::FillXfineOrder() {
 
   // 4th row
   XfineOrder["Ag"] = 1454;
+  XfineOrder["Rb"] = 1454;
+  XfineOrder["I"] = 1454;
+  XfineOrder["Xe"] = 1454;
 }
 
 void LebedevGrid::FillCoarseOrder() {
@@ -7089,6 +7099,9 @@ void LebedevGrid::FillCoarseOrder() {
 
   // 4th row
   CoarseOrder["Ag"] = 302;
+  CoarseOrder["Rb"] = 302;
+  CoarseOrder["I"] = 302;
+  CoarseOrder["Xe"] = 302;
 }
 
 void LebedevGrid::FillXcoarseOrder() {
@@ -7138,6 +7151,9 @@ void LebedevGrid::FillXcoarseOrder() {
 
   // 4th row
   XcoarseOrder["Ag"] = 194;
+  XcoarseOrder["Rb"] = 194;
+  XcoarseOrder["I"] = 194;
+  XcoarseOrder["Xe"] = 194;
 }
 
 }  // namespace xtp

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,50 +15,41 @@
  *
  */
 
-#include <boost/format.hpp>
+// Standard includes
 #include <locale>
-#include <votca/tools/constants.h>
-#include <votca/xtp/gnode.h>
-#include <votca/xtp/kmccalculator.h>
-#include <votca/xtp/topology.h>
 
+// Third party includes
+#include <boost/format.hpp>
+
+// VOTCA includes
+#include <votca/tools/constants.h>
+
+// Local VOTCA includes
+#include "votca/xtp/gnode.h"
+#include "votca/xtp/kmccalculator.h"
 #include "votca/xtp/qmstate.h"
-#include <votca/xtp/rate_engine.h>
+#include "votca/xtp/rate_engine.h"
+#include "votca/xtp/topology.h"
 
 using namespace std;
 
 namespace votca {
 namespace xtp {
 
-void KMCCalculator::ParseCommonOptions(tools::Property& options) {
-  std::string key = "options." + Identify();
-  _seed = options.ifExistsReturnElseThrowRuntimeError<Index>(key + ".seed");
+void KMCCalculator::ParseCommonOptions(const tools::Property& options) {
+  _seed = options.get(".seed").as<Index>();
 
-  _numberofcarriers = options.ifExistsReturnElseThrowRuntimeError<Index>(
-      key + ".numberofcarriers");
-  _injection_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".injectionpattern");
-  _maxrealtime = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".maxrealtime", 1E10);
-  _trajectoryfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".trajectoryfile", _trajectoryfile);
-  _temperature = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".temperature", 300);
+  _numberofcarriers = options.get(".numberofcarriers").as<Index>();
+  _injection_name = options.get(".injectionpattern").as<std::string>();
+  _maxrealtime = options.get(".maxrealtime").as<double>();
+  _trajectoryfile = options.get(".trajectoryfile").as<std::string>();
+  _temperature = options.get(".temperature").as<double>();
+
   _temperature *= (tools::conv::kB * tools::conv::ev2hrt);
-  _occfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".occfile", _occfile);
-  _ratefile = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".ratefile", _ratefile);
+  _occfile = options.get(".occfile").as<std::string>();
+  _ratefile = options.get(".ratefile").as<std::string>();
 
-  _injectionmethod = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".injectionmethod", "random");
-
-  if (_injectionmethod != "random") {
-    cout << "WARNING in kmcmultiple: Unknown injection method. It will be set "
-            "to random injection."
-         << endl;
-    _injectionmethod = "random";
-  }
+  _injectionmethod = options.get(".injectionmethod").as<std::string>();
 }
 
 void KMCCalculator::LoadGraph(Topology& top) {
@@ -80,6 +71,11 @@ void KMCCalculator::LoadGraph(Topology& top) {
   QMNBList& nblist = top.NBList();
   if (nblist.size() < 1) {
     throw std::runtime_error("neighborlist contains no pairs!");
+  }
+  if (_temperature <= 0) {
+    throw std::runtime_error(
+        "Your Temperature is negative or zero, please specify the temperature "
+        "in Kelvin.");
   }
 
   Rate_Engine rate_engine(_temperature, _field);
