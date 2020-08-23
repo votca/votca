@@ -61,7 +61,7 @@ Version 2021-dev
 -  fix double SCF in ORCA keyword line (#533)
 -  xtp internally uses only single shells. (#539)
    
-Version 1.6.2 (released 22.08.20)
+Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
 
 -  move CI to GitHub Actions (#512, #514, #516,
