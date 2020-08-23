@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,25 @@
  */
 
 #ifndef HAVE_NO_CONFIG
-#include <votca_config.h>
+#include <votca_csg_config.h>
 #endif
 
-#include "modules/io/lammpsdatareader.h"
-#include "modules/io/lammpsdumpreader.h"
-#include <votca/csg/trajectoryreader.h>
-#include <votca/csg/xyzreader.h>
+// Local VOTCA includes
+#include "votca/csg/trajectoryreader.h"
+#include "votca/csg/xyzreader.h"
 
-#ifdef GMX_DOUBLE
-#include "modules/io/gmxtrajectoryreader.h"
-#endif
+// Local private VOTCA includes
 #include "modules/io/dlpolytrajectoryreader.h"
-#include "modules/io/groreader.h"
-#include "modules/io/pdbreader.h"
 #ifdef H5MD
 #include "modules/io/h5mdtrajectoryreader.h"
 #endif
+#ifdef GMX_DOUBLE
+#include "modules/io/gmxtrajectoryreader.h"
+#endif
+#include "modules/io/groreader.h"
+#include "modules/io/lammpsdatareader.h"
+#include "modules/io/lammpsdumpreader.h"
+#include "modules/io/pdbreader.h"
 
 namespace votca {
 namespace csg {

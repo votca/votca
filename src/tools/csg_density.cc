@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/csgapplication.h>
+#include "../../include/votca/csg/csgapplication.h"
 #include <votca/tools/constants.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/tokenizer.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,11 @@
  *
  */
 
-#include <votca/csg/beadmotif.h>
+// VOTCA includes
+#include <votca/tools/graphalgorithm.h>
+
+// Local VOTCA includes
+#include "votca/csg/beadmotif.h"
 
 namespace votca {
 namespace csg {
@@ -34,7 +38,7 @@ namespace csg {
  **********************/
 
 void BeadMotif::InitializeGraph_() {
-  BeadStructure<BaseBead>::InitializeGraph_();
+  BeadStructure::InitializeGraph_();
   reduced_graph_ = reduceGraph(graph_);
 }
 
@@ -51,7 +55,7 @@ void BeadMotif::CalculateType_() {
     type_ = MotifType::empty;
   } else if (isSingle_()) {
     type_ = MotifType::single_bead;
-  } else if (!BeadStructure<BaseBead>::isSingleStructure()) {
+  } else if (!BeadStructure::isSingleStructure()) {
     type_ = MotifType::multiple_structures;
   } else if (isLine_()) {
     type_ = MotifType::line;
@@ -65,7 +69,7 @@ void BeadMotif::CalculateType_() {
   type_up_to_date_ = true;
 }
 
-bool BeadMotif::isSingle_() {
+bool BeadMotif::isSingle_() const noexcept {
   if (BeadCount() == 1) {
     return true;
   }
@@ -174,6 +178,12 @@ bool BeadMotif::isFusedRing_() {
   return true;
 }
 
+void BeadMotif::UpdateOnBeadAddition_() {
+  type_ = MotifType::undefined;
+  junctionsUpToDate_ = false;
+  type_up_to_date_ = false;
+}
+
 /***************************
  * Public Facing Functions *
  ***************************/
@@ -195,15 +205,8 @@ bool BeadMotif::isMotifSimple() {
   return true;
 }
 
-void BeadMotif::AddBead(BaseBead* bead) {
-  type_ = MotifType::undefined;
-  BeadStructure<BaseBead>::AddBead(bead);
-  junctionsUpToDate_ = false;
-  type_up_to_date_ = false;
-}
-
-void BeadMotif::ConnectBeads(Index bead1_id, Index bead2_id) {
-  BeadStructure<BaseBead>::ConnectBeads(bead1_id, bead2_id);
+void BeadMotif::ConnectBeads(const Index& bead1_id, const Index& bead2_id) {
+  BeadStructure::ConnectBeads(bead1_id, bead2_id);
   junctionsUpToDate_ = false;
   type_up_to_date_ = false;
 }
