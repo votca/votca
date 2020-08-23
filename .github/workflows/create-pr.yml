@@ -22,7 +22,7 @@ jobs:
         run: |
           git config --global user.name "Votca Bot"
           git config --global user.email "github@votca.org"
-          git merge origin/${{ steps.base.outputs.branch }} || true
+          git merge origin/${{ steps.base.outputs.branch }} || true # continue if merge with base branch fails
           git push || true
       - name: Create Pull Request
         uses: actions/github-script@0.3.0

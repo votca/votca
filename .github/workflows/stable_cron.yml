@@ -1,0 +1,177 @@
+# This is to workaround the issue in https://github.community/t/scheduled-builds-of-non-default-branch/16306
+name: Stable Cron
+on:
+  push:
+    branches:
+      - stable_cron
+  schedule:
+    - cron:  '0 5 * * SAT'
+
+jobs:
+  CI:
+    continue-on-error: ${{ matrix.distro == 'ubuntu_devel' || matrix.distro == 'fedora_rawhide' || matrix.continue-on-error == true }}
+    strategy:
+      matrix:
+        distro: [latest, fedora_rawhide, opensuse, ubuntu, ubuntu_devel, ubuntu_rolling, ubuntu_18.04, intel]
+        toolchain: [gnu, clang]
+        cmake_build_type: [Release, Debug]
+        minimal: [false]
+        own_gmx: [false]
+        module_build: [false]
+        coverage: [false]
+        deploy: [false]
+        include:
+          - distro: latest
+            toolchain: gnu
+            cmake_build_type: Release
+            minimal: false
+            own_gmx: false
+            module_build: false
+            coverage: false
+            # make sure there is only one build deploying
+            deploy: true
+            no_regression_testing: true
+          - distro: fedora_nogmx
+            toolchain: gnu
+            cmake_build_type: Release
+            minimal: true
+          - distro: fedora_nogmx
+            toolchain: clang
+            cmake_build_type: Release
+            minimal: true
+          - distro: fedora_nogmx
+            toolchain: gnu
+            cmake_build_type: Release
+            own_gmx: true
+          - distro: latest
+            toolchain: gnu
+            cmake_build_type: Release
+            minimal: false
+            own_gmx: false
+            module_build: true
+            coverage: false
+            deploy: false
+          - distro: fedora_gmx2019
+            toolchain: gnu
+            cmake_build_type: Release
+          - distro: fedora_gmx2019
+            toolchain: clang
+            cmake_build_type: Release
+          - distro: fedora_gmx2019_d
+            toolchain: gnu
+            cmake_build_type: Release
+          - distro: fedora_gmx2019_d
+            toolchain: clang
+            cmake_build_type: Release
+          - distro: fedora_gmx2020
+            toolchain: gnu
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: fedora_gmx2020
+            toolchain: clang
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: fedora_gmx2020_d
+            toolchain: gnu
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: fedora_gmx2020_d
+            toolchain: clang
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: fedora_gmx9999
+            toolchain: gnu
+            cmake_build_type: Release
+            continue-on-error: true
+            no_regression_testing: true
+          - distro: fedora_gmx9999
+            toolchain: clang
+            cmake_build_type: Release
+            continue-on-error: true
+            no_regression_testing: true
+          - distro: fedora_gmx9999_d
+            toolchain: gnu
+            cmake_build_type: Release
+            continue-on-error: true
+            no_regression_testing: true
+          - distro: fedora_gmx9999_d
+            toolchain: clang
+            cmake_build_type: Release
+            continue-on-error: true
+            no_regression_testing: true
+    runs-on: ubuntu-latest
+    container: votca/buildenv:${{ matrix.distro }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2.2.0
+        with:
+          submodules: true
+          ref: stable
+      - name: Run Votca Setup
+        id: setup
+        uses: votca/actions/setup@master
+        with:
+          distro: ${{ matrix.distro }}
+          toolchain: ${{ matrix.toolchain }}
+          minimal: ${{ matrix.minimal == true }}
+          module: ${{ matrix.module_build == true }}
+          own_gmx: ${{ matrix.own_gmx == true }}
+          regression_testing: ${{ matrix.no_regression_testing != true }}
+          coverage: ${{ matrix.coverage }}
+          cmake_build_type: ${{ matrix.cmake_build_type }}
+          ctest_args: ${{ matrix.ctest_args }}
+          cmake_args: ${{ matrix.cmake_args }}
+          branch: stable
+      - uses: actions/cache@v2
+        with:
+          path: ~/.ccache
+          key: ${{ steps.setup.outputs.cache_key }}
+          restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
+      - name: CMake
+        run: mkdir builddir && cd builddir && cmake ${{ steps.setup.outputs.cmake_args }} ..
+      - name: Build
+        run: |
+          ccache -z
+          cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
+          ccache -s
+      - name: Tests
+        run: cd builddir && ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+      - name: Doxygen
+        if: ${{ ! matrix.module_build }}
+        run: cmake --build builddir --target doxygen
+      - name: Build Sphinx
+        if: ${{ steps.setup.outputs.build_sphinx == 'true' }}
+        run: cmake --build builddir --target doc
+      - name: Test DESTDIR Install
+        if: ${{ ! matrix.module_build }}
+        run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
+      - name: Install
+        run: sudo cmake --build builddir --target install
+      - name: Check Formatting
+        if: ${{ steps.setup.outputs.check_format == 'true' }}
+        run: cmake --build builddir --target format && git diff --submodule=diff --exit-code
+      - name: Deploy Doxygen and Website
+        if: ${{ matrix.deploy }}
+        env:
+          VOTCA_BOT_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
+          BRANCH: stable
+        run: .github/workflows/deploy.sh
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code    
+        uses: actions/checkout@v2.2.0
+        with:
+          fetch-depth: 0
+          submodules: true
+          path: votca
+          ref: stable
+      - name: Build Docker images
+        uses: docker/build-push-action@v1.1.0
+        with:
+          repository: votca/votca
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          dockerfile: votca/.github/workflows/Dockerfile
+          tags: stable
+          push: ${{ github.event_name == 'schedule' }}
