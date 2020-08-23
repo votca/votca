@@ -1,38 +1,25 @@
-option(WITH_RC_FILES "Install votca rc files, no need when installing under /usr" ON)
-if (WITH_RC_FILES)
+option(INSTALL_RC_FILES "Install votca rc files, no need when installing under /usr" ON)
+add_feature_info(INSTALL_RC_FILES INSTALL_RC_FILES "Install votca rc files (VOTCARC.bash etc.)")
+if(INSTALL_RC_FILES)
   if(APPLE)
     set(LD_LIBRARY_PATH "DYLD_LIBRARY_PATH")
   else(APPLE)
-    include(CheckCSourceCompiles)
-    check_c_source_compiles(
-      "int main(void) {
-      #ifndef _AIX
-      #error
-      #endif
-      return 0;
-      }" HAVE_AIX)
-    if(HAVE_AIX)
-      set(LD_LIBRARY_PATH "LIBPATH")
-    else(HAVE_AIX)
-      set(LD_LIBRARY_PATH "LD_LIBRARY_PATH")
-    endif(HAVE_AIX)
+    set(LD_LIBRARY_PATH "LD_LIBRARY_PATH")
   endif(APPLE)
   configure_file(VOTCARC.csh.in ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.csh @ONLY)
   configure_file(VOTCARC.bash.in ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.bash @ONLY)
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.csh
     ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.bash DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif (WITH_RC_FILES)
+endif(INSTALL_RC_FILES)
 
 foreach(SCRIPT votca_compare)
-  configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
+  configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.tmp.out @ONLY)
   add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
   add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
-    -DINPUT="${SCRIPT}.out" -DOUTPUT="${SCRIPT}"
+    -DINPUT="${SCRIPT}.tmp.out" -DOUTPUT="${SCRIPT}"
     -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-    -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/gitscript.cmake)
-  if(ENABLE_TESTING OR ENABLE_REGRESSION_TESTING)
-    add_custom_command(TARGET ${SCRIPT}_build POST_BUILD COMMAND chmod +x ${SCRIPT})
-  endif(ENABLE_TESTING OR ENABLE_REGRESSION_TESTING)
+    -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitscript.cmake
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.tmp.out ${PROJECT_SOURCE_DIR}/CMakeModules/gitscript.cmake)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${SCRIPT})
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
 endforeach(SCRIPT)
