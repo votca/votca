@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
-## Version 1.6.2 (released 22.08.20)
+## Version 1.6.2 _SuperGitta_ (released 22.08.20)
 * format code with clang-10 (#278)
 * move CI to GitHub Actions (#280, #285, #287)
 * fix build with mkl (#283)
