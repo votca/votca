@@ -33,7 +33,7 @@ Version 2021-dev
 -  fix clang-9 conversion warning (#276)
 -  add class to writeand read matrices (#290)
 
-Version 1.6.2 (released 22.08.20)
+Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
 
 -  format code with clang-10 (#278)
