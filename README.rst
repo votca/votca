@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fvotca%2Fvotca.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fvotca%2Fvotca?ref=badge_shield)
+
 |Codacy Badge| |CI| |Docker| |DOI|
 
 This is VOTCA's next generation build system for CSG and XTP. It allows
@@ -48,3 +50,7 @@ You find the VOTCA-CTP repository
    :target: https://github.com/votca/votca/actions?query=workflow%3ADocker+branch%3Amaster
 .. |DOI| image:: https://zenodo.org/badge/75022030.svg
    :target: https://zenodo.org/badge/latestdoi/75022030
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fvotca%2Fvotca.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fvotca%2Fvotca?ref=badge_large)
