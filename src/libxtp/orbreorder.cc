@@ -19,6 +19,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/orbreorder.h"
+#include "votca/xtp/basisset.h"
 
 namespace votca {
 namespace xtp {
@@ -54,9 +55,9 @@ OrbReorder::OrbReorder(std::array<Index, 25> reorder,
     : _multipliers(multipliers), _reorder(reorder) {
 
   // Compute transpositions for every individual shell
-  int currentFunction = 0;
+  Index currentFunction = 0;
   for (int l = 0; l < 5; l++) {
-    int nrOfFunctions = 2 * l + 1;
+    Index nrOfFunctions = NumFuncShell(static_cast<L>(l));
     if (!reverse) {
       _transpositions[l] = computeTranspositions(
           copySegment(_reorder, currentFunction, nrOfFunctions),
@@ -80,10 +81,9 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
 
     // reorder shell
     Index l = static_cast<Index>(shell.getL());
-    for (auto& transposition : _transpositions[l]) {
-      moCoefficients.row(currentFunction + std::get<0>(transposition))
-          .swap(
-              moCoefficients.row(currentFunction + std::get<1>(transposition)));
+    for (const Transposition& transposition : _transpositions[l]) {
+      moCoefficients.row(currentFunction + transposition.first)
+          .swap(moCoefficients.row(currentFunction + transposition.second));
     }
 
     // Get multiplier vector for shell
@@ -93,7 +93,6 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
     // multiply shell
     for (Index i = 0; i < shell.getNumFunc(); i++) {
       moCoefficients.row(currentFunction + i) *= double(shellmultiplier[i]);
-      ;
     }
     currentFunction += shell.getNumFunc();
   }
