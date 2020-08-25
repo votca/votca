@@ -100,7 +100,7 @@ jobs:
             continue-on-error: true
             no_regression_testing: true
     runs-on: ubuntu-latest
-    container: votca/buildenv:${{ matrix.distro }}
+    container: registry.gitlab.com/votca/buildenv:${{ matrix.distro }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2.2.0
@@ -166,12 +166,32 @@ jobs:
           submodules: true
           path: votca
           ref: stable
-      - name: Build Docker images
+      - name: Build Docker images for Docker Hub
         uses: docker/build-push-action@v1.1.0
         with:
           repository: votca/votca
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+          dockerfile: votca/.github/workflows/Dockerfile
+          tags: stable
+          push: ${{ github.event_name == 'schedule' }}
+      - name: Build Docker images for Github
+        uses: docker/build-push-action@v1.1.0
+        with:
+          repository: votca/votca/votca
+          registry: docker.pkg.github.com
+          username: votca-bot
+          password: ${{ secrets.VOTCA_BOT_TOKEN }}
+          dockerfile: votca/.github/workflows/Dockerfile
+          tags: stable
+          push: ${{ github.event_name == 'schedule' }}
+      - name: Build Docker images for Docker Hub
+        uses: docker/build-push-action@v1.1.0
+        with:
+          repository: votca/votca
+          registry: registry.gitlab.com
+          username: votca-bot
+          password: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
           dockerfile: votca/.github/workflows/Dockerfile
           tags: stable
           push: ${{ github.event_name == 'schedule' }}
