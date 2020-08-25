@@ -1,4 +1,4 @@
-FROM votca/buildenv:latest
+FROM registry.gitlab.com/votca/buildenv:latest
 
 COPY votca/ /home/votca/votca
 RUN sudo chown -R votca:votca /home/votca/votca

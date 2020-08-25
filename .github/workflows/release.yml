@@ -17,7 +17,7 @@ jobs:
   release:
     if: github.repository_owner == 'votca'
     runs-on: ubuntu-latest
-    container: votca/buildenv:latest
+    container: registry.gitlab.com/votca/buildenv:latest
     steps:
       - name: Checkout votca   
         uses: actions/checkout@v2.2.0
