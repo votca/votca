@@ -62,7 +62,7 @@ Version 2021-dev
 -  xtp internally uses only single shells. (#539)
 -  Refactor orbital reordering (#537)
    
-Version 1.6.2 (released XX.07.20)
+Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
 
 -  move CI to GitHub Actions (#512, #514, #516,
