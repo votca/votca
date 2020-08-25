@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,92 +17,80 @@
  *
  */
 
-#ifndef __VOTCA_XTP_QMATOM_H
-#define	__VOTCA_XTP_QMATOM_H
+#pragma once
+#ifndef VOTCA_XTP_QMATOM_H
+#define VOTCA_XTP_QMATOM_H
 
-#include <votca/tools/vec.h> 
-#include <votca/xtp/aoshell.h>
-#include <votca/xtp/checkpointwriter.h>
-#include <votca/xtp/checkpointreader.h>
+// VOTCA includes
+#include <votca/tools/elements.h>
 
+// Local VOTCA includes
+#include "checkpoint.h"
 
-namespace votca { namespace xtp {
-    
+namespace votca {
+namespace xtp {
+
 /**
- *    \brief container for QM atoms 
+ *    \brief container for QM atoms
  *
  *    Stores atom type, coordinates, charge
- */    
-class QMAtom
-{
-     friend class AOBasis;
-public:
-    
-   QMAtom (int _index,std::string _element, double _x, double _y, double _z)
-            :index(_index), type( _element), nuccharge(0), ecpcharge(0),partialcharge(0.0)
-            {pos=tools::vec(_x,_y,_z);}
-            
-   QMAtom (int _index,std::string _element, tools::vec _pos)
-            :index(_index), type( _element ),nuccharge(0), ecpcharge(0),partialcharge(0.0)
-            {pos=_pos;}
-   
-   
-   QMAtom ()
-            :index(0), type(""),nuccharge(0), ecpcharge(0),partialcharge(0.0)
-            {pos=tools::vec(0.0);}
-       
-   const tools::vec & getPos() const {return pos;}
-   
-  
-   void setPos(tools::vec position){pos=position;}
+ */
+class QMAtom {
+  friend class ECPAOBasis;
 
-   const std::string & getType() const { return type;}
-   
-  int getAtomID(){ return index;}
-   
-   int getNuccharge() { return nuccharge-ecpcharge;}
-       
-   void setPartialcharge(double _q){partialcharge=_q;}
-   const double & getPartialcharge() const { return partialcharge;}
-   
-  
-   
-private:
-    
-   int index;
-   std::string type;
-   tools::vec pos;// Bohr
-   int nuccharge;//nuc charge is set in aobasis fill and ecpfill
-   int ecpcharge;
-   double partialcharge;
+ public:
+  struct data {
+    Index index;
+    char* element;
+    double x;
+    double y;
+    double z;
+    Index nuccharge;
+    Index ecpcharge;
+  };
 
-   
- public: 
-   
-   void WriteToCpt(CptLoc parent){
-       CheckpointWriter w(parent);
+  QMAtom(Index index, std::string element, Eigen::Vector3d pos);
 
-       w(index, "index");
-       w(type, "type");
-       w(pos, "pos");
-       w(nuccharge, "nuccharge");
-       w(ecpcharge, "ecpcharge");
-       w(partialcharge, "partialcharge");
-   }
+  QMAtom(const data& d);
 
-   void ReadFromCpt(CptLoc parent){
-       CheckpointReader r(parent);
+  const Eigen::Vector3d& getPos() const { return _pos; }
 
-       r(index, "index");
-       r(type, "type");
-       r(pos, "pos");
-       r(nuccharge, "nuccharge");
-       r(ecpcharge, "ecpcharge");
-       r(partialcharge, "partialcharge");
-   }
+  void Translate(const Eigen::Vector3d& shift) { _pos += shift; }
+
+  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
+
+  void setPos(const Eigen::Vector3d& position) { _pos = position; }
+
+  const std::string& getElement() const { return _element; }
+
+  Index getId() const { return _index; }
+
+  Index getNuccharge() const { return _nuccharge - _ecpcharge; }
+
+  std::string identify() const { return "qmatom"; }
+
+  friend std::ostream& operator<<(std::ostream& out, const QMAtom& atom) {
+    out << atom.getId() << " " << atom.getElement();
+    out << " " << atom.getPos().x() << "," << atom.getPos().y() << ","
+        << atom.getPos().z() << " " << atom.getNuccharge() << "\n";
+    return out;
+  }
+
+ private:
+  Index _index;
+  std::string _element;
+  Eigen::Vector3d _pos;  // Bohr
+  Index _nuccharge = 0;
+  Index _ecpcharge = 0;  // ecp charge is set in ecpaobasis.fill
+
+ public:
+  void SetupCptTable(CptTable& table) const;
+
+  void WriteData(data& d) const;
+
+  void ReadData(const data& d);
 };
-    
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif	/* __VOTCA_XTP_QMATOM_H */
-
+#endif  // VOTCA_XTP_QMATOM_H

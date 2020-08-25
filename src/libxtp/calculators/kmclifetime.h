@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,70 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * author: Kordt
  */
 
-#ifndef __VOTCA_KMC_LIFETIME_H
-#define	__VOTCA_KMC_LIFETIME_H
+#pragma once
+#ifndef VOTCA_XTP_KMCLIFETIME_H
+#define VOTCA_XTP_KMCLIFETIME_H
 
+// Local VOTCA includes
+#include "votca/xtp/kmccalculator.h"
 
+namespace votca {
+namespace xtp {
 
+class KMCLifetime : public KMCCalculator {
+ public:
+  KMCLifetime() = default;
+  ~KMCLifetime() override = default;
+  bool WriteToStateFile() const override { return false; }
+  std::string Identify() override { return "kmclifetime"; }
+  void Initialize(const tools::Property& user_options) override;
+  bool EvaluateFrame(Topology& top) override;
 
+ private:
+  void WriteDecayProbability(std::string filename);
 
-#include <votca/xtp/kmccalculator.h>
-using namespace std;
+  void RunVSSM() override;
+  void WriteToTraj(std::fstream& traj, unsigned long insertioncount,
+                   double simtime, const Chargecarrier& affectedcarrier) const;
 
-namespace votca { namespace xtp {
-    
-   
-
-
-class KMCLifetime : public KMCCalculator 
-{
-public:
-    KMCLifetime() {};
-   ~KMCLifetime() {
-       for(auto& node:_nodes){
-           delete node;
-       }
-        for(auto& carrier:_carriers){
-           delete carrier;
-       }
-    delete _RandomVariable;};
-   std::string Identify() { return "kmclifetime"; }
-    void Initialize(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
-
-private:
-       
-       
-            
-	    
-            void  RunVSSM(ctp::Topology *top);
-            
-            
-            void ReadLifetimeFile( string filename);
-            
-            //tools::vec _field;
-            
-            bool _do_carrierenergy;
-            string _energy_outputfile;
-            double _alpha;
-            unsigned _outputsteps;
-            unsigned int _insertions;
-            std::string _lifetimefile;
-            double _maxrealtime;
-            string _trajectoryfile;
-            string _outputfile;
-            string _filename;
+  void ReadLifetimeFile(std::string filename);
+  std::string _probfile;
+  bool _do_carrierenergy;
+  std::string _energy_outputfile;
+  double _alpha;
+  unsigned long _outputsteps;
+  unsigned long _insertions;
+  std::string _lifetimefile;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-
-
-
-
-}}
-
-
-#endif	/* __VOTCA_KMC_MULTIPLE_H */
+#endif  // VOTCA_XTP_KMCLIFETIME_H

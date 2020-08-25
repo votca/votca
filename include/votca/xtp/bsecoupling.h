@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,102 +17,94 @@
  *
  */
 
-#include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
+#pragma once
+#ifndef VOTCA_XTP_BSECOUPLING_H
+#define VOTCA_XTP_BSECOUPLING_H
 
-#ifndef _VOTCA_XTP_BSECOUPLING_H
-#define	_VOTCA_XTP_BSECOUPLING_H
+// Local VOTCA includes
+#include "couplingbase.h"
+#include "qmstate.h"
 
-namespace votca { namespace xtp {
-
+namespace votca {
+namespace xtp {
 
 /**
-* \brief Evaluates electronic coupling elements
-*
-* J. Wehner,B. Baumeier, 
-* JCTC DOI: 10.1021/acs.jctc.6b00935
-* 
-*/
+ * \brief Evaluates electronic coupling elements
+ *
+ * J. Wehner,B. Baumeier,
+ * JCTC DOI: 10.1021/acs.jctc.6b00935
+ *
+ */
 
-class BSECoupling 
-{
-public:
+class BSECoupling : public CouplingBase {
+ public:
+  void Initialize(tools::Property& options) override;
+  std::string Identify() const { return "bsecoupling"; }
 
-    BSECoupling() {};
-   ~BSECoupling() {};
-   
-   void    Initialize( Property *options);
-    string  Identify() { return "bsecoupling"; }
-  
-    
-    Eigen::MatrixXd getJAB_singletstorage(){ return (_output_perturbation ?  JAB_singlet[0]:JAB_singlet[1]);}
-       
-    Eigen::MatrixXd getJAB_tripletstorage(){ return (_output_perturbation ?  JAB_triplet[0]: JAB_triplet[1]);}
-    void addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB);
-    
-    bool CalculateCouplings(   Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB 
-                             );  
-    
-  
-    
+  void Addoutput(tools::Property& type_summary, const Orbitals& orbitalsA,
+                 const Orbitals& orbitalsB) const override;
 
-     
-    double getSingletCouplingElement( int levelA, int levelB, int methodindex);
-    
-    double getTripletCouplingElement( int levelA, int levelB, int methodindex);
-   
-    void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
-    
-private:
-    
-    ctp::Logger *_pLog;
-  
-    
-    std::vector< Eigen::MatrixXd >ProjectExcitons(const Eigen::MatrixXd& _bseA_T,const Eigen::MatrixXd& _bseB_T, 
-                         Eigen::MatrixXd& _H);
-    
-    Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& _J_dimer);
-    
-    Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& _J_dimer);
-    
-    std::vector< Eigen::MatrixXd > JAB_singlet;
-    std::vector< Eigen::MatrixXd > JAB_triplet;
+  /**
+   * \brief evaluates electronic couplings
+   *
+   * @param _orbitalsA molecular orbitals of molecule A
+   * @param _orbitalsB molecular orbitals of molecule B
+   * @param _orbitalsAB molecular orbitals of the dimer AB
+   */
+  void CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
+                          const Orbitals& orbitalsAB) override;
 
-    bool _doTriplets;
-    bool _doSinglets;
-    bool _output_perturbation;
-    int _levA;
-    int _levB;
-    int _occA;
-    int _unoccA;
-    int _occB;
-    int _unoccB;
-    double      _degeneracy;
-    int         _openmp_threads;
-    
-    
-    //_levA und _bseA_exc are the same but the stupid int unsigned conversion stuff, so leave it for now
-    
-    unsigned _bse_exc;
-    
-    unsigned _bseA_exc;
-    unsigned _bseB_exc;
-    
-    unsigned _ct;
-    
-     Eigen::MatrixXd ctAB;
-     Eigen::MatrixXd ctBA;
-     Eigen::MatrixXd _kap;
-     Eigen::MatrixXd _kbp;
-    
-    
+ private:
+  void WriteToProperty(tools::Property& summary, const QMState& stateA,
+                       const QMState& stateB) const;
+
+  double getSingletCouplingElement(Index levelA, Index levelB,
+                                   Index methodindex) const;
+
+  double getTripletCouplingElement(Index levelA, Index levelB,
+                                   Index methodindex) const;
+
+  Eigen::MatrixXd SetupCTStates(Index bseA_vtotal, Index bseB_vtotal,
+                                Index bseAB_vtotal, Index bseAB_ctotal,
+                                const Eigen::MatrixXd& A_AB,
+                                const Eigen::MatrixXd& B_AB) const;
+
+  Eigen::MatrixXd ProjectFrenkelExcitons(const Eigen::MatrixXd& BSE_Coeffs,
+                                         const Eigen::MatrixXd& X_AB,
+                                         Index bseX_vtotal, Index bseX_ctotal,
+                                         Index bseAB_vtotal,
+                                         Index bseAB_ctotal) const;
+
+  template <class BSE_OPERATOR>
+  std::array<Eigen::MatrixXd, 2> ProjectExcitons(Eigen::MatrixXd& FE_AB,
+                                                 Eigen::MatrixXd& CTStates,
+                                                 BSE_OPERATOR H) const;
+  template <class BSE_OPERATOR>
+  Eigen::MatrixXd CalcJ_dimer(BSE_OPERATOR& H,
+                              Eigen::MatrixXd& projection) const;
+
+  Eigen::MatrixXd OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
+                                   Eigen::MatrixXd& CTStates) const;
+
+  Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& J_dimer) const;
+
+  Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& J_dimer) const;
+
+  std::array<Eigen::MatrixXd, 2> JAB_singlet;
+  std::array<Eigen::MatrixXd, 2> JAB_triplet;
+
+  bool _doTriplets = false;
+  bool _doSinglets = false;
+  bool _output_perturbation = true;
+  Index _levA;
+  Index _levB;
+  Index _occA;
+  Index _unoccA;
+  Index _occB;
+  Index _unoccB;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif	/* _VOTCA_XTP_BSECOUPLING_H */
-
-
+#endif  // VOTCA_XTP_BSECOUPLING_H

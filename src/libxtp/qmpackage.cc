@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,200 +17,242 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
+// Third party includes
+#include <boost/algorithm/string.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/ecpaobasis.h"
+#include "votca/xtp/orbitals.h"
 #include "votca/xtp/qmpackage.h"
-#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/qmpackagefactory.h"
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
+using std::flush;
 
-        void QMPackage::ReorderOutput(Orbitals* _orbitals) {
-            BasisSet _dftbasisset;
-            _dftbasisset.LoadBasisSet(_basisset_name);
-            if (!_orbitals->hasQMAtoms()) {
-                throw runtime_error("Orbitals object has no QMAtoms");
-            }
+tools::Property QMPackage::ParseCommonOptions(const tools::Property& options) {
 
+  std::string key = "package";
+  // std::string key = "";
 
-            AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
-            //necessary to update nuclear charges on qmatoms
-            if (_write_pseudopotentials) {
-                BasisSet _ecps;
-                _ecps.LoadPseudopotentialSet(_ecp_name);
-                AOBasis _ecpbasis;
-                _ecpbasis.ECPFill(&_ecps, _orbitals->QMAtoms());
-            }
+  _settings.read_property(options, key);
+  char* votca_share = getenv("VOTCASHARE");
+  if (votca_share == nullptr) {
+    std::cout << "Warning: VOTCASHARE environment variable not defined\n";
+  } else {
+    Settings qmpackage_defaults{key};
+    qmpackage_defaults.load_from_xml(this->FindDefaultsFile());
+    _settings.amend(qmpackage_defaults);
+  }
+  _settings.validate();
 
-            if (_orbitals->hasAOOverlap()) {
-                _dftbasis.ReorderMatrix(_orbitals->AOOverlap(), getPackageName(), "xtp");
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered Overlap matrix" << flush;
-            }
-            if (_orbitals->hasAOVxc()) {
-                _dftbasis.ReorderMatrix(_orbitals->AOVxc(), getPackageName(), "xtp");
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered VXC matrix" << flush;
-            }
-            if (_orbitals->hasMOCoefficients()) {
-                _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), getPackageName(), "xtp");
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered MOs" << flush;
-            }
+  _charge = _settings.get<Index>("charge");
+  _spin = _settings.get<Index>("spin");
+  _basisset_name = _settings.get("basisset");
 
-            return;
-        }
+  if (_settings.has_key("cleanup")) {
+    _cleanup = _settings.get("cleanup");
+  }
 
-        void QMPackage::ReorderMOsBack(Orbitals* _orbitals) {
-            BasisSet _dftbasisset;
-            _dftbasisset.LoadBasisSet(_basisset_name);
-            if (!_orbitals->hasQMAtoms()) {
-                throw runtime_error("Orbitals object has no QMAtoms");
-            }
-            AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
-            _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), "xtp", getPackageName());
-            return;
-        }
-
-        std::vector<std::vector<double> > QMPackage::SplitMultipoles(ctp::APolarSite* aps) {
-
-            std::vector< std::vector<double> > multipoles_split;
-
-            const tools::vec pos = aps->getPos() * tools::conv::nm2ang;
-            tools::vec tot_dpl = tools::vec(0.0);
-            if (_with_polarization) {
-                tot_dpl += aps->getU1();
-            }
-            if (aps->getRank() > 0) {
-                tot_dpl += aps->getQ1();
-            }
-            // Calculate virtual charge positions
-            double a = _dpl_spacing; // this is in nm
-            double mag_d = abs(tot_dpl); // this is in e * nm
-            if (mag_d > 1e-9) {
-                tools::vec dir_d = tot_dpl.normalize();
-                tools::vec A = pos + 0.5 * a * dir_d * tools::conv::nm2ang; // converted to AA
-                tools::vec B = pos - 0.5 * a * dir_d * tools::conv::nm2ang;
-                double qA = mag_d / a;
-                double qB = -qA;
-                multipoles_split.push_back({A.getX(), A.getY(), A.getZ(), qA});
-                multipoles_split.push_back({B.getX(), B.getY(), B.getZ(), qB});
-            }
-
-
-            if (aps->getRank() > 1) {
-                tools::matrix components = aps->getQ2cartesian();
-                tools::matrix::eigensystem_t system;
-                components.SolveEigensystem(system);
-                double a = 2 * _dpl_spacing;
-                //string Atomnameplus[] = {"X", "Y", "Z"};
-                //string Atomnameminus[] = {"X", "Y", "Z"};
-                for (unsigned i = 0; i < 3; i++) {
-
-                    double q = system.eigenvalues[i] / (a * a);
-                    if (std::abs(q) < 1e-9) {
-                        continue;
-                    }
-                    tools::vec vec1 = pos + 0.5 * a * system.eigenvecs[i] * tools::conv::nm2ang;
-                    tools::vec vec2 = pos - 0.5 * a * system.eigenvecs[i] * tools::conv::nm2ang;
-
-                    multipoles_split.push_back({vec1.getX(), vec1.getY(), vec1.getZ(), q});
-                    multipoles_split.push_back({vec2.getX(), vec2.getY(), vec2.getZ(), q});
-
-                }
-
-            }
-
-            return multipoles_split;
-        }
-
-        void QMPackage::addLinkers(std::vector< ctp::Segment* > &segments, ctp::QMPair* pair, std::vector<std::string> linker_names) {
-            ctp::Segment* seg1 = pair->Seg1();
-            ctp::Segment* seg2 = pair->Seg2();
-            ctp::Topology* _top = seg1->getTopology();
-            vector<ctp::Segment*> segmentsInMolecule = _top->Segments();
-            ctp::Molecule* moleculeSeg1 = seg1->getMolecule();
-            ctp::Molecule* moleculeSeg2 = seg2->getMolecule();
-            int moleculeIdSeg1 = moleculeSeg1-> getId();
-            int moleculeIdSeg2 = moleculeSeg2-> getId();
-
-            if (moleculeIdSeg1 == moleculeIdSeg2) {
-
-                int idSeg1 = seg1->getId();
-                int idSeg2 = seg2->getId();
-
-                std::cout << "\n\nsegment size before addLinker: " << segments.size() << "\n";
-
-                std::vector<ctp::Segment*>::iterator it;
-                for (it = segmentsInMolecule.begin(); it != segmentsInMolecule.end(); ++it) {
-                    ctp::Molecule* moleculeSegIt = (*it)->getMolecule();
-                    int moleculeIdOfSegIt = moleculeSegIt-> getId();
-                    int idIterator = (*it)->getId();
-                    if (moleculeIdOfSegIt == moleculeIdSeg1 && idIterator != idSeg1 && idIterator != idSeg2
-                            && isLinker((*it)->getName(), linker_names)) {
-                        segments.push_back((*it));
-                    }
-                }
-
-                std::cout << "\n\nsegment size after addLinker: " << segments.size() << "\n";
-
-            }
-            return;
-        }
-
-        bool QMPackage::isLinker(string name, std::vector< std::string> linker_names) {
-            return (std::find(linker_names.begin(), linker_names.end(), name) != linker_names.end());
-        }
-
-        bool QMPackage::WriteInputFilePBC(ctp::QMPair* pair, Orbitals* orbitals, std::vector<std::string> linker_names) {
-
-            //std::cout << "IDFT writes input with PBC" << std::endl;
-
-            ctp::Segment* seg1 = pair->Seg1();
-            ctp::Segment* seg2 = pair->Seg2();
-            ctp::Segment* ghost = NULL;
-
-            ctp::Topology* _top = seg1->getTopology();
-
-            ctp::vec r1 = seg1->getPos();
-            ctp::vec r2 = seg2->getPos();
-
-            ctp::vec _R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
-
-            // Check whether pair formed across periodic boundary
-            if (abs(r2 - r1 - _R) > 1e-8) {
-                ghost = new ctp::Segment(seg2);
-                //ghost->TranslateBy(r1 - r2 + _R); // DO NOT USE THIS METHOD !
-                std::vector<ctp::Atom*>::iterator ait;
-                for (ait = ghost->Atoms().begin(); ait != ghost->Atoms().end(); ++ait) {
-                    (*ait)->setQMPos((*ait)->getQMPos() + r1 - r2 + _R);
-                }
-            }
-
-            std::vector< ctp::Segment* > segments;
-            segments.push_back(seg1);
-
-            if (ghost) {
-                segments.push_back(ghost);
-            } else {
-                segments.push_back(seg2);
-            }
-
-
-            cout << "Number of linker names " << linker_names.size() << endl;
-            for (size_t i = 0; i < linker_names.size(); i++) {
-                cout << linker_names[i] << endl;
-            }
-
-            addLinkers(segments, pair, linker_names);
-
-            std::cout << "\n\nBefore writing: " << segments.size() << "\n";
-
-            WriteInputFile(segments, orbitals);
-
-            delete ghost;
-            return true;
-        }
-
-
-
-    }
+  if (getPackageName() != "xtp") {
+    _scratch_dir = _settings.get("scratch");
+  }
+  return _settings.to_property("package");
 }
+
+void QMPackage::ReorderOutput(Orbitals& orbitals) const {
+  if (!orbitals.hasQMAtoms()) {
+    throw std::runtime_error("Orbitals object has no QMAtoms");
+  }
+
+  AOBasis dftbasis = orbitals.SetupDftBasis();
+  // necessary to update nuclear charges on qmatoms
+  if (orbitals.hasECPName()) {
+    ECPBasisSet ecps;
+    ecps.Load(orbitals.getECPName());
+    ECPAOBasis ecpbasis;
+    ecpbasis.Fill(ecps, orbitals.QMAtoms());
+  }
+
+  if (orbitals.hasMOs()) {
+    ReorderMOsToXTP(orbitals.MOs().eigenvectors(), dftbasis);
+    XTP_LOG(Log::info, *_pLog) << "Reordered MOs" << flush;
+  }
+
+  return;
+}
+
+Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const {
+  if (!orbitals.hasQMAtoms()) {
+    throw std::runtime_error("Orbitals object has no QMAtoms");
+  }
+  AOBasis dftbasis = orbitals.SetupDftBasis();
+  Eigen::MatrixXd result = orbitals.MOs().eigenvectors();
+  ReorderMOsToNative(result, dftbasis);
+  return result;
+}
+
+std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
+    const StaticSite& aps) const {
+
+  std::vector<QMPackage::MinimalMMCharge> multipoles_split;
+  // Calculate virtual charge positions
+  double a = _settings.get<double>("dipole_spacing");  // this is in a0
+  double mag_d = aps.getDipole().norm();               // this is in e * a0
+  const Eigen::Vector3d dir_d = aps.getDipole().normalized();
+  const Eigen::Vector3d A = aps.getPos() + 0.5 * a * dir_d;
+  const Eigen::Vector3d B = aps.getPos() - 0.5 * a * dir_d;
+  double qA = mag_d / a;
+  double qB = -qA;
+  if (std::abs(qA) > 1e-12) {
+    multipoles_split.push_back(MinimalMMCharge(A, qA));
+    multipoles_split.push_back(MinimalMMCharge(B, qB));
+  }
+
+  if (aps.getRank() > 1) {
+    const Eigen::Matrix3d components = aps.CalculateCartesianMultipole();
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+    es.computeDirect(components);
+    double a2 = 2 * a;
+    for (Index i = 0; i < 3; i++) {
+      double q = es.eigenvalues()[i] / (a2 * a2);
+      const Eigen::Vector3d vec1 =
+          aps.getPos() + 0.5 * a2 * es.eigenvectors().col(i);
+      const Eigen::Vector3d vec2 =
+          aps.getPos() - 0.5 * a2 * es.eigenvectors().col(i);
+      multipoles_split.push_back(MinimalMMCharge(vec1, q));
+      multipoles_split.push_back(MinimalMMCharge(vec2, q));
+    }
+  }
+  return multipoles_split;
+}
+
+std::vector<std::string> QMPackage::GetLineAndSplit(
+    std::ifstream& input_file, const std::string separators) const {
+  std::string line;
+  getline(input_file, line);
+  boost::trim(line);
+  tools::Tokenizer tok(line, separators);
+  return tok.ToVector();
+}
+
+std::string QMPackage::FindDefaultsFile() const {
+  auto xmlFile = std::string(getenv("VOTCASHARE")) +
+                 std::string("/xtp/data/qmpackage_defaults.xml");
+
+  return xmlFile;
+}
+
+void QMPackage::ReorderMOs(Eigen::MatrixXd& v,
+                           const std::vector<Index>& order) const {
+  // Sanity check
+  if (v.rows() != Index(order.size())) {
+    throw std::runtime_error("Size mismatch in ReorderMOs " +
+                             std::to_string(v.rows()) + ":" +
+                             std::to_string(order.size()));
+  }
+  // actual swapping of coefficients
+  for (Index s = 1, d; s < (Index)order.size(); ++s) {
+    for (d = order[s]; d < s; d = order[d]) {
+      ;
+    }
+    if (d == s) {
+      while (d = order[d], d != s) {
+        v.row(s).swap(v.row(d));
+      }
+    }
+  }
+}
+
+void QMPackage::ReorderMOsToXTP(Eigen::MatrixXd& v,
+                                const AOBasis& basis) const {
+
+  std::vector<Index> multiplier = getMultiplierVector(basis);
+
+  std::vector<Index> order = getReorderVector(basis);
+  ReorderMOs(v, order);
+  MultiplyMOs(v, multiplier);
+  return;
+}
+
+void QMPackage::ReorderMOsToNative(Eigen::MatrixXd& v,
+                                   const AOBasis& basis) const {
+
+  std::vector<Index> multiplier = getMultiplierVector(basis);
+  MultiplyMOs(v, multiplier);
+  std::vector<Index> order = getReorderVector(basis);
+  std::vector<Index> reverseorder = invertOrder(order);
+  ReorderMOs(v, reverseorder);
+  return;
+}
+
+void QMPackage::MultiplyMOs(Eigen::MatrixXd& v,
+                            const std::vector<Index>& multiplier) const {
+  // Sanity check
+  if (v.cols() != Index(multiplier.size())) {
+    std::cerr << "Size mismatch in MultiplyMOs" << v.cols() << ":"
+              << multiplier.size() << std::endl;
+    throw std::runtime_error("Abort!");
+  }
+  for (Index i = 0; i < v.cols(); i++) {
+    v.row(i) = multiplier[i] * v.row(i);
+  }
+  return;
+}
+
+std::vector<Index> QMPackage::getMultiplierVector(const AOBasis& basis) const {
+  std::vector<Index> multiplier;
+  multiplier.reserve(basis.AOBasisSize());
+  // go through basisset
+  for (const AOShell& shell : basis) {
+    std::vector<Index> shellmultiplier = getMultiplierShell(shell);
+    multiplier.insert(multiplier.end(), shellmultiplier.begin(),
+                      shellmultiplier.end());
+  }
+  return multiplier;
+}
+
+std::vector<Index> QMPackage::getMultiplierShell(const AOShell& shell) const {
+  // multipliers were all found using code, hard to establish
+  std::vector<Index> multiplier;
+  for (Index i = 0; i < shell.getNumFunc(); i++) {
+    multiplier.push_back(ShellMulitplier()[shell.getOffset() + i]);
+  }
+  return multiplier;
+}
+
+std::vector<Index> QMPackage::getReorderVector(const AOBasis& basis) const {
+  std::vector<Index> reorder;
+  reorder.reserve(basis.AOBasisSize());
+  // go through basisset
+  for (const AOShell& shell : basis) {
+    std::vector<Index> shellreorder = getReorderShell(shell);
+    std::for_each(shellreorder.begin(), shellreorder.end(),
+                  [&reorder](Index& i) { i += Index(reorder.size()); });
+    reorder.insert(reorder.end(), shellreorder.begin(), shellreorder.end());
+  }
+  return reorder;
+}
+
+std::vector<Index> QMPackage::getReorderShell(const AOShell& shell) const {
+  std::vector<Index> reorder;
+  for (Index i = 0; i < shell.getNumFunc(); i++) {
+    // Shellreorder tells how much a certain funktion has to be shifted with
+    // reference to votca ordering
+    reorder.push_back(ShellReorder()[shell.getOffset() + i] + i);
+  }
+  return reorder;
+}
+
+std::vector<Index> QMPackage::invertOrder(
+    const std::vector<Index>& order) const {
+
+  std::vector<Index> neworder = std::vector<Index>(order.size());
+  for (Index i = 0; i < Index(order.size()); i++) {
+    neworder[order[i]] = Index(i);
+  }
+  return neworder;
+}
+
+}  // namespace xtp
+}  // namespace votca

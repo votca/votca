@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2017 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,143 +17,157 @@
  *
  */
 
-#ifndef __XTP_THREECENTER__H
-#define	__XTP_THREECENTER__H
+#pragma once
+#ifndef VOTCA_XTP_THREECENTER_H
+#define VOTCA_XTP_THREECENTER_H
 
+// Standard includes
+#include <array>
 
+// Local VOTCA includes
+#include "eigen.h"
+#include "logger.h"
+#include "symmetric_matrix.h"
 
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/multiarray.h>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/symmetric_matrix.h>
-#include <votca/xtp/orbitals.h>
-
-
-
-
+#ifdef USE_CUDA
+#include "cudapipeline.h"
+#endif
 
 /**
  * \brief Calculates three electron overlap integrals for GW and DFT.
  *
- * 
- * 
+ *
+ *
  */
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-        // due to different requirements for the data format for DFT and GW we have two different classes TCMatrix_gwbse and TCMatrix_dft which inherit from TCMatrix
+class AOShell;
+class AOBasis;
 
-        class TCMatrix {    
-        protected:
-            
-            
-            bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
-            bool FillThreeCenterOLBlock(Eigen::MatrixXd & _subvector, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
+// due to different requirements for the data format for DFT and GW we have two
+// different classes TCMatrix_gwbse and TCMatrix_dft which inherit from TCMatrix
+class TCMatrix {
 
-        };
+ public:
+  Index Removedfunctions() const { return _removedfunctions; }
 
-        class TCMatrix_dft : public TCMatrix {
-        public:
+ protected:
+  Index _removedfunctions = 0;
+  Eigen::MatrixXd _inv_sqrt;
 
-            void Fill(AOBasis& auxbasis, AOBasis& dftbasis,const Eigen::MatrixXd& V_sqrtm1);
+  bool FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
+                               const AOShell& shell, const AOShell& shell_row,
+                               const AOShell& shell_col) const;
+};
 
-            int getSize() {
-                return _matrix.size();
-            }
+class TCMatrix_dft : public TCMatrix {
+ public:
+  void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis);
 
-            std::vector< Symmetric_Matrix >& getData() {
-                return _matrix;
-            }
+  Index size() const { return Index(_matrix.size()); }
 
-            Symmetric_Matrix& getDatamatrix(int i) {
-                return _matrix[i];
-            }
+  Symmetric_Matrix& operator[](Index i) { return _matrix[i]; }
 
-            const Symmetric_Matrix& getDatamatrix(int i)const {
-                return _matrix[i];
-            }
-        private:
-            std::vector< Symmetric_Matrix > _matrix;
+  const Symmetric_Matrix& operator[](Index i) const { return _matrix[i]; }
 
-            void FillBlock(std::vector< Eigen::MatrixXd >& _block,int shellindex, const AOBasis& dftbasis, const AOBasis& auxbasis);
+ private:
+  std::vector<Symmetric_Matrix> _matrix;
 
-        };
+  void FillBlock(std::vector<Eigen::MatrixXd>& block, Index shellindex,
+                 const AOBasis& dftbasis, const AOBasis& auxbasis);
+};
 
-        class TCMatrix_gwbse : public TCMatrix {
-        public:
+class TCMatrix_gwbse : public TCMatrix {
+ public:
+  TCMatrix_gwbse(Logger& log) : _log{log} {};
 
-            /// returns one level as a constant reference
+  // returns one level as a constant reference
+  const Eigen::MatrixXd& operator[](Index i) const { return _matrix[i]; }
 
-            const MatrixXfd& operator[](int i) const {
-                return _matrix[i];
-            }
+  // returns one level as a reference
+  Eigen::MatrixXd& operator[](Index i) { return _matrix[i]; }
+  // returns auxbasissize
+  Index auxsize() const { return _auxbasissize; }
 
-            /// returns one level as a reference
+  Index get_mmin() const { return _mmin; }
 
-            MatrixXfd& operator[](int i) {
-                return _matrix[i];
-            }
+  Index get_mmax() const { return _mmax; }
 
-            int getAuxDimension()const {
-                return basissize;
-            }
+  Index get_nmin() const { return _nmin; }
 
-            int get_mmin() const {
-                return _mmin;
-            }
+  Index get_nmax() const { return _nmax; }
 
-            int get_mmax() const {
-                return _mmax;
-            }
+  Index msize() const { return _mtotal; }
 
-            int get_nmin() const {
-                return _nmin;
-            }
+  Index nsize() const { return _ntotal; }
 
-            int get_nmax() const {
-                return _nmax;
-            }
+  void Initialize(Index basissize, Index mmin, Index mmax, Index nmin,
+                  Index nmax);
 
-            int get_mtot() const {
-                return _mtotal;
-            }
+  void Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
+            const Eigen::MatrixXd& dft_orbitals);
+  // Rebuilds ThreeCenterIntegrals, only works if the original basisobjects
+  // still exist
+  void Rebuild() { Fill(*_auxbasis, *_dftbasis, *_dft_orbitals); }
 
-            int get_ntot() const {
-                return _ntotal;
-            }
+  void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix);
 
+ private:
+  // store vector of matrices
+  std::vector<Eigen::MatrixXd> _matrix;
 
-            void Initialize(int _basissize, int mmin, int mmax, int nmin, int nmax);
+  // Logger
+  Logger& _log;
 
-            void Prune(int min, int max);
-            void Print(std::string _ident);
-            void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals);
+  // band summation indices
+  Index _mmin;
+  Index _mmax;
+  Index _nmin;
+  Index _nmax;
+  Index _ntotal;
+  Index _mtotal;
+  Index _auxbasissize;
 
-            void MultiplyLeftWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
+  const AOBasis* _auxbasis = nullptr;
+  const AOBasis* _dftbasis = nullptr;
+  const Eigen::MatrixXd* _dft_orbitals = nullptr;
 
-            void Cleanup();
+  std::vector<Eigen::MatrixXd> FillBlock(
+      const std::vector<Eigen::MatrixXd>& symmstorage,
+      const Eigen::MatrixXd& dft_orbitals) const;
 
-        private:
+  void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& matrix);
 
-            // store vector of matrices
-            std::vector< MatrixXfd > _matrix;
+  void FillAllBlocksOpenMP(const AOBasis& gwbasis, const AOBasis& dftbasis,
+                           const Eigen::MatrixXd& dft_orbitals);
 
-            // band summation indices
-            int _mmin;
-            int _mmax;
-            int _nmin;
-            int _nmax;
-            int _ntotal;
-            int _mtotal;
-            int basissize;
+  std::vector<Eigen::MatrixXd> ComputeSymmStorage(
+      const AOShell& auxshell, const AOBasis& dftbasis) const;
 
-            void FillBlock(std::vector< Eigen::MatrixXd >& _matrix, const AOShell* _auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals);
+#if defined(USE_CUDA)
+  std::array<CudaMatrix, 2> SendDFTMatricesToGPU(
+      const Eigen::MatrixXd& dft_orbitals, const CudaPipeline& cuda_pip) const;
 
-        };
-    
+  std::array<CudaMatrix, 3> CreateIntermediateCudaMatrices(
+      Index basissize, const CudaPipeline& cuda_pip) const;
 
-}}
+  void FillAllBlocksCuda(const AOBasis& gwbasis, const AOBasis& dftbasis,
+                         const Eigen::MatrixXd& dft_orbitals);
 
-#endif	/* AOMATRIX_H */
+  void MultiplyRightWithAuxMatrixCuda(const Eigen::MatrixXd& matrix);
 
+  std::vector<Eigen::MatrixXd> FillBlockCUDA(
+      const std::vector<Eigen::MatrixXd>& symmstorage,
+      const std::array<CudaMatrix, 2>& cuda_matrices,
+      std::array<CudaMatrix, 3>& cuda_inter_matrices,
+      const CudaPipeline& cuda_pip) const;
+
+#endif
+};
+
+}  // namespace xtp
+}  // namespace votca
+
+#endif  // VOTCA_XTP_THREECENTER_H

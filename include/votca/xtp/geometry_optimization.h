@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2017 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,67 +17,60 @@
  *
  */
 
-#ifndef __XTP_GEOMETRY_OPTIMIZATION__H
-#define __XTP_GEOMETRY_OPTIMIZATION__H
+#pragma once
+#ifndef VOTCA_XTP_GEOMETRY_OPTIMIZATION_H
+#define VOTCA_XTP_GEOMETRY_OPTIMIZATION_H
 
+// Standard includes
+#include <cstdio>
 
-#include <votca/xtp/qmatom.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/segment.h>
-#include <stdio.h>
-#include <votca/xtp/gwbseengine.h>
-
-
+// Local VOTCA includes
+#include "bfgs-trm.h"
+#include "energy_costfunction.h"
+#include "gwbseengine.h"
+#include "logger.h"
+#include "qmatom.h"
+#include "qmstate.h"
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
+class GeometryOptimization {
+ public:
+  GeometryOptimization(GWBSEEngine& gwbse_engine, Orbitals& orbitals)
+      : _gwbse_engine(gwbse_engine),
+        _orbitals(orbitals){
 
-
-        class GeometryOptimization {
-        public:
-
-            GeometryOptimization(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals* orbitals) : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals) {
-            };
-
-            ~GeometryOptimization() {
-            };
-
-            void BFGSStep(int& _iteration, bool& _update_hessian, Eigen::MatrixXd& _force, Eigen::MatrixXd& _force_old, Eigen::MatrixXd& _current_xyz, Eigen::MatrixXd& _old_xyz, Eigen::MatrixXd& _hessian, Eigen::MatrixXd& _xyz_shift, Eigen::MatrixXd& _trial_xyz);
-            void Initialize(Property *options);
-
-            void setLog(ctp::Logger* pLog) {
-                _pLog = pLog;
-            }
-
-            void Evaluate();
-
-
-
-        private:
-
-            int _natoms;
-            int _nsegments;
-
-
-            int _opt_state;
-            std::string _spintype;
-            std::string _forces;
-            std::string _opt_type;
-            std::string _optimizer;
-            std::string _force_method;
-
-            GWBSEENGINE _gwbse_engine;
-            QMPackage* _qmpackage;
-            std::vector<ctp::Segment*> _segments;
-            Orbitals* _orbitals;
-
-            Property _optimizer_options;
-            Property _force_options;
-
-            ctp::Logger *_pLog;
         };
 
-    }
-}
-#endif /* GEOMETRY_OPTIMIZATION_H */
+  void Initialize(tools::Property& options);
+
+  void setLog(Logger* pLog) { _pLog = pLog; }
+
+  void Evaluate();
+
+ private:
+  static void Report(const BFGSTRM& bfgstrm, const Forces& forces,
+                     Logger& pLog);
+  static void WriteTrajectory(const std::string& filename, QMMolecule& atoms,
+                              const BFGSTRM& bfgstrm);
+
+  QMState _opt_state;
+  std::string _optimizer;
+  std::string _trajfile;
+  GWBSEEngine& _gwbse_engine;
+  Orbitals& _orbitals;
+
+  Energy_costfunction::conv_paras _conv;
+  Index _max_iteration;
+  double _trust_radius;
+
+  tools::Property _statetracker_options;
+  tools::Property _force_options;
+
+  Logger* _pLog;
+};
+
+}  // namespace xtp
+}  // namespace votca
+#endif  // VOTCA_XTP_GEOMETRY_OPTIMIZATION_H

@@ -1,5 +1,6 @@
 /*
- *            Copyright 2016 The MUSCET Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
  *
@@ -16,188 +17,211 @@
  *
  */
 
-
-#include <votca/xtp/gyration.h>
+// Third party includes
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
 
+// Local VOTCA includes
+#include "votca/xtp/gyration.h"
+#include "votca/xtp/vxc_grid.h"
 
 using namespace votca::tools;
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-void Density2Gyration::Initialize(Property* options) {
-    string key = Identify();
+void Density2Gyration::Initialize(tools::Property& options) {
+  std::string key = Identify();
 
-    _state    = options->get(key + ".state").as<string> (); 
-    _state_no = options->get(key + ".statenumber").as<int> ();
-    _spin     = options->get(key + ".spin").as<string> ();
- 
-    if ( options->exists(key+".gridsize")) {
-         _gridsize = options->get(key+".gridsize").as<string>();
-         }
-    else _gridsize="medium";
-    if ( options->exists(key+".openmp")) {
-         _openmp_threads = options->get(key+".openmp").as<int>();
-         }
-    else _openmp_threads=0;
-    
-    // get the path to the shared folders with xml files
-    char *votca_share = getenv("VOTCASHARE");    
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");   
-    }
+  std::string statestring = options.get(key + ".state").as<std::string>();
+  _state.FromString(statestring);
+  _dostateonly = options.ifExistsReturnElseReturnDefault<bool>(
+      key + ".difference_to_groundstate", false);
+  _gridsize = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".gridsize", "medium");
+}
 
-    void Density2Gyration::AnalyzeDensity(Orbitals & _orbitals) {
-      int threads = 1;
-#ifdef _OPENMP
-      if (_openmp_threads > 0) omp_set_num_threads(_openmp_threads);
-      threads = omp_get_max_threads();
-#endif
-      CTP_LOG(ctp::logDEBUG, *_log) << "===== Running on " << threads << " threads ===== " << flush;
+void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
+  XTP_LOG(Log::error, _log) << "===== Running on " << OPENMP::getMaxThreads()
+                            << " threads ===== " << std::flush;
 
-      std::vector< QMAtom* > _Atomlist = _orbitals.QMAtoms();
-      Eigen::MatrixXd DMAT_tot;
-      BasisSet bs;
-      bs.LoadBasisSet(_orbitals.getDFTbasis());
-      AOBasis basis;
-      basis.AOBasisFill(&bs, _Atomlist);
-      // Analyze geometry
-      AnalyzeGeometry(_Atomlist);
-      std::vector<Eigen::MatrixXd > DMAT;
+  const QMMolecule& Atomlist = orbitals.QMAtoms();
+  BasisSet bs;
+  bs.Load(orbitals.getDFTbasisName());
+  AOBasis basis;
+  basis.Fill(bs, Atomlist);
+  AnalyzeGeometry(Atomlist);
 
-      if (_state == "transition") {
-        DMAT_tot = _orbitals.TransitionDensityMatrix(_spin, _state_no - 1);
-      } else if (_state == "ground" || _state == "excited" || _state == "exciton") {
-        CTP_LOG(ctp::logDEBUG, *_log) << "Calculating density matrix:        " << _state << " No. " << _state_no << flush;
-        Eigen::MatrixXd DMATGS = _orbitals.DensityMatrixGroundState();
-        DMAT_tot = DMATGS;
-        if (_state_no > 0 && (_state == "excited" || _state == "exciton")) {
-          DMAT = _orbitals.DensityMatrixExcitedState(_spin, _state_no - 1);
-          if (_state == "excited") {
-            DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1];
-          }
-        }
-        // Ground state + hole_contribution + electron contribution
-      } else throw std::runtime_error("State entry not recognized");
+  // setup numerical integration grid
+  Vxc_Grid grid;
+  grid.GridSetup(_gridsize, Atomlist, basis);
+  DensityIntegration<Vxc_Grid> numway(grid);
 
-      // setup numerical integration grid
-      NumericalIntegration numway;
-      numway.GridSetup(_gridsize, _Atomlist, &basis);
+  if (!_dostateonly) {
+    Eigen::MatrixXd DMAT_tot = orbitals.DensityMatrixFull(_state);
+    Gyrationtensor gyro = numway.IntegrateGyrationTensor(DMAT_tot);
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+    es.computeDirect(gyro.gyration);
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Converting to Eigenframe " << std::flush;
+    XTP_LOG(Log::error, _log) << TimeStamp() << " Reporting " << std::flush;
+    ReportAnalysis(_state.ToLongString(), gyro, es);
 
-      if (_state == "ground" || _state == "excited") {
-        //LOG(logDEBUG, *_log) << TimeStamp() << " Calculate Densities at Numerical Grid with gridsize "<< _gridsize  << flush; 
-        Gyrationtensor gyro = numway.IntegrateGyrationTensor(DMAT_tot);
-        tools::matrix::eigensystem_t system;
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Converting to Eigenframe " << flush;
-        gyro.gyration.SolveEigensystem(system); 
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating Quaternion " << flush;
-        //Eigen::Quaterniond _quaternion = get_quaternion( system );
-        // report results
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Reporting " << flush;
-        ReportAnalysis(_state, gyro,system);
+  } else {
+    // hole density first
+    std::array<Eigen::MatrixXd, 2> DMAT =
+        orbitals.DensityMatrixExcitedState(_state);
+    Gyrationtensor gyro_hole = numway.IntegrateGyrationTensor(DMAT[0]);
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es_h;
+    es_h.computeDirect(gyro_hole.gyration);
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Converting to Eigenframe " << std::flush;
+    XTP_LOG(Log::error, _log) << TimeStamp() << " Reporting " << std::flush;
+    ReportAnalysis("hole", gyro_hole, es_h);
 
+    // electron density
+    Gyrationtensor gyro_electron = numway.IntegrateGyrationTensor(DMAT[1]);
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es_e;
+    es_e.computeDirect(gyro_electron.gyration);
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Converting to Eigenframe " << std::flush;
+    XTP_LOG(Log::error, _log) << TimeStamp() << " Reporting " << std::flush;
+    ReportAnalysis("electron", gyro_electron, es_e);
+  }
+  return;
+}
 
-      } else if (_state == "exciton") {
-        // hole density first
-        Gyrationtensor gyro_hole = numway.IntegrateGyrationTensor(DMAT[0]);
-        tools::matrix::eigensystem_t system_h;
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Converting to Eigenframe " << flush;
-        gyro_hole.gyration.SolveEigensystem(system_h); 
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating Quaternion " << flush;
-        //Eigen::Quaterniond _quaternion_h = get_quaternion(system_h );
-        // report results
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Reporting " << flush;
-        ReportAnalysis("hole", gyro_hole,system_h);
-        
-        // electron density
-        Gyrationtensor gyro_electron = numway.IntegrateGyrationTensor(DMAT[1]);
-        tools::matrix::eigensystem_t system_e;
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Converting to Eigenframe " << flush;
-        gyro_electron.gyration.SolveEigensystem(system_e); 
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating Quaternion " << flush;
-        //Eigen::Quaterniond _quaternion_e = get_quaternion( system_e );
-        // report results
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Reporting " << flush;
-        ReportAnalysis("electron", gyro_electron,system_e);
-      }
-      return;
-    }
+void Density2Gyration::AnalyzeGeometry(const QMMolecule& atoms) {
 
+  tools::Elements elements;
+  double mass = 0.0;
+  Eigen::Vector3d centroid = Eigen::Vector3d::Zero();
+  Eigen::Matrix3d gyration = Eigen::Matrix3d::Zero();
+  for (const QMAtom& atom : atoms) {
+    double m = elements.getMass(atom.getElement());
+    const Eigen::Vector3d& pos = atom.getPos();
+    mass += m;
+    centroid += m * pos;
+    gyration += m * pos * pos.transpose();
+  }
+  centroid /= mass;
+  gyration /= mass;
+  gyration -= centroid * centroid.transpose();
+  Gyrationtensor gyro;
+  gyro.mass = mass;
+  gyro.centroid = centroid;
+  gyro.gyration = gyration;
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+  es.computeDirect(gyro.gyration);
+  ReportAnalysis("geometry", gyro, es);
+}
 
-    void Density2Gyration::AnalyzeGeometry(std::vector<QMAtom*> _atoms){
-    
-        tools::Elements _elements; 
-        double mass=0.0;
-        tools::vec centroid = tools::vec(0.0);
-        tools::matrix gyration = tools::matrix(0.0);
-        std::vector< QMAtom* >::iterator at;
-        for (at=_atoms.begin();at<_atoms.end();++at){
-            double m = _elements.getMass((*at)->getType());
-            const tools::vec & pos =(*at)->getPos();
-            mass+= m;
-            centroid+=m*pos;
-            gyration+=m*(pos|pos);
-        }
-        centroid/=mass;
-        gyration/=mass;
-        gyration-=(centroid|centroid);
-        Gyrationtensor gyro;
-        gyro.mass=mass;
-        gyro.centroid=centroid;
-        gyro.gyration=gyration;
-        tools::matrix::eigensystem_t system;
-        gyration.SolveEigensystem(system); 
-        //Eigen::Quaterniond _quaternion = get_quaternion( system );
-        // report results
-        ReportAnalysis( "geometry", gyro,system );   
-    }
+void Density2Gyration::ReportAnalysis(
+    std::string label, const Gyrationtensor& gyro,
+    const Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d>& es) {
 
-    void Density2Gyration::ReportAnalysis(string label,Gyrationtensor gyro, tools::matrix::eigensystem_t system){
-       
-            CTP_LOG(ctp::logINFO, *_log) << "---------------- " << label << " ----------------" << flush;
-            CTP_LOG(ctp::logINFO, *_log) << (boost::format("  Norm               = %1$9.4f ") % (gyro.mass) ) << flush;
-         
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Centroid x         = %1$9.4f Ang") % (gyro.centroid.getX()*tools::conv::bohr2ang) ) << flush;
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Centroid y         = %1$9.4f Ang") % (gyro.centroid.getY()*tools::conv::bohr2ang) ) << flush;
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Centroid y         = %1$9.4f Ang") % (gyro.centroid.getZ()*tools::conv::bohr2ang) ) << flush;
-            
-            double RA2 = tools::conv::bohr2ang  *tools::conv::bohr2ang;
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Gyration Tensor xx = %1$9.4f Ang^2") % (gyro.gyration[0][0]*RA2) ) << flush;
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Gyration Tensor xy = %1$9.4f Ang^2") % (gyro.gyration[0][1]*RA2) ) << flush;
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Gyration Tensor xz = %1$9.4f Ang^2") % (gyro.gyration[0][2]*RA2) ) << flush;
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Gyration Tensor yy = %1$9.4f Ang^2") % (gyro.gyration[1][1]*RA2) ) << flush;
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Gyration Tensor yz = %1$9.4f Ang^2") % (gyro.gyration[1][2]*RA2) ) << flush;
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Gyration Tensor zz = %1$9.4f Ang^2") % (gyro.gyration[2][2]*RA2) ) << flush;
-            
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Gyration Tensor D1 = %1$9.4f Ang^2") % (system.eigenvalues[0] *RA2) ) << flush;     
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Gyration Tensor D2 = %1$9.4f Ang^2") % (system.eigenvalues[1]*RA2) ) << flush;     
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Gyration Tensor D3 = %1$9.4f Ang^2") % (system.eigenvalues[2]*RA2) ) << flush;   
+  XTP_LOG(Log::error, _log)
+      << "---------------- " << label << " ----------------" << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Norm               = %1$9.4f ") % (gyro.mass))
+      << std::flush;
 
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Radius of Gyration = %1$9.4f Ang") % (std::sqrt(system.eigenvalues[0] +system.eigenvalues[1]+ system.eigenvalues[2])*tools::conv::bohr2ang )) << flush;  
-            
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 1 1 = %1$9.4f ") % (system.eigenvecs[0].getX()) ) << flush;             
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 1 2 = %1$9.4f ") % (system.eigenvecs[0].getY()) ) << flush;             
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 1 3 = %1$9.4f ") % (system.eigenvecs[0].getZ()) ) << flush;             
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 2 1 = %1$9.4f ") % (system.eigenvecs[1].getX()) ) << flush;             
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 2 2 = %1$9.4f ") % (system.eigenvecs[1].getY()) ) << flush;             
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 2 3 = %1$9.4f ") % (system.eigenvecs[1].getZ()) ) << flush; 
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 3 1 = %1$9.4f ") % (system.eigenvecs[2].getX()) ) << flush;             
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 3 2 = %1$9.4f ") % (system.eigenvecs[2].getY()) ) << flush;             
-            CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 3 3 = %1$9.4f ") % (system.eigenvecs[2].getZ()) ) << flush;             
-            return;
-    }
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Centroid x         = %1$9.4f Ang") %
+          (gyro.centroid.x() * tools::conv::bohr2ang))
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Centroid y         = %1$9.4f Ang") %
+          (gyro.centroid.y() * tools::conv::bohr2ang))
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Centroid y         = %1$9.4f Ang") %
+          (gyro.centroid.z() * tools::conv::bohr2ang))
+      << std::flush;
 
-    Eigen::Quaterniond Density2Gyration::get_quaternion(const tools::matrix::eigensystem_t& system){
-      Eigen::Matrix3d rot = Eigen::Matrix3d::Zero();
-      rot<< system.eigenvecs[0].getX(),system.eigenvecs[0].getY(),system.eigenvecs[0].getZ(),
-               system.eigenvecs[1].getX(),system.eigenvecs[1].getY(),system.eigenvecs[1].getZ(),
-               system.eigenvecs[2].getX(),system.eigenvecs[2].getY(),system.eigenvecs[2].getZ();
-       Eigen::Quaterniond quaternion=Eigen::Quaterniond(rot);
-        return quaternion;
-        
-    }
-    
+  double RA2 = tools::conv::bohr2ang * tools::conv::bohr2ang;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Gyration Tensor xx = %1$9.4f Ang^2") %
+          (gyro.gyration(0, 0) * RA2))
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Gyration Tensor xy = %1$9.4f Ang^2") %
+          (gyro.gyration(0, 1) * RA2))
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Gyration Tensor xz = %1$9.4f Ang^2") %
+          (gyro.gyration(0, 2) * RA2))
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Gyration Tensor yy = %1$9.4f Ang^2") %
+          (gyro.gyration(1, 1) * RA2))
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Gyration Tensor yz = %1$9.4f Ang^2") %
+          (gyro.gyration(1, 2) * RA2))
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Gyration Tensor zz = %1$9.4f Ang^2") %
+          (gyro.gyration(2, 2) * RA2))
+      << std::flush;
 
-}}
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Gyration Tensor D1 = %1$9.4f Ang^2") %
+          (es.eigenvalues()[0] * RA2))
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Gyration Tensor D2 = %1$9.4f Ang^2") %
+          (es.eigenvalues()[1] * RA2))
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Gyration Tensor D3 = %1$9.4f Ang^2") %
+          (es.eigenvalues()[2] * RA2))
+      << std::flush;
 
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Radius of Gyration = %1$9.4f Ang") %
+          (std::sqrt(es.eigenvalues().sum()) * tools::conv::bohr2ang))
+      << std::flush;
 
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Tensor EF Axis 1 1 = %1$9.4f ") %
+          es.eigenvectors().col(0).x())
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Tensor EF Axis 1 2 = %1$9.4f ") %
+          es.eigenvectors().col(0).y())
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Tensor EF Axis 1 3 = %1$9.4f ") %
+          es.eigenvectors().col(0).z())
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Tensor EF Axis 2 1 = %1$9.4f ") %
+          es.eigenvectors().col(1).x())
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Tensor EF Axis 2 2 = %1$9.4f ") %
+          es.eigenvectors().col(1).y())
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Tensor EF Axis 2 3 = %1$9.4f ") %
+          es.eigenvectors().col(1).z())
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Tensor EF Axis 3 1 = %1$9.4f ") %
+          es.eigenvectors().col(2).x())
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Tensor EF Axis 3 2 = %1$9.4f ") %
+          es.eigenvectors().col(2).y())
+      << std::flush;
+  XTP_LOG(Log::error, _log)
+      << (boost::format("  Tensor EF Axis 3 3 = %1$9.4f ") %
+          es.eigenvectors().col(2).z())
+      << std::flush;
+}
+
+}  // namespace xtp
+}  // namespace votca

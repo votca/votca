@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,111 +17,87 @@
  *
  */
 
-#ifndef _VOTCA_XTP_GWBSE_H
-#define _VOTCA_XTP_GWBSE_H
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/threecenter.h>
-#include <votca/xtp/sigma.h>
+#pragma once
+#ifndef VOTCA_XTP_GWBSE_H
+#define VOTCA_XTP_GWBSE_H
+
+// Standard includes
 #include <fstream>
+
+// VOTCA includes
+#include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "bse.h"
+#include "eigen.h"
+#include "gw.h"
+#include "logger.h"
+#include "qmfragment.h"
 
 namespace votca {
 namespace xtp {
-
+class Orbitals;
+class AOBasis;
 /**
-* \brief Electronic excitations from GW-BSE
-*
-* Evaluates electronic excitations in molecular systems based on
-* many-body Green's functions theory within the GW approximation and
-* the Bethe-Salpeter equation. Requires molecular orbitals 
-*
-*  B. Baumeier, Y. Ma, D. Andrienko, M. Rohlfing
-*  J. Chem. Theory Comput. 8, 997-1002 (2012)
-*
-*  B. Baumeier, D. Andrienko, M. Rohlfing
-*  J. Chem. Theory Comput. 8, 2790-2795 (2012)
-*
-*/
+ * \brief Electronic excitations from GW-BSE
+ *
+ * Evaluates electronic excitations in molecular systems based on
+ * many-body Green's functions theory within the GW approximation and
+ * the Bethe-Salpeter equation. Requires molecular orbitals
+ *
+ *  B. Baumeier, Y. Ma, D. Andrienko, M. Rohlfing
+ *  J. Chem. Theory Comput. 8, 997-1002 (2012)
+ *
+ *  B. Baumeier, D. Andrienko, M. Rohlfing
+ *  J. Chem. Theory Comput. 8, 2790-2795 (2012)
+ *
+ */
 
 class GWBSE {
  public:
-  GWBSE(Orbitals* orbitals)
-      : _orbitals(orbitals){};
+  GWBSE(Orbitals& orbitals) : _orbitals(orbitals){};
 
-  void Initialize(tools::Property* options);
+  void Initialize(tools::Property& options);
 
   std::string Identify() { return "gwbse"; }
 
-  void CleanUp();
-
-  void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
+  void setLogger(Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
-    
-  void addoutput(tools::Property* _summary);
+
+  void addoutput(tools::Property& summary);
 
  private:
-     
- void PrintQP_Energies(const Eigen::VectorXd& gwa_energies, const Eigen::VectorXd& qp_diag_energies);
- void PrintGWA_Energies(const Eigen::MatrixXd& vxc,const Sigma& sigma, const Eigen::VectorXd& _dft_energies);    
- 
- Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
- ctp::Logger* _pLog;
- Orbitals* _orbitals;
-  
+  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
+  Index CountCoreLevels();
+  Logger* _pLog;
+  Orbitals& _orbitals;
+
   // program tasks
-  bool _do_qp_diag;
-  bool _do_bse_diag;
-  bool _do_bse_singlets;
-  bool _do_bse_triplets;
 
-  // storage tasks
-  bool _store_qp_pert;
-  bool _store_qp_diag;
-  bool _store_bse_singlets;
-  bool _store_bse_triplets;
-  bool _store_eh_interaction;
-
-  // iterate G and W and not only G
-  bool _iterate_gw;
+  bool _do_gw = false;
+  bool _do_bse_singlets = false;
+  bool _do_bse_triplets = false;
 
   // options for own Vxc calculation
-  bool _doVxc;
   std::string _functional;
   std::string _grid;
 
-  int _openmp_threads;
+  GW::options _gwopt;
+  BSE::options _bseopt;
 
-  // fragment definitions
-  int _fragA;
-
-  // BSE variant
-  bool _do_full_BSE;
+  std::string _sigma_plot_states;
+  Index _sigma_plot_steps;
+  double _sigma_plot_spacing;
+  std::string _sigma_plot_filename;
 
   // basis sets
   std::string _auxbasis_name;
   std::string _dftbasis_name;
-  int _reset_3c; //how often the 3c integrals in iterate shoudl be rebuild
-  double _shift;  // pre-shift of DFT energies
-  unsigned _homo;   // HOMO index
-  unsigned _rpamin;
-  unsigned _rpamax;
-  unsigned _qpmin;
-  unsigned _qpmax;
-  unsigned _qptotal;
-  double _g_sc_limit;  // convergence criteria for g iteration [Hartree]]
-  unsigned _g_sc_max_iterations;
-  unsigned _gw_sc_max_iterations;
-  double _gw_sc_limit;  // convergence criteria for gw iteration [Hartree]]
-  
-  unsigned _bse_vmin;
-  unsigned _bse_vmax;
-  unsigned _bse_cmin;
-  unsigned _bse_cmax;
-  int _bse_maxeigenvectors;
-  double _min_print_weight;
 
+  std::vector<QMFragment<BSE_Population> > _fragments;
 };
-}
-}
+}  // namespace xtp
+}  // namespace votca
 
-#endif /* _VOTCA_XTP_GWBSE_H */
+#endif  // VOTCA_XTP_GWBSE_H

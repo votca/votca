@@ -1,7 +1,6 @@
 *~
 Makefile
 
-libvotca*.pc
 libvotca*.a
 libvotca*.so
 libvotca*.so.*
@@ -9,9 +8,8 @@ libvotca*.so.*
 share/doc/html
 share/doc/Doxyfile
 
-include/votca/xtp/votca_config.h
+include/votca/xtp/votca_xtp_config.h
 src/libxtp/gitversion.h
-include/votca/xtp/votca_config.h
 
 src/tools/xtp_dump
 src/tools/xtp_parallel
@@ -37,29 +35,15 @@ scripts/xtp_basisset.out
 scripts/xtp_makeauxbasis
 scripts/xtp_makeauxbasis.out
 
-netbeans/*/build
+netbeans
 .dep.inc
 */nbproject/private
-netbeans/libxtp/dist/Debug/*
-netbeans/libxtp/nbproject/Package-Debug.bash
-netbeans/libxtp/nbproject/Package-Release.bash
-
-netbeans/xtp_map/nbproject/Package-Debug.bash
-netbeans/xtp_map/nbproject/Package-Release.bash
-
-netbeans/xtp_run/nbproject/Package-Debug.bash
-netbeans/xtp_run/nbproject/Package-Release.bash
 
 CMakeFiles
 cmake_install.cmake
 CMakeCache.txt
 install_manifest.txt
-/netbeans/xtp_app/dist/
-/netbeans/libxtp/dist/
-/netbeans/libxtp/nbproject/private/private.xml
-/netbeans/libxtp/nbproject/Makefile-Release.mk
-/netbeans/libxtp/nbproject/Makefile-Debug.mk
-/netbeans/libxtp/nbproject/configurations.xml
-
 
 /build
+
+.vscode

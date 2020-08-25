@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,172 +17,161 @@
  *
  */
 
-#ifndef _XTP_QM_PACKAGE_H
-#define _XTP_QM_PACKAGE_H
+#pragma once
+#ifndef VOTCA_XTP_QMPACKAGE_H
+#define VOTCA_XTP_QMPACKAGE_H
 
-#include <votca/ctp/logger.h>
-#include <votca/xtp/orbitals.h>
+// VOTCA includes
 #include <votca/tools/property.h>
-#include <votca/ctp/segment.h>
-#include <votca/ctp/polarseg.h>
-#include <votca/ctp/qmpair.h>
-#include <votca/ctp/topology.h>
-#include <boost/format.hpp>
+
+// Local VOTCA includes
+#include "aobasis.h"
+#include "classicalsegment.h"
+#include "logger.h"
+#include "settings.h"
+#include "staticsite.h"
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
+class Orbitals;
 
-        // ========================================================================== //
-        // QMPackage base class for wrappers of TURBOMOLE, GAUSSIAN, etc              //
-        // ========================================================================== //
+// ========================================================================== //
+// QMPackage base class for wrappers of ORCA
+// ========================================================================== //
 
-        class QMPackage {
-        public:
+class QMPackage {
+ public:
+  virtual ~QMPackage() = default;
 
-            QMPackage() {
-            };
+  virtual std::string getPackageName() const = 0;
 
-            virtual ~QMPackage() {
-            };
+  virtual void Initialize(const tools::Property& options) = 0;
 
-            virtual std::string getPackageName() = 0;
+  /// writes a coordinate file WITHOUT taking into account PBCs
+  virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
 
+  virtual bool Run() = 0;
 
-            virtual void Initialize(Property *options) = 0;
+  virtual bool ParseLogFile(Orbitals& orbitals) = 0;
 
-            /// writes a coordinate file WITHOUT taking into account PBCs
-            virtual bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {}) = 0;
+  virtual bool ParseMOsFile(Orbitals& orbitals) = 0;
 
-            /// writes a coordinate file of a pair WITH PBCs and the orbital guess [if needed]
-            bool WriteInputFilePBC(ctp::QMPair* pair, Orbitals* orbitals = NULL, std::vector<std::string> linker_names ={});
+  virtual void CleanUp() = 0;
 
-            virtual bool Run(Orbitals* _orbitals = NULL) = 0;
+  template <class MMRegion>
+  void AddRegion(const MMRegion& mmregion) {
 
-            virtual bool ParseLogFile(Orbitals* _orbitals) = 0;
-
-            virtual bool ParseOrbitalsFile(Orbitals* _orbitals) = 0;
-
-            virtual bool setMultipoleBackground( std::vector<ctp::PolarSeg*> PolarSegments) = 0;
-
-            virtual void CleanUp() = 0;
-
-            void setRunDir(std::string run_dir) {
-                _run_dir = run_dir;
-            }
-
-            void setInputFileName(std::string input_file_name) {
-                _input_file_name = input_file_name;
-            }
-
-            void setLogFileName(std::string log_file_name) {
-                _log_file_name = log_file_name;
-            }
-
-            void setOrbitalsFileName(string orb_file) {
-                _orb_file_name = orb_file;
-            }
-
-            void setLog(ctp::Logger* pLog) {
-                _pLog = pLog;
-            }
-
-            bool GuessRequested() {
-                return _write_guess;
-            }
-
-            bool ECPRequested() {
-                return _write_pseudopotentials;
-            }
-
-            bool VXCRequested() {
-                return _output_Vxc;
-            }
-
-            void setCharge(const int charge) {
-                _charge = charge;
-            }
-
-            void setSpin(const int spin) {
-                _spin = spin;
-            }
-
-            void setThreads(const int threads) {
-                _threads = threads;
-            }
-
-            void doGetCharges(bool do_get_charges) {
-                _get_charges = do_get_charges;
-            }
-
-            std::string getBasisSetName() {
-                return _basisset_name;
-            }
-
-            std::string getExecutable() {
-                return _executable;
-            };
-
-            void setWithPolarization(bool polar){
-                _with_polarization=polar;
-                return;
-            }
-
-            void setDipoleSpacing(double spacing){
-                _dpl_spacing=spacing;
-                return;
-            }
-
-        protected:
-
-            int _charge;
-            int _spin; // 2S+1
-            int _threads;
-            std::string _memory;
-            std::string _options;
-
-            std::string _executable;
-            std::string _input_file_name;
-            std::string _log_file_name;
-            std::string _xyz_file_name;
-            std::string _orb_file_name;
-
-            std::string _run_dir;
-
-            std::string _basisset_name;
-            std::string _auxbasisset_name;
-            std::string _ecp_name;
-
-            std::list< std::string > _cleanup_list;
-
-            bool _get_orbitals;
-            bool _get_overlap;
-            bool _get_charges;
-            bool _get_self_energy;
-
-            bool _write_guess;
-            bool _write_charges;
-            bool _write_basis_set;
-            bool _write_pseudopotentials;
-
-            bool _output_Vxc;
-
-            ctp::Logger* _pLog;
-
-            double _dpl_spacing;
-            bool _with_polarization;
-            std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);
-            void ReorderOutput(Orbitals* _orbitals);
-            void ReorderMOsBack(Orbitals* _orbitals);
-            void addLinkers(std::vector< ctp::Segment* > &segments, ctp::QMPair* pair, std::vector< std::string> linker_names );
-            bool isLinker( std::string name, std::vector< std::string> linker_names );
-
-            
-        };
-        
-       
-
+    using Segmenttype =
+        typename std::iterator_traits<typename MMRegion::iterator>::value_type;
+    using Sitetype = typename std::iterator_traits<
+        typename Segmenttype::iterator>::value_type;
+    for (const Segmenttype& segment : mmregion) {
+      for (const Sitetype& site : segment) {
+        _externalsites.push_back(
+            std::unique_ptr<StaticSite>(new Sitetype(site)));
+      }
     }
-}
+    if (_settings.get<bool>("write_charges")) {
+      WriteChargeOption();
+    }
+  }
 
-#endif /* _XTP_QM_PACKAGE_H */
+  void setRunDir(const std::string& run_dir) { _run_dir = run_dir; }
+
+  void setInputFileName(const std::string& input_file_name) {
+    _input_file_name = input_file_name;
+  }
+
+  void setLogFileName(const std::string& log_file_name) {
+    _log_file_name = log_file_name;
+  }
+
+  void setMOsFileName(const std::string& mo_file) { _mo_file_name = mo_file; }
+
+  void setLog(Logger* pLog) { _pLog = pLog; }
+
+  void setCharge(Index charge) {
+    _charge = charge;
+    _spin = std::abs(charge) + 1;
+  }
+
+  bool GuessRequested() const { return _settings.get<bool>("read_guess"); }
+
+  virtual StaticSegment GetCharges() const = 0;
+
+  virtual Eigen::Matrix3d GetPolarizability() const = 0;
+
+  std::string getLogFile() const { return _log_file_name; };
+
+  std::string getMOFile() const { return _mo_file_name; };
+
+ protected:
+  struct MinimalMMCharge {
+    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : _pos(pos), _q(q){};
+    Eigen::Vector3d _pos;
+    double _q;
+  };
+
+  tools::Property ParseCommonOptions(const tools::Property& options);
+  std::string FindDefaultsFile() const;
+
+  virtual void WriteChargeOption() = 0;
+  std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
+  void ReorderOutput(Orbitals& orbitals) const;
+  Eigen::MatrixXd ReorderMOsBack(const Orbitals& orbitals) const;
+  bool isLinker(std::string name, std::vector<std::string> linker_names);
+
+  std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,
+                                           const std::string separators) const;
+
+  // each qmpackage has its own ordering of the individual functions in each
+  // shell
+  // i.e. VOTCA uses z,y,x e.g. Y1,0 Y1,-1 Y1,1 for the p shell
+  // d3z2-r2 dyz dxz dxy dx2-y2 e.g. Y2,0 Y2,-1 Y2,1 Y2,-2 for the d shell and
+  // so forth. ORCA uses z,x,y for the p shell
+  // these methods reorder the MOs to that format using the
+  // ShellReorder() and ShellMulitplier() which specify the order for each
+  // QMPackage. Some codes also use different normalisation conditions which
+  // lead to other signs for some of the entries, which can be changed via the
+  // multipliers.
+  void ReorderMOsToXTP(Eigen::MatrixXd& v, const AOBasis& basis) const;
+  void ReorderMOsToNative(Eigen::MatrixXd& v, const AOBasis& basis) const;
+
+  void ReorderMOs(Eigen::MatrixXd& v, const std::vector<Index>& order) const;
+  void MultiplyMOs(Eigen::MatrixXd& v,
+                   const std::vector<Index>& multiplier) const;
+
+  std::vector<Index> getMultiplierVector(const AOBasis& basis) const;
+  std::vector<Index> getMultiplierShell(const AOShell& shell) const;
+
+  std::vector<Index> getReorderVector(const AOBasis& basis) const;
+  std::vector<Index> getReorderShell(const AOShell& shell) const;
+  std::vector<Index> invertOrder(const std::vector<Index>& order) const;
+
+  virtual const std::array<Index, 25>& ShellMulitplier() const = 0;
+  virtual const std::array<Index, 25>& ShellReorder() const = 0;
+
+  Settings _settings{"package"};
+
+  Index _charge;
+  Index _spin;  // 2S+1mem
+  std::string _basisset_name;
+  std::string _cleanup = "";
+  std::string _input_file_name;
+  std::string _log_file_name;
+  std::string _mo_file_name;
+  std::string _options = "";
+  std::string _run_dir;
+  std::string _scratch_dir;
+  std::string _shell_file_name;
+
+  Logger* _pLog;
+
+  std::vector<std::unique_ptr<StaticSite> > _externalsites;
+};
+
+}  // namespace xtp
+}  // namespace votca
+
+#endif  // VOTCA_XTP_QMPACKAGE_H

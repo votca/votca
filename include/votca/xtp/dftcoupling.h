@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,59 +17,57 @@
  *
  */
 
-#ifndef _VOTCA_XTP_DFTCOUPLING_H
-#define	_VOTCA_XTP_DFTCOUPLING_H
+#pragma once
+#ifndef VOTCA_XTP_DFTCOUPLING_H
+#define VOTCA_XTP_DFTCOUPLING_H
 
-#include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
+// Local VOTCA includes
+#include "couplingbase.h"
 
-
-
-namespace votca { namespace xtp {
-
+namespace votca {
+namespace xtp {
 
 /**
-* \brief Evaluates electronic coupling elements
-*
-* B. Baumeier, J. Kirkpatrick, D. Andrienko, 
-* Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
-* 
-*/
+ * \brief Evaluates electronic coupling elements
+ *
+ * B. Baumeier, J. Kirkpatrick, D. Andrienko,
+ * Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
+ *
+ */
 
-class DFTcoupling 
-{
-public:
+class DFTcoupling : public CouplingBase {
+ public:
+  std::string Identify() const { return "dftcoupling"; }
 
-    DFTcoupling() {};
-   ~DFTcoupling() {};
+  void CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
+                          const Orbitals& orbitalsAB) override;
 
+  void Initialize(tools::Property&) override;
 
+  void Addoutput(tools::Property& type_summary, const Orbitals& orbitalsA,
+                 const Orbitals& orbitalsB) const override;
 
-    bool CalculateIntegrals(   Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, 
-                               Eigen::MatrixXd* _JAB);
-    
-    double getCouplingElement( int levelA, int levelB,  
-                               Orbitals* _orbitalsA,  
-                               Orbitals* _orbitalsB, 
-                               Eigen::MatrixXd* _JAB,
-                               double _energy_difference = 0
-                                );
-    
-    void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
-    
-private:
-    
-    ctp::Logger *_pLog;
-    
-  
+ private:
+  void WriteToProperty(tools::Property& type_summary, const Orbitals& orbitalsA,
+                       const Orbitals& orbitalsB, Index a, Index b) const;
+  double getCouplingElement(Index levelA, Index levelB,
+                            const Orbitals& orbitalsA,
+                            const Orbitals& orbitalsB) const;
 
+  std::pair<int, Index> DetermineRangeOfStates(const Orbitals& orbital,
+                                               Index numberofstates) const;
 
+  Eigen::MatrixXd JAB;
+
+  double _degeneracy = 0.0;
+  Index _numberofstatesA = 1;
+  Index _numberofstatesB = 1;
+
+  std::pair<int, Index> Range_orbA;
+  std::pair<int, Index> Range_orbB;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif	/* _VOTCA_XTP_DFTCOUPLING_H */
-
-
+#endif  // VOTCA_XTP_DFTCOUPLING_H

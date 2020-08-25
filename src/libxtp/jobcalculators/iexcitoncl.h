@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,71 +17,51 @@
  *
  */
 
-#ifndef _CALC_COUPLING_EXCL_H
-#define	_CALC_COUPLING_EXCL_H
+#pragma once
+#ifndef VOTCA_XTP_IEXCITONCL_H
+#define VOTCA_XTP_IEXCITONCL_H
 
+// Third party includes
+#include <boost/filesystem.hpp>
+#include <sys/stat.h>
+
+// VOTCA includes
 #include <votca/tools/property.h>
 
-#include <votca/ctp/parallelxjobcalc.h>
-#include <sys/stat.h>
-#include <boost/filesystem.hpp>
-#include <votca/ctp/xmapper.h>
-#include <votca/ctp/xjob.h>
+// Local VOTCA includes
+#include "votca/xtp/parallelxjobcalc.h"
+#include "votca/xtp/qmstate.h"
 
-namespace votca { namespace xtp {
-    
+namespace votca {
+namespace xtp {
+
 /**
-* \brief Evaluates Transition Charge distributions classically
-*
-* Evaluates the electrostatic classical coupling between molecules in 
-* their excited states.
-* 
+ * \brief Evaluates Transition Charge distributions classically
+ *
+ * Evaluates the electrostatic classical coupling between molecules in
+ * their excited states.
+ * Callname: iexcitoncl
+ */
 
-* 
-* Callname: iexcitoncl
-*/
+class IEXCITON : public ParallelXJobCalc<std::vector<Job> > {
+ public:
+  void Initialize(const tools::Property &user_options) override;
 
-class IEXCITON : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
-{
-public:
+  std::string Identify() override { return "iexcitoncl"; }
 
-    IEXCITON() {};
-   ~IEXCITON() {};
-   
-    void    Initialize(tools::Property *options );
-    
-    string  Identify() { return "iexcitoncl"; }
-    
-    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);
+  Job::JobResult EvalJob(const Topology &top, Job &job,
+                         QMThread &opThread) override;
 
-    void WriteJobFile(ctp::Topology *top);
-    void ReadJobFile(ctp::Topology *top);
+  void WriteJobFile(const Topology &top) override;
+  void ReadJobFile(Topology &top) override;
 
-    
-
-private:
-
-    
-    double                              _cutoff;
-    double                              _epsilon;
-    ctp::XMpsMap                        _mps_mapper;
-    bool                           _induce;
-    int                           _statenumber;
-    string                         _emp_file;
-    string                         _xml_file;
-
-        
-
-        
-    
-    void PreProcess(ctp::Topology *top);
-    void CustomizeLogger(ctp::QMThread *thread);
-    double EvaluatePair(ctp::Topology *top,ctp::PolarSeg* Seg1,ctp::PolarSeg* Seg2, ctp::Logger* pLog);
- 
-    
- 
-        
+ private:
+  QMState GetElementFromMap(const std::string &elementname) const;
+  std::map<std::string, QMState> FillParseMaps(const std::string &Mapstring);
+  double _cutoff;
+  std::map<std::string, QMState> _statemap;
 };
 
-}}
-#endif	/* _CALC_INTEGRALS_DFT_H */
+}  // namespace xtp
+}  // namespace votca
+#endif  // VOTCA_XTP_IEXCITONCL_H

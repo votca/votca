@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2017 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,100 +17,53 @@
  *
  */
 
-#ifndef __XTP_FORCES__H
-#define __XTP_FORCES__H
+#pragma once
+#ifndef VOTCA_XTP_FORCES_H
+#define VOTCA_XTP_FORCES_H
 
+// Standard includes
+#include <cstdio>
 
-#include <votca/xtp/qmatom.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/segment.h>
-#include <stdio.h>
-#include <votca/xtp/gwbseengine.h>
-#include <votca/xtp/qminterface.h>
-
-
+// Local VOTCA includes
+#include "gwbseengine.h"
+#include "logger.h"
+#include "qmatom.h"
+#include "segment.h"
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
+class StateTracker;
 
-        class Forces {
-        public:
+class Forces {
+ public:
+  Forces(GWBSEEngine& gwbse_engine, const StateTracker& tracker)
+      : _gwbse_engine(gwbse_engine), _tracker(tracker){};
 
-            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, vector<ctp::Segment*> segments, Orbitals* orbitals)
-            : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
-            };
+  void Initialize(tools::Property& options);
+  void Calculate(const Orbitals& orbitals);
 
-            ~Forces() {
-            };
+  void setLog(Logger* pLog) { _pLog = pLog; }
 
-            void Initialize(Property *options);
-            void Calculate(const double& energy);
+  const Eigen::MatrixX3d& GetForces() const { return _forces; };
+  void Report() const;
 
-            Eigen::Vector3d NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
-            Eigen::Vector3d NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
+ private:
+  Eigen::Vector3d NumForceForward(Orbitals orbitals, Index atom_index);
+  Eigen::Vector3d NumForceCentral(Orbitals orbitals, Index atom_index);
+  void RemoveTotalForce();
 
-            void setLog(ctp::Logger* pLog) {
-                _pLog = pLog;
-            }
+  double _displacement;
+  std::string _force_method;
 
-            void SetSpinType(const std::string spin_type) {
-                _spin_type = spin_type;
-            };
+  GWBSEEngine& _gwbse_engine;
+  const StateTracker& _tracker;
+  bool _remove_total_force = true;
 
-            void SetOptState(const int opt_state) {
-                _opt_state = opt_state;
-            };
+  Eigen::MatrixX3d _forces;
+  Logger* _pLog;
+};
 
-            std::string GetSpinType() {
-                return _spin_type;
-            };
-
-            int GetOptState() {
-                return _opt_state;
-            };
-
-            Eigen::MatrixXd GetForces() {
-                return _forces;
-            };
-            void Report();
-
-
-
-
-        private:
-
-            double _displacement;
-            std::string _force_method;
-            std::string _spin_type;
-
-            
-            
-            bool _noisy_output;
-
-            int _nsegments;
-            unsigned _natoms;
-            int _opt_state;
-
-            GWBSEENGINE _gwbse_engine;
-            QMPackage* _qmpackage;
-            std::vector<ctp::Segment*> _segments;
-            Orbitals* _orbitals;
-            bool _remove_total_force;
-            bool _remove_CoM_force;
-
-            Eigen::MatrixX3d _forces;
-
-            Property _force_options;
-
-            void RemoveTotalForce();
-            void RemoveCoMForce();
-            Eigen::Vector3d TotalForce();
-
-            QMMInterface _qminterface;
-            ctp::Logger *_pLog;
-        };
-
-    }
-}
-#endif /* FORCES_H */
+}  // namespace xtp
+}  // namespace votca
+#endif  // VOTCA_XTP_FORCES_H

@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,64 +17,58 @@
  *
  */
 
-#ifndef __XTP_ADIIS_COSTFUNCTION__H
-#define __XTP_ADIIS_COSTFUNCTION__H
+#pragma once
+#ifndef VOTCA_XTP_ADIIS_COSTFUNCTION_H
+#define VOTCA_XTP_ADIIS_COSTFUNCTION_H
 
-
-#include <votca/xtp/basisset.h>
-#include "ceres/ceres.h"
-
+// Local VOTCA includes
+#include "optimiser_costfunction.h"
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-        class ADIIS_costfunction : public ceres::FirstOrderFunction {
-        public:
+class ADIIS_costfunction : public Optimiser_costfunction {
+ public:
+  ADIIS_costfunction(Eigen::VectorXd DiF, Eigen::MatrixXd DiFj) {
+    _DiF = DiF;
+    _DiFj = DiFj;
+  }
 
-            ADIIS_costfunction(Eigen::VectorXd DiF, Eigen::MatrixXd DiFj) {
-                _DiF = DiF;
-                _DiFj = DiFj;
-            }
+  double EvaluateCost(const Eigen::VectorXd& parameters) override {
+    Eigen::VectorXd c = parameters.cwiseAbs2();
+    double xnorm = c.sum();
+    c /= xnorm;
+    return (2 * c.transpose() * _DiF + c.transpose() * _DiFj * c).value();
+  }
 
-            virtual bool Evaluate(const double* parameters,
-                    double* cost,
-                    double* gradient) const {
-                Eigen::Map<const Eigen::VectorXd> x(parameters, _DiF.size());
-                Eigen::VectorXd c = x.cwiseAbs2();
-                double xnorm = c.sum();
-                c /= xnorm;
-
-                cost[0] = (2 * c.transpose() * _DiF + c.transpose() * _DiFj * c).value();
-                if (gradient != NULL) {
-                    Eigen::VectorXd dEdc = 2.0 * _DiF + _DiFj * c + _DiFj.transpose() * c;
-                    Eigen::MatrixXd jac = Eigen::MatrixXd::Zero(c.size(), c.size());
-                    for (int i = 0; i < jac.rows(); i++) {
-                        for (int j = 0; j < jac.cols(); j++) {
-                            jac(i, j) = -c(i)*2.0 * x(j) / xnorm;
-                        }
-                        // Extra term on diagonal
-                        jac(i, i) += 2.0 * x(i) / xnorm;
-                    }
-                    Eigen::VectorXd dEdxv = jac.transpose() * dEdc;
-                    for (int i = 0; i < dEdxv.size(); ++i) {
-                        gradient[i] = dEdxv(i);
-                    }
-                }
-                return true;
-            }
-
-            virtual int NumParameters() const {
-                return _DiF.size();
-            }
-
-
-        private:
-            Eigen::VectorXd _DiF;
-            Eigen::MatrixXd _DiFj;
-
-
-        };
-
+  Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) override {
+    Eigen::VectorXd c = parameters.cwiseAbs2();
+    double xnorm = c.sum();
+    c /= xnorm;
+    Eigen::VectorXd dEdc = 2.0 * _DiF + _DiFj * c + _DiFj.transpose() * c;
+    Eigen::MatrixXd jac = Eigen::MatrixXd::Zero(c.size(), c.size());
+    for (Index i = 0; i < jac.rows(); i++) {
+      for (Index j = 0; j < jac.cols(); j++) {
+        jac(i, j) = -c(i) * 2.0 * parameters(j) / xnorm;
+      }
+      // Extra term on diagonal
+      jac(i, i) += 2.0 * parameters(i) / xnorm;
     }
-}
-#endif /* FORCES_H */
+    return jac.transpose() * dEdc;
+  }
+
+  Index NumParameters() const override { return Index(_DiF.size()); }
+
+  bool Converged(const Eigen::VectorXd&, double,
+                 const Eigen::VectorXd& gradient) override {
+    return gradient.cwiseAbs().maxCoeff() < 1.e-7;
+  }
+
+ private:
+  Eigen::VectorXd _DiF;
+  Eigen::MatrixXd _DiFj;
+};
+
+}  // namespace xtp
+}  // namespace votca
+#endif  // VOTCA_XTP_ADIIS_COSTFUNCTION_H

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,100 +17,80 @@
  *
  */
 
-#ifndef _VOTCA_XTP_GWBSEENGINE_H
-#define _VOTCA_XTP_GWBSEENGINE_H
+#pragma once
+#ifndef VOTCA_XTP_GWBSEENGINE_H
+#define VOTCA_XTP_GWBSEENGINE_H
 
+// VOTCA includes
+#include <votca/tools/property.h>
 
-
-#include <votca/ctp/segment.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/ctp/polarseg.h>
-#include <votca/xtp/qmpackage.h>
-#include <votca/ctp/topology.h>
-#include <votca/ctp/apolarsite.h>
-#include <boost/filesystem.hpp>
-#include <votca/ctp/logger.h>
+// Local VOTCA includes
+#include "logger.h"
 
 namespace votca {
-    namespace xtp {
-        namespace ub = boost::numeric::ublas;
+namespace xtp {
+class QMPackage;
+class Orbitals;
 
 /**
-         * \brief Electronic Excitations via Density-Functional Theory
-         *
-         * Evaluates electronic ground state in molecular systems based on
-         * density functional theory with Gaussian Orbitals.
-         * 
-         */
+ * \brief Electronic Excitations via Density-Functional Theory
+ *
+ * Evaluates electronic ground state in molecular systems based on
+ * density functional theory with Gaussian Orbitals.
+ *
+ */
 
-        class GWBSEENGINE {
-        public:
+class GWBSEEngine {
+ public:
+  std::string Identify() { return "gwbse_engine"; }
 
-            GWBSEENGINE() {
-            };
+  void Initialize(tools::Property& options, std::string archive_filename);
+  void ExcitationEnergies(Orbitals& orbitals);
 
-            ~GWBSEENGINE() {
-            };
+  void setLog(Logger* pLog) { _pLog = pLog; }
 
-            std::string Identify() {
-                return "gwbse_engine";
-            }
+  void setQMPackage(QMPackage* qmpackage) { _qmpackage = qmpackage; }
 
-            void Initialize(Property *options, string _archive_filename);
-            void ExcitationEnergies(QMPackage* _qmpackage, vector<ctp::Segment*> _segments, Orbitals* _orbitals);
+  std::string GetDFTLog() const { return _dftlog_file; };
 
-            void setLog(ctp::Logger* pLog) {
-                _pLog = pLog;
-            }
+  void setLoggerFile(std::string logger_file) { _logger_file = logger_file; };
 
-            string GetDFTLog() {
-                return _dftlog_file;
-            };
+  void setRedirectLogger(bool redirect_logger) {
+    _redirect_logger = redirect_logger;
+  };
 
-            void setLoggerFile(string logger_file) {
-                _logger_file = logger_file;
-            };
+  const tools::Property& ReportSummary() const { return _summary; };
 
-            void setRedirectLogger(bool redirect_logger) {
-                _redirect_logger = redirect_logger;
-            };
-            
-            
-            Property ReportSummary(){ return _summary;};
+ private:
+  QMPackage* _qmpackage;
 
+  Logger* _pLog;
 
-        private:
+  // task options
+  bool _do_guess = false;
+  bool _do_dft_input = false;
+  bool _do_dft_run = false;
+  bool _do_dft_parse = false;
+  bool _do_gwbse = false;
+  bool _redirect_logger = false;
 
-            ctp::Logger *_pLog;
+  // DFT log and MO file names
+  std::string _MO_file;      // file containing the MOs from qmpackage...
+  std::string _dftlog_file;  // file containing the Energies etc... from
+                             // qmpackage...
+  std::string _logger_file;
+  std::string _archive_file;
+  std::string _guess_archiveA;
+  std::string _guess_archiveB;
 
-            // task options
-            bool _do_guess;
-            bool _do_dft_input;
-            bool _do_dft_run;
-            bool _do_dft_parse;
-            bool _do_gwbse;
-            bool _redirect_logger;
+  // Options for GWBSE module
+  tools::Property _gwbse_options;
+  tools::Property _summary;
 
-            // DFT log and MO file names
-            string _MO_file; // file containing the MOs from qmpackage...
-            string _dftlog_file; // file containing the Energies etc... from qmpackage...
-            string _logger_file;
-            string _archive_file;
-            string _guess_archiveA;
-            string _guess_archiveB;
+  void WriteLoggerToFile(Logger* pLog);
+};
 
-            // Options for GWBSE module
-            Property _gwbse_options;
-            Property _summary;
+}  // namespace xtp
+}  // namespace votca
 
-            void SaveRedirectedLogger(ctp::Logger* pLog);
-
-
-
-        };
-
-
-    }
-}
-
-#endif /* _VOTCA_XTP_GWBSEENGINE_H */
+#endif  // VOTCA_XTP_GWBSEENGINE_H

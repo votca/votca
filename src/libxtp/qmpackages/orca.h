@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,78 +17,96 @@
  *
  */
 
-#ifndef __VOTCA_XTP_ORCA_H
-#define	__VOTCA_XTP_ORCA_H
+#pragma once
+#ifndef VOTCA_XTP_ORCA_H
+#define VOTCA_XTP_ORCA_H
 
+// Local VOTCA includes
+#include "votca/xtp/qmpackage.h"
 
-#include <votca/ctp/apolarsite.h>
-#include <votca/xtp/qmpackage.h>
-
-#include <string>
-
-
-
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 /**
-    \brief Wrapper for the Gaussian program
+    \brief Wrapper for the ORCA program
 
-    The Gaussian class executes the Gaussian package
+    The ORCA class executes the ORCA package
     and extracts information from its log and io files
 
 */
-class Orca : public QMPackage
-{
-public:
+class Orbitals;
+class Orca : public QMPackage {
+ public:
+  std::string getPackageName() const override { return "orca"; }
 
-   std::string getPackageName() { return "orca"; }
+  void Initialize(const tools::Property& options) override;
 
-   void Initialize( Property *options );
+  bool WriteInputFile(const Orbitals& orbitals) override;
 
-   /* Writes Orca input file with coordinates of segments
+  bool WriteShellScript();
 
-    */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
+  bool Run() override;
 
-   bool WriteShellScript();
+  void CleanUp() override;
 
-   bool Run( Orbitals* _orbitals = NULL );
+  bool CheckLogFile();
 
-   void CleanUp();
+  bool ParseLogFile(Orbitals& orbitals) override;
 
-   bool CheckLogFile();
+  bool ParseMOsFile(Orbitals& orbitals) override;
 
-   bool ParseLogFile( Orbitals* _orbitals );
+  StaticSegment GetCharges() const override;
 
-   bool ParseOrbitalsFile( Orbitals* _orbitals );
-   bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){ return true; };
+  Eigen::Matrix3d GetPolarizability() const override;
 
+ protected:
+  const std::array<Index, 25>& ShellMulitplier() const final {
+    return _multipliers;
+  }
+  const std::array<Index, 25>& ShellReorder() const final { return _reorder; }
 
+ private:
+  // clang-format off
+  std::array<Index,25> _multipliers={
+            1, //s
+            1,1,1, //p
+            1,1,1,1,1, //d
+            1,1,1,1,1,-1,-1, //f 
+            1,1,1,1,1,-1,-1,-1,-1 //g
+            };
+  std::array<Index,25> _reorder={
+            0, //s
+            0,+1,-1, //p orca order is z,x,y Y1,0,Y1,1,Y1,-1
+            0,+1,-1,+1,-1, //d orca order is d3z2-r2 dxz dyz dx2-y2 dxy e.g. Y2,0 Y2,1 Y2,-1 Y2,2
+            0,+1,-1,+1,-1,+1,-1, //f 
+            0,+1,-1,+1,-1,+1,-1,+1,-1 //g
+            };
+  // clang-format on
+  std::string indent(const double& number);
 
-   std::string getScratchDir( ) { return _scratch_dir; }
+  void WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
+                     std::string& el_file_name);
+  void WriteCoordinates(std::ofstream& inp_file, const QMMolecule&);
+  void WriteECP(std::ofstream& inp_file, const QMMolecule&);
+  void WriteBackgroundCharges();
 
-private:
+  void WriteChargeOption() override;
+  template <class T>
+  void GetCoordinates(T& mol, std::string& line,
+                      std::ifstream& input_file) const;
+  std::string WriteMethod() const;
+  std::string CreateInputSection(const std::string& key,
+                                 bool single_line = false) const;
+  std::string GetOrcaFunctionalName() const;
 
-    std::string                              _shell_file_name;
-    std::string                              _scratch_dir;
-    bool                                _is_optimization;
-
-    std::string                              _cleanup;
-
-
-
-    int NumberOfElectrons( std::string _line );
-    int BasisSetSize( std::string _line );
-    int EnergiesFromLog( std::string _line, ifstream inputfile );
-    std::string indent( const double &number );
-    std::string getLName(int lnum);
-
-    void WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name);
-    void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
-    void WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
-    void WriteBackgroundCharges(std::vector<ctp::PolarSeg*> PolarSegments);
+  std::unordered_map<std::string, std::string> _convergence_map{
+      {"low", "LooseSCF"},
+      {"normal", "StrongSCF"},
+      {"tight", "TightSCF"},
+      {"verytight", "VeryTightSCF"},
+      {"none", ""}};
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-}}
-
-#endif	/* __VOTCA_XTP_ORCA_H */
+#endif  // VOTCA_XTP_ORCA_H

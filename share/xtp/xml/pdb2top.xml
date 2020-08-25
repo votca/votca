@@ -1,9 +1,0 @@
-<options>
-
- <pdb2top help="Generates fake Gromacs topology file .top" label="calc:top2map" section="sec:top2map">
-    <num help="Num of mols in the box" default="1">1</num>
-    <pdb help="Input pdb file" default="conf.pdb">conf.pdb</pdb>
-    <gro help="Input gro file" default="conf.gro">conf.gro</gro>
-</pdb2top>
-
-</options>

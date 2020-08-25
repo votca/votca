@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<options>
+  <molpol help="Tool to scale distributed polarisibilites to DFT polarisibilites" section="sec:overlap">
+    <options_polar help="Options for the electrostatic interaction">
+      <tolerance_energy help="Energy change as convergence criterion" default="1e-5"/>
+      <tolerance_dipole help="Field change as convergence criterion" default="1e-5"/>
+      <max_iter help="Maximum number of iterations" default="500"/>
+      <exp_damp help="Thole sharpness parameter" default="0.39"/>
+    </options_polar>
+    <mode help="Read the polar target from a file or a qmpackage logfile" choices="file,qmpackage"/>
+    <target_polarisability help="should have this format: pxx pxy pxz pyy pyz pzz"/>
+    <qmpackage help="qmpackage name if mode is qmpackage" default="orca" choices="orca"/>
+    <logfile help="logfile of DFTpackage to read Target polarisability from if mode is qmpackage" default="system.log"/>
+    <tolerance help="convergence tolerance" default="1e-4" choices="float+"/>
+    <iterations help="maximum number of iterations" default="100" choices="int+"/>
+  </molpol>
+</options>

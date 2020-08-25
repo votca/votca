@@ -1,9 +1,0 @@
-<options>
-
-<panalyze help="Probability of neighbours being in the pair list as a function of their centre of mass distance" section="sec:panalyze">
-
-	<resolution_space help="Spatial resolution for the probability function." unit="nm">0.05</resolution_space>
-
-</panalyze>
-
-</options>

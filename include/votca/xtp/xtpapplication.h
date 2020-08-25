@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,56 +17,32 @@
  *
  */
 
-
+#pragma once
 #ifndef VOTCA_XTP_XTPAPPLICATION_H
-#define	VOTCA_XTP_XTPAPPLICATION_H
+#define VOTCA_XTP_XTPAPPLICATION_H
 
+// Third party includes
 #include <votca/tools/application.h>
 #include <votca/tools/property.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
+class XtpApplication : public votca::tools::Application {
+ public:
+  XtpApplication();
+  ~XtpApplication() override = default;
 
+  void Initialize() override;
+  bool EvaluateOptions() override = 0;
+  void Run(void) override = 0;
+  void ShowHelpText(std::ostream &out) override;
 
-class XtpApplication : public votca::tools::Application
-{
-public:
-    XtpApplication();
-   ~XtpApplication() { };
-
-   void Initialize();
-   bool EvaluateOptions();
-   virtual void Run(void) = 0;
-   void ShowHelpText(std::ostream &out);
-
-protected:
-
-    votca::tools::Property _options;
-    
+ protected:
+  votca::tools::Property _options;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-
-
-
-
-
-
-
-
-#endif /* _QMApplication_H */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif  // VOTCA_XTP_XTPAPPLICATION_H

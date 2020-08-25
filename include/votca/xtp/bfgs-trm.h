@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2017 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,144 +17,81 @@
  *
  */
 
-#ifndef __XTP_BFGSTRM__H
-#define __XTP_BFGSTRM__H
+#pragma once
+#ifndef VOTCA_XTP_BFGS - TRM_H
+#define VOTCA_XTP_BFGS -TRM_H
 
+// Standard includes
+#include <functional>
+#include <vector>
 
-#include <votca/ctp/logger.h>
-#include <votca/ctp/segment.h>
-#include <stdio.h>
-#include <votca/xtp/gwbseengine.h>
-#include <votca/xtp/forces.h>
-
-
-
-
-
+// Local VOTCA includes
+#include "logger.h"
+#include "optimiser_costfunction.h"
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-       
-        class BFGSTRM {
-        public:
+class BFGSTRM {
+ public:
+  BFGSTRM(Optimiser_costfunction& costfunction) : _costfunction(costfunction) {
+    _hessian = Eigen::MatrixXd::Identity(costfunction.NumParameters(),
+                                         costfunction.NumParameters());
+  }
 
-            BFGSTRM(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, vector<ctp::Segment*> segments, Orbitals* orbitals, Forces& force_engine)
-            : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _force_engine(force_engine), _iteration(0) {
-            };
+  void setLog(Logger* pLog) { _pLog = pLog; }
 
-            ~BFGSTRM() {
-            };
+  void setTrustRadius(double trust_radius) { _trust_radius = trust_radius; }
 
-            int Iteration() {
-                return _iteration;
-            };
-            void Initialize(Property *options);
-            void Checkpoint(std::vector<ctp::Segment* >& _molecule);
-            void WriteIteration(FILE* out, ctp::Segment* _segment);
+  double getTrustRadius() const { return _trust_radius; }
 
-            void setLog(ctp::Logger* pLog) {
-                _pLog = pLog;
-            }
+  void setCallbacks(const std::vector<std::function<void()> >& callbacks) {
+    _callbacks = callbacks;
+  }
 
-            void Optimize();
+  void setNumofIterations(Index iterations) { _max_iteration = iterations; }
 
+  void Optimize(const Eigen::VectorXd& initialparameters);
 
+  bool Success() const { return _success; }
+  std::string getErrorMessage() const { return _errormessage; }
 
-        private:
-            
-            GWBSEENGINE _gwbse_engine;
-            QMPackage* _qmpackage;
-            vector<ctp::Segment*> _segments;
-            Orbitals* _orbitals;
-            Forces _force_engine;
+  double getCost() const { return _cost; }
 
-            unsigned _natoms;
-            unsigned _nsegments;
-            unsigned _iteration;
-            Eigen::MatrixX3d _force;
-            Eigen::MatrixX3d _force_old;
-            Eigen::MatrixX3d _xyz_shift;
-            Eigen::MatrixX3d _current_xyz;
-            Eigen::MatrixX3d _old_xyz;
-            Eigen::MatrixX3d _trial_xyz;
-            Eigen::MatrixXd _hessian;
+  Index getIteration() const { return _iteration; }
 
-            bool _step_accepted;
-            bool _update_hessian;
-            bool _restart_opt;
+  const Eigen::VectorXd getParameters() const { return _parameters; }
 
-            int _opt_state;
-            double _displacement;
-            double _convergence;
-            double _RMSForce_convergence;
-            double _MaxForce_convergence;
-            double _RMSStep_convergence;
-            double _MaxStep_convergence;
-            double _trust_radius;
-            double _trust_radius_max;
-            double _delta_energy_estimate;
-            double _norm_delta_pos;
-            std::string _spintype;
-            std::string _forces;
-            std::string _opt_type;
-            std::string _optimizer;
-            std::string _force_method;
-            unsigned _max_iteration;
+  void setInitialHessian(const Eigen::MatrixXd& hessian) { _hessian = hessian; }
 
-            
+ private:
+  Optimiser_costfunction& _costfunction;
 
-            Property _optimizer_options;
-            Property _force_options;
+  void UpdateHessian(const Eigen::VectorXd& delta_pos,
+                     const Eigen::VectorXd& delta_gradient);
+  double QuadraticEnergy(const Eigen::VectorXd& gradient,
+                         const Eigen::VectorXd& delta_pos) const;
+  bool AcceptRejectStep(const Eigen::VectorXd& delta_pos,
+                        const Eigen::VectorXd& gradient, double energy_delta);
 
-            ctp::Logger *_pLog;
+  std::string _errormessage;
+  bool _success = true;
+  Index _iteration = 0;
 
-            void BFGSStep();
-            void Rewrite2Vectors();
-            void Rewrite2Matrices();
-            void UpdateHessian();
-            void PredictDisplacement();
-            void RegularizeStep();
-            void QuadraticEnergy();
-            void UpdateSegment();
-            void Report();
-            void Segment2BFGS();
-            void AcceptReject();
-            void WriteTrajectory();
+  std::vector<std::function<void()> > _callbacks;
 
-            double GetEnergy();
+  Eigen::MatrixXd _hessian;
+  Eigen::VectorXd _parameters;
 
-            bool OutsideTrustRegion(const double& _step);
-            bool GeometryConverged();
+  double _cost = std::numeric_limits<double>::max();
 
-            std::string Converged(bool converged);
+  double _trust_radius = 0.1;
 
+  Index _max_iteration = 200;
 
-            // vector storage for steps, let's rethink that later
-            unsigned _dim;
-            Eigen::VectorXd _previous_pos;
-            Eigen::VectorXd _current_pos;
-            Eigen::VectorXd _previous_gradient;
-            Eigen::VectorXd _current_gradient;
-            Eigen::VectorXd _delta_pos;
-            double _new_energy;
-            double _last_energy;
-            double _energy_delta;
+  Logger* _pLog;
+};
 
-            // convergence
-            bool _energy_converged;
-            bool _RMSForce_converged;
-            bool _MaxForce_converged;
-            bool _RMSStep_converged;
-            bool _MaxStep_converged;
-            double _RMSForce;
-            double _MaxForce;
-            double _RMSStep;
-            double _MaxStep;
-
-
-        };
-
-    }
-}
-#endif /* BFGSTRM_H */
+}  // namespace xtp
+}  // namespace votca
+#endif  // VOTCA_XTP_BFGS-TRM_H

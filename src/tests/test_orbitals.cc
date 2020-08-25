@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,98 +16,241 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE orbitals_test
-#include <boost/test/unit_test.hpp>
-#include <votca/xtp/convergenceacc.h>
-#include <votca/xtp/orbitals.h>
 
+// Standard includes
+#include <fstream>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/convergenceacc.h"
+#include "votca/xtp/orbitals.h"
+
+// VOTCA includes
+#include <votca/tools/eigenio_matrixmarket.h>
 
 using namespace votca::xtp;
-
+using votca::Index;
 BOOST_AUTO_TEST_SUITE(orbitals_test)
+BOOST_AUTO_TEST_CASE(readxyztest) {
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " C 0.0 3 1" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " C            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
+  xyzfile.close();
 
-BOOST_AUTO_TEST_CASE(densmatgs_test) {
-  
-  
-  
+  Orbitals orb;
+
+  BOOST_CHECK_THROW(orb.QMAtoms().LoadFromFile("molecule.xyz"),
+                    std::runtime_error);
+}
+
+BOOST_AUTO_TEST_CASE(sortEnergies) {
+
+  Orbitals orb;
+  Eigen::VectorXd Energies = Eigen::VectorXd::LinSpaced(10, -5, 5);
+  Eigen::VectorXd switched = Energies;
+  switched(3) = Energies(5);
+  switched(5) = Energies(3);
+  orb.MOs().eigenvalues() = switched;
+  orb.MOs().eigenvectors() = Eigen::MatrixXd::Zero(10, 10);
+  orb.OrderMOsbyEnergy();
+  bool issorted = Energies.isApprox(orb.MOs().eigenvalues(), 0.001);
+  if (!issorted) {
+    std::cout << "before" << std::endl;
+    std::cout << Energies << std::endl;
+    std::cout << "after" << std::endl;
+    std::cout << orb.MOs().eigenvalues() << std::endl;
+  }
+  BOOST_CHECK_EQUAL(issorted, true);
+}
+
+BOOST_AUTO_TEST_CASE(densmat_test) {
+
   Orbitals orb;
   orb.setBasisSetSize(17);
-  orb.setNumberOfLevels(4,13);
-  
-  Eigen::MatrixXd H=Eigen::MatrixXd::Zero(17,17);
-  //generated from 3-21G with ecp on methane independent electron guess
-  H<<13.2967782,-1.99797328,0,0,0,-0.26575698,0,0,0,-0.0909339466,-0.147466802,-0.0909339466,-0.147466802,-0.0909339466,-0.147466802,-0.0909339466,-0.147466802,
--1.99797328,-4.04412972,0,0,0,-3.49418055,0,0,0,-0.994581408,-1.89398582,-0.994581408,-1.89398582,-0.994581408,-1.89398582,-0.994581408,-1.89398582,
-0,0,-3.93848515,0,0,0,-2.25634153,0,0,-0.780335933,-0.599314142,-0.780335933,-0.599314142,0.780335933,0.599314142,0.780335933,0.599314142,
-0,0,0,-3.93848515,0,0,0,-2.25634153,0,-0.780335933,-0.599314142,0.780335933,0.599314142,0.780335933,0.599314142,-0.780335933,-0.599314142,
-0,0,0,0,-3.93848515,0,0,0,-2.25634153,-0.780335933,-0.599314142,0.780335933,0.599314142,-0.780335933,-0.599314142,0.780335933,0.599314142,
--0.26575698,-3.49418055,0,0,0,-3.88216043,0,0,0,-1.38139383,-2.47288528,-1.38139383,-2.47288528,-1.38139383,-2.47288528,-1.38139383,-2.47288528,
-0,0,-2.25634153,0,0,0,-3.02562938,0,0,-1.03641022,-0.99951947,-1.03641022,-0.99951947,1.03641022,0.99951947,1.03641022,0.99951947,
-0,0,0,-2.25634153,0,0,0,-3.02562938,0,-1.03641022,-0.99951947,1.03641022,0.99951947,1.03641022,0.99951947,-1.03641022,-0.99951947,
-0,0,0,0,-2.25634153,0,0,0,-3.02562938,-1.03641022,-0.99951947,1.03641022,0.99951947,-1.03641022,-0.99951947,1.03641022,0.99951947,
--0.0909339466,-0.994581408,-0.780335933,-0.780335933,-0.780335933,-1.38139383,-1.03641022,-1.03641022,-1.03641022,-3.00123345,-2.29509192,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,
--0.147466802,-1.89398582,-0.599314142,-0.599314142,-0.599314142,-2.47288528,-0.99951947,-0.99951947,-0.99951947,-2.29509192,-2.99604761,-0.512094198,-1.30279378,-0.512094198,-1.30279378,-0.512094198,-1.30279378,
--0.0909339466,-0.994581408,-0.780335933,0.780335933,0.780335933,-1.38139383,-1.03641022,1.03641022,1.03641022,-0.0552940511,-0.512094198,-3.00123345,-2.29509192,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,
--0.147466802,-1.89398582,-0.599314142,0.599314142,0.599314142,-2.47288528,-0.99951947,0.99951947,0.99951947,-0.512094198,-1.30279378,-2.29509192,-2.99604761,-0.512094198,-1.30279378,-0.512094198,-1.30279378,
--0.0909339466,-0.994581408,0.780335933,0.780335933,-0.780335933,-1.38139383,1.03641022,1.03641022,-1.03641022,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,-3.00123345,-2.29509192,-0.0552940511,-0.512094198,
--0.147466802,-1.89398582,0.599314142,0.599314142,-0.599314142,-2.47288528,0.99951947,0.99951947,-0.99951947,-0.512094198,-1.30279378,-0.512094198,-1.30279378,-2.29509192,-2.99604761,-0.512094198,-1.30279378,
--0.0909339466,-0.994581408,0.780335933,-0.780335933,0.780335933,-1.38139383,1.03641022,-1.03641022,1.03641022,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,-3.00123345,-2.29509192,
--0.147466802,-1.89398582,0.599314142,-0.599314142,0.599314142,-2.47288528,0.99951947,-0.99951947,0.99951947,-0.512094198,-1.30279378,-0.512094198,-1.30279378,-0.512094198,-1.30279378,-2.29509192,-2.99604761;
-Eigen::MatrixXd overlap_ref=Eigen::MatrixXd::Zero(17,17);
- 
-  overlap_ref<<
-1,0.191448,0,0,0,0.180314,0,0,0,0.0189724,0.0808612,0.0189724,0.0808612,0.0189724,0.0808612,0.0189724,0.0808612,
-0.191448,1.00001,0,0,0,0.761361,0,0,0,0.194748,0.401447,0.194748,0.401447,0.194748,0.401447,0.194748,0.401447,
-0,0,1,0,0,0,0.528959,0,0,0.169584,0.135615,0.169584,0.135615,-0.169584,-0.135615,-0.169584,-0.135615,
-0,0,0,1,0,0,0,0.528959,0,0.169584,0.135615,-0.169584,-0.135615,-0.169584,-0.135615,0.169584,0.135615,
-0,0,0,0,1,0,0,0,0.528959,0.169584,0.135615,-0.169584,-0.135615,0.169584,0.135615,-0.169584,-0.135615,
-0.180314,0.761361,0,0,0,1,0,0,0,0.338796,0.668849,0.338796,0.668849,0.338796,0.668849,0.338796,0.668849,
-0,0,0.528959,0,0,0,1,0,0,0.290649,0.340149,0.290649,0.340149,-0.290649,-0.340149,-0.290649,-0.340149,
-0,0,0,0.528959,0,0,0,1,0,0.290649,0.340149,-0.290649,-0.340149,-0.290649,-0.340149,0.290649,0.340149,
-0,0,0,0,0.528959,0,0,0,1,0.290649,0.340149,-0.290649,-0.340149,0.290649,0.340149,-0.290649,-0.340149,
-0.0189724,0.194748,0.169584,0.169584,0.169584,0.338796,0.290649,0.290649,0.290649,1,0.645899,0.00778321,0.116994,0.00778321,0.116994,0.00778321,0.116994,
-0.0808612,0.401447,0.135615,0.135615,0.135615,0.668849,0.340149,0.340149,0.340149,0.645899,1,0.116994,0.354983,0.116994,0.354983,0.116994,0.354983,
-0.0189724,0.194748,0.169584,-0.169584,-0.169584,0.338796,0.290649,-0.290649,-0.290649,0.00778321,0.116994,1,0.645899,0.00778321,0.116994,0.00778321,0.116994,
-0.0808612,0.401447,0.135615,-0.135615,-0.135615,0.668849,0.340149,-0.340149,-0.340149,0.116994,0.354983,0.645899,1,0.116994,0.354983,0.116994,0.354983,
-0.0189724,0.194748,-0.169584,-0.169584,0.169584,0.338796,-0.290649,-0.290649,0.290649,0.00778321,0.116994,0.00778321,0.116994,1,0.645899,0.00778321,0.116994,
-0.0808612,0.401447,-0.135615,-0.135615,0.135615,0.668849,-0.340149,-0.340149,0.340149,0.116994,0.354983,0.116994,0.354983,0.645899,1,0.116994,0.354983,
-0.0189724,0.194748,-0.169584,0.169584,-0.169584,0.338796,-0.290649,0.290649,-0.290649,0.00778321,0.116994,0.00778321,0.116994,0.00778321,0.116994,1,0.645899,
-0.0808612,0.401447,-0.135615,0.135615,-0.135615,0.668849,-0.340149,0.340149,-0.340149,0.116994,0.354983,0.116994,0.354983,0.116994,0.354983,0.645899,1;
-  
-  ConvergenceAcc d;
-  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,4,0);
-  d.setOverlap(&overlap_ref,1e-8);
-  d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
-  Eigen::VectorXd MOEnergies_ref=Eigen::VectorXd::Zero(17);
-  MOEnergies_ref<<-4.29332753,-3.99146858,-3.99146858,-3.99146858,-2.69172222,-2.69172222,-2.69172222,-2.61521973,-2.19277057,-2.19277057,-2.19277057,-1.75923211,-1.46241535,-1.46241535,-1.46241535,-1.21150295,14.6697624;
-  bool check_moenergies=orb.MOEnergies().isApprox(MOEnergies_ref,00001);
-  
-  BOOST_CHECK_EQUAL(check_moenergies, 1);
-  Eigen::MatrixXd dmat=orb.DensityMatrixGroundState();
- 
-          
-   Eigen::MatrixXd dmat_ref=Eigen::MatrixXd::Zero(17,17);       
- dmat_ref<<0.00157507,0.0337454,4.48905e-16,-5.93152e-16,7.87133e-17,0.030876,2.51254e-16,-1.49094e-16,5.77899e-17,0.00415998,-0.00445632,0.00415998,-0.00445632,0.00415998,-0.00445632,0.00415998,-0.00445632,
-0.0337454,0.722983,2.66427e-15,-4.44783e-15,3.45846e-16,0.661507,4.39854e-15,-2.02475e-15,1.04832e-15,0.0891262,-0.095475,0.0891262,-0.095475,0.0891262,-0.095475,0.0891262,-0.095475,
-4.48905e-16,2.66427e-15,1.52199,2.88658e-15,2.09034e-15,-7.94212e-15,0.215492,2.8727e-15,-1.40513e-15,0.141933,-0.0402359,0.141933,-0.0402359,-0.141933,0.0402359,-0.141933,0.0402359,
--5.93152e-16,-4.44783e-15,2.88658e-15,1.52199,-2.31759e-15,9.21105e-15,-2.22045e-15,0.215492,1.6263e-15,0.141933,-0.0402359,-0.141933,0.0402359,-0.141933,0.0402359,0.141933,-0.0402359,
-7.87133e-17,3.45846e-16,2.09034e-15,-2.31759e-15,1.52199,2.98902e-15,-2.04958e-15,4.79738e-15,0.215492,0.141933,-0.0402359,-0.141933,0.0402359,0.141933,-0.0402359,-0.141933,0.0402359,
-0.030876,0.661507,-7.94212e-15,9.21105e-15,2.98902e-15,0.605259,2.55488e-15,2.7779e-17,1.33759e-15,0.0815477,-0.0873567,0.0815477,-0.0873567,0.0815477,-0.0873567,0.0815477,-0.0873567,
-2.51254e-16,4.39854e-15,0.215492,-2.22045e-15,-2.04958e-15,2.55488e-15,0.0305108,3.29597e-17,-5.29036e-16,0.0200958,-0.00569686,0.0200958,-0.00569686,-0.0200958,0.00569686,-0.0200958,0.00569686,
--1.49094e-16,-2.02475e-15,2.8727e-15,0.215492,4.79738e-15,2.7779e-17,3.29597e-17,0.0305108,9.55941e-16,0.0200958,-0.00569686,-0.0200958,0.00569686,-0.0200958,0.00569686,0.0200958,-0.00569686,
-5.77899e-17,1.04832e-15,-1.40513e-15,1.6263e-15,0.215492,1.33759e-15,-5.29036e-16,9.55941e-16,0.0305108,0.0200958,-0.00569686,-0.0200958,0.00569686,0.0200958,-0.00569686,-0.0200958,0.00569686,
-0.00415998,0.0891262,0.141933,0.141933,0.141933,0.0815477,0.0200958,0.0200958,0.0200958,0.0506951,-0.0230264,-0.00224894,-0.00801753,-0.00224894,-0.00801753,-0.00224894,-0.00801753,
--0.00445632,-0.095475,-0.0402359,-0.0402359,-0.0402359,-0.0873567,-0.00569686,-0.00569686,-0.00569686,-0.0230264,0.0157992,-0.00801753,0.0115445,-0.00801753,0.0115445,-0.00801753,0.0115445,
-0.00415998,0.0891262,0.141933,-0.141933,-0.141933,0.0815477,0.0200958,-0.0200958,-0.0200958,-0.00224894,-0.00801753,0.0506951,-0.0230264,-0.00224894,-0.00801753,-0.00224894,-0.00801753,
--0.00445632,-0.095475,-0.0402359,0.0402359,0.0402359,-0.0873567,-0.00569686,0.00569686,0.00569686,-0.00801753,0.0115445,-0.0230264,0.0157992,-0.00801753,0.0115445,-0.00801753,0.0115445,
-0.00415998,0.0891262,-0.141933,-0.141933,0.141933,0.0815477,-0.0200958,-0.0200958,0.0200958,-0.00224894,-0.00801753,-0.00224894,-0.00801753,0.0506951,-0.0230264,-0.00224894,-0.00801753,
--0.00445632,-0.095475,0.0402359,0.0402359,-0.0402359,-0.0873567,0.00569686,0.00569686,-0.00569686,-0.00801753,0.0115445,-0.00801753,0.0115445,-0.0230264,0.0157992,-0.00801753,0.0115445,
-0.00415998,0.0891262,-0.141933,0.141933,-0.141933,0.0815477,-0.0200958,0.0200958,-0.0200958,-0.00224894,-0.00801753,-0.00224894,-0.00801753,-0.00224894,-0.00801753,0.0506951,-0.0230264,
--0.00445632,-0.095475,0.0402359,-0.0402359,0.0402359,-0.0873567,0.00569686,-0.00569686,0.00569686,-0.00801753,0.0115445,-0.00801753,0.0115445,-0.00801753,0.0115445,-0.0230264,0.0157992;
- 
-  bool check_dmat = dmat.isApprox(dmat_ref,0.0001);
-BOOST_CHECK_EQUAL(check_dmat, 1);
+  orb.setNumberOfOccupiedLevels(4);
+  orb.setBSEindices(0, 9);
+  orb.setNumberOfAlphaElectrons(5);
+  orb.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);
+  orb.MOs().eigenvectors() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/MOs.mm");
 
+  orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                             "/orbitals/molecule.xyz");
+  QMState s = QMState("n");
+  Eigen::MatrixXd dmat_gs = orb.DensityMatrixFull(s);
 
+  Eigen::MatrixXd dmat_gs_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/dmat_gs_ref.mm");
+
+  bool check_dmat_gs = dmat_gs.isApprox(dmat_gs_ref, 0.0001);
+  if (!check_dmat_gs) {
+    std::cout << "Result gs" << std::endl;
+    std::cout << dmat_gs << std::endl;
+    std::cout << "Ref" << std::endl;
+    std::cout << dmat_gs_ref << std::endl;
+  }
+  BOOST_CHECK_EQUAL(check_dmat_gs, 1);
+  orb.setTDAApprox(false);
+  orb.BSESinglets().eigenvectors() =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/BSE_vectors1.mm");
+
+  orb.BSESinglets().eigenvectors2() =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/BSE_vectors2.mm");
+
+  QMState s1 = QMState("s1");
+  Eigen::MatrixXd dmat_s1 = orb.DensityMatrixFull(s1);
+
+  Eigen::MatrixXd dmat_s1_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/dmat_s1_ref.mm");
+
+  bool check_dmat_s1 = dmat_s1.isApprox(dmat_s1_ref, 0.0001);
+  if (!check_dmat_s1) {
+    std::cout << "Result s1" << std::endl;
+    std::cout << dmat_s1 << std::endl;
+    std::cout << "Ref" << std::endl;
+    std::cout << dmat_s1_ref << std::endl;
+  }
+  BOOST_CHECK_EQUAL(check_dmat_s1, 1);
+
+  QMState n2s1 = QMState("n2s1");
+  Eigen::MatrixXd dmat_n2s1 = orb.DensityMatrixFull(n2s1);
+  Eigen::MatrixXd dmat_n2s1_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/dmat_n2s1_ref.mm");
+
+  bool check_dmat_n2s1 = dmat_n2s1.isApprox(dmat_n2s1_ref, 0.0001);
+  if (!check_dmat_n2s1) {
+    std::cout << "Result n2s1" << std::endl;
+    std::cout << dmat_n2s1 << std::endl;
+    std::cout << "Ref" << std::endl;
+    std::cout << dmat_n2s1_ref << std::endl;
+  }
+
+  BOOST_CHECK_EQUAL(check_dmat_n2s1, 1);
+}
+
+BOOST_AUTO_TEST_CASE(dipole_test) {
+
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/orbitals/molecule.xyz");
+  BasisSet basis;
+  basis.Load(
+      std::string(std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/3-21G.xml"));
+  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+                           "/orbitals/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, orbitals.QMAtoms());
+
+  orbitals.setBasisSetSize(17);
+  orbitals.setNumberOfOccupiedLevels(4);
+  Eigen::MatrixXd& MOs = orbitals.MOs().eigenvectors();
+  orbitals.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);
+  MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/MOs2.mm");
+
+  orbitals.setBSEindices(0, 16);
+  orbitals.setTDAApprox(true);
+
+  Eigen::MatrixXd spsi_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/spsi_ref.mm");
+
+  orbitals.BSESinglets().eigenvectors() = spsi_ref;
+  QMState state_trans = QMState("n2s1");
+
+  Eigen::Vector3d res_trans = orbitals.CalcElDipole(state_trans);
+  Eigen::Vector3d ref_trans = Eigen::Vector3d::Zero();
+  ref_trans << 0.118565, 0.0444239, -0.0505149;
+
+  bool check_trans = ref_trans.isApprox(res_trans, 0.0001);
+  if (!check_trans) {
+    std::cout << "Result transition dipole" << std::endl;
+    std::cout << res_trans << std::endl;
+    std::cout << "Ref transition dipole" << std::endl;
+    std::cout << ref_trans << std::endl;
+  }
+  BOOST_CHECK_EQUAL(check_trans, 1);
+
+  QMState state_s1 = QMState("s1");
+  Eigen::Vector3d res_s1 = orbitals.CalcElDipole(state_s1);
+  Eigen::Vector3d ref_s1 = Eigen::Vector3d::Zero();
+  ref_s1 << -0.15153501734, -0.42406579479, 0.033954362839;
+  bool check_s1 = ref_s1.isApprox(res_s1, 0.0001);
+  if (!check_s1) {
+    std::cout << "Result s1 dipole" << std::endl;
+    std::cout << res_s1 << std::endl;
+    std::cout << "Ref s1 dipole" << std::endl;
+    std::cout << ref_s1 << std::endl;
+  }
+  BOOST_CHECK_EQUAL(check_s1, 1);
+}
+
+BOOST_AUTO_TEST_CASE(osc_strength) {
+  Orbitals orb;
+  orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                             "/orbitals/molecule.xyz");
+  orb.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+                      "/orbitals/3-21G.xml");
+
+  QMState s("s1");
+  orb.setBasisSetSize(17);
+  orb.setNumberOfOccupiedLevels(4);
+  orb.setBSEindices(0, 16);
+  orb.setTDAApprox(true);
+
+  Eigen::MatrixXd& MOs = orb.MOs().eigenvectors();
+  orb.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);
+  MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/MOs3.mm");
+  Eigen::VectorXd se_ref = Eigen::VectorXd::Zero(3);
+  se_ref << 0.107455, 0.107455, 0.107455;
+  orb.BSESinglets().eigenvalues() = se_ref;
+  // reference coefficients
+  Eigen::MatrixXd spsi_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/spsi_ref2.mm");
+
+  orb.BSESinglets().eigenvectors() = spsi_ref;
+  orb.CalcCoupledTransition_Dipoles();
+
+  std::vector<Eigen::Vector3d> dipoles = orb.TransitionDipoles();
+  std::vector<Eigen::Vector3d> dipoles_ref;
+  dipoles_ref.push_back(Eigen::Vector3d(0.110512, 0.048776, -0.0515914));
+  dipoles_ref.push_back(Eigen::Vector3d(-0.13408, 0.0969472, 0.0261392));
+  dipoles_ref.push_back(Eigen::Vector3d(0.0586073, 0.121606, -0.0606862));
+
+  for (Index i = 0; i < 3; i++) {
+    bool check = dipoles[i].isApprox(dipoles_ref[i], 1e-5);
+    BOOST_CHECK_EQUAL(check, true);
+    if (!check) {
+      std::cout << "ref" << i << std::endl;
+      std::cout << dipoles_ref[i].transpose() << std::endl;
+      std::cout << "result" << i << std::endl;
+      std::cout << dipoles[i].transpose() << std::endl;
+    }
+  }
+
+  Eigen::VectorXd oscs = orb.Oscillatorstrengths();
+  Eigen::VectorXd oscs_ref = Eigen::VectorXd::Zero(3);
+  oscs_ref << 0.001236, 0.00201008, 0.00156925;
+
+  bool check_oscs = oscs.isApprox(oscs_ref, 1e-5);
+  BOOST_CHECK_EQUAL(check_oscs, true);
+  if (!check_oscs) {
+    std::cout << "result" << std::endl;
+    std::cout << oscs << std::endl;
+    std::cout << "ref" << std::endl;
+    std::cout << oscs_ref << std::endl;
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

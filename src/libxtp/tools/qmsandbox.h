@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2017 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,91 +17,49 @@
  *
  */
 
-#ifndef _VOTCA_XTP_QMSANDBOX_H
-#define _VOTCA_XTP_QMSANDBOX_H
+#pragma once
+#ifndef VOTCA_XTP_QMSANDBOX_H
+#define VOTCA_XTP_QMSANDBOX_H
 
-#include <stdio.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/qmtool.h>
-#include <votca/xtp/qmpackagefactory.h>
-#include<votca/xtp/aobasis.h>
-#include<votca/xtp/aomatrix.h>
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmpackagefactory.h"
+#include "votca/xtp/qmtool.h"
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-    using namespace Eigen;
-class QMSandbox : public ctp::QMTool
-{
-public:
+class QMSandbox : public QMTool {
+ public:
+  QMSandbox() = default;
+  ~QMSandbox() override = default;
 
-    QMSandbox() { };
-   ~QMSandbox() { };
+  std::string Identify() override { return "qmsandbox"; }
 
-    std::string Identify() { return "qmsandbox"; }
+  void Initialize(const tools::Property& user_options) override;
+  bool Evaluate() override;
 
-    void   Initialize(tools::Property *options);
-    bool   Evaluate();
-
-
-private:
-    
-    std::string      _orbfile;
-    std::string      _output_file;
-    
-    ctp::Logger      _log;
- 
-    std::string      _logfile;
-
-    std::string      _package;
-    tools::Property    _package_options; 
-    
-    void CheckContent(  Orbitals& _orbitals );
-
+ private:
+  std::string _orbfile;
 };
 
-void QMSandbox::Initialize(tools::Property* options) {
+void QMSandbox::Initialize(const tools::Property& user_options) {
 
-    // update options with the VOTCASHARE defaults   
-    //UpdateWithDefaults( options, "xtp" );
- 
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-    std::string key = "options." + Identify();
+  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
+                                                                   _job_name);
 
-    // orbitals file or pure DFT output
-    
-    
-    // get the path to the shared folders with xml files
-    char *votca_share = getenv("VOTCASHARE");    
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    
-    QMPackageFactory::RegisterAll();
-    
-    
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".orbfile", _job_name + ".orb");
 }
 
-bool QMSandbox::Evaluate() {
-  MatrixXd m = MatrixXd::Random(3,3);
-  m = (m + MatrixXd::Constant(3,3,1.2)) * 50;
-  cout << "m =" << endl << m << endl;
-  VectorXd v(3);
-  v << 1, 2, 3;
-  cout << "m * v =" << endl << m * v << endl;
- 
-    return true;
-}
+bool QMSandbox::Evaluate() { return true; }
 
+}  // namespace xtp
+}  // namespace votca
 
-
-
-void QMSandbox::CheckContent( Orbitals& _orbitals ){
-
-
-   
-    
-    return;
-}
-
-}}
-
-
-#endif
+#endif  // VOTCA_XTP_QMSANDBOX_H

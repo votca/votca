@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,391 +17,283 @@
  *
  */
 
-
-#include "iexcitoncl.h"
-
-#include <boost/format.hpp>
+// Third party includes
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/propertyiomanipulator.h>
 
-#include <votca/ctp/logger.h>
-#include <votca/ctp/xinteractor.h>
+// Local VOTCA includes
+#include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/segmentmapper.h"
+
+// Local private VOTCA includes
+#include "iexcitoncl.h"
 
 using namespace boost::filesystem;
 using namespace votca::tools;
 
-namespace ub = boost::numeric::ublas;
-    
-namespace votca { namespace xtp {
-    
+namespace votca {
+namespace xtp {
+
 // +++++++++++++++++++++++++++++ //
 // IEXCITON MEMBER FUNCTIONS         //
 // +++++++++++++++++++++++++++++ //
 
-void IEXCITON::Initialize(tools::Property* options ) {
-    
+void IEXCITON::Initialize(const tools::Property& user_options) {
 
-    
-    cout << endl
-         << "... ... Initialized with " << _nThreads << " threads. "
-         << flush;
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  ParseCommonOptions(options);
 
-    _maverick = (_nThreads == 1) ? true : false;
-
-
-    _induce= false;
-    _statenumber=1;
-    _epsilon=1;
-    _cutoff=-1;
-     
-    string key = "options."+Identify();
-
-    
-    
-        if ( options->exists(key+".job_file")) {
-            _jobfile = options->get(key+".job_file").as<string>();
-        }
-        else {
-            throw std::runtime_error("Job-file not set. Abort.");
-        }
-    key = "options." + Identify();
-    if ( options->exists(key+".mapping")) {
-        _xml_file = options->get(key+".mapping").as<string>();
-        }
-    else {
-            throw std::runtime_error("Mapping-file not set. Abort.");
-        }
-    if ( options->exists(key+".emp_file")) {
-            _emp_file   = options->get(key+".emp_file").as<string>();
-        }
-    else {
-            throw std::runtime_error("Emp-file not set. Abort.");
-        }
-    if ( options->exists(key+".statenumber")) {
-            _statenumber=options->get(key+".statenumber").as<int>();
-           
-        }
-    else {
-        cout << endl << "Statenumber not specified, assume singlet s1 " << flush;
-          _statenumber=1;
-        }
-    if ( options->exists(key+".epsilon")) {
-            _epsilon=options->get(key+".epsilon").as<double>();        
-        }
-    else{
-        _epsilon=1;
-    }
-    if ( options->exists(key+".cutoff")) {
-            _cutoff=options->get(key+".cutoff").as<double>();        
-        }
-    else{
-        _cutoff=-1;
-    }
-    
-    if ( options->exists(key+".induce")) {
-            _induce   = options->get(key+".induce").as<bool>();
-        }     
-    
-    cout << "done"<< endl;
+  if (options.get(".use_states").as<bool>()) {
+    std::string parse_string = options.get(".states").as<std::string>();
+    _statemap = FillParseMaps(parse_string);
+  }
 }
 
-
-
-void IEXCITON::PreProcess(ctp::Topology *top) {
-
-    // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
-     cout << endl << "... ... Initialize MPS-mapper: "  << flush; 
-    
-    _mps_mapper.GenerateMap(_xml_file, _emp_file, top);
+std::map<std::string, QMState> IEXCITON::FillParseMaps(
+    const std::string& Mapstring) {
+  Tokenizer split_options(Mapstring, ", \t\n");
+  std::map<std::string, QMState> type2level;
+  for (const std::string& substring : split_options) {
+    std::vector<std::string> segmentpnumber;
+    Tokenizer tok(substring, ":");
+    tok.ToVector(segmentpnumber);
+    if (segmentpnumber.size() != 2) {
+      throw std::runtime_error("Parser iqm: Segment and exciton labels:" +
+                               substring + "are not separated properly");
+    }
+    QMState state = QMState(segmentpnumber[1]);
+    if (!state.isTransition()) {
+      throw std::runtime_error("State to calculate must be a transition state");
+    }
+    std::string segmentname = segmentpnumber[0];
+    type2level[segmentname] = state;
+  }
+  return type2level;
 }
 
+Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
+                                 QMThread& opThread) {
 
-void IEXCITON::CustomizeLogger(ctp::QMThread *thread) {
-    
-    // CONFIGURE LOGGER
-    ctp::Logger* log = thread->getLogger();
-    log->setReportLevel(ctp::logDEBUG);
-    log->setMultithreading(_maverick);
+  // report back to the progress observer
+  Job::JobResult jres = Job::JobResult();
 
-    log->setPreface(ctp::logINFO,    (boost::format("\nT%1$02d INF ...") % thread->getId()).str());
-    log->setPreface(ctp::logERROR,   (boost::format("\nT%1$02d ERR ...") % thread->getId()).str());
-    log->setPreface(ctp::logWARNING, (boost::format("\nT%1$02d WAR ...") % thread->getId()).str());
-    log->setPreface(ctp::logDEBUG,   (boost::format("\nT%1$02d DBG ...") % thread->getId()).str());        
+  // get the logger from the thread
+  Logger& pLog = opThread.getLogger();
+
+  // get the information about the job executed by the thread
+  Index job_ID = job.getId();
+  Property job_input = job.getInput();
+  std::vector<Property*> segment_list = job_input.Select("segment");
+  Index ID_A = segment_list.front()->getAttribute<Index>("id");
+  std::string type_A = segment_list.front()->getAttribute<std::string>("type");
+  std::string mps_fileA =
+      segment_list.front()->getAttribute<std::string>("mps_file");
+  Index ID_B = segment_list.back()->getAttribute<Index>("id");
+  std::string type_B = segment_list.back()->getAttribute<std::string>("type");
+  std::string mps_fileB =
+      segment_list.back()->getAttribute<std::string>("mps_file");
+
+  const Segment& seg_A = top.getSegment(ID_A);
+  if (type_A != seg_A.getType()) {
+    throw std::runtime_error("SegmentA: type " + seg_A.getType() +
+                             " and type in jobfile " + type_A +
+                             " do not agree for ID:" + std::to_string(ID_A));
+  }
+  const Segment& seg_B = top.getSegment(ID_B);
+  if (type_B != seg_B.getType()) {
+    throw std::runtime_error("SegmentB: type " + seg_B.getType() +
+                             " and type in jobfile " + type_B +
+                             " do not agree for ID:" + std::to_string(ID_B));
+  }
+  const QMNBList& nblist = top.NBList();
+  const QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
+  if (pair == nullptr) {
+    throw std::runtime_error(
+        "pair between segments " + std::to_string(seg_A.getId()) + ":" +
+        std::to_string(seg_B.getId()) + " not found in neighborlist ");
+  }
+
+  XTP_LOG(Log::error, pLog) << TimeStamp() << " Evaluating pair " << job_ID
+                            << " [" << ID_A << ":" << ID_B << "]" << std::flush;
+
+  StaticMapper map(pLog);
+  map.LoadMappingFile(_mapfile);
+  StaticSegment seg1 = map.map(*(pair->Seg1()), mps_fileA);
+  StaticSegment seg2 = map.map(pair->Seg2PbCopy(), mps_fileB);
+  eeInteractor actor;
+  double JAB = actor.CalcStaticEnergy(seg1, seg2);
+  _cutoff = 0;
+  Property job_summary;
+  Property& job_output = job_summary.add("output", "");
+  Property& pair_summary = job_output.add("pair", "");
+  std::string nameA = seg_A.getType();
+  std::string nameB = seg_B.getType();
+  pair_summary.setAttribute("idA", ID_A);
+  pair_summary.setAttribute("idB", ID_B);
+  pair_summary.setAttribute("typeA", nameA);
+  pair_summary.setAttribute("typeB", nameB);
+  Property& coupling_summary = pair_summary.add("Coupling", "");
+  coupling_summary.setAttribute("jABstatic", JAB * tools::conv::hrt2ev);
+
+  jres.setOutput(job_summary);
+  jres.setStatus(Job::COMPLETE);
+
+  return jres;
 }
 
-
-
-ctp::Job::JobResult IEXCITON::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
-    
-     // report back to the progress observer
-    ctp::Job::JobResult jres = ctp::Job::JobResult();
-    
-    // get the logger from the thread
-    ctp::Logger* pLog = opThread->getLogger();   
-    
-    // get the information about the job executed by the thread
-    int _job_ID = job->getId();
-    Property _job_input = job->getInput();  
-    list<Property*> segment_list = _job_input.Select( "segment" );    
-    int ID_A   = segment_list.front()->getAttribute<int>( "id" );
-    string type_A = segment_list.front()->getAttribute<string>( "type" );
-    string mps_fileA = segment_list.front()->getAttribute<string>( "mps_file" );
-    int ID_B   = segment_list.back()->getAttribute<int>( "id" );
-    string type_B = segment_list.back()->getAttribute<string>( "type" );
-    string mps_fileB = segment_list.back()->getAttribute<string>( "mps_file" );
-
-    
-  
-    ctp::Segment *seg_A = top->getSegment( ID_A );   
-    assert( seg_A->getName() == type_A );
-    
-    ctp::Segment *seg_B = top->getSegment( ID_B );
-    assert( seg_B->getName() == type_B );
-    
-    CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating pair "  
-            << _job_ID << " ["  << ID_A << ":" << ID_B << "]" << flush; 
-    
-   vector<ctp::APolarSite*> seg_A_raw=ctp::APS_FROM_MPS(mps_fileA,0,opThread);
-   vector<ctp::APolarSite*> seg_B_raw=ctp::APS_FROM_MPS(mps_fileB,0,opThread);
-   
-   ctp::PolarSeg* seg_A_polar=_mps_mapper.MapPolSitesToSeg(seg_A_raw,seg_A);
-   ctp::PolarSeg* seg_B_polar=_mps_mapper.MapPolSitesToSeg(seg_B_raw,seg_B);
-   
-
-   
-   double JAB=EvaluatePair(top,seg_A_polar,seg_B_polar, pLog);
-   
-   std::vector< ctp::APolarSite* >::iterator it;
-    
-   for (it = seg_A_raw.begin() ; it !=seg_A_raw.end(); ++it){
-         delete *it;
-     }
-     seg_A_raw.clear();
-     
-      for (it = seg_B_raw.begin() ; it !=seg_B_raw.end(); ++it){
-         delete *it;
-     }
-     seg_B_raw.clear();
-    
-   
-   delete seg_A_polar;
-   delete seg_B_polar;
-  
-    
-    
-   
-   Property _job_summary;
- 
-
-    Property *_job_output = &_job_summary.add("output","");
-    Property *_pair_summary = &_job_output->add("pair","");
-    string nameA = seg_A->getName();
-    string nameB = seg_B->getName();
-    _pair_summary->setAttribute("idA", ID_A);
-    _pair_summary->setAttribute("idB", ID_B);
-    _pair_summary->setAttribute("typeA", nameA);
-    _pair_summary->setAttribute("typeB", nameB);
-    Property *_coupling_summary = &_pair_summary->add("Coupling",""); 
-    _coupling_summary->setAttribute("jABstatic", JAB);
-     
-
-
-
- 
-   
-    jres.setOutput( _job_summary );   
-    jres.setStatus(ctp::Job::COMPLETE);
-    
-    return jres;
+QMState IEXCITON::GetElementFromMap(const std::string& elementname) const {
+  QMState state;
+  try {
+    state = _statemap.at(elementname);
+  } catch (std::out_of_range&) {
+    std::string errormessage =
+        "Map does not have segment of type: " + elementname;
+    errormessage += "\n segments in map are:";
+    for (const auto& s : _statemap) {
+      errormessage += "\n\t" + s.first;
+    }
+    throw std::runtime_error(errormessage);
+  }
+  return state;
 }
 
-double IEXCITON::EvaluatePair(ctp::Topology *top,ctp::PolarSeg* Seg1,ctp::PolarSeg* Seg2, ctp::Logger* pLog ){
-    
-    ctp::XInteractor actor;
-    actor.ResetEnergy();
-    Seg1->CalcPos();
-    Seg2->CalcPos();
-    vec s=top->PbShortestConnect(Seg1->getPos(),Seg2->getPos())+Seg1->getPos()-Seg2->getPos();
-    //CTP_LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
-    ctp::PolarSeg::iterator pit1;
-    ctp::PolarSeg::iterator pit2;
-    double E=0.0;
-    for (pit1=Seg1->begin();pit1<Seg1->end();++pit1){
-        for (pit2=Seg2->begin();pit2<Seg2->end();++pit2){
-            actor.BiasIndu(*(*pit1), *(*pit2),s);
-            (*pit1)->Depolarize();
-            (*pit2)->Depolarize();
+void IEXCITON::WriteJobFile(const Topology& top) {
 
-  
-            E += actor.E_f(*(*pit1), *(*pit2));                           
-           
-    }
-    }
-    
-    if(_cutoff>=0){
-        if(abs(s)>_cutoff){
-            E=E/_epsilon;
-        }
-    }
+  std::cout << "\n... ... Writing job file " << _jobfile << std::flush;
+  std::ofstream ofs;
+  ofs.open(_jobfile, std::ofstream::out);
+  if (!ofs.is_open()) {
+    throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
+  }
+  const QMNBList& nblist = top.NBList();
+  Index jobCount = 0;
+  if (nblist.size() == 0) {
+    std::cout << "\n... ... No pairs in neighbor list, skip." << std::flush;
+    return;
+  }
 
-    
-  return E*conv::int2eV;  
+  ofs << "<jobs>\n";
+  std::string tag = "";
+
+  for (const QMPair* pair : nblist) {
+    if (pair->getType() == QMPair::PairType::Excitoncl) {
+      Index id1 = pair->Seg1()->getId();
+      std::string name1 = pair->Seg1()->getType();
+      Index id2 = pair->Seg2()->getId();
+      std::string name2 = pair->Seg2()->getType();
+      Index id = jobCount;
+      QMState state1 = GetElementFromMap(name1);
+      QMState state2 = GetElementFromMap(name2);
+
+      std::string mps_file1 =
+          (boost::format("MP_FILES/%s_%s.mps") % name1 % state1.ToString())
+              .str();
+      std::string mps_file2 =
+          (boost::format("MP_FILES/%s_%s.mps") % name2 % state2.ToString())
+              .str();
+
+      Property Input;
+      Property& pInput = Input.add("input", "");
+      Property& pSegment1 =
+          pInput.add("segment", boost::lexical_cast<std::string>(id1));
+      pSegment1.setAttribute<std::string>("type", name1);
+      pSegment1.setAttribute<Index>("id", id1);
+      pSegment1.setAttribute<std::string>("mps_file", mps_file1);
+      Property& pSegment2 =
+          pInput.add("segment", boost::lexical_cast<std::string>(id2));
+      pSegment2.setAttribute<std::string>("type", name2);
+      pSegment2.setAttribute<Index>("id", id2);
+      pSegment2.setAttribute<std::string>("mps_file", mps_file2);
+
+      Job job(id, tag, Input, Job::AVAILABLE);
+      job.ToStream(ofs);
+      jobCount++;
+    }
+  }
+
+  // CLOSE STREAM
+  ofs << "</jobs>\n";
+  ofs.close();
+
+  std::cout << "\n... ... In total " << jobCount << " jobs" << std::flush;
 }
 
+void IEXCITON::ReadJobFile(Topology& top) {
 
-void IEXCITON::WriteJobFile(ctp::Topology *top) {
+  Property xml;
+  std::vector<Property*> records;
+  // gets the neighborlist from the topology
+  QMNBList& nblist = top.NBList();
+  Index number_of_pairs = nblist.size();
+  Index current_pairs = 0;
+  Logger log;
+  log.setReportLevel(Log::current_level);
 
-    cout << endl << "... ... Writing job file " << flush;
-    std::ofstream ofs;
-    ofs.open(_jobfile.c_str(), std::ofstream::out);
-    if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
+  // load the QC results in a vector indexed by the pair ID
+  xml.LoadFromXML(_jobfile);
+  std::vector<Property*> jobProps = xml.Select("jobs.job");
+  records.resize(number_of_pairs + 1);
 
- 
-    ctp::QMNBList::iterator pit;
-    ctp::QMNBList &nblist = top->NBList();    
+  // to skip pairs which are not in the jobfile
+  for (auto& record : records) {
+    record = nullptr;
+  }
+  // loop over all jobs = pair records in the job file
+  for (Property* prop : jobProps) {
+    // if job produced an output, then continue with analysis
+    if (prop->exists("output") && prop->exists("output.pair")) {
+      current_pairs++;
+      Property& poutput = prop->get("output.pair");
+      Index idA = poutput.getAttribute<Index>("idA");
+      Index idB = poutput.getAttribute<Index>("idB");
+      Segment& segA = top.getSegment(idA);
+      Segment& segB = top.getSegment(idB);
+      QMPair* qmp = nblist.FindPair(&segA, &segB);
 
-    int jobCount = 0;
-    if (nblist.size() == 0) {
-        cout << endl << "... ... No pairs in neighbor list, skip." << flush;
-        return;
-    }    
+      if (qmp == nullptr) {
+        XTP_LOG(Log::error, log)
+            << "No pair " << idA << ":" << idB
+            << " found in the neighbor list. Ignoring" << std::flush;
+      } else {
+        records[qmp->getId()] = &(prop->get("output.pair"));
+      }
+    } else {
+      Property thebadone = prop->get("id");
+      throw std::runtime_error(
+          "\nERROR: Job file incomplete.\n Job with id " +
+          thebadone.as<std::string>() +
+          " is not finished. Check your job file for FAIL, "
+          "AVAILABLE, or ASSIGNED. Exiting\n");
+    }
+  }  // finished loading from the file
 
-    ofs << "<jobs>" << endl;    
-    string tag = "";
-    
-    for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
-        if ((*pit)->getType()==3){
-            int id1 = (*pit)->Seg1()->getId();
-            string name1 = (*pit)->Seg1()->getName();
-            int id2 = (*pit)->Seg2()->getId();
-            string name2 = (*pit)->Seg2()->getName();   
+  // loop over all pairs in the neighbor list
+  XTP_LOG(Log::error, log) << "Neighborlist size " << top.NBList().size()
+                           << std::flush;
+  for (QMPair* pair : top.NBList()) {
 
-            int id = ++jobCount;
-
-            
-            string mps_file1=(boost::format("MP_FILES/%s_n2s%d.mps") % name1  % _statenumber).str();
-            string mps_file2=(boost::format("MP_FILES/%s_n2s%d.mps") % name1  % _statenumber).str();
-            
-            Property Input;
-            Property *pInput = &Input.add("input","");
-            Property *pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(id1) );
-            pSegment->setAttribute<string>("type", name1 );
-            pSegment->setAttribute<int>("id", id1 );
-            pSegment->setAttribute<string>("mps_file",mps_file1);
-            pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(id2) );
-            pSegment->setAttribute<string>("type", name2 );
-            pSegment->setAttribute<int>("id", id2 );
-            pSegment->setAttribute<string>("mps_file",mps_file2);
-
-            ctp::Job job(id, tag, Input, ctp::Job::AVAILABLE );
-            job.ToStream(ofs,"xml");
-        }
+    if (records[pair->getId()] == nullptr) {
+      continue;  // skip pairs which are not in the jobfile
     }
 
-    // CLOSE STREAM
-    ofs << "</jobs>" << endl;    
-    ofs.close();
-    
-    cout << endl << "... ... In total " << jobCount << " jobs" << flush;
-    
+    if (pair->getType() == QMPair::Excitoncl) {
+      Property* pair_property = records[pair->getId()];
+      const Property& pCoupling = pair_property->get("Coupling");
+      double jAB = pCoupling.getAttribute<double>("jABstatic");
+      double Jeff2 = jAB * jAB * tools::conv::ev2hrt * tools::conv::ev2hrt;
+      pair->setJeff2(Jeff2, QMStateType::Singlet);
+    }
+  }
+  XTP_LOG(Log::error, log) << "Pairs [total:updated] " << number_of_pairs << ":"
+                           << current_pairs << std::flush;
+  std::cout << log;
 }
 
-void IEXCITON::ReadJobFile(ctp::Topology *top) {
-
-    Property xml;
-
-    vector<Property*> records;
-    
-    // gets the neighborlist from the topology
-    ctp::QMNBList &nblist = top->NBList();
-    int _number_of_pairs = nblist.size();
-    int _current_pairs=0;
-    
-    // output using logger
-    ctp::Logger _log;
-    _log.setReportLevel(ctp::logINFO);
-    
-
-    // load the QC results in a vector indexed by the pair ID
-    load_property_from_xml(xml, _jobfile);
-    list<Property*> jobProps = xml.Select("jobs.job");
-    records.resize( _number_of_pairs + 1  );
-    
-    //to skip pairs which are not in the jobfile
-    for (unsigned i=0;i<records.size();i++){
-        records[i]=NULL;
-    }
-    // loop over all jobs = pair records in the job file
-    for (list<Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
-        // if job produced an output, then continue with analysis
-        if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
-            _current_pairs++;
-            // get the output records
-            Property& poutput = (*it)->get("output.pair");
-            // id's of two segments of a pair
-            int idA = poutput.getAttribute<int>("idA");
-            int idB = poutput.getAttribute<int>("idB");
-            // segments which correspond to these ids           
-            ctp::Segment *segA = top->getSegment(idA);
-            ctp::Segment *segB = top->getSegment(idB);
-            // pair that corresponds to the two segments
-            ctp::QMPair *qmp = nblist.FindPair(segA,segB);
-            
-            if (qmp == NULL) { // there is no pair in the neighbor list with this name
-                CTP_LOG_SAVE(ctp::logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
-            }   else {
-                //CTP_LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
-                records[qmp->getId()] = & ((*it)->get("output.pair"));
-            }
-        } else {
-            Property thebadone = (*it)->get("id");
-            throw runtime_error("\nERROR: Job file incomplete.\n Job with id "+thebadone.as<string>()+" is not finished. Check your job file for FAIL, AVAILABLE, or ASSIGNED. Exiting\n");
-        }
-    } // finished loading from the file
-
-
-    // loop over all pairs in the neighbor list
-    CTP_LOG_SAVE(ctp::logINFO, _log) << "Neighborlist size " << top->NBList().size() << flush; 
-    for (ctp::QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
-        
-        ctp::QMPair *pair = *ipair;
-        
-        if (records[ pair->getId() ]==NULL) continue; //skip pairs which are not in the jobfile
-        
-        //Segment* segmentA = pair->Seg1();
-        //Segment* segmentB = pair->Seg2();
-        
-        double Jeff2 = 0.0;
-        double jAB=0.0;
-        
-        //cout << "\nProcessing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
-        
-        
-        if ( pair->getType() == ctp::QMPair::Excitoncl){
-        Property* pair_property = records[ pair->getId() ];
- 
-        list<Property*> pCoupling = pair_property->Select("Coupling");
- 
-            for (list<Property*> ::iterator itCoupling = pCoupling.begin(); itCoupling != pCoupling.end(); ++itCoupling) {
-                jAB = (*itCoupling)->getAttribute<double>("jABstatic");
-            }
-        Jeff2 = jAB*jAB;
-        
-    
-        
-        pair->setJeff2(Jeff2, 2);
-        pair->setIsPathCarrier(true, 2);
-        
-        
-      
-        }
-    }
-                    
-    CTP_LOG_SAVE(ctp::logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs  << flush; 
-    cout << _log;
-}
-
-
-
-}};
+}  // namespace xtp
+}  // namespace votca

@@ -1,6 +1,7 @@
-/* 
- *            Copyright 2016 The MUSCET Development Team
- *                        
+/*
+ *            Copyright 2016 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
  *      Licensed under the Apache License, Version 2.0 (the "License")
  *
  * You may not use this file except in compliance with the License.
@@ -16,65 +17,44 @@
  *
  */
 
+#pragma once
+#ifndef VOTCA_XTP_GYRATION_H
+#define VOTCA_XTP_GYRATION_H
 
-#ifndef _VOTCA_XTP_GYRATION_H
-#define _VOTCA_XTP_GYRATION_H
+// Standard includes
+#include <cstdio>
 
+// Local VOTCA includes
+#include "density_integration.h"
+#include "logger.h"
+#include "orbitals.h"
 
-#include <stdio.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
-#include <boost/filesystem.hpp>
-#include <votca/xtp/numerical_integrations.h>
-namespace votca { namespace xtp {
-    
-    
-class Density2Gyration 
-{
-public:
+namespace votca {
+namespace xtp {
 
-    Density2Gyration (ctp::Logger* log) {_log=log; }
-   ~Density2Gyration () { 
-   
-    std::vector< QMAtom* >::iterator it;
-    for ( it = _Atomlist.begin(); it != _Atomlist.end(); ++it ) delete *it;};
+class Density2Gyration {
+ public:
+  Density2Gyration(Logger& log) : _log(log){};
 
-    std::string Identify() { return "density2gyration"; }
+  std::string Identify() { return "density2gyration"; }
 
-    void   Initialize(Property *options);
-    
-    Eigen::Quaterniond get_quaternion( const tools::matrix::eigensystem_t& system );
-   
-    void ReportAnalysis( std::string label,Gyrationtensor gyro, tools::matrix::eigensystem_t system );
-    
-    void AnalyzeDensity( Orbitals& _orbitals );
-    void AnalyzeGeometry( std::vector< QMAtom* > _atoms );
+  void Initialize(tools::Property& options);
 
-private:
-    
-    int         _state_no;  
-    int         _openmp_threads;
-    std::string      _state;
-    std::string      _method;
-    std::string      _spin;
-    std::string      _integrationmethod;
-    std::string      _gridsize;
+  void AnalyzeDensity(const Orbitals& orbitals);
 
+ private:
+  void ReportAnalysis(std::string label, const Gyrationtensor& gyro,
+                      const Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d>& es);
+  void AnalyzeGeometry(const QMMolecule& atoms);
 
-
-   std::vector< QMAtom* > _Atomlist;
-    
-    ctp::Logger*      _log;
-    
-    
-
+  QMState _state;
+  bool _dostateonly;
+  std::string _integrationmethod;
+  std::string _gridsize;
+  Logger& _log;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-
-}}
-
-
-
-#endif /* _MUSCET_XTP_GYRATION_H */
-
+#endif  // VOTCA_XTP_GYRATION_H

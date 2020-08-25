@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2017 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,101 +17,98 @@
  *
  */
 
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/symmetric_matrix.h"
+#include "votca/xtp/threecenter.h"
 
-
-#include <votca/xtp/threecenter.h>
-#include <votca/xtp/symmetric_matrix.h>
-#include <votca/xtp/eigen.h>
 namespace votca {
-  namespace xtp {
+namespace xtp {
 
-    void TCMatrix_dft::Fill(AOBasis& _auxbasis, AOBasis& _dftbasis, const Eigen::MatrixXd& V_sqrtm1) {
+void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
 
-      for (unsigned int i = 0; i < _auxbasis.AOBasisSize(); i++) {
-        try {
-          _matrix.push_back(Symmetric_Matrix(_dftbasis.AOBasisSize()));
-        } catch (std::bad_alloc& ba) {
-          std::cerr << "Basisset/aux basis too large for 3c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
-          exit(0);
-        }
+  AOCoulomb auxAOcoulomb;
+  auxAOcoulomb.Fill(auxbasis);
+  _inv_sqrt = auxAOcoulomb.Pseudo_InvSqrt(1e-8);
+  _removedfunctions = auxAOcoulomb.Removedfunctions();
 
-      }
-      #pragma omp parallel for schedule(dynamic)
-      for (int _is = _dftbasis.getNumofShells()-1; _is >=0; _is--) {
-        const Eigen::MatrixXd V=V_sqrtm1;
-        const AOShell* _dftshell = _dftbasis.getShell(_is);
-        std::vector< Eigen::MatrixXd > block;
-        for (int i = 0; i < _dftshell->getNumFunc(); i++) {
-          int size = _dftshell->getStartIndex() + i+1;
-          block.push_back(Eigen::MatrixXd::Zero(_auxbasis.AOBasisSize(), size));
-        }
-        FillBlock(block, _is, _dftbasis, _auxbasis);
-        int offset = _dftshell->getStartIndex();
-        for (unsigned i = 0; i < block.size(); ++i) {
-          Eigen::MatrixXd temp =V * block[i];
-          for (int mu = 0; mu < temp.rows(); ++mu) {
-            for (int j = 0; j < temp.cols(); ++j) {
-              _matrix[mu](i + offset, j) = temp(mu, j);
-            }
-          }
-        }
-      }
-      return;
+  for (Index i = 0; i < auxbasis.AOBasisSize(); i++) {
+    try {
+      _matrix.push_back(Symmetric_Matrix(dftbasis.AOBasisSize()));
+    } catch (std::bad_alloc&) {
+      throw std::runtime_error(
+          "Basisset/aux basis too large for 3c calculation. Not enough RAM.");
     }
-
-    /*
-     * Determines the 3-center integrals for a given shell in the aux basis
-     * by calculating the 3-center overlap integral of the functions in the
-     * aux shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock)
-     */
-
-    void TCMatrix_dft::FillBlock(std::vector< Eigen::MatrixXd >& _block, int shellindex, const AOBasis& dftbasis, const AOBasis& auxbasis) {
-      const AOShell* left_dftshell = dftbasis.getShell(shellindex);
-      tensor3d::extent_gen extents;
-      int _start = left_dftshell->getStartIndex();
-      // alpha-loop over the aux basis function
-      for (AOBasis::AOShellIterator _auxS = auxbasis.firstShell(); _auxS != auxbasis.lastShell(); ++_auxS) {
-        const AOShell* _shell_aux = auxbasis.getShell(_auxS);
-        int _aux_start = _shell_aux->getStartIndex();
-
-
-        for (int _is = 0; _is <= shellindex; _is++) {
-
-          const AOShell* _shell_col = dftbasis.getShell(_is);
-          int _col_start=_shell_col->getStartIndex();
-          tensor3d threec_block(extents[ range(0, _shell_aux->getNumFunc()) ][ range(0, left_dftshell->getNumFunc()) ][ range(0, _shell_col->getNumFunc())]);
-          for (int i = 0; i < _shell_aux->getNumFunc(); ++i) {
-            for (int j = 0; j < left_dftshell->getNumFunc(); ++j) {
-              for (int k = 0; k < _shell_col->getNumFunc(); ++k) {
-                threec_block[i][j][k] = 0.0;
-              }
-            }
-          }
-
-          bool nonzero = FillThreeCenterRepBlock(threec_block, _shell_aux, left_dftshell, _shell_col);
-          if (nonzero) {
-
-            for (int _left = 0; _left < left_dftshell->getNumFunc(); _left++) {
-              for (int _aux = 0; _aux < _shell_aux->getNumFunc(); _aux++) {
-                for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {
-                  //symmetry
-                  if ((_col_start + _col)>(_start + _left)) {
-                    break;
-                  }
-                  _block[_left](_aux_start + _aux, _col_start + _col) = threec_block[_aux][_left][_col];
-                }
-              }
-            }
-          }
-        }
-      }
-      return;
-    }
-
-
-
-
-
-
   }
+#pragma omp parallel for schedule(dynamic)
+  for (Index is = dftbasis.getNumofShells() - 1; is >= 0; is--) {
+    const AOShell& dftshell = dftbasis.getShell(is);
+    std::vector<Eigen::MatrixXd> block;
+    for (Index i = 0; i < dftshell.getNumFunc(); i++) {
+      Index size = dftshell.getStartIndex() + i + 1;
+      block.push_back(Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), size));
+    }
+    FillBlock(block, is, dftbasis, auxbasis);
+    Index offset = dftshell.getStartIndex();
+    for (Index i = 0; i < Index(block.size()); ++i) {
+      Eigen::MatrixXd temp = _inv_sqrt * block[i];
+      for (Index mu = 0; mu < temp.rows(); ++mu) {
+        for (Index j = 0; j < temp.cols(); ++j) {
+          _matrix[mu](i + offset, j) = temp(mu, j);
+        }
+      }
+    }
+  }
+  return;
 }
+
+/*
+ * Determines the 3-center integrals for a given shell in the aux basis
+ * by calculating the 3-center overlap integral of the functions in the
+ * aux shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock)
+ */
+
+void TCMatrix_dft::FillBlock(std::vector<Eigen::MatrixXd>& block,
+                             Index shellindex, const AOBasis& dftbasis,
+                             const AOBasis& auxbasis) {
+  const AOShell& left_dftshell = dftbasis.getShell(shellindex);
+
+  Index start = left_dftshell.getStartIndex();
+  // alpha-loop over the aux basis function
+  for (const AOShell& shell_aux : auxbasis) {
+    Index aux_start = shell_aux.getStartIndex();
+
+    for (Index is = 0; is <= shellindex; is++) {
+
+      const AOShell& shell_col = dftbasis.getShell(is);
+      Index col_start = shell_col.getStartIndex();
+      Eigen::Tensor<double, 3> threec_block(shell_aux.getNumFunc(),
+                                            left_dftshell.getNumFunc(),
+                                            shell_col.getNumFunc());
+      threec_block.setZero();
+
+      bool nonzero = FillThreeCenterRepBlock(threec_block, shell_aux,
+                                             left_dftshell, shell_col);
+      if (nonzero) {
+
+        for (Index left = 0; left < left_dftshell.getNumFunc(); left++) {
+          for (Index aux = 0; aux < shell_aux.getNumFunc(); aux++) {
+            for (Index col = 0; col < shell_col.getNumFunc(); col++) {
+              // symmetry
+              if ((col_start + col) > (start + left)) {
+                break;
+              }
+              block[left](aux_start + aux, col_start + col) =
+                  threec_block(aux, left, col);
+            }
+          }
+        }
+      }
+    }
+  }
+  return;
+}
+
+}  // namespace xtp
+}  // namespace votca

@@ -1,6 +1,8 @@
+<?xml version="1.0"?>
 <options>
-	<vaverage help="Computes site-centered velocity averages from site occupancies">
-		<carriers help="Carrier types for which to compute velocity averages">-1 +1</carriers>
-		<tabulate help="Tabulate 'atoms' or 'segments'">segments</tabulate>
-	</vaverage>
-</options>	
+  <vaverage>
+    <ratefile help="file with kmc rates from kmcmultiple" default="rates.dat"/>
+    <occfile help="file with site occupations from kmcmultiple" default="occupation.dat"/>
+    <outputfile help="outputfile" default="velocities.dat"/>
+  </vaverage>
+</options>

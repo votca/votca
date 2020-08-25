@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,16 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE glink_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/glink.h>
+
+// Local VOTCA includes
+#include "votca/xtp/glink.h"
 
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(glink_test)
-
-BOOST_AUTO_TEST_CASE(constructors_test) { GLink glin; }
+BOOST_AUTO_TEST_CASE(getter_tests) {}
 
 BOOST_AUTO_TEST_SUITE_END()

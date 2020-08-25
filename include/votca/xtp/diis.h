@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2017 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,56 +17,36 @@
  *
  */
 
-#ifndef _VOTCA_XTP_DIIS__H
-#define _VOTCA_XTP_DIIS__H
+#pragma once
+#ifndef VOTCA_XTP_DIIS_H
+#define VOTCA_XTP_DIIS_H
 
-
-
-#include <votca/xtp/eigen.h>
+// Standard includes
 #include <vector>
 
-namespace votca { namespace xtp {
- 
- 
- class DIIS{
-public:
+// Local VOTCA includes
+#include "eigen.h"
 
-    DIIS( ):success(true) { };
-   ~DIIS() {
-       
-    for (std::vector< Eigen::MatrixXd* >::iterator it = _errormatrixhist.begin() ; it !=_errormatrixhist.end(); ++it){
-         delete *it;
-     }
-    _errormatrixhist.clear();    
-       
-   for (std::vector< std::vector<double>* >::iterator it = _Diis_Bs.begin() ; it !=_Diis_Bs.end(); ++it){
-         delete *it;
-     }
-    _Diis_Bs.clear(); 
-   };
-   
-    void Update(unsigned _maxerrorindex, const Eigen::MatrixXd& errormatrix);
-    Eigen::VectorXd CalcCoeff();
-    
-    void setHistLength(unsigned length){_histlength=length;}
-   
-    bool Info(){return success;}
-    
+namespace votca {
+namespace xtp {
+
+class DIIS {
+ public:
+  void Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix);
+  Eigen::VectorXd CalcCoeff();
+
+  void setHistLength(Index length) { _histlength = length; }
+
+  bool Info() { return success; }
+
  private:
-     
-     
-     
-     
-     bool success;
-     unsigned _histlength;
-     std::vector< std::vector<double>* >  _Diis_Bs;
-     std::vector< Eigen::MatrixXd* >   _errormatrixhist;
-  
- };
- 
- 
-    
-}}
+  bool success = true;
+  Index _histlength;
+  std::vector<std::vector<double> > _Diis_Bs;
+  std::vector<Eigen::MatrixXd> _errormatrixhist;
+};
 
-#endif	
+}  // namespace xtp
+}  // namespace votca
 
+#endif  // VOTCA_XTP_DIIS_H

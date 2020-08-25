@@ -1,5 +1,6 @@
-/* 
- *            Copyright 2016 The MUSCET Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
+ *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
  *
@@ -16,90 +17,66 @@
  *
  */
 
-#ifndef _VOTCA_XTP_DENSITYANALYSIS_H
-#define _VOTCA_XTP_DENSITYANALYSIS_H
+#pragma once
+#ifndef VOTCA_XTP_DENSITYANALYSIS_H
+#define VOTCA_XTP_DENSITYANALYSIS_H
 
-#include <stdio.h>
-#include <votca/xtp/gyration.h>
-#include <votca/ctp/logger.h>
+// Standard includes
+#include <cstdio>
+
+// Third party includes
 #include <boost/filesystem.hpp>
 
-namespace votca { namespace xtp {
-    using namespace std;
-    
-class DensityAnalysis : public ctp::QMTool
-{
-public:
+// Local VOTCA includes
+#include "votca/xtp/gyration.h"
+#include "votca/xtp/logger.h"
 
-    DensityAnalysis () { };
-   ~DensityAnalysis () { };
+namespace votca {
+namespace xtp {
 
-    string Identify() { return "densityanalysis"; }
+class DensityAnalysis : public QMTool {
+ public:
+  std::string Identify() override { return "densityanalysis"; }
 
-    void   Initialize(Property *options);
-    bool   Evaluate();
-    // two access functions for egwbse interface
-    
+  void Initialize(const tools::Property& user_options) override;
+  bool Evaluate() override;
 
+ private:
+  std::string _orbfile;
+  std::string _output_file;
+  tools::Property _gyration_options;
 
-private:
-    
-    string      _orbfile;
-    string      _output_file;
-    Property    _gyration_options;
-    
-    ctp::Logger      _log;
-    
-    
+  Logger _log;
 };
 
-void DensityAnalysis::Initialize(Property* options) {
-    
-    string key = "options." + Identify(); 
-    _orbfile      = options->get(key + ".input").as<string> ();
+void DensityAnalysis::Initialize(const tools::Property& user_options) {
 
-    string _gyration_xml = options->get(key + ".gyration_options").as<string> ();
-    load_property_from_xml(_gyration_options,_gyration_xml.c_str());
+  tools::Property options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-    // get the path to the shared folders with xml files
-    char *votca_share = getenv("VOTCASHARE");    
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-
+  _gyration_options = options.get(".density2gyration");
 }
 
 bool DensityAnalysis::Evaluate() {
-    
-    _log.setReportLevel( ctp::logDEBUG );
-    _log.setMultithreading( true );
-    
-    _log.setPreface(ctp::logINFO,    "\n... ...");
-    _log.setPreface(ctp::logERROR,   "\n... ...");
-    _log.setPreface(ctp::logWARNING, "\n... ...");
-    _log.setPreface(ctp::logDEBUG,   "\n... ..."); 
+  OPENMP::setMaxThreads(_nThreads);
+  _log.setReportLevel(Log::current_level);
+  _log.setMultithreading(true);
 
-    CTP_LOG(ctp::logDEBUG, _log) << "Converting serialized QM data in " << _orbfile << flush;
+  _log.setCommonPreface("\n... ...");
 
-    Orbitals _orbitals;
-    // load the QM data from serialized orbitals object
+  Orbitals orbitals;
+  XTP_LOG(Log::error, _log)
+      << " Loading QM data from " << _orbfile << std::flush;
+  orbitals.ReadFromCpt(_orbfile);
 
-    CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-    _orbitals.ReadFromCpt(_orbfile);
+  Density2Gyration density2gyration(_log);
+  density2gyration.Initialize(_gyration_options);
+  density2gyration.AnalyzeDensity(orbitals);
 
-    Density2Gyration density2gyration=Density2Gyration(&_log);
-    density2gyration.Initialize(&_gyration_options);
-    density2gyration.AnalyzeDensity(_orbitals);
-     
-    return true;
+  return true;
 }
 
+}  // namespace xtp
+}  // namespace votca
 
-
-
-
-
-
-
-}}
-
-
-#endif
+#endif  // VOTCA_XTP_DENSITYANALYSIS_H

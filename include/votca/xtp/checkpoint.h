@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,55 @@
  *
  */
 
-#ifndef _VOTCA_XTP_CHECKPOINT_H
-#define _VOTCA_XTP_CHECKPOINT_H
+#pragma once
+#ifndef VOTCA_XTP_CHECKPOINT_H
+#define VOTCA_XTP_CHECKPOINT_H
 
+// Standard includes
+#include <fstream>
 
+// Third party includes
 #include <H5Cpp.h>
-#include <votca/xtp/checkpoint_utils.h>
 
+// Local VOTCA includes
+#include "checkpoint_utils.h"
+#include "checkpointreader.h"
+#include "checkpointtable.h"
+#include "checkpointwriter.h"
 
 namespace votca {
 namespace xtp {
 
+enum class CheckpointAccessLevel {
+  READ = 0,    // only read no write access
+  MODIFY = 1,  // if file exists, change it
+  CREATE = 2   // create new file
+};
+
+std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l);
+
 class CheckpointFile {
  public:
-  CheckpointFile(std::string fileName, bool overWrite);
-  CheckpointFile(std::string fileName);
+  CheckpointFile(std::string fN);
+  CheckpointFile(std::string fN, CheckpointAccessLevel access);
 
   std::string getFileName();
   std::string getVersion();
 
   H5::H5File getHandle();
 
+  CheckpointWriter getWriter();
+  CheckpointWriter getWriter(const std::string _path);
+  CheckpointReader getReader();
+  CheckpointReader getReader(const std::string _path);
+
  private:
   std::string _fileName;
   H5::H5File _fileHandle;
-
+  CptLoc _rootLoc;
+  CheckpointAccessLevel _accessLevel;
 };
-
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // _VOTCA_XTP_CHECKPOINT_H
+#endif  // VOTCA_XTP_CHECKPOINT_H

@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,46 +17,23 @@
  *
  */
 
-#ifndef __VOTCA_XTP_NBO__H
-#define	__VOTCA_XTP_NBO__H
-
-
-#include <votca/tools/elements.h>
-#include <votca/xtp/aobasis.h>
-#include <votca/ctp/logger.h>
-#include <votca/xtp/qmatom.h>
-
+#pragma once
+#ifndef VOTCA_XTP_NBO_H
+#define VOTCA_XTP_NBO_H
 
 /**
-* \brief Takes a list of atoms, and the corresponding density and overlap matrices and puts out a table of partial charges
-*
-* 
-* 
-*/
+ * \brief Takes a list of atoms, and the corresponding density and overlap
+ * matrices and puts out a table of partial charges
+ *
+ *
+ *
+ */
 
+namespace votca {
+namespace xtp {
 
+class NBO {};
+}  // namespace xtp
+}  // namespace votca
 
-namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
-    
-class NBO{
-public:
-    
-    NBO(ctp::Logger *log){_log = log;}
-   ~NBO(){};
-       
-   void EvaluateNBO(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd  &_dmat,const AOBasis &_basis, BasisSet &bs);
-  
-private:
-    
-     ctp::Logger *_log;
-     votca::tools::Elements _elements; 
-    
-    Eigen::MatrixXd IntercenterOrthogonalisation(Eigen::MatrixXd  &P,Eigen::MatrixXd  &Overlap,vector< QMAtom* >& _atomlist, BasisSet &bs);
-  
-};
-}}
-
-#endif /* __VOTCA_XTP_NBO_H */
-
-
+#endif  // VOTCA_XTP_NBO_H

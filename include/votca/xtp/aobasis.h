@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2017 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,99 +17,53 @@
  *
  */
 
-#ifndef __XTP_AOBASIS__H
-#define	__XTP_AOBASIS__H
+#pragma once
+#ifndef VOTCA_XTP_AOBASIS_H
+#define VOTCA_XTP_AOBASIS_H
 
+// Local VOTCA includes
+#include "aoshell.h"
+#include "eigen.h"
 
-#include <boost/math/constants/constants.hpp>
-#include <votca/xtp/basisset.h>
-#include <votca/tools/vec.h>
-#include <votca/xtp/eigen.h>
+namespace votca {
+namespace xtp {
+class QMMolecule;
+class BasisSet;
 
-
-
-namespace votca { namespace xtp {
-
-class AOShell;
-class QMAtom;
-
-
-/*
- * A collection of shells associated with a specific element  
+/**
+ * \brief Container to hold Basisfunctions for all atoms
+ *
+ * It is constructed from a QMMolecule and a BasisSet.
  */
-class AOBasis 
-{   
-public:
-        AOBasis( ) { ; }
-        ~AOBasis(); 
-      
-       void ReorderMOs(Eigen::MatrixXd &v,const std::string& start, const std::string& target ); 
-       
-       void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
-     
-      
+class AOBasis {
+ public:
+  void Fill(const BasisSet& bs, const QMMolecule& atoms);
 
-    void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
-    
-    
-    unsigned AOBasisSize() const {return _AOBasisSize; }
-    
-    typedef std::vector< AOShell* >::const_iterator AOShellIterator;
-    AOShellIterator firstShell() const{ return _aoshells.begin(); }
-    AOShellIterator lastShell() const{ return _aoshells.end(); }
+  Index AOBasisSize() const { return _AOBasisSize; }
 
-    Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
-   
-        
-    const AOShell* getShell( AOShellIterator it ) const{ return (*it); }
-    
-    const AOShell* getShell( int idx )const{ return _aoshells[idx] ;}
-    
-    AOShell* addShell( std::string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, tools::vec pos, std::string name, int index ); 
-  
-    
-    const std::vector<AOShell*>& getShells() const{ return _aoshells; }
-    
-    const std::vector<const AOShell*> getShellsperAtom(int AtomId)const;
-    
-    int getFuncperAtom(int AtomId) const;
-    
-    unsigned getNumofShells() const{return _aoshells.size();}
-   
-    int getAOBasisFragA() const{return _AOBasisFragA;}
-    
-   int getAOBasisFragB() const{return _AOBasisFragB;}
-   private:
-       
-       
-  void MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier );
-   
-    std::vector<AOShell*> _aoshells;
+  using AOShellIterator = std::vector<AOShell>::const_iterator;
+  AOShellIterator begin() const { return _aoshells.begin(); }
+  AOShellIterator end() const { return _aoshells.end(); }
 
-    std::vector<int> invertOrder(const std::vector<int>& order );
-    
-    std::vector<int> getReorderVector(const std::string& start,const std::string& target );
-   
-    void addReorderShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& neworder );
-  
-    std::vector<int> getMultiplierVector(const std::string& start,const std::string& target );
-    
-    void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
-  
-    void addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix );
-    
-    int getMaxFunctions ( );
-    
-   int _AOBasisFragA;
-   int _AOBasisFragB;
-    unsigned int _AOBasisSize;
-    
+  const AOShell& getShell(Index idx) const { return _aoshells[idx]; }
+
+  const std::vector<const AOShell*> getShellsofAtom(Index AtomId) const;
+
+  Index getNumofShells() const { return Index(_aoshells.size()); }
+
+  const std::vector<Index>& getFuncPerAtom() const { return _FuncperAtom; }
+
+ private:
+  AOShell& addShell(const Shell& shell, const QMAtom& atom, Index startIndex);
+
+  std::vector<AOShell> _aoshells;
+
+  std::vector<Index> _FuncperAtom;
+
+  Index _AOBasisSize;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
- 
-}}
-
-#endif	/* AOBASIS_H */
-
+#endif  // VOTCA_XTP_AOBASIS_H

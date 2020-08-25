@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,61 +17,87 @@
  *
  */
 
-#ifndef __VOTCA_XTP_XTPDFT_H
-#define __VOTCA_XTP_XTPDFT_H
+#pragma once
+#ifndef VOTCA_XTP_XTPDFT_H
+#define VOTCA_XTP_XTPDFT_H
 
-
-#include <votca/ctp/apolarsite.h>
-#include <votca/xtp/qmpackage.h>
-#include <votca/xtp/dftengine.h>
-
+// Standard includes
 #include <string>
 
-
+// Local VOTCA includes
+#include "votca/xtp/dftengine.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/polarsite.h"
+#include "votca/xtp/qmpackage.h"
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-        /**
-            \brief Wrapper for the internal XTP DFT engine
-
-
-         */
-        class XTPDFT : public QMPackage {
-        public:
-
-            std::string getPackageName() {
-                return "xtp";
-            }
-
-            void Initialize(Property *options);
-
-            bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
-
-            bool Run(Orbitals* _orbitals = NULL);
-
-            void CleanUp();
-
-            bool CheckLogFile();
-
-            bool ParseLogFile(Orbitals* _orbitals);
-
-            bool ParseOrbitalsFile(Orbitals* _orbitals);
-            
-            bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles);
-
-        private:
-
-            DFTENGINE _xtpdft;
-            Property _xtpdft_options;
-
-            std::string _cleanup;
-
-            
-        };
+/**
+    \brief Wrapper for the internal XTP DFT engine
 
 
-    }
-}
+ */
 
-#endif /* __VOTCA_XTP_XTPDFT_H */
+class XTPDFT : public QMPackage {
+ public:
+  std::string getPackageName() const final { return "xtp"; }
+
+  void Initialize(const tools::Property& options) final;
+
+  bool WriteInputFile(const Orbitals& orbitals) final;
+
+  bool Run() final;
+
+  void CleanUp() final;
+
+  bool CheckLogFile();
+
+  bool ParseLogFile(Orbitals& orbitals) final;
+
+  bool ParseMOsFile(Orbitals& orbitals) final;
+
+  StaticSegment GetCharges() const final {
+    throw std::runtime_error(
+        "If you want partial charges just run the 'partialcharges' calculator");
+  }
+
+  Eigen::Matrix3d GetPolarizability() const final {
+    throw std::runtime_error(
+        "GetPolarizability() is not implemented for xtpdft");
+  }
+
+ protected:
+  const std::array<Index, 25>& ShellMulitplier() const final {
+    return _multipliers;
+  }
+  const std::array<Index, 25>& ShellReorder() const final { return _reorder; }
+
+ private:
+  // clang-format off
+  std::array<Index,25> _multipliers={
+            1, //s
+            1,1,1, //p
+            1,1,1,1,1, //d
+            1,1,1,1,1,1,1, //f 
+            1,1,1,1,1,1,1,1,1 //g
+            };
+  std::array<Index,25> _reorder={
+            0, //s
+            0,0,0, //p 
+            0,0,0,0,0, //d 
+            0,0,0,0,0,0,0, //f
+            0,0,0,0,0,0,0,0,0 //g
+            };
+  // clang-format on
+
+  void WriteChargeOption() final { return; }
+  tools::Property _xtpdft_options;
+
+  Orbitals _orbitals;
+};
+
+}  // namespace xtp
+}  // namespace votca
+
+#endif  // VOTCA_XTP_XTPDFT_H

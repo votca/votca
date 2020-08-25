@@ -1,9 +1,8 @@
+<?xml version="1.0"?>
 <options>
-<iexcitoncl help="Classical coupling of transition charges" section="sec:iexcitoncl">
-<mapping>system.xml</mapping>
-<job_file>exciton.jobs</job_file>
-<emp_file>mps.tab</emp_file>
-        <induce>0</induce>
-        <spin>singlet</spin>
-</iexcitoncl>
+  <iexcitoncl help="Classical coupling of transition charges" section="sec:iexcitoncl">
+    <map_file help="xml file with segment definition" default="votca_map.xml"/>
+    <job_file help="name of jobfile to which jobs are written" default="exciton.jobs"/>
+    <use_states help="Use pair of segments and exciton labels" default="false" choices="bool"/>
+  </iexcitoncl>
 </options>

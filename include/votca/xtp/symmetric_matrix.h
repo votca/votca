@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2017 The VOTCA Development Team
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,115 +17,63 @@
  *
  */
 
-#ifndef __XTP_SYMMETRIC_MATRIX__H
-#define	__XTP_SYMMETRIC_MATRIX__H
+#pragma once
+#ifndef VOTCA_XTP_SYMMETRIC_MATRIX_H
+#define VOTCA_XTP_SYMMETRIC_MATRIX_H
 
-
-
-#include <votca/xtp/eigen.h>
+// Standard includes
 #include <iostream>
 #include <vector>
 
+// Local VOTCA includes
+#include "eigen.h"
 
-
-
-
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
 /*
  * A symmetric matrix implementation for doubles, acces upper diagonal matrix
  */
-class Symmetric_Matrix
-{   
-public:
+class Symmetric_Matrix {
+ public:
+  Symmetric_Matrix(Index dim) {
+    dimension = dim;
+    data.resize((dim + 1) * dim / 2);
+  }
 
-Symmetric_Matrix(size_t dim) {
-            dimension = dim;
-            data.resize((dim + 1) * dim / 2);
-        }
+  Symmetric_Matrix(const Eigen::MatrixXd& full);
 
-        
-    Symmetric_Matrix(const Eigen::MatrixXd& full);
-    
-    int size() {
-            return dimension;
-        }
+  Index size() const { return dimension; }
 
-    double TraceofProd(const Symmetric_Matrix& a) const{
-        assert(data.size()==a.data.size()&&"Matrices do not have same size");
-        double result=0.0;
-        
-        for (size_t i=0;i<dimension;++i){
-            result+=this->operator ()(i,i)*a.operator ()(i,i);
-        }
-        
-        for (size_t i=0;i<dimension;++i){
-            for (size_t j=0;j<i;++j){
-                result+=2*this->operator ()(i,j)*a.operator ()(i,j);
-        }
-        }
-        return result;
-    }
+  double TraceofProd(const Symmetric_Matrix& a) const;
 
-    void AddtoEigenMatrix(Eigen::MatrixXd& full, double factor = 1.0) const{
-        for (int i = 0; i < full.rows(); ++i) {
-            for (int j = 0; j < full.cols(); ++j) {
-                full(i, j) += factor * this->operator ()(i,j);
-            }
-        }
-        return;
-    }
-    
-    Eigen::MatrixXd FullMatrix(){
-        Eigen::MatrixXd result=Eigen::MatrixXd(dimension,dimension);
-        for (int i = 0; i < result.rows(); ++i) {
-            for (int j = 0; j < result.cols(); ++j) {
-                result(i, j) =this->operator ()(i,j);
-            }
-        }
-        return result;
-    }
+  void AddtoEigenMatrix(Eigen::MatrixXd& full, double factor = 1.0) const;
 
-    double &operator()(const size_t i,const size_t j) {
-        size_t index;
+  void AddtoEigenUpperMatrix(
+      Eigen::SelfAdjointView<Eigen::MatrixXd, Eigen::Upper>& upper,
+      double factor = 1.0) const;
 
-        if (i >= j) {
-            index = (i * (i + 1)) / 2 + j;
-        } else {
-            index = (j * (j + 1)) / 2 + i;
-        }
+  Eigen::MatrixXd FullMatrix() const;
+  // returns a matrix where only the upper triangle part is filled, rest is set
+  // to zero
+  Eigen::MatrixXd UpperMatrix() const;
 
-        return data[index];
-    };
-    
-    
-    const double &operator()(const size_t i,const size_t j) const{
-        size_t index;
+  double& operator()(Index i, Index j) { return data[index(i, j)]; };
 
-        if (i >= j) {
-            index = (i * (i + 1)) / 2 + j;
-        } else {
-            index = (j * (j + 1)) / 2 + i;
-        }
-        return data[index];
-    };
-    
-    
-    friend std::ostream &operator<<(std::ostream &out, const Symmetric_Matrix& a);
-private:
-       
-    std::vector<double> data;
-    size_t dimension;
-    
-  
-    
+  const double& operator()(Index i, Index j) const {
+    return data[index(i, j)];
+  };
+
+  friend std::ostream& operator<<(std::ostream& out, const Symmetric_Matrix& a);
+
+ private:
+  Index index(Index i, Index j) const;
+
+  std::vector<double> data;
+  Index dimension;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-
-
- 
-}}
-
-#endif	/* AOBASIS_H */
-
+#endif  // VOTCA_XTP_SYMMETRIC_MATRIX_H

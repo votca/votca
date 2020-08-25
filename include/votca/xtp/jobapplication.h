@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,68 +17,41 @@
  *
  */
 
+#pragma once
+#ifndef VOTCA_XTP_JOBAPPLICATION_H
+#define VOTCA_XTP_JOBAPPLICATION_H
 
-#ifndef VOTCA_XTP_JOBAPPLICATION
-#define	VOTCA_XTP_JOBAPPLICATION
+// Local VOTCA includes
+#include "jobcalculator.h"
+#include "progressobserver.h"
+#include "statesaver.h"
+#include "topology.h"
+#include "xtpapplication.h"
 
-#include <votca/xtp/xtpapplication.h>
+namespace votca {
+namespace xtp {
 
-#include <votca/ctp/progressobserver.h>
-#include <votca/ctp/topology.h>
+class JobApplication : public XtpApplication {
+ public:
+  JobApplication();
+  ~JobApplication() override = default;
+  void Initialize() override;
+  bool EvaluateOptions() override;
+  void Run() override;
 
-#include "statesaversqlite.h"
-#include <votca/ctp/jobcalculator.h>
+  void BeginEvaluate(Index nThreads, Index ompthread,
+                     ProgObserver<std::vector<Job> > &jobs);
+  bool EvaluateFrame(Topology &top);
+  void SetCalculator(JobCalculator *calculator);
 
-
-namespace votca { namespace xtp {
-
-
-
-class JobApplication : public XtpApplication
-{
-public:
-    JobApplication();
-   ~JobApplication() { };
-
-   void Initialize();
-   bool EvaluateOptions();
-   void Run(void);
-
-   virtual void BeginEvaluate(int nThreads, ctp::ProgObserver< std::vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult> *obs);
-   virtual bool EvaluateFrame();
-   virtual void EndEvaluate();
-   void AddCalculator(ctp::JobCalculator *calculator);
-
-protected:
-    
-    bool _generate_input, _run, _import;
-    ctp::Topology           _top;
-    std::list< ctp::JobCalculator* >   _calculators;
-
+ protected:
+  bool _generate_input = false;
+  bool _run = false;
+  bool _import = false;
+  std::unique_ptr<JobCalculator> _calculator;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-
-
-
-
-
-
-
-
-#endif /* _QMApplication_H */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif  // VOTCA_XTP_JOBAPPLICATION_H
