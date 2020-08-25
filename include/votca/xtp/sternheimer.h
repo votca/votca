@@ -95,10 +95,6 @@ class Sternheimer {
   std::vector<double> getIsotropicAverage(
       std::vector<Eigen::Matrix3cd>& polar) const;
   // Return Self-Energy
-  Eigen::MatrixXcd SelfEnergy_at_wp(std::complex<double> omega, std::complex<double> omega_p) const;
-  Eigen::MatrixXcd SelfEnergy_at_wp_regulargrid(std::complex<double> omega, std::complex<double> omega_p) const;
-  Eigen::MatrixXcd SelfEnergy_at_w(std::complex<double> omega) const;
-  Eigen::MatrixXcd SelfEnergy_at_w_rect(std::complex<double> omega) const;
   Eigen::VectorXcd SelfEnergy_exchange() const;
   Eigen::VectorXcd SelfEnergy_diagonal(std::complex<double> omega) const;
   void PrintCOHSEXqpenergies();
@@ -204,6 +200,11 @@ class Sternheimer {
 
   Eigen::VectorXd EvaluateBasisAtPosition(const AOBasis& dftbasis,
                                           const Eigen::Vector3d& pos) const;
+
+  Eigen::MatrixXcd SelfEnergy_at_wp(std::complex<double> omega, std::complex<double> omega_p) const;
+  Eigen::MatrixXcd SelfEnergy_at_wp_regulargrid(std::complex<double> omega, std::complex<double> omega_p) const;
+  Eigen::MatrixXcd SelfEnergy_at_w(std::complex<double> omega) const;
+  Eigen::MatrixXcd SelfEnergy_at_w_rect(std::complex<double> omega) const;
 };
 }  // namespace xtp
 }  // namespace votca
