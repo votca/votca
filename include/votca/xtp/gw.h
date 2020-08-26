@@ -64,13 +64,13 @@ class GW {
     Index step = 10;
     double imshift = 0;
     Index resolution = 1000; // Frequency grid points output (polarizability and gw-sternheimer)
-    double lorentzian_broadening=0.3; //eV
+    double do_precalc_fxc=false; //Not recommended for large molecules
     std::string calculation="gwsternheimer"; //Type of calculation for Sternheimer
     std::string spatialgridtype="coarse";
-    Index gws_grid_spacing=5; 
+    Index level=0; 
     Index quadrature_order = 8; //Order of the quadrature for self energy integration
     std::string quadrature_scheme = "hermite"; //Kind of quadrature for self energy integration
-    bool do_cs=true;
+    //Index level=0;
   };
 
   void configure(const options& opt);

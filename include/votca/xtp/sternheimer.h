@@ -29,6 +29,7 @@
 #include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/vxc_grid.h>
+#include <votca/xtp/vxc_potential.h>
 
 namespace votca {
 namespace xtp {
@@ -37,8 +38,8 @@ class Sternheimer {
  public:
   Sternheimer();
 
-  Sternheimer(Orbitals& orbitals, Logger& log)
-      : _orbitals(orbitals), _log(log){};
+  Sternheimer(Orbitals& orbitals, Logger* log)
+      : _orbitals(orbitals), _pLog(log){};
 
   // Calculates and saves all matrices needed to perform Sternheimer
   // calculations from DFT
@@ -51,7 +52,7 @@ class Sternheimer {
     double end_frequency_grid = 20;     // in eV
     Index number_of_frequency_grid_points = 30;
     double imaginary_shift_pade_approx = 3;  // in eV
-    double lorentzian_broadening = 0;        // in eV
+    bool do_precalc_fxc = false;        // not recommended for large molecules
     Index number_output_grid_points = 1000;
     std::string numerical_Integration_grid_type =
         "coarse";  // xfine fine medium coarse xcoarse
@@ -61,10 +62,9 @@ class Sternheimer {
     double tolerance_sc_sternheimer = 10E-9;
     double mixing_constant = 0.5;  // 0<mixing_const<1
     Index max_mixing_history = 10;
-    Index gws_grid_spacing = 5;
+    Index level = 0; //energy level for GW
     std::string quadrature_scheme = "hermite";
-    Index quadrature_order = 12;
-    bool do_cs = true;
+    Index quadrature_order = 12; 
   };
 
   // Edit Options
@@ -97,13 +97,14 @@ class Sternheimer {
   // Return Self-Energy
   Eigen::VectorXcd SelfEnergy_exchange() const;
   Eigen::VectorXcd SelfEnergy_diagonal(std::complex<double> omega) const;
-  void PrintCOHSEXqpenergies();
 
   std::complex<double> SelfEnergy_cohsex(std::complex<double> omega,Index n) const;
   Eigen::VectorXd Intercept() const;
 
+  void printGW(Index level) const;
+
  private:
-  Logger& _log;
+  Logger* _pLog;
 
   Orbitals& _orbitals;
 
@@ -165,7 +166,7 @@ class Sternheimer {
                                   const Eigen::VectorXd& coeff) const;
   // Calculates the response of the electron density using the self consistent
   // sternheimer method
-  Eigen::MatrixXcd DeltaNSC(std::complex<double> w,
+  Eigen::MatrixXcd DeltaNSCSternheimer(std::complex<double> w,
                             const Eigen::MatrixXcd& pertubation) const;
 
   // Basic Anderson Mixing using only the last step

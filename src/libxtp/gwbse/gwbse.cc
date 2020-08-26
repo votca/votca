@@ -26,11 +26,11 @@
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/padeapprox.h>
 #include <votca/xtp/sternheimer.h>
 #include <votca/xtp/sternheimerw.h>
 #include <votca/xtp/vxc_grid.h>
 #include <votca/xtp/vxc_potential.h>
-#include <votca/xtp/padeapprox.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -225,23 +225,24 @@ void GWBSE::Initialize(tools::Property& options) {
         key + ".sternheimer.imshift", _gwopt.imshift);
     _gwopt.resolution = options.ifExistsReturnElseReturnDefault<Index>(
         key + ".sternheimer.resolution", _gwopt.resolution);
-    _gwopt.lorentzian_broadening =
+    _gwopt.do_precalc_fxc =
         options.ifExistsReturnElseReturnDefault<double>(
-            key + ".sternheimer.lorentzian_broadening",
-            _gwopt.lorentzian_broadening);
+            key + ".sternheimer.do_precalc_fxc",
+            _gwopt.do_precalc_fxc);
     _gwopt.calculation = options.ifExistsReturnElseReturnDefault<std::string>(
         key + ".sternheimer.calculation", _gwopt.calculation);
     _gwopt.spatialgridtype =
         options.ifExistsReturnElseReturnDefault<std::string>(
             key + ".sternheimer.spatialgridtype", _gwopt.spatialgridtype);
-    _gwopt.gws_grid_spacing = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".sternheimer.gws_grid_spacing", _gwopt.gws_grid_spacing);
-    _gwopt.quadrature_scheme = options.ifExistsReturnElseReturnDefault<std::string>(
-        key + ".sternheimer.quadrature_scheme", _gwopt.quadrature_scheme);
+    _gwopt.level = options.ifExistsReturnElseReturnDefault<Index>(
+        key + ".sternheimer.level", _gwopt.level);
+    _gwopt.quadrature_scheme =
+        options.ifExistsReturnElseReturnDefault<std::string>(
+            key + ".sternheimer.quadrature_scheme", _gwopt.quadrature_scheme);
     _gwopt.quadrature_order = options.ifExistsReturnElseReturnDefault<Index>(
         key + ".sternheimer.quadrature_order", _gwopt.quadrature_order);
-    _gwopt.do_cs = options.ifExistsReturnElseReturnDefault<bool>(
-        key + ".sternheimer.do_cs", _gwopt.do_cs);    
+    _gwopt.level = options.ifExistsReturnElseReturnDefault<Index>(
+        key + ".sternheimer.level", _gwopt.level);
     XTP_LOG(Log::error, *_pLog)
         << " Omega initial: " << _gwopt.omegain << flush;
     XTP_LOG(Log::error, *_pLog) << " Omega final: " << _gwopt.omegafin << flush;
@@ -251,11 +252,12 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *_pLog)
         << " Resolution: " << _gwopt.resolution << flush;
     XTP_LOG(Log::error, *_pLog)
-        << " GW-Sternheimer Grid Spacing: " << _gwopt.gws_grid_spacing << flush;    
+        << " GW-Sternheimer level: " << _gwopt.level << flush;
     XTP_LOG(Log::error, *_pLog)
         << " Calculation: " << _gwopt.calculation << flush;
     XTP_LOG(Log::error, *_pLog)
-        << " Quadrature: " << _gwopt.quadrature_scheme << " Order: " << _gwopt.quadrature_order << flush;    
+        << " Quadrature: " << _gwopt.quadrature_scheme
+        << " Order: " << _gwopt.quadrature_order << flush;
   }
 
   // eigensolver options
@@ -671,7 +673,7 @@ bool GWBSE::Evaluate() {
                                 << dftbasis.AOBasisSize() << flush;
     _orbitals.setAuxbasisName(_auxbasis_name);
 
-    Sternheimer sternheimer(_orbitals, *_pLog);
+    Sternheimer sternheimer(_orbitals, _pLog);
 
     sternheimer.setUpMatrices();
 
@@ -680,13 +682,13 @@ bool GWBSE::Evaluate() {
     opt.end_frequency_grid = _gwopt.omegafin;
     opt.number_of_frequency_grid_points = _gwopt.step;
     opt.imaginary_shift_pade_approx = _gwopt.imshift;
-    opt.lorentzian_broadening = _gwopt.lorentzian_broadening;
+    opt.do_precalc_fxc = _gwopt.do_precalc_fxc;
     opt.number_output_grid_points = _gwopt.resolution;
     opt.numerical_Integration_grid_type = _gwopt.spatialgridtype;
-    opt.gws_grid_spacing = _gwopt.gws_grid_spacing;
+    opt.level = _gwopt.level;
     opt.quadrature_order = _gwopt.quadrature_order;
     opt.quadrature_scheme = _gwopt.quadrature_scheme;
-    opt.do_cs = _gwopt.do_cs; 
+    //opt.level = _gwopt.level;
 
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << " Started Sternheimer " << flush;
@@ -758,88 +760,8 @@ bool GWBSE::Evaluate() {
     if (_gwopt.calculation == "gwsternheimer") {
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Started Sternheimer GW" << flush;
-          XTP_LOG(Log::error, *_pLog)
-          << TimeStamp() << " Integration used" << opt.quadrature_scheme<<flush;
-          XTP_LOG(Log::error, *_pLog)
-          << TimeStamp() << " Quadrature order" << opt.quadrature_order<<flush;
       sternheimer.configurate(opt);
-
-      Index homo = _orbitals.getHomo();
-      Index ksstates = _orbitals.MOs().eigenvalues().size();
-      Index lumo = homo+1;
-      
-      Index n_points = opt.number_output_grid_points;// 100;
-      Index eval_points = opt.number_of_frequency_grid_points;
-      //double delta = 0.5; // 1 Hartree in total (+- 0.5 Hartree)
-      //double homo_en =  _orbitals.getMOEnergy(homo);
-      //double omega_start = homo_en - delta;
-      double omega_start = (opt.start_frequency_grid)*tools::conv::ev2hrt;
-      double omega_end = (opt.end_frequency_grid)*tools::conv::ev2hrt;
-
-      PadeApprox pade1;
-      PadeApprox pade2;
-      
-      pade1.initialize(eval_points);
-      pade1.printInfo();
-
-      pade2.initialize(eval_points);
-      pade2.printInfo();
-
-      
-      double steps = 0;
-      if (eval_points > 1){
-        steps = (omega_end-omega_start)/eval_points;
-      }
-
-      for (int j = 0; j < eval_points; ++j) {
-        std::complex<double> w(omega_start + j * steps, 0);
-        Eigen::VectorXcd sigma_c = sternheimer.SelfEnergy_diagonal(w);
-        std::complex<double> sigma_c_sex_h =
-            sternheimer.SelfEnergy_cohsex(w, homo);
-        std::complex<double> sigma_c_sex_l =
-            sternheimer.SelfEnergy_cohsex(w, lumo);    
-        Eigen::VectorXd intercept = sternheimer.Intercept();
-
-        //pade1.addPoint(w,sigma_c(lumo) + sigma_c_sex + intercept(lumo));
-        //pade2.addPoint(w,sigma_c(homo).imag() + sigma_c_sex.imag());
-        // std::cout << w.real() << "\t"
-        //           << sigma_c_sex_h.real() + intercept(homo)
-        //           << "\t" << sigma_c_sex_l.real() + intercept(lumo)
-        //           << std::endl;
-        std::cout << w.real() << "\t"
-                  << sigma_c(homo).real() + sigma_c_sex_h.real() + intercept(homo)
-                  << "\t" << sigma_c(lumo).real() + sigma_c_sex_l.real() + intercept(lumo)
-                  << std::endl;
-        
-    }
-
-      // std::vector<std::complex<double>> result;
-
-      // for (int j = 0; j < eval_points; ++j) {
-      //   std::complex<double> w (omega_start +j*steps,0);
-      //   Eigen::VectorXcd sigma_c = sternheimer.SelfEnergy_diagonal(w);
-      //    pade.addPoint(w,sigma_c(homo));
-      //    result.push_back(sigma_c(homo));
-      //   XTP_LOG(Log::error, *_pLog)
-      //      << TimeStamp() << "Frequency "<< w <<" finished. " << j << flush;
-      // }
-
-       //std::cout << "\n # omega \t HOMO \n" << std::endl;
-
-
-
-      if (n_points > 1){
-         steps = (omega_end-omega_start)/n_points;;
-      }
-      // for (int j = 0; j < n_points; ++j) {
-      //   double w =omega_start + j*steps;
-      //   std::complex<double> SE = pade1.evaluatePoint(w);
-      //   //std::complex<double> SEimag = pade1.evaluatePoint(w);
-
-      //   std::cout << w << "\t" << SE.real() << "\t" << SE.imag() << std::endl;
-      // }
-
-      
+      sternheimer.printGW(opt.level);
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Finished Sternheimer GW" << flush;
     }
