@@ -105,7 +105,7 @@ jobs:
             continue-on-error: true
             no_regression_testing: true
     runs-on: ubuntu-latest
-    container: votca/buildenv:${{ matrix.distro }}
+    container: registry.gitlab.com/votca/buildenv:${{ matrix.distro }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2.2.0

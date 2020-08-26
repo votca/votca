@@ -13,7 +13,7 @@ Usage:
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'stable' or 'v1.6.1'
+    version=master # or 'stable' or 'v1.6.2'
     git clone -b ${version} --recursive https://github.com/votca/votca.git
     cd votca
     mkdir build
