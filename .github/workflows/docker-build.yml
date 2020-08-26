@@ -23,12 +23,32 @@ jobs:
           fetch-depth: 0
           submodules: true
           path: votca
-      - name: Build Docker images
+      - name: Build Docker images for Docker Hub
         uses: docker/build-push-action@v1.1.0
         with:
           repository: votca/votca
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+          dockerfile: votca/.github/workflows/Dockerfile
+          tag_with_ref: true
+          push: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
+      - name: Build Docker images for Github
+        uses: docker/build-push-action@v1.1.0
+        with:
+          repository: votca/votca/votca
+          registry: docker.pkg.github.com
+          username: votca-bot
+          password: ${{ secrets.VOTCA_BOT_TOKEN }}
+          dockerfile: votca/.github/workflows/Dockerfile
+          tag_with_ref: true
+          push: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
+      - name: Build Docker images for Docker Hub
+        uses: docker/build-push-action@v1.1.0
+        with:
+          repository: votca/votca
+          registry: registry.gitlab.com
+          username: votca-bot
+          password: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
           dockerfile: votca/.github/workflows/Dockerfile
           tag_with_ref: true
           push: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
