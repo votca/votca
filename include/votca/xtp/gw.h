@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,14 +18,16 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_GW_H
-#define _VOTCA_XTP_GW_H
+#ifndef VOTCA_XTP_GW_H
+#define VOTCA_XTP_GW_H
 
-#include "votca/xtp/logger.h"
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/rpa.h>
-#include <votca/xtp/sigma_base.h>
-#include <votca/xtp/threecenter.h>
+// Local VOTCA includes
+#include "logger.h"
+#include "orbitals.h"
+#include "rpa.h"
+#include "sigma_base.h"
+#include "threecenter.h"
+
 namespace votca {
 namespace xtp {
 
@@ -45,20 +47,22 @@ class GW {
     Index qpmax;
     Index rpamin;
     Index rpamax;
-    double eta = 1e-3;
-    double g_sc_limit = 1e-5;
-    Index g_sc_max_iterations = 50;
-    double gw_sc_limit = 1e-5;
-    Index gw_sc_max_iterations = 50;
+    double eta;
+    double g_sc_limit;
+    Index g_sc_max_iterations;
+    double gw_sc_limit;
+    Index gw_sc_max_iterations;
     double shift = 0;
     double ScaHFX = 0.0;
-    std::string sigma_integration = "ppm";
-    Index reset_3c = 5;  // how often the 3c integrals in iterate should be
-                         // rebuild
-    std::string qp_solver = "grid";
+    std::string sigma_integration;
+    Index reset_3c;  // how often the 3c integrals in iterate should be
+                     // rebuilt
+    std::string qp_solver;
     double qp_solver_alpha = 0.75;
-    Index qp_grid_steps = 601;       // Number of grid points
-    double qp_grid_spacing = 0.005;  // Spacing of grid points in Ha
+    Index qp_grid_steps;     // Number of grid points
+    double qp_grid_spacing;  // Spacing of grid points in Ha
+    Index gw_mixing_order;   // mixing order
+    double gw_mixing_alpha;  // mixing alpha, also linear mixing
     double omegain = 0.0; //eV
     double omegafin = 30; //eV
     Index step = 10;
@@ -90,6 +94,10 @@ class GW {
 
   void PlotSigma(std::string filename, Index steps, double spacing,
                  std::string states) const;
+
+  Eigen::VectorXd RPAInputEnergies() const {
+    return _rpa.getRPAInputEnergies();
+  }
 
  private:
   Index _qptotal;
@@ -163,4 +171,4 @@ class GW {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_BSE_H */
+#endif  // VOTCA_XTP_GW_H

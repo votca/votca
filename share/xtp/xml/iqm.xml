@@ -1,29 +1,86 @@
+<?xml version="1.0"?>
 <options>
-
-    <iqm help="QM calculator for pairs" section="sec:iqm">
-        <job_file help="name of jobfile to which jobs are written">iqm.jobs</job_file>
-        <map_file help="xml file with segment definition">system.xml</map_file>
-
-        <tasks help="tasks to perform during calculation >input,dft,parse,dftcoupling,gwbse,bsecoupling">input,dft,parse,dftcoupling,gwbse,bsecoupling</tasks>
-        <store help="store gw/dft results in hdf5 file, can require a lot of disk space in large systems"></store>
-        <gwbse_options help="xml file with options for gwbse calculations"></gwbse_options>
-        <bsecoupling_options help="xml file with options for gwbse calculations">bsecoupling.xml</bsecoupling_options>
-        <dftcoupling_options>
-            <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0">0.0</degeneracy>
-            <levA help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule A">1</levA>
-            <levB help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule B">1</levB>
-        </dftcoupling_options>
-        <dftpackage help="xml file with options for dft calculations">gaussian_pair_bse.xml</dftpackage>
-        <readjobfile help="which states to read into the jobfile for each segment type">
-            <singlet>DCV5T:s1, C60:s2</singlet>
-            <triplet>DCV5T:t2, C60:t1</triplet>
-            <electron>DCV5T:e1, C60:e1</electron>
-            <hole>DCV5T:h1, C60:h1</hole>
-        </readjobfile>
-    </iqm>
-
-
-
+  <iqm help="QM calculator for pairs" section="sec:iqm">
+    <job_file help="name of jobfile to which jobs are written" default="iqm.jobs"/>
+    <tasks help="tasks to perform during calculation" default="input,dft,parse,dftcoupling,gwbse,bsecoupling" choices="[input,dft,parse,dftcoupling,gwbse,bsecoupling]"/>
+    <store help="store results in hdf5 file, can require a lot of disk space in large systems" default="none" choices="none,gw,dft"/>
+    <map_file help="xml file with segment definition" default="votca_map.xml"/>
+    <basisset help="Basis set for MOs" default="def2-tzvp"/>
+    <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp"/>
+    <functional help="Functional name(s) according to LIBXC" default="XC_HYB_GGA_XC_PBEH"/>
+    <gwbse_options>
+      <gwbse>
+        <ranges help="default: all levels in RPA, 1:2*HOMO in QP and all in BSE; other options: factor,explicit" default="default" choices="default,factor,explicit,full"/>
+        <rpamax help="only needed, if ranges is factor or explicit, number of levels in rpa" default=""/>
+        <qpmin help="only needed, if ranges is factor or explicit, lowest MO to be used in GW" default=""/>
+        <qpmax help="only needed, if ranges is factor or explicit, highest MO to be used in GW" default=""/>
+        <bsemin help="only needed, if ranges is factor or explicit, lowest MO to be used in BSE" default=""/>
+        <bsemax help="only needed, if ranges is factor or explicit, highest MO to be used in BSE" default=""/>
+        <vxc help="Exchange correlation functional computation for GW">
+          <grid help="grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine"/>
+        </vxc>
+        <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" default="0.0" unit="hartree" choices="float"/>
+        <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW" choices="evGW,G0W0"/>
+        <tasks help="tasks to do" default="all" choices="[gw,singlets,triplets,all]"/>
+        <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact"/>
+        <eta help="small parameter eta of the Green's function" default="1e-3" unit="Hartree" choices="float+"/>
+        <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid"/>
+        <qp_grid_steps help="number of QP grid points" default="1001" choices="int+"/>
+        <qp_grid_spacing help="spacing of QP grid points" unit="Hartree" default="0.001" choices="float+"/>
+        <exctotal help="maximum number of BSE states to calculate" default="30" choices="int+"/>
+        <useTDA help="use TDA for BSE" default="false" choices="bool"/>
+        <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level" default="no" choices="RPA,GW,BSE,no"/>
+        <eigensolver help="options for BSE eigenvalue decompostion">
+          <dodavidson help="use davidson solver" default="true" choices="bool"/>
+          <davidson_correction help="Davidson correction method" default="DPR" choices="DPR,OHLSEN"/>
+          <davidson_tolerance help="Numerical tolerance" default="normal" choices="loose,normal,strict"/>
+          <davidson_ortho help="orthogonalisation routine: GramSchmidt or QR" default="GS" choices="GS,QR"/>
+          <davidson_update help=" how large the search space" default="safe" choices="min,safe,max"/>
+          <davidson_maxiter help="max iterations" default="50" choices="int+"/>
+          <domatrixfree help="solve without explicitly setting up BSE matrix, (slower but a lot less memory required" default="true" choices="bool">false</domatrixfree>
+        </eigensolver>
+        <gw_sc_max_iterations help="Maximum number of iterations in eVGW" default="50" choices="int+"/>
+        <gw_mixing_order help="Mixing of QP energies in evGW - 0: plain, 1: linear, &gt;1: Anderson" default="20" choices="int+"/>
+        <gw_sc_limit help="evGW convergence criteria" unit="Hartree" default="1e-5" choices="float+"/>
+        <gw_mixing_alpha help="mixing alpha, also linear mixing" default="0.7" choices="float+"/>
+        <g_sc_max_iterations help="maximum number of iterations for quasiparticle equation solution" default="100" choices="int+"/>
+        <g_sc_limit help="quasiparticle equation solver convergence" unit="Hartree" default="1e-5" choices="float+"/>
+        <use_Hqp_offdiag help="Using symmetrized off-diagonal elements of QP Hamiltonian in BSE" default="false" choices="bool"/>
+        <sigma_plot_states help="plot sigma(omega) for the following states, e.g 1 3 5"/>
+        <sigma_plot_steps help="points to plot" default="201" choices="int+"/>
+        <sigma_plot_spacing help="spacing of points units" default="1e-2" unit="Hartree" choices="float+"/>
+        <sigma_plot_filename hep="File with the sigma plot data" default="QPenergies_sigma.dat"/>
+        <bse_print_weight help="print exciton WF composition weight larger than minimum" default="0.5" choices="float+"/>
+        <rebuild_threecenter_freq help="how often the 3c integrals in iterate should be rebuilt" default="5" choices="int+"/>
+        <exctotal help="number of eigenvectors to calculate" default="5" choices="int+"/>
+        <ignore_corelevels help="" default="none" choices="none,RPA,BSE,GW"/>
+      </gwbse>
+    </gwbse_options>
+    <bsecoupling help="Exciton couplings from serialized orbital files" section="sec:bsecoupling">
+      <spin help="Spin type for couplings" default="all" choices="singlet,triplet,all"/>
+      <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0" choices="float"/>
+      <moleculeA help="Properties of molecule A">
+        <states help="Number of excitons considered" default="5" choices="int+"/>
+        <occLevels help="occupied levels for CTstates" default="5" choices="int+"/>
+        <unoccLevels help="unoccupied levels for CTstates" default="5" choices="int+"/>
+      </moleculeA>
+      <moleculeB help="Properties of molecule B">
+        <states help="Number of excitons considered" default="5" choices="int+"/>
+        <occLevels help="occupied levels for CTstates" default="5" choices="int+"/>
+        <unoccLevels help="unoccupied levels for CTstates" default="5" choices="int+"/>
+      </moleculeB>
+    </bsecoupling>
+    <dftcoupling_options>
+      <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0" choices="float+"/>
+      <levA help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule A" default="1"/>
+      <levB help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule B" default="1"/>
+    </dftcoupling_options>
+    <dftpackage>
+      <package>
+        <name help="Name of the DFT package" default="xtp" choices="orca,xtp"/>
+        <read_guess help="Read wave function guess" default="true" choices="bool"/>
+        <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool"/>
+      </package>
+    </dftpackage>
+  </iqm>
 </options>
-
-

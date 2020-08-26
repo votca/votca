@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,18 +17,22 @@
  *
  */
 
-#include "votca/xtp/vc2index.h"
-#include <iostream>
-#include <votca/tools/linalg.h>
-#include <votca/xtp/bse.h>
-#include <votca/xtp/bse_operator.h>
-#include <votca/xtp/bseoperator_btda.h>
-#include <votca/xtp/davidsonsolver.h>
-#include <votca/xtp/populationanalysis.h>
-#include <votca/xtp/qmfragment.h>
-#include <votca/xtp/rpa.h>
-
+// Standard includes
 #include <chrono>
+#include <iostream>
+
+// VOTCA includes
+#include <votca/tools/linalg.h>
+
+// Local VOTCA includes
+#include "votca/xtp/bse.h"
+#include "votca/xtp/bse_operator.h"
+#include "votca/xtp/bseoperator_btda.h"
+#include "votca/xtp/davidsonsolver.h"
+#include "votca/xtp/populationanalysis.h"
+#include "votca/xtp/qmfragment.h"
+#include "votca/xtp/rpa.h"
+#include "votca/xtp/vc2index.h"
 
 using boost::format;
 using std::flush;
@@ -36,20 +40,68 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
-void BSE::configure(const options& opt, const Eigen::VectorXd& DFTenergies) {
+void BSE::configure(const options& opt, const Eigen::VectorXd& RPAInputEnergies,
+                    const Eigen::MatrixXd& Hqp_in) {
   _opt = opt;
   _bse_vmax = _opt.homo;
   _bse_cmin = _opt.homo + 1;
   _bse_vtotal = _bse_vmax - _opt.vmin + 1;
   _bse_ctotal = _opt.cmax - _bse_cmin + 1;
   _bse_size = _bse_vtotal * _bse_ctotal;
-  SetupDirectInteractionOperator(DFTenergies);
+  if (_opt.use_Hqp_offdiag) {
+    _Hqp = AdjustHqpSize(Hqp_in, RPAInputEnergies);
+  } else {
+    _Hqp = AdjustHqpSize(Hqp_in, RPAInputEnergies).diagonal().asDiagonal();
+  }
+  SetupDirectInteractionOperator(RPAInputEnergies);
 }
 
-void BSE::SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies) {
+Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::MatrixXd& Hqp,
+                                   const Eigen::VectorXd& RPAInputEnergies) {
+
+  Index hqp_size = _bse_vtotal + _bse_ctotal;
+  Index gwsize = _opt.qpmax - _opt.qpmin + 1;
+  Index RPAoffset = _opt.vmin - _opt.rpamin;
+  Eigen::MatrixXd Hqp_BSE = Eigen::MatrixXd::Zero(hqp_size, hqp_size);
+
+  if (_opt.vmin >= _opt.qpmin) {
+    Index start = _opt.vmin - _opt.qpmin;
+    if (_opt.cmax <= _opt.qpmax) {
+      Hqp_BSE = Hqp.block(start, start, hqp_size, hqp_size);
+    } else {
+      Index virtoffset = gwsize - start;
+      Hqp_BSE.topLeftCorner(virtoffset, virtoffset) =
+          Hqp.block(start, start, virtoffset, virtoffset);
+
+      Index virt_extra = _opt.cmax - _opt.qpmax;
+      Hqp_BSE.diagonal().tail(virt_extra) =
+          RPAInputEnergies.segment(RPAoffset + virtoffset, virt_extra);
+    }
+  }
+
+  if (_opt.vmin < _opt.qpmin) {
+    Index occ_extra = _opt.qpmin - _opt.vmin;
+    Hqp_BSE.diagonal().head(occ_extra) =
+        RPAInputEnergies.segment(RPAoffset, occ_extra);
+
+    Hqp_BSE.block(occ_extra, occ_extra, gwsize, gwsize) = Hqp;
+
+    if (_opt.cmax > _opt.qpmax) {
+      Index virtoffset = occ_extra + gwsize;
+      Index virt_extra = _opt.cmax - _opt.qpmax;
+      Hqp_BSE.diagonal().tail(virt_extra) =
+          RPAInputEnergies.segment(RPAoffset + virtoffset, virt_extra);
+    }
+  }
+
+  return Hqp_BSE;
+}
+
+void BSE::SetupDirectInteractionOperator(
+    const Eigen::VectorXd& RPAInputEnergies) {
   RPA rpa = RPA(_log, _Mmn);
   rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
-  rpa.UpdateRPAInputEnergies(DFTenergies, _Hqp.diagonal(), _opt.qpmin);
+  rpa.setRPAInputEnergies(RPAInputEnergies);
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.calculate_epsilon_r(0));
   _Mmn.MultiplyRightWithAuxMatrix(es.eigenvectors());

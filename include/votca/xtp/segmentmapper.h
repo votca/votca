@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,19 @@
 #ifndef VOTCA_XTP_SEGMENTMAPPER_H
 #define VOTCA_XTP_SEGMENTMAPPER_H
 
+// Standard includes
 #include <type_traits>
+
+// VOTCA includes
 #include <votca/csg/pdbwriter.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmmolecule.h>
-#include <votca/xtp/segid.h>
-#include <votca/xtp/topology.h>
+
+// Local VOTCA includes
+#include "classicalsegment.h"
+#include "logger.h"
+#include "qmmolecule.h"
+#include "segid.h"
+#include "topology.h"
 
 namespace votca {
 namespace xtp {

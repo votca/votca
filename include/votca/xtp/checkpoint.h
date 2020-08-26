@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,17 @@
 #ifndef VOTCA_XTP_CHECKPOINT_H
 #define VOTCA_XTP_CHECKPOINT_H
 
+// Standard includes
+#include <fstream>
+
+// Third party includes
 #include <H5Cpp.h>
-#include <votca/xtp/checkpoint_utils.h>
-#include <votca/xtp/checkpointreader.h>
-#include <votca/xtp/checkpointtable.h>
-#include <votca/xtp/checkpointwriter.h>
+
+// Local VOTCA includes
+#include "checkpoint_utils.h"
+#include "checkpointreader.h"
+#include "checkpointtable.h"
+#include "checkpointwriter.h"
 
 namespace votca {
 namespace xtp {
@@ -37,8 +43,8 @@ std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l);
 
 class CheckpointFile {
  public:
-  CheckpointFile(std::string fileName);
-  CheckpointFile(std::string fileName, CheckpointAccessLevel access);
+  CheckpointFile(std::string fN);
+  CheckpointFile(std::string fN, CheckpointAccessLevel access);
 
   std::string getFileName();
   std::string getVersion();

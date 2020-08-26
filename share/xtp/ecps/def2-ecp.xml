@@ -1,0 +1,124 @@
+<pseudopotential name="def2-ecp">
+ <element name="Rb" lmax="3" ncore="28">
+  <shell type="F">
+   <constant power="2" decay="3.8431140" contraction="-12.3169000"></constant>
+  </shell>
+  <shell type="S">
+   <constant power="2" decay="5.0365510" contraction="89.5001980"></constant>
+   <constant power="2" decay="1.9708490" contraction="0.4937610"></constant>
+   <constant power="2" decay="3.8431140" contraction="12.3169000"></constant>
+  </shell>
+  <shell type="P">
+   <constant power="2" decay="4.2583410" contraction="58.5689740"></constant>
+   <constant power="2" decay="1.4707090" contraction="0.4317910"></constant>
+   <constant power="2" decay="3.8431140" contraction="12.3169000"></constant>
+  </shell>
+  <shell type="D">
+   <constant power="2" decay="3.0231270" contraction="26.2248980"></constant>
+   <constant power="2" decay="0.6503830" contraction="0.9628390"></constant>
+   <constant power="2" decay="3.8431140" contraction="12.3169000"></constant>
+  </shell>
+ </element>
+ <element name="Ag" lmax="3" ncore="28">
+  <shell type="F">
+   <constant power="2" decay="14.2200000" contraction="-33.68992012"></constant>
+   <constant power="2" decay="7.1100000" contraction="-5.53112021"></constant>
+  </shell>
+  <shell type="S">
+   <constant power="2" decay="13.1300000" contraction="255.13936452"></constant>
+   <constant power="2" decay="6.5100000" contraction="36.86612154"></constant>
+   <constant power="2" decay="14.2200000" contraction="33.68992012"></constant>
+   <constant power="2" decay="7.1100000" contraction="5.53112021"></constant>
+  </shell>
+  <shell type="P">
+   <constant power="2" decay="11.7400000" contraction="182.18186871"></constant>
+   <constant power="2" decay="6.2000000" contraction="30.35775148"></constant>
+   <constant power="2" decay="14.2200000" contraction="33.68992012"></constant>
+   <constant power="2" decay="7.1100000" contraction="5.53112021"></constant>
+  </shell>
+  <shell type="D">
+   <constant power="2" decay="10.2100000" contraction="73.71926087"></constant>
+   <constant power="2" decay="4.3800000" contraction="12.50211712"></constant>
+   <constant power="2" decay="14.2200000" contraction="33.68992012"></constant>
+   <constant power="2" decay="7.1100000" contraction="5.53112021"></constant>
+  </shell>
+ </element>
+ <element name="I" lmax="3" ncore="28">
+  <shell type="F">
+   <constant power="2" decay="19.45860900" contraction="-21.84204000"></constant>
+   <constant power="2" decay="19.34926000" contraction="-28.46819100"></constant>
+   <constant power="2" decay="4.82376700" contraction="-0.24371300"></constant>
+   <constant power="2" decay="4.88431500" contraction="-0.32080400"></constant>
+  </shell>
+  <shell type="S">
+   <constant power="2" decay="40.01583500" contraction="49.99429300"></constant>
+   <constant power="2" decay="17.42974700" contraction="281.02531700"></constant>
+   <constant power="2" decay="9.00548400" contraction="61.57332600"></constant>
+   <constant power="2" decay="19.45860900" contraction="21.84204000"></constant>
+   <constant power="2" decay="19.34926000" contraction="28.46819100"></constant>
+   <constant power="2" decay="4.82376700" contraction="0.24371300"></constant>
+   <constant power="2" decay="4.88431500" contraction="0.32080400"></constant>
+  </shell>
+  <shell type="P">
+   <constant power="2" decay="15.35546600" contraction="67.44284100"></constant>
+   <constant power="2" decay="14.97183300" contraction="134.88113700"></constant>
+   <constant power="2" decay="8.96016400" contraction="14.67505100"></constant>
+   <constant power="2" decay="8.25909600" contraction="29.37566600"></constant>
+   <constant power="2" decay="19.45860900" contraction="21.84204000"></constant>
+   <constant power="2" decay="19.34926000" contraction="28.46819100"></constant>
+   <constant power="2" decay="4.82376700" contraction="0.24371300"></constant>
+   <constant power="2" decay="4.88431500" contraction="0.32080400"></constant>
+  </shell>
+  <shell type="D">
+   <constant power="2" decay="15.06890800" contraction="35.43952900"></constant>
+   <constant power="2" decay="14.55532200" contraction="53.17605700"></constant>
+   <constant power="2" decay="6.71864700" contraction="9.06719500"></constant>
+   <constant power="2" decay="6.45639300" contraction="13.20693700"></constant>
+   <constant power="2" decay="1.19177900" contraction="0.08933500"></constant>
+   <constant power="2" decay="1.29115700" contraction="0.05238000"></constant>
+   <constant power="2" decay="19.45860900" contraction="21.84204000"></constant>
+   <constant power="2" decay="19.34926000" contraction="28.46819100"></constant>
+   <constant power="2" decay="4.82376700" contraction="0.24371300"></constant>
+   <constant power="2" decay="4.88431500" contraction="0.32080400"></constant>
+  </shell>
+ </element>
+ <element name="Xe" lmax="3" ncore="28">
+  <shell type="F">
+   <constant power="2" decay="20.88155700" contraction="-23.08929500"></constant>
+   <constant power="2" decay="20.78344300" contraction="-30.07447500"></constant>
+   <constant power="2" decay="5.25338900" contraction="-0.28822700"></constant>
+   <constant power="2" decay="5.36118800" contraction="-0.38692400"></constant>
+  </shell>
+  <shell type="S">
+   <constant power="2" decay="40.00518400" contraction="49.99796200"></constant>
+   <constant power="2" decay="17.81221400" contraction="281.01330300"></constant>
+   <constant power="2" decay="9.30415000" contraction="61.53825500"></constant>
+   <constant power="2" decay="20.88155700" contraction="23.08929500"></constant>
+   <constant power="2" decay="20.78344300" contraction="30.07447500"></constant>
+   <constant power="2" decay="5.25338900" contraction="0.28822700"></constant>
+   <constant power="2" decay="5.36118800" contraction="0.38692400"></constant>
+  </shell>
+  <shell type="P">
+   <constant power="2" decay="15.70177200" contraction="67.43914200"></constant>
+   <constant power="2" decay="15.25860800" contraction="134.87471100"></constant>
+   <constant power="2" decay="9.29218400" contraction="14.66330000"></constant>
+   <constant power="2" decay="8.55900300" contraction="29.35473000"></constant>
+   <constant power="2" decay="20.88155700" contraction="23.08929500"></constant>
+   <constant power="2" decay="20.78344300" contraction="30.07447500"></constant>
+   <constant power="2" decay="5.25338900" contraction="0.28822700"></constant>
+   <constant power="2" decay="5.36118800" contraction="0.38692400"></constant>
+  </shell>
+  <shell type="D">
+   <constant power="2" decay="15.18560000" contraction="35.43690800"></constant>
+   <constant power="2" decay="14.28450000" contraction="53.19577200"></constant>
+   <constant power="2" decay="7.12188900" contraction="9.04623200"></constant>
+   <constant power="2" decay="6.99196300" contraction="13.22368100"></constant>
+   <constant power="2" decay="0.62394600" contraction="0.08485300"></constant>
+   <constant power="2" decay="0.64728400" contraction="0.04415500"></constant>
+   <constant power="2" decay="20.88155700" contraction="23.08929500"></constant>
+   <constant power="2" decay="20.78344300" contraction="30.07447500"></constant>
+   <constant power="2" decay="5.25338900" contraction="0.28822700"></constant>
+   <constant power="2" decay="5.36118800" contraction="0.38692400"></constant>
+  </shell>
+ </element>
+</pseudopotential>

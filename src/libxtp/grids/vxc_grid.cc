@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,10 +17,11 @@
  *
  */
 
-#include <votca/xtp/qmmolecule.h>
-#include <votca/xtp/radial_euler_maclaurin_rule.h>
-#include <votca/xtp/sphere_lebedev_rule.h>
-#include <votca/xtp/vxc_grid.h>
+// Local VOTCA includes
+#include "votca/xtp/vxc_grid.h"
+#include "votca/xtp/qmmolecule.h"
+#include "votca/xtp/radial_euler_maclaurin_rule.h"
+#include "votca/xtp/sphere_lebedev_rule.h"
 
 namespace votca {
 namespace xtp {
@@ -178,13 +179,15 @@ Index Vxc_Grid::UpdateOrder(LebedevGrid& sphericalgridofElement, Index maxorder,
     } else if ((r >= PruningIntervals[0]) && (r < PruningIntervals[1])) {
       order = sphericalgridofElement.getOrderFromIndex(4);
     } else if ((r >= PruningIntervals[1]) && (r < PruningIntervals[2])) {
-      order =
-          sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, 4l));
+      constexpr Index maximum = 4;
+      order = sphericalgridofElement.getOrderFromIndex(
+          std::max(maxindex - 1, maximum));
     } else if ((r >= PruningIntervals[2]) && (r < PruningIntervals[3])) {
       order = maxorder;
     } else {
-      order =
-          sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, 1l));
+      constexpr Index maximum = 1;
+      order = sphericalgridofElement.getOrderFromIndex(
+          std::max(maxindex - 1, maximum));
     }
   }
   return order;

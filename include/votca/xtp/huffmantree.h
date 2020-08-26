@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
  *
  */
 #pragma once
-#ifndef HUFFMANTREE_H
-#define HUFFMANTREE_H
+#ifndef VOTCA_XTP_HUFFMANTREE_H
+#define VOTCA_XTP_HUFFMANTREE_H
+
+// Standard includes
+#include <cstdlib>
 #include <list>
 #include <queue>
-#include <stdlib.h>
 #include <vector>
 
 namespace votca {
@@ -223,10 +225,10 @@ class huffmanTree {
 
   std::vector<huffmanNode<T>> htree;
   bool treeIsMade = false;
-  double sum_of_values;
+  double sum_of_values = 0.0;
   std::vector<T> *events = nullptr;
 };
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // HUFFMANTREE_H
+#endif  // VOTCA_XTP_HUFFMANTREE_H

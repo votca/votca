@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,11 +18,12 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_EINTERNAL_H
-#define _VOTCA_XTP_EINTERNAL_H
+#ifndef VOTCA_XTP_EINTERNAL_PRIVATE_H
+#define VOTCA_XTP_EINTERNAL_PRIVATE_H
 
+// Local VOTCA includes
+#include "votca/xtp/qmcalculator.h"
 #include "votca/xtp/qmstate.h"
-#include <votca/xtp/qmcalculator.h>
 
 namespace votca {
 namespace xtp {
@@ -34,7 +35,7 @@ class EInternal : public QMCalculator {
 
   std::string Identify() override { return "einternal"; }
   bool WriteToStateFile() const override { return true; }
-  void Initialize(tools::Property &options) override;
+  void Initialize(const tools::Property &user_options) override;
   void ParseEnergies();
   bool EvaluateFrame(Topology &top) override;
 
@@ -53,4 +54,4 @@ class EInternal : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  //_VOTCA_XTP_EINTERNAL_H
+#endif  // VOTCA_XTP_EINTERNAL_PRIVATE_H

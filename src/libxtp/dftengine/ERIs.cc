@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,9 +17,10 @@
  *
  */
 
-#include <votca/xtp/ERIs.h>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/symmetric_matrix.h>
+// Local VOTCA includes
+#include "votca/xtp/ERIs.h"
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/symmetric_matrix.h"
 
 namespace votca {
 namespace xtp {
@@ -42,23 +43,17 @@ void ERIs::Initialize_4c_screening(const AOBasis& dftbasis, double eps) {
 }
 
 Mat_p_Energy ERIs::CalculateERIs(const Eigen::MatrixXd& DMAT) const {
-  Index nthreads = OPENMP::getMaxThreads();
-  std::vector<Eigen::MatrixXd> ERIS_thread = std::vector<Eigen::MatrixXd>(
-      nthreads, Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()));
+  Eigen::MatrixXd ERIs2 = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
   Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided) reduction(+ : ERIs2)
   for (Index i = 0; i < _threecenter.size(); i++) {
     const Symmetric_Matrix& threecenter = _threecenter[i];
     // Trace over prod::DMAT,I(l)=componentwise product over
     const double factor = threecenter.TraceofProd(dmat_sym);
     Eigen::SelfAdjointView<Eigen::MatrixXd, Eigen::Upper> m =
-        ERIS_thread[OPENMP::getThreadId()].selfadjointView<Eigen::Upper>();
+        ERIs2.selfadjointView<Eigen::Upper>();
     threecenter.AddtoEigenUpperMatrix(m, factor);
   }
-
-  Eigen::MatrixXd ERIs2 =
-      std::accumulate(ERIS_thread.begin(), ERIS_thread.end(),
-                      Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()).eval());
 
   ERIs2 = ERIs2.selfadjointView<Eigen::Upper>();
   double energy = CalculateEnergy(DMAT, ERIs2);
@@ -86,45 +81,35 @@ Eigen::MatrixXcd ERIs::ContractRightIndecesWithMatrix(const Eigen::MatrixXcd& ma
 
 Mat_p_Energy ERIs::CalculateEXX(const Eigen::MatrixXd& DMAT) const {
 
-  std::vector<Eigen::MatrixXd> EXX_thread = std::vector<Eigen::MatrixXd>(
-      OPENMP::getMaxThreads(), Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()));
+  Eigen::MatrixXd EXX = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided) reduction(+ : EXX)
   for (Index i = 0; i < _threecenter.size(); i++) {
     const Eigen::MatrixXd threecenter = _threecenter[i].UpperMatrix();
-    EXX_thread[OPENMP::getThreadId()] +=
-        threecenter.selfadjointView<Eigen::Upper>() * DMAT *
-        threecenter.selfadjointView<Eigen::Upper>();
+    EXX += threecenter.selfadjointView<Eigen::Upper>() * DMAT *
+           threecenter.selfadjointView<Eigen::Upper>();
   }
-  Eigen::MatrixXd EXXs =
-      std::accumulate(EXX_thread.begin(), EXX_thread.end(),
-                      Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()).eval());
-  double energy = CalculateEnergy(DMAT, EXXs);
-  return Mat_p_Energy(energy, EXXs);
+  double energy = CalculateEnergy(DMAT, EXX);
+  return Mat_p_Energy(energy, EXX);
 }
 
 Mat_p_Energy ERIs::CalculateEXX(const Eigen::MatrixXd& occMos,
                                 const Eigen::MatrixXd& DMAT) const {
 
-  std::vector<Eigen::MatrixXd> EXX_thread = std::vector<Eigen::MatrixXd>(
-      OPENMP::getMaxThreads(),
-      Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows()));
+  Eigen::MatrixXd EXX = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided) reduction(+ : EXX)
   for (Index i = 0; i < _threecenter.size(); i++) {
     const Eigen::MatrixXd TCxMOs_T =
         occMos.transpose() *
         _threecenter[i].UpperMatrix().selfadjointView<Eigen::Upper>();
-    EXX_thread[OPENMP::getThreadId()] += TCxMOs_T.transpose() * TCxMOs_T;
+    EXX += TCxMOs_T.transpose() * TCxMOs_T;
   }
 
-  Eigen::MatrixXd EXXs =
-      2 * std::accumulate(
-              EXX_thread.begin(), EXX_thread.end(),
-              Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows()).eval());
+  EXX *= 2;
 
-  double energy = CalculateEnergy(DMAT, EXXs);
-  return Mat_p_Energy(energy, EXXs);
+  double energy = CalculateEnergy(DMAT, EXX);
+  return Mat_p_Energy(energy, EXX);
 }
 
 Eigen::MatrixXcd ERIs::FourCenterTest(const Eigen::MatrixXcd& mat) const{
@@ -210,16 +195,14 @@ Mat_p_Energy ERIs::CalculateERIs_4c_small_molecule(
 
 Mat_p_Energy ERIs::CalculateEXX_4c_small_molecule(
     const Eigen::MatrixXd& DMAT) const {
-  std::vector<Eigen::MatrixXd> EXX_thread = std::vector<Eigen::MatrixXd>(
-      OPENMP::getMaxThreads(), Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()));
+  Eigen::MatrixXd EXX = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
   const Eigen::VectorXd& fourc_vector = _fourcenter.get_4c_vector();
 
   Index dftBasisSize = DMAT.rows();
   Index vectorSize = (dftBasisSize * (dftBasisSize + 1)) / 2;
-#pragma omp parallel for
+#pragma omp parallel for reduction(+ : EXX)
   for (Index i = 0; i < dftBasisSize; i++) {
-    Index thread = OPENMP::getThreadId();
     Index sum_i = (i * (i + 1)) / 2;
     for (Index j = i; j < dftBasisSize; j++) {
       Index index_ij = DMAT.cols() * i - sum_i + j;
@@ -244,25 +227,17 @@ Mat_p_Energy ERIs::CalculateEXX_4c_small_molecule(
             factorkl = 0.5;
           }
           double factor = factorij * factorkl;
-          EXX_thread[thread](i, l) +=
-              factor * DMAT(j, k) * fourc_vector(_index_ij_kl);
-          EXX_thread[thread](j, l) +=
-              factor * DMAT(i, k) * fourc_vector(_index_ij_kl);
-          EXX_thread[thread](i, k) +=
-              factor * DMAT(j, l) * fourc_vector(_index_ij_kl);
-          EXX_thread[thread](j, k) +=
-              factor * DMAT(i, l) * fourc_vector(_index_ij_kl);
+          EXX(i, l) += factor * DMAT(j, k) * fourc_vector(_index_ij_kl);
+          EXX(j, l) += factor * DMAT(i, k) * fourc_vector(_index_ij_kl);
+          EXX(i, k) += factor * DMAT(j, l) * fourc_vector(_index_ij_kl);
+          EXX(j, k) += factor * DMAT(i, l) * fourc_vector(_index_ij_kl);
         }
       }
     }
   }
 
-  Eigen::MatrixXd EXXs =
-      std::accumulate(EXX_thread.begin(), EXX_thread.end(),
-                      Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()).eval());
-
-  double energy = CalculateEnergy(DMAT, EXXs);
-  return Mat_p_Energy(energy, EXXs);
+  double energy = CalculateEnergy(DMAT, EXX);
+  return Mat_p_Energy(energy, EXX);
 }
 
 Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,

@@ -1,15 +1,26 @@
+<?xml version="1.0"?>
 <options>
-
-<excitoncoupling help="Exciton couplings from serialized orbital files" section="sec:bsecoupling">
-        <classical help="Exciton couplings from classical transition charges">0</classical>
-        <mpsA help="classical transition charges for segment A"></mpsA>
-        <mpsB help="classical transition charges for segment B"></mpsB>
-        <output help="Output file" default="excitoncoupling.out.xml">excitoncoupling.out.xml</output>
-        <bsecoupling_options help="xml file with options for bse coupling calculations">bsecoupling.xml</bsecoupling_options>
-        <orbitalsA help="Serialized orbitals file" default="A.orb">molA.orb</orbitalsA>
-        <orbitalsB help="Serialized orbitals file" default="B.orb">molB.orb</orbitalsB>
-        <orbitalsAB help="Serialized orbitals file" default="AB.orb">system.orb</orbitalsAB>
-
-</excitoncoupling>
-
+  <excitoncoupling help="Exciton couplings from serialized orbital files" section="sec:bsecoupling">
+    <use_classical help="Calculate Couplings from classical charges instead of ab-initio" default="false" choices="bool"/>
+    <mpsA help="classical transition charges for segment A"/>
+    <mpsB help="classical transition charges for segment B"/>
+    <output help="Output file" default="votca_excitoncoupling.xml"/>
+    <bsecoupling_options help="nested xml file with options for bse coupling calculations">
+      <spin help="Spin type for couplings" default="all" choices="singlet,triplet,all"/>
+      <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0" choices="float"/>
+      <moleculeA help="Properties of molecule A">
+        <states help="Number of excitons considered" default="5" choices="int+"/>
+        <occLevels help="occupied levels for CTstates" default="5" choices="int+"/>
+        <unoccLevels help="unoccupied levels for CTstates" default="5" choices="int+"/>
+      </moleculeA>
+      <moleculeB help="Properties of molecule B">
+        <states help="Number of excitons considered" default="5" choices="int+"/>
+        <occLevels help="occupied levels for CTstates" default="5" choices="int+"/>
+        <unoccLevels help="unoccupied levels for CTstates" default="5" choices="int+"/>
+      </moleculeB>
+    </bsecoupling_options>
+    <orbitalsA help="Serialized orbitals file" default="A.orb"/>
+    <orbitalsB help="Serialized orbitals file" default="B.orb"/>
+    <orbitalsAB help="Serialized orbitals file" default="AB.orb"/>
+  </excitoncoupling>
 </options>

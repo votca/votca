@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,13 +20,17 @@
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #pragma once
-#ifndef VOTCA_XTP_LOG_H
-#define VOTCA_XTP_LOG_H
+#ifndef VOTCA_XTP_LOGGER_H
+#define VOTCA_XTP_LOGGER_H
 
+// Standard includes
 #include <chrono>
 #include <iostream>
 #include <sstream>
+
+// VOTCA includes
 #include <votca/tools/globals.h>
+
 namespace votca {
 namespace xtp {
 
@@ -147,7 +151,7 @@ class LogBuffer : public std::stringbuf {
  *  Example:
  *
  *  \code
- *  #include <votca/xtp/logger.h>
+ *  #include <logger.h>
  *  Logger log; // create a logger object
  *  log.setReportLevel(Log::error); // output only log messages starting from a
  *  level XTP_LOG(Log::error,*log) << "Error detected" << flush; // write to
@@ -157,7 +161,7 @@ class LogBuffer : public std::stringbuf {
  *  Logger has four predefined log levels: error, warning, info,
  * debug.
  */
-class Logger : public std::ostream {
+class Logger final : public std::ostream {
 
   friend std::ostream &operator<<(std::ostream &log_out, Logger &logger) {
     log_out << logger.Messages();
@@ -243,4 +247,4 @@ class TimeStamp {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_LOG_H
+#endif  // VOTCA_XTP_LOGGER_H

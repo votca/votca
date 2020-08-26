@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,20 +17,19 @@
  *
  */
 
-#include <votca/xtp/aotransform.h>
+// Local VOTCA includes
+#include "votca/xtp/aotransform.h"
+
 namespace votca {
 namespace xtp {
 
-Index AOTransform::getCartesianSize(Index l) { return (l + 1) * (l + 2) / 2; }
-Index AOTransform::getSphericalSize(Index l) { return 2 * l + 1; }
-
-Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
+Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(L l, double decay,
                                                     double contraction) {
   switch (l) {
-    case 0: {
+    case L::S: {
       return contraction * Eigen::MatrixXd::Ones(1, 1);
     }
-    case 1: {
+    case L::P: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(3, 3);
       const double factor = 2. * sqrt(decay) * contraction;
       trafo(P::z, 0) = factor;  // Y 1,0
@@ -38,7 +37,7 @@ Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
       trafo(P::x, 2) = factor;  // Y 1,1
       return trafo;
     }
-    case 2: {
+    case L::D: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(6, 5);
       const double factor = 2. * decay * contraction;
       const double factor_1 = factor / sqrt(3.);
@@ -56,7 +55,7 @@ Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
       trafo(D::yy, 4) = -factor;
       return trafo;
     }
-    case 3: {
+    case L::F: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(10, 7);
       const double factor = 2. * pow(decay, 1.5) * contraction;
       const double factor_1 = factor * 2. / sqrt(15.);
@@ -87,7 +86,7 @@ Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
       trafo(F::xyy, 6) = -3. * factor_3;  //    Y 3,3
       return trafo;
     }
-    case 4: {
+    case L::G: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(15, 9);
       const double factor = 2. / sqrt(3.) * decay * decay * contraction;
       const double factor_1 = factor / sqrt(35.);
@@ -133,7 +132,7 @@ Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
       trafo(G::yyyy, 8) = factor;
       return trafo;
     }
-    case 5: {
+    case L::H: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(21, 11);
       const double factor = (2. / 3.) * std::pow(decay, 2.5) * contraction;
       const double factor_1 = factor * 2. / sqrt(105.);
@@ -200,7 +199,7 @@ Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
       trafo(H::xyyyy, 10) = 5. * factor_5;
       return trafo;
     }
-    case 6: {
+    case L::I: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(28, 13);
       const double factor = (2. / 3.) * decay * decay * decay * contraction;
       const double factor_1 = factor * 2. / sqrt(1155.);
@@ -304,27 +303,8 @@ Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
 Eigen::MatrixXd AOTransform::getTrafo(const AOGaussianPrimitive& gaussian) {
 
   const AOShell& shell = gaussian.getShell();
-  if (!shell.isCombined()) {
-    return AOTransform::getPrimitiveShellTrafo(
-        shell.getLmax(), gaussian.getDecay(),
-        gaussian.getContraction()(shell.getLmax()));
-  }
-
-  Eigen::MatrixXd trafo =
-      Eigen::MatrixXd::Zero(shell.getCartesianNumFunc(), shell.getNumFunc());
-
-  Index rowoffset = 0;
-  Index coloffset = 0;
-  for (Index l = shell.getLmin(); l <= shell.getLmax(); l++) {
-    Index cart_size = AOTransform::getCartesianSize(l);
-    Index spherical_size = AOTransform::getSphericalSize(l);
-    trafo.block(rowoffset, coloffset, cart_size, spherical_size) =
-        AOTransform::getPrimitiveShellTrafo(l, gaussian.getDecay(),
-                                            gaussian.getContraction()(l));
-    rowoffset += cart_size;
-    coloffset += spherical_size;
-  }
-  return trafo;
+  return AOTransform::getPrimitiveShellTrafo(shell.getL(), gaussian.getDecay(),
+                                             gaussian.getContraction());
 }
 
 Eigen::VectorXd AOTransform::XIntegrate(Index size, double U) {

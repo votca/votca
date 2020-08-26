@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,13 +18,18 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_LEBEDEV_H
-#define VOTCA_XTP_LEBEDEV_H
+#ifndef VOTCA_XTP_SPHERE_LEBEDEV_RULE_H
+#define VOTCA_XTP_SPHERE_LEBEDEV_RULE_H
 
+// Third party includes
 #include <boost/math/constants/constants.hpp>
+
+// VOTCA includes
 #include <votca/tools/property.h>
-#include <votca/xtp/grid_containers.h>
-#include <votca/xtp/qmatom.h>
+
+// Local VOTCA includes
+#include "grid_containers.h"
+#include "qmatom.h"
 
 namespace votca {
 namespace xtp {
@@ -136,4 +141,4 @@ class LebedevGrid {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // VOTCA_XTP_LEBEDEV_H
+#endif  // VOTCA_XTP_SPHERE_LEBEDEV_RULE_H

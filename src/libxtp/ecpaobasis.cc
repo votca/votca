@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,16 +16,20 @@
  * limitations under the License.
  *
  */
-#include "votca/xtp/ecpaobasis.h"
+
+// Standard includes
 #include <vector>
-#include <votca/xtp/ecpbasisset.h>
-#include <votca/xtp/qmmolecule.h>
+
+// Local VOTCA includes
+#include "votca/xtp/ecpaobasis.h"
+#include "votca/xtp/ecpbasisset.h"
+#include "votca/xtp/qmmolecule.h"
 
 namespace votca {
 namespace xtp {
 
 ECPAOShell& ECPAOBasis::addShell(const ECPShell& shell, const QMAtom& atom,
-                                 Index startIndex, Index Lmax) {
+                                 Index startIndex, L Lmax) {
   _aoshells.push_back(ECPAOShell(shell, atom, startIndex, Lmax));
   return _aoshells.back();
 }
@@ -58,12 +62,12 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
     if (element_exists) {
       const ECPElement& element = bs.getElement(name);
       atom._ecpcharge = element.getNcore();
-      Index lmax = element.getLmax();
+      L lmax = element.getLmax();
       for (const ECPShell& shell : element) {
         ECPAOShell& aoshell = addShell(shell, atom, _AOBasisSize, lmax);
         shellindex.push_back(index);
         index++;
-        _AOBasisSize += NumFuncShell(shell.getType());
+        _AOBasisSize += NumFuncShell(shell.getL());
         for (const ECPGaussianPrimitive& gaussian : shell) {
           aoshell.addGaussian(gaussian);
         }

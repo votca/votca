@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,14 +20,19 @@
 #pragma once
 #ifndef VOTCA_XTP_GWBSE_H
 #define VOTCA_XTP_GWBSE_H
-#include <fstream>
-#include <votca/tools/property.h>
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/gw.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmfragment.h>
 
+// Standard includes
+#include <fstream>
+
+// VOTCA includes
+#include <votca/tools/property.h>
+
+// Local VOTCA includes
 #include "bse.h"
+#include "eigen.h"
+#include "gw.h"
+#include "logger.h"
+#include "qmfragment.h"
 
 namespace votca {
 namespace xtp {
@@ -82,10 +87,10 @@ class GWBSE {
   GW::options _gwopt;
   BSE::options _bseopt;
 
-  std::string _sigma_plot_states = "";
-  Index _sigma_plot_steps = 201;
-  double _sigma_plot_spacing = 1e-2;
-  std::string _sigma_plot_filename = "QPenergies_sigma.dat";
+  std::string _sigma_plot_states;
+  Index _sigma_plot_steps;
+  double _sigma_plot_spacing;
+  std::string _sigma_plot_filename;
 
   // basis sets
   std::string _auxbasis_name;
