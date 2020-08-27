@@ -90,9 +90,9 @@ class AO3ddipole : public AOMatrix3D {
  private:
   Eigen::Vector3d _r = Eigen::Vector3d::Zero();
 
-  void setSite(const StaticSite* site) { _site = site; };
+  //void setSite(const StaticSite* site) { _site = site; };
 
-  const StaticSite* _site;
+  //const StaticSite* _site;
 };
 
 }  // namespace xtp

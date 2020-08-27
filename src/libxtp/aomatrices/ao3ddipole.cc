@@ -37,8 +37,8 @@ void AO3ddipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
   const Eigen::Vector3d dipole = Eigen::Vector3d::Ones();
 
   // shell info, only lmax tells how far to go
-  Index lmax_row = shell_row.getLmax();
-  Index lmax_col = shell_col.getLmax();
+  Index lmax_row = Index(shell_row.getL());
+  Index lmax_col = Index(shell_row.getL());
   Index lsum = lmax_row + lmax_col;
   // set size of internal block for recursion
   Index nrows = AOTransform::getBlockSize(lmax_row);
