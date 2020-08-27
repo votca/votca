@@ -60,6 +60,7 @@ Version 2021-dev
 -  Unittests can read input and reference values from files (#529)
 -  fix double SCF in ORCA keyword line (#533)
 -  xtp internally uses only single shells. (#539)
+-  Refactor orbital reordering (#537)
 -  fix build with clang-11 (#546)
    
 Version 1.6.2 *SuperGitta* (released 22.08.20)

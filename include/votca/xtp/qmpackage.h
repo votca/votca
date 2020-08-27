@@ -31,6 +31,8 @@
 #include "settings.h"
 #include "staticsite.h"
 
+#include "votca/xtp/orbreorder.h"
+
 namespace votca {
 namespace xtp {
 
@@ -125,30 +127,10 @@ class QMPackage {
   std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,
                                            const std::string separators) const;
 
-  // each qmpackage has its own ordering of the individual functions in each
-  // shell
-  // i.e. VOTCA uses z,y,x e.g. Y1,0 Y1,-1 Y1,1 for the p shell
-  // d3z2-r2 dyz dxz dxy dx2-y2 e.g. Y2,0 Y2,-1 Y2,1 Y2,-2 for the d shell and
-  // so forth. ORCA uses z,x,y for the p shell
-  // these methods reorder the MOs to that format using the
-  // ShellReorder() and ShellMulitplier() which specify the order for each
+  // ShellReorder() and ShellMulitplier() specify the order for each
   // QMPackage. Some codes also use different normalisation conditions which
   // lead to other signs for some of the entries, which can be changed via the
   // multipliers.
-  void ReorderMOsToXTP(Eigen::MatrixXd& v, const AOBasis& basis) const;
-  void ReorderMOsToNative(Eigen::MatrixXd& v, const AOBasis& basis) const;
-
-  void ReorderMOs(Eigen::MatrixXd& v, const std::vector<Index>& order) const;
-  void MultiplyMOs(Eigen::MatrixXd& v,
-                   const std::vector<Index>& multiplier) const;
-
-  std::vector<Index> getMultiplierVector(const AOBasis& basis) const;
-  std::vector<Index> getMultiplierShell(const AOShell& shell) const;
-
-  std::vector<Index> getReorderVector(const AOBasis& basis) const;
-  std::vector<Index> getReorderShell(const AOShell& shell) const;
-  std::vector<Index> invertOrder(const std::vector<Index>& order) const;
-
   virtual const std::array<Index, 25>& ShellMulitplier() const = 0;
   virtual const std::array<Index, 25>& ShellReorder() const = 0;
 
