@@ -29,7 +29,6 @@
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/sternheimer.h>
 #include <votca/xtp/vxc_grid.h>
 #include <votca/xtp/vxc_potential.h>
 

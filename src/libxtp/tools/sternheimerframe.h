@@ -27,22 +27,34 @@
 // Local VOTCA includes
 #include "votca/xtp/logger.h"
 #include "votca/xtp/qmtool.h"
+#include "votca/xtp/sternheimer.h"
+#include <votca/xtp/orbitals.h>
 
 namespace votca {
 namespace xtp {
 
 class SternheimerFrame {
 
-    public:
-        SternheimerFrame();
+ public:
+  SternheimerFrame();
 
-        void Initialize(const tools::Property &user_options);
-        bool Evaluate();
+  void Initialize(const tools::Property& user_options);
+  bool Evaluate();
 
-    private:
+ private:
 
+  std::string _guess_file;
+  bool _do_guess;
+
+  std::string _xml_output;  // .xml output
+  std::string _guess_orbA;
+  std::string _guess_orbB;
+
+  Logger* _log;
+
+  Sternheimer::options_sternheimer _options;
 
 };
-}
-} 
+}  // namespace xtp
+}  // namespace votca
 #endif
