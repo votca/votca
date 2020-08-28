@@ -79,10 +79,6 @@ BOOST_AUTO_TEST_CASE(orbreorder_test) {
   std::cout << moldenCoeffs << std::endl;
   std::cout << std::endl;
 
-  for (int i = 0; i < moldenCoeffs.cols(); i++) {
-    for (int j = 0; j < moldenCoeffs.cols(); j++) {
-      BOOST_CHECK(moldenCoeffs.isApprox(votcaCoeffs, 1e-5));
-    }
-  }
+  BOOST_CHECK(moldenCoeffs.isApprox(votcaCoeffs, 1e-5));
 }
 }

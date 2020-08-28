@@ -113,9 +113,6 @@ void MoldenReader::addBasissetInfo(Orbitals& orbitals) {
 
   _basis.Fill(bs, orbitals.QMAtoms());
   orbitals.setDFTbasisName(_basisset_name);
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Basisset size: " << _basis.AOBasisSize()
-      << std::flush;
   orbitals.setBasisSetSize(_basis.AOBasisSize());
   orbitals.setAuxbasisName(_aux_basisset_name);
 }
