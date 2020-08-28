@@ -36,7 +36,11 @@ namespace xtp {
 class SternheimerFrame : public QMTool {
 
  public:
-  SternheimerFrame();
+  SternheimerFrame() = default;
+
+  ~SternheimerFrame() override = default;
+
+  std::string Identify() override { return "sternheimer"; }
 
   void Initialize(const tools::Property& user_options);
   bool Evaluate();
@@ -46,7 +50,7 @@ class SternheimerFrame : public QMTool {
   std::string _guess_file;
   bool _do_guess;
 
-  std::string _xyzfile;
+  std::string _orbfile;
   std::string _xml_output;  // .xml output
   std::string _guess_orbA;
   std::string _guess_orbB;

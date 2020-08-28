@@ -40,8 +40,8 @@ void SternheimerFrame::Initialize(const tools::Property &user_options) {
     tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-    _xyzfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".molecule", _job_name + ".xyz");
+    _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".orb", _job_name + ".orb");
 
 
     XTP_LOG(Log::error, *_log) << " Running Sternheimer" << flush;
@@ -64,8 +64,6 @@ void SternheimerFrame::Initialize(const tools::Property &user_options) {
     _options.numerical_Integration_grid_type =
         options.ifExistsReturnElseReturnDefault<std::string>(
             key + ".sternheimer.spatialgridtype",_options.numerical_Integration_grid_type);
-    _options.level = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".sternheimer.level",_options.level);
     _options.quadrature_scheme =
         options.ifExistsReturnElseReturnDefault<std::string>(
             key + ".sternheimer.quadrature_scheme",_options.quadrature_scheme);
@@ -104,15 +102,7 @@ bool SternheimerFrame::Evaluate() {
   // Get orbitals object
   Orbitals orbitals;
 
-  if (_do_guess) {
-    XTP_LOG(Log::error, *_log)
-        << "Reading guess from " << _guess_file << std::flush;
-    orbitals.ReadFromCpt(_guess_file);
-  } else {
-    XTP_LOG(Log::error, *_log)
-        << "Reading structure from " << _xyzfile << std::flush;
-    orbitals.QMAtoms().LoadFromFile(_xyzfile);
-  }
+  orbitals.ReadFromCpt(_orbfile);
 
 
   Sternheimer sternheimer(orbitals, _log);
