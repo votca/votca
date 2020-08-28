@@ -30,13 +30,19 @@
 
 namespace votca {
 namespace xtp {
-class MoldenWriter {
+class MoldenReader {
  public:
-  MoldenWriter(Logger& log) : _log(log){};
+  MoldenReader(Logger& log) : _log(log){};
 
-  ~MoldenWriter() = default;
+  ~MoldenReader() = default;
 
-  void WriteFile(const std::string& filename, const Orbitals& orbitals);
+  void setBasissetInfo(std::string basisset_name,
+                       std::string aux_basisset_name) {
+    _basisset_name = basisset_name;
+    _aux_basisset_name = aux_basisset_name;
+  }
+
+  void parseMoldenFile(const std::string& filename, Orbitals& orbitals);
 
  private:
   // clang-format off
@@ -56,12 +62,14 @@ class MoldenWriter {
             0,1,-1,2,-2,3,-3,4,-4 //g
             };
   // clang-format on
+  std::string _basisset_name;
+  std::string _aux_basisset_name;
   AOBasis _basis;
-  BasisSet _bs;
 
-  void writeAtoms(const Orbitals& orbitals, std::ofstream& outFile) const;
-  void writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const;
-  void writeBasisSet(const Orbitals& orbitals, std::ofstream& outFile) const;
+  std::string readAtoms(QMMolecule& mol, const std::string& units,
+                        std::ifstream& input_file) const;
+  std::string readMOs(Orbitals& orbitals, std::ifstream& input_file) const;
+  void addBasissetInfo(Orbitals& orbitals);
 };
 
 }  // namespace xtp

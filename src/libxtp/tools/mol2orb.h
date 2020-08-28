@@ -8,9 +8,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/logger.h"
-#include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmtool.h"
-#include <votca/xtp/orbitals.h>
 
 namespace votca {
 namespace xtp {
@@ -29,17 +27,9 @@ class Mol2Orb final : public QMTool {
  private:
   std::string _moldenfile;
   std::string _orbfile;
-  std::string _xyzfile;
   std::string _basisset_name;
   std::string _aux_basisset_name;
-  AOBasis _basis;
-  AOBasis _auxbasis;
   Logger _log;
-
-  std::string readAtoms(QMMolecule& mol, const std::string& units,
-                        std::ifstream& input_file) const;
-  std::string readMOs(Orbitals& orbitals, std::ifstream& input_file);
-  void addBasissetInfo(Orbitals& orbitals);
 };
 
 }  // namespace xtp
