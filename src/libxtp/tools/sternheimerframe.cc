@@ -35,7 +35,14 @@ namespace xtp {
 
 void SternheimerFrame::Initialize(const tools::Property &user_options) {
 
+  _log->setReportLevel(Log::current_level);
+
+  _log->setMultithreading(true);
+  _log->setCommonPreface("\n... ...");
+
     std::string key = "sternheimer";
+
+    std::cout<<"test"<<std::endl;
 
     tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
@@ -43,34 +50,33 @@ void SternheimerFrame::Initialize(const tools::Property &user_options) {
     _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".orb", _job_name + ".orb");
 
-
     XTP_LOG(Log::error, *_log) << " Running Sternheimer" << flush;
-    XTP_LOG(Log::error, *_log) << " Started parsing input parameters" << flush;
+    
 
     _options.start_frequency_grid = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".sternheimer.omegain",_options.start_frequency_grid);
+        key + ".omegain",_options.start_frequency_grid);
     _options.end_frequency_grid = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".sternheimer.omegafin",_options.end_frequency_grid);
+        key + ".omegafin",_options.end_frequency_grid);
     _options.number_of_frequency_grid_points = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".sternheimer.step",_options.number_of_frequency_grid_points);
+        key + ".step",_options.number_of_frequency_grid_points);
     _options.imaginary_shift_pade_approx = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".sternheimer.imshift",_options.imaginary_shift_pade_approx);
+        key + ".imshift",_options.imaginary_shift_pade_approx);
     _options.number_output_grid_points = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".sternheimer.resolution",_options.number_output_grid_points);
+        key + ".resolution",_options.number_output_grid_points);
     _options.do_precalc_fxc = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".sternheimer.do_precalc_fxc",_options.do_precalc_fxc);
+        key + ".do_precalc_fxc",_options.do_precalc_fxc);
     _options.calculation = options.ifExistsReturnElseReturnDefault<std::string>(
-        key + ".sternheimer.calculation",_options.calculation);
+        key + ".calculation",_options.calculation);
     _options.numerical_Integration_grid_type =
         options.ifExistsReturnElseReturnDefault<std::string>(
-            key + ".sternheimer.spatialgridtype",_options.numerical_Integration_grid_type);
+            key + ".spatialgridtype",_options.numerical_Integration_grid_type);
     _options.quadrature_scheme =
         options.ifExistsReturnElseReturnDefault<std::string>(
-            key + ".sternheimer.quadrature_scheme",_options.quadrature_scheme);
+            key + ".quadrature_scheme",_options.quadrature_scheme);
     _options.quadrature_order = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".sternheimer.quadrature_order",_options.quadrature_order);
+        key + ".quadrature_order",_options.quadrature_order);
     _options.level = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".sternheimer.level",_options.level);
+        key + ".level",_options.level);
 
     XTP_LOG(Log::error, *_log) << " Task:" <<  _options.calculation << flush;
 
