@@ -42,6 +42,8 @@ class RPA {
     _rpamax = rpamax;
   }
 
+  double getEta() const { return _eta; }
+
   Eigen::MatrixXd calculate_epsilon_i(double frequency) const {
     return calculate_epsilon<true>(frequency);
   }
@@ -50,6 +52,8 @@ class RPA {
     return calculate_epsilon<false>(frequency);
   }
 
+  Eigen::MatrixXcd calculate_epsilon_complex(double frequency_r, double frequency_i) const;
+  
   const Eigen::VectorXd& getRPAInputEnergies() const { return _energies; }
 
   void setRPAInputEnergies(const Eigen::VectorXd& rpaenergies) {

@@ -27,6 +27,7 @@
 #include "votca/xtp/gw.h"
 #include "votca/xtp/newton_rapson.h"
 #include "votca/xtp/rpa.h"
+#include "votca/xtp/sigma_cda.h"
 #include "votca/xtp/sigma_exact.h"
 #include "votca/xtp/sigma_ppm.h"
 
@@ -39,6 +40,8 @@ void GW::configure(const options& opt) {
   _rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
   if (_opt.sigma_integration == "exact") {
     _sigma = std::make_unique<Sigma_Exact>(Sigma_Exact(_Mmn, _rpa));
+  } else if (_opt.sigma_integration == "cda") {
+    _sigma = std::make_unique<Sigma_CDA>(Sigma_CDA(_Mmn, _rpa));
   } else if (_opt.sigma_integration == "ppm") {
     _sigma = std::make_unique<Sigma_PPM>(Sigma_PPM(_Mmn, _rpa));
   }
@@ -49,6 +52,9 @@ void GW::configure(const options& opt) {
   sigma_opt.rpamin = _opt.rpamin;
   sigma_opt.rpamax = _opt.rpamax;
   sigma_opt.eta = _opt.eta;
+  sigma_opt.quadrature_scheme = _opt.quadrature_scheme;
+  sigma_opt.alpha = _opt.alpha;
+  sigma_opt.order = _opt.order;
   _sigma->configure(sigma_opt);
   _Sigma_x = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
   _Sigma_c = Eigen::MatrixXd::Zero(_qptotal, _qptotal);

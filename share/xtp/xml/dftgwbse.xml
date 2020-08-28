@@ -32,8 +32,10 @@
           <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" default="0.0" unit="hartree" choices="float"/>
           <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW" choices="evGW,G0W0"/>
           <tasks help="tasks to do" default="gw,singlets" choices="[gw,singlets,triplets,all]"/>
-          <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact"/>
+          <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact, cda"/>
           <eta help="small parameter eta of the Green's function" default="1e-3" unit="Hartree" choices="float+"/>
+          <quadrature_scheme help="If CDA is used for sigma integration this set the quadrature scheme to use" default="hermite" choises="hermite,laguerre,legendre"/>
+          <order help="Quadrature order if CDA is used for sigma integration" default="12" choises="8 12 20 30 100"/>
           <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid"/>
           <qp_grid_steps help="number of QP grid points" default="1001" choices="int+"/>
           <qp_grid_spacing help="spacing of QP grid points" unit="Hartree" default="0.001" choices="float+"/>

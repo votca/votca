@@ -358,6 +358,23 @@ void GWBSE::Initialize(tools::Property& options) {
         << " RPA Hamiltonian size: " << (homo + 1 - rpamin) * (rpamax - homo)
         << flush;
   }
+  _gwopt.order = options.ifExistsReturnElseReturnDefault<Index>(
+      key + ".laguerrequad_order", _gwopt.order);
+  XTP_LOG(Log::error, *_pLog)
+      << " Integration order Quadrature: " << _gwopt.order << flush;
+  _gwopt.quadrature_scheme =
+      options.ifExistsReturnElseReturnDefault<std::string>(
+          key + ".quadrature_scheme", _gwopt.quadrature_scheme);
+  XTP_LOG(Log::error, *_pLog)
+      << " Integration scheme Quadrature: " << _gwopt.quadrature_scheme
+      << flush;
+  _gwopt.alpha = options.ifExistsReturnElseReturnDefault<double>(key + ".alpha",
+                                                                 _gwopt.alpha);
+  XTP_LOG(Log::error, *_pLog) << " Alpha value: " << _gwopt.alpha << flush;
+
+  _gwopt.eta =
+      options.ifExistsReturnElseReturnDefault<double>(key + ".eta", _gwopt.eta);
+
   XTP_LOG(Log::error, *_pLog) << " eta: " << _gwopt.eta << flush;
 
   _gwopt.qp_solver = options.get(key + ".qp_solver").as<std::string>();
