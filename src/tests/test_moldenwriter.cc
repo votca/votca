@@ -15,7 +15,7 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE moldenreader_test
+#define BOOST_TEST_MODULE moldenwriter_test
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
@@ -27,6 +27,7 @@
 // Local VOTCA includes
 #include "votca/xtp/logger.h"
 #include "votca/xtp/moldenreader.h"
+#include "votca/xtp/moldenwriter.h"
 #include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;
@@ -41,19 +42,22 @@ BOOST_AUTO_TEST_CASE(moldenreader_test) {
   orbitalsReference.ReadFromCpt(std::string(XTP_TEST_DATA_FOLDER) +
                                 "/molden/benzene.orb");
 
+  // write orbitals object to molden file
   Logger log;
+  MoldenWriter moldenWriter(log);
+  moldenWriter.WriteFile("moldenFile.molden", orbitalsReference);
+
+  // read in written molden file
   MoldenReader molden(log);
   molden.setBasissetInfo("def2-tzvp", "aux-def2-tzvp");
   Orbitals orbitals;
-  molden.parseMoldenFile(
-      std::string(XTP_TEST_DATA_FOLDER) + "/molden/benzene.molden.input",
-      orbitals);
+  molden.parseMoldenFile("moldenFile.molden", orbitals);
 
-  // Check if MO's are read correctly
+  // Check if MO's are equal
   BOOST_CHECK(orbitalsReference.MOs().eigenvectors().isApprox(
       orbitals.MOs().eigenvectors(), 1e-5));
 
-  // Check if atoms are read correctly
+  // Check if atoms are equal
   BOOST_CHECK(orbitals.QMAtoms().size() == orbitalsReference.QMAtoms().size());
   for (int i = 0; i < orbitals.QMAtoms().size(); i++) {
     BOOST_CHECK(orbitals.QMAtoms()[i].getPos().isApprox(

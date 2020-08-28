@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_MOLDEN_WRITER_H
-#define VOTCA_XTP_MOLDEN_WRITER_H
+#ifndef VOTCA_XTP_MOLDEN_READER_H
+#define VOTCA_XTP_MOLDEN_READER_H
 
 // Local VOTCA includes
 #include "votca/xtp/logger.h"
@@ -75,4 +75,4 @@ class MoldenReader {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_MOLDEN_WRITER_H
+#endif  // VOTCA_XTP_MOLDEN_READER_H

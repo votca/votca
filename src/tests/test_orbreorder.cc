@@ -15,7 +15,7 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE orca_test
+#define BOOST_TEST_MODULE orbreorder_test
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
