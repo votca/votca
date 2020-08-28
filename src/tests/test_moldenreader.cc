@@ -51,5 +51,12 @@ BOOST_AUTO_TEST_CASE(moldenreader_test) {
 
   BOOST_CHECK(orbitalsReference.MOs().eigenvectors().isApprox(
       orbitals.MOs().eigenvectors(), 1e-5));
+
+  BOOST_CHECK(orbitals.QMAtoms().size() == orbitalsReference.QMAtoms().size());
+
+  for (int i = 0; i < orbitals.QMAtoms().size(); i++) {
+    BOOST_CHECK(orbitals.QMAtoms()[i].getPos().isApprox(
+        orbitalsReference.QMAtoms()[i].getPos(), 1e-3));
+  }
 }
 }
