@@ -62,6 +62,7 @@ Version 2021-dev
 -  xtp internally uses only single shells. (#539)
 -  Refactor orbital reordering (#537)
 -  fix build with clang-11 (#546)
+-  Add a molden parser to xtp (#547)
    
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
