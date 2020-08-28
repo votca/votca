@@ -65,6 +65,7 @@ class Sternheimer {
     Index level = 0; //energy level for GW
     std::string quadrature_scheme = "hermite";
     Index quadrature_order = 12; 
+    std::string calculation;
   };
 
   // Edit Options

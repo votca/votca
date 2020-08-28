@@ -33,7 +33,7 @@
 namespace votca {
 namespace xtp {
 
-class SternheimerFrame {
+class SternheimerFrame : public QMTool {
 
  public:
   SternheimerFrame();
@@ -46,6 +46,7 @@ class SternheimerFrame {
   std::string _guess_file;
   bool _do_guess;
 
+  std::string _xyzfile;
   std::string _xml_output;  // .xml output
   std::string _guess_orbA;
   std::string _guess_orbB;
