@@ -135,8 +135,8 @@ std::string Mol2Orb::readMOs(Orbitals& orbitals, std::ifstream& input_file) {
   // Get the correct ordering of atomic orbitals
   // Note that the molden specification specifies its own orbital ordering
   // Hence we can't use the qmpackage's ordering.
-  OrbReorder reorder(_transpositions, _multipliers);
-  reorder.reorderOrbitals(orbitals.MOs().eigenvectors(), _basis);
+
+  // REORDER HERE!!!!!!!!!!!!!!!!!!!!!!!
 
   getline(input_file, line);
   return line;

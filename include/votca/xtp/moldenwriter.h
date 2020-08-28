@@ -28,19 +28,18 @@
 #include <fstream>
 #include <votca/xtp/orbitals.h>
 
-/**
- * \brief Writes an orbital file to a .cube file
- */
-
 namespace votca {
 namespace xtp {
-class Molden_Writer {
-  Molden_Writer(Logger& log) : _log(log){};
-
+class MoldenWriter {
  public:
-  void WriteFile(const std::string& filename, const Orbitals& orbitals) const;
+  void WriteFile(const std::string& filename, const Orbitals& orbitals);
 
- private:  // clang-format off
+  MoldenWriter(Logger& log) : _log(log){};
+
+  ~MoldenWriter() = default;
+
+ private:
+  // clang-format off
   Logger& _log;
   std::array<Index,25> _multipliers={
             1, //s
@@ -49,38 +48,20 @@ class Molden_Writer {
             1,1,1,1,1,-1,-1, //f 
             1,1,1,1,1,-1,-1,-1,-1 //g
             };
-
-  OrbTranspositions _transpositions { 
-    std::vector<std::array<Index, 2>> {}, //s
-    std::vector<std::array<Index, 2>> {   //p
-      {0, 2}
-    }, 
-    std::vector<std::array<Index, 2>> {   //d
-      {1, 2},
-      {3, 4}
-      }, 
-    std::vector<std::array<Index, 2>> {   //f
-      {1, 2},  
-      {3, 4},
-      {5, 6}
-    }, 
-    std::vector<std::array<Index, 2>> {   //g
-      {1, 2},
-      {3, 4},
-      {5, 6},
-      {7, 8}
-    }
-  };
+  std::array<Index, 25> _reorderList={
+            0, //s
+            1,-1,0, //p
+            0,1,-1,2,-2, //d
+            0,1,-1,2,-2,3,-3, //f 
+            0,1,-1,2,-2,3,-3,4,-4 //g
+            };
   // clang-format on
-  std::string _basisset_name;
-  std::string _aux_basisset_name;
   AOBasis _basis;
   BasisSet _bs;
-  Logger& _log;
 
-  void writeAtoms(const Orbitals& orbitals, std::ofstream& outFile);
-  void writeMOs(const Orbitals& orbitals, std::ofstream& outFile);
-  void writeBasisSet(const Orbitals& orbitals, std::ofstream& outFile);
+  void writeAtoms(const Orbitals& orbitals, std::ofstream& outFile) const;
+  void writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const;
+  void writeBasisSet(const Orbitals& orbitals, std::ofstream& outFile) const;
 };
 
 }  // namespace xtp

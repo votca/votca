@@ -29,47 +29,12 @@ class Orb2Mol final : public QMTool {
 
  private:
   // clang-format off
-  std::array<Index,25> _multipliers={
-            1, //s
-            1,1,1, //p
-            1,1,1,1,1, //d
-            1,1,1,1,1,-1,-1, //f 
-            1,1,1,1,1,-1,-1,-1,-1 //g
-            };
-
-  OrbTranspositions _transpositions { 
-    std::vector<std::array<Index, 2>> {}, //s
-    std::vector<std::array<Index, 2>> {   //p
-      {0, 2}
-    }, 
-    std::vector<std::array<Index, 2>> {   //d
-      {1, 2},
-      {3, 4}
-      }, 
-    std::vector<std::array<Index, 2>> {   //f
-      {1, 2},  
-      {3, 4},
-      {5, 6}
-    }, 
-    std::vector<std::array<Index, 2>> {   //g
-      {1, 2},
-      {3, 4},
-      {5, 6},
-      {7, 8}
-    }
-  };
   std::string _moldenfile;
   std::string _orbfile;
   std::string _xyzfile;
   std::string _basisset_name;
   std::string _aux_basisset_name;
-  AOBasis _basis;
-  BasisSet _bs;
   Logger _log;
-
- void writeAtoms(Orbitals& orbitals, std::ofstream& outFile);
- void writeMOs(Orbitals& orbitals, std::ofstream& outFile);
- void writeBasisSet(Orbitals& orbitals, std::ofstream& outFile);
 };
 
 }  // namespace xtp

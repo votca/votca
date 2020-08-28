@@ -1,25 +1,26 @@
-#include "votca/xtp/molden_writer.h"
+#include "votca/xtp/moldenwriter.h"
 
-#include "votca/xtp/logger.h"
+#include "votca/xtp/basisset.h"
 
 namespace votca {
 namespace xtp {
 
-void Molden_Writer::writeAtoms(const Orbitals& orbitals,
-                               std::ofstream& outFile) {
+void MoldenWriter::writeAtoms(const Orbitals& orbitals,
+                              std::ofstream& outFile) const {
   for (auto& atom : orbitals.QMAtoms()) {
     Eigen::Vector3d pos = atom.getPos();
     outFile << boost::format("%-4s %5d %5d %22.12e %22.10e %22.10e\n") %
                    atom.getElement() % (atom.getId() + 1) %
-                   atom.getPureNucCharge() % pos[0] % pos[1] % pos[2];
+                   atom.getTotalNuccharge() % pos[0] % pos[1] % pos[2];
   }
 }
 
-void Molden_Writer::writeMOs(const Orbitals& orbitals, std::ofstream& outFile) {
+void MoldenWriter::writeMOs(const Orbitals& orbitals,
+                            std::ofstream& outFile) const {
 
   Eigen::VectorXd energies = orbitals.MOs().eigenvalues();
 
-  OrbReorder reorder(_transpositions, _multipliers);
+  OrbReorder reorder(_reorderList, _multipliers);
 
   Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
 
@@ -38,8 +39,8 @@ void Molden_Writer::writeMOs(const Orbitals& orbitals, std::ofstream& outFile) {
   }
 }
 
-void Molden_Writer::writeBasisSet(const Orbitals& orbitals,
-                                  std::ofstream& outFile) {
+void MoldenWriter::writeBasisSet(const Orbitals& orbitals,
+                                 std::ofstream& outFile) const {
   if (orbitals.hasDFTbasisName()) {
 
     for (auto& atom : orbitals.QMAtoms()) {
@@ -48,42 +49,38 @@ void Molden_Writer::writeBasisSet(const Orbitals& orbitals,
       // is included for backwards compatibility of molden files
       outFile << boost::format("%4d 0 \n") % (atom.getId() + 1);
       for (const Shell& shell : element) {
-        for (const char& subtype : shell.getType()) {
-          // The 1.0 at the end of the next line is meaningless it
-          // is included for backwards compatibility of molden files
-          outFile << boost::format("%-3s %4d %3.1f \n") %
-                         std::tolower(subtype, std::locale()) %
-                         shell.getSize() % 1.0;
-          for (const GaussianPrimitive& gaussian : shell) {
-            outFile << boost::format("%22.10e %22.10e\n") % gaussian.decay() %
-                           gaussian.Contractions()[FindLmax(
-                               std::string(1, subtype))];
-          }
+        // The 1.0 at the end of the next line is meaningless it
+        // is included for backwards compatibility of molden files
+        outFile << boost::format("%-3s %4d %3.1f \n") %
+                       std::tolower(EnumToString(shell.getL()).back()) %
+                       shell.getSize() % 1.0;
+        for (const GaussianPrimitive& gaussian : shell) {
+          outFile << boost::format("%22.10e %22.10e\n") % gaussian.decay() %
+                         gaussian.contraction();
         }
       }
       outFile << " \n";
     }
-
   } else {
     throw std::runtime_error(".orb file does not contain a basisset name");
   }
-}
+}  // namespace xtp
 
-void Molden_Writer::WriteFile(const std::string& filename,
-                              const Orbitals& orbitals) const {
+void MoldenWriter::WriteFile(const std::string& filename,
+                             const Orbitals& orbitals) {
 
   _bs.Load(orbitals.getDFTbasisName());
   _basis.Fill(_bs, orbitals.QMAtoms());
-
   std::ofstream outFile(filename);
 
   if (outFile.is_open()) {
-    XTP_LOG(Log::info, _log) << "Writing data to " << filename << std::flush;
+
+    XTP_LOG(Log::error, _log) << "Writing data to " << filename << std::flush;
+
     // print Header
     outFile << "[Molden Format]\n";
     outFile << "[Title]\n";
-    outFile << "Molden file created by VOTCA-XTP for basename: " << _job_name
-            << "\n";
+    outFile << "Molden file created by VOTCA-XTP\n";
     outFile << " \n";
 
     outFile << "[Atoms] AU\n";
@@ -98,10 +95,9 @@ void Molden_Writer::WriteFile(const std::string& filename,
     outFile << "[MO]\n";
     writeMOs(orbitals, outFile);
 
-    XTP_LOG(Log::error, _log) << "Done parsing \n" << std::flush;
-    return true;
+    XTP_LOG(Log::error, _log)
+        << "Finished writing to molden file." << std::flush;
   }
-  return false;
 }
 
 }  // namespace xtp
