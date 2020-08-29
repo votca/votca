@@ -117,6 +117,11 @@ else
   cmake_args+=( -DENABLE_REGRESSION_TESTING=${INPUT_REGRESSION_TESTING} )
 fi
 
+# Gentoo has no latex 
+if [[ ${INPUT_DISTRO} = gentoo ]]; then
+  cmake_args+=( -DBUILD_CSG_MANUAL=OFF )
+fi
+
 cmake_args+=( ${INPUT_CMAKE_ARGS} )
 print_output "cmake_args" "${cmake_args[@]}"
 
@@ -124,13 +129,14 @@ cache_key="ccache-${INPUT_DISTRO}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-m
 print_output "cache_restore_key" "${cache_key}"
 print_output "cache_key" "${cache_key}-$(date +%s)"
 
-if [[ ${branch} = stable || ${INPUT_DISTRO} = "ubuntu_18.04"  || ${INPUT_CMAKE_BUILD_TYPE} = Debug || ${INPUT_MODULE} = true ]]; then
+if [[ ${branch} = stable || ${INPUT_DISTRO} = @(ubuntu_18.04|gentoo)  || ${INPUT_CMAKE_BUILD_TYPE} = Debug || ${INPUT_MODULE} = true ]]; then
   # 1.) Don't build sphinx on stable, not useful, only master is useful
   # 2.) On Ubuntu 18.04 sphinx is too old for nbsphinx
   #     File "/usr/lib/python3/dist-packages/nbsphinx.py", line 1383, in _add_notebook_parser
   #       source_suffix.append('.ipynb')
   #     AttributeError: 'dict' object has no attribute 'append'
   #     nbsphinx that requires that sphinx>1.8 but in Ubuntu 18.04 sphinx==1.6.7
+  #     Gentoo has no sphinx installed
   # 3.) Debug builds are too slow to run notebooks in xtp-tutorials
   # 4.) Module build doesn't support sphinx
   print_output "build_sphinx" "false"
