@@ -103,6 +103,9 @@ jobs:
             cmake_build_type: Release
             continue-on-error: true
             no_regression_testing: true
+          - distro: gentoo 
+            toolchain: gnu
+            cmake_build_type: Release
     runs-on: ubuntu-latest
     container: registry.gitlab.com/votca/buildenv:${{ matrix.distro }}
     steps:
