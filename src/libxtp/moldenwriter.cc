@@ -1,14 +1,15 @@
 #include "votca/xtp/moldenwriter.h"
 
 #include "votca/xtp/basisset.h"
+#include <boost/algorithm/string.hpp>
 
 namespace votca {
 namespace xtp {
 
 void MoldenWriter::writeAtoms(const Orbitals& orbitals,
                               std::ofstream& outFile) const {
-  for (auto& atom : orbitals.QMAtoms()) {
-    Eigen::Vector3d pos = atom.getPos();
+  for (const auto& atom : orbitals.QMAtoms()) {
+    const Eigen::Vector3d& pos = atom.getPos();
     outFile << boost::format("%-4s %5d %5d %22.12e %22.10e %22.10e\n") %
                    atom.getElement() % (atom.getId() + 1) %
                    atom.getTotalNuccharge() % pos[0] % pos[1] % pos[2];
@@ -17,13 +18,9 @@ void MoldenWriter::writeAtoms(const Orbitals& orbitals,
 
 void MoldenWriter::writeMOs(const Orbitals& orbitals,
                             std::ofstream& outFile) const {
-
   Eigen::VectorXd energies = orbitals.MOs().eigenvalues();
-
   OrbReorder reorder(_reorderList, _multipliers);
-
   Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
-
   reorder.reorderOrbitals(moCoefficients, _basis);
 
   for (Index i = 0; i < orbitals.getBasisSetSize(); i++) {  // over columns
@@ -41,38 +38,38 @@ void MoldenWriter::writeMOs(const Orbitals& orbitals,
 
 void MoldenWriter::writeBasisSet(const Orbitals& orbitals,
                                  std::ofstream& outFile) const {
-  if (orbitals.hasDFTbasisName()) {
 
-    for (auto& atom : orbitals.QMAtoms()) {
-      const Element& element = _bs.getElement(atom.getElement());
-      // The 0 in the format string of the next line is meaningless it
+  for (const auto& atom : orbitals.QMAtoms()) {
+    const Element& element = _bs.getElement(atom.getElement());
+    // The 0 in the format string of the next line is meaningless it
+    // is included for backwards compatibility of molden files
+    outFile << boost::format("%4d 0 \n") % (atom.getId() + 1);
+    for (const Shell& shell : element) {
+      // The 1.0 at the end of the next line is meaningless it
       // is included for backwards compatibility of molden files
-      outFile << boost::format("%4d 0 \n") % (atom.getId() + 1);
-      for (const Shell& shell : element) {
-        // The 1.0 at the end of the next line is meaningless it
-        // is included for backwards compatibility of molden files
-        outFile << boost::format("%-3s %4d %3.1f \n") %
-                       std::tolower(EnumToString(shell.getL()).back()) %
-                       shell.getSize() % 1.0;
-        for (const GaussianPrimitive& gaussian : shell) {
-          outFile << boost::format("%22.10e %22.10e\n") % gaussian.decay() %
-                         gaussian.contraction();
-        }
+      outFile << boost::format("%-3s %4d %3.1f \n") %
+                     boost::to_lower_copy(EnumToString(shell.getL())) %
+                     shell.getSize() % 1.0;
+      for (const GaussianPrimitive& gaussian : shell) {
+        outFile << boost::format("%22.10e %22.10e\n") % gaussian.decay() %
+                       gaussian.contraction();
       }
-      outFile << " \n";
     }
-  } else {
-    throw std::runtime_error(".orb file does not contain a basisset name");
+    outFile << " \n";
   }
+
 }  // namespace xtp
 
 void MoldenWriter::WriteFile(const std::string& filename,
                              const Orbitals& orbitals) {
+  if (orbitals.hasDFTbasisName()) {
+    _bs.Load(orbitals.getDFTbasisName());
+    _basis.Fill(_bs, orbitals.QMAtoms());
+  } else {
+    throw std::runtime_error(".orb file does not contain a basisset name");
+  }
 
-  _bs.Load(orbitals.getDFTbasisName());
-  _basis.Fill(_bs, orbitals.QMAtoms());
   std::ofstream outFile(filename);
-
   if (outFile.is_open()) {
 
     XTP_LOG(Log::error, _log) << "Writing data to " << filename << std::flush;

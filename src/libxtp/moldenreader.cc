@@ -96,10 +96,6 @@ std::string MoldenReader::readMOs(Orbitals& orbitals,
   orbitals.setNumberOfAlphaElectrons(number_of_electrons);
   orbitals.setNumberOfOccupiedLevels(number_of_electrons / 2);
 
-  // Get the correct ordering of atomic orbitals
-  // Note that the molden specification specifies its own orbital ordering
-  // Hence we can't use the qmpackage's ordering.
-
   OrbReorder reorder(_reorderList, _multipliers, true);
   reorder.reorderOrbitals(orbitals.MOs().eigenvectors(), _basis);
 
