@@ -37,27 +37,31 @@ BOOST_AUTO_TEST_SUITE(moldenreader_test)
 
 BOOST_AUTO_TEST_CASE(moldenreader_test) {
 
-  Orbitals orbitalsReference;
-  orbitalsReference.ReadFromCpt(std::string(XTP_TEST_DATA_FOLDER) +
-                                "/molden/benzene.orb");
+  Eigen::MatrixXd coeffs_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/molden/orbitalsMOs_ref.mm");
+
+  Orbitals orbitals_ref;
+  orbitals_ref.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                      "/molden/benzene.xyz");
 
   Logger log;
   MoldenReader molden(log);
-  molden.setBasissetInfo("def2-tzvp", "aux-def2-tzvp");
+  molden.setBasissetInfo(
+      std::string(XTP_TEST_DATA_FOLDER) + "/molden/def2-tzvp.xml",
+      "aux-def2-tzvp");
   Orbitals orbitals;
   molden.parseMoldenFile(
       std::string(XTP_TEST_DATA_FOLDER) + "/molden/benzene.molden.input",
       orbitals);
 
   // Check if MO's are read correctly
-  BOOST_CHECK(orbitalsReference.MOs().eigenvectors().isApprox(
-      orbitals.MOs().eigenvectors(), 1e-5));
+  BOOST_CHECK(orbitals.MOs().eigenvectors().isApprox(coeffs_ref, 1e-5));
 
   // Check if atoms are read correctly
-  BOOST_CHECK(orbitals.QMAtoms().size() == orbitalsReference.QMAtoms().size());
+  BOOST_CHECK(orbitals.QMAtoms().size() == orbitals_ref.QMAtoms().size());
   for (int i = 0; i < orbitals.QMAtoms().size(); i++) {
     BOOST_CHECK(orbitals.QMAtoms()[i].getPos().isApprox(
-        orbitalsReference.QMAtoms()[i].getPos(), 1e-3));
+        orbitals_ref.QMAtoms()[i].getPos(), 1e-3));
   }
 }
 }

@@ -91,7 +91,6 @@ void MoldenWriter::WriteFile(const std::string& filename,
 
     outFile << "[MO]\n";
     writeMOs(orbitals, outFile);
-
     XTP_LOG(Log::error, _log)
         << "Finished writing to molden file." << std::flush;
   }
