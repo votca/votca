@@ -167,7 +167,6 @@ void MoldenReader::parseMoldenFile(const std::string& filename,
     } else if (sectionType == "STO") {
       throw std::runtime_error(
           "Slater Type Orbitals (STOs) are not supported in VOTCA-XTP.");
-      std::getline(input_file, line);
     } else {
       std::getline(input_file, line);
     }
