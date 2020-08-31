@@ -13,7 +13,7 @@ void Molden::writeAtoms(const Orbitals& orbitals,
     const Eigen::Vector3d& pos = atom.getPos();
     outFile << boost::format("%-4s %5d %5d %22.12e %22.10e %22.10e\n") %
                    atom.getElement() % (atom.getId() + 1) %
-                   atom.getTotalNuccharge() % pos[0] % pos[1] % pos[2];
+                   atom.getElementNumber() % pos[0] % pos[1] % pos[2];
   }
 }
 

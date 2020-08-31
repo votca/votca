@@ -67,7 +67,7 @@ class QMAtom {
 
   Index getNuccharge() const { return _nuccharge - _ecpcharge; }
 
-  Index getTotalNuccharge() const { return _nuccharge; }
+  Index getElementNumber() const { return _nuccharge; }
 
   std::string identify() const { return "qmatom"; }
 
