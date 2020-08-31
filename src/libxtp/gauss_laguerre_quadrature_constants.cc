@@ -36,8 +36,8 @@ const Eigen::VectorXd& Gauss_Laguerre_Quadrature_Constants::getPoints(
   }
   if (_map_points.count(order) == 0) {
     throw invalid_argument("Quadrature order " + std::to_string(order) +
-                           " not in {8,10,12,14,16,18,20 and 100}. Please 
-                           select one of these numbers");
+                           " not in {8,10,12,14,16,18,20 and 100}. Please "
+                           "select one of these numbers");
   }
   return _map_points.at(order);
 }
@@ -50,8 +50,8 @@ const Eigen::VectorXd& Gauss_Laguerre_Quadrature_Constants::getAdaptedWeights(
   }
   if (_map_AdaptedWeights.count(order) == 0) {
     throw invalid_argument("Quadrature order " + std::to_string(order) +
-                           " not in {8,10,12,14,16,18,20 and 100}. Please
-                           select one of these numbers");
+                           " not in {8,10,12,14,16,18,20 and 100}. Please "
+                           " select one of these numbers");
   }
   return _map_AdaptedWeights.at(order);
 }
@@ -193,7 +193,7 @@ void Gauss_Laguerre_Quadrature_Constants::FillPoints() {
       0.81289128411566884504, 1.12027383500754014857, 1.47703432992382706972,
       1.8832608263423947058, 2.33905384964603417184, 2.84452654275535906652,
       3.39980482744571194429, 4.005027581758652017465, 4.6603468355689084595,
-      5.36592798558511701488, 4 6.121950030804019789061, 6.92860582937617305502,
+      5.36592798558511701488, 6.121950030804019789061, 6.92860582937617305502,
       7.78610237786251743434, 8.6946611139221679892, 9.65451824355508072781,
       10.66592509412167555054, 11.72914849447222507162, 12.84447118364103057157,
       14.01219224969427464896, 15.23262760046669784302, 16.50611046808198959419,
