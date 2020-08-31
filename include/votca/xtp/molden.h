@@ -23,10 +23,10 @@
 
 // Local VOTCA includes
 #include "votca/xtp/logger.h"
+#include "votca/xtp/orbitals.h"
 #include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmtool.h"
 #include <fstream>
-#include <votca/xtp/orbitals.h>
 
 namespace votca {
 namespace xtp {
@@ -38,8 +38,8 @@ class Molden {
 
   void WriteFile(const std::string& filename, const Orbitals& orbitals);
 
-  void setBasissetInfo(std::string basisset_name,
-                       std::string aux_basisset_name) {
+  void setBasissetInfo(const std::string& basisset_name,
+                       const std::string& aux_basisset_name) {
     _basisset_name = basisset_name;
     _aux_basisset_name = aux_basisset_name;
   }

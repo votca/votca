@@ -93,6 +93,7 @@ void Molden::WriteFile(const std::string& filename, const Orbitals& orbitals) {
         << "Finished writing to molden file." << std::flush;
   }
 }
+
 std::string Molden::readAtoms(QMMolecule& mol, const std::string& units,
                               std::ifstream& input_file) const {
   std::string line;
@@ -107,7 +108,7 @@ std::string Molden::readAtoms(QMMolecule& mol, const std::string& units,
 
     // extract data
     double x, y, z;
-    int atom_id;
+    Index atom_id;
     std::string junk;
     std::string atom_type;
     iss >> atom_type >> atom_id >> junk >> x >> y >> z;
@@ -131,7 +132,7 @@ std::string Molden::readMOs(Orbitals& orbitals,
 
   // setup space to store everything
   Index basis_size = orbitals.getBasisSetSize();
-  int number_of_electrons = 0;
+  Index number_of_electrons = 0;
   if (basis_size == 0) {
     throw std::runtime_error(
         "Basis size not set, atoms were not parsed first.");
@@ -145,8 +146,8 @@ std::string Molden::readMOs(Orbitals& orbitals,
   double tempDouble;
   Index tempIndex;
   std::istringstream iss(" ");
-  for (int i = 0; i < basis_size; i++) {  // loop over mo's
-    std::getline(input_file, line);       // skip symmetry label
+  for (Index i = 0; i < basis_size; i++) {  // loop over mo's
+    std::getline(input_file, line);         // skip symmetry label
     // energy line
     std::getline(input_file, line);
     iss.str(line);
