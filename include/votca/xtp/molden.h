@@ -36,7 +36,7 @@ class Molden {
 
   ~Molden() = default;
 
-  void WriteFile(const std::string& filename, const Orbitals& orbitals);
+  void WriteFile(const std::string& filename, const Orbitals& orbitals) const;
 
   void setBasissetInfo(const std::string& basisset_name,
                        const std::string& aux_basisset_name) {
@@ -44,7 +44,7 @@ class Molden {
     _aux_basisset_name = aux_basisset_name;
   }
 
-  void parseMoldenFile(const std::string& filename, Orbitals& orbitals);
+  void parseMoldenFile(const std::string& filename, Orbitals& orbitals) const;
 
  private:
   // clang-format off
@@ -66,8 +66,6 @@ class Molden {
   // clang-format on
   std::string _basisset_name;
   std::string _aux_basisset_name;
-  AOBasis _basis;
-  BasisSet _bs;
 
   void writeAtoms(const Orbitals& orbitals, std::ofstream& outFile) const;
   void writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const;
@@ -76,7 +74,7 @@ class Molden {
   std::string readAtoms(QMMolecule& mol, const std::string& units,
                         std::ifstream& input_file) const;
   std::string readMOs(Orbitals& orbitals, std::ifstream& input_file) const;
-  void addBasissetInfo(Orbitals& orbitals);
+  void addBasissetInfo(Orbitals& orbitals) const;
 };
 
 }  // namespace xtp

@@ -21,7 +21,7 @@ void Molden::writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const {
   Eigen::VectorXd energies = orbitals.MOs().eigenvalues();
   OrbReorder reorder(_reorderList, _multipliers);
   Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
-  reorder.reorderOrbitals(moCoefficients, _basis);
+  reorder.reorderOrbitals(moCoefficients, orbitals.SetupDftBasis());
 
   for (Index i = 0; i < orbitals.getBasisSetSize(); i++) {  // over columns
     outFile << "Sym= \n";
@@ -38,32 +38,31 @@ void Molden::writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const {
 
 void Molden::writeBasisSet(const Orbitals& orbitals,
                            std::ofstream& outFile) const {
-
+  AOBasis basis = orbitals.SetupDftBasis();
   for (const auto& atom : orbitals.QMAtoms()) {
-    const Element& element = _bs.getElement(atom.getElement());
     // The 0 in the format string of the next line is meaningless it
     // is included for backwards compatibility of molden files
     outFile << boost::format("%4d 0 \n") % (atom.getId() + 1);
-    for (const Shell& shell : element) {
+    const std::vector<const AOShell*> shells =
+        basis.getShellsofAtom(atom.getId());
+    for (const AOShell* shell : shells) {
       // The 1.0 at the end of the next line is meaningless it
       // is included for backwards compatibility of molden files
       outFile << boost::format("%-3s %4d %3.1f \n") %
-                     boost::to_lower_copy(EnumToString(shell.getL())) %
-                     shell.getSize() % 1.0;
-      for (const GaussianPrimitive& gaussian : shell) {
-        outFile << boost::format("%22.10e %22.10e\n") % gaussian.decay() %
-                       gaussian.contraction();
+                     boost::to_lower_copy(EnumToString(shell->getL())) %
+                     shell->getSize() % 1.0;
+      for (const AOGaussianPrimitive& gaussian : *shell) {
+        outFile << boost::format("%22.10e %22.10e\n") % gaussian.getDecay() %
+                       gaussian.getContraction();
       }
     }
     outFile << " \n";
   }
 }
 
-void Molden::WriteFile(const std::string& filename, const Orbitals& orbitals) {
-  if (orbitals.hasDFTbasisName()) {
-    _bs.Load(orbitals.getDFTbasisName());
-    _basis.Fill(_bs, orbitals.QMAtoms());
-  } else {
+void Molden::WriteFile(const std::string& filename,
+                       const Orbitals& orbitals) const {
+  if (!orbitals.hasDFTbasisName()) {
     throw std::runtime_error(".orb file does not contain a basisset name");
   }
 
@@ -184,23 +183,21 @@ std::string Molden::readMOs(Orbitals& orbitals,
   orbitals.setNumberOfOccupiedLevels(number_of_electrons / 2);
 
   OrbReorder reorder(_reorderList, _multipliers, true);
-  reorder.reorderOrbitals(orbitals.MOs().eigenvectors(), _basis);
+  reorder.reorderOrbitals(orbitals.MOs().eigenvectors(),
+                          orbitals.SetupDftBasis());
 
   getline(input_file, line);
   return line;
 }
 
-void Molden::addBasissetInfo(Orbitals& orbitals) {
-  BasisSet bs;
-  bs.Load(_basisset_name);
-
-  _basis.Fill(bs, orbitals.QMAtoms());
+void Molden::addBasissetInfo(Orbitals& orbitals) const {
   orbitals.setDFTbasisName(_basisset_name);
-  orbitals.setBasisSetSize(_basis.AOBasisSize());
+  orbitals.setBasisSetSize(orbitals.SetupDftBasis().AOBasisSize());
   orbitals.setAuxbasisName(_aux_basisset_name);
 }
 
-void Molden::parseMoldenFile(const std::string& filename, Orbitals& orbitals) {
+void Molden::parseMoldenFile(const std::string& filename,
+                             Orbitals& orbitals) const {
 
   if (_basisset_name == "") {
     throw std::runtime_error(
