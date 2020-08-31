@@ -1,6 +1,6 @@
 #include "orb2mol.h"
 
-#include "votca/xtp/moldenwriter.h"
+#include "votca/xtp/molden.h"
 #include <boost/format.hpp>
 
 namespace votca {
@@ -28,7 +28,7 @@ bool Orb2Mol::Evaluate() {
 
   XTP_LOG(Log::error, _log) << "Start parsing" << std::flush;
 
-  MoldenWriter writer(_log);
+  Molden writer(_log);
   writer.WriteFile(_moldenfile, orbitals);
 
   XTP_LOG(Log::error, _log) << "Done parsing \n" << std::flush;

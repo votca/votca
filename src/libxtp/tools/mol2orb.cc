@@ -4,7 +4,7 @@
 #include <boost/algorithm/string.hpp>
 
 // Local VOTCA includes
-#include "votca/xtp/moldenreader.h"
+#include "votca/xtp/molden.h"
 #include "votca/xtp/orbitals.h"
 #include <votca/tools/constants.h>
 
@@ -31,7 +31,7 @@ bool Mol2Orb::Evaluate() {
 
   Orbitals orbitals;
 
-  MoldenReader molden(_log);
+  Molden molden(_log);
   molden.setBasissetInfo(_basisset_name, _aux_basisset_name);
   molden.parseMoldenFile(_moldenfile, orbitals);
 
