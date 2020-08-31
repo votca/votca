@@ -46,7 +46,7 @@ const Eigen::VectorXd& Gauss_Hermite_Quadrature_Constants::getAdaptedWeights(
   }
   if (_map_AdaptedWeights.count(order) == 0)
     throw invalid_argument("Order " + std::to_string(order) +
-                           " not in {8,10,12,14,16,18,20 and 100}. Please"
+                           " not in {8,10,12,14,16,18,20 and 100}. Please "
                            " select one of these numbers");
   return _map_AdaptedWeights.at(order);
 }

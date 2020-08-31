@@ -27,11 +27,11 @@
 #include <votca/tools/eigenio_matrixmarket.h>
 
 // Local VOTCA includes
-#include "votca/xtp/aobasis.h"
-#include "votca/xtp/orbitals.h"
-#include "votca/xtp/rpa.h"
-#include "votca/xtp/sigma_cda.h"
-#include "votca/xtp/threecenter.h"
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/orbitals.h>
+#include <votca/xtp/rpa.h>
+#include <votca/xtp/sigma_cda.h>
+#include <votca/xtp/threecenter.h>
 #include <votca/xtp/gaussian_quadrature.h>
 
 using namespace votca::xtp;
@@ -43,9 +43,9 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
 
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                                  "/sigma_exact/molecule.xyz");
+                                  "/sigma_cda/molecule.xyz");
   BasisSet basis;
-  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/3-21G.xml");
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/sigma_cda/3-21G.xml");
 
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
       3.4418, 4.81084, 17.1838;
 
   Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/MOs.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/sigma_cda/MOs.mm");
 
   Logger log;
   TCMatrix_gwbse Mmn{log};
@@ -77,13 +77,13 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   opt.rpamax = 16;
   opt.alpha = 0.01;
   opt.quadrature_scheme = "legendre";
-  opt.order = 12;
+  opt.order = 100;
   sigma.configure(opt);
 
   Eigen::MatrixXd x = sigma.CalcExchangeMatrix();
 
   Eigen::MatrixXd x_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/x_ref.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/sigma_cda/x_ref.mm");
 
   bool check_x = x_ref.isApprox(x, 1e-4);
   if (!check_x) {
@@ -93,31 +93,22 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
     cout << x_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_x, true);
-
   sigma.PrepareScreening();
   Eigen::MatrixXd c = sigma.CalcCorrelationOffDiag(mo_energy);
   c.diagonal() = sigma.CalcCorrelationDiag(mo_energy);
 
-  Eigen::MatrixXd c_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/c_ref.mm");
+  Eigen::MatrixXd c_ref_diag = votca::tools::EigenIO_MatrixMarket::ReadVector(
+      std::string(XTP_TEST_DATA_FOLDER) + "/sigma_cda/c_ref.mm");
 
-  bool check_c_diag = c.diagonal().isApprox(c_ref.diagonal(), 1e-5);
+  bool check_c_diag = c.diagonal().isApprox(c_ref_diag, 1e-5);
   if (!check_c_diag) {
     cout << "Sigma C" << endl;
     cout << c.diagonal() << endl;
     cout << "Sigma C ref" << endl;
-    cout << c_ref.diagonal() << endl;
+    cout << c_ref_diag << endl;
   }
   BOOST_CHECK_EQUAL(check_c_diag, true);
-
-//   bool check_c = c.isApprox(c_ref, 1e-5);
-//   if (!check_c) {
-//     cout << "Sigma C" << endl;
-//     cout << c << endl;
-//     cout << "Sigma C ref" << endl;
-//     cout << c_ref << endl;
-//   }
-//   BOOST_CHECK_EQUAL(check_c, true);
+  
  }
 
 BOOST_AUTO_TEST_SUITE_END()

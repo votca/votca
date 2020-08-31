@@ -34,7 +34,7 @@
           <tasks help="tasks to do" default="gw,singlets" choices="[gw,singlets,triplets,all]"/>
           <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact, cda"/>
           <eta help="small parameter eta of the Green's function" default="1e-3" unit="Hartree" choices="float+"/>
-          <quadrature_scheme help="If CDA is used for sigma integration this set the quadrature scheme to use" default="legendre" choises="hermite,laguerre,legendre,modified legendre"/>
+          <quadrature_scheme help="If CDA is used for sigma integration this set the quadrature scheme to use" default="legendre" choises="hermite,laguerre,legendre"/>
           <order help="Quadrature order if CDA is used for sigma integration" default="12" choises="8,10,12,14,16,18,20,100"/>
           <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid"/>
           <qp_grid_steps help="number of QP grid points" default="1001" choices="int+"/>
