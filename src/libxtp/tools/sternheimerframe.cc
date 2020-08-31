@@ -35,17 +35,14 @@ namespace xtp {
 
 void SternheimerFrame::Initialize(const tools::Property &user_options) {
 
-  _log->setReportLevel(Log::current_level);
-
-  _log->setMultithreading(true);
-  _log->setCommonPreface("\n... ...");
-
     std::string key = "sternheimer";
 
     std::cout<<"test"<<std::endl;
 
     tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+
+    std::cout<<"test2"<<std::endl;
 
     _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".orb", _job_name + ".orb");
