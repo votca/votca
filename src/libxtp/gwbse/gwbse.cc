@@ -271,6 +271,24 @@ void GWBSE::Initialize(tools::Property& options) {
     _gwopt.g_sc_limit = 0.1 * _gwopt.gw_sc_limit;
     _gwopt.eta = 0.1;
   }
+
+  // Check if the exact exchange of the functional matches the exact exchange in
+  // orb file. If not display a warning.
+  double ScaHFX_temp = Vxc_Potential<Vxc_Grid>::getExactExchange(_functional);
+  if (ScaHFX_temp != _orbitals.getScaHFX()) {
+    XTP_LOG(Log::error, *_pLog)
+        << (boost::format(
+                "WARNING: GWBSE exact exchange a=%s differs from qmpackage "
+                "exact exchange a=%s, \n probably your functionals are "
+                "inconsistent \n or dft orbitals were loaded from a package"
+                " other than votca or orca. \n The GWBSE exact exchange will "
+                "be used.") %
+            ScaHFX_temp % _orbitals.getScaHFX())
+               .str()
+        << std::flush;
+    _orbitals.setScaHFX(ScaHFX_temp);
+  }
+
   XTP_LOG(Log::error, *_pLog) << " Running GW as: " << mode << flush;
   _gwopt.ScaHFX = _orbitals.getScaHFX();
 
@@ -500,16 +518,6 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
                                _orbitals.getXCFunctionalName() + " GWBSE " +
                                _functional + " differ!");
     }
-  }
-
-  double ScaHFX_temp = Vxc_Potential<Vxc_Grid>::getExactExchange(_functional);
-  if (ScaHFX_temp != _orbitals.getScaHFX()) {
-    throw std::runtime_error(
-        (boost::format("GWBSE exact exchange a=%s differs from qmpackage "
-                       "exact exchange a=%s, probably your functionals are "
-                       "inconsistent") %
-         ScaHFX_temp % _orbitals.getScaHFX())
-            .str());
   }
 
   Vxc_Grid grid;
