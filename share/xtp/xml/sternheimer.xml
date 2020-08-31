@@ -3,22 +3,18 @@
 
 <!-- xtp_tools -e sternheimer  options.xml -->
 <sternheimer help="Perform linear perturbation calcualtion using the sc sternheimer method" >
-
 	<orb help="Input orb file to start computation from"/>
 	<calculation help="Specify desired calculation" choices="gwsternheimer,polarizability,gradient,mogradient,koopmanalpha,koopman"/>
-        <omegain help="Start frequency for output" default="0.0" choices="double"/>
-	<omegafin help="End frequency for output" default="20.0" choices="double"/>
-	<step help="Number of points evaluated between omega and omegafin" default="30" choices="Index"/>
-	<resolution help="Number of points used in Output" default="1000" choices="Index"/>
-	<imshift help="Frequency shift in imaginary direction for Padeapproximation in Polarizability calculations in eV" default="3" choices="double"/>
-	<level help="If gwsternheimer is chosen this is the level of which the self energy is calculated" default="0" choices="Index"/>
+    <omegain help="Start frequency for output" default="0.0" choices="float"/>
+	<omegafin help="End frequency for output" default="20.0" choices="float"/>
+	<step help="Number of points evaluated between omega and omegafin" default="30" choices="int+"/>
+	<resolution help="Number of points used in Output" default="1000" choices="int+"/>
+	<imshift help="Frequency shift in imaginary direction for Padeapproximation in Polarizability calculations in eV" default="3" choices="float+"/>
+	<level help="If gwsternheimer is chosen this is the level of which the self energy is calculated" default="0" choices="int+"/>
 	<quadrature_scheme help="Quadrature scheme used for frequency calculation in gwsternheimer" default="hermit" choices="hermit,laguerre,legendre"/>
 	<quadrature_order help="Quadrature order used for frequency calculation in gwsternheimer" default="12" choices="8,10,12,20,30,40,50,100"/>
 	<do_precalc_fxc help="Do precalculation of dxc integral. Recommended for small molecules but not for large ones" default="false" choices="bool"/>
 	<spatialgridtype help="grid type for fxc integration" default="coarse" choices="xfine,fine,medium,coarse,xcoarse"/>
-
-
-
 </sternheimer>
 	
 </options>
