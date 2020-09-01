@@ -65,7 +65,7 @@ void Sternheimer::setUpMatrices() {
     Vxc_Potential<Vxc_Grid> Vxcpot(_grid);
     Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
     this->_Fxc_presaved = Vxcpot.precalcFXC(_density_Matrix);
-    XTP_LOG(Log::error, *_pLog) << "Precalculation of Fxc" << flush;
+    XTP_LOG(Log::error, *_pLog) << "Precalculation of Fxc complete" << flush;
   }
 }
 
@@ -1063,6 +1063,34 @@ void Sternheimer::printGW(Index level) const {
   }
   XTP_LOG(Log::debug, *_pLog) << "Print GW complete" << flush;
 }
+
+PadeApprox Sternheimer::getGWPade()const{
+
+Index out_points = _opt.number_output_grid_points;
+  Index eval_points = _opt.number_of_frequency_grid_points;
+
+  double omega_start = (_opt.start_frequency_grid) * tools::conv::ev2hrt;
+  double omega_end = (_opt.end_frequency_grid) * tools::conv::ev2hrt;
+
+  PadeApprox pade;
+
+  pade.initialize(eval_points);
+
+  double steps = 0;
+  if (eval_points > 1) {
+    steps = (omega_end - omega_start) / eval_points;
+  }
+  Eigen::VectorXd intercept = Intercept();
+  for (int j = 0; j < eval_points; ++j) {
+    std::complex<double> w(omega_start + j * steps, 0);
+    Eigen::VectorXcd sigma_c = SelfEnergy_diagonal(w);
+    std::complex<double> sigma_c_sex = SelfEnergy_cohsex(w, _opt.level);
+    pade.addPoint(w, sigma_c(_opt.level) + sigma_c_sex + intercept(_opt.level));
+  }
+  return pade;
+
+}
+
 
 }  // namespace xtp
 

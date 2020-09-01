@@ -27,6 +27,7 @@
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/multishift.h>
+#include <votca/xtp/padeapprox.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/vxc_grid.h>
 #include <votca/xtp/vxc_potential.h>
@@ -107,6 +108,8 @@ class Sternheimer {
 
   std::complex<double> SelfEnergy_cohsex(std::complex<double> omega,Index n) const;
   Eigen::VectorXd Intercept() const;
+
+  PadeApprox getGWPade() const;
 
   void printGW(Index level) const;
 
