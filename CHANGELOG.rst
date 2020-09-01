@@ -30,6 +30,7 @@ Version 1.6.3 (released XX.08.20)
 =================================
 
 -  fix test dependencies for parallel ctest (#585)
+-  fix trigger for gmx-2020 warning in run_gromacs.sh (#591)
 
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
