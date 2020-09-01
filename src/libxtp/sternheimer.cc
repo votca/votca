@@ -272,22 +272,6 @@ Eigen::MatrixXcd Sternheimer::DeltaVfromDeltaN(Eigen::MatrixXcd& deltaN) const{
 
 }
 
-Eigen::MatrixXcd Sternheimer::AndersonMixing(Eigen::MatrixXcd& inNew,
-                                             Eigen::MatrixXcd& inOld,
-                                             Eigen::MatrixXcd& outNew,
-                                             Eigen::MatrixXcd& outOld,
-                                             double alpha) const {
-
-  std::complex<double> beta =
-      (outNew - inNew).cwiseProduct(outNew - inNew - outOld + inOld).sum() /
-      ((outNew - inNew).cwiseProduct((outOld - inOld))).sum();
-
-  Eigen::MatrixXcd nIn = beta * inOld + (1 - beta) * inNew;
-  Eigen::MatrixXcd nOut = beta * outOld + (1 - beta) * outNew;
-
-  return alpha * nOut + (1 - alpha) * nIn;
-}
-
 Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
     std::vector<Eigen::MatrixXcd>& Input, std::vector<Eigen::MatrixXcd>& Output,
     double alpha) const {

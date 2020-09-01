@@ -102,12 +102,6 @@ class Sternheimer {
   // Returns Isotropic Average from Polarizability Tensor
   std::vector<double> getIsotropicAverage(
       std::vector<Eigen::Matrix3cd>& polar) const;
-  // Return Self-Energy
-  Eigen::VectorXcd SelfEnergy_exchange() const;
-  Eigen::VectorXcd SelfEnergy_diagonal(std::complex<double> omega) const;
-
-  std::complex<double> SelfEnergy_cohsex(std::complex<double> omega,Index n) const;
-  Eigen::VectorXd Intercept() const;
 
   PadeApprox getGWPade() const;
 
@@ -146,8 +140,6 @@ class Sternheimer {
   // Sets up the Multishift solver for linear systems of given size
   void initializeMultishift(Index size);
 
-  // Sets up the N-Point Pade approximation
-  void initializePade(Index size);
   // returns the overlap matrix for all occupied states
   Eigen::MatrixXcd OverlapMatrix();
   // returns the density matrix for all occupied states
@@ -158,15 +150,12 @@ class Sternheimer {
   Eigen::MatrixXcd CoulombMatrix();
   Eigen::MatrixXcd CoulombMatrix(Eigen::Vector3d gridpoint) const;
   
-  // Computes the Dipole Integral
-  std::vector<Eigen::MatrixXcd> DipoleIntegral();
   // sets up the left hand side of the sternheimer equation
   Eigen::MatrixXcd SternheimerLHS(const Eigen::MatrixXcd& hamiltonian,
                                   const Eigen::MatrixXcd& inverse_overlap,
                                   double eps, std::complex<double> omega,
                                   bool pm) const;
 
-  std::vector<Eigen::MatrixXcd> InvertLHS(std::vector<Eigen::MatrixXcd>& LHS);
   // sets up the right hand side of the sternheimer equation
   Eigen::VectorXcd SternheimerRHS(const Eigen::MatrixXcd& inverse_overlap,
                                   const Eigen::MatrixXcd& density,
@@ -180,11 +169,6 @@ class Sternheimer {
   //Calculates the Delta V output from SC sternheimer from the Delta N output
   Eigen::MatrixXcd DeltaVfromDeltaN(Eigen::MatrixXcd& deltaN) const;
 
-  // Basic Anderson Mixing using only the last step
-  Eigen::MatrixXcd AndersonMixing(Eigen::MatrixXcd& inNew,
-                                  Eigen::MatrixXcd& inOld,
-                                  Eigen::MatrixXcd& outNew,
-                                  Eigen::MatrixXcd& outOld, double alpha) const;
   // Anderson Mixing with variable history length
   Eigen::MatrixXcd NPAndersonMixing(std::vector<Eigen::MatrixXcd>& Input,
                                     std::vector<Eigen::MatrixXcd>& Output,
@@ -214,9 +198,14 @@ class Sternheimer {
                                           const Eigen::Vector3d& pos) const;
 
   Eigen::MatrixXcd SelfEnergy_at_wp(std::complex<double> omega, std::complex<double> omega_p) const;
-  Eigen::MatrixXcd SelfEnergy_at_wp_regulargrid(std::complex<double> omega, std::complex<double> omega_p) const;
   Eigen::MatrixXcd SelfEnergy_at_w(std::complex<double> omega) const;
-  Eigen::MatrixXcd SelfEnergy_at_w_rect(std::complex<double> omega) const;
+
+  // Return Self-Energy
+  Eigen::VectorXcd SelfEnergy_exchange() const;
+  Eigen::VectorXcd SelfEnergy_diagonal(std::complex<double> omega) const;
+
+  std::complex<double> SelfEnergy_cohsex(std::complex<double> omega,Index n) const;
+  Eigen::VectorXd Intercept() const;
 };
 }  // namespace xtp
 }  // namespace votca
