@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -65,7 +65,7 @@ void GaussianQuadrature::configure(options opt, const RPA& rpa) {
 void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
   _dielinv_matrices_r.resize(_opt.order);
   double halfpi = std::acos(0.0);
-#pragma openmp parallel schedule(guided)
+#pragma omp parallel schedule(guided)
   for (Index j = 0; j < _opt.order; j++) {
     if (_opt.quadrature_scheme == "legendre") {
       double newpoint = std::tan(halfpi * _quadpoints(j));
