@@ -23,7 +23,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <votca/xtp/eigen.h>
+#include "votca/xtp/eigen.h"
 
 namespace votca {
 namespace xtp {
