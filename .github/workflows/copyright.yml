@@ -1,4 +1,4 @@
-name: Format
+name: Copyright
 on:
   issue_comment:
     types: [created]
