@@ -4,10 +4,9 @@ on:
     types: [created]
 jobs:
   edit:
-    name: clang-format
+    name: Copyright
     if: ${{ github.event.comment.body == '@votca-bot copyright' }}
     runs-on: ubuntu-latest
-    container: votca/buildenv:format
     steps:
       - name: Check if message comes from PR
         uses: octokit/request-action@v2.x
