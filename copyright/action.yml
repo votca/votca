@@ -1,5 +1,9 @@
 name: 'Copyright'
 description: 'Update copyright headers'
+inputs:
+  base:
+    description: 'Base sha to compare against'
+    required: true
 runs:
   using: 'docker'
   image: 'Dockerfile'

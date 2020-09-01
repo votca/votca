@@ -7,9 +7,9 @@ die () {
   exit 1
 }
 
-[[ ${GITHUB_BASE_REF} ]] || die "No base branch"
+[[ ${INPUT_BASE} ]] || die "No base sha"
 
-filelist="$(git diff --name-status --diff-filter=AMC "${GITHUB_BASE_REF}" | awk '{print $2}')"
+filelist="$(git diff --name-status --diff-filter=AMC "${INPUT_BASE}" | awk '{print $2}')"
 new_date="$(date +%Y)"
 echo "Updating Copyright date to ${new_date} in ${filelist}"
 sed -i 's/Copyright \(.*\)-.* The VOTCA/Copyright \1-'"$new_date"' The VOTCA/' "${filelist}"
