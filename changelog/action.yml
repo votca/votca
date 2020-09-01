@@ -7,9 +7,6 @@ inputs:
   pr_number:
     description: 'Pull request number'
     required: true
-  token:
-    description: 'GitHub token to use'
-    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
