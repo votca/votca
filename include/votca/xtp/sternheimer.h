@@ -118,6 +118,9 @@ class Sternheimer {
 
   Orbitals& _orbitals;
 
+  AOBasis _dftbasis;
+  AOBasis _auxbasis;
+
   options_sternheimer _opt;
 
   Multishift _multishift;

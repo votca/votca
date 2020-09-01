@@ -120,7 +120,13 @@ bool SternheimerFrame::Evaluate() {
 
   sternheimer.setUpMatrices();
 
+  XTP_LOG(Log::error, _log)
+      << " test " << flush;
+
   std::string outfile = _options.calculation + ".dat";
+
+  XTP_LOG(Log::error, _log)
+      << " Output file: " << outfile << flush;
 
   std::ofstream ofs(outfile, std::ofstream::out);
 
