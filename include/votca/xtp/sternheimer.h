@@ -71,6 +71,12 @@ class Sternheimer {
   // Edit Options
   void configurate(const options_sternheimer& opt);
 
+  // Bulids the frequency grid for the polarizability calculations
+  // Input values in eV
+  std::vector<std::complex<double>> BuildGrid(double omega_start,
+                                              double omega_end, Index steps,
+                                              double imaginary_shift) const;
+
   // Calculates the Polarizability Tensor for given frequency grid according to
   // Paper https://journals.aps.org/prb/pdf/10.1103/PhysRevB.89.085129
   std::vector<Eigen::Matrix3cd> Polarisability() const;
@@ -145,12 +151,7 @@ class Sternheimer {
   // Calculates coulomb matrix
   Eigen::MatrixXcd CoulombMatrix();
   Eigen::MatrixXcd CoulombMatrix(Eigen::Vector3d gridpoint) const;
-  // Bulids the frequency grid for the polarizability calculations
-  // Input values in eV
-  std::vector<std::complex<double>> BuildGrid(double omega_start,
-                                              double omega_end, Index steps,
-                                              double imaginary_shift) const;
-
+  
   // Computes the Dipole Integral
   std::vector<Eigen::MatrixXcd> DipoleIntegral();
   // sets up the left hand side of the sternheimer equation

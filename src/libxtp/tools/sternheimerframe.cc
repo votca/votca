@@ -24,7 +24,6 @@
 #include "votca/xtp/segment.h"
 #include "votca/xtp/staticregion.h"
 
-
 // Local private VOTCA includes
 #include "sternheimerframe.h"
 
@@ -35,76 +34,80 @@ namespace xtp {
 
 void SternheimerFrame::Initialize(const tools::Property &user_options) {
 
-    std::string key = "sternheimer";
+  std::string key = "sternheimer";
 
-    _log.setReportLevel(Log::current_level);
+  _log.setReportLevel(Log::current_level);
 
-    _log.setMultithreading(true);
-    _log.setCommonPreface("\n... ...");
+  _log.setMultithreading(true);
+  _log.setCommonPreface("\n... ...");
 
-    tools::Property options =
+  tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-    _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".orb", _job_name + ".orb");
 
-    XTP_LOG(Log::error, _log) << " Running Sternheimer" << flush;
-    
-    _options.start_frequency_grid=options.get(".omegain").as<double>();
-    _options.end_frequency_grid=options.get(".omegafin").as<double>();
-    _options.number_of_frequency_grid_points = options.get(".step").as<Index>();
-    _options.imaginary_shift_pade_approx = options.get(".imshift").as<double>();
-    _options.number_output_grid_points = options.get(".resolution").as<Index>();
-    _options.do_precalc_fxc = options.get(".do_precalc_fxc").as<bool>();
-    _options.calculation = options.get(".calculation").as<std::string>();
-    _options.numerical_Integration_grid_type = options.get(".spatialgridtype").as<std::string>();
-    _options.quadrature_scheme = options.get(".quadrature_scheme").as<std::string>();
-    _options.quadrature_order = options.get(".quadrature_order").as<Index>();
-    _options.level = options.get(".level").as<Index>();
+  XTP_LOG(Log::error, _log) << " Running Sternheimer" << flush;
 
-    XTP_LOG(Log::error, _log) << " Task: " <<  _options.calculation << flush;
+  _options.start_frequency_grid = options.get(".omegain").as<double>();
+  _options.end_frequency_grid = options.get(".omegafin").as<double>();
+  _options.number_of_frequency_grid_points = options.get(".step").as<Index>();
+  _options.imaginary_shift_pade_approx = options.get(".imshift").as<double>();
+  _options.number_output_grid_points = options.get(".resolution").as<Index>();
+  _options.do_precalc_fxc = options.get(".do_precalc_fxc").as<bool>();
+  _options.calculation = options.get(".calculation").as<std::string>();
+  _options.numerical_Integration_grid_type =
+      options.get(".spatialgridtype").as<std::string>();
+  _options.quadrature_scheme =
+      options.get(".quadrature_scheme").as<std::string>();
+  _options.quadrature_order = options.get(".quadrature_order").as<Index>();
+  _options.level = options.get(".level").as<Index>();
 
-    XTP_LOG(Log::error, _log)
-        << " Omega initial: " << _options.start_frequency_grid << flush;
-    XTP_LOG(Log::error, _log) << " Omega final: " << _options.end_frequency_grid << flush;
-    XTP_LOG(Log::error, _log) << " Step: " << _options.number_of_frequency_grid_points << flush;
-    XTP_LOG(Log::error, _log)
-        << " Imaginary shift: " << _options.imaginary_shift_pade_approx << flush;
-    XTP_LOG(Log::error, _log)
-        << " Resolution: " << _options.number_output_grid_points << flush;
-    XTP_LOG(Log::error, _log)
-        << " GW-Sternheimer level: " << _options.level << flush;
-    XTP_LOG(Log::error, _log)
-        << " Calculation: " << _options.calculation << flush;
-    XTP_LOG(Log::error, _log)
-        << " Quadrature: " << _options.quadrature_scheme << flush
-        << " Order: " << _options.quadrature_order << flush << flush;
+  XTP_LOG(Log::error, _log) << " Task: " << _options.calculation << flush;
 
+  XTP_LOG(Log::error, _log)
+      << " Omega initial: " << _options.start_frequency_grid << flush;
+  XTP_LOG(Log::error, _log)
+      << " Omega final: " << _options.end_frequency_grid << flush;
+  XTP_LOG(Log::error, _log)
+      << " Step: " << _options.number_of_frequency_grid_points << flush;
+  XTP_LOG(Log::error, _log)
+      << " Imaginary shift: " << _options.imaginary_shift_pade_approx << flush;
+  XTP_LOG(Log::error, _log)
+      << " Resolution: " << _options.number_output_grid_points << flush;
+  XTP_LOG(Log::error, _log)
+      << " GW-Sternheimer level: " << _options.level << flush;
+  XTP_LOG(Log::error, _log)
+      << " Calculation: " << _options.calculation << flush;
+  XTP_LOG(Log::error, _log)
+      << " Quadrature: " << _options.quadrature_scheme << flush
+      << " Order: " << _options.quadrature_order << flush << flush;
 };
 bool SternheimerFrame::Evaluate() {
 
-   OPENMP::setMaxThreads(_nThreads);
+  OPENMP::setMaxThreads(_nThreads);
 
   _log.setReportLevel(Log::error);
   _log.setMultithreading(true);
   _log.setCommonPreface("\n... ...");
 
   XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Reading from orbitals from file: " << _orbfile << flush;
+      << TimeStamp() << " Reading from orbitals from file: " << _orbfile
+      << flush;
 
   // Get orbitals object
   Orbitals orbitals;
 
   orbitals.ReadFromCpt(_orbfile);
 
+  XTP_LOG(Log::error, _log) << " Orbital data: " << flush;
   XTP_LOG(Log::error, _log)
-       << " Orbital data: " << flush;
+      << " Basis size: " << orbitals.getBasisSetSize() << flush;
   XTP_LOG(Log::error, _log)
-       << " Basis size: " << orbitals.getBasisSetSize() << flush;
+      << " XC Functional: " << orbitals.getXCFunctionalName() << flush;
+  XTP_LOG(Log::error, _log) << " Has MOs: " << orbitals.hasMOs() << flush;
   XTP_LOG(Log::error, _log)
-       << " XC Functional: " << orbitals.getXCFunctionalName() << flush;
-  XTP_LOG(Log::error, _log)
-       << " Homo level: " << orbitals.getHomo() << flush;
+      << " Basis name: " << orbitals.getDFTbasisName() << flush;
 
   Sternheimer sternheimer(orbitals, &_log);
 
@@ -112,13 +115,30 @@ bool SternheimerFrame::Evaluate() {
 
   sternheimer.setUpMatrices();
 
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Started Sternheimer " << flush;
+  std::string outfile=_options.calculation + ".dat";
+
+  std::ofstream ofs(outfile, std::ofstream::out);
+
+  XTP_LOG(Log::error, _log) << TimeStamp() << " Started Sternheimer " << flush;
   if (_options.calculation == "polarizability") {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer Polarizability" << flush;
     std::vector<Eigen::Matrix3cd> polar = sternheimer.Polarisability();
-    sternheimer.printIsotropicAverage(polar);
+
+    std::vector<std::complex<double>> grid = sternheimer.BuildGrid(
+        _options.start_frequency_grid, _options.end_frequency_grid,
+        _options.number_output_grid_points, 0);
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Calculation complete" << flush;
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Writing output to" << outfile << flush;
+    for (Index i = 0; i < polar.size(); i++) {
+      ofs << real(grid.at(i)) * votca::tools::conv::hrt2ev << "\t"
+          << real((polar.at(i)(2, 2))) + real(polar.at(i)(1, 1)) +
+                 real(polar.at(i)(0, 0)) / 3
+          << std::endl;
+    }
+
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Finished Sternheimer Polarizability" << flush;
   }
@@ -181,8 +201,9 @@ bool SternheimerFrame::Evaluate() {
         << TimeStamp() << " Finished Sternheimer GW" << flush;
   }
 
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Finished Sternheimer" << flush;
+  ofs.close();
+
+  XTP_LOG(Log::error, _log) << TimeStamp() << " Finished Sternheimer" << flush;
 
   return true;
 }

@@ -65,7 +65,7 @@ void Sternheimer::setUpMatrices() {
     Vxc_Potential<Vxc_Grid> Vxcpot(_grid);
     Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
     this->_Fxc_presaved = Vxcpot.precalcFXC(_density_Matrix);
-    XTP_LOG(Log::error, *_pLog) << "Precalculation of Fxc integral complete" << flush;
+    XTP_LOG(Log::error, *_pLog) << "Precalculation of Fxc" << flush;
   }
 }
 
