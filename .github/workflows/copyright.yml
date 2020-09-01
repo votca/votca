@@ -33,9 +33,8 @@ jobs:
           repository: ${{ fromJSON(steps.pr_info.outputs.data).head.repo.full_name }}
           ref: ${{ fromJSON(steps.pr_info.outputs.data).head.ref }}
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
-      - name: Create and commit changelog entry
+      - name: Create and commit copyright updates
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
         uses: votca/actions/copyright@master
         with:
-          message: ${{ github.event.comment.body }}
-          pr_number: ${{ github.event.issue.number }}
+          base: ${{ fromJSON(steps.pr_info.outputs.data).base.sha }}
