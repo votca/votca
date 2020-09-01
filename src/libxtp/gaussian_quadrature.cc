@@ -65,7 +65,7 @@ void GaussianQuadrature::configure(options opt, const RPA& rpa) {
 void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
   _dielinv_matrices_r.resize(_opt.order);
   double halfpi = std::acos(0.0);
-#pragma omp parallel schedule(guided)
+#pragma omp parallel for schedule(guided)
   for (Index j = 0; j < _opt.order; j++) {
     if (_opt.quadrature_scheme == "legendre") {
       double newpoint = std::tan(halfpi * _quadpoints(j));
