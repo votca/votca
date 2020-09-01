@@ -62,7 +62,7 @@ grompp=( $(csg_get_property cg.inverse.gromacs.grompp.bin) )
 [[ -n "$(type -p ${grompp[0]})" ]] || die "${0##*/}: grompp binary '${grompp[0]}' not found"
 
 gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
-[[ ${gmx_ver} = *"VERSION 2020"* ]] && die "GROMACS 2020 doesn't support tabulated interactions, that are needed for coarse-graining (see and comment on https://redmine.gromacs.org/issues/1347). Please use GROMACS 2019 for now."
+[[ ${gmx_ver} = *"version 2020"* ]] && die "GROMACS 2020 doesn't support tabulated interactions, that are needed for coarse-graining (see and comment on https://redmine.gromacs.org/issues/1347). Please use GROMACS 2019 for now."
 
 traj=$(csg_get_property cg.inverse.gromacs.traj)
 # in main simulation we usually do care about traj and temperature
