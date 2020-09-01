@@ -1,0 +1,5 @@
+name: 'Copyright'
+description: 'Update copyright headers'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
