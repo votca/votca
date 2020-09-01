@@ -31,7 +31,7 @@ Version 2021-dev
 -  changed to OpenMP reductions instead of hand crafted solutions (#466,
    #471, #493)
 -  switch to GitHub Actions as CI (#467, #474, #477, #482, #500, #502,
-   #518)
+   #518, #549)
 -  move tutorial to its own repo (#450)
 -  removed share/packages folder (#475)
 -  copy orca \*.gbw files in eqm (#472)
