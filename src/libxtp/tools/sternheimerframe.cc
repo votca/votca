@@ -48,35 +48,21 @@ void SternheimerFrame::Initialize(const tools::Property &user_options) {
     _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".orb", _job_name + ".orb");
 
-    //XTP_LOG(Log::error, *_log) << " Running Sternheimer" << flush;
+    XTP_LOG(Log::error, _log) << " Running Sternheimer" << flush;
     
+    _options.start_frequency_grid=options.get(".omegain").as<double>();
+    _options.end_frequency_grid=options.get(".omegafin").as<double>();
+    _options.number_of_frequency_grid_points = options.get(".step").as<Index>();
+    _options.imaginary_shift_pade_approx = options.get(".imshift").as<double>();
+    _options.number_output_grid_points = options.get(".resolution").as<Index>();
+    _options.do_precalc_fxc = options.get(".do_precalc_fxc").as<bool>();
+    _options.calculation = options.get(".calculation").as<std::string>();
+    _options.numerical_Integration_grid_type = options.get(".spatialgridtype").as<std::string>();
+    _options.quadrature_scheme = options.get(".quadrature_scheme").as<std::string>();
+    _options.quadrature_order = options.get(".quadrature_order").as<Index>();
+    _options.level = options.get(".level").as<Index>();
 
-    _options.start_frequency_grid = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".omegain",_options.start_frequency_grid);
-    _options.end_frequency_grid = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".omegafin",_options.end_frequency_grid);
-    _options.number_of_frequency_grid_points = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".step",_options.number_of_frequency_grid_points);
-    _options.imaginary_shift_pade_approx = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".imshift",_options.imaginary_shift_pade_approx);
-    _options.number_output_grid_points = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".resolution",_options.number_output_grid_points);
-    _options.do_precalc_fxc = options.ifExistsReturnElseReturnDefault<double>(
-        key + ".do_precalc_fxc",_options.do_precalc_fxc);
-    _options.calculation = options.ifExistsReturnElseReturnDefault<std::string>(
-        key + ".calculation",_options.calculation);
-    _options.numerical_Integration_grid_type =
-        options.ifExistsReturnElseReturnDefault<std::string>(
-            key + ".spatialgridtype",_options.numerical_Integration_grid_type);
-    _options.quadrature_scheme =
-        options.ifExistsReturnElseReturnDefault<std::string>(
-            key + ".quadrature_scheme",_options.quadrature_scheme);
-    _options.quadrature_order = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".quadrature_order",_options.quadrature_order);
-    _options.level = options.ifExistsReturnElseReturnDefault<Index>(
-        key + ".level",_options.level);
-
-    XTP_LOG(Log::error, _log) << " Task:" <<  _options.calculation << flush;
+    XTP_LOG(Log::error, _log) << " Task: " <<  _options.calculation << flush;
 
     XTP_LOG(Log::error, _log)
         << " Omega initial: " << _options.start_frequency_grid << flush;
