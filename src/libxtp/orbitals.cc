@@ -590,7 +590,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_useTDA, "useTDA");
   r(_ECP, "ECP");
 
-  r(_rpa_inputenergies, "RPA_inputenergies");
+  //r(_rpa_inputenergies, "RPA_inputenergies");
   r(_QPpert_energies, "QPpert_energies");
   r(_QPdiag, "QPdiag");
 
@@ -600,7 +600,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(_BSE_triplet, "BSE_triplet");
 
-  r(_use_Hqp_offdiag, "use_Hqp_offdiag");
+  //r(_use_Hqp_offdiag, "use_Hqp_offdiag");
 }
 }  // namespace xtp
 }  // namespace votca

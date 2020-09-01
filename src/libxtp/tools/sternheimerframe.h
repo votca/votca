@@ -55,7 +55,7 @@ class SternheimerFrame : public QMTool {
   std::string _guess_orbA;
   std::string _guess_orbB;
 
-  Logger* _log;
+  Logger _log;
 
   Sternheimer::options_sternheimer _options;
 

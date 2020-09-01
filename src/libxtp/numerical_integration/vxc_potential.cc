@@ -193,17 +193,6 @@ Eigen::VectorXd Vxc_Potential<Grid>::precalcFXC(
     const Eigen::MatrixXd density_matrix) const {
   Index nthreads = OPENMP::getMaxThreads();
 
-  std::cout << "started precalc of Fxc" << std::endl;
-
-  // std::vector<Eigen::MatrixXcd> fxc_thread = std::vector<Eigen::MatrixXcd>(
-  //     nthreads,
-  //     Eigen::MatrixXcd::Zero(density_matrix.rows(), density_matrix.cols()));
-
-  // Initialize tensor to save (ijkl)
-  // Eigen::Tensor<double, 4> result(density_matrix.cols(), density_matrix.cols(),
-  //                                 density_matrix.cols(), density_matrix.cols());
-  // result.setZero();
-
   Index vectorSize = (density_matrix.cols() * (density_matrix.cols() + 1)) / 2;
   
   Eigen::VectorXd result;
@@ -220,7 +209,6 @@ Eigen::VectorXd Vxc_Potential<Grid>::precalcFXC(
   // std::cout<<"number of boxes"<<_grid.getBoxesSize()<<std::endl;
   // std::cout<<"test "<<result(1,2,3,4)<<std::endl;
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
-    std::cout << "started loop i = " << i << std::endl;
     const GridBox& box = _grid[i];
     if (!box.Matrixsize()) {
       continue;
@@ -297,7 +285,6 @@ Eigen::VectorXd Vxc_Potential<Grid>::precalcFXC(
       }        // i_3
     }
   }
-  std::cout << "Finished precalc" << std::endl;
   return result;
 }
 

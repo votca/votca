@@ -52,8 +52,8 @@ class Sternheimer {
     double end_frequency_grid = 20;     // in eV
     Index number_of_frequency_grid_points = 30;
     double imaginary_shift_pade_approx = 3;  // in eV
-    bool do_precalc_fxc = false;        // not recommended for large molecules
-    Index number_output_grid_points = 1000;
+    bool do_precalc_fxc = true;        // not recommended for large molecules
+    Index number_output_grid_points = 100;
     std::string numerical_Integration_grid_type =
         "coarse";  // xfine fine medium coarse xcoarse
     double perturbation_strength =
@@ -65,7 +65,7 @@ class Sternheimer {
     Index level = 0; //energy level for GW
     std::string quadrature_scheme = "hermite";
     Index quadrature_order = 12; 
-    std::string calculation;
+    std::string calculation="gwsternheimer";
   };
 
   // Edit Options
@@ -169,6 +169,9 @@ class Sternheimer {
   // sternheimer method
   Eigen::MatrixXcd DeltaNSCSternheimer(std::complex<double> w,
                             const Eigen::MatrixXcd& pertubation) const;
+
+  //Calculates the Delta V output from SC sternheimer from the Delta N output
+  Eigen::MatrixXcd DeltaVfromDeltaN(Eigen::MatrixXcd& deltaN) const;
 
   // Basic Anderson Mixing using only the last step
   Eigen::MatrixXcd AndersonMixing(Eigen::MatrixXcd& inNew,

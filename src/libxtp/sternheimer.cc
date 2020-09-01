@@ -65,6 +65,7 @@ void Sternheimer::setUpMatrices() {
     Vxc_Potential<Vxc_Grid> Vxcpot(_grid);
     Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
     this->_Fxc_presaved = Vxcpot.precalcFXC(_density_Matrix);
+    XTP_LOG(Log::error, *_pLog) << "Precalculation of Fxc integral complete" << flush;
   }
 }
 
@@ -144,6 +145,8 @@ Eigen::VectorXcd Sternheimer::SternheimerRHS(
 Eigen::MatrixXcd Sternheimer::DeltaNSCSternheimer(
     std::complex<double> w, const Eigen::MatrixXcd& perturbation) const {
 
+  XTP_LOG(Log::debug, *_pLog) << "Called delta N SC Sternheimer" << flush;
+
   // Setting up vectors to store old results for Anderson mixing and initial
   // perturbation
   std::vector<Eigen::MatrixXcd> perturbationVectorInput;
@@ -163,13 +166,11 @@ Eigen::MatrixXcd Sternheimer::DeltaNSCSternheimer(
 
   double alpha = 1000;
 
-  
-    Vxc_Grid _grid;
-    _grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                    dftbasis);
-    Vxc_Potential<Vxc_Grid> Vxcpot(_grid);
-    Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
-
+  Vxc_Grid _grid;
+  _grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                  dftbasis);
+  Vxc_Potential<Vxc_Grid> Vxcpot(_grid);
+  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
 
   for (Index n = 0; n < _opt.max_iterations_sc_sternheimer; n++) {
     Eigen::MatrixXcd FxcInt;
@@ -228,6 +229,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSCSternheimer(
         (perturbationVectorInput.back() - perturbationVectoroutput.back())
             .squaredNorm();
     if (diff < _opt.tolerance_sc_sternheimer) {
+      XTP_LOG(Log::debug, *_pLog) << "SC Sternheimer converged" << flush;
       return delta_n_out_new;
     }
     // Mixing if at least in iteration 2
@@ -250,6 +252,23 @@ Eigen::MatrixXcd Sternheimer::DeltaNSCSternheimer(
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << "Warning: Sternheimer cycle not converged" << flush;
   return delta_n_step_one;
+}
+
+Eigen::MatrixXcd Sternheimer::DeltaVfromDeltaN(Eigen::MatrixXcd& deltaN) const{
+
+  AOBasis dftbasis = _orbitals.SetupDftBasis();
+
+ if (_opt.do_precalc_fxc == true) {
+    return Fxc(deltaN);
+  } else {
+    Vxc_Grid _grid;
+    _grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
+                    dftbasis);
+    Vxc_Potential<Vxc_Grid> Vxcpot(_grid);
+    Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
+    return Vxcpot.IntegrateFXC(_density_Matrix, deltaN);
+  }
+
 }
 
 Eigen::MatrixXcd Sternheimer::AndersonMixing(Eigen::MatrixXcd& inNew,
@@ -483,7 +502,7 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
 
       Vxc_Grid _grid;
       _grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                    dftbasis);
+                      dftbasis);
       Vxc_Potential<Vxc_Grid> Vxcpot(_grid);
       Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
       Eigen::MatrixXcd DeltaN =
@@ -746,19 +765,21 @@ Eigen::MatrixXcd Sternheimer::CoulombMatrix(Eigen::Vector3d gridpoint) const {
 Eigen::MatrixXcd Sternheimer::ScreenedCoulomb(
     Eigen::Vector3d gridpoint1, std::complex<double> frequency) const {
 
+  XTP_LOG(Log::debug, *_pLog) << "Called screened Coulomb" << flush;
+
   AOBasis dftbasis = _orbitals.SetupDftBasis();
   AOBasis auxbasis = _orbitals.SetupAuxBasis();
 
   Eigen::MatrixXcd coulombmatrix = CoulombMatrix(gridpoint1);
   Eigen::MatrixXcd DeltaN = DeltaNSCSternheimer(frequency, coulombmatrix);
   Eigen::MatrixXcd HartreeInt = _eris.ContractRightIndecesWithMatrix(DeltaN);
-  Eigen::MatrixXcd FxcInt =
-      Fxc(DeltaN);  // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
-  // Eigen::MatrixXcd DeltaV = coulombmatrix + HartreeInt + FxcInt;
+  Eigen::MatrixXcd FxcInt = DeltaVfromDeltaN(DeltaN);
   Eigen::MatrixXcd DeltaV;
 
   DeltaV = HartreeInt + FxcInt;  // Watchout! Here we have subtracted
                                  // the bare coulomb potential
+
+  XTP_LOG(Log::debug, *_pLog) << "Screened Coulomb complete" << flush;
 
   return DeltaV;
 }
@@ -789,17 +810,20 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(
   // frequencies)
   // It perform the spatial grid integration. The final object is a matrix
 
+  XTP_LOG(Log::debug, *_pLog) << "Called print Self-energy at wp" << flush;
+
   AOBasis basis = _orbitals.SetupDftBasis();
   Vxc_Grid _grid;
   _grid.GridSetup("xxcoarse", _orbitals.QMAtoms(), basis);
+
   XTP_LOG(Log::debug, *_pLog) << _grid.getGridSize() << flush;
 
   Eigen::MatrixXcd GF = AnalyticGreensfunction(omega + omega_p);
   Index nthreads = OPENMP::getMaxThreads();
-
+  XTP_LOG(Log::debug, *_pLog) << "Analytic Green's function complete" << flush;
   Eigen::MatrixXcd sigma =
       Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols());
-
+  XTP_LOG(Log::debug, *_pLog) << "Starting spacial integration" << flush;
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
     if (!box.Matrixsize()) {
@@ -834,95 +858,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp(
         Eigen::MatrixXcd::Zero(box.Matrixsize(), box.Matrixsize()).eval());
     box.AddtoBigMatrix(sigma, sigma_box);
   }
-  return sigma;
-}
-
-Eigen::MatrixXcd Sternheimer::SelfEnergy_at_wp_regulargrid(
-    std::complex<double> omega, std::complex<double> omega_p) const {
-
-  // This function calculates GW at w and w_p (i.e before integral over
-  // frequencies)
-  // It perform the spatial uniform grid integration. The final object is a
-  // matrix
-  AOBasis basis = _orbitals.SetupDftBasis();
-  Eigen::MatrixXcd GF = AnalyticGreensfunction(omega + omega_p);
-  Index nthreads = OPENMP::getMaxThreads();
-
-  // double _padding = 6.512752;
-  double _padding = 1;
-  Index _xsteps = 5;
-  Index _ysteps = 5;
-  Index _zsteps = 5;
-
-  const QMMolecule& atoms = _orbitals.QMAtoms();
-  std::pair<Eigen::Vector3d, Eigen::Vector3d> minmax =
-      atoms.CalcSpatialMinMax();
-  double xstart = minmax.first.x() - _padding;
-  double xstop = minmax.second.x() + _padding;
-  double ystart = minmax.first.y() - _padding;
-  double ystop = minmax.second.y() + _padding;
-  double zstart = minmax.first.z() - _padding;
-  double zstop = minmax.second.z() + _padding;
-
-  double xincr = (xstop - xstart) / double(_xsteps);
-  double yincr = (ystop - ystart) / double(_ysteps);
-  double zincr = (zstop - zstart) / double(_zsteps);
-
-  double weight = xincr * yincr * zincr;
-  double cx = 1;
-  double cy = 1;
-  double cz = 1;
-  std::vector<Eigen::MatrixXcd> sigma_thread = std::vector<Eigen::MatrixXcd>(
-      nthreads,
-      Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols()));
-// eval density at cube grid points
-#pragma omp parallel for schedule(guided)
-  for (int ix = 0; ix <= _xsteps; ix++) {
-    double x = xstart + double(ix) * xincr;
-    if (ix == 0) {
-      cx = 0.5;
-    } else if (ix == _xsteps) {
-      cx = 0.5;
-    } else {
-      cx = 1;
-    }
-    for (int iy = 0; iy <= _ysteps; iy++) {
-      double y = ystart + double(iy) * yincr;
-      if (iy == 0) {
-        cy = 0.5;
-      } else if (iy == _ysteps) {
-        cy = 0.5;
-      } else {
-        cy = 1;
-      }
-
-      for (int iz = 0; iz <= _zsteps; iz++) {
-        double z = zstart + double(iz) * zincr;
-        if (iz == 0) {
-          cz = 0.5;
-        } else if (iz == _zsteps) {
-          cz = 0.5;
-        } else {
-          cz = 1;
-        }
-        Eigen::Vector3d pos(x, y, z);
-        Eigen::VectorXd tmat = EvaluateBasisAtPosition(basis, pos);
-        // Evaluate bare and screend coulomb potential at point to evaluate the
-        // correlation screened Coulomb potential (W_c = W-v). This is evaluated
-        // in DeltaNsc
-        Eigen::MatrixXcd GW_c = GF * ScreenedCoulomb(pos, omega_p);
-        // sigma_thread[OPENMP::getThreadId()] +=
-        //     weight * tmat * tmat.transpose() * GW_c;
-        sigma_thread[OPENMP::getThreadId()] +=
-            cx * cy * cz * weight * tmat * tmat.transpose() * GW_c;
-      }  // z-component
-    }    // y-component
-  }      // x-component
-
-  Eigen::MatrixXcd sigma = std::accumulate(
-      sigma_thread.begin(), sigma_thread.end(),
-      Eigen::MatrixXcd::Zero(_density_Matrix.rows(), _density_Matrix.cols())
-          .eval());
+  XTP_LOG(Log::debug, *_pLog) << "Self energy at wp complete" << flush;
   return sigma;
 }
 
@@ -932,6 +868,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(
   // function of omega Hermite quadrature of order 12: If you want to use
   // different orders for now you have to change the 12 number in getPoints and
   // getAdaptedWeights (now avail. 8,10,12,14,16,18,20,100)
+  XTP_LOG(Log::debug, *_pLog) << "Called Self-energy at w" << flush;
   Index order = 8;
 
   std::complex<double> delta(0., -1e-3);
@@ -980,34 +917,7 @@ Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w(
     XTP_LOG(Log::error, *_pLog)
         << "There no such a thing as the integration scheme you asked" << flush;
   }
-
-  return sigma;
-}
-
-Eigen::MatrixXcd Sternheimer::SelfEnergy_at_w_rect(
-    std::complex<double> omega) const {
-  // This function evaluates the frequency integration over w_p, using the
-  // rectangle rule
-
-  std::vector<double> _quadpoints;
-  std::vector<double> _quadadaptedweights;
-
-  for (Index j = 0; j < 25; ++j) {
-
-    _quadpoints.push_back(-6.0 + j * 0.5);
-    _quadadaptedweights.push_back(0.5);
-  }
-
-  std::complex<double> delta(0., -1e-3);
-  Eigen::MatrixXcd sigma =
-      Eigen::MatrixXcd::Zero(_density_Matrix.cols(), _density_Matrix.cols());
-  for (Index j = 0; j < 25; ++j) {
-
-    Eigen::MatrixXcd SE = SelfEnergy_at_wp(omega, _quadpoints.at(j));
-
-    sigma += _quadadaptedweights.at(j) * SE;
-  }
-
+  XTP_LOG(Log::debug, *_pLog) << "Self-energy at w complete" << flush;
   return sigma;
 }
 
@@ -1028,6 +938,7 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_exchange() const {
 
 Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(
     std::complex<double> omega) const {
+  XTP_LOG(Log::debug, *_pLog) << "Called SelfEnergy diagonal" << flush;
   Index n_states = _mo_coefficients.cols();
   Eigen::MatrixXcd selfenergy = SelfEnergy_at_w(omega);
   Eigen::VectorXcd results = Eigen::VectorXcd::Zero(n_states);
@@ -1037,10 +948,12 @@ Eigen::VectorXcd Sternheimer::SelfEnergy_diagonal(
                      .sum();
   }
   std::complex<double> prefactor(-1. / (2 * tools::conv::Pi), 0);  // i/(2 eta)
+  XTP_LOG(Log::debug, *_pLog) << "Self Energy diagonal complete" << flush;
   return prefactor * results;
 }
 
 Eigen::VectorXd Sternheimer::Intercept() const {
+  XTP_LOG(Log::debug, *_pLog) << "Called intercept" << flush;
   Index moEs = _mo_energies.size();
   Eigen::VectorXcd Sigma_x = SelfEnergy_exchange();
   AOBasis dftbasis = _orbitals.SetupDftBasis();
@@ -1056,10 +969,13 @@ Eigen::VectorXd Sternheimer::Intercept() const {
         (_mo_coefficients.col(n).cwiseProduct(V_xc * _mo_coefficients.col(n)))
             .sum();
   }
+  XTP_LOG(Log::debug, *_pLog) << "Intercept complete" << flush;
   return (_orbitals.MOs().eigenvalues() + Sigma_x - V_xc_vec).real();
 }
+
 std::complex<double> Sternheimer::SelfEnergy_cohsex(std::complex<double> omega,
                                                     Index n) const {
+  XTP_LOG(Log::debug, *_pLog) << "Called SelfEnergy_cohsex" << flush;
   AOBasis basis = _orbitals.SetupDftBasis();
   Vxc_Grid _grid;
   _grid.GridSetup("xxcoarse", _orbitals.QMAtoms(), basis);
@@ -1097,10 +1013,13 @@ std::complex<double> Sternheimer::SelfEnergy_cohsex(std::complex<double> omega,
       sigma -= sigma_box;
     }
   }
+  XTP_LOG(Log::debug, *_pLog) << "SelfEnergy cohsex complete" << flush;
   return sigma;
 }
 
 void Sternheimer::printGW(Index level) const {
+
+  XTP_LOG(Log::debug, *_pLog) << "Called print GW" << flush;
 
   Index out_points = _opt.number_output_grid_points;
   Index eval_points = _opt.number_of_frequency_grid_points;
@@ -1123,7 +1042,9 @@ void Sternheimer::printGW(Index level) const {
     std::complex<double> sigma_c_sex = SelfEnergy_cohsex(w, level);
     pade1.addPoint(w, sigma_c(level) + sigma_c_sex + intercept(level));
   }
-
+  XTP_LOG(Log::debug, *_pLog) << "Self Energy evaluation succesfull. Writing "
+                                 "output using Padé-Approximation."
+                              << flush;
   if (out_points > 1) {
     steps = (omega_end - omega_start) / out_points;
   }
@@ -1140,6 +1061,7 @@ void Sternheimer::printGW(Index level) const {
         << w << "\t" << pade1.evaluatePoint(w).real() << "\t"
         << pade1.evaluatePoint(w).imag() << flush;
   }
+  XTP_LOG(Log::debug, *_pLog) << "Print GW complete" << flush;
 }
 
 }  // namespace xtp

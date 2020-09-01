@@ -704,7 +704,7 @@ bool GWBSE::Evaluate() {
       }
     }
   XTP_LOG(Log::error, *_pLog)
-      << TimeStamp() << " GWBSE calculation finished Hey Ho" << flush;
+      << TimeStamp() << " GWBSE calculation finished" << flush;
   return true;
 }
 

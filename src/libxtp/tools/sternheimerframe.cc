@@ -37,17 +37,18 @@ void SternheimerFrame::Initialize(const tools::Property &user_options) {
 
     std::string key = "sternheimer";
 
-    std::cout<<"test"<<std::endl;
+    _log.setReportLevel(Log::current_level);
+
+    _log.setMultithreading(true);
+    _log.setCommonPreface("\n... ...");
 
     tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-    std::cout<<"test2"<<std::endl;
-
     _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".orb", _job_name + ".orb");
 
-    XTP_LOG(Log::error, *_log) << " Running Sternheimer" << flush;
+    //XTP_LOG(Log::error, *_log) << " Running Sternheimer" << flush;
     
 
     _options.start_frequency_grid = options.ifExistsReturnElseReturnDefault<double>(
@@ -75,76 +76,87 @@ void SternheimerFrame::Initialize(const tools::Property &user_options) {
     _options.level = options.ifExistsReturnElseReturnDefault<Index>(
         key + ".level",_options.level);
 
-    XTP_LOG(Log::error, *_log) << " Task:" <<  _options.calculation << flush;
+    XTP_LOG(Log::error, _log) << " Task:" <<  _options.calculation << flush;
 
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << " Omega initial: " << _options.start_frequency_grid << flush;
-    XTP_LOG(Log::error, *_log) << " Omega final: " << _options.end_frequency_grid << flush;
-    XTP_LOG(Log::error, *_log) << " Step: " << _options.number_of_frequency_grid_points << flush;
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log) << " Omega final: " << _options.end_frequency_grid << flush;
+    XTP_LOG(Log::error, _log) << " Step: " << _options.number_of_frequency_grid_points << flush;
+    XTP_LOG(Log::error, _log)
         << " Imaginary shift: " << _options.imaginary_shift_pade_approx << flush;
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << " Resolution: " << _options.number_output_grid_points << flush;
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << " GW-Sternheimer level: " << _options.level << flush;
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << " Calculation: " << _options.calculation << flush;
-    XTP_LOG(Log::error, *_log)
-        << " Quadrature: " << _options.quadrature_scheme
-        << " Order: " << _options.quadrature_order << flush;
+    XTP_LOG(Log::error, _log)
+        << " Quadrature: " << _options.quadrature_scheme << flush
+        << " Order: " << _options.quadrature_order << flush << flush;
+
 };
 bool SternheimerFrame::Evaluate() {
 
    OPENMP::setMaxThreads(_nThreads);
 
-  _log->setReportLevel(Log::current_level);
+  _log.setReportLevel(Log::error);
+  _log.setMultithreading(true);
+  _log.setCommonPreface("\n... ...");
 
-  _log->setMultithreading(true);
-  _log->setCommonPreface("\n... ...");
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Reading from orbitals from file: " << _orbfile << flush;
 
   // Get orbitals object
   Orbitals orbitals;
 
   orbitals.ReadFromCpt(_orbfile);
 
+  XTP_LOG(Log::error, _log)
+       << " Orbital data: " << flush;
+  XTP_LOG(Log::error, _log)
+       << " Basis size: " << orbitals.getBasisSetSize() << flush;
+  XTP_LOG(Log::error, _log)
+       << " XC Functional: " << orbitals.getXCFunctionalName() << flush;
+  XTP_LOG(Log::error, _log)
+       << " Homo level: " << orbitals.getHomo() << flush;
 
-  Sternheimer sternheimer(orbitals, _log);
+  Sternheimer sternheimer(orbitals, &_log);
 
   sternheimer.configurate(_options);
 
   sternheimer.setUpMatrices();
 
-  XTP_LOG(Log::error, *_log)
+  XTP_LOG(Log::error, _log)
       << TimeStamp() << " Started Sternheimer " << flush;
   if (_options.calculation == "polarizability") {
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer Polarizability" << flush;
     std::vector<Eigen::Matrix3cd> polar = sternheimer.Polarisability();
     sternheimer.printIsotropicAverage(polar);
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Finished Sternheimer Polarizability" << flush;
   }
   if (_options.calculation == "gradient") {
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer Energy Gradient" << flush;
     std::vector<Eigen::Vector3cd> EPC = sternheimer.EnergyGradient();
     sternheimer.printHellmannFeynmanForces(EPC);
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Finished Sternheimer Energy Gradient" << flush;
   }
   if (_options.calculation == "mogradient") {
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer MO Energy Gradient" << flush;
     for (Index n = 0; n < orbitals.MOs().eigenvalues().size(); ++n) {
 
       std::vector<Eigen::Vector3cd> EPC = sternheimer.MOEnergyGradient(n, n);
       sternheimer.printMOEnergyGradient(EPC, n, n);
     }
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Finished Sternheimer MO Energy Gradient" << flush;
   }
   if (_options.calculation == "koopmanalpha") {
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp()
         << " Started Sternheimer Koopman's relaxation coefficients" << flush;
     for (Index n = 0; n < orbitals.MOs().eigenvalues().size(); ++n) {
@@ -152,13 +164,13 @@ bool SternheimerFrame::Evaluate() {
       std::complex<double> alpha = sternheimer.KoopmanRelaxationCoeff(n, 2.0);
       sternheimer.printKoopmanRelaxationCoeff(alpha, n);
     }
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp()
         << " Finished Sternheimer Koopman's relaxation coefficients" << flush;
   }
 
   if (_options.calculation == "koopman") {
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer Koopman's compliant" << flush;
     for (Index n = 0; n < orbitals.MOs().eigenvalues().size(); ++n) {
 
@@ -171,19 +183,19 @@ bool SternheimerFrame::Evaluate() {
       std::cout << correction + orbitals.MOs().eigenvalues()(n) << std::endl;
       sternheimer.printKoopman(alpha, correction, n);
     }
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Finished Sternheimer Koopman's compliant" << flush;
   }
 
   if (_options.calculation == "gwsternheimer") {
-    XTP_LOG(Log::error, *_log)
-        << TimeStamp() << " Started Sternheimer GW Hey Ho" << flush;
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Started Sternheimer GW" << flush;
     sternheimer.printGW(_options.level);
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, _log)
         << TimeStamp() << " Finished Sternheimer GW" << flush;
   }
 
-  XTP_LOG(Log::error, *_log)
+  XTP_LOG(Log::error, _log)
       << TimeStamp() << " Finished Sternheimer" << flush;
 
   return true;
