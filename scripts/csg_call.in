@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ show_help () {
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
 
-please submit bugs to bugs@votca.org
+please submit bugs to @PROJECT_CONTACT@
 
 ${0##*/}, version ${version}
 
@@ -186,7 +186,7 @@ cat <<EOF
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
 
-please submit bugs to bugs@votca.org
+please submit bugs to @PROJECT_CONTACT@
 
 EOF
   scriptname=$(source_wrapper $1 $2)

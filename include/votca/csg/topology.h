@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,22 @@
  *
  */
 
-#ifndef _VOTCA_CSG_TOPOLOGY_H
-#define _VOTCA_CSG_TOPOLOGY_H
+#ifndef VOTCA_CSG_TOPOLOGY_H
+#define VOTCA_CSG_TOPOLOGY_H
+#pragma once
 
+// Standard includes
 #include <cassert>
 #include <list>
 #include <map>
 #include <unordered_map>
 #include <vector>
 
+// VOTCA includes
+#include <votca/tools/types.h>
+
+// Local VOTCA includes
 #include "bead.h"
-#include "beadtype.h"
 #include "boundarycondition.h"
 #include "exclusionlist.h"
 #include "molecule.h"
@@ -33,7 +38,6 @@
 #include "orthorhombicbox.h"
 #include "residue.h"
 #include "triclinicbox.h"
-#include <votca/tools/types.h>
 
 namespace votca {
 namespace csg {
@@ -56,12 +60,12 @@ class Topology {
  public:
   /// constructor
   Topology() { _bc = new OpenBox(); }
-  virtual ~Topology();
+  ~Topology();
 
   /**
    * \brief Cleans up all the stored data
    */
-  virtual void Cleanup();
+  void Cleanup();
 
   /**
    * \brief Creates a new Bead
@@ -76,15 +80,15 @@ class Topology {
    *
    * The function creates a new bead and adds it to the list of beads.
    */
-  virtual Bead *CreateBead(Bead::Symmetry symmetry, std::string name,
-                           std::string type, Index resnr, double m, double q);
+  Bead *CreateBead(Bead::Symmetry symmetry, std::string name, std::string type,
+                   Index resnr, double m, double q);
 
   /**
    * \brief Creates a new molecule
    * \param[in] name name of the molecule
    * \return pointer to created molecule
    */
-  virtual Molecule *CreateMolecule(std::string name);
+  Molecule *CreateMolecule(std::string name);
 
   /**
    *  \brief checks weather molecules with the same name really contain the same
@@ -98,8 +102,8 @@ class Topology {
    * @param[in] name residue name
    * @return created residue
    */
-  virtual Residue *CreateResidue(std::string name);
-  virtual Residue *CreateResidue(std::string name, Index id);
+  Residue *CreateResidue(std::string name);
+  Residue *CreateResidue(std::string name, Index id);
 
   /**
    * \brief Create molecules based on the residue.
@@ -176,6 +180,9 @@ class Topology {
    * @return bonded interaction container
    */
   InteractionContainer &BondedInteractions() { return _interactions; }
+  const InteractionContainer &BondedInteractions() const {
+    return _interactions;
+  }
 
   void AddBondedInteraction(Interaction *ic);
   std::list<Interaction *> InteractionsInGroup(const std::string &group);
@@ -193,7 +200,7 @@ class Topology {
    * Records are kept of the different bead types in the topology object. This
    * method stores the bead type.
    **/
-  void RegisterBeadType(std::string name);
+  void RegisterBeadType(std::string type);
 
   /**
    * \brief Given a bead type this method returns the id associated with the
@@ -290,6 +297,13 @@ class Topology {
   const Eigen::Matrix3d &getBox() const { return _bc->getBox(); };
 
   /**
+   * @brief Return the boundary condition object
+   */
+  const BoundaryCondition &getBoundary() const {
+    assert(_bc != nullptr && "Cannot return boundary condition is null");
+    return *_bc;
+  };
+  /**
    * set the time of current frame
    * \param t simulation time in ns
    */
@@ -347,8 +361,8 @@ class Topology {
    * calculates the smallest distance between two points with correct treatment
    * of pbc
    */
-  Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r1,
-                                       const Eigen::Vector3d &r2) const;
+  Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r_i,
+                                       const Eigen::Vector3d &r_j) const;
 
   /**
    * \brief return the shortest box size
@@ -374,6 +388,7 @@ class Topology {
    * \return exclusion list
    */
   ExclusionList &getExclusions() { return _exclusions; }
+  const ExclusionList &getExclusions() const { return _exclusions; }
 
   BoundaryCondition::eBoxtype getBoxType() const { return _bc->getBoxType(); }
 
@@ -426,25 +441,25 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
                                   std::string type, Index resnr, double m,
                                   double q) {
 
-  Bead *b = new Bead(this, _beads.size(), type, symmetry, name, resnr, m, q);
+  Bead *b = new Bead(_beads.size(), type, symmetry, name, resnr, m, q);
   _beads.push_back(b);
   return b;
 }
 
 inline Molecule *Topology::CreateMolecule(std::string name) {
-  Molecule *mol = new Molecule(this, _molecules.size(), name);
+  Molecule *mol = new Molecule(_molecules.size(), name);
   _molecules.push_back(mol);
   return mol;
 }
 
 inline Residue *Topology::CreateResidue(std::string name, Index id) {
-  Residue *res = new Residue(this, id, name);
+  Residue *res = new Residue(id, name);
   _residues.push_back(res);
   return res;
 }
 
 inline Residue *Topology::CreateResidue(std::string name) {
-  Residue *res = new Residue(this, _residues.size(), name);
+  Residue *res = new Residue(_residues.size(), name);
   _residues.push_back(res);
   return res;
 }
@@ -463,4 +478,4 @@ inline void Topology::InsertExclusion(Bead *bead1, iteratable &l) {
 
 #include "interaction.h"
 
-#endif /* _VOTCA_CSG_TOPOLOGY_H */
+#endif  // VOTCA_CSG_TOPOLOGY_H

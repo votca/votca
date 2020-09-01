@@ -18,16 +18,20 @@
 #ifndef _VOTCA_CSG_CGMOLECULEDEF_H
 #define _VOTCA_CSG_CGMOLECULEDEF_H
 
+// Standard includes
 #include <list>
 #include <map>
 #include <string>
 #include <vector>
 
+// VOTCA includes
+#include <votca/tools/property.h>
+#include <votca/tools/types.h>
+
+// Local VOTCA includes
 #include "exclusionlist.h"
 #include "map.h"
 #include "molecule.h"
-#include <votca/tools/property.h>
-#include <votca/tools/types.h>
 
 namespace votca {
 namespace csg {

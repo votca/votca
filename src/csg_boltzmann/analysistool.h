@@ -18,10 +18,10 @@
 #ifndef VOTCA_CSG_ANALYSISTOOL_H
 #define VOTCA_CSG_ANALYSISTOOL_H
 
+#include "../../include/votca/csg/cgengine.h"
 #include "bondedstatistics.h"
 #include <map>
 #include <string>
-#include <votca/csg/cgengine.h>
 
 /**
     \brief base class for all analysis tools
