@@ -50,6 +50,8 @@ elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=clang++ -GNinja )
 elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=icpc )
+  mkdir ~/Licenses
+  curl https://dynamicinstaller.intel.com/api/v2/license > ~/Licenses/intel.lic
 else
   die "Unknown INPUT_TOOLCHAIN"
 fi
