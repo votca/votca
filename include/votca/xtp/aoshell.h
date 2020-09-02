@@ -103,6 +103,7 @@ class AOShell {
   Index getOffset() const { return _offset; }
   Index getCartesianOffset() const { return _cartOffset; }
   Index getAtomIndex() const { return _atomindex; }
+  Index getSize() const { return _gaussians.size(); }
 
   const Eigen::Vector3d& getPos() const { return _pos; }
   double getScale() const { return _scale; }
