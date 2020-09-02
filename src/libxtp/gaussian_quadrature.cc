@@ -64,7 +64,7 @@ void GaussianQuadrature::configure(options opt, const RPA& rpa) {
 // matrix in a matrix vector
 void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
   _dielinv_matrices_r.resize(_opt.order);
-  double halfpi = std::acos(0.0);
+  double halfpi = 0.5 * votca::tools::conv::Pi;
 #pragma openmp parallel schedule(guided)
   for (Index j = 0; j < _opt.order; j++) {
     if (_opt.quadrature_scheme == "legendre") {
@@ -92,49 +92,50 @@ void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
 
 double GaussianQuadrature::SigmaGQDiag(double frequency, Index gw_level,
                                        double eta) const {
-  Index homo = _opt.homo - _opt.rpamin;
-  Index lumo = homo + 1;
-
+  Index lumo = _opt.homo + 1;
+  const Index occ = lumo - _opt.rpamin;
+  const Index unocc = _opt.rpamax - _opt.homo;
+  
   const Eigen::MatrixXd& Imx = _Mmn[gw_level];
   Eigen::ArrayXcd DeltaE = frequency - _energies.array();
   std::complex<double> result = std::complex<double>(0.0, 0.0);
   if (_opt.quadrature_scheme == "laguerre") {
-    // This work for integration limits a = 0 b = +infty
+    // The laguerre quadrature is suitable for integration limits a = 0 b =
+    // +infty
 
-    for (Index k = 0; k < lumo; ++k) {
-      DeltaE(k) += std::complex<double>(0.0, 1.0 * eta);
-    }
-    for (Index k = lumo; k < _energies.size(); ++k) {
-      DeltaE(k) += std::complex<double>(0.0, -1.0 * eta);
-    }
+    DeltaE.head(occ).imag() = eta;
+    DeltaE.tail(unocc).imag() = -eta;
 
     for (Index j = 0; j < _opt.order; ++j) {
       double newpoint = _quadpoints(j);
       double newweight = _quadadaptedweights(j);
       Eigen::VectorXcd denominator1 =
-          (1.0) / (DeltaE + std::complex<double>(0.0, newpoint));
-      Eigen::MatrixXcd Amx = denominator1.asDiagonal() * Imx;
-      Eigen::MatrixXcd Cmx = Imx * (_dielinv_matrices_r[j]);
-      std::complex<double> value1 = (Cmx.cwiseProduct(Amx)).sum();
+          (DeltaE + std::complex<double>(0.0, newpoint)).cwiseInverse();
+      // Eigen::MatrixXcd Amx = denominator1.asDiagonal() * Imx;
+      // Eigen::MatrixXcd Cmx = Imx * (_dielinv_matrices_r[j]);
+      std::complex<double> value1 =
+          ((Imx * (_dielinv_matrices_r[j]))
+               .cwiseProduct(denominator1.asDiagonal() * Imx))
+              .sum();
       Eigen::VectorXcd denominator2 =
-          (1.0) / (DeltaE + std::complex<double>(0.0, -newpoint));
-      Eigen::MatrixXcd Dmx = denominator2.asDiagonal() * Imx;
-      Eigen::MatrixXcd Emx = Imx * (_dielinv_matrices_r[j].conjugate());
-      std::complex<double> value2 = (Emx.cwiseProduct(Dmx)).sum();
+          (DeltaE + std::complex<double>(0.0, -newpoint)).cwiseInverse();
+      // Eigen::MatrixXcd Dmx = denominator2.asDiagonal() * Imx;
+      // Eigen::MatrixXcd Emx = Imx * (_dielinv_matrices_r[j].conjugate());
+      std::complex<double> value2 =
+          ((Imx * (_dielinv_matrices_r[j].conjugate()))
+               .cwiseProduct(denominator2.asDiagonal() * Imx))
+              .sum();
 
       result += newweight * (value1 + value2);
     }
 
     result *= 0.5;
   } else if (_opt.quadrature_scheme == "modified_legendre") {
-    // This work for integration limits a = 0 b = +infty
+    // The modified legendre method is suitable for integration limits a = 0 b =
+    // +infty
 
-    for (Index k = 0; k < lumo; ++k) {
-      DeltaE(k) += std::complex<double>(0.0, 1.0 * eta);
-    }
-    for (Index k = lumo; k < _energies.size(); ++k) {
-      DeltaE(k) += std::complex<double>(0.0, -1.0 * eta);
-    }
+    DeltaE.head(occ).imag() = eta;
+    DeltaE.tail(unocc).imag() = -eta;
 
     for (Index j = 0; j < _opt.order; ++j) {
       double exponent = (1.0 + _quadpoints(j)) / (1.0 - _quadpoints(j));
@@ -143,15 +144,17 @@ double GaussianQuadrature::SigmaGQDiag(double frequency, Index gw_level,
           (1.0 - _quadadaptedweights(j)) * (1.0 - _quadadaptedweights(j));
       double newweight = (2.0 * _quadadaptedweights(j) * 0.5) / den;
       Eigen::VectorXcd denominator1 =
-          (1.0) / (DeltaE + std::complex<double>(0.0, newpoint));
-      Eigen::MatrixXcd Amx = denominator1.asDiagonal() * Imx;
-      Eigen::MatrixXcd Cmx = Imx * (_dielinv_matrices_r[j]);
-      std::complex<double> value1 = (Cmx.cwiseProduct(Amx)).sum();
+          (DeltaE + std::complex<double>(0.0, newpoint)).cwiseInverse();
+      std::complex<double> value1 =
+          ((Imx * (_dielinv_matrices_r[j]))
+               .cwiseProduct(denominator1.asDiagonal() * Imx))
+              .sum();
       Eigen::VectorXcd denominator2 =
-          (1.0) / (DeltaE + std::complex<double>(0.0, -newpoint));
-      Eigen::MatrixXcd Dmx = denominator2.asDiagonal() * Imx;
-      Eigen::MatrixXcd Emx = Imx * (_dielinv_matrices_r[j].conjugate());
-      std::complex<double> value2 = (Emx.cwiseProduct(Dmx)).sum();
+          (DeltaE + std::complex<double>(0.0, -newpoint)).cwiseInverse();
+      std::complex<double> value2 =
+          ((Imx * (_dielinv_matrices_r[j].conjugate()))
+               .cwiseProduct(denominator2.asDiagonal() * Imx))
+              .sum();
 
       result += newweight * (value1 + value2);
     }
@@ -159,45 +162,45 @@ double GaussianQuadrature::SigmaGQDiag(double frequency, Index gw_level,
     result *= 0.5;
 
   } else if (_opt.quadrature_scheme == "hermite") {
-    // This work for integration limits a = -infty b = +infty
+    // The hermite quadrature method is suitable for integration limits a =
+    // -infty b = +infty
 
-    for (Index k = 0; k < lumo; ++k) {
-      DeltaE(k) += std::complex<double>(0.0, 1.0 * eta);
-    }
-    for (Index k = lumo; k < _energies.size(); ++k) {
-      DeltaE(k) += std::complex<double>(0.0, -1.0 * eta);
-    }
+    DeltaE.head(occ).imag() = eta;
+    DeltaE.tail(unocc).imag() = -eta;
 
     for (Index j = 0; j < _opt.order; ++j) {
 
       Eigen::VectorXcd denominator =
-          (1.0) / (DeltaE + std::complex<double>(0.0, _quadpoints(j)));
-      Eigen::MatrixXcd Amx = denominator.asDiagonal() * Imx;
-      Eigen::MatrixXcd Cmx = Imx * (_dielinv_matrices_r[j]);
-      std::complex<double> value = (Cmx.cwiseProduct(Amx)).sum();
+          (DeltaE + std::complex<double>(0.0, _quadpoints(j))).cwiseInverse();
+      std::complex<double> value =
+          ((Imx * (_dielinv_matrices_r[j]))
+               .cwiseProduct(denominator.asDiagonal() * Imx))
+              .sum();
       result += _quadadaptedweights(j) * value;
     }
 
     result *= 0.5;
-  } else if (_opt.quadrature_scheme == "leguerre") {
-    // This work for integration limits a = 0 b = +infty
+  } else if (_opt.quadrature_scheme == "laguerre") {
+    // The laguerre quadrature is suitable for integration limits a = 0 b =
+    // +infty
     for (Index j = 0; j < _opt.order; ++j) {
       Eigen::VectorXcd coeffs1 =
-          (DeltaE) / (DeltaE.square() + std::pow(_quadpoints(j), 2));
-      Eigen::MatrixXcd Amx = coeffs1.asDiagonal() * Imx;
-      Eigen::MatrixXcd Cmx = Imx * (_dielinv_matrices_r[j]);
-      std::complex<double> value = (Cmx.cwiseProduct(Amx)).sum();
+          (DeltaE) *
+          (DeltaE.square() + std::pow(_quadpoints(j), 2)).cwiseInverse();
+
+      std::complex<double> value =
+          ((Imx * (_dielinv_matrices_r[j]))
+               .cwiseProduct(coeffs1.asDiagonal() * Imx))
+              .sum();
       result += _quadadaptedweights(j) * value;
     }
   } else if (_opt.quadrature_scheme == "legendre") {
-    // This work for integration limits a = -infty b = +infty
+    // This particular legendre quadrature is suitable for integration limits a
+    // = -infty b = +infty
 
-    for (Index k = 0; k < lumo; ++k) {
-      DeltaE(k) += std::complex<double>(0.0, 1.0 * eta);
-    }
-    for (Index k = lumo; k < _energies.size(); ++k) {
-      DeltaE(k) += std::complex<double>(0.0, -1.0 * eta);
-    }
+    DeltaE.head(occ).imag() = eta;
+    DeltaE.tail(unocc).imag() = -eta;
+
     double halfpi = std::acos(0.0);
     for (Index j = 0; j < _opt.order; ++j) {
 
@@ -207,10 +210,13 @@ double GaussianQuadrature::SigmaGQDiag(double frequency, Index gw_level,
       double num = halfpi / den;
       double newweight = _quadadaptedweights(j);
       Eigen::VectorXcd denominator1 =
-          (num) / (DeltaE + std::complex<double>(0.0, newpoint));
-      Eigen::MatrixXcd Amx = denominator1.asDiagonal() * Imx;
-      Eigen::MatrixXcd Cmx = Imx * (_dielinv_matrices_r[j]);
-      std::complex<double> value1 = (Cmx.cwiseProduct(Amx)).sum();
+          (num) * (DeltaE + std::complex<double>(0.0, newpoint)).cwiseInverse();
+      // Eigen::MatrixXcd Amx = denominator1.asDiagonal() * Imx;
+      // Eigen::MatrixXcd Cmx = Imx * (_dielinv_matrices_r[j]);
+      std::complex<double> value1 =
+          ((Imx * (_dielinv_matrices_r[j]))
+               .cwiseProduct(denominator1.asDiagonal() * Imx))
+              .sum();
       result += newweight * (value1);
     }
 

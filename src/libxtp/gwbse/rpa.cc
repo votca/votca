@@ -102,7 +102,7 @@ Eigen::MatrixXcd RPA::calculate_epsilon_complex(double frequency_r,double freque
   std::complex<double> frequency(frequency_r, frequency_i);
   std::complex<double> eta(0.0, _eta);  
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided)
   for (Index m_level = 0; m_level < n_occ; m_level++) {
     const double qp_energy_m = _energies(m_level);
     const Eigen::MatrixXd Mmn_RPA =
