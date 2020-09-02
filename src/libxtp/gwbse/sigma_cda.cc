@@ -39,7 +39,7 @@ void Sigma_CDA::PrepareScreening() {
 // This function is used in the calculation of the residues
 // This calculates eps^-1 (inverse of the dielectric function) for complex
 // frequencies of the kind omega = delta + i*eta
-double Sigma_CDA::CalcDiagContribution(Eigen::RowVectorXd Imx_row, double delta,
+double Sigma_CDA::CalcDiagContribution(const Eigen::RowVectorXd& Imx_row, double delta,
                                        double eta) const {
   Eigen::MatrixXcd DielMxInv =
       _rpa.calculate_epsilon_complex(delta, eta).inverse();
@@ -98,7 +98,7 @@ double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
   return sigma_c_residue + sigma_c_integral;
 }
 
-double Sigma_CDA::CalcDiagContributionValue_alpha(Eigen::RowVectorXd Imx_row,
+double Sigma_CDA::CalcDiagContributionValue_alpha(const Eigen::RowVectorXd& Imx_row,
                                                   double delta,
                                                   double alpha) const {
   Eigen::MatrixXcd R = _rpa.calculate_epsilon_complex(0.0, 0.0).inverse();

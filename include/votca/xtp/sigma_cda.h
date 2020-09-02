@@ -68,10 +68,10 @@ class Sigma_CDA : public Sigma_base {
   double CalcResidueContribution(Eigen::VectorXd rpa_energies, double frequency,
                                  Index gw_level) const;
 
-  double CalcDiagContribution(Eigen::RowVectorXd Imx_row, double delta,
+  double CalcDiagContribution(const Eigen::RowVectorXd& Imx_row, double delta,
                               double eta) const;
 
-  double CalcDiagContributionValue_alpha(Eigen::RowVectorXd Imx_row,
+  double CalcDiagContributionValue_alpha(const Eigen::RowVectorXd& Imx_row,
                                          double delta, double alpha) const;
 
   GaussianQuadrature _gq;
