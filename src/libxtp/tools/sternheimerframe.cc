@@ -73,10 +73,11 @@ void SternheimerFrame::Initialize(const tools::Property &user_options) {
   XTP_LOG(Log::error, _log)
       << " Step: " << _options.number_of_frequency_grid_points << flush;
   XTP_LOG(Log::error, _log)
-      << " Resolution: " << _options.number_output_grid_points << flush;    
-  if (_options.calculation == "polarizability") {    
-  XTP_LOG(Log::error, _log)
-      << " Imaginary shift: " << _options.imaginary_shift_pade_approx << flush;
+      << " Resolution: " << _options.number_output_grid_points << flush;
+  if (_options.calculation == "polarizability") {
+    XTP_LOG(Log::error, _log)
+        << " Imaginary shift: " << _options.imaginary_shift_pade_approx
+        << flush;
   }
   if (_options.calculation == "gwsternheimer") {
     XTP_LOG(Log::error, _log)
@@ -90,7 +91,7 @@ bool SternheimerFrame::Evaluate() {
 
   OPENMP::setMaxThreads(_nThreads);
 
-  //set logger
+  // set logger
 
   _log.setReportLevel(Log::error);
   _log.setMultithreading(true);
@@ -120,18 +121,14 @@ bool SternheimerFrame::Evaluate() {
 
   sternheimer.setUpMatrices();
 
-  XTP_LOG(Log::error, _log)
-      << " test " << flush;
-
   std::string outfile = _options.calculation + ".dat";
 
-  XTP_LOG(Log::error, _log)
-      << " Output file: " << outfile << flush;
+  XTP_LOG(Log::error, _log) << " Output file: " << outfile << flush;
 
   std::ofstream ofs(outfile, std::ofstream::out);
 
   XTP_LOG(Log::error, _log) << TimeStamp() << " Started Sternheimer " << flush;
-  
+
   if (_options.calculation == "polarizability") {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer Polarizability" << flush;
@@ -165,11 +162,23 @@ bool SternheimerFrame::Evaluate() {
   if (_options.calculation == "mogradient") {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer MO Energy Gradient" << flush;
+
+    QMMolecule mol = orbitals.QMAtoms();
+
+    ofs << "MO index " << "Atom_Type " << "Atom_Index " << "Gradient x y z " << std::endl;
+
     for (Index n = 0; n < orbitals.MOs().eigenvalues().size(); ++n) {
 
       std::vector<Eigen::Vector3cd> EPC = sternheimer.MOEnergyGradient(n, n);
-      sternheimer.printMOEnergyGradient(EPC, n, n);
+
+      
+      for (int i = 0; i < EPC.size(); i++) {
+        ofs << n << " " << mol.at(i).getElement() << " " << i << " " << EPC[i][0].real()
+            << " " << EPC[i][1].real() << " " << EPC[i][2].real() << std::endl;
+      }
     }
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << " Output written to: " << outfile << flush;
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Finished Sternheimer MO Energy Gradient" << flush;
   }
