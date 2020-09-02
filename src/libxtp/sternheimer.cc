@@ -59,7 +59,6 @@ void Sternheimer::setUpMatrices() {
   this->_inverse_overlap = _overlap_Matrix.inverse();
   this->_Hamiltonian_Matrix = Hamiltonian();
 
-  
   ERIs eris;
 
   XTP_LOG(Log::debug, *_pLog) << "Setting up ERIS" << flush;
@@ -257,9 +256,9 @@ Eigen::MatrixXcd Sternheimer::DeltaNSCSternheimer(
   return delta_n_step_one;
 }
 
-Eigen::MatrixXcd Sternheimer::DeltaVfromDeltaN(Eigen::MatrixXcd& deltaN) const{
+Eigen::MatrixXcd Sternheimer::DeltaVfromDeltaN(Eigen::MatrixXcd& deltaN) const {
 
- if (_opt.do_precalc_fxc == true) {
+  if (_opt.do_precalc_fxc == true) {
     return Fxc(deltaN);
   } else {
     Vxc_Grid _grid;
@@ -269,7 +268,6 @@ Eigen::MatrixXcd Sternheimer::DeltaVfromDeltaN(Eigen::MatrixXcd& deltaN) const{
     Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
     return Vxcpot.IntegrateFXC(_density_Matrix, deltaN);
   }
-
 }
 
 Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
@@ -523,98 +521,6 @@ void Sternheimer::printHellmannFeynmanForces(
         << " " << EnergyGrad[i][1].real() << " " << EnergyGrad[i][2].real()
         << flush;
   }
-}
-
-std::complex<double> Sternheimer::KoopmanCorrection(Index n,
-                                                    double deltaf_n) const {
-
-  std::complex<double> v_nn = std::complex<double>(0.0, 0.0);
-  // Setting up Grid for Fxc functional
-
-  Vxc_Grid grid;
-  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                 _dftbasis);
-  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
-
-  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
-
-  // Build reference density matrix
-  Eigen::MatrixXd N_n =
-      _mo_coefficients.col(n) * _mo_coefficients.col(n).transpose();
-  Eigen::MatrixXd N_ref = (1.0 - deltaf_n) * N_n;
-  N_ref += _density_Matrix.real();
-
-  // Build KI potentials
-  //(1)
-  Eigen::MatrixXcd vhxc_1 = Vxcpot.IntegrateVXC(_density_Matrix).matrix();
-  vhxc_1 += _eris.ContractRightIndecesWithMatrix(_density_Matrix);
-  //(2)
-  Eigen::MatrixXcd vhxc_2 = Vxcpot.IntegrateVXC(N_ref).matrix();
-  vhxc_2 += _eris.ContractRightIndecesWithMatrix(N_ref);
-  //(3)
-  Eigen::MatrixXcd vhxc_3 = Vxcpot.IntegrateVXC(N_ref - N_n).matrix();
-  vhxc_3 += _eris.ContractRightIndecesWithMatrix(N_ref - N_n);
-  // constant
-  std::complex<double> constant = (N_ref).cwiseProduct(vhxc_2).sum();
-  constant -= (N_ref - N_n).cwiseProduct(vhxc_3).sum();
-  constant -= (N_n).cwiseProduct(vhxc_2).sum();
-  // Evaluate expectation value
-  return (N_n).cwiseProduct(-vhxc_1 + vhxc_3).sum() + constant;
-}
-
-std::complex<double> Sternheimer::KoopmanRelaxationCoeff(
-    Index n, double deltaf_n) const {
-
-  std::complex<double> alpha_n = std::complex<double>(0.0, 0.0);
-  // Setting up Grid for Fxc functional
-
-  Vxc_Grid grid;
-  grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
-                 _dftbasis);
-  Vxc_Potential<Vxc_Grid> Vxcpot(grid);
-  Vxcpot.setXCfunctional(_orbitals.getXCFunctionalName());
-
-  // Build MO-specific density
-
-  Eigen::MatrixXcd N_n =
-      _mo_coefficients.col(n) * _mo_coefficients.col(n).transpose();
-
-  // Build inital perturbation
-
-  Eigen::MatrixXcd FxcInt_init =
-      deltaf_n * Fxc(N_n);  // Vxcpot.IntegrateFXC(_density_Matrix, N_n);
-  FxcInt_init += _eris.ContractRightIndecesWithMatrix(N_n);
-
-  // Do Sternheimer
-  Eigen::MatrixXcd DeltaN = DeltaNSCSternheimer(0.0, FxcInt_init);
-  Eigen::MatrixXcd contract = _eris.ContractRightIndecesWithMatrix(DeltaN);
-  Eigen::MatrixXcd FxcInt =
-      Fxc(DeltaN);  // Vxcpot.IntegrateFXC(_density_Matrix, DeltaN);
-  Eigen::MatrixXcd DeltaV = FxcInt_init + contract + FxcInt;
-  // Calculate orbital relaxation coeffs
-  alpha_n = (N_n).cwiseProduct(DeltaV).sum();
-  alpha_n /= (N_n).cwiseProduct(FxcInt_init).sum();
-  return alpha_n;
-}
-
-void Sternheimer::printKoopmanRelaxationCoeff(std::complex<double> alpha,
-                                              Index n) const {
-  XTP_LOG(Log::error, *_pLog) << "\n"
-                              << "#Orbital "
-                              << "alpha " << flush;
-  XTP_LOG(Log::error, *_pLog) << n << " " << alpha << flush;
-}
-
-void Sternheimer::printKoopman(std::complex<double> alpha,
-                               std::complex<double> correction, Index n) const {
-  XTP_LOG(Log::error, *_pLog) << "\n"
-                              << "#Orbital "
-                              << "alpha "
-                              << "correction"
-                              << " "
-                              << "Product" << flush;
-  XTP_LOG(Log::error, *_pLog) << n << " " << alpha << " " << correction << " "
-                              << alpha * correction << flush;
 }
 
 std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n,
@@ -1025,17 +931,17 @@ void Sternheimer::printGW(Index level) const {
   XTP_LOG(Log::debug, *_pLog) << "Print GW complete" << flush;
 }
 
-PadeApprox Sternheimer::getGWPade()const{
+PadeApprox Sternheimer::getGWPade() const {
 
-Index out_points = _opt.number_output_grid_points;
+  Index out_points = _opt.number_output_grid_points;
   Index eval_points = _opt.number_of_frequency_grid_points;
 
   double omega_start = (_opt.start_frequency_grid) * tools::conv::ev2hrt;
   double omega_end = (_opt.end_frequency_grid) * tools::conv::ev2hrt;
 
-  PadeApprox pade;
+  PadeApprox pade1;
 
-  pade.initialize(eval_points);
+  pade1.initialize(eval_points);
 
   double steps = 0;
   if (eval_points > 1) {
@@ -1046,12 +952,11 @@ Index out_points = _opt.number_output_grid_points;
     std::complex<double> w(omega_start + j * steps, 0);
     Eigen::VectorXcd sigma_c = SelfEnergy_diagonal(w);
     std::complex<double> sigma_c_sex = SelfEnergy_cohsex(w, _opt.level);
-    pade.addPoint(w, sigma_c(_opt.level) + sigma_c_sex + intercept(_opt.level));
+    pade1.addPoint(w,
+                   sigma_c(_opt.level) + sigma_c_sex + intercept(_opt.level));
   }
-  return pade;
-
+  return pade1;
 }
-
 
 }  // namespace xtp
 

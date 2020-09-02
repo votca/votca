@@ -86,8 +86,6 @@ class Sternheimer {
 
   std::vector<Eigen::Vector3cd> MOEnergyGradient(Index n, Index m) const;
 
-  std::complex<double> KoopmanCorrection(Index n, double deltaf_n) const;
-  std::complex<double> KoopmanRelaxationCoeff(Index n, double deltaf_n) const;
   // Prints the isotropic average of the polarizability tensor
   void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar) const;
   // Prints the Hellmann-Feynman contribution of the Energy Gradient
@@ -96,9 +94,6 @@ class Sternheimer {
   // Prints the MO Energy gradient for state n and m
   void printMOEnergyGradient(std::vector<Eigen::Vector3cd>& EnergyGrad, Index n,
                              Index m) const;
-  void printKoopman(std::complex<double> alpha, std::complex<double> correction,
-                    Index n) const;
-  void printKoopmanRelaxationCoeff(std::complex<double> alpha, Index n) const;
   // Returns Isotropic Average from Polarizability Tensor
   std::vector<double> getIsotropicAverage(
       std::vector<Eigen::Matrix3cd>& polar) const;

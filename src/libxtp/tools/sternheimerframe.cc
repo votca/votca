@@ -131,6 +131,7 @@ bool SternheimerFrame::Evaluate() {
   std::ofstream ofs(outfile, std::ofstream::out);
 
   XTP_LOG(Log::error, _log) << TimeStamp() << " Started Sternheimer " << flush;
+  
   if (_options.calculation == "polarizability") {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer Polarizability" << flush;
@@ -171,37 +172,6 @@ bool SternheimerFrame::Evaluate() {
     }
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Finished Sternheimer MO Energy Gradient" << flush;
-  }
-  if (_options.calculation == "koopmanalpha") {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp()
-        << " Started Sternheimer Koopman's relaxation coefficients" << flush;
-    for (Index n = 0; n < orbitals.MOs().eigenvalues().size(); ++n) {
-
-      std::complex<double> alpha = sternheimer.KoopmanRelaxationCoeff(n, 2.0);
-      sternheimer.printKoopmanRelaxationCoeff(alpha, n);
-    }
-    XTP_LOG(Log::error, _log)
-        << TimeStamp()
-        << " Finished Sternheimer Koopman's relaxation coefficients" << flush;
-  }
-
-  if (_options.calculation == "koopman") {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Started Sternheimer Koopman's compliant" << flush;
-    for (Index n = 0; n < orbitals.MOs().eigenvalues().size(); ++n) {
-
-      double f = 1.0;  // For occupied states
-      if (n > orbitals.getHomo()) {
-        f = 0.0;  // for unoccupied state
-      }
-      std::complex<double> alpha = sternheimer.KoopmanRelaxationCoeff(n, 1);
-      std::complex<double> correction = sternheimer.KoopmanCorrection(n, f);
-      std::cout << correction + orbitals.MOs().eigenvalues()(n) << std::endl;
-      sternheimer.printKoopman(alpha, correction, n);
-    }
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Finished Sternheimer Koopman's compliant" << flush;
   }
 
   if (_options.calculation == "gwsternheimer") {
