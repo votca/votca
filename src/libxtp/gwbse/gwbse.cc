@@ -376,18 +376,14 @@ void GWBSE::Initialize(tools::Property& options) {
         << " RPA Hamiltonian size: " << (homo + 1 - rpamin) * (rpamax - homo)
         << flush;
   }
-  _gwopt.order = options.ifExistsReturnElseReturnDefault<Index>(
-      key + ".laguerrequad_order", _gwopt.order);
+  _gwopt.order = options.get(key + ".quadrature_order").as<Index>();
   XTP_LOG(Log::error, *_pLog)
-      << " Integration order Quadrature: " << _gwopt.order << flush;
+      << " Quadrature integration order : " << _gwopt.order << flush;
   _gwopt.quadrature_scheme =
-      options.ifExistsReturnElseReturnDefault<std::string>(
-          key + ".quadrature_scheme", _gwopt.quadrature_scheme);
+      options.get(key + ".quadrature_scheme").as<std::string>();
   XTP_LOG(Log::error, *_pLog)
-      << " Integration scheme Quadrature: " << _gwopt.quadrature_scheme
+      << " Quadrature integration scheme : " << _gwopt.quadrature_scheme
       << flush;
-  _gwopt.eta =
-      options.ifExistsReturnElseReturnDefault<double>(key + ".eta", _gwopt.eta);
 
   XTP_LOG(Log::error, *_pLog) << " eta: " << _gwopt.eta << flush;
 
