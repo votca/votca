@@ -91,7 +91,7 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
 template Eigen::MatrixXd RPA::calculate_epsilon<true>(double frequency) const;
 template Eigen::MatrixXd RPA::calculate_epsilon<false>(double frequency) const;
 
-Eigen::MatrixXcd RPA::calculate_epsilon_complex(double frequency_r,double frequency_i) const {
+Eigen::MatrixXcd RPA::calculate_epsilon_complex(std::complex<double> frequency) const {
   const Index size = _Mmn.auxsize();
   std::vector<Eigen::MatrixXcd> thread_result = std::vector<Eigen::MatrixXcd>(
       OPENMP::getMaxThreads(), Eigen::MatrixXcd::Zero(size, size));
@@ -99,7 +99,6 @@ Eigen::MatrixXcd RPA::calculate_epsilon_complex(double frequency_r,double freque
   const Index n_occ = lumo - _rpamin;
   const Index n_unocc = _rpamax - lumo + 1;
 
-  std::complex<double> frequency(frequency_r, frequency_i);
   std::complex<double> eta(0.0, _eta);  
 
 #pragma omp parallel for schedule(guided)

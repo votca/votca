@@ -40,8 +40,9 @@ void Sigma_CDA::PrepareScreening() {
 // frequencies of the kind omega = delta + i*eta
 double Sigma_CDA::CalcDiagContribution(const Eigen::RowVectorXd& Imx_row, double delta,
                                        double eta) const {
+  std::complex<double> delta_eta(delta,eta); 
   Eigen::MatrixXcd DielMxInv =
-      _rpa.calculate_epsilon_complex(delta, eta).inverse();
+      _rpa.calculate_epsilon_complex(delta_eta).inverse();
   DielMxInv.diagonal().array() -= 1.0;
   return ((Imx_row * DielMxInv).cwiseProduct(Imx_row)).sum().real();
 }

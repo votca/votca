@@ -70,14 +70,17 @@ void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
   for (Index j = 0; j < _opt.order; j++) {
     if (_opt.quadrature_scheme == "legendre") {
       double newpoint = std::tan(halfpi * _quadpoints(j));
-      eps_inv_j = rpa.calculate_epsilon_complex(0.0, newpoint).inverse();
+      std::complex<double> newpoint_c(0.0,newpoint);
+      eps_inv_j = rpa.calculate_epsilon_complex(newpoint_c).inverse();
     } else if (_opt.quadrature_scheme == "modified_legendre") {
       double exponent = (1.0 + _quadpoints(j)) / (1.0 - _quadpoints(j));
       double newpoint = std::pow(0.5, exponent);
-      eps_inv_j = rpa.calculate_epsilon_complex(0.0, newpoint).inverse();
+      std::complex<double> newpoint_c(0.0,newpoint);
+      eps_inv_j = rpa.calculate_epsilon_complex(newpoint_c).inverse();
     } else {
       double newpoint = _quadpoints(j);
-      eps_inv_j = rpa.calculate_epsilon_complex(0.0, newpoint).inverse();
+      std::complex<double> newpoint_c(0.0,newpoint);
+      eps_inv_j = rpa.calculate_epsilon_complex(newpoint_c).inverse();
     }
     eps_inv_j.diagonal().array() -= 1.0;
     _dielinv_matrices_r[j] = -eps_inv_j;
