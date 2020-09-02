@@ -4,7 +4,7 @@
 <!-- xtp_tools -e sternheimer  options.xml -->
 <sternheimer help="Perform linear perturbation calcualtion using the sc sternheimer method" >
 	<orb help="Input orb file to start computation from"/>
-	<calculation help="Specify desired calculation" default="gwsternheimer" choices="gwsternheimer,polarizability,gradient,mogradient,koopmanalpha,koopman"/>
+	<calculation help="Specify desired calculation" choices="gwsternheimer,polarizability,gradient,mogradient"/>
     <omegain help="Start frequency for output" default="0.0" choices="float"/>
 	<omegafin help="End frequency for output" default="20.0" choices="float"/>
 	<step help="Number of points evaluated between omega and omegafin" default="30" choices="int+"/>
