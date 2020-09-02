@@ -154,8 +154,19 @@ bool SternheimerFrame::Evaluate() {
   if (_options.calculation == "gradient") {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer Energy Gradient" << flush;
+
+    QMMolecule mol = orbitals.QMAtoms();
+
     std::vector<Eigen::Vector3cd> EPC = sternheimer.EnergyGradient();
-    sternheimer.printHellmannFeynmanForces(EPC);
+
+    ofs << "\n"
+        << "#Atom_Type "
+        << "Atom_Index "
+        << "Gradient x y z " << std::endl;
+    for (int i = 0; i < EPC.size(); i++) {
+      ofs << mol.at(i).getElement() << " " << i << " " << EPC[i][0].real()
+          << " " << EPC[i][1].real() << " " << EPC[i][2].real() << std::endl;
+    }
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Finished Sternheimer Energy Gradient" << flush;
   }
@@ -165,16 +176,19 @@ bool SternheimerFrame::Evaluate() {
 
     QMMolecule mol = orbitals.QMAtoms();
 
-    ofs << "MO index " << "Atom_Type " << "Atom_Index " << "Gradient x y z " << std::endl;
+    ofs << "MO index "
+        << "Atom_Type "
+        << "Atom_Index "
+        << "Gradient x y z " << std::endl;
 
     for (Index n = 0; n < orbitals.MOs().eigenvalues().size(); ++n) {
 
       std::vector<Eigen::Vector3cd> EPC = sternheimer.MOEnergyGradient(n, n);
 
-      
       for (int i = 0; i < EPC.size(); i++) {
-        ofs << n << " " << mol.at(i).getElement() << " " << i << " " << EPC[i][0].real()
-            << " " << EPC[i][1].real() << " " << EPC[i][2].real() << std::endl;
+        ofs << n << " " << mol.at(i).getElement() << " " << i << " "
+            << EPC[i][0].real() << " " << EPC[i][1].real() << " "
+            << EPC[i][2].real() << std::endl;
       }
     }
     XTP_LOG(Log::error, _log)
