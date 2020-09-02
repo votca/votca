@@ -55,7 +55,6 @@ class GaussianQuadrature {
   // matrix in a matrix vector
   void CalcDielInvVector(const RPA& rpa);
   const Eigen::VectorXd& _energies;
-
   std::vector<Eigen::MatrixXcd> _dielinv_matrices_r;
   const TCMatrix_gwbse& _Mmn;
   Eigen::VectorXd _quadpoints;
