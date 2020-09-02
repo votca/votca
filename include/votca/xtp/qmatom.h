@@ -67,6 +67,8 @@ class QMAtom {
 
   Index getNuccharge() const { return _nuccharge - _ecpcharge; }
 
+  Index getElementNumber() const { return _nuccharge; }
+
   std::string identify() const { return "qmatom"; }
 
   friend std::ostream& operator<<(std::ostream& out, const QMAtom& atom) {
