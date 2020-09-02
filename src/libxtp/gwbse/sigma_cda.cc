@@ -31,7 +31,6 @@ void Sigma_CDA::PrepareScreening() {
   opt.qptotal = _qptotal;
   opt.qpmin = _opt.qpmin;
   opt.rpamin = _opt.rpamin;
-  opt.alpha = _opt.alpha;
   opt.quadrature_scheme = _opt.quadrature_scheme;
   _gq.configure(opt, _rpa);
 }
@@ -94,24 +93,9 @@ double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
   const Eigen::VectorXd& RPAenergies = _rpa.getRPAInputEnergies();
   double sigma_c_residue =
       CalcResidueContribution(RPAenergies, frequency, gw_level);
-  double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level, _opt.alpha);
+  double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level,_eta);
   return sigma_c_residue + sigma_c_integral;
 }
 
-double Sigma_CDA::CalcDiagContributionValue_alpha(const Eigen::RowVectorXd& Imx_row,
-                                                  double delta,
-                                                  double alpha) const {
-  Eigen::MatrixXcd R = _rpa.calculate_epsilon_complex(0.0, 0.0).inverse();
-
-  R.diagonal().array() -= 1.0;
-
-  double erfc_factor = -0.5 * std::copysign(1.0, delta) *
-                       std::exp(std::pow(alpha * delta, 2)) *
-                       std::erfc(std::abs(alpha * delta));
-
-  std::complex<double> value = ((Imx_row * R).cwiseProduct(Imx_row)).sum();
-
-  return value.real() * erfc_factor;
-}
 }  // namespace xtp
 }  // namespace votca

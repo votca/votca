@@ -64,30 +64,23 @@ void GaussianQuadrature::configure(options opt, const RPA& rpa) {
 // matrix in a matrix vector
 void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
   _dielinv_matrices_r.resize(_opt.order);
-
+  Eigen::MatrixXcd eps_inv_j; //Don't know if I have to specify dimension of the matrix here
   double halfpi = 0.5 * votca::tools::conv::Pi;
 #pragma openmp parallel schedule(guided)
   for (Index j = 0; j < _opt.order; j++) {
     if (_opt.quadrature_scheme == "legendre") {
       double newpoint = std::tan(halfpi * _quadpoints(j));
-      Eigen::MatrixXcd eps_inv_j =
-          rpa.calculate_epsilon_complex(0.0, newpoint).inverse();
-      eps_inv_j.diagonal().array() -= 1.0;
-      _dielinv_matrices_r[j] = -eps_inv_j;
+      eps_inv_j = rpa.calculate_epsilon_complex(0.0, newpoint).inverse();
     } else if (_opt.quadrature_scheme == "modified_legendre") {
       double exponent = (1.0 + _quadpoints(j)) / (1.0 - _quadpoints(j));
       double newpoint = std::pow(0.5, exponent);
-      Eigen::MatrixXcd eps_inv_j =
-          rpa.calculate_epsilon_complex(0.0, newpoint).inverse();
-      eps_inv_j.diagonal().array() -= 1.0;
-      _dielinv_matrices_r[j] = -eps_inv_j;
+      eps_inv_j = rpa.calculate_epsilon_complex(0.0, newpoint).inverse();
     } else {
       double newpoint = _quadpoints(j);
-      Eigen::MatrixXcd eps_inv_j =
-          rpa.calculate_epsilon_complex(0.0, newpoint).inverse();
-      eps_inv_j.diagonal().array() -= 1.0;
-      _dielinv_matrices_r[j] = -eps_inv_j;
+      eps_inv_j = rpa.calculate_epsilon_complex(0.0, newpoint).inverse();
     }
+    eps_inv_j.diagonal().array() -= 1.0;
+    _dielinv_matrices_r[j] = -eps_inv_j;
   }
 }
 
@@ -96,7 +89,7 @@ double GaussianQuadrature::SigmaGQDiag(double frequency, Index gw_level,
   Index lumo = _opt.homo + 1;
   const Index occ = lumo - _opt.rpamin;
   const Index unocc = _opt.rpamax - _opt.homo;
-  
+
   const Eigen::MatrixXd& Imx = _Mmn[gw_level];
   Eigen::ArrayXcd DeltaE = frequency - _energies.array();
   std::complex<double> result = std::complex<double>(0.0, 0.0);
@@ -112,16 +105,12 @@ double GaussianQuadrature::SigmaGQDiag(double frequency, Index gw_level,
       double newweight = _quadadaptedweights(j);
       Eigen::VectorXcd denominator1 =
           (DeltaE + std::complex<double>(0.0, newpoint)).cwiseInverse();
-      // Eigen::MatrixXcd Amx = denominator1.asDiagonal() * Imx;
-      // Eigen::MatrixXcd Cmx = Imx * (_dielinv_matrices_r[j]);
       std::complex<double> value1 =
           ((Imx * (_dielinv_matrices_r[j]))
                .cwiseProduct(denominator1.asDiagonal() * Imx))
               .sum();
       Eigen::VectorXcd denominator2 =
           (DeltaE + std::complex<double>(0.0, -newpoint)).cwiseInverse();
-      // Eigen::MatrixXcd Dmx = denominator2.asDiagonal() * Imx;
-      // Eigen::MatrixXcd Emx = Imx * (_dielinv_matrices_r[j].conjugate());
       std::complex<double> value2 =
           ((Imx * (_dielinv_matrices_r[j].conjugate()))
                .cwiseProduct(denominator2.asDiagonal() * Imx))

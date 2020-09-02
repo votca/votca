@@ -65,7 +65,6 @@ class GW {
     double gw_mixing_alpha;  //  mixing alpha, also linear mixing
     std::string quadrature_scheme;  // Kind of Gaussian-quadrature scheme to use
     Index order = 12;  // only needed for complex integration sigma default:12
-    double alpha = 0.001;
   };
 
   void configure(const options& opt);

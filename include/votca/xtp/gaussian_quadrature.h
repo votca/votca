@@ -38,7 +38,6 @@ class GaussianQuadrature {
     Index homo;
     Index rpamin;
     Index rpamax;
-    double alpha = 0.001;
     std::string quadrature_scheme ;
   };
 

@@ -386,10 +386,6 @@ void GWBSE::Initialize(tools::Property& options) {
   XTP_LOG(Log::error, *_pLog)
       << " Integration scheme Quadrature: " << _gwopt.quadrature_scheme
       << flush;
-  _gwopt.alpha = options.ifExistsReturnElseReturnDefault<double>(key + ".alpha",
-                                                                 _gwopt.alpha);
-  XTP_LOG(Log::error, *_pLog) << " Alpha value: " << _gwopt.alpha << flush;
-
   _gwopt.eta =
       options.ifExistsReturnElseReturnDefault<double>(key + ".eta", _gwopt.eta);
 

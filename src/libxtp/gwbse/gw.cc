@@ -53,7 +53,6 @@ void GW::configure(const options& opt) {
   sigma_opt.rpamax = _opt.rpamax;
   sigma_opt.eta = _opt.eta;
   sigma_opt.quadrature_scheme = _opt.quadrature_scheme;
-  sigma_opt.alpha = _opt.alpha;
   sigma_opt.order = _opt.order;
   _sigma->configure(sigma_opt);
   _Sigma_x = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
