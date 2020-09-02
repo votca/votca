@@ -22,7 +22,7 @@ Version 2021-dev
 -  add rel. compare to votca\_compare (#143)
 -  standardize header formatting (#246)
 -  move CI to GitHub Ations (#251, #254, #256, #258, #260,
-   #274, #275)
+   #274, #275, #296)
 -  improve mkl detection (#257)
 -  clean up installed cmake find modules (#263)
 -  update codacy badge (#264)
