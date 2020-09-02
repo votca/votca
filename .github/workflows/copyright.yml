@@ -31,6 +31,7 @@ jobs:
         with:
           repository: ${{ fromJSON(steps.pr_info.outputs.data).head.repo.full_name }}
           ref: ${{ fromJSON(steps.pr_info.outputs.data).head.ref }}
+          fetch-depth: 0
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Create and commit copyright updates
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
