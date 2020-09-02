@@ -9,10 +9,10 @@ die () {
 
 [[ ${INPUT_BASE} ]] || die "No base sha"
 
-filelist="$(git diff --name-status --diff-filter=AMC "${INPUT_BASE}" | awk '{print $2}')"
+filelist=( $(git diff --name-status --diff-filter=AMC "${INPUT_BASE}" | awk '{print $2}') )
 new_date="$(date +%Y)"
-echo "Updating Copyright date to ${new_date} in ${filelist}"
-sed -i 's/Copyright \(.*\)-.* The VOTCA/Copyright \1-'"$new_date"' The VOTCA/' "${filelist}"
+echo "Updating Copyright date to ${new_date} in ${filelist[@]}"
+sed -i 's/Copyright \(.*\)-.* The VOTCA/Copyright \1-'"$new_date"' The VOTCA/' "${filelist[@]}"
 
 git add -u
 git config user.name "Votca Bot"
