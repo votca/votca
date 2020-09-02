@@ -15,6 +15,9 @@
 	<quadrature_order help="Quadrature order used for frequency calculation in gwsternheimer" default="12" choices="8,10,12,20,30,40,50,100"/>
 	<do_precalc_fxc help="Do precalculation of dxc integral. Recommended for small molecules but not for large ones" default="false" choices="bool"/>
 	<spatialgridtype help="grid type for fxc integration" default="coarse" choices="xfine,fine,medium,coarse,xcoarse"/>
+	<max_iter help="max interations of sc sternheimer" default="100" choices="int+"/>
+	<tol help="convergence tolerance of sc sternheimer" default="10E-9" choices="float+"/>
+	<hist help="maximum history of anderson mixing" default="10" choices="int+"/>
 </sternheimer>
 	
 </options>

@@ -63,17 +63,25 @@ void SternheimerFrame::Initialize(const tools::Property &user_options) {
       options.get(".quadrature_scheme").as<std::string>();
   _options.quadrature_order = options.get(".quadrature_order").as<Index>();
   _options.level = options.get(".level").as<Index>();
+  _options.max_iterations_sc_sternheimer = options.get(".max_iter").as<Index>();
+  _options.tolerance_sc_sternheimer = options.get(".tol").as<double>();
+  _options.max_mixing_history = options.get(".hist").as<Index>();
+
 
   XTP_LOG(Log::error, _log) << " Task: " << _options.calculation << flush;
 
+  XTP_LOG(Log::error, _log) << flush;
+
+  if (_options.calculation == "polarizability"||_options.calculation == "gwsternheimer") {
   XTP_LOG(Log::error, _log)
       << " Omega initial: " << _options.start_frequency_grid << flush;
   XTP_LOG(Log::error, _log)
       << " Omega final: " << _options.end_frequency_grid << flush;
   XTP_LOG(Log::error, _log)
-      << " Step: " << _options.number_of_frequency_grid_points << flush;
+      << " Steps: " << _options.number_of_frequency_grid_points << flush;
   XTP_LOG(Log::error, _log)
       << " Resolution: " << _options.number_output_grid_points << flush;
+  }    
   if (_options.calculation == "polarizability") {
     XTP_LOG(Log::error, _log)
         << " Imaginary shift: " << _options.imaginary_shift_pade_approx
