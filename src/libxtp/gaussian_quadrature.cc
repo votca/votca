@@ -68,7 +68,6 @@ void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
                                // the matrix here
   double halfpi = 0.5 * votca::tools::conv::Pi;
   double newpoint = 0.0;
-#pragma openmp parallel schedule(guided)
   for (Index j = 0; j < _opt.order; j++) {
     if (_opt.quadrature_scheme == "legendre") {
       newpoint = std::tan(halfpi * _quadpoints(j));
