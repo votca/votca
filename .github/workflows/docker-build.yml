@@ -42,7 +42,7 @@ jobs:
           dockerfile: votca/.github/workflows/Dockerfile
           tag_with_ref: true
           push: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
-      - name: Build Docker images for Docker Hub
+      - name: Build Docker images for Gitlab
         uses: docker/build-push-action@v1.1.0
         with:
           repository: votca/votca
