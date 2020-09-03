@@ -47,10 +47,6 @@ class PadeApprox {
 
   void clear();
   
-  void printInfo();
-
-  void printAB();
-
  private:
      
   Index _num_points;
@@ -73,6 +69,7 @@ class PadeApprox {
   std::complex<double> RecursiveA(std::complex<double> frequency, Index index);
 
   std::complex<double> RecursiveB(std::complex<double> frequency, Index index);
+  
 };
 }  // namespace xtp
 }  // namespace votca

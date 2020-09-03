@@ -34,129 +34,100 @@ void PadeApprox::clear() {
   _grid.clear();
 
   _coeff.clear();
-  
-  _rejected_points=0;
+
+  _rejected_points = 0;
 }
 
-void PadeApprox::printInfo() {
-
-    std::cout<<"num of points="<<_num_points<<std::endl;
-    std::cout<<"num of rejected points="<<_rejected_points<<std::endl;
-    
-    std::cout<<"Coefficients:"<<std::endl;
-    for(Index i=0;i<_coeff.size();i++){
-        std::cout<<"c_"<<i<<" ="<<_coeff[i]<<std::endl;
-    }
-    std::cout<<"Grid:"<<std::endl;
-    for(Index i=0;i<_grid.size();i++){
-        std::cout<<"g_"<<i<<" ="<<_grid[i]<<std::endl;
-    }
-    std::cout<<"Values:"<<std::endl;
-    for(Index i=0;i<_value.size();i++){
-        std::cout<<"v_"<<i<<" ="<<_value[i]<<std::endl;
-    }
-}
-
-void PadeApprox::addPoint(std::complex<double> frequency, std::complex<double> value) {
+void PadeApprox::addPoint(std::complex<double> frequency,
+                          std::complex<double> value) {
 
   this->_grid.push_back(frequency);
   this->_value.push_back(value);
   this->_coeff.push_back(RecursivePolynom(_grid.size() - 1, _grid.size()));
 
-  if ((_coeff.at(_coeff.size() - 1) !=
-      _coeff.at(_coeff.size() - 1))||abs(_coeff.at(_coeff.size() - 1))<1e-6) {
-    //std::cout
-        //<< "reject point, unvalid coeficient at w=" << frequency
-        //<< std::endl <<"Value="<<value<<std::endl<<std::endl;
+  if ((_coeff.at(_coeff.size() - 1) != _coeff.at(_coeff.size() - 1)) ||
+      abs(_coeff.at(_coeff.size() - 1)) < 1e-6) {
+    // std::cout
+    //<< "reject point, unvalid coeficient at w=" << frequency
+    //<< std::endl <<"Value="<<value<<std::endl<<std::endl;
     _coeff.pop_back();
     _grid.pop_back();
     _value.pop_back();
-    for(Index i=0;i<_num_points;i++){
-        _temp_container_g[_grid.size()-1][i]=0;
+    for (Index i = 0; i < _num_points; i++) {
+      _temp_container_g[_grid.size() - 1][i] = 0;
     }
     _rejected_points++;
   }
 }
 
 std::complex<double> PadeApprox::RecursivePolynom(Index indx, Index degree) {
-       
+
   if (degree == 1) {
     return _value.at(indx);
-  }else if(real(this->_temp_container_g[indx][degree-1])!=0){
-      return this->_temp_container_g[indx][degree-1];
-  }else{
+  } else if (real(this->_temp_container_g[indx][degree - 1]) != 0) {
+    return this->_temp_container_g[indx][degree - 1];
+  } else {
     std::complex<double> temp = RecursivePolynom(indx, degree - 1);
-    std::complex<double> u = RecursivePolynom(degree-2, degree-1) - temp;
+    std::complex<double> u = RecursivePolynom(degree - 2, degree - 1) - temp;
     std::complex<double> l = temp * (_grid.at(indx) - _grid.at(degree - 2));
-    std::complex<double> result=u/l;
-    if(result==result){
-    _temp_container_g[indx][degree-1]=result;
+    std::complex<double> result = u / l;
+    if (result == result) {
+      _temp_container_g[indx][degree - 1] = result;
     }
     return result;
   }
 }
 
-std::complex<double> PadeApprox::RecursiveA(std::complex<double> frequency, Index index) {
+std::complex<double> PadeApprox::RecursiveA(std::complex<double> frequency,
+                                            Index index) {
 
-    if(_temp_container_A.size()>index){
-        return _temp_container_A[index];
-    }
-    else {
-      std::complex<double> A= ((frequency - _grid.at(index - 2)) *
-                                                    _coeff.at(index - 1) *
-                                                    RecursiveA(frequency, index - 2) + RecursiveA(frequency, index - 1));
+  if (_temp_container_A.size() > index) {
+    return _temp_container_A[index];
+  } else {
+    std::complex<double> A =
+        ((frequency - _grid.at(index - 2)) * _coeff.at(index - 1) *
+             RecursiveA(frequency, index - 2) +
+         RecursiveA(frequency, index - 1));
     _temp_container_A.push_back(A);
     return A;
   }
 }
 
-std::complex<double> PadeApprox::RecursiveB(std::complex<double> frequency, Index index) {
+std::complex<double> PadeApprox::RecursiveB(std::complex<double> frequency,
+                                            Index index) {
 
-  if(_temp_container_B.size()>index){
-        return _temp_container_B[index];
-  }
-  else {
-    std::complex<double> B= ((frequency - _grid.at(index - 2)) *
-                                                    _coeff.at(index - 1) *
-                                                    RecursiveB(frequency, index - 2) + RecursiveB(frequency, index - 1));
+  if (_temp_container_B.size() > index) {
+    return _temp_container_B[index];
+  } else {
+    std::complex<double> B =
+        ((frequency - _grid.at(index - 2)) * _coeff.at(index - 1) *
+             RecursiveB(frequency, index - 2) +
+         RecursiveB(frequency, index - 1));
     _temp_container_B.push_back(B);
     return B;
   }
 }
 
-void PadeApprox::initialize(Index num_points) { 
-    this->_temp_container_g.resize(num_points);
-    for (Index i = 0; i < num_points; i++){
-        _temp_container_g[i].resize(num_points);
-    }
-    this->_num_points=num_points;
+void PadeApprox::initialize(Index num_points) {
+  this->_temp_container_g.resize(num_points);
+  for (Index i = 0; i < num_points; i++) {
+    _temp_container_g[i].resize(num_points);
+  }
+  this->_num_points = num_points;
 }
 
 std::complex<double> PadeApprox::evaluatePoint(std::complex<double> frequency) {
-    _temp_container_A.clear();
-    _temp_container_B.clear();
-    _temp_container_A.push_back(std::complex<double>(0,0));
-    _temp_container_A.push_back(_coeff.at(0));
-    _temp_container_B.push_back(std::complex<double>(1,0));
-    _temp_container_B.push_back(std::complex<double>(1,0));
-    std::complex<double> B=RecursiveB(frequency, _grid.size());
-    std::complex<double> A=RecursiveA(frequency, _grid.size());
+  _temp_container_A.clear();
+  _temp_container_B.clear();
+  _temp_container_A.push_back(std::complex<double>(0, 0));
+  _temp_container_A.push_back(_coeff.at(0));
+  _temp_container_B.push_back(std::complex<double>(1, 0));
+  _temp_container_B.push_back(std::complex<double>(1, 0));
+  std::complex<double> B = RecursiveB(frequency, _grid.size());
+  std::complex<double> A = RecursiveA(frequency, _grid.size());
 
-  return A/B;
+  return A / B;
 }
-
-void PadeApprox::printAB(){
-
-  for(Index i=0; i<_temp_container_A.size(); i++){
-    std::cout<<"A_"<<i<<" = "<<_temp_container_A[i]<<std::endl;
-  }
-  std::cout<<std::endl;
-  for(Index i=0; i<_temp_container_B.size(); i++){
-    std::cout<<"B_"<<i<<" = "<<_temp_container_B[i]<<std::endl;
-  }
-
-}
-
 
 }  // namespace xtp
 }  // namespace votca
