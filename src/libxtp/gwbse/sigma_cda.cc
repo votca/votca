@@ -67,7 +67,6 @@ double Sigma_CDA::CalcResidueContribution(Eigen::VectorXd rpa_energies,
                                           Index gw_level) const {
   Index rpatotal = rpa_energies.size();
   double sigma_c = 0.0;
-  double result_alpha = 0.0;
   Index homo = _opt.homo - _opt.rpamin;
   Index lumo = homo + 1;
   double fermi_rpa = (rpa_energies(lumo) + rpa_energies(homo)) / 2.0;

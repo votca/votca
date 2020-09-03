@@ -71,7 +71,11 @@ void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
   double halfpi = 0.5 * votca::tools::conv::Pi;
   double newpoint = 0.0;
 
-  boost::progress_display progress(_opt.order);
+  std::cout << "\n... ... Preparing RPA for Gaussian quadrature along "
+               "imaginary axis with "
+            << _opt.order << " points" << std::endl;
+  boost::progress_display progress(_opt.order, std::cout, "... ... ",
+                                   "... ... ", "... ... ");
   for (Index j = 0; j < _opt.order; j++) {
     if (_opt.quadrature_scheme == "legendre") {
       newpoint = std::tan(halfpi * _quadpoints(j));
