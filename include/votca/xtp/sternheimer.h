@@ -26,7 +26,6 @@
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/multishift.h>
 #include <votca/xtp/padeapprox.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/vxc_grid.h>
@@ -97,8 +96,6 @@ class Sternheimer {
   AOBasis _auxbasis;
 
   options_sternheimer _opt;
-
-  Multishift _multishift;
 
   Index _num_occ_lvls;
 

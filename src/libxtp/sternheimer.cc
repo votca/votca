@@ -24,11 +24,7 @@
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/aomatrix3d.h>
 #include <votca/xtp/aopotential.h>
-#include <votca/xtp/gauss_hermite_quadrature_constants.h>
-#include <votca/xtp/gauss_laguerre_quadrature_constants.h>
-#include <votca/xtp/gauss_legendre_quadrature_constants.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/multishift.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/padeapprox.h>
 #include <votca/xtp/qmmolecule.h>
