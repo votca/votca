@@ -32,7 +32,7 @@ class GaussianQuadrature {
 
  public:
   struct options {
-    Index order = 12;
+    Index order;
     Index qptotal;
     Index qpmin;
     Index homo;
