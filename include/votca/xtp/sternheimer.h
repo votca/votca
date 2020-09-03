@@ -64,9 +64,7 @@ class Sternheimer {
     double mixing_constant = 0.5;  // 0<mixing_const<1
     Index max_mixing_history = 10;
     Index level = 0; //energy level for GW
-    std::string quadrature_scheme = "hermite";
-    Index quadrature_order = 12; 
-    std::string calculation="gwsternheimer";
+    std::string task="gwsternheimer";
   };
 
   // Edit Options
@@ -86,21 +84,9 @@ class Sternheimer {
 
   std::vector<Eigen::Vector3cd> MOEnergyGradient(Index n, Index m) const;
 
-  // Prints the isotropic average of the polarizability tensor
-  void printIsotropicAverage(std::vector<Eigen::Matrix3cd>& polar) const;
-  // Prints the Hellmann-Feynman contribution of the Energy Gradient
-  void printHellmannFeynmanForces(
-      std::vector<Eigen::Vector3cd>& EnergyGrad) const;
-  // Prints the MO Energy gradient for state n and m
-  void printMOEnergyGradient(std::vector<Eigen::Vector3cd>& EnergyGrad, Index n,
-                             Index m) const;
   // Returns Isotropic Average from Polarizability Tensor
   std::vector<double> getIsotropicAverage(
       std::vector<Eigen::Matrix3cd>& polar) const;
-
-  PadeApprox getGWPade() const;
-
-  void printGW(Index level) const;
 
  private:
   Logger* _pLog;
@@ -132,9 +118,6 @@ class Sternheimer {
   ERIs _eris;
   Eigen::VectorXd _Fxc_presaved;
 
-  // Sets up the Multishift solver for linear systems of given size
-  void initializeMultishift(Index size);
-
   // returns the overlap matrix for all occupied states
   Eigen::MatrixXcd OverlapMatrix();
   // returns the density matrix for all occupied states
@@ -143,7 +126,6 @@ class Sternheimer {
   Eigen::MatrixXcd Hamiltonian();
   // Calculates coulomb matrix
   Eigen::MatrixXcd CoulombMatrix();
-  Eigen::MatrixXcd CoulombMatrix(Eigen::Vector3d gridpoint) const;
   
   // sets up the left hand side of the sternheimer equation
   Eigen::MatrixXcd SternheimerLHS(const Eigen::MatrixXcd& hamiltonian,
@@ -168,39 +150,11 @@ class Sternheimer {
   Eigen::MatrixXcd NPAndersonMixing(std::vector<Eigen::MatrixXcd>& Input,
                                     std::vector<Eigen::MatrixXcd>& Output,
                                     double alpha) const;
-  // Borydens Method for Mixing with variable history size
-  Eigen::MatrixXcd BroydenMixing(std::vector<Eigen::MatrixXcd>& Input,
-                                 std::vector<Eigen::MatrixXcd>& Output,
-                                 double alpha) const;
-
   Eigen::MatrixXcd Fxc(Eigen::MatrixXcd deltaN) const;
-
-  Eigen::MatrixXcd GreensFunctionLHS(std::complex<double> w) const;
-  Eigen::MatrixXcd GreensFunctionRHS(Eigen::Vector3d r) const;
-
-  Eigen::MatrixXcd AnalyticGreensfunction(std::complex<double> w) const;
 
   std::complex<double> Lorentzian(double center, std::complex<double> freq) const;
 
-  Eigen::MatrixXcd NonAnalyticGreensfunction(std::complex<double> freq) const;
 
-  Eigen::MatrixXcd GreensFunction(std::complex<double> frequency) const;
-
-  Eigen::MatrixXcd ScreenedCoulomb(Eigen::Vector3d gridpoint1,
-                                   std::complex<double> frequency) const;
-
-  Eigen::VectorXd EvaluateBasisAtPosition(const AOBasis& dftbasis,
-                                          const Eigen::Vector3d& pos) const;
-
-  Eigen::MatrixXcd SelfEnergy_at_wp(std::complex<double> omega, std::complex<double> omega_p) const;
-  Eigen::MatrixXcd SelfEnergy_at_w(std::complex<double> omega) const;
-
-  // Return Self-Energy
-  Eigen::VectorXcd SelfEnergy_exchange() const;
-  Eigen::VectorXcd SelfEnergy_diagonal(std::complex<double> omega) const;
-
-  std::complex<double> SelfEnergy_cohsex(std::complex<double> omega,Index n) const;
-  Eigen::VectorXd Intercept() const;
 };
 }  // namespace xtp
 }  // namespace votca
