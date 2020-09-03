@@ -94,22 +94,17 @@ template Eigen::MatrixXd RPA::calculate_epsilon<false>(double frequency) const;
 Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
 
   const Index size = _Mmn.auxsize();
-  //std::vector<Eigen::MatrixXd> thread_result = std::vector<Eigen::MatrixXd>(
-  //    OPENMP::getMaxThreads(), Eigen::MatrixXd::Zero(size, size));
-Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
+  Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
 
   const Index lumo = _homo + 1;
   const Index n_occ = lumo - _rpamin;
   const Index n_unocc = _rpamax - lumo + 1;
 
-//#pragma omp parallel for schedule(guided)
 #pragma omp parallel for schedule(dynamic) reduction(+ : result)
   for (Index m_level = 0; m_level < n_occ; m_level++) {
     const double qp_energy_m = _energies(m_level);
-    const Eigen::MatrixXd Mmn_RPA =
-        _Mmn[m_level].block(n_occ, 0, n_unocc, size);
-    const Eigen::ArrayXd deltaE =
-        _energies.segment(n_occ, n_unocc).array() - qp_energy_m;
+    const Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+    const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;
 
     Eigen::VectorXd chi;
     Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
@@ -120,20 +115,10 @@ Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
 
     chi = deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
           deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
-    //Eigen::MatrixXd tempresult =
-    //    Mmn_RPA.transpose() * chi.asDiagonal() * Mmn_RPA;
-    result += Mmn_RPA.transpose() * chi.asDiagonal() * Mmn_RPA;
-
-
-    //thread_result[OPENMP::getThreadId()] += tempresult;
+    result += -2 * Mmn_RPA.transpose() * chi.asDiagonal() * Mmn_RPA;
   }
 
-  //Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
-
-  //for (const auto& mat : thread_result) {
-  //  result -= 2 * mat;
-  //}
-  return -2*result;
+  return result;
 }
 
 Eigen::MatrixXcd RPA::calculate_epsilon_complex(
