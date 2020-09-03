@@ -54,8 +54,9 @@ class RPA {
 
   Eigen::MatrixXd calculate_epsilon_r(std::complex<double> frequency) const;
 
-  Eigen::MatrixXcd calculate_epsilon_complex(std::complex<double> frequency) const;
-  
+  Eigen::MatrixXcd calculate_epsilon_complex(
+      std::complex<double> frequency) const;
+
   const Eigen::VectorXd& getRPAInputEnergies() const { return _energies; }
 
   void setRPAInputEnergies(const Eigen::VectorXd& rpaenergies) {

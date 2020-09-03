@@ -17,6 +17,8 @@
  *
  */
 
+#include <boost/progress.hpp>
+
 #include <votca/tools/constants.h>
 #include <votca/xtp/gauss_hermite_quadrature_constants.h>
 #include <votca/xtp/gauss_laguerre_quadrature_constants.h>
@@ -65,9 +67,11 @@ void GaussianQuadrature::configure(options opt, const RPA& rpa) {
 void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
   _dielinv_matrices_r.resize(_opt.order);
   Eigen::MatrixXd eps_inv_j;  // Don't know if I have to specify dimension of
-                               // the matrix here
+                              // the matrix here
   double halfpi = 0.5 * votca::tools::conv::Pi;
   double newpoint = 0.0;
+
+  boost::progress_display progress(_opt.order);
   for (Index j = 0; j < _opt.order; j++) {
     if (_opt.quadrature_scheme == "legendre") {
       newpoint = std::tan(halfpi * _quadpoints(j));
@@ -80,6 +84,7 @@ void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
     eps_inv_j = rpa.calculate_epsilon_i(newpoint).inverse();
     eps_inv_j.diagonal().array() -= 1.0;
     _dielinv_matrices_r[j] = -eps_inv_j;
+    ++progress;
   }
 }
 

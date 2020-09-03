@@ -19,11 +19,11 @@
 
 #ifndef _VOTCA_XTP_SIGMA_CDA_H
 #define _VOTCA_XTP_SIGMA_CDA_H
-#include <complex>
 #include "votca/xtp/gaussian_quadrature.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_base.h"
+#include <complex>
 
 // This computes the whole expectation matrix for the correlational part of the
 // self-energy: so, both the residual and the Gauss-Hermite quadrature
@@ -60,11 +60,10 @@ class Sigma_CDA : public Sigma_base {
   double CalcCorrelationOffDiagElement(Index, Index, double, double) const {
     return 0;
   }
- 
- private:
 
+ private:
   double CalcResiduePrefactor(double e_f, double e_m, double frequency) const;
-  
+
   double CalcResidueContribution(Eigen::VectorXd rpa_energies, double frequency,
                                  Index gw_level) const;
 
@@ -72,7 +71,7 @@ class Sigma_CDA : public Sigma_base {
                               double eta) const;
 
   GaussianQuadrature _gq;
-  
+
   double _eta;
 };
 

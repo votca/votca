@@ -38,13 +38,12 @@ void Sigma_CDA::PrepareScreening() {
 // This function is used in the calculation of the residues
 // This calculates eps^-1 (inverse of the dielectric function) for complex
 // frequencies of the kind omega = delta + i*eta
-double Sigma_CDA::CalcDiagContribution(const Eigen::RowVectorXd& Imx_row, double delta,
-                                       double eta) const {
-  std::complex<double> delta_eta(delta,eta); 
-  Eigen::MatrixXd DielMxInv =
-      _rpa.calculate_epsilon_r(delta_eta).inverse();
+double Sigma_CDA::CalcDiagContribution(const Eigen::RowVectorXd& Imx_row,
+                                       double delta, double eta) const {
+  std::complex<double> delta_eta(delta, eta);
+  Eigen::MatrixXd DielMxInv = _rpa.calculate_epsilon_r(delta_eta).inverse();
   DielMxInv.diagonal().array() -= 1.0;
-  return ((Imx_row * DielMxInv).cwiseProduct(Imx_row)).sum(); //.real();
+  return ((Imx_row * DielMxInv).cwiseProduct(Imx_row)).sum();  //.real();
 }
 
 double Sigma_CDA::CalcResiduePrefactor(double e_f, double e_m,
@@ -81,7 +80,7 @@ double Sigma_CDA::CalcResidueContribution(Eigen::VectorXd rpa_energies,
     // Only considering the terms with a abs(prefactor) > 0.
     // The prefactor can be 1,-1,0.5,-0.5 or 0. We avoid calculating the
     // diagonal contribution if the prefactor is 0. We want to calculate it for
-    // all the other cases. 
+    // all the other cases.
     if (std::abs(factor) > 1e-10) {
       sigma_c += factor * CalcDiagContribution(Imx.row(i), delta, _eta);
     }
@@ -94,7 +93,7 @@ double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
   const Eigen::VectorXd& RPAenergies = _rpa.getRPAInputEnergies();
   double sigma_c_residue =
       CalcResidueContribution(RPAenergies, frequency, gw_level);
-  double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level,_eta);
+  double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level, _eta);
   return sigma_c_residue + sigma_c_integral;
 }
 

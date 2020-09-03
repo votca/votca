@@ -28,11 +28,11 @@
 
 // Local VOTCA includes
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/gaussian_quadrature.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/sigma_cda.h>
 #include <votca/xtp/threecenter.h>
-#include <votca/xtp/gaussian_quadrature.h>
 
 using namespace votca::xtp;
 using namespace std;
@@ -66,8 +66,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   RPA rpa(log, Mmn);
   rpa.setRPAInputEnergies(mo_energy);
   rpa.configure(4, 0, 16);
-  
- 
+
   Sigma_CDA sigma = Sigma_CDA(Mmn, rpa);
   Sigma_CDA::options opt;
   opt.homo = 4;
@@ -108,7 +107,6 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
     cout << c_ref_diag << endl;
   }
   BOOST_CHECK_EQUAL(check_c_diag, true);
-  
- }
+}
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -38,7 +38,7 @@ class GaussianQuadrature {
     Index homo;
     Index rpamin;
     Index rpamax;
-    std::string quadrature_scheme ;
+    std::string quadrature_scheme;
   };
 
   GaussianQuadrature(const Eigen::VectorXd& energies,
@@ -47,7 +47,7 @@ class GaussianQuadrature {
   void configure(options opt, const RPA& rpa);
 
   double SigmaGQDiag(double frequency, Index gw_level, double eta) const;
- 
+
  private:
   options _opt;
 

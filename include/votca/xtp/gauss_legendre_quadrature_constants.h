@@ -20,10 +20,10 @@
 #ifndef __VOTCA_XTP_GAUS_LEGENDRE_QUADRATURE_CONSTANTS_H
 #define __VOTCA_XTP_GAUS_LEGENDRE_QUADRATURE_CONSTANTS_H
 
+#include "votca/xtp/eigen.h"
 #include <map>
 #include <stdexcept>
 #include <string>
-#include "votca/xtp/eigen.h"
 
 namespace votca {
 namespace xtp {
