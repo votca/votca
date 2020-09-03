@@ -41,10 +41,10 @@ void Sigma_CDA::PrepareScreening() {
 double Sigma_CDA::CalcDiagContribution(const Eigen::RowVectorXd& Imx_row, double delta,
                                        double eta) const {
   std::complex<double> delta_eta(delta,eta); 
-  Eigen::MatrixXcd DielMxInv =
-      _rpa.calculate_epsilon_complex(delta_eta).inverse();
+  Eigen::MatrixXd DielMxInv =
+      _rpa.calculate_epsilon_r(delta_eta).inverse();
   DielMxInv.diagonal().array() -= 1.0;
-  return ((Imx_row * DielMxInv).cwiseProduct(Imx_row)).sum().real();
+  return ((Imx_row * DielMxInv).cwiseProduct(Imx_row)).sum(); //.real();
 }
 
 double Sigma_CDA::CalcResiduePrefactor(double e_f, double e_m,

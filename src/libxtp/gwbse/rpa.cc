@@ -91,7 +91,48 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
 template Eigen::MatrixXd RPA::calculate_epsilon<true>(double frequency) const;
 template Eigen::MatrixXd RPA::calculate_epsilon<false>(double frequency) const;
 
-Eigen::MatrixXcd RPA::calculate_epsilon_complex(std::complex<double> frequency) const {
+Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
+
+  const Index size = _Mmn.auxsize();
+  std::vector<Eigen::MatrixXd> thread_result = std::vector<Eigen::MatrixXd>(
+      OPENMP::getMaxThreads(), Eigen::MatrixXd::Zero(size, size));
+  const Index lumo = _homo + 1;
+  const Index n_occ = lumo - _rpamin;
+  const Index n_unocc = _rpamax - lumo + 1;
+
+#pragma omp parallel for schedule(guided)
+  for (Index m_level = 0; m_level < n_occ; m_level++) {
+    const double qp_energy_m = _energies(m_level);
+    const Eigen::MatrixXd Mmn_RPA =
+        _Mmn[m_level].block(n_occ, 0, n_unocc, size);
+    const Eigen::ArrayXd deltaE =
+        _energies.segment(n_occ, n_unocc).array() - qp_energy_m;
+
+    Eigen::VectorXd chi;
+    Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
+    Eigen::ArrayXd deltaEp = frequency.real() + deltaE;
+
+    double sigma_1 = std::pow(frequency.imag() + _eta, 2);
+    double sigma_2 = std::pow(frequency.imag() - _eta, 2);
+
+    chi = deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
+          deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
+    Eigen::MatrixXd tempresult =
+        Mmn_RPA.transpose() * chi.asDiagonal() * Mmn_RPA;
+
+    thread_result[OPENMP::getThreadId()] += tempresult;
+  }
+
+  Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
+
+  for (const auto& mat : thread_result) {
+    result -= 2 * mat;
+  }
+  return result;
+}
+
+Eigen::MatrixXcd RPA::calculate_epsilon_complex(
+    std::complex<double> frequency) const {
   const Index size = _Mmn.auxsize();
   std::vector<Eigen::MatrixXcd> thread_result = std::vector<Eigen::MatrixXcd>(
       OPENMP::getMaxThreads(), Eigen::MatrixXcd::Zero(size, size));
@@ -99,7 +140,7 @@ Eigen::MatrixXcd RPA::calculate_epsilon_complex(std::complex<double> frequency) 
   const Index n_occ = lumo - _rpamin;
   const Index n_unocc = _rpamax - lumo + 1;
 
-  std::complex<double> eta(0.0, _eta);  
+  std::complex<double> eta(0.0, _eta);
 
 #pragma omp parallel for schedule(guided)
   for (Index m_level = 0; m_level < n_occ; m_level++) {
@@ -113,22 +154,20 @@ Eigen::MatrixXcd RPA::calculate_epsilon_complex(std::complex<double> frequency) 
     Eigen::ArrayXcd deltaEm = frequency - deltaE + eta;
     Eigen::ArrayXcd deltaEp = frequency + deltaE - eta;
 
-    
     chi = deltaEm.cwiseInverse() - deltaEp.cwiseInverse();
-    Eigen::MatrixXcd tempresult =  Mmn_RPA.transpose() * chi.asDiagonal()* Mmn_RPA;
+    Eigen::MatrixXcd tempresult =
+        Mmn_RPA.transpose() * chi.asDiagonal() * Mmn_RPA;
 
     thread_result[OPENMP::getThreadId()] += tempresult;
-}   
+  }
 
-Eigen::MatrixXcd result = Eigen::MatrixXcd::Identity(size, size);
-   
-for (const auto& mat : thread_result) {
-    result -= 2.*mat;
+  Eigen::MatrixXcd result = Eigen::MatrixXcd::Identity(size, size);
+
+  for (const auto& mat : thread_result) {
+    result -= 2. * mat;
   }
   return result;
 }
-
-
 
 RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   const Index lumo = _homo + 1;
