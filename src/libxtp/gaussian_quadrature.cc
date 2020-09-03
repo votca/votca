@@ -64,22 +64,21 @@ void GaussianQuadrature::configure(options opt, const RPA& rpa) {
 // matrix in a matrix vector
 void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
   _dielinv_matrices_r.resize(_opt.order);
-  Eigen::MatrixXcd eps_inv_j;  // Don't know if I have to specify dimension of
+  Eigen::MatrixXd eps_inv_j;  // Don't know if I have to specify dimension of
                                // the matrix here
   double halfpi = 0.5 * votca::tools::conv::Pi;
+  double newpoint = 0.0;
 #pragma openmp parallel schedule(guided)
   for (Index j = 0; j < _opt.order; j++) {
     if (_opt.quadrature_scheme == "legendre") {
-      std::complex<double> newpoint(0.0, std::tan(halfpi * _quadpoints(j)));
-      eps_inv_j = rpa.calculate_epsilon_complex(newpoint).inverse();
+      newpoint = std::tan(halfpi * _quadpoints(j));
     } else if (_opt.quadrature_scheme == "modified_legendre") {
       double exponent = (1.0 + _quadpoints(j)) / (1.0 - _quadpoints(j));
-      std::complex<double> newpoint(0.0, std::pow(0.5, exponent));
-      eps_inv_j = rpa.calculate_epsilon_complex(newpoint).inverse();
+      newpoint = std::pow(0.5, exponent);
     } else {
-      std::complex<double> newpoint(0.0, _quadpoints(j));
-      eps_inv_j = rpa.calculate_epsilon_complex(newpoint).inverse();
+      newpoint = _quadpoints(j);
     }
+    eps_inv_j = rpa.calculate_epsilon_i(newpoint).inverse();
     eps_inv_j.diagonal().array() -= 1.0;
     _dielinv_matrices_r[j] = -eps_inv_j;
   }
