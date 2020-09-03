@@ -45,27 +45,26 @@ void SternheimerFrame::Initialize(const tools::Property &user_options) {
   tools::Property options =
       LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
 
-  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".orb", _job_name + ".orb");
+  _orbfile = options.get(".orb_file").as<std::string>();
 
   XTP_LOG(Log::error, _log) << " Running Sternheimer" << flush;
 
-  _options.start_frequency_grid = options.get(".omegain").as<double>();
-  _options.end_frequency_grid = options.get(".omegafin").as<double>();
-  _options.number_of_frequency_grid_points = options.get(".step").as<Index>();
+  _options.start_frequency_grid = options.get(".start_frequency").as<double>();
+  _options.end_frequency_grid = options.get(".end_frequency").as<double>();
+  _options.number_of_frequency_grid_points = options.get(".steps").as<Index>();
   _options.imaginary_shift_pade_approx = options.get(".imshift").as<double>();
   _options.number_output_grid_points = options.get(".resolution").as<Index>();
   _options.do_precalc_fxc = options.get(".do_precalc_fxc").as<bool>();
-  _options.calculation = options.get(".calculation").as<std::string>();
+  _options.calculation = options.get(".task").as<std::string>();
   _options.numerical_Integration_grid_type =
-      options.get(".spatialgridtype").as<std::string>();
+      options.get(".fxc_integration_grid").as<std::string>();
   _options.quadrature_scheme =
       options.get(".quadrature_scheme").as<std::string>();
   _options.quadrature_order = options.get(".quadrature_order").as<Index>();
   _options.level = options.get(".level").as<Index>();
   _options.max_iterations_sc_sternheimer = options.get(".max_iter").as<Index>();
-  _options.tolerance_sc_sternheimer = options.get(".tol").as<double>();
-  _options.max_mixing_history = options.get(".hist").as<Index>();
+  _options.tolerance_sc_sternheimer = options.get(".tolerance").as<double>();
+  _options.max_mixing_history = options.get(".max_hist").as<Index>();
 
 
   XTP_LOG(Log::error, _log) << " Task: " << _options.calculation << flush;
