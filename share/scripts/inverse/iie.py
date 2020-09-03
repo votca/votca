@@ -100,6 +100,147 @@ def find_nearest_ndx(array, value):
     return idx
 
 
+def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
+    """calculates U from g and G_minus_g for molecules with n identical beads.
+    This means it works for two-bead hexane, but is expected to fail for
+    three-bead hexane"""
+    # single bead case
+    # (even though the formulas in this function would work)
+    if n == 1:
+        U = calc_U_single(r, g_cur, kBT, rho, closure)
+        return U
+    # reciprocal space ω with radial symmetry
+    omega = np.arange(1, len(r)) / (2 * max(r))
+    # total correlation function h
+    h = g_cur - 1
+    h_hat = fourier(r, h, omega)
+    # intramolecular distribution G - g
+    G_minus_g_hat = fourier(r, G_minus_g, omega)
+    # auxiliary variables a, b, e
+    a_hat = rho * G_minus_g_hat
+    # reduces to 1 for a_hat = 0 or n = 1
+    b_hat = 1 + a_hat * (2 - 2/n) + a_hat**2 * (1/n * (n - 2) + 1/n**2)
+    # reduces to rho for a_hat = 0 or n = 1
+    e_hat = rho * (a_hat - a_hat/n + 1)
+    # direct correlation function c from OZ including intramolecular
+    # interactions
+    c_hat = h_hat / (b_hat + e_hat * h_hat)
+    c = fourier(omega, c_hat, r)
+    # U from HNC
+    with np.errstate(divide='ignore', invalid='ignore'):
+        if closure == 'hnc':
+            U = kBT * (-np.log(g_cur) + h - c)
+        elif closure == 'py':
+            U = kBT * np.log(1 - c/g_cur)
+    return U
+
+
+def calc_U_single(r, g_cur, kBT, rho, closure):
+    """calculates U from g for single particle systems."""
+    # reciprocal space ω with radial symmetry
+    omega = np.arange(1, len(r)) / (2 * max(r))
+    # total correlation function h
+    h = g_cur - 1
+    h_hat = fourier(r, h, omega)
+    # direct correlation function c from OZ
+    # interactions
+    c_hat = h_hat / (1 + rho * h_hat)
+    c = fourier(omega, c_hat, r)
+    # U from HNC
+    with np.errstate(divide='ignore', invalid='ignore'):
+        if closure == 'hnc':
+            U = kBT * (-np.log(g_cur) + h - c)
+        elif closure == 'py':
+            U = kBT * np.log(1 - c/g_cur)
+    return U
+
+
+def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
+                           closure, newton_mod):
+    """calculates an update step dU for the potential from g_tgt, g_cur, and
+    G_minus_g  using IHNC (or HNCN) step for molecules with n identical beads.
+    This means it works for two-bead hexane, but is expected to fail for
+    three-bead hexane"""
+    # single bead case
+    # (even though the formulas in this function would work)
+    if n == 1:
+        dU = calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho, closure, newton_mod)
+        return dU
+    # reciprocal space with radial symmetry ω
+    omega = np.arange(1, len(r)) / (2 * max(r))
+    # difference of rdf to target 'f'
+    g_prime = g_tgt - g_cur
+    g_prime_hat = fourier(r, g_prime, omega)
+    # pair correlation function 'h'
+    h_hat = fourier(r, g_tgt - 1, omega)
+    # intramolecular distribution G - g
+    G_minus_g_hat = fourier(r, G_minus_g, omega)
+    # auxiliary variables a, b, e
+    a_hat = rho * G_minus_g_hat
+    # reduces to 1 for a_hat = 0 or n = 1
+    b_hat = 1 + a_hat * (2 - 2/n) + a_hat**2 * (1/n * (n - 2) + 1/n**2)
+    # reduces to rho for a_hat = 0 or n = 1
+    e_hat = rho * (a_hat - a_hat/n + 1)
+    # dc/dg g' = c'
+    # derived in sympy
+    c_prime_hat = b_hat * g_prime_hat / (b_hat + e_hat * h_hat)**2
+    c_prime = fourier(omega, c_prime_hat, r)
+    # dU from HNC
+    with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
+        if closure == 'hnc':
+            if newton_mod:
+                dU = kBT * (np.log(g_cur / g_tgt) + g_prime - c_prime)
+            else:
+                dU = kBT * (-(g_prime / g_tgt) + g_prime - c_prime)
+        elif closure == 'py':
+            # for PY we also need c
+            c_hat = h_hat / (b_hat + e_hat * h_hat)
+            c = fourier(omega, c_hat, r)
+            if newton_mod:
+                # dU = kBT * ()
+                raise NotImplementedError
+            else:
+                # probably wrong:
+                # U = kBT * np.log(1 - c/g_cur)
+                dU = kBT * (1 / (1 - c / g_tgt)
+                            * (- c_prime * g_tgt + g_prime * c) / g_tgt**2)
+    return dU
+
+
+def calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho,
+                          closure, newton_mod):
+    """calculates an update step dU for the potential from g_tgt and g_cur
+    using IHNC (or HNCN) step for single bead systems.
+    """
+    # reciprocal space with radial symmetry ω
+    omega = np.arange(1, len(r)) / (2 * max(r))
+    omega *= 0.9999
+    # difference of rdf to target
+    g_prime = g_tgt - g_cur
+    g_prime_hat = fourier(r, g_prime, omega)
+    # pair correlation function 'h'
+    h_hat = fourier(r, g_tgt - 1, omega)
+    # direct correlation function
+    c_prime_hat = g_prime_hat / (1 + rho * h_hat)**2
+    c_prime = fourier(omega, c_prime_hat, r)
+    # dU from HNC
+    with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
+        if closure == 'hnc':
+            if newton_mod:
+                dU = kBT * (np.log(g_cur / g_tgt) + g_prime - c_prime)
+            else:
+                dU = kBT * (-(g_prime / g_tgt) + g_prime - c_prime)
+        elif closure == 'py':
+            if newton_mod:
+                raise NotImplementedError
+            else:
+                c_hat = 1 / (1 + rho * h_hat)
+                c = fourier(omega, c_hat, r)
+                dU = kBT * (1 / (1 - c / g_tgt)
+                            * (- c_prime * g_tgt + g_prime * c) / g_tgt**2)
+    return dU
+
+
 def gauss_newton_constrained(A, C, b, d):
     """do a gauss-newton update, but eliminate Cx=d first"""
     m, n = A.shape
@@ -119,7 +260,8 @@ def gauss_newton_constrained(A, C, b, d):
         b_elim = b - A[:, pivot] * d[i] / C[i, pivot]
         A_elim = np.delete(A_elim, pivot, 1)
     if p == n:
-        print("Warning: solution determined fully by constraints")
+        print("WARNING: solution of Gauss-Newton update determined fully "
+              "by constraints.")
         x_elim = []
     else:
         x_elim = np.linalg.solve(np.matmul(A_elim.T, A_elim),
@@ -320,107 +462,6 @@ def fix_U_near_cut_off_full(r, U, cut_off):
     # modify up to second last value
     U_fixed[:ndx_co] += shift
     return U_fixed
-
-
-def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
-                           closure, newton_mod):
-    """calculates an update step dU for the potential from g_tgt, g_cur, and
-    G_minus_g  using IHNC (or HNCN) step for molecules with n identical beads.
-    This means it works for two-bead hexane, but is expected to fail for
-    three-bead hexane"""
-    # reciprocal space with radial symmetry ω
-    omega = np.arange(1, len(r)) / (2 * max(r))
-    # difference of rdf to target 'f'
-    g_prime = g_tgt - g_cur
-    g_prime_hat = fourier(r, g_prime, omega)
-    # pair correlation function 'h'
-    h_hat = fourier(r, g_cur - 1, omega)
-    # intramolecular distribution G - g
-    G_minus_g_hat = fourier(r, G_minus_g, omega)
-    # auxiliary variables a, b, e
-    a_hat = rho * G_minus_g_hat
-    # reduces to 1 for a_hat = 0 or n = 1
-    b_hat = 1 + a_hat * (2 - 2/n) + a_hat**2 * (1/n * (n - 2) + 1/n**2)
-    # reduces to rho for a_hat = 0 or n = 1
-    e_hat = rho * (a_hat - a_hat/n + 1)
-    # dc/dg g' = c'
-    # derived in sympy
-    c_prime_hat = b_hat * g_prime_hat / (b_hat + e_hat * h_hat)**2
-    c_prime = fourier(omega, c_prime_hat, r)
-    # dU from HNC
-    with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
-        if closure == 'hnc':
-            if newton_mod:
-                dU = kBT * (np.log(g_cur / g_tgt) + g_prime - c_prime)
-            else:
-                dU = kBT * (-(g_prime / g_tgt) + g_prime - c_prime)
-        elif closure == 'py':
-            # for PY we also need c
-            c_hat = h_hat / (b_hat + e_hat * h_hat)
-            c = fourier(omega, c_hat, r)
-            if newton_mod:
-                # dU = kBT * ()
-                raise NotImplementedError
-            else:
-                # probably wrong:
-                dU = kBT * (1 / (1 - c / g_tgt)
-                            * (- c_prime * g_tgt + g_prime * c) / g_tgt**2)
-    return dU
-
-
-def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
-    """calculates U from g and G_minus_g for molecules with n identical beads.
-    This means it works for two-bead hexane, but is expected to fail for
-    three-bead hexane"""
-    # single bead case
-    # (even though the formulas in this function would work)
-    if n == 1:
-        U = calc_U_single(r, g_cur, kBT, rho, closure)
-        return U
-    # reciprocal space ω with radial symmetry
-    omega = np.arange(1, len(r)) / (2 * max(r))
-    # total correlation function h
-    h = g_cur - 1
-    h_hat = fourier(r, h, omega)
-    # intramolecular distribution G - g
-    G_minus_g_hat = fourier(r, G_minus_g, omega)
-    # auxiliary variables a, b, e
-    a_hat = rho * G_minus_g_hat
-    # reduces to 1 for a_hat = 0 or n = 1
-    b_hat = 1 + a_hat * (2 - 2/n) + a_hat**2 * (1/n * (n - 2) + 1/n**2)
-    # reduces to rho for a_hat = 0 or n = 1
-    e_hat = rho * (a_hat - a_hat/n + 1)
-    # direct correlation function c from OZ including intramolecular
-    # interactions
-    c_hat = h_hat / (b_hat + e_hat * h_hat)
-    c = fourier(omega, c_hat, r)
-    # U from HNC
-    with np.errstate(divide='ignore', invalid='ignore'):
-        if closure == 'hnc':
-            U = kBT * (-np.log(g_cur) + h - c)
-        elif closure == 'py':
-            U = kBT * np.log(1 - c/g_cur)
-    return U
-
-
-def calc_U_single(r, g_cur, kBT, rho, closure):
-    """calculates U from g for single particle systems."""
-    # reciprocal space ω with radial symmetry
-    omega = np.arange(1, len(r)) / (2 * max(r))
-    # total correlation function h
-    h = g_cur - 1
-    h_hat = fourier(r, h, omega)
-    # direct correlation function c from OZ
-    # interactions
-    c_hat = h_hat / (1 + rho * h_hat)
-    c = fourier(omega, c_hat, r)
-    # U from HNC
-    with np.errstate(divide='ignore', invalid='ignore'):
-        if closure == 'hnc':
-            U = kBT * (-np.log(g_cur) + h - c)
-        elif closure == 'py':
-            U = kBT * np.log(1 - c/g_cur)
-    return U
 
 
 def upd_flag_g_smaller_g_min(flag, g, g_min):
