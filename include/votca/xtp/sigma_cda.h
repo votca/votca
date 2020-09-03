@@ -54,7 +54,7 @@ class Sigma_CDA : public Sigma_base {
     double h = 1e-3;
     double plus = CalcCorrelationDiagElement(gw_level, frequency + h);
     double minus = CalcCorrelationDiagElement(gw_level, frequency - h);
-    return plus - minus / (2 * h);
+    return (plus - minus) / (2 * h);
   }
   // Calculates Sigma_c off-diagonal elements
   double CalcCorrelationOffDiagElement(Index, Index, double, double) const {
