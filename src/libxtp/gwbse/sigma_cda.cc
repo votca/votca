@@ -70,7 +70,6 @@ double Sigma_CDA::CalcResidueContribution(Eigen::VectorXd rpa_energies,
   Index homo = _opt.homo - _opt.rpamin;
   Index lumo = homo + 1;
   double fermi_rpa = (rpa_energies(lumo) + rpa_energies(homo)) / 2.0;
-
   const Eigen::MatrixXd& Imx = _Mmn[gw_level];
   for (Index i = 0; i < rpatotal; ++i) {
     double delta = std::abs(rpa_energies(i) - frequency);
@@ -90,9 +89,12 @@ double Sigma_CDA::CalcResidueContribution(Eigen::VectorXd rpa_energies,
 double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
                                              double frequency) const {
   const Eigen::VectorXd& RPAenergies = _rpa.getRPAInputEnergies();
+  Index gw_level_offset = gw_level + _opt.qpmin - _opt.rpamin;
+
   double sigma_c_residue =
-      CalcResidueContribution(RPAenergies, frequency, gw_level);
-  double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level, _eta);
+      CalcResidueContribution(RPAenergies, frequency, gw_level_offset);
+  double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level_offset, _eta);
+
   return sigma_c_residue + sigma_c_integral;
 }
 
