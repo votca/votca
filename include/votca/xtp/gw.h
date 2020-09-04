@@ -125,8 +125,7 @@ class GW {
     }
     double deriv(double frequency) const {
       return _sigma_c_func.CalcCorrelationDiagElementDerivative(_gw_level,
-                                                                frequency) +
-             _offset - frequency;
+                                                                frequency);
     }
 
    private:
