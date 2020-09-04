@@ -74,7 +74,6 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   opt.qpmax = 16;
   opt.rpamin = 0;
   opt.rpamax = 16;
-  opt.alpha = 0.01;
   opt.quadrature_scheme = "legendre";
   opt.order = 100;
   sigma.configure(opt);
