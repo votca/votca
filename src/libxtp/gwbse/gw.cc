@@ -322,7 +322,7 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
     if (targ_prev * targ < 0.0) {  // Sign change
       double f = SolveQP_Bisection(freq_prev, targ_prev, freq, targ, fqp);
       double gradient = fqp.deriv(f);
-      double qp_weight = 1.0 / (1.0 - gradient);
+      double qp_weight = -1.0 / gradient;
       roots.push_back(std::make_pair(f, qp_weight));
       if (std::abs(gradient) < gradient_max) {
         gradient_max = std::abs(gradient);
