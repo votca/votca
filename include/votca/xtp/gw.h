@@ -111,8 +111,7 @@ class GW {
         : _gw_level(gw_level), _offset(offset), _sigma_c_func(sigma){};
     std::pair<double, double> operator()(double frequency) const {
       std::pair<double, double> value;
-      value.first = value(frequency)
-      value.second = deriv(frequency);
+      value.first = value(frequency) value.second = deriv(frequency);
       return value;
     }
     double value(double frequency) const {
@@ -121,7 +120,8 @@ class GW {
     }
     double deriv(double frequency) const {
       return _sigma_c_func.CalcCorrelationDiagElementDerivative(_gw_level,
-                                                                frequency) -1.0;
+                                                                frequency) -
+             1.0;
     }
 
    private:
