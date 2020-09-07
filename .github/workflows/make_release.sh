@@ -199,7 +199,7 @@ if [[ $testing = "no" ]]; then
   if [[ -f README.md ]]; then
     sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.md || die "sed of README.md failed"
   elif [[ -f README.rst ]]; then
-    sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.rst || die "sed of README.rst failed"
+    sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.rst share/doc/INSTALL.rst || die "sed of README.rst failed"
   fi
   git add -u
   git commit -m "Version bumped to $rel"
