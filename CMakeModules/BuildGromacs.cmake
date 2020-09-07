@@ -1,5 +1,6 @@
 include(ExternalProject)
 include(GNUInstallDirs)
+enable_language(C)
 # ftp://ftp.gromacs.org/pub/gromacs/gromacs-XXX.tar.gz is too unstable for CI, so use Gentoo Mirror
 ExternalProject_Add(Gromacs_build
   URL http://distfiles.gentoo.org/distfiles/gromacs-2019.6.tar.gz https://ftp.gromacs.org/pub/gromacs/gromacs-2019.6.tar.gz
