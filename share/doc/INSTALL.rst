@@ -1,16 +1,23 @@
 Installation
 ============
 
-VOTCA structure
----------------
+General (Source) Installation Instructions
+------------------------------------------
 
-VOTCA is currently composed of four major repositories:
+To install the full package:
 
--  TOOLS - general tools
--  CSG - topographical classes and course graining functionality
--  XTP - exciton and excited states functionality GW-BSE and DFT engine
+::
 
-TOOLS -> CSG -> XTP
+    prefix=WHERE/TO/INSTALL/VOTCA
+    version=master # or 'stable' or 'v1.4.1'
+    git clone -b ${version} --recursive https://github.com/votca/votca.git
+    cd votca
+    mkdir build
+    cd build
+    cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
+    make -j5
+    make install
+
 
 Dependency Installation
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,22 +52,6 @@ Dependencies for Manual
 
      dnf install ghostscript texlive doxygen texlive-appendix texlive-wrapfig texlive-a4wide texlive-xstring inkscape transfig texlive-units texlive-sidecap texlive-bclogo texlive-mdframed texlive-braket graphviz ImageMagick ghostscript-tools-dvipdf
 
-General (Source) Installation Instructions
-------------------------------------------
-
-To install the full package:
-
-::
-
-    prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'stable' or 'v1.4.1'
-    git clone -b ${version} --recursive https://github.com/votca/votca.git
-    cd votca
-    mkdir build
-    cd build
-    cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
-    make -j5
-    make install
 
 Resolving the 'not found' dependency errors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -126,37 +117,6 @@ Other CMake Flags
 -  ``CMAKE_DISABLE_FIND_PACKAGE_HDF5`` - Disable using the optional
    package ``HDF5`` (ON/OFF, Default OFF; relevant only for the
    ``master`` branch)
-
-Legacy (Source) Installation Instructions
------------------------------------------
-
-Check `dependencies <#dependency-installation>`__ first. Do **NOT**
-download anything yourself, this is done by ``build.sh`` below.
-
-When installing for the first time, run the following commands in bash:
-
-::
-
-    prefix=WHERE/TO/INSTALL/VOTCA
-    mkdir -p ${prefix}/src
-    cd ${prefix}/src
-    wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh
-    chmod +x build.sh
-    ./build.sh --prefix ${prefix} --dev tools csg xtp
-
-Replace the *WHERE/TO/INSTALL/VOTCA* with directory where you want to
-install votca, usually \\${HOME}/votca is good choice.
-
-This commands will:
-
--  Create a directory, where the sources are to be stored (above
-   ``${prefix}/src``)
--  Go there
--  Download our build script
--  Make the build script executable
--  Run the build script to download all votca modules using git, it uses
-   the development version, as xtp still undergoes extensive development
-   and no releases are available yet.
 
 Packages for various Linux Distributions
 ----------------------------------------
