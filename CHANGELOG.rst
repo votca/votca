@@ -63,7 +63,9 @@ Version 2021-dev
 -  Refactor orbital reordering (#537)
 -  fix build with clang-11 (#546)
 -  Add a molden parser to xtp (#547)
-   
+-  Correct self-energy frequency derivative (#550)
+-  fix multiline orca keyword ($552)
+
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
 
