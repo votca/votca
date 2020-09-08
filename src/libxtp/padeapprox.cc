@@ -128,6 +128,5 @@ std::complex<double> PadeApprox::evaluatePoint(std::complex<double> frequency) {
 
   return A / B;
 }
-
 }  // namespace xtp
 }  // namespace votca

@@ -52,7 +52,7 @@ class Sternheimer {
     double end_frequency_grid = 20;     // in eV
     Index number_of_frequency_grid_points = 30;
     double imaginary_shift_pade_approx = 3;  // in eV
-    bool do_precalc_fxc = true;        // not recommended for large molecules
+    bool do_precalc_fxc = false;        // not recommended for large molecules
     Index number_output_grid_points = 100;
     std::string numerical_Integration_grid_type =
         "coarse";  // xfine fine medium coarse xcoarse
@@ -63,7 +63,7 @@ class Sternheimer {
     double mixing_constant = 0.5;  // 0<mixing_const<1
     Index max_mixing_history = 10;
     Index level = 0; //energy level for GW
-    std::string task="gwsternheimer";
+    std::string task;
   };
 
   // Edit Options

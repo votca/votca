@@ -146,6 +146,8 @@ bool SternheimerFrame::Evaluate() {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Finished Sternheimer Polarizability" << flush;
   }
+
+  
   if (_options.task == "gradient") {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer Energy Gradient" << flush;
@@ -170,6 +172,8 @@ bool SternheimerFrame::Evaluate() {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Finished Sternheimer Energy Gradient" << flush;
   }
+
+
   if (_options.task == "mogradient") {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer MO Energy Gradient" << flush;
