@@ -32,17 +32,17 @@ jobs:
           dockerfile: votca/.github/workflows/Dockerfile
           tag_with_ref: true
           push: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
-      - name: Build Docker images for Github
+      - name: Build Docker images for Github Container Registry
         uses: docker/build-push-action@v1.1.0
         with:
-          repository: votca/votca/votca
-          registry: docker.pkg.github.com
+          repository: votca/votca
+          registry: ghcr.io
           username: votca-bot
           password: ${{ secrets.VOTCA_BOT_TOKEN }}
           dockerfile: votca/.github/workflows/Dockerfile
           tag_with_ref: true
           push: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
-      - name: Build Docker images for Docker Hub
+      - name: Build Docker images for Gitlab
         uses: docker/build-push-action@v1.1.0
         with:
           repository: votca/votca
