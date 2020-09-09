@@ -94,8 +94,11 @@ double Sigma_CDA::CalcResidueContribution(Eigen::VectorXd rpa_energies,
       sigma_c += factor * CalcDiagContribution(Imx.row(i), delta, _eta);
     }
     // This part should allow to add a smooth tail
-    sigma_c_alpha +=
+    delta = rpa_energies(i) - frequency;
+    if (std::abs(delta) > 1e-10 ) { //feeding delta = 0 into copysign gives interesting results
+      sigma_c_alpha +=
         CalcDiagContributionValue_alpha(Imx.row(i), R, delta, _opt.alpha);
+    } 
   }
   return sigma_c + sigma_c_alpha;
 }
