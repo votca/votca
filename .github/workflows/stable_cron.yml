@@ -1,23 +1,18 @@
-name: CI
+# This is to workaround the issue in https://github.community/t/scheduled-builds-of-non-default-branch/16306
+name: Stable Cron
 on:
   push:
     branches:
-      - master
-      - stable
-  pull_request:
-    branches:
-      - master
-      - stable
+      - stable_cron
   schedule:
-    - cron:  '0 5 * * FRI'
+    - cron:  '0 5 * * SAT'
 
 jobs:
   CI:
-    # Ubuntu devel, Fedora Rawhide and some other in the matrix are allowed to fail, so continue with other builds
-    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
+    continue-on-error: ${{ matrix.distro == 'ubuntu_devel' || matrix.distro == 'fedora_rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
-        distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'ubuntu:18.04', 'fedora:intel']
+        distro: [latest, fedora_rawhide, opensuse, ubuntu, ubuntu_devel, ubuntu_rolling, ubuntu_18.04, intel]
         toolchain: [gnu, clang]
         cmake_build_type: [Release, Debug]
         minimal: [false]
@@ -26,7 +21,7 @@ jobs:
         coverage: [false]
         deploy: [false]
         include:
-          - distro: 'fedora:latest'
+          - distro: latest
             toolchain: gnu
             cmake_build_type: Release
             minimal: false
@@ -36,19 +31,19 @@ jobs:
             # make sure there is only one build deploying
             deploy: true
             no_regression_testing: true
-          - distro: 'fedora:nogmx'
+          - distro: fedora_nogmx
             toolchain: gnu
             cmake_build_type: Release
             minimal: true
-          - distro: 'fedora:nogmx'
+          - distro: fedora_nogmx
             toolchain: clang
             cmake_build_type: Release
             minimal: true
-          - distro: 'fedora:nogmx'
+          - distro: fedora_nogmx
             toolchain: gnu
             cmake_build_type: Release
             own_gmx: true
-          - distro: 'fedora:latest'
+          - distro: latest
             toolchain: gnu
             cmake_build_type: Release
             minimal: false
@@ -56,66 +51,64 @@ jobs:
             module_build: true
             coverage: false
             deploy: false
-          - distro: 'fedora:gmx2019'
+          - distro: fedora_gmx2019
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2019'
+          - distro: fedora_gmx2019
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2019_d'
+          - distro: fedora_gmx2019_d
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2019_d'
+          - distro: fedora_gmx2019_d
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2020'
-            toolchain: gnu
-            cmake_build_type: Release
-            no_regression_testing: true
-          - distro: 'fedora:gmx2020'
-            toolchain: clang
-            cmake_build_type: Release
-            no_regression_testing: true
-          - distro: 'fedora:gmx2020_d'
+          - distro: fedora_gmx2020
             toolchain: gnu
             cmake_build_type: Release
             no_regression_testing: true
-          - distro: 'fedora:gmx2020_d'
+          - distro: fedora_gmx2020
             toolchain: clang
             cmake_build_type: Release
             no_regression_testing: true
-          - distro: 'fedora:gmx9999'
+          - distro: fedora_gmx2020_d
+            toolchain: gnu
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: fedora_gmx2020_d
+            toolchain: clang
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: fedora_gmx9999
             toolchain: gnu
             cmake_build_type: Release
             continue-on-error: true
             no_regression_testing: true
-          - distro: 'fedora:gmx9999'
+          - distro: fedora_gmx9999
             toolchain: clang
             cmake_build_type: Release
             continue-on-error: true
             no_regression_testing: true
-          - distro: 'fedora:gmx9999_d'
+          - distro: fedora_gmx9999_d
             toolchain: gnu
             cmake_build_type: Release
             continue-on-error: true
             no_regression_testing: true
-          - distro: 'fedora:gmx9999_d'
+          - distro: fedora_gmx9999_d
             toolchain: clang
             cmake_build_type: Release
             continue-on-error: true
             no_regression_testing: true
-          - distro: 'gentoo:lastest'
-            toolchain: gnu
-            cmake_build_type: Release
     runs-on: ubuntu-latest
-    container: ghcr.io/votca/buildenv/${{ matrix.distro }}
+    container: registry.gitlab.com/votca/buildenv:${{ matrix.distro }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2.2.0
         with:
           submodules: true
+          ref: stable
       - name: Run Votca Setup
-        id: setup #use this id below to use outputs
+        id: setup
         uses: votca/actions/setup@master
         with:
           distro: ${{ matrix.distro }}
@@ -128,6 +121,7 @@ jobs:
           cmake_build_type: ${{ matrix.cmake_build_type }}
           ctest_args: ${{ matrix.ctest_args }}
           cmake_args: ${{ matrix.cmake_args }}
+          branch: stable
       - uses: actions/cache@v2
         with:
           path: ~/.ccache
@@ -160,4 +154,44 @@ jobs:
         if: ${{ matrix.deploy }}
         env:
           VOTCA_BOT_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
+          BRANCH: stable
         run: .github/workflows/deploy.sh
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code    
+        uses: actions/checkout@v2.2.0
+        with:
+          fetch-depth: 0
+          submodules: true
+          path: votca
+          ref: stable
+      - name: Build Docker images for Docker Hub
+        uses: docker/build-push-action@v1.1.0
+        with:
+          repository: votca/votca
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          dockerfile: votca/.github/workflows/Dockerfile
+          tags: stable
+          push: ${{ github.event_name == 'schedule' }}
+      - name: Build Docker images for Github Container Registry
+        uses: docker/build-push-action@v1.1.0
+        with:
+          repository: votca/votca
+          registry: ghcr.io
+          username: votca-bot
+          password: ${{ secrets.VOTCA_BOT_TOKEN }}
+          dockerfile: votca/.github/workflows/Dockerfile
+          tags: stable
+          push: ${{ github.event_name == 'schedule' }}
+      - name: Build Docker images for Gitlab
+        uses: docker/build-push-action@v1.1.0
+        with:
+          repository: votca/votca
+          registry: registry.gitlab.com
+          username: votca-bot
+          password: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
+          dockerfile: votca/.github/workflows/Dockerfile
+          tags: stable
+          push: ${{ github.event_name == 'schedule' }}
