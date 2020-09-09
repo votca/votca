@@ -104,8 +104,6 @@ BOOST_AUTO_TEST_CASE(padeapprox_test){
     results[results.size()-1](2,2)=pade_9.evaluatePoint(w);
   }
   
-  pade_1.printInfo();
-  pade_1.printAB();
   for(int i=0;i<num_points;i++){
       std::cout<<"at point "<<grid[i]<<" diff="<<results[i](0,0)-val[i](0,0)<<std::endl;
   }

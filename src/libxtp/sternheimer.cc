@@ -185,10 +185,8 @@ Eigen::MatrixXcd Sternheimer::DeltaNSCSternheimer(
           _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, true);
       Eigen::MatrixXcd LHS_M = SternheimerLHS(
           _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, false);
-      if (true) {
-        LHS_P = LHS_P + alpha * _density_Matrix.transpose() * _overlap_Matrix;
-        LHS_M = LHS_M + alpha * _density_Matrix.transpose() * _overlap_Matrix;
-      }
+        //LHS_P = LHS_P + alpha * _density_Matrix.transpose() * _overlap_Matrix;
+        //LHS_M = LHS_M + alpha * _density_Matrix.transpose() * _overlap_Matrix;
       solution_p.col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
       solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
     }
