@@ -67,10 +67,16 @@ void GaussianQuadrature::configure(options opt, const RPA& rpa) {
 void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
   _dielinv_matrices_r.resize(_opt.order);
   Eigen::MatrixXd eps_inv_j;  // Don't know if I have to specify dimension of
-                              // the matrix here
+  // the matrix here
+  Eigen::MatrixXd eps_inv_j_alpha;  // Don't know if I have to specify dimension
+                                    // of
+                                    // the matrix here
   double halfpi = 0.5 * votca::tools::conv::Pi;
   double newpoint = 0.0;
-
+   // I add this part for the smooth tail
+    eps_inv_j_alpha =
+        rpa.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
+    eps_inv_j_alpha.diagonal().array() -= 1.0;
   std::cout << "\n... ... Preparing RPA for Gaussian quadrature along "
                "imaginary axis with "
             << _opt.order << " points" << std::endl;
@@ -87,7 +93,10 @@ void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
     }
     eps_inv_j = rpa.calculate_epsilon_i(newpoint).inverse();
     eps_inv_j.diagonal().array() -= 1.0;
-    _dielinv_matrices_r[j] = -eps_inv_j;
+   
+    _dielinv_matrices_r[j] =
+        -eps_inv_j +
+        eps_inv_j_alpha * std::exp(-std::pow(_opt.alpha * newpoint, 2));
     ++progress;
   }
 }

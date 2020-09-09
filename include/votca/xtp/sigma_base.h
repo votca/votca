@@ -45,6 +45,7 @@ class Sigma_base {
     double eta = 1e-3;
     std::string quadrature_scheme;  // Kind of Gaussian-quadrature scheme to use
     Index order = 100;  // only needed for complex integration sigma default:12
+    double alpha;
   };
 
   void configure(options opt) {

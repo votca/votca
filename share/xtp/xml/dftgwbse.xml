@@ -34,6 +34,7 @@
           <tasks help="tasks to do" default="gw,singlets" choices="[gw,singlets,triplets,all]"/>
           <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact, cda"/>
           <eta help="small parameter eta of the Green's function" default="1e-3" unit="Hartree" choices="float+"/>
+          <alpha help="parameter to smooth residue and integral calculation for the contour deformation technique" default="1" choices="float"/>
           <quadrature_scheme help="If CDA is used for sigma integration this set the quadrature scheme to use" default="legendre" choices="hermite,laguerre,legendre"/>
           <quadrature_order help="Quadrature order if CDA is used for sigma integration" default="100" choices="8,10,12,14,16,18,20,100"/>
           <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid"/>

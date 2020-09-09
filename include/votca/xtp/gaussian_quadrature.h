@@ -39,6 +39,7 @@ class GaussianQuadrature {
     Index rpamin;
     Index rpamax;
     std::string quadrature_scheme;
+    double alpha;
   };
 
   GaussianQuadrature(const Eigen::VectorXd& energies,
