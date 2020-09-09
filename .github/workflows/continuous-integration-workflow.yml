@@ -13,10 +13,10 @@ on:
 
 jobs:
   CI:
-    continue-on-error: ${{ matrix.distro == 'ubuntu_devel' || matrix.distro == 'fedora_rawhide' || matrix.continue-on-error == true }}
+    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
-        distro: [latest, fedora_rawhide, opensuse, ubuntu, ubuntu_devel, ubuntu_rolling, ubuntu_18.04, intel]
+        distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'ubuntu:18.04', 'fedora:intel']
         toolchain: [gnu, clang]
         cmake_build_type: [Release, Debug]
         minimal: [false]
@@ -25,7 +25,7 @@ jobs:
         coverage: [false]
         deploy: [false]
         include:
-          - distro: latest
+          - distro: 'fedora:latest'
             toolchain: gnu
             cmake_build_type: Release
             minimal: false
@@ -35,19 +35,19 @@ jobs:
             # make sure there is only one build deploying
             deploy: true
             no_regression_testing: true
-          - distro: fedora_nogmx
+          - distro: 'fedora:nogmx'
             toolchain: gnu
             cmake_build_type: Release
             minimal: true
-          - distro: fedora_nogmx
+          - distro: 'fedora:nogmx'
             toolchain: clang
             cmake_build_type: Release
             minimal: true
-          - distro: fedora_nogmx
+          - distro: 'fedora:nogmx'
             toolchain: gnu
             cmake_build_type: Release
             own_gmx: true
-          - distro: latest
+          - distro: 'fedora:latest'
             toolchain: gnu
             cmake_build_type: Release
             minimal: false
@@ -55,56 +55,56 @@ jobs:
             module_build: true
             coverage: false
             deploy: false
-          - distro: fedora_gmx2019
+          - distro: 'fedora:gmx2019'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: fedora_gmx2019
+          - distro: 'fedora:gmx2019'
             toolchain: clang
             cmake_build_type: Release
-          - distro: fedora_gmx2019_d
+          - distro: 'fedora:gmx2019_d'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: fedora_gmx2019_d
+          - distro: 'fedora:gmx2019_d'
             toolchain: clang
             cmake_build_type: Release
-          - distro: fedora_gmx2020
-            toolchain: gnu
-            cmake_build_type: Release
-            no_regression_testing: true
-          - distro: fedora_gmx2020
-            toolchain: clang
-            cmake_build_type: Release
-            no_regression_testing: true
-          - distro: fedora_gmx2020_d
+          - distro: 'fedora:gmx2020'
             toolchain: gnu
             cmake_build_type: Release
             no_regression_testing: true
-          - distro: fedora_gmx2020_d
+          - distro: 'fedora:gmx2020'
             toolchain: clang
             cmake_build_type: Release
             no_regression_testing: true
-          - distro: fedora_gmx9999
+          - distro: 'fedora:gmx2020_d'
+            toolchain: gnu
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx2020_d'
+            toolchain: clang
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx9999'
             toolchain: gnu
             cmake_build_type: Release
             continue-on-error: true
             no_regression_testing: true
-          - distro: fedora_gmx9999
+          - distro: 'fedora:gmx9999'
             toolchain: clang
             cmake_build_type: Release
             continue-on-error: true
             no_regression_testing: true
-          - distro: fedora_gmx9999_d
+          - distro: 'fedora:gmx9999_d'
             toolchain: gnu
             cmake_build_type: Release
             continue-on-error: true
             no_regression_testing: true
-          - distro: fedora_gmx9999_d
+          - distro: 'fedora:gmx9999_d'
             toolchain: clang
             cmake_build_type: Release
             continue-on-error: true
             no_regression_testing: true
     runs-on: ubuntu-latest
-    container: registry.gitlab.com/votca/buildenv:${{ matrix.distro }}
+    container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2.2.0
