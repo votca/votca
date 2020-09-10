@@ -104,7 +104,7 @@ jobs:
             cmake_build_type: Release
             continue-on-error: true
             no_regression_testing: true
-          - distro: 'gentoo:lastest'
+          - distro: 'gentoo:latest'
             toolchain: gnu
             cmake_build_type: Release
     runs-on: ubuntu-latest
