@@ -15,9 +15,9 @@
  *
  */
 
+#include "../../include/votca/csg/version.h"
 #include <boost/program_options.hpp>
 #include <iostream>
-#include <votca/csg/version.h>
 #include <votca/tools/akimaspline.h>
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/linspline.h>
@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
           if (in.x(i) < sp_min) {
             minindex = i;
           }
-          if (in.x(i) < sp_max) {
+          if (in.x(i) <= sp_max) {
             maxindex = i;
           }
         }

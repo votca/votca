@@ -14,10 +14,11 @@
  * limitations under the License.
  *
  */
+#pragma once
+#ifndef VOTCA_CSG_TRICLINICBOX_H
+#define VOTCA_CSG_TRICLINICBOX_H
 
-#ifndef _VOTCA_CSG_TRICLINICBOX_H
-#define _VOTCA_CSG_TRICLINICBOX_H
-
+// Local VOTCA includes
 #include "boundarycondition.h"
 
 namespace votca {
@@ -29,7 +30,11 @@ class TriclinicBox : public BoundaryCondition {
   Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r_i,
                                        const Eigen::Vector3d &r_j) const final;
 
-  eBoxtype getBoxType() final { return typeTriclinic; }
+  virtual std::unique_ptr<BoundaryCondition> Clone() const final {
+    return std::unique_ptr<BoundaryCondition>(new TriclinicBox(*this));
+  }
+
+  eBoxtype getBoxType() const noexcept final { return typeTriclinic; }
 
  protected:
 };
@@ -37,4 +42,4 @@ class TriclinicBox : public BoundaryCondition {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_TRICLINICBOX_H */
+#endif  // VOTCA_CSG_TRICLINICBOX_H

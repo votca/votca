@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
  *
  */
 
+// Standard includes
 #include <iostream>
-#include <votca/csg/molecule.h>
+
+// Local VOTCA includes
+#include "votca/csg/molecule.h"
 
 namespace votca {
 namespace csg {
@@ -28,7 +31,7 @@ void Molecule::AddBead(Bead *bead, const string &name) {
   _bead_names.push_back(name);
   _beadmap[name] = _beads.size() - 1;
 
-  bead->setMolecule(this);
+  bead->setMoleculeId(_id);
 }
 
 Index Molecule::getBeadByName(const string &name) {

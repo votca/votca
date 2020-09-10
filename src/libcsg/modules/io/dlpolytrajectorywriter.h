@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,15 @@
  *
  */
 
-#ifndef _DLPOLYTRAJECTORYWRITER_H
-#define _DLPOLYTRAJECTORYWRITER_H
+#ifndef VOTCA_CSG_DLPOLYTRAJECTORYWRITER_PRIVATE_H
+#define VOTCA_CSG_DLPOLYTRAJECTORYWRITER_PRIVATE_H
 
-#include <votca/csg/topology.h>
-#include <votca/csg/trajectorywriter.h>
+// VOTCA includes
+#include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "votca/csg/topology.h"
+#include "votca/csg/trajectorywriter.h"
 
 namespace votca {
 namespace csg {
@@ -34,6 +38,17 @@ namespace csg {
 
 class DLPOLYTrajectoryWriter : public TrajectoryWriter {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+  const tools::MassUnit mass_unit = tools::MassUnit::atomic_mass_units;
+  const tools::TimeUnit time_unit = tools::TimeUnit::picoseconds;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::MolarEnergyUnit energy_unit =
+      tools::MolarEnergyUnit::joules_per_mole;
+  const tools::VelocityUnit velocity_unit =
+      tools::VelocityUnit::angstroms_per_picosecond;
+  const tools::MolarForceUnit force_unit =
+      tools::MolarForceUnit::kilojoules_per_mole_angstrom;
+
   // open transformed trajectory file
   void Open(std::string file, bool bAppend = false) override;
   // close transformed trajectory file
@@ -67,4 +82,4 @@ class DLPOLYTrajectoryWriter : public TrajectoryWriter {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _DLPOLYTRAJECTORYWRITER_H */
+#endif  // VOTCA_CSG_DLPOLYTRAJECTORYWRITER_PRIVATE_H
