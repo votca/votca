@@ -11,12 +11,12 @@ jobs:
   Coverage:
     strategy:
       matrix:
-        distro: [latest]
+        distro: ['fedora:latest']
         toolchain: [gnu]
         cmake_build_type: [Debug]
         coverage: [Group1, Group2, Group3, RestGroup]
     runs-on: ubuntu-latest
-    container: votca/buildenv:${{ matrix.distro }}
+    container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
       - uses: actions/checkout@v2.2.0
         with:
