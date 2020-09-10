@@ -38,6 +38,7 @@ import numpy as np
 
 BAR_PER_MD_PRESSURE = 16.6053904
 G_MIN = 1e-10
+OMEGA_SAFE_SCALE = 0.99999
 np.seterr(all='raise')
 
 
@@ -111,6 +112,7 @@ def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
         return U
     # reciprocal space ω with radial symmetry
     omega = np.arange(1, len(r)) / (2 * max(r))
+    omega *= OMEGA_SAFE_SCALE
     # total correlation function h
     h = g_cur - 1
     h_hat = fourier(r, h, omega)
@@ -139,6 +141,7 @@ def calc_U_single(r, g_cur, kBT, rho, closure):
     """calculates U from g for single particle systems."""
     # reciprocal space ω with radial symmetry
     omega = np.arange(1, len(r)) / (2 * max(r))
+    omega *= OMEGA_SAFE_SCALE
     # total correlation function h
     h = g_cur - 1
     h_hat = fourier(r, h, omega)
@@ -156,7 +159,7 @@ def calc_U_single(r, g_cur, kBT, rho, closure):
 
 
 def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
-                           closure, newton_mod):
+                           closure, newton_mod, verbose):
     """calculates an update step dU for the potential from g_tgt, g_cur, and
     G_minus_g  using IHNC (or HNCN) step for molecules with n identical beads.
     This means it works for two-bead hexane, but is expected to fail for
@@ -164,15 +167,22 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # single bead case
     # (even though the formulas in this function would work)
     if n == 1:
-        dU = calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho, closure, newton_mod)
+        dU = calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho, closure, newton_mod,
+                                   verbose)
         return dU
+    # for convenience grid is without the zero value
+    r, g_cur, g_tgt, G_minus_g = r[1:], g_cur[1:], g_tgt[1:], G_minus_g[1:]
     # reciprocal space with radial symmetry ω
-    omega = np.arange(1, len(r)) / (2 * max(r))
+    Delta_r = calc_grid_spacing(r)
+    nyquist_freq = 1 / Delta_r / 2
+    omega = np.linspace(nyquist_freq/len(r), nyquist_freq, len(r))
+    # omega = np.arange(1, len(r)) / (2 * max(r))
+    omega *= OMEGA_SAFE_SCALE
     # difference of rdf to target 'f'
     g_prime = g_tgt - g_cur
     g_prime_hat = fourier(r, g_prime, omega)
     # pair correlation function 'h'
-    h_hat = fourier(r, g_tgt - 1, omega)
+    h_hat = fourier(r, g_cur - 1, omega)
     # intramolecular distribution G - g
     G_minus_g_hat = fourier(r, G_minus_g, omega)
     # auxiliary variables a, b, e
@@ -185,13 +195,27 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # derived in sympy
     c_prime_hat = b_hat * g_prime_hat / (b_hat + e_hat * h_hat)**2
     c_prime = fourier(omega, c_prime_hat, r)
+    if verbose:
+        # calculate and save jacobian
+        F = gen_fourier_matrix(r, omega, fourier)
+        dcdg = np.matmul(np.matmul(np.linalg.inv(F),
+                                   np.diag(b_hat / (b_hat + e_hat * h_hat)**2)),
+                         F)
+        if closure == 'hnc':
+            if newton_mod:
+                pass
+            else:
+                with np.errstate(divide='ignore'):
+                    jac_inv = kBT * (np.diag(1 - 1 / g_cur) - dcdg)
+                jac = np.linalg.inv(jac_inv)
+                np.savez_compressed('jacobian.npz', jac=jac)
     # dU from HNC
     with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
         if closure == 'hnc':
             if newton_mod:
                 dU = kBT * (np.log(g_cur / g_tgt) + g_prime - c_prime)
             else:
-                dU = kBT * (-(g_prime / g_tgt) + g_prime - c_prime)
+                dU = kBT * (-(g_prime / g_cur) + g_prime - c_prime)
         elif closure == 'py':
             # for PY we also need c
             c_hat = h_hat / (b_hat + e_hat * h_hat)
@@ -204,32 +228,48 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
                 # U = kBT * np.log(1 - c/g_cur)
                 dU = kBT * (1 / (1 - c / g_tgt)
                             * (- c_prime * g_tgt + g_prime * c) / g_tgt**2)
+    dU = np.insert(dU, 0, np.nan)
     return dU
 
 
 def calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho,
-                          closure, newton_mod):
+                          closure, newton_mod, verbose):
     """calculates an update step dU for the potential from g_tgt and g_cur
     using IHNC (or HNCN) step for single bead systems.
     """
+    # for convenience grid is without the zero value
+    r, g_cur, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
     # reciprocal space with radial symmetry ω
     omega = np.arange(1, len(r)) / (2 * max(r))
-    omega *= 0.9999
+    omega *= OMEGA_SAFE_SCALE
     # difference of rdf to target
     g_prime = g_tgt - g_cur
     g_prime_hat = fourier(r, g_prime, omega)
     # pair correlation function 'h'
-    h_hat = fourier(r, g_tgt - 1, omega)
+    h_hat = fourier(r, g_cur - 1, omega)
     # direct correlation function
     c_prime_hat = g_prime_hat / (1 + rho * h_hat)**2
     c_prime = fourier(omega, c_prime_hat, r)
+    if verbose:
+        # calculate and save jacobian
+        F = gen_fourier_matrix(r, omega, fourier)
+        dcdg = np.matmul(np.matmul(np.linalg.inv(F), np.diag(1 / (1 + rho * h_hat)**2)),
+                         F)
+        if closure == 'hnc':
+            if newton_mod:
+                pass
+            else:
+                jac_inv = kBT * (np.diag(1 - 1 / g_cur) - dcdg)
+                jac = np.linalg.inv(jac_inv)
+                np.savez_compressed('jacobian.npz', jac=jac)
+
     # dU from HNC
     with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
         if closure == 'hnc':
             if newton_mod:
                 dU = kBT * (np.log(g_cur / g_tgt) + g_prime - c_prime)
             else:
-                dU = kBT * (-(g_prime / g_tgt) + g_prime - c_prime)
+                dU = kBT * (-(g_prime / g_cur) + g_prime - c_prime)
         elif closure == 'py':
             if newton_mod:
                 raise NotImplementedError
@@ -238,6 +278,7 @@ def calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho,
                 c = fourier(omega, c_hat, r)
                 dU = kBT * (1 / (1 - c / g_tgt)
                             * (- c_prime * g_tgt + g_prime * c) / g_tgt**2)
+    dU = np.insert(dU, 0, np.nan)
     return dU
 
 
@@ -281,8 +322,8 @@ def calc_dU_hncgn_sc(r, g_cur, g_tgt, kBT, density,
                      verbose):
     """Apply the (constrained) single-component HNCGN method."""
 
-    # for convenience grids (real and reciprocal) are without the zero value
-    r, g, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
+    # for convenience grid is without the zero value
+    r, g_cur, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
     # there are different regions in r used in the method
     #              |       crucial     |                     # regions
     # |   core     |                 nocore               |
@@ -311,13 +352,13 @@ def calc_dU_hncgn_sc(r, g_cur, g_tgt, kBT, density,
     omega = np.linspace(nyquist_freq/len(r), nyquist_freq, len(r))
     # This ensures max(omega) becomes not to large due to numerical accuracy
     # because if it does there are artifacts
-    omega *= 0.9999
+    omega *= OMEGA_SAFE_SCALE
     # Fourier matrix
     F = gen_fourier_matrix(r, omega, fourier)
     # density 'ρ0'
     rho = density
     # pair correlation function 'h'
-    h = g - 1
+    h = g_cur - 1
     # special Fourier of h
     h_hat = fourier(r, h, omega)
     # H matrix
@@ -359,7 +400,7 @@ def calc_dU_hncgn_sc(r, g_cur, g_tgt, kBT, density,
         else:
             raise Exception("not implemented constraint type")
     # residuum vector
-    res = g_tgt - g
+    res = g_tgt - g_cur
     # switching to notation of Gander et al. for solving
     A = J
     b = res[nocore]
@@ -710,7 +751,8 @@ def main():
                                      input_arrays['G_minus_g'][0]['y'],
                                      args.n_intra[0], args.kBT,
                                      args.densities[0], args.closure,
-                                     args.subcommand == 'newton-mod')
+                                     args.subcommand == 'newton-mod',
+                                     args.verbose)
         dU_flag1 = np.array(['i'] * len(r))
         dU_flag2 = upd_flag_g_smaller_g_min(dU_flag1,
                                             input_arrays['g_tgt'][0]['y'],
