@@ -34,6 +34,8 @@ void Sigma_CDA::PrepareScreening() {
   opt.alpha = _opt.alpha;
   opt.quadrature_scheme = _opt.quadrature_scheme;
   _gq.configure(opt, _rpa);
+  _kDielMxInv_zero = _rpa.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
+  _kDielMxInv_zero.diagonal().array() -= 1.0;
 }
 
 // This function is used in the calculation of the residues
@@ -78,9 +80,9 @@ double Sigma_CDA::CalcResidueContribution(Eigen::VectorXd rpa_energies,
   // even before so we don't have to revaluate this for each frequency (it is
   // frequency independent)
 
-  Eigen::MatrixXd R =
-      _rpa.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
-  R.diagonal().array() -= 1.0;
+  //Eigen::MatrixXd R =
+  //    _rpa.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
+  //R.diagonal().array() -= 1.0;
 
   for (Index i = 0; i < rpatotal; ++i) {
     double delta = std::abs(rpa_energies(i) - frequency);
@@ -97,7 +99,7 @@ double Sigma_CDA::CalcResidueContribution(Eigen::VectorXd rpa_energies,
     delta = rpa_energies(i) - frequency;
     if (std::abs(delta) > 1e-10 ) { //feeding delta = 0 into copysign gives interesting results
       sigma_c_alpha +=
-        CalcDiagContributionValue_alpha(Imx.row(i), R, delta, _opt.alpha);
+        CalcDiagContributionValue_alpha(Imx.row(i), delta, _opt.alpha);
     } 
   }
   return sigma_c + sigma_c_alpha;
@@ -116,7 +118,6 @@ double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
 }
 
 double Sigma_CDA::CalcDiagContributionValue_alpha(Eigen::RowVectorXd Imx_row,
-                                                  Eigen::MatrixXd R,
                                                   double delta,
                                                   double alpha) const {
 
@@ -124,7 +125,7 @@ double Sigma_CDA::CalcDiagContributionValue_alpha(Eigen::RowVectorXd Imx_row,
                        std::exp(std::pow(alpha * delta, 2)) *
                        std::erfc(std::abs(alpha * delta));
 
-  double value = ((Imx_row * R).cwiseProduct(Imx_row)).sum();
+  double value = ((Imx_row * _kDielMxInv_zero).cwiseProduct(Imx_row)).sum();
 
   return value * erfc_factor;
 }

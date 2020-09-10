@@ -69,12 +69,15 @@ class Sigma_CDA : public Sigma_base {
 
   double CalcDiagContribution(const Eigen::RowVectorXd& Imx_row, double delta,
                               double eta) const;
-  double CalcDiagContributionValue_alpha(Eigen::RowVectorXd Imx_row, Eigen::MatrixXd R,
+  double CalcDiagContributionValue_alpha(Eigen::RowVectorXd Imx_row,
                                                  double delta,
                                                  double alpha) const;
   GaussianQuadrature _gq;
 
   double _eta;
+
+  Eigen::MatrixXd _kDielMxInv_zero; // kappa = eps^-1 - 1 matrix
+
 };
 
 }  // namespace xtp
