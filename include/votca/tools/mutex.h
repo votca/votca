@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_MUTEX__H
-#define __VOTCA_TOOLS_MUTEX__H
+#ifndef VOTCA_TOOLS_MUTEX_H
+#define VOTCA_TOOLS_MUTEX_H
+
+// Standard includes
 #include <pthread.h>
 
 namespace votca {
@@ -45,4 +47,4 @@ class Mutex {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_TOOLS_MUTEX__H */
+#endif  // VOTCA_TOOLS_MUTEX_H

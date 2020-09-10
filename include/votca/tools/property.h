@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,26 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_PROPERTY_H
-#define _VOTCA_TOOLS_PROPERTY_H
+#ifndef VOTCA_TOOLS_PROPERTY_H
+#define VOTCA_TOOLS_PROPERTY_H
 
-#include "eigen.h"
-#include "lexical_cast.h"
-#include "tokenizer.h"
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/format.hpp>
+// Standard includes
+#include <cstdlib>
 #include <iostream>
 #include <list>
 #include <map>
 #include <stdexcept>
-#include <stdlib.h>
 #include <string>
-#include <votca/tools/types.h>
+
+// Third party includes
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/format.hpp>
+
+// Local VOTCA includes
+#include "eigen.h"
+#include "lexical_cast.h"
+#include "tokenizer.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {
@@ -425,4 +430,4 @@ inline void Property::setAttribute(const std::string &attribute,
 }  // namespace tools
 }  // namespace votca
 
-#endif /* _VOTCA_TOOLS_PROPERTY_H */
+#endif  // VOTCA_TOOLS_PROPERTY_H
