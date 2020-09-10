@@ -33,35 +33,37 @@ void Sigma_CDA::PrepareScreening() {
   opt.rpamin = _opt.rpamin;
   opt.alpha = _opt.alpha;
   opt.quadrature_scheme = _opt.quadrature_scheme;
-  _gq.configure(opt, _rpa);
 
-  // maybe not needed as inverse explicitly
-  _kDielMxInv_zero = _rpa.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
+  // prepare the zero frequency inverse for Gaussian tail
+  _kDielMxInv_zero =
+      _rpa.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
   _kDielMxInv_zero.diagonal().array() -= 1.0;
+
+  _gq.configure(opt, _rpa, _kDielMxInv_zero);
 }
 
 // This function is used in the calculation of the residues
 // This calculates eps^-1 (inverse of the dielectric function) for complex
 // frequencies of the kind omega = delta + i*eta
-double Sigma_CDA::CalcDiagContribution(const Eigen::Ref<const Eigen::MatrixXd>& Imx_row,
-                                       double delta, double eta) const {
+double Sigma_CDA::CalcDiagContribution(
+    const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
+    double eta) const {
   std::complex<double> delta_eta(delta, eta);
-  
 
   Eigen::MatrixXd DielMxInv = _rpa.calculate_epsilon_r(delta_eta);
-   // tried linear system solvers
+  // tried linear system solvers
   // - llt() -> fails
   // - ldlt() -> works
   // - ColPivHouseholderQR -> works
   // - HouseholderQR -> works
-  // - partialPivLU -> works
-  Eigen::VectorXd x = DielMxInv.partialPivLu().solve(Imx_row.transpose()) -  Imx_row.transpose();
-  //return x.dot(Imx_row.transpose());
-  return x.cwiseProduct(Imx_row.transpose()).sum();
-  
-  //Eigen::MatrixXd DielMxInv = _rpa.calculate_epsilon_r(delta_eta).inverse();
-  //DielMxInv.diagonal().array() -= 1.0;
- //return ((Imx_row * DielMxInv).cwiseProduct(Imx_row)).sum();
+  // - partialPivLU -> works, should be fastest according to Eigen benchmark
+  Eigen::VectorXd x =
+      DielMxInv.partialPivLu().solve(Imx_row.transpose()) - Imx_row.transpose();
+  return x.dot(Imx_row.transpose());
+
+  // Eigen::MatrixXd DielMxInv = _rpa.calculate_epsilon_r(delta_eta).inverse();
+  // DielMxInv.diagonal().array() -= 1.0;
+  // return ((Imx_row * DielMxInv).cwiseProduct(Imx_row)).sum();
 }
 
 double Sigma_CDA::CalcResiduePrefactor(double e_f, double e_m,
@@ -82,7 +84,6 @@ double Sigma_CDA::CalcResiduePrefactor(double e_f, double e_m,
 
 double Sigma_CDA::CalcResidueContribution(double frequency,
                                           Index gw_level) const {
-
 
   const Eigen::VectorXd& rpa_energies = _rpa.getRPAInputEnergies();
   Index rpatotal = rpa_energies.size();
@@ -108,10 +109,11 @@ double Sigma_CDA::CalcResidueContribution(double frequency,
       sigma_c += factor * CalcDiagContribution(Imx.row(i), abs_delta, _eta);
     }
     // This part should allow to add a smooth tail
-    if (abs_delta > 1e-10 ) { //feeding delta = 0 into copysign gives interesting results
+    if (abs_delta > 1e-10) {  // feeding delta = 0 into copysign gives
+                              // interesting results
       sigma_c_tail +=
-        CalcDiagContributionValue_tail(Imx.row(i), delta, _opt.alpha);
-    } 
+          CalcDiagContributionValue_tail(Imx.row(i), delta, _opt.alpha);
+    }
   }
   return sigma_c + sigma_c_tail;
 }
@@ -119,8 +121,7 @@ double Sigma_CDA::CalcResidueContribution(double frequency,
 double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
                                              double frequency) const {
 
-  double sigma_c_residue =
-        CalcResidueContribution(frequency, gw_level);
+  double sigma_c_residue = CalcResidueContribution(frequency, gw_level);
 
   double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level, _eta);
 
@@ -128,8 +129,8 @@ double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
 }
 
 double Sigma_CDA::CalcDiagContributionValue_tail(Eigen::RowVectorXd Imx_row,
-                                                  double delta,
-                                                  double alpha) const {
+                                                 double delta,
+                                                 double alpha) const {
 
   double erfc_factor = 0.5 * std::copysign(1.0, delta) *
                        std::exp(std::pow(alpha * delta, 2)) *

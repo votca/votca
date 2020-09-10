@@ -34,28 +34,29 @@ GaussianQuadrature::GaussianQuadrature(const Eigen::VectorXd& energies,
                                        const TCMatrix_gwbse& Mmn)
     : _energies(energies), _Mmn(Mmn) {}
 
-void GaussianQuadrature::configure(options opt, const RPA& rpa) {
+void GaussianQuadrature::configure(options opt, const RPA& rpa,
+                                   const Eigen::MatrixXd& kDielMxInv_zero) {
   _opt = opt;
   if (_opt.quadrature_scheme == "laguerre") {
     Gauss_Laguerre_Quadrature_Constants glqc;
     _quadpoints = glqc.getPoints(_opt.order);
     _quadadaptedweights = glqc.getAdaptedWeights(_opt.order);
-    CalcDielInvVector(rpa);
+    CalcDielInvVector(rpa, kDielMxInv_zero);
   } else if (_opt.quadrature_scheme == "legendre") {
     Gauss_Legendre_Quadrature_Constants glqc;
     _quadpoints = glqc.getPoints(_opt.order);
     _quadadaptedweights = glqc.getAdaptedWeights(_opt.order);
-    CalcDielInvVector(rpa);
+    CalcDielInvVector(rpa, kDielMxInv_zero);
   } else if (_opt.quadrature_scheme == "modified_legendre") {
     Gauss_Legendre_Quadrature_Constants glqc;
     _quadpoints = glqc.getPoints(_opt.order);
     _quadadaptedweights = glqc.getAdaptedWeights(_opt.order);
-    CalcDielInvVector(rpa);
+    CalcDielInvVector(rpa, kDielMxInv_zero);
   } else if (_opt.quadrature_scheme == "hermite") {
     Gauss_Hermite_Quadrature_Constants glqc;
     _quadpoints = glqc.getPoints(_opt.order);
     _quadadaptedweights = glqc.getAdaptedWeights(_opt.order);
-    CalcDielInvVector(rpa);
+    CalcDielInvVector(rpa, kDielMxInv_zero);
   } else {
     std::cout << "There no such a thing as the integration scheme you asked"
               << std::endl;
@@ -64,23 +65,15 @@ void GaussianQuadrature::configure(options opt, const RPA& rpa) {
 
 // This function calculates and stores inverses of the microscopic dielectric
 // matrix in a matrix vector
-void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
+void GaussianQuadrature::CalcDielInvVector(
+    const RPA& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
   _dielinv_matrices_r.resize(_opt.order);
-  Eigen::MatrixXd eps_inv_j;  // Don't know if I have to specify dimension of
+  Eigen::MatrixXd eps_inv_j;
   // the matrix here
-  Eigen::MatrixXd eps_inv_j_alpha;  // Don't know if I have to specify dimension
-                                    // of
-                                    // the matrix here
+  Eigen::MatrixXd eps_inv_j_tail;
   double halfpi = 0.5 * votca::tools::conv::Pi;
   double newpoint = 0.0;
 
-
-   // I add this part for the smooth tail
-    eps_inv_j_alpha =
-        rpa.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
-    eps_inv_j_alpha.diagonal().array() -= 1.0;
-
-    
   std::cout << "\n... ... Preparing RPA for Gaussian quadrature along "
                "imaginary axis with "
             << _opt.order << " points" << std::endl;
@@ -97,10 +90,10 @@ void GaussianQuadrature::CalcDielInvVector(const RPA& rpa) {
     }
     eps_inv_j = rpa.calculate_epsilon_i(newpoint).inverse();
     eps_inv_j.diagonal().array() -= 1.0;
-   
+
     _dielinv_matrices_r[j] =
         -eps_inv_j +
-        eps_inv_j_alpha * std::exp(-std::pow(_opt.alpha * newpoint, 2));
+        kDielMxInv_zero * std::exp(-std::pow(_opt.alpha * newpoint, 2));
     ++progress;
   }
 }

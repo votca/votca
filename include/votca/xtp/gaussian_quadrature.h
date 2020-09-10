@@ -45,7 +45,8 @@ class GaussianQuadrature {
   GaussianQuadrature(const Eigen::VectorXd& energies,
                      const TCMatrix_gwbse& Mmn);
 
-  void configure(options opt, const RPA& rpa);
+  void configure(options opt, const RPA& rpa,
+                 const Eigen::MatrixXd& kDielMxInv_zero);
 
   double SigmaGQDiag(double frequency, Index gw_level, double eta) const;
 
@@ -54,7 +55,8 @@ class GaussianQuadrature {
 
   // This function calculates and stores inverses of the microscopic dielectric
   // matrix in a matrix vector
-  void CalcDielInvVector(const RPA& rpa);
+  void CalcDielInvVector(const RPA& rpa,
+                         const Eigen::MatrixXd& kDielMxInv_zero);
   const Eigen::VectorXd& _energies;
   std::vector<Eigen::MatrixXd> _dielinv_matrices_r;
   const TCMatrix_gwbse& _Mmn;

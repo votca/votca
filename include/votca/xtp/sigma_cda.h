@@ -64,21 +64,18 @@ class Sigma_CDA : public Sigma_base {
  private:
   double CalcResiduePrefactor(double e_f, double e_m, double frequency) const;
 
-  double CalcResidueContribution( double frequency,
-                                 Index gw_level) const;
+  double CalcResidueContribution(double frequency, Index gw_level) const;
 
-  double CalcDiagContribution(const Eigen::Ref<const Eigen::MatrixXd>& Imx_row, double delta,
-                              double eta) const;
+  double CalcDiagContribution(const Eigen::MatrixXd::ConstRowXpr& Imx_row,
+                              double delta, double eta) const;
 
   double CalcDiagContributionValue_tail(Eigen::RowVectorXd Imx_row,
-                                                 double delta,
-                                                 double alpha) const;
+                                        double delta, double alpha) const;
   GaussianQuadrature _gq;
 
   double _eta;
 
-  Eigen::MatrixXd _kDielMxInv_zero; // kappa = eps^-1 - 1 matrix
-
+  Eigen::MatrixXd _kDielMxInv_zero;  // kappa = eps^-1 - 1 matrix
 };
 
 }  // namespace xtp
