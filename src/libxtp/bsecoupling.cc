@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,12 +17,17 @@
  *
  */
 
+// Third party includes
+#include <boost/format.hpp>
+
+// VOTCA includes
+#include <votca/tools/constants.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/bse.h"
 #include "votca/xtp/bse_operator.h"
-#include <boost/format.hpp>
-#include <votca/tools/constants.h>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/bsecoupling.h>
+#include "votca/xtp/bsecoupling.h"
 
 namespace votca {
 namespace xtp {
@@ -54,18 +59,12 @@ void BSECoupling::Initialize(Property& options) {
   _output_perturbation = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".use_perturbation", _output_perturbation);
 
-  _levA =
-      options.ifExistsReturnElseReturnDefault(key + ".moleculeA.states", _levA);
-  _levB =
-      options.ifExistsReturnElseReturnDefault(key + ".moleculeB.states", _levB);
-  _occA = options.ifExistsReturnElseReturnDefault(key + ".moleculeA.occLevels",
-                                                  _occA);
-  _occB = options.ifExistsReturnElseReturnDefault(key + ".moleculeB.occLevels",
-                                                  _occB);
-  _unoccA = options.ifExistsReturnElseReturnDefault(
-      key + ".moleculeA.unoccLevels", _unoccA);
-  _unoccB = options.ifExistsReturnElseReturnDefault(
-      key + ".moleculeB.unoccLevels", _unoccB);
+  _levA = options.get(key + ".moleculeA.states").as<Index>();
+  _levB = options.get(key + ".moleculeB.states").as<Index>();
+  _occA = options.get(key + ".moleculeA.occLevels").as<Index>();
+  _occB = options.get(key + ".moleculeB.occLevels").as<Index>();
+  _unoccA = options.get(key + ".moleculeA.unoccLevels").as<Index>();
+  _unoccB = options.get(key + ".moleculeB.unoccLevels").as<Index>();
 }
 
 void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,
@@ -240,7 +239,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   if ((basisA == 0) || (basisB == 0)) {
     throw std::runtime_error("Basis set size is not stored in monomers");
   }
-
   // get exciton information of molecule A
   Index bseA_cmax = orbitalsA.getBSEcmax();
   Index bseA_cmin = orbitalsA.getBSEcmin();
@@ -427,16 +425,19 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   Eigen::MatrixXd Hqp = qpcoeff *
                         orbitalsAB.QPdiag().eigenvalues().asDiagonal() *
                         qpcoeff.transpose();
+
   BSE::options opt;
   opt.cmax = orbitalsAB.getBSEcmax();
   opt.homo = orbitalsAB.getHomo();
   opt.qpmin = orbitalsAB.getGWAmin();
+  opt.qpmax = orbitalsAB.getGWAmax();
   opt.rpamax = orbitalsAB.getRPAmax();
   opt.rpamin = orbitalsAB.getRPAmin();
   opt.useTDA = true;
   opt.vmin = orbitalsAB.getBSEvmin();
-  BSE bse(*_pLog, Mmn, Hqp);
-  bse.configure(opt, orbitalsAB.MOs().eigenvalues());
+  opt.use_Hqp_offdiag = orbitalsAB.GetFlagUseHqpOffdiag();
+  BSE bse(*_pLog, Mmn);
+  bse.configure(opt, orbitalsAB.RPAInputEnergies(), Hqp);
   XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Setup BSE operator" << flush;
 
   // now the different spin types
@@ -461,7 +462,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << "   calculated singlet couplings " << flush;
   }
-
   if (_doTriplets) {
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << "   Evaluating triplets" << flush;
@@ -481,10 +481,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp() << "   calculated triplet couplings " << flush;
   }
-
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << "  Done with exciton couplings" << flush;
-  return;
 }
 
 Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,

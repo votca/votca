@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,9 +18,11 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_SIGMA_BASE_H
-#define _VOTCA_XTP_SIGMA_BASE_H
-#include <votca/xtp/eigen.h>
+#ifndef VOTCA_XTP_SIGMA_BASE_H
+#define VOTCA_XTP_SIGMA_BASE_H
+
+// Local VOTCA includes
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {
@@ -80,4 +82,4 @@ class Sigma_base {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_SIGMA_BASE_H */
+#endif  // VOTCA_XTP_SIGMA_BASE_H

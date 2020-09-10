@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,11 +18,12 @@ nn * See the License for the specific language governing permissions and
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_STATICSITE_H
-#define __VOTCA_XTP_STATICSITE_H
+#ifndef VOTCA_XTP_STATICSITE_H
+#define VOTCA_XTP_STATICSITE_H
 
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/qmatom.h>
+// Local VOTCA includes
+#include "eigen.h"
+#include "qmatom.h"
 
 namespace votca {
 namespace xtp {
@@ -91,7 +92,7 @@ class StaticSite {
 
   // COORDINATES TRANSFORMATION
   void Translate(const Eigen::VectorXd& shift);
-  virtual void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos);
+  virtual void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
 
   // MULTIPOLES DEFINITION
   double getCharge() const { return _Q(0); }
@@ -105,7 +106,7 @@ class StaticSite {
   Eigen::Matrix3d CalculateCartesianMultipole() const;
 
   static Eigen::VectorXd CalculateSphericalMultipole(
-      const Eigen::Matrix3d& quadrupole_cartesian);
+      const Eigen::Matrix3d& quad_cart);
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
@@ -113,7 +114,7 @@ class StaticSite {
 
   void WriteData(data& d) const;
   void ReadData(const data& d);
-  virtual void setPolarisation(const Eigen::Matrix3d&) { return; }
+  virtual void setpolarization(const Eigen::Matrix3d&) { return; }
 
   virtual std::string identify() const { return "staticsite"; }
 
@@ -124,7 +125,7 @@ class StaticSite {
   }
 
  protected:
-  virtual std::string writePolarisation() const;
+  virtual std::string writepolarization() const;
 
   Index _id = -1;
   std::string _element = "";
@@ -136,4 +137,4 @@ class StaticSite {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_STATICSITE_H

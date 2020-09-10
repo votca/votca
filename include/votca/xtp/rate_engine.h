@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,9 +20,11 @@
 #pragma once
 #ifndef VOTCA_XTP_RATE_ENGINE_H
 #define VOTCA_XTP_RATE_ENGINE_H
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/qmpair.h>
-#include <votca/xtp/qmstate.h>
+
+// Local VOTCA includes
+#include "eigen.h"
+#include "qmpair.h"
+#include "qmstate.h"
 
 namespace votca {
 namespace xtp {

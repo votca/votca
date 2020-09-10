@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,20 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE bfgs_test
+
+// Standard includes
+#include <iostream>
+
+// Third party includes
 #include <boost/format.hpp>
 #include <boost/test/unit_test.hpp>
-#include <iostream>
-#include <votca/xtp/adiis_costfunction.h>
-#include <votca/xtp/bfgs-trm.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/optimiser_costfunction.h>
+
+// Local VOTCA includes
+#include "votca/xtp/adiis_costfunction.h"
+#include "votca/xtp/bfgs-trm.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/optimiser_costfunction.h"
+
 using namespace votca::xtp;
 using namespace votca;
 using namespace std;

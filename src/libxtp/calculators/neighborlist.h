@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,14 +18,17 @@
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_NEIGHBORLIST_H
-#define __VOTCA_XTP_NEIGHBORLIST_H
+#ifndef VOTCA_XTP_NEIGHBORLIST_PRIVATE_H
+#define VOTCA_XTP_NEIGHBORLIST_PRIVATE_H
 
+// VOTCA includes
 #include <votca/tools/globals.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/qmnblist.h>
-#include <votca/xtp/topology.h>
+
+// Local VOTCA includes
+#include "votca/xtp/atom.h"
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/qmnblist.h"
+#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {
@@ -34,7 +37,7 @@ class Neighborlist : public QMCalculator {
  public:
   std::string Identify() override { return "neighborlist"; }
   bool WriteToStateFile() const override { return true; }
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& user_options) override;
   bool EvaluateFrame(Topology& top) override;
 
  private:
@@ -51,4 +54,4 @@ class Neighborlist : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_NEIGHBORLIST_PRIVATE_H

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<functionals>
+  <XC_HYB_GGA_XC_B1LYP number="416">B1LYP</XC_HYB_GGA_XC_B1LYP>
+  <XC_HYB_GGA_XC_B3LYP number="402">B3LYP</XC_HYB_GGA_XC_B3LYP>
+  <XC_HYB_GGA_XC_PBEH number="406">PBE0</XC_HYB_GGA_XC_PBEH>
+  <XC_GGA_C_PBE number="130">PBE</XC_GGA_C_PBE>
+  <XC_GGA_X_PBE number="130">PBE</XC_GGA_X_PBE>
+</functionals>
