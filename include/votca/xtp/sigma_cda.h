@@ -64,12 +64,13 @@ class Sigma_CDA : public Sigma_base {
  private:
   double CalcResiduePrefactor(double e_f, double e_m, double frequency) const;
 
-  double CalcResidueContribution(Eigen::VectorXd rpa_energies, double frequency,
+  double CalcResidueContribution( double frequency,
                                  Index gw_level) const;
 
-  double CalcDiagContribution(const Eigen::RowVectorXd& Imx_row, double delta,
+  double CalcDiagContribution(const Eigen::Ref<const Eigen::MatrixXd>& Imx_row, double delta,
                               double eta) const;
-  double CalcDiagContributionValue_alpha(Eigen::RowVectorXd Imx_row,
+
+  double CalcDiagContributionValue_tail(Eigen::RowVectorXd Imx_row,
                                                  double delta,
                                                  double alpha) const;
   GaussianQuadrature _gq;

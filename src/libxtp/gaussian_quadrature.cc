@@ -110,7 +110,8 @@ double GaussianQuadrature::SigmaGQDiag(double frequency, Index gw_level,
   Index lumo = _opt.homo + 1;
   const Index occ = lumo - _opt.rpamin;
   const Index unocc = _opt.rpamax - _opt.homo;
-  const Eigen::MatrixXd& Imx = _Mmn[gw_level];
+  Index gw_level_offset = gw_level + _opt.qpmin - _opt.rpamin;
+  const Eigen::MatrixXd& Imx = _Mmn[gw_level_offset];
   Eigen::ArrayXcd DeltaE = frequency - _energies.array();
   DeltaE.head(occ).imag() = eta;
   DeltaE.tail(unocc).imag() = -eta;

@@ -34,6 +34,8 @@ void Sigma_CDA::PrepareScreening() {
   opt.alpha = _opt.alpha;
   opt.quadrature_scheme = _opt.quadrature_scheme;
   _gq.configure(opt, _rpa);
+
+  // maybe not needed as inverse explicitly
   _kDielMxInv_zero = _rpa.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
   _kDielMxInv_zero.diagonal().array() -= 1.0;
 }
@@ -41,12 +43,25 @@ void Sigma_CDA::PrepareScreening() {
 // This function is used in the calculation of the residues
 // This calculates eps^-1 (inverse of the dielectric function) for complex
 // frequencies of the kind omega = delta + i*eta
-double Sigma_CDA::CalcDiagContribution(const Eigen::RowVectorXd& Imx_row,
+double Sigma_CDA::CalcDiagContribution(const Eigen::Ref<const Eigen::MatrixXd>& Imx_row,
                                        double delta, double eta) const {
   std::complex<double> delta_eta(delta, eta);
-  Eigen::MatrixXd DielMxInv = _rpa.calculate_epsilon_r(delta_eta).inverse();
-  DielMxInv.diagonal().array() -= 1.0;
-  return ((Imx_row * DielMxInv).cwiseProduct(Imx_row)).sum();
+  
+
+  Eigen::MatrixXd DielMxInv = _rpa.calculate_epsilon_r(delta_eta);
+   // tried linear system solvers
+  // - llt() -> fails
+  // - ldlt() -> works
+  // - ColPivHouseholderQR -> works
+  // - HouseholderQR -> works
+  // - partialPivLU -> works
+  Eigen::VectorXd x = DielMxInv.partialPivLu().solve(Imx_row.transpose()) -  Imx_row.transpose();
+  //return x.dot(Imx_row.transpose());
+  return x.cwiseProduct(Imx_row.transpose()).sum();
+  
+  //Eigen::MatrixXd DielMxInv = _rpa.calculate_epsilon_r(delta_eta).inverse();
+  //DielMxInv.diagonal().array() -= 1.0;
+ //return ((Imx_row * DielMxInv).cwiseProduct(Imx_row)).sum();
 }
 
 double Sigma_CDA::CalcResiduePrefactor(double e_f, double e_m,
@@ -65,27 +80,24 @@ double Sigma_CDA::CalcResiduePrefactor(double e_f, double e_m,
   return factor;
 }
 
-double Sigma_CDA::CalcResidueContribution(Eigen::VectorXd rpa_energies,
-                                          double frequency,
+double Sigma_CDA::CalcResidueContribution(double frequency,
                                           Index gw_level) const {
+
+
+  const Eigen::VectorXd& rpa_energies = _rpa.getRPAInputEnergies();
   Index rpatotal = rpa_energies.size();
+  Index gw_level_offset = gw_level + _opt.qpmin - _opt.rpamin;
+
   double sigma_c = 0.0;
-  double sigma_c_alpha = 0.0;
+  double sigma_c_tail = 0.0;
   Index homo = _opt.homo - _opt.rpamin;
   Index lumo = homo + 1;
   double fermi_rpa = (rpa_energies(lumo) + rpa_energies(homo)) / 2.0;
-  const Eigen::MatrixXd& Imx = _Mmn[gw_level];
-  // We need to calculate this here in order to save computational resources in
-  // alpha-correction part of the residue. It would be nicer to save this matrix
-  // even before so we don't have to revaluate this for each frequency (it is
-  // frequency independent)
-
-  //Eigen::MatrixXd R =
-  //    _rpa.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
-  //R.diagonal().array() -= 1.0;
+  const Eigen::MatrixXd& Imx = _Mmn[gw_level_offset];
 
   for (Index i = 0; i < rpatotal; ++i) {
-    double delta = std::abs(rpa_energies(i) - frequency);
+    double delta = rpa_energies(i) - frequency;
+    double abs_delta = std::abs(delta);
     double factor = CalcResiduePrefactor(fermi_rpa, rpa_energies(i), frequency);
 
     // Only considering the terms with a abs(prefactor) > 0.
@@ -93,31 +105,29 @@ double Sigma_CDA::CalcResidueContribution(Eigen::VectorXd rpa_energies,
     // diagonal contribution if the prefactor is 0. We want to calculate it for
     // all the other cases.
     if (std::abs(factor) > 1e-10) {
-      sigma_c += factor * CalcDiagContribution(Imx.row(i), delta, _eta);
+      sigma_c += factor * CalcDiagContribution(Imx.row(i), abs_delta, _eta);
     }
     // This part should allow to add a smooth tail
-    delta = rpa_energies(i) - frequency;
-    if (std::abs(delta) > 1e-10 ) { //feeding delta = 0 into copysign gives interesting results
-      sigma_c_alpha +=
-        CalcDiagContributionValue_alpha(Imx.row(i), delta, _opt.alpha);
+    if (abs_delta > 1e-10 ) { //feeding delta = 0 into copysign gives interesting results
+      sigma_c_tail +=
+        CalcDiagContributionValue_tail(Imx.row(i), delta, _opt.alpha);
     } 
   }
-  return sigma_c + sigma_c_alpha;
+  return sigma_c + sigma_c_tail;
 }
 
 double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
                                              double frequency) const {
-  const Eigen::VectorXd& RPAenergies = _rpa.getRPAInputEnergies();
-  Index gw_level_offset = gw_level + _opt.qpmin - _opt.rpamin;
 
   double sigma_c_residue =
-      CalcResidueContribution(RPAenergies, frequency, gw_level_offset);
-  double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level_offset, _eta);
+        CalcResidueContribution(frequency, gw_level);
+
+  double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level, _eta);
 
   return sigma_c_residue + sigma_c_integral;
 }
 
-double Sigma_CDA::CalcDiagContributionValue_alpha(Eigen::RowVectorXd Imx_row,
+double Sigma_CDA::CalcDiagContributionValue_tail(Eigen::RowVectorXd Imx_row,
                                                   double delta,
                                                   double alpha) const {
 
