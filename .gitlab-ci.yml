@@ -45,12 +45,6 @@ stages:
     - if [[ ${CLANG_FORMAT} ]]; then cmake --build . --target format && git -C ${CI_PROJECT_DIR}/votca/${CI_PROJECT_NAME} diff --exit-code; fi
     - ccache -s
 
-.build:
-  variables:
-    DISTRO: "latest"
-  image: votca/buildenv:${DISTRO}
-  extends: .build_script
-    
 Debug GPU Ubuntu:
   variables:
     CC: "gcc"
