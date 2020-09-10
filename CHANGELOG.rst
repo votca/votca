@@ -33,6 +33,11 @@ Version 2021-dev
 -  fix clang-9 conversion warning (#276)
 -  add class to writeand read matrices (#290)
 
+Version 1.6.3 (released XX.08.20)
+=================================
+
+-  switch to ghcr.io for CI (#297)
+
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
 
