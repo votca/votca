@@ -31,7 +31,7 @@ Version 2021-dev
 -  changed to OpenMP reductions instead of hand crafted solutions (#466,
    #471, #493)
 -  switch to GitHub Actions as CI (#467, #474, #477, #482, #500, #502,
-   #518)
+   #518, #549)
 -  move tutorial to its own repo (#450)
 -  removed share/packages folder (#475)
 -  copy orca \*.gbw files in eqm (#472)
@@ -60,7 +60,12 @@ Version 2021-dev
 -  Unittests can read input and reference values from files (#529)
 -  fix double SCF in ORCA keyword line (#533)
 -  xtp internally uses only single shells. (#539)
-   
+-  Refactor orbital reordering (#537)
+-  fix build with clang-11 (#546)
+-  Add a molden parser to xtp (#547)
+-  Correct self-energy frequency derivative (#550)
+-  fix multiline orca keyword ($552)
+
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
 
