@@ -1,4 +1,4 @@
-FROM votca/buildenv:actions
+FROM ghcr.io/votca/buildenv/actions:latest
 
 COPY changelog.sh /changelog.sh
 
