@@ -7,10 +7,10 @@ on:
 
 jobs:
   CI:
-    continue-on-error: ${{ matrix.distro == 'ubuntu_devel' || matrix.distro == 'fedora_rawhide' || matrix.continue-on-error == true }}
+    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
-        distro: [latest, fedora_rawhide, opensuse, ubuntu_18.04]
+        distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:18.04']
         toolchain: [gnu]
         cmake_build_type: [Release]
         minimal: [false]
@@ -18,22 +18,22 @@ jobs:
         module_build: [false]
         coverage: [false]
         include:
-          - distro: fedora_nogmx
+          - distro: 'fedora:nogmx'
             toolchain: gnu
             cmake_build_type: Release
             own_gmx: true
-          - distro: latest
+          - distro: 'fedora:latest'
             toolchain: gnu
             cmake_build_type: Release
             module_build: true
-          - distro: fedora_gmx2019
+          - distro: 'fedora:gmx2019'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: fedora_gmx2019_d
+          - distro: 'fedora:gmx2019_d'
             toolchain: gnu
             cmake_build_type: Release
     runs-on: ubuntu-latest
-    container: votca/buildenv:${{ matrix.distro }}
+    container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
       - uses: actions/checkout@v2.2.0
         with:
