@@ -69,8 +69,9 @@ class Sigma_CDA : public Sigma_base {
   double CalcDiagContribution(const Eigen::MatrixXd::ConstRowXpr& Imx_row,
                               double delta, double eta) const;
 
-  double CalcDiagContributionValue_tail(Eigen::RowVectorXd Imx_row,
-                                        double delta, double alpha) const;
+  double CalcDiagContributionValue_tail(
+      const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
+      double alpha) const;
   GaussianQuadrature _gq;
 
   double _eta;

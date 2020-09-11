@@ -119,9 +119,9 @@ double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
   return sigma_c_residue + sigma_c_integral;
 }
 
-double Sigma_CDA::CalcDiagContributionValue_tail(Eigen::RowVectorXd Imx_row,
-                                                 double delta,
-                                                 double alpha) const {
+double Sigma_CDA::CalcDiagContributionValue_tail(
+    const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
+    double alpha) const {
 
   double erfc_factor = 0.5 * std::copysign(1.0, delta) *
                        std::exp(std::pow(alpha * delta, 2)) *
