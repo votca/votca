@@ -6,7 +6,7 @@ implementing code consistent with the VOTCA and cpp style and standard.
 
 -  `Reporting Bugs <#reporting-bugs>`__
 -  `CPP Resoures <#cpp-resources>`__
--  `CPP Coding Rules like this <#cpp-tips>`__
+-  `CPP Coding Rules <#CPP-Coding-Rules>`__
 -  `Testing <#testing>`__
 -  `Failed Travis Builds <#failed-travis-builds>`__
 -  `CPP Coding Style Guide <#cpp-codeing-style-guide>`__
