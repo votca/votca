@@ -65,8 +65,8 @@ is build on a machine in the cloud using `Github actions <https://docs.github.co
 VOTCA can build on various linux distributions, which are not all natively supported by Github actions. So instead of using the default virtual machines,
 VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of votca (see :code:`buildenv` below)
 
-The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`__. As you can see there are two containers. The **votca/buildenv** containers are the basic containers, which contain all the dependencies VOTCA requires, but not any VOTCA code.
-On top of these containers the actual containers for running the test builds are build, the **votca/votca** container.
+The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`__. The **votca/buildenv** containers are the basic containers, which contain all the dependencies VOTCA requires, but not any VOTCA code. The **votca/buildenv** can be found on `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__. 
+On top of these containers the actual containers for running the test builds are build, the resulting **votca/votca** container can be found on `Docker Hub <https://hub.docker.com/u/votca>`__ as well as `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__.
 
 For more information also look at the `Github workflow files <https://github.com/votca/votca/tree/master/.github/workflows>`__.
 
