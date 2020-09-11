@@ -68,9 +68,6 @@ class Mat_p_Energy {
   Mat_p_Energy(double e, Eigen::MatrixXd&& mat)
       : _energy(e), _matrix(std::move(mat)){};
 
-    Mat_p_Energy()
-      : _energy(0.0), _matrix(Eigen::MatrixXd::Zero(0,0)){}; 
-
   Mat_p_Energy operator+(const Mat_p_Energy& other) const {
     Mat_p_Energy result = *this;
     result._energy += other._energy;
