@@ -42,28 +42,20 @@ void Sigma_CDA::PrepareScreening() {
   _gq.configure(opt, _rpa, _kDielMxInv_zero);
 }
 
-// This function is used in the calculation of the residues
-// This calculates eps^-1 (inverse of the dielectric function) for complex
-// frequencies of the kind omega = delta + i*eta
+// This function is used in the calculation of the residues and
+// calculates the real part of the dielectric function for a complex
+// frequency of the kind omega = delta + i*eta. Instead of explicit
+// inversion and multiplication with and Imx vector, a linear system
+// is solved.
 double Sigma_CDA::CalcDiagContribution(
     const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
     double eta) const {
   std::complex<double> delta_eta(delta, eta);
 
   Eigen::MatrixXd DielMxInv = _rpa.calculate_epsilon_r(delta_eta);
-  // tried linear system solvers
-  // - llt() -> fails
-  // - ldlt() -> works
-  // - ColPivHouseholderQR -> works
-  // - HouseholderQR -> works
-  // - partialPivLU -> works, should be fastest according to Eigen benchmark
   Eigen::VectorXd x =
       DielMxInv.partialPivLu().solve(Imx_row.transpose()) - Imx_row.transpose();
   return x.dot(Imx_row.transpose());
-
-  // Eigen::MatrixXd DielMxInv = _rpa.calculate_epsilon_r(delta_eta).inverse();
-  // DielMxInv.diagonal().array() -= 1.0;
-  // return ((Imx_row * DielMxInv).cwiseProduct(Imx_row)).sum();
 }
 
 double Sigma_CDA::CalcResiduePrefactor(double e_f, double e_m,
@@ -109,8 +101,7 @@ double Sigma_CDA::CalcResidueContribution(double frequency,
       sigma_c += factor * CalcDiagContribution(Imx.row(i), abs_delta, _eta);
     }
     // This part should allow to add a smooth tail
-    if (abs_delta > 1e-10) {  // feeding delta = 0 into copysign gives
-                              // interesting results
+    if (abs_delta > 1e-10) {
       sigma_c_tail +=
           CalcDiagContributionValue_tail(Imx.row(i), delta, _opt.alpha);
     }
