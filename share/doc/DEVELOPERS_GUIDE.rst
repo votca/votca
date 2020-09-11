@@ -6,10 +6,10 @@ implementing code consistent with the VOTCA and cpp style and standard.
 
 -  `Reporting Bugs <#reporting-bugs>`__
 -  `CPP Resoures <#cpp-resources>`__
--  `CPP Tips <#cpp-tips>`__
+-  `CPP Coding Rules like this <#cpp-tips>`__
 -  `Testing <#testing>`__
 -  `Failed Travis Builds <#failed-travis-builds>`__
--  `CPP Codeing Style Guide <#cpp-codeing-style-guide>`__
+-  `CPP Coding Style Guide <#cpp-codeing-style-guide>`__
 -  `CPP Comment Guide <#cpp-comment-guide>`__
 -  `Updating Git Submodules <#updating-git-submodules>`__
 -  `Merging With Stable <#merging-with-stable>`__
@@ -82,11 +82,11 @@ an effort to really enforce it and follow best practices.
 -  `Best
    Practices2 <https://google.github.io/styleguide/cppguide.html>`__
 
-CPP Tips
+CPP Coding Rules
 --------
 
 
-Here are a few general tips that should be followed:
+Here are a few general rules that should be followed:
 
 Files
 ~~~~~
@@ -107,7 +107,7 @@ Includes
    in the csg repostory and want to include a file from the tools repo
    use the anglular brackets i.e.
 
-   #include
+   #include <votca/tools/molecule.h>
 
 Header Files
 ~~~~~~~~~~~~
@@ -125,12 +125,6 @@ Header Files
 -  Never use the "using namespace" in a header file.
 -  Avoid using includes in header files. If possible forward declare a
    class instead.
-
-Braces
-~~~~~~
-
--  in functions/classes, the { is in the next line
--  for for loops, if, ..., the { is n the same line as if,for
 
 Auto
 ~~~~
@@ -181,7 +175,7 @@ Pointers
 ~~~~~~~~
 
 -  In general, use pointers sparringly. Most objects are small and a
-   copy does not change performance. Use references as well
+   copy does not change performance. Use references if you want to avoid copies.
 -  If your pointer owns an object (i.e. it has to delete it later) use a
    ``unique_ptr`` to it, so you do not have to call ``delete`` on it
    yourself
