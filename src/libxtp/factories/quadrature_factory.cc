@@ -17,34 +17,23 @@
  *
  */
 
-#ifndef __VOTCA_XTP_GAUS_LAGUERRE_QUADRATURE_CONSTANTS_H
-#define __VOTCA_XTP_GAUS_LAGUERRE_QUADRATURE_CONSTANTS_H
+// Local VOTCA includes
+#include "votca/xtp/quadrature_factory.h"
 
-#include "votca/xtp/eigen.h"
-#include <map>
-#include <stdexcept>
-#include <string>
+// Local private VOTCA includes
+#include "gaussian_quadrature/gauss_hermite_quadrature.h"
+#include "gaussian_quadrature/gauss_laguerre_quadrature.h"
+#include "gaussian_quadrature/gauss_legendre_quadrature.h"
 
 namespace votca {
 namespace xtp {
 
-class Gauss_Laguerre_Quadrature_Constants {
- public:
-  const Eigen::VectorXd &getPoints(Index order);
-
-  const Eigen::VectorXd &getAdaptedWeights(Index order);
-
- private:
-  bool _filled_Points = false;
-  bool _filled_AdaptedWeights = false;
-
-  std::map<Index, Eigen::VectorXd> _map_points;
-  std::map<Index, Eigen::VectorXd> _map_AdaptedWeights;
-
-  void FillPoints();
-  void FillAdaptedWeights();
-};
+void QuadratureFactory::RegisterAll(void) {
+  Quadratures().Register<Gauss_Laguerre_Quadrature>("laguerre");
+  Quadratures().Register<Gauss_Legendre_Quadrature>("legendre");
+  Quadratures().Register<Gauss_modified_Legendre_Quadrature>(
+      "modified_legendre");
+  Quadratures().Register<Gauss_Hermite_Quadrature>("hermite");
+}
 }  // namespace xtp
 }  // namespace votca
-
-#endif /* __VOTCA_XTP_GAUS_LAGUERRE_QUADRATURE_CONSTANTS_H */

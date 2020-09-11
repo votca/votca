@@ -17,50 +17,12 @@
  *
  */
 
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/gauss_laguerre_quadrature_constants.h>
+#include "gauss_laguerre_quadrature.h"
 
-using namespace std;
-
-/*******************
- * Public Methods *
- *******************/
 namespace votca {
 namespace xtp {
 
-const Eigen::VectorXd& Gauss_Laguerre_Quadrature_Constants::getPoints(
-    Index order) {
-  if (!this->_filled_Points) {
-    this->FillPoints();
-    _filled_Points = true;
-  }
-  if (_map_points.count(order) == 0) {
-    throw invalid_argument("Quadrature order " + std::to_string(order) +
-                           " not in {8,10,12,14,16,18,20 and 100}. Please "
-                           "select one of these numbers");
-  }
-  return _map_points.at(order);
-}
-
-const Eigen::VectorXd& Gauss_Laguerre_Quadrature_Constants::getAdaptedWeights(
-    Index order) {
-  if (!this->_filled_AdaptedWeights) {
-    this->FillAdaptedWeights();
-    _filled_AdaptedWeights = true;
-  }
-  if (_map_AdaptedWeights.count(order) == 0) {
-    throw invalid_argument("Quadrature order " + std::to_string(order) +
-                           " not in {8,10,12,14,16,18,20 and 100}. Please "
-                           " select one of these numbers");
-  }
-  return _map_AdaptedWeights.at(order);
-}
-
-/*******************
- * Private Methods *
- *******************/
-
-void Gauss_Laguerre_Quadrature_Constants::FillPoints() {
+void Gauss_Laguerre_Quadrature::FillPoints() {
   Eigen::VectorXd points_8(8);
   points_8 << 0.17027963230510099978886185660829724468251824708548,
       0.9037017767993799121860202235550898922166525972985,
@@ -225,7 +187,7 @@ void Gauss_Laguerre_Quadrature_Constants::FillPoints() {
   _map_points[100] = points_100;
 }
 
-void Gauss_Laguerre_Quadrature_Constants::FillAdaptedWeights() {
+void Gauss_Laguerre_Quadrature::FillAdaptedWeights() {
   Eigen::VectorXd AdaptedWeights_8(8);
   AdaptedWeights_8 << 0.4377234104929113732325975801238703103376631775236,
       1.033869347665597642499265855827602461954335024897,

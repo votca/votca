@@ -17,34 +17,25 @@
  *
  */
 
-#ifndef __VOTCA_XTP_GAUS_HERMITE_QUADRATURE_CONSTANTS_H
-#define __VOTCA_XTP_GAUS_HERMITE_QUADRATURE_CONSTANTS_H
-
-#include "votca/xtp/eigen.h"
-#include <map>
-#include <stdexcept>
-#include <string>
+// Local VOTCA includes
+#include "votca/xtp/GaussianQuadratureBase.h"
 
 namespace votca {
 namespace xtp {
+void GaussianQuadratureBase::CheckOrder(
+    Index order, const std::map<Index, Eigen::VectorXd>& map) const {
+  if (map.count(order) == 0) {
+    std::string keys = "{ ";
+    for (const auto& pair : map) {
+      keys += std::to_string(pair.first) + " ";
+    }
+    keys += "}";
+    throw std::invalid_argument("Order " + std::to_string(order) + " not in " +
+                                keys +
+                                ". Please "
+                                " select one of these numbers");
+  }
+}
 
-class Gauss_Hermite_Quadrature_Constants {
- public:
-  const Eigen::VectorXd &getPoints(Index order);
-
-  const Eigen::VectorXd &getAdaptedWeights(Index order);
-
- private:
-  bool _filled_Points = false;
-  bool _filled_AdaptedWeights = false;
-
-  std::map<Index, Eigen::VectorXd> _map_points;
-  std::map<Index, Eigen::VectorXd> _map_AdaptedWeights;
-
-  void FillPoints();
-  void FillAdaptedWeights();
-};
 }  // namespace xtp
 }  // namespace votca
-
-#endif /* __VOTCA_XTP_GAUS_HERMITE_QUADRATURE_CONSTANTS_H */

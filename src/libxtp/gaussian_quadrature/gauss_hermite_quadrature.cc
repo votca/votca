@@ -17,41 +17,12 @@
  *
  */
 
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/gauss_hermite_quadrature_constants.h>
-
-using namespace std;
+#include "gauss_hermite_quadrature.h"
 
 namespace votca {
 namespace xtp {
 
-const Eigen::VectorXd& Gauss_Hermite_Quadrature_Constants::getPoints(
-    Index order) {
-  if (!this->_filled_Points) {
-    this->FillPoints();
-    _filled_Points = true;
-  }
-  if (_map_points.count(order) == 0)
-    throw invalid_argument("Quadrature order " + std::to_string(order) +
-                           " not in {8,10,12,14,16,18,20 and 100}. Please "
-                           " select one of these numbers");
-  return _map_points.at(order);
-}
-
-const Eigen::VectorXd& Gauss_Hermite_Quadrature_Constants::getAdaptedWeights(
-    Index order) {
-  if (!this->_filled_AdaptedWeights) {
-    this->FillAdaptedWeights();
-    _filled_AdaptedWeights = true;
-  }
-  if (_map_AdaptedWeights.count(order) == 0)
-    throw invalid_argument("Order " + std::to_string(order) +
-                           " not in {8,10,12,14,16,18,20 and 100}. Please "
-                           " select one of these numbers");
-  return _map_AdaptedWeights.at(order);
-}
-
-void Gauss_Hermite_Quadrature_Constants::FillPoints() {
+void Gauss_Hermite_Quadrature::FillPoints() {
   Eigen::VectorXd points_8(8);
   points_8 << -2.9306374202572440192235027052435991461994485855216,
       -1.9816567566958429258546306397693095686949116340382,
@@ -210,7 +181,7 @@ void Gauss_Hermite_Quadrature_Constants::FillPoints() {
   _map_points[100] = points_100;
 }
 
-void Gauss_Hermite_Quadrature_Constants::FillAdaptedWeights() {
+void Gauss_Hermite_Quadrature::FillAdaptedWeights() {
   Eigen::VectorXd AdaptedWeights_8(8);
   AdaptedWeights_8 << 1.0719301442479797564640154828686192710583035011087,
       0.8667526065633812222177945178444721007823603317873,

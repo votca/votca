@@ -17,18 +17,20 @@
  *
  */
 
-#ifndef __XTP_GAUSSIAN_QUADRATURE__H
-#define __XTP_GAUSSIAN_QUADRATURE__H
+#ifndef VOTCA_XTP_IMAGINARYAXISINTEGRATION_H
+#define VOTCA_XTP_IMAGINARYAXISINTEGRATION_H
 
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/rpa.h>
+#include "eigen.h"
+#include "quadrature_factory.h"
+#include "rpa.h"
+#include <memory>
 
 // Computes the contribution from the Gauss-Laguerre quadrature to the
 // self-energy expectation matrix for given RPA and frequencies
 namespace votca {
 namespace xtp {
 
-class GaussianQuadrature {
+class ImaginaryAxisIntegration {
 
  public:
   struct options {
@@ -42,8 +44,8 @@ class GaussianQuadrature {
     double alpha;
   };
 
-  GaussianQuadrature(const Eigen::VectorXd& energies,
-                     const TCMatrix_gwbse& Mmn);
+  ImaginaryAxisIntegration(const Eigen::VectorXd& energies,
+                           const TCMatrix_gwbse& Mmn);
 
   void configure(options opt, const RPA& rpa,
                  const Eigen::MatrixXd& kDielMxInv_zero);
@@ -53,6 +55,8 @@ class GaussianQuadrature {
  private:
   options _opt;
 
+  std::unique_ptr<GaussianQuadratureBase> _gq = nullptr;
+
   // This function calculates and stores inverses of the microscopic dielectric
   // matrix in a matrix vector
   void CalcDielInvVector(const RPA& rpa,
@@ -60,9 +64,7 @@ class GaussianQuadrature {
   const Eigen::VectorXd& _energies;
   std::vector<Eigen::MatrixXd> _dielinv_matrices_r;
   const TCMatrix_gwbse& _Mmn;
-  Eigen::VectorXd _quadpoints;
-  Eigen::VectorXd _quadadaptedweights;
 };
 }  // namespace xtp
 }  // namespace votca
-#endif /* GAUSSIAN_QUADRATURE_H */
+#endif  // VOTCA_XTP_IMAGINARYAXISINTEGRATION_H

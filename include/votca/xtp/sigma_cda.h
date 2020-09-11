@@ -17,9 +17,9 @@
  *
  */
 
-#ifndef _VOTCA_XTP_SIGMA_CDA_H
-#define _VOTCA_XTP_SIGMA_CDA_H
-#include "votca/xtp/gaussian_quadrature.h"
+#ifndef VOTCA_XTP_SIGMA_CDA_H
+#define VOTCA_XTP_SIGMA_CDA_H
+#include "votca/xtp/ImaginaryAxisIntegration.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_base.h"
@@ -31,18 +31,13 @@
 namespace votca {
 namespace xtp {
 
-class TCMatrix_gwbse;
-class RPA;
-
 class Sigma_CDA : public Sigma_base {
 
  public:
   Sigma_CDA(TCMatrix_gwbse& Mmn, RPA& rpa)
-      : Sigma_base(Mmn, rpa),
-        _gq(rpa.getRPAInputEnergies(), Mmn),
-        _eta(rpa.getEta()){};
+      : Sigma_base(Mmn, rpa), _gq(rpa.getRPAInputEnergies(), Mmn){};
 
-  ~Sigma_CDA(){};
+  ~Sigma_CDA() = default;
 
   void PrepareScreening() final;
 
@@ -50,14 +45,15 @@ class Sigma_CDA : public Sigma_base {
                                     double frequency) const final;
 
   double CalcCorrelationDiagElementDerivative(Index gw_level,
-                                              double frequency) const {
+                                              double frequency) const final {
     double h = 1e-3;
     double plus = CalcCorrelationDiagElement(gw_level, frequency + h);
     double minus = CalcCorrelationDiagElement(gw_level, frequency - h);
     return (plus - minus) / (2 * h);
   }
   // Calculates Sigma_c off-diagonal elements
-  double CalcCorrelationOffDiagElement(Index, Index, double, double) const {
+  double CalcCorrelationOffDiagElement(Index, Index, double,
+                                       double) const final {
     return 0;
   }
 
@@ -72,10 +68,8 @@ class Sigma_CDA : public Sigma_base {
   double CalcDiagContributionValue_tail(
       const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
       double alpha) const;
-  GaussianQuadrature _gq;
 
-  double _eta;
-
+  ImaginaryAxisIntegration _gq;
   Eigen::MatrixXd _kDielMxInv_zero;  // kappa = eps^-1 - 1 matrix
 };
 
@@ -83,4 +77,4 @@ class Sigma_CDA : public Sigma_base {
 
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_SIGMA_CDA_H */
+#endif  // VOTCA_XTP_SIGMA_CDA_H

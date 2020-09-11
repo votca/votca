@@ -25,20 +25,19 @@ namespace votca {
 namespace xtp {
 
 void Sigma_CDA::PrepareScreening() {
-  GaussianQuadrature::options opt;
+  ImaginaryAxisIntegration::options opt;
   opt.homo = _opt.homo;
   opt.order = _opt.order;
   opt.qptotal = _qptotal;
   opt.qpmin = _opt.qpmin;
+  opt.rpamax = _opt.rpamax;
   opt.rpamin = _opt.rpamin;
   opt.alpha = _opt.alpha;
   opt.quadrature_scheme = _opt.quadrature_scheme;
-
   // prepare the zero frequency inverse for Gaussian tail
   _kDielMxInv_zero =
       _rpa.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
   _kDielMxInv_zero.diagonal().array() -= 1.0;
-
   _gq.configure(opt, _rpa, _kDielMxInv_zero);
 }
 
@@ -98,7 +97,8 @@ double Sigma_CDA::CalcResidueContribution(double frequency,
     // diagonal contribution if the prefactor is 0. We want to calculate it for
     // all the other cases.
     if (std::abs(factor) > 1e-10) {
-      sigma_c += factor * CalcDiagContribution(Imx.row(i), abs_delta, _eta);
+      sigma_c +=
+          factor * CalcDiagContribution(Imx.row(i), abs_delta, _rpa.getEta());
     }
     // This part should allow to add a smooth tail
     if (abs_delta > 1e-10) {
@@ -114,7 +114,7 @@ double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
 
   double sigma_c_residue = CalcResidueContribution(frequency, gw_level);
 
-  double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level, _eta);
+  double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level, _rpa.getEta());
 
   return sigma_c_residue + sigma_c_integral;
 }
@@ -127,8 +127,7 @@ double Sigma_CDA::CalcDiagContributionValue_tail(
                        std::exp(std::pow(alpha * delta, 2)) *
                        std::erfc(std::abs(alpha * delta));
 
-  double value = ((Imx_row * _kDielMxInv_zero).cwiseProduct(Imx_row)).sum();
-
+  double value = (Imx_row * _kDielMxInv_zero).dot(Imx_row);
   return value * erfc_factor;
 }
 

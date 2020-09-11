@@ -17,34 +17,29 @@
  *
  */
 
-#ifndef __VOTCA_XTP_GAUS_LEGENDRE_QUADRATURE_CONSTANTS_H
-#define __VOTCA_XTP_GAUS_LEGENDRE_QUADRATURE_CONSTANTS_H
+#ifndef VOTCA_XTP_GAUSS_HERMITE_QUADRATURE_H
+#define VOTCA_XTP_GAUSS_HERMITE_QUADRATURE_H
 
-#include "votca/xtp/eigen.h"
-#include <map>
-#include <stdexcept>
-#include <string>
+#include "votca/xtp/GaussianQuadratureBase.h"
 
 namespace votca {
 namespace xtp {
 
-class Gauss_Legendre_Quadrature_Constants {
+class Gauss_Hermite_Quadrature : public GaussianQuadratureBase {
  public:
-  const Eigen::VectorXd &getPoints(Index order);
+  double ScaledPoint(Index i) const final { return points_[i]; }
 
-  const Eigen::VectorXd &getAdaptedWeights(Index order);
+  double ScaledWeight(Index i) const final { return weights_[i]; }
 
- private:
-  bool _filled_Points = false;
-  bool _filled_AdaptedWeights = false;
-
-  std::map<Index, Eigen::VectorXd> _map_points;
-  std::map<Index, Eigen::VectorXd> _map_AdaptedWeights;
-
-  void FillPoints();
-  void FillAdaptedWeights();
+ protected:
+  // The hermite quadrature method is suitable for integration limits a =
+  // -infty b = +infty. Here we don't do any modification to the original
+  // hermite quadrature method. Points and weights are not transformed
+  bool UseSymmetry() const final { return false; }
+  void FillPoints() final;
+  void FillAdaptedWeights() final;
 };
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_XTP_GAUS_LEGENDRE_QUADRATURE_CONSTANTS_H */
+#endif  // VOTCA_XTP_GAUSS_HERMITE_QUADRATURE_H

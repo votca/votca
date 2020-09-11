@@ -39,11 +39,11 @@ void GW::configure(const options& opt) {
   _qptotal = _opt.qpmax - _opt.qpmin + 1;
   _rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
   if (_opt.sigma_integration == "exact") {
-    _sigma = std::make_unique<Sigma_Exact>(Sigma_Exact(_Mmn, _rpa));
+    _sigma = std::make_unique<Sigma_Exact>(_Mmn, _rpa);
   } else if (_opt.sigma_integration == "cda") {
-    _sigma = std::make_unique<Sigma_CDA>(Sigma_CDA(_Mmn, _rpa));
+    _sigma = std::make_unique<Sigma_CDA>(_Mmn, _rpa);
   } else if (_opt.sigma_integration == "ppm") {
-    _sigma = std::make_unique<Sigma_PPM>(Sigma_PPM(_Mmn, _rpa));
+    _sigma = std::make_unique<Sigma_PPM>(_Mmn, _rpa);
   }
   Sigma_base::options sigma_opt;
   sigma_opt.homo = _opt.homo;
