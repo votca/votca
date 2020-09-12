@@ -52,7 +52,7 @@ class GaussianQuadratureBase {
     for (Index j = 0; j < Order(); ++j) {
       result += ScaledWeight(j) * f(j, ScaledPoint(j), UseSymmetry());
     }
-    return 0.5 * result / tools::conv::Pi;
+    return result;
   }
   virtual double ScaledPoint(Index i) const = 0;
 

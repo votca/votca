@@ -80,7 +80,7 @@ class FunctionEvaluation {
     } else {
       denominator = (_DeltaE + cpoint).cwiseInverse();
     }
-    return ((_Imx * (_dielinv_matrices_r[j].conjugate()))
+    return  0.5/tools::conv::Pi*((_Imx * (_dielinv_matrices_r[j].conjugate()))
                 .cwiseProduct(denominator.asDiagonal() * _Imx))
         .sum()
         .real();
