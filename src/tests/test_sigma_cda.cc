@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   Eigen::MatrixXd c_ref_diag = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/sigma_cda/c_ref.mm");
 
-  bool check_c_diag = c.diagonal().isApprox(c_ref_diag, 1e-5);
+  bool check_c_diag = c.diagonal().isApprox(c_ref_diag.diagonal(), 1e-5);
   if (!check_c_diag) {
     cout << "Sigma C" << endl;
     cout << c.diagonal() << endl;
