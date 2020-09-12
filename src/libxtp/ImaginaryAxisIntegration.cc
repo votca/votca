@@ -73,11 +73,12 @@ class FunctionEvaluation {
 
   double operator()(Index j, double point, bool symmetry) const {
     Eigen::VectorXcd denominator;
+    const std::complex<double> cpoint(0.0, point);
     if (symmetry) {
       denominator =
-          (_DeltaE + point).cwiseInverse() + (_DeltaE - point).cwiseInverse();
+          (_DeltaE + cpoint).cwiseInverse() + (_DeltaE - cpoint).cwiseInverse();
     } else {
-      denominator = (_DeltaE + point).cwiseInverse();
+      denominator = (_DeltaE + cpoint).cwiseInverse();
     }
     return ((_Imx * (_dielinv_matrices_r[j].conjugate()))
                 .cwiseProduct(denominator.asDiagonal() * _Imx))
