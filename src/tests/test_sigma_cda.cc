@@ -74,6 +74,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   opt.rpamax = 16;
   opt.quadrature_scheme = "legendre";
   opt.order = 100;
+  opt.alpha = 1e-3;
   sigma.configure(opt);
 
   Eigen::MatrixXd x = sigma.CalcExchangeMatrix();
