@@ -40,10 +40,12 @@ class FunctionEvaluation {
 
   double operator()(Index j, double point, bool symmetry) const {
     double factor;
-    if (symmetry) {
-      factor = 2.0;
-    } else {
-      factor = 1.0;
+    if (j < 100) {
+      if (symmetry) {
+        factor = 2.0;
+      } else {
+        factor = 1.0;
+      }
     }
 
     return factor * exp(-std::pow(point, 2));
