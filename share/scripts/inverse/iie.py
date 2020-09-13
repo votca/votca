@@ -110,24 +110,24 @@ def find_nearest_ndx(array, value):
     return idx
 
 
-def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
+def calc_U_sym_mol(r, g_tgt, G_minus_g, n, kBT, rho, closure):
     """calculates U from g and G_minus_g for molecules with n identical beads.
     This means it works for two-bead hexane, but is expected to fail for
     three-bead hexane"""
     # single bead case
     # (for didactic purpose, the formulas in this function would work)
     if n == 1:
-        U = calc_U_single(r, g_cur, kBT, rho, closure)
+        U = calc_U_single(r, g_tgt, kBT, rho, closure)
         return U
     # remove r = 0 for numerical stability
     r0_removed = False
     if r[0] == 0.0:
-        r, g_cur, G_minus_g = r[1:], g_cur[1:], G_minus_g[1:]
+        r, g_tgt, G_minus_g = r[1:], g_tgt[1:], G_minus_g[1:]
         r0_removed = True
     # reciprocal space ω with radial symmetry
     omega = gen_omega(r)
     # total correlation function h
-    h = g_cur - 1
+    h = g_tgt - 1
     h_hat = fourier(r, h, omega)
     # intramolecular distribution G - g
     G_minus_g_hat = fourier(r, G_minus_g, omega)
@@ -139,25 +139,25 @@ def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
     # U from HNC
     with np.errstate(divide='ignore', invalid='ignore'):
         if closure == 'hnc':
-            U = kBT * (-np.log(g_cur) + h - c)
+            U = kBT * (-np.log(g_tgt) + h - c)
         elif closure == 'py':
-            U = kBT * np.log(1 - c/g_cur)
+            U = kBT * np.log(1 - c/g_tgt)
     if r0_removed:
         U = np.insert(U, 0, np.nan)
     return U
 
 
-def calc_U_single(r, g_cur, kBT, rho, closure):
+def calc_U_single(r, g_tgt, kBT, rho, closure):
     """calculates U from g for single particle systems."""
     # remove r = 0 for numerical stability
     r0_removed = False
     if r[0] == 0.0:
-        r, g_cur = r[1:], g_cur[1:]
+        r, g_tgt = r[1:], g_tgt[1:]
         r0_removed = True
     # reciprocal space ω with radial symmetry
     omega = gen_omega(r)
     # total correlation function h
-    h = g_cur - 1
+    h = g_tgt - 1
     h_hat = fourier(r, h, omega)
     # direct correlation function c from OZ
     # interactions
@@ -166,9 +166,9 @@ def calc_U_single(r, g_cur, kBT, rho, closure):
     # U from HNC
     with np.errstate(divide='ignore', invalid='ignore'):
         if closure == 'hnc':
-            U = kBT * (-np.log(g_cur) + h - c)
+            U = kBT * (-np.log(g_tgt) + h - c)
         elif closure == 'py':
-            U = kBT * np.log(1 - c/g_cur)
+            U = kBT * np.log(1 - c/g_tgt)
     if r0_removed:
         U = np.insert(U, 0, np.nan)
     return U
