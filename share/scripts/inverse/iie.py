@@ -185,14 +185,16 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     G_minus_g_hat = fourier(r, G_minus_g, omega)
     # dc/dg g' = c'
     # derived in sympy
-    c_prime_hat = h_hat * g_prime_hat / ((1 + n * rho * G_minus_g_hat) + rho * h_hat)**2
+    c_prime_hat = h_hat * g_prime_hat / (1 + n * rho * G_minus_g_hat
+                                         + n * rho * h_hat)**2
     c_prime = fourier(omega, c_prime_hat, r)
+    """
     if verbose:
         # calculate and save jacobian
         F = gen_fourier_matrix(r, omega, fourier)
         dcdg = np.matmul(np.matmul(np.linalg.inv(F),
                                    np.diag(h_hat / (1 + n * rho * G_minus_g_hat
-                                                    + rho * h_hat)**2)),
+                                                    + n * rho * h_hat)**2)),
                          F)
         if closure == 'hnc':
             if newton_mod:
@@ -202,6 +204,7 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
                     jac_inv = kBT * (np.diag(1 - 1 / g_cur) - dcdg)
                 jac = np.linalg.inv(jac_inv)
                 np.savez_compressed('jacobian.npz', jac=jac)
+    """
     # dU from HNC
     with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
         if closure == 'hnc':
