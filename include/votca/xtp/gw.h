@@ -62,10 +62,10 @@ class GW {
     Index qp_grid_steps;            // Number of grid points
     double qp_grid_spacing;         // Spacing of grid points in Ha
     Index gw_mixing_order;          // mixing order
-    double gw_mixing_alpha;         //  mixing alpha, also linear mixing
+    double gw_mixing_alpha;         // mixing alpha, also linear mixing
     std::string quadrature_scheme;  // Kind of Gaussian-quadrature scheme to use
-    Index order = 100;  // only needed for complex integration sigma default:12
-    double alpha;
+    Index order;   // only needed for complex integration sigma CDA
+    double alpha;  // smooth tail in complex integration sigma CDA
   };
 
   void configure(const options& opt);

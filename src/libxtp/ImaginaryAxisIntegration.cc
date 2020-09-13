@@ -17,8 +17,6 @@
  *
  */
 
-#include <boost/progress.hpp>
-
 #include <votca/tools/constants.h>
 
 #include "votca/xtp/ImaginaryAxisIntegration.h"
@@ -49,11 +47,6 @@ void ImaginaryAxisIntegration::CalcDielInvVector(
     const RPA& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
   _dielinv_matrices_r.resize(_gq->Order());
 
-  std::cout << "\n... ... Preparing RPA for Gaussian quadrature along "
-               "imaginary axis with "
-            << _opt.order << " points" << std::endl;
-  boost::progress_display progress(_gq->Order(), std::cout, "... ... ",
-                                   "... ... ", "... ... ");
   for (Index j = 0; j < _gq->Order(); j++) {
     double newpoint = _gq->ScaledPoint(j);
     Eigen::MatrixXd eps_inv_j = rpa.calculate_epsilon_i(newpoint).inverse();
@@ -61,7 +54,6 @@ void ImaginaryAxisIntegration::CalcDielInvVector(
     _dielinv_matrices_r[j] =
         -eps_inv_j +
         kDielMxInv_zero * std::exp(-std::pow(_opt.alpha * newpoint, 2));
-    ++progress;
   }
 }
 
