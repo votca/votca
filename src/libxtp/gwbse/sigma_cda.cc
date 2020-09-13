@@ -24,6 +24,9 @@
 namespace votca {
 namespace xtp {
 
+// Prepares the zero and imaginary frequency kappa matrices with
+// kappa(omega) = epsilon^-1(omega) - 1 needed in numerical
+// integration and for the Gaussian tail
 void Sigma_CDA::PrepareScreening() {
   ImaginaryAxisIntegration::options opt;
   opt.homo = _opt.homo;
@@ -57,6 +60,7 @@ double Sigma_CDA::CalcDiagContribution(
   return x.dot(Imx_row.transpose());
 }
 
+// Step-function prefactor for the residues
 double Sigma_CDA::CalcResiduePrefactor(double e_f, double e_m,
                                        double frequency) const {
   double factor = 0.0;
@@ -73,6 +77,8 @@ double Sigma_CDA::CalcResiduePrefactor(double e_f, double e_m,
   return factor;
 }
 
+// Calculates the contribution of residues to the correlation
+// part of the self-energy of a fixed gw_level
 double Sigma_CDA::CalcResidueContribution(double frequency,
                                           Index gw_level) const {
 
@@ -100,7 +106,7 @@ double Sigma_CDA::CalcResidueContribution(double frequency,
       sigma_c +=
           factor * CalcDiagContribution(Imx.row(i), abs_delta, _rpa.getEta());
     }
-    // This part should allow to add a smooth tail
+    // adds the contribution from the Gaussian tail
     if (abs_delta > 1e-10) {
       sigma_c_tail +=
           CalcDiagContributionValue_tail(Imx.row(i), delta, _opt.alpha);
@@ -109,16 +115,19 @@ double Sigma_CDA::CalcResidueContribution(double frequency,
   return sigma_c + sigma_c_tail;
 }
 
+// Calculates the correlation part of the self-energy for a fixed
+// gw_level and frequence by evaluating the numerical integration
+// and residue contributions
 double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
                                              double frequency) const {
 
   double sigma_c_residue = CalcResidueContribution(frequency, gw_level);
-
   double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level, _rpa.getEta());
-
   return sigma_c_residue + sigma_c_integral;
 }
 
+// Calculates the contribuion of the tail correction to the
+// residue term
 double Sigma_CDA::CalcDiagContributionValue_tail(
     const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
     double alpha) const {
