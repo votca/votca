@@ -37,14 +37,14 @@ class Sigma_base {
   virtual ~Sigma_base() = default;
 
   struct options {
-    Index homo = 0;
-    Index qpmin = 0;
-    Index qpmax = 0;
-    Index rpamin = 0;
-    Index rpamax = 0;
+    Index homo;
+    Index qpmin;
+    Index qpmax;
+    Index rpamin;
+    Index rpamax;
     double eta;
-    std::string quadrature_scheme;  // Kind of Gaussian-quadrature scheme to use
-    Index order;  // only needed for complex integration sigma default:12
+    std::string quadrature_scheme;  // Gaussian-quadrature scheme to use in CDA
+    Index order;  // used in numerical integration of CDA Sigma
     double alpha;
   };
 
