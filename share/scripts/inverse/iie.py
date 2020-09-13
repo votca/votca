@@ -119,6 +119,11 @@ def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
     if n == 1:
         U = calc_U_single(r, g_cur, kBT, rho, closure)
         return U
+    # remove r = 0 for numerical stability
+    r0_removed = False
+    if r[0] == 0.0:
+        r, g_cur, G_minus_g = r[1:], g_cur[1:], G_minus_g[1:]
+        r0_removed = True
     # reciprocal space ω with radial symmetry
     omega = gen_omega(r)
     # total correlation function h
@@ -129,7 +134,7 @@ def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
     # direct correlation function c from OZ including intramolecular
     # interactions
     c_hat = h_hat / ((1 + n * rho * G_minus_g_hat)**2
-                     + (1 + n * rho * G_minus_g_hat) * rho * h_hat)
+                     + (1 + n * rho * G_minus_g_hat) * n * rho * h_hat)
     c = fourier(omega, c_hat, r)
     # U from HNC
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -137,11 +142,18 @@ def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
             U = kBT * (-np.log(g_cur) + h - c)
         elif closure == 'py':
             U = kBT * np.log(1 - c/g_cur)
+    if r0_removed:
+        U = np.insert(U, 0, np.nan)
     return U
 
 
 def calc_U_single(r, g_cur, kBT, rho, closure):
     """calculates U from g for single particle systems."""
+    # remove r = 0 for numerical stability
+    r0_removed = False
+    if r[0] == 0.0:
+        r, g_cur = r[1:], g_cur[1:]
+        r0_removed = True
     # reciprocal space ω with radial symmetry
     omega = gen_omega(r)
     # total correlation function h
@@ -157,6 +169,8 @@ def calc_U_single(r, g_cur, kBT, rho, closure):
             U = kBT * (-np.log(g_cur) + h - c)
         elif closure == 'py':
             U = kBT * np.log(1 - c/g_cur)
+    if r0_removed:
+        U = np.insert(U, 0, np.nan)
     return U
 
 
@@ -172,8 +186,11 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
         dU = calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho, closure, newton_mod,
                                    verbose)
         return dU
-    # for convenience grid is without the zero value
-    r, g_cur, g_tgt, G_minus_g = r[1:], g_cur[1:], g_tgt[1:], G_minus_g[1:]
+    # remove r = 0 for numerical stability
+    r0_removed = False
+    if r[0] == 0.0:
+        r, g_cur, g_tgt, G_minus_g = r[1:], g_cur[1:], g_tgt[1:], G_minus_g[1:]
+        r0_removed = True
     # reciprocal space with radial symmetry ω
     omega = gen_omega(r)
     # difference of rdf to target 'f'
@@ -185,8 +202,8 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     G_minus_g_hat = fourier(r, G_minus_g, omega)
     # dc/dg g' = c'
     # derived in sympy
-    c_prime_hat = h_hat * g_prime_hat / (1 + n * rho * G_minus_g_hat
-                                         + n * rho * h_hat)**2
+    c_prime_hat = g_prime_hat / (1 + n * rho * G_minus_g_hat
+                                 + n * rho * h_hat)**2
     c_prime = fourier(omega, c_prime_hat, r)
     """
     if verbose:
@@ -225,7 +242,8 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
                 # U = kBT * np.log(1 - c/g_cur)
                 dU = kBT * (1 / (1 - c / g_tgt)
                             * (- c_prime * g_tgt + g_prime * c) / g_tgt**2)
-    dU = np.insert(dU, 0, np.nan)
+    if r0_removed:
+        dU = np.insert(dU, 0, np.nan)
     return dU
 
 
@@ -234,8 +252,11 @@ def calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho,
     """calculates an update step dU for the potential from g_tgt and g_cur
     using IHNC (or HNCN) step for single bead systems.
     """
-    # for convenience grid is without the zero value
-    r, g_cur, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
+    # remove r = 0 for numerical stability
+    r0_removed = False
+    if r[0] == 0.0:
+        r, g_cur, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
+        r0_removed = True
     # reciprocal space with radial symmetry ω
     omega = gen_omega(r)
     # difference of rdf to target
@@ -274,7 +295,8 @@ def calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho,
                 c = fourier(omega, c_hat, r)
                 dU = kBT * (1 / (1 - c / g_tgt)
                             * (- c_prime * g_tgt + g_prime * c) / g_tgt**2)
-    dU = np.insert(dU, 0, np.nan)
+    if r0_removed:
+        dU = np.insert(dU, 0, np.nan)
     return dU
 
 
@@ -318,7 +340,11 @@ def calc_dU_hncgn_sc(r, g_cur, g_tgt, kBT, density,
                      verbose):
     """Apply the (constrained) single-component HNCGN method."""
 
-    # for convenience grid is without the zero value
+    # remove r = 0 for numerical stability
+    r0_removed = False
+    if r[0] == 0.0:
+        r, g_cur, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
+        r0_removed = True
     r, g_cur, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
     # there are different regions in r used in the method
     #              |       crucial     |                     # regions
@@ -400,7 +426,7 @@ def calc_dU_hncgn_sc(r, g_cur, g_tgt, kBT, density,
     # dU
     dU = np.matmul(A0, w)
     # fill core with nans
-    dU = np.concatenate((np.full(ndx_ce + 1, np.nan), dU))
+    dU = np.concatenate((np.full(ndx_ce + (1 if r0_removed else 0), np.nan), dU))
     # dump files
     if verbose:
         np.savez_compressed('hncgn-arrays.npz', A=A, b=b, C=C, d=d,
