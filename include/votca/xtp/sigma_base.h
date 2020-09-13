@@ -42,9 +42,9 @@ class Sigma_base {
     Index qpmax = 0;
     Index rpamin = 0;
     Index rpamax = 0;
-    double eta = 1e-3;
+    double eta;
     std::string quadrature_scheme;  // Kind of Gaussian-quadrature scheme to use
-    Index order = 12;  // only needed for complex integration sigma default:12
+    Index order;  // only needed for complex integration sigma default:12
     double alpha;
   };
 

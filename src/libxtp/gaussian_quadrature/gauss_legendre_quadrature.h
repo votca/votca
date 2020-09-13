@@ -49,7 +49,7 @@ class Gauss_modified_Legendre_Quadrature
   // The modified legendre method is suitable for integration limits a = 0 b =
   // +infty. Here we have value1 and value2 because we split the original
   // integral from -infty to +infty in two parts. Original legendre quadrature
-  // is meant for integratal with integration limits of -1 and 1. To overcome
+  // is meant for integral with integration limits of -1 and 1. To overcome
   // this we use the transformation x' = 0.5 ^ (1+x/1-x)
   bool UseSymmetry() const final { return true; }
 };

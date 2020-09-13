@@ -85,6 +85,37 @@ BOOST_AUTO_TEST_CASE(gauss_legendre) {
   BOOST_CHECK_EQUAL(check_integral, true);
 }
 
+BOOST_AUTO_TEST_CASE(modified_gauss_legendre) {
+
+  QuadratureFactory::RegisterAll();
+  std::unique_ptr<GaussianQuadratureBase> _gq =
+      std::unique_ptr<GaussianQuadratureBase>(
+          Quadratures().Create("modified_legendre"));
+
+  std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
+  FunctionEvaluation f = FunctionEvaluation();
+
+  Eigen::VectorXd integrals(9);
+  for (Index i = 0; i < 9; i++) {
+    _gq->configure(orders[i]);
+    integrals(i) = _gq->Integrate(f);
+  }
+
+  Eigen::VectorXd integrals_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/gaussian_quadratures/modified_gauss_legendre.mm");
+
+  bool check_integral = integrals.isApprox(integrals_ref, 1e-10);
+  if (!check_integral) {
+    std::cout << "modified Gauss-Legendre" << std::endl;
+    std::cout << integrals << std::endl;
+    std::cout << "modified Gauss-Legendre ref" << std::endl;
+    std::cout << integrals_ref << std::endl;
+  }
+  BOOST_CHECK_EQUAL(check_integral, true);
+}
+
 BOOST_AUTO_TEST_CASE(gauss_laguerre) {
 
   QuadratureFactory::RegisterAll();
