@@ -21,9 +21,9 @@
 # dU: potential update (U_{k+1} - U_k)
 #
 # suffixes:
-# _cur: current or of step k if currently doing iteration k
+# _cur: current (of step k if currently doing iteration k)
 # _tgt: target
-# _ce: core_end (where RDF gets > 0)
+# _ce: core_end (where RDF becomes > 0)
 # _co: cut_off
 # _sc: single_component
 #
@@ -86,11 +86,20 @@ def fourier(r, y, omega):
     return y_hat
 
 
-def gen_fourier_matrix(r_nz, omega_nz, fourier_function):
+def gen_omega(r):
+    """reciprocal space grid from real space grid"""
+    Delta_r = calc_grid_spacing(r)
+    nyquist_freq = 1 / Delta_r / 2
+    omega = np.linspace(nyquist_freq/len(r), nyquist_freq, len(r))
+    omega *= OMEGA_SAFE_SCALE
+    return omega
+
+
+def gen_fourier_matrix(r, omega, fourier_function):
     """make a fourier matrix"""
-    fourier_matrix = np.identity(len(omega_nz))
+    fourier_matrix = np.identity(len(omega))
     for col_index, col in enumerate(fourier_matrix.T):
-        fourier_matrix.T[col_index] = fourier_function(r_nz, col, omega_nz)
+        fourier_matrix.T[col_index] = fourier_function(r, col, omega)
     return fourier_matrix
 
 
@@ -106,27 +115,21 @@ def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
     This means it works for two-bead hexane, but is expected to fail for
     three-bead hexane"""
     # single bead case
-    # (even though the formulas in this function would work)
+    # (for didactic purpose, the formulas in this function would work)
     if n == 1:
         U = calc_U_single(r, g_cur, kBT, rho, closure)
         return U
     # reciprocal space ω with radial symmetry
-    omega = np.arange(1, len(r)) / (2 * max(r))
-    omega *= OMEGA_SAFE_SCALE
+    omega = gen_omega(r)
     # total correlation function h
     h = g_cur - 1
     h_hat = fourier(r, h, omega)
     # intramolecular distribution G - g
     G_minus_g_hat = fourier(r, G_minus_g, omega)
-    # auxiliary variables a, b, e
-    a_hat = rho * G_minus_g_hat
-    # reduces to 1 for a_hat = 0 or n = 1
-    b_hat = 1 + a_hat * (2 - 2/n) + a_hat**2 * (1/n * (n - 2) + 1/n**2)
-    # reduces to rho for a_hat = 0 or n = 1
-    e_hat = rho * (a_hat - a_hat/n + 1)
     # direct correlation function c from OZ including intramolecular
     # interactions
-    c_hat = h_hat / (b_hat + e_hat * h_hat)
+    c_hat = h_hat / ((1 + n * rho * G_minus_g_hat)**2
+                     + (1 + n * rho * G_minus_g_hat) * rho * h_hat)
     c = fourier(omega, c_hat, r)
     # U from HNC
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -140,8 +143,7 @@ def calc_U_sym_mol(r, g_cur, G_minus_g, n, kBT, rho, closure):
 def calc_U_single(r, g_cur, kBT, rho, closure):
     """calculates U from g for single particle systems."""
     # reciprocal space ω with radial symmetry
-    omega = np.arange(1, len(r)) / (2 * max(r))
-    omega *= OMEGA_SAFE_SCALE
+    omega = gen_omega(r)
     # total correlation function h
     h = g_cur - 1
     h_hat = fourier(r, h, omega)
@@ -165,7 +167,7 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     This means it works for two-bead hexane, but is expected to fail for
     three-bead hexane"""
     # single bead case
-    # (even though the formulas in this function would work)
+    # (for didactic purpose, the formulas in this function would work)
     if n == 1:
         dU = calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho, closure, newton_mod,
                                    verbose)
@@ -173,11 +175,7 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # for convenience grid is without the zero value
     r, g_cur, g_tgt, G_minus_g = r[1:], g_cur[1:], g_tgt[1:], G_minus_g[1:]
     # reciprocal space with radial symmetry ω
-    Delta_r = calc_grid_spacing(r)
-    nyquist_freq = 1 / Delta_r / 2
-    omega = np.linspace(nyquist_freq/len(r), nyquist_freq, len(r))
-    # omega = np.arange(1, len(r)) / (2 * max(r))
-    omega *= OMEGA_SAFE_SCALE
+    omega = gen_omega(r)
     # difference of rdf to target 'f'
     g_prime = g_tgt - g_cur
     g_prime_hat = fourier(r, g_prime, omega)
@@ -185,21 +183,16 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     h_hat = fourier(r, g_cur - 1, omega)
     # intramolecular distribution G - g
     G_minus_g_hat = fourier(r, G_minus_g, omega)
-    # auxiliary variables a, b, e
-    a_hat = rho * G_minus_g_hat
-    # reduces to 1 for a_hat = 0 or n = 1
-    b_hat = 1 + a_hat * (2 - 2/n) + a_hat**2 * (1/n * (n - 2) + 1/n**2)
-    # reduces to rho for a_hat = 0 or n = 1
-    e_hat = rho * (a_hat - a_hat/n + 1)
     # dc/dg g' = c'
     # derived in sympy
-    c_prime_hat = b_hat * g_prime_hat / (b_hat + e_hat * h_hat)**2
+    c_prime_hat = h_hat * g_prime_hat / ((1 + n * rho * G_minus_g_hat) + rho * h_hat)**2
     c_prime = fourier(omega, c_prime_hat, r)
     if verbose:
         # calculate and save jacobian
         F = gen_fourier_matrix(r, omega, fourier)
         dcdg = np.matmul(np.matmul(np.linalg.inv(F),
-                                   np.diag(b_hat / (b_hat + e_hat * h_hat)**2)),
+                                   np.diag(h_hat / (1 + n * rho * G_minus_g_hat
+                                                    + rho * h_hat)**2)),
                          F)
         if closure == 'hnc':
             if newton_mod:
@@ -218,7 +211,8 @@ def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
                 dU = kBT * (-(g_prime / g_cur) + g_prime - c_prime)
         elif closure == 'py':
             # for PY we also need c
-            c_hat = h_hat / (b_hat + e_hat * h_hat)
+            c_hat = h_hat / ((1 + n * rho * G_minus_g_hat)**2
+                             + (1 + n * rho * G_minus_g_hat) * rho * h_hat)
             c = fourier(omega, c_hat, r)
             if newton_mod:
                 # dU = kBT * ()
@@ -240,8 +234,7 @@ def calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho,
     # for convenience grid is without the zero value
     r, g_cur, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
     # reciprocal space with radial symmetry ω
-    omega = np.arange(1, len(r)) / (2 * max(r))
-    omega *= OMEGA_SAFE_SCALE
+    omega = gen_omega(r)
     # difference of rdf to target
     g_prime = g_tgt - g_cur
     g_prime_hat = fourier(r, g_prime, omega)
@@ -348,11 +341,7 @@ def calc_dU_hncgn_sc(r, g_cur, g_tgt, kBT, density,
         print("nocore:", ndx_ce, len(r), min(r[nocore]), max(r[nocore]))
 
     # reciprocal grid up to Nyquist frequency
-    nyquist_freq = 1 / Delta_r / 2
-    omega = np.linspace(nyquist_freq/len(r), nyquist_freq, len(r))
-    # This ensures max(omega) becomes not to large due to numerical accuracy
-    # because if it does there are artifacts
-    omega *= OMEGA_SAFE_SCALE
+    omega = gen_omega(r)
     # Fourier matrix
     F = gen_fourier_matrix(r, omega, fourier)
     # density 'ρ0'
