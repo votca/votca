@@ -39,7 +39,8 @@ class FunctionEvaluation {
   FunctionEvaluation(){};
 
   double operator()(Index j, double point, bool symmetry) const {
-    double factor;
+    double factor = 0.0;
+    // this is only here to staisfy the unused variable warning
     if (j < 100) {
       if (symmetry) {
         factor = 2.0;
