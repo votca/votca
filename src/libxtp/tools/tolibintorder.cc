@@ -1,6 +1,5 @@
 #include "tolibintorder.h"
 
-
 namespace votca {
 namespace xtp {
 
@@ -17,10 +16,8 @@ bool ToLibintOrder::Evaluate() {
   _log.setMultithreading(true);
   _log.setCommonPreface("\n... ...");
 
-  
-  XTP_LOG(Log::error, _log)
-      << "\n Some MESSAGE \n";
-  
+  XTP_LOG(Log::error, _log) << _job_name + ".mm" << std::endl;
+
   return true;
 }
 
