@@ -116,6 +116,23 @@ BOOST_AUTO_TEST_CASE(rpa_full) {
   }
 
   BOOST_CHECK_EQUAL(r_check, 1);
+
+  Eigen::MatrixXd e_r_complex =
+      rpa.calculate_epsilon_r(std::complex<double>(0.5, 0.5));
+
+  Eigen::MatrixXd r_complex_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/rpa/r_complex_ref.mm");
+  bool r_complex_check = r_complex_ref.isApprox(e_r_complex, 0.0001);
+
+  if (!r_complex_check) {
+    cout << "Epsilon_r_complex" << endl;
+    cout << e_r_complex << endl;
+    cout << "Epsilon_r_compelx_ref" << endl;
+    cout << r_complex_ref << endl;
+  }
+
+  BOOST_CHECK_EQUAL(r_complex_check, 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

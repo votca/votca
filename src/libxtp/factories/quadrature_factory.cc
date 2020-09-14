@@ -1,4 +1,3 @@
-
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -19,24 +18,22 @@
  */
 
 // Local VOTCA includes
-#include <votca/xtp/filterfactory.h>
+#include "votca/xtp/quadrature_factory.h"
 
 // Local private VOTCA includes
-#include "statefilters/DeltaQ_filter.h"
-#include "statefilters/Density_filter.h"
-#include "statefilters/Localisation_filter.h"
-#include "statefilters/OscillatorStrength_filter.h"
-#include "statefilters/Overlap_filter.h"
+#include "gaussian_quadrature/gauss_hermite_quadrature.h"
+#include "gaussian_quadrature/gauss_laguerre_quadrature.h"
+#include "gaussian_quadrature/gauss_legendre_quadrature.h"
 
 namespace votca {
 namespace xtp {
 
-void FilterFactory::RegisterAll(void) {
-  Filter().Register<DeltaQ_filter>("chargetransfer");
-  Filter().Register<Density_filter>("density");
-  Filter().Register<Localisation_filter>("localisation");
-  Filter().Register<OscillatorStrength_filter>("oscillatorstrength");
-  Filter().Register<Overlap_filter>("overlap");
+void QuadratureFactory::RegisterAll(void) {
+  Quadratures().Register<Gauss_Laguerre_Quadrature>("laguerre");
+  Quadratures().Register<Gauss_Legendre_Quadrature>("legendre");
+  Quadratures().Register<Gauss_modified_Legendre_Quadrature>(
+      "modified_legendre");
+  Quadratures().Register<Gauss_Hermite_Quadrature>("hermite");
 }
 }  // namespace xtp
 }  // namespace votca

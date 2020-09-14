@@ -1,4 +1,3 @@
-
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -19,24 +18,24 @@
  */
 
 // Local VOTCA includes
-#include <votca/xtp/filterfactory.h>
-
-// Local private VOTCA includes
-#include "statefilters/DeltaQ_filter.h"
-#include "statefilters/Density_filter.h"
-#include "statefilters/Localisation_filter.h"
-#include "statefilters/OscillatorStrength_filter.h"
-#include "statefilters/Overlap_filter.h"
+#include "votca/xtp/GaussianQuadratureBase.h"
 
 namespace votca {
 namespace xtp {
-
-void FilterFactory::RegisterAll(void) {
-  Filter().Register<DeltaQ_filter>("chargetransfer");
-  Filter().Register<Density_filter>("density");
-  Filter().Register<Localisation_filter>("localisation");
-  Filter().Register<OscillatorStrength_filter>("oscillatorstrength");
-  Filter().Register<Overlap_filter>("overlap");
+void GaussianQuadratureBase::CheckOrder(
+    Index order, const std::map<Index, Eigen::VectorXd>& map) const {
+  if (map.count(order) == 0) {
+    std::string keys = "{ ";
+    for (const auto& pair : map) {
+      keys += std::to_string(pair.first) + " ";
+    }
+    keys += "}";
+    throw std::invalid_argument("Order " + std::to_string(order) + " not in " +
+                                keys +
+                                ". Please "
+                                " select one of these numbers");
+  }
 }
+
 }  // namespace xtp
 }  // namespace votca

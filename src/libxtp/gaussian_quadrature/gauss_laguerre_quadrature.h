@@ -1,4 +1,3 @@
-
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -18,25 +17,30 @@
  *
  */
 
-// Local VOTCA includes
-#include <votca/xtp/filterfactory.h>
+#ifndef VOTCA_XTP_GAUSS_LAGUERRE_QUADRATURE_H
+#define VOTCA_XTP_GAUSS_LAGUERRE_QUADRATURE_H
 
-// Local private VOTCA includes
-#include "statefilters/DeltaQ_filter.h"
-#include "statefilters/Density_filter.h"
-#include "statefilters/Localisation_filter.h"
-#include "statefilters/OscillatorStrength_filter.h"
-#include "statefilters/Overlap_filter.h"
+#include "votca/xtp/GaussianQuadratureBase.h"
 
 namespace votca {
 namespace xtp {
 
-void FilterFactory::RegisterAll(void) {
-  Filter().Register<DeltaQ_filter>("chargetransfer");
-  Filter().Register<Density_filter>("density");
-  Filter().Register<Localisation_filter>("localisation");
-  Filter().Register<OscillatorStrength_filter>("oscillatorstrength");
-  Filter().Register<Overlap_filter>("overlap");
-}
+class Gauss_Laguerre_Quadrature : public GaussianQuadratureBase {
+
+ public:
+  double ScaledPoint(Index i) const final { return points_[i]; }
+
+  double ScaledWeight(Index i) const final { return weights_[i]; }
+
+ protected:
+  // The laguerre method is suitable for integration limits a = 0 b =
+  // +infty. Here we have value1 and value2 because we split the original
+  // integral from -infty to +infty in two parts
+  bool UseSymmetry() const final { return true; }
+  void FillPoints() final;
+  void FillAdaptedWeights() final;
+};
 }  // namespace xtp
 }  // namespace votca
+
+#endif  // VOTCA_XTP_GAUSS_LAGUERRE_QUADRATURE_H
