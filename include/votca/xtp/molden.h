@@ -53,8 +53,8 @@ class Molden {
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
-            1,1,1,1,1,-1,-1, //f 
-            1,1,1,1,1,-1,-1,-1,-1 //g
+            -1,1,1,1,1,1,-1, //f 
+            -1,-1,1,1,1,1,1,-1,-1 //g
             };
   std::array<Index, 25> _reorderList={
             0, //s
@@ -80,4 +80,4 @@ class Molden {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_MOLDEN_WRITER_H
+#endif  // VOTCA_XTP_MOLDEN_H

@@ -44,7 +44,7 @@ bool ToLibintOrder::Evaluate() {
 
   OrbReorder reorder(_libint_reorder, _libint_multipliers);
 
-  reorder.reorderRowsAndCols(inputMatrix, basis);
+  reorder.reorderOperator(inputMatrix, basis);
 
   votca::tools::EigenIO_MatrixMarket::WriteMatrix("output.mm", inputMatrix);
 
