@@ -44,8 +44,10 @@ endif()
 ########################################################################
 
 find_package(PkgConfig REQUIRED)
-set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc package")
+set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc and libint package")
 pkg_check_modules(LIBXC REQUIRED IMPORTED_TARGET libxc)
+pkg_check_modules(LIBINT REQUIRED IMPORTED_TARGET libint2)
+
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
 
