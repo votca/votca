@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <options>
   <tolibintorder help="Convert .mm matrices from votca to libint order">
+    <basisset>something</basisset>
+    <xyz>something</xyz>
+    <matrix>somehting</matrix>
   </tolibintorder>
 </options>

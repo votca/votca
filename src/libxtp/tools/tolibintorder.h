@@ -47,6 +47,9 @@ class ToLibintOrder final : public QMTool {
   // clang-format on
   Logger _log;
   Index _numofelectrons = 0;
+  std::string _xyz_file;
+  std::string _basis_set;
+  std::string _matrix_file;
 };
 
 }  // namespace xtp
