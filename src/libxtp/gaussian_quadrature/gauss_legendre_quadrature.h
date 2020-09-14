@@ -37,12 +37,11 @@ class Gauss_modified_Legendre_Quadrature
     : public Gauss_Legendre_Quadrature_Base {
  public:
   double ScaledPoint(Index i) const final {
-    double exponent = (1.0 + points_(i)) / (1.0 - points_(i));
-    return std::pow(0.5, exponent);
+    return 0.5 * (1.0 + points_(i)) / (1.0 - points_(i));
   }
   double ScaledWeight(Index i) const final {
-    double den = (1.0 - weights_(i)) * (1.0 - weights_(i));
-    return (2.0 * weights_(i) * 0.5) / den;
+    double den = (1.0 - points_(i)) * (1.0 - points_(i));
+    return weights_(i) / den;
   }
 
  protected:
@@ -50,7 +49,7 @@ class Gauss_modified_Legendre_Quadrature
   // +infty. Here we have value1 and value2 because we split the original
   // integral from -infty to +infty in two parts. Original legendre quadrature
   // is meant for integral with integration limits of -1 and 1. To overcome
-  // this we use the transformation x' = 0.5 ^ (1+x/1-x)
+  // this we use the transformation x' = 0.5 * (1+x/1-x)
   bool UseSymmetry() const final { return true; }
 };
 
