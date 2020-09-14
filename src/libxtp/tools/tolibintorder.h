@@ -37,18 +37,20 @@ class ToLibintOrder final : public QMTool {
             1,1,1,1,1,1,1, //f 
             1,1,1,1,1,1,1,1,1 //g
             };
-  std::array<Index, 25> _libint_reorder={ 
-            0, //s
-            -1,0,1, //p
-            -2,-1,0,1,2, //d
-            -3,-2,-1,0,1,2,3, //f 
-            -4,-3,-2,-1,0,1,2,3,4 //g
-            };
+  std::array<Index, 25> _libint_reorder={
+      0,                             // s
+      0, -1, 1,                      // p
+      0, -1, 1, -2, 2,               // d
+      0, -1, 1, -2, 2, -3, 3,        // f
+      0, -1, 1, -2, 2, -3, 3, -4, 4  // g
+  };
+
   // clang-format on
   Logger _log;
   std::string _xyz_file;
   std::string _basis_set;
   std::string _matrix_file;
+  bool _aux_basis;
 };
 
 }  // namespace xtp
