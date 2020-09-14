@@ -96,7 +96,25 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
     }
     currentFunction += shell.getNumFunc();
   }
-}  // namespace xtp
+}
+void OrbReorder::reorderRowsAndCols(Eigen::MatrixXd& moCoefficients,
+                                    const AOBasis& basis) {
+  // reorder rows first
+  reorderOrbitals(moCoefficients, basis);
+
+  // next the cols
+  Index currentFunction = 0;
+  for (const AOShell& shell : basis) {
+
+    // reorder shell
+    Index l = static_cast<Index>(shell.getL());
+    for (const Transposition& transposition : _transpositions[l]) {
+      moCoefficients.col(currentFunction + transposition.first)
+          .swap(moCoefficients.col(currentFunction + transposition.second));
+    }
+    currentFunction += shell.getNumFunc();
+  }
+}
 
 }  // namespace xtp
 }  // namespace votca

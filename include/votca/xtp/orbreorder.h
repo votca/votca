@@ -41,6 +41,8 @@ class OrbReorder {
   ~OrbReorder() = default;
 
   void reorderOrbitals(Eigen::MatrixXd& moCoefficients, const AOBasis& basis);
+  void reorderRowsAndCols(Eigen::MatrixXd& moCoefficients,
+                          const AOBasis& basis);
 
  private:
   // structure to store the transpositions for the first 5 shell types (i.e.
