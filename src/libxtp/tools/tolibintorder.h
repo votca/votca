@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef VOTCA_XTP_TOLIBINTORDER_PRIVATE_H
-#define VOTCA_XTP_TOLIBINTORDER_PRIVATE_H
+#ifndef VOTCA_XTP_TOLIBINTORDER_H
+#define VOTCA_XTP_TOLIBINTORDER_H
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -46,7 +46,6 @@ class ToLibintOrder final : public QMTool {
             };
   // clang-format on
   Logger _log;
-  Index _numofelectrons = 0;
   std::string _xyz_file;
   std::string _basis_set;
   std::string _matrix_file;
@@ -55,4 +54,4 @@ class ToLibintOrder final : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_TOLIBINTORDER_PRIVATE_H
+#endif  // VOTCA_XTP_TOLIBINTORDER_H

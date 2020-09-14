@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_ORBREODER_H
-#define VOTCA_XTP_ORBREODER_H
+#ifndef VOTCA_XTP_ORBREORDER_H
+#define VOTCA_XTP_ORBREORDER_H
 
 #include <algorithm>
 #include <array>
@@ -54,11 +54,12 @@ class OrbReorder {
   // the ordering of the m quantumnumbers for every shell
   std::array<Index, 25> _votcaOrder={
             0, //s
-            0,-1,1, //p
-            0,-1,1,-2,2, //d
-            0,-1,1,-2,2,-3,3, //f 
-            0,-1,1,-2,2,-3,3,-4,4 //g
+            -1,0,1, //p
+            -2,-1,0,1,2, //d
+            -3,-2,-1,0,1,2,3, //f 
+            -4,-3,-2,-1,0,1,2,3,4 //g
             };
+
   // clang-format on
   OrbTranspositions _transpositions;
 
@@ -71,4 +72,4 @@ class OrbReorder {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ORBREODER_H
+#endif  // VOTCA_XTP_ORBREORDER_H

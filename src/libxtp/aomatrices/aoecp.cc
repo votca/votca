@@ -823,11 +823,27 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   Eigen::VectorXd NormA = CalcNorms(alpha, nsph_row);
   Eigen::VectorXd NormB = CalcNorms(beta, nsph_col);
 
-  for (Index i = 0; i < nsph_row; i++) {
-    for (Index j = 0; j < nsph_col; j++) {
-      matrix(i, j) = matrix(i, j) * GAUSS * NormA(i) * NormB(j);
+  Eigen::MatrixXd copy =
+      GAUSS * NormA.asDiagonal() * matrix * NormB.asDiagonal();
+
+  // FIXME use proper transformations class, this is a hack because nobody
+  // understands aoecp
+  // clang-format off
+  std::array<Index, 25> reorder = {
+      0,                                  // s
+      2,  1,  3,                          // p
+      7,  5,  4,  6,  8,                  // d
+      14, 12, 10, 9,  11, 13, 15,         // f
+      23, 21, 19, 17, 16, 18, 20, 22, 24  // g
+  };
+  //clang-format on
+  for (Index i = 0; i < matrix.rows(); i++) {
+    for (Index j = 0; j < matrix.cols(); j++) {
+
+      matrix(i, j) = copy(reorder[i], reorder[j]);
     }
   }
+
   return matrix;
 }
 
