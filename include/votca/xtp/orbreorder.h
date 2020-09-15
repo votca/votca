@@ -68,6 +68,7 @@ class OrbReorder {
       std::vector<Index> vStart, std::vector<Index> vTarget) const;
   std::vector<Index> copySegment(const std::array<Index, 49>& input,
                                  Index start, Index size) const;
+  bool _reverse;
 };
 
 }  // namespace xtp

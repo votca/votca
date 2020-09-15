@@ -25,7 +25,8 @@ void ToLibintOrder::Initialize(const tools::Property& user_options) {
   _matrix_file =
       options.ifExistsReturnElseReturnDefault<std::string>("matrix", _job_name);
   _aux_basis = options.ifExistsReturnElseReturnDefault<bool>("aux", _aux_basis);
-  _operator = options.ifExistsReturnElseReturnDefault<bool>("operator", _operator);
+  _operator =
+      options.ifExistsReturnElseReturnDefault<bool>("operator", _operator);
 }
 
 bool ToLibintOrder::Evaluate() {
@@ -52,10 +53,12 @@ bool ToLibintOrder::Evaluate() {
 
   OrbReorder reorder(_libint_reorder, _libint_multipliers);
 
-  if(operator){
-      reorder.reorderOperator(inputMatrix, basis);
-  }else {
+  if (_operator) {
+    reorder.reorderOperator(inputMatrix, basis);
+    XTP_LOG(Log::error, _log) << "operator mode" << std::endl;
+  } else {
     reorder.reorderOrbitals(inputMatrix, basis);
+    XTP_LOG(Log::error, _log) << "orbitals mode" << std::endl;
   }
 
   votca::tools::EigenIO_MatrixMarket::WriteMatrix(_matrix_file, inputMatrix);

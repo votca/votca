@@ -54,8 +54,16 @@ BOOST_AUTO_TEST_CASE(moldenreader_test) {
       std::string(XTP_TEST_DATA_FOLDER) + "/molden/benzene.molden.input",
       orbitals);
 
+  // Check if eigenvalues are equal
+  orbitals_ref.MOs().eigenvalues() =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/molden/orbitals_eigenvalues.mm");
+
+  BOOST_CHECK(orbitals.MOs().eigenvalues().isApprox(orbitals_ref.MOs().eigenvalues(), 1e-4));
+
   // Check if MO's are read correctly
-  BOOST_CHECK(orbitals.MOs().eigenvectors().isApprox(coeffs_ref, 1e-5));
+  BOOST_CHECK(orbitals.MOs().eigenvectors().isApprox(coeffs_ref, 1e-4));
 
   // Check if atoms are read correctly
   BOOST_CHECK(orbitals.QMAtoms().size() == orbitals_ref.QMAtoms().size());
@@ -96,9 +104,18 @@ BOOST_AUTO_TEST_CASE(moldenwriter_test) {
   Orbitals orbitals;
   molden.parseMoldenFile("moldenFile.molden", orbitals);
 
+  Eigen::MatrixXd coeffs_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/molden/orbitalsMOs_ref.mm");
+
   // Check if MO's are equal
-  BOOST_CHECK(orbitals_ref.MOs().eigenvectors().isApprox(
+  BOOST_CHECK(coeffs_ref.isApprox(
       orbitals.MOs().eigenvectors(), 1e-5));
+
+  std::cout << "ref" << std::endl;
+  std::cout << coeffs_ref << std::endl;
+
+  std::cout << "results" << std::endl;
+  std::cout << orbitals.MOs().eigenvectors() << std::endl;
 
   // Check if atoms are equal
   BOOST_CHECK(orbitals.QMAtoms().size() == orbitals_ref.QMAtoms().size());
