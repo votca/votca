@@ -24,6 +24,7 @@
 #include "votca/xtp/espfit.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/tools/eigenio_matrixmarket.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -31,82 +32,12 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(espfit_test)
 
 BOOST_AUTO_TEST_CASE(esp_charges) {
-  std::ofstream xyzfile("molecule.xyz");
-  xyzfile << "3" << std::endl;
-  xyzfile << "Water molecule" << std::endl;
-  xyzfile << "O          0.00000        0.00000        0.11779" << std::endl;
-  xyzfile << "H          0.00000        0.75545       -0.47116" << std::endl;
-  xyzfile << "H          0.00000       -0.75545       -0.47116" << std::endl;
-
-  xyzfile.close();
-
-  std::ofstream basisfile("3-21G.xml");
-  basisfile << "<basis name=\"3-21G\">" << std::endl;
-  basisfile << "  <!--Basis set created by xtp_basisset from 3-21G.nwchem at "
-               "Thu Sep 15 15:40:33 2016-->"
-            << std::endl;
-  basisfile << "  <element name=\"H\">" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
-  basisfile << "      <constant decay=\"5.447178e+00\">" << std::endl;
-  basisfile << "        <contractions factor=\"1.562850e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "      <constant decay=\"8.245470e-01\">" << std::endl;
-  basisfile << "        <contractions factor=\"9.046910e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell>" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
-  basisfile << "      <constant decay=\"1.831920e-01\">" << std::endl;
-  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell>" << std::endl;
-  basisfile << "  </element>" << std::endl;
-  basisfile << "  <element name=\"O\">" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
-  basisfile << "      <constant decay=\"3.220370e+02\">" << std::endl;
-  basisfile << "        <contractions factor=\"5.923940e-02\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "      <constant decay=\"4.843080e+01\">" << std::endl;
-  basisfile << "        <contractions factor=\"3.515000e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "      <constant decay=\"1.042060e+01\">" << std::endl;
-  basisfile << "        <contractions factor=\"7.076580e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell>" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
-  basisfile << "      <constant decay=\"7.402940e+00\">" << std::endl;
-  basisfile << "        <contractions factor=\"-4.044530e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"2.445860e-01\" type=\"P\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "      <constant decay=\"1.576200e+00\">" << std::endl;
-  basisfile << "        <contractions factor=\"1.221560e+00\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"8.539550e-01\" type=\"P\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell>" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
-  basisfile << "      <constant decay=\"3.736840e-01\">" << std::endl;
-  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell>" << std::endl;
-  basisfile << "  </element>" << std::endl;
-  basisfile << "</basis>" << std::endl;
-  basisfile.close();
-
+  
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
-  orbitals.setDFTbasisName("3-21G.xml");
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/espfit/molecule.xyz");
+  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/espfit/3-21G.xml");
   orbitals.setBasisSetSize(13);
   orbitals.setNumberOfOccupiedLevels(5);
 
@@ -140,6 +71,10 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
       -0.965681, -1.21157e-11, 0.314424, 0.169014, 0.291888, 0.00750313,
       -0.0234965, 0.19353, 0.118088, 3.94754e-12, 0.828874, -1.11045, 0.776492,
       0.534722, 1.64278e-11, 0.0817261, 0.524685, 0.3665;
+
+  votca::tools::EigenIO_MatrixMarket::WriteMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/espfit/MOs.mm",
+      MOs);
 
   orbitals.MOs().eigenvectors() = MOs;
   orbitals.MOs().eigenvalues() = Eigen::VectorXd::Ones(13);
