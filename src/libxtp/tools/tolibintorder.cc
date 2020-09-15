@@ -49,7 +49,7 @@ bool ToLibintOrder::Evaluate() {
     basis.Fill(bs, atoms);
   }
 
-  OrbReorder reorder(_libint_reorder, _libint_multipliers, true);
+  OrbReorder reorder(_libint_reorder, _libint_multipliers);
 
   reorder.reorderOperator(inputMatrix, basis);
 

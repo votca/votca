@@ -58,11 +58,11 @@ OrbReorder::OrbReorder(std::array<Index, 49> reorder,
   Index currentFunction = 0;
   for (int l = 0; l < 7; l++) {
     Index nrOfFunctions = NumFuncShell(static_cast<L>(l));
-    if (!reverse) {
+    if (!reverse) { // ordering from external to votca order
       _transpositions[l] = computeTranspositions(
           copySegment(_reorder, currentFunction, nrOfFunctions),
           copySegment(_votcaOrder, currentFunction, nrOfFunctions));
-    } else {
+    } else { // votca order to external order
       _transpositions[l] = computeTranspositions(
           copySegment(_votcaOrder, currentFunction, nrOfFunctions),
           copySegment(_reorder, currentFunction, nrOfFunctions));
