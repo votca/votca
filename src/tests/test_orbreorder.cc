@@ -100,3 +100,4 @@ BOOST_AUTO_TEST_CASE(orbreorder_test) {
     std::cout << moldenCoeffs << std::endl;
   }
 }
+}

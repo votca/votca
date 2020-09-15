@@ -117,15 +117,19 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
           std::string(XTP_TEST_DATA_FOLDER) + "/orca/MOs_coeff_ref.mm");
 
-  std::array<votca::Index, 25> votcaOrder_old = {
-      0,                             // s
-      0, -1, 1,                      // p
-      0, -1, 1, -2, 2,               // d
-      0, -1, 1, -2, 2, -3, 3,        // f
-      0, -1, 1, -2, 2, -3, 3, -4, 4  // g
-  };
+  // clang-format off
+    std::array<Index, 49> votcaOrder_old = {
+        0,                             // s
+        0, -1, 1,                      // p
+        0, -1, 1, -2, 2,               // d
+        0, -1, 1, -2, 2, -3, 3,        // f
+        0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
+    };
+  // clang-format on
 
-  std::array<votca::Index, 25> multiplier;
+  std::array<votca::Index, 49> multiplier;
   multiplier.fill(1);
   OrbReorder ord(votcaOrder_old, multiplier);
   AOBasis aobasis = orb.SetupDftBasis();

@@ -70,15 +70,19 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
       0.32674007231, -0.11148463165, 0.18066517099, 0.20658110657,
       -0.20658110657, 0, 0.024459014248, 0.024459014248, 0.23104012081;
 
-  std::array<votca::Index, 25> votcaOrder_old = {
-      0,                             // s
-      0, -1, 1,                      // p
-      0, -1, 1, -2, 2,               // d
-      0, -1, 1, -2, 2, -3, 3,        // f
-      0, -1, 1, -2, 2, -3, 3, -4, 4  // g
-  };
+  // clang-format off
+    std::array<votca::Index, 49> votcaOrder_old = {
+        0,                             // s
+        0, -1, 1,                      // p
+        0, -1, 1, -2, 2,               // d
+        0, -1, 1, -2, 2, -3, 3,        // f
+        0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
+    };
+  // clang-format on
 
-  std::array<votca::Index, 25> multiplier;
+  std::array<votca::Index, 49> multiplier;
   multiplier.fill(1);
   OrbReorder ord(votcaOrder_old, multiplier);
   ord.reorderOrbitals(aograd_ref, aobasis);
