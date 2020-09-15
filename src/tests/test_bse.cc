@@ -20,7 +20,6 @@
 // Third party includes
 #include <boost/test/unit_test.hpp>
 
-
 // Local VOTCA includes
 #include "votca/xtp/bse.h"
 #include "votca/xtp/convergenceacc.h"
@@ -36,10 +35,9 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                   "/bse/molecule.xyz");
+                                  "/bse/molecule.xyz");
   BasisSet basis;
-  basis.Load(std::string(XTP_TEST_DATA_FOLDER) +
-                   "/bse/3-21G.xml");
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/bse/3-21G.xml");
   orbitals.setDFTbasisName("3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
@@ -89,8 +87,9 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   se_nooffdiag_ref << 0.106862, 0.106862, 0.106863;
 
   // reference singlet coefficients, no offdiagonals in Hqp
-  Eigen::MatrixXd spsi_nooffdiag_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bse/spsi_nooffdiag_ref.mm");
+  Eigen::MatrixXd spsi_nooffdiag_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/spsi_nooffdiag_ref.mm");
 
   // lapack
   opt.davidson = 0;
@@ -239,13 +238,14 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   se_ref_btda << 0.0887758, 0.0887758, 0.0887758;
 
   // reference coefficients
-  Eigen::MatrixXd spsi_ref_btda = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bse/spsi_ref_btda.mm");
-      
+  Eigen::MatrixXd spsi_ref_btda =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/spsi_ref_btda.mm");
+
   // // reference coefficients AR
-  Eigen::MatrixXd spsi_ref_btda_AR = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bse/spsi_ref_btda_AR.mm");
-  
+  Eigen::MatrixXd spsi_ref_btda_AR =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/spsi_ref_btda_AR.mm");
 
   opt.nmax = 3;
   opt.useTDA = false;
@@ -471,9 +471,9 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.qpmax = 15;
   BSE bse2 = BSE(log, Mmn);
   bse2.configure(opt, orbitals.RPAInputEnergies(), Hqp_cut_ref);
-  Eigen::MatrixXd Hqp_extended_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp_extended_ref.mm");
-
+  Eigen::MatrixXd Hqp_extended_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp_extended_ref.mm");
 
   bool check_hqp_extended = Hqp_extended_ref.isApprox(bse2.getHqp(), 0.001);
   if (!check_hqp_extended) {
