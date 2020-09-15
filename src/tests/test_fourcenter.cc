@@ -101,6 +101,7 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
       std::string(XTP_TEST_DATA_FOLDER) + "/fourcenter/largeLend.mm");
 
   bool check_head = mapped_result.head<600>().isApprox(ref_head, 0.0001);
+
   BOOST_CHECK_EQUAL(check_head, 1);
   if (!check_head) {
     cout << "ref" << endl;
