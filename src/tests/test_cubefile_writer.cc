@@ -25,6 +25,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/cubefile_writer.h"
+#include "votca/tools/eigenio_matrixmarket.h"
 
 using namespace votca::xtp;
 
@@ -52,80 +53,10 @@ Eigen::VectorXd Readcubefile(const std::string& filename) {
 
 BOOST_AUTO_TEST_CASE(constructors_test) {
 
-  std::ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << std::endl;
-  xyzfile << " methane" << std::endl;
-  xyzfile << " C            .000000     .000000     .000000" << std::endl;
-  xyzfile << " H            .629118     .629118     .629118" << std::endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
-  xyzfile.close();
-
-  std::ofstream basisfile("3-21G.xml");
-  basisfile << "<basis name=\"3-21G\">" << std::endl;
-  basisfile << "  <element name=\"H\">" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
-  basisfile << "      <constant decay=\"5.447178e+00\">" << std::endl;
-  basisfile << "        <contractions factor=\"1.562850e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "      <constant decay=\"8.245470e-01\">" << std::endl;
-  basisfile << "        <contractions factor=\"9.046910e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell>" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
-  basisfile << "      <constant decay=\"1.831920e-01\">" << std::endl;
-  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell>" << std::endl;
-  basisfile << "  </element>" << std::endl;
-  basisfile << "  <element name=\"C\">" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << std::endl;
-  basisfile << "      <constant decay=\"1.722560e+02\">" << std::endl;
-  basisfile << "        <contractions factor=\"6.176690e-02\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "      <constant decay=\"2.591090e+01\">" << std::endl;
-  basisfile << "        <contractions factor=\"3.587940e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "      <constant decay=\"5.533350e+00\">" << std::endl;
-  basisfile << "        <contractions factor=\"7.007130e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell>" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
-  basisfile << "      <constant decay=\"3.664980e+00\">" << std::endl;
-  basisfile << "        <contractions factor=\"-3.958970e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"2.364600e-01\" type=\"P\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "      <constant decay=\"7.705450e-01\">" << std::endl;
-  basisfile << "        <contractions factor=\"1.215840e+00\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"8.606190e-01\" type=\"P\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell>" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << std::endl;
-  basisfile << "      <constant decay=\"1.958570e-01\">" << std::endl;
-  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell> " << std::endl;
-  basisfile << "  </element>" << std::endl;
-  basisfile << "</basis>" << std::endl;
-  basisfile.close();
-
   Orbitals A;
-  A.setDFTbasisName("3-21G.xml");
-  A.QMAtoms().LoadFromFile("molecule.xyz");
+  A.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) + "/cubefile_writer/3-21G.xml");
+  A.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/cubefile_writer/molecule.xyz");
   A.setBasisSetSize(17);
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
@@ -184,6 +115,10 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
       -0.00239176, -0.00129742, -0.0301047, 0.0287103, 0.643346, 0.617962,
       0.0095153, -0.656011, -2.00774, -0.0012306, -1.24406;
 
+  votca::tools::EigenIO_MatrixMarket::WriteMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/cubefile_writer/A_MOs.mm",
+      A.MOs().eigenvectors());
+
   A.setBSEindices(0, 16);
   A.setTDAApprox(true);
   A.setGWindices(0, 16);
@@ -221,6 +156,10 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
       -0.00519809, -0.000154171, -0.00125602, 4.03664e-08, -6.04796e-08,
       -4.6768e-08, -2.38233e-09, 2.31605e-09, 1.35922e-09;
 
+  votca::tools::EigenIO_MatrixMarket::WriteMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/cubefile_writer/spsi_ref.mm",
+      spsi_ref);
+
   A.BSESinglets().eigenvectors() = spsi_ref;
 
   Eigen::Array<votca::Index, 3, 1> steps(3, 4, 7);
@@ -254,6 +193,11 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
       1.099170E-03, 2.376104E-03, 6.024153E-03, 1.793501E-02, 2.752360E-02,
       2.090443E-02, 8.313980E-03, 2.555200E-03, 1.039559E-03, 1.089311E-03,
       9.769998E-04, 9.895743E-04, 1.253110E-03, 1.902528E-03, 1.319557E-03;
+
+  votca::tools::EigenIO_MatrixMarket::WriteMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/cubefile_writer/values_ref1.mm",
+      values_ref1);
+
   BOOST_CHECK_EQUAL(values_ref1.size(), result1.size());
 
   bool check_ref1 = values_ref1.isApprox(result1, 1e-4);
@@ -291,6 +235,10 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
       5.958741E-04, 1.872808E-03, -1.732707E-04, -8.123268E-03, -1.446627E-02,
       -8.047063E-03, -2.274731E-04, 1.467401E-03, 8.067823E-04, 8.722511E-04,
       4.737040E-04, -9.333764E-05, 1.653119E-04, 1.265738E-03, 1.126837E-03;
+
+  votca::tools::EigenIO_MatrixMarket::WriteMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/cubefile_writer/values_ref2.mm",
+      values_ref2);
 
   bool check_ref2 = values_ref2.isApprox(result2, 1e-4);
   BOOST_CHECK_EQUAL(values_ref2.size(), result2.size());
@@ -337,6 +285,12 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
       -9.484346E-02, -1.684427E-01, -1.846430E-01, -1.251738E-01, -9.284085E-03,
       -1.595010E-02, -2.654467E-02, -4.987706E-02, -9.711037E-02, -1.496463E-01,
       -1.553243E-01, -1.038165E-01;
+
+      votca::tools::EigenIO_MatrixMarket::WriteMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/cubefile_writer/values_ref3.mm",
+      values_ref3);
+
+  
 
   BOOST_CHECK_EQUAL(values_ref3.size(), result3.size());
   bool check_ref3 = values_ref3.isApprox(result3, 1e-4);
