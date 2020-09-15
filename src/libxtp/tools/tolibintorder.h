@@ -47,6 +47,7 @@ class ToLibintOrder final : public QMTool {
   std::string _basis_set;
   std::string _matrix_file;
   bool _aux_basis;
+  bool _operator;
 };
 
 }  // namespace xtp
