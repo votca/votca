@@ -37,19 +37,23 @@ BOOST_AUTO_TEST_SUITE(orbreorder_test)
 BOOST_AUTO_TEST_CASE(orbreorder_test) {
 
   // clang-format off
-  std::array<Index,25> multipliers={
+  std::array<Index,49> multipliers={
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
             1,1,1,1,1,-1,-1, //f 
-            1,1,1,1,1,-1,-1,-1,-1 //g
+            1,1,1,1,1,-1,-1,-1,-1, //g
+            1,1,1,1,1,-1,-1,-1,-1,-1,-1, //h
+            1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1 //i
             };
-  std::array<Index, 25> reorderList={
+  std::array<Index, 49> reorderList={
             0, //s
             1,-1,0, //p
             0,1,-1,2,-2, //d
             0,1,-1,2,-2,3,-3, //f 
-            0,1,-1,2,-2,3,-3,4,-4 //g
+            0,1,-1,2,-2,3,-3,4,-4, //g
+            0,1,-1,2,-2,3,-3,4,-4,5,-5, //h
+            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 //i
             };
   // clang-format on
 

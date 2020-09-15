@@ -19,7 +19,7 @@ namespace xtp {
 
 class ToLibintOrder final : public QMTool {
  public:
-  ToLibintOrder() = default;
+  ToLibintOrder() { _libint_multipliers.fill(1); }
 
   ~ToLibintOrder() final = default;
 
@@ -30,19 +30,15 @@ class ToLibintOrder final : public QMTool {
 
  private:
   // clang-format off
- std::array<Index,25> _libint_multipliers={ 
-            1, //s
-            1,1,1, //p
-            1,1,1,1,1, //d
-            1,1,1,1,1,1,1, //f 
-            1,1,1,1,1,1,1,1,1 //g
-            };
-  std::array<Index, 25> _libint_reorder={
+ std::array<Index,49> _libint_multipliers;
+  std::array<Index, 49> _libint_reorder={
       0,                             // s
       0, -1, 1,                      // p
       0, -1, 1, -2, 2,               // d
       0, -1, 1, -2, 2, -3, 3,        // f
-      0, -1, 1, -2, 2, -3, 3, -4, 4  // g
+      0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
+      0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5,  // h
+      0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6  // i
   };
 
   // clang-format on

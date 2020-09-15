@@ -44,19 +44,19 @@ std::vector<Transposition> OrbReorder::computeTranspositions(
   return transpositions;
 }
 
-std::vector<Index> OrbReorder::copySegment(const std::array<Index, 25>& input,
+std::vector<Index> OrbReorder::copySegment(const std::array<Index, 49>& input,
                                            Index start, Index size) const {
   return std::vector<Index>{input.begin() + start,
                             input.begin() + start + size};
 }
 
-OrbReorder::OrbReorder(std::array<Index, 25> reorder,
-                       std::array<Index, 25> multipliers, bool reverse)
+OrbReorder::OrbReorder(std::array<Index, 49> reorder,
+                       std::array<Index, 49> multipliers, bool reverse)
     : _multipliers(multipliers), _reorder(reorder) {
 
   // Compute transpositions for every individual shell
   Index currentFunction = 0;
-  for (int l = 0; l < 5; l++) {
+  for (int l = 0; l < 7; l++) {
     Index nrOfFunctions = NumFuncShell(static_cast<L>(l));
     if (!reverse) {
       _transpositions[l] = computeTranspositions(

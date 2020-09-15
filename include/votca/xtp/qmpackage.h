@@ -131,8 +131,8 @@ class QMPackage {
   // QMPackage. Some codes also use different normalisation conditions which
   // lead to other signs for some of the entries, which can be changed via the
   // multipliers.
-  virtual const std::array<Index, 25>& ShellMulitplier() const = 0;
-  virtual const std::array<Index, 25>& ShellReorder() const = 0;
+  virtual const std::array<Index, 49>& ShellMulitplier() const = 0;
+  virtual const std::array<Index, 49>& ShellReorder() const = 0;
 
   Settings _settings{"package"};
 

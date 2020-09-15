@@ -35,7 +35,7 @@ using Transposition = std::pair<Index, Index>;
 
 class OrbReorder {
  public:
-  OrbReorder(std::array<Index, 25> reorder, std::array<Index, 25> multipliers,
+  OrbReorder(std::array<Index, 49> reorder, std::array<Index, 49> multipliers,
              bool reverse = false);
 
   ~OrbReorder() = default;
@@ -45,19 +45,21 @@ class OrbReorder {
                           const AOBasis& basis);
 
  private:
-  // structure to store the transpositions for the first 5 shell types (i.e.
-  // s=0, p, d, f, g=4)
-  using OrbTranspositions = std::array<std::vector<Transposition>, 5>;
-  std::array<Index, 25> _multipliers;
-  std::array<Index, 25> _reorder;
+  // structure to store the transpositions for the first 7 shell types (i.e.
+  // s=0, p, d, f, g, h, i=6)
+  using OrbTranspositions = std::array<std::vector<Transposition>, 7>;
+  std::array<Index, 49> _multipliers;
+  std::array<Index, 49> _reorder;
   // clang-format off
   // the ordering of the m quantumnumbers for every shell
-  std::array<Index, 25> _votcaOrder={
+  std::array<Index, 49> _votcaOrder={
             0, //s
             -1,0,1, //p
             -2,-1,0,1,2, //d
             -3,-2,-1,0,1,2,3, //f 
-            -4,-3,-2,-1,0,1,2,3,4 //g
+            -4,-3,-2,-1,0,1,2,3,4, //g
+            -5,-4,-3,-2,-1,0,1,2,3,4,5, // h
+            -6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6 // i
             };
 
   // clang-format on
@@ -65,7 +67,7 @@ class OrbReorder {
 
   std::vector<Transposition> computeTranspositions(
       std::vector<Index> vStart, std::vector<Index> vTarget) const;
-  std::vector<Index> copySegment(const std::array<Index, 25>& input,
+  std::vector<Index> copySegment(const std::array<Index, 49>& input,
                                  Index start, Index size) const;
 };
 

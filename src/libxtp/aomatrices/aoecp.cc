@@ -829,12 +829,14 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   // FIXME use proper transformations class, this is a hack because nobody
   // understands aoecp
   // clang-format off
-  std::array<Index, 25> reorder = {
+  std::array<Index, 49> reorder = {
       0,                                  // s
       2,  1,  3,                          // p
       7,  5,  4,  6,  8,                  // d
       14, 12, 10, 9,  11, 13, 15,         // f
-      23, 21, 19, 17, 16, 18, 20, 22, 24  // g
+      23, 21, 19, 17, 16, 18, 20, 22, 24,  // g
+      34, 32, 30, 28, 26, 25, 27, 29, 31, 33, 35,  // h
+      47, 45, 43, 41, 39, 37, 36, 38, 40, 42, 44, 46, 48  // i
   };
   //clang-format on
   for (Index i = 0; i < matrix.rows(); i++) {

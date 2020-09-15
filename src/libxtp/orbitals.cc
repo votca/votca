@@ -577,15 +577,19 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(version, "version");
   r(_mos, "mos");
   if (version < 2) {
-    std::array<Index, 25> votcaOrder_old = {
+    // clang-format off
+    std::array<Index, 49> votcaOrder_old = {
         0,                             // s
         0, -1, 1,                      // p
         0, -1, 1, -2, 2,               // d
         0, -1, 1, -2, 2, -3, 3,        // f
-        0, -1, 1, -2, 2, -3, 3, -4, 4  // g
+        0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
     };
+    // clang-format on
 
-    std::array<Index, 25> multiplier;
+    std::array<Index, 49> multiplier;
     multiplier.fill(1);
     OrbReorder ord(votcaOrder_old, multiplier);
     ord.reorderOrbitals(_mos.eigenvectors(), this->SetupDftBasis());
