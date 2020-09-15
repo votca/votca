@@ -61,15 +61,16 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
       } break;
       case L::P: {
         const double factor = 2. * sqrt(alpha) * contraction * expofactor;
-        double AOvalue = factor * center.z();  // Y 1,0
+
+        double AOvalue = factor * center.y();  // Y 1,-1
         AOvalues(0) += AOvalue;
         gradAOvalues.row(0) += second_term * AOvalue;
-        gradAOvalues(0, 2) += factor;
+        gradAOvalues(0, 1) += factor;
 
-        AOvalue = factor * center.y();  // Y 1,-1
+        AOvalue = factor * center.z();  // Y 1,0
         AOvalues(1) += AOvalue;
         gradAOvalues.row(1) += second_term * AOvalue;
-        gradAOvalues(1, 1) += factor;
+        gradAOvalues(1, 2) += factor;
 
         AOvalue = factor * center.x();  // Y 1,1
         AOvalues(2) += AOvalue;
@@ -80,26 +81,25 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
         const double factor = 2. * alpha * contraction * expofactor;
         const double factor_1 = factor / sqrt(3.);
 
-        double AOvalue =
-            factor_1 * (3. * center.z() * center.z() - distsq);  // Y 2,0
+        double AOvalue = 2. * factor * (center.x() * center.y());  // Y 2,-2
         AOvalues(0) += AOvalue;
-        Eigen::Array3d coeff(-2, -2, 4);
-        gradAOvalues.row(0) += (factor_1 * coeff * center.array()).matrix() +
-                               second_term * AOvalue;
+        Eigen::Array3d coeff = {2 * center.y(), 2 * center.x(), 0};
+        gradAOvalues.row(0) += factor * coeff.matrix() + second_term * AOvalue;
 
         AOvalue = 2. * factor * (center.y() * center.z());  // Y 2,-1
         AOvalues(1) += AOvalue;
         coeff = {0, 2 * center.z(), 2 * center.y()};
         gradAOvalues.row(1) += factor * coeff.matrix() + second_term * AOvalue;
 
-        AOvalue = 2. * factor * (center.x() * center.z());  // Y 2,1
+        AOvalue = factor_1 * (3. * center.z() * center.z() - distsq);  // Y 2,0
         AOvalues(2) += AOvalue;
-        coeff = {2 * center.z(), 0, 2 * center.x()};
-        gradAOvalues.row(2) += factor * coeff.matrix() + second_term * AOvalue;
+        coeff = {-2, -2, 4};
+        gradAOvalues.row(2) += (factor_1 * coeff * center.array()).matrix() +
+                               second_term * AOvalue;
 
-        AOvalue = 2. * factor * (center.x() * center.y());  // Y 2,-2
+        AOvalue = 2. * factor * (center.x() * center.z());  // Y 2,1
         AOvalues(3) += AOvalue;
-        coeff = {2 * center.y(), 2 * center.x(), 0};
+        coeff = {2 * center.z(), 0, 2 * center.x()};
         gradAOvalues.row(3) += factor * coeff.matrix() + second_term * AOvalue;
 
         AOvalue = factor *
@@ -116,42 +116,41 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
         AxA c(center);
 
         double AOvalue =
-            factor_1 * center.z() * (5. * c.zz() - 3. * distsq);  // Y 3,0
+            factor_3 * center.y() * (3. * c.xx() - c.yy());  // Y 3,-3
         AOvalues(0) += AOvalue;
-        Eigen::Array3d coeff = {-6. * c.xz(), -6. * c.yz(),
-                                3. * (3. * c.zz() - distsq)};
+        Eigen::Array3d coeff = {6. * c.xy(), 3. * (c.xx() - c.yy()), 0};
         gradAOvalues.row(0) +=
-            factor_1 * coeff.matrix() + second_term * AOvalue;
+            factor_3 * coeff.matrix() + second_term * AOvalue;
+
+        AOvalue = 4. * factor * center.x() * center.y() * center.z();  // Y 3,-2
+        AOvalues(1) += AOvalue;
+        coeff = {c.yz(), c.xz(), c.xy()};
+        gradAOvalues.row(1) +=
+            4 * factor * coeff.matrix() + second_term * AOvalue;
 
         AOvalue = factor_2 * center.y() * (5. * c.zz() - distsq);  // Y 3,-1
-        AOvalues(1) += AOvalue;
-        coeff = {-2. * c.xy(), 4. * c.zz() - c.xx() - 3. * c.yy(), 8. * c.yz()};
-        gradAOvalues.row(1) +=
-            factor_2 * coeff.matrix() + second_term * AOvalue;
-
-        AOvalue = factor_2 * center.x() * (5. * c.zz() - distsq);  // Y 3,1
         AOvalues(2) += AOvalue;
-        coeff = {4. * c.zz() - c.yy() - 3. * c.xx(), -2. * c.xy(), 8. * c.xz()};
+        coeff = {-2. * c.xy(), 4. * c.zz() - c.xx() - 3. * c.yy(), 8. * c.yz()};
         gradAOvalues.row(2) +=
             factor_2 * coeff.matrix() + second_term * AOvalue;
 
-        AOvalue = 4. * factor * center.x() * center.y() * center.z();  // Y 3,-2
+        AOvalue = factor_1 * center.z() * (5. * c.zz() - 3. * distsq);  // Y 3,0
         AOvalues(3) += AOvalue;
-        coeff = {c.yz(), c.xz(), c.xy()};
+        coeff = {-6. * c.xz(), -6. * c.yz(), 3. * (3. * c.zz() - distsq)};
         gradAOvalues.row(3) +=
-            4 * factor * coeff.matrix() + second_term * AOvalue;
+            factor_1 * coeff.matrix() + second_term * AOvalue;
+
+        AOvalue = factor_2 * center.x() * (5. * c.zz() - distsq);  // Y 3,1
+        AOvalues(4) += AOvalue;
+        coeff = {4. * c.zz() - c.yy() - 3. * c.xx(), -2. * c.xy(), 8. * c.xz()};
+        gradAOvalues.row(4) +=
+            factor_2 * coeff.matrix() + second_term * AOvalue;
 
         AOvalue = 2. * factor * center.z() * (c.xx() - c.yy());  // Y 3,2
-        AOvalues(4) += AOvalue;
-        coeff = {2. * c.xz(), -2. * c.yz(), c.xx() - c.yy()};
-        gradAOvalues.row(4) +=
-            2 * factor * coeff.matrix() + second_term * AOvalue;
-
-        AOvalue = factor_3 * center.y() * (3. * c.xx() - c.yy());  // Y 3,-3
         AOvalues(5) += AOvalue;
-        coeff = {6. * c.xy(), 3. * (c.xx() - c.yy()), 0};
+        coeff = {2. * c.xz(), -2. * c.yz(), c.xx() - c.yy()};
         gradAOvalues.row(5) +=
-            factor_3 * coeff.matrix() + second_term * AOvalue;
+            2 * factor * coeff.matrix() + second_term * AOvalue;
 
         AOvalue = factor_3 * center.x() * (c.xx() - 3. * c.yy());  // Y 3,3
         AOvalues(6) += AOvalue;
@@ -168,71 +167,70 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
         const double factor_4 = factor * 2. * sqrt(2.);
         AxA c(center);
 
-        double AOvalue =
-            factor_1 * (35. * c.zz() * c.zz() - 30. * c.zz() * distsq +
-                        3. * distsq * distsq);  // Y 4,0
+        double AOvalue = 4. * factor * c.xy() * (c.xx() - c.yy());  // Y 4,-4
         AOvalues(0) += AOvalue;
-        Eigen::Array3d coeff = {12. * center.x() * (distsq - 5. * c.zz()),
-                                12. * center.y() * (distsq - 5. * c.zz()),
-                                16. * center.z() * (5. * c.zz() - 3. * distsq)};
-
+        Eigen::Array3d coeff = {center.y() * (3. * c.xx() - c.yy()),
+                                center.x() * (c.xx() - 3. * c.yy()), 0};
         gradAOvalues.row(0) +=
-            factor_1 * coeff.matrix() + second_term * AOvalue;
+            4 * factor * coeff.matrix() + second_term * AOvalue;
 
-        AOvalue = factor_2 * c.yz() * (7. * c.zz() - 3. * distsq);  // Y 4,-1
+        AOvalue = factor_4 * c.yz() * (3. * c.xx() - c.yy());  // Y 4,-3
         AOvalues(1) += AOvalue;
-        coeff = {(-6. * center.x() * c.yz()),
-                 center.z() * (4. * c.zz() - 3. * c.xx() - 9. * c.yy()),
-                 3. * center.y() * (5. * c.zz() - distsq)};
+        coeff = {6. * center.x() * c.yz(), 3. * center.z() * (c.xx() - c.yy()),
+                 center.y() * (3. * c.xx() - c.yy())};
         gradAOvalues.row(1) +=
-            factor_2 * coeff.matrix() + second_term * AOvalue;
-
-        AOvalue = factor_2 * c.xz() * (7. * c.zz() - 3. * distsq);  // Y 4,1
-        AOvalues(2) += AOvalue;
-        coeff = {center.z() * (4. * c.zz() - 9. * c.xx() - 3. * c.yy()),
-                 (-6. * center.y() * c.xz()),
-                 3. * center.x() * (5. * c.zz() - distsq)};
-        gradAOvalues.row(2) +=
-            factor_2 * coeff.matrix() + second_term * AOvalue;
+            factor_4 * coeff.matrix() + second_term * AOvalue;
 
         AOvalue = 2. * factor_3 * c.xy() * (7. * c.zz() - distsq);  // Y 4,-2
-        AOvalues(3) += AOvalue;
+        AOvalues(2) += AOvalue;
         coeff = {center.y() * (6. * c.zz() - 3. * c.xx() - c.yy()),
                  center.x() * (6. * c.zz() - c.xx() - 3. * c.yy()),
                  12. * center.z() * c.xy()};
-        gradAOvalues.row(3) +=
+        gradAOvalues.row(2) +=
             2 * factor_3 * coeff.matrix() + second_term * AOvalue;
+
+        AOvalue = factor_2 * c.yz() * (7. * c.zz() - 3. * distsq);  // Y 4,-1
+        AOvalues(3) += AOvalue;
+        coeff = {(-6. * center.x() * c.yz()),
+                 center.z() * (4. * c.zz() - 3. * c.xx() - 9. * c.yy()),
+                 3. * center.y() * (5. * c.zz() - distsq)};
+        gradAOvalues.row(3) +=
+            factor_2 * coeff.matrix() + second_term * AOvalue;
+
+        AOvalue = factor_1 * (35. * c.zz() * c.zz() - 30. * c.zz() * distsq +
+                              3. * distsq * distsq);  // Y 4,0
+        AOvalues(4) += AOvalue;
+        coeff = {12. * center.x() * (distsq - 5. * c.zz()),
+                 12. * center.y() * (distsq - 5. * c.zz()),
+                 16. * center.z() * (5. * c.zz() - 3. * distsq)};
+
+        gradAOvalues.row(4) +=
+            factor_1 * coeff.matrix() + second_term * AOvalue;
+
+        AOvalue = factor_2 * c.xz() * (7. * c.zz() - 3. * distsq);  // Y 4,1
+        AOvalues(5) += AOvalue;
+        coeff = {center.z() * (4. * c.zz() - 9. * c.xx() - 3. * c.yy()),
+                 (-6. * center.y() * c.xz()),
+                 3. * center.x() * (5. * c.zz() - distsq)};
+        gradAOvalues.row(5) +=
+            factor_2 * coeff.matrix() + second_term * AOvalue;
 
         AOvalue =
             factor_3 * (c.xx() - c.yy()) * (7. * c.zz() - distsq);  // Y 4,2
-        AOvalues(4) += AOvalue;
+        AOvalues(6) += AOvalue;
         coeff = {4. * center.x() * (3. * c.zz() - c.xx()),
                  4. * center.y() * (c.yy() - 3. * c.zz()),
                  12. * center.z() * (c.xx() - c.yy())};
-        gradAOvalues.row(4) +=
+        gradAOvalues.row(6) +=
             factor_3 * coeff.matrix() + second_term * AOvalue;
 
-        AOvalue = factor_4 * c.yz() * (3. * c.xx() - c.yy());  // Y 4,-3
-        AOvalues(5) += AOvalue;
-        coeff = {6. * center.x() * c.yz(), 3. * center.z() * (c.xx() - c.yy()),
-                 center.y() * (3. * c.xx() - c.yy())};
-        gradAOvalues.row(5) +=
-            factor_4 * coeff.matrix() + second_term * AOvalue;
-
         AOvalue = factor_4 * c.xz() * (c.xx() - 3. * c.yy());  // Y 4,3
-        AOvalues(6) += AOvalue;
+        AOvalues(7) += AOvalue;
         coeff = {3. * center.z() * (c.xx() - c.yy()),
                  (-6. * center.y() * c.xz()),
                  center.x() * (c.xx() - 3. * c.yy())};
-        gradAOvalues.row(6) +=
-            factor_4 * coeff.matrix() + second_term * AOvalue;
-
-        AOvalue = 4. * factor * c.xy() * (c.xx() - c.yy());  // Y 4,-4
-        AOvalues(7) += AOvalue;
-        coeff = {center.y() * (3. * c.xx() - c.yy()),
-                 center.x() * (c.xx() - 3. * c.yy()), 0};
         gradAOvalues.row(7) +=
-            4 * factor * coeff.matrix() + second_term * AOvalue;
+            factor_4 * coeff.matrix() + second_term * AOvalue;
 
         AOvalue = factor * (c.xx() * c.xx() - 6. * c.xx() * c.yy() +
                             c.yy() * c.yy());  // Y 4,4

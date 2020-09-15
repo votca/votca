@@ -69,16 +69,13 @@ OrbReorder::OrbReorder(std::array<Index, 49> reorder,
     }
     currentFunction += nrOfFunctions;
   }
-}  // namespace xtp
+}
 
 void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
                                  const AOBasis& basis) {
-  std::vector<Index> multiplier;
-  multiplier.reserve(basis.AOBasisSize());
 
-  Index currentFunction = 0;
   for (const AOShell& shell : basis) {
-
+    Index currentFunction = shell.getStartIndex();
     // reorder shell
     Index l = static_cast<Index>(shell.getL());
     for (const Transposition& transposition : _transpositions[l]) {
@@ -94,26 +91,15 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
     for (Index i = 0; i < shell.getNumFunc(); i++) {
       moCoefficients.row(currentFunction + i) *= double(shellmultiplier[i]);
     }
-    currentFunction += shell.getNumFunc();
   }
 }
-void OrbReorder::reorderRowsAndCols(Eigen::MatrixXd& moCoefficients,
-                                    const AOBasis& basis) {
+void OrbReorder::reorderOperator(Eigen::MatrixXd& Matrixoperator,
+                                 const AOBasis& basis) {
   // reorder rows first
-  reorderOrbitals(moCoefficients, basis);
-
-  // next the cols
-  Index currentFunction = 0;
-  for (const AOShell& shell : basis) {
-
-    // reorder shell
-    Index l = static_cast<Index>(shell.getL());
-    for (const Transposition& transposition : _transpositions[l]) {
-      moCoefficients.col(currentFunction + transposition.first)
-          .swap(moCoefficients.col(currentFunction + transposition.second));
-    }
-    currentFunction += shell.getNumFunc();
-  }
+  reorderOrbitals(Matrixoperator, basis);
+  Matrixoperator.transposeInPlace();
+  reorderOrbitals(Matrixoperator, basis);
+  Matrixoperator.transposeInPlace();
 }
 
 }  // namespace xtp
