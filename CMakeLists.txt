@@ -96,6 +96,12 @@ if(BUILD_OWN_GROMACS)
   list(APPEND VOTCA_SKIP_FIND_PACKAGE GROMACS)
 endif()
 
+option(BUILD_OWN_LIBINT "Build our own lib" OFF)
+add_feature_info(BUILD_OWN_LIBINT BUILD_OWN_LIBINT "Build an internal version of libint")
+if(BUILD_OWN_LIBINT)
+  include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildLibint.cmake)
+endif()
+
 ########################################################################
 #Find external packages
 ########################################################################
