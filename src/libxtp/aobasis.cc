@@ -80,10 +80,10 @@ void AOBasis::GenerateLibintBasis() {
     libint2::svector<libint2::Shell::Contraction> contractions;
     const Eigen::Vector3d& pos = shell.getPos();
     libint2::Shell::Contraction contr;
+    contr.l = static_cast<int>(shell.getL());
+    contr.pure = true;
     for (const auto& primitive : shell) {
       decays.push_back(primitive.getDecay());
-      contr.l = static_cast<int>(shell.getL());
-      contr.pure = true;
       contr.coeff.push_back(primitive.getContraction());
     }
     contractions.push_back(contr);
