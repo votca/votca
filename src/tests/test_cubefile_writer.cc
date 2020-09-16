@@ -24,8 +24,8 @@
 #include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
-#include "votca/xtp/cubefile_writer.h"
 #include "votca/tools/eigenio_matrixmarket.h"
+#include "votca/xtp/cubefile_writer.h"
 
 using namespace votca::xtp;
 
@@ -54,9 +54,10 @@ Eigen::VectorXd Readcubefile(const std::string& filename) {
 BOOST_AUTO_TEST_CASE(constructors_test) {
 
   Orbitals A;
-  A.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) + "/cubefile_writer/3-21G.xml");
+  A.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+                    "/cubefile_writer/3-21G.xml");
   A.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                                  "/cubefile_writer/molecule.xyz");
+                           "/cubefile_writer/molecule.xyz");
   A.setBasisSetSize(17);
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
@@ -128,8 +129,6 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
 
   Eigen::VectorXd values_ref3 = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/cubefile_writer/values_ref3.mm");
-
-  
 
   BOOST_CHECK_EQUAL(values_ref3.size(), result3.size());
   bool check_ref3 = values_ref3.isApprox(result3, 1e-4);

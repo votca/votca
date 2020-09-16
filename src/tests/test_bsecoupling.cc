@@ -21,8 +21,8 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
-#include "votca/xtp/bsecoupling.h"
 #include "votca/tools/eigenio_matrixmarket.h"
+#include "votca/xtp/bsecoupling.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -55,9 +55,9 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
 
   Orbitals A;
   A.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
-                                  "/bsecoupling/3-21G.xml");
+                    "/bsecoupling/3-21G.xml");
   A.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                                  "/bsecoupling/molecule.xyz");
+                           "/bsecoupling/molecule.xyz");
   A.setBasisSetSize(17);
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
       0.168775, 0.168775, 0.223948, 0.231217, 0.26323, 0.26323, 0.713478,
       0.713478, 0.793559, 0.885998, 0.944915, 0.944915, 1.01169, 1.04977,
       1.04977, 1.08863, 1.10318, 1.17822, 1.18094, 1.18094, 1.69037, 1.91046;
- 
+
   AB.setBasisSetSize(34);
   AB.setNumberOfAlphaElectrons(10);
   AB.setNumberOfOccupiedLevels(10);
@@ -134,7 +134,6 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
       1.25629, 1.25629, 1.27991, 1.29122, 1.35945, 1.36705, 1.36705, 1.93286,
       2.11739;
 
-  
   AB.QPdiag().eigenvectors() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/Hqp.mm");
 

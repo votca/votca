@@ -77,7 +77,7 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
   for (const AOShell& shell : basis) {
     Index currentFunction = shell.getStartIndex();
 
-    if (_reverse) { // multiply first before reversing ordering
+    if (_reverse) {  // multiply first before reversing ordering
       // Get multiplier vector for shell
       std::vector<Index> shellmultiplier =
           copySegment(_multipliers, shell.getOffset(), shell.getNumFunc());
@@ -95,7 +95,7 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
           .swap(moCoefficients.row(currentFunction + transposition.second));
     }
 
-    if (!_reverse) { // multiply after reordering
+    if (!_reverse) {  // multiply after reordering
       // Get multiplier vector for shell
       std::vector<Index> shellmultiplier =
           copySegment(_multipliers, shell.getOffset(), shell.getNumFunc());
