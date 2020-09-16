@@ -77,19 +77,20 @@ void AOBasis::GenerateLibintBasis() {
 
   for (const auto& shell : _aoshells) {
     std::vector<libint2::real_t> decays;
-    std::vector<libint2::real_t> contractions;
+    std::vector<libint2::Shell::Contraction> contractions;
     const Eigen::Vector3d& pos = shell.getPos();
     for (const auto& primitive : shell) {
       decays.push_back(primitive.getDecay());
-      contractions.push_back(primitive.getContraction());
+      libint2::Shell::Contraction contr;
+      contr.l = static_cast<int>(shell.getL());
+      contr.pure = true;
+      contr.coeff.push_back(primitive.getContraction());
+      contractions.push_back(contr);
     }
 
-    _libintshells.push_back(
-        {decays,
-         {// compute integrals in sphericals
-          {static_cast<int>(shell.getL()), true, contractions}},
-         // Atomic Coordinates
-         {{pos[0], pos[1], pos[2]}}});
+    std::array<libint2::real_t, 3> libintpos = {pos[0], pos[1], pos[2]};
+    libint2::Shell libintshell(decays, contractions, libintpos);
+    _libintshells.push_back(libintshell);
   }
 }
 
