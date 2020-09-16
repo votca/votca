@@ -22,7 +22,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/atom.h"
-#include "votca/xtp/bfgs-trm.h"
+#include "votca/xtp/bfgs_trm.h"
 #include "votca/xtp/trustregion.h"
 
 namespace votca {

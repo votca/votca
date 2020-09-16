@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_BFGS - TRM_H
-#define VOTCA_XTP_BFGS -TRM_H
+#ifndef VOTCA_XTP_BFGS_TRM_H
+#define VOTCA_XTP_BFGS_TRM_H
 
 // Standard includes
 #include <functional>
@@ -94,4 +94,4 @@ class BFGSTRM {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // VOTCA_XTP_BFGS-TRM_H
+#endif  // VOTCA_XTP_BFGS_TRM_H

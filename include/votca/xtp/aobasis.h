@@ -26,6 +26,12 @@
 #include "eigen.h"
 #include <libint2.hpp>
 
+namespace libint2 {
+#ifndef _libint2_include_libint2_util_smallvector_h_
+template <class T>
+using svector = std::vector<T>;
+#endif
+}  // namespace libint2
 namespace votca {
 namespace xtp {
 class QMMolecule;

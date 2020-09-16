@@ -25,7 +25,7 @@
 #include <cstdio>
 
 // Local VOTCA includes
-#include "bfgs-trm.h"
+#include "bfgs_trm.h"
 #include "energy_costfunction.h"
 #include "gwbseengine.h"
 #include "logger.h"
