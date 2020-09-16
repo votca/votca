@@ -79,15 +79,14 @@ void AOBasis::GenerateLibintBasis() {
     libint2::svector<libint2::Shell::real_t> decays;
     libint2::svector<libint2::Shell::Contraction> contractions;
     const Eigen::Vector3d& pos = shell.getPos();
+    libint2::Shell::Contraction contr;
     for (const auto& primitive : shell) {
       decays.push_back(primitive.getDecay());
-      libint2::Shell::Contraction contr;
       contr.l = static_cast<int>(shell.getL());
       contr.pure = true;
       contr.coeff.push_back(primitive.getContraction());
-      contractions.push_back(contr);
     }
-
+    contractions.push_back(contr);
     std::array<libint2::Shell::real_t, 3> libintpos = {pos[0], pos[1], pos[2]};
     libint2::Shell libintshell(decays, contractions, libintpos);
     _libintshells.push_back(libintshell);
