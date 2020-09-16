@@ -76,8 +76,8 @@ void AOBasis::GenerateLibintBasis() {
   _libintshells.reserve(_aoshells.size());
 
   for (const auto& shell : _aoshells) {
-    std::vector<libint2::real_t> decays;
-    std::vector<libint2::Shell::Contraction> contractions;
+    libint2::svector<libint2::Shell::real_t> decays;
+    libint2::svector<libint2::Shell::Contraction> contractions;
     const Eigen::Vector3d& pos = shell.getPos();
     for (const auto& primitive : shell) {
       decays.push_back(primitive.getDecay());
@@ -88,7 +88,7 @@ void AOBasis::GenerateLibintBasis() {
       contractions.push_back(contr);
     }
 
-    std::array<libint2::real_t, 3> libintpos = {pos[0], pos[1], pos[2]};
+    std::array<libint2::Shell::real_t, 3> libintpos = {pos[0], pos[1], pos[2]};
     libint2::Shell libintshell(decays, contractions, libintpos);
     _libintshells.push_back(libintshell);
   }
