@@ -41,6 +41,32 @@ AOGaussianPrimitive::AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
       _powfactor(gaussian._powfactor) {
   ;
 }
+
+void AOGaussianPrimitive::SetupCptTable(CptTable& table) const {
+  table.addCol(getShell().getAtomIndex(), "atomidx", HOFFSET(data, atomid));
+  table.addCol(static_cast<Index>(getShell().getL()), "L", HOFFSET(data, l));
+  table.addCol(getShell().getStartIndex(), "startidx",
+               HOFFSET(data, startindex));
+  table.addCol(getDecay(), "decay", HOFFSET(data, decay));
+  table.addCol(getContraction(), "contr", HOFFSET(data, contraction));
+  table.addCol(getShell().getPos().x(), "pos.x", HOFFSET(data, x));
+  table.addCol(getShell().getPos().y(), "pos.y", HOFFSET(data, y));
+  table.addCol(getShell().getPos().z(), "pos.z", HOFFSET(data, z));
+  table.addCol(getShell().getScale(), "scale", HOFFSET(data, scale));
+}
+
+void AOGaussianPrimitive::WriteData(data& d) const {
+  d.atomid = getShell().getAtomIndex();
+  d.l = static_cast<Index>(getShell().getL());
+  d.startindex = getShell().getStartIndex();
+  d.decay = getDecay();
+  d.contraction = getContraction();
+  d.x = getShell().getPos().x();
+  d.y = getShell().getPos().y();
+  d.z = getShell().getPos().z();
+  d.scale = getShell().getScale();
+}
+
 AOShell::AOShell(const Shell& shell, const QMAtom& atom, Index startIndex)
     : _l(shell.getL()),
       _scale(shell.getScale()),

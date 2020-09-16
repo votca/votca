@@ -24,6 +24,7 @@
 #include <numeric>
 
 // Local VOTCA includes
+#include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aomatrix3d.h"
 #include "votca/xtp/orbitals.h"
@@ -516,6 +517,11 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
 
   CheckpointWriter molgroup = w.openChild("qmmolecule");
   _atoms.WriteToCpt(molgroup);
+
+  CheckpointWriter basis = w.openChild("basis");
+
+  AOBasis b = this->SetupDftBasis();
+  b.WriteToCpt(basis);
 
   w(_qm_energy, "qm_energy");
   w(_qm_package, "qm_package");

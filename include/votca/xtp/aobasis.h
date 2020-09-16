@@ -23,6 +23,7 @@
 
 // Local VOTCA includes
 #include "aoshell.h"
+#include "checkpoint.h"
 #include "eigen.h"
 #include <libint2.hpp>
 
@@ -70,8 +71,16 @@ class AOBasis {
 
   const std::string& Name() const { return _name; }
 
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r);
+
  private:
   void GenerateLibintBasis();
+
+  void FillFuncperAtom();
+
+  void clear();
 
   std::string _name = "";
 

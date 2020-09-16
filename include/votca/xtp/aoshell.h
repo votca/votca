@@ -35,7 +35,6 @@
 namespace votca {
 namespace xtp {
 
-class AOBasis;
 class AOShell;
 
 class AOGaussianPrimitive {
@@ -47,6 +46,22 @@ class AOGaussianPrimitive {
 
   AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
                       const AOShell& aoshell);
+
+  struct data {
+    Index atomid;
+    Index l;
+    Index startindex;
+    double decay;
+    double contraction;
+    double x;
+    double y;
+    double z;
+    double scale;
+  };
+
+  void SetupCptTable(CptTable& table) const;
+
+  void WriteData(data& d) const;
 
   double getPowfactor() const { return _powfactor; }
   double getDecay() const { return _decay; }
@@ -67,7 +82,6 @@ class AOGaussianPrimitive {
  * shells in a Gaussian-basis expansion
  */
 class AOShell {
-  friend class AOBasis;
 
  public:
   AOShell(const Shell& shell, const QMAtom& atom, Index startIndex);

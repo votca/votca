@@ -22,6 +22,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
+#include "votca/xtp/aoshell.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/qmpackage.h"
@@ -46,10 +47,8 @@ const std::vector<const AOShell*> AOBasis::getShellsofAtom(Index AtomId) const {
 }
 
 void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
+  clear();
   _name = bs.Name();
-  _AOBasisSize = 0;
-  _aoshells.clear();
-  _FuncperAtom.clear();
   // loop over atoms
   for (const QMAtom& atom : atoms) {
     Index atomfunc = 0;
@@ -66,14 +65,27 @@ void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
       aoshell.CalcMinDecay();
       aoshell.normalizeContraction();
     }
-    _FuncperAtom.push_back(atomfunc);
   }
+  FillFuncperAtom();
   GenerateLibintBasis();
   return;
 }
 
+void AOBasis::FillFuncperAtom() {
+  _FuncperAtom.clear();
+  Index currentIndex = -1;
+  for (const auto& shell : _aoshells) {
+    if (shell.getAtomIndex() == currentIndex) {
+      _FuncperAtom[shell.getAtomIndex()] += shell.getNumFunc();
+    } else {
+      currentIndex = shell.getAtomIndex();
+      _FuncperAtom.push_back(shell.getNumFunc());
+    }
+  }
+}
+
 void AOBasis::GenerateLibintBasis() {
-  _libintshells.resize(0);
+  _libintshells.clear();
   _libintshells.reserve(_aoshells.size());
 
   for (const auto& shell : _aoshells) {
@@ -92,6 +104,45 @@ void AOBasis::GenerateLibintBasis() {
     libint2::Shell libintshell(decays, contractions, libintpos);
     _libintshells.push_back(libintshell);
   }
+}
+
+void AOBasis::clear() {
+  _name = "";
+  _aoshells.clear();
+  _libintshells.clear();
+  _FuncperAtom.clear();
+  _AOBasisSize = 0;
+}
+
+void AOBasis::WriteToCpt(CheckpointWriter& w) const {
+  w(_name, "name");
+
+  Index numofprimitives = 0;
+  for (const auto& shell : _aoshells) {
+    numofprimitives += shell.getSize();
+  }
+
+  const AOGaussianPrimitive& dummy = *(getShell(0).begin());
+  CptTable table = w.openTable("Contractions", dummy, numofprimitives);
+
+  std::vector<AOGaussianPrimitive::data> dataVec(numofprimitives);
+  Index i = 0;
+  for (const auto& shell : _aoshells) {
+    for (const auto& gaussian : shell) {
+      gaussian.WriteData(dataVec[i]);
+      i++;
+    }
+  }
+
+  table.write(dataVec);
+}
+
+void AOBasis::ReadFromCpt(CheckpointReader& r) {
+  clear();
+  r(_name, "name");
+
+  FillFuncperAtom();
+  GenerateLibintBasis();
 }
 
 }  // namespace xtp
