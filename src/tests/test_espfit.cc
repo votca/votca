@@ -21,10 +21,10 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include "votca/tools/eigenio_matrixmarket.h"
 #include "votca/xtp/espfit.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
-#include "votca/tools/eigenio_matrixmarket.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -32,12 +32,12 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(espfit_test)
 
 BOOST_AUTO_TEST_CASE(esp_charges) {
-  
+
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/espfit/molecule.xyz");
   orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
-                                  "/espfit/3-21G.xml");
+                           "/espfit/3-21G.xml");
   orbitals.setBasisSetSize(13);
   orbitals.setNumberOfOccupiedLevels(5);
 

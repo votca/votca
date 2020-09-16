@@ -24,10 +24,10 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include "votca/tools/eigenio_matrixmarket.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/vxc_grid.h"
-#include "votca/tools/eigenio_matrixmarket.h"
 
 using namespace votca::xtp;
 using namespace std;
@@ -37,7 +37,8 @@ BOOST_AUTO_TEST_SUITE(density_integration_test)
 AOBasis CreateBasis(const QMMolecule& mol) {
 
   BasisSet basis;
-  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/densityintegration/3-21G.xml");
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) +
+             "/densityintegration/3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, mol);
   return aobasis;
@@ -48,7 +49,7 @@ BOOST_AUTO_TEST_CASE(density_test) {
   QMMolecule mol("none", 0);
 
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                                  "/densityintegration/molecule.xyz");
+                   "/densityintegration/molecule.xyz");
   AOBasis aobasis = CreateBasis(mol);
 
   Eigen::MatrixXd dmat = votca::tools::EigenIO_MatrixMarket::ReadMatrix(

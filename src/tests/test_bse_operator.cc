@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   Hqp_op.configure(opt);
   Eigen::MatrixXd hqp_mat = Hqp_op.get_full_matrix();
 
-  Eigen::MatrixXd hqp_ref =   votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+  Eigen::MatrixXd hqp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/bse_operator/hqp_ref.mm");
 
   bool check_hqp = hqp_mat.isApprox(hqp_ref, 0.001);
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   HdOperator Hd(epsilon_inv, Mmn, Hqp);
   Hd.configure(opt);
   Eigen::MatrixXd hd_mat = Hd.get_full_matrix();
-  Eigen::MatrixXd hd_ref =  votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+  Eigen::MatrixXd hd_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/bse_operator/hd_ref.mm");
 
   bool check_hd = hd_mat.isApprox(hd_ref, 0.001);
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
     cout << "hd result" << endl;
     cout << hd_mat << endl;
   }
-  BOOST_CHECK_EQUAL(check_hd, true); 
+  BOOST_CHECK_EQUAL(check_hd, true);
 
   Hd2Operator Hd2(epsilon_inv, Mmn, Hqp);
   Hd2.configure(opt);
@@ -131,7 +131,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
     cout << "hd2 result" << endl;
     cout << hd2_mat << endl;
   }
-  BOOST_CHECK_EQUAL(check_hd2, true); 
+  BOOST_CHECK_EQUAL(check_hd2, true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

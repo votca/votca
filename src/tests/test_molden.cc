@@ -60,7 +60,8 @@ BOOST_AUTO_TEST_CASE(moldenreader_test) {
           std::string(XTP_TEST_DATA_FOLDER) +
           "/molden/orbitals_eigenvalues.mm");
 
-  BOOST_CHECK(orbitals.MOs().eigenvalues().isApprox(orbitals_ref.MOs().eigenvalues(), 1e-4));
+  BOOST_CHECK(orbitals.MOs().eigenvalues().isApprox(
+      orbitals_ref.MOs().eigenvalues(), 1e-4));
 
   // Check if MO's are read correctly
   BOOST_CHECK(orbitals.MOs().eigenvectors().isApprox(coeffs_ref, 1e-4));
@@ -108,8 +109,7 @@ BOOST_AUTO_TEST_CASE(moldenwriter_test) {
       std::string(XTP_TEST_DATA_FOLDER) + "/molden/orbitalsMOs_ref.mm");
 
   // Check if MO's are equal
-  BOOST_CHECK(coeffs_ref.isApprox(
-      orbitals.MOs().eigenvectors(), 1e-5));
+  BOOST_CHECK(coeffs_ref.isApprox(orbitals.MOs().eigenvectors(), 1e-5));
 
   std::cout << "ref" << std::endl;
   std::cout << coeffs_ref << std::endl;

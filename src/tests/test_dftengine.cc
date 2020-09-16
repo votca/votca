@@ -21,9 +21,9 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include "votca/tools/eigenio_matrixmarket.h"
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/orbitals.h"
-#include "votca/tools/eigenio_matrixmarket.h"
 
 using namespace votca::xtp;
 
@@ -39,8 +39,7 @@ QMMolecule Water() {
 
   xyzfile.close();
   QMMolecule mol(" ", 1);
-  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                                  "/espfit/molecule.xyz");
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/espfit/molecule.xyz");
   return mol;
 }
 
@@ -177,9 +176,9 @@ BOOST_AUTO_TEST_CASE(dft_full) {
     std::cout << MOs_energy_ref << std::endl;
   }
 
-  Eigen::MatrixXd MOs_coeff_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_ref.mm");
-  
+  Eigen::MatrixXd MOs_coeff_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_ref.mm");
 
   AOBasis basis = orb.SetupDftBasis();
   AOOverlap overlap;
@@ -277,8 +276,9 @@ BOOST_AUTO_TEST_CASE(density_guess) {
     std::cout << MOs_energy_ref << std::endl;
   }
 
-  Eigen::MatrixXd MOs_coeff_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_ref2.mm");
+  Eigen::MatrixXd MOs_coeff_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_ref2.mm");
 
   AOBasis basis = orb.SetupDftBasis();
   AOOverlap overlap;
