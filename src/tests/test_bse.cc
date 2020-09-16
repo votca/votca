@@ -38,7 +38,8 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
                                   "/bse/molecule.xyz");
   BasisSet basis;
   basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/bse/3-21G.xml");
-  orbitals.setDFTbasisName("3-21G.xml");
+  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+                           "/bse/3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
 
