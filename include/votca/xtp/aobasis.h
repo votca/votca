@@ -24,6 +24,7 @@
 // Local VOTCA includes
 #include "aoshell.h"
 #include "eigen.h"
+#include <libint2.hpp>
 
 namespace votca {
 namespace xtp {
@@ -53,10 +54,17 @@ class AOBasis {
 
   const std::vector<Index>& getFuncPerAtom() const { return _FuncperAtom; }
 
+  const std::vector<libint2::Shell>& LibintBasis() const {
+    return _libintshells;
+  }
+
  private:
+  void GenerateLibintBasis();
   AOShell& addShell(const Shell& shell, const QMAtom& atom, Index startIndex);
 
   std::vector<AOShell> _aoshells;
+
+  std::vector<libint2::Shell> _libintshells;
 
   std::vector<Index> _FuncperAtom;
 

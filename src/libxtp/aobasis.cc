@@ -67,7 +67,30 @@ void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
     }
     _FuncperAtom.push_back(atomfunc);
   }
+  GenerateLibintBasis();
   return;
+}
+
+void AOBasis::GenerateLibintBasis() {
+  _libintshells.resize(0);
+  _libintshells.reserve(_aoshells.size());
+
+  for (const auto& shell : _aoshells) {
+    std::vector<libint2::real_t> decays;
+    std::vector<libint2::real_t> contractions;
+    const Eigen::Vector3d& pos = shell.getPos();
+    for (const auto& primitive : shell) {
+      decays.push_back(primitive.getDecay());
+      contractions.push_back(primitive.getContraction());
+    }
+
+    _libintshells.push_back(
+        {decays,
+         {// compute integrals in sphericals
+          {static_cast<int>(shell.getL()), true, contractions}},
+         // Atomic Coordinates
+         {{pos[0], pos[1], pos[2]}}});
+  }
 }
 
 }  // namespace xtp
