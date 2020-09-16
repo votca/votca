@@ -62,7 +62,6 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   esp.FillPotential(aobasis, orbitals.QMAtoms());
   Eigen::MatrixXd esp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/esp_ref.mm");
-  ord.reorderOperator(esp_ref, aobasis);
   bool check_esp = esp.Matrix().isApprox(esp_ref, 0.00001);
   BOOST_CHECK_EQUAL(check_esp, 1);
   if (!check_esp) {
@@ -81,7 +80,6 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   Eigen::MatrixXd ecp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/ecp_ref.mm");
 
-  ord.reorderOperator(ecp_ref, aobasis);
   bool check_ecp = ecp.Matrix().isApprox(ecp_ref, 0.00001);
   BOOST_CHECK_EQUAL(check_ecp, 1);
   if (!check_ecp) {
@@ -104,7 +102,6 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
 
   Eigen::MatrixXd dip_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/dip_ref.mm");
-  ord.reorderOperator(dip_ref, aobasis);
   bool dip_check = dip_ref.isApprox(dip.Matrix(), 1e-4);
   BOOST_CHECK_EQUAL(dip_check, 1);
   if (!dip_check) {
@@ -128,7 +125,6 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
 
   Eigen::MatrixXd quad_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/quad_ref.mm");
-  ord.reorderOperator(quad_ref, aobasis);
   bool quad_check = quad_ref.isApprox(quad.Matrix(), 1e-4);
   BOOST_CHECK_EQUAL(quad_check, 1);
   if (!quad_check) {
@@ -146,7 +142,6 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
       std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/planewave_ref.mm");
 
   planewave.FillPotential(aobasis, kpoints);
-  ord.reorderOperator(planewave_ref, aobasis);
   Eigen::MatrixXd planewave_real = planewave.Matrix().real();
   bool planewave_check = planewave_ref.isApprox(planewave_real, 1e-4);
 
@@ -304,8 +299,7 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   AOMultipole esp;
   esp.FillPotential(dftbasis, externalsites2);
   Eigen::MatrixXd esp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/esp_ref_l.xyz");
-  ord.reorderOperator(esp_ref, dftbasis);
+      std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/esp_ref_l.mm");
   bool check_esp = esp.Matrix().isApprox(esp_ref, 0.00001);
 
   BOOST_CHECK_EQUAL(check_esp, 1);
@@ -342,7 +336,6 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   planewave_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/planewave_ref_l.mm");
 
-  ord.reorderOperator(planewave_ref, dftbasis);
   planewave.FillPotential(dftbasis, kpoints);
   bool planewave_check =
       planewave_ref.isApprox(planewave.Matrix().real(), 1e-4);
