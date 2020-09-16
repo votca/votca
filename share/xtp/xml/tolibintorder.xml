@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<options>
+  <tolibintorder help="Convert .mm matrices from votca to libint order">
+    <basisset>something</basisset>
+    <xyz>something</xyz>
+    <matrix>somehting</matrix>
+    <aux>0</aux>
+    <operator>1</operator>
+  </tolibintorder>
+</options>

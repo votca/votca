@@ -64,7 +64,13 @@ Version 2021-dev
 -  fix build with clang-11 (#546)
 -  Add a molden parser to xtp (#547)
 -  Correct self-energy frequency derivative (#550)
--  fix multiline orca keyword ($552)
+-  fix multiline orca keyword (#552)
+-  Contour Deformation Approach (CDA) for self-energy implmented (#4)
+
+Version 1.6.3 (released XX.08.20)
+=================================
+
+-  switch to ghcr.io for CI (#555)
 
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================

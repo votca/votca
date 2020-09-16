@@ -371,12 +371,23 @@ void GWBSE::Initialize(tools::Property& options) {
   XTP_LOG(Log::error, *_pLog)
       << " Sigma integration: " << _gwopt.sigma_integration << flush;
   _gwopt.eta = options.get(key + ".eta").as<double>();
+  XTP_LOG(Log::error, *_pLog) << " eta: " << _gwopt.eta << flush;
   if (_gwopt.sigma_integration == "exact") {
     XTP_LOG(Log::error, *_pLog)
         << " RPA Hamiltonian size: " << (homo + 1 - rpamin) * (rpamax - homo)
         << flush;
   }
-  XTP_LOG(Log::error, *_pLog) << " eta: " << _gwopt.eta << flush;
+  _gwopt.order = options.get(key + ".quadrature_order").as<Index>();
+  XTP_LOG(Log::error, *_pLog)
+      << " Quadrature integration order : " << _gwopt.order << flush;
+  _gwopt.quadrature_scheme =
+      options.get(key + ".quadrature_scheme").as<std::string>();
+  XTP_LOG(Log::error, *_pLog)
+      << " Quadrature integration scheme : " << _gwopt.quadrature_scheme
+      << flush;
+  _gwopt.alpha = options.get(key + ".alpha").as<double>();
+  XTP_LOG(Log::error, *_pLog)
+      << " Alpha smoothing parameter : " << _gwopt.alpha << flush;
 
   _gwopt.qp_solver = options.get(key + ".qp_solver").as<std::string>();
   _gwopt.qp_grid_steps = options.get(key + ".qp_grid_steps").as<Index>();

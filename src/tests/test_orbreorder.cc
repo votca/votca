@@ -37,19 +37,23 @@ BOOST_AUTO_TEST_SUITE(orbreorder_test)
 BOOST_AUTO_TEST_CASE(orbreorder_test) {
 
   // clang-format off
-  std::array<Index,25> multipliers={
+  std::array<Index,49> multipliers={
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
-            1,1,1,1,1,-1,-1, //f 
-            1,1,1,1,1,-1,-1,-1,-1 //g
+            -1,1,1,1,1,1,-1, //f 
+            -1,-1,1,1,1,1,1,-1,-1, //g
+            -1,-1,-1,1,1,1,1,1,-1,-1,-1, //h
+            -1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1 //i
             };
-  std::array<Index, 25> reorderList={
+  std::array<Index, 49> reorderList={
             0, //s
             1,-1,0, //p
             0,1,-1,2,-2, //d
             0,1,-1,2,-2,3,-3, //f 
-            0,1,-1,2,-2,3,-3,4,-4 //g
+            0,1,-1,2,-2,3,-3,4,-4, //g
+            0,1,-1,2,-2,3,-3,4,-4,5,-5, //h
+            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 //i
             };
   // clang-format on
 
@@ -63,22 +67,37 @@ BOOST_AUTO_TEST_CASE(orbreorder_test) {
 
   Eigen::MatrixXd moldenCoeffs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/orbreorder/MOLDEN_order.mm");
-  std::cout << moldenCoeffs << std::endl;
-  std::cout << std::endl;
 
   Eigen::MatrixXd votcaCoeffs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/orbreorder/VOTCA_order.mm");
-
-  std::cout << votcaCoeffs << std::endl;
-  std::cout << std::endl;
 
   // Convert moldenCoeffs to votcaCoeffs
   OrbReorder reorder(reorderList, multipliers);
   reorder.reorderOrbitals(moldenCoeffs, aobasis);
 
-  std::cout << moldenCoeffs << std::endl;
-  std::cout << std::endl;
+  std::array<votca::Index, 49> votcaOrder_old = {
+      0,                                           // s
+      0, -1, 1,                                    // p
+      0, -1, 1, -2, 2,                             // d
+      0, -1, 1, -2, 2, -3, 3,                      // f
+      0, -1, 1, -2, 2, -3, 3, -4, 4,               // g
+      0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5,        // h
+      0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6  // i
+  };
 
-  BOOST_CHECK(moldenCoeffs.isApprox(votcaCoeffs, 1e-5));
+  std::array<votca::Index, 49> multiplier2;
+  multiplier2.fill(1);
+  OrbReorder reorder2(votcaOrder_old, multiplier2);
+
+  reorder2.reorderOrbitals(votcaCoeffs, aobasis);
+
+  bool check = moldenCoeffs.isApprox(votcaCoeffs, 1e-5);
+  BOOST_CHECK(check);
+  if (!check) {
+    std::cout << "votcaCoeffs" << std::endl;
+    std::cout << votcaCoeffs << std::endl;
+    std::cout << "moldenCoeffs" << std::endl;
+    std::cout << moldenCoeffs << std::endl;
+  }
 }
 }

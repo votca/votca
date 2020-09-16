@@ -27,6 +27,7 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/orbreorder.h"
 
 using namespace votca::xtp;
 using namespace std;
@@ -42,14 +43,13 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
   AOBasis aobasis;
   aobasis.Fill(basis, mol);
 
-  Eigen::VectorXd aoval_ref = Eigen::VectorXd::Zero(aobasis.AOBasisSize());
+  Eigen::MatrixXd aoval_ref = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), 1);
   aoval_ref << 0.0680316, 0.0895832, 0.0895832, 0.0895832, 0, 0.126153,
       0.126153, 0.126153, 0, -0.102376, 0.0626925, 0.0626925, 0.198251, 0,
       0.0809357, -0.0809357, -0.122215, -0.0552111, -0.0552111, 0.156161, 0,
       0.146075, -0.146075, 0, -0.103291;
 
-  Eigen::MatrixX3d aograd_ref =
-      Eigen::MatrixX3d::Zero(aobasis.AOBasisSize(), 3);
+  Eigen::MatrixXd aograd_ref = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), 3);
 
   aograd_ref << -0.057521967096, -0.057521967096, -0.057521967096,
       -0.091846116024, -0.091846116024, -0.0022629076774, -0.091846116024,
@@ -70,6 +70,24 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
       0.32674007231, -0.11148463165, 0.18066517099, 0.20658110657,
       -0.20658110657, 0, 0.024459014248, 0.024459014248, 0.23104012081;
 
+  // clang-format off
+    std::array<votca::Index, 49> votcaOrder_old = {
+        0,                             // s
+        0, -1, 1,                      // p
+        0, -1, 1, -2, 2,               // d
+        0, -1, 1, -2, 2, -3, 3,        // f
+        0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
+    };
+  // clang-format on
+
+  std::array<votca::Index, 49> multiplier;
+  multiplier.fill(1);
+  OrbReorder ord(votcaOrder_old, multiplier);
+  ord.reorderOrbitals(aograd_ref, aobasis);
+  ord.reorderOrbitals(aoval_ref, aobasis);
+
   for (const AOShell& shell : aobasis) {
 
     Eigen::Vector3d gridpos = Eigen::Vector3d::Ones();
@@ -87,7 +105,8 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
         aoval_2.segment(0, shell.getNumFunc());
     shell.EvalAOspace(ao_block_2, gridpos);
 
-    bool ao_check = aoval_ref.segment(shell.getStartIndex(), shell.getNumFunc())
+    bool ao_check = aoval_ref.col(0)
+                        .segment(shell.getStartIndex(), shell.getNumFunc())
                         .isApprox(aoval, 1e-5);
     if (!ao_check) {
       std::cout << shell << std::endl;

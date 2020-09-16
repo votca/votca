@@ -19,7 +19,7 @@ void Molden::writeAtoms(const Orbitals& orbitals,
 
 void Molden::writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const {
   Eigen::VectorXd energies = orbitals.MOs().eigenvalues();
-  OrbReorder reorder(_reorderList, _multipliers);
+  OrbReorder reorder(_reorderList, _multipliers, true);
   Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
   reorder.reorderOrbitals(moCoefficients, orbitals.SetupDftBasis());
 
@@ -182,7 +182,7 @@ std::string Molden::readMOs(Orbitals& orbitals,
   orbitals.setNumberOfAlphaElectrons(number_of_electrons);
   orbitals.setNumberOfOccupiedLevels(number_of_electrons / 2);
 
-  OrbReorder reorder(_reorderList, _multipliers, true);
+  OrbReorder reorder(_reorderList, _multipliers);
   reorder.reorderOrbitals(orbitals.MOs().eigenvectors(),
                           orbitals.SetupDftBasis());
 

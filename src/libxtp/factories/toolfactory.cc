@@ -34,6 +34,7 @@
 #include "tools/partialcharges.h"
 #include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
+#include "tools/tolibintorder.h"
 
 namespace votca {
 namespace xtp {
@@ -53,6 +54,7 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<APDFT>("apdft");
   QMTools().Register<Mol2Orb>("mol2orb");
   QMTools().Register<Orb2Mol>("orb2mol");
+  QMTools().Register<ToLibintOrder>("tolibintorder");
 }
 
 }  // namespace xtp
