@@ -106,62 +106,87 @@ def gen_fourier_matrix(r, omega, fourier_function):
 def find_nearest_ndx(array, value):
     """find index of array where closest to value"""
     array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    return idx
+    ndx = (np.abs(array - value)).argmin()
+    return ndx
 
 
-def calc_U_sym_mol(r, g_tgt, G_minus_g, n, kBT, rho, closure):
-    """calculates U from g and G_minus_g for molecules with n identical beads.
-    This means it works for two-bead hexane, but is expected to fail for
-    three-bead hexane"""
-    # single bead case
-    # (for didactic purpose, the formulas in this function would work)
-    if n == 1:
-        U = calc_U_single(r, g_tgt, kBT, rho, closure)
-        return U
+def find_after_cut_off_ndx(array, cut_off):
+    """Find index of array after given cut_off. Assumes array is sorted.
+    Used for finding first index after cut_off."""
+    array = np.asarray(array)
+    ndx_closest = find_nearest_ndx(array, cut_off)
+    if np.isclose(array[ndx_closest], cut_off):
+        return ndx_closest + 1
+    elif array[-1] < cut_off:
+        return len(array)
+    else:
+        ndx = np.where(array > cut_off)[0][0]
+        return ndx
+
+
+def calc_slices(r, g_tgt, g_cur, cut_off, verbose=False):
+    # there are different regions in r used
+    #              |       crucial     |                     # regions (slices)
+    # |   core     |                 nocore               |
+    # Δr--------core_end------------cut_off-----------r[-1]  # distances
+    # 0----------ndx_ce--------------ndx_co----------len(r)  # indices
+    #
+    # nocore equals Δ from Delbary et al.
+    # crucial equals Δ' from Delbary et al.
+    # note: Vector w of HNCGN is in region crucial, but with one element less, because
+    # of the antiderivative operator A0
+    r, g_tgt, g_cur = map(np.asarray, (r, g_tgt, g_cur))
+    ndx_ce = max((np.where(g_tgt > G_MIN)[0][0],
+                  np.where(g_cur > G_MIN)[0][0]))
+    ndx_co = find_after_cut_off_ndx(r, cut_off)
+    crucial = slice(ndx_ce, ndx_co)
+    nocore = slice(ndx_ce, len(r))
+    if verbose:
+        print(f"ndx_ce: {ndx_ce}, ({r[ndx_ce]})")
+        print(f"ndx_co: {ndx_co}, ({cut_off})")
+        print(f"min(r): {min(r)}")
+        print(f"max(r): {max(r)}")
+        print(f"len(r): {len(r)}")
+        print("crucial:", crucial.start, crucial.stop, min(r[crucial]), max(r[crucial]))
+        print("nocore:", nocore.start, nocore.stop, min(r[nocore]), max(r[nocore]))
+    return nocore, crucial
+
+
+def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
+    """Calculate a potential U using integral equation theory. Supports symmetric
+    molecules with n equal beads.
+
+    Args:
+        r: Distance grid.
+        g_tgt: Target RDF.
+        G_minus_g: Target intramolecular RDF. Can be an empty array if n == 1.
+        n: Number of equal beads per molecule.
+        kBT: Boltzmann constant times temperature.
+        rho: Number density of the molecules.
+        closure: OZ-equation closure ('hnc' or 'py').
+
+    Returns:
+        The calculated potential.
+    """
     # remove r = 0 for numerical stability
     r0_removed = False
-    if r[0] == 0.0:
+    if np.isclose(r[0], 0.0):
         r, g_tgt, G_minus_g = r[1:], g_tgt[1:], G_minus_g[1:]
         r0_removed = True
     # reciprocal space ω with radial symmetry
     omega = gen_omega(r)
     # total correlation function h
     h = g_tgt - 1
-    h_hat = fourier(r, h, omega)
-    # intramolecular distribution G - g
-    G_minus_g_hat = fourier(r, G_minus_g, omega)
-    # direct correlation function c from OZ including intramolecular
-    # interactions
-    c_hat = h_hat / ((1 + n * rho * G_minus_g_hat)**2
-                     + (1 + n * rho * G_minus_g_hat) * n * rho * h_hat)
-    c = fourier(omega, c_hat, r)
-    # U from HNC
-    with np.errstate(divide='ignore', invalid='ignore'):
-        if closure == 'hnc':
-            U = kBT * (-np.log(g_tgt) + h - c)
-        elif closure == 'py':
-            U = kBT * np.log(1 - c/g_tgt)
-    if r0_removed:
-        U = np.insert(U, 0, np.nan)
-    return U
-
-
-def calc_U_single(r, g_tgt, kBT, rho, closure):
-    """calculates U from g for single particle systems."""
-    # remove r = 0 for numerical stability
-    r0_removed = False
-    if r[0] == 0.0:
-        r, g_tgt = r[1:], g_tgt[1:]
-        r0_removed = True
-    # reciprocal space ω with radial symmetry
-    omega = gen_omega(r)
-    # total correlation function h
-    h = g_tgt - 1
+    # FT of h
     h_hat = fourier(r, h, omega)
     # direct correlation function c from OZ
-    # interactions
-    c_hat = h_hat / (1 + rho * h_hat)
+    if n == 1:
+        # single bead case
+        c_hat = h_hat / (1 + rho * h_hat)
+    else:
+        G_minus_g_hat = fourier(r, G_minus_g, omega)
+        c_hat = h_hat / ((1 + n * rho * G_minus_g_hat)**2
+                         + (1 + n * rho * G_minus_g_hat) * n * rho * h_hat)
     c = fourier(omega, c_hat, r)
     # U from HNC
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -174,129 +199,74 @@ def calc_U_single(r, g_tgt, kBT, rho, closure):
     return U
 
 
-def calc_dU_newton_sym_mol(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
-                           closure, newton_mod, verbose):
-    """calculates an update step dU for the potential from g_tgt, g_cur, and
-    G_minus_g  using IHNC (or HNCN) step for molecules with n identical beads.
-    This means it works for two-bead hexane, but is expected to fail for
-    three-bead hexane"""
-    # single bead case
-    # (for didactic purpose, the formulas in this function would work)
-    if n == 1:
-        dU = calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho, closure, newton_mod,
-                                   verbose)
-        return dU
+def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
+                   closure, newton_mod, verbose=False):
+    """Calculate a potential update dU using Newtons method and integral equation
+    theory. Supports symmetric molecules with n equal beads.
+
+    Args:
+        r: Distance grid.
+        g_tgt: Target RDF.
+        g_cur: Current RDF.
+        G_minus_g: Current intramolecular RDF. Can be an empty array if n == 1.
+        n: Number of equal beads per molecule.
+        kBT: Boltzmann constant times temperature.
+        rho: Number density of the molecules.
+        cut_off: Highest distance for potential update.
+        closure: OZ-equation closure ('hnc' or 'py').
+        newton_mod: Use IBI style update term.
+
+    Returns:
+        The calculated potential update.
+    """
     # remove r = 0 for numerical stability
     r0_removed = False
-    if r[0] == 0.0:
+    if np.isclose(r[0], 0.0):
         r, g_cur, g_tgt, G_minus_g = r[1:], g_cur[1:], g_tgt[1:], G_minus_g[1:]
         r0_removed = True
-    # reciprocal space with radial symmetry ω
-    omega = gen_omega(r)
-    # difference of rdf to target 'f'
-    g_prime = g_tgt - g_cur
-    g_prime_hat = fourier(r, g_prime, omega)
-    # pair correlation function 'h'
-    h_hat = fourier(r, g_cur - 1, omega)
-    # intramolecular distribution G - g
-    G_minus_g_hat = fourier(r, G_minus_g, omega)
-    # dc/dg g' = c'
-    # derived in sympy
-    c_prime_hat = g_prime_hat / (1 + n * rho * G_minus_g_hat
-                                 + n * rho * h_hat)**2
-    c_prime = fourier(omega, c_prime_hat, r)
-    """
-    if verbose:
-        # calculate and save jacobian
-        F = gen_fourier_matrix(r, omega, fourier)
-        dcdg = np.matmul(np.matmul(np.linalg.inv(F),
-                                   np.diag(h_hat / (1 + n * rho * G_minus_g_hat
-                                                    + n * rho * h_hat)**2)),
-                         F)
-        if closure == 'hnc':
-            if newton_mod:
-                pass
-            else:
-                with np.errstate(divide='ignore'):
-                    jac_inv = kBT * (np.diag(1 - 1 / g_cur) - dcdg)
-                jac = np.linalg.inv(jac_inv)
-                np.savez_compressed('jacobian.npz', jac=jac)
-    """
-    # dU from HNC
-    with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
-        if closure == 'hnc':
-            if newton_mod:
-                dU = kBT * (np.log(g_cur / g_tgt) + g_prime - c_prime)
-            else:
-                dU = kBT * (-(g_prime / g_cur) + g_prime - c_prime)
-        elif closure == 'py':
-            # for PY we also need c
-            c_hat = h_hat / ((1 + n * rho * G_minus_g_hat)**2
-                             + (1 + n * rho * G_minus_g_hat) * rho * h_hat)
-            c = fourier(omega, c_hat, r)
-            if newton_mod:
-                # dU = kBT * ()
-                raise NotImplementedError
-            else:
-                # probably wrong:
-                # U = kBT * np.log(1 - c/g_cur)
-                dU = kBT * (1 / (1 - c / g_tgt)
-                            * (- c_prime * g_tgt + g_prime * c) / g_tgt**2)
-    if r0_removed:
-        dU = np.insert(dU, 0, np.nan)
-    return dU
-
-
-def calc_dU_newton_single(r, g_tgt, g_cur, kBT, rho,
-                          closure, newton_mod, verbose):
-    """calculates an update step dU for the potential from g_tgt and g_cur
-    using IHNC (or HNCN) step for single bead systems.
-    """
-    # remove r = 0 for numerical stability
-    r0_removed = False
-    if r[0] == 0.0:
-        r, g_cur, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
-        r0_removed = True
+    # calc slices and Delta_r
+    nocore, crucial = calc_slices(r, g_tgt, g_cur, cut_off, verbose=verbose)
     # reciprocal space with radial symmetry ω
     omega = gen_omega(r)
     # difference of rdf to target
-    g_prime = g_tgt - g_cur
-    g_prime_hat = fourier(r, g_prime, omega)
-    # pair correlation function 'h'
+    Delta_g = g_cur - g_tgt
+    # FT of total correlation function 'h'
     h_hat = fourier(r, g_cur - 1, omega)
-    # direct correlation function
-    c_prime_hat = g_prime_hat / (1 + rho * h_hat)**2
-    c_prime = fourier(omega, c_prime_hat, r)
-    if verbose:
-        # calculate and save jacobian
-        F = gen_fourier_matrix(r, omega, fourier)
-        dcdg = np.matmul(np.matmul(np.linalg.inv(F), np.diag(1 / (1 + rho * h_hat)**2)),
+    F = gen_fourier_matrix(r, omega, fourier)
+    # dc/dg
+    if n == 1:
+        # single bead case
+        dcdg = np.matmul(np.matmul(np.linalg.inv(F),
+                                   np.diag(1 / (1 + rho * h_hat)**2)),
                          F)
-        if closure == 'hnc':
-            if newton_mod:
-                pass
-            else:
+    else:
+        G_minus_g_hat = fourier(r, G_minus_g, omega)
+        dcdg = np.matmul(np.matmul(np.linalg.inv(F),
+                                   np.diag(1 / (1 + n * rho * G_minus_g_hat
+                                                + n * rho * h_hat)**2)),
+                         F)
+    # calculate jacobian^-1
+    if closure == 'hnc':
+        if newton_mod:
+            with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
+                jac_inv = kBT * (np.diag(1 - np.log(g_tgt / g_cur) / Delta_g) + dcdg)
+        else:
+            with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
                 jac_inv = kBT * (np.diag(1 - 1 / g_cur) - dcdg)
-                jac = np.linalg.inv(jac_inv)
-                np.savez_compressed('jacobian.npz', jac=jac)
-
-    # dU from HNC
-    with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
-        if closure == 'hnc':
-            if newton_mod:
-                dU = kBT * (np.log(g_cur / g_tgt) + g_prime - c_prime)
-            else:
-                dU = kBT * (-(g_prime / g_cur) + g_prime - c_prime)
-        elif closure == 'py':
-            if newton_mod:
-                raise NotImplementedError
-            else:
-                c_hat = 1 / (1 + rho * h_hat)
-                c = fourier(omega, c_hat, r)
-                dU = kBT * (1 / (1 - c / g_tgt)
-                            * (- c_prime * g_tgt + g_prime * c) / g_tgt**2)
-    if r0_removed:
-        dU = np.insert(dU, 0, np.nan)
+    elif closure == 'py':
+        raise NotImplementedError
+    # cut jacobian and transform back
+    jac = np.linalg.inv(jac_inv)
+    jac_cut = jac[crucial, crucial]
+    jac_inv_cut = np.linalg.inv(jac_cut)
+    dU = - np.matmul(jac_inv_cut, Delta_g[crucial])
+    if verbose:
+        np.savez_compressed('newton-arrays.npz', jac=jac, jac_cut=jac_cut,
+                            jac_inv=jac_inv, jac_inv_cut=jac_inv_cut)
+    # fill core and behind cut-off
+    dU = np.concatenate((np.full(nocore.start + (1 if r0_removed else 0), np.nan),
+                         dU,
+                         np.full(len(r) - crucial.stop, np.nan)))
     return dU
 
 
@@ -335,62 +305,61 @@ def gauss_newton_constrained(A, C, b, d):
     return x
 
 
-def calc_dU_hncgn_sc(r, g_cur, g_tgt, kBT, density,
-                     g_min, cut_off, constraints,
-                     verbose):
-    """Apply the (constrained) single-component HNCGN method."""
+def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
+                         cut_off, constraints,
+                         verbose=False):
+    """Calculate a potential update dU using the Gauss-Newton method and
+    integral equation theory. Constraints can be added.
+
+    Args:
+        r: Distance grid.
+        g_tgt: Target RDF.
+        g_cur: Current RDF.
+        kBT: Boltzmann constant times temperature.
+        rho: Number density of the molecules.
+        cut_off: Highest distance for potential update.
+        constraints: List of dicts, which describe physical constraints.
+
+    Returns:
+        The calculated potential update.
+    """
 
     # remove r = 0 for numerical stability
     r0_removed = False
-    if r[0] == 0.0:
-        r, g_cur, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
+    if np.isclose(r[0], 0.0):
+        r, g_cur, g_tgt, G_minus_g = r[1:], g_cur[1:], g_tgt[1:], G_minus_g[1:]
         r0_removed = True
-    r, g_cur, g_tgt = r[1:], g_cur[1:], g_tgt[1:]
-    # there are different regions in r used in the method
-    #              |       crucial     |                     # regions
-    # |   core     |                 nocore               |
-    #  ---------core_end------------cut_off-----------r[-1]  # distances
-    # 0----------ndx_ce--------------ndx_co----------len(r)  # indices
-    #
-    # Δ from the paper equals nocore
-    # Δ' from the paper equals crucial
-    # note: Vector w is in region crucial, but with one element less, because
-    # of the antiderivative operator A0
-    ndx_ce = np.where(g_tgt > g_min)[0][0]
-    ndx_co = find_nearest_ndx(r, cut_off)
-    crucial = slice(ndx_ce, ndx_co+1)
-    nocore = slice(ndx_ce, len(r))
-    Delta_r = calc_grid_spacing(r)
-    if verbose:
-        print("core_end:", ndx_ce, r[ndx_ce])
-        print("cut_off:", ndx_co, r[ndx_co])
-        print("r_end:", len(r)-1, r[-1])
-        print("r", 0, len(r), min(r), max(r))
-        print("crucial:", ndx_ce, ndx_co+1, min(r[crucial]), max(r[crucial]))
-        print("nocore:", ndx_ce, len(r), min(r[nocore]), max(r[nocore]))
 
+    # calc slices and Delta_r
+    nocore, crucial = calc_slices(r, g_tgt, g_cur, cut_off, verbose=verbose)
+    Delta_r = calc_grid_spacing(r)
     # reciprocal grid up to Nyquist frequency
     omega = gen_omega(r)
     # Fourier matrix
     F = gen_fourier_matrix(r, omega, fourier)
-    # density 'ρ0'
-    rho = density
     # pair correlation function 'h'
     h = g_cur - 1
     # special Fourier of h
     h_hat = fourier(r, h, omega)
-    # H matrix
-    H = np.diag((2 + rho * h_hat) / (1 + rho * h_hat)**2 * rho * h_hat)
-    # T matrix
-    T = np.matmul(np.linalg.inv(F), np.matmul(H, F))
-    # D matrix
-    D = np.diag(g_tgt[ndx_ce:])
-    # U matrix
-    U = -kBT * np.linalg.inv(D) + kBT * T[ndx_ce:, ndx_ce:]
+    # dc/dg
+    if n == 1:
+        # single bead case
+        dcdg = np.matmul(np.matmul(np.linalg.inv(F),
+                                   np.diag(1 / (1 + rho * h_hat)**2)),
+                         F)
+    else:
+        G_minus_g_hat = fourier(r, G_minus_g, omega)
+        dcdg = np.matmul(np.matmul(np.linalg.inv(F),
+                                   np.diag(1 / (1 + n * rho * G_minus_g_hat
+                                                + n * rho * h_hat)**2)),
+                         F)
+    # jacobian^-1 (matrix U in Delbary et al.)
+    with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
+        jac_inv = kBT * (np.diag(1 - 1 / g_cur[nocore]) - dcdg[nocore, nocore])
     # A0 matrix
     A0 = Delta_r * np.triu(np.ones((len(r[nocore]), len(r[crucial])-1)), k=0)
     # Jacobian matrix
-    J = np.matmul(np.linalg.inv(U), A0)
+    J = np.matmul(np.linalg.inv(jac_inv), A0)
     # constraint matrix and vector
     C = np.zeros((len(constraints), len(r[crucial])-1))
     d = np.zeros(len(constraints))
@@ -426,11 +395,11 @@ def calc_dU_hncgn_sc(r, g_cur, g_tgt, kBT, density,
     # dU
     dU = np.matmul(A0, w)
     # fill core with nans
-    dU = np.concatenate((np.full(ndx_ce + (1 if r0_removed else 0), np.nan), dU))
+    dU = np.concatenate((np.full(nocore.start + (1 if r0_removed else 0), np.nan), dU))
     # dump files
     if verbose:
-        np.savez_compressed('hncgn-arrays.npz', A=A, b=b, C=C, d=d,
-                            H=H, T=T, D=D, U=U, A0=A0, J=J)
+        np.savez_compressed('gauss-newton-arrays.npz', A=A, b=b, C=C, d=d,
+                            jac_inv=jac_inv, A0=A0, J=J)
     return dU
 
 
@@ -448,7 +417,7 @@ def extrapolate_U_constant(dU, dU_flag):
     return dU_extrap
 
 
-def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose):
+def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose=False):
     """Extrapolate the potential in the core region including
     the point, where the RDF becomes larger than g_min or where
     the new potential is convex. A power function is used.
@@ -497,9 +466,9 @@ def shift_U_cutoff_zero(dU, r, U, cut_off):
     """Make potential zero at and beyond cut-off"""
     dU_shift = dU.copy()
     # shift dU to be zero at cut_off and beyond
-    ndx_co = find_nearest_ndx(r, cut_off)
-    U_cut_off = U[ndx_co] + dU[ndx_co]
-    dU_shift -= U_cut_off
+    ndx_co = find_after_cut_off_ndx(r, cut_off)
+    U_before_cut_off = U[ndx_co-1] + dU[ndx_co-1]
+    dU_shift -= U_before_cut_off
     dU_shift[ndx_co:] = -1 * U[ndx_co:]
     return dU_shift
 
@@ -515,11 +484,11 @@ def fix_U_near_cut_off_full(r, U, cut_off):
     This also helps agains an artifact of p-HNCGN,
     where the last value of dU is a spike."""
     U_fixed = U.copy()
-    ndx_co = find_nearest_ndx(r, cut_off)
-    second_last_deriv = U[ndx_co-1] - U[ndx_co-2]
-    shift = -1.0 * second_last_deriv - U[ndx_co-1]
+    ndx_co = find_after_cut_off_ndx(r, cut_off)
+    second_last_deriv = U[ndx_co-2] - U[ndx_co-3]
+    shift = -1.0 * second_last_deriv - U[ndx_co-2]
     # modify up to second last value
-    U_fixed[:ndx_co] += shift
+    U_fixed[:ndx_co-1] += shift
     return U_fixed
 
 
@@ -699,12 +668,10 @@ def main():
         raise Exception('If n_intra is larger than 1, you should also '
                         'provide some G')
     """
-    # todo: if n_intra == 1, check if G close to g
-
+    # todo: if n_intra == 1, check if G close to g at G[-1]
     # todo for multicomponent: check order of input and output by filename
     # todo for multicomponent: allow not existing X-Y? particles would overlap
-    # todo for multicomponent: do not allow same bead on different
-    # moleculetypes
+    # todo for multicomponent: do not allow same bead on different moleculetypes
 
     # load input arrays
     input_arrays = {}  # input_arrays['g_tgt'][0]['x']
@@ -747,11 +714,11 @@ def main():
 
     # guess potential from distribution
     if args.subcommand in ['potential_guess']:
-        U1 = calc_U_sym_mol(r,
-                            input_arrays['g_tgt'][0]['y'],
-                            input_arrays['G_minus_g'][0]['y'],
-                            args.n_intra[0], args.kBT, args.densities[0],
-                            args.closure)
+        U1 = calc_U(r,
+                    input_arrays['g_tgt'][0]['y'],
+                    input_arrays['G_minus_g'][0]['y'],
+                    args.n_intra[0], args.kBT, args.densities[0],
+                    args.closure)
         U_flag1 = np.array(['i'] * len(r))
         U_flag2 = upd_flag_g_smaller_g_min(U_flag1,
                                            input_arrays['g_tgt'][0]['y'],
@@ -763,14 +730,14 @@ def main():
 
     # newton update
     if args.subcommand in ['newton', 'newton-mod']:
-        dU1 = calc_dU_newton_sym_mol(r,
-                                     input_arrays['g_tgt'][0]['y'],
-                                     input_arrays['g_cur'][0]['y'],
-                                     input_arrays['G_minus_g'][0]['y'],
-                                     args.n_intra[0], args.kBT,
-                                     args.densities[0], args.closure,
-                                     args.subcommand == 'newton-mod',
-                                     args.verbose)
+        dU1 = calc_dU_newton(r,
+                             input_arrays['g_tgt'][0]['y'],
+                             input_arrays['g_cur'][0]['y'],
+                             input_arrays['G_minus_g'][0]['y'],
+                             args.n_intra[0], args.kBT,
+                             args.densities[0], args.cut_off, args.closure,
+                             args.subcommand == 'newton-mod',
+                             verbose=args.verbose)
         dU_flag1 = np.array(['i'] * len(r))
         dU_flag2 = upd_flag_g_smaller_g_min(dU_flag1,
                                             input_arrays['g_tgt'][0]['y'],
@@ -800,12 +767,13 @@ def main():
                                 'current': p_current})
 
         # calc dU_pure
-        dU_pure = calc_dU_hncgn_sc(r,
-                                   input_arrays['g_cur'][0]['y'],
-                                   input_arrays['g_tgt'][0]['y'],
-                                   args.kBT,
-                                   args.densities[0], G_MIN, args.cut_off,
-                                   constraints, args.verbose)
+        dU_pure = calc_dU_gauss_newton(r,
+                                       input_arrays['g_tgt'][0]['y'],
+                                       input_arrays['g_cur'][0]['y'],
+                                       input_arrays['G_minus_g'][0]['y'],
+                                       args.n_intra[0], args.kBT,
+                                       args.densities[0], args.cut_off,
+                                       constraints, verbose=args.verbose)
 
         # set dU_flag to 'o' inside the core
         dU_flag = np.where(np.isnan(dU_pure), 'o', 'i')
@@ -819,7 +787,7 @@ def main():
             dU_extrap = extrapolate_U_power(r, dU_pure,
                                             input_arrays['U_cur'][0]['y'],
                                             input_arrays['g_tgt'][0]['y'],
-                                            G_MIN, args.kBT, args.verbose)
+                                            G_MIN, args.kBT, verbose=args.verbose)
         else:
             raise Exception("unknown extrapolation scheme for inside and near "
                             "core region: " + args.extrap_near_core)
@@ -831,10 +799,9 @@ def main():
         if args.fix_near_cut_off == 'none':
             dU = dU_shift.copy()
         elif args.fix_near_cut_off == 'full-deriv':
-            U_new = input_arrays['U_cur'][0]['y'] + dU
-            U_new = fix_U_near_cut_off_full(r,
-                                            U_new,
-                                            args.cut_off)
+            U_new = input_arrays['U_cur'][0]['y'] + dU_shift
+            U_new = fix_U_near_cut_off_full(r, U_new, args.cut_off)
+            dU = U_new - input_arrays['U_cur'][0]['y']
         else:
             raise Exception("unknown fix scheme for near cut-off: "
                             + args.fix_near_cut_off)
