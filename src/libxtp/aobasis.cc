@@ -46,6 +46,7 @@ const std::vector<const AOShell*> AOBasis::getShellsofAtom(Index AtomId) const {
 }
 
 void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
+  _name = bs.Name();
   _AOBasisSize = 0;
   _aoshells.clear();
   _FuncperAtom.clear();

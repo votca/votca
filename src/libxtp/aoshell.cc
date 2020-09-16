@@ -25,6 +25,44 @@
 namespace votca {
 namespace xtp {
 
+AOGaussianPrimitive::AOGaussianPrimitive(const GaussianPrimitive& gaussian,
+                                         const AOShell& aoshell)
+    : _decay(gaussian.decay()),
+      _contraction(gaussian.contraction()),
+      _aoshell(aoshell) {
+  _powfactor = CalcPowFactor(_decay);
+}
+
+AOGaussianPrimitive::AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
+                                         const AOShell& aoshell)
+    : _decay(gaussian._decay),
+      _contraction(gaussian._contraction),
+      _aoshell(aoshell),
+      _powfactor(gaussian._powfactor) {
+  ;
+}
+AOShell::AOShell(const Shell& shell, const QMAtom& atom, Index startIndex)
+    : _l(shell.getL()),
+      _scale(shell.getScale()),
+      _startIndex(startIndex),
+      _pos(atom.getPos()),
+      _atomindex(atom.getId()) {
+  ;
+}
+
+AOShell::AOShell(const AOShell& shell) {
+  _l = shell._l;
+  _scale = shell._scale;
+  _mindecay = shell._mindecay;
+  _startIndex = shell._startIndex;
+  _pos = shell._pos;
+  _atomindex = shell._atomindex;
+  _gaussians.reserve(shell._gaussians.size());
+  for (const auto& gaus : shell._gaussians) {
+    _gaussians.push_back(AOGaussianPrimitive(gaus, *this));
+  }
+}
+
 void AOShell::normalizeContraction() {
   AOOverlap overlap;
   Eigen::MatrixXd block = overlap.FillShell(*this);
