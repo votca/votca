@@ -26,6 +26,14 @@
 #include "eigen.h"
 #include <libint2.hpp>
 
+#ifndef LIBINT2_MAX_AM_default1
+#define LIBINT2_MAX_AM_default1 LIBINT2_MAX_AM_default
+#endif
+
+#ifndef LIBINT2_MAX_AM_default2
+#define LIBINT2_MAX_AM_default2 LIBINT2_MAX_AM_default
+#endif
+
 namespace libint2 {
 #ifndef _libint2_include_libint2_util_smallvector_h_
 template <class T>
