@@ -353,12 +353,12 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
                                    np.diag(1 / (1 + n * rho * G_minus_g_hat
                                                 + n * rho * h_hat)**2)),
                          F)
-    # jacobian^-1 (matrix U in Delbary et al.)
+    # jacobian^-1 (matrix U in Delbary et al., with respect to potential)
     with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
         jac_inv = kBT * (np.diag(1 - 1 / g_cur[nocore]) - dcdg[nocore, nocore])
     # A0 matrix
     A0 = Delta_r * np.triu(np.ones((len(r[nocore]), len(r[crucial])-1)), k=0)
-    # Jacobian matrix
+    # Jacobian with respect to force
     J = np.matmul(np.linalg.inv(jac_inv), A0)
     # constraint matrix and vector
     C = np.zeros((len(constraints), len(r[crucial])-1))
