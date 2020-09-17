@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include "votca/xtp/basisset.h"
 #ifndef VOTCA_XTP_ECPAOSHELL_H
 #define VOTCA_XTP_ECPAOSHELL_H
 
@@ -62,18 +63,16 @@ class ECPAOShell {
   ECPAOShell(const ECPShell& shell, const QMAtom& atom, Index startIndex,
              L Lmax)
       : _L(shell.getL()),
-        _numFunc(shell.getnumofFunc()),
         _startIndex(startIndex),
-        _offset(shell.getOffset()),
         _pos(atom.getPos()),
         _atomindex(atom.getId()),
         _Lmax_element(Lmax) {
     ;
   }
 
-  Index getNumFunc() const { return _numFunc; }
+  Index getNumFunc() const { return NumFuncShell(_L); }
   Index getStartIndex() const { return _startIndex; }
-  Index getOffset() const { return _offset; }
+  Index getOffset() const { return OffsetFuncShell(_L); }
   Index getAtomIndex() const { return _atomindex; }
 
   L getL() const { return _L; }
@@ -101,10 +100,7 @@ class ECPAOShell {
  private:
   std::string _type;
   L _L;
-  // number of functions in shell
-  Index _numFunc;
   Index _startIndex;
-  Index _offset;
   Eigen::Vector3d _pos;
   Index _atomindex;
   L _Lmax_element;  // Lmax of the Element not the shell
