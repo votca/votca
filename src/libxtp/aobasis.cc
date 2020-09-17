@@ -24,8 +24,10 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/basisset.h"
+#include "votca/xtp/qmatom.h"
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/qmpackage.h"
+#include "votca/xtp/regular_grid.h"
 
 namespace votca {
 namespace xtp {
@@ -67,7 +69,6 @@ void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
     }
   }
   FillFuncperAtom();
-  GenerateLibintBasis();
   return;
 }
 
@@ -84,9 +85,9 @@ void AOBasis::FillFuncperAtom() {
   }
 }
 
-void AOBasis::GenerateLibintBasis() {
-  _libintshells.clear();
-  _libintshells.reserve(_aoshells.size());
+std::vector<libint2::Shell> AOBasis::GenerateLibintBasis() const {
+  std::vector<libint2::Shell> libintshells;
+  libintshells.reserve(_aoshells.size());
 
   for (const auto& shell : _aoshells) {
     libint2::svector<libint2::Shell::real_t> decays;
@@ -102,14 +103,20 @@ void AOBasis::GenerateLibintBasis() {
     contractions.push_back(contr);
     std::array<libint2::Shell::real_t, 3> libintpos = {pos[0], pos[1], pos[2]};
     libint2::Shell libintshell(decays, contractions, libintpos);
-    _libintshells.push_back(libintshell);
+    libintshells.push_back(libintshell);
+  }
+  return libintshells;
+}
+
+void AOBasis::UpdateShellPositions(const QMMolecule& mol) {
+  for (AOShell& shell : _aoshells) {
+    shell._pos = mol[shell.getAtomIndex()].getPos();
   }
 }
 
 void AOBasis::clear() {
   _name = "";
   _aoshells.clear();
-  _libintshells.clear();
   _FuncperAtom.clear();
   _AOBasisSize = 0;
 }
@@ -122,8 +129,15 @@ void AOBasis::WriteToCpt(CheckpointWriter& w) const {
     numofprimitives += shell.getSize();
   }
 
-  const AOGaussianPrimitive& dummy = *(getShell(0).begin());
-  CptTable table = w.openTable("Contractions", dummy, numofprimitives);
+  // this is all to make dummy AOGaussian
+  Shell s(L::S, 0);
+  GaussianPrimitive d(0.1, 0.1);
+  QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
+  AOShell s1(s, dummy, 0);
+  s1.addGaussian(d);
+  const AOGaussianPrimitive& dummy2 = *s1.begin();
+
+  CptTable table = w.openTable("Contractions", dummy2, numofprimitives);
 
   std::vector<AOGaussianPrimitive::data> dataVec(numofprimitives);
   Index i = 0;
@@ -141,8 +155,45 @@ void AOBasis::ReadFromCpt(CheckpointReader& r) {
   clear();
   r(_name, "name");
 
+  // this is all to make dummy AOGaussian
+  Shell s(L::S, 0);
+  GaussianPrimitive d(0.1, 0.1);
+  QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
+  AOShell s1(s, dummy, 0);
+  s1.addGaussian(d);
+  const AOGaussianPrimitive& dummy2 = *s1.begin();
+
+  CptTable table = r.openTable("Contractions", dummy2);
+  std::vector<AOGaussianPrimitive::data> dataVec(table.numRows());
+  table.read(dataVec);
+  Index laststartindex = -1;
+  for (std::size_t i = 0; i < table.numRows(); ++i) {
+    if (dataVec[i].startindex != laststartindex) {
+      _aoshells.push_back(AOShell(dataVec[i]));
+      laststartindex = dataVec[i].startindex;
+    } else {
+      _aoshells.back()._gaussians.push_back(
+          AOGaussianPrimitive(dataVec[i], _aoshells.back()));
+    }
+  }
+
+  _AOBasisSize = 0;
+  for (auto& shell : _aoshells) {
+    shell.CalcMinDecay();
+    _AOBasisSize += shell.getNumFunc();
+  }
+
   FillFuncperAtom();
-  GenerateLibintBasis();
+}
+
+std::ostream& operator<<(std::ostream& out, const AOBasis& aobasis) {
+  out << "Name:" << aobasis.Name() << "\n";
+  out << " Functions:" << aobasis.AOBasisSize()
+      << " Shells:" << aobasis.getNumofShells() << "\n";
+  for (const auto& shell : aobasis) {
+    out << shell;
+  }
+  return out;
 }
 
 }  // namespace xtp

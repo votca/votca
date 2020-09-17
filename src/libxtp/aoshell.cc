@@ -326,7 +326,7 @@ std::ostream& operator<<(std::ostream& out, const AOShell& shell) {
   out << "AtomIndex:" << shell.getAtomIndex();
   out << " Shelltype:" << EnumToString(shell.getL())
       << " Scale:" << shell.getScale() << " MinDecay:" << shell.getMinDecay()
-      << " Func:" << shell.getNumFunc() << "\n";
+      << "\n";
   for (const auto& gaussian : shell) {
     out << " Gaussian Decay: " << gaussian.getDecay();
     out << " Contraction: " << gaussian.getContraction();

@@ -63,21 +63,21 @@ class AOBasis {
 
   const std::vector<Index>& getFuncPerAtom() const { return _FuncperAtom; }
 
-  const std::vector<libint2::Shell>& LibintBasis() const {
-    return _libintshells;
-  }
+  std::vector<libint2::Shell> GenerateLibintBasis() const;
 
   AOShell& addShell(const Shell& shell, const QMAtom& atom, Index startIndex);
 
   const std::string& Name() const { return _name; }
 
+  void UpdateShellPositions(const QMMolecule& mol);
+
   void WriteToCpt(CheckpointWriter& w) const;
 
   void ReadFromCpt(CheckpointReader& r);
 
- private:
-  void GenerateLibintBasis();
+  friend std::ostream& operator<<(std::ostream& out, const AOBasis& aobasis);
 
+ private:
   void FillFuncperAtom();
 
   void clear();
@@ -85,8 +85,6 @@ class AOBasis {
   std::string _name = "";
 
   std::vector<AOShell> _aoshells;
-
-  std::vector<libint2::Shell> _libintshells;
 
   std::vector<Index> _FuncperAtom;
 

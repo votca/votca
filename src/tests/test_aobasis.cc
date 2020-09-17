@@ -67,4 +67,39 @@ BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
   BOOST_CHECK_EQUAL(check_norm, 1);
 }
 
+BOOST_AUTO_TEST_CASE(Serializing) {
+
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/aobasis/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aobasis/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, orbitals.QMAtoms());
+
+  CheckpointFile ff("aobasis.hdf5");
+  CheckpointWriter ww = ff.getWriter();
+  aobasis.WriteToCpt(ww);
+
+  CheckpointReader rr = ff.getReader();
+  AOBasis aobasis2;
+  aobasis2.ReadFromCpt(rr);
+
+  // no real way to test if two aobasis are equal so we check if the matrices
+  // are the same
+  AOOverlap overlap1;
+  overlap1.Fill(aobasis);
+  AOOverlap overlap2;
+  overlap2.Fill(aobasis2);
+  bool check = overlap1.Matrix().isApprox(overlap2.Matrix(), 1e-8);
+  BOOST_CHECK_EQUAL(check, 1);
+
+  auto func_per_atom1 = aobasis.getFuncPerAtom();
+  auto func_per_atom2 = aobasis2.getFuncPerAtom();
+
+  for (size_t i = 0; i < func_per_atom1.size(); i++) {
+    BOOST_CHECK_EQUAL(func_per_atom1[i], func_per_atom2[i]);
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
