@@ -75,6 +75,8 @@ class AOBasis {
 
   void ReadFromCpt(CheckpointReader& r);
 
+  void add(const AOBasis& other);
+
   friend std::ostream& operator<<(std::ostream& out, const AOBasis& aobasis);
 
  private:

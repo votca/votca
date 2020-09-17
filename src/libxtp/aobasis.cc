@@ -48,6 +48,18 @@ const std::vector<const AOShell*> AOBasis::getShellsofAtom(Index AtomId) const {
   return result;
 }
 
+void AOBasis::add(const AOBasis& other) {
+  Index atomindex_offset = Index(_FuncperAtom.size());
+  for (AOShell shell : other) {
+    shell._atomindex += atomindex_offset;
+    shell._startIndex = _AOBasisSize;
+    _AOBasisSize += shell.getNumFunc();
+    _aoshells.push_back(shell);
+  }
+
+  FillFuncperAtom();
+}
+
 void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
   clear();
   _name = bs.Name();

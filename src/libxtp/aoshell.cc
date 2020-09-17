@@ -325,6 +325,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
 std::ostream& operator<<(std::ostream& out, const AOShell& shell) {
   out << "AtomIndex:" << shell.getAtomIndex();
   out << " Shelltype:" << EnumToString(shell.getL())
+      << " StartIndex:" << shell.getStartIndex()
       << " Scale:" << shell.getScale() << " MinDecay:" << shell.getMinDecay()
       << "\n";
   for (const auto& gaussian : shell) {
