@@ -11,11 +11,11 @@ ExternalProject_get_property(Libint_build INSTALL_DIR)
 
 # create emtpy directory for imported targeti below
 file(MAKE_DIRECTORY "${INSTALL_DIR}/${CMAKE_INSTALL_INCLUDEDIR}")
-add_library(Libint::libint UNKNOWN IMPORTED)
-set_target_properties(Libint::libint PROPERTIES
+add_library(PkgConfig::LIBINT UNKNOWN IMPORTED)
+set_target_properties(PkgConfig::LIBINT PROPERTIES
   IMPORTED_LOCATION "${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libint2.a"
   INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/${CMAKE_INSTALL_INCLUDEDIR}")
-add_dependencies(Libint::libint Libint_build)
+add_dependencies(PkgConfig::LIBINT Libint_build)
 
 # no need to install as static libint.a get pulled into our shared lib
 # install(DIRECTORY ${INSTALL_DIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX} USE_SOURCE_PERMISSIONS) 
