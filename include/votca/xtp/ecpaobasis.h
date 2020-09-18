@@ -55,7 +55,19 @@ class ECPAOBasis {
 
   const std::string& Name() const { return _name; }
 
+  void UpdateShellPositions(const QMMolecule& mol);
+
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r);
+
+  void add(const ECPAOBasis& other);
+
+  friend std::ostream& operator<<(std::ostream& out, const ECPAOBasis& ecp);
+
  private:
+  void clear();
+
   ECPAOShell& addShell(const ECPShell& shell, const QMAtom& atom,
                        Index startIndex, L Lmax);
 
