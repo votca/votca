@@ -18,12 +18,8 @@
  */
 
 #pragma once
-#include "votca/xtp/basisset.h"
 #ifndef VOTCA_XTP_ECPAOSHELL_H
 #define VOTCA_XTP_ECPAOSHELL_H
-
-// Third party includes
-#include <boost/math/constants/constants.hpp>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -35,7 +31,7 @@
 
 namespace votca {
 namespace xtp {
-
+class ECPAOShell;
 class ECPAOGaussianPrimitive {
 
  public:
@@ -45,6 +41,30 @@ class ECPAOGaussianPrimitive {
         _contraction(gaussian._contraction) {
     ;
   }
+
+  struct data {
+    Index atomid;
+    Index l;
+    Index lmax;
+    Index startindex;
+    Index power;
+    double decay;
+    double contraction;
+    double x;
+    double y;
+    double z;
+  };
+
+  ECPAOGaussianPrimitive(const ECPAOGaussianPrimitive::data& d) {
+    _decay = d.decay;
+    _contraction = d.contraction;
+    _power = d.power;
+  }
+
+  void WriteData(data& d, const ECPAOShell& shell) const;
+
+  void SetupCptTable(CptTable& table) const;
+
   Index getPower() const { return _power; }
   double getDecay() const { return _decay; }
   double getContraction() const { return _contraction; }
@@ -58,7 +78,11 @@ class ECPAOGaussianPrimitive {
 /*
  * shells in a Gaussian-basis expansion
  */
+
+class ECPAOBasis;
 class ECPAOShell {
+  friend ECPAOBasis;
+
  public:
   ECPAOShell(const ECPShell& shell, const QMAtom& atom, Index startIndex,
              L Lmax)
@@ -68,6 +92,15 @@ class ECPAOShell {
         _atomindex(atom.getId()),
         _Lmax_element(Lmax) {
     ;
+  }
+
+  ECPAOShell(const ECPAOGaussianPrimitive::data& d) {
+    _L = static_cast<L>(d.l);
+    _Lmax_element = static_cast<L>(d.lmax);
+    _startIndex = d.startindex;
+    _atomindex = d.atomid;
+    _pos = Eigen::Vector3d(d.x, d.y, d.z);
+    _gaussians.push_back(ECPAOGaussianPrimitive(d));
   }
 
   Index getNumFunc() const { return NumFuncShell(_L); }
@@ -98,7 +131,6 @@ class ECPAOShell {
   friend std::ostream& operator<<(std::ostream& out, const ECPAOShell& shell);
 
  private:
-  std::string _type;
   L _L;
   Index _startIndex;
   Eigen::Vector3d _pos;
