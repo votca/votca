@@ -13,7 +13,6 @@
  * limitations under the License.
  *
  */
-#include "votca/xtp/qmmolecule.h"
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aobasis_test
