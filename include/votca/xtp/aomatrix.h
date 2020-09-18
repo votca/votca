@@ -73,6 +73,7 @@ class AOOverlap : public AOMatrix {
  private:
   Index removedfunctions;
   double smallestEigenvalue;
+  libint2::Shell toLibintShell(const AOShell& shell) const;
 };
 
 // derived class for atomic orbital Coulomb interaction

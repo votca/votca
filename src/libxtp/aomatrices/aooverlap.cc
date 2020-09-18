@@ -30,16 +30,9 @@ void AOOverlap::Fill(const AOBasis& aobasis) {
   libint2::Operator obtype = libint2::Operator::overlap;
   libint2::Engine engine(obtype, aobasis.getMaxNprim(), aobasis.getMaxL(), 0);
 
-  std::cout << "AO NPRIM: " << aobasis.getMaxNprim() << std::endl;
-  std::cout << "AO L: " << aobasis.getMaxL() << std::endl;
-
   _aomatrix.resize(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
   auto shell2bf = aobasis.getMapToBasisFunctions();
-
-  for (auto& number : shell2bf) {
-    std::cout << number << std::endl;
-  }
 
   const auto& buf = engine.results();
 
@@ -59,7 +52,6 @@ void AOOverlap::Fill(const AOBasis& aobasis) {
       // "map" buffer to a const Eigen Matrix, and copy it to the corresponding
       // blocks of the result
       Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[0], n1, n2);
-      std::cout << buf_mat << std::endl;
       _aomatrix.block(bf1, bf2, n1, n2) = buf_mat;
       if (s1 != s2)  // if s1 >= s2, copy {s1,s2} to the corresponding {s2,s1}
                      // block, note the transpose!
@@ -69,6 +61,7 @@ void AOOverlap::Fill(const AOBasis& aobasis) {
   libint2::finalize();
 }
 
+// HERE SO OLD STUFF STILL COMPILES, WILL BE DELETED SOON
 Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
                                              const AOGaussianPrimitive& g_col,
                                              Index l_offset) const {
@@ -76,6 +69,7 @@ Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
   return ol;
 }
 
+// HERE SO OLD STUFF STILL COMPILES, WILL BE DELETED SOON
 void AOOverlap::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                           const AOShell& shell_row,
                           const AOShell& shell_col) const {
@@ -83,15 +77,45 @@ void AOOverlap::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   ;
 }
 
+// Needed to compute the normalization of the contractions
 Eigen::MatrixXd AOOverlap::FillShell(const AOShell& shell) const {
-  Eigen::MatrixXd block =
-      Eigen::MatrixXd::Zero(shell.getNumFunc(), shell.getNumFunc());
-  Eigen::Block<Eigen::MatrixXd> submatrix =
-      block.block(0, 0, shell.getNumFunc(), shell.getNumFunc());
-  FillBlock(submatrix, shell, shell);
-  return block;
+
+  libint2::initialize();
+  libint2::Operator obtype = libint2::Operator::overlap;
+  libint2::Engine engine(obtype, shell.getNumFunc() + 3,
+                         static_cast<Index>(shell.getL()), 0);
+
+  const auto& buf = engine.results();
+
+  engine.compute(toLibintShell(shell), toLibintShell(shell));
+
+  Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[0], shell.getSize(),
+                                            shell.getSize());
+
+  libint2::finalize();
+  return buf_mat;
 }
 
+// This is ugly here I will probably write it in the aoshell class, can then
+// also be used in the aobasis
+libint2::Shell AOOverlap::toLibintShell(const AOShell& shell) const {
+  libint2::svector<libint2::Shell::real_t> decays;
+  libint2::svector<libint2::Shell::Contraction> contractions;
+  const Eigen::Vector3d& pos = shell.getPos();
+  libint2::Shell::Contraction contr;
+  contr.l = static_cast<int>(shell.getL());
+  contr.pure = true;
+  for (const auto& primitive : shell) {
+    decays.push_back(primitive.getDecay());
+    contr.coeff.push_back(primitive.getContraction());
+  }
+  contractions.push_back(contr);
+  std::array<libint2::Shell::real_t, 3> libintpos = {pos[0], pos[1], pos[2]};
+  libint2::Shell libintshell(decays, contractions, libintpos);
+  return libintshell;
+}
+
+// Still need this bit
 Eigen::MatrixXd AOOverlap::Pseudo_InvSqrt(double etol) {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_aomatrix);
   smallestEigenvalue = es.eigenvalues()(0);
@@ -109,6 +133,7 @@ Eigen::MatrixXd AOOverlap::Pseudo_InvSqrt(double etol) {
          es.eigenvectors().transpose();
 }
 
+// And this as well
 Eigen::MatrixXd AOOverlap::Sqrt() {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_aomatrix);
   smallestEigenvalue = es.eigenvalues()(0);

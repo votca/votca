@@ -25,6 +25,15 @@ bool QMSandbox::Evaluate() {
   AOBasis basis;
   basis.Fill(bs, atoms);
 
+  std::vector<libint2::Shell> shells = basis.GenerateLibintBasis();
+
+  for (auto& shell : basis) {
+    std::cout << shell << std::endl;
+  }
+
+  std::copy(std::begin(shells), std::end(shells),
+            std::ostream_iterator<libint2::Shell>(std::cout, "\n"));
+
   // Compute Overlap with VOTCA
   AOOverlap dftAOoverlap;
   dftAOoverlap.Fill(basis);
