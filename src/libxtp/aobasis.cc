@@ -32,6 +32,31 @@
 namespace votca {
 namespace xtp {
 
+Index AOBasis::getMaxL() const {
+  Index n = 0;
+  for (const auto& shell : _aoshells)
+    n = std::max(static_cast<Index>(shell.getL()), n);
+  return n;
+}
+
+Index AOBasis::getMaxNprim() const {
+  Index n = 0;
+  for (const auto& shell : _aoshells) n = std::max(shell.getSize(), n);
+  return n;
+}
+
+std::vector<Index> AOBasis::getMapToBasisFunctions() const {
+  std::vector<Index> result;
+  result.reserve(_aoshells.size());
+
+  Index n = 0;
+  for (const auto& shell : _aoshells) {
+    result.push_back(n);
+    n += shell.getNumFunc();
+  }
+  return result;
+}
+
 AOShell& AOBasis::addShell(const Shell& shell, const QMAtom& atom,
                            Index startIndex) {
   _aoshells.push_back(AOShell(shell, atom, startIndex));

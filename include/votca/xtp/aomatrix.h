@@ -24,6 +24,8 @@
 // Local VOTCA includes
 #include "aobasis.h"
 
+#include <libint2.hpp>
+
 namespace votca {
 namespace xtp {
 
@@ -54,6 +56,7 @@ class AOOverlap : public AOMatrix {
   Eigen::MatrixXd FillShell(const AOShell& shell) const;
   Index Removedfunctions() const { return removedfunctions; }
   double SmallestEigenValue() const { return smallestEigenvalue; }
+  void Fill(const AOBasis& aobasis);
 
   Eigen::MatrixXd Pseudo_InvSqrt(double etol);
   Eigen::MatrixXd Sqrt();
@@ -70,6 +73,7 @@ class AOOverlap : public AOMatrix {
  private:
   Index removedfunctions;
   double smallestEigenvalue;
+  libint2::Shell toLibintShell(const AOShell& shell) const;
 };
 
 // derived class for atomic orbital Coulomb interaction
