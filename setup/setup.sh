@@ -110,7 +110,7 @@ else
   cmake_args+=( -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON )
 fi
 
-if [[ ${INPUT_MINIMAL} = true || ${INPUT_DISTRO} = ubuntu@(|:latest|[:_]rolling|[:_]devel) ]];  then
+if [[ ${INPUT_MINIMAL} = true || ${INPUT_DISTRO} = ubuntu:@(latest|rolling|devel) ]];  then
   # Ubuntu 20.04 and above come with gromacs-2020, which doesn't have tabulated interaciton that are needed for csg regression tests
   # see https://gitlab.com/gromacs/gromacs/-/issues/1347
   # hopefully we can reenable this in the future with gromacs-2021
@@ -120,7 +120,7 @@ else
 fi
 
 # Gentoo has no latex 
-if [[ ${INPUT_DISTRO} = "gentoo" || ${INPUT_DISTRO} = "gentoo:latest"  ]]; then
+if [[ ${INPUT_DISTRO} = "gentoo:latest"  ]]; then
   cmake_args+=( -DBUILD_CSG_MANUAL=OFF )
 fi
 
@@ -131,7 +131,7 @@ cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYP
 print_output "cache_restore_key" "${cache_key}"
 print_output "cache_key" "${cache_key}-$(date +%s)"
 
-if [[ ${branch} = stable || ${INPUT_DISTRO} = @(ubuntu[:_]18.04|gentoo|gentoo:latest)  || ${INPUT_CMAKE_BUILD_TYPE} = Debug || ${INPUT_MODULE} = true ]]; then
+if [[ ${branch} = stable || ${INPUT_DISTRO} = @(ubuntu:18.04|gentoo:latest)  || ${INPUT_CMAKE_BUILD_TYPE} = Debug || ${INPUT_MODULE} = true ]]; then
   # 1.) Don't build sphinx on stable, not useful, only master is useful
   # 2.) On Ubuntu 18.04 sphinx is too old for nbsphinx
   #     File "/usr/lib/python3/dist-packages/nbsphinx.py", line 1383, in _add_notebook_parser
@@ -146,7 +146,7 @@ else
   print_output "build_sphinx" "true"
 fi
 
-if [[ ${INPUT_DISTRO} = "latest" || ${INPUT_DISTRO} = "fedora:latest" ]] && [[ ${INPUT_MODULE} = false ]]; then
+if [[ ${INPUT_DISTRO} = "fedora:latest" ]] && [[ ${INPUT_MODULE} = false ]]; then
   print_output "check_format" "true"
 else
   print_output "check_format" "false"
