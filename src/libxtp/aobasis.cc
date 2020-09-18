@@ -125,22 +125,8 @@ void AOBasis::FillFuncperAtom() {
 std::vector<libint2::Shell> AOBasis::GenerateLibintBasis() const {
   std::vector<libint2::Shell> libintshells;
   libintshells.reserve(_aoshells.size());
-
   for (const auto& shell : _aoshells) {
-    libint2::svector<libint2::Shell::real_t> decays;
-    libint2::svector<libint2::Shell::Contraction> contractions;
-    const Eigen::Vector3d& pos = shell.getPos();
-    libint2::Shell::Contraction contr;
-    contr.l = static_cast<int>(shell.getL());
-    contr.pure = true;
-    for (const auto& primitive : shell) {
-      decays.push_back(primitive.getDecay());
-      contr.coeff.push_back(primitive.getContraction());
-    }
-    contractions.push_back(contr);
-    std::array<libint2::Shell::real_t, 3> libintpos = {pos[0], pos[1], pos[2]};
-    libint2::Shell libintshell(decays, contractions, libintpos);
-    libintshells.push_back(libintshell);
+    libintshells.push_back(shell.LibintShell());
   }
   return libintshells;
 }

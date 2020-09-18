@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <shell.h>
 #ifndef VOTCA_XTP_AOSHELL_H
 #define VOTCA_XTP_AOSHELL_H
 
@@ -31,6 +32,16 @@
 #include "basisset.h"
 #include "eigen.h"
 #include "qmatom.h"
+
+#include <libint2.hpp>
+
+// some versions of libint2 have no libint2::svector, in that case we typedef it
+#ifndef _libint2_include_libint2_util_smallvector_h_
+namespace libint2 {
+template <class T>
+using svector = std::vector<T>;
+}  // namespace libint2
+#endif
 
 namespace votca {
 namespace xtp {
@@ -115,6 +126,8 @@ class AOShell {
   Index getCartesianOffset() const { return OffsetFuncShell_cartesian(_l); }
   Index getAtomIndex() const { return _atomindex; }
   Index getSize() const { return _gaussians.size(); }
+
+  libint2::Shell LibintShell() const;
 
   const Eigen::Vector3d& getPos() const { return _pos; }
   double getScale() const { return _scale; }

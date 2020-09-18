@@ -25,15 +25,6 @@
 #include "aoshell.h"
 #include "checkpoint.h"
 #include "eigen.h"
-#include <libint2.hpp>
-
-// some versions of libint2 have no libint2::svector, in that case we typedef it
-#ifndef _libint2_include_libint2_util_smallvector_h_
-namespace libint2 {
-template <class T>
-using svector = std::vector<T>;
-}  // namespace libint2
-#endif
 
 namespace votca {
 namespace xtp {

@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aotransform.h"
+#include <shell.h>
 
 namespace votca {
 namespace xtp {
@@ -87,32 +88,13 @@ Eigen::MatrixXd AOOverlap::FillShell(const AOShell& shell) const {
 
   const auto& buf = engine.results();
 
-  engine.compute(toLibintShell(shell), toLibintShell(shell));
+  libint2::Shell s = shell.LibintShell();
+  engine.compute(s, s);
 
   Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[0], shell.getSize(),
                                             shell.getSize());
-
   libint2::finalize();
   return buf_mat;
-}
-
-// This is ugly here I will probably write it in the aoshell class, can then
-// also be used in the aobasis
-libint2::Shell AOOverlap::toLibintShell(const AOShell& shell) const {
-  libint2::svector<libint2::Shell::real_t> decays;
-  libint2::svector<libint2::Shell::Contraction> contractions;
-  const Eigen::Vector3d& pos = shell.getPos();
-  libint2::Shell::Contraction contr;
-  contr.l = static_cast<int>(shell.getL());
-  contr.pure = true;
-  for (const auto& primitive : shell) {
-    decays.push_back(primitive.getDecay());
-    contr.coeff.push_back(primitive.getContraction());
-  }
-  contractions.push_back(contr);
-  std::array<libint2::Shell::real_t, 3> libintpos = {pos[0], pos[1], pos[2]};
-  libint2::Shell libintshell(decays, contractions, libintpos);
-  return libintshell;
 }
 
 // Still need this bit
