@@ -135,7 +135,7 @@ void AOBasis::clear() {
 
 void AOBasis::WriteToCpt(CheckpointWriter& w) const {
   w(_name, "name");
-
+  w(_AOBasisSize, "basissize");
   Index numofprimitives = 0;
   for (const auto& shell : _aoshells) {
     numofprimitives += shell.getSize();
@@ -166,36 +166,32 @@ void AOBasis::WriteToCpt(CheckpointWriter& w) const {
 void AOBasis::ReadFromCpt(CheckpointReader& r) {
   clear();
   r(_name, "name");
+  r(_AOBasisSize, "basissize");
+  if (_AOBasisSize > 0) {
+    // this is all to make dummy AOGaussian
+    Shell s(L::S, 0);
+    GaussianPrimitive d(0.1, 0.1);
+    QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
+    AOShell s1(s, dummy, 0);
+    s1.addGaussian(d);
+    const AOGaussianPrimitive& dummy2 = *s1.begin();
 
-  // this is all to make dummy AOGaussian
-  Shell s(L::S, 0);
-  GaussianPrimitive d(0.1, 0.1);
-  QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
-  AOShell s1(s, dummy, 0);
-  s1.addGaussian(d);
-  const AOGaussianPrimitive& dummy2 = *s1.begin();
-
-  CptTable table = r.openTable("Contractions", dummy2);
-  std::vector<AOGaussianPrimitive::data> dataVec(table.numRows());
-  table.read(dataVec);
-  Index laststartindex = -1;
-  for (std::size_t i = 0; i < table.numRows(); ++i) {
-    if (dataVec[i].startindex != laststartindex) {
-      _aoshells.push_back(AOShell(dataVec[i]));
-      laststartindex = dataVec[i].startindex;
-    } else {
-      _aoshells.back()._gaussians.push_back(
-          AOGaussianPrimitive(dataVec[i], _aoshells.back()));
+    CptTable table = r.openTable("Contractions", dummy2);
+    std::vector<AOGaussianPrimitive::data> dataVec(table.numRows());
+    table.read(dataVec);
+    Index laststartindex = -1;
+    for (std::size_t i = 0; i < table.numRows(); ++i) {
+      if (dataVec[i].startindex != laststartindex) {
+        _aoshells.push_back(AOShell(dataVec[i]));
+        laststartindex = dataVec[i].startindex;
+      } else {
+        _aoshells.back()._gaussians.push_back(
+            AOGaussianPrimitive(dataVec[i], _aoshells.back()));
+      }
     }
-  }
 
-  _AOBasisSize = 0;
-  for (auto& shell : _aoshells) {
-    shell.CalcMinDecay();
-    _AOBasisSize += shell.getNumFunc();
+    FillFuncperAtom();
   }
-
-  FillFuncperAtom();
 }
 
 std::ostream& operator<<(std::ostream& out, const AOBasis& aobasis) {

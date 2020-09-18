@@ -49,17 +49,21 @@ class ECPAOBasis {
 
   const ECPAOShell& back() const { return _aoshells.back(); }
 
-  const std::vector<std::vector<const ECPAOShell*> >& ShellsPerAtom() const {
-    return _shells_perAtom;
-  }
+  std::vector<std::vector<const ECPAOShell*> > ShellsPerAtom() const;
+
+  void AddECPChargeToMolecule(QMMolecule& mol) const;
+
+  const std::string& Name() const { return _name; }
 
  private:
   ECPAOShell& addShell(const ECPShell& shell, const QMAtom& atom,
                        Index startIndex, L Lmax);
 
+  std::vector<Index> _ncore_perAtom;
+
   std::vector<ECPAOShell> _aoshells;
 
-  std::vector<std::vector<const ECPAOShell*> > _shells_perAtom;
+  std::string _name = "";
   Index _AOBasisSize;
 };
 

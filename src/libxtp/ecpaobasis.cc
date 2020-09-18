@@ -34,25 +34,37 @@ ECPAOShell& ECPAOBasis::addShell(const ECPShell& shell, const QMAtom& atom,
   return _aoshells.back();
 }
 
+std::vector<std::vector<const ECPAOShell*> > ECPAOBasis::ShellsPerAtom() const {
+  std::vector<std::vector<const ECPAOShell*> > result(_ncore_perAtom.size());
+  for (const ECPAOShell& shell : _aoshells) {
+    result[shell.getAtomIndex()].push_back(&shell);
+  }
+  return result;
+}
+
+void ECPAOBasis::AddECPChargeToMolecule(QMMolecule& mol) const {
+  for (Index i = 0; i < mol.size(); i++) {
+    mol[i]._ecpcharge = _ncore_perAtom[i];
+  }
+}
 std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
                                           QMMolecule& atoms) {
   _AOBasisSize = 0;
   _aoshells.clear();
-  _shells_perAtom.clear();
-  std::vector<std::vector<Index>> shellindex_per_atom;
-
+  _ncore_perAtom.clear();
+  _name = bs.Name();
   std::vector<std::string> non_ecp_elements;
   Index index = 0;
   for (QMAtom& atom : atoms) {
     std::string name = atom.getElement();
 
     bool element_exists = true;
-    std::vector<Index> shellindex;
 
     try {
       bs.getElement(name);
     } catch (std::runtime_error& error) {
       element_exists = false;
+
       if (std::find(non_ecp_elements.begin(), non_ecp_elements.end(), name) !=
           non_ecp_elements.end()) {
         non_ecp_elements.push_back(name);
@@ -61,31 +73,22 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
 
     if (element_exists) {
       const ECPElement& element = bs.getElement(name);
-      atom._ecpcharge = element.getNcore();
+      _ncore_perAtom.push_back(element.getNcore());
       L lmax = element.getLmax();
       for (const ECPShell& shell : element) {
         ECPAOShell& aoshell = addShell(shell, atom, _AOBasisSize, lmax);
-        shellindex.push_back(index);
         index++;
         _AOBasisSize += NumFuncShell(shell.getL());
         for (const ECPGaussianPrimitive& gaussian : shell) {
           aoshell.addGaussian(gaussian);
         }
       }
+    } else {
+      _ncore_perAtom.push_back(0);
     }
-    shellindex_per_atom.push_back(shellindex);
   }
 
-  // have to do it via indeces because if _aoshells resizes pointers are
-  // invalidated
-  for (const auto& atom_index : shellindex_per_atom) {
-    std::vector<const ECPAOShell*> temp;
-    for (Index lindex : atom_index) {
-      temp.push_back(&_aoshells[lindex]);
-    }
-    _shells_perAtom.push_back(temp);
-  }
-
+  AddECPChargeToMolecule(atoms);
   return non_ecp_elements;
 }
 
