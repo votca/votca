@@ -49,7 +49,7 @@ find_package(PkgConfig REQUIRED)
 set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc and libint package")
 pkg_check_modules(LIBXC REQUIRED IMPORTED_TARGET libxc)
 if(NOT TARGET PkgConfig::LIBINT)
-  pkg_check_modules(LIBINT REQUIRED IMPORTED_TARGET libint2>=2.3)
+  pkg_check_modules(LIBINT REQUIRED IMPORTED_TARGET libint2>=2.1)
 endif()
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
