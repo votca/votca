@@ -61,6 +61,12 @@ class AOBasis {
 
   Index getNumofShells() const { return Index(_aoshells.size()); }
 
+  Index getMaxNprim() const;
+
+  Index getMaxL() const;
+
+  std::vector<Index> getMapToBasisFunctions() const;
+
   const std::vector<Index>& getFuncPerAtom() const { return _FuncperAtom; }
 
   std::vector<libint2::Shell> GenerateLibintBasis() const;
@@ -91,7 +97,7 @@ class AOBasis {
   std::vector<Index> _FuncperAtom;
 
   Index _AOBasisSize;
-};
+};  // namespace xtp
 
 }  // namespace xtp
 }  // namespace votca
