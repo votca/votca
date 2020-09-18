@@ -124,6 +124,11 @@ if [[ ${INPUT_DISTRO} = "gentoo:latest"  ]]; then
   cmake_args+=( -DBUILD_CSG_MANUAL=OFF )
 fi
 
+# Gentoo has no libint yet
+if [[ ${INPUT_DISTRO} = "opensuse:latest"  ]]; then
+  cmake_args+=( -DBUILD_OWN_LIBINT=ON )
+fi
+
 cmake_args+=( ${INPUT_CMAKE_ARGS} )
 print_output "cmake_args" "${cmake_args[@]}"
 
