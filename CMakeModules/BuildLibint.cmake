@@ -6,6 +6,7 @@ ExternalProject_Add(Libint_build
   BUILD_IN_SOURCE 1
   PREFIX libint INSTALL_DIR libint/install
   CONFIGURE_COMMAND ./autogen.sh COMMAND ./configure --prefix=<INSTALL_DIR> --libdir=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR} --disable-shared
+  BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libint2.a
 )
 ExternalProject_get_property(Libint_build INSTALL_DIR)
 
