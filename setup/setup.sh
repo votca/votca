@@ -136,7 +136,8 @@ cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYP
 print_output "cache_restore_key" "${cache_key}"
 print_output "cache_key" "${cache_key}-$(date +%s)"
 
-if [[ ${branch} = stable || ${INPUT_DISTRO} = @(ubuntu:18.04|gentoo:latest)  || ${INPUT_CMAKE_BUILD_TYPE} = Debug || ${INPUT_MODULE} = true ]]; then
+if [[ ${branch} = stable || ${INPUT_DISTRO} != fedora@(latest|rawhide)  || ${INPUT_CMAKE_BUILD_TYPE} = Debug || ${INPUT_MODULE} = true ]]; then
+  # Only build doc sphinx on Fedora, as there many issues on other, e.g.:
   # 1.) Don't build sphinx on stable, not useful, only master is useful
   # 2.) On Ubuntu 18.04 sphinx is too old for nbsphinx
   #     File "/usr/lib/python3/dist-packages/nbsphinx.py", line 1383, in _add_notebook_parser
