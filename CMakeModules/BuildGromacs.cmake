@@ -16,6 +16,7 @@ ExternalProject_Add(Gromacs_build
     -DGMX_THREAD_MPI:BOOL=ON 
     -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
     -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+  BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libgromacs.so
 )
 ExternalProject_get_property(Gromacs_build INSTALL_DIR)
 
