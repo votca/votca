@@ -38,6 +38,7 @@ import numpy as np
 
 BAR_PER_MD_PRESSURE = 16.6053904
 G_MIN = 1e-10
+G_MIN_EXTRAPOLATE = 1e-1
 OMEGA_SAFE_SCALE = 0.99999
 np.seterr(all='raise')
 
@@ -437,6 +438,9 @@ def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose=False):
     ndx_fm = np.where(np.nan_to_num(np.diff(pmf)) > 0)[0][0]
     # index core end
     ndx_ce = np.where(g_tgt > g_min)[0][0]
+    if verbose:
+        print('ndx_fm, r_fm', ndx_fm, r[ndx_fm])
+        print('ndx_ce, r_ce', ndx_ce, r[ndx_ce])
     # fit pmf region
     fit_region = slice(ndx_ce, ndx_ce + 3)
     # fit pmf with power function a*x^b
@@ -447,7 +451,6 @@ def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose=False):
     a = np.exp(log_a)
     if verbose:
         print('pmf fit a*x^b. Coefficients a, b:', a, b)
-    # r without zero at start
     with np.errstate(divide='ignore', over='ignore'):
         pmf_fit = np.nan_to_num(a * r**b - pmf_shift)
 
@@ -455,6 +458,8 @@ def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose=False):
     ndx_ex1 = ndx_ce + 1
     ndx_ex2 = np.where(np.nan_to_num(np.diff(np.diff(U + dU))) > 0)[0][0]
     ndx_ex = max(ndx_ex1, ndx_ex2)
+    if verbose:
+        print('extrapolate up to:', r[ndx_ex])
     # extrapolate
     U_extrap = U + dU
     U_extrap[:ndx_ex] = pmf_fit[:ndx_ex] + (U_extrap[ndx_ex] - pmf_fit[ndx_ex])
@@ -787,7 +792,8 @@ def main():
             dU_extrap = extrapolate_U_power(r, dU_pure,
                                             input_arrays['U_cur'][0]['y'],
                                             input_arrays['g_tgt'][0]['y'],
-                                            G_MIN, args.kBT, verbose=args.verbose)
+                                            G_MIN_EXTRAPOLATE, args.kBT,
+                                            verbose=args.verbose)
         else:
             raise Exception("unknown extrapolation scheme for inside and near "
                             "core region: " + args.extrap_near_core)
