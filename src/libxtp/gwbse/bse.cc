@@ -100,7 +100,7 @@ Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::MatrixXd& Hqp,
 }
 
 void BSE::SetupDirectInteractionOperator(
-    const Eigen::VectorXd& RPAInputEnergies, const double energy) {
+    const Eigen::VectorXd& RPAInputEnergies, double energy) {
   RPA rpa = RPA(_log, _Mmn);
   rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
   rpa.setRPAInputEnergies(RPAInputEnergies);
