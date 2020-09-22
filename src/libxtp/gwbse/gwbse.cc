@@ -720,14 +720,14 @@ bool GWBSE::Evaluate() {
       bse.Solve_triplets(_orbitals);
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Solved BSE for triplets " << flush;
-      Hd_static_contrib_triplet = bse.Analyze_triplets(_fragments, _orbitals);
+      bse.Analyze_triplets(_fragments, _orbitals);
     }
 
     if (_do_bse_singlets) {
       bse.Solve_singlets(_orbitals);
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Solved BSE for singlets " << flush;
-      Hd_static_contrib_singlet = bse.Analyze_singlets(_fragments, _orbitals);
+      bse.Analyze_singlets(_fragments, _orbitals);
     }
 
     // do perturbative dynamical screening in BSE
@@ -735,14 +735,12 @@ bool GWBSE::Evaluate() {
 
       if (_do_bse_triplets) {
         bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Triplet),
-                                            _orbitals,
-                                            Hd_static_contrib_triplet);
+                                            _orbitals);
       }
 
       if (_do_bse_singlets) {
         bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Singlet),
-                                            _orbitals,
-                                            Hd_static_contrib_singlet);
+                                            _orbitals);
       }
     }
   }

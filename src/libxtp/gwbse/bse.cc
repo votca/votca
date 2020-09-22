@@ -55,7 +55,7 @@ void BSE::configure(const options& opt, const Eigen::VectorXd& RPAInputEnergies,
   } else {
     _Hqp = AdjustHqpSize(Hqp_in, RPAInputEnergies).diagonal().asDiagonal();
   }
-  SetupDirectInteractionOperator(RPAInputEnergies);
+  SetupDirectInteractionOperator(RPAInputEnergies, 0.0);
 }
 
 Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::MatrixXd& Hqp,
@@ -514,9 +514,8 @@ void BSE::PrintWeights(const Eigen::VectorXd& weights) const {
   return;
 }
 
-Eigen::VectorXd BSE::Analyze_singlets(
-    std::vector<QMFragment<BSE_Population> > fragments,
-    const Orbitals& orb) const {
+void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
+                           const Orbitals& orb) const {
 
   Interaction act;
   QMStateType singlet = QMStateType(QMStateType::Singlet);
@@ -569,12 +568,11 @@ Eigen::VectorXd BSE::Analyze_singlets(
 
     XTP_LOG(Log::error, _log) << flush;
   }
-  return act.direct_contrib;
+  return;
 }
 
-Eigen::VectorXd BSE::Analyze_triplets(
-    std::vector<QMFragment<BSE_Population> > fragments,
-    const Orbitals& orb) const {
+void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
+                           const Orbitals& orb) const {
 
   Interaction act;
   QMStateType triplet = QMStateType(QMStateType::Triplet);
@@ -612,7 +610,7 @@ Eigen::VectorXd BSE::Analyze_triplets(
     XTP_LOG(Log::error, _log) << format("   ") << flush;
   }
 
-  return act.direct_contrib;
+  return;
 }
 
 template <typename BSE_OPERATOR>
@@ -660,16 +658,21 @@ BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
   return analysis;
 }
 
-void BSE::Perturbative_DynamicalScreening(
-    const QMStateType& type, const Orbitals& orb,
-    const Eigen::VectorXd& Hd_static_contrib) {
-
-  Interaction analysis;
+void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
+                                          const Orbitals& orb) {
 
   const tools::EigenSystem& BSECoefs =
       (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
 
   const Eigen::VectorXd& RPAInputEnergies = orb.RPAInputEnergies();
+
+  // static case as reference
+  SetupDirectInteractionOperator(RPAInputEnergies, 0.0);
+  HdOperator Hd_static(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(Hd_static);
+  Eigen::VectorXd Hd_static_contribution =
+      Analyze_IndividualContribution(type, orb, Hd_static);
+
   const Eigen::VectorXd& BSEenergies = BSECoefs.eigenvalues();
 
   // initial copy of static BSE energies to dynamic
@@ -685,21 +688,20 @@ void BSE::Perturbative_DynamicalScreening(
       // setup the direct operator with the last energy as screening frequency
       double old_energy = BSEenergies_dynamic(i_exc);
       SetupDirectInteractionOperator(RPAInputEnergies, old_energy);
-      HdOperator hd_dyn(_epsilon_0_inv, _Mmn, _Hqp);
-      configureBSEOperator(hd_dyn);
+      HdOperator Hd_dyn(_epsilon_0_inv, _Mmn, _Hqp);
+      configureBSEOperator(Hd_dyn);
 
       // get the contribution of Hd for the dynamic case
-      Interaction analysis_dyn;
       /* this is a bit superfluous because we are only interested in the
          contribution of Hd_dyn to a specific excitation, not all of them, but
          leave for later */
-      analysis_dyn.direct_contrib =
-          Analyze_IndividualContribution(type, orb, hd_dyn);
+      Eigen::VectorXd Hd_dynamic_contribution =
+          Analyze_IndividualContribution(type, orb, Hd_dyn);
 
       // new energy perturbatively
       BSEenergies_dynamic(i_exc) = BSEenergies(i_exc) +
-                                   Hd_static_contrib(i_exc) -
-                                   analysis_dyn.direct_contrib(i_exc);
+                                   Hd_static_contribution(i_exc) -
+                                   Hd_dynamic_contribution(i_exc);
 
       XTP_LOG(Log::info, _log)
           << "Dynamical Screening BSE, excitation " << i_exc << " iteration "

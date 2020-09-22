@@ -78,16 +78,13 @@ class BSE {
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
 
-  Eigen::VectorXd Analyze_singlets(
-      std::vector<QMFragment<BSE_Population> > fragments,
-      const Orbitals& orb) const;
-  Eigen::VectorXd Analyze_triplets(
-      std::vector<QMFragment<BSE_Population> > fragments,
-      const Orbitals& orb) const;
+  void Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
+                        const Orbitals& orb) const;
+  void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
+                        const Orbitals& orb) const;
 
-  void Perturbative_DynamicalScreening(
-      const QMStateType& type, const Orbitals& orb,
-      const Eigen::VectorXd& Hd_static_contrib);
+  void Perturbative_DynamicalScreening(const QMStateType& type,
+                                       const Orbitals& orb);
 
  private:
   options _opt;
