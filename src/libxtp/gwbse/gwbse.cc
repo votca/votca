@@ -253,6 +253,14 @@ void GWBSE::Initialize(tools::Property& options) {
         << " BSE with Hqp offdiagonal elements" << flush;
   }
 
+  _bseopt.max_dyn_iter =
+      options.get(key + ".dynamical_screening_max_iterations").as<Index>();
+  _bseopt.dyn_tolerance =
+      options.get(key + ".dynamical_screening_tolerance").as<double>();
+  if (_bseopt.max_dyn_iter > 0) {
+    _do_dynamical_screening_bse = true;
+  }
+
   _functional = options.get(key + ".vxc.functional").as<std::string>();
   _grid = options.get(key + ".vxc.grid").as<std::string>();
 
@@ -703,18 +711,39 @@ bool GWBSE::Evaluate() {
 
     BSE bse = BSE(*_pLog, Mmn);
     bse.configure(_bseopt, _orbitals.RPAInputEnergies(), Hqp);
+
+    // store the direct contribution to the static BSE results
+    Eigen::VectorXd Hd_static_contrib_triplet;
+    Eigen::VectorXd Hd_static_contrib_singlet;
+
     if (_do_bse_triplets) {
       bse.Solve_triplets(_orbitals);
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Solved BSE for triplets " << flush;
-      bse.Analyze_triplets(_fragments, _orbitals);
+      Hd_static_contrib_triplet = bse.Analyze_triplets(_fragments, _orbitals);
     }
 
     if (_do_bse_singlets) {
       bse.Solve_singlets(_orbitals);
       XTP_LOG(Log::error, *_pLog)
           << TimeStamp() << " Solved BSE for singlets " << flush;
-      bse.Analyze_singlets(_fragments, _orbitals);
+      Hd_static_contrib_singlet = bse.Analyze_singlets(_fragments, _orbitals);
+    }
+
+    // do perturbative dynamical screening in BSE
+    if (_do_dynamical_screening_bse) {
+
+      if (_do_bse_triplets) {
+        bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Triplet),
+                                            _orbitals,
+                                            Hd_static_contrib_triplet);
+      }
+
+      if (_do_bse_singlets) {
+        bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Singlet),
+                                            _orbitals,
+                                            Hd_static_contrib_singlet);
+      }
     }
   }
   XTP_LOG(Log::error, *_pLog)

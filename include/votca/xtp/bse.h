@@ -63,6 +63,8 @@ class BSE {
     Index davidson_maxiter;
     double min_print_weight;  // minimium contribution for state to print it
     bool use_Hqp_offdiag;
+    Index max_dyn_iter;
+    double dyn_tolerance;
   };
 
   void configure(const options& opt, const Eigen::VectorXd& RPAEnergies,
@@ -76,10 +78,16 @@ class BSE {
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
 
-  void Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
-                        const Orbitals& orb) const;
-  void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
-                        const Orbitals& orb) const;
+  Eigen::VectorXd Analyze_singlets(
+      std::vector<QMFragment<BSE_Population> > fragments,
+      const Orbitals& orb) const;
+  Eigen::VectorXd Analyze_triplets(
+      std::vector<QMFragment<BSE_Population> > fragments,
+      const Orbitals& orb) const;
+
+  void Perturbative_DynamicalScreening(
+      const QMStateType& type, const Orbitals& orb,
+      const Eigen::VectorXd& Hd_static_contrib);
 
  private:
   options _opt;
@@ -96,6 +104,9 @@ class BSE {
   Index _bse_size;
   Index _bse_vtotal;
   Index _bse_ctotal;
+
+  Index _max_dyn_iter;
+  double _dyn_tolerance;
 
   Eigen::VectorXd _epsilon_0_inv;
 
@@ -127,7 +138,8 @@ class BSE {
   void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
                      Index state) const;
   void printWeights(Index i_bse, double weight) const;
-  void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies);
+  void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies,
+                                      const double energy = 0.0);
 
   Eigen::MatrixXd AdjustHqpSize(const Eigen::MatrixXd& Hqp_in,
                                 const Eigen::VectorXd& RPAInputEnergies);
