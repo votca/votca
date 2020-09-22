@@ -139,7 +139,7 @@ class BSE {
                      Index state) const;
   void printWeights(Index i_bse, double weight) const;
   void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies,
-                                      const double energy = 0.0);
+                                      double energy);
 
   Eigen::MatrixXd AdjustHqpSize(const Eigen::MatrixXd& Hqp_in,
                                 const Eigen::VectorXd& RPAInputEnergies);
