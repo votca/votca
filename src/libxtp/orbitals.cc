@@ -546,6 +546,10 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_BSE_triplet, "BSE_triplet");
 
   w(_use_Hqp_offdiag, "use_Hqp_offdiag");
+
+  w(_BSE_singlet_energies_dynamic, "BSE_singlet_dynamic");
+
+  w(_BSE_triplet_energies_dynamic, "BSE_triplet_dynamic");
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -601,6 +605,10 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_BSE_triplet, "BSE_triplet");
 
   r(_use_Hqp_offdiag, "use_Hqp_offdiag");
+
+  r(_BSE_singlet_energies_dynamic, "BSE_singlet_dynamic");
+
+  r(_BSE_triplet_energies_dynamic, "BSE_triplet_dynamic");
 }
 }  // namespace xtp
 }  // namespace votca

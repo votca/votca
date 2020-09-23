@@ -614,8 +614,9 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
 }
 
 template <typename BSE_OPERATOR>
-Eigen::VectorXd BSE::Analyze_IndividualContribution(
-    const QMStateType& type, const Orbitals& orb, const BSE_OPERATOR& H) const {
+Eigen::VectorXd BSE::ExpectationValue_Operator(const QMStateType& type,
+                                               const Orbitals& orb,
+                                               const BSE_OPERATOR& H) const {
 
   const tools::EigenSystem& BSECoefs =
       (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
@@ -641,16 +642,16 @@ BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
 
   HqpOperator hqp(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(hqp);
-  analysis.qp_contrib = Analyze_IndividualContribution(type, orb, hqp);
+  analysis.qp_contrib = ExpectationValue_Operator(type, orb, hqp);
 
   HdOperator hd(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(hd);
-  analysis.direct_contrib = Analyze_IndividualContribution(type, orb, hd);
+  analysis.direct_contrib = ExpectationValue_Operator(type, orb, hd);
 
   if (type == QMStateType::Singlet) {
     HxOperator hx(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(hx);
-    analysis.exchange_contrib = Analyze_IndividualContribution(type, orb, hx);
+    analysis.exchange_contrib = ExpectationValue_Operator(type, orb, hx);
   } else {
     analysis.exchange_contrib = Eigen::VectorXd::Zero(0);
   }
@@ -659,7 +660,7 @@ BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
 }
 
 void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
-                                          const Orbitals& orb) {
+                                          Orbitals& orb) {
 
   const tools::EigenSystem& BSECoefs =
       (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
@@ -671,7 +672,7 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
   HdOperator Hd_static(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Hd_static);
   Eigen::VectorXd Hd_static_contribution =
-      Analyze_IndividualContribution(type, orb, Hd_static);
+      ExpectationValue_Operator(type, orb, Hd_static);
 
   const Eigen::VectorXd& BSEenergies = BSECoefs.eigenvalues();
 
@@ -696,7 +697,7 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
          contribution of Hd_dyn to a specific excitation, not all of them, but
          leave for later */
       Eigen::VectorXd Hd_dynamic_contribution =
-          Analyze_IndividualContribution(type, orb, Hd_dyn);
+          ExpectationValue_Operator(type, orb, Hd_dyn);
 
       // new energy perturbatively
       BSEenergies_dynamic(i_exc) = BSEenergies(i_exc) +
@@ -717,6 +718,7 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
   double hrt2ev = tools::conv::hrt2ev;
 
   if (type == QMStateType::Singlet) {
+    orb.BSESinglets_dynamic() = BSEenergies_dynamic;
     XTP_LOG(Log::error, _log) << "  ====== singlet energies with perturbative "
                                  "dynamical screening (eV) ====== "
                               << flush;
@@ -735,6 +737,7 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
     }
 
   } else {
+    orb.BSETriplets_dynamic() = BSEenergies_dynamic;
     XTP_LOG(Log::error, _log) << "  ====== triplet energies with perturbative "
                                  "dynamical screening (eV) ====== "
                               << flush;

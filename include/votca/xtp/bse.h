@@ -83,8 +83,7 @@ class BSE {
   void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
                         const Orbitals& orb) const;
 
-  void Perturbative_DynamicalScreening(const QMStateType& type,
-                                       const Orbitals& orb);
+  void Perturbative_DynamicalScreening(const QMStateType& type, Orbitals& orb);
 
  private:
   options _opt;
@@ -144,9 +143,9 @@ class BSE {
   Interaction Analyze_eh_interaction(const QMStateType& type,
                                      const Orbitals& orb) const;
   template <typename BSE_OPERATOR>
-  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type,
-                                                 const Orbitals& orb,
-                                                 const BSE_OPERATOR& H) const;
+  Eigen::VectorXd ExpectationValue_Operator(const QMStateType& type,
+                                            const Orbitals& orb,
+                                            const BSE_OPERATOR& H) const;
 };
 }  // namespace xtp
 }  // namespace votca
