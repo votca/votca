@@ -94,6 +94,11 @@ class BSE {
     Eigen::VectorXd qp_contrib;
   };
 
+  struct ExpectationValues {
+    Eigen::VectorXd direct_term;
+    Eigen::VectorXd cross_term;
+  };
+
   Logger& _log;
   Index _bse_vmax;
   Index _bse_cmin;
@@ -143,9 +148,9 @@ class BSE {
   Interaction Analyze_eh_interaction(const QMStateType& type,
                                      const Orbitals& orb) const;
   template <typename BSE_OPERATOR>
-  Eigen::VectorXd ExpectationValue_Operator(const QMStateType& type,
-                                            const Orbitals& orb,
-                                            const BSE_OPERATOR& H) const;
+  ExpectationValues ExpectationValue_Operator(const QMStateType& type,
+                                              const Orbitals& orb,
+                                              const BSE_OPERATOR& H) const;
 };
 }  // namespace xtp
 }  // namespace votca
