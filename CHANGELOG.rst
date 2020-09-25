@@ -67,6 +67,7 @@ Version 2021-dev
 -  fix multiline orca keyword (#552)
 -  Contour Deformation Approach (CDA) for self-energy implemented (#4)
 -  BSE with perturbative dynamical screening (#3)
+-  Correction of full BSE energy contribution in analysis output
 
 Version 1.6.3 (released XX.08.20)
 =================================
