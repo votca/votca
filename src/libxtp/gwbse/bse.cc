@@ -650,6 +650,49 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator(
   return expectation_values;
 }
 
+
+template <typename BSE_OPERATOR>
+BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
+    const QMStateType& type, const Orbitals& orb, const BSE_OPERATOR& H, const Index state) const {
+
+  const tools::EigenSystem& BSECoefs =
+      (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
+
+  ExpectationValues expectation_values;
+
+  const Eigen::MatrixXd& BSECoefs_state = BSECoefs.eigenvectors().col(state);
+
+  expectation_values.direct_term =
+      BSECoefs_state
+          .cwiseProduct((H * BSECoefs_state))
+          .colwise()
+          .sum()
+          .transpose();
+
+  if (!orb.getTDAApprox()) {
+      const Eigen::MatrixXd& BSECoefs2_state = BSECoefs.eigenvectors2().col(state);
+
+    expectation_values.direct_term +=
+        BSECoefs2_state
+            .cwiseProduct((H * BSECoefs2_state))
+            .colwise()
+            .sum()
+            .transpose();
+
+    expectation_values.cross_term =
+        2 * BSECoefs2_state
+                .cwiseProduct((H * BSECoefs_state))
+                .colwise()
+                .sum()
+                .transpose();
+  } else {
+    expectation_values.cross_term = Eigen::VectorXd::Zero(0);
+  }
+
+  return expectation_values;
+}
+
+
 // Composition of the excitation energy in terms of QP, direct (screened),
 // and exchance contributions in the BSE
 // Full BSE:
@@ -745,22 +788,19 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
       configureBSEOperator(Hd_dyn);
 
       // get the contribution of Hd for the dynamic case
-      /* this is a bit superfluous because we are only interested in the
-         contribution of Hd_dyn to a specific excitation, not all of them, but
-         leave for later */
-      expectation_values = ExpectationValue_Operator(type, orb, Hd_dyn);
+      expectation_values = ExpectationValue_Operator_State(type, orb, Hd_dyn, i_exc);
       Eigen::VectorXd Hd_dynamic_contribution = expectation_values.direct_term;
       if (!orb.getTDAApprox()) {
         Hd2Operator Hd2_dyn(_epsilon_0_inv, _Mmn, _Hqp);
         configureBSEOperator(Hd2_dyn);
-        expectation_values = ExpectationValue_Operator(type, orb, Hd2_dyn);
+        expectation_values = ExpectationValue_Operator_State(type, orb, Hd2_dyn, i_exc);
         Hd_dynamic_contribution += expectation_values.cross_term;
       }
 
       // new energy perturbatively
       BSEenergies_dynamic(i_exc) = BSEenergies(i_exc) +
                                    Hd_static_contribution(i_exc) -
-                                   Hd_dynamic_contribution(i_exc);
+                                   Hd_dynamic_contribution(0);
 
       XTP_LOG(Log::info, _log)
           << "Dynamical Screening BSE, excitation " << i_exc << " iteration "
