@@ -275,6 +275,31 @@ class Orbitals {
 
   tools::EigenSystem &BSESinglets() { return _BSE_singlet; }
 
+  // access to BSE energies with dynamical screening
+  bool hasBSESinglets_dynamic() const {
+    return (_BSE_singlet_energies_dynamic.size() > 0) ? true : false;
+  }
+
+  const Eigen::VectorXd &BSESinglets_dynamic() const {
+    return _BSE_singlet_energies_dynamic;
+  }
+
+  Eigen::VectorXd &BSESinglets_dynamic() {
+    return _BSE_singlet_energies_dynamic;
+  }
+
+  bool hasBSETriplets_dynamic() const {
+    return (_BSE_triplet_energies_dynamic.size() > 0) ? true : false;
+  }
+
+  const Eigen::VectorXd &BSETriplets_dynamic() const {
+    return _BSE_singlet_energies_dynamic;
+  }
+
+  Eigen::VectorXd &BSETriplets_dynamic() {
+    return _BSE_singlet_energies_dynamic;
+  }
+
   // access to transition dipole moments
 
   bool hasTransitionDipoles() const {
@@ -394,9 +419,14 @@ class Orbitals {
   std::vector<Eigen::Vector3d> _transition_dipoles;
   tools::EigenSystem _BSE_triplet;
 
+  // singlet and triplet energies after perturbative dynamical screening
+  Eigen::VectorXd _BSE_singlet_energies_dynamic;
+  Eigen::VectorXd _BSE_triplet_energies_dynamic;
+
   bool _use_Hqp_offdiag = true;
 
-  static constexpr int orbitals_version() { return 1; }
+  // Version 2: adds BSE energies after perturbative dynamical screening
+  static constexpr int orbitals_version() { return 2; }
 };
 
 }  // namespace xtp

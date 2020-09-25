@@ -31,6 +31,8 @@
         <qp_grid_spacing help="spacing of QP grid points" unit="Hartree" default="0.001" choices="float+"/>
         <exctotal help="maximum number of BSE states to calculate" default="30" choices="int+"/>
         <useTDA help="use TDA for BSE" default="false" choices="bool"/>
+        <dynamical_screening_max_iterations help="maximum number of iterations for perturbative dynamical screening in BSE" default="0" choices="int+"/>
+        <dynamical_screening_tolerance help="convergence tolerance for perturbative dynamical screening in BSE" default="1e-5" choices="float+"/>
         <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level" default="no" choices="RPA,GW,BSE,no"/>
         <eigensolver help="options for BSE eigenvalue decompostion">
           <dodavidson help="use davidson solver" default="true" choices="bool"/>
