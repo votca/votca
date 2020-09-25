@@ -53,36 +53,14 @@ bool QMSandbox::Evaluate() {
   XTP_LOG(Log::error, _log)
       << "Using threads: " << OPENMP::getMaxThreads() << std::endl;
 
-  std::array<Index, 49> reorderList={
-            0, //s
-            0,1,-1, //p
-            -2,-1,0,1,2, //d
-            0,1,-1,2,-2,3,-3, //f 
-            0,1,-1,2,-2,3,-3,4,-4, //g
-            0,1,-1,2,-2,3,-3,4,-4,5,-5, //h
-            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 //i
-            };
-
-  std::array<Index, 49> multipliers;
-  multipliers.fill(1);
-
-  OrbReorder reorder(reorderList, multipliers);
-
-  Eigen::MatrixXd overlap = aooverlap.Matrix();
-
-  reorder.reorderOperator(overlap, basis);
-
 
 /*  XTP_LOG(Log::error, _log) << "\nOverlap  0 Integrals:\n";
   XTP_LOG(Log::error, _log) << overlap << std::endl;  */
   Eigen::MatrixXd overlap_org = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       _job_name + mod + "overlap.mm");
 
-  votca::tools::EigenIO_MatrixMarket::WriteMatrix(
-      _job_name + "_new_" + "overlap.mm", overlap);
-
   XTP_LOG(Log::error, _log) << "Overlap "
-      << overlap.isApprox(overlap_org, 10e-5) <<  std::endl;
+      << aooverlap.Matrix().isApprox(overlap_org, 10e-5) <<  std::endl;
 
 /*  XTP_LOG(Log::error, _log) << "\nCoulomb 0 Integrals:\n";
   XTP_LOG(Log::error, _log) << aocoulomb.Matrix() << std::endl;  */

@@ -169,7 +169,7 @@ void AOMatrix::computeOneBodyIntegrals(const AOBasis& aobasis) {
         for (unsigned int op = 0; op != nopers; ++op) {
           // "map" buffer to a const Eigen Matrix, and copy it to the
           // corresponding blocks of the result
-          Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[op], n1, n2);
+          Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> buf_mat(buf[op], n1, n2);
           result[op].block(bf1, bf2, n1, n2) = buf_mat;
           if (s1 != s2)  // if s1 >= s2, copy {s1,s2} to the corresponding
                          // {s2,s1} block, note the transpose!
