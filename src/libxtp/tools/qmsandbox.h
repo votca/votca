@@ -24,6 +24,7 @@
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/aomatrix3d.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/qmpackagefactory.h"
 #include "votca/xtp/qmtool.h"
@@ -43,21 +44,8 @@ class QMSandbox : public QMTool {
 
  private:
   std::string _orbfile;
+  Logger _log;
 };
-
-void QMSandbox::Initialize(const tools::Property& user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
-
-  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".orbfile", _job_name + ".orb");
-}
-
-bool QMSandbox::Evaluate() { return true; }
 
 }  // namespace xtp
 }  // namespace votca
