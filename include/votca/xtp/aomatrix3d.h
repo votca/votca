@@ -40,15 +40,6 @@ class AOMatrix3D {
                          const AOShell& shell_col) const = 0;
 };
 
-/* derived class for atomic orbital gradient matrices, required for
- * momentum transition dipoles
- */
-class AOMomentum : public AOMatrix3D {
- protected:
-  void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
-                 const AOShell& shell_row,
-                 const AOShell& shell_col) const override;
-};
 
 /* derived class for atomic orbital electrical dipole matrices, required for
  * electrical transition dipoles
