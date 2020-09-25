@@ -29,6 +29,34 @@
 namespace votca {
 namespace xtp {
 
+Index AOBasis::getMaxL() const {
+  Index n = 0;
+  for (const auto& shell : _aoshells) {
+    n = std::max(static_cast<Index>(shell.getL()), n);
+  }
+  return n;
+}
+
+Index AOBasis::getMaxNprim() const {
+  Index n = 0;
+  for (const auto& shell : _aoshells) {
+    n = std::max(shell.getSize(), n);
+  }
+  return n;
+}
+
+std::vector<Index> AOBasis::getMapToBasisFunctions() const {
+  std::vector<Index> result;
+  result.reserve(_aoshells.size());
+
+  Index n = 0;
+  for (const auto& shell : _aoshells) {
+    result.push_back(n);
+    n += shell.getNumFunc();
+  }
+  return result;
+}
+
 AOShell& AOBasis::addShell(const Shell& shell, const QMAtom& atom,
                            Index startIndex) {
   _aoshells.push_back(AOShell(shell, atom, startIndex));
@@ -72,26 +100,13 @@ void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
   return;
 }
 
-void AOBasis::GenerateLibintBasis() {
-  _libintshells.resize(0);
-  _libintshells.reserve(_aoshells.size());
-
+std::vector<libint2::Shell> AOBasis::GenerateLibintBasis() const {
+  std::vector<libint2::Shell> libintshells;
+  libintshells.reserve(_aoshells.size());
   for (const auto& shell : _aoshells) {
-    libint2::svector<libint2::Shell::real_t> decays;
-    libint2::svector<libint2::Shell::Contraction> contractions;
-    const Eigen::Vector3d& pos = shell.getPos();
-    libint2::Shell::Contraction contr;
-    contr.l = static_cast<int>(shell.getL());
-    contr.pure = true;
-    for (const auto& primitive : shell) {
-      decays.push_back(primitive.getDecay());
-      contr.coeff.push_back(primitive.getContraction());
-    }
-    contractions.push_back(contr);
-    std::array<libint2::Shell::real_t, 3> libintpos = {pos[0], pos[1], pos[2]};
-    libint2::Shell libintshell(decays, contractions, libintpos);
-    _libintshells.push_back(libintshell);
+    libintshells.push_back(shell.LibintShell());
   }
+  return libintshells;
 }
 
 }  // namespace xtp

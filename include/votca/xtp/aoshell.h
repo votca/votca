@@ -32,6 +32,8 @@
 #include "eigen.h"
 #include "qmatom.h"
 
+#include <libint2.hpp>
+
 namespace votca {
 namespace xtp {
 
@@ -82,6 +84,8 @@ class AOShell {
   Index getCartesianOffset() const { return OffsetFuncShell_cartesian(_l); }
   Index getAtomIndex() const { return _atomindex; }
   Index getSize() const { return _gaussians.size(); }
+
+  libint2::Shell LibintShell() const;
 
   const Eigen::Vector3d& getPos() const { return _pos; }
   double getScale() const { return _scale; }

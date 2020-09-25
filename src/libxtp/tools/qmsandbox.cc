@@ -1,5 +1,6 @@
 #include "qmsandbox.h"
 #include <votca/tools/eigenio_matrixmarket.h>
+#include "votca/xtp/orbreorder.h"
 
 namespace votca {
 namespace xtp {
@@ -28,6 +29,15 @@ bool QMSandbox::Evaluate() {
   AOBasis basis;
   basis.Fill(bs, atoms);
 
+  std::vector<libint2::Shell> shells = basis.GenerateLibintBasis();
+
+  for (auto& shell : basis) {
+    std::cout << shell << std::endl;
+  }
+
+  std::copy(std::begin(shells), std::end(shells),
+            std::ostream_iterator<libint2::Shell>(std::cout, "\n"));
+
   AOOverlap aooverlap;
   AOCoulomb aocoulomb;
   AOKinetic aokinetic;
@@ -43,16 +53,39 @@ bool QMSandbox::Evaluate() {
   XTP_LOG(Log::error, _log)
       << "Using threads: " << OPENMP::getMaxThreads() << std::endl;
 
+  std::array<Index, 49> reorderList={
+            0, //s
+            0,1,-1, //p
+            -2,-1,0,1,2, //d
+            0,1,-1,2,-2,3,-3, //f 
+            0,1,-1,2,-2,3,-3,4,-4, //g
+            0,1,-1,2,-2,3,-3,4,-4,5,-5, //h
+            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 //i
+            };
+
+  std::array<Index, 49> multipliers;
+  multipliers.fill(1);
+
+  OrbReorder reorder(reorderList, multipliers);
+
+  Eigen::MatrixXd overlap = aooverlap.Matrix();
+
+  reorder.reorderOperator(overlap, basis);
+
+
 /*  XTP_LOG(Log::error, _log) << "\nOverlap  0 Integrals:\n";
-  XTP_LOG(Log::error, _log) << aooverlap.Matrix() << std::endl; */
+  XTP_LOG(Log::error, _log) << overlap << std::endl;  */
   Eigen::MatrixXd overlap_org = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       _job_name + mod + "overlap.mm");
 
+  votca::tools::EigenIO_MatrixMarket::WriteMatrix(
+      _job_name + "_new_" + "overlap.mm", overlap);
+
   XTP_LOG(Log::error, _log) << "Overlap "
-      << aooverlap.Matrix().isApprox(overlap_org, 10e-5) <<  std::endl;
+      << overlap.isApprox(overlap_org, 10e-5) <<  std::endl;
 
 /*  XTP_LOG(Log::error, _log) << "\nCoulomb 0 Integrals:\n";
-  XTP_LOG(Log::error, _log) << aocoulomb.Matrix() << std::endl; */
+  XTP_LOG(Log::error, _log) << aocoulomb.Matrix() << std::endl;  */
   Eigen::MatrixXd coulomb_org = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       _job_name + mod + "coulomb.mm");
 
@@ -60,7 +93,7 @@ bool QMSandbox::Evaluate() {
       << aocoulomb.Matrix().isApprox(coulomb_org, 10e-5) <<  std::endl;
 
 /*  XTP_LOG(Log::error, _log) << "\nKinetic 0 Integrals:\n";
-  XTP_LOG(Log::error, _log) << aokinetic.Matrix() << std::endl; */
+  XTP_LOG(Log::error, _log) << aokinetic.Matrix() << std::endl;  */
  Eigen::MatrixXd kinetic_org = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       _job_name + mod + "kinetic.mm");
 

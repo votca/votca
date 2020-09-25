@@ -60,7 +60,15 @@ class AOBasis {
 
   Index getNumofShells() const { return Index(_aoshells.size()); }
 
+  Index getMaxNprim() const;
+
+  Index getMaxL() const;
+
+  std::vector<Index> getMapToBasisFunctions() const;
+
   const std::vector<Index>& getFuncPerAtom() const { return _FuncperAtom; }
+
+  std::vector<libint2::Shell> GenerateLibintBasis() const;
 
   const std::vector<libint2::Shell>& LibintBasis() const {
     return _libintshells;
@@ -71,7 +79,6 @@ class AOBasis {
   const std::string& Name() const { return _name; }
 
  private:
-  void GenerateLibintBasis();
 
   std::string _name = "";
 

@@ -24,6 +24,12 @@
 namespace votca {
 namespace xtp {
 
+void AOOverlap::Fill(const AOBasis& aobasis) {
+  libint2::initialize();
+  computeOneBodyIntegrals<libint2::Operator::overlap>(aobasis);
+  libint2::finalize();
+}
+
 Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
                                              const AOGaussianPrimitive& g_col,
                                              Index l_offset) const {

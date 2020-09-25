@@ -63,6 +63,22 @@ AOShell::AOShell(const AOShell& shell) {
   }
 }
 
+libint2::Shell AOShell::LibintShell() const {
+  libint2::svector<libint2::Shell::real_t> decays;
+  libint2::svector<libint2::Shell::Contraction> contractions;
+  const Eigen::Vector3d& pos = getPos();
+  libint2::Shell::Contraction contr;
+  contr.l = static_cast<int>(getL());
+  contr.pure = true;
+  for (const auto& primitive : _gaussians) {
+    decays.push_back(primitive.getDecay());
+    contr.coeff.push_back(primitive.getContraction());
+  }
+  contractions.push_back(contr);
+  std::array<libint2::Shell::real_t, 3> libintpos = {pos[0], pos[1], pos[2]};
+  return libint2::Shell(decays, contractions, libintpos);
+}
+
 void AOShell::normalizeContraction() {
   AOOverlap overlap;
   Eigen::MatrixXd block = overlap.FillShell(*this);
