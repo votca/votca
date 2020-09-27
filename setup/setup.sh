@@ -124,8 +124,9 @@ if [[ ${INPUT_DISTRO} = "gentoo:latest"  ]]; then
   cmake_args+=( -DBUILD_CSG_MANUAL=OFF )
 fi
 
-# Gentoo has no libint yet
-if [[ ${INPUT_DISTRO} = "opensuse:latest"  ]]; then
+# Some distros don't have new enough libint yet
+# fedora:latest = F32 only has libint2-2.1.0
+if [[ ${INPUT_DISTRO} = "fedora:latest"  ]]; then
   cmake_args+=( -DBUILD_OWN_LIBINT=ON )
 fi
 
