@@ -48,12 +48,14 @@ void BSE::configure(const options& opt, const Eigen::VectorXd& RPAInputEnergies,
   _bse_vtotal = _bse_vmax - _opt.vmin + 1;
   _bse_ctotal = _opt.cmax - _bse_cmin + 1;
   _bse_size = _bse_vtotal * _bse_ctotal;
+  _max_dyn_iter = _opt.max_dyn_iter;
+  _dyn_tolerance = _opt.dyn_tolerance;
   if (_opt.use_Hqp_offdiag) {
     _Hqp = AdjustHqpSize(Hqp_in, RPAInputEnergies);
   } else {
     _Hqp = AdjustHqpSize(Hqp_in, RPAInputEnergies).diagonal().asDiagonal();
   }
-  SetupDirectInteractionOperator(RPAInputEnergies);
+  SetupDirectInteractionOperator(RPAInputEnergies, 0.0);
 }
 
 Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::MatrixXd& Hqp,
@@ -98,12 +100,13 @@ Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::MatrixXd& Hqp,
 }
 
 void BSE::SetupDirectInteractionOperator(
-    const Eigen::VectorXd& RPAInputEnergies) {
+    const Eigen::VectorXd& RPAInputEnergies, double energy) {
   RPA rpa = RPA(_log, _Mmn);
   rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
   rpa.setRPAInputEnergies(RPAInputEnergies);
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.calculate_epsilon_r(0));
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
+      rpa.calculate_epsilon_r(energy));
   _Mmn.MultiplyRightWithAuxMatrix(es.eigenvectors());
 
   _epsilon_0_inv = Eigen::VectorXd::Zero(es.eigenvalues().size());
@@ -611,48 +614,240 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
 }
 
 template <typename BSE_OPERATOR>
-Eigen::VectorXd BSE::Analyze_IndividualContribution(
+BSE::ExpectationValues BSE::ExpectationValue_Operator(
     const QMStateType& type, const Orbitals& orb, const BSE_OPERATOR& H) const {
 
   const tools::EigenSystem& BSECoefs =
       (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
 
-  Eigen::VectorXd contrib = BSECoefs.eigenvectors()
-                                .cwiseProduct((H * BSECoefs.eigenvectors()))
-                                .colwise()
-                                .sum()
-                                .transpose();
+  ExpectationValues expectation_values;
+
+  expectation_values.direct_term =
+      BSECoefs.eigenvectors()
+          .cwiseProduct((H * BSECoefs.eigenvectors()))
+          .colwise()
+          .sum()
+          .transpose();
+
   if (!orb.getTDAApprox()) {
-    contrib -= BSECoefs.eigenvectors2()
-                   .cwiseProduct((H * BSECoefs.eigenvectors2()))
-                   .colwise()
-                   .sum()
-                   .transpose();
+    expectation_values.direct_term +=
+        BSECoefs.eigenvectors2()
+            .cwiseProduct((H * BSECoefs.eigenvectors2()))
+            .colwise()
+            .sum()
+            .transpose();
+
+    expectation_values.cross_term =
+        2 * BSECoefs.eigenvectors2()
+                .cwiseProduct((H * BSECoefs.eigenvectors()))
+                .colwise()
+                .sum()
+                .transpose();
+  } else {
+    expectation_values.cross_term = Eigen::VectorXd::Zero(0);
   }
-  return contrib;
+
+  return expectation_values;
 }
 
+template <typename BSE_OPERATOR>
+BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
+    const QMStateType& type, const Orbitals& orb, const BSE_OPERATOR& H,
+    const Index state) const {
+
+  const tools::EigenSystem& BSECoefs =
+      (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
+
+  ExpectationValues expectation_values;
+
+  const Eigen::MatrixXd& BSECoefs_state = BSECoefs.eigenvectors().col(state);
+
+  expectation_values.direct_term =
+      BSECoefs_state.cwiseProduct((H * BSECoefs_state))
+          .colwise()
+          .sum()
+          .transpose();
+
+  if (!orb.getTDAApprox()) {
+    const Eigen::MatrixXd& BSECoefs2_state =
+        BSECoefs.eigenvectors2().col(state);
+
+    expectation_values.direct_term +=
+        BSECoefs2_state.cwiseProduct((H * BSECoefs2_state))
+            .colwise()
+            .sum()
+            .transpose();
+
+    expectation_values.cross_term =
+        2 * BSECoefs2_state.cwiseProduct((H * BSECoefs_state))
+                .colwise()
+                .sum()
+                .transpose();
+  } else {
+    expectation_values.cross_term = Eigen::VectorXd::Zero(0);
+  }
+
+  return expectation_values;
+}
+
+// Composition of the excitation energy in terms of QP, direct (screened),
+// and exchance contributions in the BSE
+// Full BSE:
+//
+// |  A* | |  H  K | | A |
+// | -B* | | -K -H | | B | = A*.H.A + B*.H.B + 2A*.K.B
+//
+// with: H = H_qp + H_d  + eta.H_x
+//       K =        H_d2 + eta.H_x
+//
+// reports composition for FULL BSE as
+//  <FT> = A*.H_qp.A + B*.H_qp.B
+//  <Kx> = eta.(A*.H_x.A + B*.H_x.B + 2A*.H_x.B)
+//  <Kd> = A*.H_d.A + B*.H_d.B + 2A*.H_d2.B
 BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
                                              const Orbitals& orb) const {
   Interaction analysis;
+  ExpectationValues expectation_values;
 
   HqpOperator hqp(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(hqp);
-  analysis.qp_contrib = Analyze_IndividualContribution(type, orb, hqp);
+  expectation_values = ExpectationValue_Operator(type, orb, hqp);
+  analysis.qp_contrib = expectation_values.direct_term;
 
   HdOperator hd(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(hd);
-  analysis.direct_contrib = Analyze_IndividualContribution(type, orb, hd);
+  expectation_values = ExpectationValue_Operator(type, orb, hd);
+  analysis.direct_contrib = expectation_values.direct_term;
+
+  if (!orb.getTDAApprox()) {
+    Hd2Operator hd2(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(hd2);
+    expectation_values = ExpectationValue_Operator(type, orb, hd2);
+    analysis.direct_contrib += expectation_values.cross_term;
+  }
 
   if (type == QMStateType::Singlet) {
     HxOperator hx(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(hx);
-    analysis.exchange_contrib = Analyze_IndividualContribution(type, orb, hx);
+    expectation_values = ExpectationValue_Operator(type, orb, hx);
+    analysis.exchange_contrib = 2.0 * expectation_values.direct_term;
+    if (!orb.getTDAApprox()) {
+      analysis.exchange_contrib += 2.0 * expectation_values.cross_term;
+    }
   } else {
     analysis.exchange_contrib = Eigen::VectorXd::Zero(0);
   }
 
   return analysis;
+}
+
+// Dynamical Screening in BSE as perturbation to static excitation energies
+// as in Phys. Rev. B 80, 241405 (2009) for the TDA case
+void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
+                                          Orbitals& orb) {
+
+  const tools::EigenSystem& BSECoefs =
+      (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
+
+  const Eigen::VectorXd& RPAInputEnergies = orb.RPAInputEnergies();
+
+  ExpectationValues expectation_values;
+
+  // static case as reference
+  SetupDirectInteractionOperator(RPAInputEnergies, 0.0);
+  HdOperator Hd_static(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(Hd_static);
+  expectation_values = ExpectationValue_Operator(type, orb, Hd_static);
+  Eigen::VectorXd Hd_static_contribution = expectation_values.direct_term;
+  if (!orb.getTDAApprox()) {
+    Hd2Operator Hd2_static(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(Hd2_static);
+    expectation_values = ExpectationValue_Operator(type, orb, Hd2_static);
+    Hd_static_contribution += expectation_values.cross_term;
+  }
+
+  const Eigen::VectorXd& BSEenergies = BSECoefs.eigenvalues();
+
+  // initial copy of static BSE energies to dynamic
+  Eigen::VectorXd BSEenergies_dynamic = BSEenergies;
+
+  // recalculate Hd at the various energies
+  for (Index i_exc = 0; i_exc < BSEenergies.size(); i_exc++) {
+    XTP_LOG(Log::info, _log) << "Dynamical Screening BSE, Excitation " << i_exc
+                             << " static " << BSEenergies(i_exc) << flush;
+
+    for (Index iter = 0; iter < _max_dyn_iter; iter++) {
+
+      // setup the direct operator with the last energy as screening frequency
+      double old_energy = BSEenergies_dynamic(i_exc);
+      SetupDirectInteractionOperator(RPAInputEnergies, old_energy);
+      HdOperator Hd_dyn(_epsilon_0_inv, _Mmn, _Hqp);
+      configureBSEOperator(Hd_dyn);
+
+      // get the contribution of Hd for the dynamic case
+      expectation_values =
+          ExpectationValue_Operator_State(type, orb, Hd_dyn, i_exc);
+      Eigen::VectorXd Hd_dynamic_contribution = expectation_values.direct_term;
+      if (!orb.getTDAApprox()) {
+        Hd2Operator Hd2_dyn(_epsilon_0_inv, _Mmn, _Hqp);
+        configureBSEOperator(Hd2_dyn);
+        expectation_values =
+            ExpectationValue_Operator_State(type, orb, Hd2_dyn, i_exc);
+        Hd_dynamic_contribution += expectation_values.cross_term;
+      }
+
+      // new energy perturbatively
+      BSEenergies_dynamic(i_exc) = BSEenergies(i_exc) +
+                                   Hd_static_contribution(i_exc) -
+                                   Hd_dynamic_contribution(0);
+
+      XTP_LOG(Log::info, _log)
+          << "Dynamical Screening BSE, excitation " << i_exc << " iteration "
+          << iter << " dynamic " << BSEenergies_dynamic(i_exc) << flush;
+
+      // check tolerance
+      if (std::abs(BSEenergies_dynamic(i_exc) - old_energy) < _dyn_tolerance) {
+        break;
+      }
+    }
+  }
+
+  double hrt2ev = tools::conv::hrt2ev;
+
+  if (type == QMStateType::Singlet) {
+    orb.BSESinglets_dynamic() = BSEenergies_dynamic;
+    XTP_LOG(Log::error, _log) << "  ====== singlet energies with perturbative "
+                                 "dynamical screening (eV) ====== "
+                              << flush;
+    Eigen::VectorXd oscs = orb.Oscillatorstrengths();
+    for (Index i = 0; i < _opt.nmax; ++i) {
+      double osc = oscs[i];
+      XTP_LOG(Log::error, _log)
+          << format(
+                 "  S(dynamic) = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f "
+                 "nm f "
+                 "= %4$+1.4f") %
+                 (i + 1) % (hrt2ev * BSEenergies_dynamic(i)) %
+                 (1240.0 / (hrt2ev * BSEenergies_dynamic(i))) %
+                 (osc * BSEenergies_dynamic(i) / BSEenergies(i))
+          << flush;
+    }
+
+  } else {
+    orb.BSETriplets_dynamic() = BSEenergies_dynamic;
+    XTP_LOG(Log::error, _log) << "  ====== triplet energies with perturbative "
+                                 "dynamical screening (eV) ====== "
+                              << flush;
+    for (Index i = 0; i < _opt.nmax; ++i) {
+      XTP_LOG(Log::error, _log)
+          << format(
+                 "  T(dynamic) = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f "
+                 "nm ") %
+                 (i + 1) % (hrt2ev * BSEenergies_dynamic(i)) %
+                 (1240.0 / (hrt2ev * BSEenergies_dynamic(i)))
+          << flush;
+    }
+  }
 }
 
 }  // namespace xtp

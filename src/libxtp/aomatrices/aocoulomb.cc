@@ -51,7 +51,7 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
   auto shell2bf = aobasis.getMapToBasisFunctions();
   auto unitshell = libint2::Shell::unit();
 
-  auto compute = [&](int thread_id) {
+  auto compute = [&](Index thread_id) {
     const auto& buf = engines[thread_id].results();
 
     // loop over unique shell pairs, {s1,s2} such that s1 >= s2

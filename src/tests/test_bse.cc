@@ -20,6 +20,9 @@
 // Third party includes
 #include <boost/test/unit_test.hpp>
 
+// VOTCA includes
+#include <votca/tools/eigenio_matrixmarket.h>
+
 // Local VOTCA includes
 #include "votca/xtp/bse.h"
 #include "votca/xtp/convergenceacc.h"
@@ -53,8 +56,8 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
       std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp.mm");
 
   Eigen::VectorXd& mo_energy = orbitals.MOs().eigenvalues();
-  mo_energy = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bse/mo_energy.mm");
+  mo_energy = votca::tools::EigenIO_MatrixMarket::ReadVector(
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/MO_energies.mm");
 
   Logger log;
   TCMatrix_gwbse Mmn{log};
@@ -72,6 +75,8 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.homo = 4;
   opt.qpmin = 0;
   opt.qpmax = 16;
+  opt.max_dyn_iter = 10;
+  opt.dyn_tolerance = 1e-5;
 
   orbitals.setBSEindices(0, 16);
 
@@ -84,13 +89,15 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   ////////////////////////////////////////////////////////
 
   // reference energy singlet, no offdiagonals in Hqp
-  Eigen::VectorXd se_nooffdiag_ref = Eigen::VectorXd::Zero(3);
-  se_nooffdiag_ref << 0.106862, 0.106862, 0.106863;
+  Eigen::VectorXd se_nooffdiag_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_nooffdiag_tda.mm");
 
   // reference singlet coefficients, no offdiagonals in Hqp
   Eigen::MatrixXd spsi_nooffdiag_ref =
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) + "/bse/spsi_nooffdiag_ref.mm");
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/bse/singlets_psi_nooffdiag_tda.mm");
 
   // lapack
   opt.davidson = 0;
@@ -126,12 +133,11 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
 
   // reference energy
-  Eigen::VectorXd se_ref = Eigen::VectorXd::Zero(3);
-  se_ref << 0.107455, 0.107455, 0.107455;
-
+  Eigen::VectorXd se_ref = votca::tools::EigenIO_MatrixMarket::ReadVector(
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_tda.mm");
   // reference coefficients
   Eigen::MatrixXd spsi_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bse/spsi_ref.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_psi_tda.mm");
 
   // Hqp unchanged
   bool check_hqp_unchanged = Hqp.isApprox(bse.getHqp(), 0.001);
@@ -164,6 +170,23 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << spsi_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_spsi, true);
+
+  // singlets dynamical screening TDA
+  bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Singlet),
+                                      orbitals);
+
+  Eigen::VectorXd se_dyn_tda_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_dynamic_TDA.mm");
+  bool check_se_dyn_tda =
+      se_dyn_tda_ref.isApprox(orbitals.BSESinglets_dynamic(), 0.001);
+  if (!check_se_dyn_tda) {
+    cout << "Singlet energies dyn TDA" << endl;
+    cout << orbitals.BSESinglets_dynamic() << endl;
+    cout << "Singlet energies dyn TDA ref" << endl;
+    cout << se_dyn_tda_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_se_dyn_tda, true);
 
   // davidson full matrix
   opt.davidson = 1;
@@ -235,18 +258,18 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   ////////////////////////////////////////////////////////
 
   // reference energy
-  Eigen::VectorXd se_ref_btda = Eigen::VectorXd::Zero(3);
-  se_ref_btda << 0.0887758, 0.0887758, 0.0887758;
+  Eigen::VectorXd se_ref_btda = votca::tools::EigenIO_MatrixMarket::ReadVector(
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_btda.mm");
 
   // reference coefficients
   Eigen::MatrixXd spsi_ref_btda =
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) + "/bse/spsi_ref_btda.mm");
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_psi_btda.mm");
 
   // // reference coefficients AR
   Eigen::MatrixXd spsi_ref_btda_AR =
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) + "/bse/spsi_ref_btda_AR.mm");
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_psi_AR_btda.mm");
 
   opt.nmax = 3;
   opt.useTDA = false;
@@ -304,6 +327,23 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_spsi_btda_AR, true);
 
+  // singlets full BSE dynamical screening
+  bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Singlet),
+                                      orbitals);
+
+  Eigen::VectorXd se_dyn_full_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_dynamic_full.mm");
+  bool check_se_dyn_full =
+      se_dyn_full_ref.isApprox(orbitals.BSESinglets_dynamic(), 0.001);
+  if (!check_se_dyn_full) {
+    cout << "Singlet energies dyn full BSE" << endl;
+    cout << orbitals.BSESinglets_dynamic() << endl;
+    cout << "Singlet energies dyn full BSE ref" << endl;
+    cout << se_dyn_full_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_se_dyn_full, true);
+
   // Davidson matrix free
 
   opt.matrixfree = 1;
@@ -358,12 +398,12 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   // reference energy
   opt.nmax = 1;
-  Eigen::VectorXd te_ref = Eigen::VectorXd::Zero(1);
-  te_ref << 0.0258952;
+  Eigen::VectorXd te_ref = votca::tools::EigenIO_MatrixMarket::ReadVector(
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/triplets_tda.mm");
 
   // reference coefficients
   Eigen::MatrixXd tpsi_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bse/tpsi_ref.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/triplets_psi_tda.mm");
 
   orbitals.setTDAApprox(true);
   opt.useTDA = true;
@@ -395,6 +435,23 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << tpsi_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_tpsi, true);
+
+  // triplets dynamical screening TDA
+  bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Triplet),
+                                      orbitals);
+
+  Eigen::VectorXd te_dyn_tda_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/triplets_dynamic_TDA.mm");
+  bool check_te_dyn_tda =
+      te_dyn_tda_ref.isApprox(orbitals.BSETriplets_dynamic(), 0.001);
+  if (!check_te_dyn_tda) {
+    cout << "Triplet energies dyn TDA" << endl;
+    cout << orbitals.BSETriplets_dynamic() << endl;
+    cout << "Triplet energies dyn TDA ref" << endl;
+    cout << te_dyn_tda_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_te_dyn_tda, true);
 
   // davidson
   opt.davidson = 1;
@@ -450,8 +507,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   // Cutout Hamiltonian
   Eigen::MatrixXd Hqp_cut_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp_cut_ref.mm");
-
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp_cut.mm");
   // Hqp cut
   opt.cmax = 15;
   opt.vmin = 1;
@@ -474,8 +530,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse2.configure(opt, orbitals.RPAInputEnergies(), Hqp_cut_ref);
   Eigen::MatrixXd Hqp_extended_ref =
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp_extended_ref.mm");
-
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp_extended.mm");
   bool check_hqp_extended = Hqp_extended_ref.isApprox(bse2.getHqp(), 0.001);
   if (!check_hqp_extended) {
     cout << "extended Hqp" << endl;

@@ -23,6 +23,7 @@
 
 // Local VOTCA includes
 #include "aobasis.h"
+#include "votca/xtp/eigen.h"
 #include <libint2.hpp>
 #include <unordered_map>
 
@@ -135,7 +136,7 @@ template <typename Lambda>
 void AOMatrix::parallel_do(Lambda& lambda) {
 #pragma omp parallel
   {
-    auto thread_id = omp_get_thread_num();
+    Index thread_id = OPENMP::getThreadId();
     lambda(thread_id);
   }
 }
@@ -168,7 +169,7 @@ std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
 
   auto shell2bf = aobasis.getMapToBasisFunctions();
 
-  auto compute = [&](int thread_id) {
+  auto compute = [&](Index thread_id) {
     const auto& buf = engines[thread_id].results();
 
     for (auto s1 = 0l; s1 != nshells; ++s1) {

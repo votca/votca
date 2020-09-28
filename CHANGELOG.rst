@@ -65,12 +65,15 @@ Version 2021-dev
 -  Add a molden parser to xtp (#547)
 -  Correct self-energy frequency derivative (#550)
 -  fix multiline orca keyword (#552)
--  Contour Deformation Approach (CDA) for self-energy implmented (#4)
+-  Contour Deformation Approach (CDA) for self-energy implemented (#4, #548)
+-  BSE with perturbative dynamical screening (#3, #560)
+-  Correction of full BSE energy contribution in analysis output (#560)
 
 Version 1.6.3 (released XX.08.20)
 =================================
 
 -  switch to ghcr.io for CI (#555)
+-  fixing Gaussian guess read keyword (#562, #563)
 
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
