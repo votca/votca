@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE(aocoulomb_inv_test) {
   BOOST_CHECK_EQUAL(check_inv, 1);
 }
 
-BOOST_AUTO_TEST_CASE(large_l_test) {
+/*BOOST_AUTO_TEST_CASE(large_l_test) {
 
   QMMolecule mol("C", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/aomatrix/C2.xyz");
@@ -228,6 +228,6 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
     cout << "result" << endl;
     cout << kinetic.Matrix() << endl;
   }
-}
+} */
 
 BOOST_AUTO_TEST_SUITE_END()

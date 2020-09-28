@@ -41,8 +41,8 @@ Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
   libint2::Shell s = shell.LibintShell();
   engine.compute(s, s);
 
-  Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[0], shell.getSize(),
-                                            shell.getSize());
+  Eigen::Map<const MatrixLibInt> buf_mat(buf[0], shell.getSize(),
+                                         shell.getSize());
   libint2::finalize();
   Eigen::MatrixXd result(buf_mat);
   return buf_mat;
