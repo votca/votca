@@ -36,5 +36,5 @@ jobs:
               title: 'Update ${{ steps.base.outputs.branch }} submodules',
               head: '${{ github.event.ref }}',
               base: '${{ steps.base.outputs.branch }}',
-              draft: ${{ steps.base.outputs.branch == 'stable' }}
+              draft: ${{ steps.base.outputs.branch == 'update_stable_submodules' }}
             })
