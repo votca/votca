@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,9 @@
  *
  */
 
-#include <votca/xtp/aotransform.h>
-#include <votca/xtp/fourcenter.h>
+// Local VOTCA includes
+#include "votca/xtp/aotransform.h"
+#include "votca/xtp/fourcenter.h"
 
 namespace votca {
 namespace xtp {
@@ -49,10 +50,10 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
 
   // shell info, only lmax tells how far to go
 
-  Index lmax_1 = shell_1.getLmax();
-  Index lmax_2 = shell_2.getLmax();
-  Index lmax_3 = shell_3.getLmax();
-  Index lmax_4 = shell_4.getLmax();
+  Index lmax_1 = Index(shell_1.getL());
+  Index lmax_2 = Index(shell_2.getL());
+  Index lmax_3 = Index(shell_3.getL());
+  Index lmax_4 = Index(shell_4.getL());
 
   Index mmax = lmax_1 + lmax_2 + lmax_3 + lmax_4;
 
@@ -121,10 +122,10 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
   const Eigen::Vector3d& pos_gamma = shell_gamma->getPos();
   const Eigen::Vector3d& pos_delta = shell_delta->getPos();
 
-  Index lmax_alpha = shell_alpha->getLmax();
-  Index lmax_beta = shell_beta->getLmax();
-  Index lmax_gamma = shell_gamma->getLmax();
-  Index lmax_delta = shell_delta->getLmax();
+  Index lmax_alpha = Index(shell_alpha->getL());
+  Index lmax_beta = Index(shell_beta->getL());
+  Index lmax_gamma = Index(shell_gamma->getL());
+  Index lmax_delta = Index(shell_delta->getL());
 
   std::array<int, 9> n_orbitals = AOTransform::n_orbitals();
   std::array<int, 165> nx = AOTransform::nx();

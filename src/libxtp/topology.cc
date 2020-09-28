@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,14 +17,19 @@
  *
  */
 
-#include <votca/xtp/atom.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/topology.h>
-
-#include "votca/xtp/checkpointwriter.h"
+// Third party includes
 #include <boost/lexical_cast.hpp>
+
+// VOTCA includes
 #include <votca/csg/pdbwriter.h>
 #include <votca/tools/globals.h>
+
+// Local VOTCA includes
+#include "votca/xtp/atom.h"
+#include "votca/xtp/checkpointwriter.h"
+#include "votca/xtp/segment.h"
+#include "votca/xtp/topology.h"
+#include "votca/xtp/version.h"
 
 namespace votca {
 namespace xtp {
@@ -176,6 +181,8 @@ void Topology::WriteToPdb(std::string filename) const {
 }
 
 void Topology::WriteToCpt(CheckpointWriter &w) const {
+  w(XtpVersionStr(), "XTPVersion");
+  w(topology_version(), "version");
   w(_time, "time");
   w(_step, "step");
   w(this->getBox(), "box");

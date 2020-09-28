@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,12 +18,15 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_DFTGWBSE_H
-#define _VOTCA_XTP_DFTGWBSE_H
+#ifndef VOTCA_XTP_DFTGWBSE_PRIVATE_H
+#define VOTCA_XTP_DFTGWBSE_PRIVATE_H
 
-#include <stdio.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmtool.h>
+// Standard includes
+#include <cstdio>
+
+// Local VOTCA includes
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
@@ -36,7 +39,7 @@ class DftGwBse : public QMTool {
 
   std::string Identify() override { return "dftgwbse"; }
 
-  void Initialize(tools::Property &options) override;
+  void Initialize(const tools::Property &user_options) override;
   bool Evaluate() override;
 
  private:
@@ -50,7 +53,6 @@ class DftGwBse : public QMTool {
   std::string _xml_output;  // .xml output
   std::string _package;
   std::string _archive_file;  // .orb file to parse to
-  std::string _reporting;
   std::string _guess_orbA;
   std::string _guess_orbB;
 
@@ -66,4 +68,4 @@ class DftGwBse : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_DFTGWBSE_PRIVATE_H

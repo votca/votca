@@ -1,0 +1,12 @@
+<basis name="def2-TZVP">
+  <element name="Al">
+    <shell scale="1.0" type="D">
+      <constant decay="1.570000e+00">
+        <contractions factor="2.000000e-01" type="D"/>
+      </constant>
+      <constant decay="3.330000e-01">
+        <contractions factor="1.000000e+00" type="D"/>
+      </constant>
+    </shell> 
+  </element> 
+</basis> 

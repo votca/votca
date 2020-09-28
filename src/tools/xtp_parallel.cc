@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,14 @@
  *
  */
 
+// Standard includes
+#include <cstdlib>
 #include <iostream>
-#include <stdlib.h>
 #include <string>
-#include <votca/xtp/jobapplication.h>
-#include <votca/xtp/jobcalculatorfactory.h>
+
+// Local VOTCA includes
+#include "votca/xtp/jobapplication.h"
+#include "votca/xtp/jobcalculatorfactory.h"
 
 using namespace std;
 using namespace votca;

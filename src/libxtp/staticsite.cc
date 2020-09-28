@@ -1,5 +1,5 @@
 /*
- *           Copyright 2009-2019 The VOTCA Development Team
+ *           Copyright 2009-2020 The VOTCA Development Team
  *                      (http://www.votca.org)
  *
  *     Licensed under the Apache License,Version 2.0 (the "License")
@@ -17,13 +17,18 @@
  *
  */
 
-#include <boost/format.hpp>
+// Standard includes
 #include <fstream>
 #include <string>
-#include <votca/tools/constants.h>
-#include <votca/xtp/staticsite.h>
 
-using namespace std;
+// Third party includes
+#include <boost/format.hpp>
+
+// VOTCA includes
+#include <votca/tools/constants.h>
+
+// Local VOTCA includes
+#include <votca/xtp/staticsite.h>
 
 namespace votca {
 namespace xtp {
@@ -79,19 +84,19 @@ void StaticSite::Translate(const Eigen::VectorXd& shift) {
   return;
 }
 
-std::string StaticSite::writePolarisation() const {
+std::string StaticSite::writepolarization() const {
   tools::Elements e;
-  double default_pol = std::pow(tools::conv::ang2bohr, 3);
+  double default_pol = 1;  // default is alway 1A^3
   try {
     default_pol =
-        e.getPolarizability(_element) * std::pow(tools::conv::nm2bohr, 3);
-  } catch (const std::invalid_argument&) {
+        e.getPolarizability(_element) * std::pow(tools::conv::nm2ang, 3);
+  } catch (const std::runtime_error&) {
     ;
   }
   return (boost::format("     P %1$+1.7f\n") % default_pol).str();
 }
 
-std::string StaticSite::WriteMpsLine(string unit) const {
+std::string StaticSite::WriteMpsLine(std::string unit) const {
   double conv_pos = 1.;
   if (unit == "angstrom") {
     conv_pos = tools::conv::bohr2ang;
@@ -121,7 +126,7 @@ std::string StaticSite::WriteMpsLine(string unit) const {
     }
   }
   // Polarizability
-  output += writePolarisation();
+  output += writepolarization();
   return output;
 }
 
