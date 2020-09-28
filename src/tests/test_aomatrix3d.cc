@@ -22,7 +22,7 @@
 
 #include <votca/tools/eigenio_matrixmarket.h>
 // Local VOTCA includes
-#include "votca/xtp/aomatrix3d.h"
+#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;

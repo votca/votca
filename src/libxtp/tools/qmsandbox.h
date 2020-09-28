@@ -24,7 +24,6 @@
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/aomatrix3d.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/qmpackagefactory.h"
 #include "votca/xtp/qmtool.h"

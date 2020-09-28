@@ -26,12 +26,6 @@
 namespace votca {
 namespace xtp {
 
-void AOMatrix::Fill(const AOBasis& aobasis) {
-  _aomatrix =
-      Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-  return;
-}
-
 std::unordered_map<Index, std::vector<Index>> AOMatrix::compute_shellpairs(
     const AOBasis& aobasis, const double threshold) {
 

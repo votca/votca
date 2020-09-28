@@ -25,7 +25,6 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/aomatrix3d.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmstate.h"
