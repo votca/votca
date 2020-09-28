@@ -63,9 +63,9 @@ void Gaussian::Initialize(tools::Property& options) {
   std::string::size_type iop_pos;
   // check if the guess keyword is present, if yes, append the guess later
   if (_write_guess) {
-    iop_pos = _options.find("cards");
-    if (iop_pos != std::string::npos) {
-      _options = _options + " cards ";
+    iop_pos = _options.find("guess=cards");
+    if (iop_pos == std::string::npos) {
+      _options = _options + " guess=cards ";
     }
   }
 
