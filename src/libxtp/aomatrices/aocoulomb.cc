@@ -48,24 +48,24 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
     engines[i] = engines[0];
   }
 
-  auto shell2bf = aobasis.getMapToBasisFunctions();
-  auto unitshell = libint2::Shell::unit();
+  std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
+  libint2::Shell unitshell = libint2::Shell::unit();
 
   auto compute = [&](int thread_id) {
-    const auto& buf = engines[thread_id].results();
+    const libint2::Engine::target_ptr_vec& buf = engines[thread_id].results();
 
     // loop over unique shell pairs, {s1,s2} such that s1 >= s2
     // this is due to the permutational symmetry of the real integrals over
     // Hermitian operators: (1|2) = (2|1)
-    for (auto s1 = 0l, s12 = 0l; s1 != nshells; ++s1) {
-      auto bf1 = shell2bf[s1];  // first basis function in this shell
-      auto n1 = shells[s1].size();
+    for (Index s1 = 0l, s12 = 0l; s1 != nshells; ++s1) {
+      Index bf1 = shell2bf[s1];  // first basis function in this shell
+      Index n1 = shells[s1].size();
 
-      for (auto s2 = 0; s2 <= s1; ++s2, ++s12) {
+      for (Index s2 = 0; s2 <= s1; ++s2, ++s12) {
         if (s12 % nthreads != thread_id) continue;
 
-        auto bf2 = shell2bf[s2];
-        auto n2 = shells[s2].size();
+        Index bf2 = shell2bf[s2];
+        Index n2 = shells[s2].size();
 
         // compute shell pair; return is the pointer to the buffer
         engines[thread_id].compute(shells[s1], shells[s2]);

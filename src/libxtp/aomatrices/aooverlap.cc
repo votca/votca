@@ -37,7 +37,7 @@ Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
   libint2::Engine engine(obtype, shell.getSize(),
                          static_cast<int>(shell.getL()), 0);
 
-  const auto& buf = engine.results();
+  const libint2::Engine::target_ptr_vec& buf = engine.results();
 
   libint2::Shell s = shell.LibintShell();
   engine.compute(s, s);
