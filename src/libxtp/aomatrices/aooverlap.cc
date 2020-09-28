@@ -31,6 +31,7 @@ void AOOverlap::Fill(const AOBasis& aobasis) {
 }
 
 Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
+  libint2::Shell::do_enforce_unit_normalization(false);
   libint2::initialize();
   libint2::Operator obtype = libint2::Operator::overlap;
   libint2::Engine engine(obtype, shell.getSize(),
@@ -41,10 +42,10 @@ Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
   libint2::Shell s = shell.LibintShell();
   engine.compute(s, s);
 
-  Eigen::Map<const MatrixLibInt> buf_mat(buf[0], shell.getSize(),
-                                         shell.getSize());
+  Eigen::Map<const MatrixLibInt> buf_mat(buf[0], shell.getNumFunc(),
+                                         shell.getNumFunc());
+
   libint2::finalize();
-  Eigen::MatrixXd result(buf_mat);
   return buf_mat;
 }
 
