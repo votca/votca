@@ -44,59 +44,61 @@ std::unordered_map<Index, std::vector<Index>> AOMatrix::compute_shellpairs(
   }
 
   std::unordered_map<Index, std::vector<Index>> splist;
+  auto compute = [&](Index thread_id) {
+    libint2::Engine& engine = engines[thread_id];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
 
-  libint2::Engine& engine = engines[thread_id];
-  const libint2::Engine::target_ptr_vec& buf = engine.results();
-
-  // loop over permutationally-unique set of shells
-  for (Index s1 = 0l, s12 = 0l; s1 != nsh1; ++s1) {
+    // loop over permutationally-unique set of shells
+    for (Index s1 = 0l, s12 = 0l; s1 != nsh1; ++s1) {
 
 #pragma omp critical
-    {
-      if (splist.find(s1) == splist.end())
-        splist.insert(std::make_pair(s1, std::vector<Index>()));
-    }
-
-    Index n1 = shells[s1].size();  // number of basis functions in this shell
-
-    for (Index s2 = 0; s2 <= s1; ++s2, ++s12) {
-      if (s12 % nthreads != thread_id) continue;
-
-      bool on_same_center = (shells[s1].O == shells[s2].O);
-      bool significant = on_same_center;
-      if (not on_same_center) {
-        Index n2 = shells[s2].size();
-        engines[thread_id].compute(shells[s1], shells[s2]);
-        Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[0], n1, n2);
-        double norm = buf_mat.norm();
-        significant = (norm >= threshold);
+      {
+        if (splist.find(s1) == splist.end())
+          splist.insert(std::make_pair(s1, std::vector<Index>()));
       }
 
-      if (significant) {
+      Index n1 = shells[s1].size();  // number of basis functions in this shell
+
+      for (Index s2 = 0; s2 <= s1; ++s2, ++s12) {
+        if (s12 % nthreads != thread_id) continue;
+
+        bool on_same_center = (shells[s1].O == shells[s2].O);
+        bool significant = on_same_center;
+        if (not on_same_center) {
+          Index n2 = shells[s2].size();
+          engines[thread_id].compute(shells[s1], shells[s2]);
+          Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[0], n1, n2);
+          double norm = buf_mat.norm();
+          significant = (norm >= threshold);
+        }
+
+        if (significant) {
 #pragma omp critical
-        { splist[s1].emplace_back(s2); }
+          {
+            splist[s1].emplace_back(s2);
+          }
+        }
       }
     }
-  }
-};  // end of compute
+  };  // end of compute
 
-parallel_do(compute);
+  parallel_do(compute);
 
-// resort shell list in increasing order, i.e. splist[s][s1] < splist[s][s2]
-// if s1 < s2 N.B. only parallelized over 1 shell index
-auto sort = [&](Index thread_id) {
-  for (Index s1 = 0l; s1 != nsh1; ++s1) {
-    if (s1 % nthreads == thread_id) {
-      std::vector<Index>& list = splist[s1];
-      std::sort(list.begin(), list.end());
+  // resort shell list in increasing order, i.e. splist[s][s1] < splist[s][s2]
+  // if s1 < s2 N.B. only parallelized over 1 shell index
+  auto sort = [&](Index thread_id) {
+    for (Index s1 = 0l; s1 != nsh1; ++s1) {
+      if (s1 % nthreads == thread_id) {
+        std::vector<Index>& list = splist[s1];
+        std::sort(list.begin(), list.end());
+      }
     }
-  }
-};  // end of sort
+  };  // end of sort
 
-parallel_do(sort);
+  parallel_do(sort);
 
-return splist;
+  return splist;
 }  // namespace xtp
 
-}  // namespace votca
+}  // namespace xtp
 }  // namespace votca
