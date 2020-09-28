@@ -45,18 +45,18 @@ std::unordered_map<Index, std::vector<Index>> AOMatrix::compute_shellpairs(
 
   std::unordered_map<Index, std::vector<Index>> splist;
 
-  std::mutex mx;
-
   auto compute = [&](int thread_id) {
     auto& engine = engines[thread_id];
     const auto& buf = engine.results();
 
     // loop over permutationally-unique set of shells
     for (auto s1 = 0l, s12 = 0l; s1 != nsh1; ++s1) {
-      mx.lock();
-      if (splist.find(s1) == splist.end())
-        splist.insert(std::make_pair(s1, std::vector<Index>()));
-      mx.unlock();
+
+#pragma omp critical
+      {
+        if (splist.find(s1) == splist.end())
+          splist.insert(std::make_pair(s1, std::vector<Index>()));
+      }
 
       auto n1 = shells[s1].size();  // number of basis functions in this shell
 
@@ -74,9 +74,10 @@ std::unordered_map<Index, std::vector<Index>> AOMatrix::compute_shellpairs(
         }
 
         if (significant) {
-          mx.lock();
-          splist[s1].emplace_back(s2);
-          mx.unlock();
+#pragma omp critical
+          {
+            splist[s1].emplace_back(s2);
+          }
         }
       }
     }
@@ -98,7 +99,7 @@ std::unordered_map<Index, std::vector<Index>> AOMatrix::compute_shellpairs(
   parallel_do(sort);
 
   return splist;
-}
+}  // namespace xtp
 
 }  // namespace xtp
 }  // namespace votca
