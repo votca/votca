@@ -25,15 +25,5 @@
         <contractions factor="1.562850e-01" type="G"/>
       </constant>
     </shell>
-    <shell scale="1.0" type="H">
-      <constant decay="5.447178e+00">
-        <contractions factor="1.562850e-01" type="H"/>
-      </constant>
-    </shell>
-    <shell scale="1.0" type="I">
-      <constant decay="5.447178e+00">
-        <contractions factor="1.562850e-01" type="I"/>
-      </constant>
-    </shell>
   </element>
 </basis>
