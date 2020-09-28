@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <iomanip>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aobasis_test
@@ -43,28 +44,52 @@ BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
   basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aobasis/notnormalized.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
-
-  const AOShell& shell = aobasis.getShell(0);
-  std::vector<double> ref_results = {0.1831079647, 0.9155398233};
-  Index i = 0;
-  bool check_norm = true;
-  for (const AOGaussianPrimitive& gaussian : shell) {
-    if (std::abs(ref_results[i] - gaussian.getContraction()) > 1e-7) {
-      check_norm = false;
-      break;
-    }
-    i++;
-  }
-
-  i = 0;
-  if (!check_norm) {
+  {
+    const AOShell& shell = aobasis.getShell(0);
+    std::vector<double> ref_results = {0.1831079647, 0.9155398233};
+    Index i = 0;
+    bool check_norm = true;
     for (const AOGaussianPrimitive& gaussian : shell) {
-      std::cout << "Ref:" << ref_results[i]
-                << " result:" << gaussian.getContraction() << std::endl;
+      if (std::abs(ref_results[i] - gaussian.getContraction()) > 1e-7) {
+        check_norm = false;
+        break;
+      }
       i++;
     }
+
+    i = 0;
+    if (!check_norm) {
+      for (const AOGaussianPrimitive& gaussian : shell) {
+        std::cout << "Ref:" << ref_results[i]
+                  << " result:" << gaussian.getContraction() << std::endl;
+        i++;
+      }
+    }
+    BOOST_CHECK_EQUAL(check_norm, 1);
   }
-  BOOST_CHECK_EQUAL(check_norm, 1);
+  {
+    const AOShell& shell = aobasis.getShell(1);
+    std::vector<double> ref_results = {0.179507068598, 0.89753534299};
+    Index i = 0;
+    bool check_norm = true;
+    for (const AOGaussianPrimitive& gaussian : shell) {
+      if (std::abs(ref_results[i] - gaussian.getContraction()) > 1e-7) {
+        check_norm = false;
+        break;
+      }
+      i++;
+    }
+
+    i = 0;
+    if (!check_norm) {
+      for (const AOGaussianPrimitive& gaussian : shell) {
+        std::cout << "Ref:" << ref_results[i]
+                  << " result:" << gaussian.getContraction() << std::endl;
+        i++;
+      }
+    }
+    BOOST_CHECK_EQUAL(check_norm, 1);
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
