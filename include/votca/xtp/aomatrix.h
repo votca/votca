@@ -151,12 +151,13 @@ std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
   const Index n = aobasis.AOBasisSize();
   const Index nshells = aobasis.getNumofShells();
 
-  auto shellpair_list = compute_shellpairs(aobasis);
+  std::unordered_map<Index, std::vector<Index>> shellpair_list =
+      compute_shellpairs(aobasis);
 
   Index nopers = static_cast<Index>(libint2::operator_traits<obtype>::nopers);
   std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers> result;
-  for (auto& r : result) {
-    r = Eigen::MatrixXd::Zero(n, n);
+  for (MatrixLibInt& r : result) {
+    r = MatrixLibInt::Zero(n, n);
   }
 
   std::vector<libint2::Engine> engines(nthreads);
@@ -167,22 +168,22 @@ std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
     engines[i] = engines[0];
   }
 
-  auto shell2bf = aobasis.getMapToBasisFunctions();
+  std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
 
   auto compute = [&](Index thread_id) {
-    const auto& buf = engines[thread_id].results();
+    const libint2::Engine::target_ptr_vec& buf = engines[thread_id].results();
 
-    for (auto s1 = 0l; s1 != nshells; ++s1) {
-      auto bf1 = shell2bf[s1];  // first basis function in this shell
-      auto n1 = shells[s1].size();
+    for (Index s1 = 0l; s1 != nshells; ++s1) {
+      Index bf1 = shell2bf[s1];  // first basis function in this shell
+      Index n1 = shells[s1].size();
 
-      auto s1_offset = s1 * (s1 + 1) / 2;
-      for (auto s2 : shellpair_list[s1]) {
-        auto s12 = s1_offset + s2;
+      Index s1_offset = s1 * (s1 + 1) / 2;
+      for (Index s2 : shellpair_list[s1]) {
+        Index s12 = s1_offset + s2;
         if (s12 % nthreads != thread_id) continue;
 
-        auto bf2 = shell2bf[s2];
-        auto n2 = shells[s2].size();
+        Index bf2 = shell2bf[s2];
+        Index n2 = shells[s2].size();
 
         // compute shell pair; return is the pointer to the buffer
         engines[thread_id].compute(shells[s1], shells[s2]);

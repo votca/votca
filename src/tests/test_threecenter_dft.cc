@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(small_basis) {
   BOOST_CHECK_EQUAL(check_three2, true);
 }
 
-BOOST_AUTO_TEST_CASE(large_l_test) {
+/*BOOST_AUTO_TEST_CASE(large_l_test) {
 
   QMMolecule mol("C", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -131,5 +131,5 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
       std::cout << threec[indeces[i]].FullMatrix() << std::endl;
     }
   }
-}
+} */
 BOOST_AUTO_TEST_SUITE_END()

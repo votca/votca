@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(transform_test) {
   AOBasis basis;
   basis.Fill(bs, mol);
 
-  std::array<Eigen::MatrixXd, 7> ref;
+  std::array<Eigen::MatrixXd, 5> ref;
 
   for (unsigned i = 0; i < ref.size(); i++) {
     ref[i] = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
