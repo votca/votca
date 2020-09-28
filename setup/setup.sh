@@ -125,8 +125,9 @@ if [[ ${INPUT_DISTRO} = "gentoo:latest"  ]]; then
 fi
 
 # Some distros don't have new enough libint yet
-# fedora:latest = F32 only has libint2-2.1.0
-if [[ ${INPUT_DISTRO} = "fedora:latest"  ]]; then
+# fedora:latest = F32 only has libint2-2.1.0 and most fedora:* container build on that
+# fedora:rawhide has libint-2.6.0
+if [[ ${INPUT_DISTRO} = fedora:* && ${INPUT_DISTRO} != "fedora:rawhide"  ]]; then
   cmake_args+=( -DBUILD_OWN_LIBINT=ON )
 fi
 
