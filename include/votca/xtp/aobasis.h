@@ -70,21 +70,17 @@ class AOBasis {
 
   std::vector<libint2::Shell> GenerateLibintBasis() const;
 
-  const std::vector<libint2::Shell>& LibintBasis() const {
-    return _libintshells;
-  }
+  std::vector<std::vector<Index>> ComputeShellPairs(
+      double tolerance = 1e-20) const;
 
   AOShell& addShell(const Shell& shell, const QMAtom& atom, Index startIndex);
 
   const std::string& Name() const { return _name; }
 
  private:
-
   std::string _name = "";
 
   std::vector<AOShell> _aoshells;
-
-  std::vector<libint2::Shell> _libintshells;
 
   std::vector<Index> _FuncperAtom;
 

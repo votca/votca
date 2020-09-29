@@ -149,8 +149,7 @@ std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
   const Index n = aobasis.AOBasisSize();
   const Index nshells = aobasis.getNumofShells();
 
-  std::unordered_map<Index, std::vector<Index>> shellpair_list =
-      compute_shellpairs(aobasis);
+  std::vector<std::vector<Index>> shellpair_list = aobasis.ComputeShellPairs();
 
   Index nopers = static_cast<Index>(libint2::operator_traits<obtype>::nopers);
   std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers> result;
