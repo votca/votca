@@ -23,8 +23,6 @@
 
 // Local VOTCA includes
 #include "aobasis.h"
-#include "votca/xtp/eigen.h"
-#include <libint2.hpp>
 #include <unordered_map>
 
 namespace votca {
