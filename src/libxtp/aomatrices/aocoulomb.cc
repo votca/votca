@@ -33,15 +33,14 @@ void AOCoulomb::Fill(const AOBasis& aobasis) {
 void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
-  const Index n = aobasis.AOBasisSize();
-  const Index nshells = aobasis.getNumofShells();
 
-  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(n, n);
+  Eigen::MatrixXd result =
+      Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
   // build engines for each thread
-  using libint2::Engine;
-  std::vector<Engine> engines(nthreads);
-  engines[0] = Engine(libint2::Operator::coulomb, aobasis.getMaxNprim(),
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] =
+      libint2::Engine(libint2::Operator::coulomb, aobasis.getMaxNprim(),
                       static_cast<int>(aobasis.getMaxL()), 0);
   engines[0].set(libint2::BraKet::xs_xs);
   for (Index i = 1; i != nthreads; ++i) {
@@ -51,40 +50,31 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
   std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
   libint2::Shell unitshell = libint2::Shell::unit();
 
-  auto compute = [&](Index thread_id) {
-    const libint2::Engine::target_ptr_vec& buf = engines[thread_id].results();
+#pragma omp parallel for schedule(dynamic)
+  for (Index s1 = 0l; s1 < aobasis.getNumofShells(); ++s1) {
+    Index thread_id = OPENMP::getThreadId();
+    libint2::Engine& engine = engines[thread_id];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
 
-    // loop over unique shell pairs, {s1,s2} such that s1 >= s2
-    // this is due to the permutational symmetry of the real integrals over
-    // Hermitian operators: (1|2) = (2|1)
-    for (Index s1 = 0l, s12 = 0l; s1 != nshells; ++s1) {
-      Index bf1 = shell2bf[s1];  // first basis function in this shell
-      Index n1 = shells[s1].size();
+    Index bf1 = shell2bf[s1];
+    Index n1 = shells[s1].size();
 
-      for (Index s2 = 0; s2 <= s1; ++s2, ++s12) {
-        if (s12 % nthreads != thread_id) continue;
+    for (Index s2 = 0; s2 <= s1; ++s2) {
+      Index bf2 = shell2bf[s2];
+      Index n2 = shells[s2].size();
 
-        Index bf2 = shell2bf[s2];
-        Index n2 = shells[s2].size();
+      engine.compute(shells[s1], shells[s2]);
 
-        // compute shell pair; return is the pointer to the buffer
-        engines[thread_id].compute(shells[s1], shells[s2]);
-        if (buf[0] == nullptr)
-          continue;  // if all integrals screened out, skip to next shell set
+      if (buf[0] == nullptr)
+        continue;  // if all integrals screened out, skip to next shell set
 
-        // "map" buffer to a const Eigen Matrix, and copy it to the
-        // corresponding blocks of the result
-        Eigen::Map<const MatrixLibInt> buf_mat(buf[0], n1, n2);
-        result.block(bf1, bf2, n1, n2) = buf_mat;
-        if (s1 != s2)  // if s1 >= s2, copy {s1,s2} to the corresponding {s2,s1}
-                       // block, note the transpose!
-          result.block(bf2, bf1, n2, n1) = buf_mat.transpose();
-      }
+      Eigen::Map<const MatrixLibInt> buf_mat(buf[0], n1, n2);
+      result.block(bf1, bf2, n1, n2) = buf_mat;
+      if (s1 != s2)  // if s1 >= s2, copy {s1,s2} to the corresponding {s2,s1}
+                     // block, note the transpose!
+        result.block(bf2, bf1, n2, n1) = buf_mat.transpose();
     }
-  };
-
-  parallel_do(compute);
-
+  }
   _aomatrix = result;
 }
 

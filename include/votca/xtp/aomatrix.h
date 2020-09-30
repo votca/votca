@@ -37,18 +37,12 @@ class AOMatrix {
   // libint uses rowmajor storage for the computed integrals
   using MatrixLibInt =
       Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-  template <typename Lambda>
-  void parallel_do(Lambda& lambda);
-
   template <libint2::Operator obtype,
             typename OperatorParams =
                 typename libint2::operator_traits<obtype>::oper_params_type>
   std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers>
       computeOneBodyIntegrals(const AOBasis& basis,
                               OperatorParams oparams = OperatorParams());
-
-  std::unordered_map<Index, std::vector<Index>> compute_shellpairs(
-      const AOBasis& bs1, const double threshold = 1e-20);
 };
 
 // derived class for kinetic energy
@@ -129,16 +123,6 @@ class AODipole : public AOMatrix {
  * TEMPLATE DEFINITIONS
  *
  * *******************************/
-
-template <typename Lambda>
-void AOMatrix::parallel_do(Lambda& lambda) {
-#pragma omp parallel
-  {
-    Index thread_id = OPENMP::getThreadId();
-    lambda(thread_id);
-  }
-}
-
 template <libint2::Operator obtype, typename OperatorParams>
 std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
     AOMatrix::computeOneBodyIntegrals(const AOBasis& aobasis,
@@ -146,15 +130,13 @@ std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
 
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
-  const Index n = aobasis.AOBasisSize();
-  const Index nshells = aobasis.getNumofShells();
 
   std::vector<std::vector<Index>> shellpair_list = aobasis.ComputeShellPairs();
 
   Index nopers = static_cast<Index>(libint2::operator_traits<obtype>::nopers);
   std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers> result;
   for (MatrixLibInt& r : result) {
-    r = MatrixLibInt::Zero(n, n);
+    r = MatrixLibInt::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   }
 
   std::vector<libint2::Engine> engines(nthreads);
@@ -167,37 +149,30 @@ std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
 
   std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
 
-  auto compute = [&](Index thread_id) {
-    const libint2::Engine::target_ptr_vec& buf = engines[thread_id].results();
+#pragma omp parallel for schedule(dynamic)
+  for (Index s1 = 0l; s1 < aobasis.getNumofShells(); ++s1) {
+    Index thread_id = OPENMP::getThreadId();
+    libint2::Engine& engine = engines[thread_id];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
 
-    for (Index s1 = 0l; s1 != nshells; ++s1) {
-      Index bf1 = shell2bf[s1];  // first basis function in this shell
-      Index n1 = shells[s1].size();
+    Index bf1 = shell2bf[s1];
+    Index n1 = shells[s1].size();
 
-      Index s1_offset = s1 * (s1 + 1) / 2;
-      for (Index s2 : shellpair_list[s1]) {
-        Index s12 = s1_offset + s2;
-        if (s12 % nthreads != thread_id) continue;
+    for (Index s2 : shellpair_list[s1]) {
+      Index bf2 = shell2bf[s2];
+      Index n2 = shells[s2].size();
 
-        Index bf2 = shell2bf[s2];
-        Index n2 = shells[s2].size();
+      engine.compute(shells[s1], shells[s2]);
 
-        // compute shell pair; return is the pointer to the buffer
-        engines[thread_id].compute(shells[s1], shells[s2]);
-
-        for (unsigned int op = 0; op != nopers; ++op) {
-          // "map" buffer to a const Eigen Matrix, and copy it to the
-          // corresponding blocks of the result
-          Eigen::Map<const MatrixLibInt> buf_mat(buf[op], n1, n2);
-          result[op].block(bf1, bf2, n1, n2) = buf_mat;
-          if (s1 != s2)  // if s1 >= s2, copy {s1,s2} to the corresponding
-                         // {s2,s1} block, note the transpose!
-            result[op].block(bf2, bf1, n2, n1) = buf_mat.transpose();
-        }
+      for (unsigned int op = 0; op != nopers; ++op) {
+        Eigen::Map<const MatrixLibInt> buf_mat(buf[op], n1, n2);
+        result[op].block(bf1, bf2, n1, n2) = buf_mat;
+        if (s1 != s2)  // if s1 >= s2, copy {s1,s2} to the corresponding
+                       // {s2,s1} block, note the transpose!
+          result[op].block(bf2, bf1, n2, n1) = buf_mat.transpose();
       }
     }
-  };
-  parallel_do(compute);
+  }
 
   return result;
 }
