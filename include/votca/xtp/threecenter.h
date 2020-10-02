@@ -21,10 +21,8 @@
 #ifndef VOTCA_XTP_THREECENTER_H
 #define VOTCA_XTP_THREECENTER_H
 
-// Standard includes
-#include <array>
-
 // Local VOTCA includes
+#include "aobasis.h"
 #include "eigen.h"
 #include "logger.h"
 #include "symmetric_matrix.h"
@@ -42,9 +40,6 @@
 
 namespace votca {
 namespace xtp {
-
-class AOShell;
-class AOBasis;
 
 // due to different requirements for the data format for DFT and GW we have two
 // different classes TCMatrix_gwbse and TCMatrix_dft which inherit from TCMatrix
