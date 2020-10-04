@@ -365,6 +365,8 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     C = np.zeros((len(constraints), len(r[crucial])-1))
     d = np.zeros(len(constraints))
     # build constraint matrix and vector from constraints
+    if verbose:
+        print(constraints)
     for c, constraint in enumerate(constraints):
         if constraint['type'] == 'pressure':
             # current pressure
