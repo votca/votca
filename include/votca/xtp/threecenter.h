@@ -66,6 +66,8 @@ class TCMatrix_dft : public TCMatrix {
  public:
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis);
 
+  void Fill2(const AOBasis& auxbasis, const AOBasis& dftbasis);
+
   Index size() const { return Index(_matrix.size()); }
 
   Symmetric_Matrix& operator[](Index i) { return _matrix[i]; }
@@ -74,6 +76,8 @@ class TCMatrix_dft : public TCMatrix {
 
  private:
   std::vector<Symmetric_Matrix> _matrix;
+
+  std::vector<Symmetric_Matrix> _matrix2;
 
   void FillBlock(std::vector<Eigen::MatrixXd>& block, Index shellindex,
                  const AOBasis& dftbasis, const AOBasis& auxbasis);
