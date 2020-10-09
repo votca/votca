@@ -39,7 +39,6 @@ import numpy as np
 BAR_PER_MD_PRESSURE = 16.6053904
 G_MIN = 1e-10
 G_MIN_EXTRAPOLATE = 1e-1
-OMEGA_SAFE_SCALE = 0.99999
 np.seterr(all='raise')
 
 
@@ -76,31 +75,53 @@ def calc_grid_spacing(grid, relative_tolerance=0.01):
     return np.mean(diffs)
 
 
-def fourier(r, y, omega):
-    """fourier transform real data y on grid r into reciprocal space omega"""
+def fourier(r, f):
+    """Compute the radially 3D FT and the frequency grid of a radially symmetric function.
+    Some special extrapolations are used to make the results consistent. This function
+    is isometric meaning it can be used to calculate the FT and the inverse FT.
+    That means inputs can also be omega and f_hat which results in r and f.
+
+    Args:
+        r: Input grid. Must be evenly spaced. Can start at zero or at Δr, but nowhere
+            else.
+        f: Input function. Must have same length as r and correspond to its values.
+
+    Returns:
+        (omega, f_hat): The reciprocal grid and the FT of f.
+    """
     Delta_r = calc_grid_spacing(r)
-    y_hat = np.zeros_like(omega)
-    with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
-        for i, omega_i in enumerate(omega):
-            y_hat[i] = (2 / omega_i * Delta_r
-                        * np.sum(r * y * np.sin(2 * np.pi * omega_i * r)))
-    return y_hat
+    r0_added = False
+    if np.isclose(r[0], Delta_r):
+        r = np.concatenate(([0], r))
+        f = np.concatenate(([0], f))
+        r0_added = True
+    elif np.isclose(r[0], 0.0):
+        pass
+    else:
+        raise Exception('this function can not handle this input')
+    # if the input is even, np.fft.rfftfreq would end with the Nyquist frequency.
+    # But there the imaginary part of the FT is always zero, so we alwas append a zero
+    # to obtain a odd grid.
+    if len(r) % 2 == 0:  # even
+        r = np.concatenate((r, [r[-1]+Delta_r]))
+        f = np.concatenate((f, [0]))
+        n = (len(r)-1)*2-1
+    else:  # odd
+        n = len(r)*2-1
+    omega = np.fft.rfftfreq(n=n, d=Delta_r)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        f_hat = -2 / omega / 1 * Delta_r * np.imag(np.fft.rfft(r * f, n=n))
+    if r0_added:
+        f_hat = f_hat[1:]
+        omega = omega[1:]
+    return omega, f_hat
 
 
-def gen_omega(r):
-    """reciprocal space grid from real space grid"""
-    Delta_r = calc_grid_spacing(r)
-    nyquist_freq = 1 / Delta_r / 2
-    omega = np.linspace(nyquist_freq/len(r), nyquist_freq, len(r))
-    omega *= OMEGA_SAFE_SCALE
-    return omega
-
-
-def gen_fourier_matrix(r, omega, fourier_function):
+def gen_fourier_matrix(r, fourier_function):
     """make a fourier matrix"""
-    fourier_matrix = np.identity(len(omega))
+    fourier_matrix = np.identity(len(r))
     for col_index, col in enumerate(fourier_matrix.T):
-        fourier_matrix.T[col_index] = fourier_function(r, col, omega)
+        _, fourier_matrix.T[col_index] = fourier_function(r, col)
     return fourier_matrix
 
 
@@ -125,11 +146,140 @@ def find_after_cut_off_ndx(array, cut_off):
         return ndx
 
 
+def r0_removal(*arrays):
+    r0_removed = False
+    if np.isclose(arrays[0][0], 0.0):
+        r0_removed = True
+        arrays = tuple(map(lambda a: a[1:], arrays))
+    return r0_removed, arrays
+
+
+def calc_c(r, g_tgt, G_minus_g, n, rho):
+    r0_removed, (r, g_tgt, G_minus_g) = r0_removal(r, g_tgt, G_minus_g)
+    # total correlation function h
+    h = g_tgt - 1
+    # FT of h
+    omega, h_hat = fourier(r, h)
+    # direct correlation function c from OZ
+    if n == 1:
+        # single bead case
+        c_hat = h_hat / (1 + rho * h_hat)
+    else:
+        _, G_minus_g_hat = fourier(r, G_minus_g)
+        c_hat = h_hat / ((1 + n * rho * G_minus_g_hat)**2
+                         + (1 + n * rho * G_minus_g_hat) * n * rho * h_hat)
+    _, c = fourier(omega, c_hat)
+    if r0_removed:
+        c = np.concatenate(([np.nan], c))
+    return c
+
+
+def calc_g(r, c, G_minus_g, n, rho):
+    r0_removed, (r, c, G_minus_g) = r0_removal(r, c, G_minus_g)
+    omega, c_hat = fourier(r, c)
+    if n == 1:
+        h_hat = c_hat / (1 - rho * c_hat)
+    else:
+        _, G_minus_g_hat = fourier(r, G_minus_g)
+        h_hat = ((c_hat * (1 + n * rho * G_minus_g_hat)**2)
+                 / (1 - n * rho * (1 + n * rho * G_minus_g_hat) * c_hat))
+    _, h = fourier(omega, h_hat)
+    g = h + 1
+    if r0_removed:
+        g = np.concatenate(([np.nan], g))
+    return g
+
+
+def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_short, n,
+                rho):
+    """Calculate Δc_ext with netwon method. Jacobian has an implicit extrapolation of c
+    with zeros on twice its original range."""
+    # _k is iteration k
+    # _s is short
+    # _tgt is target
+    r0_removed, (r_short, c_k_short, g_k_short, g_tgt_short,
+                 G_minus_g_short) = r0_removal(r_short, c_k_short, g_k_short,
+                                               g_tgt_short, G_minus_g_short)
+    F = gen_fourier_matrix(r_long, fourier)
+    Finv = np.linalg.inv(F)
+    B = np.concatenate((np.diag(np.ones(len(r_short))),
+                        np.zeros((len(r_long) - len(r_short), len(r_short)))),
+                       axis=0)
+    Binv = np.linalg.pinv(B)
+    J = Binv @ (Finv @ np.diag((1 + n * rho * F @ B @ G_minus_g_short)**2
+                               / (1 - (1 + n * rho * F @ B @ G_minus_g_short)
+                                  * n * rho * F @ B @ c_k_short)**2) @ F) @ B
+    Jinv = np.linalg.pinv(J)
+    Δc = -1 * Jinv @ (g_k_short - g_tgt_short)
+    if r0_removed:
+        Δc = np.concatenate(([0], Δc))
+    return Δc
+
+
+def extrapolate_g(r_short, r_long, g_short, G_minus_g_short, n, rho,
+                  k_max=5, output_c=False, verbose=False):
+    """Extrapolate an RDF with integral equation theory.
+    Assumes c = 0 in the extrapolated region.
+
+    Args:
+        r_short: Input grid.
+        r_long: Output grid.
+        g_short: Input RDF.
+        G_minus_g_short: Intramolecular distribution.
+        n: Number of equal beads per molecule.
+        rho: Number density of the molecules.
+        k_max: Number of iterations.
+        output_c: Wether to output the final direct correlation function.
+        verbose: Print convergence, dump direct correlation function.
+
+    Returns:
+        The extrapolated RDF and depending on output_c the c.
+    """
+    r0_removed, (r_short, r_long, g_short,
+                 G_minus_g_short) = r0_removal(r_short, r_long, g_short,
+                                               G_minus_g_short)
+    ndx_co = len(r_short)
+    G_minus_g_long = np.concatenate((G_minus_g_short,
+                                     np.zeros(len(r_long) - len(r_short))))
+    # starting guess for c
+    c_short_k = [calc_c(r_short, g_short, G_minus_g_short, n, rho)]
+    c_long_k = [np.zeros_like(r_long)]
+    c_long_k[0][:ndx_co] = c_short_k[0]
+    # evaluate starting guess
+    g_long_k = [calc_g(r_long, c_long_k[0], G_minus_g_long, n, rho)]
+    g_short_k = [g_long_k[0][:ndx_co]]
+    # Newton iterations
+    for it in range(1, k_max+1):
+        # update c
+        c_short_k.append(c_short_k[-1]
+                         + calc_dc_ext(r_short, r_long, c_short_k[-1], g_short_k[-1],
+                                       g_short, G_minus_g_short, n, rho))
+        c_long_k.append(np.zeros_like(r_long))
+        c_long_k[-1][:ndx_co] = c_short_k[-1]
+        # new g
+        g_long_k.append(calc_g(r_long, c_long_k[-1], G_minus_g_long, n, rho))
+        g_short_k.append(g_long_k[-1][:ndx_co])
+
+    if r0_removed:
+        for it in range(0, k_max+1):
+            c_short_k[it] = np.concatenate(([np.nan], c_short_k[it]))
+            c_long_k[it] = np.concatenate(([np.nan], c_long_k[it]))
+            g_long_k[it] = np.concatenate(([np.nan], g_long_k[it]))
+            g_short_k[it] = np.concatenate(([np.nan], g_short_k[it]))
+    if verbose:
+        np.savez_compressed('g-extrapolation.npz', c_short_k=c_short_k,
+                            c_long_k=c_long_k, g_long_k=g_long_k, g_short_k=g_short_k)
+    if output_c:
+        return g_long_k[-1], c_long_k[-1]
+    else:
+        return g_long_k[-1]
+
+
 def calc_slices(r, g_tgt, g_cur, cut_off, verbose=False):
     # there are different regions in r used
     #              |       crucial     |                     # regions (slices)
     # |   core     |                 nocore               |
-    # Δr--------core_end------------cut_off-----------r[-1]  # distances
+    # 0---------core_end------------cut_off-----------r[-1]  # distances
     # 0----------ndx_ce--------------ndx_co----------len(r)  # indices
     #
     # nocore equals Δ from Delbary et al.
@@ -169,34 +319,13 @@ def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
     Returns:
         The calculated potential.
     """
-    # remove r = 0 for numerical stability
-    r0_removed = False
-    if np.isclose(r[0], 0.0):
-        r, g_tgt, G_minus_g = r[1:], g_tgt[1:], G_minus_g[1:]
-        r0_removed = True
-    # reciprocal space ω with radial symmetry
-    omega = gen_omega(r)
-    # total correlation function h
     h = g_tgt - 1
-    # FT of h
-    h_hat = fourier(r, h, omega)
-    # direct correlation function c from OZ
-    if n == 1:
-        # single bead case
-        c_hat = h_hat / (1 + rho * h_hat)
-    else:
-        G_minus_g_hat = fourier(r, G_minus_g, omega)
-        c_hat = h_hat / ((1 + n * rho * G_minus_g_hat)**2
-                         + (1 + n * rho * G_minus_g_hat) * n * rho * h_hat)
-    c = fourier(omega, c_hat, r)
-    # U from HNC
+    c = calc_c(r, g_tgt, G_minus_g, n, rho)
     with np.errstate(divide='ignore', invalid='ignore'):
         if closure == 'hnc':
             U = kBT * (-np.log(g_tgt) + h - c)
         elif closure == 'py':
             U = kBT * np.log(1 - c/g_tgt)
-    if r0_removed:
-        U = np.insert(U, 0, np.nan)
     return U
 
 
@@ -220,20 +349,14 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
     Returns:
         The calculated potential update.
     """
-    # remove r = 0 for numerical stability
-    r0_removed = False
-    if np.isclose(r[0], 0.0):
-        r, g_cur, g_tgt, G_minus_g = r[1:], g_cur[1:], g_tgt[1:], G_minus_g[1:]
-        r0_removed = True
+    r0_removed, (r, g_tgt, g_cur, G_minus_g) = r0_removal(r, g_tgt, g_cur, G_minus_g)
     # calc slices and Delta_r
     nocore, crucial = calc_slices(r, g_tgt, g_cur, cut_off, verbose=verbose)
-    # reciprocal space with radial symmetry ω
-    omega = gen_omega(r)
     # difference of rdf to target
     Delta_g = g_cur - g_tgt
     # FT of total correlation function 'h'
-    h_hat = fourier(r, g_cur - 1, omega)
-    F = gen_fourier_matrix(r, omega, fourier)
+    omega, h_hat = fourier(r, g_cur - 1)
+    F = gen_fourier_matrix(r, fourier)
     # dc/dg
     if n == 1:
         # single bead case
@@ -241,7 +364,7 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
                                    np.diag(1 / (1 + rho * h_hat)**2)),
                          F)
     else:
-        G_minus_g_hat = fourier(r, G_minus_g, omega)
+        _, G_minus_g_hat = fourier(r, G_minus_g)
         dcdg = np.matmul(np.matmul(np.linalg.inv(F),
                                    np.diag(1 / (1 + n * rho * G_minus_g_hat
                                                 + n * rho * h_hat)**2)),
@@ -265,9 +388,10 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
         np.savez_compressed('newton-arrays.npz', jac=jac, jac_cut=jac_cut,
                             jac_inv=jac_inv, jac_inv_cut=jac_inv_cut)
     # fill core and behind cut-off
-    dU = np.concatenate((np.full(nocore.start + (1 if r0_removed else 0), np.nan),
-                         dU,
+    dU = np.concatenate((np.full(nocore.start, np.nan), dU,
                          np.full(len(r) - crucial.stop, np.nan)))
+    if r0_removed:
+        dU = np.concatenate(([0], dU))
     return dU
 
 
@@ -324,24 +448,16 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     Returns:
         The calculated potential update.
     """
-
-    # remove r = 0 for numerical stability
-    r0_removed = False
-    if np.isclose(r[0], 0.0):
-        r, g_cur, g_tgt, G_minus_g = r[1:], g_cur[1:], g_tgt[1:], G_minus_g[1:]
-        r0_removed = True
-
+    r0_removed, (r, g_tgt, g_cur, G_minus_g) = r0_removal(r, g_tgt, g_cur, G_minus_g)
     # calc slices and Delta_r
     nocore, crucial = calc_slices(r, g_tgt, g_cur, cut_off, verbose=verbose)
     Delta_r = calc_grid_spacing(r)
-    # reciprocal grid up to Nyquist frequency
-    omega = gen_omega(r)
-    # Fourier matrix
-    F = gen_fourier_matrix(r, omega, fourier)
     # pair correlation function 'h'
     h = g_cur - 1
     # special Fourier of h
-    h_hat = fourier(r, h, omega)
+    omega, h_hat = fourier(r, h)
+    # Fourier matrix
+    F = gen_fourier_matrix(r, fourier)
     # dc/dg
     if n == 1:
         # single bead case
@@ -349,7 +465,7 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
                                    np.diag(1 / (1 + rho * h_hat)**2)),
                          F)
     else:
-        G_minus_g_hat = fourier(r, G_minus_g, omega)
+        _, G_minus_g_hat = fourier(r, G_minus_g)
         dcdg = np.matmul(np.matmul(np.linalg.inv(F),
                                    np.diag(1 / (1 + n * rho * G_minus_g_hat
                                                 + n * rho * h_hat)**2)),
@@ -398,11 +514,13 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # dU
     dU = np.matmul(A0, w)
     # fill core with nans
-    dU = np.concatenate((np.full(nocore.start + (1 if r0_removed else 0), np.nan), dU))
+    dU = np.concatenate((np.full(nocore.start, np.nan), dU))
     # dump files
     if verbose:
         np.savez_compressed('gauss-newton-arrays.npz', A=A, b=b, C=C, d=d,
                             jac_inv=jac_inv, A0=A0, J=J)
+    if r0_removed:
+        dU = np.concatenate(([0], dU))
     return dU
 
 
@@ -593,6 +711,8 @@ def main():
                           nargs='+', required=True,
                           metavar=('X-X.dpot.new', 'X-Y.dpot.new'),
                           help='U or ΔU output files')
+        pars.add_argument('--g-extrap-factor', type=float, required=False,
+                          help='factor by which to extrapolate RDFs')
     # intial potential guess subparsers
     for pars in [parser_pot_guess]:
         pars.add_argument('--G-tgt', type=argparse.FileType('r'),
@@ -696,7 +816,6 @@ def main():
     r = input_arrays['g_tgt'][0]['x']
     # compare_grids(r, input_arrays['g_cur'][0]['x'])
     # compare grids of G_cur and G_tgt with g_tgt in smart way
-
     # calculate G_minus_g
     if 'G_tgt' in input_arrays:
         g_name = 'g_tgt'
@@ -737,14 +856,47 @@ def main():
 
     # newton update
     if args.subcommand in ['newton', 'newton-mod']:
-        dU1 = calc_dU_newton(r,
-                             input_arrays['g_tgt'][0]['y'],
-                             input_arrays['g_cur'][0]['y'],
-                             input_arrays['G_minus_g'][0]['y'],
+        # further tests on input
+        # if g_extrap_factor != 1.0 then it should hold that cut-off == r[-1]
+        # this is basically HNCN (ex) vs HNCN (ed)
+        if not np.isclose(args.g_extrap_factor, r[-1]):
+            if not np.isclose(args.cut_off, r[-1]):
+                raise Exception('if g_extrap_factor is not equal 1.0, the cut-off '
+                                'needs to be the same as the range of all RDFs for '
+                                'Newton method.')
+            # extrapolate RDFs
+            if args.g_extrap_factor < 1:
+                raise Exception('g_extrap_factor needs to be larger than 1.0')
+            Delta_r = calc_grid_spacing(r)
+            r_short = np.copy(r)
+            r = np.arange(r[0], r[-1] * args.g_extrap_factor, Delta_r)
+            g_tgt = extrapolate_g(r_short, r, input_arrays['g_tgt'][0]['y'],
+                                  input_arrays['G_minus_g'][0]['y'],
+                                  args.n_intra[0], args.densities[0],
+                                  verbose=args.verbose)
+            g_cur = extrapolate_g(r_short, r, input_arrays['g_cur'][0]['y'],
+                                  input_arrays['G_minus_g'][0]['y'],
+                                  args.n_intra[0], args.densities[0],
+                                  verbose=args.verbose)
+            if args.verbose:
+                np.savez_compressed('extrapolated.npz', r=r, g_tgt=g_tgt, g_cur=g_cur)
+            G_minus_g = np.concatenate((input_arrays['G_minus_g'][0]['y'],
+                                        np.zeros(len(r)-len(r_short))))
+            cut_off = r_short[-1]
+        else:
+            g_tgt = input_arrays['g_tgt'][0]['y']
+            g_cur = input_arrays['g_cur'][0]['y']
+            G_minus_g = input_arrays['G_minus_g'][0]['y']
+            cut_off = args.cut_off
+        dU1 = calc_dU_newton(r, g_tgt, g_cur, G_minus_g,
                              args.n_intra[0], args.kBT,
-                             args.densities[0], args.cut_off, args.closure,
+                             args.densities[0], cut_off, args.closure,
                              args.subcommand == 'newton-mod',
                              verbose=args.verbose)
+        # go back to short r range if we extrapolated
+        if not np.isclose(args.g_extrap_factor, r[-1]):
+            dU1 = dU1[:len(r_short)]
+            r = r_short
         dU_flag1 = np.array(['i'] * len(r))
         dU_flag2 = upd_flag_g_smaller_g_min(dU_flag1,
                                             input_arrays['g_tgt'][0]['y'],
@@ -758,7 +910,7 @@ def main():
         dU2 = upd_U_const_first_flag_i(dU1, dU_flag4)
         U_temp = upd_U_zero_beyond_cut_off(r,
                                            dU2 + input_arrays['U_cur'][0]['y'],
-                                           args.cut_off)
+                                           cut_off)
         dU3 = U_temp - input_arrays['U_cur'][0]['y']
         comment = "created by: {}".format(" ".join(sys.argv))
         saveto_table(args.U_out[0], r, dU3, dU_flag4, comment)

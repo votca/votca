@@ -60,6 +60,7 @@ densities="$(csg_get_property cg.inverse.iie.densities)"
 n_intra="$(csg_get_property cg.inverse.iie.n_intra)"
 verbose=$(csg_get_property cg.inverse.iie.verbose)
 cut_off="$(csg_get_property cg.inverse.iie.cut_off)"
+g_extrap_factor="$(csg_get_property cg.inverse.iie.g_extrap_factor)"
 
 if [[ "${verbose}" == 'true' ]]; then
     verbose_flag="--verbose"
@@ -100,6 +101,7 @@ $G_cur_flag \
 --U-cur $(printf "%s.pot.cur" $nb_interactions) \
 --U-out $(printf "%s.dpot.new" $nb_interactions) \
 --kBT $kBT --densities $densities --cut-off $cut_off \
+--g-extrap-factor $g_extrap_factor \
 $extrap_near_core_flag \
 $fix_near_cut_off_flag \
 $pressure_constraint_flag \

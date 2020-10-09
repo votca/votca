@@ -424,6 +424,9 @@
         <DESC>Cut-off used for non-bonded potenitals in MD.
           Potential will be set to zero beyond this point.</DESC>
       </cut_off>
+      <g_extrap_factor>1.0
+        <DESC>Lenght factor by which RDF will be extrapolated</DESC>
+      </g_extrap_factor>
       <densities>
         <DESC>List of densities of the beads, sorted by bead name. TODO: replace by automatic calculation.</DESC>
       </densities>
