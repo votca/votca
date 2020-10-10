@@ -34,6 +34,8 @@ using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(deltaQ_filter_test)
 
 BOOST_AUTO_TEST_CASE(coeffs_test) {
+
+  libint2::initialize();
   FilterFactory::RegisterAll();
   std::unique_ptr<StateFilter_base> local_f =
       std::unique_ptr<StateFilter_base>(Filter().Create("localisation"));
@@ -92,6 +94,8 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
 
   BOOST_REQUIRE_THROW(local_f->CalcIndeces(A, QMStateType::Gstate),
                       std::runtime_error);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

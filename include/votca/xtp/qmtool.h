@@ -20,6 +20,7 @@
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #pragma once
+#include <libint2/initialize.h>
 #ifndef VOTCA_XTP_QMTOOL_H
 #define VOTCA_XTP_QMTOOL_H
 
@@ -27,6 +28,7 @@
 #include <boost/format.hpp>
 
 // VOTCA includes
+#include "votca/xtp/eigen.h"
 #include <votca/tools/calculator.h>
 #include <votca/tools/property.h>
 
@@ -39,10 +41,27 @@ class QMTool : public tools::Calculator {
   ~QMTool() override = default;
 
   std::string Identify() override = 0;
-  void Initialize(const tools::Property &options) override = 0;
-  virtual bool Evaluate() = 0;
+  void Initialize(const tools::Property& options) final {
+
+    tools::Property user_options =
+        LoadDefaultsAndUpdateWithUserOptions("xtp", options);
+    _job_name = user_options.ifExistsReturnElseReturnDefault<std::string>(
+        "job_name", _job_name);
+    ParseOptions(user_options);
+  }
+  bool Evaluate() {
+    libint2::initialize();
+    OPENMP::setMaxThreads(_nThreads);
+    std::cout << " Using " << OPENMP::getMaxThreads() << " threads"
+              << std::flush;
+    bool success = Run();
+    libint2::finalize();
+    return success;
+  }
 
  protected:
+  virtual bool Run() = 0;
+  virtual void ParseOptions(const tools::Property& opt) = 0;
   std::string _job_name = "votca";
 };
 

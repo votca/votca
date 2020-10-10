@@ -43,8 +43,14 @@ class JobCalculator : public tools::Calculator {
 
   std::string Identify() override = 0;
 
-  virtual bool EvaluateFrame(const Topology &top) = 0;
+  bool EvaluateFrame(const Topology &top) { return Evaluate(top); }
 
+  void Initialize(const tools::Property &opt) final {
+
+    tools::Property options = LoadDefaultsAndUpdateWithUserOptions("xtp", opt);
+
+    ParseOptions(options);
+  }
   virtual void WriteJobFile(const Topology &top) = 0;
   virtual void ReadJobFile(Topology &top) = 0;
 
@@ -52,6 +58,9 @@ class JobCalculator : public tools::Calculator {
   void setProgObserver(ProgObserver<std::vector<Job> > *obs) { _progObs = obs; }
 
  protected:
+  virtual void ParseOptions(const tools::Property &opt) = 0;
+  virtual bool Evaluate(const Topology &top) = 0;
+
   Index _openmp_threads;
   ProgObserver<std::vector<Job> > *_progObs;
 };

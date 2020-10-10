@@ -51,7 +51,7 @@ Eigen::MatrixXd ReadMatrixFromString(const std::string& matrix) {
 }
 
 BOOST_AUTO_TEST_CASE(coupling) {
-
+  libint2::initialize();
   std::ofstream opt("dftcoupling.xml");
   opt << "           <dftcoupling_options>" << std::endl;
   opt << "            <degeneracy>0.0</degeneracy>" << std::endl;
@@ -450,6 +450,8 @@ BOOST_AUTO_TEST_CASE(coupling) {
     double j = h->getAttribute<double>("j");
     BOOST_CHECK_CLOSE(j, electron_ref[levA][levB], 1e-5);
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -18,10 +18,12 @@
  */
 
 #pragma once
+#include <libint2/initialize.h>
 #ifndef VOTCA_XTP_QMCALCULATOR_H
 #define VOTCA_XTP_QMCALCULATOR_H
 
 // VOTCA includes
+#include "votca/xtp/eigen.h"
 #include <votca/tools/calculator.h>
 
 namespace votca {
@@ -38,8 +40,24 @@ class QMCalculator : public tools::Calculator {
 
   virtual bool WriteToStateFile() const = 0;
 
-  // void Initialize(tools::Property &options) override = 0;
-  virtual bool EvaluateFrame(Topology &top) = 0;
+  bool EvaluateFrame(Topology& top) {
+    libint2::initialize();
+    OPENMP::setMaxThreads(_nThreads);
+    std::cout << " Using " << OPENMP::getMaxThreads() << " threads"
+              << std::flush;
+    bool success = Evaluate(top);
+    libint2::finalize();
+    return success;
+  }
+
+  void Initialize(const tools::Property& opt) final {
+    tools::Property options = LoadDefaultsAndUpdateWithUserOptions("xtp", opt);
+    ParseOptions(options);
+  }
+
+ protected:
+  virtual void ParseOptions(const tools::Property& opt) = 0;
+  virtual bool Evaluate(Topology& top) = 0;
 };
 
 }  // namespace xtp

@@ -28,13 +28,11 @@ namespace votca {
 namespace xtp {
 
 void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
-  libint2::initialize();
-  {
-    AOCoulomb auxAOcoulomb;
-    auxAOcoulomb.Fill(auxbasis);
-    _inv_sqrt = auxAOcoulomb.Pseudo_InvSqrt(1e-8);
-    _removedfunctions = auxAOcoulomb.Removedfunctions();
-  }
+
+  AOCoulomb auxAOcoulomb;
+  auxAOcoulomb.Fill(auxbasis);
+  _inv_sqrt = auxAOcoulomb.Pseudo_InvSqrt(1e-8);
+  _removedfunctions = auxAOcoulomb.Removedfunctions();
 
   _matrix = std::vector<Symmetric_Matrix>(
       auxbasis.AOBasisSize(), Symmetric_Matrix(dftbasis.AOBasisSize()));
@@ -112,7 +110,6 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
     }
   }
 
-  libint2::finalize();
   return;
 }
 

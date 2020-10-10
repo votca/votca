@@ -34,11 +34,19 @@
 
 #include <libint2.hpp>
 
+// some versions of libint2 have no libint2::svector, in that case we typedef it
+#ifndef _libint2_include_libint2_util_smallvector_h_
+namespace libint2 {
+template <class T>
+using svector = std::vector<T>;
+}  // namespace libint2
+#endif
+
 namespace votca {
 namespace xtp {
 
-class AOBasis;
 class AOShell;
+class AOBasis;
 
 class AOGaussianPrimitive {
   friend AOShell;
@@ -49,6 +57,30 @@ class AOGaussianPrimitive {
 
   AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
                       const AOShell& aoshell);
+
+  struct data {
+    Index atomid;
+    Index l;
+    Index startindex;
+    double decay;
+    double contraction;
+    double x;
+    double y;
+    double z;
+    double scale;
+  };
+
+  AOGaussianPrimitive(const AOGaussianPrimitive::data& d,
+                      const AOShell& aoshell)
+      : _aoshell(aoshell) {
+    _decay = d.decay;
+    _contraction = d.contraction;
+    _powfactor = CalcPowFactor(_decay);
+  }
+
+  void SetupCptTable(CptTable& table) const;
+
+  void WriteData(data& d) const;
 
   double getPowfactor() const { return _powfactor; }
   double getDecay() const { return _decay; }
@@ -69,10 +101,19 @@ class AOGaussianPrimitive {
  * shells in a Gaussian-basis expansion
  */
 class AOShell {
-  friend class AOBasis;
+  friend AOBasis;
 
  public:
   AOShell(const Shell& shell, const QMAtom& atom, Index startIndex);
+
+  AOShell(const AOGaussianPrimitive::data& d) {
+    _l = static_cast<L>(d.l);
+    _scale = d.scale;
+    _startIndex = d.startindex;
+    _atomindex = d.atomid;
+    _pos = Eigen::Vector3d(d.x, d.y, d.z);
+    _gaussians.push_back(AOGaussianPrimitive(d, *this));
+  }
 
   AOShell(const AOShell& shell);
 

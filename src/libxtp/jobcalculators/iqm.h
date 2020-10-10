@@ -50,12 +50,14 @@ namespace xtp {
 
 class IQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  void Initialize(const tools::Property& user_options) override;
-  std::string Identify() override { return "iqm"; }
+  std::string Identify() final { return "iqm"; }
   Job::JobResult EvalJob(const Topology& top, Job& job,
-                         QMThread& opThread) override;
-  void WriteJobFile(const Topology& top) override;
-  void ReadJobFile(Topology& top) override;
+                         QMThread& opThread) final;
+  void WriteJobFile(const Topology& top) final;
+  void ReadJobFile(Topology& top) final;
+
+ protected:
+  void ParseSpecificOptions(const tools::Property& user_options) final;
 
  private:
   double GetBSECouplingFromProp(tools::Property& bseprop, const QMState& stateA,
@@ -67,7 +69,6 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
   void WriteLoggerToFile(const std::string& logfile, Logger& logger);
   void addLinkers(std::vector<const Segment*>& segments, const Topology& top);
   bool isLinker(const std::string& name);
-  void ParseOptionsXML(const tools::Property& options);
   std::map<std::string, QMState> FillParseMaps(const std::string& Mapstring);
 
   QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,

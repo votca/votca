@@ -34,12 +34,13 @@ namespace xtp {
 class QMSandbox : public QMTool {
  public:
   QMSandbox() = default;
-  ~QMSandbox() override = default;
+  ~QMSandbox() final = default;
 
-  std::string Identify() override { return "qmsandbox"; }
+  std::string Identify() final { return "qmsandbox"; }
 
-  void Initialize(const tools::Property& user_options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property& user_options) final;
+  bool Run() final;
 
  private:
   std::string _orbfile;

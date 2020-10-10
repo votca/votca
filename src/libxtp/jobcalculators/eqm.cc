@@ -35,11 +35,8 @@ using namespace boost::filesystem;
 namespace votca {
 namespace xtp {
 
-void EQM::Initialize(const tools::Property& user_options) {
+void EQM::ParseSpecificOptions(const tools::Property& options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  ParseCommonOptions(options);
   QMPackageFactory::RegisterAll();
 
   // job tasks

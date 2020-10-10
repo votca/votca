@@ -35,10 +35,12 @@ namespace xtp {
 
 class Neighborlist : public QMCalculator {
  public:
-  std::string Identify() override { return "neighborlist"; }
-  bool WriteToStateFile() const override { return true; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  std::string Identify() final { return "neighborlist"; }
+  bool WriteToStateFile() const final { return true; }
+
+ protected:
+  void ParseOptions(const tools::Property& user_options) final;
+  bool Evaluate(Topology& top) final;
 
  private:
   Index DetClassicalPairs(Topology& top);

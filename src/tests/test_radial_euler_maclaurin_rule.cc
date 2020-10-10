@@ -33,7 +33,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(radial_euler_maclaurin_test)
 
 BOOST_AUTO_TEST_CASE(setup_test) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/radial_euler_maclaurin_rule/molecule.xyz");
@@ -103,6 +103,8 @@ BOOST_AUTO_TEST_CASE(setup_test) {
   bool Hweight = H_weight_ref.isApprox(Hgrid.weight, 0.001);
   BOOST_CHECK_EQUAL(Hradius, true);
   BOOST_CHECK_EQUAL(Hweight, true);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

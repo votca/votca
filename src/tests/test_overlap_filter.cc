@@ -34,6 +34,8 @@ using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(overlap_filter_test)
 
 BOOST_AUTO_TEST_CASE(coeffs_test) {
+
+  libint2::initialize();
   FilterFactory::RegisterAll();
   std::unique_ptr<StateFilter_base> rho_f =
       std::unique_ptr<StateFilter_base>(Filter().Create("overlap"));
@@ -154,6 +156,8 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
   for (votca::Index i = 0; i < votca::Index(ref_btda.size()); i++) {
     BOOST_CHECK_EQUAL(ref_btda[i], results_btda[i]);
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

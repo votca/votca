@@ -35,7 +35,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(bse_test)
 
 BOOST_AUTO_TEST_CASE(bse_operator) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/bse/molecule.xyz");
@@ -132,6 +132,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
     cout << hd2_mat << endl;
   }
   BOOST_CHECK_EQUAL(check_hd2, true);
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -40,17 +40,9 @@ using namespace boost::filesystem;
 namespace votca {
 namespace xtp {
 
-void IQM::Initialize(const tools::Property& user_options) {
+void IQM::ParseSpecificOptions(const tools::Property& options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  ParseCommonOptions(options);
   QMPackageFactory::RegisterAll();
-
-  ParseOptionsXML(options);
-}
-
-void IQM::ParseOptionsXML(const tools::Property& options) {
 
   // job tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();
@@ -86,8 +78,8 @@ void IQM::ParseOptionsXML(const tools::Property& options) {
   _gwbse_options = this->UpdateGWBSEOptions(options);
 
   _dftcoupling_options = options.get(".dftcoupling_options");
-  _bsecoupling_options.add("bsecoupling", "");
-  tools::Property& prop_bsecoupling = _bsecoupling_options.get("bsecoupling");
+  tools::Property& prop_bsecoupling =
+      _bsecoupling_options.add("bsecoupling", "");
   prop_bsecoupling = options.get("bsecoupling");
 
   // read linker groups
@@ -301,7 +293,6 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     std::string qmpackage_work_dir =
         (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir)
             .generic_string();
-    ;
 
     Logger dft_logger(Log::current_level);
     dft_logger.setMultithreading(false);

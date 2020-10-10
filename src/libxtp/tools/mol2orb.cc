@@ -11,12 +11,8 @@
 namespace votca {
 namespace xtp {
 
-void Mol2Orb::Initialize(const tools::Property& user_options) {
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+void Mol2Orb::ParseOptions(const tools::Property& options) {
 
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
   _moldenfile = _job_name + ".molden.input";
   _orbfile = _job_name + ".orb";
 
@@ -24,7 +20,7 @@ void Mol2Orb::Initialize(const tools::Property& user_options) {
   _aux_basisset_name = options.get(".auxbasisset").as<std::string>();
 }
 
-bool Mol2Orb::Evaluate() {
+bool Mol2Orb::Run() {
   _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
   _log.setCommonPreface("\n... ...");

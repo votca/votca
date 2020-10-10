@@ -40,14 +40,17 @@ namespace xtp {
 
 class EQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  std::string Identify() override { return "eqm"; }
-  void Initialize(const tools::Property &user_options) override;
+  std::string Identify() final { return "eqm"; }
+
   Job::JobResult EvalJob(const Topology &top, Job &job,
-                         QMThread &opThread) override;
+                         QMThread &opThread) final;
 
   void CleanUp() { ; }
-  void WriteJobFile(const Topology &top) override;
-  void ReadJobFile(Topology &) override { return; }
+  void WriteJobFile(const Topology &top) final;
+  void ReadJobFile(Topology &) final { return; }
+
+ protected:
+  void ParseSpecificOptions(const tools::Property &user_options) final;
 
  private:
   void WriteLoggerToFile(const std::string &logfile, Logger &logger);
