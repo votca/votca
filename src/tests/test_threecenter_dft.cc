@@ -47,9 +47,6 @@ BOOST_AUTO_TEST_CASE(small_basis) {
   TCMatrix_dft threec;
   threec.Fill(aobasis, aobasis);
 
-  TCMatrix_dft threec2;
-  threec2.Fill2(aobasis, aobasis);
-
   Eigen::MatrixXd Ref0 = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/Ref0.mm");
 

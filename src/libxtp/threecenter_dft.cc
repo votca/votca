@@ -20,9 +20,13 @@
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/eigen.h"
 #include "votca/xtp/symmetric_matrix.h"
 #include "votca/xtp/threecenter.h"
+#include <Eigen/src/Core/util/Constants.h>
 #include <libint2/initialize.h>
+#include <libint2/shell.h>
+#include <unsupported/Eigen/CXX11/src/Tensor/TensorMap.h>
 
 namespace votca {
 namespace xtp {
@@ -36,12 +40,11 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
 
   _matrix = std::vector<Symmetric_Matrix>(
       auxbasis.AOBasisSize(), Symmetric_Matrix(dftbasis.AOBasisSize()));
-
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
   std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
   std::vector<libint2::Engine> engines(nthreads);
-  libint2::Engine(
+  engines[0] = libint2::Engine(
       libint2::Operator::coulomb,
       std::max(dftbasis.getMaxNprim(), auxbasis.getMaxNprim()),
       static_cast<int>(std::max(dftbasis.getMaxL(), auxbasis.getMaxL())), 0);
@@ -55,56 +58,53 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
 
 #pragma omp parallel for schedule(dynamic)
   for (Index is = dftbasis.getNumofShells() - 1; is >= 0; is--) {
-    const AOShell& dftshell = dftbasis.getShell(is);
-    std::vector<Eigen::MatrixXd> block;
-    block.reserve(dftshell.getNumFunc());
-    for (Index i = 0; i < dftshell.getNumFunc(); i++) {
-      Index size = dftshell.getStartIndex() + i + 1;
-      block.push_back(Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), size));
+
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    const libint2::Shell& dftshell = dftshells[is];
+    Index start = shell2bf[is];
+    std::vector<Eigen::MatrixXd> block(dftshell.size());
+    for (Index i = 0; i < Index(dftshell.size()); i++) {
+      Index size = start + i + 1;
+      block[i] = Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), size);
     }
 
-    const AOShell& left_dftshell = dftbasis.getShell(is);
-
-    Index start = left_dftshell.getStartIndex();
-    // alpha-loop over the aux basis function
-    for (const AOShell& shell_aux : auxbasis) {
-      Index aux_start = shell_aux.getStartIndex();
+    for (Index aux = 0; aux < auxbasis.getNumofShells(); aux++) {
+      const libint2::Shell& auxshell = auxshells[aux];
+      Index aux_start = auxshell2bf[aux];
 
       for (Index dis = 0; dis <= is; dis++) {
 
-        const AOShell& shell_col = dftbasis.getShell(dis);
-        Index col_start = shell_col.getStartIndex();
-        Eigen::Tensor<double, 3> threec_block(shell_aux.getNumFunc(),
-                                              left_dftshell.getNumFunc(),
-                                              shell_col.getNumFunc());
-        threec_block.setZero();
+        const libint2::Shell& shell_col = dftshells[dis];
+        Index col_start = shell2bf[dis];
+        engine.compute(auxshell, dftshell, shell_col);
 
-        bool nonzero = FillThreeCenterRepBlock(threec_block, shell_aux,
-                                               left_dftshell, shell_col);
-        if (nonzero) {
+        if (buf[0] == nullptr) {
+          continue;
+        }
+        Eigen::TensorMap<Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+            result(buf[0], auxshell.size(), dftshell.size(), shell_col.size());
 
-          for (Index left = 0; left < left_dftshell.getNumFunc(); left++) {
-            for (Index aux = 0; aux < shell_aux.getNumFunc(); aux++) {
-              for (Index col = 0; col < shell_col.getNumFunc(); col++) {
-                // symmetry
-                if ((col_start + col) > (start + left)) {
-                  break;
-                }
-                block[left](aux_start + aux, col_start + col) =
-                    threec_block(aux, left, col);
+        for (Index left = 0; left < dftshell.size(); left++) {
+          for (Index aux = 0; aux < auxshell.size(); aux++) {
+            for (Index col = 0; col < shell_col.size(); col++) {
+              // symmetry
+              if ((col_start + col) > (start + left)) {
+                break;
               }
+              block[left](aux_start + aux, col_start + col) =
+                  result(aux, left, col);
             }
           }
         }
       }
     }
 
-    Index offset = dftshell.getStartIndex();
     for (Index i = 0; i < Index(block.size()); ++i) {
       Eigen::MatrixXd temp = _inv_sqrt * block[i];
       for (Index mu = 0; mu < temp.rows(); ++mu) {
         for (Index j = 0; j < temp.cols(); ++j) {
-          _matrix[mu](i + offset, j) = temp(mu, j);
+          _matrix[mu](i + start, j) = temp(mu, j);
         }
       }
     }
