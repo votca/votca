@@ -330,7 +330,7 @@ def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
 
 
 def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
-                   closure, newton_mod, verbose=False):
+                   closure, newton_mod, cut_jacobian, verbose=False):
     """Calculate a potential update dU using Newtons method and integral equation
     theory. Supports symmetric molecules with n equal beads.
 
@@ -345,6 +345,8 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
         cut_off: Highest distance for potential update.
         closure: OZ-equation closure ('hnc' or 'py').
         newton_mod: Use IBI style update term.
+        cut_jacobian: Wether to cut the Jacobian. If False, then the full Jacobian will
+            be used.
 
     Returns:
         The calculated potential update.
@@ -379,14 +381,17 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
                 jac_inv = kBT * (np.diag(1 - 1 / g_cur) - dcdg)
     elif closure == 'py':
         raise NotImplementedError
-    # cut jacobian and transform back
     jac = np.linalg.inv(jac_inv)
-    jac_cut = jac[crucial, crucial]
-    jac_inv_cut = np.linalg.inv(jac_cut)
-    dU = - np.matmul(jac_inv_cut, Delta_g[crucial])
+    if cut_jacobian:
+        # cut jacobian and transform back
+        jac_cut = jac[crucial, crucial]
+        jac_inv_cut = np.linalg.inv(jac_cut)
+        dU = - np.matmul(jac_inv_cut, Delta_g[crucial])
+    else:
+        with np.errstate(invalid='ignore'):
+            dU = - np.matmul(jac_inv, Delta_g)[crucial]
     if verbose:
-        np.savez_compressed('newton-arrays.npz', jac=jac, jac_cut=jac_cut,
-                            jac_inv=jac_inv, jac_inv_cut=jac_inv_cut)
+        np.savez_compressed('newton-arrays.npz', jac=jac, jac_inv=jac_inv, dU=dU)
     # fill core and behind cut-off
     dU = np.concatenate((np.full(nocore.start, np.nan), dU,
                          np.full(len(r) - crucial.stop, np.nan)))
@@ -733,6 +738,12 @@ def main():
                           nargs='+', required=True,
                           metavar=('X-X.pot.cur', 'X-Y.pot.cur'),
                           help='potential current files')
+    # Newton's method only options
+    for pars in [parser_newton, parser_newton_mod]:
+        pars.add_argument('--cut-jacobian', dest='cut_jacobian', action='store_true',
+                          help=('Cut the top-left part of the Jacobian before'
+                                + ' multiplying with Δg.'))
+        pars.set_defaults(cut_jacobian=False)
     # HNCGN only options
     parser_gauss_newton.add_argument('--pressure-constraint',
                                      dest='pressure_constraint',
@@ -859,7 +870,7 @@ def main():
         # further tests on input
         # if g_extrap_factor != 1.0 then it should hold that cut-off == r[-1]
         # this is basically HNCN (ex) vs HNCN (ed)
-        if not np.isclose(args.g_extrap_factor, r[-1]):
+        if not np.isclose(args.g_extrap_factor, 1.0):
             if not np.isclose(args.cut_off, r[-1]):
                 raise Exception('if g_extrap_factor is not equal 1.0, the cut-off '
                                 'needs to be the same as the range of all RDFs for '
@@ -892,9 +903,10 @@ def main():
                              args.n_intra[0], args.kBT,
                              args.densities[0], cut_off, args.closure,
                              args.subcommand == 'newton-mod',
+                             args.cut_jacobian,
                              verbose=args.verbose)
         # go back to short r range if we extrapolated
-        if not np.isclose(args.g_extrap_factor, r[-1]):
+        if not np.isclose(args.g_extrap_factor, 1.0):
             dU1 = dU1[:len(r_short)]
             r = r_short
         dU_flag1 = np.array(['i'] * len(r))

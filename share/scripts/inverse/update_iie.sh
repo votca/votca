@@ -53,6 +53,10 @@ if [[ $iie_method == 'gauss-newton' ]]; then
     fi
     extrap_near_core_flag="--extrap-near-core $(csg_get_property cg.inverse.iie.extrap_near_core)"
     fix_near_cut_off_flag="--fix-near-cut-off $(csg_get_property cg.inverse.iie.fix_near_cut_off)"
+elif [[ $iie_method == 'newton' || $iie_method == 'newton-mod'  ]]; then
+    if [[ $(csg_get_property cg.inverse.iie.cut_jacobian) == 'true' ]]; then
+        cut_jacobian_flag="--cut-jacobian"
+    fi
 fi
 
 kBT="$(csg_get_property cg.inverse.kBT)"

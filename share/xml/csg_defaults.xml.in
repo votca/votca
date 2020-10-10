@@ -427,6 +427,9 @@
       <g_extrap_factor>1.0
         <DESC>Lenght factor by which RDF will be extrapolated</DESC>
       </g_extrap_factor>
+      <cut_jacobian>true
+        <DESC>Wether to cut the Jacobian before multiplying with Δg. Only for Newton methods</DESC>
+      </cut_jacobian>
       <densities>
         <DESC>List of densities of the beads, sorted by bead name. TODO: replace by automatic calculation.</DESC>
       </densities>
