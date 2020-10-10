@@ -42,7 +42,7 @@ AOBasis CreateBasis(const QMMolecule& mol) {
 }
 
 BOOST_AUTO_TEST_CASE(vxc_grid_build) {
-
+  libint2::initialize();
   QMMolecule mol("none", 0);
 
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -55,6 +55,8 @@ BOOST_AUTO_TEST_CASE(vxc_grid_build) {
   BOOST_CHECK_EQUAL(grid.getGridSize(), grid.getGridpoints().size());
   BOOST_CHECK_EQUAL(grid.getGridSize(), 53404);
   BOOST_CHECK_EQUAL(grid.getBoxesSize(), 51);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

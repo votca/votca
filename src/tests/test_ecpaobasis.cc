@@ -15,6 +15,7 @@
  */
 
 #include "votca/xtp/qmmolecule.h"
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE ecpaobasis_test
@@ -36,7 +37,7 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(ecpaobasis_test)
 
 BOOST_AUTO_TEST_CASE(Serializing) {
-
+  libint2::initialize();
   Orbitals orbitals;
 
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -78,6 +79,8 @@ BOOST_AUTO_TEST_CASE(Serializing) {
     BOOST_CHECK_EQUAL(mol[i].getNuccharge(),
                       orbitals.QMAtoms()[i].getNuccharge());
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

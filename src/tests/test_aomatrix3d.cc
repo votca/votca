@@ -32,7 +32,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(aomatrix3d_test)
 
 BOOST_AUTO_TEST_CASE(aomatrices3d_test) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/aomatrix3d/molecule.xyz");
@@ -60,10 +60,11 @@ BOOST_AUTO_TEST_CASE(aomatrices3d_test) {
       cout << dip.Matrix()[i] << endl;
     }
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(large_l_test) {
-
+  libint2::initialize();
   QMMolecule mol("C", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/aomatrix3d/C2.xyz");
 
@@ -93,6 +94,7 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
       cout << dip.Matrix()[i] << endl;
     }
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

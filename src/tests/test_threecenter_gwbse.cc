@@ -34,7 +34,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(threecenter_gwbse_test)
 BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
-
+  libint2::initialize();
   QMMolecule mol(" ", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                    "/threecenter_gwbse/molecule.xyz");
@@ -122,5 +122,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   }
 
   BOOST_CHECK_EQUAL(check4_after, true);
+
+  libint2::finalize();
 }
 BOOST_AUTO_TEST_SUITE_END()

@@ -33,6 +33,8 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(ppm_test)
 
 BOOST_AUTO_TEST_CASE(ppm_full) {
+
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/ppm/molecule.xyz");
@@ -96,6 +98,8 @@ BOOST_AUTO_TEST_CASE(ppm_full) {
 
   BOOST_CHECK_EQUAL(f_check, 1);
   BOOST_CHECK_EQUAL(w_check, 1);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

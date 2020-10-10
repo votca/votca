@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE density_integration_test
@@ -45,7 +46,7 @@ AOBasis CreateBasis(const QMMolecule& mol) {
 }
 
 BOOST_AUTO_TEST_CASE(density_test) {
-
+  libint2::initialize();
   QMMolecule mol("none", 0);
 
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -75,10 +76,11 @@ BOOST_AUTO_TEST_CASE(density_test) {
     std::cout << "ref" << std::endl;
     std::cout << field_ref.transpose() << std::endl;
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(gyration_test) {
-
+  libint2::initialize();
   ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << endl;
   xyzfile << " methane" << endl;
@@ -124,6 +126,8 @@ BOOST_AUTO_TEST_CASE(gyration_test) {
     std::cout << "ref" << std::endl;
     std::cout << gyro_ref << std::endl;
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -35,6 +35,8 @@ BOOST_AUTO_TEST_SUITE(oscillatorstrength_filter_test)
 
 BOOST_AUTO_TEST_CASE(coeffs_test) {
   FilterFactory::RegisterAll();
+
+  libint2::initialize();
   std::unique_ptr<StateFilter_base> osc_f =
       std::unique_ptr<StateFilter_base>(Filter().Create("oscillatorstrength"));
 
@@ -94,6 +96,8 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
                       std::runtime_error);
   BOOST_REQUIRE_THROW(osc_f->CalcIndeces(A, QMStateType::Triplet),
                       std::runtime_error);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
