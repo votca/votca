@@ -42,7 +42,7 @@ jobs:
           key: ${{ steps.setup.outputs.cache_key }}
           restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
       - name: CMake
-        run: mkdir builddir && cd builddir && cmake ${{ steps.setup.outputs.cmake_args }} ../votca
+        run: cmake -B builddir ${{ steps.setup.outputs.cmake_args }} votca
       - name: Build
         run: |
           ccache -z
