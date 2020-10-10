@@ -78,8 +78,8 @@ void IQM::ParseSpecificOptions(const tools::Property& options) {
   _gwbse_options = this->UpdateGWBSEOptions(options);
 
   _dftcoupling_options = options.get(".dftcoupling_options");
-  _bsecoupling_options.add("bsecoupling", "");
-  tools::Property& prop_bsecoupling = _bsecoupling_options.get("bsecoupling");
+  tools::Property& prop_bsecoupling =
+      _bsecoupling_options.add("bsecoupling", "");
   prop_bsecoupling = options.get("bsecoupling");
 
   // read linker groups
