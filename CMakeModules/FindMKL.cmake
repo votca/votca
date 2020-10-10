@@ -96,6 +96,7 @@ find_path(MKL_INCLUDE_DIR
     /opt/intel/mkl
     $ENV{MKLROOT}
     /opt/intel/compilers_and_libraries/linux/mkl
+    /usr/include/mkl
   PATH_SUFFIXES
     include
     IntelSWTools/compilers_and_libraries/windows/mkl/include
