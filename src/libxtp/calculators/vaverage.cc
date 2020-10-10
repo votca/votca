@@ -102,7 +102,7 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
   return result;
 }
 
-bool VAverage::EvaluateFrame(Topology& top) {
+bool VAverage::Evaluate(Topology& top) {
   std::cout << std::endl
             << "... ... Computing velocity average for all sites\n";
   std::cout << "Reading in site occupations from " << _occfile << std::endl;

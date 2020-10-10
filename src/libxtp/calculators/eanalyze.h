@@ -46,6 +46,7 @@ class EAnalyze : public QMCalculator {
   bool WriteToStateFile() const final { return false; }
   std::string Identify() final { return "eanalyze"; }
 
+ protected:
   void ParseOptions(const tools::Property &user_options) final;
   bool Evaluate(Topology &top) final;
 

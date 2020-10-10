@@ -33,12 +33,15 @@ class IAnalyze : public QMCalculator {
  public:
   std::string Identify() final { return "ianalyze"; }
   bool WriteToStateFile() const final { return false; }
+
+ protected:
   void ParseOptions(const tools::Property &user_options) final;
   bool Evaluate(Topology &top) final;
+
+ private:
   void IHist(Topology &top, QMStateType state);
   void IRdependence(Topology &top, QMStateType state);
 
- private:
   double _resolution_logJ2;
   std::vector<QMStateType> _states;
   double _resolution_spatial;

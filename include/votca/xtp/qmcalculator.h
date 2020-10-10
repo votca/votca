@@ -39,11 +39,11 @@ class QMCalculator : public tools::Calculator {
 
   virtual bool WriteToStateFile() const = 0;
 
-  bool EvaluateFrame(const Topology& top) {
+  bool EvaluateFrame(Topology& top) {
     OPENMP::setMaxThreads(_nThreads);
     std::cout << " Using " << OPENMP::getMaxThreads() << " threads"
               << std::flush;
-    Evaluate(top);
+    return Evaluate(top);
   }
 
   void Initialize(const tools::Property& opt) final {
@@ -53,7 +53,7 @@ class QMCalculator : public tools::Calculator {
 
  protected:
   virtual void ParseOptions(const tools::Property& opt) = 0;
-  virtual bool Evaluate(const Topology& top) = 0;
+  virtual bool Evaluate(Topology& top) = 0;
 };
 
 }  // namespace xtp

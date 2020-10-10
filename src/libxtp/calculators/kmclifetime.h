@@ -31,7 +31,9 @@ class KMCLifetime : public KMCCalculator {
   ~KMCLifetime() final = default;
   bool WriteToStateFile() const final { return false; }
   std::string Identify() final { return "kmclifetime"; }
-  void ParseOptions(const tools::Property& user_options) final;
+
+ protected:
+  void ParseSpecificOptions(const tools::Property& user_options) final;
   bool Evaluate(Topology& top) final;
 
  private:

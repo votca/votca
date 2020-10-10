@@ -41,14 +41,19 @@ class QMTool : public tools::Calculator {
 
   std::string Identify() override = 0;
   void Initialize(const tools::Property& options) final {
-    ParseOptions(options);
+
+    tools::Property user_options =
+        LoadDefaultsAndUpdateWithUserOptions("xtp", options);
+    _job_name = user_options.ifExistsReturnElseReturnDefault<std::string>(
+        "job_name", _job_name);
+    ParseOptions(user_options);
   }
   bool Evaluate() {
 
     OPENMP::setMaxThreads(_nThreads);
     std::cout << " Using " << OPENMP::getMaxThreads() << " threads"
               << std::flush;
-    Run();
+    return Run();
   }
 
  protected:

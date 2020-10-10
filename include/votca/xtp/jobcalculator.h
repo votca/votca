@@ -43,7 +43,7 @@ class JobCalculator : public tools::Calculator {
 
   std::string Identify() override = 0;
 
-  bool EvaluateFrame(const Topology &top) final { Evaluate(top); }
+  bool EvaluateFrame(const Topology &top) { return Evaluate(top); }
 
   void Initialize(const tools::Property &opt) final { ParseOptions(opt); }
   virtual void WriteJobFile(const Topology &top) = 0;

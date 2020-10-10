@@ -27,9 +27,9 @@ namespace xtp {
 
 void Neighborlist::ParseOptions(const tools::Property& options) {
 
-  std::vector<tools::Property*> segs = options.Select(".segments");
+  std::vector<const tools::Property*> segs = options.Select(".segments");
 
-  for (tools::Property* segprop : segs) {
+  for (const tools::Property* segprop : segs) {
     std::string types = segprop->get("segmentname").as<std::string>();
     double cutoff = segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
 

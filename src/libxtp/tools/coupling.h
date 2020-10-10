@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_COUPLING_PRIVATE_H
-#define VOTCA_XTP_COUPLING_PRIVATE_H
+#ifndef VOTCA_XTP_COUPLING_H
+#define VOTCA_XTP_COUPLING_H
 
 // Local VOTCA includes
 #include "votca/xtp/dftcoupling.h"
@@ -32,12 +32,13 @@ namespace xtp {
 class Coupling : public QMTool {
  public:
   Coupling() = default;
-  ~Coupling() override = default;
+  ~Coupling() final = default;
 
-  std::string Identify() override { return "coupling"; }
+  std::string Identify() final { return "coupling"; }
 
-  void Initialize(const tools::Property &user_options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property &user_options) final;
+  bool Run() final;
 
  private:
   std::string _MOsA, _MOsB, _MOsAB;
@@ -52,12 +53,7 @@ class Coupling : public QMTool {
   Logger _log;
 };
 
-void Coupling::Initialize(const tools::Property &user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
+void Coupling::ParseOptions(const tools::Property &options) {
 
   _MOsA = options.get(".moleculeA.orbitals").as<std::string>();
   _MOsB = options.get(".moleculeB.orbitals").as<std::string>();
@@ -77,8 +73,8 @@ void Coupling::Initialize(const tools::Property &user_options) {
   QMPackageFactory::RegisterAll();
 }
 
-bool Coupling::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
+bool Coupling::Run() {
+
   _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
 
@@ -159,4 +155,4 @@ bool Coupling::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_COUPLING_PRIVATE_H
+#endif  // VOTCA_XTP_COUPLING_H

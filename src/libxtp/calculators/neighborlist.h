@@ -37,6 +37,8 @@ class Neighborlist : public QMCalculator {
  public:
   std::string Identify() final { return "neighborlist"; }
   bool WriteToStateFile() const final { return true; }
+
+ protected:
   void ParseOptions(const tools::Property& user_options) final;
   bool Evaluate(Topology& top) final;
 

@@ -34,7 +34,9 @@ class KMCMultiple : public KMCCalculator {
   ~KMCMultiple() final = default;
   bool WriteToStateFile() const final { return false; }
   std::string Identify() final { return "kmcmultiple"; }
-  void ParseOptions(const tools::Property& user_options) final;
+
+ protected:
+  void ParseSpecificOptions(const tools::Property& user_options) final;
   bool Evaluate(Topology& top) final;
 
  private:

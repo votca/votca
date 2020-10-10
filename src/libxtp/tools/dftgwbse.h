@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_DFTGWBSE_PRIVATE_H
-#define VOTCA_XTP_DFTGWBSE_PRIVATE_H
+#ifndef VOTCA_XTP_DFTGWBSE_H
+#define VOTCA_XTP_DFTGWBSE_H
 
 // Standard includes
 #include <cstdio>
@@ -35,12 +35,13 @@ class DftGwBse : public QMTool {
  public:
   DftGwBse() = default;
 
-  ~DftGwBse() override = default;
+  ~DftGwBse() final = default;
 
-  std::string Identify() override { return "dftgwbse"; }
+  std::string Identify() final { return "dftgwbse"; }
 
-  void Initialize(const tools::Property &user_options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property &user_options) final;
+  bool Run() final;
 
  private:
   std::string _guess_file;
@@ -68,4 +69,4 @@ class DftGwBse : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_DFTGWBSE_PRIVATE_H
+#endif  // VOTCA_XTP_DFTGWBSE_H

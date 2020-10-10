@@ -35,9 +35,7 @@
 
 namespace votca {
 namespace xtp {
-void KMCMultiple::ParseOptions(const tools::Property& options) {
-
-  ParseCommonOptions(options);
+void KMCMultiple::ParseSpecificOptions(const tools::Property& options) {
 
   _runtime = options.get(".runtime").as<double>();
   _field = options.get(".field").as<Eigen::Vector3d>();

@@ -34,12 +34,16 @@ class EInternal : public QMCalculator {
   ~EInternal() final = default;
 
   std::string Identify() final { return "einternal"; }
+
   bool WriteToStateFile() const final { return true; }
+
+ protected:
   void ParseOptions(const tools::Property &user_options) final;
-  void ParseEnergies();
   bool Evaluate(Topology &top) final;
 
  private:
+  void ParseEnergies();
+
   std::map<std::string, QMStateCarrierStorage<double> > _seg_U_xX_nN;
   std::map<std::string, QMStateCarrierStorage<double> > _seg_U_nX_nN;
   std::map<std::string, QMStateCarrierStorage<double> > _seg_U_xN_xX;

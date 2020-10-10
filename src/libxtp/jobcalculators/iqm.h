@@ -50,12 +50,14 @@ namespace xtp {
 
 class IQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  void ParseSpecificOptions(const tools::Property& user_options) final;
   std::string Identify() final { return "iqm"; }
   Job::JobResult EvalJob(const Topology& top, Job& job,
                          QMThread& opThread) final;
   void WriteJobFile(const Topology& top) final;
   void ReadJobFile(Topology& top) final;
+
+ protected:
+  void ParseSpecificOptions(const tools::Property& user_options) final;
 
  private:
   double GetBSECouplingFromProp(tools::Property& bseprop, const QMState& stateA,
