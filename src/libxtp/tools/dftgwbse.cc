@@ -31,13 +31,7 @@
 namespace votca {
 namespace xtp {
 
-void DftGwBse::Initialize(const tools::Property& user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
+void DftGwBse::ParseOptions(const tools::Property& options) {
 
   // molecule coordinates
   _xyzfile = options.ifExistsReturnElseReturnDefault<std::string>(
@@ -97,8 +91,7 @@ void DftGwBse::Initialize(const tools::Property& user_options) {
   QMPackageFactory::RegisterAll();
 }
 
-bool DftGwBse::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
+bool DftGwBse::Run() {
 
   _log.setReportLevel(Log::current_level);
 

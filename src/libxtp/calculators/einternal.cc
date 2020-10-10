@@ -24,10 +24,7 @@
 namespace votca {
 namespace xtp {
 
-void EInternal::Initialize(const tools::Property &user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+void EInternal::ParseOptions(const tools::Property &options) {
 
   _energiesXML = options.get(".energiesXML").as<std::string>();
 }
@@ -82,7 +79,7 @@ void EInternal::ParseEnergies() {
   }
 }
 
-bool EInternal::EvaluateFrame(Topology &top) {
+bool EInternal::Evaluate(Topology &top) {
 
   ParseEnergies();
 

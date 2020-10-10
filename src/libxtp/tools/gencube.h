@@ -34,12 +34,13 @@ class GenCube : public QMTool {
  public:
   GenCube() = default;
 
-  ~GenCube() override = default;
+  ~GenCube() final = default;
 
   std::string Identify() final { return "gencube"; }
 
-  void Initialize(const tools::Property& user_options) final;
-  bool Evaluate() final;
+ protected:
+  void ParseOptions(const tools::Property& user_options) final;
+  bool Run() final;
 
  private:
   void calculateCube();
