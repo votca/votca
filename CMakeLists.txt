@@ -52,6 +52,9 @@ if(NOT TARGET PkgConfig::LIBINT)
   pkg_check_modules(LIBINT REQUIRED IMPORTED_TARGET libint2>=2.6)
 endif()
 
+if(NOT PkgConfig::LIBINT)
+  pkg_check_modules(LIBINT REQUIRED IMPORTED_TARGET libint2>=libint2.6)
+endif()
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
 

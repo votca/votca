@@ -107,7 +107,7 @@ libint2::Shell AOShell::LibintShell() const {
 
 void AOShell::normalizeContraction() {
   AOOverlap overlap;
-  Eigen::MatrixXd block = overlap.FillShell(*this);
+  Eigen::MatrixXd block = overlap.singleShellOverlap(*this);
   double norm = std::sqrt(block(0, 0));
   for (auto& gaussian : _gaussians) {
     gaussian._contraction /= norm;

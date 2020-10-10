@@ -34,14 +34,17 @@ namespace xtp {
 
 Index AOBasis::getMaxL() const {
   Index n = 0;
-  for (const auto& shell : _aoshells)
+  for (const auto& shell : _aoshells) {
     n = std::max(static_cast<Index>(shell.getL()), n);
+  }
   return n;
 }
 
 Index AOBasis::getMaxNprim() const {
   Index n = 0;
-  for (const auto& shell : _aoshells) n = std::max(shell.getSize(), n);
+  for (const auto& shell : _aoshells) {
+    n = std::max(shell.getSize(), n);
+  }
   return n;
 }
 
@@ -121,7 +124,6 @@ void AOBasis::FillFuncperAtom() {
     }
   }
 }
-
 std::vector<libint2::Shell> AOBasis::GenerateLibintBasis() const {
   std::vector<libint2::Shell> libintshells;
   libintshells.reserve(_aoshells.size());
@@ -129,6 +131,50 @@ std::vector<libint2::Shell> AOBasis::GenerateLibintBasis() const {
     libintshells.push_back(shell.LibintShell());
   }
   return libintshells;
+}
+
+std::vector<std::vector<Index>> AOBasis::ComputeShellPairs(
+    double threshold) const {
+
+  Index nthreads = OPENMP::getMaxThreads();
+
+  std::vector<libint2::Shell> shells = GenerateLibintBasis();
+
+  // construct the 2-electron repulsion integrals engine
+  std::vector<libint2::Engine> engines;
+  engines.reserve(nthreads);
+  engines.emplace_back(libint2::Operator::overlap, getMaxNprim(), getMaxL(), 0);
+  for (Index i = 1; i != nthreads; ++i) {
+    engines.push_back(engines[0]);
+  }
+
+  std::vector<std::vector<Index>> pairs(shells.size());
+
+#pragma omp parallel for schedule(dynamic)
+  for (Index s1 = 0; s1 < Index(shells.size()); ++s1) {
+    Index thread_id = OPENMP::getThreadId();
+
+    libint2::Engine& engine = engines[thread_id];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    Index n1 = shells[s1].size();
+
+    for (Index s2 = s1; s2 < Index(shells.size()); ++s2) {
+      bool on_same_center = (shells[s1].O == shells[s2].O);
+      bool significant = on_same_center;
+      if (!on_same_center) {
+        Index n2 = shells[s2].size();
+        engine.compute(shells[s1], shells[s2]);
+        Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[0], n1, n2);
+        significant = (buf_mat.norm() >= threshold);
+      }
+      if (significant) {
+        pairs[s1].push_back(s2);
+      }
+    }
+    std::vector<Index>& list = pairs[s1];
+    std::sort(list.begin(), list.end());
+  }
+  return pairs;
 }
 
 void AOBasis::UpdateShellPositions(const QMMolecule& mol) {

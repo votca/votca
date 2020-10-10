@@ -1,4 +1,6 @@
 #include "qmsandbox.h"
+#include "votca/xtp/orbreorder.h"
+#include <votca/tools/eigenio_matrixmarket.h>
 
 namespace votca {
 namespace xtp {
@@ -17,11 +19,13 @@ bool QMSandbox::Evaluate() {
   _log.setMultithreading(true);
   _log.setCommonPreface("\n... ...");
 
+  OPENMP::setMaxThreads(_nThreads);
+
   QMMolecule atoms("", 0);
   atoms.LoadFromFile(_job_name + ".xyz");
 
   BasisSet bs;
-  bs.Load("def2-tzvp");
+  bs.Load("def2-svp");
   AOBasis basis;
   basis.Fill(bs, atoms);
 
@@ -34,15 +38,26 @@ bool QMSandbox::Evaluate() {
   std::copy(std::begin(shells), std::end(shells),
             std::ostream_iterator<libint2::Shell>(std::cout, "\n"));
 
-  // Compute Overlap with VOTCA
-  AOOverlap dftAOoverlap;
-  dftAOoverlap.Fill(basis);
+  AOOverlap aooverlap;
+  AOCoulomb aocoulomb;
+  AOKinetic aokinetic;
+  AODipole aodipole;
 
-  XTP_LOG(Log::error, _log) << "\n\tOverlap Integrals VOTCA:\n";
-  XTP_LOG(Log::error, _log) << dftAOoverlap.Matrix() << std::endl;
+  for (int i = 0; i < 100; i++) {
+    aooverlap.Fill(basis);
+  }
+  for (int i = 0; i < 100; i++) {
+    aocoulomb.Fill(basis);
+  }
+  for (int i = 0; i < 100; i++) {
+    aokinetic.Fill(basis);
+  }
+  for (int i = 0; i < 100; i++) {
+    aodipole.Fill(basis);
+  }
 
   return true;
-}
+}  // namespace xtp
 
 }  // namespace xtp
 }  // namespace votca

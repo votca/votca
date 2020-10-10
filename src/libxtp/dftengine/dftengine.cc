@@ -31,7 +31,6 @@
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/aomatrix3d.h"
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/dftengine.h"

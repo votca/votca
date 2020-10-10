@@ -24,31 +24,5 @@
 #include "votca/xtp/aomatrix.h"
 
 namespace votca {
-namespace xtp {
-
-void AOMatrix::Fill(const AOBasis& aobasis) {
-  _aomatrix =
-      Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-  // AOMatrix is symmetric, restrict explicit calculation of lower triangular
-  // matrix
-#pragma omp parallel for schedule(guided)
-  for (Index col = 0; col < aobasis.getNumofShells(); col++) {
-    const AOShell& shell_col = aobasis.getShell(col);
-    Index col_start = shell_col.getStartIndex();
-    for (Index row = col; row < aobasis.getNumofShells(); row++) {
-      const AOShell& shell_row = aobasis.getShell(row);
-      Index row_start = shell_row.getStartIndex();
-      // figure out the submatrix
-      Eigen::Block<Eigen::MatrixXd> block = _aomatrix.block(
-          row_start, col_start, shell_row.getNumFunc(), shell_col.getNumFunc());
-      // Fill block
-      FillBlock(block, shell_row, shell_col);
-    }
-  }
-  // Fill whole matrix by copying
-  _aomatrix = _aomatrix.template selfadjointView<Eigen::Lower>();
-  return;
-}
-
-}  // namespace xtp
+namespace xtp {}  // namespace xtp
 }  // namespace votca

@@ -22,7 +22,7 @@
 
 #include <votca/tools/eigenio_matrixmarket.h>
 // Local VOTCA includes
-#include "votca/xtp/aomatrix3d.h"
+#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;
@@ -60,28 +60,6 @@ BOOST_AUTO_TEST_CASE(aomatrices3d_test) {
       cout << dip.Matrix()[i] << endl;
     }
   }
-
-  AOMomentum momentum;
-  momentum.Fill(aobasis);
-  std::array<Eigen::MatrixXd, 3> momentum_ref;
-  for (unsigned i = 0; i < momentum_ref.size(); i++) {
-    momentum_ref[i] = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-        std::string(XTP_TEST_DATA_FOLDER) + "/aomatrix3d/momentum_ref_" +
-        std::to_string(i) + ".mm");
-  }
-
-  for (unsigned i = 0; i < momentum_ref.size(); i++) {
-
-    bool check_momentum =
-        momentum.Matrix()[i].isApprox(momentum_ref[i], 0.0001);
-    BOOST_CHECK_EQUAL(check_momentum, true);
-    if (!check_momentum) {
-      cout << "ref" << i << endl;
-      cout << momentum_ref[i] << endl;
-      cout << "result" << i << endl;
-      cout << momentum.Matrix()[i] << endl;
-    }
-  }
 }
 
 BOOST_AUTO_TEST_CASE(large_l_test) {
@@ -113,29 +91,6 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
       cout << dip_ref[i] << endl;
       cout << "result" << i << endl;
       cout << dip.Matrix()[i] << endl;
-    }
-  }
-
-  AOMomentum momentum;
-  momentum.Fill(dftbasis);
-
-  std::array<Eigen::MatrixXd, 3> momentum_ref;
-  for (unsigned i = 0; i < momentum_ref.size(); i++) {
-    momentum_ref[i] = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-        std::string(XTP_TEST_DATA_FOLDER) + "/aomatrix3d/momentum_ref_large_" +
-        std::to_string(i) + ".mm");
-  }
-
-  for (unsigned i = 0; i < momentum_ref.size(); i++) {
-
-    bool check_momentum =
-        momentum.Matrix()[i].isApprox(momentum_ref[i], 0.0001);
-    BOOST_CHECK_EQUAL(check_momentum, true);
-    if (!check_momentum) {
-      cout << "ref" << i << endl;
-      cout << momentum_ref[i] << endl;
-      cout << "result" << i << endl;
-      cout << momentum.Matrix()[i] << endl;
     }
   }
 }

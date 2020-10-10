@@ -20,79 +20,31 @@
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aotransform.h"
-#include <shell.h>
 
 namespace votca {
 namespace xtp {
 
 void AOOverlap::Fill(const AOBasis& aobasis) {
   libint2::initialize();
-  std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
-  libint2::Operator obtype = libint2::Operator::overlap;
-  libint2::Engine engine(obtype, aobasis.getMaxNprim(), aobasis.getMaxL(), 0);
-
-  _aomatrix.resize(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-
-  auto shell2bf = aobasis.getMapToBasisFunctions();
-
-  const auto& buf = engine.results();
-
-  for (auto s1 = 0; s1 != shells.size(); ++s1) {
-
-    auto bf1 = shell2bf[s1];  // first basis function in this shell
-    auto n1 = shells[s1].size();
-
-    for (auto s2 = 0; s2 <= s1; ++s2) {
-
-      auto bf2 = shell2bf[s2];
-      auto n2 = shells[s2].size();
-
-      // compute shell pair
-      engine.compute(shells[s1], shells[s2]);
-
-      // "map" buffer to a const Eigen Matrix, and copy it to the corresponding
-      // blocks of the result
-      Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[0], n1, n2);
-      _aomatrix.block(bf1, bf2, n1, n2) = buf_mat;
-      if (s1 != s2)  // if s1 >= s2, copy {s1,s2} to the corresponding {s2,s1}
-                     // block, note the transpose!
-        _aomatrix.block(bf2, bf1, n2, n1) = buf_mat.transpose();
-    }
-  }
+  _aomatrix = computeOneBodyIntegrals<libint2::Operator::overlap>(aobasis)[0];
   libint2::finalize();
 }
 
-// HERE SO OLD STUFF STILL COMPILES, WILL BE DELETED SOON
-Eigen::MatrixXd AOOverlap::Primitive_Overlap(const AOGaussianPrimitive& g_row,
-                                             const AOGaussianPrimitive& g_col,
-                                             Index l_offset) const {
-  Eigen::MatrixXd ol = Eigen::MatrixXd(5, 5);
-  return ol;
-}
-
-// HERE SO OLD STUFF STILL COMPILES, WILL BE DELETED SOON
-void AOOverlap::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                          const AOShell& shell_row,
-                          const AOShell& shell_col) const {
-
-  ;
-}
-
-// Needed to compute the normalization of the contractions
-Eigen::MatrixXd AOOverlap::FillShell(const AOShell& shell) const {
-
+Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
+  libint2::Shell::do_enforce_unit_normalization(false);
   libint2::initialize();
   libint2::Operator obtype = libint2::Operator::overlap;
-  libint2::Engine engine(obtype, shell.getNumFunc() + 3,
-                         static_cast<Index>(shell.getL()), 0);
+  libint2::Engine engine(obtype, shell.getSize(),
+                         static_cast<int>(shell.getL()), 0);
 
-  const auto& buf = engine.results();
+  const libint2::Engine::target_ptr_vec& buf = engine.results();
 
   libint2::Shell s = shell.LibintShell();
   engine.compute(s, s);
 
-  Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[0], shell.getSize(),
-                                            shell.getSize());
+  Eigen::Map<const MatrixLibInt> buf_mat(buf[0], shell.getNumFunc(),
+                                         shell.getNumFunc());
+
   libint2::finalize();
   return buf_mat;
 }
