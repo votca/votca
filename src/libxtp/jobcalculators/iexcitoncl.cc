@@ -43,11 +43,7 @@ namespace xtp {
 // IEXCITON MEMBER FUNCTIONS         //
 // +++++++++++++++++++++++++++++ //
 
-void IEXCITON::Initialize(const tools::Property& user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  ParseCommonOptions(options);
+void IEXCITON::ParseSpecificOptions(const tools::Property& options) {
 
   if (options.get(".use_states").as<bool>()) {
     std::string parse_string = options.get(".states").as<std::string>();
