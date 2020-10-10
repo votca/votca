@@ -16,8 +16,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_KMCMULTIPLE_PRIVATE_H
-#define VOTCA_XTP_KMCMULTIPLE_PRIVATE_H
+#ifndef VOTCA_XTP_KMCMULTIPLE_H
+#define VOTCA_XTP_KMCMULTIPLE_H
 
 // Standard includes
 #include <fstream>
@@ -31,14 +31,14 @@ namespace xtp {
 class KMCMultiple : public KMCCalculator {
  public:
   KMCMultiple() = default;
-  ~KMCMultiple() override = default;
-  bool WriteToStateFile() const override { return false; }
-  std::string Identify() override { return "kmcmultiple"; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  ~KMCMultiple() final = default;
+  bool WriteToStateFile() const final { return false; }
+  std::string Identify() final { return "kmcmultiple"; }
+  void ParseOptions(const tools::Property& user_options) final;
+  bool Evaluate(Topology& top) final;
 
  private:
-  void RunVSSM() override;
+  void RunVSSM() final;
   void PrintChargeVelocity(double simtime);
 
   void PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
@@ -64,4 +64,4 @@ class KMCMultiple : public KMCCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_KMCMULTIPLE_PRIVATE_H
+#endif  // VOTCA_XTP_KMCMULTIPLE_H

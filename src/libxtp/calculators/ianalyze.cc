@@ -31,10 +31,7 @@
 namespace votca {
 namespace xtp {
 
-void IAnalyze::Initialize(const tools::Property &user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+void IAnalyze::ParseOptions(const tools::Property &options) {
 
   std::string statestrings = options.get(".states").as<std::string>();
   tools::Tokenizer tok(statestrings, ",\n\t ");
@@ -67,7 +64,7 @@ void IAnalyze::Initialize(const tools::Property &user_options) {
   }
 }
 
-bool IAnalyze::EvaluateFrame(Topology &top) {
+bool IAnalyze::Evaluate(Topology &top) {
   std::cout << std::endl;
   QMNBList &nblist = top.NBList();
   if (!nblist.size()) {

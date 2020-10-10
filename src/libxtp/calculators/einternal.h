@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_EINTERNAL_PRIVATE_H
-#define VOTCA_XTP_EINTERNAL_PRIVATE_H
+#ifndef VOTCA_XTP_EINTERNAL_H
+#define VOTCA_XTP_EINTERNAL_H
 
 // Local VOTCA includes
 #include "votca/xtp/qmcalculator.h"
@@ -31,13 +31,13 @@ namespace xtp {
 class EInternal : public QMCalculator {
  public:
   EInternal() = default;
-  ~EInternal() override = default;
+  ~EInternal() final = default;
 
-  std::string Identify() override { return "einternal"; }
-  bool WriteToStateFile() const override { return true; }
-  void Initialize(const tools::Property &user_options) override;
+  std::string Identify() final { return "einternal"; }
+  bool WriteToStateFile() const final { return true; }
+  void ParseOptions(const tools::Property &user_options) final;
   void ParseEnergies();
-  bool EvaluateFrame(Topology &top) override;
+  bool Evaluate(Topology &top) final;
 
  private:
   std::map<std::string, QMStateCarrierStorage<double> > _seg_U_xX_nN;
@@ -54,4 +54,4 @@ class EInternal : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_EINTERNAL_PRIVATE_H
+#endif  // VOTCA_XTP_EINTERNAL_H

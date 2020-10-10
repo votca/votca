@@ -39,11 +39,9 @@
 namespace votca {
 namespace xtp {
 
-void KMCLifetime::Initialize(const tools::Property& user_options) {
+void KMCLifetime::ParseOptions(const tools::Property& options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  ParseCommonOptions(user_options);
+  ParseCommonOptions(options);
 
   _insertions = options.get(".numberofinsertions").as<unsigned long>();
   _lifetimefile = options.get(".lifetimefile").as<std::string>();

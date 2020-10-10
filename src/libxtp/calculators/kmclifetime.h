@@ -16,8 +16,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_KMCLIFETIME_PRIVATE_H
-#define VOTCA_XTP_KMCLIFETIME_PRIVATE_H
+#ifndef VOTCA_XTP_KMCLIFETIME_H
+#define VOTCA_XTP_KMCLIFETIME_H
 
 // Local VOTCA includes
 #include "votca/xtp/kmccalculator.h"
@@ -28,16 +28,16 @@ namespace xtp {
 class KMCLifetime : public KMCCalculator {
  public:
   KMCLifetime() = default;
-  ~KMCLifetime() override = default;
-  bool WriteToStateFile() const override { return false; }
-  std::string Identify() override { return "kmclifetime"; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  ~KMCLifetime() final = default;
+  bool WriteToStateFile() const final { return false; }
+  std::string Identify() final { return "kmclifetime"; }
+  void ParseOptions(const tools::Property& user_options) final;
+  bool Evaluate(Topology& top) final;
 
  private:
   void WriteDecayProbability(std::string filename);
 
-  void RunVSSM() override;
+  void RunVSSM() final;
   void WriteToTraj(std::fstream& traj, unsigned long insertioncount,
                    double simtime, const Chargecarrier& affectedcarrier) const;
 
@@ -54,4 +54,4 @@ class KMCLifetime : public KMCCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_KMCLIFETIME_PRIVATE_H
+#endif  // VOTCA_XTP_KMCLIFETIME_H

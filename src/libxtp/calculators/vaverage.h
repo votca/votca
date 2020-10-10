@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_VAVERAGE_PRIVATE_H
-#define VOTCA_XTP_VAVERAGE_PRIVATE_H
+#ifndef VOTCA_XTP_VAVERAGE_H
+#define VOTCA_XTP_VAVERAGE_H
 
 // Standard includes
 #include <cstdio>
@@ -39,12 +39,12 @@ class VAverage : public QMCalculator {
  public:
   VAverage() = default;
 
-  ~VAverage() override = default;
+  ~VAverage() final = default;
 
-  std::string Identify() override { return "vaverage"; }
-  bool WriteToStateFile() const override { return false; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  std::string Identify() final { return "vaverage"; }
+  bool WriteToStateFile() const final { return false; }
+  void ParseOptions(const tools::Property& user_options) final;
+  bool Evaluate(Topology& top) final;
 
  private:
   Logger _log;
@@ -59,4 +59,4 @@ class VAverage : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_VAVERAGE_PRIVATE_H
+#endif  // VOTCA_XTP_VAVERAGE_H

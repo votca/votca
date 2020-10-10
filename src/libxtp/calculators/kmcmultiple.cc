@@ -35,10 +35,8 @@
 
 namespace votca {
 namespace xtp {
-void KMCMultiple::Initialize(const tools::Property& user_options) {
+void KMCMultiple::ParseOptions(const tools::Property& options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
   ParseCommonOptions(options);
 
   _runtime = options.get(".runtime").as<double>();
@@ -457,7 +455,7 @@ void KMCMultiple::RunVSSM() {
   return;
 }
 
-bool KMCMultiple::EvaluateFrame(Topology& top) {
+bool KMCMultiple::Evaluate(Topology& top) {
   XTP_LOG(Log::error, _log) << "\n-----------------------------------"
                                "\n      KMC FOR MULTIPLE CHARGES"
                                "\n-----------------------------------\n"

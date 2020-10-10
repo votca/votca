@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_NEIGHBORLIST_PRIVATE_H
-#define VOTCA_XTP_NEIGHBORLIST_PRIVATE_H
+#ifndef VOTCA_XTP_NEIGHBORLIST_H
+#define VOTCA_XTP_NEIGHBORLIST_H
 
 // VOTCA includes
 #include <votca/tools/globals.h>
@@ -35,10 +35,10 @@ namespace xtp {
 
 class Neighborlist : public QMCalculator {
  public:
-  std::string Identify() override { return "neighborlist"; }
-  bool WriteToStateFile() const override { return true; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  std::string Identify() final { return "neighborlist"; }
+  bool WriteToStateFile() const final { return true; }
+  void ParseOptions(const tools::Property& user_options) final;
+  bool Evaluate(Topology& top) final;
 
  private:
   Index DetClassicalPairs(Topology& top);
@@ -54,4 +54,4 @@ class Neighborlist : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_NEIGHBORLIST_PRIVATE_H
+#endif  // VOTCA_XTP_NEIGHBORLIST_H

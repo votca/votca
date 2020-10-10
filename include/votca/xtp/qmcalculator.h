@@ -22,6 +22,7 @@
 #define VOTCA_XTP_QMCALCULATOR_H
 
 // VOTCA includes
+#include "votca/xtp/eigen.h"
 #include <votca/tools/calculator.h>
 
 namespace votca {
@@ -38,8 +39,21 @@ class QMCalculator : public tools::Calculator {
 
   virtual bool WriteToStateFile() const = 0;
 
-  // void Initialize(tools::Property &options) override = 0;
-  virtual bool EvaluateFrame(Topology &top) = 0;
+  bool EvaluateFrame(const Topology& top) {
+    OPENMP::setMaxThreads(_nThreads);
+    std::cout << " Using " << OPENMP::getMaxThreads() << " threads"
+              << std::flush;
+    Evaluate(top);
+  }
+
+  void Initialize(const tools::Property& opt) final {
+    tools::Property options = LoadDefaultsAndUpdateWithUserOptions("xtp", opt);
+    ParseOptions(options);
+  }
+
+ protected:
+  virtual void ParseOptions(const tools::Property& opt) = 0;
+  virtual bool Evaluate(const Topology& top) = 0;
 };
 
 }  // namespace xtp

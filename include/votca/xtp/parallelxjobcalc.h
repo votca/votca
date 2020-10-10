@@ -56,11 +56,16 @@ class ParallelXJobCalc : public JobCalculator {
   using Result = typename Job::JobResult;
 
   ParallelXJobCalc() = default;
-  ~ParallelXJobCalc() override { ; };
+  ~ParallelXJobCalc() override = default;
 
   std::string Identify() override = 0;
 
-  bool EvaluateFrame(const Topology &top) override;
+  void ParseOptions(const tools::Property &opt) final {
+    ParseCommonOptions(opt);
+    ParseSpecificOptions(opt);
+  }
+
+  bool Evaluate(const Topology &top) override;
   virtual void CustomizeLogger(QMThread &thread);
   virtual Result EvalJob(const Topology &top, Job &job, QMThread &thread) = 0;
 
@@ -91,7 +96,8 @@ class ParallelXJobCalc : public JobCalculator {
   };
 
  protected:
-  void ParseCommonOptions(const tools::Property &options);
+  virtual void ParseSpecificOptions(const tools::Property &options) = 0;
+
   // set the basis sets and functional in DFT package
   tools::Property UpdateDFTOptions(const tools::Property &options);
   // set the basis sets and functional in GWBSE
@@ -102,6 +108,9 @@ class ParallelXJobCalc : public JobCalculator {
   tools::Mutex _logMutex;
   std::string _mapfile = "";
   std::string _jobfile = "";
+
+ private:
+  void ParseCommonOptions(const tools::Property &options);
 };
 
 }  // namespace xtp
