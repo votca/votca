@@ -18,15 +18,9 @@
  */
 
 // Local VOTCA includes
-#include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/eigen.h"
 #include "votca/xtp/symmetric_matrix.h"
 #include "votca/xtp/threecenter.h"
-#include <Eigen/src/Core/util/Constants.h>
-#include <libint2/initialize.h>
-#include <libint2/shell.h>
-#include <unsupported/Eigen/CXX11/src/Tensor/TensorMap.h>
 
 namespace votca {
 namespace xtp {
