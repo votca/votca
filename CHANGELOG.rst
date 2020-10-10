@@ -25,6 +25,7 @@ Version 2021-dev
 -  refactored tests to use files instead of data in source code (#572)
 -  corrected max index in csg_resample (#575)
 -  add periodic extrapolation for dihedrals (#576)
+-  bump required CMake version to 3.12 (#599)
 
 Version 1.6.3 (released XX.08.20)
 =================================
