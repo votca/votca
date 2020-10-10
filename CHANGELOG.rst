@@ -23,7 +23,7 @@ Version 2021-dev
 -  standardize header formatting (#246)
 -  move CI to GitHub Ations (#251, #254, #256, #258, #260,
    #274, #275, #296)
--  improve mkl detection (#257)
+-  improve mkl detection (#257, #299)
 -  clean up installed cmake find modules (#263)
 -  update codacy badge (#264)
 -  add mkl builds to CI (#267, #271)
