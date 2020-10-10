@@ -70,7 +70,7 @@ void XtpTools::Initialize() {
 
   // Tools-related
   AddProgramOptions("Tools")("execute,e", propt::value<std::string>(),
-                             "List of tools separated by ',' or ' '");
+                             "name of the tool to run");
   AddProgramOptions("Tools")("list,l", "Lists all available tools");
   AddProgramOptions("Tools")("description,d", propt::value<std::string>(),
                              "Short description of a tool");
@@ -125,8 +125,7 @@ bool XtpTools::EvaluateOptions() {
   tools::Tokenizer xtools(OptionsMap()["execute"].as<std::string>(), " ,\n\t");
   std::vector<std::string> calc_string = xtools.ToVector();
   if (calc_string.size() != 1) {
-    throw std::runtime_error(
-        "You can only run one calculator at the same time.");
+    throw std::runtime_error("You can only run one tool at the same time.");
   }
 
   CheckRequired(

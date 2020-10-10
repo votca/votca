@@ -14,6 +14,7 @@
  *
  */
 #include <iomanip>
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aobasis_test
@@ -36,7 +37,7 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(aobasis_test)
 
 BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/aobasis/Al.xyz");
@@ -90,10 +91,11 @@ BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
     }
     BOOST_CHECK_EQUAL(check_norm, 1);
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(Serializing) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/aobasis/molecule.xyz");
@@ -125,10 +127,11 @@ BOOST_AUTO_TEST_CASE(Serializing) {
   for (size_t i = 0; i < func_per_atom1.size(); i++) {
     BOOST_CHECK_EQUAL(func_per_atom1[i], func_per_atom2[i]);
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(Adding_a_basis) {
-
+  libint2::initialize();
   QMMolecule mol("a", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/aobasis/molecule.xyz");
 
@@ -175,6 +178,7 @@ BOOST_AUTO_TEST_CASE(Adding_a_basis) {
   for (size_t i = 0; i < func_per_atom3.size(); i++) {
     BOOST_CHECK_EQUAL(func_per_atom1[i], func_per_atom3[i]);
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

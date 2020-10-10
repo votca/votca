@@ -25,14 +25,11 @@ namespace votca {
 namespace xtp {
 
 void AOOverlap::Fill(const AOBasis& aobasis) {
-  libint2::initialize();
   _aomatrix = computeOneBodyIntegrals<libint2::Operator::overlap>(aobasis)[0];
-  libint2::finalize();
 }
 
 Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
   libint2::Shell::do_enforce_unit_normalization(false);
-  libint2::initialize();
   libint2::Operator obtype = libint2::Operator::overlap;
   libint2::Engine engine(obtype, shell.getSize(),
                          static_cast<int>(shell.getL()), 0);
@@ -45,7 +42,6 @@ Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
   Eigen::Map<const MatrixLibInt> buf_mat(buf[0], shell.getNumFunc(),
                                          shell.getNumFunc());
 
-  libint2::finalize();
   return buf_mat;
 }
 

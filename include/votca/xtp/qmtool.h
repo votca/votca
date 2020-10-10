@@ -20,6 +20,7 @@
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #pragma once
+#include <libint2/initialize.h>
 #ifndef VOTCA_XTP_QMTOOL_H
 #define VOTCA_XTP_QMTOOL_H
 
@@ -49,11 +50,13 @@ class QMTool : public tools::Calculator {
     ParseOptions(user_options);
   }
   bool Evaluate() {
-
+    libint2::initialize();
     OPENMP::setMaxThreads(_nThreads);
     std::cout << " Using " << OPENMP::getMaxThreads() << " threads"
               << std::flush;
-    return Run();
+    bool success = Run();
+    libint2::finalize();
+    return success;
   }
 
  protected:

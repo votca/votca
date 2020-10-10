@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <libint2/initialize.h>
 #ifndef VOTCA_XTP_QMCALCULATOR_H
 #define VOTCA_XTP_QMCALCULATOR_H
 
@@ -40,10 +41,13 @@ class QMCalculator : public tools::Calculator {
   virtual bool WriteToStateFile() const = 0;
 
   bool EvaluateFrame(Topology& top) {
+    libint2::initialize();
     OPENMP::setMaxThreads(_nThreads);
     std::cout << " Using " << OPENMP::getMaxThreads() << " threads"
               << std::flush;
-    return Evaluate(top);
+    bool success = Evaluate(top);
+    libint2::finalize();
+    return success;
   }
 
   void Initialize(const tools::Property& opt) final {

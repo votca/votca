@@ -24,11 +24,9 @@ namespace votca {
 namespace xtp {
 
 void AODipole::Fill(const AOBasis& aobasis) {
-  libint2::initialize();
   auto results = computeOneBodyIntegrals<libint2::Operator::emultipole1,
                                          std::array<libint2::Shell::real_t, 3>>(
       aobasis, _r);
-  libint2::finalize();
 
   for (Index i = 0; i < 3; i++) {
     _aomatrix[i] = results[1 + i];  // emultipole1 returns: overlap, x-dipole,

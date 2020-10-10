@@ -65,7 +65,7 @@ class ParallelXJobCalc : public JobCalculator {
     ParseSpecificOptions(opt);
   }
 
-  bool Evaluate(const Topology &top) override;
+  bool Evaluate(const Topology &top) final;
   virtual void CustomizeLogger(QMThread &thread);
   virtual Result EvalJob(const Topology &top, Job &job, QMThread &thread) = 0;
 
