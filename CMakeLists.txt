@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 project(votca-xtp LANGUAGES CXX)
 
 set(PROJECT_VERSION "2021-dev")
