@@ -79,9 +79,9 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
         Eigen::TensorMap<Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
             result(buf[0], auxshell.size(), dftshell.size(), shell_col.size());
 
-        for (Index left = 0; left < dftshell.size(); left++) {
-          for (Index auxf = 0; auxf < auxshell.size(); auxf++) {
-            for (Index col = 0; col < shell_col.size(); col++) {
+        for (size_t left = 0; left < dftshell.size(); left++) {
+          for (size_t auxf = 0; auxf < auxshell.size(); auxf++) {
+            for (size_t col = 0; col < shell_col.size(); col++) {
               // symmetry
               if ((col_start + col) > (start + left)) {
                 break;

@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
       std::string(XTP_TEST_DATA_FOLDER) + "/bse/MO_energies.mm");
 
   Logger log;
-  TCMatrix_gwbse Mmn{log};
+  TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, MOs);
 

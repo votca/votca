@@ -42,6 +42,13 @@ namespace xtp {
 
 class OpenMP_CUDA {
  public:
+  static bool UsingGPU() {
+#ifdef USE_CUDA
+    return true;
+#else
+    return false;
+#endif
+  }
   void setOperators(const std::vector<Eigen::MatrixXd>& tensor,
                     const Eigen::MatrixXd& rightoperator);
   void MultiplyRight(Eigen::MatrixXd& matrix);

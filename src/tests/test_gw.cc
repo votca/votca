@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(gw_full) {
   orbitals.setNumberOfOccupiedLevels(4);
   orbitals.MOs().eigenvectors() = mo_eigenvectors;
   Logger log;
-  TCMatrix_gwbse Mmn{log};
+  TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, mo_eigenvectors);
 
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(gw_full_QP_grid) {
   orbitals.setNumberOfOccupiedLevels(4);
   orbitals.MOs().eigenvectors() = mo_eigenvectors;
   Logger log;
-  TCMatrix_gwbse Mmn{log};
+  TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, mo_eigenvectors);
 

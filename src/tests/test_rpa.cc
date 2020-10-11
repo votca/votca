@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_SUITE(rpa_test)
 BOOST_AUTO_TEST_CASE(rpa_calcenergies) {
 
   Logger log;
-  TCMatrix_gwbse Mmn{log};
+  TCMatrix_gwbse Mmn;
   Eigen::VectorXd eigenvals;
   RPA rpa(log, Mmn);
   rpa.configure(4, 0, 9);
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(rpa_full) {
   Eigen::MatrixXd eigenvectors = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/rpa/eigenvectors.mm");
   Logger log;
-  TCMatrix_gwbse Mmn{log};
+  TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, eigenvectors);
 

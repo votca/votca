@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
       0.16678, 0.16678, 0.671592, 0.671592, 0.671592, 0.974255, 1.01205,
       1.01205, 1.01205, 1.64823, 19.4429;
   Logger log;
-  TCMatrix_gwbse Mmn{log};
+  TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, MOs);
 
