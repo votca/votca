@@ -80,14 +80,14 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
             result(buf[0], auxshell.size(), dftshell.size(), shell_col.size());
 
         for (Index left = 0; left < dftshell.size(); left++) {
-          for (Index aux = 0; aux < auxshell.size(); aux++) {
+          for (Index auxf = 0; auxf < auxshell.size(); auxf++) {
             for (Index col = 0; col < shell_col.size(); col++) {
               // symmetry
               if ((col_start + col) > (start + left)) {
                 break;
               }
-              block[left](aux_start + aux, col_start + col) =
-                  result(aux, left, col);
+              block[left](aux_start + auxf, col_start + col) =
+                  result(auxf, left, col);
             }
           }
         }

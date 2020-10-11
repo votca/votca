@@ -16,40 +16,25 @@
  * limitations under the License.
  *
  */
-/// For an earlier history see ctp repo commit
-/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#pragma once
-#ifndef VOTCA_XTP_QMTOOL_H
-#define VOTCA_XTP_QMTOOL_H
-
-// Third party includes
-#include <boost/format.hpp>
-
-// VOTCA includes
-
-#include <votca/tools/calculator.h>
-#include <votca/tools/property.h>
-
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/eigen.h"
+#include <libint2.hpp>
 namespace votca {
 namespace xtp {
+bool QMCalculator::EvaluateFrame(Topology& top) {
+  libint2::initialize();
+  OPENMP::setMaxThreads(_nThreads);
+  std::cout << " Using " << OPENMP::getMaxThreads() << " threads" << std::flush;
+  bool success = Evaluate(top);
+  libint2::finalize();
+  return success;
+}
 
-class QMTool : public tools::Calculator {
- public:
-  QMTool() = default;
-  ~QMTool() override = default;
-
-  std::string Identify() override = 0;
-  void Initialize(const tools::Property& options) final;
-  bool Evaluate();
-
- protected:
-  virtual bool Run() = 0;
-  virtual void ParseOptions(const tools::Property& opt) = 0;
-  std::string _job_name = "votca";
-};
+void QMCalculator::Initialize(const tools::Property& opt) {
+  tools::Property options = LoadDefaultsAndUpdateWithUserOptions("xtp", opt);
+  ParseOptions(options);
+}
 
 }  // namespace xtp
 }  // namespace votca
-
-#endif  // VOTCA_XTP_QMTOOL_H
