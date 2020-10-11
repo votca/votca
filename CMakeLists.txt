@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 project(votca-csg LANGUAGES CXX)
 
@@ -129,8 +129,7 @@ add_subdirectory(share)
 get_property(VOTCA_BINARIES TARGET votca_csg PROPERTY BINARIES)
 list(SORT VOTCA_BINARIES)
 configure_file(src/libcsg/VOTCA_CSGConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/src/libcsg/VOTCA_CSGConfig.cmake" @ONLY)
-# for >=cmake-3.12 use list(JOIN VOTCA_BINARIES " " VOTCA_BINARIES)
-string(REPLACE ";" " " VOTCA_BINARIES "${VOTCA_BINARIES}")
+list(JOIN VOTCA_BINARIES " " VOTCA_BINARIES)
 configure_file(scripts/csg-completion.bash.in "${CMAKE_CURRENT_BINARY_DIR}/scripts/csg-completion.bash" @ONLY)
 
 configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
