@@ -115,10 +115,6 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeAO3cBlock(
         for (Index aux_c = 0; aux_c < auxshell.getNumFunc(); aux_c++) {
           for (Index row_c = 0; row_c < shell_row.getNumFunc(); row_c++) {
             for (Index col_c = 0; col_c < shell_col.getNumFunc(); col_c++) {
-              // symmetry
-              if ((col_start + col_c) > (row_start + row_c)) {
-                break;
-              }
               ao3c[aux_c](row_start + row_c, col_start + col_c) =
                   threec_block(aux_c, row_c, col_c);
             }  // ROW copy
