@@ -68,6 +68,7 @@ Version 2021-dev
 -  Contour Deformation Approach (CDA) for self-energy implemented (#4, #548)
 -  BSE with perturbative dynamical screening (#3, #560)
 -  Correction of full BSE energy contribution in analysis output (#560)
+-  Bump required CMake version to 3.12 (#568)
 
 Version 1.6.3 (released XX.08.20)
 =================================
