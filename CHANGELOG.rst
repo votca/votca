@@ -69,6 +69,7 @@ Version 2021-dev
 -  BSE with perturbative dynamical screening (#3, #560)
 -  Correction of full BSE energy contribution in analysis output (#560)
 -  Bump required CMake version to 3.12 (#568)
+-  Refactored calculator interface (#570)
 
 Version 1.6.3 (released XX.08.20)
 =================================
