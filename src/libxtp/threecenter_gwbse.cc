@@ -153,6 +153,9 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& gwbasis, const AOBasis& dftbasis,
 
     // this is basically a transpose of AO3c and at the same time the ao->mo
     // transformation
+    // we do not want to put it into _matrix straight away is because, _matrix
+    // is shared between all threads and we want a nice clean access pattern to
+    // it
     std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
         _mtotal, Eigen::MatrixXd::Zero(_ntotal, ao3c.size()));
 
