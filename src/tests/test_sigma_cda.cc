@@ -27,11 +27,11 @@
 #include <votca/tools/eigenio_matrixmarket.h>
 
 // Local VOTCA includes
+#include <libint2/initialize.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/sigma_cda.h>
 #include <votca/xtp/threecenter.h>
-
 using namespace votca::xtp;
 using namespace std;
 

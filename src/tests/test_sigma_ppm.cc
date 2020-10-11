@@ -34,7 +34,7 @@
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigma_ppm.h"
 #include "votca/xtp/threecenter.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace std;
 

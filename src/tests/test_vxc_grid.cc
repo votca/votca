@@ -26,7 +26,7 @@
 // Local VOTCA includes
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/vxc_grid.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace std;
 

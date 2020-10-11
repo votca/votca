@@ -23,7 +23,6 @@
 
 // Local VOTCA includes
 #include "aobasis.h"
-#include <unordered_map>
 
 #include <libint2.hpp>
 

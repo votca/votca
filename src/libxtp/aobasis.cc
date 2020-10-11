@@ -29,6 +29,8 @@
 #include "votca/xtp/qmpackage.h"
 #include "votca/xtp/regular_grid.h"
 
+#include <libint2.hpp>
+
 namespace votca {
 namespace xtp {
 

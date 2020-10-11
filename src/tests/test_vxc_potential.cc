@@ -27,8 +27,8 @@
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
+#include <libint2/initialize.h>
 #include <votca/tools/eigenio_matrixmarket.h>
-
 using namespace votca::xtp;
 using namespace std;
 

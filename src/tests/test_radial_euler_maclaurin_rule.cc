@@ -26,7 +26,7 @@
 // Local VOTCA includes
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/radial_euler_maclaurin_rule.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace std;
 

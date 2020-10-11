@@ -28,7 +28,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/filterfactory.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(oscillatorstrength_filter_test)

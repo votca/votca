@@ -24,7 +24,6 @@
 // Local VOTCA includes
 #include "aobasis.h"
 #include "eigen.h"
-#include "logger.h"
 #include "symmetric_matrix.h"
 
 /**
@@ -33,6 +32,10 @@
  *
  *
  */
+
+namespace libint2 {
+class Engine;
+}
 
 namespace votca {
 namespace xtp {

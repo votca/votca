@@ -25,7 +25,7 @@
 #include "votca/xtp/espfit.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace votca;
 

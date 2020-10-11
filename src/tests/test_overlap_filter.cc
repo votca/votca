@@ -27,8 +27,8 @@
 #include <votca/xtp/filterfactory.h>
 
 // VOTCA includes
+#include <libint2/initialize.h>
 #include <votca/tools/eigenio_matrixmarket.h>
-
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(overlap_filter_test)

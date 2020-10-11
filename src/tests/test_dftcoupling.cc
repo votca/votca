@@ -22,7 +22,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/dftcoupling.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace votca;
 

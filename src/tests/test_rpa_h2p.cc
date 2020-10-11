@@ -27,7 +27,7 @@
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/threecenter.h"
-
+#include <libint2/initialize.h>
 using namespace std;
 using namespace votca::xtp;
 
