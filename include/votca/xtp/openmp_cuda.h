@@ -60,8 +60,8 @@ class OpenMP_CUDA {
   std::unique_ptr<CudaMatrix> A = nullptr;
   std::unique_ptr<CudaMatrix> B = nullptr;
   std::unique_ptr<CudaMatrix> C = nullptr;
+  std::unique_ptr<CudaMatrix> D = nullptr;
   std::unique_ptr<CudaMatrix> E = nullptr;
-  std::unique_ptr<CudaMatrix> F = nullptr;
 
 #endif
 };
