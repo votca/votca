@@ -33,14 +33,14 @@
 namespace votca {
 namespace xtp {
 
-class Neighborlist : public QMCalculator {
+class Neighborlist final : public QMCalculator {
  public:
-  std::string Identify() final { return "neighborlist"; }
-  bool WriteToStateFile() const final { return true; }
+  std::string Identify() { return "neighborlist"; }
+  bool WriteToStateFile() const { return true; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Evaluate(Topology& top) final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
   Index DetClassicalPairs(Topology& top);

@@ -34,13 +34,13 @@
 namespace votca {
 namespace xtp {
 
-class DensityAnalysis : public QMTool {
+class DensityAnalysis final : public QMTool {
  public:
-  std::string Identify() final { return "densityanalysis"; }
+  std::string Identify() { return "densityanalysis"; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   std::string _orbfile;
