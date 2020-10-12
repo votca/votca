@@ -32,6 +32,8 @@ std::string GetVotcaShare() {
   return std::string(votca_share);
 }
 
+bool VotcaShareSet() { return (getenv("VOTCASHARE") != nullptr); }
+
 std::string globals::url = "http://www.votca.org";
 std::string globals::email = "devs@votca.org";
 

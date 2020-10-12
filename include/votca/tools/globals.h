@@ -38,6 +38,7 @@ namespace tools {
    if not set.
 */
 std::string GetVotcaShare();
+bool VotcaShareSet();
 /**
     \brief class to store global variables
 
