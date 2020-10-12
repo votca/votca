@@ -21,6 +21,7 @@
 #include <boost/algorithm/string.hpp>
 
 // Local VOTCA includes
+#include "votca/tools/globals.h"
 #include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/qmpackage.h"
@@ -33,13 +34,10 @@ using std::flush;
 tools::Property QMPackage::ParseCommonOptions(const tools::Property& options) {
 
   std::string key = "package";
-  // std::string key = "";
 
   _settings.read_property(options, key);
-  char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == nullptr) {
-    std::cout << "Warning: VOTCASHARE environment variable not defined\n";
-  } else {
+
+  if (!tools::VotcaShareSet()) {
     Settings qmpackage_defaults{key};
     qmpackage_defaults.load_from_xml(this->FindDefaultsFile());
     _settings.amend(qmpackage_defaults);
@@ -140,10 +138,7 @@ std::vector<std::string> QMPackage::GetLineAndSplit(
 }
 
 std::string QMPackage::FindDefaultsFile() const {
-  auto xmlFile = std::string(getenv("VOTCASHARE")) +
-                 std::string("/xtp/data/qmpackage_defaults.xml");
-
-  return xmlFile;
+  return tools::GetVotcaShare() + "/xtp/data/qmpackage_defaults.xml";
 }
 
 }  // namespace xtp
