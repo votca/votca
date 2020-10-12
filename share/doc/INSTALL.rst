@@ -11,12 +11,9 @@ To install the full package:
     prefix=WHERE/TO/INSTALL/VOTCA
     version=master # or 'stable' or 'v1.4.1'
     git clone -b ${version} --recursive https://github.com/votca/votca.git
-    cd votca
-    mkdir build
-    cd build
-    cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
-    make -j5
-    make install
+    cmake -Bbuilddir -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} votca
+    cmake --build builddir --parallel <number of cores>
+    cmake --build builddir --target install
 
 
 Dependency Installation
