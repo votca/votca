@@ -23,6 +23,8 @@
 #include "votca/xtp/threecenter.h"
 #include <libint2.hpp>
 
+#include <libint2.hpp>
+
 namespace votca {
 namespace xtp {
 

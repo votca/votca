@@ -27,7 +27,7 @@
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/ppm.h"
 #include "votca/xtp/threecenter.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace std;
 BOOST_AUTO_TEST_SUITE(ppm_test)
