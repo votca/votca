@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_GENCUBE_PRIVATE_H
-#define VOTCA_XTP_GENCUBE_PRIVATE_H
+#ifndef VOTCA_XTP_GENCUBE_H
+#define VOTCA_XTP_GENCUBE_H
 
 // Local VOTCA includes
 #include "votca/xtp/logger.h"
@@ -30,16 +30,17 @@ namespace votca {
 namespace xtp {
 class AOBasis;
 
-class GenCube : public QMTool {
+class GenCube final : public QMTool {
  public:
   GenCube() = default;
 
-  ~GenCube() override = default;
+  ~GenCube() = default;
 
-  std::string Identify() final { return "gencube"; }
+  std::string Identify() { return "gencube"; }
 
-  void Initialize(const tools::Property& user_options) final;
-  bool Evaluate() final;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   void calculateCube();
@@ -62,4 +63,4 @@ class GenCube : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_GENCUBE_PRIVATE_H
+#endif  // VOTCA_XTP_GENCUBE_H

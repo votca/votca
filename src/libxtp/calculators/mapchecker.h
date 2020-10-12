@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_MAPCHECKER_PRIVATE_H
-#define VOTCA_XTP_MAPCHECKER_PRIVATE_H
+#ifndef VOTCA_XTP_MAPCHECKER_H
+#define VOTCA_XTP_MAPCHECKER_H
 
 // VOTCA includes
 #include <votca/tools/filesystem.h>
@@ -31,16 +31,18 @@
 namespace votca {
 namespace xtp {
 
-class MapChecker : public QMCalculator {
+class MapChecker final : public QMCalculator {
  public:
   MapChecker() = default;
 
-  ~MapChecker() override = default;
+  ~MapChecker() = default;
 
-  std::string Identify() override { return "mapchecker"; }
-  bool WriteToStateFile() const override { return false; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  std::string Identify() { return "mapchecker"; }
+  bool WriteToStateFile() const { return false; }
+
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
   std::string AddSteptoFilename(const std::string& filename, Index step) const;
@@ -58,10 +60,7 @@ class MapChecker : public QMCalculator {
   std::vector<QMState> _mdstates;
 };
 
-void MapChecker::Initialize(const tools::Property& user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+void MapChecker::ParseOptions(const tools::Property& options) {
 
   _segmentfile = options.get(".md_pdbfile").as<std::string>();
 
@@ -100,7 +99,7 @@ std::string MapChecker::AddStatetoFilename(const std::string& filename,
   return filename_comp;
 }
 
-bool MapChecker::EvaluateFrame(Topology& top) {
+bool MapChecker::Evaluate(Topology& top) {
   std::cout << std::endl;
   std::string filename = AddSteptoFilename(_segmentfile, top.getStep());
   std::cout << "Writing segments to " << filename << std::endl;
@@ -164,4 +163,4 @@ std::string MapChecker::AddSteptoFilename(const std::string& filename,
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_MAPCHECKER_PRIVATE_H
+#endif  // VOTCA_XTP_MAPCHECKER_H

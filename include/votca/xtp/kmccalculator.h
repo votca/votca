@@ -38,11 +38,14 @@ class KMCCalculator : public QMCalculator {
  public:
   ~KMCCalculator() override = default;
 
-  std::string Identify() override = 0;
-  bool WriteToStateFile() const override = 0;
-  void Initialize(const tools::Property& options) override = 0;
+  void ParseOptions(const tools::Property& options) final {
+    ParseCommonOptions(options);
+    ParseSpecificOptions(options);
+  }
 
  protected:
+  virtual void ParseSpecificOptions(const tools::Property& options) = 0;
+
   QMStateType _carriertype;
 
   void LoadGraph(Topology& top);

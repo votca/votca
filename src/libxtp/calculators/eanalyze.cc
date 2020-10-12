@@ -21,10 +21,7 @@
 namespace votca {
 namespace xtp {
 
-void EAnalyze::Initialize(const tools::Property &user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+void EAnalyze::ParseOptions(const tools::Property &options) {
 
   _resolution_pairs = options.get(".resolution_pairs").as<double>();
   _resolution_sites = options.get(".resolution_sites").as<double>();
@@ -51,7 +48,7 @@ void EAnalyze::Initialize(const tools::Property &user_options) {
   }
 }
 
-bool EAnalyze::EvaluateFrame(Topology &top) {
+bool EAnalyze::Evaluate(Topology &top) {
 
   // Short-list segments according to pattern
   for (Segment &seg : top.Segments()) {

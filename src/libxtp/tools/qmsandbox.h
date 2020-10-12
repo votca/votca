@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_QMSANDBOX_PRIVATE_H
-#define VOTCA_XTP_QMSANDBOX_PRIVATE_H
+#ifndef VOTCA_XTP_QMSANDBOX_H
+#define VOTCA_XTP_QMSANDBOX_H
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
@@ -31,35 +31,30 @@
 namespace votca {
 namespace xtp {
 
-class QMSandbox : public QMTool {
+class QMSandbox final : public QMTool {
  public:
   QMSandbox() = default;
-  ~QMSandbox() override = default;
+  ~QMSandbox() = default;
 
-  std::string Identify() override { return "qmsandbox"; }
+  std::string Identify() { return "qmsandbox"; }
 
-  void Initialize(const tools::Property& user_options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   std::string _orbfile;
 };
 
-void QMSandbox::Initialize(const tools::Property& user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
+void QMSandbox::ParseOptions(const tools::Property& options) {
 
   _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".orbfile", _job_name + ".orb");
 }
 
-bool QMSandbox::Evaluate() { return true; }
+bool QMSandbox::Run() { return true; }
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_QMSANDBOX_PRIVATE_H
+#endif  // VOTCA_XTP_QMSANDBOX_H
