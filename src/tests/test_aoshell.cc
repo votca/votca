@@ -28,14 +28,14 @@
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/orbreorder.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(aoshell_test)
 
 BOOST_AUTO_TEST_CASE(EvalAOspace) {
-
+  libint2::initialize();
   QMMolecule mol = QMMolecule("", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/aoshell/Al.xyz");
   BasisSet basis;
@@ -140,6 +140,7 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
 
     BOOST_CHECK_EQUAL(aograd_check, 1);
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

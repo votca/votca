@@ -30,6 +30,7 @@
 #include "votca/xtp/ecpbasisset.h"
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/logger.h"
+#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
@@ -584,6 +585,11 @@ bool GWBSE::Evaluate() {
         << TimeStamp()
         << " Using native Eigen implementation, no BLAS overload " << flush;
   }
+  if (OpenMP_CUDA::UsingGPU()) {
+    XTP_LOG(Log::error, *_pLog)
+        << TimeStamp() << " Using CUDA support for tensor multiplication "
+        << flush;
+  }
 
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Molecule Coordinates [A] " << flush;
@@ -640,7 +646,7 @@ bool GWBSE::Evaluate() {
         "You want no GW calculation but the orb file has no QPcoefficients for "
         "BSE");
   }
-  TCMatrix_gwbse Mmn(*_pLog);
+  TCMatrix_gwbse Mmn;
   // rpamin here, because RPA needs till rpamin
   Index max_3c = std::max(_bseopt.cmax, _gwopt.qpmax);
   Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, max_3c, _gwopt.rpamin,

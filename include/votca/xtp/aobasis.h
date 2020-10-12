@@ -23,16 +23,8 @@
 
 // Local VOTCA includes
 #include "aoshell.h"
+#include "checkpoint.h"
 #include "eigen.h"
-#include <libint2.hpp>
-
-// some versions of libint2 have no libint2::svector, in that case we typedef it
-#ifndef _libint2_include_libint2_util_smallvector_h_
-namespace libint2 {
-template <class T>
-using svector = std::vector<T>;
-}  // namespace libint2
-#endif
 
 namespace votca {
 namespace xtp {
@@ -77,7 +69,20 @@ class AOBasis {
 
   const std::string& Name() const { return _name; }
 
+  void UpdateShellPositions(const QMMolecule& mol);
+
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r);
+
+  void add(const AOBasis& other);
+
+  friend std::ostream& operator<<(std::ostream& out, const AOBasis& aobasis);
+
  private:
+  void FillFuncperAtom();
+
+  void clear();
   std::string _name = "";
 
   std::vector<AOShell> _aoshells;
@@ -85,7 +90,7 @@ class AOBasis {
   std::vector<Index> _FuncperAtom;
 
   Index _AOBasisSize;
-};
+};  // namespace xtp
 
 }  // namespace xtp
 }  // namespace votca

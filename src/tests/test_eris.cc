@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE eris_test
@@ -31,7 +32,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(eris_test)
 
 BOOST_AUTO_TEST_CASE(fourcenter_cache) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/eris/molecule.xyz");
@@ -61,10 +62,12 @@ BOOST_AUTO_TEST_CASE(fourcenter_cache) {
 
   bool exxs_check = exx_small.matrix().isApprox(exx_ref, 0.00001);
   BOOST_CHECK_EQUAL(exxs_check, 1);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(threecenter) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/eris/molecule.xyz");
@@ -144,6 +147,8 @@ BOOST_AUTO_TEST_CASE(fourcenter_direct) {
     std::cout << eris_cached.matrix() << std::endl;
   }
   BOOST_CHECK_EQUAL(check_eris, 1);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

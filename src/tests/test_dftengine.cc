@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE dftengine_test
@@ -110,7 +111,7 @@ void WriteBasis321G() {
 }
 
 BOOST_AUTO_TEST_CASE(dft_full) {
-
+  libint2::initialize();
   DFTEngine dft;
 
   WriteBasis321G();
@@ -195,10 +196,12 @@ BOOST_AUTO_TEST_CASE(dft_full) {
     std::cout << "ref coeff" << std::endl;
     std::cout << MOs_coeff_ref << std::endl;
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(density_guess) {
-
+  libint2::initialize();
   DFTEngine dft;
 
   std::unique_ptr<StaticSite> s =
@@ -295,6 +298,8 @@ BOOST_AUTO_TEST_CASE(density_guess) {
     std::cout << "ref coeff" << std::endl;
     std::cout << MOs_coeff_ref << std::endl;
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

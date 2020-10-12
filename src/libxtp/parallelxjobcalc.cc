@@ -22,6 +22,7 @@
 // Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <libint2/initialize.h>
 
 // Local VOTCA includes
 #include "votca/xtp/parallelxjobcalc.h"
@@ -32,8 +33,8 @@ namespace votca {
 namespace xtp {
 
 template <typename JobContainer>
-bool ParallelXJobCalc<JobContainer>::EvaluateFrame(const Topology &top) {
-
+bool ParallelXJobCalc<JobContainer>::Evaluate(const Topology &top) {
+  libint2::initialize();
   // INITIALIZE PROGRESS OBSERVER
   std::string progFile = _jobfile;
   std::unique_ptr<JobOperator> master = std::unique_ptr<JobOperator>(
@@ -80,7 +81,7 @@ bool ParallelXJobCalc<JobContainer>::EvaluateFrame(const Topology &top) {
 
   // SYNC REMAINING COMPLETE JOBS
   _progObs->SyncWithProgFile(*(master.get()));
-
+  libint2::finalize();
   return true;
 }
 
@@ -109,7 +110,6 @@ void ParallelXJobCalc<JobContainer>::ParseCommonOptions(
   std::cout << "\n... ... Using " << _openmp_threads << " openmp threads for "
             << _nThreads << "x" << _openmp_threads << "="
             << _nThreads * _openmp_threads << " total threads." << std::flush;
-  OPENMP::setMaxThreads(_openmp_threads);
   _jobfile = options.get(".job_file").as<std::string>();
   _mapfile = options.get(".map_file").as<std::string>();
 }

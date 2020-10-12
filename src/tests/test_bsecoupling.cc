@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE bsecoupling_test
@@ -29,30 +30,8 @@ using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(bsecoupling_test)
 
-Eigen::MatrixXd ReadMatrixFromString(const std::string& matrix) {
-  votca::tools::Tokenizer lines(matrix, "\n");
-
-  std::vector<double> entries;
-  Index cols = 0;
-  Index rows = 0;
-  for (auto line : lines) {
-    if (line[0] == '#') {
-      continue;
-    }
-    votca::tools::Tokenizer entries_tok(line, " ");
-    std::vector<std::string> temp = entries_tok.ToVector();
-    cols = Index(temp.size());
-    rows++;
-    for (const auto& s : temp) {
-      entries.push_back(std::stod(s));
-    }
-  }
-
-  return Eigen::Map<Eigen::MatrixXd>(entries.data(), rows, cols);
-}
-
 BOOST_AUTO_TEST_CASE(coupling_test) {
-
+  libint2::initialize();
   Orbitals A;
   A.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
                     "/bsecoupling/3-21G.xml");
@@ -156,5 +135,6 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
 
   BOOST_CHECK_CLOSE(diag_J_ref, diag_j, 1e-4);
   BOOST_CHECK_CLOSE(pert_J_ref, pert_j, 1e-4);
+  libint2::finalize();
 }
 BOOST_AUTO_TEST_SUITE_END()

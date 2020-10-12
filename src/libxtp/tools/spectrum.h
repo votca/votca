@@ -37,12 +37,13 @@ class Spectrum : public QMTool {
  public:
   Spectrum() = default;
 
-  ~Spectrum() override = default;
+  ~Spectrum() final = default;
 
-  std::string Identify() override { return "spectrum"; }
+  std::string Identify() final { return "spectrum"; }
 
-  void Initialize(const tools::Property& user_options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property& user_options) final;
+  bool Run() final;
 
  private:
   std::string _orbfile;

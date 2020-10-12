@@ -23,7 +23,8 @@
 
 // Local VOTCA includes
 #include "aobasis.h"
-#include <unordered_map>
+
+#include <libint2.hpp>
 
 namespace votca {
 namespace xtp {
@@ -49,9 +50,7 @@ class AOMatrix {
 class AOKinetic : public AOMatrix {
  public:
   void Fill(const AOBasis& aobasis) final {
-    libint2::initialize();
     _aomatrix = computeOneBodyIntegrals<libint2::Operator::kinetic>(aobasis)[0];
-    libint2::finalize();
   }
   Index Dimension() final { return _aomatrix.rows(); }
   const Eigen::MatrixXd& Matrix() const { return _aomatrix; }

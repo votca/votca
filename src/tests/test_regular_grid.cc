@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE regular_grid_test
@@ -42,7 +43,7 @@ AOBasis CreateBasis(const QMMolecule& mol) {
 }
 
 BOOST_AUTO_TEST_CASE(regular_grid_build) {
-
+  libint2::initialize();
   QMMolecule mol("none", 0);
 
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -62,10 +63,12 @@ BOOST_AUTO_TEST_CASE(regular_grid_build) {
   BOOST_CHECK_CLOSE(grid[0].getGridPoints()[2].z(), 0, 1e-5);
   BOOST_CHECK_CLOSE(grid[0].getGridPoints()[30].y(), -1.0944303172480274, 1e-5);
   BOOST_CHECK_CLOSE(grid[0].getGridPoints()[45].z(), -2.18886063, 1e-5);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(regular_grid_build_large) {
-
+  libint2::initialize();
   QMMolecule mol("none", 0);
 
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -105,6 +108,8 @@ BOOST_AUTO_TEST_CASE(regular_grid_build_large) {
   BOOST_CHECK_CLOSE(grid[0].getGridPoints()[30].y(), -2.0379047286687406, 1e-5);
   BOOST_CHECK_CLOSE(grid[0].getGridPoints()[45].z(), 0.075477952913657109,
                     1e-5);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

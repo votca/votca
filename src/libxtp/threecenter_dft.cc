@@ -18,7 +18,6 @@
  */
 
 // Local VOTCA includes
-#include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/symmetric_matrix.h"
 #include "votca/xtp/threecenter.h"
@@ -33,80 +32,78 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
   _inv_sqrt = auxAOcoulomb.Pseudo_InvSqrt(1e-8);
   _removedfunctions = auxAOcoulomb.Removedfunctions();
 
-  for (Index i = 0; i < auxbasis.AOBasisSize(); i++) {
-    try {
-      _matrix.push_back(Symmetric_Matrix(dftbasis.AOBasisSize()));
-    } catch (std::bad_alloc&) {
-      throw std::runtime_error(
-          "Basisset/aux basis too large for 3c calculation. Not enough RAM.");
-    }
+  _matrix = std::vector<Symmetric_Matrix>(
+      auxbasis.AOBasisSize(), Symmetric_Matrix(dftbasis.AOBasisSize()));
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
+  std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] = libint2::Engine(
+      libint2::Operator::coulomb,
+      std::max(dftbasis.getMaxNprim(), auxbasis.getMaxNprim()),
+      static_cast<int>(std::max(dftbasis.getMaxL(), auxbasis.getMaxL())), 0);
+  engines[0].set(libint2::BraKet::xs_xx);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
   }
+
+  std::vector<Index> shell2bf = dftbasis.getMapToBasisFunctions();
+  std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
+
 #pragma omp parallel for schedule(dynamic)
   for (Index is = dftbasis.getNumofShells() - 1; is >= 0; is--) {
-    const AOShell& dftshell = dftbasis.getShell(is);
-    std::vector<Eigen::MatrixXd> block;
-    for (Index i = 0; i < dftshell.getNumFunc(); i++) {
-      Index size = dftshell.getStartIndex() + i + 1;
-      block.push_back(Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), size));
+
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    const libint2::Shell& dftshell = dftshells[is];
+    Index start = shell2bf[is];
+    std::vector<Eigen::MatrixXd> block(dftshell.size());
+    for (Index i = 0; i < Index(dftshell.size()); i++) {
+      Index size = start + i + 1;
+      block[i] = Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), size);
     }
-    FillBlock(block, is, dftbasis, auxbasis);
-    Index offset = dftshell.getStartIndex();
-    for (Index i = 0; i < Index(block.size()); ++i) {
-      Eigen::MatrixXd temp = _inv_sqrt * block[i];
-      for (Index mu = 0; mu < temp.rows(); ++mu) {
-        for (Index j = 0; j < temp.cols(); ++j) {
-          _matrix[mu](i + offset, j) = temp(mu, j);
+
+    for (Index aux = 0; aux < auxbasis.getNumofShells(); aux++) {
+      const libint2::Shell& auxshell = auxshells[aux];
+      Index aux_start = auxshell2bf[aux];
+
+      for (Index dis = 0; dis <= is; dis++) {
+
+        const libint2::Shell& shell_col = dftshells[dis];
+        Index col_start = shell2bf[dis];
+        engine.compute(auxshell, dftshell, shell_col);
+
+        if (buf[0] == nullptr) {
+          continue;
         }
-      }
-    }
-  }
-  return;
-}
+        Eigen::TensorMap<Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+            result(buf[0], auxshell.size(), dftshell.size(), shell_col.size());
 
-/*
- * Determines the 3-center integrals for a given shell in the aux basis
- * by calculating the 3-center overlap integral of the functions in the
- * aux shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock)
- */
-
-void TCMatrix_dft::FillBlock(std::vector<Eigen::MatrixXd>& block,
-                             Index shellindex, const AOBasis& dftbasis,
-                             const AOBasis& auxbasis) {
-  const AOShell& left_dftshell = dftbasis.getShell(shellindex);
-
-  Index start = left_dftshell.getStartIndex();
-  // alpha-loop over the aux basis function
-  for (const AOShell& shell_aux : auxbasis) {
-    Index aux_start = shell_aux.getStartIndex();
-
-    for (Index is = 0; is <= shellindex; is++) {
-
-      const AOShell& shell_col = dftbasis.getShell(is);
-      Index col_start = shell_col.getStartIndex();
-      Eigen::Tensor<double, 3> threec_block(shell_aux.getNumFunc(),
-                                            left_dftshell.getNumFunc(),
-                                            shell_col.getNumFunc());
-      threec_block.setZero();
-
-      bool nonzero = FillThreeCenterRepBlock(threec_block, shell_aux,
-                                             left_dftshell, shell_col);
-      if (nonzero) {
-
-        for (Index left = 0; left < left_dftshell.getNumFunc(); left++) {
-          for (Index aux = 0; aux < shell_aux.getNumFunc(); aux++) {
-            for (Index col = 0; col < shell_col.getNumFunc(); col++) {
+        for (size_t left = 0; left < dftshell.size(); left++) {
+          for (size_t auxf = 0; auxf < auxshell.size(); auxf++) {
+            for (size_t col = 0; col < shell_col.size(); col++) {
               // symmetry
               if ((col_start + col) > (start + left)) {
                 break;
               }
-              block[left](aux_start + aux, col_start + col) =
-                  threec_block(aux, left, col);
+              block[left](aux_start + auxf, col_start + col) =
+                  result(auxf, left, col);
             }
           }
         }
       }
     }
+
+    for (Index i = 0; i < Index(block.size()); ++i) {
+      Eigen::MatrixXd temp = _inv_sqrt * block[i];
+      for (Index mu = 0; mu < temp.rows(); ++mu) {
+        for (Index j = 0; j < temp.cols(); ++j) {
+          _matrix[mu](i + start, j) = temp(mu, j);
+        }
+      }
+    }
   }
+
   return;
 }
 

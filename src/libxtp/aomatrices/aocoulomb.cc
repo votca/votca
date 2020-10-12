@@ -25,9 +25,7 @@ namespace votca {
 namespace xtp {
 
 void AOCoulomb::Fill(const AOBasis& aobasis) {
-  libint2::initialize();
   computeCoulombIntegrals(aobasis);
-  libint2::finalize();
 }
 
 void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {

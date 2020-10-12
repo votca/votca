@@ -45,15 +45,16 @@ namespace xtp {
 
 class IEXCITON : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  void Initialize(const tools::Property &user_options) override;
-
-  std::string Identify() override { return "iexcitoncl"; }
+  std::string Identify() final { return "iexcitoncl"; }
 
   Job::JobResult EvalJob(const Topology &top, Job &job,
-                         QMThread &opThread) override;
+                         QMThread &opThread) final;
 
-  void WriteJobFile(const Topology &top) override;
-  void ReadJobFile(Topology &top) override;
+  void WriteJobFile(const Topology &top) final;
+  void ReadJobFile(Topology &top) final;
+
+ protected:
+  void ParseSpecificOptions(const tools::Property &user_options) final;
 
  private:
   QMState GetElementFromMap(const std::string &elementname) const;

@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE orbreorder_test
@@ -35,7 +36,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(orbreorder_test)
 
 BOOST_AUTO_TEST_CASE(orbreorder_test) {
-
+  libint2::initialize();
   // clang-format off
   std::array<Index,49> multipliers={
             1, //s
@@ -99,5 +100,7 @@ BOOST_AUTO_TEST_CASE(orbreorder_test) {
     std::cout << "moldenCoeffs" << std::endl;
     std::cout << moldenCoeffs << std::endl;
   }
+
+  libint2::finalize();
 }
 }

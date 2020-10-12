@@ -35,7 +35,7 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(convergenceacc_test)
 
 BOOST_AUTO_TEST_CASE(levelshift_test) {
-
+  libint2::initialize();
   std::ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << std::endl;
   xyzfile << " methane" << std::endl;
@@ -224,6 +224,8 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
   bool check_level =
       result.eigenvalues().isApprox(orb.MOs().eigenvalues(), 0.00001);
   BOOST_CHECK_EQUAL(check_level, 1);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

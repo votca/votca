@@ -5,21 +5,12 @@
 namespace votca {
 namespace xtp {
 
-void QMSandbox::Initialize(const tools::Property& user_options) {
+void QMSandbox::ParseOptions(const tools::Property&) {}
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
-}
-
-bool QMSandbox::Evaluate() {
+bool QMSandbox::Run() {
   _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
   _log.setCommonPreface("\n... ...");
-
-  OPENMP::setMaxThreads(_nThreads);
 
   QMMolecule atoms("", 0);
   atoms.LoadFromFile(_job_name + ".xyz");

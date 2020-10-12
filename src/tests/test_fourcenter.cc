@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE fourcenter_test
@@ -34,7 +35,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(fourcenter_test)
 
 BOOST_AUTO_TEST_CASE(small_l_test) {
-
+  libint2::initialize();
   QMMolecule mol(" ", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                    "/fourcenter/molecule.xyz");
@@ -70,10 +71,12 @@ BOOST_AUTO_TEST_CASE(small_l_test) {
     cout << "result" << endl;
     cout << block << endl;
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(large_l_test) {
-
+  libint2::initialize();
   QMMolecule mol("C", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/fourcenter/C2.xyz");
 
@@ -118,6 +121,8 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
     cout << "result" << endl;
     cout << mapped_result.tail<600>().transpose() << endl;
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

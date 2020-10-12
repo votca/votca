@@ -35,7 +35,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(bse_test)
 
 BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/bse/molecule.xyz");
@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
       std::string(XTP_TEST_DATA_FOLDER) + "/bse/MO_energies.mm");
 
   Logger log;
-  TCMatrix_gwbse Mmn{log};
+  TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, MOs);
 
@@ -539,6 +539,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << Hqp_extended_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_hqp_extended, true);
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

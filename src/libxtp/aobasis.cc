@@ -22,9 +22,14 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
+#include "votca/xtp/aoshell.h"
 #include "votca/xtp/basisset.h"
+#include "votca/xtp/qmatom.h"
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/qmpackage.h"
+#include "votca/xtp/regular_grid.h"
+
+#include <libint2.hpp>
 
 namespace votca {
 namespace xtp {
@@ -73,11 +78,21 @@ const std::vector<const AOShell*> AOBasis::getShellsofAtom(Index AtomId) const {
   return result;
 }
 
+void AOBasis::add(const AOBasis& other) {
+  Index atomindex_offset = Index(_FuncperAtom.size());
+  for (AOShell shell : other) {
+    shell._atomindex += atomindex_offset;
+    shell._startIndex = _AOBasisSize;
+    _AOBasisSize += shell.getNumFunc();
+    _aoshells.push_back(shell);
+  }
+
+  FillFuncperAtom();
+}
+
 void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
+  clear();
   _name = bs.Name();
-  _AOBasisSize = 0;
-  _aoshells.clear();
-  _FuncperAtom.clear();
   // loop over atoms
   for (const QMAtom& atom : atoms) {
     Index atomfunc = 0;
@@ -94,12 +109,23 @@ void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
       aoshell.CalcMinDecay();
       aoshell.normalizeContraction();
     }
-    _FuncperAtom.push_back(atomfunc);
   }
-  GenerateLibintBasis();
+  FillFuncperAtom();
   return;
 }
 
+void AOBasis::FillFuncperAtom() {
+  _FuncperAtom.clear();
+  Index currentIndex = -1;
+  for (const auto& shell : _aoshells) {
+    if (shell.getAtomIndex() == currentIndex) {
+      _FuncperAtom[shell.getAtomIndex()] += shell.getNumFunc();
+    } else {
+      currentIndex = shell.getAtomIndex();
+      _FuncperAtom.push_back(shell.getNumFunc());
+    }
+  }
+}
 std::vector<libint2::Shell> AOBasis::GenerateLibintBasis() const {
   std::vector<libint2::Shell> libintshells;
   libintshells.reserve(_aoshells.size());
@@ -151,6 +177,90 @@ std::vector<std::vector<Index>> AOBasis::ComputeShellPairs(
     std::sort(list.begin(), list.end());
   }
   return pairs;
+}
+
+void AOBasis::UpdateShellPositions(const QMMolecule& mol) {
+  for (AOShell& shell : _aoshells) {
+    shell._pos = mol[shell.getAtomIndex()].getPos();
+  }
+}
+
+void AOBasis::clear() {
+  _name = "";
+  _aoshells.clear();
+  _FuncperAtom.clear();
+  _AOBasisSize = 0;
+}
+
+void AOBasis::WriteToCpt(CheckpointWriter& w) const {
+  w(_name, "name");
+  w(_AOBasisSize, "basissize");
+  Index numofprimitives = 0;
+  for (const auto& shell : _aoshells) {
+    numofprimitives += shell.getSize();
+  }
+
+  // this is all to make dummy AOGaussian
+  Shell s(L::S, 0);
+  GaussianPrimitive d(0.1, 0.1);
+  QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
+  AOShell s1(s, dummy, 0);
+  s1.addGaussian(d);
+  const AOGaussianPrimitive& dummy2 = *s1.begin();
+
+  CptTable table = w.openTable("Contractions", dummy2, numofprimitives);
+
+  std::vector<AOGaussianPrimitive::data> dataVec(numofprimitives);
+  Index i = 0;
+  for (const auto& shell : _aoshells) {
+    for (const auto& gaussian : shell) {
+      gaussian.WriteData(dataVec[i]);
+      i++;
+    }
+  }
+
+  table.write(dataVec);
+}
+
+void AOBasis::ReadFromCpt(CheckpointReader& r) {
+  clear();
+  r(_name, "name");
+  r(_AOBasisSize, "basissize");
+  if (_AOBasisSize > 0) {
+    // this is all to make dummy AOGaussian
+    Shell s(L::S, 0);
+    GaussianPrimitive d(0.1, 0.1);
+    QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
+    AOShell s1(s, dummy, 0);
+    s1.addGaussian(d);
+    const AOGaussianPrimitive& dummy2 = *s1.begin();
+
+    CptTable table = r.openTable("Contractions", dummy2);
+    std::vector<AOGaussianPrimitive::data> dataVec(table.numRows());
+    table.read(dataVec);
+    Index laststartindex = -1;
+    for (std::size_t i = 0; i < table.numRows(); ++i) {
+      if (dataVec[i].startindex != laststartindex) {
+        _aoshells.push_back(AOShell(dataVec[i]));
+        laststartindex = dataVec[i].startindex;
+      } else {
+        _aoshells.back()._gaussians.push_back(
+            AOGaussianPrimitive(dataVec[i], _aoshells.back()));
+      }
+    }
+
+    FillFuncperAtom();
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, const AOBasis& aobasis) {
+  out << "Name:" << aobasis.Name() << "\n";
+  out << " Functions:" << aobasis.AOBasisSize()
+      << " Shells:" << aobasis.getNumofShells() << "\n";
+  for (const auto& shell : aobasis) {
+    out << shell;
+  }
+  return out;
 }
 
 }  // namespace xtp
