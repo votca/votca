@@ -16,11 +16,9 @@ Usage:
     version=master # or 'stable' or 'v1.6.2'
     git clone -b ${version} --recursive https://github.com/votca/votca.git
     cd votca
-    mkdir build
-    cd build
-    cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
-    cmake --build . -- -j<number of cores>
-    cmake --build . --target install
+    cmake -B builddir -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
+    cmake --build builddir -- -j<number of cores>
+    cmake --build buildir --target install
 
 Using this code via docker:
 
