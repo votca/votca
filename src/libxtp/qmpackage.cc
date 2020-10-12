@@ -37,10 +37,12 @@ tools::Property QMPackage::ParseCommonOptions(const tools::Property& options) {
 
   _settings.read_property(options, key);
 
-  if (!tools::VotcaShareSet()) {
+  if (tools::VotcaShareSet()) {
     Settings qmpackage_defaults{key};
     qmpackage_defaults.load_from_xml(this->FindDefaultsFile());
     _settings.amend(qmpackage_defaults);
+  } else {
+    std::cout << "Warning: VOTCASHARE environment variable not defined\n";
   }
   _settings.validate();
 

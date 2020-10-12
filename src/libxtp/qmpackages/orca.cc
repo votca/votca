@@ -847,7 +847,7 @@ std::string Orca::WriteMethod() const {
 
 std::string Orca::GetOrcaFunctionalName() const {
 
-  if (tools::VotcaShareSet()) {
+  if (!tools::VotcaShareSet()) {
     return _settings.get("functional");
   } else {
     tools::Property all_functionals;
