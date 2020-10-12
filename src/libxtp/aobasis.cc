@@ -18,6 +18,7 @@
  */
 
 // Standard includes
+#include <libint2/shell.h>
 #include <vector>
 
 // Local VOTCA includes

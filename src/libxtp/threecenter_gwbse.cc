@@ -24,6 +24,8 @@
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/threecenter.h"
 #include <shell.h>
+
+#include <libint2.hpp>
 using std::flush;
 
 namespace votca {

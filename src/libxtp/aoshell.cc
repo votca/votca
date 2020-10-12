@@ -22,6 +22,7 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
 
+#include <libint2/shell.h>
 namespace votca {
 namespace xtp {
 

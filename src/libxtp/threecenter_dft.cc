@@ -22,6 +22,8 @@
 #include "votca/xtp/symmetric_matrix.h"
 #include "votca/xtp/threecenter.h"
 
+#include <libint2.hpp>
+
 namespace votca {
 namespace xtp {
 
