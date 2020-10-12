@@ -34,11 +34,15 @@ struct Log {
 namespace tools {
 
 /**
+    \brief Retrieves VOTCASHARE environment variable. Throws std::runtime_error
+   if not set.
+*/
+std::string GetVotcaShare();
+/**
     \brief class to store global variables
 
     This class is used to access global variables
 */
-
 struct globals {
 
   /// web of the package

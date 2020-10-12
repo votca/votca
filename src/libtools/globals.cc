@@ -17,11 +17,20 @@
 
 // Local VOTCA includes
 #include "votca/tools/globals.h"
+#include <stdexcept>
 
 namespace votca {
 
 Log::Level Log::current_level = Log::info;
 namespace tools {
+
+std::string GetVotcaShare() {
+  char *votca_share = getenv("VOTCASHARE");
+  if (votca_share == nullptr) {
+    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+  }
+  return std::string(votca_share);
+}
 
 std::string globals::url = "http://www.votca.org";
 std::string globals::email = "devs@votca.org";

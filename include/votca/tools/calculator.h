@@ -120,7 +120,6 @@ class Calculator {
   static void RecursivelyCheckOptions(const Property &p);
   static bool IsValidOption(const Property &prop,
                             const std::vector<std::string> &choices);
-  static std::string GetVotcaShare();
   static std::vector<std::string> GetPropertyChoices(const Property &p);
 
   template <typename T>
