@@ -31,16 +31,16 @@
 namespace votca {
 namespace xtp {
 
-class QMSandbox : public QMTool {
+class QMSandbox final : public QMTool {
  public:
   QMSandbox() = default;
-  ~QMSandbox() final = default;
+  ~QMSandbox() = default;
 
-  std::string Identify() final { return "qmsandbox"; }
+  std::string Identify() { return "qmsandbox"; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   std::string _orbfile;

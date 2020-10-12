@@ -35,13 +35,13 @@
 namespace votca {
 namespace xtp {
 
-class ExcitonCoupling : public QMTool {
+class ExcitonCoupling final : public QMTool {
  public:
-  std::string Identify() final { return "excitoncoupling"; }
+  std::string Identify() { return "excitoncoupling"; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   std::string _orbA, _orbB, _orbAB;

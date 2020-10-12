@@ -34,16 +34,16 @@
 namespace votca {
 namespace xtp {
 
-class Partialcharges : public QMTool {
+class Partialcharges final : public QMTool {
  public:
   Partialcharges() = default;
-  ~Partialcharges() final = default;
+  ~Partialcharges() = default;
 
-  std::string Identify() final { return "partialcharges"; }
+  std::string Identify() { return "partialcharges"; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   std::string _orbfile;

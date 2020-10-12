@@ -38,19 +38,18 @@ namespace xtp {
  *
  */
 
-class EQM : public ParallelXJobCalc<std::vector<Job> > {
+class EQM final : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  std::string Identify() final { return "eqm"; }
+  std::string Identify() { return "eqm"; }
 
-  Job::JobResult EvalJob(const Topology &top, Job &job,
-                         QMThread &opThread) final;
+  Job::JobResult EvalJob(const Topology &top, Job &job, QMThread &opThread);
 
   void CleanUp() { ; }
-  void WriteJobFile(const Topology &top) final;
-  void ReadJobFile(Topology &) final { return; }
+  void WriteJobFile(const Topology &top);
+  void ReadJobFile(Topology &) { return; }
 
  protected:
-  void ParseSpecificOptions(const tools::Property &user_options) final;
+  void ParseSpecificOptions(const tools::Property &user_options);
 
  private:
   void WriteLoggerToFile(const std::string &logfile, Logger &logger);

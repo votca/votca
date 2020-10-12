@@ -31,18 +31,18 @@
 namespace votca {
 namespace xtp {
 
-class MapChecker : public QMCalculator {
+class MapChecker final : public QMCalculator {
  public:
   MapChecker() = default;
 
-  ~MapChecker() final = default;
+  ~MapChecker() = default;
 
-  std::string Identify() final { return "mapchecker"; }
-  bool WriteToStateFile() const final { return false; }
+  std::string Identify() { return "mapchecker"; }
+  bool WriteToStateFile() const { return false; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Evaluate(Topology& top) final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
   std::string AddSteptoFilename(const std::string& filename, Index step) const;

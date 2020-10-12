@@ -17,13 +17,13 @@ class Mol2Orb final : public QMTool {
  public:
   Mol2Orb() = default;
 
-  ~Mol2Orb() final = default;
+  ~Mol2Orb() = default;
 
-  std::string Identify() final { return "mol2orb"; }
+  std::string Identify() { return "mol2orb"; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   std::string _moldenfile;

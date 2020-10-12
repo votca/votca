@@ -29,14 +29,14 @@
 namespace votca {
 namespace xtp {
 
-class IAnalyze : public QMCalculator {
+class IAnalyze final : public QMCalculator {
  public:
-  std::string Identify() final { return "ianalyze"; }
-  bool WriteToStateFile() const final { return false; }
+  std::string Identify() { return "ianalyze"; }
+  bool WriteToStateFile() const { return false; }
 
  protected:
-  void ParseOptions(const tools::Property &user_options) final;
-  bool Evaluate(Topology &top) final;
+  void ParseOptions(const tools::Property &user_options);
+  bool Evaluate(Topology &top);
 
  private:
   void IHist(Topology &top, QMStateType state);

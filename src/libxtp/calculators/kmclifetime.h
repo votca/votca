@@ -25,21 +25,21 @@
 namespace votca {
 namespace xtp {
 
-class KMCLifetime : public KMCCalculator {
+class KMCLifetime final : public KMCCalculator {
  public:
   KMCLifetime() = default;
-  ~KMCLifetime() final = default;
-  bool WriteToStateFile() const final { return false; }
-  std::string Identify() final { return "kmclifetime"; }
+  ~KMCLifetime() = default;
+  bool WriteToStateFile() const { return false; }
+  std::string Identify() { return "kmclifetime"; }
 
  protected:
-  void ParseSpecificOptions(const tools::Property& user_options) final;
-  bool Evaluate(Topology& top) final;
+  void ParseSpecificOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
   void WriteDecayProbability(std::string filename);
 
-  void RunVSSM() final;
+  void RunVSSM();
   void WriteToTraj(std::fstream& traj, unsigned long insertioncount,
                    double simtime, const Chargecarrier& affectedcarrier) const;
 

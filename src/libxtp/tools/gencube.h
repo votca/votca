@@ -30,17 +30,17 @@ namespace votca {
 namespace xtp {
 class AOBasis;
 
-class GenCube : public QMTool {
+class GenCube final : public QMTool {
  public:
   GenCube() = default;
 
-  ~GenCube() final = default;
+  ~GenCube() = default;
 
-  std::string Identify() final { return "gencube"; }
+  std::string Identify() { return "gencube"; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   void calculateCube();

@@ -28,18 +28,18 @@
 namespace votca {
 namespace xtp {
 
-class EInternal : public QMCalculator {
+class EInternal final : public QMCalculator {
  public:
   EInternal() = default;
-  ~EInternal() final = default;
+  ~EInternal() = default;
 
-  std::string Identify() final { return "einternal"; }
+  std::string Identify() { return "einternal"; }
 
-  bool WriteToStateFile() const final { return true; }
+  bool WriteToStateFile() const { return true; }
 
  protected:
-  void ParseOptions(const tools::Property &user_options) final;
-  bool Evaluate(Topology &top) final;
+  void ParseOptions(const tools::Property &user_options);
+  bool Evaluate(Topology &top);
 
  private:
   void ParseEnergies();

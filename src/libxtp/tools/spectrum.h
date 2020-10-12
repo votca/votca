@@ -33,17 +33,17 @@ namespace votca {
 namespace xtp {
 class Orbitals;
 
-class Spectrum : public QMTool {
+class Spectrum final : public QMTool {
  public:
   Spectrum() = default;
 
-  ~Spectrum() final = default;
+  ~Spectrum() = default;
 
-  std::string Identify() final { return "spectrum"; }
+  std::string Identify() { return "spectrum"; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   std::string _orbfile;

@@ -19,12 +19,9 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/eigen.h"
-#include "votca/xtp/logger.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/threecenter.h"
-#include <shell.h>
-using std::flush;
+#include <libint2.hpp>
 
 namespace votca {
 namespace xtp {

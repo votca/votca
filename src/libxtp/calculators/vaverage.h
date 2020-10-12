@@ -35,18 +35,18 @@
 namespace votca {
 namespace xtp {
 
-class VAverage : public QMCalculator {
+class VAverage final : public QMCalculator {
  public:
   VAverage() = default;
 
-  ~VAverage() final = default;
+  ~VAverage() = default;
 
-  std::string Identify() final { return "vaverage"; }
-  bool WriteToStateFile() const final { return false; }
+  std::string Identify() { return "vaverage"; }
+  bool WriteToStateFile() const { return false; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Evaluate(Topology& top) final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
   Logger _log;

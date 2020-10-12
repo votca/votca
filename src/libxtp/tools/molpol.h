@@ -32,17 +32,17 @@
 namespace votca {
 namespace xtp {
 class PolarRegion;
-class MolPol : public QMTool {
+class MolPol final : public QMTool {
  public:
   MolPol() : _input("", 0){};
 
-  ~MolPol() final = default;
+  ~MolPol() = default;
 
-  std::string Identify() final { return "molpol"; }
+  std::string Identify() { return "molpol"; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   void Printpolarization(const Eigen::Matrix3d& result) const;

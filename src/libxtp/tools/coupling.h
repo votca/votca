@@ -29,16 +29,16 @@
 namespace votca {
 namespace xtp {
 
-class Coupling : public QMTool {
+class Coupling final : public QMTool {
  public:
   Coupling() = default;
-  ~Coupling() final = default;
+  ~Coupling() = default;
 
-  std::string Identify() final { return "coupling"; }
+  std::string Identify() { return "coupling"; }
 
  protected:
-  void ParseOptions(const tools::Property &user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property &user_options);
+  bool Run();
 
  private:
   std::string _MOsA, _MOsB, _MOsAB;
