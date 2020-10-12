@@ -27,6 +27,7 @@ namespace votca {
 namespace xtp {
 
 void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
+
   AOCoulomb auxAOcoulomb;
   auxAOcoulomb.Fill(auxbasis);
   _inv_sqrt = auxAOcoulomb.Pseudo_InvSqrt(1e-8);
@@ -40,7 +41,6 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
           "Basisset/aux basis too large for 3c calculation. Not enough RAM.");
     }
   }
-
 #pragma omp parallel for schedule(dynamic)
   for (Index is = dftbasis.getNumofShells() - 1; is >= 0; is--) {
     const AOShell& dftshell = dftbasis.getShell(is);
@@ -49,9 +49,7 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
       Index size = dftshell.getStartIndex() + i + 1;
       block.push_back(Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), size));
     }
-
     FillBlock(block, is, dftbasis, auxbasis);
-
     Index offset = dftshell.getStartIndex();
     for (Index i = 0; i < Index(block.size()); ++i) {
       Eigen::MatrixXd temp = _inv_sqrt * block[i];
@@ -62,74 +60,6 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
       }
     }
   }
-  return;
-}
-
-void TCMatrix_dft::Fill2(const AOBasis& auxbasis, const AOBasis& dftbasis) {
-
-  // Prepare Libint2
-  libint2::initialize();
-  Index nthreads = OPENMP::getMaxThreads();
-  std::vector<libint2::Shell> aux_shells = auxbasis.GenerateLibintBasis();
-  std::vector<libint2::Shell> dft_shells = dftbasis.GenerateLibintBasis();
-  std::vector<Index> aux_shell2bf = auxbasis.getMapToBasisFunctions();
-  std::vector<Index> dft_shell2bf = dftbasis.getMapToBasisFunctions();
-
-  AOCoulomb auxAOcoulomb;
-  auxAOcoulomb.Fill(auxbasis);
-  _inv_sqrt = auxAOcoulomb.Pseudo_InvSqrt(1e-8);
-  _removedfunctions = auxAOcoulomb.Removedfunctions();
-
-  // Setup memory
-  for (Index i = 0; i < auxbasis.AOBasisSize(); i++) {
-    try {
-      _matrix.push_back(Symmetric_Matrix(dftbasis.AOBasisSize()));
-    } catch (std::bad_alloc&) {
-      throw std::runtime_error(
-          "Basisset/aux basis too large for 3c calculation. Not enough RAM.");
-    }
-  }
-
-  // Build libint engines
-  std::vector<libint2::Engine> engines(nthreads);
-  engines[0] =
-      libint2::Engine(libint2::Operator::coulomb,
-                      std::max(auxbasis.getMaxNprim(), dftbasis.getMaxNprim()),
-                      std::max(static_cast<int>(auxbasis.getMaxL()),
-                               static_cast<int>(dftbasis.getMaxL())),
-                      0);
-  engines[0].set(libint2::BraKet::xs_xx);
-  for (Index i = 1; i < nthreads; ++i) {
-    engines[i] = engines[0];
-  }
-
-// Actual Computation of the integrals
-#pragma omp parallel for schedule(dynamic)
-  for (Index auxIndex = 0; auxIndex < 1; auxIndex++) {
-    Index thread_id = OPENMP::getThreadId();
-    libint2::Engine& engine = engines[thread_id];
-    const libint2::Engine::target_ptr_vec& buf = engine.results();
-
-    for (Index dftIndex1 = dft_shells.size() - 1; dftIndex1 >= 0; dftIndex1--) {
-      for (Index dftIndex2 = 0; dftIndex2 < dft_shells.size(); dftIndex2++) {
-        engine.compute(aux_shells[auxIndex], dft_shells[dftIndex1],
-                       dft_shells[dftIndex2]);
-
-        if (buf[0] == nullptr) {
-          continue;
-        }
-        // Convert to tensor
-        for (Index i = 0;
-             i < aux_shells[auxIndex].size() * dft_shells[dftIndex1].size() *
-                     dft_shells[dftIndex2].size();
-             i++) {
-          std::cout << buf[0][i] << std::endl;
-        }
-      }
-    }
-  }
-
-  libint2::finalize();
   return;
 }
 

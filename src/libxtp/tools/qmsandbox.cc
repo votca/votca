@@ -1,6 +1,5 @@
 #include "qmsandbox.h"
 #include "votca/xtp/orbreorder.h"
-#include "votca/xtp/threecenter.h"
 #include <votca/tools/eigenio_matrixmarket.h>
 
 namespace votca {
@@ -30,40 +29,31 @@ bool QMSandbox::Evaluate() {
   AOBasis basis;
   basis.Fill(bs, atoms);
 
-  BasisSet auxbs;
-  auxbs.Load("aux-def2-svp");
-
-  AOBasis auxbasis;
-  auxbasis.Fill(auxbs, atoms);
-
   std::vector<libint2::Shell> shells = basis.GenerateLibintBasis();
-  std::vector<libint2::Shell> auxShells = auxbasis.GenerateLibintBasis();
+
+  for (auto& shell : basis) {
+    std::cout << shell << std::endl;
+  }
 
   std::copy(std::begin(shells), std::end(shells),
             std::ostream_iterator<libint2::Shell>(std::cout, "\n"));
 
-  std::cout << "*************************************************************\n"
-            << std::endl;
+  AOOverlap aooverlap;
+  AOCoulomb aocoulomb;
+  AOKinetic aokinetic;
+  AODipole aodipole;
 
-  std::copy(std::begin(auxShells), std::end(auxShells),
-            std::ostream_iterator<libint2::Shell>(std::cout, "\n"));
-
-  std::cout << "*************************************************************\n"
-            << std::endl;
-
-  TCMatrix_dft three;
-  three.Fill(auxbasis, basis);
-
-  TCMatrix_dft three2;
-  three2.Fill2(auxbasis, basis);
-
-  std::cout << "SIZE " << three.size() << std::endl;
-
-  for (int i = 0; i < three.size(); i++) {
-    std::cout << three[i] << std::endl;
-    std::cout << three2[i] << std::endl;
-    std::cout << "*************************************************************"
-              << std::endl;
+  for (int i = 0; i < 100; i++) {
+    aooverlap.Fill(basis);
+  }
+  for (int i = 0; i < 100; i++) {
+    aocoulomb.Fill(basis);
+  }
+  for (int i = 0; i < 100; i++) {
+    aokinetic.Fill(basis);
+  }
+  for (int i = 0; i < 100; i++) {
+    aodipole.Fill(basis);
   }
 
   return true;

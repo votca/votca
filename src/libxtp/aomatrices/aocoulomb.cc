@@ -48,6 +48,7 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
   }
 
   std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
+  libint2::Shell unitshell = libint2::Shell::unit();
 
 #pragma omp parallel for schedule(dynamic)
   for (Index s1 = 0l; s1 < aobasis.getNumofShells(); ++s1) {
@@ -64,9 +65,9 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
 
       engine.compute(shells[s1], shells[s2]);
 
-      if (buf[0] == nullptr) {
+      if (buf[0] == nullptr)
         continue;  // if all integrals screened out, skip to next shell set
-      }
+
       Eigen::Map<const MatrixLibInt> buf_mat(buf[0], n1, n2);
       result.block(bf1, bf2, n1, n2) = buf_mat;
       if (s1 != s2)  // if s1 >= s2, copy {s1,s2} to the corresponding {s2,s1}
