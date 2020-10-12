@@ -47,8 +47,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/MOs.mm");
 
-  Logger log;
-  TCMatrix_gwbse tc{log};
+  TCMatrix_gwbse tc;
   tc.Initialize(aobasis.AOBasisSize(), 0, 5, 0, 7);
   tc.Fill(aobasis, aobasis, MOs);
 

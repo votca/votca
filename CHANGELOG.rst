@@ -71,6 +71,7 @@ Version 2021-dev
 -  Bump required CMake version to 3.12 (#568)
 -  Refactored calculator interface (#570)
 -  Fixed boost test deprecation warnings (#569)
+-  Refactored CUDA-OpenMP integration (#571)
 
 Version 1.6.3 (released XX.08.20)
 =================================
