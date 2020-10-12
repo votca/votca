@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_MOLPOL_PRIVATE_H
-#define VOTCA_XTP_MOLPOL_PRIVATE_H
+#ifndef VOTCA_XTP_MOLPOL_H
+#define VOTCA_XTP_MOLPOL_H
 
 // Standard includes
 #include <cstdio>
@@ -32,16 +32,17 @@
 namespace votca {
 namespace xtp {
 class PolarRegion;
-class MolPol : public QMTool {
+class MolPol final : public QMTool {
  public:
   MolPol() : _input("", 0){};
 
-  ~MolPol() override = default;
+  ~MolPol() = default;
 
-  std::string Identify() override { return "molpol"; }
+  std::string Identify() { return "molpol"; }
 
-  void Initialize(const tools::Property& user_options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   void Printpolarization(const Eigen::Matrix3d& result) const;
@@ -66,4 +67,4 @@ class MolPol : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_MOLPOL_PRIVATE_H
+#endif  // VOTCA_XTP_MOLPOL_H

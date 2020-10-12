@@ -32,7 +32,7 @@ namespace votca {
 namespace xtp {
 
 template <typename JobContainer>
-bool ParallelXJobCalc<JobContainer>::EvaluateFrame(const Topology &top) {
+bool ParallelXJobCalc<JobContainer>::Evaluate(const Topology &top) {
 
   // INITIALIZE PROGRESS OBSERVER
   std::string progFile = _jobfile;
@@ -109,7 +109,6 @@ void ParallelXJobCalc<JobContainer>::ParseCommonOptions(
   std::cout << "\n... ... Using " << _openmp_threads << " openmp threads for "
             << _nThreads << "x" << _openmp_threads << "="
             << _nThreads * _openmp_threads << " total threads." << std::flush;
-  OPENMP::setMaxThreads(_openmp_threads);
   _jobfile = options.get(".job_file").as<std::string>();
   _mapfile = options.get(".map_file").as<std::string>();
 }

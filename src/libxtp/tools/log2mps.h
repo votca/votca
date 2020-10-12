@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_LOG2MPS_PRIVATE_H
-#define VOTCA_XTP_LOG2MPS_PRIVATE_H
+#ifndef VOTCA_XTP_LOG2MPS_H
+#define VOTCA_XTP_LOG2MPS_H
 
 // Third party includes
 #include <boost/format.hpp>
@@ -32,15 +32,16 @@
 namespace votca {
 namespace xtp {
 
-class Log2Mps : public QMTool {
+class Log2Mps final : public QMTool {
  public:
   Log2Mps() = default;
-  ~Log2Mps() override = default;
+  ~Log2Mps() = default;
 
-  std::string Identify() override { return "log2mps"; }
+  std::string Identify() { return "log2mps"; }
 
-  void Initialize(const tools::Property &user_options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Run();
 
  private:
   std::string _package;
@@ -48,13 +49,7 @@ class Log2Mps : public QMTool {
   std::string _mpsfile;
 };
 
-void Log2Mps::Initialize(const tools::Property &user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
+void Log2Mps::ParseOptions(const tools::Property &options) {
 
   QMPackageFactory::RegisterAll();
 
@@ -74,7 +69,7 @@ void Log2Mps::Initialize(const tools::Property &user_options) {
   std::cout << "\n... ... " << _logfile << " => " << _mpsfile << "\n";
 }
 
-bool Log2Mps::Evaluate() {
+bool Log2Mps::Run() {
 
   // Logger (required for QM package, so we can just as well use it)
   Logger log;
@@ -117,4 +112,4 @@ bool Log2Mps::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_LOG2MPS_PRIVATE_H
+#endif  // VOTCA_XTP_LOG2MPS_H

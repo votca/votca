@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_APDFT_PRIVATE_H
-#define VOTCA_XTP_APDFT_PRIVATE_H
+#ifndef VOTCA_XTP_APDFT_H
+#define VOTCA_XTP_APDFT_H
 
 // Local VOTCA includes
 #include "votca/xtp/qmstate.h"
@@ -32,11 +32,12 @@ class APDFT final : public QMTool {
  public:
   APDFT() = default;
 
-  ~APDFT() final = default;
-  std::string Identify() final { return "apdft"; }
+  ~APDFT() = default;
+  std::string Identify() { return "apdft"; }
 
-  void Initialize(const tools::Property &user_options) final;
-  bool Evaluate() final;
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Run();
 
  private:
   std::string _grid_accuracy = "medium";
@@ -48,4 +49,4 @@ class APDFT final : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_APDFT_PRIVATE_H
+#endif  // VOTCA_XTP_APDFT_H
