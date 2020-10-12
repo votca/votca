@@ -20,13 +20,13 @@ class Orb2Mol final : public QMTool {
  public:
   Orb2Mol() = default;
 
-  ~Orb2Mol() final = default;
+  ~Orb2Mol() = default;
 
-  std::string Identify() final { return "orb2mol"; }
+  std::string Identify() { return "orb2mol"; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   // clang-format off

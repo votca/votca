@@ -32,12 +32,12 @@ class APDFT final : public QMTool {
  public:
   APDFT() = default;
 
-  ~APDFT() final = default;
-  std::string Identify() final { return "apdft"; }
+  ~APDFT() = default;
+  std::string Identify() { return "apdft"; }
 
  protected:
-  void ParseOptions(const tools::Property &user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property &user_options);
+  bool Run();
 
  private:
   std::string _grid_accuracy = "medium";

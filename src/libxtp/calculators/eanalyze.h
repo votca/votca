@@ -38,17 +38,17 @@
 namespace votca {
 namespace xtp {
 
-class EAnalyze : public QMCalculator {
+class EAnalyze final : public QMCalculator {
  public:
   EAnalyze() = default;
 
-  ~EAnalyze() final = default;
-  bool WriteToStateFile() const final { return false; }
-  std::string Identify() final { return "eanalyze"; }
+  ~EAnalyze() = default;
+  bool WriteToStateFile() const { return false; }
+  std::string Identify() { return "eanalyze"; }
 
  protected:
-  void ParseOptions(const tools::Property &user_options) final;
-  bool Evaluate(Topology &top) final;
+  void ParseOptions(const tools::Property &user_options);
+  bool Evaluate(Topology &top);
 
  private:
   void SiteHist(QMStateType state) const;

@@ -31,17 +31,17 @@
 namespace votca {
 namespace xtp {
 
-class DftGwBse : public QMTool {
+class DftGwBse final : public QMTool {
  public:
   DftGwBse() = default;
 
-  ~DftGwBse() final = default;
+  ~DftGwBse() = default;
 
-  std::string Identify() final { return "dftgwbse"; }
+  std::string Identify() { return "dftgwbse"; }
 
  protected:
-  void ParseOptions(const tools::Property &user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property &user_options);
+  bool Run();
 
  private:
   std::string _guess_file;

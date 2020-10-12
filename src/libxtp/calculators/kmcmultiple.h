@@ -28,19 +28,19 @@
 namespace votca {
 namespace xtp {
 
-class KMCMultiple : public KMCCalculator {
+class KMCMultiple final : public KMCCalculator {
  public:
   KMCMultiple() = default;
-  ~KMCMultiple() final = default;
-  bool WriteToStateFile() const final { return false; }
-  std::string Identify() final { return "kmcmultiple"; }
+  ~KMCMultiple() = default;
+  bool WriteToStateFile() const { return false; }
+  std::string Identify() { return "kmcmultiple"; }
 
  protected:
-  void ParseSpecificOptions(const tools::Property& user_options) final;
-  bool Evaluate(Topology& top) final;
+  void ParseSpecificOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
-  void RunVSSM() final;
+  void RunVSSM();
   void PrintChargeVelocity(double simtime);
 
   void PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,

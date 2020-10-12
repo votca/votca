@@ -32,16 +32,16 @@
 namespace votca {
 namespace xtp {
 
-class Log2Mps : public QMTool {
+class Log2Mps final : public QMTool {
  public:
   Log2Mps() = default;
-  ~Log2Mps() final = default;
+  ~Log2Mps() = default;
 
-  std::string Identify() final { return "log2mps"; }
+  std::string Identify() { return "log2mps"; }
 
  protected:
-  void ParseOptions(const tools::Property &user_options) final;
-  bool Run() final;
+  void ParseOptions(const tools::Property &user_options);
+  bool Run();
 
  private:
   std::string _package;

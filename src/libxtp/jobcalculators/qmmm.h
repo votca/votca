@@ -35,15 +35,15 @@ namespace xtp {
  * Callname: qmmm
  */
 
-class QMMM : public ParallelXJobCalc<std::vector<Job> > {
+class QMMM final : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  std::string Identify() final { return "qmmm"; }
-  Job::JobResult EvalJob(const Topology& top, Job& job, QMThread& Thread) final;
-  void WriteJobFile(const Topology& top) final;
-  void ReadJobFile(Topology& top) final;
+  std::string Identify() { return "qmmm"; }
+  Job::JobResult EvalJob(const Topology& top, Job& job, QMThread& Thread);
+  void WriteJobFile(const Topology& top);
+  void ReadJobFile(Topology& top);
 
  protected:
-  void ParseSpecificOptions(const tools::Property& user_options) final;
+  void ParseSpecificOptions(const tools::Property& user_options);
 
  private:
   bool hasQMRegion() const;
