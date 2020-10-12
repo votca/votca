@@ -555,32 +555,24 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
     double E_two_alpha = ERIs.matrix().cwiseProduct(dftAOdmat_alpha).sum();
     double E_two_beta = ERIs.matrix().cwiseProduct(dftAOdmat_beta).sum();
     Eigen::MatrixXd H_alpha = H0 + ERIs.matrix();
-    Eigen::MatrixXd H_beta = H0 + ERIs.matrix();
+    Eigen::MatrixXd H_beta = H_alpha;
 
-    Mat_p_Energy e_vxc = gridIntegration.IntegrateVXC(dftAOdmat_alpha);
-    Eigen::MatrixXd AOVxc_alpha = e_vxc.matrix();
-    double E_vxc_alpha = e_vxc.energy();
-    H_alpha += AOVxc_alpha;
-    E_two_alpha += E_vxc_alpha;
+    Mat_p_Energy e_vxc_alpha = gridIntegration.IntegrateVXC(dftAOdmat_alpha);
+    H_alpha += e_vxc_alpha.matrix();
+    E_two_alpha += e_vxc_alpha.energy();
 
-    e_vxc = gridIntegration.IntegrateVXC(dftAOdmat_beta);
-    Eigen::MatrixXd AOVxc_beta = e_vxc.matrix();
-    double E_vxc_beta = e_vxc.energy();
-    H_beta += AOVxc_beta;
-    E_two_beta += E_vxc_beta;
+    Mat_p_Energy e_vxc_beta = gridIntegration.IntegrateVXC(dftAOdmat_beta);
+    H_beta += e_vxc_beta.matrix();
+    E_two_beta += e_vxc_beta.energy();
 
     if (_ScaHFX > 0) {
       Mat_p_Energy EXXs =
           ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_alpha);
-      double E_exx_alpha =
-          -0.5 * _ScaHFX * EXXs.matrix().cwiseProduct(dftAOdmat_alpha).sum();
       H_alpha -= _ScaHFX * EXXs.matrix();
-      E_two_alpha += E_exx_alpha;
+      E_two_alpha -= 0.5 * _ScaHFX * EXXs.energy();
       ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_beta);
-      double E_exx_beta =
-          -0.5 * _ScaHFX * EXXs.matrix().cwiseProduct(dftAOdmat_beta).sum();
       H_beta -= _ScaHFX * EXXs.matrix();
-      E_two_beta += E_exx_beta;
+      E_two_beta -= 0.5 * _ScaHFX * EXXs.energy();
     }
 
     double E_one_alpha = dftAOdmat_alpha.cwiseProduct(H0).sum();
