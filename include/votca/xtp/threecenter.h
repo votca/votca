@@ -21,12 +21,8 @@
 #ifndef VOTCA_XTP_THREECENTER_H
 #define VOTCA_XTP_THREECENTER_H
 
-// Standard includes
-#include <array>
-
 // Local VOTCA includes
 #include "eigen.h"
-#include "logger.h"
 #include "symmetric_matrix.h"
 
 /**
@@ -77,8 +73,6 @@ class TCMatrix_dft : public TCMatrix {
 
 class TCMatrix_gwbse : public TCMatrix {
  public:
-  TCMatrix_gwbse(Logger& log) : _log{log} {};
-
   // returns one level as a constant reference
   const Eigen::MatrixXd& operator[](Index i) const { return _matrix[i]; }
 
@@ -113,9 +107,6 @@ class TCMatrix_gwbse : public TCMatrix {
  private:
   // store vector of matrices
   std::vector<Eigen::MatrixXd> _matrix;
-
-  // Logger
-  Logger& _log;
 
   // band summation indices
   Index _mmin;

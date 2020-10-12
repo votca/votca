@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(rpa_h2p) {
       std::string(XTP_TEST_DATA_FOLDER) + "/rpa/eigenvectors.mm");
 
   Logger log;
-  TCMatrix_gwbse Mmn(log);
+  TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, eigenvectors);
 
