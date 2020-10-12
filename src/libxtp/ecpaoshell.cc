@@ -26,6 +26,34 @@
 namespace votca {
 namespace xtp {
 
+void ECPAOGaussianPrimitive::WriteData(data& d, const ECPAOShell& shell) const {
+  d.atomid = shell.getAtomIndex();
+  d.l = static_cast<Index>(shell.getL());
+  d.startindex = shell.getStartIndex();
+  d.decay = getDecay();
+  d.contraction = getContraction();
+  d.power = _power;
+  d.x = shell.getPos().x();
+  d.y = shell.getPos().y();
+  d.z = shell.getPos().z();
+  d.lmax = static_cast<Index>(shell.getLmaxElement());
+}
+
+void ECPAOGaussianPrimitive::SetupCptTable(CptTable& table) const {
+  Index i;
+  double d;
+  table.addCol(i, "atomidx", HOFFSET(data, atomid));
+  table.addCol(i, "L", HOFFSET(data, l));
+  table.addCol(i, "startidx", HOFFSET(data, startindex));
+  table.addCol(i, "power", HOFFSET(data, power));
+  table.addCol(d, "decay", HOFFSET(data, decay));
+  table.addCol(d, "contr", HOFFSET(data, contraction));
+  table.addCol(d, "pos.x", HOFFSET(data, x));
+  table.addCol(d, "pos.y", HOFFSET(data, y));
+  table.addCol(d, "pos.z", HOFFSET(data, z));
+  table.addCol(i, "lmax", HOFFSET(data, lmax));
+}
+
 std::ostream& operator<<(std::ostream& out, const ECPAOShell& shell) {
   out << "AtomIndex:" << shell.getAtomIndex();
   out << " Shelltype:" << xtp::EnumToString(shell.getL())

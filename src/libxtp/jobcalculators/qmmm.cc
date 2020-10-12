@@ -33,13 +33,8 @@
 namespace votca {
 namespace xtp {
 
-void QMMM::Initialize(const tools::Property& user_options) {
+void QMMM::ParseSpecificOptions(const tools::Property& options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  ParseCommonOptions(options);
-
-  _jobfile = options.get(".job_file").as<std::string>();
   _print_regions_pdb = options.get(".print_regions_pdb").as<bool>();
   _max_iterations = options.get(".max_iterations").as<Index>();
   _regions_def = options.get(".regions");

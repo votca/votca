@@ -24,8 +24,8 @@
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/orbreorder.h"
+#include <libint2/initialize.h>
 #include <votca/tools/eigenio_matrixmarket.h>
-
 using namespace votca::xtp;
 using namespace votca;
 using namespace std;
@@ -33,7 +33,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(aopotential_test)
 
 BOOST_AUTO_TEST_CASE(aopotentials_test) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/aopotential/molecule.xyz");
@@ -152,10 +152,11 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
     std::cout << "planewave real" << endl;
     std::cout << planewave.Matrix().real() << endl;
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(aomultipole_comparison) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/aopotential/molecule.xyz");
@@ -257,6 +258,7 @@ BOOST_AUTO_TEST_CASE(aomultipole_comparison) {
       std::cout << mono6.Matrix().cwiseQuotient(quad.Matrix()) << endl;
     }
   }
+  libint2::finalize();
 }
 
 /*BOOST_AUTO_TEST_CASE(large_l_test) {

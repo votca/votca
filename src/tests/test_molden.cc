@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE moldenreader_test
@@ -36,7 +37,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(molden_test)
 
 BOOST_AUTO_TEST_CASE(moldenreader_test) {
-
+  libint2::initialize();
   Eigen::MatrixXd coeffs_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/molden/orbitalsMOs_ref.mm");
 
@@ -72,10 +73,12 @@ BOOST_AUTO_TEST_CASE(moldenreader_test) {
     BOOST_CHECK(orbitals.QMAtoms()[i].getPos().isApprox(
         orbitals_ref.QMAtoms()[i].getPos(), 1e-3));
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(moldenwriter_test) {
-
+  libint2::initialize();
   // Setup orbitals object
   Orbitals orbitals_ref;
   orbitals_ref.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -123,5 +126,7 @@ BOOST_AUTO_TEST_CASE(moldenwriter_test) {
     BOOST_CHECK(orbitals.QMAtoms()[i].getPos().isApprox(
         orbitals_ref.QMAtoms()[i].getPos(), 1e-3));
   }
+
+  libint2::finalize();
 }
 }

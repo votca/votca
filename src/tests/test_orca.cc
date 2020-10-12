@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE orca_test
@@ -59,7 +60,7 @@ BOOST_AUTO_TEST_CASE(polar_test) {
 }
 
 BOOST_AUTO_TEST_CASE(ext_charges_test) {
-
+  libint2::initialize();
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
       std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
@@ -142,10 +143,12 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
     std::cout << "ref coeff" << std::endl;
     std::cout << MOs_coeff_ref << std::endl;
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(charges_test) {
-
+  libint2::initialize();
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
       std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
@@ -184,6 +187,8 @@ BOOST_AUTO_TEST_CASE(charges_test) {
     BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(opt_test) {

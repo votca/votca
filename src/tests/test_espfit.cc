@@ -25,14 +25,14 @@
 #include "votca/xtp/espfit.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(espfit_test)
 
 BOOST_AUTO_TEST_CASE(esp_charges) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/espfit/molecule.xyz");
@@ -113,6 +113,8 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
               << pcharges_reg.segment(1, 2).sum() << std::endl;
   }
   BOOST_CHECK_EQUAL(check_reg, 1);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

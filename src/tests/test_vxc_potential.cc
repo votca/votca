@@ -27,8 +27,8 @@
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
+#include <libint2/initialize.h>
 #include <votca/tools/eigenio_matrixmarket.h>
-
 using namespace votca::xtp;
 using namespace std;
 
@@ -49,7 +49,7 @@ Eigen::MatrixXd DMat() {
 }
 
 BOOST_AUTO_TEST_CASE(vxc_test) {
-
+  libint2::initialize();
   QMMolecule mol("none", 0);
 
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -84,6 +84,8 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
     std::cout << e_vxc.matrix() << std::endl;
   }
   BOOST_CHECK_EQUAL(check_vxc, 1);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

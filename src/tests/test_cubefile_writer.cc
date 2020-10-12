@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE cubefilewriter_test
@@ -52,7 +53,7 @@ Eigen::VectorXd Readcubefile(const std::string& filename) {
 }
 
 BOOST_AUTO_TEST_CASE(constructors_test) {
-
+  libint2::initialize();
   Orbitals A;
   A.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
                     "/cubefile_writer/3-21G.xml");
@@ -139,6 +140,8 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
     std::cout << "result" << std::endl;
     std::cout << result3.transpose() << std::endl;
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

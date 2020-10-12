@@ -27,15 +27,15 @@
 #include "votca/xtp/bse_operator.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
+#include <libint2/initialize.h>
 #include <votca/tools/eigenio_matrixmarket.h>
-
 using namespace votca::xtp;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(bse_test)
 
 BOOST_AUTO_TEST_CASE(bse_operator) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/bse/molecule.xyz");
@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
       0.16678, 0.16678, 0.671592, 0.671592, 0.671592, 0.974255, 1.01205,
       1.01205, 1.01205, 1.64823, 19.4429;
   Logger log;
-  TCMatrix_gwbse Mmn{log};
+  TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, MOs);
 
@@ -132,6 +132,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
     cout << hd2_mat << endl;
   }
   BOOST_CHECK_EQUAL(check_hd2, true);
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

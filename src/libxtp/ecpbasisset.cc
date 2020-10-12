@@ -29,7 +29,7 @@ namespace xtp {
 
 void ECPBasisSet::Load(const std::string& name) {
   tools::Property basis_property;
-  _name = name;
+
   // if name contains .xml, assume a ecp .xml file is located in the working
   // directory
   std::size_t found_xml = name.find(".xml");
@@ -46,7 +46,8 @@ void ECPBasisSet::Load(const std::string& name) {
               name + std::string(".xml");
   }
   basis_property.LoadFromXML(xmlFile);
-
+  _name =
+      basis_property.get("pseudopotential").getAttribute<std::string>("name");
   std::vector<tools::Property*> elementProps =
       basis_property.Select("pseudopotential.element");
 

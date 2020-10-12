@@ -31,15 +31,19 @@ namespace xtp {
 class EInternal : public QMCalculator {
  public:
   EInternal() = default;
-  ~EInternal() override = default;
+  ~EInternal() final = default;
 
-  std::string Identify() override { return "einternal"; }
-  bool WriteToStateFile() const override { return true; }
-  void Initialize(const tools::Property &user_options) override;
-  void ParseEnergies();
-  bool EvaluateFrame(Topology &top) override;
+  std::string Identify() final { return "einternal"; }
+
+  bool WriteToStateFile() const final { return true; }
+
+ protected:
+  void ParseOptions(const tools::Property &user_options) final;
+  bool Evaluate(Topology &top) final;
 
  private:
+  void ParseEnergies();
+
   std::map<std::string, QMStateCarrierStorage<double> > _seg_U_xX_nN;
   std::map<std::string, QMStateCarrierStorage<double> > _seg_U_nX_nN;
   std::map<std::string, QMStateCarrierStorage<double> > _seg_U_xN_xX;

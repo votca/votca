@@ -27,18 +27,18 @@
 #include <votca/tools/eigenio_matrixmarket.h>
 
 // Local VOTCA includes
+#include <libint2/initialize.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/sigma_cda.h>
 #include <votca/xtp/threecenter.h>
-
 using namespace votca::xtp;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(sigma_cda_test)
 
 BOOST_AUTO_TEST_CASE(sigma_full) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/sigma_cda/molecule.xyz");
@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
       std::string(XTP_TEST_DATA_FOLDER) + "/sigma_cda/MOs.mm");
 
   Logger log;
-  TCMatrix_gwbse Mmn{log};
+  TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, MOs);
 
@@ -105,6 +105,8 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
     cout << c_ref_diag << endl;
   }
   BOOST_CHECK_EQUAL(check_c_diag, true);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -39,12 +39,14 @@ class VAverage : public QMCalculator {
  public:
   VAverage() = default;
 
-  ~VAverage() override = default;
+  ~VAverage() final = default;
 
-  std::string Identify() override { return "vaverage"; }
-  bool WriteToStateFile() const override { return false; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  std::string Identify() final { return "vaverage"; }
+  bool WriteToStateFile() const final { return false; }
+
+ protected:
+  void ParseOptions(const tools::Property& user_options) final;
+  bool Evaluate(Topology& top) final;
 
  private:
   Logger _log;

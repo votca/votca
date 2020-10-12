@@ -32,13 +32,7 @@
 namespace votca {
 namespace xtp {
 
-void Spectrum::Initialize(const tools::Property& user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
+void Spectrum::ParseOptions(const tools::Property& options) {
 
   // orbitals file or pure DFT output
   _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
@@ -58,8 +52,7 @@ void Spectrum::Initialize(const tools::Property& user_options) {
   _shiftby = options.get(".shift").as<double>();
 }
 
-bool Spectrum::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
+bool Spectrum::Run() {
   _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
 

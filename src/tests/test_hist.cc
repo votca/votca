@@ -21,7 +21,7 @@
 #include <iostream>
 
 // Third party includes
-#include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/tools/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes

@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE threecenter_dft_test
@@ -34,30 +35,8 @@ using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(threecenter_dft_test)
 
-Eigen::MatrixXd ReadMatrixFromString(const std::string& matrix) {
-  votca::tools::Tokenizer lines(matrix, "\n");
-
-  std::vector<double> entries;
-  Index cols = 0;
-  Index rows = 0;
-  for (auto line : lines) {
-    if (line[0] == '#') {
-      continue;
-    }
-    votca::tools::Tokenizer entries_tok(line, " ");
-    std::vector<std::string> temp = entries_tok.ToVector();
-    cols = Index(temp.size());
-    rows++;
-    for (const auto& s : temp) {
-      entries.push_back(std::stod(s));
-    }
-  }
-
-  return Eigen::Map<Eigen::MatrixXd>(entries.data(), rows, cols);
-}
-
 BOOST_AUTO_TEST_CASE(small_basis) {
-
+  libint2::initialize();
   QMMolecule mol(" ", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                    "/threecenter_dft/molecule.xyz");
@@ -90,6 +69,8 @@ BOOST_AUTO_TEST_CASE(small_basis) {
     std::cout << Ref4 << std::endl;
   }
   BOOST_CHECK_EQUAL(check_three2, true);
+
+  libint2::finalize();
 }
 
 /*BOOST_AUTO_TEST_CASE(large_l_test) {
