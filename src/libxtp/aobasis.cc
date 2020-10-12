@@ -17,19 +17,10 @@
  *
  */
 
-// Standard includes
-#include <libint2/shell.h>
-#include <vector>
-
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
-#include "votca/xtp/aoshell.h"
 #include "votca/xtp/basisset.h"
-#include "votca/xtp/qmatom.h"
 #include "votca/xtp/qmmolecule.h"
-#include "votca/xtp/qmpackage.h"
-#include "votca/xtp/regular_grid.h"
-
 #include <libint2.hpp>
 
 namespace votca {

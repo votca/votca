@@ -23,7 +23,6 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/aotransform.h"
 
 namespace votca {
 namespace xtp {
