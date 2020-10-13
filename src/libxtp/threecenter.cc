@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/symmetric_matrix.h"
 #include <libint2.hpp>

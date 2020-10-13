@@ -18,6 +18,7 @@
  */
 
 // Standard includes
+#include "votca/xtp/make_libint_work.h"
 #include <libint2.hpp>
 #include <vector>
 

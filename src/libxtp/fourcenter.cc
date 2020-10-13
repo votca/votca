@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/fourcenter.h"
 #include "votca/xtp/aobasis.h"
+#include "votca/xtp/make_libint_work.h"
 #include <libint2.hpp>
 
 namespace votca {

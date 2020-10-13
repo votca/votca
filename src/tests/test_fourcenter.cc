@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include "votca/xtp/make_libint_work.h"
 #include <libint2.hpp>
 #define BOOST_TEST_MAIN
 
