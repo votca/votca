@@ -73,7 +73,8 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
 
         const libint2::Shell& shell_col = dftshells[dis];
         Index col_start = shell2bf[dis];
-        engine.compute(auxshell, dftshell, shell_col);
+        engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 0>(
+            auxshell, libint2::Shell::unit(), dftshell, shell_col);
 
         if (buf[0] == nullptr) {
           continue;
@@ -192,7 +193,8 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeAO3cBlock(
       const libint2::Shell& shell_col = dftshells[col];
       const Index col_start = shell2bf[col];
 
-      engine.compute(auxshell, shell_col, shell_row);
+      engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 0>(
+          auxshell, libint2::Shell::unit(), shell_col, shell_row);
 
       if (buf[0] == nullptr) {
         continue;
