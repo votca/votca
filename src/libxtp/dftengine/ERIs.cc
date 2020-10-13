@@ -203,106 +203,91 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
     engines[i] = engines[0];
   }
 
-#pragma omp parallel
-  {  // Begin omp parallel
+#pragma omp parallel for schedule(guided) reduction(+ : ERIs2)
+  for (Index iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
+    const AOShell& shell_3 = dftbasis.getShell(iShell_3);
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    const libint2::Shell& sh3 = libintShells[iShell_3];
+    for (Index iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
+      const AOShell& shell_4 = dftbasis.getShell(iShell_4);
+      const libint2::Shell& sh4 = libintShells[iShell_4];
+      for (Index iShell_1 = iShell_3; iShell_1 < numShells; iShell_1++) {
+        const AOShell& shell_1 = dftbasis.getShell(iShell_1);
+        const libint2::Shell& sh1 = libintShells[iShell_1];
+        for (Index iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
+          const AOShell& shell_2 = dftbasis.getShell(iShell_2);
+          const libint2::Shell& sh2 = libintShells[iShell_2];
 
-    Eigen::MatrixXd ERIs_thread =
-        Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
+          // Pre-screening
+          if (_with_screening &&
+              CheckScreen(_screening_eps, shell_1, shell_2, shell_3, shell_4)) {
+            continue;
+          }
 
-#pragma omp for
-    for (Index iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
-      const AOShell& shell_3 = dftbasis.getShell(iShell_3);
-      const libint2::Shell& sh3 = libintShells[iShell_3];
-      Index numFunc_3 = shell_3.getNumFunc();
-      for (Index iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
-        const AOShell& shell_4 = dftbasis.getShell(iShell_4);
-        const libint2::Shell& sh4 = libintShells[iShell_4];
-        Index numFunc_4 = shell_4.getNumFunc();
-        for (Index iShell_1 = iShell_3; iShell_1 < numShells; iShell_1++) {
-          const AOShell& shell_1 = dftbasis.getShell(iShell_1);
-          const libint2::Shell& sh1 = libintShells[iShell_1];
-          Index numFunc_1 = shell_1.getNumFunc();
-          for (Index iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
-            const AOShell& shell_2 = dftbasis.getShell(iShell_2);
-            const libint2::Shell& sh2 = libintShells[iShell_2];
-            Index numFunc_2 = shell_2.getNumFunc();
+          // Get the current 4c block
+          Eigen::Tensor<double, 4> block;
+          bool nonzero = _fourcenter.FillFourCenterRepBlock(block, engine, sh1,
+                                                            sh2, sh3, sh4);
 
-            // Pre-screening
-            if (_with_screening && CheckScreen(_screening_eps, shell_1, shell_2,
-                                               shell_3, shell_4)) {
-              continue;
-            }
+          // If there are only zeros, we don't need to put anything in the
+          // ERIs matrix
+          if (!nonzero) {
+            continue;
+          }
 
-            // Get the current 4c block
-            Eigen::Tensor<double, 4> block(numFunc_1, numFunc_2, numFunc_3,
-                                           numFunc_4);
-            block.setZero();
-            bool nonzero = _fourcenter.FillFourCenterRepBlock(
-                block, engines[OPENMP::getThreadId()], sh1, sh2, sh3, sh4);
+          // Begin fill ERIs matrix
 
-            // If there are only zeros, we don't need to put anything in the
-            // ERIs matrix
-            if (!nonzero) {
-              continue;
-            }
+          FillERIsBlock<false>(ERIs2, DMAT, block, shell_1, shell_2, shell_3,
+                               shell_4);
 
-            // Begin fill ERIs matrix
+          // Symmetry 1 <--> 2
+          if (iShell_1 != iShell_2) {
+            FillERIsBlock<false>(ERIs2, DMAT, block, shell_2, shell_1, shell_3,
+                                 shell_4);
+          }
 
-            FillERIsBlock<false>(ERIs_thread, DMAT, block, shell_1, shell_2,
-                                 shell_3, shell_4);
+          // Symmetry 3 <--> 4
+          if (iShell_3 != iShell_4) {
+            FillERIsBlock<false>(ERIs2, DMAT, block, shell_1, shell_2, shell_4,
+                                 shell_3);
+          }
+
+          // Symmetry 1 <--> 2 and 3 <--> 4
+          if (iShell_1 != iShell_2 && iShell_3 != iShell_4) {
+            FillERIsBlock<false>(ERIs2, DMAT, block, shell_2, shell_1, shell_4,
+                                 shell_3);
+          }
+
+          // Symmetry (1, 2) <--> (3, 4)
+          if (iShell_1 != iShell_3) {
+
+            FillERIsBlock<true>(ERIs2, DMAT, block, shell_3, shell_4, shell_1,
+                                shell_2);
 
             // Symmetry 1 <--> 2
             if (iShell_1 != iShell_2) {
-              FillERIsBlock<false>(ERIs_thread, DMAT, block, shell_2, shell_1,
-                                   shell_3, shell_4);
+              FillERIsBlock<true>(ERIs2, DMAT, block, shell_3, shell_4, shell_2,
+                                  shell_1);
             }
 
             // Symmetry 3 <--> 4
             if (iShell_3 != iShell_4) {
-              FillERIsBlock<false>(ERIs_thread, DMAT, block, shell_1, shell_2,
-                                   shell_4, shell_3);
+              FillERIsBlock<true>(ERIs2, DMAT, block, shell_4, shell_3, shell_1,
+                                  shell_2);
             }
 
             // Symmetry 1 <--> 2 and 3 <--> 4
             if (iShell_1 != iShell_2 && iShell_3 != iShell_4) {
-              FillERIsBlock<false>(ERIs_thread, DMAT, block, shell_2, shell_1,
-                                   shell_4, shell_3);
+              FillERIsBlock<true>(ERIs2, DMAT, block, shell_4, shell_3, shell_2,
+                                  shell_1);
             }
+          }
 
-            // Symmetry (1, 2) <--> (3, 4)
-            if (iShell_1 != iShell_3) {
-
-              FillERIsBlock<true>(ERIs_thread, DMAT, block, shell_3, shell_4,
-                                  shell_1, shell_2);
-
-              // Symmetry 1 <--> 2
-              if (iShell_1 != iShell_2) {
-                FillERIsBlock<true>(ERIs_thread, DMAT, block, shell_3, shell_4,
-                                    shell_2, shell_1);
-              }
-
-              // Symmetry 3 <--> 4
-              if (iShell_3 != iShell_4) {
-                FillERIsBlock<true>(ERIs_thread, DMAT, block, shell_4, shell_3,
-                                    shell_1, shell_2);
-              }
-
-              // Symmetry 1 <--> 2 and 3 <--> 4
-              if (iShell_1 != iShell_2 && iShell_3 != iShell_4) {
-                FillERIsBlock<true>(ERIs_thread, DMAT, block, shell_4, shell_3,
-                                    shell_2, shell_1);
-              }
-            }
-
-            // End fill ERIs matrix
-          }  // End loop over shell 2
-        }    // End loop over shell 1
-      }      // End loop over shell 4
-    }        // End loop over shell 3
-
-#pragma omp critical
-    { ERIs2 += ERIs_thread; }
-  }
+          // End fill ERIs matrix
+        }  // End loop over shell 2
+      }    // End loop over shell 1
+    }      // End loop over shell 4
+  }        // End loop over shell 3
 
   ERIs2 = ERIs2.selfadjointView<Eigen::Upper>();
   double energy = CalculateEnergy(DMAT, ERIs2);
@@ -368,21 +353,18 @@ void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
   engine.set(libint2::BraKet::xx_xx);
 
   std::vector<libint2::Shell> libintShells = dftbasis.GenerateLibintBasis();
+  std::vector<Index> startpos = dftbasis.getMapToBasisFunctions();
 
   for (Index iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
-    const AOShell& shell_1 = dftbasis.getShell(iShell_1);
     const libint2::Shell& sh1 = libintShells[iShell_1];
-    Index numFunc_1 = shell_1.getNumFunc();
+    Index numFunc_1 = sh1.size();
     for (Index iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
-      const AOShell& shell_2 = dftbasis.getShell(iShell_2);
       const libint2::Shell& sh2 = libintShells[iShell_2];
 
-      Index numFunc_2 = shell_2.getNumFunc();
+      Index numFunc_2 = sh2.size();
 
       // Get the current 4c block
-      Eigen::Tensor<double, 4> block(numFunc_1, numFunc_2, numFunc_1,
-                                     numFunc_2);
-      block.setZero();
+      Eigen::Tensor<double, 4> block;
       bool nonzero =
           _fourcenter.FillFourCenterRepBlock(block, engine, sh1, sh2, sh1, sh2);
 
@@ -390,10 +372,10 @@ void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
         continue;
       }
 
-      for (Index iFunc_1 = 0; iFunc_1 < shell_1.getNumFunc(); iFunc_1++) {
-        Index ind_1 = shell_1.getStartIndex() + iFunc_1;
-        for (Index iFunc_2 = 0; iFunc_2 < shell_2.getNumFunc(); iFunc_2++) {
-          Index ind_2 = shell_2.getStartIndex() + iFunc_2;
+      for (Index iFunc_1 = 0; iFunc_1 < numFunc_1; iFunc_1++) {
+        Index ind_1 = startpos[iShell_1] + iFunc_1;
+        for (Index iFunc_2 = 0; iFunc_2 < numFunc_2; iFunc_2++) {
+          Index ind_2 = startpos[iShell_2] + iFunc_2;
 
           // Symmetry
           if (ind_1 > ind_2) {

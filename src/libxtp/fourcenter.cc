@@ -40,6 +40,8 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
 
   // Setup LibInt
   std::vector<libint2::Shell> libintShells = dftbasis.GenerateLibintBasis();
+
+  std::vector<Index> startpos = dftbasis.getMapToBasisFunctions();
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Engine> engines(nthreads);
   engines[0] =
@@ -52,36 +54,29 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
 
 #pragma omp parallel for schedule(dynamic)
   for (Index i = 0; i < shellsize; ++i) {
-
-    const AOShell& shell_3 = dftbasis.getShell(i);
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
     const libint2::Shell& sh3 = libintShells[i];
-    Index start_3 = shell_3.getStartIndex();
-    Index NumFunc_3 = shell_3.getNumFunc();
+    Index start_3 = startpos[i];
+    Index NumFunc_3 = sh3.size();
 
     for (Index j = i; j < shellsize; ++j) {
-      const AOShell& shell_4 = dftbasis.getShell(j);
       const libint2::Shell& sh4 = libintShells[j];
-      Index start_4 = shell_4.getStartIndex();
-      Index NumFunc_4 = shell_4.getNumFunc();
+      Index start_4 = startpos[j];
+      Index NumFunc_4 = sh4.size();
 
       for (Index k = i; k < shellsize; ++k) {
-        const AOShell& shell_1 = dftbasis.getShell(k);
         const libint2::Shell& sh1 = libintShells[k];
-        Index start_1 = shell_1.getStartIndex();
-        Index NumFunc_1 = shell_1.getNumFunc();
+        Index start_1 = startpos[k];
+        Index NumFunc_1 = sh1.size();
 
         for (Index l = k; l < shellsize; ++l) {
-          const AOShell& shell_2 = dftbasis.getShell(l);
           const libint2::Shell& sh2 = libintShells[l];
-          Index start_2 = shell_2.getStartIndex();
-          Index NumFunc_2 = shell_2.getNumFunc();
+          Index start_2 = startpos[l];
+          Index NumFunc_2 = sh2.size();
 
-          Eigen::Tensor<double, 4> block(NumFunc_1, NumFunc_2, NumFunc_3,
-                                         NumFunc_4);
-          block.setZero();
-
-          bool nonzero = FillFourCenterRepBlock(
-              block, engines[OPENMP::getThreadId()], sh1, sh2, sh3, sh4);
+          Eigen::Tensor<double, 4> block;
+          bool nonzero =
+              FillFourCenterRepBlock(block, engine, sh1, sh2, sh3, sh4);
 
           if (nonzero) {
 
