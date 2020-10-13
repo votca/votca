@@ -13,7 +13,7 @@
  * limitations under the License.
  *
  */
-#include <libint2/initialize.h>
+#include <libint2.hpp>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE fourcenter_test
@@ -45,6 +45,11 @@ BOOST_AUTO_TEST_CASE(small_l_test) {
   AOBasis aobasis;
   aobasis.Fill(basis, mol);
 
+  libint2::Engine engine =
+      libint2::Engine(libint2::Operator::coulomb, aobasis.getMaxNprim(),
+                      static_cast<int>(aobasis.getMaxL()), 0);
+  engine.set(libint2::BraKet::xx_xx);
+
   const AOShell& shell0 = aobasis.getShell(2);
   const AOShell& shell1 = aobasis.getShell(3);
   const AOShell& shell2 = aobasis.getShell(4);
@@ -53,7 +58,7 @@ BOOST_AUTO_TEST_CASE(small_l_test) {
   Eigen::Tensor<double, 4> block(shell0.getNumFunc(), shell4.getNumFunc(),
                                  shell2.getNumFunc(), shell1.getNumFunc());
   block.setZero();
-  fcenter.FillFourCenterRepBlock(block, shell0, shell4, shell2, shell1);
+  fcenter.FillFourCenterRepBlock(block, engine, shell0, shell4, shell2, shell1);
 
   Eigen::Map<Eigen::VectorXd> mapped_result(block.data(), block.size());
   Eigen::VectorXd ref = Eigen::VectorXd::Zero(block.size());
@@ -86,12 +91,17 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   AOBasis dftbasis;
   dftbasis.Fill(basisset, mol);
 
+  libint2::Engine engine =
+      libint2::Engine(libint2::Operator::coulomb, dftbasis.getMaxNprim(),
+                      static_cast<int>(dftbasis.getMaxL()), 0);
+  engine.set(libint2::BraKet::xx_xx);
+
   FCMatrix fcenter;
   Eigen::Tensor<double, 4> block(
       dftbasis.getShell(0).getNumFunc(), dftbasis.getShell(1).getNumFunc(),
       dftbasis.getShell(0).getNumFunc(), dftbasis.getShell(1).getNumFunc());
   block.setZero();
-  fcenter.FillFourCenterRepBlock(block, dftbasis.getShell(0),
+  fcenter.FillFourCenterRepBlock(block, engine, dftbasis.getShell(0),
                                  dftbasis.getShell(1), dftbasis.getShell(0),
                                  dftbasis.getShell(1));
   // we only check the first and last 600 values because this gets silly quite

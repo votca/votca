@@ -31,6 +31,9 @@
  *
  */
 
+namespace libint2 {
+class Engine;
+}
 namespace votca {
 namespace xtp {
 
@@ -44,8 +47,8 @@ class FCMatrix {
   const Eigen::VectorXd& get_4c_vector() const { return _4c_vector; }
 
   bool FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
-                              const AOShell& shell_1, const AOShell& shell_2,
-                              const AOShell& shell_3,
+                              libint2::Engine& engine, const AOShell& shell_1,
+                              const AOShell& shell_2, const AOShell& shell_3,
                               const AOShell& shell_4) const;
 
  private:

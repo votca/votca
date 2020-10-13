@@ -21,6 +21,7 @@
 #include "votca/xtp/ERIs.h"
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/symmetric_matrix.h"
+#include <libint2.hpp>
 
 namespace votca {
 namespace xtp {
@@ -191,6 +192,17 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
   // Initialize ERIs matrix
   Eigen::MatrixXd ERIs2 = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Engine> engines(nthreads);
+
+  engines[0] =
+      libint2::Engine(libint2::Operator::coulomb, dftbasis.getMaxNprim(),
+                      static_cast<int>(dftbasis.getMaxL()), 0);
+  engines[0].set(libint2::BraKet::xx_xx);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+
 #pragma omp parallel
   {  // Begin omp parallel
 
@@ -222,7 +234,8 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
                                            numFunc_4);
             block.setZero();
             bool nonzero = _fourcenter.FillFourCenterRepBlock(
-                block, shell_1, shell_2, shell_3, shell_4);
+                block, engines[OPENMP::getThreadId()], shell_1, shell_2,
+                shell_3, shell_4);
 
             // If there are only zeros, we don't need to put anything in the
             // ERIs matrix
@@ -346,6 +359,11 @@ void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
 
   _diagonals = Eigen::MatrixXd::Zero(dftBasisSize, dftBasisSize);
 
+  libint2::Engine engine =
+      libint2::Engine(libint2::Operator::coulomb, dftbasis.getMaxNprim(),
+                      static_cast<int>(dftbasis.getMaxL()), 0);
+  engine.set(libint2::BraKet::xx_xx);
+
   for (Index iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
     const AOShell& shell_1 = dftbasis.getShell(iShell_1);
     Index numFunc_1 = shell_1.getNumFunc();
@@ -357,8 +375,8 @@ void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
       Eigen::Tensor<double, 4> block(numFunc_1, numFunc_2, numFunc_1,
                                      numFunc_2);
       block.setZero();
-      bool nonzero = _fourcenter.FillFourCenterRepBlock(block, shell_1, shell_2,
-                                                        shell_1, shell_2);
+      bool nonzero = _fourcenter.FillFourCenterRepBlock(
+          block, engine, shell_1, shell_2, shell_1, shell_2);
 
       if (!nonzero) {
         continue;

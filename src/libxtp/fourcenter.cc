@@ -20,11 +20,13 @@
 // Local VOTCA includes
 #include "votca/xtp/fourcenter.h"
 #include "votca/xtp/aobasis.h"
+#include <libint2.hpp>
 
 namespace votca {
 namespace xtp {
 
 void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
+
   Index dftBasisSize = dftbasis.AOBasisSize();
   Index vectorSize = (dftBasisSize * (dftBasisSize + 1)) / 2;
 
@@ -35,6 +37,18 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
         "Basisset too large for 4c calculation. Not enough RAM.");
   }
   Index shellsize = dftbasis.getNumofShells();
+
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Engine> engines(nthreads);
+
+  engines[0] =
+      libint2::Engine(libint2::Operator::coulomb, dftbasis.getMaxNprim(),
+                      static_cast<int>(dftbasis.getMaxL()), 0);
+  engines[0].set(libint2::BraKet::xx_xx);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+
 #pragma omp parallel for schedule(dynamic)
   for (Index i = 0; i < shellsize; ++i) {
 
@@ -62,7 +76,8 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
           block.setZero();
 
           bool nonzero =
-              FillFourCenterRepBlock(block, shell_1, shell_2, shell_3, shell_4);
+              FillFourCenterRepBlock(block, engines[OPENMP::getThreadId()],
+                                     shell_1, shell_2, shell_3, shell_4);
 
           if (nonzero) {
 
