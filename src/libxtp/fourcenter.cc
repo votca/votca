@@ -125,5 +125,27 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
   return;
 }  // FCMatrix_dft::Fill_4c_small_molecule
 
+bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
+                                      libint2::Engine& engine,
+                                      const libint2::Shell& shell_1,
+                                      const libint2::Shell& shell_2,
+                                      const libint2::Shell& shell_3,
+                                      const libint2::Shell& shell_4) const {
+
+  const libint2::Engine::target_ptr_vec& buf = engine.results();
+
+  engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xx_xx, 0>(
+      shell_1, shell_2, shell_3, shell_4);
+
+  Eigen::TensorMap<Eigen::Tensor<const double, 4, Eigen::RowMajor> const>
+      result(buf[0], shell_1.size(), shell_2.size(), shell_3.size(),
+             shell_4.size());
+  std::array<int, 4> shuffle{3, 2, 1, 0};
+  // this just turns it into column major order
+  block = result.swap_layout().shuffle(shuffle);
+
+  return true;
+}
+
 }  // namespace xtp
 }  // namespace votca

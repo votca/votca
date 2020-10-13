@@ -22,8 +22,8 @@
 #define VOTCA_XTP_FOURCENTER_H
 
 // Local VOTCA includes
+#include "aobasis.h"
 #include "eigen.h"
-#include <libint2/shell.h>
 
 /**
  * \brief Calculates four center electron overlap integrals for DFT.
