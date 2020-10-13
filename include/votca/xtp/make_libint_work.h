@@ -16,10 +16,9 @@
  * limitations under the License.
  *
  */
-
+#pragma once
 #ifndef VOTCA_XTP_MAKE_LIBINT_WORK_H
 #define VOTCA_XTP_MAKE_LIBINT_WORK_H
-#endif
 
 #ifndef LIBINT2_MAX_AM_default1
 #define LIBINT2_MAX_AM_default1 LIBINT2_MAX_AM_default
@@ -27,4 +26,6 @@
 
 #ifndef LIBINT2_MAX_AM_default2
 #define LIBINT2_MAX_AM_default2 LIBINT2_MAX_AM_default
+#endif
+
 #endif  // VOTCA_XTP_MAKE_LIBINT_WORK_H
