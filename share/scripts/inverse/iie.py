@@ -305,7 +305,7 @@ def calc_slices(r, g_tgt, g_cur, cut_off, verbose=False):
     crucial = slice(ndx_ce, ndx_co)
     nocore = slice(ndx_ce, len(r))
     if verbose:
-        print("ndx_ce: {}, ({})".format(ndx_ce, r[ndx_ce])
+        print("ndx_ce: {}, ({})".format(ndx_ce, r[ndx_ce]))
         print("ndx_co: {}, ({})".format(ndx_co, cut_off))
         print("min(r): {}".format(min(r)))
         print("max(r): {}".format(max(r)))
