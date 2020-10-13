@@ -206,11 +206,23 @@ def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_sh
                         np.zeros((len(r_long) - len(r_short), len(r_short)))),
                        axis=0)
     Binv = np.linalg.pinv(B)
-    J = Binv @ (Finv @ np.diag((1 + n * rho * F @ B @ G_minus_g_short)**2
-                               / (1 - (1 + n * rho * F @ B @ G_minus_g_short)
-                                  * n * rho * F @ B @ c_k_short)**2) @ F) @ B
+    # J = Binv @ (Finv @ np.diag((1 + n * rho * F @ B @ G_minus_g_short)**2
+    # / (1 - (1 + n * rho * F @ B @ G_minus_g_short)
+    # * n * rho * F @ B @ c_k_short)**2) @ F) @ B
+    F_B_G_minus_g_short = np.matmul(F, np.matmul(B, G_minus_g_short))
+    F_B_c_k_short = np.matmul(F, np.matmul(B, c_k_short))
+    J = np.matmul(
+        np.matmul(Binv,
+                  np.matmul(
+                      np.matmul(Finv,
+                                np.diag((1 + n * rho * F_B_G_minus_g_short)**2
+                                        / (1 - (1 + n * rho * F_B_G_minus_g_short)
+                                           * n * rho * F_B_c_k_short)**2)),
+                      F)
+                  ),
+        B)
     Jinv = np.linalg.pinv(J)
-    Δc = -1 * Jinv @ (g_k_short - g_tgt_short)
+    Δc = -1 * np.matmul(Jinv, (g_k_short - g_tgt_short))
     if r0_removed:
         Δc = np.concatenate(([0], Δc))
     return Δc
