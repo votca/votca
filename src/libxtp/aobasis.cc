@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/basisset.h"
+#include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/qmmolecule.h"
 #include <libint2.hpp>
 
