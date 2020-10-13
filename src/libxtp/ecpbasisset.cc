@@ -21,6 +21,7 @@
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
+#include "votca/tools/globals.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpbasisset.h"
 
@@ -37,13 +38,7 @@ void ECPBasisSet::Load(const std::string& name) {
   if (found_xml != std::string::npos) {
     xmlFile = name;
   } else {
-    // get the path to the shared folders with xml files
-    char* votca_share = getenv("VOTCASHARE");
-    if (votca_share == nullptr) {
-      throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    }
-    xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/ecps/") +
-              name + std::string(".xml");
+    xmlFile = tools::GetVotcaShare() + "/xtp/ecps/" + name + ".xml";
   }
   basis_property.LoadFromXML(xmlFile);
 

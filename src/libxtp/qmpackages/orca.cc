@@ -30,6 +30,7 @@
 #include <votca/tools/elements.h>
 
 // Local VOTCA includes
+#include "votca/tools/globals.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/orbitals.h"
@@ -846,14 +847,13 @@ std::string Orca::WriteMethod() const {
 
 std::string Orca::GetOrcaFunctionalName() const {
 
-  char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == nullptr) {
+  if (!tools::VotcaShareSet()) {
     return _settings.get("functional");
   } else {
     tools::Property all_functionals;
 
-    auto xml_file = std::string(getenv("VOTCASHARE")) +
-                    std::string("/xtp/data/orca_functional_names.xml");
+    auto xml_file =
+        tools::GetVotcaShare() + "/xtp/data/orca_functional_names.xml";
 
     all_functionals.LoadFromXML(xml_file);
 
