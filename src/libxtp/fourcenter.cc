@@ -38,9 +38,10 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
   }
   Index shellsize = dftbasis.getNumofShells();
 
+  // Setup LibInt
+  std::vector<libint2::Shell> libintShells = dftbasis.GenerateLibintBasis();
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Engine> engines(nthreads);
-
   engines[0] =
       libint2::Engine(libint2::Operator::coulomb, dftbasis.getMaxNprim(),
                       static_cast<int>(dftbasis.getMaxL()), 0);
@@ -53,21 +54,25 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
   for (Index i = 0; i < shellsize; ++i) {
 
     const AOShell& shell_3 = dftbasis.getShell(i);
+    const libint2::Shell& sh3 = libintShells[i];
     Index start_3 = shell_3.getStartIndex();
     Index NumFunc_3 = shell_3.getNumFunc();
 
     for (Index j = i; j < shellsize; ++j) {
       const AOShell& shell_4 = dftbasis.getShell(j);
+      const libint2::Shell& sh4 = libintShells[j];
       Index start_4 = shell_4.getStartIndex();
       Index NumFunc_4 = shell_4.getNumFunc();
 
       for (Index k = i; k < shellsize; ++k) {
         const AOShell& shell_1 = dftbasis.getShell(k);
+        const libint2::Shell& sh1 = libintShells[k];
         Index start_1 = shell_1.getStartIndex();
         Index NumFunc_1 = shell_1.getNumFunc();
 
         for (Index l = k; l < shellsize; ++l) {
           const AOShell& shell_2 = dftbasis.getShell(l);
+          const libint2::Shell& sh2 = libintShells[l];
           Index start_2 = shell_2.getStartIndex();
           Index NumFunc_2 = shell_2.getNumFunc();
 
@@ -75,9 +80,8 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
                                          NumFunc_4);
           block.setZero();
 
-          bool nonzero =
-              FillFourCenterRepBlock(block, engines[OPENMP::getThreadId()],
-                                     shell_1, shell_2, shell_3, shell_4);
+          bool nonzero = FillFourCenterRepBlock(
+              block, engines[OPENMP::getThreadId()], sh1, sh2, sh3, sh4);
 
           if (nonzero) {
 

@@ -192,9 +192,9 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
   // Initialize ERIs matrix
   Eigen::MatrixXd ERIs2 = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
+  std::vector<libint2::Shell> libintShells = dftbasis.GenerateLibintBasis();
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Engine> engines(nthreads);
-
   engines[0] =
       libint2::Engine(libint2::Operator::coulomb, dftbasis.getMaxNprim(),
                       static_cast<int>(dftbasis.getMaxL()), 0);
@@ -212,15 +212,19 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
 #pragma omp for
     for (Index iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
       const AOShell& shell_3 = dftbasis.getShell(iShell_3);
+      const libint2::Shell& sh3 = libintShells[iShell_3];
       Index numFunc_3 = shell_3.getNumFunc();
       for (Index iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
         const AOShell& shell_4 = dftbasis.getShell(iShell_4);
+        const libint2::Shell& sh4 = libintShells[iShell_4];
         Index numFunc_4 = shell_4.getNumFunc();
         for (Index iShell_1 = iShell_3; iShell_1 < numShells; iShell_1++) {
           const AOShell& shell_1 = dftbasis.getShell(iShell_1);
+          const libint2::Shell& sh1 = libintShells[iShell_1];
           Index numFunc_1 = shell_1.getNumFunc();
           for (Index iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
             const AOShell& shell_2 = dftbasis.getShell(iShell_2);
+            const libint2::Shell& sh2 = libintShells[iShell_2];
             Index numFunc_2 = shell_2.getNumFunc();
 
             // Pre-screening
@@ -234,8 +238,7 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
                                            numFunc_4);
             block.setZero();
             bool nonzero = _fourcenter.FillFourCenterRepBlock(
-                block, engines[OPENMP::getThreadId()], shell_1, shell_2,
-                shell_3, shell_4);
+                block, engines[OPENMP::getThreadId()], sh1, sh2, sh3, sh4);
 
             // If there are only zeros, we don't need to put anything in the
             // ERIs matrix
@@ -364,19 +367,24 @@ void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
                       static_cast<int>(dftbasis.getMaxL()), 0);
   engine.set(libint2::BraKet::xx_xx);
 
+  std::vector<libint2::Shell> libintShells = dftbasis.GenerateLibintBasis();
+
   for (Index iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
     const AOShell& shell_1 = dftbasis.getShell(iShell_1);
+    const libint2::Shell& sh1 = libintShells[iShell_1];
     Index numFunc_1 = shell_1.getNumFunc();
     for (Index iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
       const AOShell& shell_2 = dftbasis.getShell(iShell_2);
+      const libint2::Shell& sh2 = libintShells[iShell_2];
+
       Index numFunc_2 = shell_2.getNumFunc();
 
       // Get the current 4c block
       Eigen::Tensor<double, 4> block(numFunc_1, numFunc_2, numFunc_1,
                                      numFunc_2);
       block.setZero();
-      bool nonzero = _fourcenter.FillFourCenterRepBlock(
-          block, engine, shell_1, shell_2, shell_1, shell_2);
+      bool nonzero =
+          _fourcenter.FillFourCenterRepBlock(block, engine, sh1, sh2, sh1, sh2);
 
       if (!nonzero) {
         continue;

@@ -23,6 +23,7 @@
 
 // Local VOTCA includes
 #include "eigen.h"
+#include <libint2/shell.h>
 
 /**
  * \brief Calculates four center electron overlap integrals for DFT.
@@ -47,9 +48,11 @@ class FCMatrix {
   const Eigen::VectorXd& get_4c_vector() const { return _4c_vector; }
 
   bool FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
-                              libint2::Engine& engine, const AOShell& shell_1,
-                              const AOShell& shell_2, const AOShell& shell_3,
-                              const AOShell& shell_4) const;
+                              libint2::Engine& engine,
+                              const libint2::Shell& shell_1,
+                              const libint2::Shell& shell_2,
+                              const libint2::Shell& shell_3,
+                              const libint2::Shell& shell_4) const;
 
  private:
   Eigen::VectorXd _4c_vector;

@@ -58,7 +58,9 @@ BOOST_AUTO_TEST_CASE(small_l_test) {
   Eigen::Tensor<double, 4> block(shell0.getNumFunc(), shell4.getNumFunc(),
                                  shell2.getNumFunc(), shell1.getNumFunc());
   block.setZero();
-  fcenter.FillFourCenterRepBlock(block, engine, shell0, shell4, shell2, shell1);
+  fcenter.FillFourCenterRepBlock(block, engine, shell0.LibintShell(),
+                                 shell4.LibintShell(), shell2.LibintShell(),
+                                 shell1.LibintShell());
 
   Eigen::Map<Eigen::VectorXd> mapped_result(block.data(), block.size());
   Eigen::VectorXd ref = Eigen::VectorXd::Zero(block.size());
@@ -101,9 +103,10 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
       dftbasis.getShell(0).getNumFunc(), dftbasis.getShell(1).getNumFunc(),
       dftbasis.getShell(0).getNumFunc(), dftbasis.getShell(1).getNumFunc());
   block.setZero();
-  fcenter.FillFourCenterRepBlock(block, engine, dftbasis.getShell(0),
-                                 dftbasis.getShell(1), dftbasis.getShell(0),
-                                 dftbasis.getShell(1));
+  fcenter.FillFourCenterRepBlock(
+      block, engine, dftbasis.getShell(0).LibintShell(),
+      dftbasis.getShell(1).LibintShell(), dftbasis.getShell(0).LibintShell(),
+      dftbasis.getShell(1).LibintShell());
   // we only check the first and last 600 values because this gets silly quite
   // quickly
   Eigen::Map<Eigen::VectorXd> mapped_result(block.data(), block.size());
