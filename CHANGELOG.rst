@@ -33,6 +33,7 @@ Version 2021-dev
 -  fix clang-9 conversion warning (#276)
 -  add class to writeand read matrices (#290)
 -  Bump required CMake version to 3.12 (#301)
+-  refactored getenv() into separate function (#302)
 
 Version 1.6.3 (released XX.08.20)
 =================================

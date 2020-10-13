@@ -17,24 +17,17 @@
 
 // Local VOTCA includes
 #include "votca/tools/calculator.h"
+#include "votca/tools/globals.h"
 #include "votca/tools/tokenizer.h"
 
 namespace votca {
 namespace tools {
 
-std::string Calculator::GetVotcaShare() {
-  char *votca_share = getenv("VOTCASHARE");
-  if (votca_share == nullptr) {
-    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-  }
-  return std::string(votca_share);
-}
-
 Property Calculator::LoadDefaults(const std::string package) {
 
   std::string calculator_name = Identify();
   // add default values if specified in VOTCASHARE
-  std::string votca_share = Calculator::GetVotcaShare();
+  std::string votca_share = GetVotcaShare();
 
   // load the xml description of the calculator (with defaults and test values)
   std::string xmlFile = votca_share + std::string("/") + package +
