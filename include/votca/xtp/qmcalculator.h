@@ -40,7 +40,7 @@ class QMCalculator : public tools::Calculator {
 
   bool EvaluateFrame(Topology& top);
 
-  void Initialize(const tools::Property& opt);
+  void Initialize(const tools::Property& opt) final;
 
  protected:
   virtual void ParseOptions(const tools::Property& opt) = 0;
