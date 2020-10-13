@@ -40,8 +40,8 @@ void ECPAOGaussianPrimitive::WriteData(data& d, const ECPAOShell& shell) const {
 }
 
 void ECPAOGaussianPrimitive::SetupCptTable(CptTable& table) const {
-  Index i;
-  double d;
+  Index i = 0;
+  double d = 0.0;
   table.addCol(i, "atomidx", HOFFSET(data, atomid));
   table.addCol(i, "L", HOFFSET(data, l));
   table.addCol(i, "startidx", HOFFSET(data, startindex));
