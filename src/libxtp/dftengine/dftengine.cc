@@ -17,9 +17,6 @@
  *
  */
 
-// Standard includes
-#include <vector>
-
 // Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -29,7 +26,6 @@
 #include <votca/tools/elements.h>
 
 // Local VOTCA includes
-#include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/density_integration.h"
@@ -38,7 +34,6 @@
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
-#include "votca/xtp/qmmolecule.h"
 
 using boost::format;
 using namespace boost::filesystem;
@@ -835,55 +830,32 @@ double DFTEngine::NuclearRepulsion(const QMMolecule& mol) const {
   return E_nucnuc;
 }
 
-// average atom densities matrices, for SP and other combined shells average
-// each subshell separately.
+// spherically average the density matrix belonging to two shells
 Eigen::MatrixXd DFTEngine::SphericalAverageShells(
     const Eigen::MatrixXd& dmat, const AOBasis& dftbasis) const {
   Eigen::MatrixXd avdmat = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
-  Index start = 0.0;
-  std::vector<Index> starts;
-  std::vector<Index> ends;
-  for (const AOShell& shell : dftbasis) {
-    Index end = shell.getNumFunc() + start;
-    starts.push_back(start);
-    ends.push_back(end);
-    start = end;
-  }
-  for (Index k = 0; k < Index(starts.size()); k++) {
-    Index s1 = starts[k];
-    Index e1 = ends[k];
-    Index len1 = e1 - s1;
-    for (Index l = 0; l < Index(starts.size()); l++) {
-      Index s2 = starts[l];
-      Index e2 = ends[l];
-      Index len2 = e2 - s2;
-      double diag = 0.0;
-      double offdiag = 0.0;
-      for (Index i = 0; i < len1; ++i) {
-        for (Index j = 0; j < len2; ++j) {
-          if (i == j) {
-            diag += dmat(s1 + i, s2 + j);
-          } else {
-            offdiag += dmat(s1 + i, s2 + j);
-          }
-        }
-      }
-      if (len1 == len2) {
-        diag = diag / double(len1);
-        offdiag = offdiag / double(len1 * (len1 - 1));
+  for (const AOShell& shellrow : dftbasis) {
+    Index size_row = shellrow.getNumFunc();
+    Index start_row = shellrow.getStartIndex();
+    for (const AOShell& shellcol : dftbasis) {
+      Index size_col = shellcol.getNumFunc();
+      Index start_col = shellcol.getStartIndex();
+      Eigen::MatrixXd shelldmat =
+          dmat.block(start_row, start_col, size_row, size_col);
+      if (size_row == size_col) {
+        double diagavg = shelldmat.diagonal().sum() / double(shelldmat.rows());
+        Index offdiagelements =
+            shelldmat.rows() * shelldmat.cols() - shelldmat.cols();
+        double offdiagavg = (shelldmat.sum() - shelldmat.diagonal().sum()) /
+                            double(offdiagelements);
+        avdmat.block(start_row, start_col, size_row, size_col).array() =
+            offdiagavg;
+        avdmat.block(start_row, start_col, size_row, size_col)
+            .diagonal()
+            .array() = diagavg;
       } else {
-        double avg = (diag + offdiag) / double(len1 * len2);
-        diag = avg;
-        offdiag = avg;
-      }
-      for (Index i = 0; i < len1; ++i) {
-        for (Index j = 0; j < len2; ++j) {
-          if (i == j) {
-            avdmat(s1 + i, s2 + j) = diag;
-          } else {
-            avdmat(s1 + i, s2 + j) = offdiag;
-          }
-        }
+        double avg = shelldmat.sum() / double(shelldmat.size());
+        avdmat.block(start_row, start_col, size_row, size_col).array() = avg;
       }
     }
   }
