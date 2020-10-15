@@ -392,7 +392,7 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
     Mat_p_Energy extdensity_result = IntegrateExternalDensity(mol, extdensity);
     E0 += extdensity_result.energy();
     XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Nuclei- external density interaction energy "
+        << TimeStamp() << " Nuclei-external density interaction energy "
         << std::setprecision(9) << extdensity_result.energy() << flush;
     H0 += extdensity_result.matrix();
   }
