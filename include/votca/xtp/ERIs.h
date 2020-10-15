@@ -32,8 +32,6 @@ namespace xtp {
  * \brief Takes a density matrix and and an auxiliary basis set and calculates
  * the electron repulsion integrals.
  *
- *
- *
  */
 class ERIs {
 
@@ -58,7 +56,6 @@ class ERIs {
   Index Removedfunctions() const { return _threecenter.Removedfunctions(); }
 
  private:
-  bool _with_screening = false;
   double _screening_eps;
   Eigen::MatrixXd _diagonals;  // Square matrix containing <ab|ab> for all basis
                                // functions a, b

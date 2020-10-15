@@ -38,7 +38,6 @@ void ERIs::Initialize_4c_small_molecule(const AOBasis& dftbasis) {
 }
 
 void ERIs::Initialize_4c_screening(const AOBasis& dftbasis, double eps) {
-  _with_screening = true;
   _screening_eps = eps;
   CalculateERIsDiagonals(dftbasis);
   return;
@@ -220,8 +219,7 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
           const libint2::Shell& sh2 = libintShells[iShell_2];
 
           // Pre-screening
-          if (_with_screening &&
-              CheckScreen(_screening_eps, shell_1, shell_2, shell_3, shell_4)) {
+          if (CheckScreen(_screening_eps, shell_1, shell_2, shell_3, shell_4)) {
             continue;
           }
 

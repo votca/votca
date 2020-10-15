@@ -91,7 +91,7 @@ class AOBasis {
   std::vector<Index> _FuncperAtom;
 
   Index _AOBasisSize;
-};  // namespace xtp
+};
 
 }  // namespace xtp
 }  // namespace votca
