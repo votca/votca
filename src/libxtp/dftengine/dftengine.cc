@@ -842,7 +842,7 @@ Eigen::MatrixXd DFTEngine::SphericalAverageShells(
       Index start_col = shellcol.getStartIndex();
       Eigen::MatrixXd shelldmat =
           dmat.block(start_row, start_col, size_row, size_col);
-      if (size_row == size_col) {
+      if (shellrow.getL() == shellcol.getL()) {
         double diagavg = shelldmat.diagonal().sum() / double(shelldmat.rows());
         Index offdiagelements =
             shelldmat.rows() * shelldmat.cols() - shelldmat.cols();
