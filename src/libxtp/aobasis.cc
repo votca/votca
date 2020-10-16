@@ -166,8 +166,7 @@ std::vector<std::vector<Index>> AOBasis::ComputeShellPairs(
         pairs[s1].push_back(s2);
       }
     }
-    std::vector<Index>& list = pairs[s1];
-    std::sort(list.begin(), list.end());
+    std::sort(pairs[s1].begin(), pairs[s1].end());
   }
   return pairs;
 }

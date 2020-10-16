@@ -124,16 +124,15 @@ Eigen::MatrixXd ERIs::ComputeShellBlockNorm(const Eigen::MatrixXd& dmat) const {
 template <bool with_exchange>
 std::array<Eigen::MatrixXd, 2> ERIs::Compute4c(const Eigen::MatrixXd& dmat,
                                                double error) const {
-
+  assert(schwarzscreen_.rows() > 0 && schwarzscreen_.cols() > 0 &&
+         "Please call Initialize_4c before running this");
   Index nthreads = OPENMP::getMaxThreads();
-  std::array<Eigen::MatrixXd, 2> result;
-  result[0] = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
-  if (with_exchange) {
-    result[1] = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
-  }
 
-  Eigen::MatrixXd& hartree = result[0];
-  Eigen::MatrixXd& exchange = result[1];
+  Eigen::MatrixXd hartree = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
+  Eigen::MatrixXd exchange;
+  if (with_exchange) {
+    exchange = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
+  }
   Eigen::MatrixXd dnorm_block = ComputeShellBlockNorm(dmat);
   double fock_precision = error;
   // engine precision controls primitive truncation, assume worst-case scenario
@@ -142,7 +141,6 @@ std::array<Eigen::MatrixXd, 2> ERIs::Compute4c(const Eigen::MatrixXd& dmat,
   double engine_precision = std::min(fock_precision / dnorm_block.maxCoeff(),
                                      std::numeric_limits<double>::epsilon()) /
                             double(max_nprim4);
-  std::cout << engine_precision << std::endl;
   std::vector<libint2::Engine> engines(nthreads);
   engines[0] = libint2::Engine(libint2::Operator::coulomb, int(maxnprim_),
                                int(maxL_), 0);
@@ -155,8 +153,7 @@ std::array<Eigen::MatrixXd, 2> ERIs::Compute4c(const Eigen::MatrixXd& dmat,
   }
   Index nshells = basis_.size();
 
-  //#pragma omp parallel for schedule(dynamic)reduction(+ : hartree)reduction(+
-  //: exchange)
+#pragma omp parallel for schedule(dynamic)reduction(+ : hartree)reduction(+: exchange)
   for (Index s1 = 0; s1 < nshells; ++s1) {
     Index thread_id = OPENMP::getThreadId();
     libint2::Engine& engine = engines[thread_id];
@@ -234,9 +231,9 @@ std::array<Eigen::MatrixXd, 2> ERIs::Compute4c(const Eigen::MatrixXd& dmat,
                   hartree(bf3, bf4) += dmat(bf1, bf2) * value_scal_by_deg;
                   if (with_exchange) {
                     exchange(bf1, bf3) -= dmat(bf2, bf4) * value_scal_by_deg;
+                    exchange(bf2, bf3) -= dmat(bf1, bf4) * value_scal_by_deg;
                     exchange(bf2, bf4) -= dmat(bf1, bf3) * value_scal_by_deg;
                     exchange(bf1, bf4) -= dmat(bf2, bf3) * value_scal_by_deg;
-                    exchange(bf2, bf3) -= dmat(bf1, bf4) * value_scal_by_deg;
                   }
                 }
               }
@@ -247,9 +244,11 @@ std::array<Eigen::MatrixXd, 2> ERIs::Compute4c(const Eigen::MatrixXd& dmat,
     }
   }
   std::array<Eigen::MatrixXd, 2> result2;
-  result2[0] = 0.25 * (result[0] + result[0].transpose());
+  // 0.25=0.5(symmetrisation)*0.5(our dmat has a factor 2)
+  result2[0] = 0.25 * (hartree + hartree.transpose());
   if (with_exchange) {
-    result2[1] = 0.125 * (result[1] + result[1].transpose());
+    // prefactor
+    result2[1] = 0.125 * (exchange + exchange.transpose());
   }
   return result2;
 }
@@ -260,6 +259,8 @@ template std::array<Eigen::MatrixXd, 2> ERIs::Compute4c<false>(
     const Eigen::MatrixXd& dmat, double error) const;
 
 Eigen::MatrixXd ERIs::CalculateERIs_3c(const Eigen::MatrixXd& DMAT) const {
+  assert(_threecenter.size() > 0 &&
+         "Please call Initialize before running this");
   Eigen::MatrixXd ERIs2 = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
   Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
 #pragma omp parallel for schedule(guided) reduction(+ : ERIs2)
@@ -276,7 +277,8 @@ Eigen::MatrixXd ERIs::CalculateERIs_3c(const Eigen::MatrixXd& DMAT) const {
 }
 
 Eigen::MatrixXd ERIs::CalculateEXX_dmat(const Eigen::MatrixXd& DMAT) const {
-
+  assert(_threecenter.size() > 0 &&
+         "Please call Initialize before running this");
   Eigen::MatrixXd EXX = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
 #pragma omp parallel for schedule(guided) reduction(+ : EXX)
@@ -289,7 +291,8 @@ Eigen::MatrixXd ERIs::CalculateEXX_dmat(const Eigen::MatrixXd& DMAT) const {
 }
 
 Eigen::MatrixXd ERIs::CalculateEXX_mos(const Eigen::MatrixXd& occMos) const {
-
+  assert(_threecenter.size() > 0 &&
+         "Please call Initialize before running this");
   Eigen::MatrixXd EXX = Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows());
 
 #pragma omp parallel for schedule(guided) reduction(+ : EXX)

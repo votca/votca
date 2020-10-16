@@ -449,7 +449,7 @@ void DFTEngine::SetupInvariantMatrices() {
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp()
         << " Setup invariant parts of Electron Repulsion integrals " << flush;
-  } else if (_four_center_method == "direct") {
+  } else {
     XTP_LOG(Log::info, *_pLog)
         << TimeStamp() << " Calculating 4c diagonals. " << flush;
     _ERIs.Initialize_4c(_dftbasis);

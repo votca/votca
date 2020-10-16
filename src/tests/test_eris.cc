@@ -63,10 +63,21 @@ BOOST_AUTO_TEST_CASE(fourcenter) {
   }
   BOOST_CHECK_EQUAL(eris_check, 1);
 
-  Eigen::MatrixXd exx_small = eris.CalculateERIs_EXX_4c(dmat, 1e-20)[1];
-
+  std::array<Eigen::MatrixXd, 2> both = eris.CalculateERIs_EXX_4c(dmat, 1e-20);
+  const Eigen::MatrixXd& exx_small = both[1];
   Eigen::MatrixXd exx_ref = -votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/eris/exx_ref.mm");
+
+  Eigen::MatrixXd sum = both[0] + both[1];
+  Eigen::MatrixXd sum_ref = exx_ref + eris_ref;
+  bool sum_check = sum.isApprox(sum_ref, 1e-5);
+  BOOST_CHECK_EQUAL(sum_check, 1);
+  if (!sum_check) {
+    std::cout << "result sum" << std::endl;
+    std::cout << sum << std::endl;
+    std::cout << "ref sum" << std::endl;
+    std::cout << sum_ref << std::endl;
+  }
 
   bool exxs_check = exx_small.isApprox(exx_ref, 0.00001);
   if (!eris_check) {

@@ -18,7 +18,6 @@
  */
 
 #pragma once
-#include <shell.h>
 #ifndef VOTCA_XTP_ERIS_H
 #define VOTCA_XTP_ERIS_H
 
