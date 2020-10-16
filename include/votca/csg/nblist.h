@@ -148,7 +148,7 @@ class NBList : public PairList<Bead *, BeadPair> {
     fkt_t _fkt;
   };
 
-  Functor *_match_function;
+  std::unique_ptr<Functor> _match_function;
 };
 
 template <typename pair_type>
@@ -161,19 +161,13 @@ inline void NBList::SetMatchFunction(T *object,
                                      bool (T::*fkt)(Bead *, Bead *,
                                                     const Eigen::Vector3d &,
                                                     double)) {
-  if (_match_function) {
-    delete _match_function;
-  }
-  _match_function = dynamic_cast<Functor *>(new FunctorMember<T>(object, fkt));
+  _match_function.reset(new FunctorMember<T>(object, fkt));
 }
 
 inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *,
                                                  const Eigen::Vector3d &,
                                                  double)) {
-  if (_match_function) {
-    delete _match_function;
-  }
-  _match_function = dynamic_cast<Functor *>(new FunctorNonMember(fkt));
+  _match_function.reset(new FunctorNonMember(fkt));
 }
 
 }  // namespace csg

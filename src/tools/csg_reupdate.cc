@@ -580,9 +580,9 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
   }
 
   if (gridsearch) {
-    nb = std::make_unique<NBList>(NBListGrid());
+    nb = std::make_unique<NBListGrid>();
   } else {
-    nb = std::make_unique<NBList>(NBList());
+    nb = std::make_unique<NBList>();
   }
 
   nb->setCutoff(potinfo->ucg->getCutOff());
