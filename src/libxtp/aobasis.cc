@@ -153,7 +153,7 @@ std::vector<std::vector<Index>> AOBasis::ComputeShellPairs(
     const libint2::Engine::target_ptr_vec& buf = engine.results();
     Index n1 = shells[s1].size();
 
-    for (Index s2 = s1; s2 < Index(shells.size()); ++s2) {
+    for (Index s2 = 0; s2 <=s1; ++s2) {
       bool on_same_center = (shells[s1].O == shells[s2].O);
       bool significant = on_same_center;
       if (!on_same_center) {

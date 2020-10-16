@@ -64,7 +64,7 @@ class AOBasis {
   std::vector<libint2::Shell> GenerateLibintBasis() const;
 
   std::vector<std::vector<Index>> ComputeShellPairs(
-      double tolerance = 1e-20) const;
+      double threshold = 1e-20) const;
 
   AOShell& addShell(const Shell& shell, const QMAtom& atom, Index startIndex);
 
