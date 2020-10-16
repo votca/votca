@@ -260,8 +260,8 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
           CalcERIs_EXX(MOs.eigenvectors(), Dmat, 1e-12);
       H += both[0];
       Etwo += 0.5 * Dmat.cwiseProduct(both[0]).sum();
-      H += _ScaHFX * both[1];
-      exx = -_ScaHFX / 2 * Dmat.cwiseProduct(both[1]).sum();
+      H += 0.5 * _ScaHFX * both[1];
+      exx = _ScaHFX / 4 * Dmat.cwiseProduct(both[1]).sum();
       XTP_LOG(Log::info, *_pLog)
           << TimeStamp() << " Filled F+K matrix " << flush;
     } else {
