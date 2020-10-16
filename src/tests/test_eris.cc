@@ -31,7 +31,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(eris_test)
 
-BOOST_AUTO_TEST_CASE(fourcenter_cache) {
+BOOST_AUTO_TEST_CASE(fourcenter) {
   libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -46,21 +46,37 @@ BOOST_AUTO_TEST_CASE(fourcenter_cache) {
       std::string(XTP_TEST_DATA_FOLDER) + "/eris/dmat.mm");
 
   ERIs eris;
-  eris.Initialize_4c_small_molecule(aobasis);
-  Mat_p_Energy erissmall = eris.CalculateERIs_4c_small_molecule(dmat);
+  eris.Initialize_4c(aobasis);
+  Eigen::MatrixXd erissmall = eris.CalculateERIs_4c(dmat, 1e-20);
 
   Eigen::MatrixXd eris_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/eris/eris_ref.mm");
 
-  bool eris_check = erissmall.matrix().isApprox(eris_ref, 0.00001);
+  bool eris_check = erissmall.isApprox(eris_ref, 0.00001);
+  if (!eris_check) {
+    std::cout << "result eri" << std::endl;
+    std::cout << erissmall << std::endl;
+    std::cout << "ref eri" << std::endl;
+    std::cout << eris_ref << std::endl;
+    std::cout << " quotient" << std::endl;
+    std::cout << erissmall.cwiseQuotient(eris_ref);
+  }
   BOOST_CHECK_EQUAL(eris_check, 1);
 
-  Mat_p_Energy exx_small = eris.CalculateEXX_4c_small_molecule(dmat);
+  Eigen::MatrixXd exx_small = eris.CalculateERIs_EXX_4c(dmat, 1e-20)[1];
 
-  Eigen::MatrixXd exx_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+  Eigen::MatrixXd exx_ref = -votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/eris/exx_ref.mm");
 
-  bool exxs_check = exx_small.matrix().isApprox(exx_ref, 0.00001);
+  bool exxs_check = exx_small.isApprox(exx_ref, 0.00001);
+  if (!eris_check) {
+    std::cout << "result exx" << std::endl;
+    std::cout << exx_small << std::endl;
+    std::cout << "ref exx" << std::endl;
+    std::cout << exx_ref << std::endl;
+    std::cout << "quotient" << std::endl;
+    std::cout << exx_small.cwiseQuotient(exx_ref);
+  }
   BOOST_CHECK_EQUAL(exxs_check, 1);
 
   libint2::finalize();
@@ -85,70 +101,39 @@ BOOST_AUTO_TEST_CASE(threecenter) {
 
   ERIs eris;
   eris.Initialize(aobasis, aobasis);
-  Mat_p_Energy exx_dmat = eris.CalculateEXX(dmat);
-  Mat_p_Energy exx_mo = eris.CalculateEXX(mos.block(0, 0, 17, 4), dmat);
+  Eigen::MatrixXd exx_dmat =
+      eris.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), dmat)[1];
+  Eigen::MatrixXd exx_mo =
+      eris.CalculateERIs_EXX_3c(mos.block(0, 0, 17, 4), dmat)[1];
 
-  bool compare_exx = exx_mo.matrix().isApprox(exx_dmat.matrix(), 1e-4);
+  bool compare_exx = exx_mo.isApprox(exx_dmat, 1e-4);
   BOOST_CHECK_EQUAL(compare_exx, true);
 
   Eigen::MatrixXd exx_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/eris/exx_ref2.mm");
 
-  bool compare_exx_ref = exx_ref.isApprox(exx_mo.matrix(), 1e-5);
+  bool compare_exx_ref = exx_ref.isApprox(exx_mo, 1e-5);
   if (!compare_exx_ref) {
     std::cout << "result exx" << std::endl;
-    std::cout << exx_mo.matrix() << std::endl;
+    std::cout << exx_mo << std::endl;
     std::cout << "ref exx" << std::endl;
     std::cout << exx_ref << std::endl;
   }
   BOOST_CHECK_EQUAL(compare_exx_ref, true);
 
-  Mat_p_Energy eri = eris.CalculateERIs(dmat);
+  Eigen::MatrixXd eri = eris.CalculateERIs_3c(dmat);
 
   Eigen::MatrixXd eris_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/eris/eris_ref2.mm");
 
-  bool compare_eris = eris_ref.isApprox(eri.matrix(), 1e-5);
+  bool compare_eris = eris_ref.isApprox(eri, 1e-5);
   if (!compare_eris) {
     std::cout << "result eris" << std::endl;
-    std::cout << eri.matrix() << std::endl;
+    std::cout << eri << std::endl;
     std::cout << "ref eris" << std::endl;
     std::cout << eris_ref << std::endl;
   }
   BOOST_CHECK_EQUAL(compare_eris, true);
-}
-
-BOOST_AUTO_TEST_CASE(fourcenter_direct) {
-
-  Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                                  "/eris/molecule.xyz");
-  BasisSet basis;
-  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/eris/3-21G.xml");
-
-  AOBasis aobasis;
-  aobasis.Fill(basis, orbitals.QMAtoms());
-
-  Eigen::MatrixXd dmat = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/eris/dmat3.mm");
-
-  ERIs eris1;
-  ERIs eris2;
-  eris1.Initialize_4c_screening(aobasis, 1e-10);
-  eris2.Initialize_4c_small_molecule(aobasis);
-  Mat_p_Energy eris_direct = eris1.CalculateERIs_4c_direct(aobasis, dmat);
-  Mat_p_Energy eris_cached = eris2.CalculateERIs_4c_small_molecule(dmat);
-
-  bool check_eris = eris_direct.matrix().isApprox(eris_cached.matrix(), 0.001);
-  if (!check_eris) {
-    std::cout << "eris_direct.matrix()" << std::endl;
-    std::cout << eris_direct.matrix() << std::endl;
-    std::cout << "eris_cached.matrix()" << std::endl;
-    std::cout << eris_cached.matrix() << std::endl;
-  }
-  BOOST_CHECK_EQUAL(check_eris, 1);
-
-  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
