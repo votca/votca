@@ -26,6 +26,8 @@ Version 2021-dev
 -  corrected max index in csg_resample (#575)
 -  add periodic extrapolation for dihedrals (#576)
 -  bump required CMake version to 3.12 (#599)
+-  Fixed boost test deprecation warnings (#598)
+-  improve error message for broken binaries (#601)
 
 Version 1.6.3 (released XX.08.20)
 =================================
