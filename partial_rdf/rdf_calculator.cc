@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -259,9 +259,9 @@ void RDFCalculator::Worker::DoNonbonded(Topology *top) {
       }
     }
     if (gridsearch) {
-      nb = std::make_unique<NBList>(NBListGrid());
+      nb = std::make_unique<NBListGrid>();
     } else {
-      nb = std::make_unique<NBList>(NBList());
+      nb = std::make_unique<NBList>();
     }
 
     nb->setCutoff(i._max + i._step);
