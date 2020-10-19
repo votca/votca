@@ -163,8 +163,8 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   }
 
   TrajectoryReader::RegisterPlugins();
-  TrajectoryReader *reader;
-  reader = TrjReaderFactory().Create(lammpsdumpfilename);
+  std::unique_ptr<TrajectoryReader> reader = std::unique_ptr<TrajectoryReader>(
+      TrjReaderFactory().Create(lammpsdumpfilename));
   reader->Open(lammpsdumpfilename);
   reader->FirstFrame(top);
   reader->Close();
@@ -287,16 +287,16 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
 
   // Write the topology object to a file
   TrajectoryWriter::RegisterPlugins();
-  TrajectoryWriter *writer;
-  writer = TrjWriterFactory().Create(lammpsDumpFileName);
+  std::unique_ptr<TrajectoryWriter> writer = std::unique_ptr<TrajectoryWriter>(
+      TrjWriterFactory().Create(lammpsDumpFileName));
   writer->Open(lammpsDumpFileName);
   writer->Write(&top);
   writer->Close();
 
   // Read the .dump file and ensure the information is correct
   TrajectoryReader::RegisterPlugins();
-  TrajectoryReader *reader;
-  reader = TrjReaderFactory().Create(lammpsDumpFileName);
+  std::unique_ptr<TrajectoryReader> reader = std::unique_ptr<TrajectoryReader>(
+      TrjReaderFactory().Create(lammpsDumpFileName));
   reader->Open(lammpsDumpFileName);
   reader->FirstFrame(top);
   reader->Close();

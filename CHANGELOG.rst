@@ -28,6 +28,7 @@ Version 2021-dev
 -  bump required CMake version to 3.12 (#599)
 -  Fixed boost test deprecation warnings (#598)
 -  improve error message for broken binaries (#601)
+-  Fixed memory leaks in tests and neighbourlist (#602)
 
 Version 1.6.3 (released XX.08.20)
 =================================
