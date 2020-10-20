@@ -118,7 +118,7 @@ class DFTEngine {
   std::string _four_center_method;  // direct | cache
 
   // Pre-screening
-  bool _with_screening;
+  Index _fock_matrix_reset;
   double _screening_eps;
 
   // numerical integration Vxc

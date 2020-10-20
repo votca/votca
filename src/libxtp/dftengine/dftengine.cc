@@ -46,6 +46,7 @@ namespace xtp {
 
 void DFTEngine::Initialize(Property& options) {
 
+  std::cout << options << std::endl;
   string key = "package";
   const string key_xtpdft = "package.xtpdft";
   _dftbasis_name = options.get(key + ".basisset").as<string>();
@@ -58,8 +59,9 @@ void DFTEngine::Initialize(Property& options) {
       options.get(key_xtpdft + ".four_center_method").as<std::string>();
 
   if (_four_center_method != "RI") {
-    _with_screening = options.get(key_xtpdft + ".with_screening").as<bool>();
     _screening_eps = options.get(key_xtpdft + ".screening_eps").as<double>();
+    _fock_matrix_reset =
+        options.get(key_xtpdft + ".fock_matrix_reset").as<Index>();
   }
 
   if (options.get(key + ".use_ecp").as<bool>()) {
@@ -241,6 +243,23 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
          "----------------------------"
       << flush;
 
+  Eigen::MatrixXd J = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+  Eigen::MatrixXd Ddiff = Dmat;
+  Eigen::MatrixXd Dlast = Dmat;
+  Eigen::MatrixXd K;
+  if (_ScaHFX > 0) {
+    K = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+  }
+
+  bool reset_incremental_fock_formation = false;
+  bool incremental_Fbuild_started = false;
+  double start_incremental_F_threshold = 1e-5;
+  double next_reset_threshold = 0.0;
+  Index last_reset_iteration = 0;
+  if (_four_center_method == "RI") {
+    start_incremental_F_threshold = 0.0;
+  }
+
   for (Index this_iter = 0; this_iter < _max_iter; this_iter++) {
     XTP_LOG(Log::error, *_pLog) << flush;
     XTP_LOG(Log::error, *_pLog) << TimeStamp() << " Iteration " << this_iter + 1
@@ -255,20 +274,48 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     double Etwo = e_vxc.energy();
     double exx = 0.0;
 
+    if (!incremental_Fbuild_started &&
+        _conv_accelerator.getDIIsError() < start_incremental_F_threshold) {
+      incremental_Fbuild_started = true;
+      reset_incremental_fock_formation = false;
+      last_reset_iteration = this_iter - 1;
+      next_reset_threshold = _conv_accelerator.getDIIsError() / 1e3;
+      XTP_LOG(Log::info, *_pLog)
+          << TimeStamp() << " Using incremental 4c build" << flush;
+    }
+    if (reset_incremental_fock_formation || !incremental_Fbuild_started) {
+      J = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+      if (_ScaHFX > 0) {
+        K = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+      }
+      Ddiff = Dmat;
+    }
+    if (reset_incremental_fock_formation && incremental_Fbuild_started) {
+      reset_incremental_fock_formation = false;
+      last_reset_iteration = this_iter;
+      next_reset_threshold = _conv_accelerator.getDIIsError() / 1e1;
+      XTP_LOG(Log::info, *_pLog)
+          << TimeStamp() << "== reset incremental 4c build" << std::endl;
+    }
+
+    double integral_error =
+        std::min(_conv_accelerator.getDIIsError() * 1e-5, 1e-5);
     if (_ScaHFX > 0) {
       std::array<Eigen::MatrixXd, 2> both =
-          CalcERIs_EXX(MOs.eigenvectors(), Dmat, 1e-12);
-      H += both[0];
-      Etwo += 0.5 * Dmat.cwiseProduct(both[0]).sum();
-      H += 0.5 * _ScaHFX * both[1];
-      exx = _ScaHFX / 4 * Dmat.cwiseProduct(both[1]).sum();
+          CalcERIs_EXX(MOs.eigenvectors(), Ddiff, integral_error);
+      J += both[0];
+      H += J;
+      Etwo += 0.5 * Dmat.cwiseProduct(J).sum();
+      K += both[1];
+      H += 0.5 * _ScaHFX * K;
+      exx = _ScaHFX / 4 * Dmat.cwiseProduct(K).sum();
       XTP_LOG(Log::info, *_pLog)
           << TimeStamp() << " Filled F+K matrix " << flush;
     } else {
-      Eigen::MatrixXd Hartree = CalcERIs(Dmat, 1e-12);
+      J += CalcERIs(Ddiff, integral_error);
       XTP_LOG(Log::info, *_pLog) << TimeStamp() << " Filled F matrix " << flush;
-      H += Hartree;
-      Etwo += 0.5 * Dmat.cwiseProduct(Hartree).sum();
+      H += J;
+      Etwo += 0.5 * Dmat.cwiseProduct(J).sum();
     }
 
     Etwo += exx;
@@ -289,7 +336,12 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
                                 << std::setprecision(12) << totenergy << flush;
 
     Dmat = _conv_accelerator.Iterate(Dmat, H, MOs, totenergy);
-
+    if (_conv_accelerator.getDIIsError() < next_reset_threshold ||
+        this_iter - last_reset_iteration >= _fock_matrix_reset) {
+      reset_incremental_fock_formation = true;
+    }
+    Ddiff = Dmat - Dlast;
+    Dlast = Dmat;
     PrintMOs(MOs.eigenvalues(), Log::info);
 
     XTP_LOG(Log::info, *_pLog) << "\t\tGAP "
@@ -559,12 +611,16 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
     double E_two_alpha = 0.0;
     double E_two_beta = 0.0;
 
+    double integral_error = std::min(1e-5 * 0.5 *
+                                         (Convergence_alpha.getDIIsError() +
+                                          Convergence_beta.getDIIsError()),
+                                     1e-5);
     if (_ScaHFX > 0) {
       std::array<Eigen::MatrixXd, 2> both_alpha =
-          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_alpha, 1e-15);
+          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_alpha, integral_error);
 
       std::array<Eigen::MatrixXd, 2> both_beta =
-          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_beta, 1e-15);
+          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_beta, integral_error);
       Eigen::MatrixXd Hartree = both_alpha[0] + both_beta[0];
       E_two_alpha += Hartree.cwiseProduct(dftAOdmat_alpha).sum();
       E_two_beta += Hartree.cwiseProduct(dftAOdmat_beta).sum();
@@ -574,8 +630,8 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
       H_beta += Hartree + _ScaHFX * both_beta[1];
 
     } else {
-      Eigen::MatrixXd Hartree =
-          ERIs_atom.CalculateERIs_4c(dftAOdmat_alpha + dftAOdmat_beta, 1e-15);
+      Eigen::MatrixXd Hartree = ERIs_atom.CalculateERIs_4c(
+          dftAOdmat_alpha + dftAOdmat_beta, integral_error);
       E_two_alpha += Hartree.cwiseProduct(dftAOdmat_alpha).sum();
       E_two_beta += Hartree.cwiseProduct(dftAOdmat_beta).sum();
       H_alpha += Hartree;

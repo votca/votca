@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   xml << "<use_external_density>false</use_external_density>" << std::endl;
   xml << "<with_screening choices=\"bool\">true</with_screening>\n";
   xml << "<screening_eps  choices=\"float+\">1e-9</screening_eps>\n";
-  xml << "<four_center_method>cache</four_center_method>\n";
+  xml << "<four_center_method>direct</four_center_method>\n";
   xml << "<convergence>" << std::endl;
   xml << "    <energy>1e-7</energy>" << std::endl;
   xml << "    <method>DIIS</method>" << std::endl;

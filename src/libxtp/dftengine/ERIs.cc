@@ -144,6 +144,7 @@ std::array<Eigen::MatrixXd, 2> ERIs::Compute4c(const Eigen::MatrixXd& dmat,
   std::vector<libint2::Engine> engines(nthreads);
   engines[0] = libint2::Engine(libint2::Operator::coulomb, int(maxnprim_),
                                int(maxL_), 0);
+  std::cout << fock_precision << std::endl;
   engines[0].set_precision(engine_precision);  // shellset-dependent precision
                                                // control will likely break
                                                // positive definiteness

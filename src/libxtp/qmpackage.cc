@@ -34,7 +34,7 @@ using std::flush;
 tools::Property QMPackage::ParseCommonOptions(const tools::Property& options) {
 
   std::string key = "package";
-
+  std::cout << options << std::endl;
   _settings.read_property(options, key);
 
   if (tools::VotcaShareSet()) {
@@ -57,6 +57,7 @@ tools::Property QMPackage::ParseCommonOptions(const tools::Property& options) {
   if (getPackageName() != "xtp") {
     _scratch_dir = _settings.get("scratch");
   }
+  std::cout << _settings.to_property("package") << std::endl;
   return _settings.to_property("package");
 }
 
