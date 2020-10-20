@@ -391,9 +391,10 @@ bool KMCLifetime::Evaluate(Topology& top) {
 
   time_t now = time(nullptr);
   tm* localtm = localtime(&now);
-  XTP_LOG(Log::error, _log)
-      << " KMCLIFETIME finished at:" << asctime(localtm) << std::flush;
 
+  XTP_LOG(Log::info, _log) << " KMCLIFETIME finished at:" << asctime(localtm)
+                           << std::flush;
+  std::cout << _log;
   return true;
 }
 

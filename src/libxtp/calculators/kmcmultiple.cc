@@ -454,6 +454,7 @@ void KMCMultiple::RunVSSM() {
 }
 
 bool KMCMultiple::Evaluate(Topology& top) {
+
   XTP_LOG(Log::error, _log) << "\n-----------------------------------"
                                "\n      KMC FOR MULTIPLE CHARGES"
                                "\n-----------------------------------\n"
@@ -465,7 +466,7 @@ bool KMCMultiple::Evaluate(Topology& top) {
 
   LoadGraph(top);
   RunVSSM();
-
+  std::cout << _log;
   return true;
 }
 

@@ -63,8 +63,8 @@ class KMCCalculator : public QMCalculator {
   const GLink& ChooseHoppingDest(const GNode& node);
   Chargecarrier* ChooseAffectedCarrier(double cumulated_rate);
 
-  void WriteOccupationtoFile(double simtime, std::string filename) const;
-  void WriteRatestoFile(std::string filename, const QMNBList& nblist) const;
+  void WriteOccupationtoFile(double simtime, std::string filename);
+  void WriteRatestoFile(std::string filename, const QMNBList& nblist);
 
   void RandomlyCreateCharges();
   void RandomlyAssignCarriertoSite(Chargecarrier& Charge);
