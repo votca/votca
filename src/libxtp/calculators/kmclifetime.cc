@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -379,9 +379,10 @@ bool KMCLifetime::EvaluateFrame(Topology& top) {
 
   time_t now = time(nullptr);
   tm* localtm = localtime(&now);
+
   XTP_LOG(Log::error, _log)
       << " KMCLIFETIME finished at:" << asctime(localtm) << std::flush;
-
+  std::cout << _log << std::flush;
   return true;
 }
 
