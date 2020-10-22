@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,23 +21,27 @@
 #ifndef VOTCA_XTP_LOG2MPS_H
 #define VOTCA_XTP_LOG2MPS_H
 
+// Third party includes
 #include <boost/format.hpp>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/qmtool.h>
+
+// Local VOTCA includes
+#include "votca/xtp/classicalsegment.h"
+#include "votca/xtp/qmpackagefactory.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
 
-class Log2Mps : public QMTool {
+class Log2Mps final : public QMTool {
  public:
   Log2Mps() = default;
-  ~Log2Mps() override = default;
+  ~Log2Mps() = default;
 
-  std::string Identify() override { return "log2mps"; }
+  std::string Identify() { return "log2mps"; }
 
-  void Initialize(tools::Property &options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Run();
 
  private:
   std::string _package;
@@ -45,32 +49,27 @@ class Log2Mps : public QMTool {
   std::string _mpsfile;
 };
 
-void Log2Mps::Initialize(tools::Property &opt) {
+void Log2Mps::ParseOptions(const tools::Property &options) {
 
   QMPackageFactory::RegisterAll();
 
-  std::string key = "options.log2mps";
-  _package = opt.get(key + ".package").as<std::string>();
+  _package = options.get(".package").as<std::string>();
 
   if (_package == "xtp") {
     throw std::runtime_error(
         "XTP has no log file. For xtp package just run the partialcharges tool "
         "on you .orb file");
   }
-  _logfile = opt.get(key + ".logfile").as<std::string>();
+  _logfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".logfile", _job_name + ".log");
 
-  _mpsfile = (opt.exists(key + ".mpsfile"))
-                 ? opt.get(key + ".mpsfile").as<std::string>()
-                 : "";
-  if (_mpsfile == "") {
-    _mpsfile = _logfile.substr(0, _logfile.size() - 4) + ".mps";
-  }
+  _mpsfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".mpsfile", _job_name + ".mps");
 
-  std::cout << std::endl
-            << "... ... " << _logfile << " => " << _mpsfile << std::flush;
+  std::cout << "\n... ... " << _logfile << " => " << _mpsfile << "\n";
 }
 
-bool Log2Mps::Evaluate() {
+bool Log2Mps::Run() {
 
   // Logger (required for QM package, so we can just as well use it)
   Logger log;
@@ -113,4 +112,4 @@ bool Log2Mps::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_LOG2MPS_H

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,29 +18,32 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_SPECTRUM_H
-#define _VOTCA_XTP_SPECTRUM_H
+#ifndef VOTCA_XTP_SPECTRUM_H
+#define VOTCA_XTP_SPECTRUM_H
 
-#include <stdio.h>
+// Standard includes
+#include <cstdio>
 
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/qmtool.h>
+// Local VOTCA includes
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmstate.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
 class Orbitals;
 
-class Spectrum : public QMTool {
+class Spectrum final : public QMTool {
  public:
   Spectrum() = default;
 
-  ~Spectrum() override = default;
+  ~Spectrum() = default;
 
-  std::string Identify() override { return "spectrum"; }
+  std::string Identify() { return "spectrum"; }
 
-  void Initialize(tools::Property& options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   std::string _orbfile;
@@ -75,4 +78,4 @@ class Spectrum : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_SPECTRUM_H

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,11 +18,11 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_ECPAOBasis_H
-#define VOTCA_XTP_ECPAOBasis_H
-
-#include <votca/xtp/ecpaoshell.h>
-#include <votca/xtp/eigen.h>
+#ifndef VOTCA_XTP_ECPAOBASIS_H
+#define VOTCA_XTP_ECPAOBASIS_H
+// Local VOTCA includes
+#include "ecpaoshell.h"
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {
@@ -55,7 +55,7 @@ class ECPAOBasis {
 
  private:
   ECPAOShell& addShell(const ECPShell& shell, const QMAtom& atom,
-                       Index startIndex, Index Lmax);
+                       Index startIndex, L Lmax);
 
   std::vector<ECPAOShell> _aoshells;
 
@@ -66,4 +66,4 @@ class ECPAOBasis {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ECPAOBasis_H
+#endif  // VOTCA_XTP_ECPAOBASIS_H

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,39 +18,43 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_MOLPOL_H
-#define _VOTCA_XTP_MOLPOL_H
+#ifndef VOTCA_XTP_MOLPOL_H
+#define VOTCA_XTP_MOLPOL_H
 
-#include <stdio.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmtool.h>
+// Standard includes
+#include <cstdio>
+
+// Local VOTCA includes
+#include "votca/xtp/classicalsegment.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
 class PolarRegion;
-class MolPol : public QMTool {
+class MolPol final : public QMTool {
  public:
   MolPol() : _input("", 0){};
 
-  ~MolPol() override = default;
+  ~MolPol() = default;
 
-  std::string Identify() override { return "molpol"; }
+  std::string Identify() { return "molpol"; }
 
-  void Initialize(tools::Property& options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
-  void PrintPolarisation(const Eigen::Matrix3d& result) const;
+  void Printpolarization(const Eigen::Matrix3d& result) const;
 
   Eigen::Matrix3d CalcClassicalPol(const PolarSegment& input) const;
-  Eigen::Vector3d Polarize(const PolarSegment& input,
-                           const Eigen::Vector3d& ext_field) const;
+  Eigen::Vector3d CalcInducedDipole(const PolarSegment& input,
+                                    const Eigen::Vector3d& ext_field) const;
   Logger _log;
 
   std::string _mps_output;
   PolarSegment _input;
-  Eigen::Matrix3d _polarisation_target;
+  Eigen::Matrix3d _polarization_target;
 
   Eigen::VectorXd _weights;
 
@@ -63,4 +67,4 @@ class MolPol : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_MOLPOL_H

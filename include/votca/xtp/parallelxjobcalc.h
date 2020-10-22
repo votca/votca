@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,11 +23,14 @@
 #ifndef VOTCA_XTP_PARALLELXJOBCALC_H
 #define VOTCA_XTP_PARALLELXJOBCALC_H
 
+// VOTCA includes
 #include <votca/tools/mutex.h>
-#include <votca/xtp/job.h>
-#include <votca/xtp/jobcalculator.h>
-#include <votca/xtp/progressobserver.h>
-#include <votca/xtp/qmthread.h>
+
+// Local VOTCA includes
+#include "job.h"
+#include "jobcalculator.h"
+#include "progressobserver.h"
+#include "qmthread.h"
 
 /// PATHWAYS TO A NEW THREADED CALCULATOR
 /// ... 1 Define 'JobContainer' (needs to define iterator), 'pJob' ( =
@@ -53,11 +56,16 @@ class ParallelXJobCalc : public JobCalculator {
   using Result = typename Job::JobResult;
 
   ParallelXJobCalc() = default;
-  ~ParallelXJobCalc() override { ; };
+  ~ParallelXJobCalc() override = default;
 
   std::string Identify() override = 0;
 
-  bool EvaluateFrame(const Topology &top) override;
+  void ParseOptions(const tools::Property &opt) final {
+    ParseCommonOptions(opt);
+    ParseSpecificOptions(opt);
+  }
+
+  bool Evaluate(const Topology &top) override;
   virtual void CustomizeLogger(QMThread &thread);
   virtual Result EvalJob(const Topology &top, Job &job, QMThread &thread) = 0;
 
@@ -88,13 +96,21 @@ class ParallelXJobCalc : public JobCalculator {
   };
 
  protected:
-  void ParseCommonOptions(const tools::Property &options);
+  virtual void ParseSpecificOptions(const tools::Property &options) = 0;
+
+  // set the basis sets and functional in DFT package
+  tools::Property UpdateDFTOptions(const tools::Property &options);
+  // set the basis sets and functional in GWBSE
+  tools::Property UpdateGWBSEOptions(const tools::Property &options);
 
   JobContainer _XJobs;
   tools::Mutex _coutMutex;
   tools::Mutex _logMutex;
   std::string _mapfile = "";
   std::string _jobfile = "";
+
+ private:
+  void ParseCommonOptions(const tools::Property &options);
 };
 
 }  // namespace xtp

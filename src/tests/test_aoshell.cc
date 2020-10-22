@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,17 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aoshell_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <fstream>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/aoshell.h>
-#include <votca/xtp/orbitals.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/aoshell.h"
+#include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;
 using namespace std;
@@ -28,68 +34,13 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(aoshell_test)
 
 BOOST_AUTO_TEST_CASE(EvalAOspace) {
-  std::ofstream basisfile("largeshell.xml");
-  basisfile << "<basis name=\"arbitrary\">" << std::endl;
-  basisfile << "  <element name=\"Al\">" << std::endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SPDFG\">" << std::endl;
-  basisfile << "      <constant decay=\"1.570000e+00\">" << std::endl;
-  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"P\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"D\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"F\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"G\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "      <constant decay=\"3.330000e-01\">" << std::endl;
-  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"S\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"P\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"D\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"F\"/>"
-            << std::endl;
-  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"G\"/>"
-            << std::endl;
-  basisfile << "      </constant>" << std::endl;
-  basisfile << "    </shell> " << std::endl;
-  basisfile << "  </element> " << std::endl;
-  basisfile << "</basis> " << std::endl;
-  basisfile.close();
-
-  std::ofstream xyzfile("Al.xyz");
-  xyzfile << " 1" << std::endl;
-  xyzfile << " Al" << std::endl;
-  xyzfile << " Al            .000000     .000000     .000000" << std::endl;
-  xyzfile.close();
 
   QMMolecule mol = QMMolecule("", 0);
-  mol.LoadFromFile("Al.xyz");
+  mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/aoshell/Al.xyz");
   BasisSet basis;
-  basis.Load("largeshell.xml");
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aoshell/largeshell.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, mol);
-
-  const AOShell& shell = aobasis.getShell(0);
-
-  Eigen::Vector3d gridpos = Eigen::Vector3d::Ones();
-  Eigen::VectorXd aoval = Eigen::VectorXd::Zero(aobasis.AOBasisSize());
-  Eigen::MatrixX3d aograd = Eigen::MatrixX3d::Zero(aobasis.AOBasisSize(), 3);
-  Eigen::Block<Eigen::MatrixX3d> grad_block =
-      aograd.block(0, 0, aobasis.AOBasisSize(), 3);
-  Eigen::VectorBlock<Eigen::VectorXd> ao_block =
-      aoval.segment(0, aobasis.AOBasisSize());
-
-  shell.EvalAOspace(ao_block, grad_block, gridpos);
-
-  Eigen::VectorXd aoval_2 = Eigen::VectorXd::Zero(aobasis.AOBasisSize());
-  Eigen::VectorBlock<Eigen::VectorXd> ao_block_2 =
-      aoval_2.segment(0, aobasis.AOBasisSize());
-  shell.EvalAOspace(ao_block_2, gridpos);
 
   Eigen::VectorXd aoval_ref = Eigen::VectorXd::Zero(aobasis.AOBasisSize());
   aoval_ref << 0.0680316, 0.0895832, 0.0895832, 0.0895832, 0, 0.126153,
@@ -119,33 +70,57 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
       0.32674007231, -0.11148463165, 0.18066517099, 0.20658110657,
       -0.20658110657, 0, 0.024459014248, 0.024459014248, 0.23104012081;
 
-  bool ao_check = aoval_ref.isApprox(aoval, 1e-5);
-  if (!ao_check) {
-    std::cout << "ref" << std::endl;
-    std::cout << aoval_ref << std::endl;
-    std::cout << "result" << std::endl;
-    std::cout << aoval << std::endl;
-  }
-  BOOST_CHECK_EQUAL(ao_check, 1);
-  bool aograd_check = aograd_ref.isApprox(aograd, 1e-5);
-  if (!aograd_check) {
-    std::cout << "ref" << std::endl;
-    std::cout << aograd_ref << std::endl;
-    std::cout << "result" << std::endl;
-    std::cout << aograd << std::endl;
-  }
+  for (const AOShell& shell : aobasis) {
 
-  BOOST_CHECK_EQUAL(aograd_check, 1);
+    Eigen::Vector3d gridpos = Eigen::Vector3d::Ones();
+    Eigen::VectorXd aoval = Eigen::VectorXd::Zero(shell.getNumFunc());
+    Eigen::MatrixX3d aograd = Eigen::MatrixX3d::Zero(shell.getNumFunc(), 3);
+    Eigen::Block<Eigen::MatrixX3d> grad_block =
+        aograd.block(0, 0, shell.getNumFunc(), 3);
+    Eigen::VectorBlock<Eigen::VectorXd> ao_block =
+        aoval.segment(0, shell.getNumFunc());
 
-  bool ao1vsao2_check = aoval_2.isApprox(aoval, 1e-5);
-  if (!ao1vsao2_check) {
-    std::cout << "ref" << std::endl;
-    std::cout << aoval << std::endl;
-    std::cout << "result" << std::endl;
-    std::cout << aoval_2 << std::endl;
+    shell.EvalAOspace(ao_block, grad_block, gridpos);
+
+    Eigen::VectorXd aoval_2 = Eigen::VectorXd::Zero(shell.getNumFunc());
+    Eigen::VectorBlock<Eigen::VectorXd> ao_block_2 =
+        aoval_2.segment(0, shell.getNumFunc());
+    shell.EvalAOspace(ao_block_2, gridpos);
+
+    bool ao_check = aoval_ref.segment(shell.getStartIndex(), shell.getNumFunc())
+                        .isApprox(aoval, 1e-5);
+    if (!ao_check) {
+      std::cout << shell << std::endl;
+      std::cout << "ref" << std::endl;
+      std::cout << aoval_ref << std::endl;
+      std::cout << "result" << std::endl;
+      std::cout << aoval << std::endl;
+    }
+    BOOST_CHECK_EQUAL(ao_check, 1);
+    bool aograd_check =
+        aograd_ref.block(shell.getStartIndex(), 0, shell.getNumFunc(), 3)
+            .isApprox(aograd, 1e-5);
+    if (!aograd_check) {
+      std::cout << shell << std::endl;
+      std::cout << "ref" << std::endl;
+      std::cout << aograd_ref << std::endl;
+      std::cout << "result" << std::endl;
+      std::cout << aograd << std::endl;
+    }
+
+    BOOST_CHECK_EQUAL(aograd_check, 1);
+
+    bool ao1vsao2_check = aoval_2.isApprox(aoval, 1e-5);
+    if (!ao1vsao2_check) {
+      std::cout << shell << std::endl;
+      std::cout << "ref" << std::endl;
+      std::cout << aoval << std::endl;
+      std::cout << "result" << std::endl;
+      std::cout << aoval_2 << std::endl;
+    }
+
+    BOOST_CHECK_EQUAL(aograd_check, 1);
   }
-
-  BOOST_CHECK_EQUAL(aograd_check, 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

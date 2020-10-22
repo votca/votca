@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,11 +21,14 @@
 #ifndef VOTCA_XTP_TOPOLOGY_H
 #define VOTCA_XTP_TOPOLOGY_H
 
+// VOTCA includes
 #include <votca/csg/boundarycondition.h>
 #include <votca/csg/openbox.h>
 #include <votca/csg/orthorhombicbox.h>
 #include <votca/csg/triclinicbox.h>
-#include <votca/xtp/qmnblist.h>
+
+// Local VOTCA includes
+#include "qmnblist.h"
 
 namespace votca {
 namespace xtp {
@@ -85,7 +88,7 @@ class Topology {
   std::vector<const Segment *> FindAllSegmentsOnMolecule(
       const Segment &seg1, const Segment &seg2) const;
 
- protected:
+ private:
   std::vector<Segment> _segments;
 
   std::unique_ptr<csg::BoundaryCondition> _bc = nullptr;
@@ -96,6 +99,8 @@ class Topology {
 
   csg::BoundaryCondition::eBoxtype AutoDetectBoxType(
       const Eigen::Matrix3d &box);
+
+  static constexpr int topology_version() { return 1; }
 };
 
 }  // namespace xtp

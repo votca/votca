@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,47 +17,42 @@
  *
  */
 
-#include "spectrum.h"
+// Third party includes
 #include <boost/math/constants/constants.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
+
+// Local VOTCA includes
 #include <votca/xtp/orbitals.h>
+
+// Local private VOTCA includes
+#include "spectrum.h"
 
 namespace votca {
 namespace xtp {
 
-void Spectrum::Initialize(tools::Property& options) {
-
-  std::string key = "options." + Identify();
+void Spectrum::ParseOptions(const tools::Property& options) {
 
   // orbitals file or pure DFT output
-  _orbfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".orbitals");
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".orbitals", _job_name + ".orb");
+
   _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".output", _output_file);
-  _n_pt =
-      options.ifExistsReturnElseReturnDefault<Index>(key + ".points", _n_pt);
-  _lower = options.get(key + ".lower").as<double>();
-  _upper = options.ifExistsReturnElseThrowRuntimeError<double>(key + ".upper");
-  _fwhm = options.ifExistsReturnElseThrowRuntimeError<double>(key + ".fwhm");
+      ".output", _job_name + "_spectrum.dat");
 
-  if (options.exists(key + ".type")) {
-    std::vector<std::string> choices = {"energy", "wavelength"};
-    _spectrum_type =
-        options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-            key + ".type", choices);
-  }
-  _minexc =
-      options.ifExistsReturnElseReturnDefault<Index>(key + ".minexc", _minexc);
-  _maxexc =
-      options.ifExistsReturnElseReturnDefault<Index>(key + ".maxexc", _maxexc);
-  _shiftby =
-      options.ifExistsReturnElseReturnDefault<double>(key + ".shift", _shiftby);
+  _n_pt = options.get(".points").as<Index>();
+  _lower = options.get(".lower").as<double>();
+  _upper = options.get(".upper").as<double>();
+  _fwhm = options.get(".fwhm").as<double>();
 
-  return;
+  _spectrum_type = options.get(".type").as<std::string>();
+  _minexc = options.get(".minexc").as<Index>();
+  _maxexc = options.get(".maxexc").as<Index>();
+  _shiftby = options.get(".shift").as<double>();
 }
 
-bool Spectrum::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
+bool Spectrum::Run() {
   _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
 

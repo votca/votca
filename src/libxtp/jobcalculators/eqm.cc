@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,12 +17,17 @@
  *
  */
 
-#include "eqm.h"
-#include "votca/xtp/segmentmapper.h"
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/math/constants/constants.hpp>
-#include <votca/xtp/esp2multipole.h>
+
+// Local VOTCA includes
+#include "votca/xtp/esp2multipole.h"
+#include "votca/xtp/segmentmapper.h"
+
+// Local private VOTCA includes
+#include "eqm.h"
 
 using boost::format;
 using namespace boost::filesystem;
@@ -30,23 +35,13 @@ using namespace boost::filesystem;
 namespace votca {
 namespace xtp {
 
-void EQM::Initialize(tools::Property& options) {
+void EQM::ParseSpecificOptions(const tools::Property& options) {
 
-  _do_dft_input = false;
-  _do_dft_run = false;
-  _do_dft_parse = false;
-  _do_gwbse = false;
-  _do_esp = false;
-  ParseCommonOptions(options);
-  ParseOptionsXML(options);
   QMPackageFactory::RegisterAll();
-}
 
-void EQM::ParseOptionsXML(tools::Property& options) {
-
-  std::string key = "options." + Identify();
   // job tasks
-  std::string _tasks_string = options.get(key + ".tasks").as<std::string>();
+  std::string _tasks_string = options.get(".tasks").as<std::string>();
+
   if (_tasks_string.find("input") != std::string::npos) {
     _do_dft_input = true;
   }
@@ -63,31 +58,15 @@ void EQM::ParseOptionsXML(tools::Property& options) {
     _do_esp = true;
   }
 
-  if (_do_gwbse) {
-    std::string gwbse_xml =
-        options.get(key + ".gwbse_options").as<std::string>();
-    _gwbse_options.LoadFromXML(gwbse_xml);
-  }
-
-  if (_do_dft_input || _do_dft_run || _do_dft_parse) {
-    // options for dft package
-    std::string package_xml =
-        options.get(key + ".dftpackage").as<std::string>();
-    _package_options.LoadFromXML(package_xml);
-  }
-
-  // options for esp/partialcharges
-  if (_do_esp) {
-    key = "options." + Identify();
-    std::string _esp_xml = options.get(key + ".esp_options").as<std::string>();
-    _esp_options.LoadFromXML(_esp_xml);
-  }
+  // set the basis sets and functional for DFT and GWBSE
+  _gwbse_options = this->UpdateGWBSEOptions(options);
+  _package_options = this->UpdateDFTOptions(options);
+  _esp_options = options.get(".esp_options");
 }
 
 void EQM::WriteJobFile(const Topology& top) {
 
-  std::cout << std::endl
-            << "... ... Writing job file: " << _jobfile << std::flush;
+  std::cout << "\n... ... Writing job file: " << _jobfile << std::flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open()) {
@@ -223,6 +202,21 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
         SetJobToFailed(jres, pLog, output);
         return jres;
       }
+      // additionally copy *.gbw files for orca (-> iqm guess)
+      if (qmpackage->getPackageName() == "orca") {
+        std::string DIR = eqm_work_dir + "/molecules/" + frame_dir;
+        boost::filesystem::create_directories(DIR);
+        std::string gbw_file =
+            (format("%1%_%2%%3%") % "molecule" % segId % ".gbw").str();
+        std::string GBWFILE = DIR + "/" + gbw_file;
+        XTP_LOG(Log::error, pLog)
+            << "Copying MO data to " << gbw_file << std::flush;
+        std::string GBWFILE_workdir = work_dir + "/system.gbw";
+        boost::filesystem::copy_file(
+            GBWFILE_workdir, GBWFILE,
+            boost::filesystem::copy_option::overwrite_if_exists);
+      }
+
     }  // end of the parse orbitals/log
     qmpackage->CleanUp();
     WriteLoggerToFile(work_dir + "/dft.log", dft_logger);

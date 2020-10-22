@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,27 +18,27 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_TOOLS_COUPLINGH_H
-#define _VOTCA_XTP_TOOLS_COUPLINGH_H
+#ifndef VOTCA_XTP_COUPLING_H
+#define VOTCA_XTP_COUPLING_H
 
-#include <stdio.h>
-
-#include <votca/xtp/dftcoupling.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmpackagefactory.h>
+// Local VOTCA includes
+#include "votca/xtp/dftcoupling.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmpackagefactory.h"
 
 namespace votca {
 namespace xtp {
 
-class Coupling : public QMTool {
+class Coupling final : public QMTool {
  public:
   Coupling() = default;
-  ~Coupling() override = default;
+  ~Coupling() = default;
 
-  std::string Identify() override { return "coupling"; }
+  std::string Identify() { return "coupling"; }
 
-  void Initialize(tools::Property &options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Run();
 
  private:
   std::string _MOsA, _MOsB, _MOsAB;
@@ -53,30 +53,28 @@ class Coupling : public QMTool {
   Logger _log;
 };
 
-void Coupling::Initialize(tools::Property &options) {
-  std::string key = "options." + Identify();
+void Coupling::ParseOptions(const tools::Property &options) {
 
-  _MOsA = options.get(key + ".moleculeA.orbitals").as<std::string>();
-  _MOsB = options.get(key + ".moleculeB.orbitals").as<std::string>();
-  _MOsAB = options.get(key + ".dimerAB.orbitals").as<std::string>();
+  _MOsA = options.get(".moleculeA.orbitals").as<std::string>();
+  _MOsB = options.get(".moleculeB.orbitals").as<std::string>();
+  _MOsAB = options.get(".dimerAB.orbitals").as<std::string>();
 
-  _logA = options.get(key + ".moleculeA.log").as<std::string>();
-  _logB = options.get(key + ".moleculeB.log").as<std::string>();
-  _logAB = options.get(key + ".dimerAB.log").as<std::string>();
+  _logA = options.get(".moleculeA.log").as<std::string>();
+  _logB = options.get(".moleculeB.log").as<std::string>();
+  _logAB = options.get(".dimerAB.log").as<std::string>();
 
-  _output_file = options.get(key + ".output").as<std::string>();
+  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
+      "output", _job_name + "_coupling.xml");
 
-  std::string _package_xml = options.get(key + ".dftpackage").as<std::string>();
-  _package_options.LoadFromXML(_package_xml);
+  _package_options = options.get(".dftpackage");
   _package = _package_options.get("package.name").as<std::string>();
-
-  _dftcoupling_options = options.get(key + ".dftcoupling_options");
+  _dftcoupling_options = options.get(".dftcoupling_options");
 
   QMPackageFactory::RegisterAll();
 }
 
-bool Coupling::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
+bool Coupling::Run() {
+
   _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
 
@@ -157,4 +155,4 @@ bool Coupling::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_COUPLING_H

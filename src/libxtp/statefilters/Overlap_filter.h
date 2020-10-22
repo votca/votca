@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,10 +18,11 @@
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_OVERLAP_FILTER_H
-#define __VOTCA_XTP_OVERLAP_FILTER_H
+#ifndef VOTCA_XTP_OVERLAP_FILTER_PRIVATE_H
+#define VOTCA_XTP_OVERLAP_FILTER_PRIVATE_H
 
-#include <votca/xtp/statefilter_base.h>
+// Local VOTCA includes
+#include "votca/xtp/statefilter_base.h"
 
 namespace votca {
 namespace xtp {
@@ -64,4 +65,4 @@ class Overlap_filter : public StateFilter_base {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_XTP_OSCILLATORSTRENGTH_FILTER_H */
+#endif  // VOTCA_XTP_OSCILLATORSTRENGTH_FILTER_PRIVATE_H
