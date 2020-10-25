@@ -73,6 +73,7 @@ Version 2021-dev
 -  Fixed boost test deprecation warnings (#569)
 -  Refactored CUDA-OpenMP integration (#571)
 -  improved kmc output (#574)
+-  fix build on Ubuntu 16.04 (#577)
 
 Version 1.6.3 (released XX.08.20)
 =================================

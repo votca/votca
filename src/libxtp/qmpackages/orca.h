@@ -69,20 +69,20 @@ class Orca : public QMPackage {
 
  private:
   // clang-format off
-  std::array<Index,25> _multipliers={
+  std::array<Index,25> _multipliers={{
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
             1,1,1,1,1,-1,-1, //f 
             1,1,1,1,1,-1,-1,-1,-1 //g
-            };
-  std::array<Index, 25> _reorderList={
+            }};
+  std::array<Index, 25> _reorderList={{
             0, //s
             0, 1,-1, //p
             0,1,-1,2,-2, //d
             0,1,-1,2,-2,3,-3, //f 
             0,1,-1,2,-2,3,-3,4,-4 //g
-            };
+            }};
 
   // clang-format on
   std::string indent(const double& number);
