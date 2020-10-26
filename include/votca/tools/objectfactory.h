@@ -20,6 +20,7 @@
 
 // Standard includes
 #include <map>
+#include <memory>
 #include <stdexcept>
 
 // Third party includes
@@ -46,7 +47,6 @@ class ObjectFactory {
   using creator_t = std::unique_ptr<T> (*)();
 
  public:
-  using abstract_type = T;
   typedef std::map<key_t, creator_t> assoc_map;
 
   ObjectFactory() = default;
@@ -94,7 +94,7 @@ class ObjectFactory {
 
 template <class parent, class T>
 std::unique_ptr<parent> create_policy_new() {
-  return std::unique_ptr<T>();
+  return std::make_unique<T>();
 }
 
 template <typename key_t, typename T>
@@ -106,7 +106,7 @@ inline void ObjectFactory<key_t, T>::Register(const key_t &key,
 template <typename key_t, typename T>
 template <typename obj_t>
 inline void ObjectFactory<key_t, T>::Register(const key_t &key) {
-  Register(key, create_policy_new<abstract_type, obj_t>);
+  Register(key, create_policy_new<T, obj_t>);
 }
 
 template <typename key_t, typename T>
@@ -124,17 +124,6 @@ template <typename key_t, typename T>
 inline bool ObjectFactory<key_t, T>::IsRegistered(const key_t &_id) const {
   return (_objects.find(_id) != _objects.end());
 }
-
-template <typename object_type>
-class ObjectFactoryRegister {
- public:
-  template <typename factory_type, typename key_type>
-  ObjectFactoryRegister(factory_type &factory, key_type &key) {
-    factory.Register(
-        key,
-        &create_policy_new<typename factory_type::abstract_type, object_type>);
-  }
-};
 
 }  // namespace tools
 }  // namespace votca
