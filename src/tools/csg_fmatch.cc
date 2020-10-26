@@ -615,7 +615,7 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
     }
   }
   if (gridsearch) {
-    nb = std::unique_ptr<NBList>(new NBListGrid());
+    nb = std::make_unique<NBListGrid>();
   } else {
     nb = std::make_unique<NBList>();
   }
@@ -696,7 +696,7 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     }
   }
   if (gridsearch) {
-    nb = std::unique_ptr<NBList_3Body>(new NBListGrid_3Body());
+    nb = std::make_unique<NBListGrid_3Body>();
   } else {
     nb = std::make_unique<NBList_3Body>();
   }
