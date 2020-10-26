@@ -44,7 +44,7 @@ namespace tools {
 template <typename key_t, typename T>
 class ObjectFactory {
  private:
-  using creator_t = T *(*)();
+  using creator_t = std::unique_ptr<T> (*)();
 
  public:
   using abstract_type = T;
@@ -70,7 +70,7 @@ class ObjectFactory {
   /**
      Create an instance of the object identified by key.
   */
-  T *Create(const key_t &key);
+  std::unique_ptr<T> Create(const key_t &key);
   bool IsRegistered(const key_t &_id) const;
 
   static ObjectFactory<key_t, T> &Instance() {
@@ -78,15 +78,24 @@ class ObjectFactory {
     return _this;
   }
 
-  const assoc_map &getObjects() { return _objects; }
+  const assoc_map &getObjects() const { return _objects; }
+
+  std::vector<key_t> getKeys() const {
+    std::vector<key_t> key;
+    key.reserve(_objects.size());
+    for (const auto &pair : _objects) {
+      key.push_back(pair.first);
+    }
+    return key;
+  }
 
  private:
   assoc_map _objects;
 };
 
 template <class parent, class T>
-parent *create_policy_new() {
-  return new T();
+std::unique_ptr<parent> create_policy_new() {
+  return std::unique_ptr<T>();
 }
 
 template <typename key_t, typename T>
@@ -102,7 +111,7 @@ inline void ObjectFactory<key_t, T>::Register(const key_t &key) {
 }
 
 template <typename key_t, typename T>
-inline T *ObjectFactory<key_t, T>::Create(const key_t &key) {
+inline std::unique_ptr<T> ObjectFactory<key_t, T>::Create(const key_t &key) {
   typename assoc_map::const_iterator it(_objects.find(key));
   if (it != _objects.end()) {
     return (it->second)();
