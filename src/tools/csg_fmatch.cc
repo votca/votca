@@ -274,7 +274,6 @@ void CGForceMatching::EndEvaluate() {
   cout << "\nWe are done, thank you very much!" << endl;
   if (_has_existing_forces) {
     _trjreader_force->Close();
-    delete _trjreader_force;
   }
 }
 

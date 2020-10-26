@@ -17,6 +17,7 @@
 
 // Third party includes
 #include <boost/algorithm/string/trim.hpp>
+#include <memory>
 
 // Local VOTCA includes
 #include "votca/csg/cgengine.h"
@@ -195,9 +196,9 @@ bool CsgApplication::ProcessData(Worker *worker) {
 }
 
 void CsgApplication::Run(void) {
-  TopologyReader *reader;
   // create reader for atomistic topology
-  reader = TopReaderFactory().Create(_op_vm["top"].as<std::string>());
+  std::unique_ptr<TopologyReader> reader =
+      TopReaderFactory().Create(_op_vm["top"].as<std::string>());
   if (reader == nullptr) {
     throw std::runtime_error(std::string("input format not supported: ") +
                              _op_vm["top"].as<std::string>());
@@ -344,7 +345,6 @@ void CsgApplication::Run(void) {
     if (!bok) {  // trajectory was too short and we did not proceed to first
                  // frame
       _traj_reader->Close();
-      delete _traj_reader;
 
       throw std::runtime_error(
           "trajectory was too short, did not process a single frame");
@@ -413,11 +413,7 @@ void CsgApplication::Run(void) {
     _threadsMutexesIn.clear();
     _threadsMutexesOut.clear();
     _traj_reader->Close();
-
-    delete _traj_reader;
   }
-
-  delete reader;
 }
 
 CsgApplication::Worker::~Worker() {

@@ -197,7 +197,7 @@ class CGForceMatching : public CsgApplication {
   void OpenForcesTrajectory();
 
   Topology _top_force;
-  TrajectoryReader *_trjreader_force;
+  std::unique_ptr<TrajectoryReader> _trjreader_force;
 };
 
 #endif  // VOTCA_CSG_CSG_FMATCH_H
