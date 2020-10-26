@@ -47,10 +47,8 @@ class ObjectFactory {
   using creator_t = std::unique_ptr<T> (*)();
 
  public:
-  typedef std::map<key_t, creator_t> assoc_map;
-
   ObjectFactory() = default;
-  ~ObjectFactory() = default;
+  virtual ~ObjectFactory() = default;
 
   /**
    * \brief register an object
@@ -69,15 +67,8 @@ class ObjectFactory {
   /**
      Create an instance of the object identified by key.
   */
-  std::unique_ptr<T> Create(const key_t &key);
+  virtual std::unique_ptr<T> Create(const key_t &key);
   bool IsRegistered(const key_t &_id) const;
-
-  static ObjectFactory<key_t, T> &Instance() {
-    static ObjectFactory<key_t, T> _this;
-    return _this;
-  }
-
-  const assoc_map &getObjects() const { return _objects; }
 
   std::vector<key_t> getKeys() const {
     std::vector<key_t> key;
@@ -89,7 +80,7 @@ class ObjectFactory {
   }
 
  private:
-  assoc_map _objects;
+  std::map<key_t, creator_t> _objects;
 };
 
 template <class parent, class T>
@@ -100,7 +91,9 @@ std::unique_ptr<parent> create_policy_new() {
 template <typename key_t, typename T>
 inline void ObjectFactory<key_t, T>::Register(const key_t &key,
                                               creator_t creator) {
-  (void)_objects.insert(typename assoc_map::value_type(key, creator)).second;
+  (void)_objects
+      .insert(typename std::map<key_t, creator_t>::value_type(key, creator))
+      .second;
 }
 
 template <typename key_t, typename T>
@@ -111,7 +104,7 @@ inline void ObjectFactory<key_t, T>::Register(const key_t &key) {
 
 template <typename key_t, typename T>
 inline std::unique_ptr<T> ObjectFactory<key_t, T>::Create(const key_t &key) {
-  typename assoc_map::const_iterator it(_objects.find(key));
+  typename std::map<key_t, creator_t>::const_iterator it = _objects.find(key);
   if (it != _objects.end()) {
     return (it->second)();
   } else {
