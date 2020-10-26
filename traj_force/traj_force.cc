@@ -78,8 +78,6 @@ void TrajForce::EndEvaluate() {
   cout << "\nWe are done, thank you very much!" << endl;
   _trjreader_force->Close();
   _trjwriter->Close();
-  delete _trjreader_force;
-  delete _trjwriter;
 }
 
 void TrajForce::WriteOutFiles() {}
