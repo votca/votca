@@ -119,11 +119,6 @@ else
   cmake_args+=( -DENABLE_REGRESSION_TESTING=${INPUT_REGRESSION_TESTING} )
 fi
 
-# Gentoo has no latex 
-if [[ ${INPUT_DISTRO} = "gentoo:latest"  ]]; then
-  cmake_args+=( -DBUILD_CSG_MANUAL=OFF )
-fi
-
 # Some distros don't have new enough libint yet
 # fedora:latest = F32 only has libint2-2.1.0 and most fedora:* container build on that
 # fedora:rawhide has libint-2.6.0
@@ -146,7 +141,6 @@ if [[ ${branch} = stable || ${INPUT_DISTRO} != fedora:@(latest|rawhide)  || ${IN
   #       source_suffix.append('.ipynb')
   #     AttributeError: 'dict' object has no attribute 'append'
   #     nbsphinx that requires that sphinx>1.8 but in Ubuntu 18.04 sphinx==1.6.7
-  #     Gentoo has no sphinx installed
   # 3.) Debug builds are too slow to run notebooks in xtp-tutorials
   # 4.) Module build doesn't support sphinx
   print_output "build_sphinx" "false"
