@@ -33,7 +33,7 @@ class FileFormatFactory : public tools::ObjectFactory<std::string, T> {
  public:
   FileFormatFactory() = default;
 
-  std::unique_ptr<T> Create(const std::string &file);
+  std::unique_ptr<T> Create(const std::string &file) final;
 };
 
 template <typename T>
