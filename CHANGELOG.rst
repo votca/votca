@@ -74,6 +74,7 @@ Version 2021-dev
 -  Refactored CUDA-OpenMP integration (#571)
 -  replaced own integrals with the libint library (#559)
 -  improved kmc output (#574)
+-  fix build on Ubuntu 16.04 (#577)
 
 Version 1.6.3 (released XX.08.20)
 =================================
