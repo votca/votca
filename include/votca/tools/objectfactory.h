@@ -19,7 +19,6 @@
 #define VOTCA_TOOLS_OBJECTFACTORY_H
 
 // Standard includes
-#include <list>
 #include <map>
 #include <stdexcept>
 
