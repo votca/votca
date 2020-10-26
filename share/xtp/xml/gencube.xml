@@ -5,7 +5,7 @@
     <xsteps help="Gridpoints in x-direction" default="25" choices="int+"/>
     <ysteps help="Gridpoints in y-direction" default="25" choices="int+"/>
     <zsteps help="Gridpoints in z-direction" default="25" choices="int+"/>
-    <state help="State to generate cube file for" default="N" choices="N"/>
+    <state help="State to generate cube file for" default="N"/>
     <diff2gs help="For excited states output difference to groundstate" default="false" choices="bool"/>
     <mode help="new: generate new cube file, substract: substract to cube files specified below" choices="new,substract" default="new"/>
   </gencube>
