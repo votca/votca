@@ -17,12 +17,6 @@
  *
  */
 
-// Standard includes
-#include <cstdio>
-#include <cstdlib>
-#include <iostream>
-#include <string>
-
 // VOTCA includes
 #include <votca/tools/property.h>
 
@@ -87,8 +81,8 @@ bool XtpTools::EvaluateOptions() {
   if (OptionsMap().count("list")) {
     std::cout << "Available XTP tools: \n";
 
-    for (const auto& tool : xtp::QMTools().getObjects()) {
-      PrintDescription(std::cout, tool.first, helpdir, Application::HelpShort);
+    for (const auto& name : xtp::QMTools().getKeys()) {
+      PrintDescription(std::cout, name, helpdir, Application::HelpShort);
     }
     StopExecution();
     return true;
@@ -100,17 +94,9 @@ bool XtpTools::EvaluateOptions() {
                          " ,\n\t");
     // loop over the names in the description string
     for (const std::string& n : tok) {
-      // loop over tools
-      bool printerror = true;
-      for (const auto& tool : xtp::QMTools().getObjects()) {
-        if (n.compare(tool.first) == 0) {
-          PrintDescription(std::cout, tool.first, helpdir,
-                           Application::HelpLong);
-          printerror = false;
-          break;
-        }
-      }
-      if (printerror) {
+      if (xtp::QMTools().IsRegistered(n)) {
+        PrintDescription(std::cout, n, helpdir, Application::HelpLong);
+      } else {
         std::cout << "Tool " << n << " does not exist\n";
       }
     }
@@ -130,19 +116,12 @@ bool XtpTools::EvaluateOptions() {
   CheckRequired(
       "name", "Please provide the job name to run (same as the xyz file name)");
 
-  bool found_calc = false;
-  for (const auto& tool : xtp::QMTools().getObjects()) {
-    if (calc_string[0].compare(tool.first) == 0) {
-      this->SetTool(xtp::QMTools().Create(calc_string[0]));
-      found_calc = true;
-      break;
-    }
-  }
-  if (!found_calc) {
+  if (xtp::QMTools().IsRegistered(calc_string[0])) {
+    this->SetTool(xtp::QMTools().Create(calc_string[0]));
+    std::cout << "Registered " << calc_string[0];
+  } else {
     std::cout << "Tool " << calc_string[0] << " does not exist\n";
     StopExecution();
-  } else {
-    std::cout << "Registered " << calc_string[0];
   }
   return true;
 }
