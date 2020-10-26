@@ -81,8 +81,8 @@ bool Coupling::Run() {
   _log.setCommonPreface("\n... ...");
 
   // get the corresponding object from the QMPackageFactory
-  std::unique_ptr<QMPackage> qmpackage =
-      std::unique_ptr<QMPackage>(QMPackages().Create(_package));
+  std::unique_ptr<QMPackage> qmpackage = std::unique_ptr<QMPackage>(
+      QMPackageFactory::QMPackages().Create(_package));
   qmpackage->setLog(&_log);
   qmpackage->Initialize(_package_options);
   qmpackage->setRunDir(".");

@@ -45,7 +45,7 @@ class Calculatorfactory
      Create an instance of the object identified by key.
   *  Overwritten to load calculator defaults
   */
-  QMCalculator *Create(const std::string &key);
+  std::unique_ptr<QMCalculator> Create(const std::string &key);
 
   friend Calculatorfactory &Calculators();
 };
@@ -55,11 +55,11 @@ inline Calculatorfactory &Calculators() {
   return instance;
 }
 
-inline QMCalculator *Calculatorfactory::Create(const std::string &key) {
+inline std::unique_ptr<QMCalculator> Calculatorfactory::Create(
+    const std::string &key) {
   assoc_map::const_iterator it(getObjects().find(key));
   if (it != getObjects().end()) {
-    QMCalculator *calc = (it->second)();
-    return calc;
+    return (it->second)();
   } else {
     throw std::runtime_error("factory key " + key + " not found.");
   }

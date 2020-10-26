@@ -109,8 +109,9 @@ void StateApplication::Run() {
   }
 }
 
-void StateApplication::SetCalculator(QMCalculator* calculator) {
-  _calculator = std::unique_ptr<QMCalculator>(calculator);
+void StateApplication::SetCalculator(
+    std::unique_ptr<QMCalculator>&& calculator) {
+  _calculator = std::move(calculator);
 }
 
 void StateApplication::BeginEvaluate(Index nThreads = 1) {

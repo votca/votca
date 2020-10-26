@@ -45,7 +45,7 @@ class QuadratureFactory
      Create an instance of the object identified by key.
   *  Overwritten to load calculator defaults
   */
-  GaussianQuadratureBase *Create(const std::string &key);
+  std::unique_ptr<GaussianQuadratureBase> Create(const std::string &key);
 
   friend QuadratureFactory &Quadratures();
 };
@@ -55,12 +55,11 @@ inline QuadratureFactory &Quadratures() {
   return _instance;
 }
 
-inline GaussianQuadratureBase *QuadratureFactory::Create(
+inline std::unique_ptr<GaussianQuadratureBase> QuadratureFactory::Create(
     const std::string &key) {
   assoc_map::const_iterator it(getObjects().find(key));
   if (it != getObjects().end()) {
-    GaussianQuadratureBase *quad = (it->second)();
-    return quad;
+    return (it->second)();
   } else {
     throw std::runtime_error("factory key " + key + " not found.");
   }

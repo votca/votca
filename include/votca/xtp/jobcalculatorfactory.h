@@ -45,7 +45,7 @@ class JobCalculatorfactory
      Create an instance of the object identified by key.
   *  Overwritten to load calculator defaults
   */
-  JobCalculator *Create(const std::string &key);
+  std::unique_ptr<JobCalculator> Create(const std::string &key);
 
   friend JobCalculatorfactory &JobCalculators();
 };
@@ -55,11 +55,11 @@ inline JobCalculatorfactory &JobCalculators() {
   return _instance;
 }
 
-inline JobCalculator *JobCalculatorfactory::Create(const std::string &key) {
+inline std::unique_ptr<JobCalculator> JobCalculatorfactory::Create(
+    const std::string &key) {
   assoc_map::const_iterator it(getObjects().find(key));
   if (it != getObjects().end()) {
-    JobCalculator *calc = (it->second)();
-    return calc;
+    return it->second();
   } else {
     throw std::runtime_error("factory key " + key + " not found.");
   }
