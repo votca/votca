@@ -39,7 +39,10 @@ BOOST_AUTO_TEST_CASE(polar_test) {
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
       QMPackageFactory::QMPackages().Create("orca");
-
+  auto keys = QMPackageFactory::QMPackages().getKeys();
+  for (auto key : keys) {
+    std::cout << key << std::endl;
+  }
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");

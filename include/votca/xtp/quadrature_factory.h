@@ -41,28 +41,12 @@ class QuadratureFactory
  public:
   static void RegisterAll(void);
 
-  /**
-     Create an instance of the object identified by key.
-  *  Overwritten to load calculator defaults
-  */
-  std::unique_ptr<GaussianQuadratureBase> Create(const std::string &key);
-
   friend QuadratureFactory &Quadratures();
 };
 
 inline QuadratureFactory &Quadratures() {
   static QuadratureFactory _instance;
   return _instance;
-}
-
-inline std::unique_ptr<GaussianQuadratureBase> QuadratureFactory::Create(
-    const std::string &key) {
-  assoc_map::const_iterator it(getObjects().find(key));
-  if (it != getObjects().end()) {
-    return (it->second)();
-  } else {
-    throw std::runtime_error("factory key " + key + " not found.");
-  }
 }
 
 }  // namespace xtp
