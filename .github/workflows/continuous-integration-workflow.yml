@@ -14,7 +14,7 @@ on:
 jobs:
   CI:
     # Ubuntu devel, Fedora Rawhide and some other in the matrix are allowed to fail, so continue with other builds
-    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
+    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'fedora:rawhide' || matrix.distro == 'opensuse:latest' || matrix.continue-on-error == true }}
     strategy:
       matrix:
         distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'fedora:intel']
