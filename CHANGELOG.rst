@@ -75,6 +75,7 @@ Version 2021-dev
 -  replaced own integrals with the libint library (#559)
 -  improved kmc output (#574)
 -  fix build on Ubuntu 16.04 (#577)
+-  use unique_ptr in factory (#581)
 
 Version 1.6.3 (released XX.08.20)
 =================================

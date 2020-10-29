@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(gauss_legendre) {
 
   QuadratureFactory::RegisterAll();
   std::unique_ptr<GaussianQuadratureBase> _gq =
-      std::unique_ptr<GaussianQuadratureBase>(Quadratures().Create("legendre"));
+      Quadratures().Create("legendre");
 
   std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
   FunctionEvaluation f = FunctionEvaluation();

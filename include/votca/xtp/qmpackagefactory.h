@@ -35,14 +35,17 @@ class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage> {
   QMPackageFactory() = default;
 
  public:
+  QMPackageFactory(QMPackageFactory const &) = delete;
+  void operator=(QMPackageFactory const &) = delete;
+  QMPackageFactory(QMPackageFactory &&) = delete;
+  void operator=(QMPackageFactory &&) = delete;
   static void RegisterAll(void);
-  friend QMPackageFactory &QMPackages();
-};
 
-inline QMPackageFactory &QMPackages() {
-  static QMPackageFactory _instance;
-  return _instance;
-}
+  static QMPackageFactory &QMPackages() {
+    static QMPackageFactory _instance;
+    return _instance;
+  }
+};
 
 }  // namespace xtp
 }  // namespace votca
