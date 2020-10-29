@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,9 +20,10 @@
 #ifndef VOTCA_TOOLS_CALCULATOR_H
 #define VOTCA_TOOLS_CALCULATOR_H
 
-#include <votca/tools/globals.h>
-#include <votca/tools/property.h>
-#include <votca/tools/propertyiomanipulator.h>
+// Local VOTCA includes
+#include "globals.h"
+#include "property.h"
+#include "propertyiomanipulator.h"
 
 namespace votca {
 namespace tools {
@@ -58,7 +59,7 @@ class Calculator {
    *
    * @param options Property object passed by the application to a calculator
    */
-  virtual void Initialize(Property &options) = 0;
+  virtual void Initialize(const Property &user_options) = 0;
   /**
    * \brief Sets number of threads to use
    *
@@ -77,23 +78,62 @@ class Calculator {
    * @param output stream
    */
   void DisplayOptions(std::ostream &out);
+
   /**
-   * \brief Updates options with default options stored in VOTCASHARE
+   * \brief Loads default options stored in VOTCASHARE
+   */
+  Property LoadDefaults(const std::string package = "tools");
+
+  /**
+   * \brief Updates user options with default options stored in VOTCASHARE
    *
    * If a value is not given or tag is not present and at the same time
    * a default value exists in the corresponding XML file in VOTCASHARE
    * a tag is created and/or a default value is assigned to it
    */
-  void UpdateWithDefaults(Property &options, std::string package = "tools");
+  void UpdateWithUserOptions(Property &default_options,
+                             const Property &user_options);
+
+  /**
+   * \brief Load the default options and merge them with the user input
+   *
+   * Defaults are overwritten with user input
+   */
+  Property LoadDefaultsAndUpdateWithUserOptions(const std::string package,
+                                                const Property &user_options) {
+    Property defaults = LoadDefaults(package);
+    InjectDefaultsAsValues(defaults);
+    Property user_options_with_defaults = user_options;
+    InjectDefaultsAsValues(user_options_with_defaults);
+    UpdateWithUserOptions(defaults, user_options_with_defaults);
+    RecursivelyCheckOptions(defaults);
+    return defaults;
+  }
 
  protected:
   Index _nThreads;
   bool _maverick;
 
-  void AddDefaults(Property &p, const Property &defaults);
+  void OverwriteDefaultsWithUserInput(const Property &p, Property &defaults);
+  // Copy the defaults into the value
+  static void InjectDefaultsAsValues(Property &defaults);
+  static void RecursivelyCheckOptions(const Property &p);
+  static bool IsValidOption(const Property &prop,
+                            const std::vector<std::string> &choices);
+  static std::vector<std::string> GetPropertyChoices(const Property &p);
+
+  template <typename T>
+  static bool IsValidCast(const tools::Property &prop) {
+    try {
+      prop.as<T>();
+      return true;
+    } catch (const std::runtime_error &e) {
+      return false;
+    }
+  }
 };
 
 }  // namespace tools
 }  // namespace votca
 
-#endif /* VOTCA_TOOLS_CALCULATOR_H */
+#endif  // VOTCA_TOOLS_CALCULATOR_H

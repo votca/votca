@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2010-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_SPLINE_H
-#define __VOTCA_TOOLS_SPLINE_H
+#ifndef VOTCA_TOOLS_SPLINE_H
+#define VOTCA_TOOLS_SPLINE_H
 
-#include <votca/tools/eigen.h>
-#include <votca/tools/types.h>
+// Local VOTCA includes
+#include "eigen.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {
@@ -172,4 +173,4 @@ class Spline {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_TOOLS_SPLINE_H */
+#endif  // VOTCA_TOOLS_SPLINE_H
