@@ -16,13 +16,13 @@
  */
 
 #include "csg_reupdate.h"
+#include "../../include/votca/csg/nblistgrid.h"
+#include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <math.h>
 #include <sstream>
-#include <stdio.h>
-#include <votca/csg/nblistgrid.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/linalg.h>
 /*
@@ -580,9 +580,9 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
   }
 
   if (gridsearch) {
-    nb = std::make_unique<NBList>(NBListGrid());
+    nb = std::make_unique<NBListGrid>();
   } else {
-    nb = std::make_unique<NBList>(NBList());
+    nb = std::make_unique<NBList>();
   }
 
   nb->setCutoff(potinfo->ucg->getCutOff());
