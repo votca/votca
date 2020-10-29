@@ -38,7 +38,11 @@ BOOST_AUTO_TEST_CASE(polar_test) {
 
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
-      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+      QMPackageFactory::QMPackages().Create("orca");
+  auto keys = QMPackageFactory::QMPackages().getKeys();
+  for (auto key : keys) {
+    std::cout << key << std::endl;
+  }
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
@@ -61,7 +65,7 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
 
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
-      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+      QMPackageFactory::QMPackages().Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
@@ -129,7 +133,7 @@ BOOST_AUTO_TEST_CASE(charges_test) {
 
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
-      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+      QMPackageFactory::QMPackages().Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
@@ -171,7 +175,7 @@ BOOST_AUTO_TEST_CASE(opt_test) {
 
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
-      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+      QMPackageFactory::QMPackages().Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
@@ -236,7 +240,7 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
 
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
-      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+      QMPackageFactory::QMPackages().Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(".");

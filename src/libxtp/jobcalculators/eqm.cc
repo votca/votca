@@ -167,8 +167,8 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     std::string dft_key = "package";
     std::string package =
         _package_options.get(dft_key + ".name").as<std::string>();
-    std::unique_ptr<QMPackage> qmpackage =
-        std::unique_ptr<QMPackage>(QMPackages().Create(package));
+    std::unique_ptr<QMPackage> qmpackage = std::unique_ptr<QMPackage>(
+        QMPackageFactory::QMPackages().Create(package));
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(work_dir);
     qmpackage->Initialize(_package_options);
