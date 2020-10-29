@@ -17,9 +17,6 @@
  *
  */
 
-// Standard includes
-#include <string>
-
 // Local VOTCA includes
 #include "votca/xtp/calculatorfactory.h"
 #include "votca/xtp/stateapplication.h"
@@ -61,8 +58,8 @@ bool XtpRun::EvaluateOptions() {
   std::string helpdir = "xtp/xml";
   if (OptionsMap().count("list")) {
     std::cout << "Available XTP calculators:\n";
-    for (const auto& calc : xtp::Calculators().getObjects()) {
-      PrintDescription(std::cout, calc.first, helpdir, Application::HelpShort);
+    for (const auto& name : xtp::Calculators().getKeys()) {
+      PrintDescription(std::cout, name, helpdir, Application::HelpShort);
     }
     StopExecution();
     return true;
@@ -74,18 +71,9 @@ bool XtpRun::EvaluateOptions() {
                          " ,\n\t");
     // loop over the names in the description string
     for (const std::string& n : tok) {
-      // loop over calculators
-      bool printerror = true;
-      for (const auto& calc : xtp::Calculators().getObjects()) {
-
-        if (n.compare(calc.first) == 0) {
-          PrintDescription(std::cout, calc.first, helpdir,
-                           Application::HelpLong);
-          printerror = false;
-          break;
-        }
-      }
-      if (printerror) {
+      if (xtp::Calculators().IsRegistered(n)) {
+        PrintDescription(std::cout, n, helpdir, Application::HelpLong);
+      } else {
         std::cout << "Calculator " << n << " does not exist\n";
       }
     }
@@ -102,22 +90,16 @@ bool XtpRun::EvaluateOptions() {
     throw std::runtime_error(
         "You can only run one calculator at the same time.");
   }
-  bool found_calc = false;
-  for (const auto& calc : xtp::Calculators().getObjects()) {
 
-    if (calc_string[0].compare(calc.first) == 0) {
-      xtp::StateApplication::SetCalculator(
-          xtp::Calculators().Create(calc_string[0]));
-      found_calc = true;
-      break;
-    }
-  }
-  if (!found_calc) {
+  if (xtp::Calculators().IsRegistered(calc_string[0])) {
+    xtp::StateApplication::SetCalculator(
+        xtp::Calculators().Create(calc_string[0]));
+    _options.LoadFromXML(_op_vm["options"].as<std::string>());
+  } else {
     std::cout << "Calculator " << calc_string[0] << " does not exist\n";
     StopExecution();
-  } else {
-    _options.LoadFromXML(_op_vm["options"].as<std::string>());
   }
+
   return true;
 }
 

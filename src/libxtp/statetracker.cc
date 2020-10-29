@@ -33,8 +33,7 @@ void StateTracker::Initialize(const tools::Property& options) {
 
   FilterFactory::RegisterAll();
   for (const std::string& filtername : list_filters) {
-    _filters.push_back(
-        std::unique_ptr<StateFilter_base>(Filter().Create(filtername)));
+    _filters.push_back(Filter().Create(filtername));
   }
 
   for (auto& filter : _filters) {
