@@ -29,6 +29,7 @@ Version 2021-dev
 -  Fixed boost test deprecation warnings (#598)
 -  improve error message for broken binaries (#601)
 -  Fixed memory leaks in tests and neighbourlist (#602)
+-  format with clang-11 (#604)
 
 Version 1.6.3 (released XX.08.20)
 =================================
