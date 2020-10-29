@@ -484,19 +484,6 @@ To update the state of a submodule the following commands can be used:
     git add -u
     git commit -m "update all submodules"
 
-Merging With Stable
--------------------
-
-When creating a pull request to merge a branch with master the ci test
-build will by default build agains the master votca branch. This is fine
-if you are merging with the master branch of a given repo. However, if
-you would like to merge a bug fix to stable it becomes a problem because
-you want to build against the stable branch.
-
-Thus to merge with stable the name of the branch to be merged must be
-prepended with **for/stable/**. As an example if I have a bug fix for
-stable I would name it **for/stable/bug-fix-1-because-I-am-awesome**.
-When the ci runs it should proceed to make the build correctly.
 
 Failed Release Builds
 ---------------------
@@ -547,14 +534,3 @@ A final point, if you simply want to build natively for instance if you
 are running fedora on an **x86\_64** machine the ``frocearch pcc64le``
 in the above case could just be dropped.
 
-Gitlab Server
--------------
-
-To setup a gitlab server the instructions on the official `gitlab
-website <https://docs.gitlab.com/runner/register/>`__ should be
-followed. To obtain the access token contact one of the votca
-administrators. It is also advisable to setup a cron job to help monitor
-the docker containers, images and volumes which can use a substantial
-amount of space if not cleaned. A docker cleanup script has been added
-in the `dev-tools <https://github.com/votca/dev-tools>`__ repo,
-instructions on how to set it up are provided in the script.
