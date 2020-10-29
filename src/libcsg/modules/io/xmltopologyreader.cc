@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 // Third party includes
@@ -44,15 +45,12 @@ bool XMLTopologyReader::ReadTopology(string filename, Topology &top) {
 }
 
 void XMLTopologyReader::ReadTopolFile(string file) {
-  TopologyReader *reader;
-  reader = TopReaderFactory().Create(file);
+  std::unique_ptr<TopologyReader> reader = TopReaderFactory().Create(file);
   if (!reader) {
     throw runtime_error(file + ": unknown topology format");
   }
 
   reader->ReadTopology(file, *_top);
-
-  delete reader;
   // Clean XML molecules and beads.
 }
 

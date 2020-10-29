@@ -148,13 +148,10 @@ class CsgMapApp : public CsgApplication {
     }
   }
 
-  void EndEvaluate() override {
-    _writer->Close();
-    delete _writer;
-  }
+  void EndEvaluate() override { _writer->Close(); }
 
  protected:
-  TrajectoryWriter *_writer;
+  std::unique_ptr<TrajectoryWriter> _writer;
   bool _do_hybrid;
   bool _do_vel;
   bool _do_force;

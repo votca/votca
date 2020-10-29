@@ -30,6 +30,7 @@ Version 2021-dev
 -  improve error message for broken binaries (#601)
 -  Fixed memory leaks in tests and neighbourlist (#602)
 -  format with clang-11 (#604)
+-  use unique_ptr in factory (#603)
 
 Version 1.6.3 (released XX.08.20)
 =================================
