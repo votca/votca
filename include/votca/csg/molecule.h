@@ -107,9 +107,7 @@ class Molecule : public TopologyItem {
 inline Index Molecule::getBeadIdByName(const std::string &name) {
   Index i = getBeadByName(name);
   if (i < 0) {
-    {
-      return i;
-    }
+    { return i; }
   }
   return _beads[i]->getId();
 }
