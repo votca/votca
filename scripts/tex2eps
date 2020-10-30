@@ -12,8 +12,8 @@ tmp=$(mktemp -d) || die "mktemp failed"
 cp $1 $tmp
 cd $tmp
 f=${1##*/}
-latex -halt-on-error "${f}"
-latex -halt-on-error "${f}"
+latex -halt-on-error "${f}" &> "${f}.log" || { cat "${f}.log"; exit 1; }
+latex -halt-on-error "${f}" &> "${f}.log2" || { cat "${f}.log2"; exit 1; }
 f=${f%.*}
 dvips -E "${f}.dvi" -o "${f}.eps"
 

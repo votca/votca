@@ -9,7 +9,7 @@ get_property(VOTCA_BINARIES TARGET VOTCA::votca_csg PROPERTY BINARIES)
 list(SORT VOTCA_BINARIES)
 foreach(prog ${VOTCA_BINARIES})
   add_custom_command(OUTPUT ${CURRENT_DIR}/${prog}.tex
-    COMMAND VOTCASHARE=${CSG_SHARE} $<TARGET_FILE:VOTCA::${prog}> --help > ${CURRENT_DIR}/${prog}.help
+    COMMAND ${CMAKE_COMMAND} -E env VOTCASHARE=${CSG_SHARE} $<TARGET_FILE:VOTCA::${prog}> --help > ${CURRENT_DIR}/${prog}.help
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/help2t2t.sh ${prog} ${CURRENT_DIR}/${prog}.help
       > ${CURRENT_DIR}/${prog}.t2t
     COMMAND ${TXT2TAGS_EXECUTABLE} -t tex --no-header --infile ${CURRENT_DIR}/${prog}.t2t
