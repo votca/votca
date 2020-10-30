@@ -1,29 +1,21 @@
-name: CI
+name: Coverage
 on:
+  push:
+    branches:
+      - master
   pull_request:
     branches:
       - master
-      - stable
 
 jobs:
-  CI:
-    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'opensuse:latest' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
+  Coverage:
     strategy:
       matrix:
-        distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling']
-        toolchain: [gnu, clang]
-        cmake_build_type: [Release, Debug]
-        minimal: [false]
-        own_gmx: [false]
-        module_build: [false]
-        coverage: [false]
+        distro: ['fedora:latest']
+        toolchain: [gnu]
+        cmake_build_type: [Debug]
+        coverage: [RestGroup]
         no_regression_testing: [true]
-        include:
-          - distro: 'fedora:latest'
-            toolchain: gnu
-            cmake_build_type: Release
-            module_build: true
-            no_regression_testing: true
     runs-on: ubuntu-latest
     container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
@@ -59,17 +51,6 @@ jobs:
       - name: Tests
         run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
         working-directory: builddir
-      - name: Doxygen
-        if: ${{ ! matrix.module_build }}
-        run: cmake --build builddir --target doxygen
-      - name: Build Sphinx
-        if: ${{ steps.setup.outputs.build_sphinx == 'true' }}
-        run: cmake --build builddir --target doc
-      - name: Test DESTDIR Install
-        if: ${{ ! matrix.module_build }}
-        run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
-      - name: Install
-        run: sudo cmake --build builddir --target install
-      - name: Check Formatting
-        if: ${{ steps.setup.outputs.check_format == 'true' }}
-        run: cmake --build builddir --target format && git -C votca/${{ steps.setup.outputs.module }} diff --exit-code
+      - name: Upload Report to codecov.io
+        if: ${{ matrix.coverage }}
+        uses: codecov/codecov-action@v1

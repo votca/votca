@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
  */
 
 #include "traj_force.h"
+#include <cmath>
+#include <cstdio>
 #include <fstream>
 #include <iostream>
-#include <math.h>
 #include <sstream>
-#include <stdio.h>
 #include <votca/csg/beadlist.h>
 #include <votca/tools/linalg.h>
 #include <votca/tools/table.h>
@@ -78,8 +78,6 @@ void TrajForce::EndEvaluate() {
   cout << "\nWe are done, thank you very much!" << endl;
   _trjreader_force->Close();
   _trjwriter->Close();
-  delete _trjreader_force;
-  delete _trjwriter;
 }
 
 void TrajForce::WriteOutFiles() {}
