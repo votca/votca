@@ -77,8 +77,8 @@ class Orca : public QMPackage {
             -1,-1,1,1,1,1,1,-1,-1, //g
             -1,-1,-1,1,1,1,1,1,-1,-1,-1, //h
             -1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1 //i
-            };
- 
+            }};
+  std::array<Index,49> _reorderList{{
             0, //s
             0, 1,-1, //p
             0,1,-1,2,-2, //d
@@ -87,7 +87,6 @@ class Orca : public QMPackage {
             0,1,-1,2,-2,3,-3,4,-4,5,-5, //h
             0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 //i
             }};
-
 
   // clang-format on
   std::string indent(const double& number);
