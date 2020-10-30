@@ -1,4 +1,4 @@
-foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump)
+foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_xtp)

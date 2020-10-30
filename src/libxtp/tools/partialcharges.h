@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,26 +18,32 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_PARTIALCHARGES_H
-#define _VOTCA_XTP_PARTIALCHARGES_H
+#ifndef VOTCA_XTP_PARTIALCHARGES_H
+#define VOTCA_XTP_PARTIALCHARGES_H
 
+// Standard includes
+#include <cstdio>
+
+// Third party includes
 #include <boost/filesystem.hpp>
-#include <stdio.h>
-#include <votca/xtp/esp2multipole.h>
-#include <votca/xtp/logger.h>
+
+// Local VOTCA includes
+#include "votca/xtp/esp2multipole.h"
+#include "votca/xtp/logger.h"
 
 namespace votca {
 namespace xtp {
 
-class Partialcharges : public QMTool {
+class Partialcharges final : public QMTool {
  public:
   Partialcharges() = default;
-  ~Partialcharges() override = default;
+  ~Partialcharges() = default;
 
-  std::string Identify() override { return "partialcharges"; }
+  std::string Identify() { return "partialcharges"; }
 
-  void Initialize(tools::Property& options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   std::string _orbfile;
@@ -47,18 +53,16 @@ class Partialcharges : public QMTool {
   Logger _log;
 };
 
-void Partialcharges::Initialize(tools::Property& options) {
+void Partialcharges::ParseOptions(const tools::Property& options) {
 
-  std::string key = "options." + Identify();
-  _orbfile = options.get(key + ".input").as<std::string>();
-  _output_file = options.get(key + ".output").as<std::string>();
-  std::string _esp2multipole_xml =
-      options.get(key + ".esp_options").as<std::string>();
-  _esp_options.LoadFromXML(_esp2multipole_xml);
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", _job_name + ".orb");
+  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", _job_name + ".mps");
+  _esp_options = options.get(".esp_options");
 }
 
-bool Partialcharges::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
+bool Partialcharges::Run() {
   _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
 
@@ -82,4 +86,4 @@ bool Partialcharges::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_PARTIALCHARGES_H

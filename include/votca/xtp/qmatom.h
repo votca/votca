@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,8 +21,11 @@
 #ifndef VOTCA_XTP_QMATOM_H
 #define VOTCA_XTP_QMATOM_H
 
+// VOTCA includes
 #include <votca/tools/elements.h>
-#include <votca/xtp/checkpoint.h>
+
+// Local VOTCA includes
+#include "checkpoint.h"
 
 namespace votca {
 namespace xtp {
@@ -63,6 +66,8 @@ class QMAtom {
   Index getId() const { return _index; }
 
   Index getNuccharge() const { return _nuccharge - _ecpcharge; }
+
+  Index getElementNumber() const { return _nuccharge; }
 
   std::string identify() const { return "qmatom"; }
 

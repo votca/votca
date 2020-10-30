@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,22 +17,31 @@
  *
  */
 
-#include "xtpdft.h"
+// Standard includes
+#include <cstdio>
+#include <iomanip>
+
+// Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <iomanip>
-#include <stdio.h>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
+
+// Local private VOTCA includes
+#include "xtpdft.h"
 
 namespace votca {
 namespace xtp {
 using namespace std;
 
-void XTPDFT::Initialize(tools::Property& options) {
-  _xtpdft_options = options;
-  _log_file_name = "system_dft.orb";
-  ParseCommonOptions(options);
+void XTPDFT::Initialize(const tools::Property& options) {
+  const std::string& job_name =
+      options.ifExistsReturnElseReturnDefault<std::string>("job_name", "votca");
+  _log_file_name = job_name + ".orb";
+  _mo_file_name = _log_file_name;
+  _xtpdft_options = ParseCommonOptions(options);
 }
 
 bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
@@ -49,11 +58,10 @@ bool XTPDFT::Run() {
   xtpdft.Initialize(_xtpdft_options);
   xtpdft.setLogger(_pLog);
 
-  if (_write_charges) {
+  if (_settings.get<bool>("write_charges")) {
     xtpdft.setExternalcharges(&_externalsites);
   }
   bool success = xtpdft.Evaluate(_orbitals);
-  _basisset_name = xtpdft.getDFTBasisName();
   std::string file_name = _run_dir + "/" + _log_file_name;
   XTP_LOG(Log::error, *_pLog)
       << "Writing result to " << _log_file_name << flush;

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,27 +18,32 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_EINTERNAL_H
-#define _VOTCA_XTP_EINTERNAL_H
+#ifndef VOTCA_XTP_EINTERNAL_H
+#define VOTCA_XTP_EINTERNAL_H
 
+// Local VOTCA includes
+#include "votca/xtp/qmcalculator.h"
 #include "votca/xtp/qmstate.h"
-#include <votca/xtp/qmcalculator.h>
 
 namespace votca {
 namespace xtp {
 
-class EInternal : public QMCalculator {
+class EInternal final : public QMCalculator {
  public:
   EInternal() = default;
-  ~EInternal() override = default;
+  ~EInternal() = default;
 
-  std::string Identify() override { return "einternal"; }
-  bool WriteToStateFile() const override { return true; }
-  void Initialize(tools::Property &options) override;
-  void ParseEnergies();
-  bool EvaluateFrame(Topology &top) override;
+  std::string Identify() { return "einternal"; }
+
+  bool WriteToStateFile() const { return true; }
+
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Evaluate(Topology &top);
 
  private:
+  void ParseEnergies();
+
   std::map<std::string, QMStateCarrierStorage<double> > _seg_U_xX_nN;
   std::map<std::string, QMStateCarrierStorage<double> > _seg_U_nX_nN;
   std::map<std::string, QMStateCarrierStorage<double> > _seg_U_xN_xX;
@@ -53,4 +58,4 @@ class EInternal : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  //_VOTCA_XTP_EINTERNAL_H
+#endif  // VOTCA_XTP_EINTERNAL_H

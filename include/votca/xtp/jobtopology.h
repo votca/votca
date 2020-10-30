@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,10 +21,12 @@
 #ifndef VOTCA_XTP_JOBTOPOLOGY_H
 #define VOTCA_XTP_JOBTOPOLOGY_H
 
-#include <votca/xtp/job.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/region.h>
-#include <votca/xtp/topology.h>
+// Local VOTCA includes
+#include "job.h"
+#include "logger.h"
+#include "region.h"
+#include "topology.h"
+
 /**
  * \brief Class to set up the topology, e.g division of molecules into different
  * regions for a specific job.
@@ -104,6 +106,8 @@ class JobTopology {
   Logger& _log;
   std::vector<std::unique_ptr<Region> > _regions;
   std::string _workdir = "";
+
+  static constexpr int jobtopology_version() { return 1; }
 };
 }  // namespace xtp
 }  // namespace votca

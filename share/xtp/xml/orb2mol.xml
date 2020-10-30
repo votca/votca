@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<options>
+  <orb2mol help="Converts molden files to orb files.">
+  </orb2mol>
+</options>

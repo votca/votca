@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,12 +17,13 @@
  *
  */
 
-#include <votca/xtp/couplingbase.h>
-#include <votca/xtp/qmstate.h>
-
 #pragma once
 #ifndef VOTCA_XTP_BSECOUPLING_H
 #define VOTCA_XTP_BSECOUPLING_H
+
+// Local VOTCA includes
+#include "couplingbase.h"
+#include "qmstate.h"
 
 namespace votca {
 namespace xtp {
@@ -95,12 +96,12 @@ class BSECoupling : public CouplingBase {
   bool _doTriplets = false;
   bool _doSinglets = false;
   bool _output_perturbation = true;
-  Index _levA = std::numeric_limits<Index>::max();
-  Index _levB = std::numeric_limits<Index>::max();
-  Index _occA = 5;
-  Index _unoccA = 5;
-  Index _occB = 5;
-  Index _unoccB = 5;
+  Index _levA;
+  Index _levB;
+  Index _occA;
+  Index _unoccA;
+  Index _occB;
+  Index _unoccB;
 };
 
 }  // namespace xtp

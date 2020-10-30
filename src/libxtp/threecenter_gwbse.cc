@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,10 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/threecenter.h>
-
-using std::flush;
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/openmp_cuda.h"
+#include "votca/xtp/threecenter.h"
 
 namespace votca {
 namespace xtp {
@@ -48,19 +47,12 @@ void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
  * Coulomb interaction using either CUDA or Openmp
  */
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
-
-  // Try to run the operation in a Nvidia GPU, otherwise is the default Openmp
-  // implementation
-#if defined(USE_CUDA)
-  if (count_available_gpus() > 0) {
-    MultiplyRightWithAuxMatrixCuda(matrix);
-  } else {
-    MultiplyRightWithAuxMatrixOpenMP(matrix);
+  OpenMP_CUDA gemm;
+  gemm.setOperators(_matrix, matrix);
+#pragma omp parallel for schedule(dynamic)
+  for (Index i = 0; i < msize(); i++) {
+    gemm.MultiplyRight(_matrix[i]);
   }
-#else
-  MultiplyRightWithAuxMatrixOpenMP(matrix);
-#endif
-  return;
 }
 
 /*
@@ -76,17 +68,8 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
   _dftbasis = &dftbasis;
   _dft_orbitals = &dft_orbitals;
 
-  // If cuda is enabled the dft orbitals are sent first to the cuda gpu
-  // and memory in the cuda gpu is allocated for the intermediate matrices
-#if defined(USE_CUDA)
-  if (count_available_gpus() > 0) {
-    FillAllBlocksCuda(gwbasis, dftbasis, dft_orbitals);
-  } else {
-    FillAllBlocksOpenMP(gwbasis, dftbasis, dft_orbitals);
-  }
-#else
-  FillAllBlocksOpenMP(gwbasis, dftbasis, dft_orbitals);
-#endif
+  Fill3cMO(gwbasis, dftbasis, dft_orbitals);
+
   AOOverlap auxoverlap;
   auxoverlap.Fill(gwbasis);
   AOCoulomb auxcoulomb;
@@ -103,9 +86,9 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
  * by calculating the 3-center overlap integral of the functions in the
  * GW shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock)
  */
-std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
+std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeAO3cBlock(
     const AOShell& auxshell, const AOBasis& dftbasis) const {
-  std::vector<Eigen::MatrixXd> symmstorage = std::vector<Eigen::MatrixXd>(
+  std::vector<Eigen::MatrixXd> ao3c = std::vector<Eigen::MatrixXd>(
       auxshell.getNumFunc(),
       Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
   // alpha-loop over the "left" DFT basis function
@@ -130,11 +113,7 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
         for (Index aux_c = 0; aux_c < auxshell.getNumFunc(); aux_c++) {
           for (Index row_c = 0; row_c < shell_row.getNumFunc(); row_c++) {
             for (Index col_c = 0; col_c < shell_col.getNumFunc(); col_c++) {
-              // symmetry
-              if ((col_start + col_c) > (row_start + row_c)) {
-                break;
-              }
-              symmstorage[aux_c](row_start + row_c, col_start + col_c) =
+              ao3c[aux_c](row_start + row_c, col_start + col_c) =
                   threec_block(aux_c, row_c, col_c);
             }  // ROW copy
           }    // COL copy
@@ -143,226 +122,52 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
     }  // gamma-loop
   }    // alpha-loop
 
-  return symmstorage;
+  for (Eigen::MatrixXd& mat : ao3c) {
+    mat.triangularView<Eigen::Upper>() =
+        mat.triangularView<Eigen::Lower>().transpose();
+  }
+  return ao3c;
 }
 
-/*
- *  Convolution of the GW shell with ALL functions with the DFT orbital
- * coefficients
- */
-std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlock(
-    const std::vector<Eigen::MatrixXd>& symmstorage,
-    const Eigen::MatrixXd& dft_orbitals) const {
+void TCMatrix_gwbse::Fill3cMO(const AOBasis& gwbasis, const AOBasis& dftbasis,
+                              const Eigen::MatrixXd& dft_orbitals) {
 
-  std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
-      _mtotal, Eigen::MatrixXd::Zero(_ntotal, symmstorage.size()));
   const Eigen::MatrixXd dftm =
       dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
   const Eigen::MatrixXd dftn =
-      dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
+      dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal).transpose();
 
-  Index dim = static_cast<Index>(symmstorage.size());
-  for (Index k = 0; k < dim; ++k) {
-    const Eigen::MatrixXd& matrix = symmstorage[k];
-    Eigen::MatrixXd threec_inMo =
-        dftn.transpose() * matrix.selfadjointView<Eigen::Lower>() * dftm;
-    for (Index i = 0; i < threec_inMo.cols(); ++i) {
-      block[i].col(k) = threec_inMo.col(i);
-    }
-  }
-  return block;
-}
-
-/*
- * Modify 3-center matrix elements consistent with use of symmetrized
- * Coulomb interaction using OPENMP parallelization
- */
-void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
-    const Eigen::MatrixXd& matrix) {
-  XTP_LOG(Log::info, _log)
-      << TimeStamp() << " Using Default OpenMP for tensor matrix multiplication"
-      << flush;
-#pragma omp parallel for
-  for (Index i_occ = 0; i_occ < _mtotal; i_occ++) {
-    _matrix[i_occ] *= matrix;
-  }
-  return;
-}
-
-void TCMatrix_gwbse::FillAllBlocksOpenMP(const AOBasis& gwbasis,
-                                         const AOBasis& dftbasis,
-                                         const Eigen::MatrixXd& dft_orbitals) {
-#pragma omp parallel for schedule(guided)  // private(_block)
+  OpenMP_CUDA transform;
+  transform.setOperators(dftn, dftm);
+#pragma omp parallel for schedule(guided)
   for (Index is = 0; is < gwbasis.getNumofShells(); is++) {
     const AOShell& shell = gwbasis.getShell(is);
 
-    // Fill block for this shell (3-center overlap with _dft_basis +
-    // multiplication with _dft_orbitals )
-    std::vector<Eigen::MatrixXd> symmstorage =
-        ComputeSymmStorage(shell, dftbasis);
+    std::vector<Eigen::MatrixXd> ao3c = ComputeAO3cBlock(shell, dftbasis);
 
-    std::vector<Eigen::MatrixXd> block = FillBlock(symmstorage, dft_orbitals);
+    // this is basically a transpose of AO3c and at the same time the ao->mo
+    // transformation
+    // we do not want to put it into _matrix straight away is because, _matrix
+    // is shared between all threads and we want a nice clean access pattern to
+    // it
+    std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
+        _mtotal, Eigen::MatrixXd::Zero(_ntotal, ao3c.size()));
 
-    // put into correct position
-    for (Index m_level = 0; m_level < _mtotal; m_level++) {
-      _matrix[m_level].block(0, shell.getStartIndex(), _ntotal,
-                             shell.getNumFunc()) = block[m_level];
-    }  // m-th DFT orbital
-  }    // shells of GW basis set
-}
-
-#if defined(USE_CUDA)
-/*
- * The Cuda device behaves like a server that is receiving matrix-matrix
- * multiplications from a single stream (an Nvidia queue) and handle them
- * in an asynchronous way. It performs the following operations when recieving a
- * request:
- *  1. Check that there is enough space for the arrays
- *  2. Allocate memory for each matrix
- *  3. Copy the matrix to the allocated space
- *  4. Perform the matrix multiplication
- *  5. Return the result matrix
- * The Cuda device knows to which memory address it needs to copy back the
- * result. see: https://docs.nvidia.com/cuda/cublas/index.html#thread-safety2
- */
-
-/*
- * Modify 3-center matrix elements consistent with use of symmetrized
- * Coulomb interaction using OPENMP/CUDA parallelization
- */
-void TCMatrix_gwbse::MultiplyRightWithAuxMatrixCuda(
-    const Eigen::MatrixXd& matrix) {
-
-  XTP_LOG(Log::info, _log)
-      << TimeStamp() << " Using CUDA/OpenMP for tensor matrix multiplication"
-      << flush;
-
-  CudaPipeline cuda_pip;
-  const Eigen::MatrixXd& head = _matrix.front();
-  const cudaStream_t& stream = cuda_pip.get_stream();
-  CudaMatrix cuma_A{head.rows(), head.cols(), stream};
-  CudaMatrix cuma_B{matrix, stream};
-  CudaMatrix cuma_C{head.rows(), matrix.cols(), stream};
-
-#pragma omp parallel for schedule(dynamic)
-  for (Index i_occ = 0; i_occ < _mtotal; i_occ++) {
-    // All the GPU communication happens through a single thread that reuses all
-    // memory allocated in the GPU and it's dynamically load-balanced by OpenMP.
-    // The rest of the threads use the default CPU matrix multiplication
-    if (OPENMP::getThreadId() == 0) {
-      cuma_A.copy_to_gpu(_matrix[i_occ]);
-      cuda_pip.gemm(cuma_A, cuma_B, cuma_C);
-      _matrix[i_occ] = cuma_C;
-    } else {
-      _matrix[i_occ] *= matrix;
-    }
-  }
-}
-
-/*
- * Convolution of the GW shell with the DFT orbital coefficients using an Nvidia
- * GPU
- */
-void TCMatrix_gwbse::FillAllBlocksCuda(const AOBasis& gwbasis,
-                                       const AOBasis& dftbasis,
-                                       const Eigen::MatrixXd& dft_orbitals) {
-  CudaPipeline cuda_pip;
-  std::array<CudaMatrix, 2> cuda_matrices =
-      SendDFTMatricesToGPU(dft_orbitals, cuda_pip);
-  std::array<CudaMatrix, 3> cuda_inter_matrices =
-      CreateIntermediateCudaMatrices(dft_orbitals.rows(), cuda_pip);
-
-  // loop over all shells in the GW basis and get _Mmn for that shell
-#pragma omp parallel for schedule(dynamic)  // private(_block)
-  for (Index is = 0; is < gwbasis.getNumofShells(); is++) {
-    const AOShell& shell = gwbasis.getShell(is);
-
-    // Fill block for this shell (3-center overlap with _dft_basis +
-    // multiplication with _dft_orbitals )
-    std::vector<Eigen::MatrixXd> symmstorage =
-        ComputeSymmStorage(shell, dftbasis);
-
-    // If cuda is enable all the GPU communication happens through a single
-    // thread that reuses all memory allocated in the GPU and it's dynamically
-    // load-balanced by OpenMP. The remaining threads will perform the
-    // convolution using the default CPU method.
-    std::vector<Eigen::MatrixXd> block;
-    if (OPENMP::getThreadId() == 0) {
-      block = FillBlockCUDA(symmstorage, cuda_matrices, cuda_inter_matrices,
-                            cuda_pip);
-    } else {
-      block = FillBlock(symmstorage, dft_orbitals);
-    }
-    // // Otherwise the convolution is performed by Eigen
-    // block = FillBlock(symmstorage, dft_orbitals);
-    // put into correct position
-    for (Index m_level = 0; m_level < _mtotal; m_level++) {
-      _matrix[m_level].block(0, shell.getStartIndex(), _ntotal,
-                             shell.getNumFunc()) = block[m_level];
-    }  // m-th DFT orbital
-  }    // shells of GW basis set
-}
-
-std::vector<Eigen::MatrixXd> TCMatrix_gwbse::FillBlockCUDA(
-    const std::vector<Eigen::MatrixXd>& symmstorage,
-    const std::array<CudaMatrix, 2>& cuda_matrices,
-    std::array<CudaMatrix, 3>& cuda_inter_matrices,
-    const CudaPipeline& cuda_pip) const {
-
-  std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
-      _mtotal, Eigen::MatrixXd::Zero(_ntotal, symmstorage.size()));
-
-  try {
-    const CudaMatrix& cuma_A = cuda_matrices[0];
-    const CudaMatrix& cuma_C = cuda_matrices[1];
-    CudaMatrix& cuma_B = cuda_inter_matrices[0];
-    CudaMatrix& cuma_X = cuda_inter_matrices[1];
-    CudaMatrix& cuma_Y = cuda_inter_matrices[2];
-
-    Index dim = static_cast<Index>(symmstorage.size());
+    Index dim = static_cast<Index>(ao3c.size());
     for (Index k = 0; k < dim; ++k) {
-      const Eigen::MatrixXd& matrix = symmstorage[k];
-      cuma_B.copy_to_gpu(matrix.selfadjointView<Eigen::Lower>());
-      cuda_pip.gemm(cuma_A, cuma_B, cuma_X);
-      cuda_pip.gemm(cuma_X, cuma_C, cuma_Y);
-      Eigen::MatrixXd threec_inMo = cuma_Y;
-      for (Index i = 0; i < threec_inMo.cols(); ++i) {
-        block[i].col(k) = threec_inMo.col(i);
+      transform.MultiplyLeftRight(ao3c[k]);
+      for (Index i = 0; i < ao3c[k].cols(); ++i) {
+        block[i].col(k) = ao3c[k].col(i);
       }
     }
-  } catch (const std::runtime_error& error) {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " FillBlockCUDA failed due to: " << error.what()
-        << flush;
-    throw;
-  }
-  return block;
+
+    // put into correct position
+    for (Index m_level = 0; m_level < _mtotal; m_level++) {
+      _matrix[m_level].block(0, shell.getStartIndex(), _ntotal,
+                             shell.getNumFunc()) = block[m_level];
+    }  // m-th DFT orbital
+  }    // shells of GW basis set
 }
-
-std::array<CudaMatrix, 2> TCMatrix_gwbse::SendDFTMatricesToGPU(
-    const Eigen::MatrixXd& dft_orbitals, const CudaPipeline& cuda_pip) const {
-  const Eigen::MatrixXd dftm =
-      dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
-  const Eigen::MatrixXd dftn =
-      dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
-
-  // Smart Pointers to the cuda arrays
-  const cudaStream_t& stream = cuda_pip.get_stream();
-
-  return {CudaMatrix{dftn.transpose(), stream}, CudaMatrix{dftm, stream}};
-}
-
-std::array<CudaMatrix, 3> TCMatrix_gwbse::CreateIntermediateCudaMatrices(
-    Index basissize, const CudaPipeline& cuda_pip) const {
-  Index mcols = _mtotal - _mmin;
-  Index ncols = _ntotal - _nmin;
-
-  const cudaStream_t& stream = cuda_pip.get_stream();
-  return {CudaMatrix{basissize, basissize, stream},
-          CudaMatrix{ncols, basissize, stream},
-          CudaMatrix{ncols, mcols, stream}};
-}
-#endif
 
 }  // namespace xtp
 }  // namespace votca
