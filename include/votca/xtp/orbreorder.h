@@ -61,7 +61,6 @@ class OrbReorder {
             -6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6 // i
 }};
 
-
   // clang-format on
   OrbTranspositions _transpositions;
 
@@ -75,6 +74,4 @@ class OrbReorder {
 }  // namespace xtp
 }  // namespace votca
 
-
 #endif  // VOTCA_XTP_ORBREORDER_H
-

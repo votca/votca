@@ -86,4 +86,3 @@ class Molden {
 }  // namespace votca
 
 #endif  // VOTCA_XTP_MOLDEN_H
-
