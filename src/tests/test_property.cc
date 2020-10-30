@@ -145,4 +145,20 @@ BOOST_AUTO_TEST_CASE(printtostream) {
   BOOST_CHECK_EQUAL(printout, ref);
 }
 
+BOOST_AUTO_TEST_CASE(addproperty) {
+
+  Property one("one", "", "");
+
+  one.add("hello", "");
+
+  Property two("two", "", "");
+  two.add("goodbye", "4");
+  two.add("goodbye", "3");
+  two.add("bye", "1");
+
+  one.add(two);
+
+  BOOST_CHECK_EQUAL(one.get("two.goodbye").path(), "one.two");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
