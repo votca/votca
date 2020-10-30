@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,9 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/aotransform.h>
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/aotransform.h"
 
 namespace votca {
 namespace xtp {
@@ -28,9 +29,8 @@ void AOKinetic::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                           const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
-  Index lmax_row = shell_row.getLmax();
-  Index lmax_col = shell_col.getLmax();
-
+  Index lmax_row = Index(shell_row.getL());
+  Index lmax_col = Index(shell_col.getL());
   if (lmax_col > 4 || lmax_row > 4) {
     throw std::runtime_error(
         "Orbitals higher than g are not yet implemented. This should not have "

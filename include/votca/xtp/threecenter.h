@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,17 +18,12 @@
  */
 
 #pragma once
-#ifndef __XTP_THREECENTER__H
-#define __XTP_THREECENTER__H
+#ifndef VOTCA_XTP_THREECENTER_H
+#define VOTCA_XTP_THREECENTER_H
 
-#include <array>
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/symmetric_matrix.h>
-
-#ifdef USE_CUDA
-#include "cudapipeline.h"
-#endif
+// Local VOTCA includes
+#include "eigen.h"
+#include "symmetric_matrix.h"
 
 /**
  * \brief Calculates three electron overlap integrals for GW and DFT.
@@ -78,8 +73,6 @@ class TCMatrix_dft : public TCMatrix {
 
 class TCMatrix_gwbse : public TCMatrix {
  public:
-  TCMatrix_gwbse(Logger& log) : _log{log} {};
-
   // returns one level as a constant reference
   const Eigen::MatrixXd& operator[](Index i) const { return _matrix[i]; }
 
@@ -103,20 +96,17 @@ class TCMatrix_gwbse : public TCMatrix {
   void Initialize(Index basissize, Index mmin, Index mmax, Index nmin,
                   Index nmax);
 
-  void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
+  void Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
             const Eigen::MatrixXd& dft_orbitals);
   // Rebuilds ThreeCenterIntegrals, only works if the original basisobjects
   // still exist
   void Rebuild() { Fill(*_auxbasis, *_dftbasis, *_dft_orbitals); }
 
-  void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
+  void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix);
 
  private:
   // store vector of matrices
   std::vector<Eigen::MatrixXd> _matrix;
-
-  // Logger
-  Logger& _log;
 
   // band summation indices
   Index _mmin;
@@ -131,40 +121,14 @@ class TCMatrix_gwbse : public TCMatrix {
   const AOBasis* _dftbasis = nullptr;
   const Eigen::MatrixXd* _dft_orbitals = nullptr;
 
-  std::vector<Eigen::MatrixXd> FillBlock(
-      const std::vector<Eigen::MatrixXd>& symmstorage,
-      const Eigen::MatrixXd& dft_orbitals) const;
+  void Fill3cMO(const AOBasis& gwbasis, const AOBasis& dftbasis,
+                const Eigen::MatrixXd& dft_orbitals);
 
-  void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
-
-  void FillAllBlocksOpenMP(const AOBasis& gwbasis, const AOBasis& dftbasis,
-                           const Eigen::MatrixXd& dft_orbitals);
-
-  std::vector<Eigen::MatrixXd> ComputeSymmStorage(
-      const AOShell& auxshell, const AOBasis& dftbasis) const;
-
-#if defined(USE_CUDA)
-  std::array<CudaMatrix, 2> SendDFTMatricesToGPU(
-      const Eigen::MatrixXd& dft_orbitals, const CudaPipeline& cuda_pip) const;
-
-  std::array<CudaMatrix, 3> CreateIntermediateCudaMatrices(
-      Index basissize, const CudaPipeline& cuda_pip) const;
-
-  void FillAllBlocksCuda(const AOBasis& gwbasis, const AOBasis& dftbasis,
-                         const Eigen::MatrixXd& dft_orbitals);
-
-  void MultiplyRightWithAuxMatrixCuda(const Eigen::MatrixXd& matrix);
-
-  std::vector<Eigen::MatrixXd> FillBlockCUDA(
-      const std::vector<Eigen::MatrixXd>& symmstorage,
-      const std::array<CudaMatrix, 2>& cuda_matrices,
-      std::array<CudaMatrix, 3>& cuda_inter_matrices,
-      const CudaPipeline& cuda_pip) const;
-
-#endif
+  std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const AOShell& auxshell,
+                                                const AOBasis& dftbasis) const;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* AOMATRIX_H */
+#endif  // VOTCA_XTP_THREECENTER_H

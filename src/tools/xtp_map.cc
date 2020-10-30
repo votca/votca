@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,20 +17,24 @@
  *
  */
 
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
 
-#include "votca/tools/application.h"
-#include "votca/xtp/statesaver.h"
+// VOTCA includes
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/trajectorywriter.h>
+#include <votca/tools/application.h>
 #include <votca/tools/filesystem.h>
 #include <votca/tools/globals.h>
-#include <votca/xtp/md2qmengine.h>
-#include <votca/xtp/topology.h>
-#include <votca/xtp/version.h>
+
+// Local VOTCA includes
+#include "votca/xtp/md2qmengine.h"
+#include "votca/xtp/statesaver.h"
+#include "votca/xtp/topology.h"
+#include "votca/xtp/version.h"
 
 using namespace std;
 

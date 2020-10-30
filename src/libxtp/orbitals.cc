@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,17 +17,19 @@
  *
  */
 
-#include "votca/xtp/orbitals.h"
-#include "votca/xtp/aomatrix.h"
-#include "votca/xtp/aomatrix3d.h"
-#include "votca/xtp/qmstate.h"
+// Standard includes
+#include <cstdio>
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 #include <numeric>
-#include <stdio.h>
-#include <votca/xtp/vc2index.h>
-#include <votca/xtp/version.h>
+
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/aomatrix3d.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/qmstate.h"
+#include "votca/xtp/vc2index.h"
+#include "votca/xtp/version.h"
 
 namespace votca {
 namespace xtp {
@@ -503,7 +505,8 @@ void Orbitals::WriteToCpt(CheckpointFile f) const {
 }
 
 void Orbitals::WriteToCpt(CheckpointWriter w) const {
-  w(XtpVersionStr(), "Version");
+  w(XtpVersionStr(), "XTPVersion");
+  w(orbitals_version(), "version");
   w(_basis_set_size, "basis_set_size");
   w(_occupied_levels, "occupied_levels");
   w(_number_alpha_electrons, "number_alpha_electrons");
@@ -531,6 +534,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_useTDA, "useTDA");
   w(_ECP, "ECP");
 
+  w(_rpa_inputenergies, "RPA_inputenergies");
   w(_QPpert_energies, "QPpert_energies");
 
   w(_QPdiag, "QPdiag");
@@ -540,6 +544,12 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_transition_dipoles, "transition_dipoles");
 
   w(_BSE_triplet, "BSE_triplet");
+
+  w(_use_Hqp_offdiag, "use_Hqp_offdiag");
+
+  w(_BSE_singlet_energies_dynamic, "BSE_singlet_dynamic");
+
+  w(_BSE_triplet_energies_dynamic, "BSE_triplet_dynamic");
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -555,7 +565,8 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_basis_set_size, "basis_set_size");
   r(_occupied_levels, "occupied_levels");
   r(_number_alpha_electrons, "number_alpha_electrons");
-
+  int version;
+  r(version, "version");
   r(_mos, "mos");
 
   // Read qmatoms
@@ -584,6 +595,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_useTDA, "useTDA");
   r(_ECP, "ECP");
 
+  r(_rpa_inputenergies, "RPA_inputenergies");
   r(_QPpert_energies, "QPpert_energies");
   r(_QPdiag, "QPdiag");
 
@@ -592,6 +604,14 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_transition_dipoles, "transition_dipoles");
 
   r(_BSE_triplet, "BSE_triplet");
+
+  r(_use_Hqp_offdiag, "use_Hqp_offdiag");
+
+  if (version > 1) {
+    r(_BSE_singlet_energies_dynamic, "BSE_singlet_dynamic");
+
+    r(_BSE_triplet_energies_dynamic, "BSE_triplet_dynamic");
+  }
 }
 }  // namespace xtp
 }  // namespace votca

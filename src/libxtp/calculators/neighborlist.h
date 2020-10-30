@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,24 +18,29 @@
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_NEIGHBORLIST_H
-#define __VOTCA_XTP_NEIGHBORLIST_H
+#ifndef VOTCA_XTP_NEIGHBORLIST_H
+#define VOTCA_XTP_NEIGHBORLIST_H
 
+// VOTCA includes
 #include <votca/tools/globals.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/qmnblist.h>
-#include <votca/xtp/topology.h>
+
+// Local VOTCA includes
+#include "votca/xtp/atom.h"
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/qmnblist.h"
+#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {
 
-class Neighborlist : public QMCalculator {
+class Neighborlist final : public QMCalculator {
  public:
-  std::string Identify() override { return "neighborlist"; }
-  bool WriteToStateFile() const override { return true; }
-  void Initialize(tools::Property& options) override;
-  bool EvaluateFrame(Topology& top) override;
+  std::string Identify() { return "neighborlist"; }
+  bool WriteToStateFile() const { return true; }
+
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
   Index DetClassicalPairs(Topology& top);
@@ -51,4 +56,4 @@ class Neighborlist : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_NEIGHBORLIST_H

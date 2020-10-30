@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,19 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE topology_test
-#include <boost/test/floating_point_comparison.hpp>
+
+// Third party includes
+#include <boost/test/tools/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
+
+// VOTCA includes
 #include <votca/csg/boundarycondition.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/qmpair.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/topology.h>
+
+// Local VOTCA includes
+#include "votca/xtp/atom.h"
+#include "votca/xtp/qmpair.h"
+#include "votca/xtp/segment.h"
+#include "votca/xtp/topology.h"
 
 using namespace votca::tools;
 

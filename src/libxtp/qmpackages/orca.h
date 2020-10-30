@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,10 +18,12 @@
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_ORCA_H
-#define __VOTCA_XTP_ORCA_H
+#ifndef VOTCA_XTP_ORCA_H
+#define VOTCA_XTP_ORCA_H
 
-#include <votca/xtp/qmpackage.h>
+// Local VOTCA includes
+#include "votca/xtp/orbreorder.h"
+#include "votca/xtp/qmpackage.h"
 
 namespace votca {
 namespace xtp {
@@ -37,7 +39,7 @@ class Orca : public QMPackage {
  public:
   std::string getPackageName() const override { return "orca"; }
 
-  void Initialize(tools::Property& options) override;
+  void Initialize(const tools::Property& options) override;
 
   bool WriteInputFile(const Orbitals& orbitals) override;
 
@@ -57,23 +59,58 @@ class Orca : public QMPackage {
 
   Eigen::Matrix3d GetPolarizability() const override;
 
- private:
-  std::string indent(const double& number);
-  std::string getLName(Index lnum);
+ protected:
+  const std::array<Index, 25>& ShellMulitplier() const final {
+    return _multipliers;
+  }
+  const std::array<Index, 25>& ShellReorder() const final {
+    return _reorderList;
+  }
 
-  void WriteBasisset(const QMMolecule& qmatoms, std::string& _bs_name,
+ private:
+  // clang-format off
+  std::array<Index,25> _multipliers={{
+            1, //s
+            1,1,1, //p
+            1,1,1,1,1, //d
+            1,1,1,1,1,-1,-1, //f 
+            1,1,1,1,1,-1,-1,-1,-1 //g
+            }};
+  std::array<Index, 25> _reorderList={{
+            0, //s
+            0, 1,-1, //p
+            0,1,-1,2,-2, //d
+            0,1,-1,2,-2,3,-3, //f 
+            0,1,-1,2,-2,3,-3,4,-4 //g
+            }};
+
+  // clang-format on
+  std::string indent(const double& number);
+
+  void WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
                      std::string& el_file_name);
-  void WriteCoordinates(std::ofstream& com_file, const QMMolecule&);
-  void WriteECP(std::ofstream& com_file, const QMMolecule&);
+  void WriteCoordinates(std::ofstream& inp_file, const QMMolecule&);
+  void WriteECP(std::ofstream& inp_file, const QMMolecule&);
   void WriteBackgroundCharges();
 
   void WriteChargeOption() override;
   template <class T>
   void GetCoordinates(T& mol, std::string& line,
                       std::ifstream& input_file) const;
+  std::string WriteMethod() const;
+  std::string CreateInputSection(const std::string& key) const;
+  bool KeywordIsSingleLine(const std::string& key) const;
+  std::string GetOrcaFunctionalName() const;
+
+  std::unordered_map<std::string, std::string> _convergence_map{
+      {"low", "LooseSCF"},
+      {"normal", "StrongSCF"},
+      {"tight", "TightSCF"},
+      {"verytight", "VeryTightSCF"},
+      {"none", ""}};
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_XTP_ORCA_H */
+#endif  // VOTCA_XTP_ORCA_H

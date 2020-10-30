@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,17 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE bse_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <fstream>
-#include <votca/xtp/bse_operator.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/bse_operator.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/orbitals.h"
 
 using namespace votca::xtp;
 using namespace std;
@@ -224,7 +230,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
       0.16678, 0.16678, 0.671592, 0.671592, 0.671592, 0.974255, 1.01205,
       1.01205, 1.01205, 1.64823, 19.4429;
   Logger log;
-  TCMatrix_gwbse Mmn{log};
+  TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, MOs);
 
@@ -295,7 +301,6 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   opt.vmin = 0;
 
   orbitals.setBSEindices(0, 16);
-  OPENMP::setMaxThreads(1);
   HqpOperator Hqp_op(epsilon_inv, Mmn, Hqp);
   Hqp_op.configure(opt);
   Eigen::MatrixXd hqp_mat = Hqp_op.get_full_matrix();

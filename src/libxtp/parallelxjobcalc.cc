@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,9 +19,12 @@
 /// For an earlier history see ctp repo commit
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+// Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
-#include <votca/xtp/parallelxjobcalc.h>
+
+// Local VOTCA includes
+#include "votca/xtp/parallelxjobcalc.h"
 
 using boost::format;
 
@@ -29,7 +32,7 @@ namespace votca {
 namespace xtp {
 
 template <typename JobContainer>
-bool ParallelXJobCalc<JobContainer>::EvaluateFrame(const Topology &top) {
+bool ParallelXJobCalc<JobContainer>::Evaluate(const Topology &top) {
 
   // INITIALIZE PROGRESS OBSERVER
   std::string progFile = _jobfile;
@@ -99,22 +102,15 @@ void ParallelXJobCalc<JobContainer>::JobOperator::Run() {
 template <typename JobContainer>
 void ParallelXJobCalc<JobContainer>::ParseCommonOptions(
     const tools::Property &options) {
-  std::cout << std::endl
-            << "... ... Initialized with " << _nThreads << " threads. "
-            << std::flush;
+  std::cout << "\n... ... Initialized with " << _nThreads << " threads.\n";
 
   _maverick = (_nThreads == 1) ? true : false;
 
-  std::string key = "options." + Identify();
-  std::cout << std::endl
-            << "... ... Using " << _openmp_threads << " openmp threads for "
+  std::cout << "\n... ... Using " << _openmp_threads << " openmp threads for "
             << _nThreads << "x" << _openmp_threads << "="
             << _nThreads * _openmp_threads << " total threads." << std::flush;
-  OPENMP::setMaxThreads(_openmp_threads);
-  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".job_file");
-  _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".map_file");
+  _jobfile = options.get(".job_file").as<std::string>();
+  _mapfile = options.get(".map_file").as<std::string>();
 }
 
 template <typename JobContainer>
@@ -135,6 +131,33 @@ void ParallelXJobCalc<JobContainer>::CustomizeLogger(QMThread &thread) {
                  (format("\nT%1$02d DBG ...") % thread.getId()).str());
 }
 
+template <typename JobContainer>
+tools::Property ParallelXJobCalc<JobContainer>::UpdateGWBSEOptions(
+    const tools::Property &options) {
+  tools::Property gwbse_options = options.get(".gwbse_options");
+  gwbse_options.get(".gwbse").add("basisset",
+                                  options.get("basisset").as<std::string>());
+  gwbse_options.get(".gwbse").add("auxbasisset",
+                                  options.get("auxbasisset").as<std::string>());
+  gwbse_options.get(".gwbse.vxc")
+      .add("functional", options.get("functional").as<std::string>());
+
+  return gwbse_options;
+}
+
+template <typename JobContainer>
+tools::Property ParallelXJobCalc<JobContainer>::UpdateDFTOptions(
+    const tools::Property &options) {
+  tools::Property package_options = options.get(".dftpackage");
+  package_options.get("package").add("basisset",
+                                     options.get("basisset").as<std::string>());
+  package_options.get("package").add(
+      "auxbasisset", options.get("auxbasisset").as<std::string>());
+  package_options.get("package").add(
+      "functional", options.get("functional").as<std::string>());
+
+  return package_options;
+}
 // REGISTER PARALLEL CALCULATORS
 template class ParallelXJobCalc<std::vector<Job>>;
 

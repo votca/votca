@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,9 +21,10 @@
 #ifndef VOTCA_XTP_POPULATIONANALYSIS_H
 #define VOTCA_XTP_POPULATIONANALYSIS_H
 
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/qmfragment.h>
+// Local VOTCA includes
+#include "aomatrix.h"
+#include "orbitals.h"
+#include "qmfragment.h"
 
 /**
  * \brief Takes a list of atoms, and the corresponding density matrix and puts

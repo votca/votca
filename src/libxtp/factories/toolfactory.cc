@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,19 +17,23 @@
  *
  */
 
-#include <votca/xtp/toolfactory.h>
+// Local VOTCA includes
+#include "votca/xtp/toolfactory.h"
 
-#include "../tools/apdft.h"
-#include "../tools/coupling.h"
-#include "../tools/densityanalysis.h"
-#include "../tools/dftgwbse.h"
-#include "../tools/excitoncoupling.h"
-#include "../tools/gencube.h"
-#include "../tools/log2mps.h"
-#include "../tools/molpol.h"
-#include "../tools/partialcharges.h"
-#include "../tools/qmsandbox.h"
-#include "../tools/spectrum.h"
+// Local private VOTCA includes
+#include "tools/apdft.h"
+#include "tools/coupling.h"
+#include "tools/densityanalysis.h"
+#include "tools/dftgwbse.h"
+#include "tools/excitoncoupling.h"
+#include "tools/gencube.h"
+#include "tools/log2mps.h"
+#include "tools/mol2orb.h"
+#include "tools/molpol.h"
+#include "tools/orb2mol.h"
+#include "tools/partialcharges.h"
+#include "tools/qmsandbox.h"
+#include "tools/spectrum.h"
 
 namespace votca {
 namespace xtp {
@@ -47,6 +51,8 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<Coupling>("coupling");
   QMTools().Register<MolPol>("molpol");
   QMTools().Register<APDFT>("apdft");
+  QMTools().Register<Mol2Orb>("mol2orb");
+  QMTools().Register<Orb2Mol>("orb2mol");
 }
 
 }  // namespace xtp

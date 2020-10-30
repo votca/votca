@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,15 +18,19 @@
  */
 
 #pragma once
-#ifndef _CALC_COUPLING_EXCL_H
-#define _CALC_COUPLING_EXCL_H
+#ifndef VOTCA_XTP_IEXCITONCL_H
+#define VOTCA_XTP_IEXCITONCL_H
 
-#include <votca/tools/property.h>
-
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <sys/stat.h>
-#include <votca/xtp/parallelxjobcalc.h>
-#include <votca/xtp/qmstate.h>
+
+// VOTCA includes
+#include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/xtp/parallelxjobcalc.h"
+#include "votca/xtp/qmstate.h"
 
 namespace votca {
 namespace xtp {
@@ -39,17 +43,17 @@ namespace xtp {
  * Callname: iexcitoncl
  */
 
-class IEXCITON : public ParallelXJobCalc<std::vector<Job> > {
+class IEXCITON final : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  void Initialize(tools::Property &options) override;
+  std::string Identify() { return "iexcitoncl"; }
 
-  std::string Identify() override { return "iexcitoncl"; }
+  Job::JobResult EvalJob(const Topology &top, Job &job, QMThread &opThread);
 
-  Job::JobResult EvalJob(const Topology &top, Job &job,
-                         QMThread &Thread) override;
+  void WriteJobFile(const Topology &top);
+  void ReadJobFile(Topology &top);
 
-  void WriteJobFile(const Topology &top) override;
-  void ReadJobFile(Topology &top) override;
+ protected:
+  void ParseSpecificOptions(const tools::Property &user_options);
 
  private:
   QMState GetElementFromMap(const std::string &elementname) const;
@@ -60,4 +64,4 @@ class IEXCITON : public ParallelXJobCalc<std::vector<Job> > {
 
 }  // namespace xtp
 }  // namespace votca
-#endif /* _CALC_INTEGRALS_DFT_H */
+#endif  // VOTCA_XTP_IEXCITONCL_H
