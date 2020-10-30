@@ -40,6 +40,7 @@ Version 1.6.3 (released XX.08.20)
 -  switch to ghcr.io for CI (#595)
 -  format code with clang-11 (#605)
 -  add gmx2021 builds to CI (#607)
+-  remove set-env call from CI (#608)
 
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
