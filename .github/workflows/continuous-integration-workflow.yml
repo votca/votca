@@ -62,6 +62,22 @@ jobs:
             toolchain: clang
             cmake_build_type: Release
             no_regression_testing: true
+          - distro: 'fedora:gmx2021'
+            toolchain: gnu
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx2021'
+            toolchain: clang
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx2021_d'
+            toolchain: gnu
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx2021_d'
+            toolchain: clang
+            cmake_build_type: Release
+            no_regression_testing: true
           - distro: 'fedora:gmx9999'
             toolchain: gnu
             cmake_build_type: Release
