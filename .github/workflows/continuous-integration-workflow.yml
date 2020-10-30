@@ -13,7 +13,7 @@ on:
 
 jobs:
   CI:
-    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
+    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'opensuse:latest' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
         distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'ubuntu:18.04', 'fedora:intel']
@@ -80,6 +80,22 @@ jobs:
             cmake_build_type: Release
             no_regression_testing: true
           - distro: 'fedora:gmx2020_d'
+            toolchain: clang
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx2021'
+            toolchain: gnu
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx2021'
+            toolchain: clang
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx2021_d'
+            toolchain: gnu
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx2021_d'
             toolchain: clang
             cmake_build_type: Release
             no_regression_testing: true
