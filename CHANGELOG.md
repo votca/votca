@@ -2,7 +2,7 @@ For more detailed information about the changes see the history of the [reposito
 
 ## Version 1.6.3 (released XX.08.20)
 * switch to ghcr.io for CI (#297)
-* use master .clang-format in format action (#304)
+* use master .clang-format in format action (#304, #307)
 
 ## Version 1.6.2 _SuperGitta_ (released 22.08.20)
 * format code with clang-10 (#278)
