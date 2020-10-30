@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE triplelist_test
-#include <boost/test/floating_point_comparison.hpp>
+#include "../../include/votca/csg/bead.h"
+#include "../../include/votca/csg/beadtriple.h"
+#include "../../include/votca/csg/topology.h"
+#include "../../include/votca/csg/triplelist.h"
+#include <boost/test/tools/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <string>
-#include <votca/csg/bead.h>
-#include <votca/csg/beadtriple.h>
-#include <votca/csg/beadtype.h>
-#include <votca/csg/topology.h>
-#include <votca/csg/triplelist.h>
 
 using namespace std;
 using namespace votca::csg;

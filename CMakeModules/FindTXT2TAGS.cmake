@@ -53,7 +53,7 @@ INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(TXT2TAGS DEFAULT_MSG TXT2TAGS_EXECUTABLE)
 
 IF(NOT TXT2TAGS_FOUND)
-  message("txt2tags not found, help cmake to find it by setting TXT2TAGS_EXECUTABLE")
+  message(STATUS "txt2tags not found, help cmake to find it by setting TXT2TAGS_EXECUTABLE")
 ENDIF(NOT TXT2TAGS_FOUND)
 
 MARK_AS_ADVANCED( TXT2TAGS_EXECUTABLE )

@@ -18,9 +18,14 @@
 #ifndef _VOTCA_CSG_NBLISTGRID_H
 #define _VOTCA_CSG_NBLISTGRID_H
 
-#include "nblist.h"
+// Standard includes
 #include <vector>
+
+// VOTCA includes
 #include <votca/tools/eigen.h>
+
+// Local VOTCA includes
+#include "nblist.h"
 
 namespace votca {
 namespace csg {
@@ -42,15 +47,14 @@ class NBListGrid : public NBList {
   Index _box_Na, _box_Nb, _box_Nc;
 
   std::vector<cell_t> _grid;
-  Topology *_top;
 
   void InitializeGrid(const Eigen::Matrix3d &box);
 
   cell_t &getCell(const Eigen::Vector3d &r);
   cell_t &getCell(const Index &a, const Index &b, const Index &c);
 
-  void TestBead(cell_t &cell, Bead *bead);
-  void TestCell(cell_t &cell, Bead *bead);
+  void TestBead(const Topology &top, cell_t &cell, Bead *bead);
+  void TestCell(const Topology &top, cell_t &cell, Bead *bead);
 };
 
 inline NBListGrid::cell_t &NBListGrid::getCell(const Index &a, const Index &b,

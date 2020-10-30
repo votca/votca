@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,20 @@
  *
  */
 
-#ifndef _VOTCA_CSG_LAMMPSDATAREADER_H
-#define _VOTCA_CSG_LAMMPSDATAREADER_H
+#ifndef VOTCA_CSG_LAMMPSDATAREADER_PRIVATE_H
+#define VOTCA_CSG_LAMMPSDATAREADER_PRIVATE_H
 
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <votca/csg/topologyreader.h>
-#include <votca/csg/trajectoryreader.h>
+
+// VOTCA includes
+#include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/trajectoryreader.h"
 
 namespace votca {
 namespace csg {
@@ -38,6 +44,15 @@ class Molecule;
 */
 class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+  const tools::TimeUnit time_unit = tools::TimeUnit::femtoseconds;
+  const tools::MassUnit mass_unit = tools::MassUnit::grams_per_mole;
+  const tools::MolarEnergyUnit energy_unit =
+      tools::MolarEnergyUnit::kilocalories_per_mole;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::MolarForceUnit force_unit =
+      tools::MolarForceUnit::kilocalories_per_mole_angstrom;
+
   LAMMPSDataReader() = default;
   ~LAMMPSDataReader() override = default;
 
@@ -155,4 +170,4 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_LAMMPSDATAREADER_H
+#endif  // VOTCA_CSG_LAMMPSDATAREADER_PRIVATE_H

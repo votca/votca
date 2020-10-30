@@ -18,7 +18,7 @@
 #ifndef _VOTCA_CSG_IMC_SOLVE_H
 #define _VOTCA_CSG_IMC_SOLVE_H
 
-#include <votca/csg/version.h>
+#include "../../include/votca/csg/version.h"
 #include <votca/tools/application.h>
 #include <votca/tools/property.h>
 

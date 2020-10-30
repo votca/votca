@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,18 @@
  *
  */
 
-#include "xmltopologyreader.h"
-#include <boost/lexical_cast.hpp>
+// Standard includes
+#include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
-#include <stdio.h>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
+
+// Local private VOTCA includes
+#include "xmltopologyreader.h"
 
 namespace votca {
 namespace csg {
@@ -39,15 +45,12 @@ bool XMLTopologyReader::ReadTopology(string filename, Topology &top) {
 }
 
 void XMLTopologyReader::ReadTopolFile(string file) {
-  TopologyReader *reader;
-  reader = TopReaderFactory().Create(file);
+  std::unique_ptr<TopologyReader> reader = TopReaderFactory().Create(file);
   if (!reader) {
     throw runtime_error(file + ": unknown topology format");
   }
 
   reader->ReadTopology(file, *_top);
-
-  delete reader;
   // Clean XML molecules and beads.
 }
 

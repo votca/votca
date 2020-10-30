@@ -18,9 +18,12 @@
 #ifndef _VOTCA_CSG_TOPOLOGYREADER_H
 #define _VOTCA_CSG_TOPOLOGYREADER_H
 
+// Standard includes
+#include <string>
+
+// Local VOTCA includes
 #include "fileformatfactory.h"
 #include "topology.h"
-#include <string>
 
 namespace votca {
 namespace csg {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,20 @@
  *
  */
 
-#ifndef _VOTCA_CSG_GROREADER_H
-#define _VOTCA_CSG_GROREADER_H
+#ifndef VOTCA_CSG_GROREADER_PRIVATE_H
+#define VOTCA_CSG_GROREADER_PRIVATE_H
 
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <votca/csg/topologyreader.h>
-#include <votca/csg/trajectoryreader.h>
+
+// VOTCA includes
+#include <votca/tools/unitconverter.h>
+
+// Local includes
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/trajectoryreader.h"
 
 namespace votca {
 namespace csg {
@@ -36,6 +42,17 @@ namespace csg {
 */
 class GROReader : public TrajectoryReader, public TopologyReader {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::nanometers;
+  const tools::MassUnit mass_unit = tools::MassUnit::atomic_mass_units;
+  const tools::TimeUnit time_unit = tools::TimeUnit::picoseconds;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::MolarEnergyUnit energy_unit =
+      tools::MolarEnergyUnit::kilojoules_per_mole;
+  const tools::VelocityUnit velocity_unit =
+      tools::VelocityUnit::nanometers_per_picosecond;
+  const tools::MolarForceUnit force_unit =
+      tools::MolarForceUnit::kilojoules_per_mole_nanometer;
+
   GROReader() = default;
   ~GROReader() override = default;
 
@@ -59,4 +76,4 @@ class GROReader : public TrajectoryReader, public TopologyReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_GROREADER_H */
+#endif  // VOTCA_CSG_GROREADER_PRIVATE_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,18 @@
  *
  */
 
+// Third party includes
 #include <boost/algorithm/string/trim.hpp>
-#include <votca/csg/cgengine.h>
-#include <votca/csg/csgapplication.h>
-#include <votca/csg/topologymap.h>
-#include <votca/csg/topologyreader.h>
-#include <votca/csg/trajectoryreader.h>
-#include <votca/csg/trajectorywriter.h>
-#include <votca/csg/version.h>
+#include <memory>
+
+// Local VOTCA includes
+#include "votca/csg/cgengine.h"
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/topologymap.h"
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/trajectoryreader.h"
+#include "votca/csg/trajectorywriter.h"
+#include "votca/csg/version.h"
 
 namespace votca {
 namespace csg {
@@ -192,9 +196,9 @@ bool CsgApplication::ProcessData(Worker *worker) {
 }
 
 void CsgApplication::Run(void) {
-  TopologyReader *reader;
   // create reader for atomistic topology
-  reader = TopReaderFactory().Create(_op_vm["top"].as<std::string>());
+  std::unique_ptr<TopologyReader> reader =
+      TopReaderFactory().Create(_op_vm["top"].as<std::string>());
   if (reader == nullptr) {
     throw std::runtime_error(std::string("input format not supported: ") +
                              _op_vm["top"].as<std::string>());
@@ -225,6 +229,9 @@ void CsgApplication::Run(void) {
   // read in the topology for master
   //////////////////////////////////////////////////
   reader->ReadTopology(_op_vm["top"].as<std::string>(), master->_top);
+  // Ensure that the coarse grained topology will have the same boundaries
+  master->_top_cg.setBox(master->_top.getBox());
+
   std::cout << "I have " << master->_top.BeadCount() << " beads in "
             << master->_top.MoleculeCount() << " molecules" << std::endl;
   master->_top.CheckMoleculeNaming();
@@ -249,9 +256,17 @@ void CsgApplication::Run(void) {
     std::cout << "I have " << master->_top_cg.BeadCount() << " beads in "
               << master->_top_cg.MoleculeCount()
               << " molecules for the coarsegraining" << std::endl;
-    master->_map->Apply();
-    if (!EvaluateTopology(&master->_top_cg, &master->_top)) {
-      return;
+
+    // If the trajectory reader is off but mapping flag is specified do apply
+    // the mapping, this switch is necessary in cases where xml files are
+    // specified, which do not contain positional information. In such cases
+    // it is not possible to apply the positional mapping, a trajectory file
+    // must be read in.
+    if (DoTrajectory() == false) {
+      master->_map->Apply();
+      if (!EvaluateTopology(&master->_top_cg, &master->_top)) {
+        return;
+      }
     }
   } else if (!EvaluateTopology(&master->_top)) {
     return;
@@ -330,7 +345,6 @@ void CsgApplication::Run(void) {
     if (!bok) {  // trajectory was too short and we did not proceed to first
                  // frame
       _traj_reader->Close();
-      delete _traj_reader;
 
       throw std::runtime_error(
           "trajectory was too short, did not process a single frame");
@@ -399,11 +413,7 @@ void CsgApplication::Run(void) {
     _threadsMutexesIn.clear();
     _threadsMutexesOut.clear();
     _traj_reader->Close();
-
-    delete _traj_reader;
   }
-
-  delete reader;
 }
 
 CsgApplication::Worker::~Worker() {
