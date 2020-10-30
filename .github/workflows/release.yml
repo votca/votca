@@ -32,49 +32,48 @@ jobs:
           git config --global user.email "github@votca.org"
           if [[ -z "${{ github.event.inputs.tag }}" ]]; then
             version="$(sed -n 's/set(PROJECT_VERSION *"\([^"]*\)").*/\1/p' CMakeLists.txt)"
-            echo "::set-env name=VERSION::${version}"
+            echo "::set-output name=VERSION::${version}"
           else
             version="${{ github.event.inputs.tag }}"
-            echo "::set-env name=VERSION::${version#v}"
+            echo "::set-output name=VERSION::${version#v}"
           fi
           if [[ ${GITHUB_REF} = refs/heads/* ]]; then
             branch="${GITHUB_REF#refs/heads/}"
             [[ ${branch} != release_testing ]] || branch="master"
-            echo "::set-env name=BRANCH::${branch}"
+            echo "::set-output name=BRANCH::${branch}"
           else
             echo "Unsupported GITHUB_REF: ${GITHUB_REF}" >&2
             exit 1
           fi
-          echo "::set-env name=DATE::$(date +%s)"
+          echo "::set-output name=DATE::$(date +%s)"
           if ${{ github.event.inputs.deploy == 'yesyesyes' }}; then
-            echo "::set-env name=DEPLOY::true"
+            echo "::set-output name=DEPLOY::true"
           else
-            echo "::set-env name=DRY_RUN::true"
+            echo "::set-output name=DEPLOY::false"
+            echo "::set-output name=DRY_RUN::--dry-run"
           fi
       - uses: actions/cache@v2
         with:
           path: ~/.ccache
-          key: ccache-release-${{ env.BRANCH }}-${{ env.DATE }}  
-          restore-keys: ccache-release-${{ env.BRANCH }} 
+          key: ccache-release-${{ steps.setup.outputs.BRANCH }}-${{ steps.setup.outputs.DATE }}  
+          restore-keys: ccache-release-${{ steps.setup.outputs.BRANCH }}
       - name: Make Release
-        env:
-          CMAKE_ARGS: ${{ github.event.inputs.cmake_args }}
         run: |
-          .github/workflows/make_release.sh --branch ${BRANCH} ${CMAKE_ARGS} --verbose ${VERSION} .
+          .github/workflows/make_release.sh --branch ${{ steps.setup.outputs.BRANCH }} ${{ github.event.inputs.cmake_args }} --verbose ${{ steps.setup.outputs.VERSION }} .
       - name: Show diff
         run: |
           for p in . tools csg csg-manual csgapps csg-tutorials xtp xtp-tutorials; do 
-            git -C $p log -p --submodule origin/${BRANCH}..${BRANCH}
+            git -C $p log -p --submodule origin/${{ steps.setup.outputs.BRANCH }}..${{ steps.setup.outputs.BRANCH }}
           done
       - name: Upload manual as artifact
-        if: ${{ ! env.DEPLOY }}
+        if: ${{ ! steps.setup.outputs.DEPLOY }}
         uses: actions/upload-artifact@v2
         with:
           name: csg-manual
-          path: votca-csg-manual-${{ env.VERSION }}.pdf
+          path: votca-csg-manual-${{ steps.setup.outputs.VERSION }}.pdf
       - name: Check before push
         run: |
-          if [[ ( ${VERSION} = *-dev || ${BRANCH} != "stable" ) && ${DEPLOY} ]]; then
+          if [[ ( ${{ steps.setup.outputs.VERSION }} = *-dev || ${{ steps.setup.outputs.BRANCH }}  != "stable" ) && ${{ steps.setup.outputs.DEPLOY }} ]]; then
             echo "You cannot deploy a dev version or branch that is not 'stable'" >&2
             exit 1
           fi
@@ -82,25 +81,25 @@ jobs:
         run: |
           set -x
           for p in . tools csg csg-manual csgapps csg-tutorials xtp xtp-tutorials; do
-            git -C $p push ${DRY_RUN:+--dry-run} --tags origin ${BRANCH}:${BRANCH}
+            git -C $p push ${{ steps.setup.outputs.DRY_RUN }} --tags origin ${{ steps.setup.outputs.BRANCH }}:${{ steps.setup.outputs.BRANCH }}
           done
       - name: Create Release
-        if: ${{ env.DEPLOY }}
+        if: ${{ steps.setup.outputs.DEPLOY }}
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
         with:
-          tag_name: v${{ env.VERSION }}
-          release_name: v${{ env.VERSION }}
-          prerelease: ${{ contains(env.VERSION, 'rc') }}
+          tag_name: v${{ steps.setup.outputs.VERSION }}
+          release_name: v${{ steps.setup.outputs.VERSION }}
+          prerelease: ${{ contains(steps.setup.outputs.VERSION, 'rc') }}
       - name: Add Manual to release
-        if: ${{ env.DEPLOY }}
+        if: ${{ steps.setup.outputs.DEPLOY }}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./votca-csg-manual-${{ env.VERSION }}.pdf
-          asset_name: votca-csg-manual-${{ env.VERSION }}.pdf
+          asset_path: ./votca-csg-manual-${{ steps.setup.outputs.VERSION }}.pdf
+          asset_name: votca-csg-manual-${{ steps.setup.outputs.VERSION }}.pdf
           asset_content_type: application/pdf
