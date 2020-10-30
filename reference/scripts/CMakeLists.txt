@@ -3,8 +3,9 @@ add_custom_command(OUTPUT ${CURRENT_DIR}/config.t2t
     ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/../config.t2t ${CURRENT_DIR}/config.t2t
   DEPENDS ${CURRENT_DIR}/../config.t2t)
 
+get_target_property(VOTCA_PATH VOTCA::csg_call VOTCA_PATH)
 add_custom_command(OUTPUT ${CURRENT_DIR}/csg_table.tex
-  COMMAND VOTCASHARE=${CSG_SHARE} VOTCA_CSG_DEFAULTS=${VOTCA_CSG_DEFAULTS} $<TARGET_FILE:VOTCA::csg_call> -l > ${CURRENT_DIR}/csg_table.txt
+  COMMAND ${CMAKE_COMMAND} -E env PATH=${VOTCA_PATH}:$ENV{PATH} VOTCASHARE=${CSG_SHARE} VOTCA_CSG_DEFAULTS=${VOTCA_CSG_DEFAULTS} $<TARGET_FILE:VOTCA::csg_call> -l > ${CURRENT_DIR}/csg_table.txt
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/call2t2t.sh ${CURRENT_DIR}/csg_table.txt
     > ${CURRENT_DIR}/csg_table.t2t
   COMMAND ${TXT2TAGS_EXECUTABLE} -t tex --no-header --infile ${CURRENT_DIR}/csg_table.t2t
@@ -24,7 +25,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex.cmake)
 foreach(script ${CSG_SCRIPTS}) 
   string(TOUPPER "${script}" SCRIPT)
   add_custom_command(OUTPUT ${CURRENT_DIR}/${script}.tex
-    COMMAND VOTCASHARE=${CSG_SHARE} VOTCA_CSG_DEFAULTS=${VOTCA_CSG_DEFAULTS} CSG_CALL=$<TARGET_FILE:VOTCA::csg_call> ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/script2t2t.sh ${script} > ${CURRENT_DIR}/${script}.t2t
+    COMMAND ${CMAKE_COMMAND} -E env PATH=${VOTCA_PATH}:$ENV{PATH} VOTCASHARE=${CSG_SHARE} VOTCA_CSG_DEFAULTS=${VOTCA_CSG_DEFAULTS} CSG_CALL=$<TARGET_FILE:VOTCA::csg_call> ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/script2t2t.sh ${script} > ${CURRENT_DIR}/${script}.t2t
     COMMAND ${TXT2TAGS_EXECUTABLE} -t tex --no-header --infile ${CURRENT_DIR}/${script}.t2t
       --outfile ${CURRENT_DIR}/${script}.tex
     DEPENDS ${CSG_SHARE}/scripts/inverse/${script} ${CURRENT_DIR}/config.t2t)
