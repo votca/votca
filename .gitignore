@@ -5,7 +5,6 @@ build.ninja
 .ninja_*
 build
 netbeans
-src/libtools/votca_config.h
 src/libtools/gitversion.h
 .project
 .cproject
@@ -27,7 +26,7 @@ cmake_install.cmake
 cmake_uninstall.cmake
 CMakeCache.txt
 intel/*
-include/votca/tools/votca_config.h
+include/votca/tools/votca_tools_config.h
 netbeans/libtools/nbproject/Makefile-Debug.mk
 netbeans/libtools/nbproject/Makefile-Release.mk
 netbeans/libtools/nbproject/Makefile-profile_release.mk

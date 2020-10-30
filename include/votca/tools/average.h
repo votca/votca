@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_AVERAGE_H
-#define __VOTCA_TOOLS_AVERAGE_H
+#ifndef VOTCA_TOOLS_AVERAGE_H
+#define VOTCA_TOOLS_AVERAGE_H
 
 namespace votca {
 namespace tools {
@@ -24,7 +24,7 @@ namespace tools {
 template <typename T>
 class Average {
  public:
-  void Process(const T &v);
+  void Process(const T &value);
   void Clear();
   template <typename iterator_type>
   void ProcessRange(const iterator_type &begin, const iterator_type &end);
@@ -98,4 +98,4 @@ size_t Average<T>::getN() const {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_TOOLS_AVERAGE_H */
+#endif  // VOTCA_TOOLS_AVERAGE_H

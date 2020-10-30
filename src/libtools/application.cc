@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,22 @@
  *
  */
 
+// Standard includes
 #include <iostream>
-#include <votca/tools/application.h>
-#include <votca/tools/globals.h>
-#include <votca/tools/propertyiomanipulator.h>
-#include <votca/tools/version.h>
 
+// Third party includes
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/application.h"
+#include "votca/tools/globals.h"
+#include "votca/tools/propertyiomanipulator.h"
+#include "votca/tools/version.h"
+
+// Local private VOTCA includes
+#include "votca_tools_config.h"
 
 namespace votca {
 namespace tools {
@@ -38,7 +45,7 @@ void Application::ShowHelpText(std::ostream &out) {
   out << "========   VOTCA (http://www.votca.org)   ========\n";
   out << "==================================================\n\n";
 
-  out << "please submit bugs to bugs@votca.org\n\n";
+  out << "please submit bugs to " TOOLS_BUGREPORT "\n\n";
   out << ProgramName();
   if (VersionString() != "") {
     out << ", version " << VersionString();
@@ -211,11 +218,7 @@ void Application::PrintDescription(std::ostream &out,
   boost::filesystem::path arg_path;
   Property options;
   // loading the documentation xml file from VOTCASHARE
-  char *votca_share = getenv("VOTCASHARE");
-  if (votca_share == nullptr) {
-    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-  }
-  string xmlFile = (arg_path / string(getenv("VOTCASHARE")) / help_path /
+  string xmlFile = (arg_path / tools::GetVotcaShare() / help_path /
                     (boost::format("%1%.%2%") % calculator_name % "xml").str())
                        .string()
                        .c_str();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
  *
  */
 
+// Standard includes
 #include <sstream>
-#include <votca/tools/datacollection.h>
+
+// Local VOTCA includes
+#include "votca/tools/datacollection.h"
 
 namespace votca {
 namespace tools {

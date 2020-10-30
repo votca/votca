@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,15 +17,15 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_ELEMENTS_H
-#define __VOTCA_TOOLS_ELEMENTS_H
+#ifndef VOTCA_TOOLS_ELEMENTS_H
+#define VOTCA_TOOLS_ELEMENTS_H
 
-#include <fstream>
-#include <iostream>
+// Standard includes
 #include <map>
-#include <stdexcept>
 #include <string>
-#include <votca/tools/constants.h>
+
+// Local VOTCA includes
+#include "constants.h"
 
 namespace votca {
 namespace tools {
@@ -100,10 +100,10 @@ class Elements {
   std::string getEleShort(std::string elefull);
 
   /// Is `eleshort` recognized an element symbol i.e. H, C, He, Ne etc
-  bool isEleShort(std::string eleshort);
+  bool isEleShort(std::string shortname);
 
   /// Is `elefull` recognized as an element name i.e. Carbon, HYDROGEN, suphur
-  bool isEleFull(std::string elefull);
+  bool isEleFull(std::string fullname);
 
   bool isMassAssociatedWithElement(double mass, double tolerance);
 
@@ -145,7 +145,7 @@ class Elements {
   /// Finds the element closest in mass and returns the difference as well as
   /// the string of elements short name
   std::pair<std::string, double> findShortNameOfElementClosestInMass_(
-      double Mass);
+      double mass);
 
   void FillMass();
   void FillVdWChelpG();
@@ -161,4 +161,4 @@ class Elements {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_TOOLS_ELEMENTS_H */
+#endif  // VOTCA_TOOLS_ELEMENTS_H

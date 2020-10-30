@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,16 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_AKIMASPLINE_H
-#define __VOTCA_TOOLS_AKIMASPLINE_H
+#ifndef VOTCA_TOOLS_AKIMASPLINE_H
+#define VOTCA_TOOLS_AKIMASPLINE_H
 
+// Standard includes
+#include <iostream>
+
+// Local VOTCA includes
+#include "eigen.h"
 #include "floatingpointcomparison.h"
 #include "spline.h"
-#include <iostream>
-#include <votca/tools/eigen.h>
 
 namespace votca {
 namespace tools {
@@ -65,10 +68,10 @@ class AkimaSpline : public Spline {
   void Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) override;
 
   // Calculate the function value
-  double Calculate(double x) override;
+  double Calculate(double r) override;
 
   // Calculate the function derivative
-  double CalculateDerivative(double x) override;
+  double CalculateDerivative(double r) override;
   using Spline::Calculate;
   using Spline::CalculateDerivative;
 
@@ -108,4 +111,4 @@ inline double AkimaSpline::getSlope(double m1, double m2, double m3,
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_TOOLS_AKIMASPLINE_H */
+#endif  // VOTCA_TOOLS_AKIMASPLINE_H

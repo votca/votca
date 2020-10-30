@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,13 +17,15 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
-#define __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
+#ifndef VOTCA_TOOLS_GRAPHDISTVISITOR_H
+#define VOTCA_TOOLS_GRAPHDISTVISITOR_H
 
+// Standard includes
 #include <deque>
-#include <iostream>
 #include <queue>
-#include <votca/tools/graph_bf_visitor.h>
+
+// Local VOTCA includes
+#include "graph_bf_visitor.h"
 
 /**
  * \brief A graph visitor determines the graph topology
@@ -61,4 +63,4 @@ class GraphDistVisitor : public Graph_BF_Visitor {
 };
 }  // namespace tools
 }  // namespace votca
-#endif  // __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
+#endif  // VOTCA_TOOLS_GRAPHDISTVISITOR_H
