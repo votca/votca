@@ -70,6 +70,13 @@ class Property {
    * @return reference to the created Property object
    */
   Property &add(const std::string &key, const std::string &value);
+
+  /**
+   * \brief add a copy of an existing property to a property
+   * @param other other property
+   */
+  void add(const Property &other);
+
   /**
    * \brief set value of existing property
    * @param key identifier
@@ -249,33 +256,6 @@ class Property {
   static const Index IOindex;
 };
 
-inline Property &Property::set(const std::string &key,
-                               const std::string &value) {
-  Property &p = get(key);
-  p.value() = value;
-  return p;
-}
-
-inline Property &Property::add(const std::string &key,
-                               const std::string &value) {
-  std::string path = _path;
-  if (path != "") {
-    path = path + ".";
-  }
-  _properties.push_back(Property(key, value, path + _name));
-  _map[key] = Index(_properties.size()) - 1;
-  return _properties.back();
-}
-
-inline bool Property::exists(const std::string &key) const {
-  try {
-    get(key);
-  } catch (std::exception &) {
-    return false;
-  }
-  return true;
-}
-
 // TO DO: write a better function for this!!!!
 template <>
 inline bool Property::as<bool>() const {
@@ -379,15 +359,6 @@ inline std::vector<double> Property::as<std::vector<double> >() const {
   Tokenizer tok(as<std::string>(), " ,\n\t");
   tok.ConvertToVector<double>(tmp);
   return tmp;
-}
-
-inline bool Property::hasAttribute(const std::string &attribute) const {
-  std::map<std::string, std::string>::const_iterator it;
-  it = _attributes.find(attribute);
-  if (it == _attributes.end()) {
-    return false;
-  }
-  return true;
 }
 
 template <typename T>

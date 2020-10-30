@@ -73,6 +73,64 @@ const Property &Property::get(const string &key) const {
   return *p;
 }
 
+Property &Property::set(const std::string &key, const std::string &value) {
+  Property &p = get(key);
+  p.value() = value;
+  return p;
+}
+
+Property &Property::add(const std::string &key, const std::string &value) {
+  std::string path = _path;
+  if (path != "") {
+    path = path + ".";
+  }
+  _properties.push_back(Property(key, value, path + _name));
+  _map[key] = Index(_properties.size()) - 1;
+  return _properties.back();
+}
+
+bool Property::hasAttribute(const std::string &attribute) const {
+  std::map<std::string, std::string>::const_iterator it;
+  it = _attributes.find(attribute);
+  if (it == _attributes.end()) {
+    return false;
+  }
+  return true;
+}
+
+bool Property::exists(const std::string &key) const {
+  try {
+    get(key);
+  } catch (std::exception &) {
+    return false;
+  }
+  return true;
+}
+
+void FixPath(tools::Property &prop, std::string path) {
+  prop.path() = path;
+  if (path != "") {
+    path += ".";
+  }
+  path += prop.name();
+  for (tools::Property &child : prop) {
+    FixPath(child, path);
+  }
+}
+
+void Property::add(const Property &other) {
+
+  _properties.push_back(other);
+  _map[other.name()] = Index(_properties.size()) - 1;
+
+  std::string path = _path;
+  if (path != "") {
+    path += ".";
+  }
+  path += _name;
+  FixPath(_properties.back(), path);
+}
+
 Property &Property::get(const string &key) {
   return const_cast<Property &>(static_cast<const Property &>(*this).get(key));
 }
