@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,20 @@
  *
  */
 
-#ifndef _VOTCA_CSG_MAP_H
-#define _VOTCA_CSG_MAP_H
+#ifndef VOTCA_CSG_MAP_H
+#define VOTCA_CSG_MAP_H
+#pragma once
 
-#include "molecule.h"
+// Standard includes
 #include <vector>
+
+// VOTCA includes
 #include <votca/tools/eigen.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "boundarycondition.h"
+#include "molecule.h"
 
 namespace votca {
 namespace csg {
@@ -37,7 +44,7 @@ class Map {
 
   void AddBeadMap(BeadMap *bmap) { _maps.push_back(bmap); }
 
-  void Apply();
+  void Apply(const BoundaryCondition &bc);
 
  protected:
   Molecule _in, _out;
@@ -50,9 +57,9 @@ class Map {
 class BeadMap {
  public:
   virtual ~BeadMap() = default;
-  virtual void Apply() = 0;
-  virtual void Initialize(Molecule *in, Bead *out, tools::Property *opts_map,
-                          tools::Property *opts_bead);
+  virtual void Apply(const BoundaryCondition &) = 0;
+  virtual void Initialize(Molecule *in, Bead *out, tools::Property *opts_bead,
+                          tools::Property *opts_map);
 
  protected:
   Molecule *_in;
@@ -76,7 +83,7 @@ inline void BeadMap::Initialize(Molecule *in, Bead *out,
 class Map_Sphere : public BeadMap {
  public:
   Map_Sphere() = default;
-  void Apply() override;
+  void Apply(const BoundaryCondition &) override;
 
   void Initialize(Molecule *in, Bead *out, tools::Property *opts_bead,
                   tools::Property *opts_map) override;
@@ -106,7 +113,7 @@ inline void Map_Sphere::AddElem(Bead *in, double weight, double force_weight) {
 class Map_Ellipsoid : public Map_Sphere {
  public:
   Map_Ellipsoid() = default;
-  void Apply() override;
+  void Apply(const BoundaryCondition &) override;
 
  protected:
 };
@@ -114,4 +121,4 @@ class Map_Ellipsoid : public Map_Sphere {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_MAP_H */
+#endif  // VOTCA_CSG_MAP_H

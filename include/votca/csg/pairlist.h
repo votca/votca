@@ -18,8 +18,11 @@
 #ifndef _VOTCA_CSG_PAIRLIST_H
 #define _VOTCA_CSG_PAIRLIST_H
 
+// Standard includes
 #include <map>
 #include <vector>
+
+// VOTCA includes
 #include <votca/tools/types.h>
 
 namespace votca {

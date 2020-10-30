@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,18 @@
  *
  */
 
-#ifndef _VOTCA_CSG_MOLECULE_H
-#define _VOTCA_CSG_MOLECULE_H
+#pragma once
+#ifndef VOTCA_CSG_MOLECULE_H
+#define VOTCA_CSG_MOLECULE_H
 
-#include "bead.h"
-#include "topologyitem.h"
-#include <assert.h>
+// Standard includes
+#include <cassert>
 #include <map>
 #include <string>
 #include <vector>
+
+// Local VOTCA includes
+#include "bead.h"
 
 namespace votca {
 namespace csg {
@@ -39,7 +42,7 @@ class Interaction;
     \todo sort atoms in molecule
 
 */
-class Molecule : public TopologyItem {
+class Molecule {
  public:
   /// get the molecule ID
   Index getId() const { return _id; }
@@ -71,16 +74,6 @@ class Molecule : public TopologyItem {
 
   std::vector<Interaction *> Interactions() { return _interactions; }
 
-  template <typename T>
-  void setUserData(T *userdata) {
-    _userdata = (void *)userdata;
-  }
-
-  template <typename T>
-  T *getUserData() {
-    return (T *)_userdata;
-  }
-
  private:
   // maps a name to a bead id
   std::map<std::string, Index> _beadmap;
@@ -95,11 +88,8 @@ class Molecule : public TopologyItem {
   std::vector<Bead *> _beads;
   std::vector<std::string> _bead_names;
 
-  void *_userdata;
-
   /// constructor
-  Molecule(Topology *parent, Index id, std::string name)
-      : TopologyItem(parent), _id(id), _name(name) {}
+  Molecule(Index id, std::string name) : _id(id), _name(name) {}
 
   friend class Topology;
 };
@@ -115,4 +105,4 @@ inline Index Molecule::getBeadIdByName(const std::string &name) {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_MOLECULE_H */
+#endif  // VOTCA_CSG_MOLECULE_H

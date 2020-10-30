@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,20 @@
  *
  */
 
-#include "lammpsdumpreader.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <memory>
 #include <vector>
+
+// Third party includes
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/getline.h>
+
+// Local private VOTCA includes
+#include "lammpsdumpreader.h"
 
 namespace votca {
 namespace csg {
