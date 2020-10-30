@@ -7,6 +7,7 @@ For more detailed information about the changes see the history of the
 * switch to ghcr.io for CI (#595)
 * format code with clang-11 (#605)
 * add gmx2021 builds to CI (#607)
+* remove set-env call from CI (#608)
 
 ## Version 1.6.2 _SuperGitta_ (released 22.08.20)
 * move CI to GitHub Actions (#563, #567, #569)
