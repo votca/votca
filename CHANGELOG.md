@@ -5,6 +5,7 @@ For more detailed information about the changes see the history of the
 * switch to ghcr.io for CI (#555)
 * fixing Gaussian guess read keyword (#562, #563)
 * improved kmc output (#575)
+* use master .clang-format in format action (#582)
 
 ## Version 1.6.2 _SuperGitta_ (released 22.08.20)
 * move CI to GitHub Actions (#512, #514, #516, #519)
