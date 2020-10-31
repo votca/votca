@@ -28,6 +28,10 @@ jobs:
             toolchain: intel
             cmake_build_type: Release
             no_regression_testing: true
+          - distro: 'fedora:intel'
+            toolchain: intel
+            cmake_build_type: Debug
+            no_regression_testing: true
     runs-on: ubuntu-latest
     container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
