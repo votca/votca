@@ -153,7 +153,6 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
   std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
-  std::vector<std::vector<Index>> shellpair_list = aobasis.ComputeShellPairs();
 
   Eigen::MatrixXd result =
       Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
@@ -175,8 +174,9 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
 
     Index bf1 = shell2bf[s1];
     Index n1 = shells[s1].size();
-
-    for (Index s2 : shellpair_list[s1]) {
+    // cannot use shellpairs because this is still a two-center integral and
+    // overlap screening would give wrong result
+    for (Index s2 = 0; s2 <= s1; ++s2) {
 
       engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xs, 0>(
           shells[s1], libint2::Shell::unit(), shells[s2],
