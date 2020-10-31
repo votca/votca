@@ -9,7 +9,8 @@ on:
 
 jobs:
   CI:
-    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
+    # Ubuntu devel, Fedora Rawhide and some other in the matrix are allowed to fail, so continue with other builds
+    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'opensuse:latest' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
         distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'ubuntu:18.04', 'fedora:intel']
@@ -79,6 +80,22 @@ jobs:
             toolchain: clang
             cmake_build_type: Release
             no_regression_testing: true
+          - distro: 'fedora:gmx2021'
+            toolchain: gnu
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx2021'
+            toolchain: clang
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx2021_d'
+            toolchain: gnu
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:gmx2021_d'
+            toolchain: clang
+            cmake_build_type: Release
+            no_regression_testing: true
           - distro: 'fedora:gmx9999'
             toolchain: gnu
             cmake_build_type: Release
@@ -108,7 +125,7 @@ jobs:
           submodules: true
           ref: stable
       - name: Run Votca Setup
-        id: setup
+        id: setup #use this id below to use outputs
         uses: votca/actions/setup@master
         with:
           distro: ${{ matrix.distro }}
@@ -135,7 +152,8 @@ jobs:
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -s
       - name: Tests
-        run: cd builddir && ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+        run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+        working-directory: builddir
       - name: Doxygen
         if: ${{ ! matrix.module_build }}
         run: cmake --build builddir --target doxygen
