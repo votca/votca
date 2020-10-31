@@ -11,7 +11,6 @@ on:
         description: 'Deploy the release'
       tag:
         description: 'The release tag'
-        required: true
 
 jobs:
   release:
@@ -47,6 +46,22 @@ jobs:
           fi
           echo "::set-output name=DATE::$(date +%s)"
           if ${{ github.event.inputs.deploy == 'yesyesyes' }}; then
+            if [[ -z "${{ github.event.inputs.tag }}" ]]; then
+              echo "You cannot deploy a release without explicitly setting the tag" >&2
+              exit 1
+            fi
+            if [[ ${branch} != stable ]]; then
+              echo "You cannot deploy from a branch that is not 'stable'" >&2
+              exit 1
+            fi
+            if [[ ${version} = *-dev ]]; then
+              echo "You cannot deploy from a dev tag" >&2
+              exit 1
+            fi
+            if [[ -n "${{ github.event.inputs.cmake_args }}" ]]; then
+              echo "You cannot deploy with extra CMake args" >&2
+              exit 1
+            fi
             echo "::set-output name=DEPLOY::true"
           else
             echo "::set-output name=DEPLOY::false"
@@ -71,12 +86,6 @@ jobs:
         with:
           name: csg-manual
           path: votca-csg-manual-${{ steps.setup.outputs.VERSION }}.pdf
-      - name: Check before push
-        run: |
-          if [[ ( ${{ steps.setup.outputs.VERSION }} = *-dev || ${{ steps.setup.outputs.BRANCH }}  != "stable" ) && ${{ steps.setup.outputs.DEPLOY }} ]]; then
-            echo "You cannot deploy a dev version or branch that is not 'stable'" >&2
-            exit 1
-          fi
       - name: Push tags
         run: |
           set -x
