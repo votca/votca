@@ -59,7 +59,7 @@ std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
   std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
 
 #pragma omp parallel for schedule(dynamic)
-  for (Index s1 = aobasis.getNumofShells() - 1; s1 >= 0; --s1) {
+  for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
     Index thread_id = OPENMP::getThreadId();
     libint2::Engine& engine = engines[thread_id];
     const libint2::Engine::target_ptr_vec& buf = engine.results();
@@ -68,11 +68,13 @@ std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
     Index n1 = shells[s1].size();
 
     for (Index s2 : shellpair_list[s1]) {
-      Index bf2 = shell2bf[s2];
-      Index n2 = shells[s2].size();
 
       engine.compute(shells[s1], shells[s2]);
-
+      if (buf[0] == nullptr) {
+        continue;  // if all integrals screened out, skip to next shell set
+      }
+      Index bf2 = shell2bf[s2];
+      Index n2 = shells[s2].size();
       for (unsigned int op = 0; op != nopers; ++op) {
         Eigen::Map<const AOMatrix::MatrixLibInt> buf_mat(buf[op], n1, n2);
         result[op].block(bf1, bf2, n1, n2) = buf_mat;
@@ -167,7 +169,7 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
   }
 
 #pragma omp parallel for schedule(dynamic)
-  for (Index s1 = aobasis.getNumofShells() - 1; s1 >= 0; --s1) {
+  for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
     libint2::Engine& engine = engines[OPENMP::getThreadId()];
     const libint2::Engine::target_ptr_vec& buf = engine.results();
 
