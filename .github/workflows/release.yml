@@ -49,7 +49,6 @@ jobs:
           if ${{ github.event.inputs.deploy == 'yesyesyes' }}; then
             echo "::set-output name=DEPLOY::true"
           else
-            echo "::set-output name=DEPLOY::false"
             echo "::set-output name=DRY_RUN::--dry-run"
           fi
       - uses: actions/cache@v2
@@ -66,7 +65,7 @@ jobs:
             git -C $p log -p --submodule origin/${{ steps.setup.outputs.BRANCH }}..${{ steps.setup.outputs.BRANCH }}
           done
       - name: Upload manual as artifact
-        if: ${{ ! steps.setup.outputs.DEPLOY }}
+        if: ${{ steps.setup.outputs.DEPLOY != 'true' }}
         uses: actions/upload-artifact@v2
         with:
           name: csg-manual
@@ -84,7 +83,7 @@ jobs:
             git -C $p push ${{ steps.setup.outputs.DRY_RUN }} --tags origin ${{ steps.setup.outputs.BRANCH }}:${{ steps.setup.outputs.BRANCH }}
           done
       - name: Create Release
-        if: ${{ steps.setup.outputs.DEPLOY }}
+        if: ${{ steps.setup.outputs.DEPLOY == 'true' }}
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -94,7 +93,7 @@ jobs:
           release_name: v${{ steps.setup.outputs.VERSION }}
           prerelease: ${{ contains(steps.setup.outputs.VERSION, 'rc') }}
       - name: Add Manual to release
-        if: ${{ steps.setup.outputs.DEPLOY }}
+        if: ${{ steps.setup.outputs.DEPLOY == 'true' }}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
