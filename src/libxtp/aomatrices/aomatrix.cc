@@ -19,12 +19,10 @@
 
 // Standard includes
 #include "votca/xtp/make_libint_work.h"
-#include <libint2.hpp>
 #include <vector>
-
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
-
+#include <libint2.hpp>
 namespace votca {
 namespace xtp {
 
