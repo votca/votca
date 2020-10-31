@@ -247,7 +247,7 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
   }
   std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
 
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(dynamic)
   for (Index aux = 0; aux < Index(auxshells.size()); aux++) {
     const libint2::Shell& auxshell = auxshells[aux];
 
