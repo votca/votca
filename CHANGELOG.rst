@@ -40,7 +40,7 @@ Version 1.6.3 (released XX.08.20)
 =================================
 
 -  switch to ghcr.io for CI (#297)
--  use master .clang-format in format action (#304)
+-  use master .clang-format in format action (#304, #307)
 
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
