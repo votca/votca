@@ -22,6 +22,7 @@
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/qmmolecule.h"
+// include libint last otherwise it overrides eigen
 #include <libint2.hpp>
 
 namespace votca {

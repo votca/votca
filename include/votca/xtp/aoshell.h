@@ -31,7 +31,7 @@
 #include "basisset.h"
 #include "eigen.h"
 #include "qmatom.h"
-
+// include libint last otherwise it overrides eigen
 #include <libint2/shell.h>
 
 namespace votca {

@@ -22,6 +22,8 @@
 #include <vector>
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
+
+// include libint last otherwise it overrides eigen
 #include <libint2.hpp>
 namespace votca {
 namespace xtp {

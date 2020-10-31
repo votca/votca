@@ -22,6 +22,8 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/symmetric_matrix.h"
+
+// include libint last otherwise it overrides eigen
 #include <libint2.hpp>
 namespace votca {
 namespace xtp {
