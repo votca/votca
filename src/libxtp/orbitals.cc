@@ -25,8 +25,8 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/aomatrix3d.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/vc2index.h"
 #include "votca/xtp/version.h"
@@ -567,8 +567,6 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_number_alpha_electrons, "number_alpha_electrons");
   int version;
   r(version, "version");
-  r(_mos, "mos");
-
   // Read qmatoms
   CheckpointReader molgroup = r.openChild("qmmolecule");
   _atoms.ReadFromCpt(molgroup);
@@ -578,6 +576,27 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(_dftbasis, "dftbasis");
   r(_auxbasis, "auxbasis");
+
+  r(version, "version");
+  r(_mos, "mos");
+  if (version < 3) {
+    // clang-format off
+    std::array<Index, 49> votcaOrder_old = {
+        0,                             // s
+        0, -1, 1,                      // p
+        0, -1, 1, -2, 2,               // d
+        0, -1, 1, -2, 2, -3, 3,        // f
+        0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
+    };
+    // clang-format on
+
+    std::array<Index, 49> multiplier;
+    multiplier.fill(1);
+    OrbReorder ord(votcaOrder_old, multiplier);
+    ord.reorderOrbitals(_mos.eigenvectors(), this->SetupDftBasis());
+  }
 
   r(_rpamin, "rpamin");
   r(_rpamax, "rpamax");

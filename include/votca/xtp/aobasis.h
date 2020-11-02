@@ -23,7 +23,9 @@
 
 // Local VOTCA includes
 #include "aoshell.h"
+#include "checkpoint.h"
 #include "eigen.h"
+#include <libint2/shell.h>
 
 namespace votca {
 namespace xtp {
@@ -51,10 +53,38 @@ class AOBasis {
 
   Index getNumofShells() const { return Index(_aoshells.size()); }
 
+  Index getMaxNprim() const;
+
+  Index getMaxL() const;
+
+  std::vector<Index> getMapToBasisFunctions() const;
+
   const std::vector<Index>& getFuncPerAtom() const { return _FuncperAtom; }
 
- private:
+  std::vector<libint2::Shell> GenerateLibintBasis() const;
+
+  std::vector<std::vector<Index>> ComputeShellPairs(
+      double threshold = 1e-20) const;
+
   AOShell& addShell(const Shell& shell, const QMAtom& atom, Index startIndex);
+
+  const std::string& Name() const { return _name; }
+
+  void UpdateShellPositions(const QMMolecule& mol);
+
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r);
+
+  void add(const AOBasis& other);
+
+  friend std::ostream& operator<<(std::ostream& out, const AOBasis& aobasis);
+
+ private:
+  void FillFuncperAtom();
+
+  void clear();
+  std::string _name = "";
 
   std::vector<AOShell> _aoshells;
 

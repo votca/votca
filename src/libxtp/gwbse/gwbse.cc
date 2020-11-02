@@ -30,6 +30,7 @@
 #include "votca/xtp/ecpbasisset.h"
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/logger.h"
+#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
@@ -583,6 +584,11 @@ bool GWBSE::Evaluate() {
     XTP_LOG(Log::error, *_pLog)
         << TimeStamp()
         << " Using native Eigen implementation, no BLAS overload " << flush;
+  }
+  if (OpenMP_CUDA::UsingGPU()) {
+    XTP_LOG(Log::error, *_pLog)
+        << TimeStamp() << " Using CUDA support for tensor multiplication "
+        << flush;
   }
 
   XTP_LOG(Log::error, *_pLog)

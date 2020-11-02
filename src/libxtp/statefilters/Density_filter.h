@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_DENSITY_FILTER_PRIVATE_H
-#define VOTCA_XTP_DENSITY_FILTER_PRIVATE_H
+#ifndef VOTCA_XTP_DENSITY_FILTER_H
+#define VOTCA_XTP_DENSITY_FILTER_H
 
 // Local VOTCA includes
 #include "votca/xtp/statefilter_base.h"
@@ -62,4 +62,4 @@ class Density_filter : public StateFilter_base {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_OSCILLATORSTRENGTH_FILTER_PRIVATE_H
+#endif  // VOTCA_XTP_DENSITY_FILTER_H

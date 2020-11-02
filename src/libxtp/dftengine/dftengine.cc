@@ -17,9 +17,6 @@
  *
  */
 
-// Standard includes
-#include <vector>
-
 // Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -29,9 +26,7 @@
 #include <votca/tools/elements.h>
 
 // Local VOTCA includes
-#include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/aomatrix3d.h"
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/dftengine.h"
@@ -39,7 +34,6 @@
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
-#include "votca/xtp/qmmolecule.h"
 
 using boost::format;
 using namespace boost::filesystem;
@@ -157,22 +151,28 @@ void DFTEngine::CalcElDipole(const Orbitals& orb) const {
   return;
 }
 
-Mat_p_Energy DFTEngine::CalcEXXs(const Eigen::MatrixXd& MOCoeff,
-                                 const Eigen::MatrixXd& Dmat) const {
+std::array<Eigen::MatrixXd, 2> DFTEngine::CalcERIs_EXX(
+    const Eigen::MatrixXd& MOCoeff, const Eigen::MatrixXd& Dmat,
+    double error) const {
   if (_four_center_method == "RI") {
     if (_conv_accelerator.getUseMixing() || MOCoeff.rows() == 0) {
-      return _ERIs.CalculateEXX(Dmat);
+      return _ERIs.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dmat);
     } else {
       Eigen::MatrixXd occblock =
           MOCoeff.block(0, 0, MOCoeff.rows(), _numofelectrons / 2);
-      return _ERIs.CalculateEXX(occblock, Dmat);
+      return _ERIs.CalculateERIs_EXX_3c(occblock, Dmat);
     }
   } else {
-    if (_four_center_method == "direct") {
-      throw std::runtime_error(
-          "direct 4c method only works with LDA and GGA functionals.");
-    }
-    return _ERIs.CalculateEXX_4c_small_molecule(Dmat);
+    return _ERIs.CalculateERIs_EXX_4c(Dmat, error);
+  }
+}
+
+Eigen::MatrixXd DFTEngine::CalcERIs(const Eigen::MatrixXd& Dmat,
+                                    double error) const {
+  if (_four_center_method == "RI") {
+    return _ERIs.CalculateERIs_3c(Dmat);
+  } else {
+    return _ERIs.CalculateERIs_4c(Dmat, error);
   }
 }
 
@@ -185,15 +185,19 @@ tools::EigenSystem DFTEngine::ModelPotentialGuess(
     const Mat_p_Energy& H0, const QMMolecule& mol,
     const Vxc_Potential<Vxc_Grid>& vxcpotential) const {
   Eigen::MatrixXd Dmat = AtomicGuess(mol);
-  Mat_p_Energy ERIs = CalculateERIs(Dmat);
   Mat_p_Energy e_vxc = vxcpotential.IntegrateVXC(Dmat);
   XTP_LOG(Log::info, *_pLog)
       << TimeStamp() << " Filled DFT Vxc matrix " << flush;
 
-  Eigen::MatrixXd H = H0.matrix() + ERIs.matrix() + e_vxc.matrix();
+  Eigen::MatrixXd H = H0.matrix() + e_vxc.matrix();
+
   if (_ScaHFX > 0) {
-    Mat_p_Energy EXXs = CalcEXXs(Eigen::MatrixXd::Zero(0, 0), Dmat);
-    H -= 0.5 * _ScaHFX * EXXs.matrix();
+    std::array<Eigen::MatrixXd, 2> both =
+        CalcERIs_EXX(Eigen::MatrixXd::Zero(0, 0), Dmat, 1e-12);
+    H += both[0];
+    H += _ScaHFX * both[1];
+  } else {
+    H += CalcERIs(Dmat, 1e-12);
   }
   return _conv_accelerator.SolveFockmatrix(H);
 }
@@ -246,18 +250,27 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     XTP_LOG(Log::info, *_pLog)
         << TimeStamp() << " Filled DFT Vxc matrix " << flush;
 
-    Mat_p_Energy ERIs = CalculateERIs(Dmat);
-    Eigen::MatrixXd H = H0.matrix() + ERIs.matrix() + e_vxc.matrix();
+    Eigen::MatrixXd H = H0.matrix() + e_vxc.matrix();
     double Eone = Dmat.cwiseProduct(H0.matrix()).sum();
-    double Etwo = 0.5 * ERIs.energy() + e_vxc.energy();
+    double Etwo = e_vxc.energy();
     double exx = 0.0;
+
     if (_ScaHFX > 0) {
-      Mat_p_Energy EXXs = CalcEXXs(MOs.eigenvectors(), Dmat);
+      std::array<Eigen::MatrixXd, 2> both =
+          CalcERIs_EXX(MOs.eigenvectors(), Dmat, 1e-12);
+      H += both[0];
+      Etwo += 0.5 * Dmat.cwiseProduct(both[0]).sum();
+      H += 0.5 * _ScaHFX * both[1];
+      exx = _ScaHFX / 4 * Dmat.cwiseProduct(both[1]).sum();
       XTP_LOG(Log::info, *_pLog)
-          << TimeStamp() << " Filled DFT Electron exchange matrix" << flush;
-      H -= 0.5 * _ScaHFX * EXXs.matrix();
-      exx = -_ScaHFX / 4 * EXXs.energy();
+          << TimeStamp() << " Filled F+K matrix " << flush;
+    } else {
+      Eigen::MatrixXd Hartree = CalcERIs(Dmat, 1e-12);
+      XTP_LOG(Log::info, *_pLog) << TimeStamp() << " Filled F matrix " << flush;
+      H += Hartree;
+      Etwo += 0.5 * Dmat.cwiseProduct(Hartree).sum();
     }
+
     Etwo += exx;
     double totenergy = Eone + H0.energy() + Etwo;
     XTP_LOG(Log::info, *_pLog) << TimeStamp() << " Single particle energy "
@@ -302,16 +315,6 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
             << TimeStamp() << std::setprecision(12)
             << " Final Non Local Ex contribution " << exx << " Ha" << flush;
       }
-
-      Mat_p_Energy EXXs = CalcEXXs(MOs.eigenvectors(), Dmat);
-      exx = -1.0 / 4.0 * EXXs.energy();
-      XTP_LOG(Log::error, *_pLog) << TimeStamp() << std::setprecision(12)
-                                  << " EXX energy " << exx << " Ha" << flush;
-
-      XTP_LOG(Log::error, *_pLog)
-          << TimeStamp() << std::setprecision(12) << " Final EXX Total energy "
-          << totenergy - e_vxc.energy() + (1.0 - _ScaHFX) * exx << " Ha"
-          << flush;
 
       PrintMOs(MOs.eigenvalues(), Log::error);
       orb.setQMEnergy(totenergy);
@@ -408,7 +411,7 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
     Mat_p_Energy extdensity_result = IntegrateExternalDensity(mol, extdensity);
     E0 += extdensity_result.energy();
     XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Nuclei- external density interaction energy "
+        << TimeStamp() << " Nuclei-external density interaction energy "
         << std::setprecision(9) << extdensity_result.energy() << flush;
     H0 += extdensity_result.matrix();
   }
@@ -447,23 +450,11 @@ void DFTEngine::SetupInvariantMatrices() {
         << TimeStamp()
         << " Setup invariant parts of Electron Repulsion integrals " << flush;
   } else {
-
-    if (_four_center_method == "cache") {
-
-      XTP_LOG(Log::info, *_pLog)
-          << TimeStamp() << " Calculating 4c integrals. " << flush;
-      _ERIs.Initialize_4c_small_molecule(_dftbasis);
-      XTP_LOG(Log::error, *_pLog)
-          << TimeStamp() << " Calculated 4c integrals. " << flush;
-    }
-
-    if (_with_screening && _four_center_method == "direct") {
-      XTP_LOG(Log::info, *_pLog)
-          << TimeStamp() << " Calculating 4c diagonals. " << flush;
-      _ERIs.Initialize_4c_screening(_dftbasis, _screening_eps);
-      XTP_LOG(Log::info, *_pLog)
-          << TimeStamp() << " Calculated 4c diagonals. " << flush;
-    }
+    XTP_LOG(Log::info, *_pLog)
+        << TimeStamp() << " Calculating 4c diagonals. " << flush;
+    _ERIs.Initialize_4c(_dftbasis);
+    XTP_LOG(Log::info, *_pLog)
+        << TimeStamp() << " Calculated 4c diagonals. " << flush;
   }
 
   return;
@@ -519,7 +510,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   dftAOkinetic.Fill(dftbasis);
 
   dftAOESP.FillPotential(dftbasis, atom);
-  ERIs_atom.Initialize_4c_small_molecule(dftbasis);
+  ERIs_atom.Initialize_4c(dftbasis);
 
   ConvergenceAcc Convergence_alpha;
   ConvergenceAcc Convergence_beta;
@@ -561,38 +552,43 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
 
   Index maxiter = 80;
   for (Index this_iter = 0; this_iter < maxiter; this_iter++) {
-    Mat_p_Energy ERIs = ERIs_atom.CalculateERIs_4c_small_molecule(
-        dftAOdmat_alpha + dftAOdmat_beta);
-    double E_two_alpha = ERIs.matrix().cwiseProduct(dftAOdmat_alpha).sum();
-    double E_two_beta = ERIs.matrix().cwiseProduct(dftAOdmat_beta).sum();
-    Eigen::MatrixXd H_alpha = H0 + ERIs.matrix();
-    Eigen::MatrixXd H_beta = H0 + ERIs.matrix();
 
-    Mat_p_Energy e_vxc = gridIntegration.IntegrateVXC(dftAOdmat_alpha);
-    Eigen::MatrixXd AOVxc_alpha = e_vxc.matrix();
-    double E_vxc_alpha = e_vxc.energy();
-    H_alpha += AOVxc_alpha;
-    E_two_alpha += E_vxc_alpha;
+    Eigen::MatrixXd H_alpha = H0;
+    Eigen::MatrixXd H_beta = H_alpha;
 
-    e_vxc = gridIntegration.IntegrateVXC(dftAOdmat_beta);
-    Eigen::MatrixXd AOVxc_beta = e_vxc.matrix();
-    double E_vxc_beta = e_vxc.energy();
-    H_beta += AOVxc_beta;
-    E_two_beta += E_vxc_beta;
+    double E_two_alpha = 0.0;
+    double E_two_beta = 0.0;
 
     if (_ScaHFX > 0) {
-      Mat_p_Energy EXXs =
-          ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_alpha);
-      double E_exx_alpha =
-          -0.5 * _ScaHFX * EXXs.matrix().cwiseProduct(dftAOdmat_alpha).sum();
-      H_alpha -= _ScaHFX * EXXs.matrix();
-      E_two_alpha += E_exx_alpha;
-      ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_beta);
-      double E_exx_beta =
-          -0.5 * _ScaHFX * EXXs.matrix().cwiseProduct(dftAOdmat_beta).sum();
-      H_beta -= _ScaHFX * EXXs.matrix();
-      E_two_beta += E_exx_beta;
+      std::array<Eigen::MatrixXd, 2> both_alpha =
+          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_alpha, 1e-15);
+
+      std::array<Eigen::MatrixXd, 2> both_beta =
+          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_beta, 1e-15);
+      Eigen::MatrixXd Hartree = both_alpha[0] + both_beta[0];
+      E_two_alpha += Hartree.cwiseProduct(dftAOdmat_alpha).sum();
+      E_two_beta += Hartree.cwiseProduct(dftAOdmat_beta).sum();
+      E_two_alpha += 0.5 * both_alpha[1].cwiseProduct(dftAOdmat_alpha).sum();
+      E_two_beta += 0.5 * both_beta[1].cwiseProduct(dftAOdmat_beta).sum();
+      H_alpha += Hartree + _ScaHFX * both_alpha[1];
+      H_beta += Hartree + _ScaHFX * both_beta[1];
+
+    } else {
+      Eigen::MatrixXd Hartree =
+          ERIs_atom.CalculateERIs_4c(dftAOdmat_alpha + dftAOdmat_beta, 1e-15);
+      E_two_alpha += Hartree.cwiseProduct(dftAOdmat_alpha).sum();
+      E_two_beta += Hartree.cwiseProduct(dftAOdmat_beta).sum();
+      H_alpha += Hartree;
+      H_beta += Hartree;
     }
+
+    Mat_p_Energy e_vxc_alpha = gridIntegration.IntegrateVXC(dftAOdmat_alpha);
+    H_alpha += e_vxc_alpha.matrix();
+    E_two_alpha += e_vxc_alpha.energy();
+
+    Mat_p_Energy e_vxc_beta = gridIntegration.IntegrateVXC(dftAOdmat_beta);
+    H_beta += e_vxc_beta.matrix();
+    E_two_beta += e_vxc_beta.energy();
 
     double E_one_alpha = dftAOdmat_alpha.cwiseProduct(H0).sum();
     double E_one_beta = dftAOdmat_beta.cwiseProduct(H0).sum();
@@ -854,55 +850,32 @@ double DFTEngine::NuclearRepulsion(const QMMolecule& mol) const {
   return E_nucnuc;
 }
 
-// average atom densities matrices, for SP and other combined shells average
-// each subshell separately.
+// spherically average the density matrix belonging to two shells
 Eigen::MatrixXd DFTEngine::SphericalAverageShells(
     const Eigen::MatrixXd& dmat, const AOBasis& dftbasis) const {
   Eigen::MatrixXd avdmat = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
-  Index start = 0.0;
-  std::vector<Index> starts;
-  std::vector<Index> ends;
-  for (const AOShell& shell : dftbasis) {
-    Index end = shell.getNumFunc() + start;
-    starts.push_back(start);
-    ends.push_back(end);
-    start = end;
-  }
-  for (Index k = 0; k < Index(starts.size()); k++) {
-    Index s1 = starts[k];
-    Index e1 = ends[k];
-    Index len1 = e1 - s1;
-    for (Index l = 0; l < Index(starts.size()); l++) {
-      Index s2 = starts[l];
-      Index e2 = ends[l];
-      Index len2 = e2 - s2;
-      double diag = 0.0;
-      double offdiag = 0.0;
-      for (Index i = 0; i < len1; ++i) {
-        for (Index j = 0; j < len2; ++j) {
-          if (i == j) {
-            diag += dmat(s1 + i, s2 + j);
-          } else {
-            offdiag += dmat(s1 + i, s2 + j);
-          }
-        }
-      }
-      if (len1 == len2) {
-        diag = diag / double(len1);
-        offdiag = offdiag / double(len1 * (len1 - 1));
+  for (const AOShell& shellrow : dftbasis) {
+    Index size_row = shellrow.getNumFunc();
+    Index start_row = shellrow.getStartIndex();
+    for (const AOShell& shellcol : dftbasis) {
+      Index size_col = shellcol.getNumFunc();
+      Index start_col = shellcol.getStartIndex();
+      Eigen::MatrixXd shelldmat =
+          dmat.block(start_row, start_col, size_row, size_col);
+      if (shellrow.getL() == shellcol.getL()) {
+        double diagavg = shelldmat.diagonal().sum() / double(shelldmat.rows());
+        Index offdiagelements =
+            shelldmat.rows() * shelldmat.cols() - shelldmat.cols();
+        double offdiagavg = (shelldmat.sum() - shelldmat.diagonal().sum()) /
+                            double(offdiagelements);
+        avdmat.block(start_row, start_col, size_row, size_col).array() =
+            offdiagavg;
+        avdmat.block(start_row, start_col, size_row, size_col)
+            .diagonal()
+            .array() = diagavg;
       } else {
-        double avg = (diag + offdiag) / double(len1 * len2);
-        diag = avg;
-        offdiag = avg;
-      }
-      for (Index i = 0; i < len1; ++i) {
-        for (Index j = 0; j < len2; ++j) {
-          if (i == j) {
-            avdmat(s1 + i, s2 + j) = diag;
-          } else {
-            avdmat(s1 + i, s2 + j) = offdiag;
-          }
-        }
+        double avg = shelldmat.sum() / double(shelldmat.size());
+        avdmat.block(start_row, start_col, size_row, size_col).array() = avg;
       }
     }
   }
@@ -1000,18 +973,6 @@ Mat_p_Energy DFTEngine::IntegrateExternalDensity(
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Electrostatic: " << nuc_energy << flush;
   return Mat_p_Energy(nuc_energy, e_contrib + esp.Matrix());
-}
-
-Mat_p_Energy DFTEngine::CalculateERIs(const Eigen::MatrixXd& DMAT) const {
-  if (_four_center_method == "RI") {
-    return _ERIs.CalculateERIs(DMAT);
-  } else if (_four_center_method == "cache") {
-    return _ERIs.CalculateERIs_4c_small_molecule(DMAT);
-  } else if (_four_center_method == "direct") {
-    return _ERIs.CalculateERIs_4c_direct(_dftbasis, DMAT);
-  } else {
-    throw std::runtime_error("ERI method not known.");
-  }
 }
 
 Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(

@@ -293,7 +293,6 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     std::string qmpackage_work_dir =
         (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir)
             .generic_string();
-    ;
 
     Logger dft_logger(Log::current_level);
     dft_logger.setMultithreading(false);

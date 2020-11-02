@@ -426,7 +426,8 @@ class Orbitals {
   bool _use_Hqp_offdiag = true;
 
   // Version 2: adds BSE energies after perturbative dynamical screening
-  static constexpr int orbitals_version() { return 2; }
+  // Version 3 changed shell ordering
+  static constexpr int orbitals_version() { return 3; }
 };
 
 }  // namespace xtp

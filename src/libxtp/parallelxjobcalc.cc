@@ -22,6 +22,7 @@
 // Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <libint2/initialize.h>
 
 // Local VOTCA includes
 #include "votca/xtp/parallelxjobcalc.h"
@@ -33,7 +34,7 @@ namespace xtp {
 
 template <typename JobContainer>
 bool ParallelXJobCalc<JobContainer>::Evaluate(const Topology &top) {
-
+  libint2::initialize();
   // INITIALIZE PROGRESS OBSERVER
   std::string progFile = _jobfile;
   std::unique_ptr<JobOperator> master = std::unique_ptr<JobOperator>(
@@ -80,7 +81,7 @@ bool ParallelXJobCalc<JobContainer>::Evaluate(const Topology &top) {
 
   // SYNC REMAINING COMPLETE JOBS
   _progObs->SyncWithProgFile(*(master.get()));
-
+  libint2::finalize();
   return true;
 }
 

@@ -28,12 +28,12 @@
 
 // Local VOTCA includes
 #include "votca/xtp/statetracker.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace std;
 BOOST_AUTO_TEST_SUITE(statetracker_test)
 BOOST_AUTO_TEST_CASE(osc) {
-
+  libint2::initialize();
   Orbitals orb;
   orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                              "/statetracker/molecule.xyz");
@@ -75,6 +75,7 @@ BOOST_AUTO_TEST_CASE(osc) {
     BOOST_CHECK_EQUAL(newstate.Type().ToString(), "s");
     BOOST_CHECK_EQUAL(newstate.StateIdx(), 1);
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(readwrite_hdf5) {

@@ -14,7 +14,7 @@ set_target_properties(votca_xtp PROPERTIES SOVERSION ${SOVERSION})
 set_target_properties(votca_xtp PROPERTIES VOTCA_SHARE ${PROJECT_SOURCE_DIR}/share)
 set_target_properties(votca_xtp PROPERTIES XTP_PATH ${_PARENT_PATH}/tools)
 add_dependencies(votca_xtp gitversion-xtp)
-target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE PkgConfig::LIBXC Boost::program_options Boost::filesystem Boost::system Boost::timer )
+target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE PkgConfig::LIBXC PkgConfig::LIBINT Boost::program_options Boost::filesystem Boost::system Boost::timer )
 
 if(OpenMP_FOUND)
   target_link_libraries(votca_xtp PUBLIC OpenMP::OpenMP_CXX)

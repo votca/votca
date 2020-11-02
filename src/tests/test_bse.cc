@@ -27,90 +27,22 @@
 #include "votca/xtp/bse.h"
 #include "votca/xtp/convergenceacc.h"
 #include "votca/xtp/qmfragment.h"
-
+#include <libint2/initialize.h>
+#include <votca/tools/eigenio_matrixmarket.h>
 using namespace votca::xtp;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(bse_test)
 
 BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
-
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " C            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
-  xyzfile.close();
-
-  ofstream basisfile("3-21G.xml");
-  basisfile << "<basis name=\"3-21G\">" << endl;
-  basisfile << "  <element name=\"H\">" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"5.447178e+00\">" << endl;
-  basisfile << "        <contractions factor=\"1.562850e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"8.245470e-01\">" << endl;
-  basisfile << "        <contractions factor=\"9.046910e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"1.831920e-01\">" << endl;
-  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "  </element>" << endl;
-  basisfile << "  <element name=\"C\">" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
-  basisfile << "      <constant decay=\"1.722560e+02\">" << endl;
-  basisfile << "        <contractions factor=\"6.176690e-02\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"2.591090e+01\">" << endl;
-  basisfile << "        <contractions factor=\"3.587940e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"5.533350e+00\">" << endl;
-  basisfile << "        <contractions factor=\"7.007130e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
-  basisfile << "      <constant decay=\"3.664980e+00\">" << endl;
-  basisfile << "        <contractions factor=\"-3.958970e-01\" type=\"S\"/>"
-            << endl;
-  basisfile << "        <contractions factor=\"2.364600e-01\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "      <constant decay=\"7.705450e-01\">" << endl;
-  basisfile << "        <contractions factor=\"1.215840e+00\" type=\"S\"/>"
-            << endl;
-  basisfile << "        <contractions factor=\"8.606190e-01\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
-  basisfile << "      <constant decay=\"1.958570e-01\">" << endl;
-  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
-            << endl;
-  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>"
-            << endl;
-  basisfile << "      </constant>" << endl;
-  basisfile << "    </shell>" << endl;
-  basisfile << "  </element>" << endl;
-  basisfile << "</basis>" << endl;
-  basisfile.close();
-
+  libint2::initialize();
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/bse/molecule.xyz");
   BasisSet basis;
-  basis.Load("3-21G.xml");
-  orbitals.setDFTbasisName("3-21G.xml");
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/bse/3-21G.xml");
+  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+                           "/bse/3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
 
@@ -607,6 +539,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << Hqp_extended_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_hqp_extended, true);
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

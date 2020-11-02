@@ -148,7 +148,6 @@ bool CheckShellType(const std::string& shelltype) {
 
 void BasisSet::Load(const std::string& name) {
 
-  _name = name;
   // if name contains .xml, assume a basisset .xml file is located in the
   // working directory
   std::size_t found_xml = name.find(".xml");
@@ -160,6 +159,7 @@ void BasisSet::Load(const std::string& name) {
   }
   tools::Property basis_property;
   basis_property.LoadFromXML(xmlFile);
+  _name = basis_property.get("basis").getAttribute<std::string>("name");
   std::vector<tools::Property*> elementProps =
       basis_property.Select("basis.element");
 
