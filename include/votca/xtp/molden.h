@@ -39,7 +39,7 @@ class Molden {
   void WriteFile(const std::string& filename, const Orbitals& orbitals) const;
 
   void setBasissetInfo(const std::string& basisset_name,
-                       const std::string& aux_basisset_name) {
+                       const std::string& aux_basisset_name = "") {
     _basisset_name = basisset_name;
     _aux_basisset_name = aux_basisset_name;
   }

@@ -34,6 +34,7 @@
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/molden.h"
 
 // Local private VOTCA includes
 #include "orca.h"
@@ -722,8 +723,7 @@ bool Orca::CheckLogFile() {
   return true;
 }
 
-// Parses the Orca gbw file and stores data in the Orbitals object
-
+// Parses the molden file from orca and stores data in the Orbitals object
 bool Orca::ParseMOsFile(Orbitals& orbitals) {
   if (!CheckLogFile()) {
     return false;
@@ -735,60 +735,13 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
         "Basis size not set, calculator does not parse log file first");
   }
 
-  XTP_LOG(Log::error, *_pLog)
-      << "Reading the gbw file, this may or may not work so be careful: "
-      << flush;
-  ifstream infile;
-  infile.open(_run_dir + "/" + _mo_file_name, ios::binary | ios::in);
-  if (!infile) {
-    throw runtime_error("Could not open " + _mo_file_name + " file");
-  }
-  infile.seekg(24, ios::beg);
-  std::array<char, 8> buffer;
-  infile.read(buffer.data(), 8);
-  if (!infile) {
-    infile.close();
-    return false;
-  }
-  Index offset = *((Index*)buffer.data());
+  XTP_LOG(Log::error, *_pLog) << "Reading Molden file" << flush;
 
-  infile.seekg(offset, ios::beg);
-  infile.read(buffer.data(), 4);
-  if (!infile) {
-    infile.close();
-    return false;
-  }
-  int op_read = *((int*)buffer.data());
-  infile.seekg(offset + 4, ios::beg);
-  infile.read(buffer.data(), 4);
-  if (!infile) {
-    infile.close();
-    return false;
-  }
-  int dim_read = *((int*)buffer.data());
-  infile.seekg(offset + 8, ios::beg);
-  XTP_LOG(Log::info, *_pLog) << "Number of operators: " << op_read
-                             << " Basis dimension: " << dim_read << flush;
-  Index n = op_read * dim_read * dim_read;
-  for (Index i = 0; i < n; i++) {
-    infile.read(buffer.data(), 8);
-    if (!infile) {
-      infile.close();
-      return false;
-    }
-    double mocoeff = *((double*)buffer.data());
-    coefficients.push_back(mocoeff);
-  }
+  Molden molden(*_pLog);
+  molden.setBasissetInfo(_basisset_name);
+  molden.parseMoldenFile(_base_name + ".molden.input", orbitals);
 
-  infile.close();
-  // i -> MO, j -> AO
-  orbitals.MOs().eigenvectors().resize(basis_size, basis_size);
-  for (Index i = 0; i < basis_size; i++) {
-    for (Index j = 0; j < basis_size; j++) {
-      orbitals.MOs().eigenvectors()(j, i) = coefficients[j * basis_size + i];
-    }
-  }
-  ReorderOutput(orbitals);
+
   XTP_LOG(Log::error, *_pLog) << "Done parsing" << flush;
   return true;
 }
