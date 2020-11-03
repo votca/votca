@@ -208,7 +208,7 @@ void Molden::parseMoldenFile(const std::string& filename,
   std::ifstream input_file(filename);
   // Check if succesfull
   if (input_file.fail()) {
-    throw std::runtime_error("Could not open molden file.");
+    throw std::runtime_error("Could not open molden file with name: " + filename);
   }
 
   std::string line;

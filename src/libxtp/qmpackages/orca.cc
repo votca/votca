@@ -738,7 +738,13 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   XTP_LOG(Log::error, *_pLog) << "Reading Molden file" << flush;
 
   Molden molden(*_pLog);
-  molden.setBasissetInfo(_basisset_name);
+
+  if (orbitals.getDFTbasisName() == ""){
+    throw runtime_error(
+      "Basisset names should be set before reading the molden file.");
+  }
+
+  molden.setBasissetInfo(orbitals.getDFTbasisName());
   molden.parseMoldenFile(_base_name + ".molden.input", orbitals);
 
 
