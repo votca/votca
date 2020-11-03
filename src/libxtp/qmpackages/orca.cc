@@ -33,8 +33,8 @@
 #include "votca/tools/globals.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpaobasis.h"
-#include "votca/xtp/orbitals.h"
 #include "votca/xtp/molden.h"
+#include "votca/xtp/orbitals.h"
 
 // Local private VOTCA includes
 #include "orca.h"
@@ -52,7 +52,6 @@ void Orca::Initialize(const tools::Property& options) {
       options.ifExistsReturnElseReturnDefault<std::string>("job_name",
                                                            "system");
 
-  _base_name = fileName;
   _input_file_name = fileName + ".inp";
   _log_file_name = fileName + ".log";
   _shell_file_name = fileName + ".sh";
@@ -313,7 +312,8 @@ bool Orca::WriteShellScript() {
   }
   shell_file << _settings.get("executable") << " " << _input_file_name << " > "
              << _log_file_name << endl;  //" 2> run.error" << endl;
-  shell_file << "orca_2mkl " << _base_name << " -molden"<< endl;
+  std::string base_name = _mo_file_name.substr(0, _mo_file_name.size() - 4);
+  shell_file << "orca_2mkl " << base_name << " -molden" << endl;
   shell_file.close();
   return true;
 }
@@ -739,14 +739,14 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
 
   Molden molden(*_pLog);
 
-  if (orbitals.getDFTbasisName() == ""){
+  if (orbitals.getDFTbasisName() == "") {
     throw runtime_error(
-      "Basisset names should be set before reading the molden file.");
+        "Basisset names should be set before reading the molden file.");
   }
 
   molden.setBasissetInfo(orbitals.getDFTbasisName());
-  molden.parseMoldenFile(_base_name + ".molden.input", orbitals);
-
+  std::string base_name = _mo_file_name.substr(0, _mo_file_name.size() - 4);
+  molden.parseMoldenFile(base_name + ".molden.input", orbitals);
 
   XTP_LOG(Log::error, *_pLog) << "Done parsing" << flush;
   return true;

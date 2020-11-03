@@ -87,7 +87,6 @@ class Orca : public QMPackage {
             0,1,-1,2,-2,3,-3,4,-4,5,-5, //h
             0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 //i
             }};
-  std::string _base_name;
 
   // clang-format on
   std::string indent(const double& number);
