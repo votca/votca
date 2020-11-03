@@ -69,8 +69,8 @@ class Molden {
             0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 //i
             }};
   // clang-format on
-  std::string _basisset_name;
-  std::string _aux_basisset_name;
+  std::string _basisset_name = "";
+  std::string _aux_basisset_name = "";
 
   void writeAtoms(const Orbitals& orbitals, std::ofstream& outFile) const;
   void writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const;
