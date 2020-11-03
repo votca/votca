@@ -51,6 +51,7 @@ void Orca::Initialize(const tools::Property& options) {
       options.ifExistsReturnElseReturnDefault<std::string>("job_name",
                                                            "system");
 
+  _base_name = fileName;
   _input_file_name = fileName + ".inp";
   _log_file_name = fileName + ".log";
   _shell_file_name = fileName + ".sh";
@@ -311,6 +312,7 @@ bool Orca::WriteShellScript() {
   }
   shell_file << _settings.get("executable") << " " << _input_file_name << " > "
              << _log_file_name << endl;  //" 2> run.error" << endl;
+  shell_file << "orca_2mkl " << _base_name << " -molden"<< endl;
   shell_file.close();
   return true;
 }
