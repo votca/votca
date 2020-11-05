@@ -24,7 +24,7 @@ Dependency Installation
 `Fedora <https://github.com/votca/buildenv/blob/9dc655bacbb75d8ddc2416f9c3f5bf5529de3e6b/fedora#L10-L15>`_
 
 If you have an older version of a distribution cmake can automatically install the correct Gromacs and libint version by
-adding ``-DINSTALL_OWN_GROMACS=ON`` or ``-DINSTALL_OWN_LIBINT=ON`` to your cmake command. 
+adding ``-DBUILD_OWN_GROMACS_OWN_GROMACS=ON`` or ``-DBUILD_OWN_GROMACS_OWN_LIBINT=ON`` to your cmake command. 
 
 
 Resolving the 'not found' dependency errors
