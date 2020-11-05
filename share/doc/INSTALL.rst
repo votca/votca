@@ -19,7 +19,7 @@ To install the full package:
 Dependency Installation
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-`Ubuntu <https://github.com/votca/buildenv/blob/9dc655bacbb75d8ddc2416f9c3f5bf5529de3e6b/ubuntu#L10-L13>`_
+`Ubuntu <https://github.com/votca/buildenv/blob/master/ubuntu#L10-L13>`_
 
 `Fedora <https://github.com/votca/buildenv/blob/9dc655bacbb75d8ddc2416f9c3f5bf5529de3e6b/fedora#L10-L15>`_
 
