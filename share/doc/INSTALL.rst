@@ -21,7 +21,7 @@ Dependency Installation
 
 `Ubuntu <https://github.com/votca/buildenv/blob/master/ubuntu#L10-L13>`_
 
-`Fedora <https://github.com/votca/buildenv/blob/9dc655bacbb75d8ddc2416f9c3f5bf5529de3e6b/fedora#L10-L15>`_
+`Fedora <https://github.com/votca/buildenv/blob/master/fedora#L10-L15>`_
 
 If you have an older version of a distribution cmake can automatically install the correct Gromacs and libint version by
 adding ``-DBUILD_OWN_GROMACS_OWN_GROMACS=ON`` or ``-DBUILD_OWN_GROMACS_OWN_LIBINT=ON`` to your cmake command. 
