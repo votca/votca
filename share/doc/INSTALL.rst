@@ -19,35 +19,12 @@ To install the full package:
 Dependency Installation
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Ubuntu
-^^^^^^
+`Ubuntu <https://github.com/votca/buildenv/blob/master/ubuntu#L10-L13>`_
 
-Dependencies for core functionality
+`Fedora <https://github.com/votca/buildenv/blob/master/fedora#L10-L15>`_
 
-::
-
-    apt-get install make cmake git g++ libexpat-dev libfftw3-dev libboost-all-dev txt2tags gnuplot python-numpy libhdf5-dev graphviz pkg-config psmisc libeigen3-dev libxc-dev libgromacs-dev gromacs-openmpi
-
-Dependencies for Manual
-
-::
-
-    apt-get install ghostscript texlive inkscape transfig texlive-latex-extra texlive-pstricks
-
-Fedora
-^^^^^^
-
-Dependencies for core functionality
-
-::
-
-     dnf install make cmake git gcc-c++ expat-devel fftw-devel gsl-devel boost-devel txt2tags procps-ng gnuplot psmisc hdf5-devel lammps eigen3-devel libxc-devel python-numpy gromacs-devel gromacs gromacs-openmpi
-
-Dependencies for Manual
-
-::
-
-     dnf install ghostscript texlive doxygen texlive-appendix texlive-wrapfig texlive-a4wide texlive-xstring inkscape transfig texlive-units texlive-sidecap texlive-bclogo texlive-mdframed texlive-braket graphviz ImageMagick ghostscript-tools-dvipdf
+If you have an older version of a distribution cmake can automatically install the correct Gromacs and libint version by
+adding ``-DBUILD_OWN_GROMACS_OWN_GROMACS=ON`` or ``-DBUILD_OWN_GROMACS_OWN_LIBINT=ON`` to your cmake command. 
 
 
 Resolving the 'not found' dependency errors
