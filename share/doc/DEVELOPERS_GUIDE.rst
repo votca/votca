@@ -73,7 +73,7 @@ Making a release
 ----------------
 
 Releases are done by Github actions as well. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
-To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease`__. The release can only be made from the 
+To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
 :code:`stable` branch, but one can test making a release on any other branch as well. To make a release, trigger the action from
 :code:`stable` branch pick a new release tag in the :code:`release tag` box (all CHANGELOG files need to contain a section with that tag already, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for stable to master branch, see `below <#updates-from-stable>`__). 
 
