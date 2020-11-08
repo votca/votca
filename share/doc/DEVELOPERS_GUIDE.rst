@@ -5,16 +5,15 @@ The page is designed to give new developers general guidelines for
 implementing code consistent with the VOTCA and cpp style and standard.
 
 -  `Reporting Bugs <#reporting-bugs>`__
--  `Making a release <#making-a-rlease>`__
+-  `Making a release <#making-a-release>`__
 -  `CPP Resoures <#cpp-resources>`__
 -  `CPP Coding Rules <#CPP-Coding-Rules>`__
 -  `Testing <#testing>`__
--  `CPP Coding Style Guide <#cpp-codeing-style-guide>`__
+-  `CPP Coding Style Guide <#cpp-coding-style-guide>`__
 -  `CPP Comment Guide <#cpp-comment-guide>`__
 -  `Updating Git Submodules <#updating-git-submodules>`__
 -  `Updates from stable <#updates-from-stable>`__
 -  `Failed Release Builds <#failed-release-builds>`__
--  `Setting Up A GitLab Runner Server <#gitlab-server>`__
 
 Reporting Bugs
 --------------
