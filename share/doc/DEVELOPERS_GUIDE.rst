@@ -5,16 +5,15 @@ The page is designed to give new developers general guidelines for
 implementing code consistent with the VOTCA and cpp style and standard.
 
 -  `Reporting Bugs <#reporting-bugs>`__
+-  `Making a release <#making-a-release>`__
 -  `CPP Resoures <#cpp-resources>`__
 -  `CPP Coding Rules <#CPP-Coding-Rules>`__
 -  `Testing <#testing>`__
--  `Failed Travis Builds <#failed-travis-builds>`__
--  `CPP Coding Style Guide <#cpp-codeing-style-guide>`__
+-  `CPP Coding Style Guide <#cpp-coding-style-guide>`__
 -  `CPP Comment Guide <#cpp-comment-guide>`__
 -  `Updating Git Submodules <#updating-git-submodules>`__
--  `Merging With Stable <#merging-with-stable>`__
+-  `Updates from stable <#updates-from-stable>`__
 -  `Failed Release Builds <#failed-release-builds>`__
--  `Setting Up A GitLab Runner Server <#gitlab-server>`__
 
 Reporting Bugs
 --------------
@@ -69,6 +68,14 @@ The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`_
 On top of these containers the actual containers for running the test builds are build, the resulting **votca/votca** container can be found on `Docker Hub <https://hub.docker.com/u/votca>`__ as well as `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__.
 
 For more information also look at the `Github workflow files <https://github.com/votca/votca/tree/master/.github/workflows>`__.
+
+Making a release
+----------------
+
+Releases are done by Github actions as well. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
+To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
+:code:`stable` branch, but one can test making a release on any other branch as well. To make a release, trigger the action from
+:code:`stable` branch pick a new release tag in the :code:`release tag` box (all CHANGELOG files need to contain a section with that tag already, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for stable to master branch, see `below <#updates-from-stable>`__). 
 
 CPP Resources
 -------------
@@ -468,9 +475,11 @@ Updating Git Submodules
 Votca with all of its repos can be build by using the parent `votca
 repo <https://github.com/votca/votca>`__. All the other necessary repos
 appear as submodules in the parent repo. It is worth noting that the
-submodules are not automatically updated whenever changes are made to
+submodules are automatically updated through a pull request whenever changes are made to
 their respective master branches. In essence a submodule refers to a
-specific commit of the repo it represents. If a new commit is merged
+specific commit of the repo it represents. 
+
+Normally it is not necessary, but from time to time a new commit is need to be manually merged
 into the master branch of a repository the submodule state in the parent
 repo has to be updated for the commit to propagate to the parent votca
 repository.
@@ -483,6 +492,20 @@ To update the state of a submodule the following commands can be used:
     git submodule foreach git pull
     git add -u
     git commit -m "update all submodules"
+
+
+Updates from stable
+-------------------
+
+The :code:`stable` branch contains the last release plus all bug fixes made since the release.
+Only in very limited circumstances new features should be merged into the stable branch.
+Developer can add bug fixes by making a pull request with the stable branch as target.
+Once this pull request is merged, another pull request from stable to master is created in the submodule automatically.
+And as for the master branch (see previous section) and pull request in :code:`votca/votca` is opened automatically to
+update the submodules in the stable branch as well.
+So ultimately there will 4 automatically created pull requests, (a) in the submodule from stable to master, (b) in the main repository
+to update the stable submodules, (c) to update the master submodules in the main repository once (a) is merged and (d) an update from stable to master in the main repository once (b) is merged. From time to time (a) will need some manual intervention to resolve conflicts. To minimize the manual work on (d), it is usually best to merge the pull requests in the order (a), (c), (b).
+The background is that when (d) gets created by merging (b) and the submodules in master are already up to date from merging (c) there will not be any merge conflicts. 
 
 
 Failed Release Builds
