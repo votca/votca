@@ -56,6 +56,12 @@ jobs:
             module_build: true
             coverage: false
             deploy: false
+          - distro: 'fedora:intel'
+            toolchain: intel
+            cmake_build_type: Release
+          - distro: 'fedora:intel'
+            toolchain: intel
+            cmake_build_type: Debug
           - distro: 'fedora:gmx2019'
             toolchain: gnu
             cmake_build_type: Release
