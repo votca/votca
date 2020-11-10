@@ -6,7 +6,7 @@ implementing code consistent with the VOTCA and cpp style and standard.
 
 -  `Reporting Bugs <#reporting-bugs>`__
 -  `Making a release <#making-a-release>`__
--  `CPP Resoures <#cpp-resources>`__
+-  `CPP Resources <#cpp-resources>`__
 -  `CPP Coding Rules <#CPP-Coding-Rules>`__
 -  `Testing <#testing>`__
 -  `CPP Coding Style Guide <#cpp-coding-style-guide>`__
@@ -18,7 +18,7 @@ implementing code consistent with the VOTCA and cpp style and standard.
 Reporting Bugs
 --------------
 
-To report a bug please create an issue on the appropriate github repo.
+To report a bug, please create an issue on the appropriate github repo.
 Please be sure to provide as much information as possible such as:
 
 -  The error messages
@@ -27,7 +27,7 @@ Please be sure to provide as much information as possible such as:
 -  What dependencies were installed
 -  The calculation that was being run
 
-Issues can be directed created on the appropriate github repo:
+Issues can be directly created on the appropriate github repo:
 
 -  `tools <https://github.com/votca/tools/issues>`__
 -  `csg <https://github.com/votca/csg/issues>`__
@@ -43,7 +43,7 @@ Formatting code
 VOTCA uses ``clang-format`` to format the code, code that is not
 properly formatted is automatically rejected. The style files can be
 found in each repo. If you have a version ``>7.1`` of ``clang-format``
-you can just run ``make format`` and your code is formatted. For an even
+you can just run ``make format`` and your code will be formatted. For an even
 more automated version, see `VOTCA dev-tools <#votca-dev-tools>`__
 
 VOTCA dev-tools
@@ -51,36 +51,36 @@ VOTCA dev-tools
 
 Running clang-format on every commit can be a drag, as can changing the
 copyright in every header. Building artifacts locally from a Gitlab run
-is also mutliple steps. Fortunately you will find small scripts in the
+also takes mutliple steps. Fortunately, you will find small scripts in the
 `dev-tools repo <https://github.com/votca/dev-tools>`__, which can
 automate this.
 
-VOTCA continuous integration (Github actions)
+VOTCA Continuous Integration (Github Actions)
 ---------------------------------------------
 
-Each pull request and push to master in the tools, csg, csgapps, csg-tutorials, csg-manual, xtp, xtp-tutorials and in the votca repository 
-is build on a machine in the cloud using `Github actions <https://docs.github.com/en/actions>`__ (There is still some Gitlab for the GPU builds).
+Each pull or push request to master in the tools, csg, csgapps, csg-tutorials, csg-manual, xtp, xtp-tutorials or votca repository 
+is built on a machine in the cloud using `Github actions <https://docs.github.com/en/actions>`__ (There is still some Gitlab for the GPU builds).
 
-VOTCA can build on various linux distributions, which are not all natively supported by Github actions. So instead of using the default virtual machines,
-VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of votca (see :code:`buildenv` below)
+VOTCA can build on various linux distributions, which are not all natively supported by Github actions. For non natively supported distributions, 
+instead of using the default virtual machines, VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of votca (see :code:`buildenv` below)
 
 The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`__. The **votca/buildenv** containers are the basic containers, which contain all the dependencies VOTCA requires, but not any VOTCA code. The **votca/buildenv** can be found on `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__. 
-On top of these containers the actual containers for running the test builds are build, the resulting **votca/votca** container can be found on `Docker Hub <https://hub.docker.com/u/votca>`__ as well as `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__.
+On top of these containers, the actual containers for running the test builds are built, the resulting **votca/votca** container can be found on `Docker Hub <https://hub.docker.com/u/votca>`__ as well as `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__.
 
 For more information also look at the `Github workflow files <https://github.com/votca/votca/tree/master/.github/workflows>`__.
 
-Making a release
+Making a Release
 ----------------
 
 Releases are done by Github actions as well. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
 To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
 :code:`stable` branch, but one can test making a release on any other branch as well. To make a release, trigger the action from
-:code:`stable` branch pick a new release tag in the :code:`release tag` box (all CHANGELOG files need to contain a section with that tag already, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for stable to master branch, see `below <#updates-from-stable>`__). 
+:code:`stable` branch pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the stable to master branch, see `below <#updates-from-stable>`__). 
 
 CPP Resources
 -------------
 
-A good starting point is to take a look at the cpp standard. Though the
+A good starting point, is to take a look at the cpp standard. Though the
 code has not always consistently followed the cpp standard we now make
 an effort to really enforce it and follow best practices.
 
@@ -494,7 +494,7 @@ To update the state of a submodule the following commands can be used:
     git commit -m "update all submodules"
 
 
-Updates from stable
+Updates from Stable
 -------------------
 
 The :code:`stable` branch contains the last release plus all bug fixes made since the release.
