@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_OVERLAP_FILTER_PRIVATE_H
-#define VOTCA_XTP_OVERLAP_FILTER_PRIVATE_H
+#ifndef VOTCA_XTP_OVERLAP_FILTER_H
+#define VOTCA_XTP_OVERLAP_FILTER_H
 
 // Local VOTCA includes
 #include "votca/xtp/statefilter_base.h"
@@ -65,4 +65,4 @@ class Overlap_filter : public StateFilter_base {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_OSCILLATORSTRENGTH_FILTER_PRIVATE_H
+#endif  // VOTCA_XTP_OVERLAP_FILTER_H

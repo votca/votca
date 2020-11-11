@@ -59,22 +59,27 @@ class GW {
                      // rebuilt
     std::string qp_solver;
     double qp_solver_alpha = 0.75;
-    Index qp_grid_steps;     // Number of grid points
-    double qp_grid_spacing;  // Spacing of grid points in Ha
-    Index gw_mixing_order;   // mixing order
-    double gw_mixing_alpha;  // mixing alpha, also linear mixing
-    double omegain = 0.0; //eV
-    double omegafin = 30; //eV
+    Index qp_grid_steps;            // Number of grid points
+    double qp_grid_spacing;         // Spacing of grid points in Ha
+    Index gw_mixing_order;          // mixing order
+    double gw_mixing_alpha;         // mixing alpha, also linear mixing
+    std::string quadrature_scheme;  // Kind of Gaussian-quadrature scheme to use
+    Index order;   // only needed for complex integration sigma CDA
+    double alpha;  // smooth tail in complex integration sigma CDA
+
+    double omegain = 0.0;  // eV
+    double omegafin = 30;  // eV
     Index step = 10;
     double imshift = 0;
-    Index resolution = 1000; // Frequency grid points output (polarizability and gw-sternheimer)
-    double do_precalc_fxc=false; //Not recommended for large molecules
-    std::string calculation="gwsternheimer"; //Type of calculation for Sternheimer
-    std::string spatialgridtype="coarse";
-    Index level=0; 
-    Index quadrature_order = 8; //Order of the quadrature for self energy integration
-    std::string quadrature_scheme = "hermite"; //Kind of quadrature for self energy integration
-    //Index level=0;
+    Index resolution = 1000;  // Frequency grid points output (polarizability
+                              // and gw-sternheimer)
+    double do_precalc_fxc = false;  // Not recommended for large molecules
+    std::string calculation =
+        "gwsternheimer";  // Type of calculation for Sternheimer
+    std::string spatialgridtype = "coarse";
+    // Index level=0;
+    // Index quadrature_order = 8; //Order of the quadrature for self energy
+    // integration
   };
 
   void configure(const options& opt);
@@ -122,14 +127,11 @@ class GW {
     QPFunc(Index gw_level, const Sigma_base& sigma, double offset)
         : _gw_level(gw_level), _offset(offset), _sigma_c_func(sigma){};
     std::pair<double, double> operator()(double frequency) const {
-      std::pair<double, double> value;
-      value.first =
-          _sigma_c_func.CalcCorrelationDiagElement(_gw_level, frequency);
-      value.second = _sigma_c_func.CalcCorrelationDiagElementDerivative(
-          _gw_level, frequency);
-      value.first += (_offset - frequency);
-      value.second -= 1.0;
-      return value;
+      std::pair<double, double> result;
+      result.first = value(frequency);
+      result.second = deriv(frequency);
+
+      return result;
     }
     double value(double frequency) const {
       return _sigma_c_func.CalcCorrelationDiagElement(_gw_level, frequency) +
@@ -137,8 +139,8 @@ class GW {
     }
     double deriv(double frequency) const {
       return _sigma_c_func.CalcCorrelationDiagElementDerivative(_gw_level,
-                                                                frequency) +
-             _offset - frequency;
+                                                                frequency) -
+             1.0;
     }
 
    private:

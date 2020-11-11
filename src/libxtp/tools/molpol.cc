@@ -28,13 +28,7 @@
 namespace votca {
 namespace xtp {
 
-void MolPol::Initialize(const tools::Property& user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
+void MolPol::ParseOptions(const tools::Property& options) {
 
   std::string mps_input = options.ifExistsReturnElseReturnDefault<std::string>(
       ".mpsinput", _job_name + ".mps");
@@ -80,8 +74,8 @@ void MolPol::Initialize(const tools::Property& user_options) {
     XTP_LOG(Log::error, log)
         << "Using package <" << qm_package << ">" << std::flush;
     QMPackageFactory::RegisterAll();
-    std::unique_ptr<QMPackage> qmpack =
-        std::unique_ptr<QMPackage>(QMPackages().Create(qm_package));
+    std::unique_ptr<QMPackage> qmpack = std::unique_ptr<QMPackage>(
+        QMPackageFactory::QMPackages().Create(qm_package));
     qmpack->setLog(&log);
     qmpack->setRunDir(".");
     qmpack->setLogFileName(log_file);
@@ -160,8 +154,8 @@ void MolPol::Printpolarization(const Eigen::Matrix3d& result) const {
   std::cout << std::endl << diag * conversion << std::flush;
 }
 
-bool MolPol::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
+bool MolPol::Run() {
+
   PolarSegment polar = _input;
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(_polarization_target, Eigen::EigenvaluesOnly);

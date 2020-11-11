@@ -22,6 +22,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/basisset.h"
+#include <votca/tools/globals.h>
 
 namespace votca {
 namespace xtp {
@@ -147,7 +148,6 @@ bool CheckShellType(const std::string& shelltype) {
 
 void BasisSet::Load(const std::string& name) {
 
-  _name = name;
   // if name contains .xml, assume a basisset .xml file is located in the
   // working directory
   std::size_t found_xml = name.find(".xml");
@@ -155,16 +155,11 @@ void BasisSet::Load(const std::string& name) {
   if (found_xml != std::string::npos) {
     xmlFile = name;
   } else {
-    // get the path to the shared folders with xml files
-    char* votca_share = getenv("VOTCASHARE");
-    if (votca_share == nullptr) {
-      throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    }
-    xmlFile = std::string(getenv("VOTCASHARE")) +
-              std::string("/xtp/basis_sets/") + name + std::string(".xml");
+    xmlFile = tools::GetVotcaShare() + "/xtp/basis_sets/" + name + ".xml";
   }
   tools::Property basis_property;
   basis_property.LoadFromXML(xmlFile);
+  _name = basis_property.get("basis").getAttribute<std::string>("name");
   std::vector<tools::Property*> elementProps =
       basis_property.Select("basis.element");
 

@@ -21,7 +21,7 @@
 #include "functional"
 
 // Local VOTCA includes
-#include "votca/xtp/bfgs-trm.h"
+#include "votca/xtp/bfgs_trm.h"
 #include "votca/xtp/energy_costfunction.h"
 #include "votca/xtp/forces.h"
 #include "votca/xtp/geometry_optimization.h"

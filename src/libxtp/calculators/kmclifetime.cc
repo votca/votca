@@ -39,11 +39,7 @@
 namespace votca {
 namespace xtp {
 
-void KMCLifetime::Initialize(const tools::Property& user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  ParseCommonOptions(user_options);
+void KMCLifetime::ParseSpecificOptions(const tools::Property& options) {
 
   _insertions = options.get(".numberofinsertions").as<unsigned long>();
   _lifetimefile = options.get(".lifetimefile").as<std::string>();
@@ -375,7 +371,7 @@ void KMCLifetime::RunVSSM() {
   return;
 }
 
-bool KMCLifetime::EvaluateFrame(Topology& top) {
+bool KMCLifetime::Evaluate(Topology& top) {
   XTP_LOG(Log::error, _log) << "\n-----------------------------------"
                                "\n      KMCLIFETIME started"
                                "\n-----------------------------------\n"
@@ -395,9 +391,10 @@ bool KMCLifetime::EvaluateFrame(Topology& top) {
 
   time_t now = time(nullptr);
   tm* localtm = localtime(&now);
-  XTP_LOG(Log::error, _log)
-      << " KMCLIFETIME finished at:" << asctime(localtm) << std::flush;
 
+  XTP_LOG(Log::info, _log) << " KMCLIFETIME finished at:" << asctime(localtm)
+                           << std::flush;
+  std::cout << _log;
   return true;
 }
 

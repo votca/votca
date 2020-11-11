@@ -27,12 +27,14 @@
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/ppm.h"
 #include "votca/xtp/threecenter.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace std;
 BOOST_AUTO_TEST_SUITE(ppm_test)
 
 BOOST_AUTO_TEST_CASE(ppm_full) {
+
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/ppm/molecule.xyz");
@@ -56,7 +58,7 @@ BOOST_AUTO_TEST_CASE(ppm_full) {
                                                     esp.Matrix());
 
   Logger log;
-  TCMatrix_gwbse Mmn{log};
+  TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, es.eigenvectors());
 
@@ -96,6 +98,8 @@ BOOST_AUTO_TEST_CASE(ppm_full) {
 
   BOOST_CHECK_EQUAL(f_check, 1);
   BOOST_CHECK_EQUAL(w_check, 1);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

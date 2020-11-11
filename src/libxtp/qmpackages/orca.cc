@@ -30,6 +30,7 @@
 #include <votca/tools/elements.h>
 
 // Local VOTCA includes
+#include "votca/tools/globals.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/orbitals.h"
@@ -272,7 +273,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   for (const auto& prop : this->_settings.property("orca")) {
     const std::string& prop_name = prop.name();
     if (prop_name == "pointcharges") {
-      _options += this->CreateInputSection("orca.pointcharges", true);
+      _options += this->CreateInputSection("orca.pointcharges");
     } else if (prop_name != "method") {
       _options += this->CreateInputSection("orca." + prop_name);
     }
@@ -803,13 +804,12 @@ std::string Orca::indent(const double& number) {
   return snumber;
 }
 
-std::string Orca::CreateInputSection(const std::string& key,
-                                     bool single_line) const {
+std::string Orca::CreateInputSection(const std::string& key) const {
   std::stringstream stream;
   std::string section = key.substr(key.find(".") + 1);
   stream << "%" << section;
-  if (single_line) {
-    stream << " " << _settings.get(key) << "\n";
+  if (KeywordIsSingleLine(key)) {
+    stream << " " << this->_settings.get(key) << "\n";
   } else {
     stream << "\n"
            << this->_settings.get(key) << "\n"
@@ -817,6 +817,13 @@ std::string Orca::CreateInputSection(const std::string& key,
   }
 
   return stream.str();
+}
+
+bool Orca::KeywordIsSingleLine(const std::string& key) const {
+  tools::Tokenizer values(this->_settings.get(key), " ");
+  std::vector<std::string> words;
+  values.ToVector(words);
+  return ((words.size() <= 1) ? true : false);
 }
 
 std::string Orca::WriteMethod() const {
@@ -840,14 +847,13 @@ std::string Orca::WriteMethod() const {
 
 std::string Orca::GetOrcaFunctionalName() const {
 
-  char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == nullptr) {
+  if (!tools::VotcaShareSet()) {
     return _settings.get("functional");
   } else {
     tools::Property all_functionals;
 
-    auto xml_file = std::string(getenv("VOTCASHARE")) +
-                    std::string("/xtp/data/orca_functional_names.xml");
+    auto xml_file =
+        tools::GetVotcaShare() + "/xtp/data/orca_functional_names.xml";
 
     all_functionals.LoadFromXML(xml_file);
 

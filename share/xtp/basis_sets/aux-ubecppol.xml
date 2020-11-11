@@ -1,4 +1,81 @@
 <basis name="aux-ubecppol">
+
+<element name="B" help="Created by make-auxbasis.py with Lmax=4,c=60 and g=0.1">
+  <shell type="D" scale="1.0">
+    <constant decay="1.079983e+01">
+      <contractions type="D" factor="1.0"/>
+    </constant>
+  </shell>
+  <shell type="PDF" scale="1.0">
+    <constant decay="6.021257e+00">        
+      <contractions type="P" factor="1.0"/>
+      <contractions type="D" factor="1.0"/> 
+      <contractions type="F" factor="1.0"/> 
+    </constant>    
+  </shell>    
+  <shell type="S" scale="1.0">
+    <constant decay="3.381120e+00"> 
+     <contractions type="S" factor="1.0"/>
+    </constant>
+  </shell>    
+  <shell type="P" scale="1.0">      
+    <constant decay="2.961777e+00">        
+      <contractions type="P" factor="1.0"/>      
+    </constant>    
+  </shell>    
+  <shell type="SPDF" scale="1.0">      
+    <constant decay="1.758581e+00">        
+      <contractions type="S" factor="1.0"/>
+      <contractions type="P" factor="1.0"/>        
+      <contractions type="D" factor="1.0"/>        
+      <contractions type="F" factor="1.0"/>      
+    </constant>   
+  </shell>    
+  <shell type="SP" scale="1.0">      
+    <constant decay="1.084997e+00">        
+      <contractions type="S" factor="1.0"/>        
+      <contractions type="P" factor="1.0"/>      
+    </constant>    
+    </shell>   
+    <shell type="PDFG" scale="1.0">      
+      <constant decay="7.099375e-01">        
+        <contractions type="P" factor="1.0"/>        
+        <contractions type="D" factor="1.0"/>        
+        <contractions type="F" factor="1.0"/>        
+        <contractions type="G" factor="1.0"/>
+      </constant>    
+    </shell>    
+    <shell type="SPDF" scale="1.0">      
+    <constant decay="4.885257e-01">        
+      <contractions type="S" factor="1.0"/>       
+      <contractions type="P" factor="1.0"/>        
+      <contractions type="D" factor="1.0"/>       
+      <contractions type="F" factor="1.0"/>      
+    </constant>    
+  </shell>    
+  <shell type="SP" scale="1.0">      
+    <constant decay="3.582729e-01">        
+      <contractions type="S" factor="1.0"/>        
+      <contractions type="P" factor="1.0"/>      
+    </constant>
+  </shell>   
+  <shell type="SPD" scale="1.0">     
+    <constant decay="2.024366e-01">        
+      <contractions type="S" factor="1.0"/>        
+      <contractions type="P" factor="1.0"/>        
+      <contractions type="D" factor="1.0"/>      
+    </constant>    
+  </shell>
+</element>
+
+
+
+
+
+
+
+
+
   <element help="Created by make-auxbasis.py with Lmax=4 and g=0.1" name="C">
     <shell scale="1.0" type="D">
       <constant decay="1.676605e+01">

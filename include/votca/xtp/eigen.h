@@ -58,15 +58,15 @@ inline bool XTP_HAS_MKL_OVERLOAD() {
 // Stores matrix and energy together
 class Mat_p_Energy {
  public:
+    Mat_p_Energy()
+      : _energy(0.0), _matrix(Eigen::MatrixXd::Zero(0, 0)){};
+
   Mat_p_Energy(Index rows, Index cols)
       : _energy(0.0), _matrix(Eigen::MatrixXd::Zero(rows, cols)){};
   Mat_p_Energy(double e, const Eigen::MatrixXd& mat)
       : _energy(e), _matrix(mat){};
   Mat_p_Energy(double e, Eigen::MatrixXd&& mat)
       : _energy(e), _matrix(std::move(mat)){};
-
-    Mat_p_Energy()
-      : _energy(0.0), _matrix(Eigen::MatrixXd::Zero(0,0)){}; 
 
   Mat_p_Energy operator+(const Mat_p_Energy& other) const {
     Mat_p_Energy result = *this;

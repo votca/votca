@@ -17,12 +17,6 @@
  *
  */
 
-// Standard includes
-#include <cstdio>
-#include <cstdlib>
-#include <iostream>
-#include <string>
-
 // VOTCA includes
 #include <votca/tools/property.h>
 
@@ -46,9 +40,7 @@ class XtpTools : public xtp::XtpApplication {
     out << "Runs excitation/charge transport tools\n";
   }
 
-  void SetTool(xtp::QMTool* tool) {
-    _tool = std::unique_ptr<xtp::QMTool>(tool);
-  }
+  void SetTool(std::unique_ptr<xtp::QMTool>&& tool) { _tool = std::move(tool); }
   void Initialize() override;
   bool EvaluateOptions() override;
   void Run() override;
@@ -70,7 +62,7 @@ void XtpTools::Initialize() {
 
   // Tools-related
   AddProgramOptions("Tools")("execute,e", propt::value<std::string>(),
-                             "List of tools separated by ',' or ' '");
+                             "name of the tool to run");
   AddProgramOptions("Tools")("list,l", "Lists all available tools");
   AddProgramOptions("Tools")("description,d", propt::value<std::string>(),
                              "Short description of a tool");
@@ -89,8 +81,8 @@ bool XtpTools::EvaluateOptions() {
   if (OptionsMap().count("list")) {
     std::cout << "Available XTP tools: \n";
 
-    for (const auto& tool : xtp::QMTools().getObjects()) {
-      PrintDescription(std::cout, tool.first, helpdir, Application::HelpShort);
+    for (const auto& name : xtp::QMTools().getKeys()) {
+      PrintDescription(std::cout, name, helpdir, Application::HelpShort);
     }
     StopExecution();
     return true;
@@ -102,17 +94,9 @@ bool XtpTools::EvaluateOptions() {
                          " ,\n\t");
     // loop over the names in the description string
     for (const std::string& n : tok) {
-      // loop over tools
-      bool printerror = true;
-      for (const auto& tool : xtp::QMTools().getObjects()) {
-        if (n.compare(tool.first) == 0) {
-          PrintDescription(std::cout, tool.first, helpdir,
-                           Application::HelpLong);
-          printerror = false;
-          break;
-        }
-      }
-      if (printerror) {
+      if (xtp::QMTools().IsRegistered(n)) {
+        PrintDescription(std::cout, n, helpdir, Application::HelpLong);
+      } else {
         std::cout << "Tool " << n << " does not exist\n";
       }
     }
@@ -125,26 +109,18 @@ bool XtpTools::EvaluateOptions() {
   tools::Tokenizer xtools(OptionsMap()["execute"].as<std::string>(), " ,\n\t");
   std::vector<std::string> calc_string = xtools.ToVector();
   if (calc_string.size() != 1) {
-    throw std::runtime_error(
-        "You can only run one calculator at the same time.");
+    throw std::runtime_error("You can only run one tool at the same time.");
   }
 
   CheckRequired(
       "name", "Please provide the job name to run (same as the xyz file name)");
 
-  bool found_calc = false;
-  for (const auto& tool : xtp::QMTools().getObjects()) {
-    if (calc_string[0].compare(tool.first) == 0) {
-      this->SetTool(xtp::QMTools().Create(calc_string[0]));
-      found_calc = true;
-      break;
-    }
-  }
-  if (!found_calc) {
+  if (xtp::QMTools().IsRegistered(calc_string[0])) {
+    this->SetTool(xtp::QMTools().Create(calc_string[0]));
+    std::cout << "Registered " << calc_string[0];
+  } else {
     std::cout << "Tool " << calc_string[0] << " does not exist\n";
     StopExecution();
-  } else {
-    std::cout << "Registered " << calc_string[0];
   }
   return true;
 }

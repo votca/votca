@@ -23,8 +23,9 @@
 // Local VOTCA includes
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/orbreorder.h"
+#include <libint2/initialize.h>
 #include <votca/tools/eigenio_matrixmarket.h>
-
 using namespace votca::xtp;
 using namespace votca;
 using namespace std;
@@ -32,7 +33,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(aopotential_test)
 
 BOOST_AUTO_TEST_CASE(aopotentials_test) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/aopotential/molecule.xyz");
@@ -40,6 +41,22 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
+
+  // clang-format off
+  std::array<Index, 49> votcaOrder_old = {
+      0,                             // s
+      0, -1, 1,                      // p
+      0, -1, 1, -2, 2,               // d
+      0, -1, 1, -2, 2, -3, 3,        // f
+      0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
+      0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
+      0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
+  };
+  // clang-format on
+
+  std::array<Index, 49> multiplier;
+  multiplier.fill(1);
+  OrbReorder ord(votcaOrder_old, multiplier);
 
   AOMultipole esp;
   esp.FillPotential(aobasis, orbitals.QMAtoms());
@@ -60,10 +77,9 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   ecpbasis.Fill(ecps, orbitals.QMAtoms());
   AOECP ecp;
   ecp.FillPotential(aobasis, ecpbasis);
-  Eigen::MatrixXd ecp_ref =
+  Eigen::MatrixXd ecp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/ecp_ref.mm");
 
-      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/ecp_ref.mm");
   bool check_ecp = ecp.Matrix().isApprox(ecp_ref, 0.00001);
   BOOST_CHECK_EQUAL(check_ecp, 1);
   if (!check_ecp) {
@@ -121,28 +137,26 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   AOPlanewave planewave;
   std::vector<Eigen::Vector3d> kpoints = {
       {1, 1, 1}, {2, 1, 1}, {-1, -1, -1}, {-2, -1, -1}};
-  Eigen::MatrixXcd planewave_ref = Eigen::MatrixXcd::Zero(17, 17);
-  planewave_ref.real() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+  Eigen::MatrixXd planewave_ref = Eigen::MatrixXd::Zero(17, 17);
+  planewave_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/planewave_ref.mm");
 
   planewave.FillPotential(aobasis, kpoints);
-  bool planewave_check = planewave_ref.isApprox(planewave.Matrix(), 1e-4);
+  Eigen::MatrixXd planewave_real = planewave.Matrix().real();
+  bool planewave_check = planewave_ref.isApprox(planewave_real, 1e-4);
 
   BOOST_CHECK_EQUAL(planewave_check, 1);
   if (!planewave_check) {
     std::cout << "planewave Ref real" << endl;
-    std::cout << planewave_ref.real() << endl;
+    std::cout << planewave_ref << endl;
     std::cout << "planewave real" << endl;
     std::cout << planewave.Matrix().real() << endl;
-    std::cout << "planewave Ref imag" << endl;
-    std::cout << planewave_ref.imag() << endl;
-    std::cout << "planewave imag" << endl;
-    std::cout << planewave.Matrix().imag() << endl;
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(aomultipole_comparison) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/aopotential/molecule.xyz");
@@ -244,10 +258,11 @@ BOOST_AUTO_TEST_CASE(aomultipole_comparison) {
       std::cout << mono6.Matrix().cwiseQuotient(quad.Matrix()) << endl;
     }
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(large_l_test) {
-
+  libint2::initialize();
   QMMolecule mol("C", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/C2.xyz");
 
@@ -255,6 +270,22 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   basisset.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/G.xml");
   AOBasis dftbasis;
   dftbasis.Fill(basisset, mol);
+
+  // clang-format off
+    std::array<Index, 49> votcaOrder_old = {
+        0,                             // s
+        0, -1, 1,                      // p
+        0, -1, 1, -2, 2,               // d
+        0, -1, 1, -2, 2, -3, 3,        // f
+        0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
+    };
+  // clang-format on
+
+  std::array<Index, 49> multiplier;
+  multiplier.fill(1);
+  OrbReorder ord(votcaOrder_old, multiplier);
 
   Index dftbasissize = 18;
 
@@ -264,14 +295,13 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
 
   std::vector<std::unique_ptr<StaticSite> > externalsites2;
   for (const StaticSite& site : seg2) {
-    externalsites2.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+    externalsites2.push_back(std::make_unique<StaticSite>(site));
   }
 
   AOMultipole esp;
   esp.FillPotential(dftbasis, externalsites2);
   Eigen::MatrixXd esp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/esp_ref_l.xyz");
-
+      std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/esp_ref_l.mm");
   bool check_esp = esp.Matrix().isApprox(esp_ref, 0.00001);
 
   BOOST_CHECK_EQUAL(check_esp, 1);
@@ -303,23 +333,22 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   AOPlanewave planewave;
   std::vector<Eigen::Vector3d> kpoints = {
       {1, 1, 1}, {2, 1, 1}, {-1, -1, -1}, {-2, -1, -1}};
-  Eigen::MatrixXcd planewave_ref =
-      Eigen::MatrixXcd::Zero(dftbasissize, dftbasissize);
-  planewave_ref.real() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+  Eigen::MatrixXd planewave_ref =
+      Eigen::MatrixXd::Zero(dftbasissize, dftbasissize);
+  planewave_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/planewave_ref_l.mm");
+
   planewave.FillPotential(dftbasis, kpoints);
-  bool planewave_check = planewave_ref.isApprox(planewave.Matrix(), 1e-4);
+  bool planewave_check =
+      planewave_ref.isApprox(planewave.Matrix().real(), 1e-4);
   BOOST_CHECK_EQUAL(planewave_check, 1);
   if (!planewave_check) {
     std::cout << "planewave Ref real" << endl;
-    std::cout << planewave_ref.real() << endl;
+    std::cout << planewave_ref << endl;
     std::cout << "planewave real" << endl;
     std::cout << planewave.Matrix().real() << endl;
-    std::cout << "planewave Ref imag" << endl;
-    std::cout << planewave_ref.imag() << endl;
-    std::cout << "planewave imag" << endl;
-    std::cout << planewave.Matrix().imag() << endl;
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

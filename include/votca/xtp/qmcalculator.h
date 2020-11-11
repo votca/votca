@@ -38,8 +38,13 @@ class QMCalculator : public tools::Calculator {
 
   virtual bool WriteToStateFile() const = 0;
 
-  // void Initialize(tools::Property &options) override = 0;
-  virtual bool EvaluateFrame(Topology &top) = 0;
+  bool EvaluateFrame(Topology& top);
+
+  void Initialize(const tools::Property& opt) final;
+
+ protected:
+  virtual void ParseOptions(const tools::Property& opt) = 0;
+  virtual bool Evaluate(Topology& top) = 0;
 };
 
 }  // namespace xtp

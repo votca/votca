@@ -63,7 +63,29 @@ Version 2021-dev
 -  Refactor orbital reordering (#537)
 -  fix build with clang-11 (#546)
 -  Add a molden parser to xtp (#547)
-   
+-  Correct self-energy frequency derivative (#550)
+-  fix multiline orca keyword (#552)
+-  Contour Deformation Approach (CDA) for self-energy implemented (#4, #548)
+-  BSE with perturbative dynamical screening (#3, #560)
+-  Correction of full BSE energy contribution in analysis output (#560)
+-  Bump required CMake version to 3.12 (#568)
+-  Refactored calculator interface (#570)
+-  Fixed boost test deprecation warnings (#569)
+-  Refactored CUDA-OpenMP integration (#571)
+-  replaced own integrals with the libint library (#559)
+-  improved kmc output (#574)
+-  fix build on Ubuntu 16.04 (#577)
+-  use unique_ptr in factory (#581)
+-  fix QMMM with QP (#590, #591)
+
+Version 1.6.3 (released XX.08.20)
+=================================
+
+-  switch to ghcr.io for CI (#555)
+-  fixing Gaussian guess read keyword (#562, #563)
+-  improved kmc output (#575)
+-  use master .clang-format in format action (#582, #584)
+
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
 

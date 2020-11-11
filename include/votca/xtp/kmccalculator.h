@@ -38,11 +38,14 @@ class KMCCalculator : public QMCalculator {
  public:
   ~KMCCalculator() override = default;
 
-  std::string Identify() override = 0;
-  bool WriteToStateFile() const override = 0;
-  void Initialize(const tools::Property& options) override = 0;
+  void ParseOptions(const tools::Property& options) final {
+    ParseCommonOptions(options);
+    ParseSpecificOptions(options);
+  }
 
  protected:
+  virtual void ParseSpecificOptions(const tools::Property& options) = 0;
+
   QMStateType _carriertype;
 
   void LoadGraph(Topology& top);
@@ -60,8 +63,8 @@ class KMCCalculator : public QMCalculator {
   const GLink& ChooseHoppingDest(const GNode& node);
   Chargecarrier* ChooseAffectedCarrier(double cumulated_rate);
 
-  void WriteOccupationtoFile(double simtime, std::string filename) const;
-  void WriteRatestoFile(std::string filename, const QMNBList& nblist) const;
+  void WriteOccupationtoFile(double simtime, std::string filename);
+  void WriteRatestoFile(std::string filename, const QMNBList& nblist);
 
   void RandomlyCreateCharges();
   void RandomlyAssignCarriertoSite(Chargecarrier& Charge);

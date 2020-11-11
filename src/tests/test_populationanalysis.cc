@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE populationanalysis_test
@@ -21,7 +22,7 @@
 #include <iostream>
 
 // Third party includes
-#include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/tools/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 
 // VOTCA includes
@@ -36,7 +37,7 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(populationanalysis_test)
 
 BOOST_AUTO_TEST_CASE(atompop) {
-
+  libint2::initialize();
   Orbitals orb;
   orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                              "/populationanalysis/molecule.xyz");
@@ -90,10 +91,12 @@ BOOST_AUTO_TEST_CASE(atompop) {
     cout << "chargeref" << endl;
     cout << charge_ref2 << endl;
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(fragment_pop) {
-
+  libint2::initialize();
   Orbitals orb;
   orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                              "/populationanalysis/molecule.xyz");
@@ -181,6 +184,8 @@ BOOST_AUTO_TEST_CASE(fragment_pop) {
     cout << "chargeref" << endl;
     cout << f2H_ref << endl;
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

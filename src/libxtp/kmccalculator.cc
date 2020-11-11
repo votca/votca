@@ -27,6 +27,7 @@
 // Local VOTCA includes
 #include "votca/xtp/gnode.h"
 #include "votca/xtp/kmccalculator.h"
+#include "votca/xtp/logger.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/rate_engine.h"
 #include "votca/xtp/topology.h"
@@ -79,9 +80,10 @@ void KMCCalculator::LoadGraph(Topology& top) {
   }
 
   Rate_Engine rate_engine(_temperature, _field);
-  cout << endl << "Calculating initial rates." << endl;
-  cout << rate_engine << endl;
-  cout << "    carriertype: " << _carriertype.ToLongString() << endl;
+  XTP_LOG(Log::error, _log) << "\nCalculating initial rates." << std::flush;
+  XTP_LOG(Log::error, _log) << rate_engine << std::flush;
+  XTP_LOG(Log::error, _log)
+      << "    carriertype: " << _carriertype.ToLongString() << std::flush;
 
   for (const QMPair* pair : nblist) {
     Rate_Engine::PairRates rates = rate_engine.Rate(*pair, _carriertype);
@@ -91,7 +93,8 @@ void KMCCalculator::LoadGraph(Topology& top) {
                                                      rates.rate21);
   }
   _RandomVariable.setMaxInt(Index(_nodes.size()));
-  cout << "    Rates for " << _nodes.size() << " sites are computed." << endl;
+  XTP_LOG(Log::error, _log) << "    Rates for " << _nodes.size()
+                            << " sites are computed." << std::flush;
   WriteRatestoFile(_ratefile, nblist);
 
   Index events = 0;
@@ -116,7 +119,8 @@ void KMCCalculator::LoadGraph(Topology& top) {
 
     events += size;
     if (size == 0) {
-      cout << "Node " << node.getId() << " has 0 jumps" << endl;
+      XTP_LOG(Log::info, _log)
+          << "Node " << node.getId() << " has 0 jumps" << std::flush;
     } else if (size < min) {
       min = size;
     } else if (size > max) {
@@ -131,17 +135,19 @@ void KMCCalculator::LoadGraph(Topology& top) {
   }
   deviation = std::sqrt(deviation / double(_nodes.size()));
 
-  cout << "Nblist has " << nblist.size() << " pairs. Nodes contain " << events
-       << " jump events" << endl;
-  cout << "with avg=" << avg << " std=" << deviation << " max=" << max
-       << " min=" << min << " jumps per site" << endl;
-  cout << "Minimum jumpdistance =" << minlength * tools::conv::bohr2nm
-       << " nm Maximum distance =" << maxlength * tools::conv::bohr2nm << " nm"
-       << endl;
+  XTP_LOG(Log::error, _log)
+      << "Nblist has " << nblist.size() << " pairs. Nodes contain " << events
+      << " jump events\n"
+      << "with avg=" << avg << " std=" << deviation << " max=" << max
+      << " min=" << min << " jumps per site\n"
+      << "Minimum jumpdistance =" << minlength * tools::conv::bohr2nm
+      << " nm Maximum distance =" << maxlength * tools::conv::bohr2nm << " nm\n"
+      << std::flush;
   double conv = std::pow(tools::conv::bohr2nm, 3);
-  cout << "spatial carrier density: "
-       << double(_numberofcarriers) / (top.BoxVolume() * conv) << " nm^-3"
-       << endl;
+  XTP_LOG(Log::error, _log)
+      << "spatial carrier density: "
+      << double(_numberofcarriers) / (top.BoxVolume() * conv) << " nm^-3"
+      << std::flush;
 
   for (auto& node : _nodes) {
     node.InitEscapeRate();
@@ -195,13 +201,14 @@ bool KMCCalculator::CheckSurrounded(
 
 void KMCCalculator::RandomlyCreateCharges() {
 
-  cout << "looking for injectable nodes..." << endl;
+  XTP_LOG(Log::error, _log) << "looking for injectable nodes..." << std::flush;
   for (Index i = 0; i < _numberofcarriers; i++) {
     Chargecarrier newCharge(i);
     RandomlyAssignCarriertoSite(newCharge);
 
-    cout << "starting position for charge " << i << ": segment "
-         << newCharge.getCurrentNodeId() << endl;
+    XTP_LOG(Log::error, _log)
+        << "starting position for charge " << i << ": segment "
+        << newCharge.getCurrentNodeId() << std::flush;
     _carriers.push_back(newCharge);
   }
   return;
@@ -250,9 +257,9 @@ Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate) {
   return carrier;
 }
 void KMCCalculator::WriteRatestoFile(std::string filename,
-                                     const QMNBList& nblist) const {
-  cout << std::endl;
-  cout << "Rates are written to " << filename << std::endl;
+                                     const QMNBList& nblist) {
+  XTP_LOG(Log::error, _log)
+      << "\nRates are written to " << filename << std::flush;
   fstream ratefs;
   ratefs.open(filename, fstream::out);
   ratefs << "#PairID,SiteID1,SiteID2, ,rate12[1/s],rate21[1/s] at "
@@ -271,9 +278,9 @@ void KMCCalculator::WriteRatestoFile(std::string filename,
 }
 
 void KMCCalculator::WriteOccupationtoFile(double simtime,
-                                          std::string filename) const {
-  cout << std::endl;
-  cout << "Occupations are written to " << filename << std::endl;
+                                          std::string filename) {
+  XTP_LOG(Log::error, _log)
+      << "\nOccupations are written to " << filename << std::flush;
   fstream probs;
   probs.open(filename, fstream::out);
   probs << "#SiteID, Occupation prob at "

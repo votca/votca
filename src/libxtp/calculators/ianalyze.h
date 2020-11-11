@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_IANALYZE_PRIVATE_H
-#define VOTCA_XTP_IANALYZE_PRIVATE_H
+#ifndef VOTCA_XTP_IANALYZE_H
+#define VOTCA_XTP_IANALYZE_H
 
 // Local VOTCA includes
 #include "votca/xtp/qmcalculator.h"
@@ -29,16 +29,19 @@
 namespace votca {
 namespace xtp {
 
-class IAnalyze : public QMCalculator {
+class IAnalyze final : public QMCalculator {
  public:
-  std::string Identify() override { return "ianalyze"; }
-  bool WriteToStateFile() const override { return false; }
-  void Initialize(const tools::Property &user_options) override;
-  bool EvaluateFrame(Topology &top) override;
+  std::string Identify() { return "ianalyze"; }
+  bool WriteToStateFile() const { return false; }
+
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Evaluate(Topology &top);
+
+ private:
   void IHist(Topology &top, QMStateType state);
   void IRdependence(Topology &top, QMStateType state);
 
- private:
   double _resolution_logJ2;
   std::vector<QMStateType> _states;
   double _resolution_spatial;
@@ -50,4 +53,4 @@ class IAnalyze : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_IANALYZE_PRIVATE_H
+#endif  // VOTCA_XTP_IANALYZE_H

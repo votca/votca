@@ -149,6 +149,8 @@ class BasisSet {
 
   friend std::ostream& operator<<(std::ostream& out, const BasisSet& basis);
 
+  const std::string& Name() const { return _name; }
+
  private:
   Element& addElement(std::string elementType);
   std::string _name;

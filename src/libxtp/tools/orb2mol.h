@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef VOTCA_XTP_ORB2MOL_PRIVATE_H
-#define VOTCA_XTP_ORB2MOL_PRIVATE_H
+#ifndef VOTCA_XTP_ORB2MOL_H
+#define VOTCA_XTP_ORB2MOL_H
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -20,12 +20,13 @@ class Orb2Mol final : public QMTool {
  public:
   Orb2Mol() = default;
 
-  ~Orb2Mol() final = default;
+  ~Orb2Mol() = default;
 
-  std::string Identify() final { return "orb2mol"; }
+  std::string Identify() { return "orb2mol"; }
 
-  void Initialize(const tools::Property& user_options) final;
-  bool Evaluate() final;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   // clang-format off
@@ -40,4 +41,4 @@ class Orb2Mol final : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ORB2MOL_PRIVATE_H 
+#endif // VOTCA_XTP_ORB2MOL_H

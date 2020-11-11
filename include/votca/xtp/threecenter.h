@@ -21,48 +21,39 @@
 #ifndef VOTCA_XTP_THREECENTER_H
 #define VOTCA_XTP_THREECENTER_H
 
-// Standard includes
-#include <array>
-
 // Local VOTCA includes
+#include "aobasis.h"
 #include "eigen.h"
-#include "logger.h"
 #include "symmetric_matrix.h"
 
-#ifdef USE_CUDA
-#include "cudapipeline.h"
-#endif
-
 /**
- * \brief Calculates three electron overlap integrals for GW and DFT.
+ * \brief Calculates three electron repulsion integrals for GW and DFT.
  *
  *
  *
  */
 
+namespace libint2 {
+class Engine;
+}
+
 namespace votca {
 namespace xtp {
-
-class AOShell;
-class AOBasis;
 
 // due to different requirements for the data format for DFT and GW we have two
 // different classes TCMatrix_gwbse and TCMatrix_dft which inherit from TCMatrix
 class TCMatrix {
 
  public:
+  virtual ~TCMatrix() = default;
   Index Removedfunctions() const { return _removedfunctions; }
 
  protected:
   Index _removedfunctions = 0;
   Eigen::MatrixXd _inv_sqrt;
-
-  bool FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
-                               const AOShell& shell, const AOShell& shell_row,
-                               const AOShell& shell_col) const;
 };
 
-class TCMatrix_dft : public TCMatrix {
+class TCMatrix_dft final : public TCMatrix {
  public:
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis);
 
@@ -79,10 +70,8 @@ class TCMatrix_dft : public TCMatrix {
                  const AOBasis& dftbasis, const AOBasis& auxbasis);
 };
 
-class TCMatrix_gwbse : public TCMatrix {
+class TCMatrix_gwbse final : public TCMatrix {
  public:
-  TCMatrix_gwbse(Logger& log) : _log{log} {};
-
   // returns one level as a constant reference
   const Eigen::MatrixXd& operator[](Index i) const { return _matrix[i]; }
 
@@ -106,7 +95,7 @@ class TCMatrix_gwbse : public TCMatrix {
   void Initialize(Index basissize, Index mmin, Index mmax, Index nmin,
                   Index nmax);
 
-  void Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
+  void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
             const Eigen::MatrixXd& dft_orbitals);
   // Rebuilds ThreeCenterIntegrals, only works if the original basisobjects
   // still exist
@@ -117,9 +106,6 @@ class TCMatrix_gwbse : public TCMatrix {
  private:
   // store vector of matrices
   std::vector<Eigen::MatrixXd> _matrix;
-
-  // Logger
-  Logger& _log;
 
   // band summation indices
   Index _mmin;
@@ -134,37 +120,12 @@ class TCMatrix_gwbse : public TCMatrix {
   const AOBasis* _dftbasis = nullptr;
   const Eigen::MatrixXd* _dft_orbitals = nullptr;
 
-  std::vector<Eigen::MatrixXd> FillBlock(
-      const std::vector<Eigen::MatrixXd>& symmstorage,
-      const Eigen::MatrixXd& dft_orbitals) const;
+  void Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
+                const Eigen::MatrixXd& dft_orbitals);
 
-  void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& matrix);
-
-  void FillAllBlocksOpenMP(const AOBasis& gwbasis, const AOBasis& dftbasis,
-                           const Eigen::MatrixXd& dft_orbitals);
-
-  std::vector<Eigen::MatrixXd> ComputeSymmStorage(
-      const AOShell& auxshell, const AOBasis& dftbasis) const;
-
-#if defined(USE_CUDA)
-  std::array<CudaMatrix, 2> SendDFTMatricesToGPU(
-      const Eigen::MatrixXd& dft_orbitals, const CudaPipeline& cuda_pip) const;
-
-  std::array<CudaMatrix, 3> CreateIntermediateCudaMatrices(
-      Index basissize, const CudaPipeline& cuda_pip) const;
-
-  void FillAllBlocksCuda(const AOBasis& gwbasis, const AOBasis& dftbasis,
-                         const Eigen::MatrixXd& dft_orbitals);
-
-  void MultiplyRightWithAuxMatrixCuda(const Eigen::MatrixXd& matrix);
-
-  std::vector<Eigen::MatrixXd> FillBlockCUDA(
-      const std::vector<Eigen::MatrixXd>& symmstorage,
-      const std::array<CudaMatrix, 2>& cuda_matrices,
-      std::array<CudaMatrix, 3>& cuda_inter_matrices,
-      const CudaPipeline& cuda_pip) const;
-
-#endif
+  std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
+                                                const AOBasis& dftbasis,
+                                                libint2::Engine& engine) const;
 };
 
 }  // namespace xtp

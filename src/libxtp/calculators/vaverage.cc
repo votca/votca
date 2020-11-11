@@ -26,10 +26,7 @@
 namespace votca {
 namespace xtp {
 
-void VAverage::Initialize(const tools::Property& user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+void VAverage::ParseOptions(const tools::Property& options) {
 
   _ratefile = options.get(".ratefile").as<std::string>();
   _occfile = options.get(".occfile").as<std::string>();
@@ -105,7 +102,7 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
   return result;
 }
 
-bool VAverage::EvaluateFrame(Topology& top) {
+bool VAverage::Evaluate(Topology& top) {
   std::cout << std::endl
             << "... ... Computing velocity average for all sites\n";
   std::cout << "Reading in site occupations from " << _occfile << std::endl;

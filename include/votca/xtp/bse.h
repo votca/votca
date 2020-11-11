@@ -63,6 +63,8 @@ class BSE {
     Index davidson_maxiter;
     double min_print_weight;  // minimium contribution for state to print it
     bool use_Hqp_offdiag;
+    Index max_dyn_iter;
+    double dyn_tolerance;
   };
 
   void configure(const options& opt, const Eigen::VectorXd& RPAEnergies,
@@ -81,6 +83,8 @@ class BSE {
   void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
                         const Orbitals& orb) const;
 
+  void Perturbative_DynamicalScreening(const QMStateType& type, Orbitals& orb);
+
  private:
   options _opt;
 
@@ -90,12 +94,20 @@ class BSE {
     Eigen::VectorXd qp_contrib;
   };
 
+  struct ExpectationValues {
+    Eigen::VectorXd direct_term;
+    Eigen::VectorXd cross_term;
+  };
+
   Logger& _log;
   Index _bse_vmax;
   Index _bse_cmin;
   Index _bse_size;
   Index _bse_vtotal;
   Index _bse_ctotal;
+
+  Index _max_dyn_iter;
+  double _dyn_tolerance;
 
   Eigen::VectorXd _epsilon_0_inv;
 
@@ -127,7 +139,8 @@ class BSE {
   void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
                      Index state) const;
   void printWeights(Index i_bse, double weight) const;
-  void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies);
+  void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies,
+                                      double energy);
 
   Eigen::MatrixXd AdjustHqpSize(const Eigen::MatrixXd& Hqp_in,
                                 const Eigen::VectorXd& RPAInputEnergies);
@@ -135,9 +148,15 @@ class BSE {
   Interaction Analyze_eh_interaction(const QMStateType& type,
                                      const Orbitals& orb) const;
   template <typename BSE_OPERATOR>
-  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type,
-                                                 const Orbitals& orb,
-                                                 const BSE_OPERATOR& H) const;
+  ExpectationValues ExpectationValue_Operator(const QMStateType& type,
+                                              const Orbitals& orb,
+                                              const BSE_OPERATOR& H) const;
+
+  template <typename BSE_OPERATOR>
+  ExpectationValues ExpectationValue_Operator_State(const QMStateType& type,
+                                                    const Orbitals& orb,
+                                                    const BSE_OPERATOR& H,
+                                                    const Index state) const;
 };
 }  // namespace xtp
 }  // namespace votca

@@ -60,29 +60,33 @@ class Orca : public QMPackage {
   Eigen::Matrix3d GetPolarizability() const override;
 
  protected:
-  const std::array<Index, 25>& ShellMulitplier() const final {
+  const std::array<Index, 49>& ShellMulitplier() const final {
     return _multipliers;
   }
-  const std::array<Index, 25>& ShellReorder() const final {
+  const std::array<Index, 49>& ShellReorder() const final {
     return _reorderList;
   }
 
  private:
   // clang-format off
-  std::array<Index,25> _multipliers={
+  std::array<Index,49> _multipliers={{
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
-            1,1,1,1,1,-1,-1, //f 
-            1,1,1,1,1,-1,-1,-1,-1 //g
-            };
-  std::array<Index, 25> _reorderList={
+            -1,1,1,1,1,1,-1, //f 
+            -1,-1,1,1,1,1,1,-1,-1, //g
+            -1,-1,-1,1,1,1,1,1,-1,-1,-1, //h
+            -1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1 //i
+            }};
+  std::array<Index,49> _reorderList{{
             0, //s
             0, 1,-1, //p
             0,1,-1,2,-2, //d
             0,1,-1,2,-2,3,-3, //f 
-            0,1,-1,2,-2,3,-3,4,-4 //g
-            };
+            0,1,-1,2,-2,3,-3,4,-4, //g
+            0,1,-1,2,-2,3,-3,4,-4,5,-5, //h
+            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 //i
+            }};
 
   // clang-format on
   std::string indent(const double& number);
@@ -98,8 +102,8 @@ class Orca : public QMPackage {
   void GetCoordinates(T& mol, std::string& line,
                       std::ifstream& input_file) const;
   std::string WriteMethod() const;
-  std::string CreateInputSection(const std::string& key,
-                                 bool single_line = false) const;
+  std::string CreateInputSection(const std::string& key) const;
+  bool KeywordIsSingleLine(const std::string& key) const;
   std::string GetOrcaFunctionalName() const;
 
   std::unordered_map<std::string, std::string> _convergence_map{

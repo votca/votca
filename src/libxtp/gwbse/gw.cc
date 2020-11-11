@@ -27,6 +27,7 @@
 #include "votca/xtp/gw.h"
 #include "votca/xtp/newton_rapson.h"
 #include "votca/xtp/rpa.h"
+#include "votca/xtp/sigma_cda.h"
 #include "votca/xtp/sigma_exact.h"
 #include "votca/xtp/sigma_ppm.h"
 
@@ -38,9 +39,11 @@ void GW::configure(const options& opt) {
   _qptotal = _opt.qpmax - _opt.qpmin + 1;
   _rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
   if (_opt.sigma_integration == "exact") {
-    _sigma = std::make_unique<Sigma_Exact>(Sigma_Exact(_Mmn, _rpa));
+    _sigma = std::make_unique<Sigma_Exact>(_Mmn, _rpa);
+  } else if (_opt.sigma_integration == "cda") {
+    _sigma = std::make_unique<Sigma_CDA>(_Mmn, _rpa);
   } else if (_opt.sigma_integration == "ppm") {
-    _sigma = std::make_unique<Sigma_PPM>(Sigma_PPM(_Mmn, _rpa));
+    _sigma = std::make_unique<Sigma_PPM>(_Mmn, _rpa);
   }
   Sigma_base::options sigma_opt;
   sigma_opt.homo = _opt.homo;
@@ -49,6 +52,9 @@ void GW::configure(const options& opt) {
   sigma_opt.rpamin = _opt.rpamin;
   sigma_opt.rpamax = _opt.rpamax;
   sigma_opt.eta = _opt.eta;
+  sigma_opt.alpha = _opt.alpha;
+  sigma_opt.quadrature_scheme = _opt.quadrature_scheme;
+  sigma_opt.order = _opt.order;
   _sigma->configure(sigma_opt);
   _Sigma_x = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
   _Sigma_c = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
@@ -322,7 +328,7 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
     if (targ_prev * targ < 0.0) {  // Sign change
       double f = SolveQP_Bisection(freq_prev, targ_prev, freq, targ, fqp);
       double gradient = fqp.deriv(f);
-      double qp_weight = 1.0 / (1.0 - gradient);
+      double qp_weight = -1.0 / gradient;
       roots.push_back(std::make_pair(f, qp_weight));
       if (std::abs(gradient) < gradient_max) {
         gradient_max = std::abs(gradient);
