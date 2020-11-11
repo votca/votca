@@ -51,7 +51,7 @@ VOTCA dev-tools
 
 Running clang-format on every commit can be a drag, as can changing the
 copyright in every header. Building artifacts locally from a Gitlab run
-also takes mutliple steps. Fortunately, you will find small scripts in the
+also takes multiple steps. Fortunately, you will find small scripts in the
 `dev-tools repo <https://github.com/votca/dev-tools>`__, which can
 automate this.
 
@@ -556,4 +556,3 @@ could also replace the **epel-7-ppc64le** os-architecure to
 A final point, if you simply want to build natively for instance if you
 are running fedora on an **x86\_64** machine the ``frocearch pcc64le``
 in the above case could just be dropped.
-
