@@ -42,7 +42,6 @@ class ERIs {
 
   Eigen::MatrixXcd ContractRightIndecesWithMatrix(
       const Eigen::MatrixXcd& mat) const;
-  Eigen::MatrixXcd FourCenterTest(const Eigen::MatrixXcd& mat) const;
 
   std::array<Eigen::MatrixXd, 2> CalculateERIs_EXX_3c(
       const Eigen::MatrixXd& occMos, const Eigen::MatrixXd& DMAT) const {

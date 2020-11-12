@@ -22,7 +22,6 @@
 #include <votca/tools/property.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/aomatrix3d.h>
 #include <votca/xtp/aopotential.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
@@ -185,8 +184,8 @@ Eigen::MatrixXcd Sternheimer::DeltaNSCSternheimer(
           _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, true);
       Eigen::MatrixXcd LHS_M = SternheimerLHS(
           _Hamiltonian_Matrix, _inverse_overlap, _mo_energies(v), w, false);
-        //LHS_P = LHS_P + alpha * _density_Matrix.transpose() * _overlap_Matrix;
-        //LHS_M = LHS_M + alpha * _density_Matrix.transpose() * _overlap_Matrix;
+      // LHS_P = LHS_P + alpha * _density_Matrix.transpose() * _overlap_Matrix;
+      // LHS_M = LHS_M + alpha * _density_Matrix.transpose() * _overlap_Matrix;
       solution_p.col(v) = LHS_P.colPivHouseholderQr().solve(RHS);
       solution_m.col(v) = LHS_M.colPivHouseholderQr().solve(RHS);
     }

@@ -106,9 +106,16 @@ class AODipole : public AOMatrix {
 
 class AO3ddipole : public AOMatrix {
  public:
+  void Fill(const AOBasis& aobasis) final {
+    throw std::runtime_error("Fill should not be called on AO3DDipole.");
+  }
+
+  const std::array<Eigen::MatrixXd, 3>& Matrix() const { return _aomatrix; }
+  Index Dimension() final { return _aomatrix[0].rows(); }
   void setCenter(const Eigen::Vector3d& r) {
     _r = r;
   }  // definition of a center around which the moment should be calculated
+
  protected:
   void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
                  const AOShell& shell_row, const AOShell& shell_col) const;
