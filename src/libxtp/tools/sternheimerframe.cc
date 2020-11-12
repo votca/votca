@@ -33,7 +33,7 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
-void SternheimerFrame::Initialize(const tools::Property &user_options) {
+void SternheimerFrame::ParseOptions(const tools::Property &user_options) {
 
   std::string key = "sternheimer";
 
@@ -62,28 +62,27 @@ void SternheimerFrame::Initialize(const tools::Property &user_options) {
   _options.tolerance_sc_sternheimer = options.get(".tolerance").as<double>();
   _options.max_mixing_history = options.get(".max_hist").as<Index>();
 
-
   XTP_LOG(Log::error, _log) << " Task: " << _options.task << flush;
 
   XTP_LOG(Log::error, _log) << flush;
 
   if (_options.task == "polarizability") {
-  XTP_LOG(Log::error, _log)
-      << " Omega initial: " << _options.start_frequency_grid << flush;
-  XTP_LOG(Log::error, _log)
-      << " Omega final: " << _options.end_frequency_grid << flush;
-  XTP_LOG(Log::error, _log)
-      << " Steps: " << _options.number_of_frequency_grid_points << flush;
-  XTP_LOG(Log::error, _log)
-      << " Resolution: " << _options.number_output_grid_points << flush;
-  }    
+    XTP_LOG(Log::error, _log)
+        << " Omega initial: " << _options.start_frequency_grid << flush;
+    XTP_LOG(Log::error, _log)
+        << " Omega final: " << _options.end_frequency_grid << flush;
+    XTP_LOG(Log::error, _log)
+        << " Steps: " << _options.number_of_frequency_grid_points << flush;
+    XTP_LOG(Log::error, _log)
+        << " Resolution: " << _options.number_output_grid_points << flush;
+  }
   if (_options.task == "polarizability") {
     XTP_LOG(Log::error, _log)
         << " Imaginary shift: " << _options.imaginary_shift_pade_approx
         << flush;
   }
 };
-bool SternheimerFrame::Evaluate() {
+bool SternheimerFrame::Run() {
 
   OPENMP::setMaxThreads(_nThreads);
 
@@ -147,7 +146,6 @@ bool SternheimerFrame::Evaluate() {
         << TimeStamp() << " Finished Sternheimer Polarizability" << flush;
   }
 
-  
   if (_options.task == "gradient") {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer Energy Gradient" << flush;
@@ -173,7 +171,6 @@ bool SternheimerFrame::Evaluate() {
         << TimeStamp() << " Finished Sternheimer Energy Gradient" << flush;
   }
 
-
   if (_options.task == "mogradient") {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Started Sternheimer MO Energy Gradient" << flush;
@@ -188,7 +185,7 @@ bool SternheimerFrame::Evaluate() {
     ofs << "MO index "
         << "Atom_Type "
         << "Atom_Index "
-        << "Gradient x y z " << std::endl;    
+        << "Gradient x y z " << std::endl;
 
     for (Index n = 0; n < orbitals.MOs().eigenvalues().size(); ++n) {
 

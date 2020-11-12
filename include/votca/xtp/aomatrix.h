@@ -95,7 +95,7 @@ class AODipole : public AOMatrix {
 
   void setCenter(const Eigen::Vector3d& r) {
     for (Index i = 0; i < 3; i++) {
-      _r[0] = r[0];
+      _r[i] = r[i];
     }
   }  // definition of a center around which the moment should be calculated
 
@@ -109,28 +109,13 @@ class AO3ddipole : public AOMatrix {
   void setCenter(const Eigen::Vector3d& r) {
     _r = r;
   }  // definition of a center around which the moment should be calculated
-     /*void FillBlock3D(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
-                    const AOShell& shell_row,
-                    const AOShell& shell_col, Eigen::Vector3d r) const;
-     void FillPotential(const AOBasis& aobasis, const QMMolecule& atoms);
-     void FillPotential(const AOBasis& aobasis, const Eigen::Vector3d& r);
-     void FillPotential(
-         const AOBasis& aobasis,
-         const std::vector<std::unique_ptr<StaticSite>>& externalsites);
-   
-      */
  protected:
   void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
-                 const AOShell& shell_row,
-                 const AOShell& shell_col) const override;
+                 const AOShell& shell_row, const AOShell& shell_col) const;
 
  private:
   Eigen::Vector3d _r = Eigen::Vector3d::Zero();
   std::array<Eigen::MatrixXd, 3> _aomatrix;
-
-  // void setSite(const StaticSite* site) { _site = site; };
-
-  // const StaticSite* _site;
 };
 
 }  // namespace xtp

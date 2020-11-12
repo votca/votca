@@ -18,7 +18,7 @@
  */
 
 //#include <votca/xtp/aopotential.h>
-#include <votca/xtp/aomatrix3d.h>
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/aotransform.h>
 #include <votca/xtp/qmmolecule.h>
 
@@ -593,7 +593,6 @@ void AO3ddipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
         }
         //------------------------------------------------------
       }  // end if (lmax_col > 3)
-
 
       if (rank > 0) {
         Eigen::Tensor<double, 4> dip4(nrows, ncols, 3, lsum + 1);
@@ -1333,11 +1332,9 @@ void AO3ddipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
             AOTransform::getTrafo(gaussian_col));
         // save to matrix
 
-
         matrix[0] += multipole_sph[0];
         matrix[1] += multipole_sph[1];
         matrix[2] += multipole_sph[2];
-
       }
     }  // shell_col Gaussians
   }    // shell_row Gaussians

@@ -42,11 +42,11 @@ class SternheimerFrame : public QMTool {
 
   std::string Identify() override { return "sternheimer"; }
 
-  void Initialize(const tools::Property& user_options);
-  bool Evaluate();
+ protected:
+  void ParseOptions(const tools::Property& user_options) final;
+  bool Run() final;
 
  private:
-
   std::string _guess_file;
   bool _do_guess;
 
@@ -58,7 +58,6 @@ class SternheimerFrame : public QMTool {
   Logger _log;
 
   Sternheimer::options_sternheimer _options;
-
 };
 }  // namespace xtp
 }  // namespace votca
