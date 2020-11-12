@@ -42,9 +42,6 @@ BOOST_AUTO_TEST_CASE(aomatrices_dipole_test) {
   aobasis.Fill(basis, orbitals.QMAtoms());
 
   AODipole dip;
-  Eigen::Vector3d center;
-  center << 1.71, 2.34, 3.54;
-  dip.setCenter(center);
   dip.Fill(aobasis);
 
   std::array<Eigen::MatrixXd, 3> dip_ref;
@@ -64,6 +61,30 @@ BOOST_AUTO_TEST_CASE(aomatrices_dipole_test) {
       cout << dip.Matrix()[i] << endl;
     }
   }
+
+  // Now the same computation with a non zero center
+  Eigen::Vector3d center;
+  center << 1.71, 2.34, 3.54;
+  dip.setCenter(center);
+  dip.Fill(aobasis);
+
+  for (unsigned i = 0; i < dip_ref.size(); i++) {
+    dip_ref[i] = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+        std::string(XTP_TEST_DATA_FOLDER) + "/aomatrix3d/dip_ref" +
+        std::to_string(i) + "_nonzero.mm");
+  }
+
+  for (unsigned i = 0; i < dip_ref.size(); i++) {
+    bool check_nonzero_center = dip.Matrix()[i].isApprox(dip_ref[i], 0.0001);
+    BOOST_CHECK_EQUAL(check_nonzero_center, true);
+    if (!check_nonzero_center) {
+      cout << "ref" << i << endl;
+      cout << dip_ref[i] << endl;
+      cout << "result" << i << endl;
+      cout << dip.Matrix()[i] << endl;
+    }
+  }
+
   libint2::finalize();
 }
 
