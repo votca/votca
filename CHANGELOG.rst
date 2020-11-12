@@ -78,6 +78,7 @@ Version 2021-dev
 -  use unique_ptr in factory (#581)
 -  fix QMMM with QP (#590, #591)
 -  fix bug in setCenter of AODipole (#593)
+-  extra check in orca unit test (#594)
 
 Version 1.6.3 (released XX.08.20)
 =================================
