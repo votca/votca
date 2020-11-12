@@ -99,6 +99,8 @@ class AODipole : public AOMatrix {
     }
   }  // definition of a center around which the moment should be calculated
 
+  const std::array<libint2::Shell::real_t, 3>& getCenter() const { return _r; }
+
  private:
   std::array<Eigen::MatrixXd, 3> _aomatrix;
   std::array<libint2::Shell::real_t, 3> _r = {0, 0, 0};

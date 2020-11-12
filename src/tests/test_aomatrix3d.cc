@@ -31,7 +31,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(aomatrix3d_test)
 
-BOOST_AUTO_TEST_CASE(aomatrices3d_test) {
+BOOST_AUTO_TEST_CASE(aomatrices_dipole_test) {
   libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -60,6 +60,28 @@ BOOST_AUTO_TEST_CASE(aomatrices3d_test) {
       cout << dip.Matrix()[i] << endl;
     }
   }
+
+  Eigen::Vector3d center;
+  center << 1.71, 2.34, 3.54;
+  dip.setCenter(center);
+  bool centerSetCorrectly = true;
+  auto dipoleCenter = dip.getCenter();
+  for (int i = 0; i < 3; i++) {
+    if (dipoleCenter[i] != center[i]) {
+      centerSetCorrectly = false;
+    }
+  }
+
+  BOOST_CHECK_EQUAL(centerSetCorrectly, true);
+  if (!centerSetCorrectly) {
+    std::cout << "center:" << std::endl;
+    std::cout << center << std::endl;
+    std::cout << "center value of AODipole:" << std::endl;
+    for (auto& num : dip.getCenter()) {
+      std::cout << num << std::endl;
+    }
+  }
+
   libint2::finalize();
 }
 
