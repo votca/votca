@@ -31,7 +31,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(aomatrix3d_test)
 
-BOOST_AUTO_TEST_CASE(aomatrices3d_test) {
+BOOST_AUTO_TEST_CASE(aomatrices_dipole_test) {
   libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -42,7 +42,11 @@ BOOST_AUTO_TEST_CASE(aomatrices3d_test) {
   aobasis.Fill(basis, orbitals.QMAtoms());
 
   AODipole dip;
+  Eigen::Vector3d center;
+  center << 1.71, 2.34, 3.54;
+  dip.setCenter(center);
   dip.Fill(aobasis);
+
   std::array<Eigen::MatrixXd, 3> dip_ref;
   for (unsigned i = 0; i < dip_ref.size(); i++) {
     dip_ref[i] = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
