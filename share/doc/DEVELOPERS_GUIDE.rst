@@ -58,7 +58,7 @@ automate this.
 VOTCA Continuous Integration (Github Actions)
 ---------------------------------------------
 
-Each pull or push request to master in the tools, csg, csgapps, csg-tutorials, csg-manual, xtp, xtp-tutorials or votca repository 
+Each pull request to master in the tools, csg, csgapps, csg-tutorials, csg-manual, xtp, xtp-tutorials or votca repository 
 is built on a machine in the cloud using `Github actions <https://docs.github.com/en/actions>`__ (There is still some Gitlab for the GPU builds).
 
 VOTCA can build on various linux distributions, which are not all natively supported by Github actions. For non natively supported distributions, 
