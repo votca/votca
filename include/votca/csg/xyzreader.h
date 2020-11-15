@@ -24,6 +24,7 @@
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/tools/constants.h>
+#include <votca/tools/getline.h>
 
 #include <type_traits>
 namespace votca {
@@ -104,7 +105,7 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
 template <bool topology, class T>
 inline bool XYZReader::ReadFrame(T &container) {
   std::string line;
-  std::getline(_fl, line);
+  tools::getline(_fl, line);
   ++_line;
   if (!_fl.eof()) {
     // read the number of atoms
