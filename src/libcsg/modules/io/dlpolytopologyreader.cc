@@ -47,7 +47,7 @@ string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char *wspace)
   size_t i_nws = 0;
 
   do {
-    getline(fs, line);
+    tools::getline(fs, line);
 
     if (fs.eof()) {
       throw std::runtime_error("Error: unexpected end of dlpoly file '" +
@@ -374,7 +374,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
   }
 
 #ifdef DEBUG
-  getline(fl, line);  // is "close" found?
+  tools::getline(fl, line);  // is "close" found?
   if (line == "close") {
     cout << "Read from dlpoly file '" << _fname << "' : '" << line
          << "' - done with topology" << endl;

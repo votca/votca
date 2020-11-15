@@ -181,7 +181,7 @@ void CsgBoltzmann::InteractiveMode() {
   while (1) {
     string line;
     cout << "> ";
-    getline(cin, line);
+    tools::getline(cin, line);
 
     boost::trim(line);
 

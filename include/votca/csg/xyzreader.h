@@ -121,11 +121,11 @@ inline bool XYZReader::ReadFrame(T &container) {
           "number of beads in topology and trajectory differ");
     }
     // the title line
-    getline(_fl, line);
+    tools::getline(_fl, line);
     ++_line;
     // read atoms
     for (Index i = 0; i < natoms; ++i) {
-      getline(_fl, line);
+      tools::getline(_fl, line);
       ++_line;
       if (_fl.eof()) {
         throw std::runtime_error("unexpected end of file in xyz file");

@@ -61,11 +61,11 @@ bool GROReader::FirstFrame(Topology &top) {
 
 bool GROReader::NextFrame(Topology &top) {
   string tmp;
-  getline(_fl, tmp);  // title
+  tools::getline(_fl, tmp);  // title
   if (_fl.eof()) {
     return !_fl.eof();
   }
-  getline(_fl, tmp);  // number atoms
+  tools::getline(_fl, tmp);  // number atoms
   Index natoms = std::stoi(tmp);
   if (!_topology && natoms != top.BeadCount()) {
     throw std::runtime_error(
@@ -74,7 +74,7 @@ bool GROReader::NextFrame(Topology &top) {
 
   for (Index i = 0; i < natoms; i++) {
     string line;
-    getline(_fl, line);
+    tools::getline(_fl, line);
     string resNum, resName, atName, x, y, z;
     try {
       resNum = string(line, 0, 5);   // %5i
@@ -142,7 +142,7 @@ bool GROReader::NextFrame(Topology &top) {
     }
   }
 
-  getline(_fl, tmp);  // read box line
+  tools::getline(_fl, tmp);  // read box line
   if (_fl.eof()) {
     throw std::runtime_error(
         "unexpected end of file in poly file, when boxline");

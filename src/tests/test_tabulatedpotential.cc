@@ -36,7 +36,7 @@ Eigen::VectorXd getColumnFromFile(string file_name, votca::Index column) {
   file.open(file_name);
   string line;
   if (file.is_open()) {
-    while (getline(file, line)) {
+    while (tools::getline(file, line)) {
       string word;
       istringstream ss(line);
       for (votca::Index i = 0; i < column; ++i) {
