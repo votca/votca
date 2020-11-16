@@ -1,20 +1,22 @@
 find_package(EXPAT REQUIRED)
+set_package_properties(EXPAT PROPERTIES TYPE REQUIRED PURPOSE "Used for XML parsing")
 
 file(GLOB VOTCA_SOURCES *.cc)
 
 add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_LINALG_SOURCES})
 
 #CMAKE_CURRENT_BINARY_DIR for gitversion.h
-#PROJECT_BINARY_DIR/include for votca_config.h
+#PROJECT_BINARY_DIR/include for votca_tools_config.h
 target_include_directories(votca_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/votca/tools>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -P ${CMAKE_MODULE_PATH}/gitversion.cmake)
+  -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 add_dependencies(votca_tools gitversion)
@@ -22,12 +24,14 @@ add_dependencies(votca_tools gitversion)
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eigen3::Eigen PRIVATE
 	Boost::filesystem Boost::system EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
-if(TARGET MKL::MKL)
-  target_link_libraries(votca_tools PUBLIC MKL::MKL)
+if(TARGET MKL::Shared)
+	target_link_libraries(votca_tools PUBLIC MKL::Shared)
   install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindMKL.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
-if(TARGET FFTW3::FFTW3)
-  target_link_libraries(votca_tools PRIVATE FFTW3::FFTW3)
+if(FFTW3_FOUND)
+  # fftw3.h gets included in our public eigen.h through Eigen/FFT
+  target_link_libraries(votca_tools PUBLIC FFTW3::fftw3)
+  install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindFFTW3.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
 install(TARGETS votca_tools EXPORT VOTCA_TOOLS_Targets
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

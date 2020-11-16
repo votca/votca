@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,14 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_APPLICATION_H
-#define __VOTCA_TOOLS_APPLICATION_H
+#ifndef VOTCA_TOOLS_APPLICATION_H
+#define VOTCA_TOOLS_APPLICATION_H
 
-#include "property.h"
+// Third party includes
 #include <boost/program_options.hpp>
+
+// Local VOTCA includes
+#include "property.h"
 
 namespace votca {
 namespace tools {
@@ -143,7 +146,7 @@ class Application {
    * @param helptype Index or short (with options) help
    */
   void PrintDescription(std::ostream &out, const std::string &calculator_name,
-                        const std::string help_path, HelpType helptype);
+                        const std::string help_path, HelpType help_type);
 
  protected:
   /// Variable map containing all program options
@@ -173,4 +176,4 @@ class Application {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_TOOLS_APPLICATION_H */
+#endif  // VOTCA_TOOLS_APPLICATION_H
