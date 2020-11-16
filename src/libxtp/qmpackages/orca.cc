@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <stdio.h>
 #include <votca/tools/elements.h>
+#include <votca/tools/getline.h>
 #include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
 
@@ -402,7 +403,7 @@ StaticSegment Orca::GetCharges() const {
 
   std::ifstream input_file(log_file_name_full);
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
     GetCoordinates(result, line, input_file);
 
@@ -410,7 +411,7 @@ StaticSegment Orca::GetCharges() const {
 
     if (charge_pos != std::string::npos) {
       XTP_LOG(Log::error, *_pLog) << "Getting charges" << flush;
-      getline(input_file, line);
+      tools::getline(input_file, line);
       std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
       Index nfields = Index(row.size());
       bool hasAtoms = result.size() > 0;
@@ -447,15 +448,15 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
 
   Eigen::Matrix3d pol = Eigen::Matrix3d::Zero();
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
 
     std::string::size_type pol_pos = line.find("THE POLARIZABILITY TENSOR");
     if (pol_pos != std::string::npos) {
       XTP_LOG(Log::error, *_pLog) << "Getting polarizability" << flush;
-      getline(input_file, line);
-      getline(input_file, line);
-      getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
 
       if (line.find("The raw cartesian tensor (atomic units)") ==
           std::string::npos) {
@@ -464,7 +465,7 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
       }
 
       for (Index i = 0; i < 3; i++) {
-        getline(input_file, line);
+        tools::getline(input_file, line);
         tools::Tokenizer tok2(line, " ");
         std::vector<std::string> values = tok2.ToVector();
         if (values.size() != 3) {
@@ -523,7 +524,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
   QMMolecule& mol = orbitals.QMAtoms();
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
 
     GetCoordinates(mol, line, input_file);
@@ -568,9 +569,9 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     if (OE_pos != std::string::npos) {
 
       number_of_electrons = 0;
-      getline(input_file, line);
-      getline(input_file, line);
-      getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
       if (line.find("E(Eh)") == std::string::npos) {
         XTP_LOG(Log::error, *_pLog)
             << "Warning: Orbital Energies not found in log file" << flush;
@@ -658,7 +659,7 @@ void Orca::GetCoordinates(T& mol, string& line, ifstream& input_file) const {
     XTP_LOG(Log::error, *_pLog) << "Getting the coordinates" << flush;
     bool has_QMAtoms = mol.size() > 0;
     // three garbage lines
-    getline(input_file, line);
+    tools::getline(input_file, line);
     // now starts the data in format
     // _id type Qnuc x y z
     vector<string> row = GetLineAndSplit(input_file, "\t ");
@@ -695,7 +696,7 @@ bool Orca::CheckLogFile() {
 
   std::string line;
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
     std::string::size_type error = line.find("FATAL ERROR ENCOUNTERED");
     if (error != std::string::npos) {

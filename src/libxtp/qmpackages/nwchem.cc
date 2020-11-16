@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,6 +22,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <votca/tools/filesystem.h>
+#include <votca/tools/getline.h>
 #include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
 
@@ -418,7 +419,7 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
 
   // the first 12 lines are garbage info
   for (Index i = 0; i < 12; i++) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
   }
   // next line has basis set size
   input_file >> basis_size;
@@ -526,7 +527,7 @@ StaticSegment NWChem::GetCharges() const {
   ifstream input_file((_run_dir + "/" + _log_file_name));
   bool has_charges = false;
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
 
     std::string::size_type charge_pos = line.find("ESP");
@@ -534,8 +535,8 @@ StaticSegment NWChem::GetCharges() const {
       XTP_LOG(Log::error, *_pLog) << "Getting charges" << flush;
       has_charges = true;
       // two empty lines
-      getline(input_file, line);
-      getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
 
       // now starts the data in format
       // _id type x y z q
@@ -576,14 +577,14 @@ Eigen::Matrix3d NWChem::GetPolarizability() const {
 
   Eigen::Matrix3d pol = Eigen::Matrix3d::Zero();
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
 
     std::string::size_type pol_pos =
         line.find("DFT Linear Response polarizability / au");
     if (pol_pos != std::string::npos) {
       XTP_LOG(Log::error, *_pLog) << "Getting polarizability" << flush;
-      getline(input_file, line);
+      tools::getline(input_file, line);
       tools::Tokenizer tok(line, " ");
       std::vector<std::string> line_split = tok.ToVector();
       double frequency = std::stod(line_split[2]);
@@ -592,11 +593,11 @@ Eigen::Matrix3d NWChem::GetPolarizability() const {
             << "Warning: Polarizability was calculated for frequency "
             << frequency << " normally f=0 for static polarizability" << flush;
       }
-      getline(input_file, line);
-      getline(input_file, line);
-      getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
       for (Index i = 0; i < 3; i++) {
-        getline(input_file, line);
+        tools::getline(input_file, line);
         tools::Tokenizer tok2(line, " ");
         std::vector<std::string> values = tok2.ToVector();
         if (values.size() != 4) {
@@ -655,7 +656,7 @@ bool NWChem::CheckLogFile() const {
     } while (ch != '\n' || (Index)input_file.tellg() == -1);
 
     std::string line;
-    getline(input_file, line);  // Read the current line
+    tools::getline(input_file, line);  // Read the current line
     total_energy_pos = line.find("Total DFT energy");
     diis_pos = line.find("diis");
     // whatever is found first, determines the completeness of the file
@@ -705,7 +706,7 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
   // Start parsing the file line by line
   ifstream input_file(log_file_name_full);
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
     /*
      * basis set size (is only required for overlap matrix reading, rest is
@@ -743,9 +744,9 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
       //_has_coordinates = true;
       bool has_QMAtoms = orbitals.hasQMAtoms();
       // three garbage lines
-      getline(input_file, line);
-      getline(input_file, line);
-      getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
       // now starts the data in format
       // _id type Qnuc x y z
       std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");

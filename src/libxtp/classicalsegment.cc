@@ -1,5 +1,5 @@
 /*
- *            Copyright 2016 The VOTCA Development Team
+ *            Copyright 2016-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,6 +21,7 @@
 #include "votca/xtp/atomcontainer.h"
 #include <boost/format.hpp>
 #include <votca/tools/elements.h>
+#include <votca/tools/getline.h>
 #include <votca/tools/tokenizer.h>
 
 namespace votca {
@@ -47,7 +48,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
   }
   while (intt.good()) {
 
-    std::getline(intt, line);
+    tools::getline(intt, line);
     tools::Tokenizer toker(line, " \t");
     std::vector<std::string> split = toker.ToVector();
 
