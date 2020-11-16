@@ -26,6 +26,8 @@
 #include <string>
 #include <vector>
 
+#include <votca/tools/getline.h>
+
 using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
@@ -36,7 +38,7 @@ Eigen::VectorXd getColumnFromFile(string file_name, votca::Index column) {
   file.open(file_name);
   string line;
   if (file.is_open()) {
-    while (tools::getline(file, line)) {
+    while (votca::tools::getline(file, line)) {
       string word;
       istringstream ss(line);
       for (votca::Index i = 0; i < column; ++i) {
