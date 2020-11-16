@@ -29,6 +29,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <votca/tools/getline.h>
 #include <votca/tools/rangeparser.h>
 #include <votca/tools/tokenizer.h>
 
@@ -183,7 +184,7 @@ void CsgBoltzmann::InteractiveMode() {
   while (true) {
     string line;
     cout << "> ";
-    getline(cin, line);
+    votca::tools::getline(cin, line);
 
     boost::trim(line);
 

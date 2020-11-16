@@ -42,6 +42,7 @@ Version 1.6.3 (released XX.08.20)
 -  add gmx2021 builds to CI (#607)
 -  remove set-env call from CI (#608)
 -  use master .clang-format in format action (#610)
+-  strip windows line endings in readers (#614)
 
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================

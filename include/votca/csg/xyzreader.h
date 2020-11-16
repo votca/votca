@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 
 // VOTCA includes
 #include <votca/tools/constants.h>
+#include <votca/tools/getline.h>
 #include <votca/tools/unitconverter.h>
 
 // Local VOTCA includes
@@ -112,7 +113,7 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
 template <bool topology, class T>
 inline bool XYZReader::ReadFrame(T &container) {
   std::string line;
-  std::getline(_fl, line);
+  tools::getline(_fl, line);
   ++_line;
   if (!_fl.eof()) {
     // read the number of atoms
@@ -129,11 +130,11 @@ inline bool XYZReader::ReadFrame(T &container) {
           "number of beads in topology and trajectory differ");
     }
     // the title line
-    getline(_fl, line);
+    tools::getline(_fl, line);
     ++_line;
     // read atoms
     for (Index i = 0; i < natoms; ++i) {
-      getline(_fl, line);
+      tools::getline(_fl, line);
       ++_line;
       if (_fl.eof()) {
         throw std::runtime_error("unexpected end of file in xyz file");

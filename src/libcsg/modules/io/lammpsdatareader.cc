@@ -115,9 +115,9 @@ bool LAMMPSDataReader::FirstFrame(Topology &top) {
 bool LAMMPSDataReader::NextFrame(Topology &top) {
 
   string header;
-  getline(fl_, header);
+  tools::getline(fl_, header);
   string line;
-  getline(fl_, line);
+  tools::getline(fl_, line);
   while (!fl_.eof()) {
 
     tools::Tokenizer tok(line, " ");
@@ -137,7 +137,7 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
       string err = "Unrecognized line in lammps .data file:\n" + line;
       throw runtime_error(err);
     }
-    getline(fl_, line);
+    tools::getline(fl_, line);
   }
   return !fl_.eof();
 }
@@ -281,7 +281,7 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
 
   for (Index i = 1; i < 3; ++i) {
     string line;
-    getline(fl_, line);
+    tools::getline(fl_, line);
     tools::Tokenizer tok(line, " ");
     tok.ConvertToVector(fields);
     if (fields.size() != 4) {
@@ -295,8 +295,8 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
 
 void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
   string line;
-  getline(fl_, line);
-  getline(fl_, line);
+  tools::getline(fl_, line);
+  tools::getline(fl_, line);
 
   vector<vector<string>> group;
   string data_elem;
@@ -304,7 +304,7 @@ void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
     tools::Tokenizer tok(line, " ");
     vector<string> fields = tok.ToVector();
     group.push_back(fields);
-    getline(fl_, line);
+    tools::getline(fl_, line);
   }
 
   data_[tag] = group;
@@ -367,8 +367,8 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
   }
 
   string line;
-  getline(fl_, line);
-  getline(fl_, line);
+  tools::getline(fl_, line);
+  tools::getline(fl_, line);
 
   lammps_format format = determineDataFileFormat_(line);
   bool chargeRead = false;
@@ -390,7 +390,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     issfirst >> startingIndexMolecule;
   }
   sorted_file[startingIndex] = line;
-  getline(fl_, line);
+  tools::getline(fl_, line);
   boost::trim(line);
 
   Index atomId = 0;
@@ -402,7 +402,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       iss >> moleculeId;
     }
     sorted_file[atomId] = line;
-    getline(fl_, line);
+    tools::getline(fl_, line);
     boost::trim(line);
     if (atomId < startingIndex) {
       startingIndex = atomId;
@@ -512,8 +512,8 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
 
 void LAMMPSDataReader::ReadBonds_(Topology &top) {
   string line;
-  getline(fl_, line);
-  getline(fl_, line);
+  tools::getline(fl_, line);
+  tools::getline(fl_, line);
   boost::trim(line);
 
   Index bondId;
@@ -549,7 +549,7 @@ void LAMMPSDataReader::ReadBonds_(Topology &top) {
     }
 
     ++bond_count;
-    getline(fl_, line);
+    tools::getline(fl_, line);
     boost::trim(line);
   }
 
@@ -566,8 +566,8 @@ void LAMMPSDataReader::ReadBonds_(Topology &top) {
 
 void LAMMPSDataReader::ReadAngles_(Topology &top) {
   string line;
-  getline(fl_, line);
-  getline(fl_, line);
+  tools::getline(fl_, line);
+  tools::getline(fl_, line);
   boost::trim(line);
 
   Index angleId;
@@ -608,7 +608,7 @@ void LAMMPSDataReader::ReadAngles_(Topology &top) {
 
     ++angle_count;
 
-    getline(fl_, line);
+    tools::getline(fl_, line);
     boost::trim(line);
   }
 
@@ -625,17 +625,17 @@ void LAMMPSDataReader::ReadAngles_(Topology &top) {
 
 void LAMMPSDataReader::SkipImpropers_() {
   string line;
-  getline(fl_, line);
-  getline(fl_, line);
+  tools::getline(fl_, line);
+  tools::getline(fl_, line);
   while (!line.empty()) {
-    getline(fl_, line);
+    tools::getline(fl_, line);
   }
 }
 
 void LAMMPSDataReader::ReadDihedrals_(Topology &top) {
   string line;
-  getline(fl_, line);
-  getline(fl_, line);
+  tools::getline(fl_, line);
+  tools::getline(fl_, line);
   boost::trim(line);
 
   Index dihedralId;
@@ -677,7 +677,7 @@ void LAMMPSDataReader::ReadDihedrals_(Topology &top) {
       mi->AddInteraction(ic);
     }
     ++dihedral_count;
-    getline(fl_, line);
+    tools::getline(fl_, line);
     boost::trim(line);
   }
 
