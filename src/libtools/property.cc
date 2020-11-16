@@ -235,7 +235,7 @@ void Property::LoadFromXML(string filename) {
   XML_SetUserData(parser, (void *)&pstack);
   while (!fl.eof()) {
     string line;
-    getline(fl, line);
+    tools::getline(fl, line);
     line = line + "\n";
     if (line.length() > (size_t)std::numeric_limits<int>::max()) {
       throw std::runtime_error("Property::LoadFromXML: line is too long");

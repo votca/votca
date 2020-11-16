@@ -33,7 +33,7 @@ namespace tools {
 
   */
 inline std::istream& getline(std::istream& is, std::string& str) {
-  std::istream& ist = getline(is, str, '\n');
+  std::istream& ist = std::getline(is, str, '\n');
   str.erase(remove(str.begin(), str.end(), '\r'), str.end());
   return ist;
 }

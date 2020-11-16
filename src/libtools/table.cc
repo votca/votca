@@ -99,7 +99,7 @@ istream &operator>>(istream &in, Table &t) {
   t.clear();
 
   // read till the first data line
-  while (getline(in, line)) {
+  while (tools::getline(in, line)) {
     line_number++;
     string conversion_error = t.getErrorDetails() + ", line " +
                               boost::lexical_cast<string>(line_number);
@@ -138,7 +138,7 @@ istream &operator>>(istream &in, Table &t) {
   }
 
   // read the rest
-  while (getline(in, line)) {
+  while (tools::getline(in, line)) {
     line_number++;
     string conversion_error = t.getErrorDetails() + ", line " +
                               boost::lexical_cast<string>(line_number);
