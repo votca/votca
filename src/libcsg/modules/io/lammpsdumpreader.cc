@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ bool LAMMPSDumpReader::FirstFrame(Topology &top) {
 
 bool LAMMPSDumpReader::NextFrame(Topology &top) {
   string line;
-  getline(_fl, line);
+  tools::getline(_fl, line);
   boost::algorithm::trim(line);
   while (!_fl.eof()) {
     if (line.substr(0, 5) != "ITEM:") {
@@ -85,7 +85,7 @@ bool LAMMPSDumpReader::NextFrame(Topology &top) {
       throw std::ios_base::failure("unknown item lammps file : " +
                                    line.substr(6));
     }
-    getline(_fl, line);
+    tools::getline(_fl, line);
     boost::algorithm::trim(line);
   }
   if (_topology) {
@@ -98,7 +98,7 @@ bool LAMMPSDumpReader::NextFrame(Topology &top) {
 
 void LAMMPSDumpReader::ReadTimestep(Topology &top) {
   string s;
-  getline(_fl, s);
+  tools::getline(_fl, s);
   boost::algorithm::trim(s);
   top.setStep(boost::lexical_cast<Index>(s));
   cout << "Reading frame, timestep " << top.getStep() << endl;
@@ -110,7 +110,7 @@ void LAMMPSDumpReader::ReadBox(Topology &top) {
   Eigen::Matrix3d m = Eigen::Matrix3d::Zero();
 
   for (Index i = 0; i < 3; ++i) {
-    getline(_fl, s);
+    tools::getline(_fl, s);
     boost::algorithm::trim(s);
 
     tools::Tokenizer tok(s, " ");
@@ -126,7 +126,7 @@ void LAMMPSDumpReader::ReadBox(Topology &top) {
 
 void LAMMPSDumpReader::ReadNumAtoms(Topology &top) {
   string s;
-  getline(_fl, s);
+  tools::getline(_fl, s);
   boost::algorithm::trim(s);
   _natoms = boost::lexical_cast<Index>(s);
   if (!_topology && _natoms != top.BeadCount()) {
@@ -179,7 +179,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
 
   for (Index i = 0; i < _natoms; ++i) {
     string s;
-    getline(_fl, s);
+    tools::getline(_fl, s);
     boost::algorithm::trim(s);
     if (_fl.eof()) {
       throw std::runtime_error("Error: unexpected end of lammps file '" +

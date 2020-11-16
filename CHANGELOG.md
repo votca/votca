@@ -9,6 +9,7 @@ For more detailed information about the changes see the history of the
 * add gmx2021 builds to CI (#607)
 * remove set-env call from CI (#608)
 * use master .clang-format in format action (#610)
+* strip windows line endings in readers (#614)
 
 ## Version 1.6.2 _SuperGitta_ (released 22.08.20)
 * move CI to GitHub Actions (#563, #567, #569)

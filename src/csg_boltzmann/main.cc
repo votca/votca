@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
 #include <math.h>
 #include <string>
 #include <votca/csg/csgapplication.h>
+#include <votca/tools/getline.h>
 #include <votca/tools/rangeparser.h>
 #include <votca/tools/tokenizer.h>
 
@@ -181,7 +182,7 @@ void CsgBoltzmann::InteractiveMode() {
   while (1) {
     string line;
     cout << "> ";
-    getline(cin, line);
+    votca::tools::getline(cin, line);
 
     boost::trim(line);
 

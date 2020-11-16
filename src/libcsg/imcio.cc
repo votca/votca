@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,7 +115,7 @@ Eigen::MatrixXd imcio_read_matrix(const std::string &filename) {
   std::vector<double> result;
   Index numrows = 0;
   size_t numcols = 0;
-  while (getline(intt, line)) {
+  while (tools::getline(intt, line)) {
     if (line[0] == '#') {
       continue;
     }
@@ -148,7 +148,7 @@ std::vector<std::pair<std::string, tools::RangeParser> > imcio_read_index(
   std::vector<std::pair<std::string, tools::RangeParser> > indeces;
   string line;
   // read till the first data line
-  while (getline(in, line)) {
+  while (tools::getline(in, line)) {
     // remove comments and xmgrace stuff
     line = line.substr(0, line.find("#"));
     line = line.substr(0, line.find("@"));

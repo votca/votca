@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@
 #include <string>
 #include <vector>
 
+#include <votca/tools/getline.h>
+
 using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
@@ -36,7 +38,7 @@ Eigen::VectorXd getColumnFromFile(string file_name, votca::Index column) {
   file.open(file_name);
   string line;
   if (file.is_open()) {
-    while (getline(file, line)) {
+    while (votca::tools::getline(file, line)) {
       string word;
       istringstream ss(line);
       for (votca::Index i = 0; i < column; ++i) {

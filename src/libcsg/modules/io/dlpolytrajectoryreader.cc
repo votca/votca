@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,14 +102,14 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
   if (_first_frame) {
 
-    getline(_fl, line);  // title
+    tools::getline(_fl, line);  // title
 
 #ifdef DEBUG
     cout << "Read from dlpoly file '" << _fname << "' : '" << line
          << "' - header" << endl;
 #endif
 
-    getline(_fl, line);  // 2nd header line
+    tools::getline(_fl, line);  // 2nd header line
 
 #ifdef DEBUG
     cout << "Read from dlpoly file '" << _fname << "' : '" << line
@@ -179,8 +179,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   // read normal frame
 
   if (!_isConfig) {
-    getline(_fl, line);  // timestep line - only present in HISTORY, and not in
-                         // CONFIG
+    tools::getline(_fl, line);  // timestep line - only present in HISTORY, and
+                                // not in CONFIG
 #ifdef DEBUG
     cout << "Read from dlpoly file '" << _fname << "' : '" << line << "'"
          << endl;
@@ -283,7 +283,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     Eigen::Matrix3d box = Eigen::Matrix3d::Zero();
     for (Index i = 0; i < 3; i++) {  // read 3 box/cell lines
 
-      getline(_fl, line);
+      tools::getline(_fl, line);
 
 #ifdef DEBUG
       cout << "Read from dlpoly file '" << _fname << "' : '" << line
@@ -308,7 +308,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     for (Index i = 0; i < natoms; i++) {
 
       {
-        getline(_fl, line);  // atom header line
+        tools::getline(_fl, line);  // atom header line
 
 #ifdef DEBUG
         cout << "Read from dlpoly file '" << _fname << "' : '" << line << "'"
@@ -336,7 +336,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       Eigen::Matrix3d atom_vecs = Eigen::Matrix3d::Zero();
       for (Index j = 0; j < std::min(navecs, Index(2)) + 1; j++) {
 
-        getline(_fl, line);  // read atom positions
+        tools::getline(_fl, line);  // read atom positions
 
 #ifdef DEBUG
         cout << "Read from dlpoly file '" << _fname << "' : '" << line << "'"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ bool PDBReader::NextFrame(Topology &top) {
   // Read in information from .pdb file
   ////////////////////////////////////////////////////////////////////////////////
   Index bead_count = 0;
-  while (std::getline(_fl, line)) {
+  while (tools::getline(_fl, line)) {
     if (tools::wildcmp("CRYST1*", line)) {
       string a, b, c, alpha, beta, gamma;
       try {

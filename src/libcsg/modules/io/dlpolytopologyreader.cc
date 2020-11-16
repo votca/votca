@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char *wspace)
   size_t i_nws = 0;
 
   do {
-    getline(fs, line);
+    tools::getline(fs, line);
 
     if (fs.eof()) {
       throw std::runtime_error("Error: unexpected end of dlpoly file '" +
@@ -374,7 +374,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
   }
 
 #ifdef DEBUG
-  getline(fl, line);  // is "close" found?
+  tools::getline(fl, line);  // is "close" found?
   if (line == "close") {
     cout << "Read from dlpoly file '" << _fname << "' : '" << line
          << "' - done with topology" << endl;
