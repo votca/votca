@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,6 +16,8 @@
  * limitations under the License.
  *
  */
+
+#include <votca/tools/getline.h>
 
 #include "vaverage.h"
 #include "votca/xtp/topology.h"
@@ -44,7 +46,7 @@ std::vector<double> VAverage::ReadOccfile(std::string filename) const {
   Index id = 0;
   while (intt.good()) {
 
-    std::getline(intt, line);
+    tools::getline(intt, line);
     std::vector<std::string> split;
     tools::Tokenizer toker(line, " \t");
     toker.ToVector(split);
@@ -77,7 +79,7 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
   std::string line;
   while (intt.good()) {
 
-    std::getline(intt, line);
+    tools::getline(intt, line);
     std::vector<std::string> split;
     tools::Tokenizer toker(line, " \t");
     toker.ToVector(split);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 #define BOOST_TEST_MODULE cubefilewriter_test
 #include <boost/test/unit_test.hpp>
+#include <votca/tools/getline.h>
 #include <votca/tools/tokenizer.h>
 #include <votca/xtp/cubefile_writer.h>
 
@@ -31,16 +32,16 @@ Eigen::VectorXd Readcubefile(const std::string& filename) {
 
   std::string result = "";
   std::string s;
-  getline(in1, s);
-  getline(in1, s);
-  getline(in1, s);
+  votca::tools::getline(in1, s);
+  votca::tools::getline(in1, s);
+  votca::tools::getline(in1, s);
   std::vector<double> cube_values;
   do {
     votca::tools::Tokenizer tok(s, " ");
     std::vector<double> values;
     tok.ConvertToVector<double>(values);
     cube_values.insert(cube_values.end(), values.begin(), values.end());
-  } while (getline(in1, s));
+  } while (votca::tools::getline(in1, s));
   return Eigen::Map<Eigen::VectorXd>(cube_values.data(), cube_values.size());
 }
 

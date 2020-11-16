@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,6 +17,7 @@
  *
  */
 
+#include <votca/tools/getline.h>
 #include "votca/xtp/qmpackage.h"
 #include <boost/algorithm/string.hpp>
 #include <votca/xtp/ecpaobasis.h>
@@ -145,7 +146,7 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
 std::vector<std::string> QMPackage::GetLineAndSplit(
     std::ifstream& input_file, const std::string separators) const {
   std::string line;
-  getline(input_file, line);
+  tools::getline(input_file, line);
   boost::trim(line);
   tools::Tokenizer tok(line, separators);
   return tok.ToVector();

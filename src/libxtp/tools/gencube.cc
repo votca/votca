@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
+#include <votca/tools/getline.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/cubefile_writer.h>
 #include <votca/xtp/orbitals.h>
@@ -92,12 +93,12 @@ void GenCube::subtractCubes() {
   std::ofstream out(_output_file);
 
   // first two lines of header are garbage
-  getline(in1, s);
+  tools::getline(in1, s);
   out << s << "\n";
-  getline(in1, s);
+  tools::getline(in1, s);
   out << s << " substraction\n";
-  getline(in2, s);
-  getline(in2, s);
+  tools::getline(in2, s);
+  tools::getline(in2, s);
 
   // read rest from header
   Index natoms;

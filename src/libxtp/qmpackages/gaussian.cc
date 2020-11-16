@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,6 +23,7 @@
 #include <boost/format.hpp>
 #include <iomanip>
 #include <stdio.h>
+#include <votca/tools/getline.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
@@ -539,13 +540,13 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
   }
 
   // number of coefficients per line is  in the first line of the file (5D15.8)
-  getline(input_file, line);
+  tools::getline(input_file, line);
   std::vector<std::string> strs;
   boost::algorithm::split(strs, line, boost::is_any_of("(D)"));
 
   while (input_file) {
 
-    getline(input_file, line);
+    tools::getline(input_file, line);
     // if a line has an equality sign, must be energy
     std::string::size_type energy_pos = line.find("=");
 
@@ -645,7 +646,7 @@ bool Gaussian::CheckLogFile() const {
   } while (ch != '\n' && (Index)input_file.tellg() != -1);
 
   std::string line;
-  getline(input_file, line);
+  tools::getline(input_file, line);
   input_file.close();
 
   std::string::size_type success = line.find("Normal termination of Gaussian");
@@ -678,7 +679,7 @@ StaticSegment Gaussian::GetCharges() const {
   std::vector<std::string> archive;
   while (input_file) {
 
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
     GetArchive(archive, line, input_file);
 
@@ -686,8 +687,8 @@ StaticSegment Gaussian::GetCharges() const {
     if (charge_pos != std::string::npos) {
       has_charges = true;
       XTP_LOG(Log::info, *_pLog) << "Getting charges" << flush;
-      getline(input_file, line);
-      getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
 
       std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
       Index nfields = Index(row.size());
@@ -732,20 +733,20 @@ Eigen::Matrix3d Gaussian::GetPolarizability() const {
 
   Eigen::Matrix3d pol = Eigen::Matrix3d::Zero();
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
 
     std::string::size_type pol_pos =
         line.find("Dipole polarizability, Alpha (input orientation)");
     if (pol_pos != std::string::npos) {
       XTP_LOG(Log::error, *_pLog) << "Getting polarizability" << flush;
-      getline(input_file, line);
-      getline(input_file, line);
-      getline(input_file, line);
-      getline(input_file, line);
-      getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
       for (Index i = 0; i < 6; i++) {
-        getline(input_file, line);
+        tools::getline(input_file, line);
         tools::Tokenizer tok2(line, " ");
         std::vector<std::string> values = tok2.ToVector();
         if (values.size() != 4) {
@@ -776,7 +777,7 @@ void Gaussian::GetArchive(std::vector<std::string>& archive, std::string& line,
     boost::trim(line);
     std::string sum = line;
     while (line.size() != 0) {
-      getline(input_file, line);
+      tools::getline(input_file, line);
       boost::trim(line);
       sum += line;
     }
@@ -876,7 +877,7 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
 
   while (input_file) {
 
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
 
     /* Check for ScaHFX = factor of HF exchange included in functional */
@@ -943,7 +944,7 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
           occupied_levels += Index(energies.size());
           energies.clear();
         }
-        getline(input_file, line);
+        tools::getline(input_file, line);
         eigenvalues_pos = line.find("Alpha");
         boost::trim(line);
 
