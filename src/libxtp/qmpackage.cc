@@ -17,9 +17,9 @@
  *
  */
 
-#include <votca/tools/getline.h>
 #include "votca/xtp/qmpackage.h"
 #include <boost/algorithm/string.hpp>
+#include <votca/tools/getline.h>
 #include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
 
