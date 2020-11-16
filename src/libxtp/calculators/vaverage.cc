@@ -18,8 +18,8 @@
  */
 
 // Local VOTCA includes
-#include <votca/tools/getline.h>
 #include "votca/xtp/topology.h"
+#include <votca/tools/getline.h>
 
 // Local private VOTCA includes
 #include "vaverage.h"
