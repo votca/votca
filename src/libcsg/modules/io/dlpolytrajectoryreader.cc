@@ -179,8 +179,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   // read normal frame
 
   if (!_isConfig) {
-    tools::getline(_fl, line);  // timestep line - only present in HISTORY, and not in
-                         // CONFIG
+    tools::getline(_fl, line);  // timestep line - only present in HISTORY, and
+                                // not in CONFIG
 #ifdef DEBUG
     cout << "Read from dlpoly file '" << _fname << "' : '" << line << "'"
          << endl;

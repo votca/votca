@@ -619,7 +619,7 @@ void LAMMPSDataReader::SkipImpropers_() {
   tools::getline(fl_, line);
   tools::getline(fl_, line);
   while (!line.empty()) {
-     tools::getline(fl_, line);
+    tools::getline(fl_, line);
   }
 }
 
