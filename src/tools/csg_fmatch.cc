@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
  */
 
 #include "csg_fmatch.h"
+#include "../../include/votca/csg/beadlist.h"
+#include "../../include/votca/csg/nblistgrid.h"
+#include "../../include/votca/csg/nblistgrid_3body.h"
+#include <cmath>
+#include <cstdio>
 #include <fstream>
 #include <iostream>
-#include <math.h>
+#include <memory>
 #include <sstream>
-#include <stdio.h>
-#include <votca/csg/beadlist.h>
-#include <votca/csg/nblistgrid.h>
-#include <votca/csg/nblistgrid_3body.h>
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/linalg.h>
 #include <votca/tools/table.h>
@@ -273,7 +274,6 @@ void CGForceMatching::EndEvaluate() {
   cout << "\nWe are done, thank you very much!" << endl;
   if (_has_existing_forces) {
     _trjreader_force->Close();
-    delete _trjreader_force;
   }
 }
 
@@ -615,9 +615,9 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
     }
   }
   if (gridsearch) {
-    nb = std::unique_ptr<NBList>(new NBListGrid());
+    nb = std::make_unique<NBListGrid>();
   } else {
-    nb = std::unique_ptr<NBList>(new NBList());
+    nb = std::make_unique<NBList>();
   }
 
   nb->setCutoff(
@@ -696,9 +696,9 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     }
   }
   if (gridsearch) {
-    nb = std::unique_ptr<NBList_3Body>(new NBListGrid_3Body());
+    nb = std::make_unique<NBListGrid_3Body>();
   } else {
-    nb = std::unique_ptr<NBList_3Body>(new NBList_3Body());
+    nb = std::make_unique<NBList_3Body>();
   }
 
   nb->setCutoff(sinfo->a);  // implement different cutoffs for different

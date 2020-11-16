@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,7 +155,7 @@ class TabulatedPotential : public AnalysisTool {
    **/
   void Smooth_(std::vector<double> &data, bool bPeriodic);
   void BoltzmannInvert_(std::vector<double> &data);
-  void CalcForce_(std::vector<double> &u, std::vector<double> &du, double dx,
+  void CalcForce_(std::vector<double> &U, std::vector<double> &F, double dx,
                   bool bPeriodic);
 
   TOOLS::Histogram::options_t _tab_options;

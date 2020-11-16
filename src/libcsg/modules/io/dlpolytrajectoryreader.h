@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,19 @@
  *
  */
 
-#ifndef _dlpolytrajectoryreader_H
-#define _dlpolytrajectoryreader_H
+#ifndef VOTCA_CSG_DLPOLYTRAJECTORYREADER_PRIVATE_H
+#define VOTCA_CSG_DLPOLYTRAJECTORYREADER_PRIVATE_H
 
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <votca/csg/trajectoryreader.h>
+
+// VOTCA includes
+#include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "votca/csg/trajectoryreader.h"
 
 namespace votca {
 namespace csg {
@@ -36,6 +42,17 @@ namespace csg {
 
 class DLPOLYTrajectoryReader : public TrajectoryReader {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+  const tools::MassUnit mass_unit = tools::MassUnit::atomic_mass_units;
+  const tools::TimeUnit time_unit = tools::TimeUnit::picoseconds;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::MolarEnergyUnit energy_unit =
+      tools::MolarEnergyUnit::joules_per_mole;
+  const tools::VelocityUnit velocity_unit =
+      tools::VelocityUnit::angstroms_per_picosecond;
+  const tools::MolarForceUnit force_unit =
+      tools::MolarForceUnit::kilojoules_per_mole_angstrom;
+
   /// open original trajectory file
   bool Open(const std::string &file) override;
   /// read in the first frame
@@ -71,4 +88,4 @@ class DLPOLYTrajectoryReader : public TrajectoryReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _dlpolytrajectoryreader_H */
+#endif  // VOTCA_CSG_DLPOLYTRAJECTORYREADER_PRIVATE_H

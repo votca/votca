@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,27 @@
  *
  */
 
-#ifndef _VOTCA_CSG_GMXTRAJECTORYREADER_H
-#define _VOTCA_CSG_GMXTRAJECTORYREADER_H
+#ifndef VOTCA_CSG_GMXTRAJECTORYREADER_PRIVATE_H
+#define VOTCA_CSG_GMXTRAJECTORYREADER_PRIVATE_H
 
 #ifndef HAVE_NO_CONFIG
-#include <votca_config.h>
+#include <votca_csg_config.h>
 #endif
 
+// Standard includes
 #include <string>
-#include <votca/csg/trajectoryreader.h>
 
+// Third party includes
 #include <gromacs/fileio/oenv.h>
 #include <gromacs/fileio/trxio.h>
 #include <gromacs/trajectory/trajectoryframe.h>
+
+// VOTCA includes
+#include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "votca/csg/trajectoryreader.h"
+
 // this one is needed because of bool is defined in one of the headers included
 // by gmx
 #undef bool
@@ -47,12 +55,23 @@ class GMXTrajectoryReader : public TrajectoryReader {
  public:
   GMXTrajectoryReader() = default;
 
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::nanometers;
+  const tools::MassUnit mass_unit = tools::MassUnit::atomic_mass_units;
+  const tools::TimeUnit time_unit = tools::TimeUnit::picoseconds;
+  const tools::ChargeUnit charge_unit = tools::ChargeUnit::e;
+  const tools::MolarEnergyUnit energy_unit =
+      tools::MolarEnergyUnit::kilojoules_per_mole;
+  const tools::VelocityUnit velocity_unit =
+      tools::VelocityUnit::nanometers_per_picosecond;
+  const tools::MolarForceUnit force_unit =
+      tools::MolarForceUnit::kilojoules_per_mole_nanometer;
+
   /// open a trejectory file
   bool Open(const std::string &file) override;
   /// read in the first frame
-  bool FirstFrame(Topology &top) override;
+  bool FirstFrame(Topology &conf) override;
   /// read in the next frame
-  bool NextFrame(Topology &top) override;
+  bool NextFrame(Topology &conf) override;
 
   void Close() override;
 
@@ -68,4 +87,4 @@ class GMXTrajectoryReader : public TrajectoryReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_GMXTRAJECTORYREADER_H */
+#endif  // VOTCA_CSG_GMXTRAJECTORYREADER_PRIVATE_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,27 @@
  *
  */
 
-#ifndef __VOTCA_CSG_XYZWRITER_H
-#define __VOTCA_CSG_XYZWRITER_H
+#ifndef VOTCA_CSG_XYZWRITER_H
+#define VOTCA_CSG_XYZWRITER_H
 
-#include <stdio.h>
-#include <votca/csg/topology.h>
-#include <votca/csg/trajectorywriter.h>
+// Standard includes
+#include <cstdio>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
+#include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "topology.h"
+#include "trajectorywriter.h"
 
 namespace votca {
 namespace csg {
 
 class XYZWriter : public TrajectoryWriter {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+
   void Open(std::string file, bool bAppend = false) override;
   void Close() override;
 
@@ -93,4 +101,4 @@ inline void XYZWriter::Write(T &container, std::string header) {
 }  // namespace csg
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_CSG_XYZWRITER_H
