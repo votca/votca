@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,9 +21,11 @@
 #ifndef VOTCA_XTP_CUBEFILE_WRITER_H
 #define VOTCA_XTP_CUBEFILE_WRITER_H
 
-#include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/regular_grid.h>
+// Local VOTCA includes
+#include "logger.h"
+#include "orbitals.h"
+#include "regular_grid.h"
+
 /**
  * \brief Writes an orbital file to a .cube file
  */

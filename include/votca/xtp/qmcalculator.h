@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_QMCALCULATOR_H
 #define VOTCA_XTP_QMCALCULATOR_H
 
+// VOTCA includes
 #include <votca/tools/calculator.h>
 
 namespace votca {
@@ -37,8 +38,13 @@ class QMCalculator : public tools::Calculator {
 
   virtual bool WriteToStateFile() const = 0;
 
-  void Initialize(tools::Property &options) override = 0;
-  virtual bool EvaluateFrame(Topology &top) = 0;
+  bool EvaluateFrame(Topology& top);
+
+  void Initialize(const tools::Property& opt) final;
+
+ protected:
+  virtual void ParseOptions(const tools::Property& opt) = 0;
+  virtual bool Evaluate(Topology& top) = 0;
 };
 
 }  // namespace xtp

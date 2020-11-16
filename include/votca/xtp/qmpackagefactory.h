@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,8 +21,11 @@
 #ifndef VOTCA_XTP_QMPACKAGEFACTORY_H
 #define VOTCA_XTP_QMPACKAGEFACTORY_H
 
+// VOTCA includes
 #include <votca/tools/objectfactory.h>
-#include <votca/xtp/qmpackage.h>
+
+// Local VOTCA includes
+#include "qmpackage.h"
 
 namespace votca {
 namespace xtp {
@@ -32,14 +35,17 @@ class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage> {
   QMPackageFactory() = default;
 
  public:
+  QMPackageFactory(QMPackageFactory const &) = delete;
+  void operator=(QMPackageFactory const &) = delete;
+  QMPackageFactory(QMPackageFactory &&) = delete;
+  void operator=(QMPackageFactory &&) = delete;
   static void RegisterAll(void);
-  friend QMPackageFactory &QMPackages();
-};
 
-inline QMPackageFactory &QMPackages() {
-  static QMPackageFactory _instance;
-  return _instance;
-}
+  static QMPackageFactory &QMPackages() {
+    static QMPackageFactory _instance;
+    return _instance;
+  }
+};
 
 }  // namespace xtp
 }  // namespace votca

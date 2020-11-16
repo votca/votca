@@ -1,0 +1,29 @@
+<basis name="test">
+  <element name="C">
+    <shell scale="1.0" type="S">
+      <constant decay="5.447178e+00">
+        <contractions factor="1.562850e-01" type="S"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="P">
+      <constant decay="5.447178e+00">
+        <contractions factor="1.562850e-01" type="P"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="D">
+      <constant decay="5.447178e+00">
+        <contractions factor="1.562850e-01" type="D"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="F">
+      <constant decay="5.447178e+00">
+        <contractions factor="1.562850e-01" type="F"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="G">
+      <constant decay="5.447178e+00">
+        <contractions factor="1.562850e-01" type="G"/>
+      </constant>
+    </shell>
+  </element>
+</basis>

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,77 +17,77 @@
  *
  */
 
-#include <votca/xtp/aotransform.h>
+// Local VOTCA includes
+#include "votca/xtp/aotransform.h"
+
 namespace votca {
 namespace xtp {
 
-Index AOTransform::getCartesianSize(Index l) { return (l + 1) * (l + 2) / 2; }
-Index AOTransform::getSphericalSize(Index l) { return 2 * l + 1; }
-
-Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
+Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(L l, double decay,
                                                     double contraction) {
   switch (l) {
-    case 0: {
+    case L::S: {
       return contraction * Eigen::MatrixXd::Ones(1, 1);
     }
-    case 1: {
+    case L::P: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(3, 3);
       const double factor = 2. * sqrt(decay) * contraction;
-      trafo(P::z, 0) = factor;  // Y 1,0
-      trafo(P::y, 1) = factor;  // Y 1,-1
+      trafo(P::y, 0) = factor;  // Y 1,-1
+      trafo(P::z, 1) = factor;  // Y 1,0
       trafo(P::x, 2) = factor;  // Y 1,1
       return trafo;
     }
-    case 2: {
+    case L::D: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(6, 5);
       const double factor = 2. * decay * contraction;
       const double factor_1 = factor / sqrt(3.);
-      trafo(D::xx, 0) = -factor_1;
-      trafo(D::yy, 0) = -factor_1;  //   Y 2,0
-      trafo(D::zz, 0) = 2. * factor_1;
+
+      trafo(D::xy, 0) = 2. * factor;  //          Y 2,-2
 
       trafo(D::yz, 1) = 2. * factor;  //           Y 2,-1
 
-      trafo(D::xz, 2) = 2. * factor;  //           Y 2,1
+      trafo(D::xx, 2) = -factor_1;
+      trafo(D::yy, 2) = -factor_1;  //   Y 2,0
+      trafo(D::zz, 2) = 2. * factor_1;
 
-      trafo(D::xy, 3) = 2. * factor;  //          Y 2,-2
+      trafo(D::xz, 3) = 2. * factor;  //           Y 2,1
 
       trafo(D::xx, 4) = factor;  //   Y 2,2
       trafo(D::yy, 4) = -factor;
       return trafo;
     }
-    case 3: {
+    case L::F: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(10, 7);
       const double factor = 2. * pow(decay, 1.5) * contraction;
       const double factor_1 = factor * 2. / sqrt(15.);
       const double factor_2 = factor * sqrt(2.) / sqrt(5.);
       const double factor_3 = factor * sqrt(2.) / sqrt(3.);
 
-      trafo(F::xxz, 0) = -3. * factor_1;
-      trafo(F::yyz, 0) = -3. * factor_1;  //        Y 3,0
-      trafo(F::zzz, 0) = 2. * factor_1;
+      trafo(F::xxy, 0) = 3. * factor_3;
+      trafo(F::yyy, 0) = -factor_3;  //    Y 3,-3
 
-      trafo(F::xxy, 1) = -factor_2;
-      trafo(F::yyy, 1) = -factor_2;  //    Y 3,-1
-      trafo(F::yzz, 1) = 4. * factor_2;
+      trafo(F::xyz, 1) = 4. * factor;  //      Y 3,-2
 
-      trafo(F::xxx, 2) = -factor_2;
-      trafo(F::xyy, 2) = -factor_2;  //    Y 3,1
-      trafo(F::xzz, 2) = 4. * factor_2;
+      trafo(F::xxy, 2) = -factor_2;
+      trafo(F::yyy, 2) = -factor_2;  //    Y 3,-1
+      trafo(F::yzz, 2) = 4. * factor_2;
 
-      trafo(F::xyz, 3) = 4. * factor;  //      Y 3,-2
+      trafo(F::xxz, 3) = -3. * factor_1;
+      trafo(F::yyz, 3) = -3. * factor_1;  //        Y 3,0
+      trafo(F::zzz, 3) = 2. * factor_1;
 
-      trafo(F::xxz, 4) = 2. * factor;
-      trafo(F::yyz, 4) = -2. * factor;  //   Y 3,2
+      trafo(F::xxx, 4) = -factor_2;
+      trafo(F::xyy, 4) = -factor_2;  //    Y 3,1
+      trafo(F::xzz, 4) = 4. * factor_2;
 
-      trafo(F::xxy, 5) = 3. * factor_3;
-      trafo(F::yyy, 5) = -factor_3;  //    Y 3,-3
+      trafo(F::xxz, 5) = 2. * factor;
+      trafo(F::yyz, 5) = -2. * factor;  //   Y 3,2
 
       trafo(F::xxx, 6) = factor_3;
       trafo(F::xyy, 6) = -3. * factor_3;  //    Y 3,3
       return trafo;
     }
-    case 4: {
+    case L::G: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(15, 9);
       const double factor = 2. / sqrt(3.) * decay * decay * contraction;
       const double factor_1 = factor / sqrt(35.);
@@ -95,45 +95,45 @@ Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
       const double factor_3 = factor * 2. / sqrt(7.);
       const double factor_4 = factor * 2. * sqrt(2.);
 
-      trafo(0, 0) = 3. * factor_1;  /// Y 4,0
-      trafo(G::xxyy, 0) = 6. * factor_1;
-      trafo(G::xxzz, 0) = -24. * factor_1;
-      trafo(G::yyyy, 0) = 3. * factor_1;
-      trafo(G::yyzz, 0) = -24. * factor_1;
-      trafo(G::zzzz, 0) = 8. * factor_1;
+      trafo(G::xxxy, 0) = 4. * factor;  /// Y 4,-4
+      trafo(G::xyyy, 0) = -4. * factor;
 
-      trafo(G::xxyz, 1) = -3. * factor_2;  /// Y 4,-1
-      trafo(G::yyyz, 1) = -3. * factor_2;
-      trafo(G::yzzz, 1) = 4. * factor_2;
+      trafo(G::xxyz, 1) = 3. * factor_4;  /// Y 4,-3
+      trafo(G::yyyz, 1) = -factor_4;
 
-      trafo(G::xxxz, 2) = -3. * factor_2;  /// Y 4,1
-      trafo(G::xyyz, 2) = -3. * factor_2;
-      trafo(G::xzzz, 2) = 4. * factor_2;
+      trafo(G::xxxy, 2) = -2. * factor_3;  /// Y 4,-2
+      trafo(G::xyyy, 2) = -2. * factor_3;
+      trafo(G::xyzz, 2) = 12. * factor_3;
 
-      trafo(G::xxxy, 3) = -2. * factor_3;  /// Y 4,-2
-      trafo(G::xyyy, 3) = -2. * factor_3;
-      trafo(G::xyzz, 3) = 12. * factor_3;
+      trafo(G::xxyz, 3) = -3. * factor_2;  /// Y 4,-1
+      trafo(G::yyyz, 3) = -3. * factor_2;
+      trafo(G::yzzz, 3) = 4. * factor_2;
 
-      trafo(G::xxxx, 4) = -factor_3;  /// Y 4,2
-      trafo(G::xxzz, 4) = 6. * factor_3;
-      trafo(G::yyyy, 4) = factor_3;
-      trafo(G::yyzz, 4) = -6. * factor_3;
+      trafo(G::xxxx, 4) = 3. * factor_1;  /// Y 4,0 (RG: changed 0 to G::xxxx)
+      trafo(G::xxyy, 4) = 6. * factor_1;
+      trafo(G::xxzz, 4) = -24. * factor_1;
+      trafo(G::yyyy, 4) = 3. * factor_1;
+      trafo(G::yyzz, 4) = -24. * factor_1;
+      trafo(G::zzzz, 4) = 8. * factor_1;
 
-      trafo(G::xxyz, 5) = 3. * factor_4;  /// Y 4,-3
-      trafo(G::yyyz, 5) = -factor_4;
+      trafo(G::xxxz, 5) = -3. * factor_2;  /// Y 4,1
+      trafo(G::xyyz, 5) = -3. * factor_2;
+      trafo(G::xzzz, 5) = 4. * factor_2;
 
-      trafo(G::xxxz, 6) = factor_4;  /// Y 4,3
-      trafo(G::xyyz, 6) = -3. * factor_4;
+      trafo(G::xxxx, 6) = -factor_3;  /// Y 4,2
+      trafo(G::xxzz, 6) = 6. * factor_3;
+      trafo(G::yyyy, 6) = factor_3;
+      trafo(G::yyzz, 6) = -6. * factor_3;
 
-      trafo(G::xxxy, 7) = 4. * factor;  /// Y 4,-4
-      trafo(G::xyyy, 7) = -4. * factor;
+      trafo(G::xxxz, 7) = factor_4;  /// Y 4,3
+      trafo(G::xyyz, 7) = -3. * factor_4;
 
       trafo(G::xxxx, 8) = factor;  /// Y 4,4
       trafo(G::xxyy, 8) = -6. * factor;
       trafo(G::yyyy, 8) = factor;
       return trafo;
     }
-    case 5: {
+    case L::H: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(21, 11);
       const double factor = (2. / 3.) * std::pow(decay, 2.5) * contraction;
       const double factor_1 = factor * 2. / sqrt(105.);
@@ -142,65 +142,65 @@ Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
       const double factor_4 = factor * 2. * sqrt(3.);
       const double factor_5 = factor * .2 * sqrt(30.);
 
-      trafo(H::xxxxz, 0) = 15. * factor_1;  /// Y 5,0
-      trafo(H::xxyyz, 0) = 30. * factor_1;
-      trafo(H::xxzzz, 0) = -40. * factor_1;
-      trafo(H::yyyyz, 0) = 15. * factor_1;
-      trafo(H::yyzzz, 0) = -40. * factor_1;
-      trafo(H::zzzzz, 0) = 8. * factor_1;
+      trafo(H::xxxxy, 0) = 5. * factor_5;  /// Y 5,-5
+      trafo(H::xxyyy, 0) = -10. * factor_5;
+      trafo(H::yyyyy, 0) = factor_5;
 
-      trafo(H::xxxxy, 1) = factor_2;  /// Y 5,-1
-      trafo(H::xxyyy, 1) = 2. * factor_2;
-      trafo(H::xxyzz, 1) = -12. * factor_2;
-      trafo(H::yyyyy, 1) = factor_2;
-      trafo(H::yyyzz, 1) = -12. * factor_2;
-      trafo(H::yzzzz, 1) = 8. * factor_2;
+      trafo(H::xxxyz, 1) = 4. * factor_4;  /// Y 5,-4
+      trafo(H::xyyyz, 1) = -4. * factor_4;
 
-      trafo(H::xxxxx, 2) = factor_2;  /// Y 5,1
-      trafo(H::xxxyy, 2) = 2. * factor_2;
-      trafo(H::xxxzz, 2) = -12. * factor_2;
-      trafo(H::xyyyy, 2) = factor_2;
-      trafo(H::xyyzz, 2) = -12. * factor_2;
-      trafo(H::xzzzz, 2) = 8. * factor_2;
+      trafo(H::xxxxy, 2) = -3. * factor_3;  /// Y 5,-3
+      trafo(H::xxyyy, 2) = -2. * factor_3;
+      trafo(H::xxyzz, 2) = 24. * factor_3;
+      trafo(H::yyyyy, 2) = factor_3;
+      trafo(H::yyyzz, 2) = -8. * factor_3;
 
       trafo(H::xxxyz, 3) = -8. * factor;  /// Y 5,-2
       trafo(H::xyyyz, 3) = -8. * factor;
       trafo(H::xyzzz, 3) = 16. * factor;
 
-      trafo(H::xxxxz, 4) = -4. * factor;  /// Y 5,2
-      trafo(H::xxzzz, 4) = 8. * factor;
-      trafo(H::yyyyz, 4) = 4. * factor;
-      trafo(H::yyzzz, 4) = -8. * factor;
+      trafo(H::xxxxy, 4) = factor_2;  /// Y 5,-1
+      trafo(H::xxyyy, 4) = 2. * factor_2;
+      trafo(H::xxyzz, 4) = -12. * factor_2;
+      trafo(H::yyyyy, 4) = factor_2;
+      trafo(H::yyyzz, 4) = -12. * factor_2;
+      trafo(H::yzzzz, 4) = 8. * factor_2;
 
-      trafo(H::xxxxy, 5) = -3. * factor_3;  /// Y 5,-3
-      trafo(H::xxyyy, 5) = -2. * factor_3;
-      trafo(H::xxyzz, 5) = 24. * factor_3;
-      trafo(H::yyyyy, 5) = factor_3;
-      trafo(H::yyyzz, 5) = -8. * factor_3;
+      trafo(H::xxxxz, 5) = 15. * factor_1;  /// Y 5,0
+      trafo(H::xxyyz, 5) = 30. * factor_1;
+      trafo(H::xxzzz, 5) = -40. * factor_1;
+      trafo(H::yyyyz, 5) = 15. * factor_1;
+      trafo(H::yyzzz, 5) = -40. * factor_1;
+      trafo(H::zzzzz, 5) = 8. * factor_1;
 
-      trafo(H::xxxxx, 6) = -factor_3;  /// Y 5,3
-      trafo(H::xxxyy, 6) = 2. * factor_3;
-      trafo(H::xxxzz, 6) = 8. * factor_3;
-      trafo(H::xyyyy, 6) = 3. * factor_3;
-      trafo(H::xyyzz, 6) = -24. * factor_3;
+      trafo(H::xxxxx, 6) = factor_2;  /// Y 5,1
+      trafo(H::xxxyy, 6) = 2. * factor_2;
+      trafo(H::xxxzz, 6) = -12. * factor_2;
+      trafo(H::xyyyy, 6) = factor_2;
+      trafo(H::xyyzz, 6) = -12. * factor_2;
+      trafo(H::xzzzz, 6) = 8. * factor_2;
 
-      trafo(H::xxxyz, 7) = 4. * factor_4;  /// Y 5,-4
-      trafo(H::xyyyz, 7) = -4. * factor_4;
+      trafo(H::xxxxz, 7) = -4. * factor;  /// Y 5,2
+      trafo(H::xxzzz, 7) = 8. * factor;
+      trafo(H::yyyyz, 7) = 4. * factor;
+      trafo(H::yyzzz, 7) = -8. * factor;
 
-      trafo(H::xxxxz, 8) = factor_4;  /// Y 5,4
-      trafo(H::xxyyz, 8) = -6. * factor_4;
-      trafo(H::yyyyz, 8) = factor_4;
+      trafo(H::xxxxx, 8) = -factor_3;  /// Y 5,3
+      trafo(H::xxxyy, 8) = 2. * factor_3;
+      trafo(H::xxxzz, 8) = 8. * factor_3;
+      trafo(H::xyyyy, 8) = 3. * factor_3;
+      trafo(H::xyyzz, 8) = -24. * factor_3;
 
-      trafo(H::xxxxy, 9) = 5. * factor_5;  /// Y 5,-5
-      trafo(H::xxyyy, 9) = -10. * factor_5;
-      trafo(H::yyyyy, 9) = factor_5;
+      trafo(H::xxxxz, 9) = factor_4;  /// Y 5,4
+      trafo(H::xxyyz, 9) = -6. * factor_4;
+      trafo(H::yyyyz, 9) = factor_4;
 
       trafo(H::xxxxx, 10) = factor_5;  /// Y 5,5
       trafo(H::xxxyy, 10) = -10. * factor_5;
       trafo(H::xyyyy, 10) = 5. * factor_5;
       return trafo;
     }
-    case 6: {
+    case L::I: {
       Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(28, 13);
       const double factor = (2. / 3.) * decay * decay * decay * contraction;
       const double factor_1 = factor * 2. / sqrt(1155.);
@@ -210,83 +210,83 @@ Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
       const double factor_5 = factor * .4 * sqrt(30.);
       const double factor_6 = factor * .2 * sqrt(10.);
 
-      trafo(I::xxxxxx, 0) = -5. * factor_1;  /// Y 6,0
-      trafo(I::xxxxyy, 0) = -15. * factor_1;
-      trafo(I::xxxxzz, 0) = 90. * factor_1;
-      trafo(I::xxyyyy, 0) = -15. * factor_1;
-      trafo(I::xxyyzz, 0) = 180. * factor_1;
-      trafo(I::xxzzzz, 0) = -120. * factor_1;
-      trafo(I::yyyyyy, 0) = -5. * factor_1;
-      trafo(I::yyyyzz, 0) = 90. * factor_1;
-      trafo(I::yyzzzz, 0) = -120. * factor_1;
-      trafo(I::zzzzzz, 0) = 16. * factor_1;
+      trafo(I::xxxxxy, 0) = 6. * factor_6;  /// Y 6,-6
+      trafo(I::xxxyyy, 0) = -20. * factor_6;
+      trafo(I::xyyyyy, 0) = 6. * factor_6;
 
-      trafo(I::xxxxyz, 1) = 5. * factor_2;  /// Y 6,-1
-      trafo(I::xxyyyz, 1) = 10. * factor_2;
-      trafo(I::xxyzzz, 1) = -20. * factor_2;
-      trafo(I::yyyyyz, 1) = 5. * factor_2;
-      trafo(I::yyyzzz, 1) = -20. * factor_2;
-      trafo(I::yzzzzz, 1) = 8. * factor_2;
+      trafo(I::xxxxyz, 1) = 5. * factor_5;  /// Y 6,-5
+      trafo(I::xxyyyz, 1) = -10. * factor_5;
+      trafo(I::yyyyyz, 1) = factor_5;
 
-      trafo(I::xxxxxz, 2) = 5. * factor_2;  /// Y 6,1
-      trafo(I::xxxyyz, 2) = 10. * factor_2;
-      trafo(I::xxxzzz, 2) = -20. * factor_2;
-      trafo(I::xyyyyz, 2) = 5. * factor_2;
-      trafo(I::xyyzzz, 2) = -20. * factor_2;
-      trafo(I::xzzzzz, 2) = 8. * factor_2;
+      trafo(I::xxxxxy, 2) = -4. * factor_4;  /// Y 6,-4
+      trafo(I::xxxyzz, 2) = 40. * factor_4;
+      trafo(I::xyyyyy, 2) = 4. * factor_4;
+      trafo(I::xyyyzz, 2) = -40. * factor_4;
 
-      trafo(I::xxxxxy, 3) = 2. * factor_3;  /// Y 6,-2
-      trafo(I::xxxyyy, 3) = 4. * factor_3;
-      trafo(I::xxxyzz, 3) = -32. * factor_3;
-      trafo(I::xyyyyy, 3) = 2. * factor_3;
-      trafo(I::xyyyzz, 3) = -32. * factor_3;
-      trafo(I::xyzzzz, 3) = 32. * factor_3;
+      trafo(I::xxxxyz, 3) = -18. * factor_3;  /// Y 6,-3
+      trafo(I::xxyyyz, 3) = -12. * factor_3;
+      trafo(I::xxyzzz, 3) = 48. * factor_3;
+      trafo(I::yyyyyz, 3) = 6. * factor_3;
+      trafo(I::yyyzzz, 3) = -16. * factor_3;
 
-      trafo(I::xxxxxy, 4) = factor_3;  /// Y 6,2
-      trafo(I::xxxxyy, 4) = factor_3;
-      trafo(I::xxxxzz, 4) = -16. * factor_3;
-      trafo(I::xxyyyy, 4) = -factor_3;
-      trafo(I::xxzzzz, 4) = 16. * factor_3;
-      trafo(I::yyyyyy, 4) = -factor_3;
-      trafo(I::yyyyzz, 4) = 16. * factor_3;
-      trafo(I::yyzzzz, 4) = -16. * factor_3;
+      trafo(I::xxxxxy, 4) = 2. * factor_3;  /// Y 6,-2
+      trafo(I::xxxyyy, 4) = 4. * factor_3;
+      trafo(I::xxxyzz, 4) = -32. * factor_3;
+      trafo(I::xyyyyy, 4) = 2. * factor_3;
+      trafo(I::xyyyzz, 4) = -32. * factor_3;
+      trafo(I::xyzzzz, 4) = 32. * factor_3;
 
-      trafo(I::xxxxyz, 5) = -18. * factor_3;  /// Y 6,-3
-      trafo(I::xxyyyz, 5) = -12. * factor_3;
-      trafo(I::xxyzzz, 5) = 48. * factor_3;
-      trafo(I::yyyyyz, 5) = 6. * factor_3;
-      trafo(I::yyyzzz, 5) = -16. * factor_3;
+      trafo(I::xxxxyz, 5) = 5. * factor_2;  /// Y 6,-1
+      trafo(I::xxyyyz, 5) = 10. * factor_2;
+      trafo(I::xxyzzz, 5) = -20. * factor_2;
+      trafo(I::yyyyyz, 5) = 5. * factor_2;
+      trafo(I::yyyzzz, 5) = -20. * factor_2;
+      trafo(I::yzzzzz, 5) = 8. * factor_2;
 
-      trafo(I::xxxxxz, 6) = -6. * factor_3;  /// Y 6,3
-      trafo(I::xxxyyz, 6) = 12. * factor_3;
-      trafo(I::xxxzzz, 6) = 16. * factor_3;
-      trafo(I::xyyyyz, 6) = 18. * factor_3;
-      trafo(I::xyyzzz, 6) = -48. * factor_3;
+      trafo(I::xxxxxx, 6) = -5. * factor_1;  /// Y 6,0
+      trafo(I::xxxxyy, 6) = -15. * factor_1;
+      trafo(I::xxxxzz, 6) = 90. * factor_1;
+      trafo(I::xxyyyy, 6) = -15. * factor_1;
+      trafo(I::xxyyzz, 6) = 180. * factor_1;
+      trafo(I::xxzzzz, 6) = -120. * factor_1;
+      trafo(I::yyyyyy, 6) = -5. * factor_1;
+      trafo(I::yyyyzz, 6) = 90. * factor_1;
+      trafo(I::yyzzzz, 6) = -120. * factor_1;
+      trafo(I::zzzzzz, 6) = 16. * factor_1;
 
-      trafo(I::xxxxxy, 7) = -4. * factor_4;  /// Y 6,-4
-      trafo(I::xxxyzz, 7) = 40. * factor_4;
-      trafo(I::xyyyyy, 7) = 4. * factor_4;
-      trafo(I::xyyyzz, 7) = -40. * factor_4;
+      trafo(I::xxxxxz, 7) = 5. * factor_2;  /// Y 6,1
+      trafo(I::xxxyyz, 7) = 10. * factor_2;
+      trafo(I::xxxzzz, 7) = -20. * factor_2;
+      trafo(I::xyyyyz, 7) = 5. * factor_2;
+      trafo(I::xyyzzz, 7) = -20. * factor_2;
+      trafo(I::xzzzzz, 7) = 8. * factor_2;
 
-      trafo(I::xxxxxx, 8) = -factor_4;  /// Y 6,4
-      trafo(I::xxxxyy, 8) = 5. * factor_4;
-      trafo(I::xxxxzz, 8) = 10. * factor_4;
-      trafo(I::xxyyyy, 8) = 5. * factor_4;
-      trafo(I::xxyyzz, 8) = -60. * factor_4;
-      trafo(I::yyyyyy, 8) = -factor_4;
-      trafo(I::yyyyzz, 8) = 10. * factor_4;
+      trafo(I::xxxxxy, 8) = factor_3;  /// Y 6,2
+      trafo(I::xxxxyy, 8) = factor_3;
+      trafo(I::xxxxzz, 8) = -16. * factor_3;
+      trafo(I::xxyyyy, 8) = -factor_3;
+      trafo(I::xxzzzz, 8) = 16. * factor_3;
+      trafo(I::yyyyyy, 8) = -factor_3;
+      trafo(I::yyyyzz, 8) = 16. * factor_3;
+      trafo(I::yyzzzz, 8) = -16. * factor_3;
 
-      trafo(I::xxxxyz, 9) = 5. * factor_5;  /// Y 6,-5
-      trafo(I::xxyyyz, 9) = -10. * factor_5;
-      trafo(I::yyyyyz, 9) = factor_5;
+      trafo(I::xxxxxz, 9) = -6. * factor_3;  /// Y 6,3
+      trafo(I::xxxyyz, 9) = 12. * factor_3;
+      trafo(I::xxxzzz, 9) = 16. * factor_3;
+      trafo(I::xyyyyz, 9) = 18. * factor_3;
+      trafo(I::xyyzzz, 9) = -48. * factor_3;
 
-      trafo(I::xxxxxz, 10) = factor_5;  /// Y 6,5
-      trafo(I::xxxyyz, 10) = -10. * factor_5;
-      trafo(I::xyyyyz, 10) = 5. * factor_5;
+      trafo(I::xxxxxx, 10) = -factor_4;  /// Y 6,4
+      trafo(I::xxxxyy, 10) = 5. * factor_4;
+      trafo(I::xxxxzz, 10) = 10. * factor_4;
+      trafo(I::xxyyyy, 10) = 5. * factor_4;
+      trafo(I::xxyyzz, 10) = -60. * factor_4;
+      trafo(I::yyyyyy, 10) = -factor_4;
+      trafo(I::yyyyzz, 10) = 10. * factor_4;
 
-      trafo(I::xxxxxy, 11) = 6. * factor_6;  /// Y 6,-6
-      trafo(I::xxxyyy, 11) = -20. * factor_6;
-      trafo(I::xyyyyy, 11) = 6. * factor_6;
+      trafo(I::xxxxxz, 11) = factor_5;  /// Y 6,5
+      trafo(I::xxxyyz, 11) = -10. * factor_5;
+      trafo(I::xyyyyz, 11) = 5. * factor_5;
 
       trafo(I::xxxxxx, 12) = factor_6;  /// Y 6,6
       trafo(I::xxxxyy, 12) = -15. * factor_6;
@@ -304,27 +304,8 @@ Eigen::MatrixXd AOTransform::getPrimitiveShellTrafo(Index l, double decay,
 Eigen::MatrixXd AOTransform::getTrafo(const AOGaussianPrimitive& gaussian) {
 
   const AOShell& shell = gaussian.getShell();
-  if (!shell.isCombined()) {
-    return AOTransform::getPrimitiveShellTrafo(
-        shell.getLmax(), gaussian.getDecay(),
-        gaussian.getContraction()(shell.getLmax()));
-  }
-
-  Eigen::MatrixXd trafo =
-      Eigen::MatrixXd::Zero(shell.getCartesianNumFunc(), shell.getNumFunc());
-
-  Index rowoffset = 0;
-  Index coloffset = 0;
-  for (Index l = shell.getLmin(); l <= shell.getLmax(); l++) {
-    Index cart_size = AOTransform::getCartesianSize(l);
-    Index spherical_size = AOTransform::getSphericalSize(l);
-    trafo.block(rowoffset, coloffset, cart_size, spherical_size) =
-        AOTransform::getPrimitiveShellTrafo(l, gaussian.getDecay(),
-                                            gaussian.getContraction()(l));
-    rowoffset += cart_size;
-    coloffset += spherical_size;
-  }
-  return trafo;
+  return AOTransform::getPrimitiveShellTrafo(shell.getL(), gaussian.getDecay(),
+                                             gaussian.getContraction());
 }
 
 Eigen::VectorXd AOTransform::XIntegrate(Index size, double U) {

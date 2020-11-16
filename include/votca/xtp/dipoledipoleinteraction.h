@@ -18,8 +18,11 @@
 #pragma once
 #ifndef VOTCA_XTP_DIPOLEDIPOLEINTERACTION_H
 #define VOTCA_XTP_DIPOLEDIPOLEINTERACTION_H
-#include <votca/xtp/eeinteractor.h>
-#include <votca/xtp/eigen.h>
+
+// Local VOTCA includes
+#include "eeinteractor.h"
+#include "eigen.h"
+
 namespace votca {
 namespace xtp {
 class DipoleDipoleInteraction;
@@ -120,29 +123,20 @@ class DipoleDipoleInteraction
     assert(v.size() == _size &&
            "input vector has the wrong size for multiply with operator");
     const Index segment_size = Index(_sites.size());
-    std::vector<Eigen::VectorXd> thread_result(OPENMP::getMaxThreads(),
-                                               Eigen::VectorXd::Zero(_size));
-#pragma omp parallel for schedule(dynamic)
+    Eigen::VectorXd result = Eigen::VectorXd::Zero(_size);
+#pragma omp parallel for schedule(dynamic) reduction(+ : result)
     for (Index i = 0; i < segment_size; i++) {
       const PolarSite& site1 = *_sites[i];
+      result.segment<3>(3 * i) += site1.getPInv() * v.segment<3>(3 * i);
       for (Index j = i + 1; j < segment_size; j++) {
         const PolarSite& site2 = *_sites[j];
         Eigen::Matrix3d block = _interactor.FillTholeInteraction(site1, site2);
-        thread_result[OPENMP::getThreadId()].segment<3>(3 * i) +=
-            block * v.segment<3>(3 * j);
-        thread_result[OPENMP::getThreadId()].segment<3>(3 * j) +=
-            block.transpose() * v.segment<3>(3 * i);
+        result.segment<3>(3 * i) += block * v.segment<3>(3 * j);
+        result.segment<3>(3 * j) += block.transpose() * v.segment<3>(3 * i);
       }
     }
-#pragma omp parallel for schedule(dynamic)
-    for (Index i = 0; i < segment_size; i++) {
-      const PolarSite& site = *_sites[i];
-      thread_result[OPENMP::getThreadId()].segment<3>(3 * i) +=
-          site.getPInv() * v.segment<3>(3 * i);
-    }
 
-    return std::accumulate(thread_result.begin(), thread_result.end(),
-                           Eigen::VectorXd::Zero(_size).eval());
+    return result;
   }
 
  private:

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,11 +18,12 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_BSE_POPULATIONS_H
-#define VOTCA_XTP_BSE_POPULATIONS_H
+#ifndef VOTCA_XTP_BSE_POPULATION_H
+#define VOTCA_XTP_BSE_POPULATION_H
 
-#include <votca/xtp/checkpoint.h>
-#include <votca/xtp/eigen.h>
+// Local VOTCA includes
+#include "checkpoint.h"
+#include "eigen.h"
 
 /**
  * \brief Small container to keep occupation of BSE states for each atom
@@ -74,4 +75,4 @@ struct BSE_Population {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_BSE_POPULATIONS_H
+#endif  // VOTCA_XTP_BSE_POPULATION_H

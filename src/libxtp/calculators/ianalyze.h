@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,32 +20,37 @@
 #pragma once
 #ifndef VOTCA_XTP_IANALYZE_H
 #define VOTCA_XTP_IANALYZE_H
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/qmpair.h>
-#include <votca/xtp/qmstate.h>
+
+// Local VOTCA includes
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/qmpair.h"
+#include "votca/xtp/qmstate.h"
 
 namespace votca {
 namespace xtp {
 
-class IAnalyze : public QMCalculator {
+class IAnalyze final : public QMCalculator {
  public:
-  std::string Identify() override { return "ianalyze"; }
-  bool WriteToStateFile() const override { return false; }
-  void Initialize(tools::Property &options) override;
-  bool EvaluateFrame(Topology &top) override;
+  std::string Identify() { return "ianalyze"; }
+  bool WriteToStateFile() const { return false; }
+
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Evaluate(Topology &top);
+
+ private:
   void IHist(Topology &top, QMStateType state);
   void IRdependence(Topology &top, QMStateType state);
 
- private:
   double _resolution_logJ2;
   std::vector<QMStateType> _states;
-  double _resolution_space;
+  double _resolution_spatial;
   std::vector<QMPair::PairType> _pairtype;
-  bool _do_pairtype;
-  bool _do_IRdependence;
+  bool _do_pairtype = false;
+  bool _do_IRdependence = false;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_IANALYZE_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,15 @@
 #ifndef VOTCA_XTP_CHECKPOINT_UTILS_H
 #define VOTCA_XTP_CHECKPOINT_UTILS_H
 
-#include <H5Cpp.h>
+// Standard includes
 #include <cstddef>
 #include <cstring>
 #include <string>
+
+// Third party includes
+#include <H5Cpp.h>
+
+// VOTCA includes
 #include <votca/tools/types.h>
 
 namespace votca {

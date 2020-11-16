@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,14 +18,18 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_CONVERGENCEACC__H
-#define _VOTCA_XTP_CONVERGENCEACC__H
+#ifndef VOTCA_XTP_CONVERGENCEACC_H
+#define VOTCA_XTP_CONVERGENCEACC_H
 
+// VOTCA includes
 #include <votca/tools/linalg.h>
-#include <votca/xtp/adiis.h>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/diis.h>
-#include <votca/xtp/logger.h>
+
+// Local VOTCA includes
+#include "adiis.h"
+#include "aomatrix.h"
+#include "diis.h"
+#include "logger.h"
+
 namespace votca {
 namespace xtp {
 
@@ -35,18 +39,18 @@ class ConvergenceAcc {
 
   struct options {
     KSmode mode = KSmode::closed;
-    bool usediis = true;
+    bool usediis;
     bool noisy = false;
-    Index histlength = 10;
-    bool maxout = false;
-    double adiis_start = 2;
-    double diis_start = 0.01;
-    double levelshift = 0.25;
-    double levelshiftend = 0.8;
+    Index histlength;
+    bool maxout;
+    double adiis_start;
+    double diis_start;
+    double levelshift;
+    double levelshiftend;
     Index numberofelectrons;
-    double mixingparameter = 0.7;
-    double Econverged = 1e-7;
-    double error_converged = 1e-7;
+    double mixingparameter;
+    double Econverged;
+    double error_converged;
   };
 
   void Configure(const ConvergenceAcc::options& opt) {
@@ -122,4 +126,4 @@ class ConvergenceAcc {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_CONVERGENCEACC_H
