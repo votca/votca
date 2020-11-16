@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ namespace tools {
 
   */
 inline std::istream& getline(std::istream& is, std::string& str) {
-  std::istream& ist = getline(is, str, '\n');
+  std::istream& ist = std::getline(is, str, '\n');
   str.erase(remove(str.begin(), str.end(), '\r'), str.end());
   return ist;
 }

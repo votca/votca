@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ istream &operator>>(istream &in, Table &t) {
   t.clear();
 
   // read till the first data line
-  while (getline(in, line)) {
+  while (tools::getline(in, line)) {
     line_number++;
     string conversion_error = t.getErrorDetails() + ", line " +
                               boost::lexical_cast<string>(line_number);
@@ -133,7 +133,7 @@ istream &operator>>(istream &in, Table &t) {
   }
 
   // read the rest
-  while (getline(in, line)) {
+  while (tools::getline(in, line)) {
     line_number++;
     string conversion_error = t.getErrorDetails() + ", line " +
                               boost::lexical_cast<string>(line_number);
