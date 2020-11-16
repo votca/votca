@@ -314,7 +314,7 @@ Assuming you are in the votca/votca repository:
     git commit -m "test <module1> with <module2>"
     git push origin <some_descriptive_branch_name>
 
-1. Here ``base_branch`` will typically be the master or stable branch.
+1. Here ``base_branch`` will typically be the :code:`master` or :code:`stable` branch.
 
    ::
 
@@ -463,11 +463,11 @@ comments to code:
        * @return - description of return type
        */
 
-The doxygen commenting will help future developers maintain the code, in
-its fully compiled state it may be found at: http://doc.votca.org
+Doxygen commenting will help future developers maintain the code, in
+its fully compiled state. It may be found at: http://doc.votca.org
 
 NOTE: Compilation of the doxygen documentation is automated when code is
-merged into the master votca branch!
+merged into the :code:`master` votca branch!
 
 Updating Git Submodules
 -----------------------
@@ -476,13 +476,13 @@ Votca with all of its repos can be build by using the parent `votca
 repo <https://github.com/votca/votca>`__. All the other necessary repos
 appear as submodules in the parent repo. It is worth noting that the
 submodules are automatically updated through a pull request whenever changes are made to
-their respective master branches. In essence a submodule refers to a
+their respective :code:`master` branches. In essence, a submodule refers to a
 specific commit of the repo it represents. 
 
-Normally it is not necessary, but from time to time a new commit is need to be manually merged
-into the master branch of a repository the submodule state in the parent
-repo has to be updated for the commit to propagate to the parent votca
-repository.
+Normally it is not necessary, but occassionally a new commit must be manually
+merged into the :code:`master` branch of a child repository. If this occurs the
+submodule state in the parent repo also has to be updated to reflect the latest
+commit of the child repo. 
 
 To update the state of a submodule the following commands can be used:
 
@@ -494,19 +494,29 @@ To update the state of a submodule the following commands can be used:
     git commit -m "update all submodules"
 
 
-Updates from Stable
--------------------
+Updates from :code:`stable`
 
-The :code:`stable` branch contains the last release plus all bug fixes made since the release.
-Only in very limited circumstances new features should be merged into the stable branch.
-Developer can add bug fixes by making a pull request with the stable branch as target.
-Once this pull request is merged, another pull request from stable to master is created in the submodule automatically.
-And as for the master branch (see previous section) and pull request in :code:`votca/votca` is opened automatically to
-update the submodules in the stable branch as well.
-So ultimately there will 4 automatically created pull requests, (a) in the submodule from stable to master, (b) in the main repository
-to update the stable submodules, (c) to update the master submodules in the main repository once (a) is merged and (d) an update from stable to master in the main repository once (b) is merged. From time to time (a) will need some manual intervention to resolve conflicts. To minimize the manual work on (d), it is usually best to merge the pull requests in the order (a), (c), (b).
-The background is that when (d) gets created by merging (b) and the submodules in master are already up to date from merging (c) there will not be any merge conflicts. 
+The :code:`stable` branch contains the latest release with the most uptodate bug fixes since the release.
+Only in very limited circumstances should new features be merged into the :code:`stable` branch.
+Developers can add bug fixes by making a pull request with the :code:`stable` branch as target.
 
+As the :code:`master` branch of each repo is a child of each repo's :code:`stable` branch,  
+any bugfix added to a repos :code:`stable` branch will also need to be pulled into its :code:`master` branch. If the bugfix
+is added in one of the child repositories (not :code:`votca/votca`) then :code:`votca/votca` will also need to
+reflect these changes.
+
+Keeping the repositories synchronised can be difficult. In order to help keep the :code:`master` branches and :code:`votca/votca`
+synchronised with changes in the :code:`stable` branch of a child repository the generation of four pull requests are
+automatically generated anytime a bugfix is made to the :code:`stable` branch of a child repository.
+
+E.g. if :code:`hot-bug-fix` is merged into the :code:`stable` branch of :code:`tools`:
+
+1. A pull request is created to merge :code:`stable` from :code:`tools` (child repo) into :code:`master` of :code:`tools` (child repo).
+2. A pull request is created to merge :code:`stable` from :code:`tools` (child repo) into :code:`stable` of :code:`votca/votca` (parent repo). This shoud consiste of updating the submodules in the :code:`stable` branch of votca/votca.
+3. A pull request is created to merge :code:`master` from :code:`tools` (child repo) into :code:`master` of :code:`votca/votca` (parent repo). Again this should consist of updating the submodules but in the :code:`master` branch of votca/votca.
+4. Finally, a pull request is made from :code:`stable` from :code:`votca/votca` (parent repo) to :code:`master` of :code:`votca/votca` (parent repo).
+
+To minimize manual work, it is usually best to merge the pull requests in the order that hey have been shown in the example. 
 
 Failed Release Builds
 ---------------------
@@ -514,9 +524,9 @@ Failed Release Builds
 To prepare votca for distribution on different linux flavors there are
 different requirements from the package managers. Some of the
 architectures that the package managers support can be quite varied. In
-the case that a failure occurs on an architecture that is not available
-to you there are different approaches to debugging the problem. As an
-example fedora dnf has extended support to the **pcc64le** architecture.
+the case that a failure occurs on an architecture, that is not available
+to you, there are different approaches for debugging the problem. As an
+example, fedora dnf has extended support to the **pcc64le** architecture.
 Assuming you have access to fedora you can run the following commands to
 simulate the build process on the **pcc64le** architecture:
 
@@ -549,10 +559,10 @@ source files before running the interactive instance.
 
 Note: we have used this process with the **ppc64le** architecture as an
 example, but the same procedure can be extended with different
-architectures and diferent operating systems. For example you could use
+architectures and diferent operating systems. For example, you could use
 the **aarch64** or **armv7hl** architecture in place of **pcc64le**. You
 could also replace the **epel-7-ppc64le** os-architecure to
 **fedora-28-ppc64le**, **fedora-27-aarch64** or some other combination.
-A final point, if you simply want to build natively for instance if you
-are running fedora on an **x86\_64** machine the ``frocearch pcc64le``
+A final point, if you simply want to build natively, for instance if you
+are running fedora on an **x86\_64** machine, the ``frocearch pcc64le``
 in the above case could just be dropped.
