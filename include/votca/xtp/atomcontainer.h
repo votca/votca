@@ -70,9 +70,12 @@ class AtomContainer {
   }
 
   void AddContainer(const AtomContainer<T>& container) {
+    Index offset = _atomlist.size();
     _type += "_" + container._type;
-    _atomlist.insert(_atomlist.end(), container._atomlist.begin(),
-                     container._atomlist.end());
+    for (auto at : container._atomlist) {
+      T atom(at.getId() + offset, at.getElement(), at.getPos());
+      _atomlist.push_back(atom);
+    }
     calcPos();
   }
 
