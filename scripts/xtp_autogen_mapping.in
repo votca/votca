@@ -414,7 +414,7 @@ def random_selection(fragment) -> int:
             else:
                 rest_list = atomic_list  
                 size_sample = len(rest_list)
-    #Else the rest of the atoms are more than 3 then sampling randomly three of them it is fine
+    #Else the rest of the atoms are more than 3 then sampling randomly three of them it is fine 
     else:
         size_sample = 3
     idx = np.random.choice(rest_list, size=size_sample, replace=False)     
