@@ -26,6 +26,7 @@
 #include <typeinfo>
 
 // VOTCA includes
+#include "qmatom.h"
 #include <votca/tools/elements.h>
 
 // Local VOTCA includes
@@ -69,11 +70,11 @@ class AtomContainer {
     calcPos();
   }
 
-  void AddContainer(const AtomContainer<T>& container) {
+  void AddContainer(const AtomContainer<QMAtom>& container) {
     Index offset = _atomlist.size();
     _type += "_" + container._type;
     for (const auto& at : container._atomlist) {
-      T atom(at.getId() + offset, at.getElement(), at.getPos());
+      QMAtom atom(at.getId() + offset, at.getElement(), at.getPos());
       _atomlist.push_back(atom);
     }
     calcPos();
