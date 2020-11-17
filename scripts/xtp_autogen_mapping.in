@@ -420,7 +420,7 @@ def cross_product_fragment(idx, fragment):
     return(cp)
 
 
-def check_collinear(fragment):
+def check_collinear(fragment: Chem.rdchem.Mol) -> int:
     """Check if three random selected points are collinear."""
     while True:
         idx = random_selection(fragment)
