@@ -16,7 +16,7 @@
 #
 
 from pathlib import Path
-from typing import Dict, NamedTuple, List
+from typing import Any, Dict, NamedTuple, List
 
 import argparse
 import importlib
@@ -274,7 +274,7 @@ def generate_mapping(args: argparse.Namespace) -> None:
 
 
 def generate_xml_tree(
-        mol: Chem.rdchem.Mol, states: List[str], fragments: List,
+        mol: Chem.rdchem.Mol, states: List[str], fragments: List[Any],
         seg_name: str, energies: Dict[str, float]):
     topology = ET.Element('topology')
     molecules = ET.SubElement(topology, 'molecules')
@@ -359,20 +359,15 @@ def generate_xml_tree(
             this_element = fragment.GetAtoms()[atom].GetSymbol()
             if this_element != "*":
                 this_pos = conf.GetAtomPosition(atom)
-                for full_atom in range(0, mol.GetNumAtoms()):
-                    full_element = mol.GetAtoms(
-                    )[full_atom].GetPDBResidueInfo().GetName().replace(" ", "")
-                    full_element_qm = mol.GetAtoms()[full_atom].GetSymbol()
-                    full_pos = mol.GetConformer().GetAtomPosition(full_atom)
-                    if full_pos.x == this_pos.x:
-                        if full_pos.y == this_pos.y:
-                            if full_pos.z == this_pos.z:
-                                mdatoms_str += "0:" + \
-                                    str(full_element)+":"+str(full_atom)+" "
-                                qmatoms_str += str(full_atom) + \
-                                    ":"+str(full_element_qm)+" "
-                                weights_str += str(mol.GetAtoms()
-                                                   [full_atom].GetMass())+" "
+                for index_atom in range(0, mol.GetNumAtoms()):
+                    full_atom = mol.GetAtoms()[index_atom]
+                    full_element = full_atom.GetPDBResidueInfo().GetName().replace(" ", "")
+                    full_element_qm = full_atom.GetSymbol()
+                    full_pos = mol.GetConformer().GetAtomPosition(index_atom)
+                    if all(getattr(full_pos, x) == getattr(this_pos, x) for x in {'x', 'y', 'z'}):
+                        mdatoms_str += f"0:{full_element}:{index_atom} "
+                        qmatoms_str += f"{index_atom}:{full_element_qm} "
+                        weights_str += f"{full_atom.GetMass()} "
         mdatoms.text = mdatoms_str
         qmatoms.text = qmatoms_str
         mpoles.text = qmatoms_str
@@ -388,7 +383,7 @@ def generate_xml_tree(
         f.write(xml_str)
 
 
-def random_selection(fragment) -> int:
+def random_selection(fragment) -> np.ndarray:
     n_atoms = fragment.GetNumAtoms()
     # Choose 3 random idx (aka choose three random atoms in the fragment, excluding ghost atoms with symbol *)
     atomic_list = [a for a in np.arange(n_atoms) if fragment.GetAtoms()[
@@ -427,20 +422,17 @@ def random_selection(fragment) -> int:
     return idx
 
 
-def cross_product_fragment(idx, fragment):
+def cross_product_fragment(idx: np.ndarray, fragment: Chem.rdchem.Mol) -> float:
     try:
-        pos_1 = fragment.GetConformer().GetAtomPosition(int(idx[0]))
-        pos_2 = fragment.GetConformer().GetAtomPosition(int(idx[1]))
-        pos_3 = fragment.GetConformer().GetAtomPosition(int(idx[2]))
-        vec1 = np.array([pos_1.x - pos_2.x, pos_1.y -
-                         pos_2.y, pos_1.z - pos_2.z])
-        vec2 = np.array([pos_1.x - pos_3.x, pos_1.y -
-                         pos_3.y, pos_1.z - pos_3.z])
+        conformer = fragment.GetConformer()
+        pos_1, pos_2, pos_3 = [conformer.GetAtomPosition(idx[x]) for x in range(3)]
+        vec1 = np.array([pos_1.x - pos_2.x, pos_1.y - pos_2.y, pos_1.z - pos_2.z])
+        vec2 = np.array([pos_1.x - pos_3.x, pos_1.y - pos_3.y, pos_1.z - pos_3.z])
         cp = np.cross(vec1, vec2)
     except:
         # Just throw out a big value for the cp so check_collinear whill break immediatly
         cp = 100
-    return(cp)
+    return cp
 
 
 def check_collinear(fragment: Chem.rdchem.Mol) -> int:
