@@ -468,7 +468,7 @@ def main():
     # Add the arguments to the parser
     parser.add_argument("-pdb", "--pdbfile", required=True, type=exists,
                         help="PDB coordinate file")
-    parser.add_argument("-opt", "--optimize", type=bool, default=True,
+    parser.add_argument("-opt", "--optimize", action="store_true",
                         help="optimization of XYZ and MPS files")
     parser.add_argument("-s", "--states", default="n", nargs="+",
                         help="which states to optimize", choices=["n", "e", "h"])
