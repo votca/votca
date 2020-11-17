@@ -71,8 +71,11 @@ def search_cores() -> int:
 
 def run_cmd(cmd: str):
     """Run a shell command."""
-    subprocess.run(cmd, stdout=subprocess.PIPE,
-                   stderr=subprocess.PIPE, shell=True)
+    result = subprocess.run(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, shell=True)
+    print("running: ", cmd)
+    if result.stderr:
+        print("command error: ", result.stderr)
 
 
 def write_input(
@@ -275,7 +278,7 @@ def generate_mapping(args: argparse.Namespace) -> None:
 
 def generate_xml_tree(
         mol: Chem.rdchem.Mol, states: List[str], fragments: List[Any],
-        seg_name: str, energies: Dict[str, float]):
+        seg_name: str, energies: Dict[str, float]) -> None:
     topology = ET.Element('topology')
     molecules = ET.SubElement(topology, 'molecules')
     molecule = ET.SubElement(molecules, 'molecule')
@@ -287,53 +290,62 @@ def generate_xml_tree(
     segment = ET.SubElement(segments, 'segment')
     segment_name = ET.SubElement(segment, 'name')
     segment_name.text = seg_name
-    segment_coord_n = ET.SubElement(segment, 'qmcoords_n')
-    segment_coord_n.text = f"QC_FILES/{seg_name}_n.xyz"
-    segment_mpoles_n = ET.SubElement(segment, 'multipoles_n')
-    segment_mpoles_n.text = f"MP_FILES/{seg_name}_n_polar.mps"
+
+    # Add qmcoords, xyz, multipoles and polar files
+    add_state_files('n', segment, seg_name)
+
     if 'h' in states:
-        segment_coord_h = ET.SubElement(segment, 'qmcoords_h')
-        segment_coord_h.text = f"QC_FILES/{seg_name}_h.xyz"
-        segment_mpoles_h = ET.SubElement(segment, 'multipoles_h')
-        segment_mpoles_h.text = f"MP_FILES/{seg_name}_h_polar.mps"
-        # adiabatic excitation energy
-        segment_U_xX_nN_h = ET.SubElement(segment, 'U_xX_nN_h')
-
-        segment_U_xX_nN_h.text = format_energy(
-            energies, "E_h_final", "E_n_final")
-        # reorg energy deexcitation
-        segment_U_nX_nN_h = ET.SubElement(
-            segment, 'U_nX_nN_h')
-        segment_U_nX_nN_h.text = format_energy(
-            energies, "E_h_cross", "E_n_final")
-        # reorg energy excitation
-        segment_U_xN_xX_h = ET.SubElement(segment, 'U_xN_xX_h')
-
-        segment_U_xN_xX_h.text = format_energy(
-            energies, "E_h_init", "E_h_final")
+        add_state_files('h', segment, seg_name)
+        add_energies('h', segment, energies)
     if 'e' in states:
-        segment_coord_e = ET.SubElement(segment, 'qmcoords_e')
-        segment_coord_e.text = f"QC_FILES/{seg_name}_e.xyz"
-        segment_mpoles_e = ET.SubElement(segment, 'multipoles_e')
-        segment_mpoles_e.text = f"MP_FILES/{seg_name}_e_polar.mps"
-        # adiabatic excitation energy
-        segment_U_xX_nN_e = ET.SubElement(segment, 'U_xX_nN_e')
-
-        segment_U_xX_nN_e.text = format_energy(
-            energies, "E_e_final", "E_n_final")
-        # reorg energy deexcitation
-        segment_U_nX_nN_e = ET.SubElement(segment, 'U_nX_nN_e')
-        segment_U_nX_nN_e.text = format_energy(
-            energies, "E_e_cross", "E_n_final")
-        # reorg energy excitation
-        segment_U_xN_xX_e = ET.SubElement(segment, 'U_xN_xX_e')
-        segment_U_xN_xX_e.text = format_energy(
-            energies, "E_e_init", "E_e_final")
+        add_state_files('e', segment, seg_name)
+        add_energies('e', segment, energies)
 
     map2md = ET.SubElement(segment, 'map2md')
     map2md.text = '0'
     xmlfragments = ET.SubElement(segment, 'fragments')
 
+    # add the fragments into the xml tree
+    add_fragments(mol, fragments, xmlfragments)
+
+    xml_str = minidom.parseString(
+        ET.tostring(topology)).toprettyxml(indent="   ")
+    with open("mapping.xml", "w") as f:
+        f.write(xml_str)
+
+
+def add_state_files(state: str, segment: ET.Element, seg_name: str) -> None:
+    """Add the files for each state."""
+    segment_coord = ET.SubElement(segment, f'qmcoords_{state}')
+    segment_coord.text = f"QC_FILES/{seg_name}_{state}.xyz"
+    segment_mpoles = ET.SubElement(segment, f'multipoles_{state}')
+    segment_mpoles.text = f"MP_FILES/{seg_name}_{state}_polar.mps"
+
+
+def add_energies(state: str, segment: ET.Element, energies: Dict[str, float]) -> None:
+    """Add the energies for the states."""
+    # adiabatic excitation energy
+    segment_U_xX_nN = ET.SubElement(segment, f'U_xX_nN_{state}')
+
+    segment_U_xX_nN.text = format_energy(
+        energies, f"E_{state}_final", "E_n_final")
+    # reorg energy deexcitation
+    segment_U_nX_nN = ET.SubElement(
+        segment, f'U_nX_nN_{state}')
+    segment_U_nX_nN.text = format_energy(
+        energies, f"E_{state}_cross", "E_n_final")
+
+    # reorg energy excitation
+    segment_U_xN_xX = ET.SubElement(segment, f'U_xN_xX_{state}')
+
+    segment_U_xN_xX.text = format_energy(
+        energies, f"E_{state}_init", f"E_{state}_final")
+
+
+def add_fragments(
+        mol: Chem.rdchem.Mol, fragments: List[Chem.rdchem.Mol],
+        xmlfragments: ET.Element) -> None:
+    """Add fragments to the XML tree."""
     for i, fragment in enumerate(fragments):
         i += 1
 
@@ -355,11 +367,11 @@ def generate_xml_tree(
         weights_str = ""
         localframe_str = ""
         idx = np.sort(check_collinear(fragment))
-        for atom in range(0, fragment.GetNumAtoms()):
+        for atom in range(fragment.GetNumAtoms()):
             this_element = fragment.GetAtoms()[atom].GetSymbol()
             if this_element != "*":
                 this_pos = conf.GetAtomPosition(atom)
-                for index_atom in range(0, mol.GetNumAtoms()):
+                for index_atom in range(mol.GetNumAtoms()):
                     full_atom = mol.GetAtoms()[index_atom]
                     full_element = full_atom.GetPDBResidueInfo().GetName().replace(" ", "")
                     full_element_qm = full_atom.GetSymbol()
@@ -377,22 +389,17 @@ def generate_xml_tree(
             localframe_str += f"{label} "
         localframe.text = localframe_str
 
-    xml_str = minidom.parseString(
-        ET.tostring(topology)).toprettyxml(indent="   ")
-    with open("mapping.xml", "w") as f:
-        f.write(xml_str)
-
 
 def random_selection(fragment) -> np.ndarray:
     n_atoms = fragment.GetNumAtoms()
     # Choose 3 random idx (aka choose three random atoms in the fragment, excluding ghost atoms with symbol *)
-    atomic_list = [a for a in np.arange(n_atoms) if fragment.GetAtoms()[
-        int(a)].GetSymbol() != '*']
+    atomic_list = [a for a in range(n_atoms) if fragment.GetAtoms()[
+        a].GetSymbol() != '*']
     # Divide this list in H-list and rest_of_the_atoms-list
     h_list = [a for a in atomic_list if fragment.GetAtoms()[
-        int(a)].GetSymbol() == 'H']
+        a].GetSymbol() == 'H']
     rest_list = [a for a in atomic_list if fragment.GetAtoms()[
-        int(a)].GetSymbol() != 'H']
+        a].GetSymbol() != 'H']
 
     size_sample = 0
     # If the rest of the atoms are 3 or less
@@ -425,9 +432,12 @@ def random_selection(fragment) -> np.ndarray:
 def cross_product_fragment(idx: np.ndarray, fragment: Chem.rdchem.Mol) -> float:
     try:
         conformer = fragment.GetConformer()
-        pos_1, pos_2, pos_3 = [conformer.GetAtomPosition(idx[x]) for x in range(3)]
-        vec1 = np.array([pos_1.x - pos_2.x, pos_1.y - pos_2.y, pos_1.z - pos_2.z])
-        vec2 = np.array([pos_1.x - pos_3.x, pos_1.y - pos_3.y, pos_1.z - pos_3.z])
+        pos_1, pos_2, pos_3 = [
+            conformer.GetAtomPosition(idx[x]) for x in range(3)]
+        vec1 = np.array([pos_1.x - pos_2.x, pos_1.y -
+                         pos_2.y, pos_1.z - pos_2.z])
+        vec2 = np.array([pos_1.x - pos_3.x, pos_1.y -
+                         pos_3.y, pos_1.z - pos_3.z])
         cp = np.cross(vec1, vec2)
     except:
         # Just throw out a big value for the cp so check_collinear whill break immediatly
