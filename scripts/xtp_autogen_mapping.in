@@ -370,13 +370,12 @@ def generate_xml_tree(
                                     ":"+str(full_element_qm)+" "
                                 weights_str += str(mol.GetAtoms()
                                                    [full_atom].GetMass())+" "
-                                # print(full_atom,atom, full_element)
         mdatoms.text = mdatoms_str
         qmatoms.text = qmatoms_str
         mpoles.text = qmatoms_str
         weights.text = weights_str
 
-        for label in [qmatoms_str.split()[i].replace(":C", "").replace("H", "") for i in idx]:
+        for label in [ "".join(c for c in qmatoms_str.split()[i] if c.isdigit()) for i in idx]:
             localframe_str += f"{label} "
         localframe.text = localframe_str
 
@@ -396,27 +395,43 @@ def random_selection(fragment) -> int:
         int(a)].GetSymbol() == 'H']
     rest_list = [a for a in atomic_list if fragment.GetAtoms()[
         int(a)].GetSymbol() != 'H']
-    # If the number of rest_of_the_atoms is less than 3, add randomly H from the H-list
-    if len(rest_list) < 3:
-        new_items = np.random.choice(
-            h_list, size=3 - len(rest_list), replace=False)
-        for i in new_items:
-            rest_list.append(i)
-    # Select randomly 3 indices
-    idx = np.random.choice(rest_list, size=3, replace=False)
-    # This is for debug
-    # s1,s2,s3 = get_symbols(idx)
-    # print("{}-{}".format(idx[0],s1),"{}-{}".format(idx[1],s2),"{}-{}".format(idx[2],s3))
+    
+    size_sample = 0
+    #If the rest of the atoms are 3 or less
+    if len(rest_list)<4:
+        #If there are no Hydrogens it spits out a sample size equal to the rest of the atoms list
+        if len(h_list)<1:
+            size_sample = len(rest_list)
+        #If there are Hydrogens and the rest of the atoms are less than 3 (2 or 1)
+        if len(h_list)>0 and len(rest_list)<3:
+            #If there are at least 3 H
+            if len(h_list)>2:
+                new_items = np.random.choice(h_list,size=3-len(rest_list),replace=False))
+                for i in new_items:
+                    rest_list.append(i)
+                size_sample = len(rest_list)
+            #Otherwise just spit out the all atomic list (this because you can have max 1 H and 2 rest of the atoms)
+            else:
+                rest_list = atomic_list  
+                size_sample = len(rest_list)
+    #Else the rest of the atoms are more than 3 then sampling randomly three of them it is fine
+    else:
+        size_sample = 3
+    idx = np.random.choice(rest_list, size=size_sample, replace=False)     
     return idx
 
 
 def cross_product_fragment(idx, fragment):
-    pos_1 = fragment.GetConformer().GetAtomPosition(int(idx[0]))
-    pos_2 = fragment.GetConformer().GetAtomPosition(int(idx[1]))
-    pos_3 = fragment.GetConformer().GetAtomPosition(int(idx[2]))
-    vec1 = np.array([pos_1.x - pos_2.x, pos_1.y - pos_2.y, pos_1.z - pos_2.z])
-    vec2 = np.array([pos_1.x - pos_3.x, pos_1.y - pos_3.y, pos_1.z - pos_3.z])
-    cp = np.cross(vec1, vec2)
+    try:
+        pos_1 = fragment.GetConformer().GetAtomPosition(int(idx[0]))
+        pos_2 = fragment.GetConformer().GetAtomPosition(int(idx[1]))
+        pos_3 = fragment.GetConformer().GetAtomPosition(int(idx[2]))
+        vec1 = np.array([pos_1.x - pos_2.x, pos_1.y - pos_2.y, pos_1.z - pos_2.z])
+        vec2 = np.array([pos_1.x - pos_3.x, pos_1.y - pos_3.y, pos_1.z - pos_3.z])
+        cp = np.cross(vec1, vec2)
+    except:
+        # Just throw out a big value for the cp so check_collinear whill break immediatly
+        cp = 100
     return(cp)
 
 
