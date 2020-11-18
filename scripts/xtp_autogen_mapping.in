@@ -253,9 +253,12 @@ def generate_mapping(args: argparse.Namespace) -> None:
 
     if args.optimize:
         segment_name = Path(args.pdbfile).stem
-        # Optimze the molecule with a UFF
+        # Optimize the molecule with a UFF
         AllChem.EmbedMolecule(mol)
-        AllChem.UFFOptimizeMolecule(mol)
+        has_converged = AllChem.UFFOptimizeMolecule(mol, maxIters=1000)
+        # The molecule didn't converge. Using the original geometry
+        if has_converged == 1:
+            mol = Chem.MolFromPDBFile(args.pdbfile, removeHs=False)
         meta = JobMetadata(
             name=segment_name, path_orca=args.orca, functional=args.functional,
             basis=args.basis, RI=args.nori)
