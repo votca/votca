@@ -15,9 +15,6 @@
 # limitations under the License.
 #
 
-from pathlib import Path
-from typing import Any, Dict, NamedTuple, List
-
 import argparse
 import importlib
 import multiprocessing
@@ -25,6 +22,9 @@ import os
 import shutil
 import subprocess
 import xml.etree.ElementTree as ET
+from collections import defaultdict
+from pathlib import Path
+from typing import Any, Dict, List, NamedTuple
 from xml.dom import minidom
 
 import numpy as np
@@ -39,7 +39,6 @@ except ModuleNotFoundError:
     raise exc
 from rdkit import Chem
 from rdkit.Chem import AllChem
-
 
 VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
 
@@ -180,6 +179,8 @@ def process_charges_and_polarization(root: str) -> None:
     with open("molpol.xml", "w") as f:
         f.write(molpol_xml_str)
     # run molpol
+    logfile_name = f"{root}_molpol.log"
+    errfile_name = f"{root}_molpol.err"
     molpol_command = f"xtp_tools -e molpol -o molpol.xml -n {root} > {logfile_name} 2> {errfile_name}"
     os.system(molpol_command)
     # copy oprimized MPS_FILE
@@ -245,6 +246,7 @@ def optimize_geometry_in_state(
 
 def generate_mapping(args: argparse.Namespace) -> None:
     """Generate the mapping files."""
+
     # Read  the molecule
     mol = Chem.MolFromPDBFile(args.pdbfile, removeHs=False)
     seg_name = Path(args.pdbfile).stem
@@ -257,7 +259,16 @@ def generate_mapping(args: argparse.Namespace) -> None:
         meta = JobMetadata(name=segment_name, path_orca=args.orca)
         energies = optimize_geometry_in_state(mol, args.states, meta)
     else:
-        energies = {}
+        # The default energy for any key is 0
+        energies = defaultdict(lambda: 0.0)
+        msg = """WARNING **The user didn't request an optimization**, therefore:
+1.  `qmcoords` and `multipoles` tags are going to be added to the mapping file but
+    the *xyz and *mps files, and the QC_FILES and MP_FILES directories
+    are not automatically generated, you must add them yourself.
+2.  Excitation and reorganization energies are all set to 0. You need to change
+    those values.
+"""
+        print(msg)
 
     # determine the rotatable bonds
     rotable_bond = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]')
