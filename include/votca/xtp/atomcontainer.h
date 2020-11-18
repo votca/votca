@@ -26,7 +26,6 @@
 #include <typeinfo>
 
 // VOTCA includes
-#include "qmatom.h"
 #include <votca/tools/elements.h>
 
 // Local VOTCA includes
