@@ -70,16 +70,6 @@ class AtomContainer {
     calcPos();
   }
 
-  void AddContainer(const AtomContainer<QMAtom>& container) {
-    Index offset = _atomlist.size();
-    _type += "_" + container._type;
-    for (const auto& at : container._atomlist) {
-      QMAtom atom(at.getId() + offset, at.getElement(), at.getPos());
-      _atomlist.push_back(atom);
-    }
-    calcPos();
-  }
-
   const T& at(Index index) const { return _atomlist.at(index); }
   T& at(Index index) { return _atomlist.at(index); }
 
