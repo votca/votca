@@ -50,9 +50,9 @@ class JobMetadata(NamedTuple):
     """Create a namedtuple with the data to call Orca."""
     name: str
     path_orca: str
-    functional: str = "PBE"
-    basis: str = 'def2-tzvp'
-    RI: bool = True
+    functional: str
+    basis: str
+    RI: bool
 
 
 def search_cores() -> int:
@@ -256,7 +256,9 @@ def generate_mapping(args: argparse.Namespace) -> None:
         # Optimze the molecule with a UFF
         AllChem.EmbedMolecule(mol)
         AllChem.UFFOptimizeMolecule(mol)
-        meta = JobMetadata(name=segment_name, path_orca=args.orca)
+        meta = JobMetadata(
+            name=segment_name, path_orca=args.orca, functional=args.functional,
+            basis=args.basis, RI=args.nori)
         energies = optimize_geometry_in_state(mol, args.states, meta)
     else:
         # The default energy for any key is 0
@@ -485,7 +487,12 @@ def main():
                         help="which states to optimize", choices=["n", "e", "h"])
     parser.add_argument("-orca", "--orca", default="/opt/orca-4.2.1/orca",
                         help="full path to orca executable")
-
+    parser.add_argument("-f", "--functional", default="PBE",
+                        help="DFT functional")
+    parser.add_argument(
+        "-b", "--basis", default="def2-tzvp", help="basis set")
+    parser.add_argument("--nori", action="store_false",
+                        help="Do not to use the Resolution of Identity approximation")
     args = parser.parse_args()
 
     generate_mapping(args)
