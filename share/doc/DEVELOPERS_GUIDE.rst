@@ -90,7 +90,7 @@ an effort to really enforce it and follow best practices.
    Practices2 <https://google.github.io/styleguide/cppguide.html>`__
 
 CPP Coding Rules
---------
+----------------
 
 
 Here are a few general rules that should be followed:
