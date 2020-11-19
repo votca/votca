@@ -69,13 +69,6 @@ class AtomContainer {
     calcPos();
   }
 
-  void AddContainer(const AtomContainer<T>& container) {
-    _type += "_" + container._type;
-    _atomlist.insert(_atomlist.end(), container._atomlist.begin(),
-                     container._atomlist.end());
-    calcPos();
-  }
-
   const T& at(Index index) const { return _atomlist.at(index); }
   T& at(Index index) { return _atomlist.at(index); }
 
