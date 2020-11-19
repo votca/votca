@@ -461,7 +461,7 @@ def check_collinear(fragment: Chem.rdchem.Mol) -> int:
         idx = random_selection(fragment)
         cp_norm = angle_fragment(idx, fragment)
         print("Angle local frame:",cp_norm)
-        if cp_norm > 0.5 and cp_norm < 2 :
+        if cp_norm > 0.6 :
             break
     return idx
 
