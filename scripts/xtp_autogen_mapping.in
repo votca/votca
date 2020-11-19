@@ -438,8 +438,7 @@ def random_selection(fragment) -> np.ndarray:
     idx = np.random.choice(rest_list, size=size_sample, replace=False)
     return idx
 
-
-def cross_product_fragment(idx: np.ndarray, fragment: Chem.rdchem.Mol) -> float:
+def angle_fragment(idx: np.ndarray, fragment: Chem.rdchem.Mol) -> float:
     try:
         conformer = fragment.GetConformer()
         pos_1, pos_2, pos_3 = [
@@ -448,10 +447,11 @@ def cross_product_fragment(idx: np.ndarray, fragment: Chem.rdchem.Mol) -> float:
                          pos_2.y, pos_1.z - pos_2.z])
         vec2 = np.array([pos_1.x - pos_3.x, pos_1.y -
                          pos_3.y, pos_1.z - pos_3.z])
-        cp = np.cross(vec1, vec2)
+        # Sin(theta) with theta angle between vec1 and vec2
+        cp = np.linalg.norm(np.cross(vec1, vec2))/(np.linalg.norm(vec1)*np.linalg.norm(vec2))
     except:
         # Just throw out a big value for the cp so check_collinear whill break immediatly
-        cp = 100
+        cp = 1
     return cp
 
 
@@ -459,8 +459,9 @@ def check_collinear(fragment: Chem.rdchem.Mol) -> int:
     """Check if three random selected points are collinear."""
     while True:
         idx = random_selection(fragment)
-        cp_norm = np.linalg.norm(cross_product_fragment(idx, fragment))
-        if cp_norm > 1e-3:
+        cp_norm = angle_fragment(idx, fragment)
+        print("Angle local frame:",cp_norm)
+        if cp_norm > 0.5 and cp_norm < 2 :
             break
     return idx
 
