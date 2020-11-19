@@ -55,6 +55,7 @@ BOOST_AUTO_TEST_CASE(polar_test) {
   polar_ref << 11.40196, -0.00423, 0.00097, -0.00423, 11.42894, 0.01163,
       0.00097, 0.01163, 11.41930;
   bool polar_check = polar_ref.isApprox(polar_mat, 1e-5);
+  BOOST_CHECK_EQUAL(polar_check, true);
   if (!polar_check) {
     std::cout << "res" << std::endl;
     std::cout << polar_mat << std::endl;

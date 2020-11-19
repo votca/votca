@@ -77,6 +77,9 @@ Version 2021-dev
 -  fix build on Ubuntu 16.04 (#577)
 -  use unique_ptr in factory (#581)
 -  fix QMMM with QP (#590, #591)
+-  fix bug in setCenter of AODipole (#593)
+-  extra check in orca unit test (#594)
+-  fixed atomid numbering while adding containers (#599)
 
 Version 1.6.3 (released XX.08.20)
 =================================
@@ -85,6 +88,7 @@ Version 1.6.3 (released XX.08.20)
 -  fixing Gaussian guess read keyword (#562, #563)
 -  improved kmc output (#575)
 -  use master .clang-format in format action (#582, #584)
+-  strip windows line endings in readers (#596)
 
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
