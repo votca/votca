@@ -80,6 +80,7 @@ Version 2021-dev
 -  fix bug in setCenter of AODipole (#593)
 -  extra check in orca unit test (#594)
 -  fixed atomid numbering while adding containers (#599)
+-  added tool for automatic mapping file generation (#595)
 
 Version 1.6.3 (released XX.08.20)
 =================================
