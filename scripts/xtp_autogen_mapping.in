@@ -250,6 +250,8 @@ def generate_mapping(args: argparse.Namespace) -> None:
     # Read  the molecule
     mol = Chem.MolFromPDBFile(args.pdbfile, removeHs=False)
     seg_name = Path(args.pdbfile).stem
+    if args.mdname == "":
+        args.mdname = Chem.rdMolDescriptors.CalcMolFormula(mol)
 
     if args.optimize:
         segment_name = Path(args.pdbfile).stem
@@ -283,19 +285,19 @@ def generate_mapping(args: argparse.Namespace) -> None:
         new_mol = Chem.FragmentOnBonds(mol1, bonds)
         fragments = Chem.GetMolFrags(new_mol, asMols=True)
 
-    generate_xml_tree(mol, args.states, fragments, seg_name, energies)
+    generate_xml_tree(mol, args.states, fragments, seg_name, energies,args.mdname)
 
 
 def generate_xml_tree(
         mol: Chem.rdchem.Mol, states: List[str], fragments: List[Any],
-        seg_name: str, energies: Dict[str, float]) -> None:
+        seg_name: str, energies: Dict[str, float], mdname: str) -> None:
     topology = ET.Element('topology')
     molecules = ET.SubElement(topology, 'molecules')
     molecule = ET.SubElement(molecules, 'molecule')
     name = ET.SubElement(molecule, 'name')
     name.text = seg_name
     mdname = ET.SubElement(molecule, 'mdname')
-    mdname.text = seg_name
+    mdname.text = mdname
     segments = ET.SubElement(molecule, 'segments')
     segment = ET.SubElement(segments, 'segment')
     segment_name = ET.SubElement(segment, 'name')
@@ -491,6 +493,8 @@ def main():
         "-b", "--basis", default="def2-tzvp", help="basis set")
     parser.add_argument("--nori", action="store_false",
                         help="Do not to use the Resolution of Identity approximation")
+    parser.add_argument("-m", "--mdname", 
+                        help="Name of the molecule in the MD topology")
     args = parser.parse_args()
 
     generate_mapping(args)
