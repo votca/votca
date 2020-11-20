@@ -79,6 +79,7 @@ Version 2021-dev
 -  fix QMMM with QP (#590, #591)
 -  fix bug in setCenter of AODipole (#593)
 -  extra check in orca unit test (#594)
+-  fixed atomid numbering while adding containers (#599)
 
 Version 1.6.3 (released XX.08.20)
 =================================
