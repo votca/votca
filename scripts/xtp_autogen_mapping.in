@@ -88,7 +88,7 @@ def write_input(
     chelpg = "! CHELPG" if optimize else ""
 
     # Polar calculation
-    polar = "% elprop\npolar 1\nend\n" if optimize else ""
+    polar = "% elprop\npolar 1\nSolver CG\nend\n" if optimize else ""
 
     # Input file
     inp = f"""{crg_spin_coord}
