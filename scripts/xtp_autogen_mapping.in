@@ -252,7 +252,13 @@ def generate_mapping(args: argparse.Namespace) -> None:
     seg_name = Path(args.pdbfile).stem
     if args.mdname == "":
         args.mdname = Chem.rdMolDescriptors.CalcMolFormula(mol)
+        msg = """No *mdname* (-m, --mdname) has been specified, setting it to the molecular
+formula. If you used GROMACS, replace the entry in the generated mapping.xml with the name in
+topol.top (or similar).
 
+"""
+        print(msg)
+        
     if args.optimize:
         segment_name = Path(args.pdbfile).stem
         meta = JobMetadata(
@@ -290,14 +296,14 @@ def generate_mapping(args: argparse.Namespace) -> None:
 
 def generate_xml_tree(
         mol: Chem.rdchem.Mol, states: List[str], fragments: List[Any],
-        seg_name: str, energies: Dict[str, float], mdname: str) -> None:
+        seg_name: str, energies: Dict[str, float], md_name: str) -> None:
     topology = ET.Element('topology')
     molecules = ET.SubElement(topology, 'molecules')
     molecule = ET.SubElement(molecules, 'molecule')
     name = ET.SubElement(molecule, 'name')
     name.text = seg_name
     mdname = ET.SubElement(molecule, 'mdname')
-    mdname.text = mdname
+    mdname.text = md_name
     segments = ET.SubElement(molecule, 'segments')
     segment = ET.SubElement(segments, 'segment')
     segment_name = ET.SubElement(segment, 'name')
@@ -462,7 +468,6 @@ def check_collinear(fragment: Chem.rdchem.Mol) -> int:
     while True:
         idx = random_selection(fragment)
         cp_norm = angle_fragment(idx, fragment)
-        print("Angle local frame:",cp_norm)
         if cp_norm > 0.6 :
             break
     return idx
@@ -493,7 +498,7 @@ def main():
         "-b", "--basis", default="def2-tzvp", help="basis set")
     parser.add_argument("--nori", action="store_false",
                         help="Do not to use the Resolution of Identity approximation")
-    parser.add_argument("-m", "--mdname", 
+    parser.add_argument("-m", "--mdname", default="", 
                         help="Name of the molecule in the MD topology")
     args = parser.parse_args()
 
