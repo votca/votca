@@ -97,7 +97,7 @@ def write_input(
 nprocs {ncores}
 end
 
-! DFT {opt} {meta.functional} {meta.basis} {ri_string}
+! DFT {opt} {meta.functional} {meta.basis} {ri_string} SlowConv
 ! D3BJ
 {chelpg}
 
