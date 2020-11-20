@@ -250,7 +250,7 @@ def generate_mapping(args: argparse.Namespace) -> None:
     # Read  the molecule
     mol = Chem.MolFromPDBFile(args.pdbfile, removeHs=False)
     seg_name = Path(args.pdbfile).stem
-    if args.mdname == "":
+    if not args.mdname:
         args.mdname = Chem.rdMolDescriptors.CalcMolFormula(mol)
         msg = """No *mdname* (-m, --mdname) has been specified, setting it to the molecular
 formula. If you used GROMACS, replace the entry in the generated mapping.xml with the name in
@@ -258,7 +258,7 @@ topol.top (or similar).
 
 """
         print(msg)
-        
+
     if args.optimize:
         segment_name = Path(args.pdbfile).stem
         meta = JobMetadata(
@@ -291,7 +291,8 @@ topol.top (or similar).
         new_mol = Chem.FragmentOnBonds(mol1, bonds)
         fragments = Chem.GetMolFrags(new_mol, asMols=True)
 
-    generate_xml_tree(mol, args.states, fragments, seg_name, energies,args.mdname)
+    generate_xml_tree(mol, args.states, fragments,
+                      seg_name, energies, args.mdname)
 
 
 def generate_xml_tree(
@@ -446,6 +447,7 @@ def random_selection(fragment) -> np.ndarray:
     idx = np.random.choice(rest_list, size=size_sample, replace=False)
     return idx
 
+
 def angle_fragment(idx: np.ndarray, fragment: Chem.rdchem.Mol) -> float:
     try:
         conformer = fragment.GetConformer()
@@ -456,8 +458,9 @@ def angle_fragment(idx: np.ndarray, fragment: Chem.rdchem.Mol) -> float:
         vec2 = np.array([pos_1.x - pos_3.x, pos_1.y -
                          pos_3.y, pos_1.z - pos_3.z])
         # Sin(theta) with theta angle between vec1 and vec2
-        cp = np.linalg.norm(np.cross(vec1, vec2))/(np.linalg.norm(vec1)*np.linalg.norm(vec2))
-    except:
+        cp = np.linalg.norm(np.cross(vec1, vec2)) / \
+            (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+    except ZeroDivisionError:
         # Just throw out a big value for the cp so check_collinear whill break immediatly
         cp = 1
     return cp
@@ -468,7 +471,7 @@ def check_collinear(fragment: Chem.rdchem.Mol) -> int:
     while True:
         idx = random_selection(fragment)
         cp_norm = angle_fragment(idx, fragment)
-        if cp_norm > 0.6 :
+        if cp_norm > 0.6:
             break
     return idx
 
@@ -498,7 +501,7 @@ def main():
         "-b", "--basis", default="def2-tzvp", help="basis set")
     parser.add_argument("--nori", action="store_false",
                         help="Do not to use the Resolution of Identity approximation")
-    parser.add_argument("-m", "--mdname", default="", 
+    parser.add_argument("-m", "--mdname", default="",
                         help="Name of the molecule in the MD topology")
     args = parser.parse_args()
 
