@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_SUITE(CudaMatrix_test)
 
 BOOST_AUTO_TEST_CASE(create_cudamatrix) {
   // Call the class to handle GPU resources
-  CudaPipeline cp;
+  CudaPipeline cp(0);
 
   // Call matrix multiplication GPU
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2, 2);

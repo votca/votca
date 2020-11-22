@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_SUITE(CudaPipeline_test)
 
 BOOST_AUTO_TEST_CASE(matmul) {
   // Call the class to handle GPU resources
-  CudaPipeline cuda_pip;
+  CudaPipeline cuda_pip(0);
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Random(6, 10);
   Eigen::MatrixXd B = Eigen::MatrixXd::Random(10, 6);
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(matmul) {
 
 BOOST_AUTO_TEST_CASE(matmul_add) {
   // Call the class to handle GPU resources
-  CudaPipeline cuda_pip;
+  CudaPipeline cuda_pip(0);
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Random(6, 10);
   Eigen::MatrixXd B = Eigen::MatrixXd::Random(10, 6);
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(matmul_add) {
 
 BOOST_AUTO_TEST_CASE(matmul_ABt) {
   // Call the class to handle GPU resources
-  CudaPipeline cuda_pip;
+  CudaPipeline cuda_pip(0);
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Random(6, 10);
   Eigen::MatrixXd B = Eigen::MatrixXd::Random(6, 10);
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(matmul_ABt) {
 
 BOOST_AUTO_TEST_CASE(matmul_AtB) {
   // Call the class to handle GPU resources
-  CudaPipeline cuda_pip;
+  CudaPipeline cuda_pip(0);
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Random(10, 6);
   Eigen::MatrixXd B = Eigen::MatrixXd::Random(10, 6);
@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(matmul_AtB) {
 
 BOOST_AUTO_TEST_CASE(matmul_AtBt) {
   // Call the class to handle GPU resources
-  CudaPipeline cuda_pip;
+  CudaPipeline cuda_pip(0);
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Random(10, 6);
   Eigen::MatrixXd B = Eigen::MatrixXd::Random(6, 10);
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(matmul_AtBt) {
 
 BOOST_AUTO_TEST_CASE(diag_matrix_mul) {
   // Call the class to handle GPU resources
-  CudaPipeline cuda_pip;
+  CudaPipeline cuda_pip(0);
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Random(10, 6);
   Eigen::VectorXd b = Eigen::VectorXd::Random(10);

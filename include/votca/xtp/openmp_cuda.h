@@ -34,7 +34,6 @@
  * b) write the normal OPENMP for-loop but use the multiplyright on the
  * individual matrix
  *
- *
  */
 
 namespace votca {
@@ -42,6 +41,7 @@ namespace xtp {
 
 class OpenMP_CUDA {
  public:
+  OpenMP_CUDA();
   static bool UsingGPU() {
 #ifdef USE_CUDA
     return true;
@@ -68,14 +68,19 @@ class OpenMP_CUDA {
   std::vector<Eigen::MatrixXd> reduction_;
 
 #ifdef USE_CUDA
-  CudaPipeline cuda_pip_;
-  bool gpu_available_ = count_available_gpus() > 0;
-  std::unique_ptr<CudaMatrix> A = nullptr;
-  std::unique_ptr<CudaMatrix> B = nullptr;
-  std::unique_ptr<CudaMatrix> C = nullptr;
-  std::unique_ptr<CudaMatrix> D = nullptr;
-  std::unique_ptr<CudaMatrix> E = nullptr;
 
+  Index no_gpus_ = 0;
+  std::vector<CudaPipeline> cuda_pips_;
+
+  struct temporaries {
+    std::unique_ptr<CudaMatrix> A = nullptr;
+    std::unique_ptr<CudaMatrix> B = nullptr;
+    std::unique_ptr<CudaMatrix> C = nullptr;
+    std::unique_ptr<CudaMatrix> D = nullptr;
+    std::unique_ptr<CudaMatrix> E = nullptr;
+  };
+
+  std::vector<temporaries> temp_;
 #endif
 };
 
