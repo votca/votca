@@ -94,7 +94,7 @@ class AODipole : public AOMatrix {
 
   void setCenter(const Eigen::Vector3d& r) {
     for (Index i = 0; i < 3; i++) {
-      _r[0] = r[0];
+      _r[i] = r[i];
     }
   }  // definition of a center around which the moment should be calculated
 
