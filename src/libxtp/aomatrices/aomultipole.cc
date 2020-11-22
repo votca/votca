@@ -2073,11 +2073,7 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         }
       }
 
-      Eigen::MatrixXd multipole_sph =
-          AOTransform::getTrafo(gaussian_row).transpose() *
-          multipole.bottomRightCorner(shell_row.getCartesianNumFunc(),
-                                      shell_col.getCartesianNumFunc()) *
-          AOTransform::getTrafo(gaussian_col);
+      Eigen::MatrixXd multipole_sph; 
       // save to matrix
 
       matrix += multipole_sph;

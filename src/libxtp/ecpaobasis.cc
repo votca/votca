@@ -28,18 +28,28 @@
 namespace votca {
 namespace xtp {
 
-ECPAOShell& ECPAOBasis::addShell(const ECPShell& shell, const QMAtom& atom,
-                                 Index startIndex, L Lmax) {
-  _aoshells.push_back(ECPAOShell(shell, atom, startIndex, Lmax));
+libecpint::ECP& ECPAOBasis::addShell(const ECPShell& shell,
+                                     const QMAtom& atom) {
+  libecpint::ECP newU(atom.getPos().data());
+  newU.atom_id = int(atom.getId());
+
+  for (const auto& ecpgaussian : shell) {
+    newU.addPrimitive(int(ecpgaussian._power), int(shell.getL()), ecpgaussian._decay,
+                      ecpgaussian._contraction);
+  }
+  std::cout<<"shell"<<shell<<std::endl;
+  std::cout<<"hi"<<newU<<std::endl;
+  _aoshells.push_back(newU);
+  std::cout<<"hi2"<<_aoshells.back()<<std::endl;
   return _aoshells.back();
 }
 
-std::vector<std::vector<const ECPAOShell*> > ECPAOBasis::ShellsPerAtom() const {
-  std::vector<std::vector<const ECPAOShell*> > result(_ncore_perAtom.size());
-  for (const ECPAOShell& shell : _aoshells) {
-    result[shell.getAtomIndex()].push_back(&shell);
+Index ECPAOBasis::getMaxL() const {
+  int maxL = 0;
+  for (const auto& shell : _aoshells) {
+    maxL=std::max(shell.L,maxL);
   }
-  return result;
+  return Index(maxL);
 }
 
 void ECPAOBasis::AddECPChargeToMolecule(QMMolecule& mol) const {
@@ -56,17 +66,17 @@ void ECPAOBasis::clear() {
 }
 
 void ECPAOBasis::UpdateShellPositions(const QMMolecule& mol) {
-  for (ECPAOShell& shell : _aoshells) {
-    shell._pos = mol[shell.getAtomIndex()].getPos();
+  for (libecpint::ECP& shell : _aoshells) {
+    const Eigen::Vector3d pos = mol[shell.atom_id].getPos();
+    shell.center_ = {pos.x(), pos.y(), pos.z()};
   }
 }
 
 void ECPAOBasis::add(const ECPAOBasis& other) {
   Index atomindex_offset = Index(_ncore_perAtom.size());
-  for (ECPAOShell shell : other) {
-    shell._atomindex += atomindex_offset;
-    shell._startIndex = _AOBasisSize;
-    _AOBasisSize += shell.getNumFunc();
+  for (libecpint::ECP shell : other) {
+    shell.atom_id += int(atomindex_offset);
+    _AOBasisSize += NumFuncShell(static_cast<L>(shell.L));
     _aoshells.push_back(shell);
   }
 
@@ -101,14 +111,10 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
     if (element_exists) {
       const ECPElement& element = bs.getElement(name);
       _ncore_perAtom.push_back(element.getNcore());
-      L lmax = element.getLmax();
       for (const ECPShell& shell : element) {
-        ECPAOShell& aoshell = addShell(shell, atom, _AOBasisSize, lmax);
+        addShell(shell, atom);
         index++;
         _AOBasisSize += NumFuncShell(shell.getL());
-        for (const ECPGaussianPrimitive& gaussian : shell) {
-          aoshell.addGaussian(gaussian);
-        }
       }
     } else {
       _ncore_perAtom.push_back(0);
@@ -120,59 +126,71 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
 }
 
 void ECPAOBasis::WriteToCpt(CheckpointWriter& w) const {
-  w(_name, "name");
-  w(_AOBasisSize, "basissize");
+  // w(_name, "name");
+  // w(_AOBasisSize, "basissize");
 
-  w(_ncore_perAtom, "atomic ecp charges");
-  Index numofprimitives = 0;
-  for (const auto& shell : _aoshells) {
-    numofprimitives += shell.getSize();
-  }
+  // w(_ncore_perAtom, "atomic ecp charges");
+  // Index numofprimitives = 0;
+  // for (const auto& shell : _aoshells) {
+  //   numofprimitives += shell.getSize();
+  // }
 
-  // this is all to make dummy ECPAOGaussian
-  ECPGaussianPrimitive d(2, 0.1, 0.1);
-  ECPAOGaussianPrimitive dummy2(d);
+  // // this is all to make dummy ECPAOGaussian
+  // ECPGaussianPrimitive d(2, 0.1, 0.1);
+  // ECPAOGaussianPrimitive dummy2(d);
 
-  CptTable table = w.openTable("Contractions", dummy2, numofprimitives);
+  // CptTable table = w.openTable("Contractions", dummy2, numofprimitives);
 
-  std::vector<ECPAOGaussianPrimitive::data> dataVec(numofprimitives);
-  Index i = 0;
-  for (const auto& shell : _aoshells) {
-    for (const auto& gaussian : shell) {
-      gaussian.WriteData(dataVec[i], shell);
-      i++;
-    }
-  }
+  // std::vector<ECPAOGaussianPrimitive::data> dataVec(numofprimitives);
+  // Index i = 0;
+  // for (const auto& shell : _aoshells) {
+  //   for (const auto& gaussian : shell) {
+  //     gaussian.WriteData(dataVec[i], shell);
+  //     i++;
+  //   }
+  // }
 
-  table.write(dataVec);
+  // table.write(dataVec);
 }
 
 void ECPAOBasis::ReadFromCpt(CheckpointReader& r) {
-  clear();
-  r(_name, "name");
-  r(_AOBasisSize, "basissize");
+  // clear();
+  // r(_name, "name");
+  // r(_AOBasisSize, "basissize");
 
-  if (_AOBasisSize > 0) {
-    r(_ncore_perAtom, "atomic ecp charges");
-    // this is all to make dummy ECPAOGaussian
-    ECPGaussianPrimitive d(2, 0.1, 0.1);
-    ECPAOGaussianPrimitive dummy2(d);
+  // if (_AOBasisSize > 0) {
+  //   r(_ncore_perAtom, "atomic ecp charges");
+  //   // this is all to make dummy ECPAOGaussian
+  //   ECPGaussianPrimitive d(2, 0.1, 0.1);
+  //   ECPAOGaussianPrimitive dummy2(d);
 
-    CptTable table = r.openTable("Contractions", dummy2);
-    std::vector<ECPAOGaussianPrimitive::data> dataVec(table.numRows());
-    table.read(dataVec);
-    Index laststartindex = -1;
-    for (std::size_t i = 0; i < table.numRows(); ++i) {
-      if (dataVec[i].startindex != laststartindex) {
-        _aoshells.push_back(ECPAOShell(dataVec[i]));
-        laststartindex = dataVec[i].startindex;
-      } else {
-        _aoshells.back()._gaussians.push_back(
-            ECPAOGaussianPrimitive(dataVec[i]));
-      }
-    }
-  }
+  //   CptTable table = r.openTable("Contractions", dummy2);
+  //   std::vector<ECPAOGaussianPrimitive::data> dataVec(table.numRows());
+  //   table.read(dataVec);
+  //   Index laststartindex = -1;
+  //   for (std::size_t i = 0; i < table.numRows(); ++i) {
+  //     if (dataVec[i].startindex != laststartindex) {
+  //       _aoshells.push_back(ECPAOShell(dataVec[i]));
+  //       laststartindex = dataVec[i].startindex;
+  //     } else {
+  //       _aoshells.back()._gaussians.push_back(
+  //           ECPAOGaussianPrimitive(dataVec[i]));
+  //     }
+  //   }
+  // }
 }
+
+std::ostream& operator<<(std::ostream& out, const libecpint::ECP& shell) {
+  out << " Shelltype:" << xtp::EnumToString(static_cast<L>(shell.L))
+      << " L:" << Index(shell.L) << " Func:" << shell.N << "\n";
+  for (const auto& gaussian : shell.gaussians) {
+    out << " Gaussian Decay: " << gaussian.a;
+    out << " Power: " << gaussian.n;
+    out << " Contractions: " << gaussian.d << "\n";
+  }
+  return out;
+}
+
 
 std::ostream& operator<<(std::ostream& out, const ECPAOBasis& ecp) {
 
@@ -185,10 +203,10 @@ std::ostream& operator<<(std::ostream& out, const ECPAOBasis& ecp) {
   out << "\n"
       << " Atomcharges:";
   for (Index i = 0; i < Index(ecp._ncore_perAtom.size()); i++) {
-    out << i << " " << ecp._ncore_perAtom[i] << " ";
+    out << i << ":" << ecp._ncore_perAtom[i] << " ";
   }
   return out;
 }
 
-}  // namespace xtp
+}  // namespace votca
 }  // namespace votca

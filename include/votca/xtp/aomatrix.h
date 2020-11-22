@@ -31,8 +31,7 @@ class AOMatrix {
  public:
   virtual void Fill(const AOBasis& aobasis) = 0;
   virtual Index Dimension() = 0;
-  using MatrixLibInt =
-      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+
 };
 
 // derived class for kinetic energy

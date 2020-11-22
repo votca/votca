@@ -684,11 +684,7 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
       }  // end if (lmax_col > 5)
 
       // cartesian -> spherical
-      Eigen::MatrixXcd olk_sph =
-          AOTransform::getTrafo(gaussian_row).transpose() *
-          olk.bottomRightCorner(shell_row.getCartesianNumFunc(),
-                                shell_col.getCartesianNumFunc()) *
-          AOTransform::getTrafo(gaussian_col);
+      Eigen::MatrixXcd olk_sph; 
 
       // save to matrix
       matrix += olk_sph;

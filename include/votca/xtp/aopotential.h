@@ -52,30 +52,15 @@ class AOPotential {
 // derived class for Effective Core Potentials
 class AOECP : public AOPotential<double> {
  public:
-  void FillPotential(const AOBasis& aobasis, const ECPAOBasis& ecp);
+  void FillPotential(const AOBasis& aobasis, ECPAOBasis ecp);
 
  protected:
-  void FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                 const AOShell& shell_row,
-                 const AOShell& shell_col) const override;
+  void FillBlock(Eigen::Block<Eigen::MatrixXd>& ,
+                 const AOShell& ,
+                 const AOShell& ) const final{};
 
  private:
-  Eigen::VectorXd ExpandContractions(const AOGaussianPrimitive& gaussian,
-                                     const AOShell& shell) const;
-  void setECP(const ECPAOBasis* ecp) { _ecp = ecp; }
-  const ECPAOBasis* _ecp;
-  Eigen::MatrixXd calcVNLmatrix(
-      Index lmax_ecp, const Eigen::Vector3d& posC,
-      const AOGaussianPrimitive& g_row, const AOGaussianPrimitive& g_col,
-      const Eigen::Matrix<int, 4, 5>& power_ecp,
-      const Eigen::Matrix<double, 4, 5>& gamma_ecp,
-      const Eigen::Matrix<double, 4, 5>& pref_ecp) const;
-
-  void getBLMCOF(Index lmax_ecp, Index lmax_dft, const Eigen::Vector3d& pos,
-                 Eigen::Tensor<double, 3>& BLC,
-                 Eigen::Tensor<double, 3>& C) const;
-  Eigen::VectorXd CalcNorms(double decay, Index size) const;
-  Eigen::VectorXd CalcInt_r_exp(Index nmax, double decay) const;
+ 
 };
 
 class AOMultipole : public AOPotential<double> {

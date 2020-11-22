@@ -103,6 +103,7 @@ std::ostream& operator<<(std::ostream& out, const ECPShell& shell) {
       << " Func: " << shell.getnumofFunc() << "\n";
   for (const auto& gaussian : shell._gaussians) {
     out << " Gaussian Decay: " << gaussian._decay;
+     out << " Power: " << gaussian._power;
     out << " Contraction:" << gaussian._contraction << "\n";
   }
   return out;

@@ -84,10 +84,8 @@ class AOTransform {
   static std::array<int, 120> i_more_y();
   static std::array<int, 120> i_more_z();
 
-  static Index getCartesianSize(Index l);
-  static Index getSphericalSize(Index l);
+  static Eigen::VectorXd getNorm(L l, double contraction, double decay);
   static Index getBlockSize(Index lmax);
-  static Eigen::MatrixXd getTrafo(const AOGaussianPrimitive& gaussian);
   static Eigen::VectorXd XIntegrate(Index size, double U);
 
  private:
@@ -113,8 +111,6 @@ class AOTransform {
   };
   // clang-format on
 
-  static Eigen::MatrixXd getPrimitiveShellTrafo(L l, double decay,
-                                                double contraction);
 };
 
 }  // namespace xtp

@@ -44,29 +44,7 @@ BOOST_AUTO_TEST_CASE(transform_test) {
   AOBasis basis;
   basis.Fill(bs, mol);
 
-  std::array<Eigen::MatrixXd, 5> ref;
-
-  for (unsigned i = 0; i < ref.size(); i++) {
-    ref[i] = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-        std::string(XTP_TEST_DATA_FOLDER) + "/aotransform/ref_" +
-        std::to_string(i) + ".mm");
-  }
-
-  Index ref_index = 0;
-  for (const AOShell& shell : basis) {
-    for (const AOGaussianPrimitive& gauss : shell) {
-      Eigen::MatrixXd transform = AOTransform::getTrafo(gauss);
-      bool check_transform = ref[ref_index].isApprox(transform, 1e-5);
-      BOOST_CHECK_EQUAL(check_transform, 1);
-      if (!check_transform) {
-        std::cout << "ref " << xtp::EnumToString(shell.getL()) << std::endl;
-        std::cout << ref[ref_index] << std::endl;
-        std::cout << "result" << std::endl;
-        std::cout << transform << std::endl;
-      }
-      ref_index++;
-    }
-  }
+ 
   libint2::finalize();
 }
 
