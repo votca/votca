@@ -13,7 +13,7 @@ following keywords:
 Topology file
 -------------
 
-The topology file
+The XMLtopology file
 
 Settings file
 -------------
@@ -29,3 +29,13 @@ Scripts are used by and . The script table commonly used (compare
 
 Script calls can be overwritten by adding a line with the 3rd column
 changed to ``csg_table`` in directory.
+
+..
+    .. |image| image:: fig/propane
+       :width: 4.00000cm
+    .. |image| image:: functionality/fig/iterativemethods.eps
+       :width: 3.00000cm
+    .. |image| image:: usage/fig/propane.eps
+       :width: 6.00000cm
+    .. |image| image:: usage/fig/flow_boltzmann.eps
+       :width: 7.00000cm
