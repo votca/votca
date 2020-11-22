@@ -65,7 +65,6 @@ class OpenMP_CUDA {
   const Eigen::MatrixXd* rightoperator_ = nullptr;
   const Eigen::MatrixXd* leftoperator_ = nullptr;
 
-
   std::vector<Eigen::MatrixXd> reduction_;
 
 #ifdef USE_CUDA

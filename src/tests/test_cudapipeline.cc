@@ -69,10 +69,10 @@ BOOST_AUTO_TEST_CASE(matmul_add) {
   CudaMatrix Bg{B, cuda_pip.get_stream()};
   CudaMatrix Cg{C, cuda_pip.get_stream()};
 
-  cuda_pip.gemm(Ag, Bg, Cg,false,false,1.0);
+  cuda_pip.gemm(Ag, Bg, Cg, false, false, 1.0);
 
   Eigen::MatrixXd GPU_result = Cg;
-  Eigen::MatrixXd CPU_result = A * B+C;
+  Eigen::MatrixXd CPU_result = A * B + C;
   bool check = CPU_result.isApprox(GPU_result, 1e-9);
   BOOST_CHECK_EQUAL(check, true);
   if (!check) {
@@ -80,7 +80,6 @@ BOOST_AUTO_TEST_CASE(matmul_add) {
     std::cout << "GPU\n" << GPU_result << std::endl;
   }
 }
-
 
 BOOST_AUTO_TEST_CASE(matmul_ABt) {
   // Call the class to handle GPU resources
@@ -173,7 +172,7 @@ BOOST_AUTO_TEST_CASE(diag_matrix_mul) {
   cuda_pip.diag_gemm(Ag, bg, Cg);
 
   Eigen::MatrixXd GPU_result = Cg;
-  Eigen::MatrixXd CPU_result = b.asDiagonal()*A;
+  Eigen::MatrixXd CPU_result = b.asDiagonal() * A;
   bool check = CPU_result.isApprox(GPU_result, 1e-9);
   BOOST_CHECK_EQUAL(check, true);
   if (!check) {
@@ -181,7 +180,5 @@ BOOST_AUTO_TEST_CASE(diag_matrix_mul) {
     std::cout << "GPU\n" << GPU_result << std::endl;
   }
 }
-
-
 
 BOOST_AUTO_TEST_SUITE_END()
