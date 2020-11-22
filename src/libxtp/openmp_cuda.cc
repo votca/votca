@@ -153,7 +153,7 @@ void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
 
 Eigen::MatrixXd OpenMP_CUDA::A_TDA_result() {
 #ifdef USE_CUDA
-  reduction_[0] += *D;
+  reduction_[0] = *D;
 #endif
   for (Index i = 1; i < Index(reduction_.size()); i++) {
     reduction_[0] += reduction_[i];
