@@ -51,11 +51,10 @@ if(NOT TARGET PkgConfig::LIBINT)
   pkg_check_modules(LIBINT REQUIRED IMPORTED_TARGET libint2>=2.6)
 endif()
 find_package(ecpint REQUIRED)
-message(WARNING "${ecpint_FOUND}")
-get_target_property(OUTPUT_VALUE ecpint BUILD_INTERFACE)
-cmake_print_properties(TARGETS ecpint PROPERTIES
-                       LOCATION INTERFACE_INCLUDE_DIRECTORIES)
 set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculate pseudo potentials")
+if(NOT TARGET ECPINT::ecpint) # newer versions are namespaced.
+  add_library(ECPINT::ecpint ALIAS ecpint)
+endif()
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
