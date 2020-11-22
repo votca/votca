@@ -58,11 +58,15 @@ class OpenMP_CUDA {
   void MultiplyLeftRight(Eigen::MatrixXd& matrix);
 
   void createTemporaries(Index rows, Index cols);
-  Eigen::MatrixXd A_TDA(const Eigen::MatrixXd& matrix, const Eigen::VectorXd& vec);
+  void A_TDA(const Eigen::MatrixXd& matrix, const Eigen::VectorXd& vec);
+  Eigen::MatrixXd A_TDA_result();
 
  private:
   const Eigen::MatrixXd* rightoperator_ = nullptr;
   const Eigen::MatrixXd* leftoperator_ = nullptr;
+
+
+  std::vector<Eigen::MatrixXd> reduction_;
 
 #ifdef USE_CUDA
   CudaPipeline cuda_pip_;

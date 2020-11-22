@@ -63,11 +63,10 @@ std::string cudaGetErrorEnum(cublasStatus_t error) {
  * two matrices
  */
 void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C,
-                        bool transpose_A, bool transpose_B) const {
+                        bool transpose_A, bool transpose_B, double beta) const {
 
   // Scalar constanst for calling blas
   double alpha = 1.;
-  double beta = 0.;
   const double *palpha = &alpha;
   const double *pbeta = &beta;
   cublasOperation_t transA = CUBLAS_OP_N;

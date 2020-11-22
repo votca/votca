@@ -57,7 +57,7 @@ class CudaPipeline {
 
   // Invoke the ?gemm function of cublas
   void gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C,
-            bool transpose_A = false, bool transpose_B = false) const;
+            bool transpose_A = false, bool transpose_B = false,double beta=0.0) const;
 
   // Invoke the multiplication with a diagonal matrix of cublas, diagonal matrix
   // B must have 1 column

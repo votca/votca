@@ -94,8 +94,6 @@ void OpenMP_CUDA::setOperators(const Eigen::MatrixXd& leftoperator,
 #endif
 }
 
-
-
 void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
 #ifdef USE_CUDA
   if (OPENMP::getThreadId() == 0) {
@@ -112,37 +110,46 @@ void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
   return;
 }
 
+void OpenMP_CUDA::createTemporaries(Index rows, Index cols) {
+  reduction_ = std::vector<Eigen::MatrixXd>(OPENMP::getMaxThreads(),
+                                            Eigen::MatrixXd::Zero(cols, cols));
 #ifdef USE_CUDA
-void OpenMP_CUDA::createTemporaries(Index rows, Index cols){
- if (gpu_available_) {
+  if (gpu_available_) {
     const cudaStream_t& stream = cuda_pip_.get_stream();
-    A = std::make_unique<CudaMatrix>(cols, 1,stream);
-    B = std::make_unique<CudaMatrix>(rows, cols,stream);
-    C = std::make_unique<CudaMatrix>(rows, cols,stream);
-    D = std::make_unique<CudaMatrix>(cols,cols, stream);
- }
-}
-#else
-void OpenMP_CUDA::createTemporaries(Index , Index ){;}
+    A = std::make_unique<CudaMatrix>(rows, 1, stream);
+    B = std::make_unique<CudaMatrix>(rows, cols, stream);
+    C = std::make_unique<CudaMatrix>(rows, cols, stream);
+    D = std::make_unique<CudaMatrix>(reduction_[0], stream);
+  }
 #endif
+}
 
-
-Eigen::MatrixXd OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix, const Eigen::VectorXd& vec){
-Eigen::MatrixXd result;
+void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
+                        const Eigen::VectorXd& vec) {
 #ifdef USE_CUDA
   if (OPENMP::getThreadId() == 0) {
     A->copy_to_gpu(vec);
     B->copy_to_gpu(matrix);
-    cuda_pip_.diag_gemm(*B,*A,*C);
-    cuda_pip_.gemm(*B, *C, *D,true,false);
-    result=*D;
+    cuda_pip_.diag_gemm(*B, *A, *C);
+    cuda_pip_.gemm(*B, *C, *D, true, false, 1.0);
   } else {
-    result = matrix.transpose() * vec.asDiagonal() * matrix;
+    reduction_[OPENMP::getThreadId()] +=
+        matrix.transpose() * vec.asDiagonal() * matrix;
   }
 #else
-  result = matrix.transpose() * vec.asDiagonal() * matrix;
+  reduction_[OPENMP::getThreadId()] +=
+      matrix.transpose() * vec.asDiagonal() * matrix;
 #endif
-  return result;
+}
+
+Eigen::MatrixXd OpenMP_CUDA::A_TDA_result() {
+#ifdef USE_CUDA
+  reduction_[0] += *D;
+#endif
+  for (Index i = 1; i < Index(reduction_.size()); i++) {
+    reduction_[0] += reduction_[i];
+  }
+  return reduction_[0];
 }
 
 }  // namespace xtp
