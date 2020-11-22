@@ -109,11 +109,11 @@ void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
 #endif
   return;
 }
-
+#ifdef USE_CUDA
 void OpenMP_CUDA::createTemporaries(Index rows, Index cols) {
   reduction_ = std::vector<Eigen::MatrixXd>(OPENMP::getMaxThreads(),
                                             Eigen::MatrixXd::Zero(cols, cols));
-#ifdef USE_CUDA
+
   if (gpu_available_) {
     const cudaStream_t& stream = cuda_pip_.get_stream();
     A = std::make_unique<CudaMatrix>(rows, 1, stream);
@@ -121,8 +121,17 @@ void OpenMP_CUDA::createTemporaries(Index rows, Index cols) {
     C = std::make_unique<CudaMatrix>(rows, cols, stream);
     D = std::make_unique<CudaMatrix>(reduction_[0], stream);
   }
-#endif
+
 }
+#else
+void OpenMP_CUDA::createTemporaries(Index, Index cols) {
+  reduction_ = std::vector<Eigen::MatrixXd>(OPENMP::getMaxThreads(),
+                                            Eigen::MatrixXd::Zero(cols, cols));
+}
+
+#endif
+
+
 
 void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
                         const Eigen::VectorXd& vec) {
