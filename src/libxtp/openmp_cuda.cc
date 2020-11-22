@@ -94,6 +94,8 @@ void OpenMP_CUDA::setOperators(const Eigen::MatrixXd& leftoperator,
 #endif
 }
 
+
+
 void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
 #ifdef USE_CUDA
   if (OPENMP::getThreadId() == 0) {
@@ -108,6 +110,39 @@ void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
   matrix = (*leftoperator_) * matrix * (*rightoperator_);
 #endif
   return;
+}
+
+#ifdef USE_CUDA
+void OpenMP_CUDA::createTemporaries(Index rows, Index cols){
+ if (gpu_available_) {
+    const cudaStream_t& stream = cuda_pip_.get_stream();
+    A = std::make_unique<CudaMatrix>(cols, 1,stream);
+    B = std::make_unique<CudaMatrix>(rows, cols,stream);
+    C = std::make_unique<CudaMatrix>(rows, cols,stream);
+    D = std::make_unique<CudaMatrix>(cols,cols, stream);
+ }
+}
+#else
+void OpenMP_CUDA::createTemporaries(Index , Index ){;}
+#endif
+
+
+Eigen::MatrixXd OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix, const Eigen::VectorXd& vec){
+Eigen::MatrixXd result;
+#ifdef USE_CUDA
+  if (OPENMP::getThreadId() == 0) {
+    A->copy_to_gpu(vec);
+    B->copy_to_gpu(matrix);
+    cuda_pip_.diag_gemm(*B,*A,*C);
+    cuda_pip_.gemm(*B, *C, *D,true,false);
+    result=*D;
+  } else {
+    result = matrix.transpose() * vec.asDiagonal() * matrix;
+  }
+#else
+  result = matrix.transpose() * vec.asDiagonal() * matrix;
+#endif
+  return result;
 }
 
 }  // namespace xtp

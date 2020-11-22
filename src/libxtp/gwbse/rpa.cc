@@ -22,6 +22,7 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"
+#include "votca/xtp/openmp_cuda.h"
 
 namespace votca {
 namespace xtp {
@@ -66,6 +67,9 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
   const double freq2 = frequency * frequency;
   const double eta2 = _eta * _eta;
 
+  OpenMP_CUDA transform;
+  transform.createTemporaries(n_unocc,size);
+
 #pragma omp parallel for schedule(dynamic) reduction(+ : result)
   for (Index m_level = 0; m_level < n_occ; m_level++) {
     const double qp_energy_m = _energies(m_level);
@@ -83,7 +87,7 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
       sum += deltEf / (deltEf.square() + eta2);
       denom = 2 * sum;
     }
-    result += Mmn_RPA.transpose() * denom.asDiagonal() * Mmn_RPA;
+    result +=transform.A_TDA(Mmn_RPA,denom);
   }
 
   return result;
@@ -101,6 +105,9 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
   const Index n_occ = lumo - _rpamin;
   const Index n_unocc = _rpamax - lumo + 1;
 
+  OpenMP_CUDA transform;
+  transform.createTemporaries(n_unocc,size);
+
 #pragma omp parallel for schedule(dynamic) reduction(+ : result)
   for (Index m_level = 0; m_level < n_occ; m_level++) {
     const double qp_energy_m = _energies(m_level);
@@ -116,7 +123,7 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
     Eigen::VectorXd chi =
         deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
         deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
-    result += -2 * Mmn_RPA.transpose() * chi.asDiagonal() * Mmn_RPA;
+    result -= 2 * transform.A_TDA(Mmn_RPA,chi);
   }
 
   return result;

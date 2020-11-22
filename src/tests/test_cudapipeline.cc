@@ -31,56 +31,131 @@ using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(CudaPipeline_test)
 
-BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
+BOOST_AUTO_TEST_CASE(matmul) {
   // Call the class to handle GPU resources
   CudaPipeline cuda_pip;
 
-  // Call matrix multiplication GPU
-  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2, 2);
-  Eigen::MatrixXd B = Eigen::MatrixXd::Zero(3, 2);
-  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(3, 2);
-  Eigen::MatrixXd D = Eigen::MatrixXd::Zero(3, 2);
-  Eigen::MatrixXd X = Eigen::MatrixXd::Zero(3, 2);
-  Eigen::MatrixXd Y = Eigen::MatrixXd::Zero(3, 2);
-  Eigen::MatrixXd Z = Eigen::MatrixXd::Zero(3, 2);
+  Eigen::MatrixXd A = Eigen::MatrixXd::Random(6, 10);
+  Eigen::MatrixXd B = Eigen::MatrixXd::Random(10, 6);
 
-  // Define matrices
-  A << 1., 2., 3., 4.;
-  B << 5., 6., 7., 8., 9., 10.;
-  C << 9., 10., 11., 12., 13., 14.;
-  D << 13., 14., 15., 16., 17., 18.;
-  X << 23., 34., 31., 46., 39., 58.;
-  Y << 39., 58., 47., 70., 55., 82.;
-  Z << 55., 82., 63., 94., 71., 106.;
+  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(6, 6);
 
-  std::vector<Eigen::MatrixXd> tensor{B, C, D};
-  std::vector<Eigen::MatrixXd> results(3, Eigen::MatrixXd::Zero(3, 2));
-  CudaMatrix cuma_A{A, cuda_pip.get_stream()};
-  CudaMatrix cuma_B{3, 2, cuda_pip.get_stream()};
-  CudaMatrix cuma_C{3, 2, cuda_pip.get_stream()};
+  CudaMatrix Ag{A, cuda_pip.get_stream()};
+  CudaMatrix Bg{B, cuda_pip.get_stream()};
+  CudaMatrix Cg{C, cuda_pip.get_stream()};
 
-  for (votca::Index i = 0; i < 3; i++) {
-    cuma_B.copy_to_gpu(tensor[i]);
-    cuda_pip.gemm(cuma_B, cuma_A, cuma_C);
-    results[i] = cuma_C;
+  cuda_pip.gemm(Ag, Bg, Cg);
+
+  Eigen::MatrixXd GPU_result = Cg;
+  Eigen::MatrixXd CPU_result = A * B;
+  bool check = CPU_result.isApprox(GPU_result, 1e-9);
+  BOOST_CHECK_EQUAL(check, true);
+  if (!check) {
+    std::cout << "CPU\n" << CPU_result << std::endl;
+    std::cout << "GPU\n" << GPU_result << std::endl;
   }
-  // Expected results
-  BOOST_TEST(X.isApprox(results[0]));
-  BOOST_TEST(Y.isApprox(results[1]));
-  BOOST_TEST(Z.isApprox(results[2]));
 }
 
-BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
-  Eigen::MatrixXd A = Eigen::MatrixXd::Random(2, 2);
-  Eigen::MatrixXd B = Eigen::MatrixXd::Random(5, 5);
-
+BOOST_AUTO_TEST_CASE(matmul_ABt) {
+  // Call the class to handle GPU resources
   CudaPipeline cuda_pip;
-  CudaMatrix cuma_A{A, cuda_pip.get_stream()};
-  CudaMatrix cuma_B{B, cuda_pip.get_stream()};
-  CudaMatrix cuma_C{2, 5, cuda_pip.get_stream()};
 
-  BOOST_REQUIRE_THROW(cuda_pip.gemm(cuma_A, cuma_B, cuma_C),
-                      std::runtime_error);
+  Eigen::MatrixXd A = Eigen::MatrixXd::Random(6, 10);
+  Eigen::MatrixXd B = Eigen::MatrixXd::Random(6, 10);
+
+  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(6, 6);
+
+  CudaMatrix Ag{A, cuda_pip.get_stream()};
+  CudaMatrix Bg{B, cuda_pip.get_stream()};
+  CudaMatrix Cg{C, cuda_pip.get_stream()};
+
+  cuda_pip.gemm(Ag, Bg, Cg, false, true);
+
+  Eigen::MatrixXd GPU_result = Cg;
+  Eigen::MatrixXd CPU_result = A * B.transpose();
+  bool check = CPU_result.isApprox(GPU_result, 1e-9);
+  BOOST_CHECK_EQUAL(check, true);
+  if (!check) {
+    std::cout << "CPU\n" << CPU_result << std::endl;
+    std::cout << "GPU\n" << GPU_result << std::endl;
+  }
 }
+
+BOOST_AUTO_TEST_CASE(matmul_AtB) {
+  // Call the class to handle GPU resources
+  CudaPipeline cuda_pip;
+
+  Eigen::MatrixXd A = Eigen::MatrixXd::Random(10, 6);
+  Eigen::MatrixXd B = Eigen::MatrixXd::Random(10, 6);
+
+  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(6, 6);
+
+  CudaMatrix Ag{A, cuda_pip.get_stream()};
+  CudaMatrix Bg{B, cuda_pip.get_stream()};
+  CudaMatrix Cg{C, cuda_pip.get_stream()};
+
+  cuda_pip.gemm(Ag, Bg, Cg, true, false);
+
+  Eigen::MatrixXd GPU_result = Cg;
+  Eigen::MatrixXd CPU_result = A.transpose() * B;
+  bool check = CPU_result.isApprox(GPU_result, 1e-9);
+  BOOST_CHECK_EQUAL(check, true);
+  if (!check) {
+    std::cout << "CPU\n" << CPU_result << std::endl;
+    std::cout << "GPU\n" << GPU_result << std::endl;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(matmul_AtBt) {
+  // Call the class to handle GPU resources
+  CudaPipeline cuda_pip;
+
+  Eigen::MatrixXd A = Eigen::MatrixXd::Random(10, 6);
+  Eigen::MatrixXd B = Eigen::MatrixXd::Random(6, 10);
+
+  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(6, 6);
+
+  CudaMatrix Ag{A, cuda_pip.get_stream()};
+  CudaMatrix Bg{B, cuda_pip.get_stream()};
+  CudaMatrix Cg{C, cuda_pip.get_stream()};
+
+  cuda_pip.gemm(Ag, Bg, Cg, true, true);
+
+  Eigen::MatrixXd GPU_result = Cg;
+  Eigen::MatrixXd CPU_result = A.transpose() * B.transpose();
+  bool check = CPU_result.isApprox(GPU_result, 1e-9);
+  BOOST_CHECK_EQUAL(check, true);
+  if (!check) {
+    std::cout << "CPU\n" << CPU_result << std::endl;
+    std::cout << "GPU\n" << GPU_result << std::endl;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(diag_matrix_mul) {
+  // Call the class to handle GPU resources
+  CudaPipeline cuda_pip;
+
+  Eigen::MatrixXd A = Eigen::MatrixXd::Random(10, 6);
+  Eigen::VectorXd b = Eigen::VectorXd::Random(10);
+
+  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(10, 6);
+
+  CudaMatrix Ag{A, cuda_pip.get_stream()};
+  CudaMatrix bg{b, cuda_pip.get_stream()};
+  CudaMatrix Cg{C, cuda_pip.get_stream()};
+
+  cuda_pip.diag_gemm(Ag, bg, Cg);
+
+  Eigen::MatrixXd GPU_result = Cg;
+  Eigen::MatrixXd CPU_result = b.asDiagonal()*A;
+  bool check = CPU_result.isApprox(GPU_result, 1e-9);
+  BOOST_CHECK_EQUAL(check, true);
+  if (!check) {
+    std::cout << "CPU\n" << CPU_result << std::endl;
+    std::cout << "GPU\n" << GPU_result << std::endl;
+  }
+}
+
+
 
 BOOST_AUTO_TEST_SUITE_END()
