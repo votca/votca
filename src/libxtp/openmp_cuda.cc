@@ -121,7 +121,6 @@ void OpenMP_CUDA::createTemporaries(Index rows, Index cols) {
     C = std::make_unique<CudaMatrix>(rows, cols, stream);
     D = std::make_unique<CudaMatrix>(reduction_[0], stream);
   }
-
 }
 #else
 void OpenMP_CUDA::createTemporaries(Index, Index cols) {
@@ -130,8 +129,6 @@ void OpenMP_CUDA::createTemporaries(Index, Index cols) {
 }
 
 #endif
-
-
 
 void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
                         const Eigen::VectorXd& vec) {
