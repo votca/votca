@@ -4,8 +4,10 @@ CSG Manual
 **Disclamer:**
 This manual is not complete. The best way to start using the software is
 to look at provided tutorials. The reference section is generated
-automatically from the source code, so please make sure that your
+automatically from the source code of the master version, so please make sure that your
 software and manual versions match.
+
+The last, no longer updated version, the old pdf manual can be found `here <http://doc.votca.org/manual.pdf>`_.
 
 
 .. toctree::
@@ -20,35 +22,26 @@ software and manual versions match.
    reference
    bibliography
 
-..
-    **Citations**
 
-    | Development of this software depends on academic research grants. If
-      you are using the package, please cite the following papers
-    | [mashayakrelative]_ Relative entropy and
-      optimization-driven coarse-graining methods in VOTCA,
-    | S.Y. Mashayak, Mara Jochum, Konstantin Koschke, N.R. Aluru, Victor
-      Rühle, and Christoph Junghans,
+Citations
+---------
 
-    | [ruhle2011hybrid]_ Hybrid approaches to
-      coarse-graining using the VOTCA package: liquid hexane,
-    | Victor Rühle and Christoph Junghans,
-
-    | [Ruehle:2009.a]_ Versatile Object-oriented Toolkit
-      for Coarse-graining Applications
-    | Victor Rühle, Christoph Junghans, Alexander Lukyanov, Kurt Kremer, and
-      Denis Andrienko
+Development of this software depends on academic research grants. If
+you are using the package, please cite the following papers
+* [mashayakrelative]_ Relative entropy and optimization-driven coarse-graining methods in VOTCA
+* [ruhle2011hybrid]_ Hybrid approaches to coarse-graining using the VOTCA package: liquid hexane
+* [Ruehle:2009.a]_ Versatile Object-oriented Toolkit for Coarse-graining Applications
 
 
-    **Development**
+Development
+-----------
 
-    The core development is currently taking place at the Los Alamos
-    National Laboratory and Max Planck Institute for Polymer Research,
-    Mainz, Germany.
+The core development is currently taking place at the Los Alamos National Laboratory and Max Planck Institute for Polymer Research, Mainz, Germany.
 
 
-    **Copyright**
+Copyright
+---------
 
-    VOTCA is free software. The entire package is available under the Apache
-    License. For details, check the LICENSE file in the source code. The
-    votcasource code is available on our homepage, .
+VOTCA is free software. The entire package is available under the Apache
+License. For details, check the LICENSE file in the source code. The
+votcasource code is available on our homepage, .
