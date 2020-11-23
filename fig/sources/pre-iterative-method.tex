@@ -1,0 +1,46 @@
+\documentclass{minimal}
+\usepackage{tikz}
+\usepackage{palatino}
+\renewcommand{\familydefault}{\sfdefault}
+
+\usetikzlibrary{calc,trees,positioning,arrows,chains,shapes.geometric,%
+decorations.pathreplacing,decorations.pathmorphing,shapes,%
+matrix,shapes.symbols}
+
+\tikzset{
+>=stealth',
+punktchain/.style={ rectangle, rounded corners, draw=black, very thick, text width=10em, minimum height=3em, text centered, on chain},
+statement/.style={ circle, draw=black, text width=0em, minimum height=0em, text centered},
+line/.style={draw, thick, ->},
+merge/.style={draw, thick, -},
+element/.style={ tape, top color=white, bottom color=blue!50!black!60!, minimum width=8em, draw=blue!40!black!90, very thick, text width=10em, minimum height=3.5em, text centered, on chain},
+every join/.style={->, thick,shorten >=1pt},
+decoration={brace},
+tuborg/.style={decorate},
+tubnode/.style={midway, right=2pt, text width=6cm},
+}
+\begin{document}
+\begin{tikzpicture}
+[node distance=.5cm, start chain=going below,]
+
+\node[punktchain, join, fill=blue!20] (topol) {Prepare atomistic topology};
+\draw[tuborg, decoration={brace}] let \p1=(topol.north), \p2=(topol.south) in
+($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {};
+
+\node[punktchain, join, fill=blue!20] (map) {Define mapping scheme};
+\draw[tuborg, decoration={brace}] let \p1=(map.north), \p2=(map.south) in ($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {csg\_dump to list atoms};
+
+\node[punktchain, join, fill=blue!20] (verify) {Verify mapping scheme};
+\draw[tuborg, decoration={brace}] let \p1=(verify.north), \p2=(verify.south) in ($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {csg\_map to map\\Visualize reference + mapped in e.g. VMD};
+
+\node[punktchain, join, fill=blue!20] (excl) {Create exclusion list};
+\draw[tuborg, decoration={brace}] let \p1=(excl.north), \p2=(excl.south) in ($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {csg\_boltzmann --excl};
+
+\node[punktchain, join, fill=blue!20] (traj) {Generate reference trajectory};
+\draw[tuborg, decoration={brace}] let \p1=(traj.north), \p2=(traj.south) in ($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {};
+
+\node[punktchain, join, fill=blue!20] (pot) {csg\_boltzmann to get distributions/potentials};
+\draw[tuborg, decoration={brace}] let \p1=(pot.north), \p2=(pot.south) in ($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {};
+
+\end{tikzpicture}
+\end{document}
