@@ -23,11 +23,9 @@
 namespace votca {
 namespace xtp {
 cudaError_t checkCuda(cudaError_t result) {
-#if defined(DEBUG)
   if (result != cudaSuccess) {
     std::cerr << "CUDA Runtime Error: " << cudaGetErrorString(result) << "\n";
   }
-#endif
   return result;
 }
 
@@ -46,7 +44,7 @@ CudaMatrix::CudaMatrix(const Eigen::MatrixXd &matrix,
   cudaError_t err = cudaMemcpyAsync(_data.get(), matrix.data(), size_matrix(),
                                     cudaMemcpyHostToDevice, stream);
   if (err != 0) {
-    throw std::runtime_error("Error copy arrays to device");
+    throw std::runtime_error("Error copy arrays to device :"+std::string(cudaGetErrorString(err)));
   }
 }
 
