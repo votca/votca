@@ -42,6 +42,7 @@ void OpenMP_CUDA::setOperators(const std::vector<Eigen::MatrixXd>& tensor,
   for (Index i = 0; i < no_gpus_; i++) {
     const Eigen::MatrixXd& head = tensor.front();
     const cudaStream_t& stream = cuda_pips_[i]->get_stream();
+    checkCuda(cudaSetDevice(cuda_pips_[i]->getDeviceId()));
     temp_[i].A = std::make_unique<CudaMatrix>(head.rows(), head.cols(), stream);
     temp_[i].B = std::make_unique<CudaMatrix>(rightoperator, stream);
     temp_[i].C =
@@ -77,6 +78,7 @@ void OpenMP_CUDA::MultiplyRight(Eigen::MatrixXd& tensor) {
 #ifdef USE_CUDA
   Index threadid = OPENMP::getThreadId();
   if (threadid < no_gpus_) {
+    checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
     temp_[threadid].A->copy_to_gpu(tensor);
     cuda_pips_[threadid]->gemm(*temp_[threadid].A, *temp_[threadid].B,
                               *temp_[threadid].C);
@@ -98,6 +100,7 @@ void OpenMP_CUDA::setOperators(const Eigen::MatrixXd& leftoperator,
 #pragma omp parallel for num_threads(no_gpus_)
   for (Index i = 0; i < no_gpus_; i++) {
     const cudaStream_t& stream = cuda_pips_[i]->get_stream();
+    checkCuda(cudaSetDevice(cuda_pips_[i]->getDeviceId()));
     temp_[i].A = std::make_unique<CudaMatrix>(leftoperator, stream);
     temp_[i].B = std::make_unique<CudaMatrix>(leftoperator.cols(),
                                               rightoperator.rows(), stream);
@@ -114,6 +117,7 @@ void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
 #ifdef USE_CUDA
   Index threadid = OPENMP::getThreadId();
   if (threadid < no_gpus_) {
+    checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
     temp_[threadid].B->copy_to_gpu(matrix);
     cuda_pips_[threadid]->gemm(*temp_[threadid].A, *temp_[threadid].B,
                               *temp_[threadid].C);
@@ -135,6 +139,7 @@ void OpenMP_CUDA::createTemporaries(Index rows, Index cols) {
 
 #pragma omp parallel for num_threads(no_gpus_)
   for (Index i = 0; i < no_gpus_; i++) {
+    checkCuda(cudaSetDevice(cuda_pips_[i]->getDeviceId()));
     const cudaStream_t& stream = cuda_pips_[i]->get_stream();
     temp_[i].A = std::make_unique<CudaMatrix>(rows, 1, stream);
     temp_[i].B = std::make_unique<CudaMatrix>(rows, cols, stream);
@@ -155,6 +160,7 @@ void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
   Index threadid = OPENMP::getThreadId();
 #ifdef USE_CUDA
   if (threadid < no_gpus_) {
+    checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
     temp_[threadid].A->copy_to_gpu(vec);
     temp_[threadid].B->copy_to_gpu(matrix);
     cuda_pips_[threadid]->diag_gemm(*temp_[threadid].B, *temp_[threadid].A,

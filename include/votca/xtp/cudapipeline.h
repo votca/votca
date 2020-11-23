@@ -47,9 +47,9 @@ namespace xtp {
 class CudaPipeline {
  public:
   CudaPipeline(int deviceID) : _deviceID{deviceID} {
+    checkCuda(cudaSetDevice(deviceID));
     cublasCreate(&_handle);
     cudaStreamCreate(&_stream);
-    checkCuda(cudaSetDevice(deviceID));
   }
 
   ~CudaPipeline();
