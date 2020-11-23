@@ -56,6 +56,17 @@ if(NOT TARGET uninstall)
 endif()
 add_dependencies(uninstall uninstall-csg-manual)
 
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/index.rst DESTINATION ${CMAKE_INSTALL_DOCDIR})
+
+option(ENABLE_TESTING "Test if manual exists" OFF)
+add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
+if(ENABLE_TESTING)
+  enable_testing()
+  add_test(ManualExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_SOURCE_DIR}/index.rst
+           -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake) 
+  set_tests_properties(ManualExists PROPERTIES LABELS "csg-manual;votca")
+endif(ENABLE_TESTING)
+
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
 endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
