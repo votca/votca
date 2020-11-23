@@ -28,7 +28,6 @@ OpenMP_CUDA::OpenMP_CUDA() {
   no_gpus_ = count_available_gpus();
   for (Index i = 0; i < no_gpus_; i++) {
     cuda_pips_.push_back(std::make_unique<CudaPipeline>(int(i)));
-    std::cout<<cuda_pips_.back()->getDeviceId()<<std::endl;
   }
   temp_ = std::vector<temporaries>(no_gpus_);
 #endif
