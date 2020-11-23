@@ -57,7 +57,6 @@ class CudaPipeline {
   CudaPipeline(const CudaPipeline &) = delete;
   CudaPipeline &operator=(const CudaPipeline &) = delete;
 
-CudaPipeline( CudaPipeline &&) = default;
   // Invoke the ?gemm function of cublas
   void gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C,
             bool transpose_A = false, bool transpose_B = false,
