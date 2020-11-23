@@ -42,11 +42,11 @@ namespace xtp {
 class OpenMP_CUDA {
  public:
   OpenMP_CUDA();
-  static bool UsingGPU() {
+  static Index UsingGPUs(){
 #ifdef USE_CUDA
-    return true;
+    return count_available_gpus();
 #else
-    return false;
+    return 0;
 #endif
   }
   void setOperators(const std::vector<Eigen::MatrixXd>& tensor,
