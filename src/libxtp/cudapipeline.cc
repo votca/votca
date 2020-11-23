@@ -92,8 +92,9 @@ void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C,
                   palpha, A.data(), int(A.rows()), B.data(), int(B.rows()),
                   pbeta, C.data(), int(C.rows()));
   if (status != CUBLAS_STATUS_SUCCESS) {
-    throw std::runtime_error("dgemm failed on gpu "+ std::to_string(_deviceID)+" with errorcode:" +
-                             cudaGetErrorEnum(status));
+    throw std::runtime_error("dgemm failed on gpu " +
+                             std::to_string(_deviceID) +
+                             " with errorcode:" + cudaGetErrorEnum(status));
   }
 }
 
@@ -115,8 +116,9 @@ void CudaPipeline::diag_gemm(const CudaMatrix &A, const CudaMatrix &b,
                                       b.data(), 1, C.data(), int(C.rows()));
 
   if (status != CUBLAS_STATUS_SUCCESS) {
-    throw std::runtime_error("diag_gemm failed on gpu "+ std::to_string(_deviceID)+" with errorcode:" +
-                             cudaGetErrorEnum(status));
+    throw std::runtime_error("diag_gemm failed on gpu " +
+                             std::to_string(_deviceID) +
+                             " with errorcode:" + cudaGetErrorEnum(status));
   }
 }
 

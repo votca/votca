@@ -80,7 +80,7 @@ void OpenMP_CUDA::MultiplyRight(Eigen::MatrixXd& tensor) {
     checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
     temp_[threadid].A->copy_to_gpu(tensor);
     cuda_pips_[threadid]->gemm(*temp_[threadid].A, *temp_[threadid].B,
-                              *temp_[threadid].C);
+                               *temp_[threadid].C);
     tensor = *temp_[threadid].C;
   } else {
     tensor *= *rightoperator_;
@@ -119,9 +119,9 @@ void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
     checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
     temp_[threadid].B->copy_to_gpu(matrix);
     cuda_pips_[threadid]->gemm(*temp_[threadid].A, *temp_[threadid].B,
-                              *temp_[threadid].C);
+                               *temp_[threadid].C);
     cuda_pips_[threadid]->gemm(*temp_[threadid].C, *temp_[threadid].D,
-                              *temp_[threadid].E);
+                               *temp_[threadid].E);
     matrix = *temp_[threadid].E;
   } else {
     matrix = (*leftoperator_) * matrix * (*rightoperator_);
@@ -163,9 +163,9 @@ void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
     temp_[threadid].A->copy_to_gpu(vec);
     temp_[threadid].B->copy_to_gpu(matrix);
     cuda_pips_[threadid]->diag_gemm(*temp_[threadid].B, *temp_[threadid].A,
-                                   *temp_[threadid].C);
+                                    *temp_[threadid].C);
     cuda_pips_[threadid]->gemm(*temp_[threadid].B, *temp_[threadid].C,
-                              *temp_[threadid].D, true, false, 1.0);
+                               *temp_[threadid].D, true, false, 1.0);
   } else {
     reduction_[threadid] += matrix.transpose() * vec.asDiagonal() * matrix;
   }

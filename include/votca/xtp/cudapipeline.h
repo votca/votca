@@ -68,7 +68,7 @@ class CudaPipeline {
 
   const cudaStream_t &get_stream() const { return _stream; };
 
-  int getDeviceId()const{return _deviceID;}
+  int getDeviceId() const { return _deviceID; }
 
  private:
   int _deviceID = 0;

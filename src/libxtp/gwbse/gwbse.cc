@@ -585,11 +585,11 @@ bool GWBSE::Evaluate() {
         << TimeStamp()
         << " Using native Eigen implementation, no BLAS overload " << flush;
   }
-  Index nogpus=OpenMP_CUDA::UsingGPUs();
-  if (nogpus>0) {
+  Index nogpus = OpenMP_CUDA::UsingGPUs();
+  if (nogpus > 0) {
     XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Using CUDA support for tensor multiplication with "<<nogpus<<" GPUs."
-        << flush;
+        << TimeStamp() << " Using CUDA support for tensor multiplication with "
+        << nogpus << " GPUs." << flush;
   }
 
   XTP_LOG(Log::error, *_pLog)

@@ -42,7 +42,7 @@ namespace xtp {
 class OpenMP_CUDA {
  public:
   OpenMP_CUDA();
-  static Index UsingGPUs(){
+  static Index UsingGPUs() {
 #ifdef USE_CUDA
     return count_available_gpus();
 #else
