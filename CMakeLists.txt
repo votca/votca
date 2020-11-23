@@ -42,7 +42,7 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
-include(CMakePrintHelpers)
+
 
 find_package(PkgConfig REQUIRED)
 set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc and libint package")
@@ -53,6 +53,7 @@ endif()
 find_package(ecpint REQUIRED)
 set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculate pseudo potentials")
 if(NOT TARGET ECPINT::ecpint) # newer versions are namespaced.
+  set_target_properties(ecpint PROPERTIES IMPORTED_GLOBAL TRUE)
   add_library(ECPINT::ecpint ALIAS ecpint)
 endif()
 
