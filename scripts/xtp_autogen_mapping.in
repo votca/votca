@@ -1,0 +1,521 @@
+#! /usr/bin/env python3
+#
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+import argparse
+import importlib
+import multiprocessing
+import os
+import shutil
+import subprocess
+import xml.etree.ElementTree as ET
+from collections import defaultdict
+from pathlib import Path
+from typing import Any, Dict, List, NamedTuple
+from xml.dom import minidom
+
+import numpy as np
+
+try:
+    importlib.import_module("rdkit")
+except ModuleNotFoundError:
+    exc = ModuleNotFoundError(
+        """'xtp_autogen_mapping' requires the 'rdkit' package: https://anaconda.org/conda-forge/rdkit"""
+    )
+    exc.__cause__ = None
+    raise exc
+from rdkit import Chem
+from rdkit.Chem import AllChem
+
+VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
+
+# Hartree to eV
+H2EV = 27.21138
+
+
+class JobMetadata(NamedTuple):
+    """Create a namedtuple with the data to call Orca."""
+    name: str
+    path_orca: str
+    functional: str
+    basis: str
+    RI: bool
+
+
+def search_cores() -> int:
+    """Try to find the number of cores in the system."""
+    cpuinfo = Path("/proc/cpuinfo")
+    if not cpuinfo.exists():
+        return multiprocessing.cpu_count()
+
+    with open(cpuinfo, 'r') as handler:
+        for line in handler:
+            if "cpu cores" in line:
+                break
+    return int(line.split()[-1])
+
+
+def run_cmd(cmd: str):
+    """Run a shell command."""
+    print("running: ", cmd)
+    result = subprocess.run(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, shell=True)
+    if result.stderr:
+        print("command error: ", result.stderr)
+
+
+def write_input(
+        input_file_name: str, crg_spin_coord: str, meta: JobMetadata, optimize: bool = True):
+    """Write Orca input file."""
+    # number of cores to use
+    ncores = search_cores()
+    # geometry optimization starts from MD structure for n, and n structure of e/h
+    ri_string = ' RIJCOSX' if meta.RI else ""
+    opt = "opt" if optimize else ""
+    chelpg = "! CHELPG" if optimize else ""
+
+    # Polar calculation
+    polar = "% elprop\npolar 1\nSolver CG\nend\n" if optimize else ""
+
+    # Input file
+    inp = f"""{crg_spin_coord}
+
+%pal
+nprocs {ncores}
+end
+
+! DFT {opt} {meta.functional} {meta.basis} {ri_string} SlowConv
+! D3BJ
+{chelpg}
+
+{polar}
+"""
+    with open(input_file_name, "w") as handler:
+        handler.write(inp)
+
+
+def read_energies(logfile_name: str) -> List[float]:
+    """parse SINGLE POINT ENERGIES."""
+    energies = []
+    with open(logfile_name, 'r') as logfile:
+        for line in logfile.readlines():
+            if 'FINAL SINGLE POINT ENERGY' in line:
+                energies.append(float(line.split()[-1]))
+
+    return energies
+
+
+def optimize_geometry(state: str, meta: JobMetadata) -> List[float]:
+    """Perform a geometry optimization using Orca."""
+    root = f"{meta.name}_{state}"
+    input_file_name = f"{root}.inp"
+    logfile_name = f"{root}.log"
+    errfile_name = f"{root}.err"
+
+    if state == 'n':
+        crg_spin_coord = f'* xyzfile 0 1 {meta.name}_MD.xyz'
+    elif state == 'e':
+        crg_spin_coord = f'* xyzfile -1 2 {meta.name}_n.xyz'
+    elif state == 'h':
+        crg_spin_coord = f'* xyzfile 1 2 {meta.name}_n.xyz'
+
+    # Write optimization Orca input
+    write_input(input_file_name, crg_spin_coord, meta)
+
+    # Call orca
+    orca_command = f"{meta.path_orca} {input_file_name} > {logfile_name} 2> {errfile_name}"
+    run_cmd(orca_command)
+
+    return read_energies(logfile_name)
+
+
+def run_single_point(state: str, meta: JobMetadata):
+    """Run a single point calculation with Orca."""
+    crg_spin_coord = f'* xyzfile 0 1 {meta.name}_{state}.xyz'
+    root = f"{meta.name}_{state}"
+
+    input_n_file_name = f"{root}_n.inp"
+    write_input(input_n_file_name, crg_spin_coord, meta, optimize=False)
+    # run ORCA again
+    logfile_n_name = f"{root}_n.log"
+    errfile_n_name = f"{root}_n.err"
+    orca_command2 = f"{meta.path_orca} {input_n_file_name} > {logfile_n_name} 2> {errfile_n_name}"
+    run_cmd(orca_command2)
+
+    # parse SINGLE POINT ENERGIES
+    return read_energies(logfile_n_name)
+
+
+def process_charges_and_polarization(root: str) -> None:
+    """Read charges and compute polarization."""
+    # parse CHELPG charges
+    logfile_name = f"{root}_log2mps.log"
+    errfile_name = f"{root}_log2mps.err"
+    log2mps_command = f"xtp_tools -e log2mps -n {root} > {logfile_name} 2> {errfile_name}"
+    run_cmd(log2mps_command)
+
+    # prep molpol.xml
+    options = ET.Element('options')
+    molpol = ET.SubElement(options, 'molpol')
+    mode = ET.SubElement(molpol, 'mode')
+    mode.text = 'qmpackage'
+    logname = ET.SubElement(molpol, 'logfile')
+    logname.text = f"{root}.log"
+    molpol_xml_str = minidom.parseString(
+        ET.tostring(options)).toprettyxml(indent="   ")
+    with open("molpol.xml", "w") as f:
+        f.write(molpol_xml_str)
+    # run molpol
+    logfile_name = f"{root}_molpol.log"
+    errfile_name = f"{root}_molpol.err"
+    molpol_command = f"xtp_tools -e molpol -o molpol.xml -n {root} > {logfile_name} 2> {errfile_name}"
+    os.system(molpol_command)
+    # copy oprimized MPS_FILE
+    os.makedirs('../MP_FILES', exist_ok=True)
+    mpsfile = f"{root}_polar.mps"
+    mpsfile_store = f"../MP_FILES/{mpsfile}"
+    shutil.copy(mpsfile, mpsfile_store)
+
+
+def optimize(state: str, meta: JobMetadata):
+    """Optimize geometry, get CHELPG charges, polarizability tensor."""
+    root = f"{meta.name}_{state}"
+    energies = optimize_geometry(state, meta)
+    E_initial = energies[0]
+    E_final = energies[-1]
+
+    # copy optimized geometries
+    os.makedirs('../QC_FILES', exist_ok=True)
+    geofile = f"{root}.xyz"
+    geofile_store = f'../QC_FILES/{geofile}'
+    shutil.copy(geofile, geofile_store)
+
+    process_charges_and_polarization(root)
+
+    # if state is h or e, calculate a single energy for the neural molecule in the optimized geometry
+    if state != 'n':
+        energies = run_single_point(state, meta)
+        E_cross = energies[0]
+    else:
+        E_cross = 0.0
+
+    names = [f"E_{state}_{kind}" for kind in ("init", "final", "cross")]
+
+    return {name: value for name, value in zip(names, (E_initial, E_final, E_cross))}
+
+
+def optimize_geometry_in_state(
+        mol: Chem.rdchem.Mol, states: List[str], meta: JobMetadata) -> Dict[str, float]:
+    """Optimize the molecular geometry in the given staten."""
+
+    os.makedirs('generate', exist_ok=True)
+    basedir = os.getcwd()
+    os.chdir('generate')
+
+    # read the initial PDB file
+    mdXYZ_file_name = f'{meta.name}_MD.xyz'
+    Chem.MolToXYZFile(mol, mdXYZ_file_name)
+    # neutral
+    energies = optimize('n', meta)
+    # cation, if requested
+    if 'h' in states:
+        energies_h = optimize('h', meta)
+        energies.update(energies_h)
+
+    # anion, if requested
+    if 'e' in states:
+        energies_e = optimize('e', meta)
+        energies.update(energies_e)
+    os.chdir(basedir)
+
+    return energies
+
+
+def generate_mapping(args: argparse.Namespace) -> None:
+    """Generate the mapping files."""
+
+    # Read  the molecule
+    mol = Chem.MolFromPDBFile(args.pdbfile, removeHs=False)
+    seg_name = Path(args.pdbfile).stem
+    if not args.mdname:
+        args.mdname = Chem.rdMolDescriptors.CalcMolFormula(mol)
+        msg = """No *mdname* (-m, --mdname) has been specified, setting it to the molecular
+formula. If you used GROMACS, replace the entry in the generated mapping.xml with the name in
+topol.top (or similar).
+
+"""
+        print(msg)
+
+    if args.optimize:
+        segment_name = Path(args.pdbfile).stem
+        meta = JobMetadata(
+            name=segment_name, path_orca=args.orca, functional=args.functional,
+            basis=args.basis, RI=args.nori)
+        energies = optimize_geometry_in_state(mol, args.states, meta)
+    else:
+        # The default energy for any key is 0
+        energies = defaultdict(lambda: 0.0)
+        msg = """WARNING **The user didn't request an optimization**, therefore:
+1.  `qmcoords` and `multipoles` tags are going to be added to the mapping file but
+    the *xyz and *mps files, and the QC_FILES and MP_FILES directories
+    are not automatically generated, you must add them yourself.
+2.  Excitation and reorganization energies are all set to 0. You need to change
+    those values.
+"""
+        print(msg)
+
+    # determine the rotatable bonds
+    rotable_bond = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]')
+    rbonds = mol.GetSubstructMatches(rotable_bond)
+    bonds = [mol.GetBondBetweenAtoms(x, y).GetIdx() for x, y in rbonds]
+    mol1 = Chem.Mol(mol)
+
+    fragments = []
+    # fragment molecule based on the rotatable bonds
+    if bonds == []:
+        fragments.append(mol1)
+    else:
+        new_mol = Chem.FragmentOnBonds(mol1, bonds)
+        fragments = Chem.GetMolFrags(new_mol, asMols=True)
+
+    generate_xml_tree(mol, args.states, fragments,
+                      seg_name, energies, args.mdname)
+
+
+def generate_xml_tree(
+        mol: Chem.rdchem.Mol, states: List[str], fragments: List[Any],
+        seg_name: str, energies: Dict[str, float], md_name: str) -> None:
+    topology = ET.Element('topology')
+    molecules = ET.SubElement(topology, 'molecules')
+    molecule = ET.SubElement(molecules, 'molecule')
+    name = ET.SubElement(molecule, 'name')
+    name.text = seg_name
+    mdname = ET.SubElement(molecule, 'mdname')
+    mdname.text = md_name
+    segments = ET.SubElement(molecule, 'segments')
+    segment = ET.SubElement(segments, 'segment')
+    segment_name = ET.SubElement(segment, 'name')
+    segment_name.text = seg_name
+
+    # Add qmcoords, xyz, multipoles and polar files
+    add_state_files('n', segment, seg_name)
+
+    if 'h' in states:
+        add_state_files('h', segment, seg_name)
+        add_energies('h', segment, energies)
+    if 'e' in states:
+        add_state_files('e', segment, seg_name)
+        add_energies('e', segment, energies)
+
+    map2md = ET.SubElement(segment, 'map2md')
+    map2md.text = '0'
+    xmlfragments = ET.SubElement(segment, 'fragments')
+
+    # add the fragments into the xml tree
+    add_fragments(mol, fragments, xmlfragments)
+
+    xml_str = minidom.parseString(
+        ET.tostring(topology)).toprettyxml(indent="   ")
+    with open("mapping.xml", "w") as f:
+        f.write(xml_str)
+
+
+def add_state_files(state: str, segment: ET.Element, seg_name: str) -> None:
+    """Add the files for each state."""
+    segment_coord = ET.SubElement(segment, f'qmcoords_{state}')
+    segment_coord.text = f"QC_FILES/{seg_name}_{state}.xyz"
+    segment_mpoles = ET.SubElement(segment, f'multipoles_{state}')
+    segment_mpoles.text = f"MP_FILES/{seg_name}_{state}_polar.mps"
+
+
+def add_energies(state: str, segment: ET.Element, energies: Dict[str, float]) -> None:
+    """Add the energies for the states."""
+    # adiabatic excitation energy
+    segment_U_xX_nN = ET.SubElement(segment, f'U_xX_nN_{state}')
+
+    segment_U_xX_nN.text = format_energy(
+        energies, f"E_{state}_final", "E_n_final")
+    # reorg energy deexcitation
+    segment_U_nX_nN = ET.SubElement(
+        segment, f'U_nX_nN_{state}')
+    segment_U_nX_nN.text = format_energy(
+        energies, f"E_{state}_cross", "E_n_final")
+
+    # reorg energy excitation
+    segment_U_xN_xX = ET.SubElement(segment, f'U_xN_xX_{state}')
+
+    segment_U_xN_xX.text = format_energy(
+        energies, f"E_{state}_init", f"E_{state}_final")
+
+
+def add_fragments(
+        mol: Chem.rdchem.Mol, fragments: List[Chem.rdchem.Mol],
+        xmlfragments: ET.Element) -> None:
+    """Add fragments to the XML tree."""
+    for i, fragment in enumerate(fragments):
+        i += 1
+
+        filename = f"fragment{i}.pdb"
+        Chem.MolToPDBFile(fragment, filename)
+        conf = fragment.GetConformer()
+
+        xmlfragment = ET.SubElement(xmlfragments, 'fragment')
+        frag_name = ET.SubElement(xmlfragment, 'name')
+        frag_name.text = f'fragment{i}'
+        mdatoms = ET.SubElement(xmlfragment, 'mdatoms')
+        qmatoms = ET.SubElement(xmlfragment, 'qmatoms')
+        mpoles = ET.SubElement(xmlfragment, 'mpoles')
+        weights = ET.SubElement(xmlfragment, 'weights')
+        localframe = ET.SubElement(xmlfragment, 'localframe')
+
+        mdatoms_str = ""
+        qmatoms_str = ""
+        weights_str = ""
+        localframe_str = ""
+        idx = np.sort(check_collinear(fragment))
+        for atom in range(fragment.GetNumAtoms()):
+            this_element = fragment.GetAtoms()[atom].GetSymbol()
+            if this_element != "*":
+                this_pos = conf.GetAtomPosition(atom)
+                for index_atom in range(mol.GetNumAtoms()):
+                    full_atom = mol.GetAtoms()[index_atom]
+                    full_element = full_atom.GetPDBResidueInfo().GetName().replace(" ", "")
+                    full_element_qm = full_atom.GetSymbol()
+                    full_pos = mol.GetConformer().GetAtomPosition(index_atom)
+                    if all(getattr(full_pos, x) == getattr(this_pos, x) for x in {'x', 'y', 'z'}):
+                        mdatoms_str += f"0:{full_element}:{index_atom} "
+                        qmatoms_str += f"{index_atom}:{full_element_qm} "
+                        weights_str += f"{full_atom.GetMass()} "
+        mdatoms.text = mdatoms_str
+        qmatoms.text = qmatoms_str
+        mpoles.text = qmatoms_str
+        weights.text = weights_str
+
+        for label in ["".join(c for c in qmatoms_str.split()[i] if c.isdigit()) for i in idx]:
+            localframe_str += f"{label} "
+        localframe.text = localframe_str
+
+
+def random_selection(fragment) -> np.ndarray:
+    n_atoms = fragment.GetNumAtoms()
+    # Choose 3 random idx (aka choose three random atoms in the fragment, excluding ghost atoms with symbol *)
+    atomic_list = [a for a in range(n_atoms) if fragment.GetAtoms()[
+        a].GetSymbol() != '*']
+    # Divide this list in H-list and rest_of_the_atoms-list
+    h_list = [a for a in atomic_list if fragment.GetAtoms()[
+        a].GetSymbol() == 'H']
+    rest_list = [a for a in atomic_list if fragment.GetAtoms()[
+        a].GetSymbol() != 'H']
+
+    size_sample = 0
+    # If the rest of the atoms are 3 or less
+    if len(rest_list) < 4:
+        # If there are no Hydrogens it spits out a sample size equal to the rest of the atoms list
+        if len(h_list) < 1:
+            size_sample = len(rest_list)
+        # If there are Hydrogens and the rest of the atoms are less than 3 (2 or 1)
+        if len(h_list) > 0 and len(rest_list) < 3:
+            # If there are at least 3 H
+            if len(h_list) > 2:
+                new_items = np.random.choice(
+                    h_list, size=3 - len(rest_list), replace=False)
+                for i in new_items:
+                    rest_list.append(i)
+                size_sample = len(rest_list)
+            # Otherwise just spit out the all atomic list
+            # (this because you can have max 1 H and 2 rest of the atoms)
+            else:
+                rest_list = atomic_list
+                size_sample = len(rest_list)
+    # Else the rest of the atoms are more than 3 then sampling randomly
+    # three of them it is fine
+    else:
+        size_sample = 3
+    idx = np.random.choice(rest_list, size=size_sample, replace=False)
+    return idx
+
+
+def angle_fragment(idx: np.ndarray, fragment: Chem.rdchem.Mol) -> float:
+    try:
+        conformer = fragment.GetConformer()
+        pos_1, pos_2, pos_3 = [
+            conformer.GetAtomPosition(idx[x]) for x in range(3)]
+        vec1 = np.array([pos_1.x - pos_2.x, pos_1.y -
+                         pos_2.y, pos_1.z - pos_2.z])
+        vec2 = np.array([pos_1.x - pos_3.x, pos_1.y -
+                         pos_3.y, pos_1.z - pos_3.z])
+        # Sin(theta) with theta angle between vec1 and vec2
+        cp = np.linalg.norm(np.cross(vec1, vec2)) / \
+            (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+    except ZeroDivisionError:
+        # Just throw out a big value for the cp so check_collinear whill break immediatly
+        cp = 1
+    return cp
+
+
+def check_collinear(fragment: Chem.rdchem.Mol) -> int:
+    """Check if three random selected points are collinear."""
+    while True:
+        idx = random_selection(fragment)
+        cp_norm = angle_fragment(idx, fragment)
+        if cp_norm > 0.6:
+            break
+    return idx
+
+
+def format_energy(energies: Dict[str, float], first: str, second: str) -> str:
+    """Format the energy difference."""
+    diff = H2EV * (energies[first] - energies[second])
+    return str(diff)
+
+
+def main():
+    """Read the command line arguments."""
+    parser = argparse.ArgumentParser("xtp_autogen_mapping")
+
+    # Add the arguments to the parser
+    parser.add_argument("-pdb", "--pdbfile", required=True, type=exists,
+                        help="PDB coordinate file")
+    parser.add_argument("-opt", "--optimize", action="store_true",
+                        help="optimization of XYZ and MPS files")
+    parser.add_argument("-s", "--states", default="n", nargs="+",
+                        help="which states to optimize", choices=["n", "e", "h"])
+    parser.add_argument("-orca", "--orca", default="/opt/orca-4.2.1/orca",
+                        help="full path to orca executable")
+    parser.add_argument("-f", "--functional", default="PBE",
+                        help="DFT functional")
+    parser.add_argument(
+        "-b", "--basis", default="def2-tzvp", help="basis set")
+    parser.add_argument("--nori", action="store_false",
+                        help="Do not to use the Resolution of Identity approximation")
+    parser.add_argument("-m", "--mdname", default="",
+                        help="Name of the molecule in the MD topology")
+    args = parser.parse_args()
+
+    generate_mapping(args)
+
+
+def exists(input_file: str) -> str:
+    """Check if the input file exists."""
+    path = Path(input_file)
+    if not path.exists():
+        raise argparse.ArgumentTypeError(f"{input_file} doesn't exist!")
+
+    return path.absolute().as_posix()
+
+
+if __name__ == "__main__":
+    main()
