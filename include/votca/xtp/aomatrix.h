@@ -106,9 +106,7 @@ class AODipole : public AOMatrix {
 
 class AO3ddipole : public AOMatrix {
  public:
-  void Fill(const AOBasis& aobasis) final {
-    throw std::runtime_error("Fill should not be called on AO3DDipole.");
-  }
+  void Fill(const AOBasis& aobasis) final;
 
   const std::array<Eigen::MatrixXd, 3>& Matrix() const { return _aomatrix; }
   Index Dimension() final { return _aomatrix[0].rows(); }
