@@ -452,7 +452,7 @@ def angle_fragment(idx: np.ndarray, fragment: Chem.rdchem.Mol) -> float:
     try:
         conformer = fragment.GetConformer()
         pos_1, pos_2, pos_3 = [
-            conformer.GetAtomPosition(idx[x]) for x in range(3)]
+            conformer.GetAtomPosition(idx[x].item()) for x in range(3)]
         vec1 = np.array([pos_1.x - pos_2.x, pos_1.y -
                          pos_2.y, pos_1.z - pos_2.z])
         vec2 = np.array([pos_1.x - pos_3.x, pos_1.y -
@@ -495,7 +495,7 @@ def main():
                         help="which states to optimize", choices=["n", "e", "h"])
     parser.add_argument("-orca", "--orca", default="/opt/orca-4.2.1/orca",
                         help="full path to orca executable")
-    parser.add_argument("-f", "--functional", default="PBE",
+    parser.add_argument("-f", "--functional", default="PBE0",
                         help="DFT functional")
     parser.add_argument(
         "-b", "--basis", default="def2-tzvp", help="basis set")

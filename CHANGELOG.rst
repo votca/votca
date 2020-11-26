@@ -81,6 +81,7 @@ Version 2021-dev
 -  extra check in orca unit test (#594)
 -  fixed atomid numbering while adding containers (#599)
 -  added tool for automatic mapping file generation (#595)
+-  fixed int64 interface to RDKIT (#602)
 
 Version 1.6.3 (released XX.08.20)
 =================================
