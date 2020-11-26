@@ -495,7 +495,7 @@ def main():
                         help="which states to optimize", choices=["n", "e", "h"])
     parser.add_argument("-orca", "--orca", default="/opt/orca-4.2.1/orca",
                         help="full path to orca executable")
-    parser.add_argument("-f", "--functional", default="PBE",
+    parser.add_argument("-f", "--functional", default="PBE0",
                         help="DFT functional")
     parser.add_argument(
         "-b", "--basis", default="def2-tzvp", help="basis set")
