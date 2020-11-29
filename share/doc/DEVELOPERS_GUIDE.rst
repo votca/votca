@@ -406,18 +406,6 @@ rules of autopep8. To run on file.py and update the file run:
 
     autopep8 -i file.py
 
-`remark <https://github.com/remarkjs/remark>`__
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Remark is used to automatically format markdown files .md. Some of the
-rules applied are:
-
--  single spaces are used instead of tabs after bullets
--  bullets are marked with ``*`` are used instead of ``-``
--  words are emphasised by placing ``__`` on both sides
-
-NOTE: rst files are now preferred over markdown. 
-
 Automating Formatting
 ~~~~~~~~~~~~~~~~~~~~~
 
