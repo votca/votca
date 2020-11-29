@@ -31,6 +31,7 @@ Version 2021-dev
 -  Fixed memory leaks in tests and neighbourlist (#602)
 -  format with clang-11 (#604)
 -  use unique_ptr in factory (#603)
+-  Convert remaining md files to rst (#616)
 
 Version 1.6.3 (released XX.08.20)
 =================================
