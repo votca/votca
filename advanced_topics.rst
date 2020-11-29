@@ -8,7 +8,7 @@ Each sub-step of an iteration and all direct calls can be adjusted to
 the user needs. The internal part of the iterative framework is
 organized as follows: all scripts are called using two keywords
 
-::
+.. code:: bash
 
       csg_call key1 key2
 
@@ -16,7 +16,7 @@ For example, ``csg_call update imc`` calls the ``update`` script for the
 inverse Monte Carlo procedure. The corresponding keywords are listed in
 sec. [sec:csg\_table] or can be output directly by calling
 
-::
+.. code:: bash
 
       csg_call --list
 
@@ -25,7 +25,7 @@ script or add a new one, copy the script to your own directory (set by )
 and redirect its call by creating your own ``csg_table`` file in this
 directory which looks like this
 
-::
+.. code:: bash
 
       key1 key2 script1 options
       key3 key4 script2
@@ -40,13 +40,13 @@ cpus, which is basically the same as adding mpirun options in .
 
 First we find out which script calls :
 
-::
+.. code:: bash
 
       csg_call --list | grep gromacs
 
 The output should look as follows
 
-::
+.. code:: none
 
       init gromacs initalize_gromacs.sh
       prepare gromacs prepare_gromacs.sh
@@ -60,7 +60,7 @@ the third line indicates the script we need. If the output of is not
 clear, one can try to find the right script in sec. [sec:csg\_table].
 Alternatively, check the folder
 
-::
+.. code:: none
 
       <csg-installation>/share/scripts/inverse
 
@@ -68,21 +68,21 @@ for all available scripts.
 
 Analyzing the output of
 
-::
+.. code:: bash
 
       csg_call --cat run gromacs
 
 we can conclude that this is indeed the script we need as the content
 (in shorted form is):
 
-::
+.. code:: bash
 
       critical mdrun
 
 Now we can create our own ``SCRIPTDIR``, add a new script there, make it
 executable and overload the call of the script:
 
-::
+.. code:: bash
 
       mkdir -p SCRIPTDIR
       cp `csg_call --quiet --show run gromacs` SCRIPTDIR/my_run_gromacs.sh
@@ -93,7 +93,7 @@ Please note that ``my_run_gromacs.sh`` is the name of the script and
 ``SCRIPTDIR`` is the custom script directory, which can be a global or a
 local path. Now we change the last line of ``my_run_gromacs.sh`` to:
 
-::
+.. code:: bash
 
       critical mpirun -np 8 mdrun
 
@@ -102,7 +102,7 @@ in the setting XMLfile (see sec. [sec:ref\_options]).
 
 You can check the new script by running:
 
-::
+.. code:: bash
 
       csg_call --scriptdir SCRIPTDIR --list
       csg_call --scriptdir SCRIPTDIR --run run gromacs
@@ -175,7 +175,7 @@ the case of using GROMACSwill work in the same manner, with the
 following conventional substitutions for the (default) file names used
 in options for votcascripts, as necessary:
 
-::
+.. code:: none
 
     .dlpf = the topology read from FIELD or written to FIELD_CGV
     .dlpc = the configuration read from CONFIG or written to CONFIG_CGV

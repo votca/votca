@@ -47,7 +47,7 @@ To generate an exclusion list, an atomistic topology without exclusions
 and a mapping scheme have to be prepared first. Once the .tpr topology
 and .xml mapping files are ready, simply run
 
-::
+.. code:: bash
 
       csg_boltzmann --top topol.tpr --cg mapping.xml --excl exclusions.txt
 
@@ -64,7 +64,7 @@ To add the exclusions to the GROMACStopology of the molecule, either
 include the file specified by the –excl option into the .top file as
 follows
 
-::
+.. code:: none
 
       [ exclusions ]
       #include "exclusions.txt"
@@ -79,26 +79,26 @@ For statistical analysis provides an interactive mode. To enter the
 interactive mode, use the ``–trj`` option followed by the file name of
 the reference trajectory
 
-::
+.. code:: bash
 
       csg_boltzmann --top topol.tpr --trj traj.trr --cg mapping.xml
 
 To get help on a specific command of the interactive mode, type
 
-::
+.. code:: none
 
       help <command>
 
 for example
 
-::
+.. code:: none
 
       help hist
       help hist set periodic
 
 Additionally, use the
 
-::
+.. code:: none
 
       list
 
@@ -109,7 +109,7 @@ introduction of this chapter for the command.
 
 If a specific interaction shall be used, it can be referred to by
 
-::
+.. code:: none
 
       molecule:interaction-group:index
 
@@ -126,7 +126,7 @@ To exit the interactive mode, use the command ``q``.
 If analysis commands are to be read from a file, use the pipe or stdin
 redirects from the shell.
 
-::
+.. code:: bash
 
       cat commands | csg_boltzmann topol.top --trj traj.trr --cg mapping.xml
 
@@ -138,13 +138,13 @@ Distribution functions (tabulated potentials) can be created with the
 function for all interactions of group AA-bond (where AA-bond is the
 name specified in the mapping scheme) to the file AA.txt, type
 
-::
+.. code:: none
 
       hist AA.txt *:AA-bond:*
 
 The command
 
-::
+.. code:: none
 
       hist set
 
@@ -166,7 +166,7 @@ eq. [eq:boltzmann\_norm]. Possible values are ``no`` (no scaling),
 out the tabulated potential for an angle potential at a temperature of
 300K, for instance, type:
 
-::
+.. code:: none
 
       tab set T 300
       tab set scale angle
@@ -199,7 +199,7 @@ A better way is to create 2D histograms. This can be done by specifying
 all values (e.g. bond length, angle, dihedral value) using the command
 *vals*, e.g.:
 
-::
+.. code:: none
 
       vals vals.txt 1:AA-bond:1 1:AAA-angle:A
 
@@ -260,31 +260,31 @@ coarse-graining the interactions and parameters for the force-matching
 run. This file is specified by the tag ``–options`` in the XMLformat. An
 example might look like the following
 
-::
+.. code:: xml
 
-       <cg>
-         <!--fmatch section -->
-         <fmatch>
-           <!--Number of frames for block averaging -->
-           <frames_per_block>6</frames_per_block>
-           <!--Constrained least squares?-->
-           <constrainedLS>false</constrainedLS>
-         </fmatch>
-         <!-- example for a non-bonded interaction entry -->
-         <non-bonded>
-           <!-- name of the interaction -->
-           <name>CG-CG</name>
-           <type1>A</type1>
-           <type2>A</type2>
-           <!-- fmatch specific stuff -->
-           <fmatch>
-             <min>0.27</min>
-             <max>1.2</max>
-             <step>0.02</step>
-             <out_step>0.005</out_step>
-           </fmatch>
-         </non-bonded>
-       </cg>
+  <cg>
+    <!--fmatch section -->
+    <fmatch>
+      <!--Number of frames for block averaging -->
+      <frames_per_block>6</frames_per_block>
+      <!--Constrained least squares?-->
+      <constrainedLS>false</constrainedLS>
+    </fmatch>
+    <!-- example for a non-bonded interaction entry -->
+    <non-bonded>
+      <!-- name of the interaction -->
+      <name>CG-CG</name>
+      <type1>A</type1>
+      <type2>A</type2>
+      <!-- fmatch specific stuff -->
+      <fmatch>
+        <min>0.27</min>
+        <max>1.2</max>
+        <step>0.02</step>
+        <out_step>0.005</out_step>
+      </fmatch>
+    </non-bonded>
+  </cg>
 
 Similarly to the case of spline fitting (see sec. [sec:ref\_programs] on
 ), the parameters ``min`` and ``max`` have to be chosen in such a way as
@@ -310,17 +310,17 @@ but also after every successful processing of each block. The user is
 free to have a look at the output files and decide to stop , provided
 the force error is small enough.
 
-Integration and extrapolation of .force files 
+Integration and extrapolation of .force files
 ----------------------------------------------
 
 To convert forces (``.force``) to potentials (``.pot``), tables have to
 be integrated. To use the built-in integration command from the
 scripting framework, execute
 
-::
+.. code:: bash
 
-     $csg_call table integrate CG-CG.force minus_CG-CG.pot
-     $csg_call table linearop minus_CG-CG.d CG-CG.d -1 0
+     csg_call table integrate CG-CG.force minus_CG-CG.pot
+     csg_call table linearop minus_CG-CG.d CG-CG.d -1 0
 
 This command calls the script, which integrates the force and writes the
 potential to the ``.pot`` file.
@@ -430,15 +430,58 @@ you plan to run the iterative procedure.
 
 A list of interactions to be iteratively refined has to be given in the
 options file. As an example, the ``setting.xml`` file for a propane is
-shown in listing [list:settings]. For more details, see the full
+shown in below. For more details, see the full
 description of all options in ref. [sec:ref\_options].
+
+.. code:: xml
+
+  <cg>
+    <non-bonded> <!-- non-bonded interactions -->
+      <name>A-A</name> <!-- name of the interaction -->
+      <type1>A</type1> <!-- types involved in this interaction -->
+      <type2>A</type2>
+      <min>0</min>  <!-- dimension + grid spacing of tables-->
+      <max>1.36</max>
+      <step>0.01</step>
+      <inverse>
+        <target>A-A.dist.tgt</target> <!-- target distribution -->
+        <do_potential>1 0 0</do_potential>  <!-- update cycles -->
+        <gromacs>
+          <table>table_A_A.xvg</table>
+        </gromacs>
+      </inverse>
+    </non-bonded>
+    <!-- ... more non-bonded interactions -->
+
+    <!-- general options for the inverse script -->
+    <inverse>
+      <kBT>1.6629</kBT> <!-- 300*0.00831451 gromacs units -->
+      <program>gromacs</program> <!-- use gromacs to sample -->
+      <gromacs> <!-- gromacs specific options -->
+        <equi_time>10</equi_time> <!-- ignore so many frames -->
+        <table_bins>0.002</table_bins> <!-- grid for table*.xvg -->
+        <pot_max>1000000</pot_max> <!-- cut the potential at value -->
+        <table_end>2.0</table_end> <!-- extend the tables to value -->
+        <topol>topol.tpr</topol> <!-- topology + trajectory files -->
+        <traj>traj.xtc</traj>
+      </gromacs>
+      <!-- these files are copied for each new run -->
+      <filelist>grompp.mdp topol.top table.xvg
+        table_a1.xvg table_b1.xvg index.ndx
+    </filelist>
+    <iterations_max>300</iterations_max> <!-- number of iterations -->
+    <method>ibi</method> <!-- inverse Boltzmann or inverse MC -->
+    <log_file>inverse.log</log_file> <!-- log file -->
+    <restart_file>restart_points.log</restart_file> <!-- restart -->
+  </inverse>
+  </cg>
 
 Starting the iterative process
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After all input files have been set up, the run can be started by
 
-::
+.. code:: bash
 
       csg_inverse --options settings.xml
 
@@ -536,14 +579,14 @@ fig. [fig:flow\_ibi].
 To specify Iterative Boltzmann Inversion as algorithm in the script, add
 ``ibi`` in the ``method`` section of the XMLsetting file as shown below.
 
-::
+.. code:: xml
 
-      <cg>
-        ...
-        <inverse>
-          <method>ibi</method>
-        </inverse>
-      </cg>
+  <cg>
+    ...
+    <inverse>
+      <method>ibi</method>
+    </inverse>
+  </cg>
 
 Inverse Monte Carlo
 -------------------
@@ -578,18 +621,18 @@ interactions. By specifying , votcaallows to define groups of
 interactions, amongst which cross-correlations are taken into account,
 where can be any name.
 
-::
+.. code:: xml
 
-      <non-bonded>
-        <name>CG-CG</name>
-        <type1>CG</type1>
-        <type2>CG</type2>
-        ...
-        <imc>
-          <group>solvent</group>
-       </imc>
-      </non-bonded>
-      <non-bonded>
+  <non-bonded>
+    <name>CG-CG</name>
+    <type1>CG</type1>
+    <type2>CG</type2>
+    ...
+    <imc>
+      <group>solvent</group>
+   </imc>
+  </non-bonded>
+  <non-bonded>
 
 Regularization
 ~~~~~~~~~~~~~~
@@ -598,19 +641,19 @@ To use the regularized version of IMC a :math:`\lambda` value :math:`>0`
 has to be specified by setting . If set to :math:`0` (default value) the
 unregularized version of IMC is applied.
 
-::
+.. code:: xml
 
-     <non-bonded>
-       <name>CG-CG</name>
-       <type1>CG</type1>
-       <type2>CG</type2>
-        ...
-       <inverse>
-         <imc>
-           <reg>300</reg>
-         </imc>
-       </inverse>
-     </non-bonded>
+  <non-bonded>
+    <name>CG-CG</name>
+    <type1>CG</type1>
+    <type2>CG</type2>
+     ...
+    <inverse>
+      <imc>
+        <reg>300</reg>
+      </imc>
+    </inverse>
+  </non-bonded>
 
 Relative Entropy
 ----------------
@@ -631,21 +674,21 @@ In RE, CG potentials are modeled using analytical functional forms.
 Therefore, for each CG interaction, an analytical functional must be
 specified in the XMLsetting file as
 
-::
+.. code:: xml
 
-      <non-bonded>
-        <name>CG-CG</name>
-        <type1>CG</type1>
-        <type2>CG</type2>
-        ...
-        <re>
-          <function>cbspl or lj126</function>
-            <cbspl>
-              <nknots>48</nknots>
-            </cbspl>
-        </re>
-        ...
-      </non-bonded>
+  <non-bonded>
+    <name>CG-CG</name>
+    <type1>CG</type1>
+    <type2>CG</type2>
+    ...
+    <re>
+      <function>cbspl or lj126</function>
+        <cbspl>
+          <nknots>48</nknots>
+        </cbspl>
+    </re>
+    ...
+  </non-bonded>
 
 Currently, standard Lennard-Jones 12-6 (lj126) and uniform cubic
 B-splines-based piecewise polynomial (cbspl) functional forms are
@@ -771,18 +814,18 @@ with prefactor :math:`A`
 As an example for a block doing simple pressure correction, every third
 interaction is
 
-::
+.. code:: xml
 
-    <post_update>pressure</post_update>
-    <post_update_options>
-      <pressure>
-        <type>simple</type>
-        <do>0 0 1</do>
-        <simple>
-          <scale>0.0003</scale>
-        </simple>
-      </pressure
-    </post_update_options>
+  <post_update>pressure</post_update>
+  <post_update_options>
+    <pressure>
+      <type>simple</type>
+      <do>0 0 1</do>
+      <simple>
+        <scale>0.0003</scale>
+      </simple>
+    </pressure>
+  </post_update_options>
 
 Here, is the scaling factor :math:`f`. In order to get the correct
 pressure it can become necessary to tune the scaling factor :math:`f`
@@ -835,19 +878,19 @@ The average of those running integrals in the interval, where
 As an example for a block doing Kirkwood-Buff correction, every
 iteraction without doing potential update
 
-::
+.. code:: xml
 
-    <do_potential>0</do_potential>
-    <post_update>kbibi</post_update>
-    <post_update_options>
-      <kbibi>
-        <do>1</do>
-        <start>1.0</start>
-        <stop>1.4</stop>
-        <factor>0.05</factor>
-        <r_ramp>1.4</r_ramp>
-      </kbibi>
-    </post_update_options>
+  <do_potential>0</do_potential>
+  <post_update>kbibi</post_update>
+  <post_update_options>
+    <kbibi>
+      <do>1</do>
+      <start>1.0</start>
+      <stop>1.4</stop>
+      <factor>0.05</factor>
+      <r_ramp>1.4</r_ramp>
+    </kbibi>
+  </post_update_options>
 
 Here, is the scaling factor :math:`A`. is :math:`r_1` and is :math:`r_2`
 used to calculate the average of :math:`G_{ij}(R)`.
@@ -875,14 +918,14 @@ a reasonable coarse-grained potential for SPC/Ewater could be produced
 in less than 10 minutes. Smoothing is implemented as a post\_update
 script and can be enabled by adding
 
-::
+.. code:: xml
 
-      <post_update>smooth</post_update>
-      <post_update_options>
-        <smooth>
-            <iterations>2</iterations>
-        </smooth>
-      </post_update_options>
+  <post_update>smooth</post_update>
+  <post_update_options>
+    <smooth>
+        <iterations>2</iterations>
+    </smooth>
+  </post_update_options>
 
 to the inverse section of an interaction in the settings XMLfile.
 
@@ -946,18 +989,18 @@ however, the iterative protocol is modified to target
 To perform the :math:`\mathcal{C}-`\ IBI is necessary include some lines
 inside of the .xml file:
 
-::
+.. code:: xml
 
-     <cg>
-      <non-bonded>
-       <name>A-A</name>
-       ...
-       <inverse>
-        <post_update>cibi</post_update>
-        <post_update_options>
-          <cibi>
-            <do>1</do>
-          </cibi>
-        </post_update_options>
-        ...
-     </cg>
+  <cg>
+   <non-bonded>
+    <name>A-A</name>
+    ...
+    <inverse>
+     <post_update>cibi</post_update>
+     <post_update_options>
+       <cibi>
+         <do>1</do>
+       </cibi>
+     </post_update_options>
+     ...
+  </cg>

@@ -32,7 +32,7 @@ At the current state, can only generate the topology for the first
 molecule in the system. If more molecule types are present, a special
 tpr file has to be prepared. The program can be executed by
 
-::
+.. code:: bash
 
       csg_gmxtopol --top topol.tpr --cg map.xml --out cgtop
 
@@ -80,7 +80,7 @@ Resampling
 
 Use the command
 
-::
+.. code:: bash
 
       csg_resample --in table.pot --out table_resample.pot \
                    --grid min:step:max
@@ -107,7 +107,7 @@ Extrapolation
 
 The following line
 
-::
+.. code:: bash
 
       csg_call table extrapolate [options] table_resample.pot \
                table_extrapolate.pot
@@ -136,7 +136,7 @@ Exporting the table
 Finally, the table is exported to ``xvg``. The conversion procedure
 requires a small xml file ``table.xml`` as shown below:
 
-::
+.. code:: xml
 
       <cg>
         <non-bonded>
@@ -160,7 +160,7 @@ corresponds to the ``step`` value of
 
 Using the ``xml`` file above, call
 
-::
+.. code:: bash
 
       csg_call --options table.xml --ia-type non-bonded --ia-name XXX \
         convert_potential gromacs table_extrapolate.pot table.xvg
@@ -175,7 +175,7 @@ further information).
 
 To obtain a bond table, run
 
-::
+.. code:: bash
 
       csg_call --ia-type bond --ia-name XXX --options table.xml \
       convert_potential gromacs table_extrapolate.pot table.xvg
@@ -206,7 +206,7 @@ Internally ``convert_potential gromacs`` will do the following steps:
 An example on non-bonded interactions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+.. code:: bash
 
       csg_call pot shift_nonbonded table.pot table.pot.refined
       csg_resample --grid 0.3:0.05:2 --in table.pot.refined \
@@ -225,9 +225,9 @@ choice or (b) using ``csg_resample``, ``csg_call table extrapolate`` and
 ``csg_call convert_potential``, another method would be suitable. This
 is integrating the force table as follows
 
-::
+.. code:: bash
 
-      -Integrate the table
-      $csg_call table integrate force.d minus_pot.d
-      -multiply by -1
-      $csg_call table linearop minus_pot.d pot.d -1 0
+      # Integrate the table
+      csg_call table integrate force.d minus_pot.d
+      # multiply by -1
+      csg_call table linearop minus_pot.d pot.d -1 0

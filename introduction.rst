@@ -49,7 +49,7 @@ analytic functions. Instead, tabulated functions are normally used.
 
 The coarse-graining *method* defines criteria according to which the
 potential energy surface is constructed. For example, for the bond
-:math:`b` and the angle :math:`\theta`  can be used. In this case a
+:math:`b` and the angle :math:`\theta` can be used. In this case a
 coarse-grained potential will be a potential of mean force. For the
 non-bonded degrees of freedom, the package provides or methods. In this
 case the radial distribution functions of the coarse-grained model will
@@ -84,7 +84,7 @@ files are described.
 Before using the package, do not forget to initalize the variables in
 the bash or csh (tcsh)
 
-::
+.. code:: bash
 
       source <csg-installation>/bin/VOTCARC.bash
       source <csg-installation>/bin/VOTCARC.csh
