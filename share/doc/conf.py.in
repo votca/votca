@@ -8,10 +8,6 @@ source_suffix = {
     '.rst': 'restructuredtext',
 }
 
-import sphinx
-if sphinx.version_info[0] < 2:
-    source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
-
 html_logo = 'customLogo.png'
 html_theme = "sphinx_rtd_theme"
 #html_theme_path = ["_themes", ]
@@ -36,7 +32,6 @@ html_context = {
 
 extensions = [
     'nbsphinx', # Generate sphinx documentation directly from the jupyter notebooks
-    'recommonmark', # Parse markdown
     'sphinx.ext.mathjax', # Write equations
     'sphinx.ext.githubpages' # Create content to publish in githubpages
 ]
