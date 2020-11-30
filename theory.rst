@@ -16,13 +16,9 @@ momenta
    \mathbf p^n &= \{\mathbf p_1,\dots,\mathbf p_n\}.
    \end{aligned}
 
-of the :math:`n` atoms in the system. [1]_ On a coarse-grained level,
+of the :math:`n` atoms in the system. [#f1]_ On a coarse-grained level,
 the coordinates and momenta are specified by the positions and momenta
 of CG sites
-
-.. [1]
-   In what follows we adopt notations of
-   ref. [Noid:2008.1]_.
 
 .. math::
 
@@ -90,6 +86,11 @@ by [Noid:2008.1]_
 If all atoms are specific and the center of mass of a bead is used for
 mapping, then :math:`c_{Ii} = \frac{m_i}{M_I}`, and the
 condition [eq:cg\_mass] is automatically satisfied.
+
+.. rubric:: Footnotes
+.. [#] In what follows we adopt notations of ref. [Noid:2008.1]_.
+
+
 
 Boltzmann inversion
 -------------------
@@ -166,10 +167,10 @@ Hence, one has to carefully check whether this assumption holds in
 practice. This can be done by performing coarse-grained simulations and
 comparing cross-correlations for all pairs of degrees of freedom in
 atomistic and coarse-grained resolution, e. g. using a two-dimensional
-histogram, analogous to a Ramachandran plot.  [2]_
+histogram, analogous to a Ramachandran plot.  [#f2]_
 
-.. [2]
-   Checking the linear correlation coefficient does not guarantee
+.. rubric:: Footnotes
+.. [#] Checking the linear correlation coefficient does not guarantee
    statistical independence of variables, for example
    :math:`c(x, x^2)=0` if :math:`x` has a symmetric probability density
    :math:`P(x) = P(-x)`. This case is often encountered in systems used
@@ -559,4 +560,5 @@ ref. [lu_coarse-graining_2014]_) and N-body CG
 potentials can be optimized. In addition to the CG potential
 optimization, the relative entropy metric can also be used to optimize
 an AA to CG mapping operator.
+
 
