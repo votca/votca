@@ -18,8 +18,8 @@ For an installation guide see `here <INSTALL.html>`_.
    :maxdepth: 2
    :hidden:
    :caption: Manuals
-	     
-   CSG-MANUAL.rst
+
+   csg-manual/index.rst
    XTP-MANUAL.rst
 	     
 .. toctree::
@@ -27,7 +27,7 @@ For an installation guide see `here <INSTALL.html>`_.
    :hidden:
    :caption: Tutorials
 	     
-   CSG-TUTORIAL.rst
+   csg-tutorials/README.rst
    XTP-TUTORIAL.rst
 
    
@@ -37,6 +37,7 @@ For an installation guide see `here <INSTALL.html>`_.
    :caption: Development
 
    DEVELOPERS_GUIDE.rst
+   VOTCA_LANGUAGE_GUIDE.rst
    CODE_OF_CONDUCT.rst
 
 .. toctree::
