@@ -5,11 +5,10 @@ builddir="$PWD/builddir"
 git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc"
 pushd "$HOME/devdoc"
 rm -rf -- *
-git checkout -- CNAME keys
+git checkout -- CNAME keys manual.pdf
 cp -r "${builddir}/share/doc/html" .
 mv html/* .
 rmdir html
-cp "${builddir}/csg-manual/manual.pdf" .
 git add --all .
 git config --global user.name "Votca Bot"
 git config --global user.email "github@votca.org"

@@ -184,10 +184,6 @@ cmake -DCMAKE_INSTALL_PREFIX="${instdir}" -DMODULE_BUILD=ON \
       $(is_part xtp "${what[@]}" && echo -DBUILD_XTP=ON) \
       "${cmake_opts[@]}" "${srcdir}"
 make -j"${j}" ${verbose:+VERBOSE=1}
-for p in csg-manual; do
-  is_part "$p" "${what[@]}" || continue
-  cp "$instdir/share/doc/votca-$p"/*manual.pdf "${topdir}/votca-${p%-manual}-manual-${rel}.pdf"
-done
 popd
 
 rm -rf "$build"
@@ -212,7 +208,6 @@ if [[ $testing = "no" ]]; then
   echo "cd $srcdir"
   echo "for p in . ${what[@]}; do git -C \$p log -p --submodule origin/${branch}..${branch}; done"
   echo "for p in . ${what[@]}; do git -C \$p  push --tags origin ${branch}:${branch}; done"
-  echo "And do NOT forget to upload pdfs to github."
 else
   echo "cd $topdir"
   echo "Take a look at " ./*"${rel}"*
