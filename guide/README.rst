@@ -7,10 +7,10 @@ Please pick topics you are most interested in, since finishing the
 tutorial might take longer than one afternoon.
 
 Installation
-============
+------------
 
 Building VOTCA
---------------
+^^^^^^^^^^^^^^
 
 The simplest way is to use CMake:
 
@@ -35,20 +35,20 @@ To build a gromacs version for VOTCA use
     make install
 
 Using the tutorials
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 All the tutorials are in the installation folder, i.e.
 ``${prefix}/share/votca/csg-tutorials``.
 
 Downloading the manual
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 The corresponding version of the manual can be found on
 `github <https://github.com/votca/csg-manual/releases>`__ (development
 version `here <http://doc.votca.org/manual.pdf>`__).
 
 Running GROMACS
-===============
+---------------
 
 The tutorial uses GROMACS, a molecular dynamics (MD) package, for
 generating the reference data. If you are not familiar with GROMACS,
@@ -58,7 +58,7 @@ files in the ``atomistic`` folder of each tutorial, e.g., for a box of
 atomistic water see ``csg-tutorials/spce/atomistic/``.
 
 Input files
------------
+^^^^^^^^^^^
 
 You will need four files to run MD simulations \* ``conf.gro`` - stores
 the coordinates of the molecule(s). It can be viewed with vmd. The
@@ -77,7 +77,7 @@ output frequency to the ener.edr file containing all thermodynamic
 information
 
 MD simulations
---------------
+^^^^^^^^^^^^^^
 
 To run MD simulations using GROMACS, first one must create a binary
 topology file ``topol.tpr`` using the ``gmx grompp`` program. Then run
@@ -91,7 +91,7 @@ contains ``conf.gro``, ``grompp.mdp``, ``topol.top``, and
     gmx mdrun -v # -v (verbose) gives the estimate of the run time
 
 Running other MD programs
-=========================
+-------------------------
 
 In addition to GROMACS, VOTCA supports ``ESPResSo``, ``Lammps``,
 ``dl_poly``, ``HOOMD-blue``, and ``ESPResSo++``. The interface to these
@@ -115,10 +115,10 @@ simulations of the Iterative Boltzmann inversion procedure.
    definition in them.
 
 Mapping an atomistic trajectory onto a coarse-grained trajectory
-================================================================
+----------------------------------------------------------------
 
 SPC/E Water
------------
+^^^^^^^^^^^
 
 Folder: ``csg-tutorials/spce/atomistic/``
 
@@ -151,7 +151,7 @@ Map this short atomistic trajectory to a CG trajectory using ``csg_map``
 ``conf_cg.gro``.)
 
 Iterative Boltzmann inversion (IBI) for SPC/E water
-===================================================
+---------------------------------------------------
 
 Here, a one-site coarse-grained (CG) model of a rigid 3-site water
 molecule (SPC/E model) is constructed (see the previous section of the
@@ -165,7 +165,7 @@ For a more detailed description, look at the following
 `publication <http://pubs.acs.org/doi/abs/10.1021/ct900369w>`__.
 
 Atomistic simulation
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 A short atomistic MD simulation has been already run in the last part of
 the previous section (see folder: ``csg-tutorials/spce/atomistic/``).
@@ -181,7 +181,7 @@ information:
     ./Extract_Energies.sh $equi #  The argument $equi is optional. If provided, analysis will start at the corresponding time frame (in GROMACS units, ps) (e.g. 1 to 5)
 
 Calculation of RDF
-------------------
+^^^^^^^^^^^^^^^^^^
 
 Once again, check the mapping file ``water.xml``. Atom names listed in
 the definition of the COM bead should correspond to those used in the
@@ -203,7 +203,7 @@ Compare your RDF with ``CG-CG.dist.tgt`` in ``csg-tutorials/spce/ibi/``
 which has been calculated with a much longer atomistic simulation run.
 
 Running IBI
------------
+^^^^^^^^^^^
 
 Now switch to the folder: ``csg-tutorials/spce/ibi/``. Reduce the number
 of MD steps in ``grompp.mdp`` and adjust the equilibration time in the
@@ -231,7 +231,7 @@ option to the settings file, so that a (simple) pressure correction is
 applied. You can check the corresponding section of the manual.
 
 Inverse Monte Carlo (IMC) for SPC/E water
-=========================================
+-----------------------------------------
 
 Developing a CG potential with the inverse Monte Carlo (IMC) method
 works in a similar way as in the IBI example. The IMC procedure, again,
@@ -261,7 +261,7 @@ compare it with the IBI tutorial. You can do this by copying the
 (``step_xxx``) and executing it.
 
 Relative entropy (RE) minimization for SPC/E water
-==================================================
+--------------------------------------------------
 
 Relative entropy (RE) minimization based coarse-graining of SPC/E water
 works similar to the IBI and the IMC example above. The reference
@@ -295,13 +295,13 @@ RE method, look at the following
 `publication <http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0131754>`__.
 
 Force matching for SPC/E water
-==============================
+------------------------------
 
 We will now derive a non-bonded CG potential for SPC/E using the force
 matching method.
 
 Atomistic simulation
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 Basis for the force matching procedure is an atomistic MD simulation.
 All files are found in the atomistic folder
@@ -314,7 +314,7 @@ to the trajectory file (``nstxout`` and ``nstfout`` should have the same
 value in ``grompp.mdp``).
 
 Force matching (FM)
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 All files for running the actual force matching calculation can be found
 in ``csg-tutorials/spce/force_matching/``. Have a look at the settings
@@ -345,7 +345,7 @@ Change the spline grid (``step``), blocksize, and parameter
 constrainedLS. his should provide an overview of the whole procedure.
 
 Running of CG simulation
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 To run a CG simulation with GROMACS, the potential has to be converted
 to a potential table, GROMACS can read (``table_CG_CG.xvg``). (Check the
@@ -376,13 +376,13 @@ in progress. An extension to analytic non-bonded 3-body interactions
 will be released soon).
 
 Visualization of IBI updates
-============================
+----------------------------
 
 Go to the folder ``csg-tutorials/spce/realtime``. Execute the ``run.sh``
 script.
 
 Coarse-graining of liquid methanol
-==================================
+----------------------------------
 
 In the folder ``csg-tutorials/methanol/``, you will find all relevant
 files to run an atomistic simulation of liquid methanol and obtain CG
@@ -395,7 +395,7 @@ is a better approximation to an ideal CG potential as in the SPC/E water
 case. The reason is that non-bonded 3-body effects are less important.
 
 Coarse-graining of liquid hexane
-================================
+--------------------------------
 
 Go to the folder ``csg-tutorials/hexane/``. So far, we only considered
 single bead mappings. Hexane is a small alkane molecule. In this
@@ -403,7 +403,7 @@ tutorial, a 3 bead CG mapping with one bond type and one angle type is
 chosen
 
 Atomistic simulation
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 Go into the ``csg-tutorials/hexane/atomistic/`` folder. Have a look at
 the mapping file ``hexane.xml``. The hexane molecule is mapped to 3
@@ -422,7 +422,7 @@ atomistic simuation to the CG one to get all necessary information for
 running the IBI procedure.
 
 IBI for all interactions
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Go to the folder ``csg-tutorials/hexane/ibi_all``. The folder contains
 target RDFs and bond and angle distributions from a longer atomistic MD
@@ -440,7 +440,7 @@ main folder (``csg-tutorials/spce/ibi/``) to the appropriate step folder
 (``step_xxx``) and executing it.
 
 IBI for non-bonded interactions only
-------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Go to the folder ``csg-tutorials/hexane/ibi_nonbonded``. The folder
 contains the same target RDFs as the ``csg-tutorials/hexane/ibi_all``
@@ -463,7 +463,7 @@ distributions (This can be done with ``csg_stat``, using the
 ``csg-tutorials/hexane/ibi_all`` folder.)
 
 FM for all interactions together
---------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Go to the folder ``csg-tutorials/hexane/force_matching``. The folder
 contains the hexane mapping file with bond and angle interactions
@@ -485,7 +485,7 @@ force matching only on the non-bonded contributions as was shown
 `here <http://dx.doi.org/10.1002/mats.201100011>`__.
 
 FM for non-bonded interactions only
------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The files for the tutorial can be found in
 ``csg-tutorials/hexane/hybrid_force_matching/``. The folder should
@@ -515,7 +515,7 @@ folder. Calculate the RDFs, bond and angle distributions and compare the
 results to the IBI results and FM of all interactions together.
 
 Regularization of the inverse Monte Carlo method
-================================================
+------------------------------------------------
 
 For this tutorial go to the folder ``csg-tutorials/LJ1-LJ2/imc``.
 Inverse Monte Carlo (IMC) needs a well defined cross-correlation matrix
@@ -549,17 +549,17 @@ smallest singular values squared and smaller compared to the larger
 ones.
 
 Additional tutorials
-====================
+--------------------
 
 Have a look in the folder ``csg-tutorials``. It contains additional
 tutorials on propane, methanol-water and urea-water mixtures. To do the
 tutorials, have a look at the corresponding ``run.sh`` scripts.
 
 Advanced topics
-===============
+---------------
 
 Extending the scripting framework
----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Write a post update script, which smooths the tail of a potential by
 transforming ``dU(r)`` to ``s(r)dU(r)`` with
@@ -574,7 +574,7 @@ Hints: Start from ``skeleton.pl`` and use ``pressure_cor_simple.pl`` as
 a template.
 
 Writing an analysis tool
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 VOTCA allows to write your own analysis code. There are many examples
 and two templates for serial and threaded analysis. If you are willing
