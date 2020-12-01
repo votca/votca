@@ -1,1 +1,0 @@
-../../scripts/bbox_add.pl
