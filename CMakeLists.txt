@@ -26,8 +26,6 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
-find_package(TXT2TAGS REQUIRED)
-set_package_properties(TXT2TAGS PROPERTIES TYPE OPTIONAL PURPOSE "Used to build csg-manual")
 find_package(VOTCA_CSG NO_MODULE REQUIRED)
 set_package_properties(VOTCA_CSG PROPERTIES TYPE REQUIRED PURPOSE "Votca csg library")
 if(DEFINED VOTCA_CSG_VERSION AND NOT VOTCA_CSG_VERSION STREQUAL PROJECT_VERSION)
