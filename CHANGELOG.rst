@@ -16,7 +16,7 @@ Version 2021-dev
 -  make scripts always executable in builddir (#533, #550, #556)
 -  rename REGRESSIONTEST\_TOLERANCE to INTEGRATIONTEST\_TOLERANCE (#534)
 -  standardising include order and style in library files (#542)
--  move CI to GitHub Ations (#551, #552, #553, #561, #562, #593)
+-  move CI to GitHub Ations (#551, #552, #553, #561, #562, #593, #617)
 -  format CMake internal cpp code (#557)
 -  update codacy badge (#558)
 -  convert markdown to rst format (#559)
