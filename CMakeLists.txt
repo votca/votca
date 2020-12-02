@@ -79,6 +79,7 @@ endif()
 set(VOTCA_SPHINX_DIR "${PROJECT_BINARY_DIR}/sphinx" CACHE PATH "Path for Sphinx sources")
 file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR})
 set(VOTCA_SPHINX_OUTPUT_DIR "${PROJECT_BINARY_DIR}/sphinx.html" CACHE PATH "Path for Sphinx output")
+set(VOTCA_XML_PARSER "${PROJECT_SOURCE_DIR}/xtp/share/doc/extract_metadata.py")
 
 ########################################################################
 #Find external packages
