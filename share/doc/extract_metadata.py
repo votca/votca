@@ -146,9 +146,7 @@ def csg_get_recursive_attributes(elem: ET.Element, root_name: str = "") -> str:
             description = desc_elem.text
         else:
             description = ""
-        # Create multiline
-        if len(description) > MAXIMUM_LINE_LENGTH:
-            description = wrap_line(description)
+        description = split_line(description)
 
         name = root_name + elem.tag
         default = "" if elem.text is None else ' '.join(elem.text.split())
