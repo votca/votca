@@ -24,12 +24,25 @@ namespace votca {
 namespace xtp {
 
 OpenMP_CUDA::OpenMP_CUDA() {
+
+  inside_Parallel_region_ = OPENMP::InsideActiveParallelRegion();
 #ifdef USE_CUDA
-  no_gpus_ = count_available_gpus();
-  for (Index i = 0; i < no_gpus_; i++) {
+  Index no_gpus = count_available_gpus();
+  gpuIDs_.resize(0);
+  if (inside_Parallel_region_) {
+    Index threadID = OPENMP::getThreadId();
+    if (threadID < no_gpus) {
+      gpuIDs_.push_back(threadID);
+    }
+  } else {
+    for (Index i = 0; i < no_gpus; i++) {
+      gpuIDs_.push_back(i);
+    }
+  }
+  for (Index i : gpuIDs_) {
     cuda_pips_.push_back(std::make_unique<CudaPipeline>(int(i)));
   }
-  temp_ = std::vector<temporaries>(no_gpus_);
+  temp_ = std::vector<temporaries>(gpuIDs_.size());
 #endif
 }
 
@@ -37,8 +50,8 @@ OpenMP_CUDA::OpenMP_CUDA() {
 void OpenMP_CUDA::setOperators(const std::vector<Eigen::MatrixXd>& tensor,
                                const Eigen::MatrixXd& rightoperator) {
   rightoperator_ = &rightoperator;
-#pragma omp parallel for num_threads(no_gpus_)
-  for (Index i = 0; i < no_gpus_; i++) {
+#pragma omp parallel for num_threads(gpuIDs_.size())
+  for (Index i = 0; i < Index(gpuIDs_.size()); i++) {
     const Eigen::MatrixXd& head = tensor.front();
     const cudaStream_t& stream = cuda_pips_[i]->get_stream();
     checkCuda(cudaSetDevice(cuda_pips_[i]->getDeviceId()));
@@ -54,6 +67,10 @@ void OpenMP_CUDA::setOperators(const std::vector<Eigen::MatrixXd>&,
   rightoperator_ = &rightoperator;
 }
 #endif
+
+bool isInVector(Index element, const std::vector<Index>& vec) {
+  return (std::find(vec.begin(), vec.end(), element) != vec.end());
+}
 
 /*
  * The Cuda device behaves like a server that is receiving matrix-matrix
@@ -76,11 +93,14 @@ void OpenMP_CUDA::MultiplyRight(Eigen::MatrixXd& tensor) {
   // multiplication
 #ifdef USE_CUDA
   Index threadid = OPENMP::getThreadId();
-  if (threadid < no_gpus_) {
+  if (isInVector(threadid, gpuIDs_)) {
+    if (inside_Parallel_region_) {
+      threadid = 0;
+    }
     checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
     temp_[threadid].A->copy_to_gpu(tensor);
     cuda_pips_[threadid]->gemm(*temp_[threadid].A, *temp_[threadid].B,
-                              *temp_[threadid].C);
+                               *temp_[threadid].C);
     tensor = *temp_[threadid].C;
   } else {
     tensor *= *rightoperator_;
@@ -96,8 +116,8 @@ void OpenMP_CUDA::setOperators(const Eigen::MatrixXd& leftoperator,
   rightoperator_ = &rightoperator;
   leftoperator_ = &leftoperator;
 #ifdef USE_CUDA
-#pragma omp parallel for num_threads(no_gpus_)
-  for (Index i = 0; i < no_gpus_; i++) {
+#pragma omp parallel for num_threads(gpuIDs_.size())
+  for (Index i = 0; i < Index(gpuIDs_.size()); i++) {
     const cudaStream_t& stream = cuda_pips_[i]->get_stream();
     checkCuda(cudaSetDevice(cuda_pips_[i]->getDeviceId()));
     temp_[i].A = std::make_unique<CudaMatrix>(leftoperator, stream);
@@ -115,13 +135,16 @@ void OpenMP_CUDA::setOperators(const Eigen::MatrixXd& leftoperator,
 void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
 #ifdef USE_CUDA
   Index threadid = OPENMP::getThreadId();
-  if (threadid < no_gpus_) {
+  if (isInVector(threadid, gpuIDs_)) {
+    if (inside_Parallel_region_) {
+      threadid = 0;
+    }
     checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
     temp_[threadid].B->copy_to_gpu(matrix);
     cuda_pips_[threadid]->gemm(*temp_[threadid].A, *temp_[threadid].B,
-                              *temp_[threadid].C);
+                               *temp_[threadid].C);
     cuda_pips_[threadid]->gemm(*temp_[threadid].C, *temp_[threadid].D,
-                              *temp_[threadid].E);
+                               *temp_[threadid].E);
     matrix = *temp_[threadid].E;
   } else {
     matrix = (*leftoperator_) * matrix * (*rightoperator_);
@@ -133,23 +156,25 @@ void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
 }
 #ifdef USE_CUDA
 void OpenMP_CUDA::createTemporaries(Index rows, Index cols) {
-  reduction_ = std::vector<Eigen::MatrixXd>(OPENMP::getMaxThreads(),
-                                            Eigen::MatrixXd::Zero(cols, cols));
+  Index size = inside_Parallel_region_ ? 1 : OPENMP::getMaxThreads();
+  reduction_ =
+      std::vector<Eigen::MatrixXd>(size, Eigen::MatrixXd::Zero(cols, cols));
 
-#pragma omp parallel for num_threads(no_gpus_)
-  for (Index i = 0; i < no_gpus_; i++) {
+#pragma omp parallel for num_threads(gpuIDs_.size())
+  for (Index i = 0; i < Index(gpuIDs_.size()); i++) {
     checkCuda(cudaSetDevice(cuda_pips_[i]->getDeviceId()));
     const cudaStream_t& stream = cuda_pips_[i]->get_stream();
     temp_[i].A = std::make_unique<CudaMatrix>(rows, 1, stream);
     temp_[i].B = std::make_unique<CudaMatrix>(rows, cols, stream);
     temp_[i].C = std::make_unique<CudaMatrix>(rows, cols, stream);
-    temp_[i].D = std::make_unique<CudaMatrix>(reduction_[0], stream);
+    temp_[i].D = std::make_unique<CudaMatrix>(reduction_[i], stream);
   }
 }
 #else
 void OpenMP_CUDA::createTemporaries(Index, Index cols) {
-  reduction_ = std::vector<Eigen::MatrixXd>(OPENMP::getMaxThreads(),
-                                            Eigen::MatrixXd::Zero(cols, cols));
+  Index size = inside_Parallel_region_ ? 1 : OPENMP::getMaxThreads();
+  reduction_ =
+      std::vector<Eigen::MatrixXd>(size, Eigen::MatrixXd::Zero(cols, cols));
 }
 
 #endif
@@ -158,26 +183,36 @@ void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
                         const Eigen::VectorXd& vec) {
   Index threadid = OPENMP::getThreadId();
 #ifdef USE_CUDA
-  if (threadid < no_gpus_) {
+  if (isInVector(threadid, gpuIDs_)) {
+    if (inside_Parallel_region_) {
+      threadid = 0;
+    }
     checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
     temp_[threadid].A->copy_to_gpu(vec);
     temp_[threadid].B->copy_to_gpu(matrix);
     cuda_pips_[threadid]->diag_gemm(*temp_[threadid].B, *temp_[threadid].A,
-                                   *temp_[threadid].C);
+                                    *temp_[threadid].C);
     cuda_pips_[threadid]->gemm(*temp_[threadid].B, *temp_[threadid].C,
-                              *temp_[threadid].D, true, false, 1.0);
+                               *temp_[threadid].D, true, false, 1.0);
   } else {
+    if (inside_Parallel_region_) {
+      threadid = 0;
+    }
     reduction_[threadid] += matrix.transpose() * vec.asDiagonal() * matrix;
   }
 #else
+  if (inside_Parallel_region_) {
+    threadid = 0;
+  }
   reduction_[threadid] += matrix.transpose() * vec.asDiagonal() * matrix;
 #endif
 }
 
 Eigen::MatrixXd OpenMP_CUDA::A_TDA_result() {
 #ifdef USE_CUDA
-#pragma omp parallel for num_threads(no_gpus_)
-  for (Index i = 0; i < no_gpus_; i++) {
+#pragma omp parallel for num_threads(gpuIDs_.size())
+  for (Index i = 0; i < Index(gpuIDs_.size()); i++) {
+    checkCuda(cudaSetDevice(cuda_pips_[i]->getDeviceId()));
     reduction_[i] = *temp_[i].D;
   }
 #endif

@@ -103,12 +103,12 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
   const Index lumo = _homo + 1;
   const Index n_occ = lumo - _rpamin;
   const Index n_unocc = _rpamax - lumo + 1;
-
   OpenMP_CUDA transform;
   transform.createTemporaries(n_unocc, size);
 
 #pragma omp parallel for schedule(dynamic)
   for (Index m_level = 0; m_level < n_occ; m_level++) {
+   
     const double qp_energy_m = _energies(m_level);
     const Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
     const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;

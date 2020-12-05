@@ -32,7 +32,9 @@
  * \brief Supports operations on Matrices using OPENMP and
  * CUDA. It works in two steps a) set the variables for contraction
  * b) write the normal OPENMP for-loop but use the multiplyright on the
- * individual matrix
+ * individual matrix. If an OpenMP_CUDA is constructed inside an active OpenMP
+ * region, it only creates a single gpu job, if the thread id is smaller than
+ * number of gpus.
  *
  */
 
@@ -42,7 +44,7 @@ namespace xtp {
 class OpenMP_CUDA {
  public:
   OpenMP_CUDA();
-  static Index UsingGPUs(){
+  static Index UsingGPUs() {
 #ifdef USE_CUDA
     return count_available_gpus();
 #else
@@ -66,10 +68,11 @@ class OpenMP_CUDA {
   const Eigen::MatrixXd* leftoperator_ = nullptr;
 
   std::vector<Eigen::MatrixXd> reduction_;
+  bool inside_Parallel_region_;
 
 #ifdef USE_CUDA
 
-  Index no_gpus_ = 0;
+  std::vector<Index> gpuIDs_ ;
   std::vector<std::unique_ptr<CudaPipeline>> cuda_pips_;
 
   struct temporaries {
