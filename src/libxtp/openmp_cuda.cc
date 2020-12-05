@@ -26,13 +26,13 @@ namespace xtp {
 OpenMP_CUDA::OpenMP_CUDA() {
 
   inside_Parallel_region_ = OPENMP::InsideActiveParallelRegion();
+  threadID_parent_ = OPENMP::getThreadId();
 #ifdef USE_CUDA
   Index no_gpus = count_available_gpus();
   gpuIDs_.resize(0);
   if (inside_Parallel_region_) {
-    Index threadID = OPENMP::getThreadId();
-    if (threadID < no_gpus) {
-      gpuIDs_.push_back(threadID);
+    if (threadID_parent_ < no_gpus) {
+      gpuIDs_.push_back(threadID_parent_);
     }
   } else {
     for (Index i = 0; i < no_gpus; i++) {
@@ -92,7 +92,9 @@ void OpenMP_CUDA::MultiplyRight(Eigen::MatrixXd& tensor) {
   // OpenMP. The rest of the threads use the default CPU matrix
   // multiplication
 #ifdef USE_CUDA
-  Index threadid = OPENMP::getThreadId();
+
+  Index threadid =
+      inside_Parallel_region_ ? threadID_parent_ : OPENMP::getThreadId();
   if (isInVector(threadid, gpuIDs_)) {
     if (inside_Parallel_region_) {
       threadid = 0;
@@ -134,7 +136,8 @@ void OpenMP_CUDA::setOperators(const Eigen::MatrixXd& leftoperator,
 
 void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
 #ifdef USE_CUDA
-  Index threadid = OPENMP::getThreadId();
+  Index threadid =
+      inside_Parallel_region_ ? threadID_parent_ : OPENMP::getThreadId();
   if (isInVector(threadid, gpuIDs_)) {
     if (inside_Parallel_region_) {
       threadid = 0;
@@ -181,13 +184,15 @@ void OpenMP_CUDA::createTemporaries(Index, Index cols) {
 
 void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
                         const Eigen::VectorXd& vec) {
-  Index threadid = OPENMP::getThreadId();
+   Index threadid =
+      inside_Parallel_region_ ? threadID_parent_ : OPENMP::getThreadId();
 #ifdef USE_CUDA
   if (isInVector(threadid, gpuIDs_)) {
     if (inside_Parallel_region_) {
       threadid = 0;
     }
     checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
+
     temp_[threadid].A->copy_to_gpu(vec);
     temp_[threadid].B->copy_to_gpu(matrix);
     cuda_pips_[threadid]->diag_gemm(*temp_[threadid].B, *temp_[threadid].A,

@@ -69,6 +69,7 @@ class OpenMP_CUDA {
 
   std::vector<Eigen::MatrixXd> reduction_;
   bool inside_Parallel_region_;
+  Index threadID_parent_;
 
 #ifdef USE_CUDA
 
