@@ -82,6 +82,8 @@ Version 2021-dev
 -  fixed atomid numbering while adding containers (#599)
 -  added tool for automatic mapping file generation (#595)
 -  Added GPU support for RPA (#601)
+-  fixed int64 interface to RDKIT (#602)
+
 
 Version 1.6.3 (released XX.08.20)
 =================================

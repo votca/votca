@@ -44,7 +44,8 @@ CudaMatrix::CudaMatrix(const Eigen::MatrixXd &matrix,
   cudaError_t err = cudaMemcpyAsync(_data.get(), matrix.data(), size_matrix(),
                                     cudaMemcpyHostToDevice, stream);
   if (err != 0) {
-    throw std::runtime_error("Error copy arrays to device :"+std::string(cudaGetErrorString(err)));
+    throw std::runtime_error("Error copy arrays to device :" +
+                             std::string(cudaGetErrorString(err)));
   }
 }
 
