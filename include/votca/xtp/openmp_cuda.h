@@ -73,7 +73,7 @@ class OpenMP_CUDA {
 
 #ifdef USE_CUDA
 
-  std::vector<Index> gpuIDs_ ;
+  std::vector<Index> gpuIDs_;
   std::vector<std::unique_ptr<CudaPipeline>> cuda_pips_;
 
   struct temporaries {
