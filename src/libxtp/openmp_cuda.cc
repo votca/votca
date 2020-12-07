@@ -184,7 +184,7 @@ void OpenMP_CUDA::createTemporaries(Index, Index cols) {
 
 void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
                         const Eigen::VectorXd& vec) {
-   Index threadid =
+  Index threadid =
       inside_Parallel_region_ ? threadID_parent_ : OPENMP::getThreadId();
 #ifdef USE_CUDA
   if (isInVector(threadid, gpuIDs_)) {
