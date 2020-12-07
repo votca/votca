@@ -81,7 +81,7 @@ std::complex<double> PadeApprox::RecursivePolynom(Index indx, Index degree) {
 std::complex<double> PadeApprox::RecursiveA(std::complex<double> frequency,
                                             Index index) {
 
-  if (_temp_container_A.size() > index) {
+  if (Index(_temp_container_A.size()) > index) {
     return _temp_container_A[index];
   } else {
     std::complex<double> A =
@@ -96,7 +96,7 @@ std::complex<double> PadeApprox::RecursiveA(std::complex<double> frequency,
 std::complex<double> PadeApprox::RecursiveB(std::complex<double> frequency,
                                             Index index) {
 
-  if (_temp_container_B.size() > index) {
+  if ( Index(_temp_container_B.size()) > index) {
     return _temp_container_B[index];
   } else {
     std::complex<double> B =

@@ -191,7 +191,6 @@ double Vxc_Potential<Grid>::EvaluateFXC(double rho) const {
 template <class Grid>
 Eigen::VectorXd Vxc_Potential<Grid>::precalcFXC(
     const Eigen::MatrixXd density_matrix) const {
-  Index nthreads = OPENMP::getMaxThreads();
 
   Index vectorSize = (density_matrix.cols() * (density_matrix.cols() + 1)) / 2;
   
@@ -231,7 +230,7 @@ Eigen::VectorXd Vxc_Potential<Grid>::precalcFXC(
     // Find indices of used basis functions for this box
     std::vector<Index> sFI;
 
-    for (Index s = 0; s < box.getShells().size(); s++) {
+    for (Index s = 0; s < Index(box.getShells().size()); s++) {
       for (Index f = 0; f < significantShells.at(s)->getNumFunc(); f++) {
         sFI.push_back(
             significantShells.at(s)->getStartIndex() + f);
@@ -254,10 +253,10 @@ Eigen::VectorXd Vxc_Potential<Grid>::precalcFXC(
       double fxc = EvaluateFXC(rho);
 
       // Loop over significant shells and calculate (ijkl)
-      for (Index i_3 = 0; i_3 < sFI.size(); i_3++) {
+      for (Index i_3 = 0; i_3 < Index(sFI.size()); i_3++) {
         Index ind_3 = sFI.at(i_3);
         Index sum_ind_3 = (ind_3 * (ind_3 + 1)) / 2;
-        for (Index i_4 = 0; i_4 < sFI.size(); i_4++) {
+        for (Index i_4 = 0; i_4 < Index(sFI.size()); i_4++) {
           Index ind_4 = sFI.at(i_4);
           if (ind_3 > ind_4) {
             continue;
@@ -265,10 +264,10 @@ Eigen::VectorXd Vxc_Potential<Grid>::precalcFXC(
           Index index_34 = density_matrix.rows() * ind_3 - sum_ind_3 + ind_4;
           Index index_34_12_a =
               vectorSize * index_34 - (index_34 * (index_34 + 1)) / 2;
-          for (Index i_1 = 0; i_1 < sFI.size(); i_1++) {
+          for (Index i_1 = 0; i_1 < Index(sFI.size()); i_1++) {
             Index ind_1 = sFI.at(i_1);
             Index sum_ind_1 = (ind_1 * (ind_1 + 1)) / 2;
-            for (Index i_2 = 0; i_2 < sFI.size(); i_2++) {
+            for (Index i_2 = 0; i_2 < Index(sFI.size()); i_2++) {
               Index ind_2 = sFI.at(i_2);
               if (ind_1 > ind_2) {
                 continue;

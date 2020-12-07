@@ -98,14 +98,14 @@ std::vector<std::complex<double>> Sternheimer::BuildGrid(
 
   std::vector<std::complex<double>> grid;
 
-  double stepsize = (omega_end - omega_start) / steps;
+  double stepsize = (omega_end - omega_start) / (double) steps;
   const double ev2hrt = votca::tools::conv::ev2hrt;
   std::complex<double> d(1, 0);
   std::complex<double> i(0, 1);
 
   for (Index n = 0; n <= steps; n++) {
     // Converts from input eV to Hartree
-    grid.push_back(omega_start * ev2hrt + n * stepsize * ev2hrt +
+    grid.push_back(omega_start * ev2hrt + (double) n * stepsize * ev2hrt +
                    imaginary_shift * i * ev2hrt);
   }
   // Grid has form: stepsize*n+i*imaginary shift
@@ -157,8 +157,6 @@ Eigen::MatrixXcd Sternheimer::DeltaNSCSternheimer(
   Eigen::MatrixXcd delta_n_step_one =
       Eigen::MatrixXcd::Zero(_basis_size, _basis_size);
 
-  double alpha = 1000;
-
   Vxc_Grid _grid;
   _grid.GridSetup(_opt.numerical_Integration_grid_type, _orbitals.QMAtoms(),
                   _dftbasis);
@@ -209,7 +207,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSCSternheimer(
     }
 
     // Check if max mixing history is reached and adding new step to history
-    if (perturbationVectoroutput.size() > _opt.max_mixing_history - 1) {
+    if (perturbationVectoroutput.size() > static_cast<long unsigned int>(_opt.max_mixing_history - 1)) {
       perturbationVectoroutput.erase(perturbationVectoroutput.begin());
     }
 
@@ -233,7 +231,7 @@ Eigen::MatrixXcd Sternheimer::DeltaNSCSternheimer(
 
       perturbationUsed = (NPAndersonMixing(perturbationVectorInput,
                                            perturbationVectoroutput, 0.5));
-      if (perturbationVectorInput.size() > _opt.max_mixing_history - 1) {
+      if (perturbationVectorInput.size() > static_cast<long unsigned int>(_opt.max_mixing_history - 1)) {
         perturbationVectorInput.erase(perturbationVectorInput.begin());
       }
       perturbationVectorInput.push_back(perturbationUsed);
@@ -269,14 +267,14 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(Input.size() - 1, Input.size() - 1);
   Eigen::VectorXd c = Eigen::VectorXd::Zero(Input.size() - 1);
 
-  for (Index m = 1; m < Input.size(); m++) {
+  for (Index m = 1; m < Index(Input.size()); m++) {
 
     c(m - 1) = (DeltaN - Output.at(Output.size() - 1 - m) +
                 Input.at(Input.size() - 1 - m))
                    .cwiseProduct(DeltaN)
                    .sum()
                    .real();
-    for (Index j = 1; j < Input.size(); j++) {
+    for (Index j = 1; j < Index(Input.size()); j++) {
 
       A(m - 1, j - 1) =
           (DeltaN - Output.at(Output.size() - 1 - m) +
@@ -295,7 +293,7 @@ Eigen::MatrixXcd Sternheimer::NPAndersonMixing(
   Eigen::MatrixXcd OutMixed = Output.back();
   Eigen::MatrixXcd InMixed = Input.back();
 
-  for (Index n = 1; n < Input.size(); n++) {
+  for (Index n = 1; n < Index(Input.size()); n++) {
 
     OutMixed += coefficients(n - 1) * (Output.at(Output.size() - 1 - n) -
                                        Output.at(Output.size() - 1));
@@ -358,7 +356,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability() const {
   std::vector<Eigen::Matrix3cd> Polar;
   std::vector<Eigen::Matrix3cd> Polar_pade;
 
-  for (Index i = 0; i < frequency_evaluation_grid.size(); i++) {
+  for (Index i = 0; i < Index(frequency_evaluation_grid.size()); i++) {
     Polar.push_back(Eigen::Matrix3cd::Zero());
   }
 
@@ -372,7 +370,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability() const {
   AODipole dipole;
   dipole.Fill(_dftbasis);
 #pragma omp parallel for
-  for (Index n = 0; n < frequency_evaluation_grid.size(); n++) {
+  for (Index n = 0; n < Index(frequency_evaluation_grid.size()); n++) {
     for (Index i = 0; i < 3; i++) {
       Eigen::MatrixXcd delta_n =
           DeltaNSCSternheimer(frequency_evaluation_grid[n],
@@ -388,7 +386,7 @@ std::vector<Eigen::Matrix3cd> Sternheimer::Polarisability() const {
     }
   }
 
-  for (Index n = 0; n < Polar.size(); n++) {
+  for (Index n = 0; n < Index(Polar.size()); n++) {
     pade_1.addPoint(frequency_evaluation_grid[n], Polar[n](0, 0));
     pade_1.addPoint(conj(frequency_evaluation_grid[n]), conj(Polar[n](0, 0)));
     pade_1.addPoint(-frequency_evaluation_grid[n], conj(Polar[n](0, 0)));
@@ -465,8 +463,7 @@ std::vector<Eigen::Vector3cd> Sternheimer::EnergyGradient() const {
   return EnergyGrad;
 }
 
-std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n,
-                                                            Index m) const {
+std::vector<Eigen::Vector3cd> Sternheimer::MOEnergyGradient(Index n) const {
 
   QMMolecule mol = _orbitals.QMAtoms();
 

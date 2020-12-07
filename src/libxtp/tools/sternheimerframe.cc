@@ -78,7 +78,8 @@ void SternheimerFrame::ParseOptions(const tools::Property &options) {
         << " Imaginary shift: " << _options.imaginary_shift_pade_approx
         << flush;
   }
-};
+}
+
 bool SternheimerFrame::Run() {
 
   OPENMP::setMaxThreads(_nThreads);
@@ -132,7 +133,7 @@ bool SternheimerFrame::Run() {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << " Writing output to " << outfile << flush;
     ofs << "#Freq (ev) \t polarizability_isotropic_average" << std::endl;
-    for (Index i = 0; i < polar.size(); i++) {
+    for (Index i = 0; i < Index(polar.size()); i++) {
       ofs << real(grid.at(i)) * votca::tools::conv::hrt2ev << "\t"
           << real((polar.at(i)(2, 2))) + real(polar.at(i)(1, 1)) +
                  real(polar.at(i)(0, 0)) / 3
@@ -160,7 +161,7 @@ bool SternheimerFrame::Run() {
         << "#Atom_Type "
         << "Atom_Index "
         << "Gradient x y z " << std::endl;
-    for (int i = 0; i < EPC.size(); i++) {
+    for (Index i = 0; i < Index(EPC.size()); i++) {
       ofs << mol.at(i).getElement() << " " << i << " " << EPC[i][0].real()
           << " " << EPC[i][1].real() << " " << EPC[i][2].real() << std::endl;
     }
@@ -186,9 +187,9 @@ bool SternheimerFrame::Run() {
 
     for (Index n = 0; n < orbitals.MOs().eigenvalues().size(); ++n) {
 
-      std::vector<Eigen::Vector3cd> EPC = sternheimer.MOEnergyGradient(n, n);
+      std::vector<Eigen::Vector3cd> EPC = sternheimer.MOEnergyGradient(n);
 
-      for (int i = 0; i < EPC.size(); i++) {
+      for (Index i = 0; i < Index(EPC.size()); i++) {
         ofs << n << " " << mol.at(i).getElement() << " " << i << " "
             << EPC[i][0].real() << " " << EPC[i][1].real() << " "
             << EPC[i][2].real() << std::endl;

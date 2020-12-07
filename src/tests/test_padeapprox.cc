@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(padeapprox_test){
       grid.push_back(i);
   }
   
-  for (int i = 0; i < grid.size(); i++) {
+  for (std::size_t i = 0; i < grid.size(); i++) {
     std::cout << "Gridpoint: " << grid.at(i) << std::endl;
   }
   
@@ -73,12 +73,12 @@ BOOST_AUTO_TEST_CASE(padeapprox_test){
       val.push_back(Eigen::Matrix3d::Random());
   }
   
-  for (int i = 0; i < val.size(); i++) {
+  for (std::size_t  i = 0; i < val.size(); i++) {
     std::cout << "Values: " << val.at(i)(0,0) << std::endl;
   }
   
   std::cout << "Init done"<< std::endl;
-  for (int j = 0; j < grid.size(); j++) {
+  for (std::size_t j = 0; j < grid.size(); j++) {
     //std::cout << "loop "<<j<< std::endl; 
     pade_1.addPoint(grid.at(j), val.at(j)(0,0));
     pade_2.addPoint(grid.at(j), val.at(j)(0,1));

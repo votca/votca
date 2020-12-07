@@ -62,9 +62,6 @@ void AO3ddipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
 
   Index rank = 1;
 
-  // const double charge = _site->getCharge();
-  const Eigen::Vector3d dipole = Eigen::Vector3d::Ones();
-
   // shell info, only lmax tells how far to go
   Index lmax_row = Index(shell_row.getL());
   Index lmax_col = Index(shell_row.getL());

@@ -164,8 +164,8 @@ BOOST_AUTO_TEST_CASE(sternheimer_energy_gradient) {
   std::cout << "Test Set Up Complete" << std::endl;
 
   std::vector<Eigen::Vector3cd> EPC = sternheimer.EnergyGradient();
-  std::vector<Eigen::Vector3cd> EPCmo_0 = sternheimer.MOEnergyGradient(0, 0);
-  std::vector<Eigen::Vector3cd> EPCmo_4 = sternheimer.MOEnergyGradient(4, 4);
+  std::vector<Eigen::Vector3cd> EPCmo_0 = sternheimer.MOEnergyGradient(0);
+  std::vector<Eigen::Vector3cd> EPCmo_4 = sternheimer.MOEnergyGradient(4);
 
   std::cout << "EPC[0]" << EPC[0].real() << std::endl;
   std::cout << "EPC[4]" << EPC[4].real() << std::endl;

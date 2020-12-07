@@ -39,7 +39,7 @@ class Sternheimer {
   Sternheimer();
 
   Sternheimer(Orbitals& orbitals, Logger* log)
-      : _orbitals(orbitals), _pLog(log){};
+      : _pLog(log), _orbitals(orbitals){};
 
   // Calculates and saves all matrices needed to perform Sternheimer
   // calculations from DFT
@@ -81,7 +81,7 @@ class Sternheimer {
 
   std::vector<Eigen::Vector3cd> EnergyGradient() const;
 
-  std::vector<Eigen::Vector3cd> MOEnergyGradient(Index n, Index m) const;
+  std::vector<Eigen::Vector3cd> MOEnergyGradient(Index n) const;
 
   // Returns Isotropic Average from Polarizability Tensor
   std::vector<double> getIsotropicAverage(
