@@ -17,5 +17,5 @@ sed -i 's/Copyright \(.*\)-.* The VOTCA/Copyright \1-'"$new_date"' The VOTCA/' "
 git add -u
 git config user.name "Votca Bot"
 git config user.email "github@votca.org"
-git commit -m "Update copyright"
+git commit -m "Update copyright" || true
 git push
