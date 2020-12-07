@@ -33,7 +33,7 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
-void SternheimerFrame::ParseOptions(const tools::Property &user_options) {
+void SternheimerFrame::ParseOptions(const tools::Property &options) {
 
   std::string key = "sternheimer";
 
@@ -41,9 +41,6 @@ void SternheimerFrame::ParseOptions(const tools::Property &user_options) {
 
   _log.setMultithreading(true);
   _log.setCommonPreface("\n... ...");
-
-  tools::Property options = user_options;
-
 
   _orbfile = options.get(".orb_file").as<std::string>();
 

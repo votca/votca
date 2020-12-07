@@ -43,7 +43,7 @@ class SternheimerFrame : public QMTool {
   std::string Identify() override { return "sternheimer"; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options) final;
+  void ParseOptions(const tools::Property& options) final;
   bool Run() final;
 
  private:
