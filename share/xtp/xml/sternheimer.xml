@@ -1,20 +1,18 @@
 <?xml version="1.0"?>
 <options>
-
-<!-- xtp_tools -e sternheimer  options.xml -->
-<sternheimer help="Perform linear perturbation calcualtion using the sc sternheimer method" >
-	<orb_file help="Input orb file to start computation from"/>
-	<task help="Specify desired task" choices="polarizability,gradient,mogradient"/>
-    	<start_frequency help="Start frequency for output in eV" default="0.0" choices="float"/>
-	<end_frequency help="End frequency for output in eV" default="20.0" choices="float"/>
-	<steps help="Number of points evaluated between omega and omegafin" default="30" choices="int+"/>
-	<resolution help="Number of points used in Output" default="100" choices="int+"/>
-	<imshift help="Frequency shift in imaginary direction for Padeapproximation in Polarizability calculations in eV" default="3" choices="float+"/>
-	<do_precalc_fxc help="Do precalculation of dxc integral. Recommended for small molecules but not for large ones" default="false" choices="bool"/>
-	<fxc_integration_grid help="grid type for fxc integration" default="coarse" choices="xfine,fine,medium,coarse,xcoarse"/>
-	<max_iter help="max interations of sc sternheimer" default="100" choices="int+"/>
-	<tolerance help="convergence tolerance of sc sternheimer" default="10E-9" choices="float+"/>
-	<max_hist help="maximum history of anderson mixing" default="10" choices="int+"/>
-</sternheimer>
-	
+	<!-- xtp_tools -e sternheimer  options.xml -->
+	<sternheimer help="Perform linear perturbation calcualtion using the sc sternheimer method">
+		<orb_file help="Input orb file to start computation from"/>
+		<task help="Specify desired task" choices="polarizability,gradient,mogradient"/>
+		<start_frequency help="Start frequency for output in eV" default="0.0" choices="float"/>
+		<end_frequency help="End frequency for output in eV" default="20.0" choices="float"/>
+		<steps help="Number of points evaluated between omega and omegafin" default="30" choices="int+"/>
+		<resolution help="Number of points used in Output" default="100" choices="int+"/>
+		<imshift help="Frequency shift in imaginary direction for Padeapproximation in Polarizability calculations in eV" default="3" choices="float+"/>
+		<do_precalc_fxc help="Do precalculation of dxc integral. Recommended for small molecules but not for large ones" default="false" choices="bool"/>
+		<fxc_integration_grid help="grid type for fxc integration" default="coarse" choices="xfine,fine,medium,coarse,xcoarse"/>
+		<max_iter help="max interations of sc sternheimer" default="100" choices="int+"/>
+		<tolerance help="convergence tolerance of sc sternheimer" default="10E-9" choices="float+"/>
+		<max_hist help="maximum history of anderson mixing" default="10" choices="int+"/>
+	</sternheimer>
 </options>

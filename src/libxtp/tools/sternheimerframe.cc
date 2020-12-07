@@ -42,8 +42,8 @@ void SternheimerFrame::ParseOptions(const tools::Property &user_options) {
   _log.setMultithreading(true);
   _log.setCommonPreface("\n... ...");
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  tools::Property options = user_options;
+
 
   _orbfile = options.get(".orb_file").as<std::string>();
 
