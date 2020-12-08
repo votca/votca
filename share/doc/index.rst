@@ -21,7 +21,7 @@ For an installation guide see `here <INSTALL.html>`_.
    :caption: Manuals
 
    csg-manual/index.rst
-   XTP-MANUAL.rst
+   xtp/XTP-MANUAL.rst
 	     
 .. toctree::
    :maxdepth: 2
@@ -29,7 +29,7 @@ For an installation guide see `here <INSTALL.html>`_.
    :caption: Tutorials
 	     
    csg-tutorials/README.rst
-   XTP-TUTORIAL.rst
+   xtp-tutorials/XTP-TUTORIAL.rst
 
    
 .. toctree::
