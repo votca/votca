@@ -15,17 +15,31 @@
  */
 
 // #include <pybind11/eigen.h>
+#include "votca/xtp/calculatorfactory.h"
+#include <iostream>
 #include <pybind11/pybind11.h>
+#include <string>
 
+using namespace votca;
+
+class PyXTP {
+ public:
+  void Initialize();
+};
+
+void PyXTP::Initialize() {
+  xtp::Calculatorfactory::RegisterAll();
+}
 
 /**
  * @brief Construct a new pybind11 module object to invoke votca-xtp*
- * 
+ *
  */
-int call_calculator(int i, int j) {
-    return i + j;
+int call_calculator(const std::string& name) {
+  PyXTP pyxtp;
+  std::cout << "name is: " << name << "\n";
+  return 42;
 }
-
 
 PYBIND11_MODULE(pyxtp, module) {
   module.doc() =

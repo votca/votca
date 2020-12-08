@@ -6,14 +6,6 @@ import subprocess
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
-# Convert distutils Windows platform specifiers to CMake -A arguments
-PLAT_TO_CMAKE = {
-    "win32": "Win32",
-    "win-amd64": "x64",
-    "win-arm32": "ARM",
-    "win-arm64": "ARM64",
-}
-
 
 # A CMakeExtension needs a sourcedir instead of a file list.
 class CMakeExtension(Extension):
@@ -39,7 +31,8 @@ class CMakeBuild(build_ext):
         build_ext.run(self)
 
     def build_extension(self, ext):
-        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        extdir = os.path.abspath(os.path.dirname(
+            self.get_ext_fullpath(ext.name)))
 
         # required for auto-detection of auxiliary "native" libs
         if not extdir.endswith(os.path.sep):
@@ -58,7 +51,8 @@ class CMakeBuild(build_ext):
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(extdir),
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
             "-DPYXTP_VERSION_INFO={}".format(self.distribution.get_version()),
-            "-DCMAKE_BUILD_TYPE={}".format(cfg),  # not used on MSVC, but no harm
+            # not used on MSVC, but no harm
+            "-DCMAKE_BUILD_TYPE={}".format(cfg),
         ]
         build_args = []
 
@@ -74,21 +68,14 @@ class CMakeBuild(build_ext):
         else:
 
             # Single config generators are handled "normally"
-            single_config = any(x in cmake_generator for x in {"NMake", "Ninja"})
-
-            # CMake allows an arch-in-generator style for backward compatibility
-            contains_arch = any(x in cmake_generator for x in {"ARM", "Win64"})
-
-            # Specify the arch if using MSVC generator, but only if it doesn't
-            # contain a backward-compatibility arch spec already in the
-            # generator name.
-            if not single_config and not contains_arch:
-                cmake_args += ["-A", PLAT_TO_CMAKE[self.plat_name]]
+            single_config = any(
+                x in cmake_generator for x in {"NMake", "Ninja"})
 
             # Multi-config generators have a different way to specify configs
             if not single_config:
                 cmake_args += [
-                    "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}".format(cfg.upper(), extdir)
+                    "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}".format(
+                        cfg.upper(), extdir)
                 ]
                 build_args += ["--config", cfg]
 
@@ -118,15 +105,25 @@ def readme():
         return f.read()
 
 
+version = {}
+HERE = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(HERE, 'pyxtp', '__version__.py')) as f:
+    exec(f.read(), version)
+
 setup(
     name="pyxtp",
-    version="0.0.1",
-    author="Felipe Zapata",
-    author_email="f.zapata@esciencecenter.nl",
+    version=version['__version__'],
+    author_email="devs@votca.org",
     description="Python bind to XTP using CMAKE",
     long_description=readme() + '\n\n',
     long_description_content_type='text/markdown',
     ext_modules=[CMakeExtension("pyxtp")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
+    entry_points={
+        'console_scripts': [
+            'xtp_cli=pyxtp.cli:main',
+        ]
+    },
+    install_requires=['numpy'],
 )
