@@ -48,6 +48,7 @@ For an installation guide see `here <INSTALL.html>`_.
 
    Github <https://github.com/votca>
    Twitter <https://twitter.com/votca_xtp>
+   Forum <https://groups.google.com/g/votca>
   
 Indices and tables
 ==================
