@@ -27,7 +27,7 @@ fi
 git clone --depth=1 https://github.com/votca/votca.github.io.git "$HOME/userdoc"
 pushd "$HOME/userdoc"
 rm -rf -- * .buildinfo .doctrees
-git checkout -- deploy.enc
+git checkout -- CNAME deploy.enc
 cp -r "${builddir}/sphinx.html" .
 mv sphinx.html/* sphinx.html/.buildinfo sphinx.html/.doctrees sphinx.html/.nojekyll .
 rmdir sphinx.html
