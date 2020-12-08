@@ -10,12 +10,12 @@ if(Python_EXECUTABLE AND VOTCA_XML_PARSER)
   set(XML_RST_FILES)
   foreach(_XML ${XMLS})
     get_filename_component(_FILE "${_XML}" NAME_WE)
-    add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/${_FILE}.rst COMMAND ${Python_EXECUTABLE} ${VOTCA_XML_PARSER} -i ${_XML} -o ${VOTCA_SPHINX_DIR}/${_FILE}.rst
+    add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/xtp/${_FILE}.rst COMMAND ${Python_EXECUTABLE} ${VOTCA_XML_PARSER} -i ${_XML} -o ${VOTCA_SPHINX_DIR}/xtp/${_FILE}.rst
       DEPENDS ${VOTCA_XML_PARSER} ${_XML})
-    list(APPEND XML_RST_FILES ${VOTCA_SPHINX_DIR}/${_FILE}.rst)
+    list(APPEND XML_RST_FILES ${VOTCA_SPHINX_DIR}/xtp/${_FILE}.rst)
   endforeach()
-  add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/qmpackage_defaults.rst COMMAND ${Python_EXECUTABLE} ${VOTCA_XML_PARSER} -m qm -i ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/data/qmpackage_defaults.xml -o ${VOTCA_SPHINX_DIR}/qmpackage_defaults.rst
+  add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/xtp/qmpackage_defaults.rst COMMAND ${Python_EXECUTABLE} ${VOTCA_XML_PARSER} -m qm -i ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/data/qmpackage_defaults.xml -o ${VOTCA_SPHINX_DIR}/xtp/qmpackage_defaults.rst
   DEPENDS ${VOTCA_XML_PARSER} ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/data/qmpackage_defaults.xml)
-  list(APPEND XML_RST_FILES ${VOTCA_SPHINX_DIR}/qmpackage_defaults.rst)
+  list(APPEND XML_RST_FILES ${VOTCA_SPHINX_DIR}/xtp/qmpackage_defaults.rst)
   add_custom_target(doc-xtp DEPENDS ${XML_RST_FILES})
 endif()
