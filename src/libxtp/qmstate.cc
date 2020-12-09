@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,13 +17,17 @@
  *
  */
 
+// Standard includes
+#include <regex>
+
+// Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
-#include <iostream>
-#include <regex>
-#include <votca/xtp/qmstate.h>
+
+// Local VOTCA includes
+#include "votca/xtp/qmstate.h"
 
 namespace votca {
 namespace xtp {

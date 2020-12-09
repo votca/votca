@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,8 +21,9 @@
 #ifndef VOTCA_XTP_QMMOLECULE_H
 #define VOTCA_XTP_QMMOLECULE_H
 
-#include <votca/xtp/atomcontainer.h>
-#include <votca/xtp/qmatom.h>
+// Local VOTCA includes
+#include "atomcontainer.h"
+#include "qmatom.h"
 
 namespace votca {
 namespace xtp {
@@ -35,6 +36,17 @@ class QMMolecule : public AtomContainer<QMAtom> {
   void LoadFromFile(std::string filename);
 
   void WriteXYZ(std::string filename, std::string header) const;
+
+  void AddContainer(const AtomContainer<QMAtom>& container) {
+    Index offset = _atomlist.size();
+    _type += "_" + container.getType();
+    for (const auto& at : container) {
+      // Update atom IDs to make sure they are unique
+      QMAtom atom(at.getId() + offset, at.getElement(), at.getPos());
+      _atomlist.push_back(atom);
+    }
+    calcPos();
+  }
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const QMMolecule& container) {
@@ -50,4 +62,4 @@ class QMMolecule : public AtomContainer<QMAtom> {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* VOTCA_XTP_QMMOLECULE_H */
+#endif  // VOTCA_XTP_QMMOLECULE_H

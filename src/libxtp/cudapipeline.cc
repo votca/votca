@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,7 +17,8 @@
  *
  */
 
-#include <votca/xtp/cudapipeline.h>
+// Local VOTCA includes
+#include "votca/xtp/cudapipeline.h"
 
 namespace votca {
 namespace xtp {
@@ -46,6 +47,7 @@ void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B,
   if ((A.cols() != B.rows())) {
     throw std::runtime_error("Shape mismatch in Cublas gemm");
   }
+  cublasSetStream(_handle, _stream);
   cublasDgemm(_handle, CUBLAS_OP_N, CUBLAS_OP_N, int(A.rows()), int(B.cols()),
               int(A.cols()), palpha, A.data(), int(A.rows()), B.data(),
               int(B.rows()), pbeta, C.data(), int(C.rows()));

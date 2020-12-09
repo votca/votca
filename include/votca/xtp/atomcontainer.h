@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,11 +20,17 @@
 #pragma once
 #ifndef VOTCA_XTP_ATOMCONTAINER_H
 #define VOTCA_XTP_ATOMCONTAINER_H
+
+// Standard includes
 #include <limits>
 #include <typeinfo>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
-#include <votca/xtp/checkpoint.h>
-#include <votca/xtp/eigen.h>
+
+// Local VOTCA includes
+#include "checkpoint.h"
+#include "eigen.h"
 
 /**
  * \brief Basic Container for QMAtoms,PolarSites and Atoms
@@ -60,13 +66,6 @@ class AtomContainer {
   }
   void push_back(T&& atom) {
     _atomlist.push_back(atom);
-    calcPos();
-  }
-
-  void AddContainer(const AtomContainer<T>& container) {
-    _type += "_" + container._type;
-    _atomlist.insert(_atomlist.end(), container._atomlist.begin(),
-                     container._atomlist.end());
     calcPos();
   }
 

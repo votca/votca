@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,12 +18,16 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_ADIIS__H
-#define _VOTCA_XTP_ADIIS__H
+#ifndef VOTCA_XTP_ADIIS_H
+#define VOTCA_XTP_ADIIS_H
 
+// Standard includes
 #include <memory>
 #include <vector>
-#include <votca/xtp/eigen.h>
+
+// Local VOTCA includes
+#include "eigen.h"
+
 namespace votca {
 namespace xtp {
 
@@ -41,4 +45,4 @@ class ADIIS {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_ADIIS_H

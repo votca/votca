@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,11 +18,15 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_RPA_H
-#define _VOTCA_XTP_RPA_H
-#include "votca/xtp/logger.h"
+#ifndef VOTCA_XTP_RPA_H
+#define VOTCA_XTP_RPA_H
+
+// Standard includes
 #include <vector>
-#include <votca/xtp/eigen.h>
+
+// Local VOTCA includes
+#include "eigen.h"
+#include "logger.h"
 
 namespace votca {
 namespace xtp {
@@ -38,6 +42,8 @@ class RPA {
     _rpamax = rpamax;
   }
 
+  double getEta() const { return _eta; }
+
   Eigen::MatrixXd calculate_epsilon_i(double frequency) const {
     return calculate_epsilon<true>(frequency);
   }
@@ -45,6 +51,8 @@ class RPA {
   Eigen::MatrixXd calculate_epsilon_r(double frequency) const {
     return calculate_epsilon<false>(frequency);
   }
+
+  Eigen::MatrixXd calculate_epsilon_r(std::complex<double> frequency) const;
 
   const Eigen::VectorXd& getRPAInputEnergies() const { return _energies; }
 
@@ -59,8 +67,9 @@ class RPA {
                               const Eigen::VectorXd& gwaenergies, Index qpmin);
 
   struct rpa_eigensolution {
-    Eigen::VectorXd omega;  // Eigenvalues
-    Eigen::MatrixXd XpY;    // Eigenvector components (X + Y)
+    Eigen::VectorXd omega;    // Eigenvalues
+    Eigen::MatrixXd XpY;      // Eigenvector components (X + Y)
+    double ERPA_correlation;  // total correlation energy
   };
 
   rpa_eigensolution Diagonalize_H2p() const;
@@ -88,4 +97,4 @@ class RPA {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_RPA_RPA_H */
+#endif  // VOTCA_XTP_RPA_H

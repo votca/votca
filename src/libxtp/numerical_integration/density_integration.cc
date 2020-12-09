@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,9 @@
  *
  */
 
-#include <votca/xtp/aopotential.h>
-#include <votca/xtp/density_integration.h>
+// Local VOTCA includes
+#include "votca/xtp/density_integration.h"
+#include "votca/xtp/aopotential.h"
 
 namespace votca {
 namespace xtp {
@@ -69,17 +70,15 @@ template <class Grid>
 double DensityIntegration<Grid>::IntegrateDensity(
     const Eigen::MatrixXd& density_matrix) {
 
-  Index nthreads = OPENMP::getMaxThreads();
-  std::vector<double> N_thread = std::vector<double>(nthreads, 0.0);
+  double N = 0.0;
   SetupDensityContainer();
 
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(guided) reduction(+ : N)
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
     if (!box.Matrixsize()) {
       continue;
     }
-    double N_box = 0.0;
     const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();
@@ -88,35 +87,27 @@ double DensityIntegration<Grid>::IntegrateDensity(
       Eigen::VectorXd ao = box.CalcAOValues(points[p]);
       double rho = (ao.transpose() * DMAT_here * ao)(0, 0) * weights[p];
       _densities[i][p] = rho;
-      N_box += rho;
+      N += rho;
     }
-    N_thread[OPENMP::getThreadId()] += N_box;
   }
-  double N = std::accumulate(N_thread.begin(), N_thread.end(), 0.0);
   return N;
 }
 
 template <class Grid>
 Gyrationtensor DensityIntegration<Grid>::IntegrateGyrationTensor(
     const Eigen::MatrixXd& density_matrix) {
-
-  Index nthreads = OPENMP::getMaxThreads();
-  std::vector<double> N_thread = std::vector<double>(nthreads, 0.0);
-  std::vector<Eigen::Vector3d> centroid_thread =
-      std::vector<Eigen::Vector3d>(nthreads, Eigen::Vector3d::Zero());
-  std::vector<Eigen::Matrix3d> gyration_thread =
-      std::vector<Eigen::Matrix3d>(nthreads, Eigen::Matrix3d::Zero());
+  double N = 0.0;
+  Eigen::Vector3d centroid = Eigen::Vector3d::Zero();
+  Eigen::Matrix3d gyration = Eigen::Matrix3d::Zero();
 
   SetupDensityContainer();
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(guided)reduction(+:N)reduction(+:centroid)reduction(+:gyration)
   for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
     const GridBox& box = _grid[i];
     if (!box.Matrixsize()) {
       continue;
     }
-    double N_box = 0.0;
-    Eigen::Vector3d centroid_box = Eigen::Vector3d::Zero();
-    Eigen::Matrix3d gyration_box = Eigen::Matrix3d::Zero();
+
     const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();
@@ -125,21 +116,11 @@ Gyrationtensor DensityIntegration<Grid>::IntegrateGyrationTensor(
       Eigen::VectorXd ao = box.CalcAOValues(points[p]);
       double rho = (ao.transpose() * DMAT_here * ao).value() * weights[p];
       _densities[i][p] = rho;
-      N_box += rho;
-      centroid_box += rho * points[p];
-      gyration_box += rho * points[p] * points[p].transpose();
+      N += rho;
+      centroid += rho * points[p];
+      gyration += rho * points[p] * points[p].transpose();
     }
-    N_thread[OPENMP::getThreadId()] += N_box;
-    centroid_thread[OPENMP::getThreadId()] += centroid_box;
-    gyration_thread[OPENMP::getThreadId()] += gyration_box;
   }
-  double N = std::accumulate(N_thread.begin(), N_thread.end(), 0.0);
-  Eigen::Vector3d centroid =
-      std::accumulate(centroid_thread.begin(), centroid_thread.end(),
-                      Eigen::Vector3d::Zero().eval());
-  Eigen::Matrix3d gyration =
-      std::accumulate(gyration_thread.begin(), gyration_thread.end(),
-                      Eigen::Matrix3d::Zero().eval());
 
   // Normalize
   centroid = centroid / N;

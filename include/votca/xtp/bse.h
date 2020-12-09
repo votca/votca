@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,13 +18,14 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_BSE_H
-#define _VOTCA_XTP_BSE_H
+#ifndef VOTCA_XTP_BSE_H
+#define VOTCA_XTP_BSE_H
 
-#include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/threecenter.h>
+// Local VOTCA includes
+#include "logger.h"
+#include "orbitals.h"
+#include "qmstate.h"
+#include "threecenter.h"
 
 namespace votca {
 namespace xtp {
@@ -39,8 +40,9 @@ class QMFragment;
 class BSE {
 
  public:
-  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp)
-      : _log(log), _Mmn(Mmn), _Hqp(Hqp){};
+  //  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp_in)
+  //    : _log(log), _Mmn(Mmn), _Hqp_in(Hqp_in){};
+  BSE(Logger& log, TCMatrix_gwbse& Mmn) : _log(log), _Mmn(Mmn){};
 
   struct options {
     bool useTDA = true;
@@ -48,24 +50,30 @@ class BSE {
     Index rpamin;
     Index rpamax;
     Index qpmin;
+    Index qpmax;
     Index vmin;
     Index cmax;
-    Index nmax = 5;           // number of eigenvectors to calculate
-    bool davidson = true;     // use davidson to diagonalize the matrix
-    bool matrixfree = false;  // use matrix free method
-    std::string davidson_correction = "DPR";
-    std::string davidson_ortho = "GS";
-    std::string davidson_tolerance = "normal";
-    std::string davidson_update = "safe";
-    Index davidson_maxiter = 50;
-    double min_print_weight =
-        0.5;  // minimium contribution for state to print it
+    Index nmax;       // number of eigenvectors to calculate
+    bool davidson;    // use davidson to diagonalize the matrix
+    bool matrixfree;  // use matrix free method
+    std::string davidson_correction;
+    std::string davidson_ortho;
+    std::string davidson_tolerance;
+    std::string davidson_update;
+    Index davidson_maxiter;
+    double min_print_weight;  // minimium contribution for state to print it
+    bool use_Hqp_offdiag;
+    Index max_dyn_iter;
+    double dyn_tolerance;
   };
 
-  void configure(const options& opt, const Eigen::VectorXd& DFTenergies);
+  void configure(const options& opt, const Eigen::VectorXd& RPAEnergies,
+                 const Eigen::MatrixXd& Hqp_in);
 
   void Solve_singlets(Orbitals& orb) const;
   void Solve_triplets(Orbitals& orb) const;
+
+  Eigen::MatrixXd getHqp() const { return _Hqp; };
 
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
@@ -74,6 +82,8 @@ class BSE {
                         const Orbitals& orb) const;
   void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
                         const Orbitals& orb) const;
+
+  void Perturbative_DynamicalScreening(const QMStateType& type, Orbitals& orb);
 
  private:
   options _opt;
@@ -84,6 +94,11 @@ class BSE {
     Eigen::VectorXd qp_contrib;
   };
 
+  struct ExpectationValues {
+    Eigen::VectorXd direct_term;
+    Eigen::VectorXd cross_term;
+  };
+
   Logger& _log;
   Index _bse_vmax;
   Index _bse_cmin;
@@ -91,10 +106,13 @@ class BSE {
   Index _bse_vtotal;
   Index _bse_ctotal;
 
+  Index _max_dyn_iter;
+  double _dyn_tolerance;
+
   Eigen::VectorXd _epsilon_0_inv;
 
   TCMatrix_gwbse& _Mmn;
-  const Eigen::MatrixXd& _Hqp;
+  Eigen::MatrixXd _Hqp;
 
   tools::EigenSystem Solve_singlets_TDA() const;
   tools::EigenSystem Solve_singlets_BTDA() const;
@@ -108,7 +126,7 @@ class BSE {
   void configureBSEOperator(BSE_OPERATOR& H) const;
 
   template <typename BSE_OPERATOR>
-  tools::EigenSystem solve_hermitian(BSE_OPERATOR& H) const;
+  tools::EigenSystem solve_hermitian(BSE_OPERATOR& h) const;
 
   template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
   tools::EigenSystem Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
@@ -121,16 +139,26 @@ class BSE {
   void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
                      Index state) const;
   void printWeights(Index i_bse, double weight) const;
-  void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies);
+  void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies,
+                                      double energy);
+
+  Eigen::MatrixXd AdjustHqpSize(const Eigen::MatrixXd& Hqp_in,
+                                const Eigen::VectorXd& RPAInputEnergies);
 
   Interaction Analyze_eh_interaction(const QMStateType& type,
                                      const Orbitals& orb) const;
   template <typename BSE_OPERATOR>
-  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type,
-                                                 const Orbitals& orb,
-                                                 const BSE_OPERATOR& H) const;
+  ExpectationValues ExpectationValue_Operator(const QMStateType& type,
+                                              const Orbitals& orb,
+                                              const BSE_OPERATOR& H) const;
+
+  template <typename BSE_OPERATOR>
+  ExpectationValues ExpectationValue_Operator_State(const QMStateType& type,
+                                                    const Orbitals& orb,
+                                                    const BSE_OPERATOR& H,
+                                                    const Index state) const;
 };
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_BSE_H */
+#endif  // VOTCA_XTP_BSE_H

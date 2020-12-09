@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,22 +18,25 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_QM_PACKAGE_H
-#define VOTCA_XTP_QM_PACKAGE_H
+#ifndef VOTCA_XTP_QMPACKAGE_H
+#define VOTCA_XTP_QMPACKAGE_H
 
-#include "votca/xtp/aobasis.h"
+// VOTCA includes
 #include <votca/tools/property.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/staticsite.h>
+
+// Local VOTCA includes
+#include "aobasis.h"
+#include "classicalsegment.h"
+#include "logger.h"
+#include "settings.h"
+#include "staticsite.h"
+
+#include "votca/xtp/orbreorder.h"
+
 namespace votca {
 namespace xtp {
 
 class Orbitals;
-
-// ========================================================================== //
-// QMPackage base class for wrappers of ORCA, GAUSSIAN, NWCHEM etc //
-// ========================================================================== //
 
 class QMPackage {
  public:
@@ -41,7 +44,7 @@ class QMPackage {
 
   virtual std::string getPackageName() const = 0;
 
-  virtual void Initialize(tools::Property& options) = 0;
+  virtual void Initialize(const tools::Property& options) = 0;
 
   /// writes a coordinate file WITHOUT taking into account PBCs
   virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
@@ -67,8 +70,7 @@ class QMPackage {
             std::unique_ptr<StaticSite>(new Sitetype(site)));
       }
     }
-    if (!_write_charges) {
-      _write_charges = true;
+    if (_settings.get<bool>("write_charges")) {
       WriteChargeOption();
     }
   }
@@ -92,11 +94,15 @@ class QMPackage {
     _spin = std::abs(charge) + 1;
   }
 
-  bool GuessRequested() const { return _write_guess; }
+  bool GuessRequested() const { return _settings.get<bool>("read_guess"); }
 
   virtual StaticSegment GetCharges() const = 0;
 
   virtual Eigen::Matrix3d GetPolarizability() const = 0;
+
+  std::string getLogFile() const { return _log_file_name; };
+
+  std::string getMOFile() const { return _mo_file_name; };
 
  protected:
   struct MinimalMMCharge {
@@ -105,7 +111,8 @@ class QMPackage {
     double _q;
   };
 
-  void ParseCommonOptions(tools::Property& options);
+  tools::Property ParseCommonOptions(const tools::Property& options);
+  std::string FindDefaultsFile() const;
 
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
@@ -116,43 +123,33 @@ class QMPackage {
   std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,
                                            const std::string separators) const;
 
-  Index _charge;
-  Index _spin;  // 2S+1
-  std::string _memory;
-  std::string _options;
+  // ShellReorder() and ShellMulitplier() specify the order for each
+  // QMPackage. Some codes also use different normalisation conditions which
+  // lead to other signs for some of the entries, which can be changed via the
+  // multipliers.
+  virtual const std::array<Index, 49>& ShellMulitplier() const = 0;
+  virtual const std::array<Index, 49>& ShellReorder() const = 0;
 
-  std::string _executable;
+  Settings _settings{"package"};
+
+  Index _charge;
+  Index _spin;  // 2S+1mem
+  std::string _basisset_name;
+  std::string _cleanup = "";
   std::string _input_file_name;
   std::string _log_file_name;
   std::string _mo_file_name;
-
+  std::string _options = "";
   std::string _run_dir;
-
-  std::string _basisset_name;
-  std::string _auxbasisset_name;
-  std::string _ecp_name;
-
-  std::string _shell_file_name;
   std::string _scratch_dir;
-  bool _is_optimization = false;
-
-  std::string _cleanup = "";
-
-  bool _get_charges = false;
-
-  bool _write_guess = false;
-  bool _write_charges = false;
-  bool _write_basis_set = false;
-  bool _write_auxbasis_set = false;
-  bool _write_pseudopotentials = false;
+  std::string _shell_file_name;
 
   Logger* _pLog;
 
   std::vector<std::unique_ptr<StaticSite> > _externalsites;
-  double _dpl_spacing = 0.1;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_QM_PACKAGE_H
+#endif  // VOTCA_XTP_QMPACKAGE_H
