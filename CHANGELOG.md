@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/xtp/commits/master).
 
-## Version 1.6.3 (released XX.08.20)
+## Version 1.6.3 (released 09.12.20)
 * switch to ghcr.io for CI (#555)
 * fixing Gaussian guess read keyword (#562, #563)
 * improved kmc output (#575)
