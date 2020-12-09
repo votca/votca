@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,26 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_PROPERTY_H
-#define _VOTCA_TOOLS_PROPERTY_H
+#ifndef VOTCA_TOOLS_PROPERTY_H
+#define VOTCA_TOOLS_PROPERTY_H
 
-#include "eigen.h"
-#include "lexical_cast.h"
-#include "tokenizer.h"
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/format.hpp>
+// Standard includes
+#include <cstdlib>
 #include <iostream>
 #include <list>
 #include <map>
 #include <stdexcept>
-#include <stdlib.h>
 #include <string>
-#include <votca/tools/types.h>
+
+// Third party includes
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/format.hpp>
+
+// Local VOTCA includes
+#include "eigen.h"
+#include "lexical_cast.h"
+#include "tokenizer.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {
@@ -65,6 +70,13 @@ class Property {
    * @return reference to the created Property object
    */
   Property &add(const std::string &key, const std::string &value);
+
+  /**
+   * \brief add a copy of an existing property to a property
+   * @param other other property
+   */
+  void add(const Property &other);
+
   /**
    * \brief set value of existing property
    * @param key identifier
@@ -244,33 +256,6 @@ class Property {
   static const Index IOindex;
 };
 
-inline Property &Property::set(const std::string &key,
-                               const std::string &value) {
-  Property &p = get(key);
-  p.value() = value;
-  return p;
-}
-
-inline Property &Property::add(const std::string &key,
-                               const std::string &value) {
-  std::string path = _path;
-  if (path != "") {
-    path = path + ".";
-  }
-  _properties.push_back(Property(key, value, path + _name));
-  _map[key] = Index(_properties.size()) - 1;
-  return _properties.back();
-}
-
-inline bool Property::exists(const std::string &key) const {
-  try {
-    get(key);
-  } catch (std::exception &) {
-    return false;
-  }
-  return true;
-}
-
 // TO DO: write a better function for this!!!!
 template <>
 inline bool Property::as<bool>() const {
@@ -376,15 +361,6 @@ inline std::vector<double> Property::as<std::vector<double> >() const {
   return tmp;
 }
 
-inline bool Property::hasAttribute(const std::string &attribute) const {
-  std::map<std::string, std::string>::const_iterator it;
-  it = _attributes.find(attribute);
-  if (it == _attributes.end()) {
-    return false;
-  }
-  return true;
-}
-
 template <typename T>
 inline T Property::getAttribute(
     std::map<std::string, std::string>::const_iterator it) const {
@@ -425,4 +401,4 @@ inline void Property::setAttribute(const std::string &attribute,
 }  // namespace tools
 }  // namespace votca
 
-#endif /* _VOTCA_TOOLS_PROPERTY_H */
+#endif  // VOTCA_TOOLS_PROPERTY_H
