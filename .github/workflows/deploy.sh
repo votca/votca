@@ -5,7 +5,7 @@ builddir="$PWD/builddir"
 git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc"
 pushd "$HOME/devdoc"
 rm -rf -- *
-git checkout -- CNAME keys manual.pdf
+git checkout -- CNAME manual.pdf
 cp -r "${builddir}/share/doc/html" .
 mv html/* .
 rmdir html
@@ -27,7 +27,7 @@ fi
 git clone --depth=1 https://github.com/votca/votca.github.io.git "$HOME/userdoc"
 pushd "$HOME/userdoc"
 rm -rf -- * .buildinfo .doctrees
-git checkout -- deploy.enc
+git checkout -- CNAME
 cp -r "${builddir}/sphinx.html" .
 mv sphinx.html/* sphinx.html/.buildinfo sphinx.html/.doctrees sphinx.html/.nojekyll .
 rmdir sphinx.html
