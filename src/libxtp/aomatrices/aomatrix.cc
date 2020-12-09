@@ -129,7 +129,7 @@ Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
            "for higher angular momenta. If you installed your own libint it\n"
            "should be reconfigured and installed with the option "
            "--with-max-am=<maxAngularMomentum>.\n"
-           "If your installed libint with your OS package manager, you will\n"
+           "If you installed libint with your OS package manager, you will\n"
            "need to setup you own libint installation with the \n"
            "--with-max-am=<maxAngularMomentum> option set."
         << std::endl;
