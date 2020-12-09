@@ -119,7 +119,8 @@ Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
     return buf_mat;
   } catch (const libint2::Engine::lmax_exceeded& error) {
     std::ostringstream oss;
-    oss << "\nA libint error occured:\n" << error.what() << "\n"
+    oss << "\nA libint error occured:\n"
+        << error.what() << "\n"
         << "\nYou requested a computation for a shell with angular momentum "
         << error.lmax_requested()
         << ",\nbut your libint package only supports angular momenta upto "
