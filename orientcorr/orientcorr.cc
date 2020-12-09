@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  *
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <votca/csg/beadlist.h>
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/nblist.h>
@@ -224,7 +224,7 @@ bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &,
   _cor.Process(dist, P2);
   _count.Process(dist);
 
-  if (b1->getMolecule() == b2->getMolecule()) {
+  if (b1->getMoleculeId() == b2->getMoleculeId()) {
     return false;
   }
 

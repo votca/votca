@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _TRAJ_FORCE_H
-#define _TRAJ_FORCE_H
+#ifndef VOTCA_CSGAPPS_TRAJ_FORCE_H
+#define VOTCA_CSGAPPS_TRAJ_FORCE_H
 
 #include <boost/numeric/ublas/vector.hpp>
 #include <votca/csg/csgapplication.h>
@@ -59,8 +59,8 @@ class TrajForce : public CsgApplication {
 
   void OpenForcesTrajectory();
   Topology _top_force;
-  TrajectoryReader *_trjreader_force;
-  TrajectoryWriter *_trjwriter;
+  std::unique_ptr<TrajectoryReader> _trjreader_force;
+  std::unique_ptr<TrajectoryWriter> _trjwriter;
 };
 
-#endif /* _TRAJ_FORCE_H */
+#endif  // VOTCA_CSGAPPS_TRAJ_FORCE_H

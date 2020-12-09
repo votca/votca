@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
-project(csgapps)
+project(csgapps LANGUAGES CXX)
 
-set(PROJECT_VERSION "1.6.3")
+set(PROJECT_VERSION "2021-dev")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
@@ -10,8 +10,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #Release comes with -O3 by default
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
-
-enable_language(CXX)
 
 ######################################################################
 # compiler tests
@@ -27,8 +25,10 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 # User input options                                                   #
 ########################################################################
 include(GNUInstallDirs)
+include(FeatureSummary)
 
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
+add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
 if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
@@ -37,14 +37,15 @@ endif(ENABLE_TESTING)
 #Find external packages
 ########################################################################
 find_package(VOTCA_CSG REQUIRED NO_MODULE)
+set_package_properties(VOTCA_CSG PROPERTIES TYPE REQUIRED PURPOSE "Votca csg library")
 if(DEFINED VOTCA_CSG_VERSION AND NOT VOTCA_CSG_VERSION STREQUAL PROJECT_VERSION)
   message(FATAL_ERROR "Incompatible VOTCA CSG version found (needed ${PROJECT_VERSION}, found ${VOTCA_CSG_VERSION})")
 endif()
 message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
 
-file(GLOB_RECURSE FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} */*.cc)
+file(GLOB FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} */*.cc)
 foreach(DIR ${FILES})
-  string(REGEX MATCH ^[^/]* DIR ${DIR})
+  get_filename_component(DIR "${DIR}" DIRECTORY)
   list(APPEND DIRS ${DIR})
 endforeach(DIR)
 list(REMOVE_DUPLICATES DIRS)
@@ -61,7 +62,7 @@ foreach(DIR ${DIRS})
   endif(ENABLE_TESTING)
 endforeach(DIR)
 
-configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall-csgapps COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 if(NOT TARGET uninstall)
   add_custom_target(uninstall)
@@ -69,6 +70,5 @@ endif()
 add_dependencies(uninstall uninstall-csgapps)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  include(FeatureSummary)
   feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
 endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

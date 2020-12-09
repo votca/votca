@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _RDFCALCULATOR_H
-#define _RDFCALCULATOR_H
+#ifndef VOTCA_CSGAPPS_RDF_CALCULATOR_H
+#define VOTCA_CSGAPPS_RDF_CALCULATOR_H
 
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -24,7 +24,7 @@
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
-#include <math.h>
+#include <cmath>
 #include <votca/csg/csgapplication.h>
 #include <votca/tools/average.h>
 #include <votca/tools/histogramnew.h>
@@ -163,7 +163,7 @@ class RDFCalculator {
 
  public:
   CsgApplication::Worker *ForkWorker();
-  void MergeWorker(CsgApplication::Worker *worker);
+  void MergeWorker(CsgApplication::Worker *worker_);
 };
 
 inline RDFCalculator::pair_t::pair_t(RDFCalculator::interaction_t *i1,
@@ -175,4 +175,4 @@ inline RDFCalculator::pair_t::pair_t(RDFCalculator::interaction_t *i1,
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _RDFCALCULATOR_H */
+#endif  // VOTCA_CSGAPPS_RDF_CALCULATOR_H
