@@ -122,14 +122,14 @@ Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
     std::cout
         << "\nYou requested a computation for a shell with angular momentum "
         << error.lmax_requested()
-        << "\nbut your libint package only supports angular momenta upto "
+        << ",\nbut your libint package only supports angular momenta upto "
         << error.lmax_limit() - 1 << "." << std::endl;
     std::cout
         << "\nTo fix this error you will need to reinstall libint with "
            "support\n"
            "for higher angular momenta. If you installed your own libint it\n"
            "should be reconfigured and installed with the option "
-           "--with-max-am=<maxAngularMomentum>\n"
+           "--with-max-am=<maxAngularMomentum>.\n"
            "If your installed libint with your OS package manager, you will\n"
            "need to setup you own libint installation with the \n"
            "--with-max-am=<maxAngularMomentum> option set."
