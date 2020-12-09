@@ -163,7 +163,7 @@ def xtp_create_rst_table(file_name: Path) -> str:
     """Create an RST table using the metadata in the XML file."""
     header, elements = xtp_extract_metadata(file_name)
     header = generate_title(file_name.stem) + header
-    s = xtp_table_header(header) if elements else header
+    s = xtp_table_header(header) if elements else f"{header}\n"
     for elem in elements:
         s += xtp_get_recursive_attributes(elem)
 
