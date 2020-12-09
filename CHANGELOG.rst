@@ -84,7 +84,7 @@ Version 2021-dev
 -  fixed int64 interface to RDKIT (#602)
 -  remove kokkos dependent ewald (#612)
 
-Version 1.6.3 (released XX.08.20)
+Version 1.6.3 (released 09.12.20)
 =================================
 
 -  switch to ghcr.io for CI (#555)
