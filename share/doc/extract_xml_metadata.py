@@ -107,17 +107,17 @@ def get_root_children(file_name: Path) -> List[ET.Element]:
     return list(root)
 
 
-def xtp_extract_metadata(file_name: Path) -> Tuple[str, List[ET.Element]]:
+def xtp_extract_metadata(file_name: Path) -> Tuple[str, ET.Element]:
     """Get the description and elements from the xml file."""
     data = get_root_children(file_name)[0]
     header = data.attrib.get("help", "")
-    return header, iter(data)
+    return header, data
 
 
 def csg_extract_metadata(file_name: Path) -> Tuple[str, List[ET.Element]]:
     """Get the description and elements from the xml file."""
     children = get_root_children(file_name)
-    header = children[0].text
+    header = children[0].get("text", "")
     return header, children[1:]
 
 
@@ -143,7 +143,7 @@ def csg_get_recursive_attributes(elem: ET.Element, root_name: str = "") -> str:
         children = iter(elem)
         desc_elem = elem.find("DESC")
         if desc_elem is not None:
-            description = desc_elem.text
+            description = desc_elem.get("text", "")
         else:
             description = ""
         description = split_line(description)
@@ -163,7 +163,7 @@ def xtp_create_rst_table(file_name: Path) -> str:
     """Create an RST table using the metadata in the XML file."""
     header, elements = xtp_extract_metadata(file_name)
     header = generate_title(file_name.stem) + header
-    s = xtp_table_header(header)
+    s = xtp_table_header(header) if elements else f"{header}\n"
     for elem in elements:
         s += xtp_get_recursive_attributes(elem)
 
@@ -205,7 +205,7 @@ def split_line(line: str, sep: Optional[str] = None) -> str:
 
 def wrap_line(line: str, sep: Optional[str]) -> str:
     """Split a line into lines smaller than ``max_len``."""
-    acc = [[]]
+    acc = [[]]  # type: List[List[str]]
     count = 7  # mulitiple lines start at column number 7
     for word in line.split(sep=sep):
         # If cumulative sum or the length of word is greater than MAXIMUM_LINE_LENGTH
