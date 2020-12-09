@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,18 @@
  *
  */
 
-#ifndef _XMLTOPOLOGYREADER_H
-#define _XMLTOPOLOGYREADER_H
+#ifndef VOTCA_CSG_XMLTOPOLOGYREADER_PRIVATE_H
+#define VOTCA_CSG_XMLTOPOLOGYREADER_PRIVATE_H
 
-#include <boost/unordered_map.hpp>
+// Standard includes
 #include <stack>
 #include <string>
-#include <votca/csg/topologyreader.h>
+
+// Third party includes
+#include <boost/unordered_map.hpp>
+
+// Local VOTCA includes
+#include "votca/csg/topologyreader.h"
 
 namespace votca {
 namespace csg {
@@ -81,7 +86,7 @@ class XMLMolecule {
 class XMLTopologyReader : public TopologyReader {
  public:
   /// read a topology file
-  bool ReadTopology(std::string file, Topology &top) override;
+  bool ReadTopology(std::string filename, Topology &top) override;
   ~XMLTopologyReader() override;
 
  private:
@@ -89,8 +94,8 @@ class XMLTopologyReader : public TopologyReader {
 
   void ReadTopolFile(std::string file);
 
-  void ParseRoot(tools::Property &el);
-  void ParseMolecules(tools::Property &el);
+  void ParseRoot(tools::Property &property);
+  void ParseMolecules(tools::Property &p);
   void ParseBeadTypes(tools::Property &el);
   void ParseBonded(tools::Property &el);
   void ParseBox(tools::Property &p);
@@ -111,4 +116,4 @@ class XMLTopologyReader : public TopologyReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _PDBTOPOLOGYREADER_H */
+#endif  // VOTCA_CSG_XMLTOPOLOGYREADER_PRIVATE_H

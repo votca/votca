@@ -16,13 +16,13 @@
  */
 
 #ifndef HAVE_NO_CONFIG
-#include <votca_config.h>
+#include <votca_csg_config.h>
 #endif
 
 #include <iostream>
 #include <string>
 
-#include <votca/csg/topology.h>
+#include "../../../../include/votca/csg/topology.h"
 
 #include "gmxtopologyreader.h"
 

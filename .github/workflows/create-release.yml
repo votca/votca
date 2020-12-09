@@ -18,7 +18,6 @@ jobs:
           version: ${{ github.ref }}
           changelog: 'release_changelog.md'
       - name: Create Release
-        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
@@ -27,17 +26,3 @@ jobs:
           release_name: ${{ github.ref }}
           prerelease: ${{ contains(github.ref, 'rc') }}
           body_path: 'release_changelog.md'
-      - name: Get version
-        id: version
-        run: echo "::set-output name=VERSION::${GITHUB_REF#refs/tags/v}"
-      - name: Get manual
-        run: wget https://github.com/votca/votca/releases/download/v${{ steps.version.outputs.VERSION }}/votca-csg-manual-${{ steps.version.outputs.VERSION }}.pdf
-      - name: Upload manual
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./votca-csg-manual-${{ steps.version.outputs.VERSION }}.pdf
-          asset_name: votca-csg-manual-${{ steps.version.outputs.VERSION }}.pdf
-          asset_content_type: application/pdf

@@ -18,9 +18,12 @@
 #ifndef _VOTCA_CSG_IMCIO_H
 #define _VOTCA_CSG_IMCIO_H
 
+// Standard includes
 #include <list>
 #include <string>
 #include <vector>
+
+// VOTCA includes
 #include <votca/tools/rangeparser.h>
 #include <votca/tools/table.h>
 

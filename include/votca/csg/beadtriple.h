@@ -18,6 +18,7 @@
 #ifndef _VOTCA_CSG_BEADTRIPLE_H
 #define _VOTCA_CSG_BEADTRIPLE_H
 
+// Standard includes
 #include <tuple>
 
 namespace votca {

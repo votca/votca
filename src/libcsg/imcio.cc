@@ -15,16 +15,23 @@
  *
  */
 
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <votca/csg/imcio.h>
+
+// Third party includes
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
 #include <votca/tools/getline.h>
 #include <votca/tools/rangeparser.h>
 #include <votca/tools/table.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/csg/imcio.h"
 
 namespace votca {
 namespace csg {
