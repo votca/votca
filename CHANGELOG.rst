@@ -82,7 +82,8 @@ Version 2021-dev
 -  fixed atomid numbering while adding containers (#599)
 -  added tool for automatic mapping file generation (#595)
 -  fixed int64 interface to RDKIT (#602)
-
+-  fixed Sphinx warnings (#609)
+   
 Version 1.6.3 (released XX.08.20)
 =================================
 
