@@ -33,7 +33,7 @@ Version 2021-dev
 -  use unique_ptr in factory (#603)
 -  Convert remaining md files to rst (#616)
 
-Version 1.6.3 (released XX.08.20)
+Version 1.6.3 (released 09.12.20)
 =================================
 
 -  fix test dependencies for parallel ctest (#585)
