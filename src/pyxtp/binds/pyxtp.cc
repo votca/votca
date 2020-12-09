@@ -16,32 +16,42 @@
 
 // #include <pybind11/eigen.h>
 #include "votca/xtp/calculatorfactory.h"
+#include "votca/xtp/qmcalculator.h"
 #include <iostream>
+#include <memory>
 #include <pybind11/pybind11.h>
 #include <string>
+#include <vector>
 
 using namespace votca;
 
 class PyXTP {
  public:
-  void Initialize();
+  void Initialize(const std::string& name, int nThreads);
+
+ private:
+  std::unique_ptr<xtp::QMCalculator> _calculator;
 };
 
-void PyXTP::Initialize() {
+void PyXTP::Initialize(const std::string& name, int nThreads) {
   xtp::Calculatorfactory::RegisterAll();
+  _calculator = std::move(xtp::Calculators().Create(name));
+  // _calculator->setnThreads(nThreads);
+  // _calculator->Initialize(_options);
 }
 
 /**
  * @brief Construct a new pybind11 module object to invoke votca-xtp*
  *
  */
-int call_calculator(const std::string& name) {
+int call_calculator(const std::string& name, int nThreads) {
   PyXTP pyxtp;
+  pyxtp.Initialize(name, nThreads);
   std::cout << "name is: " << name << "\n";
   return 42;
 }
 
-PYBIND11_MODULE(pyxtp, module) {
+PYBIND11_MODULE(xtp_binds, module) {
   module.doc() =
       "VOTCA-XTP is a library which allows you to calculate the electronic "
       "properties of organic materials,"

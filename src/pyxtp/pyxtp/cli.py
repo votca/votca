@@ -1,10 +1,24 @@
-"""Module to read user input and perform the requested input action."""
+"""Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+ Module to read user input and perform the requested input action."""
 
 import argparse
 import logging
 from pathlib import Path
 
 import pkg_resources
+
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +57,11 @@ def parse_user_arguments() -> argparse.Namespace:
                         version=f"%(prog)s {VERSION}")
 
     # Common arguments to all calculators
-    parser.add_argument('-e', '--executable',
-                        help="Name of the calculator to run")
-    parser.add_argument('-f', '--file', help="hdf5 state file, *.hdf5")
+    executables = ["eanalyze", "einternal", "ianalyze",
+                   "kmclifetime", "kmcmultiple", "mapchecker", "neighborlist"]
+    parser.add_argument(
+        '-e', '--executable', required=True, help="Name of the calculator to run", choices=executables)
+    parser.add_argument('-f', '--file', help="hdf5 state file, .hdf5")
     parser.add_argument(
         '-i', '--first_frame', default=0, help="start from this frame")
     parser.add_argument(

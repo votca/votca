@@ -50,7 +50,7 @@ class CMakeBuild(build_ext):
         cmake_args = [
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(extdir),
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
-            "-DPYXTP_VERSION_INFO={}".format(self.distribution.get_version()),
+            "-DXTP_BINDS_VERSION_INFO={}".format(self.distribution.get_version()),
             # not used on MSVC, but no harm
             "-DCMAKE_BUILD_TYPE={}".format(cfg),
         ]
@@ -117,7 +117,7 @@ setup(
     description="Python bind to XTP using CMAKE",
     long_description=readme() + '\n\n',
     long_description_content_type='text/markdown',
-    ext_modules=[CMakeExtension("pyxtp")],
+    ext_modules=[CMakeExtension("xtp_binds")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     entry_points={
