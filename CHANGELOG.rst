@@ -83,7 +83,7 @@ Version 2021-dev
 -  added tool for automatic mapping file generation (#595)
 -  fixed int64 interface to RDKIT (#602)
 
-Version 1.6.3 (released XX.08.20)
+Version 1.6.3 (released 09.12.20)
 =================================
 
 -  switch to ghcr.io for CI (#555)
