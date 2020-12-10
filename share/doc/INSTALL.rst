@@ -85,7 +85,6 @@ Common CMake Flags
 Other CMake Flags
 ~~~~~~~~~~~~~~~~~
 
--  ``BUILD_CSG_MANUAL`` - Build csg pdf manual
 -  ``CMAKE_DISABLE_FIND_PACKAGE_<name>`` - Disable using an optional
    package called ``<name>`` (ON/OFF)
 -  ``CMAKE_DISABLE_FIND_PACKAGE_HDF5`` - Disable using the optional
