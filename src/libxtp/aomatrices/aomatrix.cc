@@ -105,18 +105,37 @@ void AOOverlap::Fill(const AOBasis& aobasis) {
 Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
   libint2::Shell::do_enforce_unit_normalization(false);
   libint2::Operator obtype = libint2::Operator::overlap;
-  libint2::Engine engine(obtype, shell.getSize(),
-                         static_cast<int>(shell.getL()), 0);
+  try {
+    libint2::Engine engine(obtype, shell.getSize(),
+                           static_cast<int>(shell.getL()), 0);
 
-  const libint2::Engine::target_ptr_vec& buf = engine.results();
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
 
-  libint2::Shell s = shell.LibintShell();
-  engine.compute(s, s);
+    libint2::Shell s = shell.LibintShell();
+    engine.compute(s, s);
 
-  Eigen::Map<const AOMatrix::MatrixLibInt> buf_mat(buf[0], shell.getNumFunc(),
-                                                   shell.getNumFunc());
-
-  return buf_mat;
+    Eigen::Map<const AOMatrix::MatrixLibInt> buf_mat(buf[0], shell.getNumFunc(),
+                                                     shell.getNumFunc());
+    return buf_mat;
+  } catch (const libint2::Engine::lmax_exceeded& error) {
+    std::ostringstream oss;
+    oss << "\nA libint error occured:\n"
+        << error.what() << "\n"
+        << "\nYou requested a computation for a shell with angular momentum "
+        << error.lmax_requested()
+        << ",\nbut your libint package only supports angular momenta upto "
+        << error.lmax_limit() - 1 << ".\n"
+        << "\nTo fix this error you will need to reinstall libint with "
+           "support\n"
+           "for higher angular momenta. If you installed your own libint it\n"
+           "should be reconfigured and installed with the option "
+           "--with-max-am=<maxAngularMomentum>.\n"
+           "If you installed libint with your OS package manager, you will\n"
+           "need to setup you own libint installation with the \n"
+           "--with-max-am=<maxAngularMomentum> option set."
+        << std::endl;
+    throw std::runtime_error(oss.str());
+  }
 }
 
 Eigen::MatrixXd AOOverlap::Pseudo_InvSqrt(double etol) {
