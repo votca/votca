@@ -84,6 +84,7 @@ Version 2021-dev
 -  Added GPU support for RPA (#601)
 -  fixed int64 interface to RDKIT (#602)
 -  fixed Sphinx warnings (#609)
+-  better error for exceeded angular momentum in libint (#613)
 
 
 
