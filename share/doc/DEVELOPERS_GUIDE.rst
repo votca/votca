@@ -32,7 +32,6 @@ Issues can be directly created on the appropriate github repo:
 -  `tools <https://github.com/votca/tools/issues>`__
 -  `csg <https://github.com/votca/csg/issues>`__
 -  `csgapps <https://github.com/votca/csgapps/issues>`__
--  `csg-manual <https://github.com/votca/csg-manual/issues>`__
 -  `csg-tutorials <https://github.com/votca/csg-tutorials/issues>`__
 -  `xtp <https://github.com/votca/xtp/issues>`__
 -  `votca <https://github.com/votca/votca/issues>`__
@@ -58,7 +57,7 @@ automate this.
 VOTCA Continuous Integration (Github Actions)
 ---------------------------------------------
 
-Each pull request to master in the tools, csg, csgapps, csg-tutorials, csg-manual, xtp, xtp-tutorials or votca repository 
+Each pull request to master in the tools, csg, csgapps, csg-tutorials, xtp, xtp-tutorials or votca repository 
 is built on a machine in the cloud using `Github actions <https://docs.github.com/en/actions>`__ (There is still some Gitlab for the GPU builds).
 
 VOTCA can build on various linux distributions, which are not all natively supported by Github actions. For non natively supported distributions, 
