@@ -81,9 +81,11 @@ Version 2021-dev
 -  extra check in orca unit test (#594)
 -  fixed atomid numbering while adding containers (#599)
 -  added tool for automatic mapping file generation (#595)
+-  Added GPU support for RPA (#601)
 -  fixed int64 interface to RDKIT (#602)
 -  fixed Sphinx warnings (#609)
 -  better error for exceeded angular momentum in libint (#613)
+
 
 
 Version 1.6.3 (released 09.12.20)
