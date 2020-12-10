@@ -27,10 +27,11 @@ Citations
 ---------
 
 Development of this software depends on academic research grants. If
-you are using the package, please cite the following papers
-* [mashayakrelative]_ Relative entropy and optimization-driven coarse-graining methods in VOTCA
-* [ruhle2011hybrid]_ Hybrid approaches to coarse-graining using the VOTCA package: liquid hexane
-* [Ruehle:2009.a]_ Versatile Object-oriented Toolkit for Coarse-graining Applications
+you are using the package, please cite the following papers:
+
+- [mashayakrelative]_ Relative entropy and optimization-driven coarse-graining methods in VOTCA
+- [ruhle2011hybrid]_ Hybrid approaches to coarse-graining using the VOTCA package: liquid hexane
+- [Ruehle:2009.a]_ Versatile Object-oriented Toolkit for Coarse-graining Applications
 
 
 Development
