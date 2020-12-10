@@ -30,12 +30,19 @@
 
 /**
  * \brief Supports operations on Matrices using OPENMP and
- * CUDA. It works in two steps a) set the variables for contraction
- * b) write the normal OPENMP for-loop but use the multiplyright on the
- * individual matrix. If an OpenMP_CUDA is constructed inside an active OpenMP
- * region, it only creates a single gpu job, if the thread id is smaller than
- * number of gpus.
+ * CUDA.
  *
+ * Each operation works with 2-3 steps
+ * 1) Allocate temporary matrices and move fixed data to the gpu before the
+ * openmp region is created 2) Inside the openmp region, move the loop data to
+ * the GPU and perform calculation there 3) For reduction operations, transfer
+ * the GPU data back to the CPU after the loop is finished Each GPU is served by
+ * one CPU thread, the other CPU threads perform the normal CPU based operations
+ * If no GPU is present all CPUs simply do CPU work.
+ * If this class is created inside an OPENMP region, it still ensures, that over
+ * that OPENMP region not more threads access the GPUs then GPUs are present.
+ * Otherwise it will work purely in serial. So this class does NOT work with
+ * nested OPENMP
  */
 
 namespace votca {
