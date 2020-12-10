@@ -32,6 +32,7 @@ Version 2021-dev
 -  format with clang-11 (#604)
 -  use unique_ptr in factory (#603)
 -  Convert remaining md files to rst (#616)
+-  merge csg-manual (#621)
 
 Version 1.6.3 (released 09.12.20)
 =================================
