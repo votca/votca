@@ -124,7 +124,6 @@ add_subdirectory(src)
 add_subdirectory(scripts)
 add_subdirectory(include/votca/csg)
 add_subdirectory(share)
-add_subdirectory(manual)
 
 # needs to happen after src and scripts subdir
 get_property(VOTCA_BINARIES TARGET votca_csg PROPERTY BINARIES)
