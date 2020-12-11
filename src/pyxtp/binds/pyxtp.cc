@@ -14,40 +14,20 @@
  *
  */
 
-// #include <pybind11/eigen.h>
-#include "votca/xtp/calculatorfactory.h"
-#include "votca/xtp/qmcalculator.h"
+#include "pyxtp.hpp"
 #include <iostream>
-#include <memory>
 #include <pybind11/pybind11.h>
-#include <string>
 #include <vector>
 
 using namespace votca;
-
-class PyXTP {
- public:
-  void Initialize(const std::string& name, int nThreads);
-
- private:
-  std::unique_ptr<xtp::QMCalculator> _calculator;
-};
-
-void PyXTP::Initialize(const std::string& name, int nThreads) {
-  xtp::Calculatorfactory::RegisterAll();
-  _calculator = std::move(xtp::Calculators().Create(name));
-  // _calculator->setnThreads(nThreads);
-  // _calculator->Initialize(_options);
-}
 
 /**
  * @brief Construct a new pybind11 module object to invoke votca-xtp*
  *
  */
 int call_calculator(const std::string& name, int nThreads) {
-  PyXTP pyxtp;
+  pyxtp::PyXTP pyxtp;
   pyxtp.Initialize(name, nThreads);
-  std::cout << "name is: " << name << "\n";
   return 42;
 }
 
