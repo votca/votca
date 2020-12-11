@@ -117,7 +117,7 @@ def xtp_extract_metadata(file_name: Path) -> Tuple[str, ET.Element]:
 def csg_extract_metadata(file_name: Path) -> Tuple[str, List[ET.Element]]:
     """Get the description and elements from the xml file."""
     children = get_root_children(file_name)
-    header = children[0].get("text", "")
+    header = children[0].text
     return header, children[1:]
 
 
@@ -143,7 +143,7 @@ def csg_get_recursive_attributes(elem: ET.Element, root_name: str = "") -> str:
         children = iter(elem)
         desc_elem = elem.find("DESC")
         if desc_elem is not None:
-            description = desc_elem.get("text", "")
+            description = desc_elem.text
         else:
             description = ""
         description = split_line(description)
