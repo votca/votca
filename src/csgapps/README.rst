@@ -1,7 +1,6 @@
-|Codacy Badge| |codecov| |CI| |DOI|
-
-This repository contains some small analysis programs which are written
-based on the votca csg framework
+This folder contains some small analysis programs which are written
+based on the votca csg framework, but are not useful for the broad
+public.
 
 Programs
 ========
@@ -24,13 +23,4 @@ Programs
    and stores in a new trajectory
 
 To add your own program just create a new folder and put your `\*.cc`
-files in there
-
-.. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/c22e2fb9c1f24dfa9afaed66ecfd7c08
-   :target: https://www.codacy.com/gh/votca/csgapps?utm_source=github.com&utm_medium=referral&utm_content=votca/csgapps&utm_campaign=Badge_Grade
-.. |codecov| image:: https://codecov.io/gh/votca/csgapps/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/votca/csgapps
-.. |CI| image:: https://github.com/votca/votca/workflows/CI/badge.svg?branch=master
-   :target: https://github.com/votca/votca/actions?query=workflow%3ACI+branch%3Amaster
-.. |DOI| image:: https://zenodo.org/badge/23939372.svg
-   :target: https://zenodo.org/badge/latestdoi/23939372
+files in there.
