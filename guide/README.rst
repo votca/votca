@@ -1,5 +1,5 @@
-Votca Tutorial Guide
-====================
+CSG Tutorial
+============
 
 (Based on the 2011-2017 CECAM meetings)
 

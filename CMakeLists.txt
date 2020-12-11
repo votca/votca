@@ -122,6 +122,19 @@ if(ENABLE_REGRESSION_TESTING)
   message(STATUS "Use VOTCASHARE=${VOTCA_SHARE} PATH=${VOTCA_PATH}:\$PATH VOTCA_CSG_DEFAULTS=${VOTCA_CSG_DEFAULTS} for out-of-cmake testing")
 endif()
 
+if(VOTCA_SPHINX_DIR)
+  file(GLOB RSTS ${CMAKE_CURRENT_SOURCE_DIR}/guide/*.rst)
+  set(MANUAL_RST_FILES)
+  foreach(_RST ${RSTS})
+    get_filename_component(_FILE "${_RST}" NAME)
+    add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg-tutorials/${_FILE}
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_RST} ${VOTCA_SPHINX_DIR}/csg-tutorials/${_FILE}
+      DEPENDS ${_RST})
+    list(APPEND MANUAL_RST_FILES ${VOTCA_SPHINX_DIR}/csg-tutorials/${_FILE})
+  endforeach()
+  add_custom_target(doc-csg-tutorials DEPENDS ${MANUAL_RST_FILES} ${MANUAL_PNG_FILES})
+endif()
+
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/csg-tutorials
 	PATTERN ".git*" EXCLUDE PATTERN "step_*" EXCLUDE
 	PATTERN "CMake*" EXCLUDE PATTERN "cmake_install.cmake" EXCLUDE
