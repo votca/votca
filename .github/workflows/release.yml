@@ -76,13 +76,13 @@ jobs:
           .github/workflows/make_release.sh --branch ${{ steps.setup.outputs.BRANCH }} ${{ github.event.inputs.cmake_args }} --verbose ${{ steps.setup.outputs.VERSION }} .
       - name: Show diff
         run: |
-          for p in . tools csg csgapps csg-tutorials xtp xtp-tutorials; do
+          for p in . tools csg csg-tutorials xtp xtp-tutorials; do
             git -C $p log -p --submodule origin/${{ steps.setup.outputs.BRANCH }}..${{ steps.setup.outputs.BRANCH }}
           done
       - name: Push tags
         run: |
           set -x
-          for p in . tools csg csgapps csg-tutorials xtp xtp-tutorials; do
+          for p in . tools csg csg-tutorials xtp xtp-tutorials; do
             git -C $p push ${{ steps.setup.outputs.DRY_RUN }} --tags origin ${{ steps.setup.outputs.BRANCH }}:${{ steps.setup.outputs.BRANCH }}
           done
       - name: Create Release

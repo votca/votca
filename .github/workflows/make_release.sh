@@ -4,7 +4,7 @@ url="https://github.com/votca/votca.git"
 branch=stable
 testing=no
 verbose=
-what=( tools csg csgapps csg-tutorials xtp xtp-tutorials )
+what=( tools csg csg-tutorials xtp xtp-tutorials )
 cmake_opts=()
 
 die () {
@@ -179,7 +179,6 @@ cmake -DCMAKE_INSTALL_PREFIX="${instdir}" -DMODULE_BUILD=ON \
       -DVOTCA_TARBALL_DIR="${topdir}" -DVOTCA_TARBALL_TAG="${rel}" \
       -DENABLE_TESTING=ON \
       -DENABLE_REGRESSION_TESTING=ON \
-      $(is_part csgapps "${what[@]}" && echo -DBUILD_CSGAPPS=ON) \
       $(is_part xtp "${what[@]}" && echo -DBUILD_XTP=ON) \
       "${cmake_opts[@]}" "${srcdir}"
 make -j"${j}" ${verbose:+VERBOSE=1}

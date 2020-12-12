@@ -15,7 +15,7 @@ Usage:
     prefix=WHERE/TO/INSTALL/VOTCA
     version=master # or 'stable' or 'v1.6.3'
     git clone -b ${version} --recursive https://github.com/votca/votca.git
-    cmake -B builddir -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} votca
+    cmake -B builddir -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} votca
     cmake --build builddir --parallel <number of cores>
     cmake --build builddir --target install
 
