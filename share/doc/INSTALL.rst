@@ -11,7 +11,7 @@ To install the full package:
     prefix=WHERE/TO/INSTALL/VOTCA
     version=master # or 'stable' or 'v1.4.1'
     git clone -b ${version} --recursive https://github.com/votca/votca.git
-    cmake -Bbuilddir -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} votca
+    cmake -Bbuilddir -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} votca
     cmake --build builddir --parallel <number of cores>
     cmake --build builddir --target install
 
@@ -46,7 +46,7 @@ Gromacs:
 
 ::
 
-    cmake -DBUILD_CSGAPPS=ON -DCMAKE_INSTALL_PREFIX=${prefix} -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so ..
+    cmake -DCMAKE_INSTALL_PREFIX=${prefix} -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so ..
 
 Be careful to use exactly the option suggested in the error message! You
 can also add ``-LH`` or ``-LAH`` options to the ``cmake`` command in
@@ -75,7 +75,7 @@ related tweaks when setting ``ENABLE_RPATH_INJECT`` to ``ON``.
 Common CMake Flags
 ~~~~~~~~~~~~~~~~~~
 
--  ``BUILD_CSGAPPS`` - Build the extra csg applications repo (ON/OFF,
+-  ``BUILD_CSGAPPS`` - Install the extra csg applications repo (ON/OFF,
    Default OFF)
 -  ``BUILD_XTP`` - Build the xtp repo (ON/OFF, Default OFF)
 -  ``CMAKE_INSTALL_PREFIX`` - where to install the votca executables
