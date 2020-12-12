@@ -168,12 +168,6 @@ jobs:
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
         run: cmake --build builddir --target format && git diff --submodule=diff --exit-code
-      - name: Deploy Doxygen and Website
-        if: ${{ matrix.deploy }}
-        env:
-          VOTCA_BOT_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
-          BRANCH: stable
-        run: .github/workflows/deploy.sh
   Build:
     runs-on: ubuntu-latest
     steps:
