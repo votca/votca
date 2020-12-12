@@ -1,0 +1,37 @@
+project = 'VOTCA'
+copyright = '2020, VOTCA Development Team'
+author = 'VOTCA Development Team'
+release = '@PROJECT_VERSION@'
+
+from recommonmark.parser import CommonMarkParser
+source_suffix = {
+    '.rst': 'restructuredtext',
+}
+
+html_logo = 'customLogo.png'
+html_theme = "sphinx_rtd_theme"
+#html_theme_path = ["_themes", ]
+html_theme_options= { 'logo_only' : True }
+
+#html_theme = 'alabaster'
+master_doc = 'index'
+nbsphinx_allow_errors = True
+
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory. They are copied after the builtin static files,
+# so a file named "default.css" will overwrite the builtin "default.css".
+html_static_path = ['_static']
+
+
+html_context = {
+    'css_files': [
+        '_static/theme_overrides.css',  # override wide tables in RTD theme
+        ],
+     }
+
+
+extensions = [
+    'nbsphinx', # Generate sphinx documentation directly from the jupyter notebooks
+    'sphinx.ext.mathjax', # Write equations
+    'sphinx.ext.githubpages' # Create content to publish in githubpages
+]
