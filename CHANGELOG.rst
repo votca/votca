@@ -33,6 +33,7 @@ Version 2021-dev
 -  use unique_ptr in factory (#603)
 -  Convert remaining md files to rst (#616)
 -  merge csg-manual (#621, #622)
+-  merge in csgapps repo (#623)
 
 Version 1.6.3 (released 09.12.20)
 =================================
