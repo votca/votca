@@ -192,5 +192,5 @@ jobs:
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Deploy Doxygen and Website
         if: ${{ matrix.deploy }}
-        run: .github/workflows/deploy.sh
+        run: ${GITHUB_WORKSPACE}/.github/workflows/deploy.sh
         working-directory: builddir
