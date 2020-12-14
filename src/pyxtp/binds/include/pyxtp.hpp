@@ -54,6 +54,6 @@ class PyXTP {
   std::unique_ptr<xtp::QMCalculator> _calculator;
 };
 
-}  // namespace pyxtp
+}  // namespace pyxtp 
 
 #endif  // PYXTP_H_

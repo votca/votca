@@ -50,9 +50,11 @@ class CMakeBuild(build_ext):
         cmake_args = [
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(extdir),
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
-            "-DXTP_BINDS_VERSION_INFO={}".format(self.distribution.get_version()),
+            "-DXTP_BINDS_VERSION_INFO={}".format(
+                self.distribution.get_version()),
             # not used on MSVC, but no harm
             "-DCMAKE_BUILD_TYPE={}".format(cfg),
+            "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON",
         ]
         build_args = []
 

@@ -19,6 +19,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/calculatorfactory.h"
+#include <iostream>
 
 // Local private VOTCA includes
 #include "calculators/eanalyze.h"
@@ -34,7 +35,6 @@ namespace votca {
 namespace xtp {
 
 void Calculatorfactory::RegisterAll(void) {
-
   Calculators().Register<Neighborlist>("neighborlist");
   Calculators().Register<MapChecker>("mapchecker");
   Calculators().Register<IAnalyze>("ianalyze");
@@ -43,6 +43,10 @@ void Calculatorfactory::RegisterAll(void) {
   Calculators().Register<KMCLifetime>("kmclifetime");
   Calculators().Register<KMCMultiple>("kmcmultiple");
   Calculators().Register<VAverage>("vaverage");
+
+  for (const auto& name : xtp::Calculators().getKeys()) {
+    std::cout << "Register key: " << name << "\n";
+  }
 }
 }  // namespace xtp
 }  // namespace votca

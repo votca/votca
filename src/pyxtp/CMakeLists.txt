@@ -36,8 +36,6 @@ set_target_properties(xtp_binds
 target_link_libraries(xtp_binds
  PUBLIC
  VOTCA::votca_xtp
- VOTCA::votca_csg
- VOTCA::votca_tools
 )
 
 
@@ -49,10 +47,8 @@ target_include_directories(main
 target_link_libraries(main
  PUBLIC
  VOTCA::votca_xtp
- VOTCA::votca_csg
- VOTCA::votca_tools
 )
 
 
 # # DPYXTP_VERSION_INFO is defined in the setup.py file
-target_compile_definitions(xtp_binds PRIVATE VERSION_INFO=${DXTP_BINDS_VERSION_INFO})
+target_compile_definitions(xtp_binds PRIVATE VERSION_INFO=${XTP_BINDS_VERSION_INFO})
