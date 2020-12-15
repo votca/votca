@@ -120,9 +120,6 @@ if(USE_CUDA)
   set_package_properties(CUDA PROPERTIES TYPE REQUIRED PURPOSE "Used for GPU acceleration")
 endif(USE_CUDA)
 
-find_package(Kokkos 3.0 CONFIG)
-set_package_properties(Kokkos PROPERTIES TYPE OPTIONAL PURPOSE "Used to Ewald solver")
-
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################

@@ -83,6 +83,7 @@ Version 2021-dev
 -  added tool for automatic mapping file generation (#595)
 -  Added GPU support for RPA (#601)
 -  fixed int64 interface to RDKIT (#602)
+-  remove kokkos dependent ewald (#612)
 -  fixed Sphinx warnings (#609)
 -  better error for exceeded angular momentum in libint (#613)
 
