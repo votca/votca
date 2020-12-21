@@ -1,3 +1,7 @@
+if(NOT BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "The BUILD_OWN_GROMACS option only works with BUILD_SHARED_LIBS=ON")
+endif()
+
 include(ExternalProject)
 include(GNUInstallDirs)
 enable_language(C)
