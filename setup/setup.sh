@@ -52,6 +52,8 @@ elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=icpc )
   mkdir ~/Licenses
   curl https://dynamicinstaller.intel.com/api/v2/license > ~/Licenses/intel.lic
+elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
+  cmake_args+=( -DCMAKE_CXX_COMPILER=icpx )
 else
   die "Unknown INPUT_TOOLCHAIN"
 fi
