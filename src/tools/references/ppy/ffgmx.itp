@@ -1,0 +1,117 @@
+[ defaults ]
+; nbfunc	comb-rule	gen-pairs	fudgeLJ	fudgeQQ
+  1		3		yes		0.5	0.5
+
+; parameters are tacken from the OPLS force field 
+; J. Phys. Chem. B Vol 102, No 41, p. 8049, 1998
+; charges - from the mp2 calculations on a dimer, trimer...
+;
+;        H
+;        |
+;        NA
+;      /    \
+;  HA-CW    CW-HA
+;      \    /
+;      CS--CS
+;      /    \
+;     HA    HA
+;
+[ atomtypes ]
+;                 eps,kJ/mol      sigma, nm
+; name       mass      charge    ptype      sigma      eps
+  NA     14.00670       0.000       A       0.325     0.71128 ; opls_aa
+  CW     12.01100       0.000       A       0.355     0.29288 ; opls_aa
+  CS     12.01100       0.000       A       0.355     0.29288 ; opls_aa
+  H      1.00800        0.000       A       0.000     0.00000 ; opls_aa
+  HA     1.00800        0.000       A       0.242     0.12552 ; opls_aa
+
+[ bondtypes ]
+; i    j func        b0          kb
+   CW   CW    1   0.14423     428441.6  ; distance - MP2 6-31g(d), constant - OPLSaa
+   CS   CS    1   0.14240     392459.2  ; opls_aa
+   CW   CS    1   0.13670     456892.8  ; opls_aa
+   CS   HA    1   0.10800     307105.6  ; opls_aa
+   CW   HA    1   0.10800     307105.6  ; opls_aa
+   NA    H    1   0.10100     363171.2  ; opls_aa
+   CW   NA    1   0.13810     357313.6  ; opls_aa
+
+[ pairtypes ]
+; i j func cs6 cs12 ; THESE ARE 1-4 INTERACTIONS
+
+[ angletypes ]
+  CS   CW   NA      1   106.500     585.760  ; opls_aa   585.760
+  CW   NA   CW      1   109.800     585.760  ; opls_aa   585.760
+  CW   CS   CS      1   107.300     585.760  ; opls_aa   585.760
+  CW   CS   HA      1   125.700     292.880  ; opls_aa   292.880
+  HA   CS   CS      1   127.500     292.880  ; opls_aa   292.880
+  CW   NA    H      1   125.100     292.880  ; opls_aa gives 120 deg,  292.880
+; from monomer to monomer
+  NA   CW   CW      1   121.900     527.000  ; angles MP2 6-31g(d),  OPLSaa - 527
+  CS   CW   CW      1   131.600     527.000  ; angles MP2 6-31g(d),  OPLSaa - 527
+; terminating units
+  NA   CW   HA      1   121.600     292.880  ; opls_aa
+  CS   CW   HA      1   132.100     292.880  ; opls_aa 
+
+[ dihedraltypes ]
+; connecting two repeat units
+  ; j    k func             phi0     cp    mult
+  ;CS CW  CW NA  1               180  -1.76  4; 90 -3.47 3; 
+  ;NA CW  CW NA  1               180  6.06  2; 180 3.11 2; 
+  ; NA CW  CW NA  3               5.84 -2.70 -26.19 7.54 17.07 -4.84
+  
+  NA CW  CW NA  3               16.0392 -2.48322 -25.8586 3.30161 11.034 -2.18395 ; b3lyp/6-311++G(3df,3pd), relax in md
+  ; NA CW  CW NA  3               15.005 -3.27322 -27.9108 6.03891 13.9767 -3.87909 ; b3lyp/6-311++G(3df,3pd), rerun
+
+; Ryckaert-Bellemans Dihedrals connecting two repeat units
+  ; j    k func      C0       C1       C2       C3       C4       C5
+;  CS  CW  CW  NA  1  0.0      0.0      0.0      0.0      0.0      0.0  
+;  CS  CW  CW  CS  1  0.0      0.0      0.0      0.0      0.0      0.0  
+
+; improper dihedrals to keep the rings flat
+  CW   CS   CS   CW      2   0.00000   167.00000
+  CS   CS   CW   NA      2   0.00000   167.00000
+  CS   CW   NA   CW      2   0.00000   167.00000
+  CW   NA   CW   CS      2   0.00000   167.00000
+  NA   CW   CS   CS      2   0.00000   167.00000
+; improper dihedrals to keep the hydrogens flat
+  CS   CS   CW   HA      2   0.00000   167.40000
+  CS   CW   CS   HA      2   0.00000   167.40000
+  NA   CW   CW    H      2   0.00000   167.40000
+  CW   CS   NA   HA      2   0.00000   167.40000   ; added for monomer
+; impropers between the monomers
+  CW   CS   NA   CW      2   0.00000   750.00000  ; MP2 6-31g(d)- 750.000
+;   CS   CS   CW   CW     2   180   100.00000  ; to be calculated
+;   CW   NA   CW   CW     2   180   100.00000  ; to be calculated
+
+; impropers on terminal groups
+  CW   NA   CS   HA      2   0.00000   167.40000
+
+[ atomtypes ]
+; name       mass      charge    ptype      sigma      eps
+  OW      15.99940       -0.82       A      0.316557  0.650194 ; opls_aa
+  HW      1.00800         0.41       A      0.000     0.00000 ; opls_aa
+
+; Water model
+[ moleculetype ]
+; molname   nrexcl
+SOL     1
+[ atoms ]
+; nr at type res  nr ren nm at nm cg nr charge
+  1  OW  1   SOL  OW1 1 -0.82
+  2  HW  1   SOL  HW2 1 0.41
+  3  HW  1   SOL  HW3 1 0.41
+
+;     OW  OW    -0.8476  1
+;     HW1 HW     0.4238  1
+;     HW2 HW     0.4238  1
+
+[ settles ]
+; OW  funct doh dhh
+1  1  0.1   0.16330
+
+[ exclusions ]
+1  2  3
+2  1  3
+3  1  2
+
+
