@@ -1,26 +1,15 @@
 #change the name here or run cmake -DNAME="XXX"
 set(NAME "template_serial" CACHE STRING "Name of the csg app")
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.10)
 
 project(${NAME})
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
-enable_language(CXX)
-include(CheckCXXCompilerFlag)
-
-find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options )
-include_directories(${Boost_INCLUDE_DIRS})
-set (BOOST_LIBRARIES ${Boost_PROGRAM_OPTIONS_LIBRARY})
-
-find_package(VOTCA_TOOLS REQUIRED)
-include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
-find_package(VOTCA_CSG REQUIRED)
-include_directories(${VOTCA_CSG_INCLUDE_DIRS})
+find_package(VOTCA_CSG REQUIRED NO_MODULE)
 
 file(GLOB ${NAME}_SOURCES ${NAME}*.cc)
 #add extra source files here
 add_executable(${NAME} ${${NAME}_SOURCES})
-target_link_libraries(${NAME} ${VOTCA_CSG_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES})
+target_link_libraries(${NAME} VOTCA::votca_csg)
 install(TARGETS ${NAME} RUNTIME DESTINATION bin)
 set_target_properties(${NAME} PROPERTIES OUTPUT_NAME csg_${NAME})

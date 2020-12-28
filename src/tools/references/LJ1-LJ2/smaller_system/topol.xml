@@ -1,0 +1,11 @@
+<topology>
+  <molecules>
+    <molecule name="LJ2" nmols="100" nbeads="1">
+      <bead name="LJ2" type="LJ2" mass="20.00260" q="0" />
+    </molecule>
+    <molecule name="LJ1" nmols="100" nbeads="1">
+      <bead name="LJ1" type="LJ1" mass="39.94800" q="0" />
+    </molecule>
+  </molecules>
+</topology>
+

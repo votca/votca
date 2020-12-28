@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -76,6 +76,7 @@ output="$2"
 echo "Convert $input to $output"
 
 sim_prog="$(csg_get_property cg.inverse.program)"
+[[ ${sim_prog} = "lammps" ]] || die "${0##*/}: cg.inverse.program was not set to 'lammps', but '${sim_prog}' (mind the default)"
 
 bondtype="$(csg_get_interaction_property bondtype)"
 
@@ -115,9 +116,17 @@ else
   scale="${input}"
 fi
 
+y_scale=$(csg_get_interaction_property inverse.lammps.y_scale)
+if [[ ${y_scale} != 1 ]]; then
+  yscale="$(critical mktemp ${trunc}.pot.yscale.XXXXX)"
+  do_external table linearop "${scale}" "${yscale}" "${y_scale}" "0"
+else
+  yscale="${scale}"
+fi
+
 #keep the grid for now, so that extrapolate can calculate the right mean
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
-critical csg_resample --in ${scale} --out "$smooth" --grid "${table_begin}:${step}:${table_end}"
+critical csg_resample --in ${yscale} --out "$smooth" --grid "${table_begin}:${step}:${table_end}"
 
 extrapol="$(critical mktemp ${trunc}.pot.extrapol.XXXXX)"
 lfct="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_left_extrapolation)"
@@ -137,6 +146,7 @@ fi
 
 do_external convert_potential tab --header "${sim_prog}" --type "${bondtype}" "${tshift}" "${deriv}" "${output}"
 if [[ $clean ]]; then
-  rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}"
-  [[ ${input} != ${scale} ]] && rm -f "${scale}"
+  rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}" "${deriv}"
+  [[ ${input} = ${scale} ]] || rm -f "${scale}"
+  [[ ${input} = ${yscale} ]] || rm -f "${yscale}"
 fi

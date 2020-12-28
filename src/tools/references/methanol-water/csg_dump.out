@@ -13,6 +13,6 @@ molecule: 1 MEO beads: 1
 molecule: 2 MEO beads: 1
 1 Name 1:MEO:ME Type ME Mass 32.0424 Resnr 1 Resname MEO Charge 0
 molecule: 3 SOL beads: 1
-2 Name 2:SOL:WT Type WT Mass 18.0154 Resnr 2 Resname SOL Charge 0
+2 Name 1:SOL:WT Type WT Mass 18.0154 Resnr 2 Resname SOL Charge 0
 molecule: 4 SOL beads: 1
-3 Name 2:SOL:WT Type WT Mass 18.0154 Resnr 3 Resname SOL Charge 0
+3 Name 1:SOL:WT Type WT Mass 18.0154 Resnr 3 Resname SOL Charge 0

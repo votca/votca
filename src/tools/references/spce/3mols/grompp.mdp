@@ -1,0 +1,15 @@
+title                    = 3H2O
+integrator               = sd
+tinit                    = 0
+dt                       = 0.002
+nsteps                   = 1
+nstxout                  = 1
+nstfout                  = 1
+nstlist                  = 1
+nstxout-compressed       = 1
+coulombtype              = Reaction-Field
+rcoulomb                 = 0.9
+rvdw                     = 0.9
+tc-grps                  = System
+tau_t                    = 0.5 
+ref_t                    = 300

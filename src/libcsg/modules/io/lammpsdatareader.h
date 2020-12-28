@@ -26,7 +26,6 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
 class Molecule;
 
@@ -38,61 +37,61 @@ class Molecule;
 
 */
 class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
-public:
-  LAMMPSDataReader() {}
-  ~LAMMPSDataReader() {}
+ public:
+  LAMMPSDataReader() = default;
+  ~LAMMPSDataReader() override = default;
 
   /// open, read and close topology file
-  bool ReadTopology(std::string file, Topology &top);
+  bool ReadTopology(std::string file, Topology &top) override;
 
   /// open a trajectory file
-  bool Open(const std::string &file);
+  bool Open(const std::string &file) override;
   /// read in the first frame of trajectory file
-  bool FirstFrame(Topology &top);
+  bool FirstFrame(Topology &top) override;
   /// read in the next frame of trajectory file
-  bool NextFrame(Topology &top);
+  bool NextFrame(Topology &top) override;
   /// close the topology file
-  void Close();
+  void Close() override;
 
-private:
+ private:
   std::ifstream fl_;
   std::string fname_;
   bool topology_;
 
   std::map<std::string, std::vector<std::vector<std::string>>> data_;
 
-  // int - atom type starting index of 0
+  // Index - atom type starting index of 0
   // .at(0) - element symbol or bead
   // .at(1) - atom name may be the same as the element symbol or bead depending
   //          on if there is more than one atom type for a given element
-  std::map<int, std::vector<std::string>> atomtypes_;
+  std::map<Index, std::string> atomtypes_;
 
   // String is the type .e.g. "atom","bond" etc
-  // int is the number of different types
-  std::map<string, int> numberOfDifferentTypes_;
+  // Index is the number of different types
+  std::map<std::string, Index> numberOfDifferentTypes_;
 
   // String is the type .e.g. "atom", "bond" etc
-  // int is the number of them
-  std::map<string, int> numberOf_;
+  // Index is the number of them
+  std::map<std::string, Index> numberOf_;
 
-  // First int is the molecule id
-  // Second int is the molecule ptr
-  std::map<int, Molecule *> molecules_;
+  // First Index is the molecule id
+  // Second Index is the molecule ptr
+  std::map<Index, Molecule *> molecules_;
 
-  // First int is the atom id second the molecule id
-  std::map<int, int> atomIdToMoleculeId_;
+  // First Index is the atom id second the molecule id
+  std::map<Index, Index> atomIdToMoleculeId_;
 
-  // First int is the atom id second the atom index
-  std::map<int, int> atomIdToIndex_;
+  // First Index is the atom id second the atom index
+  std::map<Index, Index> atomIdToIndex_;
 
   bool MatchOneFieldLabel_(std::vector<std::string> fields, Topology &top);
   bool MatchTwoFieldLabels_(std::vector<std::string> fields, Topology &top);
-  bool MatchThreeFieldLabels_(std::vector<std::string> fields, Topology &top);
+  bool MatchThreeFieldLabels_(std::vector<std::string> fields);
   bool MatchFourFieldLabels_(std::vector<std::string> fields, Topology &top);
 
   void ReadBox_(std::vector<std::string> fields, Topology &top);
   void SortIntoDataGroup_(std::string tag);
-  void ReadNumTypes_(std::vector<string> fields, string type);
+  void ReadNumTypes_(std::vector<std::string> fields, std::string type);
 
   void ReadNumOfAtoms_(std::vector<std::string> fields, Topology &top);
   void ReadNumOfBonds_(std::vector<std::string> fields);
@@ -104,7 +103,9 @@ private:
   void ReadBonds_(Topology &top);
   void ReadAngles_(Topology &top);
   void ReadDihedrals_(Topology &top);
-  void ReadImpropers_(Topology &top);
+  void SkipImpropers_();
+
+  void RenameMolecule(Molecule &mol) const;
 
   enum lammps_format {
     style_angle_bond_molecule = 0,
@@ -119,11 +120,11 @@ private:
    * The purpose of this function is to take lammps output where there are more
    * than a single atom type of the same element. For instance there may be 4
    * atom types with mass of 12.01. Well this means that they are all carbon but
-   * are treated differently in lammps. It makes since to keep track of this. If
+   * are treated differently in lammps. It makes sense to keep track of this. If
    * a mass cannot be associated with an element we will assume it is pseudo
-   * atom or course grained watom which we will represent with as a bead. So
-   * when creating the atom names we will take into account so say we have the
-   * following masses in the lammps .data file:
+   * atom or course grained watom which we will represent as a bead. So
+   * when creating the atom names we will take this into account. So say we have
+   *the following masses in the lammps .data file:
    *
    * Masses
    *
@@ -150,11 +151,8 @@ private:
    * element and the atom name is the same.
    **/
   void InitializeAtomAndBeadTypes_();
-  std::map<std::string, double> determineBaseNameAssociatedWithMass_();
-  std::map<std::string, int> determineAtomAndBeadCountBasedOnMass_(
-      std::map<std::string, double> baseNamesAndMasses);
 };
-}
-}
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_LAMMPSDATAREADER_H
+#endif  // _VOTCA_CSG_LAMMPSDATAREADER_H

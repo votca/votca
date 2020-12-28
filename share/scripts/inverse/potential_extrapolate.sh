@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ Allowed options:
     --rfct FCT                type of the right extrapolation function
                               possible: ${fct_types}
                               default: constant(non-bonded), linear (bonded)
-    --avg-point INT           number of average points
+    --avg-points INT          number of average points
                               default: $avg_points
 
 EOF
@@ -61,7 +61,7 @@ while [[ ${1} = --* ]]; do
     is_part "${2}" "${fct_types}" || die "${0##*/}: given function type ($2) is not in the list of functions (${fct_types})"
     eval "${1#--}"="$2"
     shift 2;;
-  --avg-point)
+  --avg-points)
     avg_points="$2";
     is_int "$2" || die "${0##*/}: argument of --avg-point should be int"
     shift 2;;

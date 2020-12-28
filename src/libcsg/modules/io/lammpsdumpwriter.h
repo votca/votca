@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,24 +22,21 @@
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
-class LAMMPSDumpWriter
-: public TrajectoryWriter
-{
-public:
-    
-    void Open(std::string file, bool bAppend = false);
-    void Close();
-    
-    void RegisteredAt(ObjectFactory<std::string, TrajectoryWriter> &factory) {}    
+class LAMMPSDumpWriter : public TrajectoryWriter {
+ public:
+  void Open(std::string file, bool bAppend = false) override;
+  void Close() override;
 
-    void Write(Topology *conf);
+  void Write(Topology *conf) override;
 
-private:
-    FILE *_out;
+ private:
+  FILE *_out;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif // __VOTCA_CSG_LAMMPSDUMPWRITER_H
+#endif  // __VOTCA_CSG_LAMMPSDUMPWRITER_H
