@@ -1,6 +1,9 @@
 For more detailed information about the changes see the history of the
 [repository](https://github.com/votca/csg/commits/master).
 
+## Version 1.6.4 (released XX.12.20)
+* fix exclusion creation in csg_boltzmann (#624, #625)
+
 ## Version 1.6.3 (released 09.12.20)
 * fix test dependencies for parallel ctest (#585)
 * fix trigger for gmx-2020 warning in run_gromacs.sh (#591)
