@@ -1,0 +1,94 @@
+; RUN CONTROL PARAMETERS
+integrator               = sd          ; Langevin thermostat 
+tinit                    = 0           ; Initial time
+dt                       = 0.002       ; Time steps in ps (2fs)
+nsteps                   = 5000000000   ; MD time steps
+
+init_step                = 0           ; Starting step
+comm-mode                = Linear      ; Remove center of mass translation
+nstcomm                  = 5000000000   ; Frequency for center of mass motion removal (in time steps)
+
+; OUTPUT CONTROL OPTIONS
+nstxout                  = 0        ; Save coordinate in time steps
+nstvout                  = 0        ; Save velocity in time steps
+nstfout                  = 0        ; Save force in time steps
+
+nstlog                   = 1000        ; Update log file
+nstenergy                = 1000        ; Save energy in time steps
+
+nstxtcout                = 1000        ; Frequency to write coordinates to xtc trajectory
+xtc-precision            = 1000        ; Precision to write to xtc trajectory
+
+; NEIGHBORSEARCHING PARAMETERS
+
+nstlist                  = 0           ; Neighbor list update frequency in this unit it is 10fs
+;ns_type                  = grid        ; Make a grid in the box and only check atoms in neighboring grid cells
+
+cutoff-scheme             =group       ; This is to be able to run it with gromacs version 2019.3
+; Periodic boundary conditions: xyz (default), no (vacuum)
+;pbc                      = xyz         ; All three directions
+pbc                      = no
+
+rlist                    = 0         ; Cut-Off distance for the short-range neighbor list in ns
+
+; OPTIONS FOR ELECTROSTATICS AND VDW
+
+; Method for doing electrostatics
+;coulombtype              = PME         ; Particle Mesh Ewald for long-range electrostatics
+;rcoulomb-switch          = 0           ; Where to start switching the Coulomb potential
+;rcoulomb                 = 1.4         ; Distance for the Coulomb cut-off in nm
+coulombtype              = cut-off        
+rcoulomb-switch          = 0         ; Where to start switching the Coulomb potential
+rcoulomb                 = 0        ; Distance for the Coulomb cut-off in nm
+
+
+; Dielectric constant (DC) for cut-off or DC of reaction field
+epsilon-r                = 1           ; The relative dielectric constant
+
+; Method for doing Van der Waals
+vdw-type                 = Cut-off     ; Twin range cut-off?s with neighbor list cut-off rlist and VdW cut-off rvdw
+rvdw-switch              = 0           ; Where to start switching LJ in nm
+rvdw                     = 0         ; Distance for the LJ or Buckingham cut-off
+
+; Apply long range dispersion corrections for Energy and Pressure
+;DispCorr                 = EnerPres    ; Apply long range dispersion corrections for Energy and Pressure
+
+; Extension of the potential lookup tables beyond the cut-off
+table-extension          = 1           ; In nm
+
+; Spacing for the PME/PPPM FFT grid
+fourierspacing           = 0.12        ; Maximum grid spacing for FFT grid
+
+; EWALD/PME/PPPM parameters
+pme_order                = 4           ; Cubic spline interpolation
+ewald_rtol               = 1e-05       ; The relative strength of the Ewald-shifted direct potential at rcoulomb
+ewald_geometry           = 3d          ; 3 Dimensional
+epsilon_surface          = 0           
+optimize_fft             = no
+
+; OPTIONS FOR WEAK COUPLING ALGORITHMS
+
+; Temperature coupling  
+;Tcoupl                   = berendsen   ; Berendsen thermostat
+tc-grps                  = System      ; Coupling groups
+tau_t                    = 1.0; 1.0; 2.0; 1.0         ; Time constant in ps
+ref_t                    = 600         ; Temperature in Kelvin
+
+; Pressure coupling     
+Pcoupl                   = no          ; NPT Simultions (no = NVT, or berendsen or Parrinello-Rahman)
+Pcoupltype               = isotropic   ; Uniform scaling of box vectors
+tau_p                    = 2.0         ; Time constant in ps
+compressibility          = 4.5e-5      ; Isothermal compressibility of water, bar^-1
+ref_p                    = 1.013         ; Pressure in bar
+; Random seed for Andersen thermostat
+andersen_seed            = 815131
+
+; GENERATE VELOCITIES FOR STARTUP RUN
+gen_vel                  = yes
+gen_temp                 = 600
+gen_seed                 = -1
+
+
+
+
+
