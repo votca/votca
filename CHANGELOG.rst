@@ -86,6 +86,7 @@ Version 2021-dev
 -  remove kokkos dependent ewald (#612)
 -  fixed Sphinx warnings (#609)
 -  better error for exceeded angular momentum in libint (#613)
+-  fixed wrong QP-QMMM energy with non-zero QPmin (#620)
 
 Version 1.6.3 (released 09.12.20)
 =================================
