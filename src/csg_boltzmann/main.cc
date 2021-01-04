@@ -111,12 +111,9 @@ ExclusionList CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
   Topology *at_top = atomistic.getParent();
   for (votca::Index i = 0; i < cg.BeadCount(); ++i) {
     std::vector<Bead *> excl_list;
-    std::cout << "Bead:" << i << " :";
     for (votca::Index parent_bead_id : cg.getBead(i)->ParentBeads()) {
-      std::cout << parent_bead_id << " ";
       excl_list.push_back(at_top->getBead(parent_bead_id));
     }
-    std::cout << std::endl;
     ex.Remove(excl_list);
   }
   std::cout << ex << std::endl;
