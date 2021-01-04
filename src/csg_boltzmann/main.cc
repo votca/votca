@@ -131,7 +131,6 @@ ExclusionList CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
       }
     }
   }
-  std::cout << ex << std::endl;
   return ex;
 }
 
