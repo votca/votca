@@ -107,7 +107,7 @@ inline void ExclusionList::ExcludeList(iterable &l) {
 
 template <typename iterable>
 inline void ExclusionList::InsertExclusion(Bead *beadA, iterable &l) {
-  for (Bead *beadB:l) {
+  for (Bead *beadB : l) {
     Bead *bead1 = beadA;
     Bead *bead2 = beadB;
     if (bead2->getId() < bead1->getId()) {
@@ -130,8 +130,6 @@ inline void ExclusionList::InsertExclusion(Bead *beadA, iterable &l) {
     e->_exclude.push_back(bead2);
   }
 }
-
-
 
 std::ostream &operator<<(std::ostream &out, ExclusionList &ex);
 
