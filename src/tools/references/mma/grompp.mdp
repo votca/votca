@@ -24,7 +24,6 @@ xtc-precision            = 1000        ; Precision to write to xtc trajectory
 nstlist                  = 0           ; Neighbor list update frequency in this unit it is 10fs
 ;ns_type                  = grid        ; Make a grid in the box and only check atoms in neighboring grid cells
 
-cutoff-scheme             =group       ; This is to be able to run it with gromacs version 2019.3
 ; Periodic boundary conditions: xyz (default), no (vacuum)
 ;pbc                      = xyz         ; All three directions
 pbc                      = no
