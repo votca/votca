@@ -106,7 +106,6 @@ ExclusionList CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
   ExclusionList ex;
   // exclude all with all
   ex.ExcludeList(atomistic.Beads());
-  std::cout << ex << std::endl;
   // remove exclusions from inside a mapped bead
   Topology *at_top = atomistic.getParent();
   for (votca::Index i = 0; i < cg.BeadCount(); ++i) {
@@ -116,7 +115,6 @@ ExclusionList CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
     }
     ex.Remove(excl_list);
   }
-  std::cout << ex << std::endl;
   // remove exclusion which come from atomistic topology and hence bonds and
   // angles
   Topology *cg_top = cg.getParent();
