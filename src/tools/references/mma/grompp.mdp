@@ -19,14 +19,8 @@ nstenergy                = 1000        ; Save energy in time steps
 nstxtcout                = 1000        ; Frequency to write coordinates to xtc trajectory
 xtc-precision            = 1000        ; Precision to write to xtc trajectory
 
-; NEIGHBORSEARCHING PARAMETERS
-
-nstlist                  = 0           ; Neighbor list update frequency in this unit it is 10fs
-;ns_type                  = grid        ; Make a grid in the box and only check atoms in neighboring grid cells
-
 ; Periodic boundary conditions: xyz (default), no (vacuum)
-;pbc                      = xyz         ; All three directions
-pbc                      = no
+pbc                      = xyz         ; All three directions
 
 rlist                    = 0         ; Cut-Off distance for the short-range neighbor list in ns
 
