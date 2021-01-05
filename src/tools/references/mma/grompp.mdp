@@ -27,12 +27,8 @@ rlist                    = 0         ; Cut-Off distance for the short-range neig
 ; OPTIONS FOR ELECTROSTATICS AND VDW
 
 ; Method for doing electrostatics
-;coulombtype              = PME         ; Particle Mesh Ewald for long-range electrostatics
-;rcoulomb-switch          = 0           ; Where to start switching the Coulomb potential
-;rcoulomb                 = 1.4         ; Distance for the Coulomb cut-off in nm
 coulombtype              = cut-off        
-rcoulomb-switch          = 0         ; Where to start switching the Coulomb potential
-rcoulomb                 = 0        ; Distance for the Coulomb cut-off in nm
+rcoulomb                 = 0.9        ; Distance for the Coulomb cut-off in nm
 
 
 ; Dielectric constant (DC) for cut-off or DC of reaction field
@@ -41,7 +37,7 @@ epsilon-r                = 1           ; The relative dielectric constant
 ; Method for doing Van der Waals
 vdw-type                 = Cut-off     ; Twin range cut-off?s with neighbor list cut-off rlist and VdW cut-off rvdw
 rvdw-switch              = 0           ; Where to start switching LJ in nm
-rvdw                     = 0         ; Distance for the LJ or Buckingham cut-off
+rvdw                     = 0.9         ; Distance for the LJ or Buckingham cut-off
 
 ; Apply long range dispersion corrections for Energy and Pressure
 ;DispCorr                 = EnerPres    ; Apply long range dispersion corrections for Energy and Pressure
