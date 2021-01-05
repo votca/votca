@@ -39,7 +39,7 @@ Version 2021-dev
 Version 1.6.4 (released XX.12.20)
 =================================
 
-- no changes
+-  no changes
 
 Version 1.6.3 (released 09.12.20)
 =================================
