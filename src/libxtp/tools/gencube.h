@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,27 +18,29 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_GENCUBE_H
-#define _VOTCA_XTP_GENCUBE_H
+#ifndef VOTCA_XTP_GENCUBE_H
+#define VOTCA_XTP_GENCUBE_H
 
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/qmtool.h>
+// Local VOTCA includes
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmstate.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
 class AOBasis;
 
-class GenCube : public QMTool {
+class GenCube final : public QMTool {
  public:
   GenCube() = default;
 
-  ~GenCube() override = default;
+  ~GenCube() = default;
 
-  std::string Identify() final { return "gencube"; }
+  std::string Identify() { return "gencube"; }
 
-  void Initialize(tools::Property& options) final;
-  bool Evaluate() final;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   void calculateCube();
@@ -61,4 +63,4 @@ class GenCube : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_GENCUBE_H

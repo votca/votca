@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,31 @@
  */
 
 #pragma once
-#ifndef __VOTCA_KMC_MULTIPLE_H
-#define __VOTCA_KMC_MULTIPLE_H
+#ifndef VOTCA_XTP_KMCMULTIPLE_H
+#define VOTCA_XTP_KMCMULTIPLE_H
 
+// Standard includes
 #include <fstream>
-#include <votca/xtp/kmccalculator.h>
+
+// Local VOTCA includes
+#include "votca/xtp/kmccalculator.h"
+
 namespace votca {
 namespace xtp {
 
-class KMCMultiple : public KMCCalculator {
+class KMCMultiple final : public KMCCalculator {
  public:
   KMCMultiple() = default;
-  ~KMCMultiple() override = default;
-  bool WriteToStateFile() const override { return false; }
-  std::string Identify() override { return "kmcmultiple"; }
-  void Initialize(tools::Property& options) override;
-  bool EvaluateFrame(Topology& top) override;
+  ~KMCMultiple() = default;
+  bool WriteToStateFile() const { return false; }
+  std::string Identify() { return "kmcmultiple"; }
+
+ protected:
+  void ParseSpecificOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
-  void RunVSSM() override;
+  void RunVSSM();
   void PrintChargeVelocity(double simtime);
 
   void PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
@@ -60,4 +66,4 @@ class KMCMultiple : public KMCCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_KMC_MULTIPLE_H */
+#endif  // VOTCA_XTP_KMCMULTIPLE_H

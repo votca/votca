@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,15 +21,19 @@
 #ifndef VOTCA_XTP_IQM_H
 #define VOTCA_XTP_IQM_H
 
-#include <votca/tools/property.h>
-
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <sys/stat.h>
-#include <votca/xtp/bsecoupling.h>
-#include <votca/xtp/dftcoupling.h>
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/parallelxjobcalc.h>
+
+// VOTCA includes
+#include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/xtp/bsecoupling.h"
+#include "votca/xtp/dftcoupling.h"
+#include "votca/xtp/gwbse.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/parallelxjobcalc.h"
 
 namespace votca {
 namespace xtp {
@@ -39,19 +43,20 @@ namespace xtp {
  *
  * Evaluates DFT & GWBSE-based coupling elements for all conjugated
  * segments from the neighbor list. Requires molecular orbitals of two monomers
- * and a dimer in GAUSSIAN, NWChem, or ORCAformat.
+ * and a dimer in ORCA format.
  *
  * Callname: iqm
  */
 
-class IQM : public ParallelXJobCalc<std::vector<Job> > {
+class IQM final : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  void Initialize(tools::Property& options) override;
-  std::string Identify() override { return "iqm"; }
-  Job::JobResult EvalJob(const Topology& top, Job& job,
-                         QMThread& Thread) override;
-  void WriteJobFile(const Topology& top) override;
-  void ReadJobFile(Topology& top) override;
+  std::string Identify() { return "iqm"; }
+  Job::JobResult EvalJob(const Topology& top, Job& job, QMThread& opThread);
+  void WriteJobFile(const Topology& top);
+  void ReadJobFile(Topology& top);
+
+ protected:
+  void ParseSpecificOptions(const tools::Property& user_options);
 
  private:
   double GetBSECouplingFromProp(tools::Property& bseprop, const QMState& stateA,
@@ -63,7 +68,6 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
   void WriteLoggerToFile(const std::string& logfile, Logger& logger);
   void addLinkers(std::vector<const Segment*>& segments, const Topology& top);
   bool isLinker(const std::string& name);
-  void ParseOptionsXML(tools::Property& opt);
   std::map<std::string, QMState> FillParseMaps(const std::string& Mapstring);
 
   QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,
@@ -98,4 +102,4 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
 
 }  // namespace xtp
 }  // namespace votca
-#endif
+#endif  // VOTCA_XTP_IQM_H

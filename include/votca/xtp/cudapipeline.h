@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,15 +17,17 @@
  *
  */
 
-#ifndef __XTP_CUDA_PIPELINE__H
-#define __XTP_CUDA_PIPELINE__H
+#ifndef VOTCA_XTP_CUDAPIPELINE_H
+#define VOTCA_XTP_CUDAPIPELINE_H
 
-#include <votca/xtp/votca_config.h>
+// CMake generated file
+#include "votca_xtp_config.h"
 #ifndef USE_CUDA
 #error Cuda not enabled
 #endif
 
-#include <votca/xtp/cudamatrix.h>
+// Local VOTCA includes
+#include "cudamatrix.h"
 
 /*
  * \brief Perform Tensor-matrix multiplications in a GPU
@@ -44,21 +46,32 @@ namespace xtp {
  */
 class CudaPipeline {
  public:
-  CudaPipeline() {
+  CudaPipeline(int deviceID) : _deviceID{deviceID} {
+    checkCuda(cudaSetDevice(deviceID));
     cublasCreate(&_handle);
     cudaStreamCreate(&_stream);
   }
-  ~CudaPipeline();
 
+  ~CudaPipeline();
+  CudaPipeline() = delete;
   CudaPipeline(const CudaPipeline &) = delete;
   CudaPipeline &operator=(const CudaPipeline &) = delete;
 
   // Invoke the ?gemm function of cublas
-  void gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C) const;
+  void gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C,
+            bool transpose_A = false, bool transpose_B = false,
+            double beta = 0.0) const;
+
+  // Invoke the multiplication with a diagonal matrix of cublas, diagonal matrix
+  // B must have 1 column
+  void diag_gemm(const CudaMatrix &A, const CudaMatrix &b, CudaMatrix &C) const;
 
   const cudaStream_t &get_stream() const { return _stream; };
 
+  int getDeviceId() const { return _deviceID; }
+
  private:
+  int _deviceID = 0;
   // The cublas handles allocates hardware resources on the host and device.
   cublasHandle_t _handle;
 
@@ -69,4 +82,4 @@ class CudaPipeline {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_CUDAPIPELINE_H

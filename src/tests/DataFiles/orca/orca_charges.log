@@ -1,0 +1,240 @@
+
+                                 *****************
+                                 * O   R   C   A *
+                                 *****************
+
+           --- An Ab Initio, DFT and Semiempirical electronic structure package ---
+                         Program Version 4.0.1 -  RELEASE  -
+
+================================================================================
+                                       INPUT FILE
+================================================================================
+NAME = system.inp
+|  1> * xyz  0 1
+|  2>   H      0.5288      0.1610      0.9359
+|  3>   C      0.0000      0.0000      0.0000
+|  4>   H      0.2051      0.8240     -0.6786
+|  5>   H      0.3345     -0.9314     -0.4496
+|  6>   H     -1.0685     -0.0537      0.1921
+|  7> * 
+|  8> 
+|  9> ! DFT  PBE0 DIRECT 3-21G CHELPG
+| 10> 
+| 11> 
+| 12>                          ****END OF INPUT****
+================================================================================
+
+                       ****************************
+                       * Single Point Calculation *
+                       ****************************
+
+---------------------------------
+CARTESIAN COORDINATES (ANGSTROEM)
+---------------------------------
+  H      0.528800    0.161000    0.935900
+  C      0.000000    0.000000    0.000000
+  H      0.205100    0.824000   -0.678600
+  H      0.334500   -0.931400   -0.449600
+  H     -1.068500   -0.053700    0.192100
+
+----------------------------
+CARTESIAN COORDINATES (A.U.)
+----------------------------
+  NO LB      ZA    FRAG     MASS         X           Y           Z
+   0 H     1.0000    0     1.008    0.999287    0.304246    1.768595
+   1 C     6.0000    0    12.011    0.000000    0.000000    0.000000
+   2 H     1.0000    0     1.008    0.387583    1.557134   -1.282368
+   3 H     1.0000    0     1.008    0.632113   -1.760091   -0.849621
+   4 H     1.0000    0     1.008   -2.019172   -0.101478    0.363016
+
+-------------------------------------------------------------------------------
+                                 ORCA SCF
+-------------------------------------------------------------------------------
+
+------------
+SCF SETTINGS
+------------
+Hamiltonian:
+ Density Functional     Method          .... DFT(GTOs)
+ Exchange Functional    Exchange        .... PBE
+   PBE kappa parameter   XKappa         ....  0.804000
+   PBE mue parameter    XMuePBE         ....  0.219520
+ Correlation Functional Correlation     .... PBE
+   PBE beta parameter  CBetaPBE         ....  0.066725
+ LDA part of GGA corr.  LDAOpt          .... PW91-LDA
+ Gradients option       PostSCFGGA      .... off
+ Hybrid DFT is turned on
+   Fraction HF Exchange ScalHFX         ....  0.250000
+   Scaling of DF-GGA-X  ScalDFX         ....  0.750000
+   Scaling of DF-GGA-C  ScalDFC         ....  1.000000
+   Scaling of DF-LDA-C  ScalLDAC        ....  1.000000
+   Perturbative correction              ....  0.000000
+   NL short-range parameter             ....  6.900000
+
+
+General Settings:
+ Integral files         IntName         .... system
+ Hartree-Fock type      HFTyp           .... RHF
+ Total Charge           Charge          ....    0
+ Multiplicity           Mult            ....    1
+ Number of Electrons    NEL             ....   10
+ Basis Dimension        Dim             ....   17
+ Nuclear Repulsion      ENuc            ....     13.4728429098 Eh
+--------------
+                 **** Energy Check signals convergence ****
+              ***Rediagonalizing the Fockian in SOSCF/NRSCF***
+
+               *****************************************************
+               *                     SUCCESS                       *
+               *           SCF CONVERGED AFTER   8 CYCLES          *
+               *****************************************************
+----------------
+TOTAL SCF ENERGY
+----------------
+
+Total Energy       :          -40.24079234 Eh           -1095.00763 eV
+
+Components:
+Nuclear Repulsion  :           13.47284291 Eh             366.61469 eV
+Electronic Energy  :          -53.71363525 Eh           -1461.62232 eV
+One Electron Energy:          -79.60546447 Eh           -2166.17481 eV
+Two Electron Energy:           25.89182922 Eh             704.55249 eV
+
+Virial components:
+Potential Energy   :          -80.11914772 Eh           -2180.15285 eV
+Kinetic Energy     :           39.87835537 Eh            1085.14522 eV
+Virial Ratio       :            2.00908856
+
+
+DFT components:
+N(Alpha)           :        4.999999872554 electrons
+N(Beta)            :        4.999999872554 electrons
+N(Total)           :        9.999999745108 electrons
+E(X)               :       -4.882673741049 Eh       
+E(C)               :       -0.304070704661 Eh       
+E(XC)              :       -5.186744445711 Eh       
+
+----------------
+ORBITAL ENERGIES
+----------------
+
+  NO   OCC          E(Eh)            E(eV) 
+   0   2.0000     -10.144671      -276.0505 
+   1   2.0000      -0.712065       -19.3763 
+   2   2.0000      -0.400849       -10.9077 
+   3   2.0000      -0.400674       -10.9029 
+   4   2.0000      -0.400623       -10.9015 
+   5   0.0000       0.162735         4.4282 
+   6   0.0000       0.207980         5.6594 
+   7   0.0000       0.208515         5.6740 
+   8   0.0000       0.209452         5.6995 
+   9   0.0000       0.724346        19.7105 
+  10   0.0000       0.724822        19.7234 
+  11   0.0000       0.726572        19.7710 
+  12   0.0000       1.060128        28.8476 
+  13   0.0000       1.090989        29.6873 
+  14   0.0000       1.091410        29.6988 
+  15   0.0000       1.091968        29.7140 
+  16   0.0000       1.714644        46.6578 
+                     *******************************
+                     * LOEWDIN POPULATION ANALYSIS *
+                     *******************************
+
+----------------------
+LOEWDIN ATOMIC CHARGES
+----------------------
+   0 H :    0.107341
+   1 C :   -0.427887
+   2 H :    0.106689
+   3 H :    0.106859
+   4 H :    0.106998
+
+-------------------------------
+LOEWDIN REDUCED ORBITAL CHARGES
+-------------------------------
+  0 H s       :     0.892659  s :     0.892659
+  1 C s       :     3.002200  s :     3.002200
+      pz      :     1.142081  p :     3.425687
+      px      :     1.142325
+      py      :     1.141282
+  2 H s       :     0.893311  s :     0.893311
+  3 H s       :     0.893141  s :     0.893141
+  4 H s       :     0.893002  s :     0.893002
+
+
+
+
+-------------------------   --------------------
+FINAL SINGLE POINT ENERGY       -40.240792344368
+-------------------------   --------------------
+
+
+                            ***************************************
+                            *     ORCA property calculations      *
+                            ***************************************
+
+                                    ---------------------
+                                    Active property flags
+                                    ---------------------
+   (+) Dipole Moment
+
+
+------------------------------------------------------------------------------
+                       ORCA ELECTRIC PROPERTIES CALCULATION
+------------------------------------------------------------------------------
+
+Dipole Moment Calculation                       ... on
+Quadrupole Moment Calculation                   ... off
+Polarizability Calculation                      ... off
+GBWName                                         ... system.gbw
+Electron density file                           ... system.scfp.tmp
+The origin for moment calculation is the CENTER OF MASS  = (-0.000012, -0.000012 -0.000024)
+
+-------------
+DIPOLE MOMENT
+-------------
+                                X             Y             Z
+Electronic contribution:      0.00066      -0.00090       0.00446
+Nuclear contribution   :     -0.00007      -0.00007      -0.00014
+                        -----------------------------------------
+Total Dipole Moment    :      0.00059      -0.00097       0.00432
+                        -----------------------------------------
+Magnitude (a.u.)       :      0.00447
+Magnitude (Debye)      :      0.01136
+
+------------------------------------------------------------------------------
+                      ORCA CHELPG CHARGES GENERATION
+------------------------------------------------------------------------------
+
+GBW file                           ... system.gbw
+
+Reading the GBW file               ... done
+
+Grid spacing                       ...     0.300000
+Point Cut-Off                      ...     2.800000
+Van-der-Waals Radii                ...        COSMO
+Total charge                       ...            0
+
+
+Number of points X direction       ...           23
+Number of points Y direction       ...           24
+Number of points Z direction       ...           24
+Maximum number of possible points  ...        13248
+Final number of points             ...         5330
+
+
+CHELPG Charges            
+--------------------------------
+  0   H   :       0.178516
+  1   C   :      -0.709443
+  2   H   :       0.176227
+  3   H   :       0.177109
+  4   H   :       0.177591
+--------------------------------
+Total charge:    -0.000000
+--------------------------------
+
+CHELPG charges calculated...
+
+                             ****ORCA TERMINATED NORMALLY****
+TOTAL RUN TIME: 0 days 0 hours 0 minutes 2 seconds 316 msec

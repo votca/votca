@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,30 +17,37 @@
  *
  */
 
+// Third party includes
 #include <boost/interprocess/sync/file_lock.hpp>
+
+// VOTCA includes
 #include <votca/tools/filesystem.h>
-#include <votca/xtp/statesaver.h>
-#include <votca/xtp/topology.h>
+
+// Local VOTCA includes
+#include "votca/xtp/statesaver.h"
+#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {
 
 std::vector<Index> StateSaver::getFrames() const {
-  if (!tools::filesystem::FileExists(_hdf5file)) {
-    return std::vector<Index>();
-  }
-
-  boost::interprocess::file_lock flock(_hdf5file.c_str());
-  flock.lock();
   CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::READ);
   CheckpointReader r = cpf.getReader();
-  std::vector<Index> frames;
-  r(frames, "frames");
-  flock.unlock();
+  std::vector<Index> frames = std::vector<Index>{};
+  try {
+    r(frames, "frames");
+  } catch (std::runtime_error&) {
+    ;
+  }
   return frames;
 }
-void StateSaver::WriteFrame(const Topology &top) {
-
+void StateSaver::WriteFrame(const Topology& top) {
+  if (!tools::filesystem::FileExists(_hdf5file)) {
+    std::cout << "Creating statefile " << _hdf5file << std::endl;
+    CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::CREATE);
+  }
+  boost::interprocess::file_lock flock(_hdf5file.c_str());
+  flock.lock();
   if (!TopStepisinFrames(top.getStep())) {
     std::vector<Index> frames = this->getFrames();
     frames.push_back(top.getStep());
@@ -50,15 +57,14 @@ void StateSaver::WriteFrame(const Topology &top) {
     std::cout << "Frame with id " << top.getStep() << " was not in statefile "
               << _hdf5file << " ,adding it now." << std::endl;
   }
-  boost::interprocess::file_lock flock(_hdf5file.c_str());
-  flock.lock();
+
   CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::MODIFY);
   CheckpointWriter w = cpf.getWriter("/frame_" + std::to_string(top.getStep()));
   top.WriteToCpt(w);
 
   flock.unlock();
 
-  std::cout << "Writing MD topology (step = " << top.getStep()
+  std::cout << "Wrote MD topology (step = " << top.getStep()
             << ", time = " << top.getTime() << ") to " << _hdf5file
             << std::endl;
   std::cout << "... ";
@@ -68,17 +74,19 @@ void StateSaver::WriteFrame(const Topology &top) {
 }
 
 Topology StateSaver::ReadFrame(Index frameid) const {
-
+  if (!tools::filesystem::FileExists(_hdf5file)) {
+    throw std::runtime_error("Statefile " + _hdf5file + " does not exist.");
+  }
   std::cout << "Import MD Topology (i.e. frame " << frameid << ")"
             << " from " << _hdf5file << std::endl;
   std::cout << "...";
-
+  boost::interprocess::file_lock flock(_hdf5file.c_str());
+  flock.lock();
   if (!TopStepisinFrames(frameid)) {
     throw std::runtime_error("Frame with id " + std::to_string(frameid) +
                              " is not in statefile.");
   }
-  boost::interprocess::file_lock flock(_hdf5file.c_str());
-  flock.lock();
+
   CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::READ);
   CheckpointReader r = cpf.getReader("/frame_" + std::to_string(frameid));
   Topology top;

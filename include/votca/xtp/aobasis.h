@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,8 +21,11 @@
 #ifndef VOTCA_XTP_AOBASIS_H
 #define VOTCA_XTP_AOBASIS_H
 
-#include <votca/xtp/aoshell.h>
-#include <votca/xtp/eigen.h>
+// Local VOTCA includes
+#include "aoshell.h"
+#include "checkpoint.h"
+#include "eigen.h"
+#include <libint2/shell.h>
 
 namespace votca {
 namespace xtp {
@@ -36,9 +39,6 @@ class BasisSet;
  */
 class AOBasis {
  public:
-  void ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
-                  const std::string& target) const;
-
   void Fill(const BasisSet& bs, const QMMolecule& atoms);
 
   Index AOBasisSize() const { return _AOBasisSize; }
@@ -53,29 +53,38 @@ class AOBasis {
 
   Index getNumofShells() const { return Index(_aoshells.size()); }
 
+  Index getMaxNprim() const;
+
+  Index getMaxL() const;
+
+  std::vector<Index> getMapToBasisFunctions() const;
+
   const std::vector<Index>& getFuncPerAtom() const { return _FuncperAtom; }
 
- private:
+  std::vector<libint2::Shell> GenerateLibintBasis() const;
+
+  std::vector<std::vector<Index>> ComputeShellPairs(
+      double threshold = 1e-20) const;
+
   AOShell& addShell(const Shell& shell, const QMAtom& atom, Index startIndex);
 
-  void MultiplyMOs(Eigen::MatrixXd& v,
-                   const std::vector<Index>& multiplier) const;
+  const std::string& Name() const { return _name; }
 
-  std::vector<Index> invertOrder(const std::vector<Index>& order) const;
+  void UpdateShellPositions(const QMMolecule& mol);
 
-  std::vector<Index> getReorderVector(const std::string& start,
-                                      const std::string& target) const;
+  void WriteToCpt(CheckpointWriter& w) const;
 
-  void addReorderShell(const std::string& start, const std::string& target,
-                       const std::string& shell,
-                       std::vector<Index>& neworder) const;
+  void ReadFromCpt(CheckpointReader& r);
 
-  std::vector<Index> getMultiplierVector(const std::string& start,
-                                         const std::string& target) const;
+  void add(const AOBasis& other);
 
-  void addMultiplierShell(const std::string& start, const std::string& target,
-                          const std::string& shell,
-                          std::vector<Index>& multiplier) const;
+  friend std::ostream& operator<<(std::ostream& out, const AOBasis& aobasis);
+
+ private:
+  void FillFuncperAtom();
+
+  void clear();
+  std::string _name = "";
 
   std::vector<AOShell> _aoshells;
 

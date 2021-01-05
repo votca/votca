@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,29 +18,30 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_EXCITONCOUPLINGH_H
-#define _VOTCA_XTP_EXCITONCOUPLINGH_H
+#ifndef VOTCA_XTP_EXCITONCOUPLING_H
+#define VOTCA_XTP_EXCITONCOUPLING_H
 
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmtool.h>
-
-#include <stdio.h>
+// VOTCA includes
 #include <votca/tools/constants.h>
-#include <votca/xtp/bsecoupling.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/eeinteractor.h>
 
-#include <votca/xtp/qmpackagefactory.h>
+// Local VOTCA includes
+#include "votca/xtp/bsecoupling.h"
+#include "votca/xtp/classicalsegment.h"
+#include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmpackagefactory.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
 
-class ExcitonCoupling : public QMTool {
+class ExcitonCoupling final : public QMTool {
  public:
-  std::string Identify() override { return "excitoncoupling"; }
+  std::string Identify() { return "excitoncoupling"; }
 
-  void Initialize(tools::Property& options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
   std::string _orbA, _orbB, _orbAB;
@@ -53,42 +54,28 @@ class ExcitonCoupling : public QMTool {
   Logger _log;
 };
 
-void ExcitonCoupling::Initialize(tools::Property& options) {
+void ExcitonCoupling::ParseOptions(const tools::Property& options) {
 
-  std::string key = "options." + Identify();
-  _classical = false;
-  if (options.exists(key + ".classical")) {
-    _classical = options.get(key + ".classical").as<bool>();
-
-  } else {
-    _classical = false;
-  }
+  _classical = options.get(".use_classical").as<bool>();
 
   if (!_classical) {
 
-    std::string coupling_xml =
-        options.get(key + ".bsecoupling_options").as<std::string>();
-    _coupling_options.LoadFromXML(coupling_xml);
+    _coupling_options.get(".bsecoupling_options");
 
-    _orbA = options.get(key + ".orbitalsA").as<std::string>();
-    _orbB = options.get(key + ".orbitalsB").as<std::string>();
-    _orbAB = options.get(key + ".orbitalsAB").as<std::string>();
+    _orbA = options.get(".orbitalsA").as<std::string>();
+    _orbB = options.get(".orbitalsB").as<std::string>();
+    _orbAB = options.get(".orbitalsAB").as<std::string>();
 
   } else {
-    _mpsA = options.get(key + ".mpsA").as<std::string>();
-    _mpsB = options.get(key + ".mpsB").as<std::string>();
+    _mpsA = options.get(".mpsA").as<std::string>();
+    _mpsB = options.get(".mpsB").as<std::string>();
   }
-  _output_file = options.get(key + ".output").as<std::string>();
-
-  // get the path to the shared folders with xml files
-  char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == nullptr) {
-    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-  }
+  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
+      "output", _job_name + "_excitoncoupling.xml");
 }
 
-bool ExcitonCoupling::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
+bool ExcitonCoupling::Run() {
+
   _log.setReportLevel(Log::current_level);
   _log.setMultithreading(true);
 
@@ -156,4 +143,4 @@ bool ExcitonCoupling::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_EXCITONCOUPLING_H
