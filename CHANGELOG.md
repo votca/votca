@@ -3,6 +3,7 @@ For more detailed information about the changes see the history of the
 
 ## Version 1.6.4 (released XX.12.20)
 * fix build on openSUSE (#622)
+* Refactored logger (#625)
 
 ## Version 1.6.3 (released 09.12.20)
 * switch to ghcr.io for CI (#555)
