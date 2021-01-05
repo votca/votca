@@ -39,11 +39,11 @@ class ExclusionList {
 
   void Clear(void);
 
-  template <typename iteratable>
-  void Remove(iteratable &l);
+  template <typename iterable>
+  void Remove(iterable &l);
 
-  template <typename iteratable>
-  void ExcludeList(iteratable &l);
+  template <typename iterable>
+  void ExcludeList(iterable &l);
 
   struct exclusion_t {
     Bead *_atom;
@@ -60,8 +60,8 @@ class ExclusionList {
 
   bool IsExcluded(Bead *bead1, Bead *bead2);
 
-  template <typename iteratable>
-  void InsertExclusion(Bead *bead, iteratable &excluded);
+  template <typename iterable>
+  void InsertExclusion(Bead *bead, iterable &excluded);
 
   void InsertExclusion(Bead *bead1, Bead *bead2);
 
@@ -83,9 +83,9 @@ inline ExclusionList::exclusion_t *ExclusionList::GetExclusions(Bead *bead) {
   return (*iter).second;
 }
 
-template <typename iteratable>
-inline void ExclusionList::Remove(iteratable &l) {
-  typename iteratable::iterator i, j;
+template <typename iterable>
+inline void ExclusionList::Remove(iterable &l) {
+  typename iterable::iterator i, j;
 
   for (i = l.begin(); i != l.end(); ++i) {
     for (j = i; j != l.end(); ++j) {
@@ -94,9 +94,9 @@ inline void ExclusionList::Remove(iteratable &l) {
   }
 }
 
-template <typename iteratable>
-inline void ExclusionList::ExcludeList(iteratable &l) {
-  typename iteratable::iterator i, j;
+template <typename iterable>
+inline void ExclusionList::ExcludeList(iterable &l) {
+  typename iterable::iterator i, j;
 
   for (i = l.begin(); i != l.end(); ++i) {
     for (j = i; j != l.end(); ++j) {
@@ -105,11 +105,11 @@ inline void ExclusionList::ExcludeList(iteratable &l) {
   }
 }
 
-template <typename iteratable>
-inline void ExclusionList::InsertExclusion(Bead *bead1_, iteratable &l) {
-  for (typename iteratable::iterator i = l.begin(); i != l.end(); ++i) {
-    Bead *bead1 = bead1_;
-    Bead *bead2 = *i;
+template <typename iterable>
+inline void ExclusionList::InsertExclusion(Bead *beadA, iterable &l) {
+  for (Bead *beadB : l) {
+    Bead *bead1 = beadA;
+    Bead *bead2 = beadB;
     if (bead2->getId() < bead1->getId()) {
       std::swap(bead1, bead2);
     }
@@ -128,62 +128,6 @@ inline void ExclusionList::InsertExclusion(Bead *bead1_, iteratable &l) {
       _excl_by_bead[bead1] = e;
     }
     e->_exclude.push_back(bead2);
-  }
-}
-
-// template<>
-inline void ExclusionList::InsertExclusion(Bead *bead1, Bead *bead2) {
-  if (bead2->getId() < bead1->getId()) {
-    std::swap(bead1, bead2);
-  }
-
-  if (bead1 == bead2) {
-    return;
-  }
-
-  if (IsExcluded(bead1, bead2)) {
-    return;
-  }
-
-  exclusion_t *e;
-  if ((e = GetExclusions(bead1)) == nullptr) {
-    e = new exclusion_t;
-    e->_atom = bead1;
-    _exclusions.push_back(e);
-    _excl_by_bead[bead1] = e;
-  }
-  e->_exclude.push_back(bead2);
-}
-
-inline void ExclusionList::RemoveExclusion(Bead *bead1, Bead *bead2) {
-  if (bead2->getId() < bead1->getId()) {
-    std::swap(bead1, bead2);
-  }
-
-  if (bead1 == bead2) {
-    return;
-  }
-
-  if (!IsExcluded(bead1, bead2)) {
-    return;
-  }
-
-  std::list<exclusion_t *>::iterator ex;
-  for (ex = _exclusions.begin(); ex != _exclusions.end(); ++ex) {
-    if ((*ex)->_atom == bead1) {
-      break;
-    }
-
-    if (ex == _exclusions.end()) {
-      return;
-    }
-
-    (*ex)->_exclude.remove(bead2);
-    if ((*ex)->_exclude.empty()) {
-      (*ex) = nullptr;
-      _exclusions.erase(ex);
-    }
-    _exclusions.remove(nullptr);
   }
 }
 
