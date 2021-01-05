@@ -23,6 +23,7 @@
 #include "votca/xtp/qmmolecule.h"
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <iomanip>
 #include <vector>
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
