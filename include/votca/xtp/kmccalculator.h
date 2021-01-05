@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,20 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_CALCULATOR_H
-#define VOTCA_XTP_CALCULATOR_H
+#ifndef VOTCA_XTP_KMCCALCULATOR_H
+#define VOTCA_XTP_KMCCALCULATOR_H
 
+// VOTCA includes
 #include <votca/tools/globals.h>
 #include <votca/tools/random.h>
 #include <votca/tools/tokenizer.h>
-#include <votca/xtp/chargecarrier.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmstate.h>
 
-#include <votca/xtp/gnode.h>
-#include <votca/xtp/qmcalculator.h>
+// Local VOTCA includes
+#include "chargecarrier.h"
+#include "gnode.h"
+#include "logger.h"
+#include "qmcalculator.h"
+#include "qmstate.h"
 
 namespace votca {
 namespace xtp {
@@ -36,17 +38,20 @@ class KMCCalculator : public QMCalculator {
  public:
   ~KMCCalculator() override = default;
 
-  std::string Identify() override = 0;
-  bool WriteToStateFile() const override = 0;
-  void Initialize(tools::Property& options) override = 0;
+  void ParseOptions(const tools::Property& options) final {
+    ParseCommonOptions(options);
+    ParseSpecificOptions(options);
+  }
 
  protected:
+  virtual void ParseSpecificOptions(const tools::Property& options) = 0;
+
   QMStateType _carriertype;
 
   void LoadGraph(Topology& top);
   virtual void RunVSSM() = 0;
 
-  void ParseCommonOptions(tools::Property& options);
+  void ParseCommonOptions(const tools::Property& options);
 
   double Promotetime(double cumulated_rate);
   void ResetForbiddenlist(std::vector<GNode*>& forbiddenid) const;
@@ -58,8 +63,8 @@ class KMCCalculator : public QMCalculator {
   const GLink& ChooseHoppingDest(const GNode& node);
   Chargecarrier* ChooseAffectedCarrier(double cumulated_rate);
 
-  void WriteOccupationtoFile(double simtime, std::string filename) const;
-  void WriteRatestoFile(std::string filename, const QMNBList& list) const;
+  void WriteOccupationtoFile(double simtime, std::string filename);
+  void WriteRatestoFile(std::string filename, const QMNBList& nblist);
 
   void RandomlyCreateCharges();
   void RandomlyAssignCarriertoSite(Chargecarrier& Charge);
@@ -73,9 +78,9 @@ class KMCCalculator : public QMCalculator {
   Index _numberofcarriers;
   Eigen::Vector3d _field = Eigen::Vector3d::Zero();
   double _maxrealtime;
-  std::string _trajectoryfile = "trajectory.csv";
-  std::string _ratefile = "rates.dat";
-  std::string _occfile = "occupation.dat";
+  std::string _trajectoryfile;
+  std::string _ratefile;
+  std::string _occfile;
 
   Logger _log;
 
@@ -85,4 +90,4 @@ class KMCCalculator : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_CALCULATOR_H
+#endif  // VOTCA_XTP_KMCCALCULATOR_H

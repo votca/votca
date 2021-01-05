@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,14 +17,19 @@
  *
  */
 
-#include "votca/xtp/rpa.h"
-#include "votca/xtp/sigma_exact.h"
-#include "votca/xtp/sigma_ppm.h"
+// Standard includes
 #include <fstream>
 #include <iostream>
-#include <votca/xtp/IndexParser.h>
-#include <votca/xtp/gw.h>
-#include <votca/xtp/newton_rapson.h>
+
+// Local VOTCA includes
+#include "votca/xtp/IndexParser.h"
+#include "votca/xtp/anderson_mixing.h"
+#include "votca/xtp/gw.h"
+#include "votca/xtp/newton_rapson.h"
+#include "votca/xtp/rpa.h"
+#include "votca/xtp/sigma_cda.h"
+#include "votca/xtp/sigma_exact.h"
+#include "votca/xtp/sigma_ppm.h"
 
 namespace votca {
 namespace xtp {
@@ -34,9 +39,11 @@ void GW::configure(const options& opt) {
   _qptotal = _opt.qpmax - _opt.qpmin + 1;
   _rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
   if (_opt.sigma_integration == "exact") {
-    _sigma = std::make_unique<Sigma_Exact>(Sigma_Exact(_Mmn, _rpa));
+    _sigma = std::make_unique<Sigma_Exact>(_Mmn, _rpa);
+  } else if (_opt.sigma_integration == "cda") {
+    _sigma = std::make_unique<Sigma_CDA>(_Mmn, _rpa);
   } else if (_opt.sigma_integration == "ppm") {
-    _sigma = std::make_unique<Sigma_PPM>(Sigma_PPM(_Mmn, _rpa));
+    _sigma = std::make_unique<Sigma_PPM>(_Mmn, _rpa);
   }
   Sigma_base::options sigma_opt;
   sigma_opt.homo = _opt.homo;
@@ -45,6 +52,9 @@ void GW::configure(const options& opt) {
   sigma_opt.rpamin = _opt.rpamin;
   sigma_opt.rpamax = _opt.rpamax;
   sigma_opt.eta = _opt.eta;
+  sigma_opt.alpha = _opt.alpha;
+  sigma_opt.quadrature_scheme = _opt.quadrature_scheme;
+  sigma_opt.order = _opt.order;
   _sigma->configure(sigma_opt);
   _Sigma_x = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
   _Sigma_c = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
@@ -156,6 +166,10 @@ void GW::CalculateGWPerturbation() {
       dft_shifted_energies.segment(_opt.rpamin, _opt.rpamax - _opt.rpamin + 1));
   Eigen::VectorXd frequencies =
       dft_shifted_energies.segment(_opt.qpmin, _qptotal);
+
+  Anderson _mixing;
+  _mixing.Configure(_opt.gw_mixing_order, _opt.gw_mixing_alpha);
+
   for (Index i_gw = 0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
 
     if (i_gw % _opt.reset_3c == 0 && i_gw != 0) {
@@ -168,19 +182,49 @@ void GW::CalculateGWPerturbation() {
         << TimeStamp() << " Calculated screening via RPA" << std::flush;
     XTP_LOG(Log::info, _log)
         << TimeStamp() << " Solving QP equations " << std::flush;
+    if (_opt.gw_mixing_order > 0 && i_gw > 0) {
+      _mixing.UpdateInput(frequencies);
+    }
+
     frequencies = SolveQP(frequencies);
 
     if (_opt.gw_sc_max_iterations > 1) {
       Eigen::VectorXd rpa_energies_old = _rpa.getRPAInputEnergies();
-      _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
-      XTP_LOG(Log::error, _log)
+      if (_opt.gw_mixing_order > 0 && i_gw > 0) {
+        if (_opt.gw_mixing_order == 1) {
+          XTP_LOG(Log::debug, _log)
+              << "GWSC using linear mixing with alpha: " << _opt.gw_mixing_alpha
+              << std::flush;
+        } else {
+          XTP_LOG(Log::debug, _log)
+              << "GWSC using Anderson mixing with history "
+              << _opt.gw_mixing_order << ", alpha: " << _opt.gw_mixing_alpha
+              << std::flush;
+        }
+        _mixing.UpdateOutput(frequencies);
+        Eigen::VectorXd mixed_frequencies = _mixing.MixHistory();
+        _rpa.UpdateRPAInputEnergies(_dft_energies, mixed_frequencies,
+                                    _opt.qpmin);
+        frequencies = mixed_frequencies;
+
+      } else {
+        XTP_LOG(Log::debug, _log) << "GWSC using plain update " << std::flush;
+        _rpa.UpdateRPAInputEnergies(_dft_energies, frequencies, _opt.qpmin);
+      }
+
+      for (int i = 0; i < frequencies.size(); i++) {
+        XTP_LOG(Log::debug, _log)
+            << "... GWSC iter " << i_gw << " state " << i << " "
+            << std::setprecision(9) << frequencies(i) << std::flush;
+      }
+
+      XTP_LOG(Log::info, _log)
           << TimeStamp() << " GW_Iteration:" << i_gw
           << " Shift[Hrt]:" << CalcHomoLumoShift(frequencies) << std::flush;
       if (Converged(_rpa.getRPAInputEnergies(), rpa_energies_old,
                     _opt.gw_sc_limit)) {
-        XTP_LOG(Log::error, _log)
-            << TimeStamp() << " Converged after " << i_gw + 1
-            << " GW iterations." << std::flush;
+        XTP_LOG(Log::info, _log) << TimeStamp() << " Converged after "
+                                 << i_gw + 1 << " GW iterations." << std::flush;
         break;
       } else if (i_gw == _opt.gw_sc_max_iterations - 1) {
         XTP_LOG(Log::error, _log)
@@ -210,8 +254,13 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
   Eigen::VectorXd frequencies_new = frequencies;
   Eigen::Array<bool, Eigen::Dynamic, 1> converged =
       Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(_qptotal);
-#pragma omp parallel for schedule(dynamic)
+#ifdef _OPENMP
+  Index use_threads =
+      OPENMP::getMaxThreads() > _qptotal ? _qptotal : OPENMP::getMaxThreads();
+#endif
+#pragma omp parallel for schedule(dynamic) num_threads(use_threads)
   for (Index gw_level = 0; gw_level < _qptotal; ++gw_level) {
+
     double initial_f = frequencies[gw_level];
     double intercept = intercepts[gw_level];
     boost::optional<double> newf;
@@ -268,6 +317,7 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
 
 boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
                                          Index gw_level) const {
+  std::vector<std::pair<double, double>> roots;
   const double range =
       _opt.qp_grid_spacing * double(_opt.qp_grid_steps - 1) / 2.0;
   boost::optional<double> newf = boost::none;
@@ -282,15 +332,34 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
     double targ = fqp.value(freq);
     if (targ_prev * targ < 0.0) {  // Sign change
       double f = SolveQP_Bisection(freq_prev, targ_prev, freq, targ, fqp);
-      double gradient = std::abs(fqp.deriv(f));
-      if (gradient < gradient_max) {
+      double gradient = fqp.deriv(f);
+      double qp_weight = -1.0 / gradient;
+      roots.push_back(std::make_pair(f, qp_weight));
+      if (std::abs(gradient) < gradient_max) {
+        gradient_max = std::abs(gradient);
         qp_energy = f;
-        gradient_max = gradient;
         pole_found = true;
       }
     }
     freq_prev = freq;
     targ_prev = targ;
+  }
+  if (Log::current_level > Log::error) {
+#pragma omp critical
+    {
+      if (!pole_found) {
+        XTP_LOG(Log::info, _log)
+            << " No roots found for qplevel:" << gw_level << std::flush;
+      } else {
+        XTP_LOG(Log::info, _log) << " Roots found for qplevel:" << gw_level
+                                 << " (qpenergy:qpweight)\n\t\t";
+        for (auto& root : roots) {
+          XTP_LOG(Log::info, _log) << std::setprecision(5) << root.first << ":"
+                                   << root.second << " ";
+        }
+        XTP_LOG(Log::info, _log) << "Root chosen " << qp_energy << std::flush;
+      }
+    }
   }
 
   if (pole_found) {

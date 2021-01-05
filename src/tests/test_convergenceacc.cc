@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,26 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE convergenceacc_test
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <fstream>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/aopotential.h>
-#include <votca/xtp/convergenceacc.h>
-#include <votca/xtp/orbitals.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/aopotential.h"
+#include "votca/xtp/convergenceacc.h"
+#include "votca/xtp/orbitals.h"
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(convergenceacc_test)
 
 BOOST_AUTO_TEST_CASE(levelshift_test) {
-
+  libint2::initialize();
   std::ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << std::endl;
   xyzfile << " methane" << std::endl;
@@ -217,6 +224,8 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
   bool check_level =
       result.eigenvalues().isApprox(orb.MOs().eigenvalues(), 0.00001);
   BOOST_CHECK_EQUAL(check_level, 1);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

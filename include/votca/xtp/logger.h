@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,13 +20,17 @@
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #pragma once
-#ifndef VOTCA_XTP_LOG_H
-#define VOTCA_XTP_LOG_H
+#ifndef VOTCA_XTP_LOGGER_H
+#define VOTCA_XTP_LOGGER_H
 
+// Standard includes
 #include <chrono>
 #include <iostream>
 #include <sstream>
+
+// VOTCA includes
 #include <votca/tools/globals.h>
+
 namespace votca {
 namespace xtp {
 
@@ -42,7 +46,7 @@ namespace xtp {
 /*
  * Custom buffer to store messages
  */
-class LogBuffer : public std::stringbuf {
+class LogBuffer final : public std::stringbuf {
 
  public:
   LogBuffer() : std::stringbuf() { _LogLevel = Log::current_level; }
@@ -105,7 +109,7 @@ class LogBuffer : public std::stringbuf {
   bool _writePreface = true;
 
  protected:
-  int sync() override {
+  int sync() {
 
     std::ostringstream _message;
 
@@ -147,7 +151,7 @@ class LogBuffer : public std::stringbuf {
  *  Example:
  *
  *  \code
- *  #include <votca/xtp/logger.h>
+ *  #include <logger.h>
  *  Logger log; // create a logger object
  *  log.setReportLevel(Log::error); // output only log messages starting from a
  *  level XTP_LOG(Log::error,*log) << "Error detected" << flush; // write to
@@ -165,35 +169,30 @@ class Logger final : public std::ostream {
   }
 
  public:
-  Logger() : std::ostream(new LogBuffer()), _ReportLevel(Log::current_level) {
+  Logger() : std::ostream(&_buffer), _ReportLevel(Log::current_level) {
     setMultithreading(_maverick);
   }
   Logger(Log::Level ReportLevel)
-      : std::ostream(new LogBuffer()), _ReportLevel(ReportLevel) {
+      : std::ostream(&_buffer), _ReportLevel(ReportLevel) {
     setMultithreading(_maverick);
   }
 
-  ~Logger() final {
-    delete rdbuf();
-    rdbuf(nullptr);
-  }
-
   Logger &operator()(Log::Level LogLevel) {
-    dynamic_cast<LogBuffer *>(rdbuf())->setLogLevel(LogLevel);
+    _buffer.setLogLevel(LogLevel);
     return *this;
   }
 
   void setReportLevel(Log::Level ReportLevel) { _ReportLevel = ReportLevel; }
   void setMultithreading(bool maverick) {
     _maverick = maverick;
-    dynamic_cast<LogBuffer *>(rdbuf())->setMultithreading(_maverick);
+    _buffer.setMultithreading(_maverick);
   }
   bool isMaverick() const { return _maverick; }
 
   Log::Level getReportLevel() const { return _ReportLevel; }
 
   void setPreface(Log::Level level, const std::string &preface) {
-    dynamic_cast<LogBuffer *>(rdbuf())->setPreface(level, preface);
+    _buffer.setPreface(level, preface);
   }
 
   void setCommonPreface(const std::string &preface) {
@@ -203,22 +202,19 @@ class Logger final : public std::ostream {
     setPreface(Log::warning, preface);
   }
 
-  void EnablePreface() { dynamic_cast<LogBuffer *>(rdbuf())->EnablePreface(); }
+  void EnablePreface() { _buffer.EnablePreface(); }
 
-  void DisablePreface() {
-    dynamic_cast<LogBuffer *>(rdbuf())->DisablePreface();
-  }
+  void DisablePreface() { _buffer.DisablePreface(); }
 
  private:
+  LogBuffer _buffer;
   // at what level of detail output messages
   Log::Level _ReportLevel = Log::error;
 
   // if true, only a single processor job is executed
   bool _maverick = false;
 
-  std::string Messages() {
-    return dynamic_cast<LogBuffer *>(rdbuf())->Messages();
-  }
+  std::string Messages() { return _buffer.Messages(); }
 };
 
 /**
@@ -243,4 +239,4 @@ class TimeStamp {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_LOG_H
+#endif  // VOTCA_XTP_LOGGER_H

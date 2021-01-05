@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,11 +18,11 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_ECPAOBasis_H
-#define VOTCA_XTP_ECPAOBasis_H
-
-#include <votca/xtp/ecpaoshell.h>
-#include <votca/xtp/eigen.h>
+#ifndef VOTCA_XTP_ECPAOBASIS_H
+#define VOTCA_XTP_ECPAOBASIS_H
+// Local VOTCA includes
+#include "ecpaoshell.h"
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {
@@ -49,21 +49,37 @@ class ECPAOBasis {
 
   const ECPAOShell& back() const { return _aoshells.back(); }
 
-  const std::vector<std::vector<const ECPAOShell*> >& ShellsPerAtom() const {
-    return _shells_perAtom;
-  }
+  std::vector<std::vector<const ECPAOShell*> > ShellsPerAtom() const;
+
+  void AddECPChargeToMolecule(QMMolecule& mol) const;
+
+  const std::string& Name() const { return _name; }
+
+  void UpdateShellPositions(const QMMolecule& mol);
+
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r);
+
+  void add(const ECPAOBasis& other);
+
+  friend std::ostream& operator<<(std::ostream& out, const ECPAOBasis& ecp);
 
  private:
+  void clear();
+
   ECPAOShell& addShell(const ECPShell& shell, const QMAtom& atom,
-                       Index startIndex, Index Lmax);
+                       Index startIndex, L Lmax);
+
+  std::vector<Index> _ncore_perAtom;
 
   std::vector<ECPAOShell> _aoshells;
 
-  std::vector<std::vector<const ECPAOShell*> > _shells_perAtom;
+  std::string _name = "";
   Index _AOBasisSize;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ECPAOBasis_H
+#endif  // VOTCA_XTP_ECPAOBASIS_H

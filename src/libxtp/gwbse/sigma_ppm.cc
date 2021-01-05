@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,14 @@
  *
  */
 
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/globals.h>
-#include <votca/xtp/ppm.h>
-#include <votca/xtp/sigma_ppm.h>
-#include <votca/xtp/threecenter.h>
+
+// Local VOTCA includes
+#include "votca/xtp/ppm.h"
+#include "votca/xtp/sigma_ppm.h"
+#include "votca/xtp/threecenter.h"
 
 namespace votca {
 namespace xtp {

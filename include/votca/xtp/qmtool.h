@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,7 +23,11 @@
 #ifndef VOTCA_XTP_QMTOOL_H
 #define VOTCA_XTP_QMTOOL_H
 
+// Third party includes
 #include <boost/format.hpp>
+
+// VOTCA includes
+
 #include <votca/tools/calculator.h>
 #include <votca/tools/property.h>
 
@@ -36,8 +40,13 @@ class QMTool : public tools::Calculator {
   ~QMTool() override = default;
 
   std::string Identify() override = 0;
-  void Initialize(tools::Property &options) override = 0;
-  virtual bool Evaluate() = 0;
+  void Initialize(const tools::Property& options) final;
+  bool Evaluate();
+
+ protected:
+  virtual bool Run() = 0;
+  virtual void ParseOptions(const tools::Property& opt) = 0;
+  std::string _job_name = "votca";
 };
 
 }  // namespace xtp

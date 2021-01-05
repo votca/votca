@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,14 +21,17 @@
 #ifndef VOTCA_XTP_DFTENGINE_H
 #define VOTCA_XTP_DFTENGINE_H
 
+// VOTCA includes
 #include <votca/tools/property.h>
-#include <votca/xtp/ERIs.h>
-#include <votca/xtp/convergenceacc.h>
-#include <votca/xtp/ecpaobasis.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/staticsite.h>
-#include <votca/xtp/vxc_grid.h>
-#include <votca/xtp/vxc_potential.h>
+
+// Local VOTCA includes
+#include "ERIs.h"
+#include "convergenceacc.h"
+#include "ecpaobasis.h"
+#include "logger.h"
+#include "staticsite.h"
+#include "vxc_grid.h"
+#include "vxc_potential.h"
 
 namespace votca {
 namespace xtp {
@@ -66,9 +69,13 @@ class DFTEngine {
   Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs) const;
   void PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level);
   void CalcElDipole(const Orbitals& orb) const;
-  Mat_p_Energy CalculateERIs(const Eigen::MatrixXd& DMAT) const;
-  Mat_p_Energy CalcEXXs(const Eigen::MatrixXd& MOs,
-                        const Eigen::MatrixXd& DMAT) const;
+
+  std::array<Eigen::MatrixXd, 2> CalcERIs_EXX(const Eigen::MatrixXd& MOCoeff,
+                                              const Eigen::MatrixXd& Dmat,
+                                              double error) const;
+
+  Eigen::MatrixXd CalcERIs(const Eigen::MatrixXd& Dmat, double error) const;
+
   void ConfigOrbfile(Orbitals& orb);
   void SetupInvariantMatrices();
 
@@ -107,7 +114,6 @@ class DFTEngine {
   ECPAOBasis _ecp;
 
   bool _with_ecp;
-  bool _with_RI;
 
   std::string _four_center_method;  // direct | cache
 
@@ -126,7 +132,7 @@ class DFTEngine {
 
   // Convergence
   Index _numofelectrons = 0;
-  Index _max_iter = 100;
+  Index _max_iter;
   ConvergenceAcc::options _conv_opt;
   // DIIS variables
   ConvergenceAcc _conv_accelerator;

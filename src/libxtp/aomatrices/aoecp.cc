@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,9 @@
  *
  */
 
-#include <votca/xtp/aopotential.h>
-#include <votca/xtp/aotransform.h>
+// Local VOTCA includes
+#include "votca/xtp/aopotential.h"
+#include "votca/xtp/aotransform.h"
 
 namespace votca {
 namespace xtp {
@@ -30,14 +31,8 @@ void AOECP::FillPotential(const AOBasis& aobasis, const ECPAOBasis& ecp) {
 
 Eigen::VectorXd AOECP::ExpandContractions(const AOGaussianPrimitive& gaussian,
                                           const AOShell& shell) const {
-  const Eigen::VectorXd& contractions_row = gaussian.getContraction();
-  Eigen::VectorXd result = Eigen::VectorXd::Zero(shell.getNumFunc());
-  for (Index L = shell.getLmin(); L <= shell.getLmax(); L++) {
-    for (Index M = L * L; M < (L + 1) * (L + 1); M++) {
-      result[M - shell.getOffset()] = contractions_row[L];
-    }
-  }
-  return result;
+  return Eigen::VectorXd::Constant(shell.getNumFunc(),
+                                   gaussian.getContraction());
 }
 
 void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
@@ -104,22 +99,30 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         for (const ECPAOShell* shell_ecp : shells_perAtom) {
           // only do the non-local parts
           if (!shell_ecp->isNonLocal()) {
+            // stop if local coefficient is not zero
+            for (const auto& gaussian_ecp : *shell_ecp) {
+              if (std::abs(gaussian_ecp.getContraction()) > 1e-5) {
+                throw std::runtime_error(
+                    "ECPs with explicit local parts are not supported. Use "
+                    "external DFT instead.");
+              }
+            }
             continue;
           }
           Index index = 0;
+          Index L = Index(shell_ecp->getL());
           for (const auto& gaussian_ecp : *shell_ecp) {
-            powermatrix(index, shell_ecp->getL()) =
-                int(gaussian_ecp.getPower());
-            decaymatrix(index, shell_ecp->getL()) = gaussian_ecp.getDecay();
-            coefmatrix(index, shell_ecp->getL()) =
-                gaussian_ecp.getContraction();
+            powermatrix(index, L) = int(gaussian_ecp.getPower());
+            decaymatrix(index, L) = gaussian_ecp.getDecay();
+            coefmatrix(index, L) = gaussian_ecp.getContraction();
             index++;
           }
         }
 
-        Eigen::MatrixXd VNL_ECP = calcVNLmatrix(
-            shells_perAtom[0]->getLmaxElement(), shells_perAtom[0]->getPos(),
-            gaussian_row, gaussian_col, powermatrix, decaymatrix, coefmatrix);
+        Eigen::MatrixXd VNL_ECP =
+            calcVNLmatrix(Index(shells_perAtom[0]->getLmaxElement()),
+                          shells_perAtom[0]->getPos(), gaussian_row,
+                          gaussian_col, powermatrix, decaymatrix, coefmatrix);
 
         auto VNL_ECP_small =
             VNL_ECP.block(shell_row.getOffset(), shell_col.getOffset(),
@@ -163,8 +166,8 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   double beta = g_col.getDecay();
   const Eigen::Vector3d& posA = g_row.getShell().getPos();
   const Eigen::Vector3d& posB = g_col.getShell().getPos();
-  Index lmax_row = g_row.getShell().getLmax();
-  Index lmax_col = g_col.getShell().getLmax();
+  Index lmax_row = Index(g_row.getShell().getL());
+  Index lmax_col = Index(g_col.getShell().getL());
   Index lmin = std::min({lmax_row, lmax_col, lmax_ecp});
   Index lmax = std::max({lmax_row, lmax_col, lmax_ecp});
   Index nsph_row = (lmax_row + 1) * (lmax_row + 1);
@@ -820,11 +823,29 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   Eigen::VectorXd NormA = CalcNorms(alpha, nsph_row);
   Eigen::VectorXd NormB = CalcNorms(beta, nsph_col);
 
-  for (Index i = 0; i < nsph_row; i++) {
-    for (Index j = 0; j < nsph_col; j++) {
-      matrix(i, j) = matrix(i, j) * GAUSS * NormA(i) * NormB(j);
+  Eigen::MatrixXd copy =
+      GAUSS * NormA.asDiagonal() * matrix * NormB.asDiagonal();
+
+  // FIXME use proper transformations class, this is a hack because nobody
+  // understands aoecp
+  // clang-format off
+  std::array<Index, 49> reorder = {
+      0,                                  // s
+      2,  1,  3,                          // p
+      7,  5,  4,  6,  8,                  // d
+      14, 12, 10, 9,  11, 13, 15,         // f
+      23, 21, 19, 17, 16, 18, 20, 22, 24,  // g
+      34, 32, 30, 28, 26, 25, 27, 29, 31, 33, 35,  // h
+      47, 45, 43, 41, 39, 37, 36, 38, 40, 42, 44, 46, 48  // i
+  };
+  //clang-format on
+  for (Index i = 0; i < matrix.rows(); i++) {
+    for (Index j = 0; j < matrix.cols(); j++) {
+
+      matrix(i, j) = copy(reorder[i], reorder[j]);
     }
   }
+
   return matrix;
 }
 

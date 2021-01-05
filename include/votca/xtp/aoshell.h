@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,91 +21,104 @@
 #ifndef VOTCA_XTP_AOSHELL_H
 #define VOTCA_XTP_AOSHELL_H
 
+// Third party includes
 #include <boost/math/constants/constants.hpp>
-#include <votca/tools/constants.h>
-#include <votca/xtp/eigen.h>
 
+// VOTCA includes
+#include <votca/tools/constants.h>
+
+// Local VOTCA includes
+#include "basisset.h"
+#include "eigen.h"
 #include "qmatom.h"
-#include <votca/xtp/basisset.h>
+// include libint last otherwise it overrides eigen
+#include <libint2/shell.h>
 
 namespace votca {
 namespace xtp {
 
-class AOBasis;
 class AOShell;
+class AOBasis;
 
 class AOGaussianPrimitive {
-  friend class AOShell;
+  friend AOShell;
 
  public:
+  AOGaussianPrimitive(const GaussianPrimitive& gaussian,
+                      const AOShell& aoshell);
+
+  AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
+                      const AOShell& aoshell);
+
+  struct data {
+    Index atomid;
+    Index l;
+    Index startindex;
+    double decay;
+    double contraction;
+    double x;
+    double y;
+    double z;
+    double scale;
+  };
+
+  AOGaussianPrimitive(const AOGaussianPrimitive::data& d,
+                      const AOShell& aoshell)
+      : _aoshell(aoshell) {
+    _decay = d.decay;
+    _contraction = d.contraction;
+    _powfactor = CalcPowFactor(_decay);
+  }
+
+  void SetupCptTable(CptTable& table) const;
+
+  void WriteData(data& d) const;
+
   double getPowfactor() const { return _powfactor; }
   double getDecay() const { return _decay; }
-  const Eigen::VectorXd& getContraction() const { return _contraction; }
+  double getContraction() const { return _contraction; }
   const AOShell& getShell() const { return _aoshell; }
 
  private:
+  static double CalcPowFactor(double decay) {
+    return std::pow(2.0 * decay / boost::math::constants::pi<double>(), 0.75);
+  }
   double _decay;
-  Eigen::VectorXd _contraction;
+  double _contraction;
   const AOShell& _aoshell;
   double _powfactor;  // used in evalspace to speed up DFT
-  // private constructor, only a shell can create a primitive
-  AOGaussianPrimitive(const GaussianPrimitive& gaussian, const AOShell& aoshell)
-      : _decay(gaussian.decay()), _aoshell(aoshell) {
-    _contraction = Eigen::VectorXd::Map(gaussian.Contractions().data(),
-                                        gaussian.Contractions().size());
-    _powfactor =
-        std::pow(2.0 * _decay / boost::math::constants::pi<double>(), 0.75);
-  }
-
-  AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
-                      const AOShell& aoshell)
-      : _decay(gaussian._decay),
-        _contraction(gaussian._contraction),
-        _aoshell(aoshell),
-        _powfactor(gaussian._powfactor) {
-    ;
-  }
 };
 
 /*
  * shells in a Gaussian-basis expansion
  */
 class AOShell {
-  friend class AOBasis;
+  friend AOBasis;
 
  public:
-  AOShell(const AOShell& shell) {
+  AOShell(const Shell& shell, const QMAtom& atom, Index startIndex);
 
-    _type = shell._type;
-    _Lmax = shell._Lmax;
-    _Lmin = shell._Lmin;
-    _scale = shell._scale;
-    _numFunc = shell._numFunc;
-    _numcartFunc = shell._numcartFunc;
-    _mindecay = shell._mindecay;
-    _startIndex = shell._startIndex;
-    _offset = shell._offset;
-    _cartOffset = shell._cartOffset;
-    _pos = shell._pos;
-    _atomindex = shell._atomindex;
-    _gaussians.reserve(shell._gaussians.size());
-    for (const auto& gaus : shell._gaussians) {
-      _gaussians.push_back(AOGaussianPrimitive(gaus, *this));
-    }
+  AOShell(const AOGaussianPrimitive::data& d) {
+    _l = static_cast<L>(d.l);
+    _scale = d.scale;
+    _startIndex = d.startindex;
+    _atomindex = d.atomid;
+    _pos = Eigen::Vector3d(d.x, d.y, d.z);
+    _gaussians.push_back(AOGaussianPrimitive(d, *this));
   }
 
-  const std::string& getType() const { return _type; }
-  Index getNumFunc() const { return _numFunc; }
-  Index getCartesianNumFunc() const { return _numcartFunc; }
+  AOShell(const AOShell& shell);
+
+  L getL() const { return _l; }
+  Index getNumFunc() const { return NumFuncShell(_l); };
+  Index getCartesianNumFunc() const { return NumFuncShell_cartesian(_l); };
   Index getStartIndex() const { return _startIndex; }
-  Index getOffset() const { return _offset; }
-  Index getCartesianOffset() const { return _cartOffset; }
+  Index getOffset() const { return OffsetFuncShell(_l); }
+  Index getCartesianOffset() const { return OffsetFuncShell_cartesian(_l); }
   Index getAtomIndex() const { return _atomindex; }
+  Index getSize() const { return _gaussians.size(); }
 
-  Index getLmax() const { return _Lmax; }
-  Index getLmin() const { return _Lmin; }
-
-  bool isCombined() const { return _Lmax != _Lmin; }
+  libint2::Shell LibintShell() const;
 
   const Eigen::Vector3d& getPos() const { return _pos; }
   double getScale() const { return _scale; }
@@ -113,11 +126,8 @@ class AOShell {
   void CalcMinDecay() {
     _mindecay = std::numeric_limits<double>::max();
     for (auto& gaussian : _gaussians) {
-      if (gaussian.getDecay() < _mindecay) {
-        _mindecay = gaussian.getDecay();
-      }
+      _mindecay = std::min(_mindecay, gaussian.getDecay());
     }
-    return;
   }
 
   double getMinDecay() const { return _mindecay; }
@@ -144,34 +154,12 @@ class AOShell {
   friend std::ostream& operator<<(std::ostream& out, const AOShell& shell);
 
  private:
-  // only class aobasis can construct shells
-  AOShell(const Shell& shell, const QMAtom& atom, Index startIndex)
-      : _type(shell.getType()),
-        _Lmax(shell.getLmax()),
-        _Lmin(shell.getLmin()),
-        _scale(shell.getScale()),
-        _numFunc(shell.getnumofFunc()),
-        _numcartFunc(xtp::NumFuncShell_cartesian(shell.getType())),
-        _startIndex(startIndex),
-        _offset(shell.getOffset()),
-        _cartOffset(xtp::OffsetFuncShell_cartesian(shell.getType())),
-        _pos(atom.getPos()),
-        _atomindex(atom.getId()) {
-    ;
-  }
-
-  std::string _type;
-  Index _Lmax;
-  Index _Lmin;
+  L _l;
   // scaling factor
   double _scale;
   // number of functions in shell
-  Index _numFunc;
-  Index _numcartFunc;
   double _mindecay;
   Index _startIndex;
-  Index _offset;
-  Index _cartOffset;
   Eigen::Vector3d _pos;
   Index _atomindex;
 

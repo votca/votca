@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,9 +18,11 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_SIGMA_BASE_H
-#define _VOTCA_XTP_SIGMA_BASE_H
-#include <votca/xtp/eigen.h>
+#ifndef VOTCA_XTP_SIGMA_BASE_H
+#define VOTCA_XTP_SIGMA_BASE_H
+
+// Local VOTCA includes
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {
@@ -35,12 +37,15 @@ class Sigma_base {
   virtual ~Sigma_base() = default;
 
   struct options {
-    Index homo = 0;
-    Index qpmin = 0;
-    Index qpmax = 0;
-    Index rpamin = 0;
-    Index rpamax = 0;
-    double eta = 1e-3;
+    Index homo;
+    Index qpmin;
+    Index qpmax;
+    Index rpamin;
+    Index rpamax;
+    double eta;
+    std::string quadrature_scheme;  // Gaussian-quadrature scheme to use in CDA
+    Index order;  // used in numerical integration of CDA Sigma
+    double alpha;
   };
 
   void configure(options opt) {
@@ -80,4 +85,4 @@ class Sigma_base {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_SIGMA_BASE_H */
+#endif  // VOTCA_XTP_SIGMA_BASE_H

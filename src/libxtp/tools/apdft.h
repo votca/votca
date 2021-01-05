@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,11 +18,12 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_TOOLS_APDFT_H
-#define _VOTCA_XTP_TOOLS_APDFT_H
+#ifndef VOTCA_XTP_APDFT_H
+#define VOTCA_XTP_APDFT_H
 
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/qmtool.h>
+// Local VOTCA includes
+#include "votca/xtp/qmstate.h"
+#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
@@ -31,11 +32,12 @@ class APDFT final : public QMTool {
  public:
   APDFT() = default;
 
-  ~APDFT() final = default;
-  std::string Identify() final { return "apdft"; }
+  ~APDFT() = default;
+  std::string Identify() { return "apdft"; }
 
-  void Initialize(tools::Property &opt) final;
-  bool Evaluate() final;
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Run();
 
  private:
   std::string _grid_accuracy = "medium";
@@ -47,4 +49,4 @@ class APDFT final : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // _VOTCA_XTP_TOOLS_APDFT_H
+#endif  // VOTCA_XTP_APDFT_H

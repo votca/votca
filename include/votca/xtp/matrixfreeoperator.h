@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
  */
 
 #pragma once
-#ifndef __VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
-#define __VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
-#include <votca/xtp/eigen.h>
+#ifndef VOTCA_XTP_MATRIXFREEOPERATOR_H
+#define VOTCA_XTP_MATRIXFREEOPERATOR_H
+
+// Local VOTCA includes
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {
@@ -164,31 +166,29 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
       Index blocks = op.size() / blocksize;
       // this uses the fact that all our matrices are symmetric, i.e we can
       // reuse half the blocks
-      std::vector<Eigen::MatrixXd> thread_wiseresult(
-          votca::xtp::OPENMP::getMaxThreads(),
-          Eigen::MatrixXd::Zero(dst.rows(), dst.cols()));
-#pragma omp parallel for schedule(guided)
+      Eigen::MatrixXd result = Eigen::MatrixXd::Zero(dst.rows(), dst.cols());
+
+#pragma omp declare reduction (+: Eigen::MatrixXd: omp_out=omp_out+omp_in)\
+     initializer(omp_priv=Eigen::MatrixXd::Zero(omp_orig.rows(),omp_orig.cols()))
+#pragma omp parallel for schedule(guided) reduction(+ : result)
       for (Index i_row = 0; i_row < blocks; i_row++) {
         for (Index i_col = i_row; i_col < blocks; i_col++) {
-          Eigen::MatrixXd blockmat = op.OperatorBlock(i_row, i_col);
-          thread_wiseresult[votca::xtp::OPENMP::getThreadId()].block(
-              i_row * blocksize, 0, blocksize, dst.cols()) +=
+          const Eigen::MatrixXd blockmat = op.OperatorBlock(i_row, i_col);
+          result.block(i_row * blocksize, 0, blocksize, dst.cols()) +=
               blockmat * m.block(i_col * blocksize, 0, blocksize, m.cols());
           if (i_row != i_col) {
-            thread_wiseresult[votca::xtp::OPENMP::getThreadId()].block(
-                i_col * blocksize, 0, blocksize, dst.cols()) +=
+            result.block(i_col * blocksize, 0, blocksize, dst.cols()) +=
                 blockmat.transpose() *
                 m.block(i_row * blocksize, 0, blocksize, m.cols());
           }
         }
       }
-      for (const Eigen::MatrixXd& mat : thread_wiseresult) {
-        dst += mat;
-      }
+
+      dst += result;
     }
   }
 };
 }  // namespace internal
 }  // namespace Eigen
 
-#endif  //__VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
+#endif  // VOTCA_XTP_MATRIXFREEOPERATOR_H

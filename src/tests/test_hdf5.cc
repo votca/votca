@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,20 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE test_hdf5
-#include <boost/test/floating_point_comparison.hpp>
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <cassert>
-#include <votca/xtp/checkpoint.h>
-#include <votca/xtp/checkpointreader.h>
-#include <votca/xtp/checkpointwriter.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/qmatom.h>
+
+// Third party includes
+#include <boost/test/tools/floating_point_comparison.hpp>
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/checkpoint.h"
+#include "votca/xtp/checkpointreader.h"
+#include "votca/xtp/checkpointwriter.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/qmatom.h"
 
 BOOST_AUTO_TEST_SUITE(test_hdf5)
 using namespace votca::xtp;
@@ -52,9 +58,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   double qmEnergy = -2.1025e-3;
 
   std::string qmPackage = "NOPE";
-
-  std::string dftBasis = "AWESOME basis*,, 2/.8";
-  std::string auxBasis = "cos(theta) = pretty okay basis";
 
   Index rpaMin = '?';
   Index rpaMax = 1e3;
@@ -94,8 +97,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.QMAtoms() = atoms;
     orbWrite.setQMEnergy(qmEnergy);
     orbWrite.setQMpackage(qmPackage);
-    orbWrite.setDFTbasisName(dftBasis);
-    orbWrite.setAuxbasisName(auxBasis);
     orbWrite.setRPAindices(rpaMin, rpaMax);
     // no need to write qpmin, qpmax
     orbWrite.setBSEindices(bseVmin, bseCmax);
@@ -129,8 +130,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   BOOST_CHECK(orbRead.MOs().eigenvectors().isApprox(mocTest, tol));
   BOOST_CHECK_CLOSE(orbRead.getDFTTotalEnergy(), qmEnergy, tol);
   BOOST_CHECK_EQUAL(orbRead.getQMpackage(), qmPackage);
-  BOOST_CHECK_EQUAL(orbRead.getDFTbasisName(), dftBasis);
-  BOOST_CHECK_EQUAL(orbRead.getAuxbasisName(), auxBasis);
   BOOST_CHECK_EQUAL(orbRead.getRPAmin(), rpaMin);
   BOOST_CHECK_EQUAL(orbRead.getRPAmax(), rpaMax);
 

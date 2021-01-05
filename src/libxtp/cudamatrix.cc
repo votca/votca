@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,23 +17,22 @@
  *
  */
 
-#include <votca/xtp/cudamatrix.h>
+// Local VOTCA includes
+#include "votca/xtp/cudamatrix.h"
 
 namespace votca {
 namespace xtp {
 cudaError_t checkCuda(cudaError_t result) {
-#if defined(DEBUG)
   if (result != cudaSuccess) {
     std::cerr << "CUDA Runtime Error: " << cudaGetErrorString(result) << "\n";
   }
-#endif
   return result;
 }
 
 Index count_available_gpus() {
   int count;
   cudaError_t err = cudaGetDeviceCount(&count);
-  return 0 ? (err != cudaSuccess) : Index(count);
+  return (err != cudaSuccess) ? 0 : Index(count);
 }
 
 CudaMatrix::CudaMatrix(const Eigen::MatrixXd &matrix,
@@ -45,7 +44,8 @@ CudaMatrix::CudaMatrix(const Eigen::MatrixXd &matrix,
   cudaError_t err = cudaMemcpyAsync(_data.get(), matrix.data(), size_matrix(),
                                     cudaMemcpyHostToDevice, stream);
   if (err != 0) {
-    throw std::runtime_error("Error copy arrays to device");
+    throw std::runtime_error("Error copy arrays to device :" +
+                             std::string(cudaGetErrorString(err)));
   }
 }
 
@@ -59,6 +59,7 @@ CudaMatrix::operator Eigen::MatrixXd() const {
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(this->rows(), this->cols());
   checkCuda(cudaMemcpyAsync(result.data(), this->data(), this->size_matrix(),
                             cudaMemcpyDeviceToHost, this->_stream));
+  checkCuda(cudaStreamSynchronize(this->_stream));
   return result;
 }
 

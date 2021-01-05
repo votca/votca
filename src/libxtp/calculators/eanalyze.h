@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,31 +18,37 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_EANALYZE_H
-#define _VOTCA_XTP_EANALYZE_H
+#ifndef VOTCA_XTP_EANALYZE_H
+#define VOTCA_XTP_EANALYZE_H
 
+// Standard includes
+#include <cmath>
 #include <fstream>
-#include <math.h>
 #include <numeric>
+
+// VOTCA includes
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/tokenizer.h>
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/topology.h>
+
+// Local VOTCA includes
+#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/qmstate.h"
+#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {
 
-class EAnalyze : public QMCalculator {
+class EAnalyze final : public QMCalculator {
  public:
   EAnalyze() = default;
 
-  ~EAnalyze() override = default;
-  bool WriteToStateFile() const override { return false; }
-  std::string Identify() override { return "eanalyze"; }
+  ~EAnalyze() = default;
+  bool WriteToStateFile() const { return false; }
+  std::string Identify() { return "eanalyze"; }
 
-  void Initialize(tools::Property &opt) override;
-  bool EvaluateFrame(Topology &top) override;
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Evaluate(Topology &top);
 
  private:
   void SiteHist(QMStateType state) const;
@@ -51,14 +57,10 @@ class EAnalyze : public QMCalculator {
 
   double _resolution_pairs;
   double _resolution_sites;
-  double _resolution_space;
+  double _resolution_spatial;
   bool _atomdistances = false;
 
   std::vector<QMStateType> _states;
-
-  bool _skip_corr = false;
-  bool _skip_sites = false;
-  bool _skip_pairs = false;
 
   bool _doenergy_landscape;
   Index _first_seg;
@@ -71,4 +73,4 @@ class EAnalyze : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // _VOTCA_XTP_EANALYZE_H
+#endif  // VOTCA_XTP_EANALYZE_H
