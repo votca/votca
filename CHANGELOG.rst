@@ -88,6 +88,11 @@ Version 2021-dev
 -  better error for exceeded angular momentum in libint (#613)
 -  fixed wrong QP-QMMM energy with non-zero QPmin (#620)
 
+Version 1.6.4 (released XX.12.20)
+=================================
+
+-  fix build on openSUSE (#622)
+
 Version 1.6.3 (released 09.12.20)
 =================================
 
