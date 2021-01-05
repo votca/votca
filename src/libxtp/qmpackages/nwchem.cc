@@ -21,6 +21,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <iomanip>
 #include <votca/tools/filesystem.h>
 #include <votca/tools/getline.h>
 #include <votca/xtp/ecpaobasis.h>
