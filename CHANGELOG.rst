@@ -91,7 +91,7 @@ Version 2021-dev
 Version 1.6.4 (released XX.12.20)
 =================================
 
-- fix build on openSUSE (#622)
+-  fix build on openSUSE (#622)
 
 Version 1.6.3 (released 09.12.20)
 =================================
