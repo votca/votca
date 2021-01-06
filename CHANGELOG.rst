@@ -35,10 +35,12 @@ Version 2021-dev
 -  Bump required CMake version to 3.12 (#301)
 -  refactored getenv() into separate function (#302)
 -  use unique_ptr in factory (#303)
+-  create script to convert help to rst (#312)
 
 Version 1.6.4 (released XX.12.20)
 =================================
--  create script to convert help to rst (#312)
+
+- no changes
 
 Version 1.6.3 (released 09.12.20)
 =================================
