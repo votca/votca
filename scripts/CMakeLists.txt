@@ -12,7 +12,7 @@ if(INSTALL_RC_FILES)
     ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.bash DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif(INSTALL_RC_FILES)
 
-foreach(SCRIPT votca_compare)
+foreach(SCRIPT votca_compare votca_help2doc)
   configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.tmp.out @ONLY)
   add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
   add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
@@ -22,7 +22,6 @@ foreach(SCRIPT votca_compare)
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.tmp.out ${PROJECT_SOURCE_DIR}/CMakeModules/gitscript.cmake)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${SCRIPT})
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
+  add_executable(VOTCA::${SCRIPT} IMPORTED GLOBAL)
+  set_property(TARGET VOTCA::${SCRIPT} PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/votca_compare")
 endforeach(SCRIPT)
-
-add_executable(VOTCA::votca_compare IMPORTED GLOBAL)
-set_property(TARGET VOTCA::votca_compare PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/votca_compare")

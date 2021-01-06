@@ -17,7 +17,19 @@
 import argparse
 import subprocess
 from typing import NamedTuple, Tuple
+VERSION = '@PROJECT_VERSION@ #TOOLS_GIT_ID#'
+PROGTITLE = 'THE VOTCA::TOOLS help to doc converter'
+VOTCAHEADER = '''
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
 
+{progtitle}
+
+please submit bugs to bugs@votca.org 
+votca_compare, version {version}
+
+'''.format(version=VERSION, progtitle=PROGTITLE)
 
 class Section(NamedTuple):
     """Data representing the help message."""
