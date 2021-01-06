@@ -16,7 +16,7 @@
 
 import argparse
 import subprocess
-from typing import NamedTuple
+from typing import NamedTuple, Tuple
 
 
 class Section(NamedTuple):
@@ -30,22 +30,44 @@ def parse_user_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser("help2rstman")
     parser.add_argument("-n", "--name", required=True,
                         help="Name of the tool to extract the help message")
-    parser.add_argument(
-        "-f", "--format", choices=["rst", "man"], default="rst", help="Output Format"),
-    parser.add_argument("-o", "--out", help="Output file")
+    parser.add_argument("-o", "--out", help="Output file", default=None)
 
     return parser.parse_args()
 
 
-def parse_help_message(msg: str):
+def parse_help_message(msg: str, name: str) -> Tuple[Section, Section]:
     """Parse the help message into an intermediate representation."""
-    print(msg.splitlines())
+    lines = filter(lambda x: x, msg.splitlines()[9:])
+    description = Section(name, next(lines))
+    options = Section("Available Options", "\n".join(lines))
+
+    return (description, options)
+
+
+def format_rst(sections: Tuple[Section, Section]) -> str:
+    """Format the section using RST."""
+    description, options = sections
+    opts = "\n  ".join(options.content.splitlines())
+    return f"""
+{description.header}
+{len(description.header) * '#'}
+{description.content}
+
+**{options.header}**
+::
+  {opts}
+"""
 
 
 def convert_help_message(args: argparse.Namespace):
     """Convert help message."""
     msg = subprocess.check_output(f"{args.name} --help", shell=True)
-    parse_help_message(msg.decode())
+    sections = parse_help_message(msg.decode(), args.name)
+    data = format_rst(sections)
+
+    output = args.out if args.out is not None else f"{args.name}.{args.format}"
+    with open(output, 'w') as handler:
+        handler.write(data)
 
 
 def main():
