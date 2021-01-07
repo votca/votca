@@ -29,7 +29,7 @@ VOTCAHEADER = f"""
 {PROGTITLE}
 
 please submit bugs to bugs@votca.org 
-votca_compare, version {VERSION}
+votca_help2doc, version {VERSION}
 """
 
 AUTHORS = "Written and maintained by the VOTCA Development Team <devs@votca.org>"
