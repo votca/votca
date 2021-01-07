@@ -15,59 +15,111 @@
 # limitations under the License.
 
 import argparse
+import itertools
 import subprocess
-from typing import NamedTuple, Tuple
+from typing import Iterable, List, NamedTuple
+
 VERSION = '@PROJECT_VERSION@ #TOOLS_GIT_ID#'
 PROGTITLE = 'THE VOTCA::TOOLS help to doc converter'
-VOTCAHEADER = '''
+VOTCAHEADER = f"""
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
 
-{progtitle}
+{PROGTITLE}
 
 please submit bugs to bugs@votca.org 
-votca_compare, version {version}
+votca_compare, version {VERSION}
+"""
 
-'''.format(version=VERSION, progtitle=PROGTITLE)
+AUTHORS = "Written and maintained by the VOTCA Development Team <devs@votca.org>"
+COPYRIGHT = """
+Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 
-class Section(NamedTuple):
-    """Data representing the help message."""
-    header: str
-    content: str
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this  file
+except in compliance with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless  required by applicable law or agreed to in writing, software distributed under the
+License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY  KIND,
+either  express  or  implied.   See  the  License  for  the  specific  language  governing
+permissions and limitations under the License.
+"""
+DESCRIPTION = f"""{VOTCAHEADER}
+Convert a Votca CLI's help message to RST format.
+Examples:
+votca_help2doc.in -n csg_map -o csg_map.rst
+"""
+
+
+class Data(NamedTuple):
+    """Data class containing the help's section."""
+    name: str
+    description: str
+    options: str
+    authors: str = AUTHORS
+    copyright: str = COPYRIGHT
 
 
 def parse_user_arguments() -> argparse.Namespace:
     """Read the user arguments."""
-    parser = argparse.ArgumentParser("help2rstman")
+    parser = argparse.ArgumentParser("help2rst", usage=argparse.SUPPRESS,
+                                     description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-n", "--name", required=True,
                         help="Name of the tool to extract the help message")
     parser.add_argument("-o", "--out", help="Output file", default=None)
-
+    parser.add_argument('--version', action='version',
+                        version=f"%(prog)s {VERSION}")
     return parser.parse_args()
 
 
-def parse_help_message(msg: str, name: str) -> Tuple[Section, Section]:
+def take(it: Iterable[str], n: int) -> List[str]:
+    """Take n elements from the iterable an return them."""
+    return [next(it) for _ in range(n)]
+
+
+def parse_help_message(msg: str, name: str) -> Data:
     """Parse the help message into an intermediate representation."""
-    lines = filter(lambda x: x, msg.splitlines()[9:])
-    description = Section(name, next(lines))
-    options = Section("Available Options", "\n".join(lines))
+    lines = iter(msg.splitlines())
+    # Votca logo
+    take(lines, 6)
+    # Compilation info
+    list(itertools.takewhile(lambda x: x, lines))
+    # description
+    description = "\n".join(itertools.takewhile(lambda x: x, lines))
+    options = "\n  ".join(filter(lambda x: x, lines))
+    return Data(name, description, options)
 
-    return (description, options)
 
-
-def format_rst(sections: Tuple[Section, Section]) -> str:
-    """Format the section using RST."""
-    description, options = sections
-    opts = "\n  ".join(options.content.splitlines())
+def format_rst(sec: Data) -> str:
+    """Format the section as RST."""
     return f"""
-{description.header}
-{len(description.header) * '#'}
-{description.content}
+NAME
+****
+{sec.name} - Part of the VOTCA package
 
-**{options.header}**
+SYNOPSIS
+********
+{sec.name} [OPTION] [OPTIONPARAMETERS]
+
+DESCRIPTION
+***********
+{sec.description}
+
+OPTIONS
+*******
 ::
-  {opts}
+
+  {sec.options}
+
+AUTHORS
+*******
+{sec.authors}
+
+COPYRIGHT
+*********
+{sec.copyright}
 """
 
 
@@ -77,7 +129,7 @@ def convert_help_message(args: argparse.Namespace):
     sections = parse_help_message(msg.decode(), args.name)
     data = format_rst(sections)
 
-    output = args.out if args.out is not None else f"{args.name}.{args.format}"
+    output = args.out if args.out is not None else f"{args.name}.rst"
     with open(output, 'w') as handler:
         handler.write(data)
 
