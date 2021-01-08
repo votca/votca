@@ -54,17 +54,20 @@ print("...Selected region: ", region)
 
 # Read input hdf5 file
 data_qmmm = h5py.File(args.file, 'r')
-# Create database similar to the simple QM one
-new_file_name = file_name + "_QMlike" + ext
-dataset = h5py.File(new_file_name, "w")
-data_qmmm.copy(region+'/orbitals', dataset)
-dataset['QMdata'] = dataset['orbitals']
-del dataset['orbitals']
-if args.verbosity:
-    print("...Checking keys")
-    print(dataset["QMdata"].keys())
-dataset.close()
-
-
-print("...Congrats! Your new file is ready with name: ", new_file_name)
-
+#Check if selected region exists in the database
+if region in data_qmmm.keys():
+    # Create database similar to the simple QM one
+    new_file_name = file_name + "_QMlike" + ext
+    dataset = h5py.File(new_file_name, "w")
+    data_qmmm.copy(region+'/orbitals', dataset)
+    dataset['QMdata'] = dataset['orbitals']
+    del dataset['orbitals']
+    if args.verbosity:
+        print("...Checking keys")
+        print(list(dataset["QMdata"].keys()))
+    dataset.close()
+    print("...Congrats! Your new file is ready with name: ", new_file_name)
+else:
+    print("...ERROR: The selcted region doesn't exist")
+    print("...Available regions: ", list(data_qmmm.keys()))
+    print("...Try selecting a different region index")
