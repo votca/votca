@@ -87,6 +87,13 @@ Version 2021-dev
 -  fixed Sphinx warnings (#609)
 -  better error for exceeded angular momentum in libint (#613)
 -  fixed wrong QP-QMMM energy with non-zero QPmin (#620)
+-  fixed density analysis options (#627)
+
+Version 1.6.4 (released XX.12.20)
+=================================
+
+-  fix build on openSUSE (#622)
+-  refactored logger (#625)
 
 Version 1.6.3 (released 09.12.20)
 =================================
