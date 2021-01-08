@@ -61,10 +61,10 @@ template <Index cqp, Index cx, Index cd, Index cd2>
 Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::HxBlock(Index row,
                                                         Index col) const {
   Index auxsize = _Mmn.auxsize();
-  const Index vmin = _opt.vmin - _opt.rpamin;
-  const Index cmin = _bse_cmin - _opt.rpamin;
-  Index v1 = Index(row) + vmin;
-  Index v2 = Index(col) + vmin;
+  Index vmin = _opt.vmin - _opt.rpamin;
+  Index cmin = _bse_cmin - _opt.rpamin;
+  Index v1 = row + vmin;
+  Index v2 = col + vmin;
   return _Mmn[v1].block(cmin, 0, _bse_ctotal, auxsize) *
          _Mmn[v2].block(cmin, 0, _bse_ctotal, auxsize).transpose();
 }
@@ -74,8 +74,8 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd_row(Index index) const {
   Index auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, _bse_ctotal);
 
-  const Index vmin = _opt.vmin - _opt.rpamin;
-  const Index cmin = _bse_cmin - _opt.rpamin;
+  Index vmin = _opt.vmin - _opt.rpamin;
+  Index cmin = _bse_cmin - _opt.rpamin;
   Index v1 = vc.v(index);
   Index c1 = vc.c(index);
 
@@ -97,7 +97,7 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index index) const {
   Eigen::MatrixXd Result = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_vtotal);
   Index cmin = _bse_vtotal;
   // v->c
-  Result.col(v1) = _Hqp.col(c1 + cmin).segment(cmin, _bse_ctotal);
+  Result.col(v1) += _Hqp.col(c1 + cmin).segment(cmin, _bse_ctotal);
   // c-> v
   Result.row(c1) -= _Hqp.col(v1).head(_bse_vtotal);
   return Eigen::Map<Eigen::RowVectorXd>(Result.data(), Result.size());

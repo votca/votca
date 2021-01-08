@@ -139,7 +139,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
       energy += _orb.getExcitedStateEnergy(state);
     } else {
       // if unoccupied, add QP level energy
-      if (state.StateIdx() > (_orb.getHomo() - _orb.getGWAmin())) {
+      if (state.StateIdx() > _orb.getHomo()) {
         energy += _orb.getExcitedStateEnergy(state);
       } else {
         // if unoccupied, subtract QP level energy

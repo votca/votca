@@ -46,21 +46,32 @@ namespace xtp {
  */
 class CudaPipeline {
  public:
-  CudaPipeline() {
+  CudaPipeline(int deviceID) : _deviceID{deviceID} {
+    checkCuda(cudaSetDevice(deviceID));
     cublasCreate(&_handle);
     cudaStreamCreate(&_stream);
   }
-  ~CudaPipeline();
 
+  ~CudaPipeline();
+  CudaPipeline() = delete;
   CudaPipeline(const CudaPipeline &) = delete;
   CudaPipeline &operator=(const CudaPipeline &) = delete;
 
   // Invoke the ?gemm function of cublas
-  void gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C) const;
+  void gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C,
+            bool transpose_A = false, bool transpose_B = false,
+            double beta = 0.0) const;
+
+  // Invoke the multiplication with a diagonal matrix of cublas, diagonal matrix
+  // B must have 1 column
+  void diag_gemm(const CudaMatrix &A, const CudaMatrix &b, CudaMatrix &C) const;
 
   const cudaStream_t &get_stream() const { return _stream; };
 
+  int getDeviceId() const { return _deviceID; }
+
  private:
+  int _deviceID = 0;
   // The cublas handles allocates hardware resources on the host and device.
   cublasHandle_t _handle;
 

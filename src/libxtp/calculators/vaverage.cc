@@ -19,6 +19,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/topology.h"
+#include <votca/tools/getline.h>
 
 // Local private VOTCA includes
 #include "vaverage.h"
@@ -44,7 +45,7 @@ std::vector<double> VAverage::ReadOccfile(std::string filename) const {
   Index id = 0;
   while (intt.good()) {
 
-    std::getline(intt, line);
+    tools::getline(intt, line);
     std::vector<std::string> split;
     tools::Tokenizer toker(line, " \t");
     toker.ToVector(split);
@@ -77,7 +78,7 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
   std::string line;
   while (intt.good()) {
 
-    std::getline(intt, line);
+    tools::getline(intt, line);
     std::vector<std::string> split;
     tools::Tokenizer toker(line, " \t");
     toker.ToVector(split);
