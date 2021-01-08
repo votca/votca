@@ -33,7 +33,6 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(aotransform_test)
 
-
 BOOST_AUTO_TEST_CASE(xintegrate) {
 
   BOOST_REQUIRE_THROW(AOTransform::XIntegrate(0, 0.1), std::runtime_error);

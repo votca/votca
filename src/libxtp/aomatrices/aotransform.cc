@@ -106,8 +106,6 @@ template Eigen::MatrixXd AOTransform::tform(L l_row, L l_col,
 template Eigen::MatrixXcd AOTransform::tform(L l_row, L l_col,
                                              const Eigen::MatrixXcd& cartesian);
 
-
-
 Eigen::VectorXd AOTransform::XIntegrate(Index size, double U) {
 
   Eigen::VectorXd FmU = Eigen::VectorXd::Zero(size);

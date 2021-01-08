@@ -315,8 +315,9 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
     std::cout << planewave_ref << endl;
     std::cout << "planewave real" << endl;
     std::cout << planewave.Matrix().real() << endl;
-        std::cout << "planewave real" << endl;
-    std::cout << planewave.Matrix().real().array()/planewave_ref.array() << endl;
+    std::cout << "planewave real" << endl;
+    std::cout << planewave.Matrix().real().array() / planewave_ref.array()
+              << endl;
   }
   libint2::finalize();
 }

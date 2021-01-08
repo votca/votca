@@ -87,13 +87,11 @@ class AOTransform {
   static Index getBlockSize(Index lmax);
   static Eigen::VectorXd XIntegrate(Index size, double U);
 
-  static double getNorm(L l,const AOGaussianPrimitive& gaussian);
+  static double getNorm(L l, const AOGaussianPrimitive& gaussian);
 
-   /// transforms a cartesian shell to a spherical cartesian shell
-    template <typename Matrix>
-  static  Matrix tform(L l_row, L l_col, const Matrix& cartesian); 
-
-
+  /// transforms a cartesian shell to a spherical cartesian shell
+  template <typename Matrix>
+  static Matrix tform(L l_row, L l_col, const Matrix& cartesian);
 };
 
 }  // namespace xtp
