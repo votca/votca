@@ -17,6 +17,7 @@
 import argparse
 import itertools
 import subprocess
+from pathlib import Path
 from typing import Iterable, List, NamedTuple
 
 VERSION = '@PROJECT_VERSION@ #TOOLS_GIT_ID#'
@@ -125,11 +126,14 @@ COPYRIGHT
 
 def convert_help_message(args: argparse.Namespace):
     """Convert help message."""
-    msg = subprocess.check_output(f"{args.name} --help", shell=True)
-    sections = parse_help_message(msg.decode(), args.name)
+    path = Path(args.name)
+    name = path.stem
+    msg = subprocess.check_output(
+        f"{path.absolute().as_posix()} --help", shell=True)
+    sections = parse_help_message(msg.decode(), name)
     data = format_rst(sections)
 
-    output = args.out if args.out is not None else f"{args.name}.rst"
+    output = args.out if args.out is not None else f"{name}.rst"
     with open(output, 'w') as handler:
         handler.write(data)
 
