@@ -1,7 +1,7 @@
 Developer and Contributor Guide
 ===============================
 
-The page is designed to give new developers general guidelines for
+This page is designed to give new developers general guidelines for
 implementing code consistent with the VOTCA and cpp style and standard.
 
 -  `Reporting Bugs <#reporting-bugs>`__
@@ -59,21 +59,21 @@ VOTCA Continuous Integration (Github Actions)
 Each pull request to master in the tools, csg, csg-tutorials, xtp, xtp-tutorials or votca repository 
 is built on a machine in the cloud using `Github actions <https://docs.github.com/en/actions>`__ (There is still some Gitlab for the GPU builds).
 
-VOTCA can build on various linux distributions, which are not all natively supported by Github actions. For non natively supported distributions, 
-instead of using the default virtual machines, VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of votca (see :code:`buildenv` below)
+VOTCA can be built on various linux distributions, which are not all natively supported by Github actions. For non natively supported distributions, 
+instead of using the default virtual machines, VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of VOTCA (see :code:`buildenv` below)
 
-The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`__. The **votca/buildenv** containers are the basic containers, which contain all the dependencies VOTCA requires, but not any VOTCA code. The **votca/buildenv** can be found on `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__. 
-On top of these containers, the actual containers for running the test builds are built, the resulting **votca/votca** container can be found on `Docker Hub <https://hub.docker.com/u/votca>`__ as well as `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__.
+The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`__. The **votca/buildenv** containers are the basic containers, which contain all the dependencies VOTCA requires; VOTCA code itself is not included. The **votca/buildenv** can be found on `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__. 
+The actual containers used for running the test builds are built on top of the **votca/buildenv** containers, the resulting **votca/votca** container can be found on `Docker Hub <https://hub.docker.com/u/votca>`__ as well as `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__.
 
-For more information also look at the `Github workflow files <https://github.com/votca/votca/tree/master/.github/workflows>`__.
+More information can be found in the `Github workflow files <https://github.com/votca/votca/tree/master/.github/workflows>`__.
 
 Making a Release
 ----------------
 
-Releases are done by Github actions as well. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
+Similar to the VOTCA containers, releases are also handled by Github actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
 To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
-:code:`stable` branch, but one can test making a release on any other branch as well. To make a release, trigger the action from
-:code:`stable` branch pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the stable to master branch, see `below <#updates-from-stable>`__). 
+:code:`stable` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
+:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the :code:`stable` to :code:`master` branch, see `below <#updates-from-stable>`__). 
 
 CPP Resources
 -------------
@@ -96,8 +96,8 @@ Here are a few general rules that should be followed:
 Files
 ~~~~~
 
--  each class goes into a separate file
--  filename is name of class in lowercase
+-  Each class goes into a separate file.
+-  Each filename should be the the name of the class it contains written in lowercase.
 
 Includes
 ~~~~~~~~
@@ -118,9 +118,9 @@ Header Files
 ~~~~~~~~~~~~
 
 -  One class, one header.
--  When creating header guards use the following form, where
-   "VOTCA-REPO-NAME" is replaced by whichever repo the header is in
-   tools/csg/xtp, and where "CLASS-NAME" is replaced by the name of the
+-  When creating header guards use the template: VOTCA\_VOTCA-REPO-NAME\_CLASS-NAME\_H. Where
+   "VOTCA-REPO-NAME" is replaced by whichever repo the header file is in, this could be
+   tools, csg or xtp. The "CLASS-NAME" component should also be replaced, but by the name of the
    class described in the header file:
 
    #ifndef VOTCA\_VOTCA-REPO-NAME\_CLASS-NAME\_H #define
@@ -134,46 +134,45 @@ Header Files
 Auto
 ~~~~
 
--  avoid using auto unless the type is very long, the reason being auto
+-  Avoid using auto unless the type is very long, the reason being auto
    obscures the underlying type and can make it difficult to discern
-   what a variable is meant to be used for
+   what a variable is meant to be used for.
 
 Classes
 ~~~~~~~
 
--  normally begin in upper case
--  order in class definition:
--  first ``public`` all functions
--  then ``private``/``protected`` all member variables
--  then ``private``/``protected`` member functions
--  no rule where to define a ``public typedef`` in the class
--  all member variables are ``private``/``public``
--  maximum one-line-function implementation in class declaration,
-   everything else moves to separate file or inline at end of header.
+-  Normally class names in upper case.
+-  Order of access modifiers in class definitions should be as follows:
+   -  first ``public`` all functions
+   -  then ``private``/``protected`` all member variables
+   -  then ``private``/``protected`` member functions
+-  There is no rule as to where to define a ``public typedef`` in the class.
+-  All member variables are ``private``/``public``.
+-  The body of class methods should be placed in a source file or inlined at the end of the header if it exceeds a single line.
 
 Naming in Classes
 ~~~~~~~~~~~~~~~~~
 
--  all member variables are in lower case and end with ``_``
--  all functions start with upper case, no ``_`` in names
--  exception: ``get``/``set`` functions
--  for consistency all Ids should start at 0 not 1
+-  All member variables should be in lower case and end with ``_``.
+-  All functions should start with upper case, no ``_`` should exist in their names.
+-  Only ``get``/``set`` methods can begin with lower case letters. 
+-  For consistency all Ids should start at 0 not 1.
 
 get/set Functions
 ~~~~~~~~~~~~~~~~~
 
--  get/set functions start with a lowercase set/get (these are only
-   functions which directly set/get a private member variable)
--  get must return a constant reference and keep the ``class const``:
+-  ``get``/``set`` functions should start with a lowercase ``get``/``set`` (these are the only
+   functions which should directly ``set``/``get`` a private member variable)
+-  ``get`` must return a constant reference and keep the ``class const``:
    ``const int &getId() const;``
--  set only sets the member, e.g.
+-  ``set`` only sets the member, e.g.
    ``void setId(const int &id) { _id = id; }``
 
 Functions
 ~~~~~~~~~
 
--  Make functions short.
--  Functions should not have more than one use. So use boolean arguments
+-  Functions should remain short.
+-  Functions should not have more than one use, so use boolean arguments
    sparingly.
 
 Pointers
@@ -183,9 +182,9 @@ Pointers
    copy does not change performance. Use references if you want to avoid copies.
 -  If your pointer owns an object (i.e. it has to delete it later) use a
    ``unique_ptr`` to it, so you do not have to call ``delete`` on it
-   yourself
+   yourself.
 -  If multiple objects own an object and the last object alive should
-   delete it, use a ``shared_ptr``
+   delete it, use a ``shared_ptr``.
 -  If your object does not have ownership but just wants to visit, you
    can use a raw pointer, but if you can a reference is better.
 -  If you ever have to explicitly call ``delete``, you did something
@@ -200,7 +199,7 @@ General
 -  Functions should have no more than 3 arguments. Otherwise create a
    class.
 -  XYZ positions should be ``Eigen::Vector3d`` from the eigen library.
--  Readability is more important the elegant design.
+-  Readability is more important than elegant design.
 -  Leave the code better than you found it.
 -  Use pointers sparingly and especially try not to pass them around
    objects. Prefer references.
@@ -234,15 +233,15 @@ found here:
 
 We will outline the general workflow here using the vec object in
 votca::tools. This object only has a header file it is in:
-tools/include/votca/tools/vec.h
+tools/include/votca/tools/vec.h.
 
-Determine if a tests folder has already been created or not in /src if
-it has not take a look at what was done in the votca-tools repo.
+Determine if a tests folder has already been created or not in /src. If
+it has not, take a look at what was done in the votca-tools repo.
 
 1. Create a test file in
    `tools/src/tests/ <https://github.com/votca/tools/tree/master/src/tests>`__\ test\_vec.cc
    must have the same name as what appears in the foreach in the
-   CMakeLists.txt file. And place the following contents
+   CMakeLists.txt file. And place the following contents:
 
    ::
 
@@ -287,12 +286,12 @@ which boost test macros to use refer to the boost documentation
        make
        make test
 
-Ensure you have an up to date version of cmake or use cmake3
+Ensure you have an up to date version of cmake or use cmake3.
 
 Testing Across Repos
 ~~~~~~~~~~~~~~~~~~~~
 
-There may come a case where changes have to be committed across more
+There may come a time where changes have to be committed across more
 than one repo at the same time. Attempting to merge one repo at a time
 will cause the continuous integration to fail as changes in the other
 repos will not be pulled in. To do this correctly the following steps
@@ -319,13 +318,13 @@ Assuming you are in the votca/votca repository:
        git checkout <base_branch>
 
 2. The submodules are updated to be sure they have incorporated the
-   latest changes in your local repository
+   latest changes in your local repository.
 
    ::
 
        git submodule update
 
-3. Create a branch with a descriptive name
+3. Create a branch with a descriptive name.
 
    ::
 
@@ -339,54 +338,54 @@ Assuming you are in the votca/votca repository:
        git submodule foreach git remote update
 
 5. '-C' changes directory to the submodule directory and then checks out
-   the appropriate commit
+   the appropriate commit.
 
    ::
 
        git -C <module1> checkout <sha_or_branch_of_module1_to_test>  
        git -C <module2> checkout <sha_or_branch_of_module2_to_test>
 
-6. The changes are then added and commited
+6. The changes are then added and commited.
 
    ::
 
        git add <module1> <module2>  
        git commit -m "test <module1> with <module2>"
 
-7. Finally, they are pushed to the remote branch
+7. Finally, they are pushed to the remote branch.
 
    ::
 
        git push origin <some_descriptive_branch_name>
 
 A pull request is then made for the votca/votca repo using the branch
-name. Once the branch passes all tests it can be merged. Pull requests
-for each of repos changed can then be made. They will now compile
-against the updated votca/votca repo. Once they pass their tests they
-can be merged. If a pull request was already made the travis tests may
+name. Once the branch passes all tests, it can be merged. Pull requests
+for each of the repos changed can then be made. They will now compile
+against the updated votca/votca repo. Once they pass their tests, they
+can be merged. If a pull request was already made, the travis tests may
 simply need to be restarted.
 
 CPP Coding Style Guide
 -----------------------
 
-VOTCA uses a few auto formatting tools to help enforce the rules
+VOTCA uses a few auto formatting tools to help enforce the rules.
 
 `clang-format <https://clang.llvm.org/docs/ClangFormat.html>`__
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Automatically ensure consistent formatting for .cc and .h files. The
+Automatically ensures consistent formatting for .cc and .h files. The
 style follows the google style fomatting rules. Have a look at the
 ``.clang-format file`` in the `main votca
 repository <https://github.com/votca/votca/blob/master/.clang-format>`__
 for details.
 
-To run the clang-format function on file.cc
+To run the clang-format function on file.cc.
 
 ::
 
     clang-format -i -style=file file.cc
 
-'-i' ensures it will make change to file.cc, omitting the '-i' will
+'-i' ensures it will make changes to file.cc, omitting the '-i' will
 display the changes without implementing them. '-style=file' ensures the
 format is read from the .clang-format file otherwise it will use a
 default style guide.
@@ -397,7 +396,7 @@ is preferable that spaces be used instead.
 `autopep8 <https://pypi.org/project/autopep8/0.8/>`__
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Automatically formats python .py files. We are use the default format
+Automatically formats python .py files. We are useing the default format
 rules of autopep8. To run on file.py and update the file run:
 
 ::
@@ -450,7 +449,7 @@ comments to code:
        */
 
 Doxygen commenting will help future developers maintain the code, in
-its fully compiled state. It may be found at: http://doc.votca.org
+its fully compiled state. It may be found at: http://doc.votca.org.
 
 NOTE: Compilation of the doxygen documentation is automated when code is
 merged into the :code:`master` votca branch!
@@ -458,15 +457,15 @@ merged into the :code:`master` votca branch!
 Updating Git Submodules
 -----------------------
 
-Votca with all of its repos can be build by using the parent `votca
+VOTCA with all of its repos can be build by using the parent `votca
 repo <https://github.com/votca/votca>`__. All the other necessary repos
-appear as submodules in the parent repo. It is worth noting that the
+appear as submodules in the parent repo. It is worth noting, the
 submodules are automatically updated through a pull request whenever changes are made to
 their respective :code:`master` branches. In essence, a submodule refers to a
 specific commit of the repo it represents. 
 
-Normally it is not necessary, but occassionally a new commit must be manually
-merged into the :code:`master` branch of a child repository. If this occurs the
+Normally, it is not necessary, but occassionally a new commit must be manually
+merged into the :code:`master` branch of a child repository. If this occurs, the
 submodule state in the parent repo also has to be updated to reflect the latest
 commit of the child repo. 
 
