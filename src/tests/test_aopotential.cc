@@ -42,22 +42,6 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
 
-  // clang-format off
-  std::array<Index, 49> votcaOrder_old = {
-      0,                             // s
-      0, -1, 1,                      // p
-      0, -1, 1, -2, 2,               // d
-      0, -1, 1, -2, 2, -3, 3,        // f
-      0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
-      0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
-      0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
-  };
-  // clang-format on
-
-  std::array<Index, 49> multiplier;
-  multiplier.fill(1);
-  OrbReorder ord(votcaOrder_old, multiplier);
-
   // AOMultipole esp;
   // esp.FillPotential(aobasis, orbitals.QMAtoms());
   // Eigen::MatrixXd esp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
@@ -271,22 +255,6 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
 //   basisset.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/G.xml");
 //   AOBasis dftbasis;
 //   dftbasis.Fill(basisset, mol);
-
-//   // clang-format off
-//     std::array<Index, 49> votcaOrder_old = {
-//         0,                             // s
-//         0, -1, 1,                      // p
-//         0, -1, 1, -2, 2,               // d
-//         0, -1, 1, -2, 2, -3, 3,        // f
-//         0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
-//         0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
-//         0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
-//     };
-//   // clang-format on
-
-//   std::array<Index, 49> multiplier;
-//   multiplier.fill(1);
-//   OrbReorder ord(votcaOrder_old, multiplier);
 
 //   Index dftbasissize = 18;
 

@@ -84,32 +84,15 @@ class AOTransform {
   static std::array<int, 120> i_more_y();
   static std::array<int, 120> i_more_z();
 
-  static Eigen::VectorXd getNorm(L l, double contraction, double decay);
   static Index getBlockSize(Index lmax);
   static Eigen::VectorXd XIntegrate(Index size, double U);
 
- private:
-  // clang-format off
-  enum S { s };
-  enum P { x, y, z };
-  enum D { xx, xy, xz, yy, yz, zz };
-  enum F { xxx, xxy, xxz, xyy, xyz, xzz, yyy, yyz, yzz, zzz };
-  enum G {
-    xxxx, xxxy, xxxz, xxyy, xxyz, xxzz, xyyy, xyyz, xyzz, xzzz, yyyy, 
-    yyyz, yyzz, yzzz, zzzz
-  };
-  enum H {
-    xxxxx, xxxxy, xxxxz, xxxyy, xxxyz, xxxzz, xxyyy, xxyyz, xxyzz, xxzzz,
-    xyyyy, xyyyz, xyyzz, xyzzz, xzzzz, yyyyy, yyyyz, yyyzz, yyzzz, yzzzz,
-    zzzzz
-  };
-  enum I {
-    xxxxxx, xxxxxy, xxxxxz, xxxxyy, xxxxyz, xxxxzz, xxxyyy, xxxyyz, xxxyzz,
-    xxxzzz, xxyyyy, xxyyyz, xxyyzz, xxyzzz, xxzzzz, xyyyyy, xyyyyz, xyyyzz,
-    xyyzzz, xyzzzz, xzzzzz, yyyyyy, yyyyyz, yyyyzz, yyyzzz, yyzzzz, yzzzzz,
-    zzzzzz
-  };
-  // clang-format on
+  static double getNorm(L l,const AOGaussianPrimitive& gaussian);
+
+   /// transforms a cartesian shell to a spherical cartesian shell
+    template <typename Matrix>
+  static  Matrix tform(L l_row, L l_col, const Matrix& cartesian); 
+
 
 };
 

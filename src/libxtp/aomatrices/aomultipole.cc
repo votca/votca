@@ -63,6 +63,9 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
   double distsq = diff.squaredNorm();
 
+  Eigen::MatrixXd cartesian = Eigen::MatrixXd::Zero(
+      shell_row.getCartesianNumFunc(), shell_col.getCartesianNumFunc());
+
   // iterate over Gaussians in this shell_row
   for (const auto& gaussian_row : shell_row) {
     // iterate over Gaussians in this shell_col
@@ -79,10 +82,6 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       const double xi = decay_row * decay_col * fak2;
 
       double exparg = xi * distsq;
-      // check if distance between postions is big, then skip step
-      if (exparg > 30.0) {
-        continue;
-      }
 
       // some helpers
       const Eigen::Vector3d PmA =
@@ -2073,13 +2072,16 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         }
       }
 
-      Eigen::MatrixXd multipole_sph; 
       // save to matrix
-
-      matrix += multipole_sph;
+      cartesian += AOTransform::getNorm(shell_row.getL(), gaussian_row) *
+                   AOTransform::getNorm(shell_col.getL(), gaussian_col) *
+                   multipole.bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                               shell_col.getCartesianNumFunc());
 
     }  // shell_col Gaussians
   }    // shell_row Gaussians
+
+  matrix = AOTransform::tform(shell_row.getL(), shell_col.getL(), cartesian);
 }
 
 void AOMultipole::FillPotential(const AOBasis& aobasis,

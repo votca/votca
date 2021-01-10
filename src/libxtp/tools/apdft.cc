@@ -15,6 +15,9 @@
  *
  */
 
+// Standard includes
+#include <iomanip>
+
 // Local VOTCA includes
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/orbitals.h"

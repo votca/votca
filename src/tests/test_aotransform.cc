@@ -33,20 +33,6 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(aotransform_test)
 
-BOOST_AUTO_TEST_CASE(transform_test) {
-  libint2::initialize();
-  QMAtom a(0, "C", Eigen::Vector3d::Zero());
-  QMMolecule mol("zero", 0);
-  mol.push_back(a);
-
-  BasisSet bs;
-  bs.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aotransform/all.xml");
-  AOBasis basis;
-  basis.Fill(bs, mol);
-
- 
-  libint2::finalize();
-}
 
 BOOST_AUTO_TEST_CASE(xintegrate) {
 

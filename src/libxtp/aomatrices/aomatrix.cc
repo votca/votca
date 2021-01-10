@@ -118,7 +118,7 @@ Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
     libint2::Shell s = shell.LibintShell();
     engine.compute(s, s);
 
-    Eigen::Map<const AOMatrix::MatrixLibInt> buf_mat(buf[0], shell.getNumFunc(),
+    Eigen::Map<const MatrixLibInt> buf_mat(buf[0], shell.getNumFunc(),
                                                      shell.getNumFunc());
     return buf_mat;
   } catch (const libint2::Engine::lmax_exceeded& error) {
