@@ -15,7 +15,7 @@
  *
  */
 
-#include <votca/csg/potentialfunctions/potentialfunctionlj126.h>
+#include "../../../include/votca/csg/potentialfunctions/potentialfunctionlj126.h"
 
 namespace votca {
 namespace csg {

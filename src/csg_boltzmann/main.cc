@@ -19,16 +19,16 @@
 // here!
 //
 
+#include "../../include/votca/csg/csgapplication.h"
 #include "analysistool.h"
 #include "bondedstatistics.h"
 #include "stdanalysis.h"
 #include "tabulatedpotential.h"
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <math.h>
 #include <string>
-#include <votca/csg/csgapplication.h>
 #include <votca/tools/getline.h>
 #include <votca/tools/rangeparser.h>
 #include <votca/tools/tokenizer.h>
@@ -36,25 +36,27 @@
 using namespace std;
 using namespace votca::csg;
 
-class CsgBoltzmann : public CsgApplication {
+class CsgBoltzmann final: public CsgApplication {
  public:
-  string ProgramName() override { return "csg_boltzmann"; }
-  void HelpText(ostream &out) override {
+  string ProgramName()  { return "csg_boltzmann"; }
+  void HelpText(ostream &out)  {
     out << "Performs tasks that are needed for simple boltzmann\n"
            "inversion in an interactive environment.";
   }
-  bool DoTrajectory() override { return true; }
-  bool DoMapping() override { return true; }
+  bool DoTrajectory()  { return true; }
+  bool DoMapping()  { return true; }
 
-  void Initialize() override;
-  bool EvaluateOptions() override;
-  void Run() override;
+  void Initialize() ;
+  bool EvaluateOptions() ;
+  void Run() ;
 
   void InteractiveMode();
-  bool EvaluateTopology(Topology *top, Topology *top_ref) override;
+  bool EvaluateTopology(Topology *top, Topology *top_ref) ;
 
  protected:
-  ExclusionList CreateExclusionList(Molecule &atomistic, Molecule &cg);
+  ExclusionList CreateExclusionList(Topology *top_atomistic,
+                                     Molecule &atomistic, Topology *top_cg,
+                                     Molecule &cg);
   BondedStatistics _bs;
 };
 void CsgBoltzmann::Initialize() {
@@ -86,7 +88,7 @@ bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref) {
          << " in coarse grained representation "
          << top_ref->MoleculeByIndex(0)->getName() << endl;
 
-    ExclusionList ex = CreateExclusionList(*top_ref->MoleculeByIndex(0),
+    ExclusionList ex = CreateExclusionList(top_ref, *top_ref->MoleculeByIndex(0), top,
                                            *top->MoleculeByIndex(0));
     std::ofstream fl;
     fl.open(OptionsMap()["excl"].as<string>());
@@ -101,31 +103,31 @@ bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref) {
   return true;
 }
 
-ExclusionList CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
+ExclusionList CsgBoltzmann::CreateExclusionList(Topology *top_atomistic,
+                                                 Molecule &atomistic,
+                                                 Topology *top_cg,
                                                 Molecule &cg) {
   ExclusionList ex;
   // exclude all with all
   ex.ExcludeList(atomistic.Beads());
   // remove exclusions from inside a mapped bead
-  Topology *at_top = atomistic.getParent();
   for (votca::Index i = 0; i < cg.BeadCount(); ++i) {
     std::vector<Bead *> excl_list;
     for (votca::Index parent_bead_id : cg.getBead(i)->ParentBeads()) {
-      excl_list.push_back(at_top->getBead(parent_bead_id));
+      excl_list.push_back(top_atomistic->getBead(parent_bead_id));
     }
     ex.Remove(excl_list);
   }
   // remove exclusion which come from atomistic topology and hence bonds and
   // angles
-  Topology *cg_top = cg.getParent();
   for (votca::Index i = 0; i < cg.BeadCount() - 1; ++i) {
     for (votca::Index j = i + 1; j < cg.BeadCount(); ++j) {
-      if (cg_top->getExclusions().IsExcluded(cg.getBead(i), cg.getBead(j))) {
+      if (top_cg->getExclusions().IsExcluded(cg.getBead(i), cg.getBead(j))) {
 
         for (votca::Index parent_bead_id_i : cg.getBead(i)->ParentBeads()) {
           for (votca::Index parent_bead_id_j : cg.getBead(j)->ParentBeads()) {
-            ex.RemoveExclusion(at_top->getBead(parent_bead_id_i),
-                               at_top->getBead(parent_bead_id_j));
+            ex.RemoveExclusion(top_atomistic->getBead(parent_bead_id_i),
+                                top_atomistic->getBead(parent_bead_id_j));
           }
         }
       }
@@ -164,7 +166,7 @@ void CsgBoltzmann::InteractiveMode() {
 
   cout << help_text << endl;
 
-  while (1) {
+  while (true) {
     string line;
     cout << "> ";
     votca::tools::getline(cin, line);

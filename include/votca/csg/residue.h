@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
+#pragma once
+#ifndef VOTCA_CSG_RESIDUE_H
+#define VOTCA_CSG_RESIDUE_H
 
-#ifndef _VOTCA_CSG_RESIDUE_H
-#define _VOTCA_CSG_RESIDUE_H
-
-#include "topologyitem.h"
+// Standard includes
 #include <string>
 
 namespace votca {
@@ -32,28 +32,26 @@ namespace csg {
    based on their residue.
 
 */
-class Residue : public TopologyItem {
+class Residue {
  public:
   /// get the name of the residue
-  const std::string &getName();
+  const std::string &getName() const;
 
   /// get the name of the residue
-  const Index &getId() const { return _id; }
+  Index getId() const { return _id; }
 
  private:
   Index _id;
   std::string _name;
 
- private:
   /// constructor
-  Residue(Topology *parent, Index id, const std::string &name)
-      : TopologyItem(parent), _id(id), _name(name) {}
+  Residue(Index id, const std::string &name) : _id(id), _name(name) {}
   friend class Topology;
 };
 
-inline const std::string &Residue::getName() { return _name; }
+inline const std::string &Residue::getName() const { return _name; }
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_RESIDUE_H */
+#endif  // VOTCA_CSG_RESIDUE_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  *
  */
 
+#include "../../include/votca/csg/csgapplication.h"
+#include "../../include/votca/csg/topology.h"
+#include "../../include/votca/csg/trajectorywriter.h"
+#include <cstddef>
 #include <fstream>
-#include <stddef.h>
 #include <stdexcept>
 #include <string>
-#include <votca/csg/csgapplication.h>
-#include <votca/csg/topology.h>
-#include <votca/csg/trajectorywriter.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -148,13 +148,10 @@ class CsgMapApp : public CsgApplication {
     }
   }
 
-  void EndEvaluate() override {
-    _writer->Close();
-    delete _writer;
-  }
+  void EndEvaluate() override { _writer->Close(); }
 
  protected:
-  TrajectoryWriter *_writer;
+  std::unique_ptr<TrajectoryWriter> _writer;
   bool _do_hybrid;
   bool _do_vel;
   bool _do_force;

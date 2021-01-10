@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  *
  */
 
-#ifndef _VOTCA_CSG_BEADPAIR_H
-#define _VOTCA_CSG_BEADPAIR_H
+#ifndef VOTCA_CSG_BEADPAIR_H
+#define VOTCA_CSG_BEADPAIR_H
 
+// VOTCA includes
 #include <votca/tools/eigen.h>
 
 namespace votca {
@@ -42,9 +43,9 @@ class BeadPair {
   Bead *first() { return _pair.first; }
   Bead *second() { return _pair.second; }
   /// \brief the vector connecting two beads
-  Eigen::Vector3d &r() { return _r; }
+  const Eigen::Vector3d &r() const { return _r; }
   /// \brief the distance of the beads
-  double &dist() { return _dist; }
+  double dist() const { return _dist; }
 
  protected:
   std::pair<Bead *, Bead *> _pair;
@@ -56,4 +57,4 @@ class BeadPair {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_BEADPAIR_H */
+#endif  // VOTCA_CSG_BEADPAIR_H
