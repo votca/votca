@@ -115,9 +115,9 @@ inline void PDBWriter::WriteContainer(T &container) {
       atomname = atomname.substr(0, 4);
     }
 
-    _out << atomfrmt % (getId(atom) % 100000)  // atom serial number
+    _out << atomfrmt % (getId(atom) % 100000)  // atom serial number, wrapped due to pdb limitations
                 % atomname % resname % " "     // chain identifier 1 char
-                % (getResId(container, atom)% 10000)    // residue sequence number
+                % (getResId(container, atom)% 10000)    // residue sequence number, wrapped due to pdb limitations
                 % r.x() % r.y() % r.z();
     // we skip the charge
     writeSymmetry(atom);
