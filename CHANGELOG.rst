@@ -88,6 +88,7 @@ Version 2021-dev
 -  better error for exceeded angular momentum in libint (#613)
 -  fixed wrong QP-QMMM energy with non-zero QPmin (#620)
 -  fixed density analysis options (#627)
+-  Use libint transformation matrices (#630)
 -  Added script to extract orbitals from qmmm statefile (#629)
 
 Version 1.6.4 (released XX.12.20)
