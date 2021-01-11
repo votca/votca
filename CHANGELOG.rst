@@ -34,6 +34,7 @@ Version 2021-dev
 -  Convert remaining md files to rst (#616)
 -  merge csg-manual (#621, #622)
 -  merge in csgapps repo (#623)
+-  Pdbs with more than 10000 resids can now be written (#627)
 
 Version 1.6.3 (released 09.12.20)
 =================================
