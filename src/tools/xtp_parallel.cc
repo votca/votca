@@ -90,7 +90,6 @@ bool XtpParallel::EvaluateOptions() {
   }
 
   if (xtp::JobCalculators().IsRegistered(calc_string[0])) {
-    cout << " This is a XTP app" << endl;
     xtp::JobApplication::SetCalculator(
         xtp::JobCalculators().Create(calc_string[0]));
   } else {
