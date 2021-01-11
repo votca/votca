@@ -43,7 +43,7 @@ class CsgBoltzmann final: public CsgApplication {
     out << "Performs tasks that are needed for simple boltzmann\n"
            "inversion in an interactive environment.";
   }
-  bool DoTrajectory()  { return true; }
+  bool DoTrajectory()  {  return !OptionsMap().count("excl");}
   bool DoMapping()  { return true; }
 
   void Initialize() ;
