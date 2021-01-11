@@ -91,6 +91,7 @@ Version 2021-dev
 -  Use libint transformation matrices (#630)
 -  Added script to extract orbitals from qmmm statefile (#629)
 -  removed unnecessary XTP app message in xtp_parallel (#632)
+-  clean up XTP app message (#631)
 
 Version 1.6.4 (released XX.12.20)
 =================================
