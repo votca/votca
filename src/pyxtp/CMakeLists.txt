@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+  cmake_minimum_required(VERSION 3.12)
 
 project(pyxtp LANGUAGES CXX)
 
@@ -34,17 +34,6 @@ set_target_properties(xtp_binds
 
 
 target_link_libraries(xtp_binds
- PUBLIC
- VOTCA::votca_xtp
-)
-
-
-add_executable(main binds/main.cc)
-target_include_directories(main
- PUBLIC
- ${PROJECT_SOURCE_DIR}/binds/include
-)
-target_link_libraries(main
  PUBLIC
  VOTCA::votca_xtp
 )

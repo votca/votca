@@ -17,43 +17,45 @@
 #if !defined(PYXTP_H_)
 #define PYXTP_H_
 
-#include "factory.hpp"
-#include "parent.hpp"
-#include "votca/xtp/calculatorfactory.h"
-#include "votca/xtp/qmcalculator.h"
+#include "votca/xtp/qmtool.h"
+#include "votca/xtp/toolfactory.h"
+// #include "factory.hpp"
+// #include "parent.hpp"
+// #include "votca/xtp/calculatorfactory.h"
+// #include "votca/xtp/qmcalculator.h"
 #include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
+// #include <memory>
+// #include <string>
+// #include <vector>
 
-using namespace votca;
+// using namespace votca;
 
 namespace pyxtp {
 
-void printer(const std::vector<std::string>& keys) {
-  for (const auto& key : keys) {
-    std::cout << "key: " << key << "\n";
-  }
-  std::cout << "size: " << keys.size() << "\n";
-}
+// void printer(const std::vector<std::string>& keys) {
+//   for (const auto& key : keys) {
+//     std::cout << "key: " << key << "\n";
+//   }
+//   std::cout << "size: " << keys.size() << "\n";
+// }
 
-class PyXTP {
- public:
-  void Initialize(const std::string& name, int nThreads) {
-    std::cout << "Votca Factory:\n";
-    xtp::Calculatorfactory::RegisterAll();
-    std::vector<std::string> keys = xtp::Calculators().getKeys();
-    printer(keys);
-    std::cout << "Mock Factory:\n";
-    pyxtp::Factory<Parent>::RegisterAll();
-    keys = pyxtp::Calculators<Parent>().getKeys();
-    printer(keys);
-  }
+// class PyXTP {
+//  public:
+//   void Initialize(const std::string& name, int nThreads) {
+//     std::cout << "Votca Factory:\n";
+//     xtp::Calculatorfactory::RegisterAll();
+//     std::vector<std::string> keys = xtp::Calculators().getKeys();
+//     printer(keys);
+//     std::cout << "Mock Factory:\n";
+//     pyxtp::Factory<Parent>::RegisterAll();
+//     keys = pyxtp::Calculators<Parent>().getKeys();
+//     printer(keys);
+//   }
 
- private:
-  std::unique_ptr<xtp::QMCalculator> _calculator;
-};
+//  private:
+//   std::unique_ptr<xtp::QMCalculator> _calculator;
+// };
 
-}  // namespace pyxtp 
+}  // namespace pyxtp
 
 #endif  // PYXTP_H_
