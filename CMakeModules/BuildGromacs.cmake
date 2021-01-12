@@ -1,5 +1,10 @@
+if(NOT BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "The BUILD_OWN_GROMACS option only works with BUILD_SHARED_LIBS=ON")
+endif()
+
 include(ExternalProject)
 include(GNUInstallDirs)
+enable_language(C)
 # ftp://ftp.gromacs.org/pub/gromacs/gromacs-XXX.tar.gz is too unstable for CI, so use Gentoo Mirror
 ExternalProject_Add(Gromacs_build
   URL http://distfiles.gentoo.org/distfiles/gromacs-2019.6.tar.gz https://ftp.gromacs.org/pub/gromacs/gromacs-2019.6.tar.gz
@@ -15,6 +20,7 @@ ExternalProject_Add(Gromacs_build
     -DGMX_THREAD_MPI:BOOL=ON 
     -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
     -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+  BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libgromacs.so
 )
 ExternalProject_get_property(Gromacs_build INSTALL_DIR)
 

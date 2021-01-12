@@ -4,18 +4,12 @@
 [submodule "csg"]
 	path = csg
 	url = ../../votca/csg.git
-[submodule "csgapps"]
-	path = csgapps
-	url = ../../votca/csgapps.git
 [submodule "xtp"]
 	path = xtp
 	url = ../../votca/xtp.git
 [submodule "csg-tutorials"]
 	path = csg-tutorials
 	url = ../../votca/csg-tutorials.git
-[submodule "csg-manual"]
-	path = csg-manual
-	url = ../../votca/csg-manual.git
 [submodule "xtp-tutorials"]
 	path = xtp-tutorials
 	url = ../../votca/xtp-tutorials
