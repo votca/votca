@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,20 @@
  *
  */
 
-#ifndef _VOTCA_CSG_APPLICATION_H
-#define _VOTCA_CSG_APPLICATION_H
+#ifndef VOTCA_CSG_CSGAPPLICATION_H
+#define VOTCA_CSG_CSGAPPLICATION_H
 
+// VOTCA includes
+#include <memory>
+#include <votca/tools/application.h>
+#include <votca/tools/mutex.h>
+#include <votca/tools/thread.h>
+
+// Local VOTCA includes
 #include "cgobserver.h"
 #include "topology.h"
 #include "topologymap.h"
 #include "trajectoryreader.h"
-#include <votca/tools/application.h>
-#include <votca/tools/mutex.h>
-#include <votca/tools/thread.h>
 
 namespace votca {
 namespace csg {
@@ -161,7 +165,7 @@ class CsgApplication : public tools::Application {
   std::vector<tools::Mutex *> _threadsMutexesIn;
   /// \brief stores Mutexes used to impose order for output
   std::vector<tools::Mutex *> _threadsMutexesOut;
-  TrajectoryReader *_traj_reader;
+  std::unique_ptr<TrajectoryReader> _traj_reader;
 };
 
 inline void CsgApplication::AddObserver(CGObserver *observer) {
@@ -171,4 +175,4 @@ inline void CsgApplication::AddObserver(CGObserver *observer) {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_APPLICATION_H */
+#endif  // VOTCA_CSG_CSGAPPLICATION_H

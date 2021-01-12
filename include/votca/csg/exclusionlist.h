@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,16 @@
  *
  */
 
-#ifndef _VOTCA_CSG_EXCLUSIONLIST_H
-#define _VOTCA_CSG_EXCLUSIONLIST_H
+#ifndef VOTCA_CSG_EXCLUSIONLIST_H
+#define VOTCA_CSG_EXCLUSIONLIST_H
 
-#include "bead.h"
+// Standard includes
 #include <iostream>
 #include <list>
 #include <map>
+
+// Local VOTCA includes
+#include "bead.h"
 
 namespace votca {
 namespace csg {
@@ -52,13 +55,14 @@ class ExclusionList {
 
   void CreateExclusions(Topology *top);
   exclusion_t *GetExclusions(Bead *bead);
+  const exclusion_t *GetExclusions(Bead *bead) const;
 
   using iterator = std::list<exclusion_t *>::iterator;
 
   iterator begin() { return _exclusions.begin(); }
   iterator end() { return _exclusions.end(); }
 
-  bool IsExcluded(Bead *bead1, Bead *bead2);
+  bool IsExcluded(Bead *bead1, Bead *bead2) const;
 
   template <typename iterable>
   void InsertExclusion(Bead *bead, iterable &excluded);
@@ -73,15 +77,6 @@ class ExclusionList {
 
   friend std::ostream &operator<<(std::ostream &out, ExclusionList &exl);
 };
-
-inline ExclusionList::exclusion_t *ExclusionList::GetExclusions(Bead *bead) {
-  std::map<Bead *, exclusion_t *>::iterator iter = _excl_by_bead.find(bead);
-  if (iter == _excl_by_bead.end()) {
-    return nullptr;
-  }
-
-  return (*iter).second;
-}
 
 template <typename iterable>
 inline void ExclusionList::Remove(iterable &l) {
@@ -131,9 +126,9 @@ inline void ExclusionList::InsertExclusion(Bead *beadA, iterable &l) {
   }
 }
 
-std::ostream &operator<<(std::ostream &out, ExclusionList &ex);
+std::ostream &operator<<(std::ostream &out, ExclusionList &exl);
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_EXCLUSIONLIST_H */
+#endif  // VOTCA_CSG_EXCLUSIONLIST_H

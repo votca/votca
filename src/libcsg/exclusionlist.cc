@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,12 @@
  *
  */
 
+// Standard includes
 #include <algorithm>
-#include <votca/csg/exclusionlist.h>
-#include <votca/csg/topology.h>
+
+// Local VOTCA includes
+#include "votca/csg/exclusionlist.h"
+#include "votca/csg/topology.h"
 
 namespace votca {
 namespace csg {
@@ -47,16 +50,36 @@ void ExclusionList::CreateExclusions(Topology *top) {
   }
 }
 
-bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) {
+const ExclusionList::exclusion_t *ExclusionList::GetExclusions(
+    Bead *bead) const {
+  std::map<Bead *, exclusion_t *>::const_iterator iter =
+      _excl_by_bead.find(bead);
+  if (iter == _excl_by_bead.end()) {
+    return nullptr;
+  }
 
-  if (bead1->getMolecule() != bead2->getMolecule()) {
+  return (*iter).second;
+}
+
+ExclusionList::exclusion_t *ExclusionList::GetExclusions(Bead *bead) {
+  std::map<Bead *, exclusion_t *>::iterator iter = _excl_by_bead.find(bead);
+  if (iter == _excl_by_bead.end()) {
+    return nullptr;
+  }
+
+  return (*iter).second;
+}
+
+bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) const {
+  if (bead1->getMoleculeId() != bead2->getMoleculeId()) {
     return false;
   }
   if (bead2->getId() < bead1->getId()) {
     swap(bead1, bead2);
   }
-  exclusion_t *excl;
-  if ((excl = GetExclusions(bead1))) {
+
+  const exclusion_t *excl = GetExclusions(bead1);
+  if (excl != nullptr) {
     if (find(excl->_exclude.begin(), excl->_exclude.end(), bead2) !=
         excl->_exclude.end()) {
       return true;

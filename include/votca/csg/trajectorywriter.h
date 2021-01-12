@@ -18,11 +18,14 @@
 #ifndef _VOTCA_CSG_TRAJECTORYWRITER_H
 #define _VOTCA_CSG_TRAJECTORYWRITER_H
 
-#include "fileformatfactory.h"
-#include "topology.h"
+// Standard includes
 #include <fstream>
 #include <iostream>
 #include <string>
+
+// Local VOTCA includes
+#include "fileformatfactory.h"
+#include "topology.h"
 
 namespace votca {
 namespace csg {
