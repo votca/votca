@@ -36,7 +36,7 @@ Version 2021-dev
 -  refactored getenv() into separate function (#302)
 -  use unique_ptr in factory (#303)
 
-Version 1.6.4 (released XX.12.20)
+Version 1.6.4 (released 12.01.21)
 =================================
 
 -  no changes
