@@ -90,6 +90,7 @@ Version 2021-dev
 -  fixed density analysis options (#627)
 -  Use libint transformation matrices (#630)
 -  Added script to extract orbitals from qmmm statefile (#629)
+-  clean up XTP app message (#631)
 
 Version 1.6.4 (released 12.01.21)
 =================================
