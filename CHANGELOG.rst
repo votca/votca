@@ -92,7 +92,7 @@ Version 2021-dev
 -  Added script to extract orbitals from qmmm statefile (#629)
 -  clean up XTP app message (#631)
 
-Version 1.6.4 (released XX.12.20)
+Version 1.6.4 (released 12.01.21)
 =================================
 
 -  fix build on openSUSE (#622)
