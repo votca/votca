@@ -16,11 +16,18 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE eeinteractor_test
-#include <boost/test/floating_point_comparison.hpp>
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <iostream>
-#include <votca/xtp/dipoledipoleinteraction.h>
-#include <votca/xtp/eeinteractor.h>
+
+// Third party includes
+#include <boost/test/tools/floating_point_comparison.hpp>
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/dipoledipoleinteraction.h"
+#include "votca/xtp/eeinteractor.h"
+
 using namespace votca::xtp;
 using namespace votca;
 
@@ -396,12 +403,12 @@ BOOST_AUTO_TEST_CASE(polar_case_monopole) {
   PolarSegment seg1("one", 1);
   PolarSegment seg2("two", 2);
   PolarSite one(1, "H");
-  one.setPolarisation(Eigen::Matrix3d::Identity());
+  one.setpolarization(Eigen::Matrix3d::Identity());
   one.setMultipole(mpoles1, 0);
   one.setPos(Eigen::Vector3d::Zero());
 
   PolarSite two(2, "H");
-  two.setPolarisation(Eigen::Matrix3d::Identity());
+  two.setpolarization(Eigen::Matrix3d::Identity());
   two.setMultipole(mpoles1, 0);
   two.setPos(2 * Eigen::Vector3d::UnitZ());
   seg1.push_back(one);

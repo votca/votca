@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,10 +17,15 @@
  *
  */
 
-#include <math.h> /* ceil */
+// Standard includes
+#include <cmath> /* ceil */
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
-#include <votca/xtp/grid.h>
+
+// Local VOTCA includes
+#include "votca/xtp/grid.h"
 
 namespace votca {
 namespace xtp {

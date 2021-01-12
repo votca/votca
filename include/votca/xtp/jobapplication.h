@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,16 +18,16 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_JOBAPPLICATION
-#define VOTCA_XTP_JOBAPPLICATION
+#include <memory>
+#ifndef VOTCA_XTP_JOBAPPLICATION_H
+#define VOTCA_XTP_JOBAPPLICATION_H
 
-#include <votca/xtp/xtpapplication.h>
-
-#include <votca/xtp/progressobserver.h>
-#include <votca/xtp/topology.h>
-
+// Local VOTCA includes
+#include "jobcalculator.h"
+#include "progressobserver.h"
 #include "statesaver.h"
-#include <votca/xtp/jobcalculator.h>
+#include "topology.h"
+#include "xtpapplication.h"
 
 namespace votca {
 namespace xtp {
@@ -43,7 +43,7 @@ class JobApplication : public XtpApplication {
   void BeginEvaluate(Index nThreads, Index ompthread,
                      ProgObserver<std::vector<Job> > &jobs);
   bool EvaluateFrame(Topology &top);
-  void SetCalculator(JobCalculator *calculator);
+  void SetCalculator(std::unique_ptr<JobCalculator> &&calculator);
 
  protected:
   bool _generate_input = false;
@@ -55,4 +55,4 @@ class JobApplication : public XtpApplication {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_JOBAPPLICATION
+#endif  // VOTCA_XTP_JOBAPPLICATION_H

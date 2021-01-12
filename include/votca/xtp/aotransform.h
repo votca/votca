@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,8 +21,9 @@
 #ifndef VOTCA_XTP_AOTRANSFORM_H
 #define VOTCA_XTP_AOTRANSFORM_H
 
-#include <votca/xtp/aoshell.h>
-#include <votca/xtp/eigen.h>
+// Local VOTCA includes
+#include "aoshell.h"
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {
@@ -83,37 +84,14 @@ class AOTransform {
   static std::array<int, 120> i_more_y();
   static std::array<int, 120> i_more_z();
 
-  static Index getCartesianSize(Index l);
-  static Index getSphericalSize(Index l);
   static Index getBlockSize(Index lmax);
-  static Eigen::MatrixXd getTrafo(const AOGaussianPrimitive& gaussian);
   static Eigen::VectorXd XIntegrate(Index size, double U);
 
- private:
-  // clang-format off
-  enum S { s };
-  enum P { x, y, z };
-  enum D { xx, xy, xz, yy, yz, zz };
-  enum F { xxx, xxy, xxz, xyy, xyz, xzz, yyy, yyz, yzz, zzz };
-  enum G {
-    xxxx, xxxy, xxxz, xxyy, xxyz, xxzz, xyyy, xyyz, xyzz, xzzz, yyyy, 
-    yyyz, yyzz, yzzz, zzzz
-  };
-  enum H {
-    xxxxx, xxxxy, xxxxz, xxxyy, xxxyz, xxxzz, xxyyy, xxyyz, xxyzz, xxzzz,
-    xyyyy, xyyyz, xyyzz, xyzzz, xzzzz, yyyyy, yyyyz, yyyzz, yyzzz, yzzzz,
-    zzzzz
-  };
-  enum I {
-    xxxxxx, xxxxxy, xxxxxz, xxxxyy, xxxxyz, xxxxzz, xxxyyy, xxxyyz, xxxyzz,
-    xxxzzz, xxyyyy, xxyyyz, xxyyzz, xxyzzz, xxzzzz, xyyyyy, xyyyyz, xyyyzz,
-    xyyzzz, xyzzzz, xzzzzz, yyyyyy, yyyyyz, yyyyzz, yyyzzz, yyzzzz, yzzzzz,
-    zzzzzz
-  };
-  // clang-format on
+  static double getNorm(L l, const AOGaussianPrimitive& gaussian);
 
-  static Eigen::MatrixXd getPrimitiveShellTrafo(Index l, double decay,
-                                                double contraction);
+  /// transforms a cartesian shell to a spherical cartesian shell
+  template <typename Matrix>
+  static Matrix tform(L l_row, L l_col, const Matrix& cartesian);
 };
 
 }  // namespace xtp

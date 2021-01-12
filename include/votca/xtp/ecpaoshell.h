@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,16 +21,17 @@
 #ifndef VOTCA_XTP_ECPAOSHELL_H
 #define VOTCA_XTP_ECPAOSHELL_H
 
-#include <boost/math/constants/constants.hpp>
+// VOTCA includes
 #include <votca/tools/constants.h>
-#include <votca/xtp/eigen.h>
 
+// Local VOTCA includes
+#include "ecpbasisset.h"
+#include "eigen.h"
 #include "qmatom.h"
-#include <votca/xtp/ecpbasisset.h>
 
 namespace votca {
 namespace xtp {
-
+class ECPAOShell;
 class ECPAOGaussianPrimitive {
 
  public:
@@ -40,6 +41,30 @@ class ECPAOGaussianPrimitive {
         _contraction(gaussian._contraction) {
     ;
   }
+
+  struct data {
+    Index atomid;
+    Index l;
+    Index lmax;
+    Index startindex;
+    Index power;
+    double decay;
+    double contraction;
+    double x;
+    double y;
+    double z;
+  };
+
+  ECPAOGaussianPrimitive(const ECPAOGaussianPrimitive::data& d) {
+    _decay = d.decay;
+    _contraction = d.contraction;
+    _power = d.power;
+  }
+
+  void WriteData(data& d, const ECPAOShell& shell) const;
+
+  void SetupCptTable(CptTable& table) const;
+
   Index getPower() const { return _power; }
   double getDecay() const { return _decay; }
   double getContraction() const { return _contraction; }
@@ -53,29 +78,38 @@ class ECPAOGaussianPrimitive {
 /*
  * shells in a Gaussian-basis expansion
  */
+
+class ECPAOBasis;
 class ECPAOShell {
+  friend ECPAOBasis;
+
  public:
   ECPAOShell(const ECPShell& shell, const QMAtom& atom, Index startIndex,
-             Index Lmax)
-      : _type(shell.getType()),
-        _L(shell.getL()),
-        _numFunc(shell.getnumofFunc()),
+             L Lmax)
+      : _L(shell.getL()),
         _startIndex(startIndex),
-        _offset(shell.getOffset()),
         _pos(atom.getPos()),
         _atomindex(atom.getId()),
         _Lmax_element(Lmax) {
     ;
   }
 
-  const std::string& getType() const { return _type; }
-  Index getNumFunc() const { return _numFunc; }
+  ECPAOShell(const ECPAOGaussianPrimitive::data& d) {
+    _L = static_cast<L>(d.l);
+    _Lmax_element = static_cast<L>(d.lmax);
+    _startIndex = d.startindex;
+    _atomindex = d.atomid;
+    _pos = Eigen::Vector3d(d.x, d.y, d.z);
+    _gaussians.push_back(ECPAOGaussianPrimitive(d));
+  }
+
+  Index getNumFunc() const { return NumFuncShell(_L); }
   Index getStartIndex() const { return _startIndex; }
-  Index getOffset() const { return _offset; }
+  Index getOffset() const { return OffsetFuncShell(_L); }
   Index getAtomIndex() const { return _atomindex; }
 
-  Index getL() const { return _L; }
-  Index getLmaxElement() const { return _Lmax_element; }
+  L getL() const { return _L; }
+  L getLmaxElement() const { return _Lmax_element; }
   // Local part is with L=Lmax
   bool isNonLocal() const { return (_L < _Lmax_element); }
   const Eigen::Vector3d& getPos() const { return _pos; }
@@ -97,15 +131,11 @@ class ECPAOShell {
   friend std::ostream& operator<<(std::ostream& out, const ECPAOShell& shell);
 
  private:
-  std::string _type;
-  Index _L;
-  // number of functions in shell
-  Index _numFunc;
+  L _L;
   Index _startIndex;
-  Index _offset;
   Eigen::Vector3d _pos;
   Index _atomindex;
-  Index _Lmax_element;  // Lmax of the Element not the shell
+  L _Lmax_element;  // Lmax of the Element not the shell
 
   // vector of pairs of decay constants and contraction coefficients
   std::vector<ECPAOGaussianPrimitive> _gaussians;

@@ -17,22 +17,21 @@
  *
  */
 
+// Local VOTCA includes
+#include "votca/xtp/topology.h"
 #include <votca/tools/getline.h>
 
+// Local private VOTCA includes
 #include "vaverage.h"
-#include "votca/xtp/topology.h"
 
 namespace votca {
 namespace xtp {
 
-void VAverage::Initialize(tools::Property& options) {
-  std::string key = "options." + Identify();
-  _ratefile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".ratefile");
-  _occfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".occfile");
-  _outputfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".outputfile");
+void VAverage::ParseOptions(const tools::Property& options) {
+
+  _ratefile = options.get(".ratefile").as<std::string>();
+  _occfile = options.get(".occfile").as<std::string>();
+  _outputfile = options.get(".outputfile").as<std::string>();
 }
 
 std::vector<double> VAverage::ReadOccfile(std::string filename) const {
@@ -104,7 +103,7 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
   return result;
 }
 
-bool VAverage::EvaluateFrame(Topology& top) {
+bool VAverage::Evaluate(Topology& top) {
   std::cout << std::endl
             << "... ... Computing velocity average for all sites\n";
   std::cout << "Reading in site occupations from " << _occfile << std::endl;

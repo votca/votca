@@ -1,5 +1,5 @@
 /*
- *            Copyright 2016-2020 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,12 +17,17 @@
  *
  */
 
-#include "votca/xtp/classicalsegment.h"
-#include "votca/xtp/atomcontainer.h"
+// Third party includes
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
 #include <votca/tools/getline.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/xtp/atomcontainer.h"
+#include "votca/xtp/classicalsegment.h"
 
 namespace votca {
 namespace xtp {
@@ -110,7 +115,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
       }
       double unit_conversion_3 = std::pow(tools::conv::ang2bohr, 3);
       p1 = p1 * unit_conversion_3;
-      this->_atomlist.back().setPolarisation(p1);
+      this->_atomlist.back().setpolarization(p1);
     }
     // Multipole lines
     else {

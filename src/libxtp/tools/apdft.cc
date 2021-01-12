@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +15,32 @@
  *
  */
 
-#include "apdft.h"
+// Standard includes
 #include <iomanip>
-#include <votca/xtp/density_integration.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/vxc_grid.h>
+
+// Local VOTCA includes
+#include "votca/xtp/density_integration.h"
+#include "votca/xtp/orbitals.h"
+#include "votca/xtp/vxc_grid.h"
+
+// Local private VOTCA includes
+#include "apdft.h"
 
 namespace votca {
 namespace xtp {
 
-void APDFT::Initialize(tools::Property &opt) {
+void APDFT::ParseOptions(const tools::Property &options) {
 
-  std::string key = "options." + Identify();
-
-  _grid_accuracy =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".grid");
-  _orbfile =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".input");
-  _outputfile =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".output");
-  std::string statestring =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
+  _grid_accuracy = options.get(".grid").as<std::string>();
+  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", _job_name + ".orb");
+  _outputfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", _job_name + "_state.dat");
+  std::string statestring = options.get(".state").as<std::string>();
   _state.FromString(statestring);
 }
 
-bool APDFT::Evaluate() {
+bool APDFT::Run() {
 
   Orbitals orb;
   orb.ReadFromCpt(_orbfile);

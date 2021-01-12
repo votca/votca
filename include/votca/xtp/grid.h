@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,11 +21,14 @@
 #ifndef VOTCA_XTP_GRID_H
 #define VOTCA_XTP_GRID_H
 
+// Standard includes
 #include <string>
 #include <vector>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmatom.h>
-#include <votca/xtp/qmmolecule.h>
+
+// Local VOTCA includes
+#include "logger.h"
+#include "qmatom.h"
+#include "qmmolecule.h"
 /**
  * \brief Takes a list of atoms, and creates CHELPG grid.
  *

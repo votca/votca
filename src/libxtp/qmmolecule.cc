@@ -17,13 +17,16 @@
  *
  */
 
+// VOTCA includes
 #include <votca/csg/pdbwriter.h>
 #include <votca/csg/xyzreader.h>
 #include <votca/csg/xyzwriter.h>
 #include <votca/tools/elements.h>
-#include <votca/xtp/checkpointreader.h>
-#include <votca/xtp/checkpointwriter.h>
-#include <votca/xtp/qmmolecule.h>
+
+// Local VOTCA includes
+#include "votca/xtp/checkpointreader.h"
+#include "votca/xtp/checkpointwriter.h"
+#include "votca/xtp/qmmolecule.h"
 
 using namespace std;
 using namespace votca::tools;

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<options>
+  <mol2orb help="Converts molden files to orb files.">
+    <basisset help="Basis set for MOs" default="def2-tzvp"/>
+    <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp"/>
+  </mol2orb>
+</options>

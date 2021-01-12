@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE qmpair_test
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
 #include <votca/xtp/qmpair.h>
 
 using namespace votca::tools;

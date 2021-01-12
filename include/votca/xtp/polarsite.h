@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,17 +18,18 @@
  */
 
 #pragma once
-#ifndef __VOTCA_XTP_POLARSITE_H
-#define __VOTCA_XTP_POLARSITE_H
+#ifndef VOTCA_XTP_POLARSITE_H
+#define VOTCA_XTP_POLARSITE_H
 
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/staticsite.h>
+// Local VOTCA includes
+#include "eigen.h"
+#include "staticsite.h"
 
 namespace votca {
 namespace xtp {
 
 /**
-\brief Class to represent Atom/Site in electrostatic+polarisation
+\brief Class to represent Atom/Site in electrostatic+polarization
 
  The units are atomic units, e.g. Bohr, Hartree.
 */
@@ -46,9 +47,9 @@ class PolarSite : public StaticSite {
 
   ~PolarSite() override = default;
 
-  void setPolarisation(const Eigen::Matrix3d& pol) override;
+  void setpolarization(const Eigen::Matrix3d& pol) override;
 
-  Eigen::Matrix3d getPolarisation() const { return _pinv.inverse(); }
+  Eigen::Matrix3d getpolarization() const { return _pinv.inverse(); }
 
   const Eigen::Matrix3d& getPInv() const { return _pinv; }
 
@@ -144,7 +145,7 @@ class PolarSite : public StaticSite {
   }
 
  private:
-  std::string writePolarisation() const override;
+  std::string writepolarization() const override;
 
   // PolarSite has two external fields,
   // the first is used for interaction with regions, which are further out, i.e.
@@ -163,4 +164,4 @@ class PolarSite : public StaticSite {
 }  // namespace xtp
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_XTP_POLARSITE_H

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,10 +17,11 @@
  *
  */
 
-#include <votca/xtp/qmmolecule.h>
-#include <votca/xtp/radial_euler_maclaurin_rule.h>
-#include <votca/xtp/regular_grid.h>
-#include <votca/xtp/sphere_lebedev_rule.h>
+// Local VOTCA includes
+#include "votca/xtp/regular_grid.h"
+#include "votca/xtp/qmmolecule.h"
+#include "votca/xtp/radial_euler_maclaurin_rule.h"
+#include "votca/xtp/sphere_lebedev_rule.h"
 
 namespace votca {
 namespace xtp {

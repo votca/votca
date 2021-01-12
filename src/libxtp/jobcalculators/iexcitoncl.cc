@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,17 +17,22 @@
  *
  */
 
-#include "iexcitoncl.h"
-#include "votca/xtp/segmentmapper.h"
-
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/propertyiomanipulator.h>
-#include <votca/xtp/eeinteractor.h>
-#include <votca/xtp/logger.h>
 
-using namespace std;
+// Local VOTCA includes
+#include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/segmentmapper.h"
+
+// Local private VOTCA includes
+#include "iexcitoncl.h"
+
 using namespace boost::filesystem;
 using namespace votca::tools;
 
@@ -38,36 +43,31 @@ namespace xtp {
 // IEXCITON MEMBER FUNCTIONS         //
 // +++++++++++++++++++++++++++++ //
 
-void IEXCITON::Initialize(tools::Property& options) {
+void IEXCITON::ParseSpecificOptions(const tools::Property& options) {
 
-  string key = "options." + Identify();
-  ParseCommonOptions(options);
-
-  if (options.exists(key + ".states")) {
-    string parse_string = options.get(key + ".states").as<string>();
+  if (options.get(".use_states").as<bool>()) {
+    std::string parse_string = options.get(".states").as<std::string>();
     _statemap = FillParseMaps(parse_string);
   }
-
-  cout << "done" << endl;
 }
 
 std::map<std::string, QMState> IEXCITON::FillParseMaps(
-    const string& Mapstring) {
+    const std::string& Mapstring) {
   Tokenizer split_options(Mapstring, ", \t\n");
   std::map<std::string, QMState> type2level;
-  for (const string& substring : split_options) {
-    std::vector<string> segmentpnumber;
+  for (const std::string& substring : split_options) {
+    std::vector<std::string> segmentpnumber;
     Tokenizer tok(substring, ":");
     tok.ToVector(segmentpnumber);
     if (segmentpnumber.size() != 2) {
-      throw runtime_error("Parser iqm: Segment and exciton labels:" +
-                          substring + "are not separated properly");
+      throw std::runtime_error("Parser iqm: Segment and exciton labels:" +
+                               substring + "are not separated properly");
     }
     QMState state = QMState(segmentpnumber[1]);
     if (!state.isTransition()) {
       throw std::runtime_error("State to calculate must be a transition state");
     }
-    string segmentname = segmentpnumber[0];
+    std::string segmentname = segmentpnumber[0];
     type2level[segmentname] = state;
   }
   return type2level;
@@ -85,25 +85,27 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
   // get the information about the job executed by the thread
   Index job_ID = job.getId();
   Property job_input = job.getInput();
-  vector<Property*> segment_list = job_input.Select("segment");
+  std::vector<Property*> segment_list = job_input.Select("segment");
   Index ID_A = segment_list.front()->getAttribute<Index>("id");
-  string type_A = segment_list.front()->getAttribute<string>("type");
-  string mps_fileA = segment_list.front()->getAttribute<string>("mps_file");
+  std::string type_A = segment_list.front()->getAttribute<std::string>("type");
+  std::string mps_fileA =
+      segment_list.front()->getAttribute<std::string>("mps_file");
   Index ID_B = segment_list.back()->getAttribute<Index>("id");
-  string type_B = segment_list.back()->getAttribute<string>("type");
-  string mps_fileB = segment_list.back()->getAttribute<string>("mps_file");
+  std::string type_B = segment_list.back()->getAttribute<std::string>("type");
+  std::string mps_fileB =
+      segment_list.back()->getAttribute<std::string>("mps_file");
 
   const Segment& seg_A = top.getSegment(ID_A);
   if (type_A != seg_A.getType()) {
-    throw runtime_error("SegmentA: type " + seg_A.getType() +
-                        " and type in jobfile " + type_A +
-                        " do not agree for ID:" + std::to_string(ID_A));
+    throw std::runtime_error("SegmentA: type " + seg_A.getType() +
+                             " and type in jobfile " + type_A +
+                             " do not agree for ID:" + std::to_string(ID_A));
   }
   const Segment& seg_B = top.getSegment(ID_B);
   if (type_B != seg_B.getType()) {
-    throw runtime_error("SegmentB: type " + seg_B.getType() +
-                        " and type in jobfile " + type_B +
-                        " do not agree for ID:" + std::to_string(ID_B));
+    throw std::runtime_error("SegmentB: type " + seg_B.getType() +
+                             " and type in jobfile " + type_B +
+                             " do not agree for ID:" + std::to_string(ID_B));
   }
   const QMNBList& nblist = top.NBList();
   const QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
@@ -114,7 +116,7 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
   }
 
   XTP_LOG(Log::error, pLog) << TimeStamp() << " Evaluating pair " << job_ID
-                            << " [" << ID_A << ":" << ID_B << "]" << flush;
+                            << " [" << ID_A << ":" << ID_B << "]" << std::flush;
 
   StaticMapper map(pLog);
   map.LoadMappingFile(_mapfile);
@@ -126,8 +128,8 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
   Property job_summary;
   Property& job_output = job_summary.add("output", "");
   Property& pair_summary = job_output.add("pair", "");
-  string nameA = seg_A.getType();
-  string nameB = seg_B.getType();
+  std::string nameA = seg_A.getType();
+  std::string nameB = seg_B.getType();
   pair_summary.setAttribute("idA", ID_A);
   pair_summary.setAttribute("idB", ID_B);
   pair_summary.setAttribute("typeA", nameA);
@@ -159,51 +161,51 @@ QMState IEXCITON::GetElementFromMap(const std::string& elementname) const {
 
 void IEXCITON::WriteJobFile(const Topology& top) {
 
-  cout << endl << "... ... Writing job file " << _jobfile << flush;
+  std::cout << "\n... ... Writing job file " << _jobfile << std::flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open()) {
-    throw runtime_error("\nERROR: bad file handle: " + _jobfile);
+    throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
   }
   const QMNBList& nblist = top.NBList();
   Index jobCount = 0;
   if (nblist.size() == 0) {
-    cout << endl << "... ... No pairs in neighbor list, skip." << flush;
+    std::cout << "\n... ... No pairs in neighbor list, skip." << std::flush;
     return;
   }
 
-  ofs << "<jobs>" << endl;
-  string tag = "";
+  ofs << "<jobs>\n";
+  std::string tag = "";
 
   for (const QMPair* pair : nblist) {
     if (pair->getType() == QMPair::PairType::Excitoncl) {
       Index id1 = pair->Seg1()->getId();
-      string name1 = pair->Seg1()->getType();
+      std::string name1 = pair->Seg1()->getType();
       Index id2 = pair->Seg2()->getId();
-      string name2 = pair->Seg2()->getType();
+      std::string name2 = pair->Seg2()->getType();
       Index id = jobCount;
       QMState state1 = GetElementFromMap(name1);
       QMState state2 = GetElementFromMap(name2);
 
-      string mps_file1 =
+      std::string mps_file1 =
           (boost::format("MP_FILES/%s_%s.mps") % name1 % state1.ToString())
               .str();
-      string mps_file2 =
-          (boost::format("MP_FILES/%s_%s.mps") % name1 % state2.ToString())
+      std::string mps_file2 =
+          (boost::format("MP_FILES/%s_%s.mps") % name2 % state2.ToString())
               .str();
 
       Property Input;
       Property& pInput = Input.add("input", "");
       Property& pSegment1 =
-          pInput.add("segment", boost::lexical_cast<string>(id1));
-      pSegment1.setAttribute<string>("type", name1);
+          pInput.add("segment", boost::lexical_cast<std::string>(id1));
+      pSegment1.setAttribute<std::string>("type", name1);
       pSegment1.setAttribute<Index>("id", id1);
-      pSegment1.setAttribute<string>("mps_file", mps_file1);
+      pSegment1.setAttribute<std::string>("mps_file", mps_file1);
       Property& pSegment2 =
-          pInput.add("segment", boost::lexical_cast<string>(id2));
-      pSegment2.setAttribute<string>("type", name2);
+          pInput.add("segment", boost::lexical_cast<std::string>(id2));
+      pSegment2.setAttribute<std::string>("type", name2);
       pSegment2.setAttribute<Index>("id", id2);
-      pSegment2.setAttribute<string>("mps_file", mps_file2);
+      pSegment2.setAttribute<std::string>("mps_file", mps_file2);
 
       Job job(id, tag, Input, Job::AVAILABLE);
       job.ToStream(ofs);
@@ -212,16 +214,16 @@ void IEXCITON::WriteJobFile(const Topology& top) {
   }
 
   // CLOSE STREAM
-  ofs << "</jobs>" << endl;
+  ofs << "</jobs>\n";
   ofs.close();
 
-  cout << endl << "... ... In total " << jobCount << " jobs" << flush;
+  std::cout << "\n... ... In total " << jobCount << " jobs" << std::flush;
 }
 
 void IEXCITON::ReadJobFile(Topology& top) {
 
   Property xml;
-  vector<Property*> records;
+  std::vector<Property*> records;
   // gets the neighborlist from the topology
   QMNBList& nblist = top.NBList();
   Index number_of_pairs = nblist.size();
@@ -231,7 +233,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
 
   // load the QC results in a vector indexed by the pair ID
   xml.LoadFromXML(_jobfile);
-  vector<Property*> jobProps = xml.Select("jobs.job");
+  std::vector<Property*> jobProps = xml.Select("jobs.job");
   records.resize(number_of_pairs + 1);
 
   // to skip pairs which are not in the jobfile
@@ -253,22 +255,23 @@ void IEXCITON::ReadJobFile(Topology& top) {
       if (qmp == nullptr) {
         XTP_LOG(Log::error, log)
             << "No pair " << idA << ":" << idB
-            << " found in the neighbor list. Ignoring" << flush;
+            << " found in the neighbor list. Ignoring" << std::flush;
       } else {
         records[qmp->getId()] = &(prop->get("output.pair"));
       }
     } else {
       Property thebadone = prop->get("id");
-      throw runtime_error("\nERROR: Job file incomplete.\n Job with id " +
-                          thebadone.as<string>() +
-                          " is not finished. Check your job file for FAIL, "
-                          "AVAILABLE, or ASSIGNED. Exiting\n");
+      throw std::runtime_error(
+          "\nERROR: Job file incomplete.\n Job with id " +
+          thebadone.as<std::string>() +
+          " is not finished. Check your job file for FAIL, "
+          "AVAILABLE, or ASSIGNED. Exiting\n");
     }
   }  // finished loading from the file
 
   // loop over all pairs in the neighbor list
   XTP_LOG(Log::error, log) << "Neighborlist size " << top.NBList().size()
-                           << flush;
+                           << std::flush;
   for (QMPair* pair : top.NBList()) {
 
     if (records[pair->getId()] == nullptr) {
@@ -284,8 +287,8 @@ void IEXCITON::ReadJobFile(Topology& top) {
     }
   }
   XTP_LOG(Log::error, log) << "Pairs [total:updated] " << number_of_pairs << ":"
-                           << current_pairs << flush;
-  cout << log;
+                           << current_pairs << std::flush;
+  std::cout << log;
 }
 
 }  // namespace xtp
