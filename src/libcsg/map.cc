@@ -160,8 +160,10 @@ void Map_Sphere::Apply(const BoundaryCondition &bc) {
   Eigen::Vector3d vel = Eigen::Vector3d::Zero();
 
   Bead *bead_max_dist = _matrix.at(0)._in;
-  double max_bead_dist =
-      bc.BCShortestConnection(r0, bead_max_dist->getPos()).norm();
+  double max_bead_dist = 0;
+  if (bead_max_dist->HasPos()) {
+    max_bead_dist = bc.BCShortestConnection(r0, bead_max_dist->getPos()).norm();
+  }
 
   for (auto &iter : _matrix) {
     Bead *bead = iter._in;
@@ -248,8 +250,10 @@ void Map_Ellipsoid::Apply(const BoundaryCondition &bc) {
   _out->ClearParentBeads();
 
   Bead *bead_max_dist = _matrix.at(0)._in;
-  double max_bead_dist =
-      bc.BCShortestConnection(r0, bead_max_dist->getPos()).norm();
+  double max_bead_dist = 0;
+  if (bead_max_dist->HasPos()) {
+    max_bead_dist = bc.BCShortestConnection(r0, bead_max_dist->getPos()).norm();
+  }
 
   for (auto &iter : _matrix) {
     Bead *bead = iter._in;

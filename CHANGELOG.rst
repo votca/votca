@@ -36,6 +36,10 @@ Version 2021-dev
 -  merge in csgapps repo (#623)
 -  Pdbs with more than 10000 resids can now be written (#627)
 
+Version 1.6.4 (released XX.12.20)
+=================================
+* fix exclusion creation in csg_boltzmann (#624, #625)
+
 Version 1.6.3 (released 09.12.20)
 =================================
 

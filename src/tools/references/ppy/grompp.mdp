@@ -1,0 +1,13 @@
+integrator               = sd
+tinit                    = 0
+dt                       = 0.002
+nsteps                   = 100
+nstxout                  = 100
+nstfout                  = 100
+nstlist                  = 1
+coulombtype              = Reaction-Field
+rcoulomb                 = 0.9
+rvdw                     = 0.9
+tc-grps                  = System
+tau_t                    = 0.5 
+ref_t                    = 300
