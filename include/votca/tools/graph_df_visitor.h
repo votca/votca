@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,14 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GRAPH_DF_VISITOR_H
-#define __VOTCA_TOOLS_GRAPH_DF_VISITOR_H
+#ifndef VOTCA_TOOLS_GRAPH_DF_VISITOR_H
+#define VOTCA_TOOLS_GRAPH_DF_VISITOR_H
 
+// Standard includes
 #include <list>
-#include <votca/tools/graphvisitor.h>
+
+// Local VOTCA includes
+#include "graphvisitor.h"
 
 /**
  * \brief A breadth first (DF) graph visitor
@@ -52,4 +55,4 @@ class Graph_DF_Visitor : public GraphVisitor {
 };
 }  // namespace tools
 }  // namespace votca
-#endif  // __VOTCA_TOOLS_GRAPH_DF_VISITOR_H
+#endif  // VOTCA_TOOLS_GRAPH_DF_VISITOR_H

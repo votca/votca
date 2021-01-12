@@ -15,24 +15,26 @@
  *
  */
 
-#include <expat.h>
+// Standard includes
+#include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <stack>
 #include <stdexcept>
-#include <stdio.h>
-#include <string.h>
 #include <string>
 
-#include <votca/tools/colors.h>
-#include <votca/tools/property.h>
-#include <votca/tools/propertyiomanipulator.h>
-#include <votca/tools/tokenizer.h>
-
+// Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <expat.h>
 #include <unistd.h>
+
+// Local VOTCA includes
+#include "votca/tools/colors.h"
+#include "votca/tools/property.h"
+#include "votca/tools/propertyiomanipulator.h"
+#include "votca/tools/tokenizer.h"
 
 namespace votca {
 namespace tools {
@@ -69,6 +71,64 @@ const Property &Property::get(const string &key) const {
   }
 
   return *p;
+}
+
+Property &Property::set(const std::string &key, const std::string &value) {
+  Property &p = get(key);
+  p.value() = value;
+  return p;
+}
+
+Property &Property::add(const std::string &key, const std::string &value) {
+  std::string path = _path;
+  if (path != "") {
+    path = path + ".";
+  }
+  _properties.push_back(Property(key, value, path + _name));
+  _map[key] = Index(_properties.size()) - 1;
+  return _properties.back();
+}
+
+bool Property::hasAttribute(const std::string &attribute) const {
+  std::map<std::string, std::string>::const_iterator it;
+  it = _attributes.find(attribute);
+  if (it == _attributes.end()) {
+    return false;
+  }
+  return true;
+}
+
+bool Property::exists(const std::string &key) const {
+  try {
+    get(key);
+  } catch (std::exception &) {
+    return false;
+  }
+  return true;
+}
+
+void FixPath(tools::Property &prop, std::string path) {
+  prop.path() = path;
+  if (path != "") {
+    path += ".";
+  }
+  path += prop.name();
+  for (tools::Property &child : prop) {
+    FixPath(child, path);
+  }
+}
+
+void Property::add(const Property &other) {
+
+  _properties.push_back(other);
+  _map[other.name()] = Index(_properties.size()) - 1;
+
+  std::string path = _path;
+  if (path != "") {
+    path += ".";
+  }
+  path += _name;
+  FixPath(_properties.back(), path);
 }
 
 Property &Property::get(const string &key) {

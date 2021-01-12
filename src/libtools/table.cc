@@ -15,14 +15,19 @@
  *
  */
 
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/range/algorithm.hpp>
+// Standard includes
 #include <fstream>
 #include <stdexcept>
 #include <vector>
-#include <votca/tools/lexical_cast.h>
-#include <votca/tools/table.h>
-#include <votca/tools/tokenizer.h>
+
+// Third party includes
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/range/algorithm.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/lexical_cast.h"
+#include "votca/tools/table.h"
+#include "votca/tools/tokenizer.h"
 
 namespace votca {
 namespace tools {

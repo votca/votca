@@ -15,9 +15,10 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_GETLINE_H
-#define _VOTCA_TOOLS_GETLINE_H
+#ifndef VOTCA_TOOLS_GETLINE_H
+#define VOTCA_TOOLS_GETLINE_H
 
+// Standard includes
 #include <algorithm>
 #include <iostream>
 #include <string>
@@ -40,4 +41,4 @@ inline std::istream& getline(std::istream& is, std::string& str) {
 }  // namespace tools
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_TOOLS_GETLINE_H
