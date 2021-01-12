@@ -36,27 +36,27 @@
 using namespace std;
 using namespace votca::csg;
 
-class CsgBoltzmann final: public CsgApplication {
+class CsgBoltzmann final : public CsgApplication {
  public:
-  string ProgramName()  { return "csg_boltzmann"; }
-  void HelpText(ostream &out)  {
+  string ProgramName() { return "csg_boltzmann"; }
+  void HelpText(ostream &out) {
     out << "Performs tasks that are needed for simple boltzmann\n"
            "inversion in an interactive environment.";
   }
-  bool DoTrajectory()  {  return !OptionsMap().count("excl");}
-  bool DoMapping()  { return true; }
+  bool DoTrajectory() { return !OptionsMap().count("excl"); }
+  bool DoMapping() { return true; }
 
-  void Initialize() ;
-  bool EvaluateOptions() ;
-  void Run() ;
+  void Initialize();
+  bool EvaluateOptions();
+  void Run();
 
   void InteractiveMode();
-  bool EvaluateTopology(Topology *top, Topology *top_ref) ;
+  bool EvaluateTopology(Topology *top, Topology *top_ref);
 
  protected:
   ExclusionList CreateExclusionList(Topology *top_atomistic,
-                                     Molecule &atomistic, Topology *top_cg,
-                                     Molecule &cg);
+                                    Molecule &atomistic, Topology *top_cg,
+                                    Molecule &cg);
   BondedStatistics _bs;
 };
 void CsgBoltzmann::Initialize() {
@@ -88,8 +88,8 @@ bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref) {
          << " in coarse grained representation "
          << top_ref->MoleculeByIndex(0)->getName() << endl;
 
-    ExclusionList ex = CreateExclusionList(top_ref, *top_ref->MoleculeByIndex(0), top,
-                                           *top->MoleculeByIndex(0));
+    ExclusionList ex = CreateExclusionList(
+        top_ref, *top_ref->MoleculeByIndex(0), top, *top->MoleculeByIndex(0));
     std::ofstream fl;
     fl.open(OptionsMap()["excl"].as<string>());
     fl << "# atomistic: " << top_ref->MoleculeByIndex(0)->getName()
@@ -104,8 +104,8 @@ bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref) {
 }
 
 ExclusionList CsgBoltzmann::CreateExclusionList(Topology *top_atomistic,
-                                                 Molecule &atomistic,
-                                                 Topology *top_cg,
+                                                Molecule &atomistic,
+                                                Topology *top_cg,
                                                 Molecule &cg) {
   ExclusionList ex;
   // exclude all with all
@@ -127,7 +127,7 @@ ExclusionList CsgBoltzmann::CreateExclusionList(Topology *top_atomistic,
         for (votca::Index parent_bead_id_i : cg.getBead(i)->ParentBeads()) {
           for (votca::Index parent_bead_id_j : cg.getBead(j)->ParentBeads()) {
             ex.RemoveExclusion(top_atomistic->getBead(parent_bead_id_i),
-                                top_atomistic->getBead(parent_bead_id_j));
+                               top_atomistic->getBead(parent_bead_id_j));
           }
         }
       }

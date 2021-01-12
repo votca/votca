@@ -78,8 +78,6 @@ class ExclusionList {
   friend std::ostream &operator<<(std::ostream &out, ExclusionList &exl);
 };
 
-
-
 template <typename iterable>
 inline void ExclusionList::Remove(iterable &l) {
   typename iterable::iterator i, j;
