@@ -76,24 +76,17 @@ jobs:
           .github/workflows/make_release.sh --branch ${{ steps.setup.outputs.BRANCH }} ${{ github.event.inputs.cmake_args }} --verbose ${{ steps.setup.outputs.VERSION }} .
       - name: Show diff
         run: |
-          for p in . tools csg csg-manual csgapps csg-tutorials xtp xtp-tutorials; do 
+          for p in . tools csg csg-tutorials xtp xtp-tutorials; do
             git -C $p log -p --submodule origin/${{ steps.setup.outputs.BRANCH }}..${{ steps.setup.outputs.BRANCH }}
           done
-      - name: Upload manual as artifact
-        if: ${{ steps.setup.outputs.DEPLOY != 'true' }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: csg-manual
-          path: votca-csg-manual-${{ steps.setup.outputs.VERSION }}.pdf
       - name: Push tags
         run: |
           set -x
-          for p in . tools csg csg-manual csgapps csg-tutorials xtp xtp-tutorials; do
+          for p in . tools csg csg-tutorials xtp xtp-tutorials; do
             git -C $p push ${{ steps.setup.outputs.DRY_RUN }} --tags origin ${{ steps.setup.outputs.BRANCH }}:${{ steps.setup.outputs.BRANCH }}
           done
       - name: Create Release
         if: ${{ steps.setup.outputs.DEPLOY == 'true' }}
-        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
@@ -101,13 +94,3 @@ jobs:
           tag_name: v${{ steps.setup.outputs.VERSION }}
           release_name: v${{ steps.setup.outputs.VERSION }}
           prerelease: ${{ contains(steps.setup.outputs.VERSION, 'rc') }}
-      - name: Add Manual to release
-        if: ${{ steps.setup.outputs.DEPLOY == 'true' }}
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./votca-csg-manual-${{ steps.setup.outputs.VERSION }}.pdf
-          asset_name: votca-csg-manual-${{ steps.setup.outputs.VERSION }}.pdf
-          asset_content_type: application/pdf

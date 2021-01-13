@@ -4,7 +4,7 @@ url="https://github.com/votca/votca.git"
 branch=stable
 testing=no
 verbose=
-what=( tools csg csg-manual csgapps csg-tutorials xtp xtp-tutorials )
+what=( tools csg csg-tutorials xtp xtp-tutorials )
 cmake_opts=()
 
 die () {
@@ -179,15 +179,9 @@ cmake -DCMAKE_INSTALL_PREFIX="${instdir}" -DMODULE_BUILD=ON \
       -DVOTCA_TARBALL_DIR="${topdir}" -DVOTCA_TARBALL_TAG="${rel}" \
       -DENABLE_TESTING=ON \
       -DENABLE_REGRESSION_TESTING=ON \
-      $(is_part csg-manual "${what[@]}" && echo -DBUILD_CSG_MANUAL=ON) \
-      $(is_part csgapps "${what[@]}" && echo -DBUILD_CSGAPPS=ON) \
       $(is_part xtp "${what[@]}" && echo -DBUILD_XTP=ON) \
       "${cmake_opts[@]}" "${srcdir}"
 make -j"${j}" ${verbose:+VERBOSE=1}
-for p in csg-manual; do
-  is_part "$p" "${what[@]}" || continue
-  cp "$instdir/share/doc/votca-$p"/*manual.pdf "${topdir}/votca-${p%-manual}-manual-${rel}.pdf"
-done
 popd
 
 rm -rf "$build"
@@ -199,7 +193,7 @@ if [[ $testing = "no" ]]; then
   if [[ -f README.md ]]; then
     sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.md || die "sed of README.md failed"
   elif [[ -f README.rst ]]; then
-    sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.rst || die "sed of README.rst failed"
+    sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.rst share/doc/INSTALL.rst || die "sed of README.rst failed"
   fi
   git add -u
   git commit -m "Version bumped to $rel"
@@ -212,7 +206,6 @@ if [[ $testing = "no" ]]; then
   echo "cd $srcdir"
   echo "for p in . ${what[@]}; do git -C \$p log -p --submodule origin/${branch}..${branch}; done"
   echo "for p in . ${what[@]}; do git -C \$p  push --tags origin ${branch}:${branch}; done"
-  echo "And do NOT forget to upload pdfs to github."
 else
   echo "cd $topdir"
   echo "Take a look at " ./*"${rel}"*

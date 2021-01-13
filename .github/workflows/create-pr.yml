@@ -22,17 +22,19 @@ jobs:
         run: |
           git config --global user.name "Votca Bot"
           git config --global user.email "github@votca.org"
-          git merge origin/${{ steps.base.outputs.branch }} || true
+          git merge origin/${{ steps.base.outputs.branch }} || true # continue if merge with base branch fails
           git push || true
       - name: Create Pull Request
         uses: actions/github-script@0.3.0
         with:
           github-token: ${{ secrets.VOTCA_BOT_TOKEN }}
+           # mark stable update as draft so associated master push can be merge first
           script: |
             github.pulls.create({
               owner: 'votca',
               repo: 'votca',
               title: 'Update ${{ steps.base.outputs.branch }} submodules',
               head: '${{ github.event.ref }}',
-              base: '${{ steps.base.outputs.branch }}'
+              base: '${{ steps.base.outputs.branch }}',
+              draft: ${{ steps.base.outputs.branch == 'update_stable_submodules' }}
             })
