@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,18 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_DATACOLLECTION_H
-#define _VOTCA_TOOLS_DATACOLLECTION_H
+#ifndef VOTCA_TOOLS_DATACOLLECTION_H
+#define VOTCA_TOOLS_DATACOLLECTION_H
 
-#include "tokenizer.h"
-#include <assert.h>
+// Standard includes
+#include <cassert>
 #include <map>
 #include <sstream>
 #include <vector>
-#include <votca/tools/types.h>
+
+// Local VOTCA includes
+#include "tokenizer.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {
@@ -195,4 +198,4 @@ std::ostream &operator<<(std::ostream &out,
 }  // namespace tools
 }  // namespace votca
 
-#endif  // _VOTCA_TOOLS_DATACOLLECTION_H
+#endif  // VOTCA_TOOLS_DATACOLLECTION_H

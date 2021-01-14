@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,27 @@
  *
  */
 
-#include <votca/tools/globals.h>
+// Local VOTCA includes
+#include "votca/tools/globals.h"
+#include <stdexcept>
 
 namespace votca {
 
 Log::Level Log::current_level = Log::info;
 namespace tools {
 
+std::string GetVotcaShare() {
+  char *votca_share = getenv("VOTCASHARE");
+  if (votca_share == nullptr) {
+    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+  }
+  return std::string(votca_share);
+}
+
+bool VotcaShareSet() { return (getenv("VOTCASHARE") != nullptr); }
+
 std::string globals::url = "http://www.votca.org";
 std::string globals::email = "devs@votca.org";
-
-#ifdef MKL_FOUND
-bool globals::VOTCA_MKL = true;
-#else
-bool globals::VOTCA_MKL = false;
-#endif
 
 std::string globals::man::option(".TP\n\\fB%1%\\fR\n%2%\n");
 
@@ -50,7 +56,7 @@ std::string globals::man::authors(
 std::string globals::man::copyright(
     "\n.SH COPYRIGHT\n"
     "\n.P\n\n"
-    "Copyright 2009\\-2019 The VOTCA Development Team (%1%).\n"
+    "Copyright 2009\\-2020 The VOTCA Development Team (%1%).\n"
     "\n.P\n"
     "Licensed under the Apache License, Version 2.0 (the \"License\") "
     "you may not use this file except in compliance with the License. "
