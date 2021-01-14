@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<options>
+  <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
+    <print_regions_pdb help="print the geometry of the regions to a pdb file">true</print_regions_pdb>
+    <max_iterations help="max iterations for qmmm scf loop">50</max_iterations>
+    <openmp_threads help="internal parallelization for each job">4</openmp_threads>
+    <map_file help="xml file with segment definition">system.xml</map_file>
+    <job_file help="name of jobfile to which jobs are written">qmmm.jobs</job_file>
+    <regions help="definition of regions in qmmm setup. First region can be a QM region. In each region all options can be also read from a jobfile by the keyword 'jobfile'">
+      <region help="definition of a region">
+        <id help="id of a region has to start from 0">0</id>
+        <type help="type of region qm/static/polar">qm</type>
+        <options_dft help="options for dft calculations">
+          <package help="Defaults for the Quantum Mechanics packages">
+            <name help="QM package to use" default="xtp" choices="xtp,orca">xtp</name>
+            <charge help="Molecular charge" default="0" choices="int">0</charge>
+            <spin help="Molecular multiplicity" default="1" choices="int+">1</spin>
+            <basisset help="Basis set for MOs" default="def2-tzvp">def2-svp</basisset>
+            <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool">true</use_auxbasisset>
+            <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-svp</auxbasisset>
+            <use_ecp help="use an Effective Core Potentials for DFT Calculations" default="false" choices="bool">false</use_ecp>
+            <optimize help="Perform a molecular geometry optimization" default="false" choices="bool">false</optimize>
+            <functional default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
+            <scratch help="path to the scratch folder" default="/tmp/qmpackage">/tmp/qmpackage</scratch>
+            <polarization>false</polarization>
+            <dipole_spacing>0.1</dipole_spacing>
+            <xtpdft>
+              <with_screening help="screening" default="true" choices="bool">true</with_screening>
+              <screening_eps help="screening eps" default="1e-9" choices="float+">1e-9</screening_eps>
+              <use_external_field help="whether or not to use an external field" default="false" choices="bool">false</use_external_field>
+              <use_external_density help="whether or not to use a precomputed external density" default="false" choices="bool">false</use_external_density>
+              <four_center_method help="method to compute the four-center integrals" default="cache" choices="cache,direct,RI">cache</four_center_method>
+              <convergence>
+                <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7">1e-7</energy>
+                <method help="Main method to use for convergence accelertation" choices="DIIS,mixing" default="DIIS">DIIS</method>
+                <DIIS_start help="DIIS error at which DIIS takes over" default="0.002" choices="float+">0.002</DIIS_start>
+                <ADIIS_start help="DIIS error at which ADIIS takes over" default="0.8" choices="float+">0.8</ADIIS_start>
+                <DIIS_length help="old hamiltonians to keep in history" default="20" choices="int+">20</DIIS_length>
+                <DIIS_maxout help="if true remove the maximum element in the history if DIIS_length is exceeded.Otherwise, the oldest element is removed." default="false" choices="bool">false</DIIS_maxout>
+                <levelshift help="levelshift to apply to hamiltonian " unit="hartree" default="0.0" choices="float+">0.0</levelshift>
+                <levelshift_end help="DIIS error at levelshifting is disabled" default="0.2" choices="float+">0.2</levelshift_end>
+                <max_iterations help="max iterations to use" default="100" choices="int+">100</max_iterations>
+                <error help="convergence error" default="1e-7" choices="float+">1e-7</error>
+                <mixing help="mixing parameter for linear mixing of density matrices" default="0.7" choices="float+">0.7</mixing>
+              </convergence>
+              <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities)" default="atom" choices="independent,atom">atom</initial_guess>
+              <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine">medium</integration_grid>
+            </xtpdft>
+          </package>
+        </options_dft>
+        <gwbse help="xml file with options for gwbse calculations">
+          <basisset help="Basis set for MOs" default="def2-tzvp">def2-svp</basisset>
+          <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-svp</auxbasisset>
+          <ranges help="default: all levels in RPA, 1:2*HOMO in QP and all in BSE; other options: factor,explicit" default="default" choices="default,factor,explicit,full"/>
+          <rpamax help="only needed, if ranges is factor or explicit, number of levels in rpa" default=""/>
+          <qpmin help="only needed, if ranges is factor or explicit, lowest MO to be used in GW" default=""/>
+          <qpmax help="only needed, if ranges is factor or explicit, highest MO to be used in GW" default=""/>
+          <bsemin help="only needed, if ranges is factor or explicit, lowest MO to be used in BSE" default=""/>
+          <bsemax help="only needed, if ranges is factor or explicit, highest MO to be used in BSE" default=""/>
+          <vxc help="Exchange correlation functional computation for GW">
+            <grid help="grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine"/>
+            <functional help="Functional name(s) according to LIBXC" default="XC_HYB_GGA_XC_PBEH"/>
+          </vxc>
+          <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" default="0.0" unit="hartree" choices="float"/>
+          <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW" choices="evGW,G0W0"/>
+          <tasks help="tasks to do" default="gw,singlets" choices="[gw,singlets,triplets,all]"/>
+          <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact"/>
+          <eta help="small parameter eta of the Green's function" default="1e-3" unit="Hartree" choices="float+"/>
+          <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid"/>
+          <qp_grid_steps help="number of QP grid points" default="1001" choices="int+"/>
+          <qp_grid_spacing help="spacing of QP grid points" unit="Hartree" default="0.001" choices="float+"/>
+          <exctotal help="maximum number of BSE states to calculate" default="30" choices="int+"/>
+          <useTDA help="use TDA for BSE" default="false" choices="bool"/>
+          <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level" default="no" choices="RPA,GW,BSE,no"/>
+          <eigensolver help="options for BSE eigenvalue decompostion">
+            <dodavidson help="use davidson solver" default="true" choices="bool"/>
+            <davidson_correction help="Davidson correction method" default="DPR" choices="DPR,OHLSEN"/>
+            <davidson_tolerance help="Numerical tolerance" default="normal" choices="loose,normal,strict"/>
+            <davidson_ortho help="orthogonalisation routine: Gram&#x2013;Schmidt or QR" default="GS" choices="GS,QR"/>
+            <davidson_update help=" how large the search space" default="safe" choices="min,safe,max"/>
+            <davidson_maxiter help="max iterations" default="50" choices="int+"/>
+            <domatrixfree help="solve without explicitly setting up BSE matrix, (slower but a lot less memory required" default="true" choices="bool">false</domatrixfree>
+          </eigensolver>
+          <gw_sc_max_iterations help="Maximum number of iterations in eVGW" default="50" choices="int+"/>
+          <gw_mixing_order help="Mixing of QP energies in evGW - 0: plain, 1: linear, &gt;1: Anderson" default="20" choices="int+"/>
+          <gw_sc_limit help="evGW convergence criteria" unit="Hartree" default="1e-5" choices="float+"/>
+          <gw_mixing_alpha help="mixing alpha, also linear mixing" default="0.7" choices="float+"/>
+          <g_sc_max_iterations help="maximum number of iterations for quasiparticle equation solution" default="100" choices="int+"/>
+          <g_sc_limit help="quasiparticle equation solver convergence" unit="Hartree" default="1e-5" choices="float+"/>
+          <use_Hqp_offdiag help="Using symmetrized off-diagonal elements of QP Hamiltonian in BSE" default="false" choices="bool"/>
+          <sigma_plot_states help="plot sigma(omega) for the following states, e.g 1 3 5"/>
+          <sigma_plot_steps help="points to plot" default="201" choices="int+"/>
+          <sigma_plot_spacing help="spacing of points units" default="1e-2" unit="Hartree" choices="float+"/>
+          <sigma_plot_filename hep="File with the sigma plot data" default="QPenergies_sigma.dat"/>
+          <bse_print_weight help="print exciton WF composition weight larger than minimum" default="0.5" choices="float+"/>
+          <rebuild_threecenter_freq help="how often the 3c integrals in iterate should be rebuilt" default="5" choices="int+"/>
+          <exctotal help="number of eigenvectors to calculate" default="5" choices="int+"/>
+          <ignore_corelevels help="" default="none" choices="none,RPA,BSE,GW"/>
+        </gwbse>
+        <statetracker help="filter to identify excited states from some characteristic and not the energy">
+          <filters help="list of filters to use" default="oscillatorstrength" choices="[chargetransfer,density,localisation,oscillatorstrength,overlap]"/>
+          <oscillatorstrength>0.5</oscillatorstrength>
+        </statetracker>
+        <filter help="filter to identify excited states from some characteristic and not the energy">
+          <oscillator_strength>0.5</oscillator_strength>
+        </filter>
+        <state help="qmstate to calculate i.e. n or s1">s1</state>
+        <segments help="which segments to include in this region and which geometry they have">0:n</segments>
+      </region>
+      <region>
+        <id>1</id>
+        <type>static</type>
+        <cutoff>
+          <relative_to_explicit_segs>true</relative_to_explicit_segs>
+          <geometry>n</geometry>
+          <radius>jobfile</radius>
+          <region>0</region>
+        </cutoff>
+      </region>
+    </regions>
+  </qmmm>
+</options>
