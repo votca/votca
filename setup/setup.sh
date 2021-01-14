@@ -58,17 +58,6 @@ else
   die "Unknown INPUT_TOOLCHAIN"
 fi
 
-#drop after v1.7 release
-if [[ ${branch} = "stable" ]]; then
-  if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
-    cmake_args+=( -DCMAKE_C_COMPILER=gcc )
-  elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
-    cmake_args+=( -DCMAKE_C_COMPILER=clang )
-  elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
-    cmake_args+=( -DCMAKE_C_COMPILER=icc )
-  fi
-fi
-
 if [[ ${INPUT_COVERAGE} && ${INPUT_COVERAGE} != "false" ]]; then
   cmake_args+=( -DENABLE_COVERAGE_BUILD=ON )
   cov_tag=true
@@ -83,23 +72,20 @@ else
 fi	
 if [[ ${INPUT_OWN_GMX} = true ]]; then
   cmake_args+=( -DBUILD_OWN_GROMACS=ON -DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF )
-  if [[ ${branch} = "stable" ]]; then
-    : # done above, drop this line after v1.7 release
-  elif [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
+  if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=gcc )
   elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=clang )
   elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=icc )
+  elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
+    cmake_args+=( -DCMAKE_CXX_COMPILER=icx )
   fi
 else
   cmake_args+=( -DENABLE_WERROR=ON )
 fi
 if [[ ${INPUT_MINIMAL} = true ]]; then
   cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_MANPAGES=OFF -DBUILD_XTP=OFF )
-  if [[ ${branch} = "stable" ]]; then
-    cmake_args+=( -DWITH_GMX=OFF )
-  fi
 elif [[ ${module} = xtp* ]]; then
   cmake_args+=( -DBUILD_CSGAPPS=OFF -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=OFF )
 elif [[ ${module} = csg-manual ]]; then
