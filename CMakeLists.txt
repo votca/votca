@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(csg-tutorials LANGUAGES NONE)
 
-set(PROJECT_VERSION "2021-dev")
+set(PROJECT_VERSION "2022-dev")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
