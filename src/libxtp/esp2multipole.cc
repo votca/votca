@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,14 @@
  *
  */
 
+// Third party includes
 #include <boost/format.hpp>
-#include <votca/xtp/esp2multipole.h>
-#include <votca/xtp/espfit.h>
-#include <votca/xtp/nbo.h>
-#include <votca/xtp/populationanalysis.h>
+
+// Local VOTCA includes
+#include "votca/xtp/esp2multipole.h"
+#include "votca/xtp/espfit.h"
+#include "votca/xtp/nbo.h"
+#include "votca/xtp/populationanalysis.h"
 
 namespace votca {
 namespace xtp {
@@ -35,13 +38,10 @@ void Esp2multipole::Initialize(tools::Property& options) {
   _use_CHELPG = false;
   _use_lowdin = false;
 
-  std::string statestring =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
+  std::string statestring = options.get(key + ".state").as<std::string>();
   _state.FromString(statestring);
 
-  std::vector<std::string> choices = {"mulliken", "loewdin", "CHELPG"};
-  _method = options.ifExistsAndinListReturnElseThrowRuntimeError(
-      key + ".method", choices);
+  _method = options.get(key + ".method").as<std::string>();
 
   if (_method == "mulliken") {
     _use_mulliken = true;

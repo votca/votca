@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,15 +17,16 @@
  *
  */
 
+// Local VOTCA includes
+#include "votca/xtp/qmregion.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/gwbse.h"
+#include "votca/xtp/polarregion.h"
+#include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/classicalsegment.h>
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/polarregion.h>
-#include <votca/xtp/qmregion.h>
-#include <votca/xtp/staticregion.h>
 
 namespace votca {
 namespace xtp {
@@ -48,9 +49,10 @@ void QMRegion::Initialize(const tools::Property& prop) {
   if (_initstate.Type().isExciton() || _initstate.Type().isGWState()) {
 
     _do_gwbse = true;
-    std::string gwbsexml =
-        prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_gwbse");
-    _gwbseoptions.LoadFromXML(gwbsexml);
+    _gwbseoptions.add("gwbse", "");
+    tools::Property& prop_gwbse = _gwbseoptions.get("gwbse");
+    prop_gwbse = prop.get("gwbse");
+
     if (prop.exists("statetracker")) {
       tools::Property filter = prop.get("statetracker");
       _statetracker.setLogger(&_log);
@@ -68,9 +70,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
   _DeltaE = prop.ifExistsReturnElseReturnDefault("tolerance_energy", _DeltaE);
   _DeltaD = prop.ifExistsReturnElseReturnDefault("tolerance_density", _DeltaD);
 
-  std::string dftxml =
-      prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_dft");
-  _dftoptions.LoadFromXML(dftxml);
+  _dftoptions = prop.get("options_dft");
 }
 
 bool QMRegion::Converged() const {
@@ -138,7 +138,13 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     if (state.Type().isExciton()) {
       energy += _orb.getExcitedStateEnergy(state);
     } else {
-      energy = _orb.getExcitedStateEnergy(state);
+      // if unoccupied, add QP level energy
+      if (state.StateIdx() > _orb.getHomo()) {
+        energy += _orb.getExcitedStateEnergy(state);
+      } else {
+        // if unoccupied, subtract QP level energy
+        energy -= _orb.getExcitedStateEnergy(state);
+      }
     }
   }
   _E_hist.push_back(energy);
@@ -192,8 +198,8 @@ void QMRegion::Reset() {
 
   std::string dft_package_name =
       _dftoptions.get("package.name").as<std::string>();
-  _qmpackage =
-      std::unique_ptr<QMPackage>(QMPackages().Create(dft_package_name));
+  _qmpackage = std::unique_ptr<QMPackage>(
+      QMPackageFactory::QMPackages().Create(dft_package_name));
   _qmpackage->setLog(&_log);
   _qmpackage->Initialize(_dftoptions);
   Index charge = 0;

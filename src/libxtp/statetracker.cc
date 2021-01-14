@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,9 @@
  *
  */
 
+// Local VOTCA includes
 #include "votca/xtp/statetracker.h"
-#include <votca/xtp/filterfactory.h>
+#include "votca/xtp/filterfactory.h"
 
 namespace votca {
 namespace xtp {
@@ -26,15 +27,13 @@ using std::flush;
 
 void StateTracker::Initialize(const tools::Property& options) {
 
-  std::string filters =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>("filters");
+  std::string filters = options.get("filters").as<std::string>();
   tools::Tokenizer tok(filters, " ,;\n");
   std::vector<std::string> list_filters = tok.ToVector();
 
   FilterFactory::RegisterAll();
   for (const std::string& filtername : list_filters) {
-    _filters.push_back(
-        std::unique_ptr<StateFilter_base>(Filter().Create(filtername)));
+    _filters.push_back(Filter().Create(filtername));
   }
 
   for (auto& filter : _filters) {

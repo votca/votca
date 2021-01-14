@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,10 +18,11 @@
  */
 
 #pragma once
-#ifndef XTP_REGULAR_GRID_H
-#define XTP_REGULAR_GRID_H
+#ifndef VOTCA_XTP_REGULAR_GRID_H
+#define VOTCA_XTP_REGULAR_GRID_H
 
-#include <votca/xtp/gridbox.h>
+// Local VOTCA includes
+#include "gridbox.h"
 
 namespace votca {
 namespace xtp {
@@ -68,4 +69,4 @@ class Regular_Grid {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // XTP_VXC_GRID_H
+#endif  // VOTCA_XTP_REGULAR_GRID_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,13 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE dftcoupling_test
-#include <boost/test/unit_test.hpp>
-#include <votca/xtp/dftcoupling.h>
 
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/dftcoupling.h"
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace votca;
 
@@ -47,7 +51,7 @@ Eigen::MatrixXd ReadMatrixFromString(const std::string& matrix) {
 }
 
 BOOST_AUTO_TEST_CASE(coupling) {
-
+  libint2::initialize();
   std::ofstream opt("dftcoupling.xml");
   opt << "           <dftcoupling_options>" << std::endl;
   opt << "            <degeneracy>0.0</degeneracy>" << std::endl;
@@ -446,6 +450,8 @@ BOOST_AUTO_TEST_CASE(coupling) {
     double j = h->getAttribute<double>("j");
     BOOST_CHECK_CLOSE(j, electron_ref[levA][levB], 1e-5);
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

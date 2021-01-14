@@ -1,0 +1,14 @@
+<package>
+<name>xtpdft</name>
+<charge>0</charge>
+<spin>1</spin>
+<basisset>ubecppol</basisset>
+<auxbasisset>aux-ubecppol</auxbasisset>
+<optimize>false</optimize>
+<functional>pbe</functional>
+<scratch>/tmp/xtp_qmpackage</scratch>
+<polarization>false</polarization>
+<orca>
+   <scf>GUESS PMODEL</scf>
+</orca>
+</package>

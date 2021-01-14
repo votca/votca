@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,10 +19,10 @@
 /// For earlier commit history see ctp commit
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#include <votca/xtp/qmpair.h>
-#include <votca/xtp/segment.h>
-
+// Local VOTCA includes
+#include "votca/xtp/qmpair.h"
 #include "votca/xtp/atomcontainer.h"
+#include "votca/xtp/segment.h"
 
 namespace votca {
 namespace xtp {

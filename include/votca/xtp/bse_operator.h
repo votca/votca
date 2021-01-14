@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,12 +18,13 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_BSE_OPERATOR_H
-#define _VOTCA_XTP_BSE_OPERATOR_H
+#ifndef VOTCA_XTP_BSE_OPERATOR_H
+#define VOTCA_XTP_BSE_OPERATOR_H
 
-#include <votca/xtp/eigen.h>
-#include <votca/xtp/matrixfreeoperator.h>
-#include <votca/xtp/threecenter.h>
+// Local VOTCA includes
+#include "eigen.h"
+#include "matrixfreeoperator.h"
+#include "threecenter.h"
 
 namespace votca {
 namespace xtp {
@@ -89,4 +90,4 @@ typedef BSE_OPERATOR<0, 0, 0, 1> Hd2Operator;
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_BSE_OP_H */
+#endif  // VOTCA_XTP_BSE_OPERATOR_H

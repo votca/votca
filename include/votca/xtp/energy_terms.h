@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_ENERGY_TERMS_H
 #define VOTCA_XTP_ENERGY_TERMS_H
 
-#include <votca/xtp/eeinteractor.h>
-#include <votca/xtp/eigen.h>
+// Local VOTCA includes
+#include "eeinteractor.h"
+#include "eigen.h"
+
 /**
  * \brief Small container for the individual energy terms in a polar region
  *

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,12 +21,13 @@
 #ifndef VOTCA_XTP_QMREGION_H
 #define VOTCA_XTP_QMREGION_H
 
-#include <votca/xtp/region.h>
-
+// Local VOTCA includes
+#include "hist.h"
 #include "orbitals.h"
+#include "qmpackagefactory.h"
+#include "region.h"
 #include "statetracker.h"
-#include <votca/xtp/hist.h>
-#include <votca/xtp/qmpackagefactory.h>
+
 /**
  * \brief defines a qm region and runs dft and gwbse calculations
  *
@@ -110,4 +111,4 @@ class QMRegion : public Region {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_REGION_H
+#endif  // VOTCA_XTP_QMREGION_H

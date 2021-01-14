@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,9 +17,10 @@
  *
  */
 
-#include <votca/xtp/aopotential.h>
-#include <votca/xtp/aotransform.h>
-#include <votca/xtp/qmmolecule.h>
+// Local VOTCA includes
+#include "votca/xtp/aopotential.h"
+#include "votca/xtp/aotransform.h"
+#include "votca/xtp/qmmolecule.h"
 
 namespace votca {
 namespace xtp {
@@ -39,8 +40,8 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   // factor 1.5 I am not sure about but then 6 monopoles and this tensor agree
   const Eigen::Matrix3d quadrupole = 1.5 * _site->CalculateCartesianMultipole();
   // shell info, only lmax tells how far to go
-  Index lmax_row = shell_row.getLmax();
-  Index lmax_col = shell_col.getLmax();
+  Index lmax_row = Index(shell_row.getL());
+  Index lmax_col = Index(shell_col.getL());
   Index lsum = lmax_row + lmax_col;
   // set size of internal block for recursion
   Index nrows = AOTransform::getBlockSize(lmax_row);
@@ -62,6 +63,9 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
   double distsq = diff.squaredNorm();
 
+  Eigen::MatrixXd cartesian = Eigen::MatrixXd::Zero(
+      shell_row.getCartesianNumFunc(), shell_col.getCartesianNumFunc());
+
   // iterate over Gaussians in this shell_row
   for (const auto& gaussian_row : shell_row) {
     // iterate over Gaussians in this shell_col
@@ -78,10 +82,6 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       const double xi = decay_row * decay_col * fak2;
 
       double exparg = xi * distsq;
-      // check if distance between postions is big, then skip step
-      if (exparg > 30.0) {
-        continue;
-      }
 
       // some helpers
       const Eigen::Vector3d PmA =
@@ -2072,17 +2072,16 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         }
       }
 
-      Eigen::MatrixXd multipole_sph =
-          AOTransform::getTrafo(gaussian_row).transpose() *
-          multipole.bottomRightCorner(shell_row.getCartesianNumFunc(),
-                                      shell_col.getCartesianNumFunc()) *
-          AOTransform::getTrafo(gaussian_col);
       // save to matrix
-
-      matrix += multipole_sph;
+      cartesian += AOTransform::getNorm(shell_row.getL(), gaussian_row) *
+                   AOTransform::getNorm(shell_col.getL(), gaussian_col) *
+                   multipole.bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                               shell_col.getCartesianNumFunc());
 
     }  // shell_col Gaussians
   }    // shell_row Gaussians
+
+  matrix = AOTransform::tform(shell_row.getL(), shell_col.getL(), cartesian);
 }
 
 void AOMultipole::FillPotential(const AOBasis& aobasis,

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,9 @@
  *
  */
 
-#include <iostream>
-#include <stdlib.h>
-#include <string>
-#include <votca/xtp/jobapplication.h>
-#include <votca/xtp/jobcalculatorfactory.h>
+// Local VOTCA includes
+#include "votca/xtp/jobapplication.h"
+#include "votca/xtp/jobcalculatorfactory.h"
 
 using namespace std;
 using namespace votca;
@@ -59,9 +57,8 @@ bool XtpParallel::EvaluateOptions() {
 
   if (OptionsMap().count("list")) {
     cout << "Available XTP calculators: \n";
-    for (const auto& jobcalc : xtp::JobCalculators().getObjects()) {
-      PrintDescription(std::cout, jobcalc.first, "xtp/xml",
-                       Application::HelpShort);
+    for (const auto& name : xtp::JobCalculators().getKeys()) {
+      PrintDescription(std::cout, name, "xtp/xml", Application::HelpShort);
     }
     StopExecution();
     return true;
@@ -72,17 +69,9 @@ bool XtpParallel::EvaluateOptions() {
     tools::Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
     // loop over the names in the description string
     for (const std::string& n : tok) {
-      // loop over calculators
-      bool printerror = true;
-      for (const auto& jobcalc : xtp::JobCalculators().getObjects()) {
-        if (n.compare(jobcalc.first) == 0) {
-          PrintDescription(std::cout, jobcalc.first, "xtp/xml",
-                           Application::HelpLong);
-          printerror = false;
-          break;
-        }
-      }
-      if (printerror) {
+      if (xtp::JobCalculators().IsRegistered(n)) {
+        PrintDescription(std::cout, n, "xtp/xml", Application::HelpLong);
+      } else {
         cout << "Calculator " << n << " does not exist\n";
       }
     }
@@ -100,18 +89,10 @@ bool XtpParallel::EvaluateOptions() {
         "You can only run one calculator at the same time.");
   }
 
-  bool found_calc = false;
-  for (const auto& jobcalc : xtp::JobCalculators().getObjects()) {
-    if (calc_string[0].compare(jobcalc.first) == 0) {
-      cout << " This is a XTP app" << endl;
-      xtp::JobApplication::SetCalculator(
-          xtp::JobCalculators().Create(calc_string[0]));
-      found_calc = true;
-      break;
-    }
-  }
-
-  if (!found_calc) {
+  if (xtp::JobCalculators().IsRegistered(calc_string[0])) {
+    xtp::JobApplication::SetCalculator(
+        xtp::JobCalculators().Create(calc_string[0]));
+  } else {
     cout << "Jobcalculator " << calc_string[0] << " does not exist\n";
     StopExecution();
   }

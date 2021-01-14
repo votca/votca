@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,9 +22,15 @@
 #pragma once
 #ifndef VOTCA_XTP_PROGRESSOBSERVER_H
 #define VOTCA_XTP_PROGRESSOBSERVER_H
+
+// Standard includes
+#include <vector>
+
+// Third party includes
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/program_options.hpp>
-#include <vector>
+
+// VOTCA includes
 #include <votca/tools/mutex.h>
 #include <votca/tools/property.h>
 
@@ -43,7 +49,7 @@ class ProgObserver {
 
  public:
   void InitCmdLineOpts(const boost::program_options::variables_map &optsMap);
-  void InitFromProgFile(std::string progFile, QMThread &master);
+  void InitFromProgFile(std::string progFile, QMThread &thread);
   ProgObserver::Job *RequestNextJob(QMThread &thread);
   void ReportJobDone(Job &job, Result &res, QMThread &thread);
 
