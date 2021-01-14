@@ -36,13 +36,6 @@ if [[ -f CHANGELOG.rst ]]; then
     [[ ${version_section} ]] || break
   done
   message="-  ${INPUT_MESSAGE#*: } (#$INPUT_PR_NUMBER)"
-elif [[ -f CHANGELOG.md ]]; then
-  CHANGELOG=CHANGELOG.md
-  for v in ${try_versions[@]}; do
-    version_section="$(awk "/^## Version ${v}( |$)/,/^$/{print \$0}" "${CHANGELOG}")"
-    [[ -z ${version_section} ]] || break
-  done
-  message="* ${INPUT_MESSAGE#*: } (#$INPUT_PR_NUMBER)"
 else
   die "No supported CHANGELOG found"
 fi
