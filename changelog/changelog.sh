@@ -16,12 +16,12 @@ version="$(sed -n 's/set(PROJECT_VERSION *"\([^"]*\)").*/\1/p' CMakeLists.txt)"
 
 if [[ $version = *-dev ]]; then
   :
-elif [[ $version = *.*.* ]]; then
+elif [[ $version = 20??.* ]]; then
   try_versions=( "${version%.*}.$((${version##*.}+1))" )
-elif [[ $version = *.* ]]; then
+elif [[ $version = 20?? ]]; then
   try_versions=( "${version}.1" )
-elif [[ $version = *_rc* ]]; then
-  try_versions=( "${version%_rc*}_rc$((${version#*_rc}+1))" )
+elif [[ $version = *-rc.* ]]; then
+  try_versions=( "${version%-rc*}-rc.$((${version#*-rc.}+1))" )
 else
   die "Unknown version scheme, found $version"
 fi
