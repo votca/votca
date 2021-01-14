@@ -120,7 +120,7 @@ jobs:
     container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2.2.0
+        uses: actions/checkout@v2
         with:
           submodules: true
           ref: stable
@@ -172,7 +172,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code    
-        uses: actions/checkout@v2.2.0
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
           submodules: true
