@@ -1,8 +1,8 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/tools/commits/stable>`__.
 
-Version 2021-dev
-===============
+Version 2021-rc.1 (released XX.01.21)
+=====================================
 
 -  add support of txt2tqs 3.4 (#208)
 -  fix MKL:: target creation (#207, #265, #269, #270)
@@ -22,7 +22,7 @@ Version 2021-dev
 -  add rel. compare to votca\_compare (#143)
 -  standardize header formatting (#246)
 -  move CI to GitHub Ations (#251, #254, #256, #258, #260,
-   #274, #275, #296)
+   #274, #275, #296, #321)
 -  improve mkl detection (#257, #299)
 -  clean up installed cmake find modules (#263)
 -  update codacy badge (#264)
