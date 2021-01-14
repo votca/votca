@@ -15,12 +15,19 @@
  *
  */
 
-#include "groreader.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <fstream>
 #include <iostream>
+
+// Third party inlcudes
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
 #include <votca/tools/getline.h>
+
+// Local private VOTCA includes
+#include "groreader.h"
 
 namespace votca {
 namespace csg {

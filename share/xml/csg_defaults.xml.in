@@ -375,7 +375,7 @@
       <DESC>do the given number of iterations (0=inf)</DESC>
     </iterations_max>
     <kBT>
-      <DESC> kBT in KJ/mol (i.e. XXX K *0.00831451)</DESC>
+      <DESC> kBT in KJ/mol (i.e. XXX K * 0.00831451)</DESC>
     </kBT>
     <log_file>inverse.log
       <DESC>name of the log file</DESC>

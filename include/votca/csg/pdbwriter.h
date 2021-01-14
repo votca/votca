@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,27 @@
  *
  */
 
-#ifndef _PDBWRITER_H
-#define _PDBWRITER_H
+#ifndef VOTCA_CSG_PDBWRITER_H
+#define VOTCA_CSG_PDBWRITER_H
 
-#include <stdio.h>
-#include <votca/csg/topology.h>
-#include <votca/csg/trajectorywriter.h>
+// Standard includes
+#include <cstdio>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
+#include <votca/tools/unitconverter.h>
+
+// Local VOTCA includes
+#include "topology.h"
+#include "trajectorywriter.h"
 
 namespace votca {
 namespace csg {
 
 class PDBWriter : public TrajectoryWriter {
  public:
+  const tools::DistanceUnit distance_unit = tools::DistanceUnit::angstroms;
+
   void Open(std::string file, bool bAppend = false) override;
   void Close() override;
 
@@ -107,9 +115,12 @@ inline void PDBWriter::WriteContainer(T &container) {
       atomname = atomname.substr(0, 4);
     }
 
-    _out << atomfrmt % (getId(atom) % 100000)  // atom serial number
+    _out << atomfrmt % (getId(atom) % 100000)  // atom serial number, wrapped
+                                               // due to pdb limitations
                 % atomname % resname % " "     // chain identifier 1 char
-                % getResId(container, atom)    // residue sequence number
+                % (getResId(container, atom) % 10000)  // residue sequence
+                                                       // number, wrapped due to
+                                                       // pdb limitations
                 % r.x() % r.y() % r.z();
     // we skip the charge
     writeSymmetry(atom);
@@ -119,4 +130,4 @@ inline void PDBWriter::WriteContainer(T &container) {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _PDBWRITER_H */
+#endif  // VOTCA_CSG_PDBWRITER_H

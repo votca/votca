@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
  *
  */
 
-#ifndef POTENTIALFUNCTIONCBSPL_H
-#define POTENTIALFUNCTIONCBSPL_H
+#ifndef VOTCA_CSG_POTENTIALFUNCTIONCBSPL_H
+#define VOTCA_CSG_POTENTIALFUNCTIONCBSPL_H
 
 #include "potentialfunction.h"
-#include <math.h>
+#include <cmath>
 #include <votca/tools/table.h>
 
 namespace votca {
@@ -75,4 +75,4 @@ class PotentialFunctionCBSPL : public PotentialFunction {
 };
 }  // namespace csg
 }  // namespace votca
-#endif
+#endif  // VOTCA_CSG_POTENTIALFUNCTIONCBSPL_H
