@@ -252,7 +252,7 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
         processed_segments[seg_id.Id()] = true;
       }
     }
-    explicitly_named_segs_per_region.push_back(int(seg_ids.size()));
+    explicitly_named_segs_per_region.push_back(Index(seg_ids.size()));
 
     if (region_def->exists("cutoff")) {
       double cutoff = tools::conv::nm2bohr *
@@ -281,7 +281,7 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
             Index no_of_segs = explicitly_named_segs_per_region[id];
             if (no_of_segs == 0) {
               throw std::runtime_error("Region with id '" + std::to_string(id) +
-                                       "' does not have");
+                                       "' does not have explicitly named segments");
             }
             center.resize(no_of_segs, SegId(0, "n"));
             // need the second argument because resize can also increase

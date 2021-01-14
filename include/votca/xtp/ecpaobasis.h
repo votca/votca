@@ -45,22 +45,20 @@ class ECPAOBasis {
   // returns element names for which no ecp was found
   std::vector<std::string> Fill(const ECPBasisSet& bs, QMMolecule& atoms);
 
-  Index ECPAOBasisSize() const { return _AOBasisSize; }
-
   using constECPAOShellIterator = std::vector<libecpint::ECP>::const_iterator;
-  constECPAOShellIterator begin() const { return _aoshells.begin(); }
-  constECPAOShellIterator end() const { return _aoshells.end(); }
+  constECPAOShellIterator begin() const { return _aopotentials.begin(); }
+  constECPAOShellIterator end() const { return _aopotentials.end(); }
 
   using ECPAOShellIterator = std::vector<libecpint::ECP>::iterator;
-  ECPAOShellIterator begin()  { return _aoshells.begin(); }
-  ECPAOShellIterator end() { return _aoshells.end(); }
+  ECPAOShellIterator begin()  { return _aopotentials.begin(); }
+  ECPAOShellIterator end() { return _aopotentials.end(); }
 
   Index getMaxL() const;
   void AddECPChargeToMolecule(QMMolecule& mol) const;
 
   const std::string& Name() const { return _name; }
 
-  void UpdateShellPositions(const QMMolecule& mol);
+  void UpdatePotentialPositions(const QMMolecule& mol);
 
   void WriteToCpt(CheckpointWriter& w) const;
 
@@ -73,14 +71,12 @@ class ECPAOBasis {
  private:
   void clear();
 
-  libecpint::ECP& addShell(const ECPShell& shell, const QMAtom& atom);
-
   std::vector<Index> _ncore_perAtom;
 
-  std::vector<libecpint::ECP> _aoshells;
+  std::vector<libecpint::ECP> _aopotentials;
 
   std::string _name = "";
-  Index _AOBasisSize;
+  
 };
 
 }  // namespace xtp

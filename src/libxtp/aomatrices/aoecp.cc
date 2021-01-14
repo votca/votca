@@ -29,10 +29,11 @@
 namespace votca {
 namespace xtp {
 
-  std::ostream& operator<<(std::ostream& out, const libecpint::GaussianShell& shell) {
+std::ostream& operator<<(std::ostream& out,
+                         const libecpint::GaussianShell& shell) {
   out << " Shelltype:" << xtp::EnumToString(static_cast<L>(shell.am()))
       << " L:" << Index(shell.am()) << " Func:" << shell.nprimitive() << "\n";
-  for (int i=0;i< shell.nprimitive();i++) {
+  for (int i = 0; i < shell.nprimitive(); i++) {
     out << " Gaussian Decay: " << shell.exp(i);
     out << " Contractions: " << shell.coef(i) << "\n";
   }
@@ -44,7 +45,8 @@ using MatrixLibInt =
 
 void AOECP::FillPotential(const AOBasis& aobasis, ECPAOBasis ecp) {
 
-_aopotential=Eigen::MatrixXd::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
+  _aopotential =
+      Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   std::vector<libecpint::GaussianShell> basis;
   std::vector<Index> cartesian_size;
   std::vector<Index> spherical_size;
@@ -59,16 +61,16 @@ _aopotential=Eigen::MatrixXd::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
     }
     basis.push_back(s);
   }
-  std::cout<<basis.size()<<std::endl;
   std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
 
   std::vector<libecpint::ECPIntegral> engines(
-      1,
+      OPENMP::getMaxThreads(),
       libecpint::ECPIntegral(int(aobasis.getMaxL()), int(ecp.getMaxL()), 0));
-
-    std::cout<<aobasis.getMaxL()<<" "<<ecp.getMaxL()<<std::endl;
-
-//#pragma omp parallel for schedule(guided)
+std::cout<<ecp<<std::endl;
+for(auto shell:basis){
+  std::cout<<shell<<std::endl;
+}
+  //#pragma omp parallel for schedule(guided)
   for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
     Index thread_id = OPENMP::getThreadId();
     libecpint::ECPIntegral& engine = engines[thread_id];
@@ -81,28 +83,30 @@ _aopotential=Eigen::MatrixXd::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
       Index c2 = cartesian_size[s2];
 
       MatrixLibInt cartesian_result = MatrixLibInt::Zero(c1, c2);
-      std::cout<<"s1:"<<s1<<" "<<basis[s1]<<std::endl;
-      std::cout<<"s2:"<<s2<<" "<<basis[s2]<<std::endl;
-      for (auto& ecpshell : ecp) {
+      for (auto& ecppotential : ecp) {
         libecpint::TwoIndex<double> results;
-        std::cout<<ecpshell<<std::endl;
-        
-        engine.compute_shell_pair(ecpshell, basis[s1], basis[s2], results);
-       
-        cartesian_result+=Eigen::Map<MatrixLibInt>(results.data.data(),c1,c2);
+        engine.compute_shell_pair(ecppotential, basis[s1], basis[s2], results);
+        cartesian_result +=
+            Eigen::Map<MatrixLibInt>(results.data.data(), c1, c2);
       }
-      std::cout<<"cart:"<<cartesian_result<<std::endl;
-      MatrixLibInt spherical_result=Eigen::MatrixXd::Zero(n1,n2);
-      libint2::solidharmonics::tform<double>(basis[s1].l,basis[s2].l,cartesian_result.data(),spherical_result.data());
-      std::cout<<"sph:"<<spherical_result<<std::endl;
+      if(cartesian_result.isApproxToConstant(0.0)){
+        continue;
+      }
+      // std::cout << "cart:" << cartesian_result << std::endl;
+      MatrixLibInt spherical_result = MatrixLibInt::Zero(n1, n2);
+      libint2::solidharmonics::tform<double>(basis[s1].l, basis[s2].l,
+                                             cartesian_result.data(),
+                                             spherical_result.data());
+      //std::cout << "sph:" << spherical_result << std::endl;
       _aopotential.block(bf1, bf2, n1, n2) = spherical_result;
       if (s1 != s2) {  // if s1 >= s2, copy {s1,s2} to the corresponding
                        // {s2,s1} block, note the transpose!
         _aopotential.block(bf2, bf1, n2, n1) = spherical_result.transpose();
       }
+      std::cout<<_aopotential<<std::endl;
     }
   }
 }
 
 }  // namespace xtp
-}  // namespace xtp
+}  // namespace votca
