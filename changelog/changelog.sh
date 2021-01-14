@@ -44,6 +44,7 @@ fi
 echo "Found section for $v"
 last_line="$(echo "$version_section" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
 [[ $last_line ]] || die "Could not grep last line"
+[[ -z ${last_line##-*} ]] || die "Last line isn't an item (does not start with -)"
 
 echo "Adding message '$message' after line '${last_line}'"
 sed -i "/$last_line/a ${message}" "${CHANGELOG}"
