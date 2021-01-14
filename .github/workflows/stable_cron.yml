@@ -1,15 +1,11 @@
-name: CI
+# This is to workaround the issue in https://github.community/t/scheduled-builds-of-non-default-branch/16306
+name: Stable Cron
 on:
   push:
     branches:
-      - master
-      - stable
-  pull_request:
-    branches:
-      - master
-      - stable
+      - stable_cron
   schedule:
-    - cron:  '0 5 * * FRI'
+    - cron:  '0 5 * * SAT'
 
 jobs:
   CI:
@@ -17,7 +13,7 @@ jobs:
     continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'opensuse:latest' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
-        distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'fedora:intel']
+        distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'ubuntu:18.04', 'fedora:intel']
         toolchain: [gnu, clang]
         cmake_build_type: [Release, Debug]
         minimal: [false]
@@ -56,18 +52,6 @@ jobs:
             module_build: true
             coverage: false
             deploy: false
-          - distro: 'fedora:intel'
-            toolchain: intel
-            cmake_build_type: Release
-          - distro: 'fedora:intel'
-            toolchain: intel
-            cmake_build_type: Debug
-          - distro: 'fedora:intel-oneapi'
-            toolchain: intel-oneapi
-            cmake_build_type: Release
-          - distro: 'fedora:intel-oneapi'
-            toolchain: intel-oneapi
-            cmake_build_type: Debug
           - distro: 'fedora:gmx2019'
             toolchain: gnu
             cmake_build_type: Release
@@ -136,9 +120,10 @@ jobs:
     container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.2.0
         with:
           submodules: true
+          ref: stable
       - name: Run Votca Setup
         id: setup #use this id below to use outputs
         uses: votca/actions/setup@master
@@ -153,13 +138,14 @@ jobs:
           cmake_build_type: ${{ matrix.cmake_build_type }}
           ctest_args: ${{ matrix.ctest_args }}
           cmake_args: ${{ matrix.cmake_args }}
+          branch: stable
       - uses: actions/cache@v2
         with:
           path: ~/.ccache
           key: ${{ steps.setup.outputs.cache_key }}
           restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
       - name: CMake
-        run: cmake -B builddir ${{ steps.setup.outputs.cmake_args }} .
+        run: mkdir builddir && cd builddir && cmake ${{ steps.setup.outputs.cmake_args }} ..
       - name: Build
         run: |
           ccache -z
@@ -182,21 +168,42 @@ jobs:
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
         run: cmake --build builddir --target format && git diff --submodule=diff --exit-code
-      - name: Checkout Doxygen repo
-        if: ${{ matrix.deploy }}
-        uses: actions/checkout@v2
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code    
+        uses: actions/checkout@v2.2.0
         with:
-          repository: votca/doxygen
-          path: builddir/devdoc
-          token: ${{ secrets.VOTCA_BOT_TOKEN }}
-      - name: Checkout Website repo
-        if: ${{ matrix.deploy }}
-        uses: actions/checkout@v2
+          fetch-depth: 0
+          submodules: true
+          path: votca
+          ref: stable
+      - name: Build Docker images for Docker Hub
+        uses: docker/build-push-action@v1.1.0
         with:
-          repository: votca/votca.github.io
-          path: builddir/userdoc
-          token: ${{ secrets.VOTCA_BOT_TOKEN }}
-      - name: Deploy Doxygen and Website
-        if: ${{ matrix.deploy }}
-        run: ${GITHUB_WORKSPACE}/.github/workflows/deploy.sh
-        working-directory: builddir
+          repository: votca/votca
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          dockerfile: votca/.github/workflows/Dockerfile
+          tags: stable
+          push: ${{ github.event_name == 'schedule' }}
+      - name: Build Docker images for Github Container Registry
+        uses: docker/build-push-action@v1.1.0
+        with:
+          repository: votca/votca
+          registry: ghcr.io
+          username: votca-bot
+          password: ${{ secrets.VOTCA_BOT_TOKEN }}
+          dockerfile: votca/.github/workflows/Dockerfile
+          tags: stable
+          push: ${{ github.event_name == 'schedule' }}
+      - name: Build Docker images for Gitlab
+        uses: docker/build-push-action@v1.1.0
+        with:
+          repository: votca/votca
+          registry: registry.gitlab.com
+          username: votca-bot
+          password: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
+          dockerfile: votca/.github/workflows/Dockerfile
+          tags: stable
+          push: ${{ github.event_name == 'schedule' }}

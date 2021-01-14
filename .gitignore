@@ -10,3 +10,5 @@ build.ninja
 .ninja_*
 
 build*
+/csgapps
+/csg-manual
