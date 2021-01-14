@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
-      - uses: actions/checkout@v2.2.0
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - name: Run Votca Setup
