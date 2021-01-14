@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ===============
 
+-  Updated coordinate precision (#638)
+
 Version 2021-dev
 ===============
 
