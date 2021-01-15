@@ -43,7 +43,7 @@ class Orb2Fchk final : public QMTool {
   bool Run();
 
  private:
-  std::string _fchk_filename;
+  std::string _basename;
   std::string _orbfile;
   std::string _basisset_name;
   std::string _aux_basisset_name;

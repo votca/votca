@@ -53,6 +53,14 @@ class AOBasis {
 
   Index getNumofShells() const { return Index(_aoshells.size()); }
 
+  Index getNumberOfPrimitives() const {
+    Index totalPrimitives = 0;
+    for (const AOShell& shell : _aoshells) {
+      totalPrimitives += shell.getSize();
+    }
+    return totalPrimitives;
+  }
+
   Index getMaxNprim() const;
 
   Index getMaxL() const;

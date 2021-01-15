@@ -13,7 +13,7 @@ namespace xtp {
 
 void Orb2Fchk::ParseOptions(const tools::Property& options) {
 
-  _fchk_filename = _job_name + ".fchk";
+  _basename = _job_name;
   _orbfile = _job_name + ".orb";
 }
 
@@ -26,12 +26,12 @@ bool Orb2Fchk::Run() {
   XTP_LOG(Log::error, _log) << "Loading data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
 
-  XTP_LOG(Log::error, _log) << "Start parsing" << std::flush;
+  XTP_LOG(Log::error, _log) << "Start writing to " << (_basename + ".fchk") << std::flush;
 
   GaussianWriter writer(_log);
-  writer.WriteFile(_fchk_filename, orbitals);
+  writer.WriteFile(_basename, orbitals);
 
-  XTP_LOG(Log::error, _log) << "Done parsing \n" << std::flush;
+  XTP_LOG(Log::error, _log) << "Done writing \n" << std::flush;
 
   return true;
 }
