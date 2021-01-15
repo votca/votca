@@ -96,6 +96,7 @@ Version 2021-rc.1 (released XX.01.21)
 -  Use libint transformation matrices (#630)
 -  Added script to extract orbitals from qmmm statefile (#629)
 -  clean up XTP app message (#631)
+-  fixed EXX 3c mode (#640)
 
 Version 1.6.4 (released 12.01.21)
 =================================
