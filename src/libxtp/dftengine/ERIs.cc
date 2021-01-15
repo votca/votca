@@ -286,7 +286,7 @@ Eigen::MatrixXd ERIs::CalculateEXX_dmat(const Eigen::MatrixXd& DMAT) const {
 #pragma omp parallel for schedule(guided) reduction(+ : EXX)
   for (Index i = 0; i < _threecenter.size(); i++) {
     const Eigen::MatrixXd threecenter = _threecenter[i].UpperMatrix();
-    EXX += threecenter.selfadjointView<Eigen::Upper>() * DMAT *
+    EXX -= threecenter.selfadjointView<Eigen::Upper>() * DMAT *
            threecenter.selfadjointView<Eigen::Upper>();
   }
   return EXX;
@@ -302,7 +302,7 @@ Eigen::MatrixXd ERIs::CalculateEXX_mos(const Eigen::MatrixXd& occMos) const {
     const Eigen::MatrixXd TCxMOs_T =
         occMos.transpose() *
         _threecenter[i].UpperMatrix().selfadjointView<Eigen::Upper>();
-    EXX += TCxMOs_T.transpose() * TCxMOs_T;
+    EXX -= TCxMOs_T.transpose() * TCxMOs_T;
   }
   return 2 * EXX;
 }
