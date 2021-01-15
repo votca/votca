@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(xtp-tutorials LANGUAGES NONE)
 
-set(PROJECT_VERSION "2021-dev")
+set(PROJECT_VERSION "2021-rc.1")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 # not used, but stops GNUInstallDirs.cmake from warning
