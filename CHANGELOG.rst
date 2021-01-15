@@ -6,8 +6,8 @@ Version 2022-dev
 
 -  Updated coordinate precision (#638)
 
-Version 2021-dev
-===============
+Version 2021-rc.1 (released XX.01.21)
+=====================================
 
 -  G0W0 rpa energies are fixed in BSE (#383)
 -  Hqp part of BSE can be separate from QP range (#388)
@@ -36,7 +36,7 @@ Version 2021-dev
 -  changed to OpenMP reductions instead of hand crafted solutions (#466,
    #471, #493)
 -  switch to GitHub Actions as CI (#467, #474, #477, #482, #500, #502,
-   #518, #549)
+   #518, #549, #637)
 -  move tutorial to its own repo (#450)
 -  removed share/packages folder (#475)
 -  copy orca \*.gbw files in eqm (#472)
