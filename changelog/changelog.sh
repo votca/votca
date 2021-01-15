@@ -15,7 +15,7 @@ version="$(sed -n 's/set(PROJECT_VERSION *"\([^"]*\)").*/\1/p' CMakeLists.txt)"
 [[ ${version} ]] || die "No version found"
 
 if [[ $version = *-dev ]]; then
-  :
+  try_versions=( ${version%-dev}-rc.1 )
 elif [[ $version = 20??.* ]]; then
   try_versions=( "${version%.*}.$((${version##*.}+1))" )
 elif [[ $version = 20?? ]]; then
