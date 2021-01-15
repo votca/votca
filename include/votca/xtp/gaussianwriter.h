@@ -40,6 +40,7 @@ class GaussianWriter {
  private:
   Logger& _log;
   Index toGaussianL(L l) const;
+  std::string reorderedMOCoefficients(const Orbitals& orbitals) const;
 };
 
 }  // namespace xtp

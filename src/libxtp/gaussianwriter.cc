@@ -24,6 +24,45 @@ Index GaussianWriter::toGaussianL(L l) const {
   }
 }
 
+std::string GaussianWriter::reorderedMOCoefficients(
+    const Orbitals& orbitals) const {
+  // Setup the reordering parameters
+  std::array<Index, 49> multipliers;
+  multipliers.fill(-1);
+  // clang-format off
+  // the ordering of the m quantumnumbers for every shell in gaussian
+  std::array<Index, 49> gaussianOrder={{
+            0, //s
+            0,1,-1, //p
+            0,1,-1,2,-2, //d
+            0,1,-1,2,-2,3,-3, //f 
+            0,1,-1,2,-2,3,-3,4,-4, //g
+            0,1,-1,2,-2,3,-3,4,-4,5,-5, // h
+            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 // i
+  }};
+  // clang-format on
+  OrbReorder reorder(gaussianOrder, multipliers);
+  Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
+  reorder.reorderOrbitals(moCoefficients, orbitals.SetupDftBasis());
+
+  // put the reordered mos in a string
+  std::stringstream mos_string;
+
+  int temp_int = 1;
+  for (Index i = 0; i < moCoefficients.rows(); ++i) {
+    for (Index j = 0; j < moCoefficients.cols(); ++j) {
+      mos_string << boost::format("%16.8e") % moCoefficients(j,i);
+      if (temp_int % 5 == 0) {
+        mos_string << "\n";
+      }
+      temp_int++;
+    }
+  }
+  mos_string << ((temp_int - 1) % 5 == 0 ? "" : "\n");
+
+  return mos_string.str();
+}
+
 void GaussianWriter::WriteFile(const std::string& basename,
                                const Orbitals& orbitals) const {
   if (!orbitals.hasDFTbasisName()) {
@@ -190,7 +229,8 @@ void GaussianWriter::WriteFile(const std::string& basename,
     }
     outFile << ((temp_int - 1) % 5 == 0 ? "" : "\n");
     // TOTAL ENERGY
-    outFile << boost::format("%-43s%-2s%22.15e\n") % "Total Energy" % "R" % orbitals.getDFTTotalEnergy();
+    outFile << boost::format("%-43s%-2s%22.15e\n") % "Total Energy" % "R" %
+                   orbitals.getDFTTotalEnergy();
     // ALPHA ORBITAL ENERGIES
     outFile << boost::format("%-43s%-2s N=  %10d\n") %
                    "Alpha Orbital Energies" % "R" %
@@ -204,6 +244,12 @@ void GaussianWriter::WriteFile(const std::string& basename,
       temp_int++;
     }
     outFile << ((temp_int - 1) % 5 == 0 ? "" : "\n");
+    // ALPHA ORBITAL ENERGIES
+    outFile << boost::format("%-43s%-2s N=  %10d\n") % "Alpha MO coefficients" %
+                   "R" %
+                   (orbitals.MOs().eigenvalues().size() *
+                    orbitals.MOs().eigenvalues().size());
+    outFile << reorderedMOCoefficients(orbitals);
   }
 }
 
