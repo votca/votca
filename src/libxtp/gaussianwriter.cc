@@ -30,14 +30,6 @@ void GaussianWriter::WriteFile(const std::string& basename,
     throw std::runtime_error(".orb file does not contain a basisset name");
   }
 
-  XTP_LOG(Log::error, _log)
-      << "WARNING: this writer will create an incomplete fchk file.\n"
-         "It contains everything to use external tools, but some features\n"
-         "specific to the Gaussian software are not supported. For example\n"
-         "it is not possible to start a Gaussian calculation from this fchk\n"
-         "file."
-      << std::flush;
-
   AOBasis basis = orbitals.SetupDftBasis();
 
   std::ofstream outFile(basename + ".fchk");
@@ -69,6 +61,7 @@ void GaussianWriter::WriteFile(const std::string& basename,
       }
       temp_int++;
     }
+    outFile << ((temp_int - 1) % 6 == 0 ? "" : "\n");
     // NUCLEAR CHARGES
     outFile << boost::format("%-43s%-2s N=  %10d\n") % "Nuclear charges" % "R" %
                    orbitals.QMAtoms().size();
@@ -80,7 +73,7 @@ void GaussianWriter::WriteFile(const std::string& basename,
       }
       temp_int++;
     }
-    outFile << "\n";
+    outFile << ((temp_int - 1) % 5 == 0 ? "" : "\n");
     // CURRENT CARTESIAN COORDINATES
     outFile << boost::format("%-43s%-2s N=  %10d\n") %
                    "Current cartesian coordinates" % "R" %
@@ -95,7 +88,7 @@ void GaussianWriter::WriteFile(const std::string& basename,
         temp_int++;
       }
     }
-    outFile << "\n";
+    outFile << ((temp_int - 1) % 5 == 0 ? "" : "\n");
     // NUMBER OF PRIMITIVE SHELLS
     outFile << boost::format("%-43s%-2s%15d\n") % "Number of primitive shells" %
                    "I" % basis.getNumberOfPrimitives();
@@ -125,7 +118,7 @@ void GaussianWriter::WriteFile(const std::string& basename,
       }
       temp_int++;
     }
-    outFile << "\n";
+    outFile << ((temp_int - 1) % 6 == 0 ? "" : "\n");
     // NR OF PRIMITIVES PER SHELL
     outFile << boost::format("%-43s%-2s N=  %10d\n") %
                    "Number of primitives per shell" % "I" %
@@ -138,7 +131,79 @@ void GaussianWriter::WriteFile(const std::string& basename,
       }
       temp_int++;
     }
-    outFile << "\n";
+    outFile << ((temp_int - 1) % 6 == 0 ? "" : "\n");
+    // SHELL TO ATOM MAP
+    outFile << boost::format("%-43s%-2s N=  %10d\n") % "Shell to atom map" %
+                   "I" % (basis.getNumofShells());
+    temp_int = 1;
+    for (const AOShell& shell : basis) {
+      // Gaussian indices start at 1, hence the + 1
+      outFile << boost::format("%12d") % (shell.getAtomIndex() + 1);
+      if (temp_int % 6 == 0) {
+        outFile << "\n";
+      }
+      temp_int++;
+    }
+    outFile << ((temp_int - 1) % 6 == 0 ? "" : "\n");
+    // PRIMITIVE EXPONENTS
+    outFile << boost::format("%-43s%-2s N=  %10d\n") % "Primitive exponents" %
+                   "R" % basis.getNumberOfPrimitives();
+    temp_int = 1;
+    for (const AOShell& shell : basis) {
+      for (const AOGaussianPrimitive& prim : shell) {
+        outFile << boost::format("%16.8e") % prim.getDecay();
+        if (temp_int % 5 == 0) {
+          outFile << "\n";
+        }
+        temp_int++;
+      }
+    }
+    outFile << ((temp_int - 1) % 5 == 0 ? "" : "\n");
+    // CONTRACTION COEFFICIENTS
+    outFile << boost::format("%-43s%-2s N=  %10d\n") %
+                   "Contraction coefficients" % "R" %
+                   basis.getNumberOfPrimitives();
+    temp_int = 1;
+    for (const AOShell& shell : basis) {
+      for (const AOGaussianPrimitive& prim : shell) {
+        outFile << boost::format("%16.8e") % prim.getContraction();
+        if (temp_int % 5 == 0) {
+          outFile << "\n";
+        }
+        temp_int++;
+      }
+    }
+    outFile << ((temp_int - 1) % 5 == 0 ? "" : "\n");
+    // SHELL COORDINATES
+    outFile << boost::format("%-43s%-2s N=  %10d\n") %
+                   "Coordinates of each shell" % "R" %
+                   (3 * basis.getNumofShells());
+    temp_int = 1;
+    for (const AOShell& shell : basis) {
+      for (int i = 0; i < 3; ++i) {
+        outFile << boost::format("%16.8e") % shell.getPos()(i);
+        if (temp_int % 5 == 0) {
+          outFile << "\n";
+        }
+        temp_int++;
+      }
+    }
+    outFile << ((temp_int - 1) % 5 == 0 ? "" : "\n");
+    // TOTAL ENERGY
+    outFile << boost::format("%-43s%-2s%22.15e\n") % "Total Energy" % "R" % orbitals.getDFTTotalEnergy();
+    // ALPHA ORBITAL ENERGIES
+    outFile << boost::format("%-43s%-2s N=  %10d\n") %
+                   "Alpha Orbital Energies" % "R" %
+                   orbitals.MOs().eigenvalues().size();
+    temp_int = 1;
+    for (Index i = 0; i < orbitals.MOs().eigenvalues().size(); ++i) {
+      outFile << boost::format("%16.8e") % orbitals.MOs().eigenvalues()[i];
+      if (temp_int % 5 == 0) {
+        outFile << "\n";
+      }
+      temp_int++;
+    }
+    outFile << ((temp_int - 1) % 5 == 0 ? "" : "\n");
   }
 }
 
