@@ -2,10 +2,10 @@ For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/csg/commits/master>`__.
 
 Version 2022-dev
-===============
+================
 
-Version 2021-dev
-===============
+Version 2021-rc.1 (released XX.01.21)
+=====================================
 
 -  remove topology item (#486)
 -  switch to local includes (#487)
@@ -19,7 +19,8 @@ Version 2021-dev
 -  make scripts always executable in builddir (#533, #550, #556)
 -  rename REGRESSIONTEST\_TOLERANCE to INTEGRATIONTEST\_TOLERANCE (#534)
 -  standardising include order and style in library files (#542)
--  move CI to GitHub Ations (#551, #552, #553, #561, #562, #593, #617)
+-  move CI to GitHub Ations (#551, #552, #553, #561, #562, #593, #617,
+   #632)
 -  format CMake internal cpp code (#557)
 -  update codacy badge (#558)
 -  convert markdown to rst format (#559)
