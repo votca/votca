@@ -30,6 +30,7 @@
 #include "tools/log2mps.h"
 #include "tools/mol2orb.h"
 #include "tools/molpol.h"
+#include "tools/orb2fchk.h"
 #include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
 #include "tools/qmsandbox.h"
@@ -53,6 +54,7 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<APDFT>("apdft");
   QMTools().Register<Mol2Orb>("mol2orb");
   QMTools().Register<Orb2Mol>("orb2mol");
+  QMTools().Register<Orb2Fchk>("orb2fchk");
 }
 
 }  // namespace xtp

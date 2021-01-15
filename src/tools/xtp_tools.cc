@@ -117,7 +117,7 @@ bool XtpTools::EvaluateOptions() {
 
   if (xtp::QMTools().IsRegistered(calc_string[0])) {
     this->SetTool(xtp::QMTools().Create(calc_string[0]));
-    std::cout << "Registered " << calc_string[0];
+    std::cout << "Registered " << calc_string[0] << std::endl;
   } else {
     std::cout << "Tool " << calc_string[0] << " does not exist\n";
     StopExecution();
