@@ -19,7 +19,7 @@ jobs:
     container: ghcr.io/votca/buildenv/fedora:latest
     steps:
       - name: Checkout votca   
-        uses: actions/checkout@v2.2.0
+        uses: actions/checkout@v2
         with:
           submodules: true
           fetch-depth: 0

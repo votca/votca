@@ -104,7 +104,7 @@ shopt -s extglob
 topdir="${PWD}"
 
 rel="$1"
-[[ ${CI} != "true" && $testing = "no" && ${rel} != [1-9].[0-9]?(.[1-9]|_rc[1-9]) ]] && die "release has the wrong form"
+[[ ${CI} != "true" && $testing = "no" && ${rel} != 20???(.[1-9]|-rc.[1-9]) ]] && die "release has the wrong form"
 srcdir="$2"
 [[ -d $srcdir ]] || git clone --recursive "$url" "$srcdir"
 pushd "${srcdir}"
@@ -145,18 +145,12 @@ for p in "${what[@]}"; do
   elif [[ -f CMakeLists.txt ]]; then
     sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
     git add CMakeLists.txt
-    if [[ -f CHANGELOG.md ]]; then
-      sed -i "/^## Version ${rel}\>/s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.md
-      git add CHANGELOG.md
-    fi
     if [[ -f CHANGELOG.rst ]]; then
       sed -i "/^Version ${rel}\>/s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
       git add CHANGELOG.rst
     fi
   fi
   if [[ $testing = "no" ]]; then
-    [[ -f CHANGELOG.md && -z $(grep "^## Version ${rel}\>" CHANGELOG.md) ]] && \
-          die "Go and update CHANGELOG.md in ${p} before making a release"
     [[ -f CHANGELOG.rst && -z $(grep "^Version ${rel}\>" CHANGELOG.rst) ]] && \
           die "Go and update CHANGELOG.rst in ${p} before making a release"
     #|| true because maybe version has not changed
@@ -190,9 +184,7 @@ rm -rf "$instdir"
 pushd "$srcdir"
 if [[ $testing = "no" ]]; then
   sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
-  if [[ -f README.md ]]; then
-    sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.md || die "sed of README.md failed"
-  elif [[ -f README.rst ]]; then
+  if [[ -f README.rst ]]; then
     sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.rst share/doc/INSTALL.rst || die "sed of README.rst failed"
   fi
   git add -u
