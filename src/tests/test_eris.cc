@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(threecenter) {
   bool compare_exx = exx_mo.isApprox(exx_dmat, 1e-4);
   BOOST_CHECK_EQUAL(compare_exx, true);
 
-  Eigen::MatrixXd exx_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+  Eigen::MatrixXd exx_ref = -votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/eris/exx_ref2.mm");
 
   bool compare_exx_ref = exx_ref.isApprox(exx_mo, 1e-5);
