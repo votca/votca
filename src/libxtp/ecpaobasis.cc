@@ -28,12 +28,10 @@
 namespace votca {
 namespace xtp {
 
-
-
 Index ECPAOBasis::getMaxL() const {
   int maxL = 0;
   for (const auto& potential : _aopotentials) {
-    maxL=std::max(potential.getL(),maxL);
+    maxL = std::max(potential.getL(), maxL);
   }
   return Index(maxL);
 }
@@ -96,12 +94,15 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
 
       libecpint::ECP potential(atom.getPos().data());
       for (const ECPShell& shell : element) {
-        for(const auto& gaussian:shell){
-          potential.addPrimitive(int(gaussian._power), int(shell.getL()), gaussian._decay, gaussian._contraction);
+        for (const auto& gaussian : shell) {
+          potential.addPrimitive(int(gaussian._power), int(shell.getL()),
+                                 gaussian._decay, gaussian._contraction);
         }
       }
       _aopotentials.push_back(potential);
-      _aopotentials.back().atom_id=int(atom.getId());//add atom id here because copyconstructor  of libecpint::ECP is broken
+      _aopotentials.back().atom_id =
+          int(atom.getId());  // add atom id here because copyconstructor  of
+                              // libecpint::ECP is broken
     } else {
       _ncore_perAtom.push_back(0);
     }
@@ -111,72 +112,111 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
   return non_ecp_elements;
 }
 
+// This class is purely for hdf5 input output, because the libecpint classes do
+// not have the member functions required.
+class PotentialIO {
+
+ public:
+  struct data {
+    Index atomid;
+    double x;
+    double y;
+    double z;
+    Index power;
+    Index l;
+    double coeff;
+    double decay;
+  };
+
+  void SetupCptTable(CptTable& table) const {
+    double d;
+    Index I;
+    table.addCol(I, "atomid", HOFFSET(data, atomid));
+    table.addCol(d, "posX", HOFFSET(data, x));
+    table.addCol(d, "posY", HOFFSET(data, y));
+    table.addCol(d, "posZ", HOFFSET(data, z));
+    table.addCol(I, "power", HOFFSET(data, power));
+    table.addCol(I, "L", HOFFSET(data, l));
+    table.addCol(d, "coeff", HOFFSET(data, coeff));
+    table.addCol(d, "decay", HOFFSET(data, decay));
+  }
+
+};
+
 void ECPAOBasis::WriteToCpt(CheckpointWriter& w) const {
-  // w(_name, "name");
-  // w(_AOBasisSize, "basissize");
+  w(_name, "name");
 
-  // w(_ncore_perAtom, "atomic ecp charges");
-  // Index numofprimitives = 0;
-  // for (const auto& shell : _aoshells) {
-  //   numofprimitives += shell.getSize();
-  // }
+  w(_ncore_perAtom, "atomic ecp charges");
+  Index numofprimitives = 0;
+  for (const auto& potential : _aopotentials) {
+    numofprimitives += potential.getN();
+  }
 
-  // // this is all to make dummy ECPAOGaussian
-  // ECPGaussianPrimitive d(2, 0.1, 0.1);
-  // ECPAOGaussianPrimitive dummy2(d);
+  w(numofprimitives, "primitives");
+  PotentialIO dummy;
+  CptTable table = w.openTable("Potentials", dummy, numofprimitives);
 
-  // CptTable table = w.openTable("Contractions", dummy2, numofprimitives);
+  std::vector<PotentialIO::data> dataVec;
+  dataVec.reserve(numofprimitives);
+  for (const auto& potential : _aopotentials) {
+    for (const auto& contrib : potential.gaussians) {
+      PotentialIO::data d;
+      d.l = Index(contrib.l);
+      d.power = Index(contrib.n);
+      d.coeff = contrib.d;
+      d.decay = contrib.a;
+      d.atomid = Index(potential.atom_id);
+      d.x = potential.center_[0];
+      d.y = potential.center_[1];
+      d.z = potential.center_[2];
+      dataVec.push_back(d);
+    }
+  }
 
-  // std::vector<ECPAOGaussianPrimitive::data> dataVec(numofprimitives);
-  // Index i = 0;
-  // for (const auto& shell : _aoshells) {
-  //   for (const auto& gaussian : shell) {
-  //     gaussian.WriteData(dataVec[i], shell);
-  //     i++;
-  //   }
-  // }
-
-  // table.write(dataVec);
+  table.write(dataVec);
 }
 
 void ECPAOBasis::ReadFromCpt(CheckpointReader& r) {
-  // clear();
-  // r(_name, "name");
-  // r(_AOBasisSize, "basissize");
+  clear();
+  r(_name, "name");
+  r(_ncore_perAtom, "atomic ecp charges");
+  Index numofprimitives;
+  r(numofprimitives, "primitives");
 
-  // if (_AOBasisSize > 0) {
-  //   r(_ncore_perAtom, "atomic ecp charges");
-  //   // this is all to make dummy ECPAOGaussian
-  //   ECPGaussianPrimitive d(2, 0.1, 0.1);
-  //   ECPAOGaussianPrimitive dummy2(d);
+  if (numofprimitives > 0) {
 
-  //   CptTable table = r.openTable("Contractions", dummy2);
-  //   std::vector<ECPAOGaussianPrimitive::data> dataVec(table.numRows());
-  //   table.read(dataVec);
-  //   Index laststartindex = -1;
-  //   for (std::size_t i = 0; i < table.numRows(); ++i) {
-  //     if (dataVec[i].startindex != laststartindex) {
-  //       _aoshells.push_back(ECPAOShell(dataVec[i]));
-  //       laststartindex = dataVec[i].startindex;
-  //     } else {
-  //       _aoshells.back()._gaussians.push_back(
-  //           ECPAOGaussianPrimitive(dataVec[i]));
-  //     }
-  //   }
-  // }
+    PotentialIO dummy;
+    CptTable table = r.openTable("Potentials", dummy);
+    std::vector<PotentialIO::data> dataVec(table.numRows());
+    table.read(dataVec);
+    Index atomindex=-1;
+    for (const PotentialIO::data& d:dataVec){
+        if(d.atomid>atomindex){
+          Eigen::Vector3d pos(d.x,d.y,d.z);
+          _aopotentials.push_back(libecpint::ECP(pos.data()));
+          _aopotentials.back().atom_id=int(d.atomid);
+          atomindex=d.atomid;
+        }
+        // +2 because constructor of libecpint::primitve always subtracts 2
+        _aopotentials.back().addPrimitive(int(d.power)+2, int(d.l),
+                                 d.decay, d.coeff);
+
+    }
+
+  }
 }
 
 std::ostream& operator<<(std::ostream& out, const libecpint::ECP& potential) {
-  out << " AtomId: " <<  potential.atom_id<< " Components: "<<potential.getN()<<"\n";
+  out << " AtomId: " << potential.atom_id << " Components: " << potential.getN()
+      << "\n";
   for (const auto& gaussian : potential.gaussians) {
-    out<< " L: " <<gaussian.l;
+    out << " L: " << gaussian.l;
     out << " Gaussian Decay: " << gaussian.a;
     out << " Power: " << gaussian.n;
     out << " Contractions: " << gaussian.d << "\n";
   }
   return out;
 }
-
 
 std::ostream& operator<<(std::ostream& out, const ECPAOBasis& ecp) {
 
@@ -193,5 +233,5 @@ std::ostream& operator<<(std::ostream& out, const ECPAOBasis& ecp) {
   return out;
 }
 
-}  // namespace votca
+}  // namespace xtp
 }  // namespace votca

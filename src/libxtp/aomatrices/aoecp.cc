@@ -87,9 +87,7 @@ void AOECP::FillPotential(const AOBasis& aobasis, ECPAOBasis ecp) {
         cartesian_result +=
             Eigen::Map<MatrixLibInt>(results.data.data(), c1, c2);
       }
-      if(cartesian_result.isApproxToConstant(0.0)){
-        continue;
-      }
+
       MatrixLibInt spherical_result = MatrixLibInt::Zero(n1, n2);
       libint2::solidharmonics::tform<double>(basis[s1].l, basis[s2].l,
                                              cartesian_result.data(),
