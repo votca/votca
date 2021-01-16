@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -28,9 +28,8 @@
 namespace votca {
 namespace xtp {
 
-
-  using MatrixLibInt =
-      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using MatrixLibInt =
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 template <libint2::Operator obtype,
           typename OperatorParams =
@@ -45,11 +44,9 @@ std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers>
   std::vector<std::vector<Index>> shellpair_list = aobasis.ComputeShellPairs();
 
   Index nopers = static_cast<Index>(libint2::operator_traits<obtype>::nopers);
-  std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers>
-      result;
+  std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers> result;
   for (MatrixLibInt& r : result) {
-    r = MatrixLibInt::Zero(aobasis.AOBasisSize(),
-                                     aobasis.AOBasisSize());
+    r = MatrixLibInt::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   }
 
   std::vector<libint2::Engine> engines(nthreads);
@@ -119,7 +116,7 @@ Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
     engine.compute(s, s);
 
     Eigen::Map<const MatrixLibInt> buf_mat(buf[0], shell.getNumFunc(),
-                                                     shell.getNumFunc());
+                                           shell.getNumFunc());
     return buf_mat;
   } catch (const libint2::Engine::lmax_exceeded& error) {
     std::ostringstream oss;
@@ -177,7 +174,7 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
   std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
   std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
 
- _aomatrix =
+  _aomatrix =
       Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
   // build engines for each thread

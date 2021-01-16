@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,19 +26,16 @@ namespace votca {
 namespace xtp {
 
 AOGaussianPrimitive::AOGaussianPrimitive(const GaussianPrimitive& gaussian)
-    : _decay(gaussian.decay()),_contraction(gaussian.contraction()){
+    : _decay(gaussian.decay()), _contraction(gaussian.contraction()) {
   _powfactor = CalcPowFactor(_decay);
 }
 
-
-
 void AOGaussianPrimitive::SetupCptTable(CptTable& table) const {
-  Index d=0;
-  double f=0.0;
+  Index d = 0;
+  double f = 0.0;
   table.addCol(d, "atomidx", HOFFSET(data, atomid));
   table.addCol(d, "L", HOFFSET(data, l));
-  table.addCol(d, "startidx",
-               HOFFSET(data, startindex));
+  table.addCol(d, "startidx", HOFFSET(data, startindex));
   table.addCol(f, "decay", HOFFSET(data, decay));
   table.addCol(f, "contr", HOFFSET(data, contraction));
   table.addCol(f, "pos.x", HOFFSET(data, x));
@@ -318,8 +315,7 @@ std::ostream& operator<<(std::ostream& out, const AOShell& shell) {
   out << "AtomIndex:" << shell.getAtomIndex();
   out << " Shelltype:" << EnumToString(shell.getL())
       << " StartIndex:" << shell.getStartIndex()
-      << " MinDecay:" << shell.getMinDecay()
-      << "\n";
+      << " MinDecay:" << shell.getMinDecay() << "\n";
   for (const auto& gaussian : shell) {
     out << " Gaussian Decay: " << gaussian.getDecay();
     out << " Contraction: " << gaussian.getContraction();

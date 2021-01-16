@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -55,12 +55,10 @@ class AOECP : public AOPotential<double> {
   void FillPotential(const AOBasis& aobasis, ECPAOBasis ecp);
 
  protected:
-  void FillBlock(Eigen::Block<Eigen::MatrixXd>& ,
-                 const AOShell& ,
-                 const AOShell& ) const final{};
+  void FillBlock(Eigen::Block<Eigen::MatrixXd>&, const AOShell&,
+                 const AOShell&) const final{};
 
  private:
- 
 };
 
 class AOMultipole : public AOPotential<double> {
