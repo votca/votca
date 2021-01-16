@@ -129,8 +129,8 @@ class PotentialIO {
   };
 
   void SetupCptTable(CptTable& table) const {
-    double d;
-    Index I;
+    double d=0.0;
+    Index I=0;
     table.addCol(I, "atomid", HOFFSET(data, atomid));
     table.addCol(d, "posX", HOFFSET(data, x));
     table.addCol(d, "posY", HOFFSET(data, y));
