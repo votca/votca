@@ -14,6 +14,7 @@ new_date="$(date +%Y)"
 echo "Updating Copyright date to ${new_date} in ${filelist[@]}"
 sed -i 's/Copyright \(.*\)-.* The VOTCA/Copyright \1-'"$new_date"' The VOTCA/' "${filelist[@]}"
 
+[[ ${CI} = 'true' ]] || exit 0
 git add -u
 git config user.name "Votca Bot"
 git config user.email "github@votca.org"
