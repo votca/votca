@@ -31,5 +31,7 @@ fi
 
 git config --global user.name "Votca Bot"
 git config --global user.email "github@votca.org"
-git commit -m "Update ${module} submodule${pr}" || true
-git push origin "${push_branch}"
+# only push the update_*_submodules, if there was actually a change
+if git commit -m "Update ${module} submodule${pr}"; then
+  git push origin "${push_branch}"
+fi
