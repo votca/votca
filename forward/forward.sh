@@ -29,6 +29,7 @@ if [[ "${gitmsg}" =~ "Merge pull request #"([0-9]*) ]]; then
   pr=" (votca/${module}#${BASH_REMATCH[1]})"
 fi
 
+[[ ${CI} = 'true' ]] || exit 0
 git config --global user.name "Votca Bot"
 git config --global user.email "github@votca.org"
 # only push the update_*_submodules, if there was actually a change
