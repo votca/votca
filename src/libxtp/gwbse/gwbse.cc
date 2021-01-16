@@ -585,22 +585,24 @@ bool GWBSE::Evaluate() {
         << TimeStamp()
         << " Using native Eigen implementation, no BLAS overload " << flush;
   }
-  if (OpenMP_CUDA::UsingGPU()) {
+  Index nogpus = OpenMP_CUDA::UsingGPUs();
+  if (nogpus > 0) {
     XTP_LOG(Log::error, *_pLog)
-        << TimeStamp() << " Using CUDA support for tensor multiplication "
-        << flush;
+        << TimeStamp() << " Using CUDA support for tensor multiplication with "
+        << nogpus << " GPUs." << flush;
   }
 
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Molecule Coordinates [A] " << flush;
   for (QMAtom& atom : _orbitals.QMAtoms()) {
-    std::string output =
-        (boost::format("  %1$s"
-                       "   %2$+1.4f %3$+1.4f %4$+1.4f") %
-         atom.getElement() % (atom.getPos().x() * tools::conv::bohr2ang) %
-         (atom.getPos().y() * tools::conv::bohr2ang) %
-         (atom.getPos().z() * tools::conv::bohr2ang))
-            .str();
+    std::string output = (boost::format("%5d"
+                                        "%5s"
+                                        "   %1.4f %1.4f %1.4f") %
+                          atom.getId() % atom.getElement() %
+                          (atom.getPos().x() * tools::conv::bohr2ang) %
+                          (atom.getPos().y() * tools::conv::bohr2ang) %
+                          (atom.getPos().z() * tools::conv::bohr2ang))
+                             .str();
 
     XTP_LOG(Log::error, *_pLog) << output << flush;
   }

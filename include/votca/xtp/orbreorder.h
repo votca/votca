@@ -51,7 +51,7 @@ class OrbReorder {
   std::array<Index, 49> _reorder;
   // clang-format off
   // the ordering of the m quantumnumbers for every shell
-  std::array<Index, 49> _votcaOrder={
+  std::array<Index, 49> _votcaOrder={{
             0, //s
             -1,0,1, //p
             -2,-1,0,1,2, //d
@@ -59,7 +59,7 @@ class OrbReorder {
             -4,-3,-2,-1,0,1,2,3,4, //g
             -5,-4,-3,-2,-1,0,1,2,3,4,5, // h
             -6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6 // i
-            };
+}};
 
   // clang-format on
   OrbTranspositions _transpositions;

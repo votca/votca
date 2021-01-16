@@ -7,7 +7,7 @@ on:
 
 jobs:
   CI:
-    continue-on-error: true
+    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'opensuse:latest' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
     strategy:
       matrix:
         distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'fedora:intel']
@@ -24,10 +24,18 @@ jobs:
             cmake_build_type: Release
             module_build: true
             no_regression_testing: true
+          - distro: 'fedora:intel'
+            toolchain: intel
+            cmake_build_type: Release
+            no_regression_testing: true
+          - distro: 'fedora:intel'
+            toolchain: intel
+            cmake_build_type: Debug
+            no_regression_testing: true
     runs-on: ubuntu-latest
     container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
-      - uses: actions/checkout@v2.2.0
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - name: Run Votca Setup

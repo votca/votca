@@ -302,8 +302,8 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(Log::debug, (format("\nDFT DBG ...")).str());
     std::string dftname = "package.name";
     std::string package = _dftpackage_options.get(dftname).as<std::string>();
-    std::unique_ptr<QMPackage> qmpackage =
-        std::unique_ptr<QMPackage>(QMPackages().Create(package));
+    std::unique_ptr<QMPackage> qmpackage = std::unique_ptr<QMPackage>(
+        QMPackageFactory::QMPackages().Create(package));
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(qmpackage_work_dir);
     qmpackage->Initialize(_dftpackage_options);

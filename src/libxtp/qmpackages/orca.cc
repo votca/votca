@@ -28,6 +28,7 @@
 
 // VOTCA includes
 #include <votca/tools/elements.h>
+#include <votca/tools/getline.h>
 
 // Local VOTCA includes
 #include "votca/tools/globals.h"
@@ -107,10 +108,10 @@ void Orca::WriteCoordinates(std::ofstream& inp_file,
   for (const QMAtom& atom : qmatoms) {
     Eigen::Vector3d pos = atom.getPos() * tools::conv::bohr2ang;
     inp_file << setw(3) << atom.getElement() << setw(12)
-             << setiosflags(ios::fixed) << setprecision(5) << pos.x()
-             << setw(12) << setiosflags(ios::fixed) << setprecision(5)
+             << setiosflags(ios::fixed) << setprecision(6) << pos.x()
+             << setw(12) << setiosflags(ios::fixed) << setprecision(6)
              << pos.y() << setw(12) << setiosflags(ios::fixed)
-             << setprecision(5) << pos.z() << endl;
+             << setprecision(6) << pos.z() << endl;
   }
   inp_file << "* \n" << endl;
   return;
@@ -405,7 +406,7 @@ StaticSegment Orca::GetCharges() const {
 
   std::ifstream input_file(log_file_name_full);
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
     GetCoordinates(result, line, input_file);
 
@@ -413,7 +414,7 @@ StaticSegment Orca::GetCharges() const {
 
     if (charge_pos != std::string::npos) {
       XTP_LOG(Log::error, *_pLog) << "Getting charges" << flush;
-      getline(input_file, line);
+      tools::getline(input_file, line);
       std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
       Index nfields = Index(row.size());
       bool hasAtoms = result.size() > 0;
@@ -450,15 +451,15 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
 
   Eigen::Matrix3d pol = Eigen::Matrix3d::Zero();
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
 
     std::string::size_type pol_pos = line.find("THE POLARIZABILITY TENSOR");
     if (pol_pos != std::string::npos) {
       XTP_LOG(Log::error, *_pLog) << "Getting polarizability" << flush;
-      getline(input_file, line);
-      getline(input_file, line);
-      getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
 
       if (line.find("The raw cartesian tensor (atomic units)") ==
           std::string::npos) {
@@ -467,7 +468,7 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
       }
 
       for (Index i = 0; i < 3; i++) {
-        getline(input_file, line);
+        tools::getline(input_file, line);
         tools::Tokenizer tok2(line, " ");
         std::vector<std::string> values = tok2.ToVector();
         if (values.size() != 3) {
@@ -526,7 +527,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
   QMMolecule& mol = orbitals.QMAtoms();
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
 
     GetCoordinates(mol, line, input_file);
@@ -571,9 +572,9 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     if (OE_pos != std::string::npos) {
 
       number_of_electrons = 0;
-      getline(input_file, line);
-      getline(input_file, line);
-      getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
+      tools::getline(input_file, line);
       if (line.find("E(Eh)") == std::string::npos) {
         XTP_LOG(Log::error, *_pLog)
             << "Warning: Orbital Energies not found in log file" << flush;
@@ -661,7 +662,7 @@ void Orca::GetCoordinates(T& mol, string& line, ifstream& input_file) const {
     XTP_LOG(Log::error, *_pLog) << "Getting the coordinates" << flush;
     bool has_QMAtoms = mol.size() > 0;
     // three garbage lines
-    getline(input_file, line);
+    tools::getline(input_file, line);
     // now starts the data in format
     // _id type Qnuc x y z
     vector<string> row = GetLineAndSplit(input_file, "\t ");
@@ -698,7 +699,7 @@ bool Orca::CheckLogFile() {
 
   std::string line;
   while (input_file) {
-    getline(input_file, line);
+    tools::getline(input_file, line);
     boost::trim(line);
     std::string::size_type error = line.find("FATAL ERROR ENCOUNTERED");
     if (error != std::string::npos) {

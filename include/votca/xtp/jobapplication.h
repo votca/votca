@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <memory>
 #ifndef VOTCA_XTP_JOBAPPLICATION_H
 #define VOTCA_XTP_JOBAPPLICATION_H
 
@@ -42,7 +43,7 @@ class JobApplication : public XtpApplication {
   void BeginEvaluate(Index nThreads, Index ompthread,
                      ProgObserver<std::vector<Job> > &jobs);
   bool EvaluateFrame(Topology &top);
-  void SetCalculator(JobCalculator *calculator);
+  void SetCalculator(std::unique_ptr<JobCalculator> &&calculator);
 
  protected:
   bool _generate_input = false;

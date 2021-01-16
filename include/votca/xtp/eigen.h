@@ -133,6 +133,13 @@ inline Index getMaxThreads() {
   return nthreads;
 }
 
+inline bool InsideActiveParallelRegion(){
+#ifdef _OPENMP
+  return omp_in_parallel();
+#endif
+return false;
+}
+
 inline Index getThreadId() {
   Index thread_id = 0;
 #ifdef _OPENMP

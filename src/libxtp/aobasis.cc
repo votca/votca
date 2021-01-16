@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,6 +22,7 @@
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/qmmolecule.h"
+// include libint last otherwise it overrides eigen
 #include <libint2.hpp>
 
 namespace votca {
@@ -153,7 +154,7 @@ std::vector<std::vector<Index>> AOBasis::ComputeShellPairs(
     const libint2::Engine::target_ptr_vec& buf = engine.results();
     Index n1 = shells[s1].size();
 
-    for (Index s2 = 0; s2 <=s1; ++s2) {
+    for (Index s2 = 0; s2 <= s1; ++s2) {
       bool on_same_center = (shells[s1].O == shells[s2].O);
       bool significant = on_same_center;
       if (!on_same_center) {
@@ -206,7 +207,7 @@ void AOBasis::WriteToCpt(CheckpointWriter& w) const {
   Index i = 0;
   for (const auto& shell : _aoshells) {
     for (const auto& gaussian : shell) {
-      gaussian.WriteData(dataVec[i]);
+      gaussian.WriteData(dataVec[i], shell);
       i++;
     }
   }
@@ -236,8 +237,7 @@ void AOBasis::ReadFromCpt(CheckpointReader& r) {
         _aoshells.push_back(AOShell(dataVec[i]));
         laststartindex = dataVec[i].startindex;
       } else {
-        _aoshells.back()._gaussians.push_back(
-            AOGaussianPrimitive(dataVec[i], _aoshells.back()));
+        _aoshells.back()._gaussians.push_back(AOGaussianPrimitive(dataVec[i]));
       }
     }
 

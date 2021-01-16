@@ -132,8 +132,9 @@ void JobApplication::Run() {
   }
 }
 
-void JobApplication::SetCalculator(JobCalculator* calculator) {
-  _calculator = std::unique_ptr<JobCalculator>(calculator);
+void JobApplication::SetCalculator(
+    std::unique_ptr<JobCalculator>&& calculator) {
+  _calculator = std::move(calculator);
 }
 
 void JobApplication::BeginEvaluate(Index nThreads, Index ompThreads,

@@ -38,10 +38,6 @@ namespace xtp {
 
 class Orbitals;
 
-// ========================================================================== //
-// QMPackage base class for wrappers of ORCA
-// ========================================================================== //
-
 class QMPackage {
  public:
   virtual ~QMPackage() = default;

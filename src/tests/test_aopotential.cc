@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,22 +41,6 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
-
-  // clang-format off
-  std::array<Index, 49> votcaOrder_old = {
-      0,                             // s
-      0, -1, 1,                      // p
-      0, -1, 1, -2, 2,               // d
-      0, -1, 1, -2, 2, -3, 3,        // f
-      0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
-      0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
-      0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
-  };
-  // clang-format on
-
-  std::array<Index, 49> multiplier;
-  multiplier.fill(1);
-  OrbReorder ord(votcaOrder_old, multiplier);
 
   AOMultipole esp;
   esp.FillPotential(aobasis, orbitals.QMAtoms());
@@ -271,22 +255,6 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   AOBasis dftbasis;
   dftbasis.Fill(basisset, mol);
 
-  // clang-format off
-    std::array<Index, 49> votcaOrder_old = {
-        0,                             // s
-        0, -1, 1,                      // p
-        0, -1, 1, -2, 2,               // d
-        0, -1, 1, -2, 2, -3, 3,        // f
-        0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
-        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
-        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
-    };
-  // clang-format on
-
-  std::array<Index, 49> multiplier;
-  multiplier.fill(1);
-  OrbReorder ord(votcaOrder_old, multiplier);
-
   Index dftbasissize = 18;
 
   StaticSegment seg2("", 0);
@@ -319,8 +287,8 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   AOECP ecp;
   ecp.FillPotential(dftbasis, ecpbasis);
 
-  Eigen::MatrixXd ecp_ref = Eigen::MatrixXd::Zero(dftbasissize, dftbasissize);
-
+  Eigen::MatrixXd ecp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/ecp_ref_l.mm");
   bool check_ecp = ecp.Matrix().isApprox(ecp_ref, 0.00001);
   BOOST_CHECK_EQUAL(check_ecp, 1);
   if (!check_ecp) {

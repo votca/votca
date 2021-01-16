@@ -14,3 +14,5 @@ The following calculators are available:
    molpol
    partialcharges
    spectrum
+   orb2mol
+   mol2orb

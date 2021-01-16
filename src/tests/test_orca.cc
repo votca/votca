@@ -40,7 +40,11 @@ BOOST_AUTO_TEST_CASE(polar_test) {
 
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
-      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+      QMPackageFactory::QMPackages().Create("orca");
+  auto keys = QMPackageFactory::QMPackages().getKeys();
+  for (auto key : keys) {
+    std::cout << key << std::endl;
+  }
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
@@ -51,6 +55,7 @@ BOOST_AUTO_TEST_CASE(polar_test) {
   polar_ref << 11.40196, -0.00423, 0.00097, -0.00423, 11.42894, 0.01163,
       0.00097, 0.01163, 11.41930;
   bool polar_check = polar_ref.isApprox(polar_mat, 1e-5);
+  BOOST_CHECK_EQUAL(polar_check, true);
   if (!polar_check) {
     std::cout << "res" << std::endl;
     std::cout << polar_mat << std::endl;
@@ -63,7 +68,7 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   libint2::initialize();
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
-      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+      QMPackageFactory::QMPackages().Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
@@ -151,7 +156,7 @@ BOOST_AUTO_TEST_CASE(charges_test) {
   libint2::initialize();
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
-      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+      QMPackageFactory::QMPackages().Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
@@ -195,7 +200,7 @@ BOOST_AUTO_TEST_CASE(opt_test) {
 
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
-      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+      QMPackageFactory::QMPackages().Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
@@ -260,7 +265,7 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
 
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
-      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+      QMPackageFactory::QMPackages().Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(".");

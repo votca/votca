@@ -28,14 +28,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout head branch from PR
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
-        uses: actions/checkout@master
+        uses: actions/checkout@v2
         with:
           repository: ${{ fromJSON(steps.pr_info.outputs.data).head.repo.full_name }}
           ref: ${{ fromJSON(steps.pr_info.outputs.data).head.ref }}
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Run clang-format
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
-        run: find . -type f -regex ".*\.\(c\|h\|cc\|cpp\|hpp\)" -print0 | xargs -0 clang-format -i -style=file
+        run: |
+          curl -OL https://github.com/votca/votca/raw/master/.clang-format
+          find . -type f -regex ".*\.\(c\|h\|cc\|cpp\|hpp\)" -print0 | xargs -0 clang-format -i -style=file
       - name: Commit and push
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
         run: |

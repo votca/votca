@@ -138,7 +138,13 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     if (state.Type().isExciton()) {
       energy += _orb.getExcitedStateEnergy(state);
     } else {
-      energy = _orb.getExcitedStateEnergy(state);
+      // if unoccupied, add QP level energy
+      if (state.StateIdx() > _orb.getHomo()) {
+        energy += _orb.getExcitedStateEnergy(state);
+      } else {
+        // if unoccupied, subtract QP level energy
+        energy -= _orb.getExcitedStateEnergy(state);
+      }
     }
   }
   _E_hist.push_back(energy);
@@ -192,8 +198,8 @@ void QMRegion::Reset() {
 
   std::string dft_package_name =
       _dftoptions.get("package.name").as<std::string>();
-  _qmpackage =
-      std::unique_ptr<QMPackage>(QMPackages().Create(dft_package_name));
+  _qmpackage = std::unique_ptr<QMPackage>(
+      QMPackageFactory::QMPackages().Create(dft_package_name));
   _qmpackage->setLog(&_log);
   _qmpackage->Initialize(_dftoptions);
   Index charge = 0;

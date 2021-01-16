@@ -22,6 +22,8 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/symmetric_matrix.h"
+
+// include libint last otherwise it overrides eigen
 #include <libint2.hpp>
 namespace votca {
 namespace xtp {
@@ -144,7 +146,6 @@ std::array<Eigen::MatrixXd, 2> ERIs::Compute4c(const Eigen::MatrixXd& dmat,
   std::vector<libint2::Engine> engines(nthreads);
   engines[0] = libint2::Engine(libint2::Operator::coulomb, int(maxnprim_),
                                int(maxL_), 0);
-  std::cout << fock_precision << std::endl;
   engines[0].set_precision(engine_precision);  // shellset-dependent precision
                                                // control will likely break
                                                // positive definiteness
@@ -285,7 +286,7 @@ Eigen::MatrixXd ERIs::CalculateEXX_dmat(const Eigen::MatrixXd& DMAT) const {
 #pragma omp parallel for schedule(guided) reduction(+ : EXX)
   for (Index i = 0; i < _threecenter.size(); i++) {
     const Eigen::MatrixXd threecenter = _threecenter[i].UpperMatrix();
-    EXX += threecenter.selfadjointView<Eigen::Upper>() * DMAT *
+    EXX -= threecenter.selfadjointView<Eigen::Upper>() * DMAT *
            threecenter.selfadjointView<Eigen::Upper>();
   }
   return EXX;
@@ -301,7 +302,7 @@ Eigen::MatrixXd ERIs::CalculateEXX_mos(const Eigen::MatrixXd& occMos) const {
     const Eigen::MatrixXd TCxMOs_T =
         occMos.transpose() *
         _threecenter[i].UpperMatrix().selfadjointView<Eigen::Upper>();
-    EXX += TCxMOs_T.transpose() * TCxMOs_T;
+    EXX -= TCxMOs_T.transpose() * TCxMOs_T;
   }
   return 2 * EXX;
 }

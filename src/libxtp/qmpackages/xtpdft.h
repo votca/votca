@@ -78,7 +78,7 @@ class XTPDFT : public QMPackage {
 
  private:
   // clang-format off
-  std::array<Index,49> _multipliers={
+  std::array<Index,49> _multipliers={{
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
@@ -86,16 +86,16 @@ class XTPDFT : public QMPackage {
             1,1,1,1,1,1,1,1,1, //g
             1,1,1,1,1,1,1,1,1,1,1, //h
             1,1,1,1,1,1,1,1,1,1,1,1,1 //i
-            };
-  std::array<Index,49> _reorderList={
+  }};
+  std::array<Index,49> _reorderList={{
             0, //s
-            0,-1,1, //p
-            0,-1,1,-2,2, //d
-            0,-1,1,-2,2,-3,3, //f 
-            0,-1,1,-2,2,-3,3,-4,4, //g
-            0,-1,1,-2,2,-3,3,-4,4,-5,5, //h
-            0,-1,1,-2,2,-3,3,-4,4,-5,5,-6,6 //i
-            };
+            0,0,0, //p
+            0,0,0,0,0, //d
+            0,0,0,0,0,0,0, //f 
+            0,0,0,0,0,0,0,0,0, //g
+            0,0,0,0,0,0,0,0,0,0,0, //h
+            0,0,0,0,0,0,0,0,0,0,0,0,0, //i
+            }};
   // clang-format on
 
   void WriteChargeOption() final { return; }

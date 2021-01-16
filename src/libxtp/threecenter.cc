@@ -23,6 +23,8 @@
 #include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/symmetric_matrix.h"
+
+// include libint last otherwise it overrides eigen
 #include <libint2.hpp>
 
 namespace votca {
@@ -247,7 +249,7 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
   }
   std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
 
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(dynamic)
   for (Index aux = 0; aux < Index(auxshells.size()); aux++) {
     const libint2::Shell& auxshell = auxshells[aux];
 

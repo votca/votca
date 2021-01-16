@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(votca-xtp LANGUAGES CXX)
 
-set(PROJECT_VERSION "2021-dev")
+set(PROJECT_VERSION "2022-dev")
 string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
   message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
@@ -50,6 +50,13 @@ pkg_check_modules(LIBXC REQUIRED IMPORTED_TARGET libxc)
 if(NOT TARGET PkgConfig::LIBINT)
   pkg_check_modules(LIBINT REQUIRED IMPORTED_TARGET libint2>=2.6)
 endif()
+find_package(ecpint REQUIRED)
+set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculate pseudo potentials")
+if(NOT TARGET ECPINT::ecpint) # newer versions are namespaced.
+  set_target_properties(ecpint PROPERTIES IMPORTED_GLOBAL TRUE)
+  add_library(ECPINT::ecpint ALIAS ecpint)
+endif()
+message(STATUS "Found libecpint: ECP${ecpint_DIR}")
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
@@ -119,9 +126,6 @@ if(USE_CUDA)
   find_package(CUDA REQUIRED)
   set_package_properties(CUDA PROPERTIES TYPE REQUIRED PURPOSE "Used for GPU acceleration")
 endif(USE_CUDA)
-
-find_package(Kokkos 3.0 CONFIG)
-set_package_properties(Kokkos PROPERTIES TYPE OPTIONAL PURPOSE "Used to Ewald solver")
 
 ########################################################################
 # Checks what linear algebra packages are installed                    #

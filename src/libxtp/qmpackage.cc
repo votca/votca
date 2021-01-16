@@ -21,6 +21,7 @@
 #include <boost/algorithm/string.hpp>
 
 // Local VOTCA includes
+#include "votca/tools/getline.h"
 #include "votca/tools/globals.h"
 #include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/orbitals.h"
@@ -134,7 +135,7 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
 std::vector<std::string> QMPackage::GetLineAndSplit(
     std::ifstream& input_file, const std::string separators) const {
   std::string line;
-  getline(input_file, line);
+  tools::getline(input_file, line);
   boost::trim(line);
   tools::Tokenizer tok(line, separators);
   return tok.ToVector();

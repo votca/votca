@@ -95,7 +95,6 @@ class ERIs {
 
   TCMatrix_dft _threecenter;
 
-  double _screening_eps;
   Eigen::MatrixXd schwarzscreen_;  // Square matrix containing <ab|ab> for all
                                    // shells
 };                                 // namespace xtp
