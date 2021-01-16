@@ -4,7 +4,7 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ================
 
-Version 2021-rc.1 (released XX.01.21)
+Version 2021-rc.1 (released 15.01.21)
 =====================================
 
 -  remove topology item (#486)
