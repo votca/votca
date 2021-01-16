@@ -2,11 +2,11 @@ For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/xtp/commits/master>`__.
 
 Version 2022-dev
-===============
+================
 
 -  Updated coordinate precision (#638)
 
-Version 2021-rc.1 (released XX.01.21)
+Version 2021-rc.1 (released 15.01.21)
 =====================================
 
 -  G0W0 rpa energies are fixed in BSE (#383)
