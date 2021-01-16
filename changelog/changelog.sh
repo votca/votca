@@ -32,6 +32,7 @@ if [[ -f CHANGELOG.rst ]]; then
   CHANGELOG=CHANGELOG.rst
   for v in ${try_versions[@]}; do
     version_section="$(awk -v r="^Version ${v}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' "${CHANGELOG}")"
+    line_nr="$(sed -n "/^Version ${v}\( \|$\)/=" "${CHANGELOG}")"
     [[ -z ${version_section} ]] || break
   done
   message="-  ${INPUT_MESSAGE#*: } (#$INPUT_PR_NUMBER)"
@@ -40,13 +41,20 @@ else
 fi
 
 [[ $version_section ]] || die "Could not find section to $version"
-echo "Found section for $v"
+echo "Found section for $v (starting line ${line_nr})"
 last_line="$(echo "$version_section" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
 [[ $last_line ]] || die "Could not grep last line"
-[[ -z ${last_line##-*} ]] || die "Last line isn't an item (does not start with -)"
 
-echo "Adding message '$message' after line '${last_line}'"
-sed -i "/$last_line/a ${message}" "${CHANGELOG}"
+if [[ ${last_line} = -* ]]; then
+  echo "Adding message '$message' after line '${last_line}'"
+  sed -i "/$last_line/a ${message}" "${CHANGELOG}"
+elif [[ -z ${last_line//=} ]]; then #section header
+  (( line_nr=line_nr+2 ))
+  echo "Adding message '$message' after line ${line_nr}"
+  sed -i "${line_nr}a ${message}\n" "${CHANGELOG}"
+else
+  die "Last line isn't an item (does not start with -) nor a section header (===), case not implemented"
+fi
 
 [[ ${CI} = 'true' ]] || exit 0
 git add "${CHANGELOG}"
