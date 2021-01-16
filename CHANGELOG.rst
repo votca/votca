@@ -5,6 +5,7 @@ Version 2022-dev
 ================
 
 -  Updated coordinate precision (#638)
+-  using libecpint for pseudo potentials (#588)
 
 Version 2021-rc.1 (released 15.01.21)
 =====================================
