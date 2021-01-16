@@ -46,7 +46,6 @@ namespace xtp {
 
 void DFTEngine::Initialize(Property& options) {
 
-  std::cout << options << std::endl;
   string key = "package";
   const string key_xtpdft = "package.xtpdft";
   _dftbasis_name = options.get(key + ".basisset").as<string>();
