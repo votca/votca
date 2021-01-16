@@ -287,7 +287,7 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   AOECP ecp;
   ecp.FillPotential(dftbasis, ecpbasis);
 
- Eigen::MatrixXd ecp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+  Eigen::MatrixXd ecp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/ecp_ref_l.mm");
   bool check_ecp = ecp.Matrix().isApprox(ecp_ref, 0.00001);
   BOOST_CHECK_EQUAL(check_ecp, 1);

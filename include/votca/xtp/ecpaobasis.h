@@ -22,8 +22,8 @@
 #define VOTCA_XTP_ECPAOBASIS_H
 // Local VOTCA includes
 #include "checkpoint.h"
-#include "qmatom.h"
 #include "ecpbasisset.h"
+#include "qmatom.h"
 #include <libecpint/ecp.hpp>
 
 namespace votca {
@@ -31,9 +31,7 @@ namespace xtp {
 class QMMolecule;
 class ECPBasisSet;
 
-
- std::ostream& operator<<(std::ostream& out, const  libecpint::ECP& ecp);
-
+std::ostream& operator<<(std::ostream& out, const libecpint::ECP& ecp);
 
 /**
  * \brief Container to hold ECPs for all atoms
@@ -50,7 +48,7 @@ class ECPAOBasis {
   constECPAOShellIterator end() const { return _aopotentials.end(); }
 
   using ECPAOShellIterator = std::vector<libecpint::ECP>::iterator;
-  ECPAOShellIterator begin()  { return _aopotentials.begin(); }
+  ECPAOShellIterator begin() { return _aopotentials.begin(); }
   ECPAOShellIterator end() { return _aopotentials.end(); }
 
   Index getMaxL() const;
@@ -76,7 +74,6 @@ class ECPAOBasis {
   std::vector<libecpint::ECP> _aopotentials;
 
   std::string _name = "";
-  
 };
 
 }  // namespace xtp

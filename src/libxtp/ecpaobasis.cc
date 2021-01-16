@@ -28,12 +28,10 @@
 namespace votca {
 namespace xtp {
 
-
-
 Index ECPAOBasis::getMaxL() const {
   int maxL = 0;
   for (const auto& potential : _aopotentials) {
-    maxL=std::max(potential.getL(),maxL);
+    maxL = std::max(potential.getL(), maxL);
   }
   return Index(maxL);
 }
@@ -96,12 +94,15 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
 
       libecpint::ECP potential(atom.getPos().data());
       for (const ECPShell& shell : element) {
-        for(const auto& gaussian:shell){
-          potential.addPrimitive(int(gaussian._power), int(shell.getL()), gaussian._decay, gaussian._contraction);
+        for (const auto& gaussian : shell) {
+          potential.addPrimitive(int(gaussian._power), int(shell.getL()),
+                                 gaussian._decay, gaussian._contraction);
         }
       }
       _aopotentials.push_back(potential);
-      _aopotentials.back().atom_id=int(atom.getId());//add atom id here because copyconstructor  of libecpint::ECP is broken
+      _aopotentials.back().atom_id =
+          int(atom.getId());  // add atom id here because copyconstructor  of
+                              // libecpint::ECP is broken
     } else {
       _ncore_perAtom.push_back(0);
     }
@@ -167,16 +168,16 @@ void ECPAOBasis::ReadFromCpt(CheckpointReader& r) {
 }
 
 std::ostream& operator<<(std::ostream& out, const libecpint::ECP& potential) {
-  out << " AtomId: " <<  potential.atom_id<< " Components: "<<potential.getN()<<"\n";
+  out << " AtomId: " << potential.atom_id << " Components: " << potential.getN()
+      << "\n";
   for (const auto& gaussian : potential.gaussians) {
-    out<< " L: " <<gaussian.l;
+    out << " L: " << gaussian.l;
     out << " Gaussian Decay: " << gaussian.a;
     out << " Power: " << gaussian.n;
     out << " Contractions: " << gaussian.d << "\n";
   }
   return out;
 }
-
 
 std::ostream& operator<<(std::ostream& out, const ECPAOBasis& ecp) {
 
@@ -193,5 +194,5 @@ std::ostream& operator<<(std::ostream& out, const ECPAOBasis& ecp) {
   return out;
 }
 
-}  // namespace votca
+}  // namespace xtp
 }  // namespace votca

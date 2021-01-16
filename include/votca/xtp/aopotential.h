@@ -55,12 +55,10 @@ class AOECP : public AOPotential<double> {
   void FillPotential(const AOBasis& aobasis, ECPAOBasis ecp);
 
  protected:
-  void FillBlock(Eigen::Block<Eigen::MatrixXd>& ,
-                 const AOShell& ,
-                 const AOShell& ) const final{};
+  void FillBlock(Eigen::Block<Eigen::MatrixXd>&, const AOShell&,
+                 const AOShell&) const final{};
 
  private:
- 
 };
 
 class AOMultipole : public AOPotential<double> {

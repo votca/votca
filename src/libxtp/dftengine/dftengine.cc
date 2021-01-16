@@ -787,7 +787,7 @@ void DFTEngine::Prepare(QMMolecule& mol) {
         << TimeStamp() << " Loaded ECP library " << _ecp_name << flush;
 
     std::vector<std::string> results = _ecp.Fill(ecpbasisset, mol);
-    XTP_LOG(Log::info, *_pLog) << TimeStamp() << " Filled ECP Basis"<<flush;
+    XTP_LOG(Log::info, *_pLog) << TimeStamp() << " Filled ECP Basis" << flush;
     if (results.size() > 0) {
       std::string message = "";
       for (const std::string& element : results) {

@@ -56,10 +56,11 @@ void AOECP::FillPotential(const AOBasis& aobasis, ECPAOBasis ecp) {
         int(shell.getL()));
     spherical_size.push_back(shell.getNumFunc());
     cartesian_size.push_back(shell.getCartesianNumFunc());
-    //The normalisation libecpint requires is identical to the libint normalisation of shells
-    libint2::Shell s_libint=shell.LibintShell();
-    for (Index i=0;i<Index(s_libint.nprim());i++) {
-      s.addPrim(s_libint.alpha[i],s_libint.contr[0].coeff[i]);
+    // The normalisation libecpint requires is identical to the libint
+    // normalisation of shells
+    libint2::Shell s_libint = shell.LibintShell();
+    for (Index i = 0; i < Index(s_libint.nprim()); i++) {
+      s.addPrim(s_libint.alpha[i], s_libint.contr[0].coeff[i]);
     }
     basis.push_back(s);
   }
@@ -68,7 +69,7 @@ void AOECP::FillPotential(const AOBasis& aobasis, ECPAOBasis ecp) {
   std::vector<libecpint::ECPIntegral> engines(
       OPENMP::getMaxThreads(),
       libecpint::ECPIntegral(int(aobasis.getMaxL()), int(ecp.getMaxL()), 0));
-  #pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(guided)
   for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
     Index thread_id = OPENMP::getThreadId();
     libecpint::ECPIntegral& engine = engines[thread_id];
@@ -87,7 +88,7 @@ void AOECP::FillPotential(const AOBasis& aobasis, ECPAOBasis ecp) {
         cartesian_result +=
             Eigen::Map<MatrixLibInt>(results.data.data(), c1, c2);
       }
-      if(cartesian_result.isApproxToConstant(0.0)){
+      if (cartesian_result.isApproxToConstant(0.0)) {
         continue;
       }
       MatrixLibInt spherical_result = MatrixLibInt::Zero(n1, n2);

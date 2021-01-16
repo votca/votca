@@ -280,8 +280,9 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
           if (only_explicit) {
             Index no_of_segs = explicitly_named_segs_per_region[id];
             if (no_of_segs == 0) {
-              throw std::runtime_error("Region with id '" + std::to_string(id) +
-                                       "' does not have explicitly named segments");
+              throw std::runtime_error(
+                  "Region with id '" + std::to_string(id) +
+                  "' does not have explicitly named segments");
             }
             center.resize(no_of_segs, SegId(0, "n"));
             // need the second argument because resize can also increase

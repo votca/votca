@@ -207,7 +207,7 @@ void AOBasis::WriteToCpt(CheckpointWriter& w) const {
   Index i = 0;
   for (const auto& shell : _aoshells) {
     for (const auto& gaussian : shell) {
-      gaussian.WriteData(dataVec[i],shell);
+      gaussian.WriteData(dataVec[i], shell);
       i++;
     }
   }
@@ -237,8 +237,7 @@ void AOBasis::ReadFromCpt(CheckpointReader& r) {
         _aoshells.push_back(AOShell(dataVec[i]));
         laststartindex = dataVec[i].startindex;
       } else {
-        _aoshells.back()._gaussians.push_back(
-            AOGaussianPrimitive(dataVec[i]));
+        _aoshells.back()._gaussians.push_back(AOGaussianPrimitive(dataVec[i]));
       }
     }
 
