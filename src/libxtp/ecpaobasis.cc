@@ -140,7 +140,6 @@ class PotentialIO {
     table.addCol(d, "coeff", HOFFSET(data, coeff));
     table.addCol(d, "decay", HOFFSET(data, decay));
   }
-
 };
 
 void ECPAOBasis::WriteToCpt(CheckpointWriter& w) const {
@@ -189,20 +188,18 @@ void ECPAOBasis::ReadFromCpt(CheckpointReader& r) {
     CptTable table = r.openTable("Potentials", dummy);
     std::vector<PotentialIO::data> dataVec(table.numRows());
     table.read(dataVec);
-    Index atomindex=-1;
-    for (const PotentialIO::data& d:dataVec){
-        if(d.atomid>atomindex){
-          Eigen::Vector3d pos(d.x,d.y,d.z);
-          _aopotentials.push_back(libecpint::ECP(pos.data()));
-          _aopotentials.back().atom_id=int(d.atomid);
-          atomindex=d.atomid;
-        }
-        // +2 because constructor of libecpint::primitve always subtracts 2
-        _aopotentials.back().addPrimitive(int(d.power)+2, int(d.l),
-                                 d.decay, d.coeff);
-
+    Index atomindex = -1;
+    for (const PotentialIO::data& d : dataVec) {
+      if (d.atomid > atomindex) {
+        Eigen::Vector3d pos(d.x, d.y, d.z);
+        _aopotentials.push_back(libecpint::ECP(pos.data()));
+        _aopotentials.back().atom_id = int(d.atomid);
+        atomindex = d.atomid;
+      }
+      // +2 because constructor of libecpint::primitve always subtracts 2
+      _aopotentials.back().addPrimitive(int(d.power) + 2, int(d.l), d.decay,
+                                        d.coeff);
     }
-
   }
 }
 
