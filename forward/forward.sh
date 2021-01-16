@@ -16,8 +16,6 @@ push_branch="update_${branch}_submodules"
 
 echo "Working on $module, push $branch to $push_branch of votca/votca"
 
-[[ -d .git ]] || git clone https://${INPUT_TOKEN}@github.com/votca/votca
-[[ -d .git ]] || pushd votca
 git checkout -b "${push_branch}" "origin/${push_branch}" || git checkout -b "${push_branch}" "origin/${branch}"
 git submodule update --init
 git -C "${module}" remote update

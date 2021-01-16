@@ -4,9 +4,6 @@ inputs:
   module:
     description: 'VOTCA module to update'
     required: true
-  token:
-    description: 'GitHub token to use'
-    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
