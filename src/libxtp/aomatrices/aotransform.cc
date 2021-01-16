@@ -38,13 +38,17 @@ double AOTransform::getNorm(L l, const AOGaussianPrimitive& gaussian) {
     }
     case L::F: {
       return 8 * std::pow(decay, 1.5) * contraction / std::sqrt(5 * 3);
+    }
+    case L::G: {
       return decay * decay * contraction * 16.0 / std::sqrt(5. * 3. * 7.);
+    }
     default:
       throw std::runtime_error("No norms for shells higher than g (l=4)");
   }
+
   return 0;
 }
-}
+
 /// multiplies rows and columns of matrix cartesian, returns Matrix
 template <typename Matrix>
 Matrix AOTransform::tform(L l_row, L l_col, const Matrix& cartesian) {
@@ -94,7 +98,6 @@ template Eigen::MatrixXd AOTransform::tform(L l_row, L l_col,
                                             const Eigen::MatrixXd& cartesian);
 template Eigen::MatrixXcd AOTransform::tform(L l_row, L l_col,
                                              const Eigen::MatrixXcd& cartesian);
-
 
   Eigen::VectorXd AOTransform::XIntegrate(Index size, double U) {
 

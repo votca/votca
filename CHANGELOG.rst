@@ -1,8 +1,13 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/xtp/commits/master>`__.
 
-Version 2021-dev
+Version 2022-dev
 ===============
+
+-  Updated coordinate precision (#638)
+
+Version 2021-rc.1 (released XX.01.21)
+=====================================
 
 -  G0W0 rpa energies are fixed in BSE (#383)
 -  Hqp part of BSE can be separate from QP range (#388)
@@ -31,7 +36,7 @@ Version 2021-dev
 -  changed to OpenMP reductions instead of hand crafted solutions (#466,
    #471, #493)
 -  switch to GitHub Actions as CI (#467, #474, #477, #482, #500, #502,
-   #518, #549)
+   #518, #549, #637)
 -  move tutorial to its own repo (#450)
 -  removed share/packages folder (#475)
 -  copy orca \*.gbw files in eqm (#472)
@@ -88,8 +93,11 @@ Version 2021-dev
 -  better error for exceeded angular momentum in libint (#613)
 -  fixed wrong QP-QMMM energy with non-zero QPmin (#620)
 -  fixed density analysis options (#627)
+-  Use libint transformation matrices (#630)
+-  Added script to extract orbitals from qmmm statefile (#629)
+-  clean up XTP app message (#631)
 
-Version 1.6.4 (released XX.12.20)
+Version 1.6.4 (released 12.01.21)
 =================================
 
 -  fix build on openSUSE (#622)

@@ -56,8 +56,10 @@ void AOECP::FillPotential(const AOBasis& aobasis, ECPAOBasis ecp) {
         int(shell.getL()));
     spherical_size.push_back(shell.getNumFunc());
     cartesian_size.push_back(shell.getCartesianNumFunc());
-    for (const auto& gaussian : shell) {
-      s.addPrim(gaussian.getDecay(), gaussian.getContraction());
+    //The normalisation libecpint requires is identical to the libint normalisation of shells
+    libint2::Shell s_libint=shell.LibintShell();
+    for (Index i=0;i<Index(s_libint.nprim());i++) {
+      s.addPrim(s_libint.alpha[i],s_libint.contr[0].coeff[i]);
     }
     basis.push_back(s);
   }
@@ -66,11 +68,7 @@ void AOECP::FillPotential(const AOBasis& aobasis, ECPAOBasis ecp) {
   std::vector<libecpint::ECPIntegral> engines(
       OPENMP::getMaxThreads(),
       libecpint::ECPIntegral(int(aobasis.getMaxL()), int(ecp.getMaxL()), 0));
-std::cout<<ecp<<std::endl;
-for(auto shell:basis){
-  std::cout<<shell<<std::endl;
-}
-  //#pragma omp parallel for schedule(guided)
+  #pragma omp parallel for schedule(guided)
   for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
     Index thread_id = OPENMP::getThreadId();
     libecpint::ECPIntegral& engine = engines[thread_id];
@@ -92,18 +90,15 @@ for(auto shell:basis){
       if(cartesian_result.isApproxToConstant(0.0)){
         continue;
       }
-      // std::cout << "cart:" << cartesian_result << std::endl;
       MatrixLibInt spherical_result = MatrixLibInt::Zero(n1, n2);
       libint2::solidharmonics::tform<double>(basis[s1].l, basis[s2].l,
                                              cartesian_result.data(),
                                              spherical_result.data());
-      //std::cout << "sph:" << spherical_result << std::endl;
       _aopotential.block(bf1, bf2, n1, n2) = spherical_result;
       if (s1 != s2) {  // if s1 >= s2, copy {s1,s2} to the corresponding
                        // {s2,s1} block, note the transpose!
         _aopotential.block(bf2, bf1, n2, n1) = spherical_result.transpose();
       }
-      std::cout<<_aopotential<<std::endl;
     }
   }
 }

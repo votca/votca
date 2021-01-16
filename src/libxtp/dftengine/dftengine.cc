@@ -58,7 +58,6 @@ void DFTEngine::Initialize(Property& options) {
       options.get(key_xtpdft + ".four_center_method").as<std::string>();
 
   if (_four_center_method != "RI") {
-    _with_screening = options.get(key_xtpdft + ".with_screening").as<bool>();
     _screening_eps = options.get(key_xtpdft + ".screening_eps").as<double>();
   }
 
