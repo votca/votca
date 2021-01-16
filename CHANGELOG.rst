@@ -6,6 +6,9 @@ Version 2022-dev
 
 -  Updated coordinate precision (#638)
 
+Version 2021-rc.2 (released XX.01.21)
+=====================================
+
 Version 2021-rc.1 (released 15.01.21)
 =====================================
 
