@@ -37,6 +37,7 @@ OPTIONS:
     --repos REPOS   Use repos instead of '${what[@]}'
     -j  JOBS        Jobs to use instead of '$j'
     --verbose       Do a verbose build
+    --debug         Run in debug more
 -D*                 Extra option to give to cmake 
 
 Examples:  ${0##*/} --help
@@ -69,6 +70,9 @@ while [[ $# -gt 0 ]]; do
      shift 1;;
    --verbose)
      verbose=yes
+     shift 1;;
+   --debug)
+     set -x
      shift 1;;
    -D)
     cmake_opts+=( -D"${2}" )
@@ -191,6 +195,29 @@ if [[ $testing = "no" ]]; then
   git commit -m "Version bumped to $rel"
   git tag "v${rel}"
 fi
+
+if [[ $rel = *-dev ]]; then
+  add_rel="${rel%-dev}-rc.1"
+elif [[ $rel = 20??.* ]]; then
+  add_rel="${rel%.*}.$((${rel##*.}+1))"
+elif [[ $rel = 20?? ]]; then
+  add_rel="${rel}.1"
+elif [[ $rel = *-rc.* ]]; then
+  add_rel="${rel%-rc*}-rc.$((${rel#*-rc.}+1))"
+else
+  die "Unknown rel scheme, found $rel"
+fi
+
+new_section="Version ${add_rel} (released $(date +XX.%m.%y))"
+for c in */CHANGELOG.rst; do
+  p="${c%/CHANGELOG.rst}"
+  sed -i "/^Version ${rel}\>/i ${new_section}\n${new_section//?/=}\n" "$c"
+  git -C "$p" add CHANGELOG.rst
+  git -C "$p" commit -m "CHANGELOG: add ${add_rel} section"
+  git add "$p"
+done
+git commit -m "update CHANGELOG sections in all submodules"
+
 trap - EXIT
 
 if [[ $testing = "no" ]]; then

@@ -1,8 +1,5 @@
 name: release
 on:
-  push:
-    branches:
-      - release_testing
   workflow_dispatch:
     inputs:
       cmake_args:
@@ -77,6 +74,7 @@ jobs:
       - name: Show diff
         run: |
           for p in . tools csg csg-tutorials xtp xtp-tutorials; do
+            echo "Module: $p"
             git -C $p log -p --submodule origin/${{ steps.setup.outputs.BRANCH }}..${{ steps.setup.outputs.BRANCH }}
           done
       - name: Push tags
