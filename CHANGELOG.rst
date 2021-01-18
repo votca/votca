@@ -5,6 +5,7 @@ Version 2022-dev
 ================
 
 -  Updated coordinate precision (#638)
+-  Made SetupCptTable static (#650)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
