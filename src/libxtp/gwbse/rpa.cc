@@ -33,26 +33,47 @@ void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
   Index rpatotal = _rpamax - _rpamin + 1;
   _energies = dftenergies.segment(_rpamin, rpatotal);
   Index gwsize = Index(gwaenergies.size());
-  Index lumo = _homo + 1;
 
-  Index qpmax = qpmin + gwsize - 1;
   _energies.segment(qpmin - _rpamin, gwsize) = gwaenergies;
 
-  Eigen::VectorXd corrections_occ =
-      _energies.segment(qpmin - _rpamin, lumo - qpmin) -
-      dftenergies.segment(qpmin - _rpamin, lumo - qpmin);
-  Eigen::VectorXd corrections_virt =
-      _energies.segment(lumo - qpmin, gwsize - (lumo - qpmin)) -
-      dftenergies.segment(lumo - qpmin, gwsize - (lumo - qpmin));
-  double max_correction_occ = (corrections_occ.cwiseAbs()).maxCoeff();
-  double max_correction_virt = (corrections_virt.cwiseAbs()).maxCoeff();
+  ShiftUncorrectedEnergies(dftenergies,qpmin,gwsize);
 
-  Index levelaboveqpmax = _rpamax - qpmax;
-  Index levelbelowqpmin = qpmin - _rpamin;
+}
 
-  _energies.segment(0, levelbelowqpmin).array() -= max_correction_occ;
-  _energies.segment(qpmax + 1 - _rpamin, levelaboveqpmax).array() +=
+
+// Shifts energies of levels that are not QP corrected but
+// used in the RPA:
+// between rpamin and qpmin: by maximum abs of explicit QP corrections
+//                           from qpmin to HOMO
+// between qpmax and rpamax: by maximum abs of explicit QP corrections
+//                           from LUMO to qpmax
+void RPA::ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
+                                 Index qpmin, Index gwsize){
+
+  Index lumo = _homo + 1;
+  Index qpmax = qpmin + gwsize - 1;
+
+  // get max abs QP corrections for occupied/virtual levels
+  double max_correction_occ = getMaxCorrection(dftenergies, qpmin, _homo);
+  double max_correction_virt = getMaxCorrection(dftenergies, lumo, qpmax);
+
+  // shift energies
+  Index offset_qp_virt = qpmax + 1 - _rpamin;
+  _energies.segment(0, qpmin - _rpamin).array() -= max_correction_occ;
+  _energies.segment(offset_qp_virt, _rpamax - qpmax).array() +=
       max_correction_virt;
+
+}
+
+double RPA::getMaxCorrection(const Eigen::VectorXd& dftenergies,
+                                 Index min, Index max){
+
+   Index range = max - min +1;
+   Eigen::VectorXd corrections = _energies.segment(min - _rpamin, range) -
+      dftenergies.segment(min - _rpamin, range);
+
+  return (corrections.cwiseAbs()).maxCoeff();
+
 }
 
 template <bool imag>
