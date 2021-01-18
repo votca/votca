@@ -23,7 +23,7 @@
 
 // Local VOTCA includes
 #include "aoshell.h"
-#include "checkpoint.h"
+
 #include "eigen.h"
 #include <libint2/shell.h>
 
@@ -31,6 +31,8 @@ namespace votca {
 namespace xtp {
 class QMMolecule;
 class BasisSet;
+class CheckpointWriter;
+class CheckpointReader;
 
 /**
  * \brief Container to hold Basisfunctions for all atoms
