@@ -41,6 +41,7 @@ class GaussianWriter {
   Logger& _log;
   Index toGaussianL(L l) const;
   std::string reorderedMOCoefficients(const Orbitals& orbitals) const;
+  std::string densityMatrixToString(const Orbitals& orbitals) const;
 };
 
 }  // namespace xtp

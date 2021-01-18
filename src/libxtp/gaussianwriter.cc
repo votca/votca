@@ -1,5 +1,5 @@
 #include <sstream>
-
+#include <votca/tools/eigenio_matrixmarket.h>
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/gaussianwriter.h"
 #include <boost/algorithm/string.hpp>
@@ -26,20 +26,13 @@ Index GaussianWriter::toGaussianL(L l) const {
 std::string GaussianWriter::reorderedMOCoefficients(
     const Orbitals& orbitals) const {
   // Setup the reordering parameters
-  std::array<Index, 49> multipliers{{
-            1, //s
-            1,-1,1, //p
-            1,-1,1,-1,1, //d
-            1,-1,1,-1,1,-1,1, //f 
-            1,-1,1,-1,1,-1,1,-1,1, //g
-            1,1,1,1,1,1,1,1,1,1,1, // h
-            1,1,1,1,1,1,1,1,1,1,1,1,1 // i
-  }};
+  std::array<Index, 49> multipliers;
+  multipliers.fill(-1);
   // clang-format off
   // the ordering of the m quantumnumbers for every shell in gaussian
   std::array<Index, 49> gaussianOrder={{
             0, //s
-            1,0,-1, //p
+            1,-1,0, //p
             0,1,-1,2,-2, //d
             0,1,-1,2,-2,3,-3, //f 
             0,1,-1,2,-2,3,-3,4,-4, //g
@@ -68,6 +61,50 @@ std::string GaussianWriter::reorderedMOCoefficients(
 
   return mos_string.str();
 }
+
+std::string GaussianWriter::densityMatrixToString(
+    const Orbitals& orbitals) const {
+
+  // Setup the reordering parameters
+  std::array<Index, 49> multipliers;
+  multipliers.fill(-1);
+  // clang-format off
+  // the ordering of the m quantumnumbers for every shell in gaussian
+  std::array<Index, 49> gaussianOrder={{
+            0, //s
+            1,-1,0, //p
+            0,1,-1,2,-2, //d
+            0,1,-1,2,-2,3,-3, //f 
+            0,1,-1,2,-2,3,-3,4,-4, //g
+            0,1,-1,2,-2,3,-3,4,-4,5,-5, // h
+            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 // i
+  }};
+  // clang-format on
+  OrbReorder reorder(gaussianOrder, multipliers,true);
+  Eigen::MatrixXd density = orbitals.DensityMatrixGroundState();
+  reorder.reorderOperator(density, orbitals.SetupDftBasis());
+
+  votca::tools::EigenIO_MatrixMarket::WriteMatrix("density.mm", density);
+
+  // put the reordered mos in a string
+  std::stringstream density_string;
+
+  int temp_int = 1;
+  
+  for (Index i = 0; i < density.rows(); ++i) {
+    for (Index j = 0; j <= i; ++j) {
+      density_string << boost::format("%16.8e") % density(i,j);
+      if (temp_int % 5 == 0) {
+        density_string << "\n";
+      }
+      temp_int++;
+    }
+  }
+  density_string << ((temp_int - 1) % 5 == 0 ? "" : "\n");
+
+  return density_string.str();
+}
+
 
 void GaussianWriter::WriteFile(const std::string& basename,
                                const Orbitals& orbitals) const {
@@ -256,7 +293,11 @@ void GaussianWriter::WriteFile(const std::string& basename,
                    (orbitals.MOs().eigenvalues().size() *
                     orbitals.MOs().eigenvalues().size());
     outFile << reorderedMOCoefficients(orbitals);
-    // SCF DENSITY
+    // DENSITY MATRIX
+    outFile << boost::format("%-43s%-2s N=  %10d\n") % "Total SCF Density" %
+                   "R" %
+                   ( (orbitals.MOs().eigenvalues().size() * (orbitals.MOs().eigenvalues().size()-1))/2 + orbitals.MOs().eigenvalues().size());
+    outFile << densityMatrixToString(orbitals);
   }
 }
 
