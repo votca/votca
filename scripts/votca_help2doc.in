@@ -101,9 +101,9 @@ NAME
 
 SYNOPSIS
 ********
-**{sec.name}** [OPTIONS] COMMAND [ARG...]
+**{sec.name}** [OPTIONS]
 
-**{sec.name}** [--help|--version]
+**{sec.name}** [--help]
 
 
 DESCRIPTION
@@ -139,9 +139,9 @@ def format_groff(sec: Data) -> str:
 
 .SH SYNOPSIS
 .PP
-\\fB{sec.name}\\fP [OPTIONS] COMMAND [ARG...]
+\\fB{sec.name}\\fP [OPTIONS]
 .PP
-\\fB{sec.name}\\fP [\-\-help|\-\-version]
+\\fB{sec.name}\\fP [\-\-help]
 
 
 .SH DESCRIPTION
