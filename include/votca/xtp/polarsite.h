@@ -131,7 +131,7 @@ class PolarSite : public StaticSite {
 
   double DipoleChange() const;
 
-  void SetupCptTable(CptTable& table) const override;
+  static void SetupCptTable(CptTable& table);
   void WriteData(data& d) const;
   void ReadData(const data& d);
 

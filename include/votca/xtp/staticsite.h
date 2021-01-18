@@ -1,3 +1,4 @@
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -110,7 +111,7 @@ class StaticSite {
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
-  virtual void SetupCptTable(CptTable& table) const;
+  static void SetupCptTable(CptTable& table);
 
   void WriteData(data& d) const;
   void ReadData(const data& d);
