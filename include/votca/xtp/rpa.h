@@ -98,7 +98,7 @@ class RPA {
                                  Index qpmin, Index gwsize);
 
   double getMaxCorrection(const Eigen::VectorXd& dftenergies,
-                                 Index min, Index max);
+                                 Index min, Index max)const;
 };
 
 }  // namespace xtp
