@@ -24,14 +24,14 @@
 #define VOTCA_XTP_ATOM_H
 
 // Standard includes
+#include "eigen.h"
 #include <exception>
 #include <map>
 #include <string>
 #include <votca/tools/types.h>
-#include "eigen.h"
 namespace votca {
 namespace xtp {
-  class CptTable;
+class CptTable;
 class Atom {
  public:
   struct data {

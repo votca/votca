@@ -42,7 +42,7 @@ void QMNBList::WriteToCpt(CheckpointWriter& w) const {
   }
   std::vector<QMPair::data> dataVec(size);
 
-  CptTable table = w.openTable<QMPair>("pairs",size);
+  CptTable table = w.openTable<QMPair>("pairs", size);
   for (Index i = 0; i < size; i++) {
     (_pairs[i]->WriteData(dataVec[i]));
   }

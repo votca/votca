@@ -27,7 +27,6 @@
 // VOTCA includes
 #include <votca/tools/types.h>
 
-
 namespace votca {
 namespace xtp {
 

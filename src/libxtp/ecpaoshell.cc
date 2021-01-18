@@ -21,8 +21,8 @@
 #include "votca/xtp/ecpaoshell.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/basisset.h"
-#include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/checkpointtable.h"
+#include "votca/xtp/ecpaobasis.h"
 
 namespace votca {
 namespace xtp {
@@ -45,12 +45,12 @@ void ECPAOGaussianPrimitive::SetupCptTable(CptTable& table) {
   table.addCol<Index>("atomidx", HOFFSET(data, atomid));
   table.addCol<Index>("L", HOFFSET(data, l));
   table.addCol<Index>("startidx", HOFFSET(data, startindex));
-  table.addCol<Index>( "power", HOFFSET(data, power));
-  table.addCol<double>( "decay", HOFFSET(data, decay));
-  table.addCol<double>( "contr", HOFFSET(data, contraction));
-  table.addCol<double>( "pos.x", HOFFSET(data, x));
-  table.addCol<double>( "pos.y", HOFFSET(data, y));
-  table.addCol<double>( "pos.z", HOFFSET(data, z));
+  table.addCol<Index>("power", HOFFSET(data, power));
+  table.addCol<double>("decay", HOFFSET(data, decay));
+  table.addCol<double>("contr", HOFFSET(data, contraction));
+  table.addCol<double>("pos.x", HOFFSET(data, x));
+  table.addCol<double>("pos.y", HOFFSET(data, y));
+  table.addCol<double>("pos.z", HOFFSET(data, z));
   table.addCol<Index>("lmax", HOFFSET(data, lmax));
 }
 

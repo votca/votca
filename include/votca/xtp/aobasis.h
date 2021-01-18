@@ -24,7 +24,6 @@
 // Local VOTCA includes
 #include "aoshell.h"
 
-
 #include "eigen.h"
 #include <libint2/shell.h>
 

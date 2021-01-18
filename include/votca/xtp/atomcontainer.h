@@ -152,8 +152,7 @@ class AtomContainer {
     w(_id, "id");
     w(int(_atomlist.size()), "size");
     T element(0, "H", Eigen::Vector3d::Zero());
-    CptTable table =
-        w.openTable<T>(element.identify() + "s",_atomlist.size());
+    CptTable table = w.openTable<T>(element.identify() + "s", _atomlist.size());
     std::vector<typename T::data> dataVec(_atomlist.size());
     for (std::size_t i = 0; i < _atomlist.size(); ++i) {
       _atomlist[i].WriteData(dataVec[i]);

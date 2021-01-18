@@ -22,14 +22,13 @@
 #define VOTCA_XTP_QMATOM_H
 
 // VOTCA includes
+#include "eigen.h"
 #include <votca/tools/elements.h>
 #include <votca/tools/types.h>
-#include "eigen.h"
-
 
 namespace votca {
 namespace xtp {
- class CptTable;
+class CptTable;
 /**
  *    \brief container for QM atoms
  *

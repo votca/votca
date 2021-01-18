@@ -28,8 +28,8 @@
 #include <votca/tools/constants.h>
 
 // Local VOTCA includes
+#include "votca/xtp/checkpointtable.h"
 #include "votca/xtp/staticsite.h"
-#include  "votca/xtp/checkpointtable.h"
 
 namespace votca {
 namespace xtp {

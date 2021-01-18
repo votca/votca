@@ -129,8 +129,8 @@ void ECPAOBasis::WriteToCpt(CheckpointWriter& w) const {
     numofprimitives += shell.getSize();
   }
 
-
-  CptTable table = w.openTable<ECPAOGaussianPrimitive>("Contractions", numofprimitives);
+  CptTable table =
+      w.openTable<ECPAOGaussianPrimitive>("Contractions", numofprimitives);
 
   std::vector<ECPAOGaussianPrimitive::data> dataVec(numofprimitives);
   Index i = 0;

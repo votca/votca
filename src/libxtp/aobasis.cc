@@ -20,9 +20,9 @@
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/basisset.h"
+#include "votca/xtp/checkpoint.h"
 #include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/qmmolecule.h"
-#include "votca/xtp/checkpoint.h"
 // include libint last otherwise it overrides eigen
 #include <libint2.hpp>
 
@@ -194,7 +194,8 @@ void AOBasis::WriteToCpt(CheckpointWriter& w) const {
     numofprimitives += shell.getSize();
   }
 
-  CptTable table = w.openTable<AOGaussianPrimitive>("Contractions",numofprimitives);
+  CptTable table =
+      w.openTable<AOGaussianPrimitive>("Contractions", numofprimitives);
 
   std::vector<AOGaussianPrimitive::data> dataVec(numofprimitives);
   Index i = 0;

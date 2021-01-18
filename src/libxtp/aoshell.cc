@@ -45,14 +45,14 @@ AOGaussianPrimitive::AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
 
 void AOGaussianPrimitive::SetupCptTable(CptTable& table) {
   table.addCol<Index>("atomidx", HOFFSET(data, atomid));
-  table.addCol<Index>( "L", HOFFSET(data, l));
-  table.addCol<Index>("startidx",HOFFSET(data, startindex));
+  table.addCol<Index>("L", HOFFSET(data, l));
+  table.addCol<Index>("startidx", HOFFSET(data, startindex));
   table.addCol<double>("decay", HOFFSET(data, decay));
-  table.addCol<double>( "contr", HOFFSET(data, contraction));
-  table.addCol<double>( "pos.x", HOFFSET(data, x));
-  table.addCol<double>( "pos.y", HOFFSET(data, y));
-  table.addCol<double>( "pos.z", HOFFSET(data, z));
-  table.addCol<double>( "scale", HOFFSET(data, scale));
+  table.addCol<double>("contr", HOFFSET(data, contraction));
+  table.addCol<double>("pos.x", HOFFSET(data, x));
+  table.addCol<double>("pos.y", HOFFSET(data, y));
+  table.addCol<double>("pos.z", HOFFSET(data, z));
+  table.addCol<double>("scale", HOFFSET(data, scale));
 }
 
 void AOGaussianPrimitive::WriteData(data& d) const {

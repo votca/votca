@@ -61,8 +61,7 @@ class CptTable {
   }
 
   template <typename U>
-  void addCol(
-    const std::string& name, const size_t& offset);
+  void addCol(const std::string& name, const size_t& offset);
 
   void initialize(const CptLoc& loc, bool compact) {
     // create the dataspace...

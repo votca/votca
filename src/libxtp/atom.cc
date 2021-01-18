@@ -24,7 +24,6 @@
 #include "votca/xtp/atom.h"
 #include "votca/xtp/checkpointtable.h"
 
-
 namespace votca {
 namespace xtp {
 

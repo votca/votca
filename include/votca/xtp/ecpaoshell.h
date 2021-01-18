@@ -63,7 +63,7 @@ class ECPAOGaussianPrimitive {
 
   void WriteData(data& d, const ECPAOShell& shell) const;
 
- static void SetupCptTable(CptTable& table);
+  static void SetupCptTable(CptTable& table);
 
   Index getPower() const { return _power; }
   double getDecay() const { return _decay; }

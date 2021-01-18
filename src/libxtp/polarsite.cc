@@ -28,9 +28,8 @@
 #include <votca/tools/constants.h>
 
 // Local VOTCA includes
+#include "votca/xtp/checkpointtable.h"
 #include "votca/xtp/polarsite.h"
-#include  "votca/xtp/checkpointtable.h"
-
 
 using namespace std;
 
@@ -75,44 +74,44 @@ std::string PolarSite::writepolarization() const {
       .str();
 }
 
-void PolarSite::SetupCptTable(CptTable& table)  {
+void PolarSite::SetupCptTable(CptTable& table) {
   table.addCol<Index>("index", HOFFSET(data, id));
-  table.addCol<std::string>( "type", HOFFSET(data, element));
+  table.addCol<std::string>("type", HOFFSET(data, element));
 
-  table.addCol<double>( "posX", HOFFSET(data, posX));
-  table.addCol<double>( "posY", HOFFSET(data, posY));
-  table.addCol<double>( "posZ", HOFFSET(data, posZ));
+  table.addCol<double>("posX", HOFFSET(data, posX));
+  table.addCol<double>("posY", HOFFSET(data, posY));
+  table.addCol<double>("posZ", HOFFSET(data, posZ));
   // same type as rank
   table.addCol<Index>("rank", HOFFSET(data, rank));
 
   table.addCol<double>("Q00", HOFFSET(data, Q00));
-  table.addCol<double>( "Q11c", HOFFSET(data, Q11c));
-  table.addCol<double>( "Q11s", HOFFSET(data, Q11s));
-  table.addCol<double>( "Q10", HOFFSET(data, Q10));
-  table.addCol<double>( "Q20", HOFFSET(data, Q20));
+  table.addCol<double>("Q11c", HOFFSET(data, Q11c));
+  table.addCol<double>("Q11s", HOFFSET(data, Q11s));
+  table.addCol<double>("Q10", HOFFSET(data, Q10));
+  table.addCol<double>("Q20", HOFFSET(data, Q20));
   table.addCol<double>("Q21c", HOFFSET(data, Q21c));
-  table.addCol<double>( "Q21s", HOFFSET(data, Q21s));
-  table.addCol<double>( "Q22c", HOFFSET(data, Q22c));
+  table.addCol<double>("Q21s", HOFFSET(data, Q21s));
+  table.addCol<double>("Q22c", HOFFSET(data, Q22c));
   table.addCol<double>("Q22s", HOFFSET(data, Q22s));
 
-  table.addCol<double>( "Vx", HOFFSET(data, Vx));
-  table.addCol<double>( "Vy", HOFFSET(data, Vy));
-  table.addCol<double>( "Vz", HOFFSET(data, Vz));
+  table.addCol<double>("Vx", HOFFSET(data, Vx));
+  table.addCol<double>("Vy", HOFFSET(data, Vy));
+  table.addCol<double>("Vz", HOFFSET(data, Vz));
 
-  table.addCol<double>( "Vx_noE", HOFFSET(data, Vx_noE));
-  table.addCol<double>( "Vy_NoE", HOFFSET(data, Vy_noE));
-  table.addCol<double>( "Vz_noE", HOFFSET(data, Vz_noE));
+  table.addCol<double>("Vx_noE", HOFFSET(data, Vx_noE));
+  table.addCol<double>("Vy_NoE", HOFFSET(data, Vy_noE));
+  table.addCol<double>("Vz_noE", HOFFSET(data, Vz_noE));
   // P_inv and P have same polarization so no problem, as only data type counts
-  table.addCol<double>( "pxx", HOFFSET(data, pxx));
-  table.addCol<double>( "pxy", HOFFSET(data, pxy));
+  table.addCol<double>("pxx", HOFFSET(data, pxx));
+  table.addCol<double>("pxy", HOFFSET(data, pxy));
   table.addCol<double>("pxz", HOFFSET(data, pxz));
-  table.addCol<double>( "pyy", HOFFSET(data, pyy));
-  table.addCol<double>( "pyz", HOFFSET(data, pyz));
+  table.addCol<double>("pyy", HOFFSET(data, pyy));
+  table.addCol<double>("pyz", HOFFSET(data, pyz));
   table.addCol<double>("pzz", HOFFSET(data, pzz));
 
-  table.addCol<double>( "d_ind_x", HOFFSET(data, d_x_ind));
-  table.addCol<double>( "d_ind_y", HOFFSET(data, d_y_ind));
-  table.addCol<double>( "d_ind_z", HOFFSET(data, d_z_ind));
+  table.addCol<double>("d_ind_x", HOFFSET(data, d_x_ind));
+  table.addCol<double>("d_ind_y", HOFFSET(data, d_y_ind));
+  table.addCol<double>("d_ind_z", HOFFSET(data, d_z_ind));
 }
 
 void PolarSite::WriteData(data& d) const {
