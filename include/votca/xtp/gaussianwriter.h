@@ -37,6 +37,7 @@ class GaussianWriter {
   ~GaussianWriter() = default;
 
   void WriteFile(const std::string& filename, const Orbitals& orbitals) const;
+
  private:
   Logger& _log;
   Index toGaussianL(L l) const;

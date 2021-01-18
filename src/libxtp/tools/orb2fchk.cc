@@ -26,7 +26,8 @@ bool Orb2Fchk::Run() {
   XTP_LOG(Log::error, _log) << "Loading data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
 
-  XTP_LOG(Log::error, _log) << "Start writing to " << (_basename + ".fchk") << std::flush;
+  XTP_LOG(Log::error, _log)
+      << "Start writing to " << (_basename + ".fchk") << std::flush;
 
   GaussianWriter writer(_log);
   writer.WriteFile(_basename, orbitals);

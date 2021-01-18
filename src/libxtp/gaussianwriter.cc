@@ -1,9 +1,9 @@
-#include <sstream>
-#include <votca/tools/eigenio_matrixmarket.h>
-#include "votca/xtp/basisset.h"
 #include "votca/xtp/gaussianwriter.h"
+#include "votca/xtp/basisset.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <sstream>
+#include <votca/tools/eigenio_matrixmarket.h>
 
 namespace votca {
 namespace xtp {
@@ -19,7 +19,7 @@ Index GaussianWriter::toGaussianL(L l) const {
     case L::P:
       return 1;
     default:
-      return -1*static_cast<Index>(l);
+      return -1 * static_cast<Index>(l);
   }
 }
 
@@ -40,7 +40,7 @@ std::string GaussianWriter::reorderedMOCoefficients(
             0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 // i
   }};
   // clang-format on
-  OrbReorder reorder(gaussianOrder, multipliers,true);
+  OrbReorder reorder(gaussianOrder, multipliers, true);
   Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
   reorder.reorderOrbitals(moCoefficients, orbitals.SetupDftBasis());
 
@@ -50,7 +50,7 @@ std::string GaussianWriter::reorderedMOCoefficients(
   int temp_int = 1;
   for (Index i = 0; i < moCoefficients.rows(); ++i) {
     for (Index j = 0; j < moCoefficients.cols(); ++j) {
-      mos_string << boost::format("%16.8e") % moCoefficients(j,i);
+      mos_string << boost::format("%16.8e") % moCoefficients(j, i);
       if (temp_int % 5 == 0) {
         mos_string << "\n";
       }
@@ -80,7 +80,7 @@ std::string GaussianWriter::densityMatrixToString(
             0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 // i
   }};
   // clang-format on
-  OrbReorder reorder(gaussianOrder, multipliers,true);
+  OrbReorder reorder(gaussianOrder, multipliers, true);
   Eigen::MatrixXd density = orbitals.DensityMatrixGroundState();
   reorder.reorderOperator(density, orbitals.SetupDftBasis());
 
@@ -90,10 +90,10 @@ std::string GaussianWriter::densityMatrixToString(
   std::stringstream density_string;
 
   int temp_int = 1;
-  
+
   for (Index i = 0; i < density.rows(); ++i) {
     for (Index j = 0; j <= i; ++j) {
-      density_string << boost::format("%16.8e") % density(i,j);
+      density_string << boost::format("%16.8e") % density(i, j);
       if (temp_int % 5 == 0) {
         density_string << "\n";
       }
@@ -104,7 +104,6 @@ std::string GaussianWriter::densityMatrixToString(
 
   return density_string.str();
 }
-
 
 void GaussianWriter::WriteFile(const std::string& basename,
                                const Orbitals& orbitals) const {
@@ -296,7 +295,10 @@ void GaussianWriter::WriteFile(const std::string& basename,
     // DENSITY MATRIX
     outFile << boost::format("%-43s%-2s N=  %10d\n") % "Total SCF Density" %
                    "R" %
-                   ( (orbitals.MOs().eigenvalues().size() * (orbitals.MOs().eigenvalues().size()-1))/2 + orbitals.MOs().eigenvalues().size());
+                   ((orbitals.MOs().eigenvalues().size() *
+                     (orbitals.MOs().eigenvalues().size() - 1)) /
+                        2 +
+                    orbitals.MOs().eigenvalues().size());
     outFile << densityMatrixToString(orbitals);
   }
 }
