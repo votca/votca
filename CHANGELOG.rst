@@ -2,11 +2,14 @@ For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/xtp/commits/master>`__.
 
 Version 2022-dev
-===============
+================
 
 -  Updated coordinate precision (#638)
 
-Version 2021-rc.1 (released XX.01.21)
+Version 2021-rc.2 (released XX.01.21)
+=====================================
+
+Version 2021-rc.1 (released 15.01.21)
 =====================================
 
 -  G0W0 rpa energies are fixed in BSE (#383)
@@ -96,6 +99,7 @@ Version 2021-rc.1 (released XX.01.21)
 -  Use libint transformation matrices (#630)
 -  Added script to extract orbitals from qmmm statefile (#629)
 -  clean up XTP app message (#631)
+-  fixed EXX 3c mode (#640)
 
 Version 1.6.4 (released 12.01.21)
 =================================
