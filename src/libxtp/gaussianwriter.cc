@@ -9,31 +9,37 @@ namespace votca {
 namespace xtp {
 
 /*
- * This function converts our L enum to the gaussian equivalent.
- * Gaussian uses a minus sign to indicate spherical shells for D and F
- * All higher shell are assumed to be spherical
+ * This function converts VOTCA's L enum to the gaussian equivalent.
+ * Gaussian uses a minus sign to indicate spherical shells.
  */
 Index GaussianWriter::toGaussianL(L l) const {
   switch (l) {
-    case L::D:
-      return -2;
-    case L::F:
-      return -3;
+    case L::S:
+      return 0;
+    case L::P:
+      return 1;
     default:
-      return static_cast<Index>(l);
+      return -1*static_cast<Index>(l);
   }
 }
 
 std::string GaussianWriter::reorderedMOCoefficients(
     const Orbitals& orbitals) const {
   // Setup the reordering parameters
-  std::array<Index, 49> multipliers;
-  multipliers.fill(-1);
+  std::array<Index, 49> multipliers{{
+            1, //s
+            1,-1,1, //p
+            1,-1,1,-1,1, //d
+            1,-1,1,-1,1,-1,1, //f 
+            1,-1,1,-1,1,-1,1,-1,1, //g
+            1,1,1,1,1,1,1,1,1,1,1, // h
+            1,1,1,1,1,1,1,1,1,1,1,1,1 // i
+  }};
   // clang-format off
   // the ordering of the m quantumnumbers for every shell in gaussian
   std::array<Index, 49> gaussianOrder={{
             0, //s
-            0,1,-1, //p
+            1,0,-1, //p
             0,1,-1,2,-2, //d
             0,1,-1,2,-2,3,-3, //f 
             0,1,-1,2,-2,3,-3,4,-4, //g
@@ -41,7 +47,7 @@ std::string GaussianWriter::reorderedMOCoefficients(
             0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 // i
   }};
   // clang-format on
-  OrbReorder reorder(gaussianOrder, multipliers);
+  OrbReorder reorder(gaussianOrder, multipliers,true);
   Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
   reorder.reorderOrbitals(moCoefficients, orbitals.SetupDftBasis());
 
@@ -250,6 +256,7 @@ void GaussianWriter::WriteFile(const std::string& basename,
                    (orbitals.MOs().eigenvalues().size() *
                     orbitals.MOs().eigenvalues().size());
     outFile << reorderedMOCoefficients(orbitals);
+    // SCF DENSITY
   }
 }
 
