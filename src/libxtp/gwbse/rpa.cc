@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -36,10 +36,8 @@ void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
 
   _energies.segment(qpmin - _rpamin, gwsize) = gwaenergies;
 
-  ShiftUncorrectedEnergies(dftenergies,qpmin,gwsize);
-
+  ShiftUncorrectedEnergies(dftenergies, qpmin, gwsize);
 }
-
 
 // Shifts energies of levels that are not QP corrected but
 // used in the RPA:
@@ -48,7 +46,7 @@ void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
 // between qpmax and rpamax: by maximum abs of explicit QP corrections
 //                           from LUMO to qpmax
 void RPA::ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
-                                 Index qpmin, Index gwsize){
+                                   Index qpmin, Index gwsize) {
 
   Index lumo = _homo + 1;
   Index qpmax = qpmin + gwsize - 1;
@@ -61,18 +59,16 @@ void RPA::ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
   _energies.head(qpmin).array() -= max_correction_occ;
   _energies.tail(_rpamax - qpmax).array()+=
       max_correction_virt;
-
 }
 
-double RPA::getMaxCorrection(const Eigen::VectorXd& dftenergies,
-                                 Index min, Index max){
+double RPA::getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
+                             Index max) {
 
    Index range = max - min +1;
    Eigen::VectorXd corrections = _energies.segment(min, range) -
       dftenergies.segment(min - _rpamin, range);
 
   return (corrections.cwiseAbs()).maxCoeff();
-
 }
 
 template <bool imag>
