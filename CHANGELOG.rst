@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ================
 
+-  create script to convert help to rst (#312)
+
 Version 2021-rc.2 (released XX.01.21)
 =====================================
 
@@ -41,7 +43,6 @@ Version 2021-rc.1 (released 15.01.21)
 -  Bump required CMake version to 3.12 (#301)
 -  refactored getenv() into separate function (#302)
 -  use unique_ptr in factory (#303)
--  create script to convert help to rst (#312)
 
 Version 1.6.4 (released 12.01.21)
 =================================
