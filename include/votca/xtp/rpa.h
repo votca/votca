@@ -66,7 +66,6 @@ class RPA {
   void UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
                               const Eigen::VectorXd& gwaenergies, Index qpmin);
 
-
   struct rpa_eigensolution {
     Eigen::VectorXd omega;    // Eigenvalues
     Eigen::MatrixXd XpY;      // Eigenvector components (X + Y)
@@ -94,11 +93,11 @@ class RPA {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Diagonalize_H2p_C(
       const Eigen::MatrixXd& C) const;
 
-  void ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
-                                 Index qpmin, Index gwsize);
+  void ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies, Index qpmin,
+                                Index gwsize);
 
-  double getMaxCorrection(const Eigen::VectorXd& dftenergies,
-                                 Index min, Index max)const;
+  double getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
+                          Index max) const;
 };
 
 }  // namespace xtp
