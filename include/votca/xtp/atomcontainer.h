@@ -1,3 +1,4 @@
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -151,8 +152,7 @@ class AtomContainer {
     w(_id, "id");
     w(int(_atomlist.size()), "size");
     T element(0, "H", Eigen::Vector3d::Zero());
-    CptTable table =
-        w.openTable(element.identify() + "s", element, _atomlist.size());
+    CptTable table = w.openTable<T>(element.identify() + "s", _atomlist.size());
     std::vector<typename T::data> dataVec(_atomlist.size());
     for (std::size_t i = 0; i < _atomlist.size(); ++i) {
       _atomlist[i].WriteData(dataVec[i]);
@@ -170,7 +170,7 @@ class AtomContainer {
     }
     T element(0, "H", Eigen::Vector3d::Zero());  // dummy element to get
                                                  // .identify for type
-    CptTable table = r.openTable(element.identify() + "s", element);
+    CptTable table = r.openTable<T>(element.identify() + "s");
     _atomlist.clear();
     _atomlist.reserve(table.numRows());
     std::vector<typename T::data> dataVec(table.numRows());
