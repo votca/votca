@@ -62,7 +62,7 @@ void RPA::ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
 }
 
 double RPA::getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
-                             Index max) {
+                             Index max) const{
 
    Index range = max - min +1;
    Eigen::VectorXd corrections = _energies.segment(min, range) -
