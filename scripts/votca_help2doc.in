@@ -35,7 +35,7 @@ votca_help2doc, version {VERSION}
 
 AUTHORS = "Written and maintained by the VOTCA Development Team <devs@votca.org>"
 COPYRIGHT = """
-Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+Copyright 2009\-2021 The VOTCA Development Team (http://www.votca.org)
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this  file
 except in compliance with the License.  You may obtain a copy of the License at
@@ -48,10 +48,7 @@ either  express  or  implied.   See  the  License  for  the  specific  language 
 permissions and limitations under the License.
 """
 DESCRIPTION = f"""{VOTCAHEADER}
-Convert a Votca CLI's help message to RST format.
-Examples:
-votca_help2doc.in -n csg_map -o csg_map.rst
-"""
+Convert a Votca CLI's help message to RST or GROFF format."""
 
 
 class Data(NamedTuple):
@@ -65,11 +62,13 @@ class Data(NamedTuple):
 
 def parse_user_arguments() -> argparse.Namespace:
     """Read the user arguments."""
-    parser = argparse.ArgumentParser("help2rst", usage=argparse.SUPPRESS,
+    parser = argparse.ArgumentParser("help2doc", usage=argparse.SUPPRESS,
                                      description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-n", "--name", required=True,
                         help="Name of the tool to extract the help message")
     parser.add_argument("-o", "--out", help="Output file", default=None)
+    parser.add_argument("-f", "--format", help="Output format",
+                        choices=["rst", "groff"], default="rst")
     parser.add_argument('--version', action='version',
                         version=f"%(prog)s {VERSION}")
     return parser.parse_args()
@@ -98,11 +97,14 @@ def format_rst(sec: Data) -> str:
     return f"""
 NAME
 ****
-{sec.name} - Part of the VOTCA package
+**{sec.name}** - Part of the VOTCA package
 
 SYNOPSIS
 ********
-{sec.name} [OPTION] [OPTIONPARAMETERS]
+**{sec.name}** [OPTIONS] COMMAND [ARG...]
+
+**{sec.name}** [--help|--version]
+
 
 DESCRIPTION
 ***********
@@ -124,6 +126,44 @@ COPYRIGHT
 """
 
 
+def format_groff(sec: Data) -> str:
+    """Format the sections in GROFF format."""
+    return f""".TH "{sec.name.upper()}" "1" " {sec.name} User Manual" "VOTCA Development Team"
+.nh
+.ad l
+
+.SH NAME
+.PP
+\\fB{sec.name}\\fP \- Part of the VOTCA package
+
+
+.SH SYNOPSIS
+.PP
+\\fB{sec.name}\\fP [OPTIONS] COMMAND [ARG...]
+.PP
+\\fB{sec.name}\\fP [\-\-help|\-\-version]
+
+
+.SH DESCRIPTION
+.PP
+{sec.description}
+
+
+.SH OPTIONS
+.PP
+{sec.options}
+
+.SH AUTHORS
+.PP
+{sec.authors}
+
+
+.SH COPYRIGHT
+.PP
+{sec.copyright}
+"""
+
+
 def convert_help_message(args: argparse.Namespace):
     """Convert help message."""
     path = Path(args.name)
@@ -131,9 +171,12 @@ def convert_help_message(args: argparse.Namespace):
     msg = subprocess.check_output(
         f"{path.absolute().as_posix()} --help", shell=True)
     sections = parse_help_message(msg.decode(), name)
-    data = format_rst(sections)
+    if args.format == "rst":
+        data = format_rst(sections)
+    else:
+        data = format_groff(sections)
 
-    output = args.out if args.out is not None else f"{name}.rst"
+    output = args.out if args.out is not None else f"{name}.{args.format}"
     with open(output, 'w') as handler:
         handler.write(data)
 
