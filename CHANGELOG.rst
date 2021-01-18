@@ -5,6 +5,7 @@ Version 2022-dev
 ================
 
 -  Updated coordinate precision (#638)
+-  Refactored energy corrections in RPA outside QPs (#577)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
