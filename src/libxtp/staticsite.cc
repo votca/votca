@@ -28,7 +28,8 @@
 #include <votca/tools/constants.h>
 
 // Local VOTCA includes
-#include <votca/xtp/staticsite.h>
+#include "votca/xtp/staticsite.h"
+#include  "votca/xtp/checkpointtable.h"
 
 namespace votca {
 namespace xtp {
@@ -130,25 +131,25 @@ std::string StaticSite::WriteMpsLine(std::string unit) const {
   return output;
 }
 
-void StaticSite::SetupCptTable(CptTable& table) const {
-  table.addCol(_id, "index", HOFFSET(data, id));
-  table.addCol(_element, "type", HOFFSET(data, element));
+void StaticSite::SetupCptTable(CptTable& table) {
+  table.addCol<Index>("index", HOFFSET(data, id));
+  table.addCol<std::string>("type", HOFFSET(data, element));
 
-  table.addCol(_pos[0], "posX", HOFFSET(data, posX));
-  table.addCol(_pos[1], "posY", HOFFSET(data, posY));
-  table.addCol(_pos[2], "posZ", HOFFSET(data, posZ));
+  table.addCol<double>("posX", HOFFSET(data, posX));
+  table.addCol<double>("posY", HOFFSET(data, posY));
+  table.addCol<double>("posZ", HOFFSET(data, posZ));
 
-  table.addCol(_rank, "rank", HOFFSET(data, rank));
+  table.addCol<Index>("rank", HOFFSET(data, rank));
 
-  table.addCol(_Q[0], "Q00", HOFFSET(data, Q00));
-  table.addCol(_Q[1], "Q11c", HOFFSET(data, Q11c));
-  table.addCol(_Q[2], "Q11s", HOFFSET(data, Q11s));
-  table.addCol(_Q[3], "Q10", HOFFSET(data, Q10));
-  table.addCol(_Q[4], "Q20", HOFFSET(data, Q20));
-  table.addCol(_Q[5], "Q21c", HOFFSET(data, Q21c));
-  table.addCol(_Q[6], "Q21s", HOFFSET(data, Q21s));
-  table.addCol(_Q[7], "Q22c", HOFFSET(data, Q22c));
-  table.addCol(_Q[8], "Q22s", HOFFSET(data, Q22s));
+  table.addCol<double>("Q00", HOFFSET(data, Q00));
+  table.addCol<double>("Q11c", HOFFSET(data, Q11c));
+  table.addCol<double>("Q11s", HOFFSET(data, Q11s));
+  table.addCol<double>("Q10", HOFFSET(data, Q10));
+  table.addCol<double>("Q20", HOFFSET(data, Q20));
+  table.addCol<double>("Q21c", HOFFSET(data, Q21c));
+  table.addCol<double>("Q21s", HOFFSET(data, Q21s));
+  table.addCol<double>("Q22c", HOFFSET(data, Q22c));
+  table.addCol<double>("Q22s", HOFFSET(data, Q22s));
 }
 
 void StaticSite::WriteData(data& d) const {

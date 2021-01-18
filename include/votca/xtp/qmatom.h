@@ -23,13 +23,13 @@
 
 // VOTCA includes
 #include <votca/tools/elements.h>
+#include <votca/tools/types.h>
+#include "eigen.h"
 
-// Local VOTCA includes
-#include "checkpoint.h"
 
 namespace votca {
 namespace xtp {
-
+ class CptTable;
 /**
  *    \brief container for QM atoms
  *
@@ -86,7 +86,7 @@ class QMAtom {
   Index _ecpcharge = 0;  // ecp charge is set in ecpaobasis.fill
 
  public:
-  void SetupCptTable(CptTable& table) const;
+  static void SetupCptTable(CptTable& table);
 
   void WriteData(data& d) const;
 

@@ -22,6 +22,8 @@
 
 // Local VOTCA includes
 #include "votca/xtp/atom.h"
+#include "votca/xtp/checkpointtable.h"
+
 
 namespace votca {
 namespace xtp {
@@ -84,14 +86,14 @@ void Atom::Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos) {
   _pos = refPos + dir;  // Rotated Position
 }
 
-void Atom::SetupCptTable(CptTable& table) const {
-  table.addCol(_id, "index", HOFFSET(data, id));
-  table.addCol(_element, "element", HOFFSET(data, element));
-  table.addCol(_name, "name", HOFFSET(data, name));
-  table.addCol(_pos[0], "pos.x", HOFFSET(data, x));
-  table.addCol(_pos[1], "pos.y", HOFFSET(data, y));
-  table.addCol(_pos[2], "pos.z", HOFFSET(data, z));
-  table.addCol(_resnr, "resnr", HOFFSET(data, resnr));
+void Atom::SetupCptTable(CptTable& table) {
+  table.addCol<Index>("index", HOFFSET(data, id));
+  table.addCol<std::string>("element", HOFFSET(data, element));
+  table.addCol<std::string>("name", HOFFSET(data, name));
+  table.addCol<double>("pos.x", HOFFSET(data, x));
+  table.addCol<double>("pos.y", HOFFSET(data, y));
+  table.addCol<double>("pos.z", HOFFSET(data, z));
+  table.addCol<Index>("resnr", HOFFSET(data, resnr));
 }
 
 void Atom::WriteData(data& d) const {

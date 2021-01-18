@@ -27,9 +27,6 @@
 // VOTCA includes
 #include <votca/tools/types.h>
 
-// Local VOTCA includes
-#include "checkpointreader.h"
-#include "checkpointwriter.h"
 
 namespace votca {
 namespace xtp {

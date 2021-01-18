@@ -61,24 +61,8 @@ class CptTable {
   }
 
   template <typename U>
-  typename std::enable_if<std::is_fundamental<U>::value>::type addCol(
-      const U&, const std::string& name, const size_t& offset) {
-    _rowStructure.insertMember(name, offset, *InferDataType<U>::get());
-  }
-
-  void addCol(const std::string&, const std::string& name,
-              const size_t& offset) {
-
-    _rowStructure.insertMember(name, offset,
-                               *InferDataType<std::string>::get());
-  }
-
-  void addCol(const char*, const std::string& name, const size_t& offset) {
-
-    H5::DataType fixedWidth(H5T_STRING, MaxStringSize);
-
-    _rowStructure.insertMember(name, offset, fixedWidth);
-  }
+  void addCol(
+    const std::string& name, const size_t& offset);
 
   void initialize(const CptLoc& loc, bool compact) {
     // create the dataspace...
@@ -213,6 +197,20 @@ class CptTable {
   H5::DataSet _dataset;
   H5::DSetCreatPropList _props;
 };
+
+template <typename U>
+inline void CptTable::addCol(const std::string& name, const size_t& offset) {
+  static_assert(
+      std::is_fundamental<U>::value,
+      "Columns can only be added for fundamental types and 'const char*'");
+  _rowStructure.insertMember(name, offset, *InferDataType<U>::get());
+}
+
+template <>
+inline void CptTable::addCol<std::string>(const std::string& name,
+                                          const size_t& offset) {
+  _rowStructure.insertMember(name, offset, *InferDataType<std::string>::get());
+}
 
 }  // namespace xtp
 }  // namespace votca

@@ -22,6 +22,7 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpaobasis.h"
+#include "votca/xtp/checkpointtable.h"
 
 namespace votca {
 namespace xtp {
@@ -39,19 +40,18 @@ void ECPAOGaussianPrimitive::WriteData(data& d, const ECPAOShell& shell) const {
   d.lmax = static_cast<Index>(shell.getLmaxElement());
 }
 
-void ECPAOGaussianPrimitive::SetupCptTable(CptTable& table) const {
-  Index i = 0;
-  double d = 0.0;
-  table.addCol(i, "atomidx", HOFFSET(data, atomid));
-  table.addCol(i, "L", HOFFSET(data, l));
-  table.addCol(i, "startidx", HOFFSET(data, startindex));
-  table.addCol(i, "power", HOFFSET(data, power));
-  table.addCol(d, "decay", HOFFSET(data, decay));
-  table.addCol(d, "contr", HOFFSET(data, contraction));
-  table.addCol(d, "pos.x", HOFFSET(data, x));
-  table.addCol(d, "pos.y", HOFFSET(data, y));
-  table.addCol(d, "pos.z", HOFFSET(data, z));
-  table.addCol(i, "lmax", HOFFSET(data, lmax));
+void ECPAOGaussianPrimitive::SetupCptTable(CptTable& table) {
+
+  table.addCol<Index>("atomidx", HOFFSET(data, atomid));
+  table.addCol<Index>("L", HOFFSET(data, l));
+  table.addCol<Index>("startidx", HOFFSET(data, startindex));
+  table.addCol<Index>( "power", HOFFSET(data, power));
+  table.addCol<double>( "decay", HOFFSET(data, decay));
+  table.addCol<double>( "contr", HOFFSET(data, contraction));
+  table.addCol<double>( "pos.x", HOFFSET(data, x));
+  table.addCol<double>( "pos.y", HOFFSET(data, y));
+  table.addCol<double>( "pos.z", HOFFSET(data, z));
+  table.addCol<Index>("lmax", HOFFSET(data, lmax));
 }
 
 std::ostream& operator<<(std::ostream& out, const ECPAOShell& shell) {

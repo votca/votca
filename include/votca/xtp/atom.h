@@ -27,13 +27,11 @@
 #include <exception>
 #include <map>
 #include <string>
-
-// Local VOTCA includes
-#include "checkpointreader.h"
-#include "checkpointwriter.h"
-
+#include <votca/tools/types.h>
+#include "eigen.h"
 namespace votca {
 namespace xtp {
+  class CptTable;
 class Atom {
  public:
   struct data {
@@ -78,7 +76,7 @@ class Atom {
     return out;
   }
 
-  void SetupCptTable(CptTable& table) const;
+  static void SetupCptTable(CptTable& table);
 
   void WriteData(data& d) const;
 

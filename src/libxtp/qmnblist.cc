@@ -40,12 +40,9 @@ void QMNBList::WriteToCpt(CheckpointWriter& w) const {
   if (size == 0) {
     return;
   }
-  Segment seg1("test1", 0);
-  Segment seg2("test2", 1);
-  QMPair pair(1, &seg1, &seg2, Eigen::Vector3d::Zero());
   std::vector<QMPair::data> dataVec(size);
 
-  CptTable table = w.openTable("pairs", pair, size);
+  CptTable table = w.openTable<QMPair>("pairs",size);
   for (Index i = 0; i < size; i++) {
     (_pairs[i]->WriteData(dataVec[i]));
   }
@@ -63,8 +60,7 @@ void QMNBList::ReadFromCpt(CheckpointReader& r,
   if (size == 0) {
     return;
   }
-  QMPair pair(1, &segments[0], &segments[1], Eigen::Vector3d::Zero());
-  CptTable table = r.openTable("pairs", pair);
+  CptTable table = r.openTable<QMPair>("pairs");
   std::vector<QMPair::data> dataVec(table.numRows());
   table.read(dataVec);
 
