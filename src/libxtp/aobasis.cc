@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/basisset.h"
+#include "votca/xtp/checkpoint.h"
 #include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/qmmolecule.h"
 // include libint last otherwise it overrides eigen
@@ -193,15 +194,8 @@ void AOBasis::WriteToCpt(CheckpointWriter& w) const {
     numofprimitives += shell.getSize();
   }
 
-  // this is all to make dummy AOGaussian
-  Shell s(L::S, 0);
-  GaussianPrimitive d(0.1, 0.1);
-  QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
-  AOShell s1(s, dummy, 0);
-  s1.addGaussian(d);
-  const AOGaussianPrimitive& dummy2 = *s1.begin();
-
-  CptTable table = w.openTable("Contractions", dummy2, numofprimitives);
+  CptTable table =
+      w.openTable<AOGaussianPrimitive>("Contractions", numofprimitives);
 
   std::vector<AOGaussianPrimitive::data> dataVec(numofprimitives);
   Index i = 0;
@@ -220,15 +214,8 @@ void AOBasis::ReadFromCpt(CheckpointReader& r) {
   r(_name, "name");
   r(_AOBasisSize, "basissize");
   if (_AOBasisSize > 0) {
-    // this is all to make dummy AOGaussian
-    Shell s(L::S, 0);
-    GaussianPrimitive d(0.1, 0.1);
-    QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
-    AOShell s1(s, dummy, 0);
-    s1.addGaussian(d);
-    const AOGaussianPrimitive& dummy2 = *s1.begin();
 
-    CptTable table = r.openTable("Contractions", dummy2);
+    CptTable table = r.openTable<AOGaussianPrimitive>("Contractions");
     std::vector<AOGaussianPrimitive::data> dataVec(table.numRows());
     table.read(dataVec);
     Index laststartindex = -1;

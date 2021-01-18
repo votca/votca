@@ -30,6 +30,8 @@ namespace votca {
 namespace xtp {
 class QMMolecule;
 class ECPBasisSet;
+class CheckpointWriter;
+class CheckpointReader;
 
 std::ostream& operator<<(std::ostream& out, const libecpint::ECP& ecp);
 

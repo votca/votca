@@ -21,6 +21,7 @@
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/checkpointtable.h"
 
 namespace votca {
 namespace xtp {
@@ -30,17 +31,16 @@ AOGaussianPrimitive::AOGaussianPrimitive(const GaussianPrimitive& gaussian)
   _powfactor = CalcPowFactor(_decay);
 }
 
-void AOGaussianPrimitive::SetupCptTable(CptTable& table) const {
-  Index d = 0;
-  double f = 0.0;
-  table.addCol(d, "atomidx", HOFFSET(data, atomid));
-  table.addCol(d, "L", HOFFSET(data, l));
-  table.addCol(d, "startidx", HOFFSET(data, startindex));
-  table.addCol(f, "decay", HOFFSET(data, decay));
-  table.addCol(f, "contr", HOFFSET(data, contraction));
-  table.addCol(f, "pos.x", HOFFSET(data, x));
-  table.addCol(f, "pos.y", HOFFSET(data, y));
-  table.addCol(f, "pos.z", HOFFSET(data, z));
+void AOGaussianPrimitive::SetupCptTable(CptTable& table) {
+  table.addCol<Index>("atomidx", HOFFSET(data, atomid));
+  table.addCol<Index>("L", HOFFSET(data, l));
+  table.addCol<Index>("startidx", HOFFSET(data, startindex));
+  table.addCol<double>("decay", HOFFSET(data, decay));
+  table.addCol<double>("contr", HOFFSET(data, contraction));
+  table.addCol<double>("pos.x", HOFFSET(data, x));
+  table.addCol<double>("pos.y", HOFFSET(data, y));
+  table.addCol<double>("pos.z", HOFFSET(data, z));
+  table.addCol<double>("scale", HOFFSET(data, scale));
 }
 
 void AOGaussianPrimitive::WriteData(data& d, const AOShell& s) const {

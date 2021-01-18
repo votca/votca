@@ -24,7 +24,7 @@
 #include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/ecpbasisset.h"
 #include "votca/xtp/qmmolecule.h"
-
+#include "votca/xtp/checkpointtable.h"
 namespace votca {
 namespace xtp {
 
@@ -128,17 +128,15 @@ class PotentialIO {
     double decay;
   };
 
-  void SetupCptTable(CptTable& table) const {
-    double d=0.0;
-    Index I=0;
-    table.addCol(I, "atomid", HOFFSET(data, atomid));
-    table.addCol(d, "posX", HOFFSET(data, x));
-    table.addCol(d, "posY", HOFFSET(data, y));
-    table.addCol(d, "posZ", HOFFSET(data, z));
-    table.addCol(I, "power", HOFFSET(data, power));
-    table.addCol(I, "L", HOFFSET(data, l));
-    table.addCol(d, "coeff", HOFFSET(data, coeff));
-    table.addCol(d, "decay", HOFFSET(data, decay));
+  static void SetupCptTable(CptTable& table) {
+    table.addCol<Index>("atomid", HOFFSET(data, atomid));
+    table.addCol<double>("posX", HOFFSET(data, x));
+    table.addCol<double>("posY", HOFFSET(data, y));
+    table.addCol<double>("posZ", HOFFSET(data, z));
+    table.addCol<Index>("power", HOFFSET(data, power));
+    table.addCol<Index>("L", HOFFSET(data, l));
+    table.addCol<double>("coeff", HOFFSET(data, coeff));
+    table.addCol<double>("decay", HOFFSET(data, decay));
   }
 };
 
@@ -151,9 +149,8 @@ void ECPAOBasis::WriteToCpt(CheckpointWriter& w) const {
     numofprimitives += potential.getN();
   }
 
-  w(numofprimitives, "primitives");
-  PotentialIO dummy;
-  CptTable table = w.openTable("Potentials", dummy, numofprimitives);
+  CptTable table =
+      w.openTable<PotentialIO>("Potentials", numofprimitives);
 
   std::vector<PotentialIO::data> dataVec;
   dataVec.reserve(numofprimitives);
@@ -179,13 +176,8 @@ void ECPAOBasis::ReadFromCpt(CheckpointReader& r) {
   clear();
   r(_name, "name");
   r(_ncore_perAtom, "atomic ecp charges");
-  Index numofprimitives;
-  r(numofprimitives, "primitives");
 
-  if (numofprimitives > 0) {
-
-    PotentialIO dummy;
-    CptTable table = r.openTable("Potentials", dummy);
+    CptTable table = r.openTable<PotentialIO>("Potentials");
     std::vector<PotentialIO::data> dataVec(table.numRows());
     table.read(dataVec);
     Index atomindex = -1;
@@ -201,7 +193,7 @@ void ECPAOBasis::ReadFromCpt(CheckpointReader& r) {
                                         d.coeff);
     }
   }
-}
+
 
 std::ostream& operator<<(std::ostream& out, const libecpint::ECP& potential) {
   out << " AtomId: " << potential.atom_id << " Components: " << potential.getN()
