@@ -66,11 +66,6 @@ class RPA {
   void UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
                               const Eigen::VectorXd& gwaenergies, Index qpmin);
 
-  void ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
-                                 Index qpmin, Index gwsize);
-
-  double getMaxCorrection(const Eigen::VectorXd& dftenergies,
-                                 Index min, Index max);
 
   struct rpa_eigensolution {
     Eigen::VectorXd omega;    // Eigenvalues
@@ -98,6 +93,12 @@ class RPA {
   Eigen::MatrixXd Calculate_H2p_ApB() const;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Diagonalize_H2p_C(
       const Eigen::MatrixXd& C) const;
+
+  void ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
+                                 Index qpmin, Index gwsize);
+
+  double getMaxCorrection(const Eigen::VectorXd& dftenergies,
+                                 Index min, Index max);
 };
 
 }  // namespace xtp
