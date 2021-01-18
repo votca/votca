@@ -21,10 +21,10 @@
 #include <vector>
 
 // Local VOTCA includes
+#include "votca/xtp/checkpointtable.h"
 #include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/ecpbasisset.h"
 #include "votca/xtp/qmmolecule.h"
-#include "votca/xtp/checkpointtable.h"
 namespace votca {
 namespace xtp {
 
@@ -149,8 +149,7 @@ void ECPAOBasis::WriteToCpt(CheckpointWriter& w) const {
     numofprimitives += potential.getN();
   }
 
-  CptTable table =
-      w.openTable<PotentialIO>("Potentials", numofprimitives);
+  CptTable table = w.openTable<PotentialIO>("Potentials", numofprimitives);
 
   std::vector<PotentialIO::data> dataVec;
   dataVec.reserve(numofprimitives);
@@ -177,23 +176,22 @@ void ECPAOBasis::ReadFromCpt(CheckpointReader& r) {
   r(_name, "name");
   r(_ncore_perAtom, "atomic ecp charges");
 
-    CptTable table = r.openTable<PotentialIO>("Potentials");
-    std::vector<PotentialIO::data> dataVec(table.numRows());
-    table.read(dataVec);
-    Index atomindex = -1;
-    for (const PotentialIO::data& d : dataVec) {
-      if (d.atomid > atomindex) {
-        Eigen::Vector3d pos(d.x, d.y, d.z);
-        _aopotentials.push_back(libecpint::ECP(pos.data()));
-        _aopotentials.back().atom_id = int(d.atomid);
-        atomindex = d.atomid;
-      }
-      // +2 because constructor of libecpint::primitve always subtracts 2
-      _aopotentials.back().addPrimitive(int(d.power) + 2, int(d.l), d.decay,
-                                        d.coeff);
+  CptTable table = r.openTable<PotentialIO>("Potentials");
+  std::vector<PotentialIO::data> dataVec(table.numRows());
+  table.read(dataVec);
+  Index atomindex = -1;
+  for (const PotentialIO::data& d : dataVec) {
+    if (d.atomid > atomindex) {
+      Eigen::Vector3d pos(d.x, d.y, d.z);
+      _aopotentials.push_back(libecpint::ECP(pos.data()));
+      _aopotentials.back().atom_id = int(d.atomid);
+      atomindex = d.atomid;
     }
+    // +2 because constructor of libecpint::primitve always subtracts 2
+    _aopotentials.back().addPrimitive(int(d.power) + 2, int(d.l), d.decay,
+                                      d.coeff);
   }
-
+}
 
 std::ostream& operator<<(std::ostream& out, const libecpint::ECP& potential) {
   out << " AtomId: " << potential.atom_id << " Components: " << potential.getN()
