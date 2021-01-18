@@ -43,7 +43,7 @@ std::ostream& operator<<(std::ostream& out,
 using MatrixLibInt =
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
-void AOECP::FillPotential(const AOBasis& aobasis, ECPAOBasis ecp) {
+void AOECP::FillPotential(const AOBasis& aobasis, const ECPAOBasis& ecp) {
 
   _aopotential =
       Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());

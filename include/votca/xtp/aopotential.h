@@ -52,7 +52,8 @@ class AOPotential {
 // derived class for Effective Core Potentials
 class AOECP : public AOPotential<double> {
  public:
-  void FillPotential(const AOBasis& aobasis, ECPAOBasis ecp);
+  void FillPotential(const AOBasis& aobasis, const ECPAOBasis&
+   ecp);
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXd>&, const AOShell&,
