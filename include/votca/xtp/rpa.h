@@ -66,11 +66,11 @@ class RPA {
   void UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
                               const Eigen::VectorXd& gwaenergies, Index qpmin);
 
-  void ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
-                                 Index qpmin, Index gwsize);
+  void ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies, Index qpmin,
+                                Index gwsize);
 
-  double getMaxCorrection(const Eigen::VectorXd& dftenergies,
-                                 Index min, Index max);
+  double getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
+                          Index max);
 
   struct rpa_eigensolution {
     Eigen::VectorXd omega;    // Eigenvalues
