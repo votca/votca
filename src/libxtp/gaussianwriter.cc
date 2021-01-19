@@ -111,7 +111,7 @@ void GaussianWriter::WriteFile(const std::string& basename,
             << "\n";
 
     // clang-format off
-    outFile << boost::format("%-43s%-2s%15d\n") % "number of atoms" % "I" % orbitals.QMAtoms().size();
+    outFile << boost::format("%-43s%-2s%15d\n") % "Number of atoms" % "I" % orbitals.QMAtoms().size();
     outFile << boost::format("%-43s%-2s%15d\n") % "Charge" % "I" % 0;
     outFile << boost::format("%-43s%-2s%15d\n") % "Multiplicity" % "I" % 1;
     outFile << boost::format("%-43s%-2s%15d\n") % "Number of electrons" % "I" % (2*orbitals.getNumberOfAlphaElectrons());
