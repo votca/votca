@@ -39,7 +39,7 @@ class Orb2Fchk final : public QMTool {
   std::string Identify() { return "mol2orb"; }
 
  protected:
-  void ParseOptions(const tools::Property& user_options);
+  void ParseOptions(const tools::Property&);
   bool Run();
 
  private:

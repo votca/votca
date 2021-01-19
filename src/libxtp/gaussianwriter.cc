@@ -103,12 +103,11 @@ void GaussianWriter::WriteFile(const std::string& basename,
 
   if (outFile.is_open()) {
     XTP_LOG(Log::error, _log)
-      << "Start writing to " << (basename + ".fchk") << std::flush;
+        << "Start writing to " << (basename + ".fchk") << std::flush;
     int temp_int;
     // job description
     outFile << basename << ", fchk created by VOTCA-XTP\n";
-    outFile << "SP    RHF    " << orbitals.getDFTbasisName()
-            << "\n";
+    outFile << "SP    RHF    " << orbitals.getDFTbasisName() << "\n";
 
     // clang-format off
     outFile << boost::format("%-43s%-2s%15d\n") % "Number of atoms" % "I" % orbitals.QMAtoms().size();

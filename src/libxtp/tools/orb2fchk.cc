@@ -30,7 +30,7 @@
 namespace votca {
 namespace xtp {
 
-void Orb2Fchk::ParseOptions(const tools::Property& options) {
+void Orb2Fchk::ParseOptions(const tools::Property&) {
 
   _basename = _job_name;
   _orbfile = _job_name + ".orb";
