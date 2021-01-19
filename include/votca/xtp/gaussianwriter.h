@@ -32,7 +32,7 @@ namespace votca {
 namespace xtp {
 class GaussianWriter {
  public:
-  GaussianWriter(Logger& log) : _log(log){};
+  GaussianWriter(Logger& log) : _log(log) { gaussianMultipliers.fill(-1); }
 
   ~GaussianWriter() = default;
 
@@ -43,6 +43,20 @@ class GaussianWriter {
   Index toGaussianL(L l) const;
   std::string reorderedMOCoefficients(const Orbitals& orbitals) const;
   std::string densityMatrixToString(const Orbitals& orbitals) const;
+  // Setup the reordering parameters
+  std::array<Index, 49> gaussianMultipliers;
+  // clang-format off
+  // the ordering of the m quantumnumbers for every shell in gaussian
+  std::array<Index, 49> gaussianOrder={{
+            0, //s
+            1,-1,0, //p
+            0,1,-1,2,-2, //d
+            0,1,-1,2,-2,3,-3, //f 
+            0,1,-1,2,-2,3,-3,4,-4, //g
+            0,1,-1,2,-2,3,-3,4,-4,5,-5, // h
+            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 // i
+  }};
+  // clang-format on
 };
 
 }  // namespace xtp

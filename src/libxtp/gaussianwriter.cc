@@ -1,3 +1,22 @@
+/*
+ *            Copyright 2009-2021 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 #include "votca/xtp/gaussianwriter.h"
 #include "votca/xtp/basisset.h"
 #include <boost/algorithm/string.hpp>
@@ -10,7 +29,7 @@ namespace xtp {
 
 /*
  * This function converts VOTCA's L enum to the gaussian equivalent.
- * Gaussian uses a minus sign to indicate spherical shells.
+ * Gaussian uses a minus sign to indicate spherical shells, but -1 for sp.
  */
 Index GaussianWriter::toGaussianL(L l) const {
   switch (l) {
@@ -25,22 +44,7 @@ Index GaussianWriter::toGaussianL(L l) const {
 
 std::string GaussianWriter::reorderedMOCoefficients(
     const Orbitals& orbitals) const {
-  // Setup the reordering parameters
-  std::array<Index, 49> multipliers;
-  multipliers.fill(-1);
-  // clang-format off
-  // the ordering of the m quantumnumbers for every shell in gaussian
-  std::array<Index, 49> gaussianOrder={{
-            0, //s
-            1,-1,0, //p
-            0,1,-1,2,-2, //d
-            0,1,-1,2,-2,3,-3, //f 
-            0,1,-1,2,-2,3,-3,4,-4, //g
-            0,1,-1,2,-2,3,-3,4,-4,5,-5, // h
-            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 // i
-  }};
-  // clang-format on
-  OrbReorder reorder(gaussianOrder, multipliers, true);
+  OrbReorder reorder(gaussianOrder, gaussianMultipliers, true);
   Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
   reorder.reorderOrbitals(moCoefficients, orbitals.SetupDftBasis());
 
@@ -64,27 +68,9 @@ std::string GaussianWriter::reorderedMOCoefficients(
 
 std::string GaussianWriter::densityMatrixToString(
     const Orbitals& orbitals) const {
-
-  // Setup the reordering parameters
-  std::array<Index, 49> multipliers;
-  multipliers.fill(-1);
-  // clang-format off
-  // the ordering of the m quantumnumbers for every shell in gaussian
-  std::array<Index, 49> gaussianOrder={{
-            0, //s
-            1,-1,0, //p
-            0,1,-1,2,-2, //d
-            0,1,-1,2,-2,3,-3, //f 
-            0,1,-1,2,-2,3,-3,4,-4, //g
-            0,1,-1,2,-2,3,-3,4,-4,5,-5, // h
-            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 // i
-  }};
-  // clang-format on
-  OrbReorder reorder(gaussianOrder, multipliers, true);
+  OrbReorder reorder(gaussianOrder, gaussianMultipliers, true);
   Eigen::MatrixXd density = orbitals.DensityMatrixGroundState();
   reorder.reorderOperator(density, orbitals.SetupDftBasis());
-
-  votca::tools::EigenIO_MatrixMarket::WriteMatrix("density.mm", density);
 
   // put the reordered mos in a string
   std::stringstream density_string;
@@ -114,11 +100,14 @@ void GaussianWriter::WriteFile(const std::string& basename,
   AOBasis basis = orbitals.SetupDftBasis();
 
   std::ofstream outFile(basename + ".fchk");
+
   if (outFile.is_open()) {
+    XTP_LOG(Log::error, _log)
+      << "Start writing to " << (basename + ".fchk") << std::flush;
     int temp_int;
     // job description
     outFile << basename << ", fchk created by VOTCA-XTP\n";
-    outFile << "DUMMY_TYPE    DUMMY_METHOD    " << orbitals.getDFTbasisName()
+    outFile << "SP    RHF    " << orbitals.getDFTbasisName()
             << "\n";
 
     // clang-format off
@@ -300,6 +289,7 @@ void GaussianWriter::WriteFile(const std::string& basename,
                         2 +
                     orbitals.MOs().eigenvalues().size());
     outFile << densityMatrixToString(orbitals);
+    XTP_LOG(Log::error, _log) << "Done writing \n" << std::flush;
   }
 }
 
