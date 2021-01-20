@@ -52,4 +52,4 @@ class Orb2Fchk final : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_MOL2ORB_H
+#endif  // VOTCA_XTP_ORB2FCHK_H

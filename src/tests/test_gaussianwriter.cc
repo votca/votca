@@ -37,7 +37,8 @@ using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(gaussianwriter_test)
 
-std::string fileToString(std::string filename, Index skipLines = 0) {
+std::pair<std::string, std::vector<double>> readFchkFile(std::string filename,
+                                                         Index skipLines = 0) {
   std::ifstream inFile(filename);
   if (inFile) {
     std::ostringstream ss;
@@ -48,8 +49,18 @@ std::string fileToString(std::string filename, Index skipLines = 0) {
     while (!inFile.eof()) {
       std::getline(inFile, line);
       ss << line << "\n";
+      if (line.find("Total SCF Density") != std::string::npos) {
+        break;
+      }
     }
-    return ss.str();
+    std::vector<double> density;
+    double dummy;
+    inFile >> dummy;
+    while (!inFile.eof()) {
+      density.push_back(dummy);
+      inFile >> dummy;
+    }
+    return std::pair<std::string, std::vector<double>>(ss.str(), density);
   } else {
     throw std::runtime_error("Could not open file: " + filename + "\n");
   }
@@ -79,20 +90,37 @@ BOOST_AUTO_TEST_CASE(gaussianwriter_test) {
   GaussianWriter writer(log);
   writer.WriteFile("methane", orbitals);
 
-  // 3. Compare file to reference file
+  // 3.1 Check everything except density matrix
   Index linesToSkip = 2;  // basisset names will be different due to test folder
-  std::string testFile = fileToString("methane.fchk", linesToSkip);
-  std::string refFile = fileToString(
+  std::pair<std::string, std::vector<double>> testFile =
+      readFchkFile("methane.fchk", linesToSkip);
+  std::pair<std::string, std::vector<double>> refFile = readFchkFile(
       std::string(XTP_TEST_DATA_FOLDER) + "/gaussianwriter/fchkRefMethane.fchk",
       linesToSkip);
-  bool filesAreEqual = testFile == refFile;
-  if (!filesAreEqual){
+
+  bool filesAreEqual = testFile.first == refFile.first;
+  if (!filesAreEqual) {
     std::cout << "GENERATED FILE: " << std::endl;
-    std::cout << testFile << std::endl;
+    std::cout << testFile.first << std::endl;
     std::cout << "REFERENCE FILE: " << std::endl;
-    std::cout << refFile << std::endl;
+    std::cout << refFile.first << std::endl;
   }
   BOOST_CHECK(filesAreEqual);
+
+  // 3.2 Check Density Matrix
+  bool densityMatrixIsEqual = true;
+  for (Index i = 0; i < static_cast<Index>(testFile.second.size()); ++i) {
+    densityMatrixIsEqual =
+        densityMatrixIsEqual &&
+        (std::abs(testFile.second[i] - refFile.second[i]) < 1e-10);
+  }
+  if (!densityMatrixIsEqual) {
+    std::cout << "GENERATED FILE vs REFERENCE: " << std::endl;
+    for (Index i = 0; i < static_cast<Index>(testFile.second.size()); ++i) {
+      std::cout << testFile.second[i] << "   " << refFile.second[i] << std::endl;
+    }
+  }
+  BOOST_CHECK(densityMatrixIsEqual);
 
   libint2::finalize();
 }
