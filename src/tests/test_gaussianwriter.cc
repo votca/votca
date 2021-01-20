@@ -18,7 +18,6 @@
 
 #define BOOST_TEST_MODULE gaussianwriter_test
 
-
 #include <fstream>
 #include <sstream>
 
@@ -63,12 +62,14 @@ BOOST_AUTO_TEST_CASE(gaussianwriter_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/gaussianwriter/methane.xyz");
-  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) + "/gaussianwriter/def2-tzvp.xml");
+  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+                           "/gaussianwriter/def2-tzvp.xml");
 
   orbitals.MOs().eigenvalues() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/gaussianwriter/orb_energies.mm");
-  orbitals.MOs().eigenvectors() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/gaussianwriter/orb_coeffs.mm");
+  orbitals.MOs().eigenvectors() =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/gaussianwriter/orb_coeffs.mm");
   orbitals.setQMEnergy(-40.53758914883583);
   orbitals.setNumberOfAlphaElectrons(5);
   orbitals.setNumberOfOccupiedLevels(5);
@@ -79,13 +80,14 @@ BOOST_AUTO_TEST_CASE(gaussianwriter_test) {
   writer.WriteFile("methane", orbitals);
 
   // 3. Compare file to reference file
-  Index linesToSkip = 2; //basisset names will be different due to test folder
+  Index linesToSkip = 2;  // basisset names will be different due to test folder
   std::string testFile = fileToString("methane.fchk", linesToSkip);
-  std::string refFile = fileToString(std::string(XTP_TEST_DATA_FOLDER) + "/gaussianwriter/fchkRefMethane.fchk", linesToSkip);
+  std::string refFile = fileToString(
+      std::string(XTP_TEST_DATA_FOLDER) + "/gaussianwriter/fchkRefMethane.fchk",
+      linesToSkip);
   bool filesAreEqual = testFile == refFile;
   BOOST_CHECK(filesAreEqual);
 
   libint2::finalize();
 }
-
 }

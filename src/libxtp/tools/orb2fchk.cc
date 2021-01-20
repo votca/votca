@@ -30,10 +30,12 @@
 namespace votca {
 namespace xtp {
 
-void Orb2Fchk::ParseOptions(const tools::Property&) {
+void Orb2Fchk::ParseOptions(const tools::Property& options) {
 
   _basename = _job_name;
   _orbfile = _job_name + ".orb";
+  _state_string = options.get(".qmstate").as<std::string>();
+
 }
 
 bool Orb2Fchk::Run() {
@@ -43,10 +45,12 @@ bool Orb2Fchk::Run() {
 
   Orbitals orbitals;
   XTP_LOG(Log::error, _log) << "Loading data from " << _orbfile << std::flush;
+  XTP_LOG(Log::error, _log)
+      << "Using density of state:  " << _state_string << std::flush;
   orbitals.ReadFromCpt(_orbfile);
 
   GaussianWriter writer(_log);
-  writer.WriteFile(_basename, orbitals);
+  writer.WriteFile(_basename, orbitals, QMState(_state_string));
 
   return true;
 }

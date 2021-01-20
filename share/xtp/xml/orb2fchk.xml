@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <options>
   <orb2fchk help="Converts orb files to gaussian fchk files.">
+  <qmstate help="QMstate in string format, e.g. n, s4 etc." default="n"/>
   </orb2fchk>
 </options>
