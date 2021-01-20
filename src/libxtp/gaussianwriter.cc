@@ -69,6 +69,7 @@ std::string GaussianWriter::reorderedMOCoefficients(
 std::string GaussianWriter::densityMatrixToString(const Orbitals& orbitals,
                                                   const QMState& state) const {
   OrbReorder reorder(gaussianOrder, gaussianMultipliers, true);
+  Eigen::MatrixXd density;
   Eigen::MatrixXd density = orbitals.DensityMatrixFull(state);
   reorder.reorderOperator(density, orbitals.SetupDftBasis());
 

@@ -35,7 +35,6 @@ void Orb2Fchk::ParseOptions(const tools::Property& options) {
   _basename = _job_name;
   _orbfile = _job_name + ".orb";
   _state_string = options.get(".qmstate").as<std::string>();
-
 }
 
 bool Orb2Fchk::Run() {

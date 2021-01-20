@@ -117,7 +117,8 @@ BOOST_AUTO_TEST_CASE(gaussianwriter_test) {
   if (!densityMatrixIsEqual) {
     std::cout << "GENERATED FILE vs REFERENCE: " << std::endl;
     for (Index i = 0; i < static_cast<Index>(testFile.second.size()); ++i) {
-      std::cout << testFile.second[i] << "   " << refFile.second[i] << std::endl;
+      std::cout << testFile.second[i] << "   " << refFile.second[i]
+                << std::endl;
     }
   }
   BOOST_CHECK(densityMatrixIsEqual);
