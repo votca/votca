@@ -86,6 +86,12 @@ BOOST_AUTO_TEST_CASE(gaussianwriter_test) {
       std::string(XTP_TEST_DATA_FOLDER) + "/gaussianwriter/fchkRefMethane.fchk",
       linesToSkip);
   bool filesAreEqual = testFile == refFile;
+  if (!filesAreEqual){
+    std::cout << "GENERATED FILE: " << std::endl;
+    std::cout << testFile << std::endl;
+    std::cout << "REFERENCE FILE: " << std::endl;
+    std::cout << refFile << std::endl;
+  }
   BOOST_CHECK(filesAreEqual);
 
   libint2::finalize();
