@@ -76,7 +76,8 @@ std::string GaussianWriter::densityMatrixToString(const Orbitals& orbitals,
              state.Type() == QMStateType::statetype::DQPstate) {
     density = orbitals.DensityMatrixQuasiParticle(state);
   } else {
-    std::array<Eigen::MatrixXd, 2> DMAT = orbitals.DensityMatrixExcitedState(state);
+    std::array<Eigen::MatrixXd, 2> DMAT =
+        orbitals.DensityMatrixExcitedState(state);
     density = DMAT[1] - DMAT[0];
   }
   reorder.reorderOperator(density, orbitals.SetupDftBasis());
