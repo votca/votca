@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -54,6 +54,14 @@ class AOBasis {
   const std::vector<const AOShell*> getShellsofAtom(Index AtomId) const;
 
   Index getNumofShells() const { return Index(_aoshells.size()); }
+
+  Index getNumberOfPrimitives() const {
+    Index totalPrimitives = 0;
+    for (const AOShell& shell : _aoshells) {
+      totalPrimitives += shell.getSize();
+    }
+    return totalPrimitives;
+  }
 
   Index getMaxNprim() const;
 

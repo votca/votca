@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -117,7 +117,7 @@ bool XtpTools::EvaluateOptions() {
 
   if (xtp::QMTools().IsRegistered(calc_string[0])) {
     this->SetTool(xtp::QMTools().Create(calc_string[0]));
-    std::cout << "Registered " << calc_string[0];
+    std::cout << "Registered " << calc_string[0] << std::endl;
   } else {
     std::cout << "Tool " << calc_string[0] << " does not exist\n";
     StopExecution();
