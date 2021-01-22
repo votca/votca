@@ -8,6 +8,7 @@ Version 2022-dev
 -  Refactored energy corrections in RPA outside QPs (#577)
 -  Made SetupCptTable static (#650)
 -  implement fchk writer (#649)
+-  Fixing BSE triplet storage (#653) (#654)
 
 
 Version 2021-rc.2 (released XX.01.21)
