@@ -28,6 +28,7 @@ foreach(SCRIPT votca_compare votca_help2doc)
   if (BUILD_MANPAGES)
     add_custom_command(OUTPUT ${SCRIPT}.man
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format groff --out ${SCRIPT}.man
+      COMMENT "Building ${SCRIPT} manpage"
       DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${SCRIPT})
     add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man)
     add_dependencies(manpages ${SCRIPT}_manpage)
@@ -36,6 +37,7 @@ foreach(SCRIPT votca_compare votca_help2doc)
   if(VOTCA_SPHINX_DIR)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/tools/${SCRIPT}.rst
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format rst --out ${VOTCA_SPHINX_DIR}/tools/${SCRIPT}.rst
+      COMMENT "Building ${SCRIPT} rst doc"
       DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${SCRIPT})
     list(APPEND TOOLS_RST_FILES ${VOTCA_SPHINX_DIR}/tools/${SCRIPT}.rst)
   endif(VOTCA_SPHINX_DIR)
