@@ -5,6 +5,7 @@ Version 2022-dev
 ================
 
 -  create script to convert help to rst (#312, #328)
+-  add rst pages to doc (#330)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
