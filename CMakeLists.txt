@@ -87,11 +87,6 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
-find_package(Python 3 COMPONENTS Interpreter)
-set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
-option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})
-add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
-
 find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options filesystem system timer)
 find_package(Eigen3 3.3.0 REQUIRED NO_MODULE)
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -100,7 +95,9 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif()
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
-option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
+find_package(Python 3 COMPONENTS Interpreter)
+set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
+option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 #define this target here, so that individual man pages can append to it.
 if(NOT TARGET manpages)
@@ -148,9 +145,6 @@ mark_as_advanced( MATH_LIBRARIES )
 ######################################
 # Include the following subdirectory #
 ######################################
-if(NOT TARGET manpages)
-  add_custom_target(manpages ALL)
-endif()
 if(VOTCA_SPHINX_DIR)
   add_custom_target(doc-xtp)
   file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/xtp)
