@@ -1,0 +1,79 @@
+.TH "votca-csg" 7 "@VOTCA_DATE@" "VOTCA Development Team "
+
+.SH NAME
+.P
+votca\-csg \- The VOTCA coarse\-graining engine
+.SH DESCRIPTION
+.P
+Versatile Object\-oriented Toolkit for Coarse\-graining Applications (VOTCA) is a package intended to reduce the amount of routine work when doing systematic coarse\-graining of various systems.
+The core is written in C++. Iterative methods are implemented using bash + perl.
+.P
+Please visit the program site at __http://www.votca.org__.
+.SH SYNOPSIS
+.P
+The following commands make up the votca\-csg suite.  Please refer to their individual man pages for further details.
+
+.TP
+\fBcsg_boltzmann\fR
+Performs tasks that are needed for simple Boltzmann inversion in an interactive environment.
+.TP
+\fBcsg_call\fR
+Calls script from the interactive framework for the user.
+.TP
+\fBcsg_density\fR
+Calculates all kind of density profiles.
+.TP
+\fBcsg_dlptopol\fR
+Create skeleton for dlpoly topology based on atomistic topology and a mapping file.
+.TP
+\fBcsg_dump\fR
+Prints atoms that are read from a topology file to help debug atom naming.
+.TP
+\fBcsg_fmatch\fR
+Performs force matching (also called \fImultiscale coarse\-graining\fR).
+.TP
+\fBcsg_gmxtopol\fR
+Create skeleton for gromacs topology based on atomistic topology and a mapping file.
+.TP
+\fBcsg_imc_solver\fR
+Is internally called by inversion scripts to solve matrix equation for inverse Monte Carlo (imc).
+.TP
+\fBcsg_inverse\fR
+Starts the script to run iterative Boltzmann inverse (ibi) or inverse Monte Carlo (imc), etc.
+.TP
+\fBcsg_map\fR
+Map a reference trajectory to a coarse\-grained trajectory.
+.TP
+\fBcsg_property\fR
+Helper program called by inverse scripts to parse xml file.
+.TP
+\fBcsg_resample\fR
+Changes grid + interval and interpolated any sort of table files.
+.TP
+\fBcsg_reupdate\fR
+Reform the relative entropy update in inverse scripts.
+.TP
+\fBcsg_stat\fR
+Calculates  all kind of distribuions  (bonded + non\-bonded).
+
+.SH AUTHORS
+.P
+Written and maintained by the VOTCA Development Team <devs@votca.org>
+.P
+This Manual Page converted from t2t format to the this format by txt2tags (http://txt2tags.org) !
+.SH COPYRIGHT
+.P
+Copyright 2009\-2019 The VOTCA Development Team (http://www.votca.org)
+.P
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+.P
+    http://www.apache.org/licenses/LICENSE\-2.0
+.P
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+

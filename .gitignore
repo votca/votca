@@ -12,7 +12,6 @@ build.ninja
 build
 scripts/csg_call
 scripts/csg_inverse
-scripts/help2t2t
 scripts/csg_inverse.t2t
 scripts/*.out
 share/doc/Doxyfile
