@@ -1,3 +1,4 @@
+set(CSG_RST_FILES)
 foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_gmxtopol csg_dlptopol csg_density csg_imc_solve)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
@@ -5,17 +6,23 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat cs
   install(TARGETS ${PROG} EXPORT VOTCA_CSG_Targets RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   add_executable(VOTCA::${PROG} ALIAS ${PROG})
   set_property(TARGET votca_csg APPEND PROPERTY BINARIES "${PROG}")
-  if (TXT2TAGS_FOUND AND BASH)
+  if (BUILD_MANPAGES)
     add_custom_command(OUTPUT ${PROG}.man
-      COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${PROG} --help > ${PROG}.help
-      COMMAND ${BASH} ${CMAKE_CURRENT_BINARY_DIR}/../../scripts/help2t2t ${PROG}.help > ${PROG}.t2t
-      COMMAND ${TXT2TAGS_EXECUTABLE} -q -t man -i ${PROG}.t2t -o ${PROG}.man
-      DEPENDS help2t2t_build ${PROG})
+      COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${PROG}> --format groff --out ${PROG}.man
+      COMMENT "Building ${PROG} manpage"
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${PROG})
     add_custom_target(${PROG}_manpage DEPENDS ${PROG}.man)
     add_dependencies(manpages ${PROG}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${PROG}.1)
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${PROG}.help ${PROG}.t2t)
-  endif(TXT2TAGS_FOUND AND BASH)
+  endif()
+  if(VOTCA_SPHINX_DIR)
+    add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/${PROG}.rst
+      COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${PROG}> --format rst --out ${VOTCA_SPHINX_DIR}/csg/${PROG}.rst
+      COMMENT "Building ${PROG} rst doc"
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${PROG})
+    list(APPEND CSG_RST_FILES ${VOTCA_SPHINX_DIR}/csg/${PROG}.rst)
+  endif(VOTCA_SPHINX_DIR)
 
   if(ENABLE_TESTING)
     add_test(integration_${PROG}Help ${PROG} --help)
@@ -23,6 +30,11 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat cs
     set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "csg;tools;votca;integration")
   endif(ENABLE_TESTING)
 endforeach(PROG)
+
+if(VOTCA_SPHINX_DIR)
+  add_custom_target(doc-csg-rst-progs DEPENDS ${CSG_RST_FILES})
+  add_dependencies(doc-csg doc-csg-rst-progs)
+endif()
 
 if(ENABLE_TESTING)
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_reupdate)
