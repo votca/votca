@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
     if (!ao_check) {
       std::cout << shell << std::endl;
       std::cout << "ref" << std::endl;
-      std::cout << aoval_ref << std::endl;
+      std::cout << aoval_ref.segment(shell.getStartIndex(), shell.getNumFunc()) << std::endl;
       std::cout << "result" << std::endl;
       std::cout << aoval << std::endl;
     }
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
     if (!aograd_check) {
       std::cout << shell << std::endl;
       std::cout << "ref" << std::endl;
-      std::cout << aograd_ref << std::endl;
+      std::cout << aograd_ref.block(shell.getStartIndex(), 0, shell.getNumFunc(), 3)<<<< << std::endl;
       std::cout << "result" << std::endl;
       std::cout << aograd << std::endl;
     }
