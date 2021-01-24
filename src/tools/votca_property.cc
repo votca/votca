@@ -34,19 +34,19 @@ using namespace std;
 using namespace votca::tools;
 namespace po = boost::program_options;
 
-class VotcaProperty : public Application {
+class VotcaProperty final: public Application {
 
  public:
-  VotcaProperty();
-  ~VotcaProperty() override;
+  VotcaProperty() =default;
+  ~VotcaProperty() =default;
 
-  string ProgramName() override { return "votca_property"; }
+  string ProgramName()  { return "votca_property"; }
 
-  void HelpText(ostream& out) override {
+  void HelpText(ostream& out)  {
     out << "Helper for parsing XML files";
   }
 
-  void Initialize() override {
+  void Initialize()  {
 
     format = "XML";
     level = 1;
@@ -56,12 +56,12 @@ class VotcaProperty : public Application {
         "level", po::value<votca::Index>(), "output from this level ");
   };
 
-  bool EvaluateOptions() override {
+  bool EvaluateOptions()  {
     CheckRequired("file", "Missing XML file");
     return true;
   };
 
-  void Run() override {
+  void Run()  {
 
     file = _op_vm["file"].as<string>();
 
@@ -78,7 +78,6 @@ class VotcaProperty : public Application {
       map<string, PropertyIOManipulator*> _mformat;
       _mformat["XML"] = &XML;
       _mformat["TXT"] = &TXT;
-      _mformat["TEX"] = &TEX;
       _mformat["HLP"] = &HLP;
       p.LoadFromXML(file);
 
@@ -103,9 +102,6 @@ class VotcaProperty : public Application {
   votca::Index level;
 };
 
-VotcaProperty::VotcaProperty(void) = default;
-
-VotcaProperty::~VotcaProperty(void) = default;
 
 int main(int argc, char** argv) {
   VotcaProperty vp;
