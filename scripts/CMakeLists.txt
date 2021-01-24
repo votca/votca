@@ -12,7 +12,7 @@ foreach(SCRIPT xtp_update_mapfile xtp_basisset xtp_makeauxbasis xtp_autogen_mapp
     add_custom_command(OUTPUT ${SCRIPT}.man
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name ${SCRIPT} --format groff --out ${SCRIPT}.man
       COMMENT "Building ${SCRIPT} manpage"
-      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${SCRIPT})
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${SCRIPT}_build)
     add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man)
     add_dependencies(manpages ${SCRIPT}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${SCRIPT}.1)
