@@ -65,6 +65,10 @@ option(BUILD_MANPAGES "Build manpages (might lead to problem on system without r
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 #define this target here, so that individual man pages can append to it.
 add_custom_target(manpages ALL)
+if(VOTCA_SPHINX_DIR)
+  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/tools)
+  add_custom_target(doc-tools)
+endif()
 
 ########################################################################
 # Checks what linear algebra packages are installed                    #
@@ -108,6 +112,7 @@ add_subdirectory(scripts)
 add_subdirectory(src)
 add_subdirectory(include/votca/tools)
 add_subdirectory(share/man)
+add_subdirectory(share/doc)
 
 configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
