@@ -1,8 +1,21 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/xtp/commits/master>`__.
 
-Version 2021-dev
-===============
+Version 2022-dev
+================
+
+-  Updated coordinate precision (#638)
+-  Refactored energy corrections in RPA outside QPs (#577)
+-  Made SetupCptTable static (#650)
+-  implement fchk writer (#649)
+-  Fixing BSE triplet storage (#653) (#654)
+
+
+Version 2021-rc.2 (released XX.01.21)
+=====================================
+
+Version 2021-rc.1 (released 15.01.21)
+=====================================
 
 -  G0W0 rpa energies are fixed in BSE (#383)
 -  Hqp part of BSE can be separate from QP range (#388)
@@ -21,7 +34,7 @@ Version 2021-dev
 -  check that temperature is positive for KMC (#432)
 -  document cmake options and packages (#434)
 -  remove long gone MKL option for gitlab-ci (#435)
--  add documentation using Sphinx (#433)
+-  add documentation using Sphinx (#433, #615)
 -  add kokkos-based Ewald solver (#444, #446, #485)
 -  allow multiple choices for the calculator options (#442, #445)
 -  move bsecoupling defaults to xml (#451)
@@ -31,7 +44,7 @@ Version 2021-dev
 -  changed to OpenMP reductions instead of hand crafted solutions (#466,
    #471, #493)
 -  switch to GitHub Actions as CI (#467, #474, #477, #482, #500, #502,
-   #518, #549)
+   #518, #549, #637)
 -  move tutorial to its own repo (#450)
 -  removed share/packages folder (#475)
 -  copy orca \*.gbw files in eqm (#472)
@@ -80,8 +93,26 @@ Version 2021-dev
 -  fix bug in setCenter of AODipole (#593)
 -  extra check in orca unit test (#594)
 -  fixed atomid numbering while adding containers (#599)
+-  added tool for automatic mapping file generation (#595)
+-  Added GPU support for RPA (#601)
+-  fixed int64 interface to RDKIT (#602)
+-  remove kokkos dependent ewald (#612)
+-  fixed Sphinx warnings (#609)
+-  better error for exceeded angular momentum in libint (#613)
+-  fixed wrong QP-QMMM energy with non-zero QPmin (#620)
+-  fixed density analysis options (#627)
+-  Use libint transformation matrices (#630)
+-  Added script to extract orbitals from qmmm statefile (#629)
+-  clean up XTP app message (#631)
+-  fixed EXX 3c mode (#640)
 
-Version 1.6.3 (released XX.08.20)
+Version 1.6.4 (released 12.01.21)
+=================================
+
+-  fix build on openSUSE (#622)
+-  refactored logger (#625)
+
+Version 1.6.3 (released 09.12.20)
 =================================
 
 -  switch to ghcr.io for CI (#555)

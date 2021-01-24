@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(votca-xtp LANGUAGES CXX)
 
-set(PROJECT_VERSION "2021-dev")
+set(PROJECT_VERSION "2022-dev")
 string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
   message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
@@ -119,9 +119,6 @@ if(USE_CUDA)
   find_package(CUDA REQUIRED)
   set_package_properties(CUDA PROPERTIES TYPE REQUIRED PURPOSE "Used for GPU acceleration")
 endif(USE_CUDA)
-
-find_package(Kokkos 3.0 CONFIG)
-set_package_properties(Kokkos PROPERTIES TYPE OPTIONAL PURPOSE "Used to Ewald solver")
 
 ########################################################################
 # Checks what linear algebra packages are installed                    #

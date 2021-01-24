@@ -129,11 +129,8 @@ void ECPAOBasis::WriteToCpt(CheckpointWriter& w) const {
     numofprimitives += shell.getSize();
   }
 
-  // this is all to make dummy ECPAOGaussian
-  ECPGaussianPrimitive d(2, 0.1, 0.1);
-  ECPAOGaussianPrimitive dummy2(d);
-
-  CptTable table = w.openTable("Contractions", dummy2, numofprimitives);
+  CptTable table =
+      w.openTable<ECPAOGaussianPrimitive>("Contractions", numofprimitives);
 
   std::vector<ECPAOGaussianPrimitive::data> dataVec(numofprimitives);
   Index i = 0;
@@ -154,11 +151,8 @@ void ECPAOBasis::ReadFromCpt(CheckpointReader& r) {
 
   if (_AOBasisSize > 0) {
     r(_ncore_perAtom, "atomic ecp charges");
-    // this is all to make dummy ECPAOGaussian
-    ECPGaussianPrimitive d(2, 0.1, 0.1);
-    ECPAOGaussianPrimitive dummy2(d);
 
-    CptTable table = r.openTable("Contractions", dummy2);
+    CptTable table = r.openTable<ECPAOGaussianPrimitive>("Contractions");
     std::vector<ECPAOGaussianPrimitive::data> dataVec(table.numRows());
     table.read(dataVec);
     Index laststartindex = -1;

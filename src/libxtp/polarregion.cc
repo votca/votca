@@ -18,6 +18,7 @@
  */
 
 // Standard includes
+#include <iomanip>
 #include <numeric>
 
 // Local VOTCA includes

@@ -109,10 +109,10 @@ void Orca::WriteCoordinates(std::ofstream& inp_file,
   for (const QMAtom& atom : qmatoms) {
     Eigen::Vector3d pos = atom.getPos() * tools::conv::bohr2ang;
     inp_file << setw(3) << atom.getElement() << setw(12)
-             << setiosflags(ios::fixed) << setprecision(5) << pos.x()
-             << setw(12) << setiosflags(ios::fixed) << setprecision(5)
+             << setiosflags(ios::fixed) << setprecision(6) << pos.x()
+             << setw(12) << setiosflags(ios::fixed) << setprecision(6)
              << pos.y() << setw(12) << setiosflags(ios::fixed)
-             << setprecision(5) << pos.z() << endl;
+             << setprecision(6) << pos.z() << endl;
   }
   inp_file << "* \n" << endl;
   return;

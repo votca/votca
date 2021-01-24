@@ -27,7 +27,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout head branch from PR
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
-        uses: actions/checkout@v2.2.0
+        uses: actions/checkout@v2
         with:
           repository: ${{ fromJSON(steps.pr_info.outputs.data).head.repo.full_name }}
           ref: ${{ fromJSON(steps.pr_info.outputs.data).head.ref }}
