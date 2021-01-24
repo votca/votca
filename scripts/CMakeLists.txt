@@ -1,12 +1,4 @@
-string(TIMESTAMP VOTCA_DATE "%Y-%m-%d %H:%M:%S" UTC)
-configure_file(help2t2t.in ${CMAKE_CURRENT_BINARY_DIR}/help2t2t.out @ONLY)
-add_custom_target(help2t2t_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/help2t2t)
-add_custom_command(OUTPUT help2t2t ALL COMMAND ${CMAKE_COMMAND}
-    -DINPUT="help2t2t.out" -DOUTPUT="help2t2t"
-    -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-    -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitscript.cmake)
-set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES help2t2t)
-
+set(CSG_RST_FILES)
 foreach(SCRIPT csg_call csg_inverse)
   configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.in2 @ONLY)
   add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
@@ -18,17 +10,22 @@ foreach(SCRIPT csg_call csg_inverse)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${SCRIPT} ${SCRIPT}.tmp ${SCRIPT}.tmp.x)
   set_property(TARGET votca_csg APPEND PROPERTY BINARIES "${SCRIPT}")
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
-  if (TXT2TAGS_FOUND AND BASH)
-    add_custom_command(OUTPUT ${SCRIPT}.man 
-      COMMAND ${CMAKE_COMMAND} -E env VOTCASHARE=${CMAKE_SOURCE_DIR}/share ${BASH} ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} --help > ${SCRIPT}.help
-      COMMAND ${BASH} ${CMAKE_CURRENT_BINARY_DIR}/help2t2t ${SCRIPT}.help > ${SCRIPT}.t2t 
-      COMMAND ${TXT2TAGS_EXECUTABLE} -q -t man -i ${SCRIPT}.t2t -o ${SCRIPT}.man
-      DEPENDS help2t2t_build ${SCRIPT})
+  if (BUILD_MANPAGES)
+    add_custom_command(OUTPUT ${SCRIPT}.man
+      COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format groff --out ${SCRIPT}.man
+      COMMENT "Building ${SCRIPT} manpage"
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${SCRIPT})
     add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man)
     add_dependencies(manpages ${SCRIPT}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${SCRIPT}.1)
-    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${SCRIPT}.help ${SCRIPT}.t2t)
-  endif(TXT2TAGS_FOUND AND BASH)
+  endif()
+  if(VOTCA_SPHINX_DIR)
+    add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst
+      COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format rst --out ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst
+      COMMENT "Building ${SCRIPT} rst doc"
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${SCRIPT})
+    list(APPEND CSG_RST_FILES ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst)
+  endif(VOTCA_SPHINX_DIR)
   add_executable(VOTCA::${SCRIPT} IMPORTED GLOBAL)
   set_property(TARGET VOTCA::${SCRIPT} PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}")
 endforeach(SCRIPT)
@@ -38,3 +35,8 @@ set_target_properties(VOTCA::csg_call PROPERTIES VOTCA_PATH "${CMAKE_CURRENT_BIN
 set_target_properties(VOTCA::csg_inverse PROPERTIES VOTCA_CSG_DEFAULTS "${PROJECT_BINARY_DIR}/share/xml/csg_defaults.xml")
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/csg-completion.bash DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/rc)
+
+if(VOTCA_SPHINX_DIR)
+  add_custom_target(doc-csg-rst-scripts DEPENDS ${CSG_RST_FILES})
+  add_dependencies(doc-csg doc-csg-rst-scripts)
+endif()
