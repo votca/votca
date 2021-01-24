@@ -19,7 +19,6 @@ if (BUILD_MANPAGES)
   add_custom_target(csg_boltzmann_manpage DEPENDS csg_boltzmann.man)
   add_dependencies(manpages csg_boltzmann_manpage)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/csg_boltzmann.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME csg_boltzmann.1)
-  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES csg_boltzmann.help csg_boltzmann.t2t)
 endif()
 
 if(VOTCA_SPHINX_DIR)

@@ -19,7 +19,6 @@ foreach(DIR ${DIRS})
       DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${DIR})
     add_custom_target(${DIR}_manpage DEPENDS ${DIR}.man)
     add_dependencies(manpages ${DIR}_manpage)
-    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${DIR}.help ${DIR}.t2t)
   endif()
   if(VOTCA_SPHINX_DIR)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/csg_${DIR}.rst
