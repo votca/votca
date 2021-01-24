@@ -58,7 +58,10 @@ set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
 set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
 
-option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ON)
+
+find_package(Python 3 COMPONENTS Interpreter)
+set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
+option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 #define this target here, so that individual man pages can append to it.
 add_custom_target(manpages ALL)
@@ -101,9 +104,9 @@ mark_as_advanced( MATH_LIBRARIES )
 ######################################
 # Include the following subdirectory #
 ######################################
+add_subdirectory(scripts)
 add_subdirectory(src)
 add_subdirectory(include/votca/tools)
-add_subdirectory(scripts)
 add_subdirectory(share/man)
 
 configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)

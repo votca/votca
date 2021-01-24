@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ================
 
+-  create script to convert help to rst (#312)
+
 Version 2021-rc.2 (released XX.01.21)
 =====================================
 
