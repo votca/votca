@@ -1,5 +1,11 @@
 set(XTP_RST_FILES)
-foreach(SCRIPT xtp_update_mapfile xtp_basisset xtp_makeauxbasis xtp_autogen_mapping)
+set(XTP_SCRIPTS xtp_update_mapfile xtp_basisset xtp_makeauxbasis)
+find_package(Rdkit)
+set_package_properties(Rdkit PROPERTIES TYPE OPTIONAL PURPOSE "Needed for xtp_autogen_mapping")
+if(Rdkit_FOUND)
+  list(APPEND XTP_SCRIPTS xtp_autogen_mapping)
+endif()
+foreach(SCRIPT ${XTP_SCRIPTS}) 
   configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
   add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
   add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
