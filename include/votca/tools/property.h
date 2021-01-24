@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
