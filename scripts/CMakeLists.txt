@@ -25,6 +25,7 @@ foreach(SCRIPT votca_compare votca_help2doc)
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
   add_executable(VOTCA::${SCRIPT} IMPORTED GLOBAL)
   set_property(TARGET VOTCA::${SCRIPT} PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}")
+  add_dependencies(VOTCA::${SCRIPT} ${SCRIPT}_build)
   if (BUILD_MANPAGES)
     add_custom_command(OUTPUT ${SCRIPT}.man
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format groff --out ${SCRIPT}.man
