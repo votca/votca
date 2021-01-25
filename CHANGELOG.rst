@@ -4,7 +4,7 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ================
 
--  generate manpage using votca_help2man (#637)
+-  generate manpage & rst using votca_help2man (#637, #638)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
