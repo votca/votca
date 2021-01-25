@@ -53,8 +53,6 @@ struct globals {
 
   /// If Eigen is overloaded with MKL
   static bool VOTCA_MKL;
-
-
 };
 
 }  // namespace tools

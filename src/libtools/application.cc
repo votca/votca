@@ -58,7 +58,6 @@ void Application::ShowHelpText(std::ostream &out) {
   out << "\n\n" << VisibleOptions() << endl;
 }
 
-
 int Application::Exec(int argc, char **argv) {
   try {
     //_continue_execution = true;

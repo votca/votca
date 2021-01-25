@@ -37,6 +37,5 @@ bool VotcaShareSet() { return (getenv("VOTCASHARE") != nullptr); }
 std::string globals::url = "http://www.votca.org";
 std::string globals::email = "devs@votca.org";
 
-
 }  // namespace tools
 }  // namespace votca
