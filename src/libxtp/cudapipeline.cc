@@ -58,8 +58,6 @@ std::string CudaPipeline::cudaGetErrorEnum(cublasStatus_t error) {
   return "<unknown>";
 }
 
-
-
 void CudaPipeline::diag_gemm(const CudaMatrix &A, const CudaMatrix &b,
                              CudaMatrix &C) const {
 

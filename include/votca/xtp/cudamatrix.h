@@ -77,7 +77,7 @@ class CudaMatrixBlock {
 template <class M>
 class CudaMatrixTranspose {
  public:
-  explicit CudaMatrixTranspose(const M &mat) : mat_(mat) { ; }
+  CudaMatrixTranspose(const M &mat) : mat_(mat) { ; }
   Index size() const { return mat_.size(); }
   Index rows() const { return mat_.rows(); }
   Index cols() const { return mat_.cols(); }
