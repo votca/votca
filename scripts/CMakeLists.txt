@@ -45,6 +45,6 @@ foreach(SCRIPT votca_compare votca_help2doc)
 endforeach(SCRIPT)
 
 if(VOTCA_SPHINX_DIR)
-  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/tools)
-  add_custom_target(doc-tools DEPENDS ${TOOLS_RST_FILES})
+  add_custom_target(doc-tools-scripts DEPENDS ${TOOLS_RST_FILES})
+  add_dependencies(doc-tools doc-tools-scripts)
 endif()
