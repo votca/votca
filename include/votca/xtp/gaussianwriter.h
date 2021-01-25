@@ -36,7 +36,7 @@ class GaussianWriter {
 
   ~GaussianWriter() = default;
 
-  void WriteFile(const std::string& basename, const Orbitals& orbitals,
+  void WriteFile(const std::string& basename, const Orbitals& orbitals, bool dostateonly,
                  const QMState state = QMState(QMStateType::statetype::Gstate,
                                                0, false)) const;
 
@@ -45,7 +45,7 @@ class GaussianWriter {
   Index toGaussianL(L l) const;
   std::string reorderedMOCoefficients(const Orbitals& orbitals) const;
   std::string densityMatrixToString(const Orbitals& orbitals,
-                                    const QMState& state) const;
+                                    const QMState& state, bool dostateonly) const;
   // Setup the reordering parameters
   std::array<Index, 49> gaussianMultipliers;
   // clang-format off

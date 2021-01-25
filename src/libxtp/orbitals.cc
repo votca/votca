@@ -109,6 +109,21 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
   return dmatGS;
 }
 
+// Density matrix for a single KS orbital
+
+Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
+  if (!hasMOs()) {
+    throw std::runtime_error("Orbitals file does not contain MO coefficients");
+  }
+  if (state.Type() != QMStateType::KSstate) {
+    throw std::runtime_error("State:" + state.ToString() +
+                             " is not a Kohn Sham state");
+  }
+  Eigen::MatrixXd KSstate = _mos.eigenvectors().col(state.StateIdx());
+  Eigen::MatrixXd dmatKS = KSstate * KSstate.transpose();
+  return dmatKS;
+}
+
 Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
   if (!hasQPdiag()) {
     throw std::runtime_error("Orbitals file does not contain QP coefficients");

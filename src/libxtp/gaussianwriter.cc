@@ -67,9 +67,20 @@ std::string GaussianWriter::reorderedMOCoefficients(
 }
 
 std::string GaussianWriter::densityMatrixToString(const Orbitals& orbitals,
-                                                  const QMState& state) const {
+                                                  const QMState& state, bool dostateonly) const {
   OrbReorder reorder(gaussianOrder, gaussianMultipliers, true);
-  Eigen::MatrixXd density = orbitals.DensityMatrixFull(state);
+
+    Eigen::MatrixXd density;
+    if (state.Type().isExciton() && dostateonly) {
+      std::array<Eigen::MatrixXd, 2> DMAT =
+          orbitals.DensityMatrixExcitedState(state);
+      density = DMAT[1] - DMAT[0];
+    } else if ((state.Type().isKSState() || state.Type().isPQPState()) && dostateonly) { 
+      density = orbitals.DensityMatrixKSstate(state);
+    } else {
+      density = orbitals.DensityMatrixFull(state);
+    }
+
   reorder.reorderOperator(density, orbitals.SetupDftBasis());
 
   // put the reordered mos in a string
@@ -92,8 +103,8 @@ std::string GaussianWriter::densityMatrixToString(const Orbitals& orbitals,
 }
 
 void GaussianWriter::WriteFile(const std::string& basename,
-                               const Orbitals& orbitals,
-                               const QMState state) const {
+                               const Orbitals& orbitals,bool dostateonly,
+                               const QMState state ) const {
   if (!orbitals.hasDFTbasisName()) {
     throw std::runtime_error(".orb file does not contain a basisset name");
   }
@@ -288,7 +299,7 @@ void GaussianWriter::WriteFile(const std::string& basename,
                      (orbitals.MOs().eigenvalues().size() - 1)) /
                         2 +
                     orbitals.MOs().eigenvalues().size());
-    outFile << densityMatrixToString(orbitals, state);
+    outFile << densityMatrixToString(orbitals, state, dostateonly);
 
     XTP_LOG(Log::error, _log) << "Done writing \n" << std::flush;
   }

@@ -324,6 +324,7 @@ class Orbitals {
   std::array<Eigen::MatrixXd, 2> DensityMatrixExcitedState(
       const QMState &state) const;
   Eigen::MatrixXd DensityMatrixQuasiParticle(const QMState &state) const;
+  Eigen::MatrixXd DensityMatrixKSstate(const QMState &state) const;
   Eigen::MatrixXd CalculateQParticleAORepresentation() const;
   double getTotalStateEnergy(const QMState &state) const;    // Hartree
   double getExcitedStateEnergy(const QMState &state) const;  // Hartree
