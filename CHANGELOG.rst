@@ -5,6 +5,7 @@ Version 2022-dev
 ================
 
 -  create script to convert help to rst (#312)
+-  fix example formating using help2doc (#327)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
