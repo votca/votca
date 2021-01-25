@@ -1,6 +1,8 @@
 xtp_tools
 #########
 
+.. include:: ../xtp/xtp_tools.rst
+
 The following calculators are available:
 
 .. toctree::
@@ -14,5 +16,6 @@ The following calculators are available:
    molpol
    partialcharges
    spectrum
+   orb2fchk
    orb2mol
    mol2orb
