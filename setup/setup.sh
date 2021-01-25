@@ -40,7 +40,7 @@ else
   die "Handling on GITHUB_REF=${GITHUB_REF} not implemented"
 fi
 
-cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON )
+cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON  -DBUILD_CSGAPPS=ON )
 if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
   cmake_args+=( -DCMAKE_BUILD_TYPE=${INPUT_CMAKE_BUILD_TYPE} )
 fi
@@ -72,6 +72,7 @@ else
 fi	
 if [[ ${INPUT_OWN_GMX} = true ]]; then
   cmake_args+=( -DBUILD_OWN_GROMACS=ON -DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF )
+  # remove this block when gromacs uses cxx only, i.e. gmx2021
   if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=gcc )
   elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
@@ -86,16 +87,10 @@ else
 fi
 if [[ ${INPUT_MINIMAL} = true ]]; then
   cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_MANPAGES=OFF -DBUILD_XTP=OFF )
-elif [[ ${module} = xtp* ]]; then
-  cmake_args+=( -DBUILD_CSGAPPS=OFF -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=OFF )
-elif [[ ${module} = csg-manual ]]; then
-  cmake_args+=( -DBUILD_CSGAPPS=OFF -DBUILD_XTP=OFF -DBUILD_CSG_MANUAL=ON )
-elif [[ ${module} = csgapps ]]; then
-  cmake_args+=( -DBUILD_CSGAPPS=ON -DBUILD_XTP=OFF -DBUILD_CSG_MANUAL=OFF )
 elif [[ ${module} = csg-tutorials ]]; then
-  cmake_args+=( -DBUILD_CSGAPPS=OFF -DBUILD_XTP=OFF -DBUILD_CSG_MANUAL=OFF )
+  cmake_args+=( -DBUILD_XTP=OFF )
 else
-  cmake_args+=( -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON )
+  cmake_args+=( -DBUILD_XTP=ON )
 fi
 
 if [[ ${INPUT_MINIMAL} = true || ${INPUT_DISTRO} = ubuntu:@(latest|rolling|devel) ]];  then
@@ -150,7 +145,7 @@ if [[ ${INPUT_COVERAGE} ]]; then
     ctest_args+=( -R "'regression_spce_(re|imc|cma)'" )
   elif [[ ${INPUT_COVERAGE} = "Group3" ]]; then
     ctest_args+=( -R "'regression_(methanol-water|propane_imc)'" )
-  elif [[ ${INPUT_COVERAGE} = "RestGroup" ]]; then
+  elif [[ ${INPUT_COVERAGE} = "RestGroup" || ${INPUT_COVERAGE} = "true" ]]; then
     ctest_args+=( -E "'regression_(urea-water|spce_(re|imc|cma)|methanol-water|propane_imc)'" )
   else
     die "Unknown coverage set"
