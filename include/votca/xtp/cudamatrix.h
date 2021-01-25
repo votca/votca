@@ -48,18 +48,19 @@ cudaError_t checkCuda(cudaError_t result);
 
 Index count_available_gpus();
 
-template <class M> 
-class CudaMatrixTranspose{
-public:
-CudaMatrixTranspose(const M& mat):mat_(mat){;}
+template <class M>
+class CudaMatrixTranspose {
+ public:
+  CudaMatrixTranspose(const M &mat) : mat_(mat) { ; }
   Index size() const { return mat_.size(); }
   Index rows() const { return mat_.rows(); }
   Index cols() const { return mat_.cols(); }
   double *data() const { return mat_.data(); }
 
-  constexpr bool transposed()const{return !mat_.transposed();}
-  private:
-   const M& mat_;
+  constexpr bool transposed() const { return !mat_.transposed(); }
+
+ private:
+  const M &mat_;
 };
 
 class CudaMatrix {
@@ -69,9 +70,11 @@ class CudaMatrix {
   Index cols() const { return _cols; };
   double *data() const { return _data.get(); };
 
-  CudaMatrixTranspose<CudaMatrix> transpose()const{return CudaMatrixTranspose<CudaMatrix>(*this);}
+  CudaMatrixTranspose<CudaMatrix> transpose() const {
+    return CudaMatrixTranspose<CudaMatrix>(*this);
+  }
 
-  constexpr bool transposed()const{return false;}
+  constexpr bool transposed() const { return false; }
 
   CudaMatrix(const Eigen::MatrixXd &matrix, const cudaStream_t &stream);
 
@@ -99,7 +102,6 @@ class CudaMatrix {
   cudaStream_t _stream = nullptr;
   Index _rows;
   Index _cols;
-
 };
 
 }  // namespace xtp

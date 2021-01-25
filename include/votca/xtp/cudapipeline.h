@@ -58,9 +58,8 @@ class CudaPipeline {
   CudaPipeline &operator=(const CudaPipeline &) = delete;
 
   // Invoke the ?gemm function of cublas
-  template<class M1,class M2>
-  void gemm(const M1 &A, const M2 &B, CudaMatrix &C,
-            double beta = 0.0) const;
+  template <class M1, class M2>
+  void gemm(const M1 &A, const M2 &B, CudaMatrix &C, double beta = 0.0) const;
 
   // Invoke the multiplication with a diagonal matrix of cublas, diagonal matrix
   // B must have 1 column
@@ -85,8 +84,9 @@ class CudaPipeline {
  * Call the gemm function from cublas, resulting in the multiplication of the
  * two matrices
  */
-template<class M1,class M2>
-inline void CudaPipeline::gemm(const M1 &A, const M2 &B, CudaMatrix &C, double beta) const {
+template <class M1, class M2>
+inline void CudaPipeline::gemm(const M1 &A, const M2 &B, CudaMatrix &C,
+                               double beta) const {
 
   // Scalar constanst for calling blas
   double alpha = 1.;
