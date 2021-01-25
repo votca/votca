@@ -57,11 +57,6 @@ class CudaPipeline {
   CudaPipeline(const CudaPipeline &) = delete;
   CudaPipeline &operator=(const CudaPipeline &) = delete;
 
-  // Invoke the ?gemm function of cublas
-  template<class M1,class M2>
-  void gemm(const M1 &A, const M2 &B, CudaMatrix &C,
-            double beta = 0.0) const;
-
   // Invoke the multiplication with a diagonal matrix of cublas, diagonal matrix
   // B must have 1 column
   void diag_gemm(const CudaMatrix &A, const CudaMatrix &b, CudaMatrix &C) const;
@@ -71,6 +66,10 @@ class CudaPipeline {
   int getDeviceId() const { return _deviceID; }
 
  private:
+  // Invoke the ?gemm function of cublas
+  template <class M1, class M2, class M3>
+  void gemm_internal(const M1 &A, const M2 &B, M3 &C, double beta) const;
+
   int _deviceID = 0;
   // The cublas handles allocates hardware resources on the host and device.
   cublasHandle_t _handle;
@@ -79,28 +78,51 @@ class CudaPipeline {
   cudaStream_t _stream;
 
   static std::string cudaGetErrorEnum(cublasStatus_t error);
+
+ public:
+  template <class M1, class M2, class M3>
+  void gemm(const M1 &A, const M2 &B, M3 &&C, double beta) const {
+    M3 temp = C;
+    gemm_internal(A, B, temp, beta);
+  }
+
+  template <class M1, class M2, class M3>
+  void gemm(const M1 &A, const M2 &B, M3 &&C) const {
+    gemm(A, B, C, 0.0);
+  }
+  template <class M1, class M2>
+  void gemm(const M1 &A, const M2 &B, CudaMatrix &C, double beta) const {
+    gemm_internal(A, B, C, beta);
+  }
+
+  template <class M1, class M2>
+  void gemm(const M1 &A, const M2 &B, CudaMatrix &C) const {
+    gemm(A, B, C, 0.0);
+  }
 };
 
 /*
  * Call the gemm function from cublas, resulting in the multiplication of the
  * two matrices
  */
-template<class M1,class M2>
-inline void CudaPipeline::gemm(const M1 &A, const M2 &B, CudaMatrix &C, double beta) const {
+template <class M1, class M2, class M3>
+inline void CudaPipeline::gemm_internal(const M1 &A, const M2 &B, M3 &C,
+                                        double beta) const {
 
+  static_assert(!M3::transposed(), "C in gemm cannot be transposed atm");
   // Scalar constanst for calling blas
   double alpha = 1.;
   const double *palpha = &alpha;
   const double *pbeta = &beta;
   cublasOperation_t transA = CUBLAS_OP_N;
   int k = int(A.cols());
-  if (A.transposed()) {
+  if (M1::transposed()) {
     transA = CUBLAS_OP_T;
     k = int(A.rows());
   }
   cublasOperation_t transB = CUBLAS_OP_N;
   int k2 = int(B.rows());
-  if (B.transposed()) {
+  if (M2::transposed()) {
     transB = CUBLAS_OP_T;
     k2 = int(B.cols());
   }
@@ -112,8 +134,8 @@ inline void CudaPipeline::gemm(const M1 &A, const M2 &B, CudaMatrix &C, double b
   cublasSetStream(_handle, _stream);
   cublasStatus_t status =
       cublasDgemm(_handle, transA, transB, int(C.rows()), int(C.cols()), k,
-                  palpha, A.data(), int(A.rows()), B.data(), int(B.rows()),
-                  pbeta, C.data(), int(C.rows()));
+                  palpha, A.data(), int(A.ld()), B.data(), int(B.ld()), pbeta,
+                  C.data(), int(C.ld()));
   if (status != CUBLAS_STATUS_SUCCESS) {
     throw std::runtime_error("dgemm failed on gpu " +
                              std::to_string(_deviceID) +

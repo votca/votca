@@ -37,7 +37,7 @@ Index count_available_gpus() {
 
 CudaMatrix::CudaMatrix(const Eigen::MatrixXd &matrix,
                        const cudaStream_t &stream)
-    : _rows{static_cast<Index>(matrix.rows())},
+    : _ld{static_cast<Index>(matrix.rows())},
       _cols{static_cast<Index>(matrix.cols())} {
   _data = alloc_matrix_in_gpu(size_matrix());
   _stream = stream;
@@ -50,7 +50,7 @@ CudaMatrix::CudaMatrix(const Eigen::MatrixXd &matrix,
 }
 
 CudaMatrix::CudaMatrix(Index nrows, Index ncols, const cudaStream_t &stream)
-    : _rows(nrows), _cols(ncols) {
+    : _ld(nrows), _cols(ncols) {
   _data = alloc_matrix_in_gpu(size_matrix());
   _stream = stream;
 }
