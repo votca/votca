@@ -40,7 +40,21 @@ except ModuleNotFoundError:
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
+
+VERSION = '@PROJECT_VERSION@ #TOOLS_GIT_ID#'
+PROGTITLE = 'THE VOTCA::TOOLS help to doc converter'
+VOTCAHEADER = f"""
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{PROGTITLE}
+
+please submit bugs to bugs@votca.org 
+votca_help2doc, version {VERSION}
+"""
+DESCRIPTION = f"""{VOTCAHEADER}
+Automatically generate a mapping file"""
 
 # Hartree to eV
 H2EV = 27.21138
@@ -484,7 +498,9 @@ def format_energy(energies: Dict[str, float], first: str, second: str) -> str:
 
 def main():
     """Read the command line arguments."""
-    parser = argparse.ArgumentParser("xtp_autogen_mapping")
+    parser = argparse.ArgumentParser("xtp_autogen_mapping", usage=argparse.SUPPRESS,
+                                     description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter)
+
 
     # Add the arguments to the parser
     parser.add_argument("-pdb", "--pdbfile", required=True, type=exists,
@@ -503,6 +519,8 @@ def main():
                         help="Do not to use the Resolution of Identity approximation")
     parser.add_argument("-m", "--mdname", default="",
                         help="Name of the molecule in the MD topology")
+    parser.add_argument('--version', action='version',
+                        version=f"%(prog)s {VERSION}")
     args = parser.parse_args()
 
     generate_mapping(args)
