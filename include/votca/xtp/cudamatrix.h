@@ -82,7 +82,6 @@ class CudaMatrixTranspose {
   Index rows() const { return mat_.rows(); }
   Index cols() const { return mat_.cols(); }
   Index ld() const { return mat_.ld(); }
-  Index start() const { return mat_.start(); }
   double *data() const { return mat_.data(); }
 
   static constexpr bool transposed() { return !M::transposed(); }
@@ -96,9 +95,15 @@ class CudaMatrix {
   Index size() const { return _ld * _cols; };
   Index rows() const { return _ld; };
   Index ld() const { return _ld; }
-  Index start() const { return 0; }
   Index cols() const { return _cols; };
   double *data() const { return _data.get(); };
+
+  void reshape(Index rows, Index cols) {
+    assert(rows * cols == size() &&
+           "reshape cannot change the shape of the matrix");
+    _cols = cols;
+    _ld = rows;
+  }
 
   CudaMatrixTranspose<CudaMatrix> transpose() const {
     return CudaMatrixTranspose<CudaMatrix>(*this);

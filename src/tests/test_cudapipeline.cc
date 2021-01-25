@@ -260,4 +260,26 @@ BOOST_AUTO_TEST_CASE(diag_matrix_mul) {
   }
 }
 
+BOOST_AUTO_TEST_CASE(axpy) {
+  // Call the class to handle GPU resources
+  CudaPipeline cuda_pip(0);
+
+  Eigen::MatrixXd A = Eigen::MatrixXd::Random(8, 10);
+  Eigen::MatrixXd B = Eigen::MatrixXd::Random(8, 10);
+
+  CudaMatrix Ag{A, cuda_pip.get_stream()};
+  CudaMatrix Bg{B, cuda_pip.get_stream()};
+
+  cuda_pip.axpy(Ag, Bg, 3.0);
+
+  Eigen::MatrixXd GPU_result = Bg;
+  Eigen::MatrixXd CPU_result = B+3.0*A;
+  bool check = CPU_result.isApprox(GPU_result, 1e-9);
+  BOOST_CHECK_EQUAL(check, true);
+  if (!check) {
+    std::cout << "CPU\n" << CPU_result << std::endl;
+    std::cout << "GPU\n" << GPU_result << std::endl;
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

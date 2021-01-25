@@ -57,9 +57,11 @@ class CudaPipeline {
   CudaPipeline(const CudaPipeline &) = delete;
   CudaPipeline &operator=(const CudaPipeline &) = delete;
 
-  // Invoke the multiplication with a diagonal matrix of cublas, diagonal matrix
-  // B must have 1 column
+  // C= A*b.asDiagonal()
   void diag_gemm(const CudaMatrix &A, const CudaMatrix &b, CudaMatrix &C) const;
+
+  // B+=alpha*A;
+  void axpy(const CudaMatrix &A, CudaMatrix &B, double alpha=1.0) const;
 
   const cudaStream_t &get_stream() const { return _stream; };
 
