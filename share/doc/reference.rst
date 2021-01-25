@@ -4,6 +4,18 @@ Reference
 Programs
 --------
 
-.. include:: ../tools/votca_compare.rst
-.. include:: ../tools/votca_help2doc.rst
-.. include:: ../tools/votca_property.rst
+votca_compare
+^^^^^^^^^^^^^
+
+.. include:: votca_compare.rst
+
+votca_help2doc
+^^^^^^^^^^^^^^
+
+.. include:: votca_help2doc.rst
+
+votca_property
+^^^^^^^^^^^^^^
+
+.. include:: votca_property.rst
+

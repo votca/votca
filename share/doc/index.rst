@@ -2,7 +2,7 @@ TOOLS Manual
 ============
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
    reference
 
