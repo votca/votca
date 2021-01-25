@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(matmul_add) {
   CudaMatrix Bg{B, cuda_pip.get_stream()};
   CudaMatrix Cg{C, cuda_pip.get_stream()};
 
-  cuda_pip.gemm(Ag, Bg, Cg, false, false, 1.0);
+  cuda_pip.gemm(Ag, Bg, Cg, 1.0);
 
   Eigen::MatrixXd GPU_result = Cg;
   Eigen::MatrixXd CPU_result = A * B + C;
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(matmul_ABt) {
   CudaMatrix Bg{B, cuda_pip.get_stream()};
   CudaMatrix Cg{C, cuda_pip.get_stream()};
 
-  cuda_pip.gemm(Ag, Bg, Cg, false, true);
+  cuda_pip.gemm(Ag, Bg.transpose(), Cg);
 
   Eigen::MatrixXd GPU_result = Cg;
   Eigen::MatrixXd CPU_result = A * B.transpose();
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(matmul_AtB) {
   CudaMatrix Bg{B, cuda_pip.get_stream()};
   CudaMatrix Cg{C, cuda_pip.get_stream()};
 
-  cuda_pip.gemm(Ag, Bg, Cg, true, false);
+  cuda_pip.gemm(Ag.transpose(), Bg, Cg);
 
   Eigen::MatrixXd GPU_result = Cg;
   Eigen::MatrixXd CPU_result = A.transpose() * B;
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(matmul_AtBt) {
   CudaMatrix Bg{B, cuda_pip.get_stream()};
   CudaMatrix Cg{C, cuda_pip.get_stream()};
 
-  cuda_pip.gemm(Ag, Bg, Cg, true, true);
+  cuda_pip.gemm(Ag.transpose(), Bg.transpose(), Cg);
 
   Eigen::MatrixXd GPU_result = Cg;
   Eigen::MatrixXd CPU_result = A.transpose() * B.transpose();

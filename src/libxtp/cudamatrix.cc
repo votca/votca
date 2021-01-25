@@ -50,7 +50,7 @@ CudaMatrix::CudaMatrix(const Eigen::MatrixXd &matrix,
 }
 
 CudaMatrix::CudaMatrix(Index nrows, Index ncols, const cudaStream_t &stream)
-    : _rows{static_cast<Index>(nrows)}, _cols{static_cast<Index>(ncols)} {
+    : _rows(nrows), _cols(ncols) {
   _data = alloc_matrix_in_gpu(size_matrix());
   _stream = stream;
 }
