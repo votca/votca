@@ -69,18 +69,17 @@ BOOST_AUTO_TEST_CASE(matmul_Cb) {
   CudaMatrix Bg{B, cuda_pip.get_stream()};
   CudaMatrix Cg{C, cuda_pip.get_stream()};
 
-  cuda_pip.gemm(Ag, Bg, Cg.block(1,2,6,6));
+  cuda_pip.gemm(Ag, Bg, Cg.block(1, 2, 6, 6));
 
   Eigen::MatrixXd GPU_result = Cg;
   Eigen::MatrixXd CPU_result = A * B;
-  bool check = CPU_result.isApprox(GPU_result.block(1,2,6,6), 1e-9);
+  bool check = CPU_result.isApprox(GPU_result.block(1, 2, 6, 6), 1e-9);
   BOOST_CHECK_EQUAL(check, true);
   if (!check) {
     std::cout << "CPU\n" << CPU_result << std::endl;
     std::cout << "GPU\n" << GPU_result << std::endl;
   }
 }
-
 
 BOOST_AUTO_TEST_CASE(matmul_ABb) {
   // Call the class to handle GPU resources
@@ -95,10 +94,10 @@ BOOST_AUTO_TEST_CASE(matmul_ABb) {
   CudaMatrix Bg{B, cuda_pip.get_stream()};
   CudaMatrix Cg{C, cuda_pip.get_stream()};
 
-  cuda_pip.gemm(Ag, Bg.block(2,3,10,6), Cg);
+  cuda_pip.gemm(Ag, Bg.block(2, 3, 10, 6), Cg);
 
   Eigen::MatrixXd GPU_result = Cg;
-  Eigen::MatrixXd CPU_result = A * B.block(2,3,10,6);
+  Eigen::MatrixXd CPU_result = A * B.block(2, 3, 10, 6);
   bool check = CPU_result.isApprox(GPU_result, 1e-9);
   BOOST_CHECK_EQUAL(check, true);
   if (!check) {
@@ -120,10 +119,10 @@ BOOST_AUTO_TEST_CASE(matmul_AbB) {
   CudaMatrix Bg{B, cuda_pip.get_stream()};
   CudaMatrix Cg{C, cuda_pip.get_stream()};
 
-  cuda_pip.gemm(Ag.block(2,3,6,10), Bg, Cg);
+  cuda_pip.gemm(Ag.block(2, 3, 6, 10), Bg, Cg);
 
   Eigen::MatrixXd GPU_result = Cg;
-  Eigen::MatrixXd CPU_result = A.block(2,3,6,10) * B;
+  Eigen::MatrixXd CPU_result = A.block(2, 3, 6, 10) * B;
   bool check = CPU_result.isApprox(GPU_result, 1e-9);
   BOOST_CHECK_EQUAL(check, true);
   if (!check) {
@@ -232,9 +231,6 @@ BOOST_AUTO_TEST_CASE(matmul_AtBt) {
   }
 }
 
-
-
-
 BOOST_AUTO_TEST_CASE(diag_matrix_mul) {
   // Call the class to handle GPU resources
   CudaPipeline cuda_pip(0);
@@ -267,8 +263,6 @@ BOOST_AUTO_TEST_CASE(diag_matrix_mul_onemat) {
   Eigen::MatrixXd A = Eigen::MatrixXd::Random(10, 6);
   Eigen::VectorXd b = Eigen::VectorXd::Random(10);
 
-
-
   CudaMatrix Ag{A, cuda_pip.get_stream()};
   CudaMatrix bg{b, cuda_pip.get_stream()};
 
@@ -297,7 +291,7 @@ BOOST_AUTO_TEST_CASE(axpy) {
   cuda_pip.axpy(Ag, Bg, 3.0);
 
   Eigen::MatrixXd GPU_result = Bg;
-  Eigen::MatrixXd CPU_result = B+3.0*A;
+  Eigen::MatrixXd CPU_result = B + 3.0 * A;
   bool check = CPU_result.isApprox(GPU_result, 1e-9);
   BOOST_CHECK_EQUAL(check, true);
   if (!check) {

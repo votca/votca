@@ -42,7 +42,7 @@
 namespace votca {
 namespace xtp {
 
-cudaError_t checkCuda(cudaError_t result);
+void checkCuda(cudaError_t result);
 
 Index count_available_gpus();
 

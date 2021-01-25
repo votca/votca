@@ -58,26 +58,21 @@ std::string CudaPipeline::cudaGetErrorEnum(cublasStatus_t error) {
   return "<unknown>";
 }
 
-
-void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B, double alpha)const{
-
-
+void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B,
+                        double alpha) const {
 
   if (A.rows() != B.rows() || A.cols() != B.cols()) {
     throw std::runtime_error("Shape mismatch in cuda axpy");
   }
 
   cublasSetStream(_handle, _stream);
-  cublasStatus_t status = cublasDaxpy(_handle, int(A.size()), &alpha,
-                                      A.data(), 1,
-                                      B.data(), 1);
+  cublasStatus_t status =
+      cublasDaxpy(_handle, int(A.size()), &alpha, A.data(), 1, B.data(), 1);
 
   if (status != CUBLAS_STATUS_SUCCESS) {
-    throw std::runtime_error("axpy failed on gpu " +
-                             std::to_string(_deviceID) +
+    throw std::runtime_error("axpy failed on gpu " + std::to_string(_deviceID) +
                              " with errorcode:" + cudaGetErrorEnum(status));
   }
-
 }
 
 void CudaPipeline::diag_gemm(const CudaMatrix &A, const CudaMatrix &b,

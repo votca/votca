@@ -61,7 +61,7 @@ class CudaPipeline {
   void diag_gemm(const CudaMatrix &A, const CudaMatrix &b, CudaMatrix &C) const;
 
   // B+=alpha*A;
-  void axpy(const CudaMatrix &A, CudaMatrix &B, double alpha=1.0) const;
+  void axpy(const CudaMatrix &A, CudaMatrix &B, double alpha = 1.0) const;
 
   const cudaStream_t &get_stream() const { return _stream; };
 
