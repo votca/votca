@@ -58,47 +58,6 @@ void Application::ShowHelpText(std::ostream &out) {
   out << "\n\n" << VisibleOptions() << endl;
 }
 
-void Application::ShowManPage(std::ostream &out) {
-
-  out << boost::format(globals::man::header) % ProgramName() % VersionString();
-  out << boost::format(globals::man::name) % ProgramName() % globals::url;
-  out << boost::format(globals::man::synopsis) % ProgramName();
-  std::stringstream ss;
-  HelpText(ss);
-  out << boost::format(globals::man::description) % ss.str();
-  out << boost::format(globals::man::options);
-
-  for (const auto &option : _op_desc.options()) {
-    string format_name =
-        option->format_name() + " " + option->format_parameter();
-    boost::replace_all(format_name, "-", "\\-");
-    out << boost::format(globals::man::option) % format_name %
-               option->description();
-  }
-
-  out << boost::format(globals::man::authors) % globals::email;
-  out << boost::format(globals::man::copyright) % globals::url;
-}
-
-void Application::ShowTEXPage(std::ostream &out) {
-  string program_name = ProgramName();
-  boost::replace_all(program_name, "_", "\\_");
-  out << boost::format(globals::tex::section) % program_name;
-  out << boost::format(globals::tex::label) % ProgramName();
-  std::stringstream ss, os;
-  HelpText(ss);
-  out << boost::format(globals::tex::description) % ss.str();
-
-  for (const auto &option : _op_desc.options()) {
-    string format_name =
-        option->format_name() + " " + option->format_parameter();
-    boost::replace_all(format_name, "-", "{-}");
-    os << boost::format(globals::tex::option) % format_name %
-              option->description();
-  }
-  out << boost::format(globals::tex::options) % os.str();
-}
-
 int Application::Exec(int argc, char **argv) {
   try {
     //_continue_execution = true;
@@ -126,15 +85,6 @@ int Application::Exec(int argc, char **argv) {
       Log::current_level = Log::debug;
     }
 
-    if (_op_vm.count("man")) {
-      ShowManPage(cout);
-      return 0;
-    }
-
-    if (_op_vm.count("tex")) {
-      ShowTEXPage(cout);
-      return 0;
-    }
     if (_op_vm.count("help")) {
       ShowHelpText(cout);
       return 0;

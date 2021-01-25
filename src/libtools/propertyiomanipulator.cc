@@ -23,7 +23,6 @@ namespace tools {
 
 PropertyIOManipulator XML(PropertyIOManipulator::XML);
 PropertyIOManipulator TXT(PropertyIOManipulator::TXT);
-PropertyIOManipulator TEX(PropertyIOManipulator::TEX);
 PropertyIOManipulator HLP(PropertyIOManipulator::HLP);
 
 }  // namespace tools
