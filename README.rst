@@ -50,8 +50,7 @@ If you use this package, please cite the VOTCA papers:
    Theo. Comp. 5 (12), 3211 (2009).
 
 In case of questions, please post them in the google discussion group
-for votca at http://groups.google.com/group/votca-xtp
-
+for votca at http://groups.google.com/g/votca
 You can contact the VOTCA Development Team at devs@votca.org.
 
 .. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/b9c7170d5c3440b7a2327a667cb1ec59
