@@ -59,7 +59,7 @@ std::string CudaPipeline::cudaGetErrorEnum(cublasStatus_t error) {
 }
 
 
-void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B, double alpha=1.0){
+void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B, double alpha)const{
 
 
 
@@ -68,7 +68,7 @@ void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B, double alpha=1.0){
   }
 
   cublasSetStream(_handle, _stream);
-  cublasStatus_t status = cublasDaxpy(_handle, &alpha, int(A.size()),
+  cublasStatus_t status = cublasDaxpy(_handle, int(A.size()), &alpha,
                                       A.data(), 1,
                                       B.data(), 1);
 
