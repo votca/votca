@@ -98,8 +98,13 @@ Scripts
 Scripts are used by and . The script table commonly used (compare
 ``csg_call –list``):
 
-Script calls can be overwritten by adding a line with the 3rd column
-changed to ``csg_table`` in directory.
+Script calls can be overwritten by adding a similar line with the 3rd column
+changed from the original ``csg_table`` in directory list in the
+``<scriptdir>`` property of the settings xml file.
+
+List of the default scripts:
+
+.. include:: csg_table.rst
 
 csgapps
 -------
