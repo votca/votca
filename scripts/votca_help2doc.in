@@ -88,10 +88,16 @@ def parse_help_message(msg: str, name: str) -> Data:
     take(lines, 6)
     # Compilation info
     list(itertools.takewhile(lambda x: x, lines))
-    # description
-    description, examples = process_description_example(
+    # description and optional examples
+    description, examples = read_section_examples(
         itertools.takewhile(lambda x: x, lines))
-    options = "\n  ".join(filter(lambda x: x, lines))
+
+    # Options and optional examples
+    if examples:
+        options = "\n  ".join(filter(lambda x: x, lines))
+    else:
+        options, examples = read_section_examples(lines)
+
     return Data(name, description, examples, options)
 
 
@@ -161,7 +167,7 @@ def format_groff(sec: Data) -> str:
 """
 
 
-def process_description_example(lines: Iterable[str]) -> Tuple[str, str]:
+def read_section_examples(lines: Iterable[str]) -> Tuple[str, str]:
     """Check for examples and format them properly."""
     express = re.compile(r'^example', flags=re.IGNORECASE)
     desc = "\n".join(itertools.takewhile(
