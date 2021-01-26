@@ -1,6 +1,9 @@
 xtp_tools
 #########
 
+help
+^^^^
+
 .. include:: ../xtp/xtp_tools.rst
 
 The following calculators are available:

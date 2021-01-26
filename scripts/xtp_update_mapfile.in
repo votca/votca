@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 #
-# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
 # limitations under the License.
 #
 
-VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
-import sys
-import argparse
-import re
 import lxml.etree as lxml
+import re
+import argparse
+import sys
+VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
 
 
 PROGTITLE = 'THE VOTCA::XTP MAPPING FILE UPDATER'
@@ -38,7 +38,7 @@ xtp_update_mapfile, version {version}
 
 
 def okquit(what=''):
-    if what != '':
+    if what:
         print(what)
     sys.exit(0)
 # =============================================================================
@@ -95,7 +95,7 @@ def changeframe(localframetext):
             integer = int(i)
         else:
             print("Cannot convert {} to integer".format(i))
-        newinteger = integer-1
+        newinteger = integer - 1
         newids.append("{:d}".format(newinteger))
     return ' '.join(newids)
 
@@ -114,7 +114,7 @@ def changeids(atomidtext):
                 integer = int(array[0])
             else:
                 print("Cannot convert {} to integer".format(array[0]))
-            newinteger = integer-1
+            newinteger = integer - 1
             newstring.append("{:d}:{}".format(newinteger, atomtype))
     return ''.join(newstring)
 
