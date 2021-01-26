@@ -46,7 +46,7 @@ class Orb2Fchk final : public QMTool {
   std::string _basename;
   std::string _orbfile;
   std::string _state_string;
-  bool _dostateonly;
+  bool _diff2gs;
   Logger _log;
 };
 
