@@ -16,9 +16,10 @@
 
 import argparse
 import itertools
+import re
 import subprocess
 from pathlib import Path
-from typing import Iterable, List, NamedTuple
+from typing import Iterable, List, NamedTuple, Tuple
 
 VERSION = '@PROJECT_VERSION@ #TOOLS_GIT_ID#'
 PROGTITLE = 'THE VOTCA::TOOLS help to doc converter'
@@ -55,6 +56,7 @@ class Data(NamedTuple):
     """Data class containing the help's section."""
     name: str
     description: str
+    examples: str
     options: str
     authors: str = AUTHORS
     copyright: str = COPYRIGHT
@@ -86,10 +88,17 @@ def parse_help_message(msg: str, name: str) -> Data:
     take(lines, 6)
     # Compilation info
     list(itertools.takewhile(lambda x: x, lines))
-    # description
-    description = "\n".join(itertools.takewhile(lambda x: x, lines))
-    options = "\n  ".join(filter(lambda x: x, lines))
-    return Data(name, description, options)
+    # description and optional examples
+    description, examples = read_section_examples(
+        itertools.takewhile(lambda x: x, lines))
+
+    # Options and optional examples
+    if examples:
+        options = "\n  ".join(filter(lambda x: x, lines))
+    else:
+        options, examples = read_section_examples(lines)
+
+    return Data(name, description, examples, options)
 
 
 def format_rst(sec: Data) -> str:
@@ -110,19 +119,13 @@ DESCRIPTION
 ***********
 {sec.description}
 
+{sec.examples}
+
 OPTIONS
 *******
 ::
 
   {sec.options}
-
-AUTHORS
-*******
-{sec.authors}
-
-COPYRIGHT
-*********
-{sec.copyright}
 """
 
 
@@ -147,7 +150,7 @@ def format_groff(sec: Data) -> str:
 .SH DESCRIPTION
 .PP
 {sec.description}
-
+{sec.examples}
 
 .SH OPTIONS
 .PP
@@ -162,6 +165,20 @@ def format_groff(sec: Data) -> str:
 .PP
 {sec.copyright}
 """
+
+
+def read_section_examples(lines: Iterable[str]) -> Tuple[str, str]:
+    """Check for examples and format them properly."""
+    express = re.compile(r'^example', flags=re.IGNORECASE)
+    desc = "\n".join(itertools.takewhile(
+        lambda x: re.match(express, x) is None, lines))
+
+    # extract example section
+    examples = "\n  ".join(lines)
+    if examples:
+        examples = "Examples:\n\n  " + examples
+
+    return desc, examples
 
 
 def convert_help_message(args: argparse.Namespace):
