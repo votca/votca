@@ -32,7 +32,7 @@ CudaPipeline::~CudaPipeline() {
   cudaStreamDestroy(_stream);
 }
 
-std::string cudaGetErrorEnum(cublasStatus_t error) {
+std::string CudaPipeline::cudaGetErrorEnum(cublasStatus_t error) {
   switch (error) {
     case CUBLAS_STATUS_SUCCESS:
       return "CUBLAS_STATUS_SUCCESS";
@@ -58,42 +58,19 @@ std::string cudaGetErrorEnum(cublasStatus_t error) {
   return "<unknown>";
 }
 
-/*
- * Call the gemm function from cublas, resulting in the multiplication of the
- * two matrices
- */
-void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C,
-                        bool transpose_A, bool transpose_B, double beta) const {
+void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B,
+                        double alpha) const {
 
-  // Scalar constanst for calling blas
-  double alpha = 1.;
-  const double *palpha = &alpha;
-  const double *pbeta = &beta;
-  cublasOperation_t transA = CUBLAS_OP_N;
-  int k = int(A.cols());
-  if (transpose_A) {
-    transA = CUBLAS_OP_T;
-    k = int(A.rows());
-  }
-  cublasOperation_t transB = CUBLAS_OP_N;
-  int k2 = int(B.rows());
-  if (transpose_B) {
-    transB = CUBLAS_OP_T;
-    k2 = int(B.cols());
-  }
-
-  if (k != k2) {
-    throw std::runtime_error("Shape mismatch in cuda gemm");
+  if (A.rows() != B.rows() || A.cols() != B.cols()) {
+    throw std::runtime_error("Shape mismatch in cuda axpy");
   }
 
   cublasSetStream(_handle, _stream);
   cublasStatus_t status =
-      cublasDgemm(_handle, transA, transB, int(C.rows()), int(C.cols()), k,
-                  palpha, A.data(), int(A.rows()), B.data(), int(B.rows()),
-                  pbeta, C.data(), int(C.rows()));
+      cublasDaxpy(_handle, int(A.size()), &alpha, A.data(), 1, B.data(), 1);
+
   if (status != CUBLAS_STATUS_SUCCESS) {
-    throw std::runtime_error("dgemm failed on gpu " +
-                             std::to_string(_deviceID) +
+    throw std::runtime_error("axpy failed on gpu " + std::to_string(_deviceID) +
                              " with errorcode:" + cudaGetErrorEnum(status));
   }
 }
