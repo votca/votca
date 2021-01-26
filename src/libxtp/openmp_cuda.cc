@@ -197,8 +197,8 @@ void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
     temp_[threadid].B->copy_to_gpu(matrix);
     cuda_pips_[threadid]->diag_gemm(*temp_[threadid].B, *temp_[threadid].A,
                                     *temp_[threadid].C);
-    cuda_pips_[threadid]->gemm(*temp_[threadid].B, *temp_[threadid].C,
-                               *temp_[threadid].D, true, false, 1.0);
+    cuda_pips_[threadid]->gemm((temp_[threadid].B)->transpose(),
+                               *temp_[threadid].C, *temp_[threadid].D, 1.0);
   } else {
     if (inside_Parallel_region_) {
       threadid = 0;

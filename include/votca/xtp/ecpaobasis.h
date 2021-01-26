@@ -28,6 +28,8 @@ namespace votca {
 namespace xtp {
 class QMMolecule;
 class ECPBasisSet;
+class CheckpointWriter;
+class CheckpointReader;
 
 /**
  * \brief Container to hold ECPs for all atoms

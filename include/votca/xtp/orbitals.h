@@ -293,11 +293,11 @@ class Orbitals {
   }
 
   const Eigen::VectorXd &BSETriplets_dynamic() const {
-    return _BSE_singlet_energies_dynamic;
+    return _BSE_triplet_energies_dynamic;
   }
 
   Eigen::VectorXd &BSETriplets_dynamic() {
-    return _BSE_singlet_energies_dynamic;
+    return _BSE_triplet_energies_dynamic;
   }
 
   // access to transition dipole moments

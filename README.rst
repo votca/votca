@@ -7,7 +7,9 @@ via GW-BSE - energetic disorder for electrons/holes and excitons via
 QM/MM or fast MM/MM multipole methods - electron and hole mobilities
 using electronic couplings and kinetic Monte-Carlo - electron, hole,
 singlet and triplet diffusion constants using electronic couplings and
-kinetic Monte-Carlo
+kinetic Monte-Carlo.
+
+Documentation can be found on our `website <https://www.votca.org/>`__
 
 Installation instructions and developer information can be found
 `here <https://github.com/votca/votca/blob/master/share/doc/INSTALL.rst>`__
@@ -50,8 +52,7 @@ If you use this package, please cite the VOTCA papers:
    Theo. Comp. 5 (12), 3211 (2009).
 
 In case of questions, please post them in the google discussion group
-for votca at http://groups.google.com/group/votca-xtp
-
+for votca at http://groups.google.com/g/votca
 You can contact the VOTCA Development Team at devs@votca.org.
 
 .. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/b9c7170d5c3440b7a2327a667cb1ec59
