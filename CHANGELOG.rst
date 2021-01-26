@@ -9,6 +9,7 @@ Version 2022-dev
 -  Made SetupCptTable static (#650)
 -  implement fchk writer (#649)
 -  Fixing BSE triplet storage (#653) (#654)
+-  added transpose to CudaMatrix (#657)
 -  generate manpage using votca_help2man (#655, #659)
 -  Fix script rst generation (#656)
 
