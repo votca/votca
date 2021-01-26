@@ -45,23 +45,49 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/csg-completion.bash DESTINATION ${CMAK
 if(VOTCA_SPHINX_DIR)
   #don't call "csg_call -l" as csg_call isn't ready at cmake time
   file(READ ${VOTCASHARE}/scripts/inverse/csg_table CSG_SCRIPTS)
-  string(REGEX REPLACE "#[^\n]*\n" "" CSG_SCRIPTS "${CSG_SCRIPTS}") #remove comments
-  string(REGEX REPLACE "\n" ";" CSG_SCRIPTS "${CSG_SCRIPTS}") #turn into list
-  string(REGEX REPLACE "; *;" ";" CSG_SCRIPTS "${CSG_SCRIPTS}") #remove empty line
+  string(REGEX REPLACE "#[^\n]*\n" "" CSG_SCRIPTS "${CSG_SCRIPTS}") # remove comments
+  string(REGEX REPLACE " +" " " CSG_SCRIPTS "${CSG_SCRIPTS}") # multi-space in single space
+  string(REGEX REPLACE "\n" ";" CSG_SCRIPTS "${CSG_SCRIPTS}") # turn into list
+  string(REGEX REPLACE "; *;" ";" CSG_SCRIPTS "${CSG_SCRIPTS}") # remove empty line
 
   set(CSG_TABLE "${VOTCA_SPHINX_DIR}/csg/csg_table.rst")
   file(WRITE ${CSG_TABLE} ".. list-table::\n   :header-rows: 1\n   :align: center\n\n")
   file(APPEND ${CSG_TABLE} "   * - Key1\n     - Key2\n     - Scriptname\n")
+  file(MAKE_DIRECTORY "${VOTCA_SPHINX_DIR}/csg/scripts")
+  set(CSG_SCRIPTS_LIST)
   foreach(_LINE ${CSG_SCRIPTS})
     separate_arguments(_LINE)
     list(GET _LINE 0 TAG1)
     file(APPEND ${CSG_TABLE} "   * - ${TAG1}\n")
     list(GET _LINE 1 TAG2)
     file(APPEND ${CSG_TABLE} "     - ${TAG2}\n")
+    list(GET _LINE 2 SCRIPT)
     list(REMOVE_AT _LINE 0 1)
     list(JOIN _LINE " " _LINE)
     file(APPEND ${CSG_TABLE} "     - ${_LINE}\n")
+    set(FULL_SCRIPT "${VOTCA_SPHINX_DIR}/csg/scripts/${SCRIPT}.rst")
+    if("${SCRIPT}" STREQUAL "")
+      message("CJ: ${TAG1} ${TAG2} xx ${SCRIPT}")
+    endif()
+    list(FIND CSG_RST_FILES ${FULL_SCRIPT} _alreadyThere)
+    if(NOT _alreadyThere STREQUAL "-1")
+      continue()
+    endif()
+    list(APPEND CSG_RST_FILES ${FULL_SCRIPT})
+    string(REGEX REPLACE "." "^" UNDERLINE "${SCRIPT}")
+    list(APPEND CSG_SCRIPTS_LIST "${SCRIPT}\n${UNDERLINE}\n\n.. include:: scripts/${SCRIPT}.rst\n\n")
+    add_custom_command(OUTPUT ${FULL_SCRIPT}
+      COMMAND ${CMAKE_COMMAND} -E env VOTCASHARE="${VOTCASHARE}" PATH="${VOTCA_PATH}:$ENV{PATH}" VOTCA_CSG_DEFAULTS="${VOTCA_CSG_DEFAULTS}"
+      $<TARGET_FILE:VOTCA::votca_help2doc> --name "$<TARGET_FILE:VOTCA::csg_call> ${TAG1} ${TAG2}" --format rst --out ${FULL_SCRIPT}
+      COMMENT "Building ${SCRIPT} rst doc (from ${TAG1} ${TAG2})"
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${VOTCASHARE}/scripts/inverse/${SCRIPT})
   endforeach(_LINE)
+  list(SORT CSG_SCRIPTS_LIST)
+  set(CSG_SCRIPTS_RST "${VOTCA_SPHINX_DIR}/csg/csg_scripts.rst")
+  file(WRITE ${CSG_SCRIPTS_RST} "\n")
+  foreach(_LINE ${CSG_SCRIPTS_LIST})
+    file(APPEND ${CSG_SCRIPTS_RST} ${_LINE})
+  endforeach()
 
   add_custom_target(doc-csg-rst-scripts DEPENDS ${CSG_RST_FILES})
   add_dependencies(doc-csg doc-csg-rst-scripts)

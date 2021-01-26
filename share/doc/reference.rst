@@ -106,6 +106,8 @@ List of the default scripts:
 
 .. include:: csg_table.rst
 
+.. include:: csg_scripts.rst
+
 csgapps
 -------
 
