@@ -1,6 +1,15 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/tools/commits/stable>`__.
 
+Version 2022-dev
+================
+
+-  create script to convert help to rst (#312, #328)
+-  add rst pages to doc (#330, #332)
+-  remove tex and man output from app class (#329)
+-  fix example rst section (#327)
+-  remove author and copyright from rst (#331)
+
 Version 2021-rc.2 (released XX.01.21)
 =====================================
 

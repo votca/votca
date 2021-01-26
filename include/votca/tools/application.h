@@ -159,10 +159,6 @@ class Application {
 
   virtual void ShowHelpText(std::ostream &out);
 
-  void ShowManPage(std::ostream &out);
-
-  void ShowTEXPage(std::ostream &out);
-
   bool _continue_execution;
 
  private:
