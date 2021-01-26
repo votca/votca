@@ -133,7 +133,9 @@ jobs:
             continue-on-error: true
             no_regression_testing: true
     runs-on: ubuntu-latest
-    container: ghcr.io/votca/buildenv/${{ matrix.distro }}
+    container:
+      image: ghcr.io/votca/buildenv/${{ matrix.distro }}
+      options: --security-opt seccomp=unconfined
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
