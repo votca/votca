@@ -9,7 +9,7 @@ Version 2022-dev
 -  Made SetupCptTable static (#650)
 -  implement fchk writer (#649)
 -  Fixing BSE triplet storage (#653) (#654)
--  generate manpage using votca_help2man (#655)
+-  generate manpage using votca_help2man (#655, #659)
 
 
 Version 2021-rc.2 (released XX.01.21)

@@ -4,9 +4,27 @@ Reference
 Programs
 --------
 
-.. include:: ../xtp/xtp_autogen_mapping.rst
-.. include:: ../xtp/xtp_basisset.rst
-.. include:: ../xtp/xtp_makeauxbasis.rst
-.. include:: ../xtp/xtp_parallel.rst
-.. include:: ../xtp/xtp_update_mapfile.rst
+xtp_autogen_mapping
+^^^^^^^^^^^^^^^^^^^
+
+.. include:: xtp_autogen_mapping.rst
+
+xtp_basisset
+^^^^^^^^^^^^
+.. include:: xtp_basisset.rst
+
+xtp_makeauxbasis
+^^^^^^^^^^^^^^^^
+
+.. include:: xtp_makeauxbasis.rst
+
+xtp_parallel
+^^^^^^^^^^^^
+
+.. include:: xtp_parallel.rst
+
+xtp_update_mapfile
+^^^^^^^^^^^^^^^^^^
+
+.. include:: xtp_update_mapfile.rst
 
