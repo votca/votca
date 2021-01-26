@@ -46,8 +46,7 @@ class GaussianWriter {
   Index toGaussianL(L l) const;
   std::string reorderedMOCoefficients(const Orbitals& orbitals) const;
   std::string densityMatrixToString(const Orbitals& orbitals,
-                                    const QMState& state,
-                                    bool diff2gs) const;
+                                    const QMState& state, bool diff2gs) const;
   // Setup the reordering parameters
   std::array<Index, 49> gaussianMultipliers;
   // clang-format off

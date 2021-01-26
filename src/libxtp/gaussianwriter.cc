@@ -67,19 +67,21 @@ std::string GaussianWriter::reorderedMOCoefficients(
 }
 
 std::string GaussianWriter::densityMatrixToString(const Orbitals& orbitals,
-                                                  const QMState& state, bool diff2gs) const {
+                                                  const QMState& state,
+                                                  bool diff2gs) const {
   OrbReorder reorder(gaussianOrder, gaussianMultipliers, true);
 
-    Eigen::MatrixXd density;
-    if (state.Type().isExciton() && diff2gs) {
-      std::array<Eigen::MatrixXd, 2> DMAT =
-          orbitals.DensityMatrixExcitedState(state);
-      density = DMAT[1] - DMAT[0];
-    } else if ((state.Type().isKSState() || state.Type().isPQPState()) && diff2gs) { 
-      density = orbitals.DensityMatrixKSstate(state);
-    } else {
-      density = orbitals.DensityMatrixFull(state);
-    }
+  Eigen::MatrixXd density;
+  if (state.Type().isExciton() && diff2gs) {
+    std::array<Eigen::MatrixXd, 2> DMAT =
+        orbitals.DensityMatrixExcitedState(state);
+    density = DMAT[1] - DMAT[0];
+  } else if ((state.Type().isKSState() || state.Type().isPQPState()) &&
+             diff2gs) {
+    density = orbitals.DensityMatrixKSstate(state);
+  } else {
+    density = orbitals.DensityMatrixFull(state);
+  }
 
   reorder.reorderOperator(density, orbitals.SetupDftBasis());
 
@@ -103,9 +105,8 @@ std::string GaussianWriter::densityMatrixToString(const Orbitals& orbitals,
 }
 
 void GaussianWriter::WriteFile(const std::string& basename,
-                               const Orbitals& orbitals,
-                               const QMState state,
-                               bool diff2gs ) const {
+                               const Orbitals& orbitals, const QMState state,
+                               bool diff2gs) const {
   if (!orbitals.hasDFTbasisName()) {
     throw std::runtime_error(".orb file does not contain a basisset name");
   }

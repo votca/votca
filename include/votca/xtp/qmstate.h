@@ -85,13 +85,9 @@ class QMStateType {
     return (_type == statetype::PQPstate || _type == statetype::DQPstate);
   }
 
-  bool isKSState() const {
-    return (_type == statetype::KSstate);
-  }
+  bool isKSState() const { return (_type == statetype::KSstate); }
 
-  bool isPQPState() const {
-    return (_type == statetype::PQPstate);
-  }
+  bool isPQPState() const { return (_type == statetype::PQPstate); }
 
  private:
   statetype _type;
