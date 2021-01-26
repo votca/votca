@@ -25,14 +25,26 @@ foreach(SCRIPT votca_compare votca_help2doc)
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
   add_executable(VOTCA::${SCRIPT} IMPORTED GLOBAL)
   set_property(TARGET VOTCA::${SCRIPT} PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}")
+  add_dependencies(VOTCA::${SCRIPT} ${SCRIPT}_build)
+  if (BUILD_MANPAGES)
+    add_custom_command(OUTPUT ${SCRIPT}.man
+      COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format groff --out ${SCRIPT}.man
+      COMMENT "Building ${SCRIPT} manpage"
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${SCRIPT})
+    add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man)
+    add_dependencies(manpages ${SCRIPT}_manpage)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${SCRIPT}.1)
+  endif()
   if(VOTCA_SPHINX_DIR)
-    add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/tools/${SCRIPT}.rst COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> -n $<TARGET_FILE:VOTCA::${SCRIPT}> -o ${VOTCA_SPHINX_DIR}/tools/${SCRIPT}.rst
+    add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/tools/${SCRIPT}.rst
+      COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format rst --out ${VOTCA_SPHINX_DIR}/tools/${SCRIPT}.rst
+      COMMENT "Building ${SCRIPT} rst doc"
       DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${SCRIPT})
     list(APPEND TOOLS_RST_FILES ${VOTCA_SPHINX_DIR}/tools/${SCRIPT}.rst)
   endif(VOTCA_SPHINX_DIR)
 endforeach(SCRIPT)
 
 if(VOTCA_SPHINX_DIR)
-  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/tools)
-  add_custom_target(doc-tools DEPENDS ${TOOLS_RST_FILES})
+  add_custom_target(doc-tools-scripts DEPENDS ${TOOLS_RST_FILES})
+  add_dependencies(doc-tools doc-tools-scripts)
 endif()
