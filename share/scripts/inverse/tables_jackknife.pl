@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -63,9 +63,9 @@ while (@ARGV > 0) {
 
   (readin_table($file_cur,@r_cur,@val_cur,@flag_cur)) || die "$progname: error at readin_table\n";
   #should never happen, but ....
-  die "Different grids\n" if (($r_delta[1]-$r_delta[0]-$r_cur[1]+$r_cur[0])>0.0001);
-  die "Different start potential point \n" if (($r_delta[0]-$r_cur[0]) > 0.0001);
-  die "Different end potential point \n" if ( $#r_cur != $#r_delta );
+  die "Different grids\n" if (($r_full[1]-$r_full[0]-$r_cur[1]+$r_cur[0])>0.0001);
+  die "Different start potential point \n" if (($r_full[0]-$r_cur[0]) > 0.0001);
+  die "Different end potential point \n" if ( $#r_cur != $#r_full );
 
   for (my $i=0;$i<=$#r_cur;$i++) {
       $err[$i] += ($val_cur[$i] - $val_full[$i])**2;  # is already nan or we don't change
