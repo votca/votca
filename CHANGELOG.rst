@@ -12,6 +12,7 @@ Version 2022-dev
 -  added transpose to CudaMatrix (#657)
 -  generate manpage using votca_help2man (#655, #659)
 -  Fix script rst generation (#656)
+-  Clean scripts (#668)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
