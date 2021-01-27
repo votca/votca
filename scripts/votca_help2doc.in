@@ -98,11 +98,26 @@ def parse_help_message(msg: str, name: str) -> Data:
     else:
         options, examples = read_section_examples(lines)
 
+    options = format_options(options)
+
     return Data(name, description, examples, options)
+
+
+def format_options(options: str):
+    """Format the options."""
+    s = []
+    for line in options.splitlines():
+        if line.endswith(":"):
+            s.append(f"{line}\n")
+        else:
+            s.append(line)
+
+    return "\n".join(s)
 
 
 def format_rst(sec: Data) -> str:
     """Format the section as RST."""
+    opts = "\n".join(f"  {x}" for x in sec.options.splitlines())
     return f"""
 NAME
 ****
@@ -125,7 +140,7 @@ OPTIONS
 *******
 ::
 
-  {sec.options}
+{opts}
 """
 
 
@@ -154,6 +169,7 @@ def format_groff(sec: Data) -> str:
 
 .SH OPTIONS
 .PP
+
 {sec.options}
 
 .SH AUTHORS

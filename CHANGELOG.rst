@@ -9,6 +9,7 @@ Version 2022-dev
 -  remove tex and man output from app class (#329)
 -  fix example rst section (#327)
 -  remove author and copyright from rst (#331)
+-  fix rst warnings (#334)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
