@@ -324,7 +324,7 @@ bool Orca::WriteShellScript() {
  */
 bool Orca::Run() {
 
-  XTP_LOG(Log::error, *_pLog) << "Running Orca job" << flush;
+  XTP_LOG(Log::error, *_pLog) << "Running Orca job\n" << flush;
 
   if (std::system(nullptr)) {
 
