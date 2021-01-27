@@ -46,13 +46,13 @@ def okquit(what: str):
     sys.exit(0)
 
 
-def exists(input_file: str) -> str:
+def exists(input_file: str) -> Path:
     """Check if the input file exists."""
     path = Path(input_file)
     if not path.exists():
         raise argparse.ArgumentTypeError(f"{input_file} doesn't exist!")
 
-    return path.absolute().as_posix()
+    return path
 
 
 # =============================================================================
@@ -84,7 +84,7 @@ progargs.add_argument('-o', '--outputvotca',
 
 progargs.add_argument('-t', '--turbomolebasisset',
                       dest='turbobasis',
-                      default='',
+                      default=None,
                       help='For turbomole specify the basisset that is supposed to be extracted from Files, for auxbasis sets the basisset the aux basisset is supposed to be used for.')
 
 OPTIONS = progargs.parse_args()
@@ -152,7 +152,7 @@ def turbomolegetcontributions(element, lines, basissetstringlist, basis, shells)
                         constant, "contractions", type=shelltype, factor="{:1.6e}".format(convertofloat(entries[1])))
                     # contraction.text=" "
             else:
-                print("Cannot figure out what line '{}' means".format(line))
+                print(f"Cannot figure out what line '{line}' means")
                 sys.exit()
 
     if len(newbasissets) > 0:
@@ -162,18 +162,18 @@ def turbomolegetcontributions(element, lines, basissetstringlist, basis, shells)
 # =============================================================================
 # PARSING NWCHEM FILE
 # =============================================================================
-basissetname = os.path.splitext(os.path.basename(OPTIONS.outputfile))[0]
+basissetname = OPTIONS.input.stem
 basis = lxml.Element("basis", name=basissetname)
-basis.append(lxml.Comment("Basis set created by xtp_basisset from {} at {}".format(
-    os.path.basename(OPTIONS.input), time.strftime("%c"))))
+basis.append(lxml.Comment(
+    f"Basis set created by xtp_basisset from {OPTIONS.input.name} at {time.strftime('%c')}"))
 
 elements = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'K', 'Ar', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Ni', 'Co', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'I', 'Te', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr',
             'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Pt', 'Ir', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Pa', 'Th', 'Np', 'U', 'Am', 'Pu', 'Bk', 'Cm', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Rf', 'Lr', 'Db', 'Bh', 'Sg', 'Mt', 'Ds', 'Rg', 'Hs', 'Uut', 'Uub', 'Uup', 'Uuq', 'Uuh', 'Uuo']
 shells = ["S", "P", "D", "F", "G", "H", "I"]
 
 
-if os.path.isfile(OPTIONS.input):
-    print("File {} seems to be a NWCHEM file".format(OPTIONS.input))
+if OPTIONS.input.is_file():
+    print(f"File {OPTIONS.input} seems to be a NWCHEM file")
 
     keywords = ["BASIS", "end", "basis", "END"]
 
@@ -203,30 +203,31 @@ if os.path.isfile(OPTIONS.input):
             else:
                 okquit("\nCannot understand line in file:{}".format(line))
 
-elif os.path.isdir(OPTIONS.input):
+elif OPTIONS.input.is_dir():
 
-    print("Directory {} seems to be a Turbomole folder".format(OPTIONS.input))
-    if OPTIONS.turbobasis == '':
+    print(
+        f"Directory {OPTIONS.input.as_posix()} seems to be a Turbomole folder")
+    if OPTIONS.turbobasis is None:
         progargs.print_help()
         okquit(
             "\nQuit here, because: Turbomole basisset not set (option -t/--turbomolebasisset)")
     for ele in elements:
         if os.path.isfile(ele.lower()):
-            print("Opening {}".format(ele.lower()))
+            print(f"Opening {ele.lower()}")
             with open(ele.lower(), 'r') as f:
                 lines = f.readlines()
-                element = getelemententry(basis, ele)
-                turbomolegetcontributions(
-                    ele.lower(), lines, OPTIONS.turbobasis, element, shells)
+
+            element = getelemententry(basis, ele)
+            turbomolegetcontributions(
+                ele.lower(), lines, OPTIONS.turbobasis, element, shells)
         else:
             print(
                 f"File {ele.lower()} belonging to {element} not found. Skipping element!")
 
 
-print("Imported  new basisset {} from {} written to file {} with xtp_basisset".format(
-    basissetname, OPTIONS.input, OPTIONS.outputfile))
+print(
+    f"Imported  new basisset {basissetname} from {OPTIONS.input.as_posix()} written to file {OPTIONS.outputfile} with xtp_basisset")
+
 
 with open(OPTIONS.outputfile, 'wb') as f:
     f.write(lxml.tostring(basis, pretty_print=True))
-
-sys.exit(0)
