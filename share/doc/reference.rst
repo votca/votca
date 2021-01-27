@@ -28,3 +28,8 @@ xtp_update_mapfile
 
 .. include:: xtp_update_mapfile.rst
 
+xtp_qmmm2qm
+^^^^^^^^^^^
+
+.. include:: xtp_qmmm2qm.rst
+

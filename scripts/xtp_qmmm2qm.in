@@ -26,13 +26,24 @@ VOTCAHEADER = '''\
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
+
 {progtitle}
+
 please submit bugs to @PROJECT_CONTACT@
 xtp_qmmm2qm, version {version}
+
 '''.format(version=VERSION, progtitle=PROGTITLE)
 
+class XtpHelpFormatter(argparse.HelpFormatter):
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
 
-parser = argparse.ArgumentParser(prog='xtp_qmmm2qm')
+
+
+parser = argparse.ArgumentParser(prog='xtp_qmmm2qm',
+                                 formatter_class=lambda prog: XtpHelpFormatter(
+                                     prog, max_help_position=70),
+                                 description=PROGDESCR)
 
 parser.add_argument("-f", "--file", help="Input File (String)")
 parser.add_argument("-r", "--region", help="QMMM region number (Index)")

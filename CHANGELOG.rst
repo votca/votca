@@ -17,6 +17,9 @@ Version 2022-dev
 Version 2021-rc.2 (released XX.01.21)
 =====================================
 
+-  fix CI on rawhide (#663)
+-  add xtp_qmmm2qm to cmake install (#665)
+
 Version 2021-rc.1 (released 15.01.21)
 =====================================
 
