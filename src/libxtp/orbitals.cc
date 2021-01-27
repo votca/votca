@@ -74,6 +74,34 @@ std::vector<Index> Orbitals::SortEnergies() {
   return index;
 }
 
+/*
+ * Returns the density matrix relative to the ground state, for the full density
+ * use DensityMatrixFull
+ */
+ Eigen::MatrixXd Orbitals::DensityMatrixWithoutGS(const QMState &state) const{
+  if (state.Type().isExciton()) {
+    std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
+    return DMAT[1] - DMAT[0];
+  } else if (state.Type().isKSState() || state.Type().isPQPState()) {
+    return DensityMatrixKSstate(state);
+  } else if (state.Type() == QMStateType::DQPstate) {
+    Eigen::MatrixXd DMATQP = DensityMatrixQuasiParticle(state);
+    if (state.StateIdx() > getHomo()) {
+      return DMATQP;
+    } else {
+      return -DMATQP;
+    }
+  } else {
+    throw std::runtime_error(
+        "DensityMatrixWithoutGS does not yet implement QMStateType:" +
+        state.Type().ToLongString());
+  }
+}
+
+/*
+ * Returns the density matrix with the ground state density, for the partial
+ * density relative to the ground state use DensityMatrixWithoutGS
+ */
 Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   if (state.isTransition()) {
     return this->TransitionDensityMatrix(state);
@@ -99,7 +127,6 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
 }
 
 // Determine ground state density matrix
-
 Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
   if (!hasMOs()) {
     throw std::runtime_error("Orbitals file does not contain MO coefficients");
@@ -110,12 +137,12 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
 }
 
 // Density matrix for a single KS orbital
-
 Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
   if (!hasMOs()) {
     throw std::runtime_error("Orbitals file does not contain MO coefficients");
   }
-  if (state.Type() != QMStateType::KSstate) {
+  if (state.Type() != QMStateType::KSstate &&
+      state.Type() != QMStateType::PQPstate) {
     throw std::runtime_error("State:" + state.ToString() +
                              " is not a Kohn Sham state");
   }
@@ -134,7 +161,6 @@ Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
 }
 
 // Determine QuasiParticle Density Matrix
-
 Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(
     const QMState& state) const {
   if (state.Type() != QMStateType::DQPstate) {

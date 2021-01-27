@@ -72,13 +72,8 @@ std::string GaussianWriter::densityMatrixToString(const Orbitals& orbitals,
   OrbReorder reorder(gaussianOrder, gaussianMultipliers, true);
 
   Eigen::MatrixXd density;
-  if (state.Type().isExciton() && diff2gs) {
-    std::array<Eigen::MatrixXd, 2> DMAT =
-        orbitals.DensityMatrixExcitedState(state);
-    density = DMAT[1] - DMAT[0];
-  } else if ((state.Type().isKSState() || state.Type().isPQPState()) &&
-             diff2gs) {
-    density = orbitals.DensityMatrixKSstate(state);
+  if (diff2gs) {
+    density = orbitals.DensityMatrixWithoutGS(state);
   } else {
     density = orbitals.DensityMatrixFull(state);
   }

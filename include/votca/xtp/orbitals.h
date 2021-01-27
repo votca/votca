@@ -318,6 +318,7 @@ class Orbitals {
   // want to calculate only the density contribution of hole or electron use
   // DensityMatrixExcitedState
   Eigen::MatrixXd DensityMatrixFull(const QMState &state) const;
+  Eigen::MatrixXd DensityMatrixWithoutGS(const QMState &state) const;
 
   // functions for calculating density matrices
   Eigen::MatrixXd DensityMatrixGroundState() const;
