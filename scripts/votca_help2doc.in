@@ -103,6 +103,7 @@ def parse_help_message(msg: str, name: str) -> Data:
 
 def format_rst(sec: Data) -> str:
     """Format the section as RST."""
+    opts = "\n".join(f"  {x}" for x in sec.options.splitlines())
     return f"""
 NAME
 ****
@@ -125,7 +126,7 @@ OPTIONS
 *******
 ::
 
-  {sec.options}
+{opts}
 """
 
 
@@ -154,6 +155,7 @@ def format_groff(sec: Data) -> str:
 
 .SH OPTIONS
 .PP
+
 {sec.options}
 
 .SH AUTHORS
