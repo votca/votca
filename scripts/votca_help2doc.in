@@ -98,7 +98,21 @@ def parse_help_message(msg: str, name: str) -> Data:
     else:
         options, examples = read_section_examples(lines)
 
+    options = format_options(options)
+
     return Data(name, description, examples, options)
+
+
+def format_options(options: str):
+    """Format the options."""
+    s = []
+    for line in options.splitlines():
+        if line.endswith(":"):
+            s.append(f"{line}\n")
+        else:
+            s.append(line)
+
+    return "\n".join(s)
 
 
 def format_rst(sec: Data) -> str:
