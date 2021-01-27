@@ -33,9 +33,12 @@ jobs:
             cmake_build_type: Debug
             no_regression_testing: true
     runs-on: ubuntu-latest
-    container: ghcr.io/votca/buildenv/${{ matrix.distro }}
+    container:
+      image: ghcr.io/votca/buildenv/${{ matrix.distro }}
+      # https://bugzilla.redhat.com/show_bug.cgi?id=1900021
+      options: --security-opt seccomp=unconfined
     steps:
-      - uses: actions/checkout@v2.2.0
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - name: Run Votca Setup

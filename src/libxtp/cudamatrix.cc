@@ -22,11 +22,11 @@
 
 namespace votca {
 namespace xtp {
-cudaError_t checkCuda(cudaError_t result) {
+void checkCuda(cudaError_t result) {
   if (result != cudaSuccess) {
-    std::cerr << "CUDA Runtime Error: " << cudaGetErrorString(result) << "\n";
+    throw std::runtime_error(std::string("CUDA Runtime Error: ") +
+                             cudaGetErrorString(result));
   }
-  return result;
 }
 
 Index count_available_gpus() {
@@ -37,20 +37,15 @@ Index count_available_gpus() {
 
 CudaMatrix::CudaMatrix(const Eigen::MatrixXd &matrix,
                        const cudaStream_t &stream)
-    : _rows{static_cast<Index>(matrix.rows())},
+    : _ld{static_cast<Index>(matrix.rows())},
       _cols{static_cast<Index>(matrix.cols())} {
   _data = alloc_matrix_in_gpu(size_matrix());
   _stream = stream;
-  cudaError_t err = cudaMemcpyAsync(_data.get(), matrix.data(), size_matrix(),
-                                    cudaMemcpyHostToDevice, stream);
-  if (err != 0) {
-    throw std::runtime_error("Error copy arrays to device :" +
-                             std::string(cudaGetErrorString(err)));
-  }
+  copy_to_gpu(matrix);
 }
 
 CudaMatrix::CudaMatrix(Index nrows, Index ncols, const cudaStream_t &stream)
-    : _rows{static_cast<Index>(nrows)}, _cols{static_cast<Index>(ncols)} {
+    : _ld(nrows), _cols(ncols) {
   _data = alloc_matrix_in_gpu(size_matrix());
   _stream = stream;
 }

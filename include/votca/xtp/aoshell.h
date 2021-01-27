@@ -39,6 +39,7 @@ namespace xtp {
 
 class AOShell;
 class AOBasis;
+class SetupCptTable;
 
 class AOGaussianPrimitive {
   friend AOShell;
@@ -70,7 +71,7 @@ class AOGaussianPrimitive {
     _powfactor = CalcPowFactor(_decay);
   }
 
-  void SetupCptTable(CptTable& table) const;
+  static void SetupCptTable(CptTable& table);
 
   void WriteData(data& d) const;
 

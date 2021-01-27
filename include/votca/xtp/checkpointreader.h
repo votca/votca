@@ -119,10 +119,10 @@ class CheckpointReader {
   CptLoc getLoc() { return _loc; }
 
   template <typename T>
-  CptTable openTable(const std::string& name, const T& obj) {
+  CptTable openTable(const std::string& name) {
     try {
       CptTable table = CptTable(name, sizeof(typename T::data), _loc);
-      obj.SetupCptTable(table);
+      T::SetupCptTable(table);
       return table;
     } catch (H5::Exception&) {
       std::stringstream message;

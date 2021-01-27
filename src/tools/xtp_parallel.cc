@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -90,7 +90,6 @@ bool XtpParallel::EvaluateOptions() {
   }
 
   if (xtp::JobCalculators().IsRegistered(calc_string[0])) {
-    cout << " This is a XTP app" << endl;
     xtp::JobApplication::SetCalculator(
         xtp::JobCalculators().Create(calc_string[0]));
   } else {

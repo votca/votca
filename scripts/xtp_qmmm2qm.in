@@ -1,0 +1,77 @@
+#! /usr/bin/env python3
+#
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+import h5py
+import os
+import argparse
+
+VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
+PROGTITLE = 'THE VOTCA::XTP QMMM orbfile converter'
+PROGDESCR = 'Convert QMMM orb file into a DFTGWBSE-like orb file usable by gencube,densityanalysis,...'
+VOTCAHEADER = '''\
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{progtitle}
+
+please submit bugs to @PROJECT_CONTACT@
+xtp_qmmm2qm, version {version}
+
+'''.format(version=VERSION, progtitle=PROGTITLE)
+
+class XtpHelpFormatter(argparse.HelpFormatter):
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
+
+
+
+parser = argparse.ArgumentParser(prog='xtp_qmmm2qm',
+                                 formatter_class=lambda prog: XtpHelpFormatter(
+                                     prog, max_help_position=70),
+                                 description=PROGDESCR)
+
+parser.add_argument("-f", "--file", help="Input File (String)")
+parser.add_argument("-r", "--region", help="QMMM region number (Index)")
+parser.add_argument('-v', '--verbosity', action="count", help="Verbose mode")
+args = parser.parse_args()
+
+
+region = "region_" + args.region
+file_name, ext = os.path.splitext(args.file)
+
+
+print(VOTCAHEADER)
+print("...Input file: ", args.file)
+
+print("...Selected region: ", region)
+
+with h5py.File(args.file, 'r') as data_qmmm:
+    # Check if selected region exists in the database
+    if region in data_qmmm.keys():
+        # Create database similar to the simple QM one
+        new_file_name = file_name + "_QMlike" + ext
+        with h5py.File(new_file_name, 'w') as dataset:
+            data_qmmm.copy(region + '/orbitals', dataset)
+            dataset.move('orbitals', 'QMdata')
+            if args.verbosity:
+                print("...Checking keys")
+                print(list(dataset["QMdata"].keys()))
+        print("...Congrats! Your new file is ready with name: ", new_file_name)
+    else:
+        print("ERROR: The selcted region doesn't exist")
+        print("Available regions: ", list(data_qmmm.keys()))
