@@ -119,7 +119,7 @@ Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
     throw std::runtime_error("State:" + state.ToString() +
                              " is not a Kohn Sham state");
   }
-  Eigen::MatrixXd KSstate = _mos.eigenvectors().col(state.StateIdx());
+  Eigen::VectorXd KSstate = _mos.eigenvectors().col(state.StateIdx());
   Eigen::MatrixXd dmatKS = KSstate * KSstate.transpose();
   return dmatKS;
 }
