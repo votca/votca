@@ -25,17 +25,9 @@ using namespace votca;
  * @brief Construct a new pybind11 module object to invoke votca-xtp*
  *
  */
-int call_gwbse(std::string filename) {
-  xtp::QMToolFactory::RegisterAll();
-  for (const auto& x : xtp::QMTools().getKeys()) {
-    std::cout << "key: " << x << "\n";
-  }
-  // votca::tools::Property prop;
-  // prop.LoadFromXML(filename);
-  // std::unique_ptr<xtp::QMTool> _tool;
-  // _tool = move((xtp::QMTools().Create("dftgwbse")));
-  // std::cout << _tool->Identify() << "\n";
-  /* std::cout << _tool->Identify(); */
+int call_calculator(const std::string& name, int nThreads) {
+  pyxtp::PyXTP pyxtp;
+  pyxtp.Initialize(name, nThreads);
   return 42;
 }
 
@@ -45,7 +37,7 @@ PYBIND11_MODULE(xtp_binds, module) {
       "properties of organic materials,"
       "https://votca.github.io";
 
-  module.def("call_calculator", &call_gwbse, R"pbdoc(
+  module.def("call_calculator", &call_calculator, R"pbdoc(
         Invoke a Votca XTP calculator
 
         Parameters
