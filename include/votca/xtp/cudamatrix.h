@@ -43,7 +43,8 @@ namespace votca {
 namespace xtp {
 
 void checkCuda(cudaError_t result);
-
+void checkCublas(cublasStatus_t result);
+std::string cudaGetErrorEnum(cublasStatus_t error);
 Index count_available_gpus();
 
 template <class M>
@@ -116,15 +117,27 @@ class CudaMatrix {
 
   static constexpr bool transposed() { return false; }
 
-  CudaMatrix(const Eigen::MatrixXd &matrix, const cudaStream_t &stream);
+  template <class T>
+  void copy_to_gpu(const T &m) {
+    checkCublas(cublasSetMatrixAsync(
+        int(m.rows()), int(m.cols()), sizeof(double), m.data(),
+        int(m.colStride()), this->data(), 1, _stream));
+  }
+
+  template <class T>
+  CudaMatrix(const T &matrix, const cudaStream_t &stream)
+      : _ld{static_cast<Index>(matrix.rows())},
+        _cols{static_cast<Index>(matrix.cols())} {
+    _data = alloc_matrix_in_gpu(size_matrix());
+    _stream = stream;
+    copy_to_gpu(matrix);
+  }
 
   // Allocate memory in the GPU for a matrix
   CudaMatrix(Index nrows, Index ncols, const cudaStream_t &stream);
 
   // Convert A Cudamatrix to an EigenMatrix
   operator Eigen::MatrixXd() const;
-
-  void copy_to_gpu(const Eigen::MatrixXd &A);
 
  private:
   // Unique pointer with custom delete function
