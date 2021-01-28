@@ -88,7 +88,8 @@ BOOST_AUTO_TEST_CASE(gaussianwriter_test) {
   // 2. Write object to gaussian checkpoint file (.fchk)
   Logger log;
   GaussianWriter writer(log);
-  writer.WriteFile("methane", orbitals);
+  bool diff2gs = false;
+  writer.WriteFile("methane", orbitals, QMState("n"), diff2gs);
 
   // 3.1 Check everything except density matrix
   Index linesToSkip = 2;  // basisset names will be different due to test folder
