@@ -15,6 +15,7 @@ Version 2022-dev
 -  Clean scripts (#668)
 -  fix lxml detection in cmake (#670)
 -  extend fchk writer with option to print single KS state densities and densities relative to the ground state (#662)
+-  added a more general constructor to cudamatrix (#671)
 
 
 Version 2021-rc.2 (released XX.01.21)
