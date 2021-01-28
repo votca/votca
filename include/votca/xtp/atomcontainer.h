@@ -57,7 +57,7 @@ class AtomContainer {
 
   void setType(std::string type) { _type = type; }
 
-  void clearAtoms() {_atomlist.clear();}
+  void clearAtoms() { _atomlist.clear(); }
 
   Index getId() const { return _id; }
 
