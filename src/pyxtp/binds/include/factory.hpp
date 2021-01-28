@@ -3,7 +3,6 @@
 #define FACTORY_H_
 
 #include "example.hpp"
-#include "factory.hpp"
 #include "parent.hpp"
 #include <map>
 #include <memory>
@@ -74,7 +73,7 @@ inline void Factory<T>::Register(const std::string &key) {
 }
 
 template <>
-void Factory<Parent>::RegisterAll() {
+inline void Factory<Parent>::RegisterAll() {
   Calculators<Parent>().Register<Example>("example");
 }
 

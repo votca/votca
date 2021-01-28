@@ -20,6 +20,9 @@
 #include <vector>
 
 using namespace votca;
+namespace py = pybind11;
+
+namespace pyxtp {
 
 /**
  * @brief Construct a new pybind11 module object to invoke votca-xtp*
@@ -31,13 +34,34 @@ int call_calculator(const std::string& name, int nThreads) {
   return 42;
 }
 
+void printer(const std::vector<std::string>& keys) {
+  for (const auto& key : keys) {
+    std::cout << "key: " << key << "\n";
+  }
+  std::cout << "size: " << keys.size() << "\n";
+}
+
+void PyXTP::Initialize(const std::string& name, int nThreads) {
+  std::cout << "Votca Factory:\n";
+  xtp::Calculatorfactory::RegisterAll();
+  auto pt = xtp::Calculators().Create(name);
+  std::vector<std::string> keys = xtp::Calculators().getKeys();
+  printer(keys);
+  std::cout << "Mock Factory:\n";
+  pyxtp::Factory<Parent>::RegisterAll();
+  keys = pyxtp::Calculators<Parent>().getKeys();
+  printer(keys);
+}
+}  // namespace pyxtp
+
 PYBIND11_MODULE(xtp_binds, module) {
   module.doc() =
       "VOTCA-XTP is a library which allows you to calculate the electronic "
       "properties of organic materials,"
       "https://votca.github.io";
 
-  module.def("call_calculator", &call_calculator, R"pbdoc(
+  module.def("call_calculator", &pyxtp::call_calculator,
+             R"pbdoc(
         Invoke a Votca XTP calculator
 
         Parameters

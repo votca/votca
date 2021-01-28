@@ -14,7 +14,7 @@
  *
  */
 
-#if !defined(PYXTP_H_)
+#ifndef PYXTP_H_
 #define PYXTP_H_
 
 #include "factory.hpp"
@@ -30,30 +30,18 @@ using namespace votca;
 
 namespace pyxtp {
 
-void printer(const std::vector<std::string>& keys) {
-  for (const auto& key : keys) {
-    std::cout << "key: " << key << "\n";
-  }
-  std::cout << "size: " << keys.size() << "\n";
-}
+void printer(const std::vector<std::string>& keys);
+
+int call_calculator(const std::string& name, int nThreads);
 
 class PyXTP {
  public:
-  void Initialize(const std::string& name, int nThreads) {
-    std::cout << "Votca Factory:\n";
-    xtp::Calculatorfactory::RegisterAll();
-    std::vector<std::string> keys = xtp::Calculators().getKeys();
-    printer(keys);
-    std::cout << "Mock Factory:\n";
-    pyxtp::Factory<Parent>::RegisterAll();
-    keys = pyxtp::Calculators<Parent>().getKeys();
-    printer(keys);
-  }
+  void Initialize(const std::string& name, int nThreads);
 
  private:
   std::unique_ptr<xtp::QMCalculator> _calculator;
 };
 
-}  // namespace pyxtp 
+}  // namespace pyxtp
 
 #endif  // PYXTP_H_

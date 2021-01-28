@@ -39,7 +39,7 @@ target_link_libraries(xtp_binds
 )
 
 
-add_executable(main binds/main.cc)
+add_executable(main binds/main.cc binds/pyxtp.cc)
 target_include_directories(main
  PUBLIC
  ${PROJECT_SOURCE_DIR}/binds/include
