@@ -13,11 +13,6 @@ xtp_basisset
 ^^^^^^^^^^^^
 .. include:: xtp_basisset.rst
 
-xtp_makeauxbasis
-^^^^^^^^^^^^^^^^
-
-.. include:: xtp_makeauxbasis.rst
-
 xtp_parallel
 ^^^^^^^^^^^^
 
@@ -27,4 +22,9 @@ xtp_update_mapfile
 ^^^^^^^^^^^^^^^^^^
 
 .. include:: xtp_update_mapfile.rst
+
+xtp_qmmm2qm
+^^^^^^^^^^^
+
+.. include:: xtp_qmmm2qm.rst
 

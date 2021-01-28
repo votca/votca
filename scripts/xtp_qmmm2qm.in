@@ -22,25 +22,37 @@ import argparse
 VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
 PROGTITLE = 'THE VOTCA::XTP QMMM orbfile converter'
 PROGDESCR = 'Convert QMMM orb file into a DFTGWBSE-like orb file usable by gencube,densityanalysis,...'
-VOTCAHEADER = '''\
+VOTCAHEADER = f"""
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
-{progtitle}
+
+{PROGTITLE}
+
 please submit bugs to @PROJECT_CONTACT@
-xtp_qmmm2qm, version {version}
-'''.format(version=VERSION, progtitle=PROGTITLE)
+xtp_qmmm2qm, version {VERSION}
+
+"""
 
 
-parser = argparse.ArgumentParser(prog='xtp_qmmm2qm')
+class XtpHelpFormatter(argparse.HelpFormatter):
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
 
-parser.add_argument("-f", "--file", help="Input File (String)")
-parser.add_argument("-r", "--region", help="QMMM region number (Index)")
+
+parser = argparse.ArgumentParser(prog='xtp_qmmm2qm',
+                                 formatter_class=lambda prog: XtpHelpFormatter(
+                                     prog, max_help_position=70),
+                                 description=PROGDESCR)
+
+parser.add_argument("-f", "--file", required=True, help="Input File (String)")
+parser.add_argument("-r", "--region", required=True,
+                    help="QMMM region number (Index)")
 parser.add_argument('-v', '--verbosity', action="count", help="Verbose mode")
 args = parser.parse_args()
 
 
-region = "region_" + args.region
+region = f"region_{args.region}"
 file_name, ext = os.path.splitext(args.file)
 
 
