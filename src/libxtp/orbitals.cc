@@ -78,7 +78,7 @@ std::vector<Index> Orbitals::SortEnergies() {
  * Returns the density matrix relative to the ground state, for the full density
  * use DensityMatrixFull
  */
- Eigen::MatrixXd Orbitals::DensityMatrixWithoutGS(const QMState &state) const{
+Eigen::MatrixXd Orbitals::DensityMatrixWithoutGS(const QMState& state) const {
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
     return DMAT[1] - DMAT[0];
