@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 #
-# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
 # limitations under the License.
 #
 
-VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
-import sys
-import argparse
-import re
 import lxml.etree as lxml
+import re
+import argparse
+
+VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
 
 
 PROGTITLE = 'THE VOTCA::XTP MAPPING FILE UPDATER'
@@ -37,10 +37,6 @@ xtp_update_mapfile, version {version}
 '''.format(version=VERSION, progtitle=PROGTITLE)
 
 
-def okquit(what=''):
-    if what != '':
-        print(what)
-    sys.exit(0)
 # =============================================================================
 # PROGRAM OPTIONS
 # =============================================================================
@@ -58,7 +54,6 @@ progargs = argparse.ArgumentParser(prog='xtp_update_mapfile',
 
 progargs.add_argument('-sin', '--S_input',
                       dest='S_input',
-                      action='store',
                       required=True,
                       type=argparse.FileType('r'),
                       default='',
@@ -66,7 +61,6 @@ progargs.add_argument('-sin', '--S_input',
 
 progargs.add_argument('-sout', '--S_output',
                       dest='S_output',
-                      action='store',
                       required=True,
                       type=argparse.FileType('w'),
                       default='',
@@ -95,7 +89,7 @@ def changeframe(localframetext):
             integer = int(i)
         else:
             print("Cannot convert {} to integer".format(i))
-        newinteger = integer-1
+        newinteger = integer - 1
         newids.append("{:d}".format(newinteger))
     return ' '.join(newids)
 
@@ -114,8 +108,8 @@ def changeids(atomidtext):
                 integer = int(array[0])
             else:
                 print("Cannot convert {} to integer".format(array[0]))
-            newinteger = integer-1
-            newstring.append("{:d}:{}".format(newinteger, atomtype))
+            newinteger = integer - 1
+            newstring.append(f"{newinteger}:{atomtype}")
     return ''.join(newstring)
 
 
@@ -136,4 +130,3 @@ for molecule in Molecules.iter('molecule'):
             localframe.text = changeframe(localframe.text)
 print("Writing to {}".format(OPTIONS.S_output.name))
 Tree.write(OPTIONS.S_output.name, pretty_print=True)
-sys.exit(0)

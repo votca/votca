@@ -35,6 +35,7 @@ void Orb2Fchk::ParseOptions(const tools::Property& options) {
   _basename = _job_name;
   _orbfile = _job_name + ".orb";
   _state_string = options.get(".qmstate").as<std::string>();
+  _diff2gs = options.get(".diff2gs").as<bool>();
 }
 
 bool Orb2Fchk::Run() {
@@ -49,7 +50,7 @@ bool Orb2Fchk::Run() {
   orbitals.ReadFromCpt(_orbfile);
 
   GaussianWriter writer(_log);
-  writer.WriteFile(_basename, orbitals, QMState(_state_string));
+  writer.WriteFile(_basename, orbitals, QMState(_state_string), _diff2gs);
 
   return true;
 }
