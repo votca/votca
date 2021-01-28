@@ -14,6 +14,7 @@ Version 2022-dev
 -  Fix script rst generation (#656)
 -  Clean scripts (#668)
 -  Read MO coefficients computed with orca from the molden file instead of the .gbw binary (#589)
+-  fix lxml detection in cmake (#670)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
