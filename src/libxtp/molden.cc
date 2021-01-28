@@ -231,11 +231,12 @@ void Molden::parseMoldenFile(const std::string& filename,
       boost::trim(units);
       XTP_LOG(Log::error, _log)
           << "Reading atoms using " << units << " units." << std::flush;
-      // only update atoms if they are not yet loaded
+      orbitals.QMAtoms().clearAtoms();
       if (orbitals.QMAtoms().size() == 0) {
         line = readAtoms(orbitals.QMAtoms(), units, input_file);
-      } else {  // we need get the next line to continue
-        std::getline(input_file, line);
+      } else {
+        throw std::runtime_error(
+            "Could not clear QMAtoms while reading Molden file.");
       }
       addBasissetInfo(orbitals);
     } else if (sectionType == "GTO") {
