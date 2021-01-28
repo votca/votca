@@ -13,11 +13,6 @@ xtp_basisset
 ^^^^^^^^^^^^
 .. include:: xtp_basisset.rst
 
-xtp_makeauxbasis
-^^^^^^^^^^^^^^^^
-
-.. include:: xtp_makeauxbasis.rst
-
 xtp_parallel
 ^^^^^^^^^^^^
 
