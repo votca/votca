@@ -746,8 +746,21 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   }
 
   molden.setBasissetInfo(orbitals.getDFTbasisName());
-  std::string base_name = _mo_file_name.substr(0, _mo_file_name.size() - 4);
-  molden.parseMoldenFile(base_name + ".molden.input", orbitals);
+  std::string file_name =
+      _mo_file_name.substr(0, _mo_file_name.size() - 4) + ".molden.input";
+
+  std::ifstream molden_file(file_name);
+  if (!molden_file.good()) {
+    throw std::runtime_error(
+        "Could not find the molden input file for the MO coefficients.\nIf you "
+        "have run the orca calculation manually or use data from an old\n"
+        "calculation, make sure that besides the .gbw file a .molden.input is\n"
+        "present. If not, convert the .gbw file to a .molden.input file with\n"
+        "the orca_2mkl tool from orca.\nAn example, if you have a benzene.gbw "
+        "file run:\n    orca_2mkl benzene -molden\n");
+  }
+
+  molden.parseMoldenFile(file_name, orbitals);
 
   XTP_LOG(Log::error, *_pLog) << "Done parsing" << flush;
   return true;
