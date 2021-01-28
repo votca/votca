@@ -46,22 +46,19 @@ BOOST_AUTO_TEST_CASE(create_cudamatrix) {
   BOOST_TEST(B.isApprox(tmp));
 }
 
-
-
 BOOST_AUTO_TEST_CASE(create_cudamatrixblock) {
   // Call the class to handle GPU resources
   CudaPipeline cp(0);
 
   // Call matrix multiplication GPU
-  Eigen::MatrixXd X = Eigen::MatrixXd::Random(10,8);
+  Eigen::MatrixXd X = Eigen::MatrixXd::Random(10, 8);
 
   // Copy matrix back and for to the GPU
-  CudaMatrix cumatrix{X.block(2,4,3,1), cp.get_stream()};
+  CudaMatrix cumatrix{X.block(2, 4, 3, 1), cp.get_stream()};
   Eigen::MatrixXd tmp = cumatrix;
 
   // Expected results
-  BOOST_TEST(X.block(2,4,3,1).isApprox(tmp));
+  BOOST_TEST(X.block(2, 4, 3, 1).isApprox(tmp));
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()

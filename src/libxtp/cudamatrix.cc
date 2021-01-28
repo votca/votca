@@ -29,7 +29,6 @@ void checkCuda(cudaError_t result) {
   }
 }
 
-
 void checkCublas(cublasStatus_t result) {
   if (result != CUBLAS_STATUS_SUCCESS) {
     throw std::runtime_error(std::string("CUBLAS Runtime Error: ") +
@@ -63,13 +62,11 @@ std::string cudaGetErrorEnum(cublasStatus_t error) {
   return "<unknown>";
 }
 
-
 Index count_available_gpus() {
   int count;
   cudaError_t err = cudaGetDeviceCount(&count);
   return (err != cudaSuccess) ? 0 : Index(count);
 }
-
 
 CudaMatrix::CudaMatrix(Index nrows, Index ncols, const cudaStream_t &stream)
     : _ld(nrows), _cols(ncols) {
@@ -84,7 +81,6 @@ CudaMatrix::operator Eigen::MatrixXd() const {
   checkCuda(cudaStreamSynchronize(this->_stream));
   return result;
 }
-
 
 CudaMatrix::Unique_ptr_to_GPU_data CudaMatrix::alloc_matrix_in_gpu(
     size_t size_arr) const {
