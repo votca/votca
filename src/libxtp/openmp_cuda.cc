@@ -71,21 +71,20 @@ void OpenMP_CUDA::setOperators(const std::vector<Eigen::MatrixXd>&,
 bool isInVector(Index element, const std::vector<Index>& vec) {
   return (std::find(vec.begin(), vec.end(), element) != vec.end());
 }
-  
+
 #ifdef USE_CUDA
 bool OpenMP_CUDA::isGPUthread(Index ParentThreadId) const {
   return isInVector(ParentThreadId, gpuIDs_);
 }
 #endif
 
-
-Index OpenMP_CUDA::getParentThreadId() const{
+Index OpenMP_CUDA::getParentThreadId() const {
   return inside_Parallel_region_ ? threadID_parent_ : OPENMP::getThreadId();
 }
-Index OpenMP_CUDA::getLocalThreadId(Index ParentThreadId) const{
+Index OpenMP_CUDA::getLocalThreadId(Index ParentThreadId) const {
   return inside_Parallel_region_ ? 0 : ParentThreadId;
 }
-Index OpenMP_CUDA::getNumberThreads() const{
+Index OpenMP_CUDA::getNumberThreads() const {
   return inside_Parallel_region_ ? 1 : OPENMP::getMaxThreads();
 }
 
@@ -109,9 +108,9 @@ void OpenMP_CUDA::MultiplyRight(Eigen::MatrixXd& tensor) {
   // OpenMP. The rest of the threads use the default CPU matrix
   // multiplication
 #ifdef USE_CUDA
-  Index threadid =getParentThreadId();
+  Index threadid = getParentThreadId();
   if (isGPUthread(threadid)) {
-    threadid= getLocalThreadId(threadid);
+    threadid = getLocalThreadId(threadid);
     checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
     temp_[threadid].A->copy_to_gpu(tensor);
     cuda_pips_[threadid]->gemm(*temp_[threadid].A, *temp_[threadid].B,
@@ -149,9 +148,9 @@ void OpenMP_CUDA::setOperators(const Eigen::MatrixXd& leftoperator,
 
 void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
 #ifdef USE_CUDA
-  Index threadid =getParentThreadId();
+  Index threadid = getParentThreadId();
   if (isGPUthread(threadid)) {
-    threadid= getLocalThreadId(threadid);
+    threadid = getLocalThreadId(threadid);
     checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
     temp_[threadid].B->copy_to_gpu(matrix);
     cuda_pips_[threadid]->gemm(*temp_[threadid].A, *temp_[threadid].B,
@@ -169,8 +168,8 @@ void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix) {
 }
 #ifdef USE_CUDA
 void OpenMP_CUDA::createTemporaries(Index rows, Index cols) {
-  reduction_ =
-      std::vector<Eigen::MatrixXd>(getNumberThreads(), Eigen::MatrixXd::Zero(cols, cols));
+  reduction_ = std::vector<Eigen::MatrixXd>(getNumberThreads(),
+                                            Eigen::MatrixXd::Zero(cols, cols));
 
 #pragma omp parallel for num_threads(gpuIDs_.size())
   for (Index i = 0; i < Index(gpuIDs_.size()); i++) {
@@ -184,16 +183,16 @@ void OpenMP_CUDA::createTemporaries(Index rows, Index cols) {
 }
 #else
 void OpenMP_CUDA::createTemporaries(Index, Index cols) {
-  reduction_ =
-      std::vector<Eigen::MatrixXd>(getNumberThreads(), Eigen::MatrixXd::Zero(cols, cols));
+  reduction_ = std::vector<Eigen::MatrixXd>(getNumberThreads(),
+                                            Eigen::MatrixXd::Zero(cols, cols));
 }
 
 #endif
 
 void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
                         const Eigen::VectorXd& vec) {
- Index parentid =getParentThreadId();
- Index threadid= getLocalThreadId(parentid);
+  Index parentid = getParentThreadId();
+  Index threadid = getLocalThreadId(parentid);
 #ifdef USE_CUDA
   if (isGPUthread(parentid)) {
     checkCuda(cudaSetDevice(cuda_pips_[threadid]->getDeviceId()));
