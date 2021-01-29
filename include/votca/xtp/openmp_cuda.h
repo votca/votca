@@ -78,8 +78,14 @@ class OpenMP_CUDA {
   bool inside_Parallel_region_;
   Index threadID_parent_;
 
-#ifdef USE_CUDA
+  Index getParentThreadId() const;
 
+  Index getLocalThreadId(Index ParentThreadId) const;
+
+  Index getNumberThreads() const;
+
+#ifdef USE_CUDA
+  bool isGPUthread(Index ParentThreadId) const;
   std::vector<Index> gpuIDs_;
   std::vector<std::unique_ptr<CudaPipeline>> cuda_pips_;
 
