@@ -15,7 +15,6 @@
  *
  */
 
-
 #include "erdiabatizationframe.h"
 
 using std::flush;
@@ -33,21 +32,19 @@ void ERDiabatizationFrame::ParseOptions(const tools::Property& user_options) {
   _log.setCommonPreface("\n... ...");
 
   tools::Property options = user_options;
-     
-  _orbfile = options.get(".orb_file").as<std::string>();
 
+  _orbfile = options.get(".orb_file").as<std::string>();
 
   _options.state_idx_1 = options.get(".state_idx_1").as<Index>();
   _options.state_idx_2 = options.get(".state_idx_2").as<Index>();
   std::string qmtype = options.get(".qmtype").as<std::string>();
   _qmtype.FromString(qmtype);
 
-  XTP_LOG(Log::error, _log) << "Type : " << qmtype  << flush;
-  XTP_LOG(Log::error, _log) << "State 1 : " <<  _options.state_idx_1 << flush;
-  XTP_LOG(Log::error, _log) << "State 2 : " <<  _options.state_idx_2 << flush;
+  XTP_LOG(Log::error, _log) << "Type : " << qmtype << flush;
+  XTP_LOG(Log::error, _log) << "State 1 : " << _options.state_idx_1 << flush;
+  XTP_LOG(Log::error, _log) << "State 2 : " << _options.state_idx_2 << flush;
 
   XTP_LOG(Log::error, _log) << flush;
-
 };
 
 bool ERDiabatizationFrame::Run() {
@@ -75,17 +72,46 @@ bool ERDiabatizationFrame::Run() {
 
   ERDiabatization.setUpMatrices();
 
-  
-  XTP_LOG(Log::error, _log) << TimeStamp() << " Started ER Diabatization " << flush;
-  
-  Eigen::VectorXd results = ERDiabatization.CalculateER(orbitals,_qmtype);
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Started ER Diabatization " << flush;
 
-  XTP_LOG(Log::error, _log) << TimeStamp() << " Calculation done " << flush;
+  Eigen::VectorXd results = ERDiabatization.CalculateER(orbitals, _qmtype);
 
-        
-  for (Index n = 1; n < 101; n++) {
-    std::cout << n << "  " << results(n-1) << std::endl;
+
+  //TO DO: This loop should be printed on a file
+  std::cout << "\n" << std::endl;
+  for (Index n = 1; n < results.size()+1; n++){
+    std::cout << n << " " << results(n-1) << std::endl;
   }
+
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Calculation done. Selecting maximum " << flush;
+
+  // Get all the ingredients we need for evaluating the diabatic Hamiltonian
+  // We need the angle that maximise the ER functional
+  Index pos;
+  XTP_LOG(Log::error, _log) << "Maximum EF is: " << results.maxCoeff(&pos)
+                            << " at position " << pos+1 << flush;
+  double angle = 2.0 * votca::tools::conv::Pi / (1.0 * (pos + 1));
+  // We need the adiabatic energies of the two states selected in the option
+  double ad_E1;
+  double ad_E2;
+  if (_qmtype == QMStateType::Singlet) {
+    ad_E1 = orbitals.BSESinglets().eigenvalues()[_options.state_idx_1];
+    ad_E2 = orbitals.BSESinglets().eigenvalues()[_options.state_idx_2];
+  } else {
+    ad_E1 = orbitals.BSETriplets().eigenvalues()[_options.state_idx_1];
+    ad_E2 = orbitals.BSETriplets().eigenvalues()[_options.state_idx_2];
+  }
+
+  //We can now calculate the diabatic Hamiltonian
+  Eigen::MatrixXd diabatic_H =
+      ERDiabatization.Calculate_diabatic_H(ad_E1, ad_E2, angle);
+  //This is just a print
+  std::cout << "\n Diabatic Hamiltonian for state " << _options.state_idx_1
+            << " and " << _options.state_idx_2 << "\n"
+            << diabatic_H << std::endl;
+
   return true;
 }
 }  // namespace xtp

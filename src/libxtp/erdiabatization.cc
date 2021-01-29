@@ -44,7 +44,6 @@ void ERDiabatization::setUpMatrices() {
       0, _bse_cmin, _orbitals.MOs().eigenvectors().rows(), _bse_ctotal);
 
   _eris.Initialize_4c(_dftbasis);
-
 }
 
 void ERDiabatization::configure(const options_erdiabatization& opt) {
@@ -53,7 +52,7 @@ void ERDiabatization::configure(const options_erdiabatization& opt) {
 
 double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_LM,
                                    const Eigen::MatrixXd& D_JK) const {
-  
+
   XTP_LOG(Log::debug, *_pLog) << "Calculating 4c ERIs" << flush;
   Eigen::MatrixXd contracted = _eris.CalculateERIs_4c(D_LM, 1e-12);
 
@@ -67,6 +66,17 @@ Eigen::MatrixXd ERDiabatization::CalculateU(const double phi) const {
   U(1, 0) = std::sin(phi);
   U(1, 1) = std::cos(phi);
   return U;
+}
+
+Eigen::MatrixXd ERDiabatization::Calculate_diabatic_H(
+    const double E1, const double E2, const double angle) const {
+  Eigen::VectorXd ad_energies(2);
+  ad_energies << E1, E2;
+  XTP_LOG(Log::error, *_pLog) << "Adiabatic energies "
+                              << "E1: " << E1 << " E2: " << E2 << flush;
+  XTP_LOG(Log::error, *_pLog) << "Rotation angle " << angle << flush;
+  Eigen::MatrixXd U = CalculateU(angle);
+  return U.transpose() * ad_energies.asDiagonal() * U;
 }
 
 Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
@@ -88,9 +98,9 @@ Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
 }
 Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb,
                                              QMStateType type) const {
-    
+
   Eigen::Tensor<double, 4> R_JKLM = CalculateRtensor(orb, type);
-  
+
   const double pi = votca::tools::conv::Pi;
   Eigen::VectorXd results = Eigen::VectorXd::Zero(100);
   for (Index n = 1; n < 101; n++) {
@@ -135,7 +145,6 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb,
     index2 = _opt.state_idx_2;
   }
 
-  
   Eigen::VectorXd exciton1;
   Eigen::VectorXd exciton2;
   if (type == QMStateType::Singlet) {
@@ -155,7 +164,6 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb,
   return _occlevels * AuxMat_vv * _occlevels.transpose() +
          _virtlevels * AuxMat_cc * _virtlevels.transpose();
 }
-
 
 }  // namespace xtp
 }  // namespace votca
