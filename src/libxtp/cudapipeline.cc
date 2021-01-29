@@ -32,8 +32,6 @@ CudaPipeline::~CudaPipeline() {
   cudaStreamDestroy(_stream);
 }
 
-
-
 void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B,
                         double alpha) const {
 

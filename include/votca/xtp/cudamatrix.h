@@ -121,7 +121,7 @@ class CudaMatrix {
   void copy_to_gpu(const T &m) {
     checkCublas(cublasSetMatrixAsync(
         int(m.rows()), int(m.cols()), sizeof(double), m.data(),
-        int(m.colStride()), this->data(), 1, _stream));
+        int(m.colStride()), this->data(), int(this->rows()), _stream));
   }
 
   template <class T>
