@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<options>
+<!-- xtp_tools -e erdiabatization  options.xml -->
+<erdiabatization help="Perform ER diabatization" >
+	<orb_file help="Input orb file to start computation from"/>
+	<state_idx_1 help="State index 1"/>
+    <state_idx_2 help="State index 2"/>
+	<type help="which type"/>
+</erdiabatization>
+</options>
