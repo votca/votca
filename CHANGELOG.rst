@@ -13,7 +13,10 @@ Version 2022-dev
 -  generate manpage using votca_help2man (#655, #659)
 -  Fix script rst generation (#656)
 -  Clean scripts (#668)
+-  Read MO coefficients computed with orca from the molden file instead of the .gbw binary (#589)
 -  fix lxml detection in cmake (#670)
+-  extend fchk writer with option to print single KS state densities and densities relative to the ground state (#662)
+
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================

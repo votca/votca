@@ -44,9 +44,7 @@ std::vector<std::vector<double>> CubeFile_Writer::CalculateValues(
   } else {
     Eigen::MatrixXd mat;
     if (state.Type().isExciton() && dostateonly) {
-      std::array<Eigen::MatrixXd, 2> DMAT =
-          orb.DensityMatrixExcitedState(state);
-      mat = DMAT[1] - DMAT[0];
+      mat = orb.DensityMatrixWithoutGS(state);
     } else {
       mat = orb.DensityMatrixFull(state);
     }
