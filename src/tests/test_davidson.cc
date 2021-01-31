@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
   DS.set_tolerance("normal");
   DS.set_size_update("safe");
   DS.solve(Aop, neigen);
-  Eigen::MatrixXd identity = Eigen::MatrixXd::Zero(size, size);
+  Eigen::MatrixXd identity = Eigen::MatrixXd::Identity(size, size);
 
   Eigen::MatrixXd A = Aop * identity;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free_large) {
   DS.set_size_update("safe");
   DS.solve(Aop, neigen);
   std::cout << log << std::endl;
-  Eigen::MatrixXd identity = Eigen::MatrixXd::Zero(size, size);
+  Eigen::MatrixXd identity = Eigen::MatrixXd::Identity(size, size);
   Eigen::MatrixXd A = Aop * identity;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
 
