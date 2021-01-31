@@ -87,15 +87,14 @@ class OpenMP_CUDA {
 #ifdef USE_CUDA
   bool isGPUthread(Index ParentThreadId) const;
 
-  
-
   struct GPU_data {
 
     explicit GPU_data(Index i)
-        : Id(i),
-          pipeline(std::make_unique<CudaPipeline>(int(i))){;}
+        : Id(i), pipeline(std::make_unique<CudaPipeline>(int(i))) {
+      ;
+    }
 
-              Index Id;
+    Index Id;
     std::unique_ptr<CudaPipeline> pipeline;
     std::vector<std::unique_ptr<CudaMatrix>> temp;
 
@@ -110,7 +109,6 @@ class OpenMP_CUDA {
       temp.push_back(
           std::make_unique<CudaMatrix>(rows, cols, pipeline->get_stream()));
     }
-
   };
 
   std::vector<GPU_data> gpus_;

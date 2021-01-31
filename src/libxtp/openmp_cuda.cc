@@ -65,7 +65,7 @@ void OpenMP_CUDA::setOperators(const std::vector<Eigen::MatrixXd>&,
 
 #ifdef USE_CUDA
 
- bool OpenMP_CUDA::isInVector(Index Id, const std::vector<GPU_data>& vec) {
+bool OpenMP_CUDA::isInVector(Index Id, const std::vector<GPU_data>& vec) {
   return (std::find_if(vec.begin(), vec.end(), [&Id](const GPU_data& d) {
             return d.Id == Id;
           }) != vec.end());
