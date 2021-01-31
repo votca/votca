@@ -202,14 +202,6 @@ void GWBSE::Initialize(tools::Property& options) {
     _bseopt.nmax = bse_size;
   }
 
-  // eigensolver options
-  _bseopt.davidson = options.get(key + ".eigensolver.dodavidson").as<bool>();
-
-  if (_bseopt.davidson) {
-
-    _bseopt.matrixfree =
-        options.get(key + ".eigensolver.domatrixfree").as<bool>();
-
     _bseopt.davidson_correction =
         options.get(key + ".eigensolver.davidson_correction").as<std::string>();
 
@@ -225,16 +217,6 @@ void GWBSE::Initialize(tools::Property& options) {
     _bseopt.davidson_maxiter =
         options.get(key + ".eigensolver.davidson_maxiter").as<Index>();
 
-    // check size
-    if (_bseopt.nmax > bse_size / 4) {
-      XTP_LOG(Log::error, *_pLog)
-          << TimeStamp()
-          << " Warning : Too many eigenvalues required for Davidson. Default "
-             "to Lapack diagonalization"
-          << flush;
-      _bseopt.davidson = false;
-    }
-  }
 
   _bseopt.useTDA = options.get(key + ".useTDA").as<bool>();
   _orbitals.setTDAApprox(_bseopt.useTDA);

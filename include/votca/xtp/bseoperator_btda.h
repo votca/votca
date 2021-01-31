@@ -72,7 +72,16 @@ class HamiltonianOperator
         *this, x.derived());
   }
 
-  Eigen::VectorXd get_diagonal() const {
+  
+  Eigen::VectorXd diagonal() const { return _diag; }
+
+  const MatrixReplacementA& _A;
+  const MatrixReplacementB& _B;
+
+
+ private:
+
+Eigen::VectorXd get_diagonal() const {
     Eigen::VectorXd diag = Eigen::VectorXd::Zero(_size);
     Index half = _size / 2;
     diag.head(half) = _A.diagonal();
@@ -80,13 +89,7 @@ class HamiltonianOperator
     return diag;
   }
 
-  Eigen::VectorXd diagonal() const { return _diag; }
 
-
-  const MatrixReplacementA& _A;
-  const MatrixReplacementB& _B;
-
- private:
   Index _size;
   Eigen::VectorXd _diag;
 };

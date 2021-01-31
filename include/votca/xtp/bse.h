@@ -53,9 +53,7 @@ class BSE {
     Index qpmax;
     Index vmin;
     Index cmax;
-    Index nmax;       // number of eigenvectors to calculate
-    bool davidson;    // use davidson to diagonalize the matrix
-    bool matrixfree;  // use matrix free method
+    Index nmax;       // number of eigenvectors to calculat
     std::string davidson_correction;
     std::string davidson_ortho;
     std::string davidson_tolerance;

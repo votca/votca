@@ -130,16 +130,18 @@ class TestOperator final: public MatrixFreeOperator {
 
   Eigen::MatrixXd matmul(const Eigen::MatrixXd &input) const{
     Eigen::MatrixXd result = Eigen::MatrixXd::Zero(input.rows(), input.cols());
-    for (Index i = 0; i < size(); i++) {
+    for (Index i = 0; i < this->size(); i++) {
       result.row(i) = OperatorRow(i) * input;
     }
     return result;
   }
 
   Eigen::VectorXd diagonal()const {
-    Eigen::VectorXd diag = Eigen::VectorXd::Zero(size(), size());
-    for (Index i = 0; i < size(); i++) {
-      diag(i) = OperatorRow(i)(i);
+    Index size=this->size();
+    Eigen::VectorXd diag = Eigen::VectorXd::Zero(size);
+    for (Index i = 0; i < size; i++) {
+      Eigen::RowVectorXd row=OperatorRow(i);
+      diag(i) = row(i);
     }
     return diag;
   }
@@ -302,7 +304,7 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   DS.solve(Hop, neigen);
   auto lambda = DS.eigenvalues().real();
   std::sort(lambda.data(), lambda.data() + lambda.size());
-  Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(Hop.size(),Hop.size());
+  Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(Hop.rows(),Hop.cols());
   Eigen::MatrixXd H = Hop*identity;
 
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
@@ -362,7 +364,7 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free_large) {
   std::cout << log;
   auto lambda = DS.eigenvalues().real();
   std::sort(lambda.data(), lambda.data() + lambda.size());
-   Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(Hop.size(),Hop.size());
+   Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(Hop.rows(),Hop.cols());
   Eigen::MatrixXd H = Hop*identity;
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
   Eigen::ArrayXi idx = index_eval(es.eigenvalues().real(), neigen);

@@ -195,9 +195,6 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
   DS.set_size_update(_opt.davidson_update);
   DS.set_iter_max(_opt.davidson_maxiter);
   DS.set_max_search_space(10 * _opt.nmax);
-
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Using matrix free method" << flush;
   DS.solve(h, _opt.nmax);
   result.eigenvalues() = DS.eigenvalues();
   result.eigenvectors() = DS.eigenvectors();
@@ -252,9 +249,6 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   DS.set_iter_max(_opt.davidson_maxiter);
   DS.set_max_search_space(10 * _opt.nmax);
   DS.set_matrix_type("HAM");
-
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Using matrix free method" << flush;
   DS.solve(Hop, _opt.nmax);
 
   // results
