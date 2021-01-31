@@ -200,7 +200,7 @@ void OpenMP_CUDA::A_TDA(const Eigen::MatrixXd& matrix,
 #endif
 }
 
-Eigen::MatrixXd OpenMP_CUDA::A_TDA_result() {
+Eigen::MatrixXd OpenMP_CUDA::getReductionVar() {
 #ifdef USE_CUDA
 #pragma omp parallel for num_threads(gpus_.size())
   for (Index i = 0; i < Index(gpus_.size()); i++) {

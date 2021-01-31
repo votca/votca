@@ -68,7 +68,7 @@ class OpenMP_CUDA {
 
   void createTemporaries(Index rows, Index cols);
   void A_TDA(const Eigen::MatrixXd& matrix, const Eigen::VectorXd& vec);
-  Eigen::MatrixXd A_TDA_result();
+  Eigen::MatrixXd getReductionVar();
 
  private:
   const Eigen::MatrixXd* rightoperator_ = nullptr;
