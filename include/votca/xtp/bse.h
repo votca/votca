@@ -45,7 +45,7 @@ class BSE {
   BSE(Logger& log, TCMatrix_gwbse& Mmn) : _log(log), _Mmn(Mmn){};
 
   struct options {
-    bool useTDA = true;
+    bool useTDA;
     Index homo;
     Index rpamin;
     Index rpamax;

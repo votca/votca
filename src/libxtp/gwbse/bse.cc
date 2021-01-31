@@ -186,66 +186,22 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
   start = std::chrono::system_clock::now();
 
   tools::EigenSystem result;
-  if (_opt.davidson) {
 
-    DavidsonSolver DS(_log);
+  DavidsonSolver DS(_log);
 
-    DS.set_correction(_opt.davidson_correction);
-    DS.set_tolerance(_opt.davidson_tolerance);
-    DS.set_ortho(_opt.davidson_ortho);
-    DS.set_size_update(_opt.davidson_update);
-    DS.set_iter_max(_opt.davidson_maxiter);
-    DS.set_max_search_space(10 * _opt.nmax);
+  DS.set_correction(_opt.davidson_correction);
+  DS.set_tolerance(_opt.davidson_tolerance);
+  DS.set_ortho(_opt.davidson_ortho);
+  DS.set_size_update(_opt.davidson_update);
+  DS.set_iter_max(_opt.davidson_maxiter);
+  DS.set_max_search_space(10 * _opt.nmax);
 
-    if (_opt.matrixfree) {
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << " Using matrix free method" << flush;
-      DS.solve(h, _opt.nmax);
-    } else {
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << " Using full matrix method" << flush;
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Using matrix free method" << flush;
+  DS.solve(h, _opt.nmax);
+  result.eigenvalues() = DS.eigenvalues();
+  result.eigenvectors() = DS.eigenvectors();
 
-      // get the full matrix
-      hstart = std::chrono::system_clock::now();
-      Eigen::MatrixXd hfull = h.get_full_matrix();
-      hend = std::chrono::system_clock::now();
-
-      elapsed_time = hend - hstart;
-
-      XTP_LOG(Log::info, _log) << TimeStamp() << " Full matrix assembled in "
-                               << elapsed_time.count() << " secs" << flush;
-
-      // solve theeigenalue problem
-      hstart = std::chrono::system_clock::now();
-      DS.solve(hfull, _opt.nmax);
-      hend = std::chrono::system_clock::now();
-
-      elapsed_time = hend - hstart;
-      XTP_LOG(Log::info, _log) << TimeStamp() << " Davidson solve done in "
-                               << elapsed_time.count() << " secs" << flush;
-    }
-    result.eigenvalues() = DS.eigenvalues();
-    result.eigenvectors() = DS.eigenvectors();
-
-  } else {
-
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Lapack Diagonalization" << flush;
-
-    hstart = std::chrono::system_clock::now();
-    Eigen::MatrixXd hfull = h.get_full_matrix();
-    hend = std::chrono::system_clock::now();
-
-    elapsed_time = hend - hstart;
-    XTP_LOG(Log::info, _log) << TimeStamp() << " Full matrix assembled in "
-                             << elapsed_time.count() << " secs" << flush;
-    hstart = std::chrono::system_clock::now();
-    result = tools::linalg_eigenvalues(hfull, _opt.nmax);
-    hend = std::chrono::system_clock::now();
-    elapsed_time = hend - hstart;
-    XTP_LOG(Log::info, _log) << TimeStamp() << " Lapack solve done in "
-                             << elapsed_time.count() << " secs" << flush;
-  }
   end = std::chrono::system_clock::now();
   elapsed_time = end - start;
 
@@ -256,157 +212,23 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
 }
 
 tools::EigenSystem BSE::Solve_singlets_BTDA() const {
-  if (_opt.davidson) {
-    SingletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(A);
-
-    SingletOperator_BTDA_B B(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(B);
-
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
-    return Solve_nonhermitian_Davidson(A, B);
-  } else {
-    SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(Hs_ApB);
-    Operator_BTDA_AmB Hs_AmB(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(Hs_AmB);
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
-    return Solve_nonhermitian(Hs_ApB, Hs_AmB);
-  }
+  SingletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(A);
+  SingletOperator_BTDA_B B(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(B);
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
+  return Solve_nonhermitian_Davidson(A, B);
 }
 
 tools::EigenSystem BSE::Solve_triplets_BTDA() const {
-  if (_opt.davidson) {
-    TripletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(A);
-    Hd2Operator B(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(B);
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
-    return Solve_nonhermitian_Davidson(A, B);
-  } else {
-    TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(Ht_ApB);
-    Operator_BTDA_AmB Ht_AmB(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(Ht_AmB);
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
-    return Solve_nonhermitian(Ht_ApB, Ht_AmB);
-  }
-}
-
-template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
-tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
-                                           BSE_OPERATOR_AmB& amb) const {
-
-  // For details of the method, see EPL,78(2007)12001,
-  // Nuclear Physics A146(1970)449, Nuclear Physics A163(1971)257.
-  // setup resonant (A) and RARC blocks (B)
-  // corresponds to
-  // _ApB = (_eh_d +_eh_qp + _eh_d2 + 4.0 * _eh_x);
-  // _AmB = (_eh_d +_eh_qp - _eh_d2);
-
-  std::chrono::time_point<std::chrono::system_clock> start, end;
-  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
-  std::chrono::duration<double> elapsed_time;
-  start = std::chrono::system_clock::now();
-
-  Eigen::MatrixXd ApB = apb.get_full_matrix();
-  Eigen::MatrixXd AmB = amb.get_full_matrix();
+  TripletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(A);
+  Hd2Operator B(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(B);
   XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Setup singlet hamiltonian " << flush;
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Lapack Diagonalization" << flush;
-
-  // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not
-  // positive definite
-  //(A-B) is not needed any longer and can be overwritten
-  XTP_LOG(Log::info, _log) << TimeStamp()
-                           << " Trying Cholesky decomposition of KAA-KAB"
-                           << flush;
-  Eigen::LLT<Eigen::Ref<Eigen::MatrixXd> > L(AmB);
-
-  for (Index i = 0; i < AmB.rows(); ++i) {
-    for (Index j = i + 1; j < AmB.cols(); ++j) {
-      AmB(i, j) = 0;
-    }
-  }
-  if (L.info() != Eigen::ComputationInfo::Success) {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp()
-        << " Cholesky decomposition of KAA-KAB was unsucessful. Try a smaller "
-           "basisset. This can indicate a triplet instability."
-        << flush;
-    throw std::runtime_error("Cholesky decompostion failed");
-  } else {
-    XTP_LOG(Log::info, _log)
-        << TimeStamp() << " Cholesky decomposition of KAA-KAB was successful"
-        << flush;
-  }
-
-  ApB = AmB.transpose() * ApB * AmB;
-
-  XTP_LOG(Log::info, _log) << TimeStamp() << " Calculated H = L^T(A+B)L "
-                           << flush;
-
-  XTP_LOG(Log::error, _log) << TimeStamp() << " Solving for first " << _opt.nmax
-                            << " eigenvectors" << flush;
-
-  hstart = std::chrono::system_clock::now();
-  tools::EigenSystem eigensys = tools::linalg_eigenvalues(ApB, _opt.nmax);
-  hend = std::chrono::system_clock::now();
-  elapsed_time = hend - hstart;
-  XTP_LOG(Log::info, _log) << TimeStamp() << " Lapack solve done in "
-                           << elapsed_time.count() << " secs" << flush;
-
-  if (eigensys.info() != Eigen::ComputationInfo::Success) {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Could not solve problem" << flush;
-  } else {
-    XTP_LOG(Log::info, _log)
-        << TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
-  }
-  ApB.resize(0, 0);
-  if ((eigensys.eigenvalues().array() < 0).any()) {
-    throw std::runtime_error("Negative eigenvalues in BTDA");
-  }
-  Eigen::VectorXd energies =
-      eigensys.eigenvalues().cwiseSqrt();  // has to stay otherwise mkl
-                                           // complains
-
-  tools::EigenSystem result;
-  result.eigenvalues() = energies;
-  // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 +
-  // 1/sqrt(eps_l)L ] R_l
-  //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 -
-  //                               1/sqrt(eps_l)L ] R_l
-  //                               1/sqrt(eps_l)L ] R_l
-  // determine inverse of L^T
-  Eigen::MatrixXd LmT = AmB.inverse().transpose();
-  Index dim = LmT.rows();
-  result.eigenvectors().resize(dim, _opt.nmax);  // resonant part (_X_evec)
-  result.eigenvectors2().resize(dim,
-                                _opt.nmax);  // anti-resonant part (_Y_evec)
-  for (Index level = 0; level < _opt.nmax; level++) {
-    double sqrt_eval = std::sqrt(energies(level));
-    // get l-th reduced EV
-    result.eigenvectors().col(level) =
-        (0.5 / sqrt_eval * (energies(level) * LmT + AmB) *
-         eigensys.eigenvectors().col(level));
-    result.eigenvectors2().col(level) =
-        (0.5 / sqrt_eval * (energies(level) * LmT - AmB) *
-         eigensys.eigenvectors().col(level));
-  }
-
-  end = std::chrono::system_clock::now();
-  elapsed_time = end - start;
-
-  XTP_LOG(Log::info, _log) << TimeStamp() << " Diagonalization done in "
-                           << elapsed_time.count() << " secs" << flush;
-
-  return result;
+      << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
+  return Solve_nonhermitian_Davidson(A, B);
 }
 
 template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
@@ -431,33 +253,9 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   DS.set_max_search_space(10 * _opt.nmax);
   DS.set_matrix_type("HAM");
 
-  if (_opt.matrixfree) {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Using matrix free method" << flush;
-    DS.solve(Hop, _opt.nmax);
-
-  } else {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Using full matrix method" << flush;
-    // get the full matrix
-    hstart = std::chrono::system_clock::now();
-    Eigen::MatrixXd hfull = Hop.get_full_matrix();
-    hend = std::chrono::system_clock::now();
-
-    elapsed_time = hend - hstart;
-
-    XTP_LOG(Log::info, _log) << TimeStamp() << " Full matrix assembled in "
-                             << elapsed_time.count() << " secs" << flush;
-
-    // solve theeigenalue problem
-    hstart = std::chrono::system_clock::now();
-    DS.solve(hfull, _opt.nmax);
-    hend = std::chrono::system_clock::now();
-
-    elapsed_time = hend - hstart;
-    XTP_LOG(Log::info, _log) << TimeStamp() << " Davidson solve done in "
-                             << elapsed_time.count() << " secs" << flush;
-  }
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Using matrix free method" << flush;
+  DS.solve(Hop, _opt.nmax);
 
   // results
   tools::EigenSystem result;

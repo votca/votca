@@ -36,64 +36,81 @@ void BSE_OPERATOR<cqp, cx, cd, cd2>::configure(BSEOperator_Options opt) {
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
-Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::OperatorRow(
-    Index index) const {
-  Eigen::RowVectorXd row = Eigen::RowVectorXd::Zero(_bse_size);
-  if (cd != 0) {
-    row += cd * Hd_row(index);
-  }
-  if (cd2 != 0) {
-    row += cd2 * Hd2_row(index);
-  }
-  if (cqp != 0) {
-    row += cqp * Hqp_row(index);
-  }
-  return row;
-}
+Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
+    const Eigen::MatrixXd& input) const {
 
-template <Index cqp, Index cx, Index cd, Index cd2>
-Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::OperatorBlock(Index row,
-                                                              Index col) const {
-  return cx * HxBlock(row, col);
-}
+  static_assert(!(cd2 != 0 && cd != 0),
+                "Hamiltonian cannot contain Hd and Hd2 at the same time");
 
-template <Index cqp, Index cx, Index cd, Index cd2>
-Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::HxBlock(Index row,
-                                                        Index col) const {
-  Index auxsize = _Mmn.auxsize();
-  Index vmin = _opt.vmin - _opt.rpamin;
-  Index cmin = _bse_cmin - _opt.rpamin;
-  Index v1 = row + vmin;
-  Index v2 = col + vmin;
-  return _Mmn[v1].block(cmin, 0, _bse_ctotal, auxsize) *
-         _Mmn[v2].block(cmin, 0, _bse_ctotal, auxsize).transpose();
-}
-
-template <Index cqp, Index cx, Index cd, Index cd2>
-Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd_row(Index index) const {
   Index auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, _bse_ctotal);
 
   Index vmin = _opt.vmin - _opt.rpamin;
   Index cmin = _bse_cmin - _opt.rpamin;
-  Index v1 = vc.v(index);
-  Index c1 = vc.c(index);
 
-  const Eigen::MatrixXd Mmn1T =
-      -(_Mmn[v1 + vmin].block(vmin, 0, _bse_vtotal, auxsize) *
-        _epsilon_0_inv.asDiagonal())
-           .transpose();
-  const Eigen::MatrixXd& Mmn2 = _Mmn[c1 + cmin];
-  Eigen::MatrixXd Mmn2xMmn1T =
-      Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1T;
-  return Eigen::Map<Eigen::RowVectorXd>(Mmn2xMmn1T.data(), Mmn2xMmn1T.size());
+  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(input.rows(), input.cols());
+
+#pragma omp parallel for schedule(dynamic) reduction(+ : result)
+  for (Index c1 = 0; c1 < _bse_ctotal; c1++) {
+
+    Eigen::MatrixXd Temp;
+    if (cd != 0) {
+      Temp = -(_Mmn[c1 + cmin].block(cmin, 0, _bse_ctotal, auxsize) *
+               _epsilon_0_inv.asDiagonal());
+    } else if (cd2 != 0) {
+      Temp = -(_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize) *
+               _epsilon_0_inv.asDiagonal())
+                  .transpose();
+    }
+
+    for (Index v1 = 0; v1 < _bse_vtotal; v1++) {
+      Eigen::RowVectorXd row = Eigen::RowVectorXd::Zero(_bse_size);
+
+      if (cqp != 0) {
+        row += cqp * Hqp_row(v1, c1);
+      }
+
+      if (cd != 0) {
+        Eigen::MatrixXd Mmn2xMmn1T =
+            Temp *
+            _Mmn[v1 + vmin].block(vmin, 0, _bse_vtotal, auxsize).transpose();
+        row += cd * Eigen::Map<Eigen::RowVectorXd>(Mmn2xMmn1T.data(),
+                                                   Mmn2xMmn1T.size());
+      } else if (cd2 != 0) {
+        Eigen::MatrixXd Mmn1xMmn2T =
+            _Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize) * Temp;
+        row += cd2 * Eigen::Map<Eigen::RowVectorXd>(Mmn1xMmn2T.data(),
+                                                    Mmn1xMmn2T.size());
+      }
+
+      result.row(vc.I(v1, c1)) += row * input;
+    }
+  }
+
+  if (cx > 0) {
+
+#pragma omp parallel for schedule(dynamic) reduction(+ : result)
+    for (Index v1 = 0; v1 < _bse_vtotal; v1++) {
+      for (Index v2 = v1; v2 < _bse_vtotal; v2++) {
+        const Eigen::MatrixXd blockmat = cx * HxBlock(v1, v2);
+        result.block(v1 * _bse_ctotal, 0, _bse_ctotal, result.cols()) +=
+            blockmat *
+            input.block(v2 * _bse_ctotal, 0, _bse_ctotal, input.cols());
+        if (v1 != v2) {
+          result.block(v2 * _bse_ctotal, 0, _bse_ctotal, result.cols()) +=
+              blockmat.transpose() *
+              input.block(v1 * _bse_ctotal, 0, _bse_ctotal, input.cols());
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
-Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index index) const {
-  vc2index vc = vc2index(0, 0, _bse_ctotal);
-  Index v1 = vc.v(index);
-  Index c1 = vc.c(index);
+Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index v1,
+                                                           Index c1) const {
   Eigen::MatrixXd Result = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_vtotal);
   Index cmin = _bse_vtotal;
   // v->c
@@ -104,31 +121,62 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index index) const {
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
-Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd2_row(Index index) const {
-
+Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::HxBlock(Index v1,
+                                                        Index v2) const {
   Index auxsize = _Mmn.auxsize();
-  vc2index vc = vc2index(0, 0, _bse_ctotal);
-  const Index vmin = _opt.vmin - _opt.rpamin;
-  const Index cmin = _bse_cmin - _opt.rpamin;
-  Index v1 = vc.v(index);
-  Index c1 = vc.c(index);
-
-  const Eigen::MatrixXd Mmn2T =
-      -(_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize) *
-        _epsilon_0_inv.asDiagonal())
-           .transpose();
-  const Eigen::MatrixXd& Mmn1 = _Mmn[v1 + vmin];
-  Eigen::MatrixXd Mmn1xMmn2T =
-      Mmn1.block(cmin, 0, _bse_ctotal, auxsize) * Mmn2T;
-  return Eigen::Map<Eigen::RowVectorXd>(Mmn1xMmn2T.data(), Mmn1xMmn2T.size());
+  Index vmin = _opt.vmin - _opt.rpamin;
+  Index cmin = _bse_cmin - _opt.rpamin;
+  Index va = v1 + vmin;
+  Index vb = v2 + vmin;
+  return _Mmn[va].block(cmin, 0, _bse_ctotal, auxsize) *
+         _Mmn[vb].block(cmin, 0, _bse_ctotal, auxsize).transpose();
 }
 
+template <Index cqp, Index cx, Index cd, Index cd2>
+Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::diagonal() const {
+
+  static_assert(!(cd2 != 0 && cd != 0),
+                "Hamiltonian cannot contain Hd and Hd2 at the same time");
+
+  vc2index vc = vc2index(0, 0, _bse_ctotal);
+  Index vmin = _opt.vmin - _opt.rpamin;
+  Index cmin = _bse_cmin - _opt.rpamin;
+
+  Eigen::VectorXd result = Eigen::VectorXd::Zero(_bse_size);
+
+#pragma omp parallel for schedule(dynamic) reduction(+ : result)
+  for (Index v = 0; v < _bse_vtotal; v++) {
+    for (Index c = 0; c < _bse_ctotal; c++) {
+
+      double entry = 0.0;
+      if (cx != 0) {
+        entry += cx * _Mmn[v + vmin].row(cmin + c).squaredNorm();
+      }
+
+      if (cqp != 0) {
+        Index cmin_qp = _bse_vtotal;
+        entry += cqp * (_Hqp(c + cmin_qp, c + cmin_qp) - _Hqp(v, v));
+      }
+      if (cd != 0) {
+        entry -=
+            cd * (_Mmn[c + cmin].row(c + cmin) * _epsilon_0_inv.asDiagonal() *
+                  _Mmn[v + vmin].row(v + vmin).transpose())
+                     .value();
+      }
+      if (cd2 != 0) {
+        entry -=
+            cd2 * (_Mmn[c + cmin].row(v + vmin) * _epsilon_0_inv.asDiagonal() *
+                   _Mmn[v + vmin].row(c + cmin).transpose())
+                      .value();
+      }
+
+      result(vc.I(v, c)) = entry;
+    }
+  }
+  return result;
+}
 template class BSE_OPERATOR<1, 2, 1, 0>;
 template class BSE_OPERATOR<1, 0, 1, 0>;
-
-template class BSE_OPERATOR<1, 4, 1, 1>;
-template class BSE_OPERATOR<1, 0, 1, 1>;
-template class BSE_OPERATOR<1, 0, 1, -1>;
 
 template class BSE_OPERATOR<1, 0, 0, 0>;
 template class BSE_OPERATOR<0, 1, 0, 0>;
@@ -138,4 +186,5 @@ template class BSE_OPERATOR<0, 0, 0, 1>;
 template class BSE_OPERATOR<0, 2, 0, 1>;
 
 }  // namespace xtp
+
 }  // namespace votca

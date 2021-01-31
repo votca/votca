@@ -38,7 +38,7 @@ struct BSEOperator_Options {
 };
 
 template <Index cqp, Index cx, Index cd, Index cd2>
-class BSE_OPERATOR : public MatrixFreeOperator {
+class BSE_OPERATOR final: public MatrixFreeOperator {
 
  public:
   BSE_OPERATOR(const Eigen::VectorXd& Hd_operator, const TCMatrix_gwbse& Mmn,
@@ -47,19 +47,14 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 
   void configure(BSEOperator_Options opt);
 
-  Eigen::RowVectorXd OperatorRow(Index index) const override;
-
-  bool useBlock() const override { return cx != 0; }
-
-  Index getBlocksize() const override { return Index(_bse_ctotal); }
-
-  Eigen::MatrixXd OperatorBlock(Index row, Index col) const override;
-
+  Eigen::VectorXd diagonal() const;
+Eigen::MatrixXd matmul(const Eigen::MatrixXd& input)const;
  private:
-  Eigen::RowVectorXd Hqp_row(Index index) const;
-  Eigen::RowVectorXd Hd_row(Index index) const;
-  Eigen::RowVectorXd Hd2_row(Index index) const;
-  Eigen::MatrixXd HxBlock(Index row, Index col) const;
+
+ 
+
+  Eigen::RowVectorXd Hqp_row(Index v1,Index c1) const;
+  Eigen::MatrixXd HxBlock(Index v1, Index v2) const;
 
   BSEOperator_Options _opt;
   Index _bse_size;
@@ -75,10 +70,6 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 // type defs for the different operators
 typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
 typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
-
-typedef BSE_OPERATOR<1, 4, 1, 1> SingletOperator_BTDA_ApB;
-typedef BSE_OPERATOR<1, 0, 1, 1> TripletOperator_BTDA_ApB;
-typedef BSE_OPERATOR<1, 0, 1, -1> Operator_BTDA_AmB;
 
 typedef BSE_OPERATOR<0, 2, 0, 1> SingletOperator_BTDA_B;
 
