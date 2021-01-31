@@ -58,14 +58,12 @@ class MatrixFreeOperator : public Eigen::EigenBase<MatrixFreeOperator> {
         *this, x.derived());
   }
 
-  virtual Eigen::VectorXd diagonal() const=0;
-  virtual Eigen::MatrixXd matmul(const Eigen::MatrixXd& input)const=0;
+  virtual Eigen::VectorXd diagonal() const = 0;
+  virtual Eigen::MatrixXd matmul(const Eigen::MatrixXd& input) const = 0;
   Index size() const;
   void set_size(Index size);
 
  private:
-
- 
   Index _size;
 };
 }  // namespace xtp
@@ -93,8 +91,8 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
     // alpha must be 1 here
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-      dst =op.matmul(m);
-    }
+    dst = op.matmul(m);
+  }
 };
 }  // namespace internal
 }  // namespace Eigen

@@ -57,7 +57,8 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
     if (cd != 0) {
       Temp = -(_Mmn[c1 + cmin].block(cmin, 0, _bse_ctotal, auxsize) *
                _epsilon_0_inv.asDiagonal());
-    } else if (cd2 != 0) {
+    }
+    if (cd2 != 0) {
       Temp = -(_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize) *
                _epsilon_0_inv.asDiagonal())
                   .transpose();
@@ -76,7 +77,8 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
             _Mmn[v1 + vmin].block(vmin, 0, _bse_vtotal, auxsize).transpose();
         row += cd * Eigen::Map<Eigen::RowVectorXd>(Mmn2xMmn1T.data(),
                                                    Mmn2xMmn1T.size());
-      } else if (cd2 != 0) {
+      }
+      if (cd2 != 0) {
         Eigen::MatrixXd Mmn1xMmn2T =
             _Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize) * Temp;
         row += cd2 * Eigen::Map<Eigen::RowVectorXd>(Mmn1xMmn2T.data(),

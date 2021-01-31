@@ -140,12 +140,13 @@ struct generic_product_impl<
      * **/
     Map<const MatrixXd> m_reshaped(m.data(), m.rows() / 2, m.cols() * 2);
     MatrixXd temp = op._A * m_reshaped;
-    Map<MatrixXd> temp_unshaped(temp.data(), m.rows(), m.cols());
+    Map<const MatrixXd> temp_unshaped(temp.data(), m.rows(), m.cols());
     dst.topRows(half) = temp_unshaped.topRows(half);
     dst.bottomRows(half) = -temp_unshaped.bottomRows(half);
     temp = op._B * m_reshaped;
-    dst.topRows(half) += temp_unshaped.bottomRows(half);
-    dst.bottomRows(half) -= temp_unshaped.topRows(half);
+    Map<const MatrixXd> temp_unshaped2(temp.data(), m.rows(), m.cols());
+    dst.topRows(half) += temp_unshaped2.bottomRows(half);
+    dst.bottomRows(half) -= temp_unshaped2.topRows(half);
   }
 };
 }  // namespace internal

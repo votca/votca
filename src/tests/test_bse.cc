@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.dyn_tolerance = 1e-5;
   opt.davidson_correction = "DPR";
   opt.davidson_ortho = "GS";
-  opt.davidson_tolerance = "strict";
+  opt.davidson_tolerance = "lapack";
   opt.davidson_update = "safe";
   opt.davidson_maxiter = 50;
 
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
       votca::tools::EigenIO_MatrixMarket::ReadVector(
           std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_dynamic_TDA.mm");
   bool check_se_dyn_tda =
-      se_dyn_tda_ref.isApprox(orbitals.BSESinglets_dynamic(), 0.001);
+      se_dyn_tda_ref.isApprox(orbitals.BSESinglets_dynamic(), 0.005);
   if (!check_se_dyn_tda) {
     cout << "Singlet energies dyn TDA" << endl;
     cout << orbitals.BSESinglets_dynamic() << endl;
@@ -190,8 +190,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << se_dyn_tda_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_se_dyn_tda, true);
-
-
 
   ////////////////////////////////////////////////////////
   // BTDA Singlet Davidson
@@ -216,6 +214,8 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   orbitals.setTDAApprox(false);
   bse.Solve_singlets(orbitals);
+  //std::cout<<log;
+
   orbitals.BSESinglets().eigenvectors().colwise().normalize();
   orbitals.BSESinglets().eigenvectors2().colwise().normalize();
 
@@ -239,10 +239,9 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   norms = projection.colwise().norm();
   bool check_spsi_btda = norms.isApproxToConstant(1, 1e-5);
 
-  // check_spsi_btda = true;
   if (!check_spsi_btda) {
     cout << "Norms" << norms << endl;
-    cout << "Singlets psi BTDA (Lapack)" << endl;
+    cout << "Singlets psi BTDA" << endl;
     cout << orbitals.BSESinglets().eigenvectors() << endl;
     cout << "Singlets psi BTDA ref" << endl;
     cout << spsi_ref_btda << endl;
@@ -258,7 +257,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   // check_spsi_AR = true;
   if (!check_spsi_btda_AR) {
     cout << "Norms" << norms << endl;
-    cout << "Singlets psi BTDA AR (Lapack)" << endl;
+    cout << "Singlets psi BTDA AR" << endl;
     cout << orbitals.BSESinglets().eigenvectors2() << endl;
     cout << "Singlets psi BTDA AR ref" << endl;
     cout << spsi_ref_btda_AR << endl;
@@ -273,7 +272,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
       votca::tools::EigenIO_MatrixMarket::ReadVector(
           std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_dynamic_full.mm");
   bool check_se_dyn_full =
-      se_dyn_full_ref.isApprox(orbitals.BSESinglets_dynamic(), 0.001);
+      se_dyn_full_ref.isApprox(orbitals.BSESinglets_dynamic(), 0.05);
   if (!check_se_dyn_full) {
     cout << "Singlet energies dyn full BSE" << endl;
     cout << orbitals.BSESinglets_dynamic() << endl;
@@ -281,8 +280,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << se_dyn_full_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_se_dyn_full, true);
-
-
 
   ////////////////////////////////////////////////////////
   // TDA Triplet davidson
@@ -300,7 +297,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   orbitals.setTDAApprox(true);
   opt.useTDA = true;
 
-  // lapack
   bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   bse.Solve_triplets(orbitals);
   std::vector<QMFragment<BSE_Population> > triplets;
@@ -343,8 +339,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_te_dyn_tda, true);
 
- 
-
   // Cutout Hamiltonian
   Eigen::MatrixXd Hqp_cut_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp_cut.mm");
@@ -379,6 +373,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << Hqp_extended_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_hqp_extended, true);
+  //std::cout << log;
   libint2::finalize();
 }
 
