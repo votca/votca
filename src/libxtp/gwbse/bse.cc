@@ -180,10 +180,7 @@ TripletOperator_TDA BSE::getTripletOperator_TDA() const {
 template <typename BSE_OPERATOR>
 tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
 
-  std::chrono::time_point<std::chrono::system_clock> start, end;
-  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
-  std::chrono::duration<double> elapsed_time;
-  start = std::chrono::system_clock::now();
+  std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
 
   tools::EigenSystem result;
 
@@ -199,8 +196,8 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
   result.eigenvalues() = DS.eigenvalues();
   result.eigenvectors() = DS.eigenvectors();
 
-  end = std::chrono::system_clock::now();
-  elapsed_time = end - start;
+  std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_time = end - start;
 
   XTP_LOG(Log::info, _log) << TimeStamp() << " Diagonalization done in "
                            << elapsed_time.count() << " secs" << flush;
@@ -231,11 +228,7 @@ tools::EigenSystem BSE::Solve_triplets_BTDA() const {
 template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
 tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
                                                     BSE_OPERATOR_B& Bop) const {
-
-  std::chrono::time_point<std::chrono::system_clock> start, end;
-  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
-  std::chrono::duration<double> elapsed_time;
-  start = std::chrono::system_clock::now();
+  std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
 
   // operator
   HamiltonianOperator<BSE_OPERATOR_A, BSE_OPERATOR_B> Hop(Aop, Bop);
@@ -266,8 +259,8 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   result.eigenvectors() = tmpX * sqinvnorm.matrix().asDiagonal();
   result.eigenvectors2() = tmpY * sqinvnorm.matrix().asDiagonal();
 
-  end = std::chrono::system_clock::now();
-  elapsed_time = end - start;
+  std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_time = end - start;
 
   XTP_LOG(Log::info, _log) << TimeStamp() << " Diagonalization done in "
                            << elapsed_time.count() << " secs" << flush;
@@ -402,6 +395,10 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
 
   return;
 }
+template <class OP>
+Eigen::VectorXd ExpValue(const Eigen::MatrixXd& state1, const OP& OPxstate2) {
+  return state1.cwiseProduct(OPxstate2).colwise().sum().transpose();
+}
 
 template <typename BSE_OPERATOR>
 BSE::ExpectationValues BSE::ExpectationValue_Operator(
@@ -412,27 +409,14 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator(
 
   ExpectationValues expectation_values;
 
-  expectation_values.direct_term =
-      BSECoefs.eigenvectors()
-          .cwiseProduct((H * BSECoefs.eigenvectors()).eval())
-          .colwise()
-          .sum()
-          .transpose();
+  const Eigen::MatrixXd temp = H * BSECoefs.eigenvectors();
 
+  expectation_values.direct_term = ExpValue(BSECoefs.eigenvectors(), temp);
   if (!orb.getTDAApprox()) {
     expectation_values.direct_term +=
-        BSECoefs.eigenvectors2()
-            .cwiseProduct((H * BSECoefs.eigenvectors2()).eval())
-            .colwise()
-            .sum()
-            .transpose();
-
+        ExpValue(BSECoefs.eigenvectors2(), H * BSECoefs.eigenvectors2());
     expectation_values.cross_term =
-        2 * BSECoefs.eigenvectors2()
-                .cwiseProduct((H * BSECoefs.eigenvectors()).eval())
-                .colwise()
-                .sum()
-                .transpose();
+        2 * ExpValue(BSECoefs.eigenvectors2(), temp);
   } else {
     expectation_values.cross_term = Eigen::VectorXd::Zero(0);
   }
@@ -452,27 +436,17 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
   const Eigen::MatrixXd BSECoefs_state =
       BSECoefs.eigenvectors().col(state.StateIdx());
 
-  expectation_values.direct_term =
-      BSECoefs_state.cwiseProduct((H * BSECoefs_state).eval())
-          .colwise()
-          .sum()
-          .transpose();
+  const Eigen::MatrixXd temp = H * BSECoefs_state;
+
+  expectation_values.direct_term = ExpValue(BSECoefs_state, temp);
 
   if (!orb.getTDAApprox()) {
     const Eigen::MatrixXd BSECoefs2_state =
         BSECoefs.eigenvectors2().col(state.StateIdx());
 
     expectation_values.direct_term +=
-        BSECoefs2_state.cwiseProduct((H * BSECoefs2_state).eval())
-            .colwise()
-            .sum()
-            .transpose();
-
-    expectation_values.cross_term =
-        2 * BSECoefs2_state.cwiseProduct((H * BSECoefs_state).eval())
-                .colwise()
-                .sum()
-                .transpose();
+        ExpValue(BSECoefs2_state, H * BSECoefs2_state);
+    expectation_values.cross_term = 2 * ExpValue(BSECoefs2_state, temp);
   } else {
     expectation_values.cross_term = Eigen::VectorXd::Zero(0);
   }

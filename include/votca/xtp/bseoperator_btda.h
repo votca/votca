@@ -72,23 +72,19 @@ class HamiltonianOperator
         *this, x.derived());
   }
 
-  
   Eigen::VectorXd diagonal() const { return _diag; }
 
   const MatrixReplacementA& _A;
   const MatrixReplacementB& _B;
 
-
  private:
-
-Eigen::VectorXd get_diagonal() const {
+  Eigen::VectorXd get_diagonal() const {
     Eigen::VectorXd diag = Eigen::VectorXd::Zero(_size);
     Index half = _size / 2;
     diag.head(half) = _A.diagonal();
     diag.tail(half) = -diag.head(half);
     return diag;
   }
-
 
   Index _size;
   Eigen::VectorXd _diag;
@@ -98,7 +94,6 @@ Eigen::VectorXd get_diagonal() const {
 
 namespace Eigen {
 namespace internal {
-
 
 // replacement of the mat*mat operation
 template <typename Mtype, typename MatrixReplacementA,

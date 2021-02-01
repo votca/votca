@@ -151,9 +151,8 @@ class BSE {
                                               const BSE_OPERATOR& H) const;
 
   template <typename BSE_OPERATOR>
-  ExpectationValues ExpectationValue_Operator_State(const QMState& state,
-                                                    const Orbitals& orb,
-                                                    const BSE_OPERATOR& H) const;
+  ExpectationValues ExpectationValue_Operator_State(
+      const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const;
 };
 }  // namespace xtp
 }  // namespace votca

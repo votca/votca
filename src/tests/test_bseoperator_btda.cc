@@ -75,13 +75,13 @@ BOOST_AUTO_TEST_CASE(bse_test_operatorbtda) {
 
   Eigen::MatrixXd identity = Eigen::MatrixXd::Identity(2 * size, 2 * size);
 
-  Eigen::MatrixXd H=Hop*identity;
+  Eigen::MatrixXd H = Hop * identity;
 
   Eigen::MatrixXd ref = Eigen::MatrixXd::Zero(2 * size, 2 * size);
-  ref.topLeftCorner(size,size)=symm1;
-  ref.topRightCorner(size,size)=symm2;
-  ref.bottomLeftCorner(size,size)=-symm2;
-  ref.bottomRightCorner(size,size)=-symm1;
+  ref.topLeftCorner(size, size) = symm1;
+  ref.topRightCorner(size, size) = symm2;
+  ref.bottomLeftCorner(size, size) = -symm2;
+  ref.bottomRightCorner(size, size) = -symm1;
 
   bool check = ref.isApprox(H, 1E-9);
   BOOST_CHECK_EQUAL(check, true);

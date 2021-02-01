@@ -162,7 +162,7 @@ void DavidsonSolver::set_tolerance(std::string tol) {
     this->_tol = 1E-4;
   } else if (tol == "strict") {
     this->_tol = 1E-5;
-      } else if (tol == "lapack") {
+  } else if (tol == "lapack") {
     this->_tol = 1E-9;
   } else {
     throw std::runtime_error(tol + " is not a valid Davidson tolerance");

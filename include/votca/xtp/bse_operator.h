@@ -38,7 +38,7 @@ struct BSEOperator_Options {
 };
 
 template <Index cqp, Index cx, Index cd, Index cd2>
-class BSE_OPERATOR final: public MatrixFreeOperator {
+class BSE_OPERATOR final : public MatrixFreeOperator {
 
  public:
   BSE_OPERATOR(const Eigen::VectorXd& Hd_operator, const TCMatrix_gwbse& Mmn,
@@ -48,12 +48,10 @@ class BSE_OPERATOR final: public MatrixFreeOperator {
   void configure(BSEOperator_Options opt);
 
   Eigen::VectorXd diagonal() const;
-Eigen::MatrixXd matmul(const Eigen::MatrixXd& input)const;
+  Eigen::MatrixXd matmul(const Eigen::MatrixXd& input) const;
+
  private:
-
- 
-
-  Eigen::RowVectorXd Hqp_row(Index v1,Index c1) const;
+  Eigen::RowVectorXd Hqp_row(Index v1, Index c1) const;
   Eigen::MatrixXd HxBlock(Index v1, Index v2) const;
 
   BSEOperator_Options _opt;
