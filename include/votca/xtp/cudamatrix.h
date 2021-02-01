@@ -22,6 +22,8 @@
 
 // CMake generated file
 #include "votca_xtp_config.h"
+#include <stdexcept>
+#include <string>
 #ifndef USE_CUDA
 #error Cuda not enabled
 #endif
@@ -119,6 +121,9 @@ class CudaMatrix {
 
   template <class T>
   void copy_to_gpu(const T &m) {
+    if(m.rows()!=_ld || m.cols()!=_cols){
+      throw std::runtime_error("Shape mismatch of cpu ("+std::to_string(m.rows())+"x"+std::to_string(m.cols())+") and gpu matrix"+OutputDimension(*this));
+    }
     checkCublas(cublasSetMatrixAsync(
         int(m.rows()), int(m.cols()), sizeof(double), m.data(),
         int(m.colStride()), this->data(), int(this->rows()), _stream));
