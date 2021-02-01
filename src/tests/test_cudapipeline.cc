@@ -256,7 +256,7 @@ BOOST_AUTO_TEST_CASE(diag_matrix_mul) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(diag_matrix_mul) {
+BOOST_AUTO_TEST_CASE(diag_matrix_mulT) {
   // Call the class to handle GPU resources
   CudaPipeline cuda_pip(0);
 
