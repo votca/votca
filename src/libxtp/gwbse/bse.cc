@@ -436,8 +436,6 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator(
   } else {
     expectation_values.cross_term = Eigen::VectorXd::Zero(0);
   }
-  std::cout << expectation_values.direct_term.transpose()<<std::endl;
-  std::cout << expectation_values.cross_term.transpose()<<std::endl;
   return expectation_values;
 }
 
