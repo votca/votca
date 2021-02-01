@@ -207,7 +207,7 @@ void OpenMP_CUDA::A_TDA(const Eigen::VectorXd& vec) {
     GPU_data& gpu = gpus_[threadid];
     gpu.activateGPU();
     gpu.Mat(0).copy_to_gpu(vec);
-    gpu.pipe().diag_gemm(gpu.Mat(1), gpu.Mat(0), gpu.Mat(2));
+    gpu.pipe().diag_gemm(gpu.Mat(1).transpose(), gpu.Mat(0), gpu.Mat(2));
     gpu.pipe().gemm(gpu.Mat(1).transpose(), gpu.Mat(2), gpu.Mat(3), 1.0);
   } else {
     reduction_[threadid] += cpu_intermediate_input_[threadid]->transpose() *
