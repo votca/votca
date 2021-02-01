@@ -83,7 +83,7 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
         transform.PrepareMatrix2(Temp2, cd2 != 0);
       }
       if (cqp != 0) {
-        Eigen::RowVectorXd vec = Hqp_row(v1, c1);
+        Eigen::VectorXd vec = Hqp_row(v1, c1);
         transform.Addvec(vec);
       }
       transform.MultiplyRow(vc.I(v1, c1));
@@ -115,7 +115,7 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
-Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index v1,
+Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index v1,
                                                            Index c1) const {
   Eigen::MatrixXd Result = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_vtotal);
   Index cmin = _bse_vtotal;
@@ -123,7 +123,7 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index v1,
   Result.col(v1) += cqp * _Hqp.col(c1 + cmin).segment(cmin, _bse_ctotal);
   // c-> v
   Result.row(c1) -= cqp * _Hqp.col(v1).head(_bse_vtotal);
-  return Eigen::Map<Eigen::RowVectorXd>(Result.data(), Result.size());
+  return Eigen::Map<Eigen::VectorXd>(Result.data(), Result.size());
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>

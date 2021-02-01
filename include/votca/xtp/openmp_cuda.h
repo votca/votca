@@ -76,7 +76,7 @@ class OpenMP_CUDA {
   void PrepareMatrix1(Eigen::MatrixXd& mat);
   void SetTempZero();
   void PrepareMatrix2(const Eigen::MatrixXd& mat, bool Hd2);
-  void Addvec(const Eigen::RowVectorXd& row);
+  void Addvec(const Eigen::VectorXd& row);
   void MultiplyRow(Index row);
 
   Eigen::MatrixXd getReductionVar();
@@ -89,7 +89,7 @@ class OpenMP_CUDA {
   std::vector<Eigen::MatrixXd> cpu_temporaries_;
 
   std::vector<Eigen::MatrixXd> reduction_;
-  std::vector<Eigen::RowVectorXd> temp_;
+  std::vector<Eigen::VectorXd> temp_;
 
   bool inside_Parallel_region_;
   Index threadID_parent_;

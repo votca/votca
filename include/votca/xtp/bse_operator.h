@@ -51,7 +51,7 @@ class BSE_OPERATOR final : public MatrixFreeOperator {
   Eigen::MatrixXd matmul(const Eigen::MatrixXd& input) const;
 
  private:
-  Eigen::RowVectorXd Hqp_row(Index v1, Index c1) const;
+  Eigen::VectorXd Hqp_row(Index v1, Index c1) const;
 
   BSEOperator_Options _opt;
   Index _bse_size;

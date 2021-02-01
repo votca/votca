@@ -252,8 +252,8 @@ void OpenMP_CUDA::createTemporaries(const Eigen::VectorXd& vec,
                                     Index) {
   reduction_ = std::vector<Eigen::MatrixXd>(
       getNumberThreads(), Eigen::MatrixXd::Zero(input.rows(), input.cols()));
-  temp_ = std::vector<Eigen::RowVectorXd>(
-      getNumberThreads(), Eigen::RowVectorXd::Zero(input.rows()));
+  temp_ = std::vector<Eigen::VectorXd>(
+      getNumberThreads(), Eigen::VectorXd::Zero(input.rows()));
   rightoperator_ = &input;
   vec_ = &vec;
 }
@@ -338,7 +338,7 @@ void OpenMP_CUDA::PrepareMatrix2(const Eigen::MatrixXd& mat, bool Hd2) {
 #endif
 }
 
-void OpenMP_CUDA::Addvec(const Eigen::RowVectorXd& row) {
+void OpenMP_CUDA::Addvec(const Eigen::VectorXd& row) {
   Index parentid = getParentThreadId();
   Index threadid = getLocalThreadId(parentid);
 #ifdef USE_CUDA
@@ -365,10 +365,10 @@ void OpenMP_CUDA::MultiplyRow(Index row) {
     gpu.pipe().gemm(gpu.Mat(5).transpose(), gpu.Mat(1),
                     gpu.Mat(6).block(row, 0, 1, gpu.Mat(1).cols()), 0.0);
   } else {
-    reduction_[threadid].row(row) = temp_[threadid] * (*rightoperator_);
+    reduction_[threadid].row(row) = temp_[threadid].transpose() * (*rightoperator_);
   }
 #else
-  reduction_[threadid].row(row) = temp_[threadid] * (*rightoperator_);
+  reduction_[threadid].row(row) = temp_[threadid].transpose() * (*rightoperator_);
 #endif
 }
 
