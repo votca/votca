@@ -227,8 +227,8 @@ void OpenMP_CUDA::createTemporaries(const Eigen::VectorXd& vec,
                                     Index rows2, Index cols) {
   reduction_ = std::vector<Eigen::MatrixXd>(
       getNumberThreads(), Eigen::MatrixXd::Zero(input.rows(), input.cols()));
-  temp_ = std::vector<Eigen::RowVectorXd>(
-      getNumberThreads(), Eigen::RowVectorXd::Zero(input.cols()));
+  temp_ = std::vector<Eigen::VectorXd>(
+      getNumberThreads(), Eigen::VectorXd::Zero(input.cols()));
   rightoperator_ = &input;
   vec_ = &vec;
 
