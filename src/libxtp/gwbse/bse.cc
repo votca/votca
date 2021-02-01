@@ -414,7 +414,7 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator(
   expectation_values.direct_term = ExpValue(BSECoefs.eigenvectors(), temp);
   if (!orb.getTDAApprox()) {
     expectation_values.direct_term +=
-        ExpValue(BSECoefs.eigenvectors2(), H * BSECoefs.eigenvectors2());
+        ExpValue(BSECoefs.eigenvectors2(), H * BSECoefs.eigenvectors2().eval());
     expectation_values.cross_term =
         2 * ExpValue(BSECoefs.eigenvectors2(), temp);
   } else {
@@ -445,7 +445,7 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
         BSECoefs.eigenvectors2().col(state.StateIdx());
 
     expectation_values.direct_term +=
-        ExpValue(BSECoefs2_state, H * BSECoefs2_state);
+        ExpValue(BSECoefs2_state, (H * BSECoefs2_state).eval());
     expectation_values.cross_term = 2 * ExpValue(BSECoefs2_state, temp);
   } else {
     expectation_values.cross_term = Eigen::VectorXd::Zero(0);
