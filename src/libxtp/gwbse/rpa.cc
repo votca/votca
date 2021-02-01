@@ -103,7 +103,7 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
 
     transform.A_TDA(Mmn_RPA, denom);
   }
-  Eigen::MatrixXd result = transform.A_TDA_result();
+  Eigen::MatrixXd result = transform.getReductionVar();
   result.diagonal().array() += 1.0;
   return result;
 }
@@ -139,7 +139,7 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
         deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
     transform.A_TDA(Mmn_RPA, chi);
   }
-  Eigen::MatrixXd result = -2 * transform.A_TDA_result();
+  Eigen::MatrixXd result = -2 * transform.getReductionVar();
   result.diagonal().array() += 1.0;
   return result;
 }
