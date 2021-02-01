@@ -105,13 +105,7 @@ class CudaPipeline {
   }
 };
 
-template <class M>
-std::string OutputDimension(const M &mat) {
-  std::string transpose=M::transposed()? "T":"";
 
-  return std::string(transpose+"(" + std::to_string(mat.rows()) + "x" +
-                     std::to_string(mat.cols()) + ")");
-}
 
 /*
  * Call the gemm function from cublas, resulting in the multiplication of the

@@ -50,6 +50,14 @@ std::string cudaGetErrorEnum(cublasStatus_t error);
 Index count_available_gpus();
 
 template <class M>
+std::string OutputDimension(const M &mat) {
+  std::string transpose=M::transposed()? "T":"";
+
+  return std::string(transpose+"(" + std::to_string(mat.rows()) + "x" +
+                     std::to_string(mat.cols()) + ")");
+}
+
+template <class M>
 class CudaMatrixBlock {
  public:
   CudaMatrixBlock(const M &mat, Index rowoffset, Index coloffset, Index rows,
