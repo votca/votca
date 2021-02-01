@@ -35,19 +35,13 @@ namespace xtp {
 
 class Calculatorfactory
     : public tools::ObjectFactory<std::string, QMCalculator> {
- private:
-  Calculatorfactory() = default;
 
  public:
-  static void RegisterAll(void);
+  Calculatorfactory() { this->RegisterAll(); };
 
-  friend Calculatorfactory &Calculators();
+ private:
+  void RegisterAll();
 };
-
-inline Calculatorfactory &Calculators() {
-  static Calculatorfactory instance;
-  return instance;
-}
 
 }  // namespace xtp
 }  // namespace votca

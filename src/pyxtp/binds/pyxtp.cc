@@ -16,7 +16,11 @@
 
 #include "pyxtp.hpp"
 #include <iostream>
+#include <memory>
+#include <pybind11/complex.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <string>
 #include <vector>
 
 using namespace votca;
@@ -34,23 +38,12 @@ int call_calculator(const std::string& name, int nThreads) {
   return 42;
 }
 
-void printer(const std::vector<std::string>& keys) {
-  for (const auto& key : keys) {
-    std::cout << "key: " << key << "\n";
-  }
-  std::cout << "size: " << keys.size() << "\n";
-}
 
 void PyXTP::Initialize(const std::string& name, int nThreads) {
   std::cout << "Votca Factory:\n";
-  xtp::Calculatorfactory::RegisterAll();
-  auto pt = xtp::Calculators().Create(name);
-  std::vector<std::string> keys = xtp::Calculators().getKeys();
-  printer(keys);
-  std::cout << "Mock Factory:\n";
-  pyxtp::Factory<Parent>::RegisterAll();
-  keys = pyxtp::Calculators<Parent>().getKeys();
-  printer(keys);
+  xtp::Calculatorfactory inst;
+  auto pt = inst.Create(name);
+  std::cout << "Instance: " << &pt << "\n";
 }
 }  // namespace pyxtp
 
@@ -70,4 +63,9 @@ PYBIND11_MODULE(xtp_binds, module) {
           Calculator's name
 
   )pbdoc");
+
+  py::class_<votca::xtp::Calculatorfactory,
+             std::unique_ptr<votca::xtp::Calculatorfactory, py::nodelete>>(
+      module, "Calculator")
+      .def("getKeys", &votca::xtp::Calculatorfactory::getKeys);
 }

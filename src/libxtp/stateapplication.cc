@@ -29,12 +29,12 @@
 namespace votca {
 namespace xtp {
 
-StateApplication::StateApplication() { Calculatorfactory::RegisterAll(); }
+StateApplication::StateApplication() { Calculatorfactory{}; }
 
 void StateApplication::Initialize(void) {
   XtpApplication::Initialize();
 
-  Calculatorfactory::RegisterAll();
+  Calculatorfactory{};
 
   namespace propt = boost::program_options;
 

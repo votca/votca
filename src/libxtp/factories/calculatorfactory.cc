@@ -34,15 +34,15 @@
 namespace votca {
 namespace xtp {
 
-void Calculatorfactory::RegisterAll(void) {
-  Calculators().Register<Neighborlist>("neighborlist");
-  Calculators().Register<MapChecker>("mapchecker");
-  Calculators().Register<IAnalyze>("ianalyze");
-  Calculators().Register<EAnalyze>("eanalyze");
-  Calculators().Register<EInternal>("einternal");
-  Calculators().Register<KMCLifetime>("kmclifetime");
-  Calculators().Register<KMCMultiple>("kmcmultiple");
-  Calculators().Register<VAverage>("vaverage");
+void Calculatorfactory::RegisterAll() {
+  this->Register<Neighborlist>("neighborlist");
+  this->Register<MapChecker>("mapchecker");
+  this->Register<IAnalyze>("ianalyze");
+  this->Register<EAnalyze>("eanalyze");
+  this->Register<EInternal>("einternal");
+  this->Register<KMCLifetime>("kmclifetime");
+  this->Register<KMCMultiple>("kmcmultiple");
+  this->Register<VAverage>("vaverage");
 }
 }  // namespace xtp
 }  // namespace votca

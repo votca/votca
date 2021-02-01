@@ -17,8 +17,6 @@
 #ifndef PYXTP_H_
 #define PYXTP_H_
 
-#include "factory.hpp"
-#include "parent.hpp"
 #include "votca/xtp/calculatorfactory.h"
 #include "votca/xtp/qmcalculator.h"
 #include <iostream>
@@ -29,8 +27,6 @@
 using namespace votca;
 
 namespace pyxtp {
-
-void printer(const std::vector<std::string>& keys);
 
 int call_calculator(const std::string& name, int nThreads);
 
