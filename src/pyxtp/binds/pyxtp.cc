@@ -17,14 +17,11 @@
 #include "pyxtp.hpp"
 #include <iostream>
 #include <memory>
-#include <pybind11/complex.h>
-#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <string>
 #include <vector>
 
 using namespace votca;
-namespace py = pybind11;
 
 namespace pyxtp {
 
@@ -32,19 +29,31 @@ namespace pyxtp {
  * @brief Construct a new pybind11 module object to invoke votca-xtp*
  *
  */
-int call_calculator(const std::string& name, int nThreads) {
+int call_calculator(const std::string& name, int n_threads,
+                    std::string xml_file) {
+  // Load properties
+  votca::tools::Property prop;
+  prop.LoadFromXML(xml_file);
+  // Call calculator
   pyxtp::PyXTP pyxtp;
-  pyxtp.Initialize(name, nThreads);
+  pyxtp.Initialize(name, n_threads, prop);
   return 42;
 }
 
-
-void PyXTP::Initialize(const std::string& name, int nThreads) {
-  std::cout << "Votca Factory:\n";
+void PyXTP::Initialize(const std::string& name, int n_threads,
+                       votca::tools::Property prop) {
   xtp::Calculatorfactory inst;
-  auto pt = inst.Create(name);
-  std::cout << "Instance: " << &pt << "\n";
+  _calculator = inst.Create(name);
+  _calculator->setnThreads(n_threads);
+  _calculator->Initialize(prop);
+  std::cout << "The calculator has been initialize!\n";
 }
+
+/**
+ * @brief Construct a Votca tools property using the provided dictionary
+ *
+ */
+
 }  // namespace pyxtp
 
 PYBIND11_MODULE(xtp_binds, module) {
@@ -63,9 +72,4 @@ PYBIND11_MODULE(xtp_binds, module) {
           Calculator's name
 
   )pbdoc");
-
-  py::class_<votca::xtp::Calculatorfactory,
-             std::unique_ptr<votca::xtp::Calculatorfactory, py::nodelete>>(
-      module, "Calculator")
-      .def("getKeys", &votca::xtp::Calculatorfactory::getKeys);
 }

@@ -19,20 +19,24 @@
 
 #include "votca/xtp/calculatorfactory.h"
 #include "votca/xtp/qmcalculator.h"
-#include <iostream>
 #include <memory>
+#include <pybind11/complex.h>
+#include <pybind11/pybind11.h>
 #include <string>
 #include <vector>
+#include <votca/tools/property.h>
 
+namespace py = pybind11;
 using namespace votca;
 
 namespace pyxtp {
 
-int call_calculator(const std::string& name, int nThreads);
+int call_calculator(const std::string& name, int nThreads,
+                    std::string xml_file);
 
 class PyXTP {
  public:
-  void Initialize(const std::string& name, int nThreads);
+  void Initialize(const std::string& name, int nThreads, votca::tools::Property prop);
 
  private:
   std::unique_ptr<xtp::QMCalculator> _calculator;
