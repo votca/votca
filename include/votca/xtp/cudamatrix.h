@@ -64,9 +64,9 @@ class CudaMatrixBlock {
                   Index cols)
       : mat_(mat), rows_(rows), cols_(cols) {
 
-    assert((rowoffset + rows) < mat.rows() &&
+    assert((rowoffset + rows) <= mat.rows() &&
            "block has to fit in matrix, rows exceeded");
-    assert((coloffset + cols) < mat.cols() &&
+    assert((coloffset + cols) <= mat.cols() &&
            "block has to fit in matrix, cols exceeded");
     start_ = coloffset * ld() + rowoffset;
   }

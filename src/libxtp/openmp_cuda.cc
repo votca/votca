@@ -172,7 +172,8 @@ void OpenMP_CUDA::createTemporaries(Index rows, Index cols) {
     gpu.push_back(rows, 1);
     gpu.push_back(rows, cols);
     gpu.push_back(rows, cols);
-    gpu.push_back(reduction_[i]);
+    gpu.push_back(reduction_[i].rows(),reduction_[i].cols());
+    gpu.temp.back()->setZero();
   }
 }
 #else
@@ -242,7 +243,8 @@ void OpenMP_CUDA::createTemporaries(const Eigen::VectorXd& vec,
     gpu.push_back(rows2, cols);
     gpu.push_back(rows1 * rows2, 1);
     gpu.push_back(rows1 * rows2, 1);
-    gpu.push_back(reduction_[i]);
+    gpu.push_back(reduction_[i].rows(),reduction_[i].cols());
+    gpu.temp.back()->setZero();
   }
 }
 
@@ -363,7 +365,7 @@ void OpenMP_CUDA::MultiplyRow(Index row) {
     GPU_data& gpu = gpus_[threadid];
     gpu.activateGPU();
     gpu.pipe().gemm(gpu.Mat(4).transpose(), gpu.Mat(1),
-                    gpu.Mat(6).block(row, 0, 1, gpu.Mat(1).cols()), 0.0);
+                    gpu.Mat(6).block(row, 0, 1, gpu.Mat(6).cols()), 0.0);
   } else {
     reduction_[threadid].row(row) = temp_[threadid].transpose() * (*rightoperator_);
   }
