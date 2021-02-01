@@ -362,7 +362,7 @@ void OpenMP_CUDA::MultiplyRow(Index row) {
   if (isGPUthread(parentid)) {
     GPU_data& gpu = gpus_[threadid];
     gpu.activateGPU();
-    gpu.pipe().gemm(gpu.Mat(5).transpose(), gpu.Mat(1),
+    gpu.pipe().gemm(gpu.Mat(4).transpose(), gpu.Mat(1),
                     gpu.Mat(6).block(row, 0, 1, gpu.Mat(1).cols()), 0.0);
   } else {
     reduction_[threadid].row(row) = temp_[threadid].transpose() * (*rightoperator_);
