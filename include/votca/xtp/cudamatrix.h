@@ -51,9 +51,9 @@ Index count_available_gpus();
 
 template <class M>
 std::string OutputDimension(const M &mat) {
-  std::string transpose=M::transposed()? "T":"";
+  std::string transpose = M::transposed() ? "T" : "";
 
-  return std::string(transpose+"(" + std::to_string(mat.rows()) + "x" +
+  return std::string(transpose + "(" + std::to_string(mat.rows()) + "x" +
                      std::to_string(mat.cols()) + ")");
 }
 
@@ -129,8 +129,11 @@ class CudaMatrix {
 
   template <class T>
   void copy_to_gpu(const T &m) {
-    if(m.rows()!=_ld || m.cols()!=_cols){
-      throw std::runtime_error("Shape mismatch of cpu ("+std::to_string(m.rows())+"x"+std::to_string(m.cols())+") and gpu matrix"+OutputDimension(*this));
+    if (m.rows() != _ld || m.cols() != _cols) {
+      throw std::runtime_error("Shape mismatch of cpu (" +
+                               std::to_string(m.rows()) + "x" +
+                               std::to_string(m.cols()) + ") and gpu matrix" +
+                               OutputDimension(*this));
     }
     checkCublas(cublasSetMatrixAsync(
         int(m.rows()), int(m.cols()), sizeof(double), m.data(),

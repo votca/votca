@@ -57,10 +57,9 @@ class CudaPipeline {
   CudaPipeline(const CudaPipeline &) = delete;
   CudaPipeline &operator=(const CudaPipeline &) = delete;
 
-   // C= A*b.asDiagonal()
+  // C= A*b.asDiagonal()
   template <class M>
   void diag_gemm(const M &A, const CudaMatrix &b, CudaMatrix &C) const;
-
 
   // B+=alpha*A;
   void axpy(const CudaMatrix &A, CudaMatrix &B, double alpha = 1.0) const;
@@ -74,7 +73,6 @@ class CudaPipeline {
   template <class M1, class M2, class M3>
   void gemm_internal(const M1 &A, const M2 &B, M3 &C, double beta) const;
 
- 
   int _deviceID = 0;
   // The cublas handles allocates hardware resources on the host and device.
   cublasHandle_t _handle;
@@ -83,7 +81,6 @@ class CudaPipeline {
   cudaStream_t _stream;
 
  public:
-
   template <class M1, class M2, class M3>
   void gemm(const M1 &A, const M2 &B, M3 &&C, double beta) const {
     M3 temp = C;
@@ -104,8 +101,6 @@ class CudaPipeline {
     gemm(A, B, C, 0.0);
   }
 };
-
-
 
 /*
  * Call the gemm function from cublas, resulting in the multiplication of the
@@ -158,19 +153,16 @@ template <class M>
 inline void CudaPipeline::diag_gemm(const M &A, const CudaMatrix &b,
                                     CudaMatrix &C) const {
 
-  if (b.cols() != 1 && b.rows()!=1) {
-    throw std::runtime_error(
-        "B Matrix in Cublas diag_gemm must be a vector");
+  if (b.cols() != 1 && b.rows() != 1) {
+    throw std::runtime_error("B Matrix in Cublas diag_gemm must be a vector");
   }
 
-cublasSideMode_t mode =CUBLAS_SIDE_RIGHT;
-Index Adim=A.cols();
-if(M::transposed()){
-  mode=CUBLAS_SIDE_LEFT;
-  Adim=A.rows();
-}
-
-
+  cublasSideMode_t mode = CUBLAS_SIDE_RIGHT;
+  Index Adim = A.cols();
+  if (M::transposed()) {
+    mode = CUBLAS_SIDE_LEFT;
+    Adim = A.rows();
+  }
 
   if (Adim != b.size()) {
     throw std::runtime_error("Shape mismatch in cuda diag_gemm: A" +
@@ -178,9 +170,9 @@ if(M::transposed()){
   }
 
   cublasSetStream(_handle, _stream);
-  cublasStatus_t status = cublasDdgmm(_handle, mode, int(A.rows()),
-                                      int(A.cols()), A.data(), int(A.ld()),
-                                      b.data(), 1, C.data(), int(C.ld()));
+  cublasStatus_t status =
+      cublasDdgmm(_handle, mode, int(A.rows()), int(A.cols()), A.data(),
+                  int(A.ld()), b.data(), 1, C.data(), int(C.ld()));
 
   if (status != CUBLAS_STATUS_SUCCESS) {
     throw std::runtime_error("diag_gemm failed on gpu " +

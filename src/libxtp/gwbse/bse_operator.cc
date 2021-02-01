@@ -116,7 +116,7 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index v1,
-                                                           Index c1) const {
+                                                        Index c1) const {
   Eigen::MatrixXd Result = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_vtotal);
   Index cmin = _bse_vtotal;
   // v->c

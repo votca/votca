@@ -50,7 +50,5 @@ void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B,
   }
 }
 
-
-
 }  // namespace xtp
 }  // namespace votca

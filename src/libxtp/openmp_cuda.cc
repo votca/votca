@@ -172,7 +172,7 @@ void OpenMP_CUDA::createTemporaries(Index rows, Index cols) {
     gpu.push_back(rows, 1);
     gpu.push_back(rows, cols);
     gpu.push_back(rows, cols);
-    gpu.push_back(reduction_[i].rows(),reduction_[i].cols());
+    gpu.push_back(reduction_[i].rows(), reduction_[i].cols());
     gpu.temp.back()->setZero();
   }
 }
@@ -228,8 +228,8 @@ void OpenMP_CUDA::createTemporaries(const Eigen::VectorXd& vec,
                                     Index rows2, Index cols) {
   reduction_ = std::vector<Eigen::MatrixXd>(
       getNumberThreads(), Eigen::MatrixXd::Zero(input.rows(), input.cols()));
-  temp_ = std::vector<Eigen::VectorXd>(
-      getNumberThreads(), Eigen::VectorXd::Zero(input.cols()));
+  temp_ = std::vector<Eigen::VectorXd>(getNumberThreads(),
+                                       Eigen::VectorXd::Zero(input.cols()));
   rightoperator_ = &input;
   vec_ = &vec;
 
@@ -243,7 +243,7 @@ void OpenMP_CUDA::createTemporaries(const Eigen::VectorXd& vec,
     gpu.push_back(rows2, cols);
     gpu.push_back(rows1 * rows2, 1);
     gpu.push_back(rows1 * rows2, 1);
-    gpu.push_back(reduction_[i].rows(),reduction_[i].cols());
+    gpu.push_back(reduction_[i].rows(), reduction_[i].cols());
     gpu.temp.back()->setZero();
   }
 }
@@ -254,8 +254,8 @@ void OpenMP_CUDA::createTemporaries(const Eigen::VectorXd& vec,
                                     Index) {
   reduction_ = std::vector<Eigen::MatrixXd>(
       getNumberThreads(), Eigen::MatrixXd::Zero(input.rows(), input.cols()));
-  temp_ = std::vector<Eigen::VectorXd>(
-      getNumberThreads(), Eigen::VectorXd::Zero(input.cols()));
+  temp_ = std::vector<Eigen::VectorXd>(getNumberThreads(),
+                                       Eigen::VectorXd::Zero(input.cols()));
   rightoperator_ = &input;
   vec_ = &vec;
 }
@@ -367,10 +367,12 @@ void OpenMP_CUDA::MultiplyRow(Index row) {
     gpu.pipe().gemm(gpu.Mat(4).transpose(), gpu.Mat(1),
                     gpu.Mat(6).block(row, 0, 1, gpu.Mat(6).cols()), 0.0);
   } else {
-    reduction_[threadid].row(row) = temp_[threadid].transpose() * (*rightoperator_);
+    reduction_[threadid].row(row) =
+        temp_[threadid].transpose() * (*rightoperator_);
   }
 #else
-  reduction_[threadid].row(row) = temp_[threadid].transpose() * (*rightoperator_);
+  reduction_[threadid].row(row) =
+      temp_[threadid].transpose() * (*rightoperator_);
 #endif
 }
 

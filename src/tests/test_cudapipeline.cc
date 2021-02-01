@@ -247,7 +247,7 @@ BOOST_AUTO_TEST_CASE(diag_matrix_mul) {
   cuda_pip.diag_gemm(Ag, bg, Cg);
 
   Eigen::MatrixXd GPU_result = Cg;
-  Eigen::MatrixXd CPU_result =  A*b.asDiagonal();
+  Eigen::MatrixXd CPU_result = A * b.asDiagonal();
   bool check = CPU_result.isApprox(GPU_result, 1e-9);
   BOOST_CHECK_EQUAL(check, true);
   if (!check) {
