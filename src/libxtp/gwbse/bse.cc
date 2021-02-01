@@ -309,12 +309,11 @@ void BSE::PrintWeights(const Eigen::VectorXd& weights) const {
 void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
                            const Orbitals& orb) const {
 
-  Interaction act;
   QMStateType singlet = QMStateType(QMStateType::Singlet);
 
   Eigen::VectorXd oscs = orb.Oscillatorstrengths();
 
-  act = Analyze_eh_interaction(singlet, orb);
+  Interaction act = Analyze_eh_interaction(singlet, orb);
 
   if (fragments.size() > 0) {
     Lowdin low;
@@ -366,9 +365,8 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
 void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
                            const Orbitals& orb) const {
 
-  Interaction act;
   QMStateType triplet = QMStateType(QMStateType::Triplet);
-  act = Analyze_eh_interaction(triplet, orb);
+  Interaction act = Analyze_eh_interaction(triplet, orb);
 
   if (fragments.size() > 0) {
     Lowdin low;
@@ -452,7 +450,7 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
 
   ExpectationValues expectation_values;
 
-  const Eigen::MatrixXd& BSECoefs_state = BSECoefs.eigenvectors().col(state);
+  const Eigen::MatrixXd BSECoefs_state = BSECoefs.eigenvectors().col(state);
 
   expectation_values.direct_term =
       BSECoefs_state.cwiseProduct((H * BSECoefs_state))
@@ -461,7 +459,7 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
           .transpose();
 
   if (!orb.getTDAApprox()) {
-    const Eigen::MatrixXd& BSECoefs2_state =
+    const Eigen::MatrixXd BSECoefs2_state =
         BSECoefs.eigenvectors2().col(state);
 
     expectation_values.direct_term +=
@@ -543,13 +541,12 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
 
   const Eigen::VectorXd& RPAInputEnergies = orb.RPAInputEnergies();
 
-  ExpectationValues expectation_values;
 
   // static case as reference
   SetupDirectInteractionOperator(RPAInputEnergies, 0.0);
   HdOperator Hd_static(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Hd_static);
-  expectation_values = ExpectationValue_Operator(type, orb, Hd_static);
+  ExpectationValues expectation_values = ExpectationValue_Operator(type, orb, Hd_static);
   Eigen::VectorXd Hd_static_contribution = expectation_values.direct_term;
   if (!orb.getTDAApprox()) {
     Hd2Operator Hd2_static(_epsilon_0_inv, _Mmn, _Hqp);
