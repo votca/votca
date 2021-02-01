@@ -414,7 +414,7 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator(
 
   expectation_values.direct_term =
       BSECoefs.eigenvectors()
-          .cwiseProduct((H * BSECoefs.eigenvectors()))
+          .cwiseProduct((H * BSECoefs.eigenvectors()).eval())
           .colwise()
           .sum()
           .transpose();
@@ -422,54 +422,56 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator(
   if (!orb.getTDAApprox()) {
     expectation_values.direct_term +=
         BSECoefs.eigenvectors2()
-            .cwiseProduct((H * BSECoefs.eigenvectors2()))
+            .cwiseProduct((H * BSECoefs.eigenvectors2()).eval())
             .colwise()
             .sum()
             .transpose();
 
     expectation_values.cross_term =
         2 * BSECoefs.eigenvectors2()
-                .cwiseProduct((H * BSECoefs.eigenvectors()))
+                .cwiseProduct((H * BSECoefs.eigenvectors()).eval())
                 .colwise()
                 .sum()
                 .transpose();
   } else {
     expectation_values.cross_term = Eigen::VectorXd::Zero(0);
   }
-
+  std::cout << expectation_values.direct_term.transpose()<<std::endl;
+  std::cout << expectation_values.cross_term.transpose()<<std::endl;
   return expectation_values;
 }
 
 template <typename BSE_OPERATOR>
 BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
-    const QMStateType& type, const Orbitals& orb, const BSE_OPERATOR& H,
-    const Index state) const {
+    const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const {
 
-  const tools::EigenSystem& BSECoefs =
-      (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
+  const tools::EigenSystem& BSECoefs = (state.Type() == QMStateType::Singlet)
+                                           ? orb.BSESinglets()
+                                           : orb.BSETriplets();
 
   ExpectationValues expectation_values;
 
-  const Eigen::MatrixXd BSECoefs_state = BSECoefs.eigenvectors().col(state);
+  const Eigen::MatrixXd BSECoefs_state =
+      BSECoefs.eigenvectors().col(state.StateIdx());
 
   expectation_values.direct_term =
-      BSECoefs_state.cwiseProduct((H * BSECoefs_state))
+      BSECoefs_state.cwiseProduct((H * BSECoefs_state).eval())
           .colwise()
           .sum()
           .transpose();
 
   if (!orb.getTDAApprox()) {
     const Eigen::MatrixXd BSECoefs2_state =
-        BSECoefs.eigenvectors2().col(state);
+        BSECoefs.eigenvectors2().col(state.StateIdx());
 
     expectation_values.direct_term +=
-        BSECoefs2_state.cwiseProduct((H * BSECoefs2_state))
+        BSECoefs2_state.cwiseProduct((H * BSECoefs2_state).eval())
             .colwise()
             .sum()
             .transpose();
 
     expectation_values.cross_term =
-        2 * BSECoefs2_state.cwiseProduct((H * BSECoefs_state))
+        2 * BSECoefs2_state.cwiseProduct((H * BSECoefs_state).eval())
                 .colwise()
                 .sum()
                 .transpose();
@@ -497,29 +499,33 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
 BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
                                              const Orbitals& orb) const {
   Interaction analysis;
-  ExpectationValues expectation_values;
-
-  HqpOperator hqp(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(hqp);
-  expectation_values = ExpectationValue_Operator(type, orb, hqp);
-  analysis.qp_contrib = expectation_values.direct_term;
-
-  HdOperator hd(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(hd);
-  expectation_values = ExpectationValue_Operator(type, orb, hd);
-  analysis.direct_contrib = expectation_values.direct_term;
-
+  {
+    HqpOperator hqp(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(hqp);
+    ExpectationValues expectation_values =
+        ExpectationValue_Operator(type, orb, hqp);
+    analysis.qp_contrib = expectation_values.direct_term;
+  }
+  {
+    HdOperator hd(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(hd);
+    ExpectationValues expectation_values =
+        ExpectationValue_Operator(type, orb, hd);
+    analysis.direct_contrib = expectation_values.direct_term;
+  }
   if (!orb.getTDAApprox()) {
     Hd2Operator hd2(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(hd2);
-    expectation_values = ExpectationValue_Operator(type, orb, hd2);
+    ExpectationValues expectation_values =
+        ExpectationValue_Operator(type, orb, hd2);
     analysis.direct_contrib += expectation_values.cross_term;
   }
 
   if (type == QMStateType::Singlet) {
     HxOperator hx(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(hx);
-    expectation_values = ExpectationValue_Operator(type, orb, hx);
+    ExpectationValues expectation_values =
+        ExpectationValue_Operator(type, orb, hx);
     analysis.exchange_contrib = 2.0 * expectation_values.direct_term;
     if (!orb.getTDAApprox()) {
       analysis.exchange_contrib += 2.0 * expectation_values.cross_term;
@@ -541,12 +547,12 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
 
   const Eigen::VectorXd& RPAInputEnergies = orb.RPAInputEnergies();
 
-
   // static case as reference
   SetupDirectInteractionOperator(RPAInputEnergies, 0.0);
   HdOperator Hd_static(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Hd_static);
-  ExpectationValues expectation_values = ExpectationValue_Operator(type, orb, Hd_static);
+  ExpectationValues expectation_values =
+      ExpectationValue_Operator(type, orb, Hd_static);
   Eigen::VectorXd Hd_static_contribution = expectation_values.direct_term;
   if (!orb.getTDAApprox()) {
     Hd2Operator Hd2_static(_epsilon_0_inv, _Mmn, _Hqp);
@@ -574,14 +580,14 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
       configureBSEOperator(Hd_dyn);
 
       // get the contribution of Hd for the dynamic case
-      expectation_values =
-          ExpectationValue_Operator_State(type, orb, Hd_dyn, i_exc);
+      QMState state(type, i_exc, false);
+      expectation_values = ExpectationValue_Operator_State(state, orb, Hd_dyn);
       Eigen::VectorXd Hd_dynamic_contribution = expectation_values.direct_term;
       if (!orb.getTDAApprox()) {
         Hd2Operator Hd2_dyn(_epsilon_0_inv, _Mmn, _Hqp);
         configureBSEOperator(Hd2_dyn);
         expectation_values =
-            ExpectationValue_Operator_State(type, orb, Hd2_dyn, i_exc);
+            ExpectationValue_Operator_State(state, orb, Hd2_dyn);
         Hd_dynamic_contribution += expectation_values.cross_term;
       }
 

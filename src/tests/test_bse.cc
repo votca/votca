@@ -109,6 +109,8 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
 
   bse.Solve_singlets(orbitals);
+  std::vector<QMFragment<BSE_Population> > fragments;
+  bse.Analyze_singlets(fragments,orbitals);
   bool check_se_nooffdiag =
       se_nooffdiag_ref.isApprox(orbitals.BSESinglets().eigenvalues(), 0.001);
   if (!check_se_nooffdiag) {
@@ -214,6 +216,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   orbitals.setTDAApprox(false);
   bse.Solve_singlets(orbitals);
+  bse.Analyze_singlets(fragments,orbitals);
   //std::cout<<log;
 
   orbitals.BSESinglets().eigenvectors().colwise().normalize();
