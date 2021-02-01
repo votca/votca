@@ -70,7 +70,7 @@ class CudaPipeline {
  private:
   // Invoke the ?gemm function of cublas
   template <class M1, class M2, class M3>
-  void gemm_internal(const M1 &A, const M2 &B, M3 &C, double beta) const;
+  void gemm_internal(const M1 &A, const M2 &B, M3 &C,double alpha, double beta) const;
 
   int _deviceID = 0;
   // The cublas handles allocates hardware resources on the host and device.
@@ -81,23 +81,23 @@ class CudaPipeline {
 
  public:
   template <class M1, class M2, class M3>
-  void gemm(const M1 &A, const M2 &B, M3 &&C, double beta) const {
+  void gemm(const M1 &A, const M2 &B, M3 &&C,double alpha, double beta) const {
     M3 temp = C;
-    gemm_internal(A, B, temp, beta);
+    gemm_internal(A, B, temp, alpha, beta);
   }
 
   template <class M1, class M2, class M3>
   void gemm(const M1 &A, const M2 &B, M3 &&C) const {
-    gemm(A, B, C, 0.0);
+    gemm(A, B, C, 0.0,0.0);
   }
-  template <class M1, class M2>
-  void gemm(const M1 &A, const M2 &B, CudaMatrix &C, double beta) const {
-    gemm_internal(A, B, C, beta);
+ template <class M1, class M2>
+  void gemm(const M1 &A, const M2 &B, CudaMatrix &C,double alpha, double beta) const {
+    gemm_internal(A, B, C, alpha,beta);
   }
 
   template <class M1, class M2>
   void gemm(const M1 &A, const M2 &B, CudaMatrix &C) const {
-    gemm(A, B, C, 0.0);
+    gemm(A, B, C, 0.0,0.0);
   }
 };
 
@@ -106,12 +106,11 @@ class CudaPipeline {
  * two matrices
  */
 template <class M1, class M2, class M3>
-inline void CudaPipeline::gemm_internal(const M1 &A, const M2 &B, M3 &C,
+inline void CudaPipeline::gemm_internal(const M1 &A, const M2 &B, M3 &C,double alpha,
                                         double beta) const {
 
   static_assert(!M3::transposed(), "C in gemm cannot be transposed atm");
   // Scalar constanst for calling blas
-  double alpha = 1.;
   const double *palpha = &alpha;
   const double *pbeta = &beta;
   cublasOperation_t transA = CUBLAS_OP_N;

@@ -19,6 +19,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/bse_operator.h"
+#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/vc2index.h"
 
 namespace votca {
@@ -50,8 +51,11 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
 
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(input.rows(), input.cols());
 
+  OpenMP_CUDA transform;
+  transform.createTemporaries(_epsilon_0_inv, input,_bse_ctotal,_bse_vtotal,auxsize);
+
 #pragma omp parallel for schedule(dynamic) reduction(+ : result)
-  for (Index c1 = 0; c1 < _bse_ctotal; c1++) {
+      for (Index c1 = 0; c1 < _bse_ctotal; c1++) {
 
     Eigen::MatrixXd Temp;
     if (cd != 0) {
@@ -67,10 +71,6 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
     for (Index v1 = 0; v1 < _bse_vtotal; v1++) {
       Eigen::RowVectorXd row = Eigen::RowVectorXd::Zero(_bse_size);
 
-      if (cqp != 0) {
-        row += cqp * Hqp_row(v1, c1);
-      }
-
       if (cd != 0) {
         Eigen::MatrixXd Mmn2xMmn1T =
             Temp *
@@ -83,6 +83,9 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
             _Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize) * Temp;
         row += cd2 * Eigen::Map<Eigen::RowVectorXd>(Mmn1xMmn2T.data(),
                                                     Mmn1xMmn2T.size());
+      }
+      if (cqp != 0) {
+        row += Hqp_row(v1, c1);
       }
 
       result.row(vc.I(v1, c1)) += row * input;
@@ -116,9 +119,9 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index v1,
   Eigen::MatrixXd Result = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_vtotal);
   Index cmin = _bse_vtotal;
   // v->c
-  Result.col(v1) += _Hqp.col(c1 + cmin).segment(cmin, _bse_ctotal);
+  Result.col(v1) += cqp * _Hqp.col(c1 + cmin).segment(cmin, _bse_ctotal);
   // c-> v
-  Result.row(c1) -= _Hqp.col(v1).head(_bse_vtotal);
+  Result.row(c1) -= cqp * _Hqp.col(v1).head(_bse_vtotal);
   return Eigen::Map<Eigen::RowVectorXd>(Result.data(), Result.size());
 }
 

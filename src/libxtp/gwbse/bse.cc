@@ -180,7 +180,8 @@ TripletOperator_TDA BSE::getTripletOperator_TDA() const {
 template <typename BSE_OPERATOR>
 tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
 
-  std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
+  std::chrono::time_point<std::chrono::system_clock> start =
+      std::chrono::system_clock::now();
 
   tools::EigenSystem result;
 
@@ -196,7 +197,8 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
   result.eigenvalues() = DS.eigenvalues();
   result.eigenvectors() = DS.eigenvectors();
 
-  std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
+  std::chrono::time_point<std::chrono::system_clock> end =
+      std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = end - start;
 
   XTP_LOG(Log::info, _log) << TimeStamp() << " Diagonalization done in "
@@ -228,7 +230,8 @@ tools::EigenSystem BSE::Solve_triplets_BTDA() const {
 template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
 tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
                                                     BSE_OPERATOR_B& Bop) const {
-  std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
+  std::chrono::time_point<std::chrono::system_clock> start =
+      std::chrono::system_clock::now();
 
   // operator
   HamiltonianOperator<BSE_OPERATOR_A, BSE_OPERATOR_B> Hop(Aop, Bop);
@@ -259,7 +262,8 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   result.eigenvectors() = tmpX * sqinvnorm.matrix().asDiagonal();
   result.eigenvectors2() = tmpY * sqinvnorm.matrix().asDiagonal();
 
-  std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
+  std::chrono::time_point<std::chrono::system_clock> end =
+      std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = end - start;
 
   XTP_LOG(Log::info, _log) << TimeStamp() << " Diagonalization done in "
@@ -400,7 +404,8 @@ Eigen::VectorXd ExpValue(const Eigen::MatrixXd& state1, OP OPxstate2) {
   return state1.cwiseProduct(OPxstate2.eval()).colwise().sum().transpose();
 }
 
-Eigen::VectorXd ExpValue(const Eigen::MatrixXd& state1, const Eigen::MatrixXd& OPxstate2) {
+Eigen::VectorXd ExpValue(const Eigen::MatrixXd& state1,
+                         const Eigen::MatrixXd& OPxstate2) {
   return state1.cwiseProduct(OPxstate2).colwise().sum().transpose();
 }
 

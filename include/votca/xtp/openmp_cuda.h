@@ -67,12 +67,21 @@ class OpenMP_CUDA {
   void MultiplyLeftRight(Eigen::MatrixXd& matrix);
 
   void createTemporaries(Index rows, Index cols);
-  void A_TDA(const Eigen::MatrixXd& matrix, const Eigen::VectorXd& vec);
+  void PushMatrixBlock(const Eigen::MatrixXd& mat);
+  void A_TDA(const Eigen::VectorXd& vec);
+
+  void createTemporaries(const Eigen::VectorXd& vec,
+                         const Eigen::MatrixXd& input, Index rows1, Index rows2,
+                         Index cols);
+
   Eigen::MatrixXd getReductionVar();
 
  private:
   const Eigen::MatrixXd* rightoperator_ = nullptr;
   const Eigen::MatrixXd* leftoperator_ = nullptr;
+  const Eigen::VectorXd* vec_ = nullptr;
+  std::vector<const Eigen::MatrixXd*> cpu_intermediate_input_;
+  std::vector<Eigen::MatrixXd> cpu_temporaries_;
 
   std::vector<Eigen::MatrixXd> reduction_;
   bool inside_Parallel_region_;
