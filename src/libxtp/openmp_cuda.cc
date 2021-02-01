@@ -303,10 +303,10 @@ void OpenMP_CUDA::PrepareMatrix2(const Eigen::MatrixXd& mat, bool Hd2) {
     gpu.activateGPU();
     gpu.Mat(3).copy_to_gpu(mat);
     if (Hd2) {
-      gpu.Mat(4).reshape(gpu.Mat(2).rows(), gpu.Mat(3).rows());
+      gpu.Mat(4).reshape(gpu.Mat(3).rows(), gpu.Mat(2).rows());
       gpu.pipe().gemm(gpu.Mat(3), gpu.Mat(2).transpose(), gpu.Mat(4), 1.0);
     } else {
-      gpu.Mat(4).reshape(gpu.Mat(3).rows(), gpu.Mat(2).rows());
+      gpu.Mat(4).reshape(gpu.Mat(2).rows(), gpu.Mat(3).rows());
       gpu.pipe().gemm(gpu.Mat(2), gpu.Mat(3).transpose(), gpu.Mat(4), 1.0);
     }
     gpu.Mat(4).reshape(gpu.Mat(2).rows() * gpu.Mat(3).rows(), 1);
@@ -362,7 +362,8 @@ void OpenMP_CUDA::MultiplyRow(Index row) {
   if (isGPUthread(parentid)) {
     GPU_data& gpu = gpus_[threadid];
     gpu.activateGPU();
-    gpu.pipe().gemm( gpu.Mat(5), gpu.Mat(1),gpu.Mat(6).block(row,0,1,gpu.Mat(1).cols()),0.0);
+    gpu.pipe().gemm(gpu.Mat(5).transpose(), gpu.Mat(1),
+                    gpu.Mat(6).block(row, 0, 1, gpu.Mat(1).cols()), 0.0);
   } else {
     reduction_[threadid].row(row) = temp_[threadid] * (*rightoperator_);
   }

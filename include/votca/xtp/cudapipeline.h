@@ -101,10 +101,17 @@ class CudaPipeline {
   }
 };
 
+template <class M>
+std::string OutputDimension(const M &mat) {
+  return std::string("(" + std::to_string(mat.rows()) + "x" +
+                     std::to_string(mat.cols()) + ")");
+}
+
 /*
  * Call the gemm function from cublas, resulting in the multiplication of the
  * two matrices
  */
+
 template <class M1, class M2, class M3>
 inline void CudaPipeline::gemm_internal(const M1 &A, const M2 &B, M3 &C,
                                         double beta) const {
@@ -128,7 +135,11 @@ inline void CudaPipeline::gemm_internal(const M1 &A, const M2 &B, M3 &C,
   }
 
   if (k != k2) {
-    throw std::runtime_error("Shape mismatch in cuda gemm");
+
+    throw std::runtime_error(
+        "Shape mismatch in cuda gemm " + std::to_string(k) + ":" +
+        std::to_string(k2) + " A:" + OutputDimension(A) +
+        " B:" + OutputDimension(B) + " C:" + OutputDimension(C));
   }
 
   cublasSetStream(_handle, _stream);

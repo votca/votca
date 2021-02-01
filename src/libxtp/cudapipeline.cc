@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/cudapipeline.h"
 #include <stdexcept>
+#include <string>
 
 namespace votca {
 namespace xtp {
@@ -58,7 +59,8 @@ void CudaPipeline::diag_gemm(const CudaMatrix &A, const CudaMatrix &b,
   }
 
   if (A.rows() != b.rows()) {
-    throw std::runtime_error("Shape mismatch in cuda diag_gemm");
+    throw std::runtime_error("Shape mismatch in cuda diag_gemm: A" +
+                             OutputDimension(A) + " b" + OutputDimension(b));
   }
 
   cublasSetStream(_handle, _stream);

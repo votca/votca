@@ -63,26 +63,23 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
 
     Eigen::MatrixXd Temp;
     if (cd != 0) {
-      Temp = -cd*(_Mmn[c1 + cmin].block(cmin, 0, _bse_ctotal, auxsize));
+      Temp = -cd * (_Mmn[c1 + cmin].block(cmin, 0, _bse_ctotal, auxsize));
       transform.PrepareMatrix1(Temp);
     }
     if (cd2 != 0) {
-      Temp = -cd2*(_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize));
+      Temp = -cd2 * (_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize));
       transform.PrepareMatrix1(Temp);
     }
-    
 
     for (Index v1 = 0; v1 < _bse_vtotal; v1++) {
       transform.SetTempZero();
-       Eigen::MatrixXd Temp2;
+      Eigen::MatrixXd Temp2;
       if (cd != 0) {
-        Temp2 =
-            _Mmn[v1 + vmin].block(vmin, 0, _bse_vtotal, auxsize);
-                transform.PrepareMatrix2(Temp2, cd2 != 0);
+        Temp2 = _Mmn[v1 + vmin].block(vmin, 0, _bse_vtotal, auxsize);
+        transform.PrepareMatrix2(Temp2, cd2 != 0);
       }
       if (cd2 != 0) {
-        Temp2 =
-            _Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize);
+        Temp2 = _Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize);
         transform.PrepareMatrix2(Temp2, cd2 != 0);
       }
       if (cqp != 0) {
