@@ -82,6 +82,8 @@ CudaMatrix::operator Eigen::MatrixXd() const {
   return result;
 }
 
+void CudaMatrix::setZero() { cudaMemset(_data.get(), 0, size_matrix()); }
+
 CudaMatrix::Unique_ptr_to_GPU_data CudaMatrix::alloc_matrix_in_gpu(
     size_t size_arr) const {
   double *dmatrix;

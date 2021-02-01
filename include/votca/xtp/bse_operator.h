@@ -52,7 +52,6 @@ class BSE_OPERATOR final : public MatrixFreeOperator {
 
  private:
   Eigen::RowVectorXd Hqp_row(Index v1, Index c1) const;
-  Eigen::MatrixXd HxBlock(Index v1, Index v2) const;
 
   BSEOperator_Options _opt;
   Index _bse_size;

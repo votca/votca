@@ -136,6 +136,8 @@ class CudaMatrix {
   // Allocate memory in the GPU for a matrix
   CudaMatrix(Index nrows, Index ncols, const cudaStream_t &stream);
 
+  void setZero();
+
   // Convert A Cudamatrix to an EigenMatrix
   operator Eigen::MatrixXd() const;
 

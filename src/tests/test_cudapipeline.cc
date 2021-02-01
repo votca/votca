@@ -144,10 +144,10 @@ BOOST_AUTO_TEST_CASE(matmul_add) {
   CudaMatrix Bg{B, cuda_pip.get_stream()};
   CudaMatrix Cg{C, cuda_pip.get_stream()};
 
-  cuda_pip.gemm(Ag, Bg, Cg, 3.0,2.0);
+  cuda_pip.gemm(Ag, Bg, Cg, 2.0);
 
   Eigen::MatrixXd GPU_result = Cg;
-  Eigen::MatrixXd CPU_result = 3*A * B + 2*C;
+  Eigen::MatrixXd CPU_result = A * B + 2 * C;
   bool check = CPU_result.isApprox(GPU_result, 1e-9);
   BOOST_CHECK_EQUAL(check, true);
   if (!check) {
