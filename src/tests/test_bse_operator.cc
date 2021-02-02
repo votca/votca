@@ -105,6 +105,12 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
 
   bool check_hx = hx_mat.isApprox(hx_ref, 0.001);
   BOOST_CHECK_EQUAL(check_hx, true);
+    if (!check_hx) {
+    cout << "hd ref" << endl;
+    cout << hx_ref << endl;
+    cout << "hd result" << endl;
+    cout << hx_mat << endl;
+  }
 
   bool check_hxdiag = hx_mat.diagonal().isApprox(Hx.diagonal(), 0.001);
   BOOST_CHECK_EQUAL(check_hxdiag, true);
