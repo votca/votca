@@ -46,15 +46,11 @@ class ERDiabatizationFrame final : public QMTool {
   bool Run() final;
 
  private:
-  
   std::string _orbfile;
   QMStateType _qmtype;
   std::string _xml_output;  // .xml output
   Logger _log;
-  // tools::Property _options;
-  
   ERDiabatization::options_erdiabatization _options;
-
 };
 
 }  // namespace xtp

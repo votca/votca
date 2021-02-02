@@ -77,11 +77,19 @@ bool ERDiabatizationFrame::Run() {
 
   Eigen::VectorXd results = ERDiabatization.CalculateER(orbitals, _qmtype);
 
-
-  //TO DO: This loop should be printed on a file
+  // TO DO: This loop should be printed on a file
   std::cout << "\n" << std::endl;
-  for (Index n = 1; n < results.size()+1; n++){
-    std::cout << n << " " << results(n-1) << std::endl;
+  double Pi = votca::tools::conv::Pi;
+  // Initial mixing angle
+  double phi_in = 0.;
+  // Final mixing angle
+  double phi_fin = 2. * Pi;
+  // We divide the interval into equal bits
+  double step = (phi_fin - phi_in) / results.size();
+
+  for (Index n = 0; n < results.size(); n++) {
+    std::cout << (57.2958) * (phi_in + n * step) << " " << results(n)
+              << std::endl;
   }
 
   XTP_LOG(Log::error, _log)
@@ -91,26 +99,26 @@ bool ERDiabatizationFrame::Run() {
   // We need the angle that maximise the ER functional
   Index pos;
   XTP_LOG(Log::error, _log) << "Maximum EF is: " << results.maxCoeff(&pos)
-                            << " at position " << pos+1 << flush;
-  double angle = 2.0 * votca::tools::conv::Pi / (1.0 * (pos + 1));
+                            << " at position " << pos << flush;
+  double angle = phi_in + pos * step;
   // We need the adiabatic energies of the two states selected in the option
   double ad_E1;
   double ad_E2;
   if (_qmtype == QMStateType::Singlet) {
-    ad_E1 = orbitals.BSESinglets().eigenvalues()[_options.state_idx_1];
-    ad_E2 = orbitals.BSESinglets().eigenvalues()[_options.state_idx_2];
+    ad_E1 = orbitals.BSESinglets().eigenvalues()[_options.state_idx_1 - 1];
+    ad_E2 = orbitals.BSESinglets().eigenvalues()[_options.state_idx_2 - 1];
   } else {
-    ad_E1 = orbitals.BSETriplets().eigenvalues()[_options.state_idx_1];
-    ad_E2 = orbitals.BSETriplets().eigenvalues()[_options.state_idx_2];
+    ad_E1 = orbitals.BSETriplets().eigenvalues()[_options.state_idx_1 - 1];
+    ad_E2 = orbitals.BSETriplets().eigenvalues()[_options.state_idx_2 - 1];
   }
 
-  //We can now calculate the diabatic Hamiltonian
+  // We can now calculate the diabatic Hamiltonian
   Eigen::MatrixXd diabatic_H =
       ERDiabatization.Calculate_diabatic_H(ad_E1, ad_E2, angle);
-  //This is just a print
+  // This is just a print
   std::cout << "\n Diabatic Hamiltonian for state " << _options.state_idx_1
             << " and " << _options.state_idx_2 << "\n"
-            << diabatic_H << std::endl;
+            << diabatic_H * votca::tools::conv::hrt2ev << std::endl;
 
   return true;
 }

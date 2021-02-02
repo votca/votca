@@ -50,6 +50,7 @@ class ERDiabatization {
     Index state_idx_1;
     Index state_idx_2;
     std::string qmtype;
+    std::string outfile;
   };
 
   // Edit options

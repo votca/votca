@@ -53,6 +53,7 @@ void ERDiabatization::configure(const options_erdiabatization& opt) {
 double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_LM,
                                    const Eigen::MatrixXd& D_JK) const {
 
+  // Here I want to do \sum_{kl} (ij|kl) D^{LM}_{jk}. Is it right?
   XTP_LOG(Log::debug, *_pLog) << "Calculating 4c ERIs" << flush;
   Eigen::MatrixXd contracted = _eris.CalculateERIs_4c(D_LM, 1e-12);
 
@@ -62,7 +63,7 @@ double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_LM,
 Eigen::MatrixXd ERDiabatization::CalculateU(const double phi) const {
   Eigen::MatrixXd U(2, 2);
   U(0, 0) = std::cos(phi);
-  U(0, 1) = -std::sin(phi);
+  U(0, 1) = -1.0 * std::sin(phi);
   U(1, 0) = std::sin(phi);
   U(1, 1) = std::cos(phi);
   return U;
@@ -72,9 +73,12 @@ Eigen::MatrixXd ERDiabatization::Calculate_diabatic_H(
     const double E1, const double E2, const double angle) const {
   Eigen::VectorXd ad_energies(2);
   ad_energies << E1, E2;
-  XTP_LOG(Log::error, *_pLog) << "Adiabatic energies "
-                              << "E1: " << E1 << " E2: " << E2 << flush;
-  XTP_LOG(Log::error, *_pLog) << "Rotation angle " << angle << flush;
+  XTP_LOG(Log::error, *_pLog)
+      << "Adiabatic energies in eV "
+      << "E1: " << E1 * votca::tools::conv::hrt2ev
+      << " E2: " << E2 * votca::tools::conv::hrt2ev << flush;
+  XTP_LOG(Log::error, *_pLog)
+      << "Rotation angle (degrees) " << angle * 57.2958 << flush;
   Eigen::MatrixXd U = CalculateU(angle);
   return U.transpose() * ad_energies.asDiagonal() * U;
 }
@@ -102,9 +106,19 @@ Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb,
   Eigen::Tensor<double, 4> R_JKLM = CalculateRtensor(orb, type);
 
   const double pi = votca::tools::conv::Pi;
-  Eigen::VectorXd results = Eigen::VectorXd::Zero(100);
-  for (Index n = 1; n < 101; n++) {
-    double phi = 2.0 * pi / (1.0 * n);
+  // Scanning through angles
+  Eigen::VectorXd results = Eigen::VectorXd::Zero(360);
+  // Initial mixing angle
+  double phi_in = 0.;
+  // Final mixing angle
+  double phi_fin = 2. * pi;
+  // We divide the interval into equal bits
+  double step = (phi_fin - phi_in) / results.size();
+  // Define angle we are iterating
+  double phi;
+  for (Index n = 0; n < results.size(); n++) {
+    // Update angle
+    phi = phi_in + n * step;
     Eigen::MatrixXd U = CalculateU(phi);
     // Complicated loop to handle. Can we make it a bit better?
     double result = 0.;
@@ -148,21 +162,26 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb,
   Eigen::VectorXd exciton1;
   Eigen::VectorXd exciton2;
   if (type == QMStateType::Singlet) {
-    exciton1 = orb.BSESinglets().eigenvectors().col(index1);
-    exciton2 = orb.BSESinglets().eigenvectors().col(index2);
+    exciton1 = orb.BSESinglets().eigenvectors().col(index1 - 1);
+    exciton2 = orb.BSESinglets().eigenvectors().col(index2 - 1);
   } else {
-    exciton1 = orb.BSETriplets().eigenvectors().col(index1);
-    exciton2 = orb.BSETriplets().eigenvectors().col(index2);
+    exciton1 = orb.BSETriplets().eigenvectors().col(index1 - 1);
+    exciton2 = orb.BSETriplets().eigenvectors().col(index2 - 1);
   }
   Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), _bse_ctotal,
                                          _bse_vtotal);
   Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), _bse_ctotal,
                                          _bse_vtotal);
-  Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
-  Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
 
-  return _occlevels * AuxMat_vv * _occlevels.transpose() +
-         _virtlevels * AuxMat_cc * _virtlevels.transpose();
+  // Here I ignored the diagonal term related to the stationary unexcited
+  // electrons. It seems it doesn't play a huge role in the overall diabatization
+  // process.
+  Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
+  // This is the same as in the paper.
+  Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
+  // This defines D = X + Y where X = occupied and Y = unoccupied contribution
+  return _virtlevels * AuxMat_cc * _virtlevels.transpose() -
+         _occlevels * AuxMat_vv * _occlevels.transpose();
 }
 
 }  // namespace xtp
