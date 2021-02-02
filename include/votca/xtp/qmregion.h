@@ -45,7 +45,7 @@ class QMRegion : public Region {
  public:
   QMRegion(Index id, Logger& log, std::string workdir)
       : Region(id, log), _workdir(workdir) {
-    QMPackageFactory::RegisterAll();
+    QMPackageFactory{};
   };
   ~QMRegion() override = default;
 

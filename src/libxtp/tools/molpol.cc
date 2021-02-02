@@ -73,9 +73,9 @@ void MolPol::ParseOptions(const tools::Property& options) {
     // Set-up QM package
     XTP_LOG(Log::error, log)
         << "Using package <" << qm_package << ">" << std::flush;
-    QMPackageFactory::RegisterAll();
-    std::unique_ptr<QMPackage> qmpack = std::unique_ptr<QMPackage>(
-        QMPackageFactory::QMPackages().Create(qm_package));
+    QMPackageFactory factory;
+    std::unique_ptr<QMPackage> qmpack =
+        std::unique_ptr<QMPackage>(factory.Create(qm_package));
     qmpack->setLog(&log);
     qmpack->setRunDir(".");
     qmpack->setLogFileName(log_file);

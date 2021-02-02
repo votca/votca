@@ -32,19 +32,10 @@ namespace xtp {
 
 class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage> {
  private:
-  QMPackageFactory() = default;
+  void RegisterAll();
 
  public:
-  QMPackageFactory(QMPackageFactory const &) = delete;
-  void operator=(QMPackageFactory const &) = delete;
-  QMPackageFactory(QMPackageFactory &&) = delete;
-  void operator=(QMPackageFactory &&) = delete;
-  static void RegisterAll(void);
-
-  static QMPackageFactory &QMPackages() {
-    static QMPackageFactory _instance;
-    return _instance;
-  }
+  QMPackageFactory() { this->RegisterAll(); };
 };
 
 }  // namespace xtp

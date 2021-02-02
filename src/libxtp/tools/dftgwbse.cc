@@ -88,7 +88,7 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   }
 
   // register all QM packages
-  QMPackageFactory::RegisterAll();
+  QMPackageFactory{};
 }
 
 bool DftGwBse::Run() {
@@ -111,8 +111,9 @@ bool DftGwBse::Run() {
     orbitals.QMAtoms().LoadFromFile(_xyzfile);
   }
 
-  std::unique_ptr<QMPackage> qmpackage = std::unique_ptr<QMPackage>(
-      QMPackageFactory::QMPackages().Create(_package));
+  QMPackageFactory factory;
+  std::unique_ptr<QMPackage> qmpackage =
+      std::unique_ptr<QMPackage>(factory.Create(_package));
   qmpackage->setLog(&_log);
   qmpackage->Initialize(_package_options);
   qmpackage->setRunDir(".");

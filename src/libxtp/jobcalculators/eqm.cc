@@ -37,7 +37,7 @@ namespace xtp {
 
 void EQM::ParseSpecificOptions(const tools::Property& options) {
 
-  QMPackageFactory::RegisterAll();
+  QMPackageFactory{};
 
   // job tasks
   std::string _tasks_string = options.get(".tasks").as<std::string>();
@@ -167,8 +167,9 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     std::string dft_key = "package";
     std::string package =
         _package_options.get(dft_key + ".name").as<std::string>();
-    std::unique_ptr<QMPackage> qmpackage = std::unique_ptr<QMPackage>(
-        QMPackageFactory::QMPackages().Create(package));
+    QMPackageFactory factory;
+    std::unique_ptr<QMPackage> qmpackage =
+        std::unique_ptr<QMPackage>(factory.Create(package));
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(work_dir);
     qmpackage->Initialize(_package_options);
