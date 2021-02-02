@@ -34,11 +34,11 @@ using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(oscillatorstrength_filter_test)
 
 BOOST_AUTO_TEST_CASE(coeffs_test) {
-  FilterFactory::RegisterAll();
+  FilterFactory factory;
 
   libint2::initialize();
   std::unique_ptr<StateFilter_base> osc_f =
-      std::unique_ptr<StateFilter_base>(Filter().Create("oscillatorstrength"));
+      std::unique_ptr<StateFilter_base>(factory.Create("oscillatorstrength"));
 
   std::ofstream opt("oscillatorstrength.xml");
   opt << "<oscillatorstrength>0.0045</oscillatorstrength>" << std::endl;

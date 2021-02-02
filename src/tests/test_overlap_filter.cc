@@ -36,9 +36,9 @@ BOOST_AUTO_TEST_SUITE(overlap_filter_test)
 BOOST_AUTO_TEST_CASE(coeffs_test) {
 
   libint2::initialize();
-  FilterFactory::RegisterAll();
+  FilterFactory factory;
   std::unique_ptr<StateFilter_base> rho_f =
-      std::unique_ptr<StateFilter_base>(Filter().Create("overlap"));
+      std::unique_ptr<StateFilter_base>(factory.Create("overlap"));
 
   std::ofstream opt("overlap_filter.xml");
   opt << "<overlap>0.0045</overlap>" << std::endl;
@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
   }
   BOOST_CHECK_EQUAL(results2.size(), ref2.size());
   std::unique_ptr<StateFilter_base> rho_f2 =
-      std::unique_ptr<StateFilter_base>(Filter().Create("overlap"));
+      std::unique_ptr<StateFilter_base>(factory.Create("overlap"));
 
   rho_f2->Initialize(prop.get("overlap"));
 
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
   A.CalcCoupledTransition_Dipoles();
 
   std::unique_ptr<StateFilter_base> rho_f3 =
-      std::unique_ptr<StateFilter_base>(Filter().Create("overlap"));
+      std::unique_ptr<StateFilter_base>(factory.Create("overlap"));
 
   rho_f3->Initialize(prop.get("overlap"));
 

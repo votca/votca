@@ -34,9 +34,9 @@ BOOST_AUTO_TEST_SUITE(density_filter_test)
 BOOST_AUTO_TEST_CASE(coeffs_test) {
 
   libint2::initialize();
-  FilterFactory::RegisterAll();
+  FilterFactory factory;
   std::unique_ptr<StateFilter_base> rho_f =
-      std::unique_ptr<StateFilter_base>(Filter().Create("density"));
+      std::unique_ptr<StateFilter_base>(factory.Create("density"));
 
   std::ofstream opt("density_filter.xml");
   opt << "<density>0.0045</density>" << std::endl;

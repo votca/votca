@@ -31,9 +31,9 @@ void StateTracker::Initialize(const tools::Property& options) {
   tools::Tokenizer tok(filters, " ,;\n");
   std::vector<std::string> list_filters = tok.ToVector();
 
-  FilterFactory::RegisterAll();
+  FilterFactory factory;
   for (const std::string& filtername : list_filters) {
-    _filters.push_back(Filter().Create(filtername));
+    _filters.push_back(factory.Create(filtername));
   }
 
   for (auto& filter : _filters) {

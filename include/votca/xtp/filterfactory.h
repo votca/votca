@@ -33,17 +33,11 @@ namespace xtp {
 class FilterFactory
     : public tools::ObjectFactory<std::string, StateFilter_base> {
  private:
-  FilterFactory() = default;
+  void RegisterAll();
 
  public:
-  static void RegisterAll(void);
-  friend FilterFactory &Filter();
+  FilterFactory() { this->RegisterAll(); };
 };
-
-inline FilterFactory &Filter() {
-  static FilterFactory _instance;
-  return _instance;
-}
 
 }  // namespace xtp
 }  // namespace votca

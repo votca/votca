@@ -36,9 +36,9 @@ BOOST_AUTO_TEST_SUITE(deltaQ_filter_test)
 BOOST_AUTO_TEST_CASE(coeffs_test) {
 
   libint2::initialize();
-  FilterFactory::RegisterAll();
+  FilterFactory factory;
   std::unique_ptr<StateFilter_base> local_f =
-      std::unique_ptr<StateFilter_base>(Filter().Create("localisation"));
+      std::unique_ptr<StateFilter_base>(factory.Create("localisation"));
 
   std::ofstream opt("localisation.xml");
   opt << "<root>" << std::endl;
