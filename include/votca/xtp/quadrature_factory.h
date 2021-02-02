@@ -36,18 +36,11 @@ namespace xtp {
 class QuadratureFactory
     : public tools::ObjectFactory<std::string, GaussianQuadratureBase> {
  private:
-  QuadratureFactory() = default;
+  void RegisterAll();
 
  public:
-  static void RegisterAll(void);
-
-  friend QuadratureFactory &Quadratures();
+  QuadratureFactory() { this->RegisterAll(); };
 };
-
-inline QuadratureFactory &Quadratures() {
-  static QuadratureFactory _instance;
-  return _instance;
-}
 
 }  // namespace xtp
 }  // namespace votca

@@ -28,12 +28,12 @@
 namespace votca {
 namespace xtp {
 
-void QuadratureFactory::RegisterAll(void) {
-  Quadratures().Register<Gauss_Laguerre_Quadrature>("laguerre");
-  Quadratures().Register<Gauss_Legendre_Quadrature>("legendre");
-  Quadratures().Register<Gauss_modified_Legendre_Quadrature>(
+void QuadratureFactory::RegisterAll() {
+  this->Register<Gauss_Laguerre_Quadrature>("laguerre");
+  this->Register<Gauss_Legendre_Quadrature>("legendre");
+  this->Register<Gauss_modified_Legendre_Quadrature>(
       "modified_legendre");
-  Quadratures().Register<Gauss_Hermite_Quadrature>("hermite");
+  this->Register<Gauss_Hermite_Quadrature>("hermite");
 }
 }  // namespace xtp
 }  // namespace votca
