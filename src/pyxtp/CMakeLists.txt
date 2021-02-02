@@ -1,6 +1,5 @@
-
+find_package(Python 3 REQUIRED COMPONENTS Interpreter Development)
 find_package(pybind11 REQUIRED)
-find_package(VOTCA_XTP REQUIRED NO_MODULE)
 
 file(GLOB_RECURSE BIND_SOURCES binds/*.cc)
 
@@ -27,3 +26,12 @@ target_link_libraries(xtp_binds
 
 # # DPYXTP_VERSION_INFO is defined in the setup.py file
 target_compile_definitions(xtp_binds PRIVATE VERSION_INFO=${XTP_BINDS_VERSION_INFO})
+
+if(NOT PYTHON_INSTDIR)
+  execute_process(
+    COMMAND
+      ${Python_EXECUTABLE} -c
+      "import distutils.sysconfig as cg; print(cg.get_python_lib(prefix='${CMAKE_INSTALL_PREFIX}', plat_specific=True, standard_lib=False))"
+    OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif(NOT PYTHON_INSTDIR)
+install(TARGETS xtp_binds LIBRARY DESTINATION ${PYTHON_INSTDIR})
