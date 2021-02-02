@@ -20,15 +20,16 @@
 #include "votca/tools/property.h"
 #include "votca/xtp/calculatorfactory.h"
 #include "votca/xtp/qmcalculator.h"
+#include <map>
 #include <memory>
 #include <string>
-#include <map>
 
 using namespace votca;
 
 namespace pyxtp {
 
-int call_calculator(const std::string& name, const std::map<std::string, std::string>& dict);
+int call_calculator(const std::string& name,
+                    const std::map<std::string, std::string>& dict);
 
 class XTPCalculators {
  public:
