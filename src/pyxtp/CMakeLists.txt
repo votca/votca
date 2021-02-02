@@ -1,7 +1,6 @@
 
 find_package(pybind11 REQUIRED)
 find_package(VOTCA_XTP REQUIRED NO_MODULE)
-find_package(VOTCA_TOOLS REQUIRED NO_MODULE)
 
 file(GLOB_RECURSE BIND_SOURCES binds/*.cc)
 
@@ -23,7 +22,7 @@ set_target_properties(xtp_binds
 
 target_link_libraries(xtp_binds
  PUBLIC
- VOTCA::votca_xtp VOTCA::votca_tools
+ VOTCA::votca_xtp
 )
 
 # # DPYXTP_VERSION_INFO is defined in the setup.py file
