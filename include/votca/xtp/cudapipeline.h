@@ -79,8 +79,6 @@ class CudaPipeline {
   // Asynchronous stream
   cudaStream_t _stream;
 
-  static std::string cudaGetErrorEnum(cublasStatus_t error);
-
  public:
   template <class M1, class M2, class M3>
   void gemm(const M1 &A, const M2 &B, M3 &&C, double beta) const {

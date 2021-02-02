@@ -68,7 +68,7 @@ class OpenMP_CUDA {
 
   void createTemporaries(Index rows, Index cols);
   void A_TDA(const Eigen::MatrixXd& matrix, const Eigen::VectorXd& vec);
-  Eigen::MatrixXd A_TDA_result();
+  Eigen::MatrixXd getReductionVar();
 
  private:
   const Eigen::MatrixXd* rightoperator_ = nullptr;
@@ -78,20 +78,41 @@ class OpenMP_CUDA {
   bool inside_Parallel_region_;
   Index threadID_parent_;
 
+  Index getParentThreadId() const;
+
+  Index getLocalThreadId(Index ParentThreadId) const;
+
+  Index getNumberThreads() const;
+
 #ifdef USE_CUDA
+  bool isGPUthread(Index ParentThreadId) const;
 
-  std::vector<Index> gpuIDs_;
-  std::vector<std::unique_ptr<CudaPipeline>> cuda_pips_;
+  struct GPU_data {
 
-  struct temporaries {
-    std::unique_ptr<CudaMatrix> A = nullptr;
-    std::unique_ptr<CudaMatrix> B = nullptr;
-    std::unique_ptr<CudaMatrix> C = nullptr;
-    std::unique_ptr<CudaMatrix> D = nullptr;
-    std::unique_ptr<CudaMatrix> E = nullptr;
+    explicit GPU_data(Index i)
+        : Id(i), pipeline(std::make_unique<CudaPipeline>(int(i))) {
+      ;
+    }
+
+    Index Id;
+    std::unique_ptr<CudaPipeline> pipeline;
+    std::vector<std::unique_ptr<CudaMatrix>> temp;
+
+    CudaMatrix& Mat(Index i) { return *temp[i]; }
+    CudaPipeline& pipe() { return *pipeline; }
+    void activateGPU() { checkCuda(cudaSetDevice(pipeline->getDeviceId())); }
+
+    void push_back(const Eigen::MatrixXd& m) {
+      temp.push_back(std::make_unique<CudaMatrix>(m, pipeline->get_stream()));
+    }
+    void push_back(Index rows, Index cols) {
+      temp.push_back(
+          std::make_unique<CudaMatrix>(rows, cols, pipeline->get_stream()));
+    }
   };
 
-  std::vector<temporaries> temp_;
+  std::vector<GPU_data> gpus_;
+  static bool isInVector(Index Id, const std::vector<GPU_data>& vec);
 #endif
 };
 
