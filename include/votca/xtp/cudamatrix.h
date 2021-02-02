@@ -157,7 +157,7 @@ class CudaMatrix {
   // Convert A Cudamatrix to an EigenMatrix
   operator Eigen::MatrixXd() const;
 
-   friend std::ostream& operator<<(std::ostream& out, const CudaMatrix& m);
+  friend std::ostream &operator<<(std::ostream &out, const CudaMatrix &m);
 
  private:
   // Unique pointer with custom delete function
