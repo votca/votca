@@ -14,8 +14,8 @@
  *
  */
 
-#include "xtp_tools.hpp"
 #include "xtp_calculators.hpp"
+#include "xtp_tools.hpp"
 #include <pybind11/complex.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -31,6 +31,19 @@ PYBIND11_MODULE(xtp_binds, module) {
   module.def("call_calculator", &pyxtp::call_calculator,
              R"pbdoc(
         Invoke a Votca XTP calculator
+
+        Parameters
+        ----------
+        name
+          Calculator's name
+        threads
+          Number of threads to perform the computation
+        xml_file
+          Input file specification
+  )pbdoc");
+  module.def("call_tool", &pyxtp::call_tool,
+             R"pbdoc(
+        Invoke a Votca XTP Tool
 
         Parameters
         ----------
