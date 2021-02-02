@@ -70,6 +70,14 @@ if(VOTCA_SPHINX_DIR)
   add_custom_target(doc-tools)
 endif()
 
+if(Python_EXECUTABLE AND NOT PYTHON_INSTDIR)
+  execute_process(
+    COMMAND
+      ${Python_EXECUTABLE} -c
+      "import distutils.sysconfig as cg; print(cg.get_python_lib(prefix='${CMAKE_INSTALL_PREFIX}', plat_specific=True, standard_lib=False))"
+    OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif(Python_EXECUTABLE AND NOT PYTHON_INSTDIR)
+
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################

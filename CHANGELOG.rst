@@ -10,6 +10,7 @@ Version 2022-dev
 -  fix example rst section (#327)
 -  remove author and copyright from rst (#331)
 -  fix rst warnings (#334)
+-  export PYTHONPATH in VOTCARC (#340)
 -  drop csh support in VOTCARC (#342)
 
 Version 2021-rc.2 (released XX.01.21)
