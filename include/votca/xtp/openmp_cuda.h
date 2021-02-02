@@ -80,7 +80,7 @@ class OpenMP_CUDA {
                          Index cols);
   void PrepareMatrix1(Eigen::MatrixXd& mat);
   void SetTempZero();
-  void PrepareMatrix2(const Eigen::Block< const Eigen::MatrixXd>& mat, bool Hd2);
+  void PrepareMatrix2(const Eigen::Block<const Eigen::MatrixXd>& mat, bool Hd2);
   void Addvec(const Eigen::VectorXd& row);
   void MultiplyRow(Index row);
 
@@ -88,7 +88,8 @@ class OpenMP_CUDA {
 
   void createAdditionalTemporaries(Index rows, Index cols);
   void PushMatrix1(Eigen::MatrixXd& mat);
-  void MultiplyBlocks(const Eigen::Block< const Eigen::MatrixXd>& mat, Index i1, Index i2);
+  void MultiplyBlocks(const Eigen::Block<const Eigen::MatrixXd>& mat, Index i1,
+                      Index i2);
 
   Eigen::MatrixXd getReductionVar();
 

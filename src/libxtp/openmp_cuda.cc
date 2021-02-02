@@ -39,8 +39,8 @@ OpenMP_CUDA::OpenMP_CUDA() {
       gpus_.push_back(GPU_data(threadID_parent_));
     }
   } else {
-    if(no_gpus>getNumberThreads()){
-      no_gpus=getNumberThreads();
+    if (no_gpus > getNumberThreads()) {
+      no_gpus = getNumberThreads();
     }
     for (Index i = 0; i < no_gpus; i++) {
       gpus_.push_back(GPU_data(i));
@@ -300,7 +300,8 @@ void OpenMP_CUDA::SetTempZero() {
 #endif
 }
 
-void OpenMP_CUDA::PrepareMatrix2(const Eigen::Block< const Eigen::MatrixXd>& mat, bool Hd2) {
+void OpenMP_CUDA::PrepareMatrix2(const Eigen::Block<const Eigen::MatrixXd>& mat,
+                                 bool Hd2) {
   Index parentid = getParentThreadId();
   Index threadid = getLocalThreadId(parentid);
 #ifdef USE_CUDA
@@ -412,7 +413,8 @@ void OpenMP_CUDA::PushMatrix1(Eigen::MatrixXd& mat) {
 #endif
 }
 
-void OpenMP_CUDA::MultiplyBlocks(const Eigen::Block< const Eigen::MatrixXd>& mat, Index i1, Index i2) {
+void OpenMP_CUDA::MultiplyBlocks(const Eigen::Block<const Eigen::MatrixXd>& mat,
+                                 Index i1, Index i2) {
   Index parentid = getParentThreadId();
   Index threadid = getLocalThreadId(parentid);
 #ifdef USE_CUDA
