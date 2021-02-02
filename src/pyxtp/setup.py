@@ -7,9 +7,11 @@ from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
 
-# A CMakeExtension needs a sourcedir instead of a file list.
 class CMakeExtension(Extension):
+    """A CMakeExtension needs a sourcedir instead of a file list."""
+
     def __init__(self, name, sourcedir=""):
+        """Initialize the extension with the sourcedir for the bindings."""
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
 

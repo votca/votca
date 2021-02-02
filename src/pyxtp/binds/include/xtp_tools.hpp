@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,27 @@
  *
  */
 
-#ifndef PYXTP_H_
-#define PYXTP_H_
+#if !defined(XTP_TOOLS_H_)
+#define XTP_TOOLS_H_
 
-#include "votca/xtp/calculatorfactory.h"
-#include "votca/xtp/qmcalculator.h"
-#include <memory>
-#include <pybind11/complex.h>
-#include <pybind11/pybind11.h>
+#include "votca/tools/property.h"
+#include "votca/xtp/qmtool.h"
+#include "votca/xtp/toolfactory.h"
 #include <string>
-#include <vector>
-#include <votca/tools/property.h>
 
-namespace py = pybind11;
 using namespace votca;
 
 namespace pyxtp {
+int call_tool(const std::string& name, int nThreads, std::string xml_file);
 
-int call_calculator(const std::string& name, int nThreads,
-                    std::string xml_file);
-
-class PyXTP {
+class XTPTools {
  public:
-  void Initialize(const std::string& name, int nThreads, votca::tools::Property prop);
+  void Initialize(const std::string& name, int nThreads,
+                  votca::tools::Property prop);
 
  private:
-  std::unique_ptr<xtp::QMCalculator> _calculator;
+  std::unique_ptr<xtp::QMTool> _tool;
 };
-
 }  // namespace pyxtp
 
-#endif  // PYXTP_H_
+#endif  // XTP_TOOLS_H_

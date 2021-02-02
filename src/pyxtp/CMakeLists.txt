@@ -8,8 +8,9 @@ find_package(VOTCA_XTP REQUIRED NO_MODULE)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+file(GLOB_RECURSE BIND_SOURCES binds/*.cc)
 
-pybind11_add_module(xtp_binds binds/pyxtp.cc)
+pybind11_add_module(xtp_binds ${BIND_SOURCES})
 target_include_directories(xtp_binds
  PUBLIC
  ${PROJECT_SOURCE_DIR}/binds/include
@@ -31,19 +32,6 @@ target_link_libraries(xtp_binds
  VOTCA::votca_xtp VOTCA::votca_tools
  "-Wl,--no-as-needed"
 )
-
-# add_executable(main binds/main.cc binds/pyxtp.cc)
-# target_include_directories(main
-#  PUBLIC
-#  ${PROJECT_SOURCE_DIR}/binds/include
-#  )
-
-# target_link_libraries(main
-#  PUBLIC
-#  VOTCA::votca_xtp
-#  PRIVATE
-#  pybind11::embed
-#  )
 
 # # DPYXTP_VERSION_INFO is defined in the setup.py file
 target_compile_definitions(xtp_binds PRIVATE VERSION_INFO=${XTP_BINDS_VERSION_INFO})
