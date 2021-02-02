@@ -118,10 +118,5 @@ setup(
     ext_modules=[CMakeExtension("xtp_binds")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
-    entry_points={
-        'console_scripts': [
-            'xtp_cli=pyxtp.cli:main',
-        ]
-    },
     install_requires=['numpy'],
 )

@@ -24,9 +24,6 @@ target_link_libraries(xtp_binds
  VOTCA::votca_xtp
 )
 
-# # DPYXTP_VERSION_INFO is defined in the setup.py file
-target_compile_definitions(xtp_binds PRIVATE VERSION_INFO=${XTP_BINDS_VERSION_INFO})
-
 if(NOT PYTHON_INSTDIR)
   execute_process(
     COMMAND
