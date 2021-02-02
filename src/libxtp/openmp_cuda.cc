@@ -388,8 +388,7 @@ void OpenMP_CUDA::createAdditionalTemporaries(Index rows, Index cols) {
   }
 }
 #else
-void OpenMP_CUDA::createAdditionalTemporaries(Index , Index) {
-  ;}
+void OpenMP_CUDA::createAdditionalTemporaries(Index, Index) { ; }
 #endif
 
 void OpenMP_CUDA::PushMatrix1(Eigen::MatrixXd& mat) {
@@ -422,28 +421,29 @@ void OpenMP_CUDA::MultiplyBlocks(Eigen::MatrixXd& mat, Index i1, Index i2) {
                     gpu.Mat(1).block(i1 * gpu.Mat(4).rows(), 0,
                                      gpu.Mat(4).rows(), gpu.Mat(1).cols()),
                     gpu.Mat(6).block(i2 * gpu.Mat(4).rows(), 0,
-                                     *gpu.Mat(4).rows(), gpu.Mat(6).cols()),
+                                     gpu.Mat(4).rows(), gpu.Mat(6).cols()),
                     1.0);
     if (i1 != i2) {
-gpu.pipe().gemm(gpu.Mat(4).transpose(),
-                    gpu.Mat(1).block(i2 * gpu.Mat(4).rows(), 0,
-                                     gpu.Mat(4).rows(), gpu.Mat(1).cols()),
-                    gpu.Mat(6).block(i1 * gpu.Mat(4).rows(), 0,
-                                     *gpu.Mat(4).rows(), gpu.Mat(6).cols()),
+      gpu.pipe().gemm(gpu.Mat(4).transpose(),
+                      gpu.Mat(1).block((i2 * gpu.Mat(4).rows()), 0,
+                                       gpu.Mat(4).rows(), gpu.Mat(1).cols()),
+                      gpu.Mat(6).block(i1 * gpu.Mat(4).rows(), 0,
+                                       gpu.Mat(4).rows(), gpu.Mat(6).cols()),
+                      1.0);
     }
   } else {
     Eigen::MatrixXd block =
         (*cpu_intermediate_input_[threadid]) * mat.transpose();
     reduction_[threadid].block(i1 * block.rows(), 0, block.rows(),
                                reduction_[threadid].cols()) +=
-        blockmat * rightoperator_->block(i2 * block.rows(), 0, block.rows(),
-                                         rightoperator_->cols());
+        block * rightoperator_->block(i2 * block.rows(), 0, block.rows(),
+                                      rightoperator_->cols());
     if (i1 != i2) {
       reduction_[threadid].block(i2 * block.rows(), 0, block.rows(),
                                  reduction_[threadid].cols()) +=
-          blockmat.transpose() * rightoperator_->block(i1 * block.rows(), 0,
-                                                       block.rows(),
-                                                       rightoperator_->cols());
+          block.transpose() * rightoperator_->block(i1 * block.rows(), 0,
+                                                    block.rows(),
+                                                    rightoperator_->cols());
     }
   }
 #else
@@ -452,13 +452,13 @@ gpu.pipe().gemm(gpu.Mat(4).transpose(),
   reduction_[threadid].block(i1 * block.rows(), 0, block.rows(),
                              reduction_[threadid].cols()) +=
       block * rightoperator_->block(i2 * block.rows(), 0, block.rows(),
-                                       rightoperator_->cols());
+                                    rightoperator_->cols());
   if (i1 != i2) {
     reduction_[threadid].block(i2 * block.rows(), 0, block.rows(),
                                reduction_[threadid].cols()) +=
         block.transpose() * rightoperator_->block(i1 * block.rows(), 0,
-                                                     block.rows(),
-                                                     rightoperator_->cols());
+                                                  block.rows(),
+                                                  rightoperator_->cols());
   }
 #endif
 }
