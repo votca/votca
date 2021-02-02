@@ -94,14 +94,46 @@ class OpenMP_CUDA {
   Eigen::MatrixXd getReductionVar();
 
  private:
-  const Eigen::MatrixXd* rightoperator_ = nullptr;
-  const Eigen::MatrixXd* leftoperator_ = nullptr;
-  const Eigen::VectorXd* vec_ = nullptr;
-  std::vector<Eigen::MatrixXd*> cpu_intermediate_input_;
-  std::vector<Eigen::MatrixXd> cpu_temporaries_;
+  template <class T>
+  class DefaultReference {
+   public:
+    DefaultReference() = default;
+    DefaultReference(T object) : p(&object){};
 
-  std::vector<Eigen::MatrixXd> reduction_;
-  std::vector<Eigen::VectorXd> temp_;
+    DefaultReference& operator=(const T& object) {
+      p = &object;
+      return *this;
+    }
+
+    const T& operator()() {
+      assert(p!=nullptr && "Dangling reference!");
+      return *p;
+    }
+
+   private:
+    const T* p = nullptr;
+  };
+
+  DefaultReference<Eigen::MatrixXd> rOP_;
+  DefaultReference<Eigen::MatrixXd> lOP_;
+  DefaultReference<Eigen::VectorXd> vec_;
+
+  struct CPU_data {
+
+    Eigen::MatrixXd& reduce() { return reduce_mat; }
+    void InitializeReduce(Index rows, Index cols) {
+      reduce_mat = Eigen::MatrixXd::Zero(rows, cols);
+    }
+
+    void InitializeVec(Index size) { temp_vec = Eigen::VectorXd::Zero(size); }
+
+    DefaultReference<Eigen::MatrixXd> ref_mat;
+    Eigen::MatrixXd temp_mat;
+    Eigen::VectorXd temp_vec;
+    Eigen::MatrixXd reduce_mat;
+  };
+
+  std::vector<CPU_data> cpus_;
 
   bool inside_Parallel_region_;
   Index threadID_parent_;
