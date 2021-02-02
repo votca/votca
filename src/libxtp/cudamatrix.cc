@@ -112,5 +112,11 @@ void CudaMatrix::throw_if_not_enough_memory_in_gpu(
   }
 }
 
+  friend std::ostream& operator<<(std::ostream& out, const CudaMatrix& m){
+    Eigen::Matrixxd temp=m;
+  out<<temp;
+  return out;
+  }
+
 }  // namespace xtp
 }  // namespace votca

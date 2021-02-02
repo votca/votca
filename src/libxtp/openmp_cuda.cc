@@ -417,6 +417,11 @@ void OpenMP_CUDA::MultiplyBlocks(Eigen::MatrixXd& mat, Index i1, Index i2) {
     gpu.activateGPU();
     gpu.Mat(3).copy_to_gpu(mat);
     gpu.pipe().gemm(gpu.Mat(2), gpu.Mat(3).transpose(), gpu.Mat(4));
+    #pragma omp critical
+    {
+      std::cout<<(*cpu_intermediate_input_[threadid]) * mat.transpose()<<std::endl;
+      std::cout<<gpu.Mat(4)<<std::endl;
+    }
     Index blocksize=gpu.Mat(4).rows();
     Index inputcols=gpu.Mat(1).cols();
     gpu.pipe().gemm(gpu.Mat(4),

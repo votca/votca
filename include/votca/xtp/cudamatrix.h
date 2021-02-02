@@ -157,6 +157,8 @@ class CudaMatrix {
   // Convert A Cudamatrix to an EigenMatrix
   operator Eigen::MatrixXd() const;
 
+   friend std::ostream& operator<<(std::ostream& out, const CudaMatrix& m);
+
  private:
   // Unique pointer with custom delete function
   using Unique_ptr_to_GPU_data = std::unique_ptr<double, void (*)(double *)>;
