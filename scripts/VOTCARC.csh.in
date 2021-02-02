@@ -26,4 +26,10 @@ if (! $?@LD_LIBRARY_PATH@) setenv @LD_LIBRARY_PATH@ ""
 if ( "$@LD_LIBRARY_PATH@" != "" ) setenv @LD_LIBRARY_PATH@ ":${@LD_LIBRARY_PATH@}"
 setenv @LD_LIBRARY_PATH@ "@CMAKE_INSTALL_FULL_LIBDIR@${@LD_LIBRARY_PATH@}"
 
+if ( "@PYTHON_INSTDIR@" != "" ) then
+  if (! $?PYTHONPATH) setenv PYTHONPATH ""
+  if ( "$PYTHONPATH" != "" ) setenv PYTHONPATH ":${PYTHONPATH}"
+  setenv PYTHONPATH "@PYTHON_INSTDIR@${PYTHONPATH}"
+endif
+
 setenv VOTCASHARE "@CMAKE_INSTALL_FULL_DATADIR@/votca"
