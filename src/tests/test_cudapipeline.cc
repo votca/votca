@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(matmul_add) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(matmul_AbB_add) {
+BOOST_AUTO_TEST_CASE(matmul_AB_Cbadd) {
   // Call the class to handle GPU resources
   CudaPipeline cuda_pip(0);
 
@@ -172,7 +172,8 @@ BOOST_AUTO_TEST_CASE(matmul_AbB_add) {
   cuda_pip.gemm(Ag, Bg, Cg.block(1,1,6,6),1.0);
 
   Eigen::MatrixXd GPU_result = Cg;
-  Eigen::MatrixXd CPU_result = A*B+C.block(1,1,6,6);
+  C.block(1,1,6,6)+=A*B;
+  Eigen::MatrixXd CPU_result = C;
   bool check = CPU_result.isApprox(GPU_result, 1e-9);
   BOOST_CHECK_EQUAL(check, true);
   if (!check) {
