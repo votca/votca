@@ -14,7 +14,7 @@
  *
  */
 
-#include "xtp_tools.hpp"
+#include "xtp_bind_tools.h"
 #include <iostream>
 
 using namespace votca;

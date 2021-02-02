@@ -14,9 +14,12 @@
  *
  */
 
-#include "xtp_calculators.hpp"
+#include "xtp_bind_calculators.h"
 #include <iostream>
+#include <pybind11/embed.h>
+#include <pybind11/stl.h>
 
+namespace py = pybind11;
 using namespace votca;
 
 namespace pyxtp {
@@ -25,14 +28,15 @@ namespace pyxtp {
  * @brief Construct a new pybind11 module object to invoke votca-xtp*
  *
  */
-int call_calculator(const std::string& name, int n_threads,
-                    std::string xml_file) {
+int call_calculator(const std::string& name,
+                    const std::map<std::string, std::string>& dict) {
   // Load properties
   votca::tools::Property prop;
+  const std::string& xml_file = dict.at("xml_file");
   prop.LoadFromXML(xml_file);
   // Call calculator
   pyxtp::XTPCalculators calc;
-  calc.Initialize(name, n_threads, prop);
+  calc.Initialize(name, 1, prop);
   return 42;
 }
 

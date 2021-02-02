@@ -103,11 +103,6 @@ class CMakeBuild(build_ext):
         )
 
 
-def readme():
-    """Load readme."""
-    with open('README.md') as f:
-        return f.read()
-
 
 version = {}
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -119,7 +114,6 @@ setup(
     version=version['__version__'],
     author_email="devs@votca.org",
     description="Python bind to XTP using CMAKE",
-    long_description=readme() + '\n\n',
     long_description_content_type='text/markdown',
     ext_modules=[CMakeExtension("xtp_binds")],
     cmdclass={"build_ext": CMakeBuild},

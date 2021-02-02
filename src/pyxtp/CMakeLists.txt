@@ -1,24 +1,18 @@
-cmake_minimum_required(VERSION 3.12)
 
-project(pyxtp LANGUAGES CXX)
-
-find_package(pybind11 REQUIRED HINTS)
+find_package(pybind11 REQUIRED)
 find_package(VOTCA_XTP REQUIRED NO_MODULE)
-
-set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+find_package(VOTCA_TOOLS REQUIRED NO_MODULE)
 
 file(GLOB_RECURSE BIND_SOURCES binds/*.cc)
 
 pybind11_add_module(xtp_binds ${BIND_SOURCES})
 target_include_directories(xtp_binds
  PUBLIC
- ${PROJECT_SOURCE_DIR}/binds/include
+ binds/include
 )
 
 target_compile_options(xtp_binds
  PUBLIC
- "-Wall"
 )
 set_target_properties(xtp_binds
   PROPERTIES
@@ -30,7 +24,6 @@ set_target_properties(xtp_binds
 target_link_libraries(xtp_binds
  PUBLIC
  VOTCA::votca_xtp VOTCA::votca_tools
- "-Wl,--no-as-needed"
 )
 
 # # DPYXTP_VERSION_INFO is defined in the setup.py file

@@ -79,8 +79,8 @@ if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
 
-option(ENABLE_PYBIND11 "Build interface to Python using PyBind11" OFF)
-add_feature_info(ENABLE_PYBIND11 ENABLE_PYBIND11 "Enable Python interface")
+find_package(pybind11)
+option(ENABLE_PYBIND11 "Build interface to Python using PyBind11" ${pybind11_FOUND})
 
 ########################################################################
 #Find external packages

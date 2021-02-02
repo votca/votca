@@ -14,21 +14,21 @@
  *
  */
 
-#ifndef XTP_CALCULATORS_H_
-#define XTP_CALCULATORS_H_
+#ifndef XTP_BIND_CALCULATORS_H_
+#define XTP_BIND_CALCULATORS_H_
 
 #include "votca/tools/property.h"
 #include "votca/xtp/calculatorfactory.h"
 #include "votca/xtp/qmcalculator.h"
 #include <memory>
 #include <string>
+#include <map>
 
 using namespace votca;
 
 namespace pyxtp {
 
-int call_calculator(const std::string& name, int nThreads,
-                    std::string xml_file);
+int call_calculator(const std::string& name, const std::map<std::string, std::string>& dict);
 
 class XTPCalculators {
  public:
@@ -41,4 +41,4 @@ class XTPCalculators {
 
 }  // namespace pyxtp
 
-#endif  // XTP_CALCULATORS_H_
+#endif  // XTP_BIND_CALCULATORS_H_

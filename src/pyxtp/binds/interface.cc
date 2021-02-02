@@ -14,8 +14,8 @@
  *
  */
 
-#include "xtp_calculators.hpp"
-#include "xtp_tools.hpp"
+#include "xtp_bind_calculators.h"
+#include "xtp_bind_tools.h"
 #include <pybind11/complex.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>

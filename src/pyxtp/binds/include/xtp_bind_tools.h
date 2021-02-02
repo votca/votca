@@ -14,8 +14,8 @@
  *
  */
 
-#if !defined(XTP_TOOLS_H_)
-#define XTP_TOOLS_H_
+#if !defined(XTP_BIND_TOOLS_H_)
+#define XTP_BIND_TOOLS_H_
 
 #include "votca/tools/property.h"
 #include "votca/xtp/qmtool.h"
@@ -37,4 +37,4 @@ class XTPTools {
 };
 }  // namespace pyxtp
 
-#endif  // XTP_TOOLS_H_
+#endif  // XTP_BIND_TOOLS_H_
