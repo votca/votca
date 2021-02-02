@@ -33,18 +33,11 @@ namespace xtp {
 class QMToolFactory : public tools::ObjectFactory<std::string, QMTool> {
 
  private:
-  QMToolFactory() = default;
+  void RegisterAll();
 
  public:
-  static void RegisterAll(void);
-
-  friend QMToolFactory &QMTools();
+  QMToolFactory() { this->RegisterAll(); };
 };
-
-inline QMToolFactory &QMTools() {
-  static QMToolFactory _instance;
-  return _instance;
-}
 
 }  // namespace xtp
 }  // namespace votca

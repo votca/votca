@@ -38,8 +38,8 @@ int call_calculator(const std::string& name, int n_threads,
 
 void XTPCalculators::Initialize(const std::string& name, int n_threads,
                                 votca::tools::Property prop) {
-  xtp::Calculatorfactory inst;
-  _calculator = inst.Create(name);
+  xtp::Calculatorfactory factory;
+  _calculator = factory.Create(name);
   _calculator->setnThreads(n_threads);
   _calculator->Initialize(prop);
   std::cout << "The calculator has been initialize!\n";

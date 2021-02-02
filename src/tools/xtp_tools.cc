@@ -57,7 +57,7 @@ namespace propt = boost::program_options;
 
 void XtpTools::Initialize() {
 
-  xtp::QMToolFactory::RegisterAll();
+  xtp::QMToolFactory{};
   xtp::XtpApplication::Initialize();
 
   // Tools-related
@@ -78,10 +78,11 @@ bool XtpTools::EvaluateOptions() {
 
   std::string helpdir = "xtp/xml";
 
+  xtp::QMToolFactory factory;
   if (OptionsMap().count("list")) {
     std::cout << "Available XTP tools: \n";
 
-    for (const auto& name : xtp::QMTools().getKeys()) {
+    for (const auto& name : factory.getKeys()) {
       PrintDescription(std::cout, name, helpdir, Application::HelpShort);
     }
     StopExecution();
@@ -94,7 +95,7 @@ bool XtpTools::EvaluateOptions() {
                          " ,\n\t");
     // loop over the names in the description string
     for (const std::string& n : tok) {
-      if (xtp::QMTools().IsRegistered(n)) {
+      if (factory.IsRegistered(n)) {
         PrintDescription(std::cout, n, helpdir, Application::HelpLong);
       } else {
         std::cout << "Tool " << n << " does not exist\n";
@@ -115,8 +116,8 @@ bool XtpTools::EvaluateOptions() {
   CheckRequired(
       "name", "Please provide the job name to run (same as the xyz file name)");
 
-  if (xtp::QMTools().IsRegistered(calc_string[0])) {
-    this->SetTool(xtp::QMTools().Create(calc_string[0]));
+  if (factory.IsRegistered(calc_string[0])) {
+    this->SetTool(factory.Create(calc_string[0]));
     std::cout << "Registered " << calc_string[0] << std::endl;
   } else {
     std::cout << "Tool " << calc_string[0] << " does not exist\n";

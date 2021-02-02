@@ -29,11 +29,13 @@ int call_tool(const std::string& name, int nThreads, std::string xml_file) {
 
 void XTPTools::Initialize(const std::string& name, int n_threads,
                           votca::tools::Property prop) {
-  // xtp::QMToolFactory inst;
-  //   _calculator = inst.Create(name);
-  //   _calculator->setnThreads(n_threads);
-  //   _calculator->Initialize(prop);
+  xtp::QMToolFactory factory;
+  _tool = factory.Create(name);
+  _tool->setnThreads(n_threads);
+  _tool->Initialize(prop);
   std::cout << "The calculator has been initialize!\n";
+  _tool->Evaluate();
+  std::cout << "The calculation finished succesfully\n";
 }
 
 }  // namespace pyxtp
