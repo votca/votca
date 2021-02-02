@@ -43,7 +43,7 @@ class XtpParallel : public xtp::JobApplication {
 namespace propt = boost::program_options;
 
 void XtpParallel::Initialize() {
-  xtp::JobCalculatorfactory::RegisterAll();
+  xtp::JobCalculatorfactory{};
   xtp::JobApplication::Initialize();
 
   AddProgramOptions("Calculator")("execute,e", propt::value<string>(),
@@ -55,9 +55,10 @@ void XtpParallel::Initialize() {
 
 bool XtpParallel::EvaluateOptions() {
 
+  xtp::JobCalculatorfactory factory;
   if (OptionsMap().count("list")) {
     cout << "Available XTP calculators: \n";
-    for (const auto& name : xtp::JobCalculators().getKeys()) {
+    for (const auto& name : factory.getKeys()) {
       PrintDescription(std::cout, name, "xtp/xml", Application::HelpShort);
     }
     StopExecution();
@@ -69,7 +70,7 @@ bool XtpParallel::EvaluateOptions() {
     tools::Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
     // loop over the names in the description string
     for (const std::string& n : tok) {
-      if (xtp::JobCalculators().IsRegistered(n)) {
+      if (factory.IsRegistered(n)) {
         PrintDescription(std::cout, n, "xtp/xml", Application::HelpLong);
       } else {
         cout << "Calculator " << n << " does not exist\n";
@@ -89,9 +90,8 @@ bool XtpParallel::EvaluateOptions() {
         "You can only run one calculator at the same time.");
   }
 
-  if (xtp::JobCalculators().IsRegistered(calc_string[0])) {
-    xtp::JobApplication::SetCalculator(
-        xtp::JobCalculators().Create(calc_string[0]));
+  if (factory.IsRegistered(calc_string[0])) {
+    xtp::JobApplication::SetCalculator(factory.Create(calc_string[0]));
   } else {
     cout << "Jobcalculator " << calc_string[0] << " does not exist\n";
     StopExecution();
