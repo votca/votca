@@ -31,8 +31,7 @@ namespace xtp {
 void QuadratureFactory::RegisterAll() {
   this->Register<Gauss_Laguerre_Quadrature>("laguerre");
   this->Register<Gauss_Legendre_Quadrature>("legendre");
-  this->Register<Gauss_modified_Legendre_Quadrature>(
-      "modified_legendre");
+  this->Register<Gauss_modified_Legendre_Quadrature>("modified_legendre");
   this->Register<Gauss_Hermite_Quadrature>("hermite");
 }
 }  // namespace xtp
