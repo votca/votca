@@ -251,7 +251,7 @@ void OpenMP_CUDA::createTemporaries(const Eigen::VectorXd& vec,
     gpu.push_back(rows2, cols);
     gpu.push_back(rows1 * rows2, 1);
     gpu.push_back(rows1 * rows2, 1);
-    gpu.push_back(reduction_[i].rows(), reduction_[i].cols());
+    gpu.push_back(input.rows(), input.cols());
     gpu.temp.back()->setZero();
   }
 }
