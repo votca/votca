@@ -122,6 +122,11 @@ if(USE_CUDA)
   set_package_properties(CUDA PROPERTIES TYPE REQUIRED PURPOSE "Used for GPU acceleration")
 endif(USE_CUDA)
 
+find_package(Python 3 COMPONENTS Interpreter Development)
+set_package_properties(Python PROPERTIES TYPE RECOMMENDED PURPOSE "Used to build xtp python bindings")
+find_package(pybind11)
+set_package_properties(pybind11 PROPERTIES TYPE RECOMMENDED PURPOSE "Used to build xtp python bindings")
+
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
