@@ -416,7 +416,7 @@ void OpenMP_CUDA::MultiplyBlocks(Eigen::MatrixXd& mat, Index i1, Index i2) {
     GPU_data& gpu = gpus_[threadid];
     gpu.activateGPU();
     gpu.Mat(3).copy_to_gpu(mat);
-    gpu.pipe().gemm(gpu.Mat(2), gpu.Mat(3), gpu.Mat(4));
+    gpu.pipe().gemm(gpu.Mat(2), gpu.Mat(3).transpose(), gpu.Mat(4));
     gpu.pipe().gemm(gpu.Mat(4),
                     gpu.Mat(1).block(i1 * gpu.Mat(4).rows(), 0,
                                      gpu.Mat(4).rows(), gpu.Mat(1).cols()),
