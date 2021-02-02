@@ -106,7 +106,7 @@ class OpenMP_CUDA {
     }
 
     const T& operator()() {
-      assert(p!=nullptr && "Dangling reference!");
+      assert(p != nullptr && "Dangling reference!");
       return *p;
     }
 

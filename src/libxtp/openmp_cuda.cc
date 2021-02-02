@@ -128,10 +128,10 @@ void OpenMP_CUDA::MultiplyRight(Eigen::MatrixXd& tensor) {
 }
 
 void OpenMP_CUDA::setOperators(const Eigen::MatrixXd& leftoperator,
-                               const Eigen::MatrixXd& rightoperator){
+                               const Eigen::MatrixXd& rightoperator) {
   lOP_ = leftoperator;
   rOP_ = rightoperator;
- 
+
 #ifdef USE_CUDA
 #pragma omp parallel for num_threads(gpus_.size())
   for (Index i = 0; i < Index(gpus_.size()); i++) {
