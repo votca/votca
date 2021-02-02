@@ -58,18 +58,23 @@ class OpenMP_CUDA {
     return 0;
 #endif
   }
+
+  // 3c multiply
   void setOperators(const std::vector<Eigen::MatrixXd>& tensor,
                     const Eigen::MatrixXd& rightoperator);
   void MultiplyRight(Eigen::MatrixXd& matrix);
 
+  // 3c
   void setOperators(const Eigen::MatrixXd& leftoperator,
                     const Eigen::MatrixXd& rightoperator);
   void MultiplyLeftRight(Eigen::MatrixXd& matrix);
 
+  // RPA
   void createTemporaries(Index rows, Index cols);
   void PushMatrix(Eigen::MatrixXd& mat);
   void A_TDA(const Eigen::VectorXd& vec);
 
+  // Hd + Hqp + Hd2
   void createTemporaries(const Eigen::VectorXd& vec,
                          const Eigen::MatrixXd& input, Index rows1, Index rows2,
                          Index cols);
@@ -78,6 +83,12 @@ class OpenMP_CUDA {
   void PrepareMatrix2(const Eigen::MatrixXd& mat, bool Hd2);
   void Addvec(const Eigen::VectorXd& row);
   void MultiplyRow(Index row);
+
+  // Hx
+
+  void createAdditionalTemporaries(Index rows, Index cols);
+  void PushMatrix1(Eigen::MatrixXd& mat);
+  void MultiplyBlocks(Eigen::MatrixXd& mat, Index i1, Index i2);
 
   Eigen::MatrixXd getReductionVar();
 
@@ -124,6 +135,11 @@ class OpenMP_CUDA {
     void push_back(Index rows, Index cols) {
       temp.push_back(
           std::make_unique<CudaMatrix>(rows, cols, pipeline->get_stream()));
+    }
+
+    void resize(Index id, Index rows, Index cols) {
+      temp[id] =
+          std::make_unique<CudaMatrix>(rows, cols, pipeline->get_stream());
     }
   };
 

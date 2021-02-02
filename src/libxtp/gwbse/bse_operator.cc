@@ -89,29 +89,23 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
       transform.MultiplyRow(vc.I(v1, c1));
     }
   }
-  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(input.rows(), input.cols());
   if (cx > 0) {
-#pragma omp parallel for schedule(dynamic) reduction(+ : result)
+
+    transform.createAdditionalTemporaries(_bse_ctotal, auxsize);
+#pragma omp parallel for schedule(dynamic)
     for (Index v1 = 0; v1 < _bse_vtotal; v1++) {
       Index va = v1 + vmin;
       Eigen::MatrixXd Mmn1 = cx * _Mmn[va].block(cmin, 0, _bse_ctotal, auxsize);
+      transform.PushMatrix1(Mmn1);
       for (Index v2 = v1; v2 < _bse_vtotal; v2++) {
         Index vb = v2 + vmin;
-        const Eigen::MatrixXd blockmat =
-            Mmn1 * _Mmn[vb].block(cmin, 0, _bse_ctotal, auxsize).transpose();
-        result.block(v1 * _bse_ctotal, 0, _bse_ctotal, result.cols()) +=
-            blockmat *
-            input.block(v2 * _bse_ctotal, 0, _bse_ctotal, input.cols());
-        if (v1 != v2) {
-          result.block(v2 * _bse_ctotal, 0, _bse_ctotal, result.cols()) +=
-              blockmat.transpose() *
-              input.block(v1 * _bse_ctotal, 0, _bse_ctotal, input.cols());
-        }
+        Eigen::MatrixXd Mmn2 = _Mmn[vb].block(cmin, 0, _bse_ctotal, auxsize);
+        transform.MultiplyBlocks(Mmn2, v1, v2);
       }
     }
   }
 
-  return result + transform.getReductionVar();
+  return transform.getReductionVar();
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
