@@ -84,8 +84,8 @@ Eigen::VectorXd CalculateER(const Orbitals& orb, QMStateType type) const;
   Eigen::MatrixXd CalculateD(const Orbitals& orb, QMStateType type,
                              Index stateindex1, Index stateindex2) const;
   
-  double CalculateR(const Eigen::MatrixXd& D_LM,
-                    const Eigen::MatrixXd& D_JK) const;
+  double CalculateR(const Eigen::MatrixXd& D_JK,
+                    const Eigen::MatrixXd& D_LM) const;
   Eigen::MatrixXd CalculateU(const double phi) const;
   Eigen::Tensor<double, 4> CalculateRtensor(const Orbitals& orb,
                                             QMStateType type) const;

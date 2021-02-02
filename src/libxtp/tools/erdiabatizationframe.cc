@@ -39,10 +39,19 @@ void ERDiabatizationFrame::ParseOptions(const tools::Property& user_options) {
   _options.state_idx_2 = options.get(".state_idx_2").as<Index>();
   std::string qmtype = options.get(".qmtype").as<std::string>();
   _qmtype.FromString(qmtype);
-
   XTP_LOG(Log::error, _log) << "Type : " << qmtype << flush;
-  XTP_LOG(Log::error, _log) << "State 1 : " << _options.state_idx_1 << flush;
-  XTP_LOG(Log::error, _log) << "State 2 : " << _options.state_idx_2 << flush;
+  
+  if (_options.state_idx_1 < 1) {
+    throw std::runtime_error("State idx 1 must start from 1.");
+  } else {
+    XTP_LOG(Log::error, _log) << "State 1 : " << _options.state_idx_1 << flush;
+  }
+
+  if (_options.state_idx_2 < 1) {
+    throw std::runtime_error("State idx 2 must start from 1.");
+  } else {
+    XTP_LOG(Log::error, _log) << "State 2 : " << _options.state_idx_2 << flush;
+  }
 
   XTP_LOG(Log::error, _log) << flush;
 };

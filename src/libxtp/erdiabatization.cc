@@ -50,8 +50,8 @@ void ERDiabatization::configure(const options_erdiabatization& opt) {
   _opt = opt;
 }
 
-double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_LM,
-                                   const Eigen::MatrixXd& D_JK) const {
+double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_JK,
+                                   const Eigen::MatrixXd& D_LM) const {
 
   // Here I want to do \sum_{kl} (ij|kl) D^{LM}_{jk}. Is it right?
   XTP_LOG(Log::debug, *_pLog) << "Calculating 4c ERIs" << flush;
@@ -93,7 +93,7 @@ Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
       for (Index L = 0; L < 2; L++) {
         for (Index M = 0; M < 2; M++) {
           Eigen::MatrixXd D_LM = CalculateD(orb, type, L, M);
-          r_tensor(J, K, L, M) = CalculateR(D_LM, D_JK);
+          r_tensor(J, K, L, M) = CalculateR(D_JK, D_LM);
         }
       }
     }
@@ -143,6 +143,9 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb,
                                             QMStateType type, Index stateindex1,
                                             Index stateindex2) const {
 
+  //D matrix depends on 2 indeces. These can be either 0 or 1. 
+  // Index=0 means "take the first excited state" as Index=1 means "take the second excitate state"
+  //This is the reason for this                                               
   Index index1;
   Index index2;
 
@@ -158,7 +161,7 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb,
   if (stateindex2 == 1) {
     index2 = _opt.state_idx_2;
   }
-
+  //This requires that index1 and index1 starts from 1. Please add check.
   Eigen::VectorXd exciton1;
   Eigen::VectorXd exciton2;
   if (type == QMStateType::Singlet) {
