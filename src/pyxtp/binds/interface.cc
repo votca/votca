@@ -54,4 +54,12 @@ PYBIND11_MODULE(xtp_binds, module) {
         xml_file
           Input file specification
   )pbdoc");
+
+  // Generate binds for QMTool
+  py::class_<xtp::QMTool>(module, "QMTool")
+      .def(py::init([](const std::string& name) {
+        xtp::QMToolFactory factory;
+        return factory.Create(name);
+      }))
+      .def("Initialize", &xtp::QMTool::Initialize);
 }

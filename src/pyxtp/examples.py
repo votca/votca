@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Examples to show xtp_binds usage."""
 from pyxtp import xtp_binds
 import os
 from pathlib import Path
@@ -18,12 +19,14 @@ def capture_standard_output(function, *args, **kwargs):
     return output
 
 
-def main():
+def run_examples():
     n_threads = cpu_count()
-    # votca_share = Path(os.environ["VOTCASHARE"])
-    # path_eanalyze = votca_share / "xtp" / "xml" / "eanalyze.xml"
-    # xml_file = path_eanalyze.absolute().as_posix()
-    # xtp_binds.call_calculator("eanalyze", n_threads, xml_file)
+    # Eanalyze
+    print("Calling eanalyze")
+    votca_share = Path(os.environ["VOTCASHARE"])
+    path_eanalyze = votca_share / "xtp" / "xml" / "eanalyze.xml"
+    xml_file = path_eanalyze.absolute().as_posix()
+    xtp_binds.call_calculator("eanalyze", n_threads, xml_file)
 
     # DFTGWBSE
     print("calling dftgwbse")
@@ -31,10 +34,9 @@ def main():
     output = capture_standard_output(
         xtp_binds.call_tool, "dftgwbse", n_threads, path_dftgwbse.absolute().as_posix())
 
-
     with open("example.out", "w") as handler:
         handler.write(output)
 
 
 if __name__ == "__main__":
-    main()
+    run_examples()
