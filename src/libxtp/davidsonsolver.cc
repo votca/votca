@@ -246,6 +246,10 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz(
 
   DavidsonSolver::RitzEigenPair rep;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(proj.T);
+  if(es.info()!=Eigen::ComputationInfo::Success){
+      std::cerr<<"A\n"<<proj.T;
+      throw std::runtime_error("Small hermitian eigenvalue problem failed.");
+    }
   rep.lambda = es.eigenvalues();
   rep.U = es.eigenvectors();
 
