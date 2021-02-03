@@ -25,7 +25,7 @@
 using namespace votca;
 
 namespace pyxtp {
-int call_tool(const std::string& name, int nThreads, std::string xml_file);
+void call_tool(const std::string& name, int nThreads, std::string xml_file);
 
 class XTPTools {
  public:

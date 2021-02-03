@@ -28,16 +28,14 @@ namespace pyxtp {
  * @brief Construct a new pybind11 module object to invoke votca-xtp*
  *
  */
-int call_calculator(const std::string& name,
-                    const std::map<std::string, std::string>& dict) {
+void call_calculator(const std::string& name, int n_threads,
+                     const std::string& xml_file) {
   // Load properties
   votca::tools::Property prop;
-  const std::string& xml_file = dict.at("xml_file");
   prop.LoadFromXML(xml_file);
   // Call calculator
   pyxtp::XTPCalculators calc;
-  calc.Initialize(name, 1, prop);
-  return 42;
+  calc.Initialize(name, n_threads, prop);
 }
 
 void XTPCalculators::Initialize(const std::string& name, int n_threads,
@@ -46,7 +44,7 @@ void XTPCalculators::Initialize(const std::string& name, int n_threads,
   _calculator = factory.Create(name);
   _calculator->setnThreads(n_threads);
   _calculator->Initialize(prop);
-  std::cout << "The calculator has been initialize!\n";
+  std::cout << "Calculator has been Initialized\n";
 }
 
 }  // namespace pyxtp

@@ -28,8 +28,8 @@ using namespace votca;
 
 namespace pyxtp {
 
-int call_calculator(const std::string& name,
-                    const std::map<std::string, std::string>& dict);
+void call_calculator(const std::string& name, int n_threads,
+                     const std::string& xml_file);
 
 class XTPCalculators {
  public:
