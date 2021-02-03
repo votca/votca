@@ -30,7 +30,7 @@ VOTCAHEADER = f"""
 
 {PROGTITLE}
 
-please submit bugs to bugs@votca.org 
+please submit bugs to bugs@votca.org
 votca_help2doc, version {VERSION}
 """
 
@@ -89,10 +89,10 @@ def parse_help_message(msg: str, name: str) -> Data:
     # Compilation info
     list(itertools.takewhile(lambda x: x, lines))
     # description and optional examples
-    description, examples = read_section_examples(
-        itertools.takewhile(lambda x: x, lines))
-
+    opts_lines, lines = take_until_options(lines)
+    description, examples = read_section_examples(opts_lines)
     # Options and optional examples
+
     if examples:
         options = "\n  ".join(filter(lambda x: x, lines))
     else:
@@ -101,6 +101,19 @@ def parse_help_message(msg: str, name: str) -> Data:
     options = format_options(options)
 
     return Data(name, description, examples, options)
+
+
+def take_until_options(lines: Iterable[str]) -> Tuple[Iterable[str], Iterable[str]]:
+    """Take lines until options."""
+    opts = []
+    old_lines = []
+    for value in lines:
+        if not any(x in value for x in {"options:", "arguments:"}):
+            opts.append(value)
+        else:
+            old_lines = itertools.chain([value], lines)
+            break
+    return iter(opts), iter(old_lines)
 
 
 def format_options(options: str):
@@ -118,6 +131,12 @@ def format_options(options: str):
 def format_rst(sec: Data) -> str:
     """Format the section as RST."""
     opts = "\n".join(f"  {x}" for x in sec.options.splitlines())
+    options_code_block = """
+OPTIONS
+*******
+.. highlight:: none
+::
+"""
     return f"""
 NAME
 ****
@@ -136,10 +155,7 @@ DESCRIPTION
 
 {sec.examples}
 
-OPTIONS
-*******
-::
-
+{options_code_block if opts else ""}
 {opts}
 """
 
@@ -188,7 +204,6 @@ def read_section_examples(lines: Iterable[str]) -> Tuple[str, str]:
     express = re.compile(r'^example', flags=re.IGNORECASE)
     desc = "\n".join(itertools.takewhile(
         lambda x: re.match(express, x) is None, lines))
-
     # extract example section
     examples = "\n  ".join(lines)
     if examples:

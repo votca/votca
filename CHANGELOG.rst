@@ -7,7 +7,7 @@ Version 2022-dev
 -  create script to convert help to rst (#312, #328)
 -  add rst pages to doc (#330, #332)
 -  remove tex and man output from app class (#329)
--  fix example rst section (#327)
+-  fix example rst section (#327, #339)
 -  remove author and copyright from rst (#331)
 -  fix rst warnings (#334)
 -  export PYTHONPATH in VOTCARC (#340)
