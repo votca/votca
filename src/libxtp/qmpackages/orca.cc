@@ -34,6 +34,7 @@
 #include "votca/tools/globals.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpaobasis.h"
+#include "votca/xtp/molden.h"
 #include "votca/xtp/orbitals.h"
 
 // Local private VOTCA includes
@@ -108,10 +109,10 @@ void Orca::WriteCoordinates(std::ofstream& inp_file,
   for (const QMAtom& atom : qmatoms) {
     Eigen::Vector3d pos = atom.getPos() * tools::conv::bohr2ang;
     inp_file << setw(3) << atom.getElement() << setw(12)
-             << setiosflags(ios::fixed) << setprecision(5) << pos.x()
-             << setw(12) << setiosflags(ios::fixed) << setprecision(5)
+             << setiosflags(ios::fixed) << setprecision(6) << pos.x()
+             << setw(12) << setiosflags(ios::fixed) << setprecision(6)
              << pos.y() << setw(12) << setiosflags(ios::fixed)
-             << setprecision(5) << pos.z() << endl;
+             << setprecision(6) << pos.z() << endl;
   }
   inp_file << "* \n" << endl;
   return;
@@ -312,6 +313,8 @@ bool Orca::WriteShellScript() {
   }
   shell_file << _settings.get("executable") << " " << _input_file_name << " > "
              << _log_file_name << endl;  //" 2> run.error" << endl;
+  std::string base_name = _mo_file_name.substr(0, _mo_file_name.size() - 4);
+  shell_file << "orca_2mkl " << base_name << " -molden" << endl;
   shell_file.close();
   return true;
 }
@@ -321,7 +324,7 @@ bool Orca::WriteShellScript() {
  */
 bool Orca::Run() {
 
-  XTP_LOG(Log::error, *_pLog) << "Running Orca job" << flush;
+  XTP_LOG(Log::error, *_pLog) << "Running Orca job\n" << flush;
 
   if (std::system(nullptr)) {
 
@@ -721,8 +724,7 @@ bool Orca::CheckLogFile() {
   return true;
 }
 
-// Parses the Orca gbw file and stores data in the Orbitals object
-
+// Parses the molden file from orca and stores data in the Orbitals object
 bool Orca::ParseMOsFile(Orbitals& orbitals) {
   if (!CheckLogFile()) {
     return false;
@@ -734,60 +736,32 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
         "Basis size not set, calculator does not parse log file first");
   }
 
-  XTP_LOG(Log::error, *_pLog)
-      << "Reading the gbw file, this may or may not work so be careful: "
-      << flush;
-  ifstream infile;
-  infile.open(_run_dir + "/" + _mo_file_name, ios::binary | ios::in);
-  if (!infile) {
-    throw runtime_error("Could not open " + _mo_file_name + " file");
-  }
-  infile.seekg(24, ios::beg);
-  std::array<char, 8> buffer;
-  infile.read(buffer.data(), 8);
-  if (!infile) {
-    infile.close();
-    return false;
-  }
-  Index offset = *((Index*)buffer.data());
+  XTP_LOG(Log::error, *_pLog) << "Reading Molden file" << flush;
 
-  infile.seekg(offset, ios::beg);
-  infile.read(buffer.data(), 4);
-  if (!infile) {
-    infile.close();
-    return false;
-  }
-  int op_read = *((int*)buffer.data());
-  infile.seekg(offset + 4, ios::beg);
-  infile.read(buffer.data(), 4);
-  if (!infile) {
-    infile.close();
-    return false;
-  }
-  int dim_read = *((int*)buffer.data());
-  infile.seekg(offset + 8, ios::beg);
-  XTP_LOG(Log::info, *_pLog) << "Number of operators: " << op_read
-                             << " Basis dimension: " << dim_read << flush;
-  Index n = op_read * dim_read * dim_read;
-  for (Index i = 0; i < n; i++) {
-    infile.read(buffer.data(), 8);
-    if (!infile) {
-      infile.close();
-      return false;
-    }
-    double mocoeff = *((double*)buffer.data());
-    coefficients.push_back(mocoeff);
+  Molden molden(*_pLog);
+
+  if (orbitals.getDFTbasisName() == "") {
+    throw runtime_error(
+        "Basisset names should be set before reading the molden file.");
   }
 
-  infile.close();
-  // i -> MO, j -> AO
-  orbitals.MOs().eigenvectors().resize(basis_size, basis_size);
-  for (Index i = 0; i < basis_size; i++) {
-    for (Index j = 0; j < basis_size; j++) {
-      orbitals.MOs().eigenvectors()(j, i) = coefficients[j * basis_size + i];
-    }
+  molden.setBasissetInfo(orbitals.getDFTbasisName());
+  std::string file_name =
+      _mo_file_name.substr(0, _mo_file_name.size() - 4) + ".molden.input";
+
+  std::ifstream molden_file(file_name);
+  if (!molden_file.good()) {
+    throw std::runtime_error(
+        "Could not find the molden input file for the MO coefficients.\nIf you "
+        "have run the orca calculation manually or use data from an old\n"
+        "calculation, make sure that besides the .gbw file a .molden.input is\n"
+        "present. If not, convert the .gbw file to a .molden.input file with\n"
+        "the orca_2mkl tool from orca.\nAn example, if you have a benzene.gbw "
+        "file run:\n    orca_2mkl benzene -molden\n");
   }
-  ReorderOutput(orbitals);
+
+  molden.parseMoldenFile(file_name, orbitals);
+
   XTP_LOG(Log::error, *_pLog) << "Done parsing" << flush;
   return true;
 }

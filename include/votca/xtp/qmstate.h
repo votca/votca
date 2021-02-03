@@ -27,10 +27,6 @@
 // VOTCA includes
 #include <votca/tools/types.h>
 
-// Local VOTCA includes
-#include "checkpointreader.h"
-#include "checkpointwriter.h"
-
 namespace votca {
 namespace xtp {
 
@@ -88,6 +84,10 @@ class QMStateType {
   bool isGWState() const {
     return (_type == statetype::PQPstate || _type == statetype::DQPstate);
   }
+
+  bool isKSState() const { return (_type == statetype::KSstate); }
+
+  bool isPQPState() const { return (_type == statetype::PQPstate); }
 
  private:
   statetype _type;

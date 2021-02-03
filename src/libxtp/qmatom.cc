@@ -19,7 +19,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/qmatom.h"
-
+#include "votca/xtp/checkpointtable.h"
 namespace votca {
 namespace xtp {
 
@@ -37,14 +37,14 @@ void QMAtom::Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos) {
   _pos = refPos + dir;  // Rotated Position
 }
 
-void QMAtom::SetupCptTable(CptTable& table) const {
-  table.addCol(_index, "index", HOFFSET(data, index));
-  table.addCol(_element, "element", HOFFSET(data, element));
-  table.addCol(_pos[0], "posX", HOFFSET(data, x));
-  table.addCol(_pos[1], "posY", HOFFSET(data, y));
-  table.addCol(_pos[2], "posZ", HOFFSET(data, z));
-  table.addCol(_nuccharge, "nuccharge", HOFFSET(data, nuccharge));
-  table.addCol(_ecpcharge, "ecpcharge", HOFFSET(data, ecpcharge));
+void QMAtom::SetupCptTable(CptTable& table) {
+  table.addCol<Index>("index", HOFFSET(data, index));
+  table.addCol<std::string>("element", HOFFSET(data, element));
+  table.addCol<double>("posX", HOFFSET(data, x));
+  table.addCol<double>("posY", HOFFSET(data, y));
+  table.addCol<double>("posZ", HOFFSET(data, z));
+  table.addCol<Index>("nuccharge", HOFFSET(data, nuccharge));
+  table.addCol<Index>("ecpcharge", HOFFSET(data, ecpcharge));
 }
 
 void QMAtom::WriteData(data& d) const {

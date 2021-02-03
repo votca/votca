@@ -22,11 +22,44 @@
 
 namespace votca {
 namespace xtp {
-cudaError_t checkCuda(cudaError_t result) {
+void checkCuda(cudaError_t result) {
   if (result != cudaSuccess) {
-    std::cerr << "CUDA Runtime Error: " << cudaGetErrorString(result) << "\n";
+    throw std::runtime_error(std::string("CUDA Runtime Error: ") +
+                             cudaGetErrorString(result));
   }
-  return result;
+}
+
+void checkCublas(cublasStatus_t result) {
+  if (result != CUBLAS_STATUS_SUCCESS) {
+    throw std::runtime_error(std::string("CUBLAS Runtime Error: ") +
+                             cudaGetErrorEnum(result));
+  }
+}
+
+std::string cudaGetErrorEnum(cublasStatus_t error) {
+  switch (error) {
+    case CUBLAS_STATUS_SUCCESS:
+      return "CUBLAS_STATUS_SUCCESS";
+    case CUBLAS_STATUS_NOT_INITIALIZED:
+      return "CUBLAS_STATUS_NOT_INITIALIZED";
+    case CUBLAS_STATUS_ALLOC_FAILED:
+      return "CUBLAS_STATUS_ALLOC_FAILED";
+    case CUBLAS_STATUS_INVALID_VALUE:
+      return "CUBLAS_STATUS_INVALID_VALUE";
+    case CUBLAS_STATUS_ARCH_MISMATCH:
+      return "CUBLAS_STATUS_ARCH_MISMATCH";
+    case CUBLAS_STATUS_MAPPING_ERROR:
+      return "CUBLAS_STATUS_MAPPING_ERROR";
+    case CUBLAS_STATUS_EXECUTION_FAILED:
+      return "CUBLAS_STATUS_EXECUTION_FAILED";
+    case CUBLAS_STATUS_INTERNAL_ERROR:
+      return "CUBLAS_STATUS_INTERNAL_ERROR";
+    case CUBLAS_STATUS_NOT_SUPPORTED:
+      return "CUBLAS_STATUS_NOT_SUPPORTED";
+    case CUBLAS_STATUS_LICENSE_ERROR:
+      return "CUBLAS_STATUS_LICENSE_ERROR";
+  }
+  return "<unknown>";
 }
 
 Index count_available_gpus() {
@@ -35,22 +68,8 @@ Index count_available_gpus() {
   return (err != cudaSuccess) ? 0 : Index(count);
 }
 
-CudaMatrix::CudaMatrix(const Eigen::MatrixXd &matrix,
-                       const cudaStream_t &stream)
-    : _rows{static_cast<Index>(matrix.rows())},
-      _cols{static_cast<Index>(matrix.cols())} {
-  _data = alloc_matrix_in_gpu(size_matrix());
-  _stream = stream;
-  cudaError_t err = cudaMemcpyAsync(_data.get(), matrix.data(), size_matrix(),
-                                    cudaMemcpyHostToDevice, stream);
-  if (err != 0) {
-    throw std::runtime_error("Error copy arrays to device :" +
-                             std::string(cudaGetErrorString(err)));
-  }
-}
-
 CudaMatrix::CudaMatrix(Index nrows, Index ncols, const cudaStream_t &stream)
-    : _rows{static_cast<Index>(nrows)}, _cols{static_cast<Index>(ncols)} {
+    : _ld(nrows), _cols(ncols) {
   _data = alloc_matrix_in_gpu(size_matrix());
   _stream = stream;
 }
@@ -61,12 +80,6 @@ CudaMatrix::operator Eigen::MatrixXd() const {
                             cudaMemcpyDeviceToHost, this->_stream));
   checkCuda(cudaStreamSynchronize(this->_stream));
   return result;
-}
-
-void CudaMatrix::copy_to_gpu(const Eigen::MatrixXd &A) {
-  size_t size_A = static_cast<Index>(A.size()) * sizeof(double);
-  checkCuda(cudaMemcpyAsync(this->data(), A.data(), size_A,
-                            cudaMemcpyHostToDevice, _stream));
 }
 
 CudaMatrix::Unique_ptr_to_GPU_data CudaMatrix::alloc_matrix_in_gpu(

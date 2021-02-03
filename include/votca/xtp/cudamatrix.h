@@ -27,10 +27,8 @@
 #endif
 
 // Standard includes
-#include <iostream>
+#include <cassert>
 #include <memory>
-#include <sstream>
-
 // Third party includes
 #include <cublas_v2.h>
 #include <curand.h>
@@ -44,26 +42,102 @@
 namespace votca {
 namespace xtp {
 
-cudaError_t checkCuda(cudaError_t result);
-
+void checkCuda(cudaError_t result);
+void checkCublas(cublasStatus_t result);
+std::string cudaGetErrorEnum(cublasStatus_t error);
 Index count_available_gpus();
+
+template <class M>
+class CudaMatrixBlock {
+ public:
+  CudaMatrixBlock(const M &mat, Index rowoffset, Index coloffset, Index rows,
+                  Index cols)
+      : mat_(mat), rows_(rows), cols_(cols) {
+
+    assert((rowoffset + rows) < mat.rows() &&
+           "block has to fit in matrix, rows exceeded");
+    assert((coloffset + cols) < mat.cols() &&
+           "block has to fit in matrix, cols exceeded");
+    start_ = coloffset * ld() + rowoffset;
+  }
+  Index size() const { return rows() * cols(); }
+  Index rows() const { return rows_; }
+  Index cols() const { return cols_; }
+  Index ld() const { return mat_.ld(); }
+  double *data() const { return mat_.data() + start_; }
+
+  static constexpr bool transposed() { return M::transposed(); }
+
+ private:
+  const M &mat_;
+  Index rows_;
+  Index cols_;
+  Index start_;
+};
+
+template <class M>
+class CudaMatrixTranspose {
+ public:
+  CudaMatrixTranspose(const M &mat) : mat_(mat) { ; }
+  Index size() const { return mat_.size(); }
+  Index rows() const { return mat_.rows(); }
+  Index cols() const { return mat_.cols(); }
+  Index ld() const { return mat_.ld(); }
+  double *data() const { return mat_.data(); }
+
+  static constexpr bool transposed() { return !M::transposed(); }
+
+ private:
+  const M &mat_;
+};
 
 class CudaMatrix {
  public:
-  Index size() const { return _rows * _cols; };
-  Index rows() const { return _rows; };
+  Index size() const { return _ld * _cols; };
+  Index rows() const { return _ld; };
+  Index ld() const { return _ld; }
   Index cols() const { return _cols; };
   double *data() const { return _data.get(); };
 
-  CudaMatrix(const Eigen::MatrixXd &matrix, const cudaStream_t &stream);
+  void reshape(Index rows, Index cols) {
+    assert(rows * cols == size() &&
+           "reshape cannot change the shape of the matrix");
+    _cols = cols;
+    _ld = rows;
+  }
+
+  CudaMatrixTranspose<CudaMatrix> transpose() const {
+    return CudaMatrixTranspose<CudaMatrix>(*this);
+  }
+
+  CudaMatrixBlock<CudaMatrix> block(Index rowoffset, Index coloffset,
+                                    Index rows, Index cols) const {
+    return CudaMatrixBlock<CudaMatrix>(*this, rowoffset, coloffset, rows, cols);
+  }
+
+  static constexpr bool transposed() { return false; }
+
+  template <class T>
+  void copy_to_gpu(const T &m) {
+    checkCublas(cublasSetMatrixAsync(
+        int(m.rows()), int(m.cols()), sizeof(double), m.data(),
+        int(m.colStride()), this->data(), int(this->rows()), _stream));
+  }
+
+  template <class T>
+  CudaMatrix(const T &matrix, const cudaStream_t &stream)
+      : _ld{static_cast<Index>(matrix.rows())},
+        _cols{static_cast<Index>(matrix.cols())} {
+    _data = alloc_matrix_in_gpu(size_matrix());
+    _stream = stream;
+    copy_to_gpu(matrix);
+  }
 
   // Allocate memory in the GPU for a matrix
   CudaMatrix(Index nrows, Index ncols, const cudaStream_t &stream);
 
   // Convert A Cudamatrix to an EigenMatrix
   operator Eigen::MatrixXd() const;
-
-  void copy_to_gpu(const Eigen::MatrixXd &A);
 
  private:
   // Unique pointer with custom delete function
@@ -79,7 +153,7 @@ class CudaMatrix {
   Unique_ptr_to_GPU_data _data{nullptr,
                                [](double *x) { checkCuda(cudaFree(x)); }};
   cudaStream_t _stream = nullptr;
-  Index _rows;
+  Index _ld;
   Index _cols;
 };
 
