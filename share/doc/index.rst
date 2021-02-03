@@ -20,6 +20,7 @@ For an installation guide see `here <INSTALL.html>`__.
    :hidden:
    :caption: Manuals
 
+   tools/index.rst
    csg/index.rst
    xtp/XTP-MANUAL.rst
 	     
