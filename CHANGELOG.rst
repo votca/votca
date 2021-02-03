@@ -17,6 +17,7 @@ Version 2022-dev
 -  Read MO coefficients computed with orca from the molden file instead of the .gbw binary (#589)
 -  fix lxml detection in cmake (#670)
 -  extend fchk writer with option to print single KS state densities and densities relative to the ground state (#662)
+-  added a more general constructor to cudamatrix (#671)
 
 
 Version 2021-rc.2 (released XX.01.21)
@@ -24,6 +25,7 @@ Version 2021-rc.2 (released XX.01.21)
 
 -  fix CI on rawhide (#663)
 -  add xtp_qmmm2qm to cmake install (#665)
+-  add auto-cancel workflow to GitHub Actions (#674)
 
 Version 2021-rc.1 (released 15.01.21)
 =====================================
