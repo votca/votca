@@ -17,6 +17,7 @@ Version 2021-rc.2 (released XX.01.21)
 =====================================
 
 -  fix CI on rawhide (#336)
+-  add auto-cancel workflow to GitHub Actions (#343)
 
 Version 2021-rc.1 (released 15.01.21)
 =====================================
