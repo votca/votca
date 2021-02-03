@@ -106,13 +106,14 @@ def parse_help_message(msg: str, name: str) -> Data:
 def take_until_options(lines: Iterable[str]) -> Tuple[Iterable[str], Iterable[str]]:
     """Take lines until options."""
     opts = []
+    old_lines = []
     for value in lines:
         if not any(x in value for x in {"options:", "arguments:"}):
             opts.append(value)
         else:
             old_lines = itertools.chain([value], lines)
             break
-    return iter(opts), old_lines
+    return iter(opts), iter(old_lines)
 
 
 def format_options(options: str):
@@ -130,6 +131,12 @@ def format_options(options: str):
 def format_rst(sec: Data) -> str:
     """Format the section as RST."""
     opts = "\n".join(f"  {x}" for x in sec.options.splitlines())
+    options_code_block = """
+OPTIONS
+*******
+.. highlight:: none
+::
+"""
     return f"""
 NAME
 ****
@@ -148,11 +155,7 @@ DESCRIPTION
 
 {sec.examples}
 
-OPTIONS
-*******
-.. highlight:: none
-::
-
+{options_code_block if opts else ""}
 {opts}
 """
 
