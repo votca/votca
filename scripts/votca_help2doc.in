@@ -58,6 +58,7 @@ class Data(NamedTuple):
     description: str
     examples: str
     options: str
+    usage: str
     authors: str = AUTHORS
     copyright: str = COPYRIGHT
 
@@ -91,6 +92,7 @@ def parse_help_message(msg: str, name: str) -> Data:
     # description and optional examples
     opts_lines, lines = take_until_options(lines)
     description, examples = read_section_examples(opts_lines)
+    description, usage = search_for_usage(description)
     # Options and optional examples
 
     if examples:
@@ -100,7 +102,18 @@ def parse_help_message(msg: str, name: str) -> Data:
 
     options = format_options(options)
 
-    return Data(name, description, examples, options)
+    return Data(name, description, examples, options, usage)
+
+
+def search_for_usage(desc: str) -> Tuple[str, str]:
+    """Search for an `usage:` declaration in the description."""
+    keywords = {u for u in {"Usage:", "usage:"} if u in desc}
+    if not keywords:
+        return desc, ""
+    else:
+        key = keywords.pop()
+        desc, usage = desc.split(key)
+        return desc, f"Usage:{usage}"
 
 
 def take_until_options(lines: Iterable[str]) -> Tuple[Iterable[str], Iterable[str]]:
@@ -159,6 +172,7 @@ SYNOPSIS
 
 **{sec.name}** [--help]
 
+{sec.usage}
 
 DESCRIPTION
 ***********
