@@ -113,8 +113,8 @@ def search_for_usage(desc: str) -> Tuple[str, str]:
         return desc, ""
     else:
         key = keywords.pop()
-        desc, usage = desc.split(key)
-        return desc, f"Usage:{usage}"
+        data = desc.split(key)
+        return data[0], ''.join([f'Usage:{d}' for d in data[1:]])
 
 
 def take_while_version(lines: Iterable[str]) -> Iterable[str]:
@@ -159,7 +159,6 @@ def generate_code_block(name: str) -> str:
 .. highlight:: none
 
 ::
-
 """
 
 
