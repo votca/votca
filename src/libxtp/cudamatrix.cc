@@ -68,7 +68,7 @@ Index count_available_gpus() {
   return (err != cudaSuccess) ? 0 : Index(count);
 }
 
-CudaMatrix::CudaMatrix(Index nrows, Index ncols, const cudaStream_t &stream)
+CudaMatrix::CudaMatrix(Index nrows, Index ncols, const cudaStream_t& stream)
     : _ld(nrows), _cols(ncols) {
   _data = alloc_matrix_in_gpu(size_matrix());
   _stream = stream;
@@ -82,13 +82,15 @@ CudaMatrix::operator Eigen::MatrixXd() const {
   return result;
 }
 
+void CudaMatrix::setZero() { cudaMemset(_data.get(), 0, size_matrix()); }
+
 CudaMatrix::Unique_ptr_to_GPU_data CudaMatrix::alloc_matrix_in_gpu(
     size_t size_arr) const {
-  double *dmatrix;
+  double* dmatrix;
   throw_if_not_enough_memory_in_gpu(size_arr);
   checkCuda(cudaMalloc(&dmatrix, size_arr));
   Unique_ptr_to_GPU_data dev_ptr(dmatrix,
-                                 [](double *x) { checkCuda(cudaFree(x)); });
+                                 [](double* x) { checkCuda(cudaFree(x)); });
   return dev_ptr;
 }
 
@@ -108,6 +110,12 @@ void CudaMatrix::throw_if_not_enough_memory_in_gpu(
     oss << "There is not enough memory in the Device!\n";
     throw std::runtime_error(oss.str());
   }
+}
+
+std::ostream& operator<<(std::ostream& out, const CudaMatrix& m) {
+  Eigen::MatrixXd temp = m;
+  out << temp;
+  return out;
 }
 
 }  // namespace xtp

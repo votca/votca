@@ -22,6 +22,8 @@
 
 // CMake generated file
 #include "votca_xtp_config.h"
+#include <stdexcept>
+#include <string>
 #ifndef USE_CUDA
 #error Cuda not enabled
 #endif
@@ -48,15 +50,23 @@ std::string cudaGetErrorEnum(cublasStatus_t error);
 Index count_available_gpus();
 
 template <class M>
+std::string OutputDimension(const M &mat) {
+  std::string transpose = M::transposed() ? "T" : "";
+
+  return std::string(transpose + "(" + std::to_string(mat.rows()) + "x" +
+                     std::to_string(mat.cols()) + ")");
+}
+
+template <class M>
 class CudaMatrixBlock {
  public:
   CudaMatrixBlock(const M &mat, Index rowoffset, Index coloffset, Index rows,
                   Index cols)
       : mat_(mat), rows_(rows), cols_(cols) {
 
-    assert((rowoffset + rows) < mat.rows() &&
+    assert((rowoffset + rows) <= mat.rows() &&
            "block has to fit in matrix, rows exceeded");
-    assert((coloffset + cols) < mat.cols() &&
+    assert((coloffset + cols) <= mat.cols() &&
            "block has to fit in matrix, cols exceeded");
     start_ = coloffset * ld() + rowoffset;
   }
@@ -119,6 +129,12 @@ class CudaMatrix {
 
   template <class T>
   void copy_to_gpu(const T &m) {
+    if (m.rows() != _ld || m.cols() != _cols) {
+      throw std::runtime_error("Shape mismatch of cpu (" +
+                               std::to_string(m.rows()) + "x" +
+                               std::to_string(m.cols()) + ") and gpu matrix" +
+                               OutputDimension(*this));
+    }
     checkCublas(cublasSetMatrixAsync(
         int(m.rows()), int(m.cols()), sizeof(double), m.data(),
         int(m.colStride()), this->data(), int(this->rows()), _stream));
@@ -136,8 +152,12 @@ class CudaMatrix {
   // Allocate memory in the GPU for a matrix
   CudaMatrix(Index nrows, Index ncols, const cudaStream_t &stream);
 
+  void setZero();
+
   // Convert A Cudamatrix to an EigenMatrix
   operator Eigen::MatrixXd() const;
+
+  friend std::ostream &operator<<(std::ostream &out, const CudaMatrix &m);
 
  private:
   // Unique pointer with custom delete function
