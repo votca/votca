@@ -376,7 +376,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << Hqp_extended_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_hqp_extended, true);
-  // std::cout << log;
   libint2::finalize();
 }
 
