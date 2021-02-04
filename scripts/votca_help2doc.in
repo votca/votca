@@ -128,16 +128,26 @@ def format_options(options: str):
     return "\n".join(s)
 
 
-def format_rst(sec: Data) -> str:
-    """Format the section as RST."""
-    opts = "\n".join(f"  {x}" for x in sec.options.splitlines())
-    options_code_block = """
-OPTIONS
-*******
+def generate_code_block(name: str) -> str:
+    """Generate a code block section."""
+    return f"""
+{name}
+{'*' * len(name)}
 .. highlight:: none
 
 ::
+
 """
+
+
+def format_rst(sec: Data) -> str:
+    """Format the section as RST."""
+    opts = "\n".join(f"  {x}" for x in sec.options.splitlines())
+    examples = "\n".join(f"  {x}" for x in sec.examples.splitlines())
+
+    options_code_block = generate_code_block("OPTIONS")
+    examples_code_block = generate_code_block("EXAMPLES")
+
     return f"""
 NAME
 ****
@@ -154,7 +164,8 @@ DESCRIPTION
 ***********
 {sec.description}
 
-{sec.examples}
+{examples_code_block if examples else ""}
+{examples}
 
 {options_code_block if opts else ""}
 {opts}
@@ -208,7 +219,7 @@ def read_section_examples(lines: Iterable[str]) -> Tuple[str, str]:
     # extract example section
     examples = "\n  ".join(lines)
     if examples:
-        examples = "Examples:\n\n  " + examples
+        examples = "  " + examples
 
     return desc, examples
 
