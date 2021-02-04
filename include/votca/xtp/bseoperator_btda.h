@@ -139,6 +139,8 @@ struct generic_product_impl<
     dst.topRows(half) = temp_unshaped.topRows(half);
     dst.bottomRows(half) = -temp_unshaped.bottomRows(half);
     temp = op._B * m_reshaped;
+      
+      //create a second map because temp may have moved so temp_reshaped may point to invalid memory
     Map<const MatrixXd> temp_unshaped2(temp.data(), m.rows(), m.cols());
     dst.topRows(half) += temp_unshaped2.bottomRows(half);
     dst.bottomRows(half) -= temp_unshaped2.topRows(half);
