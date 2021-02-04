@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ class OrientCorrApp : public CsgApplication {
 
   void HelpText(ostream &out) override {
     out << "Calculates the orientational correlation function\n"
-           "    <3/2*u(0)*u(r) - 1/2>\n"
+           "<3/2*u(0)*u(r) - 1/2>\n"
            "for a polymer melt, where u is the vector pointing along a bond "
            "and \n"
            "r the distance between bond segments (centered on middle of "
