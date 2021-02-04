@@ -45,7 +45,7 @@ echo "Found section for $v (starting line ${line_nr})"
 last_line="$(echo "$version_section" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
 [[ $last_line ]] || die "Could not grep last line"
 
-if [[ ${last_line} = -* ]]; then
+if [[ ${last_line} = -* || ${last_line} = '   '[^\ ]* ]]; then
   echo "Adding message '$message' after line '${last_line}'"
   sed -i "/$last_line/a ${message}" "${CHANGELOG}"
 elif [[ -z ${last_line//=} ]]; then #section header
