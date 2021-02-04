@@ -104,7 +104,7 @@ class DipoleDipoleInteraction
   }
 
   // this is not a fast method
-  const double& operator()(const Index i, const Index j) const {
+  double operator()(const Index i, const Index j) const {
     Index seg1id = Index(i / 3);
     Index xyz1 = Index(i % 3);
     Index seg2id = Index(j / 3);
