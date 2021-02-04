@@ -87,8 +87,9 @@ def parse_help_message(msg: str, name: str) -> Data:
     lines = iter(msg.splitlines())
     # Votca logo
     take(lines, 6)
-    # Compilation info
-    list(itertools.takewhile(lambda x: x, lines))
+    # remove Compilation info
+    lines = take_while_version(lines)
+
     # description and optional examples
     opts_lines, lines = take_until_options(lines)
     description, examples = read_section_examples(opts_lines)
@@ -114,6 +115,15 @@ def search_for_usage(desc: str) -> Tuple[str, str]:
         key = keywords.pop()
         desc, usage = desc.split(key)
         return desc, f"Usage:{usage}"
+
+
+def take_while_version(lines: Iterable[str]) -> Iterable[str]:
+    """Remove the lines with version on it."""
+    value = next(lines)
+    if any(key in value for key in {"version", "bugs", "gromacs, 20"}):
+        return take_while_version(lines)
+    else:
+        return itertools.chain([value], lines)
 
 
 def take_until_options(lines: Iterable[str]) -> Tuple[Iterable[str], Iterable[str]]:
