@@ -58,6 +58,7 @@ class Data(NamedTuple):
     description: str
     examples: str
     options: str
+    usage: str
     authors: str = AUTHORS
     copyright: str = COPYRIGHT
 
@@ -86,11 +87,13 @@ def parse_help_message(msg: str, name: str) -> Data:
     lines = iter(msg.splitlines())
     # Votca logo
     take(lines, 6)
-    # Compilation info
-    list(itertools.takewhile(lambda x: x, lines))
+    # remove Compilation info
+    lines = take_while_version(lines)
+
     # description and optional examples
     opts_lines, lines = take_until_options(lines)
     description, examples = read_section_examples(opts_lines)
+    description, usage = search_for_usage(description)
     # Options and optional examples
 
     if examples:
@@ -100,7 +103,27 @@ def parse_help_message(msg: str, name: str) -> Data:
 
     options = format_options(options)
 
-    return Data(name, description, examples, options)
+    return Data(name, description, examples, options, usage)
+
+
+def search_for_usage(desc: str) -> Tuple[str, str]:
+    """Search for an `usage:` declaration in the description."""
+    keywords = {u for u in {"Usage:", "usage:"} if u in desc}
+    if not keywords:
+        return desc, ""
+    else:
+        key = keywords.pop()
+        data = desc.split(key)
+        return data[0], ''.join([f'Usage:{d}' for d in data[1:]])
+
+
+def take_while_version(lines: Iterable[str]) -> Iterable[str]:
+    """Remove the lines with version on it."""
+    value = next(lines)
+    if any(key in value for key in {"version", "bugs", "gromacs, 20"}):
+        return take_while_version(lines)
+    else:
+        return itertools.chain([value], lines)
 
 
 def take_until_options(lines: Iterable[str]) -> Tuple[Iterable[str], Iterable[str]]:
@@ -128,15 +151,25 @@ def format_options(options: str):
     return "\n".join(s)
 
 
+def generate_code_block(name: str) -> str:
+    """Generate a code block section."""
+    return f"""
+{name}
+{'*' * len(name)}
+.. highlight:: none
+
+::
+"""
+
+
 def format_rst(sec: Data) -> str:
     """Format the section as RST."""
     opts = "\n".join(f"  {x}" for x in sec.options.splitlines())
-    options_code_block = """
-OPTIONS
-*******
-.. highlight:: none
-::
-"""
+    examples = "\n".join(f"  {x}" for x in sec.examples.splitlines())
+
+    options_code_block = generate_code_block("OPTIONS")
+    examples_code_block = generate_code_block("EXAMPLES")
+
     return f"""
 NAME
 ****
@@ -148,12 +181,14 @@ SYNOPSIS
 
 **{sec.name}** [--help]
 
+{sec.usage}
 
 DESCRIPTION
 ***********
 {sec.description}
 
-{sec.examples}
+{examples_code_block if examples else ""}
+{examples}
 
 {options_code_block if opts else ""}
 {opts}
@@ -207,7 +242,7 @@ def read_section_examples(lines: Iterable[str]) -> Tuple[str, str]:
     # extract example section
     examples = "\n  ".join(lines)
     if examples:
-        examples = "Examples:\n\n  " + examples
+        examples = "  " + examples
 
     return desc, examples
 

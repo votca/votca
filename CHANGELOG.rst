@@ -9,7 +9,7 @@ Version 2022-dev
 -  remove tex and man output from app class (#329)
 -  fix example rst section (#327, #339)
 -  remove author and copyright from rst (#331)
--  fix rst warnings (#334)
+-  fix rst warnings (#334, #346)
 -  export PYTHONPATH in VOTCARC (#340)
 -  drop csh support in VOTCARC (#342)
 
