@@ -36,9 +36,22 @@
  * 1) Allocate temporary matrices and move fixed data to the gpu before the
  * openmp region is created 2) Inside the openmp region, move the loop data to
  * the GPU and perform calculation there 3) For reduction operations, transfer
- * the GPU data back to the CPU after the loop is finished Each GPU is served by
- * one CPU thread, the other CPU threads perform the normal CPU based operations
- * If no GPU is present all CPUs simply do CPU work.
+ * the GPU data back to the CPU after the loop is finished. Each GPU is served
+ * by one CPU thread, the other CPU threads perform the normal CPU based
+ * operations If no GPU is present all CPUs simply do CPU work.
+ *
+ * While all the temporary data is pushed to the GPU for the CPU case we do not
+ * want to make copies on the CPU.. as long as the data is identical for all
+ * threads, so instead we hold a pointer to that data. Only for temporary data
+ * special to a thread we hold pointers or make copies(depending on what is
+ * needed) using the CPU_data structures. So do not let objects you need fall
+ * out of scope in the calling code.
+ *
+ * This class is NOT a generic interface for CPU/GPU calculations. Instead
+ * certain routines were hardcoded for certain computations. Any function
+ * containing "set" or "create" should be called outside the parallel loop, the
+ * other functions are called inside.
+ *
  * If this class is created inside an OPENMP region, it still ensures, that over
  * that OPENMP region not more threads access the GPUs then GPUs are present.
  * Otherwise it will work purely in serial. So this class does NOT work with
