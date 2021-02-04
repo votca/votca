@@ -135,6 +135,7 @@ def format_rst(sec: Data) -> str:
 OPTIONS
 *******
 .. highlight:: none
+
 ::
 """
     return f"""
