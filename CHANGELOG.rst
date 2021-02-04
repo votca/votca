@@ -6,6 +6,7 @@ Version 2022-dev
 
 -  generate manpage & rst using votca_help2man (#637, #638,
    #640, #641)
+-  format csg_orientcorr help for rst conversion (#648)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
