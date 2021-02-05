@@ -25,6 +25,9 @@ Dependency Installation
 
 If you have an older version of a distribution, cmake can be run with the ``-DBUILD_OWN_GROMACS=ON`` or ``-DBUILD_OWN_LIBINT=ON`` flags to automatically install the correct Gromacs and libint version. 
 
+On Ubuntu 20.10 and older you will not get version 1.0.5 of the libecpint package. So in this case run `this <https://github.com/votca/buildenv/blob/55c88641046dbb6152cf7d9e536e17f29205479f/ubuntu#L30-L33>`_ or
+download the package from `here <http://ftp.us.debian.org/debian/pool/main/libe/libecpint/>`_.
+
 
 Resolving the 'not found' dependency errors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
