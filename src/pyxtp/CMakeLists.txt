@@ -22,7 +22,8 @@ set_target_properties(xtp_binds
 target_link_libraries(xtp_binds
  PUBLIC
  VOTCA::votca_xtp
-)
+ "-Wl,--no-as-needed"
+ )
 
 if(NOT PYTHON_INSTDIR)
   execute_process(

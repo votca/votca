@@ -21,19 +21,19 @@ using namespace votca;
 
 namespace pyxtp {
 
-void call_tool(const std::string& name, int n_threads, std::string xml_file) {
+void call_tool(const std::string& name, Index nThreads, std::string xmlfile) {
   votca::tools::Property prop;
-  prop.LoadFromXML(xml_file);
+  prop.LoadFromXML(xmlfile);
   // Call calculator
   pyxtp::XTPTools tool;
-  tool.Initialize(name, n_threads, prop);
+  tool.Initialize(name, nThreads, prop);
 }
 
-void XTPTools::Initialize(const std::string& name, int n_threads,
+void XTPTools::Initialize(const std::string& name, Index nThreads,
                           votca::tools::Property prop) {
   xtp::QMToolFactory factory;
   _tool = factory.Create(name);
-  _tool->setnThreads(n_threads);
+  _tool->setnThreads(nThreads);
   _tool->Initialize(prop);
   _tool->Evaluate();
 }

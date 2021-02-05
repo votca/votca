@@ -25,11 +25,16 @@
 using namespace votca;
 
 namespace pyxtp {
-void call_tool(const std::string& name, int nThreads, std::string xml_file);
+/**
+ * @brief Construct a new pybind11 module object to invoke a votca-xtp QMTool
+ *
+ */
+void call_tool(const std::string& calculatorName, Index nThreads,
+               std::string xmlfile);
 
 class XTPTools {
  public:
-  void Initialize(const std::string& name, int nThreads,
+  void Initialize(const std::string& calculatorName, Index nThreads,
                   votca::tools::Property prop);
 
  private:
