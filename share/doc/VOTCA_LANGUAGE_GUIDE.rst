@@ -1,7 +1,7 @@
 VOTCA Internal Contributor Language Guide
 =========================================
 
-This language guide has been created to establish rules to keep VOTCAs
+This language guide has been created to establish rules to keep VOTCA's
 code consistent between repositories. In the past, there has been
 difficulty in translating functionality between repositories and within
 the same repositories because different properties have been used to
@@ -11,12 +11,12 @@ look at the `Developers Guide <share/doc/DEVELOPERS_GUIDE.rst>`__
 Types and Ids
 -------------
 
-As an example consider the csg bead object which had at one time
+As an example, consider the csg bead object which had at one time
 contained the name, type and id attribute. The name of a bead is ill
 defined and could be unique but was not guaranteed to be so.
 
 If a bead were named C5 it was not clear if this was an arbitrary bead
-name, or if it was the 5th carbon atom in the system. Any any case the
+name, or if it was the 5th carbon atom in the system. In any case the
 name attribute is not needed because if a unique id is needed the id of
 the bead could be used whereas if the type of the bead was needed the
 type attribute could be used. As such, the name method and attribute has
@@ -42,8 +42,8 @@ Units in VOTCA
 --------------
 
 VOTCA tried as much as possible to standarize units across both CSG and
-XTP. Externally we parse in the units of the respective file format,
-e.g. ``.xyz`` ``Angstroem``, ``.gro`` ``nm``. Internally we convert all
+XTP. Externally, we parse in the units of the respective file format,
+e.g. ``.xyz`` ``Angstrom``, ``.gro`` ``nm``. Internally, we convert all
 parsed units to:
 
 -  CSG: length ``nm``, energy ``kJ/mol`` and time ``ps``
@@ -55,7 +55,7 @@ Indexing in VOTCA
 All indeces in VOTCA start at ``0``. This is useful, because C++ arrays
 start at index 0.
 
-Apart from special cases all indeces and integers in votca should be
+Apart from special cases all indices and integers in votca should be
 ``votca::Index`` which is a typedef for ``long int``. ``.size()``
 methods of std::containers return an ``unsigned long int`` and should be
 cast to ``votca::Index``. i.e: ``votca::Index(vector.size())``

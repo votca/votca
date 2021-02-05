@@ -62,6 +62,12 @@ jobs:
           - distro: 'fedora:intel'
             toolchain: intel
             cmake_build_type: Debug
+          - distro: 'fedora:intel-oneapi'
+            toolchain: intel-oneapi
+            cmake_build_type: Release
+          - distro: 'fedora:intel-oneapi'
+            toolchain: intel-oneapi
+            cmake_build_type: Debug
           - distro: 'fedora:gmx2019'
             toolchain: gnu
             cmake_build_type: Release
@@ -127,10 +133,13 @@ jobs:
             continue-on-error: true
             no_regression_testing: true
     runs-on: ubuntu-latest
-    container: ghcr.io/votca/buildenv/${{ matrix.distro }}
+    container:
+      image: ghcr.io/votca/buildenv/${{ matrix.distro }}
+      # https://bugzilla.redhat.com/show_bug.cgi?id=1900021
+      options: --security-opt seccomp=unconfined
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2.2.0
+        uses: actions/checkout@v2
         with:
           submodules: true
       - name: Run Votca Setup
@@ -176,8 +185,21 @@ jobs:
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
         run: cmake --build builddir --target format && git diff --submodule=diff --exit-code
-      - name: Deploy Doxygen and Website
+      - name: Checkout Doxygen repo
         if: ${{ matrix.deploy }}
-        env:
-          VOTCA_BOT_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
-        run: .github/workflows/deploy.sh
+        uses: actions/checkout@v2
+        with:
+          repository: votca/doxygen
+          path: builddir/devdoc
+          token: ${{ secrets.VOTCA_BOT_TOKEN }}
+      - name: Checkout Website repo
+        if: ${{ matrix.deploy }}
+        uses: actions/checkout@v2
+        with:
+          repository: votca/votca.github.io
+          path: builddir/userdoc
+          token: ${{ secrets.VOTCA_BOT_TOKEN }}
+      - name: Deploy Doxygen and Website
+        if: ${{ matrix.deploy && steps.setup.outputs.build_sphinx == 'true' }}
+        run: ${GITHUB_WORKSPACE}/.github/workflows/deploy.sh
+        working-directory: builddir

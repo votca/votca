@@ -4,7 +4,7 @@ url="https://github.com/votca/votca.git"
 branch=stable
 testing=no
 verbose=
-what=( tools csg csg-manual csgapps csg-tutorials xtp xtp-tutorials )
+what=( tools csg csg-tutorials xtp xtp-tutorials )
 cmake_opts=()
 
 die () {
@@ -37,6 +37,7 @@ OPTIONS:
     --repos REPOS   Use repos instead of '${what[@]}'
     -j  JOBS        Jobs to use instead of '$j'
     --verbose       Do a verbose build
+    --debug         Run in debug more
 -D*                 Extra option to give to cmake 
 
 Examples:  ${0##*/} --help
@@ -69,6 +70,9 @@ while [[ $# -gt 0 ]]; do
      shift 1;;
    --verbose)
      verbose=yes
+     shift 1;;
+   --debug)
+     set -x
      shift 1;;
    -D)
     cmake_opts+=( -D"${2}" )
@@ -104,7 +108,7 @@ shopt -s extglob
 topdir="${PWD}"
 
 rel="$1"
-[[ ${CI} != "true" && $testing = "no" && ${rel} != [1-9].[0-9]?(.[1-9]|_rc[1-9]) ]] && die "release has the wrong form"
+[[ ${CI} != "true" && $testing = "no" && ${rel} != 20???(.[1-9]|-rc.[1-9]) ]] && die "release has the wrong form"
 srcdir="$2"
 [[ -d $srcdir ]] || git clone --recursive "$url" "$srcdir"
 pushd "${srcdir}"
@@ -145,18 +149,12 @@ for p in "${what[@]}"; do
   elif [[ -f CMakeLists.txt ]]; then
     sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
     git add CMakeLists.txt
-    if [[ -f CHANGELOG.md ]]; then
-      sed -i "/^## Version ${rel}\>/s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.md
-      git add CHANGELOG.md
-    fi
     if [[ -f CHANGELOG.rst ]]; then
       sed -i "/^Version ${rel}\>/s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
       git add CHANGELOG.rst
     fi
   fi
   if [[ $testing = "no" ]]; then
-    [[ -f CHANGELOG.md && -z $(grep "^## Version ${rel}\>" CHANGELOG.md) ]] && \
-          die "Go and update CHANGELOG.md in ${p} before making a release"
     [[ -f CHANGELOG.rst && -z $(grep "^Version ${rel}\>" CHANGELOG.rst) ]] && \
           die "Go and update CHANGELOG.rst in ${p} before making a release"
     #|| true because maybe version has not changed
@@ -179,15 +177,9 @@ cmake -DCMAKE_INSTALL_PREFIX="${instdir}" -DMODULE_BUILD=ON \
       -DVOTCA_TARBALL_DIR="${topdir}" -DVOTCA_TARBALL_TAG="${rel}" \
       -DENABLE_TESTING=ON \
       -DENABLE_REGRESSION_TESTING=ON \
-      $(is_part csg-manual "${what[@]}" && echo -DBUILD_CSG_MANUAL=ON) \
-      $(is_part csgapps "${what[@]}" && echo -DBUILD_CSGAPPS=ON) \
       $(is_part xtp "${what[@]}" && echo -DBUILD_XTP=ON) \
       "${cmake_opts[@]}" "${srcdir}"
 make -j"${j}" ${verbose:+VERBOSE=1}
-for p in csg-manual; do
-  is_part "$p" "${what[@]}" || continue
-  cp "$instdir/share/doc/votca-$p"/*manual.pdf "${topdir}/votca-${p%-manual}-manual-${rel}.pdf"
-done
 popd
 
 rm -rf "$build"
@@ -196,15 +188,36 @@ rm -rf "$instdir"
 pushd "$srcdir"
 if [[ $testing = "no" ]]; then
   sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
-  if [[ -f README.md ]]; then
-    sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.md || die "sed of README.md failed"
-  elif [[ -f README.rst ]]; then
+  if [[ -f README.rst ]]; then
     sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.rst share/doc/INSTALL.rst || die "sed of README.rst failed"
   fi
   git add -u
   git commit -m "Version bumped to $rel"
   git tag "v${rel}"
 fi
+
+if [[ $rel = *-dev ]]; then
+  add_rel="${rel%-dev}-rc.1"
+elif [[ $rel = 20??.* ]]; then
+  add_rel="${rel%.*}.$((${rel##*.}+1))"
+elif [[ $rel = 20?? ]]; then
+  add_rel="${rel}.1"
+elif [[ $rel = *-rc.* ]]; then
+  add_rel="${rel%-rc*}-rc.$((${rel#*-rc.}+1))"
+else
+  die "Unknown rel scheme, found $rel"
+fi
+
+new_section="Version ${add_rel} (released $(date +XX.%m.%y))"
+for c in */CHANGELOG.rst; do
+  p="${c%/CHANGELOG.rst}"
+  sed -i "/^Version ${rel}\>/i ${new_section}\n${new_section//?/=}\n" "$c"
+  git -C "$p" add CHANGELOG.rst
+  git -C "$p" commit -m "CHANGELOG: add ${add_rel} section"
+  git add "$p"
+done
+git commit -m "update CHANGELOG sections in all submodules"
+
 trap - EXIT
 
 if [[ $testing = "no" ]]; then
@@ -212,7 +225,6 @@ if [[ $testing = "no" ]]; then
   echo "cd $srcdir"
   echo "for p in . ${what[@]}; do git -C \$p log -p --submodule origin/${branch}..${branch}; done"
   echo "for p in . ${what[@]}; do git -C \$p  push --tags origin ${branch}:${branch}; done"
-  echo "And do NOT forget to upload pdfs to github."
 else
   echo "cd $topdir"
   echo "Take a look at " ./*"${rel}"*

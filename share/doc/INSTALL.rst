@@ -9,9 +9,9 @@ To install the full package:
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'stable' or 'v1.4.1'
+    version=master # or 'stable' or 'v2021-rc.1'
     git clone -b ${version} --recursive https://github.com/votca/votca.git
-    cmake -Bbuilddir -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} votca
+    cmake -Bbuilddir -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} votca
     cmake --build builddir --parallel <number of cores>
     cmake --build builddir --target install
 
@@ -23,8 +23,7 @@ Dependency Installation
 
 `Fedora <https://github.com/votca/buildenv/blob/master/fedora#L10-L15>`_
 
-If you have an older version of a distribution cmake can automatically install the correct Gromacs and libint version by
-adding ``-DBUILD_OWN_GROMACS_OWN_GROMACS=ON`` or ``-DBUILD_OWN_GROMACS_OWN_LIBINT=ON`` to your cmake command. 
+If you have an older version of a distribution, cmake can be run with the ``-DBUILD_OWN_GROMACS=ON`` or ``-DBUILD_OWN_LIBINT=ON`` flags to automatically install the correct Gromacs and libint version. 
 
 On Ubuntu 20.10 and older you will not get the libecpint package. So in this case run `this <https://github.com/votca/buildenv/blob/55c88641046dbb6152cf7d9e536e17f29205479f/ubuntu#L30-L33>`_.
 
@@ -33,13 +32,13 @@ Resolving the 'not found' dependency errors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Assuming all the `dependencies <#dependency-installation>`__ have been
-correctly installed, one or more might still appear 'not found' upon
-configuring with ``cmake`` command (see above). In this case you will
-need to find out the 'non-standard' location for each missed dependency
+correctly installed, one or more might still appear with the 'not found' status upon
+configuring with the ``cmake`` command (see above). In this case, you will
+need to find the 'non-standard' location for each missing dependency
 (most often a shared or dynamically loaded library, e.g.
 ``libgromacs.so.*``, ``libhdf5.so.*`` etc).
 
-Error messages produced by Cmake usually provide instructive suggestions
+Error messages produced by CMake usually provide instructive suggestions
 for resolving dependency issues. In particular, an appropriate extra
 ``-D`` flag is necessary to specify the path to a missed package. You
 will have to rerun the ``cmake`` command with the relevant flag(s)
@@ -48,7 +47,7 @@ Gromacs:
 
 ::
 
-    cmake -DBUILD_CSGAPPS=ON -DCMAKE_INSTALL_PREFIX=${prefix} -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so ..
+    cmake -DCMAKE_INSTALL_PREFIX=${prefix} -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so ..
 
 Be careful to use exactly the option suggested in the error message! You
 can also add ``-LH`` or ``-LAH`` options to the ``cmake`` command in
@@ -56,7 +55,7 @@ order to see the available options with brief explanations (note that
 *changing some of the variables may result in more variables being
 created*; run ``man cmake`` for more info).
 
-*Only for Linux*: For each dependency package not found by Cmake
+*Only for Linux*: For each dependency package not found by CMake
 initially, it might be necessary to add the location of its ``lib``
 directory to the environment variable ``LD_LIBRARY_PATH``, **before**
 building and installing VOTCA, i.e. before running any ``make`` command.
@@ -68,7 +67,7 @@ For example:
 
 Note that ``LD_LIBRARY_PATH`` also needs to be set every time when
 running an executable from the VOTCA installation afterwards (which can
-be automated via user's login profile, e.g. in .bashrc). Alternatively,
+be automated via the user's login profile, e.g. in .bashrc). Alternatively,
 CMake has options to *remember* where libraries came from at link time,
 which can be enabled by setting ``CMAKE_INSTALL_RPATH_USE_LINK_PATH`` to
 ``ON``. VOTCA has enabled this option and a couple of other rpath
@@ -77,7 +76,7 @@ related tweaks when setting ``ENABLE_RPATH_INJECT`` to ``ON``.
 Common CMake Flags
 ~~~~~~~~~~~~~~~~~~
 
--  ``BUILD_CSGAPPS`` - Build the extra csg applications repo (ON/OFF,
+-  ``BUILD_CSGAPPS`` - Install the extra csg applications repo (ON/OFF,
    Default OFF)
 -  ``BUILD_XTP`` - Build the xtp repo (ON/OFF, Default OFF)
 -  ``CMAKE_INSTALL_PREFIX`` - where to install the votca executables
@@ -87,7 +86,6 @@ Common CMake Flags
 Other CMake Flags
 ~~~~~~~~~~~~~~~~~
 
--  ``BUILD_CSG_MANUAL`` - Build csg pdf manual
 -  ``CMAKE_DISABLE_FIND_PACKAGE_<name>`` - Disable using an optional
    package called ``<name>`` (ON/OFF)
 -  ``CMAKE_DISABLE_FIND_PACKAGE_HDF5`` - Disable using the optional
@@ -145,8 +143,8 @@ Gentoo
 Spack
 ~~~~~
 
-`Spack <https://spack.io/>`__ is an package manager, which allows to
-build VOTCA and all its dependencies:
+`Spack <https://spack.io/>`__ is a package manager, which has 
+the capability of building VOTCA and all its dependencies:
 
 ::
 
@@ -159,8 +157,6 @@ Stable version
 ^^^^^^^^^^^^^^
 
 Spack can also install the latest stable version from git using:
-
-::
 
     spack install votca-csg@stable
 
@@ -176,7 +172,7 @@ Spack can also install the latest development version from git using:
 Docker
 ~~~~~~
 
-Votca is also available through docker and can be accessed and run with
+VOTCA is also available through docker and can be accessed and run with
 the following docker commands:
 
 ::
@@ -187,7 +183,7 @@ the following docker commands:
 Release version
 ^^^^^^^^^^^^^^^
 
-Docker can also install the latest released version, e.g.::
+Docker can also install the latest released version, e.g.:
 
 ::
 
@@ -205,11 +201,11 @@ Docker can also install the latest stable version from git using:
 FreeBSD
 ~~~~~~~
 
-On FreeBSD votca can be installed from a binary package (recommended):
+On FreeBSD VOTCA can be installed from a binary package (recommended):
 
 ::
 
-    pkg install votka
+    pkg install votca
 
 or it can be rebuilt and installed from the sources (slow):
 
@@ -220,10 +216,10 @@ or it can be rebuilt and installed from the sources (slow):
 Linking Error: Undefined reference to
 -------------------------------------
 
-This error can happen due to a multitude of reasons. You may have
+This error can occur for a multitude of reasons. You may have
 forgotten to add paths to the ``LD_LIBRARY_PATH`` or forgotten to import
-an environment module. In these cases deleting the ``CMakeCache.txt`` in
-your ``build`` folder and rerunning ``cmake`` will help. Unfortunately
+an environment module. In these cases, deleting the ``CMakeCache.txt`` in
+your ``build`` folder and rerunning ``cmake`` will help. Unfortunately,
 another cause might be ABI incompability between libraries due to
 different libraries being compiled with different compilers or compiler
 versions. Click `here <https://github.com/ICRAR/shark/issues/1>`__ for

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(votca LANGUAGES CXX)
 
-set(PROJECT_VERSION "2021-dev")
+set(PROJECT_VERSION "2022-dev")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules ${PROJECT_SOURCE_DIR}/tools/CMakeModules)
@@ -22,12 +22,8 @@ if(NOT MODULE_BUILD AND NOT EXISTS "${PROJECT_SOURCE_DIR}/tools/CMakeLists.txt")
   message(FATAL_ERROR "No CMake files found in tools/ ! Did you forgot to clone with '--recursive'? Run 'git submodule update --init' to fix that.")
 endif()
 
-option(BUILD_CSGAPPS "Build csgapps" OFF)
-add_feature_info(BUILD_CSGAPPS BUILD_CSGAPPS "Build extra app using csg")
 option(BUILD_XTP "Build xtp" OFF)
 add_feature_info(BUILD_XTP BUILD_XTP "Build xtp module")
-option(BUILD_CSG_MANUAL "Build csg-manual" OFF)
-add_feature_info(BUILD_CSG_MANUAL BUILD_CSG_MANUAL "Build csg-manual")
 set(VOTCA_SKIP_FIND_PACKAGE VOTCA_TOOLS VOTCA_CSG VOTCA_XTP)
 
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
@@ -79,6 +75,7 @@ endif()
 set(VOTCA_SPHINX_DIR "${PROJECT_BINARY_DIR}/sphinx" CACHE PATH "Path for Sphinx sources")
 file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR})
 set(VOTCA_SPHINX_OUTPUT_DIR "${PROJECT_BINARY_DIR}/sphinx.html" CACHE PATH "Path for Sphinx output")
+set(VOTCA_XML_PARSER "${PROJECT_SOURCE_DIR}//share/doc/extract_xml_metadata.py")
 
 ########################################################################
 #Find external packages
@@ -135,14 +132,6 @@ add_subdirectory(csg)
 list(APPEND ENABLED_VOTCA_PACKAGES csg)
 add_subdirectory(csg-tutorials)
 list(APPEND ENABLED_VOTCA_PACKAGES csg-tutorials)
-if(BUILD_CSG_MANUAL)
-  add_subdirectory(csg-manual)
-  list(APPEND ENABLED_VOTCA_PACKAGES csg-manual)
-endif()
-if(BUILD_CSGAPPS)
-  add_subdirectory(csgapps)
-  list(APPEND ENABLED_VOTCA_PACKAGES csgapps)
-endif()
 if(BUILD_XTP)
   add_subdirectory(xtp)
   list(APPEND ENABLED_VOTCA_PACKAGES xtp)
