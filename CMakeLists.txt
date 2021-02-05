@@ -52,10 +52,6 @@ if(NOT TARGET PkgConfig::LIBINT)
 endif()
 find_package(ecpint REQUIRED)
 set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculate pseudo potentials")
-if(NOT TARGET ECPINT::ecpint) # newer versions are namespaced.
-  set_target_properties(ecpint PROPERTIES IMPORTED_GLOBAL TRUE)
-  add_library(ECPINT::ecpint ALIAS ecpint)
-endif()
 message(STATUS "Found libecpint: ${ecpint_DIR}")
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
