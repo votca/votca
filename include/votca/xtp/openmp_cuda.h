@@ -36,9 +36,22 @@
  * 1) Allocate temporary matrices and move fixed data to the gpu before the
  * openmp region is created 2) Inside the openmp region, move the loop data to
  * the GPU and perform calculation there 3) For reduction operations, transfer
- * the GPU data back to the CPU after the loop is finished Each GPU is served by
- * one CPU thread, the other CPU threads perform the normal CPU based operations
- * If no GPU is present all CPUs simply do CPU work.
+ * the GPU data back to the CPU after the loop is finished. Each GPU is served
+ * by one CPU thread, the other CPU threads perform the normal CPU based
+ * operations If no GPU is present all CPUs simply do CPU work.
+ *
+ * While all the temporary data is pushed to the GPU for the CPU case we do not
+ * want to make copies on the CPU.. as long as the data is identical for all
+ * threads, so instead we hold a pointer to that data. Only for temporary data
+ * special to a thread we hold pointers or make copies(depending on what is
+ * needed) using the CPU_data structures. So do not let objects you need fall
+ * out of scope in the calling code.
+ *
+ * This class is NOT a generic interface for CPU/GPU calculations. Instead
+ * certain routines were hardcoded for certain computations. Any function
+ * containing "set" or "create" should be called outside the parallel loop, the
+ * other functions are called inside.
+ *
  * If this class is created inside an OPENMP region, it still ensures, that over
  * that OPENMP region not more threads access the GPUs then GPUs are present.
  * Otherwise it will work purely in serial. So this class does NOT work with
@@ -58,23 +71,83 @@ class OpenMP_CUDA {
     return 0;
 #endif
   }
+
+  // 3c multiply
   void setOperators(const std::vector<Eigen::MatrixXd>& tensor,
                     const Eigen::MatrixXd& rightoperator);
   void MultiplyRight(Eigen::MatrixXd& matrix);
 
+  // 3c
   void setOperators(const Eigen::MatrixXd& leftoperator,
                     const Eigen::MatrixXd& rightoperator);
   void MultiplyLeftRight(Eigen::MatrixXd& matrix);
 
+  // RPA
   void createTemporaries(Index rows, Index cols);
-  void A_TDA(const Eigen::MatrixXd& matrix, const Eigen::VectorXd& vec);
+  void PushMatrix(Eigen::MatrixXd& mat);
+  void A_TDA(const Eigen::VectorXd& vec);
+
+  // Hd + Hqp + Hd2
+  void createTemporaries(const Eigen::VectorXd& vec,
+                         const Eigen::MatrixXd& input, Index rows1, Index rows2,
+                         Index cols);
+  void PrepareMatrix1(Eigen::MatrixXd& mat);
+  void SetTempZero();
+  void PrepareMatrix2(const Eigen::Block<const Eigen::MatrixXd>& mat, bool Hd2);
+  void Addvec(const Eigen::VectorXd& row);
+  void MultiplyRow(Index row);
+
+  // Hx
+
+  void createAdditionalTemporaries(Index rows, Index cols);
+  void PushMatrix1(Eigen::MatrixXd& mat);
+  void MultiplyBlocks(const Eigen::Block<const Eigen::MatrixXd>& mat, Index i1,
+                      Index i2);
+
   Eigen::MatrixXd getReductionVar();
 
  private:
-  const Eigen::MatrixXd* rightoperator_ = nullptr;
-  const Eigen::MatrixXd* leftoperator_ = nullptr;
+  template <class T>
+  class DefaultReference {
+   public:
+    DefaultReference() = default;
+    DefaultReference(T object) : p(&object){};
 
-  std::vector<Eigen::MatrixXd> reduction_;
+    DefaultReference& operator=(const T& object) {
+      p = &object;
+      return *this;
+    }
+
+    const T& operator()() {
+      assert(p != nullptr && "Dangling reference!");
+      return *p;
+    }
+
+   private:
+    const T* p = nullptr;
+  };
+
+  DefaultReference<Eigen::MatrixXd> rOP_;
+  DefaultReference<Eigen::MatrixXd> lOP_;
+  DefaultReference<Eigen::VectorXd> vec_;
+
+  struct CPU_data {
+
+    Eigen::MatrixXd& reduce() { return reduce_mat; }
+    void InitializeReduce(Index rows, Index cols) {
+      reduce_mat = Eigen::MatrixXd::Zero(rows, cols);
+    }
+
+    void InitializeVec(Index size) { temp_vec = Eigen::VectorXd::Zero(size); }
+
+    DefaultReference<Eigen::MatrixXd> ref_mat;
+    Eigen::MatrixXd temp_mat;
+    Eigen::VectorXd temp_vec;
+    Eigen::MatrixXd reduce_mat;
+  };
+
+  std::vector<CPU_data> cpus_;
+
   bool inside_Parallel_region_;
   Index threadID_parent_;
 
@@ -108,6 +181,11 @@ class OpenMP_CUDA {
     void push_back(Index rows, Index cols) {
       temp.push_back(
           std::make_unique<CudaMatrix>(rows, cols, pipeline->get_stream()));
+    }
+
+    void resize(Index id, Index rows, Index cols) {
+      temp[id] =
+          std::make_unique<CudaMatrix>(rows, cols, pipeline->get_stream());
     }
   };
 

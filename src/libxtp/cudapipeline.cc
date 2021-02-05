@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/cudapipeline.h"
 #include <stdexcept>
+#include <string>
 
 namespace votca {
 namespace xtp {
@@ -45,30 +46,6 @@ void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B,
 
   if (status != CUBLAS_STATUS_SUCCESS) {
     throw std::runtime_error("axpy failed on gpu " + std::to_string(_deviceID) +
-                             " with errorcode:" + cudaGetErrorEnum(status));
-  }
-}
-
-void CudaPipeline::diag_gemm(const CudaMatrix &A, const CudaMatrix &b,
-                             CudaMatrix &C) const {
-
-  if (b.cols() != 1) {
-    throw std::runtime_error(
-        "B Matrix in Cublas diag_gemm must have one column");
-  }
-
-  if (A.rows() != b.rows()) {
-    throw std::runtime_error("Shape mismatch in cuda diag_gemm");
-  }
-
-  cublasSetStream(_handle, _stream);
-  cublasStatus_t status = cublasDdgmm(_handle, CUBLAS_SIDE_LEFT, int(A.rows()),
-                                      int(A.cols()), A.data(), int(A.rows()),
-                                      b.data(), 1, C.data(), int(C.rows()));
-
-  if (status != CUBLAS_STATUS_SUCCESS) {
-    throw std::runtime_error("diag_gemm failed on gpu " +
-                             std::to_string(_deviceID) +
                              " with errorcode:" + cudaGetErrorEnum(status));
   }
 }

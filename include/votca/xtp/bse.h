@@ -45,7 +45,7 @@ class BSE {
   BSE(Logger& log, TCMatrix_gwbse& Mmn) : _log(log), _Mmn(Mmn){};
 
   struct options {
-    bool useTDA = true;
+    bool useTDA;
     Index homo;
     Index rpamin;
     Index rpamax;
@@ -53,9 +53,7 @@ class BSE {
     Index qpmax;
     Index vmin;
     Index cmax;
-    Index nmax;       // number of eigenvectors to calculate
-    bool davidson;    // use davidson to diagonalize the matrix
-    bool matrixfree;  // use matrix free method
+    Index nmax;  // number of eigenvectors to calculat
     std::string davidson_correction;
     std::string davidson_ortho;
     std::string davidson_tolerance;
@@ -153,10 +151,8 @@ class BSE {
                                               const BSE_OPERATOR& H) const;
 
   template <typename BSE_OPERATOR>
-  ExpectationValues ExpectationValue_Operator_State(const QMStateType& type,
-                                                    const Orbitals& orb,
-                                                    const BSE_OPERATOR& H,
-                                                    const Index state) const;
+  ExpectationValues ExpectationValue_Operator_State(
+      const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const;
 };
 }  // namespace xtp
 }  // namespace votca
