@@ -124,12 +124,30 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix_fail) {
   BOOST_CHECK_EQUAL(check_eigenvalues, 0);
 }
 
-class TestOperator : public MatrixFreeOperator {
+class TestOperator final : public MatrixFreeOperator {
  public:
   TestOperator() = default;
-  Eigen::RowVectorXd OperatorRow(Index index) const override;
+
+  Eigen::MatrixXd matmul(const Eigen::MatrixXd &input) const {
+    Eigen::MatrixXd result = Eigen::MatrixXd::Zero(input.rows(), input.cols());
+    for (Index i = 0; i < this->size(); i++) {
+      result.row(i) = OperatorRow(i) * input;
+    }
+    return result;
+  }
+
+  Eigen::VectorXd diagonal() const {
+    Index size = this->size();
+    Eigen::VectorXd diag = Eigen::VectorXd::Zero(size);
+    for (Index i = 0; i < size; i++) {
+      Eigen::RowVectorXd row = OperatorRow(i);
+      diag(i) = row(i);
+    }
+    return diag;
+  }
 
  private:
+  Eigen::RowVectorXd OperatorRow(Index index) const;
 };
 
 //  get a col of the operator
@@ -160,8 +178,9 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
   DS.set_tolerance("normal");
   DS.set_size_update("safe");
   DS.solve(Aop, neigen);
+  Eigen::MatrixXd identity = Eigen::MatrixXd::Identity(size, size);
 
-  Eigen::MatrixXd A = Aop.get_full_matrix();
+  Eigen::MatrixXd A = Aop * identity;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
 
   auto lambda = DS.eigenvalues();
@@ -192,103 +211,10 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free_large) {
   DS.set_size_update("safe");
   DS.solve(Aop, neigen);
   std::cout << log << std::endl;
-  Eigen::MatrixXd A = Aop.get_full_matrix();
+  Eigen::MatrixXd identity = Eigen::MatrixXd::Identity(size, size);
+  Eigen::MatrixXd A = Aop * identity;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
 
-  auto lambda = DS.eigenvalues();
-  auto lambda_ref = es.eigenvalues().head(neigen);
-  bool check_eigenvalues = lambda.isApprox(lambda_ref, 1E-6);
-
-  BOOST_CHECK_EQUAL(check_eigenvalues, 1);
-  if (!check_eigenvalues) {
-    std::cout << "ref" << std::endl;
-    std::cout << es.eigenvalues().head(neigen).transpose() << std::endl;
-    std::cout << "result" << std::endl;
-    std::cout << DS.eigenvalues().transpose() << std::endl;
-  }
-}
-
-class BlockOperator : public MatrixFreeOperator {
- public:
-  BlockOperator() = default;
-  Eigen::MatrixXd OperatorBlock(Index row, Index col) const override;
-
-  bool useRow() const override { return false; }
-  bool useBlock() const override { return true; }
-  Index getBlocksize() const override { return size() / 10; }
-
- private:
-};
-
-//  get a block of the operator
-Eigen::MatrixXd BlockOperator::OperatorBlock(Index row, Index col) const {
-  Index blocksize = getBlocksize();
-  Eigen::MatrixXd block = Eigen::MatrixXd::Zero(blocksize, blocksize);
-  Index blocdisttodiagonal = std::abs(row - col) * blocksize;
-  for (Index i_col = 0; i_col < blocksize; i_col++) {
-    for (Index i_row = 0; i_row < blocksize; i_row++) {
-      block(i_row, i_col) =
-          0.01 / std::pow(static_cast<double>(std::abs(i_row - i_col) +
-                                              blocdisttodiagonal),
-                          2);
-    }
-  }
-  if (blocdisttodiagonal == 0) {
-    for (Index i = 0; i < blocksize; i++) {
-      block(i, i) = std::sqrt(static_cast<double>(row * blocksize + i + 1));
-    }
-  }
-
-  return block;
-}
-
-BOOST_AUTO_TEST_CASE(davidson_matrix_free_block) {
-
-  Index size = 100;
-  Index neigen = 10;
-
-  // Create Operator
-  BlockOperator Aop;
-  Aop.set_size(size);
-
-  Logger log;
-  DavidsonSolver DS(log);
-  DS.set_tolerance("normal");
-  DS.set_size_update("safe");
-
-  Eigen::MatrixXd A = Aop.get_full_matrix();
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
-  DS.solve(Aop, neigen);
-  auto lambda = DS.eigenvalues();
-  auto lambda_ref = es.eigenvalues().head(neigen);
-  bool check_eigenvalues = lambda.isApprox(lambda_ref, 1E-6);
-
-  BOOST_CHECK_EQUAL(check_eigenvalues, 1);
-  if (!check_eigenvalues) {
-    std::cout << "ref" << std::endl;
-    std::cout << es.eigenvalues().head(neigen).transpose() << std::endl;
-    std::cout << "result" << std::endl;
-    std::cout << DS.eigenvalues().transpose() << std::endl;
-  }
-}
-
-BOOST_AUTO_TEST_CASE(davidson_matrix_free_block_large) {
-
-  Index size = 400;
-  Index neigen = 10;
-
-  // Create Operator
-  BlockOperator Aop;
-  Aop.set_size(size);
-
-  Logger log;
-  DavidsonSolver DS(log);
-  DS.set_tolerance("normal");
-  DS.set_size_update("safe");
-
-  Eigen::MatrixXd A = Aop.get_full_matrix();
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
-  DS.solve(Aop, neigen);
   auto lambda = DS.eigenvalues();
   auto lambda_ref = es.eigenvalues().head(neigen);
   bool check_eigenvalues = lambda.isApprox(lambda_ref, 1E-6);
@@ -338,9 +264,11 @@ class HermitianBlockOperator : public MatrixFreeOperator {
   HermitianBlockOperator() = default;
 
   void attach_matrix(const Eigen::MatrixXd &mat);
-  Eigen::RowVectorXd OperatorRow(Index index) const override;
-  void set_diag(Index diag);
-  Eigen::VectorXd diag_el;
+  Eigen::MatrixXd matmul(const Eigen::MatrixXd &input) const {
+    return _mat * input;
+  }
+
+  Eigen::VectorXd diagonal() const { return _mat.diagonal(); }
 
  private:
   Eigen::MatrixXd _mat;
@@ -348,11 +276,6 @@ class HermitianBlockOperator : public MatrixFreeOperator {
 
 void HermitianBlockOperator::attach_matrix(const Eigen::MatrixXd &mat) {
   _mat = mat;
-}
-
-//  get a col of the operator
-Eigen::RowVectorXd HermitianBlockOperator::OperatorRow(Index index) const {
-  return _mat.row(index);
 }
 
 BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
@@ -383,7 +306,8 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   DS.solve(Hop, neigen);
   auto lambda = DS.eigenvalues().real();
   std::sort(lambda.data(), lambda.data() + lambda.size());
-  Eigen::MatrixXd H = Hop.get_full_matrix();
+  Eigen::MatrixXd identity = Eigen::MatrixXd::Identity(Hop.rows(), Hop.cols());
+  Eigen::MatrixXd H = Hop * identity;
 
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
   Eigen::ArrayXi idx = index_eval(es.eigenvalues().real(), neigen);
@@ -442,8 +366,8 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free_large) {
   std::cout << log;
   auto lambda = DS.eigenvalues().real();
   std::sort(lambda.data(), lambda.data() + lambda.size());
-  Eigen::MatrixXd H = Hop.get_full_matrix();
-
+  Eigen::MatrixXd identity = Eigen::MatrixXd::Identity(Hop.rows(), Hop.cols());
+  Eigen::MatrixXd H = Hop * identity;
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
   Eigen::ArrayXi idx = index_eval(es.eigenvalues().real(), neigen);
   Eigen::VectorXd lambda_ref = idx.unaryExpr(es.eigenvalues().real());

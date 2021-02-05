@@ -87,8 +87,8 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
   for (Index m_level = 0; m_level < n_occ; m_level++) {
     const double qp_energy_m = _energies(m_level);
 
-    const Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
-
+    Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+    transform.PushMatrix(Mmn_RPA);
     const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;
     Eigen::VectorXd denom;
     if (imag) {
@@ -101,7 +101,7 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
       denom = 2 * sum;
     }
 
-    transform.A_TDA(Mmn_RPA, denom);
+    transform.A_TDA(denom);
   }
   Eigen::MatrixXd result = transform.getReductionVar();
   result.diagonal().array() += 1.0;
@@ -125,7 +125,8 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
   for (Index m_level = 0; m_level < n_occ; m_level++) {
 
     const double qp_energy_m = _energies(m_level);
-    const Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+    Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+    transform.PushMatrix(Mmn_RPA);
     const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;
 
     Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
@@ -137,7 +138,7 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
     Eigen::VectorXd chi =
         deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
         deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
-    transform.A_TDA(Mmn_RPA, chi);
+    transform.A_TDA(chi);
   }
   Eigen::MatrixXd result = -2 * transform.getReductionVar();
   result.diagonal().array() += 1.0;

@@ -202,39 +202,20 @@ void GWBSE::Initialize(tools::Property& options) {
     _bseopt.nmax = bse_size;
   }
 
-  // eigensolver options
-  _bseopt.davidson = options.get(key + ".eigensolver.dodavidson").as<bool>();
+  _bseopt.davidson_correction =
+      options.get(key + ".eigensolver.davidson_correction").as<std::string>();
 
-  if (_bseopt.davidson) {
+  _bseopt.davidson_ortho =
+      options.get(key + ".eigensolver.davidson_ortho").as<std::string>();
 
-    _bseopt.matrixfree =
-        options.get(key + ".eigensolver.domatrixfree").as<bool>();
+  _bseopt.davidson_tolerance =
+      options.get(key + ".eigensolver.davidson_tolerance").as<std::string>();
 
-    _bseopt.davidson_correction =
-        options.get(key + ".eigensolver.davidson_correction").as<std::string>();
+  _bseopt.davidson_update =
+      options.get(key + ".eigensolver.davidson_update").as<std::string>();
 
-    _bseopt.davidson_ortho =
-        options.get(key + ".eigensolver.davidson_ortho").as<std::string>();
-
-    _bseopt.davidson_tolerance =
-        options.get(key + ".eigensolver.davidson_tolerance").as<std::string>();
-
-    _bseopt.davidson_update =
-        options.get(key + ".eigensolver.davidson_update").as<std::string>();
-
-    _bseopt.davidson_maxiter =
-        options.get(key + ".eigensolver.davidson_maxiter").as<Index>();
-
-    // check size
-    if (_bseopt.nmax > bse_size / 4) {
-      XTP_LOG(Log::error, *_pLog)
-          << TimeStamp()
-          << " Warning : Too many eigenvalues required for Davidson. Default "
-             "to Lapack diagonalization"
-          << flush;
-      _bseopt.davidson = false;
-    }
-  }
+  _bseopt.davidson_maxiter =
+      options.get(key + ".eigensolver.davidson_maxiter").as<Index>();
 
   _bseopt.useTDA = options.get(key + ".useTDA").as<bool>();
   _orbitals.setTDAApprox(_bseopt.useTDA);

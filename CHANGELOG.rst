@@ -16,8 +16,9 @@ Version 2022-dev
 -  Read MO coefficients computed with orca from the molden file instead of the .gbw binary (#589)
 -  fix lxml detection in cmake (#670)
 -  extend fchk writer with option to print single KS state densities and densities relative to the ground state (#662)
--  added a more general constructor to cudamatrix (#671)<<<<<<< HEAD
--  changed reference to a copy (#676)
+-  added a more general constructor to cudamatrix (#671)
+-  removed lapack routine for solving BSE and added GPU support (#672)
+-  changed return value from reference to a copy (#676)
 -  add interface to PyBind11 (#606)
 
 Version 2021-rc.2 (released XX.01.21)

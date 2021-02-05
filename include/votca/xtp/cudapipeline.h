@@ -58,7 +58,8 @@ class CudaPipeline {
   CudaPipeline &operator=(const CudaPipeline &) = delete;
 
   // C= A*b.asDiagonal()
-  void diag_gemm(const CudaMatrix &A, const CudaMatrix &b, CudaMatrix &C) const;
+  template <class M>
+  void diag_gemm(const M &A, const CudaMatrix &b, CudaMatrix &C) const;
 
   // B+=alpha*A;
   void axpy(const CudaMatrix &A, CudaMatrix &B, double alpha = 1.0) const;
@@ -105,6 +106,7 @@ class CudaPipeline {
  * Call the gemm function from cublas, resulting in the multiplication of the
  * two matrices
  */
+
 template <class M1, class M2, class M3>
 inline void CudaPipeline::gemm_internal(const M1 &A, const M2 &B, M3 &C,
                                         double beta) const {
@@ -128,7 +130,11 @@ inline void CudaPipeline::gemm_internal(const M1 &A, const M2 &B, M3 &C,
   }
 
   if (k != k2) {
-    throw std::runtime_error("Shape mismatch in cuda gemm");
+
+    throw std::runtime_error(
+        "Shape mismatch in cuda gemm " + std::to_string(k) + ":" +
+        std::to_string(k2) + " A:" + OutputDimension(A) +
+        " B:" + OutputDimension(B) + " C:" + OutputDimension(C));
   }
 
   cublasSetStream(_handle, _stream);
@@ -138,6 +144,38 @@ inline void CudaPipeline::gemm_internal(const M1 &A, const M2 &B, M3 &C,
                   C.data(), int(C.ld()));
   if (status != CUBLAS_STATUS_SUCCESS) {
     throw std::runtime_error("dgemm failed on gpu " +
+                             std::to_string(_deviceID) +
+                             " with errorcode:" + cudaGetErrorEnum(status));
+  }
+}
+
+template <class M>
+inline void CudaPipeline::diag_gemm(const M &A, const CudaMatrix &b,
+                                    CudaMatrix &C) const {
+
+  if (b.cols() != 1 && b.rows() != 1) {
+    throw std::runtime_error("B Matrix in Cublas diag_gemm must be a vector");
+  }
+
+  cublasSideMode_t mode = CUBLAS_SIDE_RIGHT;
+  Index Adim = A.cols();
+  if (M::transposed()) {
+    mode = CUBLAS_SIDE_LEFT;
+    Adim = A.rows();
+  }
+
+  if (Adim != b.size()) {
+    throw std::runtime_error("Shape mismatch in cuda diag_gemm: A" +
+                             OutputDimension(A) + " b" + OutputDimension(b));
+  }
+
+  cublasSetStream(_handle, _stream);
+  cublasStatus_t status =
+      cublasDdgmm(_handle, mode, int(A.rows()), int(A.cols()), A.data(),
+                  int(A.ld()), b.data(), 1, C.data(), int(C.ld()));
+
+  if (status != CUBLAS_STATUS_SUCCESS) {
+    throw std::runtime_error("diag_gemm failed on gpu " +
                              std::to_string(_deviceID) +
                              " with errorcode:" + cudaGetErrorEnum(status));
   }
