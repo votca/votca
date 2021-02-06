@@ -137,12 +137,15 @@ void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
   OpenMP_CUDA gemm;
   gemm.setOperators(_matrix, matrix);
-#pragma omp parallel for schedule(dynamic)
-  for (Index i = 0; i < msize(); i++) {
-    gemm.MultiplyRight(_matrix[i]);
+#pragma omp parallel
+  {
+    Index threadid = OPENMP::getThreadId();
+#pragma omp for schedule(dynamic)
+    for (Index i = 0; i < msize(); i++) {
+      gemm.MultiplyRight(_matrix[i], threadid);
+    }
   }
 }
-
 /*
  * Fill the 3-center object by looping over shells of GW basis set and
  * calling FillBlock, which calculates all 3-center overlap integrals
@@ -249,35 +252,39 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
   }
   std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
 
-#pragma omp parallel for schedule(dynamic)
-  for (Index aux = 0; aux < Index(auxshells.size()); aux++) {
-    const libint2::Shell& auxshell = auxshells[aux];
+#pragma omp parallel
+  {
+    Index threadid = OPENMP::getThreadId();
+#pragma omp for schedule(dynamic)
+    for (Index aux = 0; aux < Index(auxshells.size()); aux++) {
+      const libint2::Shell& auxshell = auxshells[aux];
 
-    std::vector<Eigen::MatrixXd> ao3c =
-        ComputeAO3cBlock(auxshell, dftbasis, engines[OPENMP::getThreadId()]);
+      std::vector<Eigen::MatrixXd> ao3c =
+          ComputeAO3cBlock(auxshell, dftbasis, engines[threadid]);
 
-    // this is basically a transpose of AO3c and at the same time the ao->mo
-    // transformation
-    // we do not want to put it into _matrix straight away is because, _matrix
-    // is shared between all threads and we want a nice clean access pattern to
-    // it
-    std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
-        _mtotal, Eigen::MatrixXd::Zero(_ntotal, ao3c.size()));
+      // this is basically a transpose of AO3c and at the same time the ao->mo
+      // transformation
+      // we do not want to put it into _matrix straight away is because, _matrix
+      // is shared between all threads and we want a nice clean access pattern
+      // to it
+      std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
+          _mtotal, Eigen::MatrixXd::Zero(_ntotal, ao3c.size()));
 
-    Index dim = static_cast<Index>(ao3c.size());
-    for (Index k = 0; k < dim; ++k) {
-      transform.MultiplyLeftRight(ao3c[k]);
-      for (Index i = 0; i < ao3c[k].cols(); ++i) {
-        block[i].col(k) = ao3c[k].col(i);
+      Index dim = static_cast<Index>(ao3c.size());
+      for (Index k = 0; k < dim; ++k) {
+        transform.MultiplyLeftRight(ao3c[k], threadid);
+        for (Index i = 0; i < ao3c[k].cols(); ++i) {
+          block[i].col(k) = ao3c[k].col(i);
+        }
       }
-    }
 
-    // put into correct position
-    for (Index m_level = 0; m_level < _mtotal; m_level++) {
-      _matrix[m_level].block(0, auxshell2bf[aux], _ntotal, auxshell.size()) =
-          block[m_level];
-    }  // m-th DFT orbital
-  }    // shells of GW basis set
+      // put into correct position
+      for (Index m_level = 0; m_level < _mtotal; m_level++) {
+        _matrix[m_level].block(0, auxshell2bf[aux], _ntotal, auxshell.size()) =
+            block[m_level];
+      }  // m-th DFT orbital
+    }    // shells of GW basis set
+  }
 }
 
 }  // namespace xtp

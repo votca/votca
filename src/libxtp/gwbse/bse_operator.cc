@@ -58,48 +58,59 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
                                 auxsize);
   }
 
-#pragma omp parallel for schedule(dynamic)
-  for (Index c1 = 0; c1 < _bse_ctotal; c1++) {
+#pragma omp parallel
+  {
+    Index threadid = OPENMP::getThreadId();
+#pragma omp for schedule(dynamic)
+    for (Index c1 = 0; c1 < _bse_ctotal; c1++) {
 
-    Eigen::MatrixXd Temp;
-    if (cd != 0) {
-      Temp = -cd * (_Mmn[c1 + cmin].block(cmin, 0, _bse_ctotal, auxsize));
-      transform.PrepareMatrix1(Temp);
-    }
-    if (cd2 != 0) {
-      Temp = -cd2 * (_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize));
-      transform.PrepareMatrix1(Temp);
-    }
-
-    for (Index v1 = 0; v1 < _bse_vtotal; v1++) {
-      transform.SetTempZero();
+      Eigen::MatrixXd Temp;
       if (cd != 0) {
-        transform.PrepareMatrix2(
-            _Mmn[v1 + vmin].block(vmin, 0, _bse_vtotal, auxsize), cd2 != 0);
+        Temp = -cd * (_Mmn[c1 + cmin].block(cmin, 0, _bse_ctotal, auxsize));
+        transform.PrepareMatrix1(Temp, threadid);
       }
       if (cd2 != 0) {
-        transform.PrepareMatrix2(
-            _Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize), cd2 != 0);
+        Temp = -cd2 * (_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize));
+        transform.PrepareMatrix1(Temp, threadid);
       }
-      if (cqp != 0) {
-        Eigen::VectorXd vec = Hqp_row(v1, c1);
-        transform.Addvec(vec);
+
+      for (Index v1 = 0; v1 < _bse_vtotal; v1++) {
+        transform.SetTempZero(threadid);
+        if (cd != 0) {
+          transform.PrepareMatrix2(
+              _Mmn[v1 + vmin].block(vmin, 0, _bse_vtotal, auxsize), cd2 != 0,
+              threadid);
+        }
+        if (cd2 != 0) {
+          transform.PrepareMatrix2(
+              _Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize), cd2 != 0,
+              threadid);
+        }
+        if (cqp != 0) {
+          Eigen::VectorXd vec = Hqp_row(v1, c1);
+          transform.Addvec(vec, threadid);
+        }
+        transform.MultiplyRow(vc.I(v1, c1), threadid);
       }
-      transform.MultiplyRow(vc.I(v1, c1));
     }
   }
   if (cx > 0) {
 
     transform.createAdditionalTemporaries(_bse_ctotal, auxsize);
-#pragma omp parallel for schedule(dynamic)
-    for (Index v1 = 0; v1 < _bse_vtotal; v1++) {
-      Index va = v1 + vmin;
-      Eigen::MatrixXd Mmn1 = cx * _Mmn[va].block(cmin, 0, _bse_ctotal, auxsize);
-      transform.PushMatrix1(Mmn1);
-      for (Index v2 = v1; v2 < _bse_vtotal; v2++) {
-        Index vb = v2 + vmin;
-        transform.MultiplyBlocks(_Mmn[vb].block(cmin, 0, _bse_ctotal, auxsize),
-                                 v1, v2);
+#pragma omp parallel
+    {
+      Index threadid = OPENMP::getThreadId();
+#pragma omp for schedule(dynamic)
+      for (Index v1 = 0; v1 < _bse_vtotal; v1++) {
+        Index va = v1 + vmin;
+        Eigen::MatrixXd Mmn1 =
+            cx * _Mmn[va].block(cmin, 0, _bse_ctotal, auxsize);
+        transform.PushMatrix1(Mmn1, threadid);
+        for (Index v2 = v1; v2 < _bse_vtotal; v2++) {
+          Index vb = v2 + vmin;
+          transform.MultiplyBlocks(
+              _Mmn[vb].block(cmin, 0, _bse_ctotal, auxsize), v1, v2, threadid);
+        }
       }
     }
   }
