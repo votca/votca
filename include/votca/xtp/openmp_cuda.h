@@ -84,7 +84,7 @@ class OpenMP_CUDA {
 
   // RPA
   void createTemporaries(Index rows, Index cols);
-  void PushMatrix(Eigen::MatrixXd& mat);
+  void PushMatrix(const Eigen::MatrixXd& mat);
   void A_TDA(const Eigen::VectorXd& vec);
 
   // Hd + Hqp + Hd2
@@ -98,8 +98,7 @@ class OpenMP_CUDA {
   void MultiplyRow(Index row);
 
   // Hx
-
-  void createAdditionalTemporaries(Index rows, Index cols);
+  void createAdditionalTemporaries( Index rows, Index cols);
   void PushMatrix1(Eigen::MatrixXd& mat);
   void MultiplyBlocks(const Eigen::Block<const Eigen::MatrixXd>& mat, Index i1,
                       Index i2);
@@ -127,9 +126,9 @@ class OpenMP_CUDA {
     const T* p = nullptr;
   };
 
-  DefaultReference<Eigen::MatrixXd> rOP_;
-  DefaultReference<Eigen::MatrixXd> lOP_;
-  DefaultReference<Eigen::VectorXd> vec_;
+  DefaultReference<const Eigen::MatrixXd> rOP_;
+  DefaultReference<const Eigen::MatrixXd> lOP_;
+  DefaultReference<const Eigen::VectorXd> vec_;
 
   struct CPU_data {
 
