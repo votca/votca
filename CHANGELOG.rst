@@ -19,7 +19,7 @@ Version 2022-dev
 -  added a more general constructor to cudamatrix (#671)
 -  removed lapack routine for solving BSE and added GPU support (#672)
 -  changed return value from reference to a copy (#676)
-
+-  add CodeQL static analysis to GitHub Actions (#677)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
