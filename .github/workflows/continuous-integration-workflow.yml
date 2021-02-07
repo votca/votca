@@ -18,6 +18,7 @@ jobs:
         module_build: [false]
         coverage: [false]
         no_regression_testing: [true]
+        codeql: [false]
         include:
           - distro: 'fedora:latest'
             toolchain: gnu
