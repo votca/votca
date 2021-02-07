@@ -35,12 +35,10 @@ jobs:
           - distro: 'fedora:latest'
             toolchain: gnu
             cmake_build_type: Release
-            minimal: false
-            own_gmx: false
-            module_build: false
-            coverage: false
             no_regression_testing: true
             codeql: true
+            # CodeQL does not work with valgrind
+            cmake_args: "-DVALGRIND_EXECUTABLE=FALSE"
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/votca/buildenv/${{ matrix.distro }}
