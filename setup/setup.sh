@@ -18,7 +18,7 @@ for i in INPUT_MINIMAL INPUT_OWN_GMX INPUT_REGRESSION_TESTING; do
   echo "$i='${!i}'"
 done
 [[ -n ${INPUT_DISTRO} ]] || die "value of INPUT_DISTRO was empty"
-for i in INPUT_DISTRO INPUT_CMAKE_BUILD_TYPE INPUT_TOOLCHAIN INPUT_COVERAGE INPUT_CTEST_ARGS INPUT_CMAKE_ARGS INPUT_MODULE; do
+for i in INPUT_DISTRO INPUT_CMAKE_BUILD_TYPE INPUT_TOOLCHAIN INPUT_COVERAGE INPUT_CTEST_ARGS INPUT_CMAKE_ARGS INPUT_MODULE INPUT_CODE_ANALYZER; do
   echo "$i='${!i}'"
 done
 
@@ -55,7 +55,7 @@ elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
 elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=icpx )
 else
-  die "Unknown INPUT_TOOLCHAIN"
+  die "Unknown INPUT_TOOLCHAIN; ${INPUT_TOOLCHAIN}"
 fi
 
 if [[ ${INPUT_COVERAGE} && ${INPUT_COVERAGE} != "false" ]]; then
@@ -100,6 +100,15 @@ if [[ ${INPUT_MINIMAL} = true || ${INPUT_DISTRO} = ubuntu:@(latest|rolling|devel
   cmake_args+=( -DENABLE_REGRESSION_TESTING=OFF )
 else
   cmake_args+=( -DENABLE_REGRESSION_TESTING=${INPUT_REGRESSION_TESTING} )
+fi
+
+if [[ ${INPUT_CODE_ANALYZER} = "false" ]]; then
+  :
+elif [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
+  # CodeQL does not work with valgrind
+  cmake_args+=( -DVALGRIND_EXECUTABLE=FALSE )
+else
+  die "Unknown INPUT_CODE_ANALYZER: ${INPUT_CODE_ANALYZER}"
 fi
 
 cmake_args+=( ${INPUT_CMAKE_ARGS} )
@@ -148,7 +157,7 @@ if [[ ${INPUT_COVERAGE} ]]; then
   elif [[ ${INPUT_COVERAGE} = "RestGroup" || ${INPUT_COVERAGE} = "true" ]]; then
     ctest_args+=( -E "'regression_(urea-water|spce_(re|imc|cma)|methanol-water|propane_imc)'" )
   else
-    die "Unknown coverage set"
+    die "Unknown coverage set: ${INPUT_COVERAGE}"
   fi
 fi
 ctest_args+=( ${INPUT_CTEST_ARGS} )

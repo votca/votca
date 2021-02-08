@@ -9,7 +9,11 @@ inputs:
     required: false
   cmake_build_type:
     description: 'CMake build type to use'
-    required: true
+    required: false
+  code_analyzer:
+    description: 'Code analyzer to use'
+    required: false
+    default: false
   ctest_args:
     description: 'Initial CTest args to use'
     required: false
@@ -19,7 +23,7 @@ inputs:
   distro:
     description: 'Distro to run on'
     required: true
-    default: 'latest'
+    default: 'fedora:latest'
   minimal:
     description: 'Whether to do a minimal build'
     required: true
