@@ -58,13 +58,6 @@ else
   die "Unknown INPUT_TOOLCHAIN; ${INPUT_TOOLCHAIN}"
 fi
 
-if [[ ${INPUT_COVERAGE} && ${INPUT_COVERAGE} != "false" ]]; then
-  cmake_args+=( -DENABLE_COVERAGE_BUILD=ON )
-  cov_tag=true
-else
-  cov_tag=false
-fi
-
 if [[ ${INPUT_MODULE} = true ]]; then
   cmake_args+=( -DMODULE_BUILD=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca.install )
 else
@@ -107,6 +100,8 @@ if [[ ${INPUT_CODE_ANALYZER} = "false" ]]; then
 elif [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
   # CodeQL does not work with valgrind
   cmake_args+=( -DVALGRIND_EXECUTABLE=FALSE )
+else [[ ${INPUT_COVERAGE} && ${INPUT_COVERAGE} != "false" ]] || [[ ${INPUT_CODE_ANALYZER} = coverage* ]]; then
+  cmake_args+=( -DENABLE_COVERAGE_BUILD=ON )
 else
   die "Unknown INPUT_CODE_ANALYZER: ${INPUT_CODE_ANALYZER}"
 fi
@@ -114,7 +109,7 @@ fi
 cmake_args+=( ${INPUT_CMAKE_ARGS} )
 print_output "cmake_args" "${cmake_args[@]}"
 
-cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-minimal-${INPUT_MINIMAL}-owngmx-${owngmx}-module-${INPUT_MODULE}-coverage-${cov_tag}"
+cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-minimal-${INPUT_MINIMAL}-owngmx-${owngmx}-module-${INPUT_MODULE}-analysis-${INPUT_CODE_ANALYZER%%:*}"
 print_output "cache_restore_key" "${cache_key}"
 print_output "cache_key" "${cache_key}-$(date +%s)"
 
@@ -140,7 +135,7 @@ else
 fi
 
 ctest_args=( -L ${module} )
-if [[ ${INPUT_COVERAGE} ]]; then
+if [[ ${INPUT_COVERAGE} || ${INPUT_CODE_ANALYZER} = coverage* ]]; then
   # split coverage into 4 group with less than 1hr runtime
   # used votca/votca, csg, tools only
   # other modules can use 'RestGroup' to run all tests
@@ -148,16 +143,16 @@ if [[ ${INPUT_COVERAGE} ]]; then
   # false means the same as empty
   if [[ ${INPUT_COVERAGE} = "false" ]]; then
     :
-  elif [[ ${INPUT_COVERAGE} = "Group1" ]]; then
+  elif [[ ${INPUT_COVERAGE} = "Group1" || ${INPUT_CODE_ANALYZER} = "coverage:Group1" ]]; then
     ctest_args+=( -R "regression_urea-water" )
-  elif [[ ${INPUT_COVERAGE} = "Group2" ]]; then
+  elif [[ ${INPUT_COVERAGE} = "Group2" || ${INPUT_CODE_ANALYZER} = "coverage:Group2" ]]; then
     ctest_args+=( -R "'regression_spce_(re|imc|cma)'" )
-  elif [[ ${INPUT_COVERAGE} = "Group3" ]]; then
+  elif [[ ${INPUT_COVERAGE} = "Group3" || ${INPUT_CODE_ANALYZER} = "coverage:Group3" ]]; then
     ctest_args+=( -R "'regression_(methanol-water|propane_imc)'" )
-  elif [[ ${INPUT_COVERAGE} = "RestGroup" || ${INPUT_COVERAGE} = "true" ]]; then
+  elif [[ ${INPUT_COVERAGE} = "RestGroup" || ${INPUT_COVERAGE} = "true" || ${INPUT_CODE_ANALYZER} = "coverage" || ${INPUT_CODE_ANALYZER} = "coverage:RestGroup" ]]; then
     ctest_args+=( -E "'regression_(urea-water|spce_(re|imc|cma)|methanol-water|propane_imc)'" )
   else
-    die "Unknown coverage set: ${INPUT_COVERAGE}"
+    die "Unknown coverage set: ${INPUT_COVERAGE} / ${INPUT_CODE_ANALYZER}"
   fi
 fi
 ctest_args+=( ${INPUT_CTEST_ARGS} )
