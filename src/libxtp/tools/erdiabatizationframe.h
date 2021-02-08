@@ -46,7 +46,8 @@ class ERDiabatizationFrame final : public QMTool {
   bool Run() final;
 
  private:
-  std::string _orbfile;
+  std::string _orbfile1;
+  std::string _orbfile2;
   QMStateType _qmtype;
   std::string _xml_output;  // .xml output
   Logger _log;

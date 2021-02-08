@@ -28,24 +28,45 @@ namespace xtp {
 void ERDiabatization::setUpMatrices() {
 
   XTP_LOG(Log::debug, *_pLog) << "Setting up basis" << flush;
-  this->_dftbasis = _orbitals.SetupDftBasis();
-  this->_auxbasis = _orbitals.SetupAuxBasis();
-  this->_bse_cmax = _orbitals.getBSEcmax();
-  this->_bse_cmin = _orbitals.getBSEcmin();
-  this->_bse_vmax = _orbitals.getBSEvmax();
-  this->_bse_vmin = _orbitals.getBSEvmin();
-  this->_bse_vtotal = _bse_vmax - _bse_vmin + 1;
-  this->_bse_ctotal = _bse_cmax - _bse_cmin + 1;
-  this->_basis = _orbitals.getBasisSetSize();
-  this->_bse_size_ao = _basis * _basis;
-  this->_occlevels = _orbitals.MOs().eigenvectors().block(
-      0, _bse_vmin, _orbitals.MOs().eigenvectors().rows(), _bse_vtotal);
-  this->_virtlevels = _orbitals.MOs().eigenvectors().block(
-      0, _bse_cmin, _orbitals.MOs().eigenvectors().rows(), _bse_ctotal);
+  this->_dftbasis1 = _orbitals1.SetupDftBasis();
+  this->_auxbasis1 = _orbitals1.SetupAuxBasis();
+  this->_bse_cmax1 = _orbitals1.getBSEcmax();
+  this->_bse_cmin1 = _orbitals1.getBSEcmin();
+  this->_bse_vmax1 = _orbitals1.getBSEvmax();
+  this->_bse_vmin1 = _orbitals1.getBSEvmin();
+  this->_bse_vtotal1 = _bse_vmax1 - _bse_vmin1 + 1;
+  this->_bse_ctotal1 = _bse_cmax1 - _bse_cmin1 + 1;
+  this->_basis1 = _orbitals1.getBasisSetSize();
+  this->_bse_size_ao1 = _basis1 * _basis1;
+  this->_occlevels1 = _orbitals1.MOs().eigenvectors().block(
+      0, _bse_vmin1, _orbitals1.MOs().eigenvectors().rows(), _bse_vtotal1);
+  this->_virtlevels1 = _orbitals1.MOs().eigenvectors().block(
+      0, _bse_cmin1, _orbitals1.MOs().eigenvectors().rows(), _bse_ctotal1);
+
+  this->_dftbasis2 = _orbitals2.SetupDftBasis();
+  this->_auxbasis2 = _orbitals2.SetupAuxBasis();
+  this->_bse_cmax2 = _orbitals2.getBSEcmax();
+  this->_bse_cmin2 = _orbitals2.getBSEcmin();
+  this->_bse_vmax2 = _orbitals2.getBSEvmax();
+  this->_bse_vmin2 = _orbitals2.getBSEvmin();
+  this->_bse_vtotal2 = _bse_vmax2 - _bse_vmin2 + 1;
+  this->_bse_ctotal2 = _bse_cmax2 - _bse_cmin2 + 1;
+  this->_basis2 = _orbitals2.getBasisSetSize();
+  this->_bse_size_ao2 = _basis2 * _basis2;
+  this->_occlevels2 = _orbitals2.MOs().eigenvectors().block(
+      0, _bse_vmin2, _orbitals2.MOs().eigenvectors().rows(), _bse_vtotal2);
+  this->_virtlevels2 = _orbitals2.MOs().eigenvectors().block(
+      0, _bse_cmin2, _orbitals2.MOs().eigenvectors().rows(), _bse_ctotal2);
+
 
     //What if I don't have auxbasis?
     //_eris.Initialize_4c(_dftbasis);
-    _eris.Initialize(_dftbasis, _auxbasis);
+
+    //I also need to add a check on the basis. For now assuming both basis are the same
+    _eris.Initialize(_dftbasis1, _auxbasis1);
+
+    ////I define here the overlap
+    //_overlap.Fill(_dftbasis1);
   
 }
 
@@ -91,9 +112,9 @@ Eigen::MatrixXd ERDiabatization::Calculate_diabatic_H(
   return U.transpose() * ad_energies.asDiagonal() * U;
 }
 
-double ERDiabatization::Calculate_angle(const Orbitals& orb,
+double ERDiabatization::Calculate_angle(const Orbitals& orb1,const Orbitals& orb2,
                                         QMStateType type) const {
-  Eigen::Tensor<double, 4> rtensor = CalculateRtensor(orb, type);
+  Eigen::Tensor<double, 4> rtensor = CalculateRtensor(orb1,orb2, type);
 
   double A_12 =
       rtensor(0, 1, 0, 1) - 0.25 * (rtensor(0, 0, 0, 0) + rtensor(1, 1, 1, 1) -
@@ -154,15 +175,15 @@ void ERDiabatization::Print_ERfunction(Eigen::VectorXd results) const {
 }
 
 Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
-    const Orbitals& orb, QMStateType type) const {
+    const Orbitals& orb1,const Orbitals& orb2, QMStateType type) const {
   XTP_LOG(Log::error, *_pLog) << "Computing R tensor" << flush;
   Eigen::Tensor<double, 4> r_tensor(2, 2, 2, 2);
   for (Index J = 0; J < 2; J++) {
     for (Index K = 0; K < 2; K++) {
-      Eigen::MatrixXd D_JK = CalculateD(orb, type, J, K);
+      Eigen::MatrixXd D_JK = CalculateD(orb1,orb2, type, J, K);
       for (Index L = 0; L < 2; L++) {
         for (Index M = 0; M < 2; M++) {
-          Eigen::MatrixXd D_LM = CalculateD(orb, type, L, M);
+          Eigen::MatrixXd D_LM = CalculateD(orb1,orb2, type, L, M);
           r_tensor(J, K, L, M) = CalculateR(D_JK, D_LM);
         }
       }
@@ -170,10 +191,12 @@ Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
   }
   return r_tensor;
 }
-Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb,
+
+
+Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb1,const Orbitals& orb2,
                                              QMStateType type) const {
 
-  Eigen::Tensor<double, 4> R_JKLM = CalculateRtensor(orb, type);
+  Eigen::Tensor<double, 4> R_JKLM = CalculateRtensor(orb1,orb2, type);
   const double pi = votca::tools::conv::Pi;
   // Scanning through angles
   Eigen::VectorXd results = Eigen::VectorXd::Zero(360);
@@ -208,7 +231,7 @@ Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb,
   return results;
 }
 
-Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb,
+Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,const Orbitals& orb2,
                                             QMStateType type, Index stateindex1,
                                             Index stateindex2) const {
 
@@ -235,16 +258,16 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb,
   Eigen::VectorXd exciton1;
   Eigen::VectorXd exciton2;
   if (type == QMStateType::Singlet) {
-    exciton1 = orb.BSESinglets().eigenvectors().col(index1 - 1);
-    exciton2 = orb.BSESinglets().eigenvectors().col(index2 - 1);
+    exciton1 = orb1.BSESinglets().eigenvectors().col(index1 - 1);
+    exciton2 = orb2.BSESinglets().eigenvectors().col(index2 - 1);
   } else {
-    exciton1 = orb.BSETriplets().eigenvectors().col(index1 - 1);
-    exciton2 = orb.BSETriplets().eigenvectors().col(index2 - 1);
+    exciton1 = orb1.BSETriplets().eigenvectors().col(index1 - 1);
+    exciton2 = orb2.BSETriplets().eigenvectors().col(index2 - 1);
   }
-  Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), _bse_ctotal,
-                                         _bse_vtotal);
-  Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), _bse_ctotal,
-                                         _bse_vtotal);
+  Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), _bse_ctotal1,
+                                         _bse_vtotal1);
+  Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), _bse_ctotal2,
+                                         _bse_vtotal2);
 
   // Here I ignored the diagonal term related to the stationary unexcited
   // electrons. It seems it doesn't play a huge role in the overall
@@ -252,9 +275,20 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb,
   Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
   // This is the same as in the paper.
   Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
+  
   // This defines D = X + Y where X = occupied and Y = unoccupied contribution
-  return _virtlevels * AuxMat_cc * _virtlevels.transpose() -
-         _occlevels * AuxMat_vv * _occlevels.transpose();
+  Eigen::MatrixXd results = _virtlevels1 * AuxMat_cc * _virtlevels2.transpose() -
+         _occlevels1 * AuxMat_vv * _occlevels2.transpose();
+  if (stateindex1==stateindex2){
+    if (stateindex1==0){
+      results += orb1.DensityMatrixGroundState();
+    }
+    if (stateindex1==1){
+      results+=orb2.DensityMatrixGroundState();
+    }
+  }
+  
+  return results;
 }
 
 }  // namespace xtp

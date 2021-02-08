@@ -33,7 +33,8 @@ void ERDiabatizationFrame::ParseOptions(const tools::Property& user_options) {
 
   tools::Property options = user_options;
 
-  _orbfile = options.get(".orb_file").as<std::string>();
+  _orbfile1 = options.get(".orb_file1").as<std::string>();
+  _orbfile2 = options.get(".orb_file2").as<std::string>();
 
   _options.state_idx_1 = options.get(".state_idx_1").as<Index>();
   _options.state_idx_2 = options.get(".state_idx_2").as<Index>();
@@ -67,15 +68,17 @@ bool ERDiabatizationFrame::Run() {
   _log.setCommonPreface("\n... ...");
 
   XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Reading from orbitals from file: " << _orbfile
-      << flush;
+      << TimeStamp() << " Reading from orbitals from files: " << _orbfile1
+      << " and " << _orbfile2 << flush;
 
   // Get orbitals object
-  Orbitals orbitals;
+  Orbitals orbitals1;
+  Orbitals orbitals2;
 
-  orbitals.ReadFromCpt(_orbfile);
+  orbitals1.ReadFromCpt(_orbfile1);
+  orbitals2.ReadFromCpt(_orbfile2);
 
-  ERDiabatization ERDiabatization(orbitals, &_log);
+  ERDiabatization ERDiabatization(orbitals1, orbitals2, &_log);
 
   ERDiabatization.configure(_options);
 
@@ -85,8 +88,8 @@ bool ERDiabatizationFrame::Run() {
       << TimeStamp() << " Started ER Diabatization " << flush;
 
   // Calculate angle
-  double angle = ERDiabatization.Calculate_angle(orbitals, _qmtype);
-    
+  double angle = ERDiabatization.Calculate_angle(orbitals1, orbitals2, _qmtype);
+
   // Eigen::VectorXd results = ERDiabatization.CalculateER(orbitals, _qmtype);
   // ERDiabatization.Print_ERfunction(results);
 
@@ -95,11 +98,11 @@ bool ERDiabatizationFrame::Run() {
   double ad_E1;
   double ad_E2;
   if (_qmtype == QMStateType::Singlet) {
-    ad_E1 = orbitals.BSESinglets().eigenvalues()[_options.state_idx_1 - 1];
-    ad_E2 = orbitals.BSESinglets().eigenvalues()[_options.state_idx_2 - 1];
+    ad_E1 = orbitals1.BSESinglets().eigenvalues()[_options.state_idx_1 - 1];
+    ad_E2 = orbitals2.BSESinglets().eigenvalues()[_options.state_idx_2 - 1];
   } else {
-    ad_E1 = orbitals.BSETriplets().eigenvalues()[_options.state_idx_1 - 1];
-    ad_E2 = orbitals.BSETriplets().eigenvalues()[_options.state_idx_2 - 1];
+    ad_E1 = orbitals1.BSETriplets().eigenvalues()[_options.state_idx_1 - 1];
+    ad_E2 = orbitals2.BSETriplets().eigenvalues()[_options.state_idx_2 - 1];
   }
 
   // We can now calculate the diabatic Hamiltonian

@@ -2,7 +2,8 @@
 <options>
 <!-- xtp_tools -e erdiabatization  options.xml -->
 <erdiabatization help="Perform ER diabatization" >
-	<orb_file help="Input orb file to start computation from"/>
+	<orb_file1 help="Input orb file to start computation from"/>
+	<orb_file2 help="Input orb file to start computation from"/>
 	<state_idx_1 help="State index 1"/>
     <state_idx_2 help="State index 2"/>
 	<qmtype help="which type"/>

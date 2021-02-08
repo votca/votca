@@ -30,6 +30,7 @@
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
 #include <votca/xtp/aobasis.h>
+//#include <votca/xtp/aomatrix.h>
 
 namespace votca {
 namespace xtp {
@@ -38,8 +39,8 @@ class ERDiabatization {
  public:
   ERDiabatization();
 
-  ERDiabatization(Orbitals& orbitals, Logger* log)
-      : _orbitals(orbitals), _pLog(log){};
+  ERDiabatization(Orbitals& orbitals1,Orbitals& orbitals2, Logger* log)
+      : _orbitals1(orbitals1),_orbitals2(orbitals2), _pLog(log){};
 
   // Write a function to set up all the matrices we need
   void setUpMatrices();
@@ -55,43 +56,61 @@ class ERDiabatization {
 
   void configure(const options_erdiabatization& opt);
 
-  Eigen::VectorXd CalculateER(const Orbitals& orb, QMStateType type) const;
+  Eigen::VectorXd CalculateER(const Orbitals& orb1, const Orbitals& orb2, QMStateType type) const;
 
   void Print_ERfunction(Eigen::VectorXd results) const;
 
-  double Calculate_angle(const Orbitals& orb, QMStateType type) const;
+  double Calculate_angle(const Orbitals& orb1,const Orbitals& orb2, QMStateType type) const;
   Eigen::MatrixXd Calculate_diabatic_H(const double E1, const double E2,
                                        const double angle) const;
 
  private:
   Logger* _pLog;
 
-  Orbitals& _orbitals;
+  Orbitals& _orbitals1;
+  Orbitals& _orbitals2;
   ERIs _eris;
-  AOBasis _dftbasis;
-  AOBasis _auxbasis;
+  //AOOverlap _overlap;
+  AOBasis _dftbasis1;
+  AOBasis _auxbasis1;
+
+  AOBasis _dftbasis2;
+  AOBasis _auxbasis2;
 
   std::string _type;
   Index _nostates;
-  Index _bse_cmax;
-  Index _bse_cmin;
-  Index _bse_vmax;
-  Index _bse_vmin;
-  Index _bse_vtotal;
-  Index _bse_ctotal;
-  Index _basis;
-  Index _bse_size_ao;
-  Eigen::VectorXd _occlevels;
-  Eigen::VectorXd _virtlevels;
+  Index _bse_cmax1;
+  Index _bse_cmin1;
+  Index _bse_vmax1;
+  Index _bse_vmin1;
+  Index _bse_vtotal1;
+  Index _bse_ctotal1;
+  Index _basis1;
+  Index _bse_size_ao1;
+  Eigen::VectorXd _occlevels1;
+  Eigen::VectorXd _virtlevels1;
+
+  Index _bse_cmax2;
+  Index _bse_cmin2;
+  Index _bse_vmax2;
+  Index _bse_vmin2;
+  Index _bse_vtotal2;
+  Index _bse_ctotal2;
+  Index _basis2;
+  Index _bse_size_ao2;
+  Eigen::VectorXd _occlevels2;
+  Eigen::VectorXd _virtlevels2;
+
+
 
   options_erdiabatization _opt;
-  Eigen::MatrixXd CalculateD(const Orbitals& orb, QMStateType type,
+  Eigen::MatrixXd CalculateD(const Orbitals& orb1, const Orbitals& orb2,QMStateType type,
                              Index stateindex1, Index stateindex2) const;
 
   double CalculateR(const Eigen::MatrixXd& D_JK,
                     const Eigen::MatrixXd& D_LM) const;
   Eigen::MatrixXd CalculateU(const double phi) const;
-  Eigen::Tensor<double, 4> CalculateRtensor(const Orbitals& orb,
+  Eigen::Tensor<double, 4> CalculateRtensor(const Orbitals& orb1,const Orbitals& orb2,
                                             QMStateType type) const;
 };
 
