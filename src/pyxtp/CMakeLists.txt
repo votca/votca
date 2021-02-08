@@ -18,12 +18,8 @@ set_target_properties(xtp_binds
   CXX_STANDARD_REQUIRED ON
 )
 
+target_link_libraries(xtp_binds PUBLIC VOTCA::votca_xtp)
 
-target_link_libraries(xtp_binds
- PUBLIC
- VOTCA::votca_xtp
- "-Wl,--no-as-needed"
- )
 
 if(NOT PYTHON_INSTDIR)
   execute_process(
