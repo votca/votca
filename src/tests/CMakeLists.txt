@@ -93,7 +93,12 @@ if(ENABLE_TESTING)
     target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
     add_test(NAME unit_${PROG} COMMAND $<TARGET_FILE:unit_${PROG}> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
-    # run tests for xtp (for coverage) as well
     set_tests_properties(unit_${PROG} PROPERTIES LABELS "xtp;votca;unit")
   endforeach(PROG)
-endif()
+
+  find_package(Python 3 REQUIRED COMPONENTS Interpreter Development)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_test_xtp_binds)
+  add_test(NAME unit_test_xtp_binds COMMAND ${Python_EXECUTABLE} -c "from pyxtp.examples import run_examples; run_examples()" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_test_xtp_binds)
+  set_tests_properties(unit_test_xtp_binds PROPERTIES LABELS "xtp;votca;unit")
+
+  endif()
