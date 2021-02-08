@@ -28,12 +28,8 @@
 namespace votca {
 namespace xtp {
 
-JobApplication::JobApplication() { JobCalculatorfactory{}; }
-
 void JobApplication::Initialize(void) {
   XtpApplication::Initialize();
-
-  JobCalculatorfactory{};
 
   namespace propt = boost::program_options;
 

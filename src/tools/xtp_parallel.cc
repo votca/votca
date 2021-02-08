@@ -43,7 +43,6 @@ class XtpParallel : public xtp::JobApplication {
 namespace propt = boost::program_options;
 
 void XtpParallel::Initialize() {
-  xtp::JobCalculatorfactory{};
   xtp::JobApplication::Initialize();
 
   AddProgramOptions("Calculator")("execute,e", propt::value<string>(),

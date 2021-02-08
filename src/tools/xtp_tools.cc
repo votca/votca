@@ -57,7 +57,6 @@ namespace propt = boost::program_options;
 
 void XtpTools::Initialize() {
 
-  xtp::QMToolFactory{};
   xtp::XtpApplication::Initialize();
 
   // Tools-related

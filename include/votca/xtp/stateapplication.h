@@ -31,7 +31,7 @@ namespace xtp {
 
 class StateApplication : public XtpApplication {
  public:
-  StateApplication();
+  StateApplication() = default;
 
   ~StateApplication() override = default;
 

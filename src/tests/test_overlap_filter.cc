@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
 
   libint2::initialize();
   FilterFactory factory;
-  std::unique_ptr<StateFilter_base> rho_f =
-      std::unique_ptr<StateFilter_base>(factory.Create("overlap"));
+  std::unique_ptr<StateFilter_base> rho_f = factory.Create("overlap");
 
   std::ofstream opt("overlap_filter.xml");
   opt << "<overlap>0.0045</overlap>" << std::endl;
@@ -103,8 +102,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
     BOOST_CHECK_EQUAL(ref2[i], results2[i]);
   }
   BOOST_CHECK_EQUAL(results2.size(), ref2.size());
-  std::unique_ptr<StateFilter_base> rho_f2 =
-      std::unique_ptr<StateFilter_base>(factory.Create("overlap"));
+  std::unique_ptr<StateFilter_base> rho_f2 = factory.Create("overlap");
 
   rho_f2->Initialize(prop.get("overlap"));
 
@@ -141,8 +139,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
   A.setTDAApprox(false);
   A.CalcCoupledTransition_Dipoles();
 
-  std::unique_ptr<StateFilter_base> rho_f3 =
-      std::unique_ptr<StateFilter_base>(factory.Create("overlap"));
+  std::unique_ptr<StateFilter_base> rho_f3 = factory.Create("overlap");
 
   rho_f3->Initialize(prop.get("overlap"));
 

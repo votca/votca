@@ -37,8 +37,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
 
   libint2::initialize();
   FilterFactory factory;
-  std::unique_ptr<StateFilter_base> local_f =
-      std::unique_ptr<StateFilter_base>(factory.Create("localisation"));
+  std::unique_ptr<StateFilter_base> local_f = factory.Create("localisation");
 
   std::ofstream opt("localisation.xml");
   opt << "<root>" << std::endl;

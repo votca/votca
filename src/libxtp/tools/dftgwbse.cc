@@ -86,9 +86,6 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   if (_do_optimize) {
     _geoopt_options = options.get(".geometry_optimization");
   }
-
-  // register all QM packages
-  QMPackageFactory{};
 }
 
 bool DftGwBse::Run() {
@@ -112,8 +109,7 @@ bool DftGwBse::Run() {
   }
 
   QMPackageFactory factory;
-  std::unique_ptr<QMPackage> qmpackage =
-      std::unique_ptr<QMPackage>(factory.Create(_package));
+  std::unique_ptr<QMPackage> qmpackage = factory.Create(_package);
   qmpackage->setLog(&_log);
   qmpackage->Initialize(_package_options);
   qmpackage->setRunDir(".");

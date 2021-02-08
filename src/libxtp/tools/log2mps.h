@@ -82,8 +82,7 @@ bool Log2Mps::Run() {
                            << std::flush;
 
   QMPackageFactory factory;
-  std::unique_ptr<QMPackage> qmpack =
-      std::unique_ptr<QMPackage>(factory.Create(_package));
+  std::unique_ptr<QMPackage> qmpack = factory.Create(_package);
   qmpack->setLog(&log);
   qmpack->setRunDir(".");
   qmpack->setLogFileName(_logfile);

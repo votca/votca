@@ -34,8 +34,7 @@ BOOST_AUTO_TEST_SUITE(deltaQ_filter_test)
 BOOST_AUTO_TEST_CASE(coeffs_test) {
   libint2::initialize();
   FilterFactory factory;
-  std::unique_ptr<StateFilter_base> deltaQ =
-      std::unique_ptr<StateFilter_base>(factory.Create("chargetransfer"));
+  std::unique_ptr<StateFilter_base> deltaQ = factory.Create("chargetransfer");
 
   std::ofstream opt("chargeTransfer.xml");
   opt << "<root>" << std::endl;

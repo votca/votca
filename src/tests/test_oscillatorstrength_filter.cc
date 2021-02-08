@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
 
   libint2::initialize();
   std::unique_ptr<StateFilter_base> osc_f =
-      std::unique_ptr<StateFilter_base>(factory.Create("oscillatorstrength"));
+      factory.Create("oscillatorstrength");
 
   std::ofstream opt("oscillatorstrength.xml");
   opt << "<oscillatorstrength>0.0045</oscillatorstrength>" << std::endl;

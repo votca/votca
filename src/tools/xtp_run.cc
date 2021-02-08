@@ -43,7 +43,6 @@ class XtpRun : public xtp::StateApplication {
 namespace propt = boost::program_options;
 
 void XtpRun::Initialize() {
-  xtp::Calculatorfactory{};
   xtp::StateApplication::Initialize();
 
   AddProgramOptions("Calculator")("execute,e", propt::value<std::string>(),
@@ -55,11 +54,11 @@ void XtpRun::Initialize() {
 
 bool XtpRun::EvaluateOptions() {
 
+  xtp::Calculatorfactory factory;
   std::string helpdir = "xtp/xml";
   if (OptionsMap().count("list")) {
     std::cout << "Available XTP calculators:\n";
-    xtp::Calculatorfactory inst;
-    for (const auto& name : inst.getKeys()) {
+    for (const auto& name : factory.getKeys()) {
       PrintDescription(std::cout, name, helpdir, Application::HelpShort);
     }
     StopExecution();
@@ -72,8 +71,7 @@ bool XtpRun::EvaluateOptions() {
                          " ,\n\t");
     // loop over the names in the description string
     for (const std::string& n : tok) {
-      xtp::Calculatorfactory inst;
-      if (inst.IsRegistered(n)) {
+      if (factory.IsRegistered(n)) {
         PrintDescription(std::cout, n, helpdir, Application::HelpLong);
       } else {
         std::cout << "Calculator " << n << " does not exist\n";
@@ -93,9 +91,8 @@ bool XtpRun::EvaluateOptions() {
         "You can only run one calculator at the same time.");
   }
 
-  xtp::Calculatorfactory inst;
-  if (inst.IsRegistered(calc_string[0])) {
-    xtp::StateApplication::SetCalculator(inst.Create(calc_string[0]));
+  if (factory.IsRegistered(calc_string[0])) {
+    xtp::StateApplication::SetCalculator(factory.Create(calc_string[0]));
     _options.LoadFromXML(_op_vm["options"].as<std::string>());
   } else {
     std::cout << "Calculator " << calc_string[0] << " does not exist\n";
