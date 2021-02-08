@@ -43,7 +43,10 @@ void ERDiabatization::setUpMatrices() {
   this->_virtlevels = _orbitals.MOs().eigenvectors().block(
       0, _bse_cmin, _orbitals.MOs().eigenvectors().rows(), _bse_ctotal);
 
-  _eris.Initialize_4c(_dftbasis);
+    //What if I don't have auxbasis?
+    //_eris.Initialize_4c(_dftbasis);
+    _eris.Initialize(_dftbasis, _auxbasis);
+  
 }
 
 void ERDiabatization::configure(const options_erdiabatization& opt) {
@@ -54,8 +57,10 @@ double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_JK,
                                    const Eigen::MatrixXd& D_LM) const {
 
   // Here I want to do \sum_{kl} (ij|kl) D^{LM}_{jk}. Is it right?
-  XTP_LOG(Log::debug, *_pLog) << "Calculating 4c ERIs" << flush;
-  Eigen::MatrixXd contracted = _eris.CalculateERIs_4c(D_LM, 1e-12);
+
+  // I still have to figure how to try 3c and if it fails go to 4c
+  // Eigen::MatrixXd contracted = _eris.CalculateERIs_4c(D_LM, 1e-12);
+  Eigen::MatrixXd contracted = _eris.CalculateERIs_3c(D_LM);
 
   return D_JK.cwiseProduct(contracted).sum();
 }
@@ -73,19 +78,84 @@ Eigen::MatrixXd ERDiabatization::Calculate_diabatic_H(
     const double E1, const double E2, const double angle) const {
   Eigen::VectorXd ad_energies(2);
   ad_energies << E1, E2;
+
+  // To uncomment
   XTP_LOG(Log::error, *_pLog)
       << "Adiabatic energies in eV "
       << "E1: " << E1 * votca::tools::conv::hrt2ev
       << " E2: " << E2 * votca::tools::conv::hrt2ev << flush;
   XTP_LOG(Log::error, *_pLog)
       << "Rotation angle (degrees) " << angle * 57.2958 << flush;
+
   Eigen::MatrixXd U = CalculateU(angle);
   return U.transpose() * ad_energies.asDiagonal() * U;
 }
 
+double ERDiabatization::Calculate_angle(const Orbitals& orb,
+                                        QMStateType type) const {
+  Eigen::Tensor<double, 4> rtensor = CalculateRtensor(orb, type);
+
+  double A_12 =
+      rtensor(0, 1, 0, 1) - 0.25 * (rtensor(0, 0, 0, 0) + rtensor(1, 1, 1, 1) -
+                                    2. * rtensor(0, 0, 1, 1));
+  double B_12 = rtensor(0, 0, 0, 1) - rtensor(1, 1, 0, 1);
+
+  // I keep these definitions here for the sake of debugging
+  // double tan4alpha = -1.0*(B_12/A_12);
+  // double sin4alpha = B_12 /(std::sqrt(A_12*A_12 + B_12*B_12));
+
+  double cos4alpha = -A_12 / (std::sqrt(A_12 * A_12 + B_12 * B_12));
+
+  double angle = 0.25 * std::acos(cos4alpha);
+
+  XTP_LOG(Log::error, *_pLog) << "B12 " << B_12 << flush;
+  XTP_LOG(Log::error, *_pLog) << "A12 " << A_12 << flush;
+
+  XTP_LOG(Log::error, *_pLog)
+      << "angle MAX (degrees) " << angle * 57.2958 << flush;
+
+  return angle;
+}
+
+void ERDiabatization::Print_ERfunction(Eigen::VectorXd results) const {
+  // // TO DO: This loop should be printed on a file
+  std::cout << "\n" << std::endl;
+  double Pi = votca::tools::conv::Pi;
+  // Initial mixing angle
+  double phi_in = 0.;
+  // Final mixing angle
+  double phi_fin = .5 * Pi;
+  // We divide the interval into equal bits
+  double step = (phi_fin - phi_in) / results.size();
+
+  for (Index n = 0; n < results.size(); n++) {
+    std::cout << (57.2958) * (phi_in + (n + 1) * step) << " " << results(n)
+              << std::endl;
+  }
+
+  XTP_LOG(Log::error, *_pLog)
+      << TimeStamp() << " Calculation done. Selecting maximum " << flush;
+
+  // Get all the ingredients we need for evaluating the diabatic Hamiltonian
+  // We need the angle that maximise the ER functional
+  Index pos_min;
+  Index pos_max;
+
+  XTP_LOG(Log::error, *_pLog) << "Maximum EF is: " << results.maxCoeff(&pos_max)
+                              << " at position " << pos_max << flush;
+  XTP_LOG(Log::error, *_pLog) << "Minimum EF is: " << results.minCoeff(&pos_min)
+                              << " at position " << pos_min << flush;
+
+  double angle = phi_in + (pos_max + 1) * step;
+  double angle_min = phi_in + (pos_min + 1) * step;
+  XTP_LOG(Log::error, *_pLog)
+      << "From plot: "
+      << "MAX " << angle * 57.2958 << " MIN " << angle_min * 57.2958 << flush;
+}
+
 Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
     const Orbitals& orb, QMStateType type) const {
-  XTP_LOG(Log::debug, *_pLog) << "Computing R tensor" << flush;
+  XTP_LOG(Log::error, *_pLog) << "Computing R tensor" << flush;
   Eigen::Tensor<double, 4> r_tensor(2, 2, 2, 2);
   for (Index J = 0; J < 2; J++) {
     for (Index K = 0; K < 2; K++) {
@@ -104,21 +174,20 @@ Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb,
                                              QMStateType type) const {
 
   Eigen::Tensor<double, 4> R_JKLM = CalculateRtensor(orb, type);
-
   const double pi = votca::tools::conv::Pi;
   // Scanning through angles
   Eigen::VectorXd results = Eigen::VectorXd::Zero(360);
   // Initial mixing angle
   double phi_in = 0.;
   // Final mixing angle
-  double phi_fin = 2. * pi;
+  double phi_fin = 0.5 * pi;
   // We divide the interval into equal bits
   double step = (phi_fin - phi_in) / results.size();
   // Define angle we are iterating
   double phi;
   for (Index n = 0; n < results.size(); n++) {
     // Update angle
-    phi = phi_in + n * step;
+    phi = phi_in + (n + 1) * step;
     Eigen::MatrixXd U = CalculateU(phi);
     // Complicated loop to handle. Can we make it a bit better?
     double result = 0.;
@@ -128,7 +197,7 @@ Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb,
           for (Index L = 0; L < 2; L++) {
             for (Index M = 0; M < 2; M++) {
               result +=
-                  U(J, I) * U(K, I) * U(L, I) * U(M, I) * R_JKLM(J, K, L, M);
+                  U(I, J) * U(I, K) * U(I, L) * U(I, M) * R_JKLM(J, K, L, M);
             }
           }
         }
@@ -143,9 +212,10 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb,
                                             QMStateType type, Index stateindex1,
                                             Index stateindex2) const {
 
-  //D matrix depends on 2 indeces. These can be either 0 or 1. 
-  // Index=0 means "take the first excited state" as Index=1 means "take the second excitate state"
-  //This is the reason for this                                               
+  // D matrix depends on 2 indeces. These can be either 0 or 1.
+  // Index=0 means "take the first excited state" as Index=1 means "take the
+  // second excitate state"
+  // This is the reason for this
   Index index1;
   Index index2;
 
@@ -161,7 +231,7 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb,
   if (stateindex2 == 1) {
     index2 = _opt.state_idx_2;
   }
-  //This requires that index1 and index1 starts from 1. Please add check.
+  // This requires that index1 and index1 starts from 1. Please add check.
   Eigen::VectorXd exciton1;
   Eigen::VectorXd exciton2;
   if (type == QMStateType::Singlet) {
@@ -177,8 +247,8 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb,
                                          _bse_vtotal);
 
   // Here I ignored the diagonal term related to the stationary unexcited
-  // electrons. It seems it doesn't play a huge role in the overall diabatization
-  // process.
+  // electrons. It seems it doesn't play a huge role in the overall
+  // diabatization process.
   Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
   // This is the same as in the paper.
   Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();

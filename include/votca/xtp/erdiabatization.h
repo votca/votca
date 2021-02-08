@@ -53,12 +53,16 @@ class ERDiabatization {
     std::string outfile;
   };
 
-  // Edit options
   void configure(const options_erdiabatization& opt);
-  // Set up options
 
-Eigen::VectorXd CalculateER(const Orbitals& orb, QMStateType type) const;
- Eigen::MatrixXd Calculate_diabatic_H(const double E1, const double E2, const double angle) const;
+  Eigen::VectorXd CalculateER(const Orbitals& orb, QMStateType type) const;
+
+  void Print_ERfunction(Eigen::VectorXd results) const;
+
+  double Calculate_angle(const Orbitals& orb, QMStateType type) const;
+  Eigen::MatrixXd Calculate_diabatic_H(const double E1, const double E2,
+                                       const double angle) const;
+
  private:
   Logger* _pLog;
 
@@ -83,13 +87,12 @@ Eigen::VectorXd CalculateER(const Orbitals& orb, QMStateType type) const;
   options_erdiabatization _opt;
   Eigen::MatrixXd CalculateD(const Orbitals& orb, QMStateType type,
                              Index stateindex1, Index stateindex2) const;
-  
+
   double CalculateR(const Eigen::MatrixXd& D_JK,
                     const Eigen::MatrixXd& D_LM) const;
   Eigen::MatrixXd CalculateU(const double phi) const;
   Eigen::Tensor<double, 4> CalculateRtensor(const Orbitals& orb,
                                             QMStateType type) const;
-  
 };
 
 }  // namespace xtp

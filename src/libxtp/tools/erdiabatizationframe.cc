@@ -40,7 +40,7 @@ void ERDiabatizationFrame::ParseOptions(const tools::Property& user_options) {
   std::string qmtype = options.get(".qmtype").as<std::string>();
   _qmtype.FromString(qmtype);
   XTP_LOG(Log::error, _log) << "Type : " << qmtype << flush;
-  
+
   if (_options.state_idx_1 < 1) {
     throw std::runtime_error("State idx 1 must start from 1.");
   } else {
@@ -84,32 +84,13 @@ bool ERDiabatizationFrame::Run() {
   XTP_LOG(Log::error, _log)
       << TimeStamp() << " Started ER Diabatization " << flush;
 
-  Eigen::VectorXd results = ERDiabatization.CalculateER(orbitals, _qmtype);
+  // Calculate angle
+  double angle = ERDiabatization.Calculate_angle(orbitals, _qmtype);
+    
+  // Eigen::VectorXd results = ERDiabatization.CalculateER(orbitals, _qmtype);
+  // ERDiabatization.Print_ERfunction(results);
 
-  // TO DO: This loop should be printed on a file
-  std::cout << "\n" << std::endl;
-  double Pi = votca::tools::conv::Pi;
-  // Initial mixing angle
-  double phi_in = 0.;
-  // Final mixing angle
-  double phi_fin = 2. * Pi;
-  // We divide the interval into equal bits
-  double step = (phi_fin - phi_in) / results.size();
-
-  for (Index n = 0; n < results.size(); n++) {
-    std::cout << (57.2958) * (phi_in + n * step) << " " << results(n)
-              << std::endl;
-  }
-
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Calculation done. Selecting maximum " << flush;
-
-  // Get all the ingredients we need for evaluating the diabatic Hamiltonian
-  // We need the angle that maximise the ER functional
-  Index pos;
-  XTP_LOG(Log::error, _log) << "Maximum EF is: " << results.maxCoeff(&pos)
-                            << " at position " << pos << flush;
-  double angle = phi_in + pos * step;
+  // Evaluating the Diabatic Hamiltonian
   // We need the adiabatic energies of the two states selected in the option
   double ad_E1;
   double ad_E2;
