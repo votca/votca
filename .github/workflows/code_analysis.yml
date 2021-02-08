@@ -44,6 +44,7 @@ jobs:
           cmake_build_type: ${{ matrix.cmake_build_type }}
           ctest_args: ${{ matrix.ctest_args }}
           cmake_args: ${{ matrix.cmake_args }}
+          code_analyzer: ${{ matrix.code_analyzer }}
       - uses: actions/cache@v2
         with:
           path: ~/.ccache
