@@ -32,3 +32,13 @@ install(TARGETS xtp_binds LIBRARY DESTINATION ${PYTHON_INSTDIR}/pyxtp)
 
 file(GLOB_RECURSE PYXTP_FILES *.py)
 install(FILES ${PYXTP_FILES} DESTINATION ${PYTHON_INSTDIR}/pyxtp)
+
+if(ENABLE_TESTING)
+add_test(
+  NAME integration_test_xtp_binds
+  COMMAND
+    ${CMAKE_COMMAND} -E env
+    PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/..
+    ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/examples.py)
+set_tests_properties(integration_test_xtp_binds PROPERTIES LABELS "csg;tools;votca;xtp;integration")
+endif()

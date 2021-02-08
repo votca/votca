@@ -95,15 +95,4 @@ if(ENABLE_TESTING)
     add_test(NAME unit_${PROG} COMMAND $<TARGET_FILE:unit_${PROG}> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
     set_tests_properties(unit_${PROG} PROPERTIES LABELS "xtp;votca;unit")
   endforeach(PROG)
-
-  add_test(
-    NAME integration_test_xtp_binds
-    COMMAND
-      ${Python_EXECUTABLE} -c
-      "import os; os.environ['PYTHONPATH'] = '${CMAKE_CURRENT_BINARY_DIR}/..'; from pyxtp.xtp_binds import *")
-  set_tests_properties(integration_test_xtp_binds PROPERTIES LABELS "csg;tools;votca;xtp;integration")
-  add_test(NAME integration_Compare_pyxtp_output COMMAND $<TARGET_FILE:VOTCA::votca_compare>  -f1 file1 -f2 ${REFPATH}/file2)
-  set_tests_properties(integration_Compare_pyxtp_output PROPERTIES DEPENDS integration_test_xtp_binds)
-  set_tests_properties(integration_Compare_pyxtp_output PROPERTIES LABELS "csg;tools;xtp;votca;integration")
-
   endif()
