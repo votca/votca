@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,21 +26,9 @@
 namespace votca {
 namespace xtp {
 
-AOGaussianPrimitive::AOGaussianPrimitive(const GaussianPrimitive& gaussian,
-                                         const AOShell& aoshell)
-    : _decay(gaussian.decay()),
-      _contraction(gaussian.contraction()),
-      _aoshell(aoshell) {
+AOGaussianPrimitive::AOGaussianPrimitive(const GaussianPrimitive& gaussian)
+    : _decay(gaussian.decay()), _contraction(gaussian.contraction()) {
   _powfactor = CalcPowFactor(_decay);
-}
-
-AOGaussianPrimitive::AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
-                                         const AOShell& aoshell)
-    : _decay(gaussian._decay),
-      _contraction(gaussian._contraction),
-      _aoshell(aoshell),
-      _powfactor(gaussian._powfactor) {
-  ;
 }
 
 void AOGaussianPrimitive::SetupCptTable(CptTable& table) {
@@ -55,38 +43,23 @@ void AOGaussianPrimitive::SetupCptTable(CptTable& table) {
   table.addCol<double>("scale", HOFFSET(data, scale));
 }
 
-void AOGaussianPrimitive::WriteData(data& d) const {
-  d.atomid = getShell().getAtomIndex();
-  d.l = static_cast<Index>(getShell().getL());
-  d.startindex = getShell().getStartIndex();
+void AOGaussianPrimitive::WriteData(data& d, const AOShell& s) const {
+  d.atomid = s.getAtomIndex();
+  d.l = static_cast<Index>(s.getL());
+  d.startindex = s.getStartIndex();
   d.decay = getDecay();
   d.contraction = getContraction();
-  d.x = getShell().getPos().x();
-  d.y = getShell().getPos().y();
-  d.z = getShell().getPos().z();
-  d.scale = getShell().getScale();
+  d.x = s.getPos().x();
+  d.y = s.getPos().y();
+  d.z = s.getPos().z();
 }
 
 AOShell::AOShell(const Shell& shell, const QMAtom& atom, Index startIndex)
     : _l(shell.getL()),
-      _scale(shell.getScale()),
       _startIndex(startIndex),
       _pos(atom.getPos()),
       _atomindex(atom.getId()) {
   ;
-}
-
-AOShell::AOShell(const AOShell& shell) {
-  _l = shell._l;
-  _scale = shell._scale;
-  _mindecay = shell._mindecay;
-  _startIndex = shell._startIndex;
-  _pos = shell._pos;
-  _atomindex = shell._atomindex;
-  _gaussians.reserve(shell._gaussians.size());
-  for (const auto& gaus : shell._gaussians) {
-    _gaussians.push_back(AOGaussianPrimitive(gaus, *this));
-  }
 }
 
 libint2::Shell AOShell::LibintShell() const {
@@ -342,8 +315,7 @@ std::ostream& operator<<(std::ostream& out, const AOShell& shell) {
   out << "AtomIndex:" << shell.getAtomIndex();
   out << " Shelltype:" << EnumToString(shell.getL())
       << " StartIndex:" << shell.getStartIndex()
-      << " Scale:" << shell.getScale() << " MinDecay:" << shell.getMinDecay()
-      << "\n";
+      << " MinDecay:" << shell.getMinDecay() << "\n";
   for (const auto& gaussian : shell) {
     out << " Gaussian Decay: " << gaussian.getDecay();
     out << " Contraction: " << gaussian.getContraction();
