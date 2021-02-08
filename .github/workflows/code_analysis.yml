@@ -14,7 +14,7 @@ jobs:
         distro: ['fedora:latest']
         toolchain: [gnu]
         cmake_build_type: [Debug]
-        coverage: true
+        coverage: [true]
         no_regression_testing: [true]
         code_analyzer: [false]
         include:
