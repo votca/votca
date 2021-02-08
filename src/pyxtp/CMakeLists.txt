@@ -37,8 +37,7 @@ if(ENABLE_TESTING)
 add_test(
   NAME integration_test_xtp_binds
   COMMAND
-    ${CMAKE_COMMAND} -E env
-    PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/..
     ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/examples.py)
+  set_property(TEST integration_test_xtp_binds PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/..:$ENV{PYTHONPATH}")
 set_tests_properties(integration_test_xtp_binds PROPERTIES LABELS "csg;tools;votca;xtp;integration")
 endif()
