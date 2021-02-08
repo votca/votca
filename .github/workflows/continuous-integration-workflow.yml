@@ -18,7 +18,6 @@ jobs:
         module_build: [false]
         coverage: [false]
         no_regression_testing: [true]
-        codeql: [false]
         include:
           - distro: 'fedora:latest'
             toolchain: gnu
@@ -33,13 +32,6 @@ jobs:
             toolchain: intel
             cmake_build_type: Debug
             no_regression_testing: true
-          - distro: 'fedora:latest'
-            toolchain: gnu
-            cmake_build_type: Release
-            no_regression_testing: true
-            codeql: true
-            # CodeQL does not work with valgrind
-            cmake_args: "-DVALGRIND_EXECUTABLE=FALSE"
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/votca/buildenv/${{ matrix.distro }}
@@ -68,11 +60,6 @@ jobs:
           path: ~/.ccache
           key: ${{ steps.setup.outputs.cache_key }}
           restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
-      - name: Initialize CodeQL
-        if: ${{ matrix.codeql }}
-        uses: github/codeql-action/init@v1
-        with:
-          languages: cpp
       - name: CMake
         run: cmake -B builddir ${{ steps.setup.outputs.cmake_args }} votca
       - name: Build
@@ -80,9 +67,6 @@ jobs:
           ccache -z
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -s
-      - name: Perform CodeQL Analysis
-        if: ${{ matrix.codeql }}
-        uses: github/codeql-action/analyze@v1
       - name: Tests
         run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
         working-directory: builddir
