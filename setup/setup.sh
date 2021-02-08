@@ -100,7 +100,7 @@ if [[ ${INPUT_CODE_ANALYZER} = "false" ]]; then
 elif [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
   # CodeQL does not work with valgrind
   cmake_args+=( -DVALGRIND_EXECUTABLE=FALSE )
-else [[ ${INPUT_COVERAGE} && ${INPUT_COVERAGE} != "false" ]] || [[ ${INPUT_CODE_ANALYZER} = coverage* ]]; then
+elif [[ ${INPUT_COVERAGE} && ${INPUT_COVERAGE} != "false" ]] || [[ ${INPUT_CODE_ANALYZER} = coverage* ]]; then
   cmake_args+=( -DENABLE_COVERAGE_BUILD=ON )
 else
   die "Unknown INPUT_CODE_ANALYZER: ${INPUT_CODE_ANALYZER}"
