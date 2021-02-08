@@ -219,7 +219,7 @@ class DavidsonSolver {
      */
 
     RitzEigenPair rep;
-    Eigen::MatrixXd B = proj.V.transpose() * (A * proj.AV);
+    Eigen::MatrixXd B = proj.V.transpose() * (A * proj.AV).eval();
 
     bool return_eigenvectors = true;
     Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T, B,
@@ -228,6 +228,10 @@ class DavidsonSolver {
       std::cerr << "A\n" << proj.T;
       std::cerr << "B\n" << std::endl;
       throw std::runtime_error("Small generalized eigenvalue problem failed.");
+    }
+
+    if(ges.eigenvalues().imag().array()>0){
+      throw std::runtime_error("Eigenvector has imaginary part.");
     }
 
     ArrayXl idx = DavidsonSolver::argsort(ges.eigenvalues().real());
