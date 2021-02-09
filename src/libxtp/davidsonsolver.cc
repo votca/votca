@@ -57,24 +57,12 @@ void DavidsonSolver::checkOptions(Index operator_size) {
         << TimeStamp() << " == Warning : Max search space set to "
         << operator_size << flush;
 
-    this->_davidson_ortho = ORTHO::QR;
-    XTP_LOG(Log::error, _log)
-        << TimeStamp()
-        << " == Warning : Orthogonalization set to QR for stabilty " << flush;
-
     XTP_LOG(Log::error, _log)
         << TimeStamp()
         << " == Warning : If problems appear, try asking for less than "
         << Index(operator_size / 10) << " eigenvalues" << flush;
   }
 
-  if (this->_matrix_type == MATRIX_TYPE::HAM) {
-    this->_davidson_ortho = ORTHO::QR;
-    XTP_LOG(Log::error, _log)
-        << TimeStamp()
-        << " == Warning : Orthogonalization set to QR for non-symmetric matrix"
-        << flush;
-  }
 }
 
 void DavidsonSolver::printOptions(Index operator_size) const {
@@ -92,16 +80,6 @@ void DavidsonSolver::printOptions(Index operator_size) const {
       break;
   }
 
-  switch (this->_davidson_ortho) {
-    case ORTHO::GS:
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << " Gram-Schmidt Orthogonalization" << flush;
-      break;
-    case ORTHO::QR:
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << " QR Orthogonalization" << flush;
-      break;
-  }
   XTP_LOG(Log::error, _log) << TimeStamp() << " Matrix size : " << operator_size
                             << 'x' << operator_size << flush;
 }
@@ -133,16 +111,6 @@ void DavidsonSolver::set_matrix_type(std::string mt) {
   }
 }
 
-void DavidsonSolver::set_ortho(std::string method) {
-  if (method == "GS") {
-    this->_davidson_ortho = ORTHO::GS;
-  } else if (method == "QR") {
-    this->_davidson_ortho = ORTHO::QR;
-  } else {
-    throw std::runtime_error(
-        method + " is not a valid Davidson orthogonalization method");
-  }
-}
 
 void DavidsonSolver::set_correction(std::string method) {
   if (method == "DPR") {
@@ -368,26 +336,9 @@ Eigen::VectorXd DavidsonSolver::olsen(const Eigen::VectorXd &r,
 
 Eigen::MatrixXd DavidsonSolver::orthogonalize(const Eigen::MatrixXd &V,
                                               Index nupdate) {
-  switch (_davidson_ortho) {
-    case ORTHO::GS: {
       return DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
-    }
-    case ORTHO::QR: {
-      return DavidsonSolver::qr(V);
-    }
-  }
-  return Eigen::MatrixXd::Zero(0, 0);
 }
 
-Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {
-
-  Index nrows = A.rows();
-  Index ncols = A.cols();
-  ncols = std::min(nrows, ncols);
-  Eigen::MatrixXd I = Eigen::MatrixXd::Identity(nrows, ncols);
-  Eigen::HouseholderQR<Eigen::MatrixXd> qr(A);
-  return qr.householderQ() * I;
-}
 
 Eigen::MatrixXd DavidsonSolver::gramschmidt(const Eigen::MatrixXd &A,
                                             Index nstart) {
@@ -401,7 +352,7 @@ Eigen::MatrixXd DavidsonSolver::gramschmidt(const Eigen::MatrixXd &A,
     if (Q.col(j).norm() <= 1E-12 * A.col(j).norm()) {
       _info = Eigen::ComputationInfo::NumericalIssue;
       throw std::runtime_error(
-          "Linear dependencies in Gram-Schmidt. Switch to QR");
+          "Linear dependencies in Gram-Schmidt.");
     }
     Q.col(j).normalize();
   }

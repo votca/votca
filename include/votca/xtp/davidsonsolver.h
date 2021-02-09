@@ -51,7 +51,6 @@ class DavidsonSolver {
   void set_max_search_space(Index N) { this->_max_search_space = N; }
   void set_tolerance(std::string tol);
   void set_correction(std::string method);
-  void set_ortho(std::string method);
   void set_size_update(std::string update_size);
   void set_matrix_type(std::string mt);
 
@@ -134,9 +133,6 @@ class DavidsonSolver {
   enum UPDATE { MIN, SAFE, MAX };
   UPDATE _davidson_update = UPDATE::SAFE;
 
-  enum ORTHO { GS, QR };
-  ORTHO _davidson_ortho = ORTHO::GS;
-
   enum MATRIX_TYPE { SYMM, HAM };
   MATRIX_TYPE _matrix_type = MATRIX_TYPE::SYMM;
 
@@ -170,13 +166,11 @@ class DavidsonSolver {
   void updateProjection(const MatrixReplacement &A,
                         ProjectedSpace &proj) const {
 
-    if (_i_iter == 0 || _davidson_ortho == ORTHO::QR) {
-      /* if we use QR we need to recompute the entire projection
-      since QR will modify original subspace*/
+    if (_i_iter == 0) {
       proj.AV = A * proj.V;
       proj.T = proj.V.transpose() * proj.AV;
 
-    } else if (_davidson_ortho == ORTHO::GS) {
+    } else {
       /* if we use a GS ortho we do not have to recompute
       the entire projection as GS doesn't change the original subspace*/
       Index old_dim = proj.T.cols();
@@ -328,7 +322,6 @@ class DavidsonSolver {
                                   const ArrayXl &idx) const;
 
   Eigen::MatrixXd orthogonalize(const Eigen::MatrixXd &V, Index nupdate);
-  Eigen::MatrixXd qr(const Eigen::MatrixXd &A) const;
   Eigen::MatrixXd gramschmidt(const Eigen::MatrixXd &A, Index nstart);
 
   Eigen::VectorXd computeCorrectionVector(const Eigen::VectorXd &qj,
