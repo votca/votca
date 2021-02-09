@@ -95,13 +95,16 @@ def parse_help_message(msg: str, name: str) -> Data:
     description, examples = read_section_examples(opts_lines)
     description, usage = search_for_usage(description)
     # Options and optional examples
-
     if examples:
         options = "\n  ".join(filter(lambda x: x, lines))
     else:
         options, examples = read_section_examples(lines)
 
     options = format_options(options)
+
+    # Search for the `Used external keyword`
+    if "Used external" in usage:
+        description += search_for_used_external(usage)
 
     return Data(name, description, examples, options, usage)
 
@@ -115,6 +118,12 @@ def search_for_usage(desc: str) -> Tuple[str, str]:
         key = keywords.pop()
         data = desc.split(key)
         return data[0], ''.join(data[1:])
+
+
+def search_for_used_external(data: str) -> str:
+    """return the line containing `Used external if it exists."""
+    lines = data.splitlines()
+    return "\n".join(itertools.dropwhile(lambda x: "Used external" not in x, lines))
 
 
 def take_while_version(lines: Iterable[str]) -> Iterable[str]:
@@ -169,7 +178,7 @@ def format_rst(sec: Data) -> str:
 
     options_code_block = generate_code_block("OPTIONS")
     examples_code_block = generate_code_block("EXAMPLES")
-    usage = f"**Usage**:{sec.usage}" if sec.usage else ""
+    usage = f"**Usage:** {sec.usage}" if sec.usage else ""
 
     return f"""
 NAME
