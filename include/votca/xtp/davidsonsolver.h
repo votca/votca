@@ -230,17 +230,74 @@ class DavidsonSolver {
       throw std::runtime_error("Small generalized eigenvalue problem failed.");
     }
 
-    if(ges.eigenvalues().imag().array()>0){
-      throw std::runtime_error("Eigenvector has imaginary part.");
+    std::vector<std::pair<Index, Index>> complex_pairs;
+    for (Index i = 0; i < ges.eigenvalues().size(); i++) {
+      if (ges.eigenvalues()(i).imag() != 0) {
+        bool found_partner = false;
+        for (auto &pair : complex_pairs) {
+          if (pair.second > -1) {
+            continue;
+          } else {
+            bool are_pair = (std::abs(ges.eigenvalues()(pair.first).real() -
+                                      ges.eigenvalues()(i).real()) < 1e-9) &&
+                            (std::abs(ges.eigenvalues()(pair.first).imag() +
+                                      ges.eigenvalues()(i).imag()) < 1e-9);
+            if (are_pair) {
+              pair.second = i;
+              found_partner = true;
+            }
+          }
+        }
+
+        if (!found_partner) {
+          complex_pairs.emplace_back(i, -1);
+        }
+      }
+    }
+    for (const auto &pair : complex_pairs) {
+      std::cout << pair.first << " " << pair.second << std::endl;
     }
 
-    ArrayXl idx = DavidsonSolver::argsort(ges.eigenvalues().real());
+    for (const auto &pair : complex_pairs) {
+      if (pair.second < 0) {
+        throw std::runtime_error("Eigenvalue:" + std::to_string(pair.first) +
+                                 " is complex but has no partner.");
+      }
+    }
+    if (!complex_pairs.empty()) {
+      XTP_LOG(Log::warning, _log)
+          << TimeStamp() << " Found " << complex_pairs.size()
+          << " complex pairs in eigenvalue problem" << flush;
+    }
+    Eigen::VectorXd eigenvalues =
+        Eigen::VectorXd::Zero(ges.eigenvalues().size() - complex_pairs.size());
+    Eigen::MatrixXd eigenvectors =
+        Eigen::MatrixXd::Zero(ges.eigenvectors().rows(),
+                              ges.eigenvectors().cols() - complex_pairs.size());
+
+    Index j = 0;
+    for (Index i = 0; i < ges.eigenvalues().size(); i++) {
+      bool is_second_in_complex_pair =
+          std::find_if(complex_pairs.begin(), complex_pairs.end(),
+                       [&](const std::pair<Index, Index> &pair) {
+                         return pair.second == i;
+                       }) != complex_pairs.end();
+      if (is_second_in_complex_pair) {
+        continue;
+      } else {
+        eigenvalues(j) = ges.eigenvalues()(i).real();
+        eigenvectors.col(j) = ges.eigenvectors().col(i).real();
+        j++;
+      }
+    }
+
+    ArrayXl idx = DavidsonSolver::argsort(eigenvalues);
     // smallest to largest
     idx = idx.reverse();
-    // we need the largest values, because this is the inverse value, so reverse
-    // list
+    // we need the largest values, because this is the inverse value, so
+    // reverse list
 
-    rep.U = DavidsonSolver::extract_vectors(ges.eigenvectors().real(), idx);
+    rep.U = DavidsonSolver::extract_vectors(eigenvectors, idx);
     rep.U.colwise().normalize();
     rep.lambda = (rep.U.transpose() * proj.T * rep.U).diagonal();
 
@@ -298,7 +355,7 @@ class DavidsonSolver {
                              std::vector<bool> &root_converged, Index neigen);
 
   void storeEigenPairs(const RitzEigenPair &rep, Index neigen);
-};
+};  // namespace xtp
 
 }  // namespace xtp
 }  // namespace votca
