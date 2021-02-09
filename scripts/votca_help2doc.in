@@ -114,7 +114,7 @@ def search_for_usage(desc: str) -> Tuple[str, str]:
     else:
         key = keywords.pop()
         data = desc.split(key)
-        return data[0], ''.join([f'Usage:{d}' for d in data[1:]])
+        return data[0], ''.join(data[1:])
 
 
 def take_while_version(lines: Iterable[str]) -> Iterable[str]:
@@ -169,6 +169,7 @@ def format_rst(sec: Data) -> str:
 
     options_code_block = generate_code_block("OPTIONS")
     examples_code_block = generate_code_block("EXAMPLES")
+    usage = f"**Usage**:{sec.usage}" if sec.usage else ""
 
     return f"""
 NAME
@@ -181,7 +182,7 @@ SYNOPSIS
 
 **{sec.name}** [--help]
 
-{sec.usage}
+{usage}
 
 DESCRIPTION
 ***********
