@@ -19,7 +19,7 @@ import itertools
 import re
 import subprocess
 from pathlib import Path
-from typing import Iterable, List, NamedTuple, Tuple
+from typing import Iterator, List, NamedTuple, Tuple
 
 VERSION = '@PROJECT_VERSION@ #TOOLS_GIT_ID#'
 PROGTITLE = 'THE VOTCA::TOOLS help to doc converter'
@@ -77,8 +77,8 @@ def parse_user_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def take(it: Iterable[str], n: int) -> List[str]:
-    """Take n elements from the iterable an return them."""
+def take(it: Iterator[str], n: int) -> List[str]:
+    """Take n elements from the Iterator an return them."""
     return [next(it) for _ in range(n)]
 
 
@@ -103,8 +103,13 @@ def parse_help_message(msg: str, name: str) -> Data:
     options = format_options(options)
 
     # Search for the `Used external keyword`
-    if "Used external" in usage:
-        description += search_for_used_external(usage)
+    keyword = "Used external"
+    if keyword in usage:
+        usage_lines = usage.splitlines()
+        description += "\n".join(itertools.dropwhile(
+            lambda x: keyword not in x, usage_lines))
+        usage = "\n".join(itertools.takewhile(
+            lambda x: keyword not in x, usage_lines))
 
     return Data(name, description, examples, options, usage)
 
@@ -120,13 +125,7 @@ def search_for_usage(desc: str) -> Tuple[str, str]:
         return data[0], ''.join(data[1:])
 
 
-def search_for_used_external(data: str) -> str:
-    """return the line containing `Used external if it exists."""
-    lines = data.splitlines()
-    return "\n".join(itertools.dropwhile(lambda x: "Used external" not in x, lines))
-
-
-def take_while_version(lines: Iterable[str]) -> Iterable[str]:
+def take_while_version(lines: Iterator[str]) -> Iterator[str]:
     """Remove the lines with version on it."""
     value = next(lines)
     if any(key in value for key in {"version", "bugs", "gromacs, 20"}):
@@ -135,7 +134,7 @@ def take_while_version(lines: Iterable[str]) -> Iterable[str]:
         return itertools.chain([value], lines)
 
 
-def take_until_options(lines: Iterable[str]) -> Tuple[Iterable[str], Iterable[str]]:
+def take_until_options(lines: Iterator[str]) -> Tuple[Iterator[str], Iterator[str]]:
     """Take lines until options."""
     opts = []
     old_lines = []
@@ -244,7 +243,7 @@ def format_groff(sec: Data) -> str:
 """
 
 
-def read_section_examples(lines: Iterable[str]) -> Tuple[str, str]:
+def read_section_examples(lines: Iterator[str]) -> Tuple[str, str]:
     """Check for examples and format them properly."""
     express = re.compile(r'^example', flags=re.IGNORECASE)
     desc = "\n".join(itertools.takewhile(
