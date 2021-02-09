@@ -72,6 +72,12 @@ BOOST_AUTO_TEST_CASE(Serializing) {
   ecpmat2.FillPotential(b, aoecp2);
   bool check = ecpmat1.Matrix().isApprox(ecpmat2.Matrix(), 1e-8);
   BOOST_CHECK_EQUAL(check, 1);
+  if (!check) {
+    std::cout << "res" << std::endl;
+    std::cout << aoecp2 << std::endl;
+    std::cout << "ref" << std::endl;
+    std::cout << aoecp << std::endl;
+  }
 
   aoecp2.AddECPChargeToMolecule(mol);
 

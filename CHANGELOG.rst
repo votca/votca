@@ -7,6 +7,7 @@ Version 2022-dev
 -  Updated coordinate precision (#638)
 -  Refactored energy corrections in RPA outside QPs (#577)
 -  Made SetupCptTable static (#650)
+-  using libecpint for pseudo potentials (#588)
 -  implement fchk writer (#649)
 -  Fixing BSE triplet storage (#653) (#654)
 -  added transpose to CudaMatrix (#657)
