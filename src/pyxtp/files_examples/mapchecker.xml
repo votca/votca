@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<options>
+  <mapchecker help="Outputs .pdb files for segments, qmmolecules and classical segments to check the mapping" section="sec:mapchecker">
+    <qm_states help="qmstates states to check" default="n"/>
+    <mp_states help="multipole states to check" default="e h"/>
+    <map_file help="xml file with segment definition" default="files_examples/system.xml"/>
+    <md_pdbfile help="PDB file with the MD calculation" default="md_segments.pdb"/>
+    <qm_pdbfile help="PDB file with the QM calculation" default="qm_segments.pdb"/>
+    <mp_pdbfile help="PDB file with the MP segments" default="mp_segments.pdb"/>
+  </mapchecker>
+</options>
