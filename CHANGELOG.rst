@@ -7,6 +7,7 @@ Version 2022-dev
 -  Updated coordinate precision (#638)
 -  Refactored energy corrections in RPA outside QPs (#577)
 -  Made SetupCptTable static (#650)
+-  using libecpint for pseudo potentials (#588)
 -  implement fchk writer (#649)
 -  Fixing BSE triplet storage (#653) (#654)
 -  added transpose to CudaMatrix (#657)
@@ -19,6 +20,7 @@ Version 2022-dev
 -  added a more general constructor to cudamatrix (#671)
 -  removed lapack routine for solving BSE and added GPU support (#672)
 -  changed return value from reference to a copy (#676)
+-  add CodeQL static analysis to GitHub Actions (#677)
 -  add interface to PyBind11 (#606)
 
 Version 2021-rc.2 (released XX.01.21)

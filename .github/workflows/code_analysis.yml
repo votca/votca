@@ -1,4 +1,4 @@
-name: Coverage
+name: Analysis
 on:
   push:
     branches:
@@ -8,14 +8,14 @@ on:
       - master
 
 jobs:
-  Coverage:
+  Analysis:
     strategy:
       matrix:
         distro: ['fedora:latest']
         toolchain: [gnu]
         cmake_build_type: [Debug]
-        coverage: [RestGroup]
         no_regression_testing: [true]
+        code_analyzer: [coverage,codeql]
     runs-on: ubuntu-latest
     container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
@@ -32,15 +32,20 @@ jobs:
           module: ${{ matrix.module_build == true }}
           own_gmx: ${{ matrix.own_gmx == true }}
           regression_testing: ${{ matrix.no_regression_testing != true }}
-          coverage: ${{ matrix.coverage }}
           cmake_build_type: ${{ matrix.cmake_build_type }}
           ctest_args: ${{ matrix.ctest_args }}
           cmake_args: ${{ matrix.cmake_args }}
+          code_analyzer: ${{ matrix.code_analyzer }}
       - uses: actions/cache@v2
         with:
           path: ~/.ccache
           key: ${{ steps.setup.outputs.cache_key }}
           restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
+      - name: Initialize CodeQL
+        if: ${{ matrix.code_analyzer == 'codeql' }}
+        uses: github/codeql-action/init@v1
+        with:
+          languages: cpp
       - name: CMake
         run: cmake -B builddir ${{ steps.setup.outputs.cmake_args }} votca
       - name: Build
@@ -48,9 +53,12 @@ jobs:
           ccache -z
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -s
+      - name: Perform CodeQL Analysis
+        if: ${{ matrix.code_analyzer == 'codeql' }}
+        uses: github/codeql-action/analyze@v1
       - name: Tests
         run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
         working-directory: builddir
       - name: Upload Report to codecov.io
-        if: ${{ matrix.coverage }}
+        if: ${{ startsWith(matrix.code_analyzer, 'coverage') }}
         uses: codecov/codecov-action@v1

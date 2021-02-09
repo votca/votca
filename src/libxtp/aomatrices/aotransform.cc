@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -58,11 +58,9 @@ Matrix AOTransform::tform(L l_row, L l_col, const Matrix& cartesian) {
   const auto& coefs_col =
       libint2::solidharmonics::SolidHarmonicsCoefficients<double>::instance(
           int(l_col));
-
   int npure_row = 2 * int(l_row) + 1;
   int npure_col = 2 * int(l_col) + 1;
   Matrix spherical = Matrix::Zero(npure_row, npure_col);
-
   // loop over row shg
   for (auto s1 = 0; s1 != npure_row; ++s1) {
     const auto nc1 =
@@ -71,7 +69,6 @@ Matrix AOTransform::tform(L l_row, L l_col, const Matrix& cartesian) {
         coefs_row.row_idx(s1);  // indices of cartesians contributing to shg s1
     const auto* c1_vals = coefs_row.row_values(
         s1);  // coefficients of cartesians contributing to shg s1
-
     // loop over col shg
     for (auto s2 = 0; s2 != npure_col; ++s2) {
       const auto nc2 =
@@ -80,17 +77,14 @@ Matrix AOTransform::tform(L l_row, L l_col, const Matrix& cartesian) {
                                                     // contributing to shg s2
       const auto* c2_vals = coefs_col.row_values(
           s2);  // coefficients of cartesians contributing to shg s2
-
       for (size_t ic1 = 0; ic1 != nc1;
            ++ic1) {  // loop over contributing cartesians
         auto c1 = c1_idxs[ic1];
         auto s1_c1_coeff = c1_vals[ic1];
-
         for (size_t ic2 = 0; ic2 != nc2;
              ++ic2) {  // loop over contributing cartesians
           auto c2 = c2_idxs[ic2];
           auto s2_c2_coeff = c2_vals[ic2];
-
           spherical(s1, s2) += cartesian(c1, c2) * s1_c1_coeff * s2_c2_coeff;
         }  // cart2
 
@@ -100,7 +94,6 @@ Matrix AOTransform::tform(L l_row, L l_col, const Matrix& cartesian) {
   }
   return spherical;
 }
-
 template Eigen::MatrixXd AOTransform::tform(L l_row, L l_col,
                                             const Eigen::MatrixXd& cartesian);
 template Eigen::MatrixXcd AOTransform::tform(L l_row, L l_col,
