@@ -4,22 +4,9 @@ find_package(pybind11 REQUIRED)
 file(GLOB_RECURSE BIND_SOURCES binds/*.cc)
 
 pybind11_add_module(xtp_binds ${BIND_SOURCES})
-target_include_directories(xtp_binds
- PUBLIC
- binds/include
-)
-
-target_compile_options(xtp_binds
- PUBLIC
-)
-set_target_properties(xtp_binds
-  PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED ON
-)
+target_include_directories(xtp_binds PUBLIC binds/include)
 
 target_link_libraries(xtp_binds PUBLIC VOTCA::votca_xtp)
-
 
 if(NOT PYTHON_INSTDIR)
   execute_process(
@@ -34,10 +21,7 @@ file(GLOB_RECURSE PYXTP_FILES *.py)
 install(FILES ${PYXTP_FILES} DESTINATION ${PYTHON_INSTDIR}/pyxtp)
 
 if(ENABLE_TESTING)
-add_test(
-  NAME integration_test_xtp_binds
-  COMMAND
-    ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/examples.py)
+  add_test(NAME integration_test_xtp_binds COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/examples.py)
   set_property(TEST integration_test_xtp_binds PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/..:$ENV{PYTHONPATH}")
-set_tests_properties(integration_test_xtp_binds PROPERTIES LABELS "csg;tools;votca;xtp;integration")
+  set_tests_properties(integration_test_xtp_binds PROPERTIES LABELS "csg;tools;votca;xtp;integration")
 endif()
