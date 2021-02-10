@@ -24,7 +24,7 @@ add_dependencies(votca_tools gitversion)
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eigen3::Eigen PRIVATE
 	Boost::filesystem Boost::system EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
-if(TARGET MKL::RT)
+if(MKL_FOUND)
   target_link_libraries(votca_tools PUBLIC MKL::RT)
   install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindMKL.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
