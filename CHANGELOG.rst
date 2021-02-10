@@ -12,6 +12,7 @@ Version 2022-dev
 -  fix rst warnings (#334, #346)
 -  export PYTHONPATH in VOTCARC (#340)
 -  drop csh support in VOTCARC (#342)
+-  link against MKL:RT to support pyxtp (#349
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
