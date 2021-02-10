@@ -50,7 +50,7 @@ foreach(PROG
   if(VALGRIND_FOUND)
     # https://github.com/votca/tools/issues/268
     # tests seem to trigger a 'Address 0x0 is not stack'd, malloc'd or (recently) free'd' in valgrind
-    set(BROCKEN_MKL_TEST test_crosscorrelate test_cubicspline test_linalg test_linspline)
+    set(BROCKEN_MKL_TEST test_crosscorrelate test_cubicspline test_linalg test_linspline test_table)
     if(MKL_FOUND AND PROG IN_LIST BROCKEN_MKL_TEST)
       continue()
     endif()
