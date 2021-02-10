@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ if [[ $1 = "--help" ]]; then
 ${0##*/}, version %version%
 
 This file defines some commonly used functions:
+
 EOF
 sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1  -- \2/p' ${0}
 echo
