@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,14 +55,14 @@ class XYZWriter : public TrajectoryWriter {
     return atom.getElement();
   }
 
-  std::string getName(std::unique_ptr<Bead> & bead) { return bead->getName(); }
+  std::string getName(std::unique_ptr<Bead> &bead) { return bead->getName(); }
 
   template <class Atom>
   Eigen::Vector3d getPos(Atom &atom) {
     return atom.getPos() * tools::conv::bohr2ang;
   }
 
-  Eigen::Vector3d getPos(std::unique_ptr<Bead> & bead) {
+  Eigen::Vector3d getPos(std::unique_ptr<Bead> &bead) {
     return bead->Pos() * tools::conv::nm2ang;
   }
 

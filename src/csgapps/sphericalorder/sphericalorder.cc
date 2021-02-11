@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,14 +175,14 @@ class CGOrderParam : public CsgApplication {
     Eigen::Vector3d u, v, w;
 
     if (_refmol != "") {
-      for (const auto & bead : conf->Beads()) {
+      for (const auto &bead : conf->Beads()) {
         if (votca::tools::wildcmp(_refmol, bead->getName())) {
           _ref = bead->getPos();
         }
       }
     }
 
-    for (const auto & bead : conf->Beads()) {
+    for (const auto &bead : conf->Beads()) {
       if (!votca::tools::wildcmp(_filter, bead->getName())) {
         continue;
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -426,7 +426,7 @@ class Topology {
 
   std::map<std::string, Index> _interaction_groups;
 
-  std::map<std::string, std::list<Interaction *> > _interactions_by_group;
+  std::map<std::string, std::list<Interaction *>> _interactions_by_group;
 
   double _time = 0.0;
   Index _step = 0;
@@ -441,7 +441,8 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
                                   std::string type, Index resnr, double m,
                                   double q) {
 
-  _beads.emplace_back(new Bead(_beads.size(), type, symmetry, name, resnr, m, q));
+  _beads.emplace_back(
+      new Bead(_beads.size(), type, symmetry, name, resnr, m, q));
   return _beads.back().get();
 }
 

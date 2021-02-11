@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,38 +54,42 @@ class PDBWriter : public TrajectoryWriter {
     return atom.getElement();
   }
 
-  std::string getName(const std::unique_ptr<Bead> & bead) { return bead->getName(); }
+  std::string getName(const std::unique_ptr<Bead> &bead) {
+    return bead->getName();
+  }
 
   template <class T, class Atom>
   std::string getResname(T &container, Atom &) {
     return container.getType();
   }
-  std::string getResname(Topology &conf, const std::unique_ptr<Bead> & bead);
+  std::string getResname(Topology &conf, const std::unique_ptr<Bead> &bead);
 
   template <class Atom>
   Index getId(Atom &atom) {
     return atom.getId();
   }
-  Index getId(const std::unique_ptr<Bead> & bead) { return bead->getId(); }
+  Index getId(const std::unique_ptr<Bead> &bead) { return bead->getId(); }
 
   template <class T, class Atom>
   Index getResId(T &container, Atom &) {
     return container.getId();
   }
-  Index getResId(Topology &, const std::unique_ptr<Bead> & bead) { return bead->getResnr() + 1; }
+  Index getResId(Topology &, const std::unique_ptr<Bead> &bead) {
+    return bead->getResnr() + 1;
+  }
 
   template <class Atom>
   void writeSymmetry(Atom &) {
     return;
   }
-  void writeSymmetry(const std::unique_ptr<Bead> & bead);
+  void writeSymmetry(const std::unique_ptr<Bead> &bead);
 
   template <class Atom>
   Eigen::Vector3d getPos(Atom &atom) {
     return atom.getPos() * tools::conv::bohr2ang;
   }
 
-  Eigen::Vector3d getPos(const std::unique_ptr<Bead> & bead) {
+  Eigen::Vector3d getPos(const std::unique_ptr<Bead> &bead) {
     return bead->Pos() * tools::conv::nm2ang;
   }
 

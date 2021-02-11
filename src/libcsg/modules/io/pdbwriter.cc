@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ void PDBWriter::WriteBox(const Eigen::Matrix3d &box) {
   _out << boxfrmt % a % b % c % alpha % beta % gamma;
 }
 
-void PDBWriter::writeSymmetry(const std::unique_ptr<Bead> & bead) {
+void PDBWriter::writeSymmetry(const std::unique_ptr<Bead> &bead) {
   if (bead->getSymmetry() > 1) {
     Eigen::Vector3d r = 10 * bead->getPos();
     boost::format beadfrmt(
@@ -100,7 +100,8 @@ void PDBWriter::writeSymmetry(const std::unique_ptr<Bead> & bead) {
   return;
 }
 
-std::string PDBWriter::getResname(Topology &conf, const std::unique_ptr<Bead> & bead) {
+std::string PDBWriter::getResname(Topology &conf,
+                                  const std::unique_ptr<Bead> &bead) {
   if (conf.getResidue(bead->getResnr())) {
     return conf.getResidue(bead->getResnr())->getName();
   } else {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ void NematicOrder::Process(Topology &top, const string &filter) {
   bool bU, bV, bW;
   bU = bV = bW = false;
 
-  for (const auto & bead : top.Beads()) {
+  for (const auto &bead : top.Beads()) {
 
     if (!tools::wildcmp(filter, bead->getName())) {
       continue;

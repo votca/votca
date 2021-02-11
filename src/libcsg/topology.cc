@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,7 +151,7 @@ void Topology::Add(Topology *top) {
 
   Index res0 = ResidueCount();
 
-  for (const auto & bi : top->_beads) {
+  for (const auto &bi : top->_beads) {
     string type = bi->getType();
     CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr() + res0,
                bi->getMass(), bi->getQ());
@@ -185,7 +185,7 @@ void Topology::CopyTopologyData(Topology *top) {
   }
 
   // create all beads
-  for (const auto & bi : top->_beads) {
+  for (const auto &bi : top->_beads) {
     string type = bi->getType();
     CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(),
                bi->getMass(), bi->getQ());
@@ -220,7 +220,7 @@ void Topology::RenameMolecules(string range, string name) {
 
 void Topology::RenameBeadType(string name, string newname) {
 
-  for ( auto & bead : _beads) {
+  for (auto &bead : _beads) {
     string type = bead->getType();
     if (tools::wildcmp(name, type)) {
       bead->setType(newname);
@@ -229,7 +229,7 @@ void Topology::RenameBeadType(string name, string newname) {
 }
 
 void Topology::SetBeadTypeMass(string name, double value) {
-  for (auto & bead : _beads) {
+  for (auto &bead : _beads) {
     string type = bead->getType();
     if (tools::wildcmp(name, type)) {
       bead->setMass(value);
