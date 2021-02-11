@@ -17,6 +17,7 @@
 
 // Standard includes
 #include <fstream>
+#include <memory>
 
 // VOTCA includes
 #include <votca/tools/tokenizer.h>
@@ -44,9 +45,9 @@ CGEngine::~CGEngine() {
 /**
     \todo melts with different molecules
 */
-TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
+std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(Topology &in, Topology &out) {
   MoleculeContainer &mols = in.Molecules();
-  TopologyMap *m = new TopologyMap(&in, &out);
+  auto m = std::unique_ptr<TopologyMap>(new TopologyMap(&in, &out));
   for (auto mol : mols) {
     if (IsIgnored(mol->getName())) {
       continue;
