@@ -38,9 +38,10 @@ CGEngine::CGEngine() = default;
 /**
     \todo melts with different molecules
 */
-TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
+std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(Topology &in,
+                                                        Topology &out) {
   MoleculeContainer &mols = in.Molecules();
-  TopologyMap *m = new TopologyMap(&in, &out);
+  auto m = std::make_unique<TopologyMap>(&in, &out);
   for (auto mol : mols) {
     if (IsIgnored(mol->getName())) {
       continue;

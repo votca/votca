@@ -61,7 +61,7 @@ class CGEngine {
   /**
       create a coarse grained topolgy based on a given topology
   */
-  TopologyMap *CreateCGTopology(Topology &in, Topology &out);
+  std::unique_ptr<TopologyMap> CreateCGTopology(Topology &in, Topology &out);
 
   /**
       load molecule type from file

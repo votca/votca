@@ -416,12 +416,6 @@ void CsgApplication::Run(void) {
   }
 }
 
-CsgApplication::Worker::~Worker() {
-  if (_map) {
-    delete _map;
-  }
-}
-
 void CsgApplication::BeginEvaluate(Topology *top, Topology *top_ref) {
   for (CGObserver *ob : _observers) {
     ob->BeginCG(top, top_ref);
