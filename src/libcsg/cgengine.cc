@@ -35,13 +35,6 @@ namespace po = boost::program_options;
 
 CGEngine::CGEngine() = default;
 
-CGEngine::~CGEngine() {
-  for (auto &_molecule_def : _molecule_defs) {
-    delete _molecule_def.second;
-  }
-  _molecule_defs.clear();
-}
-
 /**
     \todo melts with different molecules
 */
@@ -79,11 +72,11 @@ void CGEngine::LoadMoleculeType(string filename) {
 
   for (tools::Tokenizer::iterator iter = tok.begin(); iter != tok.end();
        ++iter) {
-    CGMoleculeDef *def = new CGMoleculeDef();
+    auto def = std::make_unique<CGMoleculeDef>();
     string file = *iter;
     boost::trim(file);
     def->Load(file);
-    _molecule_defs[def->getIdent()] = def;
+    _molecule_defs[def->getIdent()] = std::move(def);
   }
 }
 
