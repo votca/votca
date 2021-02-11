@@ -72,7 +72,7 @@ void CGEngine::LoadMoleculeType(string filename) {
 
   for (tools::Tokenizer::iterator iter = tok.begin(); iter != tok.end();
        ++iter) {
-    auto def = std::unique_ptr<CGMoleculeDef>(new CGMoleculeDef());
+    auto def = std::make_unique<CGMoleculeDef>();
     string file = *iter;
     boost::trim(file);
     def->Load(file);
