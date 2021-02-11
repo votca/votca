@@ -21,6 +21,7 @@
 // Standard includes
 #include <list>
 #include <map>
+#include <memory>
 
 // Third party includes
 #include <boost/program_options.hpp>
@@ -56,7 +57,6 @@ namespace csg {
 class CGEngine {
  public:
   CGEngine();
-  ~CGEngine();
 
   /**
       create a coarse grained topolgy based on a given topology
@@ -84,24 +84,24 @@ class CGEngine {
   bool IsIgnored(std::string ident);
 
  private:
-  std::map<std::string, CGMoleculeDef *> _molecule_defs;
+  std::map<std::string,std::unique_ptr<CGMoleculeDef>> _molecule_defs;
 
   std::list<std::string> _ignores;
 };
 
 inline CGMoleculeDef *CGEngine::getMoleculeDef(std::string name) {
-  std::map<std::string, CGMoleculeDef *>::iterator iter;
+  std::map<std::string, std::unique_ptr<CGMoleculeDef>>::iterator iter;
 
   // if there is only 1 molecule definition, don't care about the name
   if (_molecule_defs.size() == 1 && name == "unnamed") {
-    return (*(_molecule_defs.begin())).second;
+    return (*(_molecule_defs.begin())).second.get();
   }
 
   iter = _molecule_defs.find(name);
   if (iter == _molecule_defs.end()) {
     return nullptr;
   }
-  return (*iter).second;
+  return (*iter).second.get();
 }
 
 inline bool CGEngine::IsIgnored(std::string ident) {
