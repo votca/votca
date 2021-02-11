@@ -120,7 +120,7 @@ class CsgMapApp : public CsgApplication {
             bn->setF(bi->getF());
           }
 
-          mi->AddBead(hybtol.Beads()[beadid], molecule->getBeadName(i));
+          mi->AddBead(hybtol.Beads()[beadid].get(), molecule->getBeadName(i));
         }
 
         if (mi->getId() < top->MoleculeCount()) {

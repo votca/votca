@@ -73,7 +73,7 @@ void PDBWriter::WriteBox(const Eigen::Matrix3d &box) {
   _out << boxfrmt % a % b % c % alpha % beta % gamma;
 }
 
-void PDBWriter::writeSymmetry(Bead *bead) {
+void PDBWriter::writeSymmetry(const std::unique_ptr<Bead> & bead) {
   if (bead->getSymmetry() > 1) {
     Eigen::Vector3d r = 10 * bead->getPos();
     boost::format beadfrmt(
@@ -100,7 +100,7 @@ void PDBWriter::writeSymmetry(Bead *bead) {
   return;
 }
 
-std::string PDBWriter::getResname(Topology &conf, Bead *bead) {
+std::string PDBWriter::getResname(Topology &conf, const std::unique_ptr<Bead> & bead) {
   if (conf.getResidue(bead->getResnr())) {
     return conf.getResidue(bead->getResnr())->getName();
   } else {

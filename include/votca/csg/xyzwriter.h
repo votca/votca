@@ -55,14 +55,14 @@ class XYZWriter : public TrajectoryWriter {
     return atom.getElement();
   }
 
-  std::string getName(Bead *bead) { return bead->getName(); }
+  std::string getName(std::unique_ptr<Bead> & bead) { return bead->getName(); }
 
   template <class Atom>
   Eigen::Vector3d getPos(Atom &atom) {
     return atom.getPos() * tools::conv::bohr2ang;
   }
 
-  Eigen::Vector3d getPos(Bead *bead) {
+  Eigen::Vector3d getPos(std::unique_ptr<Bead> & bead) {
     return bead->Pos() * tools::conv::nm2ang;
   }
 

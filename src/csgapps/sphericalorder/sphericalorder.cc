@@ -175,14 +175,14 @@ class CGOrderParam : public CsgApplication {
     Eigen::Vector3d u, v, w;
 
     if (_refmol != "") {
-      for (Bead *bead : conf->Beads()) {
+      for (const auto & bead : conf->Beads()) {
         if (votca::tools::wildcmp(_refmol, bead->getName())) {
           _ref = bead->getPos();
         }
       }
     }
 
-    for (Bead *bead : conf->Beads()) {
+    for (const auto & bead : conf->Beads()) {
       if (!votca::tools::wildcmp(_filter, bead->getName())) {
         continue;
       }

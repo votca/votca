@@ -53,13 +53,8 @@ Topology::~Topology() {
 
 void Topology::Cleanup() {
   // cleanup beads
-  {
+  _beads.clear();
 
-    for (BeadContainer::iterator i = _beads.begin(); i < _beads.end(); ++i) {
-      delete *i;
-    }
-    _beads.clear();
-  }
   // cleanup molecules
   {
     for (MoleculeContainer::iterator i = _molecules.begin();
@@ -112,7 +107,7 @@ void Topology::CreateMoleculesByRange(string name, Index first, Index nbeads,
     bname << _bead->getResnr() - res_offset + 1 << ":"
           << getResidue(_bead->getResnr())->getName() << ":"
           << _bead->getName();
-    mol->AddBead(_bead, bname.str());
+    mol->AddBead(_bead.get(), bname.str());
     if (++beadcount == nbeads) {
       if (--nmolecules <= 0) {
         break;
@@ -134,7 +129,7 @@ void Topology::CreateMoleculesByResidue() {
   for (auto &_bead : _beads) {
 
     MoleculeByIndex(_bead->getResnr())
-        ->AddBead(_bead, string("1:TRI:") + _bead->getName());
+        ->AddBead(_bead.get(), string("1:TRI:") + _bead->getName());
   }
 
   /// \todo sort beads in molecules that all beads are stored in the same order.
@@ -148,7 +143,7 @@ void Topology::CreateOneBigMolecule(string name) {
     stringstream n("");
     n << _bead->getResnr() + 1 << ":" << _residues[_bead->getResnr()]->getName()
       << ":" << _bead->getName();
-    mi->AddBead(_bead, n.str());
+    mi->AddBead(_bead.get(), n.str());
   }
 }
 
@@ -156,7 +151,7 @@ void Topology::Add(Topology *top) {
 
   Index res0 = ResidueCount();
 
-  for (auto bi : top->_beads) {
+  for (const auto & bi : top->_beads) {
     string type = bi->getType();
     CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr() + res0,
                bi->getMass(), bi->getQ());
@@ -190,7 +185,7 @@ void Topology::CopyTopologyData(Topology *top) {
   }
 
   // create all beads
-  for (auto bi : top->_beads) {
+  for (const auto & bi : top->_beads) {
     string type = bi->getType();
     CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(),
                bi->getMass(), bi->getQ());
@@ -201,7 +196,7 @@ void Topology::CopyTopologyData(Topology *top) {
     Molecule *mi = CreateMolecule(_molecule->getName());
     for (Index i = 0; i < _molecule->BeadCount(); i++) {
       Index beadid = _molecule->getBead(i)->getId();
-      mi->AddBead(_beads[beadid], _molecule->getBeadName(i));
+      mi->AddBead(_beads[beadid].get(), _molecule->getBeadName(i));
     }
   }
 }
@@ -225,7 +220,7 @@ void Topology::RenameMolecules(string range, string name) {
 
 void Topology::RenameBeadType(string name, string newname) {
 
-  for (Bead *bead : _beads) {
+  for ( auto & bead : _beads) {
     string type = bead->getType();
     if (tools::wildcmp(name, type)) {
       bead->setType(newname);
@@ -234,7 +229,7 @@ void Topology::RenameBeadType(string name, string newname) {
 }
 
 void Topology::SetBeadTypeMass(string name, double value) {
-  for (Bead *bead : _beads) {
+  for (auto & bead : _beads) {
     string type = bead->getType();
     if (tools::wildcmp(name, type)) {
       bead->setMass(value);

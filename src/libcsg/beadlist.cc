@@ -43,11 +43,11 @@ Index BeadList::Generate(Topology &top, const string &select) {
   for (auto &iter : top.Beads()) {
     if (!selectByName) {
       if (tools::wildcmp(pSelect, iter->getType())) {
-        _beads.push_back(iter);
+        _beads.push_back(iter.get());
       }
     } else {
       if (tools::wildcmp(pSelect, iter->getName())) {
-        _beads.push_back(iter);
+        _beads.push_back(iter.get());
       }
     }
   }
@@ -76,11 +76,11 @@ Index BeadList::GenerateInSphericalSubvolume(Topology &top,
     }
     if (!selectByName) {
       if (tools::wildcmp(pSelect, iter->getType())) {
-        _beads.push_back(iter);
+        _beads.push_back(iter.get());
       }
     } else {
       if (tools::wildcmp(pSelect, iter->getName())) {
-        _beads.push_back(iter);
+        _beads.push_back(iter.get());
       }
     }
   }

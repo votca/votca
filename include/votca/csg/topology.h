@@ -45,7 +45,7 @@ namespace csg {
 class Interaction;
 
 using MoleculeContainer = std::vector<Molecule *>;
-using BeadContainer = std::vector<Bead *>;
+using BeadContainer = std::vector<std::unique_ptr<Bead>>;
 using ResidueContainer = std::vector<Residue *>;
 using InteractionContainer = std::vector<Interaction *>;
 
@@ -217,7 +217,7 @@ class Topology {
    * @param[in] Index i is the id of the bead
    * @return Bead * is a pointer to the bead
    **/
-  Bead *getBead(const Index i) const { return _beads[i]; }
+  Bead *getBead(const Index i) const { return _beads[i].get(); }
   Residue *getResidue(const Index i) const { return _residues[i]; }
   Molecule *getMolecule(const Index i) const { return _molecules[i]; }
 
@@ -441,9 +441,8 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
                                   std::string type, Index resnr, double m,
                                   double q) {
 
-  Bead *b = new Bead(_beads.size(), type, symmetry, name, resnr, m, q);
-  _beads.push_back(b);
-  return b;
+  _beads.emplace_back(new Bead(_beads.size(), type, symmetry, name, resnr, m, q));
+  return _beads.back().get();
 }
 
 inline Molecule *Topology::CreateMolecule(std::string name) {

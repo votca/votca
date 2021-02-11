@@ -54,38 +54,38 @@ class PDBWriter : public TrajectoryWriter {
     return atom.getElement();
   }
 
-  std::string getName(Bead *bead) { return bead->getName(); }
+  std::string getName(const std::unique_ptr<Bead> & bead) { return bead->getName(); }
 
   template <class T, class Atom>
   std::string getResname(T &container, Atom &) {
     return container.getType();
   }
-  std::string getResname(Topology &conf, Bead *bead);
+  std::string getResname(Topology &conf, const std::unique_ptr<Bead> & bead);
 
   template <class Atom>
   Index getId(Atom &atom) {
     return atom.getId();
   }
-  Index getId(Bead *bead) { return bead->getId(); }
+  Index getId(const std::unique_ptr<Bead> & bead) { return bead->getId(); }
 
   template <class T, class Atom>
   Index getResId(T &container, Atom &) {
     return container.getId();
   }
-  Index getResId(Topology &, Bead *bead) { return bead->getResnr() + 1; }
+  Index getResId(Topology &, const std::unique_ptr<Bead> & bead) { return bead->getResnr() + 1; }
 
   template <class Atom>
   void writeSymmetry(Atom &) {
     return;
   }
-  void writeSymmetry(Bead *bead);
+  void writeSymmetry(const std::unique_ptr<Bead> & bead);
 
   template <class Atom>
   Eigen::Vector3d getPos(Atom &atom) {
     return atom.getPos() * tools::conv::bohr2ang;
   }
 
-  Eigen::Vector3d getPos(Bead *bead) {
+  Eigen::Vector3d getPos(const std::unique_ptr<Bead> & bead) {
     return bead->Pos() * tools::conv::nm2ang;
   }
 
@@ -104,7 +104,7 @@ inline void PDBWriter::WriteContainer(T &container) {
   boost::format atomfrmt(
       "ATOM  %1$5d %2$-4s %3$-3s %4$1s%5$4d    %6$8.3f%7$8.3f%8$8.3f\n");
 
-  for (auto &atom : getIterable(container)) {
+  for (const auto &atom : getIterable(container)) {
     Eigen::Vector3d r = getPos(atom);
     std::string resname = getResname(container, atom);
     std::string atomname = getName(atom);

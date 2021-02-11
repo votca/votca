@@ -54,7 +54,7 @@ void LAMMPSDumpWriter::Write(Topology *conf) {
 
   for (BeadContainer::iterator iter = conf->Beads().begin();
        iter != conf->Beads().end(); ++iter) {
-    Bead *bi = *iter;
+    Bead *bi = iter->get();
 
     Index type_id = conf->getBeadTypeId(bi->getType());
 
