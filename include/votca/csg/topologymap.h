@@ -41,7 +41,7 @@ class TopologyMap {
   Topology *_in;
   Topology *_out;
 
-  using MapContainer = std::vector<std::unique_ptr<Map>>;
+  using MapContainer = std::vector<Map>;
   MapContainer _maps;
 };
 
