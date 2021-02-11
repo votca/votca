@@ -80,6 +80,17 @@ bool ERDiabatizationFrame::Run() {
 
   ERDiabatization ERDiabatization(orbitals1, orbitals2, &_log);
 
+  if (orbitals1.getTDAApprox()) {
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << _orbfile1
+        << "  was done with TDA. Results might be off. We worned you!" << flush;
+  }
+  if (orbitals2.getTDAApprox()) {
+    XTP_LOG(Log::error, _log)
+        << TimeStamp() << _orbfile2
+        << "  was done with TDA. Results might be off. We worned you!" << flush;
+  }
+
   ERDiabatization.configure(_options);
 
   ERDiabatization.setUpMatrices();

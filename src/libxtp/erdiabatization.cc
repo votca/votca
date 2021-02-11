@@ -58,16 +58,15 @@ void ERDiabatization::setUpMatrices() {
   this->_virtlevels2 = _orbitals2.MOs().eigenvectors().block(
       0, _bse_cmin2, _orbitals2.MOs().eigenvectors().rows(), _bse_ctotal2);
 
+  // What if I don't have auxbasis?
+  //_eris.Initialize_4c(_dftbasis);
 
-    //What if I don't have auxbasis?
-    //_eris.Initialize_4c(_dftbasis);
+  // I also need to add a check on the basis. For now assuming both basis are
+  // the same
+  _eris.Initialize(_dftbasis1, _auxbasis1);
 
-    //I also need to add a check on the basis. For now assuming both basis are the same
-    _eris.Initialize(_dftbasis1, _auxbasis1);
-
-    ////I define here the overlap
-    //_overlap.Fill(_dftbasis1);
-  
+  ////I define here the overlap
+  //_overlap.Fill(_dftbasis1);
 }
 
 void ERDiabatization::configure(const options_erdiabatization& opt) {
@@ -112,9 +111,10 @@ Eigen::MatrixXd ERDiabatization::Calculate_diabatic_H(
   return U.transpose() * ad_energies.asDiagonal() * U;
 }
 
-double ERDiabatization::Calculate_angle(const Orbitals& orb1,const Orbitals& orb2,
+double ERDiabatization::Calculate_angle(const Orbitals& orb1,
+                                        const Orbitals& orb2,
                                         QMStateType type) const {
-  Eigen::Tensor<double, 4> rtensor = CalculateRtensor(orb1,orb2, type);
+  Eigen::Tensor<double, 4> rtensor = CalculateRtensor(orb1, orb2, type);
 
   double A_12 =
       rtensor(0, 1, 0, 1) - 0.25 * (rtensor(0, 0, 0, 0) + rtensor(1, 1, 1, 1) -
@@ -175,15 +175,21 @@ void ERDiabatization::Print_ERfunction(Eigen::VectorXd results) const {
 }
 
 Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
-    const Orbitals& orb1,const Orbitals& orb2, QMStateType type) const {
+    const Orbitals& orb1, const Orbitals& orb2, QMStateType type) const {
   XTP_LOG(Log::error, *_pLog) << "Computing R tensor" << flush;
   Eigen::Tensor<double, 4> r_tensor(2, 2, 2, 2);
   for (Index J = 0; J < 2; J++) {
     for (Index K = 0; K < 2; K++) {
-      Eigen::MatrixXd D_JK = CalculateD(orb1,orb2, type, J, K);
+      Eigen::MatrixXd D_JK = CalculateD_R(orb1, orb2, type, J, K);
+      if (!orb1.getTDAApprox() and !orb2.getTDAApprox()) {
+        D_JK -= CalculateD_AR(orb1, orb2, type, J, K);
+      }
       for (Index L = 0; L < 2; L++) {
         for (Index M = 0; M < 2; M++) {
-          Eigen::MatrixXd D_LM = CalculateD(orb1,orb2, type, L, M);
+          Eigen::MatrixXd D_LM = CalculateD_R(orb1, orb2, type, L, M);
+          if (!orb1.getTDAApprox() and !orb2.getTDAApprox()) {
+            D_LM -= CalculateD_AR(orb1, orb2, type, L, M);
+          }
           r_tensor(J, K, L, M) = CalculateR(D_JK, D_LM);
         }
       }
@@ -192,11 +198,11 @@ Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
   return r_tensor;
 }
 
-
-Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb1,const Orbitals& orb2,
+Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb1,
+                                             const Orbitals& orb2,
                                              QMStateType type) const {
 
-  Eigen::Tensor<double, 4> R_JKLM = CalculateRtensor(orb1,orb2, type);
+  Eigen::Tensor<double, 4> R_JKLM = CalculateRtensor(orb1, orb2, type);
   const double pi = votca::tools::conv::Pi;
   // Scanning through angles
   Eigen::VectorXd results = Eigen::VectorXd::Zero(360);
@@ -231,7 +237,74 @@ Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb1,const Orbitals
   return results;
 }
 
-Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,const Orbitals& orb2,
+Eigen::MatrixXd ERDiabatization::CalculateD_AR(const Orbitals& orb1,
+                                               const Orbitals& orb2,
+                                               QMStateType type,
+                                               Index stateindex1,
+                                               Index stateindex2) const {
+
+  // D matrix depends on 2 indeces. These can be either 0 or 1.
+  // Index=0 means "take the first excited state" as Index=1 means "take the
+  // second excitate state"
+  // This is the reason for this
+  Index index1;
+  Index index2;
+
+  if (stateindex1 == 0) {
+    index1 = _opt.state_idx_1;
+  }
+  if (stateindex1 == 1) {
+    index1 = _opt.state_idx_2;
+  }
+  if (stateindex2 == 0) {
+    index2 = _opt.state_idx_1;
+  }
+  if (stateindex2 == 1) {
+    index2 = _opt.state_idx_2;
+  }
+  // This requires that index1 and index1 starts from 1. Please add check.
+  Eigen::VectorXd exciton1;
+  Eigen::VectorXd exciton2;
+
+  if (type == QMStateType::Singlet) {
+    exciton1 = orb1.BSESinglets().eigenvectors2().col(index1 - 1);
+    exciton2 = orb2.BSESinglets().eigenvectors2().col(index2 - 1);
+  } else {
+    exciton1 = orb1.BSETriplets().eigenvectors2().col(index1 - 1);
+    exciton2 = orb2.BSETriplets().eigenvectors2().col(index2 - 1);
+  }
+
+  Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), _bse_ctotal1,
+                                         _bse_vtotal1);
+  Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), _bse_ctotal2,
+                                         _bse_vtotal2);
+  // Here I ignored the diagonal term related to the stationary unexcited
+  // electrons. It seems it doesn't play a huge role in the overall
+  // diabatization process.
+  Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
+  // This is the same as in the paper.
+  Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
+
+  // This defines D = X + Y where X = occupied and Y = unoccupied contribution
+  Eigen::MatrixXd results =
+      _virtlevels1 * AuxMat_cc * _virtlevels2.transpose() -
+      _occlevels1 * AuxMat_vv * _occlevels2.transpose();
+
+  // This adds the GS density
+  if (stateindex1 == stateindex2) {
+    if (stateindex1 == 0) {
+      results += orb1.DensityMatrixGroundState();
+    }
+    if (stateindex1 == 1) {
+      results += orb2.DensityMatrixGroundState();
+    }
+  }
+
+  return results;
+}
+
+Eigen::MatrixXd ERDiabatization::CalculateD_R(const Orbitals& orb1,
+                                            const Orbitals& orb2,
                                             QMStateType type, Index stateindex1,
                                             Index stateindex2) const {
 
@@ -257,6 +330,7 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,const Orbitals&
   // This requires that index1 and index1 starts from 1. Please add check.
   Eigen::VectorXd exciton1;
   Eigen::VectorXd exciton2;
+
   if (type == QMStateType::Singlet) {
     exciton1 = orb1.BSESinglets().eigenvectors().col(index1 - 1);
     exciton2 = orb2.BSESinglets().eigenvectors().col(index2 - 1);
@@ -264,30 +338,33 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,const Orbitals&
     exciton1 = orb1.BSETriplets().eigenvectors().col(index1 - 1);
     exciton2 = orb2.BSETriplets().eigenvectors().col(index2 - 1);
   }
+
   Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), _bse_ctotal1,
                                          _bse_vtotal1);
   Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), _bse_ctotal2,
                                          _bse_vtotal2);
-
   // Here I ignored the diagonal term related to the stationary unexcited
   // electrons. It seems it doesn't play a huge role in the overall
   // diabatization process.
   Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
   // This is the same as in the paper.
   Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
-  
+
   // This defines D = X + Y where X = occupied and Y = unoccupied contribution
-  Eigen::MatrixXd results = _virtlevels1 * AuxMat_cc * _virtlevels2.transpose() -
-         _occlevels1 * AuxMat_vv * _occlevels2.transpose();
-  if (stateindex1==stateindex2){
-    if (stateindex1==0){
+  Eigen::MatrixXd results =
+      _virtlevels1 * AuxMat_cc * _virtlevels2.transpose() -
+      _occlevels1 * AuxMat_vv * _occlevels2.transpose();
+
+  // This adds the GS density
+  if (stateindex1 == stateindex2) {
+    if (stateindex1 == 0) {
       results += orb1.DensityMatrixGroundState();
     }
-    if (stateindex1==1){
-      results+=orb2.DensityMatrixGroundState();
+    if (stateindex1 == 1) {
+      results += orb2.DensityMatrixGroundState();
     }
   }
-  
+
   return results;
 }
 

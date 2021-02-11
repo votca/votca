@@ -104,7 +104,9 @@ class ERDiabatization {
 
 
   options_erdiabatization _opt;
-  Eigen::MatrixXd CalculateD(const Orbitals& orb1, const Orbitals& orb2,QMStateType type,
+  Eigen::MatrixXd CalculateD_R(const Orbitals& orb1, const Orbitals& orb2,QMStateType type,
+                             Index stateindex1, Index stateindex2) const;
+  Eigen::MatrixXd CalculateD_AR(const Orbitals& orb1, const Orbitals& orb2,QMStateType type,
                              Index stateindex1, Index stateindex2) const;
 
   double CalculateR(const Eigen::MatrixXd& D_JK,
