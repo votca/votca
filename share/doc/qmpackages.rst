@@ -1,10 +1,10 @@
 QM Packages
 ###########
 
-Currently two quantum mechanics packages are supported to compute the molecular orbitals:
-**XTP** and `ORCA <https://orcaforum.kofo.mpg.de/app.php/portal>`_. **XTP** refers to the built-in DFT engine shipped with VOTCA-XTP package.
+Currently two quantum mechanics packages are supported to compute molecular orbitals:
+**XTP** and `ORCA <https://orcaforum.kofo.mpg.de/app.php/portal>`_. **XTP** refers to the built-in DFT engine shipped with the VOTCA-XTP package.
 
-The following table, define the defaults use with the *QM Packages*,
+The following table defines the defaults used with the *QM Packages*,
 
 .. include:: qmpackage_defaults.rst
 
