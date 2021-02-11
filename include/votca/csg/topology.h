@@ -23,6 +23,7 @@
 #include <cassert>
 #include <list>
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -46,7 +47,7 @@ class Interaction;
 
 using MoleculeContainer = std::vector<Molecule *>;
 using BeadContainer = std::vector<Bead *>;
-using ResidueContainer = std::vector<Residue *>;
+using ResidueContainer = std::vector<std::unique_ptr<Residue>>;
 using InteractionContainer = std::vector<Interaction *>;
 
 /**
@@ -218,7 +219,7 @@ class Topology {
    * @return Bead * is a pointer to the bead
    **/
   Bead *getBead(const Index i) const { return _beads[i]; }
-  Residue *getResidue(const Index i) const { return _residues[i]; }
+  Residue *getResidue(const Index i) const { return _residues[i].get(); }
   Molecule *getMolecule(const Index i) const { return _molecules[i]; }
 
   /**
@@ -453,15 +454,13 @@ inline Molecule *Topology::CreateMolecule(std::string name) {
 }
 
 inline Residue *Topology::CreateResidue(std::string name, Index id) {
-  Residue *res = new Residue(id, name);
-  _residues.push_back(res);
-  return res;
+  _residues.emplace_back(new Residue(id, name));
+  return _residues.back().get();
 }
 
 inline Residue *Topology::CreateResidue(std::string name) {
-  Residue *res = new Residue(_residues.size(), name);
-  _residues.push_back(res);
-  return res;
+  _residues.emplace_back(new Residue(_residues.size(), name));
+  return _residues.back().get();
 }
 
 inline Molecule *Topology::MoleculeByIndex(Index index) {

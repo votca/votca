@@ -69,13 +69,8 @@ void Topology::Cleanup() {
     _molecules.clear();
   }
   // cleanup residues
-  {
-    for (ResidueContainer::iterator i = _residues.begin(); i < _residues.end();
-         ++i) {
-      delete (*i);
-    }
-    _residues.clear();
-  }
+  _residues.clear();
+
   // cleanup interactions
   {
     for (InteractionContainer::iterator i = _interactions.begin();
