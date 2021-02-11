@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ using InteractionContainer = std::vector<Interaction *>;
  *
  **/
 class Topology {
- public:
+public:
   /// constructor
   Topology() { _bc = new OpenBox(); }
   ~Topology();
@@ -265,8 +265,9 @@ class Topology {
    * set the simulation box
    * \param box triclinic box matrix
    */
-  void setBox(const Eigen::Matrix3d &box, BoundaryCondition::eBoxtype boxtype =
-                                              BoundaryCondition::typeAuto) {
+  void
+  setBox(const Eigen::Matrix3d &box,
+         BoundaryCondition::eBoxtype boxtype = BoundaryCondition::typeAuto) {
     // determine box type automatically in case boxtype==typeAuto
     if (boxtype == BoundaryCondition::typeAuto) {
       boxtype = autoDetectBoxType(box);
@@ -277,15 +278,15 @@ class Topology {
     }
 
     switch (boxtype) {
-      case BoundaryCondition::typeTriclinic:
-        _bc = new TriclinicBox();
-        break;
-      case BoundaryCondition::typeOrthorhombic:
-        _bc = new OrthorhombicBox();
-        break;
-      default:
-        _bc = new OpenBox();
-        break;
+    case BoundaryCondition::typeTriclinic:
+      _bc = new TriclinicBox();
+      break;
+    case BoundaryCondition::typeOrthorhombic:
+      _bc = new OrthorhombicBox();
+      break;
+    default:
+      _bc = new OpenBox();
+      break;
     }
 
     _bc->setBox(box);
@@ -402,11 +403,11 @@ class Topology {
   bool HasForce() { return _has_force; }
   void SetHasForce(const bool v) { _has_force = v; }
 
- protected:
+protected:
   BoundaryCondition *_bc;
 
-  BoundaryCondition::eBoxtype autoDetectBoxType(
-      const Eigen::Matrix3d &box) const;
+  BoundaryCondition::eBoxtype
+  autoDetectBoxType(const Eigen::Matrix3d &box) const;
 
   /// bead types in the topology
   std::unordered_map<std::string, Index> beadtypes_;
@@ -427,7 +428,7 @@ class Topology {
 
   std::map<std::string, Index> _interaction_groups;
 
-  std::map<std::string, std::list<Interaction *> > _interactions_by_group;
+  std::map<std::string, std::list<Interaction *>> _interactions_by_group;
 
   double _time = 0.0;
   Index _step = 0;
@@ -472,9 +473,9 @@ inline void Topology::InsertExclusion(Bead *bead1, iteratable &l) {
   _exclusions.InsertExclusion(bead1, l);
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #include "interaction.h"
 
-#endif  // VOTCA_CSG_TOPOLOGY_H
+#endif // VOTCA_CSG_TOPOLOGY_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -307,8 +307,9 @@ void Topology::RegisterBeadType(string type) {
   beadtypes_[type] = id;
 }
 
-Eigen::Vector3d Topology::BCShortestConnection(
-    const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const {
+Eigen::Vector3d
+Topology::BCShortestConnection(const Eigen::Vector3d &r_i,
+                               const Eigen::Vector3d &r_j) const {
   return _bc->BCShortestConnection(r_i, r_j);
 }
 
@@ -321,8 +322,8 @@ double Topology::BoxVolume() const { return _bc->BoxVolume(); }
 
 void Topology::RebuildExclusions() { _exclusions.CreateExclusions(this); }
 
-BoundaryCondition::eBoxtype Topology::autoDetectBoxType(
-    const Eigen::Matrix3d &box) const {
+BoundaryCondition::eBoxtype
+Topology::autoDetectBoxType(const Eigen::Matrix3d &box) const {
   // set the box type to OpenBox in case "box" is the zero matrix,
   // to OrthorhombicBox in case "box" is a diagonal matrix,
   // or to TriclinicBox otherwise
@@ -341,5 +342,5 @@ double Topology::ShortestBoxSize() const {
   return _bc->getShortestBoxDimension();
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
