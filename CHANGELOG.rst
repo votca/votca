@@ -8,6 +8,7 @@ Version 2022-dev
    #640, #641)
 -  format csg_orientcorr help for rst conversion (#648)
 -  update help of functions_common for rst (#650)
+-  switch to using unique_ptr for cgmoleculedef (#651)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
