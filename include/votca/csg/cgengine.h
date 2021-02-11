@@ -21,6 +21,7 @@
 // Standard includes
 #include <list>
 #include <map>
+#include <memory>
 
 // Third party includes
 #include <boost/program_options.hpp>
@@ -61,7 +62,7 @@ class CGEngine {
   /**
       create a coarse grained topolgy based on a given topology
   */
-  TopologyMap *CreateCGTopology(Topology &in, Topology &out);
+  std::unique_ptr<TopologyMap> CreateCGTopology(Topology &in, Topology &out);
 
   /**
       load molecule type from file
