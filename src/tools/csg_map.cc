@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,7 +125,7 @@ class CsgMapApp : public CsgApplication {
 
         if (mi->getId() < top->MoleculeCount()) {
           // copy cg beads of molecule
-          Molecule *cgmol = top->Molecules()[mi->getId()];
+          Molecule *cgmol = top->getMolecule(mi->getId());
           for (votca::Index i = 0; i < cgmol->BeadCount(); i++) {
             Bead *bi = cgmol->getBead(i);
             // todo: this is a bit dirty as a cg bead will always have the resid

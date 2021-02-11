@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *) {
     }
 
     cout << "\nList of molecules:\n";
-    for (Molecule *mol : top->Molecules()) {
+    for (const auto &mol : top->Molecules()) {
       cout << "molecule: " << mol->getId() + 1 << " " << mol->getName()
            << " beads: " << mol->BeadCount() << endl;
       for (votca::Index i = 0; i < mol->BeadCount(); ++i) {

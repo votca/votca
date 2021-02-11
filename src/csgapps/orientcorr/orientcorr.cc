@@ -167,7 +167,7 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
   mapped.setBox(top->getBox());
 
   // loop over all molecules
-  for (auto mol_src : top->Molecules()) {
+  for (const auto &mol_src : top->Molecules()) {
     // create a molecule in mapped topology
     Molecule *mol = mapped.CreateMolecule(mol_src->getName());
     // loop over beads in molecule

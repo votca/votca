@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,7 +136,7 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *) {
 void CsgDensityApp::EvalConfiguration(Topology *top, Topology *) {
   // loop over all molecules
   bool did_something = false;
-  for (Molecule *mol : top->Molecules()) {
+  for (const auto &mol : top->Molecules()) {
     if (!votca::tools::wildcmp(_molname, mol->getName())) {
       continue;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
   // do CG mapping
 
   MoleculeContainer &mols = top->Molecules();
-  MoleculeContainer MolecularTypes;
+  std::vector<Molecule *> MolecularTypes;
 
   votca::Index prv_mol_number = 1;
   string prv_mol_name;
@@ -115,7 +115,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
 
   // find all unique molecular types
 
-  for (Molecule *mol : mols) {
+  for (const auto &mol : mols) {
     // molecules are ignored during the mapping stage
     // i.e. the ignored ones do not enter the CG topology (*top) - ?
     // if( IsIgnored(mol->getName()) ) continue;
@@ -133,7 +133,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
     cout << "'" << mol->getName() << "' added to CG molecular types" << endl;
     //#endif
 
-    MolecularTypes.push_back(mol);
+    MolecularTypes.push_back(mol.get());
 
     // collect unique bead pairs over all molecular types found
 

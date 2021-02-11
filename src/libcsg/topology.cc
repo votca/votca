@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,13 +61,8 @@ void Topology::Cleanup() {
     _beads.clear();
   }
   // cleanup molecules
-  {
-    for (MoleculeContainer::iterator i = _molecules.begin();
-         i < _molecules.end(); ++i) {
-      delete *i;
-    }
-    _molecules.clear();
-  }
+  _molecules.clear();
+
   // cleanup residues
   {
     for (ResidueContainer::iterator i = _residues.begin(); i < _residues.end();
@@ -245,7 +240,7 @@ void Topology::SetBeadTypeMass(string name, double value) {
 void Topology::CheckMoleculeNaming(void) {
   map<string, Index> nbeads;
 
-  for (Molecule *mol : _molecules) {
+  for (const auto &mol : _molecules) {
     map<string, Index>::iterator entry = nbeads.find(mol->getName());
     if (entry != nbeads.end()) {
       if (entry->second != mol->BeadCount()) {

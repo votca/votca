@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ CGEngine::~CGEngine() {
 TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
   MoleculeContainer &mols = in.Molecules();
   TopologyMap *m = new TopologyMap(&in, &out);
-  for (auto mol : mols) {
+  for (const auto &mol : mols) {
     if (IsIgnored(mol->getName())) {
       continue;
     }

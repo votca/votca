@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
 
 void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
   // loop over all molecules
-  for (Molecule *mol : top->Molecules()) {
+  for (const auto &mol : top->Molecules()) {
     // does the id match if given?
     if (OptionsMap().count("mol")) {
       if (OptionsMap()["mol"].as<votca::Index>() != mol->getId() + 1) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ namespace csg {
 
 class Interaction;
 
-using MoleculeContainer = std::vector<Molecule *>;
+using MoleculeContainer = std::vector<std::unique_ptr<Molecule>>;
 using BeadContainer = std::vector<Bead *>;
 using ResidueContainer = std::vector<Residue *>;
 using InteractionContainer = std::vector<Interaction *>;
@@ -219,7 +219,7 @@ class Topology {
    **/
   Bead *getBead(const Index i) const { return _beads[i]; }
   Residue *getResidue(const Index i) const { return _residues[i]; }
-  Molecule *getMolecule(const Index i) const { return _molecules[i]; }
+  Molecule *getMolecule(const Index i) const { return _molecules[i].get(); }
 
   /**
    * delete all molecule information
@@ -426,7 +426,7 @@ class Topology {
 
   std::map<std::string, Index> _interaction_groups;
 
-  std::map<std::string, std::list<Interaction *> > _interactions_by_group;
+  std::map<std::string, std::list<Interaction *>> _interactions_by_group;
 
   double _time = 0.0;
   Index _step = 0;
@@ -447,9 +447,8 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
 }
 
 inline Molecule *Topology::CreateMolecule(std::string name) {
-  Molecule *mol = new Molecule(_molecules.size(), name);
-  _molecules.push_back(mol);
-  return mol;
+  _molecules.emplace_back(new Molecule(_molecules.size(), name));
+  return _molecules.back().get();
 }
 
 inline Residue *Topology::CreateResidue(std::string name, Index id) {
@@ -465,7 +464,7 @@ inline Residue *Topology::CreateResidue(std::string name) {
 }
 
 inline Molecule *Topology::MoleculeByIndex(Index index) {
-  return _molecules[index];
+  return _molecules[index].get();
 }
 
 template <typename iteratable>
