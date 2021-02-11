@@ -22,14 +22,6 @@
 namespace votca {
 namespace csg {
 
-TopologyMap::~TopologyMap() {
-
-  for (auto& _map : _maps) {
-    delete _map;
-  }
-  _maps.clear();
-}
-
 void TopologyMap::Apply() {
   _out->setStep(_in->getStep());
   _out->setTime(_in->getTime());

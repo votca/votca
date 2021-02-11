@@ -21,6 +21,7 @@
 // Standard includes
 #include <list>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -51,7 +52,7 @@ class CGMoleculeDef {
   ~CGMoleculeDef();
 
   Molecule *CreateMolecule(Topology &top);
-  Map *CreateMap(Molecule &in, Molecule &out);
+  std::unique_ptr<Map> CreateMap(Molecule &in, Molecule &out);
 
   void Load(std::string filename);
 

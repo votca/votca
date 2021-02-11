@@ -65,8 +65,8 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
       continue;
     }
     Molecule *mcg = def->CreateMolecule(out);
-    Map *map = def->CreateMap(*mol, *mcg);
-    m->AddMoleculeMap(map);
+    std::unique_ptr<Map> map = def->CreateMap(*mol, *mcg);
+    m->AddMoleculeMap(std::move(map));
   }
   out.RebuildExclusions();
   return m;

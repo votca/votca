@@ -19,6 +19,7 @@
 #define _VOTCA_CSG_TOPOLOGYMAP_H
 
 // Standard includes
+#include <memory>
 #include <vector>
 
 // Local VOTCA includes
@@ -30,11 +31,9 @@ namespace csg {
 
 class TopologyMap {
  public:
-  ~TopologyMap();
-
   TopologyMap(Topology *in, Topology *out);
 
-  void AddMoleculeMap(Map *map);
+  void AddMoleculeMap(std::unique_ptr<Map> map);
 
   void Apply();
 
@@ -42,14 +41,16 @@ class TopologyMap {
   Topology *_in;
   Topology *_out;
 
-  using MapContainer = std::vector<Map *>;
+  using MapContainer = std::vector<std::unique_ptr<Map>>;
   MapContainer _maps;
 };
 
 inline TopologyMap::TopologyMap(Topology *in, Topology *out)
     : _in(in), _out(out) {}
 
-inline void TopologyMap::AddMoleculeMap(Map *map) { _maps.push_back(map); }
+inline void TopologyMap::AddMoleculeMap(std::unique_ptr<Map> map) {
+  _maps.push_back(std::move(map));
+}
 
 }  // namespace csg
 }  // namespace votca
