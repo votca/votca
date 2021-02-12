@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,22 +175,8 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
 
     Index index = 0;
     while (!atoms.empty()) {
-      Interaction *ic;
-
-      if (prop->name() == "bond") {
-        ic = new IBond(atoms);
-      } else if (prop->name() == "angle") {
-        ic = new IAngle(atoms);
-      } else if (prop->name() == "dihedral") {
-        ic = new IDihedral(atoms);
-      } else {
-        throw runtime_error("unknown bonded type in map: " + prop->name());
-      }
-
-      ic->setGroup(iagroup);
-      ic->setIndex(index);
-      ic->setMolecule(minfo->getId());
-      top.AddBondedInteraction(ic);
+      const Interaction *ic =
+          top.CreateInteraction(atoms, iagroup, index, minfo->getId());
       minfo->AddInteraction(ic);
       index++;
     }

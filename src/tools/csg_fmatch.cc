@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include "../../include/votca/csg/beadlist.h"
 #include "../../include/votca/csg/nblistgrid.h"
 #include "../../include/votca/csg/nblistgrid_3body.h"
+#include "votca/csg/interaction.h"
 #include <cmath>
 #include <cstdio>
 #include <fstream>
@@ -564,10 +565,10 @@ void CGForceMatching::LoadOptions(const string &file) {
 
 void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
 
-  std::list<Interaction *> interList =
+  std::list<const Interaction *> interList =
       conf->InteractionsInGroup(sinfo->splineName);
 
-  for (Interaction *inter : interList) {
+  for (const Interaction *inter : interList) {
 
     votca::Index beads_in_int = inter->BeadCount();  // 2 for bonds, 3 for
                                                      // angles, 4 for dihedrals

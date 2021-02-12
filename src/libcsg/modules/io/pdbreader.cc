@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -508,12 +508,11 @@ bool PDBReader::NextFrame(Topology &top) {
       // It may be the case that the atom id's and bead id's are different
       Index bead_id1 = bead_vec.at(atm_id1 - 1)->getId();
       Index bead_id2 = bead_vec.at(atm_id2 - 1)->getId();
-      Interaction *ic = new IBond(bead_id1, bead_id2);
-      ic->setGroup("BONDS");
-      ic->setIndex(bond_indx);
+      const Interaction *ic =
+          top.CreateInteraction(std::vector<Index>{bead_id1, bead_id2}, "BONDS",
+                                bond_indx, mol_reInd_map[mol_ind]);
+
       bond_indx++;
-      ic->setMolecule(mol_reInd_map[mol_ind]);
-      top.AddBondedInteraction(ic);
       mi->AddInteraction(ic);
     }
 

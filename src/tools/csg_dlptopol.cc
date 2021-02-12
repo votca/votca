@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -245,7 +245,7 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
   votca::Index n_entries = 0;
   votca::Index nb = -1;
 
-  for (Interaction *ic : cg.Interactions()) {
+  for (const auto &ic : cg.Interactions()) {
     if (nb != ic->BeadCount()) {
 
       if (sout.str() != "") {

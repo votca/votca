@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@
 
 // Local VOTCA includes
 #include "bead.h"
-#include "topology.h"
 
 namespace votca {
 namespace csg {
 
+class Topology;
 /**
     \brief base class for all interactions
 
@@ -39,10 +39,7 @@ namespace csg {
 */
 class Interaction {
  public:
-  Interaction() = default;
-
-  virtual ~Interaction() = default;
-  virtual double EvaluateVar(const Topology &top) = 0;
+  virtual double EvaluateVar(const Topology &top) const = 0;
 
   std::string getName() const { return _name; }
 
@@ -82,7 +79,7 @@ class Interaction {
     return _mol;
   }
 
-  virtual Eigen::Vector3d Grad(const Topology &top, Index bead) = 0;
+  virtual Eigen::Vector3d Grad(const Topology &top, Index bead) const = 0;
   Index BeadCount() const { return _beads.size(); }
   Index getBeadId(Index bead) const {
     assert(bead > -1 && boost::lexical_cast<size_t>(bead) < _beads.size());
@@ -90,6 +87,17 @@ class Interaction {
   }
 
  protected:
+  template <class T>
+  void construct(T &beads) {
+    _beads.reserve(beads.size());
+    Index i = 0;
+    for (const Index &bead_id : beads) {
+      _beads[i] = bead_id;
+      ++i;
+    }
+  }
+  friend class Topology;
+
   Index _index = -1;
   std::string _group = "";
   Index _group_id = -1;
@@ -100,46 +108,21 @@ class Interaction {
   void RebuildName();
 };
 
-inline void Interaction::RebuildName() {
-  std::stringstream s;
-  if (_mol != -1) {
-    { s << "molecule " << _mol; }
-  }
-  if (!_group.empty()) {
-    s << ":" << _group;
-    if (_group_id != -1) {
-      s << " " << _group_id;
-    }
-  }
-  if (_index != -1) {
-    { s << ":index " << _index; }
-  }
-  _name = s.str();
-}
-
 /**
     \brief bond interaction
 */
 class IBond : public Interaction {
  public:
-  IBond(Index bead1, Index bead2) {
-    _beads.resize(2);
-    _beads[0] = bead1;
-    _beads[1] = bead2;
-  }
-
-  IBond(std::list<Index> &beads) {
-    assert(beads.size() >= 2);
-    _beads.resize(2);
-    for (Index i = 0; i < 2; ++i) {
-      _beads[i] = beads.front();
-      beads.pop_front();
-    }
-  }
-  double EvaluateVar(const Topology &top) override;
-  Eigen::Vector3d Grad(const Topology &top, Index bead) override;
+  double EvaluateVar(const Topology &top) const override;
+  Eigen::Vector3d Grad(const Topology &top, Index bead) const override;
 
  private:
+  template <class T>
+  IBond(T &beads) {
+    assert(beads.size() == 2);
+    construct(beads);
+  }
+  friend class Topology;
 };
 
 /**
@@ -147,25 +130,17 @@ class IBond : public Interaction {
 */
 class IAngle : public Interaction {
  public:
-  IAngle(Index bead1, Index bead2, Index bead3) {
-    _beads.resize(3);
-    _beads[0] = bead1;
-    _beads[1] = bead2;
-    _beads[2] = bead3;
-  }
-  IAngle(std::list<Index> &beads) {
-    assert(beads.size() >= 3);
-    _beads.resize(3);
-    for (Index i = 0; i < 3; ++i) {
-      _beads[i] = beads.front();
-      beads.pop_front();
-    }
-  }
-
-  double EvaluateVar(const Topology &top) override;
-  Eigen::Vector3d Grad(const Topology &top, Index bead) override;
+  double EvaluateVar(const Topology &top) const override;
+  Eigen::Vector3d Grad(const Topology &top, Index bead) const override;
 
  private:
+  template <class T>
+  IAngle(T &beads) {
+    assert(beads.size() == 3);
+    construct(beads);
+  }
+
+  friend class Topology;
 };
 
 /**
@@ -173,151 +148,19 @@ class IAngle : public Interaction {
 */
 class IDihedral : public Interaction {
  public:
-  IDihedral(Index bead1, Index bead2, Index bead3, Index bead4) {
-    _beads.resize(4);
-    _beads[0] = bead1;
-    _beads[1] = bead2;
-    _beads[2] = bead3;
-    _beads[3] = bead4;
-  }
-  IDihedral(std::list<Index> &beads) {
-    assert(beads.size() >= 4);
-    _beads.resize(4);
-    for (Index i = 0; i < 4; ++i) {
-      _beads[i] = beads.front();
-      beads.pop_front();
-    }
-  }
-
-  double EvaluateVar(const Topology &top) override;
-  Eigen::Vector3d Grad(const Topology &top, Index bead) override;
+  double EvaluateVar(const Topology &top) const override;
+  Eigen::Vector3d Grad(const Topology &top, Index bead) const override;
 
  private:
+  template <class T>
+  IDihedral(T &beads) {
+    assert(beads.size() == 4);
+    construct(beads);
+  }
+
+  friend class Topology;
 };
 
-inline double IBond::EvaluateVar(const Topology &top) {
-  return top.getDist(_beads[0], _beads[1]).norm();
-}
-
-inline Eigen::Vector3d IBond::Grad(const Topology &top, Index bead) {
-  Eigen::Vector3d r = top.getDist(_beads[0], _beads[1]);
-  r.normalize();
-  return (bead == 0) ? -r : r;
-}
-
-inline double IAngle::EvaluateVar(const Topology &top) {
-  Eigen::Vector3d v1(top.getDist(_beads[1], _beads[0]));
-  Eigen::Vector3d v2(top.getDist(_beads[1], _beads[2]));
-  return std::acos(v1.dot(v2) / sqrt(v1.squaredNorm() * v2.squaredNorm()));
-}
-
-inline Eigen::Vector3d IAngle::Grad(const Topology &top, Index bead) {
-  Eigen::Vector3d v1(top.getDist(_beads[1], _beads[0]));
-  Eigen::Vector3d v2(top.getDist(_beads[1], _beads[2]));
-
-  double acos_prime =
-      1.0 / (sqrt(1 - std::pow(v1.dot(v2), 2) /
-                          (v1.squaredNorm() * v2.squaredNorm())));
-  switch (bead) {
-    case (0):
-      return acos_prime *
-             (-v2 / (v1.norm() * v2.norm()) +
-              (v1.dot(v2) * v1) / (v1.squaredNorm() * v2.squaredNorm()));
-      break;
-    case (1):
-      return acos_prime *
-             ((v1 + v2) / (v1.norm() * v2.norm()) -
-              (v1.dot(v2)) * (v2.squaredNorm() * v1 + v1.squaredNorm() * v2) /
-                  (std::pow(v1.norm(), 3) * std::pow(v2.norm(), 3)));
-      break;
-    case (2):
-      return acos_prime * (-v1 / (v1.norm() * v2.norm())) +
-             (v1.dot(v2) * v2 / (v1.norm() * std::pow(v2.norm(), 3)));
-      break;
-  }
-  // should never reach this
-  assert(false);
-  return Eigen::Vector3d::Zero();
-}
-
-inline double IDihedral::EvaluateVar(const Topology &top) {
-  Eigen::Vector3d v1(top.getDist(_beads[0], _beads[1]));
-  Eigen::Vector3d v2(top.getDist(_beads[1], _beads[2]));
-  Eigen::Vector3d v3(top.getDist(_beads[2], _beads[3]));
-  Eigen::Vector3d n1 = v1.cross(v2);  // calculate the normal vector
-  Eigen::Vector3d n2 = v2.cross(v3);  // calculate the normal vector
-  double sign = (v1.dot(n2) < 0) ? -1 : 1;
-  return sign *
-         std::acos(n1.dot(n2) / sqrt(n1.squaredNorm() * n2.squaredNorm()));
-}
-
-inline Eigen::Vector3d IDihedral::Grad(const Topology &top, Index bead) {
-  Eigen::Vector3d v1(top.getDist(_beads[0], _beads[1]));
-  Eigen::Vector3d v2(top.getDist(_beads[1], _beads[2]));
-  Eigen::Vector3d v3(top.getDist(_beads[2], _beads[3]));
-  Eigen::Vector3d n1, n2;
-  n1 = v1.cross(v2);  // calculate the normal vector
-  n2 = v2.cross(v3);  // calculate the normal vector
-  double sign = (v1.dot(n2) < 0) ? -1 : 1;
-  Eigen::Vector3d returnvec;
-
-  Eigen::Matrix3d e = Eigen::Matrix3d::Identity();
-
-  double acos_prime =
-      sign * (-1.0 / (sqrt(1 - std::pow(n1.dot(n2), 2) /
-                                   (n1.squaredNorm() * n2.squaredNorm()))));
-  switch (bead) {
-    case (0): {
-      for (Index i = 0; i < 3; i++) {
-        returnvec[i] = n2.dot(v2.cross(e.col(i))) / (n1.norm() * n2.norm()) -
-                       n1.dot(n2) * n1.dot(v2.cross(e.col(i))) /
-                           (n2.norm() * std::pow(n1.norm(), 3));
-      }
-      return acos_prime * returnvec;
-      break;
-    }
-    case (1): {
-      for (Index i = 0; i < 3; i++) {
-        returnvec[i] =
-            (n1.dot(v3.cross(e.col(i))) +
-             n2.dot(e.col(i).cross(v1) + e.col(i).cross(v2))) /
-                (n1.norm() * n2.norm()) -
-            n1.dot(n2) * ((n1.dot(e.col(i).cross(v1) + e.col(i).cross(v2))) /
-                              (n2.norm() * std::pow(n1.norm(), 3)) +
-                          n2.dot(v3.cross(e.col(i))) /
-                              (n1.norm() * std::pow(n2.norm(), 3)));
-      }
-      return acos_prime * returnvec;
-      break;
-    };
-    case (2): {
-      for (Index i = 0; i < 3; i++) {
-        returnvec[i] =
-            (n1.dot(e.col(i).cross(v2) + e.col(i).cross(v3)) +
-             n2.dot(v1.cross(e.col(i)))) /
-                (n1.norm() * n2.norm()) -
-            n1.dot(n2) * (n1.dot(v1.cross(e.col(i))) /
-                              (n2.norm() * std::pow(n1.norm(), 3)) +
-                          (n2.dot(e.col(i).cross(v2) + e.col(i).cross(v3))) /
-                              (n1.norm() * std::pow(n2.norm(), 3)));
-      }
-      return acos_prime * returnvec;
-      break;
-    };
-    case (3): {  //
-      for (Index i = 0; i < 3; i++) {
-        returnvec[i] = n1.dot(v2.cross(e.col(i))) / (n1.norm() * n2.norm()) -
-                       n1.dot(n2) * n2.dot(v2.cross(e.col(i))) /
-                           (n1.norm() * std::pow(n2.norm(), 3));
-      }
-      return acos_prime * returnvec;
-      break;
-    };
-  }
-  // should never reach this
-  assert(false);
-  return Eigen::Vector3d::Zero();
-}
 }  // namespace csg
 }  // namespace votca
 

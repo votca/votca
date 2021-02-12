@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -286,7 +286,6 @@ void XMLTopologyReader::ParseBond(tools::Property &p) {
   if (bead_list.size() % 2 == 1) {
     throw runtime_error("Wrong number of beads in bond: " + name);
   }
-  Interaction *ic = nullptr;
   typedef pair<MoleculesMap::iterator, MoleculesMap::iterator> MRange;
   Index b_index = 0;
   for (vector<string>::iterator it = bead_list.begin();
@@ -301,12 +300,10 @@ void XMLTopologyReader::ParseBond(tools::Property &p) {
         XMLMolecule &xmlMolecule = *itm->second;
         XMLBead &xmlBead1 = *xmlMolecule.name2beads[b1.atname];
         XMLBead &xmlBead2 = *xmlMolecule.name2beads[b2.atname];
-        ic = new IBond(xmlBead1.pid, xmlBead2.pid);
-        ic->setGroup(name);
-        ic->setIndex(b_index);
-        ic->setMolecule(xmlMolecule.pid);
+        const Interaction *ic = _top->CreateInteraction(
+            std::vector<Index>{xmlBead1.pid, xmlBead2.pid}, name, b_index,
+            xmlMolecule.pid);
         xmlMolecule.mi->AddInteraction(ic);
-        _top->AddBondedInteraction(ic);
         b_index++;
       }
     } else {
@@ -324,7 +321,6 @@ void XMLTopologyReader::ParseAngle(tools::Property &p) {
   if (bead_list.size() % 3 == 1) {
     throw runtime_error("Wrong number of beads in angle: " + name);
   }
-  Interaction *ic = nullptr;
   typedef pair<MoleculesMap::iterator, MoleculesMap::iterator> MRange;
   Index b_index = 0;
   for (vector<string>::iterator it = bead_list.begin();
@@ -341,12 +337,10 @@ void XMLTopologyReader::ParseAngle(tools::Property &p) {
         XMLBead &xmlBead1 = *xmlMolecule.name2beads[b1.atname];
         XMLBead &xmlBead2 = *xmlMolecule.name2beads[b2.atname];
         XMLBead &xmlBead3 = *xmlMolecule.name2beads[b3.atname];
-        ic = new IAngle(xmlBead1.pid, xmlBead2.pid, xmlBead3.pid);
-        ic->setGroup(name);
-        ic->setIndex(b_index);
-        ic->setMolecule(xmlMolecule.pid);
+        const Interaction *ic = _top->CreateInteraction(
+            std::vector<Index>{xmlBead1.pid, xmlBead2.pid, xmlBead3.pid}, name,
+            b_index, xmlMolecule.pid);
         xmlMolecule.mi->AddInteraction(ic);
-        _top->AddBondedInteraction(ic);
         b_index++;
       }
     } else {
@@ -363,7 +357,6 @@ void XMLTopologyReader::ParseDihedral(tools::Property &p) {
   if (bead_list.size() % 4 == 1) {
     throw runtime_error("Wrong number of beads in dihedral: " + name);
   }
-  Interaction *ic = nullptr;
   typedef pair<MoleculesMap::iterator, MoleculesMap::iterator> MRange;
   Index b_index = 0;
   for (vector<string>::iterator it = bead_list.begin();
@@ -383,13 +376,11 @@ void XMLTopologyReader::ParseDihedral(tools::Property &p) {
         XMLBead &xmlBead2 = *xmlMolecule.name2beads[b2.atname];
         XMLBead &xmlBead3 = *xmlMolecule.name2beads[b3.atname];
         XMLBead &xmlBead4 = *xmlMolecule.name2beads[b4.atname];
-        ic = new IDihedral(xmlBead1.pid, xmlBead2.pid, xmlBead3.pid,
-                           xmlBead4.pid);
-        ic->setGroup(name);
-        ic->setIndex(b_index);
-        ic->setMolecule(xmlMolecule.pid);
+        const Interaction *ic = _top->CreateInteraction(
+            std::vector<Index>{xmlBead1.pid, xmlBead2.pid, xmlBead3.pid,
+                               xmlBead4.pid},
+            name, b_index, xmlMolecule.pid);
         xmlMolecule.mi->AddInteraction(ic);
-        _top->AddBondedInteraction(ic);
         b_index++;
       }
     } else {

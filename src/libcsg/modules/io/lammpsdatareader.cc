@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -538,13 +538,12 @@ void LAMMPSDataReader::ReadBonds_(Topology &top) {
       Index atom1Index = atomIdToIndex_[atom1Id];
       Index atom2Index = atomIdToIndex_[atom2Id];
 
-      Interaction *ic = new IBond(atom1Index, atom2Index);
-      ic->setGroup("BONDS");
-      ic->setIndex(bondId);
+      const Interaction *ic = top.CreateInteraction(
+          std::vector<Index>{atom1Index, atom2Index}, "BONDS", bondId,
+          atomIdToMoleculeId_[atom1Index]);
+
       auto b = top.getBead(atom1Index);
       auto mi = top.getMolecule(b->getMoleculeId());
-      ic->setMolecule(atomIdToMoleculeId_[atom1Index]);
-      top.AddBondedInteraction(ic);
       mi->AddInteraction(ic);
     }
 
@@ -596,13 +595,12 @@ void LAMMPSDataReader::ReadAngles_(Topology &top) {
       Index atom2Index = atomIdToIndex_[atom2Id];
       Index atom3Index = atomIdToIndex_[atom3Id];
 
-      Interaction *ic = new IAngle(atom1Index, atom2Index, atom3Index);
-      ic->setGroup("ANGLES");
-      ic->setIndex(angleId);
+      const Interaction *ic = top.CreateInteraction(
+          std::vector<Index>{atom1Index, atom2Index, atom3Index}, "ANGLES",
+          angleId, atomIdToMoleculeId_[atom1Index]);
+
       auto b = top.getBead(atom1Index);
       auto mi = top.getMolecule(b->getMoleculeId());
-      ic->setMolecule(atomIdToMoleculeId_[atom1Index]);
-      top.AddBondedInteraction(ic);
       mi->AddInteraction(ic);
     }
 
@@ -666,14 +664,12 @@ void LAMMPSDataReader::ReadDihedrals_(Topology &top) {
       Index atom3Index = atomIdToIndex_[atom3Id];
       Index atom4Index = atomIdToIndex_[atom4Id];
 
-      Interaction *ic =
-          new IDihedral(atom1Index, atom2Index, atom3Index, atom4Index);
-      ic->setGroup("DIHEDRALS");
-      ic->setIndex(dihedralId);
+      const Interaction *ic = top.CreateInteraction(
+          std::vector<Index>{atom1Index, atom2Index, atom3Index, atom4Index},
+          "DIHEDRALS", dihedralId, atomIdToMoleculeId_[atom1Index]);
+
       auto b = top.getBead(atom1Index);
       auto mi = top.getMolecule(b->getMoleculeId());
-      ic->setMolecule(atomIdToMoleculeId_[atom1Index]);
-      top.AddBondedInteraction(ic);
       mi->AddInteraction(ic);
     }
     ++dihedral_count;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,13 +77,8 @@ void Topology::Cleanup() {
     _residues.clear();
   }
   // cleanup interactions
-  {
-    for (InteractionContainer::iterator i = _interactions.begin();
-         i < _interactions.end(); ++i) {
-      delete (*i);
-    }
-    _interactions.clear();
-  }
+  _interactions.clear();
+
   // cleanup _bc object
   if (_bc) {
     delete (_bc);
@@ -261,25 +256,12 @@ void Topology::CheckMoleculeNaming(void) {
   }
 }
 
-void Topology::AddBondedInteraction(Interaction *ic) {
-  map<string, Index>::iterator iter;
-  iter = _interaction_groups.find(ic->getGroup());
-  if (iter != _interaction_groups.end()) {
-    ic->setGroupId((*iter).second);
-  } else {
-    Index i = _interaction_groups.size();
-    _interaction_groups[ic->getGroup()] = i;
-    ic->setGroupId(i);
-  }
-  _interactions.push_back(ic);
-  _interactions_by_group[ic->getGroup()].push_back(ic);
-}
-
-std::list<Interaction *> Topology::InteractionsInGroup(const string &group) {
-  map<string, list<Interaction *>>::iterator iter =
+std::list<const Interaction *> Topology::InteractionsInGroup(
+    const string &group) const {
+  map<string, list<const Interaction *>>::const_iterator iter =
       _interactions_by_group.find(group);
   if (iter == _interactions_by_group.end()) {
-    return list<Interaction *>();
+    return list<const Interaction *>();
   }
   return iter->second;
 }

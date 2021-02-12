@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,14 +70,16 @@ class Molecule {
   std::string getBeadName(Index bead) { return _bead_names[bead]; }
 
   /// Add an interaction to the molecule
-  void AddInteraction(Interaction *ic) { _interactions.push_back(ic); }
+  void AddInteraction(const Interaction *ic) { _interactions.push_back(ic); }
 
-  std::vector<Interaction *> Interactions() { return _interactions; }
+  const std::vector<const Interaction *> Interactions() const {
+    return _interactions;
+  }
 
  private:
   // maps a name to a bead id
   std::map<std::string, Index> _beadmap;
-  std::vector<Interaction *> _interactions;
+  std::vector<const Interaction *> _interactions;
 
   // id of the molecules
   Index _id;
@@ -97,7 +99,9 @@ class Molecule {
 inline Index Molecule::getBeadIdByName(const std::string &name) {
   Index i = getBeadByName(name);
   if (i < 0) {
-    { return i; }
+    {
+      return i;
+    }
   }
   return _beads[i]->getId();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ void GmxTopolApp::WriteInteractions(ostream &out, const Topology &top,
                                     Molecule &cg) {
   votca::Index nb = -1;
 
-  for (const Interaction *ic : top.BondedInteractions()) {
+  for (const auto &ic : top.BondedInteractions()) {
     if (ic->getMolecule() != cg.getId()) {
       continue;
     }

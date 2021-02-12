@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,8 +160,7 @@ void Imc::BeginEvaluate(Topology *top, Topology *) {
   for (tools::Property *prop : _bonded) {
     string name = prop->get("name").value();
 
-    std::list<Interaction *> list = top->InteractionsInGroup(name);
-    if (list.empty()) {
+    if (top->InteractionsInGroup(name).empty()) {
       throw std::runtime_error(
           "Bonded interaction '" + name +
           "' defined in options xml-file, but not in topology - check name "
@@ -442,7 +441,7 @@ void Imc::Worker::DoBonded(Topology *top) {
     _current_hists[i._index].Clear();
 
     // now fill with new data
-    for (Interaction *ic : top->InteractionsInGroup(name)) {
+    for (const Interaction *ic : top->InteractionsInGroup(name)) {
       double v = ic->EvaluateVar(*top);
       _current_hists[i._index].Process(v);
     }
