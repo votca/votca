@@ -80,7 +80,7 @@ void Topology::Cleanup() {
     _interactions.clear();
   }
   // cleanup _bc object
-  _bc = std::unique_ptr<BoundaryCondition>(new OpenBox());
+  _bc = std::make_unique<OpenBox>();
 }
 
 /// \todo implement checking, only used in xml topology reader

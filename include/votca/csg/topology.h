@@ -60,7 +60,7 @@ using InteractionContainer = std::vector<Interaction *>;
 class Topology {
  public:
   /// constructor
-  Topology() { _bc = std::unique_ptr<BoundaryCondition>(new OpenBox()); }
+  Topology() { _bc = std::make_unique<OpenBox>(); }
   ~Topology();
 
   /**
@@ -274,13 +274,13 @@ class Topology {
 
     switch (boxtype) {
       case BoundaryCondition::typeTriclinic:
-        _bc = std::unique_ptr<BoundaryCondition>(new TriclinicBox());
+        _bc = std::make_unique<TriclinicBox>();
         break;
       case BoundaryCondition::typeOrthorhombic:
-        _bc = std::unique_ptr<BoundaryCondition>(new OrthorhombicBox());
+        _bc = std::make_unique<OrthorhombicBox>();
         break;
       default:
-        _bc = std::unique_ptr<BoundaryCondition>(new OpenBox());
+        _bc = std::make_unique<OpenBox>();
         break;
     }
 
