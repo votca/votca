@@ -48,6 +48,7 @@ class Imc {
 
   void BlockLength(votca::Index length) { _block_length = length; }
   void DoImc(bool do_imc) { _do_imc = do_imc; }
+  void IncludeIntra(bool include_intra) { _include_intra = include_intra; }
   void Extension(std::string ext) { _extension = ext; }
 
  protected:
@@ -93,6 +94,8 @@ class Imc {
   votca::Index _block_length = 0;
   // calculate the inverse monte carlos parameters (cross correlations)
   bool _do_imc = false;
+  // include the intramolecular neighbors
+  bool _include_intra = false;
 
   // file extension for the distributions
   std::string _extension;
@@ -112,7 +115,7 @@ class Imc {
   std::map<std::string, std::unique_ptr<group_t> > _groups;
 
   /// create a new interaction entry based on given options
-  interaction_t *AddInteraction(tools::Property *p);
+  interaction_t *AddInteraction(tools::Property *p, bool is_bonded);
 
   /// get group by name, creates one if it doesn't exist
   group_t *getGroup(const std::string &name);

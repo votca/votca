@@ -27,6 +27,11 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
+[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && has_bonds=true || has_bonds=false
+bonded_method="$(csg_get_property cg.inverse.imc.bonded_method)"
+if [[ $has_bonds == true && $bonded_method == "ibi" ]]; then
+    settings_nonbonded="$(csg_get_property cg.inverse.imc.settings_nonbonded)"
+fi
 
 topol=$(csg_get_property --allow-empty cg.inverse.$sim_prog.imc.topol)
 [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.$sim_prog.topol)
@@ -56,7 +61,21 @@ else
   #copy+resample all target dist in $this_dir
   for_all "non-bonded bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 
-  critical csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" \
-        --begin $equi_time --first-frame $first_frame --nt $tasks
+  if [[ $has_bonds == true ]]; then
+      if [[ $bonded_method == "imc" ]]; then
+          die "using IMC for bonded potentials is not implemented yet"
+      elif [[ $bonded_method == "ibi" ]]; then
+          msg "calculating regular distributions for ibi bonded upates"
+          critical csg_stat --options "$CSGXMLFILE" --top "$topol" --trj "$traj" \
+              --begin $equi_time --first-frame $first_frame --nt $tasks
+          msg "calculating correlations for imc updates"
+          critical csg_stat --do-imc --options "$settings_nonbonded" --top "$topol" --trj "$traj" \
+              --begin $equi_time --first-frame $first_frame --nt $tasks
+      fi
+  else
+      critical csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" \
+          --begin $equi_time --first-frame $first_frame --nt $tasks
+  fi
+      
   mark_done "imc_analysis"
 fi

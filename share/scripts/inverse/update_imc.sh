@@ -42,4 +42,5 @@ for group in $imc_groups; do
   critical csg_imc_solve --imcfile "${group}.imc" --gmcfile "${group}.gmc" --idxfile "${group}.idx" --regularization "${reg}"
 done
 
-for_all "non-bonded bonded" do_external update imc_single
+for_all "non-bonded" do_external update imc_single
+for_all "bonded" do_external update ibi_single

@@ -263,6 +263,12 @@
       <default_reg>0
         <DESC> default magnitude for regularization parameter if not given for the group explicitly, default =0</DESC>
       </default_reg>
+      <bonded_method>imc
+        <DESC> method for calculating updates on the bonded interactions. ibi or imc (not implemented), default=imc </DESC>
+      </bonded_method>
+      <settings_nonbonded>imc
+        <DESC> settings file to be used with csg_stat --do-imc. only needed if bonded_method=ibi</DESC>
+      </settings_nonbonded>
     </imc>
     <lammps>
       <DESC> general lammps specific options </DESC>
@@ -364,8 +370,8 @@
     <average>
       <steps>1
         <DESC>number of steps to be used for average computation. For relative
-        entropy method, these many last iteration steps are used to compute average
-        CG potentials or parameters or both.</DESC>
+          entropy method, these many last iteration steps are used to compute average
+          CG potentials or parameters or both.</DESC>
       </steps>
     </average>
     <initial_configuration>maindir
@@ -384,8 +390,66 @@
       <DESC>Special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
     </map>
     <method>
-      <DESC>method to be performed: ibi/imc/ft/optimizer</DESC>
+      <DESC>method to be performed: ibi/iie/imc/ft/optimizer</DESC>
     </method>
+
+    <iie>
+      <DESC>general options for the IIE schemes (hncgn/ihnc/hncn/pygn/ipy/pyn)</DESC>
+
+      <initial_guess>
+        <DESC>Settings for the initial guess</DESC>
+        <method>ie
+          <DESC>Method for the initial potential guess: table/bi/ie</DESC>
+        </method>
+        <closure>
+          <DESC>OZ equation closure in case of method=ie: hnc/py</DESC>
+        </closure>
+        <ignore_intramolecular_correlation>false
+          <DESC>If true, the initial guess will ignore the presence of intramolecular correlation in the CG molecule.</DESC>
+        </ignore_intramolecular_correlation>
+      </initial_guess>
+
+      <method>gauss-newton
+        <DESC>Update method to use: gauss-newton/newton/newton-mod.
+          For example closure=hnc + method=gauss-newton will result in the HNCGN method.
+          newton_mod is a modified newton scheme that results in an IBI like expression e.g. IHNC.</DESC>
+      </method>
+      <closure>hnc
+        <DESC>OZ equation closure for the IIE update: hnc/py</DESC>
+      </closure>
+      <ignore_intramolecular_correlation>false
+        <DESC>If true, the IIE updates (not the initial guess) will ignore the presence of intramolecular correlation in the CG molecule.</DESC>
+      </ignore_intramolecular_correlation>
+      <cut_off>
+        <DESC>Cut-off used for non-bonded potenitals in MD.
+          Potential will be set to zero beyond this point.</DESC>
+      </cut_off>
+      <g_extrap_factor>1.0
+        <DESC>Lenght factor by which RDF will be extrapolated</DESC>
+      </g_extrap_factor>
+      <cut_jacobian>true
+        <DESC>Wether to cut the Jacobian before multiplying with Δg. Only for Newton methods</DESC>
+      </cut_jacobian>
+      <densities>
+        <DESC>List of densities of the beads, sorted by bead name. TODO: replace by automatic calculation.</DESC>
+      </densities>
+      <n_intra>
+        <DESC>List of n_intra, the number of equal beads, sorted by bead name. TODO: replace by automatic calculation.</DESC>
+      </n_intra>
+      <pressure_constraint>none
+      <DESC>Apply pressure constraint. Only for hncgn/pygn</DESC>
+      </pressure_constraint>
+      <extrap_near_core>power
+        <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
+      </extrap_near_core>
+      <fix_near_cut_off>full-deriv
+        <DESC>Method for fixing discontinuity at end of potential. Valid values are: full-deriv (default), none</DESC>
+      </fix_near_cut_off>
+      <verbose>true
+        <DESC>Print some info and dump compressed numpy arrays. Valid values are: true (default), false</DESC>
+      </verbose>
+    </iie>
+
     <optimizer>
       <cma>
         <DESC>general options for the cma optimizer</DESC>
@@ -425,8 +489,8 @@
   <bonded>
     <DESC>Interaction specific option for bonded interactions, see the cg.non-bonded section for all options</DESC>
     <dlpoly><header>
-      <DESC>Header of the interaction in dlpoly TABBND or TABANG file. The header should be a unique set of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
-    </header>
+        <DESC>Header of the interaction in dlpoly TABBND or TABANG file. The header should be a unique set of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
+      </header>
     </dlpoly>
     <name>
       <DESC>Name of the bonded interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
@@ -438,8 +502,8 @@
   <non-bonded>
     <DESC>Interaction specific option for non-bonded interactions</DESC>
     <dlpoly><header>
-      <DESC>Header of the interaction in dlpoly TABLE file. The header should be a unique pair of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
-    </header>
+        <DESC>Header of the interaction in dlpoly TABLE file. The header should be a unique pair of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
+      </header>
     </dlpoly>
     <name>
       <DESC>Name of the interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
@@ -537,7 +601,7 @@
         </table_bins>
       </sim_prog>
       <imc>
-        <DESC>ection containing inverse monte carlo specific options.</DESC>
+        <DESC>section containing inverse monte carlo specific options.</DESC>
         <group>
           <DESC>Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update. If no cross correlations should be calculated, interactions have to be put into different groups.</DESC>
         </group>
@@ -723,7 +787,7 @@
         <density>
           <DESC>Contains all options for the density calculation of the optimizer</DESC>
           <axis>x
-          <DESC>Axis along which the density is calculated</DESC>
+            <DESC>Axis along which the density is calculated</DESC>
           </axis>
           <min>
             <DESC>Lower bound of interval in which density calculation is performed.</DESC>
@@ -734,9 +798,9 @@
           <step>
             <DESC>Step size of interval in which density calculation is performed.</DESC>
           </step>
-               <scale>1.0
-                 <DESC>Scaling factor for density</DESC>
-               </scale>
+          <scale>1.0
+            <DESC>Scaling factor for density</DESC>
+          </scale>
           <molname>*
             <DESC>The molname of this interaction</DESC>
           </molname>

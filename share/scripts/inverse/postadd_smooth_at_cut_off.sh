@@ -18,26 +18,23 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script initializes potentials for imc
+This script implements smoothing of the potential (.pot) at the cut off
 
-Usage: ${0##*/}
+Usage: ${0##*/} infile outfile
 EOF
    exit 0
 fi
 
-names=( $(csg_get_interaction_property --all name) )
-if [[ ${#names[@]} -gt 1 ]]; then
-  msg --color blue "####################################################"
-  msg --color blue "# WARNING multicomponent imc is still experimental #"
-  msg --color blue "####################################################"
-fi
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
+[ -f "$2" ] && die "${0##*/}: $2 is already there"
 
-[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && has_bonds=true || has_bonds=false
-bonded_method="$(csg_get_property cg.inverse.imc.bonded_method)"
+name=$(csg_get_interaction_property name)
+tmpfile=$(critical mktemp ${name}.XXX)
+cut_off=$(csg_get_interaction_property max)
 
-if [[ $has_bonds == true && $bonded_method == "imc" ]]; then
-  die "using IMC for bonded potentials is not implemented yet"
-fi
+critical cp "$1" $tmpfile
+echo "smoothing near cut-off for interaction $name"
 
-do_external prepare generic
+critical do_external table smooth_at_cut_off $tmpfile "$2" --cut-off=$cut_off
+critical rm -f $tmpfile
