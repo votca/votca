@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,7 +185,7 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     SegsinMol[molname] = segnames;
   }
 
-  for (const csg::Molecule* mol : top.Molecules()) {
+  for (const std::unique_ptr<csg::Molecule>& mol : top.Molecules()) {
     const std::vector<std::string> segnames = SegsinMol[mol->getName()];
 
     std::map<std::string, Segment*> segments;  // we first add them to topology
@@ -196,7 +196,8 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
       segments[segname]->AddMoleculeId(mol->getId());
     }
 
-    Index IdOffset = DetermineAtomNumOffset(mol, MolToAtomIds[mol->getName()]);
+    Index IdOffset =
+        DetermineAtomNumOffset(mol.get(), MolToAtomIds[mol->getName()]);
     for (const csg::Bead* bead : mol->Beads()) {
       Segment* seg =
           segments[MolToSegMap[mol->getName()][bead->getId() - IdOffset]];
