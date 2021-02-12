@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_CGMOLECULEDEF_H
-#define _VOTCA_CSG_CGMOLECULEDEF_H
+#ifndef VOTCA_CSG_CGMOLECULEDEF_H
+#define VOTCA_CSG_CGMOLECULEDEF_H
 
 // Standard includes
 #include <list>
@@ -52,7 +52,7 @@ class CGMoleculeDef {
   ~CGMoleculeDef();
 
   Molecule *CreateMolecule(Topology &top);
-  std::unique_ptr<Map> CreateMap(Molecule &in, Molecule &out);
+  Map CreateMap(Molecule &in, Molecule &out);
 
   void Load(std::string filename);
 
@@ -97,4 +97,4 @@ class CGMoleculeDef {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_CGMOLECULEDEF_H */
+#endif  // VOTCA_CSG_CGMOLECULEDEF_H

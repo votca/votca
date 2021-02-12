@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,14 +199,14 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   return minfo;
 }
 
-std::unique_ptr<Map> CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
+Map CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
   if (out.BeadCount() != Index(_beads.size())) {
     throw runtime_error(
         "number of beads for cg molecule and mapping definition do "
         "not match, check your molecule naming.");
   }
 
-  auto map = std::unique_ptr<Map>(new Map(in, out));
+  Map map(in, out);
   for (auto &bead : _beads) {
 
     Index iout = out.getBeadByName(bead->_name);
@@ -235,7 +235,7 @@ std::unique_ptr<Map> CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
     ////////////////////////////////////////////////////
 
     bmap->Initialize(&in, out.getBead(iout), (bead->_options), mdef);
-    map->AddBeadMap(bmap);
+    map.AddBeadMap(bmap);
   }
   return map;
 }

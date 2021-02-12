@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_TOPOLOGYMAP_H
-#define _VOTCA_CSG_TOPOLOGYMAP_H
+#ifndef VOTCA_CSG_TOPOLOGYMAP_H
+#define VOTCA_CSG_TOPOLOGYMAP_H
 
 // Standard includes
 #include <memory>
@@ -33,7 +33,7 @@ class TopologyMap {
  public:
   TopologyMap(Topology *in, Topology *out);
 
-  void AddMoleculeMap(std::unique_ptr<Map> map);
+  void AddMoleculeMap(Map map);
 
   void Apply();
 
@@ -48,11 +48,9 @@ class TopologyMap {
 inline TopologyMap::TopologyMap(Topology *in, Topology *out)
     : _in(in), _out(out) {}
 
-inline void TopologyMap::AddMoleculeMap(std::unique_ptr<Map> map) {
-  _maps.push_back(std::move(map));
-}
+inline void TopologyMap::AddMoleculeMap(Map map) { _maps.push_back(map); }
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_TOPOLOGYMAP_H */
+#endif  // VOTCA_CSG_TOPOLOGYMAP_H

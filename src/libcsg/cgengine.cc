@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(Topology &in,
       continue;
     }
     Molecule *mcg = def->CreateMolecule(out);
-    std::unique_ptr<Map> map = def->CreateMap(*mol, *mcg);
+    Map map = def->CreateMap(*mol, *mcg);
     m->AddMoleculeMap(std::move(map));
   }
   out.RebuildExclusions();

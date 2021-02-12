@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ void TopologyMap::Apply() {
   _out->setBox(_in->getBox());
 
   for (auto& _map : _maps) {
-    _map->Apply(_out->getBoundary());
+    _map.Apply(_out->getBoundary());
   }
 }
 
