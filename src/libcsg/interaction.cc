@@ -78,17 +78,14 @@ Eigen::Vector3d IAngle::Grad(const Topology &top, Index bead) const {
       return acos_prime *
              (-v2 / (v1.norm() * v2.norm()) +
               (v1.dot(v2) * v1) / (v1.squaredNorm() * v2.squaredNorm()));
-      break;
     case (1):
       return acos_prime *
              ((v1 + v2) / (v1.norm() * v2.norm()) -
               (v1.dot(v2)) * (v2.squaredNorm() * v1 + v1.squaredNorm() * v2) /
                   (std::pow(v1.norm(), 3) * std::pow(v2.norm(), 3)));
-      break;
     case (2):
       return acos_prime * (-v1 / (v1.norm() * v2.norm())) +
              (v1.dot(v2) * v2 / (v1.norm() * std::pow(v2.norm(), 3)));
-      break;
   }
   // should never reach this
   assert(false);
@@ -129,7 +126,6 @@ Eigen::Vector3d IDihedral::Grad(const Topology &top, Index bead) const {
                            (n2.norm() * std::pow(n1.norm(), 3));
       }
       return acos_prime * returnvec;
-      break;
     }
     case (1): {
       for (Index i = 0; i < 3; i++) {
@@ -143,7 +139,6 @@ Eigen::Vector3d IDihedral::Grad(const Topology &top, Index bead) const {
                               (n1.norm() * std::pow(n2.norm(), 3)));
       }
       return acos_prime * returnvec;
-      break;
     };
     case (2): {
       for (Index i = 0; i < 3; i++) {
@@ -157,7 +152,6 @@ Eigen::Vector3d IDihedral::Grad(const Topology &top, Index bead) const {
                               (n1.norm() * std::pow(n2.norm(), 3)));
       }
       return acos_prime * returnvec;
-      break;
     };
     case (3): {  //
       for (Index i = 0; i < 3; i++) {
@@ -166,7 +160,6 @@ Eigen::Vector3d IDihedral::Grad(const Topology &top, Index bead) const {
                            (n1.norm() * std::pow(n2.norm(), 3));
       }
       return acos_prime * returnvec;
-      break;
     };
   }
   // should never reach this
