@@ -47,7 +47,7 @@ class Interaction;
 
 using MoleculeContainer = std::vector<Molecule *>;
 using BeadContainer = std::vector<Bead *>;
-using ResidueContainer = std::vector<std::unique_ptr<Residue>>;
+using ResidueContainer = std::vector<Residue>;
 using InteractionContainer = std::vector<Interaction *>;
 
 /**
@@ -58,7 +58,7 @@ using InteractionContainer = std::vector<Interaction *>;
  *
  **/
 class Topology {
-public:
+ public:
   /// constructor
   Topology() { _bc = new OpenBox(); }
   ~Topology();
@@ -103,8 +103,8 @@ public:
    * @param[in] name residue name
    * @return created residue
    */
-  Residue *CreateResidue(std::string name);
-  Residue *CreateResidue(std::string name, Index id);
+  Residue &CreateResidue(std::string name);
+  Residue &CreateResidue(std::string name, Index id);
 
   /**
    * \brief Create molecules based on the residue.
@@ -168,6 +168,7 @@ public:
    * @return bead container
    */
   ResidueContainer &Residues() { return _residues; }
+  const ResidueContainer &Residues() const { return _residues; }
 
   /**
    * access  containter with all molecules
@@ -219,7 +220,8 @@ public:
    * @return Bead * is a pointer to the bead
    **/
   Bead *getBead(const Index i) const { return _beads[i]; }
-  Residue *getResidue(const Index i) const { return _residues[i].get(); }
+  Residue &getResidue(const Index i) { return _residues[i]; }
+  const Residue &getResidue(const Index i) const { return _residues[i]; }
   Molecule *getMolecule(const Index i) const { return _molecules[i]; }
 
   /**
@@ -265,9 +267,8 @@ public:
    * set the simulation box
    * \param box triclinic box matrix
    */
-  void
-  setBox(const Eigen::Matrix3d &box,
-         BoundaryCondition::eBoxtype boxtype = BoundaryCondition::typeAuto) {
+  void setBox(const Eigen::Matrix3d &box, BoundaryCondition::eBoxtype boxtype =
+                                              BoundaryCondition::typeAuto) {
     // determine box type automatically in case boxtype==typeAuto
     if (boxtype == BoundaryCondition::typeAuto) {
       boxtype = autoDetectBoxType(box);
@@ -278,15 +279,15 @@ public:
     }
 
     switch (boxtype) {
-    case BoundaryCondition::typeTriclinic:
-      _bc = new TriclinicBox();
-      break;
-    case BoundaryCondition::typeOrthorhombic:
-      _bc = new OrthorhombicBox();
-      break;
-    default:
-      _bc = new OpenBox();
-      break;
+      case BoundaryCondition::typeTriclinic:
+        _bc = new TriclinicBox();
+        break;
+      case BoundaryCondition::typeOrthorhombic:
+        _bc = new OrthorhombicBox();
+        break;
+      default:
+        _bc = new OpenBox();
+        break;
     }
 
     _bc->setBox(box);
@@ -403,11 +404,11 @@ public:
   bool HasForce() { return _has_force; }
   void SetHasForce(const bool v) { _has_force = v; }
 
-protected:
+ protected:
   BoundaryCondition *_bc;
 
-  BoundaryCondition::eBoxtype
-  autoDetectBoxType(const Eigen::Matrix3d &box) const;
+  BoundaryCondition::eBoxtype autoDetectBoxType(
+      const Eigen::Matrix3d &box) const;
 
   /// bead types in the topology
   std::unordered_map<std::string, Index> beadtypes_;
@@ -454,14 +455,20 @@ inline Molecule *Topology::CreateMolecule(std::string name) {
   return mol;
 }
 
-inline Residue *Topology::CreateResidue(std::string name, Index id) {
-  _residues.emplace_back(new Residue(id, name));
-  return _residues.back().get();
+inline Residue &Topology::CreateResidue(std::string name, Index id) {
+  // Note that Residue constructor is intentionally private and only topology
+  // class can create it, hence emplace back will not work because the vector
+  // class does not have access to the constructor.
+  _residues.push_back(std::move(Residue(id, name)));
+  return _residues.back();
 }
 
-inline Residue *Topology::CreateResidue(std::string name) {
-  _residues.emplace_back(new Residue(_residues.size(), name));
-  return _residues.back().get();
+inline Residue &Topology::CreateResidue(std::string name) {
+  // Note that Residue constructor is intentionally private and only topology
+  // class can create it, hence emplace back will not work because the vector
+  // class does not have access to the constructor.
+  _residues.push_back(std::move(Residue(_residues.size(), name)));
+  return _residues.back();
 }
 
 inline Molecule *Topology::MoleculeByIndex(Index index) {
@@ -473,9 +480,9 @@ inline void Topology::InsertExclusion(Bead *bead1, iteratable &l) {
   _exclusions.InsertExclusion(bead1, l);
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #include "interaction.h"
 
-#endif // VOTCA_CSG_TOPOLOGY_H
+#endif  // VOTCA_CSG_TOPOLOGY_H

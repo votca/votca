@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,8 +71,8 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *) {
 
     cout << "\nList of residues:\n";
     for (votca::Index i = 0; i < top->ResidueCount(); i++) {
-      cout << i << " name: " << top->getResidue(i)->getName()
-           << " id: " << top->getResidue(i)->getId() << endl;
+      cout << i << " name: " << top->getResidue(i).getName()
+           << " id: " << top->getResidue(i).getId() << endl;
     }
 
     cout << "\nList of molecules:\n";
@@ -85,7 +85,7 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *) {
         cout << mol->getBeadId(i) << " Name " << mol->getBeadName(i) << " Type "
              << mol->getBead(i)->getType() << " Mass "
              << mol->getBead(i)->getMass() << " Resnr " << resnr << " Resname "
-             << top->getResidue(resnr)->getName() << " Charge "
+             << top->getResidue(resnr).getName() << " Charge "
              << mol->getBead(i)->getQ() << endl;
       }
     }

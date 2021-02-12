@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ void GROWriter::Write(Topology *conf) {
 
   for (i = 0; i < top->BeadCount(); i++) {
     Index resnr = top->getBead(i)->getResnr();
-    string resname = top->getResidue(resnr)->getName();
+    string resname = top->getResidue(resnr).getName();
     string atomname = top->getBead(i)->getName();
 
     fprintf(_out, "%5ld%-5.5s%5.5s%5ld", (resnr + 1) % 100000, resname.c_str(),

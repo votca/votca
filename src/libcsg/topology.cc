@@ -105,8 +105,7 @@ void Topology::CreateMoleculesByRange(string name, Index first, Index nbeads,
     }
     stringstream bname;
     bname << _bead->getResnr() - res_offset + 1 << ":"
-          << getResidue(_bead->getResnr())->getName() << ":"
-          << _bead->getName();
+          << getResidue(_bead->getResnr()).getName() << ":" << _bead->getName();
     mol->AddBead(_bead, bname.str());
     if (++beadcount == nbeads) {
       if (--nmolecules <= 0) {
@@ -121,8 +120,8 @@ void Topology::CreateMoleculesByRange(string name, Index first, Index nbeads,
 /// \todo clean up CreateMoleculesByResidue!
 void Topology::CreateMoleculesByResidue() {
   // first create a molecule for each residue
-  for (auto &_residue : _residues) {
-    CreateMolecule(_residue->getName());
+  for (const auto &_residue : _residues) {
+    CreateMolecule(_residue.getName());
   }
 
   // add the beads to the corresponding molecules based on their resid
@@ -141,7 +140,7 @@ void Topology::CreateOneBigMolecule(string name) {
 
   for (auto &_bead : _beads) {
     stringstream n("");
-    n << _bead->getResnr() + 1 << ":" << _residues[_bead->getResnr()]->getName()
+    n << _bead->getResnr() + 1 << ":" << _residues[_bead->getResnr()].getName()
       << ":" << _bead->getName();
     mi->AddBead(_bead, n.str());
   }
@@ -157,8 +156,8 @@ void Topology::Add(Topology *top) {
                bi->getMass(), bi->getQ());
   }
 
-  for (auto &_residue : top->_residues) {
-    CreateResidue(_residue->getName());
+  for (const auto &_residue : top->_residues) {
+    CreateResidue(_residue.getName());
   }
 
   // \todo beadnames in molecules!!
@@ -180,8 +179,8 @@ void Topology::CopyTopologyData(Topology *top) {
   Cleanup();
 
   // copy all residues
-  for (auto &_residue : top->_residues) {
-    CreateResidue(_residue->getName());
+  for (const auto &_residue : top->_residues) {
+    CreateResidue(_residue.getName());
   }
 
   // create all beads
@@ -307,9 +306,8 @@ void Topology::RegisterBeadType(string type) {
   beadtypes_[type] = id;
 }
 
-Eigen::Vector3d
-Topology::BCShortestConnection(const Eigen::Vector3d &r_i,
-                               const Eigen::Vector3d &r_j) const {
+Eigen::Vector3d Topology::BCShortestConnection(
+    const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const {
   return _bc->BCShortestConnection(r_i, r_j);
 }
 
@@ -322,8 +320,8 @@ double Topology::BoxVolume() const { return _bc->BoxVolume(); }
 
 void Topology::RebuildExclusions() { _exclusions.CreateExclusions(this); }
 
-BoundaryCondition::eBoxtype
-Topology::autoDetectBoxType(const Eigen::Matrix3d &box) const {
+BoundaryCondition::eBoxtype Topology::autoDetectBoxType(
+    const Eigen::Matrix3d &box) const {
   // set the box type to OpenBox in case "box" is the zero matrix,
   // to OrthorhombicBox in case "box" is a diagonal matrix,
   // or to TriclinicBox otherwise
@@ -342,5 +340,5 @@ double Topology::ShortestBoxSize() const {
   return _bc->getShortestBoxDimension();
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

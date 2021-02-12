@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ void CGMoleculeDef::ParseMapping(tools::Property &options) {
 }
 Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   // add the residue names
-  Residue *res = top.CreateResidue(_name);
+  const Residue &res = top.CreateResidue(_name);
   Molecule *minfo = top.CreateMolecule(_name);
 
   // create the atoms
@@ -127,7 +127,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
       top.RegisterBeadType(type);
     }
     Bead *bead = top.CreateBead(bead_def->_symmetry, bead_def->_name, type,
-                                res->getId(), 0, 0);
+                                res.getId(), 0, 0);
     minfo->AddBead(bead, bead->getName());
   }
 

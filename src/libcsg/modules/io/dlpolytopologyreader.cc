@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,7 +155,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
   // TODO: fix residue naming / assignment - DL_POLY has no means to recognise
   // residues!
-  Residue *res = top.CreateResidue("no");
+  const Residue &res = top.CreateResidue("no");
 
   if (boost::filesystem::basename(filepath).size() == 0) {
     if (filepath.parent_path().string().size() == 0) {
@@ -261,11 +261,11 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
           string beadname = beadtype + "#" + boost::lexical_cast<string>(i + 1);
           Bead *bead = top.CreateBead(Bead::spherical, beadname, beadtype,
-                                      res->getId(), mass, charge);
+                                      res.getId(), mass, charge);
 
           stringstream nm;
           nm << bead->getResnr() + 1 << ":"
-             << top.getResidue(bead->getResnr())->getName() << ":"
+             << top.getResidue(bead->getResnr()).getName() << ":"
              << bead->getName();
           mi->AddBead(bead, nm.str());
           id_map[i] = bead->getId();
@@ -348,7 +348,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
           string type = bead->getType();
           Bead *bead_replica =
               top.CreateBead(Bead::spherical, bead->getName(), type,
-                             res->getId(), bead->getMass(), bead->getQ());
+                             res.getId(), bead->getMass(), bead->getQ());
           mi_replica->AddBead(bead_replica, bead->getName());
         }
         InteractionContainer ics = mi->Interactions();
