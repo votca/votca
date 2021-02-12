@@ -33,7 +33,11 @@
 
 import argparse
 import sys
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    print("Numpy is not installed, but needed for the iterative integral equation "
+          "methods.")
 
 
 BAR_PER_MD_PRESSURE = 16.6053904

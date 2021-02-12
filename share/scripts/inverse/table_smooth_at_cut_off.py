@@ -15,7 +15,10 @@
 # limitations under the License.
 
 import argparse
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    print("Numpy is not installed, but needed for this script.")
 from iie import find_nearest_ndx, saveto_table, readin_table
 
 np.seterr(all='raise')
