@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #pragma once
 
 // Standard includes
+#include <memory>
 #include <vector>
 
 // VOTCA includes
@@ -34,22 +35,8 @@ namespace votca {
 namespace csg {
 
 class BeadMap;
-/*******************************************************
-    Mapper class, collection of maps
-*******************************************************/
-class Map {
- public:
-  Map(Molecule &in, Molecule &out) : _in(in), _out(out) {}
-  ~Map();
 
-  void AddBeadMap(BeadMap *bmap) { _maps.push_back(bmap); }
-
-  void Apply(const BoundaryCondition &bc);
-
- protected:
-  Molecule _in, _out;
-  std::vector<BeadMap *> _maps;
-};
+enum class BeadMapType { Spherical, Ellipsoidal };
 
 /*******************************************************
     Interface for all maps
@@ -62,10 +49,12 @@ class BeadMap {
                           tools::Property *opts_map);
 
  protected:
+  BeadMap() = default;
   Molecule *_in;
   Bead *_out;
   tools::Property *_opts_map;
   tools::Property *_opts_bead;
+  friend class Map;
 };
 
 inline void BeadMap::Initialize(Molecule *in, Bead *out,
@@ -82,13 +71,13 @@ inline void BeadMap::Initialize(Molecule *in, Bead *out,
 *******************************************************/
 class Map_Sphere : public BeadMap {
  public:
-  Map_Sphere() = default;
   void Apply(const BoundaryCondition &) override;
 
   void Initialize(Molecule *in, Bead *out, tools::Property *opts_bead,
                   tools::Property *opts_map) override;
 
  protected:
+  Map_Sphere() = default;
   void AddElem(Bead *in, double weight, double force_weight);
 
   struct element_t {
@@ -97,6 +86,8 @@ class Map_Sphere : public BeadMap {
     double _force_weight;
   };
   std::vector<element_t> _matrix;
+
+  friend class Map;
 };
 
 inline void Map_Sphere::AddElem(Bead *in, double weight, double force_weight) {
@@ -112,11 +103,40 @@ inline void Map_Sphere::AddElem(Bead *in, double weight, double force_weight) {
 *******************************************************/
 class Map_Ellipsoid : public Map_Sphere {
  public:
-  Map_Ellipsoid() = default;
   void Apply(const BoundaryCondition &) override;
 
  protected:
+  Map_Ellipsoid() = default;
+
+  friend class Map;
 };
+
+/*******************************************************
+    Mapper class, collection of maps
+*******************************************************/
+class Map {
+ public:
+  Map(Molecule &in, Molecule &out) : _in(in), _out(out) {}
+
+  BeadMap *CreateBeadMap(const BeadMapType type);
+
+  // void AddBeadMap(BeadMap *bmap) { _maps.push_back(bmap); }
+
+  void Apply(const BoundaryCondition &bc);
+
+ protected:
+  Molecule _in, _out;
+  std::vector<std::unique_ptr<BeadMap>> _maps;
+};
+
+inline BeadMap *Map::CreateBeadMap(const BeadMapType type) {
+  if (type == BeadMapType::Spherical) {
+    _maps.push_back(std::unique_ptr<BeadMap>(new Map_Sphere()));
+  } else {
+    _maps.push_back(std::unique_ptr<BeadMap>(new Map_Ellipsoid()));
+  }
+  return _maps.back().get();
+}
 
 }  // namespace csg
 }  // namespace votca

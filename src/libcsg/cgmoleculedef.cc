@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -223,10 +223,12 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
     BeadMap *bmap;
     switch (bead->_symmetry) {
       case 1:
-        bmap = new Map_Sphere();
+        bmap = map->CreateBeadMap(BeadMapType::Spherical);  // new Map_Sphere();
         break;
       case 3:
-        bmap = new Map_Ellipsoid();
+        // bmap = new Map_Ellipsoid();
+        bmap =
+            map->CreateBeadMap(BeadMapType::Ellipsoidal);  // new Map_Sphere();
         break;
       default:
         throw runtime_error(string("unknown symmetry in bead definition!"));
@@ -234,7 +236,6 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
     ////////////////////////////////////////////////////
 
     bmap->Initialize(&in, out.getBead(iout), (bead->_options), mdef);
-    map->AddBeadMap(bmap);
   }
   return map;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,14 +41,6 @@ namespace votca {
 namespace csg {
 using namespace tools;
 using namespace std;
-
-Map::~Map() {
-
-  for (auto &_map : _maps) {
-    delete _map;
-  }
-  _maps.clear();
-}
 
 void Map::Apply(const BoundaryCondition &bc) {
   for (auto &_map : _maps) {
