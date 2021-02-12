@@ -33,7 +33,11 @@ class Topology;
 /**
     \brief base class for all interactions
 
-    This is the base class for all interactions.
+    This is the base class for all interactions. Interactions class is
+    responsible for describing the bonds between atoms or coarse grained beads
+    it is specifically designed to so that only the topology class can
+    create interactions. The topology class is responsible for the memory
+    management of all the interactions.
 
     \todo double names/groups right, add molecules!!
 */
