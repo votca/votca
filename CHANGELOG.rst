@@ -8,6 +8,8 @@ Version 2022-dev
    #640, #641)
 -  format csg_orientcorr help for rst conversion (#648)
 -  update help of functions_common for rst (#650)
+-  switched topology map to using unique_ptr (#651)
+-  switch to using unique_ptr for cgmoleculedef (#652)
 -  let unique_ptrs manage bead memory on heap (#656)
 
 Version 2021-rc.2 (released XX.01.21)

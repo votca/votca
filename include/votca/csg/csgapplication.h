@@ -105,7 +105,6 @@ class CsgApplication : public tools::Application {
   class Worker : public tools::Thread {
    public:
     Worker() = default;
-    ~Worker() override;
 
     /// \brief overload with the actual computation
     virtual void EvalConfiguration(Topology *top,
@@ -117,7 +116,7 @@ class CsgApplication : public tools::Application {
    protected:
     CsgApplication *_app = nullptr;
     Topology _top, _top_cg;
-    TopologyMap *_map = nullptr;
+    std::unique_ptr<TopologyMap> _map;
     Index _id = -1;
 
     void Run(void) override;
