@@ -43,6 +43,7 @@ class Topology;
 */
 class Interaction {
  public:
+  virtual ~Interaction() = default;
   virtual double EvaluateVar(const Topology &top) const = 0;
 
   std::string getName() const { return _name; }
@@ -117,6 +118,7 @@ class Interaction {
 */
 class IBond : public Interaction {
  public:
+  virtual ~IBond() = default;
   double EvaluateVar(const Topology &top) const override;
   Eigen::Vector3d Grad(const Topology &top, Index bead) const override;
 
@@ -134,6 +136,7 @@ class IBond : public Interaction {
 */
 class IAngle : public Interaction {
  public:
+  virtual ~IAngle() = default;
   double EvaluateVar(const Topology &top) const override;
   Eigen::Vector3d Grad(const Topology &top, Index bead) const override;
 
@@ -152,6 +155,7 @@ class IAngle : public Interaction {
 */
 class IDihedral : public Interaction {
  public:
+  virtual ~IDihedral() = default;
   double EvaluateVar(const Topology &top) const override;
   Eigen::Vector3d Grad(const Topology &top, Index bead) const override;
 
