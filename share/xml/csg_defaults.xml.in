@@ -488,7 +488,8 @@
   </nbsearch>
   <bonded>
     <DESC>Interaction specific option for bonded interactions, see the cg.non-bonded section for all options</DESC>
-    <dlpoly><header>
+    <dlpoly>
+      <header>
         <DESC>Header of the interaction in dlpoly TABBND or TABANG file. The header should be a unique set of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
       </header>
     </dlpoly>
@@ -501,7 +502,8 @@
   </bonded>
   <non-bonded>
     <DESC>Interaction specific option for non-bonded interactions</DESC>
-    <dlpoly><header>
+    <dlpoly>
+      <header>
         <DESC>Header of the interaction in dlpoly TABLE file. The header should be a unique pair of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
       </header>
     </dlpoly>
