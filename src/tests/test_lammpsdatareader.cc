@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   BOOST_CHECK_EQUAL(mol->getName(), "N100");
   BOOST_CHECK_EQUAL(mol->BeadCount(), 100);
 
-  auto interaction_cont = top.BondedInteractions();
+  const auto &interaction_cont = top.BondedInteractions();
   votca::Index numBondInter = 99;
   votca::Index numAngleInter = 98;
   votca::Index numDihedralInter = 97;
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   auto mol = top.getMolecule(0);
   BOOST_CHECK_EQUAL(mol->BeadCount(), 100);
 
-  auto interaction_cont = top.BondedInteractions();
+  const auto &interaction_cont = top.BondedInteractions();
   votca::Index numBondInter = 99;
   votca::Index numAngleInter = 98;
   votca::Index numDihedralInter = 97;

@@ -113,12 +113,12 @@ class Topology {
   const Interaction *CreateInteraction(T bead_ptrs, const std::string &grp,
                                        const Index ind, const Index mol_ind) {
     if (bead_ptrs.size() == 2) {
-      _interactions.push_back(std::unique_ptr<IBond>(new IBond(bead_ptrs)));
+      _interactions.push_back(std::make_unique<IBond>(IBond(bead_ptrs)));
     } else if (bead_ptrs.size() == 3) {
-      _interactions.push_back(std::unique_ptr<IAngle>(new IAngle(bead_ptrs)));
+      _interactions.push_back(std::make_unique<IAngle>(IAngle(bead_ptrs)));
     } else if (bead_ptrs.size() == 4) {
       _interactions.push_back(
-          std::unique_ptr<IDihedral>(new IDihedral(bead_ptrs)));
+          std::make_unique<IDihedral>(IDihedral(bead_ptrs)));
     }
     Interaction *ic = _interactions.back().get();
     ic->setGroup(grp);

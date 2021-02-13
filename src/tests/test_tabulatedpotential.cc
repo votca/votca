@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <votca/tools/constants.h>
 
 #include <votca/tools/getline.h>
 
@@ -114,14 +115,17 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
     cout << "Number of H2 " << number_of_H2 << endl;
     // Every molecule interacts with every other molecule
+    votca::Index inter_ind = 0;
     for (votca::Index index = 0; index < number_of_H2; ++index) {
       for (votca::Index index2 = index + 1; index2 < number_of_H2; ++index2) {
-        auto bond = new IBond(index, index2);
-        bond->setGroup(interaction_group + to_string(index) + "_" +
-                       to_string(index2));
-        top.AddBondedInteraction(bond);
+        top.CreateInteraction(
+            std::list<votca::Index>{index, index2},
+            interaction_group + to_string(index) + "_" + to_string(index2),
+            inter_ind, topology_constants::unassigned_molecule_id);
+
         interactions.push_back(interaction_group_name + to_string(index) + "_" +
                                to_string(index2));
+        ++inter_ind;
       }
     }
 

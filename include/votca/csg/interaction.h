@@ -46,13 +46,9 @@ class Interaction {
   virtual ~Interaction() = default;
   virtual double EvaluateVar(const Topology &top) const = 0;
 
-  std::string getName() const { return _name; }
+  std::string getName() const noexcept { return _name; }
 
-  void setGroup(const std::string &group) {
-    _group = group;
-    RebuildName();
-  }
-  const std::string &getGroup() const {
+  const std::string &getGroup() const noexcept {
     assert(_group.compare("") != 0);
     return _group;
   }
@@ -60,26 +56,17 @@ class Interaction {
   // the group id is set by topology, when interaction is added to it
   // \todo if the group name is changed later, group id should be updated by
   // topology
-  Index getGroupId() {
+  Index getGroupId() const noexcept {
     assert(_group_id != -1);
     return _group_id;
   }
-  void setGroupId(Index id) { _group_id = id; }
 
-  void setIndex(const Index &index) {
-    _index = index;
-    RebuildName();
-  }
-  const Index &getIndex() const {
+  const Index &getIndex() const noexcept {
     assert(_index != -1);
     return _index;
   }
 
-  void setMolecule(const Index &mol) {
-    _mol = mol;
-    RebuildName();
-  }
-  const Index &getMolecule() const {
+  const Index &getMolecule() const noexcept {
     assert(_mol != -1);
     return _mol;
   }
@@ -92,6 +79,23 @@ class Interaction {
   }
 
  protected:
+  void setIndex(const Index &index) {
+    _index = index;
+    RebuildName();
+  }
+
+  void setGroup(const std::string &group) {
+    _group = group;
+    RebuildName();
+  }
+
+  void setGroupId(Index id) { _group_id = id; }
+
+  void setMolecule(const Index &mol) {
+    _mol = mol;
+    RebuildName();
+  }
+
   template <class T>
   void construct(T &beads) {
     _beads.reserve(beads.size());

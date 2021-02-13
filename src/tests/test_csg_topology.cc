@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,15 +129,12 @@ BOOST_AUTO_TEST_CASE(add_bonded_interation_test) {
 
   // Create two bonded interactions
   string interaction_group = "bond";
-  auto bond1 = new IBond(0, 1);
-  bond1->setGroup(interaction_group);
-  auto bond2 = new IBond(1, 2);
-  bond2->setGroup(interaction_group);
+  top.CreateInteraction(std::list<votca::Index>{0, 1}, interaction_group, 0,
+                        topology_constants::unassigned_molecule_id);
+  top.CreateInteraction(std::list<votca::Index>{1, 2}, interaction_group, 1,
+                        topology_constants::unassigned_molecule_id);
 
-  top.AddBondedInteraction(bond1);
-  top.AddBondedInteraction(bond2);
-
-  auto interaction_container = top.BondedInteractions();
+  const auto& interaction_container = top.BondedInteractions();
   BOOST_CHECK_EQUAL(interaction_container.size(), 2);
 
   cout << "interaction name " << interaction_container.at(0)->getName() << endl;
