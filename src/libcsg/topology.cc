@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 // Standard includes
 #include <cassert>
+#include <memory>
 #include <regex>
 #include <stdexcept>
 #include <unordered_set>
@@ -43,13 +44,7 @@ bool is_digits(const std::string &str) {
   return str.find_first_not_of("0123456789") == std::string::npos;
 }
 
-Topology::~Topology() {
-  Cleanup();
-  if (_bc) {
-    delete (_bc);
-  }
-  _bc = nullptr;
-}
+Topology::~Topology() { Cleanup(); }
 
 void Topology::Cleanup() {
   // cleanup beads
@@ -85,10 +80,7 @@ void Topology::Cleanup() {
     _interactions.clear();
   }
   // cleanup _bc object
-  if (_bc) {
-    delete (_bc);
-  }
-  _bc = new OpenBox();
+  _bc = std::make_unique<OpenBox>();
 }
 
 /// \todo implement checking, only used in xml topology reader
