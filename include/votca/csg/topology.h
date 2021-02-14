@@ -62,7 +62,7 @@ using ConstInteractionContainer = std::vector<const Interaction *>;
 class Topology {
  public:
   /// constructor
-  Topology() { _bc = new OpenBox(); }
+  Topology() { _bc = std::make_unique<OpenBox>(); }
   ~Topology();
 
   /**
@@ -304,19 +304,15 @@ class Topology {
       boxtype = autoDetectBoxType(box);
     }
 
-    if (_bc) {
-      delete (_bc);
-    }
-
     switch (boxtype) {
       case BoundaryCondition::typeTriclinic:
-        _bc = new TriclinicBox();
+        _bc = std::make_unique<TriclinicBox>();
         break;
       case BoundaryCondition::typeOrthorhombic:
-        _bc = new OrthorhombicBox();
+        _bc = std::make_unique<OrthorhombicBox>();
         break;
       default:
-        _bc = new OpenBox();
+        _bc = std::make_unique<OpenBox>();
         break;
     }
 
@@ -333,7 +329,7 @@ class Topology {
    * @brief Return the boundary condition object
    */
   const BoundaryCondition &getBoundary() const {
-    assert(_bc != nullptr && "Cannot return boundary condition is null");
+    assert(_bc && "Cannot return boundary condition is null");
     return *_bc;
   };
   /**
@@ -435,7 +431,7 @@ class Topology {
   void SetHasForce(const bool v) { _has_force = v; }
 
  protected:
-  BoundaryCondition *_bc;
+  std::unique_ptr<BoundaryCondition> _bc;
 
   BoundaryCondition::eBoxtype autoDetectBoxType(
       const Eigen::Matrix3d &box) const;
