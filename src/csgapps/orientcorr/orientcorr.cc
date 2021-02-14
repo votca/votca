@@ -16,6 +16,8 @@
  */
 
 #include <cstdlib>
+#include <memory>
+
 #include <votca/csg/beadlist.h>
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/nblist.h>
@@ -62,7 +64,7 @@ class OrientCorrApp : public CsgApplication {
 
  public:
   // helper class to choose nbsearch algorithm
-  static NBList *CreateNBSearch();
+  static std::unique_ptr<NBList> CreateNBSearch();
 
  protected:
   votca::tools::HistogramNew _cor;
@@ -121,12 +123,12 @@ void OrientCorrApp::Initialize() {
       "neighbor search algorithm (simple or grid)");
 }
 
-NBList *OrientCorrApp::CreateNBSearch() {
+std::unique_ptr<NBList> OrientCorrApp::CreateNBSearch() {
   if (_nbmethod == "simple") {
-    return new NBList();
+    return std::make_unique<NBList>();
   }
   if (_nbmethod == "grid") {
-    return new NBListGrid();
+    return std::make_unique<NBListGrid>();
   }
 
   throw std::runtime_error(
@@ -202,8 +204,7 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
   b.Generate(mapped, "*");
 
   // create/initialize neighborsearch
-  std::unique_ptr<NBList> nb =
-      std::unique_ptr<NBList>(OrientCorrApp::CreateNBSearch());
+  std::unique_ptr<NBList> nb = OrientCorrApp::CreateNBSearch();
   nb->setCutoff(_cut_off);
 
   // set callback for each pair found
