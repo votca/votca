@@ -62,6 +62,7 @@ BOOST_AUTO_TEST_CASE(test_interaction_setters_getters) {
   BOOST_CHECK_EQUAL(bond1->getBeadId(1), 2);
   string groupName = bond1->getGroup();
   correctName = groupName.compare("large") == 0;
+  BOOST_CHECK(correctName);
 
   BOOST_CHECK(correctName);
 
@@ -81,6 +82,7 @@ BOOST_AUTO_TEST_CASE(test_interaction_setters_getters) {
   BOOST_CHECK_EQUAL(angle1->getBeadId(2), 3);
   groupName = angle1->getGroup();
   correctName = groupName.compare("medium") == 0;
+  BOOST_CHECK(correctName);
 
   const Interaction* dihedral1 =
       top.CreateInteraction(std::list<votca::Index>{1, 2, 3, 4}, "small", 1, 1);
@@ -99,6 +101,7 @@ BOOST_AUTO_TEST_CASE(test_interaction_setters_getters) {
   BOOST_CHECK_EQUAL(dihedral1->getBeadId(3), 4);
   groupName = dihedral1->getGroup();
   correctName = groupName.compare("small") == 0;
+  BOOST_CHECK(correctName);
 }
 
 BOOST_AUTO_TEST_CASE(bond_test) {
