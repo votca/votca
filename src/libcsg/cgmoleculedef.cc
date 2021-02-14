@@ -236,7 +236,7 @@ Map CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
 
     bmap->Initialize(&in, out.getBead(iout), (bead->_options), mdef);
   }
-  return std::move(map);
+  return map;
 }
 
 CGMoleculeDef::beaddef_t *CGMoleculeDef::getBeadByName(const string &name) {
@@ -246,7 +246,6 @@ CGMoleculeDef::beaddef_t *CGMoleculeDef::getBeadByName(const string &name) {
     return nullptr;
   }
   // assert(iter != _beadmap.end());
-  // return (*iter).second;
   return (*iter).second;
 }
 
