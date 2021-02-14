@@ -56,7 +56,7 @@ class OrientCorrApp : public CsgApplication {
   void EndEvaluate() override;
 
   // creates a worker for a thread
-  CsgApplication::Worker *ForkWorker(void) override;
+  std::unique_ptr<CsgApplication::Worker> ForkWorker(void) override;
   // merge data of worker into main
   void MergeWorker(Worker *worker) override;
 
@@ -143,9 +143,8 @@ void OrientCorrApp::BeginEvaluate(Topology *, Topology *) {
 }
 
 // creates worker for each thread
-CsgApplication::Worker *OrientCorrApp::ForkWorker() {
-  MyWorker *worker;
-  worker = new MyWorker();
+std::unique_ptr<CsgApplication::Worker> OrientCorrApp::ForkWorker() {
+  auto worker = std::make_unique<MyWorker>();
   worker->_cut_off = _cut_off;
   worker->_cor.Initialize(0, worker->_cut_off, _nbins);
   worker->_count.Initialize(0, worker->_cut_off, _nbins);
