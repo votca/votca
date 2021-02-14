@@ -248,12 +248,12 @@ void Topology::CheckMoleculeNaming(void) {
   }
 }
 
-std::list<const Interaction *> Topology::InteractionsInGroup(
+std::vector<const Interaction *> Topology::InteractionsInGroup(
     const string &group) const {
-  map<string, list<const Interaction *>>::const_iterator iter =
+  map<string, vector<const Interaction *>>::const_iterator iter =
       _interactions_by_group.find(group);
   if (iter == _interactions_by_group.end()) {
-    return list<const Interaction *>();
+    return vector<const Interaction *>();
   }
   return iter->second;
 }

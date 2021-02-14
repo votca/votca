@@ -32,9 +32,7 @@ using namespace std;
 void Interaction::RebuildName() {
   std::stringstream s;
   if (_mol != -1) {
-    {
-      s << "molecule " << _mol;
-    }
+    s << "molecule " << _mol;
   }
   if (!_group.empty()) {
     s << ":" << _group;
@@ -43,9 +41,7 @@ void Interaction::RebuildName() {
     }
   }
   if (_index != -1) {
-    {
-      s << ":index " << _index;
-    }
+    s << ":index " << _index;
   }
   _name = s.str();
 }

@@ -565,10 +565,10 @@ void CGForceMatching::LoadOptions(const string &file) {
 
 void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
 
-  std::list<const Interaction *> interList =
+  const std::vector<const Interaction *> interVec =
       conf->InteractionsInGroup(sinfo->splineName);
 
-  for (const Interaction *inter : interList) {
+  for (const Interaction *inter : interVec) {
 
     votca::Index beads_in_int = inter->BeadCount();  // 2 for bonds, 3 for
                                                      // angles, 4 for dihedrals

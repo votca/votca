@@ -245,8 +245,8 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
   votca::Index n_entries = 0;
   votca::Index nb = -1;
 
-  for (const auto &ic : cg.Interactions()) {
-    if (nb != ic->BeadCount()) {
+  for (const auto &inter_ptr : cg.Interactions()) {
+    if (nb != inter_ptr->BeadCount()) {
 
       if (sout.str() != "") {
         out << n_entries << endl << sout.str();
@@ -255,7 +255,7 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
       sout.str("");
       n_entries = 0;
 
-      nb = ic->BeadCount();
+      nb = inter_ptr->BeadCount();
       switch (nb) {
         case 2:
           out << "bonds ";
@@ -268,25 +268,26 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
           break;
         default:
           string err = "cannot handle number of beads in interaction:";
-          err += to_string(ic->getMolecule() + 1) + ":" + ic->getGroup();
-          err += ":" + to_string(ic->getIndex() + 1);
+          err += to_string(inter_ptr->getMolecule() + 1) + ":" +
+                 inter_ptr->getGroup();
+          err += ":" + to_string(inter_ptr->getIndex() + 1);
           throw runtime_error(err);
       }
     }
     n_entries++;
     // to do: is it possible to use bond/angle/dihedral function types for 1:1
-    // mapping? (CG map overwrites ic->Group anyway)
-    // sout << ic->getInteractionFunc(); // something like that (only for 1:1
-    // mapping!)
+    // mapping? (CG map overwrites inter_ptr->Group anyway)
+    // sout << inter_ptr->getInteractionFunc(); // something like that (only for
+    // 1:1 mapping!)
     sout << " tab ";
     for (votca::Index i = 0; i < nb; ++i) {
-      sout << ic->getBeadId(i) + 1 << " ";
+      sout << inter_ptr->getBeadId(i) + 1 << " ";
     }
     sout << "   1.00000  0.00000"
          << " # ";
-    sout << to_string(ic->getMolecule() + 1);
-    sout << ":" + ic->getGroup();
-    sout << ":" + to_string(ic->getIndex() + 1) << endl;
+    sout << to_string(inter_ptr->getMolecule() + 1);
+    sout << ":" + inter_ptr->getGroup();
+    sout << ":" + to_string(inter_ptr->getIndex() + 1) << endl;
   }
   if (sout.str() != "") {
     out << n_entries << endl << sout.str();

@@ -21,7 +21,6 @@
 
 // Standard includes
 #include <cassert>
-#include <list>
 #include <map>
 #include <memory>
 #include <unordered_map>
@@ -217,7 +216,7 @@ class Topology {
     return _interactions;
   }
 
-  std::list<const Interaction *> InteractionsInGroup(
+  std::vector<const Interaction *> InteractionsInGroup(
       const std::string &group) const;
 
   /**
@@ -455,7 +454,8 @@ class Topology {
 
   std::map<std::string, Index> _interaction_groups;
 
-  std::map<std::string, std::list<const Interaction *>> _interactions_by_group;
+  std::map<std::string, std::vector<const Interaction *>>
+      _interactions_by_group;
 
   double _time = 0.0;
   Index _step = 0;
