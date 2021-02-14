@@ -52,9 +52,9 @@ BOOST_AUTO_TEST_CASE(test_interaction_setters_getters) {
 
   string name = bond1->getName();
   cout << name << endl;
-  bool correctName = name.compare("molecule 1:large 1:index 1") == 0;
+  bool correctName = name.compare("molecule 1:large 0:index 1") == 0;
   BOOST_CHECK(correctName);
-  BOOST_CHECK_EQUAL(bond1->getGroupId(), 1);
+  BOOST_CHECK_EQUAL(bond1->getGroupId(), 0);
   BOOST_CHECK_EQUAL(bond1->getIndex(), 1);
   BOOST_CHECK_EQUAL(bond1->getMolecule(), 1);
   BOOST_CHECK_EQUAL(bond1->BeadCount(), 2);
@@ -87,9 +87,9 @@ BOOST_AUTO_TEST_CASE(test_interaction_setters_getters) {
 
   name = dihedral1->getName();
   cout << name << endl;
-  correctName = name.compare("molecule 1:small 1:index 1") == 0;
+  correctName = name.compare("molecule 1:small 2:index 1") == 0;
   BOOST_CHECK(correctName);
-  BOOST_CHECK_EQUAL(dihedral1->getGroupId(), 1);
+  BOOST_CHECK_EQUAL(dihedral1->getGroupId(), 2);
   BOOST_CHECK_EQUAL(dihedral1->getIndex(), 1);
   BOOST_CHECK_EQUAL(dihedral1->getMolecule(), 1);
   BOOST_CHECK_EQUAL(dihedral1->BeadCount(), 4);

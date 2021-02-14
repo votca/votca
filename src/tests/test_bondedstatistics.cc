@@ -40,13 +40,13 @@ BOOST_AUTO_TEST_CASE(test_bondedstatistics_begin) {
   Topology top;
   // Create two bonded interactions
   string interaction_group = "covalent_bond1";
-  string interaction_group_compare = ":covalent_bond1";
+  string interaction_group_compare = ":covalent_bond1 0:index 0";
   auto bond1 =
       top.CreateInteraction(std::list<votca::Index>{0, 1}, interaction_group, 0,
                             topology_constants::unassigned_molecule_id);
 
   string interaction_group2 = "covalent_bond2";
-  string interaction_group_compare2 = ":covalent_bond2";
+  string interaction_group_compare2 = ":covalent_bond2 1:index 1";
   auto bond2 =
       top.CreateInteraction(std::list<votca::Index>{1, 2}, interaction_group2,
                             1, topology_constants::unassigned_molecule_id);
@@ -109,13 +109,11 @@ BOOST_AUTO_TEST_CASE(test_evalconfiguration_begin) {
 
     // Create two bonded interactions
     string interaction_group = "covalent_bond1";
-    auto bond1 =
-        top.CreateInteraction(std::list<votca::Index>{0, 1}, interaction_group,
-                              0, topology_constants::unassigned_molecule_id);
+    top.CreateInteraction(std::list<votca::Index>{0, 1}, interaction_group, 0,
+                          topology_constants::unassigned_molecule_id);
     string interaction_group2 = "covalent_bond2";
-    auto bond2 =
-        top.CreateInteraction(std::list<votca::Index>{1, 2}, interaction_group2,
-                              1, topology_constants::unassigned_molecule_id);
+    top.CreateInteraction(std::list<votca::Index>{1, 2}, interaction_group2, 1,
+                          topology_constants::unassigned_molecule_id);
   }
 
   BondedStatistics bonded_statistics;

@@ -75,7 +75,6 @@ BOOST_AUTO_TEST_CASE(test_command) {
   Topology top;
   BondedStatistics bonded_statistics;
   string interaction_group = "interaction";
-  string interaction_group_name = ":interaction";
   vector<string> interactions;
   interactions.push_back("file_interactions.txt");
   // Setup BondedStatistics Object
@@ -123,10 +122,12 @@ BOOST_AUTO_TEST_CASE(test_command) {
             interaction_group + to_string(index) + "_" + to_string(index2),
             inter_ind, topology_constants::unassigned_molecule_id);
 
-        interactions.push_back(interaction_group_name + to_string(index) + "_" +
-                               to_string(index2));
         ++inter_ind;
       }
+    }
+
+    for (const auto &inter : top.BondedInteractions()) {
+      interactions.push_back(inter->getName());
     }
 
     bonded_statistics.BeginCG(&top, nullptr);

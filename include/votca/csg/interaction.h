@@ -89,7 +89,10 @@ class Interaction {
     RebuildName();
   }
 
-  void setGroupId(Index id) { _group_id = id; }
+  void setGroupId(Index id) {
+    _group_id = id;
+    RebuildName();
+  }
 
   void setMolecule(const Index &mol) {
     _mol = mol;
@@ -99,10 +102,8 @@ class Interaction {
   template <class T>
   void construct(T &beads) {
     _beads.reserve(beads.size());
-    Index i = 0;
     for (const Index &bead_id : beads) {
-      _beads[i] = bead_id;
-      ++i;
+      _beads.push_back(bead_id);
     }
   }
   friend class Topology;
