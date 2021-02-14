@@ -10,6 +10,8 @@ Version 2022-dev
 -  update help of functions_common for rst (#650)
 -  switched topology map to using unique_ptr (#651)
 -  switch to using unique_ptr for cgmoleculedef (#652)
+-  switch boundary conditions to unique_ptr (#654)
+-  switch NBList to unique_ptr (#659)
 -  memory management of molecules fixed (#657)
 
 Version 2021-rc.2 (released XX.01.21)
