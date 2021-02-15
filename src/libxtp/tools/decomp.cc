@@ -31,15 +31,14 @@ namespace votca {
 namespace xtp {
 
 void Decomp::ParseOptions(const tools::Property& options) {
-std::cout << _job_name << std::endl;
-std::string message = options.get(".message").as<std::string>();
+  std::cout << _job_name << std::endl;
+  std::string message = options.get(".message").as<std::string>();
+  std::cout << "I am here" << std::endl;
 
-std::cout << message << std::endl;
+  std::cout << message << std::endl;
 }
 
-bool Decomp::Run() {
-  return true;
-}
+bool Decomp::Run() { return true; }
 
 }  // namespace xtp
 }  // namespace votca
