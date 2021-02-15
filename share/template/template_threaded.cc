@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
  */
 
 #include <cstdlib>
+#include <memory>
+
 #include <votca/csg/beadlist.h>
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/nblist.h>
@@ -67,7 +69,7 @@ class CsgTestApp : public CsgApplication {
   void EndEvaluate() override;
 
   // ForkWorker is the function you need to override and initialize your workers
-  CsgApplication::Worker *ForkWorker(void) override;
+  std::unique_ptr<CsgApplication::Worker> ForkWorker(void) override;
 
   // MergeWorker needs you to define how to merge different workers and their
   // data
@@ -112,9 +114,8 @@ void CsgTestApp::BeginEvaluate(Topology *, Topology *) {
 // ForkWorker() will be called as often as the parameter '--nt NTHREADS'
 // it creates a new worker and the user is required to initialize variables etc.
 // (if needed)
-CsgApplication::Worker *CsgTestApp::ForkWorker() {
-  RDFWorker *worker;
-  worker = new RDFWorker();
+std::unique_ptr<CsgApplication::Worker> CsgTestApp::ForkWorker() {
+  auto worker = std::make_unique<RDFWorker>();
   // initialize
   worker->_cut_off = OptionsMap()["c"].as<double>();
   worker->_rdf.Initialize(0, worker->_cut_off, 50);
