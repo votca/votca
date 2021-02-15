@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,7 +149,7 @@ class Imc {
   bool _processed_some_frames = false;
 
  public:
-  CsgApplication::Worker *ForkWorker();
+  std::unique_ptr<CsgApplication::Worker> ForkWorker();
   void MergeWorker(CsgApplication::Worker *worker_);
 };
 
