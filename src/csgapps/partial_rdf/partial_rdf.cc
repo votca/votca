@@ -51,7 +51,7 @@ class CsgStatApp : public CsgApplication {
   void BeginEvaluate(Topology *top, Topology *top_ref) override;
   void EndEvaluate() override;
 
-  CsgApplication::Worker *ForkWorker() override {
+  std::unique_ptr<CsgApplication::Worker> ForkWorker() override {
     return _rdf_calculator.ForkWorker();
   }
 
