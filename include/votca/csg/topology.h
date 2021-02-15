@@ -444,7 +444,7 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
 }
 
 inline Molecule *Topology::CreateMolecule(std::string name) {
-  _molecules.emplace_back(new Molecule(_molecules.size(), name));
+  _molecules.emplace_back(std::make_unique<Molecule>(_molecules.size(), name));
   return _molecules.back().get();
 }
 
