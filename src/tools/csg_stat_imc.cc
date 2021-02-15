@@ -816,9 +816,9 @@ void Imc::WriteIMCBlock(const string &suffix) {
   }
 }
 
-CsgApplication::Worker *Imc::ForkWorker() {
+std::unique_ptr<CsgApplication::Worker> Imc::ForkWorker() {
 
-  Imc::Worker *worker = new Imc::Worker;
+  auto worker = std::make_unique<Imc::Worker>();
   worker->_current_hists.resize(_interactions.size());
   worker->_current_hists_force.resize(_interactions.size());
   worker->_imc = this;

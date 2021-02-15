@@ -16,6 +16,8 @@
  */
 
 #include <cstdlib>
+#include <memory>
+
 #include <votca/csg/beadlist.h>
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/nblist.h>
@@ -56,13 +58,13 @@ class OrientCorrApp : public CsgApplication {
   void EndEvaluate() override;
 
   // creates a worker for a thread
-  CsgApplication::Worker *ForkWorker(void) override;
+  std::unique_ptr<CsgApplication::Worker> ForkWorker(void) override;
   // merge data of worker into main
   void MergeWorker(Worker *worker) override;
 
  public:
   // helper class to choose nbsearch algorithm
-  static NBList *CreateNBSearch();
+  static std::unique_ptr<NBList> CreateNBSearch();
 
  protected:
   votca::tools::HistogramNew _cor;
@@ -121,12 +123,12 @@ void OrientCorrApp::Initialize() {
       "neighbor search algorithm (simple or grid)");
 }
 
-NBList *OrientCorrApp::CreateNBSearch() {
+std::unique_ptr<NBList> OrientCorrApp::CreateNBSearch() {
   if (_nbmethod == "simple") {
-    return new NBList();
+    return std::make_unique<NBList>();
   }
   if (_nbmethod == "grid") {
-    return new NBListGrid();
+    return std::make_unique<NBListGrid>();
   }
 
   throw std::runtime_error(
@@ -143,9 +145,8 @@ void OrientCorrApp::BeginEvaluate(Topology *, Topology *) {
 }
 
 // creates worker for each thread
-CsgApplication::Worker *OrientCorrApp::ForkWorker() {
-  MyWorker *worker;
-  worker = new MyWorker();
+std::unique_ptr<CsgApplication::Worker> OrientCorrApp::ForkWorker() {
+  auto worker = std::make_unique<MyWorker>();
   worker->_cut_off = _cut_off;
   worker->_cor.Initialize(0, worker->_cut_off, _nbins);
   worker->_count.Initialize(0, worker->_cut_off, _nbins);
@@ -202,8 +203,7 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
   b.Generate(mapped, "*");
 
   // create/initialize neighborsearch
-  std::unique_ptr<NBList> nb =
-      std::unique_ptr<NBList>(OrientCorrApp::CreateNBSearch());
+  std::unique_ptr<NBList> nb = OrientCorrApp::CreateNBSearch();
   nb->setCutoff(_cut_off);
 
   // set callback for each pair found

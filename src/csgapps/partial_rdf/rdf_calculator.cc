@@ -347,9 +347,8 @@ void RDFCalculator::WriteDist(const std::string &suffix) {
             << std::endl;
 }
 
-CsgApplication::Worker *RDFCalculator::ForkWorker() {
-  RDFCalculator::Worker *worker;
-  worker = new RDFCalculator::Worker;
+std::unique_ptr<CsgApplication::Worker> RDFCalculator::ForkWorker() {
+  auto worker = std::make_unique<RDFCalculator::Worker>();
 
   worker->_current_hists.resize(_interactions.size());
   worker->_rdfcalculator = this;

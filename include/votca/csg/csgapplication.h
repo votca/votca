@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,7 +142,7 @@ class CsgApplication : public tools::Application {
    * User is required to overload ForkWorker and initialize workers.
    * @return worker
    */
-  virtual Worker *ForkWorker(void);
+  virtual std::unique_ptr<Worker> ForkWorker(void);
 
   /**
    * User is required to overload MergeWorker and merge data from each worker.
@@ -153,7 +153,7 @@ class CsgApplication : public tools::Application {
  protected:
   std::list<CGObserver *> _observers;
   bool _do_mapping;
-  std::vector<Worker *> _myWorkers;
+  std::vector<std::unique_ptr<Worker>> _myWorkers;
   Index _nframes;
   bool _is_first_frame;
   Index _nthreads;
