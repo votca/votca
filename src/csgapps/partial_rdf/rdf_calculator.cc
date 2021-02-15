@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -349,9 +349,8 @@ void RDFCalculator::WriteDist(const std::string &suffix) {
             << std::endl;
 }
 
-CsgApplication::Worker *RDFCalculator::ForkWorker() {
-  RDFCalculator::Worker *worker;
-  worker = new RDFCalculator::Worker;
+std::unique_ptr<CsgApplication::Worker> RDFCalculator::ForkWorker() {
+  auto worker = std::make_unique<RDFCalculator::Worker>();
 
   worker->_current_hists.resize(_interactions.size());
   worker->_rdfcalculator = this;
