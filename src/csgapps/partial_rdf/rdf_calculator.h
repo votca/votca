@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef VOTCA_CSGAPPS_RDF_CALCULATOR_H
-#define VOTCA_CSGAPPS_RDF_CALCULATOR_H
+#ifndef VOTCA_CSG_RDF_CALCULATOR_H
+#define VOTCA_CSG_RDF_CALCULATOR_H
 
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -162,7 +162,7 @@ class RDFCalculator {
   bool _processed_some_frames;
 
  public:
-  CsgApplication::Worker *ForkWorker();
+  std::unique_ptr<CsgApplication::Worker> ForkWorker();
   void MergeWorker(CsgApplication::Worker *worker_);
 };
 
@@ -175,4 +175,4 @@ inline RDFCalculator::pair_t::pair_t(RDFCalculator::interaction_t *i1,
 }  // namespace csg
 }  // namespace votca
 
-#endif  // VOTCA_CSGAPPS_RDF_CALCULATOR_H
+#endif  // VOTCA_CSG_RDF_CALCULATOR_H
