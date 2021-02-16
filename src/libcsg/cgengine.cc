@@ -43,14 +43,14 @@ std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(Topology &in,
   MoleculeContainer &mols = in.Molecules();
   auto m = std::make_unique<TopologyMap>(&in, &out);
   for (const auto &mol : mols) {
-    if (IsIgnored(mol->getName())) {
+    if (IsIgnored(mol.getName())) {
       continue;
     }
-    CGMoleculeDef *def = getMoleculeDef(mol->getName());
+    CGMoleculeDef *def = getMoleculeDef(mol.getName());
     if (!def) {
       cout << "--------------------------------------\n"
-           << "WARNING: unknown molecule \"" << mol->getName() << "\" with id "
-           << mol->getId() << " in topology" << endl
+           << "WARNING: unknown molecule \"" << mol.getName() << "\" with id "
+           << mol.getId() << " in topology" << endl
            << "molecule will not be mapped to CG representation\n"
            << "Check weather a mapping file for all molecule exists, was "
               "specified in --cg "
@@ -60,7 +60,7 @@ std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(Topology &in,
       continue;
     }
     Molecule *mcg = def->CreateMolecule(out);
-    Map *map = def->CreateMap(*mol, *mcg);
+    Map *map = def->CreateMap(mol, *mcg);
     m->AddMoleculeMap(map);
   }
   out.RebuildExclusions();

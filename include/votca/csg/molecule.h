@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,8 +57,9 @@ class Molecule {
   void AddBead(Bead *bead, const std::string &name);
   /// get the id of a bead in the molecule
   Bead *getBead(Index bead) { return _beads[bead]; }
-  Index getBeadId(Index bead) { return _beads[bead]->getId(); }
-  Index getBeadIdByName(const std::string &name);
+  const Bead *getBead(Index bead) const { return _beads[bead]; }
+  Index getBeadId(Index bead) const { return _beads[bead]->getId(); }
+  Index getBeadIdByName(const std::string &name) const;
 
   /// get the number of beads in the molecule
   Index BeadCount() const { return _beads.size(); }
@@ -66,13 +67,19 @@ class Molecule {
   const std::vector<Bead *> &Beads() const { return _beads; }
   std::vector<Bead *> &Beads() { return _beads; }
   /// find a bead by it's name
-  Index getBeadByName(const std::string &name);
-  std::string getBeadName(Index bead) { return _bead_names[bead]; }
+  Index getBeadByName(const std::string &name) const;
+  std::string getBeadName(const Index bead) { return _bead_names[bead]; }
+  const std::string &getBeadName(const Index bead) const {
+    return _bead_names[bead];
+  }
 
   /// Add an interaction to the molecule
   void AddInteraction(Interaction *ic) { _interactions.push_back(ic); }
 
   std::vector<Interaction *> Interactions() { return _interactions; }
+  const std::vector<Interaction *> &Interactions() const {
+    return _interactions;
+  }
 
  private:
   // maps a name to a bead id
@@ -94,10 +101,12 @@ class Molecule {
   friend class Topology;
 };
 
-inline Index Molecule::getBeadIdByName(const std::string &name) {
+inline Index Molecule::getBeadIdByName(const std::string &name) const {
   Index i = getBeadByName(name);
   if (i < 0) {
-    { return i; }
+    {
+      return i;
+    }
   }
   return _beads[i]->getId();
 }

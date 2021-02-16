@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,7 +198,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   return minfo;
 }
 
-Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
+Map *CGMoleculeDef::CreateMap(const Molecule &in, Molecule &out) {
   if (out.BeadCount() != Index(_beads.size())) {
     throw runtime_error(
         "number of beads for cg molecule and mapping definition do "

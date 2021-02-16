@@ -77,16 +77,16 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *) {
 
     cout << "\nList of molecules:\n";
     for (const auto &mol : top->Molecules()) {
-      cout << "molecule: " << mol->getId() + 1 << " " << mol->getName()
-           << " beads: " << mol->BeadCount() << endl;
-      for (votca::Index i = 0; i < mol->BeadCount(); ++i) {
-        votca::Index resnr = mol->getBead(i)->getResnr();
+      cout << "molecule: " << mol.getId() + 1 << " " << mol.getName()
+           << " beads: " << mol.BeadCount() << endl;
+      for (votca::Index i = 0; i < mol.BeadCount(); ++i) {
+        votca::Index resnr = mol.getBead(i)->getResnr();
 
-        cout << mol->getBeadId(i) << " Name " << mol->getBeadName(i) << " Type "
-             << mol->getBead(i)->getType() << " Mass "
-             << mol->getBead(i)->getMass() << " Resnr " << resnr << " Resname "
+        cout << mol.getBeadId(i) << " Name " << mol.getBeadName(i) << " Type "
+             << mol.getBead(i)->getType() << " Mass "
+             << mol.getBead(i)->getMass() << " Resnr " << resnr << " Resname "
              << top->getResidue(resnr)->getName() << " Charge "
-             << mol->getBead(i)->getQ() << endl;
+             << mol.getBead(i)->getQ() << endl;
       }
     }
   } else {

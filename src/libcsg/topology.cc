@@ -155,7 +155,7 @@ void Topology::Add(Topology *top) {
 
   // \todo beadnames in molecules!!
   for (auto &_molecule : top->_molecules) {
-    Molecule *mi = CreateMolecule(_molecule->getName());
+    Molecule *mi = CreateMolecule(_molecule.getName());
     for (Index i = 0; i < mi->BeadCount(); i++) {
       mi->AddBead(mi->getBead(i), "invalid");
     }
@@ -184,11 +184,11 @@ void Topology::CopyTopologyData(Topology *top) {
   }
 
   // copy all molecules
-  for (auto &_molecule : top->_molecules) {
-    Molecule *mi = CreateMolecule(_molecule->getName());
-    for (Index i = 0; i < _molecule->BeadCount(); i++) {
-      Index beadid = _molecule->getBead(i)->getId();
-      mi->AddBead(_beads[beadid], _molecule->getBeadName(i));
+  for (const auto &_molecule : top->_molecules) {
+    Molecule *mi = CreateMolecule(_molecule.getName());
+    for (Index i = 0; i < _molecule.BeadCount(); i++) {
+      Index beadid = _molecule.getBead(i)->getId();
+      mi->AddBead(_beads[beadid], _molecule.getBeadName(i));
     }
   }
 }
@@ -233,9 +233,9 @@ void Topology::CheckMoleculeNaming(void) {
   map<string, Index> nbeads;
 
   for (const auto &mol : _molecules) {
-    map<string, Index>::iterator entry = nbeads.find(mol->getName());
+    map<string, Index>::iterator entry = nbeads.find(mol.getName());
     if (entry != nbeads.end()) {
-      if (entry->second != mol->BeadCount()) {
+      if (entry->second != mol.BeadCount()) {
         throw runtime_error(
             "There are molecules which have the same name but different number "
             "of bead "
@@ -244,7 +244,7 @@ void Topology::CheckMoleculeNaming(void) {
       }
       continue;
     }
-    nbeads[mol->getName()] = mol->BeadCount();
+    nbeads[mol.getName()] = mol.BeadCount();
   }
 }
 

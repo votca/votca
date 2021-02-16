@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,10 +173,10 @@ int main(int argc, char **argv) {
 
     } else {
       // Include all particle types
-      for (auto &mol : top.Molecules()) {
-        for (votca::Index i = 0; i < mol->BeadCount(); ++i) {
+      for (const auto &mol : top.Molecules()) {
+        for (votca::Index i = 0; i < mol.BeadCount(); ++i) {
           bool flag_found = false;
-          votca::Index part_type = std::stol(mol->getBead(i)->getType());
+          votca::Index part_type = std::stol(mol.getBead(i)->getType());
           for (votca::Index ptype : ptypes) {
             if (part_type == ptype) {
               flag_found = true;
@@ -196,9 +196,9 @@ int main(int argc, char **argv) {
     // ptypes)
     votca::Index n_part = 0;
     if (vm.count("shift_com")) {
-      for (auto &mol : top.Molecules()) {
-        for (votca::Index i = 0; i < mol->BeadCount(); ++i) {
-          votca::Index part_type = std::stol(mol->getBead(i)->getType());
+      for (const auto &mol : top.Molecules()) {
+        for (votca::Index i = 0; i < mol.BeadCount(); ++i) {
+          votca::Index part_type = std::stol(mol.getBead(i)->getType());
           for (votca::Index ptype : ptypes) {
             if (part_type == ptype) {
               ++n_part;
@@ -245,17 +245,17 @@ int main(int argc, char **argv) {
       // Calculate new center of mass position in the direction of 'coordinate'
       double com = 0.;
       if (vm.count("shift_com")) {
-        for (auto &mol : top.Molecules()) {
-          for (votca::Index i = 0; i < mol->BeadCount(); ++i) {
-            votca::Index part_type = std::stol(mol->getBead(i)->getType());
+        for (const auto &mol : top.Molecules()) {
+          for (votca::Index i = 0; i < mol.BeadCount(); ++i) {
+            votca::Index part_type = std::stol(mol.getBead(i)->getType());
             for (votca::Index ptype : ptypes) {
               if (part_type == ptype) {
                 if (coordinate.compare("x") == 0) {
-                  com += mol->getBead(i)->getPos().x();
+                  com += mol.getBead(i)->getPos().x();
                 } else if (coordinate.compare("y") == 0) {
-                  com += mol->getBead(i)->getPos().y();
+                  com += mol.getBead(i)->getPos().y();
                 } else {
-                  com += mol->getBead(i)->getPos().z();
+                  com += mol.getBead(i)->getPos().z();
                 }
               }
             }
@@ -268,17 +268,17 @@ int main(int argc, char **argv) {
       if (moreframes && frame_id >= first_frame && not_the_last) {
         ++analyzed_frames;
         // Loop over each atom property
-        for (auto &mol : top.Molecules()) {
-          for (votca::Index i = 0; i < mol->BeadCount(); ++i) {
-            votca::Index part_type = std::stol(mol->getBead(i)->getType());
+        for (const auto &mol : top.Molecules()) {
+          for (votca::Index i = 0; i < mol.BeadCount(); ++i) {
+            votca::Index part_type = std::stol(mol.getBead(i)->getType());
             for (votca::Index j = 0; j < votca::Index(ptypes.size()); ++j) {
               if (part_type == ptypes[j]) {
                 if (coordinate.compare("x") == 0) {
-                  coord = mol->getBead(i)->getPos().x();
+                  coord = mol.getBead(i)->getPos().x();
                 } else if (coordinate.compare("y") == 0) {
-                  coord = mol->getBead(i)->getPos().y();
+                  coord = mol.getBead(i)->getPos().y();
                 } else {
-                  coord = mol->getBead(i)->getPos().z();
+                  coord = mol.getBead(i)->getPos().z();
                 }
 
                 if (coord - com > min && coord - com < max) {

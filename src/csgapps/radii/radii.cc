@@ -61,18 +61,18 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
   for (const auto &mol : top->Molecules()) {
     // does the id match if given?
     if (OptionsMap().count("mol")) {
-      if (OptionsMap()["mol"].as<votca::Index>() != mol->getId() + 1) {
+      if (OptionsMap()["mol"].as<votca::Index>() != mol.getId() + 1) {
         continue;
       }
     }
     // otherwise does the name pattern match?
     else if (!votca::tools::wildcmp(OptionsMap()["molname"].as<string>(),
-                                    mol->getName())) {
+                                    mol.getName())) {
       continue;  // if not skip this molecule
     }
 
     // Number of beads in the molecule
-    votca::Index N = mol->BeadCount();
+    votca::Index N = mol.BeadCount();
 
     // sqared tensor of gyration for current snapshot
     double r_gyr_sq = 0;
@@ -84,7 +84,7 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
       for (votca::Index j = i + 1; j < N; ++j) {
         // distance between bead i and j
         Eigen::Vector3d r_ij =
-            mol->getBead(i)->getPos() - mol->getBead(j)->getPos();
+            mol.getBead(i)->getPos() - mol.getBead(j)->getPos();
         // radius of gyration squared
         r_gyr_sq += r_ij.squaredNorm() / (double)(N * N);
         // hydrodynamic radius
@@ -101,15 +101,15 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
     double M = 0;
     Eigen::Vector3d cm(0, 0, 0);
     for (votca::Index i = 0; i < N; ++i) {
-      M += mol->getBead(i)->getMass();
-      cm += mol->getBead(i)->getPos() * mol->getBead(i)->getMass();
+      M += mol.getBead(i)->getMass();
+      cm += mol.getBead(i)->getPos() * mol.getBead(i)->getMass();
     }
     cm /= M;
     // now tensor of gyration based on cm
     double r_gyr_m_sq = 0;
     for (votca::Index i = 0; i < N; ++i) {
-      Eigen::Vector3d r_ij = mol->getBead(i)->getPos() - cm;
-      r_gyr_m_sq += mol->getBead(i)->getMass() * r_ij.squaredNorm();
+      Eigen::Vector3d r_ij = mol.getBead(i)->getPos() - cm;
+      r_gyr_m_sq += mol.getBead(i)->getMass() * r_ij.squaredNorm();
     }
     r_gyr_m_sq /= M;
 

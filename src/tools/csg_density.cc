@@ -137,12 +137,12 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *) {
   // loop over all molecules
   bool did_something = false;
   for (const auto &mol : top->Molecules()) {
-    if (!votca::tools::wildcmp(_molname, mol->getName())) {
+    if (!votca::tools::wildcmp(_molname, mol.getName())) {
       continue;
     }
-    votca::Index N = mol->BeadCount();
+    votca::Index N = mol.BeadCount();
     for (votca::Index i = 0; i < N; i++) {
-      Bead *b = mol->getBead(i);
+      const Bead *b = mol.getBead(i);
       if (!votca::tools::wildcmp(_filter, b->getName())) {
         continue;
       }

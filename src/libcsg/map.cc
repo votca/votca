@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ void Map::Apply(const BoundaryCondition &bc) {
   }
 }
 
-void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
+void Map_Sphere::Initialize(const Molecule *in, Bead *out, Property *opts_bead,
                             Property *opts_map) {
   BeadMap::Initialize(in, out, opts_bead, opts_map);
 
@@ -159,14 +159,14 @@ void Map_Sphere::Apply(const BoundaryCondition &bc) {
   Eigen::Vector3d f = Eigen::Vector3d::Zero();
   Eigen::Vector3d vel = Eigen::Vector3d::Zero();
 
-  Bead *bead_max_dist = _matrix.at(0)._in;
+  const Bead *bead_max_dist = _matrix.at(0)._in;
   double max_bead_dist = 0;
   if (bead_max_dist->HasPos()) {
     max_bead_dist = bc.BCShortestConnection(r0, bead_max_dist->getPos()).norm();
   }
 
-  for (auto &iter : _matrix) {
-    Bead *bead = iter._in;
+  for (const auto &iter : _matrix) {
+    const Bead *bead = iter._in;
     _out->AddParentBead(bead->getId());
     M += bead->getMass();
     if (bead->HasPos()) {
@@ -198,8 +198,8 @@ void Map_Sphere::Apply(const BoundaryCondition &bc) {
     }
   }
 
-  for (auto &iter : _matrix) {
-    Bead *bead = iter._in;
+  for (const auto &iter : _matrix) {
+    const Bead *bead = iter._in;
     if (bead->HasVel()) {
       vel += iter._weight * bead->getVel();
       bVel = true;
@@ -249,14 +249,14 @@ void Map_Ellipsoid::Apply(const BoundaryCondition &bc) {
   n = 0;
   _out->ClearParentBeads();
 
-  Bead *bead_max_dist = _matrix.at(0)._in;
+  const Bead *bead_max_dist = _matrix.at(0)._in;
   double max_bead_dist = 0;
   if (bead_max_dist->HasPos()) {
     max_bead_dist = bc.BCShortestConnection(r0, bead_max_dist->getPos()).norm();
   }
 
-  for (auto &iter : _matrix) {
-    Bead *bead = iter._in;
+  for (const auto &iter : _matrix) {
+    const Bead *bead = iter._in;
     _out->AddParentBead(bead->getId());
     if (bead->HasPos()) {
       Eigen::Vector3d r = bc.BCShortestConnection(r0, bead->getPos());
@@ -287,8 +287,8 @@ void Map_Ellipsoid::Apply(const BoundaryCondition &bc) {
     }
   }
 
-  for (auto &iter : _matrix) {
-    Bead *bead = iter._in;
+  for (const auto &iter : _matrix) {
+    const Bead *bead = iter._in;
     if (bead->HasVel() == true) {
       vel += iter._weight * bead->getVel();
       bVel = true;
@@ -331,7 +331,7 @@ void Map_Ellipsoid::Apply(const BoundaryCondition &bc) {
     if (iter._weight == 0) {
       continue;
     }
-    Bead *bead = iter._in;
+    const Bead *bead = iter._in;
     Eigen::Vector3d v = bead->getPos() - c;
     // v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
     //    + vec(0.5, -1, 0) * (drand48()-0.5)

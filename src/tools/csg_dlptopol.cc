@@ -59,10 +59,11 @@ class DLPTopolApp : public CsgApplication {
   bool EvaluateTopology(Topology *top, Topology *top_ref) override;
 
  protected:
-  void WriteMoleculeAtoms(ostream &out, Molecule &cg);
-  void WriteMoleculeInteractions(ostream &out, Molecule &cg);
-  void WriteVDWInteractions(ostream &out, Molecule &cg);
-  void WriteMolecularType(ostream &out, Molecule &cg, votca::Index nummol);
+  void WriteMoleculeAtoms(ostream &out, const Molecule &cg);
+  void WriteMoleculeInteractions(ostream &out, const Molecule &cg);
+  void WriteVDWInteractions(ostream &out, const Molecule &cg);
+  void WriteMolecularType(ostream &out, const Molecule &cg,
+                          votca::Index nummol);
 };
 
 void DLPTopolApp::Initialize(void) {
@@ -105,7 +106,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
   // do CG mapping
 
   MoleculeContainer &mols = top->Molecules();
-  std::vector<Molecule *> MolecularTypes;
+  std::vector<const Molecule *> MolecularTypes;
 
   votca::Index prv_mol_number = 1;
   string prv_mol_name;
@@ -120,30 +121,30 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
     // i.e. the ignored ones do not enter the CG topology (*top) - ?
     // if( IsIgnored(mol->getName()) ) continue;
 
-    if (mol->getName() == prv_mol_name) {
+    if (mol.getName() == prv_mol_name) {
       prv_mol_number++;
       continue;
     }
 
     nummols.push_back(prv_mol_number);
     prv_mol_number = 1;
-    prv_mol_name = mol->getName();
+    prv_mol_name = mol.getName();
 
     //#ifdef DEBUG
-    cout << "'" << mol->getName() << "' added to CG molecular types" << endl;
+    cout << "'" << mol.getName() << "' added to CG molecular types" << endl;
     //#endif
 
-    MolecularTypes.push_back(mol.get());
+    MolecularTypes.push_back(&mol);
 
     // collect unique bead pairs over all molecular types found
 
-    for (votca::Index ib1 = 0; ib1 < mol->BeadCount(); ib1++) {
-      string bead_name1 = mol->getBead(ib1)->getType();
+    for (votca::Index ib1 = 0; ib1 < mol.BeadCount(); ib1++) {
+      string bead_name1 = mol.getBead(ib1)->getType();
       bead_name1 = bead_name1.substr(
           0,
           bead_name1.find_first_of("#"));  // skip #index of atom from its name
 
-      for (auto &MolecularType : MolecularTypes) {
+      for (const auto &MolecularType : MolecularTypes) {
 
         for (votca::Index ib2 = 0; ib2 < MolecularType->BeadCount(); ib2++) {
 
@@ -215,12 +216,12 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
   return true;
 }
 
-void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg) {
+void DLPTopolApp::WriteMoleculeAtoms(ostream &out, const Molecule &cg) {
   out << "atoms " << cg.BeadCount() << endl;
   out << "# name  mass  charge  nrept  ifrozen (optional: ngroup, index, "
          "name/type, type/residue, index/res-ID) \n";
   for (votca::Index i = 0; i < cg.BeadCount(); ++i) {
-    Bead *b = cg.getBead(i);
+    const Bead *b = cg.getBead(i);
 
     string bname = b->getName();
     string btype = b->getType();
@@ -238,14 +239,14 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg) {
   }
 }
 
-void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
+void DLPTopolApp::WriteMoleculeInteractions(ostream &out, const Molecule &cg) {
 
   stringstream sout;
 
   votca::Index n_entries = 0;
   votca::Index nb = -1;
 
-  for (Interaction *ic : cg.Interactions()) {
+  for (const Interaction *ic : cg.Interactions()) {
     if (nb != ic->BeadCount()) {
 
       if (sout.str() != "") {
@@ -293,7 +294,7 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
   }
 }
 
-void DLPTopolApp::WriteMolecularType(ostream &out, Molecule &cg,
+void DLPTopolApp::WriteMolecularType(ostream &out, const Molecule &cg,
                                      votca::Index nummol) {
   out << cg.getName() << endl;
   out << "nummols " << nummol << endl;

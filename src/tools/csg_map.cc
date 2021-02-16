@@ -98,13 +98,13 @@ class CsgMapApp : public CsgApplication {
 
       // copy all molecules and beads
 
-      for (auto &molecule : top_ref->Molecules()) {
-        Molecule *mi = hybtol.CreateMolecule(molecule->getName());
-        for (votca::Index i = 0; i < molecule->BeadCount(); i++) {
+      for (const auto &molecule : top_ref->Molecules()) {
+        Molecule *mi = hybtol.CreateMolecule(molecule.getName());
+        for (votca::Index i = 0; i < molecule.BeadCount(); i++) {
           // copy atomistic beads of molecule
-          votca::Index beadid = molecule->getBead(i)->getId();
+          votca::Index beadid = molecule.getBead(i)->getId();
 
-          Bead *bi = molecule->getBead(i);
+          const Bead *bi = molecule.getBead(i);
           if (!hybtol.BeadTypeExist(bi->getType())) {
             hybtol.RegisterBeadType(bi->getType());
           }
@@ -120,7 +120,7 @@ class CsgMapApp : public CsgApplication {
             bn->setF(bi->getF());
           }
 
-          mi->AddBead(hybtol.Beads()[beadid], molecule->getBeadName(i));
+          mi->AddBead(hybtol.Beads()[beadid], molecule.getBeadName(i));
         }
 
         if (mi->getId() < top->MoleculeCount()) {
@@ -130,7 +130,7 @@ class CsgMapApp : public CsgApplication {
             Bead *bi = cgmol->getBead(i);
             // todo: this is a bit dirty as a cg bead will always have the resid
             // of its first parent
-            Bead *bparent = molecule->getBead(0);
+            const Bead *bparent = molecule.getBead(0);
             Bead *bn = hybtol.CreateBead(bi->getSymmetry(), bi->getName(),
                                          bi->getType(), bparent->getResnr(),
                                          bi->getMass(), bi->getQ());
