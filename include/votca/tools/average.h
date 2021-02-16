@@ -18,6 +18,8 @@
 #ifndef VOTCA_TOOLS_AVERAGE_H
 #define VOTCA_TOOLS_AVERAGE_H
 
+#include <cmath>
+
 namespace votca {
 namespace tools {
 
