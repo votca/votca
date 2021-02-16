@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,32 +79,30 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *) {
 
   // initializing bonded interactions
   for (votca::tools::Property *prop : _bonded) {
-    SplineInfo *i = new SplineInfo(_splines.size(), true, _col_cntr, prop);
+    // add spline to container
+    _splines.emplace_back(_splines.size(), true, _col_cntr, prop);
     // adjust initial Eigen::Matrix3d dimensions:
-    _line_cntr += i->num_gridpoints;
-    _col_cntr += 2 * i->num_gridpoints;
+    _line_cntr += _splines.back().num_gridpoints;
+    _col_cntr += 2 * _splines.back().num_gridpoints;
     // if periodic potential, one additional constraint has to be taken into
     // account -> 1 additional line in matrix
-    if (i->periodic != 0) {
+    if (_splines.back().periodic != 0) {
       _line_cntr += 1;
     }
-    // add spline to container
-    _splines.push_back(i);
   }
 
   // initializing non-bonded interactions
   for (votca::tools::Property *prop : _nonbonded) {
-    SplineInfo *i = new SplineInfo(_splines.size(), false, _col_cntr, prop);
+    // add spline to container
+    _splines.emplace_back(_splines.size(), false, _col_cntr, prop);
     // adjust initial Eigen::Matrix3d dimensions:
     // number of constraints/restraints
-    _line_cntr += i->num_gridpoints;
+    _line_cntr += _splines.back().num_gridpoints;
     // number of coefficients
-    _col_cntr += 2 * i->num_gridpoints;
+    _col_cntr += 2 * _splines.back().num_gridpoints;
 
     // preliminary: use also spline functions for the threebody interaction. So
     // far only angular interaction implemented
-    // add spline to container
-    _splines.push_back(i);
   }
 
   cout << "\nYou are using VOTCA!\n";
@@ -289,15 +287,15 @@ void CGForceMatching::WriteOutFiles() {
   force_tab.SetHasYErr(true);
   force_tabDer.SetHasYErr(true);
 
-  for (SplineInfo *spline : _splines) {
+  for (SplineInfo &spline : _splines) {
     // construct meaningful outfile name
-    file_name = spline->splineName;
+    file_name = spline.splineName;
 
     // resize table
-    force_tab.resize(spline->num_outgrid);
+    force_tab.resize(spline.num_outgrid);
 
     // If not threebody, the result represents the force
-    if (!(spline->threebody)) {
+    if (!(spline.threebody)) {
       file_name = file_name + file_extension;
       // print output file names on stdout
       cout << "Updating file: " << file_name << endl;
@@ -306,58 +304,58 @@ void CGForceMatching::WriteOutFiles() {
     // If threebody interaction, the result represents the potential and (-1)
     // the derivative represents the force Only then, the derivatives are
     // explicitly calculated
-    if (spline->threebody) {
+    if (spline.threebody) {
       file_name = file_name + file_extension_pot;
-      file_nameDer = spline->splineName;
+      file_nameDer = spline.splineName;
       file_nameDer = file_nameDer + file_extension;
 
-      force_tabDer.resize(spline->num_outgrid);
+      force_tabDer.resize(spline.num_outgrid);
       // print output file names on stdout
       cout << "Updating files: " << file_name << " and: " << file_nameDer
            << endl;
     }
 
-    spline->result = (spline->resSum).array() / _nblocks;
-    spline->error = (((spline->resSum2).array() / _nblocks -
-                      (spline->result).array().abs2()) /
-                     _nblocks)
-                        .abs()
-                        .sqrt();
+    spline.result = (spline.resSum).array() / _nblocks;
+    spline.error = (((spline.resSum2).array() / _nblocks -
+                     (spline.result).array().abs2()) /
+                    _nblocks)
+                       .abs()
+                       .sqrt();
 
-    if (spline->threebody) {
-      spline->resultDer = (spline->resSumDer).array() / _nblocks;
-      spline->errorDer = (((spline->resSumDer2).array() / _nblocks -
-                           (spline->resultDer).array().abs2()) /
-                          _nblocks)
-                             .abs()
-                             .sqrt();
+    if (spline.threebody) {
+      spline.resultDer = (spline.resSumDer).array() / _nblocks;
+      spline.errorDer = (((spline.resSumDer2).array() / _nblocks -
+                          (spline.resultDer).array().abs2()) /
+                         _nblocks)
+                            .abs()
+                            .sqrt();
     }
 
     // first output point = first grid point
-    double out_x = spline->Spline.getGridPoint(0);
+    double out_x = spline.Spline.getGridPoint(0);
     // loop over output grid
-    for (votca::Index i = 0; i < spline->num_outgrid; i++) {
+    for (votca::Index i = 0; i < spline.num_outgrid; i++) {
 
       // If not threebody the result is (-1) the force
-      if (!(spline->threebody)) {
+      if (!(spline.threebody)) {
         // put point, result, flag and accuracy at point out_x into the table
-        force_tab.set(i, out_x, (-1.0) * spline->result[i], 'i',
-                      spline->error[i]);
+        force_tab.set(i, out_x, (-1.0) * spline.result[i], 'i',
+                      spline.error[i]);
       }
 
       // If threebody interaction, force_tab represents the potential (-1) which
       // is the Antiderivative of the force Only if threebody interaction, the
       // derivatives are explicitly calculated
-      if (spline->threebody) {
+      if (spline.threebody) {
         // put point, result, flag and accuracy at point out_x into the table
-        force_tab.set(i, out_x, (+1.0) * spline->result[i], 'i',
-                      spline->error[i]);
-        force_tabDer.set(i, out_x, (-1.0) * spline->resultDer[i], 'i',
-                         spline->errorDer[i]);
+        force_tab.set(i, out_x, (+1.0) * spline.result[i], 'i',
+                      spline.error[i]);
+        force_tabDer.set(i, out_x, (-1.0) * spline.resultDer[i], 'i',
+                         spline.errorDer[i]);
       }
 
       // update out_x for the next iteration
-      out_x += spline->dx_out;
+      out_x += spline.dx_out;
     }
     // save table in the file
     force_tab.Save(file_name);
@@ -366,7 +364,7 @@ void CGForceMatching::WriteOutFiles() {
     force_tab.clear();
 
     // Only if threebody interaction, the derivatives are explicitly calculated
-    if (spline->threebody) {
+    if (spline.threebody) {
       force_tabDer.Save(file_nameDer);
       // clear the table for the next spline
       force_tabDer.clear();
@@ -397,14 +395,14 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *) {
     }
   }
 
-  for (SplineInfo *sinfo : _splines) {
-    if (sinfo->bonded) {
-      EvalBonded(conf, sinfo);
+  for (SplineInfo &sinfo : _splines) {
+    if (sinfo.bonded) {
+      EvalBonded(conf, &sinfo);
     } else {
-      if (sinfo->threebody) {
-        EvalNonbonded_Threebody(conf, sinfo);
+      if (sinfo.threebody) {
+        EvalNonbonded_Threebody(conf, &sinfo);
       } else {
-        EvalNonbonded(conf, sinfo);
+        EvalNonbonded(conf, &sinfo);
       }
     }
   }
@@ -482,50 +480,50 @@ void CGForceMatching::FmatchAccumulateData() {
     cout << endl;
   }
 
-  for (SplineInfo *sinfo : _splines) {
-    votca::Index mp = sinfo->matr_pos;
-    votca::Index ngp = sinfo->num_gridpoints;
+  for (SplineInfo &sinfo : _splines) {
+    votca::Index mp = sinfo.matr_pos;
+    votca::Index ngp = sinfo.num_gridpoints;
 
     // _x contains results for all splines. Here we cut the results for one
     // spline
 
-    sinfo->block_res_f = _x.segment(mp, ngp);
-    sinfo->block_res_f2 = _x.segment(mp + ngp, ngp);
+    sinfo.block_res_f = _x.segment(mp, ngp);
+    sinfo.block_res_f2 = _x.segment(mp + ngp, ngp);
 
     // result cut before is assigned to the corresponding spline
-    sinfo->Spline.setSplineData(sinfo->block_res_f, sinfo->block_res_f2);
+    sinfo.Spline.setSplineData(sinfo.block_res_f, sinfo.block_res_f2);
 
     // first output point = first grid point
-    double out_x = sinfo->Spline.getGridPoint(0);
+    double out_x = sinfo.Spline.getGridPoint(0);
 
     // point in the middle of the output grid for printing debug information
-    votca::Index grid_point_debug = sinfo->num_outgrid / 2;
+    votca::Index grid_point_debug = sinfo.num_outgrid / 2;
 
     // loop over output grid
-    for (votca::Index i = 0; i < sinfo->num_outgrid; i++) {
+    for (votca::Index i = 0; i < sinfo.num_outgrid; i++) {
       // update resSum (add result of a particular block)
-      sinfo->resSum[i] += sinfo->Spline.Calculate(out_x);
+      sinfo.resSum[i] += sinfo.Spline.Calculate(out_x);
       // update resSum2 (add result of a particular block)
-      sinfo->resSum2[i] +=
-          sinfo->Spline.Calculate(out_x) * sinfo->Spline.Calculate(out_x);
+      sinfo.resSum2[i] +=
+          sinfo.Spline.Calculate(out_x) * sinfo.Spline.Calculate(out_x);
 
       // Only if threebody interaction, the derivatives are explicitly
       // calculated
-      if (sinfo->threebody) {
-        sinfo->resSumDer[i] += sinfo->Spline.CalculateDerivative(out_x);
+      if (sinfo.threebody) {
+        sinfo.resSumDer[i] += sinfo.Spline.CalculateDerivative(out_x);
         // update resSumDer2 (add result of a particular block)
-        sinfo->resSumDer2[i] += sinfo->Spline.CalculateDerivative(out_x) *
-                                sinfo->Spline.CalculateDerivative(out_x);
+        sinfo.resSumDer2[i] += sinfo.Spline.CalculateDerivative(out_x) *
+                               sinfo.Spline.CalculateDerivative(out_x);
       }
 
       // print useful debug information
       if (i == grid_point_debug) {
-        cout << "This should be a number: " << sinfo->Spline.Calculate(out_x)
+        cout << "This should be a number: " << sinfo.Spline.Calculate(out_x)
              << " " << endl;
       }
 
       // output point for the next iteration
-      out_x += sinfo->dx_out;
+      out_x += sinfo.dx_out;
     }
   }
 }
@@ -539,18 +537,18 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix) {
   votca::Index line_tmp = 0;
   votca::Index col_tmp = 0;
 
-  for (SplineInfo *sinfo : _splines) {
+  for (SplineInfo &sinfo : _splines) {
 
-    sinfo->Spline.AddBCToFitMatrix(Matrix, line_tmp, col_tmp);
+    sinfo.Spline.AddBCToFitMatrix(Matrix, line_tmp, col_tmp);
     // if periodic potential, one additional constraint has to be taken into
     // account!
-    if (sinfo->periodic != 0) {
-      sinfo->Spline.AddBCSumZeroToFitMatrix(Matrix, line_tmp, col_tmp);
+    if (sinfo.periodic != 0) {
+      sinfo.Spline.AddBCSumZeroToFitMatrix(Matrix, line_tmp, col_tmp);
       // update counter
       line_tmp += 1;
     }
     // update counters
-    votca::Index sfnum = sinfo->num_splinefun;
+    votca::Index sfnum = sinfo.num_splinefun;
     line_tmp += sfnum + 1;
     col_tmp += 2 * (sfnum + 1);
   }
