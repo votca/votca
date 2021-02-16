@@ -455,7 +455,7 @@ inline Residue &Topology::CreateResidue(std::string name, Index id) {
   // Note that Residue constructor is intentionally private and only topology
   // class can create it, hence emplace back will not work because the vector
   // class does not have access to the constructor.
-  _residues.push_back(std::move(Residue(id, name)));
+  _residues.push_back(Residue(id, name));
   return _residues.back();
 }
 
@@ -463,7 +463,7 @@ inline Residue &Topology::CreateResidue(std::string name) {
   // Note that Residue constructor is intentionally private and only topology
   // class can create it, hence emplace back will not work because the vector
   // class does not have access to the constructor.
-  _residues.push_back(std::move(Residue(_residues.size(), name)));
+  _residues.push_back(Residue(_residues.size(), name));
   return _residues.back();
 }
 
