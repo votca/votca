@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,22 @@
  *
  */
 
-#include "traj_force.h"
+// Standard includes
 #include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <votca/csg/beadlist.h>
+
+// VOTCA includes
 #include <votca/tools/linalg.h>
 #include <votca/tools/table.h>
+
+// Local VOTCA includes
+#include <votca/csg/beadlist.h>
+
+// Local private includes
+#include "traj_force.h"
 
 int main(int argc, char **argv) {
   TrajForce app;

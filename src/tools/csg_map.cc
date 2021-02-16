@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,16 @@
  *
  */
 
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/topology.h"
-#include "../../include/votca/csg/trajectorywriter.h"
+// Standard includes
 #include <cstddef>
 #include <fstream>
 #include <stdexcept>
 #include <string>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/topology.h"
+#include "votca/csg/trajectorywriter.h"
 
 using namespace std;
 using namespace votca::csg;

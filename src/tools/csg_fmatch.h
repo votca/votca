@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,13 @@
 #ifndef VOTCA_CSG_CSG_FMATCH_H
 #define VOTCA_CSG_CSG_FMATCH_H
 
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/trajectoryreader.h"
+// VOTCA includes
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/trajectoryreader.h"
 
 using namespace votca::csg;
 

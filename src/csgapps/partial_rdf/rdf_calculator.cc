@@ -15,16 +15,25 @@
  *
  */
 
-#include "rdf_calculator.h"
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
+#include <votca/tools/constants.h>
+#include <votca/tools/rangeparser.h>
+
+// Local VOTCA includes
 #include <votca/csg/beadlist.h>
 #include <votca/csg/imcio.h>
 #include <votca/csg/nblistgrid.h>
-#include <votca/tools/constants.h>
-#include <votca/tools/rangeparser.h>
+
+// Local private includes
+#include "rdf_calculator.h"
 
 namespace votca {
 namespace csg {

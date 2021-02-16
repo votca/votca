@@ -18,10 +18,13 @@
 #ifndef VOTCA_CSG_CSG_STAT_IMC_H
 #define VOTCA_CSG_CSG_STAT_IMC_H
 
-#include "../../include/votca/csg/csgapplication.h"
+// VOTCA includes
 #include <votca/tools/average.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
 
 namespace votca {
 namespace csg {

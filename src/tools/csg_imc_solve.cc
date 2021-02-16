@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,17 @@
  *
  */
 
-#include "csg_imc_solve.h"
-#include "../../include/votca/csg/imcio.h"
+// Standard includes
 #include <fstream>
+
+// VOTCA includes
 #include <votca/tools/table.h>
+
+// Local VOTCA includes
+#include "votca/csg/imcio.h"
+
+// Local private VOTCA includes
+#include "csg_imc_solve.h"
 
 int main(int argc, char** argv) {
   CG_IMC_solve app;

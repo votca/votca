@@ -15,10 +15,15 @@
  *
  */
 
+// Standard includes
 #include <cstdlib>
-#include <votca/csg/csgapplication.h>
+
+// VOTCA includes
 #include <votca/tools/average.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 using namespace votca::csg;

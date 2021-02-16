@@ -15,12 +15,19 @@
  *
  */
 
-#include "rdf_calculator.h"
-#include <boost/program_options.hpp>
+// Standard includes
 #include <fstream>
 #include <iostream>
+
+// Third party includes
+#include <boost/program_options.hpp>
+
+// Local VOTCA includes
 #include <votca/csg/cgengine.h>
 #include <votca/csg/version.h>
+
+// Local internal includes
+#include "rdf_calculator.h"
 
 using namespace std;
 using namespace votca::csg;

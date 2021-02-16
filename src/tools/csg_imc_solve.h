@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,15 @@
  *
  */
 
-#ifndef _VOTCA_CSG_IMC_SOLVE_H
-#define _VOTCA_CSG_IMC_SOLVE_H
+#ifndef VOTCA_CSG_CSG_IMC_SOLVE_H
+#define VOTCA_CSG_CSG_IMC_SOLVE_H
 
-#include "../../include/votca/csg/version.h"
+// VOTCA includes
 #include <votca/tools/application.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/csg/version.h"
 
 /**
     \brief Solves linear system for IMCS
@@ -51,4 +54,4 @@ class CG_IMC_solve : public votca::tools::Application {
   void Run() override;
 };
 
-#endif /* _VOTCA_CSG_IMC_SOLVE_H */
+#endif  // VOTCA_CSG_CSG_IMC_SOLVE_H

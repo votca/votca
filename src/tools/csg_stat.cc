@@ -15,15 +15,21 @@
  *
  */
 
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/version.h"
-#include "csg_stat_imc.h"
-#include <boost/program_options.hpp>
+// Standard includes
 #include <cstdlib>
 #include <fstream>
 #include <memory>
 
-// using namespace votca::tools;
+// Third party includes
+#include <boost/program_options.hpp>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/version.h"
+
+// Local private VOTCA includes
+#include "csg_stat_imc.h"
+
 using namespace std;
 using namespace votca::csg;
 

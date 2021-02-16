@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
  *
  */
 
-#include "../../include/votca/csg/csgapplication.h"
+// Standard includes
 #include <cstdlib>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
 
 using namespace std;
 using namespace votca::csg;

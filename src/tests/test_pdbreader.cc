@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,22 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE pdbreader_test
-#include "../../include/votca/csg/bead.h"
-#include "../../include/votca/csg/topologyreader.h"
-#include <boost/test/floating_point_comparison.hpp>
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <cmath>
 #include <fstream>
 #include <string>
+
+// Third party includes
+#include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/unit_test.hpp>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
+
+// Local VOTCA includes
+#include "votca/csg/bead.h"
+#include "votca/csg/topologyreader.h"
 
 using namespace std;
 using namespace votca::csg;

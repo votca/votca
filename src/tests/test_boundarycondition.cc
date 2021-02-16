@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,19 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE pdbreader_test
-#include "../../include/votca/csg/openbox.h"
-#include "../../include/votca/csg/orthorhombicbox.h"
-#include "../../include/votca/csg/triclinicbox.h"
+
+// Standard includes
+#include <memory>
+#include <vector>
+
+// Third party includes
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 
-#include <memory>
-#include <vector>
+// Local VOTCA includes
+#include "votca/csg/openbox.h"
+#include "votca/csg/orthorhombicbox.h"
+#include "votca/csg/triclinicbox.h"
 
 using namespace std;
 using namespace votca::csg;

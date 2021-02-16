@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,18 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE interaction_test
+
+// Standard includes
+#include <string>
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
 
-#include "../../include/votca/csg/bead.h"
-#include "../../include/votca/csg/interaction.h"
-#include "../../include/votca/csg/molecule.h"
-#include "../../include/votca/csg/topology.h"
-#include <string>
+// Local VOTCA includes
+#include "votca/csg/bead.h"
+#include "votca/csg/interaction.h"
+#include "votca/csg/molecule.h"
+#include "votca/csg/topology.h"
 
 using namespace std;
 using namespace votca::csg;

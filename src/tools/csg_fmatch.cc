@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,26 @@
  *
  */
 
-#include "csg_fmatch.h"
-#include "../../include/votca/csg/beadlist.h"
-#include "../../include/votca/csg/nblistgrid.h"
-#include "../../include/votca/csg/nblistgrid_3body.h"
+// Standard includes
 #include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <sstream>
+
+// VOTCA includes
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/linalg.h>
 #include <votca/tools/table.h>
+
+// Local VOTCA includes
+#include "votca/csg/beadlist.h"
+#include "votca/csg/nblistgrid.h"
+#include "votca/csg/nblistgrid_3body.h"
+
+// Local private includes
+#include "csg_fmatch.h"
 
 int main(int argc, char **argv) {
   CGForceMatching app;
