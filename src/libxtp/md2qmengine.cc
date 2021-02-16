@@ -185,22 +185,22 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     SegsinMol[molname] = segnames;
   }
 
-  for (const std::unique_ptr<csg::Molecule>& mol : top.Molecules()) {
-    const std::vector<std::string> segnames = SegsinMol[mol->getName()];
+  for (const csg::Molecule& mol : top.Molecules()) {
+    const std::vector<std::string> segnames = SegsinMol[mol.getName()];
 
     std::map<std::string, Segment*> segments;  // we first add them to topology
                                                // and then modify them via
                                                // pointers;
     for (const std::string& segname : segnames) {
       segments[segname] = &xtptop.AddSegment(segname);
-      segments[segname]->AddMoleculeId(mol->getId());
+      segments[segname]->AddMoleculeId(mol.getId());
     }
 
     Index IdOffset =
-        DetermineAtomNumOffset(mol.get(), MolToAtomIds[mol->getName()]);
-    for (const csg::Bead* bead : mol->Beads()) {
+        DetermineAtomNumOffset(mol.get(), MolToAtomIds[mol.getName()]);
+    for (const csg::Bead* bead : mol.Beads()) {
       Segment* seg =
-          segments[MolToSegMap[mol->getName()][bead->getId() - IdOffset]];
+          segments[MolToSegMap[mol.getName()][bead->getId() - IdOffset]];
 
       Atom atom(bead->getResnr(), bead->getName(), bead->getId(),
                 bead->getPos() * tools::conv::nm2bohr, bead->getType());

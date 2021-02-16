@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -109,7 +109,7 @@ void XtpMap::Run() {
   // Create topology reader
   string topfile = _op_vm["topology"].as<string>();
   std::unique_ptr<CSG::TopologyReader> topread =
-          CSG::TopReaderFactory().Create(topfile);
+      CSG::TopReaderFactory().Create(topfile);
 
   if (topread == nullptr) {
     throw runtime_error(string("Input format not supported: ") +
@@ -130,7 +130,7 @@ void XtpMap::Run() {
   // Create trajectory reader and initialize
   string trjfile = _op_vm["coordinates"].as<string>();
   std::unique_ptr<CSG::TrajectoryReader> trjread =
-          CSG::TrjReaderFactory().Create(trjfile);
+      CSG::TrjReaderFactory().Create(trjfile);
 
   if (trjread == nullptr) {
     throw runtime_error(string("Input format not supported: ") +
@@ -158,11 +158,11 @@ void XtpMap::Run() {
     std::map<std::string, const CSG::Molecule*> firstmolecule;
 
     std::map<std::string, votca::Index> molecule_names;
-    for (const std::unique_ptr<csg::Molecule>& mol : mdtopol.Molecules()) {
-      if (!molecule_names.count(mol->getName())) {
-        firstmolecule[mol->getName()] = mol.get();
+    for (const csg::Molecule& mol : mdtopol.Molecules()) {
+      if (!molecule_names.count(mol.getName())) {
+        firstmolecule[mol.getName()] = &mol;
       }
-      molecule_names[mol->getName()]++;
+      molecule_names[mol.getName()]++;
     }
     for (const auto& mol : molecule_names) {
       std::cout << "Found " << mol.second << " with name " << mol.first
