@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,7 +136,7 @@ class CGForceMatching : public CsgApplication {
   /// \brief list of non-bonded interactions
   std::vector<votca::tools::Property *> _nonbonded;
 
-  using SplineContainer = vector<SplineInfo *>;
+  using SplineContainer = vector<SplineInfo>;
   /// \brief vector of SplineInfo * for all interactions
   SplineContainer _splines;
 
