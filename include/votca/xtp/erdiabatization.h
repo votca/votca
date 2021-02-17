@@ -103,30 +103,24 @@ class ERDiabatization {
   Eigen::VectorXd _occlevels2;
   Eigen::VectorXd _virtlevels2;
 
+  bool _useRI;
   options_erdiabatization _opt;
 
-  // template <bool AR>
-  // Eigen::MatrixXd CalculateD(const Orbitals& orb1, const Orbitals& orb2,
-  //                            QMStateType type, Index stateindex1,
-  //                            Index stateindex2) const;
+  template <bool AR>
+  Eigen::MatrixXd CalculateD(const Orbitals& orb1, const Orbitals& orb2,
+                             QMStateType type, Index stateindex1,
+                             Index stateindex2) const;
 
-  // Eigen::MatrixXd CalculateD_R(const Orbitals& orb1, const Orbitals& orb2,
-  //                              QMStateType type, Index stateindex1,
-  //                              Index stateindex2) const {
-  //   return CalculateD<false>(orb1, orb2, type, stateindex1, stateindex2);
-  // }
-  // Eigen::MatrixXd CalculateD_AR(const Orbitals& orb1, const Orbitals& orb2,
-  //                               QMStateType type, Index stateindex1,
-  //                               Index stateindex2) const {
-  //   return CalculateD<true>(orb1, orb2, type, stateindex1, stateindex2);
-  // }
-
-  Eigen::MatrixXd CalculateD_R(const Orbitals& orb1, const Orbitals&
-  orb2,QMStateType type,
-                             Index stateindex1, Index stateindex2) const;
-  Eigen::MatrixXd CalculateD_AR(const Orbitals& orb1, const Orbitals&
-  orb2,QMStateType type,
-                             Index stateindex1, Index stateindex2) const;
+  Eigen::MatrixXd CalculateD_R(const Orbitals& orb1, const Orbitals& orb2,
+                               QMStateType type, Index stateindex1,
+                               Index stateindex2) const {
+    return CalculateD<false>(orb1, orb2, type, stateindex1, stateindex2);
+  }
+  Eigen::MatrixXd CalculateD_AR(const Orbitals& orb1, const Orbitals& orb2,
+                                QMStateType type, Index stateindex1,
+                                Index stateindex2) const {
+    return CalculateD<true>(orb1, orb2, type, stateindex1, stateindex2);
+  }
 
   double CalculateR(const Eigen::MatrixXd& D_JK,
                     const Eigen::MatrixXd& D_LM) const;

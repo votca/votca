@@ -27,9 +27,39 @@ namespace xtp {
 
 void ERDiabatization::setUpMatrices() {
 
+  // Do some checks:
+
+  // Check on dftbasis
+  if (_orbitals1.getDFTbasisName() != _orbitals2.getDFTbasisName()) {
+    throw std::runtime_error("Different DFT basis for the two input file.");
+  }
+
+  // Check on auxbasis
+  if (_orbitals1.hasAuxbasisName()) {
+    this->_auxbasis1 = _orbitals1.SetupAuxBasis();
+    this->_useRI = true;
+  } else {
+    XTP_LOG(Log::error, *_pLog)
+        << "No auxbasis for file1: This will affect perfomances " << flush;
+    this->_useRI = false;
+  }
+
+  if (_orbitals2.hasAuxbasisName()) {
+    this->_auxbasis2 = _orbitals2.SetupAuxBasis();
+    this->_useRI = true;
+  } else {
+    XTP_LOG(Log::error, *_pLog)
+        << "No auxbasis for file2: This will affect perfomances " << flush;
+    this->_useRI = false;
+  }
+
+  if (_orbitals1.getAuxbasisName() != _orbitals2.getAuxbasisName()) {
+    throw std::runtime_error("Different DFT aux-basis for the two input file.");
+  }
+
   XTP_LOG(Log::debug, *_pLog) << "Setting up basis" << flush;
+
   this->_dftbasis1 = _orbitals1.SetupDftBasis();
-  this->_auxbasis1 = _orbitals1.SetupAuxBasis();
   this->_bse_cmax1 = _orbitals1.getBSEcmax();
   this->_bse_cmin1 = _orbitals1.getBSEcmin();
   this->_bse_vmax1 = _orbitals1.getBSEvmax();
@@ -42,9 +72,8 @@ void ERDiabatization::setUpMatrices() {
       0, _bse_vmin1, _orbitals1.MOs().eigenvectors().rows(), _bse_vtotal1);
   this->_virtlevels1 = _orbitals1.MOs().eigenvectors().block(
       0, _bse_cmin1, _orbitals1.MOs().eigenvectors().rows(), _bse_ctotal1);
-
   this->_dftbasis2 = _orbitals2.SetupDftBasis();
-  this->_auxbasis2 = _orbitals2.SetupAuxBasis();
+
   this->_bse_cmax2 = _orbitals2.getBSEcmax();
   this->_bse_cmin2 = _orbitals2.getBSEcmin();
   this->_bse_vmax2 = _orbitals2.getBSEvmax();
@@ -58,15 +87,14 @@ void ERDiabatization::setUpMatrices() {
   this->_virtlevels2 = _orbitals2.MOs().eigenvectors().block(
       0, _bse_cmin2, _orbitals2.MOs().eigenvectors().rows(), _bse_ctotal2);
 
-  // What if I don't have auxbasis?
-  //_eris.Initialize_4c(_dftbasis);
-
-  // I also need to add a check on the basis. For now assuming both basis are
-  // the same
-  _eris.Initialize(_dftbasis1, _auxbasis1);
-
-  ////I define here the overlap
-  //_overlap.Fill(_dftbasis1);
+  // Use different RI initialization according to what is in the orb files.
+  if (_useRI) {
+    XTP_LOG(Log::error, *_pLog) << "Using RI " << flush;
+    _eris.Initialize(_dftbasis1, _auxbasis1);
+  } else {
+    XTP_LOG(Log::error, *_pLog) << "Not using RI. It can be slow. " << flush;
+    _eris.Initialize_4c(_dftbasis1);
+  }
 }
 
 void ERDiabatization::configure(const options_erdiabatization& opt) {
@@ -77,10 +105,13 @@ double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_JK,
                                    const Eigen::MatrixXd& D_LM) const {
 
   // Here I want to do \sum_{kl} (ij|kl) D^{LM}_{jk}. Is it right?
-
+  Eigen::MatrixXd contracted;
   // I still have to figure how to try 3c and if it fails go to 4c
-  // Eigen::MatrixXd contracted = _eris.CalculateERIs_4c(D_LM, 1e-12);
-  Eigen::MatrixXd contracted = _eris.CalculateERIs_3c(D_LM);
+  if (_useRI) {
+    contracted = _eris.CalculateERIs_3c(D_LM);
+  } else {
+    contracted = _eris.CalculateERIs_4c(D_LM, 1e-12);
+  }
 
   return D_JK.cwiseProduct(contracted).sum();
 }
@@ -237,159 +268,11 @@ Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb1,
   return results;
 }
 
-// template <bool AR>
-// Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,
-//                                             const Orbitals& orb2,
-//                                             QMStateType type, Index stateindex1,
-//                                             Index stateindex2) const {
-
-//   // D matrix depends on 2 indeces. These can be either 0 or 1.
-//   // Index=0 means "take the first excited state" as Index=1 means "take the
-//   // second excitate state"
-//   // This is the reason for this
-//   Index index1;
-//   Index index2;
-
-//   if (stateindex1 == 0) {
-//     index1 = _opt.state_idx_1;
-//   }
-//   if (stateindex1 == 1) {
-//     index1 = _opt.state_idx_2;
-//   }
-//   if (stateindex2 == 0) {
-//     index2 = _opt.state_idx_1;
-//   }
-//   if (stateindex2 == 1) {
-//     index2 = _opt.state_idx_2;
-//   }
-//   // This requires that index1 and index1 starts from 1. Please add check.
-//   Eigen::VectorXd exciton1;
-//   Eigen::VectorXd exciton2;
-
-//   if (AR) {
-//     if (type == QMStateType::Singlet) {
-//       exciton1 = orb1.BSESinglets().eigenvectors2().col(index1 - 1);
-//       exciton2 = orb2.BSESinglets().eigenvectors2().col(index2 - 1);
-//     } else {
-//       exciton1 = orb1.BSETriplets().eigenvectors2().col(index1 - 1);
-//       exciton2 = orb2.BSETriplets().eigenvectors2().col(index2 - 1);
-//     }
-//   } else {
-//     if (type == QMStateType::Singlet) {
-//       exciton1 = orb1.BSESinglets().eigenvectors().col(index1 - 1);
-//       exciton2 = orb2.BSESinglets().eigenvectors().col(index2 - 1);
-//     } else {
-//       exciton1 = orb1.BSETriplets().eigenvectors().col(index1 - 1);
-//       exciton2 = orb2.BSETriplets().eigenvectors().col(index2 - 1);
-//     }
-//   }
-
-//   Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), _bse_ctotal1,
-//                                          _bse_vtotal1);
-//   Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), _bse_ctotal2,
-//                                          _bse_vtotal2);
-  
-//   Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
-  
-//   Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
-
-//   Eigen::MatrixXd results =
-//       _virtlevels1 * AuxMat_cc * _virtlevels2.transpose() -
-//       _occlevels1 * AuxMat_vv * _occlevels2.transpose();
-
-//   // This adds the GS density
-//   if (stateindex1 == stateindex2) {
-//     if (stateindex1 == 0) {
-//       results += orb1.DensityMatrixGroundState();
-//     }
-//     if (stateindex1 == 1) {
-//       results += orb2.DensityMatrixGroundState();
-//     }
-//   }
-
-//   return results;
-// }
-
-// template Eigen::MatrixXd ERDiabatization::CalculateD<true>(
-//     const Orbitals& orb1, const Orbitals& orb2, QMStateType type,
-//     Index stateindex1, Index stateindex2) const;
-
-// template Eigen::MatrixXd ERDiabatization::CalculateD<false>(
-//     const Orbitals& orb1, const Orbitals& orb2, QMStateType type,
-//     Index stateindex1, Index stateindex2) const;
-
-Eigen::MatrixXd ERDiabatization::CalculateD_AR(const Orbitals& orb1,
-                                               const Orbitals& orb2,
-                                               QMStateType type,
-                                               Index stateindex1,
-                                               Index stateindex2) const {
-
-  // D matrix depends on 2 indeces. These can be either 0 or 1.
-  // Index=0 means "take the first excited state" as Index=1 means "take the
-  // second excitate state"
-  // This is the reason for this
-  Index index1;
-  Index index2;
-
-  if (stateindex1 == 0) {
-    index1 = _opt.state_idx_1;
-  }
-  if (stateindex1 == 1) {
-    index1 = _opt.state_idx_2;
-  }
-  if (stateindex2 == 0) {
-    index2 = _opt.state_idx_1;
-  }
-  if (stateindex2 == 1) {
-    index2 = _opt.state_idx_2;
-  }
-  // This requires that index1 and index1 starts from 1. Please add check.
-  Eigen::VectorXd exciton1;
-  Eigen::VectorXd exciton2;
-
-  if (type == QMStateType::Singlet) {
-    exciton1 = orb1.BSESinglets().eigenvectors2().col(index1 - 1);
-    exciton2 = orb2.BSESinglets().eigenvectors2().col(index2 - 1);
-  } else {
-    exciton1 = orb1.BSETriplets().eigenvectors2().col(index1 - 1);
-    exciton2 = orb2.BSETriplets().eigenvectors2().col(index2 - 1);
-  }
-
-  Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), _bse_ctotal1,
-                                         _bse_vtotal1);
-  Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), _bse_ctotal2,
-                                         _bse_vtotal2);
-  // Here I ignored the diagonal term related to the stationary unexcited
-  // electrons. It seems it doesn't play a huge role in the overall
-  // diabatization process.
-  Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
-  // This is the same as in the paper.
-  Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
-
-  // This defines D = X + Y where X = occupied and Y = unoccupied contribution 
-  
-  Eigen::MatrixXd results =
-      _virtlevels1 * AuxMat_cc * _virtlevels2.transpose() -
-      _occlevels1 * AuxMat_vv * _occlevels2.transpose();
-
-  // This adds the GS density
-  if (stateindex1 == stateindex2) {
-    if (stateindex1 == 0) {
-      results += orb1.DensityMatrixGroundState();
-    }
-    if (stateindex1 == 1) {
-      results += orb2.DensityMatrixGroundState();
-    }
-  }
-
-  return results;
-}
-
-Eigen::MatrixXd ERDiabatization::CalculateD_R(const Orbitals& orb1,
+template <bool AR>
+Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,
                                             const Orbitals& orb2,
-                                            QMStateType type, Index
-                                            stateindex1, Index stateindex2)
-                                            const {
+                                            QMStateType type, Index stateindex1,
+                                            Index stateindex2) const {
 
   // D matrix depends on 2 indeces. These can be either 0 or 1.
   // Index=0 means "take the first excited state" as Index=1 means "take the
@@ -410,31 +293,39 @@ Eigen::MatrixXd ERDiabatization::CalculateD_R(const Orbitals& orb1,
   if (stateindex2 == 1) {
     index2 = _opt.state_idx_2;
   }
-  // This requires that index1 and index1 starts from 1. Please add check.
+
   Eigen::VectorXd exciton1;
   Eigen::VectorXd exciton2;
 
-  if (type == QMStateType::Singlet) {
-    exciton1 = orb1.BSESinglets().eigenvectors().col(index1 - 1);
-    exciton2 = orb2.BSESinglets().eigenvectors().col(index2 - 1);
+  // If AR==True we want Bs from BSE. If AR==False we want As from BSE.
+  if (AR) {
+    if (type == QMStateType::Singlet) {
+      exciton1 = orb1.BSESinglets().eigenvectors2().col(index1 - 1);
+      exciton2 = orb2.BSESinglets().eigenvectors2().col(index2 - 1);
+    } else {
+      exciton1 = orb1.BSETriplets().eigenvectors2().col(index1 - 1);
+      exciton2 = orb2.BSETriplets().eigenvectors2().col(index2 - 1);
+    }
   } else {
-    exciton1 = orb1.BSETriplets().eigenvectors().col(index1 - 1);
-    exciton2 = orb2.BSETriplets().eigenvectors().col(index2 - 1);
+    if (type == QMStateType::Singlet) {
+      exciton1 = orb1.BSESinglets().eigenvectors().col(index1 - 1);
+      exciton2 = orb2.BSESinglets().eigenvectors().col(index2 - 1);
+    } else {
+      exciton1 = orb1.BSETriplets().eigenvectors().col(index1 - 1);
+      exciton2 = orb2.BSETriplets().eigenvectors().col(index2 - 1);
+    }
   }
 
   Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), _bse_ctotal1,
                                          _bse_vtotal1);
   Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), _bse_ctotal2,
                                          _bse_vtotal2);
-  // Here I ignored the diagonal term related to the stationary unexcited
-  // electrons. It seems it doesn't play a huge role in the overall
-  // diabatization process.
+
   Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
-  // This is the same as in the paper.
+
   Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
 
-  // This defines D = X + Y where X = occupied and Y = unoccupied contribution
-   Eigen::MatrixXd results =
+  Eigen::MatrixXd results =
       _virtlevels1 * AuxMat_cc * _virtlevels2.transpose() -
       _occlevels1 * AuxMat_vv * _occlevels2.transpose();
 

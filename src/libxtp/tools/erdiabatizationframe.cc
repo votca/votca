@@ -83,12 +83,12 @@ bool ERDiabatizationFrame::Run() {
   if (orbitals1.getTDAApprox()) {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << _orbfile1
-        << "  was done with TDA. Results might be off. We worned you!" << flush;
+        << "  was done with TDA only. Results might be off. We warned you!" << flush;
   }
   if (orbitals2.getTDAApprox()) {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << _orbfile2
-        << "  was done with TDA. Results might be off. We worned you!" << flush;
+        << "  was done with TDA only. Results might be off. We warned you!" << flush;
   }
 
   ERDiabatization.configure(_options);
