@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -33,26 +33,41 @@ void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
   Index rpatotal = _rpamax - _rpamin + 1;
   _energies = dftenergies.segment(_rpamin, rpatotal);
   Index gwsize = Index(gwaenergies.size());
-  Index lumo = _homo + 1;
 
-  Index qpmax = qpmin + gwsize - 1;
   _energies.segment(qpmin - _rpamin, gwsize) = gwaenergies;
 
-  Eigen::VectorXd corrections_occ =
-      _energies.segment(qpmin - _rpamin, lumo - qpmin) -
-      dftenergies.segment(qpmin - _rpamin, lumo - qpmin);
-  Eigen::VectorXd corrections_virt =
-      _energies.segment(lumo - qpmin, gwsize - (lumo - qpmin)) -
-      dftenergies.segment(lumo - qpmin, gwsize - (lumo - qpmin));
-  double max_correction_occ = (corrections_occ.cwiseAbs()).maxCoeff();
-  double max_correction_virt = (corrections_virt.cwiseAbs()).maxCoeff();
+  ShiftUncorrectedEnergies(dftenergies, qpmin, gwsize);
+}
 
-  Index levelaboveqpmax = _rpamax - qpmax;
-  Index levelbelowqpmin = qpmin - _rpamin;
+// Shifts energies of levels that are not QP corrected but
+// used in the RPA:
+// between rpamin and qpmin: by maximum abs of explicit QP corrections
+//                           from qpmin to HOMO
+// between qpmax and rpamax: by maximum abs of explicit QP corrections
+//                           from LUMO to qpmax
+void RPA::ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
+                                   Index qpmin, Index gwsize) {
 
-  _energies.segment(0, levelbelowqpmin).array() -= max_correction_occ;
-  _energies.segment(qpmax + 1 - _rpamin, levelaboveqpmax).array() +=
-      max_correction_virt;
+  Index lumo = _homo + 1;
+  Index qpmax = qpmin + gwsize - 1;
+
+  // get max abs QP corrections for occupied/virtual levels
+  double max_correction_occ = getMaxCorrection(dftenergies, qpmin, _homo);
+  double max_correction_virt = getMaxCorrection(dftenergies, lumo, qpmax);
+
+  // shift energies
+  _energies.head(qpmin).array() -= max_correction_occ;
+  _energies.tail(_rpamax - qpmax).array() += max_correction_virt;
+}
+
+double RPA::getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
+                             Index max) const {
+
+  Index range = max - min + 1;
+  Eigen::VectorXd corrections =
+      _energies.segment(min, range) - dftenergies.segment(min - _rpamin, range);
+
+  return (corrections.cwiseAbs()).maxCoeff();
 }
 
 template <bool imag>
@@ -72,8 +87,8 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
   for (Index m_level = 0; m_level < n_occ; m_level++) {
     const double qp_energy_m = _energies(m_level);
 
-    const Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
-
+    Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+    transform.PushMatrix(Mmn_RPA);
     const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;
     Eigen::VectorXd denom;
     if (imag) {
@@ -86,9 +101,9 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
       denom = 2 * sum;
     }
 
-    transform.A_TDA(Mmn_RPA, denom);
+    transform.A_TDA(denom);
   }
-  Eigen::MatrixXd result = transform.A_TDA_result();
+  Eigen::MatrixXd result = transform.getReductionVar();
   result.diagonal().array() += 1.0;
   return result;
 }
@@ -110,7 +125,8 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
   for (Index m_level = 0; m_level < n_occ; m_level++) {
 
     const double qp_energy_m = _energies(m_level);
-    const Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+    Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+    transform.PushMatrix(Mmn_RPA);
     const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;
 
     Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
@@ -122,9 +138,9 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
     Eigen::VectorXd chi =
         deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
         deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
-    transform.A_TDA(Mmn_RPA, chi);
+    transform.A_TDA(chi);
   }
-  Eigen::MatrixXd result = -2 * transform.A_TDA_result();
+  Eigen::MatrixXd result = -2 * transform.getReductionVar();
   result.diagonal().array() += 1.0;
   return result;
 }

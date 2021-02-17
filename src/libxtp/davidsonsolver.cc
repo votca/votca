@@ -162,6 +162,8 @@ void DavidsonSolver::set_tolerance(std::string tol) {
     this->_tol = 1E-4;
   } else if (tol == "strict") {
     this->_tol = 1E-5;
+  } else if (tol == "lapack") {
+    this->_tol = 1E-9;
   } else {
     throw std::runtime_error(tol + " is not a valid Davidson tolerance");
   }
@@ -244,6 +246,10 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz(
 
   DavidsonSolver::RitzEigenPair rep;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(proj.T);
+  if (es.info() != Eigen::ComputationInfo::Success) {
+    std::cerr << "A\n" << proj.T;
+    throw std::runtime_error("Small hermitian eigenvalue problem failed.");
+  }
   rep.lambda = es.eigenvalues();
   rep.U = es.eigenvectors();
 

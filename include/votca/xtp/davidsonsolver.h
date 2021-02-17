@@ -224,6 +224,11 @@ class DavidsonSolver {
     bool return_eigenvectors = true;
     Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T, B,
                                                        return_eigenvectors);
+    if (ges.info() != Eigen::ComputationInfo::Success) {
+      std::cerr << "A\n" << proj.T;
+      std::cerr << "B\n" << std::endl;
+      throw std::runtime_error("Small generalized eigenvalue problem failed.");
+    }
 
     ArrayXl idx = DavidsonSolver::argsort(ges.eigenvalues().real());
     // smallest to largest

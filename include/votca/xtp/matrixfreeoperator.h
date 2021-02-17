@@ -58,21 +58,10 @@ class MatrixFreeOperator : public Eigen::EigenBase<MatrixFreeOperator> {
         *this, x.derived());
   }
 
-  // convenience function
-  Eigen::MatrixXd get_full_matrix() const;
-  Eigen::VectorXd diagonal() const;
+  virtual Eigen::VectorXd diagonal() const = 0;
+  virtual Eigen::MatrixXd matmul(const Eigen::MatrixXd& input) const = 0;
   Index size() const;
   void set_size(Index size);
-
-  virtual bool useRow() const { return true; }
-  virtual bool useBlock() const { return false; }
-
-  virtual Index getBlocksize() const { return 0; }
-
-  // extract row/col of the operator
-  virtual Eigen::RowVectorXd OperatorRow(Index index) const;
-
-  virtual Eigen::MatrixXd OperatorBlock(Index row, Index col) const;
 
  private:
   Index _size;
@@ -83,52 +72,6 @@ class MatrixFreeOperator : public Eigen::EigenBase<MatrixFreeOperator> {
 namespace Eigen {
 
 namespace internal {
-
-// replacement of the mat*vect operation
-template <typename Vtype>
-struct generic_product_impl<votca::xtp::MatrixFreeOperator, Vtype, DenseShape,
-                            DenseShape, GemvProduct>
-    : generic_product_impl_base<
-          votca::xtp::MatrixFreeOperator, Vtype,
-          generic_product_impl<votca::xtp::MatrixFreeOperator, Vtype>> {
-
-  typedef
-      typename Product<votca::xtp::MatrixFreeOperator, Vtype>::Scalar Scalar;
-
-  template <typename Dest>
-  static void scaleAndAddTo(Dest& dst, const votca::xtp::MatrixFreeOperator& op,
-                            const Vtype& v, const Scalar& alpha) {
-    // returns dst = alpha * op * v
-    // alpha must be 1 here
-    assert(alpha == Scalar(1) && "scaling is not implemented");
-    EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-    if (op.useRow()) {
-// make the mat vect product
-#pragma omp parallel for schedule(guided)
-      for (Index i = 0; i < op.rows(); i++) {
-        dst(i) = op.OperatorRow(i) * v;
-      }
-    }
-
-    if (op.useBlock()) {
-      Index blocksize = op.getBlocksize();
-      if (op.size() % blocksize != 0) {
-        throw std::runtime_error("blocksize is not a multiple of matrix size");
-      }
-      Index blocks = op.size() / blocksize;
-
-// this is inefficient if blocks<num_ofthreads
-#pragma omp parallel for schedule(guided)
-      for (Index i_row = 0; i_row < blocks; i_row++) {
-        for (Index i_col = 0; i_col < blocks; i_col++) {
-          dst.segment(i_row * blocksize, blocksize) +=
-              op.OperatorBlock(i_row, i_col) *
-              v.segment(i_col * blocksize, blocksize);
-        }
-      }
-    }
-  }
-};
 
 // replacement of the mat*mat operation
 template <typename Mtype>
@@ -148,44 +91,7 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
     // alpha must be 1 here
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-
-    // make the mat mat product
-    if (op.useRow()) {
-#pragma omp parallel for
-      for (Index i = 0; i < op.rows(); i++) {
-        const Eigen::RowVectorXd row = op.OperatorRow(i) * m;
-        dst.row(i) = row;
-      }
-    }
-
-    if (op.useBlock()) {
-      Index blocksize = op.getBlocksize();
-      if (op.size() % blocksize != 0) {
-        throw std::runtime_error("blocksize is not a multiple of matrix size");
-      }
-      Index blocks = op.size() / blocksize;
-      // this uses the fact that all our matrices are symmetric, i.e we can
-      // reuse half the blocks
-      Eigen::MatrixXd result = Eigen::MatrixXd::Zero(dst.rows(), dst.cols());
-
-#pragma omp declare reduction (+: Eigen::MatrixXd: omp_out=omp_out+omp_in)\
-     initializer(omp_priv=Eigen::MatrixXd::Zero(omp_orig.rows(),omp_orig.cols()))
-#pragma omp parallel for schedule(guided) reduction(+ : result)
-      for (Index i_row = 0; i_row < blocks; i_row++) {
-        for (Index i_col = i_row; i_col < blocks; i_col++) {
-          const Eigen::MatrixXd blockmat = op.OperatorBlock(i_row, i_col);
-          result.block(i_row * blocksize, 0, blocksize, dst.cols()) +=
-              blockmat * m.block(i_col * blocksize, 0, blocksize, m.cols());
-          if (i_row != i_col) {
-            result.block(i_col * blocksize, 0, blocksize, dst.cols()) +=
-                blockmat.transpose() *
-                m.block(i_row * blocksize, 0, blocksize, m.cols());
-          }
-        }
-      }
-
-      dst += result;
-    }
+    dst = op.matmul(m);
   }
 };
 }  // namespace internal

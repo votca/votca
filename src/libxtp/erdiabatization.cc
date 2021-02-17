@@ -237,6 +237,87 @@ Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb1,
   return results;
 }
 
+// template <bool AR>
+// Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,
+//                                             const Orbitals& orb2,
+//                                             QMStateType type, Index stateindex1,
+//                                             Index stateindex2) const {
+
+//   // D matrix depends on 2 indeces. These can be either 0 or 1.
+//   // Index=0 means "take the first excited state" as Index=1 means "take the
+//   // second excitate state"
+//   // This is the reason for this
+//   Index index1;
+//   Index index2;
+
+//   if (stateindex1 == 0) {
+//     index1 = _opt.state_idx_1;
+//   }
+//   if (stateindex1 == 1) {
+//     index1 = _opt.state_idx_2;
+//   }
+//   if (stateindex2 == 0) {
+//     index2 = _opt.state_idx_1;
+//   }
+//   if (stateindex2 == 1) {
+//     index2 = _opt.state_idx_2;
+//   }
+//   // This requires that index1 and index1 starts from 1. Please add check.
+//   Eigen::VectorXd exciton1;
+//   Eigen::VectorXd exciton2;
+
+//   if (AR) {
+//     if (type == QMStateType::Singlet) {
+//       exciton1 = orb1.BSESinglets().eigenvectors2().col(index1 - 1);
+//       exciton2 = orb2.BSESinglets().eigenvectors2().col(index2 - 1);
+//     } else {
+//       exciton1 = orb1.BSETriplets().eigenvectors2().col(index1 - 1);
+//       exciton2 = orb2.BSETriplets().eigenvectors2().col(index2 - 1);
+//     }
+//   } else {
+//     if (type == QMStateType::Singlet) {
+//       exciton1 = orb1.BSESinglets().eigenvectors().col(index1 - 1);
+//       exciton2 = orb2.BSESinglets().eigenvectors().col(index2 - 1);
+//     } else {
+//       exciton1 = orb1.BSETriplets().eigenvectors().col(index1 - 1);
+//       exciton2 = orb2.BSETriplets().eigenvectors().col(index2 - 1);
+//     }
+//   }
+
+//   Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), _bse_ctotal1,
+//                                          _bse_vtotal1);
+//   Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), _bse_ctotal2,
+//                                          _bse_vtotal2);
+  
+//   Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
+  
+//   Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
+
+//   Eigen::MatrixXd results =
+//       _virtlevels1 * AuxMat_cc * _virtlevels2.transpose() -
+//       _occlevels1 * AuxMat_vv * _occlevels2.transpose();
+
+//   // This adds the GS density
+//   if (stateindex1 == stateindex2) {
+//     if (stateindex1 == 0) {
+//       results += orb1.DensityMatrixGroundState();
+//     }
+//     if (stateindex1 == 1) {
+//       results += orb2.DensityMatrixGroundState();
+//     }
+//   }
+
+//   return results;
+// }
+
+// template Eigen::MatrixXd ERDiabatization::CalculateD<true>(
+//     const Orbitals& orb1, const Orbitals& orb2, QMStateType type,
+//     Index stateindex1, Index stateindex2) const;
+
+// template Eigen::MatrixXd ERDiabatization::CalculateD<false>(
+//     const Orbitals& orb1, const Orbitals& orb2, QMStateType type,
+//     Index stateindex1, Index stateindex2) const;
+
 Eigen::MatrixXd ERDiabatization::CalculateD_AR(const Orbitals& orb1,
                                                const Orbitals& orb2,
                                                QMStateType type,
@@ -285,7 +366,8 @@ Eigen::MatrixXd ERDiabatization::CalculateD_AR(const Orbitals& orb1,
   // This is the same as in the paper.
   Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
 
-  // This defines D = X + Y where X = occupied and Y = unoccupied contribution
+  // This defines D = X + Y where X = occupied and Y = unoccupied contribution 
+  
   Eigen::MatrixXd results =
       _virtlevels1 * AuxMat_cc * _virtlevels2.transpose() -
       _occlevels1 * AuxMat_vv * _occlevels2.transpose();
@@ -305,8 +387,9 @@ Eigen::MatrixXd ERDiabatization::CalculateD_AR(const Orbitals& orb1,
 
 Eigen::MatrixXd ERDiabatization::CalculateD_R(const Orbitals& orb1,
                                             const Orbitals& orb2,
-                                            QMStateType type, Index stateindex1,
-                                            Index stateindex2) const {
+                                            QMStateType type, Index
+                                            stateindex1, Index stateindex2)
+                                            const {
 
   // D matrix depends on 2 indeces. These can be either 0 or 1.
   // Index=0 means "take the first excited state" as Index=1 means "take the
@@ -351,7 +434,7 @@ Eigen::MatrixXd ERDiabatization::CalculateD_R(const Orbitals& orb1,
   Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
 
   // This defines D = X + Y where X = occupied and Y = unoccupied contribution
-  Eigen::MatrixXd results =
+   Eigen::MatrixXd results =
       _virtlevels1 * AuxMat_cc * _virtlevels2.transpose() -
       _occlevels1 * AuxMat_vv * _occlevels2.transpose();
 

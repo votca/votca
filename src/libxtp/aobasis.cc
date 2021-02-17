@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/basisset.h"
+#include "votca/xtp/checkpoint.h"
 #include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/qmmolecule.h"
 // include libint last otherwise it overrides eigen
@@ -193,21 +194,14 @@ void AOBasis::WriteToCpt(CheckpointWriter& w) const {
     numofprimitives += shell.getSize();
   }
 
-  // this is all to make dummy AOGaussian
-  Shell s(L::S, 0);
-  GaussianPrimitive d(0.1, 0.1);
-  QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
-  AOShell s1(s, dummy, 0);
-  s1.addGaussian(d);
-  const AOGaussianPrimitive& dummy2 = *s1.begin();
-
-  CptTable table = w.openTable("Contractions", dummy2, numofprimitives);
+  CptTable table =
+      w.openTable<AOGaussianPrimitive>("Contractions", numofprimitives);
 
   std::vector<AOGaussianPrimitive::data> dataVec(numofprimitives);
   Index i = 0;
   for (const auto& shell : _aoshells) {
     for (const auto& gaussian : shell) {
-      gaussian.WriteData(dataVec[i]);
+      gaussian.WriteData(dataVec[i], shell);
       i++;
     }
   }
@@ -220,15 +214,8 @@ void AOBasis::ReadFromCpt(CheckpointReader& r) {
   r(_name, "name");
   r(_AOBasisSize, "basissize");
   if (_AOBasisSize > 0) {
-    // this is all to make dummy AOGaussian
-    Shell s(L::S, 0);
-    GaussianPrimitive d(0.1, 0.1);
-    QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
-    AOShell s1(s, dummy, 0);
-    s1.addGaussian(d);
-    const AOGaussianPrimitive& dummy2 = *s1.begin();
 
-    CptTable table = r.openTable("Contractions", dummy2);
+    CptTable table = r.openTable<AOGaussianPrimitive>("Contractions");
     std::vector<AOGaussianPrimitive::data> dataVec(table.numRows());
     table.read(dataVec);
     Index laststartindex = -1;
@@ -237,8 +224,7 @@ void AOBasis::ReadFromCpt(CheckpointReader& r) {
         _aoshells.push_back(AOShell(dataVec[i]));
         laststartindex = dataVec[i].startindex;
       } else {
-        _aoshells.back()._gaussians.push_back(
-            AOGaussianPrimitive(dataVec[i], _aoshells.back()));
+        _aoshells.back()._gaussians.push_back(AOGaussianPrimitive(dataVec[i]));
       }
     }
 

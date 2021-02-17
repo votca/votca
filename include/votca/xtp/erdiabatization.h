@@ -39,8 +39,8 @@ class ERDiabatization {
  public:
   ERDiabatization();
 
-  ERDiabatization(Orbitals& orbitals1,Orbitals& orbitals2, Logger* log)
-      : _orbitals1(orbitals1),_orbitals2(orbitals2), _pLog(log){};
+  ERDiabatization(Orbitals& orbitals1, Orbitals& orbitals2, Logger* log)
+      : _orbitals1(orbitals1), _orbitals2(orbitals2), _pLog(log){};
 
   // Write a function to set up all the matrices we need
   void setUpMatrices();
@@ -56,11 +56,13 @@ class ERDiabatization {
 
   void configure(const options_erdiabatization& opt);
 
-  Eigen::VectorXd CalculateER(const Orbitals& orb1, const Orbitals& orb2, QMStateType type) const;
+  Eigen::VectorXd CalculateER(const Orbitals& orb1, const Orbitals& orb2,
+                              QMStateType type) const;
 
   void Print_ERfunction(Eigen::VectorXd results) const;
 
-  double Calculate_angle(const Orbitals& orb1,const Orbitals& orb2, QMStateType type) const;
+  double Calculate_angle(const Orbitals& orb1, const Orbitals& orb2,
+                         QMStateType type) const;
   Eigen::MatrixXd Calculate_diabatic_H(const double E1, const double E2,
                                        const double angle) const;
 
@@ -70,7 +72,7 @@ class ERDiabatization {
   Orbitals& _orbitals1;
   Orbitals& _orbitals2;
   ERIs _eris;
-  //AOOverlap _overlap;
+  // AOOverlap _overlap;
   AOBasis _dftbasis1;
   AOBasis _auxbasis1;
 
@@ -101,18 +103,36 @@ class ERDiabatization {
   Eigen::VectorXd _occlevels2;
   Eigen::VectorXd _virtlevels2;
 
-
-
   options_erdiabatization _opt;
-  Eigen::MatrixXd CalculateD_R(const Orbitals& orb1, const Orbitals& orb2,QMStateType type,
+
+  // template <bool AR>
+  // Eigen::MatrixXd CalculateD(const Orbitals& orb1, const Orbitals& orb2,
+  //                            QMStateType type, Index stateindex1,
+  //                            Index stateindex2) const;
+
+  // Eigen::MatrixXd CalculateD_R(const Orbitals& orb1, const Orbitals& orb2,
+  //                              QMStateType type, Index stateindex1,
+  //                              Index stateindex2) const {
+  //   return CalculateD<false>(orb1, orb2, type, stateindex1, stateindex2);
+  // }
+  // Eigen::MatrixXd CalculateD_AR(const Orbitals& orb1, const Orbitals& orb2,
+  //                               QMStateType type, Index stateindex1,
+  //                               Index stateindex2) const {
+  //   return CalculateD<true>(orb1, orb2, type, stateindex1, stateindex2);
+  // }
+
+  Eigen::MatrixXd CalculateD_R(const Orbitals& orb1, const Orbitals&
+  orb2,QMStateType type,
                              Index stateindex1, Index stateindex2) const;
-  Eigen::MatrixXd CalculateD_AR(const Orbitals& orb1, const Orbitals& orb2,QMStateType type,
+  Eigen::MatrixXd CalculateD_AR(const Orbitals& orb1, const Orbitals&
+  orb2,QMStateType type,
                              Index stateindex1, Index stateindex2) const;
 
   double CalculateR(const Eigen::MatrixXd& D_JK,
                     const Eigen::MatrixXd& D_LM) const;
   Eigen::MatrixXd CalculateU(const double phi) const;
-  Eigen::Tensor<double, 4> CalculateRtensor(const Orbitals& orb1,const Orbitals& orb2,
+  Eigen::Tensor<double, 4> CalculateRtensor(const Orbitals& orb1,
+                                            const Orbitals& orb2,
                                             QMStateType type) const;
 };
 

@@ -104,7 +104,8 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
 
   orb.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
                       "/orca/3-21G_small.xml");
-  orca->setMOsFileName("orca_ext_mos.gbw");
+  orca->setMOsFileName(std::string(XTP_TEST_DATA_FOLDER) +
+                       "/orca/orca_ext_mos.gbw");
 
   orca->ParseMOsFile(orb);
   Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(17);

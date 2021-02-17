@@ -72,6 +72,12 @@ class HamiltonianOperator
         *this, x.derived());
   }
 
+  Eigen::VectorXd diagonal() const { return _diag; }
+
+  const MatrixReplacementA& _A;
+  const MatrixReplacementB& _B;
+
+ private:
   Eigen::VectorXd get_diagonal() const {
     Eigen::VectorXd diag = Eigen::VectorXd::Zero(_size);
     Index half = _size / 2;
@@ -80,23 +86,6 @@ class HamiltonianOperator
     return diag;
   }
 
-  Eigen::VectorXd diagonal() const { return _diag; }
-
-  // get the full matrix if we have to
-  Eigen::MatrixXd get_full_matrix() const {
-    Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size, _size);
-    Index half = _size / 2;
-    matrix.topLeftCorner(half, half) = _A.get_full_matrix();
-    matrix.topRightCorner(half, half) = _B.get_full_matrix();
-    matrix.bottomLeftCorner(half, half) = -matrix.topRightCorner(half, half);
-    matrix.bottomRightCorner(half, half) = -matrix.topLeftCorner(half, half);
-    return matrix;
-  }
-
-  const MatrixReplacementA& _A;
-  const MatrixReplacementB& _B;
-
- private:
   Index _size;
   Eigen::VectorXd _diag;
 };
@@ -105,53 +94,6 @@ class HamiltonianOperator
 
 namespace Eigen {
 namespace internal {
-
-// replacement of the mat*vect operation
-template <typename Vtype, typename MatrixReplacementA,
-          typename MatrixReplacementB>
-struct generic_product_impl<
-    votca::xtp::HamiltonianOperator<MatrixReplacementA, MatrixReplacementB>,
-    Vtype, DenseShape, DenseShape, GemvProduct>
-    : generic_product_impl_base<
-          votca::xtp::HamiltonianOperator<MatrixReplacementA,
-                                          MatrixReplacementB>,
-          Vtype,
-          generic_product_impl<votca::xtp::HamiltonianOperator<
-                                   MatrixReplacementA, MatrixReplacementB>,
-                               Vtype>> {
-
-  typedef typename Product<
-      votca::xtp::HamiltonianOperator<MatrixReplacementA, MatrixReplacementB>,
-      Vtype>::Scalar Scalar;
-
-  template <typename Dest>
-  static void scaleAndAddTo(Dest& dst,
-                            const votca::xtp::HamiltonianOperator<
-                                MatrixReplacementA, MatrixReplacementB>& op,
-                            const Vtype& v, const Scalar& alpha) {
-    // returns dst = alpha * op * v
-    // alpha must be 1 here
-    assert(alpha == Scalar(1) && "scaling is not implemented");
-    EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-    /**Instead of doing the
-    (A   B)*(v1)
-    (-B -A) (v2)
-     multiplication explicitly for each block
-     we reshape v into (v1,v2)
-     and multiply A*(v1,v2)
-     and then sort the contributions into the resulting vector
-     we do the same for B
-     * **/
-    Map<const MatrixX2d> vmat(v.data(), v.size() / 2, 2);
-    Index half = op.rows() / 2;
-    MatrixX2d temp = op._A * vmat;
-    dst.head(half) = temp.col(0);
-    dst.tail(half) = -temp.col(1);
-    temp = op._B * vmat;
-    dst.head(half) += temp.col(1);
-    dst.tail(half) -= temp.col(0);
-  }
-};
 
 // replacement of the mat*mat operation
 template <typename Mtype, typename MatrixReplacementA,
@@ -193,12 +135,16 @@ struct generic_product_impl<
      * **/
     Map<const MatrixXd> m_reshaped(m.data(), m.rows() / 2, m.cols() * 2);
     MatrixXd temp = op._A * m_reshaped;
-    Map<MatrixXd> temp_unshaped(temp.data(), m.rows(), m.cols());
+    Map<const MatrixXd> temp_unshaped(temp.data(), m.rows(), m.cols());
     dst.topRows(half) = temp_unshaped.topRows(half);
     dst.bottomRows(half) = -temp_unshaped.bottomRows(half);
     temp = op._B * m_reshaped;
-    dst.topRows(half) += temp_unshaped.bottomRows(half);
-    dst.bottomRows(half) -= temp_unshaped.topRows(half);
+
+    // create a second map because temp may have moved so temp_reshaped may
+    // point to invalid memory
+    Map<const MatrixXd> temp_unshaped2(temp.data(), m.rows(), m.cols());
+    dst.topRows(half) += temp_unshaped2.bottomRows(half);
+    dst.bottomRows(half) -= temp_unshaped2.topRows(half);
   }
 };
 }  // namespace internal

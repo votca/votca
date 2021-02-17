@@ -180,74 +180,26 @@ TripletOperator_TDA BSE::getTripletOperator_TDA() const {
 template <typename BSE_OPERATOR>
 tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
 
-  std::chrono::time_point<std::chrono::system_clock> start, end;
-  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
-  std::chrono::duration<double> elapsed_time;
-  start = std::chrono::system_clock::now();
+  std::chrono::time_point<std::chrono::system_clock> start =
+      std::chrono::system_clock::now();
 
   tools::EigenSystem result;
-  if (_opt.davidson) {
 
-    DavidsonSolver DS(_log);
+  DavidsonSolver DS(_log);
 
-    DS.set_correction(_opt.davidson_correction);
-    DS.set_tolerance(_opt.davidson_tolerance);
-    DS.set_ortho(_opt.davidson_ortho);
-    DS.set_size_update(_opt.davidson_update);
-    DS.set_iter_max(_opt.davidson_maxiter);
-    DS.set_max_search_space(10 * _opt.nmax);
+  DS.set_correction(_opt.davidson_correction);
+  DS.set_tolerance(_opt.davidson_tolerance);
+  DS.set_ortho(_opt.davidson_ortho);
+  DS.set_size_update(_opt.davidson_update);
+  DS.set_iter_max(_opt.davidson_maxiter);
+  DS.set_max_search_space(10 * _opt.nmax);
+  DS.solve(h, _opt.nmax);
+  result.eigenvalues() = DS.eigenvalues();
+  result.eigenvectors() = DS.eigenvectors();
 
-    if (_opt.matrixfree) {
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << " Using matrix free method" << flush;
-      DS.solve(h, _opt.nmax);
-    } else {
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << " Using full matrix method" << flush;
-
-      // get the full matrix
-      hstart = std::chrono::system_clock::now();
-      Eigen::MatrixXd hfull = h.get_full_matrix();
-      hend = std::chrono::system_clock::now();
-
-      elapsed_time = hend - hstart;
-
-      XTP_LOG(Log::info, _log) << TimeStamp() << " Full matrix assembled in "
-                               << elapsed_time.count() << " secs" << flush;
-
-      // solve theeigenalue problem
-      hstart = std::chrono::system_clock::now();
-      DS.solve(hfull, _opt.nmax);
-      hend = std::chrono::system_clock::now();
-
-      elapsed_time = hend - hstart;
-      XTP_LOG(Log::info, _log) << TimeStamp() << " Davidson solve done in "
-                               << elapsed_time.count() << " secs" << flush;
-    }
-    result.eigenvalues() = DS.eigenvalues();
-    result.eigenvectors() = DS.eigenvectors();
-
-  } else {
-
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Lapack Diagonalization" << flush;
-
-    hstart = std::chrono::system_clock::now();
-    Eigen::MatrixXd hfull = h.get_full_matrix();
-    hend = std::chrono::system_clock::now();
-
-    elapsed_time = hend - hstart;
-    XTP_LOG(Log::info, _log) << TimeStamp() << " Full matrix assembled in "
-                             << elapsed_time.count() << " secs" << flush;
-    hstart = std::chrono::system_clock::now();
-    result = tools::linalg_eigenvalues(hfull, _opt.nmax);
-    hend = std::chrono::system_clock::now();
-    elapsed_time = hend - hstart;
-    XTP_LOG(Log::info, _log) << TimeStamp() << " Lapack solve done in "
-                             << elapsed_time.count() << " secs" << flush;
-  }
-  end = std::chrono::system_clock::now();
-  elapsed_time = end - start;
+  std::chrono::time_point<std::chrono::system_clock> end =
+      std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_time = end - start;
 
   XTP_LOG(Log::info, _log) << TimeStamp() << " Diagonalization done in "
                            << elapsed_time.count() << " secs" << flush;
@@ -256,167 +208,30 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
 }
 
 tools::EigenSystem BSE::Solve_singlets_BTDA() const {
-  if (_opt.davidson) {
-    SingletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(A);
-
-    SingletOperator_BTDA_B B(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(B);
-
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
-    return Solve_nonhermitian_Davidson(A, B);
-  } else {
-    SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(Hs_ApB);
-    Operator_BTDA_AmB Hs_AmB(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(Hs_AmB);
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
-    return Solve_nonhermitian(Hs_ApB, Hs_AmB);
-  }
+  SingletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(A);
+  SingletOperator_BTDA_B B(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(B);
+  XTP_LOG(Log::error, _log)
+      << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
+  return Solve_nonhermitian_Davidson(A, B);
 }
 
 tools::EigenSystem BSE::Solve_triplets_BTDA() const {
-  if (_opt.davidson) {
-    TripletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(A);
-    Hd2Operator B(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(B);
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
-    return Solve_nonhermitian_Davidson(A, B);
-  } else {
-    TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(Ht_ApB);
-    Operator_BTDA_AmB Ht_AmB(_epsilon_0_inv, _Mmn, _Hqp);
-    configureBSEOperator(Ht_AmB);
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
-    return Solve_nonhermitian(Ht_ApB, Ht_AmB);
-  }
-}
-
-template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
-tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
-                                           BSE_OPERATOR_AmB& amb) const {
-
-  // For details of the method, see EPL,78(2007)12001,
-  // Nuclear Physics A146(1970)449, Nuclear Physics A163(1971)257.
-  // setup resonant (A) and RARC blocks (B)
-  // corresponds to
-  // _ApB = (_eh_d +_eh_qp + _eh_d2 + 4.0 * _eh_x);
-  // _AmB = (_eh_d +_eh_qp - _eh_d2);
-
-  std::chrono::time_point<std::chrono::system_clock> start, end;
-  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
-  std::chrono::duration<double> elapsed_time;
-  start = std::chrono::system_clock::now();
-
-  Eigen::MatrixXd ApB = apb.get_full_matrix();
-  Eigen::MatrixXd AmB = amb.get_full_matrix();
+  TripletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(A);
+  Hd2Operator B(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(B);
   XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Setup singlet hamiltonian " << flush;
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Lapack Diagonalization" << flush;
-
-  // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not
-  // positive definite
-  //(A-B) is not needed any longer and can be overwritten
-  XTP_LOG(Log::info, _log) << TimeStamp()
-                           << " Trying Cholesky decomposition of KAA-KAB"
-                           << flush;
-  Eigen::LLT<Eigen::Ref<Eigen::MatrixXd> > L(AmB);
-
-  for (Index i = 0; i < AmB.rows(); ++i) {
-    for (Index j = i + 1; j < AmB.cols(); ++j) {
-      AmB(i, j) = 0;
-    }
-  }
-  if (L.info() != Eigen::ComputationInfo::Success) {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp()
-        << " Cholesky decomposition of KAA-KAB was unsucessful. Try a smaller "
-           "basisset. This can indicate a triplet instability."
-        << flush;
-    throw std::runtime_error("Cholesky decompostion failed");
-  } else {
-    XTP_LOG(Log::info, _log)
-        << TimeStamp() << " Cholesky decomposition of KAA-KAB was successful"
-        << flush;
-  }
-
-  ApB = AmB.transpose() * ApB * AmB;
-
-  XTP_LOG(Log::info, _log) << TimeStamp() << " Calculated H = L^T(A+B)L "
-                           << flush;
-
-  XTP_LOG(Log::error, _log) << TimeStamp() << " Solving for first " << _opt.nmax
-                            << " eigenvectors" << flush;
-
-  hstart = std::chrono::system_clock::now();
-  tools::EigenSystem eigensys = tools::linalg_eigenvalues(ApB, _opt.nmax);
-  hend = std::chrono::system_clock::now();
-  elapsed_time = hend - hstart;
-  XTP_LOG(Log::info, _log) << TimeStamp() << " Lapack solve done in "
-                           << elapsed_time.count() << " secs" << flush;
-
-  if (eigensys.info() != Eigen::ComputationInfo::Success) {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Could not solve problem" << flush;
-  } else {
-    XTP_LOG(Log::info, _log)
-        << TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
-  }
-  ApB.resize(0, 0);
-  if ((eigensys.eigenvalues().array() < 0).any()) {
-    throw std::runtime_error("Negative eigenvalues in BTDA");
-  }
-  Eigen::VectorXd energies =
-      eigensys.eigenvalues().cwiseSqrt();  // has to stay otherwise mkl
-                                           // complains
-
-  tools::EigenSystem result;
-  result.eigenvalues() = energies;
-  // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 +
-  // 1/sqrt(eps_l)L ] R_l
-  //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 -
-  //                               1/sqrt(eps_l)L ] R_l
-  //                               1/sqrt(eps_l)L ] R_l
-  // determine inverse of L^T
-  Eigen::MatrixXd LmT = AmB.inverse().transpose();
-  Index dim = LmT.rows();
-  result.eigenvectors().resize(dim, _opt.nmax);  // resonant part (_X_evec)
-  result.eigenvectors2().resize(dim,
-                                _opt.nmax);  // anti-resonant part (_Y_evec)
-  for (Index level = 0; level < _opt.nmax; level++) {
-    double sqrt_eval = std::sqrt(energies(level));
-    // get l-th reduced EV
-    result.eigenvectors().col(level) =
-        (0.5 / sqrt_eval * (energies(level) * LmT + AmB) *
-         eigensys.eigenvectors().col(level));
-    result.eigenvectors2().col(level) =
-        (0.5 / sqrt_eval * (energies(level) * LmT - AmB) *
-         eigensys.eigenvectors().col(level));
-  }
-
-  end = std::chrono::system_clock::now();
-  elapsed_time = end - start;
-
-  XTP_LOG(Log::info, _log) << TimeStamp() << " Diagonalization done in "
-                           << elapsed_time.count() << " secs" << flush;
-
-  return result;
+      << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
+  return Solve_nonhermitian_Davidson(A, B);
 }
 
 template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
 tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
                                                     BSE_OPERATOR_B& Bop) const {
-
-  std::chrono::time_point<std::chrono::system_clock> start, end;
-  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
-  std::chrono::duration<double> elapsed_time;
-  start = std::chrono::system_clock::now();
+  std::chrono::time_point<std::chrono::system_clock> start =
+      std::chrono::system_clock::now();
 
   // operator
   HamiltonianOperator<BSE_OPERATOR_A, BSE_OPERATOR_B> Hop(Aop, Bop);
@@ -430,52 +245,26 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   DS.set_iter_max(_opt.davidson_maxiter);
   DS.set_max_search_space(10 * _opt.nmax);
   DS.set_matrix_type("HAM");
-
-  if (_opt.matrixfree) {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Using matrix free method" << flush;
-    DS.solve(Hop, _opt.nmax);
-
-  } else {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << " Using full matrix method" << flush;
-    // get the full matrix
-    hstart = std::chrono::system_clock::now();
-    Eigen::MatrixXd hfull = Hop.get_full_matrix();
-    hend = std::chrono::system_clock::now();
-
-    elapsed_time = hend - hstart;
-
-    XTP_LOG(Log::info, _log) << TimeStamp() << " Full matrix assembled in "
-                             << elapsed_time.count() << " secs" << flush;
-
-    // solve theeigenalue problem
-    hstart = std::chrono::system_clock::now();
-    DS.solve(hfull, _opt.nmax);
-    hend = std::chrono::system_clock::now();
-
-    elapsed_time = hend - hstart;
-    XTP_LOG(Log::info, _log) << TimeStamp() << " Davidson solve done in "
-                             << elapsed_time.count() << " secs" << flush;
-  }
+  DS.solve(Hop, _opt.nmax);
 
   // results
   tools::EigenSystem result;
   result.eigenvalues() = DS.eigenvalues();
-  Eigen::MatrixXd _tmpX = DS.eigenvectors().topRows(Aop.size());
-  Eigen::MatrixXd _tmpY = DS.eigenvectors().bottomRows(Aop.size());
+  Eigen::MatrixXd tmpX = DS.eigenvectors().topRows(Aop.rows());
+  Eigen::MatrixXd tmpY = DS.eigenvectors().bottomRows(Bop.rows());
 
   // // normalization so that eigenvector^2 - eigenvector2^2 = 1
-  Eigen::VectorXd normX = _tmpX.colwise().squaredNorm();
-  Eigen::VectorXd normY = _tmpY.colwise().squaredNorm();
+  Eigen::VectorXd normX = tmpX.colwise().squaredNorm();
+  Eigen::VectorXd normY = tmpY.colwise().squaredNorm();
 
   Eigen::ArrayXd sqinvnorm = (normX - normY).array().inverse().cwiseSqrt();
 
-  result.eigenvectors() = _tmpX * sqinvnorm.matrix().asDiagonal();
-  result.eigenvectors2() = _tmpY * sqinvnorm.matrix().asDiagonal();
+  result.eigenvectors() = tmpX * sqinvnorm.matrix().asDiagonal();
+  result.eigenvectors2() = tmpY * sqinvnorm.matrix().asDiagonal();
 
-  end = std::chrono::system_clock::now();
-  elapsed_time = end - start;
+  std::chrono::time_point<std::chrono::system_clock> end =
+      std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_time = end - start;
 
   XTP_LOG(Log::info, _log) << TimeStamp() << " Diagonalization done in "
                            << elapsed_time.count() << " secs" << flush;
@@ -517,12 +306,11 @@ void BSE::PrintWeights(const Eigen::VectorXd& weights) const {
 void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
                            const Orbitals& orb) const {
 
-  Interaction act;
   QMStateType singlet = QMStateType(QMStateType::Singlet);
 
   Eigen::VectorXd oscs = orb.Oscillatorstrengths();
 
-  act = Analyze_eh_interaction(singlet, orb);
+  Interaction act = Analyze_eh_interaction(singlet, orb);
 
   if (fragments.size() > 0) {
     Lowdin low;
@@ -574,9 +362,8 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
 void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
                            const Orbitals& orb) const {
 
-  Interaction act;
   QMStateType triplet = QMStateType(QMStateType::Triplet);
-  act = Analyze_eh_interaction(triplet, orb);
+  Interaction act = Analyze_eh_interaction(triplet, orb);
 
   if (fragments.size() > 0) {
     Lowdin low;
@@ -612,6 +399,15 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
 
   return;
 }
+template <class OP>
+Eigen::VectorXd ExpValue(const Eigen::MatrixXd& state1, OP OPxstate2) {
+  return state1.cwiseProduct(OPxstate2.eval()).colwise().sum().transpose();
+}
+
+Eigen::VectorXd ExpValue(const Eigen::MatrixXd& state1,
+                         const Eigen::MatrixXd& OPxstate2) {
+  return state1.cwiseProduct(OPxstate2).colwise().sum().transpose();
+}
 
 template <typename BSE_OPERATOR>
 BSE::ExpectationValues BSE::ExpectationValue_Operator(
@@ -622,67 +418,44 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator(
 
   ExpectationValues expectation_values;
 
-  expectation_values.direct_term =
-      BSECoefs.eigenvectors()
-          .cwiseProduct((H * BSECoefs.eigenvectors()))
-          .colwise()
-          .sum()
-          .transpose();
+  const Eigen::MatrixXd temp = H * BSECoefs.eigenvectors();
 
+  expectation_values.direct_term = ExpValue(BSECoefs.eigenvectors(), temp);
   if (!orb.getTDAApprox()) {
     expectation_values.direct_term +=
-        BSECoefs.eigenvectors2()
-            .cwiseProduct((H * BSECoefs.eigenvectors2()))
-            .colwise()
-            .sum()
-            .transpose();
-
+        ExpValue(BSECoefs.eigenvectors2(), H * BSECoefs.eigenvectors2());
     expectation_values.cross_term =
-        2 * BSECoefs.eigenvectors2()
-                .cwiseProduct((H * BSECoefs.eigenvectors()))
-                .colwise()
-                .sum()
-                .transpose();
+        2 * ExpValue(BSECoefs.eigenvectors2(), temp);
   } else {
     expectation_values.cross_term = Eigen::VectorXd::Zero(0);
   }
-
   return expectation_values;
 }
 
 template <typename BSE_OPERATOR>
 BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
-    const QMStateType& type, const Orbitals& orb, const BSE_OPERATOR& H,
-    const Index state) const {
+    const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const {
 
-  const tools::EigenSystem& BSECoefs =
-      (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
+  const tools::EigenSystem& BSECoefs = (state.Type() == QMStateType::Singlet)
+                                           ? orb.BSESinglets()
+                                           : orb.BSETriplets();
 
   ExpectationValues expectation_values;
 
-  const Eigen::MatrixXd& BSECoefs_state = BSECoefs.eigenvectors().col(state);
+  const Eigen::MatrixXd BSECoefs_state =
+      BSECoefs.eigenvectors().col(state.StateIdx());
 
-  expectation_values.direct_term =
-      BSECoefs_state.cwiseProduct((H * BSECoefs_state))
-          .colwise()
-          .sum()
-          .transpose();
+  const Eigen::MatrixXd temp = H * BSECoefs_state;
+
+  expectation_values.direct_term = ExpValue(BSECoefs_state, temp);
 
   if (!orb.getTDAApprox()) {
-    const Eigen::MatrixXd& BSECoefs2_state =
-        BSECoefs.eigenvectors2().col(state);
+    const Eigen::MatrixXd BSECoefs2_state =
+        BSECoefs.eigenvectors2().col(state.StateIdx());
 
     expectation_values.direct_term +=
-        BSECoefs2_state.cwiseProduct((H * BSECoefs2_state))
-            .colwise()
-            .sum()
-            .transpose();
-
-    expectation_values.cross_term =
-        2 * BSECoefs2_state.cwiseProduct((H * BSECoefs_state))
-                .colwise()
-                .sum()
-                .transpose();
+        ExpValue(BSECoefs2_state, H * BSECoefs2_state);
+    expectation_values.cross_term = 2 * ExpValue(BSECoefs2_state, temp);
   } else {
     expectation_values.cross_term = Eigen::VectorXd::Zero(0);
   }
@@ -707,29 +480,33 @@ BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
 BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
                                              const Orbitals& orb) const {
   Interaction analysis;
-  ExpectationValues expectation_values;
-
-  HqpOperator hqp(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(hqp);
-  expectation_values = ExpectationValue_Operator(type, orb, hqp);
-  analysis.qp_contrib = expectation_values.direct_term;
-
-  HdOperator hd(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(hd);
-  expectation_values = ExpectationValue_Operator(type, orb, hd);
-  analysis.direct_contrib = expectation_values.direct_term;
-
+  {
+    HqpOperator hqp(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(hqp);
+    ExpectationValues expectation_values =
+        ExpectationValue_Operator(type, orb, hqp);
+    analysis.qp_contrib = expectation_values.direct_term;
+  }
+  {
+    HdOperator hd(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(hd);
+    ExpectationValues expectation_values =
+        ExpectationValue_Operator(type, orb, hd);
+    analysis.direct_contrib = expectation_values.direct_term;
+  }
   if (!orb.getTDAApprox()) {
     Hd2Operator hd2(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(hd2);
-    expectation_values = ExpectationValue_Operator(type, orb, hd2);
+    ExpectationValues expectation_values =
+        ExpectationValue_Operator(type, orb, hd2);
     analysis.direct_contrib += expectation_values.cross_term;
   }
 
   if (type == QMStateType::Singlet) {
     HxOperator hx(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(hx);
-    expectation_values = ExpectationValue_Operator(type, orb, hx);
+    ExpectationValues expectation_values =
+        ExpectationValue_Operator(type, orb, hx);
     analysis.exchange_contrib = 2.0 * expectation_values.direct_term;
     if (!orb.getTDAApprox()) {
       analysis.exchange_contrib += 2.0 * expectation_values.cross_term;
@@ -751,13 +528,12 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
 
   const Eigen::VectorXd& RPAInputEnergies = orb.RPAInputEnergies();
 
-  ExpectationValues expectation_values;
-
   // static case as reference
   SetupDirectInteractionOperator(RPAInputEnergies, 0.0);
   HdOperator Hd_static(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Hd_static);
-  expectation_values = ExpectationValue_Operator(type, orb, Hd_static);
+  ExpectationValues expectation_values =
+      ExpectationValue_Operator(type, orb, Hd_static);
   Eigen::VectorXd Hd_static_contribution = expectation_values.direct_term;
   if (!orb.getTDAApprox()) {
     Hd2Operator Hd2_static(_epsilon_0_inv, _Mmn, _Hqp);
@@ -785,14 +561,14 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
       configureBSEOperator(Hd_dyn);
 
       // get the contribution of Hd for the dynamic case
-      expectation_values =
-          ExpectationValue_Operator_State(type, orb, Hd_dyn, i_exc);
+      QMState state(type, i_exc, false);
+      expectation_values = ExpectationValue_Operator_State(state, orb, Hd_dyn);
       Eigen::VectorXd Hd_dynamic_contribution = expectation_values.direct_term;
       if (!orb.getTDAApprox()) {
         Hd2Operator Hd2_dyn(_epsilon_0_inv, _Mmn, _Hqp);
         configureBSEOperator(Hd2_dyn);
         expectation_values =
-            ExpectationValue_Operator_State(type, orb, Hd2_dyn, i_exc);
+            ExpectationValue_Operator_State(state, orb, Hd2_dyn);
         Hd_dynamic_contribution += expectation_values.cross_term;
       }
 

@@ -129,7 +129,7 @@ class QMPair {
   void setType(PairType pair_type) { _pair_type = pair_type; }
   const PairType& getType() const { return _pair_type; }
 
-  void SetupCptTable(CptTable& table) const;
+  static void SetupCptTable(CptTable& table);
   void WriteData(data& d) const;
 
   void ReadData(const data& d, const std::vector<Segment>& segments);
