@@ -13,6 +13,7 @@ Version 2022-dev
 -  switch boundary conditions to unique_ptr (#654)
 -  switch NBList to unique_ptr (#659)
 -  switch csgapplication worker to unique_ptr (#660)
+-  standardize header formatting (#661)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
