@@ -27,6 +27,9 @@
 #include <unordered_map>
 #include <vector>
 
+// Third party includes
+#include <boost/container/stable_vector.hpp>
+
 // VOTCA includes
 #include <votca/tools/types.h>
 
@@ -46,7 +49,9 @@ namespace csg {
 class Interaction;
 
 using MoleculeContainer = std::vector<Molecule *>;
-using BeadContainer = std::vector<std::unique_ptr<Bead>>;
+// Stable vectors are necessary to be sure that the Bead pointers that point
+// to addresses in the vector are not invalidated as the vector grows.
+using BeadContainer = boost::container::stable_vector<Bead>;
 using ResidueContainer = std::vector<Residue *>;
 using InteractionContainer = std::vector<Interaction *>;
 
@@ -218,7 +223,8 @@ class Topology {
    * @param[in] Index i is the id of the bead
    * @return Bead * is a pointer to the bead
    **/
-  Bead *getBead(const Index i) const { return _beads[i].get(); }
+  Bead *getBead(const Index i) { return &_beads[i]; }
+  const Bead *getBead(const Index i) const { return &_beads[i]; }
   Residue *getResidue(const Index i) const { return _residues[i]; }
   Molecule *getMolecule(const Index i) const { return _molecules[i]; }
 
@@ -438,9 +444,8 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
                                   std::string type, Index resnr, double m,
                                   double q) {
 
-  _beads.emplace_back(
-      new Bead(_beads.size(), type, symmetry, name, resnr, m, q));
-  return _beads.back().get();
+  _beads.push_back(Bead(_beads.size(), type, symmetry, name, resnr, m, q));
+  return &_beads.back();
 }
 
 inline Molecule *Topology::CreateMolecule(std::string name) {

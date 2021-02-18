@@ -33,28 +33,28 @@ void NematicOrder::Process(Topology &top, const string &filter) {
 
   for (const auto &bead : top.Beads()) {
 
-    if (!tools::wildcmp(filter, bead->getName())) {
+    if (!tools::wildcmp(filter, bead.getName())) {
       continue;
     }
 
-    if (bead->getSymmetry() == 1) {
+    if (bead.getSymmetry() == 1) {
       continue;
     }
 
-    if (bead->HasU()) {
-      _mu += bead->getU() * bead->getU().transpose();
+    if (bead.HasU()) {
+      _mu += bead.getU() * bead.getU().transpose();
       _mu.diagonal().array() -= 1. / 3.;
       bU = true;
     }
 
-    if (bead->HasV()) {
-      _mu += bead->getV() * bead->getV().transpose();
+    if (bead.HasV()) {
+      _mu += bead.getV() * bead.getV().transpose();
       _mu.diagonal().array() -= 1. / 3.;
       bV = true;
     }
 
-    if (bead->HasW()) {
-      _mu += bead->getW() * bead->getW().transpose();
+    if (bead.HasW()) {
+      _mu += bead.getW() * bead.getW().transpose();
       _mu.diagonal().array() -= 1. / 3.;
       bW = true;
     }

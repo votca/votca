@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ class CsgMapApp : public CsgApplication {
             bn->setF(bi->getF());
           }
 
-          mi->AddBead(hybtol.Beads()[beadid].get(), molecule->getBeadName(i));
+          mi->AddBead(&hybtol.Beads()[beadid], molecule->getBeadName(i));
         }
 
         if (mi->getId() < top->MoleculeCount()) {
