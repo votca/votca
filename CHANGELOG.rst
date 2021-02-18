@@ -12,6 +12,7 @@ Version 2022-dev
 -  fix rst warnings (#334, #346, #348)
 -  export PYTHONPATH in VOTCARC (#340)
 -  drop csh support in VOTCARC (#342)
+-  add missing cmath include (#351)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================

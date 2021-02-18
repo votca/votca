@@ -18,6 +18,9 @@
 #ifndef VOTCA_TOOLS_AVERAGE_H
 #define VOTCA_TOOLS_AVERAGE_H
 
+// Standard includes
+#include <cmath>
+
 namespace votca {
 namespace tools {
 
