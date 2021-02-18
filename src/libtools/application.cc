@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,22 @@
  *
  */
 
-#include "../../include/votca/tools/application.h"
-#include "../../include/votca/tools/globals.h"
-#include "../../include/votca/tools/propertyiomanipulator.h"
-#include "../../include/votca/tools/version.h"
+// Standard includes
 #include <iostream>
 
+// Third party includes
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/application.h"
+#include "votca/tools/globals.h"
+#include "votca/tools/propertyiomanipulator.h"
+#include "votca/tools/version.h"
+
+// Local private VOTCA includes
+#include "votca_tools_config.h"
 
 namespace votca {
 namespace tools {
@@ -38,7 +45,7 @@ void Application::ShowHelpText(std::ostream &out) {
   out << "========   VOTCA (http://www.votca.org)   ========\n";
   out << "==================================================\n\n";
 
-  out << "please submit bugs to bugs@votca.org\n\n";
+  out << "please submit bugs to " TOOLS_BUGREPORT "\n\n";
   out << ProgramName();
   if (VersionString() != "") {
     out << ", version " << VersionString();
@@ -49,47 +56,6 @@ void Application::ShowHelpText(std::ostream &out) {
 
   // remove Hidden group from the option list and print
   out << "\n\n" << VisibleOptions() << endl;
-}
-
-void Application::ShowManPage(std::ostream &out) {
-
-  out << boost::format(globals::man::header) % ProgramName() % VersionString();
-  out << boost::format(globals::man::name) % ProgramName() % globals::url;
-  out << boost::format(globals::man::synopsis) % ProgramName();
-  std::stringstream ss;
-  HelpText(ss);
-  out << boost::format(globals::man::description) % ss.str();
-  out << boost::format(globals::man::options);
-
-  for (const auto &option : _op_desc.options()) {
-    string format_name =
-        option->format_name() + " " + option->format_parameter();
-    boost::replace_all(format_name, "-", "\\-");
-    out << boost::format(globals::man::option) % format_name %
-               option->description();
-  }
-
-  out << boost::format(globals::man::authors) % globals::email;
-  out << boost::format(globals::man::copyright) % globals::url;
-}
-
-void Application::ShowTEXPage(std::ostream &out) {
-  string program_name = ProgramName();
-  boost::replace_all(program_name, "_", "\\_");
-  out << boost::format(globals::tex::section) % program_name;
-  out << boost::format(globals::tex::label) % ProgramName();
-  std::stringstream ss, os;
-  HelpText(ss);
-  out << boost::format(globals::tex::description) % ss.str();
-
-  for (const auto &option : _op_desc.options()) {
-    string format_name =
-        option->format_name() + " " + option->format_parameter();
-    boost::replace_all(format_name, "-", "{-}");
-    os << boost::format(globals::tex::option) % format_name %
-              option->description();
-  }
-  out << boost::format(globals::tex::options) % os.str();
 }
 
 int Application::Exec(int argc, char **argv) {
@@ -119,15 +85,6 @@ int Application::Exec(int argc, char **argv) {
       Log::current_level = Log::debug;
     }
 
-    if (_op_vm.count("man")) {
-      ShowManPage(cout);
-      return 0;
-    }
-
-    if (_op_vm.count("tex")) {
-      ShowTEXPage(cout);
-      return 0;
-    }
     if (_op_vm.count("help")) {
       ShowHelpText(cout);
       return 0;
@@ -211,11 +168,7 @@ void Application::PrintDescription(std::ostream &out,
   boost::filesystem::path arg_path;
   Property options;
   // loading the documentation xml file from VOTCASHARE
-  char *votca_share = getenv("VOTCASHARE");
-  if (votca_share == nullptr) {
-    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-  }
-  string xmlFile = (arg_path / string(getenv("VOTCASHARE")) / help_path /
+  string xmlFile = (arg_path / tools::GetVotcaShare() / help_path /
                     (boost::format("%1%.%2%") % calculator_name % "xml").str())
                        .string()
                        .c_str();

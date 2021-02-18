@@ -21,10 +21,12 @@
 #define VOTCA_TOOLS_GRAPHDISTVISITOR_H
 #pragma once
 
-#include "graph_bf_visitor.h"
+// Standard includes
 #include <deque>
-#include <iostream>
 #include <queue>
+
+// Local VOTCA includes
+#include "graph_bf_visitor.h"
 
 /**
  * \brief A graph visitor determines the graph topology

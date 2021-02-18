@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,9 +16,12 @@
  * limitations under the License.
  *
  */
-#ifndef __VOTCA_TOOLS_IDENTITY_H
-#define __VOTCA_TOOLS_IDENTITY_H
+#ifndef VOTCA_TOOLS_IDENTITY_H
+#define VOTCA_TOOLS_IDENTITY_H
+
+// Standard includes
 #include <cassert>
+
 namespace votca {
 namespace tools {
 
@@ -54,4 +57,4 @@ class Identity {
 }  // namespace tools
 }  // namespace votca
 
-#endif
+#endif  // VOTCA_TOOLS_IDENTITY_H

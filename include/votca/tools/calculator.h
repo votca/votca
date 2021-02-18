@@ -20,6 +20,7 @@
 #ifndef VOTCA_TOOLS_CALCULATOR_H
 #define VOTCA_TOOLS_CALCULATOR_H
 
+// Local VOTCA includes
 #include "globals.h"
 #include "property.h"
 #include "propertyiomanipulator.h"
@@ -116,11 +117,10 @@ class Calculator {
   void OverwriteDefaultsWithUserInput(const Property &p, Property &defaults);
   // Copy the defaults into the value
   static void InjectDefaultsAsValues(Property &defaults);
-  static void RecursivelyCheckOptions(const Property &prop);
-  static bool IsValidOption(const Property &p,
+  static void RecursivelyCheckOptions(const Property &p);
+  static bool IsValidOption(const Property &prop,
                             const std::vector<std::string> &choices);
-  static std::string GetVotcaShare();
-  static std::vector<std::string> GetPropertyChoices(const Property &prop);
+  static std::vector<std::string> GetPropertyChoices(const Property &p);
 
   template <typename T>
   static bool IsValidCast(const tools::Property &prop) {

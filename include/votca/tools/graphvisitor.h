@@ -20,11 +20,13 @@
 #ifndef VOTCA_TOOLS_GRAPHVISITOR_H
 #define VOTCA_TOOLS_GRAPHVISITOR_H
 
-#include "edge.h"
-#include "graphnode.h"
-#include <iostream>
+// Standard includes
 #include <set>
 #include <vector>
+
+// Local VOTCA includes
+#include "edge.h"
+#include "graphnode.h"
 
 /**
  * \brief A graph visitor class for creating graph visitor objects
@@ -97,7 +99,7 @@ class GraphVisitor {
   std::set<Index> getExploredVertices() const;
 
   /// Has the vertex been explored
-  bool vertexExplored(const Index vert) const;
+  bool vertexExplored(const Index vertex) const;
 };
 }  // namespace tools
 }  // namespace votca

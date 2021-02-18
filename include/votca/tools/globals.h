@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GLOBALS_H
-#define __VOTCA_TOOLS_GLOBALS_H
+#ifndef VOTCA_TOOLS_GLOBALS_H
+#define VOTCA_TOOLS_GLOBALS_H
 
+// Standard includes
 #include <string>
-#include <votca/tools/votca_config.h>
 
 namespace votca {
 
@@ -34,11 +34,16 @@ struct Log {
 namespace tools {
 
 /**
+    \brief Retrieves VOTCASHARE environment variable. Throws std::runtime_error
+   if not set.
+*/
+std::string GetVotcaShare();
+bool VotcaShareSet();
+/**
     \brief class to store global variables
 
     This class is used to access global variables
 */
-
 struct globals {
 
   /// web of the package
@@ -48,30 +53,9 @@ struct globals {
 
   /// If Eigen is overloaded with MKL
   static bool VOTCA_MKL;
-
-  /// man pages format strings
-  struct man {
-    static std::string option;
-    static std::string header;
-    static std::string name;
-    static std::string authors;
-    static std::string copyright;
-    static std::string synopsis;
-    static std::string description;
-    static std::string options;
-  };
-
-  /// TEX pages format strings
-  struct tex {
-    static std::string section;
-    static std::string label;
-    static std::string description;
-    static std::string options;
-    static std::string option;
-  };
 };
 
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_TOOLS_GLOBALS_H */
+#endif  // VOTCA_TOOLS_GLOBALS_H

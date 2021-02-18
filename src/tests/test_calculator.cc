@@ -18,10 +18,16 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE calculator_test
-#include "../../include/votca/tools/calculator.h"
+
+// Standard includes
+#include <fstream>
+
+// Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/test/unit_test.hpp>
-#include <fstream>
+
+// Local VOTCA includes
+#include "votca/tools/calculator.h"
 
 using namespace ::votca;
 

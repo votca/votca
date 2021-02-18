@@ -16,16 +16,18 @@
  * limitations under the License.
  *
  */
+
 #ifndef VOTCA_TOOLS_GRAPHNODE_H
 #define VOTCA_TOOLS_GRAPHNODE_H
 
-#include "attributes.h"
-#include "types.h"
-
-#include <iostream>
+// Standard includes
 #include <string>
 #include <unordered_map>
 #include <utility>
+
+// Local VOTCA includes
+#include "attributes.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {

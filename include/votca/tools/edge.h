@@ -16,19 +16,19 @@
  * limitations under the License.
  *
  */
-
 #ifndef VOTCA_TOOLS_EDGE_H
 #define VOTCA_TOOLS_EDGE_H
 #pragma once
 
-#include "attributes.h"
-#include "graphnode.h"
-#include "types.h"
-
+// Standard includes
 #include <iostream>
 #include <limits>
 #include <utility>
 #include <vector>
+
+// Local VOTCA includes
+#include "attributes.h"
+#include "types.h"
 
 namespace votca {
 namespace tools {

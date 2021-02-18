@@ -18,13 +18,20 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE reducedgraph_test
-#include "../../include/votca/tools/graphnode.h"
-#include "../../include/votca/tools/reducededge.h"
-#include "../../include/votca/tools/reducedgraph.h"
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <cmath>
 #include <exception>
 #include <iostream>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/graphnode.h"
+#include "votca/tools/reducededge.h"
+#include "votca/tools/reducedgraph.h"
+
 using namespace std;
 using namespace votca::tools;
 

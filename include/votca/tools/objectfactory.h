@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,16 @@
  *
  */
 
-#ifndef VOTCA_TOOLS_OBJECTFACTORY
-#define VOTCA_TOOLS_OBJECTFACTORY
+#ifndef VOTCA_TOOLS_OBJECTFACTORY_H
+#define VOTCA_TOOLS_OBJECTFACTORY_H
 
-#include <boost/lexical_cast.hpp>
-#include <iostream>
-#include <list>
+// Standard includes
 #include <map>
+#include <memory>
 #include <stdexcept>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
 
 namespace votca {
 namespace tools {
@@ -42,14 +44,11 @@ namespace tools {
 template <typename key_t, typename T>
 class ObjectFactory {
  private:
-  using creator_t = T *(*)();
+  using creator_t = std::unique_ptr<T> (*)();
 
  public:
-  using abstract_type = T;
-  typedef std::map<key_t, creator_t> assoc_map;
-
   ObjectFactory() = default;
-  ~ObjectFactory() = default;
+  virtual ~ObjectFactory() = default;
 
   /**
    * \brief register an object
@@ -68,40 +67,44 @@ class ObjectFactory {
   /**
      Create an instance of the object identified by key.
   */
-  T *Create(const key_t &key);
+  virtual std::unique_ptr<T> Create(const key_t &key);
   bool IsRegistered(const key_t &_id) const;
 
-  static ObjectFactory<key_t, T> &Instance() {
-    static ObjectFactory<key_t, T> _this;
-    return _this;
+  std::vector<key_t> getKeys() const {
+    std::vector<key_t> key;
+    key.reserve(_objects.size());
+    for (const auto &pair : _objects) {
+      key.push_back(pair.first);
+    }
+    return key;
   }
 
-  const assoc_map &getObjects() { return _objects; }
-
  private:
-  assoc_map _objects;
+  std::map<key_t, creator_t> _objects;
 };
 
 template <class parent, class T>
-parent *create_policy_new() {
-  return new T();
+std::unique_ptr<parent> create_policy_new() {
+  return std::make_unique<T>();
 }
 
 template <typename key_t, typename T>
 inline void ObjectFactory<key_t, T>::Register(const key_t &key,
                                               creator_t creator) {
-  (void)_objects.insert(typename assoc_map::value_type(key, creator)).second;
+  (void)_objects
+      .insert(typename std::map<key_t, creator_t>::value_type(key, creator))
+      .second;
 }
 
 template <typename key_t, typename T>
 template <typename obj_t>
 inline void ObjectFactory<key_t, T>::Register(const key_t &key) {
-  Register(key, create_policy_new<abstract_type, obj_t>);
+  Register(key, create_policy_new<T, obj_t>);
 }
 
 template <typename key_t, typename T>
-inline T *ObjectFactory<key_t, T>::Create(const key_t &key) {
-  typename assoc_map::const_iterator it(_objects.find(key));
+inline std::unique_ptr<T> ObjectFactory<key_t, T>::Create(const key_t &key) {
+  typename std::map<key_t, creator_t>::const_iterator it = _objects.find(key);
   if (it != _objects.end()) {
     return (it->second)();
   } else {
@@ -115,18 +118,7 @@ inline bool ObjectFactory<key_t, T>::IsRegistered(const key_t &_id) const {
   return (_objects.find(_id) != _objects.end());
 }
 
-template <typename object_type>
-class ObjectFactoryRegister {
- public:
-  template <typename factory_type, typename key_type>
-  ObjectFactoryRegister(factory_type &factory, key_type &key) {
-    factory.Register(
-        key,
-        &create_policy_new<typename factory_type::abstract_type, object_type>);
-  }
-};
-
 }  // namespace tools
 }  // namespace votca
 
-#endif  // VOTCA_TOOLS_OBJECTFACTORY
+#endif  // VOTCA_TOOLS_OBJECTFACTORY_H

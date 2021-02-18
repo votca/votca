@@ -17,13 +17,16 @@
  *
  */
 
-#include "../../include/votca/tools/edgecontainer.h"
-#include "../../include/votca/tools/edge.h"
+// Standard includes
 #include <algorithm>
 #include <cassert>
 #include <exception>
 #include <set>
 #include <vector>
+
+// Local VOTCA includes
+#include "votca/tools/edge.h"
+#include "votca/tools/edgecontainer.h"
 
 namespace votca {
 namespace tools {

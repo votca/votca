@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,20 @@
  *
  */
 
-#include "../../include/votca/tools/histogram.h"
+// Standard includes
+#include <cmath>
 #include <limits>
-#include <math.h>
 #include <numeric>
+
+// Local VOTCA includes
+#include "votca/tools/histogram.h"
 
 namespace votca {
 namespace tools {
 
 Histogram::Histogram() = default;
 
-Histogram::Histogram(options_t op) : _options(op) {}
+Histogram::Histogram(const options_t& op) : _options(op) {}
 
 Histogram::~Histogram() = default;
 
@@ -76,7 +79,7 @@ void Histogram::ProcessData(DataCollection<double>::selection* data) {
   if (_options._scale == "bond") {
     for (size_t i = 0; i < _pdf.size(); ++i) {
       double r = _min + _interval * (double)i;
-      if (abs(r) < 1e-10) {
+      if (std::fabs(r) < 1e-10) {
         r = _min + _interval * (double)(i + 1);
         _pdf[i] = _pdf[i + 1];
       }
@@ -86,7 +89,7 @@ void Histogram::ProcessData(DataCollection<double>::selection* data) {
     for (size_t i = 0; i < _pdf.size(); ++i) {
       double alpha = _min + _interval * (double)i;
       double sa = sin(alpha);
-      if (abs(sa) < 1e-5) {
+      if (std::fabs(sa) < 1e-5) {
         if (i < _pdf.size() - 1) {
           alpha = _min + _interval * (double)(i + 1);
           _pdf[i] = _pdf[i + 1] / sin(alpha);
@@ -109,7 +112,7 @@ void Histogram::ProcessData(DataCollection<double>::selection* data) {
   }
 }
 
-void Histogram::Normalize(void) {
+void Histogram::Normalize() {
   double norm = 1. / (_interval * accumulate(_pdf.begin(), _pdf.end(), 0.0));
   std::transform(_pdf.begin(), _pdf.end(), _pdf.begin(),
                  std::bind2nd(std::multiplies<double>(), norm));

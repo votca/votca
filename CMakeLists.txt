@@ -1,12 +1,13 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
-project(votca-tools)
+project(votca-tools LANGUAGES CXX)
 
-set(PROJECT_VERSION "1.7-dev")
-string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
-if (NOT ${SOVERSION} MATCHES "[1-9]+")
-  message(FATAL_ERROR "Could not determind SOVERSION from ${PROJECT_VERSION}")
-endif (NOT ${SOVERSION} MATCHES "[1-9]+")
+set(PROJECT_VERSION "2022-dev")
+string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
+if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
+  message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
+endif (NOT ${SOVERSION} MATCHES "^[0-9]+$")
+set(PROJECT_CONTACT "https://github.com/votca/tools/issues")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
@@ -15,10 +16,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #release comes with -O3 by default
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
-
-enable_language(CXX)
-
-
 
 ######################################################################
 # compiler tests
@@ -61,10 +58,25 @@ set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
 set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
 
-option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ON)
+
+find_package(Python 3 COMPONENTS Interpreter)
+set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
+option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 #define this target here, so that individual man pages can append to it.
 add_custom_target(manpages ALL)
+if(VOTCA_SPHINX_DIR)
+  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/tools)
+  add_custom_target(doc-tools)
+endif()
+
+if(Python_EXECUTABLE AND NOT PYTHON_INSTDIR)
+  execute_process(
+    COMMAND
+      ${Python_EXECUTABLE} -c
+      "import distutils.sysconfig as cg; print(cg.get_python_lib(prefix='${CMAKE_INSTALL_PREFIX}', plat_specific=True, standard_lib=False))"
+    OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif(Python_EXECUTABLE AND NOT PYTHON_INSTDIR)
 
 ########################################################################
 # Checks what linear algebra packages are installed                    #
@@ -79,22 +91,19 @@ find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
 set_package_properties(Eigen3 PROPERTIES TYPE REQUIRED PURPOSE "C++ vector data structures")
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
-find_package(FFTW3)
-set_package_properties(FFTW3 PROPERTIES TYPE RECOMMENDED PURPOSE "Enables FFT functionality")
+if(MKL_FOUND)
+  # MKL has its internal fftw3 implementation
+  unset(FFTW3_FOUND)
+else()
+  find_package(FFTW3)
+  set_package_properties(FFTW3 PROPERTIES TYPE RECOMMENDED PURPOSE "Enables FFT functionality")
+endif()
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
-include(CheckIncludeFile)
-foreach(HEADER assert.h math.h stdio.h stdlib.h string.h)
-  check_include_file(${HEADER} FOUND_${HEADER})
-  if(NOT FOUND_${HEADER})
-    message(FATAL_ERROR "Could not find needed header - ${HEADER}")
-  endif(NOT FOUND_${HEADER})
-endforeach(HEADER)
-
 include(CheckIncludeFileCXX)
-foreach(HEADER cmath fstream functional iostream limits list map ostream sstream stack stdexcept string vector)
+foreach(HEADER cassert cmath fstream functional iostream limits list map ostream sstream stack stdexcept string vector)
   check_include_file_cxx(${HEADER} FOUND_${HEADER})
   if(NOT FOUND_${HEADER})
     message(FATAL_ERROR "Could not find needed header - ${HEADER}")
@@ -103,21 +112,15 @@ endforeach(HEADER)
 
 set(MATH_LIBRARIES "m" CACHE STRING "math library")
 mark_as_advanced( MATH_LIBRARIES )
-include(CheckLibraryExists)
-foreach(FUNC sqrt)
-  check_library_exists(${MATH_LIBRARIES} ${FUNC} "" FOUND_${FUNC}_${MATH_LIBRARIES})
-  if(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-    message(FATAL_ERROR "Could not find needed math function - ${FUNC}")
-  endif(NOT FOUND_${FUNC}_${MATH_LIBRARIES})
-endforeach(FUNC)
 
 ######################################
 # Include the following subdirectory #
 ######################################
+add_subdirectory(scripts)
 add_subdirectory(src)
 add_subdirectory(include/votca/tools)
-add_subdirectory(scripts)
 add_subdirectory(share/man)
+add_subdirectory(share/doc)
 
 configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_PROPERTY_IO_MANIPULATOR_H
-#define _VOTCA_TOOLS_PROPERTY_IO_MANIPULATOR_H
+#ifndef VOTCA_TOOLS_PROPERTYIOMANIPULATOR_H
+#define VOTCA_TOOLS_PROPERTYIOMANIPULATOR_H
 
-#include <iostream>
-
+// Local VOTCA includes
 #include "colors.h"
 #include "property.h"
 
@@ -30,12 +29,12 @@ namespace tools {
  * \brief Manipulates the format state of the output stream
  *
  * Changes the state of the output stream. Property class reads this state
- * and formats its output according to this state (XML, TXT, T2T, etc)
+ * and formats its output according to this state (XML, TXT,  etc)
  */
 class PropertyIOManipulator {
 
  public:
-  enum Type { XML, HLP, TEX, TXT };
+  enum Type { XML, HLP, TXT };
 
   explicit PropertyIOManipulator(Type type = XML, Index level = 0,
                                  std::string indentation = "",
@@ -85,10 +84,9 @@ class PropertyIOManipulator {
 
 extern PropertyIOManipulator XML;
 extern PropertyIOManipulator TXT;
-extern PropertyIOManipulator TEX;
 extern PropertyIOManipulator HLP;
 
 }  // namespace tools
 }  // namespace votca
 
-#endif /* _VOTCA_TOOLS_PROPERTY_FORMAT_H */
+#endif  // VOTCA_TOOLS_PROPERTYIOMANIPULATOR_H

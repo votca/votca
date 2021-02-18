@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,18 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE edgecontainer_test
-#include "../../include/votca/tools/edge.h"
-#include "../../include/votca/tools/edgecontainer.h"
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <exception>
 #include <iostream>
 #include <vector>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/edge.h"
+#include "votca/tools/edgecontainer.h"
 
 using namespace std;
 using namespace votca::tools;

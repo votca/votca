@@ -20,8 +20,11 @@
 #ifndef VOTCA_TOOLS_GRAPH_DF_VISITOR_H
 #define VOTCA_TOOLS_GRAPH_DF_VISITOR_H
 
-#include "graphvisitor.h"
+// Standard includes
 #include <list>
+
+// Local VOTCA includes
+#include "graphvisitor.h"
 
 /**
  * \brief A breadth first (DF) graph visitor

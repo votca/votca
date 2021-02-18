@@ -20,13 +20,19 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE graphdistvisitor_test
-#include "../../include/votca/tools/graph.h"
-#include "../../include/votca/tools/graphdistvisitor.h"
-#include "../../include/votca/tools/graphnode.h"
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <iostream>
 #include <unordered_map>
 #include <vector>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/graph.h"
+#include "votca/tools/graphdistvisitor.h"
+#include "votca/tools/graphnode.h"
 
 using namespace std;
 using namespace votca::tools;

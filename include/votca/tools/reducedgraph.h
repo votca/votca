@@ -18,11 +18,12 @@
  *
  */
 
-#include "graph.h"
-#include "reducededge.h"
-
 #ifndef VOTCA_TOOLS_REDUCEDGRAPH_H
 #define VOTCA_TOOLS_REDUCEDGRAPH_H
+
+// Local VOTCA includes
+#include "graph.h"
+#include "reducededge.h"
 
 namespace votca {
 namespace tools {

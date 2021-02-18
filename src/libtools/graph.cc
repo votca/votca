@@ -17,10 +17,13 @@
  *
  */
 
-#include "../../include/votca/tools/graph.h"
+// Standard includes
 #include <algorithm>
 #include <cassert>
 #include <string>
+
+// Local VOTCA includes
+#include "votca/tools/graph.h"
 
 using namespace std;
 

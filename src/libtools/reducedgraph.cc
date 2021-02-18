@@ -17,10 +17,13 @@
  *
  */
 
-#include "../../include/votca/tools/reducedgraph.h"
-#include "../../include/votca/tools/edge.h"
+// Standard includes
 #include <algorithm>
 #include <cassert>
+
+// Local VOTCA includes
+#include "votca/tools/edge.h"
+#include "votca/tools/reducedgraph.h"
 
 using namespace std;
 

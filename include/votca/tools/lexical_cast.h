@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,15 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_LEXICAL_CAST_H
-#define __VOTCA_TOOLS_LEXICAL_CAST_H
+#ifndef VOTCA_TOOLS_LEXICAL_CAST_H
+#define VOTCA_TOOLS_LEXICAL_CAST_H
 
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <stdexcept>
 #include <string>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
 
 namespace votca {
 namespace tools {
@@ -43,4 +46,4 @@ inline Target lexical_cast(const Source &arg, const std::string &error) {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* LEXICAL_CAST_H */
+#endif  // VOTCA_TOOLS_LEXICAL_CAST_H

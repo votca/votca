@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@
 #ifndef VOTCA_TOOLS_CORRELATE_H
 #define VOTCA_TOOLS_CORRELATE_H
 
-#include "datacollection.h"
+// Standard includes
 #include <iostream>
 #include <vector>
+
+// Local VOTCA includes
+#include "datacollection.h"
 
 namespace votca {
 namespace tools {
@@ -57,4 +60,4 @@ inline std::ostream &operator<<(std::ostream &out, const Correlate &c) {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* VOTCA_TOOLS_CORRELATE_H */
+#endif  // VOTCA_TOOLS_CORRELATE_H

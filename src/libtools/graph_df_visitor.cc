@@ -16,11 +16,15 @@
  * limitations under the License.
  *
  */
-#include "../../include/votca/tools/graph_df_visitor.h"
-#include "../../include/votca/tools/edge.h"
-#include "../../include/votca/tools/graph.h"
-#include "../../include/votca/tools/graphnode.h"
+
+// Standard includes
 #include <algorithm>
+
+// Local VOTCA includes
+#include "votca/tools/edge.h"
+#include "votca/tools/graph.h"
+#include "votca/tools/graph_df_visitor.h"
+#include "votca/tools/graphnode.h"
 
 using namespace std;
 

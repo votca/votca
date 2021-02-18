@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,36 @@
  *
  */
 
-#include "../../include/votca/tools/application.h"
-#include "../../include/votca/tools/globals.h"
-#include "../../include/votca/tools/property.h"
-#include "../../include/votca/tools/propertyiomanipulator.h"
-#include "../../include/votca/tools/version.h"
+// Standard includes
+#include <iostream>
+
+// Third party includes
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
-#include <iostream>
+
+// Local VOTCA includes
+#include "votca/tools/application.h"
+#include "votca/tools/globals.h"
+#include "votca/tools/property.h"
+#include "votca/tools/propertyiomanipulator.h"
+#include "votca/tools/version.h"
 
 using namespace std;
 using namespace votca::tools;
 namespace po = boost::program_options;
 
-class VotcaProperty : public Application {
+class VotcaProperty final : public Application {
 
  public:
-  VotcaProperty();
-  ~VotcaProperty() override;
+  VotcaProperty() = default;
+  ~VotcaProperty() = default;
 
-  string ProgramName() override { return "votca_property"; }
+  string ProgramName() { return "votca_property"; }
 
-  void HelpText(ostream& out) override {
-    out << "Helper for parsing XML files";
-  }
+  void HelpText(ostream& out) { out << "Helper for parsing XML files"; }
 
-  void Initialize() override {
+  void Initialize() {
 
     format = "XML";
     level = 1;
@@ -51,12 +54,12 @@ class VotcaProperty : public Application {
         "level", po::value<votca::Index>(), "output from this level ");
   };
 
-  bool EvaluateOptions() override {
+  bool EvaluateOptions() {
     CheckRequired("file", "Missing XML file");
     return true;
   };
 
-  void Run() override {
+  void Run() {
 
     file = _op_vm["file"].as<string>();
 
@@ -73,7 +76,6 @@ class VotcaProperty : public Application {
       map<string, PropertyIOManipulator*> _mformat;
       _mformat["XML"] = &XML;
       _mformat["TXT"] = &TXT;
-      _mformat["TEX"] = &TEX;
       _mformat["HLP"] = &HLP;
       p.LoadFromXML(file);
 
@@ -97,10 +99,6 @@ class VotcaProperty : public Application {
   string format;
   votca::Index level;
 };
-
-VotcaProperty::VotcaProperty(void) = default;
-
-VotcaProperty::~VotcaProperty(void) = default;
 
 int main(int argc, char** argv) {
   VotcaProperty vp;

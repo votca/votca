@@ -18,11 +18,6 @@
 #ifndef __VOTCA_TOOLS_VOTCA_CONFIG_H
 #define __VOTCA_TOOLS_VOTCA_CONFIG_H
 
-/* OpenMP */
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
-
 /* Linear algebra packages */
 #cmakedefine MKL_FOUND
 
@@ -31,5 +26,8 @@
 
 /* Version number of package */
 #define TOOLS_VERSION "@PROJECT_VERSION@"
+
+/* Contact address of package */
+#define TOOLS_BUGREPORT "@PROJECT_CONTACT@"
 
 #endif  // __VOTCA_TOOLS_VOTCA_CONFIG_H

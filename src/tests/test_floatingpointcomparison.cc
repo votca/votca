@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,12 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE floatingpointcomparison_test
-#include "../../include/votca/tools/floatingpointcomparison.h"
+
+// Third party includes
 #include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/floatingpointcomparison.h"
 
 using namespace std;
 using namespace votca::tools;

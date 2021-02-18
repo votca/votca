@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@
 #ifndef VOTCA_TOOLS_UNITCONVERTER_H
 #define VOTCA_TOOLS_UNITCONVERTER_H
 
-#include <iostream>
+// Standard includes
 #include <map>
+
 namespace votca {
 namespace tools {
 
@@ -87,8 +88,8 @@ enum MolarForceUnit {
 class UnitConverter {
  private:
   /// All distances with respect to Ang
-  constexpr double getDistanceValue_(const DistanceUnit& enum_type) const
-      noexcept {
+  constexpr double getDistanceValue_(
+      const DistanceUnit& enum_type) const noexcept {
     switch (enum_type) {
       case DistanceUnit::meters:
         return 1E-10;
@@ -160,8 +161,8 @@ class UnitConverter {
   }
 
   // All molar energies in terms of eV_per_mole
-  constexpr double getMolarEnergyValue_(const MolarEnergyUnit& enum_type) const
-      noexcept {
+  constexpr double getMolarEnergyValue_(
+      const MolarEnergyUnit& enum_type) const noexcept {
     switch (enum_type) {
       case MolarEnergyUnit::kilojoules_per_mole:
         return 1.602176634E-22;
@@ -188,8 +189,8 @@ class UnitConverter {
   }
 
   /// All velocities in terms of nanometers per picosecond
-  constexpr double getVelocityValue_(const VelocityUnit& enum_type) const
-      noexcept {
+  constexpr double getVelocityValue_(
+      const VelocityUnit& enum_type) const noexcept {
     switch (enum_type) {
       case VelocityUnit::nanometers_per_picosecond:
         return 1.0;
@@ -224,8 +225,8 @@ class UnitConverter {
   }
 
   /// Default force unit is the kilojoules per mole nanometer
-  constexpr double getMolarForceValue_(const MolarForceUnit& enum_type) const
-      noexcept {
+  constexpr double getMolarForceValue_(
+      const MolarForceUnit& enum_type) const noexcept {
     switch (enum_type) {
       case MolarForceUnit::kilocalories_per_mole_angstrom:
         return convert(MolarEnergyUnit::kilojoules_per_mole,
@@ -253,32 +254,32 @@ class UnitConverter {
                            const DistanceUnit& to) const noexcept {
     return getDistanceValue_(to) / getDistanceValue_(from);
   }
-  constexpr double convert(const TimeUnit& from, const TimeUnit& to) const
-      noexcept {
+  constexpr double convert(const TimeUnit& from,
+                           const TimeUnit& to) const noexcept {
     return getTimeValue_(to) / getTimeValue_(from);
   }
-  constexpr double convert(const MassUnit& from, const MassUnit& to) const
-      noexcept {
+  constexpr double convert(const MassUnit& from,
+                           const MassUnit& to) const noexcept {
     return getMassValue_(to) / getMassValue_(from);
   }
-  constexpr double convert(const EnergyUnit& from, const EnergyUnit& to) const
-      noexcept {
+  constexpr double convert(const EnergyUnit& from,
+                           const EnergyUnit& to) const noexcept {
     return getEnergyValue_(to) / getEnergyValue_(from);
   }
   constexpr double convert(const MolarEnergyUnit& from,
                            const MolarEnergyUnit& to) const noexcept {
     return getMolarEnergyValue_(to) / getMolarEnergyValue_(from);
   }
-  constexpr double convert(const ChargeUnit& from, const ChargeUnit& to) const
-      noexcept {
+  constexpr double convert(const ChargeUnit& from,
+                           const ChargeUnit& to) const noexcept {
     return getChargeValue_(to) / getChargeValue_(from);
   }
   constexpr double convert(const VelocityUnit& from,
                            const VelocityUnit& to) const noexcept {
     return getVelocityValue_(to) / getVelocityValue_(from);
   }
-  constexpr double convert(const ForceUnit& from, const ForceUnit& to) const
-      noexcept {
+  constexpr double convert(const ForceUnit& from,
+                           const ForceUnit& to) const noexcept {
     return (getForceValue_(to)) / (getForceValue_(from));
   }
   constexpr double convert(const MolarForceUnit& from,

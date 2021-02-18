@@ -16,14 +16,16 @@
  * limitations under the License.
  *
  */
+
+// Standard includes
 #include <list>
 
-#include "../../include/votca/tools/graph.h"
-#include "../../include/votca/tools/graph_bf_visitor.h"
-#include "../../include/votca/tools/graph_df_visitor.h"
-#include "../../include/votca/tools/graphalgorithm.h"
-//#include "../../include/votca/tools/graphmemoryvisitor.h"
-#include "../../include/votca/tools/graphvisitor.h"
+// Local VOTCA includes
+#include "votca/tools/graph.h"
+#include "votca/tools/graph_bf_visitor.h"
+#include "votca/tools/graph_df_visitor.h"
+#include "votca/tools/graphalgorithm.h"
+#include "votca/tools/graphvisitor.h"
 
 using namespace std;
 

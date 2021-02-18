@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,11 @@
  *
  */
 
-#include "../../include/votca/tools/elements.h"
+// Third party includes
 #include <boost/algorithm/string.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/elements.h"
 
 namespace votca {
 namespace tools {
@@ -193,11 +196,11 @@ std::pair<std::string, double> Elements::findShortNameOfElementClosestInMass_(
     _filled_Mass = true;
   }
   std::string eleShort = "H";
-  double diff = std::abs(mass - _Mass[eleShort]);
+  double diff = std::fabs(mass - _Mass[eleShort]);
   for (const auto& ele_pr : _Mass) {
-    if (abs(ele_pr.second - mass) < diff) {
+    if (std::fabs(ele_pr.second - mass) < diff) {
       eleShort = ele_pr.first;
-      diff = abs(ele_pr.second - mass);
+      diff = std::fabs(ele_pr.second - mass);
     }
   }
   return std::pair<std::string, double>(eleShort, diff);

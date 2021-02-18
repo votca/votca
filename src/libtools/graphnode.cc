@@ -17,16 +17,20 @@
  *
  */
 
-#include "../../include/votca/tools/graphnode.h"
-#include <iostream>
-/*#include <algorithm>
-#include <boost/lexical_cast.hpp>
+// Standard includes
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
-*/
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/graphnode.h"
+
 namespace votca {
 namespace tools {
 

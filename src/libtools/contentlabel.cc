@@ -17,36 +17,37 @@
  *
  */
 
-#include <iostream>
-
-#include "votca/tools/contentlabel.h"
-#include "votca/tools/types.h"
-
-#include <boost/lexical_cast.hpp>
-
+// Standard includes
 #include <algorithm>
 #include <functional>
 #include <iomanip>
+#include <iostream>
 #include <string>
 #include <typeinfo>
 #include <unordered_map>
 #include <vector>
 
-using namespace std;
+// Third party includes
+#include <boost/lexical_cast.hpp>
+
+// Local VOTCA includes
+#include "votca/tools/contentlabel.h"
+#include "votca/tools/types.h"
+
 using namespace boost;
 
 namespace votca {
 namespace tools {
 
-static size_t generateHash(vector<ContentLabel::KeyValType> labels) {
-  string flat_label = "";
+static size_t generateHash(std::vector<ContentLabel::KeyValType> labels) {
+  std::string flat_label = "";
   for (auto key_val_type : labels) {
     for (auto val : key_val_type) {
       // for ( size_t ind = 0; ind < ContentLabel::arr_len; ++ind ){
       flat_label.append(val);
     }
   }
-  return hash<std::string>{}(flat_label);
+  return std::hash<std::string>{}(flat_label);
 }
 
 static bool stringsEqual(const std::string& str1, const std::string& str2) {
@@ -71,16 +72,16 @@ static void checkString_(const std::string& key) {
   }
 }
 
-static string sig_fig_(double val, Index sf) {
-  return ([val](Index number_of_sig_figs) -> string {
-    stringstream lStream;
-    lStream << setprecision(int(number_of_sig_figs)) << val;
+static std::string sig_fig_(double val, Index sf) {
+  return ([val](Index number_of_sig_figs) -> std::string {
+      std::stringstream lStream;
+    lStream << std::setprecision(int(number_of_sig_figs)) << val;
     return lStream.str();
   })(sf);
 }
 
-static string convertToString_(
-    const unordered_map<string, boost::any>::iterator it) {
+static std::string convertToString_(
+    const std::unordered_map<std::string, boost::any>::iterator it) {
   if (it->second.type() == typeid(double)) {
     double val = boost::any_cast<double>(it->second);
     return sig_fig_(val, 8);
@@ -94,7 +95,7 @@ static string convertToString_(
     return lexical_cast<std::string>(val);
   }
   std::string error_msg = "Unable to compile attribute label for type ";
-  error_msg += string(it->second.type().name()) + " currently not supported";
+  error_msg += std::string(it->second.type().name()) + " currently not supported";
   throw std::runtime_error(error_msg);
 }
 
@@ -132,7 +133,7 @@ static vector<string> buildKeys_(const unordered_map<string, boost::any> vals) {
   vector<std::string> keys;
   for (auto key_t : keys_temp) {
     auto it = vals.find(key);
-    string key;
+    std::string key;
     key.append(key_t);
     key.append("=");
     keys.push_back(key);
@@ -162,7 +163,7 @@ static vector<string> buildValues_(
 void ContentLabel::initLabels_(
     std::unordered_map<std::string, boost::any> values) {
   // Sort the keys alphabetically
-  vector<string> keys_temp;
+  std::vector<std::string> keys_temp;
   for (auto it : values) {
     keys_temp.push_back(it.first);
   }
@@ -199,7 +200,7 @@ bool ContentLabel::containsBranch_() const {
   return false;
 }
 
-ContentLabel::ContentLabel(std::unordered_map<string, boost::any> values) {
+ContentLabel::ContentLabel(std::unordered_map<std::string, boost::any> values) {
   initLabels_(values);
 }
 
