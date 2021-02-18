@@ -27,6 +27,9 @@
 #include <unordered_map>
 #include <vector>
 
+// Third party includes
+#include <boost/container/stable_vector.hpp>
+
 // VOTCA includes
 #include <votca/tools/types.h>
 
@@ -45,7 +48,7 @@ namespace csg {
 
 class Interaction;
 
-using MoleculeContainer = std::vector<Molecule>;
+using MoleculeContainer = boost::container::stable_vector<Molecule>;
 using BeadContainer = std::vector<Bead *>;
 using ResidueContainer = std::vector<Residue *>;
 using InteractionContainer = std::vector<Interaction *>;
