@@ -196,8 +196,7 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
       segments[segname]->AddMoleculeId(mol.getId());
     }
 
-    Index IdOffset =
-        DetermineAtomNumOffset(mol.get(), MolToAtomIds[mol.getName()]);
+    Index IdOffset = DetermineAtomNumOffset(&mol, MolToAtomIds[mol.getName()]);
     for (const csg::Bead* bead : mol.Beads()) {
       Segment* seg =
           segments[MolToSegMap[mol.getName()][bead->getId() - IdOffset]];
