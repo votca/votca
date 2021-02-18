@@ -14,7 +14,7 @@ Version 2022-dev
 -  switch NBList to unique_ptr (#659)
 -  switch csgapplication worker to unique_ptr (#660)
 -  remove use of new with splines in csg_fmatch (#662)
--  switched memory management of residues to unique_ptr (#655)
+-  switched memory management of residues using stable_vectors (#655)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================

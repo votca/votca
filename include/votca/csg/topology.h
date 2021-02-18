@@ -27,6 +27,9 @@
 #include <unordered_map>
 #include <vector>
 
+// Third party includes
+#include <boost/container/stable_vector.hpp>
+
 // VOTCA includes
 #include <votca/tools/types.h>
 
@@ -47,7 +50,7 @@ class Interaction;
 
 using MoleculeContainer = std::vector<Molecule *>;
 using BeadContainer = std::vector<Bead *>;
-using ResidueContainer = std::vector<Residue>;
+using ResidueContainer = boost::container::stable_vector<Residue>;
 using InteractionContainer = std::vector<Interaction *>;
 
 /**
