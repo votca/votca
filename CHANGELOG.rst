@@ -13,6 +13,9 @@ Version 2022-dev
 -  switch boundary conditions to unique_ptr (#654)
 -  switch NBList to unique_ptr (#659)
 -  switch csgapplication worker to unique_ptr (#660)
+-  remove use of new with splines in csg_fmatch (#662)
+-  update boost test floating point comparison header (#663)
+-  switch mutex to unique_ptr (#664)
 -  standardize header formatting (#661)
 
 Version 2021-rc.2 (released XX.01.21)
