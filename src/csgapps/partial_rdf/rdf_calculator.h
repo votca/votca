@@ -20,6 +20,7 @@
 
 // Standard includes
 #include <cmath>
+#include <memory>
 
 // Third party includes
 #include <boost/numeric/ublas/io.hpp>
@@ -133,9 +134,9 @@ class RDFCalculator {
   std::vector<Property *> _nonbonded;
 
   /// std::map ineteractionm-name to interaction
-  std::map<std::string, interaction_t *> _interactions;
+  std::map<std::string, std::unique_ptr<interaction_t>> _interactions;
   /// std::map group-name to group
-  std::map<std::string, group_t *> _groups;
+  std::map<std::string, std::unique_ptr<group_t>> _groups;
 
   /// create a new interaction entry based on given options
   interaction_t *AddInteraction(Property *p);
