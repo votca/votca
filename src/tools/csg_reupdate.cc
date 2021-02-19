@@ -15,8 +15,7 @@
  *
  */
 
-#include "csg_reupdate.h"
-#include "../../include/votca/csg/nblistgrid.h"
+// Standard includes
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -24,11 +23,16 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/linalg.h>
-/*
- *
- */
+
+// Local VOTCA includes
+#include "votca/csg/nblistgrid.h"
+
+// Local private VOTCA includes
+#include "csg_reupdate.h"
 
 using namespace std;
 

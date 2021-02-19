@@ -364,15 +364,13 @@ void CsgApplication::Run(void) {
       for (size_t thread = 0; thread < _myWorkers.size(); thread++) {
 
         if (SynchronizeThreads()) {
-          tools::Mutex *myMutexIn = new tools::Mutex;
-          _threadsMutexesIn.push_back(myMutexIn);
+          _threadsMutexesIn.push_back(std::make_unique<tools::Mutex>());
           // lock each worker for input
-          myMutexIn->Lock();
+          _threadsMutexesIn.back()->Lock();
 
-          tools::Mutex *myMutexOut = new tools::Mutex;
-          _threadsMutexesOut.push_back(myMutexOut);
+          _threadsMutexesOut.push_back(std::make_unique<tools::Mutex>());
           // lock each worker for output
-          myMutexOut->Lock();
+          _threadsMutexesOut.back()->Lock();
         }
       }
       for (auto &_myWorker : _myWorkers) {
@@ -393,10 +391,6 @@ void CsgApplication::Run(void) {
           MergeWorker(myWorker.get());
           mergeMutex.Unlock();
         }
-      }
-      for (size_t thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
-        delete _threadsMutexesIn[thread];
-        delete _threadsMutexesOut[thread];
       }
 
     } else {

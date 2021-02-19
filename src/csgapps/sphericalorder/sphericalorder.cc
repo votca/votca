@@ -15,17 +15,23 @@
  *
  */
 
-#include <boost/program_options.hpp>
-#include <boost/tokenizer.hpp>
+// Standard includes
 #include <cmath>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 
-#include <cstdlib>
-#include <votca/csg/cgengine.h>
-#include <votca/csg/csgapplication.h>
+// Third party includes
+#include <boost/program_options.hpp>
+#include <boost/tokenizer.hpp>
+
+// VOTCA includes
 #include <votca/tools/average.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include <votca/csg/cgengine.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 using namespace votca::csg;
