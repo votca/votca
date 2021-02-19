@@ -429,7 +429,7 @@ class Topology {
 
   std::map<std::string, Index> _interaction_groups;
 
-  std::map<std::string, std::list<Interaction *>> _interactions_by_group;
+  std::map<std::string, std::vector<Interaction *>> _interactions_by_group;
 
   double _time = 0.0;
   Index _step = 0;
