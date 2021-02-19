@@ -18,18 +18,25 @@
 #ifndef VOTCA_CSG_RDF_CALCULATOR_H
 #define VOTCA_CSG_RDF_CALCULATOR_H
 
+// Standard includes
+#include <cmath>
+#include <memory>
+
+// Third party includes
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
-#include <cmath>
-#include <memory>
-#include <votca/csg/csgapplication.h>
+
+// VOTCA includes
 #include <votca/tools/average.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include <votca/csg/csgapplication.h>
 
 namespace votca {
 namespace csg {

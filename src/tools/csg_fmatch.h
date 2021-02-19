@@ -18,10 +18,13 @@
 #ifndef VOTCA_CSG_CSG_FMATCH_H
 #define VOTCA_CSG_CSG_FMATCH_H
 
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/trajectoryreader.h"
+// VOTCA includes
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/trajectoryreader.h"
 
 using namespace votca::csg;
 

@@ -15,14 +15,18 @@
  *
  */
 
+// Standard includes
 #include <cstdlib>
 #include <memory>
 
+// VOTCA includes
+#include <votca/tools/histogramnew.h>
+
+// Local VOTCA includes
 #include <votca/csg/beadlist.h>
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/nblist.h>
 #include <votca/csg/nblistgrid.h>
-#include <votca/tools/histogramnew.h>
 
 using namespace std;
 using namespace votca::csg;
