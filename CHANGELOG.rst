@@ -17,7 +17,8 @@ Version 2022-dev
 -  update boost test floating point comparison header (#663)
 -  switch mutex to unique_ptr (#664)
 -  standardize header formatting (#661)
--  Store beads directly in vector (#656)
+-  clean up memory management in partial_rdf (#665)
+-  store beads directly in vector (#656)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
