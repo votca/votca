@@ -161,9 +161,9 @@ class CsgApplication : public tools::Application {
   tools::Mutex _traj_readerMutex;
 
   /// \brief stores Mutexes used to impose order for input
-  std::vector<tools::Mutex *> _threadsMutexesIn;
+  std::vector<std::unique_ptr<tools::Mutex>> _threadsMutexesIn;
   /// \brief stores Mutexes used to impose order for output
-  std::vector<tools::Mutex *> _threadsMutexesOut;
+  std::vector<std::unique_ptr<tools::Mutex>> _threadsMutexesOut;
   std::unique_ptr<TrajectoryReader> _traj_reader;
 };
 
