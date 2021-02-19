@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,15 @@
  *
  */
 
-#include <boost/program_options.hpp>
-#include <boost/tokenizer.hpp>
+// Standard includes
 #include <fstream>
 #include <iostream>
+
+// Third party includes
+#include <boost/program_options.hpp>
+#include <boost/tokenizer.hpp>
+
+// Local VOTCA includes
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/version.h>

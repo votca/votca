@@ -16,6 +16,7 @@ Version 2022-dev
 -  remove use of new with splines in csg_fmatch (#662)
 -  update boost test floating point comparison header (#663)
 -  switch mutex to unique_ptr (#664)
+-  standardize header formatting (#661)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
