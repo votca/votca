@@ -37,19 +37,19 @@ using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(graph_test)
 
-BOOST_AUTO_TEST_CASE(constructors_test) { Graph g; }
+  BOOST_AUTO_TEST_CASE(constructors_test) { Graph g; }
 
-/**
- * \brief Test on isolated nodes method
- *
- * The isolated nodes method is meant to grab any nodes that have no edges, as
- * in they exist as islands within the context of the graph.
- */
-BOOST_AUTO_TEST_CASE(isolatednodes_test) {
-
-  {
-
+  /**
+   * \brief Test on isolated nodes method
+   *
+   * The isolated nodes method is meant to grab any nodes that have no edges, as
+   * in they exist as islands within the context of the graph.
+   */
+  BOOST_AUTO_TEST_CASE(isolatednodes_test1) {
     /// Here gn is a single node as is thus isolated
+    //
+    //  gn
+    //
     vector<Edge> vec_ed;
     GraphNode gn;
     unordered_map<votca::Index, GraphNode> m_gn;
@@ -60,138 +60,150 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     BOOST_CHECK_EQUAL(iso_gn.at(0).first, 0);
   }
 
-  {
+BOOST_AUTO_TEST_CASE(isolatednodes_test2) {
+  /// In this test case gn, gn1 and gn2 are all islands no edges have been
+  /// specified to connect them. Calling getIsolatedNodes() thus returns all
+  /// three of them.
+  //
+  //   gn   gn1   gn2
+  //
+  vector<Edge> vec_ed;
+  GraphNode gn;
+  GraphNode gn1;
+  GraphNode gn2;
 
-    /// In this test case gn, gn1 and gn2 are all islands no edges have been
-    /// specified to connect them. Calling getIsolatedNodes() thus returns all
-    /// three of them.
-    vector<Edge> vec_ed;
-    GraphNode gn;
-    GraphNode gn1;
-    GraphNode gn2;
+  unordered_map<votca::Index, GraphNode> m_gn;
+  m_gn[0] = gn;
+  m_gn[1] = gn1;
+  m_gn[2] = gn2;
 
-    unordered_map<votca::Index, GraphNode> m_gn;
-    m_gn[0] = gn;
-    m_gn[1] = gn1;
-    m_gn[2] = gn2;
+  Graph g(vec_ed, m_gn);
+  auto iso_gn = g.getIsolatedNodes();
+  bool node0 = false;
+  bool node1 = false;
+  bool node2 = false;
 
-    Graph g(vec_ed, m_gn);
-    auto iso_gn = g.getIsolatedNodes();
-    bool node0 = false;
-    bool node1 = false;
-    bool node2 = false;
-
-    for (auto n_pr : iso_gn) {
-      if (n_pr.first == 0) {
-        node0 = true;
-      }
-      if (n_pr.first == 1) {
-        node1 = true;
-      }
-      if (n_pr.first == 2) {
-        node2 = true;
-      }
+  for (auto n_pr : iso_gn) {
+    if (n_pr.first == 0) {
+      node0 = true;
     }
-
-    BOOST_CHECK(node0);
-    BOOST_CHECK(node1);
-    BOOST_CHECK(node2);
-  }
-
-  {
-
-    /// In this test both node 0 and 1 share an edge and are no longer isolated
-    /// however node 2 is isolated, a call getIsolatedNodes() only returns node
-    /// 2
-    vector<Edge> vec_ed;
-    Edge ed(0, 1);
-    vec_ed.push_back(ed);
-
-    GraphNode gn;
-    GraphNode gn1;
-    GraphNode gn2;
-
-    unordered_map<votca::Index, GraphNode> m_gn;
-    m_gn[0] = gn;
-    m_gn[1] = gn1;
-    m_gn[2] = gn2;
-
-    Graph g(vec_ed, m_gn);
-    auto iso_gn = g.getIsolatedNodes();
-    bool node0 = false;
-    bool node1 = false;
-    bool node2 = false;
-
-    for (auto n_pr : iso_gn) {
-      if (n_pr.first == 0) {
-        node0 = true;
-      }
-      if (n_pr.first == 1) {
-        node1 = true;
-      }
-      if (n_pr.first == 2) {
-        node2 = true;
-      }
+    if (n_pr.first == 1) {
+      node1 = true;
     }
-
-    BOOST_CHECK(!node0);
-    BOOST_CHECK(!node1);
-    BOOST_CHECK(node2);
+    if (n_pr.first == 2) {
+      node2 = true;
+    }
   }
 
-  /// In this test the junctions of the graph are returned, the junctions
-  /// consist of vertices of three or more connections
-  {
-
-    /// In this test both node 0 and 1 share an edge there are no junctions
-    Edge ed(0, 1);
-    vector<Edge> vec_ed{ed};
-
-    GraphNode gn;
-    GraphNode gn1;
-    GraphNode gn2;
-
-    unordered_map<votca::Index, GraphNode> m_gn;
-    m_gn[0] = gn;
-    m_gn[1] = gn1;
-    m_gn[2] = gn2;
-
-    Graph g(vec_ed, m_gn);
-    auto junctions = g.getJunctions();
-
-    BOOST_CHECK(!junctions.size());
-  }
-
-  /// In this test the junctions of the graph are returned, the junctions
-  /// consist of vertices of three or more connections
-  {
-
-    /// In this test both node 0 and 1 share an edge there are no junctions
-    Edge ed(0, 2);
-    Edge ed2(1, 2);
-    Edge ed3(3, 2);
-    vector<Edge> vec_ed{ed, ed2, ed3};
-
-    GraphNode gn;
-    GraphNode gn1;
-    GraphNode gn2;
-    GraphNode gn3;
-
-    unordered_map<votca::Index, GraphNode> m_gn;
-    m_gn[0] = gn;
-    m_gn[1] = gn1;
-    m_gn[2] = gn2;
-    m_gn[3] = gn3;
-
-    Graph g(vec_ed, m_gn);
-    auto junctions = g.getJunctions();
-
-    BOOST_CHECK_EQUAL(junctions.size(), 1);
-    BOOST_CHECK_EQUAL(junctions.at(0), 2);
-  }
+  BOOST_CHECK(node0);
+  BOOST_CHECK(node1);
+  BOOST_CHECK(node2);
 }
 
-BOOST_AUTO_TEST_CASE(junctions_test) {
+BOOST_AUTO_TEST_CASE(isolatednodes_test3) {
+
+  /// In this test both node 0 and 1 share an edge and are no longer isolated
+  /// however node 2 is isolated, a call getIsolatedNodes() only returns node
+  /// 2
+  //
+  //   gn - - gn1    gn2
+  //
+  vector<Edge> vec_ed;
+  Edge ed(0, 1);
+  vec_ed.push_back(ed);
+
+  GraphNode gn;
+  GraphNode gn1;
+  GraphNode gn2;
+
+  unordered_map<votca::Index, GraphNode> m_gn;
+  m_gn[0] = gn;
+  m_gn[1] = gn1;
+  m_gn[2] = gn2;
+
+  Graph g(vec_ed, m_gn);
+  auto iso_gn = g.getIsolatedNodes();
+  bool node0 = false;
+  bool node1 = false;
+  bool node2 = false;
+
+  for (auto n_pr : iso_gn) {
+    if (n_pr.first == 0) {
+      node0 = true;
+    }
+    if (n_pr.first == 1) {
+      node1 = true;
+    }
+    if (n_pr.first == 2) {
+      node2 = true;
+    }
+  }
+
+  BOOST_CHECK(!node0);
+  BOOST_CHECK(!node1);
+  BOOST_CHECK(node2);
+}
+
+BOOST_AUTO_TEST_CASE(get_junctions_test) {
+  /// In this test the junctions of the graph are returned, the junctions
+  /// consist of vertices of three or more connections
+  /// In this test both node 0 and 1 share an edge there are no junctions
+  ///
+  /// gn - - gn1   gn2
+  ///
+  Edge ed(0, 1);
+  vector<Edge> vec_ed{ed};
+
+  GraphNode gn;
+  GraphNode gn1;
+  GraphNode gn2;
+
+  unordered_map<votca::Index, GraphNode> m_gn;
+  m_gn[0] = gn;
+  m_gn[1] = gn1;
+  m_gn[2] = gn2;
+
+  Graph g(vec_ed, m_gn);
+  auto junctions = g.getJunctions();
+
+  BOOST_CHECK_EQUAL(junctions.size(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_junctions_test2) {
+  /// In this test the junctions of the graph are returned, the junctions
+  /// consist of vertices of three or more connections
+
+  /// In this test both node 0, 1 and 3 are all connected to node 2 
+  ///
+  ///  gn - - gn2 - - gn3
+  ///          |
+  ///         gn1
+  ///
+  Edge ed(0, 2);
+  Edge ed2(1, 2);
+  Edge ed3(3, 2);
+  vector<Edge> vec_ed{ed, ed2, ed3};
+
+  GraphNode gn;
+  GraphNode gn1;
+  GraphNode gn2;
+  GraphNode gn3;
+
+  unordered_map<votca::Index, GraphNode> m_gn;
+  m_gn[0] = gn;
+  m_gn[1] = gn1;
+  m_gn[2] = gn2;
+  m_gn[3] = gn3;
+
+  Graph g(vec_ed, m_gn);
+  auto junctions = g.getJunctions();
+
+  BOOST_CHECK_EQUAL(junctions.size(), 1);
+  BOOST_CHECK_EQUAL(junctions.at(0), 2);
+}
+}
+
+BOOST_AUTO_TEST_CASE(junctions_test3) {
 
   unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
   unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
@@ -554,61 +566,59 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
  * information.
  */
 BOOST_AUTO_TEST_CASE(id_test) {
-  {
-    unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
-    unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
-    unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
-    unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
-    unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
+  unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+  unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+  unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+  unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+  unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
-    vector<Edge> vec_ed;
-    Edge ed(0, 1);
-    Edge ed1(1, 2);
-    Edge ed2(2, 3);
-    Edge ed3(2, 4);
+  vector<Edge> vec_ed;
+  Edge ed(0, 1);
+  Edge ed1(1, 2);
+  Edge ed2(2, 3);
+  Edge ed3(2, 4);
 
-    vec_ed.push_back(ed);
-    vec_ed.push_back(ed1);
-    vec_ed.push_back(ed2);
-    vec_ed.push_back(ed3);
+  vec_ed.push_back(ed);
+  vec_ed.push_back(ed1);
+  vec_ed.push_back(ed2);
+  vec_ed.push_back(ed3);
 
-    GraphNode gn(int_vals0);
-    GraphNode gn1(int_vals1);
-    GraphNode gn2(int_vals2);
-    GraphNode gn3(int_vals3);
-    GraphNode gn4(int_vals4);
+  GraphNode gn(int_vals0);
+  GraphNode gn1(int_vals1);
+  GraphNode gn2(int_vals2);
+  GraphNode gn3(int_vals3);
+  GraphNode gn4(int_vals4);
 
-    unordered_map<votca::Index, GraphNode> m_gn;
-    /// Here the graph nodes are assigne to different vertices
-    m_gn[4] = gn;
-    m_gn[1] = gn1;
-    m_gn[3] = gn2;
-    m_gn[2] = gn3;
-    m_gn[0] = gn4;
+  unordered_map<votca::Index, GraphNode> m_gn;
+  /// Here the graph nodes are assigne to different vertices
+  m_gn[4] = gn;
+  m_gn[1] = gn1;
+  m_gn[3] = gn2;
+  m_gn[2] = gn3;
+  m_gn[0] = gn4;
 
-    Graph g(vec_ed, m_gn);
+  Graph g(vec_ed, m_gn);
 
-    /// Here is what the string id of the graph should look like
-    string str = "a=0;b=1;c=2;d=3;e=4;";
-    string s_id = g.getContentLabel().get();
-    BOOST_CHECK_EQUAL(s_id, str);
+  /// Here is what the string id of the graph should look like
+  string str = "a=0;b=1;c=2;d=3;e=4;";
+  string s_id = g.getContentLabel().get();
+  BOOST_CHECK_EQUAL(s_id, str);
 
-    Graph g2(vec_ed, m_gn);
-    BOOST_CHECK(g == g2);
+  Graph g2(vec_ed, m_gn);
+  BOOST_CHECK(g == g2);
 
-    /// Here we switch up which vertices contain which graphnodes and show that
-    /// the graph id is the same. This is because the vertex ids are not used to
-    /// create the id and neither the edges. Only the contens in the graphnodes
-    m_gn[1] = gn3;
-    m_gn[2] = gn1;
-    Graph g3(vec_ed, m_gn);
-    BOOST_CHECK(g == g3);
+  /// Here we switch up which vertices contain which graphnodes and show that
+  /// the graph id is the same. This is because the vertex ids are not used to
+  /// create the id and neither the edges. Only the contens in the graphnodes
+  m_gn[1] = gn3;
+  m_gn[2] = gn1;
+  Graph g3(vec_ed, m_gn);
+  BOOST_CHECK(g == g3);
 
-    GraphNode gn5(int_vals3);
-    m_gn[5] = gn5;
-    Graph g4(vec_ed, m_gn);
-    BOOST_CHECK(g != g4);
-  }
+  GraphNode gn5(int_vals3);
+  m_gn[5] = gn5;
+  Graph g4(vec_ed, m_gn);
+  BOOST_CHECK(g != g4);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
