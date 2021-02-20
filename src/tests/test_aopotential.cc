@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -287,8 +287,8 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
   AOECP ecp;
   ecp.FillPotential(dftbasis, ecpbasis);
 
-  Eigen::MatrixXd ecp_ref = Eigen::MatrixXd::Zero(dftbasissize, dftbasissize);
-
+  Eigen::MatrixXd ecp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/aopotential/ecp_ref_l.mm");
   bool check_ecp = ecp.Matrix().isApprox(ecp_ref, 0.00001);
   BOOST_CHECK_EQUAL(check_ecp, 1);
   if (!check_ecp) {
@@ -315,9 +315,6 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
     std::cout << planewave_ref << endl;
     std::cout << "planewave real" << endl;
     std::cout << planewave.Matrix().real() << endl;
-    std::cout << "planewave real" << endl;
-    std::cout << planewave.Matrix().real().array() / planewave_ref.array()
-              << endl;
   }
   libint2::finalize();
 }
