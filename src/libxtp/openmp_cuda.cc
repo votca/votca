@@ -48,11 +48,11 @@ OpenMP_CUDA::OpenMP_CUDA() {
 #endif
 }
 
-void OpenMP_CUDA::setOperators(
-    [[maybe_unused]] const std::vector<Eigen::MatrixXd>& tensor,
-    const Eigen::MatrixXd& rightoperator) {
-  rOP_ = rightoperator;
 #ifdef USE_CUDA
+void OpenMP_CUDA::setOperators(const std::vector<Eigen::MatrixXd>& tensor,
+                               const Eigen::MatrixXd& rightoperator) {
+  rOP_ = rightoperator;
+
 #pragma omp parallel for num_threads(gpus_.size())
   for (Index i = 0; i < Index(gpus_.size()); i++) {
     GPU_data& gpu = gpus_[i];
@@ -62,8 +62,13 @@ void OpenMP_CUDA::setOperators(
     gpu.push_back(rightoperator);
     gpu.push_back(head.rows(), rightoperator.cols());
   }
-#endif
 }
+#else
+void OpenMP_CUDA::setOperators(const std::vector<Eigen::MatrixXd>&,
+                               const Eigen::MatrixXd& rightoperator) {
+  rOP_ = rightoperator;
+}
+#endif
 
 #ifdef USE_CUDA
 bool OpenMP_CUDA::isInVector(Index Id, const std::vector<GPU_data>& vec) {
@@ -99,14 +104,10 @@ Index OpenMP_CUDA::getNumberThreads() const {
  * The Cuda device knows to which memory address it needs to copy back the
  * result. see: https://docs.nvidia.com/cuda/cublas/index.html#thread-safety2
  */
-void OpenMP_CUDA::MultiplyRight(Eigen::MatrixXd& tensor,
-                                [[maybe_unused]] Index OpenmpThread) {
 
-  // All the GPU communication happens through a single thread that reuses
-  // all memory allocated in the GPU and it's dynamically load-balanced by
-  // OpenMP. The rest of the threads use the default CPU matrix
-  // multiplication
 #ifdef USE_CUDA
+void OpenMP_CUDA::MultiplyRight(Eigen::MatrixXd& tensor, Index OpenmpThread) {
+
   Index threadid = getParentThreadId(OpenmpThread);
   if (isGPUthread(threadid)) {
     GPU_data& gpu = gpus_[getLocalThreadId(threadid)];
@@ -117,11 +118,14 @@ void OpenMP_CUDA::MultiplyRight(Eigen::MatrixXd& tensor,
   } else {
     tensor *= rOP_();
   }
-#else
-  tensor *= rOP_();
-#endif
   return;
 }
+
+#else
+void OpenMP_CUDA::MultiplyRight(Eigen::MatrixXd& tensor, Index) {
+  tensor *= rOP_();
+}
+#endif
 
 void OpenMP_CUDA::setOperators(const Eigen::MatrixXd& leftoperator,
                                const Eigen::MatrixXd& rightoperator) {
@@ -142,9 +146,10 @@ void OpenMP_CUDA::setOperators(const Eigen::MatrixXd& leftoperator,
 #endif
 }
 
-void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix,
-                                    [[maybe_unused]] Index OpenmpThread) {
 #ifdef USE_CUDA
+void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix,
+                                    Index OpenmpThread) {
+
   Index threadid = getParentThreadId(OpenmpThread);
   if (isGPUthread(threadid)) {
     GPU_data& gpu = gpus_[getLocalThreadId(threadid)];
@@ -156,17 +161,20 @@ void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix,
   } else {
     matrix = lOP_() * matrix * rOP_();
   }
-#else
-  matrix = lOP_() * matrix * rOP_();
-#endif
   return;
 }
+#else
+void OpenMP_CUDA::MultiplyLeftRight(Eigen::MatrixXd& matrix, Index) {
+  matrix = lOP_() * matrix * rOP_();
+}
+#endif
 
-void OpenMP_CUDA::createTemporaries([[maybe_unused]] Index rows, Index cols) {
+#ifdef USE_CUDA
+void OpenMP_CUDA::createTemporaries(Index rows, Index cols) {
 
   std::for_each(cpus_.begin(), cpus_.end(),
                 [&](CPU_data& d) { d.InitializeReduce(cols, cols); });
-#ifdef USE_CUDA
+
 #pragma omp parallel for num_threads(gpus_.size())
   for (Index i = 0; i < Index(gpus_.size()); i++) {
     GPU_data& gpu = gpus_[i];
@@ -177,8 +185,13 @@ void OpenMP_CUDA::createTemporaries([[maybe_unused]] Index rows, Index cols) {
     gpu.push_back(cols, cols);
     gpu.temp.back()->setZero();
   }
-#endif
 }
+#else
+void OpenMP_CUDA::createTemporaries(Index, Index cols) {
+  std::for_each(cpus_.begin(), cpus_.end(),
+                [&](CPU_data& d) { d.InitializeReduce(cols, cols); });
+}
+#endif
 
 void OpenMP_CUDA::PushMatrix(const Eigen::MatrixXd& matrix,
                              Index OpenmpThread) {
@@ -220,11 +233,10 @@ void OpenMP_CUDA::A_TDA(const Eigen::VectorXd& vec, Index OpenmpThread) {
 #endif
 }
 
+#ifdef USE_CUDA
 void OpenMP_CUDA::createTemporaries(const Eigen::VectorXd& vec,
-                                    const Eigen::MatrixXd& input,
-                                    [[maybe_unused]] Index rows1,
-                                    [[maybe_unused]] Index rows2,
-                                    [[maybe_unused]] Index cols) {
+                                    const Eigen::MatrixXd& input, Index rows1,
+                                    Index rows2, Index cols) {
 
   std::for_each(cpus_.begin(), cpus_.end(), [&](CPU_data& d) {
     d.InitializeReduce(input.rows(), input.cols());
@@ -233,7 +245,6 @@ void OpenMP_CUDA::createTemporaries(const Eigen::VectorXd& vec,
 
   rOP_ = input;
   vec_ = vec;
-#ifdef USE_CUDA
 #pragma omp parallel for num_threads(gpus_.size())
   for (Index i = 0; i < Index(gpus_.size()); i++) {
     GPU_data& gpu = gpus_[i];
@@ -247,8 +258,21 @@ void OpenMP_CUDA::createTemporaries(const Eigen::VectorXd& vec,
     gpu.push_back(input.rows(), input.cols());
     gpu.temp.back()->setZero();
   }
-#endif
 }
+#else
+void OpenMP_CUDA::createTemporaries(const Eigen::VectorXd& vec,
+                                    const Eigen::MatrixXd& input, Index, Index,
+                                    Index) {
+
+  std::for_each(cpus_.begin(), cpus_.end(), [&](CPU_data& d) {
+    d.InitializeReduce(input.rows(), input.cols());
+    d.InitializeVec(input.rows());
+  });
+
+  rOP_ = input;
+  vec_ = vec;
+}
+#endif
 
 void OpenMP_CUDA::PrepareMatrix1(Eigen::MatrixXd& mat, Index OpenmpThread) {
   Index parentid = getParentThreadId(OpenmpThread);
@@ -360,9 +384,9 @@ void OpenMP_CUDA::MultiplyRow(Index row, Index OpenmpThread) {
 #endif
 }
 
-void OpenMP_CUDA::createAdditionalTemporaries([[maybe_unused]] Index rows,
-                                              [[maybe_unused]] Index cols) {
 #ifdef USE_CUDA
+void OpenMP_CUDA::createAdditionalTemporaries(Index rows, Index cols) {
+
 #pragma omp parallel for num_threads(gpus_.size())
   for (Index i = 0; i < Index(gpus_.size()); i++) {
     GPU_data& gpu = gpus_[i];
@@ -371,8 +395,10 @@ void OpenMP_CUDA::createAdditionalTemporaries([[maybe_unused]] Index rows,
     gpu.resize(3, rows, cols);
     gpu.resize(4, rows, rows);
   }
-#endif
 }
+#else
+void OpenMP_CUDA::createAdditionalTemporaries(Index, Index) { ; }
+#endif
 
 void OpenMP_CUDA::PushMatrix1(const Eigen::MatrixXd& mat, Index OpenmpThread) {
 
