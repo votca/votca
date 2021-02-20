@@ -377,7 +377,7 @@ void DavidsonSolver::restart(const DavidsonSolver::RitzEigenPair &rep,
     proj.AV *= rep.U.leftCols(size_restart);  // corresponds to replacing
                                               // V with q.leftCols
   } else {
-    Eigen::Matrix orthonormal =
+    Eigen::MatrixXd orthonormal =
         DavidsonSolver::qr(rep.U.leftCols(size_restart));
     newV.leftCols(size_restart) =
         proj.V.leftCols(proj.V.cols() - newvectors) * orthonormal;
