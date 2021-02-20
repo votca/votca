@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -37,19 +37,15 @@
 namespace votca {
 namespace xtp {
 
-class AOShell;
 class AOBasis;
+class AOShell;
 class SetupCptTable;
 
 class AOGaussianPrimitive {
-  friend AOShell;
 
  public:
-  AOGaussianPrimitive(const GaussianPrimitive& gaussian,
-                      const AOShell& aoshell);
-
-  AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
-                      const AOShell& aoshell);
+  AOGaussianPrimitive(const GaussianPrimitive& gaussian);
+  friend class AOShell;
 
   struct data {
     Index atomid;
@@ -63,9 +59,7 @@ class AOGaussianPrimitive {
     double scale;
   };
 
-  AOGaussianPrimitive(const AOGaussianPrimitive::data& d,
-                      const AOShell& aoshell)
-      : _aoshell(aoshell) {
+  AOGaussianPrimitive(const AOGaussianPrimitive::data& d) {
     _decay = d.decay;
     _contraction = d.contraction;
     _powfactor = CalcPowFactor(_decay);
@@ -73,12 +67,11 @@ class AOGaussianPrimitive {
 
   static void SetupCptTable(CptTable& table);
 
-  void WriteData(data& d) const;
+  void WriteData(data& d, const AOShell& s) const;
 
   double getPowfactor() const { return _powfactor; }
   double getDecay() const { return _decay; }
   double getContraction() const { return _contraction; }
-  const AOShell& getShell() const { return _aoshell; }
 
  private:
   static double CalcPowFactor(double decay) {
@@ -86,7 +79,6 @@ class AOGaussianPrimitive {
   }
   double _decay;
   double _contraction;
-  const AOShell& _aoshell;
   double _powfactor;  // used in evalspace to speed up DFT
 };
 
@@ -101,14 +93,11 @@ class AOShell {
 
   AOShell(const AOGaussianPrimitive::data& d) {
     _l = static_cast<L>(d.l);
-    _scale = d.scale;
     _startIndex = d.startindex;
     _atomindex = d.atomid;
     _pos = Eigen::Vector3d(d.x, d.y, d.z);
-    _gaussians.push_back(AOGaussianPrimitive(d, *this));
+    _gaussians.push_back(AOGaussianPrimitive(d));
   }
-
-  AOShell(const AOShell& shell);
 
   L getL() const { return _l; }
   Index getNumFunc() const { return NumFuncShell(_l); };
@@ -122,7 +111,6 @@ class AOShell {
   libint2::Shell LibintShell() const;
 
   const Eigen::Vector3d& getPos() const { return _pos; }
-  double getScale() const { return _scale; }
 
   void CalcMinDecay() {
     _mindecay = std::numeric_limits<double>::max();
@@ -146,7 +134,7 @@ class AOShell {
 
   // adds a Gaussian
   void addGaussian(const GaussianPrimitive& gaussian) {
-    _gaussians.push_back(AOGaussianPrimitive(gaussian, *this));
+    _gaussians.push_back(AOGaussianPrimitive(gaussian));
     return;
   }
 
@@ -157,7 +145,6 @@ class AOShell {
  private:
   L _l;
   // scaling factor
-  double _scale;
   // number of functions in shell
   double _mindecay;
   Index _startIndex;

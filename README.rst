@@ -22,7 +22,7 @@ and a slack channel:
 
 `Slack <https://votca.slack.com/messages/C7XVBE9EG/?>`__
 
-We have no manual for the moment but we have a complete tutorial here:
+We have no manual at the moment but we have a complete tutorial here:
 
 `Tutorial <https://github.com/votca/xtp-tutorials>`__
 
