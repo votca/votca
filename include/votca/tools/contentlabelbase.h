@@ -75,6 +75,9 @@ class BaseContentLabel {
   bool isEmpty() const noexcept { return labels_.size() == 0; }
   void clear();
 
+  // Reverse the order of the sequence
+  virtual void reverse();
+
   std::string get(const LabelType& label_type = LabelType::verbose) const;
 
   bool operator!=(const BaseContentLabel& label) const;

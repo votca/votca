@@ -142,9 +142,60 @@ BOOST_AUTO_TEST_CASE(contentlabel_append) {
 
   string full_str_label =
       "Age=32,Height=1.54,Name=Joe;Age=21,Height=1.64,Name=Randy;";
+ 
+  size_t num_equals = 6; 
+  std::cout << "Length of label " << label.getCharLen() << std::endl;
+  std::cout << "Expected size " << (full_str_label.length()-num_equals) << std::endl;
+  BOOST_CHECK(label.getCharLen() == full_str_label.length()-num_equals);
+
   string brief_str_label = "32,1.54,Joe;21,1.64,Randy;";
   BOOST_CHECK(full_str_label.compare(label.get()) == 0);
   BOOST_CHECK(brief_str_label.compare(label.get(LabelType::concise)) == 0);
+}
+
+BOOST_AUTO_TEST_CASE(contentlabel_make_branch) {
+
+  /*
+   * This test demonstrates what happens when a content label is turned into
+   * a branch 
+   *
+   * Age=32,Height=1.54,Name=Joe;Age=21,Height=1.64,Name=Randy;
+   * 
+   * Should become
+   *
+   * {{Age=32,Height=1.54,Name=Joe}{Age=21,Height=1.64,Name=Randy}}
+   */ 
+  unordered_map<string, boost::any> contents;
+  contents["Name"] = string("Joe");
+  contents["Age"] = int(32);
+  contents["Height"] = double(1.54);
+  ContentLabel label(contents);
+
+  unordered_map<string, boost::any> contents2;
+  contents2["Name"] = string("Randy");
+  contents2["Age"] = int(21);
+  contents2["Height"] = double(1.64);
+
+  ContentLabel label2(contents2);
+
+  label.append(label2);
+  label.makeBranchLabel();
+
+  string full_str_label =
+      "{{Age=32,Height=1.54,Name=Joe}{Age=21,Height=1.64,Name=Randy}}";
+
+  size_t num_equals = 6; 
+  BOOST_CHECK(label.getCharLen() == full_str_label.length()-num_equals);
+
+  std::cout << "Length of label " << label.getCharLen() << std::endl;
+  std::cout << "Expected size " << (full_str_label.length()-num_equals) << std::endl;
+  string brief_str_label = "{{32,1.54,Joe}{21,1.64,Randy}}";
+  std::cout << "Label after making into a branch" << std::endl;
+  std::cout << label.get() << std::endl;
+  std::cout << full_str_label << std::endl;
+  BOOST_CHECK(full_str_label.compare(label.get()) == 0);
+  BOOST_CHECK(brief_str_label.compare(label.get(LabelType::concise)) == 0);
+  BOOST_CHECK(label.isBranch());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

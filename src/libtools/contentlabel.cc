@@ -80,7 +80,7 @@ static vector<string> buildValues_(
 bool ContentLabel::isBranch_(std::list<std::vector<KeyValType>> labels) const {
   if (labels.size() == 0) return false;
   if (labels.front().size() == 0) return false;
-  if (labels.front().front()[0] == "{") return true;
+  if (labels.front().front()[0] == "{{") return true;
   return false;
 }
 
@@ -137,15 +137,32 @@ void ContentLabel::makeBranchLabel() {
   std::cout << "calling contains branch" << std::endl;
   if (isBranch()) return;
   std::cout << "calling labels size" << std::endl;
-  if (labels_.size() == 0) return;
+  if (labels_.size() == 0) {
+    std::vector<KeyValType> val;
+    val.resize(1);
+    labels_.push_back(val);
+  }
   std::cout << "Assigning branch brackets" << std::endl;
 
   if( labels_.size() == 1 ) {
-    labels_.front().front()[3] = "{{";
+    if( labels_.front().size() == 0 ) {
+      KeyValType val;
+      labels_.front().push_back(val);
+    }
+    labels_.front().front()[0] = "{{";
     // One of the } braces will replace a ;
     labels_.back().back()[3] = "}}";
     label_char_len_ += 3;
   } else {
+
+    if( labels_.front().size() == 0 ) {
+      KeyValType val;
+      labels_.front().push_back(val);
+    }
+    if( labels_.back().size() == 0 ) {
+      KeyValType val;
+      labels_.back().push_back(val);
+    }
     labels_.front().back()[3] = "}";
     labels_.back().at(0)[0] = "{";
     labels_.front().at(0)[0] = "{{";
@@ -165,6 +182,30 @@ void ContentLabel::makeBranchLabel() {
   }
   std::cout << "Done" << std::endl;
 
+}
+
+void ContentLabel::reverse() {
+  if( isBranch() ) {
+    // The order is important do not change
+    auto iter = labels_.end();
+    --iter;
+    iter->back()[3] = "}"; 
+    if ( labels_.size() > 3) {
+      --iter;
+      iter->back()[3] = ";"; 
+    }
+    iter = labels_.begin();
+    iter->front()[0] = "{";
+    iter->back()[3] = "}}";
+    if ( labels_.size() > 3) {
+      ++iter;
+      iter->back()[3] = ""; 
+    }
+    iter = labels_.end();
+    --iter;
+    iter->front()[0] = "{{"; 
+  }
+  BaseContentLabel::reverse();
 }
 
 void ContentLabel::calcCharLen_() {

@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
   Index branch_id = 0;
   BranchSequenceLeaf sequenceleaf(branch_id, branch);
 }
-/*
+
 BOOST_AUTO_TEST_CASE(canOrder_isDangling_makeBranchEnd) {
   vector<ReducedEdge> vec_ed;
   ReducedEdge edge(std::vector<Index>{0, 1, 2});
@@ -634,5 +634,5 @@ BOOST_AUTO_TEST_CASE(getCanonicalVertexSequence) {
     // in what order do we add the sequence nodes and how should they be
     // linked
   }
-}*/
+}
 BOOST_AUTO_TEST_SUITE_END()

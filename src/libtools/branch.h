@@ -64,7 +64,7 @@ namespace tools {
 class Branch {
  private:
   std::vector<Index> vertex_sequence_;
-  std::unordered_map<Index, ContentLabel> node_labels_;
+  ContentLabel label_;
   Level level_;
 
   void init_(const std::vector<Index>& branch_vertices,
@@ -81,8 +81,9 @@ class Branch {
     // Add the content label of the node
     for (Index& vert : vertex_sequence_) {
       GraphNode gn = graph.getNode(vert);
-      node_labels_[vert] = gn.getContentLabel();
+      label_.append(gn.getContentLabel());
     }
+    label_.makeBranchLabel();
   }
 
  public:
@@ -110,20 +111,16 @@ class Branch {
 
   void reverseSequence() {
     std::reverse(vertex_sequence_.begin(), vertex_sequence_.end());
+    label_.reverse();
+    label_.makeBranchLabel();
   }
 
   Index getSource() const { return vertex_sequence_.front(); }
   Index getTerminal() const { return vertex_sequence_.back(); }
 
   ContentLabel getContentLabel() const noexcept {
-    ContentLabel label;
-    std::cout << "getting content label from branch" << std::endl;
-    for (const Index& vert : vertex_sequence_) {
-      label.append(node_labels_.at(vert));
-    }
     std::cout << "Making label branch label" << std::endl;
-    label.makeBranchLabel();
-    return label;
+    return label_;
   }
 
   std::vector<Index> getSequence() const noexcept { return vertex_sequence_; }

@@ -247,6 +247,10 @@ void BaseContentLabel::append(BaseContentLabel label) {
   append_(label.labels_);
 }
 
+void BaseContentLabel::reverse() {
+  labels_.reverse();
+}
+
 bool BaseContentLabel::operator!=(const BaseContentLabel& label) const {
   if (label.hash_ != hash_) return true;
   if (label.label_char_len_ != label_char_len_) return true;

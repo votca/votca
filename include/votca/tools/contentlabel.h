@@ -71,6 +71,7 @@ class ContentLabel : public BaseContentLabel {
    */
   void makeBranchLabel();
 
+  virtual void reverse() final;
 };
 
 }  // namespace tools
