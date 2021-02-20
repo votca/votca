@@ -62,7 +62,6 @@ void DavidsonSolver::checkOptions(Index operator_size) {
         << " == Warning : If problems appear, try asking for less than "
         << Index(operator_size / 10) << " eigenvalues" << flush;
   }
-
 }
 
 void DavidsonSolver::printOptions(Index operator_size) const {
@@ -110,7 +109,6 @@ void DavidsonSolver::set_matrix_type(std::string mt) {
     throw std::runtime_error(mt + " is not a valid Davidson matrix type");
   }
 }
-
 
 void DavidsonSolver::set_correction(std::string method) {
   if (method == "DPR") {
@@ -255,29 +253,29 @@ bool DavidsonSolver::checkConvergence(const DavidsonSolver::RitzEigenPair &rep,
   return converged;
 }
 
-void DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
-                                      DavidsonSolver::ProjectedSpace &proj) {
+Index DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
+                                       DavidsonSolver::ProjectedSpace &proj) {
 
-  Index nupdate = 0;
+  Index nupdate =
+      std::count(proj.root_converged.begin(), proj.root_converged.end(), false);    
+  Index oldsize = proj.V.cols();
+  proj.V.conservativeResize(Eigen::NoChange, oldsize + nupdate);
+
+Index k=0;
   for (Index j = 0; j < proj.size_update; j++) {
-
     // skip the roots that have already converged
     if (proj.root_converged[j]) {
       continue;
     }
-
-    nupdate++;
-
     // residue vector
     Eigen::VectorXd w =
         computeCorrectionVector(rep.q.col(j), rep.lambda(j), rep.res.col(j));
-
     // append the correction vector to the search space
-    proj.V.conservativeResize(Eigen::NoChange, proj.V.cols() + 1);
-    proj.V.rightCols<1>() = w.normalized();
+    proj.V.col(oldsize + k) = w.normalized();
+    k++;
   }
-
   proj.V = orthogonalize(proj.V, nupdate);
+  return nupdate;
 }
 
 Eigen::MatrixXd DavidsonSolver::extract_vectors(const Eigen::MatrixXd &V,
@@ -335,13 +333,12 @@ Eigen::VectorXd DavidsonSolver::olsen(const Eigen::VectorXd &r,
 }
 
 Eigen::MatrixXd DavidsonSolver::orthogonalize(const Eigen::MatrixXd &V,
-                                              Index nupdate) {
-      return DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
+                                              Index nupdate) const {
+  return DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
 }
 
-
 Eigen::MatrixXd DavidsonSolver::gramschmidt(const Eigen::MatrixXd &A,
-                                            Index nstart) {
+                                            Index nstart) const {
   Eigen::MatrixXd Q = A;
   for (Index j = nstart; j < A.cols(); ++j) {
     Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
@@ -350,22 +347,44 @@ Eigen::MatrixXd DavidsonSolver::gramschmidt(const Eigen::MatrixXd &A,
     // http://stoppels.blog/posts/orthogonalization-performance
     Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * Q.col(j));
     if (Q.col(j).norm() <= 1E-12 * A.col(j).norm()) {
-      _info = Eigen::ComputationInfo::NumericalIssue;
-      throw std::runtime_error(
-          "Linear dependencies in Gram-Schmidt.");
+      //_info = Eigen::ComputationInfo::NumericalIssue;
+      throw std::runtime_error("Linear dependencies in Gram-Schmidt.");
     }
     Q.col(j).normalize();
   }
+  std::cout << "QT*Q\n" << Q.transpose() * Q << std::endl;
   return Q;
+}
+
+Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {
+
+  Index nrows = A.rows();
+  Index ncols = A.cols();
+  ncols = std::min(nrows, ncols);
+  Eigen::MatrixXd I = Eigen::MatrixXd::Identity(nrows, ncols);
+  Eigen::HouseholderQR<Eigen::MatrixXd> qr(A);
+  return qr.householderQ() * I;
 }
 
 void DavidsonSolver::restart(const DavidsonSolver::RitzEigenPair &rep,
                              DavidsonSolver::ProjectedSpace &proj,
-                             Index size_restart) const {
-  proj.V = rep.q.leftCols(size_restart);
-  proj.AV = proj.AV * rep.U.leftCols(size_restart);  // corresponds to replacing
-                                                     // V with q.leftCols
-  proj.T = proj.V.transpose() * proj.AV;
+                             Index size_restart, Index newvectors) const {
+  Eigen::MatrixXd newV=Eigen::MatrixXd(proj.V.rows(),newvectors+size_restart);
+  newV.rightCols(newvectors)=proj.V.rightCols(newvectors);
+  if (_matrix_type == MATRIX_TYPE::SYMM) {
+    
+    newV.leftCols(size_restart) = rep.q.leftCols(size_restart);
+    proj.AV *= rep.U.leftCols(size_restart);  // corresponds to replacing
+                                                 // V with q.leftCols
+  } else {
+    Eigen::Matrix orthonormal = DavidsonSolver::qr(rep.U.leftCols(size_restart));
+    std::cout<<orthonormal.rows()<<"x"<<orthonormal.cols()<<std::endl;
+    std::cout<<proj.V.rows()<<"x"<<proj.V.cols()<<std::endl;
+    newV.leftCols(size_restart) = proj.V.leftCols(proj.V.cols()-newvectors) * orthonormal;
+    proj.AV *= orthonormal;
+  }
+  proj.T = newV.leftCols(size_restart).transpose() * proj.AV;
+  proj.V=newV;
 }
 
 void DavidsonSolver::storeConvergedData(
