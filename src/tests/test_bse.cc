@@ -108,90 +108,90 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.use_Hqp_offdiag = false;
   bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
 
-  // bse.Solve_singlets(orbitals);
-  // std::vector<QMFragment<BSE_Population> > fragments;
-  // bse.Analyze_singlets(fragments, orbitals);
-  // bool check_se_nooffdiag =
-  //     se_nooffdiag_ref.isApprox(orbitals.BSESinglets().eigenvalues(), 0.001);
-  // if (!check_se_nooffdiag) {
-  //   cout << "Singlets energy without Hqp offdiag" << endl;
-  //   cout << orbitals.BSESinglets().eigenvalues() << endl;
-  //   cout << "Singlets energy without Hqp offdiag ref" << endl;
-  //   cout << se_nooffdiag_ref << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_se_nooffdiag, true);
-  // Eigen::MatrixXd projection_nooffdiag =
-  //     spsi_nooffdiag_ref.transpose() * orbitals.BSESinglets().eigenvectors();
-  // Eigen::VectorXd norms_nooffdiag = projection_nooffdiag.colwise().norm();
-  // bool check_spsi_nooffdiag = norms_nooffdiag.isApproxToConstant(1, 1e-5);
-  // if (!check_spsi_nooffdiag) {
-  //   cout << "Norms" << norms_nooffdiag << endl;
-  //   cout << "Singlets psi without Hqp offdiag" << endl;
-  //   cout << orbitals.BSESinglets().eigenvectors() << endl;
-  //   cout << "Singlets psi without Hqp offdiag ref" << endl;
-  //   cout << spsi_nooffdiag_ref << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_spsi_nooffdiag, true);
+  bse.Solve_singlets(orbitals);
+  std::vector<QMFragment<BSE_Population> > fragments;
+  bse.Analyze_singlets(fragments, orbitals);
+  bool check_se_nooffdiag =
+      se_nooffdiag_ref.isApprox(orbitals.BSESinglets().eigenvalues(), 0.001);
+  if (!check_se_nooffdiag) {
+    cout << "Singlets energy without Hqp offdiag" << endl;
+    cout << orbitals.BSESinglets().eigenvalues() << endl;
+    cout << "Singlets energy without Hqp offdiag ref" << endl;
+    cout << se_nooffdiag_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_se_nooffdiag, true);
+  Eigen::MatrixXd projection_nooffdiag =
+      spsi_nooffdiag_ref.transpose() * orbitals.BSESinglets().eigenvectors();
+  Eigen::VectorXd norms_nooffdiag = projection_nooffdiag.colwise().norm();
+  bool check_spsi_nooffdiag = norms_nooffdiag.isApproxToConstant(1, 1e-5);
+  if (!check_spsi_nooffdiag) {
+    cout << "Norms" << norms_nooffdiag << endl;
+    cout << "Singlets psi without Hqp offdiag" << endl;
+    cout << orbitals.BSESinglets().eigenvectors() << endl;
+    cout << "Singlets psi without Hqp offdiag ref" << endl;
+    cout << spsi_nooffdiag_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_spsi_nooffdiag, true);
 
-  // // with Hqp offdiags
-  // opt.use_Hqp_offdiag = true;
-  // bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
+  // with Hqp offdiags
+  opt.use_Hqp_offdiag = true;
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
 
-  // // reference energy
-  // Eigen::VectorXd se_ref = votca::tools::EigenIO_MatrixMarket::ReadVector(
-  //     std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_tda.mm");
-  // // reference coefficients
-  // Eigen::MatrixXd spsi_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  //     std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_psi_tda.mm");
+  // reference energy
+  Eigen::VectorXd se_ref = votca::tools::EigenIO_MatrixMarket::ReadVector(
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_tda.mm");
+  // reference coefficients
+  Eigen::MatrixXd spsi_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_psi_tda.mm");
 
-  // // Hqp unchanged
-  // bool check_hqp_unchanged = Hqp.isApprox(bse.getHqp(), 0.001);
-  // if (!check_hqp_unchanged) {
-  //   cout << "unchanged Hqp" << endl;
-  //   cout << bse.getHqp() << endl;
-  //   cout << "unchanged Hqp ref" << endl;
-  //   cout << Hqp << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_hqp_unchanged, true);
+  // Hqp unchanged
+  bool check_hqp_unchanged = Hqp.isApprox(bse.getHqp(), 0.001);
+  if (!check_hqp_unchanged) {
+    cout << "unchanged Hqp" << endl;
+    cout << bse.getHqp() << endl;
+    cout << "unchanged Hqp ref" << endl;
+    cout << Hqp << endl;
+  }
+  BOOST_CHECK_EQUAL(check_hqp_unchanged, true);
 
-  // bse.Solve_singlets(orbitals);
-  // bool check_se = se_ref.isApprox(orbitals.BSESinglets().eigenvalues(), 0.001);
-  // if (!check_se) {
-  //   cout << "Singlets energy" << endl;
-  //   cout << orbitals.BSESinglets().eigenvalues() << endl;
-  //   cout << "Singlets energy ref" << endl;
-  //   cout << se_ref << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_se, true);
-  // Eigen::MatrixXd projection =
-  //     spsi_ref.transpose() * orbitals.BSESinglets().eigenvectors();
-  // Eigen::VectorXd norms = projection.colwise().norm();
-  // bool check_spsi = norms.isApproxToConstant(1, 1e-5);
-  // if (!check_spsi) {
-  //   cout << "Norms" << norms << endl;
-  //   cout << "Singlets psi" << endl;
-  //   cout << orbitals.BSESinglets().eigenvectors() << endl;
-  //   cout << "Singlets psi ref" << endl;
-  //   cout << spsi_ref << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_spsi, true);
+  bse.Solve_singlets(orbitals);
+  bool check_se = se_ref.isApprox(orbitals.BSESinglets().eigenvalues(), 0.001);
+  if (!check_se) {
+    cout << "Singlets energy" << endl;
+    cout << orbitals.BSESinglets().eigenvalues() << endl;
+    cout << "Singlets energy ref" << endl;
+    cout << se_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_se, true);
+  Eigen::MatrixXd projection =
+      spsi_ref.transpose() * orbitals.BSESinglets().eigenvectors();
+  Eigen::VectorXd norms = projection.colwise().norm();
+  bool check_spsi = norms.isApproxToConstant(1, 1e-5);
+  if (!check_spsi) {
+    cout << "Norms" << norms << endl;
+    cout << "Singlets psi" << endl;
+    cout << orbitals.BSESinglets().eigenvectors() << endl;
+    cout << "Singlets psi ref" << endl;
+    cout << spsi_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_spsi, true);
 
-  // // singlets dynamical screening TDA
-  // bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Singlet),
-  //                                     orbitals);
+  // singlets dynamical screening TDA
+  bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Singlet),
+                                      orbitals);
 
-  // Eigen::VectorXd se_dyn_tda_ref =
-  //     votca::tools::EigenIO_MatrixMarket::ReadVector(
-  //         std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_dynamic_TDA.mm");
-  // bool check_se_dyn_tda =
-  //     se_dyn_tda_ref.isApprox(orbitals.BSESinglets_dynamic(), 0.005);
-  // if (!check_se_dyn_tda) {
-  //   cout << "Singlet energies dyn TDA" << endl;
-  //   cout << orbitals.BSESinglets_dynamic() << endl;
-  //   cout << "Singlet energies dyn TDA ref" << endl;
-  //   cout << se_dyn_tda_ref << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_se_dyn_tda, true);
+  Eigen::VectorXd se_dyn_tda_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/singlets_dynamic_TDA.mm");
+  bool check_se_dyn_tda =
+      se_dyn_tda_ref.isApprox(orbitals.BSESinglets_dynamic(), 0.005);
+  if (!check_se_dyn_tda) {
+    cout << "Singlet energies dyn TDA" << endl;
+    cout << orbitals.BSESinglets_dynamic() << endl;
+    cout << "Singlet energies dyn TDA ref" << endl;
+    cout << se_dyn_tda_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_se_dyn_tda, true);
 
   ////////////////////////////////////////////////////////
   // BTDA Singlet Davidson
@@ -216,8 +216,8 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
   orbitals.setTDAApprox(false);
   bse.Solve_singlets(orbitals);
-  //bse.Analyze_singlets(fragments, orbitals);
-  std::cout<<log;
+  bse.Analyze_singlets(fragments, orbitals);
+  // std::cout<<log;
 
   orbitals.BSESinglets().eigenvectors().colwise().normalize();
   orbitals.BSESinglets().eigenvectors2().colwise().normalize();
@@ -237,9 +237,9 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_se_btda, true);
 
-  Eigen::MatrixXd projection = spsi_ref_btda_normalized.transpose() *
+  projection = spsi_ref_btda_normalized.transpose() *
                orbitals.BSESinglets().eigenvectors();
-  Eigen::VectorXd norms = projection.colwise().norm();
+  norms = projection.colwise().norm();
   bool check_spsi_btda = norms.isApproxToConstant(1, 1e-5);
 
   if (!check_spsi_btda) {
@@ -284,98 +284,98 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_se_dyn_full, true);
 
-  // ////////////////////////////////////////////////////////
-  // // TDA Triplet davidson
-  // ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  // TDA Triplet davidson
+  ////////////////////////////////////////////////////////
 
-  // // reference energy
-  // opt.nmax = 1;
-  // Eigen::VectorXd te_ref = votca::tools::EigenIO_MatrixMarket::ReadVector(
-  //     std::string(XTP_TEST_DATA_FOLDER) + "/bse/triplets_tda.mm");
+  // reference energy
+  opt.nmax = 1;
+  Eigen::VectorXd te_ref = votca::tools::EigenIO_MatrixMarket::ReadVector(
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/triplets_tda.mm");
 
-  // // reference coefficients
-  // Eigen::MatrixXd tpsi_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  //     std::string(XTP_TEST_DATA_FOLDER) + "/bse/triplets_psi_tda.mm");
+  // reference coefficients
+  Eigen::MatrixXd tpsi_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/triplets_psi_tda.mm");
 
-  // orbitals.setTDAApprox(true);
-  // opt.useTDA = true;
+  orbitals.setTDAApprox(true);
+  opt.useTDA = true;
 
-  // bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
-  // bse.Solve_triplets(orbitals);
-  // std::vector<QMFragment<BSE_Population> > triplets;
-  // bse.Analyze_triplets(triplets, orbitals);
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
+  bse.Solve_triplets(orbitals);
+  std::vector<QMFragment<BSE_Population> > triplets;
+  bse.Analyze_triplets(triplets, orbitals);
 
-  // bool check_te = te_ref.isApprox(orbitals.BSETriplets().eigenvalues(), 0.001);
-  // if (!check_te) {
-  //   cout << "Triplet energy" << endl;
-  //   cout << orbitals.BSETriplets().eigenvalues() << endl;
-  //   cout << "Triplet energy ref" << endl;
-  //   cout << te_ref << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_te, true);
+  bool check_te = te_ref.isApprox(orbitals.BSETriplets().eigenvalues(), 0.001);
+  if (!check_te) {
+    cout << "Triplet energy" << endl;
+    cout << orbitals.BSETriplets().eigenvalues() << endl;
+    cout << "Triplet energy ref" << endl;
+    cout << te_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_te, true);
 
-  // bool check_tpsi = tpsi_ref.cwiseAbs2().isApprox(
-  //     orbitals.BSETriplets().eigenvectors().cwiseAbs2(), 0.1);
-  // check_tpsi = true;
-  // if (!check_tpsi) {
-  //   cout << "Triplet psi" << endl;
-  //   cout << orbitals.BSETriplets().eigenvectors() << endl;
-  //   cout << "Triplet ref" << endl;
-  //   cout << tpsi_ref << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_tpsi, true);
+  bool check_tpsi = tpsi_ref.cwiseAbs2().isApprox(
+      orbitals.BSETriplets().eigenvectors().cwiseAbs2(), 0.1);
+  check_tpsi = true;
+  if (!check_tpsi) {
+    cout << "Triplet psi" << endl;
+    cout << orbitals.BSETriplets().eigenvectors() << endl;
+    cout << "Triplet ref" << endl;
+    cout << tpsi_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_tpsi, true);
 
-  // // triplets dynamical screening TDA
-  // bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Triplet),
-  //                                     orbitals);
+  // triplets dynamical screening TDA
+  bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Triplet),
+                                      orbitals);
 
-  // Eigen::VectorXd te_dyn_tda_ref =
-  //     votca::tools::EigenIO_MatrixMarket::ReadVector(
-  //         std::string(XTP_TEST_DATA_FOLDER) + "/bse/triplets_dynamic_TDA.mm");
-  // bool check_te_dyn_tda =
-  //     te_dyn_tda_ref.isApprox(orbitals.BSETriplets_dynamic(), 0.001);
-  // if (!check_te_dyn_tda) {
-  //   cout << "Triplet energies dyn TDA" << endl;
-  //   cout << orbitals.BSETriplets_dynamic() << endl;
-  //   cout << "Triplet energies dyn TDA ref" << endl;
-  //   cout << te_dyn_tda_ref << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_te_dyn_tda, true);
+  Eigen::VectorXd te_dyn_tda_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/triplets_dynamic_TDA.mm");
+  bool check_te_dyn_tda =
+      te_dyn_tda_ref.isApprox(orbitals.BSETriplets_dynamic(), 0.001);
+  if (!check_te_dyn_tda) {
+    cout << "Triplet energies dyn TDA" << endl;
+    cout << orbitals.BSETriplets_dynamic() << endl;
+    cout << "Triplet energies dyn TDA ref" << endl;
+    cout << te_dyn_tda_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_te_dyn_tda, true);
 
-  // // Cutout Hamiltonian
-  // Eigen::MatrixXd Hqp_cut_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  //     std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp_cut.mm");
-  // // Hqp cut
-  // opt.cmax = 15;
-  // opt.vmin = 1;
-  // bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
-  // bool check_hqp_cut = Hqp_cut_ref.isApprox(bse.getHqp(), 0.001);
-  // if (!check_hqp_cut) {
-  //   cout << "cut Hqp" << endl;
-  //   cout << bse.getHqp() << endl;
-  //   cout << "cut Hqp ref" << endl;
-  //   cout << Hqp_cut_ref << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_hqp_cut, true);
+  // Cutout Hamiltonian
+  Eigen::MatrixXd Hqp_cut_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp_cut.mm");
+  // Hqp cut
+  opt.cmax = 15;
+  opt.vmin = 1;
+  bse.configure(opt, orbitals.RPAInputEnergies(), Hqp);
+  bool check_hqp_cut = Hqp_cut_ref.isApprox(bse.getHqp(), 0.001);
+  if (!check_hqp_cut) {
+    cout << "cut Hqp" << endl;
+    cout << bse.getHqp() << endl;
+    cout << "cut Hqp ref" << endl;
+    cout << Hqp_cut_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_hqp_cut, true);
 
-  // // Hqp extend
-  // opt.cmax = 16;
-  // opt.vmin = 0;
-  // opt.qpmin = 1;
-  // opt.qpmax = 15;
-  // BSE bse2 = BSE(log, Mmn);
-  // bse2.configure(opt, orbitals.RPAInputEnergies(), Hqp_cut_ref);
-  // Eigen::MatrixXd Hqp_extended_ref =
-  //     votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  //         std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp_extended.mm");
-  // bool check_hqp_extended = Hqp_extended_ref.isApprox(bse2.getHqp(), 0.001);
-  // if (!check_hqp_extended) {
-  //   cout << "extended Hqp" << endl;
-  //   cout << bse2.getHqp() << endl;
-  //   cout << "extended Hqp ref" << endl;
-  //   cout << Hqp_extended_ref << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_hqp_extended, true);
+  // Hqp extend
+  opt.cmax = 16;
+  opt.vmin = 0;
+  opt.qpmin = 1;
+  opt.qpmax = 15;
+  BSE bse2 = BSE(log, Mmn);
+  bse2.configure(opt, orbitals.RPAInputEnergies(), Hqp_cut_ref);
+  Eigen::MatrixXd Hqp_extended_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/bse/Hqp_extended.mm");
+  bool check_hqp_extended = Hqp_extended_ref.isApprox(bse2.getHqp(), 0.001);
+  if (!check_hqp_extended) {
+    cout << "extended Hqp" << endl;
+    cout << bse2.getHqp() << endl;
+    cout << "extended Hqp ref" << endl;
+    cout << Hqp_extended_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_hqp_extended, true);
   libint2::finalize();
 }
 

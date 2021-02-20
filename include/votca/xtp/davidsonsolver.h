@@ -107,24 +107,15 @@ class DavidsonSolver {
         storeNotConvergedData(rep, proj.root_converged, neigen);
         break;
       }
-      Index extension_size=extendProjection(rep, proj);
+      Index extension_size = extendProjection(rep, proj);
       bool do_restart = (proj.search_space() > _max_search_space);
 
       if (do_restart) {
-        restart(rep, proj, size_initial_guess,extension_size);
+        restart(rep, proj, size_initial_guess, extension_size);
       }
-
     }
 
     printTiming(start);
-    std::cout<<((A*eigenvectors()).eval()-eigenvectors()*eigenvalues().asDiagonal()).colwise().norm()<<std::endl;
-Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(A.rows(),A.cols());
-    Eigen::MatrixXd Hmat=A*identity;
-    Eigen::EigenSolver<Eigen::MatrixXd> ups(Hmat);
-    Eigen::VectorXd values=ups.eigenvalues().real();
-      std::sort(values.data(), values.data() + values.size(),
-            [&](double i1, double i2) { return std::abs(i1) < std::abs(i2); });
-    std::cout<<values.transpose()<<std::endl;
   }
 
  private:
@@ -186,7 +177,18 @@ Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(A.rows(),A.cols());
       Index nvec = new_dim - old_dim;
       proj.AV.conservativeResize(Eigen::NoChange, new_dim);
       proj.AV.rightCols(nvec) = A * proj.V.rightCols(nvec);
-      proj.T = proj.V.transpose() * proj.AV;
+
+      proj.T.conservativeResize(new_dim, new_dim);
+      proj.T.rightCols(nvec) = proj.V.transpose() * proj.AV.rightCols(nvec);
+
+      if (_matrix_type == MATRIX_TYPE::SYMM) {
+        proj.T.bottomLeftCorner(nvec, old_dim) =
+            proj.T.topRightCorner(old_dim, nvec).transpose();
+
+      } else {
+        proj.T.bottomLeftCorner(nvec, old_dim) =
+            proj.V.rightCols(nvec).transpose() * proj.AV.leftCols(old_dim);
+      }
     }
   }
 
@@ -225,8 +227,6 @@ Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(A.rows(),A.cols());
     Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T, B,
                                                        return_eigenvectors);
     if (ges.info() != Eigen::ComputationInfo::Success) {
-      std::cerr << "A\n" << proj.T;
-      std::cerr << "B\n" << std::endl;
       throw std::runtime_error("Small generalized eigenvalue problem failed.");
     }
 
@@ -253,9 +253,6 @@ Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(A.rows(),A.cols());
           complex_pairs.emplace_back(i, -1);
         }
       }
-    }
-    for (const auto &pair : complex_pairs) {
-      std::cout << pair.first << " " << pair.second << std::endl;
     }
 
     for (const auto &pair : complex_pairs) {
@@ -323,8 +320,8 @@ Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(A.rows(),A.cols());
   Eigen::MatrixXd extract_vectors(const Eigen::MatrixXd &V,
                                   const ArrayXl &idx) const;
 
-  Eigen::MatrixXd orthogonalize(const Eigen::MatrixXd &V, Index nupdate)const;
-  Eigen::MatrixXd gramschmidt(const Eigen::MatrixXd &A, Index nstart)const;
+  Eigen::MatrixXd orthogonalize(const Eigen::MatrixXd &V, Index nupdate) const;
+  Eigen::MatrixXd gramschmidt(const Eigen::MatrixXd &A, Index nstart) const;
 
   Eigen::VectorXd computeCorrectionVector(const Eigen::VectorXd &qj,
                                           double lambdaj,

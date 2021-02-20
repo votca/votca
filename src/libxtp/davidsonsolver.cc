@@ -257,11 +257,11 @@ Index DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
                                        DavidsonSolver::ProjectedSpace &proj) {
 
   Index nupdate =
-      std::count(proj.root_converged.begin(), proj.root_converged.end(), false);    
+      std::count(proj.root_converged.begin(), proj.root_converged.end(), false);
   Index oldsize = proj.V.cols();
   proj.V.conservativeResize(Eigen::NoChange, oldsize + nupdate);
 
-Index k=0;
+  Index k = 0;
   for (Index j = 0; j < proj.size_update; j++) {
     // skip the roots that have already converged
     if (proj.root_converged[j]) {
@@ -352,7 +352,6 @@ Eigen::MatrixXd DavidsonSolver::gramschmidt(const Eigen::MatrixXd &A,
     }
     Q.col(j).normalize();
   }
-  std::cout << "QT*Q\n" << Q.transpose() * Q << std::endl;
   return Q;
 }
 
@@ -369,22 +368,23 @@ Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {
 void DavidsonSolver::restart(const DavidsonSolver::RitzEigenPair &rep,
                              DavidsonSolver::ProjectedSpace &proj,
                              Index size_restart, Index newvectors) const {
-  Eigen::MatrixXd newV=Eigen::MatrixXd(proj.V.rows(),newvectors+size_restart);
-  newV.rightCols(newvectors)=proj.V.rightCols(newvectors);
+  Eigen::MatrixXd newV =
+      Eigen::MatrixXd(proj.V.rows(), newvectors + size_restart);
+  newV.rightCols(newvectors) = proj.V.rightCols(newvectors);
   if (_matrix_type == MATRIX_TYPE::SYMM) {
-    
+
     newV.leftCols(size_restart) = rep.q.leftCols(size_restart);
     proj.AV *= rep.U.leftCols(size_restart);  // corresponds to replacing
-                                                 // V with q.leftCols
+                                              // V with q.leftCols
   } else {
-    Eigen::Matrix orthonormal = DavidsonSolver::qr(rep.U.leftCols(size_restart));
-    std::cout<<orthonormal.rows()<<"x"<<orthonormal.cols()<<std::endl;
-    std::cout<<proj.V.rows()<<"x"<<proj.V.cols()<<std::endl;
-    newV.leftCols(size_restart) = proj.V.leftCols(proj.V.cols()-newvectors) * orthonormal;
+    Eigen::Matrix orthonormal =
+        DavidsonSolver::qr(rep.U.leftCols(size_restart));
+    newV.leftCols(size_restart) =
+        proj.V.leftCols(proj.V.cols() - newvectors) * orthonormal;
     proj.AV *= orthonormal;
   }
   proj.T = newV.leftCols(size_restart).transpose() * proj.AV;
-  proj.V=newV;
+  proj.V = newV;
 }
 
 void DavidsonSolver::storeConvergedData(
