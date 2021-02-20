@@ -37,28 +37,28 @@ using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(graph_test)
 
-  BOOST_AUTO_TEST_CASE(constructors_test) { Graph g; }
+BOOST_AUTO_TEST_CASE(constructors_test) { Graph g; }
 
-  /**
-   * \brief Test on isolated nodes method
-   *
-   * The isolated nodes method is meant to grab any nodes that have no edges, as
-   * in they exist as islands within the context of the graph.
-   */
-  BOOST_AUTO_TEST_CASE(isolatednodes_test1) {
-    /// Here gn is a single node as is thus isolated
-    //
-    //  gn
-    //
-    vector<Edge> vec_ed;
-    GraphNode gn;
-    unordered_map<votca::Index, GraphNode> m_gn;
-    m_gn[0] = gn;
+/**
+ * \brief Test on isolated nodes method
+ *
+ * The isolated nodes method is meant to grab any nodes that have no edges, as
+ * in they exist as islands within the context of the graph.
+ */
+BOOST_AUTO_TEST_CASE(isolatednodes_test1) {
+  /// Here gn is a single node as is thus isolated
+  //
+  //  gn
+  //
+  vector<Edge> vec_ed;
+  GraphNode gn;
+  unordered_map<votca::Index, GraphNode> m_gn;
+  m_gn[0] = gn;
 
-    Graph g(vec_ed, m_gn);
-    auto iso_gn = g.getIsolatedNodes();
-    BOOST_CHECK_EQUAL(iso_gn.at(0).first, 0);
-  }
+  Graph g(vec_ed, m_gn);
+  auto iso_gn = g.getIsolatedNodes();
+  BOOST_CHECK_EQUAL(iso_gn.at(0).first, 0);
+}
 
 BOOST_AUTO_TEST_CASE(isolatednodes_test2) {
   /// In this test case gn, gn1 and gn2 are all islands no edges have been
@@ -200,7 +200,6 @@ BOOST_AUTO_TEST_CASE(get_junctions_test2) {
 
   BOOST_CHECK_EQUAL(junctions.size(), 1);
   BOOST_CHECK_EQUAL(junctions.at(0), 2);
-}
 }
 
 BOOST_AUTO_TEST_CASE(junctions_test3) {
@@ -373,101 +372,99 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(compare_test) {
-  {
+BOOST_AUTO_TEST_CASE(compare_test1) {
 
-    unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
-    unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
-    unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
-    unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
-    unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
+  unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+  unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+  unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+  unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+  unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
-    // 0 - 1 - 2 - 3
-    //         |
-    //         4
+  // 0 - 1 - 2 - 3
+  //         |
+  //         4
 
-    vector<Edge> vec_ed;
-    Edge ed(0, 1);
-    Edge ed1(1, 2);
-    Edge ed2(2, 3);
-    Edge ed3(2, 4);
+  vector<Edge> vec_ed;
+  Edge ed(0, 1);
+  Edge ed1(1, 2);
+  Edge ed2(2, 3);
+  Edge ed3(2, 4);
 
-    vec_ed.push_back(ed);
-    vec_ed.push_back(ed1);
-    vec_ed.push_back(ed2);
-    vec_ed.push_back(ed3);
+  vec_ed.push_back(ed);
+  vec_ed.push_back(ed1);
+  vec_ed.push_back(ed2);
+  vec_ed.push_back(ed3);
 
-    GraphNode gn(int_vals0);
-    GraphNode gn1(int_vals1);
-    GraphNode gn2(int_vals2);
-    GraphNode gn3(int_vals3);
-    GraphNode gn4(int_vals4);
+  GraphNode gn(int_vals0);
+  GraphNode gn1(int_vals1);
+  GraphNode gn2(int_vals2);
+  GraphNode gn3(int_vals3);
+  GraphNode gn4(int_vals4);
 
-    unordered_map<votca::Index, GraphNode> m_gn;
-    m_gn[0] = gn;
-    m_gn[1] = gn1;
-    m_gn[2] = gn2;
-    m_gn[3] = gn3;
-    m_gn[4] = gn4;
+  unordered_map<votca::Index, GraphNode> m_gn;
+  m_gn[0] = gn;
+  m_gn[1] = gn1;
+  m_gn[2] = gn2;
+  m_gn[3] = gn3;
+  m_gn[4] = gn4;
 
-    Graph g(vec_ed, m_gn);
+  Graph g(vec_ed, m_gn);
 
-    auto vec_pr = g.getNodes();
+  auto vec_pr = g.getNodes();
 
-    sort(vec_pr.begin(), vec_pr.end(), cmpVertNodePair);
-    BOOST_CHECK_EQUAL(vec_pr.at(0).first, 0);
-    BOOST_CHECK_EQUAL(vec_pr.at(1).first, 1);
-    BOOST_CHECK_EQUAL(vec_pr.at(2).first, 2);
-    BOOST_CHECK_EQUAL(vec_pr.at(3).first, 3);
-    BOOST_CHECK_EQUAL(vec_pr.at(4).first, 4);
-  }
+  sort(vec_pr.begin(), vec_pr.end(), cmpVertNodePair);
+  BOOST_CHECK_EQUAL(vec_pr.at(0).first, 0);
+  BOOST_CHECK_EQUAL(vec_pr.at(1).first, 1);
+  BOOST_CHECK_EQUAL(vec_pr.at(2).first, 2);
+  BOOST_CHECK_EQUAL(vec_pr.at(3).first, 3);
+  BOOST_CHECK_EQUAL(vec_pr.at(4).first, 4);
+}
 
-  {
-    unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
-    unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
-    unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
-    unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
-    unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
+BOOST_AUTO_TEST_CASE(compare_test2) {
+  unordered_map<string, votca::Index> int_vals0 = {{"a", 0}};
+  unordered_map<string, votca::Index> int_vals1 = {{"b", 1}};
+  unordered_map<string, votca::Index> int_vals2 = {{"c", 2}};
+  unordered_map<string, votca::Index> int_vals3 = {{"d", 3}};
+  unordered_map<string, votca::Index> int_vals4 = {{"e", 4}};
 
-    // 0 - 1 - 2 - 3
-    //         |
-    //         4
-    vector<Edge> vec_ed;
-    Edge ed(0, 1);
-    Edge ed1(1, 2);
-    Edge ed2(2, 3);
-    Edge ed3(2, 4);
+  // 0 - 1 - 2 - 3
+  //         |
+  //         4
+  vector<Edge> vec_ed;
+  Edge ed(0, 1);
+  Edge ed1(1, 2);
+  Edge ed2(2, 3);
+  Edge ed3(2, 4);
 
-    vec_ed.push_back(ed);
-    vec_ed.push_back(ed1);
-    vec_ed.push_back(ed2);
-    vec_ed.push_back(ed3);
+  vec_ed.push_back(ed);
+  vec_ed.push_back(ed1);
+  vec_ed.push_back(ed2);
+  vec_ed.push_back(ed3);
 
-    GraphNode gn(int_vals0);
-    GraphNode gn1(int_vals1);
-    GraphNode gn2(int_vals2);
-    GraphNode gn3(int_vals3);
-    GraphNode gn4(int_vals4);
+  GraphNode gn(int_vals0);
+  GraphNode gn1(int_vals1);
+  GraphNode gn2(int_vals2);
+  GraphNode gn3(int_vals3);
+  GraphNode gn4(int_vals4);
 
-    /// Only difference is here where we have rearanged the nodes
-    unordered_map<votca::Index, GraphNode> m_gn;
-    m_gn[4] = gn;
-    m_gn[1] = gn1;
-    m_gn[3] = gn2;
-    m_gn[2] = gn3;
-    m_gn[0] = gn4;
+  /// Only difference is here where we have rearanged the nodes
+  unordered_map<votca::Index, GraphNode> m_gn;
+  m_gn[4] = gn;
+  m_gn[1] = gn1;
+  m_gn[3] = gn2;
+  m_gn[2] = gn3;
+  m_gn[0] = gn4;
 
-    Graph g(vec_ed, m_gn);
+  Graph g(vec_ed, m_gn);
 
-    auto vec_pr = g.getNodes();
+  auto vec_pr = g.getNodes();
 
-    sort(vec_pr.begin(), vec_pr.end(), cmpVertNodePair);
-    BOOST_CHECK_EQUAL(vec_pr.at(0).first, 4);
-    BOOST_CHECK_EQUAL(vec_pr.at(1).first, 1);
-    BOOST_CHECK_EQUAL(vec_pr.at(2).first, 3);
-    BOOST_CHECK_EQUAL(vec_pr.at(3).first, 2);
-    BOOST_CHECK_EQUAL(vec_pr.at(4).first, 0);
-  }
+  sort(vec_pr.begin(), vec_pr.end(), cmpVertNodePair);
+  BOOST_CHECK_EQUAL(vec_pr.at(0).first, 4);
+  BOOST_CHECK_EQUAL(vec_pr.at(1).first, 1);
+  BOOST_CHECK_EQUAL(vec_pr.at(2).first, 3);
+  BOOST_CHECK_EQUAL(vec_pr.at(3).first, 2);
+  BOOST_CHECK_EQUAL(vec_pr.at(4).first, 0);
 }
 
 BOOST_AUTO_TEST_CASE(neighbornode_test) {

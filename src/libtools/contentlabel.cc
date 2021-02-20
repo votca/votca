@@ -39,89 +39,7 @@ using namespace boost;
 namespace votca {
 namespace tools {
 
-static size_t generateHash(std::vector<ContentLabel::KeyValType> labels) {
-  std::string flat_label = "";
-  for (auto key_val_type : labels) {
-    for (auto val : key_val_type) {
-      // for ( size_t ind = 0; ind < ContentLabel::arr_len; ++ind ){
-      flat_label.append(val);
-    }
-  }
-  return std::hash<std::string>{}(flat_label);
-}
 
-static bool stringsEqual(const std::string& str1, const std::string& str2) {
-  return str1.compare(str2) == 0;
-}
-
-static bool stringLess(const std::string& str1, const std::string& str2) {
-  if (str1.size() < str2.size()) return true;
-  if (str2.size() < str1.size()) return false;
-  return str1.compare(str2) > 0;
-}
-
-static void checkString_(const std::string& key) {
-  std::vector<std::string> reserved_symbols{"=", ",", ";", "{", "}"};
-  for (const std::string& symbol : reserved_symbols) {
-    if (key.find(symbol) != std::string::npos) {
-      std::string err_msg =
-          "Error keys and values to ContentLabel cannot contain ";
-      err_msg += symbol + " symbol it is reserved for internal use.";
-      throw std::invalid_argument(err_msg);
-    }
-  }
-}
-
-static std::string sig_fig_(double val, Index sf) {
-  return ([val](Index number_of_sig_figs) -> std::string {
-      std::stringstream lStream;
-    lStream << std::setprecision(int(number_of_sig_figs)) << val;
-    return lStream.str();
-  })(sf);
-}
-
-static std::string convertToString_(
-    const std::unordered_map<std::string, boost::any>::iterator it) {
-  if (it->second.type() == typeid(double)) {
-    double val = boost::any_cast<double>(it->second);
-    return sig_fig_(val, 8);
-  } else if (it->second.type() == typeid(std::string)) {
-    return boost::any_cast<std::string>(it->second);
-  } else if (it->second.type() == typeid(Index)) {
-    Index val = boost::any_cast<Index>(it->second);
-    return lexical_cast<std::string>(val);
-  } else if (it->second.type() == typeid(int)) {
-    int val = boost::any_cast<int>(it->second);
-    return lexical_cast<std::string>(val);
-  }
-  std::string error_msg = "Unable to compile attribute label for type ";
-  error_msg += std::string(it->second.type().name()) + " currently not supported";
-  throw std::runtime_error(error_msg);
-}
-
-static std::string buildLabel_(
-    const std::vector<ContentLabel::KeyValType>& values,
-    const LabelType& type) {
-
-  std::string label = "";
-  if (type == LabelType::verbose) {
-    for (const ContentLabel::KeyValType& key_val_type : values) {
-      label += key_val_type[0];
-      label += key_val_type[1];
-      label += "=";
-      label += key_val_type[2];
-      label += key_val_type[3];
-    }
-  } else {
-    for (const ContentLabel::KeyValType& key_val_type : values) {
-      label += key_val_type[0];
-      // Skip the key
-      label += key_val_type[2];
-      label += key_val_type[3];
-    }
-  }
-  return label;
-}
 
 /*
 static vector<string> buildKeys_(const unordered_map<string, boost::any> vals) {
@@ -159,60 +77,13 @@ static vector<string> buildValues_(
   return labels;
 }*/
 
-// Purpose is to place the contents in the vector
-void ContentLabel::initLabels_(
-    std::unordered_map<std::string, boost::any> values) {
-  // Sort the keys alphabetically
-  std::vector<std::string> keys_temp;
-  for (auto it : values) {
-    keys_temp.push_back(it.first);
-  }
-  sort(keys_temp.begin(), keys_temp.end());
-
-  // Add the labels with their corresponding keys in the correct order
-  for (auto key : keys_temp) {
-    auto it = values.find(key);
-    std::string val = convertToString_(it);
-    checkString_(key);
-    checkString_(val);
-    KeyValType key_val_type = {"", key, val, ","};
-    labels_.push_back(key_val_type);
-  }
-  // Change the last type from a comma to a semicolon to indicate end of
-  // the node
-  labels_.back()[3] = ";";
-
-  // Update the char length of the ContentLabel
-  for (KeyValType& element : labels_) {
-    label_char_len_ += element[0].size();
-    label_char_len_ += element[1].size();
-    label_char_len_ += element[2].size();
-    label_char_len_ += element[3].size();
-  }
-
-  // Build the hash
-  hash_ = generateHash(labels_);
-}
-
-bool ContentLabel::containsBranch_() const {
-  if (labels_.size() == 0) return false;
-  if (labels_.front()[0] == "{") return true;
+bool ContentLabel::isBranch_(std::list<std::vector<KeyValType>> labels) const {
+  if (labels.size() == 0) return false;
+  if (labels.front().size() == 0) return false;
+  if (labels.front().front()[0] == "{") return true;
   return false;
 }
 
-ContentLabel::ContentLabel(std::unordered_map<std::string, boost::any> values) {
-  initLabels_(values);
-}
-
-std::string ContentLabel::get(const LabelType& type) const {
-  return buildLabel_(labels_, type);
-}
-
-void ContentLabel::clear() {
-  hash_ = 0;
-  label_char_len_ = 0;
-  labels_.clear();
-}
 /*
 void ContentLabel::add(GraphNode gn) {
   if (labels_.back()[3] == "}") {
@@ -240,73 +111,64 @@ void ContentLabel::add(Branch br) {
                       label.brief_label_.end());
 
 }*/
+
 void ContentLabel::append(ContentLabel label) {
-  label_char_len_ += label.label_char_len_;
-  labels_.insert(labels_.end(), label.labels_.begin(), label.labels_.end());
-  hash_ = generateHash(labels_);
+  // First check if both content labels are considered branch labels
+  bool this_label_is_branch = isBranch();
+  bool that_label_is_branch = label.isBranch();
+  if( this_label_is_branch && that_label_is_branch ) {
+    std::runtime_error("Appending branch labels is not yet supported.");
+  } else if (not this_label_is_branch && not that_label_is_branch) {
+    // If it is not just append as normal sequentially
+    label_char_len_ += label.label_char_len_;
+    BaseContentLabel::append_(label.labels_); 
+  } else {
+    // This is an error cannot append content labels that are not both either
+    // branch labels or are both not branch labels
+    std::runtime_error("Cannot mix branch labels with non branch labels.");
+  }
 }
 
-void ContentLabel::makeBranch() {
+bool ContentLabel::isBranch() const {
+  return isBranch_(labels_);
+} 
+
+void ContentLabel::makeBranchLabel() {
   std::cout << "calling contains branch" << std::endl;
-  if (containsBranch_()) return;
+  if (isBranch()) return;
   std::cout << "calling labels size" << std::endl;
   if (labels_.size() == 0) return;
   std::cout << "Assigning branch brackets" << std::endl;
-  labels_.at(0)[0] = "{";
-  labels_.back()[3] = "}";
+
+  if( labels_.size() == 1 ) {
+    labels_.front().front()[3] = "{{";
+    // One of the } braces will replace a ;
+    labels_.back().back()[3] = "}}";
+    label_char_len_ += 3;
+  } else {
+    labels_.front().back()[3] = "}";
+    labels_.back().at(0)[0] = "{";
+    labels_.front().at(0)[0] = "{{";
+    labels_.back().back()[3] = "}}";
+    // Two of the } will replace a semicolon ;
+    label_char_len_ += 4;
+  
+    if ( labels_.size() > 2) {
+      std::list<std::vector<KeyValType>>::iterator iter = labels_.end();
+      --iter;
+      --iter;
+      // Second to last element remove the ; 
+      iter->back()[3] = "";
+      --label_char_len_;
+    }
+
+  }
   std::cout << "Done" << std::endl;
+
 }
 
-bool ContentLabel::operator!=(const ContentLabel& label) const {
-  if (label.hash_ != hash_) return true;
-  if (label.label_char_len_ != label_char_len_) return true;
-  if (label.labels_.size() != labels_.size()) return true;
-  for (size_t ind = 0; ind < labels_.size(); ++ind) {
-    for (size_t ind2 = 0; ind2 < arr_len; ++ind2) {
-      if (not stringsEqual(label.labels_.at(ind)[ind2],
-                           labels_.at(ind)[ind2])) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool ContentLabel::operator==(const ContentLabel& label) const {
-  return not ContentLabel::operator!=(label);
-}
-
-bool ContentLabel::operator<(const ContentLabel& label) const {
-  if (label_char_len_ < label.label_char_len_)
-    return true;
-  else if (label_char_len_ > label.label_char_len_)
-    return false;
-  // Which one has fewer elements
-  size_t num_elements = labels_.size();
-  if (label.labels_.size() < num_elements) {
-    num_elements = label.labels_.size();
-  }
-  for (size_t ind = 0; ind < num_elements; ++ind) {
-    for (size_t ind2 = 0; ind2 < arr_len; ++ind2) {
-      if (stringLess(label.labels_.at(ind)[ind2], labels_.at(ind)[ind2])) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool ContentLabel::operator<=(const ContentLabel& label) const {
-  if (ContentLabel::operator==(label)) return true;
-  return ContentLabel::operator<(label);
-}
-
-bool ContentLabel::operator>(const ContentLabel& label) const {
-  return not ContentLabel::operator<=(label);
-}
-
-bool ContentLabel::operator>=(const ContentLabel& label) const {
-  return not ContentLabel::operator<(label);
+void ContentLabel::calcCharLen_() {
+  label_char_len_ = get().length();
 }
 
 }  // namespace tools

@@ -46,6 +46,7 @@ BOOST_AUTO_TEST_CASE(contentlabel_initializer) {
   contents["Height"] = double(1.54);
   ContentLabel label(contents);
 
+  /// Ensuring that the clear and isEmpty methods work
   BOOST_CHECK(label.isEmpty() == false);
   label.clear();
   BOOST_CHECK(label.isEmpty() == true);
@@ -53,6 +54,15 @@ BOOST_AUTO_TEST_CASE(contentlabel_initializer) {
 
 BOOST_AUTO_TEST_CASE(contentlabel_get) {
 
+  /*
+   * Labels are built by first sorting the key value pairs in order
+   * of thier keys.
+   *
+   * The key value pairs are separated by commas, and closure of the 
+   * content group is indicated with a semicolon. 
+   *
+   * The brief label will omit the keys and only display the values
+   */
   unordered_map<string, boost::any> contents;
   contents["Name"] = string("Joe");
   contents["Age"] = int(32);
@@ -101,6 +111,20 @@ BOOST_AUTO_TEST_CASE(contentlabel_operators) {
 
 BOOST_AUTO_TEST_CASE(contentlabel_append) {
 
+  /*
+   * This test demonstrates what happens when two content labels are
+   * appended. 
+   *
+   * The first label has the form
+   *
+   * Age=32,Height=1.54,Name=Joe;
+   *
+   * And the second
+   *
+   * Age=21,Height=1.64,Name=Randy;
+   * 
+   * Appending them is a simple matter of appending thier strings
+   */ 
   unordered_map<string, boost::any> contents;
   contents["Name"] = string("Joe");
   contents["Age"] = int(32);

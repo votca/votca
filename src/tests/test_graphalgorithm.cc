@@ -680,134 +680,129 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test6) {
   BOOST_CHECK_EQUAL(edge_count10_12, 1);
   BOOST_CHECK_EQUAL(edge_count14_14, 1);
 }
-}
 
 BOOST_AUTO_TEST_CASE(explorebranch_test) {
-  {
-    // Create edge
-    //     2 - 10
-    //     |
-    // 0 - 1 - 3 - 9
-    //     |       |
-    //     4 - 5 - 6 -  7 - 8
+  // Create edge
+  //     2 - 10
+  //     |
+  // 0 - 1 - 3 - 9
+  //     |       |
+  //     4 - 5 - 6 -  7 - 8
 
-    Edge ed1(0, 1);
-    Edge ed2(1, 2);
-    Edge ed3(1, 3);
-    Edge ed4(1, 4);
-    Edge ed5(4, 5);
-    Edge ed6(5, 6);
-    Edge ed7(6, 7);
-    Edge ed8(7, 8);
-    Edge ed9(6, 9);
-    Edge ed10(3, 9);
-    Edge ed11(2, 10);
+  Edge ed1(0, 1);
+  Edge ed2(1, 2);
+  Edge ed3(1, 3);
+  Edge ed4(1, 4);
+  Edge ed5(4, 5);
+  Edge ed6(5, 6);
+  Edge ed7(6, 7);
+  Edge ed8(7, 8);
+  Edge ed9(6, 9);
+  Edge ed10(3, 9);
+  Edge ed11(2, 10);
 
-    vector<Edge> edges{ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9, ed10, ed11};
+  vector<Edge> edges{ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9, ed10, ed11};
 
-    // Create Graph nodes
-    unordered_map<votca::Index, GraphNode> nodes;
-    for (votca::Index index = 0; index < 11; ++index) {
-      GraphNode gn;
-      nodes[index] = gn;
+  // Create Graph nodes
+  unordered_map<votca::Index, GraphNode> nodes;
+  for (votca::Index index = 0; index < 11; ++index) {
+    GraphNode gn;
+    nodes[index] = gn;
+  }
+
+  Graph g(edges, nodes);
+
+  votca::Index starting_vertex = 1;
+  set<Edge> branch_edges =
+    votca::tools::exploreBranch(g, starting_vertex, ed3);
+
+  // The following edges should be found in the branch
+  //
+  //     1 - 3 - 9
+  //     |       |
+  //     4 - 5 - 6 -  7 - 8
+  //
+  BOOST_CHECK_EQUAL(branch_edges.size(), 8);
+
+  vector<bool> found_edges(8, false);
+  votca::Index index = 0;
+  for (const Edge& ed : branch_edges) {
+    if (ed == ed3) {
+      found_edges.at(index) = true;
     }
-
-    Graph g(edges, nodes);
-
-    votca::Index starting_vertex = 1;
-    set<Edge> branch_edges =
-      votca::tools::exploreBranch(g, starting_vertex, ed3);
-
-    // The following edges should be found in the branch
-    //
-    //     1 - 3 - 9
-    //     |       |
-    //     4 - 5 - 6 -  7 - 8
-    //
-    BOOST_CHECK_EQUAL(branch_edges.size(), 8);
-
-    vector<bool> found_edges(8, false);
-    votca::Index index = 0;
-    for (const Edge& ed : branch_edges) {
-      if (ed == ed3) {
-        found_edges.at(index) = true;
-      }
-      if (ed == ed4) {
-        found_edges.at(index) = true;
-      }
-      if (ed == ed5) {
-        found_edges.at(index) = true;
-      }
-      if (ed == ed6) {
-        found_edges.at(index) = true;
-      }
-      if (ed == ed7) {
-        found_edges.at(index) = true;
-      }
-      if (ed == ed8) {
-        found_edges.at(index) = true;
-      }
-      if (ed == ed9) {
-        found_edges.at(index) = true;
-      }
-      if (ed == ed10) {
-        found_edges.at(index) = true;
-      }
-      ++index;
+    if (ed == ed4) {
+      found_edges.at(index) = true;
     }
-
-    for (const bool& found : found_edges) {
-      BOOST_CHECK(found);
+    if (ed == ed5) {
+      found_edges.at(index) = true;
     }
+    if (ed == ed6) {
+      found_edges.at(index) = true;
+    }
+    if (ed == ed7) {
+      found_edges.at(index) = true;
+    }
+    if (ed == ed8) {
+      found_edges.at(index) = true;
+    }
+    if (ed == ed9) {
+      found_edges.at(index) = true;
+    }
+    if (ed == ed10) {
+      found_edges.at(index) = true;
+    }
+    ++index;
+  }
+
+  for (const bool& found : found_edges) {
+    BOOST_CHECK(found);
   }
 }
 
 BOOST_AUTO_TEST_CASE(structureid_test) {
-  {
 
-    // Create edge
-    Edge ed(0, 1);
-    Edge ed1(1, 2);
-    Edge ed2(2, 3);
-    Edge ed3(3, 4);
-    Edge ed4(4, 5);
-    Edge ed5(5, 0);
-    Edge ed6(3, 6);
+  // Create edge
+  Edge ed(0, 1);
+  Edge ed1(1, 2);
+  Edge ed2(2, 3);
+  Edge ed3(3, 4);
+  Edge ed4(4, 5);
+  Edge ed5(5, 0);
+  Edge ed6(3, 6);
 
-    vector<Edge> edges;
-    edges.push_back(ed);
-    edges.push_back(ed1);
-    edges.push_back(ed2);
-    edges.push_back(ed3);
-    edges.push_back(ed4);
-    edges.push_back(ed5);
-    edges.push_back(ed6);
+  vector<Edge> edges;
+  edges.push_back(ed);
+  edges.push_back(ed1);
+  edges.push_back(ed2);
+  edges.push_back(ed3);
+  edges.push_back(ed4);
+  edges.push_back(ed5);
+  edges.push_back(ed6);
 
-    // Create Graph nodes
-    GraphNode gn1;
-    GraphNode gn2;
-    GraphNode gn3;
-    GraphNode gn4;
-    GraphNode gn5;
-    GraphNode gn6;
-    GraphNode gn7;
+  // Create Graph nodes
+  GraphNode gn1;
+  GraphNode gn2;
+  GraphNode gn3;
+  GraphNode gn4;
+  GraphNode gn5;
+  GraphNode gn6;
+  GraphNode gn7;
 
-    unordered_map<votca::Index, GraphNode> nodes;
-    nodes[0] = gn1;
-    nodes[1] = gn2;
-    nodes[2] = gn3;
-    nodes[3] = gn4;
-    nodes[4] = gn5;
-    nodes[5] = gn6;
-    nodes[6] = gn7;
+  unordered_map<votca::Index, GraphNode> nodes;
+  nodes[0] = gn1;
+  nodes[1] = gn2;
+  nodes[2] = gn3;
+  nodes[3] = gn4;
+  nodes[4] = gn5;
+  nodes[5] = gn6;
+  nodes[6] = gn7;
 
-    Graph g(edges, nodes);
+  Graph g(edges, nodes);
 
-    string structId = votca::tools::findStructureId<GraphDistVisitor>(g).get();
+  string structId = votca::tools::findStructureId<GraphDistVisitor>(g).get();
 
-    string answer = "Dist=0;Dist=1;Dist=1;Dist=1;Dist=2;Dist=2;Dist=3;";
-    BOOST_CHECK_EQUAL(structId, answer);
-  }
+  string answer = "Dist=0;Dist=1;Dist=1;Dist=1;Dist=2;Dist=2;Dist=3;";
+  BOOST_CHECK_EQUAL(structId, answer);
 }
 /*
    BOOST_AUTO_TEST_CASE(find_canonized_sequence_test) {

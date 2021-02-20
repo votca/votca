@@ -122,7 +122,7 @@ class Branch {
       label.append(node_labels_.at(vert));
     }
     std::cout << "Making label branch label" << std::endl;
-    label.makeBranch();
+    label.makeBranchLabel();
     return label;
   }
 

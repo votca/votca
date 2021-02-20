@@ -21,65 +21,56 @@
 #define VOTCA_TOOLS_CONTENTLABEL_H
 #pragma once
 
+// Standard includes
 #include <array>
+#include <list>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+// Third party includes
 #include <boost/any.hpp>
+
+// Local VOTCA includes
+#include "contentlabelbase.h"
+
 namespace votca {
 namespace tools {
 
 class GraphNode;
 class Branch;
 
-enum class LabelType { verbose, concise };
+class ContentLabel : public BaseContentLabel {
+  private:
+    /// Used to update the char length should avoid using if possible
+    void calcCharLen_();
 
-/**
- * @brief Content Label is meant to be a unique identifier that contains
- * the contents of some object
- *
- * The content label encodes all of the structural information about an
- * object into a single string.  The idea behind the content label is to
- * generate a label that is unique the structure of a given graph object,
- * such that the objects structure could be simply rebuilt with the content
- * label alone.  Store the contents as a vector of strings that appear in
- * the correct sequence
- */
-class ContentLabel {
- public:
-  static constexpr int arr_len = 4;
-  typedef std::array<std::string, arr_len> KeyValType;
-
- private:
-  // index 0 - opening type, 1 key, 2 - val, 3 - closing type
-  std::vector<KeyValType> labels_;
-  size_t hash_ = 0;
-  size_t label_char_len_ = 0;
-
-  void initLabels_(std::unordered_map<std::string, boost::any> values);
-  bool containsBranch_() const;
-
+    // Determine based on labels if it is a branch
+    bool isBranch_(std::list<std::vector<KeyValType>> labels) const;
  public:
   ContentLabel() = default;
-  ContentLabel(std::unordered_map<std::string, boost::any> values);
-  void add(GraphNode gn);
-  void add(Branch br);
-  void append(ContentLabel);
+  ContentLabel(std::unordered_map<std::string, boost::any> values) :  
+    BaseContentLabel(values) {};
 
-  bool isEmpty() const noexcept { return labels_.size() == 0; }
-  void clear();
+  // void add(GraphNode gn);
+  //void add(Branch br);
+  bool isBranch() const;
+  
+  /**
+   * @brief if the content label has been made a branch label only content 
+   * labels that are also branches can be appended
+   *
+   * @param ContentLabel
+   */
+  virtual void append(ContentLabel) final;
+ 
+  /**
+   * @brief When a content label is made a branch curly braces are appended
+   * to either side of the content label, and an extra set of curly braces
+   * are placed around the end nodes
+   */
+  void makeBranchLabel();
 
-  void makeBranch();
-
-  std::string get(const LabelType& label_type = LabelType::verbose) const;
-
-  bool operator!=(const ContentLabel& label) const;
-  bool operator==(const ContentLabel& label) const;
-  bool operator<(const ContentLabel& label) const;
-  bool operator<=(const ContentLabel& label) const;
-  bool operator>(const ContentLabel& label) const;
-  bool operator>=(const ContentLabel& label) const;
 };
 
 }  // namespace tools
