@@ -121,7 +121,9 @@ class DavidsonSolver {
 Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(A.rows(),A.cols());
     Eigen::MatrixXd Hmat=A*identity;
     Eigen::EigenSolver<Eigen::MatrixXd> ups(Hmat);
-    Eigen::VectorXcd values=ups.eigenvalues();
+    Eigen::VectorXd values=ups.eigenvalues().real();
+      std::sort(values.data(), values.data() + values.size(),
+            [&](double i1, double i2) { return std::abs(i1) < std::abs(i2); });
     std::cout<<values.transpose()<<std::endl;
   }
 
@@ -258,8 +260,6 @@ Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(A.rows(),A.cols());
 
     for (const auto &pair : complex_pairs) {
       if (pair.second < 0) {
-        std::cout<<proj.T<<"\n"<<std::endl;
-        std::cout<<ges.eigenvalues().transpose()<<std::endl;
         throw std::runtime_error("Eigenvalue:" + std::to_string(pair.first) +
                                  " is complex but has no partner.");
       }
@@ -287,6 +287,7 @@ Eigen::MatrixXd identity=Eigen::MatrixXd::Identity(A.rows(),A.cols());
       } else {
         eigenvalues(j) = ges.eigenvalues()(i).real();
         eigenvectors.col(j) = ges.eigenvectors().col(i).real();
+        eigenvectors.col(j).normalize();
         j++;
       }
     }
