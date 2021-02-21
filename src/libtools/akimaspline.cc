@@ -171,8 +171,7 @@ double AkimaSpline::CalculateDerivative(double r) {
   return +p1(interval) + 2.0 * p2(interval) * z + 3.0 * p3(interval) * z * z;
 }
 
-double AkimaSpline::getSlope(double m1, double m2, double m3,
-                                    double m4) {
+double AkimaSpline::getSlope(double m1, double m2, double m3, double m4) {
   if (isApproximatelyEqual(m1, m2, 1E-15) &&
       isApproximatelyEqual(m3, m4, 1E-15)) {
     return (m2 + m3) / 2.0;

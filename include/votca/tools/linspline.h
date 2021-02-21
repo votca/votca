@@ -64,8 +64,6 @@ class LinSpline : public Spline {
   Eigen::VectorXd b;
 };
 
-
-
 }  // namespace tools
 }  // namespace votca
 

@@ -84,8 +84,6 @@ class AkimaSpline : public Spline {
   Eigen::VectorXd t;
 };
 
-
-
 }  // namespace tools
 }  // namespace votca
 
