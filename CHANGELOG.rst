@@ -13,6 +13,7 @@ Version 2022-dev
 -  export PYTHONPATH in VOTCARC (#340)
 -  drop csh support in VOTCARC (#342)
 -  add missing cmath include (#351)
+-  removed eigenvalue algorithm, now done by eigen  (#352)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
