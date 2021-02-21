@@ -15,10 +15,15 @@
  *
  */
 
-#include <boost/program_options.hpp>
-#include <boost/tokenizer.hpp>
+// Standard includes
 #include <fstream>
 #include <iostream>
+
+// Third party includes
+#include <boost/program_options.hpp>
+#include <boost/tokenizer.hpp>
+
+// Local VOTCA includes
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/version.h>

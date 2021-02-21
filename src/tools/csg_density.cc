@@ -15,10 +15,13 @@
  *
  */
 
-#include "../../include/votca/csg/csgapplication.h"
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
 
 using namespace std;
 using namespace votca::csg;

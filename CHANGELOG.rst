@@ -15,6 +15,9 @@ Version 2022-dev
 -  switch csgapplication worker to unique_ptr (#660)
 -  remove use of new with splines in csg_fmatch (#662)
 -  update boost test floating point comparison header (#663)
+-  switch mutex to unique_ptr (#664)
+-  standardize header formatting (#661)
+-  clean up memory management in partial_rdf (#665)
 -  memory management of molecules fixed (#657)
 
 Version 2021-rc.2 (released XX.01.21)

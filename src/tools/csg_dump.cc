@@ -15,8 +15,11 @@
  *
  */
 
-#include "../../include/votca/csg/csgapplication.h"
+// Standard includes
 #include <cstdlib>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
 
 using namespace std;
 using namespace votca::csg;

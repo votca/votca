@@ -15,13 +15,16 @@
  *
  */
 
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/topology.h"
-#include "../../include/votca/csg/trajectorywriter.h"
+// Standard includes
 #include <cstddef>
 #include <fstream>
 #include <stdexcept>
 #include <string>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/topology.h"
+#include "votca/csg/trajectorywriter.h"
 
 using namespace std;
 using namespace votca::csg;

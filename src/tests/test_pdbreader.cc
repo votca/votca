@@ -18,14 +18,22 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE pdbreader_test
-#include "../../include/votca/csg/bead.h"
-#include "../../include/votca/csg/topologyreader.h"
-#include <boost/test/tools/floating_point_comparison.hpp>
-#include <boost/test/unit_test.hpp>
+
+// Standard includes
 #include <cmath>
 #include <fstream>
 #include <string>
+
+// Third party includes
+#include <boost/test/tools/floating_point_comparison.hpp>
+#include <boost/test/unit_test.hpp>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
+
+// Local VOTCA includes
+#include "votca/csg/bead.h"
+#include "votca/csg/topologyreader.h"
 
 using namespace std;
 using namespace votca::csg;
