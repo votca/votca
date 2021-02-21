@@ -158,7 +158,7 @@ void XtpMap::Run() {
     std::map<std::string, const CSG::Molecule*> firstmolecule;
 
     std::map<std::string, votca::Index> molecule_names;
-    for (const csg::Molecule& mol : mdtopol.Molecules()) {
+    for (const CSG::Molecule& mol : mdtopol.Molecules()) {
       if (!molecule_names.count(mol.getName())) {
         firstmolecule[mol.getName()] = &mol;
       }
