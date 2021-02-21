@@ -27,6 +27,16 @@ namespace tools {
 
 using namespace std;
 
+double LinSpline::Calculate(double r) {
+  Index interval = getInterval(r);
+  return a(interval) * r + b(interval);
+}
+
+double LinSpline::CalculateDerivative(double r) {
+  Index interval = getInterval(r);
+  return a(interval);
+}
+
 void LinSpline::Interpolate(const Eigen::VectorXd &x,
                             const Eigen::VectorXd &y) {
   if (x.size() != y.size()) {

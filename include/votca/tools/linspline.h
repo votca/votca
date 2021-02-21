@@ -64,15 +64,7 @@ class LinSpline : public Spline {
   Eigen::VectorXd b;
 };
 
-inline double LinSpline::Calculate(double r) {
-  Index interval = getInterval(r);
-  return a(interval) * r + b(interval);
-}
 
-inline double LinSpline::CalculateDerivative(double r) {
-  Index interval = getInterval(r);
-  return a(interval);
-}
 
 }  // namespace tools
 }  // namespace votca
