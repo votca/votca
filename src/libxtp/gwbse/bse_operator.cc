@@ -36,6 +36,7 @@ void BSE_OPERATOR<cqp, cx, cd, cd2>::configure(BSEOperator_Options opt) {
   this->set_size(_bse_size);
 }
 
+
 template <Index cqp, Index cx, Index cd, Index cd2>
 Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
     const Eigen::MatrixXd& input) const {
@@ -118,6 +119,7 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
   return transform.getReductionVar();
 }
 
+
 template <Index cqp, Index cx, Index cd, Index cd2>
 Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index v1,
                                                         Index c1) const {
@@ -129,6 +131,8 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index v1,
   Result.row(c1) -= cqp * _Hqp.col(v1).head(_bse_vtotal);
   return Eigen::Map<Eigen::VectorXd>(Result.data(), Result.size());
 }
+
+
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::diagonal() const {
@@ -173,6 +177,7 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::diagonal() const {
   }
   return result;
 }
+
 template class BSE_OPERATOR<1, 2, 1, 0>;
 template class BSE_OPERATOR<1, 0, 1, 0>;
 

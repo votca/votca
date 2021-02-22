@@ -39,7 +39,12 @@ namespace xtp {
 
 /**
 * \brief Use Davidson algorithm to solve A*V=E*V
-
+*
+* For a rough overview https://joshuagoings.com/2013/08/23/davidsons-method/ 
+* For the symmetric case we simply extract the smallest eigenvalues
+* For the non-symmetric case we need the smallest non-negative eigenvalues
+* These are harder to extract, because iterative methods tend to converge towards
+* extreme eigenvalues, thus we use harmonic ritz values. 
 **/
 
 class DavidsonSolver {
@@ -161,6 +166,8 @@ class DavidsonSolver {
     Index size_update;  // size update ...
     std::vector<bool> root_converged;  // keep track of which root have onverged
 
+
+// These are only used for harmonic ritz in the non-hermitian case
     Eigen::MatrixXd AAV;  // A*A*V
     Eigen::MatrixXd B;    // V.T *A*A*V
   };

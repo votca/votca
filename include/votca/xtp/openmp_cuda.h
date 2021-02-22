@@ -32,6 +32,9 @@
  * \brief Supports operations on Matrices using OPENMP and
  * CUDA.
  *
+ * This class allows to use to a limited amount CPUs and GPUs in parallel using the OPENMP
+ * scheduler. 
+ *
  * Each operation works with 2-3 steps
  * 1) Allocate temporary matrices and move fixed data to the gpu before the
  * openmp region is created 2) Inside the openmp region, move the loop data to
@@ -41,7 +44,7 @@
  * operations If no GPU is present all CPUs simply do CPU work.
  *
  * While all the temporary data is pushed to the GPU for the CPU case we do not
- * want to make copies on the CPU.. as long as the data is identical for all
+ * want to make copies on the CPU. As long as the data is identical for all
  * threads, so instead we hold a pointer to that data. Only for temporary data
  * special to a thread we hold pointers or make copies(depending on what is
  * needed) using the CPU_data structures. So do not let objects you need fall
@@ -49,13 +52,14 @@
  *
  * This class is NOT a generic interface for CPU/GPU calculations. Instead
  * certain routines were hardcoded for certain computations. Any function
- * containing "set" or "create" should be called outside the parallel loop, the
- * other functions are called inside.
+ * containing "set" or "create" should be called outside the parallel loop. 
+* Functions, which require a threadid arguement should be called inside the 
+* openmp region, with the respective threadid 
  *
  * If this class is created inside an OPENMP region, it still ensures, that over
- * that OPENMP region not more threads access the GPUs then GPUs are present.
+ * that OPENMP region not more threads access the GPUs than GPUs are present.
  * Otherwise it will work purely in serial. So this class does NOT work with
- * nested OPENMP
+ * nested OPENMP( nested OPENMP should be disabled anyway)
  */
 
 namespace votca {
