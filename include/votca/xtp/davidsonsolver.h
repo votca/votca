@@ -78,7 +78,7 @@ class DavidsonSolver {
     if (size_initial_guess == 0) {
       size_initial_guess = 2 * neigen;
     }
-    _restart_size=size_initial_guess;
+    _restart_size = size_initial_guess;
 
     // get the diagonal of the operator
     this->_Adiag = A.diagonal();
@@ -126,7 +126,7 @@ class DavidsonSolver {
   double _tol = 1E-4;
   Index _max_search_space = 0;
   Eigen::VectorXd _Adiag;
-  Index _restart_size=0;
+  Index _restart_size = 0;
   enum CORR { DPR, OLSEN };
   CORR _davidson_correction = CORR::DPR;
 
@@ -178,8 +178,9 @@ class DavidsonSolver {
       }
 
     } else {
-      /* if we use a Gram Schmid(GS) orthogonalisation we do not have to recompute
-      the entire projection as GS doesn't change the original subspace*/
+      /* if we use a Gram Schmid(GS) orthogonalisation we do not have to
+      recompute the entire projection as GS doesn't change the original
+      subspace*/
       Index old_dim = proj.AV.cols();
       Index new_dim = proj.V.cols();
       Index nvec = new_dim - old_dim;

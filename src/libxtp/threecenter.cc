@@ -135,6 +135,10 @@ void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
  * Coulomb interaction using either CUDA or Openmp
  */
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
+
+  // we first setup the threadpool with omp parallel and retrieve the thread id
+  // for each thread and then schedule the threads, where inside gemm the
+  // distribution to GPU and CPU is handled via the threadid
   OpenMP_CUDA gemm;
   gemm.setOperators(_matrix, matrix);
 #pragma omp parallel

@@ -229,8 +229,9 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz(
     std::cerr << "A\n" << proj.T;
     throw std::runtime_error("Small hermitian eigenvalue problem failed.");
   }
-// we only need enough pairs for either extension of space or restart
-  Index needed_pairs =std::min(proj.T.cols(),std::max(_restart_size,proj.size_update));
+  // we only need enough pairs for either extension of space or restart
+  Index needed_pairs =
+      std::min(proj.T.cols(), std::max(_restart_size, proj.size_update));
   rep.lambda = es.eigenvalues().head(needed_pairs);
   rep.U = es.eigenvectors().leftCols(needed_pairs);
 
@@ -315,9 +316,11 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getHarmonicRitz(
       j++;
     }
   }
-// we only need enough pairs for either extension of space or restart
- Index needed_pairs =std::min(proj.T.cols(),std::max(_restart_size,proj.size_update));
-  ArrayXl idx = DavidsonSolver::argsort(eigenvalues).reverse().head(needed_pairs);
+  // we only need enough pairs for either extension of space or restart
+  Index needed_pairs =
+      std::min(proj.T.cols(), std::max(_restart_size, proj.size_update));
+  ArrayXl idx =
+      DavidsonSolver::argsort(eigenvalues).reverse().head(needed_pairs);
   // we need the largest values, because this is the inverse value, so
   // reverse list
 
@@ -490,7 +493,8 @@ Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {
 }
 
 void DavidsonSolver::restart(const DavidsonSolver::RitzEigenPair &rep,
-                             DavidsonSolver::ProjectedSpace &proj, Index newvectors) const {
+                             DavidsonSolver::ProjectedSpace &proj,
+                             Index newvectors) const {
   Eigen::MatrixXd newV =
       Eigen::MatrixXd(proj.V.rows(), newvectors + _restart_size);
   newV.rightCols(newvectors) = proj.V.rightCols(newvectors);
@@ -498,7 +502,7 @@ void DavidsonSolver::restart(const DavidsonSolver::RitzEigenPair &rep,
 
     newV.leftCols(_restart_size) = rep.q.leftCols(_restart_size);
     proj.AV *= rep.U.leftCols(_restart_size);  // corresponds to replacing
-                                              // V with q.leftCols
+                                               // V with q.leftCols
   } else {
     Eigen::MatrixXd orthonormal =
         DavidsonSolver::qr(rep.U.leftCols(_restart_size));
