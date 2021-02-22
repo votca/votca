@@ -92,7 +92,7 @@ class DavidsonSolver {
 
       updateProjection(A, proj);
 
-      rep = getRitzEigenPairs(A, proj);
+      rep = getRitzEigenPairs(proj);
 
       bool converged = checkConvergence(rep, proj, neigen);
 
@@ -160,9 +160,8 @@ class DavidsonSolver {
     Index size_update;  // size update ...
     std::vector<bool> root_converged;  // keep track of which root have onverged
 
-
-    Eigen::MatrixXd AAV; //A*A*V
-    Eigen::MatrixXd B; // V.T *A*A*V
+    Eigen::MatrixXd AAV;  // A*A*V
+    Eigen::MatrixXd B;    // V.T *A*A*V
   };
 
   template <typename MatrixReplacement>
@@ -173,8 +172,8 @@ class DavidsonSolver {
       proj.AV = A * proj.V;
       proj.T = proj.V.transpose() * proj.AV;
       if (_matrix_type == MATRIX_TYPE::HAM) {
-proj.AAV = A * proj.AV;
-proj.B = proj.V.transpose() * proj.AAV;
+        proj.AAV = A * proj.AV;
+        proj.B = proj.V.transpose() * proj.AAV;
       }
 
     } else {
@@ -198,126 +197,18 @@ proj.B = proj.V.transpose() * proj.AAV;
             proj.V.rightCols(nvec).transpose() * proj.AV.leftCols(old_dim);
 
         proj.AAV.conservativeResize(Eigen::NoChange, new_dim);
-      proj.AAV.rightCols(nvec) = A * proj.AV.rightCols(nvec);
-       proj.B.conservativeResize(new_dim, new_dim);
-      proj.B.rightCols(nvec) = proj.V.transpose() * proj.AAV.rightCols(nvec);
-       proj.B.bottomLeftCorner(nvec, old_dim) =
+        proj.AAV.rightCols(nvec) = A * proj.AV.rightCols(nvec);
+        proj.B.conservativeResize(new_dim, new_dim);
+        proj.B.rightCols(nvec) = proj.V.transpose() * proj.AAV.rightCols(nvec);
+        proj.B.bottomLeftCorner(nvec, old_dim) =
             proj.V.rightCols(nvec).transpose() * proj.AAV.leftCols(old_dim);
-
-
       }
     }
   }
-
-  template <typename MatrixReplacement>
-  RitzEigenPair getRitzEigenPairs(const MatrixReplacement &A,
-                                  const ProjectedSpace &proj) const {
-    // get the ritz vectors
-    switch (this->_matrix_type) {
-      case MATRIX_TYPE::SYMM: {
-        return getRitz(proj);
-      }
-      case MATRIX_TYPE::HAM: {
-        return getHarmonicRitz(A, proj);
-      }
-    }
-    return RitzEigenPair();
-  }
+  RitzEigenPair getRitzEigenPairs(const ProjectedSpace &proj) const;
 
   Eigen::MatrixXd qr(const Eigen::MatrixXd &A) const;
-
-  template <typename MatrixReplacement>
-  RitzEigenPair getHarmonicRitz(const MatrixReplacement &A,
-                                const ProjectedSpace &proj) const {
-
-    /* Compute the Harmonic Ritz vector following
-     * Computing Interior Eigenvalues of Large Matrices
-     * Ronald B Morgan
-     * LINEAR ALGEBRA AND ITS APPLICATIONS 154-156:289-309 (1991)
-     * https://cpb-us-w2.wpmucdn.com/sites.baylor.edu/dist/e/71/files/2015/05/InterEvals-1vgdz91.pdf
-     */
-
-    RitzEigenPair rep;
-    Eigen::MatrixXd B = proj.V.transpose() * (A * proj.AV).eval();
-  if(!B.isApprox(proj.B,1e-13)){
-std::cout<<"B\n"<<B<<std::endl;
-std::cout<<"Bcache\n"<<proj.B<<std::endl;
-  }
-    bool return_eigenvectors = true;
-    Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T, proj.B,
-                                                       return_eigenvectors);
-    if (ges.info() != Eigen::ComputationInfo::Success) {
-      throw std::runtime_error("Small generalized eigenvalue problem failed.");
-    }
-
-    std::vector<std::pair<Index, Index>> complex_pairs;
-    for (Index i = 0; i < ges.eigenvalues().size(); i++) {
-      if (ges.eigenvalues()(i).imag() != 0) {
-        bool found_partner = false;
-        for (auto &pair : complex_pairs) {
-          if (pair.second > -1) {
-            continue;
-          } else {
-            bool are_pair = (std::abs(ges.eigenvalues()(pair.first).real() -
-                                      ges.eigenvalues()(i).real()) < 1e-9) &&
-                            (std::abs(ges.eigenvalues()(pair.first).imag() +
-                                      ges.eigenvalues()(i).imag()) < 1e-9);
-            if (are_pair) {
-              pair.second = i;
-              found_partner = true;
-            }
-          }
-        }
-
-        if (!found_partner) {
-          complex_pairs.emplace_back(i, -1);
-        }
-      }
-    }
-
-    for (const auto &pair : complex_pairs) {
-      if (pair.second < 0) {
-        throw std::runtime_error("Eigenvalue:" + std::to_string(pair.first) +
-                                 " is complex but has no partner.");
-      }
-    }
-    if (!complex_pairs.empty()) {
-      XTP_LOG(Log::warning, _log)
-          << TimeStamp() << " Found " << complex_pairs.size()
-          << " complex pairs in eigenvalue problem" << flush;
-    }
-    Eigen::VectorXd eigenvalues =
-        Eigen::VectorXd::Zero(ges.eigenvalues().size() - complex_pairs.size());
-    Eigen::MatrixXd eigenvectors =
-        Eigen::MatrixXd::Zero(ges.eigenvectors().rows(),
-                              ges.eigenvectors().cols() - complex_pairs.size());
-
-    Index j = 0;
-    for (Index i = 0; i < ges.eigenvalues().size(); i++) {
-      bool is_second_in_complex_pair =
-          std::find_if(complex_pairs.begin(), complex_pairs.end(),
-                       [&](const std::pair<Index, Index> &pair) {
-                         return pair.second == i;
-                       }) != complex_pairs.end();
-      if (is_second_in_complex_pair) {
-        continue;
-      } else {
-        eigenvalues(j) = ges.eigenvalues()(i).real();
-        eigenvectors.col(j) = ges.eigenvectors().col(i).real();
-        eigenvectors.col(j).normalize();
-        j++;
-      }
-    }
-
-    ArrayXl idx = DavidsonSolver::argsort(eigenvalues).reverse();
-    // we need the largest values, because this is the inverse value, so
-    // reverse list
-    rep.U = DavidsonSolver::extract_vectors(eigenvectors, idx);
-    rep.lambda = (rep.U.transpose() * proj.T * rep.U).diagonal();
-    rep.q = proj.V * rep.U;  // Ritz vectors
-    rep.res = proj.AV * rep.U - rep.q * rep.lambda.asDiagonal();  // residues
-    return rep;
-  }
+  RitzEigenPair getHarmonicRitz(const ProjectedSpace &proj) const;
 
   RitzEigenPair getRitz(const ProjectedSpace &proj) const;
 
