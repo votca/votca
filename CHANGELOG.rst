@@ -19,6 +19,7 @@ Version 2022-dev
 -  standardize header formatting (#661)
 -  clean up memory management in partial_rdf (#665)
 -  deleted unused makefile (#666)
+-  memory management of molecules fixed (#657)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================

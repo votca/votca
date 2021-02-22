@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,15 +42,15 @@ std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(Topology &in,
                                                         Topology &out) {
   MoleculeContainer &mols = in.Molecules();
   auto m = std::make_unique<TopologyMap>(&in, &out);
-  for (auto mol : mols) {
-    if (IsIgnored(mol->getName())) {
+  for (const auto &mol : mols) {
+    if (IsIgnored(mol.getName())) {
       continue;
     }
-    CGMoleculeDef *def = getMoleculeDef(mol->getName());
+    CGMoleculeDef *def = getMoleculeDef(mol.getName());
     if (!def) {
       cout << "--------------------------------------\n"
-           << "WARNING: unknown molecule \"" << mol->getName() << "\" with id "
-           << mol->getId() << " in topology" << endl
+           << "WARNING: unknown molecule \"" << mol.getName() << "\" with id "
+           << mol.getId() << " in topology" << endl
            << "molecule will not be mapped to CG representation\n"
            << "Check weather a mapping file for all molecule exists, was "
               "specified in --cg "
@@ -60,7 +60,7 @@ std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(Topology &in,
       continue;
     }
     Molecule *mcg = def->CreateMolecule(out);
-    Map *map = def->CreateMap(*mol, *mcg);
+    Map *map = def->CreateMap(mol, *mcg);
     m->AddMoleculeMap(map);
   }
   out.RebuildExclusions();
