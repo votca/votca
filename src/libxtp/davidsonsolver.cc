@@ -382,6 +382,9 @@ void DavidsonSolver::restart(const DavidsonSolver::RitzEigenPair &rep,
     newV.leftCols(size_restart) =
         proj.V.leftCols(proj.V.cols() - newvectors) * orthonormal;
     proj.AV *= orthonormal;
+
+    proj.AAV*=orthonormal;
+    proj.B=newV.leftCols(size_restart).transpose() * proj.AAV;
   }
   proj.T = newV.leftCols(size_restart).transpose() * proj.AV;
   proj.V = newV;

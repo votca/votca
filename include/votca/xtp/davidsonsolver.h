@@ -159,6 +159,10 @@ class DavidsonSolver {
     };                  // size of the projection i.e. number of cols in V
     Index size_update;  // size update ...
     std::vector<bool> root_converged;  // keep track of which root have onverged
+
+
+    Eigen::MatrixXd AAV; //A*A*V
+    Eigen::MatrixXd B; // V.T *A*A*V
   };
 
   template <typename MatrixReplacement>
@@ -168,6 +172,10 @@ class DavidsonSolver {
     if (_i_iter == 0) {
       proj.AV = A * proj.V;
       proj.T = proj.V.transpose() * proj.AV;
+      if (_matrix_type == MATRIX_TYPE::HAM) {
+proj.AAV = A * proj.AV;
+proj.B = proj.V.transpose() * proj.AAV;
+      }
 
     } else {
       /* if we use a GS ortho we do not have to recompute
@@ -188,6 +196,15 @@ class DavidsonSolver {
       } else {
         proj.T.bottomLeftCorner(nvec, old_dim) =
             proj.V.rightCols(nvec).transpose() * proj.AV.leftCols(old_dim);
+
+        proj.AAV.conservativeResize(Eigen::NoChange, new_dim);
+      proj.AAV.rightCols(nvec) = A * proj.AV.rightCols(nvec);
+       proj.B.conservativeResize(new_dim, new_dim);
+      proj.B.rightCols(nvec) = proj.V.transpose() * proj.AAV.rightCols(nvec);
+       proj.B.bottomLeftCorner(nvec, old_dim) =
+            proj.V.rightCols(nvec).transpose() * proj.AAV.leftCols(old_dim);
+
+
       }
     }
   }
@@ -222,9 +239,12 @@ class DavidsonSolver {
 
     RitzEigenPair rep;
     Eigen::MatrixXd B = proj.V.transpose() * (A * proj.AV).eval();
-
+  if(!B.isApprox(proj.B,1e-13)){
+std::cout<<"B\n"<<B<<std::endl;
+std::cout<<"Bcache\n"<<proj.B<<std::endl;
+  }
     bool return_eigenvectors = true;
-    Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T, B,
+    Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T, proj.B,
                                                        return_eigenvectors);
     if (ges.info() != Eigen::ComputationInfo::Success) {
       throw std::runtime_error("Small generalized eigenvalue problem failed.");
