@@ -21,6 +21,7 @@ Version 2022-dev
 -  removed lapack routine for solving BSE and added GPU support (#672)
 -  changed return value from reference to a copy (#676)
 -  add CodeQL static analysis to GitHub Actions (#677)
+-  changed molecule in csg topology container to actual object instead of pointer (#683)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
