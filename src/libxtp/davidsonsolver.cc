@@ -229,7 +229,7 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz(
     std::cerr << "A\n" << proj.T;
     throw std::runtime_error("Small hermitian eigenvalue problem failed.");
   }
-
+// we only need enough pairs for either extension of space or restart
   Index needed_pairs =std::min(proj.T.cols(),std::max(_restart_size,proj.size_update));
   rep.lambda = es.eigenvalues().head(needed_pairs);
   rep.U = es.eigenvectors().leftCols(needed_pairs);
@@ -315,7 +315,7 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getHarmonicRitz(
       j++;
     }
   }
-
+// we only need enough pairs for either extension of space or restart
  Index needed_pairs =std::min(proj.T.cols(),std::max(_restart_size,proj.size_update));
   ArrayXl idx = DavidsonSolver::argsort(eigenvalues).reverse().head(needed_pairs);
   // we need the largest values, because this is the inverse value, so
