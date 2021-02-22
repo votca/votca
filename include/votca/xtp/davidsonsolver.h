@@ -231,8 +231,8 @@ class DavidsonSolver {
   Eigen::MatrixXd extract_vectors(const Eigen::MatrixXd &V,
                                   const ArrayXl &idx) const;
 
-  Eigen::MatrixXd orthogonalize(const Eigen::MatrixXd &V, Index nupdate) const;
-  Eigen::MatrixXd gramschmidt(const Eigen::MatrixXd &A, Index nstart) const;
+  void orthogonalize( Eigen::MatrixXd &V, Index nupdate) const;
+  void gramschmidt( Eigen::MatrixXd &A, Index nstart) const;
 
   Eigen::VectorXd computeCorrectionVector(const Eigen::VectorXd &qj,
                                           double lambdaj,

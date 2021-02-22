@@ -374,7 +374,7 @@ Index DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
     proj.V.col(oldsize + k) = w.normalized();
     k++;
   }
-  proj.V = orthogonalize(proj.V, nupdate);
+  orthogonalize(proj.V, nupdate);
   return nupdate;
 }
 
@@ -432,27 +432,47 @@ Eigen::VectorXd DavidsonSolver::olsen(const Eigen::VectorXd &r,
   return delta;
 }
 
-Eigen::MatrixXd DavidsonSolver::orthogonalize(const Eigen::MatrixXd &V,
-                                              Index nupdate) const {
-  return DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
+void DavidsonSolver::orthogonalize(Eigen::MatrixXd &V, Index nupdate) const {
+  DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
 }
 
-Eigen::MatrixXd DavidsonSolver::gramschmidt(const Eigen::MatrixXd &A,
-                                            Index nstart) const {
-  Eigen::MatrixXd Q = A;
-  for (Index j = nstart; j < A.cols(); ++j) {
-    Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
+void DavidsonSolver::gramschmidt(Eigen::MatrixXd &Q, Index nstart) const {
+
+  Index nupdate = Q.cols() - nstart;
+  Eigen::VectorXd norms = Q.rightCols(nupdate).colwise().norm();
+  // orthogonalize with respect to already existing vectors
+  if (nstart > 0) {
+    Q.rightCols(nupdate) -=
+        Q.leftCols(nstart) *
+        (Q.leftCols(nstart).transpose() * Q.rightCols(nupdate));
+    Q.rightCols(nupdate).colwise().normalize();
+  }
+  // orthogonalize vectors to each other
+  for (Index j = nstart + 1; j < Q.cols(); ++j) {
+    Index range = j - nstart;
+    Q.col(j) -= Q.block(0, nstart, Q.rows(), range) *
+                (Q.block(0, nstart, Q.rows(), range).transpose() * Q.col(j));
     Q.col(j).normalize();
-    // two is enough GS
-    // http://stoppels.blog/posts/orthogonalization-performance
-    Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * Q.col(j));
-    if (Q.col(j).norm() <= 1E-12 * A.col(j).norm()) {
+  }
+  // repeat again two is enough GS
+  // http://stoppels.blog/posts/orthogonalization-performance
+  if (nstart > 0) {
+    Q.rightCols(nupdate) -=
+        Q.leftCols(nstart) *
+        (Q.leftCols(nstart).transpose() * Q.rightCols(nupdate));
+    Q.rightCols(nupdate).colwise().normalize();
+  }
+
+  for (Index j = nstart + 1; j < Q.cols(); ++j) {
+    Index range = j - nstart;
+    Q.col(j) -= Q.block(0, nstart, Q.rows(), range) *
+                (Q.block(0, nstart, Q.rows(), range).transpose() * Q.col(j));
+    if (Q.col(j).norm() <= 1E-12 * norms(range)) {
       //_info = Eigen::ComputationInfo::NumericalIssue;
       throw std::runtime_error("Linear dependencies in Gram-Schmidt.");
     }
     Q.col(j).normalize();
   }
-  return Q;
 }
 
 Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {
