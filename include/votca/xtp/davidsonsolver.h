@@ -258,7 +258,7 @@ class DavidsonSolver {
                              std::vector<bool> &root_converged, Index neigen);
 
   void storeEigenPairs(const RitzEigenPair &rep, Index neigen);
-};  // namespace xtp
+};
 
 }  // namespace xtp
 }  // namespace votca
