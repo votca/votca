@@ -32,8 +32,8 @@
  * \brief Supports operations on Matrices using OPENMP and
  * CUDA.
  *
- * This class allows to use to a limited amount CPUs and GPUs in parallel using the OPENMP
- * scheduler. 
+ * This class allows to use to a limited amount CPUs and GPUs in parallel using
+ * the OPENMP scheduler.
  *
  * Each operation works with 2-3 steps
  * 1) Allocate temporary matrices and move fixed data to the gpu before the
@@ -52,9 +52,9 @@
  *
  * This class is NOT a generic interface for CPU/GPU calculations. Instead
  * certain routines were hardcoded for certain computations. Any function
- * containing "set" or "create" should be called outside the parallel loop. 
-* Functions, which require a threadid arguement should be called inside the 
-* openmp region, with the respective threadid 
+ * containing "set" or "create" should be called outside the parallel loop.
+ * Functions, which require a threadid arguement should be called inside the
+ * openmp region, with the respective threadid
  *
  * If this class is created inside an OPENMP region, it still ensures, that over
  * that OPENMP region not more threads access the GPUs than GPUs are present.
