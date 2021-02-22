@@ -78,6 +78,7 @@ class DavidsonSolver {
     if (size_initial_guess == 0) {
       size_initial_guess = 2 * neigen;
     }
+    _restart_size=size_initial_guess;
 
     // get the diagonal of the operator
     this->_Adiag = A.diagonal();
@@ -111,7 +112,7 @@ class DavidsonSolver {
       bool do_restart = (proj.search_space() > _max_search_space);
 
       if (do_restart) {
-        restart(rep, proj, size_initial_guess, extension_size);
+        restart(rep, proj, extension_size);
       }
     }
 
@@ -125,7 +126,7 @@ class DavidsonSolver {
   double _tol = 1E-4;
   Index _max_search_space = 0;
   Eigen::VectorXd _Adiag;
-
+  Index _restart_size=0;
   enum CORR { DPR, OLSEN };
   CORR _davidson_correction = CORR::DPR;
 
@@ -177,7 +178,7 @@ class DavidsonSolver {
       }
 
     } else {
-      /* if we use a GS ortho we do not have to recompute
+      /* if we use a Gram Schmid(GS) orthogonalisation we do not have to recompute
       the entire projection as GS doesn't change the original subspace*/
       Index old_dim = proj.AV.cols();
       Index new_dim = proj.V.cols();
@@ -250,7 +251,7 @@ class DavidsonSolver {
                         Index neigen);
 
   void restart(const RitzEigenPair &rep, ProjectedSpace &proj,
-               Index size_restart, Index newtestvectors) const;
+               Index newtestvectors) const;
 
   void storeConvergedData(const RitzEigenPair &rep, Index neigen);
 
