@@ -59,13 +59,8 @@ void Topology::Cleanup() {
   _molecules.clear();
 
   // cleanup residues
-  {
-    for (ResidueContainer::iterator i = _residues.begin(); i < _residues.end();
-         ++i) {
-      delete (*i);
-    }
-    _residues.clear();
-  }
+  _residues.clear();
+
   // cleanup interactions
   {
     for (InteractionContainer::iterator i = _interactions.begin();
@@ -97,8 +92,7 @@ void Topology::CreateMoleculesByRange(string name, Index first, Index nbeads,
     }
     stringstream bname;
     bname << _bead->getResnr() - res_offset + 1 << ":"
-          << getResidue(_bead->getResnr())->getName() << ":"
-          << _bead->getName();
+          << getResidue(_bead->getResnr()).getName() << ":" << _bead->getName();
     mol->AddBead(_bead, bname.str());
     if (++beadcount == nbeads) {
       if (--nmolecules <= 0) {
@@ -113,8 +107,8 @@ void Topology::CreateMoleculesByRange(string name, Index first, Index nbeads,
 /// \todo clean up CreateMoleculesByResidue!
 void Topology::CreateMoleculesByResidue() {
   // first create a molecule for each residue
-  for (auto &_residue : _residues) {
-    CreateMolecule(_residue->getName());
+  for (const auto &_residue : _residues) {
+    CreateMolecule(_residue.getName());
   }
 
   // add the beads to the corresponding molecules based on their resid
@@ -133,7 +127,7 @@ void Topology::CreateOneBigMolecule(string name) {
 
   for (auto &_bead : _beads) {
     stringstream n("");
-    n << _bead->getResnr() + 1 << ":" << _residues[_bead->getResnr()]->getName()
+    n << _bead->getResnr() + 1 << ":" << _residues[_bead->getResnr()].getName()
       << ":" << _bead->getName();
     mi->AddBead(_bead, n.str());
   }
@@ -149,8 +143,8 @@ void Topology::Add(Topology *top) {
                bi->getMass(), bi->getQ());
   }
 
-  for (auto &_residue : top->_residues) {
-    CreateResidue(_residue->getName());
+  for (const auto &_residue : top->_residues) {
+    CreateResidue(_residue.getName());
   }
 
   // \todo beadnames in molecules!!
@@ -172,8 +166,8 @@ void Topology::CopyTopologyData(Topology *top) {
   Cleanup();
 
   // copy all residues
-  for (auto &_residue : top->_residues) {
-    CreateResidue(_residue->getName());
+  for (const auto &_residue : top->_residues) {
+    CreateResidue(_residue.getName());
   }
 
   // create all beads

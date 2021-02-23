@@ -116,7 +116,7 @@ void CGMoleculeDef::ParseMapping(tools::Property &options) {
 }
 Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   // add the residue names
-  Residue *res = top.CreateResidue(_name);
+  const Residue &res = top.CreateResidue(_name);
   Molecule *minfo = top.CreateMolecule(_name);
 
   // create the atoms
@@ -127,7 +127,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
       top.RegisterBeadType(type);
     }
     Bead *bead = top.CreateBead(bead_def->_symmetry, bead_def->_name, type,
-                                res->getId(), 0, 0);
+                                res.getId(), 0, 0);
     minfo->AddBead(bead, bead->getName());
   }
 
