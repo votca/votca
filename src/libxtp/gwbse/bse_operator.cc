@@ -64,7 +64,8 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
 #pragma omp for schedule(dynamic)
     for (Index c1 = 0; c1 < _bse_ctotal; c1++) {
 
-      // Temp matrix has to stay in this scope, because it has transform only holds a reference to it
+      // Temp matrix has to stay in this scope, because it has transform only
+      // holds a reference to it
       Eigen::MatrixXd Temp;
       if (cd != 0) {
         Temp = -cd * (_Mmn[c1 + cmin].block(cmin, 0, _bse_ctotal, auxsize));
