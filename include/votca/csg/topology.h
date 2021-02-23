@@ -28,7 +28,7 @@
 #include <vector>
 
 // Third party includes
-#include <boost/container/stable_vector.hpp>
+#include <boost/container/deque.hpp>
 
 // VOTCA includes
 #include <votca/tools/types.h>
@@ -48,7 +48,12 @@ namespace csg {
 
 class Interaction;
 
-using MoleculeContainer = boost::container::stable_vector<Molecule>;
+typedef boost::container::deque_options<
+    boost::container::block_size<sizeof(Molecule) * 4>>::type
+    block_molecule_4x_t;
+
+using MoleculeContainer =
+    boost::container::deque<Molecule, void, block_molecule_4x_t>;
 using BeadContainer = std::vector<Bead *>;
 using ResidueContainer = std::vector<Residue *>;
 using InteractionContainer = std::vector<Interaction *>;
