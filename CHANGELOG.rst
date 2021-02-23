@@ -18,7 +18,9 @@ Version 2022-dev
 -  switch mutex to unique_ptr (#664)
 -  standardize header formatting (#661)
 -  clean up memory management in partial_rdf (#665)
--  switched memory management of residues using stable_vectors (#655)
+-  deleted unused makefile (#666)
+-  memory management of molecules fixed (#657)
+-  switched memory management of residues using boost_deque (#655)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================

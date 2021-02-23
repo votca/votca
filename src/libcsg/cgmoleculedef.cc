@@ -198,7 +198,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   return minfo;
 }
 
-Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
+Map *CGMoleculeDef::CreateMap(const Molecule &in, Molecule &out) {
   if (out.BeadCount() != Index(_beads.size())) {
     throw runtime_error(
         "number of beads for cg molecule and mapping definition do "

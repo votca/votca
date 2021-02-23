@@ -29,6 +29,7 @@
 
 // Third party includes
 #include <boost/container/deque.hpp>
+#include <boost/container/stable_vector.hpp>
 
 // VOTCA includes
 #include <votca/tools/types.h>
@@ -51,7 +52,7 @@ class Interaction;
 typedef boost::container::deque_options<
     boost::container::block_size<sizeof(Residue) * 4>>::type block_residue_x4_t;
 
-using MoleculeContainer = std::vector<Molecule *>;
+using MoleculeContainer = boost::container::stable_vector<Molecule>;
 using BeadContainer = std::vector<Bead *>;
 using ResidueContainer =
     boost::container::deque<Residue, void, block_residue_x4_t>;
@@ -229,7 +230,8 @@ class Topology {
   Bead *getBead(const Index i) const { return _beads[i]; }
   Residue &getResidue(const Index i) { return _residues[i]; }
   const Residue &getResidue(const Index i) const { return _residues[i]; }
-  Molecule *getMolecule(const Index i) const { return _molecules[i]; }
+  Molecule *getMolecule(const Index i) { return &_molecules[i]; }
+  const Molecule *getMolecule(const Index i) const { return &_molecules[i]; }
 
   /**
    * delete all molecule information
@@ -453,9 +455,8 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
 }
 
 inline Molecule *Topology::CreateMolecule(std::string name) {
-  Molecule *mol = new Molecule(_molecules.size(), name);
-  _molecules.push_back(mol);
-  return mol;
+  _molecules.push_back(Molecule(_molecules.size(), name));
+  return &_molecules.back();
 }
 
 inline Residue &Topology::CreateResidue(std::string name, Index id) {
@@ -475,7 +476,7 @@ inline Residue &Topology::CreateResidue(std::string name) {
 }
 
 inline Molecule *Topology::MoleculeByIndex(Index index) {
-  return _molecules[index];
+  return &_molecules[index];
 }
 
 template <typename iteratable>
