@@ -20,7 +20,8 @@ Version 2022-dev
 -  clean up memory management in partial_rdf (#665)
 -  deleted unused makefile (#666)
 -  memory management of molecules fixed (#657)
-
+-  switched molecule stable_vector to boost deque (#667)
+ 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
 
