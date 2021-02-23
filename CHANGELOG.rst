@@ -18,7 +18,12 @@ Version 2022-dev
 -  switch mutex to unique_ptr (#664)
 -  standardize header formatting (#661)
 -  clean up memory management in partial_rdf (#665)
+<<<<<<< HEAD
 -  store beads directly in vector (#656)
+=======
+-  deleted unused makefile (#666)
+-  memory management of molecules fixed (#657)
+>>>>>>> master
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================

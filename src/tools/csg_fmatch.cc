@@ -569,7 +569,7 @@ void CGForceMatching::LoadOptions(const string &file) {
 
 void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
 
-  std::list<Interaction *> interList =
+  std::vector<Interaction *> interList =
       conf->InteractionsInGroup(sinfo->splineName);
 
   for (Interaction *inter : interList) {

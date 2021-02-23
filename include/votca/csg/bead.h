@@ -229,19 +229,19 @@ class Bead : public BaseBead {
   const Eigen::Vector3d &getF() const;
 
   /** does this configuration store velocities? */
-  bool HasVel() const { return bead_velocity_set_; }
+  bool HasVel() const noexcept { return bead_velocity_set_; }
 
   /** does this configuration store forces? */
-  bool HasF() const { return bead_force_set_; }
+  bool HasF() const noexcept { return bead_force_set_; }
 
   /** does this configuration store u-orientations? */
-  bool HasU() const { return bU_; }
+  bool HasU() const noexcept { return bU_; }
 
   /** does this configuration store v-orientations? */
-  bool HasV() const { return bV_; }
+  bool HasV() const noexcept { return bV_; }
 
   /** does this configuration store w-orientations? */
-  bool HasW() const { return bW_; }
+  bool HasW() const noexcept { return bW_; }
 
   /** dos the bead store a velocity */
   void HasVel(bool b);

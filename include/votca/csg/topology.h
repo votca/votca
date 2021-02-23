@@ -21,13 +21,13 @@
 
 // Standard includes
 #include <cassert>
-#include <list>
 #include <map>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
 // Third party includes
+#include <boost/container/deque.hpp>
 #include <boost/container/stable_vector.hpp>
 
 // VOTCA includes
@@ -48,10 +48,20 @@ namespace csg {
 
 class Interaction;
 
-using MoleculeContainer = std::vector<Molecule *>;
-// Stable vectors are necessary to be sure that the Bead pointers that point
-// to addresses in the vector are not invalidated as the vector grows.
-using BeadContainer = boost::container::stable_vector<Bead>;
+/* Boost deque has been chosen and contents have been replaced with objects
+ * as opposed to heap allocated types:
+ * 1. To get rid of indirection
+ * 2. Clarify ownership
+ * 3. To ensure pointers are not invalidated if the container changes size
+ * that is not a guarantee with a vector
+ * 4. To provide better contiguous memory access, not possible with std::deque
+ * or list
+ */
+typedef boost::container::deque_options<
+    boost::container::block_size<sizeof(Bead) * 4>>::type block_bead_x4_t;
+
+using BeadContainer = boost::container::deque<Bead, void, block_bead_x4_t>;
+using MoleculeContainer = boost::container::stable_vector<Molecule>;
 using ResidueContainer = std::vector<Residue *>;
 using InteractionContainer = std::vector<Interaction *>;
 
@@ -191,7 +201,7 @@ class Topology {
   }
 
   void AddBondedInteraction(Interaction *ic);
-  std::list<Interaction *> InteractionsInGroup(const std::string &group);
+  std::vector<Interaction *> InteractionsInGroup(const std::string &group);
 
   /**
    * \brief Determine if a bead type exists.
@@ -226,7 +236,8 @@ class Topology {
   Bead *getBead(const Index i) { return &_beads[i]; }
   const Bead *getBead(const Index i) const { return &_beads[i]; }
   Residue *getResidue(const Index i) const { return _residues[i]; }
-  Molecule *getMolecule(const Index i) const { return _molecules[i]; }
+  const Molecule *getMolecule(const Index i) const { return &_molecules[i]; }
+  Molecule *getMolecule(const Index i) { return &_molecules[i]; }
 
   /**
    * delete all molecule information
@@ -449,9 +460,8 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
 }
 
 inline Molecule *Topology::CreateMolecule(std::string name) {
-  Molecule *mol = new Molecule(_molecules.size(), name);
-  _molecules.push_back(mol);
-  return mol;
+  _molecules.push_back(Molecule(_molecules.size(), name));
+  return &_molecules.back();
 }
 
 inline Residue *Topology::CreateResidue(std::string name, Index id) {
@@ -467,7 +477,7 @@ inline Residue *Topology::CreateResidue(std::string name) {
 }
 
 inline Molecule *Topology::MoleculeByIndex(Index index) {
-  return _molecules[index];
+  return &_molecules[index];
 }
 
 template <typename iteratable>

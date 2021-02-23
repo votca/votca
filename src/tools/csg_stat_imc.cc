@@ -168,9 +168,8 @@ void Imc::BeginEvaluate(Topology *top, Topology *) {
 
   for (tools::Property *prop : _bonded) {
     string name = prop->get("name").value();
-
-    std::list<Interaction *> list = top->InteractionsInGroup(name);
-    if (list.empty()) {
+    std::vector<Interaction *> vec = top->InteractionsInGroup(name);
+    if (vec.empty()) {
       throw std::runtime_error(
           "Bonded interaction '" + name +
           "' defined in options xml-file, but not in topology - check name "
