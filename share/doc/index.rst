@@ -41,6 +41,7 @@ For an installation guide see `here <INSTALL.html>`__.
    DEVELOPERS_GUIDE.rst
    VOTCA_LANGUAGE_GUIDE.rst
    CODE_OF_CONDUCT.rst
+   websiteAndDocumentation.rst
 
 .. toctree::
    :maxdepth: 2
