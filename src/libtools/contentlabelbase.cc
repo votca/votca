@@ -122,6 +122,19 @@ static std::string convertToString_(
   throw std::runtime_error(error_msg);
 }
 
+static std::string 
+buildVerboseNodeLabel_(const std::vector<BaseContentLabel::KeyValType> & node ) {
+  std::string label = "";
+  for (const BaseContentLabel::KeyValType& key_val_type : node) {
+    label += key_val_type[0];
+    label += key_val_type[1];
+    label += "=";
+    label += key_val_type[2];
+    label += key_val_type[3];
+  }
+  return label;
+}
+
 static std::string buildLabel_(
     const std::list<std::vector<BaseContentLabel::KeyValType>>& values,
     const LabelType& type) {
@@ -129,14 +142,18 @@ static std::string buildLabel_(
   std::string label = "";
   if (type == LabelType::verbose) {
     for ( const auto & node : values ) {
-      for (const BaseContentLabel::KeyValType& key_val_type : node) {
-        label += key_val_type[0];
-        label += key_val_type[1];
-        label += "=";
-        label += key_val_type[2];
-        label += key_val_type[3];
+      label += buildVerboseNodeLabel_(node);
+    }
+  } else if(type == LabelType::verbose_without_end_nodes){
+    if( values.size() > 2) {
+      for( auto iter = (values.begin()+1); iter != (values.end()-1); ++iter) {
+        label += buildVerboseNodeLabel_(*iter);
       }
     }
+  } else if(type == LabelType::verbose_start_node){
+    label += buildVerboseLabel_(*values.begin());
+  } else if(type == LabelType::verbose_terminating_node){
+    label += buildVerboseLabel_(*(values.end()-1));
   } else {
     for ( const auto & node : values ) {
       for (const BaseContentLabel::KeyValType& key_val_type : node) {

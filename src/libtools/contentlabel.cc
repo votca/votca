@@ -149,9 +149,9 @@ void ContentLabel::makeBranchLabel() {
       KeyValType val;
       labels_.front().push_back(val);
     }
-    labels_.front().front()[0] = "{{";
+    labels_.front().front()[0] = "{(";
     // One of the } braces will replace a ;
-    labels_.back().back()[3] = "}}";
+    labels_.back().back()[3] = ")}";
     label_char_len_ += 3;
   } else {
 
@@ -163,10 +163,10 @@ void ContentLabel::makeBranchLabel() {
       KeyValType val;
       labels_.back().push_back(val);
     }
-    labels_.front().back()[3] = "}";
-    labels_.back().at(0)[0] = "{";
-    labels_.front().at(0)[0] = "{{";
-    labels_.back().back()[3] = "}}";
+    labels_.front().back()[3] = ")";
+    labels_.back().at(0)[0] = "(";
+    labels_.front().at(0)[0] = "{(";
+    labels_.back().back()[3] = ")}";
     // Two of the } will replace a semicolon ;
     label_char_len_ += 4;
   

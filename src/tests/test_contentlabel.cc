@@ -179,17 +179,26 @@ BOOST_AUTO_TEST_CASE(contentlabel_make_branch) {
   ContentLabel label2(contents2);
 
   label.append(label2);
+
+  // Before making it a branch lets check the different labels
+  string starting_node_str_label = "Age=32,Height=1.54,Name=Joe;";
+  BOOST_CHECK(starting_node_str_label.compare(label.get(LabelType::verbose_start_node)) == 0);
+  string terminating_node_str_label = "Age=21,Height=1.64,Name=Randy;";
+  BOOST_CHECK(terminating_node_str_label.compare(label.get(LabelType::verbose_terminating_node)) == 0);
+  string middle_nodes = "";
+  BOOST_CHECK(middle_nodes.compare(label.get(LabelType::verbose_without_end_nodes)) == 0);
+
   label.makeBranchLabel();
 
   string full_str_label =
-      "{{Age=32,Height=1.54,Name=Joe}{Age=21,Height=1.64,Name=Randy}}";
+      "{(Age=32,Height=1.54,Name=Joe)(Age=21,Height=1.64,Name=Randy)}";
 
   size_t num_equals = 6; 
   BOOST_CHECK(label.getCharLen() == full_str_label.length()-num_equals);
 
   std::cout << "Length of label " << label.getCharLen() << std::endl;
   std::cout << "Expected size " << (full_str_label.length()-num_equals) << std::endl;
-  string brief_str_label = "{{32,1.54,Joe}{21,1.64,Randy}}";
+  string brief_str_label = "{(32,1.54,Joe)(21,1.64,Randy)}";
   std::cout << "Label after making into a branch" << std::endl;
   std::cout << label.get() << std::endl;
   std::cout << full_str_label << std::endl;

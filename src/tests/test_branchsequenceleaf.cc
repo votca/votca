@@ -72,6 +72,8 @@ BOOST_AUTO_TEST_CASE(canOrder_isDangling_makeBranchEnd) {
 
   unordered_map<votca::Index, GraphNode> m_gn;
   m_gn[0] = gn;
+  m_gn[1] = gn1;
+  m_gn[2] = gn2;
 
   ReducedGraph graph(vec_ed, m_gn);
 
@@ -102,6 +104,12 @@ BOOST_AUTO_TEST_CASE(canAddLeaf_sequenceIsIncomplete_addLeaf) {
   ReducedEdge edge2(std::vector<Index>{2, 4, 5});
   edge2.add("Level", 0);
 
+  ///  0 - - 1 - - 2 - - 3  
+  ///              |
+  ///              4
+  ///              |
+  ///              5
+
   vec_ed.push_back(edge);
   vec_ed.push_back(edge1);
   vec_ed.push_back(edge2);
@@ -126,6 +134,7 @@ BOOST_AUTO_TEST_CASE(canAddLeaf_sequenceIsIncomplete_addLeaf) {
   m_gn[4] = gn4;
   m_gn[5] = gn5;
 
+  std::cout << "Size of vec_ed " << vec_ed.size() << std::endl;
   ReducedGraph graph(vec_ed, m_gn);
 
   Index starting_vertex = 0;
@@ -222,7 +231,7 @@ BOOST_AUTO_TEST_CASE(getTreeContentLabel) {
     sequenceleaf.sortBranchSequence();
 
     std::string test_str =
-        "{name=a;name=a;name=a}{name=a;name=c}{name=a;name=b;name=b}";
+        "{(name=a);name=a;(name=a)}{name=a;name=c}{name=a;name=b;name=b}";
     std::string cum_id = sequenceleaf.getTreeContentLabel().get();
     std::cout << test_str << std::endl;
     std::cout << cum_id << std::endl;
@@ -260,8 +269,8 @@ BOOST_AUTO_TEST_CASE(getTreeContentLabel) {
 
     sequenceleaf.sortBranchSequence();
     std::string cum_id = sequenceleaf.getTreeContentLabel().get();
-    BOOST_TEST(cum_id == std::string("{name=a;name=a;name=a}{name=a;name=b;"
-                                     "name=b}{name=a;name=c;name=c}"));
+    BOOST_TEST(cum_id == std::string("{{name=a}name=a{name=a}}{{name=a}name=b{"
+                                     "name=b}}{{name=a}name=c{name=c}}"));
   }
 }
 

@@ -237,9 +237,11 @@ bool reorderAndStoreChainIfDoesNotExist_(
 
 set<Index> getAllVertices_(const std::vector<ReducedEdge>& reduced_edges) {
   set<Index> vertices;
+  std::cout << "Size of reduced_edges vector " << reduced_edges.size() << std::endl;
   for (const ReducedEdge& reduced_edge : reduced_edges) {
     vector<Index> chain = reduced_edge.getChain();
     for (const Index vertex : chain) {
+      std::cout << "Adding vertex " << vertex << std::endl;
       vertices.insert(vertex);
     }
   }
@@ -314,11 +316,15 @@ ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges) {
 ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges,
                            unordered_map<Index, GraphNode> nodes) {
 
+  std::cout << __FILE__ << ":" << __LINE__ << std::endl;
+  std::cout << "Size of reduced edges " << reduced_edges.size() << std::endl;
   set<Index> vertices = getAllVertices_(reduced_edges);
   if (nodes.size() < vertices.size()) {
-    throw invalid_argument(
-        "The number of nodes passed into a reduced graph "
-        "must be greater or equivalent to the number of vertices");
+    std::string err_msg = "The number of nodes passed into a reduced graph ";
+    err_msg += "must be greater or equivalent to the number of vertices";
+    err_msg += " total number vertices " + std::to_string(vertices.size());
+    err_msg += " total number of nodes " + std::to_string(nodes.size());
+    throw invalid_argument(err_msg);
   }
   for (const Index vertex : vertices) {
     if (nodes.count(vertex) == 0) {

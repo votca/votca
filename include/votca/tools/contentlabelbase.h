@@ -30,7 +30,13 @@
 namespace votca {
 namespace tools {
 
-enum class LabelType { verbose, concise };
+enum class LabelType { 
+  verbose,
+  verbose_without_end_nodes,
+  verbose_start_node,
+  verbose_terminating_node,
+  concise 
+};
 
 /**
  * @brief Content Label is meant to be a unique identifier that contains
@@ -69,6 +75,8 @@ class BaseContentLabel {
   BaseContentLabel() = default;
   BaseContentLabel(std::unordered_map<std::string, boost::any> values);
   virtual void append(BaseContentLabel);
+
+
 
   size_t getCharLen() const noexcept { return label_char_len_; }
 

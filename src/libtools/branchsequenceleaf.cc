@@ -83,10 +83,13 @@ void BranchSequenceLeaf::sortLeaves_() {
 void BranchSequenceLeaf::buildLabel_() {
   std::cout << "Getting content from branch" << std::endl;
   label_ = branch_.getContentLabel();
+
+  label_ += std::string("<");
   std::cout << "Looping" << std::endl;
   for (std::shared_ptr<BranchSequenceLeaf>& leaf_ : branch_sequence_) {
     std::cout << "Cycling leaves" << std::endl;
     label_.append(leaf_->label_);
+    label_.append(std::string(","));
     std::cout << "label is " << label_.get() << std::endl;
   }
   sorted_ = true;
@@ -177,7 +180,7 @@ void BranchSequenceLeaf::addLeaf(std::shared_ptr<BranchSequenceLeaf> leaf) {
         "unique or does not share a vertex");
   }
 
-  /// Sequence needs to be reversed if the therminal vertex of 'branch_'
+  /// Sequence needs to be reversed if the terminal vertex of 'branch_'
   /// does not match the source branch of 'branch' but does match the
   /// terminal vertex of 'branch'
   if (branch_.getTerminal() == leaf->branch_.getTerminal() &&

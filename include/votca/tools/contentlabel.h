@@ -55,7 +55,9 @@ class ContentLabel : public BaseContentLabel {
   // void add(GraphNode gn);
   //void add(Branch br);
   bool isBranch() const;
-  
+ 
+
+
   /**
    * @brief if the content label has been made a branch label only content 
    * labels that are also branches can be appended
@@ -65,9 +67,9 @@ class ContentLabel : public BaseContentLabel {
   virtual void append(ContentLabel) final;
  
   /**
-   * @brief When a content label is made a branch curly braces are appended
-   * to either side of the content label, and an extra set of curly braces
-   * are placed around the end nodes
+   * @brief When a content label is made a branch, curly braces are appended
+   * to either side of the content label, and a pair of parenthesis are placed 
+   * around the end nodes
    */
   void makeBranchLabel();
 
