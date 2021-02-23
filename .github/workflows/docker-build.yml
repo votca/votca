@@ -37,7 +37,8 @@ jobs:
         with:
           repository: votca/votca
           registry: ghcr.io
-          username: votca-bot
+          # username do not matter, but needs to be a secret, so it gets nulled out on PR from forks
+          username: ${{ secrets.DOCKER_USERNAME }} 
           password: ${{ secrets.VOTCA_BOT_TOKEN }}
           dockerfile: votca/.github/workflows/Dockerfile
           tag_with_ref: true
@@ -47,7 +48,8 @@ jobs:
         with:
           repository: votca/votca
           registry: registry.gitlab.com
-          username: votca-bot
+          # username do not matter, but needs to be a secret, so it gets nulled out on PR from forks
+          username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
           dockerfile: votca/.github/workflows/Dockerfile
           tag_with_ref: true
