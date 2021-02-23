@@ -68,8 +68,7 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
       if (cd != 0) {
         Temp = -cd * (_Mmn[c1 + cmin].block(cmin, 0, _bse_ctotal, auxsize));
         transform.PrepareMatrix1(Temp, threadid);
-      }
-      if (cd2 != 0) {
+      } else if (cd2 != 0) {
         Temp = -cd2 * (_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize));
         transform.PrepareMatrix1(Temp, threadid);
       }
