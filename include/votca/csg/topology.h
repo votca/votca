@@ -49,8 +49,7 @@ namespace csg {
 class Interaction;
 
 typedef boost::container::deque_options<
-    boost::container::block_size<sizeof(Residue) * 4>>::type
-    block_residue_x4_t;
+    boost::container::block_size<sizeof(Residue) * 4>>::type block_residue_x4_t;
 typedef boost::container::deque_options<
     boost::container::block_size<sizeof(Molecule) * 4>>::type
     block_molecule_4x_t;
