@@ -181,22 +181,22 @@ class CGOrderParam : public CsgApplication {
     Eigen::Vector3d u, v, w;
 
     if (_refmol != "") {
-      for (Bead *bead : conf->Beads()) {
-        if (votca::tools::wildcmp(_refmol, bead->getName())) {
-          _ref = bead->getPos();
+      for (const auto &bead : conf->Beads()) {
+        if (votca::tools::wildcmp(_refmol, bead.getName())) {
+          _ref = bead.getPos();
         }
       }
     }
 
-    for (Bead *bead : conf->Beads()) {
-      if (!votca::tools::wildcmp(_filter, bead->getName())) {
+    for (const auto &bead : conf->Beads()) {
+      if (!votca::tools::wildcmp(_filter, bead.getName())) {
         continue;
       }
-      if (votca::tools::wildcmp(_refmol, bead->getName())) {
+      if (votca::tools::wildcmp(_refmol, bead.getName())) {
         continue;
       }
 
-      eR = bead->getPos() - _ref;
+      eR = bead.getPos() - _ref;
       if ((eR.norm() < _radialcutoff && eR.norm() > _minrad) || _rbins != 1) {
         // cout << eR << endl;
         votca::Index rb = 0;
@@ -208,9 +208,9 @@ class CGOrderParam : public CsgApplication {
         }
 
         eR.normalize();
-        u = bead->getU();
-        v = bead->getV();
-        w = bead->getW();
+        u = bead.getU();
+        v = bead.getV();
+        w = bead.getW();
         u.normalize();
         v.normalize();
         w.normalize();

@@ -21,6 +21,7 @@ Version 2022-dev
 -  deleted unused makefile (#666)
 -  memory management of molecules fixed (#657)
 -  switched memory management of residues using boost_deque (#655)
+-  store beads directly in boost deque (#656)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
