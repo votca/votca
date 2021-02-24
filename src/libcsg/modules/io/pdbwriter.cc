@@ -100,7 +100,7 @@ void PDBWriter::writeSymmetry(const Bead &bead) {
   return;
 }
 
-std::string PDBWriter::getResname(Topology &conf, const Bead & bead) {
+std::string PDBWriter::getResname(Topology &conf, const Bead &bead) {
   if (bead.getResnr() < conf.ResidueCount()) {
     return conf.getResidue(bead.getResnr()).getName();
   } else {

@@ -58,11 +58,9 @@ class Interaction;
  * or list
  */
 typedef boost::container::deque_options<
-    boost::container::block_size<sizeof(Residue) * 4>>::type
-    block_residue_x4_t;
+    boost::container::block_size<sizeof(Residue) * 4>>::type block_residue_x4_t;
 typedef boost::container::deque_options<
-    boost::container::block_size<sizeof(Bead) * 4>>::type
-    block_bead_x4_t;
+    boost::container::block_size<sizeof(Bead) * 4>>::type block_bead_x4_t;
 
 using BeadContainer = boost::container::deque<Bead, void, block_bead_x4_t>;
 using MoleculeContainer = boost::container::stable_vector<Molecule>;
