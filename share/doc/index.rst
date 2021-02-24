@@ -49,7 +49,7 @@ For an installation guide see `here <INSTALL.html>`__.
    :caption: Community
 
    Github <https://github.com/votca>
-   Twitter <https://twitter.com/votca_xtp>
+   Twitter <https://twitter.com/votca_software>
    Forum <https://groups.google.com/g/votca>
   
 Indices and tables
