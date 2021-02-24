@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,30 +31,30 @@ void NematicOrder::Process(Topology &top, const string &filter) {
   bool bU, bV, bW;
   bU = bV = bW = false;
 
-  for (auto bead : top.Beads()) {
+  for (const auto &bead : top.Beads()) {
 
-    if (!tools::wildcmp(filter, bead->getName())) {
+    if (!tools::wildcmp(filter, bead.getName())) {
       continue;
     }
 
-    if (bead->getSymmetry() == 1) {
+    if (bead.getSymmetry() == 1) {
       continue;
     }
 
-    if (bead->HasU()) {
-      _mu += bead->getU() * bead->getU().transpose();
+    if (bead.HasU()) {
+      _mu += bead.getU() * bead.getU().transpose();
       _mu.diagonal().array() -= 1. / 3.;
       bU = true;
     }
 
-    if (bead->HasV()) {
-      _mu += bead->getV() * bead->getV().transpose();
+    if (bead.HasV()) {
+      _mu += bead.getV() * bead.getV().transpose();
       _mu.diagonal().array() -= 1. / 3.;
       bV = true;
     }
 
-    if (bead->HasW()) {
-      _mu += bead->getW() * bead->getW().transpose();
+    if (bead.HasW()) {
+      _mu += bead.getW() * bead.getW().transpose();
       _mu.diagonal().array() -= 1. / 3.;
       bW = true;
     }

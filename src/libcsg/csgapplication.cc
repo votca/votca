@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,16 +212,14 @@ void CsgApplication::Run(void) {
   };
 
   // create the master worker
-  Worker *master = nullptr;
   if (DoThreaded()) {
-    master = ForkWorker();
+    _myWorkers.push_back(ForkWorker());
   } else {
-    master = new DummyWorker();
+    _myWorkers.emplace_back(std::make_unique<DummyWorker>());
   }
-
-  master->setApplication(this);
-  master->setId(0);
-  _myWorkers.push_back(master);
+  _myWorkers.back()->setApplication(this);
+  _myWorkers.back()->setId(0);
+  Worker *master = (_myWorkers.back().get());
 
   CGEngine cg;
 
@@ -305,20 +303,21 @@ void CsgApplication::Run(void) {
     // Create all the workers
     /////////////////verbose/////////////////////////////////
     for (Index thread = 1; thread < _nthreads && DoThreaded(); thread++) {
-      Worker *myWorker = ForkWorker();
-      myWorker->setApplication(this);
-      myWorker->setId(thread);
-      _myWorkers.push_back(myWorker);
+      _myWorkers.push_back(ForkWorker());
+      _myWorkers.back()->setApplication(this);
+      _myWorkers.back()->setId(thread);
 
       // this will be changed to CopyTopologyData
       // read in the topology
 
-      reader->ReadTopology(_op_vm["top"].as<std::string>(), myWorker->_top);
-      myWorker->_top.CheckMoleculeNaming();
+      reader->ReadTopology(_op_vm["top"].as<std::string>(),
+                           _myWorkers.back()->_top);
+      _myWorkers.back()->_top.CheckMoleculeNaming();
 
       if (_do_mapping) {
         // create the mapping + cg topology
-        myWorker->_map = cg.CreateCGTopology(myWorker->_top, myWorker->_top_cg);
+        _myWorkers.back()->_map = cg.CreateCGTopology(
+            _myWorkers.back()->_top, _myWorkers.back()->_top_cg);
       }
     }
 
@@ -365,15 +364,13 @@ void CsgApplication::Run(void) {
       for (size_t thread = 0; thread < _myWorkers.size(); thread++) {
 
         if (SynchronizeThreads()) {
-          tools::Mutex *myMutexIn = new tools::Mutex;
-          _threadsMutexesIn.push_back(myMutexIn);
+          _threadsMutexesIn.push_back(std::make_unique<tools::Mutex>());
           // lock each worker for input
-          myMutexIn->Lock();
+          _threadsMutexesIn.back()->Lock();
 
-          tools::Mutex *myMutexOut = new tools::Mutex;
-          _threadsMutexesOut.push_back(myMutexOut);
+          _threadsMutexesOut.push_back(std::make_unique<tools::Mutex>());
           // lock each worker for output
-          myMutexOut->Lock();
+          _threadsMutexesOut.back()->Lock();
         }
       }
       for (auto &_myWorker : _myWorkers) {
@@ -391,20 +388,14 @@ void CsgApplication::Run(void) {
         myWorker->WaitDone();
         if (!SynchronizeThreads()) {
           mergeMutex.Lock();
-          MergeWorker(myWorker);
+          MergeWorker(myWorker.get());
           mergeMutex.Unlock();
         }
-        delete myWorker;
-      }
-      for (size_t thread = 0; thread < _threadsMutexesIn.size(); ++thread) {
-        delete _threadsMutexesIn[thread];
-        delete _threadsMutexesOut[thread];
       }
 
     } else {
       master->Start();
       master->WaitDone();
-      delete master;
     }
 
     EndEvaluate();
@@ -413,12 +404,6 @@ void CsgApplication::Run(void) {
     _threadsMutexesIn.clear();
     _threadsMutexesOut.clear();
     _traj_reader->Close();
-  }
-}
-
-CsgApplication::Worker::~Worker() {
-  if (_map) {
-    delete _map;
   }
 }
 
@@ -440,7 +425,7 @@ void CsgApplication::EvalConfiguration(Topology *top, Topology *top_ref) {
   }
 }
 
-CsgApplication::Worker *CsgApplication::ForkWorker(void) {
+std::unique_ptr<CsgApplication::Worker> CsgApplication::ForkWorker(void) {
   throw std::runtime_error("ForkWorker not implemented in application");
   return nullptr;
 }

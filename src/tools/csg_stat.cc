@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,21 @@
  *
  */
 
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/version.h"
-#include "csg_stat_imc.h"
-#include <boost/program_options.hpp>
+// Standard includes
 #include <cstdlib>
 #include <fstream>
-#include <iostream>
+#include <memory>
 
-// using namespace votca::tools;
+// Third party includes
+#include <boost/program_options.hpp>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/version.h"
+
+// Local private VOTCA includes
+#include "csg_stat_imc.h"
+
 using namespace std;
 using namespace votca::csg;
 
@@ -43,7 +49,9 @@ class CsgStatApp : public CsgApplication {
   void BeginEvaluate(Topology *top, Topology *top_ref) override;
   void EndEvaluate() override;
 
-  CsgApplication::Worker *ForkWorker() override { return _imc.ForkWorker(); }
+  std::unique_ptr<CsgApplication::Worker> ForkWorker() override {
+    return _imc.ForkWorker();
+  }
 
   void MergeWorker(CsgApplication::Worker *worker) override {
     _imc.MergeWorker(worker);
