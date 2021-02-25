@@ -64,7 +64,7 @@ std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(const Topology &in,
     m->AddMoleculeMap(std::move(map));
   }
   out.RebuildExclusions();
-  return std::move(m);
+  return m;
 }
 
 void CGEngine::LoadMoleculeType(const string &filename) {
