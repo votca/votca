@@ -412,9 +412,9 @@ Map &Map::operator=(Map &&map) {
 
 BeadMap *Map::CreateBeadMap(const BeadMapType type) {
   if (type == BeadMapType::Spherical) {
-    _maps.push_back(std::move(std::make_unique<Map_Sphere>()));
+    _maps.push_back(std::make_unique<Map_Sphere>());
   } else {
-    _maps.push_back(std::move(std::make_unique<Map_Ellipsoid>()));
+    _maps.push_back(std::make_unique<Map_Ellipsoid>());
   }
   return _maps.back().get();
 }
