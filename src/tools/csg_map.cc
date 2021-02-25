@@ -92,11 +92,11 @@ class CsgMapApp : public CsgApplication {
       hybtol.setStep(top->getStep());
 
       // copy all residues from both
-      for (auto &residue : top_ref->Residues()) {
-        hybtol.CreateResidue(residue->getName());
+      for (const auto &residue : top_ref->Residues()) {
+        hybtol.CreateResidue(residue.getName());
       }
-      for (auto &residue : top->Residues()) {
-        hybtol.CreateResidue(residue->getName());
+      for (const auto &residue : top->Residues()) {
+        hybtol.CreateResidue(residue.getName());
       }
 
       // copy all molecules and beads
@@ -123,7 +123,7 @@ class CsgMapApp : public CsgApplication {
             bn->setF(bi->getF());
           }
 
-          mi->AddBead(hybtol.Beads()[beadid], molecule.getBeadName(i));
+          mi->AddBead(&hybtol.Beads()[beadid], molecule.getBeadName(i));
         }
 
         if (mi->getId() < top->MoleculeCount()) {

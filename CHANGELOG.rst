@@ -20,6 +20,9 @@ Version 2022-dev
 -  clean up memory management in partial_rdf (#665)
 -  deleted unused makefile (#666)
 -  memory management of molecules fixed (#657)
+-  switched memory management of residues using boost_deque (#655)
+-  store beads directly in boost deque (#656)
+-  switched molecule stable_vector to boost deque (#667)
 -  convert maps to unique_ptrs (#653)
 
 Version 2021-rc.2 (released XX.01.21)
@@ -27,6 +30,7 @@ Version 2021-rc.2 (released XX.01.21)
 
 -  fix CI on rawhide (#642)
 -  add auto-cancel workflow to GitHub Actions (#645)
+-  namespace bind2nd to fix build on FreeBSD (#668)
 
 Version 2021-rc.1 (released 15.01.21)
 =====================================

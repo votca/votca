@@ -21,14 +21,13 @@
 
 // Standard includes
 #include <cassert>
-#include <list>
 #include <map>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
 // Third party includes
-#include <boost/container/stable_vector.hpp>
+#include <boost/container/deque.hpp>
 
 // VOTCA includes
 #include <votca/tools/types.h>
@@ -48,9 +47,28 @@ namespace csg {
 
 class Interaction;
 
-using MoleculeContainer = boost::container::stable_vector<Molecule>;
-using BeadContainer = std::vector<Bead *>;
-using ResidueContainer = std::vector<Residue *>;
+/* Boost deque has been chosen and contents have been replaced with objects
+ * as opposed to heap allocated types:
+ * 1. To get rid of indirection
+ * 2. Clarify ownership
+ * 3. To ensure pointers are not invalidated if the container changes size
+ * that is not a guarantee with a vector
+ * 4. To provide better contiguous memory access, not possible with std::deque
+ * or list
+ */
+typedef boost::container::deque_options<
+    boost::container::block_size<sizeof(Residue) * 4>>::type block_residue_x4_t;
+typedef boost::container::deque_options<
+    boost::container::block_size<sizeof(Molecule) * 4>>::type
+    block_molecule_4x_t;
+typedef boost::container::deque_options<
+    boost::container::block_size<sizeof(Bead) * 4>>::type block_bead_x4_t;
+
+using MoleculeContainer =
+    boost::container::deque<Molecule, void, block_molecule_4x_t>;
+using BeadContainer = boost::container::deque<Bead, void, block_bead_x4_t>;
+using ResidueContainer =
+    boost::container::deque<Residue, void, block_residue_x4_t>;
 using InteractionContainer = std::vector<Interaction *>;
 
 /**
@@ -106,8 +124,8 @@ class Topology {
    * @param[in] name residue name
    * @return created residue
    */
-  Residue *CreateResidue(std::string name);
-  Residue *CreateResidue(std::string name, Index id);
+  Residue &CreateResidue(std::string name);
+  Residue &CreateResidue(std::string name, Index id);
 
   /**
    * \brief Create molecules based on the residue.
@@ -171,6 +189,7 @@ class Topology {
    * @return bead container
    */
   ResidueContainer &Residues() { return _residues; }
+  const ResidueContainer &Residues() const { return _residues; }
 
   /**
    * access  containter with all molecules
@@ -189,7 +208,7 @@ class Topology {
   }
 
   void AddBondedInteraction(Interaction *ic);
-  std::list<Interaction *> InteractionsInGroup(const std::string &group);
+  std::vector<Interaction *> InteractionsInGroup(const std::string &group);
 
   /**
    * \brief Determine if a bead type exists.
@@ -221,10 +240,12 @@ class Topology {
    * @param[in] Index i is the id of the bead
    * @return Bead * is a pointer to the bead
    **/
-  Bead *getBead(const Index i) const { return _beads[i]; }
-  Residue *getResidue(const Index i) const { return _residues[i]; }
-  const Molecule *getMolecule(const Index i) const { return &_molecules[i]; }
+  Bead *getBead(const Index i) { return &_beads[i]; }
+  const Bead *getBead(const Index i) const { return &_beads[i]; }
+  Residue &getResidue(const Index i) { return _residues[i]; }
+  const Residue &getResidue(const Index i) const { return _residues[i]; }
   Molecule *getMolecule(const Index i) { return &_molecules[i]; }
+  const Molecule *getMolecule(const Index i) const { return &_molecules[i]; }
 
   /**
    * delete all molecule information
@@ -427,7 +448,7 @@ class Topology {
 
   std::map<std::string, Index> _interaction_groups;
 
-  std::map<std::string, std::list<Interaction *>> _interactions_by_group;
+  std::map<std::string, std::vector<Interaction *>> _interactions_by_group;
 
   double _time = 0.0;
   Index _step = 0;
@@ -442,9 +463,8 @@ inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
                                   std::string type, Index resnr, double m,
                                   double q) {
 
-  Bead *b = new Bead(_beads.size(), type, symmetry, name, resnr, m, q);
-  _beads.push_back(b);
-  return b;
+  _beads.push_back(Bead(_beads.size(), type, symmetry, name, resnr, m, q));
+  return &_beads.back();
 }
 
 inline Molecule *Topology::CreateMolecule(std::string name) {
@@ -452,16 +472,20 @@ inline Molecule *Topology::CreateMolecule(std::string name) {
   return &_molecules.back();
 }
 
-inline Residue *Topology::CreateResidue(std::string name, Index id) {
-  Residue *res = new Residue(id, name);
-  _residues.push_back(res);
-  return res;
+inline Residue &Topology::CreateResidue(std::string name, Index id) {
+  // Note that Residue constructor is intentionally private and only topology
+  // class can create it, hence emplace back will not work because the vector
+  // class does not have access to the constructor.
+  _residues.push_back(Residue(id, name));
+  return _residues.back();
 }
 
-inline Residue *Topology::CreateResidue(std::string name) {
-  Residue *res = new Residue(_residues.size(), name);
-  _residues.push_back(res);
-  return res;
+inline Residue &Topology::CreateResidue(std::string name) {
+  // Note that Residue constructor is intentionally private and only topology
+  // class can create it, hence emplace back will not work because the vector
+  // class does not have access to the constructor.
+  _residues.push_back(Residue(_residues.size(), name));
+  return _residues.back();
 }
 
 inline Molecule *Topology::MoleculeByIndex(Index index) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,36 +73,36 @@ void PDBWriter::WriteBox(const Eigen::Matrix3d &box) {
   _out << boxfrmt % a % b % c % alpha % beta % gamma;
 }
 
-void PDBWriter::writeSymmetry(Bead *bead) {
-  if (bead->getSymmetry() > 1) {
-    Eigen::Vector3d r = 10 * bead->getPos();
+void PDBWriter::writeSymmetry(const Bead &bead) {
+  if (bead.getSymmetry() > 1) {
+    Eigen::Vector3d r = 10 * bead.getPos();
     boost::format beadfrmt(
         "HETATM%1$5d %2$4s %3$3s %4$1s%5$4d    %6$8.3f%7$8.3f%8$8.3f\n");
-    Eigen::Vector3d ru = 0.1 * bead->getU() + r;
+    Eigen::Vector3d ru = 0.1 * bead.getU() + r;
 
-    _out << beadfrmt % (bead->getId() + 1) % 100000  // atom serial number
-                % bead->getName()                    // atom name
-                % "REU"                              // residue name
-                % " "                                // chain identifier 1 char
-                % (bead->getResnr() + 1)             // residue sequence number
-                % ru.x() % ru.y() % ru.z();          // we skip the charge
+    _out << beadfrmt % (bead.getId() + 1) % 100000  // atom serial number
+                % bead.getName()                    // atom name
+                % "REU"                             // residue name
+                % " "                               // chain identifier 1 char
+                % (bead.getResnr() + 1)             // residue sequence number
+                % ru.x() % ru.y() % ru.z();         // we skip the charge
 
-    if (bead->getSymmetry() > 2) {
-      Eigen::Vector3d rv = 0.1 * bead->getV() + r;
-      _out << beadfrmt % (bead->getId() + 1) % 100000  // atom serial number
-                  % bead->getName()                    // atom name
-                  % "REV"                              // residue name
-                  % " "                        // chain identifier 1 char
-                  % (bead->getResnr() + 1)     // residue sequence number
-                  % rv.x() % rv.y() % rv.z();  // we skip the charge
+    if (bead.getSymmetry() > 2) {
+      Eigen::Vector3d rv = 0.1 * bead.getV() + r;
+      _out << beadfrmt % (bead.getId() + 1) % 100000  // atom serial number
+                  % bead.getName()                    // atom name
+                  % "REV"                             // residue name
+                  % " "                               // chain identifier 1 char
+                  % (bead.getResnr() + 1)             // residue sequence number
+                  % rv.x() % rv.y() % rv.z();         // we skip the charge
     }
   }
   return;
 }
 
-std::string PDBWriter::getResname(Topology &conf, Bead *bead) {
-  if (conf.getResidue(bead->getResnr())) {
-    return conf.getResidue(bead->getResnr())->getName();
+std::string PDBWriter::getResname(Topology &conf, const Bead &bead) {
+  if (bead.getResnr() < conf.ResidueCount()) {
+    return conf.getResidue(bead.getResnr()).getName();
   } else {
     return "";
   }
