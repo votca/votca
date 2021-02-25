@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,18 @@
  *
  */
 
+// Standard includes
 #include <cstdlib>
+#include <memory>
+
+// VOTCA includes
+#include <votca/tools/histogramnew.h>
+
+// Local VOTCA includes
 #include <votca/csg/beadlist.h>
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/nblist.h>
 #include <votca/csg/nblistgrid.h>
-#include <votca/tools/histogramnew.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -31,7 +37,7 @@ class OrientCorrApp : public CsgApplication {
 
   void HelpText(ostream &out) override {
     out << "Calculates the orientational correlation function\n"
-           "    <3/2*u(0)*u(r) - 1/2>\n"
+           "<3/2*u(0)*u(r) - 1/2>\n"
            "for a polymer melt, where u is the vector pointing along a bond "
            "and \n"
            "r the distance between bond segments (centered on middle of "
@@ -56,13 +62,13 @@ class OrientCorrApp : public CsgApplication {
   void EndEvaluate() override;
 
   // creates a worker for a thread
-  CsgApplication::Worker *ForkWorker(void) override;
+  std::unique_ptr<CsgApplication::Worker> ForkWorker(void) override;
   // merge data of worker into main
   void MergeWorker(Worker *worker) override;
 
  public:
   // helper class to choose nbsearch algorithm
-  static NBList *CreateNBSearch();
+  static std::unique_ptr<NBList> CreateNBSearch();
 
  protected:
   votca::tools::HistogramNew _cor;
@@ -121,12 +127,12 @@ void OrientCorrApp::Initialize() {
       "neighbor search algorithm (simple or grid)");
 }
 
-NBList *OrientCorrApp::CreateNBSearch() {
+std::unique_ptr<NBList> OrientCorrApp::CreateNBSearch() {
   if (_nbmethod == "simple") {
-    return new NBList();
+    return std::make_unique<NBList>();
   }
   if (_nbmethod == "grid") {
-    return new NBListGrid();
+    return std::make_unique<NBListGrid>();
   }
 
   throw std::runtime_error(
@@ -143,9 +149,8 @@ void OrientCorrApp::BeginEvaluate(Topology *, Topology *) {
 }
 
 // creates worker for each thread
-CsgApplication::Worker *OrientCorrApp::ForkWorker() {
-  MyWorker *worker;
-  worker = new MyWorker();
+std::unique_ptr<CsgApplication::Worker> OrientCorrApp::ForkWorker() {
+  auto worker = std::make_unique<MyWorker>();
   worker->_cut_off = _cut_off;
   worker->_cor.Initialize(0, worker->_cut_off, _nbins);
   worker->_count.Initialize(0, worker->_cut_off, _nbins);
@@ -167,11 +172,11 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
   mapped.setBox(top->getBox());
 
   // loop over all molecules
-  for (auto mol_src : top->Molecules()) {
+  for (const auto &mol_src : top->Molecules()) {
     // create a molecule in mapped topology
-    Molecule *mol = mapped.CreateMolecule(mol_src->getName());
+    Molecule *mol = mapped.CreateMolecule(mol_src.getName());
     // loop over beads in molecule
-    for (votca::Index i = 0; i < mol_src->BeadCount() - 1; ++i) {
+    for (votca::Index i = 0; i < mol_src.BeadCount() - 1; ++i) {
       // create a bead in mapped topology
       string bead_type = "A";
       if (mapped.BeadTypeExist(bead_type) == false) {
@@ -179,8 +184,8 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
       }
       Bead *b =
           mapped.CreateBead(Bead::ellipsoidal, "A", bead_type, 1, 0.0, 0.0);
-      Eigen::Vector3d p1 = mol_src->getBead(i)->getPos();
-      Eigen::Vector3d p2 = mol_src->getBead(i + 1)->getPos();
+      Eigen::Vector3d p1 = mol_src.getBead(i)->getPos();
+      Eigen::Vector3d p2 = mol_src.getBead(i + 1)->getPos();
       // position is in middle of bond
       Eigen::Vector3d pos = 0.5 * (p1 + p2);
       // orientation pointing along bond
@@ -202,8 +207,7 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
   b.Generate(mapped, "*");
 
   // create/initialize neighborsearch
-  std::unique_ptr<NBList> nb =
-      std::unique_ptr<NBList>(OrientCorrApp::CreateNBSearch());
+  std::unique_ptr<NBList> nb = OrientCorrApp::CreateNBSearch();
   nb->setCutoff(_cut_off);
 
   // set callback for each pair found

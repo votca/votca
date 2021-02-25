@@ -15,11 +15,16 @@
  *
  */
 
+// Third party includes
 #include <boost/program_options.hpp>
-#include <votca/csg/cgengine.h>
-#include <votca/csg/csgapplication.h>
+
+// VOTCA includes
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include <votca/csg/cgengine.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -160,9 +165,9 @@ int main(int argc, char **argv) {
 void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
 
   if (_refmol != "") {
-    for (Bead *bead : conf->Beads()) {
-      if (votca::tools::wildcmp(_refmol, bead->getName())) {
-        _ref = bead->getPos();
+    for (const auto &bead : conf->Beads()) {
+      if (votca::tools::wildcmp(_refmol, bead.getName())) {
+        _ref = bead.getPos();
         cout << " Solute pos " << _ref << endl;
       }
     }
@@ -172,16 +177,16 @@ void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
   hist.Initialize(_rmin, _rmax, _nbins);
 
   /* check how many molecules are in each bin*/
-  for (Bead *bead : conf->Beads()) {
-    if (!votca::tools::wildcmp(_filter, bead->getName())) {
+  for (const auto &bead : conf->Beads()) {
+    if (!votca::tools::wildcmp(_filter, bead.getName())) {
       continue;
     }
     double r = 0;
     if (_do_spherical) {
-      Eigen::Vector3d eR = bead->getPos() - _ref;
+      Eigen::Vector3d eR = bead.getPos() - _ref;
       r = eR.norm();
     } else {
-      Eigen::Vector3d eR = bead->getPos();
+      Eigen::Vector3d eR = bead.getPos();
       if (_dim == 0) {
         r = eR.x();
       } else if (_dim == 1) {

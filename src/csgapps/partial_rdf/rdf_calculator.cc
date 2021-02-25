@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,25 @@
  *
  */
 
-#include "rdf_calculator.h"
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
+#include <votca/tools/constants.h>
+#include <votca/tools/rangeparser.h>
+
+// Local VOTCA includes
 #include <votca/csg/beadlist.h>
 #include <votca/csg/imcio.h>
 #include <votca/csg/nblistgrid.h>
-#include <votca/tools/constants.h>
-#include <votca/tools/rangeparser.h>
+
+// Local private includes
+#include "rdf_calculator.h"
 
 namespace votca {
 namespace csg {
@@ -114,9 +123,10 @@ RDFCalculator::interaction_t *RDFCalculator::AddInteraction(Property *p) {
 
   group = "none";
 
-  interaction_t *i = new interaction_t;
-  i->_index = _interactions.size();
-  _interactions[name] = i;
+  auto inter = std::make_unique<interaction_t>();
+  interaction_t *i = inter.get();
+  inter->_index = _interactions.size();
+  _interactions[name] = std::move(inter);
   getGroup(group)->_interactions.push_back(i);
 
   i->_step = p->get("step").as<double>();
@@ -298,9 +308,9 @@ void RDFCalculator::Worker::DoBonded(Topology *top) {
     _current_hists[i._index].Clear();
 
     // now fill with new data
-    std::list<Interaction *> list = top->InteractionsInGroup(name);
+    std::vector<Interaction *> vec = top->InteractionsInGroup(name);
 
-    for (auto ic : list) {
+    for (auto ic : vec) {
       double v = ic->EvaluateVar(*top);
       _current_hists[i._index].Process(v);
     }
@@ -309,12 +319,12 @@ void RDFCalculator::Worker::DoBonded(Topology *top) {
 
 // returns a group, creates it if doesn't exist
 RDFCalculator::group_t *RDFCalculator::getGroup(const std::string &name) {
-  std::map<std::string, group_t *>::iterator iter;
+  std::map<std::string, std::unique_ptr<group_t>>::iterator iter;
   iter = _groups.find(name);
   if (iter == _groups.end()) {
-    return _groups[name] = new group_t;
+    return (_groups[name] = std::make_unique<group_t>()).get();
   }
-  return (*iter).second;
+  return (*iter).second.get();
 }
 
 // write the distribution function
@@ -349,15 +359,14 @@ void RDFCalculator::WriteDist(const std::string &suffix) {
             << std::endl;
 }
 
-CsgApplication::Worker *RDFCalculator::ForkWorker() {
-  RDFCalculator::Worker *worker;
-  worker = new RDFCalculator::Worker;
+std::unique_ptr<CsgApplication::Worker> RDFCalculator::ForkWorker() {
+  auto worker = std::make_unique<RDFCalculator::Worker>();
 
   worker->_current_hists.resize(_interactions.size());
   worker->_rdfcalculator = this;
 
   for (auto &_interaction : _interactions) {
-    interaction_t *i = _interaction.second;
+    interaction_t *i = _interaction.second.get();
     worker->_current_hists[i->_index].Initialize(
         i->_average.getMin(), i->_average.getMax(), i->_average.getNBins());
   }
@@ -375,7 +384,7 @@ void RDFCalculator::MergeWorker(CsgApplication::Worker *worker_) {
   _avg_vol.Process(worker->_cur_vol);
 
   for (auto &_interaction : _interactions) {
-    interaction_t *i = _interaction.second;
+    interaction_t *i = _interaction.second.get();
     i->_average.data().y() =
         (((double)_nframes - 1.0) * i->_average.data().y() +
          worker->_current_hists[i->_index].data().y()) /
