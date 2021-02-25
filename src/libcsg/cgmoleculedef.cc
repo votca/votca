@@ -245,7 +245,6 @@ CGMoleculeDef::beaddef_t *CGMoleculeDef::getBeadByName(const string &name) {
     std::cout << "cannot find: <" << name << "> in " << _name << "\n";
     return nullptr;
   }
-  assert(iter != _beadmap.end());
   return (*iter).second;
 }
 
