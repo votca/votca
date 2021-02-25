@@ -84,30 +84,6 @@ class AkimaSpline : public Spline {
   Eigen::VectorXd t;
 };
 
-inline double AkimaSpline::Calculate(double r) {
-  Index interval = getInterval(r);
-  double z = r - _r[interval];
-  return p0(interval) + p1(interval) * z + p2(interval) * z * z +
-         p3(interval) * z * z * z;
-}
-
-inline double AkimaSpline::CalculateDerivative(double r) {
-  Index interval = getInterval(r);
-  double z = r - _r[interval];
-  return +p1(interval) + 2.0 * p2(interval) * z + 3.0 * p3(interval) * z * z;
-}
-
-inline double AkimaSpline::getSlope(double m1, double m2, double m3,
-                                    double m4) {
-  if (isApproximatelyEqual(m1, m2, 1E-15) &&
-      isApproximatelyEqual(m3, m4, 1E-15)) {
-    return (m2 + m3) / 2.0;
-  } else {
-    return (std::fabs(m4 - m3) * m2 + std::fabs(m2 - m1) * m3) /
-           (std::fabs(m4 - m3) + std::fabs(m2 - m1));
-  }
-}
-
 }  // namespace tools
 }  // namespace votca
 

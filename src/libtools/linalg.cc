@@ -63,51 +63,5 @@ Eigen::VectorXd linalg_constrained_qrsolve(const Eigen::MatrixXd &A,
   return QR.householderQ() * result;
 }
 
-EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, Index nmax) {
-
-  EigenSystem result;
-#ifdef MKL_FOUND
-
-  Index n = A.rows();
-  std::vector<MKL_INT> ifail(n);
-  MKL_INT lda = MKL_INT(n);
-  // make sure that containers for eigenvalues and eigenvectors are of correct
-  // size
-  result.eigenvalues().resize(nmax);
-  result.eigenvectors().resize(n, nmax);
-
-  MKL_INT il = 1;
-  MKL_INT iu = MKL_INT(nmax);
-  double abstol = 0.0;  // use default
-  double vl = 0.0;
-  double vu = 0.0;
-  // make a pointer to the EIGEN matrix so that LAPACK understands it
-  double *pA = A.data();
-  double *pV = result.eigenvectors().data();
-  double *pE = result.eigenvalues().data();
-
-  MKL_INT info;
-  MKL_INT m;
-
-  // call LAPACK via C interface
-  info = LAPACKE_dsyevx(LAPACK_COL_MAJOR, 'V', 'I', 'U', lda, pA, lda, vl, vu,
-                        il, iu, abstol, &m, pE, pV, lda, ifail.data());
-  if (info == 0) {
-    result.info() = Eigen::Success;
-  } else if (info < 0) {
-    result.info() = Eigen::NumericalIssue;
-  } else {
-    result.info() = Eigen::NoConvergence;
-  }
-
-#else
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
-  result.eigenvectors() = es.eigenvectors().leftCols(nmax);
-  result.eigenvalues() = es.eigenvalues().head(nmax);
-  result.info() = es.info();
-#endif
-  return result;
-}
-
 }  // namespace tools
 }  // namespace votca
