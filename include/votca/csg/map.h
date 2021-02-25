@@ -34,8 +34,6 @@
 namespace votca {
 namespace csg {
 
-class BeadMap;
-
 enum class BeadMapType { Spherical, Ellipsoidal };
 
 /*******************************************************
@@ -43,72 +41,18 @@ enum class BeadMapType { Spherical, Ellipsoidal };
 *******************************************************/
 class BeadMap {
  public:
+  BeadMap() = default;
   virtual ~BeadMap() = default;
   virtual void Apply(const BoundaryCondition &) = 0;
-  virtual void Initialize(Molecule *in, Bead *out, tools::Property *opts_bead,
-                          tools::Property *opts_map);
+  virtual void Initialize(const Molecule *in, Bead *out,
+                          tools::Property *opts_bead,
+                          tools::Property *opts_map) = 0;
 
  protected:
-  BeadMap() = default;
-  Molecule *_in;
+  const Molecule *_in;
   Bead *_out;
   tools::Property *_opts_map;
   tools::Property *_opts_bead;
-  friend class Map;
-};
-
-inline void BeadMap::Initialize(Molecule *in, Bead *out,
-                                tools::Property *opts_bead,
-                                tools::Property *opts_map) {
-  _in = in;
-  _out = out;
-  _opts_map = opts_map;
-  _opts_bead = opts_bead;
-}
-
-/*******************************************************
-    Linear map for spherical beads
-*******************************************************/
-class Map_Sphere : public BeadMap {
- public:
-  void Apply(const BoundaryCondition &) override;
-
-  void Initialize(Molecule *in, Bead *out, tools::Property *opts_bead,
-                  tools::Property *opts_map) override;
-
- protected:
-  Map_Sphere() = default;
-  void AddElem(Bead *in, double weight, double force_weight);
-
-  struct element_t {
-    Bead *_in;
-    double _weight;
-    double _force_weight;
-  };
-  std::vector<element_t> _matrix;
-
-  friend class Map;
-};
-
-inline void Map_Sphere::AddElem(Bead *in, double weight, double force_weight) {
-  element_t el;
-  el._in = in;
-  el._weight = weight;
-  el._force_weight = force_weight;
-  _matrix.push_back(el);
-}
-
-/*******************************************************
-    Linear map for ellipsoidal bead
-*******************************************************/
-class Map_Ellipsoid : public Map_Sphere {
- public:
-  void Apply(const BoundaryCondition &) override;
-
- protected:
-  Map_Ellipsoid() = default;
-
-  friend class Map;
 };
 
 /*******************************************************
@@ -116,8 +60,11 @@ class Map_Ellipsoid : public Map_Sphere {
 *******************************************************/
 class Map {
  public:
-  Map(Molecule &in, Molecule &out) : _in(in), _out(out) {}
-
+  Map(const Molecule &in, Molecule &out) : _in(in), _out(out) {}
+  // Move constructor
+  Map(Map &&map);
+  // Move assignment
+  Map &operator=(Map &&map);
   BeadMap *CreateBeadMap(const BeadMapType type);
 
   // void AddBeadMap(BeadMap *bmap) { _maps.push_back(bmap); }
@@ -125,18 +72,10 @@ class Map {
   void Apply(const BoundaryCondition &bc);
 
  protected:
-  Molecule _in, _out;
+  Molecule _in;
+  Molecule _out;
   std::vector<std::unique_ptr<BeadMap>> _maps;
 };
-
-inline BeadMap *Map::CreateBeadMap(const BeadMapType type) {
-  if (type == BeadMapType::Spherical) {
-    _maps.push_back(std::unique_ptr<BeadMap>(new Map_Sphere()));
-  } else {
-    _maps.push_back(std::unique_ptr<BeadMap>(new Map_Ellipsoid()));
-  }
-  return _maps.back().get();
-}
 
 }  // namespace csg
 }  // namespace votca

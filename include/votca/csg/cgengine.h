@@ -61,27 +61,28 @@ class CGEngine {
   /**
       create a coarse grained topolgy based on a given topology
   */
-  std::unique_ptr<TopologyMap> CreateCGTopology(Topology &in, Topology &out);
+  std::unique_ptr<TopologyMap> CreateCGTopology(const Topology &in,
+                                                Topology &out);
 
   /**
       load molecule type from file
   */
-  void LoadMoleculeType(std::string filename);
+  void LoadMoleculeType(const std::string &filename);
 
-  CGMoleculeDef *getMoleculeDef(std::string name);
+  CGMoleculeDef *getMoleculeDef(const std::string &name);
 
   /**
    * \brief ignores molecule in mapping process
    * \param pattern glob pattern for molecule ident
    */
-  void AddIgnore(std::string pattern) { _ignores.push_back(pattern); }
+  void AddIgnore(const std::string &pattern) { _ignores.push_back(pattern); }
 
   /**
    * \brief checks whether molecule is ignored
    * \param ident identifyier of molecule
    * \return true if is ignored
    */
-  bool IsIgnored(std::string ident);
+  bool IsIgnored(const std::string &ident);
 
  private:
   std::map<std::string, std::unique_ptr<CGMoleculeDef>> _molecule_defs;
@@ -89,7 +90,7 @@ class CGEngine {
   std::list<std::string> _ignores;
 };
 
-inline CGMoleculeDef *CGEngine::getMoleculeDef(std::string name) {
+inline CGMoleculeDef *CGEngine::getMoleculeDef(const std::string &name) {
   std::map<std::string, std::unique_ptr<CGMoleculeDef>>::iterator iter;
 
   // if there is only 1 molecule definition, don't care about the name
@@ -104,7 +105,7 @@ inline CGMoleculeDef *CGEngine::getMoleculeDef(std::string name) {
   return (*iter).second.get();
 }
 
-inline bool CGEngine::IsIgnored(std::string ident) {
+inline bool CGEngine::IsIgnored(const std::string &ident) {
   for (auto &_ignore : _ignores) {
     if (tools::wildcmp(_ignore, ident)) {
       return true;

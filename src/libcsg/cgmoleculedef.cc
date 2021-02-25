@@ -199,7 +199,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   return minfo;
 }
 
-Map CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
+Map CGMoleculeDef::CreateMap(const Molecule &in, Molecule &out) {
   if (out.BeadCount() != Index(_beads.size())) {
     throw runtime_error(
         "number of beads for cg molecule and mapping definition do "
@@ -236,7 +236,7 @@ Map CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
 
     bmap->Initialize(&in, out.getBead(iout), (bead->_options), mdef);
   }
-  return map;
+  return std::move(map);
 }
 
 CGMoleculeDef::beaddef_t *CGMoleculeDef::getBeadByName(const string &name) {

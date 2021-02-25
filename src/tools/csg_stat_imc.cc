@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,27 @@
  *
  */
 
-#include "csg_stat_imc.h"
-#include "../../include/votca/csg/beadlist.h"
-#include "../../include/votca/csg/imcio.h"
-#include "../../include/votca/csg/nblistgrid.h"
-#include "../../include/votca/csg/nblistgrid_3body.h"
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <numeric>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
 #include <votca/tools/rangeparser.h>
+
+// Local VOTCA includes
+#include "votca/csg/beadlist.h"
+#include "votca/csg/imcio.h"
+#include "votca/csg/nblistgrid.h"
+#include "votca/csg/nblistgrid_3body.h"
+
+// Local private VOTCA includes
+#include "csg_stat_imc.h"
 
 namespace votca {
 namespace csg {
@@ -817,9 +826,9 @@ void Imc::WriteIMCBlock(const string &suffix) {
   }
 }
 
-CsgApplication::Worker *Imc::ForkWorker() {
+std::unique_ptr<CsgApplication::Worker> Imc::ForkWorker() {
 
-  Imc::Worker *worker = new Imc::Worker;
+  auto worker = std::make_unique<Imc::Worker>();
   worker->_current_hists.resize(_interactions.size());
   worker->_current_hists_force.resize(_interactions.size());
   worker->_imc = this;

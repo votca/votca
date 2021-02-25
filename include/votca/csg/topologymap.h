@@ -31,21 +31,21 @@ namespace csg {
 
 class TopologyMap {
  public:
-  TopologyMap(Topology *in, Topology *out);
+  TopologyMap(const Topology *in, Topology *out);
 
   void AddMoleculeMap(Map map);
 
   void Apply();
 
  private:
-  Topology *_in;
+  const Topology *_in;
   Topology *_out;
 
   using MapContainer = std::vector<Map>;
   MapContainer _maps;
 };
 
-inline TopologyMap::TopologyMap(Topology *in, Topology *out)
+inline TopologyMap::TopologyMap(const Topology *in, Topology *out)
     : _in(in), _out(out) {}
 
 inline void TopologyMap::AddMoleculeMap(Map map) {
