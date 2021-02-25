@@ -83,7 +83,7 @@ void BranchSequenceLeaf::sortLeaves_() {
 void BranchSequenceLeaf::buildLabel_() {
   std::cout << "Getting content from branch" << std::endl;
   label_ = branch_.getContentLabel();
-
+/*
   label_ += std::string("<");
   std::cout << "Looping" << std::endl;
   for (std::shared_ptr<BranchSequenceLeaf>& leaf_ : branch_sequence_) {
@@ -92,7 +92,7 @@ void BranchSequenceLeaf::buildLabel_() {
     label_.append(std::string(","));
     std::cout << "label is " << label_.get() << std::endl;
   }
-  sorted_ = true;
+  sorted_ = true;*/
 }
 
 std::list<Index> BranchSequenceLeaf::getCanonicalVertexSequence_() const {

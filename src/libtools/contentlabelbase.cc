@@ -146,14 +146,20 @@ static std::string buildLabel_(
     }
   } else if(type == LabelType::verbose_without_end_nodes){
     if( values.size() > 2) {
-      for( auto iter = (values.begin()+1); iter != (values.end()-1); ++iter) {
+      auto iter_stop = values.end();
+      --iter_stop;
+      auto iter_start = values.begin();
+      ++iter_start;
+      for( auto iter = iter_start; iter != iter_stop; ++iter) {
         label += buildVerboseNodeLabel_(*iter);
       }
     }
   } else if(type == LabelType::verbose_start_node){
-    label += buildVerboseLabel_(*values.begin());
+    label += buildVerboseNodeLabel_(*values.begin());
   } else if(type == LabelType::verbose_terminating_node){
-    label += buildVerboseLabel_(*(values.end()-1));
+    auto iter_stop = values.end();
+    --iter_stop;
+    label += buildVerboseNodeLabel_(*(iter_stop));
   } else {
     for ( const auto & node : values ) {
       for (const BaseContentLabel::KeyValType& key_val_type : node) {

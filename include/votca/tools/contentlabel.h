@@ -77,6 +77,29 @@ class ContentLabel : public BaseContentLabel {
    */
   void makeBranchLabel();
 
+  /**
+   * @brief Converts the content label into a bifurcation stem by adding < which
+   * indicates a split.  
+   *
+   * E.g. 
+   *
+   * ( node 1 ) { node 2, node 3, node 4} (node 5) < 
+   */ 
+  void makeFurcationStem();
+
+  /*
+   * Will turn this content label into just the branch of a furcation.
+   *
+   * E.g. if the branch were originally:
+   *
+   * ( node 1 ) { node 2, node 3, node 4} (node 5)
+   *
+   * Will change this to:
+   *
+   * [{node 2, node 3, node 4} ( node 5)]
+   */
+  void makeFurcationBranch();
+
   virtual void reverse() final;
 };
 

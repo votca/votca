@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE(string_id) {
   Branch branch(edge, starting_vertex, graph);
 
   BOOST_TEST(branch.getContentLabel().get() ==
-             string("{{name=a}name=c{name=b}}"));
+             string("(name=a){name=c}(name=b)"));
 }
 
 BOOST_AUTO_TEST_CASE(reverse_sequence) {
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(reverse_sequence) {
 
   branch.reverseSequence();
   BOOST_TEST(branch.getContentLabel().get() ==
-             string("{{name=b}name=c{name=a}}"));
+             string("(name=b){name=c}(name=a)"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

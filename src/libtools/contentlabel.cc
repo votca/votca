@@ -133,6 +133,35 @@ bool ContentLabel::isBranch() const {
   return isBranch_(labels_);
 } 
 
+void ContentLabel::makeFurcationStem() {
+  if (not isBranch() ){
+    std::string error_msg = "Cannot make into furcation stem must first be ";
+    error_msg += "considered a branch.";
+    throw std::runtime_error(error_msg);
+  }
+
+  labels_.pop_front();
+  if( labels_.size() == 0){
+    return;
+  }
+  if( labels_.size() == 1){
+    labels_.back().front()[0] = "[{";
+  }else {
+    labels_.back().back()[3] = ")]";
+  }
+}
+
+void ContentLabel::makeFurcationBranch() {
+  if (not isBranch() ){
+    std::string error_msg = "Cannot make into furcation branch must first be ";
+    error_msg += "considered a branch.";
+    throw std::runtime_error(error_msg);
+  }
+
+  labels_.back().back()[3] = ")<";
+}
+
+
 void ContentLabel::makeBranchLabel() {
   std::cout << "calling contains branch" << std::endl;
   if (isBranch()) return;
@@ -184,7 +213,6 @@ void ContentLabel::makeBranchLabel() {
     }
 
   }
-  std::cout << "Done" << std::endl;
 
 }
 
