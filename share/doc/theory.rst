@@ -328,6 +328,56 @@ parameter a singular value decomposition of the matrix
 should dominate the smallest singular values (squared) but is itself
 small compared to the larger ones.[Rosenberger:2016]_
 
+Iterative Integral Equation methods
+-----------------------------------
+
+Iterative integral equation (IIE) methods are best compared to the IMC method.
+The main difference is that the Jacobian is not sampled from particle number
+fluctuations, but approximately infered from the RDFs. The connection of
+potential and RDF is obtained from inverting the Ornstein-Zernicke (OZ)
+equation and a closing relation, e.g. the hypernetted-chain (HNC) equation
+
+.. math::
+
+   \begin{aligned}
+   h &= c + \rho h * c \\
+   u &= k_B T \left(h - \ln(g) - c\right)
+   \end{aligned}
+
+where :math:`h` is :math:`g - 1`,
+:math:`c` is the direct correlation function,
+:math:`\rho` is the density,
+:math:`u` is the pair potential,
+and :math:`*` denotes a 3D convolution.
+For the case of bonds the reference interaction site model (RISM) form of the OZ equation is used.
+For multiple bead types the OZ equation becomes a matrix equation but this case is currently not implemented.
+
+The Gauss-Newton formalism allows the incorporation of one or multiple
+constraints into the potential update. Those have to be expressible in terms
+of the RDF and the potential or force. Currently only a pressure constriant is
+implemented, which is defined by
+
+.. math::
+
+   \begin{equation}
+   \vec{l^T} \vec{f_k} = p_\text{tgt} - p_k .
+   \end{equation}
+
+Here :math:`p_\text{tgt}` and :math:`p_k` are the target and current pressure,
+respectively, and :math:`\vec{f_k}` is the current pair force.
+Element :math:`\alpha` of vector :math:`\vec{l}` is defined as
+
+.. math::
+
+    \begin{equation}
+    l_\alpha = \frac{2}{3} \pi \rho^2 \frac{g_{\text{tgt},\alpha} + g_{\text{tgt},\alpha+1}}{2} \frac{r_{\alpha+1}^4 - r_\alpha^4}{4}
+    \end{equation}
+
+where :math:`\rho` is the particle density and :math:`r` is the radius.
+
+The exact formulas and their derivation can be found in ref. [Delbary:2020]_
+and [Bernhardt:2021]_. 
+
 Force Matching
 --------------
 

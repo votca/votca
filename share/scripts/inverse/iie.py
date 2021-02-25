@@ -541,7 +541,7 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
         np.savez_compressed('gauss-newton-arrays.npz', A=A, b=b, C=C, d=d,
                             jac_inv=jac_inv, A0=A0, J=J)
     if r0_removed:
-        dU = np.concatenate(([0], dU))
+        dU = np.concatenate(([np.nan], dU))
     return dU
 
 
@@ -674,7 +674,7 @@ def upd_U_zero_beyond_cut_off(r, U, cut_off):
     """Take a potential list, copy it, and shift U to be zero at cut_off and
     beyond"""
     U_new = U.copy()
-    index_cut_off = np.searchsorted(r, cut_off)
+    index_cut_off = find_nearest_ndx(r, cut_off)
     U_cut_off = U_new[index_cut_off]
     U_new -= U_cut_off
     U_new[index_cut_off:] = 0
