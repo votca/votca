@@ -149,10 +149,10 @@ void ContentLabel::makeBranchLabel() {
       KeyValType val;
       labels_.front().push_back(val);
     }
-    labels_.front().front()[0] = "{(";
+    labels_.front().front()[0] = "(";
     // One of the } braces will replace a ;
-    labels_.back().back()[3] = ")}";
-    label_char_len_ += 3;
+    labels_.back().back()[3] = ")";
+    label_char_len_ += 1;
   } else {
 
     if( labels_.front().size() == 0 ) {
@@ -163,20 +163,24 @@ void ContentLabel::makeBranchLabel() {
       KeyValType val;
       labels_.back().push_back(val);
     }
+    labels_.front().front()[0] = "(";
     labels_.front().back()[3] = ")";
-    labels_.back().at(0)[0] = "(";
-    labels_.front().at(0)[0] = "{(";
-    labels_.back().back()[3] = ")}";
+    labels_.back().front()[0] = "(";
+    labels_.back().back()[3] = ")";
     // Two of the } will replace a semicolon ;
-    label_char_len_ += 4;
+    label_char_len_ += 2;
   
     if ( labels_.size() > 2) {
       std::list<std::vector<KeyValType>>::iterator iter = labels_.end();
       --iter;
       --iter;
       // Second to last element remove the ; 
-      iter->back()[3] = "";
-      --label_char_len_;
+      iter->back()[3] = "}";
+
+      iter = labels_.begin();
+      ++iter;
+      iter->front()[0] = "{";
+      ++label_char_len_;
     }
 
   }

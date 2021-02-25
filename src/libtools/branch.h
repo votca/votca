@@ -119,7 +119,6 @@ class Branch {
   Index getTerminal() const { return vertex_sequence_.back(); }
 
   ContentLabel getContentLabel() const noexcept {
-    std::cout << "Making label branch label" << std::endl;
     return label_;
   }
 

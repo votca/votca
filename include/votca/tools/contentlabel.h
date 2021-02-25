@@ -68,8 +68,12 @@ class ContentLabel : public BaseContentLabel {
  
   /**
    * @brief When a content label is made a branch, curly braces are appended
-   * to either side of the content label, and a pair of parenthesis are placed 
-   * around the end nodes
+   * to either side of the content label, and only a pair of parenthesis are placed 
+   * around the end nodes.
+   *
+   * E.g. 
+   *
+   * ( node 1 ) { node 2, node 3, node 4} (node 5)
    */
   void makeBranchLabel();
 
