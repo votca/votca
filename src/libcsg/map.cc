@@ -85,7 +85,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
   double norm = 1. / std::accumulate(weights.begin(), weights.end(), 0.);
 
   transform(weights.begin(), weights.end(), weights.begin(),
-            std::bind2nd(multiplies<double>(), norm));
+            [&norm](double w) { return w * norm; });
   // get the d vector if exists or initialize same as weights
   vector<double> d;
   if (_opts_map->exists("d")) {
@@ -94,7 +94,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
     // normalize d coefficients
     norm = 1. / std::accumulate(d.begin(), d.end(), 0.);
     transform(d.begin(), d.end(), d.begin(),
-              std::bind2nd(multiplies<double>(), norm));
+              [&norm](double w) { return w * norm; });
   } else {
     // initialize force-weights with weights
     d.resize(weights.size());
