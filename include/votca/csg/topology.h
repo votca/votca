@@ -28,7 +28,6 @@
 
 // Third party includes
 #include <boost/container/deque.hpp>
-#include <boost/container/stable_vector.hpp>
 
 // VOTCA includes
 #include <votca/tools/types.h>
@@ -60,10 +59,14 @@ class Interaction;
 typedef boost::container::deque_options<
     boost::container::block_size<sizeof(Residue) * 4>>::type block_residue_x4_t;
 typedef boost::container::deque_options<
+    boost::container::block_size<sizeof(Molecule) * 4>>::type
+    block_molecule_4x_t;
+typedef boost::container::deque_options<
     boost::container::block_size<sizeof(Bead) * 4>>::type block_bead_x4_t;
 
+using MoleculeContainer =
+    boost::container::deque<Molecule, void, block_molecule_4x_t>;
 using BeadContainer = boost::container::deque<Bead, void, block_bead_x4_t>;
-using MoleculeContainer = boost::container::stable_vector<Molecule>;
 using ResidueContainer =
     boost::container::deque<Residue, void, block_residue_x4_t>;
 using InteractionContainer = std::vector<Interaction *>;
