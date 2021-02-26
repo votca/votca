@@ -38,9 +38,9 @@ CGEngine::CGEngine() = default;
 /**
     \todo melts with different molecules
 */
-std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(Topology &in,
+std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(const Topology &in,
                                                         Topology &out) {
-  MoleculeContainer &mols = in.Molecules();
+  const MoleculeContainer &mols = in.Molecules();
   auto m = std::make_unique<TopologyMap>(&in, &out);
   for (const auto &mol : mols) {
     if (IsIgnored(mol.getName())) {
@@ -60,14 +60,14 @@ std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(Topology &in,
       continue;
     }
     Molecule *mcg = def->CreateMolecule(out);
-    Map *map = def->CreateMap(mol, *mcg);
-    m->AddMoleculeMap(map);
+    Map map = def->CreateMap(mol, *mcg);
+    m->AddMoleculeMap(std::move(map));
   }
   out.RebuildExclusions();
   return m;
 }
 
-void CGEngine::LoadMoleculeType(string filename) {
+void CGEngine::LoadMoleculeType(const string &filename) {
   tools::Tokenizer tok(filename, ";");
 
   for (tools::Tokenizer::iterator iter = tok.begin(); iter != tok.end();

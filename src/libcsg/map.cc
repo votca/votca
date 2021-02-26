@@ -42,13 +42,45 @@ namespace csg {
 using namespace tools;
 using namespace std;
 
-Map::~Map() {
+/*******************************************************
+  Linear map for spherical beads
+ *******************************************************/
+class Map_Sphere : public BeadMap {
+ public:
+  Map_Sphere() = default;
+  void Apply(const BoundaryCondition &) override;
 
-  for (auto &_map : _maps) {
-    delete _map;
-  }
-  _maps.clear();
+  virtual void Initialize(const Molecule *in, Bead *out,
+                          tools::Property *opts_bead,
+                          tools::Property *opts_map) override;
+
+ protected:
+  void AddElem(const Bead *in, double weight, double force_weight);
+
+  struct element_t {
+    const Bead *_in;
+    double _weight;
+    double _force_weight;
+  };
+  std::vector<element_t> _matrix;
+};
+
+void Map_Sphere::AddElem(const Bead *in, double weight, double force_weight) {
+  element_t el;
+  el._in = in;
+  el._weight = weight;
+  el._force_weight = force_weight;
+  _matrix.push_back(el);
 }
+
+/*******************************************************
+  Linear map for ellipsoidal bead
+ *******************************************************/
+class Map_Ellipsoid : public Map_Sphere {
+ public:
+  Map_Ellipsoid() = default;
+  void Apply(const BoundaryCondition &) final;
+};
 
 void Map::Apply(const BoundaryCondition &bc) {
   for (auto &_map : _maps) {
@@ -58,7 +90,11 @@ void Map::Apply(const BoundaryCondition &bc) {
 
 void Map_Sphere::Initialize(const Molecule *in, Bead *out, Property *opts_bead,
                             Property *opts_map) {
-  BeadMap::Initialize(in, out, opts_bead, opts_map);
+
+  _in = in;
+  _out = out;
+  _opts_map = opts_map;
+  _opts_bead = opts_bead;
 
   vector<string> beads;
   vector<double> weights;
@@ -362,6 +398,25 @@ void Map_Ellipsoid::Apply(const BoundaryCondition &bc) {
   w = u.cross(v);
   w.normalize();
   _out->setW(w);
+}
+
+Map::Map(Map &&map)
+    : _in(map._in), _out(map._out), _maps(std::move(map._maps)) {}
+
+Map &Map::operator=(Map &&map) {
+  _in = map._in;
+  _out = map._out;
+  _maps = std::move(map._maps);
+  return *this;
+}
+
+BeadMap *Map::CreateBeadMap(const BeadMapType type) {
+  if (type == BeadMapType::Spherical) {
+    _maps.push_back(std::make_unique<Map_Sphere>());
+  } else {
+    _maps.push_back(std::make_unique<Map_Ellipsoid>());
+  }
+  return _maps.back().get();
 }
 
 }  // namespace csg
