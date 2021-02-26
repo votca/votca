@@ -39,8 +39,8 @@ DEFAULTS_TABLE_HEADER = """
    :align: center
 
    * - Property Name
-     - Description
      - Default Value
+     - Description
      - Valid Input"""
 
 
@@ -63,8 +63,8 @@ The following table contains the input options for CSG,
    :align: center
 
    * - Property Name
-     - Description
-     - Default Value"""
+     - Default Value
+     - Description"""
 
 
 XTP_TABLE_LINE = """
@@ -131,7 +131,7 @@ def xtp_get_recursive_attributes(elem: ET.Element, root_name: str = "") -> str:
     description = split_line(elem.attrib.get("help", ""))
     default = split_line(elem.attrib.get("default", ""))
     choices = multiline(elem.attrib.get("choices", ""))
-    s += XTP_TABLE_LINE(name, description, default, choices)
+    s += XTP_TABLE_LINE(name, default, description, choices)
 
     return s
 
@@ -150,10 +150,10 @@ def csg_get_recursive_attributes(elem: ET.Element, root_name: str = "") -> str:
 
         name = root_name + elem.tag
         default = "" if elem.text is None else ' '.join(elem.text.split())
-        s += CGS_TABLE_LINE(name, description, default)
+        s += CGS_TABLE_LINE(name, default, description)
         s += ''.join(
-            csg_get_recursive_attributes(el,
-                                         f"{name}.") for el in children if el.tag != "DESC")
+            csg_get_recursive_attributes(
+                el, f"{name}.") for el in children if el.tag != "DESC")
         return s
 
     return s
