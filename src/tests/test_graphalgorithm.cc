@@ -33,7 +33,6 @@
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
-#include <ext/alloc_traits.h>
 
 // Local VOTCA includes
 #include "votca/tools/edge.h"
