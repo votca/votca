@@ -77,10 +77,11 @@ static vector<string> buildValues_(
   return labels;
 }*/
 
-bool ContentLabel::isBranch_(std::list<std::vector<KeyValType>> labels) const {
-  if (labels.size() == 0) return false;
-  if (labels.front().size() == 0) return false;
-  if (labels.front().front()[0] == "{{") return true;
+bool ContentLabel::isBranch_() const { //std::list<std::vector<KeyValType>> labels) const {
+  if( type_ == BranchType::branch) return true;
+//  if (labels.size() == 0) return false;
+//  if (labels.front().size() == 0) return false;
+//  if (labels.front().front()[0] == "{{") return true;
   return false;
 }
 
@@ -113,10 +114,41 @@ void ContentLabel::add(Branch br) {
 }*/
 
 void ContentLabel::append(ContentLabel label) {
+
+  // Check if current branch is stem and if label is furcation
   // First check if both content labels are considered branch labels
   bool this_label_is_branch = isBranch();
   bool that_label_is_branch = label.isBranch();
-  if( this_label_is_branch && that_label_is_branch ) {
+
+  if( type_ == BranchType::branch_stem && 
+      label.type_ == BranchType::branch_furcation){
+    std::cout << "******************" << std::endl;
+    std::cout << "Appending branch furcation to stem" << std::endl;
+    label_char_len_ += label.label_char_len_;
+    BaseContentLabel::append_(label.labels_); 
+    type_ = BranchType::tree;
+  } else if( type_ == BranchType::tree &&
+      label.type_ == BranchType::branch_furcation){
+    std::cout << "******************" << std::endl;
+    std::cout << "Appending branch furcation to tree" << std::endl;
+
+    // On stem
+    std::cout << "Back of tree should be ]" << std::endl;
+    std::cout << labels_.back().back()[2] << labels_.back().back()[3] << std::endl;
+    labels_.back().back()[3] = "),"; // remove ending ] and replace with ,
+    std::cout << "After switch should be )," << std::endl;
+    std::cout << labels_.back().back()[2] << labels_.back().back()[3] << std::endl;
+    //  
+    std::cout << "front of furcation should be [{ " << std::endl;
+    std::cout << label.labels_.front().front()[0] << label.labels_.front().front()[1] << std::endl;
+    label.labels_.front().front()[0] = "{"; // remove leading [  
+    std::cout << "After switch should be {" << std::endl;
+    std::cout << label.labels_.front().front()[0] << label.labels_.front().front()[1] << std::endl;
+    label_char_len_ += label.label_char_len_;
+    --label_char_len_;
+    BaseContentLabel::append_(label.labels_); 
+
+  } else if( this_label_is_branch && that_label_is_branch ) {
     std::runtime_error("Appending branch labels is not yet supported.");
   } else if (not this_label_is_branch && not that_label_is_branch) {
     // If it is not just append as normal sequentially
@@ -125,19 +157,29 @@ void ContentLabel::append(ContentLabel label) {
   } else {
     // This is an error cannot append content labels that are not both either
     // branch labels or are both not branch labels
-    std::runtime_error("Cannot mix branch labels with non branch labels.");
+    std::runtime_error("Cannot append, combination is not allowed.");
   }
 }
 
 bool ContentLabel::isBranch() const {
-  return isBranch_(labels_);
+  return isBranch_();
 } 
 
-void ContentLabel::makeFurcationStem() {
+void ContentLabel::makeFurcationBranch() {
   if (not isBranch() ){
     std::string error_msg = "Cannot make into furcation stem must first be ";
     error_msg += "considered a branch.";
     throw std::runtime_error(error_msg);
+  }
+
+  auto front_node = labels_.front();
+ 
+  size_t chars = 0; 
+  for( auto values : front_node ) {
+    for ( auto value : values ) {
+      std::cout << "Value in front node " << value << std::endl;
+      chars += value.size();
+    } 
   }
 
   labels_.pop_front();
@@ -145,13 +187,18 @@ void ContentLabel::makeFurcationStem() {
     return;
   }
   if( labels_.size() == 1){
-    labels_.back().front()[0] = "[{";
-  }else {
+    labels_.front().front()[0] = "[(";
+    labels_.back().back()[3] = ")]";
+  }else if(labels_.size() == 2) {
+    labels_.front().front()[0] = "[{";
     labels_.back().back()[3] = ")]";
   }
+
+  type_ = BranchType::branch_furcation;
+  label_char_len_ += 2 - chars;
 }
 
-void ContentLabel::makeFurcationBranch() {
+void ContentLabel::makeFurcationStem() {
   if (not isBranch() ){
     std::string error_msg = "Cannot make into furcation branch must first be ";
     error_msg += "considered a branch.";
@@ -159,6 +206,10 @@ void ContentLabel::makeFurcationBranch() {
   }
 
   labels_.back().back()[3] = ")<";
+
+  type_ = BranchType::branch_stem;
+
+  ++label_char_len_;
 }
 
 
@@ -213,7 +264,7 @@ void ContentLabel::makeBranchLabel() {
     }
 
   }
-
+  type_ = BranchType::branch;
 }
 
 void ContentLabel::reverse() {

@@ -212,6 +212,7 @@ static vector<string> buildValues_(
 // Purpose is to place the contents in the vector
 void BaseContentLabel::initLabels_(
     std::unordered_map<std::string, boost::any> values) {
+
   // Sort the keys alphabetically
   std::vector<std::string> keys_temp;
   for (auto it : values) {
@@ -228,6 +229,10 @@ void BaseContentLabel::initLabels_(
     checkString_(val);
     KeyValType key_val_type = {"", key, val, ","};
     node.push_back(key_val_type);
+  }
+  // Checking for empty content
+  if(node.size()==0){
+    node.resize(1);
   }
   // Change the last type from a comma to a semicolon to indicate end of
   // the node

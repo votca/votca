@@ -37,6 +37,14 @@
 namespace votca {
 namespace tools {
 
+enum class BranchType {
+  none,
+  branch,
+  branch_stem,
+  branch_furcation,
+  tree
+};
+
 class GraphNode;
 class Branch;
 
@@ -46,7 +54,10 @@ class ContentLabel : public BaseContentLabel {
     void calcCharLen_();
 
     // Determine based on labels if it is a branch
-    bool isBranch_(std::list<std::vector<KeyValType>> labels) const;
+    bool isBranch_() const; //std::list<std::vector<KeyValType>> labels) const;
+
+    BranchType type_ = BranchType::none;
+
  public:
   ContentLabel() = default;
   ContentLabel(std::unordered_map<std::string, boost::any> values) :  
