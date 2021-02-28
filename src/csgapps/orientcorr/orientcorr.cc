@@ -15,14 +15,18 @@
  *
  */
 
+// Standard includes
 #include <cstdlib>
 #include <memory>
 
+// VOTCA includes
+#include <votca/tools/histogramnew.h>
+
+// Local VOTCA includes
 #include <votca/csg/beadlist.h>
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/nblist.h>
 #include <votca/csg/nblistgrid.h>
-#include <votca/tools/histogramnew.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -168,11 +172,11 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
   mapped.setBox(top->getBox());
 
   // loop over all molecules
-  for (auto mol_src : top->Molecules()) {
+  for (const auto &mol_src : top->Molecules()) {
     // create a molecule in mapped topology
-    Molecule *mol = mapped.CreateMolecule(mol_src->getName());
+    Molecule *mol = mapped.CreateMolecule(mol_src.getName());
     // loop over beads in molecule
-    for (votca::Index i = 0; i < mol_src->BeadCount() - 1; ++i) {
+    for (votca::Index i = 0; i < mol_src.BeadCount() - 1; ++i) {
       // create a bead in mapped topology
       string bead_type = "A";
       if (mapped.BeadTypeExist(bead_type) == false) {
@@ -180,8 +184,8 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
       }
       Bead *b =
           mapped.CreateBead(Bead::ellipsoidal, "A", bead_type, 1, 0.0, 0.0);
-      Eigen::Vector3d p1 = mol_src->getBead(i)->getPos();
-      Eigen::Vector3d p2 = mol_src->getBead(i + 1)->getPos();
+      Eigen::Vector3d p1 = mol_src.getBead(i)->getPos();
+      Eigen::Vector3d p2 = mol_src.getBead(i + 1)->getPos();
       // position is in middle of bond
       Eigen::Vector3d pos = 0.5 * (p1 + p2);
       // orientation pointing along bond

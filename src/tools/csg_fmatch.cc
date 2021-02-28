@@ -15,20 +15,27 @@
  *
  */
 
-#include "csg_fmatch.h"
-#include "../../include/votca/csg/beadlist.h"
-#include "../../include/votca/csg/nblistgrid.h"
-#include "../../include/votca/csg/nblistgrid_3body.h"
-#include "votca/csg/interaction.h"
+// Standard includes
 #include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <sstream>
+
+// VOTCA includes
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/linalg.h>
 #include <votca/tools/table.h>
+
+// Local VOTCA includes
+#include "votca/csg/beadlist.h"
+#include "votca/csg/interaction.h"
+#include "votca/csg/nblistgrid.h"
+#include "votca/csg/nblistgrid_3body.h"
+
+// Local private includes
+#include "csg_fmatch.h"
 
 int main(int argc, char **argv) {
   CGForceMatching app;

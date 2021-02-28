@@ -88,8 +88,8 @@ bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
   NextFrame(top);
 
   fl_.close();
-  for (Molecule *mol : top.Molecules()) {
-    RenameMolecule(*mol);
+  for (auto &mol : top.Molecules()) {
+    RenameMolecule(mol);
   }
 
   return true;

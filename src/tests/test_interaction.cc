@@ -18,15 +18,19 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE interaction_test
-#include <boost/test/unit_test.hpp>
 
-#include "../../include/votca/csg/bead.h"
-#include "../../include/votca/csg/interaction.h"
-#include "../../include/votca/csg/molecule.h"
-#include "../../include/votca/csg/topology.h"
-
+// Standard includes
 #include <string>
 #include <votca/tools/constants.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/csg/bead.h"
+#include "votca/csg/interaction.h"
+#include "votca/csg/molecule.h"
+#include "votca/csg/topology.h"
 
 using namespace std;
 using namespace votca::csg;

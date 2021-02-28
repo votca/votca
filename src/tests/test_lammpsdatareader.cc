@@ -15,23 +15,30 @@
  *
  */
 
-#include <memory>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE lammpdatatopologyreaderwriter_test
-#include <boost/test/unit_test.hpp>
 
-#include "../../include/votca/csg/bead.h"
-#include "../../include/votca/csg/orthorhombicbox.h"
-#include "../../include/votca/csg/topologyreader.h"
-#include "../../include/votca/csg/trajectoryreader.h"
-#include "../../include/votca/csg/trajectorywriter.h"
+// Standard includes
 #include <cmath>
 #include <cstdio>
 #include <fstream>
+#include <memory>
 #include <string>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
 #include <votca/tools/types.h>
+
+// Local VOTCA includes
+#include "votca/csg/bead.h"
+#include "votca/csg/orthorhombicbox.h"
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/trajectoryreader.h"
+#include "votca/csg/trajectorywriter.h"
 
 using namespace std;
 using namespace votca::csg;

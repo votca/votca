@@ -18,17 +18,25 @@
 #ifndef VOTCA_CSG_RDF_CALCULATOR_H
 #define VOTCA_CSG_RDF_CALCULATOR_H
 
+// Standard includes
+#include <cmath>
+#include <memory>
+
+// Third party includes
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
-#include <cmath>
-#include <votca/csg/csgapplication.h>
+
+// VOTCA includes
 #include <votca/tools/average.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include <votca/csg/csgapplication.h>
 
 namespace votca {
 namespace csg {
@@ -126,9 +134,9 @@ class RDFCalculator {
   std::vector<Property *> _nonbonded;
 
   /// std::map ineteractionm-name to interaction
-  std::map<std::string, interaction_t *> _interactions;
+  std::map<std::string, std::unique_ptr<interaction_t>> _interactions;
   /// std::map group-name to group
-  std::map<std::string, group_t *> _groups;
+  std::map<std::string, std::unique_ptr<group_t>> _groups;
 
   /// create a new interaction entry based on given options
   interaction_t *AddInteraction(Property *p);

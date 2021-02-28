@@ -15,11 +15,14 @@
  *
  */
 
-#include "../../include/votca/csg/csgapplication.h"
-#include "votca/csg/topology.h"
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/topology.h"
 
 using namespace std;
 using namespace votca::csg;
@@ -137,13 +140,13 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *) {
 void CsgDensityApp::EvalConfiguration(Topology *top, Topology *) {
   // loop over all molecules
   bool did_something = false;
-  for (Molecule *mol : top->Molecules()) {
-    if (!votca::tools::wildcmp(_molname, mol->getName())) {
+  for (const auto &mol : top->Molecules()) {
+    if (!votca::tools::wildcmp(_molname, mol.getName())) {
       continue;
     }
-    votca::Index N = mol->BeadCount();
+    votca::Index N = mol.BeadCount();
     for (votca::Index i = 0; i < N; i++) {
-      Bead *b = mol->getBead(i);
+      const Bead *b = mol.getBead(i);
       if (!votca::tools::wildcmp(_filter, b->getName())) {
         continue;
       }

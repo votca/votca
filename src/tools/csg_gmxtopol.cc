@@ -15,10 +15,15 @@
  *
  */
 
-#include "../../include/votca/csg/csgapplication.h"
-#include <boost/format.hpp>
+// Standard includes
 #include <fstream>
 #include <iostream>
+
+// Third party includes
+#include <boost/format.hpp>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
 
 using namespace votca::csg;
 using namespace std;

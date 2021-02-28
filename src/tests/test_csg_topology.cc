@@ -17,10 +17,15 @@
 
 #define BOOST_TEST_MODULE csg_topology_test
 
-#include "../../include/votca/csg/topology.h"
+// Standard includes
+#include <iostream>
+
+// Third party includes
 #include <boost/test/tools/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
-#include <iostream>
+
+// Local VOTCA includes
+#include "votca/csg/topology.h"
 
 using namespace std;
 using namespace votca::tools;

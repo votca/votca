@@ -18,6 +18,7 @@
 // Standard includes
 #include <cstddef>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -116,7 +117,7 @@ void CGMoleculeDef::ParseMapping(tools::Property &options) {
 }
 Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   // add the residue names
-  Residue *res = top.CreateResidue(_name);
+  const Residue &res = top.CreateResidue(_name);
   Molecule *minfo = top.CreateMolecule(_name);
 
   // create the atoms
@@ -127,7 +128,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
       top.RegisterBeadType(type);
     }
     Bead *bead = top.CreateBead(bead_def->_symmetry, bead_def->_name, type,
-                                res->getId(), 0, 0);
+                                res.getId(), 0, 0);
     minfo->AddBead(bead, bead->getName());
   }
 
@@ -184,14 +185,14 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   return minfo;
 }
 
-Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
+Map CGMoleculeDef::CreateMap(const Molecule &in, Molecule &out) {
   if (out.BeadCount() != Index(_beads.size())) {
     throw runtime_error(
         "number of beads for cg molecule and mapping definition do "
         "not match, check your molecule naming.");
   }
 
-  Map *map = new Map(in, out);
+  Map map(in, out);
   for (auto &bead : _beads) {
 
     Index iout = out.getBeadByName(bead->_name);
@@ -209,10 +210,10 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
     BeadMap *bmap;
     switch (bead->_symmetry) {
       case 1:
-        bmap = new Map_Sphere();
+        bmap = map.CreateBeadMap(BeadMapType::Spherical);
         break;
       case 3:
-        bmap = new Map_Ellipsoid();
+        bmap = map.CreateBeadMap(BeadMapType::Ellipsoidal);
         break;
       default:
         throw runtime_error(string("unknown symmetry in bead definition!"));
@@ -220,7 +221,6 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
     ////////////////////////////////////////////////////
 
     bmap->Initialize(&in, out.getBead(iout), (bead->_options), mdef);
-    map->AddBeadMap(bmap);
   }
   return map;
 }
@@ -231,8 +231,6 @@ CGMoleculeDef::beaddef_t *CGMoleculeDef::getBeadByName(const string &name) {
     std::cout << "cannot find: <" << name << "> in " << _name << "\n";
     return nullptr;
   }
-  // assert(iter != _beadmap.end());
-  // return (*iter).second;
   return (*iter).second;
 }
 

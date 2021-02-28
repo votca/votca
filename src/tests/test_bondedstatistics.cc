@@ -18,13 +18,18 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE bondedstatistics_test
-#include <boost/test/unit_test.hpp>
 
-#include "../csg_boltzmann/bondedstatistics.h"
+// Standard includes
 #include <iostream>
 #include <map>
 #include <string>
 #include <votca/tools/constants.h>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "../csg_boltzmann/bondedstatistics.h"
 
 using namespace std;
 using namespace votca::csg;

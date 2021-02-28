@@ -18,16 +18,22 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE tabulatedpotential_test
-#include <boost/test/unit_test.hpp>
 
-#include "../csg_boltzmann/tabulatedpotential.h"
+// Standard includes
 #include <cstdlib>
 #include <map>
 #include <string>
 #include <vector>
 #include <votca/tools/constants.h>
 
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// VOTCA includes
 #include <votca/tools/getline.h>
+
+// Local VOTCA includes
+#include "../csg_boltzmann/tabulatedpotential.h"
 
 using namespace std;
 using namespace votca::csg;
