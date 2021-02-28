@@ -14,9 +14,6 @@ Version 2022-dev
 -  switch NBList to unique_ptr (#659)
 -  switch csgapplication worker to unique_ptr (#660)
 -  remove use of new with splines in csg_fmatch (#662)
-<<<<<<< HEAD
--  better encapsulation to interaction, unique_ptr and const correctness (#658)
-=======
 -  update boost test floating point comparison header (#663)
 -  switch mutex to unique_ptr (#664)
 -  standardize header formatting (#661)
@@ -27,7 +24,7 @@ Version 2022-dev
 -  store beads directly in boost deque (#656)
 -  switched molecule stable_vector to boost deque (#667)
 -  convert maps to unique_ptrs (#653)
->>>>>>> master
+-  better encapsulation to interaction, unique_ptr and const correctness (#658)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
