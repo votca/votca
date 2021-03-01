@@ -354,7 +354,7 @@ For multiple bead types the OZ equation becomes a matrix equation but this case 
 
 The Gauss-Newton formalism allows the incorporation of one or multiple
 constraints into the potential update. Those have to be expressible in terms
-of the RDF and the potential or force. Currently only a pressure constriant is
+of the RDF and the potential or force. Currently, only a pressure constriant is
 implemented, which is defined by
 
 .. math::

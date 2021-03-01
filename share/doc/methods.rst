@@ -594,9 +594,9 @@ To specify Iterative Boltzmann Inversion as algorithm in the script, add
 Inverse Monte Carlo
 -------------------
 
-In this section, additional options are described to run IMC coarse
-graining. The usage of IMC is similar to the one of IBI and understanding
-the use of the scripting framework described above is necessary.
+In this section, additional options are described to run IMC coarse graining.
+The usage of IMC is similar to that of IBI, hence, understanding the scripting
+framework described above is also necessary.
 
 **WARNING: multicomponent IMC is still experimental!**
 
@@ -616,12 +616,12 @@ runlength csg smoothing iterations are well balanced.
 Correlation groups
 ~~~~~~~~~~~~~~~~~~
 
-Unlike IBI, IMC also takes cross-correlations of interactions into
-account in order to calculate the update. However, it might not always
-be beneficial to evaluate cross-correlations of all pairs of
-interactions. By specifying, votcaallows to define groups of
-interactions, amongst which cross-correlations are taken into account,
-where can be any name.
+Unlike IBI, IMC also takes cross-correlations of interactions into account in
+order to calculate the update. However, it might not always be beneficial to
+evaluate cross-correlations of all pairs of interactions. By specifying
+``group`` for each interaction, as shown in the xml snippet below, one can
+define groups of interactions, amongst which cross-correlations are taken into
+account. ``group`` can be any name.
 
 .. code:: xml
 
@@ -634,34 +634,30 @@ where can be any name.
       <group>solvent</group>
    </imc>
   </non-bonded>
-  <non-bonded>
 
 Regularization
 ~~~~~~~~~~~~~~
 
 To use the regularized version of IMC a :math:`\lambda` value :math:`>0`
-has to be specified by setting. If set to :math:`0` (default value) the
+has to be set with ``imc.groupname.reg``. If set to :math:`0` (default value) the
 unregularized version of IMC is applied.
 
 .. code:: xml
 
-  <non-bonded>
-    <name>CG-CG</name>
-    <type1>CG</type1>
-    <type2>CG</type2>
-     ...
     <inverse>
       <imc>
-        <reg>300</reg>
+        <default_reg>150</default_reg>
+        <solvent>
+            <reg>300</reg>
+        </solvent>
       </imc>
     </inverse>
-  </non-bonded>
 
 Internal degrees of freedom
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For internal degrees of freedom one can apply the IBI method. In that case
-one also has to provide a setting_nonbonded file, which will be used to 
+For internal degrees of freedom, one can apply the IBI method. In that case,
+one also has to provide a setting_nonbonded file, which will be used to
 calculate the IMC matrix only from the nonbonded interactions.
 
 .. code:: xml
@@ -682,12 +678,12 @@ methods.
 General considerations
 ~~~~~~~~~~~~~~~~~~~~~~
 
-In comparison to IBI, IIE methods need a RDF information on a longer range than
+In comparison to IBI, IIE methods need RDF information on a longer range than
 the cut-off. This means one needs a sufficiently large box or one can try the
 RDF extension method.
 
-Currently the methods do not allow more than one bead-type, but they allow for
-molecular CG representations.
+Currently, the methods do not allow more than one bead-type, albeit they allow
+for molecular CG representations.
 
 Closure and optimization method
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -740,9 +736,9 @@ Other options
 One can set a a cut-off for the potential, which can (and should) be lower than
 the range of the RDF. Number densities of the CG beads have to be provided. The
 RDF can be extrapolated by a built-in algorithm but the result should be
-checked to be meaningfull. One can choose to ignore the RISM formalism for the
-case of bonds in the CG representation (not recommended). The number of beads
-per molecule has to be provided.  
+validated to be meaningful. One can choose to ignore the RISM formalism for
+the case of bonds in the CG representation (not recommended). The number of
+beads per molecule has to be provided.  
 
 .. code:: xml
 
@@ -753,7 +749,7 @@ per molecule has to be provided.
       <cut_off>1.2</cut_off>
       <densities>4.651</densities>
       <g_extrap_factor>2</g_extrap_factor>
-      <ignore_intramolecular_correlation>False</ignore_intramolecular_correlation>
+      <ignore_intramolecular_correlation>false</ignore_intramolecular_correlation>
       <n_intra>4</n_intra>
     </iie>
   </inverse>
@@ -763,7 +759,7 @@ Relative Entropy
 ----------------
 
 In this section, additional options are described to run RE coarse
-graining. The usage of RE is similar to the one of IBI and IMC and
+graining. The usage of RE is similar to that of IBI and IMC and
 understanding the use of the scripting framework described in
 chapter [sec:iterative\_workflow] is necessary.
 
