@@ -22,7 +22,7 @@ resampling the target distribution
 Use --use-table or --use-bi to enforce the method. Otherwise it will use
 .pot.in if present and BI if not.
 
-Usage: ${0##*/} [--help] [--use-table] [--use-bi]"
+Usage: ${0##*/} [--help] [--use-table|--use-bi]"
 
 USE_TABLE=false
 USE_BI=false
