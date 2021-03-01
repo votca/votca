@@ -338,11 +338,11 @@ Inversion (IBI), Inverse Monte Carlo (IMC), Iterative Integral
 Equation (IIE), and Relative Entropy (RE).
 
 In general, IBI, IMC, IIE, and RE are implemented within the same framework.
-Therefore, most settings and parameters of those methods are similar and
-thus described in a general section (see sec.
+Therefore, most of the settings and parameters used by these methods are
+similar and thus described in a general section (see sec.
 [sec:iterative\_methods\_imc]). Further information on iterative methods
-follows in the next chapters, in particular on the IBI, IMC, IIE, and
-RE methods.
+follows in the next chapters, in particular on the IBI, IMC, IIE, and RE
+methods.
 
 .. figure:: fig/iterative-methods.png
 
