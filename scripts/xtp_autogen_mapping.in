@@ -77,7 +77,16 @@ def search_cores() -> int:
     with open(cpuinfo, 'r') as handler:
         lines = handler.readlines()
 
-    return len(list(filter(lambda x: "processor" in x, lines)))
+    # Number of available CPUs
+    ncpus = len(list(filter(lambda x: "processor" in x, lines)))
+
+    # Look for hyperthreading
+    flags = next(filter(lambda x: "flags" in x, lines), None)
+    # ht is the flag for hyperthreading
+    if flags is not None and 'ht' in flags:
+        ncpus = ncpus // 2
+
+    return ncpus
 
 
 def run_cmd(cmd: str):
