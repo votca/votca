@@ -25,9 +25,6 @@ EOF
    exit 0
 fi
 
-# case insensitive comparisons
-shopt -s nocasematch
-
 sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"
 initial_guess_method="$(csg_get_property cg.inverse.${method}.initial_guess.method)"
