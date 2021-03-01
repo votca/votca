@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,13 +34,13 @@ void Molecule::AddBead(Bead *bead, const string &name) {
   bead->setMoleculeId(_id);
 }
 
-Index Molecule::getBeadByName(const string &name) {
-  map<string, Index>::iterator iter = _beadmap.find(name);
+Index Molecule::getBeadByName(const string &name) const {
+  map<string, Index>::const_iterator iter = _beadmap.find(name);
   if (iter == _beadmap.end()) {
     std::cout << "cannot find: <" << name << "> in " << _name << "\n";
     return -1;
   }
-  return _beadmap[name];
+  return _beadmap.at(name);
 }
 
 }  // namespace csg

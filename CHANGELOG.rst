@@ -10,12 +10,28 @@ Version 2022-dev
 -  update help of functions_common for rst (#650)
 -  switched topology map to using unique_ptr (#651)
 -  switch to using unique_ptr for cgmoleculedef (#652)
+-  switch boundary conditions to unique_ptr (#654)
+-  switch NBList to unique_ptr (#659)
+-  switch csgapplication worker to unique_ptr (#660)
+-  remove use of new with splines in csg_fmatch (#662)
+-  update boost test floating point comparison header (#663)
+-  switch mutex to unique_ptr (#664)
+-  standardize header formatting (#661)
+-  clean up memory management in partial_rdf (#665)
+-  deleted unused makefile (#666)
+-  memory management of molecules fixed (#657)
+-  switched memory management of residues using boost_deque (#655)
+-  store beads directly in boost deque (#656)
+-  switched molecule stable_vector to boost deque (#667)
+-  convert maps to unique_ptrs (#653)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
 
 -  fix CI on rawhide (#642)
 -  add auto-cancel workflow to GitHub Actions (#645)
+-  namespace bind2nd to fix build on FreeBSD (#668)
+-  replace std::bind2nd by a lambda (#673)
 
 Version 2021-rc.1 (released 15.01.21)
 =====================================

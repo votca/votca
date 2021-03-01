@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,6 +126,11 @@ class BaseBead {
    * \return reference to position
    */
   virtual Eigen::Vector3d &Pos() {
+    assert(bead_position_set_ && "Position is not set.");
+    return bead_position_;
+  }
+
+  virtual const Eigen::Vector3d &Pos() const {
     assert(bead_position_set_ && "Position is not set.");
     return bead_position_;
   }

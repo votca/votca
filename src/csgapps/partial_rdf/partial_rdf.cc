@@ -15,12 +15,19 @@
  *
  */
 
-#include "rdf_calculator.h"
-#include <boost/program_options.hpp>
+// Standard includes
 #include <fstream>
 #include <iostream>
+
+// Third party includes
+#include <boost/program_options.hpp>
+
+// Local VOTCA includes
 #include <votca/csg/cgengine.h>
 #include <votca/csg/version.h>
+
+// Local internal includes
+#include "rdf_calculator.h"
 
 using namespace std;
 using namespace votca::csg;
@@ -51,7 +58,7 @@ class CsgStatApp : public CsgApplication {
   void BeginEvaluate(Topology *top, Topology *top_ref) override;
   void EndEvaluate() override;
 
-  CsgApplication::Worker *ForkWorker() override {
+  std::unique_ptr<CsgApplication::Worker> ForkWorker() override {
     return _rdf_calculator.ForkWorker();
   }
 
