@@ -75,10 +75,9 @@ def search_cores() -> int:
         return multiprocessing.cpu_count()
 
     with open(cpuinfo, 'r') as handler:
-        for line in handler:
-            if "cpu cores" in line:
-                break
-    return int(line.split()[-1])
+        lines = handler.readlines()
+
+    return len(list(filter(lambda x: "processor" in x, lines)))
 
 
 def run_cmd(cmd: str):
