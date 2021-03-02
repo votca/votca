@@ -24,6 +24,7 @@ Version 2022-dev
 -  redo openmp_cuda api, correct davidson for non symmetric problems.  (#684)
 -  changed molecule in csg topology container to actual object instead of pointer (#683)
 -  remove codecov comments from inside code at PR (#686)
+-  count the number of available CPUs for autogen_mapping script (#688)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
