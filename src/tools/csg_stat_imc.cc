@@ -70,7 +70,8 @@ AddInteraction(prop, bonded);
 
   // initialize bonded structures
   for (tools::Property *prop : _bonded) {
-    interaction_t *i = AddInteraction(prop, true);
+bool bonded=true;
+AddInteraction(prop, bonded);
   }
 
   // initialize the group structures
