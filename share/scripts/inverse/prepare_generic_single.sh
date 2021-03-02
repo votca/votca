@@ -53,7 +53,7 @@ do
     esac
 done
 
-if [[ ($use_table == true) && ($use_bi == true) ]]; then
+if [[ ${use_table} == true && ${use_bi} == true ]]; then
     die "use either --use-table or --use-bi"
 fi
 
@@ -97,24 +97,24 @@ function bi_init() {
     do_external table change_flag "${shifted}" "${output}"
 }
 
-TABLE_PRESENT=false
+table_present=false
 if [[ -f ${main_dir}/${name}.pot.in ]]; then
-    TABLE_PRESENT=true
+    table_present=true
 fi
 
 if [[ $use_bi == true ]]; then
-    if [[ $TABLE_PRESENT == true ]]; then
+    if [[ $table_present == true ]]; then
         msg "there is a table ${name}.pot.in present, but you still choose BI"
     fi
     bi_init
 elif [[ $use_table == true ]]; then
-    if ! [[ $TABLE_PRESENT == true ]]; then
+    if ! [[ $table_present == true ]]; then
         die "missing table ${main_dir}/${name}.pot.in"
     fi
     table_init
 else
     # this is the old default behaviour
-    if [[ $TABLE_PRESENT == true ]]; then
+    if [[ $table_present == true ]]; then
         msg "there is a table ${name}.pot.in present, gonna use it"
         table_init
     else
