@@ -48,11 +48,12 @@ void Imc::Initialize() {
   // do some output
   if (_do_imc) {
     cout << "begin to calculate inverse monte carlo parameters\n";
-      if (_include_intra) {
-          throw runtime_error(string("error, can not have --do-imc and --include-intra"));
-      }
+    if (_include_intra) {
+      throw runtime_error(
+          string("error, can not have --do-imc and --include-intra"));
+    }
   } else {
-      cout << "begin to calculate distribution functions\n";
+    cout << "begin to calculate distribution functions\n";
   }
   cout << "# of bonded interactions: " << _bonded.size() << endl;
   cout << "# of non-bonded interactions: " << _nonbonded.size() << endl;
@@ -64,14 +65,14 @@ void Imc::Initialize() {
 
   // initialize non-bonded structures
   for (tools::Property *prop : _nonbonded) {
-bool bonded=false;
-AddInteraction(prop, bonded);
+    bool bonded = false;
+    AddInteraction(prop, bonded);
   }
 
   // initialize bonded structures
   for (tools::Property *prop : _bonded) {
-bool bonded=true;
-AddInteraction(prop, bonded);
+    bool bonded = true;
+    AddInteraction(prop, bonded);
   }
 
   // initialize the group structures
@@ -202,10 +203,10 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   i->_step = p->get("step").as<double>();
   i->_min = p->get("min").as<double>();
   i->_max = p->get("max").as<double>();
-  if (_include_intra && (! i->_is_bonded)) {
-      i->_max = p->get("max_intra").as<double>();
+  if (_include_intra && (!i->_is_bonded)) {
+    i->_max = p->get("max_intra").as<double>();
   } else {
-      i->_max = p->get("max").as<double>();
+    i->_max = p->get("max").as<double>();
   }
 
   i->_norm = 1.0;
