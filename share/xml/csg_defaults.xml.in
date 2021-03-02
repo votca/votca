@@ -263,8 +263,8 @@
       <default_reg>0
         <DESC> default magnitude for regularization parameter if not given for the group explicitly, default =0</DESC>
       </default_reg>
-      <bonded_method>imc
-        <DESC> method for calculating updates on the bonded interactions. ibi or imc (not implemented), default=imc </DESC>
+      <bonded_method>ibi
+        <DESC> method for calculating updates on the bonded interactions. ibi or imc (not implemented), default=ibi </DESC>
       </bonded_method>
       <settings_nonbonded>imc
         <DESC> settings file to be used with csg_stat --do-imc. only needed if bonded_method=ibi</DESC>

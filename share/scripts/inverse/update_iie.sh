@@ -89,12 +89,8 @@ else
     die "ignore_intramolecular_correlation has to be 'true' or 'false'"
 fi
 
-#if using csg_stat, like in the case of gromacs 'for_all' is actually not needed
-#but in case of espresso the rdfs are calculated seperately
-
 for_all "non-bonded bonded" do_external rdf $sim_prog
 for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
-
 
 do_external update iie_pot $iie_method \
 $verbose_flag \

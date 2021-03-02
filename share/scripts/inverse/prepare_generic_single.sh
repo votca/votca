@@ -15,50 +15,45 @@
 # limitations under the License.
 #
 
-DESCRIPTION="${0##*/}, version %version%
-This script implements the prepares the potential in step 0, using pot.in or by
-resampling the target distribution
+show_help () {
+  cat <<EOF
+${0##*/}, version %version%
+This script prepares the potential in step 0, using pot.in or by resampling and
+inverting the target distribution
 
 Use --use-table or --use-bi to enforce the method. Otherwise it will use
 .pot.in if present and BI if not.
 
 Usage: ${0##*/} [--help] [--use-table|--use-bi]"
+EOF
+}
 
-USE_TABLE=false
-USE_BI=false
-SHOW_HELP=false
+use_table=false
+use_bi=false
 while [[ $# -gt 0 ]]
 do
     key="$1"
 
     case $key in
     --use-table)
-        USE_TABLE=true
-        shift # past argument
-        shift # past value
+        use_table=true
+        shift  # past argument
         ;;
     --use-bi)
-        USE_BI=true
-        shift # past argument
-        shift # past value
+        use_bi=true
+        shift  # past argument
         ;;
     --help)
-        SHOW_HELP=true
-        shift # past argument
-        shift # past value
+        show_help
+        exit 0
         ;;
-    *)    # unknown option
+    *)
         die "unknown argument $key"
         ;;
     esac
 done
 
-if [[ $SHOW_HELP == true ]]; then
-    echo "$DESCRIPTION"
-    exit 0
-fi
-
-if [[ ($USE_TABLE == true) && ($USE_BI == true) ]]; then
+if [[ ($use_table == true) && ($use_bi == true) ]]; then
     die "use either --use-table or --use-bi"
 fi
 
@@ -107,12 +102,12 @@ if [[ -f ${main_dir}/${name}.pot.in ]]; then
     TABLE_PRESENT=true
 fi
 
-if [[ $USE_BI == true ]]; then
+if [[ $use_bi == true ]]; then
     if [[ $TABLE_PRESENT == true ]]; then
         msg "there is a table ${name}.pot.in present, but you still choose BI"
     fi
     bi_init
-elif [[ $USE_TABLE == true ]]; then
+elif [[ $use_table == true ]]; then
     if ! [[ $TABLE_PRESENT == true ]]; then
         die "missing table ${main_dir}/${name}.pot.in"
     fi

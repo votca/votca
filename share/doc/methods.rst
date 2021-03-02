@@ -333,9 +333,9 @@ be refined by employing resampling or extrapolating methods. See sec.
 Iterative methods
 =================
 
-The following sections deal with the methods of Iterative Boltzmann
-Inversion (IBI), Inverse Monte Carlo (IMC), Iterative Integral
-Equation (IIE), and Relative Entropy (RE).
+The following sections deal with the Iterative Boltzmann Inversion (IBI)
+method, the Inverse Monte Carlo (IMC) method, the Iterative Integral Equation
+(IIE) method, and the Relative Entropy (RE) method.
 
 In general, IBI, IMC, IIE, and RE are implemented within the same framework.
 Therefore, most of the settings and parameters used by these methods are

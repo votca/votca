@@ -100,6 +100,7 @@ if [[ $tabtype = "non-bonded" ]]; then
       die "${0##*/}: Error table is shorter then what mdp file ($mdp) needs, increase cg.inverse.gromacs.table_end in setting file.\nrlist ($rlist) + tabext ($tabext) > cg.inverse.gromacs.table_end ($tablend)"
     max="$(csg_get_interaction_property max)"
     rvdw="$(get_simulation_setting rvdw)"
+    # with IIE methods, the RDF can be longer than the potential
     if [[ $method -ne "iie" ]]; then
         csg_calc "$max" ">" "$rvdw" && die "${0##*/}: rvdw ($rvdw) is smaller than max ($max)"
     fi

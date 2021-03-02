@@ -331,7 +331,7 @@ small compared to the larger ones.[Rosenberger:2016]_
 Iterative Integral Equation methods
 -----------------------------------
 
-Iterative integral equation (IIE) methods are best compared to the IMC method.
+Iterative Integral Equation (IIE) methods are best compared to the IMC method.
 The main difference is that the Jacobian is not sampled from particle number
 fluctuations, but approximately infered from the RDFs. The connection of
 potential and RDF is obtained from inverting the Ornstein-Zernicke (OZ)
@@ -349,12 +349,13 @@ where :math:`h` is :math:`g - 1`,
 :math:`\rho` is the density,
 :math:`u` is the pair potential,
 and :math:`*` denotes a 3D convolution.
-For the case of bonds the reference interaction site model (RISM) form of the OZ equation is used.
-For multiple bead types the OZ equation becomes a matrix equation but this case is currently not implemented.
+For the case of bonds, the reference interaction site model (RISM) form of the
+OZ equation is used. For multiple bead types, the OZ equation becomes a matrix
+equation but this case is currently not implemented.
 
 The Gauss-Newton formalism allows the incorporation of one or multiple
 constraints into the potential update. Those have to be expressible in terms
-of the RDF and the potential or force. Currently, only a pressure constriant is
+of the RDF and the potential or force. Currently, only a pressure constraint is
 implemented, which is defined by
 
 .. math::
