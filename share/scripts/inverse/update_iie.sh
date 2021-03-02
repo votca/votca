@@ -29,9 +29,6 @@ EOF
    exit 0
 fi
 
-# case insensitive comparisons
-shopt -s nocasematch
-
 iie_closure="$(csg_get_property cg.inverse.iie.closure)"
 iie_method="$(csg_get_property cg.inverse.iie.method)"
 ignore_intramolecular_correlation="$(csg_get_property cg.inverse.iie.ignore_intramolecular_correlation)"
