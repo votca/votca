@@ -64,7 +64,8 @@ void Imc::Initialize() {
 
   // initialize non-bonded structures
   for (tools::Property *prop : _nonbonded) {
-    interaction_t *i = AddInteraction(prop, false);
+bool bonded=false;
+AddInteraction(prop, bonded);
   }
 
   // initialize bonded structures
