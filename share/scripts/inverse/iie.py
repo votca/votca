@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# """Multi purpose script for HNC inverse methods"""
+# """Multi purpose script for Iterative Integral Equation methods"""
 #
 # Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
@@ -73,7 +73,8 @@ def compare_grids(grid_a, grid_b):
 def calc_grid_spacing(grid, relative_tolerance=0.01):
     """Returns the spacing of an equidistant 1D grid.
 
-    Fails if the grid is not equidistant."""
+    Fails if the grid is not equidistant.
+    """
     diffs = np.diff(grid)
     if abs((max(diffs) - min(diffs)) / max(diffs)) > relative_tolerance:
         raise Exception('the grid is not equidistant')
@@ -81,7 +82,8 @@ def calc_grid_spacing(grid, relative_tolerance=0.01):
 
 
 def fourier(r, f):
-    """Compute the radially 3D FT and the frequency grid of a radially symmetric function.
+    """Compute the radially 3D FT and the frequency grid of a radially
+    symmetric function.
 
     Some special extrapolations are used to make the results consistent. This function
     is isometric meaning it can be used to calculate the FT and the inverse FT.
@@ -141,7 +143,8 @@ def find_nearest_ndx(array, value):
 def find_after_cut_off_ndx(array, cut_off):
     """Find index of array after given cut_off.
 
-    Assumes array is sorted. Used for finding first index after cut_off."""
+    Assumes array is sorted. Used for finding first index after cut_off.
+    """
     array = np.asarray(array)
     ndx_closest = find_nearest_ndx(array, cut_off)
     if np.isclose(array[ndx_closest], cut_off):
@@ -155,7 +158,8 @@ def find_after_cut_off_ndx(array, cut_off):
 
 def r0_removal(*arrays):
     """Removes the first element from a list of arrays, if the first array
-    starts with 0."""
+    starts with 0.
+    """
     r0_removed = False
     if np.isclose(arrays[0][0], 0.0):
         r0_removed = True
@@ -206,7 +210,8 @@ def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_sh
     """Calculate Δc_ext with netwon method.
 
     This term is used in the iterative extrapolation of g(r). Jacobian has an
-    implicit extrapolation of c with zeros on twice its original range."""
+    implicit extrapolation of c with zeros on twice its original range.
+    """
     # _k is iteration k
     # _s is short
     # _tgt is target
@@ -219,21 +224,19 @@ def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_sh
                         np.zeros((len(r_long) - len(r_short), len(r_short)))),
                        axis=0)
     Binv = np.linalg.pinv(B)
+    # using np.matmul for python 3.4 and older
     # J = Binv @ (Finv @ np.diag((1 + n * rho * F @ B @ G_minus_g_short)**2
     # / (1 - (1 + n * rho * F @ B @ G_minus_g_short)
     # * n * rho * F @ B @ c_k_short)**2) @ F) @ B
     F_B_G_minus_g_short = np.matmul(F, np.matmul(B, G_minus_g_short))
     F_B_c_k_short = np.matmul(F, np.matmul(B, c_k_short))
-    J = np.matmul(
-        np.matmul(Binv,
-                  np.matmul(
-                      np.matmul(Finv,
-                                np.diag((1 + n * rho * F_B_G_minus_g_short)**2
-                                        / (1 - (1 + n * rho * F_B_G_minus_g_short)
-                                           * n * rho * F_B_c_k_short)**2)),
-                      F)
-                  ),
-        B)
+    J = np.diag((1 + n * rho * F_B_G_minus_g_short)**2
+                / (1 - (1 + n * rho * F_B_G_minus_g_short)
+                   * n * rho * F_B_c_k_short)**2)
+    J = np.matmul(Finv, J)
+    J = np.matmul(J, F)
+    J = np.matmul(Binv, J)
+    J = np.matmul(J, B)
     Jinv = np.linalg.pinv(J)
     Δc = -1 * np.matmul(Jinv, (g_k_short - g_tgt_short))
     if r0_removed:
@@ -333,8 +336,9 @@ def calc_slices(r, g_tgt, g_cur, cut_off, verbose=False):
 
 
 def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
-    """Calculate a potential U using integral equation theory. Supports symmetric
-    molecules with n equal beads.
+    """Calculate a potential U using integral equation theory.
+
+    Supports symmetric molecules with n equal beads.
 
     Args:
         r: Distance grid.
@@ -388,7 +392,7 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
     # difference of rdf to target
     Delta_g = g_cur - g_tgt
     # FT of total correlation function 'h'
-    omega, h_hat = fourier(r, g_cur - 1)
+    _, h_hat = fourier(r, g_cur - 1)
     F = gen_fourier_matrix(r, fourier)
     # dc/dg
     if n == 1:
@@ -493,7 +497,7 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # pair correlation function 'h'
     h = g_cur - 1
     # special Fourier of h
-    omega, h_hat = fourier(r, h)
+    _, h_hat = fourier(r, h)
     # Fourier matrix
     F = gen_fourier_matrix(r, fourier)
     # dc/dg
@@ -565,7 +569,8 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
 def extrapolate_U_constant(dU, dU_flag):
     """Extrapolate the potential in the core region by a constant value.
 
-    Returns dU. U_{k+1} = U_k + dU is done by VOTCA."""
+    Returns dU. U_{k+1} = U_k + dU is done by VOTCA.
+    """
     dU_extrap = dU.copy()
     # find first valid dU value
     first_dU_index = np.where(dU_flag == 'i')[0][0]
@@ -588,7 +593,8 @@ def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose=False):
     Extrapolation is done, because p-HNCGN often has artifacs at
     the core, especially when pressure is far off.
 
-    Returns dU. U_{k+1} = U_k + dU is done by Votca."""
+    Returns dU. U_{k+1} = U_k + dU is done by Votca.
+    """
     # make copy
     dU_extrap = dU.copy()
     # calc PMF
@@ -647,7 +653,8 @@ def fix_U_near_cut_off_full(r, U, cut_off):
     points of dU are therefore ignored.
 
     This also helps agains an artifact of p-HNCGN, where the last value of dU
-    is a spike."""
+    is a spike.
+    """
     U_fixed = U.copy()
     ndx_co = find_after_cut_off_ndx(r, cut_off)
     second_last_deriv = U[ndx_co-2] - U[ndx_co-3]
@@ -659,7 +666,8 @@ def fix_U_near_cut_off_full(r, U, cut_off):
 
 def upd_flag_g_smaller_g_min(flag, g, g_min):
     """Take a flag list, copy it, and set the flag to 'o'utside if g is smaller
-    g_min."""
+    g_min.
+    """
     flag_new = flag.copy()
     for i, gg in enumerate(g):
         if gg < g_min:
@@ -669,7 +677,8 @@ def upd_flag_g_smaller_g_min(flag, g, g_min):
 
 def upd_flag_by_other_flag(flag, other_flag):
     """Take a flag list, copy it, and set the flag to 'o'utside where some
-    other flag list is 'o'."""
+    other flag list is 'o'.
+    """
     flag_new = flag.copy()
     for i, of in enumerate(other_flag):
         if of == 'o':
@@ -679,7 +688,8 @@ def upd_flag_by_other_flag(flag, other_flag):
 
 def upd_U_const_first_flag_i(U, flag):
     """Take a potential list, copy it, and set the potential at places where
-    flag is 'o' to the first value where flag is 'i'."""
+    flag is 'o' to the first value where flag is 'i'.
+    """
     U_new = U.copy()
     # find first valid U value
     first_U_index = np.where(flag == 'i')[0][0]
@@ -691,7 +701,8 @@ def upd_U_const_first_flag_i(U, flag):
 
 def upd_U_zero_beyond_cut_off(r, U, cut_off):
     """Take a potential list, copy it, and shift U to be zero at cut_off and
-    beyond."""
+    beyond.
+    """
     U_new = U.copy()
     index_cut_off = find_nearest_ndx(r, cut_off)
     U_cut_off = U_new[index_cut_off]
@@ -700,10 +711,9 @@ def upd_U_zero_beyond_cut_off(r, U, cut_off):
     return U_new
 
 
-def main():
-    # always raise error
-
-    description = """\
+def get_args():
+    """Define and parse command line arguments"""
+    description = """
     This script calculatess U or ΔU with the HNC methods.
     """
     parser = argparse.ArgumentParser(description=description)
@@ -806,9 +816,15 @@ def main():
         f.close()
     args.U_out = [f.name for f in args.U_out]
 
+    return args
+
+
+def process_input(args):
+    """Process arguments and perform some checks."""
     # infering variables from input
     n_beads = len(args.densities)
-    # nr. of elements in triangular matrix incl. diagonal
+    # nr. of interactions equals nr. of elements in triangular matrix incl.
+    # the diagonal
     n_interactions = (n_beads * (n_beads + 1)) // 2
 
     # some checks on input
@@ -832,15 +848,6 @@ def main():
         raise Exception('not implemented for multiple components!')
     if len(args.n_intra) > 1:
         raise Exception('not implemented for multiple components!')
-    # if n_intra > 1, also needs G
-    # NOT TRUE: may just want to initiate without G
-    """
-    G_arguments_names = ['G_tgt', 'G_cur']
-    if args.n_intra[0] > 1 and not any(vars(args).get(G_name)
-                                       for G_name in G_arguments_names):
-        raise Exception('If n_intra is larger than 1, you should also '
-                        'provide some G')
-    """
     # todo: if n_intra == 1, check if G close to g at G[-1]
     # todo for multicomponent: check order of input and output by filename
     # todo for multicomponent: allow not existing X-Y? particles would overlap
@@ -854,7 +861,7 @@ def main():
                        if vars(args).get(argname) is not None]
     for argname, flist in input_arguments:
         input_arrays[argname] = []
-        for i, f in enumerate(flist):
+        for f in flist:
             x, y, flag = readin_table(f)
             input_arrays[argname].append({'x': x, 'y': y, 'flag': flag})
 
@@ -870,8 +877,8 @@ def main():
         g_name = 'g_cur'
         G_name = 'G_cur'
     else:
-        print('no intramolecular correlations provided, assuming there are '
-              'none')
+        print("No intramolecular correlations provided, assuming there are \
+              none.")
         # this will result in zero arrays in input_arrays['G_minus_g'] in the
         # below loop
         g_name = 'g_tgt'
@@ -883,6 +890,15 @@ def main():
                                             - g_dict['y']
                                             [:G_dict['y'].shape[0]])
         input_arrays['G_minus_g'].append({'y': G_minus_g})
+    return r, input_arrays
+
+
+def main():
+    # get command line arguments
+    args = get_args()
+
+    # process and prepare input
+    r, input_arrays = process_input(args)
 
     # guess potential from distribution
     if args.subcommand in ['potential_guess']:
