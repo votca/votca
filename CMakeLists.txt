@@ -51,8 +51,9 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
-find_package(Python 3 COMPONENTS Interpreter)
-set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
+# iie methods needs python 3.5
+find_package(Python 3.5 REQUIRED COMPONENTS Interpreter)
+set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used for csg scripts")
 option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 
