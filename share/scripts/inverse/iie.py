@@ -40,7 +40,7 @@ except ImportError:
           "methods.")
     raise
 if not sys.version_info >= (3, 5):
-    raise Exception("Need Python 3.5+")
+    raise Exception("This script needs Python 3.5+.")
 
 
 BAR_PER_MD_PRESSURE = 16.6053904
@@ -74,9 +74,11 @@ def compare_grids(grid_a, grid_b):
 
 
 def calc_grid_spacing(grid, relative_tolerance=0.01):
-    """Returns the spacing of an equidistant 1D grid.
+    """
+    Returns the spacing of an equidistant 1D grid.
 
     Fails if the grid is not equidistant.
+
     """
     diffs = np.diff(grid)
     if abs((max(diffs) - min(diffs)) / max(diffs)) > relative_tolerance:
@@ -85,7 +87,8 @@ def calc_grid_spacing(grid, relative_tolerance=0.01):
 
 
 def fourier(r, f):
-    """Compute the radially 3D FT of a radially symmetric function.
+    """
+    Compute the radially 3D FT of a radially symmetric function.
 
     The frequency grid is also returned.  Some special extrapolations are used
     to make the results consistent. This function is isometric meaning it can
@@ -99,6 +102,7 @@ def fourier(r, f):
 
     Returns:
         (omega, f_hat): The reciprocal grid and the FT of f.
+
     """
     Delta_r = calc_grid_spacing(r)
     r0_added = False
@@ -144,9 +148,11 @@ def find_nearest_ndx(array, value):
 
 
 def find_after_cut_off_ndx(array, cut_off):
-    """Find index of array after given cut_off.
+    """
+    Find index of array after given cut_off.
 
     Assumes array is sorted. Used for finding first index after cut_off.
+
     """
     array = np.asarray(array)
     ndx_closest = find_nearest_ndx(array, cut_off)
@@ -159,9 +165,11 @@ def find_after_cut_off_ndx(array, cut_off):
 
 
 def r0_removal(*arrays):
-    """Remove the first element from a list of arrays.
+    """
+    Remove the first element from a list of arrays.
 
     Only does so if the first array starts with 0.
+
     """
     r0_removed = False
     if np.isclose(arrays[0][0], 0.0):
@@ -210,10 +218,12 @@ def calc_g(r, c, G_minus_g, n, rho):
 
 def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_short, n,
                 rho):
-    """Calculate Δc_ext with netwon method.
+    """
+    Calculate Δc_ext with netwon method.
 
     This term is used in the iterative extrapolation of g(r). Jacobian has an
     implicit extrapolation of c with zeros on twice its original range.
+
     """
     # _k is iteration k
     # _s is short
@@ -239,7 +249,8 @@ def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_sh
 
 def extrapolate_g(r_short, r_long, g_short, G_minus_g_short, n, rho,
                   k_max=5, output_c=False, verbose=False):
-    """Extrapolate an RDF with integral equation theory.
+    """
+    Extrapolate an RDF with integral equation theory.
 
     Assumes c = 0 in the extrapolated region. This is not a good aproximation
     in systems with bonds.
@@ -257,6 +268,7 @@ def extrapolate_g(r_short, r_long, g_short, G_minus_g_short, n, rho,
 
     Returns:
         The extrapolated RDF and depending on output_c the c.
+
     """
     r0_removed, (r_short, r_long, g_short,
                  G_minus_g_short) = r0_removal(r_short, r_long, g_short,
@@ -298,7 +310,8 @@ def extrapolate_g(r_short, r_long, g_short, G_minus_g_short, n, rho,
 
 
 def calc_slices(r, g_tgt, g_cur, cut_off, verbose=False):
-    """Generate slices for the regions used in the IIE methods.
+    """
+    Generate slices for the regions used in the IIE methods.
 
     There are different regions used:
                  |       crucial     |                     # regions (slices)
@@ -309,6 +322,7 @@ def calc_slices(r, g_tgt, g_cur, cut_off, verbose=False):
     crucial equals Δ' from Delbary et al.
     note: Vector w of HNCGN is in region crucial, but with one element less,
     because of the antiderivative operator A0.
+
     """
     r, g_tgt, g_cur = map(np.asarray, (r, g_tgt, g_cur))
     ndx_ce = max((np.where(g_tgt > G_MIN)[0][0],
@@ -328,7 +342,8 @@ def calc_slices(r, g_tgt, g_cur, cut_off, verbose=False):
 
 
 def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
-    """Calculate a potential U using integral equation theory.
+    """
+    Calculate a potential U using integral equation theory.
 
     Supports symmetric molecules with n equal beads.
 
@@ -343,6 +358,7 @@ def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
 
     Returns:
         The calculated potential.
+
     """
     h = g_tgt - 1
     c = calc_c(r, g_tgt, G_minus_g, n, rho)
@@ -356,7 +372,8 @@ def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
 
 def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
                    closure, newton_mod, cut_jacobian, verbose=False):
-    """Calculate a potential update dU using Newtons method.
+    """
+    Calculate a potential update dU using Newtons method.
 
     Supports symmetric molecules with n equal beads.
 
@@ -376,6 +393,7 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
 
     Returns:
         The calculated potential update.
+
     """
     r0_removed, (r, g_tgt, g_cur, G_minus_g) = r0_removal(r, g_tgt, g_cur, G_minus_g)
     # calc slices and Delta_r
@@ -458,7 +476,8 @@ def gauss_newton_constrained(A, C, b, d):
 def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
                          cut_off, constraints,
                          verbose=False):
-    """Calculate a potential update dU using the Gauss-Newton method.
+    """
+    Calculate a potential update dU using the Gauss-Newton method.
 
     Constraints can be added.
 
@@ -473,6 +492,7 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
 
     Returns:
         The calculated potential update.
+
     """
     r0_removed, (r, g_tgt, g_cur, G_minus_g) = r0_removal(r, g_tgt, g_cur, G_minus_g)
     # calc slices and Delta_r
@@ -547,9 +567,11 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
 
 
 def extrapolate_U_constant(dU, dU_flag):
-    """Extrapolate the potential in the core region by a constant value.
+    """
+    Extrapolate the potential in the core region by a constant value.
 
     Returns dU. U_{k+1} = U_k + dU is done by VOTCA.
+
     """
     dU_extrap = dU.copy()
     # find first valid dU value
@@ -562,7 +584,8 @@ def extrapolate_U_constant(dU, dU_flag):
 
 
 def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose=False):
-    """Extrapolate the potential in the core region.
+    """
+    Extrapolate the potential in the core region.
 
     This includes the point, where the RDF becomes larger than g_min or where
     the new potential is convex.  A power function is used.  The PMF is fitted,
@@ -572,6 +595,7 @@ def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose=False):
     the core, especially when pressure is far off.
 
     Returns dU. U_{k+1} = U_k + dU is done by Votca.
+
     """
     # make copy
     dU_extrap = dU.copy()
@@ -623,7 +647,8 @@ def shift_U_cutoff_zero(dU, r, U, cut_off):
 
 
 def fix_U_near_cut_off_full(r, U, cut_off):
-    """Modify the potential close to the cut-off to make it more smooth.
+    """
+    Modify the potential close to the cut-off to make it more smooth.
 
     The derivative of the potential between the last two points will be equal
     to the derivative between the two points before. The original last two
@@ -631,6 +656,7 @@ def fix_U_near_cut_off_full(r, U, cut_off):
 
     This also helps agains an artifact of p-HNCGN, where the last value of dU
     is a spike.
+
     """
     U_fixed = U.copy()
     ndx_co = find_after_cut_off_ndx(r, cut_off)
@@ -642,10 +668,12 @@ def fix_U_near_cut_off_full(r, U, cut_off):
 
 
 def upd_flag_g_smaller_g_min(flag, g, g_min):
-    """Update the flag to 'o' for small RDF.
+    """
+    Update the flag to 'o' for small RDF.
 
     Take a flag list, copy it, and set the flag to 'o'utside if g is smaller
     g_min.
+
     """
     flag_new = flag.copy()
     for i, gg in enumerate(g):
@@ -655,10 +683,12 @@ def upd_flag_g_smaller_g_min(flag, g, g_min):
 
 
 def upd_flag_by_other_flag(flag, other_flag):
-    """Update a flag array by another flag array.
+    """
+    Update a flag array by another flag array.
 
     Take a flag list, copy it, and set the flag to 'o'utside where some
     other flag list is 'o'.
+
     """
     flag_new = flag.copy()
     for i, of in enumerate(other_flag):
@@ -668,10 +698,12 @@ def upd_flag_by_other_flag(flag, other_flag):
 
 
 def upd_U_const_first_flag_i(U, flag):
-    """Extrapolate potential with constant values where flag is 'o'.
+    """
+    Extrapolate potential with constant values where flag is 'o'.
 
     Take a potential list, copy it, and set the potential at places where
     flag is 'o' to the first value where flag is 'i'.
+
     """
     U_new = U.copy()
     # find first valid U value
@@ -695,7 +727,7 @@ def upd_U_zero_beyond_cut_off(r, U, cut_off):
 def get_args():
     """Define and parse command line arguments."""
     description = """
-    This script calculatess U or ΔU with the HNC methods.
+    Calculate U or ΔU with Integral Equations.
     """
     parser = argparse.ArgumentParser(description=description)
     # subparsers
@@ -874,6 +906,142 @@ def process_input(args):
     return r, input_arrays
 
 
+def potential_guess(r, input_arrays, args):
+    """Do the 
+    U1 = calc_U(r,
+                input_arrays['g_tgt'][0]['y'],
+                input_arrays['G_minus_g'][0]['y'],
+                args.n_intra[0], args.kBT, args.densities[0],
+                args.closure)
+    U_flag1 = np.array(['i'] * len(r))
+    U_flag2 = upd_flag_g_smaller_g_min(U_flag1,
+                                       input_arrays['g_tgt'][0]['y'],
+                                       G_MIN)
+    U2 = upd_U_const_first_flag_i(U1, U_flag2)
+    U3 = upd_U_zero_beyond_cut_off(r, U2, args.cut_off)
+    comment = "created by: {}".format(" ".join(sys.argv))
+    saveto_table(args.U_out[0], r, U3, U_flag2, comment)
+
+
+def newton_update(r, input_arrays, args):
+    # further tests on input
+    # if g_extrap_factor != 1.0 then it should hold that cut-off == r[-1]
+    # this is basically HNCN (ex) vs HNCN (ed)
+    if not np.isclose(args.g_extrap_factor, 1.0):
+        if not np.isclose(args.cut_off, r[-1]):
+            raise Exception('if g_extrap_factor is not equal 1.0, the cut-off '
+                            'needs to be the same as the range of all RDFs for '
+                            'Newton method.')
+        # extrapolate RDFs
+        if args.g_extrap_factor < 1:
+            raise Exception('g_extrap_factor needs to be larger than 1.0')
+        Delta_r = calc_grid_spacing(r)
+        r_short = np.copy(r)
+        r = np.arange(r[0], r[-1] * args.g_extrap_factor, Delta_r)
+        g_tgt = extrapolate_g(r_short, r, input_arrays['g_tgt'][0]['y'],
+                              input_arrays['G_minus_g'][0]['y'],
+                              args.n_intra[0], args.densities[0],
+                              verbose=args.verbose)
+        g_cur = extrapolate_g(r_short, r, input_arrays['g_cur'][0]['y'],
+                              input_arrays['G_minus_g'][0]['y'],
+                              args.n_intra[0], args.densities[0],
+                              verbose=args.verbose)
+        if args.verbose:
+            np.savez_compressed('extrapolated.npz', r=r, g_tgt=g_tgt, g_cur=g_cur)
+        G_minus_g = np.concatenate((input_arrays['G_minus_g'][0]['y'],
+                                    np.zeros(len(r)-len(r_short))))
+        cut_off = r_short[-1]
+    else:
+        g_tgt = input_arrays['g_tgt'][0]['y']
+        g_cur = input_arrays['g_cur'][0]['y']
+        G_minus_g = input_arrays['G_minus_g'][0]['y']
+        cut_off = args.cut_off
+    dU1 = calc_dU_newton(r, g_tgt, g_cur, G_minus_g,
+                         args.n_intra[0], args.kBT,
+                         args.densities[0], cut_off, args.closure,
+                         args.subcommand == 'newton-mod',
+                         args.cut_jacobian,
+                         verbose=args.verbose)
+    # go back to short r range if we extrapolated
+    if not np.isclose(args.g_extrap_factor, 1.0):
+        dU1 = dU1[:len(r_short)]
+        r = r_short
+    dU_flag1 = np.array(['i'] * len(r))
+    dU_flag2 = upd_flag_g_smaller_g_min(dU_flag1,
+                                        input_arrays['g_tgt'][0]['y'],
+                                        G_MIN)
+    dU_flag3 = upd_flag_g_smaller_g_min(dU_flag2,
+                                        input_arrays['g_cur'][0]['y'],
+                                        G_MIN)
+    dU_flag4 = upd_flag_by_other_flag(dU_flag3,
+                                      input_arrays['U_cur'][0]['flag'])
+
+    dU2 = upd_U_const_first_flag_i(dU1, dU_flag4)
+    U_temp = upd_U_zero_beyond_cut_off(r,
+                                       dU2 + input_arrays['U_cur'][0]['y'],
+                                       cut_off)
+    dU3 = U_temp - input_arrays['U_cur'][0]['y']
+    comment = "created by: {}".format(" ".join(sys.argv))
+    saveto_table(args.U_out[0], r, dU3, dU_flag4, comment)
+
+
+def gauss_newton_update(r, input_arrays, args):
+    # parse constraints
+    constraints = []
+    if args.pressure_constraint is not None:
+        p_target = float(args.pressure_constraint.split(',')[0])
+        p_current = float(args.pressure_constraint.split(',')[1])
+        constraints.append({'type': 'pressure', 'target': p_target,
+                            'current': p_current})
+
+    # calc dU_pure
+    dU_pure = calc_dU_gauss_newton(r,
+                                   input_arrays['g_tgt'][0]['y'],
+                                   input_arrays['g_cur'][0]['y'],
+                                   input_arrays['G_minus_g'][0]['y'],
+                                   args.n_intra[0], args.kBT,
+                                   args.densities[0], args.cut_off,
+                                   constraints, verbose=args.verbose)
+
+    # set dU_flag to 'o' inside the core
+    dU_flag = np.where(np.isnan(dU_pure), 'o', 'i')
+
+    # select extrapolation
+    if args.extrap_near_core == 'none':
+        dU_extrap = np.nan_to_num(dU_pure)
+    elif args.extrap_near_core == 'constant':
+        dU_extrap = extrapolate_U_constant(dU_pure, dU_flag)
+    elif args.extrap_near_core == 'power':
+        dU_extrap = extrapolate_U_power(r, dU_pure,
+                                        input_arrays['U_cur'][0]['y'],
+                                        input_arrays['g_tgt'][0]['y'],
+                                        G_MIN_EXTRAPOLATE, args.kBT,
+                                        verbose=args.verbose)
+    else:
+        raise Exception("unknown extrapolation scheme for inside and near "
+                        "core region: " + args.extrap_near_core)
+    # shifts to correct potential after cut-off
+    dU_shift = shift_U_cutoff_zero(dU_extrap, r,
+                                   input_arrays['U_cur'][0]['y'],
+                                   args.cut_off)
+    # shifts to correct potential near cut-off
+    if args.fix_near_cut_off == 'none':
+        dU = dU_shift.copy()
+    elif args.fix_near_cut_off == 'full-deriv':
+        U_new = input_arrays['U_cur'][0]['y'] + dU_shift
+        U_new = fix_U_near_cut_off_full(r, U_new, args.cut_off)
+        dU = U_new - input_arrays['U_cur'][0]['y']
+    else:
+        raise Exception("unknown fix scheme for near cut-off: "
+                        + args.fix_near_cut_off)
+
+    if args.verbose:
+        np.savez_compressed('hncgn-dU.npz', r=r, dU_pure=dU_pure,
+                            dU_extrap=dU_extrap, dU_shift=dU_shift)
+    comment = "created by: {}".format(" ".join(sys.argv))
+    saveto_table(args.U_out[0], r, dU, dU_flag, comment)
+
+
 def main():
     # get command line arguments
     args = get_args()
@@ -883,138 +1051,15 @@ def main():
 
     # guess potential from distribution
     if args.subcommand in ['potential_guess']:
-        U1 = calc_U(r,
-                    input_arrays['g_tgt'][0]['y'],
-                    input_arrays['G_minus_g'][0]['y'],
-                    args.n_intra[0], args.kBT, args.densities[0],
-                    args.closure)
-        U_flag1 = np.array(['i'] * len(r))
-        U_flag2 = upd_flag_g_smaller_g_min(U_flag1,
-                                           input_arrays['g_tgt'][0]['y'],
-                                           G_MIN)
-        U2 = upd_U_const_first_flag_i(U1, U_flag2)
-        U3 = upd_U_zero_beyond_cut_off(r, U2, args.cut_off)
-        comment = "created by: {}".format(" ".join(sys.argv))
-        saveto_table(args.U_out[0], r, U3, U_flag2, comment)
+        potential_guess(r, input_arrays, args)
 
     # newton update
     if args.subcommand in ['newton', 'newton-mod']:
-        # further tests on input
-        # if g_extrap_factor != 1.0 then it should hold that cut-off == r[-1]
-        # this is basically HNCN (ex) vs HNCN (ed)
-        if not np.isclose(args.g_extrap_factor, 1.0):
-            if not np.isclose(args.cut_off, r[-1]):
-                raise Exception('if g_extrap_factor is not equal 1.0, the cut-off '
-                                'needs to be the same as the range of all RDFs for '
-                                'Newton method.')
-            # extrapolate RDFs
-            if args.g_extrap_factor < 1:
-                raise Exception('g_extrap_factor needs to be larger than 1.0')
-            Delta_r = calc_grid_spacing(r)
-            r_short = np.copy(r)
-            r = np.arange(r[0], r[-1] * args.g_extrap_factor, Delta_r)
-            g_tgt = extrapolate_g(r_short, r, input_arrays['g_tgt'][0]['y'],
-                                  input_arrays['G_minus_g'][0]['y'],
-                                  args.n_intra[0], args.densities[0],
-                                  verbose=args.verbose)
-            g_cur = extrapolate_g(r_short, r, input_arrays['g_cur'][0]['y'],
-                                  input_arrays['G_minus_g'][0]['y'],
-                                  args.n_intra[0], args.densities[0],
-                                  verbose=args.verbose)
-            if args.verbose:
-                np.savez_compressed('extrapolated.npz', r=r, g_tgt=g_tgt, g_cur=g_cur)
-            G_minus_g = np.concatenate((input_arrays['G_minus_g'][0]['y'],
-                                        np.zeros(len(r)-len(r_short))))
-            cut_off = r_short[-1]
-        else:
-            g_tgt = input_arrays['g_tgt'][0]['y']
-            g_cur = input_arrays['g_cur'][0]['y']
-            G_minus_g = input_arrays['G_minus_g'][0]['y']
-            cut_off = args.cut_off
-        dU1 = calc_dU_newton(r, g_tgt, g_cur, G_minus_g,
-                             args.n_intra[0], args.kBT,
-                             args.densities[0], cut_off, args.closure,
-                             args.subcommand == 'newton-mod',
-                             args.cut_jacobian,
-                             verbose=args.verbose)
-        # go back to short r range if we extrapolated
-        if not np.isclose(args.g_extrap_factor, 1.0):
-            dU1 = dU1[:len(r_short)]
-            r = r_short
-        dU_flag1 = np.array(['i'] * len(r))
-        dU_flag2 = upd_flag_g_smaller_g_min(dU_flag1,
-                                            input_arrays['g_tgt'][0]['y'],
-                                            G_MIN)
-        dU_flag3 = upd_flag_g_smaller_g_min(dU_flag2,
-                                            input_arrays['g_cur'][0]['y'],
-                                            G_MIN)
-        dU_flag4 = upd_flag_by_other_flag(dU_flag3,
-                                          input_arrays['U_cur'][0]['flag'])
-
-        dU2 = upd_U_const_first_flag_i(dU1, dU_flag4)
-        U_temp = upd_U_zero_beyond_cut_off(r,
-                                           dU2 + input_arrays['U_cur'][0]['y'],
-                                           cut_off)
-        dU3 = U_temp - input_arrays['U_cur'][0]['y']
-        comment = "created by: {}".format(" ".join(sys.argv))
-        saveto_table(args.U_out[0], r, dU3, dU_flag4, comment)
+        newton_update(r, input_arrays, args)
 
     # gauss-newton update
     if args.subcommand in ['gauss-newton']:
-        # parse constraints
-        constraints = []
-        if args.pressure_constraint is not None:
-            p_target = float(args.pressure_constraint.split(',')[0])
-            p_current = float(args.pressure_constraint.split(',')[1])
-            constraints.append({'type': 'pressure', 'target': p_target,
-                                'current': p_current})
-
-        # calc dU_pure
-        dU_pure = calc_dU_gauss_newton(r,
-                                       input_arrays['g_tgt'][0]['y'],
-                                       input_arrays['g_cur'][0]['y'],
-                                       input_arrays['G_minus_g'][0]['y'],
-                                       args.n_intra[0], args.kBT,
-                                       args.densities[0], args.cut_off,
-                                       constraints, verbose=args.verbose)
-
-        # set dU_flag to 'o' inside the core
-        dU_flag = np.where(np.isnan(dU_pure), 'o', 'i')
-
-        # select extrapolation
-        if args.extrap_near_core == 'none':
-            dU_extrap = np.nan_to_num(dU_pure)
-        elif args.extrap_near_core == 'constant':
-            dU_extrap = extrapolate_U_constant(dU_pure, dU_flag)
-        elif args.extrap_near_core == 'power':
-            dU_extrap = extrapolate_U_power(r, dU_pure,
-                                            input_arrays['U_cur'][0]['y'],
-                                            input_arrays['g_tgt'][0]['y'],
-                                            G_MIN_EXTRAPOLATE, args.kBT,
-                                            verbose=args.verbose)
-        else:
-            raise Exception("unknown extrapolation scheme for inside and near "
-                            "core region: " + args.extrap_near_core)
-        # shifts to correct potential after cut-off
-        dU_shift = shift_U_cutoff_zero(dU_extrap, r,
-                                       input_arrays['U_cur'][0]['y'],
-                                       args.cut_off)
-        # shifts to correct potential near cut-off
-        if args.fix_near_cut_off == 'none':
-            dU = dU_shift.copy()
-        elif args.fix_near_cut_off == 'full-deriv':
-            U_new = input_arrays['U_cur'][0]['y'] + dU_shift
-            U_new = fix_U_near_cut_off_full(r, U_new, args.cut_off)
-            dU = U_new - input_arrays['U_cur'][0]['y']
-        else:
-            raise Exception("unknown fix scheme for near cut-off: "
-                            + args.fix_near_cut_off)
-
-        if args.verbose:
-            np.savez_compressed('hncgn-dU.npz', r=r, dU_pure=dU_pure,
-                                dU_extrap=dU_extrap, dU_shift=dU_shift)
-        comment = "created by: {}".format(" ".join(sys.argv))
-        saveto_table(args.U_out[0], r, dU, dU_flag, comment)
+        gauss_newton_update(r, input_arrays, args)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""This script smoothes the potential close to the cut-off."""
+"""Smooth the potential close to the cut-off."""
 #
 # Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
@@ -26,15 +26,17 @@ np.seterr(all='raise')
 
 
 def fix_U_near_cut_off_full(r, U, cut_off):
-    """Modify the potential close to the cut-off in a way, such that it is more
-    smooth.
+    """
+    Smooth the potential close to the cut-off.
 
     The derivative of the potential between the last two points will be equal
     to the derivative between the two points before. The original last two
     points of dU are therefore ignored.
 
     This also helps agains an artifact of p-HNCGN, where the last value of dU
-    is a spike."""
+    is a spike.
+
+    """
     U_fixed = U.copy()
     ndx_co = find_nearest_ndx(r, cut_off)
     second_last_deriv = U[ndx_co-1] - U[ndx_co-2]
@@ -47,7 +49,7 @@ def fix_U_near_cut_off_full(r, U, cut_off):
 def main():
     """Main function."""
     description = """\
-    This script smoothes the potential close to the cut-off.
+    Smooth the potential close to the cut-off.
     """
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('input', type=argparse.FileType('r'),
