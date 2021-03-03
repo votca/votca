@@ -907,7 +907,7 @@ def process_input(args):
 
 
 def potential_guess(r, input_arrays, args):
-    """Do the 
+
     U1 = calc_U(r,
                 input_arrays['g_tgt'][0]['y'],
                 input_arrays['G_minus_g'][0]['y'],
@@ -924,6 +924,7 @@ def potential_guess(r, input_arrays, args):
 
 
 def newton_update(r, input_arrays, args):
+    """Do the Newton update."""
     # further tests on input
     # if g_extrap_factor != 1.0 then it should hold that cut-off == r[-1]
     # this is basically HNCN (ex) vs HNCN (ed)
@@ -986,6 +987,7 @@ def newton_update(r, input_arrays, args):
 
 
 def gauss_newton_update(r, input_arrays, args):
+    """Do the Gauss-Newton update."""
     # parse constraints
     constraints = []
     if args.pressure_constraint is not None:
