@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Multi purpose script for Iterative Integral Equation methods"""
+"""Multi purpose script for Iterative Integral Equation methods."""
 #
 # Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
@@ -38,6 +38,9 @@ try:
 except ImportError:
     print("Numpy is not installed, but needed for the iterative integral equation "
           "methods.")
+    raise
+if not sys.version_info >= (3, 5):
+    raise Exception("Need Python 3.5+")
 
 
 BAR_PER_MD_PRESSURE = 16.6053904
@@ -224,21 +227,11 @@ def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_sh
                         np.zeros((len(r_long) - len(r_short), len(r_short)))),
                        axis=0)
     Binv = np.linalg.pinv(B)
-    # using np.matmul for python 3.4 and older
-    # J = Binv @ (Finv @ np.diag((1 + n * rho * F @ B @ G_minus_g_short)**2
-    # / (1 - (1 + n * rho * F @ B @ G_minus_g_short)
-    # * n * rho * F @ B @ c_k_short)**2) @ F) @ B
-    F_B_G_minus_g_short = np.matmul(F, np.matmul(B, G_minus_g_short))
-    F_B_c_k_short = np.matmul(F, np.matmul(B, c_k_short))
-    J = np.diag((1 + n * rho * F_B_G_minus_g_short)**2
-                / (1 - (1 + n * rho * F_B_G_minus_g_short)
-                   * n * rho * F_B_c_k_short)**2)
-    J = np.matmul(Finv, J)
-    J = np.matmul(J, F)
-    J = np.matmul(Binv, J)
-    J = np.matmul(J, B)
+    J = Binv @ (Finv @ np.diag((1 + n * rho * F @ B @ G_minus_g_short)**2
+                               / (1 - (1 + n * rho * F @ B @ G_minus_g_short)
+                                  * n * rho * F @ B @ c_k_short)**2) @ F) @ B
     Jinv = np.linalg.pinv(J)
-    Δc = -1 * np.matmul(Jinv, (g_k_short - g_tgt_short))
+    Δc = -1 * Jinv @ (g_k_short - g_tgt_short)
     if r0_removed:
         Δc = np.concatenate(([0], Δc))
     return Δc
@@ -395,15 +388,11 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
     # dc/dg
     if n == 1:
         # single bead case
-        dcdg = np.matmul(np.matmul(np.linalg.inv(F),
-                                   np.diag(1 / (1 + rho * h_hat)**2)),
-                         F)
+        dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + rho * h_hat)**2) @ F
     else:
         _, G_minus_g_hat = fourier(r, G_minus_g)
-        dcdg = np.matmul(np.matmul(np.linalg.inv(F),
-                                   np.diag(1 / (1 + n * rho * G_minus_g_hat
-                                                + n * rho * h_hat)**2)),
-                         F)
+        dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + n * rho * G_minus_g_hat
+                                               + n * rho * h_hat)**2) @ F
     # calculate jacobian^-1
     if closure == 'hnc':
         if newton_mod:
@@ -419,10 +408,10 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
         # cut jacobian and transform back
         jac_cut = jac[crucial, crucial]
         jac_inv_cut = np.linalg.inv(jac_cut)
-        dU = - np.matmul(jac_inv_cut, Delta_g[crucial])
+        dU = - (jac_inv_cut @ Delta_g[crucial])
     else:
         with np.errstate(invalid='ignore'):
-            dU = - np.matmul(jac_inv, Delta_g)[crucial]
+            dU = - (jac_inv @ Delta_g)[crucial]
     if verbose:
         np.savez_compressed('newton-arrays.npz', jac=jac, jac_inv=jac_inv, dU=dU)
     # fill core and behind cut-off
@@ -456,14 +445,12 @@ def gauss_newton_constrained(A, C, b, d):
               "by constraints.")
         x_elim = []
     else:
-        x_elim = np.linalg.solve(np.matmul(A_elim.T, A_elim),
-                                 np.matmul(A_elim.T, b_elim))
+        x_elim = np.linalg.solve(A_elim.T @ A_elim, A_elim.T @ b_elim)
     if p == 0:
         # no constraints
         x = x_elim
     else:
-        x_pivot = (d[i] - np.matmul(np.delete(C, pivot, 1),
-                                    x_elim)) / C[i, pivot]
+        x_pivot = (d[i] - np.delete(C, pivot, 1) @ x_elim) / C[i, pivot]
         x = np.insert(x_elim, pivot, x_pivot)
     return x
 
@@ -471,8 +458,7 @@ def gauss_newton_constrained(A, C, b, d):
 def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
                          cut_off, constraints,
                          verbose=False):
-    """Calculate a potential update dU using the Gauss-Newton method and
-    integral equation theory.
+    """Calculate a potential update dU using the Gauss-Newton method.
 
     Constraints can be added.
 
@@ -501,22 +487,18 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # dc/dg
     if n == 1:
         # single bead case
-        dcdg = np.matmul(np.matmul(np.linalg.inv(F),
-                                   np.diag(1 / (1 + rho * h_hat)**2)),
-                         F)
+        dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + rho * h_hat)**2) @ F
     else:
         _, G_minus_g_hat = fourier(r, G_minus_g)
-        dcdg = np.matmul(np.matmul(np.linalg.inv(F),
-                                   np.diag(1 / (1 + n * rho * G_minus_g_hat
-                                                + n * rho * h_hat)**2)),
-                         F)
+        dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + n * rho * G_minus_g_hat
+                                               + n * rho * h_hat)**2) @ F
     # jacobian^-1 (matrix U in Delbary et al., with respect to potential)
     with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
         jac_inv = kBT * (np.diag(1 - 1 / g_cur[nocore]) - dcdg[nocore, nocore])
     # A0 matrix
     A0 = Delta_r * np.triu(np.ones((len(r[nocore]), len(r[crucial])-1)), k=0)
     # Jacobian with respect to force
-    J = np.matmul(np.linalg.inv(jac_inv), A0)
+    J = np.linalg.inv(jac_inv) @ A0
     # constraint matrix and vector
     C = np.zeros((len(constraints), len(r[crucial])-1))
     d = np.zeros(len(constraints))
@@ -552,7 +534,7 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     b = res[nocore]
     w = gauss_newton_constrained(A, C, b, d)
     # dU
-    dU = np.matmul(A0, w)
+    dU = A0 @ w
     # fill core with nans
     dU = np.concatenate((np.full(nocore.start, np.nan), dU))
     # dump files
@@ -711,7 +693,7 @@ def upd_U_zero_beyond_cut_off(r, U, cut_off):
 
 
 def get_args():
-    """Define and parse command line arguments"""
+    """Define and parse command line arguments."""
     description = """
     This script calculatess U or ΔU with the HNC methods.
     """
