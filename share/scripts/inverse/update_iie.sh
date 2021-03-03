@@ -86,6 +86,7 @@ else
     die "ignore_intramolecular_correlation has to be 'true' or 'false'"
 fi
 
+# for_all not necessary for most sim_prog, but also doesn't hurt.
 for_all "non-bonded bonded" do_external rdf $sim_prog
 for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 
