@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# """Multi purpose script for Iterative Integral Equation methods"""
+"""Multi purpose script for Iterative Integral Equation methods"""
 #
 # Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
@@ -82,12 +82,12 @@ def calc_grid_spacing(grid, relative_tolerance=0.01):
 
 
 def fourier(r, f):
-    """Compute the radially 3D FT and the frequency grid of a radially
-    symmetric function.
+    """Compute the radially 3D FT of a radially symmetric function.
 
-    Some special extrapolations are used to make the results consistent. This function
-    is isometric meaning it can be used to calculate the FT and the inverse FT.
-    That means inputs can also be omega and f_hat which results in r and f.
+    The frequency grid is also returned.  Some special extrapolations are used
+    to make the results consistent. This function is isometric meaning it can
+    be used to calculate the FT and the inverse FT.  That means inputs can also
+    be omega and f_hat which results in r and f.
 
     Args:
         r: Input grid. Must be evenly spaced. Can start at zero or at Δr, but nowhere
@@ -149,16 +149,16 @@ def find_after_cut_off_ndx(array, cut_off):
     ndx_closest = find_nearest_ndx(array, cut_off)
     if np.isclose(array[ndx_closest], cut_off):
         return ndx_closest + 1
-    elif array[-1] < cut_off:
+    if array[-1] < cut_off:
         return len(array)
-    else:
-        ndx = np.where(array > cut_off)[0][0]
-        return ndx
+    ndx = np.where(array > cut_off)[0][0]
+    return ndx
 
 
 def r0_removal(*arrays):
-    """Removes the first element from a list of arrays, if the first array
-    starts with 0.
+    """Remove the first element from a list of arrays.
+
+    Only does so if the first array starts with 0.
     """
     r0_removed = False
     if np.isclose(arrays[0][0], 0.0):
@@ -301,8 +301,7 @@ def extrapolate_g(r_short, r_long, g_short, G_minus_g_short, n, rho,
                             c_long_k=c_long_k, g_long_k=g_long_k, g_short_k=g_short_k)
     if output_c:
         return g_long_k[-1], c_long_k[-1]
-    else:
-        return g_long_k[-1]
+    return g_long_k[-1]
 
 
 def calc_slices(r, g_tgt, g_cur, cut_off, verbose=False):
@@ -364,8 +363,7 @@ def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
 
 def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
                    closure, newton_mod, cut_jacobian, verbose=False):
-    """Calculate a potential update dU using Newtons method and integral equation
-    theory.
+    """Calculate a potential update dU using Newtons method.
 
     Supports symmetric molecules with n equal beads.
 
@@ -582,13 +580,11 @@ def extrapolate_U_constant(dU, dU_flag):
 
 
 def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose=False):
-    """Extrapolate the potential in the core region including
-    the point, where the RDF becomes larger than g_min or where
-    the new potential is convex.
+    """Extrapolate the potential in the core region.
 
-    A power function is used.
-    The PMF is fitted, not U+dU. The fit is then shifted such
-    that the graph is monotonous.
+    This includes the point, where the RDF becomes larger than g_min or where
+    the new potential is convex.  A power function is used.  The PMF is fitted,
+    not U+dU. The fit is then shifted such that the graph is monotonous.
 
     Extrapolation is done, because p-HNCGN often has artifacs at
     the core, especially when pressure is far off.
@@ -645,8 +641,7 @@ def shift_U_cutoff_zero(dU, r, U, cut_off):
 
 
 def fix_U_near_cut_off_full(r, U, cut_off):
-    """Modify the potential close to the cut-off in a way, such that it is more
-    smooth.
+    """Modify the potential close to the cut-off to make it more smooth.
 
     The derivative of the potential between the last two points will be equal
     to the derivative between the two points before. The original last two
@@ -665,7 +660,9 @@ def fix_U_near_cut_off_full(r, U, cut_off):
 
 
 def upd_flag_g_smaller_g_min(flag, g, g_min):
-    """Take a flag list, copy it, and set the flag to 'o'utside if g is smaller
+    """Update the flag to 'o' for small RDF.
+
+    Take a flag list, copy it, and set the flag to 'o'utside if g is smaller
     g_min.
     """
     flag_new = flag.copy()
@@ -676,7 +673,9 @@ def upd_flag_g_smaller_g_min(flag, g, g_min):
 
 
 def upd_flag_by_other_flag(flag, other_flag):
-    """Take a flag list, copy it, and set the flag to 'o'utside where some
+    """Update a flag array by another flag array.
+
+    Take a flag list, copy it, and set the flag to 'o'utside where some
     other flag list is 'o'.
     """
     flag_new = flag.copy()
@@ -687,7 +686,9 @@ def upd_flag_by_other_flag(flag, other_flag):
 
 
 def upd_U_const_first_flag_i(U, flag):
-    """Take a potential list, copy it, and set the potential at places where
+    """Extrapolate potential with constant values where flag is 'o'.
+
+    Take a potential list, copy it, and set the potential at places where
     flag is 'o' to the first value where flag is 'i'.
     """
     U_new = U.copy()
@@ -700,9 +701,7 @@ def upd_U_const_first_flag_i(U, flag):
 
 
 def upd_U_zero_beyond_cut_off(r, U, cut_off):
-    """Take a potential list, copy it, and shift U to be zero at cut_off and
-    beyond.
-    """
+    """Shift potential to be zero at cut_off and beyond."""
     U_new = U.copy()
     index_cut_off = find_nearest_ndx(r, cut_off)
     U_cut_off = U_new[index_cut_off]

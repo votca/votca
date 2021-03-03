@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""This script smoothes the potential close to the cut-off."""
 #
 # Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
@@ -44,6 +45,7 @@ def fix_U_near_cut_off_full(r, U, cut_off):
 
 
 def main():
+    """Main function."""
     description = """\
     This script smoothes the potential close to the cut-off.
     """

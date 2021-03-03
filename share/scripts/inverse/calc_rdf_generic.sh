@@ -51,11 +51,11 @@ done
 name="$(csg_get_interaction_property name)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-topol=$(csg_get_property --allow-empty cg.inverse.${sim_prog}.rdf.topol)
-[[ -z $topol ]] && topol=$(csg_get_property cg.inverse.${sim_prog}.topol)
+topol=$(csg_get_property --allow-empty "cg.inverse.${sim_prog}.rdf.topol")
+[[ -z $topol ]] && topol=$(csg_get_property "cg.inverse.${sim_prog}.topol")
 [[ -f $topol ]] || die "${0##*/}: topol file '${topol}' not found, possibly you have to add it to cg.inverse.filelist"
 
-traj=$(csg_get_property --allow-empty cg.inverse.${sim_prog}.rdf.traj)
+traj=$(csg_get_property --allow-empty "cg.inverse.${sim_prog}.rdf.traj")
 [[ -z $traj ]] && traj=$(csg_get_property cg.inverse.${sim_prog}.traj)
 [[ -f $traj ]] || die "${0##*/}: traj file '${traj}' not found"
 
@@ -72,13 +72,13 @@ if : ; then
   done
 fi
 
-equi_time="$(csg_get_property cg.inverse.${sim_prog}.equi_time)"
+equi_time=$(csg_get_property "cg.inverse.${sim_prog}.equi_time")
 if [[ ${CSG_RUNTEST} ]] && csg_calc "${equi_time}" ">" "0"; then
   msg --color blue --to-stderr "Automatically setting equi_time to 0, because CSG_RUNTEST was set"
   equi_time=0
 fi
 
-first_frame="$(csg_get_property cg.inverse.${sim_prog}.first_frame)"
+first_frame=$(csg_get_property "cg.inverse.${sim_prog}.first_frame")
 if [[ ${CSG_RUNTEST} ]] && csg_calc "${first_frame}" ">" "0"; then
   msg --color blue --to-stderr "Automatically setting first_frame to 0, because CSG_RUNTEST was set"
   first_frame=0
@@ -92,10 +92,10 @@ else
   dist_type="dist"
 fi
 
-with_errors=$(csg_get_property cg.inverse.${sim_prog}.rdf.with_errors)
+with_errors=$(csg_get_property "cg.inverse.${sim_prog}.rdf.with_errors")
 if [[ ${with_errors} = "yes" ]]; then
   suffix="_with_errors"
-  block_length=$(csg_get_property cg.inverse.${sim_prog}.rdf.block_length)
+  block_length=$(csg_get_property "cg.inverse.${sim_prog}.rdf.block_length")
   if [[ ${CSG_RUNTEST} ]] && csg_calc "${block_length}" ">" "2"; then
     msg --color blue --to-stderr "Automatically setting block_length to 2, because CSG_RUNTEST was set"
     block_length=2

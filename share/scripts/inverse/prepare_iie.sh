@@ -70,8 +70,8 @@ case "$initial_guess_method" in
         out="$out ${name}.pot.new"
     done
     if [[ "${initial_guess_ignore_intra}" == "false" && $n_intra -gt 1 ]]; then
-        critical cp -t . "${main_dir}/$(printf '%s.dist-incl.tgt' $nb_interactions)"
-        G_tgt_flag="--G-tgt "$(printf '%s.dist-incl.tgt' $nb_interactions)""
+        critical cp -t . "${main_dir}/$(printf '%s.dist-incl.tgt' "$nb_interactions")"
+        G_tgt_flag="--G-tgt $(printf '%s.dist-incl.tgt' "$nb_interactions")"
     else
         G_tgt_flag=''
     fi
