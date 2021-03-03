@@ -30,11 +30,11 @@ fi
 [ -f "$2" ] && die "${0##*/}: $2 is already there"
 
 name=$(csg_get_interaction_property name)
-tmpfile=$(critical mktemp ${name}.XXX)
+tmpfile=$(critical mktemp "${name}.XXX")
 cut_off=$(csg_get_interaction_property max)
 
-critical cp "$1" $tmpfile
-echo "smoothing near cut-off for interaction $name"
+critical cp "$1" "${tmpfile}"
+echo "smoothing near cut-off for interaction ${name}"
 
-critical do_external table smooth_at_cut_off $tmpfile "$2" --cut-off=$cut_off
-critical rm -f $tmpfile
+critical do_external table smooth_at_cut_off "${tmpfile}" "$2" --cut-off="${cut_off}"
+critical rm -f "${tmpfile}"

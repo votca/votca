@@ -38,7 +38,7 @@ nb_interactions=$(csg_get_property --allow-empty cg.non-bonded.name)
 # TODO: outsource the extrapolation!
 if [[ $iie_method == 'gauss-newton' ]]; then
     pressure_constraint=$(csg_get_property cg.inverse.iie.pressure_constraint)
-    if is_num ${pressure_constraint}; then
+    if is_num "${pressure_constraint}"; then
         p_file="${name}.pressure"
         do_external pressure "$sim_prog" "$p_file"
         p_now="$(sed -n 's/^Pressure=\(.*\)/\1/p' "$p_file")" || die "${0##*/}: sed of Pressure failed"
@@ -76,7 +76,7 @@ if [[ "${ignore_intramolecular_correlation}" == 'false' ]]; then
     if [[ $n_intra -gt 1 ]]; then
         # calculate distributions including intra
         for_all "non-bonded" do_external rdf_incl_intra generic --include-intra
-        G_cur_flag="--G-cur $(printf "%s.dist-incl.new" $nb_interactions)"
+        G_cur_flag="--G-cur $(printf "%s.dist-incl.new" "$nb_interactions")"
     else
         G_cur_flag=""
     fi
@@ -87,22 +87,23 @@ else
 fi
 
 # for_all not necessary for most sim_prog, but also doesn't hurt.
-for_all "non-bonded bonded" do_external rdf $sim_prog
-for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
+for_all "non-bonded bonded" do_external rdf "$sim_prog"
+for_all "non-bonded" do_external resample target "$(csg_get_interaction_property inverse.target)" "$(csg_get_interaction_property name).dist.tgt"
 
-do_external update iie_pot $iie_method \
-$verbose_flag \
---closure $iie_closure \
---g-tgt $(printf "%s.dist.tgt" $nb_interactions) \
---g-cur $(printf "%s.dist.new" $nb_interactions) \
-$G_cur_flag \
---U-cur $(printf "%s.pot.cur" $nb_interactions) \
---U-out $(printf "%s.dpot.new" $nb_interactions) \
---kBT $kBT --densities $densities --cut-off $cut_off \
---g-extrap-factor $g_extrap_factor \
-$extrap_near_core_flag \
-$fix_near_cut_off_flag \
-$pressure_constraint_flag \
---n-intra $n_intra
+do_external update iie_pot "$iie_method" \
+"$verbose_flag" \
+--closure "$iie_closure" \
+--g-tgt $(printf "%s.dist.tgt" "$nb_interactions") \
+--g-cur $(printf "%s.dist.new" "$nb_interactions") \
+"$G_cur_flag" \
+--U-cur $(printf "%s.pot.cur" "$nb_interactions") \
+--U-out $(printf "%s.dpot.new" "$nb_interactions") \
+--kBT "$kBT" --densities "$densities" --cut-off "$cut_off" \
+--g-extrap-factor "$g_extrap_factor" \
+"$extrap_near_core_flag" \
+"$fix_near_cut_off_flag" \
+"$pressure_constraint_flag" \
+"$cut_jacobian_flag" \
+--n-intra "$n_intra"
 
 for_all "bonded" do_external update ibi_single

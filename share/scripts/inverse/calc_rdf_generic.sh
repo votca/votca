@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]
 do
     key="$1"
 
-    case $key in
+    case "${key}" in
     --include-intra)
         include_intra=true
         shift  # past argument
@@ -43,7 +43,7 @@ do
         exit 0
         ;;
     *)
-        die "unknown argument $key"
+        die "unknown argument ${key}"
         ;;
     esac
 done
@@ -51,35 +51,35 @@ done
 name="$(csg_get_interaction_property name)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-topol=$(csg_get_property --allow-empty cg.inverse.$sim_prog.rdf.topol)
-[[ -z $topol ]] && topol=$(csg_get_property cg.inverse.$sim_prog.topol)
-[[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
+topol=$(csg_get_property --allow-empty cg.inverse.${sim_prog}.rdf.topol)
+[[ -z $topol ]] && topol=$(csg_get_property cg.inverse.${sim_prog}.topol)
+[[ -f $topol ]] || die "${0##*/}: topol file '${topol}' not found, possibly you have to add it to cg.inverse.filelist"
 
-traj=$(csg_get_property --allow-empty cg.inverse.$sim_prog.rdf.traj)
-[[ -z $traj ]] && traj=$(csg_get_property cg.inverse.$sim_prog.traj)
-[[ -f $traj ]] || die "${0##*/}: traj file '$traj' not found"
+traj=$(csg_get_property --allow-empty cg.inverse.${sim_prog}.rdf.traj)
+[[ -z $traj ]] && traj=$(csg_get_property cg.inverse.${sim_prog}.traj)
+[[ -f $traj ]] || die "${0##*/}: traj file '${traj}' not found"
 
 maps=
 #always try to find mapping files
 if : ; then
-  mapping="$(csg_get_property --allow-empty cg.inverse.$sim_prog.rdf.map)"
+  mapping="$(csg_get_property --allow-empty cg.inverse.${sim_prog}.rdf.map)"
   [[ -z $mapping ]] && mapping="$(csg_get_property --allow-empty cg.inverse.map)"
   #fail if we have bonded interaction, but no mapping file
   [[ -n $(csg_get_property --allow-empty cg.bonded.name) && -z $mapping ]] && die "Mapping file for bonded interaction needed"
   for map in ${mapping}; do
-    [[ -f "$(get_main_dir)/$map" ]] || die "${0##*/}: Mapping file '$map' for bonded interaction not found in maindir"
-    maps+="$(get_main_dir)/$map;"
+    [[ -f "$(get_main_dir)/${map}" ]] || die "${0##*/}: Mapping file '${map}' for bonded interaction not found in maindir"
+    maps+="$(get_main_dir)/${map};"
   done
 fi
 
-equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time)"
-if [[ ${CSG_RUNTEST} ]] && csg_calc "$equi_time" ">" "0"; then
+equi_time="$(csg_get_property cg.inverse.${sim_prog}.equi_time)"
+if [[ ${CSG_RUNTEST} ]] && csg_calc "${equi_time}" ">" "0"; then
   msg --color blue --to-stderr "Automatically setting equi_time to 0, because CSG_RUNTEST was set"
   equi_time=0
 fi
 
-first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame)"
-if [[ ${CSG_RUNTEST} ]] && csg_calc "$first_frame" ">" "0"; then
+first_frame="$(csg_get_property cg.inverse.${sim_prog}.first_frame)"
+if [[ ${CSG_RUNTEST} ]] && csg_calc "${first_frame}" ">" "0"; then
   msg --color blue --to-stderr "Automatically setting first_frame to 0, because CSG_RUNTEST was set"
   first_frame=0
 fi
@@ -92,11 +92,11 @@ else
   dist_type="dist"
 fi
 
-with_errors=$(csg_get_property cg.inverse.$sim_prog.rdf.with_errors)
+with_errors=$(csg_get_property cg.inverse.${sim_prog}.rdf.with_errors)
 if [[ ${with_errors} = "yes" ]]; then
   suffix="_with_errors"
-  block_length=$(csg_get_property cg.inverse.$sim_prog.rdf.block_length)
-  if [[ ${CSG_RUNTEST} ]] && csg_calc "$block_length" ">" "2"; then
+  block_length=$(csg_get_property cg.inverse.${sim_prog}.rdf.block_length)
+  if [[ ${CSG_RUNTEST} ]] && csg_calc "${block_length}" ">" "2"; then
     msg --color blue --to-stderr "Automatically setting block_length to 2, because CSG_RUNTEST was set"
     block_length=2
   fi
@@ -113,20 +113,20 @@ tasks=$(get_number_tasks)
 if is_done "rdf_calculation${suffix}"; then
   echo "rdf calculation is already done"
 else
-  msg "Calculating rdfs with csg_stat using $tasks tasks"
-  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" \
-    --trj "$traj" --begin $equi_time --first-frame $first_frame ${error_opts} \
-    ${ext_opt} ${maps:+--cg ${maps}}
+  msg "Calculating rdfs with csg_stat using ${tasks} tasks"
+  critical csg_stat --nt "${tasks}" --options "${CSGXMLFILE}" --top "${topol}" \
+    --trj "${traj}" --begin "${equi_time}" --first-frame "${first_frame}" "${error_opts}" \
+    "${intra_opts}" "${ext_opt}" "${maps:+--cg ${maps}}"
   mark_done "rdf_calculation${suffix}"
 fi
 
 if [[ ${with_errors} = "yes" ]]; then
   if ! is_done "${name}_rdf_average"; then
     for i in ${name}_*.dist.block; do
-      [[ -f $i ]] || die "${0##*/}: Could not find ${name}_*.dist.block after running csg_sat, that usually means the blocksize (cg.inverse.$sim_prog.rdf.block_length) is too big."
+      [[ -f $i ]] || die "${0##*/}: Could not find ${name}_*.dist.block after running csg_sat, that usually means the blocksize (cg.inverse.${sim_prog}.rdf.block_length) is too big."
     done
-    msg "Calculating average rdfs and its errors for interaction $name"
-    do_external table average --output ${name}.${dist_type}.new ${name}_*.${dist_type}.block
+    msg "Calculating average rdfs and its errors for interaction ${name}"
+    do_external table average --output "${name}.${dist_type}.new" "${name}_*.${dist_type}.block"
     mark_done "${name}_rdf_average"
   fi
 fi
