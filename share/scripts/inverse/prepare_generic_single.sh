@@ -108,7 +108,7 @@ if [[ $use_bi == true ]]; then
     fi
     bi_init
 elif [[ $use_table == true ]]; then
-    if ! [[ $table_present == true ]]; then
+    if [[ $table_present != true ]]; then
         die "missing table ${main_dir}/${name}.pot.in"
     fi
     table_init
