@@ -15,16 +15,38 @@
 # limitations under the License.
 #
 
-if [[ $1 = "--help" ]]; then
-cat <<EOF
+show_help () {
+  cat <<EOF
 ${0##*/}, version %version%
 This script implemtents statistical analysis for the iterative Boltzmann inversion
 using generic csg tools (csg_stat)
 
-Usage: ${0##*/}
+With --include-intra intramolecular interactions are included and the
+distributions are saved as *.dist-incl.new.
+
+Usage: ${0##*/} [--help] [--include-intra]"
 EOF
-   exit 0
-fi
+}
+
+include_intra=false
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+
+    case $key in
+    --include-intra)
+        include_intra=true
+        shift  # past argument
+        ;;
+    --help)
+        show_help
+        exit 0
+        ;;
+    *)
+        die "unknown argument $key"
+        ;;
+    esac
+done
 
 name="$(csg_get_interaction_property name)"
 sim_prog="$(csg_get_property cg.inverse.program)"
@@ -62,6 +84,14 @@ if [[ ${CSG_RUNTEST} ]] && csg_calc "$first_frame" ">" "0"; then
   first_frame=0
 fi
 
+if [[ ${include_intra} = "true" ]]; then
+  intra_opts="--include-intra"
+  dist_type="dist-incl"
+else
+  intra_opts=""
+  dist_type="dist"
+fi
+
 with_errors=$(csg_get_property cg.inverse.$sim_prog.rdf.with_errors)
 if [[ ${with_errors} = "yes" ]]; then
   suffix="_with_errors"
@@ -70,10 +100,13 @@ if [[ ${with_errors} = "yes" ]]; then
     msg --color blue --to-stderr "Automatically setting block_length to 2, because CSG_RUNTEST was set"
     block_length=2
   fi
-  error_opts="--block-length ${block_length} --ext dist.block"
+  error_opts="--block-length ${block_length}"
+  ext_opt="--ext ${dist_type}.block"
 else
   suffix=""
+  ext_opt="--ext ${dist_type}.new"
 fi
+
 
 tasks=$(get_number_tasks)
 #rdf calculation is maybe done already in a different interaction
@@ -81,7 +114,9 @@ if is_done "rdf_calculation${suffix}"; then
   echo "rdf calculation is already done"
 else
   msg "Calculating rdfs with csg_stat using $tasks tasks"
-  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" --trj "$traj" --begin $equi_time --first-frame $first_frame ${error_opts} ${maps:+--cg ${maps}}
+  critical csg_stat --nt $tasks --options "$CSGXMLFILE" --top "$topol" \
+    --trj "$traj" --begin $equi_time --first-frame $first_frame ${error_opts} \
+    ${ext_opt} ${maps:+--cg ${maps}}
   mark_done "rdf_calculation${suffix}"
 fi
 
@@ -91,7 +126,7 @@ if [[ ${with_errors} = "yes" ]]; then
       [[ -f $i ]] || die "${0##*/}: Could not find ${name}_*.dist.block after running csg_sat, that usually means the blocksize (cg.inverse.$sim_prog.rdf.block_length) is too big."
     done
     msg "Calculating average rdfs and its errors for interaction $name"
-    do_external table average --output ${name}.dist.new ${name}_*.dist.block
+    do_external table average --output ${name}.${dist_type}.new ${name}_*.${dist_type}.block
     mark_done "${name}_rdf_average"
   fi
 fi

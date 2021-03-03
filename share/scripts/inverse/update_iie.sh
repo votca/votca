@@ -75,7 +75,7 @@ if [[ "${ignore_intramolecular_correlation}" == 'false' ]]; then
     # TODO: n_intra will be an array, check if any greater one
     if [[ $n_intra -gt 1 ]]; then
         # calculate distributions including intra
-        do_external iie_stat_incl generic
+        for_all "non-bonded" do_external rdf_incl_intra generic --include-intra
         G_cur_flag="--G-cur $(printf "%s.dist-incl.new" $nb_interactions)"
     else
         G_cur_flag=""

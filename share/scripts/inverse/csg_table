@@ -115,7 +115,7 @@ update ibi_pot update_ibi_pot.pl
 update iie update_iie.sh
 update iie_pot iie.py
 dist invert_iie iie.py
-iie_stat_incl generic iie_stat_incl_generic.sh
+rdf_incl_intra generic calc_rdf_generic.sh
 
 # imc specific stuff
 update imc update_imc.sh
