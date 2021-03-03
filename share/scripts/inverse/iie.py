@@ -74,8 +74,7 @@ def compare_grids(grid_a, grid_b):
 
 
 def calc_grid_spacing(grid, relative_tolerance=0.01):
-    """
-    Returns the spacing of an equidistant 1D grid.
+    """Returns the spacing of an equidistant 1D grid.
 
     Fails if the grid is not equidistant.
 
@@ -907,7 +906,7 @@ def process_input(args):
 
 
 def potential_guess(r, input_arrays, args):
-
+    """Do the potential guess."""
     U1 = calc_U(r,
                 input_arrays['g_tgt'][0]['y'],
                 input_arrays['G_minus_g'][0]['y'],
